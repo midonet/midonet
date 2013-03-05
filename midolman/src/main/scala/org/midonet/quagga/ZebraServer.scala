@@ -21,7 +21,7 @@ import java.io.IOException
 import java.net.{Socket, SocketAddress}
 
 import org.slf4j.LoggerFactory
-import org.midonet.packets.IntIPv4
+import org.midonet.packets.IPAddr
 import org.newsclub.net.unix.AFUNIXServerSocket
 
 case class Request(socket: Socket, reqId: Int)
@@ -34,7 +34,7 @@ trait ZebraServerService {
 
 class ZebraServer(val address: SocketAddress,
                   val handler: ZebraProtocolHandler,
-                  val ifAddr: IntIPv4,
+                  val ifAddr: IPAddr,
                   val ifName: String)
     extends ZebraServerService {
 

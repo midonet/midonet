@@ -4,14 +4,14 @@
 
 package org.midonet.quagga
 
-import org.midonet.packets.IntIPv4
+import org.midonet.packets.{IPAddr, IPSubnet}
 import org.midonet.quagga.ZebraProtocol.RIBType
 
 trait ZebraProtocolHandler {
 
-    def addRoute(ribType: RIBType.Value, destination: IntIPv4,
-                 gateway: IntIPv4)
+    def addRoute(ribType: RIBType.Value, destination: IPSubnet,
+                 gateway: IPAddr)
 
-    def removeRoute(ribType: RIBType.Value, destination: IntIPv4,
-                    gateway: IntIPv4)
+    def removeRoute(ribType: RIBType.Value, destination: IPSubnet,
+                    gateway: IPAddr)
 }

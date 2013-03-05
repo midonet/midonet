@@ -252,8 +252,8 @@ class Router(val id: UUID, val cfg: RouterConfig,
             return Promise.successful(new ErrorDropAction)(ec)
         }
 
-        if (pktContext.getMatch.getNetworkDestinationIPv4.getAddress ==
-                                         outPort.portAddr.getAddress) {
+        if (pktContext.getMatch.getNetworkDestinationIPv4 ==
+                                     outPort.portAddr.getAddress.toIntIPv4) {
             log.error("Got a packet addressed to a port without a LOCAL route")
             return Promise.successful(new DropAction)(ec)
         }
@@ -310,7 +310,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
         val tha = pkt.getTargetHardwareAddress
         val sha = pkt.getSenderHardwareAddress
 
-        if (!inPort.portAddr.subnetContains(spa.addressAsInt)) {
+        if (!inPort.portAddr.containsAddress(IPAddr.fromIntIPv4(spa))) {
             log.debug("Ignoring ARP request from address {} not in the " +
                 "ingress port network {}", spa, inPort.portAddr)
             return
@@ -323,7 +323,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
             arpTable.set(spa, sha)
             return
         }
-        if (!inPort.portAddr.unicastEquals(tpa)) {
+        if (!inPort.portAddr.toIntIPv4.unicastEquals(tpa)) {
             log.debug("Ignoring ARP Request to dst ip {} instead of " +
                 "inPort's {}", tpa, inPort.portAddr)
             return
@@ -367,7 +367,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
         }
 
         def isAddressedToThis(tha: MAC, tpa: IntIPv4): Boolean = {
-            (port.portAddr.unicastEquals(tpa) && tha == port.portMac)
+            (port.portAddr.toIntIPv4.unicastEquals(tpa) && tha == port.portMac)
         }
 
         // Verify the reply:  It's addressed to our MAC & IP, and is about
@@ -397,7 +397,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
 
         // Question:  Should we check if the ARP reply disagrees with an
         // existing cache entry and make noise if so?
-        if (!port.portAddr.subnetContains(spa.addressAsInt)) {
+        if (!port.portAddr.containsAddress(IPAddr.fromIntIPv4(spa))) {
             log.debug("Ignoring ARP reply from address {} not in the ingress " +
                 "port network {}", spa, port.portAddr)
             return
@@ -463,19 +463,24 @@ class Router(val id: UUID, val cfg: RouterConfig,
         val nwAddr = new IntIPv4(nextHopIP)
         port match {
             case extPort: ExteriorRouterPort =>
-                val shift = 32 - extPort.nwLength
-                // Shifts by 32 in java are no-ops (see
-                // http://www.janeg.ca/scjp/oper/shift.html), so special case
-                // nwLength=0 <=> shift=32 to always match.
-                if ((nextHopIP >>> shift) !=
-                        (extPort.nwAddr.addressAsInt >>> shift) &&
-                        shift != 32) {
-                    log.warning("getMacForIP: cannot get MAC for {} - address " +
-                        "not in network segment of port {} ({}/{})",
-                        Array[Object](nwAddr, port.id,
-                            extPort.nwAddr.toString,
-                            extPort.nwLength.toString))
-                    return Promise.successful(null)(ec)
+                extPort.nwAddr match {
+                    case extAddr: IPv4Addr =>
+                        val shift = 32 - extPort.nwLength
+                        // Shifts by 32 in java are no-ops (see
+                        // http://www.janeg.ca/scjp/oper/shift.html), so
+                        // special case nwLength=0 <=> shift=32 to always match.
+                        if ((nextHopIP >>> shift) !=
+                                (extAddr.getIntAddress >>> shift) &&
+                                shift != 32) {
+                            log.warning("getMacForIP: cannot get MAC for {} - "+
+                                "address not in network segment of port {} ({}/{})",
+                                Array[Object](nwAddr, port.id,
+                                    extPort.nwAddr.toString,
+                                    extPort.nwLength.toString))
+                            return Promise.successful(null)(ec)
+                        }
+                    case _ =>
+                        return Promise.failed(new IllegalArgumentException)
                 }
             case _ => /* Fall through */
         }
@@ -547,7 +552,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
                     (implicit ec: ExecutionContext, actorSystem: ActorSystem,
                      packetContext: PacketContext) {
         def _sendIPPacket(outPort: RouterPort[_], rt: Route) {
-            if (packet.getDestinationAddress == outPort.portAddr.addressAsInt) {
+            if (packet.getDestinationIPAddress == outPort.portAddr.getAddress) {
                 /* should never happen: it means we are trying to send a packet
                  * to ourselves, probably means that somebody sent an IP packet
                  * with a forged source address belonging to this router.
@@ -590,8 +595,8 @@ class Router(val id: UUID, val cfg: RouterConfig,
         }
 
         val ipMatch = (new WildcardMatch()).
-                setNetworkDestination(packet.getDestinationAddress).
-                setNetworkSource(packet.getSourceAddress)
+                setNetworkDestination(packet.getDestinationIPAddress).
+                setNetworkSource(packet.getSourceIPAddress)
         val rt: Route = loadBalancer.lookup(ipMatch)
         if (rt == null || rt.nextHop != Route.NextHop.PORT)
             return
@@ -651,9 +656,9 @@ class Router(val id: UUID, val cfg: RouterConfig,
         }
         // Ignore packets sent to the local-subnet IP broadcast address of the
         // intended egress port.
-        if (null != outPort) {
-            if (ipPkt.isSubnetBcast(
-                        outPort.portAddr.addressAsInt, outPort.nwLength)) {
+        if (null != outPort && outPort.portAddr.isInstanceOf[IPv4Subnet]) {
+            val ipv4addr = outPort.portAddr.asInstanceOf[IPv4Subnet].getAddress
+            if (ipPkt.isSubnetBcast(ipv4addr.getIntAddress, outPort.nwLength)) {
                 log.debug("Not generating ICMP Unreachable for packet to "
                         + "the subnet local broadcast address.")
                 return false
@@ -740,7 +745,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
         // The nwDst is the source of triggering IPv4 as seen by this router.
         ip.setDestinationAddress(ingressMatch.getNetworkSource)
         // The nwSrc is the address of the ingress port.
-        ip.setSourceAddress(inPort.portAddr.addressAsInt)
+        ip.setSourceAddress(inPort.portAddr.getAddress.toString) //XXX JLM
         val eth = new Ethernet()
         eth.setPayload(ip)
         eth.setEtherType(IPv4.ETHERTYPE)

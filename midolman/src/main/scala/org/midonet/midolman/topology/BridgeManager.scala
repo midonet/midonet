@@ -18,7 +18,7 @@ import org.midonet.midolman.simulation.Bridge
 import org.midonet.midolman.topology.builders.BridgeBuilderImpl
 import org.midonet.cluster.Client
 import org.midonet.cluster.client._
-import org.midonet.packets.{IntIPv4, MAC}
+import org.midonet.packets.{IPAddr, MAC}
 import org.midonet.util.functors.Callback0
 
 
@@ -44,7 +44,7 @@ object BridgeManager {
     case class TriggerUpdate(cfg: BridgeConfig,
                              macLearningTable: MacLearningTable,
                              rtrMacToLogicalPortId: ROMap[MAC, UUID],
-                             rtrIpToMac: ROMap[IntIPv4, MAC])
+                             rtrIpToMac: ROMap[IPAddr, MAC])
 
     case class CheckExpiredMacPorts()
 
@@ -145,7 +145,7 @@ class BridgeManager(id: UUID, val clusterClient: Client)
     private val flowRemovedCallback = new RemoveFlowCallbackGeneratorImpl
 
     private var rtrMacToLogicalPortId: ROMap[MAC, UUID] = null
-    private var rtrIpToMac: ROMap[IntIPv4, MAC] = null
+    private var rtrIpToMac: ROMap[IPAddr, MAC] = null
 
     private var filterChanged = false
 

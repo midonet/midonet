@@ -6,7 +6,7 @@ package org.midonet.quagga
 
 import org.slf4j.LoggerFactory
 import actors.Actor
-import org.midonet.packets.IntIPv4
+import org.midonet.packets.{IPAddr, IPv4Addr, IPv4Subnet}
 import java.io._
 import java.net.{Socket, InetAddress}
 import org.midonet.midolman.state.NoStatePathException
@@ -21,7 +21,7 @@ object ZebraConnection {
 
 class ZebraConnection(val dispatcher: Actor,
                       val handler: ZebraProtocolHandler,
-                      val ifAddr: IntIPv4,
+                      val ifAddr: IPAddr,
                       val ifName: String,
                       val clientId: Int)
     extends Actor {
@@ -123,6 +123,12 @@ class ZebraConnection(val dispatcher: Actor,
     private def interfaceAdd(out: DataOutputStream) {
         log.debug("begin, clientId: {}", clientId)
 
+        val ifAddr4: IPv4Addr = ifAddr match {
+            case ia: IPv4Addr => ia
+            case _ => throw new IllegalArgumentException("Zebra interface " +
+                        "address only supports IPv4")
+        }
+
         sendHeader(out, ZebraInterfaceAdd, ZebraInterfaceAddSize)
         sendInterfaceName(out, ifName)
         sendInterfaceIndex(out, 0)
@@ -141,7 +147,7 @@ class ZebraConnection(val dispatcher: Actor,
         sendInterfaceAddrIndex(out, 0)
         sendInterfaceAddrFlags(out, 0)
         sendInterfaceAddrFamily(out, AF_INET)
-        sendInterfaceAddr(out, ifAddr.addressAsInt())
+        sendInterfaceAddr(out, ifAddr4.getIntAddress)
         sendInterfaceAddrLen(out, 4)
         sendInterfaceAddrDstAddr(out, 0)
 
@@ -202,10 +208,9 @@ class ZebraConnection(val dispatcher: Actor,
                         "ZebraIpv4RouteAdd: nextHopType %d addr %d".format(
                             nextHopType, addr))
                     handler.addRoute(RIBType.fromInteger(ribType),
-                        new IntIPv4(prefix)
-                            .setMaskLength(prefixLen),
-                        new IntIPv4(addr))
-
+                        new IPv4Subnet(new IPv4Addr().setByteAddress(prefix),
+                                       prefixLen),
+                        new IPv4Addr().setIntAddress(addr))
                 }
             }
         }
@@ -253,10 +258,9 @@ class ZebraConnection(val dispatcher: Actor,
                             nextHopType, addr))
 
                     handler.removeRoute(RIBType.fromInteger(ribType),
-                        new IntIPv4(prefix)
-                            .setMaskLength(prefixLen),
-                        new IntIPv4(addr))
-
+                        new IPv4Subnet(new IPv4Addr().setByteAddress(prefix),
+                                       prefixLen),
+                        new IPv4Addr().setIntAddress(addr))
                 }
             }
         }
@@ -433,4 +437,3 @@ class ZebraConnection(val dispatcher: Actor,
         }
     }
 }
-

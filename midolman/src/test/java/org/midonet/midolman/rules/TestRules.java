@@ -28,6 +28,7 @@ import org.midonet.midolman.state.zkManagers.FiltersZkManager;
 import org.midonet.midolman.util.MockCache;
 import org.midonet.midolman.vrn.ForwardInfo;
 import org.midonet.packets.IntIPv4;
+import org.midonet.packets.IPv4Addr;
 import org.midonet.util.eventloop.MockReactor;
 
 
@@ -53,8 +54,9 @@ public class TestRules {
         pktMatch.setInputPort((short) 5);
         pktMatch.setDataLayerSource("02:11:33:00:11:01");
         pktMatch.setDataLayerDestination("02:11:aa:ee:22:05");
-        pktMatch.setNetworkSource(0x0a001406, 32);
-        pktMatch.setNetworkDestination(0x0a000b22, 32);
+        pktMatch.setNetworkSource(new IPv4Addr().setIntAddress(0x0a001406));
+        pktMatch.setNetworkDestination(
+                new IPv4Addr().setIntAddress(0x0a000b22));
         pktMatch.setNetworkProtocol((byte) 6); // TCP
         pktMatch.setNetworkTypeOfService((byte) 34);
         pktMatch.setTransportSource(4321);
@@ -63,8 +65,10 @@ public class TestRules {
         pktResponseMatch.setInputPort((short) 5);
         pktResponseMatch.setDataLayerDestination("02:11:33:00:11:01");
         pktResponseMatch.setDataLayerSource("02:11:aa:ee:22:05");
-        pktResponseMatch.setNetworkDestination(0x0a001406, 32);
-        pktResponseMatch.setNetworkSource(0x0a000b22, 32);
+        pktResponseMatch.setNetworkDestination(
+                new IPv4Addr().setIntAddress(0x0a001406));
+        pktResponseMatch.setNetworkSource(
+                new IPv4Addr().setIntAddress(0x0a000b22));
         pktResponseMatch.setNetworkProtocol((byte) 6); // TCP
         pktResponseMatch.setNetworkTypeOfService((byte) 34);
         pktResponseMatch.setTransportDestination(4321);
@@ -220,7 +224,7 @@ public class TestRules {
         Assert.assertTrue(newTpSrc <= 3399);
         Assert.assertTrue(argRes.trackConnection);
         // Now verify that the rest of the packet hasn't changed.
-        expRes.pmatch.setNetworkSource(newNwSrc);
+        expRes.pmatch.setNetworkSource(new IPv4Addr().setIntAddress(newNwSrc));
         expRes.pmatch.setTransportSource(newTpSrc);
         Assert.assertTrue(expRes.pmatch.equals(argRes.pmatch));
         // Verify we get the same mapping if we re-process the original match.
@@ -231,7 +235,8 @@ public class TestRules {
         // Now use the new ip/port in the return packet.
         argRes.pmatch = pktResponseMatch.clone();
         Assert.assertFalse(pktResponseMatch.getNetworkDestination() == newNwSrc);
-        argRes.pmatch.setNetworkDestination(newNwSrc);
+        argRes.pmatch.setNetworkDestination(
+                new IPv4Addr().setIntAddress(newNwSrc));
         Assert.assertFalse(pktResponseMatch.getTransportDestination() == newTpSrc);
         argRes.pmatch.setTransportDestination(newTpSrc);
         argRes.action = null;
@@ -270,7 +275,8 @@ public class TestRules {
         Assert.assertTrue(newTpDst <= 1050);
         Assert.assertTrue(argRes.trackConnection);
         // Now verify that the rest of the packet hasn't changed.
-        expRes.pmatch.setNetworkDestination(newNwDst);
+        expRes.pmatch.setNetworkDestination(
+                new IPv4Addr().setIntAddress(newNwDst));
         expRes.pmatch.setTransportDestination(newTpDst);
         Assert.assertTrue(expRes.pmatch.equals(argRes.pmatch));
         // Verify we get the same mapping if we re-process the original match.
@@ -281,7 +287,7 @@ public class TestRules {
         // Now use the new ip/port in the return packet.
         argRes.pmatch = pktResponseMatch.clone();
         Assert.assertFalse(pktResponseMatch.getNetworkSource() == newNwDst);
-        argRes.pmatch.setNetworkSource(newNwDst);
+        argRes.pmatch.setNetworkSource(new IPv4Addr().setIntAddress(newNwDst));
         Assert.assertFalse(pktResponseMatch.getTransportSource() == newTpDst);
         argRes.pmatch.setTransportSource(newTpDst);
         argRes.action = null;

@@ -5,7 +5,6 @@ package org.midonet.midolman.topology
 
 import builders.PortBuilderImpl
 import java.util.UUID
-import org.midonet.packets.IntIPv4
 import org.midonet.cluster.Client
 import org.midonet.midolman.topology.PortManager.TriggerUpdate
 import org.midonet.cluster.client.Port

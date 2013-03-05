@@ -7,14 +7,14 @@ package org.midonet.cluster.client
 import collection.JavaConversions._
 import java.util.UUID
 
-import org.midonet.packets.{IntIPv4, MAC}
+import org.midonet.packets.{IPAddr, IPSubnet, MAC}
 
 trait Port[T] {
     var id: UUID = null
     var deviceID: UUID = null
     var inFilterID: UUID = null
     var outFilterID: UUID = null
-    var properties: Map[String, String] = null  //move
+    var properties: Map[String, String] = null  //move (What's this mean?)
 
     def self: T = {
         this.asInstanceOf[T]
@@ -89,18 +89,16 @@ trait InteriorPort[T] extends Port[T] {
 trait BridgePort[T] extends Port[T] {}
 
 trait RouterPort[T] extends Port[T] {
-    var portAddr: IntIPv4 = null
+    var portAddr: IPSubnet = null
     var portMac: MAC = null
 
     def nwLength(): Int = {
-        portAddr.getMaskLength
+        portAddr.getPrefixLen
     }
 
-    def nwAddr(): IntIPv4 = {
-        portAddr.toNetworkAddress
-    }
+    def nwAddr(): IPAddr = portAddr.getAddress
 
-    def setPortAddr(addr: IntIPv4): T = {
+    def setPortAddr(addr: IPSubnet): T = {
         this.portAddr = addr; self
     }
 

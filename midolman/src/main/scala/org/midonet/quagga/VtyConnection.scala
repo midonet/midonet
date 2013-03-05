@@ -16,7 +16,7 @@ import java.io._
 import java.net.{UnknownHostException, Socket}
 
 import org.slf4j.LoggerFactory
-import org.midonet.packets.IntIPv4
+import org.midonet.packets.IPAddr
 import akka.dispatch.{ExecutionContext, Await, Future}
 import java.util.concurrent.Executors
 import akka.util.Duration
@@ -292,11 +292,11 @@ trait BgpConnection {
 
     def deleteAs(as: Int)
 
-    def setLocalNw(as: Int, localAddr: IntIPv4)
+    def setLocalNw(as: Int, localAddr: IPAddr)
 
-    def setPeer(as: Int, peerAddr: IntIPv4, peerAs: Int)
+    def setPeer(as: Int, peerAddr: IPAddr, peerAs: Int)
 
-    def deletePeer(as: Int, peerAddr: IntIPv4)
+    def deletePeer(as: Int, peerAddr: IPAddr)
 
     def getNetwork: Seq[String]
 
@@ -379,12 +379,12 @@ class BgpVtyConnection(addr: String, port: Int, password: String)
         }
     }
 
-    override def setLocalNw(as: Int, localAddr: IntIPv4) {
+    override def setLocalNw(as: Int, localAddr: IPAddr) {
         log.debug("begin")
 
         val request = ListBuffer[String]()
         request += SetAs.format(as) // this is actually needed
-        request += SetLocalNw.format(localAddr.toUnicastString)
+        request += SetLocalNw.format(localAddr.toString)
 
         try {
             doTransaction(request.toSeq, isConfigure = true)
@@ -396,12 +396,12 @@ class BgpVtyConnection(addr: String, port: Int, password: String)
         }
     }
 
-    override def setPeer(as: Int, peerAddr: IntIPv4, peerAs: Int) {
+    override def setPeer(as: Int, peerAddr: IPAddr, peerAs: Int) {
         log.debug("begin")
 
         val request = ListBuffer[String]()
         request += SetAs.format(as) // this is actually needed
-        request += SetPeer.format(peerAddr.toUnicastString, peerAs)
+        request += SetPeer.format(peerAddr.toString, peerAs)
 
         try {
             doTransaction(request.toSeq, isConfigure = true)
@@ -413,12 +413,12 @@ class BgpVtyConnection(addr: String, port: Int, password: String)
         }
     }
 
-    override def deletePeer(as: Int, peerAddr: IntIPv4) {
+    override def deletePeer(as: Int, peerAddr: IPAddr) {
         log.debug("begin")
 
         val request = ListBuffer[String]()
         request += SetAs.format(as) // this is actually needed
-        request += DeletePeer.format(peerAddr.toUnicastString)
+        request += DeletePeer.format(peerAddr.toString)
 
         try {
             doTransaction(request.toSeq, isConfigure = true)

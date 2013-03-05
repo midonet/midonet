@@ -4,24 +4,21 @@
 package org.midonet.midolman.topology
 
 import collection.{Set => ROSet, immutable, mutable, Iterable}
+import collection.JavaConversions._
 import java.util.UUID
 
-import org.midonet.midolman.layer3.{InvalidationTrie, Route, RoutingTable}
-import org.midonet.midolman.simulation.{ArpTable, ArpTableImpl, Router}
-import org.midonet.midolman.topology.builders.RouterBuilderImpl
 import org.midonet.cluster.Client
 import org.midonet.cluster.client.ArpCache
 import org.midonet.midolman.FlowController
-import org.midonet.midolman.topology.RouterManager._
 import org.midonet.midolman.config.MidolmanConfig
-import scala.collection.JavaConversions._
-import org.midonet.util.functors.Callback0
-import org.midonet.packets.{IntIPv4, MAC, IPv4}
-import org.midonet.midolman.topology.RouterManager.InvalidateFlows
-import org.midonet.midolman.topology.RouterManager.RemoveTag
-import org.midonet.midolman.topology.RouterManager.TriggerUpdate
-import org.midonet.midolman.topology.RouterManager.AddTag
+import org.midonet.midolman.layer3.{InvalidationTrie, Route, RoutingTable}
+import org.midonet.midolman.simulation.{ArpTable, ArpTableImpl, Router}
+import org.midonet.midolman.topology.RouterManager._
+import org.midonet.midolman.topology.builders.RouterBuilderImpl
+import org.midonet.packets.{IPv4, IPv4Addr, MAC}
 import org.midonet.sdn.flows.WildcardMatch
+import org.midonet.util.functors.Callback0
+
 
 class RoutingTableWrapper(val rTable: RoutingTable) {
     import collection.JavaConversions._
@@ -111,9 +108,9 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
         }
     }
 
-    private def invalidateFlowsByIp(ip: IntIPv4) {
+    private def invalidateFlowsByIp(ip: IPv4Addr) {
         FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
-            FlowTagger.invalidateByIp(id, ip.addressAsInt))
+            FlowTagger.invalidateByIp(id, ip.getIntAddress))
     }
 
     override def receive = super.receive orElse {
@@ -128,7 +125,7 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
             if (arpCache == null && newArpCache != null) {
                 arpCache = newArpCache
                 arpTable = new ArpTableImpl(arpCache, config,
-                    (ip: IntIPv4, mac: MAC) => invalidateFlowsByIp(ip))
+                    (ip: IPv4Addr, mac: MAC) => invalidateFlowsByIp(ip))
                 arpTable.start()
             } else if (arpCache != newArpCache) {
                 throw new RuntimeException("Trying to re-set the arp cache")

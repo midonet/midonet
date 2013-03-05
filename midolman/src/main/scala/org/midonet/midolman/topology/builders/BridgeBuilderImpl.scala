@@ -5,16 +5,18 @@
 package org.midonet.midolman.topology.builders
 
 import akka.actor.ActorRef
-import scala.collection.mutable.Map
-import java.util.UUID
+import collection.mutable
+import collection.mutable.{Map => MMap}
+import java.util.{Map => JMap, UUID}
 
+import org.slf4j.LoggerFactory
+
+import org.midonet.cluster.client.{BridgeBuilder, MacLearningTable,
+    SourceNatResource}
 import org.midonet.midolman.FlowController
 import org.midonet.midolman.topology.{BridgeConfig, BridgeManager, FlowTagger}
-import org.midonet.cluster.client.{BridgeBuilder, MacLearningTable, SourceNatResource}
-import org.midonet.packets.{IntIPv4, MAC}
+import org.midonet.packets.{IPAddr, MAC}
 import org.midonet.util.functors.Callback3
-import org.slf4j.LoggerFactory
-import collection.mutable
 
 
 /**
@@ -32,8 +34,8 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
 
     private var cfg = new BridgeConfig
     private var macPortMap: MacLearningTable = null
-    private var rtrMacToLogicalPortId: Map[MAC, UUID] = null
-    private var rtrIpToMac: Map[IntIPv4, MAC] = null
+    private var rtrMacToLogicalPortId: MMap[MAC, UUID] = null
+    private var rtrIpToMac: MMap[IPAddr, MAC] = null
 
 
     def setTunnelKey(key: Long) {
@@ -64,8 +66,8 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
 
     def start() = null
 
-    def setLogicalPortsMap(newRtrMacToLogicalPortId: java.util.Map[MAC, UUID],
-                           newRtrIpToMac: java.util.Map[IntIPv4, MAC]) {
+    def setLogicalPortsMap(newRtrMacToLogicalPortId: JMap[MAC, UUID],
+                           newRtrIpToMac: JMap[IPAddr, MAC]) {
         import collection.JavaConversions._
         log.debug("Diffing the maps.")
         // calculate diff between the 2 maps

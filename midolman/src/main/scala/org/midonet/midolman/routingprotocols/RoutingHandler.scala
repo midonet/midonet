@@ -101,10 +101,10 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
     private case class StopAdvertisingRoute(route: AdRoute)
 
     private case class AddPeerRoute(ribType: RIBType.Value,
-                                    destination: IntIPv4, gateway: IntIPv4)
+                                    destination: IPSubnet, gateway: IPAddr)
 
     private case class RemovePeerRoute(ribType: RIBType.Value,
-                                       destination: IntIPv4, gateway: IntIPv4)
+                                       destination: IPSubnet, gateway: IPAddr)
 
     // BgpdProcess will notify via these messages
     case class BGPD_READY()
@@ -199,13 +199,13 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
     }
 
     private val handler = new ZebraProtocolHandler {
-        def addRoute(ribType: RIBType.Value, destination: IntIPv4,
-                     gateway: IntIPv4) {
+        def addRoute(ribType: RIBType.Value, destination: IPSubnet,
+                     gateway: IPAddr) {
             self ! AddPeerRoute(ribType, destination, gateway)
         }
 
-        def removeRoute(ribType: RIBType.Value, destination: IntIPv4,
-                        gateway: IntIPv4) {
+        def removeRoute(ribType: RIBType.Value, destination: IPSubnet,
+                        gateway: IPAddr) {
             self ! RemovePeerRoute(ribType, destination, gateway)
         }
     }
@@ -266,7 +266,9 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
 
                         if (bgps.contains(bgp.getId)) bgps.remove(bgp.getId)
                         bgps.put(bgp.getId, bgp)
-                        bgpVty.setPeer(bgp.getLocalAS, bgp.getPeerAddr, bgp.getPeerAS)
+                        bgpVty.setPeer(bgp.getLocalAS,
+                                       IPAddr.fromIntIPv4(bgp.getPeerAddr),
+                                       bgp.getPeerAS)
 
                     case Stopping =>
                 }
@@ -290,7 +292,8 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
                     case Started =>
                         // TODO(pino): Use bgpVty to remove this BGP and its routes
                         val Some(bgp) = bgps.remove(bgpID)
-                        bgpVty.deletePeer(bgp.getLocalAS, bgp.getPeerAddr)
+                        bgpVty.deletePeer(bgp.getLocalAS,
+                                          IPAddr.fromIntIPv4(bgp.getPeerAddr))
                         // Remove all the flows for this BGP link
                         FlowController.getRef().tell(
                             FlowController.InvalidateFlowsByTag(bgpID))
@@ -341,7 +344,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
 
                         for (bgp <- bgps.values) {
                             // Use the bgpVty to set up sessions with all these peers
-                            create(rport.portAddr, bgp)
+                            create(rport.portAddr.getAddress, bgp)
                         }
 
                         // BGP routes are added on:
@@ -441,9 +444,9 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
 
                         val route = new Route()
                         route.setRouterId(rport.deviceID)
-                        route.setDstNetworkAddr(destination.toUnicastString)
-                        route.setDstNetworkLength(destination.prefixLen())
-                        route.setNextHopGateway(gateway.toUnicastString)
+                        route.setDstNetworkAddr(destination.getAddress.toString)
+                        route.setDstNetworkLength(destination.getPrefixLen)
+                        route.setNextHopGateway(gateway.toString)
                         route.setNextHop(org.midonet.midolman.layer3.Route.NextHop.PORT)
                         route.setNextHopPort(rport.id)
                         val routeId = dataClient.routesCreateEphemeral(route)
@@ -463,9 +466,9 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
                     case Started =>
                         val route = new Route()
                         route.setRouterId(rport.deviceID)
-                        route.setDstNetworkAddr(destination.toUnicastString)
-                        route.setDstNetworkLength(destination.prefixLen())
-                        route.setNextHopGateway(gateway.toUnicastString)
+                        route.setDstNetworkAddr(destination.getAddress.toString)
+                        route.setDstNetworkLength(destination.getPrefixLen)
+                        route.setNextHopGateway(gateway.toString)
                         route.setNextHop(org.midonet.midolman.layer3.Route.NextHop.PORT)
                         route.setNextHopPort(rport.id)
                         peerRoutes.get(route) match {
@@ -523,8 +526,8 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
 
         socketAddress = new AFUNIXSocketAddress(socketFile)
 
-        zebra = new ZebraServer(
-            socketAddress, handler, rport.portAddr.toHostAddress, BGP_NETDEV_PORT_MIRROR_NAME)
+        zebra = new ZebraServer(socketAddress, handler,
+            rport.portAddr.getAddress, BGP_NETDEV_PORT_MIRROR_NAME)
         zebra.start()
 
         // Does the namespace exist?
@@ -572,8 +575,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
         ProcessHelper.executeCommandLine(cmdLine)
 
         cmdLine = "sudo ip netns exec " + BGP_NETWORK_NAMESPACE +
-            " ip addr add " + rport.portAddr.toUnicastString +
-            "/" + rport.portAddr.getMaskLength + " dev " +
+            " ip addr add " + rport.portAddr.toString + " dev " +
             BGP_NETDEV_PORT_MIRROR_NAME
         ProcessHelper.executeCommandLine(cmdLine)
 
@@ -691,7 +693,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
         setBGPFlows(newPort.getPortNo.shortValue(), bgp, rport)
 
         bgpdProcess = new BgpdProcess(self, BGP_VTY_PORT,
-            rport.portAddr.toUnicastString, socketAddress,
+            rport.portAddr.getAddress.toString, socketAddress,
             BGP_NETWORK_NAMESPACE)
         val didStart = bgpdProcess.start()
         if (didStart) {
@@ -704,11 +706,13 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
         log.debug("end")
     }
 
-    def create(localAddr: IntIPv4, bgp: BGP) {
+    def create(localAddr: IPAddr, bgp: BGP) {
         log.debug("create - begin")
         bgpVty.setAs(bgp.getLocalAS)
         bgpVty.setLocalNw(bgp.getLocalAS, localAddr)
-        bgpVty.setPeer(bgp.getLocalAS, bgp.getPeerAddr, bgp.getPeerAS)
+        bgpVty.setPeer(bgp.getLocalAS, 
+                       IPAddr.fromIntIPv4(bgp.getPeerAddr),
+                       bgp.getPeerAS)
 
         for (adRoute <- adRoutes) {
             // If an adRoute is already configured in bgp, it will be
@@ -735,7 +739,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
             .setInputPortNumber(localPortNum)
             .setEtherType(IPv4.ETHERTYPE)
             .setNetworkProtocol(TCP.PROTOCOL_NUMBER)
-            .setNetworkSource(bgpPort.portAddr.toHostAddress)
+            .setNetworkSource(bgpPort.portAddr.getAddress)
             .setNetworkDestination(bgp.getPeerAddr.toHostAddress)
             .setTransportDestination(BGP_TCP_PORT)
 
@@ -751,7 +755,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
             .setInputPortNumber(localPortNum)
             .setEtherType(IPv4.ETHERTYPE)
             .setNetworkProtocol(TCP.PROTOCOL_NUMBER)
-            .setNetworkSource(bgpPort.portAddr.toHostAddress)
+            .setNetworkSource(bgpPort.portAddr.getAddress)
             .setNetworkDestination(bgp.getPeerAddr.toHostAddress)
             .setTransportSource(BGP_TCP_PORT)
 
@@ -768,7 +772,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
             .setEtherType(IPv4.ETHERTYPE)
             .setNetworkProtocol(TCP.PROTOCOL_NUMBER)
             .setNetworkSource(bgp.getPeerAddr.toHostAddress)
-            .setNetworkDestination(bgpPort.portAddr.toHostAddress)
+            .setNetworkDestination(bgpPort.portAddr.getAddress)
             .setTransportDestination(BGP_TCP_PORT)
 
         wildcardFlow = new WildcardFlow()
@@ -784,7 +788,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
             .setEtherType(IPv4.ETHERTYPE)
             .setNetworkProtocol(TCP.PROTOCOL_NUMBER)
             .setNetworkSource(bgp.getPeerAddr.toHostAddress)
-            .setNetworkDestination(bgpPort.portAddr.toHostAddress)
+            .setNetworkDestination(bgpPort.portAddr.getAddress)
             .setTransportSource(BGP_TCP_PORT)
 
         wildcardFlow = new WildcardFlow()
@@ -827,7 +831,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
             .setInputPortNumber(localPortNum)
             .setEtherType(IPv4.ETHERTYPE)
             .setNetworkProtocol(ICMP.PROTOCOL_NUMBER)
-            .setNetworkSource(bgpPort.portAddr.toHostAddress)
+            .setNetworkSource(bgpPort.portAddr.getAddress)
             .setNetworkDestination(bgp.getPeerAddr.toHostAddress)
 
         wildcardFlow = new WildcardFlow()
@@ -843,7 +847,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
             .setEtherType(IPv4.ETHERTYPE)
             .setNetworkProtocol(ICMP.PROTOCOL_NUMBER)
             .setNetworkSource(bgp.getPeerAddr.toHostAddress)
-            .setNetworkDestination(bgpPort.portAddr.toHostAddress)
+            .setNetworkDestination(bgpPort.portAddr.getAddress)
 
         wildcardFlow = new WildcardFlow()
             .setMatch(wildcardMatch)

@@ -18,7 +18,6 @@ import org.midonet.cluster.Client
 import org.midonet.cluster.client.Port
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import akka.dispatch.{Promise, Future, ExecutionContext}
-import scala.Some
 import compat.Platform
 import java.util.concurrent.TimeoutException
 

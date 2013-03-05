@@ -44,6 +44,7 @@ import org.midonet.cluster.client.MacLearningTable;
 import org.midonet.cluster.client.RouterBuilder;
 import org.midonet.cluster.client.SourceNatResource;
 import org.midonet.packets.IntIPv4;
+import org.midonet.packets.IPAddr;
 import org.midonet.packets.MAC;
 import org.midonet.util.functors.Callback1;
 import org.midonet.util.functors.Callback3;
@@ -275,7 +276,7 @@ public class LocalClientImplTest {
 
         @Override
         public void setLogicalPortsMap(Map<MAC, UUID> rtrMacToLogicalPortId,
-                                       Map<IntIPv4, MAC> rtrIpToMac) {
+                                       Map<IPAddr, MAC> rtrIpToMac) {
             //To change body of implemented methods use File | Settings | File Templates.
         }
 

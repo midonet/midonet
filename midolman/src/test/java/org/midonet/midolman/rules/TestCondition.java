@@ -29,8 +29,9 @@ import org.junit.Test;
 
 import org.midonet.cache.Cache;
 import org.midonet.midolman.vrn.ForwardInfo;
-import org.midonet.packets.IPv4;
 import org.midonet.packets.IntIPv4;
+import org.midonet.packets.IPv4;
+import org.midonet.packets.IPv4Addr;
 import org.midonet.sdn.flows.WildcardMatch;
 import org.midonet.util.functors.Callback1;
 
@@ -58,8 +59,9 @@ public class TestCondition {
         pktMatch.setDataLayerSource("02:11:33:00:11:01");
         pktMatch.setDataLayerDestination("02:11:aa:ee:22:05");
         pktMatch.setDataLayerType(IPv4.ETHERTYPE);
-        pktMatch.setNetworkSource(0x0a001406, 32);
-        pktMatch.setNetworkDestination(0x0a000b22, 32);
+        pktMatch.setNetworkSource(new IPv4Addr().setIntAddress(0x0a001406));
+        pktMatch.setNetworkDestination(
+                new IPv4Addr().setIntAddress(0x0a000b22));
         pktMatch.setNetworkProtocol((byte) 6);
         pktMatch.setNetworkTypeOfService((byte) 34);
         pktMatch.setTransportSource(4321);

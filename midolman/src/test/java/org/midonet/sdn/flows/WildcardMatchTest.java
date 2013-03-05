@@ -7,13 +7,12 @@ package org.midonet.sdn.flows;
 import org.junit.Assert;
 import org.junit.Test;
 
-
-import org.midonet.packets.IntIPv4;
-
-
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.Matchers.is;
+
+import org.midonet.packets.IntIPv4;
+import org.midonet.packets.IPv4Addr;
 
 
 public class WildcardMatchTest {
@@ -131,7 +130,7 @@ public class WildcardMatchTest {
         int expectedLen = 32;
         WildcardMatch wmatch = new WildcardMatch();
         int nwDest = 0x12345678;
-        wmatch.setNetworkDestination(nwDest, len);
+        wmatch.setNetworkDestination(new IPv4Addr().setIntAddress(nwDest));
         IntIPv4 ipDst = wmatch.getNetworkDestinationIPv4();
         assertThat(ipDst, notNullValue());
         if (null != ipDst) {
@@ -148,7 +147,7 @@ public class WildcardMatchTest {
         int len = 32;
         WildcardMatch wmatch = new WildcardMatch();
         int nwDest = 0x12345678;
-        wmatch.setNetworkDestination(nwDest, len);
+        wmatch.setNetworkDestination(new IPv4Addr().setIntAddress(nwDest));
         IntIPv4 ipDst = wmatch.getNetworkDestinationIPv4();
         assertThat(ipDst, notNullValue());
         if (null != ipDst) {
@@ -166,7 +165,7 @@ public class WildcardMatchTest {
         int expectedLen = 32;
         WildcardMatch wmatch = new WildcardMatch();
         int nwSource = 0x12345678;
-        wmatch.setNetworkSource(nwSource, len);
+        wmatch.setNetworkSource(new IPv4Addr().setIntAddress(nwSource));
         IntIPv4 ipSrc = wmatch.getNetworkSourceIPv4();
         assertThat(ipSrc, notNullValue());
         if (null != ipSrc) {
@@ -183,7 +182,7 @@ public class WildcardMatchTest {
         int len = 32;
         WildcardMatch wmatch = new WildcardMatch();
         int nwSource = 0x12345678;
-        wmatch.setNetworkSource(nwSource, len);
+        wmatch.setNetworkSource(new IPv4Addr().setIntAddress(nwSource));
         IntIPv4 ipSrc = wmatch.getNetworkSourceIPv4();
         assertThat(ipSrc, notNullValue());
         if (null != ipSrc) {

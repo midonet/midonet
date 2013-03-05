@@ -10,14 +10,14 @@ import akka.dispatch.{ExecutionContext, Future, Promise}
 import akka.util.Duration
 import java.util.concurrent.{TimeUnit, TimeoutException}
 
-import org.midonet.midolman.logging.LoggerFactory
-import org.midonet.midolman.DatapathController
-import org.midonet.midolman.state.ArpCacheEntry
 import org.midonet.cluster.client.{ArpCache, RouterPort}
-import org.midonet.packets.{ARP, Ethernet, IntIPv4, IPv4, MAC}
-import org.midonet.util.functors.{Callback2, Callback1}
-import org.midonet.midolman.config.MidolmanConfig
+import org.midonet.midolman.DatapathController
 import org.midonet.midolman.DatapathController.EmitGeneratedPacket
+import org.midonet.midolman.config.MidolmanConfig
+import org.midonet.midolman.logging.LoggerFactory
+import org.midonet.midolman.state.ArpCacheEntry
+import org.midonet.packets.{ARP, Ethernet, IntIPv4, IPAddr, IPv4, IPv4Addr, MAC}
+import org.midonet.util.functors.{Callback2, Callback1}
 
 
 /* The ArpTable is called from the Coordinators' actors and
@@ -47,7 +47,7 @@ trait SynchronizedMultiMap[A, B] extends mutable.MultiMap[A, B] with
 }
 
 class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
-                   val observer: (IntIPv4, MAC) => Unit)
+                   val observer: (IPv4Addr, MAC) => Unit)
                   (implicit context: ActorContext) extends ArpTable {
     private val log =
           LoggerFactory.getActorSystemThreadLog(this.getClass)(context.system.eventStream)
@@ -66,7 +66,7 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
                 if (mac == null)
                     return
                 log.debug("invalidating flows for {}", ip)
-                observer(ip, mac)
+                observer(IPAddr.fromIntIPv4(ip), mac)
                 arpWaiters.remove(ip) match {
                     case Some(waiters)  =>
                         log.debug("ArpCache.notify cb, fwd to {} waiters -- {}",
@@ -307,7 +307,7 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
             newEntry = entry.clone()
         }
 
-        val pkt = makeArpRequest(port.portMac, port.portAddr, ip)
+        val pkt = makeArpRequest(port.portMac, port.portAddr.toIntIPv4, ip)
         retryLoopBottomHalf(newEntry, pkt, 0)
     }
 

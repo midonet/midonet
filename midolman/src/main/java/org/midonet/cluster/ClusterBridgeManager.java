@@ -26,6 +26,8 @@ import org.midonet.midolman.state.zkManagers.PortZkManager;
 import org.midonet.cluster.client.BridgeBuilder;
 import org.midonet.cluster.client.MacLearningTable;
 import org.midonet.packets.IntIPv4;
+import org.midonet.packets.IPAddr;
+import org.midonet.packets.IPAddr$;
 import org.midonet.packets.MAC;
 import org.midonet.util.functors.Callback1;
 import org.midonet.util.functors.Callback3;
@@ -131,7 +133,7 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
         // on the contrary it will create new tables every time
         // and pass them to the builder
         Map<MAC, UUID> rtrMacToLogicalPortId = new HashMap<MAC, UUID>();
-        Map<IntIPv4, MAC> rtrIpToMac =  new HashMap<IntIPv4, MAC>();
+        Map<IPAddr, MAC> rtrIpToMac =  new HashMap<IPAddr, MAC>();
         Set<UUID> logicalPortIDs;
         LogicalPortWatcher watcher = new LogicalPortWatcher(bridgeId, builder);
         try {
@@ -176,7 +178,8 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
             rtrMacToLogicalPortId.put(routerPort.getHwAddr(), id);
             // Add the router port's IP and MAC to the permanent ARP map.
             IntIPv4 rtrPortIp = new IntIPv4(routerPort.portAddr);
-            rtrIpToMac.put(rtrPortIp, routerPort.getHwAddr());
+            rtrIpToMac.put(IPAddr$.MODULE$.fromIntIPv4(rtrPortIp),
+                           routerPort.getHwAddr());
 
             log.debug("added bridge port {} " +
                           "connected to router port with MAC:{} and IP:{}",

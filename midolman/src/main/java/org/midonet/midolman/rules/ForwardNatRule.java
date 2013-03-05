@@ -15,6 +15,7 @@ import org.midonet.midolman.layer4.NatMapping;
 import org.midonet.midolman.layer4.NwTpPair;
 import org.midonet.midolman.rules.RuleResult.Action;
 import org.midonet.packets.IPv4;
+import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.Net;
 import org.midonet.packets.TCP;
 import org.midonet.packets.UDP;
@@ -94,7 +95,8 @@ public class ForwardNatRule extends NatRule {
             log.debug("DNAT mapping floating ip {} to internal ip {}",
                     IPv4.fromIPv4Address(res.pmatch.getNetworkDestination()),
                     IPv4.fromIPv4Address(floatingIpAddr));
-            res.pmatch.setNetworkDestination(floatingIpAddr);
+            res.pmatch.setNetworkDestination(new IPv4Addr().setIntAddress(
+                    floatingIpAddr));
             res.action = action;
             return;
         }
@@ -123,7 +125,8 @@ public class ForwardNatRule extends NatRule {
                     IPv4.fromIPv4Address(res.pmatch.getNetworkDestination()),
                     res.pmatch.getTransportDestination() & USHORT });
         // TODO(pino): deal with case that conn couldn't be allocated.
-        res.pmatch.setNetworkDestination(conn.nwAddr);
+        res.pmatch.setNetworkDestination(new IPv4Addr().setIntAddress(
+                    conn.nwAddr));
         res.pmatch.setTransportDestination(conn.tpPort);
         res.action = action;
         res.trackConnection = true;
@@ -144,7 +147,8 @@ public class ForwardNatRule extends NatRule {
             log.debug("SNAT mapping internal ip {} to floating ip {}",
                     IPv4.fromIPv4Address(res.pmatch.getNetworkSource()),
                     IPv4.fromIPv4Address(floatingIpAddr));
-            res.pmatch.setNetworkSource(floatingIpAddr);
+            res.pmatch.setNetworkSource(new IPv4Addr().setIntAddress(
+                    floatingIpAddr));
             res.action = action;
             return;
         }
@@ -176,7 +180,7 @@ public class ForwardNatRule extends NatRule {
             log.error("Could not allocate Snat");
             return;
         }
-        res.pmatch.setNetworkSource(conn.nwAddr);
+        res.pmatch.setNetworkSource(new IPv4Addr().setIntAddress(conn.nwAddr));
         res.pmatch.setTransportSource(conn.tpPort);
         res.action = action;
         res.trackConnection = true;

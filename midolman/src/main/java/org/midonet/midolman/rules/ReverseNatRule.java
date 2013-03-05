@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import org.midonet.midolman.layer4.NwTpPair;
 import org.midonet.packets.IPv4;
+import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.TCP;
 import org.midonet.packets.UDP;
 import org.midonet.midolman.rules.RuleResult.Action;
@@ -74,7 +75,8 @@ public class ReverseNatRule extends NatRule {
                 res.pmatch.getTransportSource() & USHORT,
                 IPv4.fromIPv4Address(res.pmatch.getNetworkDestination()),
                 res.pmatch.getTransportDestination() & USHORT });
-        res.pmatch.setNetworkSource(origConn.nwAddr);
+        res.pmatch.setNetworkSource(
+                new IPv4Addr().setIntAddress(origConn.nwAddr));
         res.pmatch.setTransportSource(origConn.tpPort);
         res.action = action;
     }
@@ -96,7 +98,8 @@ public class ReverseNatRule extends NatRule {
                 res.pmatch.getTransportSource() & USHORT,
                 IPv4.fromIPv4Address(res.pmatch.getNetworkDestination()),
                 res.pmatch.getTransportDestination() & USHORT });
-        res.pmatch.setNetworkDestination(origConn.nwAddr);
+        res.pmatch.setNetworkDestination(
+                new IPv4Addr().setIntAddress(origConn.nwAddr));
         res.pmatch.setTransportDestination(origConn.tpPort);
         res.action = action;
     }

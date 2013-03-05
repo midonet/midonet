@@ -9,14 +9,14 @@ import akka.event.{Logging, LoggingAdapter, LogSource}
 import scala.collection.{Map => ROMap}
 import java.util.UUID
 
+import org.midonet.cluster.client.MacLearningTable
+import org.midonet.midolman.logging.LoggerFactory
 import org.midonet.midolman.rules.RuleResult.Action
 import org.midonet.midolman.simulation.Coordinator._
 import org.midonet.midolman.topology.{FlowTagger, MacFlowCount,
-                                       RemoveFlowCallbackGenerator}
-import org.midonet.cluster.client.MacLearningTable
-import org.midonet.packets.{ARP, Ethernet, IntIPv4, MAC}
+                                      RemoveFlowCallbackGenerator}
+import org.midonet.packets.{ARP, Ethernet, IPAddr, MAC}
 import org.midonet.util.functors.Callback1
-import org.midonet.midolman.logging.LoggerFactory
 
 
 class Bridge(val id: UUID, val tunnelKey: Long,
@@ -25,7 +25,7 @@ class Bridge(val id: UUID, val tunnelKey: Long,
              val outFilter: Chain,
              val flowRemovedCallbackGen: RemoveFlowCallbackGenerator,
              val rtrMacToLogicalPortId: ROMap[MAC, UUID],
-             val rtrIpToMac: ROMap[IntIPv4, MAC])
+             val rtrIpToMac: ROMap[IPAddr, MAC])
             (implicit val actorSystem: ActorSystem) extends Device {
 
     var log = LoggerFactory.getSimulationAwareLog(this.getClass)(actorSystem.eventStream)
@@ -83,7 +83,8 @@ class Bridge(val id: UUID, val tunnelKey: Long,
         Ethernet.isMcast(dstDlAddress) match {
           case true =>
             // L2 Multicast
-            val nwDst = packetContext.getMatch.getNetworkDestinationIPv4
+            val nwDst = IPAddr.fromIntIPv4(packetContext.getMatch
+                                                .getNetworkDestinationIPv4)
             if (Ethernet.isBroadcast(dstDlAddress) &&
                 packetContext.getMatch.getEtherType == ARP.ETHERTYPE) {
                 if (rtrIpToMac.contains(nwDst)) {

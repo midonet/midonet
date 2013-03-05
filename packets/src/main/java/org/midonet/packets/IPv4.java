@@ -270,6 +270,10 @@ public class IPv4 extends BasePacket {
         return sourceAddress;
     }
 
+    public IPv4Addr getSourceIPAddress() {
+        return new IPv4Addr().setIntAddress(sourceAddress);
+    }
+
     /**
      * @param sourceAddress the sourceAddress to set
      */
@@ -291,6 +295,10 @@ public class IPv4 extends BasePacket {
      */
     public int getDestinationAddress() {
         return destinationAddress;
+    }
+
+    public IPv4Addr getDestinationIPAddress() {
+        return new IPv4Addr().setIntAddress(destinationAddress);
     }
 
     /**

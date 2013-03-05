@@ -45,7 +45,7 @@ import org.midonet.odp.flows.{FlowAction, FlowActions, FlowActionUserspace,
                               FlowKeys}
 import org.midonet.odp.ports._
 import org.midonet.odp.protos.OvsDatapathConnection
-import org.midonet.packets.{Ethernet, IntIPv4, Unsigned}
+import org.midonet.packets.{Ethernet, Unsigned}
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 import org.midonet.util.functors.Callback0
 import compat.Platform

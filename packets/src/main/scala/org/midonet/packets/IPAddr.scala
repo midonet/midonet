@@ -17,7 +17,12 @@ object IPAddr {
             IPv4Addr.fromString(s)
     }
 
-    def fromIntIPv4(ii: IntIPv4) = new IPv4Addr().setIntAddress(ii.addressAsInt)
+    def fromIntIPv4(ii: IntIPv4): IPv4Addr = {
+        if (ii == null)
+            null
+        else
+            new IPv4Addr().setIntAddress(ii.addressAsInt)
+    }
 }
 
 class IPv4Addr extends IPAddr {
@@ -25,6 +30,15 @@ class IPv4Addr extends IPAddr {
     
     def getIntAddress() = address
     def setIntAddress(addr: Int) = { address = addr; this }
+    def setByteAddress(addr: Array[Byte]) = {
+        if (addr.length != 4)
+            throw new IllegalArgumentException
+        setIntAddress(((addr(0) << 24) & 0xFF000000) |
+                      ((addr(1) << 16) & 0x00FF0000) |
+                      ((addr(2) <<  8) & 0x0000FF00) |
+                      ((addr(3) <<  0) & 0x000000FF))
+    }
+
     override def toUrlString() = toString()
     override def toString() = {
         "%d.%d.%d.%d" format ((address >> 24) & 0xff,

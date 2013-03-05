@@ -26,6 +26,8 @@ import org.midonet.cluster.client.Port;
 import org.midonet.cluster.client.PortBuilder;
 import org.midonet.cluster.client.RouterPort;
 import org.midonet.packets.IntIPv4;
+import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.IPv4Subnet;
 import org.midonet.util.functors.Callback1;
 
 public class ClusterPortsManager extends ClusterManager<PortBuilder> {
@@ -152,7 +154,8 @@ public class ClusterPortsManager extends ClusterManager<PortBuilder> {
 
     void setRouterPortFields(RouterPort port,
                              PortDirectory.RouterPortConfig cfg){
-        port.setPortAddr(IntIPv4.fromString(cfg.getPortAddr(), cfg.nwLength));
+        port.setPortAddr(new IPv4Subnet(
+                IPv4Addr.fromString(cfg.getPortAddr()), cfg.nwLength));
         port.setPortMac(cfg.getHwAddr());
     }
 

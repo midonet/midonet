@@ -18,7 +18,7 @@ import org.scalatest.matchers.ShouldMatchers
 
 import org.midonet.midolman.topology._
 import org.midonet.cluster.client.MacLearningTable
-import org.midonet.packets.{ARP, IntIPv4, MAC}
+import org.midonet.packets.{ARP, IntIPv4, IPAddr, MAC}
 import org.midonet.util.functors.{Callback0, Callback1, Callback3}
 import org.midonet.sdn.flows.WildcardMatch
 
@@ -46,23 +46,25 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
     }
     private val rtr1mac = MAC.fromString("0a:43:02:34:06:01")
     private val rtr2mac = MAC.fromString("0a:43:02:34:06:02")
-    private val rtr1ip = IntIPv4.fromString("143.234.60.1")
-    private val rtr2ip = IntIPv4.fromString("143.234.60.2")
+    private val rtr1ipaddr = IPAddr.fromString("143.234.60.1")
+    private val rtr2ipaddr = IPAddr.fromString("143.234.60.2")
+    private val rtr1intip = rtr1ipaddr.toIntIPv4
+    private val rtr2intip = rtr2ipaddr.toIntIPv4
     private val rtr1port = UUID.randomUUID
     private val rtr2port = UUID.randomUUID
 
     override def beforeAll() {
         val rtrMacToLogicalPortId = Map(rtr1mac -> rtr1port,
                                         rtr2mac -> rtr2port)
-        val rtrIpToMac = Map(rtr1ip -> rtr1mac, rtr2ip -> rtr2mac)
+        val rtrIpToMac = Map(rtr1ipaddr -> rtr1mac, rtr2ipaddr -> rtr2mac)
 
         bridge = new Bridge(bridgeID, 0, macPortMap, flowCount, inFilter,
                             outFilter, flowRemovedCallbackGen,
                             rtrMacToLogicalPortId, rtrIpToMac)
     }
 
-/*
 
+/*
     def verifyMacLearned(learnedMac : String, expectedPort : UUID) {
         log.info("Invoking verifyMacLearned()")
         val verifyMac = MAC.fromString(learnedMac);
@@ -156,7 +158,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
         val ingressMatch = ((new WildcardMatch)
                 .setEthernetSource(MAC.fromString("0a:54:ce:50:44:ce"))
                 .setEthernetDestination(MAC.fromString("ff:ff:ff:ff:ff:ff"))
-                .setNetworkDestination(rtr1ip)
+                .setNetworkDestination(rtr1intip)
                 .setEtherType(ARP.ETHERTYPE))
         val origMatch = ingressMatch.clone
         val context = new PacketContext(null, null,

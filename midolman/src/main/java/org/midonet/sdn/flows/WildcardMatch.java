@@ -270,16 +270,9 @@ public class WildcardMatch implements Cloneable {
         return this;
     }
 
-    @Deprecated
     @Nonnull
-    public WildcardMatch setNetworkSource(int addr) {
-        return setNetworkSource(new IntIPv4(addr));
-    }
-
-    @Deprecated
-    @Nonnull
-    public WildcardMatch setNetworkSource(int addr, int maskLen) {
-        return setNetworkSource(new IntIPv4(addr, maskLen));
+    public WildcardMatch setNetworkSource(@Nonnull IPAddr addr) {
+        return setNetworkSource(addr.toIntIPv4());
     }
 
     @Nonnull
@@ -319,16 +312,9 @@ public class WildcardMatch implements Cloneable {
         return this;
     }
 
-    @Deprecated
     @Nonnull
-    public WildcardMatch setNetworkDestination(int addr) {
-        return setNetworkDestination(new IntIPv4(addr));
-    }
-
-    @Deprecated
-    @Nonnull
-    public WildcardMatch setNetworkDestination(int addr, int maskLen) {
-        return setNetworkDestination(new IntIPv4(addr, maskLen));
+    public WildcardMatch setNetworkDestination(@Nonnull IPAddr addr) {
+        return setNetworkDestination(addr.toIntIPv4());
     }
 
     @Nonnull
