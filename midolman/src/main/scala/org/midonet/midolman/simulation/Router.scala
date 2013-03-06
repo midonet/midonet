@@ -738,7 +738,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
         // The nwDst is the source of triggering IPv4 as seen by this router.
         ip.setDestinationAddress(ingressMatch.getNetworkSource)
         // The nwSrc is the address of the ingress port.
-        ip.setSourceAddress(inPort.portAddr.getAddress.toString) //XXX JLM
+        ip.setSourceAddress(inPort.portAddr.getAddress.asInstanceOf[IPv4Addr])
         val eth = new Ethernet()
         eth.setPayload(ip)
         eth.setEtherType(IPv4.ETHERTYPE)

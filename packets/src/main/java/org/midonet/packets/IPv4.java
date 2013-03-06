@@ -290,6 +290,11 @@ public class IPv4 extends BasePacket {
         return this;
     }
 
+    public IPv4 setSourceAddress(IPv4Addr sourceAddress) {
+        this.sourceAddress = sourceAddress.getIntAddress();
+        return this;
+    }
+
     /**
      * @return the destinationAddress
      */
@@ -314,6 +319,11 @@ public class IPv4 extends BasePacket {
      */
     public IPv4 setDestinationAddress(String destinationAddress) {
         this.destinationAddress = IPv4.toIPv4Address(destinationAddress);
+        return this;
+    }
+
+    public IPv4 setDestinationAddress(IPv4Addr destinationAddress) {
+        this.destinationAddress = destinationAddress.getIntAddress();
         return this;
     }
 
