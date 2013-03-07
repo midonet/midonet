@@ -2296,6 +2296,6 @@ for example, would be:
 * JSON:  JavaScript Object Notation
 * REST:  REpresentational State Transfer
 * TOS:  Type Of Service
-* URI:  Unique Resource Identified
+* URI:  Uniform Resource Identifier
 * URL:  Uniform Resource Locator
-* VIF:  Unique Resource Identified
+* VIF:  Virtual Interface
