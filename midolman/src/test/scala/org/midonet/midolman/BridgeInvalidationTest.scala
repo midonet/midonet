@@ -139,7 +139,6 @@ with RouterHelper{
         addRemoveFlowsProbe.fishForMessage(Duration(5, TimeUnit.SECONDS),
             "WildcardFlowAdded")(TestHelpers.matchActionsFlowAddedOrRemoved(mutable.Buffer[FlowAction[_]]
             (FlowActions.output(mapPortNameShortNumber(port3Name)))))
-
     }
 
     def testLearnMAC() {
@@ -171,7 +170,7 @@ with RouterHelper{
         // between port1 and macVm1 will expire approximately one second after
         // its only representative flow was removed. At that point, any flow
         // directed at macVm1 is invalidated.
-        val rem = addRemoveFlowsProbe.expectMsgClass(
+        val rem = addRemoveFlowsProbe.expectMsgClass(Duration(5, TimeUnit.SECONDS),
             classOf[WildcardFlowRemoved])
         rem.f.getActions.equals(
             (bufferAsJavaList[FlowAction[_]](
@@ -185,12 +184,20 @@ with RouterHelper{
         val floodedFlow = addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowAdded])
         // let's make the bridge learn vmMac2
         triggerPacketIn(port2Name, TestHelpers.createUdpPacket(macVm2, ipVm2, macVm1, ipVm1))
-        // this is the flooded flow that has been invalidated
-        addRemoveFlowsProbe.fishForMessage(Duration(3, TimeUnit.SECONDS),
-            "WildcardFlowAdded")(TestHelpers.matchActionsFlowAddedOrRemoved(
-            asScalaBuffer[FlowAction[_]](floodedFlow.f.getActions)))
+
+        val msgs = addRemoveFlowsProbe.expectMsgAllClassOf[Any](
+            Duration(3, TimeUnit.SECONDS),
+            classOf[WildcardFlowAdded], classOf[WildcardFlowRemoved])
+        msgs should have size (2)
+        // First check the removal is correct
+        val rem = (msgs collect { case m: WildcardFlowRemoved => m }).get(0)
+        rem.f.getActions.equals(
+            (bufferAsJavaList[FlowAction[_]](
+                floodedFlow.f.getActions))) should be (true)
+        // Now store the add message for comparison with the next removal.
         // this is the flow from 2 to 1
-        val flowToRemove = addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowAdded])
+        val flowToRemove = (msgs collect { case m: WildcardFlowAdded => m }).get(0)
+
         // let's create another flow from 1 to 2
         triggerPacketIn(port1Name, TestHelpers.createUdpPacket(macVm1, ipVm1, macVm2, ipVm2))
         val flowShouldBeInvalidated = addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowAdded])
@@ -218,12 +225,12 @@ with RouterHelper{
         // let's make the bridge learn vmMac2
         triggerPacketIn(port2Name, TestHelpers.createUdpPacket(macVm2, ipVm2, macVm1, ipVm1))
 
-        addRemoveFlowsProbe.expectMsgAllClassOf(
-            // this is the flooded flow that has been invalidated
-            classOf[WildcardFlowRemoved],
-            // this is the flow from 2 to 1
+        // Removed flow: flooded flow that has been invalidated
+        // Added flow: flow from 2 to 1
+        addRemoveFlowsProbe.expectMsgAnyClassOf(classOf[WildcardFlowRemoved],
             classOf[WildcardFlowAdded])
-
+        addRemoveFlowsProbe.expectMsgAnyClassOf(classOf[WildcardFlowRemoved],
+            classOf[WildcardFlowAdded])
         // let's create another flow from 1 to 2
         triggerPacketIn(port2Name, TestHelpers.createUdpPacket(macVm1, ipVm1, macVm2, ipVm2))
         val flowShouldBeInvalidated = addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowAdded])
