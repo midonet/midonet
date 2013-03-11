@@ -295,7 +295,7 @@ public class FlowManager {
             return new Flow().setMatch(flowMatch).setActions(actions);
         // Iterate through the WildcardFlowTables to find candidate wild flows.
         WildcardFlow wFlowCandidate = null;
-        WildcardMatch flowWildMatch = WildcardMatches.fromFlowMatch(flowMatch);
+        WildcardMatch flowWildMatch = WildcardMatch.fromFlowMatch(flowMatch);
         for (Map.Entry<Set<WildcardMatch.Field>,
             Map<WildcardMatch, WildcardFlow>> wTableEntry :
             wildcardTables.entrySet()) {

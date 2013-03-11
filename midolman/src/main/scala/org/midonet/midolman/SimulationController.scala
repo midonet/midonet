@@ -16,7 +16,7 @@ import javax.annotation.Nullable
 import org.midonet.cache.Cache
 import org.midonet.midolman.simulation.{Coordinator, DhcpImpl}
 import org.midonet.packets._
-import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch, WildcardMatches}
+import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.cluster.DataClient
 import org.midonet.midolman.FlowController.AddWildcardFlow
@@ -61,7 +61,7 @@ class SimulationController {
                            (implicit ec: ExecutionContext,
                             actorSystem: ActorSystem): Unit = {
         new Coordinator(
-            WildcardMatches.fromEthernetPacket(ethPkt), ethPkt, None,
+            WildcardMatch.fromEthernetPacket(ethPkt), ethPkt, None,
             Some(egressPort), Platform.currentTime + timeout,
             connectionCache, parentCookie).simulate()
     }
