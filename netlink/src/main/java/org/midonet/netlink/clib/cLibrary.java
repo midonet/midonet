@@ -30,10 +30,16 @@ public interface cLibrary extends Library {
     // this is the default page size for an amd64 linux kernel
     public static int PAGE_SIZE = 0x1000;
 
+    public static final int SOL_SOCKET = 1;
     static final int SOL_NETLINK = 270;
+
+    public static final int SO_RCVBUF = 8;
+    public static final int SO_RCVBUFFORCE = 33;
 
     static final int NETLINK_ADD_MEMBERSHIP = 1;
     static final int NETLINK_DROP_MEMBERSHIP = 2;
+    public static final int NETLINK_BROADCAST_ERROR = 4;
+    public static final int NETLINK_NO_ENOBUFS = 5;
 
     int socket(int domain, int type, int protocol);
 
@@ -43,7 +49,7 @@ public interface cLibrary extends Library {
 
     int getsockname(int fd, NetlinkSockAddress addrSockAddress, IntByReference size);
 
-    int setsockopt(int fd, int level, int optname, ByteBuffer buf, IntByReference optlen);
+    int setsockopt(int fd, int level, int optname, ByteBuffer buf, int buflen);
 
     int send(int fd, ByteBuffer buf, int len, int flags);
 
