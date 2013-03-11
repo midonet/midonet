@@ -1259,7 +1259,7 @@ It contains the following fields:
         <td>String</td>
         <td>POST</td>
         <td>No</td>
-        <td>The data layer destination that this rule matches on. A MAC
+        <td>The data link layer destination that this rule matches on. A MAC
          address in the form "aa:bb:cc:dd:ee:ff"</td>
     </tr>
     <tr>
@@ -1267,7 +1267,7 @@ It contains the following fields:
         <td>String</td>
         <td>POST</td>
         <td>No</td>
-        <td>The data layer source that this rule matches on. A MAC
+        <td>The data link layer source that this rule matches on. A MAC
          address in the form "aa:bb:cc:dd:ee:ff"</td>
     </tr>
     <tr>
@@ -1275,7 +1275,7 @@ It contains the following fields:
         <td>Short</td>
         <td>POST</td>
         <td>No</td>
-        <td>Set the data layer tpe (ethertype) of packets matched by
+        <td>Set the data link layer tpe (ethertype) of packets matched by
          this rule. The type provided is not check for validity.</td>
     </tr>
     <tr>
@@ -1306,8 +1306,8 @@ It contains the following fields:
         <td>Bool</td>
         <td>POST</td>
         <td>No</td>
-        <td>Set whether the match on the data layer destination should
-         be inverted (match packets whose data layer destination is NOT
+        <td>Set whether the match on the data link layer destination should
+         be inverted (match packets whose data link layer destination is NOT
          equal to dlDst). Will be stored, but ignored until dlDst is
          set.</td>
     </tr>
@@ -1316,8 +1316,8 @@ It contains the following fields:
         <td>Bool</td>
         <td>POST</td>
         <td>No</td>
-        <td>Set whether the match on the data layer source should be
-         inverted (match packets whose data layer source is NOT equal to
+        <td>Set whether the match on the data link layer source should be
+         inverted (match packets whose data layer link source is NOT equal to
          dlSrc). Will be stored, but ignored until dlSrc is set.</td>
     </tr>
     <tr>
@@ -1325,8 +1325,8 @@ It contains the following fields:
         <td>Bool</td>
         <td>POST</td>
         <td>No</td>
-        <td>Set whether the match on the data layer type should be
-         inverted (match packets whose data layer type is NOT equal to
+        <td>Set whether the match on the data link layer type should be
+         inverted (match packets whose data link layer type is NOT equal to
          the Ethertype set by dlType. Will be stored, but ignored until
          dlType is set.</td>
     </tr>
