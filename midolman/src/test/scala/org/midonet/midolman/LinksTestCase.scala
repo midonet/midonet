@@ -174,6 +174,9 @@ class LinksTestCase extends MidolmanTestCase
         portEvent.portID should be(rtrPort2.getId)
 
         log.debug("PING vm1 -> vm2, route is dead")
+        // wait for the routes to be updated
+        fishForRequestOfType[simulation.Router](vtaProbe())
+
         injectIcmpEcho(rtrPort1Name, vm1Mac, vm1Ip, rtrMac1, vm2Ip)
         requestOfType[PacketIn](simProbe())
         pkt = expectPacketOut(rtrPort1Num, packetEventsProbe)
