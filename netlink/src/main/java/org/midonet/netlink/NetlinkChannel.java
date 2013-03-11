@@ -6,18 +6,13 @@ package org.midonet.netlink;
 import java.io.FileDescriptor;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.ByteChannel;
-import java.nio.channels.Channel;
-import java.nio.channels.ClosedChannelException;
-import java.nio.channels.GatheringByteChannel;
-import java.nio.channels.InterruptibleChannel;
-import java.nio.channels.NotYetConnectedException;
-import java.nio.channels.ScatteringByteChannel;
-import java.nio.channels.SelectionKey;
+import java.nio.channels.*;
 import java.nio.channels.spi.AbstractSelectableChannel;
 import java.nio.channels.spi.SelectorProvider;
 import javax.annotation.Nullable;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import sun.nio.ch.SelectionKeyImpl;
 
 import org.midonet.netlink.hacks.IOStatus;
@@ -36,6 +31,9 @@ public abstract class NetlinkChannel extends AbstractSelectableChannel
                GatheringByteChannel, Channel,
                InterruptibleChannel
 {
+    private static final Logger log = LoggerFactory
+            .getLogger(NetlinkChannel.class);
+
     protected static final int ST_UNINITIALIZED = -1;
     protected static final int ST_UNCONNECTED = 0;
     protected static final int ST_CONNECTED = 1;
@@ -51,7 +49,8 @@ public abstract class NetlinkChannel extends AbstractSelectableChannel
     // Lock held by current reading, writing or connecting thread
     // TODO(rossella, pino) can 2 diffent thread read and write the channel
     // at the same time?
-    protected final Object readWriteLock = new Object();
+    protected final Object recvLock = new Object();
+    protected final Object sendLock = new Object();
     // Lock held by any thread that modifies the state fields declared below
     // DO NOT invoke a blocking I/O operation while holding this lock!
     protected final Object stateLock = new Object();
@@ -80,10 +79,12 @@ public abstract class NetlinkChannel extends AbstractSelectableChannel
     public boolean connect(Netlink.Address address) throws IOException {
         this.remoteAddress = address;
 
-        synchronized (readWriteLock) {
-            synchronized (stateLock) {
-                ensureOpenAndUnconnected();
-                _executeConnect(address);
+        synchronized (recvLock) {
+            synchronized (sendLock) {
+                synchronized (stateLock) {
+                    ensureOpenAndUnconnected();
+                    _executeConnect(address);
+                }
             }
         }
 
@@ -124,7 +125,7 @@ public abstract class NetlinkChannel extends AbstractSelectableChannel
             System.arraycopy(buffers, offset, wBuffers, 0, length);
         }
 
-        synchronized (readWriteLock) {
+        synchronized (sendLock) {
             synchronized (stateLock) {
                 ensureOpen();
                 if (!isConnected())
@@ -154,7 +155,7 @@ public abstract class NetlinkChannel extends AbstractSelectableChannel
         if (buffer == null)
             throw new NullPointerException();
 
-        synchronized (readWriteLock) {
+        synchronized (sendLock) {
             synchronized (stateLock) {
                 ensureOpen();
                 if (!isConnected())
@@ -167,7 +168,7 @@ public abstract class NetlinkChannel extends AbstractSelectableChannel
                     return 0;
                 writerThread = NativeThread.current();
                 do {
-                    n = IOUtil.write(fd, buffer, -1, nd, readWriteLock);
+                    n = IOUtil.write(fd, buffer, -1, nd, sendLock);
                 } while ((n == IOStatus.INTERRUPTED) && isOpen());
                 return IOStatus.normalize(n);
             } finally {
@@ -196,7 +197,7 @@ public abstract class NetlinkChannel extends AbstractSelectableChannel
             System.arraycopy(buffers, offset, rBuffers, 0, length);
         }
 
-        synchronized (readWriteLock) {
+        synchronized (recvLock) {
             synchronized (stateLock) {
                 ensureOpen();
                 if (!isConnected())
@@ -225,7 +226,7 @@ public abstract class NetlinkChannel extends AbstractSelectableChannel
         if (dst == null)
             throw new NullPointerException();
 
-        synchronized (readWriteLock) {
+        synchronized (recvLock) {
             synchronized (stateLock) {
                 ensureOpen();
                 if (!isConnected())
@@ -238,7 +239,7 @@ public abstract class NetlinkChannel extends AbstractSelectableChannel
                     return 0;
                 readerThread = NativeThread.current();
                 do {
-                    n = IOUtil.read(fd, dst, -1, nd, readWriteLock);
+                    n = IOUtil.read(fd, dst, -1, nd, recvLock);
                 } while ((n == IOStatus.INTERRUPTED) && isOpen());
                 return IOStatus.normalize(n);
             } finally {
