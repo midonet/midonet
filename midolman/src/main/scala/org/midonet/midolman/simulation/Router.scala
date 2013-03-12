@@ -15,7 +15,7 @@ import org.midonet.midolman.topology._
 import org.midonet.cluster.client._
 import org.midonet.packets._
 import org.midonet.packets.ICMP.{EXCEEDED_CODE, UNREACH_CODE}
-import org.midonet.sdn.flows.{WildcardMatch, WildcardMatches}
+import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.midolman.logging.LoggerFactory
 import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.midolman.simulation.Coordinator.ConsumedAction
@@ -567,7 +567,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
                 case mac =>
                     eth.setDestinationMACAddress(mac)
                     // Apply post-routing (egress) chain.
-                    val egrMatch = WildcardMatches.fromEthernetPacket(eth)
+                    val egrMatch = WildcardMatch.fromEthernetPacket(eth)
                     val egrPktContext =
                         new PacketContext(null, eth, 0, null, true, None)
                     egrPktContext.setOutputPort(outPort.id)

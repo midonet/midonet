@@ -340,7 +340,7 @@ class FlowController extends Actor with ActorLogWithoutPath {
                 dpMatchToCookie.put(packet.getMatch, cookie)
                 DatapathController.getRef().tell(
                     DatapathController.PacketIn(
-                        WildcardMatches.fromFlowMatch(packet.getMatch),
+                        WildcardMatch.fromFlowMatch(packet.getMatch),
                         packet.getData, packet.getMatch, packet.getReason,
                         Some(cookie)))
                 cookieToPendedPackets.addBinding(cookie, packet)
