@@ -97,19 +97,19 @@ public class NetlinkClient {
         log.info("Starting the selector loop");
         loopThread.start();
 
+        log.info("Initializing ovs connection");
+        ovsConnection.initialize();
+
+        while (!ovsConnection.isInitialized()) {
+            Thread.sleep(TimeUnit.MILLISECONDS.toMillis(50));
+        }
+
         return ovsConnection;
     }
 
     public static void main(String[] args) throws Exception {
 
         OvsDatapathConnection conn = createDatapathConnection();
-
-        log.info("Initializing ovs connection");
-        conn.initialize();
-
-        while (!conn.isInitialized()) {
-            Thread.sleep(TimeUnit.MILLISECONDS.toMillis(50));
-        }
 
         Datapath datapath = conn.datapathsGet("bibi").get();
 
