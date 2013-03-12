@@ -25,6 +25,7 @@ public class OvsDatapathsEnumerateTest extends AbstractNetlinkProtocolTest<OvsDa
         super.setUp(responses);
 
         connection = OvsDatapathConnection.create(channel, reactor);
+        connection.setMaxBatchIoOps(1);
     }
 
     @Test

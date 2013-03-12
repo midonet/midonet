@@ -31,6 +31,7 @@ public class OvsFlowsCreateSet_VLAN_Truncated_Test
     public void setUp() throws Exception {
         super.setUp(responses);
         connection = OvsDatapathConnection.create(channel, reactor);
+        connection.setMaxBatchIoOps(1);
     }
 
     @Override

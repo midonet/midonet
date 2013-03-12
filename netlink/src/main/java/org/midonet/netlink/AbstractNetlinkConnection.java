@@ -18,6 +18,7 @@ import javax.annotation.Nonnull;
 
 import com.google.common.base.Function;
 import com.google.common.util.concurrent.ValueFuture;
+import com.sun.jna.Native;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,10 +36,17 @@ public abstract class AbstractNetlinkConnection {
     private static final Logger log = LoggerFactory
         .getLogger(AbstractNetlinkConnection.class);
 
+    private static final int DEFAULT_MAX_BATCH_IO_OPS = 20;
+
     private AtomicInteger sequenceGenerator = new AtomicInteger(1);
 
     protected Map<Integer, NetlinkRequest>
         pendingRequests = new ConcurrentHashMap<Integer, NetlinkRequest>();
+
+    // Again, mostly for testing purposes. Tweaks the number of IO operations
+    // per handle[Write|Read]Event() invokation. Netlink protocol tests will
+    // assume one read per call.
+    private int maxBatchIoOps = DEFAULT_MAX_BATCH_IO_OPS;
 
     private NetlinkChannel channel;
     private Reactor reactor;
@@ -54,6 +62,14 @@ public abstract class AbstractNetlinkConnection {
 
     protected Reactor getReactor() {
         return reactor;
+    }
+
+    public void setMaxBatchIoOps(int max) {
+        this.maxBatchIoOps = max;
+    }
+
+    public int getMaxBatchIoOps() {
+        return this.maxBatchIoOps;
     }
 
     public class RequestBuilder<
@@ -188,18 +204,23 @@ public abstract class AbstractNetlinkConnection {
     }
 
     public void handleEvent(final SelectionKey key) throws IOException {
-
-        processReadFromChannel(key);
-
-//        getReactor().submit(new Callable<Object>() {
-//            @Override
-//            public Object call() throws Exception {
-//                return null;
-//            }
-//        });
+        try {
+            for (int i = 0; i < maxBatchIoOps; i++) {
+                final int ret = processReadFromChannel(key);
+                if (ret <= 0) {
+                    if (ret < 0) {
+                        log.info("NETLINK read() error: {}",
+                            cLibrary.lib.strerror(Native.getLastError()));
+                    }
+                    break;
+                }
+            }
+        } catch (IOException e) {
+            log.error("NETLINK read() exception: {}", e);
+        }
     }
 
-    private synchronized void processReadFromChannel(SelectionKey key) throws IOException {
+    private synchronized int processReadFromChannel(SelectionKey key) throws IOException {
 
         if (key != null) {
             log.debug("Handling event with key: {valid:{}, ops:{}}",
@@ -210,8 +231,10 @@ public abstract class AbstractNetlinkConnection {
         ByteBuffer reply = ByteBuffer.allocate(cLibrary.PAGE_SIZE);
         reply.order(ByteOrder.LITTLE_ENDIAN);
 
-        // read the reply
-        channel.read(reply);
+        // channel.read() returns # of bytes read.
+        final int nbytes = channel.read(reply);
+        if (nbytes == 0)
+            return nbytes;
 
         reply.flip();
         reply.mark();
@@ -233,7 +256,7 @@ public abstract class AbstractNetlinkConnection {
                 nextPosition = position + len;
             }
 
-            NetlinkRequest request = pendingRequests.get(seq);
+            final NetlinkRequest request = pendingRequests.get(seq);
             if (request == null && seq != 0) {
                 log.warn("Reply handlers for netlink request with id {} " +
                              "not found. {}", seq, pendingRequests);
@@ -310,6 +333,7 @@ public abstract class AbstractNetlinkConnection {
             reply.limit(finalLimit);
             reply.position(nextPosition);
         }
+        return nbytes;
     }
 
     protected abstract void handleNotification(short type, byte cmd,

@@ -70,6 +70,7 @@ public class NetlinkConnectionTest
     public void setUp() throws Exception {
         super.setUp(responses);
         connection = new NetlinkConnection(channel, reactor);
+        connection.setMaxBatchIoOps(1);
     }
 
     @After
