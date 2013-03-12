@@ -41,8 +41,49 @@ public abstract class BaseBuilder<Builder extends BaseBuilder<Builder, Result>, 
         return self();
     }
 
+    /*
+     * see nla_msg_put/get (in linux/include/net/netlink.h) and NLMSG_ALIGN
+     * (from include/uapi/linux/netlink.h)
+     * In those implementations, NLMSG_ALIGN accounts for padding (in its
+     * offset and byte read calculations), and therefore isn't needed to be
+     * reflected on netlink header's "length" field
+     * Strictly for Netlink protocol, whether the length field accounts for
+     * padding or not does not affect its message parsing; unfortunately for
+     * some OVS attributes, the parsing code does a length check expecting
+     * the length to be without the padding bytes - so use addAttrNoPad for
+     * those attributes
+     * The length field "5" here corresponds to Netlink header length (4 bytes)
+     * + the length of a byte of data (1 byte)
+     */
+    public Builder addAttrNoPad(NetlinkMessage.AttrKey<Byte> attr, byte value) {
+        NetlinkMessage.setAttrHeader(buffer, attr.getId(), 5);
+        addValue(value);
+
+        // Pad for 4-byte alignment
+        byte padding = 0;
+        addValue(padding);
+        addValue(padding);
+        addValue(padding);
+        return self();
+    }
+
     public Builder addAttr(NetlinkMessage.AttrKey<Short> attr, short value) {
         NetlinkMessage.setAttrHeader(buffer, attr.getId(), 8);
+        addValue(value);
+
+        // Pad for 4-byte alignment
+        short padding = 0;
+        addValue(padding);
+        return self();
+    }
+
+    /*
+     * The number "6" below corresponds to length of Netlink header (4 bytes)
+     * plus the length of a short (2 bytes)
+     */
+    public Builder addAttrNoPad(NetlinkMessage.AttrKey<Short> attr,
+                                short value) {
+        NetlinkMessage.setAttrHeader(buffer, attr.getId(), 6);
         addValue(value);
 
         // Pad for 4-byte alignment
