@@ -1,4 +1,5 @@
 /etc/midolman/midolman.conf
+/etc/midolman/midolman-akka.conf
 /etc/midolman/midolman-agent.conf
 /etc/midolman/midolman-env.sh
 /etc/midolman/logback.xml
