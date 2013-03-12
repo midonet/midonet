@@ -4,16 +4,22 @@
 
 package org.midonet.sdn.flows;
 
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.junit.Assert;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.Matchers.is;
+import static org.midonet.odp.FlowMatches.tcpFlow;
 
+import org.midonet.odp.FlowMatch;
+import org.midonet.odp.FlowMatches;
 import org.midonet.packets.IntIPv4;
 import org.midonet.packets.IPv4Addr;
-
 
 public class WildcardMatchTest {
 
@@ -126,7 +132,6 @@ public class WildcardMatchTest {
 
     @Test
     public void testSetNwDst_networkRange() {
-        int len = 25;
         int expectedLen = 32;
         WildcardMatch wmatch = new WildcardMatch();
         int nwDest = 0x12345678;
@@ -161,7 +166,6 @@ public class WildcardMatchTest {
 
     @Test
     public void testSetNwSrc_networkRange() {
-        int len = 25;
         int expectedLen = 32;
         WildcardMatch wmatch = new WildcardMatch();
         int nwSource = 0x12345678;
@@ -192,5 +196,68 @@ public class WildcardMatchTest {
         assertThat(wmatch.getUsedFields(), hasSize(1));
         assertThat(wmatch.getUsedFields(),
                 contains(WildcardMatch.Field.NetworkSource));
+    }
+
+    @Test
+    public void testEqualityRelationByProjection() {
+
+        WildcardMatch wildcard =
+            WildcardMatch.fromFlowMatch(
+                tcpFlow("ae:b3:77:8c:a1:48", "33:33:00:00:00:16",
+                        "192.168.100.1", "192.168.100.2",
+                        8096, 1025));
+
+        WildcardMatch projection = wildcard.project(EnumSet.of(
+                WildcardMatch.Field.EthernetSource,
+                WildcardMatch.Field.EthernetDestination));
+
+        assertThat("A wildcard should not match a projection smaller than it",
+                   wildcard, not(equalTo(projection)));
+
+        assertThat("A project should be equal to a wildcard bigger than it.",
+                   projection, equalTo(wildcard));
+    }
+
+    @Test
+    public void testFindableInMap() {
+        WildcardMatch wildcard =
+            WildcardMatch.fromFlowMatch(
+                tcpFlow("ae:b3:77:8c:a1:48", "33:33:00:00:00:16",
+                        "192.168.100.1", "192.168.100.2",
+                        8096, 1025));
+
+        WildcardMatch projection = wildcard.project(EnumSet.of(
+            WildcardMatch.Field.EthernetSource,
+            WildcardMatch.Field.EthernetDestination));
+
+        // make a simple wildcard that is a copy of the projection
+        WildcardMatch copy = new WildcardMatch();
+        copy.setEthernetDestination(projection.getEthernetDestination());
+        copy.setEthernetSource(projection.getEthernetSource());
+
+        Map<WildcardMatch, Boolean> map = new HashMap<WildcardMatch, Boolean>();
+        map.put(copy, Boolean.TRUE);
+
+        assertThat(
+            "We should be able to retrieve a wildcard flow by projection",
+            map.get(projection), is(notNullValue()));
+
+        assertThat(
+            "We should be able to retrieve a wildcard flow by projection",
+            map.get(projection), is(true));
+    }
+
+    @Test
+    public void testFromFlowMatch() {
+        FlowMatch fm = FlowMatches.tcpFlow(
+            "02:aa:dd:dd:aa:01", "02:bb:ee:ee:ff:01",
+            "192.168.100.2", "192.168.100.3",
+            40000, 50000);
+        WildcardMatch wcm = WildcardMatch.fromFlowMatch(fm);
+        assertThat(wcm.getTransportSourceObject(),
+                   equalTo(40000));
+        assertThat(wcm.getTransportDestinationObject(),
+                   equalTo(50000));
+
     }
 }
