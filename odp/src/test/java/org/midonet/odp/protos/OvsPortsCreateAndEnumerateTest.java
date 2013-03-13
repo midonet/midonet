@@ -35,6 +35,7 @@ public class OvsPortsCreateAndEnumerateTest
         super.setUp(responses);
 
         connection = OvsDatapathConnection.create(channel, reactor);
+        connection.bypassSendQueue(true);
         connection.setMaxBatchIoOps(1);
     }
 

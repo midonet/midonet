@@ -10,8 +10,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 
 import org.midonet.packets.MAC;
@@ -39,6 +40,7 @@ public class OvsFlowsDeleteTest
         super.setUp(responses);
 
         connection = OvsDatapathConnection.create(channel, reactor);
+        connection.bypassSendQueue(true);
         connection.setMaxBatchIoOps(1);
     }
 
@@ -52,6 +54,9 @@ public class OvsFlowsDeleteTest
         exchangeMessage();
 
         Datapath datapath = dpResult.get();
+
+        assertThat("connection.datapathsGet() returned null",
+                   datapath, notNullValue());
 
         Future<Flow> flowResult =
             connection.flowsCreate(datapath, new Flow().setMatch(flowMatch()));

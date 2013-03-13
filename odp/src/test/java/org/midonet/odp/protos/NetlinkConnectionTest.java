@@ -72,6 +72,7 @@ public class NetlinkConnectionTest
         super.setUp(responses);
         connection = new NetlinkConnection(channel, reactor,
             new NoOpThrottlingGuardFactory());
+        connection.bypassSendQueue(true);
         connection.setMaxBatchIoOps(1);
     }
 
@@ -132,7 +133,7 @@ public class NetlinkConnectionTest
         Future<Short> future = connection.getFamilyId("ovs_datapath");
 
         // fire the received message
-        connection.handleEvent(null);
+        connection.handleReadEvent(null);
 
         // validate decoding
         assertThat("The future was completed",

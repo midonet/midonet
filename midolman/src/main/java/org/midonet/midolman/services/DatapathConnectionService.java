@@ -43,15 +43,26 @@ public class DatapathConnectionService extends AbstractService {
                     @Override
                     public void handleEvent(SelectionKey key)
                         throws IOException {
-                        datapathConnection.handleEvent(key);
+                        datapathConnection.handleReadEvent(key);
                     }
                 });
 
+            selectLoop.registerForInputQueue(
+                    datapathConnection.getSendQueue(),
+                    datapathConnection.getChannel(),
+                    SelectionKey.OP_WRITE,
+                    new SelectListener() {
+                        @Override
+                        public void handleEvent(SelectionKey key)
+                            throws IOException {
+                            datapathConnection.handleWriteEvent(key);
+                        }
+                    });
+
             datapathConnection.initialize().get();
             notifyStarted();
-        } catch (ClosedChannelException e) {
-            notifyFailed(e);
         } catch (Exception e) {
+            log.error("failed to start DatapathConnectionService: {}", e);
             notifyFailed(e);
         }
     }

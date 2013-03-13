@@ -38,6 +38,7 @@ public class OvsFlowsFlushTest
         super.setUp(responses);
 
         connection = OvsDatapathConnection.create(channel, reactor);
+        connection.bypassSendQueue(true);
         connection.setMaxBatchIoOps(1);
     }
 

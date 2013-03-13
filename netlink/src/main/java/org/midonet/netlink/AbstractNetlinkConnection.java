@@ -26,6 +26,7 @@ import org.midonet.netlink.clib.cLibrary;
 import org.midonet.netlink.exceptions.NetlinkException;
 import org.midonet.netlink.messages.Builder;
 import org.midonet.util.eventloop.Reactor;
+import org.midonet.util.io.SelectorInputQueue;
 import org.midonet.util.throttling.ThrottlingGuard;
 import org.midonet.util.throttling.ThrottlingGuardFactory;
 
@@ -48,6 +49,11 @@ public abstract class AbstractNetlinkConnection {
     private Map<Integer, NetlinkRequest>
         pendingRequests = new ConcurrentHashMap<Integer, NetlinkRequest>();
 
+    // Mostly for testing purposes, this flag tells the netlink connection that
+    // writes should be done on the channel directly, instead of waiting
+    // for a selector to invoke handleWriteEvent()
+    private boolean bypassSendQueue = false;
+
     // Again, mostly for testing purposes. Tweaks the number of IO operations
     // per handle[Write|Read]Event() invokation. Netlink protocol tests will
     // assume one read per call.
@@ -55,6 +61,9 @@ public abstract class AbstractNetlinkConnection {
 
     private NetlinkChannel channel;
     private Reactor reactor;
+
+    private SelectorInputQueue<NetlinkRequest> writeQueue =
+            new SelectorInputQueue<NetlinkRequest>();
 
     public AbstractNetlinkConnection(NetlinkChannel channel, Reactor reactor,
             ThrottlingGuardFactory throttlerFactory) {
@@ -72,12 +81,24 @@ public abstract class AbstractNetlinkConnection {
         return reactor;
     }
 
+    public boolean bypassSendQueue() {
+        return bypassSendQueue;
+    }
+
+    public void bypassSendQueue(final boolean bypass) {
+        this.bypassSendQueue = bypass;
+    }
+
     public void setMaxBatchIoOps(int max) {
         this.maxBatchIoOps = max;
     }
 
     public int getMaxBatchIoOps() {
         return this.maxBatchIoOps;
+    }
+
+    public SelectorInputQueue<NetlinkRequest> getSendQueue() {
+        return writeQueue;
     }
 
     public class RequestBuilder<
@@ -149,61 +170,56 @@ public abstract class AbstractNetlinkConnection {
         final int seq = sequenceGenerator.getAndIncrement();
 
         int totalSize = 20 + payload.remaining();
-        final ByteBuffer request = ByteBuffer.allocate(totalSize + 4);
-        request.order(ByteOrder.nativeOrder());
+        final ByteBuffer buf = ByteBuffer.allocate(totalSize + 4);
+        buf.order(ByteOrder.nativeOrder());
 
-        serializeNetlinkHeader(request, seq, cmdFamily, version, cmd, flags);
+        serializeNetlinkHeader(buf, seq, cmdFamily, version, cmd, flags);
 
         // set the payload
-        request.put(payload);
+        buf.put(payload);
 
         // set the header length
-        request.putInt(0, totalSize);
-        request.flip();
+        buf.putInt(0, totalSize);
+        buf.flip();
 
         final NetlinkRequest netlinkRequest = new NetlinkRequest();
         netlinkRequest.family = cmdFamily;
         netlinkRequest.cmd = cmd;
         netlinkRequest.callback = callback;
+        netlinkRequest.buffers = new ArrayList<ByteBuffer>(1);
+        netlinkRequest.buffers.add(buf);
 
-        getReactor().submit(new Callable<Object>() {
+        // send the request
+        netlinkRequest.timeoutHandler = new Callable<Object>() {
             @Override
             public Object call() throws Exception {
-                pendingRequests.put(seq, netlinkRequest);
-                throttler.tokenIn();
-                // send the request
-                try {
-                    log.debug("Sending message for id {}", seq);
-                    netlinkRequest.timeoutHandler = new Callable<Object>() {
-                        @Override
-                        public Object call() throws Exception {
-                            log.trace("Timeout fired for {}", seq);
-                            NetlinkRequest timedOutRequest =
-                                pendingRequests.remove(seq);
-                            if (timedOutRequest != null)
-                                throttler.tokenOut();
+                log.trace("Timeout fired for {}", seq);
+                NetlinkRequest timedOutRequest =
+                    pendingRequests.remove(seq);
 
-                            if (timedOutRequest != null) {
-                                log.debug("Signalling timeout to the callback: {}", seq);
-                                timedOutRequest.callback.onTimeout();
-                            }
-
-                            return null;
-                        }
-                    };
-                    getReactor().schedule(netlinkRequest.timeoutHandler,
-                                          timeoutMillis, TimeUnit.MILLISECONDS);
-                    channel.write(request);
-                } catch (IOException e) {
-                    netlinkRequest.callback
-                                  .onError(new NetlinkException(
-                                      NetlinkException.ERROR_SENDING_REQUEST,
-                                      e));
+                if (timedOutRequest != null) {
+                    log.debug("Signalling timeout to the callback: {}", seq);
+                    throttler.tokenOut();
+                    timedOutRequest.callback.onTimeout();
                 }
 
                 return null;
             }
-        });
+        };
+        log.trace("Sending message for id {}", seq);
+        pendingRequests.put(seq, netlinkRequest);
+        if (writeQueue.offer(netlinkRequest)) {
+            if (bypassSendQueue())
+                processWriteToChannel();
+            throttler.tokenIn();
+            getReactor().schedule(netlinkRequest.timeoutHandler,
+                                  timeoutMillis, TimeUnit.MILLISECONDS);
+        } else {
+            pendingRequests.remove(seq);
+            netlinkRequest.callback.onError(new NetlinkException(
+                            NetlinkException.ERROR_SENDING_REQUEST,
+                            "Too many pending netlink requests"));
+        }
     }
 
     protected <
@@ -214,7 +230,46 @@ public abstract class AbstractNetlinkConnection {
         return new RequestBuilder<Cmd, Family>(commandFamily, cmd);
     }
 
-    public void handleEvent(final SelectionKey key) throws IOException {
+    public void handleWriteEvent(final SelectionKey key) throws IOException {
+        log.info("Handling write");
+        for (int i = 0; i < maxBatchIoOps; i++) {
+            final int ret = processWriteToChannel();
+            if (ret <= 0) {
+                if (ret < 0) {
+                    log.warn("NETLINK write() error: {}",
+                            cLibrary.lib.strerror(Native.getLastError()));
+                }
+                break;
+            }
+        }
+    }
+
+    private int processWriteToChannel() {
+        final NetlinkRequest request = writeQueue.peek();
+        if (request == null)
+            return 0;
+        if (request.buffers == null || request.buffers.isEmpty())
+            return 0;
+
+        int bytes = 0;
+        try {
+            bytes = channel.write(request.buffers.get(0));
+            if (bytes == 0)
+                return 0;
+        } catch (IOException e) {
+            log.warn("NETLINK write() exception: {}", e);
+            request.callback
+                .onError(new NetlinkException(
+                        NetlinkException.ERROR_SENDING_REQUEST,
+                        e));
+        } finally {
+            request.buffers.clear();
+            writeQueue.poll();
+        }
+        return bytes;
+    }
+
+    public void handleReadEvent(final SelectionKey key) throws IOException {
         try {
             for (int i = 0; i < maxBatchIoOps; i++) {
                 final int ret = processReadFromChannel(key);

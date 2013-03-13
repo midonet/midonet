@@ -26,6 +26,7 @@ public abstract class OvsFlowsCreateSetMatchTest
     protected void setUp(final byte[][] responses) throws Exception {
         super.setUp(responses);
         connection = OvsDatapathConnection.create(channel, reactor);
+        connection.bypassSendQueue(true);
         connection.setMaxBatchIoOps(1);
     }
 

@@ -37,10 +37,14 @@ import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.spi.SelectorProvider;
+import java.util.concurrent.BlockingQueue;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.util.io.SelectorInputQueue;
 
 /**
  * Dirt simple SelectLoop for simple java controller
@@ -58,6 +62,9 @@ public class SelectLoop {
     protected long timeout;
     protected final Object registerLock = new Object();
 
+    private Multimap<SelectableChannel, Registration> registrations =
+        HashMultimap.create();
+
     public SelectLoop() throws IOException {
         dontStop = true;
         selector = SelectorProvider.provider().openSelector();
@@ -73,7 +80,7 @@ public class SelectLoop {
      * @return SelectionKey
      * @throws ClosedChannelException if channel was already closed
      */
-    public SelectionKey register(SelectableChannel ch, int ops,
+    public void register(SelectableChannel ch, int ops,
                                  SelectListener arg)
         throws ClosedChannelException {
         synchronized (registerLock) {
@@ -87,7 +94,7 @@ public class SelectLoop {
             // synchronizing on registerLock and its calling select(),
             // because select() returns immediately if a wakeup() was
             // called while the selector didn't have a select in progress.
-            return ch.register(selector, ops, arg);
+            registrations.put(ch, new Registration(ch, ops, arg, null));
         }
     }
 
@@ -111,7 +118,47 @@ public class SelectLoop {
             // synchronizing on registerLock and its calling select(),
             // because select() returns immediately if a wakeup() was
             // called while the selector didn't have a select in progress.
-            ch.register(selector, ops).cancel();
+            for (Registration reg: registrations.get(ch)) {
+                if (reg.ops == ops) {
+                    registrations.remove(ch, reg);
+                    break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Registers the supplied SelectableChannel with this SelectLoop. The
+     * interest ops will only be listened to when there's data queued in
+     * the given BlockingQueue.
+     *
+     * @param queue the queue
+     * @param ch    the channel
+     * @param ops   interest ops
+     * @param arg   argument that will be returned with the SelectListener
+     */
+    public void registerForInputQueue(SelectorInputQueue<?> queue,
+                                      SelectableChannel ch,
+                                      int ops,
+                                      SelectListener arg) {
+        log.debug("Registering channel bound to input queue");
+        synchronized (registerLock) {
+            selector.wakeup();
+            queue.bind(selector);
+            registrations.put(ch, new Registration(ch, ops, arg, queue));
+        }
+    }
+
+    public void unregisterForInputQueue(SelectorInputQueue<?> queue) {
+        synchronized (registerLock) {
+            selector.wakeup();
+            queue.unbind();
+            for (Registration reg: registrations.values()) {
+                if (reg.queue == queue) {
+                    registrations.remove(reg.ch, reg);
+                    break;
+                }
+            }
         }
     }
 
@@ -128,20 +175,42 @@ public class SelectLoop {
             log.trace("looping");
 
             synchronized (registerLock) {
+                for (SelectableChannel ch: registrations.keySet()) {
+                    int ops = 0;
+                    for (Registration reg: registrations.get(ch)) {
+                        if (reg.queue == null || !reg.queue.isEmpty()) {
+                            ops |= reg.ops;
+                        }
+                    }
+                    if (ops != 0)
+                        ch.register(selector, ops);
+                    else
+                        ch.register(selector, ch.validOps()).cancel();
+                }
             }
+
             nEvents = selector.select(timeout);
             log.trace("got {} events", nEvents);
+
             if (nEvents > 0) {
                 for (SelectionKey sk : selector.selectedKeys()) {
                     if (!sk.isValid())
                         continue;
-
-                    SelectListener callback = (SelectListener) sk.attachment();
-                    callback.handleEvent(sk);
+                    int ops = sk.readyOps();
+                    SelectableChannel ch = sk.channel();
+                    for (Registration reg: registrations.get(ch)) {
+                        if (ops == 0) {
+                            break;
+                        } else if ((reg.ops & ops) != 0) {
+                            reg.listener.handleEvent(sk);
+                            // We report each ready-op once, so after
+                            // dispatching the event we clear it from ops.
+                            ops &= ~reg.ops;
+                        }
+                    }
                 }
                 selector.selectedKeys().clear();
             }
-
         }
     }
 
@@ -163,4 +232,20 @@ public class SelectLoop {
         this.dontStop = false;
         wakeup();
     }
+
+    private class Registration {
+        final SelectableChannel ch;
+        final int ops;
+        final SelectListener listener;
+        final BlockingQueue<?> queue;
+
+        Registration(SelectableChannel ch, int ops, SelectListener arg,
+                     BlockingQueue<?> queue) {
+            this.ch = ch;
+            this.ops = ops;
+            this.listener = arg;
+            this.queue = queue;
+        }
+    }
+
 }

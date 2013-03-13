@@ -61,7 +61,7 @@ public class NetlinkClient {
                     @Override
                     public void handleEvent(SelectionKey key)
                             throws IOException {
-                        ovsConnection.handleEvent(key);
+                        ovsConnection.handleReadEvent(key);
                     }
                 });
 

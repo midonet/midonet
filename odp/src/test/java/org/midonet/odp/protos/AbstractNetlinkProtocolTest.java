@@ -122,7 +122,7 @@ public abstract class AbstractNetlinkProtocolTest<NetlinkConnection extends Abst
 
     protected void fireReply(int amount) throws IOException {
         while ( amount-- > 0 ) {
-            connection.handleEvent(null);
+            connection.handleReadEvent(null);
         }
     }
 
