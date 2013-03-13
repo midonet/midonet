@@ -13,16 +13,18 @@ import javax.annotation.Nullable
 import javax.inject.Inject
 
 import org.midonet.cache.Cache
+import org.midonet.cluster.DataClient
 import org.midonet.midolman.PacketWorkflowActor.Start
 import org.midonet.midolman.datapath.ErrorHandlingCallback
+import org.midonet.midolman.guice.datapath.DatapathModule.SIMULATION_THROTTLING_GUARD
 import org.midonet.midolman.logging.ActorLogWithoutPath
-import org.midonet.cluster.DataClient
 import org.midonet.netlink.Callback
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.odp.{FlowMatches, Datapath, FlowMatch, Packet}
 import org.midonet.odp.flows.FlowAction
 import org.midonet.packets.Ethernet
+import org.midonet.util.throttling.{ThrottlingGuard, ThrottlingGuardFactory}
 
 
 object DeduplicationActor extends Referenceable {
@@ -40,7 +42,6 @@ object DeduplicationActor extends Referenceable {
      * be forwarded. */
     case class EmitGeneratedPacket(egressPort: UUID, eth: Ethernet,
                                    parentCookie: Option[Int] = None)
-
 }
 
 
@@ -52,6 +53,12 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
     @Inject var datapathConnection: OvsDatapathConnection = null
     @Inject var clusterDataClient: DataClient = null
     @Inject @Nullable var connectionCache: Cache = null
+
+    @Inject
+    @SIMULATION_THROTTLING_GUARD
+    var tgFactory: ThrottlingGuardFactory = null
+
+    var throttler: ThrottlingGuard = null
 
     var datapath: Datapath = null
     var dpState: DatapathState = null
@@ -65,6 +72,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
 
     override def preStart() {
         super.preStart()
+        throttler = tgFactory.build("DeduplicationActor")
     }
 
     def receive = LoggingReceive {
@@ -86,7 +94,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
                     context.system.actorOf(Props(
                         new PacketWorkflowActor(datapathConnection, dpState,
                             datapath, clusterDataClient, connectionCache, packet,
-                            Left(cookie))),
+                            Left(cookie), throttler)),
                         name = "PacketWorkflowActor-"+cookie)
 
                  log.debug("Created new {} actor.", "PacketWorkflowActor-" + cookie)
@@ -126,7 +134,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
             context.system.actorOf(Props(
                 new PacketWorkflowActor(datapathConnection, dpState,
                     datapath, clusterDataClient, connectionCache, packet,
-                    Right(egressPort))),
+                    Right(egressPort), throttler)),
                 name = "PacketWorkflowActor-generated-"+ packetId)
 
             log.debug("Created new {} actor.", "PacketWorkflowActor-generated-"+packetId );
@@ -163,12 +171,14 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
          datapathConnection.datapathsSetNotificationHandler(datapath,
                  new Callback[Packet] {
                      def onSuccess(data: Packet) {
-                         self ! HandlePacket(data)
+                         if (throttler.allowed()) {
+                             self ! HandlePacket(data)
+                         }
                      }
 
-                     def onTimeout() {}
+                 def onTimeout() {}
 
-                     def onError(e: NetlinkException) {}
+                 def onError(e: NetlinkException) {}
          }).get()
     }
 

@@ -26,6 +26,9 @@ import org.midonet.netlink.clib.cLibrary;
 import org.midonet.netlink.exceptions.NetlinkException;
 import org.midonet.netlink.messages.Builder;
 import org.midonet.util.eventloop.Reactor;
+import org.midonet.util.throttling.ThrottlingGuard;
+import org.midonet.util.throttling.ThrottlingGuardFactory;
+
 import static org.midonet.netlink.Netlink.Flag;
 
 /**
@@ -40,7 +43,9 @@ public abstract class AbstractNetlinkConnection {
 
     private AtomicInteger sequenceGenerator = new AtomicInteger(1);
 
-    protected Map<Integer, NetlinkRequest>
+    protected ThrottlingGuard throttler;
+
+    private Map<Integer, NetlinkRequest>
         pendingRequests = new ConcurrentHashMap<Integer, NetlinkRequest>();
 
     // Again, mostly for testing purposes. Tweaks the number of IO operations
@@ -51,9 +56,12 @@ public abstract class AbstractNetlinkConnection {
     private NetlinkChannel channel;
     private Reactor reactor;
 
-    public AbstractNetlinkConnection(NetlinkChannel channel, Reactor reactor) {
+    public AbstractNetlinkConnection(NetlinkChannel channel, Reactor reactor,
+            ThrottlingGuardFactory throttlerFactory) {
         this.channel = channel;
         this.reactor = reactor;
+        this.throttler = throttlerFactory.buildForCollection(
+                "NetlinkConnection", pendingRequests.keySet());
     }
 
     public NetlinkChannel getChannel() {
@@ -162,6 +170,7 @@ public abstract class AbstractNetlinkConnection {
             @Override
             public Object call() throws Exception {
                 pendingRequests.put(seq, netlinkRequest);
+                throttler.tokenIn();
                 // send the request
                 try {
                     log.debug("Sending message for id {}", seq);
@@ -171,6 +180,8 @@ public abstract class AbstractNetlinkConnection {
                             log.trace("Timeout fired for {}", seq);
                             NetlinkRequest timedOutRequest =
                                 pendingRequests.remove(seq);
+                            if (timedOutRequest != null)
+                                throttler.tokenOut();
 
                             if (timedOutRequest != null) {
                                 log.debug("Signalling timeout to the callback: {}", seq);
@@ -289,6 +300,7 @@ public abstract class AbstractNetlinkConnection {
 
                     NetlinkRequest errRequest = pendingRequests.remove(seq);
                     if (errRequest != null) {
+                        throttler.tokenOut();
                         if (error == 0) {
                             errRequest.callback.onSuccess(errRequest.buffers);
                         } else {
@@ -301,6 +313,7 @@ public abstract class AbstractNetlinkConnection {
                 case NLMSG_DONE:
                     pendingRequests.remove(seq);
                     if (request != null) {
+                        throttler.tokenOut();
                         request.callback.onSuccess(request.buffers);
                     }
                     break;
@@ -321,12 +334,12 @@ public abstract class AbstractNetlinkConnection {
                     if (!Flag.isSet(flags, Flag.NLM_F_MULTI)) {
                         pendingRequests.remove(seq);
                         if (request != null) {
+                            throttler.tokenOut();
                             request.callback.onSuccess(request.buffers);
                         }
 
-                        if (seq == 0) {
+                        if (seq == 0 && throttler.allowed())
                             handleNotification(type, cmd, seq, pid, buffers);
-                        }
                     }
             }
 

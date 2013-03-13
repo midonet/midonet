@@ -15,6 +15,7 @@ import org.midonet.netlink.NetlinkChannel;
 import org.midonet.netlink.NetlinkSelectorProvider;
 import org.midonet.odp.protos.OvsDatapathConnection;
 import org.midonet.util.eventloop.Reactor;
+import org.midonet.util.throttling.ThrottlingGuardFactory;
 
 
 /**
@@ -29,6 +30,10 @@ public class OvsDatapathConnectionProvider implements
 
     @Inject
     Reactor reactor;
+
+    @Inject
+    @DatapathModule.DATAPATH_THROTTLING_GUARD
+    ThrottlingGuardFactory tgFactory;
 
     @Override
     public OvsDatapathConnection get() {
@@ -48,7 +53,8 @@ public class OvsDatapathConnectionProvider implements
             log.info("Connecting");
             netlinkChannel.connect(new Netlink.Address(0));
 
-            return OvsDatapathConnection.create(netlinkChannel, reactor);
+            return OvsDatapathConnection.create(
+                    netlinkChannel, reactor, tgFactory);
         } catch (Exception e) {
             log.error("Error connecting to the netlink socket");
             throw new RuntimeException(e);

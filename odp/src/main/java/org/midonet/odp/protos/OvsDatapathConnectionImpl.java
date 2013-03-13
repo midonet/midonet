@@ -40,6 +40,7 @@ import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.functors.Callbacks;
 import org.midonet.util.functors.ComposingCallback;
 import org.midonet.util.functors.Functor;
+import org.midonet.util.throttling.ThrottlingGuardFactory;
 import static org.midonet.netlink.Netlink.Flag;
 import static org.midonet.odp.family.FlowFamily.AttrKey;
 
@@ -54,9 +55,10 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
     public static final int FALLBACK_PORT_MULTICAT = 33;
 
-    public OvsDatapathConnectionImpl(NetlinkChannel channel, Reactor reactor)
+    public OvsDatapathConnectionImpl(NetlinkChannel channel, Reactor reactor,
+                                     ThrottlingGuardFactory throttlerFactory)
         throws Exception {
-        super(channel, reactor);
+        super(channel, reactor, throttlerFactory);
     }
 
     @Override

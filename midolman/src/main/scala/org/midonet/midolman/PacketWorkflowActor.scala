@@ -40,6 +40,7 @@ import org.midonet.odp.flows.FlowAction
 import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.odp.Packet.Reason.FlowActionUserspace
 import org.midonet.util.functors.Callback0
+import org.midonet.util.throttling.ThrottlingGuard
 import org.midonet.sdn.flows.{WildcardMatch, WildcardFlow}
 
 
@@ -63,7 +64,6 @@ object PacketWorkflowActor {
     case class AddVirtualWildcardFlow(flow: WildcardFlow,
                                       flowRemovalCallbacks: ROSet[Callback0],
                                       tags: ROSet[Any]) extends SimulationAction
-
 }
 
 class PacketWorkflowActor(
@@ -73,7 +73,8 @@ class PacketWorkflowActor(
         dataClient: DataClient,
         connectionCache: Cache,
         packet: Packet,
-        cookieOrEgressPort: Either[Int, UUID]) extends Actor with
+        cookieOrEgressPort: Either[Int, UUID],
+        throttlingGuard: ThrottlingGuard) extends Actor with
             ActorLogWithoutPath with FlowTranslatingActor with
             UserspaceFlowActionTranslator {
 
@@ -95,6 +96,14 @@ class PacketWorkflowActor(
     implicit val requestReplyTimeout = new Timeout(1 second)
 
     val cookieStr: String = "[cookie:" + cookie.getOrElse("No Cookie") + "]"
+
+    override def preStart() {
+        throttlingGuard.tokenIn()
+    }
+
+    override def postStop() {
+        throttlingGuard.tokenOut()
+    }
 
     def receive = LoggingReceive {
         case Start() =>

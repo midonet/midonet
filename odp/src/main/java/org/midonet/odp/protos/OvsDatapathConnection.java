@@ -20,6 +20,8 @@ import org.midonet.odp.Packet;
 import org.midonet.odp.Port;
 import org.midonet.odp.Ports;
 import org.midonet.util.eventloop.Reactor;
+import org.midonet.util.throttling.NoOpThrottlingGuardFactory;
+import org.midonet.util.throttling.ThrottlingGuardFactory;
 
 
 /**
@@ -31,14 +33,22 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
 
     public abstract boolean isInitialized();
 
-    protected OvsDatapathConnection(NetlinkChannel channel, Reactor reactor)
+    // ThrottlingGuardFactory throttlerFactory) {
+    protected OvsDatapathConnection(NetlinkChannel channel, Reactor reactor,
+                                    ThrottlingGuardFactory throttlerFactory)
         throws Exception {
-        super(channel, reactor);
+        super(channel, reactor, throttlerFactory);
+    }
+
+    public static OvsDatapathConnection create(NetlinkChannel channel, Reactor reactor,
+                                               ThrottlingGuardFactory throttlerFactory)
+        throws Exception {
+        return new OvsDatapathConnectionImpl(channel, reactor, throttlerFactory);
     }
 
     public static OvsDatapathConnection create(NetlinkChannel channel, Reactor reactor)
-        throws Exception {
-        return new OvsDatapathConnectionImpl(channel, reactor);
+            throws Exception {
+        return create(channel, reactor, new NoOpThrottlingGuardFactory());
     }
 
     /**

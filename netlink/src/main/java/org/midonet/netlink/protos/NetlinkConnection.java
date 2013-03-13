@@ -21,6 +21,8 @@ import org.midonet.netlink.CtrlFamily;
 import org.midonet.netlink.NetlinkChannel;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.util.eventloop.Reactor;
+import org.midonet.util.throttling.ThrottlingGuardFactory;
+
 import static org.midonet.netlink.Netlink.Flag;
 
 /**
@@ -36,8 +38,9 @@ public class NetlinkConnection extends AbstractNetlinkConnection {
 
     final static CtrlFamily ctrlFamily = new CtrlFamily();
 
-    public NetlinkConnection(NetlinkChannel channel, Reactor reactor) {
-        super(channel, reactor);
+    public NetlinkConnection(NetlinkChannel channel, Reactor reactor,
+                             ThrottlingGuardFactory throttlerFactory) {
+        super(channel, reactor, throttlerFactory);
     }
 
     @Override

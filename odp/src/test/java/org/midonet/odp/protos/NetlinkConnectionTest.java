@@ -22,6 +22,7 @@ import static org.hamcrest.Matchers.is;
 
 import org.midonet.netlink.exceptions.NetlinkException;
 import org.midonet.netlink.protos.NetlinkConnection;
+import org.midonet.util.throttling.NoOpThrottlingGuardFactory;
 
 
 @RunWith(PowerMockRunner.class)
@@ -69,7 +70,8 @@ public class NetlinkConnectionTest
     @Before
     public void setUp() throws Exception {
         super.setUp(responses);
-        connection = new NetlinkConnection(channel, reactor);
+        connection = new NetlinkConnection(channel, reactor,
+            new NoOpThrottlingGuardFactory());
         connection.setMaxBatchIoOps(1);
     }
 

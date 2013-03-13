@@ -43,6 +43,18 @@ public interface MidolmanConfig
     @ConfigInt(key = "check_flow_expiration_interval", defaultValue = 10000)
     public int getFlowExpirationInterval();
 
+    @ConfigInt(key = "datapath_throttling_low_water_mark", defaultValue = 128)
+    public int getDatapathThrottlingLowWaterMark();
+
+    @ConfigInt(key = "datapath_throttling_high_water_mark", defaultValue = 256)
+    public int getDatapathThrottlingHighWaterMark();
+
+    @ConfigInt(key = "simulation_throttling_low_water_mark", defaultValue = 32)
+    public int getSimulationThrottlingLowWaterMark();
+
+    @ConfigInt(key = "simulation_throttling_high_water_mark", defaultValue = 64)
+    public int getSimulationThrottlingHighWaterMark();
+
     @ConfigGroup("vrn")
     @ConfigString(key = "router_network_id",
                   defaultValue = "01234567-0123-0123-aaaa-0123456789ab")

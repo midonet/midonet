@@ -18,17 +18,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.cache.Cache;
-import org.midonet.midolman.DatapathController;
-import org.midonet.midolman.DeduplicationActor;
-import org.midonet.midolman.FlowController;
-import org.midonet.midolman.SupervisorActor;
+import org.midonet.midolman.*;
 import org.midonet.midolman.config.MidolmanConfig;
+import org.midonet.midolman.guice.datapath.DatapathModule;
 import org.midonet.midolman.monitoring.MonitoringActor;
 import org.midonet.midolman.routingprotocols.RoutingManagerActor;
 import org.midonet.midolman.services.HostIdProviderService;
 import org.midonet.midolman.services.MidolmanActorsService;
 import org.midonet.midolman.topology.*;
 import org.midonet.odp.protos.OvsDatapathConnection;
+import org.midonet.util.throttling.ThrottlingGuardFactory;
 
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.METHOD;
@@ -64,6 +63,8 @@ public class MidolmanActorsModule extends PrivateModule {
         requireBinding(Cache.class);
         requireBinding(OvsDatapathConnection.class);
         requireBinding(HostIdProviderService.class);
+        requireBinding(Key.get(ThrottlingGuardFactory.class,
+                               DatapathModule.SIMULATION_THROTTLING_GUARD.class));
 
         bindMidolmanActorsService();
         expose(MidolmanActorsService.class);
