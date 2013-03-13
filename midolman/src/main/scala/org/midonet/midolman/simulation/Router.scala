@@ -150,24 +150,26 @@ class Router(val id: UUID, val cfg: RouterConfig,
         }
 
 
-      // tag using the destination IP
-      val dstIp = pktContext.getMatch.getNetworkDestination
-      pktContext.addFlowTag(FlowTagger.invalidateByIp(id, dstIp))
-      // pass the tag to the RouterManager so that it will be able to invalidate
-      // the flow
-      routerMgrTagger.addTag(dstIp)
-      // register the tag removal callback
-      pktContext.addFlowRemovedCallback(routerMgrTagger.getFlowRemovalCallback(dstIp))
+        // tag using the destination IP
+        val iDstIp = pktContext.getMatch.getNetworkDestinationIPv4.addressAsInt
+        pktContext.addFlowTag(
+            FlowTagger.invalidateByIp(id, new IPv4Addr().setIntAddress(iDstIp)))
+        // pass tag to the RouterManager so that it will be able to invalidate
+        // the flow
+        routerMgrTagger.addTag(iDstIp)
+        // register the tag removal callback
+        pktContext.addFlowRemovedCallback(
+            routerMgrTagger.getFlowRemovalCallback(iDstIp))
 
-      val nwDst = pktContext.getMatch.getNetworkDestinationIPv4
-      val rt: Route = loadBalancer.lookup(pktContext.getMatch)
-      if (rt == null) {
-          // No route to network
-          log.debug("Route lookup: No route to network (dst:{}), {}",
-          pktContext.getMatch.getNetworkDestinationIPv4, rTable.rTable)
-          sendIcmpError(inPort, pktContext.getMatch, pktContext.getFrame,
-          ICMP.TYPE_UNREACH, UNREACH_CODE.UNREACH_NET)
-          return Promise.successful(new DropAction)(ec)
+        val nwDst = pktContext.getMatch.getNetworkDestinationIPv4
+        val rt: Route = loadBalancer.lookup(pktContext.getMatch)
+        if (rt == null) {
+            // No route to network
+            log.debug("Route lookup: No route to network (dst:{}), {}",
+                      nwDst, rTable.rTable)
+            sendIcmpError(inPort, pktContext.getMatch, pktContext.getFrame,
+                ICMP.TYPE_UNREACH, UNREACH_CODE.UNREACH_NET)
+            return Promise.successful(new DropAction)(ec)
         }
 
         // tag using this route
@@ -615,7 +617,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
      * @param ethPkt
      *            We wish to know whether this packet may trigger an ICMP error
      *            message.
-     * @param egressPortId
+     * @param outPort
      *            If known, this is the port that would have emitted the packet.
      *            It's used to determine whether the packet was addressed to an
      *            IP (local subnet) broadcast address.

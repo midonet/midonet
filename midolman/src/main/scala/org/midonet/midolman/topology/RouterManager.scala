@@ -59,11 +59,12 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
     private var arpCache: ArpCache = null
     private var arpTable: ArpTable = null
     private var filterChanged = false
-    // This trie is to store the tag that represent the ip destination to be able
-    // to do flow invalidation properly when a route is added or deleted
+    // This trie is to store the tag that represent the ip destination to be
+    // able to do flow invalidation properly when a route is added or deleted
     private val dstIpTagTrie: InvalidationTrie = new InvalidationTrie()
     // key is dstIp tag, value is the count
-    private val tagToFlowCount: mutable.Map[Int, Int] = new mutable.HashMap[Int, Int]
+    private val tagToFlowCount: mutable.Map[Int, Int]
+                                = new mutable.HashMap[Int, Int]
 
     override def chainsUpdated() {
         makeNewRouter()
@@ -110,7 +111,7 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
 
     private def invalidateFlowsByIp(ip: IPv4Addr) {
         FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
-            FlowTagger.invalidateByIp(id, ip.getIntAddress))
+            FlowTagger.invalidateByIp(id, ip))
     }
 
     override def receive = super.receive orElse {
@@ -146,8 +147,10 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
                 log.debug("Got the following ip destination to invalidate {}",
                     ipToInvalidate.map(ip => IPv4.fromIPv4Address(ip)))
                 val it = ipToInvalidate.iterator()
-                it.foreach(ip => FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
-                    FlowTagger.invalidateByIp(id, ip)) )
+                it.foreach(ip => FlowController.getRef() !
+                    FlowController.InvalidateFlowsByTag(
+                        FlowTagger.invalidateByIp(id,
+                            new IPv4Addr().setIntAddress(ip))))
                 }
 
         case AddTag(dstIp) =>
@@ -187,7 +190,8 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
             }
             context.system.eventStream.publish(
                 new RouterInvTrieTagCountModified(dstIp,
-                    if(tagToFlowCount contains dstIp) tagToFlowCount(dstIp) else 0))
+                    if(tagToFlowCount contains dstIp) tagToFlowCount(dstIp)
+                    else 0))
 
     }
 

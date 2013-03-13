@@ -5,7 +5,7 @@
 package org.midonet.midolman.topology
 
 import java.util.UUID
-import org.midonet.packets.MAC
+import org.midonet.packets.{IPAddr, MAC}
 
 
 object
@@ -43,6 +43,6 @@ FlowTagger {
     def invalidateByRoute(routerId: UUID, routeHashCode: Int): Any =
         "rtr_route:" + routerId.toString + ":" + routeHashCode.toString
 
-    def invalidateByIp(routerId: UUID, ipDestination: Int): Any =
+    def invalidateByIp(routerId: UUID, ipDestination: IPAddr): Any =
         "rtr_ip:" + routerId.toString + ":" + ipDestination.toString
 }
