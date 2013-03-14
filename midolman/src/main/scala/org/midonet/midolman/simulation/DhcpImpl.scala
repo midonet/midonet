@@ -200,7 +200,7 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
                         // and try re-enabling this code.
                         reqOptions.get(DHCPOption.Code.SERVER_ID.value) match {
                             case None =>
-                                log.warning("handleDhcpRequest dropping dhcp REQUEST - no " +
+                                log.debug("handleDhcpRequest - no " +
                                     "server id option found.")
                                 // TODO(pino): return Promise.successful(false)?
                             case Some(opt) =>
@@ -215,10 +215,10 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
                         // The request must contain a requested IP address option.
                         reqOptions.get(DHCPOption.Code.REQUESTED_IP.value) match {
                             case None =>
-                                log.warning("handleDhcpRequest dropping dhcp REQUEST - no "
+                                log.debug("handleDhcpRequest - no "
                                     + "requested ip option found.")
-                                return Promise.failed(new Exception(
-                                    "DHCP message with no requested-IP option."))
+                                //return Promise.failed(new Exception(
+                                //    "DHCP message with no requested-IP option."))
                             case Some(opt) =>
                                 // The requested ip must correspond to the yiaddr in our offer.
                                 val reqIp = IPv4.toIPv4Address(opt.getData)
