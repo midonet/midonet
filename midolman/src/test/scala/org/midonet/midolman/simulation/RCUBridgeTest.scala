@@ -18,7 +18,7 @@ import org.scalatest.matchers.ShouldMatchers
 
 import org.midonet.midolman.topology._
 import org.midonet.cluster.client.MacLearningTable
-import org.midonet.packets.{ARP, IntIPv4, IPAddr, MAC}
+import org.midonet.packets.{ARP, IPAddr, MAC}
 import org.midonet.util.functors.{Callback0, Callback1, Callback3}
 import org.midonet.sdn.flows.WildcardMatch
 
@@ -48,8 +48,6 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
     private val rtr2mac = MAC.fromString("0a:43:02:34:06:02")
     private val rtr1ipaddr = IPAddr.fromString("143.234.60.1")
     private val rtr2ipaddr = IPAddr.fromString("143.234.60.2")
-    private val rtr1intip = rtr1ipaddr.toIntIPv4
-    private val rtr2intip = rtr2ipaddr.toIntIPv4
     private val rtr1port = UUID.randomUUID
     private val rtr2port = UUID.randomUUID
 
@@ -158,7 +156,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
         val ingressMatch = ((new WildcardMatch)
                 .setEthernetSource(MAC.fromString("0a:54:ce:50:44:ce"))
                 .setEthernetDestination(MAC.fromString("ff:ff:ff:ff:ff:ff"))
-                .setNetworkDestination(rtr1intip)
+                .setNetworkDestination(rtr1ipaddr)
                 .setEtherType(ARP.ETHERTYPE))
         val origMatch = ingressMatch.clone
         val context = new PacketContext(null, null,

@@ -24,6 +24,8 @@ import org.midonet.midolman.state.zkManagers.FiltersZkManager;
 import org.midonet.midolman.state.zkManagers.RouterZkManager;
 import org.midonet.midolman.util.MockCache;
 import org.midonet.packets.ICMP;
+import org.midonet.packets.IPAddr;
+import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.TCP;
 import org.midonet.util.eventloop.MockReactor;
 import org.midonet.util.eventloop.Reactor;
@@ -59,12 +61,12 @@ public class TestNatLeaseManager {
         nats.add(new NatTarget(0xc0a8010c, 0xc0a8010c, (short) 200, (short) 200));
         Set<NatTarget> natSet = new HashSet<NatTarget>();
         int i = 0;
-        int nwDst = 0xc0a80101;
+        IPv4Addr nwDst = new IPv4Addr().setIntAddress(0xc0a80101);
         for (NatTarget nat : nats) {
             i++;
             natSet.clear();
             natSet.add(nat);
-            int oldNwSrc = 0x0a000002;
+            IPv4Addr oldNwSrc = new IPv4Addr().setIntAddress(0x0a000002);
             short oldTpSrc = (short) (10 * i); // this would be icmp identifier
             short tpDst = oldTpSrc;            // in ICMP the port is redundant
             Assert.assertNull(natManager.lookupSnatFwd(ICMP.PROTOCOL_NUMBER,
@@ -73,7 +75,8 @@ public class TestNatLeaseManager {
             NwTpPair pair = natManager.allocateSnat(ICMP.PROTOCOL_NUMBER,
                                                     oldNwSrc, oldTpSrc,
                                                     nwDst, tpDst, natSet);
-            Assert.assertEquals(nat.nwStart, pair.nwAddr);
+            Assert.assertEquals(new IPv4Addr().setIntAddress(nat.nwStart),
+                                pair.nwAddr);
             Assert.assertEquals(pair.tpPort, pair.tpPort); // untranslated
 
             // Do the lookups now
@@ -81,7 +84,8 @@ public class TestNatLeaseManager {
                 ICMP.PROTOCOL_NUMBER, oldNwSrc, oldTpSrc, nwDst, tpDst));
             pair = new NwTpPair(oldNwSrc, oldTpSrc);
             Assert.assertEquals(pair, natManager.lookupSnatRev(
-                ICMP.PROTOCOL_NUMBER, nat.nwStart, pair.tpPort, nwDst, tpDst));
+                ICMP.PROTOCOL_NUMBER, new IPv4Addr().setIntAddress(nat.nwStart),
+                pair.tpPort, nwDst, tpDst));
         }
     }
 
@@ -96,7 +100,7 @@ public class TestNatLeaseManager {
         nats.add(new NatTarget(0xc0a8010c, 0xc0a8010c, (short) 300, (short) 600));
         Set<NatTarget> natSet = new HashSet<NatTarget>();
         int i = 0;
-        int nwDst = 0xc0a80101;
+        IPv4Addr nwDst = new IPv4Addr().setIntAddress(0xc0a80101);
         short tpDst = 80;
         for (NatTarget nat : nats) {
             i++;
@@ -104,7 +108,8 @@ public class TestNatLeaseManager {
             natSet.add(nat);
             int numPorts = nat.tpEnd - nat.tpStart + 1;
             for (int j = 0; j < numPorts; j++) {
-                int oldNwSrc = 0x0a000002 + (j % 8);
+                IPv4Addr oldNwSrc = new IPv4Addr().setIntAddress(
+                        0x0a000002 + (j % 8));
                 short oldTpSrc = (short) (1000 * i + j);
                 Assert.assertNull(natManager.lookupSnatFwd(TCP.PROTOCOL_NUMBER,
                                                            oldNwSrc, oldTpSrc,
@@ -112,18 +117,21 @@ public class TestNatLeaseManager {
                 NwTpPair pair = natManager.allocateSnat(TCP.PROTOCOL_NUMBER,
                                                         oldNwSrc, oldTpSrc,
                                                         nwDst, tpDst, natSet);
-                Assert.assertEquals(nat.nwStart, pair.nwAddr);
+                Assert.assertEquals(new IPv4Addr().setIntAddress(nat.nwStart),
+                                    pair.nwAddr);
                 Assert.assertEquals(nat.tpStart + j, pair.tpPort);
                 Assert.assertEquals(pair, natManager.lookupSnatFwd(
                         TCP.PROTOCOL_NUMBER, oldNwSrc, oldTpSrc, nwDst, tpDst));
                 pair = new NwTpPair(oldNwSrc, oldTpSrc);
                 Assert.assertEquals(pair, natManager.lookupSnatRev(
-                    TCP.PROTOCOL_NUMBER, nat.nwStart, (short)(nat.tpStart + j),
-                    nwDst, tpDst));
+                    TCP.PROTOCOL_NUMBER,
+                    new IPv4Addr().setIntAddress(nat.nwStart),
+                    (short)(nat.tpStart + j), nwDst, tpDst));
             }
             Assert.assertNull(natManager.allocateSnat(TCP.PROTOCOL_NUMBER,
-                                            0x0a000001, (short) 43,
-                                            0xc0a80102, (short) 2182, natSet));
+                    new IPv4Addr().setIntAddress(0x0a000001), (short) 43,
+                    new IPv4Addr().setIntAddress(0xc0a80102), (short) 2182,
+                    natSet));
         }
     }
 
@@ -144,7 +152,7 @@ public class TestNatLeaseManager {
         Set<NatTarget> natSet = new HashSet<NatTarget>();
         int i = 0;
         // Assume there's only one public ip address for dnat.
-        int nwDst = 0x80c00105;
+        IPv4Addr nwDst = new IPv4Addr().setIntAddress(0x80c00105);
         short tpDst = 80;
         for (NatTarget nat : nats) {
             i++;
@@ -153,7 +161,7 @@ public class TestNatLeaseManager {
             // For unique external nwSrc+tpSrc there's no limit to how many
             // dnat mappings we can assign.
             for (int j = 0; j < 1000; j++) {
-                int nwSrc = 0x8c000001 + j;
+                IPv4Addr nwSrc = new IPv4Addr().setIntAddress(0x8c000001 + j);
                 short tpSrc = (short) (10000 * i + j);
                 Assert.assertNull(natManager.lookupDnatFwd(TCP.PROTOCOL_NUMBER,
                                                            nwSrc, tpSrc,
@@ -161,8 +169,10 @@ public class TestNatLeaseManager {
                 NwTpPair pairF = natManager.allocateDnat(TCP.PROTOCOL_NUMBER,
                                                          nwSrc, tpSrc,
                                                          nwDst, tpDst, natSet);
-                Assert.assertTrue(nat.nwStart <= pairF.nwAddr);
-                Assert.assertTrue(pairF.nwAddr <= nat.nwEnd);
+                Assert.assertTrue(nat.nwStart <=
+                                      ((IPv4Addr)(pairF.nwAddr)).getIntAddress());
+                Assert.assertTrue(((IPv4Addr)(pairF.nwAddr)).getIntAddress() <=
+                                      nat.nwEnd);
                 Assert.assertEquals(nat.tpStart, pairF.tpPort);
                 Assert.assertEquals(pairF, natManager.lookupDnatFwd(
                     TCP.PROTOCOL_NUMBER, nwSrc, tpSrc, nwDst, tpDst));
@@ -183,17 +193,19 @@ public class TestNatLeaseManager {
         NatTarget nat2 = new NatTarget(0x0a0a0105, 0x0a0a0105, (short) 1001,
                 (short) 1001);
         natSet.add(nat2);
-        int nwDst = 0xd4c00a01;
+        IPv4Addr nwDst = new IPv4Addr().setIntAddress(0xd4c00a01);
         short tpDst = 80;
         for (int j = 0; j < 1000; j++) {
-            int nwSrc = 0x8c000001 + j;
+            IPv4Addr nwSrc = new IPv4Addr().setIntAddress(0x8c000001 + j);
             short tpSrc = 12345;
             Assert.assertNull(natManager.lookupDnatFwd(
                 TCP.PROTOCOL_NUMBER, nwSrc, tpSrc, nwDst, tpDst));
             NwTpPair pairF = natManager.allocateDnat(
                 TCP.PROTOCOL_NUMBER, nwSrc, tpSrc, nwDst, tpDst, natSet);
-            Assert.assertTrue(nat1.nwStart == pairF.nwAddr ||
-                    nat2.nwStart == pairF.nwAddr);
+            IPAddr nwStart1 = new IPv4Addr().setIntAddress(nat1.nwStart);
+            IPAddr nwStart2 = new IPv4Addr().setIntAddress(nat2.nwStart);
+            Assert.assertTrue(nwStart1.equals(pairF.nwAddr) ||
+                    nwStart2.equals(pairF.nwAddr));
             Assert.assertTrue(nat1.tpStart == pairF.tpPort ||
                     nat2.tpStart == pairF.tpPort);
             Assert.assertEquals(pairF, natManager.lookupDnatFwd(

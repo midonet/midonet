@@ -22,6 +22,8 @@ import static org.midonet.odp.flows.FlowKeys.ethernet;
 import static org.midonet.odp.flows.FlowKeys.inPort;
 import static org.midonet.odp.flows.FlowKeys.ipv4;
 import static org.midonet.odp.flows.FlowKeys.udp;
+import org.midonet.packets.IPv4Addr;
+
 
 public class OvsFlowsCreateSet_IPv4_UDP_Test
     extends OvsFlowsCreateSetMatchTest {
@@ -49,8 +51,8 @@ public class OvsFlowsCreateSet_IPv4_UDP_Test
             .addKey(etherType(FlowKeyEtherType.Type.ETH_P_IP))
             .addKey(
                 ipv4(
-                    ipFromString("192.168.100.1"),
-                    ipFromString("192.168.100.2"),
+                    IPv4Addr.fromString("192.168.100.1"),
+                    IPv4Addr.fromString("192.168.100.2"),
                     IpProtocol.UDP))
             .addKey(udp(8096, 512));
     }

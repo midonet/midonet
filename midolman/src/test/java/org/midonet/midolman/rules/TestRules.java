@@ -28,6 +28,7 @@ import org.midonet.midolman.state.zkManagers.FiltersZkManager;
 import org.midonet.midolman.util.MockCache;
 import org.midonet.midolman.vrn.ForwardInfo;
 import org.midonet.packets.IntIPv4;
+import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.util.eventloop.MockReactor;
 
@@ -216,27 +217,27 @@ public class TestRules {
         fwdInfo.inPortId = inPort;
         rule.process(fwdInfo, argRes, natMapping, false);
         Assert.assertEquals(Action.ACCEPT, argRes.action);
-        int newNwSrc = argRes.pmatch.getNetworkSource();
-        Assert.assertTrue(0x0b000102 <= newNwSrc);
-        Assert.assertTrue(newNwSrc <= 0x0b00010a);
+        IPv4Addr newNwSrc = (IPv4Addr)(argRes.pmatch.getNetworkSourceIP());
+        Assert.assertTrue(0x0b000102 <= newNwSrc.getIntAddress());
+        Assert.assertTrue(newNwSrc.getIntAddress() <= 0x0b00010a);
         int newTpSrc = argRes.pmatch.getTransportSource();
         Assert.assertTrue(3366 <= newTpSrc);
         Assert.assertTrue(newTpSrc <= 3399);
         Assert.assertTrue(argRes.trackConnection);
         // Now verify that the rest of the packet hasn't changed.
-        expRes.pmatch.setNetworkSource(new IPv4Addr().setIntAddress(newNwSrc));
+        expRes.pmatch.setNetworkSource(newNwSrc);
         expRes.pmatch.setTransportSource(newTpSrc);
         Assert.assertTrue(expRes.pmatch.equals(argRes.pmatch));
         // Verify we get the same mapping if we re-process the original match.
         expRes = argRes;
         argRes = new RuleResult(null, null, pktMatch.clone(), false);
         rule.process(fwdInfo, argRes, natMapping, false);
-        Assert.assertTrue(expRes.equals(argRes));
+        Assert.assertEquals(expRes, argRes);
         // Now use the new ip/port in the return packet.
         argRes.pmatch = pktResponseMatch.clone();
-        Assert.assertFalse(pktResponseMatch.getNetworkDestination() == newNwSrc);
-        argRes.pmatch.setNetworkDestination(
-                new IPv4Addr().setIntAddress(newNwSrc));
+        Assert.assertFalse(pktResponseMatch.getNetworkDestinationIP().equals(
+                newNwSrc));
+        argRes.pmatch.setNetworkDestination(newNwSrc);
         Assert.assertFalse(pktResponseMatch.getTransportDestination() == newTpSrc);
         argRes.pmatch.setTransportDestination(newTpSrc);
         argRes.action = null;
@@ -257,7 +258,7 @@ public class TestRules {
                 nats);
         // If the condition doesn't match the result is not modified.
         rule.process(fwdInfo, argRes, natMapping, false);
-        Assert.assertTrue(expRes.equals(argRes));
+        Assert.assertEquals(expRes, argRes);
         // We let the reverse dnat rule try reversing everything.
         Rule revRule = new ReverseNatRule(new Condition(), Action.ACCEPT, true);
         // If the condition doesn't match the result is not modified.
@@ -267,7 +268,8 @@ public class TestRules {
         fwdInfo.inPortId = inPort;
         rule.process(fwdInfo, argRes, natMapping, false);
         Assert.assertEquals(Action.CONTINUE, argRes.action);
-        int newNwDst = argRes.pmatch.getNetworkDestination();
+        int newNwDst = argRes.pmatch.getNetworkDestinationIP().toIntIPv4()
+                           .addressAsInt();
         Assert.assertTrue(0x0c000102 <= newNwDst);
         Assert.assertTrue(newNwDst <= 0x0c00010a);
         int newTpDst = argRes.pmatch.getTransportDestination();
@@ -286,7 +288,10 @@ public class TestRules {
         Assert.assertTrue(expRes.equals(argRes));
         // Now use the new ip/port in the return packet.
         argRes.pmatch = pktResponseMatch.clone();
-        Assert.assertFalse(pktResponseMatch.getNetworkSource() == newNwDst);
+        Assert.assertTrue(new IPv4Addr().setIntAddress(newNwDst).canEqual(
+                          pktResponseMatch.getNetworkSourceIP()));
+        Assert.assertFalse(new IPv4Addr().setIntAddress(newNwDst).equals(
+                           pktResponseMatch.getNetworkSourceIP()));
         argRes.pmatch.setNetworkSource(new IPv4Addr().setIntAddress(newNwDst));
         Assert.assertFalse(pktResponseMatch.getTransportSource() == newTpDst);
         argRes.pmatch.setTransportSource(newTpDst);

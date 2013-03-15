@@ -12,6 +12,7 @@ import java.util.UUID;
 import org.midonet.cache.Cache;
 import org.midonet.midolman.rules.ChainPacketContext;
 import org.midonet.packets.Ethernet;
+import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPv4;
 import org.midonet.packets.Net;
 import org.midonet.packets.TCP;
@@ -132,9 +133,9 @@ public class MockPacketContext implements ChainPacketContext {
 
         connectionTracked = true;
         // Query connectionCache.
-        String key = connectionKey(flowMatch.getNetworkSource(),
+        String key = connectionKey(flowMatch.getNetworkSourceIP(),
                                    flowMatch.getTransportSource(),
-                                   flowMatch.getNetworkDestination(),
+                                   flowMatch.getNetworkDestinationIP(),
                                    flowMatch.getTransportDestination(),
                                    flowMatch.getNetworkProtocol(),
                                    ingressFE);
@@ -148,11 +149,11 @@ public class MockPacketContext implements ChainPacketContext {
         return flowCookie;
     }
 
-    public static String connectionKey(int ip1, int port1, int ip2,
+    public static String connectionKey(IPAddr ip1, int port1, IPAddr ip2,
                                        int port2, short proto, UUID fe) {
-        return new StringBuilder(Net.convertIntAddressToString(ip1))
+        return new StringBuilder(ip1.toString())
                              .append('|').append(port1).append('|')
-                             .append(Net.convertIntAddressToString(ip2))
+                             .append(ip2.toString())
                              .append('|').append(port2).append('|')
                              .append(proto).append('|')
                              .append(fe.toString()).toString();

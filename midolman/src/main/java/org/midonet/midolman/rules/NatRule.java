@@ -9,6 +9,7 @@ import java.util.UUID;
 
 import org.midonet.midolman.rules.RuleResult.Action;
 import org.midonet.packets.ICMP;
+import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPv4;
 import org.midonet.packets.MalformedPacketException;
 import org.midonet.packets.TCP;
@@ -119,9 +120,9 @@ public abstract class NatRule extends Rule {
                                             throws MalformedPacketException {
 
         byte proto = match.getNetworkProtocol();
-        int nwSrc = match.getNetworkSource();
+        IPAddr nwSrc = match.getNetworkSourceIP();
         int tpSrc = match.getTransportSource();
-        int nwDst = match.getNetworkDestination();
+        IPAddr nwDst = match.getNetworkDestinationIP();
         int tpDst = match.getTransportDestination();
         if (match.getNetworkProtocol() == ICMP.PROTOCOL_NUMBER) {
             int icmpType = match.getTransportSource();
@@ -175,10 +176,11 @@ public abstract class NatRule extends Rule {
         final byte proto;
         final int tpSrc;
         final int tpDst;
-        final int nwSrc;
-        final int nwDst;
+        final IPAddr nwSrc;
+        final IPAddr nwDst;
 
-        NatLookupTuple(byte proto, int nwSrc, int tpSrc, int nwDst, int tpDst) {
+        NatLookupTuple(byte proto, IPAddr nwSrc, int tpSrc, IPAddr nwDst,
+                       int tpDst) {
             this.proto = proto;
             this.nwSrc = nwSrc;
             this.tpSrc = tpSrc;

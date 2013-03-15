@@ -81,15 +81,19 @@ public class Condition {
         if (!cond)
             return conjunctionInv;
 
-        if (!match(this.inPortIds, inPortId, this.inPortInv)
-            || !match(this.outPortIds, outPortId, this.outPortInv)
-            || !match(dlType, pktMatch.getEtherType(), invDlType)
-            || !match(dlSrc, pktMatch.getEthernetSource(), invDlSrc)
-            || !match(dlDst, pktMatch.getEthernetDestination(), invDlDst)
-            || !match(nwTos, pktMatch.getNetworkTOS(), nwTosInv)
-            || !match(nwProto, pktMatch.getNetworkProtocolObject(), nwProtoInv)
-            || !match(nwSrcIp, pktMatch.getNetworkSourceIPv4(), nwSrcInv)
-            || !match(nwDstIp, pktMatch.getNetworkDestinationIPv4(), nwDstInv)
+        IntIPv4 pmSrcIP = pktMatch.getNetworkSourceIP() == null ? null
+                              : pktMatch.getNetworkSourceIP().toIntIPv4();
+        IntIPv4 pmDstIP = pktMatch.getNetworkDestinationIP() == null ? null
+                              : pktMatch.getNetworkDestinationIP().toIntIPv4();
+        if (!matchPort(this.inPortIds, inPortId, this.inPortInv)
+            || !matchPort(this.outPortIds, outPortId, this.outPortInv)
+            || !matchField(dlType, pktMatch.getEtherType(), invDlType)
+            || !matchField(dlSrc, pktMatch.getEthernetSource(), invDlSrc)
+            || !matchField(dlDst, pktMatch.getEthernetDestination(), invDlDst)
+            || !matchField(nwTos, pktMatch.getNetworkTOS(), nwTosInv)
+            || !matchField(nwProto, pktMatch.getNetworkProtocolObject(), nwProtoInv)
+            || !matchIP(nwSrcIp, pmSrcIP, nwSrcInv)
+            || !matchIP(nwDstIp, pmDstIP, nwDstInv)
             || !matchRange(tpSrcStart, tpSrcEnd,
                     pktMatch.getTransportSourceObject(), tpSrcInv)
             || !matchRange(tpDstStart, tpDstEnd,
@@ -99,8 +103,7 @@ public class Condition {
         return conjunctionInv? !cond : cond;
     }
 
-    private boolean match(Set<UUID> condPorts, UUID port,
-                               boolean negate) {
+    private boolean matchPort(Set<UUID> condPorts, UUID port, boolean negate) {
         // Packet is considered to match if the field is null or empty set.
         if (condPorts == null || condPorts.size() == 0)
             return true;
@@ -115,7 +118,7 @@ public class Condition {
      * @param negate This is only considered if the condField is NOT null
      * @return
      */
-    private <T> boolean match(T condField, T pktField, boolean negate) {
+    private <T> boolean matchField(T condField, T pktField, boolean negate) {
         // Packet is considered to match if the condField is not specified.
         if (condField == null)
             return true;
@@ -123,7 +126,7 @@ public class Condition {
         return negate? !cond : cond;
     }
 
-    private boolean match(IntIPv4 condSubnet, IntIPv4 pktIp, boolean negate) {
+    private boolean matchIP(IntIPv4 condSubnet, IntIPv4 pktIp, boolean negate) {
         // Packet is considered to match if the condField is not specified.
         if (condSubnet == null)
             return true;
@@ -157,80 +160,80 @@ public class Condition {
     public String toString() {
         StringBuilder sb = new StringBuilder("Condition [");
         if (conjunctionInv)
-            sb.append("conjunctionInv=true");
+            sb.append("conjunctionInv=true, ");
         if (matchForwardFlow)
-            sb.append("matchForwardFlow=true,");
+            sb.append("matchForwardFlow=true, ");
         if (matchReturnFlow)
-            sb.append("matchReturnFlow=true");
+            sb.append("matchReturnFlow=true, ");
         if (inPortIds != null && inPortIds.size() > 0) {
             sb.append("inPortIds={");
             for (UUID id : inPortIds) {
                 sb.append(id.toString()).append(",");
             }
-            sb.append("},");
+            sb.append("}, ");
             if (inPortInv)
-                sb.append("inPortInv=").append(inPortInv).append(",");
+                sb.append("inPortInv=").append(inPortInv).append(", ");
         }
         if (outPortIds != null && outPortIds.size() > 0) {
             sb.append("outPortIds={");
             for (UUID id : outPortIds) {
                 sb.append(id.toString()).append(",");
             }
-            sb.append("},");
+            sb.append("}, ");
             if (outPortInv)
-                sb.append("outPortInv=").append(outPortInv).append(",");
+                sb.append("outPortInv=").append(outPortInv).append(", ");
         }
         if (portGroup != null) {
-            sb.append("portGroup=").append(portGroup).append(",");
+            sb.append("portGroup=").append(portGroup).append(", ");
             if (invPortGroup)
-                sb.append("invPortGroup=true,");
+                sb.append("invPortGroup=true, ");
         }
         if (null != dlType) {
-            sb.append("dlType=").append(dlType.shortValue()).append(",");
+            sb.append("dlType=").append(dlType.shortValue()).append(", ");
             if(invDlType)
-                sb.append("invDlType").append(invDlType).append(",");
+                sb.append("invDlType").append(invDlType).append(", ");
         }
         if (null != dlSrc) {
-            sb.append("dlSrc=").append(dlSrc).append(",");
+            sb.append("dlSrc=").append(dlSrc).append(", ");
             if(invDlSrc)
-                sb.append("invDlSrc").append(invDlSrc).append(",");
+                sb.append("invDlSrc").append(invDlSrc).append(", ");
         }
         if (null != dlDst) {
-            sb.append("dlDst=").append(dlDst).append(",");
+            sb.append("dlDst=").append(dlDst).append(", ");
             if(invDlDst)
-                sb.append("invDlDst").append(invDlDst).append(",");
+                sb.append("invDlDst").append(invDlDst).append(", ");
         }
         if (null != nwTos) {
-            sb.append("nwTos=").append(nwTos).append(",");
+            sb.append("nwTos=").append(nwTos).append(", ");
             if(nwTosInv)
-                sb.append("nwTosInv").append(nwTosInv).append(",");
+                sb.append("nwTosInv").append(nwTosInv).append(", ");
         }
         if (null != nwProto) {
-            sb.append("nwProto=").append(nwProto).append(",");
+            sb.append("nwProto=").append(nwProto).append(", ");
             if(nwProtoInv)
-                sb.append("nwProtoInv").append(nwProtoInv).append(",");
+                sb.append("nwProtoInv").append(nwProtoInv).append(", ");
         }
         if (null != nwSrcIp) {
-            sb.append("nwSrcIp=").append(nwSrcIp).append(",");
+            sb.append("nwSrcIp=").append(nwSrcIp).append(", ");
             if(nwSrcInv)
-                sb.append("nwSrcInv").append(nwSrcInv).append(",");
+                sb.append("nwSrcInv").append(nwSrcInv).append(", ");
         }
         if (null != nwDstIp) {
-            sb.append("nwDstIp=").append(nwDstIp).append(",");
+            sb.append("nwDstIp=").append(nwDstIp).append(", ");
             if(nwDstInv)
-                sb.append("nwDstInv").append(nwDstInv).append(",");
+                sb.append("nwDstInv").append(nwDstInv).append(", ");
         }
         if (0 != tpSrcStart || 0 != tpSrcEnd) {
-            sb.append("tpSrcStart=").append(tpSrcStart).append(",");
-            sb.append("tpSrcEnd=").append(tpSrcEnd).append(",");
+            sb.append("tpSrcStart=").append(tpSrcStart).append(", ");
+            sb.append("tpSrcEnd=").append(tpSrcEnd).append(", ");
             if(tpSrcInv)
-                sb.append("tpSrcInv").append(tpSrcInv).append(",");
+                sb.append("tpSrcInv").append(tpSrcInv).append(", ");
         }
         if (0 != tpDstStart || 0 != tpDstEnd) {
-            sb.append("tpDstStart=").append(tpDstStart).append(",");
-            sb.append("tpDstEnd=").append(tpDstEnd).append(",");
+            sb.append("tpDstStart=").append(tpDstStart).append(", ");
+            sb.append("tpDstEnd=").append(tpDstEnd).append(", ");
             if(tpDstInv)
-                sb.append("tpDstInv").append(tpDstInv).append(",");
+                sb.append("tpDstInv").append(tpDstInv).append(", ");
         }
         sb.append("]");
         return sb.toString();

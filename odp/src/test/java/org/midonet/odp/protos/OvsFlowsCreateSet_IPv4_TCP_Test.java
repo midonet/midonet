@@ -11,6 +11,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 import org.midonet.odp.FlowMatch;
 import org.midonet.odp.flows.FlowAction;
@@ -22,6 +23,7 @@ import static org.midonet.odp.flows.FlowKeys.ethernet;
 import static org.midonet.odp.flows.FlowKeys.inPort;
 import static org.midonet.odp.flows.FlowKeys.ipv4;
 import static org.midonet.odp.flows.FlowKeys.tcp;
+
 
 public class OvsFlowsCreateSet_IPv4_TCP_Test
     extends OvsFlowsCreateSetMatchTest {
@@ -49,8 +51,8 @@ public class OvsFlowsCreateSet_IPv4_TCP_Test
             .addKey(etherType(FlowKeyEtherType.Type.ETH_P_IP))
             .addKey(
                 ipv4(
-                    ipFromString("192.168.100.1"),
-                    ipFromString("192.168.100.2"),
+                    IPv4Addr.fromString("192.168.100.1"),
+                    IPv4Addr.fromString("192.168.100.2"),
                     IpProtocol.TCP))
             .addKey(tcp(8096, 512));
     }

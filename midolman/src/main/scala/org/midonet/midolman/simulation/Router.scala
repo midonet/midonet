@@ -28,7 +28,8 @@ import org.midonet.midolman.DatapathController.EmitGeneratedPacket
 class Router(val id: UUID, val cfg: RouterConfig,
              val rTable: RoutingTableWrapper, val arpTable: ArpTable,
              val inFilter: Chain, val outFilter: Chain,
-             val routerMgrTagger: TagManager) (implicit context: ActorContext) extends Device {
+             val routerMgrTagger: TagManager)
+            (implicit context: ActorContext) extends Device {
     val log =  LoggerFactory.getSimulationAwareLog(this.getClass)(context.system.eventStream)
     private val loadBalancer = new LoadBalancer(rTable)
 
@@ -151,22 +152,20 @@ class Router(val id: UUID, val cfg: RouterConfig,
 
 
         // tag using the destination IP
-        val iDstIp = pktContext.getMatch.getNetworkDestinationIPv4.addressAsInt
-        pktContext.addFlowTag(
-            FlowTagger.invalidateByIp(id, new IPv4Addr().setIntAddress(iDstIp)))
+        val dstIP = pktContext.getMatch.getNetworkDestinationIP
+        pktContext.addFlowTag(FlowTagger.invalidateByIp(id, dstIP))
         // pass tag to the RouterManager so that it will be able to invalidate
         // the flow
-        routerMgrTagger.addTag(iDstIp)
+        routerMgrTagger.addTag(dstIP)
         // register the tag removal callback
         pktContext.addFlowRemovedCallback(
-            routerMgrTagger.getFlowRemovalCallback(iDstIp))
+            routerMgrTagger.getFlowRemovalCallback(dstIP))
 
-        val nwDst = pktContext.getMatch.getNetworkDestinationIPv4
         val rt: Route = loadBalancer.lookup(pktContext.getMatch)
         if (rt == null) {
             // No route to network
             log.debug("Route lookup: No route to network (dst:{}), {}",
-                      nwDst, rTable.rTable)
+                      dstIP, rTable.rTable)
             sendIcmpError(inPort, pktContext.getMatch, pktContext.getFrame,
                 ICMP.TYPE_UNREACH, UNREACH_CODE.UNREACH_NET)
             return Promise.successful(new DropAction)(ec)
@@ -188,20 +187,20 @@ class Router(val id: UUID, val cfg: RouterConfig,
 
             case Route.NextHop.BLACKHOLE =>
                 log.debug("Dropping packet, BLACKHOLE route (dst:{})",
-                    pktContext.getMatch.getNetworkDestinationIPv4)
+                    pktContext.getMatch.getNetworkDestinationIP)
                 Promise.successful(new DropAction)(ec)
 
             case Route.NextHop.REJECT =>
                 sendIcmpError(inPort, pktContext.getMatch, pktContext.getFrame,
                     ICMP.TYPE_UNREACH, UNREACH_CODE.UNREACH_FILTER_PROHIB)
                 log.debug("Dropping packet, REJECT route (dst:{})",
-                    pktContext.getMatch.getNetworkDestinationIPv4)
+                    pktContext.getMatch.getNetworkDestinationIP)
                 Promise.successful(new DropAction)(ec)
 
             case Route.NextHop.PORT =>
                 if (rt.nextHopPort == null) {
                     log.error("Routing table lookup for {} forwarded to port " +
-                        "null.", nwDst)
+                        "null.", dstIP)
                     // TODO(pino): should we remove this route?
                     Promise.successful(new DropAction)(ec)
                 } else {
@@ -215,7 +214,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
 
             case _ =>
                 log.error("Routing table lookup for {} returned invalid " +
-                    "nextHop of {}", nwDst, rt.nextHop)
+                    "nextHop of {}", dstIP, rt.nextHop)
                 // rt.nextHop is invalid. The only way the simulation result
                 // would change is if there are other matching routes that are
                 // 'sane'. If such routes were created, this flow will be
@@ -254,8 +253,8 @@ class Router(val id: UUID, val cfg: RouterConfig,
             return Promise.successful(new ErrorDropAction)(ec)
         }
 
-        if (pktContext.getMatch.getNetworkDestinationIPv4 ==
-                                     outPort.portAddr.getAddress.toIntIPv4) {
+        if (pktContext.getMatch.getNetworkDestinationIP ==
+                                     outPort.portAddr.getAddress) {
             log.error("Got a packet addressed to a port without a LOCAL route")
             return Promise.successful(new DropAction)(ec)
         }
@@ -264,7 +263,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
         pktContext.getMatch.setEthernetSource(outPort.portMac)
         // Set HWDst
         val macFuture = getNextHopMac(outPort, rt,
-                                      pktContext.getMatch.getNetworkDestination,
+                                      pktContext.getMatch.getNetworkDestinationIP,
                                       pktContext.getExpiry)
         macFuture map {
             case null =>
@@ -433,8 +432,8 @@ class Router(val id: UUID, val cfg: RouterConfig,
         reply.setEchoReply(echo.getIdentifier, echo.getSequenceNum, echo.getData)
         val ip = new IPv4()
         ip.setProtocol(ICMP.PROTOCOL_NUMBER)
-        ip.setDestinationAddress(ingressMatch.getNetworkSource)
-        ip.setSourceAddress(ingressMatch.getNetworkDestination)
+        ip.setDestinationAddress(ingressMatch.getNetworkSourceIP.asInstanceOf[IPv4Addr])
+        ip.setSourceAddress(ingressMatch.getNetworkDestinationIP.asInstanceOf[IPv4Addr])
         ip.setPayload(reply)
 
         sendIPPacket(ip, expiry)
@@ -458,20 +457,19 @@ class Router(val id: UUID, val cfg: RouterConfig,
         }
     }
 
-    private def getMacForIP(port: RouterPort[_], nextHopIP: Int, expiry: Long)
+    private def getMacForIP(port: RouterPort[_], nextHopIP: IPAddr,
+                            expiry: Long)
                            (implicit ec: ExecutionContext,
                             actorSystem: ActorSystem,
                             pktContext: PacketContext): Future[MAC] = {
-        val nwAddr = new IntIPv4(nextHopIP)
         port match {
             case extPort: ExteriorRouterPort =>
                 extPort.nwSubnet match {
                     case extAddr: IPv4Subnet =>
-                        if (!extAddr.containsAddress(
-                                new IPv4Addr().setIntAddress(nextHopIP))) {
+                        if (!extAddr.containsAddress(nextHopIP)) {
                             log.warning("getMacForIP: cannot get MAC for {} - "+
                                 "address not in network segment of port {} ({})",
-                                nwAddr, port.id, extAddr)
+                                nextHopIP, port.id, extAddr)
                             return Promise.successful(null)(ec)
                         }
                     case _ =>
@@ -479,7 +477,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
                 }
             case _ => /* Fall through */
         }
-        arpTable.get(nwAddr, port, expiry)
+        arpTable.get(nextHopIP.toIntIPv4, port, expiry)
     }
 
     /**
@@ -493,7 +491,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
      * @return
      */
     private def getNextHopMac(outPort: RouterPort[_], rt: Route,
-                              ipv4Dest: Int, expiry: Long)
+                              ipDest: IPAddr, expiry: Long)
                              (implicit ec: ExecutionContext,
                               actorSystem: ActorSystem,
                               pktContext: PacketContext): Future[MAC] = {
@@ -512,10 +510,13 @@ class Router(val id: UUID, val cfg: RouterConfig,
                 peerMacFuture = Promise.successful(null)(ec)
         }
 
-        var nextHopIP: Int = rt.nextHopGateway
-        if (nextHopIP == 0 || nextHopIP == -1) {  /* Last hop */
-            nextHopIP = ipv4Dest
-        }
+        val nextHopInt: Int = rt.nextHopGateway
+        var nextHopIP: IPAddr =
+            if (nextHopInt == 0 || nextHopInt == -1) {  /* Last hop */
+                ipDest
+            } else {
+                new IPv4Addr().setIntAddress(nextHopInt)
+            }
         peerMacFuture flatMap {
             case null => getMacForIP(outPort, nextHopIP, expiry)
             case mac => Promise.successful(mac)
@@ -562,7 +563,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
             eth.setSourceMACAddress(outPort.portMac)
 
             val macFuture = getNextHopMac(outPort, rt,
-                                packet.getDestinationAddress, expiry)
+                                packet.getDestinationIPAddress, expiry)
             macFuture onSuccess {
                 case null =>
                     log.error("Failed to get MAC address to emit local packet")
@@ -730,6 +731,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
             return
         }
         // Build the ICMP packet from inside-out: ICMP, IPv4, Ethernet headers.
+        log.debug("Generating ICMP error {}:{}", icmpType, icmpCode)
         val icmp = buildIcmpError(icmpType, icmpCode, ingressMatch, packet)
         if (icmp == null)
             return
@@ -738,7 +740,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
         ip.setPayload(icmp)
         ip.setProtocol(ICMP.PROTOCOL_NUMBER)
         // The nwDst is the source of triggering IPv4 as seen by this router.
-        ip.setDestinationAddress(ingressMatch.getNetworkSource)
+        ip.setDestinationAddress(ingressMatch.getNetworkSourceIP.asInstanceOf[IPv4Addr])
         // The nwSrc is the address of the ingress port.
         ip.setSourceAddress(inPort.portAddr.getAddress.asInstanceOf[IPv4Addr])
         val eth = new Ethernet()

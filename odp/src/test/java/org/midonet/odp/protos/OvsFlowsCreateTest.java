@@ -10,6 +10,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.packets.IPv6Addr;
 import org.midonet.packets.Net;
 import org.midonet.odp.Datapath;
 import org.midonet.odp.Flow;
@@ -58,8 +59,10 @@ public class OvsFlowsCreateTest
                 .addKey(etherType(Type.ETH_P_IPV6))
                 .addKey(
                     ipv6(
-                        Net.ipv6FromString("fe80::acb3:77ff:fe8c:a148"),
-                        Net.ipv6FromString("ff02::16"),
+                        new IPv6Addr().setAddress(
+                            0xFE80000000000000L, 0xACB377FFFE8CA148L),
+                        new IPv6Addr().setAddress(
+                            0xFF02000000000000L, 0x0000000000000016L),
                         IpProtocol.ICMPV6)
                         .setHLimit((byte) 1))
                 .addKey(icmpv6(143, 0))
@@ -80,8 +83,10 @@ public class OvsFlowsCreateTest
             .addKey(etherType(Type.ETH_P_IPV6))
             .addKey(
                 ipv6(
-                    Net.ipv6FromString("fe80::acb3:77ff:fe8c:a148"),
-                    Net.ipv6FromString("ff02::16"),
+                    new IPv6Addr().setAddress(
+                        0xFE80000000000000L, 0xACB377FFFE8CA148L),
+                    new IPv6Addr().setAddress(
+                        0xFF02000000000000L, 0x0000000000000016L),
                     58)
                     .setHLimit((byte) 1))
             .addKey(icmpv6(143, 0))
@@ -99,8 +104,10 @@ public class OvsFlowsCreateTest
             .addKey(etherType(Type.ETH_P_IPV6))
             .addKey(
                 ipv6(
-                    Net.ipv6FromString("fe80::acb3:77ff:fe8c:a148"),
-                    Net.ipv6FromString("ff02::2"),
+                    new IPv6Addr().setAddress(
+                        0xFE80000000000000L, 0xACB377FFFE8CA148L),
+                    new IPv6Addr().setAddress(
+                        0xFF02000000000000L, 0x0000000000000002L),
                     58)
                     .setHLimit((byte) -1))
             .addKey(
@@ -120,8 +127,11 @@ public class OvsFlowsCreateTest
             .addKey(etherType(Type.ETH_P_IPV6))
             .addKey(
                 ipv6(
-                    Net.ipv6FromString("::"),
-                    Net.ipv6FromString("ff02::1:ff8c:a148"), 58)
+                    new IPv6Addr().setAddress(
+                        0x0000000000000000L, 0x0000000000000000L),
+                    new IPv6Addr().setAddress(
+                        0xFF02000000000000L, 0x00000001FF8CA148L),
+                    58)
                     .setHLimit((byte) -1))
             .addKey(icmpv6(135, 0))
             .addKey(
@@ -141,8 +151,10 @@ public class OvsFlowsCreateTest
             .addKey(etherType(Type.ETH_P_IPV6))
             .addKey(
                 ipv6(
-                    Net.ipv6FromString("::"),
-                    Net.ipv6FromString("ff02::16"),
+                    new IPv6Addr().setAddress(
+                        0x0000000000000000L, 0x0000000000000000L),
+                    new IPv6Addr().setAddress(
+                        0xFF02000000000000L, 0x0000000000000016L),
                     58)
                     .setHLimit((byte) 1))
             .addKey(
@@ -163,8 +175,10 @@ public class OvsFlowsCreateTest
             .addKey(etherType(Type.ETH_P_IPV6))
             .addKey(
                 ipv6(
-                    Net.ipv6FromString("fe80::acb3:77ff:fe8c:a148"),
-                    Net.ipv6FromString("ff02::fb"),
+                    new IPv6Addr().setAddress(
+                        0xFE80000000000000L, 0xACB377FFFE8CA148L),
+                    new IPv6Addr().setAddress(
+                        0xFF02000000000000L, 0x00000000000000FBL),
                     17)
                     .setHLimit((byte) -1))
             .addKey(

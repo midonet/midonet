@@ -202,8 +202,8 @@ trait SimulationHelper extends MidolmanTestCase {
         wmatch.getEthernetSource should be === pkt.getSourceMACAddress
         wmatch.getEtherType should be === pkt.getEtherType
         val ipPkt = pkt.getPayload.asInstanceOf[IPv4]
-        wmatch.getNetworkDestination should be === ipPkt.getDestinationAddress
-        wmatch.getNetworkSource should be === ipPkt.getSourceAddress
+        wmatch.getNetworkDestinationIP should be === ipPkt.getDestinationIPAddress
+        wmatch.getNetworkSourceIP should be === ipPkt.getSourceIPAddress
         wmatch.getNetworkProtocol should be === ipPkt.getProtocol
 
         ipPkt.getProtocol match {

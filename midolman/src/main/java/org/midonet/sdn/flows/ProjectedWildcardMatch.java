@@ -31,10 +31,10 @@ public class ProjectedWildcardMatch extends WildcardMatch {
                     setTransportSource(source.getTransportSourceObject());
                     break;
                 case NetworkDestination:
-                    setNetworkDestination(source.getNetworkDestinationIPv4());
+                    setNetworkDestination(source.getNetworkDestinationIP());
                     break;
                 case NetworkSource:
-                    setNetworkSource(source.getNetworkSourceIPv4());
+                    setNetworkSource(source.getNetworkSourceIP());
                     break;
                 case NetworkProtocol:
                     setNetworkProtocol(source.getNetworkProtocolObject());

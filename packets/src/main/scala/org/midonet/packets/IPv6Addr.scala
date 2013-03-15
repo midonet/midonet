@@ -49,7 +49,8 @@ class IPv6Addr extends IPAddr {
         ((longHash ^ (longHash >> 32)) & 0xffffffff).toInt
     }
 
-    override def clone() = new IPv6Addr().setAddress(upperWord, lowerWord)
+    override def clone_() = new IPv6Addr().setAddress(upperWord, lowerWord)
+    override def clone() = clone_
 
     override def toIntIPv4() = throw new IllegalArgumentException
 }

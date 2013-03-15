@@ -13,9 +13,6 @@ import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.eventloop.SelectLoop;
 
 
-/**
- *
- */
 public class DatapathModule extends PrivateModule {
     @Override
     protected void configure() {
@@ -34,7 +31,6 @@ public class DatapathModule extends PrivateModule {
     protected void bindOvsDatapathConnection() {
         bind(OvsDatapathConnection.class)
             .toProvider(OvsDatapathConnectionProvider.class)
-            //.toProvider(MockOvsDatapathConnectionProvider.class)
             .in(Singleton.class);
     }
 }

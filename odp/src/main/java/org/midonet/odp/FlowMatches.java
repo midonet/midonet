@@ -7,7 +7,7 @@ import org.midonet.packets.ARP;
 import org.midonet.packets.Ethernet;
 import org.midonet.packets.ICMP;
 import org.midonet.packets.IPv4;
-import org.midonet.packets.IntIPv4;
+import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 import org.midonet.packets.TCP;
 import org.midonet.packets.UDP;
@@ -32,8 +32,8 @@ public class FlowMatches {
                 .addKey(etherType(FlowKeyEtherType.Type.ETH_P_IP))
                 .addKey(
                     ipv4(
-                        IntIPv4.fromString(ipSrc).addressAsInt(),
-                        IntIPv4.fromString(ipDst).addressAsInt(),
+                        IPv4Addr.fromString(ipSrc),
+                        IPv4Addr.fromString(ipDst),
                         IpProtocol.TCP))
                 .addKey(tcp(portSrc, portDst));
     }
@@ -63,8 +63,9 @@ public class FlowMatches {
                     IPFragmentType.fromIPv4Flags(ipPkt.getFlags(),
                                                  ipPkt.getFragmentOffset());
                 match.addKey(
-                    ipv4(ipPkt.getSourceAddress(), ipPkt.getDestinationAddress(),
-                        ipPkt.getProtocol())
+                    ipv4(ipPkt.getSourceIPAddress(),
+                         ipPkt.getDestinationIPAddress(),
+                         ipPkt.getProtocol())
                     .setTtl(ipPkt.getTtl())
                     .setFrag(IPFragmentType.toByte(fragmentType))
                 );

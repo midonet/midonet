@@ -7,34 +7,36 @@ package org.midonet.midolman.layer4;
 import java.util.Set;
 
 import org.midonet.midolman.rules.NatTarget;
+import org.midonet.packets.IPAddr;
+
 
 public interface NatMapping {
 
     // Allocates and records a Dnat mapping.
     NwTpPair allocateDnat(byte protocol,
-                          int nwSrc, int tpSrc,
-                          int oldNwDst, int oldTpDst, Set<NatTarget> nats);
+                          IPAddr nwSrc, int tpSrc,
+                          IPAddr oldNwDst, int oldTpDst, Set<NatTarget> nats);
 
     NwTpPair lookupDnatFwd(byte protocol,
-                           int nwSrc, int tpSrc,
-                           int oldNwDst, int oldTpDst);
+                           IPAddr nwSrc, int tpSrc,
+                           IPAddr oldNwDst, int oldTpDst);
 
     NwTpPair lookupDnatRev(byte protocol,
-                           int nwSrc, int tpSrc,
-                           int newNwDst, int newTpDst);
+                           IPAddr nwSrc, int tpSrc,
+                           IPAddr newNwDst, int newTpDst);
 
     // Allocates and records a Snat mapping.
     NwTpPair allocateSnat(byte protocol,
-                          int oldNwSrc, int oldTpSrc,
-                          int nwDst, int tpDst, Set<NatTarget> nats);
+                          IPAddr oldNwSrc, int oldTpSrc,
+                          IPAddr nwDst, int tpDst, Set<NatTarget> nats);
 
     NwTpPair lookupSnatFwd(byte protocol,
-                           int oldNwSrc, int oldTpSrc,
-                           int nwDst, int tpDst);
+                           IPAddr oldNwSrc, int oldTpSrc,
+                           IPAddr nwDst, int tpDst);
 
     NwTpPair lookupSnatRev(byte protocol,
-                           int newNwSrc, int newTpSrc,
-                           int nwDst, int tpDst);
+                           IPAddr newNwSrc, int newTpSrc,
+                           IPAddr nwDst, int tpDst);
 
     // The implementation of this method should reserve and clean up resources.
     void updateSnatTargets(Set<NatTarget> targets);

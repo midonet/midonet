@@ -83,8 +83,7 @@ class Bridge(val id: UUID, val tunnelKey: Long,
         Ethernet.isMcast(dstDlAddress) match {
           case true =>
             // L2 Multicast
-            val nwDst = IPAddr.fromIntIPv4(packetContext.getMatch
-                                                .getNetworkDestinationIPv4)
+            val nwDst = packetContext.getMatch.getNetworkDestinationIP
             if (Ethernet.isBroadcast(dstDlAddress) &&
                 packetContext.getMatch.getEtherType == ARP.ETHERTYPE) {
                 if (rtrIpToMac.contains(nwDst)) {

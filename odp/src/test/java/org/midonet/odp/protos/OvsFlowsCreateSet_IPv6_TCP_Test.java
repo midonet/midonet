@@ -11,6 +11,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.packets.IPv6Addr;
 import org.midonet.packets.Net;
 import org.midonet.odp.FlowMatch;
 import org.midonet.odp.flows.FlowAction;
@@ -22,6 +23,7 @@ import static org.midonet.odp.flows.FlowKeys.ethernet;
 import static org.midonet.odp.flows.FlowKeys.inPort;
 import static org.midonet.odp.flows.FlowKeys.ipv6;
 import static org.midonet.odp.flows.FlowKeys.tcp;
+
 
 public class OvsFlowsCreateSet_IPv6_TCP_Test
     extends OvsFlowsCreateSetMatchTest {
@@ -49,8 +51,10 @@ public class OvsFlowsCreateSet_IPv6_TCP_Test
             .addKey(etherType(FlowKeyEtherType.Type.ETH_P_IPV6))
             .addKey(
                 ipv6(
-                    Net.ipv6FromString("fe80::96bf:90ff:fe6c:e2c1"),
-                    Net.ipv6FromString("fe80::96ef:90ff:fe6c:e2c1"),
+                    new IPv6Addr().setAddress(
+                        0xFE80000000000000L, 0x96BF90FFFE6CE2C1L),
+                    new IPv6Addr().setAddress(
+                        0xFE80000000000000L, 0x96EF90FFFE6CE2C1L),
                     IpProtocol.TCP)
             )
             .addKey(tcp(537, 1024));

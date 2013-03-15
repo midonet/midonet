@@ -4,19 +4,22 @@
 
 package org.midonet.midolman.layer4;
 
+import org.midonet.packets.IPAddr;
+
+
 public class NwTpPair {
 
-    public final int nwAddr;
+    public final IPAddr nwAddr;
     public final int tpPort;
     public final String unrefKey;
 
-    public NwTpPair(int nwAddr, int tpPort) {
+    public NwTpPair(IPAddr nwAddr, int tpPort) {
         this.nwAddr = nwAddr;
         this.tpPort = tpPort;
         this.unrefKey = null;
     }
 
-    public NwTpPair(int nwAddr, int tpPort, String unrefKey) {
+    public NwTpPair(IPAddr nwAddr, int tpPort, String unrefKey) {
         this.nwAddr = nwAddr;
         this.tpPort = tpPort;
         this.unrefKey = unrefKey;
@@ -24,7 +27,7 @@ public class NwTpPair {
 
     @Override
     public int hashCode() {
-        return nwAddr * 31 + tpPort * 17;
+        return nwAddr.hashCode() * 31 + tpPort * 17;
     }
 
     @Override
@@ -34,11 +37,11 @@ public class NwTpPair {
         if (!(other instanceof NwTpPair))
             return false;
         NwTpPair p = (NwTpPair) other;
-        return nwAddr == p.nwAddr && tpPort == p.tpPort;
+        return nwAddr.equals(p.nwAddr) && tpPort == p.tpPort;
     }
 
     @Override
     public String toString() {
-        return "NwTpPair [nwAddr=" + nwAddr + ", tpPort=" + tpPort + "]";
+        return "NwTpPair [nwAddr=" + nwAddr.toString() + ", tpPort=" + tpPort + "]";
     }
 }

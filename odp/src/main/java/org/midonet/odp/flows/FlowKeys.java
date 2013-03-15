@@ -3,6 +3,10 @@
 */
 package org.midonet.odp.flows;
 
+import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.IPv6Addr;
+
+
 /**
  * Builder class to allow easier building of FlowKey instances.
  */
@@ -24,11 +28,12 @@ public class FlowKeys {
         return etherType(type.value);
     }
 
-    public static FlowKeyIPv4 ipv4(int src, int dst, IpProtocol protocol) {
+    public static FlowKeyIPv4 ipv4(IPv4Addr src, IPv4Addr dst,
+                                   IpProtocol protocol) {
         return ipv4(src, dst, protocol.value);
     }
 
-    public static FlowKeyIPv4 ipv4(int src, int dst, int proto) {
+    public static FlowKeyIPv4 ipv4(IPv4Addr src, IPv4Addr dst, int proto) {
         return
             new FlowKeyIPv4()
                 .setSrc(src)
@@ -36,35 +41,30 @@ public class FlowKeys {
                 .setProto((byte) proto);
     }
 
-    public static FlowKeyIPv6 ipv6(int[] src, int dst[], int proto) {
-        return
-            new FlowKeyIPv6()
-                .setSrc(src)
-                .setDst(dst)
-                .setProto((byte) proto);
+    public static FlowKeyIPv6 ipv6(IPv6Addr src, IPv6Addr dst, int proto) {
+        return new FlowKeyIPv6().setSrc(src)
+                                .setDst(dst)
+                                .setProto((byte) proto);
     }
 
-    public static FlowKeyIPv6 ipv6(int[] src, int dst[], IpProtocol protocol) {
+    public static FlowKeyIPv6 ipv6(IPv6Addr src, IPv6Addr dst,
+                                   IpProtocol protocol) {
         return ipv6(src, dst, protocol.value);
     }
 
     public static FlowKeyICMP icmp(int type, int code) {
-        return new FlowKeyICMP()
-            .setType((byte) type)
-            .setCode((byte) code);
+        return new FlowKeyICMP().setType((byte) type).setCode((byte) code);
     }
 
     public static FlowKeyICMPEcho icmpEcho(int type, int code, short id) {
         FlowKeyICMPEcho key = new FlowKeyICMPEcho();
-        key.setType((byte) type)
-           .setCode((byte) code);
+        key.setType((byte) type).setCode((byte) code);
         return key.setIdentifier(id);
     }
 
     public static FlowKeyICMPError icmpError(int type, int code, byte[] data) {
         FlowKeyICMPError key = new FlowKeyICMPError();
-        key.setType((byte) type)
-           .setCode((byte) code);
+        key.setType((byte) type).setCode((byte) code);
         return key.setIcmpData(data);
     }
 

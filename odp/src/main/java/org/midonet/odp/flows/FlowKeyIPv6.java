@@ -6,9 +6,11 @@ package org.midonet.odp.flows;
 import java.nio.ByteOrder;
 import java.util.Arrays;
 
+import org.midonet.packets.IPv6Addr;
 import org.midonet.packets.Net;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.BaseBuilder;
+
 
 public class FlowKeyIPv6 implements FlowKey<FlowKeyIPv6> {
 
@@ -66,6 +68,15 @@ public class FlowKeyIPv6 implements FlowKey<FlowKeyIPv6> {
         return this;
     }
 
+    public FlowKeyIPv6 setSrc(IPv6Addr src) {
+        int a[] = { (int)(src.getUpperWord() >>> 32), 
+                    (int)(src.getUpperWord() & 0xFFFFFFFF),
+                    (int)(src.getLowerWord() >>> 32), 
+                    (int)(src.getLowerWord() & 0xFFFFFFFF)
+                  };
+        return setSrc(a);
+    }
+
     public int[] getDst() {
         return ipv6_dst;
     }
@@ -73,6 +84,15 @@ public class FlowKeyIPv6 implements FlowKey<FlowKeyIPv6> {
     public FlowKeyIPv6 setDst(int[] dst) {
         this.ipv6_dst = dst;
         return this;
+    }
+
+    public FlowKeyIPv6 setDst(IPv6Addr dst) {
+        int a[] = { (int)(dst.getUpperWord() >>> 32), 
+                    (int)(dst.getUpperWord() & 0xFFFFFFFF),
+                    (int)(dst.getLowerWord() >>> 32), 
+                    (int)(dst.getLowerWord() & 0xFFFFFFFF)
+                  };
+        return setDst(a);
     }
 
     public int getLabel() {

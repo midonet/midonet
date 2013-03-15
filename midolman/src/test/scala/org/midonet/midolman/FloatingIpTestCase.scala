@@ -4,7 +4,6 @@
 package org.midonet.midolman
 
 import rules.{RuleResult, NatTarget, Condition}
-import scala.Some
 import java.util.{HashSet => JHashSet, UUID}
 
 import akka.testkit.TestProbe
@@ -25,21 +24,24 @@ import org.midonet.cluster.data.ports.{LogicalRouterPort, MaterializedBridgePort
 import util.RouterHelper
 import org.midonet.midolman.DatapathController.PacketIn
 
+
 @RunWith(classOf[JUnitRunner])
 class FloatingIpTestCase extends VirtualConfigurationBuilders with RouterHelper {
     private final val log = LoggerFactory.getLogger(classOf[FloatingIpTestCase])
 
     // Router port one connecting to host VM1
-    val routerIp1 = IntIPv4.fromString("192.168.111.1", 24)
+    val routerIp1 = IPv4Addr.fromString("192.168.111.1")
+    val routerRange1 = new IPv4Subnet(IPv4Addr.fromString("192.168.111.0"), 24)
     val routerMac1 = MAC.fromString("22:aa:aa:ff:ff:ff")
     // Interior router port connecting to bridge
-    val routerIp2 = IntIPv4.fromString("192.168.222.1", 24)
+    val routerIp2 = IPv4Addr.fromString("192.168.222.1")
+    val routerRange2 = new IPv4Subnet(IPv4Addr.fromString("192.168.222.0"), 24)
     val routerMac2 = MAC.fromString("22:ab:cd:ff:ff:ff")
     // VM1: remote host to ping
-    val vm1Ip = IntIPv4.fromString("192.168.111.2", 24)
+    val vm1Ip = IntIPv4.fromString("192.168.111.2", 32)
     val vm1Mac = MAC.fromString("02:23:24:25:26:27")
     // VM2
-    val vm2Ip = IntIPv4.fromString("192.168.222.2", 24)
+    val vm2Ip = IntIPv4.fromString("192.168.222.2", 32)
     val vm2Mac = MAC.fromString("02:DD:AA:DD:AA:03")
 
     // Other stuff
@@ -77,9 +79,9 @@ class FloatingIpTestCase extends VirtualConfigurationBuilders with RouterHelper 
 
         // set up materialized port on router
         rtrPort1 = newExteriorRouterPort(router, routerMac1,
-            routerIp1.toUnicastString,
-            routerIp1.toNetworkAddress.toUnicastString,
-            routerIp1.getMaskLength)
+            routerIp1.toString,
+            routerRange1.getAddress.toString,
+            routerRange1.getPrefixLen)
         rtrPort1 should not be null
         materializePort(rtrPort1, host, rtrPort1Name)
         val portEvent = requestOfType[LocalPortActive](portEventsProbe)
@@ -91,19 +93,19 @@ class FloatingIpTestCase extends VirtualConfigurationBuilders with RouterHelper 
         }
 
         newRoute(router, "0.0.0.0", 0,
-            routerIp1.toNetworkAddress.toUnicastString, routerIp1.getMaskLength,
+            routerRange1.getAddress.toString, routerRange1.getPrefixLen,
             NextHop.PORT, rtrPort1.getId,
             new IntIPv4(Route.NO_GATEWAY).toUnicastString, 10)
 
         // set up logical port on router
         rtrPort2 = newInteriorRouterPort(router, routerMac2,
-            routerIp2.toUnicastString,
-            routerIp2.toNetworkAddress.toUnicastString,
-            routerIp2.getMaskLength)
+            routerIp2.toString,
+            routerRange2.getAddress.toString,
+            routerRange2.getPrefixLen)
         rtrPort2 should not be null
 
         newRoute(router, "0.0.0.0", 0,
-            routerIp2.toNetworkAddress.toUnicastString, routerIp2.getMaskLength,
+            routerRange2.getAddress.toString, routerRange2.getPrefixLen,
             NextHop.PORT, rtrPort2.getId,
             new IntIPv4(Route.NO_GATEWAY).toUnicastString, 10)
 
@@ -156,21 +158,19 @@ class FloatingIpTestCase extends VirtualConfigurationBuilders with RouterHelper 
 
         flowProbe().expectMsgType[DatapathController.DatapathReady].datapath should not be (null)
         drainProbes()
-
     }
 
     def test() {
-
         log.info("Feeding ARP cache on VM2")
         feedArpCache(vm2PortName, vm2Ip.addressAsInt, vm2Mac,
-            routerIp2.addressAsInt, routerMac2)
+            routerIp2.getIntAddress, routerMac2)
         requestOfType[PacketIn](simProbe())
         fishForRequestOfType[DiscardPacket](flowProbe())
         drainProbes()
 
         log.info("Feeding ARP cache on VM1")
         feedArpCache(rtrPort1Name, vm1Ip.addressAsInt, vm1Mac,
-            routerIp1.addressAsInt, routerMac1)
+            routerIp1.getIntAddress, routerMac1)
         requestOfType[PacketIn](simProbe())
         fishForRequestOfType[DiscardPacket](flowProbe())
         drainProbes()
@@ -185,8 +185,8 @@ class FloatingIpTestCase extends VirtualConfigurationBuilders with RouterHelper 
         log.debug("Packet out: {}", pktOut)
         var ipPak = eth.getPayload.asInstanceOf[IPv4]
         ipPak should not be null
-        ipPak.getSourceAddress should be (vm2Ip.addressAsInt)
-        ipPak.getDestinationAddress should be (vm1Ip.addressAsInt)
+        ipPak.getSourceIPAddress should be (IPAddr.fromIntIPv4(vm2Ip))
+        ipPak.getDestinationIPAddress should be (IPAddr.fromIntIPv4(vm1Ip))
 
         log.info("Replying with tcp packet floatingIP -> VM2, should be SNAT'ed")
         injectTcp(rtrPort1Name, vm1Mac, vm1Ip, 20301, routerMac1, vm2Ip, 80,

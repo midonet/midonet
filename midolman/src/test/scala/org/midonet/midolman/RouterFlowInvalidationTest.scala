@@ -150,13 +150,13 @@ class RouterFlowInvalidationTest extends MidolmanTestCase with VirtualConfigurat
 
         addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowAdded])
         tagEventProbe.expectMsg(new RouterInvTrieTagCountModified(
-            IntIPv4.fromString(ipToReach).addressAsInt, 1))
+            IPv4Addr.fromString(ipToReach), 1))
 
         // when we delete the routes we expect the flow to be invalidated
         clusterDataClient().routesDelete(routeId)
         addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowRemoved])
         tagEventProbe.expectMsg(new RouterInvTrieTagCountModified(
-            IntIPv4.fromString(ipToReach).addressAsInt, 0))
+            IPv4Addr.fromString(ipToReach), 0))
 
     }
 
@@ -250,7 +250,8 @@ class RouterFlowInvalidationTest extends MidolmanTestCase with VirtualConfigurat
             MAC.fromString(macOutPort))
 
         val flowTag1 = addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowAdded])
-        tagEventProbe.expectMsg(new RouterInvTrieTagCountModified(ipVm1AsInt, 1))
+        tagEventProbe.expectMsg(new RouterInvTrieTagCountModified(
+                new IPv4Addr().setIntAddress(ipVm1AsInt), 1))
 
         triggerPacketIn(inPortName, TestHelpers.createUdpPacket(macSource, ipSource, macInPort, ipVm2))
         feedArpCache(outPortName,
@@ -260,35 +261,41 @@ class RouterFlowInvalidationTest extends MidolmanTestCase with VirtualConfigurat
             MAC.fromString(macOutPort))
 
         val flowTag2 = addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowAdded])
-        tagEventProbe.expectMsg(new RouterInvTrieTagCountModified(ipVm2AsInt, 1))
+        tagEventProbe.expectMsg(new RouterInvTrieTagCountModified(
+                new IPv4Addr().setIntAddress(ipVm2AsInt), 1))
 
 
         // delete one flow for tag vmIp1, check that the corresponding tag gets removed
         flowProbe().testActor ! new RemoveWildcardFlow(flowTag1.f)
         addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowRemoved])
-        tagEventProbe.expectMsg(new RouterInvTrieTagCountModified(ipVm1AsInt, 0))
+        tagEventProbe.expectMsg(new RouterInvTrieTagCountModified(
+                new IPv4Addr().setIntAddress(ipVm1AsInt), 0))
 
         val ipSource2 = "20.20.0.40"
 
         // create another flow for tag ipVm1
         triggerPacketIn(inPortName, TestHelpers.createUdpPacket(macSource, ipSource2, macInPort, ipVm1))
         addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowAdded])
-        tagEventProbe.expectMsg(new RouterInvTrieTagCountModified(ipVm1AsInt, 1))
+        tagEventProbe.expectMsg(new RouterInvTrieTagCountModified(
+                new IPv4Addr().setIntAddress(ipVm1AsInt), 1))
 
         // create another flow for tag ipVm2
         triggerPacketIn(inPortName, TestHelpers.createUdpPacket(macSource, ipSource2, macInPort, ipVm2))
         val flow2Tag2 = addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowAdded])
-        tagEventProbe.expectMsg(new RouterInvTrieTagCountModified(ipVm2AsInt, 2))
+        tagEventProbe.expectMsg(new RouterInvTrieTagCountModified(
+                new IPv4Addr().setIntAddress(ipVm2AsInt), 2))
 
         // remove 1 flow for tag ipVm2
         flowProbe().testActor ! new RemoveWildcardFlow(flowTag2.f)
         addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowRemoved])
-        tagEventProbe.expectMsg(new RouterInvTrieTagCountModified(ipVm2AsInt, 1))
+        tagEventProbe.expectMsg(new RouterInvTrieTagCountModified(
+                new IPv4Addr().setIntAddress(ipVm2AsInt), 1))
 
         // remove the remaining flow for ipVm2
         flowProbe().testActor ! new RemoveWildcardFlow(flow2Tag2.f)
         addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowRemoved])
-        tagEventProbe.expectMsg(new RouterInvTrieTagCountModified(ipVm2AsInt, 0))
+        tagEventProbe.expectMsg(new RouterInvTrieTagCountModified(
+                new IPv4Addr().setIntAddress(ipVm2AsInt), 0))
 
     }
 

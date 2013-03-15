@@ -24,7 +24,7 @@ import org.midonet.packets.ICMP;
 import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPv4;
 import org.midonet.packets.IPv4Addr;
-import org.midonet.packets.IntIPv4;
+import org.midonet.packets.IPv6Addr;
 import org.midonet.packets.MAC;
 import org.midonet.packets.MalformedPacketException;
 import org.midonet.packets.TCP;
@@ -76,16 +76,16 @@ public class WildcardMatch implements Cloneable {
     private MAC ethernetSource;
     private MAC ethernetDestination;
     private Short etherType;
-    private IntIPv4 networkSource;
-    private IntIPv4 networkDestination;
+    private IPAddr networkSource;
+    private IPAddr networkDestination;
     private Byte networkProtocol;
     private Byte networkTTL;
     private Byte networkTOS;
     private IPFragmentType ipFragmentType;
     private Integer transportSource;
     private Integer transportDestination;
-    private IntIPv4 arpSip;
-    private IntIPv4 arpTip;
+    private IPv4Addr arpSip;
+    private IPv4Addr arpTip;
 
     // Extended fields only supported inside MM
     private Short icmpId;
@@ -263,25 +263,11 @@ public class WildcardMatch implements Cloneable {
         return etherType.shortValue();
     }
 
-    /**
-     *
-     * @param addr doesn't support network range, just host IP
-     * @return
-     */
     @Nonnull
-    public WildcardMatch setNetworkSource(@Nonnull IntIPv4 addr) {
-        if (addr.getMaskLength() != 32) {
-            log.error("don't support matching on network range: {}", addr);
-            addr = addr.clone().setMaskLength(32);
-        }
+    public WildcardMatch setNetworkSource(@Nonnull IPAddr addr) {
         usedFields.add(Field.NetworkSource);
         this.networkSource = addr;
         return this;
-    }
-
-    @Nonnull
-    public WildcardMatch setNetworkSource(@Nonnull IPAddr addr) {
-        return setNetworkSource(addr.toIntIPv4());
     }
 
     @Nonnull
@@ -292,17 +278,8 @@ public class WildcardMatch implements Cloneable {
     }
 
     @Nullable
-    public IntIPv4 getNetworkSourceIPv4() {
+    public IPAddr getNetworkSourceIP() {
         return networkSource;
-    }
-
-    @Deprecated
-    public int getNetworkSource() {
-        return networkSource.addressAsInt();
-    }
-
-    public IPAddr getSourceIPAddress() {
-        return new IPv4Addr().setIntAddress(networkSource.addressAsInt());
     }
 
     /**
@@ -311,19 +288,10 @@ public class WildcardMatch implements Cloneable {
      * @return
      */
     @Nonnull
-    public WildcardMatch setNetworkDestination(@Nonnull IntIPv4 addr) {
-        if (addr.getMaskLength() != 32) {
-            log.error("don't support matching on network range: {}", addr);
-            addr = addr.clone().setMaskLength(32);
-        }
+    public WildcardMatch setNetworkDestination(@Nonnull IPAddr addr) {
         usedFields.add(Field.NetworkDestination);
         this.networkDestination = addr;
         return this;
-    }
-
-    @Nonnull
-    public WildcardMatch setNetworkDestination(@Nonnull IPAddr addr) {
-        return setNetworkDestination(addr.toIntIPv4());
     }
 
     @Nonnull
@@ -334,17 +302,8 @@ public class WildcardMatch implements Cloneable {
     }
 
     @Nullable
-    public IntIPv4 getNetworkDestinationIPv4() {
+    public IPAddr getNetworkDestinationIP() {
         return networkDestination;
-    }
-
-    @Deprecated
-    public int getNetworkDestination() {
-        return networkDestination.addressAsInt();
-    }
-
-    public IPAddr getDestinationIPAddress() {
-        return new IPv4Addr().setIntAddress(networkDestination.addressAsInt());
     }
 
     @Nonnull
@@ -489,7 +448,7 @@ public class WildcardMatch implements Cloneable {
     }
 
     @Nonnull
-    public WildcardMatch setArpSip(IntIPv4 arpSip) {
+    public WildcardMatch setArpSip(IPv4Addr arpSip) {
         usedFields.add(Field.ArpSip);
         this.arpSip = arpSip;
         return this;
@@ -503,12 +462,12 @@ public class WildcardMatch implements Cloneable {
     }
 
     @Nullable
-    public IntIPv4 getArpSipObject() {
+    public IPv4Addr getArpSipObject() {
         return arpSip;
     }
 
     @Nonnull
-    public WildcardMatch setArpTip(IntIPv4 arpTip) {
+    public WildcardMatch setArpTip(IPv4Addr arpTip) {
         usedFields.add(Field.ArpTip);
         this.arpTip = arpTip;
         return this;
@@ -522,7 +481,7 @@ public class WildcardMatch implements Cloneable {
     }
 
     @Nullable
-    public IntIPv4 getArpTipObject() {
+    public IPv4Addr getArpTipObject() {
         return arpTip;
     }
 
@@ -845,11 +804,11 @@ public class WildcardMatch implements Cloneable {
                         break;
 
                     case NetworkDestination:
-                        newClone.networkDestination = networkDestination.clone();
+                        newClone.networkDestination = networkDestination.clone_();
                         break;
 
                     case NetworkSource:
-                        newClone.networkSource = networkSource.clone();
+                        newClone.networkSource = networkSource.clone_();
                         break;
 
                     case ArpSip:
@@ -943,14 +902,27 @@ public class WildcardMatch implements Cloneable {
                     break;
                 case 7: // FlowKeyAttr<FlowKeyIPv4> IPv4 = attr(7);
                     FlowKeyIPv4 ipv4 = as(flowKey, FlowKeyIPv4.class);
-                    setNetworkSource(new IntIPv4(ipv4.getSrc()));
-                    setNetworkDestination(new IntIPv4(ipv4.getDst()));
+                    setNetworkSource(
+                        new IPv4Addr().setIntAddress(ipv4.getSrc()));
+                    setNetworkDestination(
+                        new IPv4Addr().setIntAddress(ipv4.getDst()));
                     setNetworkProtocol(ipv4.getProto());
                     setIpFragmentType(IPFragmentType.fromByte(ipv4.getFrag()));
                     setNetworkTTL(ipv4.getTtl());
                     break;
                 case 8: // FlowKeyAttr<FlowKeyIPv6> IPv6 = attr(8);
-                    // XXX(jlm, s3wong)
+                    FlowKeyIPv6 ipv6 = as(flowKey, FlowKeyIPv6.class);
+                    int[] intSrc = ipv6.getSrc();
+                    int[] intDst = ipv6.getDst();
+                    setNetworkSource(new IPv6Addr().setAddress(
+                        (((long) intSrc[0]) << 32) | (intSrc[1] & 0xFFFFFFFFL),
+                        (((long) intSrc[2]) << 32) | (intSrc[3] & 0xFFFFFFFFL)));
+                    setNetworkDestination(new IPv6Addr().setAddress(
+                        (((long) intSrc[0]) << 32) | (intSrc[1] & 0xFFFFFFFFL),
+                        (((long) intSrc[2]) << 32) | (intSrc[3] & 0xFFFFFFFFL)));
+                    setNetworkProtocol(ipv6.getProto());
+                    setIpFragmentType(ipv6.getFrag());
+                    setNetworkTTL(ipv6.getHLimit());
                     break;
                 case 9: //FlowKeyAttr<FlowKeyTCP> TCP = attr(9);
                     FlowKeyTCP tcp = as(flowKey, FlowKeyTCP.class);
@@ -981,8 +953,10 @@ public class WildcardMatch implements Cloneable {
                     break;
                 case 13: // FlowKeyAttr<FlowKeyARP> ARP = attr(13);
                     FlowKeyARP arp = as(flowKey, FlowKeyARP.class);
-                    setNetworkSource(new IntIPv4(arp.getSip()));
-                    setNetworkDestination(new IntIPv4(arp.getTip()));
+                    setNetworkSource(
+                        new IPv4Addr().setIntAddress(arp.getSip()));
+                    setNetworkDestination(
+                        new IPv4Addr().setIntAddress(arp.getTip()));
                     setEtherType(ARP.ETHERTYPE);
                     setNetworkProtocol((byte)(arp.getOp() & 0xff));
                     break;

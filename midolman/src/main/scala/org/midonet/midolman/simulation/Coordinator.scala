@@ -12,19 +12,19 @@ import akka.pattern.ask
 import akka.util.duration._
 
 import org.midonet.cache.Cache
+import org.midonet.cluster.client._
 import org.midonet.midolman.{DatapathController, FlowController}
 import org.midonet.midolman.DatapathController.{EmitGeneratedPacket, SendPacket}
 import org.midonet.midolman.FlowController.{AddWildcardFlow, DiscardPacket}
 import org.midonet.midolman.datapath.{FlowActionOutputToVrnPort,
-                                       FlowActionOutputToVrnPortSet}
+                                      FlowActionOutputToVrnPortSet}
+import org.midonet.midolman.logging.LoggerFactory
 import org.midonet.midolman.rules.RuleResult.{Action => RuleAction}
 import org.midonet.midolman.topology._
 import org.midonet.midolman.topology.VirtualTopologyActor._
-import org.midonet.cluster.client._
 import org.midonet.odp.flows._
-import org.midonet.packets.{Ethernet, ICMP, IPv4, TCP, UDP}
+import org.midonet.packets.{Ethernet, ICMP, IPv4, IPv4Addr, IPv6Addr, TCP, UDP}
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
-import org.midonet.midolman.logging.LoggerFactory
 
 
 object Coordinator {
@@ -539,9 +539,9 @@ class Coordinator(val origMatch: WildcardMatch,
                                             flowMatch: WildcardMatch,
                                             deviceID: UUID) {
         val key = PacketContext.connectionKey(
-                        flowMatch.getNetworkDestination(),
+                        flowMatch.getNetworkDestinationIP(),
                         flowMatch.getTransportDestination(),
-                        flowMatch.getNetworkSource(),
+                        flowMatch.getNetworkSourceIP(),
                         flowMatch.getTransportSource(),
                         flowMatch.getNetworkProtocol(),
                         deviceID)
@@ -572,21 +572,28 @@ class Coordinator(val origMatch: WildcardMatch,
             actions.append(FlowActions.setKey(FlowKeys.ethernet(
                 modif.getDataLayerSource, modif.getDataLayerDestination)))
         }
-        if (!matchObjectsSame(orig.getNetworkSourceIPv4,
-                              modif.getNetworkSourceIPv4) ||
-            !matchObjectsSame(orig.getNetworkDestinationIPv4,
-                              modif.getNetworkDestinationIPv4) ||
+        if (!matchObjectsSame(orig.getNetworkSourceIP,
+                              modif.getNetworkSourceIP) ||
+            !matchObjectsSame(orig.getNetworkDestinationIP,
+                              modif.getNetworkDestinationIP) ||
             !matchObjectsSame(orig.getNetworkTTL,
                               modif.getNetworkTTL)) {
             actions.append(FlowActions.setKey(
-                FlowKeys.ipv4(
-                    modif.getNetworkSource,
-                    modif.getNetworkDestination,
-                    modif.getNetworkProtocol)
-                //.setFrag(?)
-                .setProto(modif.getNetworkProtocol)
-                .setTos(modif.getNetworkTypeOfService)
-                .setTtl(modif.getNetworkTTL)
+                modif.getNetworkSourceIP match {
+                    case srcIP: IPv4Addr =>
+                        FlowKeys.ipv4(srcIP,
+                            modif.getNetworkDestinationIP.asInstanceOf[IPv4Addr],
+                            modif.getNetworkProtocol)
+                        //.setFrag(?)
+                        .setTos(modif.getNetworkTypeOfService)
+                        .setTtl(modif.getNetworkTTL)
+                    case srcIP: IPv6Addr =>
+                        FlowKeys.ipv6(srcIP,
+                            modif.getNetworkDestinationIP.asInstanceOf[IPv6Addr],
+                            modif.getNetworkProtocol)
+                        //.setFrag(?)
+                        .setHLimit(modif.getNetworkTTL)
+                }
             ))
         }
         // ICMP errors

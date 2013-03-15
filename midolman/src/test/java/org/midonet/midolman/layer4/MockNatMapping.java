@@ -10,6 +10,8 @@ import java.util.Random;
 import java.util.Set;
 
 import org.midonet.midolman.rules.NatTarget;
+import org.midonet.packets.IPAddr;
+import org.midonet.packets.IPv4Addr;
 
 
 public class MockNatMapping implements NatMapping {
@@ -34,11 +36,12 @@ public class MockNatMapping implements NatMapping {
 
     @Override
     public NwTpPair allocateDnat(byte protocol,
-                                 int nwSrc, int tpSrc, int oldNwDst,
+                                 IPAddr nwSrc, int tpSrc, IPAddr oldNwDst,
                                  int oldTpDst, Set<NatTarget> nats) {
         // In this mock, just use the first nat target.
         NatTarget nat = nats.iterator().next();
-        int newNwDst = rand.nextInt(nat.nwEnd - nat.nwStart + 1) + nat.nwStart;
+        IPAddr newNwDst = new IPv4Addr().setIntAddress(
+                rand.nextInt(nat.nwEnd - nat.nwStart + 1) + nat.nwStart);
         int newTpDst = rand.nextInt(nat.tpEnd - nat.tpStart + 1) + nat.tpStart;
         NwTpPair newDst = new NwTpPair(newNwDst, newTpDst);
         dnatFwdMap.put(new PacketSignature(
@@ -51,25 +54,26 @@ public class MockNatMapping implements NatMapping {
     }
 
     @Override
-    public NwTpPair lookupDnatFwd(byte protocol, int nwSrc, int tpSrc,
-                                  int oldNwDst, int oldTpDst) {
+    public NwTpPair lookupDnatFwd(byte protocol, IPAddr nwSrc, int tpSrc,
+                                  IPAddr oldNwDst, int oldTpDst) {
         return dnatFwdMap.get(new PacketSignature(
                                 protocol, nwSrc, tpSrc, oldNwDst, oldTpDst));
     }
 
     @Override
-    public NwTpPair lookupDnatRev(byte protocol, int nwSrc, int tpSrc,
-                                  int newNwDst, int newTpDst) {
+    public NwTpPair lookupDnatRev(byte protocol, IPAddr nwSrc, int tpSrc,
+                                  IPAddr newNwDst, int newTpDst) {
         return dnatRevMap.get(new PacketSignature(
                                 protocol, nwSrc, tpSrc, newNwDst, newTpDst));
     }
 
     @Override
-    public NwTpPair allocateSnat(byte protocol, int oldNwSrc, int oldTpSrc,
-                                 int nwDst, int tpDst, Set<NatTarget> nats) {
+    public NwTpPair allocateSnat(byte protocol, IPAddr oldNwSrc, int oldTpSrc,
+                                 IPAddr nwDst, int tpDst, Set<NatTarget> nats) {
         // In this mock, just use the first nat target.
         NatTarget nat = nats.iterator().next();
-        int newNwSrc = rand.nextInt(nat.nwEnd - nat.nwStart + 1) + nat.nwStart;
+        IPAddr newNwSrc = new IPv4Addr().setIntAddress(
+                rand.nextInt(nat.nwEnd - nat.nwStart + 1) + nat.nwStart);
         int newTpSrc = rand.nextInt(nat.tpEnd - nat.tpStart + 1) + nat.tpStart;
         NwTpPair newSrc = new NwTpPair(newNwSrc, newTpSrc);
         snatFwdMap.put(new PacketSignature(
@@ -81,15 +85,15 @@ public class MockNatMapping implements NatMapping {
     }
 
     @Override
-    public NwTpPair lookupSnatFwd(byte protocol, int oldNwSrc, int oldTpSrc,
-                                  int nwDst, int tpDst) {
+    public NwTpPair lookupSnatFwd(byte protocol, IPAddr oldNwSrc, int oldTpSrc,
+                                  IPAddr nwDst, int tpDst) {
         return snatFwdMap.get(new PacketSignature(
                                 protocol, oldNwSrc, oldTpSrc, nwDst, tpDst));
     }
 
     @Override
-    public NwTpPair lookupSnatRev(byte protocol, int newNwSrc, int newTpSrc,
-                                  int nwDst, int tpDst) {
+    public NwTpPair lookupSnatRev(byte protocol, IPAddr newNwSrc, int newTpSrc,
+                                  IPAddr nwDst, int tpDst) {
         return snatRevMap.get(new PacketSignature(
                                 protocol, newNwSrc, newTpSrc, nwDst, tpDst));
     }

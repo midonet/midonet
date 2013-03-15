@@ -5,9 +5,11 @@ package org.midonet.odp.flows;
 
 import java.nio.ByteOrder;
 
+import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.Net;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.BaseBuilder;
+
 
 public class FlowKeyIPv4 implements FlowKey<FlowKeyIPv4> {
     /*__be32*/ int ipv4_src;
@@ -101,12 +103,22 @@ public class FlowKeyIPv4 implements FlowKey<FlowKeyIPv4> {
         return this;
     }
 
+    public FlowKeyIPv4 setSrc(IPv4Addr src) {
+        this.ipv4_src = src.getIntAddress();
+        return this;
+    }
+
     public int getDst() {
         return ipv4_dst;
     }
 
     public FlowKeyIPv4 setDst(int dst) {
         this.ipv4_dst = dst;
+        return this;
+    }
+
+    public FlowKeyIPv4 setDst(IPv4Addr dst) {
+        this.ipv4_dst = dst.getIntAddress();
         return this;
     }
 

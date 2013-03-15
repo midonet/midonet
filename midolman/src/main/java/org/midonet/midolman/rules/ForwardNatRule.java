@@ -97,7 +97,7 @@ public class ForwardNatRule extends NatRule {
 
         if (floatingIp) {
             log.debug("DNAT mapping floating ip {} to internal ip {}",
-                    IPv4.fromIPv4Address(match.getNetworkDestination()),
+                    match.getNetworkDestinationIP(),
                     IPv4.fromIPv4Address(floatingIpAddr));
             match.setNetworkDestination(new IPv4Addr()
                                             .setIntAddress(floatingIpAddr));
@@ -121,12 +121,11 @@ public class ForwardNatRule extends NatRule {
         } else {
             log.debug("Found existing forward DNAT {}:{} for flow from {}:{} "
                     + "to {}:{}, protocol {}", new Object[] {
-                    IPv4.fromIPv4Address(conn.nwAddr), conn.tpPort & USHORT,
-                    IPv4.fromIPv4Address(tp.nwSrc), tp.tpSrc,
-                    IPv4.fromIPv4Address(tp.nwDst), tp.tpDst, tp.proto});
+                    conn.nwAddr, conn.tpPort & USHORT,
+                    tp.nwSrc, tp.tpSrc, tp.nwDst, tp.tpDst, tp.proto});
         }
         // TODO(pino): deal with case that conn couldn't be allocated.
-        match.setNetworkDestination(new IPv4Addr().setIntAddress(conn.nwAddr));
+        match.setNetworkDestination(conn.nwAddr);
         if (tp.proto != ICMP.PROTOCOL_NUMBER) {
             match.setTransportDestination(conn.tpPort);
         }
@@ -150,7 +149,7 @@ public class ForwardNatRule extends NatRule {
 
         if (floatingIp) {
             log.debug("SNAT mapping internal ip {} to floating ip {}",
-                    IPv4.fromIPv4Address(match.getNetworkSource()),
+                    match.getNetworkSourceIP(),
                     IPv4.fromIPv4Address(floatingIpAddr));
             match.setNetworkSource(new IPv4Addr().setIntAddress(floatingIpAddr));
             res.action = action;
@@ -172,17 +171,15 @@ public class ForwardNatRule extends NatRule {
         } else {
             log.debug("Found existing forward SNAT {}:{} for flow from {}:{} "
                     + "to {}:{}, protocol {}", new Object[] {
-                    IPv4.fromIPv4Address(conn.nwAddr), conn.tpPort & USHORT,
-                    IPv4.fromIPv4Address(tp.nwSrc), tp.tpSrc,
-                    IPv4.fromIPv4Address(tp.nwDst), tp.tpDst,
-                    tp.proto});
+                    conn.nwAddr, conn.tpPort & USHORT, tp.nwSrc, tp.tpSrc,
+                    tp.nwDst, tp.tpDst, tp.proto});
         }
 
         if (conn == null) {
-            log.error("Could not allocate Snat");
+            log.error("Could not allocate srcNAT");
             return;
         }
-        match.setNetworkSource(new IPv4Addr().setIntAddress(conn.nwAddr));
+        match.setNetworkSource(conn.nwAddr);
         if (tp.proto != ICMP.PROTOCOL_NUMBER) {
             match.setTransportSource(conn.tpPort);
         }

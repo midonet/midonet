@@ -174,8 +174,8 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         val lb = new LoadBalancer(router.rTable)
 
         val wmatch = new WildcardMatch().
-            setNetworkSource(IntIPv4.fromString(uplinkPortAddr)).
-            setNetworkDestination(IntIPv4.fromString(routeDst))
+            setNetworkSource(IPv4Addr.fromString(uplinkPortAddr)).
+            setNetworkDestination(IPv4Addr.fromString(routeDst))
 
         @tailrec
         def matchAllResults(resultPool: List[String]) {

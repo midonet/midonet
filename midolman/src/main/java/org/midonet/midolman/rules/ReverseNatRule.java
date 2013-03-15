@@ -11,6 +11,7 @@ import org.midonet.midolman.layer4.NatMapping;
 import org.midonet.midolman.layer4.NwTpPair;
 import org.midonet.midolman.rules.RuleResult.Action;
 import org.midonet.packets.ICMP;
+import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPv4;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MalformedPacketException;
@@ -79,11 +80,9 @@ public class ReverseNatRule extends NatRule {
             icmpType == ICMP.TYPE_ECHO_REQUEST) {
             // this is a plain translation
             if (isSnat) {
-                match.setNetworkDestination(
-                    new IPv4Addr().setIntAddress(origConn.nwAddr));
+                match.setNetworkDestination(origConn.nwAddr);
             } else {
-                match.setNetworkSource(
-                    new IPv4Addr().setIntAddress(origConn.nwAddr));
+                match.setNetworkSource(origConn.nwAddr);
             }
             return;
         }
@@ -102,13 +101,11 @@ public class ReverseNatRule extends NatRule {
         IPv4 header = new IPv4();
         header.deserializeHeader(bb);
         if (isSnat) {
-            header.setSourceAddress(origConn.nwAddr);
-            match.setNetworkDestination(
-                new IPv4Addr().setIntAddress(origConn.nwAddr));
+            header.setSourceAddress((IPv4Addr) origConn.nwAddr);
+            match.setNetworkDestination(origConn.nwAddr);
         } else {
-            header.setDestinationAddress(origConn.nwAddr);
-            match.setNetworkSource(
-                new IPv4Addr().setIntAddress(origConn.nwAddr));
+            header.setDestinationAddress((IPv4Addr) origConn.nwAddr);
+            match.setNetworkSource(origConn.nwAddr);
         }
         int ipHeadSize = dataSize - bb.remaining();
 
@@ -150,14 +147,12 @@ public class ReverseNatRule extends NatRule {
 
         log.debug("Found reverse DNAT. Use SRC {}:{} for flow from {}:{} to "
                 + "{}:{}, protocol {}", new Object[] {
-                IPv4.fromIPv4Address(origConn.nwAddr), origConn.tpPort & USHORT,
-                IPv4.fromIPv4Address(tp.nwSrc), tp.tpSrc,
-                IPv4.fromIPv4Address(tp.nwDst), tp.tpDst, tp.proto});
+                origConn.nwAddr, origConn.tpPort & USHORT,
+                tp.nwSrc, tp.tpSrc, tp.nwDst, tp.tpDst, tp.proto});
         if (match.getNetworkProtocol() == ICMP.PROTOCOL_NUMBER) {
             applyReverseNatToICMPData(origConn, match, false);
         } else {
-            match.setNetworkSource(
-                new IPv4Addr().setIntAddress(origConn.nwAddr));
+            match.setNetworkSource(origConn.nwAddr);
             match.setTransportSource(origConn.tpPort);
         }
         res.action = action;
@@ -177,14 +172,12 @@ public class ReverseNatRule extends NatRule {
 
         log.debug("Found reverse SNAT. Use DST {}:{} for flow from {}:{} to "
                       + "{}:{}, protocol", new Object[]{
-            IPv4.fromIPv4Address(origConn.nwAddr), origConn.tpPort & USHORT,
-            IPv4.fromIPv4Address(tp.nwSrc), tp.tpSrc,
-            IPv4.fromIPv4Address(tp.nwDst), tp.tpDst, tp.proto});
+            origConn.nwAddr, origConn.tpPort & USHORT,
+            tp.nwSrc, tp.tpSrc, tp.nwDst, tp.tpDst, tp.proto});
         if (match.getNetworkProtocol() == ICMP.PROTOCOL_NUMBER) {
             applyReverseNatToICMPData(origConn, match, true);
         } else {
-            match.setNetworkDestination(
-                new IPv4Addr().setIntAddress(origConn.nwAddr));
+            match.setNetworkDestination(origConn.nwAddr);
             match.setTransportDestination(origConn.tpPort);
         }
         res.action = action;

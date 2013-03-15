@@ -6,16 +6,16 @@ package org.midonet.midolman.simulation
 // might be changed by another (mutable) view.
 import collection.{Set => ROSet, mutable}
 
+import akka.actor.ActorSystem
 import java.util.{Set => JSet, UUID}
 
 import org.midonet.cache.Cache
+import org.midonet.cluster.client.Port
+import org.midonet.midolman.logging.LoggerFactory
 import org.midonet.midolman.rules.ChainPacketContext
-import org.midonet.packets.{Ethernet, IPv4, Net, TCP, UDP}
+import org.midonet.packets.{Ethernet, IPv4, IPAddr, TCP, UDP}
 import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.util.functors.Callback0
-import org.midonet.cluster.client.Port
-import akka.actor.ActorSystem
-import org.midonet.midolman.logging.LoggerFactory
 
 
 /**
@@ -197,9 +197,9 @@ class PacketContext(val flowCookie: Option[Int], val frame: Ethernet,
             return forwardFlow
 
         connectionTracked = true
-        val key = connectionKey(origMatch.getNetworkSource(),
+        val key = connectionKey(origMatch.getNetworkSourceIP(),
                                 origMatch.getTransportSource(),
-                                origMatch.getNetworkDestination(),
+                                origMatch.getNetworkDestinationIP(),
                                 origMatch.getTransportDestination(),
                                 origMatch.getNetworkProtocol(), ingressFE)
         // TODO(jlm): Finish org.midonet.cassandra.AsyncCassandraCache
@@ -223,11 +223,10 @@ class PacketContext(val flowCookie: Option[Int], val frame: Ethernet,
 }
 
 object PacketContext {
-    def connectionKey(ip1: Int, port1: Int, ip2: Int, port2: Int,
+    def connectionKey(ip1: IPAddr, port1: Int, ip2: IPAddr, port2: Int,
                       proto: Short, deviceID: UUID): String = {
-        new StringBuilder(Net.convertIntAddressToString(ip1))
-                .append('|').append(port1).append('|')
-                .append(Net.convertIntAddressToString(ip2)).append('|')
+        new StringBuilder(ip1.toString).append('|').append(port1).append('|')
+                .append(ip2.toString).append('|')
                 .append(port2).append('|').append(proto).append('|')
                 .append(deviceID.toString()).toString()
     }

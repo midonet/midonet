@@ -12,11 +12,18 @@ import java.util.Vector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.packets.IPAddr;
 import org.midonet.packets.Net;
+
 
 public class RoutingTable extends RoutesTrie {
 
     private final static Logger log = LoggerFactory.getLogger(RoutingTable.class);
+
+    public Iterable<Route> lookup(IPAddr src, IPAddr dst) {
+        return lookup(src.toIntIPv4().getAddress(),
+                      dst.toIntIPv4().getAddress());
+    }
 
     public Iterable<Route> lookup(int src, int dst) {
         log.debug("lookup: src {} dst {} in table with {} routes",
