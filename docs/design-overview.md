@@ -3,36 +3,50 @@
 ### Text diagram
 
 <pre>
-        ┌────────────────────────────────────────────┐  ┌────────────┐
-        │                                            │  │Port Service│
-        │                         Virt Device        │  │  Manager   │
-        │                 ┌───┐     Queries          │  └────────────┘
-        │Device           │SIM│───────────────↴      │    ↑Local Port
-        │Updates          └───┘   ┌───┐       │      │    │Updates
-        │          Delegate │     │SIM│───────↴      ↓    │
-        │         Single Pkt│     └───┘       │    ┌────────┐
-        │         Simulation│       │         └───→│Virtual │───────────⬎
-        │               ┌──────────────────┐       │Topology│           │
-        │               │  Sim Controller  │       │Manager │←┐         ├──────→
-        │               └──────────────────┘       └────────┘ │Local    │Remote
-        │                Sim  │  ↑                            │Port     │State
-        ↓              Results│  │PktIn by                    │Updates  │Queries
-┌──────────┐                  ↓  │  UUID      Host/IF/Vport ┌─────────┐ │
-│   Flow   │            ┌───────────────────┐   Mappings    │Virt─Phys│─⬏
-│Validation│←──────────→│   DP Controller   │←─────────────→│ Mapping │
-│  Engige  │ Flow Index └───────────────────┘               └─────────┘
-└──────────┘ and Inval     │             ↑
-             by Dev ID     │             │PktIn & Wildcard Flow Queries
-                           │             ↓
-                           │    ┌─────────────────┐
-                    DP Port│    │ Flow Controller │
-                    Queries│    └─────────────────┘
-                           │             ↑
-                           │             │PktIn & DP Flow Queries
-                           ↓             ↓
-                     ┌───────────────────────────┐
-                     │    Netlink Datapath API   │
-                     └───────────────────────────┘
+                             ┌────────────┐
+                             │Port Service│
+                             │  Manager   │
+                             └────────────┘
+                                    ↑ Local Port
+                                    │ Updates
+                                    │
+                               ┌────────┐
+   ┌───────────────────────────│Virtual │
+   |                 ┌─────────│Topology│──────────┐
+   |                 |         │ Actor  │          |
+   |                 |         └────────┘          |
+   |            ←────|   Local Port ↑              |
+   |          Remote |      Updates |              |Read-only
+   |          State  |              |              |Virtual Topology
+   |          Queries|        ┌─────────┐          |Shared data / Messages
+   |                 └────────│Virt─Phys│          |
+   |                          │ Mapping │          |
+   |                          └─────────┘          |      ┌────────────────┐
+   |                 Host/IF/Vport ↑               |─────→| PacketWorkFlow |┐
+   ↓                    Mappings   |               |      └────────────────┘|─┐
+   |                               ↓               |       └────────────────┘ |
+   |                     ┌───────────────────┐     |        |     ↑           |
+   |Flow                 │   DP Controller   │─────|        |     |PacketIn   |
+   |Invalidation         └───────────────────┘     |        |     |           |
+   |By Tag                │         |              |        |     |           |
+   |                      │         |              |        |     |           |
+   |                      │         │Wildcard      |        |     |           |
+   |                      │         ↓ Flows        |        |     |           |
+   |                      │  ┌─────────────────┐   |        |     |Execute    |
+   └──────────────────────(─→│ Flow Controller │───┘        |     |Pended     |
+                          │  └─────────────────┘←───────────┘     |Pkts       |
+                          │         ↑              Wildcard       |           |
+                          │         |              Flows          ↓           |
+                   DP Port│         | DP Flow              ┌───────────────┐  |
+                   Queries│         │ Queries              | Deduplication |  |
+                          |         |                      |    Actor      |  |
+                          |         |                      └───────────────┘  |
+                          ↓         ↓                              ↑          |
+                     ┌───────────────────────────┐        PacketIn |          |
+                     │      Netlink Datapath     │←────────────────┘          |
+                     |            API            |←───────────────────────────┘
+                     └───────────────────────────┘   Add DP Flow / Pkt Execute
+
 </pre>
 
 ## Terminology
@@ -95,34 +109,66 @@ daemons (at other physical hosts) to correctly forward flows that should be
 emitted from the vport in question.
 
 The DP Controller knows when the Datapath is ready to be used and notifies the
-Flow Controller so that the latter may register for Netlink PacketIn
-notifications. For any PacketIn that the FlowController cannot handle with the
-already-installed wildcarded flows, DP Controller receives a PacketIn from the
-FlowController, translates the arriving datapath port ID to a virtual port UUID
-and passes the PacketIn to the Simulation Controller. Upon receiving a
-simulation result from the Simulation Controller, the DP is responsible for
-creating the corresponding wildcard flow. If the flow is being emitted from
+Flow Controller and the Deduplication Actor so that the latter may register
+for Netlink PacketIn notifications.
+
+The DP Controller is also responsible for managing overlay tunnels.
+Tunnel management is described in a separate design document.
+
+### Deduplication Actor
+
+The Deduplication Actor (DDA) is the entry point to the packet processing
+activities.
+
+When the DDA receives a PacketIn notification from the Netlink API, it first
+checks that there are no packets with the same match being processed. If there
+are, the packets are kept in the pended packets queue, so that, when the
+in-progress packet is processed the resulting actions can be applied to all the
+packets pended with the same match.
+
+If the incoming packet doesn't have same-match counterpart, the DDA spawns
+a new PacketWorkflow Actor (PWFA)  to process the packet.
+
+The DDA may also start PWFAs when another component in the system decides
+to emit a packet generated by the virtual network.
+
+### PacketWorkflow Actor
+
+The PWFA takes a packet through different stages of decision until a result
+is produced for that packet. It then proceeds to carry on that result.
+
+The first step is to checking the Wildcard Flow Table exposed by the Flow
+Controller for a match. If found, it creates the appropriate kernel flow
+using the packet's match and the wildcard flow's actions and makes two calls
+the Netlink API: one to install the flow and one to execute the packet (if
+applicable). When the kernel has processed both requests, the PWFA informs the
+DeduplicationActor that it can free the pended packets for this match and apply
+the actions to them. It also informs the Flow Controller of the newly created
+datapath flow.
+
+If no match is found in the WildcardFlow table the packet, it translates the
+arriving datapath port ID to a virtual port UUID and starts a simulation
+of the packet as it would traverse the virtual topology.
+
+When the simulation produces a result a new Wildcard Flow can be produced.
+This Wildcard Flow needs to be translated. If the flow is being emitted from
 a single remote virtual port, this involves querying the Virtual-Physical
 Mapping for the identity of the host responsible for that virtual port, and
 then adding flow actions to set the tunnel-id to encode that virtual port and
 to emit the packet from the tunnel corresponding to that remote host. If the
-flow is being emitted from a single local virtual port, the DP Controller
+flow is being emitted from a single local virtual port, the PWFA
 recognizes this and uses the corresponding datapath port. Finally, if the flow
-is being emitted from a PortSet, the DP Controller queries the Virtual-Physical
+is being emitted from a PortSet, the PWFA queries the Virtual-Physical
 Mapping for the set of hosts subscribed to the PortSet; it must then map each of
 those hosts to a tunnel and build a wildcard flow description that outputs the
 flow to all of those tunnels and any local datapath port that corresponds to a
 virtual port belonging to that PortSet. Finally, the wildcard flow, free of any
-MidoNet ID references, is pushed to the FlowController.
+MidoNet ID references, is ready to be pushed to the FlowController.
 
-The DP Controller is responsible for managing overlay tunnels (see the previous
-paragraph). Tunnel management is described in a separate design document.
-
-The DP Controller notifies the Flow Validation Engine of any installed wildcard
-flow so that the FVE may do appropriate indexing of flows (e.g. by the ID of
-any virtual device that was traversed by the flow). The DP Controller may
-receive requests from the FVE to invalidate specific wildcard flows; these are
-passed on to the FlowController.
+At this point, the sequence of events is the same as above: create a datapath
+flow, execute the packet (if applicable) and inform the DDA and the Flow
+Controller, in this case indicating that the DP Flow corresponds to a new
+Wildcard Flow.
 
 ### Flow Controller
 
@@ -136,33 +182,18 @@ these statistics to decide what datapath flows should be deleted (again, to
 free up space in the table).
 
 The Flow Controller also manages a Wildcarded flow table and offers its clients
-an interface for adding/removing wildcarded flows. When the FlowController
-receives a PacketIn notification from the Netlink API, it first checks the
-Wildcarded Flow Table to for a match. If found, it creates the appropriate
-kernel flow (the exact match based on the packet, plus the actions from the
-wildcard flow) and calls the Netlink API to install it in the kernel. If no
-match is found in the Wildcard flow table, the Flow Controller sends the
-PacketIn notification on to the DatapathController.
-
-The Flow Controller ensures that it does not forward to the DP Controller more
-than one PacketIn notification for any single exact packet signature.
+an interface for adding/removing wildcarded flows.
 
 The Flow Controller's per-flow statistics may be queried and used for other
 purposes than reclaiming space taken by unused flows. For example, they can
 be aggregated by the devices they traversed to meter bandwidth utilization on
 a virtual device or link.
 
-The Flow Controller notifies the Datapath Controller about any wildcarded flows
-it removes (usually to reclaim space).
-
-### Simulation Controller
-
-The Simulation Controller is responsible for launching individual packet
-simulations that need concurrent processing (for performance reasons). This is
-a very narrow responsibility, so the Simulation Controller may be thought of as
-an extension of the DP Controller.
-
 ### Simulations
+
+Simulations are one of the workflow phases managed by the PWFA, they work
+purely at the virtual topology level (no knowledge of physical mappings)
+of actions
 
 Each simulation queries the Virtual Topology Manager for device state. The
 simulations don't subscribe for device updates. Normally a simulation cannot
@@ -181,27 +212,7 @@ would be emitted from some other vport (or set of vports).
 In the course of determining one of these outcomes, a simulation may update
 a device's dynamic state (mac-learning table, arp-cache), or introduce new
 packets into the virtual network on behalf of a device that emits a packet
-(e.g. a router making an ARP request). A Simulation calls the Simulation
-Controller in order to introduce new packets into the virtual network; the
-Simulation Controller normally starts a new Simulation to handle such a request.
-
-### Flow Validation Engine
-
-The Flow Validation Engine receives an update from the Datapath Controller for
-each installed (or removed) wildcarded flow. The FVE indexes the installed flows
-by the ID of the devices they traversed. The FVE also subscribes via the Virtual
-Topology Manager for updates to any device ID traversed by any installed flow.
-
-Upon receiving a device update, the FVE retrieves retrieves all the flows that
-traversed that device and sends requests to the Flow Controller (possibly
-via the DatapathController) to remove each of those flows.
-
-The FVE may wait some seconds after a device update before starting invalidation
-in order to reduce resource consumption under the assumption that some flows
-will naturally expire or be evicted.
-
-The FVE may perform its own simulations to re-validate flows and only request
-invalidation for flows whose re-simulations returned different results.
+(e.g. a router making an ARP request).
 
 ### Port Service Manager
 

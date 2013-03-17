@@ -13,7 +13,7 @@ import org.newsclub.net.unix.AFUNIXSocketAddress
 
 import org.midonet.midolman.{PortOperation, DatapathController, FlowController}
 import org.midonet.midolman.DatapathController.{PortNetdevOpReply, CreatePortNetdev}
-import org.midonet.midolman.FlowController.AddWildcardFlow
+import org.midonet.midolman.PacketWorkflowActor.AddVirtualWildcardFlow
 import org.midonet.midolman.datapath.FlowActionOutputToVrnPort
 import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 import org.midonet.midolman.topology.VirtualTopologyActor
@@ -747,8 +747,8 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
             .setMatch(wildcardMatch)
             .addAction(new FlowActionOutputToVrnPort(bgpPort.id))
 
-        DatapathController.getRef.tell(AddWildcardFlow(
-            wildcardFlow, None, null, null, bgpTagSet))
+        DatapathController.getRef.tell(AddVirtualWildcardFlow(
+            wildcardFlow, Set.empty, bgpTagSet))
 
         // TCP4:179-> bgpd->link
         wildcardMatch = new WildcardMatch()
@@ -763,8 +763,8 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
             .setMatch(wildcardMatch)
             .addAction(new FlowActionOutputToVrnPort(bgpPort.id))
 
-        DatapathController.getRef.tell(AddWildcardFlow(
-            wildcardFlow, None, null, null, bgpTagSet))
+        DatapathController.getRef.tell(AddVirtualWildcardFlow(
+            wildcardFlow, Set.empty, bgpTagSet))
 
         // TCP4:->179 link->bgpd
         wildcardMatch = new WildcardMatch()
@@ -779,8 +779,8 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
             .setMatch(wildcardMatch)
             .addAction(FlowActions.output(localPortNum))
 
-        DatapathController.getRef.tell(AddWildcardFlow(
-            wildcardFlow, None, null, null, bgpTagSet))
+        DatapathController.getRef.tell(AddVirtualWildcardFlow(
+            wildcardFlow, Set.empty, bgpTagSet))
 
         // TCP4:179-> link->bgpd
         wildcardMatch = new WildcardMatch()
@@ -795,8 +795,8 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
             .setMatch(wildcardMatch)
             .addAction(FlowActions.output(localPortNum))
 
-        DatapathController.getRef.tell(AddWildcardFlow(
-            wildcardFlow, None, null, null, bgpTagSet))
+        DatapathController.getRef.tell(AddVirtualWildcardFlow(
+            wildcardFlow, Set.empty, bgpTagSet))
 
         // ARP bgpd->link
         wildcardMatch = new WildcardMatch()
@@ -807,8 +807,8 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
             .setMatch(wildcardMatch)
             .addAction(new FlowActionOutputToVrnPort(bgpPort.id))
 
-        DatapathController.getRef.tell(AddWildcardFlow(
-            wildcardFlow, None, null, null, bgpTagSet))
+        DatapathController.getRef.tell(AddVirtualWildcardFlow(
+            wildcardFlow, Set.empty, bgpTagSet))
 
         // ARP link->bgpd, link->midolman
         // TODO(abel) send ARP from link to both ports only if it's an ARP reply
@@ -823,8 +823,8 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
             .addAction(FlowActions.output(localPortNum))
             .addAction(new FlowActionUserspace) // Netlink Pid filled by datapath controller
 
-        DatapathController.getRef.tell(AddWildcardFlow(
-            wildcardFlow, None, null, null, bgpTagSet))
+        DatapathController.getRef.tell(AddVirtualWildcardFlow(
+            wildcardFlow, Set.empty, bgpTagSet))
 
         // ICMP4 bgpd->link
         wildcardMatch = new WildcardMatch()
@@ -838,8 +838,8 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
             .setMatch(wildcardMatch)
             .addAction(new FlowActionOutputToVrnPort(bgpPort.id))
 
-        DatapathController.getRef.tell(AddWildcardFlow(
-            wildcardFlow, None, null, null, bgpTagSet))
+        DatapathController.getRef.tell(AddVirtualWildcardFlow(
+            wildcardFlow, Set.empty, bgpTagSet))
 
         // ICMP4 link->bgpd
         wildcardMatch = new WildcardMatch()
@@ -853,8 +853,8 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
             .setMatch(wildcardMatch)
             .addAction(FlowActions.output(localPortNum))
 
-        DatapathController.getRef.tell(AddWildcardFlow(
-            wildcardFlow, None, null, null, bgpTagSet))
+        DatapathController.getRef.tell(AddVirtualWildcardFlow(
+            wildcardFlow, Set.empty, bgpTagSet))
 
         log.debug("setBGPFlows - end")
     }

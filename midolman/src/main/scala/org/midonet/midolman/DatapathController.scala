@@ -4,35 +4,34 @@
 package org.midonet.midolman
 
 import scala.collection.JavaConversions._
-import scala.collection.{Set => ROSet, mutable}
+import scala.collection.JavaConverters._
+import scala.collection.{Set => ROSet, Map => ROMap, mutable}
 import scala.collection.mutable.ListBuffer
+import scala.collection.mutable.{ConcurrentMap => ConcMap}
+import compat.Platform
 import akka.actor.{ActorLogging, Cancellable, Actor, ActorRef}
 import akka.dispatch.{Future, Promise}
 import akka.event.LoggingAdapter
-import akka.pattern.ask
 import akka.util.Timeout
 import akka.util.duration._
 import java.lang.{Boolean => JBoolean, Integer => JInteger, Short => JShort}
-import java.util.{Collection, HashSet, List => JList, Set => JSet, UUID}
+import java.util.{Collection, Collections, HashSet, List => JList, Set => JSet, UUID}
+import java.util.concurrent.{ConcurrentHashMap => ConcHashMap}
 import java.nio.ByteBuffer
 
 import com.google.inject.Inject
-import com.google.common.collect.HashBiMap
 
+import logging.ActorLogWithoutPath
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.host.scanner.InterfaceScanner
-import org.midonet.midolman.FlowController.AddWildcardFlow
 import org.midonet.midolman.datapath._
 import org.midonet.midolman.monitoring.MonitoringActor
-import org.midonet.midolman.rules.{ChainPacketContext, RuleResult}
+import org.midonet.midolman.rules.ChainPacketContext
 import org.midonet.midolman.services.HostIdProviderService
-import org.midonet.midolman.simulation.{Bridge => RCUBridge, Chain}
 import org.midonet.midolman.topology._
-import org.midonet.midolman.topology.VirtualTopologyActor.{BridgeRequest,
-        ChainRequest, PortRequest}
-import org.midonet.midolman.topology.rcu.{Host, PortSet}
+import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
+import org.midonet.midolman.topology.rcu.Host
 import org.midonet.cluster.client
-import org.midonet.cluster.client.ExteriorPort
 import org.midonet.cluster.data.TunnelZone
 import org.midonet.cluster.data.TunnelZone.{HostConfig => TZHostConfig}
 import org.midonet.cluster.data.zones.{IpsecTunnelZoneHost,
@@ -41,14 +40,14 @@ import org.midonet.netlink.Callback
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode
 import org.midonet.odp.{Flow => KernelFlow, _}
-import org.midonet.odp.flows.{FlowAction, FlowActions, FlowActionUserspace,
-                              FlowKeys}
+import org.midonet.odp.flows.{FlowAction, FlowActions}
 import org.midonet.odp.ports._
 import org.midonet.odp.protos.OvsDatapathConnection
-import org.midonet.packets.{Ethernet, Unsigned}
+import org.midonet.packets.Ethernet
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 import org.midonet.util.functors.Callback0
-import compat.Platform
+import org.midonet.midolman.FlowController.AddWildcardFlow
+import org.midonet.midolman.PacketWorkflowActor.AddVirtualWildcardFlow
 
 /**
  * Holder object that keeps the external message definitions
@@ -83,6 +82,72 @@ sealed trait PortOpReply[P <: Port[_ <: PortOptions, P]] {
     val error: NetlinkException
 }
 
+// TODO(guillermo) - move to a new util pkg
+class Bimap[A,B](private val forward: Map[A,B] = Map[A,B](),
+                 val inverse: Map[B,A] = Map[B,A]()) extends Iterable[(A,B)] {
+
+    def empty = new Bimap[A,B]()
+
+    def get(key: A): Option[B] = forward.get(key)
+
+    def contains(k: A) = forward.contains(k)
+
+    override def iterator = forward.iterator
+
+    def keys: Iterable[A] = forward.keys
+
+    def values: Iterable[B] = inverse.keys
+
+    def + (kv: (A, B)): Bimap[A, B] =
+        new Bimap[A,B](forward + kv, inverse.+((kv._2, kv._1)))
+
+    def ++ (other: Bimap[A, B]): Bimap[A, B] = {
+        def _add(map: Bimap[A,B], other: Iterator[(A,B)]): Bimap[A,B] =
+            if (!other.hasNext) map else _add(map + other.next(), other)
+
+        _add(this, other.iterator)
+    }
+
+    def - (k: A): Bimap[A, B] = get(k) match {
+        case Some(v) => new Bimap(forward - k, inverse - v)
+        case None => this
+    }
+
+    def -- (other: Bimap[A, B]): Bimap[A, B] = {
+        def _sub(map: Bimap[A,B], other: Iterator[A]): Bimap[A,B] =
+            if (!other.hasNext) map else _sub(map - other.next(), other)
+
+        _sub(this, other.keys.iterator)
+    }
+}
+
+trait VirtualPortsResolver {
+    def getDpPortNumberForVport(vportId: UUID): Option[JInteger]
+
+    def getVportForDpPortNumber(portNum: JInteger): Option[UUID]
+
+    def getInterfaceForVport(vportId: UUID): Option[String]
+
+    def getDpPort(itfName: String): Option[Port[_, _]]
+
+    def getDpPortName(num: JInteger): Option[String]
+}
+
+trait DatapathState {
+    def vportResolver: VirtualPortsResolver
+
+    def localTunnelPorts: ROSet[JInteger]
+
+    def peerToTunnels: ROMap[UUID, ROMap[UUID, Port[_,_]]]
+
+    // TODO(guillermo) - for future use. Decisions based on the datapath state
+    // need to be aware of its versioning bacause flows added by fast-path
+    // simulations race with invalidations sent out-of-band by the datapath
+    // controller to the flow controller.
+    def version: Long
+}
+
+
 /**
  * This will make the Datapath Controller to start the local state
  * initialization process.
@@ -111,7 +176,7 @@ object DatapathController extends Referenceable {
      *
      * @param datapath the active datapath
      */
-    case class DatapathReady(datapath: Datapath)
+    case class DatapathReady(datapath: Datapath, state: DatapathState)
 
     /**
      * Will trigger an internal port creation operation. The sender will
@@ -331,28 +396,6 @@ object DatapathController extends Referenceable {
 
     case class DeleteFlow(flow: KernelFlow)
 
-    /* This message is sent by simulations that result in packets being
-     * generated that in turn need to be simulated before they can correctly
-     * be forwarded.
-     */
-    case class EmitGeneratedPacket(egressPort: UUID, ethPkt: Ethernet,
-                                   parentCookie: Option[Int])
-
-    /**
-     * Upon receiving this message, the DatapathController translates any
-     * actions that are not understood by the Netlink layer and then sends the
-     * packet to the kernel (who in turn executes the actions on the packet's
-     * data).
-     *
-     * @param ethPkt The Ethernet packet that should be sent to the kernel.
-     * @param actions The list of actions the kernel should apply to the data
-     */
-    case class SendPacket(ethPkt: Ethernet, actions: List[FlowAction[_]])
-
-    case class PacketIn(wMatch: WildcardMatch, pktBytes: Array[Byte],
-                        dpMatch: FlowMatch, reason: Packet.Reason,
-                        cookie: Option[Int])
-
    /**
     * This message encapsulates a given port stats to the monitoring agent.
     * @param stats
@@ -465,7 +508,8 @@ object DatapathController extends Referenceable {
  * may receive requests from the FVE to invalidate specific wildcard flows; these
  * are passed on to the FlowController.
  */
-class DatapathController() extends Actor with ActorLogging {
+class DatapathController() extends Actor with ActorLogging with
+                                              FlowTranslatingActor {
 
     import DatapathController._
     import VirtualToPhysicalMapper._
@@ -483,43 +527,36 @@ class DatapathController() extends Actor with ActorLogging {
     @Inject
     val interfaceScanner: InterfaceScanner = null
 
-    @Inject
-    val simCtrl: SimulationController = null
-
     var datapath: Datapath = null
 
-    val vportMgr = new VirtualPortManager(new Controller {
-        override def addToDatapath(itfName: String): Unit = {
-            log.debug("VportManager requested add port {}", itfName)
-            createDatapathPort(self, Ports.newNetDevPort(itfName), None)
-        }
+    val dpState = new DatapathStateManager(
+        new VirtualPortManager(new Controller {
+            override def addToDatapath(itfName: String): Unit = {
+                log.debug("VportManager requested add port {}", itfName)
+                createDatapathPort(self, Ports.newNetDevPort(itfName), None)
+            }
 
-        override def removeFromDatapath(port: Port[_, _]): Unit = {
-            log.debug("VportManager requested remove port {}", port.getName)
-            deleteDatapathPort(self, port, None)
-        }
+            override def removeFromDatapath(port: Port[_, _]): Unit = {
+                log.debug("VportManager requested remove port {}", port.getName)
+                deleteDatapathPort(self, port, None)
+            }
 
-        override def setVportStatus(port: Port[_, _], vportId: UUID,
-                           isActive: Boolean): Unit = {
-            log.debug("Port {}/{}/{} became {}", port.getPortNo,
-                port.getName, vportId, if (isActive) "active" else "inactive")
-            installTunnelKeyFlow(port, vportId, isActive)
-            VirtualToPhysicalMapper.getRef() !
-                LocalPortActive(vportId, isActive)
-        }
-    }, log)
+            override def setVportStatus(port: Port[_, _], vportId: UUID,
+                                        isActive: Boolean): Unit = {
+                log.debug("Port {}/{}/{} became {}", port.getPortNo,
+                    port.getName, vportId, if (isActive) "active" else "inactive")
+                installTunnelKeyFlow(port, vportId, isActive)
+                VirtualToPhysicalMapper.getRef() !
+                    LocalPortActive(vportId, isActive)
+            }
+        }, log))
 
-    val zones = mutable.Map[UUID, TunnelZone[_, _]]()
     val zonesToTunnels: mutable.MultiMap[UUID, Port[_,_]] =
         new mutable.HashMap[UUID, mutable.Set[Port[_,_]]] with
             mutable.MultiMap[UUID, Port[_,_]]
     val tunnelsToHosts = mutable.Map[JInteger, TZHostConfig[_,_]]()
-    val localTunnelPorts: mutable.Set[JInteger] = mutable.Set()
 
     var recentInterfacesScanned = new java.util.ArrayList[InterfaceDescription]()
-
-    // peerHostId -> { ZoneID -> Port[_,_] }
-    val peerToTunnels = mutable.Map[UUID, mutable.Map[UUID, Port[_,_]]]()
 
     var pendingUpdateCount = 0
 
@@ -542,14 +579,14 @@ class DatapathController() extends Actor with ActorLogging {
     protected def receive = null
 
     def vifToLocalPortNumber(vportId: UUID): Option[Short] = {
-        vportMgr.getDpPortNumberForVport(vportId) match {
+        dpState.vportResolver.getDpPortNumberForVport(vportId) match {
             case None => None
             case Some(num) => Some(num.shortValue)
         }
     }
 
     def ifaceNameToDpPort(itfName: String): Port[_, _] = {
-        vportMgr.getDpPort(itfName)
+        dpState.vportResolver.getDpPort(itfName).getOrElse(null)
     }
 
     val DatapathInitializationActor: Receive = {
@@ -587,7 +624,8 @@ class DatapathController() extends Actor with ActorLogging {
                     case p =>
                         log.debug("Keeping port {} found during " +
                             "initialization", p)
-                        vportMgr.datapathPortAdded(p)
+                        dpState.updateVports(
+                            dpState.vportManager.datapathPortAdded(p))
                 }
             }
             log.debug("Finished processing datapath's existing ports. " +
@@ -627,7 +665,8 @@ class DatapathController() extends Actor with ActorLogging {
         log.info("Initialization complete. Starting to act as a controller.")
         initialized = true
         become(DatapathControllerActor)
-        FlowController.getRef() ! DatapathController.DatapathReady(datapath)
+        FlowController.getRef() ! DatapathController.DatapathReady(datapath, dpState)
+        DeduplicationActor.getRef() ! DatapathController.DatapathReady(datapath, dpState)
         for ((zoneId, zone) <- host.zones) {
             VirtualToPhysicalMapper.getRef() ! TunnelZoneRequest(zoneId)
         }
@@ -639,7 +678,8 @@ class DatapathController() extends Actor with ActorLogging {
         }
         initializer ! InitializationComplete()
         log.info("Process the host's zones and vport bindings. {}", host)
-        vportMgr.updateVPortInterfaceBindings(host.ports)
+        dpState.updateVports(
+            dpState.vportManager.updateVPortInterfaceBindings(host.ports))
     }
 
     private def processNextHost() {
@@ -650,7 +690,8 @@ class DatapathController() extends Actor with ActorLogging {
             host = nextHost
             nextHost = null
 
-            vportMgr.updateVPortInterfaceBindings(host.ports)
+            dpState.updateVports(
+                dpState.vportManager.updateVPortInterfaceBindings(host.ports))
             doDatapathZonesUpdate(oldZones, newZones)
         }
     }
@@ -685,6 +726,15 @@ class DatapathController() extends Actor with ActorLogging {
             }
             self ! m
 
+        case AddVirtualWildcardFlow(flow, callbacks, tags) =>
+            log.debug("Translating and installing wildcard flow: {}", flow)
+            translateVirtualWildcardFlow(flow, tags) onSuccess {
+                case (finalFlow, finalTags) =>
+                    log.debug("flow translated, installing: {}", finalFlow)
+                    FlowController.getRef() !
+                        AddWildcardFlow(finalFlow, None, callbacks, finalTags)
+            }
+
         case h: Host =>
             this.nextHost = h
             processNextHost()
@@ -715,21 +765,11 @@ class DatapathController() extends Actor with ActorLogging {
         case opReply: PortOpReply[Port[_, _]] =>
             handlePortOperationReply(opReply)
 
-        case AddWildcardFlow(flow, cookie, pktBytes, flowRemovalCallbacks, tags) =>
-            handleAddWildcardFlow(flow, cookie, pktBytes, flowRemovalCallbacks,
-                                    tags)
-
-        case SendPacket(ethPkt, actions) =>
-            handleSendPacket(ethPkt, actions)
-
-        case PacketIn(wMatch, pktBytes, dpMatch, reason, cookie) =>
-            handleFlowPacketIn(wMatch, pktBytes, dpMatch, reason, cookie)
-
         case Messages.Ping(value) =>
             sender ! Messages.Pong(value)
 
         case PortStatsRequest(portID) =>
-            vportMgr.getInterfaceForVport(portID) match {
+            dpState.vportResolver.getInterfaceForVport(portID) match {
                 case Some(portName) =>
                     datapathConnection.portsGet(portName, datapath,
                         new Callback[Port[_,_]]{
@@ -759,7 +799,7 @@ class DatapathController() extends Actor with ActorLogging {
 
         case InterfacesUpdate(interfaces: JList[InterfaceDescription]) =>
             log.debug("Updating interfaces to {}", interfaces)
-            vportMgr.updateInterfaces(interfaces)
+            dpState.updateVports(dpState.vportManager.updateInterfaces(interfaces))
 
         case LocalTunnelInterfaceInfo() =>
             getLocalInterfaceTunnelPhaseOne(sender)
@@ -767,10 +807,6 @@ class DatapathController() extends Actor with ActorLogging {
         case LocalInterfaceTunnelInfoFinal(caller : ActorRef,
                 interfaces: JList[InterfaceDescription]) =>
             getLocalInterfaceTunnelInfo(caller, interfaces)
-
-        case e: EmitGeneratedPacket =>
-            system.eventStream.publish(e)
-            simCtrl.emitGeneratedPacket(e.egressPort, e.ethPkt, e.parentCookie)
 
         case m => log.error("Unhandled message {}", m)
     }
@@ -820,7 +856,7 @@ class DatapathController() extends Actor with ActorLogging {
                          hostConfig: TZHostConfig[_,_],
                          op: HostConfigOperation.Value) {
         def _closeTunnel[HostType <: TZHostConfig[_,_]](peerConf: HostType) {
-            peerToTunnels.get(peerConf.getId).foreach {
+            dpState.peerToTunnels.get(peerConf.getId).foreach {
                 mapping => mapping.get(zone).foreach {
                     case tunnelPort: Port[_,_] =>
                         log.debug("Need to close the tunnel with name: {}",
@@ -883,263 +919,6 @@ class DatapathController() extends Actor with ActorLogging {
         }
     }
 
-    def handleAddWildcardFlow(flow: WildcardFlow,
-                              cookie: Option[Int],
-                              pktBytes: Array[Byte],
-                              flowRemovalCallbacks: ROSet[Callback0],
-                              tags: ROSet[Any]) {
-        val flowMatch = flow.getMatch
-        val inPortUUID = flowMatch.getInputPortUUID
-
-        // tags can be null
-        val dpTags = new mutable.HashSet[Any]
-        if (tags != null)
-            dpTags ++= tags
-
-        vportMgr.getDpPortNumberForVport(inPortUUID) match {
-            case Some(portNo) =>
-                flowMatch
-                    .setInputPortNumber(portNo.shortValue())
-                    .unsetInputPortUUID()
-                // tag flow with port's number to be able to do invalidation
-                dpTags += FlowTagger.invalidateDPPort(portNo.shortValue())
-            case None =>
-        }
-
-        var flowActions = flow.getActions
-        if (flowActions == null)
-            flowActions = Nil
-
-        translateActions(flowActions, Option(inPortUUID),
-                         Option(dpTags), flow.getMatch) onComplete {
-            case Right(actions) =>
-                flow.setActions(actions.toList)
-                FlowController.getRef() ! AddWildcardFlow(flow, cookie,
-                    pktBytes,flowRemovalCallbacks, dpTags)
-            case _ =>
-                // TODO(pino): should we push a temporary drop flow instead?
-                FlowController.getRef() ! AddWildcardFlow(flow, cookie,
-                    pktBytes, flowRemovalCallbacks, dpTags)
-        }
-    }
-
-    def translateActions(actions: Seq[FlowAction[_]],
-                         inPortUUID: Option[UUID],
-                         dpTags: Option[mutable.Set[Any]],
-                         wMatch: WildcardMatch): Future[Seq[FlowAction[_]]] = {
-        val translated = Promise[Seq[FlowAction[_]]]()
-
-        // check for VRN port or portSet
-        var vrnPort: Option[Either[UUID, UUID]] = None
-        for (action <- actions) {
-            action match {
-                case s: FlowActionOutputToVrnPortSet if (vrnPort == None ) =>
-                    vrnPort = Some(Right(s.portSetId))
-                case p: FlowActionOutputToVrnPort if (vrnPort == None) =>
-                    vrnPort = Some(Left(p.portId))
-                case u: FlowActionUserspace =>
-                    u.setUplinkPid(datapathConnection.getChannel.getLocalAddress.getPid)
-                case _ =>
-            }
-        }
-
-        vrnPort match {
-            case Some(Right(portSet)) =>
-                // we need to expand a port set
-
-                val portSetFuture = ask(
-                    VirtualToPhysicalMapper.getRef(),
-                    PortSetRequest(portSet, update = false)).mapTo[PortSet]
-
-                val bridgeFuture = VirtualTopologyActor.expiringAsk(
-                    BridgeRequest(portSet, update = false)).mapTo[RCUBridge]
-
-                portSetFuture map {
-                    set => bridgeFuture onSuccess {
-                        case br =>
-                            // Don't include the input port in the expanded
-                            // port set.
-                            var outPorts = set.localPorts
-                            inPortUUID foreach { p => outPorts -= p }
-                            log.debug("Flooding on bridge {}. inPort: {}, " +
-                                "local bridge ports: {}, " +
-                                "remote hosts having ports on this bridge: {}",
-                                br.id, inPortUUID, set.localPorts, set.hosts)
-                            // add tag for flow invalidation
-                            dpTags foreach { tags =>
-                                tags += FlowTagger.invalidateBroadcastFlows(
-                                    br.id, br.id)
-                            }
-                            val localPortFutures =
-                                outPorts.toSeq map {
-                                    portID =>
-                                        VirtualTopologyActor.expiringAsk(
-                                            PortRequest(portID, false))
-                                            .mapTo[client.Port[_]]
-                                }
-                            Future.sequence(localPortFutures) onComplete {
-                                case Right(localPorts) =>
-                                    applyOutboundFilters(localPorts,
-                                        portSet, wMatch,
-                                        { portIDs => translated.success(
-                                            translateToDpPorts(
-                                                actions, portSet,
-                                                portsForLocalPorts(portIDs),
-                                                Some(br.tunnelKey),
-                                                tunnelsForHosts(set.hosts.toSeq),
-                                                dpTags.orNull))
-                                        })
-
-                                case _ => log.error("Error getting " +
-                                    "configurations of local ports of " +
-                                    "PortSet {}", portSet)
-                            }
-                    }
-                }
-
-            case Some(Left(port)) =>
-                // we need to translate a single port
-                vportMgr.getDpPortNumberForVport(port) match {
-                    case Some(portNum) =>
-                        translated.success(translateToDpPorts(
-                            actions, port, List(portNum.shortValue()),
-                            None, Nil, dpTags.orNull))
-                    case None =>
-                        VirtualTopologyActor.expiringAsk(
-                            PortRequest(port, update = false))
-                            .mapTo[client.Port[_]] map {
-                                case p: ExteriorPort[_] =>
-                                    translated.success(translateToDpPorts(
-                                            actions, port, Nil,
-                                            Some(p.tunnelKey),
-                                            tunnelsForHosts(List(p.hostID)),
-                                            dpTags.orNull))
-                        }
-                }
-            case None =>
-                translated.success(actions)
-        }
-        translated.future
-    }
-
-    def translateToDpPorts(acts: Seq[FlowAction[_]], port: UUID,
-                           localPorts: Seq[Short],
-                           tunnelKey: Option[Long], tunnelPorts: Seq[Short],
-                           dpTags: mutable.Set[Any]): Seq[FlowAction[_]] = {
-        tunnelKey match {
-            case Some(k) =>
-                log.debug("Translating output actions for vport (or set) {}," +
-                    " having tunnel key {}, and corresponding to local dp " +
-                    "ports {}, and tunnel ports {}",
-                    port, k, localPorts, tunnelPorts)
-
-            case None =>
-                log.debug("No tunnel key provided. Translating output " +
-                    "action for vport {}, corresponding to local dp port {}",
-                    port, localPorts)
-        }
-        // TODO(pino): when we detect the flow won't have output actions,
-        // set the flow to expire soon so that we can retry.
-        if (localPorts.length == 0 && tunnelPorts.length == 0)
-            log.error("No local datapath ports or tunnels found. This flow " +
-                "will be dropped because we cannot make Output actions.")
-        val newActs = ListBuffer[FlowAction[_]]()
-        var newTags = new mutable.HashSet[Any]
-
-        var translatablePort = port
-
-        var translatedActions = localPorts.map { id =>
-            FlowActions.output(id).asInstanceOf[FlowAction[_]]
-        }
-        // add tag for flow invalidation
-        localPorts.foreach{id =>
-            newTags += FlowTagger.invalidateDPPort(id)
-        }
-
-        if (null != tunnelPorts && tunnelPorts.length > 0) {
-            translatedActions = translatedActions ++ tunnelKey.map { key =>
-                FlowActions.setKey(FlowKeys.tunnelID(key))
-                    .asInstanceOf[FlowAction[_]]
-            } ++ tunnelPorts.map { id =>
-                FlowActions.output(id).asInstanceOf[FlowAction[_]]
-            }
-            tunnelPorts.foreach{id => newTags += FlowTagger.invalidateDPPort(id)}
-        }
-
-        for (act <- acts) {
-            act match {
-                case p: FlowActionOutputToVrnPort if (p.portId == translatablePort) =>
-                    newActs ++= translatedActions
-                    translatablePort = null
-                    if (dpTags != null)
-                        dpTags ++= newTags
-
-                case p: FlowActionOutputToVrnPortSet if (p.portSetId == translatablePort) =>
-                    newActs ++= translatedActions
-                    translatablePort = null
-                    if (dpTags != null)
-                        dpTags ++= newTags
-
-                // we only translate the first ones.
-                case x: FlowActionOutputToVrnPort =>
-                case x: FlowActionOutputToVrnPortSet =>
-
-                case a => newActs += a
-            }
-        }
-
-        newActs
-    }
-
-    def tunnelsForHosts(hosts: Seq[UUID]): Seq[Short] = {
-        val tunnels = mutable.ListBuffer[Short]()
-
-        def tunnelForHost(host: UUID): Option[Short] = {
-            peerToTunnels.get(host).flatMap {
-                mappings => mappings.values.headOption.map {
-                    port => port.getPortNo.shortValue
-                }
-            }
-        }
-
-        for (host <- hosts)
-            tunnels ++= tunnelForHost(host).toList
-
-        tunnels
-    }
-
-    def portsForLocalPorts(localVrnPorts: Seq[UUID]): Seq[Short] = {
-        localVrnPorts flatMap {
-            vportMgr.getDpPortNumberForVport(_) match {
-                case Some(value) => Some(value.shortValue())
-                case None =>
-                    // TODO(pino): log that the port number was not found.
-                    None
-            }
-        }
-    }
-
-    def translateToLocalPort(acts: Seq[FlowAction[_]], port: UUID, localPort: Short): Seq[FlowAction[_]] = {
-        val translatedActs = mutable.ListBuffer[FlowAction[_]]()
-
-        for (act <- acts) {
-            act match {
-                case port: FlowActionOutputToVrnPort if (port.portId == port) =>
-                    translatedActs += FlowActions.output(localPort)
-
-                case port: FlowActionOutputToVrnPort =>
-                    // this should not happen so we drop it
-                case set: FlowActionOutputToVrnPortSet =>
-                    // this should not happen so we drop it
-                case action =>
-                    translatedActs += action
-
-            }
-        }
-
-        translatedActs
-    }
-
     private def installTunnelKeyFlow(port: Port[_, _], vifId: UUID, active: Boolean) {
         val clientPortFuture = VirtualTopologyActor.expiringAsk(
             PortRequest(vifId, update = false))
@@ -1161,13 +940,19 @@ class DatapathController() extends Actor with ActorLogging {
                     // packets for the port may have arrived before the
                     // port came up and made us install temporary drop flows.
                     // Invalidate them before adding the new flow
-                    FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
+                    val fc = FlowController.getRef()
+                    fc ! FlowController.InvalidateFlowsByTag(
                         FlowTagger.invalidateByTunnelKey(exterior.tunnelKey))
 
-                    addTaggedFlow(new WildcardMatch().setTunnelID(exterior.tunnelKey),
-                        List(FlowActions.output(port.getPortNo.shortValue)),
-                        tags = Set(FlowTagger.invalidateDPPort(port.getPortNo.shortValue())),
-                        expiration = 0)
+                    val wMatch = new WildcardMatch().setTunnelID(exterior.tunnelKey)
+                    val actions = List[FlowAction[_]](FlowActions.output(port.getPortNo.shortValue))
+                    val tags = Set[Any](FlowTagger.invalidateDPPort(port.getPortNo.shortValue()))
+                    fc ! AddWildcardFlow(new WildcardFlow().
+                                             setMatch(wMatch).
+                                             setActions(actions.asJava).
+                                             setIdleExpirationMillis(0).
+                                             setPriority(0),
+                                         None, ROSet.empty, tags)
                     log.debug("Added flow for tunnelkey {}", exterior.tunnelKey)
                 }
 
@@ -1179,214 +964,6 @@ class DatapathController() extends Actor with ActorLogging {
         }
     }
 
-    private def addDropFlow(wMatch: WildcardMatch,
-                        cookie: Option[Int] = None,
-                        expiration: Long = 3000) {
-        log.debug("adding drop flow for PacketIn match {}",
-            wMatch)
-        FlowController.getRef().tell(
-            AddWildcardFlow(new WildcardFlow().setMatch(wMatch)
-                .setIdleExpirationMillis(expiration),
-                None, null, null, null))
-    }
-
-    private def addTaggedFlow(wMatch: WildcardMatch,
-                        actions: Seq[FlowAction[_]],
-                        tags: ROSet[Any],
-                        cookie: Option[Int] = None,
-                        pktBytes: Array[Byte] = null,
-                        expiration: Long = 3000,
-                        priority: Short = 0) {
-        log.debug("adding flow with match {} with actions {}",
-                  wMatch, actions)
-
-        FlowController.getRef().tell(
-                AddWildcardFlow(new WildcardFlow().setMatch(wMatch)
-                                        .setIdleExpirationMillis(expiration)
-                                        .setActions(actions)
-                                        .setPriority(priority),
-                                cookie,
-                                if (actions == Nil) null else pktBytes,
-                                null, tags))
-    }
-
-    private def handlePacketFromTunnel(wMatch: WildcardMatch,
-                                       pktBytes: Array[Byte],
-                                       dpMatch: FlowMatch,
-                                       reason: Packet.Reason,
-                                       cookie: Option[Int]): Unit = {
-        log.debug("PacketIn came from a tunnel port")
-        // We currently only handle packets ingressing on tunnel ports if they
-        // have a tunnel key. If the tunnel key corresponds to a local virtual
-        // port then the pre-installed flow rules should have matched the
-        // packet. So we really only handle cases where the tunnel key exists
-        // and corresponds to a port set.
-        if (wMatch.getTunnelID == null) {
-            log.error("SCREAM: dropping a flow from tunnel port {} because " +
-                " it has no tunnel key.", wMatch.getInputPortNumber)
-            addDropFlow(wMatch, cookie)
-            return
-        }
-
-        val portSetFuture = VirtualToPhysicalMapper.getRef() ?
-            PortSetForTunnelKeyRequest(wMatch.getTunnelID)
-
-        portSetFuture.mapTo[PortSet] onComplete {
-            case Right(portSet) if (portSet != null) =>
-                val action = new FlowActionOutputToVrnPortSet(portSet.id)
-                log.debug("tun => portSet, action: {}, portSet: {}",
-                    action, portSet)
-                // egress port filter simulation
-                val localPortFutures =
-                    portSet.localPorts.toSeq map {
-                        portID => VirtualTopologyActor.expiringAsk(
-                            PortRequest(portID, false)).mapTo[client.Port[_]]
-                    }
-                Future.sequence(localPortFutures) onComplete {
-                    // Take the outgoing filter for each port
-                    // and apply it, checking for Action.ACCEPT.
-                    case Right(localPorts) =>
-                        applyOutboundFilters(localPorts,
-                        portSet.id, wMatch,
-                        { portIDs =>
-                            val tags = mutable.Set[Any]()
-                            addTaggedFlow(wMatch,
-                                translateToDpPorts(List(action),
-                                    portSet.id,
-                                    portsForLocalPorts(portIDs),
-                                    None, Nil, tags),
-                                tags, cookie, pktBytes)
-                        })
-                    case _ => log.error("Error getting " +
-                        "configurations of local ports of " +
-                        "PortSet {}", portSet)
-                }
-
-            case _ =>
-                // for now, install a drop flow. We will invalidate
-                // it if the port comes up later on.
-                log.debug("PacketIn came from a tunnel port but " +
-                    "the key does not map to any PortSet")
-                addTaggedFlow(new WildcardMatch().
-                    setTunnelID(wMatch.getTunnelID).
-                    setInputPort(wMatch.getInputPort),
-                    actions = Nil,
-                    tags = Set(FlowTagger.invalidateByTunnelKey(
-                        wMatch.getTunnelID)),
-                    cookie = cookie)
-        }
-    }
-
-    def handleFlowPacketIn(wMatch: WildcardMatch, pktBytes: Array[Byte],
-                           dpMatch: FlowMatch, reason: Packet.Reason,
-                           cookie: Option[Int]) {
-
-        wMatch.getInputPortNumber match {
-            case null =>
-                // Missing InputPortNumber. This should never happen.
-                log.error("SCREAM: got a PacketIn that has no inPort number.",
-                    wMatch)
-
-            case shortPort: JShort =>
-                val port: JInteger = Unsigned.unsign(shortPort)
-                log.debug("PacketIn on port #{}", port)
-                vportMgr.getVportForDpPortNumber(port) match {
-                    case Some(vportId) =>
-                        wMatch.setInputPortUUID(vportId)
-                        system.eventStream.publish(
-                            PacketIn(wMatch, pktBytes, dpMatch, reason, cookie))
-                        simCtrl.packetIn(wMatch, pktBytes, cookie)
-                        return
-                    case None =>
-                        if (localTunnelPorts.contains(port)) {
-                            handlePacketFromTunnel(wMatch, pktBytes, dpMatch,
-                                reason, cookie)
-                        } else {
-                            // We're receiving packets from a port we don't
-                            // recognize. Install a low-priority temporary
-                            // rule that will drop these packets.
-                            FlowController.getRef().tell(
-                                AddWildcardFlow(
-                                    new WildcardFlow()
-                                        .setMatch(
-                                            new WildcardMatch()
-                                                .setInputPort(shortPort))
-                                        .setPriority(1000)
-                                        .setHardExpirationMillis(5000),
-                                    None, null, null, null))
-                        }
-                }
-        }
-    }
-
-    private def applyOutboundFilters(
-                    localPorts: Seq[client.Port[_]],
-                    portSetID: UUID,
-                    pktMatch: WildcardMatch, thunk: Sequence[UUID] => Unit) {
-        // Fetch all of the chains.
-        val chainFutures = localPorts map { port =>
-                if (port.outFilterID == null)
-                    Promise.successful(null)
-                else
-                    VirtualTopologyActor.expiringAsk(
-                        ChainRequest(port.outFilterID, false)).mapTo[Chain]
-            }
-        // Apply the chains.
-        Future.sequence(chainFutures) onComplete {
-            case Right(chains) =>
-                val egressPorts = (localPorts zip chains) filter { portchain =>
-                    val port = portchain._1
-                    val chain = portchain._2
-                    val fwdInfo = new EgressPortSetChainPacketContext(port.id)
-
-                    // apply chain and check result is ACCEPT.
-                    val result =
-                        Chain.apply(chain, fwdInfo, pktMatch, port.id, true)
-                            .action
-                    if (result != RuleResult.Action.ACCEPT &&
-                            result != RuleResult.Action.DROP &&
-                            result != RuleResult.Action.REJECT)
-                        log.error("Applying chain {} produced {}, not " +
-                                  "ACCEPT, DROP, or REJECT", chain.id, result)
-                    result == RuleResult.Action.ACCEPT
-                }
-
-                thunk(egressPorts map {portchain => portchain._1.id})
-
-            case _ => log.error("Error getting chains for PortSet {}",
-                                portSetID)
-        }
-    }
-
-    def handleSendPacket(ethPkt: Ethernet, origActions: List[FlowAction[_]]) {
-        log.debug("Sending packet {} with action list {}", ethPkt, origActions)
-        if (null == origActions || origActions.size == 0) {
-            // Empty action list drops the packet. No need to send to DP.
-            return
-        }
-        translateActions(origActions, None, None,
-                         WildcardMatch.fromEthernetPacket(ethPkt)) onComplete {
-            case Right(actions) =>
-                log.debug("Translated actions to action list {}", actions)
-                val packet = new Packet().
-                    setMatch(FlowMatches.fromEthernetPacket(ethPkt)).
-                    setData(ethPkt.serialize).setActions(actions)
-                datapathConnection.packetsExecute(datapath, packet,
-                    new ErrorHandlingCallback[JBoolean] {
-                        def onSuccess(data: JBoolean) {}
-
-                        def handleError(ex: NetlinkException, timeout: Boolean) {
-                            log.error(ex,
-                                "Failed to send a packet {} due to {}", packet,
-                                if (timeout) "timeout" else "error")
-                        }
-                    }
-                )
-            case _ =>
-                log.error("Failed to translate actions {}", origActions)
-        }
-    }
-
     def handlePortOperationReply(opReply: PortOpReply[_]) {
         log.debug("Port operation reply: {}", opReply)
 
@@ -1395,25 +972,16 @@ class DatapathController() extends Actor with ActorLogging {
 
         def _handleTunnelCreate(port: Port[_,_],
                                 hConf: TZHostConfig[_,_], zone: UUID) {
-            peerToTunnels.get(hConf.getId) match {
-                case Some(tunnels) =>
-                    tunnels.put(zone, port)
-                    log.debug("handleTunnelCreate - added zone {} port {} to" +
-                        "tunnels map", zone, port.getName)
-                case None =>
-                    val mapping = mutable.Map[UUID, Port[_,_]]()
-                    mapping.put(zone, port)
-                    peerToTunnels.put(hConf.getId, mapping)
-                    log.debug("handleTunnelCreate - added peer port {}", hConf.getId)
-
-            }
+            dpState.addPeerTunnel(hConf.getId, zone, port)
+            log.debug("handleTunnelCreate - added zone {} port {} to" +
+                      "tunnels map", zone, port.getName)
             tunnelsToHosts.put(port.getPortNo, hConf)
             zonesToTunnels.addBinding(zone, port)
             // trigger invalidation
             val tunnelPortNum: JShort = port.getPortNo.shortValue
             FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
                 FlowTagger.invalidateDPPort(tunnelPortNum))
-            localTunnelPorts.add(tunnelPortNum.intValue())
+            dpState.addLocalTunnelPort(tunnelPortNum.intValue)
             log.debug("Adding tunnel with port #{}", tunnelPortNum)
             context.system.eventStream.publish(
                 new TunnelChangeEvent(this.host.zones.get(zone), hConf,
@@ -1423,22 +991,13 @@ class DatapathController() extends Actor with ActorLogging {
 
         def _handleTunnelDelete(port: Port[_,_],
                                 hConf: TZHostConfig[_,_], zone: UUID) {
-            peerToTunnels.get(hConf.getId) match {
-                case Some(zoneTunnelMap) =>
-                    zoneTunnelMap.remove(zone)
-                    if (zoneTunnelMap.size == 0) {
-                        peerToTunnels.remove(hConf.getId)
-                    }
-                    // trigger invalidation
-                    FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
-                        FlowTagger.invalidateDPPort(port.getPortNo.shortValue())
-                    )
-
-                case None =>
+            if (dpState.removePeerTunnel(hConf.getId, zone)) {
+                FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
+                    FlowTagger.invalidateDPPort(port.getPortNo.shortValue()))
             }
             tunnelsToHosts.remove(port.getPortNo)
             zonesToTunnels.removeBinding(zone, port)
-            localTunnelPorts.remove(port.getPortNo.shortValue)
+            dpState.removeLocalTunnelPort(port.getPortNo.shortValue)
             log.debug("Removing tunnel with port #{}",
                       port.getPortNo.shortValue)
             context.system.eventStream.publish(
@@ -1467,11 +1026,11 @@ class DatapathController() extends Actor with ActorLogging {
 
             case PortNetdevOpReply(p, PortOperation.Create,
                                    false, null, None) =>
-                vportMgr.datapathPortAdded(p)
+                dpState.updateVports(dpState.vportManager.datapathPortAdded(p))
 
             case PortNetdevOpReply(p, PortOperation.Delete,
                                    false, null, None) =>
-                vportMgr.datapathPortRemoved(p.getName)
+                dpState.updateVports(dpState.vportManager.datapathPortRemoved(p.getName))
 
             //            case PortInternalOpReply(_,_,_,_,_) =>
             //            case TunnelPatchOpReply(_,_,_,_,_) =>
@@ -1612,8 +1171,8 @@ class DatapathController() extends Actor with ActorLogging {
         if (addrTunnelMapping.isEmpty == false) {
             var ipAddr : Int = 0
             log.debug("Host has some tunnel zone(s) configured")
-            for (interface <- interfaces) {
-                for (inetAddress <- interface.getInetAddresses()) {
+            for (interface <- interfaces.asScala) {
+                for (inetAddress <- interface.getInetAddresses().asScala) {
                     // IPv6 alert: this assumes only IPv4
                     if (inetAddress.getAddress().length == 4) {
                         ipAddr = ByteBuffer.wrap(inetAddress.getAddress()).getInt
@@ -1701,7 +1260,7 @@ class DatapathController() extends Actor with ActorLogging {
         datapathConnection.portsEnumerate(datapath,
             new ErrorHandlingCallback[JSet[Port[_, _]]] {
                 def onSuccess(ports: JSet[Port[_, _]]) {
-                    self ! _SetLocalDatapathPorts(datapath, ports.toSet)
+                    self ! _SetLocalDatapathPorts(datapath, ports.asScala.toSet)
                 }
 
                 // WARN: this is ugly. Normally we should configure the message error handling
@@ -1717,16 +1276,7 @@ class DatapathController() extends Actor with ActorLogging {
         )
     }
 
-    /**
-     * Called when the netlink library receives a packet in
-     *
-     * @param packet the received packet
-     */
-    private case class _PacketIn(packet: Packet)
-
     private case class _SetLocalDatapathPorts(datapath: Datapath, ports: Set[Port[_, _]])
-
-
 }
 
 object VirtualPortManager {
@@ -1739,10 +1289,60 @@ object VirtualPortManager {
     }
 }
 
-// NON-thread safe class to manage relationships between interfaces, datapath,
-// and virtual ports. This class DOES NOT manage tunnel ports.
-class VirtualPortManager(val controller: VirtualPortManager.Controller,
-                         val log: LoggingAdapter) {
+/* *IMMUTABLE* safe class to manage relationships between interfaces, datapath,
+ * and virtual ports. This class DOES NOT manage tunnel ports.
+ *
+ * Immutable means that write-operations work on, and return, a copy of this
+ * object. Which means that the caller MUST keep the returned object or be left
+ * with an out-of-date copy of the VirtualPortManager.
+ *
+ * The rationale for this is (as opposed to just making the data it maintains
+ * immutable/concurrent) achieving lock-less atomicity of changes.
+ *
+ * In practice, the above means that the DatatapathController is reponsible
+ * of maintaining a private VirtualPortManager reference exposed to clients
+ * through the DatapathStateManager class, which offers a read-only view of the
+ * VPortManager thanks to the fact that the VirtualPortManager extends from the
+ * VirtualPortResolver trait. And clients use this read-only view at will. In
+ * other words:
+ *
+ *    + The DatapathController performs modifications on the VPortManager,
+ *    and, being an immutable object, updates the volatile reference when done.
+ *
+ *    + Clients access the reference as a read-only object through a
+ *    DatapathStateManager object and are guaranteed that every time they read
+ *    the reference they get a consistent (thanks to atomic updates), immutable
+ *    and up to date view of the state of the virtual ports.
+ */
+class VirtualPortManager(
+        val controller: VirtualPortManager.Controller, val log: LoggingAdapter,
+        // Map the interfaces this manager knows about to their status.
+        private var interfaceToStatus: Map[String, Boolean] = Map[String, Boolean](),
+        // The interfaces that are ports on the datapath, and their
+        // corresponding port numbers.
+        // The datapath's non-tunnel ports, regardless of their
+        // status (up/down)
+        private var interfaceToDpPort: Map[String, Port[_,_]] = Map[String, Port[_,_]](),
+        private var dpPortNumToInterface: Map[JInteger, String] = Map[JInteger, String](),
+        // Bi-directional map for interface-vport bindings.
+        private var interfaceToVport: Bimap[String,UUID] = new Bimap[String, UUID](),
+        // Track which dp ports this module added. When interface-vport bindings
+        // are removed, this module only removes the dp port if it originally
+        // requested its creation.
+        private var dpPortsWeAdded: Set[String] = Set[String](),
+        // Track which dp ports have add/remove in flight because while we wait
+        // for a change to complete, the binding may be deleted or re-created.
+        private var dpPortsInProgress: Set[String] = Set[String]()
+    ) extends VirtualPortsResolver {
+
+    private def copy = new VirtualPortManager(controller,
+                                                log,
+                                                interfaceToStatus,
+                                                interfaceToDpPort,
+                                                dpPortNumToInterface,
+                                                interfaceToVport,
+                                                dpPortsWeAdded,
+                                                dpPortsInProgress)
 
     /*
     This note explains the life-cycle of the datapath's non-tunnel ports.
@@ -1803,23 +1403,6 @@ class VirtualPortManager(val controller: VirtualPortManager.Controller,
       message to the VirtualToPhysicalMapper.
     */
 
-    // Map the interfaces this manager knows about to their status.
-    private val interfaceToStatus = mutable.Map[String, Boolean]()
-    // The interfaces that are ports on the datapath, and their corresponding
-    // port numbers.
-    // The datapath's non-tunnel ports, regardless of their status (up/down)
-    private val interfaceToDpPort = mutable.Map[String, Port[_, _]]()
-    private val dpPortNumToInterface = mutable.Map[JInteger, String]()
-    // Bi-directional map for interface-vport bindings.
-    private val interfaceToVport = HashBiMap.create[String, UUID]()
-
-    // Track which dp ports this module added. When interface-vport bindings
-    // are removed, this module only removes the dp port if it originally
-    // requested its creation.
-    private val dpPortsWeAdded = mutable.Set[String]()
-    // Track which dp ports have add/remove in flight because while we wait
-    // for a change to complete, the binding may be deleted or re-created.
-    private val dpPortsInProgress = mutable.Set[String]()
 
     private def requestDpPortAdd(itfName: String) {
         log.debug("requestDpPortAdd {}", itfName)
@@ -1828,8 +1411,8 @@ class VirtualPortManager(val controller: VirtualPortManager.Controller,
             // Immediately track this is a port we requested. If the binding
             // is removed before the port is added, then when we're notified
             // of the port's addition we'll know it's our port to delete.
-            dpPortsWeAdded.add(itfName)
-            dpPortsInProgress.add(itfName)
+            dpPortsWeAdded += itfName
+            dpPortsInProgress += itfName
             controller.addToDatapath(itfName)
         }
     }
@@ -1842,8 +1425,8 @@ class VirtualPortManager(val controller: VirtualPortManager.Controller,
         // - there isn't already an operation in flight for this port name.
         if (port.getPortNo != 0 && dpPortsWeAdded.contains(port.getName) &&
                 !dpPortsInProgress.contains(port.getName)) {
-            dpPortsWeAdded.remove(port.getName)
-            dpPortsInProgress.add(port.getName)
+            dpPortsWeAdded -= port.getName
+            dpPortsInProgress += port.getName
             controller.removeFromDatapath(port)
         }
     }
@@ -1851,25 +1434,31 @@ class VirtualPortManager(val controller: VirtualPortManager.Controller,
     private def notifyPortRemoval(port: Port[_, _]) {
         if (port.getPortNo != 0 && dpPortsWeAdded.contains(port.getName) &&
             !dpPortsInProgress.contains(port.getName)) {
-             dpPortsWeAdded.remove(port.getName)
-             datapathPortRemoved(port.getName)
+             dpPortsWeAdded -= (port.getName)
+             _datapathPortRemoved(port.getName)
         }
     }
 
-    def updateInterfaces(interfaces: Collection[InterfaceDescription]) {
+    def updateInterfaces(interfaces : Collection[InterfaceDescription]) = {
+        val ret = copy
+        ret._updateInterfaces(interfaces)
+        ret
+    }
+
+    protected[VirtualPortManager] def _updateInterfaces(interfaces : Collection[InterfaceDescription]) {
         log.debug("updateInterfaces {}", interfaces)
         val currentInterfaces = mutable.Set[String]()
 
-        for (itf <- interfaces) {
+        for (itf <- interfaces.asScala) {
             currentInterfaces.add(itf.getName)
             val isUp = itf.hasLink && itf.isUp
 
             interfaceToStatus.get(itf.getName) match {
                 case None =>
                     // This is a new interface
-                    interfaceToStatus.put(itf.getName, isUp)
+                    interfaceToStatus += ((itf.getName, isUp))
                     // Is there a vport binding for this interface?
-                    if (interfaceToVport.containsKey(itf.getName)) {
+                    if (interfaceToVport.contains(itf.getName)) {
                         interfaceToDpPort.get(itf.getName) match {
                             case None =>
                                 // Request that it be added to the datapath.
@@ -1879,51 +1468,48 @@ class VirtualPortManager(val controller: VirtualPortManager.Controller,
                                 // port is now active.
                                 if (isUp)
                                     controller.setVportStatus(port,
-                                        interfaceToVport.get(itf.getName),
+                                        interfaceToVport.get(itf.getName).getOrElse(null),
                                         true)
                         }
                     }
                 case Some(wasUp) =>
-                    // The NetlinkInterfaceSenson sets the endpoint for all the
+                    // The NetlinkInterfaceSensor sets the endpoint for all the
                     // ports of the dp to DATAPATH. It the endpoint is not DATAPATH
                     // it means that this is a dangling tap. We need to recreate
                     // the dp port. Use case: add tap, bind it to a vport, remove
                     // the tap. The dp port gets destryed.
                     if (itf.getEndpoint != InterfaceDescription.Endpoint.UNKNOWN &&
                         itf.getEndpoint != InterfaceDescription.Endpoint.DATAPATH &&
-                        interfaceToDpPort.containsKey(itf.getName) && isUp) {
+                        interfaceToDpPort.contains(itf.getName) && isUp) {
                         requestDpPortAdd(itf.getName)
                         log.debug("Recreating port {} because was removed and the dp" +
                             " didn't request the removal", itf.getName)
                     } else {
-                        interfaceToStatus.put(itf.getName, isUp)
+                        interfaceToStatus += ((itf.getName, isUp))
                         if (isUp != wasUp) {
-                            val vportId = interfaceToVport.get(itf.getName)
-                            if (vportId != null) {
+                            interfaceToVport.get(itf.getName) foreach { vportId =>
                                 val dpPort = interfaceToDpPort.get(itf.getName)
                                 if (dpPort.isDefined)
                                     controller.setVportStatus(dpPort.get,
-                                        vportId, isUp)
-                            }
+                                                              vportId, isUp)
                         }
                     }
             }
         }
+    }
 
         // Now deal with any interface that has been deleted.
         val deletedInterfaces = interfaceToStatus -- currentInterfaces
         deletedInterfaces.keys.foreach {
             name =>
-                interfaceToStatus.remove(name)
+                interfaceToStatus -= name
                 // we don't have to remove the binding, the interface was deleted
                 // but the binding is still valid
-                interfaceToVport.get(name) match {
-                    case null => // do nothing
-                    case vportId =>
-                        val dpPort = interfaceToDpPort.get(name)
-                        if (dpPort.isDefined)
-                            controller.setVportStatus(
-                                dpPort.get, vportId, false)
+                interfaceToVport.get(name) foreach { vportId =>
+                    val dpPort = interfaceToDpPort.get(name)
+                    if (dpPort.isDefined)
+                        controller.setVportStatus(
+                            dpPort.get, vportId, false)
                 }
                 interfaceToDpPort.get(name) match {
                     case None => // do nothing
@@ -1936,17 +1522,23 @@ class VirtualPortManager(val controller: VirtualPortManager.Controller,
         }
     }
 
+    def updateVPortInterfaceBindings(vportToInterface: Map[UUID, String]) = {
+        val ret = copy
+        ret._updateVPortInterfaceBindings(vportToInterface)
+        ret
+    }
+
     // We do not support remapping a vportId to a different
     // interface or vice versa. We assume each vportId and
     // interface will occur in at most one binding.
-    def updateVPortInterfaceBindings(
-            vportToInterface: Map[UUID, String]) : Unit = {
+    protected[VirtualPortManager] def _updateVPortInterfaceBindings(
+            vportToInterface: Map[UUID, String]) {
         log.debug("updateVPortInterfaceBindings {}", vportToInterface)
         // First, deal with new bindings.
         vportToInterface.foreach {
             case (vportId: UUID, itfName: String) =>
                 if (!interfaceToVport.contains(itfName)) {
-                    interfaceToVport.put(itfName, vportId)
+                    interfaceToVport += (itfName, vportId)
                     // This is a new binding. Does the interface exist?
                     if (interfaceToStatus.contains(itfName)) {
                         // Has the interface been added to the datapath?
@@ -1956,47 +1548,49 @@ class VirtualPortManager(val controller: VirtualPortManager.Controller,
                             case Some(dpPort) =>
                                 // The vport is active if the interface is up.
                                 if (interfaceToStatus(itfName))
-                                    controller.setVportStatus(
-                                        dpPort, vportId, true)
+                                    controller.setVportStatus(dpPort, vportId, true)
                         }
                     }
                 }
         }
         // Now, deal with deleted bindings.
-        val it = interfaceToVport.entrySet.iterator
-        while (it.hasNext) {
-            val entry = it.next()
-            if (!vportToInterface.contains(entry.getValue)) {
-                it.remove()
+        for ((ifname, vport) <- interfaceToVport) {
+            if (!vportToInterface.contains(vport)) {
+                interfaceToVport -= ifname
                 // This binding was removed. Was there a datapath port for it?
-                interfaceToDpPort.get(entry.getKey) match {
+                interfaceToDpPort.get(ifname) match {
                     case None => // do nothing
                     case Some(port) =>
                         requestDpPortRemove(port)
                         // If the port was up, the vport just became inactive.
-                        if (interfaceToStatus(entry.getKey))
-                            controller.setVportStatus(
-                                port, entry.getValue, false)
+                        if (interfaceToStatus(ifname))
+                            controller.setVportStatus(port, vport, false)
                 }
             }
         }
     }
 
-    def datapathPortAdded(port: Port[_, _]): Unit = {
+    def datapathPortAdded(port: Port[_, _]) = {
+        val ret = copy
+        ret._datapathPortAdded(port)
+        ret
+    }
+
+    protected[VirtualPortManager] def _datapathPortAdded(port: Port[_, _]) {
         log.debug("datapathPortAdded {}", port)
         // First clear the in-progress operation
-        dpPortsInProgress.remove(port.getName)
+        dpPortsInProgress -= port.getName
 
-        interfaceToDpPort.put(port.getName, port)
-        dpPortNumToInterface.put(port.getPortNo, port.getName)
+        interfaceToDpPort = interfaceToDpPort.updated(port.getName, port)
+        dpPortNumToInterface += ((port.getPortNo, port.getName))
 
         // Vport bindings may have changed while we waited for the port change:
         // If the itf is not bound to a vport, try to remove the dpPort.
         // If the itf is up and still bound to a vport, then the vport is UP.
         interfaceToVport.get(port.getName) match {
-            case null =>
+            case None =>
                 requestDpPortRemove(port)
-            case vportId =>
+            case Some(vportId) =>
                 interfaceToStatus.get(port.getName) match {
                     case None => // Do nothing. Don't know the status.
                     case Some(false) => // Do nothing. The interface is down.
@@ -2006,21 +1600,29 @@ class VirtualPortManager(val controller: VirtualPortManager.Controller,
         }
     }
 
-    def datapathPortRemoved(itfName: String): Unit = {
+    def datapathPortRemoved(itfName: String) = {
+        val ret = copy
+        ret._datapathPortRemoved(itfName)
+        ret
+    }
+
+    protected[VirtualPortManager] def _datapathPortRemoved(itfName: String) {
         log.debug("datapathPortRemoved {}", itfName)
         // Clear the in-progress operation
-        val requestedByMe = dpPortsInProgress.remove(itfName)
+        val requestedByMe = dpPortsInProgress.contains(itfName)
+        dpPortsInProgress -= itfName
 
-        interfaceToDpPort.remove(itfName) match {
+        interfaceToDpPort.get(itfName) match {
             case None =>
                 // TODO(pino): error. We didn't know about this port at all.
             case Some(port) =>
-                dpPortNumToInterface.remove(port.getPortNo)
+                interfaceToDpPort -= itfName
+                dpPortNumToInterface -= port.getPortNo
 
                 // Is there a binding for this interface name?
                 interfaceToVport.get(itfName) match {
-                    case null => // Do nothing. No binding.
-                    case vportId =>
+                    case None => // Do nothing. No binding.
+                    case Some(vportId) =>
                         // If we didn't request this removal, and the interface
                         // is up, then notify that the vport is now down.
                         // Also, if the interface exists,
@@ -2030,8 +1632,7 @@ class VirtualPortManager(val controller: VirtualPortManager.Controller,
                             case Some(isUp) =>
                                 requestDpPortAdd(itfName)
                                 if(isUp && !requestedByMe)
-                                    controller.setVportStatus(port, vportId,
-                                                              false)
+                                    controller.setVportStatus(port, vportId, false)
                         }
                 }
 
@@ -2039,39 +1640,86 @@ class VirtualPortManager(val controller: VirtualPortManager.Controller,
     }
 
     def getDpPortNumberForVport(vportId: UUID): Option[JInteger] = {
-        val itfName = interfaceToVport.inverse.get(vportId)
-        interfaceToDpPort.get(itfName) match {
-            case None => None
-            case Some(port) => Some(port.getPortNo)
+        interfaceToVport.inverse.get(vportId) flatMap { itfName =>
+            interfaceToDpPort.get(itfName) map { _.getPortNo }
         }
     }
 
-    def getVportForDpPortNumber(portNum: JInteger): Option[UUID] = {
-        dpPortNumToInterface.get(portNum) match {
-            case None => None
-            case Some(itfName) =>
-                interfaceToVport.get(itfName) match {
-                    case null => None
-                    case vportId => Some(vportId)
-                }
-        }
-    }
+    def getVportForDpPortNumber(portNum: JInteger): Option[UUID] =
+        dpPortNumToInterface.get(portNum) flatMap { interfaceToVport.get(_) }
 
-    def getInterfaceForVport(vportId: UUID): Option[String] = {
-        interfaceToVport.inverse.get(vportId) match {
-            case null => None
-            case interfaceName: String => Some(interfaceName)
-        }
-    }
+    def getInterfaceForVport(vportId: UUID): Option[String] =
+        interfaceToVport.inverse.get(vportId)
 
-    def getDpPort(itfName: String): Port[_, _] = {
-        interfaceToDpPort.get(itfName) match {
-            case None => null
-            case Some(port) => port
-        }
-    }
+    def getDpPort(itfName: String): Option[Port[_, _]] =
+        interfaceToDpPort.get(itfName)
 
     def getDpPortName(num: JInteger): Option[String] = {
         dpPortNumToInterface.get(num)
     }
+}
+
+
+class DatapathStateManager(@scala.volatile private var _vportMgr: VirtualPortManager)
+    extends DatapathState {
+    @scala.volatile private var _version: Long = 0
+
+    private val _localTunnelPorts: mutable.Set[JInteger] =
+        Collections.newSetFromMap[JInteger](new ConcHashMap[JInteger,JBoolean]()).asScala
+
+    // peerHostId -> { ZoneID -> Port[_,_] }
+    private val _peerToTunnels: ConcMap[UUID, ConcMap[UUID, Port[_,_]]] =
+        new ConcHashMap[UUID, ConcMap[UUID, Port[_,_]]]().asScala
+
+    override def version = _version
+
+    override def vportResolver: VirtualPortsResolver = _vportMgr
+
+    def vportManager: VirtualPortManager = _vportMgr
+
+    def updateVports(newState: VirtualPortManager) {
+        _version += 1
+        _vportMgr = newState
+    }
+
+    def addLocalTunnelPort(portNo: JInteger) {
+        _version += 1
+        _localTunnelPorts.add(portNo)
+    }
+
+    def removeLocalTunnelPort(portNo: JInteger): Boolean = {
+        _version += 1
+        _localTunnelPorts.remove(portNo)
+    }
+
+    override def localTunnelPorts: ROSet[JInteger] = _localTunnelPorts
+
+    def addPeerTunnel(peer: UUID, zone: UUID, port: Port[_,_]) {
+        _version += 1
+        _peerToTunnels.get(peer) match {
+            case Some(tunnels) => tunnels.put(zone, port)
+            case None =>
+                val mapping = new ConcHashMap[UUID, Port[_,_]]()
+                mapping.put(zone, port)
+                _peerToTunnels.put(peer, mapping.asScala)
+        }
+    }
+
+    def removePeerTunnel(peer: UUID, zone: UUID): Boolean = {
+        _version += 1
+        _peerToTunnels.get(peer) match {
+            case Some(tunnels) =>
+                val deleted = tunnels.remove(zone)
+                if (tunnels.size == 0)
+                    _peerToTunnels.remove(peer)
+                deleted match {
+                    case None => false
+                    case Some(a) => true
+                }
+            case None =>
+                false
+        }
+    }
+
+    override def peerToTunnels: ROMap[UUID, ROMap[UUID, Port[_,_]]] = _peerToTunnels
 }

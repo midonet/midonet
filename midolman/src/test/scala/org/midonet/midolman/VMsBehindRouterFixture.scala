@@ -9,8 +9,6 @@ import akka.testkit.TestProbe
 
 import org.slf4j.LoggerFactory
 
-import org.midonet.midolman.FlowController.{WildcardFlowAdded,
-                                             WildcardFlowRemoved}
 import org.midonet.midolman.guice.actors.OutgoingMessage
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
@@ -18,7 +16,7 @@ import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.HostRequest
 import org.midonet.midolman.util.SimulationHelper
 import org.midonet.cluster.data.{Bridge => ClusterBridge,
-                                          Router => ClusterRouter}
+                                 Router => ClusterRouter}
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.ports.MaterializedBridgePort
 import org.midonet.packets._
@@ -51,17 +49,10 @@ trait VMsBehindRouterFixture extends MidolmanTestCase with SimulationHelper with
     var router: ClusterRouter = null
     var host: Host = null
 
-    var flowEventsProbe: TestProbe = null
-    var portEventsProbe: TestProbe = null
     var packetsEventsProbe: TestProbe = null
 
     override def beforeTest() {
-        flowEventsProbe = newProbe()
-        portEventsProbe = newProbe()
         packetsEventsProbe = newProbe()
-        actors().eventStream.subscribe(flowEventsProbe.ref, classOf[WildcardFlowAdded])
-        actors().eventStream.subscribe(flowEventsProbe.ref, classOf[WildcardFlowRemoved])
-        actors().eventStream.subscribe(portEventsProbe.ref, classOf[LocalPortActive])
         actors().eventStream.subscribe(packetsEventsProbe.ref, classOf[PacketsExecute])
 
         host = newHost("myself", hostId())
@@ -95,7 +86,7 @@ trait VMsBehindRouterFixture extends MidolmanTestCase with SimulationHelper with
             case (port, name) =>
                 log.debug("Materializing port {}", name)
                 materializePort(port, host, name)
-                requestOfType[LocalPortActive](portEventsProbe)
+                requestOfType[LocalPortActive](portsProbe)
         }
         vmPortNumbers = vmPorts map { port =>
             dpController().underlyingActor.vifToLocalPortNumber(port.getId) match {

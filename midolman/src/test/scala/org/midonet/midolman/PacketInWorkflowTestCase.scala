@@ -7,14 +7,11 @@ import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.midolman.DatapathController.PacketIn
+import org.midonet.midolman.PacketWorkflowActor.PacketIn
 import org.midonet.midolman.topology.LocalPortActive
+import org.midonet.midolman.util.TestHelpers
 import org.midonet.cluster.data.{Bridge => ClusterBridge, Ports}
 import org.midonet.cluster.data.host.Host
-import org.midonet.odp.{FlowMatch, Packet}
-import org.midonet.odp.flows.FlowKeys
-import org.midonet.packets.{IntIPv4, MAC, Packets}
-import util.TestHelpers
 
 
 @RunWith(classOf[JUnitRunner])
@@ -51,13 +48,7 @@ class PacketInWorkflowTestCase extends MidolmanTestCase {
                 "10:10:10:10:10:10", "192.168.100.1",
                 "10:10:10:10:10:11", "192.168.200.1"))
 
-        val packetIn = fishForRequestOfType[PacketIn](dpProbe())
-
-        packetIn should not be null
-        packetIn.cookie should not be None
-        packetIn.wMatch should not be null
-
-        val packetInMsg = requestOfType[PacketIn](simProbe())
+        val packetInMsg = requestOfType[PacketIn](packetInProbe)
 
         packetInMsg.wMatch should not be null
         // We cannot check that the input port ID has been set correctly

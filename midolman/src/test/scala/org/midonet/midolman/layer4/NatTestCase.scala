@@ -8,24 +8,23 @@ import scala.collection.JavaConversions._
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
+import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.UUID
 import java.{util => ju}
 
+import org.midonet.midolman.DeduplicationActor.DiscardPacket
 import org.midonet.midolman.FlowController.{InvalidateFlowsByTag,
-                                             DiscardPacket, WildcardFlowRemoved}
+                                            WildcardFlowRemoved}
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.rules.{NatTarget, RuleResult, Condition}
 import org.midonet.midolman.topology.{FlowTagger, LocalPortActive}
+import org.midonet.cluster.data.Chain
 import org.midonet.cluster.data.ports.MaterializedRouterPort
 import org.midonet.packets._
 import org.midonet.packets.util.AddressConversions._
 import org.midonet.midolman.{VMsBehindRouterFixture, MidolmanTestCase}
-
-import org.midonet.packets._
-import org.midonet.cluster.data.Chain
-import java.nio.ByteBuffer
 
 @RunWith(classOf[JUnitRunner])
 class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
@@ -135,7 +134,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
             uplinkPortAddr, uplinkNwAddr, uplinkNwLen)
         uplinkPort should not be null
         materializePort(uplinkPort, host, "uplinkPort")
-        requestOfType[LocalPortActive](portEventsProbe)
+        requestOfType[LocalPortActive](portsProbe)
 
         uplinkPortNum = dpController().underlyingActor.
             vifToLocalPortNumber(uplinkPort.getId).getOrElse(0.toShort)
@@ -202,7 +201,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         // feed the router arp cache with the uplink gateway's mac address
         feedArpCache("uplinkPort", uplinkGatewayAddr, uplinkGatewayMac,
             uplinkPortAddr, uplinkPortMac)
-        fishForRequestOfType[DiscardPacket](flowProbe())
+        fishForRequestOfType[DiscardPacket](discardPacketProbe)
         drainProbes()
 
         // feed the router's arp cache with each of the vm's addresses
@@ -210,7 +209,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
             (name, mac, ip) =>
                 feedArpCache(name, ip.addressAsInt, mac,
                     routerIp.addressAsInt, routerMac)
-                fishForRequestOfType[DiscardPacket](flowProbe())
+                fishForRequestOfType[DiscardPacket](discardPacketProbe)
         }
         drainProbes()
     }
@@ -310,12 +309,12 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         mapping.matchForwardOutPacket(applyOutPacketActions(pktOut))
         mapping.flowCount.get should be === (2)
 
-        drainProbe(flowEventsProbe)
+        drainProbe(wflowRemovedProbe)
         flowController() ! InvalidateFlowsByTag(
             FlowTagger.invalidateFlowsByDevice(router.getId))
-        requestOfType[WildcardFlowRemoved](flowEventsProbe)
-        requestOfType[WildcardFlowRemoved](flowEventsProbe)
-        requestOfType[WildcardFlowRemoved](flowEventsProbe)
+        requestOfType[WildcardFlowRemoved](wflowRemovedProbe)
+        requestOfType[WildcardFlowRemoved](wflowRemovedProbe)
+        requestOfType[WildcardFlowRemoved](wflowRemovedProbe)
 
         mapping.flowCount.get should be === (0)
         leaseManager.fwdKeys.size should be === (0)
@@ -369,12 +368,12 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         mapping.matchForwardOutPacket(applyOutPacketActions(pktOut))
         mapping.flowCount.get should be === (2)
 
-        drainProbe(flowEventsProbe)
+        drainProbe(wflowRemovedProbe)
         flowController() ! InvalidateFlowsByTag(
             FlowTagger.invalidateFlowsByDevice(router.getId))
-        requestOfType[WildcardFlowRemoved](flowEventsProbe)
-        requestOfType[WildcardFlowRemoved](flowEventsProbe)
-        requestOfType[WildcardFlowRemoved](flowEventsProbe)
+        requestOfType[WildcardFlowRemoved](wflowRemovedProbe)
+        requestOfType[WildcardFlowRemoved](wflowRemovedProbe)
+        requestOfType[WildcardFlowRemoved](wflowRemovedProbe)
 
         mapping.flowCount.get should be === (0)
         leaseManager.fwdKeys.size should be === (0)

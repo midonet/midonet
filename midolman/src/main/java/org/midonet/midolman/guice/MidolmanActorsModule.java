@@ -19,12 +19,11 @@ import org.slf4j.LoggerFactory;
 
 import org.midonet.cache.Cache;
 import org.midonet.midolman.DatapathController;
+import org.midonet.midolman.DeduplicationActor;
 import org.midonet.midolman.FlowController;
-import org.midonet.midolman.SimulationController;
 import org.midonet.midolman.SupervisorActor;
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.monitoring.MonitoringActor;
-import org.midonet.midolman.monitoring.metrics.vrn.VifMetrics;
 import org.midonet.midolman.routingprotocols.RoutingManagerActor;
 import org.midonet.midolman.services.HostIdProviderService;
 import org.midonet.midolman.services.MidolmanActorsService;
@@ -85,7 +84,7 @@ public class MidolmanActorsModule extends PrivateModule {
         bind(VirtualToPhysicalMapper.class);
         bind(DatapathController.class);
         bind(FlowController.class);
-        bind(SimulationController.class);
+        bind(DeduplicationActor.class);
         bind(MonitoringActor.class);
         //bind(InterfaceScanner.class).to(DefaultInterfaceScanner.class);
         bind(RoutingManagerActor.class);

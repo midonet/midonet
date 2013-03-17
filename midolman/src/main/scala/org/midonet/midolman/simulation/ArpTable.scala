@@ -11,8 +11,8 @@ import akka.util.Duration
 import java.util.concurrent.{TimeUnit, TimeoutException}
 
 import org.midonet.cluster.client.{ArpCache, RouterPort}
-import org.midonet.midolman.DatapathController
-import org.midonet.midolman.DatapathController.EmitGeneratedPacket
+import org.midonet.midolman.DeduplicationActor
+import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.logging.LoggerFactory
 import org.midonet.midolman.state.ArpCacheEntry
@@ -260,7 +260,7 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
             cacheEntry.lastArp = now
             arpCache.add(ip, cacheEntry)
             log.debug("generateArpRequest: sending {}", arp)
-            DatapathController.getRef(actorSystem) !
+            DeduplicationActor.getRef(actorSystem) !
                 EmitGeneratedPacket(port.id, arp,
                       if (pktContext != null) Option(pktContext.getFlowCookie) else None)
             // we don't retry for stale entries.

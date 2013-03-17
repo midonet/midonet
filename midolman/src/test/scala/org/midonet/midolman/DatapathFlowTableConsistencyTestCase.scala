@@ -14,6 +14,7 @@ import org.midonet.odp.FlowMatch
 import org.midonet.odp.flows.{FlowKeyICMPEcho, FlowKeyTCP, FlowKeyICMP}
 import org.midonet.sdn.flows.FlowManager
 import topology.BridgeManager
+import org.midonet.midolman.FlowController.WildcardFlowAdded
 
 @RunWith(classOf[JUnitRunner])
 class DatapathFlowTableConsistencyTestCase extends MidolmanTestCase
@@ -57,17 +58,11 @@ class DatapathFlowTableConsistencyTestCase extends MidolmanTestCase
         findMatch[FlowKeyICMPEcho] should be (None)
         findMatch[FlowKeyICMP] should be (None)
 
+        drainProbe(dedupProbe())
         // resend packet and check that the flow was not re-added
         expectPacketAllowed(0, 1, icmpBetweenPorts)
-        findMatch[FlowKeyICMPEcho] should be (None)
-        findMatch[FlowKeyICMP] should be (None)
+        fishForRequestOfType[DeduplicationActor.ApplyFlow](dedupProbe())
 
-        // wait 1 second, the threshold that the flow controller uses to decide
-        // that it's time to reinstall the flow
-        Thread.sleep(1000)
-
-        // resend packet and check that the flow is still not added
-        expectPacketAllowed(0, 1, icmpBetweenPorts)
         findMatch[FlowKeyICMPEcho] should be (None)
         findMatch[FlowKeyICMP] should be (None)
     }
@@ -77,8 +72,10 @@ class DatapathFlowTableConsistencyTestCase extends MidolmanTestCase
         expectPacketAllowed(vmPortNumbers(0), vmPortNumbers(1),
             tcpBetweenPorts(_:Int, _:Int, 9009, 80))
 
+        requestOfType[WildcardFlowAdded](wflowAddedProbe)
         val tcpMatch = findMatch[FlowKeyTCP]
         tcpMatch should not be (None)
+        flowManager.getNumDpFlows should be (1)
 
         // remove flow, from the datapath
         tcpMatch.foreach{datapath.flowsTable.remove(_)}
@@ -88,8 +85,7 @@ class DatapathFlowTableConsistencyTestCase extends MidolmanTestCase
         Thread.sleep(32000)
         flowManager.checkFlowsExpiration()
 
-        // check that flow was re-installed.
-        findMatch[FlowKeyTCP] should not be (None)
+        flowManager.getNumDpFlows should be (0)
     }
 
 
@@ -97,6 +93,7 @@ class DatapathFlowTableConsistencyTestCase extends MidolmanTestCase
         // cause flow to be installed.
         expectPacketAllowed(vmPortNumbers(0), vmPortNumbers(1),
             tcpBetweenPorts(_:Int, _:Int, 9009, 80))
+        requestOfType[WildcardFlowAdded](wflowAddedProbe)
 
         val pktMatch = findMatch[FlowKeyTCP]
         pktMatch should not be (None)
@@ -105,18 +102,12 @@ class DatapathFlowTableConsistencyTestCase extends MidolmanTestCase
         pktMatch.foreach{datapath.flowsTable.remove(_)}
         findMatch[FlowKeyTCP] should be (None)
 
-        // resend packet and check that the flow was not re-added
-        expectPacketAllowed(vmPortNumbers(0), vmPortNumbers(1),
-            tcpBetweenPorts(_:Int, _:Int, 9009, 80))
-        findMatch[FlowKeyTCP] should be (None)
-
-        // wait 1 second, the threshold that the flow controller uses to decide
-        // that it's time to reinstall the flow
-        Thread.sleep(1000)
-
+        drainProbe(flowProbe())
         // resend packet and check that the flow is re-added
         expectPacketAllowed(vmPortNumbers(0), vmPortNumbers(1),
             tcpBetweenPorts(_:Int, _:Int, 9009, 80))
+
+        fishForRequestOfType[FlowController.FlowAdded](flowProbe())
         findMatch[FlowKeyTCP] should not be (None)
     }
 }

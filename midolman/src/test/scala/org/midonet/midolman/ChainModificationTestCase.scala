@@ -73,7 +73,7 @@ class ChainModificationTestCase extends MidolmanTestCase with VMsBehindRouterFix
                             tcpBetweenPorts(_:Int, _:Int, 3456, 81))
         drainProbes()
         deleteRule(chainRules.apply(0))
-        requestOfType[InvalidateFlowsByTag](flowProbe())
+        fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
 
         expectPacketDropped(vmPortNumbers(0), vmPortNumbers(3),
                             tcpBetweenPorts(_:Int, _:Int, 9009, 80))
@@ -82,7 +82,7 @@ class ChainModificationTestCase extends MidolmanTestCase with VMsBehindRouterFix
 
         drainProbes()
         deleteRule(chainRules.apply(1))
-        requestOfType[InvalidateFlowsByTag](flowProbe())
+        fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
 
         expectPacketAllowed(vmPortNumbers(0), vmPortNumbers(3),
                             tcpBetweenPorts(_:Int, _:Int, 9009, 80))
@@ -93,7 +93,7 @@ class ChainModificationTestCase extends MidolmanTestCase with VMsBehindRouterFix
 
         drainProbes()
         deleteRule(chainRules.apply(2))
-        requestOfType[InvalidateFlowsByTag](flowProbe())
+        fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
 
         expectPacketDropped(vmPortNumbers(0), vmPortNumbers(3),
             tcpBetweenPorts(_:Int, _:Int, 3456, 81))
@@ -105,7 +105,7 @@ class ChainModificationTestCase extends MidolmanTestCase with VMsBehindRouterFix
         drainProbes()
 
         deleteRule(chainRules.apply(3))
-        requestOfType[InvalidateFlowsByTag](flowProbe())
+        fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
 
         expectPacketAllowed(vmPortNumbers(0), vmPortNumbers(3),
                             tcpBetweenPorts(_:Int, _:Int, 3000, 81))
@@ -121,7 +121,7 @@ class ChainModificationTestCase extends MidolmanTestCase with VMsBehindRouterFix
         tcpCond.tpSrcStart = 3456
         tcpCond.tpSrcEnd = 3456
         newLiteralRuleOnChain(chain, 1, tcpCond, RuleResult.Action.DROP)
-        requestOfType[InvalidateFlowsByTag](flowProbe())
+        fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
 
         expectPacketDropped(vmPortNumbers(0), vmPortNumbers(3),
                             tcpBetweenPorts(_:Int, _:Int, 3456, 80))
@@ -139,7 +139,7 @@ class ChainModificationTestCase extends MidolmanTestCase with VMsBehindRouterFix
         tcpCond.tpSrcStart = 7000
         tcpCond.tpSrcEnd = 7000
         newLiteralRuleOnChain(chain, 5, tcpCond, RuleResult.Action.DROP)
-        requestOfType[InvalidateFlowsByTag](flowProbe())
+        fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
 
         expectPacketDropped(vmPortNumbers(0), vmPortNumbers(3),
                             tcpBetweenPorts(_:Int, _:Int, 7000, 22))

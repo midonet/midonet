@@ -11,12 +11,12 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
 
-import org.midonet.midolman.DatapathController.PacketIn
-import org.midonet.midolman.FlowController.{DiscardPacket, WildcardFlowAdded, WildcardFlowRemoved}
+import org.midonet.midolman.DeduplicationActor.DiscardPacket
+import org.midonet.midolman.PacketWorkflowActor.PacketIn
 import org.midonet.midolman.guice.actors.OutgoingMessage
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
-import topology.LocalPortActive
+import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.HostRequest
 import org.midonet.midolman.util.RouterHelper
 import org.midonet.cluster.data.Router
@@ -24,7 +24,7 @@ import org.midonet.packets._
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.ports.MaterializedRouterPort
 import org.midonet.odp.flows.{FlowKeyICMPError, FlowActionSetKey, FlowAction, FlowActionOutput}
-import org.midonet.netlink.NetlinkMessage
+import org.midonet.midolman.FlowController.WildcardFlowRemoved
 
 @RunWith(classOf[JUnitRunner])
 class LinksTestCase extends MidolmanTestCase
@@ -54,20 +54,10 @@ class LinksTestCase extends MidolmanTestCase
     var router: Router = null
     var host: Host = null
 
-    private var flowEventsProbe: TestProbe = null
-    private var portEventsProbe: TestProbe = null
     private var packetEventsProbe: TestProbe = null
 
     override def beforeTest() {
-        flowEventsProbe = newProbe()
-        portEventsProbe = newProbe()
         packetEventsProbe = newProbe()
-        actors().eventStream
-            .subscribe(flowEventsProbe.ref, classOf[WildcardFlowAdded])
-        actors().eventStream
-            .subscribe(flowEventsProbe.ref, classOf[WildcardFlowRemoved])
-        actors().eventStream
-            .subscribe(portEventsProbe.ref, classOf[LocalPortActive])
         actors().eventStream
             .subscribe(packetEventsProbe.ref, classOf[PacketsExecute])
 
@@ -99,7 +89,7 @@ class LinksTestCase extends MidolmanTestCase
             ip.getMaskLength)
         rtrPort should not be null
         materializePort(rtrPort, host, name)
-        val portEvent = requestOfType[LocalPortActive](portEventsProbe)
+        val portEvent = requestOfType[LocalPortActive](portsProbe)
         portEvent.active should be(true)
         portEvent.portID should be(rtrPort.getId)
         rtrPort
@@ -141,16 +131,16 @@ class LinksTestCase extends MidolmanTestCase
         log.debug("Feeding ARP cache")
         feedArpCache(rtrPort1Name, vm1Ip.addressAsInt(), vm1Mac,
             rtrIp1.addressAsInt(), rtrMac1)
-        requestOfType[PacketIn](simProbe())
+        requestOfType[PacketIn](packetInProbe)
         feedArpCache(rtrPort2Name, vm2Ip.addressAsInt(), vm2Mac,
             rtrIp2.addressAsInt(), rtrMac2)
-        requestOfType[PacketIn](simProbe())
-        fishForRequestOfType[DiscardPacket](flowProbe())
+        requestOfType[PacketIn](packetInProbe)
+        fishForRequestOfType[DiscardPacket](discardPacketProbe)
         drainProbes()
 
         log.debug("PING vm1 -> vm2")
         injectIcmpEchoReq(rtrPort1Name, vm1Mac, vm1Ip, rtrMac1, vm2Ip)
-        requestOfType[PacketIn](simProbe())
+        requestOfType[PacketIn](packetInProbe)
         var pkt = expectRoutedPacketOut(rtrPort2Num, packetEventsProbe)
                   .getPayload.asInstanceOf[IPv4]
         pkt.getProtocol should be === ICMP.PROTOCOL_NUMBER
@@ -159,7 +149,7 @@ class LinksTestCase extends MidolmanTestCase
 
         log.debug("PING vm1 -> vm2")
         injectIcmpEchoReq(rtrPort2Name, vm2Mac, vm2Ip, rtrMac2, vm1Ip)
-        requestOfType[PacketIn](simProbe())
+        requestOfType[PacketIn](packetInProbe)
         pkt = expectRoutedPacketOut(rtrPort1Num, packetEventsProbe)
               .getPayload.asInstanceOf[IPv4]
         pkt.getProtocol should be === ICMP.PROTOCOL_NUMBER
@@ -172,16 +162,17 @@ class LinksTestCase extends MidolmanTestCase
         port2Ifc.setUp(false)
         interfaceScanner.addInterface(port2Ifc)
 
-        var portEvent = requestOfType[LocalPortActive](portEventsProbe)
+        var portEvent = requestOfType[LocalPortActive](portsProbe)
         portEvent.active should be(false)
         portEvent.portID should be(rtrPort2.getId)
 
         log.debug("PING vm1 -> vm2, route is dead")
         // wait for the routes to be updated
         fishForRequestOfType[simulation.Router](vtaProbe())
+        requestOfType[WildcardFlowRemoved](wflowRemovedProbe)
 
         injectIcmpEchoReq(rtrPort1Name, vm1Mac, vm1Ip, rtrMac1, vm2Ip)
-        requestOfType[PacketIn](simProbe())
+        requestOfType[PacketIn](packetInProbe)
 
         // can't use expectPacketOut because we inspect actions differently
         val pktOut = requestOfType[PacketsExecute](packetEventsProbe).packet
@@ -219,7 +210,7 @@ class LinksTestCase extends MidolmanTestCase
         port2Ifc.setHasLink(true)
         port2Ifc.setUp(true)
         interfaceScanner.addInterface(port2Ifc)
-        portEvent = requestOfType[LocalPortActive](portEventsProbe)
+        portEvent = requestOfType[LocalPortActive](portsProbe)
         portEvent.active should be(true)
         portEvent.portID should be(rtrPort2.getId)
         log.debug("Port2 is now active")

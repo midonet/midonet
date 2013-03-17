@@ -12,17 +12,17 @@ import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
 import guice.actors.OutgoingMessage
 
-import org.midonet.midolman.FlowController.{WildcardFlowRemoved,
-    WildcardFlowAdded, DiscardPacket}
+import org.midonet.midolman.DeduplicationActor.DiscardPacket
 import layer3.Route
 import layer3.Route.NextHop
 import topology.LocalPortActive
 import org.midonet.packets._
 import topology.VirtualToPhysicalMapper.HostRequest
 import util.SimulationHelper
-import org.midonet.cluster.data.ports.{LogicalRouterPort, MaterializedBridgePort, MaterializedRouterPort}
+import org.midonet.cluster.data.ports.{LogicalRouterPort, MaterializedBridgePort,
+    MaterializedRouterPort}
 import util.RouterHelper
-import org.midonet.midolman.DatapathController.PacketIn
+import org.midonet.midolman.PacketWorkflowActor.PacketIn
 
 
 @RunWith(classOf[JUnitRunner])
@@ -55,17 +55,10 @@ class FloatingIpTestCase extends VirtualConfigurationBuilders with RouterHelper 
 
     val floatingIP = IntIPv4.fromString("10.0.173.5")
 
-    private var flowEventsProbe: TestProbe = null
-    private var portEventsProbe: TestProbe = null
     private var packetsEventsProbe: TestProbe = null
 
     override def beforeTest() {
-        flowEventsProbe = newProbe()
-        portEventsProbe = newProbe()
         packetsEventsProbe = newProbe()
-        actors().eventStream.subscribe(flowEventsProbe.ref, classOf[WildcardFlowAdded])
-        actors().eventStream.subscribe(flowEventsProbe.ref, classOf[WildcardFlowRemoved])
-        actors().eventStream.subscribe(portEventsProbe.ref, classOf[LocalPortActive])
         actors().eventStream.subscribe(packetsEventsProbe.ref, classOf[PacketsExecute])
 
         val host = newHost("myself", hostId())
@@ -84,7 +77,7 @@ class FloatingIpTestCase extends VirtualConfigurationBuilders with RouterHelper 
             routerRange1.getPrefixLen)
         rtrPort1 should not be null
         materializePort(rtrPort1, host, rtrPort1Name)
-        val portEvent = requestOfType[LocalPortActive](portEventsProbe)
+        val portEvent = requestOfType[LocalPortActive](portsProbe)
         portEvent.active should be(true)
         portEvent.portID should be(rtrPort1.getId)
         dpController().underlyingActor.vifToLocalPortNumber(rtrPort1.getId) match {
@@ -122,7 +115,7 @@ class FloatingIpTestCase extends VirtualConfigurationBuilders with RouterHelper 
         brPort2 should not be null
 
         materializePort(brPort2, host, vm2PortName)
-        requestOfType[LocalPortActive](portEventsProbe)
+        requestOfType[LocalPortActive](portsProbe)
         dpController().underlyingActor.vifToLocalPortNumber(brPort2.getId) match {
             case Some(portNo : Short) => vm2PortNumber = portNo
             case None => fail("Not able to find data port number for bridge port 2")
@@ -164,15 +157,15 @@ class FloatingIpTestCase extends VirtualConfigurationBuilders with RouterHelper 
         log.info("Feeding ARP cache on VM2")
         feedArpCache(vm2PortName, vm2Ip.addressAsInt, vm2Mac,
             routerIp2.getIntAddress, routerMac2)
-        requestOfType[PacketIn](simProbe())
-        fishForRequestOfType[DiscardPacket](flowProbe())
+        requestOfType[PacketIn](packetInProbe)
+        requestOfType[DiscardPacket](discardPacketProbe)
         drainProbes()
 
         log.info("Feeding ARP cache on VM1")
         feedArpCache(rtrPort1Name, vm1Ip.addressAsInt, vm1Mac,
             routerIp1.getIntAddress, routerMac1)
-        requestOfType[PacketIn](simProbe())
-        fishForRequestOfType[DiscardPacket](flowProbe())
+        requestOfType[PacketIn](packetInProbe)
+        requestOfType[DiscardPacket](discardPacketProbe)
         drainProbes()
 
         log.info("Sending a tcp packet VM2 -> floating IP, should be DNAT'ed")

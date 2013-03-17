@@ -18,9 +18,9 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
 
-import org.midonet.midolman.DatapathController.PacketIn
 import org.midonet.midolman.FlowController._
-import org.midonet.midolman.DatapathController.EmitGeneratedPacket
+import org.midonet.midolman.DeduplicationActor.{EmitGeneratedPacket, DiscardPacket}
+import org.midonet.midolman.PacketWorkflowActor.PacketIn
 import org.midonet.midolman.guice.actors.OutgoingMessage
 import org.midonet.midolman.layer3.Route.{NextHop, NO_GATEWAY}
 import org.midonet.midolman.simulation.{ArpTableImpl, LoadBalancer}
@@ -50,7 +50,6 @@ class RouterSimulationTestCase extends MidolmanTestCase with
     private final val ARP_STALE_SECS = 5
     private final val ARP_EXPIRATION_SECS = 10
 
-    private var flowEventsProbe: TestProbe = null
     private var clusterRouter: ClusterRouter = null
     private val uplinkGatewayAddr = "180.0.1.1"
     private val uplinkNwAddr = "180.0.1.0"
@@ -77,11 +76,6 @@ class RouterSimulationTestCase extends MidolmanTestCase with
     }
 
     override def beforeTest() {
-        flowEventsProbe = newProbe()
-        val portEventsProbe = newProbe()
-        actors().eventStream.subscribe(flowEventsProbe.ref, classOf[WildcardFlowAdded])
-        actors().eventStream.subscribe(portEventsProbe.ref, classOf[LocalPortActive])
-
         host = newHost("myself", hostId())
         host should not be null
         clusterRouter = newRouter("router")
@@ -96,7 +90,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
             uplinkPortAddr, uplinkNwAddr, uplinkNwLen)
         uplinkPort should not be null
         materializePort(uplinkPort, host, "uplinkPort")
-        var portEvent = requestOfType[LocalPortActive](portEventsProbe)
+        var portEvent = requestOfType[LocalPortActive](portsProbe)
         portEvent.active should be(true)
         portEvent.portID should be(uplinkPort.getId)
 
@@ -120,7 +114,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
                 port should not be null
 
                 materializePort(port, host, portName)
-                portEvent = requestOfType[LocalPortActive](portEventsProbe)
+                portEvent = requestOfType[LocalPortActive](portsProbe)
                 portEvent.active should be(true)
                 portEvent.portID should be(port.getId)
 
@@ -227,7 +221,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
             gwMac,
             IntIPv4.fromString(uplinkPortAddr).addressAsInt,
             uplinkMacAddr)
-        fishForRequestOfType[DiscardPacket](flowProbe())
+        fishForRequestOfType[DiscardPacket](discardPacketProbe)
         fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
         drainProbes()
 
@@ -263,7 +257,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         expectMatchForIPv4Packet(eth, flow.getMatch)
         // A flow with no actions drops matching packets
         flow.getActions.size() should equal(0)
-        simProbe().expectNoMsg(Timeout(2 seconds).duration)
+        requestOfType[DiscardPacket](discardPacketProbe)
     }
 
     def testRejectRoute() {
@@ -309,7 +303,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
 
         feedArpCache(portNumToName(outPort), toIp.addressAsInt, outToMac,
                      myAddressOnPort(outPort).addressAsInt, outFromMac)
-        fishForRequestOfType[DiscardPacket](flowProbe())
+        fishForRequestOfType[DiscardPacket](discardPacketProbe)
         fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
         drainProbes()
         triggerPacketIn(portNumToName(inPort), eth)
@@ -352,13 +346,13 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         val arpPromise = router.arpTable.get(
             IntIPv4.fromString(uplinkGatewayAddr), port, expiry)(
             actors().dispatcher, actors(), null)
-        requestOfType[EmitGeneratedPacket](simProbe())
+        fishForRequestOfType[EmitGeneratedPacket](dedupProbe())
 
         feedArpCache("uplinkPort",
             IPv4.toIPv4Address(uplinkGatewayAddr), mac,
             IntIPv4.fromString(uplinkPortAddr).addressAsInt,
             uplinkMacAddr)
-        fishForRequestOfType[DiscardPacket](flowProbe())
+        fishForRequestOfType[DiscardPacket](discardPacketProbe)
         fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
         drainProbes()
         val arpResult = Await.result(arpPromise, Timeout(3 seconds).duration)
@@ -376,7 +370,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
                                                               ArpCacheEntry]]
         val macFuture = router.arpTable.get(ip, port,
             Platform.currentTime + 30*1000)(actors().dispatcher, actors(), null)
-        requestOfType[EmitGeneratedPacket](simProbe())
+        fishForRequestOfType[EmitGeneratedPacket](dedupProbe())
 
         val now = Platform.currentTime
         arpCache.processChange(ip, null,
@@ -430,14 +424,14 @@ class RouterSimulationTestCase extends MidolmanTestCase with
             setTargetProtocolAddress(IPv4.toIPv4AddressBytes(myIp.addressAsInt())).
             setTargetHardwareAddress(if (isUnicast) myMac else bcastMac))
         triggerPacketIn("uplinkPort", eth)
-        requestOfType[PacketIn](simProbe())
-        val msg = requestOfType[EmitGeneratedPacket](simProbe())
+        requestOfType[PacketIn](packetInProbe)
+        val msg = fishForRequestOfType[EmitGeneratedPacket](dedupProbe())
         msg.egressPort should be === uplinkPort.getId
-        msg.ethPkt.getEtherType should be === ARP.ETHERTYPE
-        msg.ethPkt.getSourceMACAddress should be === myMac
-        msg.ethPkt.getDestinationMACAddress should be === hisMac
-        msg.ethPkt.getPayload.getClass should be === classOf[ARP]
-        val arp = msg.ethPkt.getPayload.asInstanceOf[ARP]
+        msg.eth.getEtherType should be === ARP.ETHERTYPE
+        msg.eth.getSourceMACAddress should be === myMac
+        msg.eth.getDestinationMACAddress should be === hisMac
+        msg.eth.getPayload.getClass should be === classOf[ARP]
+        val arp = msg.eth.getPayload.asInstanceOf[ARP]
         arp.getOpCode should be === ARP.OP_REPLY
         new IntIPv4(arp.getSenderProtocolAddress) should be === myIp
         arp.getSenderHardwareAddress should be === myMac
@@ -445,13 +439,14 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         arp.getTargetHardwareAddress should be === hisMac
 
         // the arp cache should be updated without generating a request
+        drainProbe(dedupProbe())
         val expiry = Platform.currentTime + 1000
         val arpPromise = router.arpTable.get(hisIp, port, expiry)(
             actors().dispatcher, actors(), null)
         val t = Timeout(1 second)
         val arpResult = Await.result(arpPromise, t.duration)
         arpResult should be === hisMac
-        simProbe().expectNoMsg(Timeout(2 seconds).duration)
+        dedupProbe().expectNoMsg(Timeout(2 seconds).duration)
     }
 
     def testIcmpEchoNearPort() {
@@ -463,7 +458,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
             fromMac,
             IntIPv4.fromString(uplinkPortAddr).addressAsInt,
             uplinkMacAddr)
-        fishForRequestOfType[DiscardPacket](flowProbe())
+        fishForRequestOfType[DiscardPacket](discardPacketProbe)
         fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
         drainProbes()
 
@@ -479,7 +474,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
                     setPayload(echo))
         triggerPacketIn("uplinkPort", eth)
         expectPacketOnPort(uplinkPort.getId)
-        requestOfType[DiscardPacket](flowProbe())
+        requestOfType[DiscardPacket](discardPacketProbe)
         expectEmitIcmp(uplinkMacAddr, IntIPv4.fromString(uplinkPortAddr),
             fromMac, IntIPv4.fromString(fromIp), ICMP.TYPE_ECHO_REPLY,
             ICMP.CODE_NONE)
@@ -495,7 +490,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
             fromMac,
             IntIPv4.fromString(uplinkPortAddr).addressAsInt,
             uplinkMacAddr)
-        fishForRequestOfType[DiscardPacket](flowProbe())
+        fishForRequestOfType[DiscardPacket](discardPacketProbe)
         fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
         drainProbes()
 
@@ -511,7 +506,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
             setPayload(echo))
         triggerPacketIn("uplinkPort", eth)
         expectPacketOnPort(uplinkPort.getId)
-        requestOfType[DiscardPacket](flowProbe())
+        requestOfType[DiscardPacket](discardPacketProbe)
         expectEmitIcmp(uplinkMacAddr, myAddressOnPort(farPort),
             fromMac, IntIPv4.fromString(fromIp), ICMP.TYPE_ECHO_REPLY,
             ICMP.CODE_NONE)
@@ -530,7 +525,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
             10, 11, "My UDP packet".getBytes)
         triggerPacketIn(portNumToName(onPort), eth)
 
-        requestOfType[PacketIn](simProbe())
+        requestOfType[PacketIn](packetInProbe)
         expectEmitIcmp(portNumToMac(onPort), myAddressOnPort(onPort),
             fromMac, makeAddressInSegment(onPort),
             ICMP.TYPE_UNREACH, ICMP.UNREACH_CODE.UNREACH_NET.toChar)
@@ -585,7 +580,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
 
         expectEmitArpRequest(uplinkPort.getId, uplinkMacAddr, myIp, hisIp)
         expectEmitArpRequest(uplinkPort.getId, uplinkMacAddr, myIp, hisIp)
-        simProbe().expectNoMsg(Timeout((ARP_TIMEOUT_SECS*2) seconds).duration)
+        packetInProbe.expectNoMsg(Timeout((ARP_TIMEOUT_SECS*2) seconds).duration)
         try {
             Await.result(arpPromise, Timeout(100 milliseconds).duration)
         } catch {
@@ -607,12 +602,13 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         expectEmitArpRequest(uplinkPort.getId, uplinkMacAddr, myIp, hisIp)
         feedArpCache("uplinkPort", hisIp.addressAsInt, hisMac,
                                    myIp.addressAsInt, myMac)
-        fishForRequestOfType[DiscardPacket](flowProbe())
+        fishForRequestOfType[DiscardPacket](discardPacketProbe)
         fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
-        drainProbes()
+        drainProbe(dedupProbe())
+        drainProbe(packetInProbe)
         val mac: MAC = Await.result(arpPromise, Timeout(1 seconds).duration)
         mac should be === hisMac
-        simProbe().expectNoMsg(Timeout((ARP_TIMEOUT_SECS*2) seconds).duration)
+        dedupProbe().expectNoMsg(Timeout((ARP_TIMEOUT_SECS*2) seconds).duration)
     }
 
     def testArpEntryExpiration() {
@@ -628,7 +624,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         feedArpCache("uplinkPort",
             hisIp.addressAsInt, mac,
             myIp.addressAsInt, uplinkMacAddr)
-        fishForRequestOfType[DiscardPacket](flowProbe())
+        fishForRequestOfType[DiscardPacket](discardPacketProbe)
         fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
         drainProbes()
         var arpResult = Await.result(arpPromise, Timeout(1 second).duration)
@@ -639,7 +635,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         feedArpCache("uplinkPort",
             hisIp.addressAsInt, mac,
             myIp.addressAsInt, uplinkMacAddr)
-        fishForRequestOfType[DiscardPacket](flowProbe())
+        fishForRequestOfType[DiscardPacket](discardPacketProbe)
         drainProbes()
         expiry = Platform.currentTime + 1000
         arpPromise = router.arpTable.get(hisIp, port, expiry)(

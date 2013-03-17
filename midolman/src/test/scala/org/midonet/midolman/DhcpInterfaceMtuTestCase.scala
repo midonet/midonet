@@ -12,28 +12,24 @@ import akka.testkit.TestProbe
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
-import org.midonet.midolman.guice.actors.OutgoingMessage
 
-import org.midonet.midolman.FlowController.{WildcardFlowRemoved,
-                                             WildcardFlowAdded}
 import org.midonet.midolman.DatapathController.TunnelChangeEvent
 import org.midonet.midolman.topology.VirtualToPhysicalMapper._
+import org.midonet.midolman.guice.actors.OutgoingMessage
 import org.midonet.cluster.data.zones._
 import layer3.Route
 import layer3.Route.NextHop
 import topology.LocalPortActive
-import org.midonet.midolman.topology.rcu.{Host => RCUHost}
 import util.SimulationHelper
 import util.RouterHelper
 import org.midonet.packets._
 import org.midonet.cluster.data.dhcp.Opt121
 import org.midonet.cluster.data.dhcp.Subnet
-import org.midonet.cluster.data.{Bridge => ClusterBridge}
 import org.midonet.cluster.data.ports.MaterializedBridgePort
 import org.midonet.odp.flows.{FlowActionOutput, FlowAction}
-import org.midonet.midolman.DatapathController.PacketIn
-import org.midonet.midolman.DatapathController.EmitGeneratedPacket
 import host.interfaces.InterfaceDescription
+import org.midonet.midolman.PacketWorkflowActor.PacketIn
+import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 
 @RunWith(classOf[JUnitRunner])
 class DhcpInterfaceMtuTestCase extends MidolmanTestCase with
@@ -52,19 +48,12 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase with
     var vmPortNumber = 0
     var intfMtu = 0
 
-    private var flowEventsProbe: TestProbe = null
-    private var portEventsProbe: TestProbe = null
     private var packetsEventsProbe: TestProbe = null
     private var tunnelChangeProbe : TestProbe = null
 
     override def beforeTest() {
-        flowEventsProbe = newProbe()
-        portEventsProbe = newProbe()
         packetsEventsProbe = newProbe()
         tunnelChangeProbe = newProbe()
-        actors().eventStream.subscribe(flowEventsProbe.ref, classOf[WildcardFlowAdded])
-        actors().eventStream.subscribe(flowEventsProbe.ref, classOf[WildcardFlowRemoved])
-        actors().eventStream.subscribe(portEventsProbe.ref, classOf[LocalPortActive])
         actors().eventStream.subscribe(packetsEventsProbe.ref, classOf[PacketsExecute])
         actors().eventStream.subscribe(tunnelChangeProbe.ref, classOf[TunnelChangeEvent])
 
@@ -126,7 +115,7 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase with
             routerIp1.getMaskLength)
         rtrPort1 should not be null
         materializePort(rtrPort1, host, "RouterPort1")
-        val portEvent = requestOfType[LocalPortActive](portEventsProbe)
+        val portEvent = requestOfType[LocalPortActive](portsProbe)
         portEvent.active should be(true)
         portEvent.portID should be(rtrPort1.getId)
 
@@ -166,7 +155,7 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase with
         addDhcpSubnet(bridge, dhcpSubnet)
 
         materializePort(brPort2, host, vmPortName)
-        requestOfType[LocalPortActive](portEventsProbe)
+        requestOfType[LocalPortActive](portsProbe)
 
         val dhcpHost = (new org.midonet.cluster.data.dhcp.Host()
                        .setMAC(vmMac)
@@ -249,8 +238,8 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase with
 
     def test() {
         injectDhcpDiscover(vmPortName, vmMac)
-        requestOfType[PacketIn](simProbe())
-        val returnPkt = requestOfType[EmitGeneratedPacket](simProbe()).ethPkt
+        requestOfType[PacketIn](packetInProbe)
+        val returnPkt = requestOfType[EmitGeneratedPacket](dedupProbe()).eth
         val interfaceMtu = extractInterfaceMtuDhcpReply(returnPkt)
         log.info("Returning interface MTU is {}", interfaceMtu)
         intfMtu -= (new GreTunnelZone).getTunnelOverhead()

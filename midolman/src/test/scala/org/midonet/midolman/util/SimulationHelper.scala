@@ -4,21 +4,21 @@
 
 package org.midonet.midolman.util
 
+import scala.collection.JavaConversions._
 import java.util.UUID
 import java.util.{List => JList}
 
-import scala.collection.JavaConversions._
+import akka.testkit.TestProbe
+import org.slf4j.LoggerFactory
 
-import org.midonet.midolman.DatapathController.PacketIn
-import org.midonet.midolman.FlowController.AddWildcardFlow
+import org.midonet.midolman.FlowController.WildcardFlowAdded
 import org.midonet.midolman.MidolmanTestCase
+import org.midonet.midolman.PacketWorkflowActor.PacketIn
 import org.midonet.odp.Packet
 import org.midonet.odp.flows._
 import org.midonet.packets._
 import org.midonet.packets.util.AddressConversions._
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
-import akka.testkit.TestProbe
-import org.slf4j.LoggerFactory
 
 trait SimulationHelper extends MidolmanTestCase {
 
@@ -173,28 +173,26 @@ trait SimulationHelper extends MidolmanTestCase {
     }
 
     def expectPacketOnPort(port: UUID): PacketIn = {
-        fishForRequestOfType[PacketIn](dpProbe())
-
-        val pktInMsg = simProbe().expectMsgClass(classOf[PacketIn])
+        val pktInMsg = packetInProbe.expectMsgClass(classOf[PacketIn])
         pktInMsg should not be null
-        pktInMsg.pktBytes should not be null
+        pktInMsg.bytes should not be null
         pktInMsg.wMatch should not be null
         pktInMsg.wMatch.getInputPortUUID should be === port
         pktInMsg
     }
 
     def fishForFlowAddedMessage(): WildcardFlow = {
-        val addFlowMsg = fishForRequestOfType[AddWildcardFlow](flowProbe())
+        val addFlowMsg = fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
         addFlowMsg should not be null
-        addFlowMsg.flow should not be null
-        addFlowMsg.flow
+        addFlowMsg.f should not be null
+        addFlowMsg.f
     }
 
     def expectFlowAddedMessage(): WildcardFlow = {
-        val addFlowMsg = requestOfType[AddWildcardFlow](flowProbe())
+        val addFlowMsg = requestOfType[WildcardFlowAdded](wflowAddedProbe)
         addFlowMsg should not be null
-        addFlowMsg.flow should not be null
-        addFlowMsg.flow
+        addFlowMsg.f should not be null
+        addFlowMsg.f
     }
 
     def expectMatchForIPv4Packet(pkt: Ethernet, wmatch: WildcardMatch) {
@@ -220,7 +218,7 @@ trait SimulationHelper extends MidolmanTestCase {
     }
 
     def localPortNumberToName(portNo: Short): Option[String] = {
-        dpController().underlyingActor.vportMgr.getDpPortName(
+        dpController().underlyingActor.dpState.vportManager.getDpPortName(
             Unsigned.unsign(portNo))
     }
 

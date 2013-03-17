@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import akka.actor.ActorSystem;
 import com.typesafe.config.ConfigFactory;
@@ -15,9 +16,9 @@ import org.junit.Before;
 import org.junit.Test;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsNull.notNullValue;
 import static org.hamcrest.core.IsNull.nullValue;
 
+import org.midonet.midolman.flows.WildcardTablesProvider;
 import org.midonet.odp.Flow;
 import org.midonet.odp.FlowMatch;
 import org.midonet.odp.flows.FlowAction;
@@ -33,6 +34,26 @@ public class FlowManagerTest {
     FlowManager flowManager;
     long timeOut = 4000;
 
+    WildcardTablesProvider wildtablesProvider = new WildcardTablesProvider() {
+        Map<Set<WildcardMatch.Field>, Map<WildcardMatch, WildcardFlow>> tables =
+                new HashMap<Set<WildcardMatch.Field>, Map<WildcardMatch, WildcardFlow>>();
+
+        @Override
+        public Map<WildcardMatch, WildcardFlow> addTable(Set<WildcardMatch.Field> pattern) {
+            Map<WildcardMatch, WildcardFlow> table = tables().get(pattern);
+            if (table == null) {
+                table = new HashMap<WildcardMatch, WildcardFlow>();
+                tables.put(pattern, table);
+            }
+            return table;
+        }
+
+        @Override
+        public Map<Set<WildcardMatch.Field>, Map<WildcardMatch, WildcardFlow>> tables() {
+            return tables;
+        }
+    };
+
     @Before
     public void setUp() {
         flowManagerHelper = new FlowManagerHelperImpl();
@@ -40,9 +61,10 @@ public class FlowManagerTest {
         ActorSystem actorSystem = ActorSystem.create("MidolmanActorsTest", ConfigFactory
             .load().getConfig("midolman"));
 
-        flowManager = new FlowManager(flowManagerHelper, maxDpFlowSize,
-                                      maxWildcardFlowSize, actorSystem.eventStream(),
-                                      dpFlowRemoveBatchSize);
+        flowManager = new FlowManager(flowManagerHelper,
+                wildtablesProvider,
+                maxDpFlowSize, maxWildcardFlowSize, actorSystem.eventStream(),
+                dpFlowRemoveBatchSize);
     }
 
 
@@ -57,9 +79,13 @@ public class FlowManagerTest {
             .setMatch(wildcardMatch)
             .setActions(new ArrayList<FlowAction<?>>())
             .setHardExpirationMillis(timeOut);
+
+        Flow flow = new Flow().setMatch(flowMatch).
+                               setActions(wildcardFlow.getActions());
+
         int numberOfFlowsAdded = 0;
         flowManager.add(wildcardFlow);
-        flowManager.add(flowMatch, wildcardFlow);
+        flowManager.add(flow, wildcardFlow);
         // add flow
         flowManagerHelper.addFlow(new Flow().setMatch(flowMatch));
         numberOfFlowsAdded++;
@@ -102,9 +128,11 @@ public class FlowManagerTest {
             .setMatch(wildcardMatch)
             .setActions(new ArrayList<FlowAction<?>>())
             .setIdleExpirationMillis(timeOut);
+        Flow flow = new Flow().setMatch(flowMatch).
+                setActions(wildcardFlow.getActions());
         int numberOfFlowsAdded = 0;
         flowManager.add(wildcardFlow);
-        flowManager.add(flowMatch, wildcardFlow);
+        flowManager.add(flow, wildcardFlow);
         flowManagerHelper.addFlow(new Flow().setMatch(flowMatch));
         numberOfFlowsAdded++;
         assertThat("DpFlowTable was not updated",
@@ -147,12 +175,14 @@ public class FlowManagerTest {
             .setMatch(wildcardMatch)
             .setIdleExpirationMillis(timeOut)
             .setActions(new ArrayList<FlowAction<?>>());
+        Flow flow = new Flow().setMatch(flowMatch).
+                setActions(wildcardFlow.getActions());
 
         long time1 = System.currentTimeMillis();
 
         int numberOfFlowsAdded = 0;
         flowManager.add(wildcardFlow);
-        flowManager.add(flowMatch, wildcardFlow);
+        flowManager.add(flow, wildcardFlow);
         flowManagerHelper.addFlow(new Flow().setMatch(flowMatch));
         numberOfFlowsAdded++;
 
@@ -162,9 +192,10 @@ public class FlowManagerTest {
         // value > timeOut/2
         FlowMatch flowMatch1 = new FlowMatch().addKey(FlowKeys.tunnelID(10L))
                                       .addKey(FlowKeys.tcp(1000, 1002));
-        Flow flow2 = flowManager.createDpFlow(flowMatch1);
-        assertThat("Flow didn't match", flow2, notNullValue());
+        Flow flow2 = new Flow().setActions(wildcardFlow.getActions()).
+                                setMatch(flowMatch1);
         // create the flow
+        flowManager.add(flow2, wildcardFlow);
         flowManagerHelper.addFlow(flow2);
 
         numberOfFlowsAdded++;
@@ -236,11 +267,13 @@ public class FlowManagerTest {
             .setMatch(wildcardMatch)
             .setIdleExpirationMillis(timeOut)
             .setActions(new ArrayList<FlowAction<?>>());
+        Flow flow = new Flow().setActions(wildcardFlow.getActions()).
+                               setMatch(flowMatch);
 
         long time1 = System.currentTimeMillis();
 
         flowManager.add(wildcardFlow);
-        flowManager.add(flowMatch, wildcardFlow);
+        flowManager.add(flow, wildcardFlow);
         flowManagerHelper.addFlow(new Flow().setMatch(flowMatch));
 
         Thread.sleep(5*timeOut/8);
@@ -301,9 +334,11 @@ public class FlowManagerTest {
             WildcardFlow wildcardFlow = new WildcardFlow()
                 .setMatch(wildcardMatch)
                 .setActions(new ArrayList<FlowAction<?>>());
+            Flow flow = new Flow().setActions(wildcardFlow.getActions())
+                                  .setMatch(flowMatch);
             flowManager.add(wildcardFlow);
-            flowManager.add(flowMatch, wildcardFlow);
-            flowManagerHelper.addFlow(new Flow().setMatch(flowMatch));
+            flowManager.add(flow, wildcardFlow);
+            flowManagerHelper.addFlow(flow);
         }
         flowManager.checkFlowsExpiration();
 
@@ -384,7 +419,6 @@ public class FlowManagerTest {
         public void addFlow(Flow flow){
             flow.setLastUsedTime(System.currentTimeMillis());
             flowsMap.put(flow.getMatch(), flow);
-            flowManager.addFlowCompleted(flow);
         }
 
         public void setLastUsedTimeToNow(FlowMatch match) {

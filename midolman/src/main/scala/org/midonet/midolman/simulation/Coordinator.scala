@@ -2,23 +2,23 @@
 
 package org.midonet.midolman.simulation
 
+import collection.{Set => ROSet}
 import collection.mutable
 import collection.JavaConversions._
 import java.util.UUID
 
-import akka.actor.{ActorRef, ActorSystem}
+import akka.actor.{ActorContext, ActorSystem}
 import akka.dispatch.{ExecutionContext, Future, Promise}
-import akka.pattern.ask
-import akka.util.duration._
 
 import org.midonet.cache.Cache
+import org.midonet.midolman.logging.LoggerFactory
 import org.midonet.cluster.client._
-import org.midonet.midolman.{DatapathController, FlowController}
-import org.midonet.midolman.DatapathController.{EmitGeneratedPacket, SendPacket}
-import org.midonet.midolman.FlowController.{AddWildcardFlow, DiscardPacket}
+import org.midonet.midolman.DeduplicationActor
+import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
+import org.midonet.midolman.PacketWorkflowActor.{SendPacket,
+    AddVirtualWildcardFlow, NoOp, SimulationAction}
 import org.midonet.midolman.datapath.{FlowActionOutputToVrnPort,
                                       FlowActionOutputToVrnPortSet}
-import org.midonet.midolman.logging.LoggerFactory
 import org.midonet.midolman.rules.RuleResult.{Action => RuleAction}
 import org.midonet.midolman.topology._
 import org.midonet.midolman.topology.VirtualTopologyActor._
@@ -90,13 +90,11 @@ class Coordinator(val origMatch: WildcardMatch,
                   val connectionCache: Cache,
                   val parentCookie: Option[Int])
                  (implicit val ec: ExecutionContext,
-                  val actorSystem: ActorSystem) extends Runnable {
+                  val actorSystem: ActorSystem,
+                  val actorContext: ActorContext) {
     import Coordinator._
 
     val log = LoggerFactory.getSimulationAwareLog(this.getClass)(actorSystem.eventStream)
-    private val datapathController = DatapathController.getRef(actorSystem)
-    private val flowController = FlowController.getRef(actorSystem)
-    private val virtualTopologyManager = VirtualTopologyActor.getRef(actorSystem)
     private val TEMPORARY_DROP_MILLIS = 5 * 1000
     private val IDLE_EXPIRATION_MILLIS = 60 * 1000
     private val RETURN_FLOW_EXPIRATION_MILLIS = 60 * 1000
@@ -109,7 +107,12 @@ class Coordinator(val origMatch: WildcardMatch,
             connectionCache, generatedPacketEgressPort.isDefined, parentCookie)
     pktContext.setMatch(origMatch)
 
-    private def dropFlow(temporary: Boolean, withTags: Boolean = false) {
+    implicit def simulationActionToSuccessfulFuture(
+        a: SimulationAction): Future[SimulationAction] = Promise.successful(a)
+
+
+    private def dropFlow(temporary: Boolean, withTags: Boolean = false):
+            SimulationAction = {
         // If the packet is from the datapath, install a temporary Drop flow.
         // Note: a flow with no actions drops matching packets.
         pktContext.freeze()
@@ -121,17 +124,15 @@ class Coordinator(val origMatch: WildcardMatch,
                 else
                     wflow.setIdleExpirationMillis(IDLE_EXPIRATION_MILLIS)
 
-                datapathController.tell(
-                    AddWildcardFlow(wflow, cookie, null,
+                AddVirtualWildcardFlow(wflow,
                         pktContext.getFlowRemovedCallbacks,
-                        if (withTags) pktContext.getFlowTags else null))
+                        if (withTags) pktContext.getFlowTags else Set.empty)
 
             case None => // Internally-generated packet. Do nothing.
                 pktContext.getFlowRemovedCallbacks foreach { cb => cb.call() }
+                NoOp()
         }
     }
-
-    override def run: Unit = simulate
 
     /**
      * Simulate the packet moving through the virtual topology. The packet
@@ -156,10 +157,11 @@ class Coordinator(val origMatch: WildcardMatch,
      * installed as a result of such a simulation. Note that in this case the
      * generatedPacketEgressPort argument must not be null.
      *
-     * When this method completes, it may send a message to the Datapath
-     * Controller to install a flow or send a packet.
+     * When the future returned by this method completes all the actions
+     * resulting from the simulation (install flow and/or execute packet)
+     * have been completed.
      */
-    def simulate() {
+    def simulate(): Future[SimulationAction] = {
         log.debug("Simulate a packet {}", origEthernetPkt)
 
         generatedPacketEgressPort match {
@@ -175,8 +177,13 @@ class Coordinator(val origMatch: WildcardMatch,
                         dropFlow(temporary = true)
 
                     case id: UUID =>
-                        if (!dropFragmentedPackets(id))
-                            packetIngressesPort(id, getPortGroups = true)
+                        dropFragmentedPackets(id) match {
+                            case None =>
+                                packetIngressesPort(id, getPortGroups = true)
+                            case Some(future) =>
+                                // packet dropped
+                                future
+                        }
                 }
 
             case Some(egressID) =>
@@ -196,30 +203,27 @@ class Coordinator(val origMatch: WildcardMatch,
         }
     }
 
-    private def dropFragmentedPackets(inPort: UUID): Boolean = {
+    private def dropFragmentedPackets(inPort: UUID): Option[Future[SimulationAction]] = {
         origMatch.getIpFragmentType match {
             case IPFragmentType.First =>
                 origMatch.getEtherType.shortValue match {
                     case IPv4.ETHERTYPE =>
                         sendIpv4FragNeeded(inPort)
-                        dropFlow(temporary = true)
+                        Some(dropFlow(temporary = true))
 
                     case ethertype =>
                         log.info("Dropping fragmented packet of unsupported " +
                                  "ethertype={}", ethertype)
-                        dropFlow(temporary = false)
+                        Some(dropFlow(temporary = false))
                 }
-                true
             case IPFragmentType.Later =>
                 log.info("Dropping non-first fragment at simulation layer")
                 val wMatch = new WildcardMatch().
                     setIpFragmentType(IPFragmentType.Later)
                 val wFlow = new WildcardFlow().setMatch(wMatch)
-                datapathController.tell(
-                    AddWildcardFlow(wFlow, None, null, null, null))
-                true
+                Some(AddVirtualWildcardFlow(wFlow, Set.empty, Set.empty))
             case _ =>
-                false
+                None
         }
     }
 
@@ -256,28 +260,30 @@ class Coordinator(val origMatch: WildcardMatch,
         eth.setPayload(ip)
         eth.setSourceMACAddress(origEthernetPkt.getDestinationMACAddress)
         eth.setDestinationMACAddress(origEthernetPkt.getSourceMACAddress)
-        DatapathController.getRef(actorSystem) !
-            EmitGeneratedPacket(inPort, eth, Option(pktContext.getFlowCookie))
+
+        DeduplicationActor.getRef() ! EmitGeneratedPacket(inPort, eth, cookie)
     }
 
-    private def packetIngressesDevice(port: Port[_]) {
+
+    private def packetIngressesDevice(port: Port[_]): Future[SimulationAction] = {
         var deviceFuture: Future[Any] = null
         port match {
             case _: BridgePort[_] =>
                 deviceFuture = expiringAsk(
-                    BridgeRequest(port.deviceID, false), expiry)
+                    BridgeRequest(port.deviceID, update = false), expiry)
             case _: RouterPort[_] =>
                 deviceFuture = expiringAsk(
-                    RouterRequest(port.deviceID, false), expiry)
+                    RouterRequest(port.deviceID, update = false), expiry)
             case _ =>
                 log.error("Port {} belongs to device {} which is neither a " +
                           "bridge or router!", port, port.deviceID)
-                dropFlow(temporary = true)
-                return
+                return dropFlow(temporary = true)
         }
-        deviceFuture.onComplete {
-            case Left(err) => dropFlow(temporary = true)
-            case Right(deviceReply) =>
+        deviceFuture map {Option(_)} fallbackTo { Promise.successful(None) } flatMap {
+            case None =>
+                log.warning("Failed to get device: {}", port.deviceID)
+                dropFlow(temporary = true)
+            case Some(deviceReply) =>
                 if (!deviceReply.isInstanceOf[Device]) {
                     log.error("VirtualTopologyManager didn't return a device!")
                     dropFlow(temporary = true)
@@ -292,127 +298,128 @@ class Coordinator(val origMatch: WildcardMatch,
         }
     }
 
-    private def handleActionFuture(actionF: Future[Action]) {
-        actionF.onComplete {
-            case Left(err) =>
-                log.error("Error instead of Action - {}", err)
-                dropFlow(temporary = true)
-            case Right(action) =>
-                log.info("Received action: {}", action)
-                action match {
-                    case ToPortSetAction(portSetID) =>
-                        emit(portSetID, true, null)
+    private def handleActionFuture(actionF: Future[Action]): Future[SimulationAction] = {
+        actionF recover {
+            case e =>
+                log.error("Error instead of Action - {}", e)
+                ErrorDropAction()
+        } flatMap { case action =>
+            log.info("Received action: {}", action)
+            action match {
+                case ToPortSetAction(portSetID) =>
+                    emit(portSetID, isPortSet = true, null)
 
-                    case ToPortAction(outPortID) =>
-                        packetEgressesPort(outPortID)
+                case ToPortAction(outPortID) =>
+                    packetEgressesPort(outPortID)
 
-                    case _: ConsumedAction =>
-                        pktContext.freeze()
-                        pktContext.getFlowRemovedCallbacks foreach {
-                            cb => cb.call()
-                        }
-                        cookie match {
-                            case None => // Do nothing.
-                            case Some(_) =>
-                                flowController.tell(DiscardPacket(cookie))
-                        }
+                case _: ConsumedAction =>
+                    pktContext.freeze()
+                    pktContext.getFlowRemovedCallbacks foreach {
+                        cb => cb.call()
+                    }
+                    NoOp()
 
-                    case _: ErrorDropAction =>
-                        pktContext.freeze()
-                        cookie match {
-                            case None => // Do nothing.
-                                pktContext.getFlowRemovedCallbacks foreach {
-                                    cb => cb.call()
-                                }
-                            case Some(_) =>
-                                // Drop the flow temporarily
-                                dropFlow(temporary = true)
-                        }
+                case _: ErrorDropAction =>
+                    pktContext.freeze()
+                    cookie match {
+                        case None => // Do nothing.
+                            pktContext.getFlowRemovedCallbacks foreach {
+                                cb => cb.call()
+                            }
+                            NoOp()
+                        case Some(_) =>
+                            // Drop the flow temporarily
+                            dropFlow(temporary = true)
+                    }
 
-                    case _: DropAction =>
-                        pktContext.freeze()
-                        log.debug("Device returned DropAction for {}",
-                            origMatch)
-                        cookie match {
-                            case None => // Do nothing.
-                                pktContext.getFlowRemovedCallbacks foreach {
-                                    cb => cb.call()
-                                }
-                            case Some(_) =>
-                                var temporary = false
-                                // Flows which (if they were return flows in a
-                                // conntracked connection) could be symmetrical
-                                // to their forward flow (i.e. UDP), will be
-                                // temporary.
-                                // The reason is that changes in the conntrack
-                                // table could render them invalid, and we
-                                // don't get notifications for new conntrack
-                                // entries
-                                if (pktContext.isConnTracked() &&
-                                    pktContext.forwardAndReturnAreSymmetric) {
-                                    temporary = true
-                                }
-                                dropFlow(temporary, withTags = true)
-                        }
+                case _: DropAction =>
+                    pktContext.freeze()
+                    log.debug("Device returned DropAction for {}",
+                        origMatch)
+                    cookie match {
+                        case None => // Do nothing.
+                            pktContext.getFlowRemovedCallbacks foreach {
+                                cb => cb.call()
+                            }
+                            NoOp()
+                        case Some(_) =>
+                            var temporary = false
+                            // Flows which (if they were return flows in a
+                            // conntracked connection) could be symmetrical
+                            // to their forward flow (i.e. UDP), will be
+                            // temporary.
+                            // The reason is that changes in the conntrack
+                            // table could render them invalid, and we
+                            // don't get notifications for new conntrack
+                            // entries
+                            if (pktContext.isConnTracked() &&
+                                pktContext.forwardAndReturnAreSymmetric) {
+                                temporary = true
+                            }
+                            dropFlow(temporary, withTags = true)
+                    }
 
-                    case _: NotIPv4Action =>
-                        log.debug("Device returned NotIPv4Action for {}",
-                            origMatch)
-                        pktContext.freeze()
-                        cookie match {
-                            case None => // Do nothing.
-                                pktContext.getFlowRemovedCallbacks foreach {
-                                    cb => cb.call()
-                                }
-                            case Some(_) =>
-                                val notIPv4Match =
-                                    (new WildcardMatch()
-                                        .setInputPortUUID(origMatch.getInputPortUUID)
-                                        .setEthernetSource(origMatch.getEthernetSource)
-                                        .setEthernetDestination(
-                                            origMatch.getEthernetDestination)
-                                        .setEtherType(origMatch.getEtherType))
-                                datapathController.tell(
-                                    AddWildcardFlow(
-                                        new WildcardFlow()
-                                            .setMatch(notIPv4Match),
-                                        cookie, origEthernetPkt.serialize(),
-                                        pktContext.getFlowRemovedCallbacks,
-                                        pktContext.getFlowTags))
-                                // TODO(pino): Connection-tracking blob?
-                        }
+                case _: NotIPv4Action =>
+                    log.debug("Device returned NotIPv4Action for {}",
+                        origMatch)
+                    pktContext.freeze()
+                    cookie match {
+                        case None => // Do nothing.
+                            pktContext.getFlowRemovedCallbacks foreach {
+                                cb => cb.call()
+                            }
+                            NoOp()
+                        case Some(_) =>
+                            val notIPv4Match =
+                                (new WildcardMatch()
+                                    .setInputPortUUID(origMatch.getInputPortUUID)
+                                    .setEthernetSource(origMatch.getEthernetSource)
+                                    .setEthernetDestination(
+                                        origMatch.getEthernetDestination)
+                                    .setEtherType(origMatch.getEtherType))
+                            AddVirtualWildcardFlow(
+                                    new WildcardFlow().setMatch(notIPv4Match),
+                                    pktContext.getFlowRemovedCallbacks,
+                                    pktContext.getFlowTags)
+                            // TODO(pino): Connection-tracking blob?
+                    }
 
 
-                    case _ =>
-                        log.error("Device returned unexpected action!")
-                        dropFlow(temporary = true)
-                } // end action match
-        } // end onComplete
+                case _ =>
+                    log.error("Device returned unexpected action!")
+                    dropFlow(temporary = true)
+            } // end action match
+        }
     }
 
-    private def packetIngressesPort(portID: UUID, getPortGroups: Boolean) {
+    private def packetIngressesPort(portID: UUID, getPortGroups: Boolean):
+            Future[SimulationAction] = {
+
         // Avoid loops - simulate at most X devices.
         if (numDevicesSimulated >= MAX_DEVICES_TRAVERSED) {
-            dropFlow(temporary = true)
-            return
+            return dropFlow(temporary = true)
         }
 
         // Get the RCU port object and start simulation.
-        expiringAsk(PortRequest(portID, false), expiry) onComplete {
-            case Left(err) => dropFlow(temporary = true)
-            case Right(portReply) => portReply match {
+        val portFuture = expiringAsk(PortRequest(portID, update = false), expiry)
+        portFuture map {Option(_)} fallbackTo { Promise.successful(None) } flatMap {
+            case None =>
+                log.warning("Failed to get port: {}", portID)
+                dropFlow(temporary = true)
+            case Some(p) => p match {
                 case port: Port[_] =>
                     if (getPortGroups &&
-                            port.isInstanceOf[ExteriorPort[_]]) {
+                        port.isInstanceOf[ExteriorPort[_]]) {
                         pktContext.setPortGroups(
                             port.asInstanceOf[ExteriorPort[_]].portGroups)
                     }
 
                     pktContext.setInputPort(port)
-                    applyPortFilter(port, port.inFilterID,
-                                    packetIngressesDevice _)
+                    val future = applyPortFilter(port, port.inFilterID,
+                        packetIngressesDevice _)
                     // add tag for flow invalidation
                     pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(portID))
+                    future
                 case _ =>
                     log.error("VirtualTopologyManager didn't return a port!")
                     dropFlow(temporary = true)
@@ -421,12 +428,16 @@ class Coordinator(val origMatch: WildcardMatch,
     }
 
     def applyPortFilter(port: Port[_], filterID: UUID,
-                        thunk: (Port[_]) => Unit) {
+                        thunk: (Port[_]) => Future[SimulationAction]):
+                        Future[SimulationAction] = {
         if (filterID == null)
-            thunk(port)
-        else expiringAsk(ChainRequest(filterID, false), expiry) onComplete {
-            case Left(err) => dropFlow(temporary = true)
-            case Right(chainReply) => chainReply match {
+            return thunk(port)
+        val chainFuture = expiringAsk(ChainRequest(filterID, update = false), expiry)
+        chainFuture map {Option(_)} fallbackTo { Promise.successful(None) } flatMap {
+            case None =>
+                log.warning("Failed to get chain: {}", filterID)
+                dropFlow(temporary = true)
+            case Some(c) => c match {
                 case chain: Chain =>
                     // add ChainID for flow invalidation
                     pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(filterID))
@@ -434,15 +445,15 @@ class Coordinator(val origMatch: WildcardMatch,
                         FlowTagger.invalidateFlowsByDeviceFilter(port.id, filterID))
 
                     val result = Chain.apply(chain, pktContext,
-                                             pktContext.getMatch, port.id, true)
+                        pktContext.getMatch, port.id, true)
                     if (result.action == RuleAction.ACCEPT) {
                         thunk(port)
                     } else if (result.action == RuleAction.DROP ||
-                               result.action == RuleAction.REJECT) {
+                        result.action == RuleAction.REJECT) {
                         dropFlow(temporary = false, withTags = true)
                     } else {
                         log.error("Port filter {} returned {}, not ACCEPT, " +
-                                  "DROP, or REJECT.", filterID, result.action)
+                            "DROP, or REJECT.", filterID, result.action)
                         dropFlow(temporary = true)
                     }
                 case _ =>
@@ -457,19 +468,23 @@ class Coordinator(val origMatch: WildcardMatch,
      * for output-ing to PortSets.
      * @param portID
      */
-    private def packetEgressesPort(portID: UUID) {
-        expiringAsk(PortRequest(portID, false), expiry) onComplete {
-            case Left(err) => dropFlow(temporary = true)
-            case Right(portReply) => portReply match {
+    private def packetEgressesPort(portID: UUID): Future[SimulationAction] = {
+        val portFuture =  expiringAsk(PortRequest(portID, update = false), expiry)
+        portFuture map {Option(_)} fallbackTo { Promise.successful(None) } flatMap {
+            case None =>
+                log.warning("Failed to get port: {}", portID)
+                dropFlow(temporary = true)
+            case Some(reply) => reply match {
                 case port: Port[_] =>
                     // add tag for flow invalidation
                     pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(portID))
                     pktContext.setOutputPort(port.id)
                     applyPortFilter(port, port.outFilterID, {
                         case _: ExteriorPort[_] =>
-                            emit(portID, false, port)
+                            emit(portID, isPortSet = false, port)
                         case interiorPort: InteriorPort[_] =>
-                            packetIngressesPort(interiorPort.peerID, false)
+                            packetIngressesPort(interiorPort.peerID,
+                                                getPortGroups = false)
                         case _ =>
                             log.error(
                                 "Port {} neither interior nor exterior port",
@@ -492,7 +507,8 @@ class Coordinator(val origMatch: WildcardMatch,
      * @param isPortSet Whether the packet is output to a port set.
      * @param port The port output to; unused if outputting to a port set.
      */
-    private def emit(outputID: UUID, isPortSet: Boolean, port: Port[_]) {
+    private def emit(outputID: UUID, isPortSet: Boolean, port: Port[_]):
+            SimulationAction = {
         val actions = actionsFromMatchDiff(origMatch, pktContext.getMatch)
         isPortSet match {
             case false =>
@@ -506,10 +522,9 @@ class Coordinator(val origMatch: WildcardMatch,
         cookie match {
             case None =>
                 log.debug("No cookie. SendPacket with actions {}", actions)
-                datapathController.tell(
-                    SendPacket(origEthernetPkt, actions.toList))
                 pktContext.freeze()
                 pktContext.getFlowRemovedCallbacks foreach { cb => cb.call() }
+                SendPacket(actions.toList)
             case Some(_) =>
                 log.debug("Cookie {}; Add a flow with actions {}",
                     cookie.get, actions)
@@ -527,11 +542,9 @@ class Coordinator(val origMatch: WildcardMatch,
                     wFlow.setHardExpirationMillis(RETURN_FLOW_EXPIRATION_MILLIS)
                 else
                     wFlow.setIdleExpirationMillis(IDLE_EXPIRATION_MILLIS)
-                datapathController.tell(
-                    AddWildcardFlow(
-                        wFlow, cookie, origEthernetPkt.serialize(),
-                        pktContext.getFlowRemovedCallbacks,
-                        pktContext.getFlowTags))
+                AddVirtualWildcardFlow(wFlow,
+                                       pktContext.getFlowRemovedCallbacks,
+                                       pktContext.getFlowTags)
         }
     }
 

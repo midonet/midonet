@@ -4,27 +4,26 @@
 
 package org.midonet.midolman.simulation
 
+import scala.compat.Platform
 import akka.actor.ActorSystem
 import akka.dispatch.{ExecutionContext, Future, Promise}
 import akka.pattern.ask
 import akka.util.duration._
+import akka.actor.{ActorContext, ActorSystem}
+import akka.pattern.ask
+import akka.util.duration._
 import collection.JavaConversions._
 import collection.mutable
-import compat.Platform
-import akka.actor.ActorSystem
-import akka.dispatch.{ExecutionContext, Future, Promise}
-import akka.util.duration._
 import java.util.UUID
 
-import org.midonet.midolman.{FlowController, DatapathController}
-import org.midonet.midolman.FlowController.DiscardPacket
-import org.midonet.midolman.host.interfaces.InterfaceDescription
-import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.client._
+import org.midonet.midolman.{DeduplicationActor, DatapathController, FlowController}
+import org.midonet.midolman.host.interfaces.InterfaceDescription
+import org.midonet.midolman.topology.VirtualTopologyActor.{expiringAsk, PortRequest}
+import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.packets._
-import org.midonet.midolman.DatapathController.{EmitGeneratedPacket,
-                                                LocalTunnelInterfaceInfo}
+import org.midonet.midolman.DatapathController.LocalTunnelInterfaceInfo
 import org.midonet.cluster.data.dhcp.Opt121
 import org.midonet.cluster.data.TunnelZone
 import org.midonet.cluster.data.zones.{GreTunnelZone, CapwapTunnelZone, IpsecTunnelZone}
@@ -34,7 +33,8 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
                   val request: DHCP, val sourceMac: MAC,
                   val cookie: Option[Int])
                  (implicit val ec: ExecutionContext,
-                  val actorSystem: ActorSystem) {
+                  val actorSystem: ActorSystem,
+                  val actorContext: ActorContext) {
     private val log = akka.event.Logging(actorSystem, this.getClass)
     private val flowController = FlowController.getRef(actorSystem)
     private val datapathController = DatapathController.getRef(actorSystem)
@@ -346,14 +346,9 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
             inPortId)
 
         // Emit our DHCP reply packet
-        DatapathController.getRef(actorSystem) ! EmitGeneratedPacket(
+        DeduplicationActor.getRef(actorSystem) ! EmitGeneratedPacket(
             inPortId, eth, cookie)
         // Tell the FlowController not to track the packet anymore.
-        cookie match {
-            case None => // Do nothing
-            case Some(c) =>
-                flowController.tell(DiscardPacket(cookie))
-        }
         Promise.successful(true)
     }
 

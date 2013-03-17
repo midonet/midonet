@@ -238,7 +238,7 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
     initializeDatapath() should not be (null)
     portEventsProbe.expectMsgClass(classOf[LocalPortActive])
 
-    dpController().underlyingActor.vportMgr
+    dpController().underlyingActor.dpState.vportManager
         .getDpPortNumberForVport(port1.getId) should equal(Some(1))
 
     requestOfType[HostRequest](vtpProbe())
@@ -259,9 +259,9 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
     replyOfType[RCUHost](vtpProbe())
     requestOfType[LocalPortActive](vtpProbe())
 
-    dpController().underlyingActor.vportMgr
+    dpController().underlyingActor.dpState.vportManager
       .getDpPortNumberForVport(port1.getId) should equal(Some(1))
-    dpController().underlyingActor.vportMgr
+    dpController().underlyingActor.dpState.vportManager
       .getDpPortNumberForVport(port2.getId) should equal(Some(2))
   }
 

@@ -25,8 +25,8 @@ import org.midonet.cluster.data.Router
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.ports.MaterializedRouterPort
 import org.midonet.cluster.data.zones.{GreTunnelZone, GreTunnelZoneHost}
-import org.midonet.midolman.DatapathController.{DatapathPortChangedEvent, TunnelChangeEvent, PacketIn}
-import org.midonet.midolman.DatapathController.PacketIn
+import org.midonet.midolman.DatapathController.{DatapathPortChangedEvent, TunnelChangeEvent}
+import org.midonet.midolman.PacketWorkflowActor.{AddVirtualWildcardFlow, PacketIn}
 import org.midonet.midolman.FlowController.AddWildcardFlow
 import org.midonet.midolman.FlowController.WildcardFlowAdded
 import org.midonet.midolman.FlowController.WildcardFlowRemoved
@@ -43,10 +43,8 @@ import org.midonet.midolman.util.{TestHelpers, RouterHelper}
 class DatapathFlowInvalidationTestCase extends MidolmanTestCase with VirtualConfigurationBuilders
 with RouterHelper{
 
-    var addRemoveFlowsProbe: TestProbe = null
     var tagEventProbe: TestProbe = null
     var tunnelEventsProbe: TestProbe = null
-    var portEventsProbe: TestProbe = null
     var datapathEventsProbe: TestProbe = null
 
     var datapath: Datapath = null
@@ -87,9 +85,7 @@ with RouterHelper{
     }
 
     override def beforeTest() {
-        addRemoveFlowsProbe = newProbe()
         tunnelEventsProbe = newProbe()
-        portEventsProbe = newProbe()
         datapathEventsProbe = newProbe()
 
         drainProbes()
@@ -100,14 +96,8 @@ with RouterHelper{
         clusterRouter = newRouter("router")
         clusterRouter should not be null
 
-        actors().eventStream.subscribe(addRemoveFlowsProbe.ref,
-            classOf[WildcardFlowAdded])
-        actors().eventStream.subscribe(addRemoveFlowsProbe.ref,
-            classOf[WildcardFlowRemoved])
         actors().eventStream.subscribe(tunnelEventsProbe.ref,
             classOf[TunnelChangeEvent])
-        actors().eventStream.subscribe(portEventsProbe.ref,
-            classOf[LocalPortActive])
         actors().eventStream.subscribe(datapathEventsProbe.ref,
             classOf[DatapathPortChangedEvent])
 
@@ -126,17 +116,17 @@ with RouterHelper{
         //requestOfType[WildcardFlowAdded](flowProbe)
         materializePort(inPort, host1, inPortName)
         mapPortNameShortNumber += inPortName -> 1
-        requestOfType[LocalPortActive](portEventsProbe)
+        requestOfType[LocalPortActive](portsProbe)
         materializePort(outPort, host1, outPortName)
         mapPortNameShortNumber += outPortName -> 2
-        requestOfType[LocalPortActive](portEventsProbe)
+        requestOfType[LocalPortActive](portsProbe)
 
         // this is added when the port becomes active. A flow that takes care of
         // the tunnelled packets to this port
-        addRemoveFlowsProbe.expectMsgPF(Duration(3, TimeUnit.SECONDS),
+        wflowAddedProbe.expectMsgPF(Duration(3, TimeUnit.SECONDS),
             "WildcardFlowAdded")(TestHelpers.matchActionsFlowAddedOrRemoved(
             mutable.Buffer[FlowAction[_]](FlowActions.output(mapPortNameShortNumber(inPortName)))))
-        addRemoveFlowsProbe.expectMsgPF(Duration(3, TimeUnit.SECONDS),
+        wflowAddedProbe.expectMsgPF(Duration(3, TimeUnit.SECONDS),
             "WildcardFlowAdded")(TestHelpers.matchActionsFlowAddedOrRemoved(
             mutable.Buffer[FlowAction[_]](FlowActions.output(mapPortNameShortNumber(outPortName)))))
 
@@ -160,18 +150,18 @@ with RouterHelper{
             IntIPv4.fromString(ipOutPort).addressAsInt,
             MAC.fromString(macOutPort))
 
-        fishForRequestOfType[PacketIn](dpProbe())
-        fishForRequestOfType[PacketIn](dpProbe())
+        fishForRequestOfType[PacketIn](packetInProbe)
+        fishForRequestOfType[PacketIn](packetInProbe)
 
-        addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowAdded])
+        wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
 
         deletePort(inPort, host1)
 
         // We expect 2 flows to be invalidated: the one created automatically
         // when the port becomes active to handle tunnelled packets for that port
         // and the second installed after the packet it
-        addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowRemoved])
-        addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowRemoved])
+        wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
+        wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
     }
 
     def testDpOutPortDeleted() {
@@ -191,14 +181,14 @@ with RouterHelper{
             IntIPv4.fromString(ipOutPort).addressAsInt,
             MAC.fromString(macOutPort))
 
-        fishForRequestOfType[PacketIn](dpProbe())
-        fishForRequestOfType[PacketIn](dpProbe())
+        fishForRequestOfType[PacketIn](packetInProbe)
+        fishForRequestOfType[PacketIn](packetInProbe)
 
-        val flowAddedMessage = addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowAdded])
+        val flowAddedMessage = wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
 
         deletePort(outPort, host1)
-        addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowRemoved])
-        addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowRemoved])
+        wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
+        wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
         /*addRemoveFlowsProbe.fishForMessage(Duration(3, TimeUnit.SECONDS),
             "WildcardFlowRemoved")(matchActionsFlowAddedOrRemoved(flowAddedMessage.f.getActions.asScala))
         addRemoveFlowsProbe.fishForMessage(Duration(3, TimeUnit.SECONDS),
@@ -210,7 +200,8 @@ with RouterHelper{
     def testTunnelPortAddedAndRemoved() {
 
         drainProbe(datapathEventsProbe)
-        drainProbe(addRemoveFlowsProbe)
+        drainProbe(wflowRemovedProbe)
+        drainProbe(wflowAddedProbe)
         drainProbes()
         tunnelZone = greTunnelZone("default")
         host2 = newHost("host2")
@@ -228,11 +219,11 @@ with RouterHelper{
         clusterDataClient().portSetsAddHost(bridge.getId, host2.getId)
 
         // flows installed for tunnel key = port when the port becomes active.
-        addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowAdded])
+        wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
 
         // Wait for LocalPortActive messages - they prove the
         // VirtualToPhysicalMapper has the correct information for the PortSet.
-        portEventsProbe.expectMsgClass(classOf[LocalPortActive])
+        portsProbe.expectMsgClass(classOf[LocalPortActive])
         requestOfType[DatapathPortChangedEvent](datapathEventsProbe)
 
         clusterDataClient().tunnelZonesAddMembership(
@@ -263,11 +254,10 @@ with RouterHelper{
             .setMatch(new WildcardMatch().setInputPortUUID(port1OnHost1.getId))
             .addAction(new FlowActionOutputToVrnPortSet(bridge.getId))
 
-        val pktBytes = "My packet".getBytes
-        dpProbe().testActor.tell(AddWildcardFlow(
-            wildcardFlow, None, pktBytes, null, null))
+        dpProbe().testActor.tell(AddVirtualWildcardFlow(
+            wildcardFlow, Set.empty, Set.empty))
 
-        val flowToInvalidate = addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowAdded])
+        val flowToInvalidate = wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
 
         // update the gre ip of the second host
         val secondGreConfig = new GreTunnelZoneHost(host2.getId)
@@ -286,7 +276,7 @@ with RouterHelper{
         flowProbe().fishForMessage(Duration(3, TimeUnit.SECONDS),
             "Tag")(matchATagInvalidation(FlowTagger.invalidateDPPort(tunnelPortNumber.shortValue)))
         // assert that the flow gets deleted
-        val flowRemoved = addRemoveFlowsProbe.expectMsgClass(classOf[WildcardFlowRemoved])
+        val flowRemoved = wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
         flowRemoved.f.getMatch should be(flowToInvalidate.f.getMatch)
 
         // assert the proper datapath port changed event is fired

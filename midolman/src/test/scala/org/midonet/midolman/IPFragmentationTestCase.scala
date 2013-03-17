@@ -10,7 +10,7 @@ import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
 
 import org.midonet.midolman.FlowController.{AddWildcardFlow, WildcardFlowAdded,
-                                             WildcardFlowRemoved}
+                                            WildcardFlowRemoved}
 import org.midonet.midolman.util.SimulationHelper
 import org.midonet.odp.flows.IPFragmentType
 import org.midonet.packets._
@@ -85,23 +85,25 @@ class IPFragmentationTestCase extends MidolmanTestCase with VMsBehindRouterFixtu
 
     def testFirstFragment() {
         firstFragmentBatch()
-        fishForRequestOfType[WildcardFlowRemoved](flowEventsProbe,
+        fishForRequestOfType[WildcardFlowRemoved](wflowRemovedProbe,
                                                   Duration.parse("10 seconds"))
         firstFragmentBatch()
     }
 
     def testLaterFragment() {
-        drainProbe(flowEventsProbe)
+        drainProbe(wflowAddedProbe)
+        drainProbe(wflowRemovedProbe)
         val packet = makePacket(IPFragmentType.Later)
         triggerPacketIn(vmPortNames(sendingVm), packet)
         fishForRequestOfType[AddWildcardFlow](flowProbe())
-        fishForRequestOfType[WildcardFlowAdded](flowEventsProbe)
+        fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
         packetsEventsProbe.expectNoMsg()
         packet.setSourceMACAddress(MAC.fromString("02:02:03:03:04:04"))
         packet.setDestinationMACAddress(MAC.fromString("02:02:06:06:08:08"))
         triggerPacketIn(vmPortNames(sendingVm), packet)
         packetsEventsProbe.expectNoMsg()
-        flowEventsProbe.expectNoMsg()
+        wflowAddedProbe.expectNoMsg()
+        wflowRemovedProbe.expectNoMsg()
     }
 
     def testNoFragmentAfterFragment() {

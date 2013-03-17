@@ -7,7 +7,8 @@ import akka.actor.{ActorContext, ActorSystem}
 import akka.dispatch.{ExecutionContext, Future, Promise}
 import java.util.UUID
 
-import org.midonet.midolman.DatapathController
+import org.midonet.midolman.DeduplicationActor
+import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.rules.RuleResult.{Action => RuleAction}
 import org.midonet.midolman.simulation.Coordinator._
@@ -23,7 +24,7 @@ import org.midonet.midolman.simulation.Coordinator.DropAction
 import org.midonet.midolman.simulation.Coordinator.ToPortAction
 import org.midonet.midolman.simulation.Coordinator.ErrorDropAction
 import org.midonet.midolman.simulation.Coordinator.NotIPv4Action
-import org.midonet.midolman.DatapathController.EmitGeneratedPacket
+
 
 class Router(val id: UUID, val cfg: RouterConfig,
              val rTable: RoutingTableWrapper, val arpTable: ArpTable,
@@ -353,7 +354,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
         eth.setSourceMACAddress(inPort.portMac)
         eth.setDestinationMACAddress(pkt.getSenderHardwareAddress)
         eth.setEtherType(ARP.ETHERTYPE)
-        DatapathController.getRef(actorSystem) ! EmitGeneratedPacket(
+        DeduplicationActor.getRef(actorSystem) ! EmitGeneratedPacket(
             inPort.id, eth,
             if (originalPktContex != null) Option(originalPktContex.getFlowCookie) else None)
     }
@@ -577,7 +578,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
                     val postRoutingResult = Chain.apply(outFilter,
                                        egrPktContext, egrMatch, id, false)
                     if (postRoutingResult.action == RuleAction.ACCEPT) {
-                        DatapathController.getRef(actorSystem).tell(
+                        DeduplicationActor.getRef(actorSystem).tell(
                             EmitGeneratedPacket(rt.nextHopPort, eth,
                                 if (packetContext != null)
                                     Option(packetContext.getFlowCookie) else None))
@@ -753,7 +754,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
                 ingressMatch.getInputPortUUID,
                 IPv4.fromIPv4Address(ip.getSourceAddress()),
                 IPv4.fromIPv4Address(ip.getDestinationAddress()) }) */
-        DatapathController.getRef(actorSystem) ! EmitGeneratedPacket(
+        DeduplicationActor.getRef(actorSystem) ! EmitGeneratedPacket(
         // TODO(pino): check with Guillermo about match's vs. device's inPort.
             //ingressMatch.getInputPortUUID, eth)
             inPort.id, eth,

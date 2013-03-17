@@ -13,10 +13,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import akka.event.LoggingAdapter;
 import akka.event.LoggingBus;
 
+import org.midonet.midolman.flows.WildcardTablesProvider;
 import org.midonet.midolman.logging.LoggerFactory;
 import org.midonet.odp.Flow;
 import org.midonet.odp.FlowMatch;
@@ -68,9 +71,12 @@ public class FlowManager {
      */
     //private List<WildcardFlow> wildcardFlowsToUpdate = new ArrayList<WildcardFlow>();
 
-    public FlowManager(FlowManagerHelper flowManagerHelper, long maxDpFlows,
-                       long maxWildcardFlows, LoggingBus loggingBus) {
+    public FlowManager(
+            FlowManagerHelper flowManagerHelper,
+            WildcardTablesProvider wildcardTables,
+            long maxDpFlows, long maxWildcardFlows, LoggingBus loggingBus) {
         this.maxDpFlows = maxDpFlows;
+        this.wildcardTables = wildcardTables;
         this.maxWildcardFlows = maxWildcardFlows;
         this.flowManagerHelper = flowManagerHelper;
         if (dpFlowRemoveBatchSize > maxDpFlows)
@@ -79,10 +85,11 @@ public class FlowManager {
             this.getClass(), loggingBus);
     }
 
-    public FlowManager(FlowManagerHelper flowManagerHelper, long maxDpFlows,
-                       long maxWildcardFlows, LoggingBus loggingBus,
-                       int dpFlowRemoveBatchSize) {
-        this(flowManagerHelper, maxDpFlows, maxWildcardFlows, loggingBus);
+    public FlowManager(FlowManagerHelper flowManagerHelper,
+            WildcardTablesProvider wildcardTables,
+            long maxDpFlows, long maxWildcardFlows, LoggingBus loggingBus,
+            int dpFlowRemoveBatchSize) {
+        this(flowManagerHelper, wildcardTables, maxDpFlows, maxWildcardFlows, loggingBus);
         this.dpFlowRemoveBatchSize = dpFlowRemoveBatchSize;
     }
 
@@ -92,16 +99,14 @@ public class FlowManager {
     * The wildcardTables structure maps wildcard pattern to wildcard flow
     * table.
     */
-    private Map<Set<WildcardMatch.Field>, Map<WildcardMatch, WildcardFlow>>
-        wildcardTables = new HashMap<Set<WildcardMatch.Field>,
-        Map<WildcardMatch, WildcardFlow>>();
+    private WildcardTablesProvider wildcardTables;
 
     /* The datapath flow table is a map of datapath FlowMatch to a list of
      * FlowActions. The datapath flow table is a LinkedHashMap so that we
      * can iterate it in insertion-order (e.g. to find flows that are
      * candidates for eviction).
      * This table reflect the flows installed in the kernel, gets updated only
-     * by a callback of the DpConnection, that notifies the deletion of the
+     * by a callback of the DpConnection, that notifies the deletion or the
      * addiction of a flow.
      */
     private LinkedHashMap<FlowMatch, FlowMetadata> dpFlowTable =
@@ -169,11 +174,9 @@ public class FlowManager {
         // Get the WildcardFlowTable for this wild flow's pattern.
         Set<WildcardMatch.Field> pattern =
             wildFlow.getMatch().getUsedFields();
-        Map<WildcardMatch, WildcardFlow> wildTable = wildcardTables.get(pattern);
-        if (null == wildTable) {
-            wildTable = new HashMap<WildcardMatch, WildcardFlow>();
-            wildcardTables.put(pattern, wildTable);
-        }
+        Map<WildcardMatch, WildcardFlow> wildTable = wildcardTables.tables().get(pattern);
+        if (null == wildTable)
+            wildTable = wildcardTables.addTable(pattern);
         if (!wildTable.containsKey(wildFlow.wcmatch)) {
             wildTable.put(wildFlow.wcmatch, wildFlow);
             wildFlowToDpFlows.put(wildFlow, new HashSet<FlowMatch>());
@@ -200,15 +203,17 @@ public class FlowManager {
      * and its actions. The wildcard flow must have previously been successfully
      * added or the behavior is undefined.
      *
+     * @param flow
      * @param wildFlow
-     * @param flowMatch
      * @return True iff both the datapath flow was added. The flow will not be
      *         added if the table already contains a datapath flow with the same
      *         match.
      */
-    public boolean add(FlowMatch flowMatch, WildcardFlow wildFlow) {
-        if (dpFlowTable.containsKey(flowMatch))
-            return false;
+    public boolean add(Flow flow, WildcardFlow wildFlow) {
+        if (dpFlowTable.containsKey(flow.getMatch())) {
+            log.warning("Tried to add a duplicate DP flow");
+            forgetFlow(flow.getMatch());
+        }
         // check if there's enough space
         if (howManyFlowsToRemoveToFreeSpace() > 0) {
             log.info("The flow table is close to full capacity with {} dp flows",
@@ -217,11 +222,24 @@ public class FlowManager {
             // operation won't take place until the FlowController receives
             // and processes the RemoveFlow message.
         }
-        dpFlowToWildFlow.put(flowMatch, wildFlow);
-        wildFlowToDpFlows.get(wildFlow).add(flowMatch);
+
+        dpFlowToWildFlow.put(flow.getMatch(), wildFlow);
+        wildFlowToDpFlows.get(wildFlow).add(flow.getMatch());
+        dpFlowTable.put(flow.getMatch(), new FlowMetadata(flow.getActions()));
 
         log.debug("Added flow with match {} that matches wildcard flow {}",
-                  flowMatch, wildFlow);
+                  flow.getMatch(), wildFlow);
+
+        if (wildFlow.getIdleExpirationMillis() > 0) {
+            // TODO(pino): check with Rossella. Newly created flows will
+            // TODO: always have a null lastUsedTime.
+            if (null == flow.getLastUsedTime())
+                wildFlow.setLastUsedTimeMillis(System.currentTimeMillis());
+            else if (flow.getLastUsedTime() > wildFlow.getLastUsedTimeMillis())
+                wildFlow.setLastUsedTimeMillis(flow.getLastUsedTime());
+            //log.trace("LastUsedTime updated for wildcard flow {}", wcFlow);
+        }
+
         return true;
     }
 
@@ -244,11 +262,11 @@ public class FlowManager {
             // Get the WildcardFlowTable for this wildflow's pattern and remove
             // the wild flow.
             Map<WildcardMatch, WildcardFlow> wcMap =
-                wildcardTables.get(wildFlow.getMatch().getUsedFields());
+                wildcardTables.tables().get(wildFlow.getMatch().getUsedFields());
             if (wcMap != null) {
                 wcMap.remove(wildFlow.wcmatch);
                 if (wcMap.size() == 0)
-                    wildcardTables.remove(wildFlow.getMatch().getUsedFields());
+                    wildcardTables.tables().remove(wildFlow.getMatch().getUsedFields());
             }
         }
     }
@@ -275,55 +293,6 @@ public class FlowManager {
     public long getCreationTimeForDpFlow(FlowMatch flowMatch) {
         FlowMetadata data = dpFlowTable.get(flowMatch);
         return (data != null) ? data.creationTime : 0;
-    }
-
-    /**
-     * If the datapath FlowMatch matches a wildcard flow, create the datapath
-     * Flow. If the FlowMatch matches multiple wildcard flows, the FlowManager
-     * will arbitrarily choose one that has the highest priority (lowest
-     * priority value). If the FlowManager already contains a datapath flow
-     * for this FlowMatch, it will return a copy of that instead.
-     *
-     * @param flowMatch
-     * @return A datapath Flow if one already exists or a new one if the
-     *         FlowMatch matches a wildcard flow. Otherwise, null.
-     */
-    public Flow createDpFlow(FlowMatch flowMatch) {
-        // TODO(ross) why should we install a copy?
-        List<FlowAction<?>> actions = getActionsForDpFlow(flowMatch);
-        if (null != actions)
-            return new Flow().setMatch(flowMatch).setActions(actions);
-        // Iterate through the WildcardFlowTables to find candidate wild flows.
-        WildcardFlow wFlowCandidate = null;
-        WildcardMatch flowWildMatch = WildcardMatch.fromFlowMatch(flowMatch);
-        for (Map.Entry<Set<WildcardMatch.Field>,
-            Map<WildcardMatch, WildcardFlow>> wTableEntry :
-            wildcardTables.entrySet()) {
-            Map<WildcardMatch, WildcardFlow> table = wTableEntry.getValue();
-            Set<WildcardMatch.Field> pattern = wTableEntry.getKey();
-            WildcardMatch projectedFlowMatch = flowWildMatch.project(pattern);
-            WildcardFlow nextWFlowCandidate = table.get(projectedFlowMatch);
-            if (null != nextWFlowCandidate) {
-                if (null == wFlowCandidate)
-                    wFlowCandidate = nextWFlowCandidate;
-                else if (nextWFlowCandidate.priority < wFlowCandidate.priority)
-                    wFlowCandidate = nextWFlowCandidate;
-            }
-        }
-        // If we found a valid wildcard flow, create a Flow for the FlowMatch.
-        if (null == wFlowCandidate){
-            log.debug("FlowMatch {} didn't match any wildcard flow", flowMatch);
-            return null;
-        }
-        else {
-            Flow dpFlow = new Flow().setMatch(flowMatch)
-                                    .setActions(wFlowCandidate.getActions());
-            boolean addFlowMatchResult = add(flowMatch, wFlowCandidate);
-            assert(addFlowMatchResult);
-            log.debug("FlowMatch {} matched wildcard flow {} ", flowMatch,
-                      wFlowCandidate);
-            return dpFlow;
-        }
     }
 
     private void checkHardTimeOutExpiration(){
@@ -469,21 +438,15 @@ public class FlowManager {
         }
     }
 
-    public void addFlowCompleted(Flow flow){
-        dpFlowTable.put(flow.getMatch(), new FlowMetadata(flow.getActions()));
-        WildcardFlow wcFlow = dpFlowToWildFlow.get(flow.getMatch());
-        if (wcFlow == null) {
-            log.error("Could not find WildcardFlow for DP flow with match {} " +
-                "in map {}", flow.getMatch(), dpFlowToWildFlow);
-            return;
+    public void forgetFlow(FlowMatch flowMatch) {
+        WildcardFlow wflow = dpFlowToWildFlow.remove(flowMatch);
+        if (wflow != null) {
+            Set<FlowMatch> dpFlows = wildFlowToDpFlows.get(wflow);
+            if (dpFlows != null)
+                dpFlows.remove(flowMatch);
         }
-        if(wcFlow.getIdleExpirationMillis() > 0){
-            // TODO(pino): check with Rossella. Newly created flows will
-            // TODO: always have a null lastUsedTime.
-            wcFlow.setLastUsedTimeMillis((null == flow.getLastUsedTime())
-                                             ? System.currentTimeMillis()
-                                             : flow.getLastUsedTime());
-        }
+        flowUpdateRequests.remove(flowMatch);
+        dpFlowTable.remove(flowMatch);
     }
 
     public void removeFlowCompleted(Flow flow){
@@ -535,7 +498,7 @@ public class FlowManager {
 
 
     Map<Set<WildcardMatch.Field>, Map<WildcardMatch, WildcardFlow>> getWildcardTables() {
-        return wildcardTables;
+        return wildcardTables.tables();
     }
 
     LinkedHashMap<FlowMatch, FlowMetadata> getDpFlowTable() {

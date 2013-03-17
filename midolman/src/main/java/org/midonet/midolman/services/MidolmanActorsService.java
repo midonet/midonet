@@ -18,6 +18,7 @@ import akka.util.Timeout;
 import com.google.common.util.concurrent.AbstractService;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import org.midonet.midolman.DeduplicationActor;
 import com.typesafe.config.ConfigFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,6 +62,7 @@ public class MidolmanActorsService extends AbstractService {
     ActorRef flowControllerActor;
     ActorRef monitoringActor;
     ActorRef routingManagerActor;
+    ActorRef deduplicationActor;
 
     @Override
     protected void doStart() {
@@ -97,6 +99,10 @@ public class MidolmanActorsService extends AbstractService {
         routingManagerActor =
                 startActor(getGuiceAwareFactory(RoutingManagerActor.class),
                         RoutingManagerActor.Name());
+
+        deduplicationActor =
+                startActor(getGuiceAwareFactory(DeduplicationActor.class),
+                        DeduplicationActor.Name());
 
         if (config.getMidolmanEnableMonitoring()) {
             monitoringActor = startActor(getGuiceAwareFactory(MonitoringActor.class),

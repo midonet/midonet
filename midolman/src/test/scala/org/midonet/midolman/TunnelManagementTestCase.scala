@@ -18,7 +18,7 @@ import org.midonet.midolman.topology.VirtualToPhysicalMapper._
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.topology.rcu.{Host => RCUHost}
 import org.midonet.cluster.data.zones.{GreTunnelZone,
-                                                GreTunnelZoneHost}
+                                       GreTunnelZoneHost}
 import org.midonet.odp.ports.{NetDevPort, GreTunnelPort}
 import org.midonet.packets.IntIPv4
 
@@ -111,10 +111,10 @@ class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers with
 
         // check the internal data in the datapath controller is correct
         // the host peer contains a map which maps the zone to the tunnel name
-        dpc.peerToTunnels should contain key (host2.getId)
-        dpc.peerToTunnels(host2.getId).size should be(1)
-        dpc.peerToTunnels(host2.getId) should contain key (greZone.getId)
-        dpc.peerToTunnels(host2.getId)(greZone.getId).getName should be("tngreC0A8C801")
+        dpc.dpState.peerToTunnels should contain key (host2.getId)
+        dpc.dpState.peerToTunnels(host2.getId).size should be(1)
+        dpc.dpState.peerToTunnels(host2.getId) should contain key (greZone.getId)
+        dpc.dpState.peerToTunnels(host2.getId)(greZone.getId).getName should be("tngreC0A8C801")
 
         // update the gre ip of the second host
         val herSecondGreConfig = new GreTunnelZoneHost(host2.getId)
@@ -151,10 +151,10 @@ class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers with
         grePort.getOptions.getDestinationIPv4 should be(herSecondGreConfig.getIp.addressAsInt())
 
         // assert the internal state of the datapath controller vas fired
-        dpc.peerToTunnels should contain key (host2.getId)
-        dpc.peerToTunnels(host2.getId).size should be(1)
-        dpc.peerToTunnels(host2.getId) should contain key (greZone.getId)
-        dpc.peerToTunnels(host2.getId)(greZone.getId).getName should be("tngreC0A8D201")
+        dpc.dpState.peerToTunnels should contain key (host2.getId)
+        dpc.dpState.peerToTunnels(host2.getId).size should be(1)
+        dpc.dpState.peerToTunnels(host2.getId) should contain key (greZone.getId)
+        dpc.dpState.peerToTunnels(host2.getId)(greZone.getId).getName should be("tngreC0A8D201")
 
         val dp = dpConn().datapathsGet("midonet").get()
         dp should not be (null)
@@ -184,7 +184,6 @@ class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers with
         portChangedEvent.port.getName should be("tngreC0A8D201")
         portChangedEvent.port.isInstanceOf[GreTunnelPort] should be(true)
 
-        dpc.zones.contains(greZone.getId) should be(false)
         dpc.zonesToTunnels.get(greZone.getId).getOrElse(mutable.Set()).size should be (0)
         dpc.tunnelsToHosts.get(herPortNumber) should be(None)
     }

@@ -7,8 +7,8 @@ package org.midonet.midolman.util
 import java.util.UUID
 
 import org.midonet.packets._
-import org.midonet.midolman.DatapathController.EmitGeneratedPacket
 import org.midonet.cluster.client.RouterPort
+import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.topology.VirtualTopologyActor.{RouterRequest, PortRequest}
 import org.midonet.midolman.simulation.{Router => SimRouter}
 import org.midonet.midolman.FlowController.AddWildcardFlow
@@ -19,7 +19,7 @@ trait RouterHelper extends SimulationHelper {
     def expectEmitIcmp(fromMac: MAC, fromIp: IntIPv4,
                                toMac: MAC, toIp: IntIPv4,
                                icmpType: Char, icmpCode: Char) {
-        val errorPkt = requestOfType[EmitGeneratedPacket](simProbe()).ethPkt
+        val errorPkt = fishForRequestOfType[EmitGeneratedPacket](dedupProbe()).eth
         errorPkt.getEtherType should be === IPv4.ETHERTYPE
         val ipErrorPkt = errorPkt.getPayload.asInstanceOf[IPv4]
         ipErrorPkt.getProtocol should be === ICMP.PROTOCOL_NUMBER
@@ -33,9 +33,9 @@ trait RouterHelper extends SimulationHelper {
     def expectEmitArpRequest(port: UUID, fromMac: MAC, fromIp: IntIPv4,
                                      toIp: IntIPv4) {
         val toMac = MAC.fromString("ff:ff:ff:ff:ff:ff")
-        val msg = requestOfType[EmitGeneratedPacket](simProbe())
+        val msg = fishForRequestOfType[EmitGeneratedPacket](dedupProbe())
         msg.egressPort should be === port
-        val eth = msg.ethPkt
+        val eth = msg.eth
         eth.getSourceMACAddress should be === fromMac
         eth.getDestinationMACAddress should be === toMac
         eth.getEtherType should be === ARP.ETHERTYPE

@@ -8,7 +8,8 @@ import java.util.Arrays
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.midolman.FlowController.AddWildcardFlow
+import org.midonet.midolman.FlowController.{WildcardFlowAdded, AddWildcardFlow}
+import org.midonet.midolman.PacketWorkflowActor.AddVirtualWildcardFlow
 import org.midonet.midolman.datapath.FlowActionOutputToVrnPort
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.cluster.data.{Bridge => ClusterBridge, Ports}
@@ -65,19 +66,19 @@ class InstallWildcardFlowTestCase extends MidolmanTestCase {
         fishForRequestOfType[AddWildcardFlow](flowProbe())
         fishForRequestOfType[AddWildcardFlow](flowProbe())
         drainProbe(flowProbe())
+        drainProbe(wflowAddedProbe)
 
-        dpProbe().testActor.tell(AddWildcardFlow(
-            wildcardFlow, None, "My packet".getBytes, null, null))
+        dpProbe().testActor.tell(AddVirtualWildcardFlow(
+            wildcardFlow, Set.empty, Set.empty))
 
-        val addFlowMsg = fishForRequestOfType[AddWildcardFlow](flowProbe())
+        val addFlowMsg = fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
 
         addFlowMsg should not be null
-        addFlowMsg.pktBytes should not be null
-        addFlowMsg.flow should not be null
-        addFlowMsg.flow.getMatch.getInputPortUUID should be(null)
-        addFlowMsg.flow.getMatch.getInputPortNumber should be(inputPortNo)
+        addFlowMsg.f should not be null
+        addFlowMsg.f.getMatch.getInputPortUUID should be(null)
+        addFlowMsg.f.getMatch.getInputPortNumber should be(inputPortNo)
 
-        val actions = addFlowMsg.flow.getActions
+        val actions = addFlowMsg.f.getActions
         actions should not be null
         actions.contains(dpPortOutput) should be (true)
         actions.contains(vrnPortOutput) should be (false)

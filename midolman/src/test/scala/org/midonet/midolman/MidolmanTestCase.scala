@@ -3,14 +3,13 @@
 */
 package org.midonet.midolman
 
-import host.interfaces.InterfaceDescription
-import host.scanner.InterfaceScanner
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.compat.Platform
 import scala.annotation.tailrec
 import java.util.UUID
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.locks.ReentrantLock
 
 import akka.actor._
 import akka.dispatch.{Await, Future}
@@ -23,20 +22,27 @@ import org.apache.commons.configuration.HierarchicalConfiguration
 import org.scalatest._
 import org.scalatest.matchers.{BePropertyMatcher, BePropertyMatchResult,
         ShouldMatchers}
+import org.slf4j.{Logger, LoggerFactory}
 
+import org.midonet.midolman.DatapathController.InitializationComplete
+import org.midonet.midolman.DeduplicationActor.{DiscardPacket, EmitGeneratedPacket}
+import org.midonet.midolman.FlowController.{WildcardFlowRemoved, WildcardFlowAdded}
+import org.midonet.midolman.PacketWorkflowActor.PacketIn
 import org.midonet.midolman.guice._
 import org.midonet.midolman.guice.actors.{OutgoingMessage,
-                                           TestableMidolmanActorsModule}
+                                          TestableMidolmanActorsModule}
 import org.midonet.midolman.guice.cluster.ClusterClientModule
 import org.midonet.midolman.guice.config.MockConfigProviderModule
 import org.midonet.midolman.guice.datapath.MockDatapathModule
 import org.midonet.midolman.guice.reactor.ReactorModule
 import org.midonet.midolman.guice.zookeeper.MockZookeeperConnectionModule
+import org.midonet.midolman.host.interfaces.InterfaceDescription
+import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.layer4.NatMappingFactory
 import org.midonet.midolman.monitoring.{MonitoringActor, MonitoringAgent}
 import org.midonet.midolman.services.{HostIdProviderService,
         MidolmanActorsService, MidolmanService}
-import org.midonet.midolman.topology.{VirtualTopologyActor,
+import org.midonet.midolman.topology.{LocalPortActive, VirtualTopologyActor,
         VirtualToPhysicalMapper}
 import org.midonet.cluster.{Client, DataClient}
 import org.midonet.cluster.services.MidostoreSetupService
@@ -46,15 +52,9 @@ import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.odp.protos.mocks.MockOvsDatapathConnectionImpl
 import org.midonet.packets.Ethernet
 import org.midonet.util.functors.callbacks.AbstractCallback
-import org.midonet.midolman.DatapathController.{EmitGeneratedPacket,
-                                                InitializationComplete,
-                                                PacketIn}
 import protos.mocks.MockOvsDatapathConnectionImpl.FlowListener
-import scala.List
 import org.midonet.cluster.data.{Port => VPort}
 import org.midonet.cluster.data.host.Host
-import java.util.concurrent.locks.ReentrantLock
-import org.slf4j.{Logger, LoggerFactory}
 
 object MidolmanTestCaseLock {
     val sequential: ReentrantLock = new ReentrantLock()
@@ -73,6 +73,12 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
     var mAgent: MonitoringAgent = null
     var interfaceScanner: MockInterfaceScanner = null
     var sProbe: TestProbe = null
+
+    var packetInProbe: TestProbe = null
+    var wflowAddedProbe: TestProbe = null
+    var wflowRemovedProbe: TestProbe = null
+    var portsProbe: TestProbe = null
+    var discardPacketProbe: TestProbe = null
 
     protected def fillConfig(config: HierarchicalConfiguration)
             : HierarchicalConfiguration = {
@@ -114,6 +120,11 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
         injector.getInstance(classOf[HostIdProviderService]).getHostId
     }
 
+    protected def makeEventProbe[T](klass: Class[T]): TestProbe = {
+        val probe = newProbe()
+        actors().eventStream.subscribe(probe.ref, klass)
+        probe
+    }
 
     before {
         try {
@@ -152,7 +163,13 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
 
             // Make sure that each test method runs alone
             MidolmanTestCaseLock.sequential.lock()
-            log.info("Aquired test lock")
+            log.info("Acquired test lock")
+            actors().settings.DebugEventStream
+            packetInProbe = makeEventProbe(classOf[PacketIn])
+            wflowAddedProbe = makeEventProbe(classOf[WildcardFlowAdded])
+            wflowRemovedProbe = makeEventProbe(classOf[WildcardFlowRemoved])
+            portsProbe = makeEventProbe(classOf[LocalPortActive])
+            discardPacketProbe = makeEventProbe(classOf[DiscardPacket])
 
             beforeTest()
         } catch {
@@ -256,7 +273,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
         actorsByName(name).asInstanceOf[TestActorRef[A]]
     }
 
-    protected def initializeDatapath(): DatapathController.InitializationComplete = {
+    protected def initializeDatapath(): InitializationComplete = {
 
         val result = ask[InitializationComplete](
             DatapathController.getRef(actors()), Initialize())
@@ -314,6 +331,10 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
 
     protected def flowProbe(): TestKit = {
         probeByName(FlowController.Name)
+    }
+
+    protected def dedupProbe(): TestKit = {
+        probeByName(DeduplicationActor.Name)
     }
 
     protected def vtpProbe(): TestKit = {
@@ -407,6 +428,11 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
         drainProbe(flowProbe())
         drainProbe(vtpProbe())
         drainProbe(dpProbe())
+        drainProbe(dedupProbe())
+        drainProbe(discardPacketProbe)
+        drainProbe(wflowAddedProbe)
+        drainProbe(wflowRemovedProbe)
+        drainProbe(packetInProbe)
     }
 }
 

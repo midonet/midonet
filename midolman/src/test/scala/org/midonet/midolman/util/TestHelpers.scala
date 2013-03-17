@@ -10,12 +10,13 @@ import java.util.concurrent.TimeUnit
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers._
 import org.junit.Assume.assumeTrue
-import org.midonet.midolman.FlowController.{WildcardFlowAdded,
-    WildcardFlowRemoved}
-import org.midonet.odp.flows.FlowAction
-import org.midonet.packets.{Ethernet, IntIPv4, MAC, Packets}
-import org.midonet.midolman.FlowController.{InvalidateFlowsByTag, WildcardFlowAdded, WildcardFlowRemoved}
+import org.midonet.midolman.FlowController.{InvalidateFlowsByTag,
+        WildcardFlowAdded, WildcardFlowRemoved}
 import collection.mutable
+import org.midonet.odp.flows.FlowAction
+import org.midonet.packets.{Packets, MAC, IntIPv4, Ethernet}
+import scala.collection.JavaConversions._
+
 
 /**
  * Simple Scala object that should contain helpers methods to be used by a test
@@ -96,6 +97,7 @@ object TestHelpers {
     PartialFunction[Any, Boolean] = {
         {
             case msg: InvalidateFlowsByTag => msg.tag.equals(tag)
+            case _ => false
         }
     }
 

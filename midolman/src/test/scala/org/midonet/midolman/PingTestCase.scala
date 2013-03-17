@@ -11,10 +11,10 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
 
-import org.midonet.midolman.DatapathController.PacketIn
-import org.midonet.midolman.FlowController.{DiscardPacket, WildcardFlowAdded,
+import org.midonet.midolman.DeduplicationActor.{EmitGeneratedPacket, DiscardPacket}
+import org.midonet.midolman.FlowController.{WildcardFlowAdded,
     WildcardFlowRemoved}
-import org.midonet.midolman.DatapathController.EmitGeneratedPacket
+import org.midonet.midolman.PacketWorkflowActor.PacketIn
 import org.midonet.midolman.guice.actors.OutgoingMessage
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
@@ -53,17 +53,10 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
     val rtrPort1Name = "RouterPort1"
     var rtrPort1Num = 0
 
-    private var flowEventsProbe: TestProbe = null
-    private var portEventsProbe: TestProbe = null
     private var packetsEventsProbe: TestProbe = null
 
     override def beforeTest() {
-        flowEventsProbe = newProbe()
-        portEventsProbe = newProbe()
         packetsEventsProbe = newProbe()
-        actors().eventStream.subscribe(flowEventsProbe.ref, classOf[WildcardFlowAdded])
-        actors().eventStream.subscribe(flowEventsProbe.ref, classOf[WildcardFlowRemoved])
-        actors().eventStream.subscribe(portEventsProbe.ref, classOf[LocalPortActive])
         actors().eventStream.subscribe(packetsEventsProbe.ref, classOf[PacketsExecute])
 
         val host = newHost("myself", hostId())
@@ -82,7 +75,7 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
             routerIp1.getMaskLength)
         rtrPort1 should not be null
         materializePort(rtrPort1, host, rtrPort1Name)
-        val portEvent = requestOfType[LocalPortActive](portEventsProbe)
+        val portEvent = requestOfType[LocalPortActive](portsProbe)
         portEvent.active should be(true)
         portEvent.portID should be(rtrPort1.getId)
         dpController().underlyingActor.vifToLocalPortNumber(rtrPort1.getId) match {
@@ -133,7 +126,7 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
         addDhcpSubnet(bridge, dhcpSubnet)
         // set DHCP host
         materializePort(brPort2, host, vm2PortName)
-        requestOfType[LocalPortActive](portEventsProbe)
+        requestOfType[LocalPortActive](portsProbe)
         dpController().underlyingActor.vifToLocalPortNumber(brPort2.getId) match {
             case Some(portNo : Short) => vm2PortNumber = portNo
             case None => fail("Not able to find data port number for bridge port 2")
@@ -254,7 +247,7 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
     }
 
     private def expectEmitDhcpReply(expectedMsgType : Byte) = {
-        val returnPkt = requestOfType[EmitGeneratedPacket](simProbe()).ethPkt
+        val returnPkt = fishForRequestOfType[EmitGeneratedPacket](dedupProbe()).eth
         returnPkt.getEtherType should be === IPv4.ETHERTYPE
         val ipPkt = returnPkt.getPayload.asInstanceOf[IPv4]
         ipPkt.getProtocol should be === UDP.PROTOCOL_NUMBER
@@ -285,7 +278,7 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
 
         log.info("When the VM boots up, it should start sending DHCP discover")
         injectDhcpDiscover(vm2PortName, vm2Mac)
-        requestOfType[PacketIn](simProbe())
+        requestOfType[PacketIn](packetInProbe)
 
         log.info("Expecting MidoNet to respond with DHCP offer")
         // verify DHCP OFFER
@@ -294,7 +287,7 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
 
         log.info("Got DHCPOFFER, broadcast DHCP Request")
         injectDhcpRequest(vm2PortName, vm2Mac)
-        requestOfType[PacketIn](simProbe())
+        requestOfType[PacketIn](packetInProbe)
         log.info("Expecting MidoNet to respond with DHCP Reply/Ack")
         // verify DHCP Reply
         expectEmitDhcpReply(DHCPOption.MsgType.ACK.value)
@@ -308,13 +301,13 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
         //                 routerMac2, vm2PortNumber)
         feedArpCache(vm2PortName, vm2IP.addressAsInt, vm2Mac,
                      routerIp2.addressAsInt, routerMac2)
-        requestOfType[PacketIn](simProbe())
-        fishForRequestOfType[DiscardPacket](flowProbe())
+        requestOfType[PacketIn](packetInProbe)
+        fishForRequestOfType[DiscardPacket](discardPacketProbe)
         drainProbes()
 
         log.info("Ping Router port 2")
         injectIcmpEchoReq(vm2PortName, vm2Mac, vm2IP, routerMac2, routerIp2)
-        requestOfType[PacketIn](simProbe())
+        requestOfType[PacketIn](packetInProbe)
         log.info("Check ICMP Echo Reply from Router port 2")
         expectEmitIcmp(routerMac2, routerIp2, vm2Mac, vm2IP,
                        ICMP.TYPE_ECHO_REPLY, ICMP.CODE_NONE)
@@ -322,25 +315,25 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
 
         log.info("Ping Router port 1")
         injectIcmpEchoReq(vm2PortName, vm2Mac, vm2IP, routerMac2, routerIp1)
-        requestOfType[PacketIn](simProbe())
+        requestOfType[PacketIn](packetInProbe)
         log.info("Check ICMP Echo Reply from Router port 1")
         expectEmitIcmp(routerMac2, routerIp1, vm2Mac, vm2IP,
                        ICMP.TYPE_ECHO_REPLY, ICMP.CODE_NONE)
         expectPacketOut(vm2PortNumber)
-        fishForRequestOfType[DiscardPacket](flowProbe())
+        fishForRequestOfType[DiscardPacket](discardPacketProbe)
 
         log.info("Ping VM1, not expecting any reply")
         injectIcmpEchoReq(vm2PortName, vm2Mac, vm2IP, routerMac2, vm1Ip)
-        requestOfType[PacketIn](simProbe())
+        requestOfType[PacketIn](packetInProbe)
         // this is an ARP request, the ICMP echo will not be delivered
         // because this ARP will go unanswered
-        requestOfType[EmitGeneratedPacket](simProbe())
+        requestOfType[EmitGeneratedPacket](dedupProbe())
         expectPacketOut(rtrPort1Num)
 
         log.info("Send Ping reply on behalf of VM1")
         injectIcmpEchoReply(rtrPort1Name, vm1Mac, vm1Ip, 16, 32,
                             routerMac1, vm2IP)
-        requestOfType[PacketIn](simProbe())
+        requestOfType[PacketIn](packetInProbe)
 
         log.info("Expecting packet out on VM2 port")
         val eth = expectRoutedPacketOut(vm2PortNumber)
