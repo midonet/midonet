@@ -178,20 +178,11 @@ class LinksTestCase extends MidolmanTestCase
         val pktOut = requestOfType[PacketsExecute](packetEventsProbe).packet
         pktOut should not be null
         pktOut.getData should not be null
-        pktOut.getActions.size should equal (2)
-        pktOut.getActions.foreach( action => { action.getKey match {
-                case FlowAction.FlowActionAttr.OUTPUT =>
-                    action.getValue
-                        .getClass should be === classOf[FlowActionOutput]
-                    action.getValue.asInstanceOf[FlowActionOutput]
-                        .getPortNumber should be === (rtrPort1Num)
-                case FlowAction.FlowActionAttr.SET =>
-                    action.getValue
-                        .getClass should be === classOf[FlowActionSetKey]
-                    action.getValue.asInstanceOf[FlowActionSetKey].getFlowKey
-                        .getClass should be === classOf[FlowKeyICMPError]
-            }
-        })
+        pktOut.getActions.size should equal (1)
+        val action = pktOut.getActions.get(0)
+        action.getValue .getClass should be === classOf[FlowActionOutput]
+        action.getValue.asInstanceOf[FlowActionOutput]
+            .getPortNumber should be === (rtrPort1Num)
 
         pkt = Ethernet.deserialize(pktOut.getData).getPayload.asInstanceOf[IPv4]
 

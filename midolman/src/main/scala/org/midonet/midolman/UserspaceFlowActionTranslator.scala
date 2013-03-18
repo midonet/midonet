@@ -62,6 +62,6 @@ trait UserspaceFlowActionTranslator {
                 true
         }}
 
-        newActions
+        packet.setActions(newActions)
     }
 }

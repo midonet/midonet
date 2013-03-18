@@ -378,6 +378,47 @@ public class PacketHelper {
         return pkt.serialize();
     }
 
+    public static byte[] makeIcmpEchoReply(MAC dlSrc, IntIPv4 nwSrc,
+                                           MAC dlDst, IntIPv4 nwDst,
+                                           short id, short seq) {
+        byte[] data = new byte[17];
+        rand.nextBytes(data);
+        ICMP icmp = new ICMP();
+        icmp.setEchoReply(id, seq, data);
+        IPv4 ip = new IPv4();
+        ip.setTtl((byte)12);
+        ip.setPayload(icmp);
+        ip.setProtocol(ICMP.PROTOCOL_NUMBER);
+        ip.setSourceAddress(nwSrc.addressAsInt());
+        ip.setDestinationAddress(nwDst.addressAsInt());
+        Ethernet pkt = new Ethernet();
+        pkt.setPayload(ip);
+        pkt.setEtherType(IPv4.ETHERTYPE);
+        pkt.setSourceMACAddress(dlSrc);
+        pkt.setDestinationMACAddress(dlDst);
+        return pkt.serialize();
+    }
+
+    public static byte[] makeIcmpErrorUnreachable(MAC dlSrc, MAC dlDst,
+                                       ICMP.UNREACH_CODE code, IPv4 forPkt) {
+        ICMP icmp = new ICMP();
+        icmp.setUnreachable(code, forPkt);
+
+        IPv4 ip = new IPv4();
+        ip.setSourceAddress(forPkt.getDestinationAddress());
+        ip.setDestinationAddress(forPkt.getSourceAddress());
+        ip.setTtl((byte)12);
+        ip.setPayload(icmp);
+        ip.setProtocol(ICMP.PROTOCOL_NUMBER);
+
+        Ethernet pkt = new Ethernet();
+        pkt.setPayload(ip);
+        pkt.setEtherType(IPv4.ETHERTYPE);
+        pkt.setSourceMACAddress(dlSrc);
+        pkt.setDestinationMACAddress(dlDst);
+        return pkt.serialize();
+    }
+
     /**
      * Check that the received ICMP echo request matches what was sent from
      * a peer, except the L2 addresses.
