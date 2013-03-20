@@ -6,6 +6,7 @@ package org.midonet.api.bgp;
 
 import org.midonet.api.UriResource;
 import org.midonet.api.ResourceUriBuilder;
+import org.midonet.api.bgp.validation.IsUniqueBgpInPort;
 import org.midonet.cluster.data.BGP;
 import org.midonet.packets.IntIPv4;
 
@@ -16,6 +17,7 @@ import java.util.UUID;
 /**
  * Class representing BGP.
  */
+@IsUniqueBgpInPort
 @XmlRootElement
 public class Bgp extends UriResource {
 

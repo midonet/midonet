@@ -31,5 +31,7 @@ public class MessageProperty {
             "{midokura.javarx.HostIdIsInvalid.message}";
     public static final String PORTS_LINKABLE =
             "{midokura.javarx.PortsLinkable.message}";
+    public static final String BGP_NOT_UNIQUE =
+            "{midokura.javarx.IsUniqueBgpInPort.message}";
 
 }
