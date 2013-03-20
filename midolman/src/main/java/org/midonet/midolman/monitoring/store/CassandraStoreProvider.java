@@ -22,6 +22,7 @@ public class CassandraStoreProvider implements Provider<CassandraStore> {
         MonitoringConfiguration config = configProvider.getConfig(MonitoringConfiguration.class);
         CassandraClient client = new CassandraClient(
             config.getCassandraServers(),
+            config.getCassandraMaxActiveConnections(),
             config.getCassandraCluster(),
             config.getMonitoringCassandraKeyspace(),
             config.getMonitoringCassandraColumnFamily(),

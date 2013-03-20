@@ -16,13 +16,14 @@ public class CassandraCache implements Cache {
     private final String column = "target";
     private CassandraClient client;
 
-    public CassandraCache(String servers, String clusterName,
-                          String keyspaceName, String columnFamily,
-                          int replicationFactor, int expirationSecs)
+    public CassandraCache(String servers, int maxActiveConns,
+                          String clusterName, String keyspaceName,
+                          String columnFamily, int replicationFactor,
+                          int expirationSecs)
             throws HectorException {
-        client = new CassandraClient(servers, clusterName, keyspaceName,
-                                     columnFamily, replicationFactor,
-                                     expirationSecs);
+        client = new CassandraClient(servers, maxActiveConns, clusterName,
+                                     keyspaceName, columnFamily,
+                                     replicationFactor, expirationSecs);
         client.connect();
     }
 

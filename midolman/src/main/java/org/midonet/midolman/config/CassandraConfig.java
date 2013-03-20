@@ -29,4 +29,7 @@ public interface CassandraConfig {
 
     @ConfigInt(key = "replication_factor", defaultValue = 1)
     public int getCassandraReplicationFactor();
+
+    @ConfigInt(key = "max_active_connections", defaultValue=3)
+    public int getCassandraMaxActiveConnections();
 }

@@ -25,6 +25,7 @@ public class CassandraClientProvider implements Provider<CassandraClient> {
     public CassandraClient get() {
         return new CassandraClient(
                 config.getCassandraServers(),
+                config.getCassandraMaxActiveConnections(),
                 config.getCassandraCluster(),
                 config.getMonitoringCassandraKeyspace(),
                 config.getMonitoringCassandraColumnFamily(),
