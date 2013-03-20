@@ -10,4 +10,8 @@ public interface IPSubnet {
     String toString();
     String toZkString();
     IntIPv4 toIntIPv4();
+    /* Required for deserialization */
+    void setAddress(IPAddr address);
+    /* Required for deserialization */
+    void setPrefixLen(int prefixLen);
 }

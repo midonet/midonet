@@ -15,9 +15,10 @@ import java.util.*;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.UriResource;
 import org.midonet.midolman.rules.Condition;
-import org.midonet.packets.IntIPv4;
+import org.midonet.packets.IPAddr;
+import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.MAC;
-import org.midonet.packets.Net;
 import org.midonet.util.StringUtil;
 
 import org.codehaus.jackson.annotate.JsonSubTypes;
@@ -715,7 +716,8 @@ public abstract class Rule extends UriResource {
         c.invDlDst = this.invDlDst;
         c.nwDstInv = this.isInvNwDst();
         if (this.getNwDstAddress() != null) {
-            c.nwDstIp = IntIPv4.fromString(this.getNwDstAddress(),
+            c.nwDstIp = new IPv4Subnet(
+                IPv4Addr.fromString(this.getNwDstAddress()),
                 this.getNwDstLength());
         }
         if (nwProto != 0)
@@ -723,8 +725,9 @@ public abstract class Rule extends UriResource {
         c.nwProtoInv = this.isInvNwProto();
         c.nwSrcInv = this.isInvNwSrc();
         if (this.getNwSrcAddress() != null) {
-            c.nwSrcIp = IntIPv4.fromString(this.getNwSrcAddress(),
-                                           this.getNwSrcLength());
+            c.nwSrcIp = new IPv4Subnet(
+                IPv4Addr.fromString(this.getNwSrcAddress()),
+                this.getNwSrcLength());
         }
         if (nwTos != 0)
             c.nwTos = (byte) nwTos;
@@ -780,12 +783,12 @@ public abstract class Rule extends UriResource {
         if (null != c.dlDst)
             this.setDlDst(c.dlDst.toString());
         if (null != c.nwDstIp) {
-            this.setNwDstAddress(c.nwDstIp.toUnicastString());
-            this.setNwDstLength(c.nwDstIp.getMaskLength());
+            this.setNwDstAddress(c.nwDstIp.getAddress().toString());
+            this.setNwDstLength(c.nwDstIp.getPrefixLen());
         }
         if (null != c.nwSrcIp) {
-            this.setNwSrcAddress(c.nwSrcIp.toUnicastString());
-            this.setNwSrcLength(c.nwSrcIp.getMaskLength());
+            this.setNwSrcAddress(c.nwSrcIp.getAddress().toString());
+            this.setNwSrcLength(c.nwSrcIp.getPrefixLen());
         }
         if (null != c.nwProto)
             this.setNwProto(unsign(c.nwProto));

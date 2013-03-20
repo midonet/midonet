@@ -29,6 +29,7 @@ import org.junit.Test;
 
 import org.midonet.cache.Cache;
 import org.midonet.midolman.vrn.ForwardInfo;
+import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.IntIPv4;
 import org.midonet.packets.IPv4;
 import org.midonet.packets.IPv4Addr;
@@ -184,31 +185,31 @@ public class TestCondition {
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
         cond.nwSrcInv = false;
         // Set the nwSrcIp to something different than the packet's 0x0a001406.
-        cond.nwSrcIp = new IntIPv4(0x0a001403, 0);
+        cond.nwSrcIp = new IPv4Subnet(IPv4Addr.fromString("10.0.20.3"), 0);
         // Since nwSrcLength is still 0, the condition still matches the packet.
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
-        cond.nwSrcIp.setMaskLength(32);
+        cond.nwSrcIp = new IPv4Subnet(IPv4Addr.fromString("10.0.20.3"), 32);
         Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
         // Now try shorter prefixes:
-        cond.nwSrcIp.setMaskLength(24);
+        cond.nwSrcIp = new IPv4Subnet(IPv4Addr.fromString("10.0.20.3"), 24);
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
-        cond.nwSrcIp.setMaskLength(16);
+        cond.nwSrcIp = new IPv4Subnet(IPv4Addr.fromString("10.0.20.3"), 16);
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
         // Now try length 0 with an ip that differs in the left-most bit.
-        cond.nwSrcIp = new IntIPv4(0xfa010104, 1);
+        cond.nwSrcIp = new IPv4Subnet(IPv4Addr.fromString("250.1.1.4"), 1);
         Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
-        cond.nwSrcIp.setMaskLength(0);
+        cond.nwSrcIp = new IPv4Subnet(IPv4Addr.fromString("250.1.1.4"), 0);
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
         cond.nwSrcInv = true;
         Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
         // Now increase the maskLength. The packet doesn't match the
         // condition's srcIp, but the nwSrcInv is true.
-        cond.nwSrcIp.setMaskLength(32);
+        cond.nwSrcIp = new IPv4Subnet(IPv4Addr.fromString("250.1.1.4"), 32);
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
         // Remove the invert, set the nwSrcIp to the packet's
         cond.nwSrcInv = false;
         Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
-        cond.nwSrcIp = new IntIPv4(0x0a001406, 32);
+        cond.nwSrcIp = new IPv4Subnet(IPv4Addr.fromString("10.0.20.6"), 32);
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
         cond.nwSrcInv = true;
         Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
@@ -226,30 +227,30 @@ public class TestCondition {
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
         cond.nwDstInv = false;
         // Set the nwDstIp to something different than the packet's 0x0a000b22.
-        cond.nwDstIp = new IntIPv4(0x0a000b23, 0);
+        cond.nwDstIp = new IPv4Subnet(IPv4Addr.fromString("10.0.11.35"), 0);
         // Since nwDstLength is 0, the condition still matches the packet.
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
         // Now try inverting the result
         cond.nwDstInv = true;
         Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
         cond.nwDstInv = false;
-        cond.nwDstIp.setMaskLength(32);
+        cond.nwDstIp = new IPv4Subnet(IPv4Addr.fromString("10.0.11.35"), 32);
         Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
         // Now try shorter prefixes:
-        cond.nwDstIp.setMaskLength(31);
+        cond.nwDstIp = new IPv4Subnet(IPv4Addr.fromString("10.0.11.35"), 31);
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
-        cond.nwDstIp.setMaskLength(24);
+        cond.nwDstIp = new IPv4Subnet(IPv4Addr.fromString("10.0.11.35"), 24);
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
-        cond.nwDstIp.setMaskLength(16);
+        cond.nwDstIp = new IPv4Subnet(IPv4Addr.fromString("10.0.11.35"), 16);
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
         // Now try inverting
         cond.nwDstInv = true;
         Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
-        cond.nwDstIp.setMaskLength(32);
+        cond.nwDstIp = new IPv4Subnet(IPv4Addr.fromString("10.0.11.35"), 32);
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
         // Remove the invert, set the nwDstIp to the packet's
         cond.nwDstInv = false;
-        cond.nwDstIp = new IntIPv4(0x0a000b22, 32);
+        cond.nwDstIp = new IPv4Subnet(IPv4Addr.fromString("10.0.11.34"), 32);
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
         cond.nwDstInv = true;
         Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));

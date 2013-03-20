@@ -7,6 +7,10 @@ public class IPv4Subnet implements IPSubnet {
     private IPv4Addr addr;
     private int prefixLen;
 
+    /* Default constructor for deserialization. */
+    public IPv4Subnet() {
+    }
+
     public IPv4Subnet(IPv4Addr addr_, int prefixLen_) {
         addr = addr_;
         prefixLen = prefixLen_;
@@ -32,11 +36,24 @@ public class IPv4Subnet implements IPSubnet {
     }
 
     @Override
+    public void setAddress(IPAddr address) {
+        if (address instanceof IPv4Addr)
+            this.addr = ((IPv4Addr)address).clone();
+        else
+            throw new IllegalArgumentException("IPv4Subnet requires IPv4Addr");
+    }
+
+    @Override
+    public void setPrefixLen(int prefixLen) {
+        this.prefixLen = prefixLen;
+    }
+
+    @Override
     public int getPrefixLen() {
         return prefixLen;
     }
 
-    public IPv4Addr getBroadcastAddress() {
+    public IPv4Addr toBroadcastAddress() {
         int mask = 0xFFFFFFFF >>> prefixLen;
         int bcast = addr.getIntAddress() | mask;
         return new IPv4Addr().setIntAddress(bcast);

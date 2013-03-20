@@ -7,12 +7,14 @@ package org.midonet.midolman.rules;
 import java.util.Set;
 import java.util.UUID;
 
+import org.midonet.packets.IPAddr;
+import org.midonet.packets.IPAddr$;
+import org.midonet.packets.IPSubnet;
+import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IntIPv4;
 import org.midonet.packets.MAC;
-import org.midonet.packets.Net;
 import org.midonet.sdn.flows.WildcardMatch;
 import static org.midonet.packets.Unsigned.unsign;
-
 
 public class Condition {
     public boolean conjunctionInv;
@@ -34,9 +36,9 @@ public class Condition {
     public boolean nwTosInv;
     public Byte nwProto;
     public boolean nwProtoInv;
-    public IntIPv4 nwSrcIp;
+    public IPSubnet nwSrcIp;
     public boolean nwSrcInv;
-    public IntIPv4 nwDstIp;
+    public IPSubnet nwDstIp;
     public boolean nwDstInv;
     public int tpSrcStart;
     public int tpSrcEnd;
@@ -81,10 +83,8 @@ public class Condition {
         if (!cond)
             return conjunctionInv;
 
-        IntIPv4 pmSrcIP = pktMatch.getNetworkSourceIP() == null ? null
-                              : pktMatch.getNetworkSourceIP().toIntIPv4();
-        IntIPv4 pmDstIP = pktMatch.getNetworkDestinationIP() == null ? null
-                              : pktMatch.getNetworkDestinationIP().toIntIPv4();
+        IPAddr pmSrcIP = pktMatch.getNetworkSourceIP();
+        IPAddr pmDstIP = pktMatch.getNetworkDestinationIP();
         if (!matchPort(this.inPortIds, inPortId, this.inPortInv)
             || !matchPort(this.outPortIds, outPortId, this.outPortInv)
             || !matchField(dlType, pktMatch.getEtherType(), invDlType)
@@ -95,9 +95,9 @@ public class Condition {
             || !matchIP(nwSrcIp, pmSrcIP, nwSrcInv)
             || !matchIP(nwDstIp, pmDstIP, nwDstInv)
             || !matchRange(tpSrcStart, tpSrcEnd,
-                    pktMatch.getTransportSourceObject(), tpSrcInv)
+                           pktMatch.getTransportSourceObject(), tpSrcInv)
             || !matchRange(tpDstStart, tpDstEnd,
-                    pktMatch.getTransportDestinationObject(), tpDstInv)
+                           pktMatch.getTransportDestinationObject(), tpDstInv)
             )
             cond = false;
         return conjunctionInv? !cond : cond;
@@ -126,12 +126,12 @@ public class Condition {
         return negate? !cond : cond;
     }
 
-    private boolean matchIP(IntIPv4 condSubnet, IntIPv4 pktIp, boolean negate) {
+    private boolean matchIP(IPSubnet condSubnet, IPAddr pktIp, boolean negate) {
         // Packet is considered to match if the condField is not specified.
         if (condSubnet == null)
             return true;
         boolean cond = false;
-        if (pktIp != null && condSubnet.subnetContains(pktIp.addressAsInt()))
+        if (pktIp != null && condSubnet.containsAddress(pktIp))
             cond = true;
         return negate? !cond : cond;
     }
@@ -214,12 +214,12 @@ public class Condition {
                 sb.append("nwProtoInv").append(nwProtoInv).append(", ");
         }
         if (null != nwSrcIp) {
-            sb.append("nwSrcIp=").append(nwSrcIp).append(", ");
+            sb.append("nwSrcIp=").append(nwSrcIp.toString()).append(", ");
             if(nwSrcInv)
                 sb.append("nwSrcInv").append(nwSrcInv).append(", ");
         }
         if (null != nwDstIp) {
-            sb.append("nwDstIp=").append(nwDstIp).append(", ");
+            sb.append("nwDstIp=").append(nwDstIp.toString()).append(", ");
             if(nwDstInv)
                 sb.append("nwDstInv").append(nwDstInv).append(", ");
         }

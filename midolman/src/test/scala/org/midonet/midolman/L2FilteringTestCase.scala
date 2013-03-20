@@ -47,8 +47,10 @@ class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture
 
         // add a rule that drops the packets from 0 to 3 in the jump chain
         val cond1 = new Condition()
-        cond1.nwSrcIp = vmIps(0)
-        cond1.nwDstIp = vmIps(3)
+        cond1.nwSrcIp = new IPv4Subnet(
+            IPv4Addr.fromString(vmIps(0).toUnicastString), 32)
+        cond1.nwDstIp = new IPv4Subnet(
+            IPv4Addr.fromString(vmIps(3).toUnicastString), 32)
         val jumpRule = newLiteralRuleOnChain(jumpChain, 1, cond1, RuleResult.Action.DROP)
         newJumpRuleOnChain(brInChain, 1, cond1, jumpChain.getId)
         log.info("The flow should be invalidated")
@@ -103,8 +105,10 @@ class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture
 
         log.info("adding first rule: drop by ip from port0 to port3")
         val cond2 = new Condition()
-        cond2.nwSrcIp = vmIps(0)
-        cond2.nwDstIp = vmIps(3)
+        cond2.nwSrcIp = new IPv4Subnet(
+            IPv4Addr.fromString(vmIps(0).toUnicastString), 32)
+        cond2.nwDstIp = new IPv4Subnet(
+            IPv4Addr.fromString(vmIps(3).toUnicastString), 32)
         val rule2 = newLiteralRuleOnChain(brInChain, 2, cond2,
                                           RuleResult.Action.DROP)
         clusterDataClient().bridgesUpdate(bridge)

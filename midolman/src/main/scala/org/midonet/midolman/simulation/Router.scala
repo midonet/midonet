@@ -643,7 +643,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
         if (null != outPort && outPort.portAddr.isInstanceOf[IPv4Subnet] &&
                 ipPkt.getDestinationIPAddress ==
                     outPort.portAddr.asInstanceOf[IPv4Subnet]
-                           .getBroadcastAddress) {
+                           .toBroadcastAddress) {
             log.debug("Not generating ICMP Unreachable for packet to "
                       + "the subnet local broadcast address.")
             return false

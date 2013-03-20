@@ -16,6 +16,9 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import org.midonet.packets.IPAddr;
+import org.midonet.packets.IPSubnet;
+import org.midonet.packets.IPv4Subnet;
 import org.midonet.sdn.flows.WildcardMatch;
 import org.midonet.midolman.layer4.NatLeaseManager;
 import org.midonet.midolman.layer4.NatMapping;
@@ -83,7 +86,7 @@ public class TestRules {
         cond = new Condition();
         cond.inPortIds = new HashSet<UUID>();
         cond.inPortIds.add(inPort);
-        cond.nwSrcIp = new IntIPv4(0x0a001400, 24);
+        cond.nwSrcIp = new IPv4Subnet(IPv4Addr.fromString("10.0.20.0"), 24);
         cond.nwProto = 15;
         cond.nwProtoInv = true;
         cond.tpSrcStart = 2000;

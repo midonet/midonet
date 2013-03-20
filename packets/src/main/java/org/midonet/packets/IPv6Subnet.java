@@ -7,6 +7,10 @@ public class IPv6Subnet implements IPSubnet {
     private IPv6Addr addr;
     private int prefixLen;
 
+    /* Default constructor for deserialization. */
+    public IPv6Subnet() {
+    }
+
     public IPv6Subnet(IPv6Addr addr_, int prefixLen_) {
         addr = addr_;
         prefixLen = prefixLen_;
@@ -25,6 +29,20 @@ public class IPv6Subnet implements IPSubnet {
     @Override
     public int getPrefixLen() {
         return prefixLen;
+    }
+
+
+    @Override
+    public void setAddress(IPAddr address) {
+        if (address instanceof IPv6Addr)
+            this.addr = ((IPv6Addr)address).clone();
+        else
+            throw new IllegalArgumentException("IPv6Subnet requires IPv6Addr");
+    }
+
+    @Override
+    public void setPrefixLen(int prefixLen) {
+        this.prefixLen = prefixLen;
     }
 
     @Override

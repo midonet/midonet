@@ -165,9 +165,13 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         // 1.- DNAT -> from !vm-network to dnatAddress --> dnat(vm-network)
         log.info("adding DNAT rule")
         val dnatCond = new Condition()
-        dnatCond.nwSrcIp = vmNetworkIp
+        dnatCond.nwSrcIp = new IPv4Subnet(
+                           IPv4Addr.fromString(vmNetworkIp.toUnicastString),
+                           vmNetworkIp.getMaskLength)
         dnatCond.nwSrcInv = true
-        dnatCond.nwDstIp = IntIPv4.fromString(dnatAddress)
+        dnatCond.nwDstIp = new IPv4Subnet(
+                           IPv4Addr.fromString(dnatAddress.toUnicastString),
+                           dnatAddress.getMaskLength)
         /*
          * (Galo): removed this since it prevents matching on ICMP packets for
          * testDnatPing
@@ -182,8 +186,10 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         // 2.- SNAT -> from vm-network to !vm-network  dstPort=22 --> snat(uplinkPortAddr)
         log.info("adding SNAT rule")
         val snatCond = new Condition()
-        snatCond.nwSrcIp = vmNetworkIp
-        snatCond.nwDstIp = vmNetworkIp
+        snatCond.nwSrcIp = new IPv4Subnet(
+                           IPv4Addr.fromString(vmNetworkIp.toUnicastString), 24)
+        snatCond.nwDstIp = new IPv4Subnet(
+                           IPv4Addr.fromString(vmNetworkIp.toUnicastString), 24)
         snatCond.nwDstInv = true
         // FIXME(guillermo) why does a port range of 0:0 allow 0 to be picked as source port??
         val snatTarget = new NatTarget(snatAddressStart, snatAddressEnd, 10001.toShort, 65535.toShort)
