@@ -4,6 +4,7 @@ package org.midonet.midolman
 
 import scala.Some
 import akka.actor._
+import akka.util.duration._
 import akka.util.Duration
 import akka.event.LoggingReceive
 import collection.JavaConversions._
@@ -18,7 +19,9 @@ import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.ErrorHandlingCallback
 import org.midonet.midolman.flows.WildcardTablesProvider
 import org.midonet.midolman.logging.ActorLogWithoutPath
+import org.midonet.netlink.{Callback => NetlinkCallback}
 import org.midonet.netlink.exceptions.NetlinkException
+import org.midonet.netlink.exceptions.NetlinkException.ErrorCode
 import org.midonet.odp.{Datapath, Flow, FlowMatch}
 import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.util.functors.Callback0
@@ -276,7 +279,19 @@ class FlowController extends Actor with ActorLogWithoutPath {
     }
 
     class FlowManagerInfoImpl() extends FlowManagerHelper {
-        def removeFlow(flow: Flow) {
+        private def _removeFlow(flow: Flow, retries: Int) {
+            def scheduleRetry() {
+                if (retries > 0) {
+                    log.info("Scheduling retry of flow deletion with match: {}",
+                             flow.getMatch)
+                    context.system.scheduler.scheduleOnce(1 second){
+                        _removeFlow(flow, retries - 1)
+                    }
+                } else {
+                    log.error("Giving up on deleting flow with match: {}",
+                              flow.getMatch)
+                }
+            }
 
             if (flow.getMatch.isUserSpaceOnly) {
                 // the DP doesn't need to remove userspace-only flows
@@ -285,16 +300,42 @@ class FlowController extends Actor with ActorLogWithoutPath {
             }
 
             datapathConnection.flowsDelete(datapath, flow,
-            new ErrorHandlingCallback[Flow] {
-                def handleError(ex: NetlinkException, timeout: Boolean) {
-                    log.error("Got an exception {} or timeout {} when trying to remove flow" +
-                        "with flow match {}", ex, timeout, flow.getMatch)
-                }
+                new NetlinkCallback[Flow] {
+                    override def onTimeout() {
+                        log.warning("Got a timeout when trying to remove " +
+                                    "flow with match {}", flow.getMatch)
+                        scheduleRetry()
+                    }
 
-                def onSuccess(data: Flow) {
-                    self ! flowRemoved(data)
-                }
-            })
+                    override def onError(ex: NetlinkException) {
+                        log.warning("Got an exception {} when trying to remove " +
+                                    "flow with match {}", ex, flow.getMatch)
+                        ex.getErrorCodeEnum match {
+                            // Success cases, the flow doesn't exist so userspace
+                            // can take it as a successful remove:
+                            case ErrorCode.ENODEV => onSuccess(flow)
+                            case ErrorCode.ENOENT => onSuccess(flow)
+                            case ErrorCode.ENXIO => onSuccess(flow)
+                            // Retry cases.
+                            case ErrorCode.EBUSY => scheduleRetry()
+                            case ErrorCode.EAGAIN => scheduleRetry()
+                            case ErrorCode.EIO => scheduleRetry()
+                            case ErrorCode.EINTR => scheduleRetry()
+                            // Give up
+                            case _ =>
+                                log.error("Giving up on deleting flow with "+
+                                    "match: {} due to: {}", flow.getMatch, ex)
+                        }
+                    }
+
+                    def onSuccess(data: Flow) {
+                        self ! flowRemoved(data)
+                    }
+                })
+        }
+
+        def removeFlow(flow: Flow) {
+            _removeFlow(flow, 10)
         }
 
         def removeWildcardFlow(flow: WildcardFlow) {
