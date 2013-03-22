@@ -95,12 +95,9 @@ public class MonitoringTest extends TestBase {
 
         helperTap_int = new PacketHelper(macTap, ipTap, macInt, ipInt);
 
-        CassandraClient client = new CassandraClient("localhost:9171",
-                "midonet",
-                "midonet_monitoring",
-                "monitoring_data",
-                replicationFactor, ttlInSecs
-                );
+        CassandraClient client = new CassandraClient("localhost:9171", 3,
+                "midonet", "midonet_monitoring", "monitoring_data",
+                replicationFactor, ttlInSecs);
         store = new CassandraStore(client);
         store.initialize();
 

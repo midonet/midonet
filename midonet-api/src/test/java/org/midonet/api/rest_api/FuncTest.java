@@ -29,6 +29,7 @@ public class FuncTest {
     public static final String monitoringCassandraColumnFamily =
             "midonet_monitoring_column_family";
     public final static String cassandraServers = "127.0.0.1:9171";
+    public final static int cassandraMaxActiveConns = 3;
     public final static String CASSANDRA_SERVERS = "cassandra-servers";
     public final static String CASSANDRA_CLUSTER = "cassandra-cluster";
     public final static String MONITORING_CASSANDRA_KEYSPACE =

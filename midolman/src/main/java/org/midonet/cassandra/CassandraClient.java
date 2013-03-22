@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Map;
 
 import me.prettyprint.cassandra.serializers.StringSerializer;
+import me.prettyprint.cassandra.service.CassandraHost;
+import me.prettyprint.cassandra.service.CassandraHostConfigurator;
 import me.prettyprint.cassandra.service.FailoverPolicy;
 import me.prettyprint.hector.api.Cluster;
 import me.prettyprint.hector.api.Keyspace;
@@ -42,6 +44,7 @@ public class CassandraClient {
     private Cluster cluster;
     private Keyspace keyspace;
     private final String servers;
+    private final int maxActiveConns;
     private final String clusterName;
     private final String keyspaceName;
     private final String columnFamily;
@@ -50,10 +53,11 @@ public class CassandraClient {
 
     private static StringSerializer ss = StringSerializer.get();
 
-    public CassandraClient(String servers, String clusterName,
+    public CassandraClient(String servers, int maxActiveConns, String clusterName,
                            String keyspaceName, String columnFamily,
                            int replicationFactor, int expirationSecs) {
         this.servers = servers;
+        this.maxActiveConns = maxActiveConns;
         this.clusterName = clusterName;
         this.keyspaceName = keyspaceName;
         this.columnFamily = columnFamily;
@@ -65,7 +69,10 @@ public class CassandraClient {
         boolean success = false;
 
         try {
-            this.cluster = HFactory.getOrCreateCluster(clusterName, servers);
+            CassandraHostConfigurator config = new CassandraHostConfigurator();
+            config.setHosts(servers);
+            config.setMaxActive(maxActiveConns);
+            this.cluster = HFactory.getOrCreateCluster(clusterName, config);
             // Using FAIL_FAST because if Hector blocks the operations too
             // long, midolman gets disconnected from OVS and crashes.
             this.keyspace = HFactory.createKeyspace(

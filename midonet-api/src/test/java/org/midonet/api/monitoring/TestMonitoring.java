@@ -60,6 +60,7 @@ public class TestMonitoring extends JerseyTest {
         // gets erased by EmbeddedCassandraServerHelper.cleanEmbeddedCassandra()
         CassandraClient client = new CassandraClient(
                 FuncTest.cassandraServers,
+                FuncTest.cassandraMaxActiveConns,
                 FuncTest.cassandraCluster,
                 FuncTest.monitoringCassandraKeyspace,
                 FuncTest.monitoringCassandraColumnFamily,

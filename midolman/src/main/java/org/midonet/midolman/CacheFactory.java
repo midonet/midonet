@@ -43,10 +43,10 @@ public class CacheFactory {
                 String servers = config.getCassandraServers();
                 String cluster = config.getCassandraCluster();
                 String keyspace = config.getCassandraMidonetKeyspace();
-
+                int maxConns = config.getCassandraMaxActiveConnections();
                 int replicationFactor = config.getCassandraReplicationFactor();
 
-                cache = new CassandraCache(servers, cluster, keyspace,
+                cache = new CassandraCache(servers, maxConns, cluster, keyspace,
                                            "nat", replicationFactor,
                                            CACHE_EXPIRATION_SECONDS);
             }
