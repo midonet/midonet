@@ -11,6 +11,8 @@ import org.midonet.midolman.layer4.NatMapping;
 import org.midonet.midolman.layer4.NwTpPair;
 import org.midonet.midolman.rules.RuleResult.Action;
 import org.midonet.packets.ICMP;
+import org.midonet.packets.IPAddr;
+import org.midonet.packets.IPAddr$;
 import org.midonet.packets.IPv4;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MalformedPacketException;
@@ -24,7 +26,7 @@ import org.slf4j.LoggerFactory;
 public class ForwardNatRule extends NatRule {
     protected transient Set<NatTarget> targets;
     private boolean floatingIp;
-    private int floatingIpAddr;
+    private IPAddr floatingIpAddr;
     private final static Logger log = LoggerFactory
             .getLogger(ForwardNatRule.class);
 
@@ -43,9 +45,9 @@ public class ForwardNatRule extends NatRule {
         floatingIp = false;
         if (targets.size() == 1) {
             NatTarget tg = targets.iterator().next();
-            if (tg.nwStart == tg.nwEnd && 0 == tg.tpStart && 0 == tg.tpEnd) {
+            if (tg.nwStart.equals(tg.nwEnd) && 0 == tg.tpStart && 0 == tg.tpEnd) {
                 floatingIp = true;
-                floatingIpAddr = tg.nwStart;
+                floatingIpAddr = IPAddr$.MODULE$.fromAddr(tg.nwStart);
             }
         }
 
@@ -97,9 +99,8 @@ public class ForwardNatRule extends NatRule {
 
         if (floatingIp) {
             log.debug("DNAT mapping floating ip {} to internal ip {}",
-                    match.getNetworkDestinationIP(),
-                    IPv4.fromIPv4Address(floatingIpAddr));
-            match.setNetworkDestination(new IPv4Addr(floatingIpAddr));
+                    match.getNetworkDestinationIP(), floatingIpAddr);
+                    match.setNetworkDestination(floatingIpAddr);
             res.action = action;
             return;
         }
@@ -147,9 +148,8 @@ public class ForwardNatRule extends NatRule {
 
         if (floatingIp) {
             log.debug("SNAT mapping internal ip {} to floating ip {}",
-                    match.getNetworkSourceIP(),
-                    IPv4.fromIPv4Address(floatingIpAddr));
-            match.setNetworkSource(new IPv4Addr(floatingIpAddr));
+                    match.getNetworkSourceIP(), floatingIpAddr);
+                    match.setNetworkSource(floatingIpAddr);
             res.action = action;
             return;
         }
@@ -200,12 +200,15 @@ public class ForwardNatRule extends NatRule {
 
     // Getter for JSON serialization supporting readable IP addresses
     public String getFloatingIpAddr() {
-        return Net.convertIntAddressToString(this.floatingIpAddr);
+        // TODO (galo) not sure this is what we want, but it's what was
+        // happening when floatingIpAddr was an unitialized int
+        return (this.floatingIpAddr == null) ? "0.0.0.0" :
+                this.floatingIpAddr.toString();
     }
 
     // Setter for JSON serialization supporting readable IP addresses
     public void setFloatingIpAddr(String addr) {
-        this.floatingIpAddr = Net.convertStringAddressToInt(addr);
+        this.floatingIpAddr = IPAddr$.MODULE$.fromString(addr);
     }
 
     @Override
@@ -233,7 +236,7 @@ public class ForwardNatRule extends NatRule {
         sb.append(", floatingIp=").append(floatingIp);
         if(floatingIp) {
             sb.append(", floatingIpAddr=");
-            sb.append(IPv4.fromIPv4Address(floatingIpAddr));
+            sb.append(floatingIpAddr);
         }
         sb.append(", targets={");
         if(null != targets){

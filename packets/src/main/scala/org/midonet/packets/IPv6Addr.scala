@@ -6,6 +6,7 @@
 package org.midonet.packets
 
 import java.lang.Long.parseLong
+import java.util.Random
 
 /**
  * An IPv6 address.
@@ -17,8 +18,9 @@ import java.lang.Long.parseLong
  * setters - I had this problem with IPv4Addr and that's there the addr is a
  * var. But we'll see when the time comes.
  */
-class IPv6Addr(val upperWord: Long, val lowerWord: Long)
-    extends IPAddr {
+class IPv6Addr(val upperWord: Long, val lowerWord: Long) extends IPAddr
+                                                         with Ordered[IPv6Addr]{
+
     type T = IPv6Addr
 
     // Required for Jackson deserialization
@@ -34,6 +36,7 @@ class IPv6Addr(val upperWord: Long, val lowerWord: Long)
                                           (lowerWord >> 16) & 0xffff,
                                           (lowerWord >> 0) & 0xffff)
     }
+
     override def toUrlString = '[' + toString() + ']'
 
     // See "Programming in Scala" sec. 30.4
@@ -56,6 +59,34 @@ class IPv6Addr(val upperWord: Long, val lowerWord: Long)
     override def subnet(len: Int = 128): IPv6Subnet = new IPv6Subnet(this, len)
     override def copy: IPv6Addr = new IPv6Addr(this.upperWord, this.lowerWord)
 
+    override def next: IPv6Addr = {
+        val nextLower = lowerWord + 1
+                        // if sign change when lowerWord++, carry
+        val nextUpper = upperWord + (if (nextLower == 0) 1 else 0)
+        new IPv6Addr(nextUpper, nextLower)
+    }
+
+    def compare(that: IPv6Addr): Int = {
+        if (this.upperWord == that.upperWord)
+            this.lowerWord.compare(that.lowerWord)
+        else if (this.upperWord > that.upperWord) 1
+        else -1
+    }
+
+    /**
+     * Returns a random IPv6 address between this and limit, within the same /64
+     * range. Both this and limit must share at least in the same /64 prefix.
+     */
+    override def randomTo(limit: IPv6Addr, rand: Random): IPv6Addr = {
+        if (this.upperWord != limit.upperWord)
+            throw new IllegalArgumentException("IPv6.randomTo only supported" +
+                " for ranges belonging to the same /64 subnet")
+
+        val gap = (limit.lowerWord - this.lowerWord)
+        val nextLower = lowerWord + (rand.nextLong % gap)
+        new IPv6Addr(upperWord, nextLower)
+
+    }
 }
 
 object IPv6Addr {

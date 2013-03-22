@@ -16,6 +16,7 @@ import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.Topology;
 import org.midonet.api.zookeeper.StaticMockDirectory;
 import org.midonet.client.dto.*;
+import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IntIPv4;
 import org.midonet.packets.MAC;
 
@@ -189,7 +190,8 @@ public class TestRouter {
             // Reserve a SNAT block in this router.
             FiltersZkManager filtersMgr = new FiltersZkManager(
                 StaticMockDirectory.getDirectoryInstance(), "/test/midolman");
-            filtersMgr.addSnatReservation(resRouter.getId(), 0x0a000001, 100);
+            filtersMgr.addSnatReservation(resRouter.getId(),
+                                 new IPv4Addr(0x0a000001), 100);
             dtoResource.deleteAndVerifyNoContent(
                 resRouter.getUri(), APPLICATION_ROUTER_JSON);
         }

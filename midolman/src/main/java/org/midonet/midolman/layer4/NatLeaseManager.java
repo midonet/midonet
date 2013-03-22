@@ -4,30 +4,31 @@
 
 package org.midonet.midolman.layer4;
 
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.Iterator;
 import java.util.NavigableSet;
 import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.midonet.packets.ICMP;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import org.midonet.cache.Cache;
 import org.midonet.midolman.rules.NatTarget;
 import org.midonet.midolman.state.zkManagers.FiltersZkManager;
+import org.midonet.packets.ICMP;
 import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPAddr$;
+import org.midonet.packets.IPAddrRange;
+import org.midonet.packets.IPAddrRangeBuilder;
 import org.midonet.packets.IPv4Addr;
-import org.midonet.packets.Net;
+import org.midonet.packets.IPv6Addr;
 import org.midonet.util.eventloop.Reactor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class NatLeaseManager implements NatMapping {
@@ -45,7 +46,7 @@ public class NatLeaseManager implements NatMapping {
 
     // The following maps IP addresses to ordered lists of free ports (for
     // non-ICMP protocols).
-
+    //
     // These structures are meant to be shared by all rules/snat targets.
     // So snat targets for different rules can overlap and we'll still avoid
     // collisions. That's why we don't care about the snat target here.
@@ -58,7 +59,7 @@ public class NatLeaseManager implements NatMapping {
     // Also note that we don't care about ip ranges - snat targets with more than
     // one ip in their range get broken up into separate entries here.
     // This map should be cleared if we lose our connection to ZK.
-    ConcurrentMap<Integer, NavigableSet<Integer>> ipToFreePortsMap;
+    ConcurrentMap<IPAddr, NavigableSet<Integer>> ipToFreePortsMap;
     ConcurrentMap<String, KeyMetadata> fwdKeys;
     private FiltersZkManager filterMgr;
     private UUID routerId;
@@ -85,7 +86,7 @@ public class NatLeaseManager implements NatMapping {
         log.debug("constructor with {}, {}, {}, and {}",
             new Object[] {filterMgr, routerId, cache, reactor});
         this.filterMgr = filterMgr;
-        this.ipToFreePortsMap = new ConcurrentHashMap<Integer, NavigableSet<Integer>>();
+        this.ipToFreePortsMap = new ConcurrentHashMap<IPAddr, NavigableSet<Integer>>();
         this.routerId = routerId;
         this.rtrIdStr = routerId.toString();
         this.cache = cache;
@@ -178,10 +179,13 @@ public class NatLeaseManager implements NatMapping {
         NatTarget nat = null;
         for (int i = 0; i <= natPos && iter.hasNext(); i++)
             nat = iter.next();
+
         int tpStart = nat.tpStart & USHORT;
         int tpEnd = nat.tpEnd & USHORT;
-        int newNwDstInt = rand.nextInt(nat.nwEnd - nat.nwStart + 1) + nat.nwStart;
-        IPAddr newNwDst = IPv4Addr.fromInt(newNwDstInt);
+        // TODO (ipv6) no idea why we need that cast
+        IPAddr newNwDst = (IPv4Addr)nat.nwStart.randomTo(nat.nwEnd, rand);
+
+        // newNwDst needs to be the same type as nwSrc, nwDst
         int newTpDst = (protocol == ICMP.PROTOCOL_NUMBER)
                        ? oldTpDst
                        : rand.nextInt(tpEnd - tpStart + 1) + tpStart;
@@ -237,7 +241,7 @@ public class NatLeaseManager implements NatMapping {
         String[] parts = value.split("/");
         try {
             return new NwTpPair(IPAddr$.MODULE$.fromString(parts[0]),
-                    Integer.parseInt(parts[1]), unrefKey);
+                                Integer.parseInt(parts[1]), unrefKey);
         }
         catch (Exception e) {
             log.warn("makePairFromString bad value {}", value);
@@ -360,7 +364,9 @@ public class NatLeaseManager implements NatMapping {
         for (NatTarget tg : nats) {
             int tpStart = tg.tpStart & USHORT;
             int tpEnd = tg.tpEnd & USHORT;
-            for (int ip = tg.nwStart; ip <= tg.nwEnd; ip++) {
+            IPAddrRange nwRange = IPAddrRangeBuilder.range(tg.nwStart, tg.nwEnd);
+            while (nwRange.hasNext()) {
+                IPAddr ip = (IPAddr)nwRange.next();
                 NavigableSet<Integer> freePorts = ipToFreePortsMap.get(ip);
                 if (null == freePorts)
                     continue;
@@ -375,7 +381,7 @@ public class NatLeaseManager implements NatMapping {
                         // Check cache to make sure the port's really free.
                         NwTpPair reservation = makeSnatReservation(
                                     protocol, oldNwSrc, oldTpSrc,
-                                    IPv4Addr.fromInt(ip), port, nwDst, tpDst);
+                                    ip, port, nwDst, tpDst);
                         if (reservation != null)
                             return reservation;
                     }
@@ -398,7 +404,10 @@ public class NatLeaseManager implements NatMapping {
         for (NatTarget tg : nats) {
             int tpStart = tg.tpStart & USHORT;
             int tpEnd = tg.tpEnd & USHORT;
-            for (int ip = tg.nwStart; ip <= tg.nwEnd; ip++) {
+            IPAddrRange nwRange = IPAddrRangeBuilder.range(tg.nwStart, tg.nwEnd);
+            IPAddr ip = null;
+            while (nwRange.hasNext()) {
+                ip = (IPAddr)nwRange.next();
                 NavigableSet<Integer> reservedBlocks;
                 try {
                     reservedBlocks = filterMgr.getSnatBlocks(routerId, ip);
@@ -413,13 +422,10 @@ public class NatLeaseManager implements NatMapping {
                 // the port range [s, s+99] inclusive.
                 // Round down tpStart to the nearest 100.
                 int block = (tpStart / block_size) * block_size;
-                Iterator<Integer> iter = reservedBlocks.tailSet(block, true)
-                        .iterator();
                 // Find the first lowPort + 100*x that isn't in the tail-set
                 // and is less than tpEnd
-                while (iter.hasNext()) {
+                for (Integer lease: reservedBlocks.tailSet(block, true)) {
                     // Find the next reserved block.
-                    Integer lease = iter.next();
                     if (lease > block) {
                         // No one reserved the current value of startBlock.
                         // Let's lease it ourselves.
@@ -441,16 +447,14 @@ public class NatLeaseManager implements NatMapping {
                     break;
                 try {
                     log.debug("allocateSnat trying to reserve snat block {} "
-                            + "in ip {}", block,
-                            Net.convertIntAddressToString(ip));
+                            + "in ip {}", block, ip);
                     filterMgr.addSnatReservation(routerId, ip, block);
                 } catch (Exception e) {
                     log.debug("allocateSnat block reservation failed.");
                     numExceptions++;
                     if (numExceptions > 1){
                         log.warn("allocateSnat failed twice to reserve a port "
-                                + "block in ip {}. Giving up.",
-                                Net.convertIntAddressToString(ip));
+                                + "block in ip {}. Giving up.", ip);
                         return null;
                     }
                     continue;
@@ -483,9 +487,8 @@ public class NatLeaseManager implements NatMapping {
                         freePort = tpStart;
                     while (true) {
                         freePorts.remove(freePort);
-                        NwTpPair reservation = makeSnatReservation(
-                                protocol, oldNwSrc, oldTpSrc, 
-                                IPv4Addr.fromInt(ip), freePort, nwDst, tpDst);
+                        NwTpPair reservation = makeSnatReservation(protocol,
+                               oldNwSrc, oldTpSrc, ip, freePort, nwDst, tpDst);
                         if (reservation != null)
                             return reservation;
                         freePort++;
@@ -507,16 +510,18 @@ public class NatLeaseManager implements NatMapping {
      * NatTarget ports since ICMP NAT will not translate identifiers (which
      * is what the tpSrc and tpDst contain).
      */
-    private NwTpPair allocateSnatICMP(IPAddr oldNwSrc, int oldTpSrc_, IPAddr nwDst,
-                                      int tpDst_, Set<NatTarget> nats) {
+    private NwTpPair allocateSnatICMP(IPAddr oldNwSrc, int oldTpSrc_,
+                                      IPAddr nwDst, int tpDst_,
+                                      Set<NatTarget> nats) {
         int oldTpSrc = oldTpSrc_ & USHORT;
         int tpDst = tpDst_ & USHORT;
         int numTries = MAX_PORT_ALLOC_ATTEMPTS;
         for (NatTarget tg : nats) {
-            for (int newNwSrc = tg.nwStart; newNwSrc <= tg.nwEnd; newNwSrc++) {
-                NwTpPair reservation = makeSnatReservation(
-                       ICMP.PROTOCOL_NUMBER, oldNwSrc, oldTpSrc,
-                       IPv4Addr.fromInt(newNwSrc), oldTpSrc, nwDst, tpDst);
+            IPAddrRange nwRange = IPAddrRangeBuilder.range(tg.nwStart, tg.nwEnd);
+            while (nwRange.hasNext()) {
+                IPAddr ip = (IPAddr)nwRange.next();
+                NwTpPair reservation = makeSnatReservation(ICMP.PROTOCOL_NUMBER,
+                              oldNwSrc, oldTpSrc, ip, oldTpSrc, nwDst, tpDst);
                 if (reservation != null)
                     return reservation;
                 if (++numTries > MAX_PORT_ALLOC_ATTEMPTS) {
@@ -671,4 +676,5 @@ public class NatLeaseManager implements NatMapping {
                 return natRef(fwdKey, revKey);
         }
     }
+
 }

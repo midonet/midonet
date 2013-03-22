@@ -40,8 +40,8 @@ public class MockNatMapping implements NatMapping {
                                  int oldTpDst, Set<NatTarget> nats) {
         // In this mock, just use the first nat target.
         NatTarget nat = nats.iterator().next();
-        IPAddr newNwDst = IPv4Addr.fromInt(
-            rand.nextInt(nat.nwEnd - nat.nwStart + 1) + nat.nwStart);
+        // TODO (ipv6) no idea why we need that cast
+        IPAddr newNwDst = (IPv4Addr)nat.nwStart.randomTo(nat.nwEnd, rand);
         int newTpDst = rand.nextInt(nat.tpEnd - nat.tpStart + 1) + nat.tpStart;
         NwTpPair newDst = new NwTpPair(newNwDst, newTpDst);
         dnatFwdMap.put(new PacketSignature(protocol, nwSrc, tpSrc,
@@ -71,8 +71,8 @@ public class MockNatMapping implements NatMapping {
                                  IPAddr nwDst, int tpDst, Set<NatTarget> nats) {
         // In this mock, just use the first nat target.
         NatTarget nat = nats.iterator().next();
-        IPAddr newNwSrc = IPv4Addr.fromInt(
-                rand.nextInt(nat.nwEnd - nat.nwStart + 1) + nat.nwStart);
+        // TODO (ipv6) no idea why we need that cast
+        IPAddr newNwSrc = (IPv4Addr)nat.nwStart.randomTo(nat.nwEnd, rand);
         int newTpSrc = rand.nextInt(nat.tpEnd - nat.tpStart + 1) + nat.tpStart;
         NwTpPair newSrc = new NwTpPair(newNwSrc, newTpSrc);
         snatFwdMap.put(new PacketSignature(

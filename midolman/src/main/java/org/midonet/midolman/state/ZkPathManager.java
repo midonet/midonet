@@ -7,6 +7,7 @@ package org.midonet.midolman.state;
 import java.util.UUID;
 
 import org.midonet.packets.IPv6Subnet;
+import org.midonet.packets.IPAddr;
 import org.midonet.packets.IntIPv4;
 import org.midonet.packets.MAC;
 
@@ -172,23 +173,22 @@ public class ZkPathManager {
         return buildFilterPath(id).append("/snat_blocks");
     }
 
-    public String getFilterSnatBlocksPath(UUID id, int ipv4) {
-        return buildFilterSnatBlocksPath(id, ipv4).toString();
+    public String getFilterSnatBlocksPath(UUID id, IPAddr ip) {
+        return buildFilterSnatBlocksPath(id, ip).toString();
     }
 
-    private StringBuilder buildFilterSnatBlocksPath(UUID id, int ipv4) {
+    private StringBuilder buildFilterSnatBlocksPath(UUID id, IPAddr ipv4) {
         return buildFilterSnatBlocksPath(id)
-            .append("/").append(Integer.toHexString(ipv4));
+            .append("/").append(ipv4.toString());
     }
 
-    public String getFilterSnatBlocksPath(UUID id, int ipv4, int startPort) {
-        return buildFilterSnatBlocksPath(id, ipv4, startPort).toString();
+    public String getFilterSnatBlocksPath(UUID id, IPAddr ip, int startPort) {
+        return buildFilterSnatBlocksPath(id, ip, startPort).toString();
     }
 
-    private StringBuilder buildFilterSnatBlocksPath(UUID id, int ipv4,
+    private StringBuilder buildFilterSnatBlocksPath(UUID id, IPAddr ip,
                                                     int startPort) {
-        return buildFilterSnatBlocksPath(id, ipv4)
-            .append("/").append(startPort);
+        return buildFilterSnatBlocksPath(id, ip).append("/").append(startPort);
     }
 
     /**
