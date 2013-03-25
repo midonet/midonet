@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import org.midonet.midolman.config.ZookeeperConfig;
 import org.midonet.midolman.state.Directory;
+import org.midonet.midolman.state.Ip4ToMacReplicatedMap;
 import org.midonet.midolman.state.MacPortMap;
 import org.midonet.midolman.state.PortDirectory;
 import org.midonet.midolman.state.ReplicatedMap;
@@ -24,6 +25,7 @@ import org.midonet.midolman.state.ZkPathManager;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager;
 import org.midonet.midolman.state.zkManagers.PortZkManager;
 import org.midonet.cluster.client.BridgeBuilder;
+import org.midonet.cluster.client.Ip4MacMap;
 import org.midonet.cluster.client.MacLearningTable;
 import org.midonet.packets.IntIPv4;
 import org.midonet.packets.IPAddr;
@@ -68,6 +70,7 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
         BridgeZkManager.BridgeConfig config = null;
 
         MacPortMap macPortMap = null;
+        Ip4ToMacReplicatedMap ip4MacMap = null;
         try {
             // we don't need to get the macPortMap again if it's an
             // update nor to create the logical port table.
@@ -82,6 +85,13 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
                 macPortMap.start();
                 builder.setMacLearningTable(
                         new MacLearningTableImpl(id, macPortMap));
+
+                ip4MacMap = new Ip4ToMacReplicatedMap(
+                    bridgeMgr.getIP4MacMapDirectory(id));
+                ip4MacMap.setConnectionWatcher(connectionWatcher);
+                ip4MacMap.start();
+                builder.setIp4MacMap(new Ip4MacMapImpl(id, ip4MacMap));
+
                 updateLogicalPorts(builder, id, false);
 
             }
@@ -213,9 +223,7 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
 
         @Override
         public void add(final MAC mac, final UUID portID) {
-
             reactorLoop.submit(new Runnable() {
-
                 @Override
                 public void run() {
                     try {
@@ -233,7 +241,6 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
         @Override
         public void remove(final MAC mac, final UUID portID) {
             reactorLoop.submit(new Runnable() {
-
                 @Override
                 public void run() {
                     try {
@@ -244,7 +251,6 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
                     }
                 }
             });
-
         }
 
         // This notify() registers its callback directly with the underlying
@@ -266,7 +272,46 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
                     });
                 }
             });
+        }
+    }
 
+    class Ip4MacMapImpl implements Ip4MacMap {
+
+        Ip4ToMacReplicatedMap map;
+        UUID bridgeID;
+
+        Ip4MacMapImpl(UUID bridgeID, Ip4ToMacReplicatedMap map) {
+            this.bridgeID = bridgeID;
+            this.map = map;
+        }
+
+        @Override
+        public void get(final IntIPv4 ip, final Callback1<MAC> cb,
+                        final Long expirationTime) {
+            // It's ok to do a synchronous get on the map because it only
+            // queries local state (doesn't go remote like the other calls.
+            cb.call(map.get(ip));
+        }
+
+        // This notify() registers its callback directly with the underlying
+        // Map, so the callbacks are called from Ip4MacMap context
+        // and should perform ActorRef::tell or such to switch to the context
+        // appropriate for the callback's work.
+        @Override
+        public void notify(final Callback3<IntIPv4, MAC, MAC> cb) {
+            reactorLoop.submit(new Runnable() {
+
+                @Override
+                public void run() {
+                    map.addWatcher(new ReplicatedMap.Watcher<IntIPv4, MAC>() {
+                        @Override
+                        public void processChange(IntIPv4 key, MAC oldValue,
+                                                  MAC newValue) {
+                            cb.call(key, oldValue, newValue);
+                        }
+                    });
+                }
+            });
         }
     }
 

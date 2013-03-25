@@ -16,6 +16,8 @@
   * [Application](#application)
   * [Router](#router)
   * [Bridge](#bridge)
+  * [Bridge MAC Table](#bridgemactable)
+  * [Bridge ARP Table](#bridgearptable)
   * [Port](#port)
   * [Port Link](#portlink)
   * [Route](#route)
@@ -340,7 +342,7 @@ traverse the URIs to discover all the available services.
         <td></td>
         <td></td>
         <td>A POST against this URI gets a list of metric
-        query responses for a given list of metric queries.</td> 
+        query responses for a given list of metric queries.</td>
     </tr>
     <tr>
         <td>portGroups</td>
@@ -644,11 +646,11 @@ contains the following fields:
         <td>A GET against this URI retrieves routers on this bridge.</td>
     </tr>
     <tr>
-        <td>filteringDb</td>
+        <td>macTable</td>
         <td>URI</td>
         <td/>
         <td/>
-        <td>A GET against this URI retrieves filteringDb on this bridge.</td>
+        <td>A GET against this URI retrieves the bridge's MAC table.</td>
     </tr>
     <tr>
         <td>peerPorts</td>
@@ -685,6 +687,88 @@ contains the following fields:
         <td/>
         <td/>
         <td>A GET against this URI retreives the outbound filter chain.</td>
+    </tr>
+</table>
+
+<a name="bridgemactable"/>
+### MacPort [application/vnd.com.midokura.midolman.mgmt.MacPort+json]
+
+    GET     /bridges/:bridgeId/mac_table
+    GET     /bridges/:bridgeId/mac_table/:macPortPair
+    POST    /bridges/:bridgeId/mac_table
+    DELETE  /bridges/:bridgeId/mac_table/:macPortPair
+
+<table>
+    <tr>
+        <th>Field Name</th>
+        <th>Type</th>
+        <th>POST/PUT</th>
+        <th>Required</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>uri</td>
+        <td>URI</td>
+        <td/>
+        <td/>
+        <td>A GET against this URI refreshes the representation of this
+         resource.</td>
+    </tr>
+    <tr>
+        <td>macAddr</td>
+        <td>String</td>
+        <td/>
+        <td>Yes</>
+        <td>A MAC address in the form "aa:bb:cc:dd:ee:ff"</td>
+    </tr>
+    <tr>
+        <td>portId</td>
+        <td>UUID</td>
+        <td/>
+        <td>Yes</td>
+        <td>ID of the port to which the packets destined to the macAddr will
+        be emitted.</td>
+    </tr>
+</table>
+
+<a name="bridgearptable"/>
+### IP4MacPair [application/vnd.com.midokura.midolman.mgmt.IP4arp+json]
+
+    GET     /bridges/:bridgeId/arp_table
+    GET     /bridges/:bridgeId/arp_table/:ip4MacPair
+    POST    /bridges/:bridgeId/arp_table
+    DELETE  /bridges/:bridgeId/arp_table/:ip4MacPair
+
+<table>
+    <tr>
+        <th>Field Name</th>
+        <th>Type</th>
+        <th>POST/PUT</th>
+        <th>Required</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>uri</td>
+        <td>URI</td>
+        <td/>
+        <td/>
+        <td>A GET against this URI refreshes the representation of this
+         resource.</td>
+    </tr>
+    <tr>
+        <td>ip</td>
+        <td>String</td>
+        <td/>
+        <td>Yes</td>
+        <td>IP version 4 address in the form "1.2.3.4".</td>
+    </tr>
+    <tr>
+        <td>mac</td>
+        <td>String</td>
+        <td/>
+        <td>Yes</>
+        <td>A MAC address in the form "aa:bb:cc:dd:ee:ff". If ARP replies
+        are enabled on the bridge, the ip will resolve to this MAC.</td>
     </tr>
 </table>
 

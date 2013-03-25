@@ -43,6 +43,7 @@ object BridgeManager {
 
     case class TriggerUpdate(cfg: BridgeConfig,
                              macLearningTable: MacLearningTable,
+                             ip4MacMap: Ip4MacMap,
                              rtrMacToLogicalPortId: ROMap[MAC, UUID],
                              rtrIpToMac: ROMap[IPAddr, MAC])
 
@@ -133,7 +134,7 @@ class MacLearningManager(log: LoggingAdapter, expirationMillis: Long) {
     }
 }
 
-class BridgeManager(id: UUID, val clusterClient: Client)
+class BridgeManager(id: UUID, val clusterClient: Client, arpEnabled: Boolean)
         extends DeviceManager(id) {
     import BridgeManager._
     implicit val system = context.system
@@ -146,15 +147,17 @@ class BridgeManager(id: UUID, val clusterClient: Client)
 
     private var rtrMacToLogicalPortId: ROMap[MAC, UUID] = null
     private var rtrIpToMac: ROMap[IPAddr, MAC] = null
+    private var ip4MacMap: Ip4MacMap = null
 
     private var filterChanged = false
 
     override def chainsUpdated() {
         log.info("chains updated")
         context.actorFor("..").tell(
-            new Bridge(id, getTunnelKey, learningMgr.backendMap, flowCounts,
-                       inFilter, outFilter, flowRemovedCallback,
-                       rtrMacToLogicalPortId, rtrIpToMac))
+            new Bridge(id, getTunnelKey, learningMgr.backendMap,
+                       if (arpEnabled) ip4MacMap else null,
+                       flowCounts, inFilter, outFilter, flowRemovedCallback,
+        rtrMacToLogicalPortId, rtrIpToMac))
         if(filterChanged){
             FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
             FlowTagger.invalidateFlowsByDevice(id))
@@ -208,8 +211,8 @@ class BridgeManager(id: UUID, val clusterClient: Client)
         case CheckExpiredMacPorts() =>
             learningMgr.doDeletions(Platform.currentTime)
 
-        case TriggerUpdate(newCfg, macLearningTable, newRtrMacToLogicalPortId,
-                           newRtrIpToMac) =>
+        case TriggerUpdate(newCfg, macLearningTable, ip4MacMap,
+                           newRtrMacToLogicalPortId, newRtrIpToMac) =>
             log.debug("Received a Bridge update from the data store.")
             if (newCfg != cfg && cfg != null) {
                 // the cfg of this bridge changed, invalidate all the flows
@@ -217,6 +220,7 @@ class BridgeManager(id: UUID, val clusterClient: Client)
             }
             cfg = newCfg
             learningMgr.backendMap = macLearningTable
+            this.ip4MacMap = ip4MacMap
             rtrMacToLogicalPortId = newRtrMacToLogicalPortId
             rtrIpToMac = newRtrIpToMac
             // Notify that the update finished

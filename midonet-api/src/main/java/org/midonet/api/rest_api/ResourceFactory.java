@@ -9,7 +9,6 @@ import org.midonet.api.network.rest_api.*;
 import org.midonet.api.bgp.rest_api.AdRouteResource;
 import org.midonet.api.bgp.rest_api.BgpResource;
 import org.midonet.api.dhcp.rest_api.BridgeDhcpResource;
-import org.midonet.api.dhcp.rest_api.BridgeFilterDbResource;
 import org.midonet.api.dhcp.rest_api.DhcpHostsResource;
 import org.midonet.api.filter.rest_api.ChainResource;
 import org.midonet.api.monitoring.rest_api.MonitoringResource;
@@ -55,8 +54,6 @@ public interface ResourceFactory {
     DhcpHostsResource getDhcpAssignmentsResource(UUID bridgeId, IntIPv4 addr);
 
     PortResource.BridgePortResource getBridgePortResource(UUID id);
-
-    BridgeFilterDbResource getBridgeFilterDbResource(UUID id);
 
     BridgeDhcpResource getBridgeDhcpResource(UUID id);
 

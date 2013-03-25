@@ -20,7 +20,8 @@ public class DtoBridge {
     private URI uri;
     private URI ports;
     private URI peerPorts;
-    private URI filteringDb;
+    private URI macTable;
+    private URI arpTable;
     private URI dhcpSubnets;
 
     public UUID getId() {
@@ -103,12 +104,20 @@ public class DtoBridge {
         this.peerPorts = peerPorts;
     }
 
-    public URI getFilteringDb() {
-        return filteringDb;
+    public URI getArpTable() {
+        return arpTable;
     }
 
-    public void setFilteringDb(URI filteringDb) {
-        this.filteringDb = filteringDb;
+    public void setArpTable(URI arpTable) {
+        this.arpTable = arpTable;
+    }
+
+    public URI getMacTable() {
+        return macTable;
+    }
+
+    public void setMacTable(URI macTable) {
+        this.macTable = macTable;
     }
 
     public URI getDhcpSubnets() {

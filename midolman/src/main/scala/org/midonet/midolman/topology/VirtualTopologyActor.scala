@@ -180,7 +180,9 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
     def receive = {
         case BridgeRequest(id, update) =>
             log.debug("Bridge {} requested with update={}", id, update)
-            manageDevice(id, (x: UUID) => new BridgeManager(x, clusterClient))
+            manageDevice(id, (x: UUID) =>
+                new BridgeManager(x, clusterClient,
+                    config.getMidolmanBridgeArpEnabled))
             deviceRequested(id, idToBridge, update)
         case ChainRequest(id, update) =>
             log.debug("Chain {} requested with update={}", id, update)

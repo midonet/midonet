@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
@@ -20,8 +21,6 @@ import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.FuncTest;
@@ -29,10 +28,16 @@ import org.midonet.api.rest_api.Topology;
 import org.midonet.api.zookeeper.StaticMockDirectory;
 import org.midonet.client.dto.DtoApplication;
 import org.midonet.client.dto.DtoBridge;
+import org.midonet.client.dto.DtoBridgePort;
 import org.midonet.client.dto.DtoError;
+import org.midonet.client.dto.DtoIP4MacPair;
+import org.midonet.client.dto.DtoMacPort;
 import org.midonet.client.dto.DtoRuleChain;
-import static org.midonet.api.VendorMediaType.APPLICATION_BRIDGE_COLLECTION_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_BRIDGE_JSON;
+
+import static org.midonet.api.VendorMediaType.*;
+import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
+import static org.hamcrest.Matchers.arrayWithSize;
+import static org.junit.Assert.*;
 
 @RunWith(Enclosed.class)
 public class TestBridge {
@@ -160,6 +165,146 @@ public class TestBridge {
                     getTenantQueryParams("tenant1"),
                     APPLICATION_BRIDGE_COLLECTION_JSON, DtoBridge[].class);
             assertEquals(0, bridges.length);
+        }
+
+        @Test
+        public void testMacTable() throws Exception {
+            DtoApplication app = topology.getApplication();
+
+            // Add a bridge
+            DtoBridge bridge = new DtoBridge();
+            bridge.setName("bridge1");
+            bridge.setTenantId("tenant1");
+            bridge = dtoResource.postAndVerifyCreated(app.getBridges(),
+                APPLICATION_BRIDGE_JSON, bridge, DtoBridge.class);
+            assertNotNull(bridge.getId());
+            assertNotNull(bridge.getUri());
+
+            // Create a port on the bridge and add a Mac-Port mapping
+            DtoBridgePort p1 = new DtoBridgePort();
+            p1 = dtoResource.postAndVerifyCreated(bridge.getPorts(),
+                APPLICATION_PORT_JSON, p1, DtoBridgePort.class);
+            assertNotNull(p1.getId());
+            DtoMacPort mp1 = new DtoMacPort("02:11:22:33:44:55", p1.getId());
+            mp1 = dtoResource.postAndVerifyCreated(bridge.getMacTable(),
+                APPLICATION_MAC_PORT_JSON, mp1, DtoMacPort.class);
+
+            // Create a second port and Mac-Port mapping
+            DtoBridgePort p2 = new DtoBridgePort();
+            p2 = dtoResource.postAndVerifyCreated(bridge.getPorts(),
+                APPLICATION_PORT_JSON, p2, DtoBridgePort.class);
+            assertNotNull(p2.getId());
+            DtoMacPort mp2 = new DtoMacPort("02:11:22:33:44:66", p2.getId());
+            mp2 = dtoResource.postAndVerifyCreated(bridge.getMacTable(),
+                APPLICATION_MAC_PORT_JSON, mp2, DtoMacPort.class);
+
+            // List the MacPort entries.
+            DtoMacPort[] entries = dtoResource.getAndVerifyOk(
+                bridge.getMacTable(), APPLICATION_MAC_PORT_COLLECTION_JSON,
+                DtoMacPort[].class);
+            assertThat("Expect 2 listed entries.",
+                entries, arrayWithSize(2));
+            assertThat("The listed entries to match those we created.",
+                entries, arrayContainingInAnyOrder(mp1, mp2));
+
+            // Delete the second entry.
+            dtoResource.deleteAndVerifyNoContent(mp2.getUri(),
+                APPLICATION_MAC_PORT_JSON);
+            // List the MacPort entries.
+            entries = dtoResource.getAndVerifyOk(
+                bridge.getMacTable(), APPLICATION_MAC_PORT_COLLECTION_JSON,
+                DtoMacPort[].class);
+            assertThat("Expect 1 entry.",
+                entries, arrayWithSize(1));
+            assertThat("The listed entries to match those we created.",
+                entries, arrayContainingInAnyOrder(mp1));
+
+            // Try to create a MacPort entry with a bad MAC address
+            mp2 = new DtoMacPort("02:11:NONSENSE", p2.getId());
+            dtoResource.postAndVerifyBadRequest(bridge.getMacTable(),
+                APPLICATION_MAC_PORT_JSON, mp2);
+            // Try to create a MacPort entry with a null MAC address
+            mp2.setMacAddr(null);
+            dtoResource.postAndVerifyBadRequest(bridge.getMacTable(),
+                APPLICATION_MAC_PORT_JSON, mp2);
+            // Try to create a MacPort entry with a null Port ID.
+            mp2 = new DtoMacPort("02:aa:bb:cc:dd:ee", null);
+            dtoResource.postAndVerifyBadRequest(bridge.getMacTable(),
+                APPLICATION_MAC_PORT_JSON, mp2);
+            // Try to create a MacPort entry with a bogus port ID.
+            mp2 = new DtoMacPort("02:aa:bb:cc:dd:ee", UUID.randomUUID());
+            dtoResource.postAndVerifyBadRequest(bridge.getMacTable(),
+                APPLICATION_MAC_PORT_JSON, mp2);
+        }
+
+        @Test
+        public void testArpTable() throws Exception {
+            DtoApplication app = topology.getApplication();
+
+            // Add a bridge
+            DtoBridge bridge = new DtoBridge();
+            bridge.setName("bridge1");
+            bridge.setTenantId("tenant1");
+            bridge = dtoResource.postAndVerifyCreated(app.getBridges(),
+                APPLICATION_BRIDGE_JSON, bridge, DtoBridge.class);
+            assertNotNull(bridge.getId());
+            assertNotNull(bridge.getUri());
+
+            // Add an Arp Entry
+            DtoIP4MacPair mp1 = new DtoIP4MacPair(
+                "10.0.0.2", "02:11:22:33:44:55");
+            mp1 = dtoResource.postAndVerifyCreated(bridge.getArpTable(),
+                APPLICATION_IP4_MAC_JSON, mp1, DtoIP4MacPair.class);
+
+            // Add a second Arp Entry
+            DtoIP4MacPair mp2 = new DtoIP4MacPair(
+                "10.0.0.3", "02:11:22:33:44:66");
+            mp2 = dtoResource.postAndVerifyCreated(bridge.getArpTable(),
+                APPLICATION_IP4_MAC_JSON, mp2, DtoIP4MacPair.class);
+
+            // List the Arp entries.
+            DtoIP4MacPair[] entries = dtoResource.getAndVerifyOk(
+                bridge.getArpTable(), APPLICATION_IP4_MAC_COLLECTION_JSON,
+                DtoIP4MacPair[].class);
+            assertThat("Expect 2 listed entries.",
+                entries, arrayWithSize(2));
+            assertThat("The listed entries should match those we created.",
+                entries, arrayContainingInAnyOrder(mp1, mp2));
+
+            // Delete the second entry.
+            dtoResource.deleteAndVerifyNoContent(mp2.getUri(),
+                APPLICATION_IP4_MAC_JSON);
+            // List the Arp entries.
+            entries = dtoResource.getAndVerifyOk(
+                bridge.getArpTable(), APPLICATION_IP4_MAC_COLLECTION_JSON,
+                DtoIP4MacPair[].class);
+            assertThat("Expect 1 entry.",
+                entries, arrayWithSize(1));
+            assertThat("The listed entries should match those we created.",
+                entries, arrayContainingInAnyOrder(mp1));
+
+            // Try to create an Arp entry with a bad MAC address
+            mp2 = new DtoIP4MacPair("1.2.3.4", "02:11:NONSENSE");
+            dtoResource.postAndVerifyBadRequest(bridge.getArpTable(),
+                APPLICATION_IP4_MAC_JSON, mp2);
+            // Try to create an Arp entry with a null MAC address
+            mp2.setMac(null);
+            dtoResource.postAndVerifyBadRequest(bridge.getArpTable(),
+                APPLICATION_IP4_MAC_JSON, mp2);
+            // Try to create an Arp entry with a null IP4.
+            mp2 = new DtoIP4MacPair(null, "02:aa:bb:cc:dd:ee");
+            dtoResource.postAndVerifyBadRequest(bridge.getArpTable(),
+                APPLICATION_IP4_MAC_JSON, mp2);
+            // Try to create Arp entries with bogus IP4 addresses.
+            mp2 = new DtoIP4MacPair("1.2.3", "02:aa:bb:cc:dd:ee");
+            dtoResource.postAndVerifyBadRequest(bridge.getArpTable(),
+                APPLICATION_IP4_MAC_JSON, mp2);
+            mp2 = new DtoIP4MacPair("1000.2.3.4", "02:aa:bb:cc:dd:ee");
+            dtoResource.postAndVerifyBadRequest(bridge.getArpTable(),
+                APPLICATION_IP4_MAC_JSON, mp2);
+            mp2 = new DtoIP4MacPair("host", "02:aa:bb:cc:dd:ee");
+            dtoResource.postAndVerifyBadRequest(bridge.getArpTable(),
+                APPLICATION_IP4_MAC_JSON, mp2);
         }
     }
 

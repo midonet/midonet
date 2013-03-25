@@ -5,11 +5,10 @@ package org.midonet.midolman.simulation
 
 import akka.actor.ActorSystem
 import akka.dispatch.{ExecutionContext, Future, Promise}
-import akka.event.{Logging, LoggingAdapter, LogSource}
 import scala.collection.{Map => ROMap}
 import java.util.UUID
 
-import org.midonet.cluster.client.MacLearningTable
+import org.midonet.cluster.client.{Ip4MacMap, MacLearningTable}
 import org.midonet.midolman.logging.LoggerFactory
 import org.midonet.midolman.rules.RuleResult.Action
 import org.midonet.midolman.simulation.Coordinator._
@@ -17,10 +16,13 @@ import org.midonet.midolman.topology.{FlowTagger, MacFlowCount,
                                       RemoveFlowCallbackGenerator}
 import org.midonet.packets.{ARP, Ethernet, IPAddr, MAC}
 import org.midonet.util.functors.Callback1
+import org.midonet.midolman.DeduplicationActor
+import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 
 
 class Bridge(val id: UUID, val tunnelKey: Long,
              val macPortMap: MacLearningTable,
+             val ip4MacMap: Ip4MacMap,
              val flowCount: MacFlowCount, val inFilter: Chain,
              val outFilter: Chain,
              val flowRemovedCallbackGen: RemoveFlowCallbackGenerator,
@@ -94,15 +96,35 @@ class Bridge(val id: UUID, val tunnelKey: Long,
                     action = Promise.successful(
                         Coordinator.ToPortAction(rtrPortID))
                 } else {
-                    // it's an ARP but it's not for a router's port or the router's
-                    // port has not been linked yet
-                    log.debug("flooding ARP to port set {}, source MAC {}", id,
-                        packetContext.getMatch.getEthernetSource)
-                    action = Promise.successful(ToPortSetAction(id))
-                    packetContext.addFlowTag(
-                        FlowTagger.invalidateArpRequests(id))
+                    // If it's an ARP request, can we answer it from the
+                    // Bridge's Ip4MacMap?
+                    var mac: Future[MAC]= null
+                    packetContext.getMatch.getNetworkProtocol match {
+                        case ARP.OP_REQUEST =>
+                            mac = getMacOfIp(
+                                packetContext.getMatch.getNetworkDestinationIP,
+                                packetContext.expiry, ec)
+                        case _ => Promise.successful[MAC](null)
+                    }
+                    // TODO(pino): tag the flow with the destination
+                    // TODO: mac, so we can deal with changes in the mac.
+                    action = mac map {
+                        case null =>
+                            // We don't know the mac for this IP4 or it's an
+                            // ARP reply. Either way, broadcast it.
+                            log.debug("flooding ARP to port set {}, source MAC {}", id,
+                                packetContext.getMatch.getEthernetSource)
+                            packetContext.addFlowTag(
+                                FlowTagger.invalidateArpRequests(id))
+                            ToPortSetAction(id)
+                        case m: MAC =>
+                            // We can reply to the ARP request.
+                            processArpRequest(
+                                pktContext.getFrame.getPayload.asInstanceOf[ARP],
+                                m, pktContext.getInPortId)
+                            new ConsumedAction
+                    }
                 }
-
             } else {
                 // Not an ARP request.
                 // Flood to materialized ports only.
@@ -221,5 +243,32 @@ class Bridge(val id: UUID, val tunnelKey: Long,
             }
         }, expiry)
         rv
+    }
+
+    private def getMacOfIp(ip: IPAddr, expiry: Long, ec: ExecutionContext) = {
+        ip4MacMap match {
+            case null => Promise.successful[MAC](null)
+            case map =>
+                val rv = Promise[MAC]()(ec)
+                map.get(ip.toIntIPv4(), new Callback1[MAC] {
+                    def call(mac: MAC) {
+                        rv.success(mac)
+                    }
+                }, expiry)
+                rv
+        }
+    }
+
+    private def processArpRequest(arpReq: ARP, mac: MAC, inPortId: UUID)
+                                 (implicit ec: ExecutionContext,
+                                  actorSystem: ActorSystem,
+                                  originalPktContex: PacketContext) {
+        // Construct the reply, reversing src/dst fields from the request.
+        val eth = ARP.makeArpReply(mac, arpReq.getSenderHardwareAddress,
+            arpReq.getTargetProtocolAddress, arpReq.getSenderProtocolAddress);
+        DeduplicationActor.getRef(actorSystem) ! EmitGeneratedPacket(
+            inPortId, eth,
+            if (originalPktContex != null)
+                Option(originalPktContex.getFlowCookie) else None)
     }
 }

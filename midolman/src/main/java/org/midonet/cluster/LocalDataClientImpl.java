@@ -26,14 +26,7 @@ import org.midonet.midolman.host.commands.HostCommandGenerator;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.monitoring.store.Store;
-import org.midonet.midolman.state.DirectoryCallback;
-import org.midonet.midolman.state.PathBuilder;
-import org.midonet.midolman.state.PortConfig;
-import org.midonet.midolman.state.PortConfigCache;
-import org.midonet.midolman.state.PortDirectory;
-import org.midonet.midolman.state.RuleIndexOutOfBoundsException;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.ZkConfigSerializer;
+import org.midonet.midolman.state.*;
 import org.midonet.midolman.state.zkManagers.*;
 import org.midonet.cluster.data.*;
 import org.midonet.cluster.data.dhcp.Subnet;
@@ -227,6 +220,68 @@ public class LocalDataClientImpl implements DataClient {
         log.debug("bridgesFindByTenant exiting: {} bridges found",
                 bridges.size());
         return bridges;
+    }
+
+    @Override
+    public Map<MAC, UUID> bridgeGetMacPorts(@Nonnull UUID bridgeId)
+            throws StateAccessException {
+        return MacPortMap.getAsMap(
+            bridgeZkManager.getMacPortMapDirectory(bridgeId));
+    }
+
+    @Override
+    public void bridgeAddMacPort(
+        @Nonnull UUID bridgeId, @Nonnull MAC mac, @Nonnull UUID portId)
+            throws StateAccessException {
+        MacPortMap.addPersistentEntry(
+            bridgeZkManager.getMacPortMapDirectory(bridgeId), mac, portId);
+    }
+
+    @Override
+    public boolean bridgeHasMacPort(
+        @Nonnull UUID bridgeId, @Nonnull MAC mac, @Nonnull UUID portId)
+            throws StateAccessException {
+        return MacPortMap.hasPersistentEntry(
+            bridgeZkManager.getMacPortMapDirectory(bridgeId), mac, portId);
+    }
+
+    @Override
+    public void bridgeDeleteMacPort(
+            @Nonnull UUID bridgeId, @Nonnull MAC mac, @Nonnull UUID portId)
+            throws StateAccessException {
+        MacPortMap.deletePersistentEntry(
+            bridgeZkManager.getMacPortMapDirectory(bridgeId), mac, portId);
+    }
+
+    @Override
+    public Map<IntIPv4, MAC> bridgeGetIP4MacPairs(@Nonnull UUID bridgeId)
+        throws StateAccessException {
+        return Ip4ToMacReplicatedMap.getAsMap(
+            bridgeZkManager.getIP4MacMapDirectory(bridgeId));
+    }
+
+    @Override
+    public void bridgeAddIp4Mac(
+            @Nonnull UUID bridgeId, @Nonnull IntIPv4 ip4, @Nonnull MAC mac)
+            throws StateAccessException {
+        Ip4ToMacReplicatedMap.addPersistentEntry(
+            bridgeZkManager.getIP4MacMapDirectory(bridgeId), ip4, mac);
+    }
+
+    @Override
+    public boolean bridgeHasIP4MacPair(@Nonnull UUID bridgeId,
+                                       @Nonnull IntIPv4 ip, @Nonnull MAC mac)
+        throws StateAccessException {
+        return Ip4ToMacReplicatedMap.hasPersistentEntry(
+            bridgeZkManager.getIP4MacMapDirectory(bridgeId), ip, mac);
+    }
+
+    @Override
+    public void bridgeDeleteIp4Mac(
+            @Nonnull UUID bridgeId, @Nonnull IntIPv4 ip4, @Nonnull MAC mac)
+            throws StateAccessException {
+        Ip4ToMacReplicatedMap.deletePersistentEntry(
+            bridgeZkManager.getIP4MacMapDirectory(bridgeId), ip4, mac);
     }
 
     @Override

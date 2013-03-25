@@ -11,7 +11,7 @@ import java.util.{Map => JMap, UUID}
 
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.client.{BridgeBuilder, MacLearningTable,
+import org.midonet.cluster.client.{Ip4MacMap, BridgeBuilder, MacLearningTable,
     SourceNatResource}
 import org.midonet.midolman.FlowController
 import org.midonet.midolman.topology.{BridgeConfig, BridgeManager, FlowTagger}
@@ -34,6 +34,7 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
 
     private var cfg = new BridgeConfig
     private var macPortMap: MacLearningTable = null
+    private var ip4MacMap: Ip4MacMap = null
     private var rtrMacToLogicalPortId: MMap[MAC, UUID] = null
     private var rtrIpToMac: MMap[IPAddr, MAC] = null
 
@@ -47,6 +48,13 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
         if (table != null) {
             macPortMap = table
             macPortMap.notify(new MacTableNotifyCallBack)
+        }
+    }
+
+    override def setIp4MacMap(m: Ip4MacMap) {
+        if (m != null) {
+            ip4MacMap = m
+            // TODO(pino): set the notification callback on this map?
         }
     }
 
@@ -103,7 +111,7 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
         log.debug("Building the bridge for {}", id)
         // send messages to the BridgeManager
         // Convert the mutable map to immutable
-        bridgeMgr ! BridgeManager.TriggerUpdate(cfg, macPortMap,
+        bridgeMgr ! BridgeManager.TriggerUpdate(cfg, macPortMap, ip4MacMap,
             collection.immutable.HashMap(rtrMacToLogicalPortId.toSeq: _*),
             collection.immutable.HashMap(rtrIpToMac.toSeq: _*))
     }

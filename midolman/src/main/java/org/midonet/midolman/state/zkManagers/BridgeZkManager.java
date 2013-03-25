@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.ZooDefs.Ids;
@@ -157,6 +158,9 @@ public class BridgeZkManager extends ZkManager {
         ops.add(Op.create(paths.getBridgeMacPortsPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
+        ops.add(Op.create(paths.getBridgeIP4MacMapPath(id), null,
+                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+
         // Add a port-set for this bridge
         ops.add(Op.create(paths.getPortSetPath(id),
                           null, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
@@ -247,6 +251,9 @@ public class BridgeZkManager extends ZkManager {
         ops.add(Op.delete(paths.getBridgeLogicalPortsPath(id), -1));
         ops.addAll(getRecursiveDeleteOps(paths.getBridgeDhcpPath(id)));
         ops.addAll(getRecursiveDeleteOps(paths.getBridgeMacPortsPath(id)));
+        // The bridge may have been created before the ARP feature was added.
+        if (exists(paths.getBridgeIP4MacMapPath(id)))
+            ops.addAll(getRecursiveDeleteOps(paths.getBridgeIP4MacMapPath(id)));
 
         // Delete GRE
         ops.addAll(tunnelZkManager.prepareTunnelDelete(config.tunnelKey));
@@ -337,4 +344,26 @@ public class BridgeZkManager extends ZkManager {
         multi(prepareBridgeDelete(id));
     }
 
+    // This method creates the directory if it doesn't already exist,
+    // because bridges may have been created before the ARP feature was added.
+    public Directory getIP4MacMapDirectory(UUID id)
+            throws StateAccessException {
+        String path = paths.getBridgeIP4MacMapPath(id);
+        if (exists(id) && !exists(path))
+            addPersistent(path, null);
+        try {
+            return zk.getSubDirectory(path);
+        } catch (KeeperException e) {
+            throw new StateAccessException(e);
+        }
+    }
+
+    public Directory getMacPortMapDirectory(UUID id)
+        throws StateAccessException{
+        try {
+            return zk.getSubDirectory(paths.getBridgeMacPortsPath(id));
+        } catch (KeeperException e) {
+            throw new StateAccessException(e);
+        }
+    }
 }

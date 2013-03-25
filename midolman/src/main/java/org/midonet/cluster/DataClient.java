@@ -20,6 +20,7 @@ import org.midonet.cluster.data.host.Host;
 import org.midonet.cluster.data.host.Interface;
 import org.midonet.cluster.data.host.VirtualPortMapping;
 import org.midonet.packets.IntIPv4;
+import org.midonet.packets.MAC;
 import org.midonet.util.functors.Callback2;
 
 
@@ -59,6 +60,36 @@ public interface DataClient {
 
     List<Bridge> bridgesFindByTenant(String tenantId)
             throws StateAccessException;
+
+    void bridgeAddMacPort(@Nonnull UUID bridgeId, @Nonnull MAC mac,
+                          @Nonnull UUID portId)
+        throws StateAccessException;
+
+    boolean bridgeHasMacPort(@Nonnull UUID bridgeId, @Nonnull MAC mac,
+                          @Nonnull UUID portId)
+        throws StateAccessException;
+
+    Map<MAC, UUID> bridgeGetMacPorts(@Nonnull UUID bridgeId)
+        throws StateAccessException;
+
+    void bridgeDeleteMacPort(@Nonnull UUID bridgeId, @Nonnull MAC mac,
+                             @Nonnull UUID portId)
+        throws StateAccessException;
+
+    void bridgeAddIp4Mac(@Nonnull UUID bridgeId, @Nonnull IntIPv4 ip4,
+                         @Nonnull MAC mac)
+        throws StateAccessException;
+
+    boolean bridgeHasIP4MacPair(@Nonnull UUID bridgeId,
+                                @Nonnull IntIPv4 ip, @Nonnull MAC mac)
+        throws StateAccessException;
+
+    Map<IntIPv4, MAC> bridgeGetIP4MacPairs(@Nonnull UUID bridgeId)
+        throws StateAccessException;
+
+    void bridgeDeleteIp4Mac(@Nonnull UUID bridgeId, @Nonnull IntIPv4 ip4,
+                            @Nonnull MAC mac)
+        throws StateAccessException;
 
 
     /* Chains related methods */

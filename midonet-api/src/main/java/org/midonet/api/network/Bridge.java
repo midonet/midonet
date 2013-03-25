@@ -189,14 +189,17 @@ public class Bridge extends UriResource {
     }
 
     /**
-     * @return the Filtering Database URI
+     * @return the URI for the Bridge's MAC table.
      */
-    public URI getFilteringDb() {
-        if (getBaseUri() != null && id != null) {
-            return ResourceUriBuilder.getFilteringDb(getBaseUri(), id);
-        } else {
-            return null;
-        }
+    public URI getMacTable() {
+        return ResourceUriBuilder.getMacTable(getUri());
+    }
+
+    /**
+     * @return the URI for the Bridge's ARP table.
+     */
+    public URI getArpTable() {
+        return ResourceUriBuilder.getArpTable(getUri());
     }
 
     /**

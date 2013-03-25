@@ -15,19 +15,21 @@ public class MessageProperty {
             "{midokura.javarx.IsUniquePortGroupName.message}";
     public static final String IS_UNIQUE_CHAIN_NAME =
             "{midokura.javarx.IsUniqueChainName.message}";
+    public static final String MAC_PORT_ON_BRIDGE =
+        "{midokura.javarx.MacPortOnBridge.message}";
     public static final String ROUTE_NEXT_HOP_PORT_NOT_NULL =
-            "{midokura.javarx.RouteNextHopPortValid}";
+            "{midokura.javarx.RouteNextHopPortValid.message}";
     public static final String PORT_ID_IS_INVALID =
-            "{midokura.javarx.PortIdIsInvalid}";
+            "{midokura.javarx.PortIdIsInvalid.message}";
     public static final String PORT_GROUP_ID_IS_INVALID =
-            "{midokura.javarx.PortGroupIdIsInvalid}";
+            "{midokura.javarx.PortGroupIdIsInvalid.message}";
     public static final String TUNNEL_ZONE_ID_IS_INVALID =
-            "{midokura.javarx.TunnelZoneIdIsInvalid}";
+            "{midokura.javarx.TunnelZoneIdIsInvalid.message}";
     public static final String TUNNEL_ZONE_MEMBER_EXISTS =
-            "{midokura.javarx.TunnelZoneMemberExists}";
+            "{midokura.javarx.TunnelZoneMemberExists.message}";
     public static final String HOST_ID_IS_INVALID =
-            "{midokura.javarx.HostIdIsInvalid}";
+            "{midokura.javarx.HostIdIsInvalid.message}";
     public static final String PORTS_LINKABLE =
-            "{midokura.javarx.PortsLinkable}";
+            "{midokura.javarx.PortsLinkable.message}";
 
 }

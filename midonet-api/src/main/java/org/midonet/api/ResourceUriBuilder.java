@@ -4,7 +4,10 @@
  */
 package org.midonet.api;
 
+import org.midonet.api.network.IP4MacPair;
+import org.midonet.api.network.MacPort;
 import org.midonet.packets.IntIPv4;
+import org.midonet.packets.MAC;
 
 import javax.ws.rs.core.UriBuilder;
 import java.net.URI;
@@ -15,7 +18,8 @@ public class ResourceUriBuilder {
     public static final String ROOT = "/";
     public static final String ROUTERS = "/routers";
     public static final String BRIDGES = "/bridges";
-    public static final String FILTER_DB = "/filteringDB";
+    public static final String MAC_TABLE = "/mac_table";
+    public static final String ARP_TABLE = "/arp_table";
     public static final String DHCP = "/dhcp";
     public static final String DHCP_HOSTS = "/hosts";
     public static final String PORTS = "/ports";
@@ -86,11 +90,6 @@ public class ResourceUriBuilder {
                 .path(PEER_PORTS).build();
     }
 
-    public static URI getFilteringDb(URI baseUri, UUID bridgeId) {
-        return UriBuilder.fromUri(getBridge(baseUri, bridgeId)).path(FILTER_DB)
-                .build();
-    }
-
     public static URI getBridgeDhcps(URI baseUri, UUID bridgeId) {
         return UriBuilder.fromUri(getBridge(baseUri, bridgeId)).path(DHCP)
                 .build();
@@ -111,6 +110,48 @@ public class ResourceUriBuilder {
         return UriBuilder.fromUri(bridgeDhcpUri).path(DHCP_HOSTS).build();
     }
 
+    public static URI getMacTable(URI bridgeUri) {
+        return UriBuilder.fromUri(bridgeUri).path(MAC_TABLE).build();
+    }
+
+    public static String macPortToUri(MacPort mp) {
+        StringBuilder b = new StringBuilder();
+        b.append(macToUri(mp.getMacAddr().toString()));
+        b.append("_").append(mp.getPortId().toString());
+        return b.toString();
+    }
+
+    public static MAC macPortToMac(String macPortString) {
+        String[] parts = macPortString.split("_");
+        return MAC.fromString(macFromUri(parts[0]));
+    }
+
+    public static UUID macPortToUUID(String macPortString) {
+        String[] parts = macPortString.split("_");
+        return UUID.fromString(parts[1]);
+    }
+
+    public static URI getArpTable(URI bridgeUri) {
+        return UriBuilder.fromUri(bridgeUri).path(ARP_TABLE).build();
+    }
+
+    public static String ip4MacPairToUri(IP4MacPair pair) {
+        StringBuilder b = new StringBuilder();
+        b.append(pair.getIp()).append("_");
+        b.append(macToUri(pair.getMac()));
+        return b.toString();
+    }
+
+    public static MAC ip4MacPairToMac(String macPortString) {
+        String[] parts = macPortString.split("_");
+        return MAC.fromString(macFromUri(parts[1]));
+    }
+
+    public static IntIPv4 ip4MacPairToIP4(String macPortString) {
+        String[] parts = macPortString.split("_");
+        return IntIPv4.fromString(parts[0]);
+    }
+
     public static String macToUri(String mac) {
         return mac.replace(':', '-');
     }
@@ -122,6 +163,16 @@ public class ResourceUriBuilder {
     public static URI getDhcpHost(URI bridgeDhcpUri, String macAddr) {
         return UriBuilder.fromUri(getDhcpHosts(bridgeDhcpUri))
                 .path(macToUri(macAddr)).build();
+    }
+
+    public static URI getIP4MacPair(URI bridgeUri, IP4MacPair pair) {
+        return UriBuilder.fromUri(getArpTable(bridgeUri))
+            .path(ip4MacPairToUri(pair)).build();
+    }
+
+    public static URI getMacPort(URI bridgeUri, MacPort mp) {
+        return UriBuilder.fromUri(getMacTable(bridgeUri))
+            .path(macPortToUri(mp)).build();
     }
 
     public static URI getRouterPorts(URI baseUri, UUID routerId) {
