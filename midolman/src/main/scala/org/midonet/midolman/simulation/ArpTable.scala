@@ -145,7 +145,8 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
 
     def get(ip: IntIPv4, port: RouterPort[_], expiry: Long)
            (implicit ec: ExecutionContext,
-            actorSystem: ActorSystem, pktContext: PacketContext): Future[MAC] = {
+            actorSystem: ActorSystem,
+            pktContext: PacketContext): Future[MAC] = {
         log.debug("Resolving MAC for {}", ip)
         /*
          * We must invoke waitForArpEntry() before requesting the ArpCacheEntry.
@@ -163,11 +164,13 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
             case entry =>
                 val now = Platform.currentTime
                 if (entry == null ||
-                        (entry.stale < Platform.currentTime &&
-                         entry.lastArp+ARP_RETRY_MILLIS > now)  ||
+                        (entry.stale < now &&
+                         entry.lastArp+ARP_RETRY_MILLIS < now)  ||
                         entry.macAddr == null)
                     arpForAddress(ip, entry, port)
         }
+        // macPromise may complete with a Left(TimeoutException). Use
+        // fallbackTo so that exceptions don't escape the ArpTable class.
         entryFuture flatMap {
             case entry: ArpCacheEntry =>
                 if (entry != null && entry.expiry >= Platform.currentTime) {
@@ -177,7 +180,7 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
                     macPromise.future
             case _ =>
                 macPromise.future
-        }
+        } fallbackTo { Promise.successful(null) }
     }
 
     def set(ip: IntIPv4, mac: MAC) (implicit actorSystem: ActorSystem) {
@@ -234,6 +237,7 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
             case entry if entry != null =>
                 if (entry.expiry <= Platform.currentTime)
                     arpCache.remove(ip)
+            // TODO(pino): else retry the removal?
         }
     }
 
