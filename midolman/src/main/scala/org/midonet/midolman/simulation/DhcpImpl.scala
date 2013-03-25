@@ -27,6 +27,7 @@ import org.midonet.midolman.DatapathController.LocalTunnelInterfaceInfo
 import org.midonet.cluster.data.dhcp.Opt121
 import org.midonet.cluster.data.TunnelZone
 import org.midonet.cluster.data.zones.{GreTunnelZone, CapwapTunnelZone, IpsecTunnelZone}
+import org.midonet.midolman.state.StateAccessException
 
 
 class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
@@ -77,41 +78,42 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
         val subnets = dataClient.dhcpSubnetsGetByBridge(port.deviceID)
         // Look for the DHCP's source MAC in the list of hosts in each subnet
         for (sub <- subnets) {
-            val hosts = dataClient.dhcpHostsGetBySubnet(
-                port.deviceID, sub.getSubnetAddr)
-            log.debug("Look for mac {} in {} static assignments for " +
-                "DhcpSubnet {}", Array(sourceMac, hosts.size, sub))
-            for (host <- hosts) {
-                if (sourceMac == host.getMAC) {
-                    log.debug("Found DHCP static assignment for mac {} => {}",
-                        sourceMac, host)
-                    serverAddr = sub.getServerAddr
-                    // TODO(pino): the server MAC should be in configuration.
-                    serverMac = MAC.fromString("02:a8:9c:de:39:27")
-                    dnsServerAddr = sub.getDnsServerAddr
-                    routerAddr = sub.getDefaultGateway
-                    yiaddr = host.getIp.clone.setMaskLength(
-                        sub.getSubnetAddr.getMaskLength)
-                    opt121Routes = sub.getOpt121Routes
-                    interfaceMTU = sub.getInterfaceMTU
-                    if (interfaceMTU == 0) {
-                        var interfaceMTUFuture : Future[Short] = null
-                        interfaceMTUFuture = calculateInterfaceMTU
-                        return (interfaceMTUFuture flatMap {
-                            case mtu =>
-                                if (mtu == 0) {
-                                    log.error("Fail to calculate interface MTU");
-                                    Promise.successful(false)
-                                } else {
-                                    log.debug("Future returned, mtu is {}", mtu);
-                                    interfaceMTU = mtu
-                                    makeDhcpReply
-                                }
-                        })
-                    } else {
-                        return makeDhcpReply
-                    }
+            log.debug("Look for mac {} in static assignments for " +
+                "DhcpSubnet {}", sourceMac, sub)
+            try {
+                // TODO(pino): make this asynchronous?
+                val host = dataClient.dhcpHostsGet(
+                    port.deviceID, sub.getSubnetAddr, sourceMac.toString)
+                log.debug("Found DHCP static assignment for mac {} => {}",
+                    sourceMac, host)
+                serverAddr = sub.getServerAddr
+                // TODO(pino): the server MAC should be in configuration.
+                serverMac = MAC.fromString("02:a8:9c:de:39:27")
+                dnsServerAddr = sub.getDnsServerAddr
+                routerAddr = sub.getDefaultGateway
+                yiaddr = host.getIp.clone.setMaskLength(
+                    sub.getSubnetAddr.getMaskLength)
+                opt121Routes = sub.getOpt121Routes
+                interfaceMTU = sub.getInterfaceMTU
+                if (interfaceMTU == 0) {
+                    var interfaceMTUFuture : Future[Short] = null
+                    interfaceMTUFuture = calculateInterfaceMTU
+                    return (interfaceMTUFuture flatMap {
+                        case mtu =>
+                            if (mtu == 0) {
+                                log.error("Fail to calculate interface MTU");
+                                Promise.successful(false)
+                            } else {
+                                log.debug("Future returned, mtu is {}", mtu);
+                                interfaceMTU = mtu
+                                makeDhcpReply
+                            }
+                    })
+                } else {
+                    return makeDhcpReply
                 }
+            } catch {
+                case e: StateAccessException => //do nothing; try another subnet
             }
         }
         // Couldn't find a static DHCP host assignment for this mac.
