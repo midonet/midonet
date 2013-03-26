@@ -27,3 +27,13 @@ watermarks for outstanding Netlink requests and network simulations.
 ### Upgrade notes for 12.12.[0-2] users:
 
 - No known issues.
+
+## Version 13.06.0 - Diyari - June 2013
+
+### Highlights
+
+- [new] IPv6 support.
+- [new] Flow-based tunneling (one tunnel port per Midolman instead of N, where
+N is the number of Midolman peers).
+- [new] Package renames: midolman-mgmt=>midonet-api
+- [new] Java class name renames: com.midokura=>org.midonet
