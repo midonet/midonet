@@ -109,7 +109,7 @@ trait VMsBehindRouterFixture extends MidolmanTestCase with SimulationHelper with
         numPorts should contain (outPorts.size)
         outPorts should contain (port.toShort)
 
-        Ethernet.deserialize(pktOut.getData)
+        pktOut.getPacket
     }
 
     def expectPacketOutRouterToVm(port: Int): Ethernet =

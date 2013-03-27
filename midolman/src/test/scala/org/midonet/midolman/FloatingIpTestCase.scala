@@ -178,7 +178,7 @@ class FloatingIpTestCase extends VirtualConfigurationBuilders with RouterHelper 
                   floatingIP.toIntIPv4(), 80, syn = true)
         var pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
         pktOut should not be null
-        pktOut.getData should not be null
+        pktOut.getPacket should not be null
         var eth = applyOutPacketActions(pktOut)
         log.debug("Packet out: {}", pktOut)
         var ipPak = eth.getPayload.asInstanceOf[IPv4]
@@ -191,7 +191,7 @@ class FloatingIpTestCase extends VirtualConfigurationBuilders with RouterHelper 
                   vm2Ip.toIntIPv4(), 80, syn = true)
         pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
         pktOut should not be null
-        pktOut.getData should not be null
+        pktOut.getPacket should not be null
         eth = applyOutPacketActions(pktOut)
         log.debug("packet out: {}", pktOut)
         ipPak = eth.getPayload.asInstanceOf[IPv4]
@@ -204,7 +204,7 @@ class FloatingIpTestCase extends VirtualConfigurationBuilders with RouterHelper 
                   vm1Ip.toIntIPv4(), 80, syn = true)
         pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
         pktOut should not be null
-        pktOut.getData should not be null
+        pktOut.getPacket should not be null
         eth = applyOutPacketActions(pktOut)
         log.debug("packet out: {}", pktOut)
         ipPak = eth.getPayload.asInstanceOf[IPv4]
@@ -217,7 +217,7 @@ class FloatingIpTestCase extends VirtualConfigurationBuilders with RouterHelper 
                           vm2Ip.toIntIPv4())
         pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
         pktOut should not be null
-        pktOut.getData should not be null
+        pktOut.getPacket should not be null
         eth = applyOutPacketActions(pktOut)
         log.debug("packet out: {}", pktOut)
         ipPak = eth.getPayload.asInstanceOf[IPv4]
@@ -230,7 +230,7 @@ class FloatingIpTestCase extends VirtualConfigurationBuilders with RouterHelper 
                           floatingIP.toIntIPv4())
         pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
         pktOut should not be null
-        pktOut.getData should not be null
+        pktOut.getPacket should not be null
         eth = applyOutPacketActions(pktOut)
         log.debug("packet out: {}", pktOut)
         ipPak = eth.getPayload.asInstanceOf[IPv4]
@@ -243,7 +243,7 @@ class FloatingIpTestCase extends VirtualConfigurationBuilders with RouterHelper 
                           floatingIP.toIntIPv4())
         pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
         pktOut should not be null
-        pktOut.getData should not be null
+        pktOut.getPacket should not be null
         eth = applyOutPacketActions(pktOut)
         log.debug("packet out: {}", pktOut)
         ipPak = eth.getPayload.asInstanceOf[IPv4]

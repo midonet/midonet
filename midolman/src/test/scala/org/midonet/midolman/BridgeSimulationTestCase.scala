@@ -245,7 +245,7 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         val ingressPort = getMaterializedPort(ingressPortName)
 
         pktInMsg should not be null
-        pktInMsg.bytes should not be null
+        pktInMsg.eth should not be null
         pktInMsg.wMatch should not be null
         // We're racing with DatapathController here. DC's job is to remove
         // the inputPortUUID field and set the corresponding inputPort (short).

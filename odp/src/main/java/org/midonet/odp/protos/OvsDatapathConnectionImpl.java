@@ -76,6 +76,10 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                     return;
 
                 packet = deserializePacket(buffers.get(0));
+                if (packet == null) {
+                    log.info("Discarding malformed packet");
+                    return;
+                }
 
                 if (PacketFamily.Cmd.ACTION.getValue() == cmd) {
                     packet.setReason(Packet.Reason.FlowActionUserspace);
@@ -921,7 +925,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             // datapathId. I examined the ByteBuffers constructed with that
             // ordering of attributes and compared it to this one, and found
             // only the expected difference.
-            .addAttr(PacketFamily.AttrKey.PACKET, packet.getData())
+            .addAttr(PacketFamily.AttrKey.PACKET, packet.getPacket())
             .build();
 
         newRequest(packetFamily, PacketFamily.Cmd.EXECUTE)
@@ -997,7 +1001,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         int datapathIndex = msg.getInt();
         packet
-            .setData(msg.getAttrValueBytes(PacketFamily.AttrKey.PACKET))
+            .setPacket(msg.getAttrValueEthernet(PacketFamily.AttrKey.PACKET))
             .setMatch(
                 new FlowMatch(
                     msg.getAttrValue(PacketFamily.AttrKey.KEY,
@@ -1008,7 +1012,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             .setUserData(
                 msg.getAttrValueLong(PacketFamily.AttrKey.USERDATA));
 
-        return packet;
+        return packet.getPacket() != null ? packet : null;
     }
 
 

@@ -12,6 +12,8 @@ import javax.annotation.Nullable;
 import org.midonet.netlink.clib.cLibrary;
 import org.midonet.netlink.messages.Builder;
 import org.midonet.netlink.messages.BuilderAware;
+import org.midonet.packets.Ethernet;
+import org.midonet.packets.MalformedPacketException;
 
 /**
  * Abstraction for a netlink message. It provides a builder to allow easy serialization
@@ -19,7 +21,6 @@ import org.midonet.netlink.messages.BuilderAware;
  * a message.
  */
 public class NetlinkMessage {
-
     public static class AttrKey<Type> {
 
         short id;
@@ -246,6 +247,21 @@ public class NetlinkMessage {
                return false;
            }
        }.parse(this);
+    }
+
+    public Ethernet getAttrValueEthernet(final AttrKey<Ethernet> attr) {
+        return new SingleAttributeParser<Ethernet>(attr) {
+            @Override
+            protected boolean parseBuffer(ByteBuffer buffer) {
+                data = new Ethernet();
+                try {
+                    data.deserialize(buffer);
+                } catch (MalformedPacketException e) {
+                    data = null;
+                }
+                return false;
+            }
+        }.parse(this);
     }
 
     public interface CustomBuilder<T> {

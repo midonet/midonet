@@ -48,7 +48,7 @@ object PacketWorkflowActor {
     case class Start()
 
     case class PacketIn(wMatch: WildcardMatch,
-                        bytes: Array[Byte],
+                        eth: Ethernet,
                         dpMatch: FlowMatch,
                         reason: Packet.Reason,
                         cookie: Int)
@@ -141,7 +141,7 @@ class PacketWorkflowActor(
             }
             workflowFuture onComplete {
                 case _ =>
-                    log.debug("Packet with {} processed, stopping actor", cookieStr)
+                    log.info("Packet with {} processed, stopping actor", cookieStr)
                     self ! PoisonPill
             }
     }
@@ -180,7 +180,7 @@ class PacketWorkflowActor(
 
             def onError(ex: NetlinkException) {
                 if (ex.getErrorCodeEnum == ErrorCode.EEXIST) {
-                    log.info("File exists while adding flow for {}")
+                    log.info("File exists while adding flow for {}", cookieStr)
                     DeduplicationActor.getRef() !
                         ApplyFlow(flow.getActions, Some(cookie))
                     promise.success(true)
@@ -293,6 +293,7 @@ class PacketWorkflowActor(
             DeduplicationActor.getRef() ! ApplyFlow(dpFlow.getActions, Some(cookie))
             flowPromise.success(true)
         } else {
+            log.debug("Creating dp flow for wildcard table match {}", cookieStr);
             datapathConnection.flowsCreate(datapath, dpFlow,
                 flowAddedCallback(cookie, flowPromise, dpFlow))
         }
@@ -403,10 +404,9 @@ class PacketWorkflowActor(
         // FIXME (guillermo) - The launching of the coordinator is missing
         // the connectionCache and parentCookie params. They will need
         // to be given to the PacketWorkFlowActor.
-        val eth = Ethernet.deserialize(packet.getData)
         val coordinator = new Coordinator(
-            WildcardMatch.fromEthernetPacket(eth),
-            eth,
+            WildcardMatch.fromEthernetPacket(packet.getPacket),
+            packet.getPacket,
             None,
             egressPort,
             Platform.currentTime + timeout,
@@ -431,7 +431,7 @@ class PacketWorkflowActor(
             case Some(vportId) =>
                 wMatch.setInputPortUUID(vportId)
                 system.eventStream.publish(
-                    PacketIn(wMatch, packet.getData, packet.getMatch,
+                    PacketIn(wMatch, packet.getPacket, packet.getMatch,
                         packet.getReason, cookie getOrElse 0))
 
                 handleDHCP(vportId) flatMap {
@@ -439,7 +439,7 @@ class PacketWorkflowActor(
                         Promise.successful(NoOp())
                     case false =>
                         val coordinator: Coordinator = new Coordinator(
-                            wMatch, Ethernet.deserialize(packet.getData), cookie,
+                            wMatch, packet.getPacket, cookie,
                             None, Platform.currentTime + timeout,
                             connectionCache, None)
                         coordinator.simulate()
@@ -462,7 +462,7 @@ class PacketWorkflowActor(
 
     private def handleDHCP(inPortId: UUID): Future[Boolean] = {
         // check if the packet is a DHCP request
-        val eth = Ethernet.deserialize(packet.getData)
+        val eth = packet.getPacket
         if (eth.getEtherType == IPv4.ETHERTYPE) {
             val ipv4 = eth.getPayload.asInstanceOf[IPv4]
             if (ipv4.getProtocol == UDP.PROTOCOL_NUMBER) {
@@ -488,9 +488,8 @@ class PacketWorkflowActor(
         if (null == origActions || origActions.size == 0)
             return Promise.successful(true)
 
-        val eth = Ethernet.deserialize(packet.getData)
-        val wildMatch = WildcardMatch.fromEthernetPacket(eth)
-        packet.setMatch(FlowMatches.fromEthernetPacket(eth))
+        val wildMatch = WildcardMatch.fromEthernetPacket(packet.getPacket)
+        packet.setMatch(FlowMatches.fromEthernetPacket(packet.getPacket))
         translateActions(origActions, None, None, wildMatch) flatMap {
             actions =>
                 log.debug("Translated actions to action list {} for {}",

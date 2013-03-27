@@ -18,6 +18,7 @@
 package org.midonet.packets;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -211,6 +212,8 @@ public class Ethernet extends BasePacket {
             throw new MalformedPacketException("Invalid ethernet frame size: "
                     + bb.remaining());
         }
+
+        bb.order(ByteOrder.BIG_ENDIAN);
 
         if (this.destinationMACAddress == null)
             this.destinationMACAddress = new byte[6];

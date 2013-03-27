@@ -293,7 +293,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
             .addKey(new FlowKeyInPort().setInPort(getPortNumber(portName)))
         val dpPkt = new Packet()
             .setMatch(flowMatch)
-            .setData(ethPkt.serialize())
+            .setPacket(ethPkt)
         triggerPacketIn(dpPkt)
     }
 

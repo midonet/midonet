@@ -59,6 +59,8 @@ public abstract class AbstractNetlinkConnection {
     // assume one read per call.
     private int maxBatchIoOps = DEFAULT_MAX_BATCH_IO_OPS;
 
+    private ByteBuffer reply = ByteBuffer.allocateDirect(cLibrary.PAGE_SIZE);
+
     private NetlinkChannel channel;
     private Reactor reactor;
 
@@ -129,6 +131,12 @@ public abstract class AbstractNetlinkConnection {
             return this;
         }
 
+        /** Register a callback to run when a netlink request completes.
+         *
+         * NOTE: The buffers passed to the translating function given
+         * to the callback will be reused after invocation, the caller
+         * is not entitled to keeping a reference to them.
+         */
         public <T> RequestBuilder<Cmd, Family> withCallback(final Callback<T> callback,
                                                             final Function<List<ByteBuffer>, T> translationFunction) {
             this.callback = new Callback<List<ByteBuffer>>() {
@@ -231,7 +239,6 @@ public abstract class AbstractNetlinkConnection {
     }
 
     public void handleWriteEvent(final SelectionKey key) throws IOException {
-        log.info("Handling write");
         for (int i = 0; i < maxBatchIoOps; i++) {
             final int ret = processWriteToChannel();
             if (ret <= 0) {
@@ -289,12 +296,11 @@ public abstract class AbstractNetlinkConnection {
     private synchronized int processReadFromChannel(SelectionKey key) throws IOException {
 
         if (key != null) {
-            log.debug("Handling event with key: {valid:{}, ops:{}}",
+            log.trace("Handling event with key: {valid:{}, ops:{}}",
                       key.isValid(), key.readyOps());
         }
 
-        // allocate buffer for the reply
-        ByteBuffer reply = ByteBuffer.allocate(cLibrary.PAGE_SIZE);
+        reply.clear();
         reply.order(ByteOrder.LITTLE_ENDIAN);
 
         // channel.read() returns # of bytes read.

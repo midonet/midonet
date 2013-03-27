@@ -232,9 +232,9 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
         val eth = new Ethernet().
                 setSourceMACAddress(srcMAC).
                 setDestinationMACAddress(dstMAC).
-                setEtherType(IPv4.ETHERTYPE).
-                setPayload(new IPv4().setPayload(new Data("Payload".getBytes)))
-        val packet = new Packet().setMatch(dpMatch).setData(eth.serialize())
+                setEtherType(IPv4.ETHERTYPE)
+        eth.setPayload(new IPv4().setPayload(new Data("Payload".getBytes)))
+        val packet = new Packet().setMatch(dpMatch).setPacket(eth)
         dedupProbe().testActor.tell(HandlePacket(packet))
 
         val addFlowMsg = fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
