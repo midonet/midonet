@@ -1,4 +1,4 @@
-// Copyright 2011 Midokura Inc.
+// Copyright 2011, 2013 Midokura Inc.
 
 // MAC.java - utility class for a Ethernet-type Media Access Control address
 //            (a/k/a "Hardware" or "data link" or "link layer" address)
@@ -8,8 +8,10 @@ package org.midonet.packets;
 import java.util.Arrays;
 import java.util.Random;
 
-import org.midonet.packets.Net;
 import org.midonet.util.collections.WeakObjectPool;
+
+import org.codehaus.jackson.annotate.JsonCreator;
+import org.codehaus.jackson.annotate.JsonValue;
 
 public class MAC implements Cloneable {
     private static WeakObjectPool<MAC> INSTANCE_POOL = new WeakObjectPool<MAC>();
@@ -35,6 +37,7 @@ public class MAC implements Cloneable {
         return address.clone();
     }
 
+    @JsonCreator
     public static MAC fromString(String str) {
         return new MAC(Ethernet.toMACAddress(str)).intern();
     }
@@ -58,6 +61,7 @@ public class MAC implements Cloneable {
         return 0 == (address[0] & 0x1);
     }
 
+    @JsonValue
     @Override
     public String toString() {
         return Net.convertByteMacToString(address);

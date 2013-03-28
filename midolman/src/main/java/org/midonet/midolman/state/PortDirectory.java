@@ -321,8 +321,10 @@ public class PortDirectory {
 
             return device_id.equals(port.device_id) && nwAddr == port.nwAddr
                     && nwLength == port.nwLength && portAddr == port.portAddr
-                    && getRoutes().equals(port.getRoutes())
-                    && getBgps().equals(port.getBgps());
+                    && (getRoutes() == null ? port.getRoutes() == null :
+                            getRoutes().equals(port.getRoutes()))
+                    && (getBgps() == null ? port.getBgps() == null :
+                            getBgps().equals(port.getBgps()));
         }
 
         @Override

@@ -1,8 +1,11 @@
 /*
- * Copyright 2011 Midokura KK
+ * Copyright 2011, 2013 Midokura KK
  */
 package org.midonet.packets;
 
+
+import org.codehaus.jackson.annotate.JsonCreator;
+import org.codehaus.jackson.annotate.JsonValue;
 
 @Deprecated
 public class IntIPv4 implements Cloneable {
@@ -108,6 +111,7 @@ public class IntIPv4 implements Cloneable {
      * @return
      *      The IntIPv4 represented by the String.
      */
+    @JsonCreator
     public static IntIPv4 fromString(String dottedQuad) {
         String[] parts = dottedQuad.split("_", 2);
         // Because of String.split's contract, parts.length can only be 1 or 2
@@ -138,6 +142,7 @@ public class IntIPv4 implements Cloneable {
         *      A String like "192.168.0.0_24" for prefixes or "192.168.0.5" for a
         *      unicast address (i.e. if the mask length is 32).
         */
+    @JsonValue
     @Override
     public String toString() {
         String dottedQuad = Net.convertIntAddressToString(address);
