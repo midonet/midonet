@@ -183,6 +183,7 @@ class PacketWorkflowActor(
                     log.info("File exists while adding flow for {}")
                     DeduplicationActor.getRef() !
                         ApplyFlow(flow.getActions, Some(cookie))
+                    promise.success(true)
                 } else {
                     // NOTE(pino) - it'd be more correct to execute the
                     // packets with the actions found in the flow that
