@@ -41,6 +41,7 @@ public abstract class AbstractNetlinkConnection {
         .getLogger(AbstractNetlinkConnection.class);
 
     private static final int DEFAULT_MAX_BATCH_IO_OPS = 20;
+    private static final int NETLINK_HEADER_LEN = 20;
 
     private AtomicInteger sequenceGenerator = new AtomicInteger(1);
 
@@ -60,6 +61,8 @@ public abstract class AbstractNetlinkConnection {
     private int maxBatchIoOps = DEFAULT_MAX_BATCH_IO_OPS;
 
     private ByteBuffer reply = ByteBuffer.allocateDirect(cLibrary.PAGE_SIZE);
+
+    private BufferPool requestPool = new BufferPool(128, 256, cLibrary.PAGE_SIZE);
 
     private NetlinkChannel channel;
     private Reactor reactor;
@@ -177,25 +180,21 @@ public abstract class AbstractNetlinkConnection {
                                     final long timeoutMillis) {
         final int seq = sequenceGenerator.getAndIncrement();
 
-        int totalSize = 20 + payload.remaining();
-        final ByteBuffer buf = ByteBuffer.allocate(totalSize + 4);
-        buf.order(ByteOrder.nativeOrder());
+        int totalSize = payload.limit();
 
-        serializeNetlinkHeader(buf, seq, cmdFamily, version, cmd, flags);
-
-        // set the payload
-        buf.put(payload);
+        final ByteBuffer headerBuf = payload.duplicate();
+        headerBuf.rewind();
+        headerBuf.order(ByteOrder.nativeOrder());
+        serializeNetlinkHeader(headerBuf, seq, cmdFamily, version, cmd, flags);
 
         // set the header length
-        buf.putInt(0, totalSize);
-        buf.flip();
+        headerBuf.putInt(0, totalSize);
 
         final NetlinkRequest netlinkRequest = new NetlinkRequest();
         netlinkRequest.family = cmdFamily;
         netlinkRequest.cmd = cmd;
         netlinkRequest.callback = callback;
-        netlinkRequest.buffers = new ArrayList<ByteBuffer>(1);
-        netlinkRequest.buffers.add(buf);
+        netlinkRequest.outBuffer = payload;
 
         // send the request
         netlinkRequest.timeoutHandler = new Callable<Object>() {
@@ -207,6 +206,10 @@ public abstract class AbstractNetlinkConnection {
 
                 if (timedOutRequest != null) {
                     log.debug("Signalling timeout to the callback: {}", seq);
+                    if (timedOutRequest.outBuffer != null) {
+                        requestPool.release(timedOutRequest.outBuffer);
+                        timedOutRequest.outBuffer = null;
+                    }
                     throttler.tokenOut();
                     timedOutRequest.callback.onTimeout();
                 }
@@ -223,6 +226,7 @@ public abstract class AbstractNetlinkConnection {
             getReactor().schedule(netlinkRequest.timeoutHandler,
                                   timeoutMillis, TimeUnit.MILLISECONDS);
         } else {
+            requestPool.release(payload);
             pendingRequests.remove(seq);
             netlinkRequest.callback.onError(new NetlinkException(
                             NetlinkException.ERROR_SENDING_REQUEST,
@@ -255,12 +259,12 @@ public abstract class AbstractNetlinkConnection {
         final NetlinkRequest request = writeQueue.peek();
         if (request == null)
             return 0;
-        if (request.buffers == null || request.buffers.isEmpty())
+        if (request.outBuffer == null)
             return 0;
 
         int bytes = 0;
         try {
-            bytes = channel.write(request.buffers.get(0));
+            bytes = channel.write(request.outBuffer);
             if (bytes == 0)
                 return 0;
         } catch (IOException e) {
@@ -270,7 +274,8 @@ public abstract class AbstractNetlinkConnection {
                         NetlinkException.ERROR_SENDING_REQUEST,
                         e));
         } finally {
-            request.buffers.clear();
+            requestPool.release(request.outBuffer);
+            request.outBuffer = null;
             writeQueue.poll();
         }
         return bytes;
@@ -312,7 +317,7 @@ public abstract class AbstractNetlinkConnection {
         reply.mark();
 
         int finalLimit = reply.limit();
-        while (reply.remaining() >= 20) {
+        while (reply.remaining() >= NETLINK_HEADER_LEN) {
             // read the nlmsghdr and check for error
             int position = reply.position();
 
@@ -337,7 +342,7 @@ public abstract class AbstractNetlinkConnection {
             List<ByteBuffer> buffers =
                 request == null
                     ? new ArrayList<ByteBuffer>()
-                    : request.buffers;
+                    : request.inBuffers;
 
             Netlink.MessageType messageType =
                 Netlink.MessageType.findById(type);
@@ -363,7 +368,7 @@ public abstract class AbstractNetlinkConnection {
                     if (errRequest != null) {
                         throttler.tokenOut();
                         if (error == 0) {
-                            errRequest.callback.onSuccess(errRequest.buffers);
+                            errRequest.callback.onSuccess(errRequest.inBuffers);
                         } else {
                             errRequest.callback.onError(
                                 new NetlinkException(-error, errorMessage));
@@ -375,7 +380,7 @@ public abstract class AbstractNetlinkConnection {
                     pendingRequests.remove(seq);
                     if (request != null) {
                         throttler.tokenOut();
-                        request.callback.onSuccess(request.buffers);
+                        request.callback.onSuccess(request.inBuffers);
                     }
                     break;
 
@@ -396,7 +401,7 @@ public abstract class AbstractNetlinkConnection {
                         pendingRequests.remove(seq);
                         if (request != null) {
                             throttler.tokenOut();
-                            request.callback.onSuccess(request.buffers);
+                            request.callback.onSuccess(request.inBuffers);
                         }
 
                         if (seq == 0 && throttler.allowed())
@@ -439,7 +444,8 @@ public abstract class AbstractNetlinkConnection {
     class NetlinkRequest {
         short family;
         byte cmd;
-        List<ByteBuffer> buffers = new ArrayList<ByteBuffer>();
+        List<ByteBuffer> inBuffers = new ArrayList<ByteBuffer>();
+        ByteBuffer outBuffer = null;
         Callback<List<ByteBuffer>> callback;
         Callable<?> timeoutHandler;
 
@@ -472,15 +478,11 @@ public abstract class AbstractNetlinkConnection {
         };
     }
 
-    protected Builder newMessage(int size, ByteOrder order) {
-        return NetlinkMessage.newMessageBuilder(size, order);
-    }
-
-    protected Builder newMessage(int size) {
-        return NetlinkMessage.newMessageBuilder(size);
-    }
-
     protected Builder newMessage() {
-        return NetlinkMessage.newMessageBuilder();
+        ByteBuffer buf = requestPool.take();
+        buf.order(ByteOrder.nativeOrder());
+        buf.clear();
+        buf.position(NETLINK_HEADER_LEN);
+        return NetlinkMessage.newMessageBuilder(buf);
     }
 }

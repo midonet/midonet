@@ -8,17 +8,14 @@ import java.nio.ByteOrder;
 
 import org.midonet.netlink.NetlinkMessage;
 
-/**
-* // TODO: mtoader ! Please explain yourself.
-*/
 public class Builder extends BaseBuilder<Builder, NetlinkMessage> {
-
-    public Builder(int size, ByteOrder byteOrder) {
-        super(size, byteOrder);
-    }
 
     public Builder(ByteBuffer buffer) {
         super(buffer);
+    }
+
+    public Builder(ByteBuffer buffer, ByteOrder byteOrder) {
+        super(buffer, byteOrder);
     }
 
     @Override

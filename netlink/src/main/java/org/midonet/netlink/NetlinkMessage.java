@@ -54,12 +54,6 @@ public class NetlinkMessage {
     private ByteBuffer buf;
     private ByteOrder byteOrder;
 
-    public NetlinkMessage(int size) {
-        buf = ByteBuffer.allocateDirect(size);
-        buf.order(ByteOrder.nativeOrder());
-        byteOrder = buf.order();
-    }
-
     public NetlinkMessage(ByteBuffer buf) {
         this.buf = buf;
         this.byteOrder = buf.order();
@@ -410,20 +404,8 @@ public class NetlinkMessage {
         return buf.position() - start;
     }
 
-    public static Builder newMessageBuilder(int size, ByteOrder order) {
-        return new Builder(size, order);
-    }
-
-    public static Builder newMessageBuilder(int size) {
-        return new Builder(size, ByteOrder.nativeOrder());
-    }
-
-    public static Builder newMessageBuilder(ByteOrder order) {
-        return newMessageBuilder(cLibrary.PAGE_SIZE, order);
-    }
-
-    public static Builder newMessageBuilder() {
-        return newMessageBuilder(cLibrary.PAGE_SIZE);
+    public static Builder newMessageBuilder(ByteBuffer buf) {
+        return new Builder(buf);
     }
 
     public static int pad(int len) {

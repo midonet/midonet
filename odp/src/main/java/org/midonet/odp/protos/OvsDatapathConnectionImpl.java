@@ -163,7 +163,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             return;
 
         NetlinkMessage message =
-            newMessage(64)
+            newMessage()
                 .addValue(0)
                 .build();
 
