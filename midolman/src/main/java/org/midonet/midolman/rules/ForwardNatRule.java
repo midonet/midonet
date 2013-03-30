@@ -130,7 +130,6 @@ public class ForwardNatRule extends NatRule {
             match.setTransportDestination(conn.tpPort);
         }
         res.action = action;
-        res.trackConnection = true;
 
         fwdInfo.addFlowRemovedCallback(makeUnrefCallback(natMapping, conn.unrefKey));
     }
@@ -184,7 +183,6 @@ public class ForwardNatRule extends NatRule {
             match.setTransportSource(conn.tpPort);
         }
         res.action = action;
-        res.trackConnection = true;
 
         fwdInfo.addFlowRemovedCallback(makeUnrefCallback(natMapping,
                                                          conn.unrefKey));

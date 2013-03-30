@@ -91,7 +91,7 @@ public class Chain {
             WildcardMatch pktMatch, UUID ownerId, boolean isPortFilter) {
         if (null == origChain) {
              return new RuleResult(
-                RuleResult.Action.ACCEPT, null, pktMatch, false);
+                RuleResult.Action.ACCEPT, null, pktMatch);
         }
         Chain currentChain = origChain;
         fwdInfo.addTraversedElementID(origChain.id);
@@ -109,12 +109,12 @@ public class Chain {
         traversedChains.add(currentChain.id);
 
         RuleResult res = new RuleResult(RuleResult.Action.CONTINUE, null,
-                pktMatch, false);
+                pktMatch);
         while (!chainStack.empty()) {
             ChainPosition cp = chainStack.pop();
             while (cp.position < cp.rules.size()) {
                 // Reset the default action and jumpToChain. Keep the
-                // transformed match and trackConnection.
+                // transformed match.
                 res.action = RuleResult.Action.CONTINUE;
                 res.jumpToChain = null;
                 Rule r = cp.rules.get(cp.position);

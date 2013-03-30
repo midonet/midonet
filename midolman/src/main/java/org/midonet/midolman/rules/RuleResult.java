@@ -18,14 +18,11 @@ public class RuleResult {
     public Action action;
     public UUID jumpToChain;
     public WildcardMatch pmatch;
-    public boolean trackConnection;
 
-    public RuleResult(Action action, UUID jumpToChain, WildcardMatch match,
-            boolean trackConnection) {
+    public RuleResult(Action action, UUID jumpToChain, WildcardMatch match) {
         this.action = action;
         this.jumpToChain = jumpToChain;
         this.pmatch = match;
-        this.trackConnection = trackConnection;
     }
 
     @Override
@@ -37,8 +34,7 @@ public class RuleResult {
             hash = hash * 11 + jumpToChain.hashCode();
         if (null != pmatch)
             hash = hash * 17 + pmatch.hashCode();
-        int bHash = trackConnection ? 1231 : 1237;
-        return hash * 19 + bHash;
+        return hash;
     }
 
     @Override
@@ -66,13 +62,12 @@ public class RuleResult {
         } else if (!pmatch.equals(res.pmatch)) {
             return false;
         }
-        return trackConnection == res.trackConnection;
+        return true;
     }
 
     @Override
     public String toString() {
         return "RuleResult [action=" + action + ", jumpToChain=" + jumpToChain +
-               ", pmatch=" + pmatch + ", trackConnection=" + trackConnection +
-               "]";
+               ", pmatch=" + pmatch + "]";
     }
 }
