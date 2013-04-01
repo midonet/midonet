@@ -21,7 +21,7 @@ import topology.VirtualToPhysicalMapper.HostRequest
 import org.midonet.cluster.data.ports.{LogicalRouterPort, MaterializedBridgePort,
     MaterializedRouterPort}
 import util.RouterHelper
-import org.midonet.midolman.PacketWorkflowActor.PacketIn
+import org.midonet.midolman.PacketWorkflow.PacketIn
 
 
 @RunWith(classOf[JUnitRunner])

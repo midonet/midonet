@@ -15,7 +15,7 @@ import org.apache.commons.configuration.HierarchicalConfiguration
 
 import org.midonet.midolman.FlowController.{RemoveWildcardFlow,
     WildcardFlowRemoved, WildcardFlowAdded}
-import org.midonet.midolman.PacketWorkflowActor.PacketIn
+import org.midonet.midolman.PacketWorkflow.PacketIn
 import topology.BridgeManager.CheckExpiredMacPorts
 import org.midonet.midolman.topology.{VirtualTopologyActor, FlowTagger, LocalPortActive}
 import util.{SimulationHelper, TestHelpers}

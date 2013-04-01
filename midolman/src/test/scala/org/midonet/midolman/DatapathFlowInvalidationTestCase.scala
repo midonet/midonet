@@ -26,7 +26,7 @@ import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.ports.MaterializedRouterPort
 import org.midonet.cluster.data.zones.{GreTunnelZone, GreTunnelZoneHost}
 import org.midonet.midolman.DatapathController.{DatapathPortChangedEvent, TunnelChangeEvent}
-import org.midonet.midolman.PacketWorkflowActor.{AddVirtualWildcardFlow, PacketIn}
+import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, PacketIn}
 import org.midonet.midolman.FlowController.AddWildcardFlow
 import org.midonet.midolman.FlowController.WildcardFlowAdded
 import org.midonet.midolman.FlowController.WildcardFlowRemoved

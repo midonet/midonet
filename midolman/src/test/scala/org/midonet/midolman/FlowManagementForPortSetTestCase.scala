@@ -20,7 +20,7 @@ import org.midonet.midolman.DatapathController.TunnelChangeEvent
 import org.midonet.midolman.DeduplicationActor.HandlePacket
 import org.midonet.midolman.FlowController.{WildcardFlowAdded,
         InvalidateFlowsByTag, WildcardFlowRemoved}
-import org.midonet.midolman.PacketWorkflowActor.AddVirtualWildcardFlow
+import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
 import org.midonet.midolman.datapath.FlowActionOutputToVrnPortSet
 import org.midonet.midolman.rules.{Condition, RuleResult}
 import org.midonet.midolman.topology.{FlowTagger, LocalPortActive}

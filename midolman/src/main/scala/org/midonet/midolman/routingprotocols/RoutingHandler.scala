@@ -13,7 +13,7 @@ import org.newsclub.net.unix.AFUNIXSocketAddress
 
 import org.midonet.midolman.{PortOperation, DatapathController, FlowController}
 import org.midonet.midolman.DatapathController.{PortNetdevOpReply, CreatePortNetdev}
-import org.midonet.midolman.PacketWorkflowActor.AddVirtualWildcardFlow
+import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
 import org.midonet.midolman.datapath.FlowActionOutputToVrnPort
 import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 import org.midonet.midolman.topology.{FlowTagger, VirtualTopologyActor}

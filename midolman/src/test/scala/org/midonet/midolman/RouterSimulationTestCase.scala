@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.midolman.FlowController._
 import org.midonet.midolman.DeduplicationActor.{EmitGeneratedPacket, DiscardPacket}
-import org.midonet.midolman.PacketWorkflowActor.PacketIn
+import org.midonet.midolman.PacketWorkflow.PacketIn
 import org.midonet.midolman.guice.actors.OutgoingMessage
 import org.midonet.midolman.layer3.Route.{NextHop, NO_GATEWAY}
 import org.midonet.midolman.state.ArpCacheEntry

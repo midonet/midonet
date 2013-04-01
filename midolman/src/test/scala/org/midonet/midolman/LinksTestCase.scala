@@ -11,7 +11,7 @@ import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
 
 import org.midonet.midolman.DeduplicationActor.DiscardPacket
-import org.midonet.midolman.PacketWorkflowActor.PacketIn
+import org.midonet.midolman.PacketWorkflow.PacketIn
 import org.midonet.midolman.guice.actors.OutgoingMessage
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop

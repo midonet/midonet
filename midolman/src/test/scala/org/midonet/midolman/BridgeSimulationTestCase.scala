@@ -11,7 +11,7 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.DatapathController.TunnelChangeEvent
 import org.midonet.midolman.FlowController.{WildcardFlowRemoved, WildcardFlowAdded}
-import org.midonet.midolman.PacketWorkflowActor.PacketIn
+import org.midonet.midolman.PacketWorkflow.PacketIn
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.cluster.data.{Bridge => ClusterBridge}
 import org.midonet.cluster.data.ports.MaterializedBridgePort

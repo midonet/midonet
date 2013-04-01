@@ -17,8 +17,8 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.DeduplicationActor.DiscardPacket
-import org.midonet.midolman.FlowController.{AddWildcardFlow, RemoveWildcardFlow, WildcardFlowAdded, WildcardFlowRemoved, InvalidateFlowsByTag}
-import org.midonet.midolman.PacketWorkflowActor.PacketIn
+import org.midonet.midolman.FlowController.{AddWildcardFlow, RemoveWildcardFlow,
+    WildcardFlowAdded, WildcardFlowRemoved, InvalidateFlowsByTag}
 import org.midonet.midolman.layer3.Route._
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.topology.RouterManager.RouterInvTrieTagCountModified
@@ -26,7 +26,7 @@ import org.midonet.midolman.util.{RouterHelper, TestHelpers}
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.ports.MaterializedRouterPort
 import org.midonet.cluster.data.Router
-import org.midonet.odp.{FlowMatch, FlowMatches, Flow, Datapath}
+import org.midonet.odp.{FlowMatch, Flow, Datapath}
 import org.midonet.odp.flows.{FlowKeyTunnelID, FlowAction, FlowActions}
 import org.midonet.packets._
 import org.midonet.sdn.flows.{WildcardMatch, WildcardFlow}

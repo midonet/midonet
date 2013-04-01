@@ -24,10 +24,6 @@ import org.scalatest.matchers.{BePropertyMatcher, BePropertyMatchResult,
         ShouldMatchers}
 import org.slf4j.{Logger, LoggerFactory}
 
-import org.midonet.midolman.DatapathController.InitializationComplete
-import org.midonet.midolman.DeduplicationActor.{DiscardPacket, EmitGeneratedPacket}
-import org.midonet.midolman.FlowController.{WildcardFlowRemoved, WildcardFlowAdded}
-import org.midonet.midolman.PacketWorkflowActor.PacketIn
 import org.midonet.midolman.guice._
 import org.midonet.midolman.guice.actors.{OutgoingMessage,
                                           TestableMidolmanActorsModule}
@@ -57,6 +53,14 @@ import org.midonet.cluster.data.{Port => VPort}
 import org.midonet.cluster.data.host.Host
 import org.midonet.midolman.version.guice.VersionModule
 import org.midonet.midolman.guice.serialization.SerializationModule
+import org.midonet.midolman.topology.LocalPortActive
+import org.midonet.midolman.FlowController.WildcardFlowAdded
+import org.midonet.midolman.guice.actors.OutgoingMessage
+import org.midonet.midolman.DatapathController.InitializationComplete
+import org.midonet.midolman.PacketWorkflow.PacketIn
+import org.midonet.midolman.FlowController.WildcardFlowRemoved
+import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
+import org.midonet.midolman.DeduplicationActor.DiscardPacket
 
 object MidolmanTestCaseLock {
     val sequential: ReentrantLock = new ReentrantLock()

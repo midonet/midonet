@@ -7,7 +7,7 @@ import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.midolman.PacketWorkflowActor.PacketIn
+import org.midonet.midolman.PacketWorkflow.PacketIn
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.util.TestHelpers
 import org.midonet.cluster.data.{Bridge => ClusterBridge, Ports}

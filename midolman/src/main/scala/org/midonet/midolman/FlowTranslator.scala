@@ -5,36 +5,34 @@ package org.midonet.midolman
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.collection.{Set => ROSet}
-import akka.actor.{ActorSystem, Actor}
+import akka.actor.{ActorContext, ActorSystem}
 import akka.dispatch.{ExecutionContext, Promise, Future}
 import akka.event.LoggingAdapter
 import akka.pattern.ask
+import akka.util.Timeout
 import java.{util => ju}
-import akka.util.duration._
-import akka.util.{Duration, Timeout}
 import java.util.UUID
 
 import org.midonet.midolman.datapath.{FlowActionOutputToVrnPort,
         FlowActionOutputToVrnPortSet}
 import org.midonet.midolman.rules.{ChainPacketContext, RuleResult}
-import simulation.Coordinator.Device
-import simulation.{Bridge => RCUBridge, VlanAwareBridge, Chain}
+import org.midonet.midolman.simulation.Coordinator.Device
+import org.midonet.midolman.simulation.{Bridge => RCUBridge, VlanAwareBridge, Chain}
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.PortSetRequest
-import topology.VirtualTopologyActor.{PortSetHolderRequest, BridgeRequest, ChainRequest, PortRequest}
+import org.midonet.midolman.topology.VirtualTopologyActor.{
+        PortSetHolderRequest, ChainRequest, PortRequest}
 import org.midonet.midolman.topology.rcu.PortSet
 import org.midonet.midolman.topology.{
         FlowTagger, VirtualTopologyActor, VirtualToPhysicalMapper}
 import org.midonet.cluster.client
-import client.{Port, ExteriorPort}
+import org.midonet.cluster.client.ExteriorPort
 import org.midonet.odp.flows.{
         FlowActionUserspace, FlowKeys, FlowActions, FlowAction}
 import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 import org.midonet.util.functors.Callback0
-import collection.generic.CanBuildFrom
-import java.util.concurrent.TimeUnit
 
-object FlowTranslatingActor {
+object FlowTranslator {
     /**
      * Dummy ChainPacketContext used in egress port set chains.
      * All that is available is the Output Port ID (there's no information
@@ -63,21 +61,21 @@ object FlowTranslatingActor {
     }
 }
 
-
-trait FlowTranslatingActor extends Actor {
-    import FlowTranslatingActor._
+trait FlowTranslator {
+    import FlowTranslator._
 
     protected val datapathConnection: OvsDatapathConnection
     protected val dpState: DatapathState
+
+    implicit protected val requestReplyTimeout: Timeout
+    implicit protected val context: ActorContext
     val log: LoggingAdapter
 
-    protected implicit val requestReplyTimeout = akka.util.Timeout(Duration(1, TimeUnit.SECONDS))
-
-    import context._
-
     protected def translateVirtualWildcardFlow(
-            flow: WildcardFlow, tags: ROSet[Any] = Set.empty):
+            flow: WildcardFlow, tags: ROSet[Any] = Set.empty)
+            (implicit ec: ExecutionContext, system: ActorSystem):
                 Future[Tuple2[WildcardFlow, ROSet[Any]]] = {
+
         val flowMatch = flow.getMatch
         val inPortId = flowMatch.getInputPortUUID
 
@@ -133,7 +131,8 @@ trait FlowTranslatingActor extends Actor {
                                           pktMatch: WildcardMatch,
                                           tags: Option[mutable.Set[Any]],
                                           thunk: Seq[UUID] => Future[A])
-                                         (implicit ec: ExecutionContext): Future[A] = {
+                                         (implicit ec: ExecutionContext,
+                                          system: ActorSystem): Future[A] = {
         // Fetch all of the chains.
         val chainFutures = localPorts map { port =>
             if (port.outFilterID == null)
@@ -171,9 +170,10 @@ trait FlowTranslatingActor extends Actor {
     }
 
     protected def translateToDpPorts(acts: Seq[FlowAction[_]], port: UUID,
-                                   localPorts: Seq[Short],
-                                   tunnelKey: Option[Long], tunnelPorts: Seq[Short],
-                                   dpTags: mutable.Set[Any]): Seq[FlowAction[_]] = {
+            localPorts: Seq[Short], tunnelKey: Option[Long],
+            tunnelPorts: Seq[Short], dpTags: mutable.Set[Any])(
+            implicit ec: ExecutionContext, system: ActorSystem): Seq[FlowAction[_]] = {
+
         tunnelKey match {
             case Some(k) =>
                 log.debug("Translating output actions for vport (or set) {}," +
@@ -348,7 +348,7 @@ trait FlowTranslatingActor extends Actor {
                                     Some(tunnelKey),
                                     tunnelsForHosts(set.hosts.toSeq),
                                     dpTags.orNull)))
-                            })(ec)
+                            })(ec, system)
 
                         case _ => log.error("Error getting " +
                             "configurations of local ports of " +

@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.midolman.FlowController.WildcardFlowAdded
 import org.midonet.midolman.MidolmanTestCase
-import org.midonet.midolman.PacketWorkflowActor.PacketIn
+import org.midonet.midolman.PacketWorkflow.PacketIn
 import org.midonet.odp.Packet
 import org.midonet.odp.flows._
 import org.midonet.packets._

@@ -6,9 +6,11 @@ package org.midonet.midolman
 import scala.collection.JavaConverters._
 import scala.collection.{Set => ROSet, Map => ROMap}
 import scala.collection.mutable.{ConcurrentMap => ConcMap}
+import scala.collection.mutable
 import akka.actor._
+import akka.dispatch.ExecutionContext
 import akka.event.LoggingAdapter
-import akka.util.{Duration, Timeout}
+import akka.util.Timeout
 import akka.util.duration._
 import java.lang.{Boolean => JBoolean, Integer => JInteger, Short => JShort}
 import java.util.{Collection, Collections, List => JList, Set => JSet, UUID}
@@ -40,10 +42,8 @@ import org.midonet.odp.ports._
 import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.sdn.flows.WildcardFlow
 import org.midonet.sdn.flows.WildcardMatch
-import org.midonet.util.functors.Callback0
 import org.midonet.midolman.FlowController.AddWildcardFlow
-import org.midonet.midolman.PacketWorkflowActor.AddVirtualWildcardFlow
-import scala.collection.mutable
+import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
 
 
 /**
@@ -487,12 +487,17 @@ object DatapathController extends Referenceable {
  * are passed on to the FlowController.
  */
 class DatapathController() extends Actor with ActorLogging with
-                                              FlowTranslatingActor {
+                                              FlowTranslator {
 
     import DatapathController._
     import VirtualToPhysicalMapper._
     import VirtualPortManager.Controller
     import context._
+
+    implicit val executor: ExecutionContext = this.context.dispatcher
+    implicit val system = this.context.system
+
+    override implicit val requestReplyTimeout: Timeout = new Timeout(1 second)
 
     @Inject
     val datapathConnection: OvsDatapathConnection = null

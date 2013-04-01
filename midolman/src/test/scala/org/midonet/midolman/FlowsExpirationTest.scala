@@ -18,7 +18,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.FlowController._
-import org.midonet.midolman.PacketWorkflowActor.PacketIn
+import org.midonet.midolman.PacketWorkflow.PacketIn
 import org.midonet.midolman.util.TestHelpers
 import org.midonet.odp._
 import org.midonet.odp.flows.FlowKeys

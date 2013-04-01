@@ -27,7 +27,7 @@ import org.midonet.cluster.data.dhcp.Subnet
 import org.midonet.cluster.data.ports.MaterializedBridgePort
 import org.midonet.odp.flows.{FlowActionOutput, FlowAction}
 import host.interfaces.InterfaceDescription
-import org.midonet.midolman.PacketWorkflowActor.PacketIn
+import org.midonet.midolman.PacketWorkflow.PacketIn
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.DatapathController.TunnelChangeEvent
 

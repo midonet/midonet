@@ -17,7 +17,6 @@ import com.yammer.metrics.core.{Gauge, MetricsRegistry, Clock}
 
 import org.midonet.cache.Cache
 import org.midonet.cluster.DataClient
-import org.midonet.midolman.PacketWorkflowActor.Start
 import org.midonet.midolman.datapath.ErrorHandlingCallback
 import org.midonet.midolman.guice.datapath.DatapathModule.SIMULATION_THROTTLING_GUARD
 import org.midonet.midolman.logging.ActorLogWithoutPath
@@ -182,16 +181,15 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
                 val cookie: Int = idGenerator.getAndIncrement
 
                 cookieToPendedPackets.addBinding(cookie, packet)
-                // if there is nothing here create the actor that will handle its flow,
-                val packetActor =
-                    context.system.actorOf(Props(
-                        new PacketWorkflowActor(datapathConnection, dpState,
+                // If there is no match on the cookie, create an object to
+                // handle the packet.
+                val packetWorkflow = new PacketWorkflow(datapathConnection, dpState,
                             datapath, clusterDataClient, connectionCache, packet,
-                            Left(cookie), throttler, metrics)),
-                        name = "PacketWorkflowActor-"+cookie)
+                            Left(cookie), throttler, metrics)(
+                            this.context.dispatcher, this.context.system, this.context)
 
-                log.debug("Created new {} actor.", "PacketWorkflowActor-" + cookie)
-                packetActor ! Start()
+                log.debug("Created new {} packet handler.", "PacketWorkflow-" + cookie)
+                packetWorkflow.start()
 
             case Some(cookie: Int) =>
                 log.debug("A matching packet with cookie {} is already being handled ", cookie)
@@ -227,15 +225,14 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
         case EmitGeneratedPacket(egressPort, ethernet, parentCookie) =>
             val packet = new Packet().setPacket(ethernet)
             val packetId = scala.util.Random.nextLong()
-            val packetActor =
-            context.system.actorOf(Props(
-                new PacketWorkflowActor(datapathConnection, dpState,
+            val packetWorkflow =
+                new PacketWorkflow(datapathConnection, dpState,
                     datapath, clusterDataClient, connectionCache, packet,
-                    Right(egressPort), throttler, metrics)),
-                name = "PacketWorkflowActor-generated-"+ packetId)
+                    Right(egressPort), throttler, metrics)(
+                    this.context.dispatcher, this.context.system, this.context)
 
-            log.debug("Created new {} actor.", "PacketWorkflowActor-generated-"+packetId );
-            packetActor ! Start()
+            log.debug("Created new {} handler.", "PacketWorkflow-generated-"+packetId );
+            packetWorkflow.start()
     }
 
     private def executePacket(cookie: Int,

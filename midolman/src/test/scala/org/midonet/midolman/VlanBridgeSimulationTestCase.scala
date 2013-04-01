@@ -12,7 +12,7 @@ import org.midonet.cluster.data.ports.{MaterializedBridgePort, LogicalBridgePort
 import org.midonet.packets._
 import org.junit.Test
 import org.slf4j.LoggerFactory
-import org.midonet.midolman.PacketWorkflowActor.PacketIn
+import org.midonet.midolman.PacketWorkflow.PacketIn
 import topology.VirtualTopologyActor.{BridgeRequest, PortRequest}
 import topology.{VirtualTopologyActor, LocalPortActive}
 import org.midonet.midolman.FlowController.{InvalidateFlowsByTag, WildcardFlowAdded}

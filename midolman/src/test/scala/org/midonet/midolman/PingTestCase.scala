@@ -11,10 +11,10 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
 
-import org.midonet.midolman.DeduplicationActor.{EmitGeneratedPacket, DiscardPacket}
+import org.midonet.midolman.DeduplicationActor.{ApplyFlow, EmitGeneratedPacket, DiscardPacket}
 import org.midonet.midolman.FlowController.{WildcardFlowAdded,
     WildcardFlowRemoved}
-import org.midonet.midolman.PacketWorkflowActor.PacketIn
+import org.midonet.midolman.PacketWorkflow.PacketIn
 import org.midonet.midolman.guice.actors.OutgoingMessage
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
@@ -26,6 +26,7 @@ import org.midonet.cluster.data.dhcp.Subnet
 import org.midonet.cluster.data.ports.{MaterializedBridgePort, MaterializedRouterPort}
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput, FlowActions}
 import org.midonet.packets._
+import org.midonet.midolman.{DatapathController, VirtualConfigurationBuilders}
 
 
 @RunWith(classOf[JUnitRunner])

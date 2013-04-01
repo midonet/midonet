@@ -2,6 +2,7 @@
 
 package org.midonet.midolman.simulation
 
+import scala.Some
 import collection.{Set => ROSet}
 import collection.mutable
 import collection.JavaConversions._
@@ -11,29 +12,27 @@ import akka.actor.{ActorContext, ActorSystem}
 import akka.dispatch.{ExecutionContext, Future, Promise}
 
 import org.midonet.cache.Cache
-import org.midonet.midolman.logging.LoggerFactory
 import org.midonet.cluster.client._
 import org.midonet.midolman.DeduplicationActor
-import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
-import org.midonet.midolman.PacketWorkflowActor._
+import org.midonet.midolman.PacketWorkflow.{SendPacket,
+                                            AddVirtualWildcardFlow,
+                                            NoOp,
+                                            SimulationAction}
 import org.midonet.midolman.datapath.{FlowActionOutputToVrnPort,
                                       FlowActionOutputToVrnPortSet}
+import org.midonet.midolman.logging.LoggerFactory
 import org.midonet.midolman.rules.RuleResult.{Action => RuleAction}
 import org.midonet.midolman.topology._
 import org.midonet.midolman.topology.VirtualTopologyActor._
+import org.midonet.midolman.topology.VirtualTopologyActor.RouterRequest
+import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
+import org.midonet.midolman.topology.VirtualTopologyActor.BridgeRequest
+import org.midonet.midolman.topology.VirtualTopologyActor.ChainRequest
+import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
+import org.midonet.midolman.topology.VirtualTopologyActor.VlanBridgeRequest
 import org.midonet.odp.flows._
 import org.midonet.packets.{Ethernet, ICMP, IPv4, IPv4Addr, IPv6Addr, TCP, UDP}
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
-import org.midonet.midolman.topology.VirtualTopologyActor.RouterRequest
-import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
-import scala.Some
-import org.midonet.midolman.PacketWorkflowActor.AddVirtualWildcardFlow
-import org.midonet.midolman.topology.VirtualTopologyActor.BridgeRequest
-import org.midonet.midolman.topology.VirtualTopologyActor.ChainRequest
-import org.midonet.midolman.PacketWorkflowActor.NoOp
-import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
-import org.midonet.midolman.PacketWorkflowActor.SendPacket
-import org.midonet.midolman.topology.VirtualTopologyActor.VlanBridgeRequest
 import org.midonet.util.functors.Callback0
 
 
@@ -63,6 +62,7 @@ object Coordinator {
         extends ForwardAction
 
     trait Device {
+
         /**
          * Process a packet described by the given match object. Note that the
          * Ethernet packet is the one originally ingressed the virtual network
