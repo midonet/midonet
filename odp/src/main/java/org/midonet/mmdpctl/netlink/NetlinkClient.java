@@ -65,6 +65,18 @@ public class NetlinkClient {
                     }
                 });
 
+        loop.registerForInputQueue(
+            ovsConnection.getSendQueue(),
+            ovsConnection.getChannel(),
+            SelectionKey.OP_WRITE,
+            new SelectListener() {
+                @Override
+                public void handleEvent(SelectionKey key)
+                    throws IOException {
+                        ovsConnection.handleWriteEvent(key);
+                    }
+            });
+
         Thread loopThread = new Thread(new Runnable() {
             @Override
             public void run() {
