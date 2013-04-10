@@ -1282,8 +1282,9 @@ It contains the following fields:
         <td>flowAction</td>
         <td>String</td>
         <td>POST</td>
-        <td>Yes</td>
-        <td>Action to take on each flow. Must be one of accept, continue,
+        <td>No</td>
+        <td>Action to take on each flow. If the type is snat, dnat, rev_snat and
+         rev_dnat then this field is required. Must be one of accept, continue,
          return.</td>
     </tr>
     <tr>
@@ -1411,13 +1412,13 @@ It contains the following fields:
     </tr>
     <tr>
         <td>natTargets</td>
-        <td>Multi Array</td>
+        <td>Array of JSON objects</td>
         <td>POST</td>
         <td>No</td>
-        <td>list of nat_target. Each nat target is a (address-range,
-         port-range) pair. An address-range is like ['1.2.3.4',
-         '5.6.7.8'], a port-range is like [10, 11].  This field is
-         required if the type is dnat or snat.</td>
+        <td>The list of nat targets. Each nat target should be an JSON object
+         like {"addressFrom": "1.2.3.4", "addressTo": "5.6.7.8",
+         "portFrom": "22", "portTo": "80"}.  This field is required if the
+         type is dnat or snat.</td>
     </tr>
     <tr>
         <td>nwDstAddress</td>
