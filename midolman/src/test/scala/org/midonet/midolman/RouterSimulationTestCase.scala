@@ -11,7 +11,7 @@ import java.util.UUID
 import akka.dispatch.Await
 import akka.testkit.TestProbe
 import akka.util.duration._
-import akka.util.Timeout
+import akka.util.{Duration, Timeout}
 
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.runner.RunWith
@@ -37,6 +37,7 @@ import org.midonet.packets._
 import org.midonet.odp.flows.{FlowActionSetKey, FlowActionOutput,
                                FlowKeyEthernet, FlowKeyIPv4}
 import org.midonet.sdn.flows.WildcardMatch
+import java.util.concurrent.TimeUnit
 
 
 @RunWith(classOf[JUnitRunner])
@@ -651,10 +652,14 @@ class RouterSimulationTestCase extends MidolmanTestCase with
             actors().dispatcher, actors(), null)
         expectEmitArpRequest(uplinkPort.getId, uplinkMacAddr, myIp, hisIp)
         try {
-            Await.result(arpPromise, Timeout(100 milliseconds).duration)
-            false should not be true
+            // No one replies to the ARP request, so the get should return
+            // null. We have to wait long enough to give it a chance to time
+            // out and complete the promise with null.
+            Await.result(arpPromise, Timeout(2000 milliseconds).duration
+                ) should be (null)
         } catch {
-            case e: java.util.concurrent.TimeoutException =>
+            case _ => // We don't expect to get any exceptions
+                false should be (true)
         }
     }
 /*
