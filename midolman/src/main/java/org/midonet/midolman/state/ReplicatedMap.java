@@ -231,7 +231,7 @@ public abstract class ReplicatedMap<K, V> {
     }
 
     public void put(final K key, final V value) {
-        dir.asyncAdd(new Path(key, value, 0).encode(false), null,
+        dir.asyncAdd(encodePath(key, value), null,
                      CreateMode.EPHEMERAL_SEQUENTIAL,
                      new PutCallback(key, value));
 
@@ -294,35 +294,40 @@ public abstract class ReplicatedMap<K, V> {
             this.value = value;
             this.version = version;
         }
-
-        String encode(boolean withVersion) {
-            if (withVersion)
-                return encodePath(key, value, version);
-            else
-                return encodePath(key, value);
-        }
     }
 
     private String encodePath(K key, V value, int version) {
+        return encodeFullPath(encodeKey(key), encodeValue(value), version);
+    }
+
+    protected static String encodeFullPath(String k, String v, int version) {
         StringBuilder strBuilder = new StringBuilder();
-        strBuilder.append(encodePath(key, value)).append(
-                String.format("%010d", version));
+        strBuilder.append(encodePathPrefix(k, v)).append(
+            String.format("%010d", version));
+        return strBuilder.toString();
+    }
+
+    protected static String encodePathPrefix(String key, String value) {
+        StringBuilder strBuilder = new StringBuilder();
+        strBuilder.append('/');
+        strBuilder.append(key).append(',');
+        strBuilder.append(value).append(',');
         return strBuilder.toString();
     }
 
     private String encodePath(K key, V value) {
-        StringBuilder strBuilder = new StringBuilder();
-        strBuilder.append('/');
-        strBuilder.append(encodeKey(key)).append(',');
-        strBuilder.append(encodeValue(value)).append(',');
-        return strBuilder.toString();
+        return encodePathPrefix(encodeKey(key), encodeValue(value));
+    }
+
+    protected static String[] getKeyValueVersion(String encodedPath) {
+        // Need to skip the '/' at the beginning of the path
+        if (encodedPath.startsWith("/"))
+            encodedPath = encodedPath.substring(1);
+        return encodedPath.split(",");
     }
 
     private Path decodePath(String str) {
-        // Need to skip the '/' at the beginning of the path
-        if (str.startsWith("/"))
-            str = str.substring(1);
-        String[] parts = str.split(",");
+        String[] parts = getKeyValueVersion(str);
         Path result = new Path(null, null, 0);
         result.key = decodeKey(parts[0]);
         result.value = decodeValue(parts[1]);

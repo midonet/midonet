@@ -83,7 +83,10 @@ public class DhcpHostsResource extends AbstractResource {
                     "Not authorized to configure DHCP for this bridge.");
         }
 
-        dataClient.dhcpHostsCreate(bridgeId, subnet, host.toData());
+        Host h = host.toData();
+        dataClient.dhcpHostsCreate(bridgeId, subnet, h);
+        // Update the Bridge's ARP table.
+        dataClient.bridgeAddIp4Mac(bridgeId, h.getIp(), h.getMAC());
         URI dhcpUri = ResourceUriBuilder.getBridgeDhcp(getBaseUri(),
                 bridgeId, subnet);
         return Response.created(
@@ -155,7 +158,18 @@ public class DhcpHostsResource extends AbstractResource {
         mac = ResourceUriBuilder.macFromUri(mac);
         // Make sure that the DhcpHost has the same mac address as the URI.
         host.setMacAddr(mac);
-        dataClient.dhcpHostsUpdate(bridgeId, subnet, host.toData());
+
+        // Get the old host info so it's not lost.
+        Host oldHost = dataClient.dhcpHostsGet(bridgeId, subnet, mac);
+
+        Host newHost = host.toData();
+        dataClient.dhcpHostsUpdate(bridgeId, subnet, newHost);
+
+        // Update the bridge's arp table.
+        dataClient.bridgeDeleteIp4Mac(
+            bridgeId, oldHost.getIp(), oldHost.getMAC());
+        dataClient.bridgeAddIp4Mac(bridgeId, newHost.getIp(), newHost.getMAC());
+
         return Response.ok().build();
     }
 
@@ -181,7 +195,11 @@ public class DhcpHostsResource extends AbstractResource {
 
         // The mac in the URI uses '-' instead of ':'
         mac = ResourceUriBuilder.macFromUri(mac);
+        // Get the old dhcp host assignment.
+        Host h = dataClient.dhcpHostsGet(bridgeId, subnet, mac);
         dataClient.dhcpHostsDelete(bridgeId, subnet, mac);
+        // Update the bridge's arp table.
+        dataClient.bridgeDeleteIp4Mac(bridgeId, h.getIp(), h.getMAC());
     }
 
     /**

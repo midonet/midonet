@@ -9,20 +9,23 @@ import com.google.inject.servlet.RequestScoped;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.VendorMediaType;
 import org.midonet.api.auth.ForbiddenHttpException;
+import org.midonet.api.network.IP4MacPair;
+import org.midonet.api.network.MacPort;
 import org.midonet.api.network.auth.BridgeAuthorizer;
 import org.midonet.api.rest_api.*;
 import org.midonet.api.auth.AuthAction;
 import org.midonet.api.auth.AuthRole;
 import org.midonet.api.auth.Authorizer;
 import org.midonet.api.dhcp.rest_api.BridgeDhcpResource;
-import org.midonet.api.dhcp.rest_api.BridgeFilterDbResource;
 import org.midonet.api.network.Bridge;
 import org.midonet.api.network.Bridge.BridgeCreateGroupSequence;
 import org.midonet.api.network.Bridge.BridgeUpdateGroupSequence;
-import org.midonet.api.rest_api.*;
 import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.cluster.DataClient;
+import org.midonet.packets.IntIPv4;
+import org.midonet.packets.MAC;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,13 +33,16 @@ import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
+import javax.validation.groups.Default;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -140,19 +146,6 @@ public class BridgeResource extends AbstractResource {
     @Path("/{id}" + ResourceUriBuilder.PORTS)
     public PortResource.BridgePortResource getPortResource(@PathParam("id") UUID id) {
         return factory.getBridgePortResource(id);
-    }
-
-    /**
-     * Filtering database resource locator for bridges.
-     *
-     * @param id
-     *            Bridge ID from the request.
-     * @returns BridgeFilterDbResource object to handle sub-resource requests.
-     */
-    @Path("/{id}" + ResourceUriBuilder.FILTER_DB)
-    public BridgeFilterDbResource getBridgeFilterDbResource(
-            @PathParam("id") UUID id) {
-        return factory.getBridgeFilterDbResource(id);
     }
 
     /**
@@ -285,5 +278,266 @@ public class BridgeResource extends AbstractResource {
             }
         }
         return bridges;
+    }
+
+    /*
++     * MAC table access
++     */
+
+    /**
+     * Handler to list the MAC table's entries..
+     *
+     * @throws StateAccessException
+     *             Data access error.
+     * @return A list of MacPort objects.
+     */
+    @GET
+    @PermitAll
+    @Path("/{id}" + ResourceUriBuilder.MAC_TABLE)
+    @Produces({ VendorMediaType.APPLICATION_MAC_PORT_COLLECTION_JSON })
+    public List<MacPort> list(@PathParam("id") UUID id)
+            throws StateAccessException {
+        if (!authorizer.authorize(context, AuthAction.READ, id)) {
+            throw new ForbiddenHttpException(
+                "Not authorized to view this bridge's MAC table.");
+        }
+
+        URI bridgeUri = ResourceUriBuilder.getBridge(getBaseUri(), id);
+        Map<MAC, UUID> macPortMap = dataClient.bridgeGetMacPorts(id);
+        List<MacPort> macPortList = new ArrayList<MacPort>();
+        for (Map.Entry<MAC, UUID> entry : macPortMap.entrySet()) {
+            MacPort mp = new MacPort(
+                entry.getKey().toString(), entry.getValue());
+            mp.setParentUri(bridgeUri);
+            macPortList.add(mp);
+        }
+        return macPortList;
+    }
+
+    /**
+     * Handler for creating a MAC table entry.
+     *
+     * @param mp
+     *            MacPort entry for the mac table.
+     * @throws org.midonet.midolman.state.StateAccessException
+     *             Data access error.
+     * @returns Response object with 201 status code set if successful.
+     */
+    @POST
+    @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
+    @Path("/{id}" + ResourceUriBuilder.MAC_TABLE)
+    @Consumes({ VendorMediaType.APPLICATION_MAC_PORT_JSON,
+        MediaType.APPLICATION_JSON })
+    public Response addMacPort(@PathParam("id") UUID id, MacPort mp)
+            throws StateAccessException {
+        if (!authorizer.authorize(context, AuthAction.WRITE, id)) {
+            throw new ForbiddenHttpException(
+                "Not authorized to add to this bridge's MAC table.");
+        }
+
+        mp.setBridgeId(id);
+        Set<ConstraintViolation<MacPort>> violations = validator.validate(
+            mp, MacPort.MacPortGroupSequence.class);
+        if (!violations.isEmpty()) {
+            throw new BadRequestHttpException(violations);
+        }
+
+        dataClient.bridgeAddMacPort(id, MAC.fromString(mp.getMacAddr()),
+            mp.getPortId());
+        URI bridgeUri = ResourceUriBuilder.getBridge(getBaseUri(), id);
+        return Response.created(
+            ResourceUriBuilder.getMacPort(bridgeUri, mp))
+            .build();
+    }
+
+    /**
+     * Handler to getting a MAC table entry.
+     *
+     * @param macPortString
+     *            MacPort entry in the mac table.
+     * @throws StateAccessException
+     *             Data access error.
+     * @return A MacPort object.
+     */
+    @GET
+    @PermitAll
+    @Path("/{id}" + ResourceUriBuilder.MAC_TABLE + "/{mac_port}")
+    @Produces({ VendorMediaType.APPLICATION_MAC_PORT_JSON,
+        MediaType.APPLICATION_JSON })
+    public MacPort get(@PathParam("id") UUID id,
+                       @PathParam("mac_port") String macPortString)
+        throws StateAccessException {
+
+        if (!authorizer.authorize(context, AuthAction.READ, id)) {
+            throw new ForbiddenHttpException(
+                "Not authorized to view this bridge's mac table.");
+        }
+
+        // The mac in the URI uses '-' instead of ':'
+        MAC mac = ResourceUriBuilder.macPortToMac(macPortString);
+        UUID port = ResourceUriBuilder.macPortToUUID(macPortString);
+        if (!dataClient.bridgeHasMacPort(id, mac, port)) {
+            throw new NotFoundHttpException(
+                "The requested resource was not found.");
+        } else {
+            MacPort mp = new MacPort(mac.toString(), port);
+            mp.setParentUri(ResourceUriBuilder.getBridge(getBaseUri(), id));
+            return mp;
+        }
+    }
+
+    /**
+     * Handler to deleting a MAC table entry.
+     *
+     * @param macPortString
+     *            MacPort entry in the mac table.
+     * @throws org.midonet.midolman.state.StateAccessException
+     *             Data access error.
+     */
+    @DELETE
+    @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
+    @Path("/{id}" + ResourceUriBuilder.MAC_TABLE + "/{mac_port}")
+    public void delete(@PathParam("id") UUID id,
+                       @PathParam("mac_port") String macPortString)
+            throws StateAccessException {
+
+        if (!authorizer.authorize(context, AuthAction.WRITE, id)) {
+            throw new ForbiddenHttpException(
+                "Not authorized to delete from this bridge's MAC table.");
+        }
+
+        dataClient.bridgeDeleteMacPort(id,
+            ResourceUriBuilder.macPortToMac(macPortString),
+            ResourceUriBuilder.macPortToUUID(macPortString));
+    }
+
+    /*
++     * ARP table access
++     */
+
+    /**
+     * Handler to list the ARP table's entries..
+     *
+     * @throws StateAccessException
+     *             Data access error.
+     * @return A list of IP4MacPair objects.
+     */
+    @GET
+    @PermitAll
+    @Path("/{id}" + ResourceUriBuilder.ARP_TABLE)
+    @Produces({ VendorMediaType.APPLICATION_IP4_MAC_COLLECTION_JSON })
+    public List<IP4MacPair> listArpEntries(@PathParam("id") UUID id)
+        throws StateAccessException {
+        if (!authorizer.authorize(context, AuthAction.READ, id)) {
+            throw new ForbiddenHttpException(
+                "Not authorized to view this bridge's ARP table.");
+        }
+
+        URI bridgeUri = ResourceUriBuilder.getBridge(getBaseUri(), id);
+        Map<IntIPv4, MAC> IP4MacPairMap = dataClient.bridgeGetIP4MacPairs(id);
+        List<IP4MacPair> IP4MacPairList = new ArrayList<IP4MacPair>();
+        for (Map.Entry<IntIPv4, MAC> entry : IP4MacPairMap.entrySet()) {
+            IP4MacPair pair = new IP4MacPair(
+                entry.getKey().toString(), entry.getValue().toString());
+            pair.setParentUri(bridgeUri);
+            IP4MacPairList.add(pair);
+        }
+        return IP4MacPairList;
+    }
+
+    /**
+     * Handler for creating a ARP table entry.
+     *
+     * @param mp
+     *            IP4MacPair entry for the ARP table.
+     * @throws org.midonet.midolman.state.StateAccessException
+     *             Data access error.
+     * @returns Response object with 201 status code set if successful.
+     */
+    @POST
+    @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
+    @Path("/{id}" + ResourceUriBuilder.ARP_TABLE)
+    @Consumes({ VendorMediaType.APPLICATION_IP4_MAC_JSON,
+        MediaType.APPLICATION_JSON })
+    public Response addArpEntry(@PathParam("id") UUID id, IP4MacPair mp)
+        throws StateAccessException {
+        if (!authorizer.authorize(context, AuthAction.WRITE, id)) {
+            throw new ForbiddenHttpException(
+                "Not authorized to add to this bridge's ARP table.");
+        }
+
+        Set<ConstraintViolation<IP4MacPair>> violations = validator.validate(
+            mp, Default.class);
+        if (!violations.isEmpty()) {
+            throw new BadRequestHttpException(violations);
+        }
+
+        dataClient.bridgeAddIp4Mac(id,
+            IntIPv4.fromString(mp.getIp()), MAC.fromString(mp.getMac()));
+        URI bridgeUri = ResourceUriBuilder.getBridge(getBaseUri(), id);
+        return Response.created(
+            ResourceUriBuilder.getIP4MacPair(bridgeUri, mp))
+            .build();
+    }
+
+    /**
+     * Handler to getting a ARP table entry.
+     *
+     * @param IP4MacPairString
+     *            IP4MacPair entry in the ARP table.
+     * @throws StateAccessException
+     *             Data access error.
+     * @return A IP4MacPair object.
+     */
+    @GET
+    @PermitAll
+    @Path("/{id}" + ResourceUriBuilder.ARP_TABLE + "/{mac_port}")
+    @Produces({ VendorMediaType.APPLICATION_IP4_MAC_JSON,
+        MediaType.APPLICATION_JSON })
+    public IP4MacPair getArpEntry(@PathParam("id") UUID id,
+                       @PathParam("mac_port") String IP4MacPairString)
+        throws StateAccessException {
+
+        if (!authorizer.authorize(context, AuthAction.READ, id)) {
+            throw new ForbiddenHttpException(
+                "Not authorized to view this bridge's mac table.");
+        }
+
+        // The mac in the URI uses '-' instead of ':'
+        IntIPv4 ip = ResourceUriBuilder.ip4MacPairToIP4(IP4MacPairString);
+        MAC mac = ResourceUriBuilder.ip4MacPairToMac(IP4MacPairString);
+        if (!dataClient.bridgeHasIP4MacPair(id, ip, mac)) {
+            throw new NotFoundHttpException(
+                "The requested resource was not found.");
+        } else {
+            IP4MacPair mp = new IP4MacPair(ip.toString(), mac.toString());
+            mp.setParentUri(ResourceUriBuilder.getBridge(getBaseUri(), id));
+            return mp;
+        }
+    }
+
+    /**
+     * Handler to deleting a ARP table entry.
+     *
+     * @param IP4MacPairString
+     *            IP4MacPair entry in the ARP table.
+     * @throws org.midonet.midolman.state.StateAccessException
+     *             Data access error.
+     */
+    @DELETE
+    @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
+    @Path("/{id}" + ResourceUriBuilder.ARP_TABLE + "/{ip4_mac}")
+    public void deleteArpEntry(@PathParam("id") UUID id,
+                       @PathParam("ip4_mac") String IP4MacPairString)
+        throws StateAccessException {
+
+        if (!authorizer.authorize(context, AuthAction.WRITE, id)) {
+            throw new ForbiddenHttpException(
+                "Not authorized to delete from this bridge's MAC table.");
+        }
+
+        dataClient.bridgeDeleteIp4Mac(id,
+            ResourceUriBuilder.ip4MacPairToIP4(IP4MacPairString),
+            ResourceUriBuilder.ip4MacPairToMac(IP4MacPairString));
     }
 }

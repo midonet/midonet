@@ -121,6 +121,16 @@ public class ZkPathManager {
     }
 
     /**
+     +     * Get the path of a bridge's arp table.
+     +     *
+     +     * @param id Bridge UUID
+     +     * @return /bridges/bridgeId/ip4_mac_map
+     +     */
+    public String getBridgeIP4MacMapPath(UUID id) {
+        return buildBridgePath(id).append("/ip4_mac_map").toString();
+    }
+
+    /**
      * Get ZK path for filtering state
      *
      * @return /filters

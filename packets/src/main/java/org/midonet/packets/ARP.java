@@ -348,4 +348,25 @@ public class ARP extends BasePacket {
                 + Arrays.toString(targetProtocolAddress) + "]";
     }
      */
+
+    public static Ethernet makeArpReply(MAC sha, MAC tha,
+                                        byte[] spa, byte[] tpa) {
+        ARP arp = new ARP();
+        arp.setHardwareType(ARP.HW_TYPE_ETHERNET);
+        arp.setProtocolType(ARP.PROTO_TYPE_IP);
+        arp.setHardwareAddressLength((byte)6);
+        arp.setProtocolAddressLength((byte)4);
+        arp.setOpCode(ARP.OP_REPLY);
+        arp.setSenderHardwareAddress(sha);
+        arp.setSenderProtocolAddress(spa);
+        arp.setTargetHardwareAddress(tha);
+        arp.setTargetProtocolAddress(tpa);
+
+        Ethernet eth = new Ethernet();
+        eth.setPayload(arp);
+        eth.setSourceMACAddress(sha);
+        eth.setDestinationMACAddress(tha);
+        eth.setEtherType(ARP.ETHERTYPE);
+        return eth;
+    }
 }

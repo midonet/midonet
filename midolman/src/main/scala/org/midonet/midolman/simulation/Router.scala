@@ -331,29 +331,16 @@ class Router(val id: UUID, val cfg: RouterConfig,
             return
         }
 
-        log.debug("Received an ARP request from {}", spa)
-        // TODO(pino): ask Guillermo - this doesn't make sense to me.
+        // Attempt to refresh the router's arp table.
         arpTable.set(spa, pkt.getSenderHardwareAddress)
-
-        val arp = new ARP()
-        arp.setHardwareType(ARP.HW_TYPE_ETHERNET)
-        arp.setProtocolType(ARP.PROTO_TYPE_IP)
-        arp.setHardwareAddressLength(6)
-        arp.setProtocolAddressLength(4)
-        arp.setOpCode(ARP.OP_REPLY)
-        arp.setSenderHardwareAddress(inPort.portMac)
-        arp.setSenderProtocolAddress(pkt.getTargetProtocolAddress)
-        arp.setTargetHardwareAddress(pkt.getSenderHardwareAddress)
-        arp.setTargetProtocolAddress(pkt.getSenderProtocolAddress)
 
         log.debug("replying to ARP request from {} for {} with own mac {}",
             Array[Object](spa, tpa, inPort.portMac))
 
-        val eth = new Ethernet()
-        eth.setPayload(arp)
-        eth.setSourceMACAddress(inPort.portMac)
-        eth.setDestinationMACAddress(pkt.getSenderHardwareAddress)
-        eth.setEtherType(ARP.ETHERTYPE)
+        // Construct the reply, reversing src/dst fields from the request.
+        val eth = ARP.makeArpReply(
+            inPort.portMac, sha,
+            pkt.getTargetProtocolAddress, pkt.getSenderProtocolAddress);
         DeduplicationActor.getRef(actorSystem) ! EmitGeneratedPacket(
             inPort.id, eth,
             if (originalPktContex != null) Option(originalPktContex.getFlowCookie) else None)
@@ -654,7 +641,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
         // Ignore packets sent to the local-subnet IP broadcast address of the
         // intended egress port.
         if (null != outPort && outPort.portAddr.isInstanceOf[IPv4Subnet] &&
-                ipPkt.getDestinationIPAddress == 
+                ipPkt.getDestinationIPAddress ==
                     outPort.portAddr.asInstanceOf[IPv4Subnet]
                            .getBroadcastAddress) {
             log.debug("Not generating ICMP Unreachable for packet to "

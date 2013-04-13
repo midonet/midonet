@@ -28,6 +28,9 @@ public interface MidolmanConfig
     @ConfigBool(key = "enable_bgp", defaultValue = true)
     public boolean getMidolmanBGPEnabled();
 
+    @ConfigBool(key = "enable_bridge_arp", defaultValue = false)
+    public boolean getMidolmanBridgeArpEnabled();
+
     @ConfigInt(key = "bgp_port_start_index", defaultValue = 0)
     public int getMidolmanBGPPortStartIndex();
 

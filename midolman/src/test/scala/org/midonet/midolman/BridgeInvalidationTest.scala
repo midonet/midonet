@@ -176,7 +176,7 @@ class BridgeInvalidationTest extends MidolmanTestCase
         pktIn1.wMatch.getInputPort should be (1.toShort)
         // expect one wild flow to be added
         var add = wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
-        var outports = getFlowOutputPorts(add.f)
+        var outports = actionsToOutputPorts(add.f.getActions)
         outports should have size (2)
         outports should (contain (2.toShort) and contain (3.toShort))
         // one dp flow should also have been added and one packet forwarded
@@ -206,7 +206,7 @@ class BridgeInvalidationTest extends MidolmanTestCase
         rem.f.getActions should be === bufferAsJavaList[FlowAction[_]](add.f.getActions)
         // Now check that the new wild flow is correct. Forward to port1 only.
         add = wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
-        outports = getFlowOutputPorts(add.f)
+        outports = actionsToOutputPorts(add.f.getActions)
         outports.size should be (1)
         outports should contain (1.toShort)
         // A new dp flow should be added for the packet to vmMac1, and the old
@@ -225,8 +225,9 @@ class BridgeInvalidationTest extends MidolmanTestCase
         drainProbe(dpFlowProbe)
         triggerPacketIn(port1Name, udp)
         // expect one wild flow to be added
-        outports = getFlowOutputPorts(
-            wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded]).f)
+        outports = actionsToOutputPorts(
+            wflowAddedProbe.expectMsgClass(
+                classOf[WildcardFlowAdded]).f.getActions)
         outports.size should be (1)
         outports should contain (2.toShort)
         // one dp flow should also have been added

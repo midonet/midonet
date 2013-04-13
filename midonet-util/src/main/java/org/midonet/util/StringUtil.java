@@ -13,8 +13,10 @@ public class StringUtil {
 
     public final static String EMPTY_STRING = "";
     public final static String IP_ADDRESS_REGEX_PATTERN =
-            "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}"
-                    + "([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$";
+        "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}"
+            + "([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$";
+    public final static String MAC_ADDRESS_REGEX_PATTERN =
+        "^((([0-9]|[a-f]|[A-F]){2}):){5}([0-9]|[a-f]|[A-F]){2}$";
 
     /**
      * Joins the elements of the provided array into a single String containing
