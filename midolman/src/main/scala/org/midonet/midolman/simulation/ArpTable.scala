@@ -298,8 +298,14 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
         if (entry != null && entry.lastArp + ARP_RETRY_MILLIS*2 > now)
             return
 
+        // ArpCacheEntries that have expired should be removed automatically.
+        // However, we had a bug (#551) where old entries were not cleaned up
+        // properly in the underlying map. That confused our algorithm because
+        // we don't send ARP requests when the entry is expired (we interpret
+        // that to mean that there are no more retries left). The workaround
+        // is to treat an expired entry the same as a null/missing entry.
         var newEntry: ArpCacheEntry = null
-        if (entry == null) {
+        if (entry == null || now > entry.expiry) {
             newEntry = new ArpCacheEntry(null, now + ARP_TIMEOUT_MILLIS,
                                          now + ARP_RETRY_MILLIS, now)
             val when = Duration.create(ARP_TIMEOUT_MILLIS,
