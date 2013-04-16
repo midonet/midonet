@@ -24,7 +24,7 @@ import org.midonet.midolman.simulation.Coordinator.DropAction
 import org.midonet.midolman.simulation.Coordinator.ToPortAction
 import org.midonet.midolman.simulation.Coordinator.ErrorDropAction
 import org.midonet.midolman.simulation.Coordinator.NotIPv4Action
-
+import org.midonet.midolman.rules.RuleResult
 
 class Router(val id: UUID, val cfg: RouterConfig,
              val rTable: RoutingTableWrapper, val arpTable: ArpTable,
@@ -473,7 +473,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
      * the next hop (or the destination's if it's a link-local destination)
      *
      * @param rt Route that the packet will be sent through
-     * @param ipv4Dest Final destination of the packet to be sent
+     * @param ipDest Final destination of the packet to be sent
      * @param expiry
      * @param ec
      * @return
@@ -535,6 +535,32 @@ class Router(val id: UUID, val cfg: RouterConfig,
     def sendIPPacket(packet: IPv4, expiry: Long)
                     (implicit ec: ExecutionContext, actorSystem: ActorSystem,
                      packetContext: PacketContext) {
+
+        /**
+         * Applies some post-chain transformations that might be necessary on
+         * a generated packet, for example SNAT when replying to an ICMP ECHO
+         * to a DNAT'd address in one of the router's port. See #547 for
+         * further motivation.
+         */
+        def _applyPostActions(eth: Ethernet, postRoutingResult: RuleResult) = {
+            val tpSrc = postRoutingResult.pmatch.getTransportSource
+            packet.getProtocol match {
+                case UDP.PROTOCOL_NUMBER =>
+                    val tp = packet.getPayload.asInstanceOf[UDP]
+                    tp.setSourcePort(tpSrc)
+                    packet.setPayload(tp)
+                case TCP.PROTOCOL_NUMBER =>
+                    val tp = packet.getPayload.asInstanceOf[TCP]
+                    tp.setSourcePort(tpSrc)
+                    packet.setPayload(tp)
+                case _ =>
+            }
+
+            packet.setSourceAddress(postRoutingResult.pmatch
+                                    .getNetworkSourceIP.asInstanceOf[IPv4Addr])
+            eth.setPayload(packet)
+        }
+
         def _sendIPPacket(outPort: RouterPort[_], rt: Route) {
             if (packet.getDestinationIPAddress == outPort.portAddr.getAddress) {
                 /* should never happen: it means we are trying to send a packet
@@ -546,16 +572,15 @@ class Router(val id: UUID, val cfg: RouterConfig,
                 return
             }
 
-            val eth = (new Ethernet()).setEtherType(IPv4.ETHERTYPE)
-            eth.setPayload(packet)
-            eth.setSourceMACAddress(outPort.portMac)
-
             val macFuture = getNextHopMac(outPort, rt,
                                 packet.getDestinationIPAddress, expiry)
             macFuture onSuccess {
                 case null =>
                     log.error("Failed to get MAC address to emit local packet")
                 case mac =>
+                    val eth = (new Ethernet()).setEtherType(IPv4.ETHERTYPE)
+                    eth.setPayload(packet)
+                    eth.setSourceMACAddress(outPort.portMac)
                     eth.setDestinationMACAddress(mac)
                     // Apply post-routing (egress) chain.
                     val egrMatch = WildcardMatch.fromEthernetPacket(eth)
@@ -564,11 +589,14 @@ class Router(val id: UUID, val cfg: RouterConfig,
                     egrPktContext.setOutputPort(outPort.id)
                     val postRoutingResult = Chain.apply(outFilter,
                                        egrPktContext, egrMatch, id, false)
+                    _applyPostActions(eth, postRoutingResult)
+
                     if (postRoutingResult.action == RuleAction.ACCEPT) {
                         DeduplicationActor.getRef(actorSystem).tell(
                             EmitGeneratedPacket(rt.nextHopPort, eth,
                                 if (packetContext != null)
-                                    Option(packetContext.getFlowCookie) else None))
+                                    Option(packetContext.getFlowCookie)
+                                else None))
                     } else if (postRoutingResult.action != RuleAction.DROP &&
                                postRoutingResult.action != RuleAction.REJECT) {
                         log.error("Post-routing for {} returned an action " +
@@ -728,7 +756,8 @@ class Router(val id: UUID, val cfg: RouterConfig,
         ip.setPayload(icmp)
         ip.setProtocol(ICMP.PROTOCOL_NUMBER)
         // The nwDst is the source of triggering IPv4 as seen by this router.
-        ip.setDestinationAddress(ingressMatch.getNetworkSourceIP.asInstanceOf[IPv4Addr])
+        ip.setDestinationAddress(ingressMatch.getNetworkSourceIP
+                                             .asInstanceOf[IPv4Addr])
         // The nwSrc is the address of the ingress port.
         ip.setSourceAddress(inPort.portAddr.getAddress.asInstanceOf[IPv4Addr])
         val eth = new Ethernet()
