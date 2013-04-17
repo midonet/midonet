@@ -43,6 +43,7 @@ import org.midonet.packets.MalformedPacketException;
 import org.midonet.util.lock.LockHelper;
 
 import static org.midonet.functional_test.FunctionalTestsHelper.*;
+import static org.midonet.util.Waiters.sleepBecause;
 import static org.midonet.util.process.ProcessHelper.newProcess;
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -263,6 +264,30 @@ public class PingTest {
         // Finally, the icmp echo reply from the peer.
         PacketHelper.checkIcmpEchoReply(request, tap1.recv());
 
+        assertNoMorePacketsOnTap(tap1);
+    }
+
+    @Test
+    public void testLLCPacketDoesNotBlockArpResolution()
+            throws MalformedPacketException, InterruptedException {
+        PacketHelper helper1 = new PacketHelper(
+                MAC.fromString("02:00:00:aa:aa:01"), vm1IP, rtrIp1);
+        byte[] request;
+        // First arp for router's mac.
+        assertThat("The ARP request was sent properly",
+                tap1.send(helper1.makeArpRequest()));
+        MAC rtrMac = helper1.checkArpReply(tap1.recv());
+        helper1.setGwMac(rtrMac);
+        // Send LLC / XID packet near router port.
+        request = helper1.makeXIDPacket();
+        assertThat(String.format("The tap %s should have sent the packet",
+                tap1.getName()), tap1.send(request));
+        sleepBecause("Wait for installation of any wildcardflows resulting from XID packet", 2);
+        // Arp again for router's mac.
+        assertThat("The ARP request was sent properly",
+                tap1.send(helper1.makeArpRequest()));
+        MAC rtrMac2 = helper1.checkArpReply(tap1.recv());
+        helper1.setGwMac(rtrMac2);
         assertNoMorePacketsOnTap(tap1);
     }
 }

@@ -501,4 +501,31 @@ public class PacketHelper {
         assertEquals("udp destination port",
                 udpDst, udpPkt.getDestinationPort());
     }
+
+    /**
+     * Send an XID (802.2 over 802.3) broadcast packet from the endpoint.
+     *
+     * @return the XID packet as a byte array
+     */
+    public byte[] makeXIDPacket() {
+        return makeXIDPacket(epMac);
+    }
+
+    public static byte[] makeXIDPacket(MAC dlSrc) {
+        // Handmade XID / LLC packet
+        byte[] xidData = {(byte) 0x00, (byte) 0x01,
+                (byte) 0xaf, (byte) 0x81,
+                (byte) 0x01, (byte) 0x00};
+
+        // Simple data packet to hold xid contents
+        IPacket xidPacket = new Data(xidData);
+
+        // Make an 802.3 packet to hold the XID data
+        Ethernet pkt = new Ethernet().setEtherType((short) xidData.length).
+                setDestinationMACAddress(MAC.fromString("ff:ff:ff:ff:ff:ff")).
+                setSourceMACAddress(dlSrc).
+                setPad(true);
+        pkt.setPayload(xidPacket);
+        return pkt.serialize();
+    }
 }

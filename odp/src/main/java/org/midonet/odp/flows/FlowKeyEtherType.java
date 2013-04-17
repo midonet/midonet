@@ -11,6 +11,11 @@ import org.midonet.netlink.messages.BaseBuilder;
 public class FlowKeyEtherType implements FlowKey<FlowKeyEtherType> {
 
     public enum Type {
+        /**
+         * Used for frames that have no Ethernet
+         * type, that is, pure 802.2 frames.
+         */
+        ETH_P_NONE(0x05FF),
 
         /**
          * Internet Protocol packet
