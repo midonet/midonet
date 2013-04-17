@@ -8,6 +8,7 @@ import org.midonet.api.network.IP4MacPair;
 import org.midonet.api.network.MacPort;
 import org.midonet.packets.IntIPv4;
 import org.midonet.packets.MAC;
+import org.midonet.packets.IPv6Subnet;
 
 import javax.ws.rs.core.UriBuilder;
 import java.net.URI;
@@ -22,6 +23,8 @@ public class ResourceUriBuilder {
     public static final String ARP_TABLE = "/arp_table";
     public static final String DHCP = "/dhcp";
     public static final String DHCP_HOSTS = "/hosts";
+    public static final String DHCPV6 = "/dhcpV6";
+    public static final String DHCPV6_HOSTS = "/hostsV6";
     public static final String PORTS = "/ports";
     public static final String PEER_PORTS = "/peer_ports";
     public static final String PORT_GROUPS = "/port_groups";
@@ -173,6 +176,39 @@ public class ResourceUriBuilder {
     public static URI getMacPort(URI bridgeUri, MacPort mp) {
         return UriBuilder.fromUri(getMacTable(bridgeUri))
             .path(macPortToUri(mp)).build();
+    }
+
+    public static URI getBridgeDhcpV6s(URI baseUri, UUID bridgeId) {
+        return UriBuilder.fromUri(getBridge(baseUri, bridgeId)).path(DHCPV6)
+                .build();
+    }
+
+    public static URI getBridgeDhcpV6(URI bridgeDhcpV6sUri, IPv6Subnet prefix) {
+        return UriBuilder.fromUri(bridgeDhcpV6sUri).path(prefix.toZkString())
+                .build();
+    }
+
+    public static URI getBridgeDhcpV6(URI baseUri, UUID bridgeId,
+            IPv6Subnet prefix) {
+        URI dhcpV6sUri = getBridgeDhcpV6s(baseUri, bridgeId);
+        return getBridgeDhcpV6(dhcpV6sUri, prefix);
+    }
+
+    public static URI getDhcpV6Hosts(URI bridgeDhcpV6Uri) {
+        return UriBuilder.fromUri(bridgeDhcpV6Uri).path(DHCPV6_HOSTS).build();
+    }
+
+    public static String clientIdToUri(String clientId) {
+        return clientId.replace(':', '-');
+    }
+
+    public static String clientIdFromUri(String clientId) {
+        return clientId.replace('-', ':');
+    }
+
+    public static URI getDhcpV6Host(URI bridgeDhcpV6Uri, String clientId) {
+        return UriBuilder.fromUri(getDhcpV6Hosts(bridgeDhcpV6Uri))
+                .path(clientIdToUri(clientId)).build();
     }
 
     public static URI getRouterPorts(URI baseUri, UUID routerId) {

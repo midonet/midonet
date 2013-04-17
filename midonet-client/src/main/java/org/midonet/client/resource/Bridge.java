@@ -205,6 +205,20 @@ public class Bridge extends ResourceBase<Bridge, DtoBridge> {
             DhcpSubnet.class, DtoDhcpSubnet.class);
     }
 
+
+    public DhcpSubnet6 addDhcpSubnet6() {
+        return new DhcpSubnet6(resource, principalDto.getDhcpSubnet6s(),
+                          new DtoDhcpSubnet6());
+    }
+
+    public ResourceCollection getDhcpSubnet6s() {
+        return getChildResources(
+            principalDto.getDhcpSubnet6s(),
+            null,
+            VendorMediaType.APPLICATION_DHCPV6_SUBNET_COLLECTION_JSON,
+            DhcpSubnet6.class, DtoDhcpSubnet6.class);
+    }
+
     @Override
     public String toString() {
         return String.format("Bridge{id=%s, name=%s}", principalDto.getId(),

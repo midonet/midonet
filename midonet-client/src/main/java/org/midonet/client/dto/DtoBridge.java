@@ -23,6 +23,7 @@ public class DtoBridge {
     private URI macTable;
     private URI arpTable;
     private URI dhcpSubnets;
+    private URI dhcpSubnet6s;
 
     public UUID getId() {
         return id;
@@ -126,5 +127,13 @@ public class DtoBridge {
 
     public void setDhcpSubnets(URI dhcpSubnets) {
         this.dhcpSubnets = dhcpSubnets;
+    }
+
+    public URI getDhcpSubnet6s() {
+        return dhcpSubnet6s;
+    }
+
+    public void setDhcpSubnet6s(URI dhcpSubnet6s) {
+        this.dhcpSubnet6s = dhcpSubnet6s;
     }
 }

@@ -28,7 +28,7 @@ object IPAddr {
 
 class IPv4Addr extends IPAddr {
     private var address: Int = 0
-    
+
     def getIntAddress() = address
     def setIntAddress(addr: Int) = { address = addr; this }
     def setByteAddress(addr: Array[Byte]) = {
@@ -51,7 +51,7 @@ class IPv4Addr extends IPAddr {
     // See "Programming in Scala" sec. 30.4
     override def equals(o: Any): Boolean = {
         o match {
-            case t: IPv4Addr => 
+            case t: IPv4Addr =>
                 t.canEqual(this) && t.address == this.address
             case _ => false
         }

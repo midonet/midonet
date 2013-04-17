@@ -214,6 +214,17 @@ public class Bridge extends UriResource {
     }
 
     /**
+     * @return the DHCPV6 server configuration URI
+     */
+    public URI getDhcpSubnet6s() {
+        if (getBaseUri() != null && id != null) {
+            return ResourceUriBuilder.getBridgeDhcpV6s(getBaseUri(), id);
+        } else {
+            return null;
+        }
+    }
+
+    /**
      * @return the self URI
      */
     @Override

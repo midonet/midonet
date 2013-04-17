@@ -6,6 +6,7 @@ package org.midonet.midolman.state;
 
 import java.util.UUID;
 
+import org.midonet.packets.IPv6Subnet;
 import org.midonet.packets.IntIPv4;
 import org.midonet.packets.MAC;
 
@@ -432,6 +433,66 @@ public class ZkPathManager {
     private StringBuilder buildBridgeDhcpHostPath(UUID bridgeId, IntIPv4 subnetAddr, MAC macAddr) {
         return new StringBuilder(getBridgeDhcpHostsPath(bridgeId, subnetAddr))
             .append('/').append(macAddr.toString());
+    }
+
+    /**
+     * Get ZK bridge dhcpV6 path.
+     *
+     * @param bridgeId Bridge UUID
+     * @return /bridges/bridgeId/dhcpV6
+     */
+    public String getBridgeDhcpV6Path(UUID bridgeId) {
+        return buildBridgeDhcpV6Path(bridgeId).toString();
+    }
+
+    private StringBuilder buildBridgeDhcpV6Path(UUID bridgeId) {
+        return buildBridgePath(bridgeId).append("/dhcpV6");
+    }
+
+    /**
+     * Get ZK bridge dhcpV6 subnet path.
+     *
+     * @param bridgeId Bridge UUID
+     * @return /bridges/bridgeId/dhcpV6/prefix:len
+     */
+    public String getBridgeDhcpSubnet6Path(UUID bridgeId, IPv6Subnet prefix) {
+        return buildBridgeDhcpSubnet6Path(bridgeId, prefix).toString();
+    }
+
+    private StringBuilder buildBridgeDhcpSubnet6Path(UUID bridgeId, IPv6Subnet prefix) {
+        return buildBridgeDhcpV6Path(bridgeId).append("/")
+            .append(prefix.toZkString());
+    }
+
+    /**
+     * Get ZK bridge dhcpV6 hosts path for a given subnet6.
+     *
+     * @param bridgeId Bridge UUID
+     * @return /bridges/bridgeId/dhcpV6/prefix:len/hosts
+     */
+    public String getBridgeDhcpV6HostsPath(UUID bridgeId, IPv6Subnet prefix) {
+        return buildBridgeDhcpV6HostsPath(bridgeId, prefix).toString();
+    }
+
+    private StringBuilder buildBridgeDhcpV6HostsPath(UUID bridgeId, IPv6Subnet prefix) {
+        return new StringBuilder(getBridgeDhcpSubnet6Path(bridgeId, prefix))
+            .append("/hosts");
+    }
+
+    /**
+     * Get ZK bridge dhcpV6 host path for a given subnet and client ID.
+     *
+     * @param bridgeId Bridge UUID
+     * @return /bridges/bridgeId/dhcpV6/prefix:len/hosts/clientId
+     */
+    public String getBridgeDhcpV6HostPath(UUID bridgeId, IPv6Subnet prefix,
+                                        String clientId) {
+        return buildBridgeDhcpV6HostPath(bridgeId, prefix, clientId).toString();
+    }
+
+    private StringBuilder buildBridgeDhcpV6HostPath(UUID bridgeId, IPv6Subnet prefix, String clientId) {
+        return new StringBuilder(getBridgeDhcpV6HostsPath(bridgeId, prefix))
+            .append('/').append(clientId);
     }
 
     /**

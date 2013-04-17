@@ -90,6 +90,7 @@ public class DataClusterClientModule extends PrivateModule {
         managers.add(RouteZkManager.class);
         managers.add(RuleZkManager.class);
         managers.add(BridgeDhcpZkManager.class);
+        managers.add(BridgeDhcpV6ZkManager.class);
         managers.add(BridgeZkManager.class);
         managers.add(ChainZkManager.class);
         managers.add(PortZkManager.class);

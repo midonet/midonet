@@ -13,12 +13,15 @@ import org.midonet.midolman.state.PortDirectory.MaterializedBridgePortConfig;
 import org.midonet.midolman.state.PortDirectory.MaterializedRouterPortConfig;
 import org.midonet.midolman.state.zkManagers.AdRouteZkManager.AdRouteConfig;
 import org.midonet.midolman.state.zkManagers.BridgeDhcpZkManager;
+import org.midonet.midolman.state.zkManagers.BridgeDhcpV6ZkManager;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager.BridgeConfig;
 import org.midonet.midolman.state.zkManagers.ChainZkManager.ChainConfig;
 import org.midonet.midolman.state.zkManagers.PortGroupZkManager.PortGroupConfig;
 import org.midonet.midolman.state.zkManagers.RouterZkManager.RouterConfig;
 import org.midonet.cluster.data.dhcp.Opt121;
 import org.midonet.cluster.data.dhcp.Subnet;
+import org.midonet.cluster.data.dhcp.Subnet6;
+import org.midonet.cluster.data.dhcp.V6Host;
 import org.midonet.cluster.data.host.*;
 import org.midonet.cluster.data.ports.LogicalBridgePort;
 import org.midonet.cluster.data.ports.LogicalRouterPort;
@@ -482,6 +485,35 @@ public class Converter {
         return new Opt121()
                 .setGateway(opt121Config.getGateway())
                 .setRtDstSubnet(opt121Config.getRtDstSubnet());
+    }
+
+    public static BridgeDhcpV6ZkManager.Host toDhcpV6HostConfig(
+            V6Host host) {
+
+        return new BridgeDhcpV6ZkManager.Host(host.getClientId(),
+                                              host.getFixedAddress(),
+                                              host.getName());
+    }
+
+    public static V6Host fromDhcpV6HostConfig
+            (BridgeDhcpV6ZkManager.Host hostConfig) {
+        return new V6Host()
+                .setFixedAddress(hostConfig.getFixedAddress())
+                .setClientId(hostConfig.getClientId())
+                .setName(hostConfig.getName());
+    }
+
+    public static BridgeDhcpV6ZkManager.Subnet6 toDhcpSubnet6Config(
+            Subnet6 subnet) {
+
+        return new BridgeDhcpV6ZkManager.Subnet6(subnet.getPrefix());
+    }
+
+    public static Subnet6 fromDhcpSubnet6Config(
+            BridgeDhcpV6ZkManager.Subnet6 subnetConfig) {
+
+        return new Subnet6()
+                .setPrefix(subnetConfig.getPrefix());
     }
 
     public static HostDirectory.ErrorLogItem toHostErrorLogItemConfig(

@@ -17,6 +17,7 @@ import org.midonet.api.auth.AuthAction;
 import org.midonet.api.auth.AuthRole;
 import org.midonet.api.auth.Authorizer;
 import org.midonet.api.dhcp.rest_api.BridgeDhcpResource;
+import org.midonet.api.dhcp.rest_api.BridgeDhcpV6Resource;
 import org.midonet.api.network.Bridge;
 import org.midonet.api.network.Bridge.BridgeCreateGroupSequence;
 import org.midonet.api.network.Bridge.BridgeUpdateGroupSequence;
@@ -158,6 +159,18 @@ public class BridgeResource extends AbstractResource {
     @Path("/{id}" + ResourceUriBuilder.DHCP)
     public BridgeDhcpResource getBridgeDhcpResource(@PathParam("id") UUID id) {
         return factory.getBridgeDhcpResource(id);
+    }
+
+    /**
+     * DHCPV6 resource locator for bridges.
+     *
+     * @param id
+     *            Bridge ID from the request.
+     * @returns BridgeDhcpV6Resource object to handle sub-resource requests.
+     */
+    @Path("/{id}" + ResourceUriBuilder.DHCPV6)
+    public BridgeDhcpV6Resource getBridgeDhcpV6Resource(@PathParam("id") UUID id) {
+        return factory.getBridgeDhcpV6Resource(id);
     }
 
     /**
