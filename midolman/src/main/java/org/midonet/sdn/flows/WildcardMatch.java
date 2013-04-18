@@ -54,8 +54,6 @@ public class WildcardMatch implements Cloneable {
         FragmentType,
         TransportSource,
         TransportDestination,
-        ArpSip,
-        ArpTip,
         // TODO (galo) extract MM-custom fields to a child class? We'd need
         // some more changes there since Enums can't inherit though
         IcmpId,
@@ -84,8 +82,6 @@ public class WildcardMatch implements Cloneable {
     private IPFragmentType ipFragmentType;
     private Integer transportSource;
     private Integer transportDestination;
-    private IPv4Addr arpSip;
-    private IPv4Addr arpTip;
 
     // Extended fields only supported inside MM
     private Short icmpId;
@@ -447,45 +443,6 @@ public class WildcardMatch implements Cloneable {
         return transportDestination;
     }
 
-    @Nonnull
-    public WildcardMatch setArpSip(IPv4Addr arpSip) {
-        usedFields.add(Field.ArpSip);
-        this.arpSip = arpSip;
-        return this;
-    }
-
-    @Nonnull
-    public WildcardMatch unsetArpSip() {
-        usedFields.remove(Field.ArpSip);
-        this.arpSip = null;
-        return this;
-    }
-
-    @Nullable
-    public IPv4Addr getArpSipObject() {
-        return arpSip;
-    }
-
-    @Nonnull
-    public WildcardMatch setArpTip(IPv4Addr arpTip) {
-        usedFields.add(Field.ArpTip);
-        this.arpTip = arpTip;
-        return this;
-    }
-
-    @Nonnull
-    public WildcardMatch unsetArpTip() {
-        usedFields.remove(Field.ArpTip);
-        this.arpTip = null;
-        return this;
-    }
-
-    @Nullable
-    public IPv4Addr getArpTipObject() {
-        return arpTip;
-    }
-
-    @Nonnull
     public WildcardMatch setIcmpIdentifier(Short identifier) {
         usedFields.add(Field.IcmpId);
         this.icmpId = identifier;
@@ -560,16 +517,6 @@ public class WildcardMatch implements Cloneable {
 
                 case TransportSource:
                     if (!isEqual(transportSource, that.transportSource))
-                        return false;
-                    break;
-
-                case ArpSip:
-                    if (!isEqual(arpSip, that.arpSip))
-                        return false;
-                    break;
-
-                case ArpTip:
-                    if (!isEqual(arpTip, that.arpTip))
                         return false;
                     break;
 
@@ -650,12 +597,6 @@ public class WildcardMatch implements Cloneable {
                     break;
                 case TransportSource:
                     result = 31 * result + transportSource.hashCode();
-                    break;
-                case ArpSip:
-                    result = 31 * result + arpSip.hashCode();
-                    break;
-                case ArpTip:
-                    result = 31 * result + arpTip.hashCode();
                     break;
                 case InputPortUUID:
                     result = 31 * result + inputPortUUID.hashCode();
@@ -809,14 +750,6 @@ public class WildcardMatch implements Cloneable {
 
                     case NetworkSource:
                         newClone.networkSource = networkSource.clone_();
-                        break;
-
-                    case ArpSip:
-                        newClone.arpSip = arpSip.clone();
-                        break;
-
-                    case ArpTip:
-                        newClone.arpTip = arpTip.clone();
                         break;
 
                     case NetworkProtocol:

@@ -13,7 +13,6 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
 
-import org.midonet.midolman.DatapathController.TunnelChangeEvent
 import org.midonet.midolman.topology.VirtualToPhysicalMapper._
 import org.midonet.midolman.guice.actors.OutgoingMessage
 import org.midonet.cluster.data.zones._
@@ -30,6 +29,7 @@ import org.midonet.odp.flows.{FlowActionOutput, FlowAction}
 import host.interfaces.InterfaceDescription
 import org.midonet.midolman.PacketWorkflowActor.PacketIn
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
+import org.midonet.midolman.DatapathController.TunnelChangeEvent
 
 @RunWith(classOf[JUnitRunner])
 class DhcpInterfaceMtuTestCase extends MidolmanTestCase with

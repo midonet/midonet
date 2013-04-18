@@ -6,8 +6,8 @@
 import akka.actor.ActorSystem
 import akka.event.Logging
 import collection.mutable
-import org.midonet.midolman.topology.MacLearningManager
 import org.midonet.cluster.client.MacLearningTable
+import org.midonet.midolman.topology.MacLearningManager
 import org.midonet.packets.MAC
 import org.midonet.util.functors.{Callback3, Callback1}
 import java.util.UUID

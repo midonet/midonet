@@ -816,12 +816,17 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
             wildcardFlow, Set.empty, bgpTagSet))
 
         // ARP link->bgpd, link->midolman
-        // TODO(abel) send ARP from link to both ports only if it's an ARP reply
+        // Both MM and bgpd need to know the peer's MAC address, so we install
+        // a wildcard flow that sends the ARP replies to both MM and bgpd.
         wildcardMatch = new WildcardMatch()
             .setInputPortUUID(bgpPort.id)
-            //.setArpSip(bgp.getPeerAddr.toHostAddress)
-            //.setArpTip(bgpPort.portAddr.toHostAddress)
             .setEtherType(ARP.ETHERTYPE)
+            .setEthernetDestination(bgpPort.portMac)
+            // nwProto is overloaded in WildcardMatch to store the arp op type.
+            .setNetworkProtocol(ARP.OP_REPLY)
+            // nwSrc/nwDst are overloaded to store the arp sip and tip.
+            .setNetworkSource(IPAddr.fromIntIPv4(bgp.getPeerAddr.toHostAddress))
+            .setNetworkDestination(bgpPort.portAddr.getAddress)
 
         wildcardFlow = new WildcardFlow()
             .setMatch(wildcardMatch)
