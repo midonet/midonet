@@ -66,25 +66,33 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase with
         val bridge = newBridge("bridge")
         bridge should not be null
 
-        var cmdline = "/sbin/ifconfig | grep -w inet | grep -vw 127.0.0.1 | sed -n 1p | cut -d: -f2"
-        var testString = Seq("sh", "-c", cmdline).!!
-        log.debug("testString is {}", testString)
+        val cmdline_ip = ( "/sbin/ifconfig"
+                            + "| grep -w inet | grep -vw 127.0.0.1"
+                            + "| egrep -o '((1?[0-9]{1,2}|2([0-5]){2})\\.?){4}'"
+                            + "| sed -n 1p" )
 
-        var strArray : Array[String] = testString.split("  ")
+        log.debug("looking for ip address with command {}", cmdline_ip)
 
-        val ipString : String = strArray(0)
+        val ipString: String = Seq("sh", "-c", cmdline_ip).!!.trim
 
         log.debug("ipString is {}", ipString)
 
-        cmdline = "/sbin/ifconfig | grep -w MTU | grep -vw LOOPBACK | sed -n 1p | cut -d: -f2"
-        testString = Seq("sh", "-c", cmdline).!!
+        // try to catch the mtu var around the ip captured by cmdline_ip
+        // it s a few line above on OSX and a few line below on linux
+        val cmdline_mtu = ( "/sbin/ifconfig"
+                            + "| grep -A 2 -B 4 " + ipString
+                            + "| egrep -o -i 'mtu(:| )[0-9]+'"
+                            + "| cut -c 5-" )
 
-        log.debug("testString for MTU is {}", testString)
+        log.debug("looking for MTU with command {}", cmdline_mtu)
+
+        val intfMtu_string: String = Seq("sh", "-c", cmdline_mtu).!!.trim
+
+        log.debug("MTU is {}", intfMtu_string)
 
         // store original interface MTU
-        strArray = testString.split("  ")
         // TODO(guillermo) use pino's mock interface scanner when merged.
-        intfMtu = try { strArray(0).toInt } catch { case _ => 1500 }
+        intfMtu = intfMtu_string.toInt
 
         vmIP = IntIPv4.fromString(ipString, 24)
 
