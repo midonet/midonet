@@ -3,13 +3,13 @@
 */
 package org.midonet.netlink;
 
+import com.google.common.collect.MapMaker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -43,14 +43,23 @@ public class BufferPool {
         this.maxBuffers = maxBuffers;
         this.bufSize = bufSize;
         this.availPool = new ArrayBlockingQueue<ByteBuffer>(maxBuffers);
-        this.bufferPool = new ConcurrentHashMap<ByteBuffer, Object>(maxBuffers);
+
+        /* Use a weak-keys map so that keys behave as in an identity HashMap.
+        /*
+        /* An identity map is needed because a ByteBuffer's hashCode() depends
+        /* on the buffer's contents. A normal IdentityHashMap is not suitable
+        /* because there's no concurrent implementation of it. Thus the use
+        /* of the weak-keys concurrent map. */
+        this.bufferPool = new MapMaker().
+                            initialCapacity(maxBuffers).
+                            weakKeys().
+                            makeMap();
 
         numBuffers = new AtomicInteger(0);
         do {
             ByteBuffer buf = ByteBuffer.allocateDirect(bufSize);
             availPool.offer(buf);
             bufferPool.put(buf, PRESENT);
-            numBuffers.incrementAndGet();
         } while (numBuffers.incrementAndGet() < minBuffers);
     }
 
@@ -60,12 +69,13 @@ public class BufferPool {
             return buffer;
 
         if (numBuffers.incrementAndGet() <= maxBuffers) {
+            log.debug("increasing buffer pool size to {}", numBuffers.get());
             ByteBuffer buf = ByteBuffer.allocateDirect(bufSize);
             bufferPool.put(buf, PRESENT);
             return buf;
         } else {
             numBuffers.decrementAndGet();
-            log.warn("Pool is empty, allocating a temporary buffer");
+            log.warn("pool is empty, allocating a temporary buffer");
             return ByteBuffer.allocateDirect(bufSize);
         }
     }

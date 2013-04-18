@@ -335,8 +335,8 @@ public abstract class AbstractNetlinkConnection {
 
             final NetlinkRequest request = pendingRequests.get(seq);
             if (request == null && seq != 0) {
-                log.warn("Reply handlers for netlink request with id {} " +
-                             "not found. {}", seq, pendingRequests);
+                log.warn("Reply handler for netlink request with id {} " +
+                         "not found.", seq);
             }
 
             List<ByteBuffer> buffers =
