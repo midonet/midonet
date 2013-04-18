@@ -22,6 +22,7 @@ import org.midonet.api.rest_api.BadRequestHttpException;
 import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.midolman.state.InvalidStateOperationException;
+import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.RuleIndexOutOfBoundsException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.cluster.DataClient;
@@ -213,8 +214,13 @@ public class RuleResource extends AbstractResource {
                         "Not authorized to view these rules.");
             }
 
-            List<org.midonet.cluster.data.Rule<?,?>> ruleDataList =
-                    dataClient.rulesFindByChain(chainId);
+            List<org.midonet.cluster.data.Rule<?,?>> ruleDataList = null;
+            try {
+                ruleDataList = dataClient.rulesFindByChain(chainId);
+            } catch (NoStatePathException e) {
+                throw new NotFoundHttpException("No such chain" + chainId);
+            }
+
             List<Rule> rules = new ArrayList<Rule>();
             if (ruleDataList != null) {
 
