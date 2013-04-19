@@ -38,7 +38,8 @@ object VtyConnection {
  * Interfaces for VtyConnection.
  */
 abstract class VtyConnection(val addr: String, val port: Int,
-                             val password: String) {
+                             val password: String, val keepAliveTime: Int,
+                             val holdTime: Int, val connectRetryTime: Int) {
 
     import VtyConnection._
 
@@ -266,6 +267,8 @@ object BgpVtyConnection {
     private final val DeleteAs = "no router bgp %s"
     private final val SetLocalNw = "bgp router-id %s"
     private final val SetPeer = "neighbor %s remote-as %d"
+    private final val ConfigurePeerKeepAlive = "neighbor %s timers %s %s"
+    private final val ConfigurePeerConnectRetry = "neighbor %s timers connect %s"
     private final val DeletePeer = "no neighbor %s"
     private final val GetNetwork = "show ip bgp"
     // The first regex ^[sdh\*>irSR]* expects the following status codes:
@@ -309,8 +312,10 @@ trait BgpConnection {
     def setDebug(isEnabled: Boolean)
 }
 
-class BgpVtyConnection(addr: String, port: Int, password: String)
-    extends VtyConnection(addr, port, password) with BgpConnection {
+class BgpVtyConnection(addr: String, port: Int, password: String, keepAliveTime: Int,
+                       holdTime: Int, connectRetryTime: Int)
+    extends VtyConnection(addr, port, password, keepAliveTime, holdTime, connectRetryTime)
+    with BgpConnection {
 
     import BgpVtyConnection._
 
@@ -402,6 +407,11 @@ class BgpVtyConnection(addr: String, port: Int, password: String)
         val request = ListBuffer[String]()
         request += SetAs.format(as) // this is actually needed
         request += SetPeer.format(peerAddr.toString, peerAs)
+
+        request += ConfigurePeerKeepAlive.format(peerAddr.toString,
+            keepAliveTime, holdTime)
+        request += ConfigurePeerConnectRetry.format(peerAddr.toString,
+            connectRetryTime)
 
         try {
             doTransaction(request.toSeq, isConfigure = true)

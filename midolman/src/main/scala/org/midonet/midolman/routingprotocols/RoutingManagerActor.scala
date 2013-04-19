@@ -103,7 +103,8 @@ class RoutingManagerActor extends Actor with ActorLogWithoutPath {
                 portHandlers.put(
                     port.id,
                     context.actorOf(
-                        Props(new RoutingHandler(port, bgpPortIdx, client, dataClient)).withDispatcher("actors.stash-dispatcher"),
+                        Props(new RoutingHandler(port, bgpPortIdx, client, dataClient,
+                        config)).withDispatcher("actors.stash-dispatcher"),
                         name = port.id.toString)
                 )
                 log.debug("RoutingManager - ExteriorRouterPort - RoutingHandler actor creation requested")

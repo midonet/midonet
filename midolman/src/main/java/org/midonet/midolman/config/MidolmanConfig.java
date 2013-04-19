@@ -34,6 +34,15 @@ public interface MidolmanConfig
     @ConfigInt(key = "bgp_port_start_index", defaultValue = 0)
     public int getMidolmanBGPPortStartIndex();
 
+    @ConfigInt(key = "bgp_keepalive", defaultValue = 60)
+    public int getMidolmanBGPKeepAlive();
+
+    @ConfigInt(key = "bgp_holdtime", defaultValue = 180)
+    public int getMidolmanBGPHoldtime();
+
+    @ConfigInt(key = "bgp_connect_retry", defaultValue = 120)
+    public int getMidolmanBGPConnectRetry();
+
     @ConfigInt(key = "dhcp_mtu", defaultValue = 1450)
     int getMidolmanDhcpMtu();
 
