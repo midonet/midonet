@@ -63,6 +63,9 @@ public class BufferPool {
         } while (numBuffers.incrementAndGet() < minBuffers);
     }
 
+    /** Take a byte buffer from the pool. The caller is responsible of calling
+     *  release() once for the returned buffer to return it to the pool.
+     */
     public ByteBuffer take() {
         ByteBuffer buffer = availPool.poll();
         if (buffer != null)
@@ -75,13 +78,31 @@ public class BufferPool {
             return buf;
         } else {
             numBuffers.decrementAndGet();
-            log.warn("pool is empty, allocating a temporary buffer");
-            return ByteBuffer.allocateDirect(bufSize);
+            /* Temporary buffers are non-direct because the NIO library has its
+             * own cache for them, managing this case more cleverly than we
+             * we can from here. The library will get the buffer from its cache
+             * when a write is requested, so it will be able to release it
+             * immediately, whereas we would leave the task up to the garbage
+             * collector.
+             *
+             * The price we pay for allocating a non-direct buffer is one extra
+             * copy at write-time.
+             */
+            log.info("pool is empty, allocating a temporary buffer");
+            return ByteBuffer.allocate(bufSize);
         }
     }
 
+    /** Release a buffer that was previously taken from the pool.
+     *
+     *  NOTE: this method will assume that the given buffer is currently taken,
+     *  callers must be careful not to call release() twice on the same buffer.
+     */
     public void release(ByteBuffer buf) {
-        if (bufferPool.containsKey(buf))
+        if (bufferPool.containsKey(buf)) {
             availPool.offer(buf);
+            log.trace("released buffer ({}/{} free buffers)",
+                     availPool.size(), numBuffers.get());
+        }
     }
 }
