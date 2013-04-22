@@ -14,6 +14,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nonnull;
 
 import com.google.common.base.Function;
@@ -62,7 +63,7 @@ public abstract class AbstractNetlinkConnection {
 
     private ByteBuffer reply = ByteBuffer.allocateDirect(cLibrary.PAGE_SIZE);
 
-    private BufferPool requestPool = new BufferPool(128, 256, cLibrary.PAGE_SIZE);
+    private BufferPool requestPool = new BufferPool(128, 512, cLibrary.PAGE_SIZE);
 
     private NetlinkChannel channel;
     private Reactor reactor;
@@ -194,7 +195,7 @@ public abstract class AbstractNetlinkConnection {
         netlinkRequest.family = cmdFamily;
         netlinkRequest.cmd = cmd;
         netlinkRequest.callback = callback;
-        netlinkRequest.outBuffer = payload;
+        netlinkRequest.outBuffer.set(payload);
 
         // send the request
         netlinkRequest.timeoutHandler = new Callable<Object>() {
@@ -206,10 +207,9 @@ public abstract class AbstractNetlinkConnection {
 
                 if (timedOutRequest != null) {
                     log.debug("Signalling timeout to the callback: {}", seq);
-                    if (timedOutRequest.outBuffer != null) {
-                        requestPool.release(timedOutRequest.outBuffer);
-                        timedOutRequest.outBuffer = null;
-                    }
+                    ByteBuffer timedOutBuf = timedOutRequest.outBuffer.getAndSet(null);
+                    if (timedOutBuf != null)
+                        requestPool.release(timedOutBuf);
                     throttler.tokenOut();
                     timedOutRequest.callback.onTimeout();
                 }
@@ -256,17 +256,16 @@ public abstract class AbstractNetlinkConnection {
     }
 
     private int processWriteToChannel() {
-        final NetlinkRequest request = writeQueue.peek();
+        final NetlinkRequest request = writeQueue.poll();
         if (request == null)
             return 0;
-        if (request.outBuffer == null)
+        ByteBuffer outBuf = request.outBuffer.getAndSet(null);
+        if (outBuf == null)
             return 0;
 
         int bytes = 0;
         try {
-            bytes = channel.write(request.outBuffer);
-            if (bytes == 0)
-                return 0;
+            bytes = channel.write(outBuf);
         } catch (IOException e) {
             log.warn("NETLINK write() exception: {}", e);
             request.callback
@@ -274,9 +273,7 @@ public abstract class AbstractNetlinkConnection {
                         NetlinkException.ERROR_SENDING_REQUEST,
                         e));
         } finally {
-            requestPool.release(request.outBuffer);
-            request.outBuffer = null;
-            writeQueue.poll();
+            requestPool.release(outBuf);
         }
         return bytes;
     }
@@ -445,9 +442,9 @@ public abstract class AbstractNetlinkConnection {
         short family;
         byte cmd;
         List<ByteBuffer> inBuffers = new ArrayList<ByteBuffer>();
-        ByteBuffer outBuffer = null;
         Callback<List<ByteBuffer>> callback;
         Callable<?> timeoutHandler;
+        AtomicReference<ByteBuffer> outBuffer = new AtomicReference<ByteBuffer>();
 
         @Override
         public String toString() {
