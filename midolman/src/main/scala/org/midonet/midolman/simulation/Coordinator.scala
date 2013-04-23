@@ -344,18 +344,7 @@ class Coordinator(val origMatch: WildcardMatch,
                             NoOp()
                         case Some(_) =>
                             var temporary = false
-                            // Flows which (if they were return flows in a
-                            // conntracked connection) could be symmetrical
-                            // to their forward flow (i.e. UDP), will be
-                            // temporary.
-                            // The reason is that changes in the conntrack
-                            // table could render them invalid, and we
-                            // don't get notifications for new conntrack
-                            // entries
-                            if (pktContext.isConnTracked() &&
-                                pktContext.forwardAndReturnAreSymmetric) {
-                                temporary = true
-                            }
+                            temporary = pktContext.isConnTracked()
                             dropFlow(temporary, withTags = true)
                     }
 
@@ -535,13 +524,27 @@ class Coordinator(val origMatch: WildcardMatch,
                     installConnectionCacheEntry(outputID, pktContext.getMatch,
                             if (isPortSet) outputID else port.deviceID)
                 }
+
                 val wFlow = new WildcardFlow()
                     .setMatch(origMatch)
                     .setActions(actions.toList)
-                if (pktContext.isConnTracked() && !pktContext.isForwardFlow())
-                    wFlow.setHardExpirationMillis(RETURN_FLOW_EXPIRATION_MILLIS)
-                else
+
+                if (pktContext.isConnTracked) {
+                    if (pktContext.isForwardFlow) {
+                        // See #577: if fwd flow we expire the fwd bc. we want
+                        // it to keep refreshing the cache key
+                        wFlow.setHardExpirationMillis(
+                            RETURN_FLOW_EXPIRATION_MILLIS / 2)
+                    } else {
+                        // if ret flow, we need to simulate periodically to
+                        // ensure that it's legit by checking that there is a
+                        // matching fwd flow
+                        wFlow.setHardExpirationMillis(
+                            RETURN_FLOW_EXPIRATION_MILLIS)
+                    }
+                 } else
                     wFlow.setIdleExpirationMillis(IDLE_EXPIRATION_MILLIS)
+
                 AddVirtualWildcardFlow(wFlow,
                                        pktContext.getFlowRemovedCallbacks,
                                        pktContext.getFlowTags)

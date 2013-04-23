@@ -146,11 +146,6 @@ class PacketContext(val flowCookie: Option[Int], val frame: Ethernet,
         frozen = true
     }
 
-    def forwardAndReturnAreSymmetric: Boolean = {
-        ! (wcmatch.getDataLayerType == IPv4.ETHERTYPE &&
-            wcmatch.getNetworkProtocol == TCP.PROTOCOL_NUMBER)
-    }
-
     /* Packet context methods used by Chains. */
     override def getInPortId: UUID = inPortID
     override def getOutPortId: UUID = outPortID
