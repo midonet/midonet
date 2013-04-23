@@ -19,13 +19,13 @@ trait RouterHelper extends SimulationHelper {
     def expectEmitIcmp(fromMac: MAC, fromIp: IntIPv4,
                                toMac: MAC, toIp: IntIPv4,
                                icmpType: Char, icmpCode: Char) {
-        val errorPkt = fishForRequestOfType[EmitGeneratedPacket](dedupProbe()).eth
-        errorPkt.getEtherType should be === IPv4.ETHERTYPE
-        val ipErrorPkt = errorPkt.getPayload.asInstanceOf[IPv4]
-        ipErrorPkt.getProtocol should be === ICMP.PROTOCOL_NUMBER
-        ipErrorPkt.getDestinationAddress should be === toIp.addressAsInt
-        ipErrorPkt.getSourceAddress should be === fromIp.addressAsInt
-        val icmpPkt = ipErrorPkt.getPayload.asInstanceOf[ICMP]
+        val pkt = fishForRequestOfType[EmitGeneratedPacket](dedupProbe()).eth
+        pkt.getEtherType should be === IPv4.ETHERTYPE
+        val ipPkt = pkt.getPayload.asInstanceOf[IPv4]
+        ipPkt.getProtocol should be === ICMP.PROTOCOL_NUMBER
+        ipPkt.getDestinationAddress should be === toIp.addressAsInt
+        ipPkt.getSourceAddress should be === fromIp.addressAsInt
+        val icmpPkt = ipPkt.getPayload.asInstanceOf[ICMP]
         icmpPkt.getType should be === icmpType
         icmpPkt.getCode should be === icmpCode
     }
