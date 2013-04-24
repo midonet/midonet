@@ -17,7 +17,7 @@ public class ExceptionFilter implements ContainerResponseFilter {
     public ContainerResponse filter(ContainerRequest request, ContainerResponse response) {
         Throwable t = response.getMappedThrowable();
         if (null != t)
-            log.error("Resource method error:", t);
+            log.debug("Resource method call resulted in error response:", t);
         return response;
     }
 }
