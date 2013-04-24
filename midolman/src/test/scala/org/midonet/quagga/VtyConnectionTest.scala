@@ -9,8 +9,9 @@ import java.io._
 import org.scalatest.concurrent.Eventually
 import org.scalatest.matchers.ShouldMatchers
 
-class MockVtyConnection(addr: String, port: Int, password: String)
-    extends VtyConnection (addr, port, password) {
+class MockVtyConnection(addr: String, port: Int, password: String, keepAliveTime: Int,
+                           holdTime: Int, connectRetryTime: Int)
+    extends VtyConnection (addr, port, password, keepAliveTime, holdTime, connectRetryTime) {
 
     // Limiting the buffer size to 10 bytes allows us to simulate messages
     // received in chunks as it happens in real life with Vty connections
@@ -38,7 +39,10 @@ class VtyConnectionTest extends FunSuite
         vty = new MockVtyConnection(
             addr = "addr",
             port = 0,
-            password = "password")
+            password = "password",
+            keepAliveTime = 60,
+            holdTime = 180,
+            connectRetryTime = 120)
     }
 
     test("VtyConnection creation") {

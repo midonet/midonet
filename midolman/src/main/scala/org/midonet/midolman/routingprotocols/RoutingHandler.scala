@@ -30,6 +30,7 @@ import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 import org.midonet.util.process.ProcessHelper
 import scala.collection.JavaConversions._
 import org.midonet.midolman.logging.ActorLogWithoutPath
+import org.midonet.midolman.config.MidolmanConfig
 
 
 /**
@@ -54,7 +55,8 @@ import org.midonet.midolman.logging.ActorLogWithoutPath
  * RoutingHandlers for different virtual ports of the same router. *
  */
 class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
-                     val client: Client, val dataClient: DataClient)
+                     val client: Client, val dataClient: DataClient,
+                     val config: MidolmanConfig)
     extends UntypedActorWithStash with ActorLogWithoutPath {
 
     private final val BGP_NETDEV_PORT_NAME: String =
@@ -336,7 +338,10 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
                         bgpVty = new BgpVtyConnection(
                             addr = BGP_VTY_MIRROR_IP,
                             port = BGP_VTY_PORT,
-                            password = "zebra_password")
+                            password = "zebra_password",
+                            keepAliveTime = config.getMidolmanBGPKeepAlive,
+                            holdTime = config.getMidolmanBGPHoldtime,
+                            connectRetryTime = config.getMidolmanBGPConnectRetry)
 
                         bgpVty.setLogFile("/var/log/quagga/bgpd." + BGP_VTY_PORT + ".log")
                         if (log.isDebugEnabled)
