@@ -144,6 +144,23 @@ public class Route extends Entity.Base<UUID, Route.Data, Route> {
         return getData().properties;
     }
 
+    @Override
+    public boolean equals(Object other) {
+        if (other == null)
+            return false;
+        if (other == this)
+            return true;
+        if (!(other instanceof Route))
+            return false;
+        Route rt = (Route)other;
+        return getData().equals(rt.getData());
+    }
+
+    @Override
+    public int hashCode() {
+        return getData().hashCode();
+    }
+
     public static class Data {
 
         public String srcNetworkAddr;
@@ -177,7 +194,7 @@ public class Route extends Entity.Base<UUID, Route.Data, Route> {
                 return false;
             if (other == this)
                 return true;
-            if (!(other instanceof Route))
+            if (!(other instanceof Data))
                 return false;
             Data rt = (Data) other;
             if (null == nextHop || null == rt.nextHop) {
