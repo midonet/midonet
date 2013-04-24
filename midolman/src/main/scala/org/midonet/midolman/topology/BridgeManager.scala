@@ -20,6 +20,7 @@ import org.midonet.cluster.Client
 import org.midonet.cluster.client._
 import org.midonet.packets.{IPAddr, MAC}
 import org.midonet.util.functors.Callback0
+import org.midonet.midolman.config.MidolmanConfig
 
 
 /* The MacFlowCount is called from the Coordinators' actors and dispatches
@@ -39,7 +40,6 @@ case class BridgeConfig(tunnelKey: Int = 0,
 
 object BridgeManager {
     val Name = "BridgeManager"
-    var macPortExpiration = 30*1000
 
     case class TriggerUpdate(cfg: BridgeConfig,
                              macLearningTable: MacLearningTable,
@@ -48,10 +48,6 @@ object BridgeManager {
                              rtrIpToMac: ROMap[IPAddr, MAC])
 
     case class CheckExpiredMacPorts()
-
-    def setMacPortExpiration(expiration: Int) {
-        macPortExpiration = expiration
-    }
 
 }
 
@@ -134,8 +130,8 @@ class MacLearningManager(log: LoggingAdapter, expirationMillis: Long) {
     }
 }
 
-class BridgeManager(id: UUID, val clusterClient: Client, arpEnabled: Boolean)
-        extends DeviceManager(id) {
+class BridgeManager(id: UUID, val clusterClient: Client,
+                    val config: MidolmanConfig) extends DeviceManager(id) {
     import BridgeManager._
     implicit val system = context.system
 
@@ -151,11 +147,14 @@ class BridgeManager(id: UUID, val clusterClient: Client, arpEnabled: Boolean)
 
     private var filterChanged = false
 
+    private val macPortExpiration: Int = config.getMacPortMappingExpireMillis
+
     override def chainsUpdated() {
         log.info("chains updated")
         context.actorFor("..").tell(
             new Bridge(id, getTunnelKey, learningMgr.backendMap,
-                       if (arpEnabled) ip4MacMap else null,
+                       if (config.getMidolmanBridgeArpEnabled) ip4MacMap
+                       else null,
                        flowCounts, inFilter, outFilter, flowRemovedCallback,
         rtrMacToLogicalPortId, rtrIpToMac))
         if(filterChanged){

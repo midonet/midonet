@@ -72,11 +72,11 @@ class BridgeInvalidationTest extends MidolmanTestCase
         //config.setProperty("midolman.check_flow_expiration_interval", 10)
         config.setProperty("monitoring.enable_monitoring", "false")
         config.setProperty("cassandra.servers", "localhost:9171")
+        config.setProperty("bridge.mac_port_mapping_expire_millis", macPortExpiration)
         config
     }
 
     override def beforeTest() {
-        BridgeManager.setMacPortExpiration(macPortExpiration)
 
         drainProbes()
 

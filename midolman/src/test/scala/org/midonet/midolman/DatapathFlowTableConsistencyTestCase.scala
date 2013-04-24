@@ -15,18 +15,25 @@ import org.midonet.odp.flows.{FlowKeyICMPEcho, FlowKeyTCP, FlowKeyICMP}
 import org.midonet.sdn.flows.FlowManager
 import topology.BridgeManager
 import org.midonet.midolman.FlowController.WildcardFlowAdded
+import org.apache.commons.configuration.HierarchicalConfiguration
 
 @RunWith(classOf[JUnitRunner])
 class DatapathFlowTableConsistencyTestCase extends MidolmanTestCase
-        with VMsBehindRouterFixture with SimulationHelper {
-    private final val log =
-        LoggerFactory.getLogger(classOf[DatapathFlowTableConsistencyTestCase])
+        with VMsBehindRouterFixture
+        with SimulationHelper
+        with VirtualConfigurationBuilders
+{
 
     var datapath: MockOvsDatapathConnectionImpl = null
     var flowManager: FlowManager = null
 
+    override def fillConfig(config: HierarchicalConfiguration) = {
+        config.setProperty("bridge.mac_port_mapping_expire_millis", 60000)
+        config
+    }
+
     override def beforeTest() {
-        BridgeManager.setMacPortExpiration(60000)
+
         super.beforeTest()
 
         flowManager = flowController().underlyingActor.flowManager
