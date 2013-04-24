@@ -152,11 +152,8 @@ public abstract class NatRule extends Rule {
                         // original msg that the ICMP ERROR replies to
                         // TCP/UDP deserialize would likely fail since ICMP data
                         // doesn't contain the full datagram
-                        int tcpStart = icmpData.length - 8;
-                        tpDst = (icmpData[tcpStart++] << 8) |
-                            (icmpData[tcpStart++]);
-                        tpSrc = (icmpData[tcpStart++] << 8) |
-                            (icmpData[tcpStart]);
+                        tpDst = bb.getShort();
+                        tpSrc = bb.getShort();
                     }
                     break;
                 default:

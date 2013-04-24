@@ -97,4 +97,18 @@ public class FlowMatch {
         return userSpaceOnly;
     }
 
+    /**
+     * We need to provide a setter because FlowMatches may need to alter the
+     * list.
+     *
+     * TODO (galo) - I'm doing it this way to avoid rebuilding the entire list
+     * which wouldn't be horrible because it will get done once at the worst,
+     * and it would be much nicer.
+     *
+     * @param isUserSpaceOnly
+     */
+    public void setUserSpaceOnly(boolean isUserSpaceOnly) {
+       userSpaceOnly = isUserSpaceOnly;
+    }
+
 }

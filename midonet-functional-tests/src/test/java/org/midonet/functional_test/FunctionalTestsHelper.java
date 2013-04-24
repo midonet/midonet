@@ -480,12 +480,13 @@ public class FunctionalTestsHelper {
     public static BridgePort[] buildBridgePorts(
         Bridge bridge, boolean exterior, int n) {
 
-        BridgePort[] bridgePorts = new BridgePort[5];
+        BridgePort[] bridgePorts = new BridgePort[n];
         for (int i = 0; i < n; i++) {
             bridgePorts[i] = (exterior) ?
                 bridge.addExteriorPort().create() :
                 bridge.addInteriorPort().create();
         }
+        log.info("Created {} ports in bridge {}", bridgePorts.length, bridge);
         return bridgePorts;
     }
 
@@ -520,9 +521,9 @@ public class FunctionalTestsHelper {
         // Bind to taps
         int i = 0;
         for (BridgePort port : ports) {
-            assertEquals(port.getType(), PortType.EXTERIOR_BRIDGE);
             TapWrapper tap = taps[i++];
             log.debug("Bind tap {} to port {}", tap.getName(), port.getId());
+            assertEquals(port.getType(), PortType.EXTERIOR_BRIDGE);
             host.addHostInterfacePort()
                 .interfaceName(tap.getName())
                 .portId(port.getId()).create();

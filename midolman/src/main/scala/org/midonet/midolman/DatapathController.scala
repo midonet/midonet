@@ -3,14 +3,10 @@
 */
 package org.midonet.midolman
 
-import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import scala.collection.{Set => ROSet, Map => ROMap, mutable}
-import scala.collection.mutable.ListBuffer
 import scala.collection.mutable.{ConcurrentMap => ConcMap}
-import compat.Platform
 import akka.actor.{ActorLogging, Cancellable, Actor, ActorRef}
-import akka.dispatch.{Future, Promise}
 import akka.event.LoggingAdapter
 import akka.util.Timeout
 import akka.util.duration._
@@ -21,7 +17,6 @@ import java.nio.ByteBuffer
 
 import com.google.inject.Inject
 
-import logging.ActorLogWithoutPath
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.datapath._
@@ -43,7 +38,6 @@ import org.midonet.odp.{Flow => KernelFlow, _}
 import org.midonet.odp.flows.{FlowAction, FlowActions}
 import org.midonet.odp.ports._
 import org.midonet.odp.protos.OvsDatapathConnection
-import org.midonet.packets.Ethernet
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 import org.midonet.util.functors.Callback0
 import org.midonet.midolman.FlowController.AddWildcardFlow

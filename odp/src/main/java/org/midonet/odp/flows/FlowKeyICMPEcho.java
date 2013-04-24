@@ -49,5 +49,10 @@ public class FlowKeyICMPEcho extends FlowKeyICMP
         return icmp_id;
     }
 
+    @Override
+    public boolean isChildOf(FlowKey<?> key) {
+        return key instanceof FlowKeyICMP;
+    }
+
 }
 

@@ -509,8 +509,12 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         // The parts of the TCP payload inside the ICMP error
         expectIcmpData.getProtocol match {
             case ICMP.PROTOCOL_NUMBER =>
-                val icmpPayload = expectIcmpData.getPayload.asInstanceOf[ICMP]
-                log.info("---- {}", icmpPayload)
+                val icmpPayload = expectIcmpData.getPayload
+                val expect = ju.Arrays.copyOfRange(
+                    icmpPayload.serialize(), 0, 8)
+                val actual = ju.Arrays.copyOfRange(
+                    icmpPayload.serialize(), 0, 8)
+                expect should be === actual
             case TCP.PROTOCOL_NUMBER =>
                 val tcpPayload = expectIcmpData.getPayload.asInstanceOf[TCP]
                 tcpPayload.getSourcePort should be === icmpData.getShort
