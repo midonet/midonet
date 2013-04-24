@@ -76,20 +76,36 @@ public abstract class ReplicatedMap<K, V> {
             } catch (InterruptedException e) {
                 log.error("DirectoryWatcher.run {}", e);
                 Thread.currentThread().interrupt();
+                return;
             }
-            List<String> cleanupPaths = new LinkedList<String>();
+            List<Path> cleanupPaths = new LinkedList<Path>();
             Set<Notification<K,V>> notifications =
                     new HashSet<Notification<K,V>>();
             Map<K,MapValue> newMap = new HashMap<K,MapValue>();
-            // Build newMap from curPaths, using only the highest versioned
-            // entry for each key.
-            for (String path : curPaths) {
-                Path p = decodePath(path);
-                MapValue mv = newMap.get(p.key);
-                if (mv == null || mv.version < p.version)
-                    newMap.put(p.key, new MapValue(p.value, p.version));
-            }
             synchronized(ReplicatedMap.this) {
+                // Build newMap from curPaths, using only the highest versioned
+                // entry for each key.
+                for (String path : curPaths) {
+                    Path p = decodePath(path);
+                    MapValue mv = newMap.get(p.key);
+                    if (mv == null)
+                        newMap.put(p.key, new MapValue(p.value, p.version));
+                    else if (mv.version < p.version) {
+                        // The one currently in newMap needs to be replaced.
+                        // Also clean it up if it belongs to this ZK client.
+                        newMap.put(p.key, new MapValue(p.value, p.version));
+                        if (ownedVersions.contains(mv.version)) {
+                            p.value = mv.value;
+                            p.version = mv.version;
+                            cleanupPaths.add(p);
+                        }
+                    } else if (mv.version > p.version &&
+                               ownedVersions.contains(p.version)) {
+                        // The one currently in newMap is newer and the other
+                        // one belongs to this ZK client. Clean it up.
+                        cleanupPaths.add(p);
+                    }
+                }
                 Set<K> oldKeys = new HashSet<K>(localMap.keySet());
                 oldKeys.removeAll(newMap.keySet());
                 for (K deletedKey : oldKeys) {
@@ -109,16 +125,6 @@ public abstract class ReplicatedMap<K, V> {
                         // might not implement .equals accurately.
                         notifications.add(new Notification<K,V>(
                                             key, mv.value, value));
-                        // Remember my obsolete paths and clean them up later.
-                        if (ownedVersions.contains(mv.version)) {
-                            cleanupPaths.add(encodePath(key, mv.value,
-                                                        mv.version));
-                            ownedVersions.remove(mv.version);
-                            log.debug("Cleaning up entry for {} because " +
-                                      "{}/{} has been replaced by {}/{}",
-                                new Object[]{ key, mv.value, mv.version, value,
-                                              entry.getValue().version});
-                        }
                     } // else mv == entry:  No notification.
                 }
                 localMap = newMap;
@@ -127,9 +133,10 @@ public abstract class ReplicatedMap<K, V> {
             for (Notification<K,V> notice : notifications)
                 notifyWatchers(notice.key, notice.oldValue, notice.newValue);
             // Now clean up any of my paths that have been obsoleted.
-            for (String path : cleanupPaths)
+            for (Path path : cleanupPaths)
                 try {
-                    dir.delete(path);
+                    dir.delete(encodePath(path.key, path.value, path.version));
+                    ownedVersions.remove(path.version);
                 } catch (KeeperException e) {
                     log.error("DirectoryWatcher.run", e);
                     // XXX(guillermo) connectionWatcher.handleError()?
