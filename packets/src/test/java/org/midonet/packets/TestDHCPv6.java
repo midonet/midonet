@@ -104,13 +104,7 @@ public class TestDHCPv6 {
             DHCPv6Option.ClientId optClId = new DHCPv6Option.ClientId();
             optClId.setCode((short) 0x0001);
             optClId.setLength((short) 0x000E);
-            optClId.setDUID(new byte[] { (byte) 0x00, (byte) 0x01,
-                                       (byte) 0x00, (byte) 0x01,
-                                       (byte) 0x18, (byte) 0xF5,
-                                       (byte) 0x0B, (byte) 0x12,
-                                       (byte) 0xCA, (byte) 0xA3,
-                                       (byte) 0xC5, (byte) 0x36,
-                                       (byte) 0x36, (byte) 0x84});
+            optClId.setDUID("00:01:00:01:18:F5:0B:12:CA:A3:C5:36:36:84");
 
             DHCPv6Option.Oro optOro = new DHCPv6Option.Oro();
             optOro.setCode((short) 0x0006);
@@ -134,7 +128,7 @@ public class TestDHCPv6 {
             optIANA.setT1((int) 0x00000E10);
             optIANA.setT2((int) 0x00001518);
 
-            List<DHCPv6OptPacket> options = new ArrayList<DHCPv6OptPacket>();
+            ArrayList<DHCPv6OptPacket> options = new ArrayList<DHCPv6OptPacket>();
             options.add(optClId);
             options.add(optOro);
             options.add(optEt);

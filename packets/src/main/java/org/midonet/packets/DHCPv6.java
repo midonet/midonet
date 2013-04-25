@@ -19,10 +19,22 @@ import java.util.List;
  * This means less work in DHCPv6, but more work in DHCPv6Option.
  */
 public class DHCPv6 extends BasePacket {
+
+    /*
+     * lengths of fields.
+     */
     private static final int MSG_TYPE_LEN = 1;
     private static final int TRANSACTION_ID_LEN = 3;
     private static final int OPTION_CODE_LEN = 2;
     private static final int OPTION_LEN_LEN = 2;
+
+    /*
+     * msg types
+     */
+    public static final byte MSGTYPE_SOLICIT = 1;
+    public static final byte MSGTYPE_ADVERTISE = 2;
+    public static final byte MSGTYPE_REQUEST = 3;
+    public static final byte MSGTYPE_REPLY = 7;
 
     /*
      * Structure of a DHCPv6 packet (RFC 3315)
@@ -43,7 +55,7 @@ public class DHCPv6 extends BasePacket {
 
     protected byte msgType;
     protected int transactionId;
-    protected List<DHCPv6OptPacket> options = new ArrayList<DHCPv6OptPacket>();
+    protected ArrayList<DHCPv6OptPacket> options = new ArrayList<DHCPv6OptPacket>();
 
     @Override
     public String toString() {
@@ -78,8 +90,35 @@ public class DHCPv6 extends BasePacket {
         this.transactionId = transactionId;
     }
 
-    public void setOptions(List<DHCPv6OptPacket> options) {
+    public void setOptions(ArrayList<DHCPv6OptPacket> options) {
         this.options = options;
+    }
+
+    /*
+     * get the Interface Address ID for this DHCPv6 packet.
+     * return -1 to signify
+     */
+    public int getIAID() {
+        for (DHCPv6OptPacket o : options) {
+            if (o instanceof DHCPv6Option.IANA) {
+                DHCPv6Option.IANA iana = (DHCPv6Option.IANA)o;
+                return iana.getIAID();
+            }
+        }
+        return -1;
+    }
+
+    /*
+     * the Client ID of the requesting client for this DHCPv6 packet.
+     */
+    public String getClientId() {
+        for (DHCPv6OptPacket o : options) {
+            if (o instanceof DHCPv6Option.ClientId) {
+                DHCPv6Option.ClientId clid = (DHCPv6Option.ClientId)o;
+                return clid.getDUID();
+            }
+        }
+        return null;
     }
 
     @Override
@@ -156,10 +195,9 @@ public class DHCPv6 extends BasePacket {
         byte[] tmpBuf = new byte[3];
         this.msgType = bb.get();
         bb.get(tmpBuf);
-        this.transactionId = (int)(((tmpBuf[0] << 16)
-                                 | (tmpBuf[1] << 8)
-                                 | (tmpBuf[2]))
-                                    & 0x00FFFFFF);
+        this.transactionId = (int)(((tmpBuf[0] & 0xFF) << 16)
+                                 | ((tmpBuf[1] & 0xFF) << 8)
+                                 | (tmpBuf[2] & 0xFF));
 
         // read options
         while (bb.hasRemaining()) {
@@ -172,6 +210,9 @@ public class DHCPv6 extends BasePacket {
                 case DHCPv6Option.CLIENTID:
                     option = new DHCPv6Option.ClientId();
                     break;
+                case DHCPv6Option.SERVERID:
+                    option = new DHCPv6Option.ServerId();
+                    break;
                 case DHCPv6Option.ELAPSED_TIME:
                     option = new DHCPv6Option.ElapsedTime();
                     break;
@@ -180,6 +221,9 @@ public class DHCPv6 extends BasePacket {
                     break;
                 case DHCPv6Option.IA_NA:
                     option = new DHCPv6Option.IANA();
+                    break;
+                case DHCPv6Option.IAADDR:
+                    option = new DHCPv6Option.IAAddr();
                     break;
                 default:
                     option = new DHCPv6Option();
