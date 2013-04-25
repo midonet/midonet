@@ -78,9 +78,9 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase with
         log.debug("ipString is {}", ipString)
 
         // try to catch the mtu var around the ip captured by cmdline_ip
-        // it s a few line above on OSX and a few line below on linux
+        // it should be 3 lines above on OSX and 2 lines below on linux
         val cmdline_mtu = ( "/sbin/ifconfig"
-                            + "| grep -A 2 -B 4 " + ipString
+                            + "| grep -A 2 -B 3 " + ipString
                             + "| egrep -o -i 'mtu(:| )[0-9]+'"
                             + "| cut -c 5-" )
 
