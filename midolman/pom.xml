@@ -480,11 +480,11 @@
                     <executable>sudo</executable>
                     <arguments>
                         <argument>java</argument>
+                        <argument>-Djava.library.path=/lib:/usr/lib</argument>
                         <argument>-Xbootclasspath/p:${project.basedir}/../midonet-jdk-bootstrap/target/classes:${project.basedir}/../midonet-jdk-bootstrap/target/midonet-jdk-bootstrap-13.06-SNAPSHOT.jar</argument>
                         <argument>-cp</argument>
                         <classpath />
-                        <!--<argument>org.midonet.midolman.Midolman</argument>-->
-                        <argument>org.midonet.midolman.netlink.Client</argument>
+                        <argument>org.midonet.midolman.Midolman</argument>
                     </arguments>
                 </configuration>
             </plugin>
