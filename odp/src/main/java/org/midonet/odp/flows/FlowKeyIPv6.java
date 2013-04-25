@@ -69,10 +69,10 @@ public class FlowKeyIPv6 implements FlowKey<FlowKeyIPv6> {
     }
 
     public FlowKeyIPv6 setSrc(IPv6Addr src) {
-        int a[] = { (int)(src.getUpperWord() >>> 32), 
-                    (int)(src.getUpperWord() & 0xFFFFFFFF),
-                    (int)(src.getLowerWord() >>> 32), 
-                    (int)(src.getLowerWord() & 0xFFFFFFFF)
+        int a[] = { (int)(src.upperWord() >>> 32),
+                    (int)(src.upperWord() & 0xFFFFFFFF),
+                    (int)(src.lowerWord() >>> 32),
+                    (int)(src.lowerWord() & 0xFFFFFFFF)
                   };
         return setSrc(a);
     }
@@ -87,10 +87,10 @@ public class FlowKeyIPv6 implements FlowKey<FlowKeyIPv6> {
     }
 
     public FlowKeyIPv6 setDst(IPv6Addr dst) {
-        int a[] = { (int)(dst.getUpperWord() >>> 32), 
-                    (int)(dst.getUpperWord() & 0xFFFFFFFF),
-                    (int)(dst.getLowerWord() >>> 32), 
-                    (int)(dst.getLowerWord() & 0xFFFFFFFF)
+        int a[] = { (int)(dst.upperWord() >>> 32),
+                    (int)(dst.upperWord() & 0xFFFFFFFF),
+                    (int)(dst.lowerWord() >>> 32),
+                    (int)(dst.lowerWord() & 0xFFFFFFFF)
                   };
         return setDst(a);
     }

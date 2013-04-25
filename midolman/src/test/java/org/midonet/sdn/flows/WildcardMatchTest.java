@@ -10,17 +10,18 @@ import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Test;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
-import static org.hamcrest.Matchers.is;
-import static org.midonet.odp.FlowMatches.tcpFlow;
-
 import org.midonet.odp.FlowMatch;
 import org.midonet.odp.FlowMatches;
-import org.midonet.packets.IntIPv4;
 import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPv4Addr;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.midonet.odp.FlowMatches.tcpFlow;
 
 public class WildcardMatchTest {
 
@@ -136,10 +137,10 @@ public class WildcardMatchTest {
         int expectedLen = 32;
         WildcardMatch wmatch = new WildcardMatch();
         int nwDest = 0x12345678;
-        wmatch.setNetworkDestination(new IPv4Addr().setIntAddress(nwDest));
+        wmatch.setNetworkDestination(IPv4Addr.fromInt(nwDest));
         IPAddr ipDst = wmatch.getNetworkDestinationIP();
         assertThat(ipDst, notNullValue());
-        Assert.assertEquals(ipDst, new IPv4Addr().setIntAddress(nwDest));
+        Assert.assertEquals(ipDst, IPv4Addr.fromInt(nwDest));
         assertThat(wmatch.getUsedFields(), hasSize(1));
         assertThat(wmatch.getUsedFields(),
             contains(WildcardMatch.Field.NetworkDestination));
@@ -149,10 +150,10 @@ public class WildcardMatchTest {
     public void testSetNwDst_unicastAddress() {
         WildcardMatch wmatch = new WildcardMatch();
         int nwDest = 0x12345678;
-        wmatch.setNetworkDestination(new IPv4Addr().setIntAddress(nwDest));
+        wmatch.setNetworkDestination(IPv4Addr.fromInt(nwDest));
         IPAddr ipDst = wmatch.getNetworkDestinationIP();
         assertThat(ipDst, notNullValue());
-        Assert.assertEquals(ipDst, new IPv4Addr().setIntAddress(nwDest));
+        Assert.assertEquals(ipDst, IPv4Addr.fromInt(nwDest));
         assertThat(wmatch.getUsedFields(), hasSize(1));
         assertThat(wmatch.getUsedFields(),
                 contains(WildcardMatch.Field.NetworkDestination));
@@ -163,10 +164,10 @@ public class WildcardMatchTest {
         int expectedLen = 32;
         WildcardMatch wmatch = new WildcardMatch();
         int nwSource = 0x12345678;
-        wmatch.setNetworkSource(new IPv4Addr().setIntAddress(nwSource));
+        wmatch.setNetworkSource(IPv4Addr.fromInt(nwSource));
         IPAddr ipSrc = wmatch.getNetworkSourceIP();
         assertThat(ipSrc, notNullValue());
-        Assert.assertEquals(ipSrc, new IPv4Addr().setIntAddress(nwSource));
+        Assert.assertEquals(ipSrc, IPv4Addr.fromInt(nwSource));
         assertThat(wmatch.getUsedFields(), hasSize(1));
         assertThat(wmatch.getUsedFields(),
             contains(WildcardMatch.Field.NetworkSource));
@@ -176,10 +177,10 @@ public class WildcardMatchTest {
     public void testSetNwSrc_unicastAddress() {
         WildcardMatch wmatch = new WildcardMatch();
         int nwSource = 0x12345678;
-        wmatch.setNetworkSource(new IPv4Addr().setIntAddress(nwSource));
+        wmatch.setNetworkSource(IPv4Addr.fromInt(nwSource));
         IPAddr ipSrc = wmatch.getNetworkSourceIP();
         assertThat(ipSrc, notNullValue());
-        Assert.assertEquals(ipSrc, new IPv4Addr().setIntAddress(nwSource));
+        Assert.assertEquals(ipSrc, IPv4Addr.fromInt(nwSource));
         assertThat(wmatch.getUsedFields(), hasSize(1));
         assertThat(wmatch.getUsedFields(),
                 contains(WildcardMatch.Field.NetworkSource));

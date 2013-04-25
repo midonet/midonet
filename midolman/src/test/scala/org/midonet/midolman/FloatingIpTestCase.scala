@@ -62,7 +62,8 @@ class FloatingIpTestCase extends VirtualConfigurationBuilders with RouterHelper 
 
     override def beforeTest() {
         packetsEventsProbe = newProbe()
-        actors().eventStream.subscribe(packetsEventsProbe.ref, classOf[PacketsExecute])
+        actors().eventStream.subscribe(packetsEventsProbe.ref,
+                                       classOf[PacketsExecute])
 
         val host = newHost("myself", hostId())
         host should not be null
@@ -83,9 +84,10 @@ class FloatingIpTestCase extends VirtualConfigurationBuilders with RouterHelper 
         val portEvent = requestOfType[LocalPortActive](portsProbe)
         portEvent.active should be(true)
         portEvent.portID should be(rtrPort1.getId)
-        dpController().underlyingActor.vifToLocalPortNumber(rtrPort1.getId) match {
+        dpController().underlyingActor.vifToLocalPortNumber(rtrPort1.getId)
+        match {
             case Some(portNo : Short) => rtrPort1Num = portNo
-            case None => fail("Not able to find data port number for Router port 1")
+            case None => fail("Unable to find data port no. for Router port 1")
         }
 
         newRoute(router, "0.0.0.0", 0,
@@ -119,9 +121,10 @@ class FloatingIpTestCase extends VirtualConfigurationBuilders with RouterHelper 
 
         materializePort(brPort2, host, vm2PortName)
         requestOfType[LocalPortActive](portsProbe)
-        dpController().underlyingActor.vifToLocalPortNumber(brPort2.getId) match {
+        dpController().underlyingActor.vifToLocalPortNumber(brPort2.getId)
+        match {
             case Some(portNo : Short) => vm2PortNumber = portNo
-            case None => fail("Not able to find data port number for bridge port 2")
+            case None => fail("Unable to find data port no. for bridge port 2")
         }
 
         log.info("Setting up rule chain")
@@ -133,8 +136,8 @@ class FloatingIpTestCase extends VirtualConfigurationBuilders with RouterHelper 
         // assign floatingIP to VM1's private addr
         val dnatCond = new Condition()
         dnatCond.nwDstIp = new IPv4Subnet(floatingIP, 32)
-        val dnatTarget = new NatTarget(vm1Ip.toIntIPv4().addressAsInt,
-                                       vm1Ip.toIntIPv4().addressAsInt, 0, 0)
+        val dnatTarget = new NatTarget(vm1Ip.toInt,
+                                       vm1Ip.toInt, 0, 0)
         val dnatRule = newForwardNatRuleOnChain(preChain, 1, dnatCond,
             RuleResult.Action.ACCEPT, Set(dnatTarget), isDnat = true)
         dnatRule should not be null
@@ -145,8 +148,8 @@ class FloatingIpTestCase extends VirtualConfigurationBuilders with RouterHelper 
         snatCond.nwSrcIp = subnet1
         snatCond.outPortIds = new JHashSet[UUID]()
         snatCond.outPortIds.add(rtrPort2.getId)
-        val snatTarget = new NatTarget(floatingIP.toIntIPv4().addressAsInt,
-                                       floatingIP.toIntIPv4().addressAsInt, 0, 0)
+        val snatTarget = new NatTarget(floatingIP.toInt,
+                                       floatingIP.toInt, 0, 0)
         val snatRule = newForwardNatRuleOnChain(postChain, 1, snatCond,
             RuleResult.Action.ACCEPT, Set(snatTarget), isDnat = false)
         snatRule should not be null
@@ -154,28 +157,29 @@ class FloatingIpTestCase extends VirtualConfigurationBuilders with RouterHelper 
         // TODO needed?
         clusterDataClient().routersUpdate(router)
 
-        flowProbe().expectMsgType[DatapathController.DatapathReady].datapath should not be (null)
+        flowProbe().expectMsgType[DatapathController.DatapathReady]
+                   .datapath should not be (null)
         drainProbes()
     }
 
     def test() {
         log.info("Feeding ARP cache on VM2")
-        feedArpCache(vm2PortName, vm2Ip.getIntAddress(), vm2Mac,
-            routerIp2.getIntAddress(), routerMac2)
+        feedArpCache(vm2PortName, vm2Ip.toInt, vm2Mac,
+                     routerIp2.toInt, routerMac2)
         requestOfType[PacketIn](packetInProbe)
         requestOfType[DiscardPacket](discardPacketProbe)
         drainProbes()
 
         log.info("Feeding ARP cache on VM1")
-        feedArpCache(rtrPort1Name, vm1Ip.getIntAddress(), vm1Mac,
-            routerIp1.toIntIPv4().addressAsInt(), routerMac1)
+        feedArpCache(rtrPort1Name, vm1Ip.toInt, vm1Mac,
+            routerIp1.toInt, routerMac1)
         requestOfType[PacketIn](packetInProbe)
         requestOfType[DiscardPacket](discardPacketProbe)
         drainProbes()
 
         log.info("Sending a tcp packet VM2 -> floating IP, should be DNAT'ed")
-        injectTcp(vm2PortName, vm2Mac, vm2Ip.toIntIPv4(), 20301, routerMac2,
-                  floatingIP.toIntIPv4(), 80, syn = true)
+        injectTcp(vm2PortName, vm2Mac, vm2Ip.toIntIPv4, 20301, routerMac2,
+                  floatingIP.toIntIPv4, 80, syn = true)
         var pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
         pktOut should not be null
         pktOut.getPacket should not be null
@@ -186,9 +190,10 @@ class FloatingIpTestCase extends VirtualConfigurationBuilders with RouterHelper 
         ipPak.getSourceIPAddress should be === vm2Ip
         ipPak.getDestinationIPAddress should be === vm1Ip
 
-        log.info("Replying with tcp packet floatingIP -> VM2, should be SNAT'ed")
-        injectTcp(rtrPort1Name, vm1Mac, vm1Ip.toIntIPv4(), 20301, routerMac1,
-                  vm2Ip.toIntIPv4(), 80, syn = true)
+        log.info(
+            "Replying with tcp packet floatingIP -> VM2, should be SNAT'ed")
+        injectTcp(rtrPort1Name, vm1Mac, vm1Ip.toIntIPv4, 20301, routerMac1,
+                  vm2Ip.toIntIPv4, 80, syn = true)
         pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
         pktOut should not be null
         pktOut.getPacket should not be null
@@ -196,12 +201,12 @@ class FloatingIpTestCase extends VirtualConfigurationBuilders with RouterHelper 
         log.debug("packet out: {}", pktOut)
         ipPak = eth.getPayload.asInstanceOf[IPv4]
         ipPak should not be null
-        ipPak.getSourceAddress should be (floatingIP.toIntIPv4().addressAsInt)
-        ipPak.getDestinationAddress should be (vm2Ip.toIntIPv4().addressAsInt)
+        ipPak.getSourceAddress should be (floatingIP.toInt)
+        ipPak.getDestinationAddress should be (vm2Ip.toInt)
 
         log.info("Sending tcp packet from VM2 -> VM1, private ips, no NAT")
-        injectTcp(vm2PortName, vm2Mac, vm2Ip.toIntIPv4(), 20301, routerMac2,
-                  vm1Ip.toIntIPv4(), 80, syn = true)
+        injectTcp(vm2PortName, vm2Mac, vm2Ip.toIntIPv4, 20301, routerMac2,
+                  vm1Ip.toIntIPv4, 80, syn = true)
         pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
         pktOut should not be null
         pktOut.getPacket should not be null
@@ -209,12 +214,12 @@ class FloatingIpTestCase extends VirtualConfigurationBuilders with RouterHelper 
         log.debug("packet out: {}", pktOut)
         ipPak = eth.getPayload.asInstanceOf[IPv4]
         ipPak should not be null
-        ipPak.getSourceAddress should be (vm2Ip.toIntIPv4().addressAsInt)
-        ipPak.getDestinationAddress should be (vm1Ip.toIntIPv4().addressAsInt)
+        ipPak.getSourceAddress should be (vm2Ip.toInt)
+        ipPak.getDestinationAddress should be (vm1Ip.toInt)
 
         log.info("ICMP echo, VM1 -> VM2, should be SNAT'ed")
-        injectIcmpEchoReq(rtrPort1Name, vm1Mac, vm1Ip.toIntIPv4(), routerMac1,
-                          vm2Ip.toIntIPv4())
+        injectIcmpEchoReq(rtrPort1Name, vm1Mac, vm1Ip.toIntIPv4, routerMac1,
+                          vm2Ip.toIntIPv4)
         pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
         pktOut should not be null
         pktOut.getPacket should not be null
@@ -222,12 +227,12 @@ class FloatingIpTestCase extends VirtualConfigurationBuilders with RouterHelper 
         log.debug("packet out: {}", pktOut)
         ipPak = eth.getPayload.asInstanceOf[IPv4]
         ipPak should not be null
-        ipPak.getSourceAddress should be (floatingIP.toIntIPv4().addressAsInt)
-        ipPak.getDestinationAddress should be (vm2Ip.toIntIPv4().addressAsInt)
+        ipPak.getSourceAddress should be (floatingIP.toInt)
+        ipPak.getDestinationAddress should be (vm2Ip.toInt)
 
         log.info("ICMP echo, VM2 -> floatingIp, should be DNAT'ed")
-        injectIcmpEchoReq(rtrPort1Name, vm2Mac, vm2Ip.toIntIPv4(), routerMac1,
-                          floatingIP.toIntIPv4())
+        injectIcmpEchoReq(rtrPort1Name, vm2Mac, vm2Ip.toIntIPv4, routerMac1,
+                          floatingIP.toIntIPv4)
         pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
         pktOut should not be null
         pktOut.getPacket should not be null
@@ -235,12 +240,13 @@ class FloatingIpTestCase extends VirtualConfigurationBuilders with RouterHelper 
         log.debug("packet out: {}", pktOut)
         ipPak = eth.getPayload.asInstanceOf[IPv4]
         ipPak should not be null
-        ipPak.getSourceAddress should be (vm2Ip.toIntIPv4().addressAsInt)
-        ipPak.getDestinationAddress should be (vm1Ip.toIntIPv4().addressAsInt)
+        ipPak.getSourceAddress should be (vm2Ip.toInt)
+        ipPak.getDestinationAddress should be (vm1Ip.toInt)
 
-        log.info("ICMP echo, VM1 -> floatingIp, should be DNAT'ed, but not SNAT'ed")
-        injectIcmpEchoReq(rtrPort1Name, vm1Mac, vm1Ip.toIntIPv4(), routerMac1,
-                          floatingIP.toIntIPv4())
+        log.info(
+            "ICMP echo, VM1 -> floatingIp, should be DNAT'ed, but not SNAT'ed")
+        injectIcmpEchoReq(rtrPort1Name, vm1Mac, vm1Ip.toIntIPv4, routerMac1,
+                          floatingIP.toIntIPv4)
         pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
         pktOut should not be null
         pktOut.getPacket should not be null
@@ -248,8 +254,8 @@ class FloatingIpTestCase extends VirtualConfigurationBuilders with RouterHelper 
         log.debug("packet out: {}", pktOut)
         ipPak = eth.getPayload.asInstanceOf[IPv4]
         ipPak should not be null
-        ipPak.getSourceAddress should be (vm1Ip.toIntIPv4().addressAsInt)
-        ipPak.getDestinationAddress should be (vm1Ip.toIntIPv4().addressAsInt)
+        ipPak.getSourceAddress should be (vm1Ip.toInt)
+        ipPak.getDestinationAddress should be (vm1Ip.toInt)
 
     }
 

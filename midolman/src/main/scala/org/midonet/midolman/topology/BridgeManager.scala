@@ -18,7 +18,7 @@ import org.midonet.midolman.simulation.Bridge
 import org.midonet.midolman.topology.builders.BridgeBuilderImpl
 import org.midonet.cluster.Client
 import org.midonet.cluster.client._
-import org.midonet.packets.{IPAddr, MAC}
+import org.midonet.packets.{IPv4Addr, IPAddr, MAC}
 import org.midonet.util.functors.Callback0
 import org.midonet.midolman.config.MidolmanConfig
 
@@ -43,7 +43,7 @@ object BridgeManager {
 
     case class TriggerUpdate(cfg: BridgeConfig,
                              macLearningTable: MacLearningTable,
-                             ip4MacMap: Ip4MacMap,
+                             ip4MacMap: IpMacMap[IPv4Addr],
                              rtrMacToLogicalPortId: ROMap[MAC, UUID],
                              rtrIpToMac: ROMap[IPAddr, MAC])
 
@@ -142,7 +142,7 @@ class BridgeManager(id: UUID, val clusterClient: Client,
 
     private var rtrMacToLogicalPortId: ROMap[MAC, UUID] = null
     private var rtrIpToMac: ROMap[IPAddr, MAC] = null
-    private var ip4MacMap: Ip4MacMap = null
+    private var ip4MacMap: IpMacMap[IPv4Addr] = null
 
     private var filterChanged = false
 

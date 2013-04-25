@@ -25,7 +25,6 @@ import org.midonet.midolman.rules.NatTarget;
 import org.midonet.midolman.state.zkManagers.FiltersZkManager;
 import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPAddr$;
-import org.midonet.packets.IPv4;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.Net;
 import org.midonet.util.eventloop.Reactor;
@@ -182,7 +181,7 @@ public class NatLeaseManager implements NatMapping {
         int tpStart = nat.tpStart & USHORT;
         int tpEnd = nat.tpEnd & USHORT;
         int newNwDstInt = rand.nextInt(nat.nwEnd - nat.nwStart + 1) + nat.nwStart;
-        IPAddr newNwDst = new IPv4Addr().setIntAddress(newNwDstInt);
+        IPAddr newNwDst = IPv4Addr.fromInt(newNwDstInt);
         int newTpDst = (protocol == ICMP.PROTOCOL_NUMBER)
                        ? oldTpDst
                        : rand.nextInt(tpEnd - tpStart + 1) + tpStart;
@@ -376,8 +375,7 @@ public class NatLeaseManager implements NatMapping {
                         // Check cache to make sure the port's really free.
                         NwTpPair reservation = makeSnatReservation(
                                     protocol, oldNwSrc, oldTpSrc,
-                                    new IPv4Addr().setIntAddress(ip), port,
-                                    nwDst, tpDst);
+                                    IPv4Addr.fromInt(ip), port, nwDst, tpDst);
                         if (reservation != null)
                             return reservation;
                     }
@@ -487,8 +485,7 @@ public class NatLeaseManager implements NatMapping {
                         freePorts.remove(freePort);
                         NwTpPair reservation = makeSnatReservation(
                                 protocol, oldNwSrc, oldTpSrc, 
-                                new IPv4Addr().setIntAddress(ip), freePort,
-                                nwDst, tpDst);
+                                IPv4Addr.fromInt(ip), freePort, nwDst, tpDst);
                         if (reservation != null)
                             return reservation;
                         freePort++;
@@ -519,8 +516,7 @@ public class NatLeaseManager implements NatMapping {
             for (int newNwSrc = tg.nwStart; newNwSrc <= tg.nwEnd; newNwSrc++) {
                 NwTpPair reservation = makeSnatReservation(
                        ICMP.PROTOCOL_NUMBER, oldNwSrc, oldTpSrc,
-                       new IPv4Addr().setIntAddress(newNwSrc), oldTpSrc, nwDst,
-                       tpDst);
+                       IPv4Addr.fromInt(newNwSrc), oldTpSrc, nwDst, tpDst);
                 if (reservation != null)
                     return reservation;
                 if (++numTries > MAX_PORT_ALLOC_ATTEMPTS) {

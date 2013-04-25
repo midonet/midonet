@@ -104,7 +104,7 @@ public class FlowKeyIPv4 implements FlowKey<FlowKeyIPv4> {
     }
 
     public FlowKeyIPv4 setSrc(IPv4Addr src) {
-        this.ipv4_src = src.getIntAddress();
+        this.ipv4_src = src.toInt();
         return this;
     }
 
@@ -118,7 +118,7 @@ public class FlowKeyIPv4 implements FlowKey<FlowKeyIPv4> {
     }
 
     public FlowKeyIPv4 setDst(IPv4Addr dst) {
-        this.ipv4_dst = dst.getIntAddress();
+        this.ipv4_dst = dst.toInt();
         return this;
     }
 

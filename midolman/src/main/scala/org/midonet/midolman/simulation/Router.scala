@@ -7,24 +7,20 @@ import akka.actor.{ActorContext, ActorSystem}
 import akka.dispatch.{ExecutionContext, Future, Promise}
 import java.util.UUID
 
+import org.midonet.cluster.client.{ExteriorRouterPort, InteriorRouterPort,
+                                   Port, RouterPort}
 import org.midonet.midolman.DeduplicationActor
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.layer3.Route
+import org.midonet.midolman.logging.LoggerFactory
+import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.rules.RuleResult.{Action => RuleAction}
 import org.midonet.midolman.simulation.Coordinator._
-import org.midonet.midolman.topology._
-import org.midonet.cluster.client._
-import org.midonet.packets._
-import org.midonet.packets.ICMP.{EXCEEDED_CODE, UNREACH_CODE}
-import org.midonet.sdn.flows.WildcardMatch
-import org.midonet.midolman.logging.LoggerFactory
 import org.midonet.midolman.topology.VirtualTopologyActor._
-import org.midonet.midolman.simulation.Coordinator.ConsumedAction
-import org.midonet.midolman.simulation.Coordinator.DropAction
-import org.midonet.midolman.simulation.Coordinator.ToPortAction
-import org.midonet.midolman.simulation.Coordinator.ErrorDropAction
-import org.midonet.midolman.simulation.Coordinator.NotIPv4Action
-import org.midonet.midolman.rules.RuleResult
+import org.midonet.midolman.topology._
+import org.midonet.packets.ICMP.{EXCEEDED_CODE, UNREACH_CODE}
+import org.midonet.packets._
+import org.midonet.sdn.flows.WildcardMatch
 
 class Router(val id: UUID, val cfg: RouterConfig,
              val rTable: RoutingTableWrapper, val arpTable: ArpTable,
@@ -264,8 +260,8 @@ class Router(val id: UUID, val cfg: RouterConfig,
         pktContext.getMatch.setEthernetSource(outPort.portMac)
         // Set HWDst
         val macFuture = getNextHopMac(outPort, rt,
-                                      pktContext.getMatch.getNetworkDestinationIP,
-                                      pktContext.getExpiry)
+              pktContext.getMatch.getNetworkDestinationIP.asInstanceOf[IPv4Addr],
+              pktContext.getExpiry)
         macFuture map {
             case null =>
                 if (rt.nextHopGateway == 0 || rt.nextHopGateway == -1) {
@@ -312,7 +308,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
         val tha = pkt.getTargetHardwareAddress
         val sha = pkt.getSenderHardwareAddress
 
-        if (!inPort.portAddr.containsAddress(IPAddr.fromIntIPv4(spa))) {
+        if (!inPort.portAddr.containsAddress(IPv4Addr.fromIntIPv4(spa))) {
             log.debug("Ignoring ARP request from address {} not in the " +
                 "ingress port network {}", spa, inPort.portAddr)
             return
@@ -325,7 +321,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
             arpTable.set(spa, sha)
             return
         }
-        if (!inPort.portAddr.toIntIPv4.unicastEquals(tpa)) {
+        if (inPort.portAddr.getAddress.toInt != tpa.addressAsInt()) {
             log.debug("Ignoring ARP Request to dst ip {} instead of " +
                 "inPort's {}", tpa, inPort.portAddr)
             return
@@ -356,7 +352,8 @@ class Router(val id: UUID, val cfg: RouterConfig,
         }
 
         def isAddressedToThis(tha: MAC, tpa: IntIPv4): Boolean = {
-            (port.portAddr.toIntIPv4.unicastEquals(tpa) && tha == port.portMac)
+            (port.portAddr.getAddress.toInt == tpa.addressAsInt() &&
+             tha == port.portMac)
         }
 
         // Verify the reply:  It's addressed to our MAC & IP, and is about
@@ -386,7 +383,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
 
         // Question:  Should we check if the ARP reply disagrees with an
         // existing cache entry and make noise if so?
-        if (!port.portAddr.containsAddress(IPAddr.fromIntIPv4(spa))) {
+        if (!port.portAddr.containsAddress(IPv4Addr.fromIntIPv4(spa))) {
             log.debug("Ignoring ARP reply from address {} not in the ingress " +
                 "port network {}", spa, port.portAddr)
             return
@@ -445,7 +442,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
         }
     }
 
-    private def getMacForIP(port: RouterPort[_], nextHopIP: IPAddr,
+    private def getMacForIP(port: RouterPort[_], nextHopIP: IPv4Addr,
                             expiry: Long)
                            (implicit ec: ExecutionContext,
                             actorSystem: ActorSystem,
@@ -479,7 +476,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
      * @return
      */
     private def getNextHopMac(outPort: RouterPort[_], rt: Route,
-                              ipDest: IPAddr, expiry: Long)
+                              ipDest: IPv4Addr, expiry: Long)
                              (implicit ec: ExecutionContext,
                               actorSystem: ActorSystem,
                               pktContext: PacketContext): Future[MAC] = {
@@ -499,12 +496,9 @@ class Router(val id: UUID, val cfg: RouterConfig,
         }
 
         val nextHopInt: Int = rt.nextHopGateway
-        var nextHopIP: IPAddr =
-            if (nextHopInt == 0 || nextHopInt == -1) {  /* Last hop */
-                ipDest
-            } else {
-                new IPv4Addr().setIntAddress(nextHopInt)
-            }
+        val nextHopIP: IPv4Addr = if (nextHopInt == 0 || nextHopInt == -1)
+                                    ipDest // last hop
+                                  else IPv4Addr.fromInt(nextHopInt)
         peerMacFuture flatMap {
             case null => getMacForIP(outPort, nextHopIP, expiry)
             case mac => Promise.successful(mac)
@@ -650,7 +644,7 @@ class Router(val id: UUID, val cfg: RouterConfig,
         }
 
         // Ignore ICMP errors.
-        if (ipPkt.getProtocol() == ICMP.PROTOCOL_NUMBER) {
+        if (ipPkt.getProtocol == ICMP.PROTOCOL_NUMBER) {
             ipPkt.getPayload match {
                 case icmp: ICMP if icmp.isError =>
                     log.debug("Skipping generation of ICMP error for " +
@@ -684,8 +678,8 @@ class Router(val id: UUID, val cfg: RouterConfig,
         }
         // Ignore packets with source network prefix zero or invalid source.
         // TODO(pino): See RFC 1812 sec. 5.3.7
-        if (ipPkt.getSourceAddress() == 0xffffffff
-                || ipPkt.getDestinationAddress() == 0xffffffff) {
+        if (ipPkt.getSourceAddress == 0xffffffff
+                || ipPkt.getDestinationAddress == 0xffffffff) {
             log.debug("Not generating ICMP Unreachable for all-hosts broadcast "
                     + "packet")
             return false
@@ -766,10 +760,6 @@ class Router(val id: UUID, val cfg: RouterConfig,
         eth.setSourceMACAddress(inPort.portMac)
         eth.setDestinationMACAddress(ingressMatch.getEthernetSource)
 
-        /* log.debug("sendIcmpError from port {}, {} to {}", new Object[] {
-                ingressMatch.getInputPortUUID,
-                IPv4.fromIPv4Address(ip.getSourceAddress()),
-                IPv4.fromIPv4Address(ip.getDestinationAddress()) }) */
         DeduplicationActor.getRef(actorSystem) ! EmitGeneratedPacket(
         // TODO(pino): check with Guillermo about match's vs. device's inPort.
             //ingressMatch.getInputPortUUID, eth)

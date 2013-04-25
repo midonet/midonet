@@ -8,21 +8,26 @@ import akka.dispatch.{ExecutionContext, Future, Promise}
 import scala.collection.{Map => ROMap}
 import java.util.UUID
 
-import org.midonet.cluster.client.{Ip4MacMap, MacLearningTable}
+import org.midonet.cluster.client.{IpMacMap, MacLearningTable}
 import org.midonet.midolman.logging.LoggerFactory
 import org.midonet.midolman.rules.RuleResult.Action
 import org.midonet.midolman.simulation.Coordinator._
 import org.midonet.midolman.topology.{FlowTagger, MacFlowCount,
                                       RemoveFlowCallbackGenerator}
-import org.midonet.packets.{ARP, Ethernet, IPAddr, MAC}
+import org.midonet.packets._
 import org.midonet.util.functors.Callback1
 import org.midonet.midolman.DeduplicationActor
+import org.midonet.midolman.simulation.Coordinator.ConsumedAction
+import org.midonet.midolman.simulation.Coordinator.ToPortSetAction
+import org.midonet.midolman.simulation.Coordinator.DropAction
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
+import org.midonet.midolman.simulation.Coordinator.ToPortAction
+import org.midonet.midolman.simulation.Coordinator.ErrorDropAction
 
 
 class Bridge(val id: UUID, val tunnelKey: Long,
              val macPortMap: MacLearningTable,
-             val ip4MacMap: Ip4MacMap,
+             val ip4MacMap: IpMacMap[IPv4Addr],
              val flowCount: MacFlowCount, val inFilter: Chain,
              val outFilter: Chain,
              val flowRemovedCallbackGen: RemoveFlowCallbackGenerator,
@@ -97,12 +102,12 @@ class Bridge(val id: UUID, val tunnelKey: Long,
                         Coordinator.ToPortAction(rtrPortID))
                 } else {
                     // If it's an ARP request, can we answer it from the
-                    // Bridge's Ip4MacMap?
+                    // Bridge's IpMacMap?
                     var mac: Future[MAC]= null
                     packetContext.getMatch.getNetworkProtocol match {
                         case ARP.OP_REQUEST =>
-                            mac = getMacOfIp(
-                                packetContext.getMatch.getNetworkDestinationIP,
+                            mac = getMacOfIp(packetContext.getMatch
+                                .getNetworkDestinationIP.asInstanceOf[IPv4Addr],
                                 packetContext.expiry, ec)
                         case _ => Promise.successful[MAC](null)
                     }
@@ -245,12 +250,12 @@ class Bridge(val id: UUID, val tunnelKey: Long,
         rv
     }
 
-    private def getMacOfIp(ip: IPAddr, expiry: Long, ec: ExecutionContext) = {
+    private def getMacOfIp(ip: IPv4Addr, expiry: Long, ec: ExecutionContext) = {
         ip4MacMap match {
             case null => Promise.successful[MAC](null)
             case map =>
                 val rv = Promise[MAC]()(ec)
-                map.get(ip.toIntIPv4(), new Callback1[MAC] {
+                map.get(ip, new Callback1[MAC] {
                     def call(mac: MAC) {
                         rv.success(mac)
                     }

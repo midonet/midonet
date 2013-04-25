@@ -17,8 +17,8 @@ import org.scalatest.junit.JUnitRunner
 import org.scalatest.matchers.ShouldMatchers
 
 import org.midonet.midolman.topology._
-import org.midonet.cluster.client.{Ip4MacMap, MacLearningTable}
-import org.midonet.packets.{IntIPv4, ARP, IPAddr, MAC}
+import org.midonet.cluster.client.{IpMacMap, MacLearningTable}
+import org.midonet.packets._
 import org.midonet.util.functors.{Callback0, Callback1, Callback3}
 import org.midonet.sdn.flows.WildcardMatch
 
@@ -32,12 +32,12 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
     val log = Logging(system, getClass)
     var bridge: Bridge = _
     val bridgeID = UUID.randomUUID
-    val knownIp4 = IntIPv4.fromString("10.0.1.5")
+    val knownIp4 = IPv4Addr.fromString("10.0.1.5")
     val learnedMac = MAC.fromString("00:1e:a4:46:ed:3a")
     val learnedPort = UUID.randomUUID
     private val macPortMap = new MockMacLearningTable(Map(
                                         learnedMac -> learnedPort))
-    private val ip4MacMap = new MockIp4MacMap(Map(knownIp4 -> learnedMac))
+    private val ip4MacMap = new MockIpMacMap(Map(knownIp4 -> learnedMac))
     private val flowCount: MacFlowCount = new MockMacFlowCount
     val inFilter: Chain = null
     val outFilter: Chain = null
@@ -229,17 +229,17 @@ private class MockMacLearningTable(val table: Map[MAC, UUID])
     }
 }
 
-private class MockIp4MacMap(val map: Map[IntIPv4, MAC])
-    extends Ip4MacMap {
+private class MockIpMacMap(val map: Map[IPv4Addr, MAC])
+    extends IpMacMap[IPv4Addr] {
 
-    override def get(ip: IntIPv4, cb: Callback1[MAC], exp: JLong) {
+    override def get(ip: IPv4Addr, cb: Callback1[MAC], exp: JLong) {
         cb.call(map.get(ip) match {
             case Some(mac: MAC) => mac
             case None => null
         })
     }
 
-    override def notify(cb: Callback3[IntIPv4, MAC, MAC]) {
+    override def notify(cb: Callback3[IPv4Addr, MAC, MAC]) {
         // Not implemented
     }
 }

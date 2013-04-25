@@ -704,8 +704,8 @@ public class DHCPv6Option implements DHCPv6OptPacket {
             ByteBuffer bb = ByteBuffer.wrap(data);
             bb.putShort(this.code);
             bb.putShort(this.length);
-            long uw = addr.getUpperWord();
-            long lw = addr.getLowerWord();
+            long uw = addr.upperWord();
+            long lw = addr.lowerWord();
             bb.putInt((int)(uw >> 32));
             bb.putInt((int)(uw));
             bb.putInt((int)(lw >> 32));
@@ -729,8 +729,7 @@ public class DHCPv6Option implements DHCPv6OptPacket {
                        (long)(bb.getInt()));
             this.preferredLifetime = bb.getInt();
             this.validLifetime = bb.getInt();
-            this.addr = new IPv6Addr();
-            this.addr.setAddress(uw, lw);
+            this.addr = new IPv6Addr(uw, lw);
             int bytesLeft = this.length - HEADER_LEN;
             while (bytesLeft > 0) {
                 short code = bb.getShort();

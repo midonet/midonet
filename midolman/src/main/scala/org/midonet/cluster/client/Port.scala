@@ -7,7 +7,7 @@ package org.midonet.cluster.client
 import collection.JavaConversions._
 import java.util.UUID
 
-import org.midonet.packets.{IPAddr, IPSubnet, MAC}
+import org.midonet.packets.{IPv4Addr, IPAddr, IPSubnet, MAC}
 
 trait Port[T] {
     var id: UUID = null
@@ -89,12 +89,12 @@ trait InteriorPort[T] extends Port[T] {
 trait BridgePort[T] extends Port[T] {}
 
 trait RouterPort[T] extends Port[T] {
-    var portAddr: IPSubnet = null
+    var portAddr: IPSubnet[IPv4Addr] = null
     var portMac: MAC = null
 
-    def nwSubnet() = portAddr
+    def nwSubnet = portAddr
 
-    def setPortAddr(addr: IPSubnet): T = {
+    def setPortAddr(addr: IPSubnet[IPv4Addr]): T = {
         this.portAddr = addr; self
     }
 

@@ -47,10 +47,8 @@ class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture
 
         // add a rule that drops the packets from 0 to 3 in the jump chain
         val cond1 = new Condition()
-        cond1.nwSrcIp = new IPv4Subnet(
-            IPv4Addr.fromString(vmIps(0).toUnicastString), 32)
-        cond1.nwDstIp = new IPv4Subnet(
-            IPv4Addr.fromString(vmIps(3).toUnicastString), 32)
+        cond1.nwSrcIp = IPv4Addr.fromString(vmIps(0).toUnicastString).subnet()
+        cond1.nwDstIp = IPv4Addr.fromString(vmIps(3).toUnicastString).subnet()
         val jumpRule = newLiteralRuleOnChain(jumpChain, 1, cond1, RuleResult.Action.DROP)
         newJumpRuleOnChain(brInChain, 1, cond1, jumpChain.getId)
         log.info("The flow should be invalidated")

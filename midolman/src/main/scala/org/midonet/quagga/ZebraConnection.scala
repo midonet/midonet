@@ -21,7 +21,7 @@ object ZebraConnection {
 
 class ZebraConnection(val dispatcher: Actor,
                       val handler: ZebraProtocolHandler,
-                      val ifAddr: IPAddr,
+                      val ifAddr: IPv4Addr,
                       val ifName: String,
                       val clientId: Int)
     extends Actor {
@@ -147,7 +147,7 @@ class ZebraConnection(val dispatcher: Actor,
         sendInterfaceAddrIndex(out, 0)
         sendInterfaceAddrFlags(out, 0)
         sendInterfaceAddrFamily(out, AF_INET)
-        sendInterfaceAddr(out, ifAddr4.getIntAddress)
+        sendInterfaceAddr(out, ifAddr4.toInt)
         sendInterfaceAddrLen(out, 4)
         sendInterfaceAddrDstAddr(out, 0)
 
@@ -208,9 +208,8 @@ class ZebraConnection(val dispatcher: Actor,
                         "ZebraIpv4RouteAdd: nextHopType %d addr %d".format(
                             nextHopType, addr))
                     handler.addRoute(RIBType.fromInteger(ribType),
-                        new IPv4Subnet(new IPv4Addr().setByteAddress(prefix),
-                                       prefixLen),
-                        new IPv4Addr().setIntAddress(addr))
+                        new IPv4Subnet(IPv4Addr.fromBytes(prefix), prefixLen),
+                        IPv4Addr.fromInt(addr))
                 }
             }
         }
@@ -258,9 +257,8 @@ class ZebraConnection(val dispatcher: Actor,
                             nextHopType, addr))
 
                     handler.removeRoute(RIBType.fromInteger(ribType),
-                        new IPv4Subnet(new IPv4Addr().setByteAddress(prefix),
-                                       prefixLen),
-                        new IPv4Addr().setIntAddress(addr))
+                        new IPv4Subnet(IPv4Addr.fromBytes(prefix), prefixLen),
+                        IPv4Addr.fromInt(addr))
                 }
             }
         }

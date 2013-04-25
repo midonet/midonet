@@ -99,8 +99,7 @@ public class ForwardNatRule extends NatRule {
             log.debug("DNAT mapping floating ip {} to internal ip {}",
                     match.getNetworkDestinationIP(),
                     IPv4.fromIPv4Address(floatingIpAddr));
-            match.setNetworkDestination(new IPv4Addr()
-                                            .setIntAddress(floatingIpAddr));
+            match.setNetworkDestination(new IPv4Addr(floatingIpAddr));
             res.action = action;
             return;
         }
@@ -150,7 +149,7 @@ public class ForwardNatRule extends NatRule {
             log.debug("SNAT mapping internal ip {} to floating ip {}",
                     match.getNetworkSourceIP(),
                     IPv4.fromIPv4Address(floatingIpAddr));
-            match.setNetworkSource(new IPv4Addr().setIntAddress(floatingIpAddr));
+            match.setNetworkSource(new IPv4Addr(floatingIpAddr));
             res.action = action;
             return;
         }
