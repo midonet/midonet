@@ -817,8 +817,8 @@ public class WildcardMatch implements Cloneable {
                 case 4: // FlowKeyAttr<FlowKeyEthernet> ETHERNET = attr(4);
                     FlowKeyEthernet ethernet = as(flowKey,
                                                   FlowKeyEthernet.class);
-                    setEthernetSource(new MAC(ethernet.getSrc()));
-                    setEthernetDestination(new MAC(ethernet.getDst()));
+                    setEthernetSource(MAC.fromAddress(ethernet.getSrc()));
+                    setEthernetDestination(MAC.fromAddress(ethernet.getDst()));
                     break;
                 case 5: // FlowKeyAttr<FlowKeyVLAN> VLAN = attr(5);
                     // TODO(pino)

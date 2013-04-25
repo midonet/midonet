@@ -5,11 +5,16 @@
 
 package org.midonet.packets;
 
+import java.lang.ref.WeakReference;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Random;
+import java.util.WeakHashMap;
 
 
 public class MAC implements Cloneable {
+    private static Map<MAC, WeakReference<MAC>> instanceCache =
+            new WeakHashMap<MAC, WeakReference<MAC>>();
 
     private byte[] address;
     static Random rand = new Random();
@@ -23,22 +28,31 @@ public class MAC implements Cloneable {
         address = rhs.clone();
     }
 
-    private MAC(MAC rhs) {
-        address = rhs.address.clone();
-    }
-
-
     @Override
     public MAC clone() {
-        return new MAC(this);
+        return this.intern();
     }
 
     public byte[] getAddress() {
-        return address;
+        return address.clone();
     }
 
     public static MAC fromString(String str) {
-        return new MAC(Ethernet.toMACAddress(str));
+        return new MAC(Ethernet.toMACAddress(str)).intern();
+    }
+
+    public static MAC fromAddress(byte[] rhs) {
+        return new MAC(rhs).intern();
+    }
+
+    public MAC intern() {
+        WeakReference<MAC> ref = instanceCache.get(this);
+        if (ref != null) {
+            return ref.get();
+        } else {
+            instanceCache.put(this, new WeakReference<MAC>(this));
+            return this;
+        }
     }
 
     public static MAC random() {
