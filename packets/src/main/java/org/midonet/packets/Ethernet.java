@@ -49,6 +49,7 @@ public class Ethernet extends BasePacket {
         etherTypeClassMap = new HashMap<Short, Class<? extends IPacket>>();
         etherTypeClassMap.put(ARP.ETHERTYPE, ARP.class);
         etherTypeClassMap.put(IPv4.ETHERTYPE, IPv4.class);
+        etherTypeClassMap.put(IPv6.ETHERTYPE, IPv6.class);
         etherTypeClassMap.put(LLDP.ETHERTYPE, LLDP.class);
     }
 

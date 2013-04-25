@@ -12,12 +12,24 @@ public class IPv6 extends BasePacket {
     public final static short ETHERTYPE = (short)0x86dd;
 
     public final static int MIN_HEADER_LEN = 40;
-    //public final static int MAX_HEADER_LEN = 
-    //public final static int MAX_PACKET_LEN = 
+    //public final static int MAX_HEADER_LEN =
+    //public final static int MAX_PACKET_LEN =
+
+    public static Map<Byte, Class<? extends IPacket>> nextHeaderClassMap;
+
+    static {
+        nextHeaderClassMap = new HashMap<Byte, Class<? extends IPacket>>();
+
+        nextHeaderClassMap.put(GRE.PROTOCOL_NUMBER, GRE.class);
+        nextHeaderClassMap.put(ICMPv6.PROTOCOL_NUMBER, ICMPv6.class);
+        nextHeaderClassMap.put(TCP.PROTOCOL_NUMBER, TCP.class);
+        nextHeaderClassMap.put(UDP.PROTOCOL_NUMBER, UDP.class);
+    }
 
     protected byte version;
     protected byte trafficClass;
     protected int flowLabel;
+    protected int totalLength;
     protected short payloadLength;
     protected byte nextHeader;
     protected byte hopLimit;
@@ -206,7 +218,7 @@ public class IPv6 extends BasePacket {
     }
 
     /**
-     * Serializes the packet. 
+     * Serializes the packet.
      */
     @Override
     public byte[] serialize() {
@@ -216,14 +228,17 @@ public class IPv6 extends BasePacket {
             payloadData = payload.serialize();
         }
 
-        byte[] data = new byte[MIN_HEADER_LEN];
+        this.totalLength = (this.MIN_HEADER_LEN + ((payloadData == null) ? 0
+                    : payloadData.length));
+        byte[] data = new byte[totalLength];
         ByteBuffer bb = ByteBuffer.wrap(data);
 
-        bb.put((byte) (((this.version & 0xf) << 4) | 
+        bb.put((byte) (((this.version & 0xf) << 4) |
                         ((this.trafficClass & 0xf0) >> 4)));
         bb.put((byte) (((this.trafficClass & 0x0f) << 4) |
                         ((this.flowLabel & 0x000f0000) << 4)));
         bb.putShort((short) ((this.flowLabel & 0x0000ffff) << 16));
+        this.payloadLength = (short)payloadData.length;
         bb.putShort(this.payloadLength);
         bb.put(this.nextHeader);
         bb.put(this.hopLimit);
@@ -231,6 +246,8 @@ public class IPv6 extends BasePacket {
         bb.putLong(sourceAddress.lowerWord());
         bb.putLong(destinationAddress.upperWord());
         bb.putLong(destinationAddress.lowerWord());
+        if (payloadData != null)
+            bb.put(payloadData);
         return data;
     }
 
@@ -257,6 +274,16 @@ public class IPv6 extends BasePacket {
         this.hopLimit = bb.get();
         this.sourceAddress = new IPv6Addr(bb.getLong(), bb.getLong());
         this.destinationAddress = new IPv6Addr(bb.getLong(), bb.getLong());
+        if (IPv6.nextHeaderClassMap.containsKey(this.nextHeader)) {
+            Class<? extends IPacket> clazz = IPv6.nextHeaderClassMap.get(this.nextHeader);
+            try {
+                payload = clazz.newInstance();
+            } catch (Exception e) {
+                throw new RuntimeException("Error parsing payload for IPv6 packet", e);
+            }
+        } else {
+            payload = new Data();
+        }
         payload.deserialize(bb.slice());
         payload.setParent(this);
         return this;
