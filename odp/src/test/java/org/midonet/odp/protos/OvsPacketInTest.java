@@ -20,6 +20,8 @@ import org.midonet.netlink.Callback;
 import org.midonet.netlink.exceptions.NetlinkException;
 import org.midonet.odp.Datapath;
 import org.midonet.odp.Packet;
+import org.midonet.packets.Ethernet;
+import org.midonet.packets.MalformedPacketException;
 import static org.midonet.odp.flows.FlowKeyEtherType.Type;
 import static org.midonet.odp.flows.FlowKeys.arp;
 import static org.midonet.odp.flows.FlowKeys.etherType;
@@ -80,25 +82,25 @@ public class OvsPacketInTest
         }
     }
 
-    private Packet expectedArpPacket() {
+    private Packet expectedArpPacket() throws MalformedPacketException {
         Packet packet = new Packet();
 
-        packet.setData(new byte[]{
-            -1, -1, -1, -1, -1, -1, 62, 5, -44, 115, 45,
-            76, 8, 6, 0, 1, 8, 0, 6, 4, 0, 1, 62, 5, -44, 115, 45, 76, -80, 28,
-            127, 69, 0, 0, 0, 0, 0, 0, -64, -88, 100, 10
-        })
-              .addKey(inPort(0))
-              .addKey(ethernet(macFromString("3e:05:d4:73:2d:4c"),
-                               macFromString("ff:ff:ff:ff:ff:ff")))
-              .addKey(etherType(Type.ETH_P_ARP))
-              .addKey(
-                  arp(macFromString("3e:05:d4:73:2d:4c"),
-                      macFromString("00:00:00:00:00:00"))
-                      .setOp((byte) 1)
-                      .setSip(Net.convertStringAddressToInt("176.28.127.69"))
-                      .setTip(Net.convertStringAddressToInt("192.168.100.10"))
-              ).setReason(Packet.Reason.FlowTableMiss);
+        packet.setPacket(Ethernet.deserialize(new byte[]{
+                -1, -1, -1, -1, -1, -1, 62, 5, -44, 115, 45,
+                76, 8, 6, 0, 1, 8, 0, 6, 4, 0, 1, 62, 5, -44, 115, 45, 76, -80, 28,
+                127, 69, 0, 0, 0, 0, 0, 0, -64, -88, 100, 10
+        }))
+                .addKey(inPort(0))
+                .addKey(ethernet(macFromString("3e:05:d4:73:2d:4c"),
+                        macFromString("ff:ff:ff:ff:ff:ff")))
+                .addKey(etherType(Type.ETH_P_ARP))
+                .addKey(
+                        arp(macFromString("3e:05:d4:73:2d:4c"),
+                                macFromString("00:00:00:00:00:00"))
+                                .setOp((byte) 1)
+                                .setSip(Net.convertStringAddressToInt("176.28.127.69"))
+                                .setTip(Net.convertStringAddressToInt("192.168.100.10"))
+                ).setReason(Packet.Reason.FlowTableMiss);
 
         return packet;
     }

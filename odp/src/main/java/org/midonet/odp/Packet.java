@@ -12,6 +12,8 @@ import org.midonet.netlink.Callback;
 import org.midonet.odp.flows.FlowAction;
 import org.midonet.odp.flows.FlowKey;
 import org.midonet.odp.protos.OvsDatapathConnection;
+import org.midonet.packets.Ethernet;
+import org.midonet.packets.MalformedPacketException;
 
 
 /**
@@ -32,19 +34,23 @@ public class Packet {
         FlowActionUserspace,
     }
 
-    byte[] data;
     @Nonnull FlowMatch match = new FlowMatch();
     List<FlowAction<?>> actions;
     Long userData;
     Reason reason;
+    Ethernet eth;
 
-    public byte[] getData() {
-        return data;
+    public Ethernet getPacket() {
+        return eth;
     }
 
-    public Packet setData(byte[] data) {
-        this.data = data;
+    public Packet setPacket(Ethernet pkt) {
+        this.eth = pkt;
         return this;
+    }
+
+    public byte[] getData() {
+        return eth.serialize();
     }
 
     @Nonnull
@@ -116,7 +122,8 @@ public class Packet {
 
         if (actions != null ? !actions.equals(
             packet.actions) : packet.actions != null) return false;
-        if (!Arrays.equals(data, packet.data)) return false;
+        if (eth != null ? !eth.equals(packet.eth) : packet.eth != null)
+            return false;
         if (match != null ? !match.equals(packet.match) : packet.match != null)
             return false;
         if (reason != packet.reason) return false;
@@ -128,7 +135,7 @@ public class Packet {
 
     @Override
     public int hashCode() {
-        int result = data != null ? Arrays.hashCode(data) : 0;
+        int result = eth != null ? eth.hashCode() : 0;
         result = 31 * result + (match != null ? match.hashCode() : 0);
         result = 31 * result + (actions != null ? actions.hashCode() : 0);
         result = 31 * result + (userData != null ? userData.hashCode() : 0);
@@ -140,7 +147,7 @@ public class Packet {
     @Override
     public String toString() {
         return "Packet{" +
-            "data_length=" + data.length +
+            "data=" + eth +
             ", match=" + match +
             ", actions=" + actions +
             ", userData=" + userData +

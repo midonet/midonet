@@ -8,24 +8,22 @@ import java.nio.ByteOrder;
 import java.util.List;
 
 import org.midonet.netlink.NetlinkMessage;
+import org.midonet.packets.Ethernet;
 
-/**
-* // TODO: mtoader ! Please explain yourself.
-*/
 public abstract class BaseBuilder<Builder extends BaseBuilder<Builder, Result>, Result> {
 
     ByteBuffer buffer;
     ByteOrder order;
 
-    public BaseBuilder(int size, ByteOrder byteOrder) {
-        buffer = ByteBuffer.allocate(size);
-        buffer.order(byteOrder);
-        order = byteOrder;
-    }
-
     public BaseBuilder(ByteBuffer buffer) {
         this.buffer = buffer;
         this.order = buffer.order();
+    }
+
+    public BaseBuilder(ByteBuffer buffer, ByteOrder byteOrder) {
+        buffer.order(byteOrder);
+        this.order = byteOrder;
+        this.buffer = buffer;
     }
 
     protected abstract Builder self();
@@ -117,6 +115,11 @@ public abstract class BaseBuilder<Builder extends BaseBuilder<Builder, Result>, 
 
     public Builder addAttr(NetlinkMessage.AttrKey<byte[]> attr, byte[] value) {
         NetlinkMessage.addAttribute(buffer, attr.getId(), value);
+        return self();
+    }
+
+    public Builder addAttr(NetlinkMessage.AttrKey<Ethernet> attr, Ethernet value) {
+        NetlinkMessage.addAttribute(buffer, attr.getId(), value.serialize());
         return self();
     }
 

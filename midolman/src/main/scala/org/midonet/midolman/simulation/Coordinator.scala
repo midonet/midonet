@@ -244,7 +244,10 @@ class Coordinator(val origMatch: WildcardMatch,
          * In those cases, we can at least prevent the sender from lowering
          * the PMTU by increasing the length in the IP header.
          */
-        val mtu = origPkt.getTotalLength
+        val mtu = origPkt.getTotalLength match {
+            case 0 => origPkt.serialize().length
+            case nonZero => nonZero
+        }
         origPkt.setTotalLength(mtu + 1)
         origPkt.setChecksum(0)
 

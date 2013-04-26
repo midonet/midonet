@@ -128,7 +128,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
         // This creates a new PacketWorkflowActor and
         // and executes the simulation method directly.
         case EmitGeneratedPacket(egressPort, ethernet, parentCookie) =>
-            val packet = new Packet().setData(ethernet.serialize())
+            val packet = new Packet().setPacket(ethernet)
             val packetId = scala.util.Random.nextLong()
             val packetActor =
             context.system.actorOf(Props(

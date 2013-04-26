@@ -119,7 +119,6 @@ public class Chain {
                 res.jumpToChain = null;
                 Rule r = cp.rules.get(cp.position);
                 cp.position++;
-                currentChain.getLog().debug("Process rule {}", r, fwdInfo);
                 r.process(fwdInfo, res, natMappingFactory.get(ownerId), isPortFilter);
                 if (res.action.equals(RuleResult.Action.ACCEPT)
                         || res.action.equals(RuleResult.Action.DROP)

@@ -62,7 +62,7 @@ public class NetlinkConnection extends AbstractNetlinkConnection {
                             @Nonnull Callback<Short> callback, long timeoutMillis) {
 
         NetlinkMessage message =
-            newMessage(64)
+            newMessage()
                 .addAttr(CtrlFamily.AttrKey.FAMILY_NAME, familyName)
                 .build();
 

@@ -285,7 +285,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         val mapping = new Mapping(newMappings.head,
                 leaseManager.fwdKeys.get(newMappings.head).flowCount,
                 "uplinkPort", localPortNumberToName(outPorts.head).get,
-                Ethernet.deserialize(pktOut.getData),
+                pktOut.getPacket,
                 applyOutPacketActions(pktOut))
 
         log.info("Sending a return tcp packet")
@@ -343,7 +343,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         val mapping = new Mapping(newMappings.head,
             leaseManager.fwdKeys.get(newMappings.head).flowCount,
             vmPortNames.head, "uplinkPort",
-            Ethernet.deserialize(pktOut.getData),
+            pktOut.getPacket,
             applyOutPacketActions(pktOut))
 
         log.info("Sending a return tcp packet")
@@ -412,7 +412,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         val mapping = new Mapping(newMappings.head,
             leaseManager.fwdKeys.get(newMappings.head).flowCount,
             outPort, localPortNumberToName(outPorts.head).get,
-            Ethernet.deserialize(pktOut.getData),
+            pktOut.getPacket,
             eth)
 
         var ipPak = eth.getPayload.asInstanceOf[IPv4]
@@ -668,7 +668,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         leaseManager.fwdKeys.get(newMappings.head).flowCount.get should be === (1)
         localPortNumberToName(outPorts.head) should be === (Some("uplinkPort"))
 
-        val eth = Ethernet.deserialize(pktOut.getData)
+        val eth = pktOut.getPacket
         val ethApplied = applyOutPacketActions(pktOut)
         val mp = new Mapping(newMappings.head,
             leaseManager.fwdKeys.get(newMappings.head).flowCount,
@@ -702,7 +702,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         newMappings.size should be === (1)
         leaseManager.fwdKeys.get(newMappings.head).flowCount.get should be === (1)
 
-        val eth = Ethernet.deserialize(pktOut.getData)
+        val eth = pktOut.getPacket
         val ethApplied = applyOutPacketActions(pktOut)
         val mapping = new Mapping(newMappings.head,
             leaseManager.fwdKeys.get(newMappings.head).flowCount,

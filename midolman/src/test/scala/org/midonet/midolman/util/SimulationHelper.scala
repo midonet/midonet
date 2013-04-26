@@ -28,10 +28,10 @@ trait SimulationHelper extends MidolmanTestCase {
 
     def applyOutPacketActions(packet: Packet): Ethernet = {
         packet should not be null
-        packet.getData should not be null
+        packet.getPacket should not be null
         packet.getActions should not be null
 
-        val eth = Ethernet.deserialize(packet.getData)
+        val eth = Ethernet.deserialize(packet.getPacket.serialize())
         var ip: IPv4 = null
         var tcp: TCP = null
         var udp: UDP = null
@@ -96,7 +96,7 @@ trait SimulationHelper extends MidolmanTestCase {
 
     def getOutPacketPorts(packet: Packet): Set[Short] = {
         packet should not be null
-        packet.getData should not be null
+        packet.getPacket should not be null
         packet.getActions should not be null
         actionsToOutputPorts(packet.getActions)
     }
@@ -169,7 +169,7 @@ trait SimulationHelper extends MidolmanTestCase {
     def expectPacketOnPort(port: UUID): PacketIn = {
         val pktInMsg = packetInProbe.expectMsgClass(classOf[PacketIn])
         pktInMsg should not be null
-        pktInMsg.bytes should not be null
+        pktInMsg.eth should not be null
         pktInMsg.wMatch should not be null
         pktInMsg.wMatch.getInputPortUUID should be === port
         pktInMsg
@@ -278,25 +278,25 @@ trait SimulationHelper extends MidolmanTestCase {
                               packetEventsProbe: TestProbe): Ethernet = {
         val pktOut = requestOfType[PacketsExecute](packetEventsProbe).packet
         pktOut should not be null
-        pktOut.getData should not be null
+        pktOut.getPacket should not be null
         val flowActs = pktOut.getActions
         flowActs.size should equal (3)
         flowActs.contains(FlowActions.output(portNum)) should be (true)
-        Ethernet.deserialize(pktOut.getData)
+        pktOut.getPacket
     }
 
     def expectPacketOut(portNum : Int,
                         packetEventsProbe: TestProbe): Ethernet = {
         val pktOut = requestOfType[PacketsExecute](packetEventsProbe).packet
         pktOut should not be null
-        pktOut.getData should not be null
+        pktOut.getPacket should not be null
         pktOut.getActions.size should equal (1)
         pktOut.getActions.toList map { action =>
             action.getKey should be === FlowAction.FlowActionAttr.OUTPUT
             action.getValue.getClass should be === classOf[FlowActionOutput]
             action.getValue.asInstanceOf[FlowActionOutput].getPortNumber
         } should contain (portNum)
-        Ethernet.deserialize(pktOut.getData)
+        pktOut.getPacket
     }
 
 }

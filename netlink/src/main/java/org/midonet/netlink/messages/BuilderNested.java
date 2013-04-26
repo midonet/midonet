@@ -5,9 +5,6 @@ package org.midonet.netlink.messages;
 
 import java.nio.ByteBuffer;
 
-/**
-* // TODO: mtoader ! Please explain yourself.
-*/
 public class BuilderNested<Parent extends BaseBuilder> extends BaseBuilder<BuilderNested<Parent>, Parent> {
 
     private Parent parent;

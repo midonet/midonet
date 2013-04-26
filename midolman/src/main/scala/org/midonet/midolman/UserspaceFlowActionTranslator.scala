@@ -28,7 +28,7 @@ trait UserspaceFlowActionTranslator {
     def applyActionsAfterUserspaceMatch(packet: Packet) {
         def mangleIcmp(data: Array[Byte]): Option[Ethernet] = {
             // This is very limited but we don't really need more
-            val eth = Ethernet.deserialize(packet.getData)
+            val eth = packet.getPacket
             eth.getPayload match {
                 case ipv4: IPv4 =>
                     ipv4.getPayload match {
@@ -49,7 +49,7 @@ trait UserspaceFlowActionTranslator {
             case a: FlowActionSetKey => a.getFlowKey match {
                 case k: FlowKeyICMPError =>
                     mangleIcmp(k.getIcmpData) match {
-                        case Some(eth) => packet.setData(eth.serialize())
+                        case Some(eth) => packet.setPacket(eth)
                         case None =>
                     }
                     false

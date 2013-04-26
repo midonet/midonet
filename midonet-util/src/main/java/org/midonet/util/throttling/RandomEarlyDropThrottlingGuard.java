@@ -69,7 +69,6 @@ public class RandomEarlyDropThrottlingGuard implements ThrottlingGuard {
         final double likelihood = ((double) (n - lowWaterMark)) /
                                   ((double) (highWaterMark - lowWaterMark));
         final Object[] objs = {likelihood, lowWaterMark, highWaterMark, n};
-        logger.warn("likelihood:{} low:{} high:{} tokens:{}", objs);
         if (likelihood < Math.random()) {
             return true;
         } else {
@@ -86,7 +85,7 @@ public class RandomEarlyDropThrottlingGuard implements ThrottlingGuard {
     private void tokenDropped() {
         final int tokens = droppedTokens.incrementAndGet();
         if (tokens % 1000 == 0) {
-            logger.warn("%s dropped 1000 tokens (%d tokens in the system)",
+            logger.warn("{} dropped 1000 tokens ({} tokens in the system)",
                         this.name, counter.get());
         }
     }

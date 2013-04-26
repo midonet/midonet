@@ -143,7 +143,7 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
     private def expectPacketOut(portNum : Int): Ethernet = {
         val pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
         pktOut should not be null
-        pktOut.getData should not be null
+        pktOut.getPacket should not be null
         log.debug("Packet execute: {}", pktOut)
 
         pktOut.getActions.size should equal (1)
@@ -154,13 +154,13 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
             action.getValue.asInstanceOf[FlowActionOutput].getPortNumber
         } should contain (portNum)
 
-        Ethernet.deserialize(pktOut.getData)
+        pktOut.getPacket
     }
 
     private def expectRoutedPacketOut(portNum : Int): Ethernet = {
         val pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
         pktOut should not be null
-        pktOut.getData should not be null
+        pktOut.getPacket should not be null
         log.debug("Packet Broadcast: {}", pktOut)
 
         val flowActs = pktOut.getActions
@@ -169,7 +169,7 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
 
         flowActs.contains(FlowActions.output(portNum)) should be (true)
 
-        Ethernet.deserialize(pktOut.getData)
+        pktOut.getPacket
     }
 
     private def arpAndCheckReply(portName: String, srcMac: MAC, srcIp: IntIPv4,

@@ -9,6 +9,7 @@ import org.midonet.netlink.Netlink;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.odp.flows.FlowAction;
 import org.midonet.odp.flows.FlowKey;
+import org.midonet.packets.Ethernet;
 
 /**
  *
@@ -39,7 +40,7 @@ public class PacketFamily
         /**
          * Packet data.
          */
-        public static final AttrKey<byte[]> PACKET = attr(1);
+        public static final AttrKey<Ethernet> PACKET = attr(1);
 
         /**
          * Nested OVS_KEY_ATTR_* attributes.
