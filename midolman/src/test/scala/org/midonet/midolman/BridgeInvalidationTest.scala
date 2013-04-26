@@ -143,9 +143,7 @@ class BridgeInvalidationTest extends MidolmanTestCase
             TestHelpers.createUdpPacket(macVm2, ipVm2, macVm1, ipVm1))
         var rem = wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
         // First check the removal is correct
-        rem.f.getActions.equals(
-            (bufferAsJavaList[FlowAction[_]](
-                add.f.getActions))) should be (true)
+        rem.f.actions.equals(add.f.actions) should be (true)
         // Now store the add message for comparison with the next removal.
         // The MacPortExpiration is set to only one second. The association
         // between port1 and macVm1 will expire approximately one second after
@@ -155,9 +153,7 @@ class BridgeInvalidationTest extends MidolmanTestCase
             classOf[WildcardFlowAdded])
         rem = wflowRemovedProbe.expectMsgClass(Duration(5, TimeUnit.SECONDS),
             classOf[WildcardFlowRemoved])
-        rem.f.getActions.equals(
-            (bufferAsJavaList[FlowAction[_]](
-                add.f.getActions))) should be (true)
+        rem.f.actions.equals(add.f.actions) should be (true)
         wflowAddedProbe.expectNoMsg()
         wflowRemovedProbe.expectNoMsg()
     }
@@ -203,7 +199,7 @@ class BridgeInvalidationTest extends MidolmanTestCase
 
         val rem = wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
         // First check that the wild removal matches the first add.
-        rem.f.getActions should be === bufferAsJavaList[FlowAction[_]](add.f.getActions)
+        rem.f.actions should be === (add.f.actions)
         // Now check that the new wild flow is correct. Forward to port1 only.
         add = wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
         outports = actionsToOutputPorts(add.f.getActions)

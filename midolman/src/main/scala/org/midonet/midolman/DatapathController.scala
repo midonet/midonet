@@ -38,7 +38,7 @@ import org.midonet.odp.{Flow => KernelFlow, _}
 import org.midonet.odp.flows.{FlowAction, FlowActions}
 import org.midonet.odp.ports._
 import org.midonet.odp.protos.OvsDatapathConnection
-import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
+import org.midonet.sdn.flows.{WildcardFlowBuilder, WildcardMatch}
 import org.midonet.util.functors.Callback0
 import org.midonet.midolman.FlowController.AddWildcardFlow
 import org.midonet.midolman.PacketWorkflowActor.AddVirtualWildcardFlow
@@ -726,7 +726,7 @@ class DatapathController() extends Actor with ActorLogging with
                 case (finalFlow, finalTags) =>
                     log.debug("flow translated, installing: {}", finalFlow)
                     FlowController.getRef() !
-                        AddWildcardFlow(finalFlow, None, callbacks, finalTags)
+                        AddWildcardFlow(finalFlow.build, None, callbacks, finalTags)
             }
 
         case h: Host =>
@@ -941,11 +941,11 @@ class DatapathController() extends Actor with ActorLogging with
                     val wMatch = new WildcardMatch().setTunnelID(exterior.tunnelKey)
                     val actions = List[FlowAction[_]](FlowActions.output(port.getPortNo.shortValue))
                     val tags = Set[Any](FlowTagger.invalidateDPPort(port.getPortNo.shortValue()))
-                    fc ! AddWildcardFlow(new WildcardFlow().
+                    fc ! AddWildcardFlow(new WildcardFlowBuilder().
                                              setMatch(wMatch).
-                                             setActions(actions.asJava).
+                                             setActions(actions).
                                              setIdleExpirationMillis(0).
-                                             setPriority(0),
+                                             setPriority(0).build,
                                          None, ROSet.empty, tags)
                     log.debug("Added flow for tunnelkey {}", exterior.tunnelKey)
                 }

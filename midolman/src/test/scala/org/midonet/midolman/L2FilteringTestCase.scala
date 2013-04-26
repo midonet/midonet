@@ -57,14 +57,14 @@ class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture
         log.info("sending a packet that should be dropped by jump rule")
         expectPacketDropped(0, 3, icmpBetweenPorts)
         var flow = fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
-        flow.f.getActions.size() should be (0)
+        flow.f.actions.size should be (0)
 
         log.info("removing a rule from the jump rule itself (inner chain)")
         deleteRule(jumpRule.getId)
         fishForRequestOfType[WildcardFlowRemoved](wflowRemovedProbe)
         expectPacketAllowed(vmPortNumbers(0), vmPortNumbers(3), icmpBetweenPorts)
         flow = fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
-        flow.f.getActions.size() should (be > 0)
+        flow.f.actions.size should (be > 0)
 
         log.info("adding back rule from the jump rule itself (inner chain)")
         newLiteralRuleOnChain(jumpChain, 1, cond1, RuleResult.Action.DROP)
@@ -73,7 +73,7 @@ class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture
         // expect that packet is dropped
         expectPacketDropped(0, 3, icmpBetweenPorts)
         flow = fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
-        flow.f.getActions.size() should be (0)
+        flow.f.actions.size should be (0)
 
     }
 

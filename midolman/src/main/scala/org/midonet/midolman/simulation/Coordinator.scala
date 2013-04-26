@@ -24,7 +24,7 @@ import org.midonet.midolman.topology._
 import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.odp.flows._
 import org.midonet.packets.{Ethernet, ICMP, IPv4, IPv4Addr, IPv6Addr, TCP, UDP}
-import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
+import org.midonet.sdn.flows.{WildcardFlowBuilder, WildcardMatch}
 
 
 object Coordinator {
@@ -118,7 +118,7 @@ class Coordinator(val origMatch: WildcardMatch,
         pktContext.freeze()
         cookie match {
             case Some(_) =>
-                val wflow = new WildcardFlow().setMatch(origMatch)
+                val wflow = new WildcardFlowBuilder().setMatch(origMatch)
                 if (temporary)
                     wflow.setHardExpirationMillis(TEMPORARY_DROP_MILLIS)
                 else
@@ -220,7 +220,7 @@ class Coordinator(val origMatch: WildcardMatch,
                 log.info("Dropping non-first fragment at simulation layer")
                 val wMatch = new WildcardMatch().
                     setIpFragmentType(IPFragmentType.Later)
-                val wFlow = new WildcardFlow().setMatch(wMatch)
+                val wFlow = new WildcardFlowBuilder().setMatch(wMatch)
                 Some(AddVirtualWildcardFlow(wFlow, Set.empty, Set.empty))
             case _ =>
                 None
@@ -370,7 +370,7 @@ class Coordinator(val origMatch: WildcardMatch,
                                         origMatch.getEthernetDestination)
                                     .setEtherType(origMatch.getEtherType))
                             AddVirtualWildcardFlow(
-                                    new WildcardFlow().setMatch(notIPv4Match),
+                                    new WildcardFlowBuilder().setMatch(notIPv4Match),
                                     pktContext.getFlowRemovedCallbacks,
                                     pktContext.getFlowTags)
                             // TODO(pino): Connection-tracking blob?
@@ -528,7 +528,7 @@ class Coordinator(val origMatch: WildcardMatch,
                             if (isPortSet) outputID else port.deviceID)
                 }
 
-                val wFlow = new WildcardFlow()
+                val wFlow = new WildcardFlowBuilder()
                     .setMatch(origMatch)
                     .setActions(actions.toList)
 

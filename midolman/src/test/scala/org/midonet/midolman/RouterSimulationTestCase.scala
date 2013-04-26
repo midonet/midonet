@@ -204,7 +204,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         flow.getMatch.getEthernetSource should equal(MAC.fromString("01:02:03:04:05:06"))
         flow.getMatch.getEtherType should equal(IPv6_ETHERTYPE)
         // A flow with no actions drops matching packets
-        flow.getActions.size() should equal(0)
+        flow.actions.size should equal(0)
     }
 
     def testForwardToUplink() {
@@ -234,14 +234,14 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         expectPacketOnPort(portNumToId(onPort))
         val flow = expectFlowAddedMessage()
         expectMatchForIPv4Packet(eth, flow.getMatch)
-        flow.getActions.size() should equal(3)
+        flow.actions.size should equal(3)
         val ethKey =
-            expectFlowActionSetKey[FlowKeyEthernet](flow.getActions.get(0))
+            expectFlowActionSetKey[FlowKeyEthernet](flow.actions(0))
         ethKey.getDst should be === gwMac.getAddress
         ethKey.getSrc should be === uplinkMacAddr.getAddress
-        val ipKey = expectFlowActionSetKey[FlowKeyIPv4](flow.getActions.get(1))
+        val ipKey = expectFlowActionSetKey[FlowKeyIPv4](flow.actions(1))
         ipKey.getTtl should be === (ttl-1)
-        flow.getActions.get(2).getClass should equal(classOf[FlowActionOutput])
+        flow.actions(2).getClass should equal(classOf[FlowActionOutput])
     }
 
     def testBlackholeRoute() {
@@ -261,7 +261,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         val flow = expectFlowAddedMessage()
         expectMatchForIPv4Packet(eth, flow.getMatch)
         // A flow with no actions drops matching packets
-        flow.getActions.size() should equal(0)
+        flow.actions.size should equal(0)
         requestOfType[DiscardPacket](discardPacketProbe)
     }
 
@@ -282,7 +282,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         val flow = expectFlowAddedMessage()
         expectMatchForIPv4Packet(eth, flow.getMatch)
         // A flow with no actions drops matching packets
-        flow.getActions.size() should equal(0)
+        flow.actions.size should equal(0)
 
         expectEmitIcmp(uplinkMacAddr, IntIPv4.fromString(uplinkPortAddr),
                         fromMac, fromIp, ICMP.TYPE_UNREACH,
@@ -316,12 +316,12 @@ class RouterSimulationTestCase extends MidolmanTestCase with
 
         val flow = expectFlowAddedMessage()
         expectMatchForIPv4Packet(eth, flow.getMatch)
-        flow.getActions.size() should be === 3
+        flow.actions.size should be === 3
         val ethKey =
-            expectFlowActionSetKey[FlowKeyEthernet](flow.getActions.get(0))
+            expectFlowActionSetKey[FlowKeyEthernet](flow.actions(0))
         ethKey.getDst should be === outToMac.getAddress
         ethKey.getSrc should be === outFromMac.getAddress
-        flow.getActions.get(2).getClass should equal(classOf[FlowActionOutput])
+        flow.actions(2).getClass should equal(classOf[FlowActionOutput])
     }
 
     def testNoRoute() {
@@ -338,7 +338,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
 
         val flow = expectFlowAddedMessage()
         expectMatchForIPv4Packet(eth, flow.getMatch)
-        flow.getActions.size() should equal(0)
+        flow.actions.size should equal(0)
         expectEmitIcmp(portNumToMac(onPort), myAddressOnPort(onPort),
             fromMac, makeAddressInSegment(onPort), ICMP.TYPE_UNREACH,
             ICMP.UNREACH_CODE.UNREACH_NET.toChar)
@@ -613,7 +613,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         val flow = expectFlowAddedMessage()
         expectMatchForIPv4Packet(eth, flow.getMatch)
         // A flow with no actions drops matching packets
-        flow.getActions.size() should equal(0)
+        flow.actions.size should equal(0)
     }
 
     def testUnlinkedLogicalPort() {
@@ -645,7 +645,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         expectPacketOnPort(portNumToId(onPort))
         val flow = fishForFlowAddedMessage()
         expectMatchForIPv4Packet(eth, flow.getMatch)
-        flow.getActions.size() should equal(0)
+        flow.actions.size should equal(0)
         expectEmitIcmp(portNumToMac(onPort), myAddressOnPort(onPort),
             fromMac, makeAddressInSegment(onPort), ICMP.TYPE_UNREACH,
             ICMP.UNREACH_CODE.UNREACH_NET.toChar)

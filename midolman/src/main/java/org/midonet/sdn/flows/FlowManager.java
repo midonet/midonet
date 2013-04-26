@@ -13,8 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 import akka.event.LoggingAdapter;
 import akka.event.LoggingBus;
@@ -177,8 +175,8 @@ public class FlowManager {
         Map<WildcardMatch, WildcardFlow> wildTable = wildcardTables.tables().get(pattern);
         if (null == wildTable)
             wildTable = wildcardTables.addTable(pattern);
-        if (!wildTable.containsKey(wildFlow.wcmatch)) {
-            wildTable.put(wildFlow.wcmatch, wildFlow);
+        if (!wildTable.containsKey(wildFlow.wcmatch())) {
+            wildTable.put(wildFlow.wcmatch(), wildFlow);
             wildFlowToDpFlows.put(wildFlow, new HashSet<FlowMatch>());
             wildFlow.setCreationTimeMillis(System.currentTimeMillis());
             wildFlow.setLastUsedTimeMillis(System.currentTimeMillis());
@@ -264,7 +262,7 @@ public class FlowManager {
             Map<WildcardMatch, WildcardFlow> wcMap =
                 wildcardTables.tables().get(wildFlow.getMatch().getUsedFields());
             if (wcMap != null) {
-                wcMap.remove(wildFlow.wcmatch);
+                wcMap.remove(wildFlow.wcmatch());
                 if (wcMap.size() == 0)
                     wildcardTables.tables().remove(wildFlow.getMatch().getUsedFields());
             }

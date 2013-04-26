@@ -79,13 +79,13 @@ object TestHelpers {
     PartialFunction[Any, Boolean] = {
         {
             case msg: WildcardFlowAdded =>
-                if(msg.f.getActions.equals(bufferAsJavaList[FlowAction[_]](flowActions)))
+                if(msg.f.getActions.equals(flowActions.toList))
                     true
                 else
                     false
 
             case msg: WildcardFlowRemoved =>
-                if(msg.f.getActions.equals(bufferAsJavaList[FlowAction[_]](flowActions)))
+                if(msg.f.getActions.equals(flowActions.toList))
                     true
                 else
                     false

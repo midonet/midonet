@@ -23,7 +23,7 @@ import org.midonet.midolman.util.TestHelpers
 import org.midonet.odp._
 import org.midonet.odp.flows.FlowKeys
 import org.midonet.packets.{IntIPv4, MAC, Packets}
-import org.midonet.sdn.flows.{FlowManager, WildcardFlow, WildcardMatch}
+import org.midonet.sdn.flows.{FlowManager, WildcardFlowBuilder, WildcardMatch}
 
 
 @RunWith(classOf[JUnitRunner])
@@ -95,8 +95,8 @@ class FlowsExpirationTest extends MidolmanTestCase
         triggerPacketIn("port1", ethPkt)
 
         val pktInMsg = fishForRequestOfType[PacketIn](packetInProbe)
-        val wflow = wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded]).f
-        flowProbe().testActor ! RemoveWildcardFlow(wflow)
+        val wflow = new WildcardFlowBuilder(wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded]).f)
+        flowProbe().testActor ! RemoveWildcardFlow(wflow.build)
         wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
 
         val flow = new Flow().setMatch(FlowMatches.fromEthernetPacket(ethPkt))
@@ -104,10 +104,10 @@ class FlowsExpirationTest extends MidolmanTestCase
 
         wflow.getMatch.unsetInputPortUUID()
         wflow.setActions(List().toList)
-        wflow.setHardExpirationMillis(getDilatedTime(timeOutFlow))
+        wflow.setHardExpirationMillis(getDilatedTime(timeOutFlow).toInt)
 
         flowProbe().testActor.tell(
-            AddWildcardFlow(wflow, Some(flow), Set.empty, Set.empty))
+            AddWildcardFlow(wflow.build, Some(flow), Set.empty, Set.empty))
 
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
 
@@ -136,12 +136,12 @@ class FlowsExpirationTest extends MidolmanTestCase
         triggerPacketIn("port1", ethPkt)
 
         val pktInMsg = fishForRequestOfType[PacketIn](packetInProbe)
-        val wFlow = new WildcardFlow()
+        val wFlow = new WildcardFlowBuilder()
             .setMatch(pktInMsg.wMatch)
-            .setIdleExpirationMillis(getDilatedTime(timeOutFlow))
+            .setIdleExpirationMillis(getDilatedTime(timeOutFlow).toInt)
 
         flowProbe().testActor.tell(
-            AddWildcardFlow(wFlow, None, null, null))
+            AddWildcardFlow(wFlow.build, None, null, null))
 
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
         val timeAdded: Long = System.currentTimeMillis()
@@ -168,19 +168,21 @@ class FlowsExpirationTest extends MidolmanTestCase
     def testIdleTimeExpirationUpdated() {
         triggerPacketIn("port1", ethPkt)
 
-        val wflow = wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded]).f
-        flowProbe().testActor ! RemoveWildcardFlow(wflow)
+        val addedFlow = wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded]).f
+        flowProbe().testActor ! RemoveWildcardFlow(addedFlow)
         wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
+
+        val wflow = new WildcardFlowBuilder(addedFlow)
 
         val flow = new Flow().setMatch(FlowMatches.fromEthernetPacket(ethPkt))
         dpConn().flowsCreate(datapath, flow)
 
         wflow.getMatch.unsetInputPortUUID()
-        wflow.setActions(List().toList)
-        wflow.setIdleExpirationMillis(getDilatedTime(timeOutFlow))
+        wflow actions = Nil
+        wflow.setIdleExpirationMillis(getDilatedTime(timeOutFlow).toInt)
 
         flowProbe().testActor.tell(
-            AddWildcardFlow(wflow, Some(flow), Set.empty, Set.empty))
+            AddWildcardFlow(wflow.build, Some(flow), Set.empty, Set.empty))
 
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
         val timeAdded: Long = System.currentTimeMillis()
@@ -210,19 +212,21 @@ class FlowsExpirationTest extends MidolmanTestCase
         triggerPacketIn("port1", ethPkt)
 
 
-        val wflow = wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded]).f
-        flowProbe().testActor ! RemoveWildcardFlow(wflow)
+        val addedFlow = wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded]).f
+        flowProbe().testActor ! RemoveWildcardFlow(addedFlow)
         wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
+
+        val wflow = new WildcardFlowBuilder(addedFlow)
 
         val flow = new Flow().setMatch(FlowMatches.fromEthernetPacket(ethPkt))
         dpConn().flowsCreate(datapath, flow)
 
         wflow.getMatch.unsetInputPortUUID()
         wflow.setActions(List().toList)
-        wflow.setHardExpirationMillis(getDilatedTime(timeOutFlow))
+        wflow.setHardExpirationMillis(getDilatedTime(timeOutFlow).toInt)
 
         flowProbe().testActor.tell(
-            AddWildcardFlow(wflow, Some(flow), Set.empty, Set.empty))
+            AddWildcardFlow(wflow.build, Some(flow), Set.empty, Set.empty))
 
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
         val timeAdded: Long = System.currentTimeMillis()
@@ -248,19 +252,21 @@ class FlowsExpirationTest extends MidolmanTestCase
 
         val pktInMsg = fishForRequestOfType[PacketIn](packetInProbe)
 
-        val wflow = wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded]).f
-        flowProbe().testActor ! RemoveWildcardFlow(wflow)
+        val addedFlow = wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded]).f
+        flowProbe().testActor ! RemoveWildcardFlow(addedFlow)
         wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
+
+        val wflow = new WildcardFlowBuilder(addedFlow)
 
         val flow = new Flow().setMatch(FlowMatches.fromEthernetPacket(ethPkt))
         dpConn().flowsCreate(datapath, flow)
 
         wflow.getMatch.unsetInputPortUUID()
-        wflow.setActions(List().toList)
-        wflow.setIdleExpirationMillis(getDilatedTime(timeOutFlow))
+        wflow.setActions(Nil)
+        wflow.setIdleExpirationMillis(getDilatedTime(timeOutFlow).toInt)
 
         flowProbe().testActor.tell(
-            AddWildcardFlow(wflow, Some(flow), Set.empty, Set.empty))
+            AddWildcardFlow(wflow.build, Some(flow), Set.empty, Set.empty))
 
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
         val timeAdded = System.currentTimeMillis()
