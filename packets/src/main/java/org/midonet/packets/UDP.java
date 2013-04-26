@@ -27,6 +27,10 @@ import java.util.Map;
  */
 public class UDP extends BasePacket implements Transport {
     public static final byte PROTOCOL_NUMBER = 0x11;
+    public static final int DHCP_SERVER = 67;
+    public static final int DHCP_CLIENT = 68;
+    public static final int DHCPV6_CLIENT = 546;
+    public static final int DHCPV6_SERVER = 547;
 
     /**
      * UDP header length in bytes.
@@ -42,8 +46,10 @@ public class UDP extends BasePacket implements Transport {
 
     static {
         decodeMap = new HashMap<Integer, Class<? extends IPacket>>();
-        UDP.decodeMap.put(67, DHCP.class);
-        UDP.decodeMap.put(68, DHCP.class);
+        UDP.decodeMap.put(DHCP_SERVER, DHCP.class);
+        UDP.decodeMap.put(DHCP_CLIENT, DHCP.class);
+        UDP.decodeMap.put(DHCPV6_CLIENT, DHCPv6.class);
+        UDP.decodeMap.put(DHCPV6_SERVER, DHCPv6.class);
     }
 
     protected int sourcePort;
@@ -180,6 +186,32 @@ public class UDP extends BasePacket implements Transport {
                 accumulation += ((ipv4.getDestinationAddress() >> 16) & 0xffff)
                         + (ipv4.getDestinationAddress() & 0xffff);
                 accumulation += ipv4.getProtocol() & 0xff;
+                accumulation += this.length & 0xffff;
+            }
+
+            if (this.parent != null && this.parent instanceof IPv6) {
+                IPv6 ipv6 = (IPv6) this.parent;
+                long sauw = ipv6.getSourceAddress().getUpperWord();
+                long salw = ipv6.getSourceAddress().getLowerWord();
+                long dauw = ipv6.getDestinationAddress().getUpperWord();
+                long dalw = ipv6.getDestinationAddress().getLowerWord();
+                accumulation +=  (sauw & 0xffff)
+                              + ((sauw  >> 16) & 0xffff)
+                              + ((sauw  >> 32) & 0xffff)
+                              + ((sauw  >> 48) & 0xffff)
+                              + (salw & 0xffff)
+                              + ((salw  >> 16) & 0xffff)
+                              + ((salw  >> 32) & 0xffff)
+                              + ((salw  >> 48) & 0xffff);
+                accumulation +=  (dauw & 0xffff)
+                              + ((dauw  >> 16) & 0xffff)
+                              + ((dauw  >> 32) & 0xffff)
+                              + ((dauw  >> 48) & 0xffff)
+                              + (dalw & 0xffff)
+                              + ((dalw  >> 16) & 0xffff)
+                              + ((dalw  >> 32) & 0xffff)
+                              + ((dalw  >> 48) & 0xffff);
+                accumulation += ipv6.getNextHeader() & 0xff;
                 accumulation += this.length & 0xffff;
             }
 
