@@ -425,6 +425,18 @@ public class TestCondition {
     }
 
     @Test
+    public void testIpv6() {
+        Condition cond = new Condition();
+        cond.dlType = 0x86DD;
+        fwdInfo.inPortId = UUID.randomUUID();
+
+        WildcardMatch pktMatch6 = new WildcardMatch();
+        pktMatch6.setDataLayerType((short)0x86DD);
+
+        Assert.assertTrue(cond.matches(fwdInfo, pktMatch6, false));
+    }
+
+    @Test
     public void testSerialization() throws IOException, ClassNotFoundException {
         Condition cond = new Condition();
         Set<UUID> ids = new HashSet<UUID>();
@@ -438,6 +450,7 @@ public class TestCondition {
         cond.tpDstStart = 42000;
         cond.tpDstEnd = 43000;
         cond.tpDstInv = true;
+        cond.dlType = 0x86DD;
 
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         OutputStream out = new BufferedOutputStream(bos);

@@ -41,6 +41,7 @@ import org.midonet.packets.ARP;
 import org.midonet.packets.IntIPv4;
 import org.midonet.packets.MAC;
 import org.midonet.packets.MalformedPacketException;
+import org.midonet.packets.Unsigned;
 import org.midonet.util.lock.LockHelper;
 
 
@@ -144,7 +145,7 @@ public class PortGroupTest {
         commonChain.addRule().type(DtoRule.Accept).position(1)
             .nwSrcAddress(rtrIp.toUnicastString()).nwSrcLength(32).create();
         commonChain.addRule().type(DtoRule.Accept).position(2)
-            .dlType(ARP.ETHERTYPE).create();
+            .dlType(Unsigned.unsign(ARP.ETHERTYPE)).create();
 
         // SecGroup 1 allows receiving packets from 10.1.1.0/24.
         // Port Group 1 tracks vports assigned filter SecGroup1

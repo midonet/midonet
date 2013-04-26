@@ -81,7 +81,9 @@ public abstract class Rule extends UriResource {
     private boolean invOutPorts = false;
     private UUID portGroup;
     private boolean invPortGroup;
-    private Short dlType = null;
+    @Min(0x0600)
+    @Max(0xFFFF)
+    private Integer dlType = null;
     private boolean invDlType = false;
     private String dlSrc = null;
     private boolean invDlSrc = false;
@@ -403,17 +405,17 @@ public abstract class Rule extends UriResource {
      *            provided: i.e. whether it's in the correct range for
      *            Ethertypes.
      */
-    public void setDlType(Short dlType) {
+    public void setDlType(Integer dlType) {
         this.dlType = dlType;
     }
 
     /**
      * Get the Data Layer Type (Ethertype) of packets matched by this rule.
      *
-     * @return The value of the Ethertype as a Short if the rule matches
+     * @return The value of the Ethertype as a Integer if the rule matches
      *         Ethertype, otherwise null.
      */
-    public Short getDlType() {
+    public Integer getDlType() {
         return dlType;
     }
 
