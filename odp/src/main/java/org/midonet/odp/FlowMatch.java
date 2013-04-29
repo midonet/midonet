@@ -4,11 +4,11 @@
 package org.midonet.odp;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import javax.annotation.Nonnull;
 
 import org.midonet.odp.flows.FlowKey;
+import org.midonet.odp.flows.FlowKeys;
 import org.midonet.odp.flows.FlowKeyICMPEcho;
 
 /**
@@ -41,7 +41,7 @@ public class FlowMatch {
         if (keys == null) {
             keys = new ArrayList<FlowKey<?>>();
         }
-        keys.add(key);
+        keys.add(FlowKeys.intern(key));
         userSpaceOnly |= (key instanceof FlowKey.UserSpaceOnly);
         return this;
     }
@@ -52,12 +52,11 @@ public class FlowMatch {
     }
 
     public FlowMatch setKeys(@Nonnull List<FlowKey<?>> keys) {
-        this.keys = keys;
         this.userSpaceOnly = false;
-        Iterator<FlowKey<?>> it = keys.iterator();
-        while (!userSpaceOnly && it.hasNext()) {
-            FlowKey<?> key = it.next();
+        this.keys = keys.isEmpty() ? keys : new ArrayList<FlowKey<?>>(keys.size());
+        for (FlowKey<?> key: keys) {
             userSpaceOnly |= (key instanceof FlowKey.UserSpaceOnly);
+            this.keys.add(FlowKeys.intern(key));
         }
         return this;
     }
