@@ -55,6 +55,9 @@ public interface MidolmanConfig
     @ConfigInt(key = "check_flow_expiration_interval", defaultValue = 10000)
     public int getFlowExpirationInterval();
 
+    @ConfigInt(key = "idle_flow_tolerance_interval", defaultValue = 10000)
+    public int getIdleFlowToleranceInterval();
+
     @ConfigInt(key = "datapath_throttling_low_water_mark", defaultValue = 128)
     public int getDatapathThrottlingLowWaterMark();
 
