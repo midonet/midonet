@@ -961,6 +961,13 @@ Interior router port is a virtual port that only exists in the MidoNet virtual
         <td>A GET against this URI retrieves the port groups that this port
         is a member of.</td>
     </tr>
+    <tr>
+        <td>hostInterfacePort</td>
+        <td>URI</td>
+        <td/>
+        <td/>
+        <td>A GET against this URI retrieves the interface-binding information of this port.</td>
+    </tr>
 </table>
 
 <a name="portlink"/>
