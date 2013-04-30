@@ -14,6 +14,7 @@ import java.util.concurrent.{ConcurrentHashMap => ConcHashMap,
                              TimeUnit}
 import java.util.{Set => JSet, Map => JMap}
 import javax.inject.Inject
+import scala.annotation.tailrec
 
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.ErrorHandlingCallback
@@ -127,11 +128,6 @@ class FlowController extends Actor with ActorLogWithoutPath {
     val tagToFlows: MultiMap[Any, WildcardFlow] =
         new HashMap[Any, mutable.Set[WildcardFlow]]
             with MultiMap[Any, WildcardFlow]
-    val flowToTags: MultiMap[WildcardFlow, Any] =
-        new HashMap[WildcardFlow, mutable.Set[Any]]
-            with MultiMap[WildcardFlow, Any]
-    val flowRemovalCallbacksMap =
-        new mutable.HashMap[WildcardFlow, ROSet[Callback0]]
 
     var flowExpirationCheckInterval: Duration = null
 
@@ -218,20 +214,25 @@ class FlowController extends Actor with ActorLogWithoutPath {
     case class flowRemoved(flow: Flow)
 
     private def removeWildcardFlow(wildFlow: WildcardFlow) {
-        log.info("removeWildcardFlow - Removing flow {}", wildFlow)
-
-        flowManager.remove(wildFlow)
-        flowToTags.remove(wildFlow) map {
-            set: mutable.Set[Any] =>
-                for (tag <- set){
-                    tagToFlows.removeBinding(tag, wildFlow)
-                }
-        }
-        flowRemovalCallbacksMap.remove(wildFlow) foreach {
-            callbacks => callbacks foreach {
-                cb => cb.call()
+        @tailrec
+        def tagsCleanup(tags: Array[Any], i: Int = 0) {
+            if (tags.length > i) {
+                tagToFlows.removeBinding(tags(i), wildFlow)
+                tagsCleanup(tags, i+1)
             }
         }
+        @tailrec
+        def runCallbacks(callbacks: Array[Callback0], i: Int = 0) {
+            if (callbacks.length > i) {
+                callbacks(i).call()
+                runCallbacks(callbacks, i+1)
+            }
+        }
+
+        log.info("removeWildcardFlow - Removing flow {}", wildFlow)
+        flowManager.remove(wildFlow)
+        tagsCleanup(wildFlow.tags)
+        runCallbacks(wildFlow.callbacks)
         context.system.eventStream.publish(new WildcardFlowRemoved(wildFlow))
     }
 
@@ -267,10 +268,10 @@ class FlowController extends Actor with ActorLogWithoutPath {
         log.debug("Added wildcard flow {} with tags {}", wildFlow, tags)
 
         if (null != flowRemovalCallbacks)
-            flowRemovalCallbacksMap.put(wildFlow, flowRemovalCallbacks)
+            wildFlow.callbacks = flowRemovalCallbacks.toArray
         if (null != tags) {
+            wildFlow.tags = tags.toArray
             for (tag <- tags) {
-                flowToTags.addBinding(wildFlow, tag)
                 tagToFlows.addBinding(tag, wildFlow)
             }
         }

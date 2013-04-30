@@ -27,8 +27,6 @@ class IPFragmentationTestCase extends MidolmanTestCase with VMsBehindRouterFixtu
     override def beforeTest() {
         super.beforeTest()
 
-        flowController().underlyingActor.flowToTags.size should be === vmPorts.size
-
         log.info("populating the mac learning table with an arp request from each port")
         (vmPortNames, vmMacs, vmIps).zipped foreach {
             (name, mac, ip) => arpVmToRouterAndCheckReply(name, mac, ip, routerIp, routerMac)

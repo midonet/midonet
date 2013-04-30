@@ -5,11 +5,13 @@
 package org.midonet.sdn.flows
 
 import scala.collection.immutable.List
+import scala.collection.{Set => ROSet}
 
 import org.apache.commons.lang.builder.HashCodeBuilder
 
 import org.midonet.odp.flows.FlowAction
 import org.midonet.util.collections.WeakObjectPool
+import org.midonet.util.functors.Callback0
 
 trait WildcardFlowBase {
     def priority: Short
@@ -76,7 +78,9 @@ class WildcardFlow(override val priority: Short,
                    override val hardExpirationMillis: Int,
                    override val idleExpirationMillis: Int,
                    var creationTimeMillis: Long = 0L,
-                   var lastUsedTimeMillis: Long = 0L) extends WildcardFlowBase {
+                   var lastUsedTimeMillis: Long = 0L,
+                   var callbacks: Array[Callback0] = new Array[Callback0](0),
+                   var tags: Array[Any] = new Array[Any](0)) extends WildcardFlowBase {
 
     def getLastUsedTimeMillis = lastUsedTimeMillis
     def getCreationTimeMillis = creationTimeMillis
