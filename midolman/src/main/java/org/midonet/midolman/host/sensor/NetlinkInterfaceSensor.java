@@ -49,10 +49,8 @@ public class NetlinkInterfaceSensor implements InterfaceSensor {
                 log.debug("Got interrupted. Interrupting the current thread");
                 Thread.currentThread().interrupt();
             } catch (ExecutionException ex) {
-                // This interface is not a datapath port
-                log.debug("Exception thrown while retrieving the result for " +
-                        "interface " + interfaceDescription.getName() + ": "
-                        + ex.getCause());
+                log.trace("Interface is not a datapath port " +
+                          interfaceDescription.getName());
                 // Try the next one
                 continue;
             } catch (TimeoutException ex) {

@@ -20,6 +20,11 @@
 
     </appender>
 
+    <!-- Fine grained settings for specific classes -->
+    <logger name="org.apache.zookeeper" level="INFO" />
+    <logger name="org.apache.cassandra" level="INFO" />
+    <logger name="me.prettyprint.cassandra" level="INFO" />
+
     <root level="debug">
         <appender-ref ref="STDOUT" />
         <appender-ref ref="FILE" />
