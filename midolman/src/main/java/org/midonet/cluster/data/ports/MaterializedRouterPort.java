@@ -7,15 +7,14 @@ import java.util.Set;
 import java.util.UUID;
 import javax.annotation.Nonnull;
 
-import org.midonet.packets.Net;
 import org.midonet.cluster.data.BGP;
-import org.midonet.cluster.data.Router;
 
 /**
  * A {@link org.midonet.cluster.data.ports.RouterPort} which is materialized on a certain host.
  */
 public class MaterializedRouterPort
-    extends RouterPort<MaterializedRouterPort.Data, MaterializedRouterPort> {
+    extends RouterPort<MaterializedRouterPort.Data, MaterializedRouterPort>
+    implements ExteriorPort<MaterializedRouterPort> {
 
     public MaterializedRouterPort(UUID routerId, UUID uuid, Data data) {
         super(routerId, uuid, data);
@@ -38,19 +37,51 @@ public class MaterializedRouterPort
         return this;
     }
 
+    /**
+     * Get the UUID of the host set in this server-side DTO object for the
+     * host.
+     *
+     * @return the UUID of the host associated with this materialized router
+     *         port
+     */
+    @Override
     public UUID getHostId() {
         return getData().hostId;
     }
 
+    /**
+     * Set the host UUID to this server-side DTO object for the materialized
+     * router port.
+     *
+     * @param hostId an UUID of the host to be set
+     * @return       this server-side DTO object
+     */
+    @Override
     public MaterializedRouterPort setHostId(UUID hostId) {
         getData().hostId = hostId;
         return self();
     }
 
+    /**
+     * Get the interface name set in this server-side DTO object for the
+     * materialized router port.
+     *
+     * @return the string of interface name associated with this materialized
+     *         port
+     */
+    @Override
     public String getInterfaceName() {
         return getData().interfaceName;
     }
 
+    /**
+     * Set the interface name to this server-side DTO object for the
+     * materialized router port.
+     *
+     * @param interfaceName a name of the interface to be set
+     * @return              this server-side DTO object
+     */
+    @Override
     public MaterializedRouterPort setInterfaceName(String interfaceName) {
         getData().interfaceName = interfaceName;
         return self();
