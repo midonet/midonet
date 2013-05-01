@@ -222,7 +222,7 @@ public class NatLeaseManager implements NatMapping {
     public static String makeCacheKey(String prefix, byte protocol,
                                       IPAddr nwSrc, int tpSrc, IPAddr nwDst,
                                       int tpDst) {
-        return String.format("%s:%x:%s:%d:%s:%d", prefix, protocol,
+        return String.format("%s|%x|%s|%d|%s|%d", prefix, protocol,
                              nwSrc.toString(), tpSrc & USHORT, nwDst.toString(),
                              tpDst & USHORT);
     }
