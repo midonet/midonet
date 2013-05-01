@@ -155,6 +155,9 @@ public class BridgeZkManager extends ZkManager {
         ops.add(Op.create(paths.getBridgeDhcpPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
+        ops.add(Op.create(paths.getBridgeDhcpV6Path(id), null,
+                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+
         ops.add(Op.create(paths.getBridgeMacPortsPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
@@ -250,6 +253,7 @@ public class BridgeZkManager extends ZkManager {
         ops.add(Op.delete(paths.getBridgePortsPath(id), -1));
         ops.add(Op.delete(paths.getBridgeLogicalPortsPath(id), -1));
         ops.addAll(getRecursiveDeleteOps(paths.getBridgeDhcpPath(id)));
+        ops.addAll(getRecursiveDeleteOps(paths.getBridgeDhcpV6Path(id)));
         ops.addAll(getRecursiveDeleteOps(paths.getBridgeMacPortsPath(id)));
         // The bridge may have been created before the ARP feature was added.
         if (exists(paths.getBridgeIP4MacMapPath(id)))

@@ -17,6 +17,17 @@ public class StringUtil {
             + "([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$";
     public final static String MAC_ADDRESS_REGEX_PATTERN =
         "^((([0-9]|[a-f]|[A-F]){2}):){5}([0-9]|[a-f]|[A-F]){2}$";
+    /*
+     * TODO: once IPv6Subnet supports "::" notation, we can use this
+     * regex pattern. Until then, we will just use the simple regex.
+     * public final static String IPV6_ADDRESS_REGEX_PATTERN =
+     *        "^([\\dA-Fa-f]{1,4}:|((?=.*(::))(?!.*\\3.+\\3))\\3?)"
+     *        + "([\\dA-Fa-f]{1,4}(\\3|:\\b)|\\2){5}(([\\dA-Fa-f]{1,4}"
+     *        + "(\\3|:\\b|$)|\\2){2}|(((2[0-4]|1\\d|[1-9])?\\d|25[0-5]"
+     *        + ")\\.?\\b){4})\\z";
+     */
+    public final static String IPV6_ADDRESS_REGEX_PATTERN =
+            "^(([0-9A-Fa-f]{1,4}:){7}[0-9A-Fa-f]{1,4})$";
 
     /**
      * Joins the elements of the provided array into a single String containing

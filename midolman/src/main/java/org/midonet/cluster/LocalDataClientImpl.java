@@ -30,6 +30,8 @@ import org.midonet.midolman.state.*;
 import org.midonet.midolman.state.zkManagers.*;
 import org.midonet.cluster.data.*;
 import org.midonet.cluster.data.dhcp.Subnet;
+import org.midonet.cluster.data.dhcp.Subnet6;
+import org.midonet.cluster.data.dhcp.V6Host;
 import org.midonet.cluster.data.host.Command;
 import org.midonet.cluster.data.host.Host;
 import org.midonet.cluster.data.host.Interface;
@@ -37,6 +39,7 @@ import org.midonet.cluster.data.host.VirtualPortMapping;
 import org.midonet.cluster.data.ports.LogicalBridgePort;
 import org.midonet.cluster.data.ports.LogicalRouterPort;
 import org.midonet.packets.IntIPv4;
+import org.midonet.packets.IPv6Subnet;
 import org.midonet.packets.MAC;
 import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.functors.Callback2;
@@ -50,6 +53,9 @@ public class LocalDataClientImpl implements DataClient {
 
     @Inject
     private BridgeDhcpZkManager dhcpZkManager;
+
+    @Inject
+    private BridgeDhcpV6ZkManager dhcpV6ZkManager;
 
     @Inject
     private BgpZkManager bgpZkManager;
@@ -731,6 +737,110 @@ public class LocalDataClientImpl implements DataClient {
                 new ArrayList<org.midonet.cluster.data.dhcp.Host>();
         for (BridgeDhcpZkManager.Host hostConfig : hostConfigs) {
             hosts.add(Converter.fromDhcpHostConfig(hostConfig));
+        }
+
+        return hosts;
+    }
+
+    @Override
+    public void dhcpSubnet6Create(@Nonnull UUID bridgeId, @Nonnull Subnet6 subnet)
+            throws StateAccessException {
+        dhcpV6ZkManager.createSubnet6(bridgeId,
+                                   Converter.toDhcpSubnet6Config(subnet));
+    }
+
+    @Override
+    public void dhcpSubnet6Update(@Nonnull UUID bridgeId, @Nonnull Subnet6 subnet)
+            throws StateAccessException {
+        dhcpV6ZkManager.updateSubnet6(bridgeId,
+                                   Converter.toDhcpSubnet6Config(subnet));
+    }
+
+    @Override
+    public void dhcpSubnet6Delete(UUID bridgeId, IPv6Subnet prefix)
+            throws StateAccessException {
+        dhcpV6ZkManager.deleteSubnet6(bridgeId, prefix);
+    }
+
+    public @CheckForNull Subnet6 dhcpSubnet6Get(UUID bridgeId, IPv6Subnet prefix)
+            throws StateAccessException {
+
+        Subnet6 subnet = null;
+        if (dhcpV6ZkManager.existsSubnet6(bridgeId, prefix)) {
+            BridgeDhcpV6ZkManager.Subnet6 subnetConfig =
+                dhcpV6ZkManager.getSubnet6(bridgeId, prefix);
+
+            subnet = Converter.fromDhcpSubnet6Config(subnetConfig);
+            subnet.setPrefix(prefix);
+        }
+
+        return subnet;
+    }
+
+    @Override
+    public List<Subnet6> dhcpSubnet6sGetByBridge(UUID bridgeId)
+            throws StateAccessException {
+
+        List<IPv6Subnet> subnet6Configs = dhcpV6ZkManager.listSubnet6s(bridgeId);
+        List<Subnet6> subnets = new ArrayList<Subnet6>(subnet6Configs.size());
+
+        for (IPv6Subnet subnet6Config : subnet6Configs) {
+            subnets.add(dhcpSubnet6Get(bridgeId, subnet6Config));
+        }
+
+        return subnets;
+    }
+
+    @Override
+    public void dhcpV6HostCreate(
+            UUID bridgeId, IPv6Subnet prefix, V6Host host)
+            throws StateAccessException {
+
+        dhcpV6ZkManager.addHost(bridgeId, prefix,
+                Converter.toDhcpV6HostConfig(host));
+    }
+
+    @Override
+    public void dhcpV6HostUpdate(
+            UUID bridgeId, IPv6Subnet prefix, V6Host host)
+            throws StateAccessException {
+        dhcpV6ZkManager.updateHost(bridgeId, prefix,
+                                 Converter.toDhcpV6HostConfig(host));
+    }
+
+    @Override
+    public @CheckForNull V6Host dhcpV6HostGet(
+            UUID bridgeId, IPv6Subnet prefix, String clientId)
+            throws StateAccessException {
+
+        V6Host host = null;
+        if (dhcpV6ZkManager.existsHost(bridgeId, prefix, clientId)) {
+            BridgeDhcpV6ZkManager.Host hostConfig =
+                    dhcpV6ZkManager.getHost(bridgeId, prefix, clientId);
+            host = Converter.fromDhcpV6HostConfig(hostConfig);
+            host.setId(clientId);
+        }
+
+        return host;
+    }
+
+    @Override
+    public void dhcpV6HostDelete(UUID bridgId, IPv6Subnet prefix, String clientId)
+            throws StateAccessException {
+        dhcpV6ZkManager.deleteHost(bridgId, prefix, clientId);
+    }
+
+    @Override
+    public
+    List<V6Host> dhcpV6HostsGetByPrefix(
+            UUID bridgeId, IPv6Subnet prefix) throws StateAccessException {
+
+        List<BridgeDhcpV6ZkManager.Host> hostConfigs =
+                dhcpV6ZkManager.getHosts(bridgeId, prefix);
+        List<V6Host> hosts = new ArrayList<V6Host>();
+
+        for (BridgeDhcpV6ZkManager.Host hostConfig : hostConfigs) {
+            hosts.add(Converter.fromDhcpV6HostConfig(hostConfig));
         }
 
         return hosts;

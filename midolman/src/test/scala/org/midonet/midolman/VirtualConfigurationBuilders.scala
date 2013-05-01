@@ -23,6 +23,7 @@ import org.midonet.cluster.data.ports.{LogicalBridgePort,
 import org.midonet.cluster.data.zones.GreTunnelZone
 import org.midonet.packets.MAC
 import org.midonet.cluster.data.dhcp.Subnet
+import org.midonet.cluster.data.dhcp.Subnet6
 
 
 trait VirtualConfigurationBuilders {
@@ -223,5 +224,16 @@ trait VirtualConfigurationBuilders {
                     host : org.midonet.cluster.data.dhcp.Host) = {
         clusterDataClient().dhcpHostsCreate(bridge.getId,
                                             subnet.getSubnetAddr, host)
+    }
+
+    def addDhcpSubnet6(bridge : ClusterBridge,
+                       subnet : Subnet6) = {
+        clusterDataClient().dhcpSubnet6Create(bridge.getId, subnet)
+    }
+
+    def addDhcpV6Host(bridge : ClusterBridge, subnet : Subnet6,
+                    host : org.midonet.cluster.data.dhcp.V6Host) = {
+        clusterDataClient().dhcpV6HostCreate(bridge.getId,
+                                              subnet.getPrefix, host)
     }
 }

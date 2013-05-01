@@ -9,10 +9,13 @@ import org.midonet.api.network.rest_api.*;
 import org.midonet.api.bgp.rest_api.AdRouteResource;
 import org.midonet.api.bgp.rest_api.BgpResource;
 import org.midonet.api.dhcp.rest_api.BridgeDhcpResource;
+import org.midonet.api.dhcp.rest_api.BridgeDhcpV6Resource;
 import org.midonet.api.dhcp.rest_api.DhcpHostsResource;
+import org.midonet.api.dhcp.rest_api.DhcpV6HostsResource;
 import org.midonet.api.filter.rest_api.ChainResource;
 import org.midonet.api.monitoring.rest_api.MonitoringResource;
 import org.midonet.packets.IntIPv4;
+import org.midonet.packets.IPv6Subnet;
 
 import java.util.UUID;
 
@@ -53,9 +56,13 @@ public interface ResourceFactory {
 
     DhcpHostsResource getDhcpAssignmentsResource(UUID bridgeId, IntIPv4 addr);
 
+    DhcpV6HostsResource getDhcpV6AssignmentsResource(UUID bridgeId, IPv6Subnet addr);
+
     PortResource.BridgePortResource getBridgePortResource(UUID id);
 
     BridgeDhcpResource getBridgeDhcpResource(UUID id);
+
+    BridgeDhcpV6Resource getBridgeDhcpV6Resource(UUID id);
 
     PortResource.BridgePeerPortResource getBridgePeerPortResource(UUID id);
 

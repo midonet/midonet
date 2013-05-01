@@ -78,4 +78,14 @@ public class IPv6Subnet implements IPSubnet {
     public String toZkString() {
         return addr.toString() + "_" + prefixLen;
     }
+
+    public static IPv6Subnet fromString(String subnetStr) {
+        String[] parts = subnetStr.split("/", 2);
+        if (parts.length == 1) {
+            parts = subnetStr.split("_", 2);
+        }
+        // Because of String.split's contract, parts.length can only be 1 or 2
+        return new IPv6Subnet(IPv6Addr.fromString(parts[0]),
+                parts.length == 1 ? 128 : Integer.parseInt(parts[1]));
+    }
 }

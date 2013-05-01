@@ -15,12 +15,15 @@ import org.midonet.midolman.state.RuleIndexOutOfBoundsException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.cluster.data.*;
 import org.midonet.cluster.data.dhcp.Subnet;
+import org.midonet.cluster.data.dhcp.Subnet6;
+import org.midonet.cluster.data.dhcp.V6Host;
 import org.midonet.cluster.data.host.Command;
 import org.midonet.cluster.data.host.Host;
 import org.midonet.cluster.data.host.Interface;
 import org.midonet.cluster.data.host.VirtualPortMapping;
 import org.midonet.packets.IntIPv4;
 import org.midonet.packets.MAC;
+import org.midonet.packets.IPv6Subnet;
 import org.midonet.util.functors.Callback2;
 
 
@@ -139,6 +142,43 @@ public interface DataClient {
 
     List<org.midonet.cluster.data.dhcp.Host> dhcpHostsGetBySubnet(
             UUID bridgeId, IntIPv4 subnet)
+            throws StateAccessException;
+
+    /* DHCPV6 related methods */
+    void dhcpSubnet6Create(@Nonnull UUID bridgeId, @Nonnull Subnet6 subnet)
+            throws StateAccessException;
+
+    void dhcpSubnet6Update(@Nonnull UUID bridgeId, @Nonnull Subnet6 subnet)
+        throws StateAccessException;
+
+    void dhcpSubnet6Delete(UUID bridgeId, IPv6Subnet prefix)
+        throws StateAccessException;
+
+    @CheckForNull Subnet6 dhcpSubnet6Get(UUID bridgeId, IPv6Subnet prefix)
+            throws StateAccessException;
+
+    List<Subnet6> dhcpSubnet6sGetByBridge(UUID bridgeId)
+            throws StateAccessException;
+
+    void dhcpV6HostCreate(@Nonnull UUID bridgeId,
+                          @Nonnull IPv6Subnet prefix,
+                          V6Host host)
+            throws StateAccessException;
+
+    void dhcpV6HostUpdate(@Nonnull UUID bridgeId,
+                          @Nonnull IPv6Subnet prefix,
+                          V6Host host)
+            throws StateAccessException;
+
+    @CheckForNull V6Host dhcpV6HostGet(
+            UUID bridgeId, IPv6Subnet prefix, String clientId)
+        throws StateAccessException;
+
+    void dhcpV6HostDelete(UUID bridgId, IPv6Subnet prefix, String clientId)
+            throws StateAccessException;
+
+    List<V6Host> dhcpV6HostsGetByPrefix(
+            UUID bridgeId, IPv6Subnet prefix)
             throws StateAccessException;
 
 

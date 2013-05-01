@@ -50,6 +50,10 @@ public class VendorMediaType {
     public static final String APPLICATION_DHCP_SUBNET_COLLECTION_JSON = "application/vnd.org.midonet.collection.DhcpSubnet-v1+json";
     public static final String APPLICATION_DHCP_HOST_JSON = "application/vnd.org.midonet.DhcpHost-v1+json";
     public static final String APPLICATION_DHCP_HOST_COLLECTION_JSON = "application/vnd.org.midonet.collection.DhcpHost-v1+json";
+    public static final String APPLICATION_DHCPV6_SUBNET_JSON = "application/vnd.org.midonet.DhcpV6Subnet-v1+json";
+    public static final String APPLICATION_DHCPV6_SUBNET_COLLECTION_JSON = "application/vnd.org.midonet.collection.DhcpV6Subnet-v1+json";
+    public static final String APPLICATION_DHCPV6_HOST_JSON = "application/vnd.org.midonet.DhcpV6Host-v1+json";
+    public static final String APPLICATION_DHCPV6_HOST_COLLECTION_JSON = "application/vnd.org.midonet.collection.DhcpV6Host-v1+json";
 
     public static final String APPLICATION_MONITORING_QUERY_RESPONSE_COLLECTION_JSON =
             "application/vnd.org.midonet.collection.mgmt.MetricQueryResponse-v1+json";
