@@ -137,7 +137,6 @@ class BridgeManager(id: UUID, val clusterClient: Client,
 
     private var cfg: BridgeConfig = null
 
-    private val learningMgr = new MacLearningManager(log, macPortExpiration)
     private val flowCounts = new MacFlowCountImpl
     private val flowRemovedCallback = new RemoveFlowCallbackGeneratorImpl
 
@@ -148,6 +147,8 @@ class BridgeManager(id: UUID, val clusterClient: Client,
     private var filterChanged = false
 
     private val macPortExpiration: Int = config.getMacPortMappingExpireMillis
+    private val learningMgr = new MacLearningManager(
+        log, config.getMacPortMappingExpireMillis)
 
     override def chainsUpdated() {
         log.info("chains updated")
