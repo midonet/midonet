@@ -36,9 +36,9 @@ public abstract class TestBase {
 
     private ApiServer apiStarter;
     protected MidonetApi apiClient;
-    protected EmbeddedMidolman midolman;
     protected TestProbe probe;
     protected Host thisHost;
+    protected EmbeddedMidolman midolman;
 
     @Before
     public final void setUp() throws Exception {

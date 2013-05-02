@@ -26,22 +26,22 @@ import org.midonet.packets.IntIPv4;
 import org.midonet.packets.LLDP;
 import org.midonet.packets.MAC;
 import org.midonet.packets.MalformedPacketException;
-import org.midonet.util.lock.LockHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.midonet.functional_test.FunctionalTestsHelper.*;
 import static org.midonet.util.Waiters.sleepBecause;
 
 public class L2FilteringTest extends TestBase {
 
+    private final static Logger log =
+        LoggerFactory.getLogger(L2FilteringTest.class);
+
     IntIPv4 rtrIp = IntIPv4.fromString("10.0.0.254", 24);
     RouterPort<DtoInteriorRouterPort> rtrPort;
     Bridge bridge;
     BridgePort[] brPorts;
     TapWrapper[] taps;
-
-    static LockHelper.Lock lock;
-    private static final String TEST_HOST_ID =
-        "910de343-c39b-4933-86c7-540225fb02f9";
 
     @Override
     public void setup() {
@@ -79,13 +79,13 @@ public class L2FilteringTest extends TestBase {
 
         // Add some exterior ports and bind to taps
         brPorts = buildBridgePorts(bridge, true, 5);
-        taps = bindTapsToBridgePorts(
-        thisHost, brPorts, "l2FilterTap", probe);
+        taps = bindTapsToBridgePorts(thisHost, brPorts, "l2FilterTap", probe);
 
     }
 
     @Override
     public void teardown() {
+        log.info("Starting custom teardown");
         if (taps != null) {
             for (TapWrapper tap : taps) {
                 removeTapWrapper(tap);
