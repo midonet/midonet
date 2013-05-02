@@ -41,6 +41,7 @@ import java.util.concurrent.BlockingQueue;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import com.google.common.base.Joiner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -202,7 +203,12 @@ public class SelectLoop {
                         if (ops == 0) {
                             break;
                         } else if ((reg.ops & ops) != 0) {
-                            reg.listener.handleEvent(sk);
+                            try {
+                                reg.listener.handleEvent(sk);
+                            } catch (Exception e) {
+                                log.warn("Callback threw an exception: {}\n",
+                                    Joiner.on("\n    ").join(e.getStackTrace()));
+                            }
                             // We report each ready-op once, so after
                             // dispatching the event we clear it from ops.
                             ops &= ~reg.ops;

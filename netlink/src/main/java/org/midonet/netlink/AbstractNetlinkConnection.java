@@ -201,7 +201,6 @@ public abstract class AbstractNetlinkConnection {
         netlinkRequest.timeoutHandler = new Callable<Object>() {
             @Override
             public Object call() throws Exception {
-                log.trace("Timeout fired for {}", seq);
                 NetlinkRequest timedOutRequest =
                     pendingRequests.remove(seq);
 
