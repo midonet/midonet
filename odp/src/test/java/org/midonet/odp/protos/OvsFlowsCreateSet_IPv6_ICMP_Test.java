@@ -51,14 +51,9 @@ public class OvsFlowsCreateSet_IPv6_ICMP_Test
             .addKey(ethernet(macFromString("ae:b3:77:8c:a1:48"),
                              macFromString("33:33:00:00:00:16")))
             .addKey(etherType(FlowKeyEtherType.Type.ETH_P_IPV6))
-            .addKey(
-                ipv6(
-                    new IPv6Addr().setAddress(
-                        0xFE80000000000000L, 0x96BF90FFFE6CE2C1L),
-                    new IPv6Addr().setAddress(
-                        0xFE80000000000000L, 0x96EF90FFFE6CE2C1L),
-                    IpProtocol.ICMPV6)
-            )
+            .addKey(ipv6(new IPv6Addr(0xFE80000000000000L, 0x96BF90FFFE6CE2C1L),
+                         new IPv6Addr(0xFE80000000000000L, 0x96EF90FFFE6CE2C1L),
+                         IpProtocol.ICMPV6))
             .addKey(icmpv6(143, 0));
     }
 

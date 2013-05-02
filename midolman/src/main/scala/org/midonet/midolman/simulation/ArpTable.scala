@@ -66,7 +66,7 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
                 if (mac == null)
                     return
                 log.debug("invalidating flows for {}", ip)
-                observer(IPAddr.fromIntIPv4(ip), mac)
+                observer(IPv4Addr.fromIntIPv4(ip), mac)
                 arpWaiters.remove(ip) match {
                     case Some(waiters)  =>
                         log.debug("ArpCache.notify cb, fwd to {} waiters -- {}",
@@ -317,7 +317,8 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
             newEntry = entry.clone()
         }
 
-        val pkt = makeArpRequest(port.portMac, port.portAddr.toIntIPv4, ip)
+        val pkt = makeArpRequest(port.portMac,
+                                 port.portAddr.getAddress.toIntIPv4, ip)
         retryLoopBottomHalf(newEntry, pkt, 0)
     }
 

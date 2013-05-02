@@ -3,15 +3,14 @@
 package org.midonet.packets;
 
 
-public interface IPSubnet {
-    IPAddr getAddress();
+public interface IPSubnet<T extends IPAddr> {
+    T getAddress();
     int getPrefixLen();
-    boolean containsAddress(IPAddr addr);
+    boolean containsAddress(T addr);
     String toString();
     String toZkString();
-    IntIPv4 toIntIPv4();
     /* Required for deserialization */
-    void setAddress(IPAddr address);
+    void setAddress(T address);
     /* Required for deserialization */
     void setPrefixLen(int prefixLen);
 }

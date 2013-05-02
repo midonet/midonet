@@ -4,6 +4,7 @@
 package org.midonet.packets;
 
 
+@Deprecated
 public class IntIPv4 implements Cloneable {
     private int address;
     private int maskLength;

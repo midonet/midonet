@@ -40,15 +40,14 @@ public class MockNatMapping implements NatMapping {
                                  int oldTpDst, Set<NatTarget> nats) {
         // In this mock, just use the first nat target.
         NatTarget nat = nats.iterator().next();
-        IPAddr newNwDst = new IPv4Addr().setIntAddress(
-                rand.nextInt(nat.nwEnd - nat.nwStart + 1) + nat.nwStart);
+        IPAddr newNwDst = IPv4Addr.fromInt(
+            rand.nextInt(nat.nwEnd - nat.nwStart + 1) + nat.nwStart);
         int newTpDst = rand.nextInt(nat.tpEnd - nat.tpStart + 1) + nat.tpStart;
         NwTpPair newDst = new NwTpPair(newNwDst, newTpDst);
-        dnatFwdMap.put(new PacketSignature(
-                                protocol, nwSrc, tpSrc, oldNwDst, oldTpDst),
-                       newDst);
-        dnatRevMap.put(new PacketSignature(
-                                protocol, nwSrc, tpSrc, newNwDst, newTpDst),
+        dnatFwdMap.put(new PacketSignature(protocol, nwSrc, tpSrc,
+                                           oldNwDst, oldTpDst), newDst);
+        dnatRevMap.put(new PacketSignature(protocol, nwSrc, tpSrc,
+                                           newNwDst, newTpDst),
                        new NwTpPair(oldNwDst, oldTpDst));
         return newDst;
     }
@@ -72,7 +71,7 @@ public class MockNatMapping implements NatMapping {
                                  IPAddr nwDst, int tpDst, Set<NatTarget> nats) {
         // In this mock, just use the first nat target.
         NatTarget nat = nats.iterator().next();
-        IPAddr newNwSrc = new IPv4Addr().setIntAddress(
+        IPAddr newNwSrc = IPv4Addr.fromInt(
                 rand.nextInt(nat.nwEnd - nat.nwStart + 1) + nat.nwStart);
         int newTpSrc = rand.nextInt(nat.tpEnd - nat.tpStart + 1) + nat.tpStart;
         NwTpPair newSrc = new NwTpPair(newNwSrc, newTpSrc);

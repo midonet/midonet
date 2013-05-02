@@ -191,10 +191,10 @@ public class UDP extends BasePacket implements Transport {
 
             if (this.parent != null && this.parent instanceof IPv6) {
                 IPv6 ipv6 = (IPv6) this.parent;
-                long sauw = ipv6.getSourceAddress().getUpperWord();
-                long salw = ipv6.getSourceAddress().getLowerWord();
-                long dauw = ipv6.getDestinationAddress().getUpperWord();
-                long dalw = ipv6.getDestinationAddress().getLowerWord();
+                long sauw = ipv6.getSourceAddress().upperWord();
+                long salw = ipv6.getSourceAddress().lowerWord();
+                long dauw = ipv6.getDestinationAddress().upperWord();
+                long dalw = ipv6.getDestinationAddress().lowerWord();
                 accumulation +=  (sauw & 0xffff)
                               + ((sauw  >> 16) & 0xffff)
                               + ((sauw  >> 32) & 0xffff)

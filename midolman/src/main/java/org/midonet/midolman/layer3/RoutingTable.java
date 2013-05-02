@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 
+import org.midonet.packets.IPv4Addr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,9 +21,8 @@ public class RoutingTable extends RoutesTrie {
 
     private final static Logger log = LoggerFactory.getLogger(RoutingTable.class);
 
-    public Iterable<Route> lookup(IPAddr src, IPAddr dst) {
-        return lookup(src.toIntIPv4().getAddress(),
-                      dst.toIntIPv4().getAddress());
+    public Iterable<Route> lookup(IPv4Addr src, IPv4Addr dst) {
+        return lookup(src.toInt(), dst.toInt());
     }
 
     public Iterable<Route> lookup(int src, int dst) {

@@ -3,7 +3,8 @@
 package org.midonet.packets;
 
 
-public class IPv4Subnet implements IPSubnet {
+public class IPv4Subnet implements IPSubnet<IPv4Addr> {
+
     private IPv4Addr addr;
     private int prefixLen;
 
@@ -16,31 +17,14 @@ public class IPv4Subnet implements IPSubnet {
         prefixLen = prefixLen_;
     }
 
-    public IPv4Subnet(IntIPv4 ii) {
-        // This is supposed to work as just "IPAddr.fromIntIPv4" (see
-        // http://lampwww.epfl.ch/~michelou/scala/using-scala-from-java.html )
-        // but doesn't.  This will become moot when IPAddr.scala is
-        // translated into Java or when IntIPv4 goes away.
-        addr = IPAddr$.MODULE$.fromIntIPv4(ii);
-        prefixLen = ii.prefixLen();
-    }
-
-    @Override
-    public IntIPv4 toIntIPv4() {
-        return new IntIPv4(addr.getIntAddress(), prefixLen);
-    }
-
     @Override
     public IPv4Addr getAddress() {
         return addr;
     }
 
     @Override
-    public void setAddress(IPAddr address) {
-        if (address instanceof IPv4Addr)
-            this.addr = ((IPv4Addr)address).clone();
-        else
-            throw new IllegalArgumentException("IPv4Subnet requires IPv4Addr");
+    public void setAddress(IPv4Addr address) {
+        this.addr = IPv4Addr.fromIPv4(address);
     }
 
     @Override
@@ -55,23 +39,18 @@ public class IPv4Subnet implements IPSubnet {
 
     public IPv4Addr toBroadcastAddress() {
         int mask = 0xFFFFFFFF >>> prefixLen;
-        int bcast = addr.getIntAddress() | mask;
-        return new IPv4Addr().setIntAddress(bcast);
+        int bcast = addr.toInt() | mask;
+        return IPv4Addr.fromInt(bcast);
     }
 
     @Override
-    public boolean containsAddress(IPAddr other) {
-        if (!(other instanceof IPv4Addr))
-            return false;
-
-        IPv4Addr otherV4 = (IPv4Addr) other;
+    public boolean containsAddress(IPv4Addr other) {
         if (prefixLen == 0)
             return true;
 
         int maskSize = 32-prefixLen;
         int mask = ~0 << maskSize;
-        return (addr.getIntAddress() & mask) ==
-               (otherV4.getIntAddress() & mask);
+        return (addr.toInt() & mask) == (other.toInt() & mask);
     }
 
     @Override

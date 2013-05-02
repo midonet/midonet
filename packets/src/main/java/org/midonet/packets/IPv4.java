@@ -271,7 +271,7 @@ public class IPv4 extends BasePacket {
     }
 
     public IPv4Addr getSourceIPAddress() {
-        return new IPv4Addr().setIntAddress(sourceAddress);
+        return IPv4Addr.fromInt(sourceAddress);
     }
 
     /**
@@ -291,7 +291,7 @@ public class IPv4 extends BasePacket {
     }
 
     public IPv4 setSourceAddress(IPv4Addr sourceAddress) {
-        this.sourceAddress = sourceAddress.getIntAddress();
+        this.sourceAddress = sourceAddress.toInt();
         return this;
     }
 
@@ -303,7 +303,7 @@ public class IPv4 extends BasePacket {
     }
 
     public IPv4Addr getDestinationIPAddress() {
-        return new IPv4Addr().setIntAddress(destinationAddress);
+        return IPv4Addr.fromInt(destinationAddress);
     }
 
     /**
@@ -323,7 +323,7 @@ public class IPv4 extends BasePacket {
     }
 
     public IPv4 setDestinationAddress(IPv4Addr destinationAddress) {
-        this.destinationAddress = destinationAddress.getIntAddress();
+        this.destinationAddress = destinationAddress.toInt();
         return this;
     }
 

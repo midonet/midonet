@@ -23,8 +23,10 @@ import org.midonet.util.functors.Callback0
 class RoutingTableWrapper(val rTable: RoutingTable) {
     import collection.JavaConversions._
     def lookup(wmatch: WildcardMatch): Iterable[Route] =
-            rTable.lookup(wmatch.getNetworkSourceIP,
-                          wmatch.getNetworkDestinationIP)
+            // TODO (ipv6) de facto implementation for ipv4, that explains
+            // the casts at this point.
+            rTable.lookup(wmatch.getNetworkSourceIP.asInstanceOf[IPv4Addr],
+                          wmatch.getNetworkDestinationIP.asInstanceOf[IPv4Addr])
 }
 
 object RouterManager {
@@ -149,8 +151,7 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
                 val it = ipToInvalidate.iterator()
                 it.foreach(ip => FlowController.getRef() !
                     FlowController.InvalidateFlowsByTag(
-                        FlowTagger.invalidateByIp(id,
-                            new IPv4Addr().setIntAddress(ip))))
+                        FlowTagger.invalidateByIp(id, IPv4Addr.fromInt(ip))))
                 }
 
         case AddTag(dstIp) =>

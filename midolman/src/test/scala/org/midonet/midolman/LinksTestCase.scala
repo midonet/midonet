@@ -4,7 +4,6 @@
 package org.midonet.midolman
 
 import akka.testkit.TestProbe
-import scala.collection.JavaConversions._
 
 import host.interfaces.InterfaceDescription
 import org.junit.runner.RunWith
@@ -23,7 +22,7 @@ import org.midonet.cluster.data.Router
 import org.midonet.packets._
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.ports.MaterializedRouterPort
-import org.midonet.odp.flows.{FlowKeyICMPError, FlowActionSetKey, FlowAction, FlowActionOutput}
+import org.midonet.odp.flows.FlowActionOutput
 import org.midonet.midolman.FlowController.WildcardFlowRemoved
 
 @RunWith(classOf[JUnitRunner])

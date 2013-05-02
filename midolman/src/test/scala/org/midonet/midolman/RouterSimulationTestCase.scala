@@ -527,12 +527,12 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         // We need a bit of extra setup here, let's add a new internal port
         // in the router, and assign a FloatingIP
         val mac = MAC.fromString("cc:dd:ee:44:22:33")
-        val floatingIp = IntIPv4.fromString("176.28.127.1")
-        val privIp = IntIPv4.fromString("176.28.0.1")
+        val floatingIp = IPv4Addr.fromString("176.28.127.1")
+        val privIp = IPv4Addr.fromString("176.28.0.1")
         val nwAddr = "176.28.0.0"
         val nwLen =16
         val port = newInteriorRouterPort(clusterRouter, mac,
-                                         privIp.toUnicastString, nwAddr, nwLen)
+                                         privIp.toString, nwAddr, nwLen)
         port should not be null
 
         log.info("Feeding ARP cache for the uplink")
@@ -548,18 +548,16 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         log.info("Setting Floating IP rules")
         // Set the FloatingIp rule
         val dnatCond = new Condition()
-        dnatCond.nwDstIp = new IPv4Subnet(floatingIp)
-        val dnatTarget = new NatTarget(privIp.addressAsInt(),
-                                       privIp.addressAsInt(), 0, 0)
+        dnatCond.nwDstIp = floatingIp.subnet()
+        val dnatTarget = new NatTarget(privIp.toInt, privIp.toInt, 0, 0)
         val preChain = newInboundChainOnRouter("pre_routing", clusterRouter)
         val postChain = newOutboundChainOnRouter("post_routing", clusterRouter)
         val dnatRule = newForwardNatRuleOnChain(preChain, 1, dnatCond,
             RuleResult.Action.ACCEPT, Set(dnatTarget), isDnat = true)
         dnatRule should not be null
         val snatCond = new Condition()
-        snatCond.nwSrcIp = new IPv4Subnet(privIp)
-        val snatTarget = new NatTarget(floatingIp.addressAsInt(),
-                                       floatingIp.addressAsInt(), 0, 0)
+        snatCond.nwSrcIp = privIp.subnet()
+        val snatTarget = new NatTarget(floatingIp.toInt, floatingIp.toInt, 0, 0)
         val snatRule = newForwardNatRuleOnChain(postChain, 1, snatCond,
             RuleResult.Action.ACCEPT, Set(snatTarget), isDnat = false)
         snatRule should not be null
@@ -574,7 +572,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
             .setDestinationMACAddress(uplinkMacAddr)
             .setEtherType(IPv4.ETHERTYPE)
         eth.setPayload(new IPv4().setSourceAddress(fromIp)
-            .setDestinationAddress(floatingIp.addressAsInt())
+            .setDestinationAddress(floatingIp.toInt)
             .setProtocol(ICMP.PROTOCOL_NUMBER)
             .setPayload(echo))
 
@@ -586,7 +584,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         pktReply should not be null
         val ethReply = applyOutPacketActions(pktReply)
         val ipReply = ethReply.getPayload.asInstanceOf[IPv4]
-        ipReply.getSourceAddress should be (floatingIp.addressAsInt())
+        ipReply.getSourceAddress should be (floatingIp.toInt)
         ipReply.getDestinationAddress should be (IntIPv4.fromString(fromIp).addressAsInt)
         val icmpReply = ipReply.getPayload.asInstanceOf[ICMP]
         icmpReply.getType should be (ICMP.TYPE_ECHO_REPLY)

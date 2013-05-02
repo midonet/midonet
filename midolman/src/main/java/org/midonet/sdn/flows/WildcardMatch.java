@@ -12,24 +12,12 @@ import java.util.UUID;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import org.midonet.odp.FlowMatch;
 import org.midonet.odp.FlowMatches;
 import org.midonet.odp.flows.*;
-import org.midonet.packets.ARP;
-import org.midonet.packets.Ethernet;
-import org.midonet.packets.ICMP;
-import org.midonet.packets.IPAddr;
-import org.midonet.packets.IPv4;
-import org.midonet.packets.IPv4Addr;
-import org.midonet.packets.IPv6Addr;
-import org.midonet.packets.MAC;
-import org.midonet.packets.MalformedPacketException;
-import org.midonet.packets.TCP;
-import org.midonet.packets.Transport;
-import org.midonet.packets.UDP;
+import org.midonet.packets.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class WildcardMatch implements Cloneable {
@@ -745,11 +733,12 @@ public class WildcardMatch implements Cloneable {
                         break;
 
                     case NetworkDestination:
-                        newClone.networkDestination = networkDestination.clone_();
+                        newClone.networkDestination =
+                            (IPAddr)networkDestination.copy();
                         break;
 
                     case NetworkSource:
-                        newClone.networkSource = networkSource.clone_();
+                        newClone.networkSource = (IPAddr)networkSource.copy();
                         break;
 
                     case NetworkProtocol:
@@ -842,9 +831,9 @@ public class WildcardMatch implements Cloneable {
                 case 7: // FlowKeyAttr<FlowKeyIPv4> IPv4 = attr(7);
                     FlowKeyIPv4 ipv4 = as(flowKey, FlowKeyIPv4.class);
                     setNetworkSource(
-                        new IPv4Addr().setIntAddress(ipv4.getSrc()));
+                        IPv4Addr.fromInt(ipv4.getSrc()));
                     setNetworkDestination(
-                        new IPv4Addr().setIntAddress(ipv4.getDst()));
+                        IPv4Addr.fromInt(ipv4.getDst()));
                     setNetworkProtocol(ipv4.getProto());
                     setIpFragmentType(IPFragmentType.fromByte(ipv4.getFrag()));
                     setNetworkTTL(ipv4.getTtl());
@@ -853,12 +842,12 @@ public class WildcardMatch implements Cloneable {
                     FlowKeyIPv6 ipv6 = as(flowKey, FlowKeyIPv6.class);
                     int[] intSrc = ipv6.getSrc();
                     int[] intDst = ipv6.getDst();
-                    setNetworkSource(new IPv6Addr().setAddress(
-                        (((long) intSrc[0]) << 32) | (intSrc[1] & 0xFFFFFFFFL),
-                        (((long) intSrc[2]) << 32) | (intSrc[3] & 0xFFFFFFFFL)));
-                    setNetworkDestination(new IPv6Addr().setAddress(
-                        (((long) intSrc[0]) << 32) | (intSrc[1] & 0xFFFFFFFFL),
-                        (((long) intSrc[2]) << 32) | (intSrc[3] & 0xFFFFFFFFL)));
+                    setNetworkSource(new IPv6Addr(
+                        (((long)intSrc[0]) << 32) | (intSrc[1] & 0xFFFFFFFFL),
+                        (((long)intSrc[2]) << 32) | (intSrc[3] & 0xFFFFFFFFL)));
+                    setNetworkDestination(new IPv6Addr(
+                        (((long)intDst[0]) << 32) | (intDst[1] & 0xFFFFFFFFL),
+                        (((long)intDst[2]) << 32) | (intDst[3] & 0xFFFFFFFFL)));
                     setNetworkProtocol(ipv6.getProto());
                     setIpFragmentType(ipv6.getFrag());
                     setNetworkTTL(ipv6.getHLimit());
@@ -892,10 +881,8 @@ public class WildcardMatch implements Cloneable {
                     break;
                 case 13: // FlowKeyAttr<FlowKeyARP> ARP = attr(13);
                     FlowKeyARP arp = as(flowKey, FlowKeyARP.class);
-                    setNetworkSource(
-                        new IPv4Addr().setIntAddress(arp.getSip()));
-                    setNetworkDestination(
-                        new IPv4Addr().setIntAddress(arp.getTip()));
+                    setNetworkSource(IPv4Addr.fromInt(arp.getSip()));
+                    setNetworkDestination(IPv4Addr.fromInt(arp.getTip()));
                     setEtherType(ARP.ETHERTYPE);
                     setNetworkProtocol((byte)(arp.getOp() & 0xff));
                     break;

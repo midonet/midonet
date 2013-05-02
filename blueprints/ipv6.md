@@ -29,6 +29,8 @@ There are some legacy uses of `int` in the codebase also, but that is rare.
 	(TODO: There's a lot of code stacked up here.  Make a transition
 	plan for each module.)
 
+Expanded information on the refactor approach can be found below.
+
 ### Behavior changes to MidoNet Core
 
 In general, behavior should be to handle the IPv4 and IPv6 packets identically
@@ -91,6 +93,30 @@ packets.)
         IPv6-specific we'll need to do.  Nonetheless, there are a number
         of issues around MTU which MidoNet should address, so we should
         write another document which goes into them.
+
+### Refactor strategy
+
+Whenever possible the IPv4 implementations will be generalized to an
+IPAddr trait.  However, there are some considerations that may recommend
+a different strategy, mainly:
+
+- Heavily specific implementations for IPv4.
+- Broad usage of int primitives instead of IntIPv4 objects.
+- Coupling to implementations rather than interfaces.
+
+Some changes in the legacy IPv4 implementations (for example in Routes
+code) tend to have a broad impact, requiring large changesets with
+higher risk.  In cases like this one, the preferred approach won't be to
+generalize the IPv4 implementations, but instead to:
+
+- Create an independent generic API from existing classes (e.g.:
+  introduce a new `RouteIfc<extends IPAddr>`, leave the legacy class and
+  its client classes untouched.
+- Refactor client classes to use the generic interface. Provide a new
+  implementation of the new interface proxying to the legacy
+  implementation.
+- Extract version-independent code to a common class.
+- Refactor legacy classes to satisfy the new interface, remove proxy.
 
 ### Enhanced support for the future
 

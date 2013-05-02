@@ -11,9 +11,9 @@ import java.util.UUID;
 import javax.inject.Inject;
 
 import org.apache.zookeeper.KeeperException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import org.midonet.cluster.client.BridgeBuilder;
+import org.midonet.cluster.client.IpMacMap;
+import org.midonet.cluster.client.MacLearningTable;
 import org.midonet.midolman.config.ZookeeperConfig;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.Ip4ToMacReplicatedMap;
@@ -24,15 +24,14 @@ import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkPathManager;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager;
 import org.midonet.midolman.state.zkManagers.PortZkManager;
-import org.midonet.cluster.client.BridgeBuilder;
-import org.midonet.cluster.client.Ip4MacMap;
-import org.midonet.cluster.client.MacLearningTable;
-import org.midonet.packets.IntIPv4;
 import org.midonet.packets.IPAddr;
-import org.midonet.packets.IPAddr$;
+import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.IntIPv4;
 import org.midonet.packets.MAC;
 import org.midonet.util.functors.Callback1;
 import org.midonet.util.functors.Callback3;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
 
@@ -90,7 +89,7 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
                     bridgeMgr.getIP4MacMapDirectory(id));
                 ip4MacMap.setConnectionWatcher(connectionWatcher);
                 ip4MacMap.start();
-                builder.setIp4MacMap(new Ip4MacMapImpl(id, ip4MacMap));
+                builder.setIp4MacMap(new IpMacMapImpl(id, ip4MacMap));
 
                 updateLogicalPorts(builder, id, false);
 
@@ -187,9 +186,8 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
             // 'Learn' that the router's mac is reachable via the bridge port.
             rtrMacToLogicalPortId.put(routerPort.getHwAddr(), id);
             // Add the router port's IP and MAC to the permanent ARP map.
-            IntIPv4 rtrPortIp = new IntIPv4(routerPort.portAddr);
-            rtrIpToMac.put(IPAddr$.MODULE$.fromIntIPv4(rtrPortIp),
-                           routerPort.getHwAddr());
+            IPv4Addr rtrPortIp = IPv4Addr.fromInt(routerPort.portAddr);
+            rtrIpToMac.put(rtrPortIp, routerPort.getHwAddr());
 
             log.debug("added bridge port {} " +
                           "connected to router port with MAC:{} and IP:{}",
@@ -275,30 +273,30 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
         }
     }
 
-    class Ip4MacMapImpl implements Ip4MacMap {
+    class IpMacMapImpl implements IpMacMap<IPv4Addr> {
 
         Ip4ToMacReplicatedMap map;
         UUID bridgeID;
 
-        Ip4MacMapImpl(UUID bridgeID, Ip4ToMacReplicatedMap map) {
+        IpMacMapImpl(UUID bridgeID, Ip4ToMacReplicatedMap map) {
             this.bridgeID = bridgeID;
             this.map = map;
         }
 
         @Override
-        public void get(final IntIPv4 ip, final Callback1<MAC> cb,
+        public void get(final IPv4Addr ip, final Callback1<MAC> cb,
                         final Long expirationTime) {
             // It's ok to do a synchronous get on the map because it only
             // queries local state (doesn't go remote like the other calls.
-            cb.call(map.get(ip));
+            cb.call(map.get(ip.toIntIPv4()));
         }
 
         // This notify() registers its callback directly with the underlying
-        // Map, so the callbacks are called from Ip4MacMap context
+        // Map, so the callbacks are called from IpMacMap context
         // and should perform ActorRef::tell or such to switch to the context
         // appropriate for the callback's work.
         @Override
-        public void notify(final Callback3<IntIPv4, MAC, MAC> cb) {
+        public void notify(final Callback3<IPv4Addr, MAC, MAC> cb) {
             reactorLoop.submit(new Runnable() {
 
                 @Override
@@ -307,7 +305,7 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
                         @Override
                         public void processChange(IntIPv4 key, MAC oldValue,
                                                   MAC newValue) {
-                            cb.call(key, oldValue, newValue);
+                        cb.call(IPv4Addr.fromIntIPv4(key), oldValue, newValue);
                         }
                     });
                 }

@@ -40,7 +40,7 @@ import org.midonet.midolman.state.zkManagers.RouterZkManager;
 import org.midonet.cluster.client.ArpCache;
 import org.midonet.cluster.client.BridgeBuilder;
 import org.midonet.cluster.client.ForwardingElementBuilder;
-import org.midonet.cluster.client.Ip4MacMap;
+import org.midonet.cluster.client.IpMacMap;
 import org.midonet.cluster.client.MacLearningTable;
 import org.midonet.cluster.client.RouterBuilder;
 import org.midonet.cluster.client.SourceNatResource;
@@ -226,7 +226,7 @@ public class LocalClientImplTest {
     class TestBridgeBuilder implements BridgeBuilder {
         int buildCallsCount = 0;
         MacLearningTable mlTable;
-        Ip4MacMap ipMacMap;
+        IpMacMap ipMacMap;
         MAC[] notifiedMAC = new MAC[1];
         UUID[] notifiedUUID = new UUID[2];
 
@@ -277,7 +277,7 @@ public class LocalClientImplTest {
         }
 
         @Override
-        public void setIp4MacMap(Ip4MacMap map) {
+        public void setIp4MacMap(IpMacMap map) {
             ipMacMap = map;
         }
 

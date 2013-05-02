@@ -3,7 +3,8 @@
 package org.midonet.packets;
 
 
-public class IPv6Subnet implements IPSubnet {
+public class IPv6Subnet implements IPSubnet<IPv6Addr> {
+
     private IPv6Addr addr;
     private int prefixLen;
 
@@ -17,11 +18,6 @@ public class IPv6Subnet implements IPSubnet {
     }
 
     @Override
-    public IntIPv4 toIntIPv4() {
-        throw new IllegalArgumentException("Can't convert IPv6 subnet to IPv4");
-    }
-
-    @Override
     public IPv6Addr getAddress() {
         return addr;
     }
@@ -31,13 +27,9 @@ public class IPv6Subnet implements IPSubnet {
         return prefixLen;
     }
 
-
     @Override
-    public void setAddress(IPAddr address) {
-        if (address instanceof IPv6Addr)
-            this.addr = ((IPv6Addr)address).clone();
-        else
-            throw new IllegalArgumentException("IPv6Subnet requires IPv6Addr");
+    public void setAddress(IPv6Addr address) {
+        this.addr = IPv6Addr.fromIPv6(address);
     }
 
     @Override
@@ -45,12 +37,7 @@ public class IPv6Subnet implements IPSubnet {
         this.prefixLen = prefixLen;
     }
 
-    @Override
-    public boolean containsAddress(IPAddr other) {
-        if (!(other instanceof IPv6Addr))
-            return false;
-
-        IPv6Addr otherV6 = (IPv6Addr) other;
+    public boolean containsAddress(IPv6Addr other) {
         if (prefixLen == 0)
             return true;
 
@@ -63,10 +50,10 @@ public class IPv6Subnet implements IPSubnet {
             upperMask = ~0L;
             lowerMask = ~0L << maskSize;
         }
-        return (addr.getUpperWord() & upperMask) ==
-               (otherV6.getUpperWord() & upperMask) &&
-               (addr.getLowerWord() & lowerMask) ==
-               (otherV6.getLowerWord() & lowerMask);
+        return (addr.upperWord() & upperMask) ==
+               (other.upperWord() & upperMask) &&
+               (addr.lowerWord() & lowerMask) ==
+               (other.lowerWord() & lowerMask);
     }
 
     @Override

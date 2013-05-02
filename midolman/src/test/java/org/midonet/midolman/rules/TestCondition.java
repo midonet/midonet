@@ -60,9 +60,8 @@ public class TestCondition {
         pktMatch.setDataLayerSource("02:11:33:00:11:01");
         pktMatch.setDataLayerDestination("02:11:aa:ee:22:05");
         pktMatch.setDataLayerType(IPv4.ETHERTYPE);
-        pktMatch.setNetworkSource(new IPv4Addr().setIntAddress(0x0a001406));
-        pktMatch.setNetworkDestination(
-                new IPv4Addr().setIntAddress(0x0a000b22));
+        pktMatch.setNetworkSource(IPv4Addr.fromInt(0x0a001406));
+        pktMatch.setNetworkDestination(IPv4Addr.fromInt(0x0a000b22));
         pktMatch.setNetworkProtocol((byte) 6);
         pktMatch.setNetworkTypeOfService((byte) 34);
         pktMatch.setTransportSource(4321);

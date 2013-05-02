@@ -7,16 +7,13 @@ import java.util.concurrent.Future;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import org.midonet.packets.IPv6Addr;
-import org.midonet.packets.Net;
 import org.midonet.odp.Datapath;
 import org.midonet.odp.Flow;
 import org.midonet.odp.flows.FlowKeys;
 import org.midonet.odp.flows.FlowStats;
 import org.midonet.odp.flows.IpProtocol;
+import org.midonet.packets.IPv6Addr;
+import org.midonet.packets.Net;
 import static org.midonet.odp.flows.FlowActions.output;
 import static org.midonet.odp.flows.FlowKeyEtherType.Type;
 import static org.midonet.odp.flows.FlowKeys.etherType;
@@ -30,9 +27,6 @@ import static org.midonet.odp.flows.FlowKeys.udp;
 
 public class OvsFlowsCreateTest
     extends AbstractNetlinkProtocolTest<OvsDatapathConnection> {
-
-    private static final Logger log = LoggerFactory
-        .getLogger(OvsFlowsCreateTest.class);
 
     @Before
     public void setUp() throws Exception {
@@ -59,14 +53,9 @@ public class OvsFlowsCreateTest
                 .addKey(ethernet(macFromString("ae:b3:77:8c:a1:48"),
                                  macFromString("33:33:00:00:00:16")))
                 .addKey(etherType(Type.ETH_P_IPV6))
-                .addKey(
-                    ipv6(
-                        new IPv6Addr().setAddress(
-                            0xFE80000000000000L, 0xACB377FFFE8CA148L),
-                        new IPv6Addr().setAddress(
-                            0xFF02000000000000L, 0x0000000000000016L),
-                        IpProtocol.ICMPV6)
-                        .setHLimit((byte) 1))
+                .addKey(ipv6(new IPv6Addr(0xFE80000000000000L, 0xACB377FFFE8CA148L),
+                             new IPv6Addr(0xFF02000000000000L, 0x0000000000000016L),
+                             IpProtocol.ICMPV6).setHLimit((byte) 1))
                 .addKey(icmpv6(143, 0))
                 .addAction(output(1));
 
@@ -83,14 +72,9 @@ public class OvsFlowsCreateTest
             .addKey(ethernet(macFromString("ae:b3:77:8c:a1:48"),
                              macFromString("33:33:00:00:00:16")))
             .addKey(etherType(Type.ETH_P_IPV6))
-            .addKey(
-                ipv6(
-                    new IPv6Addr().setAddress(
-                        0xFE80000000000000L, 0xACB377FFFE8CA148L),
-                    new IPv6Addr().setAddress(
-                        0xFF02000000000000L, 0x0000000000000016L),
-                    58)
-                    .setHLimit((byte) 1))
+            .addKey(ipv6(new IPv6Addr(0xFE80000000000000L, 0xACB377FFFE8CA148L),
+                         new IPv6Addr(0xFF02000000000000L, 0x0000000000000016L),
+                         58).setHLimit((byte) 1))
             .addKey(icmpv6(143, 0))
             .addAction(output(4))
             .addAction(output(3))
@@ -104,16 +88,10 @@ public class OvsFlowsCreateTest
             .addKey(ethernet(macFromString("ae:b3:77:8c:a1:48"),
                              macFromString("33:33:00:00:00:02")))
             .addKey(etherType(Type.ETH_P_IPV6))
-            .addKey(
-                ipv6(
-                    new IPv6Addr().setAddress(
-                        0xFE80000000000000L, 0xACB377FFFE8CA148L),
-                    new IPv6Addr().setAddress(
-                        0xFF02000000000000L, 0x0000000000000002L),
-                    58)
-                    .setHLimit((byte) -1))
-            .addKey(
-                icmpv6(133, 0))
+            .addKey(ipv6(new IPv6Addr(0xFE80000000000000L, 0xACB377FFFE8CA148L),
+                         new IPv6Addr(0xFF02000000000000L, 0x0000000000000002L),
+                         58).setHLimit((byte) -1))
+            .addKey(icmpv6(133, 0))
             .addAction(output(4))
             .addAction(output(3))
             .addAction(output(2))
@@ -127,17 +105,12 @@ public class OvsFlowsCreateTest
                 ethernet(macFromString("ae:b3:77:8c:a1:48"),
                          macFromString("33:33:ff:8c:a1:48")))
             .addKey(etherType(Type.ETH_P_IPV6))
-            .addKey(
-                ipv6(
-                    new IPv6Addr().setAddress(
-                        0x0000000000000000L, 0x0000000000000000L),
-                    new IPv6Addr().setAddress(
-                        0xFF02000000000000L, 0x00000001FF8CA148L),
-                    58)
-                    .setHLimit((byte) -1))
+            .addKey(ipv6(new IPv6Addr(0x0000000000000000L, 0x0000000000000000L),
+                         new IPv6Addr(0xFF02000000000000L, 0x00000001FF8CA148L),
+                         58).setHLimit((byte) -1))
             .addKey(icmpv6(135, 0))
-            .addKey(
-                neighborDiscovery(Net.ipv6FromString("fe80::acb3:77ff:fe8c:a148")))
+            .addKey(neighborDiscovery(
+                Net.ipv6FromString("fe80::acb3:77ff:fe8c:a148")))
             .addAction(output(4))
             .addAction(output(3))
             .addAction(output(2))
@@ -151,17 +124,10 @@ public class OvsFlowsCreateTest
                 ethernet(macFromString("ae:b3:77:8C:A1:48"),
                          macFromString("33:33:00:00:00:16")))
             .addKey(etherType(Type.ETH_P_IPV6))
-            .addKey(
-                ipv6(
-                    new IPv6Addr().setAddress(
-                        0x0000000000000000L, 0x0000000000000000L),
-                    new IPv6Addr().setAddress(
-                        0xFF02000000000000L, 0x0000000000000016L),
-                    58)
-                    .setHLimit((byte) 1))
-            .addKey(
-                icmpv6(143, 0)
-            )
+            .addKey(ipv6(new IPv6Addr(0x0000000000000000L, 0x0000000000000000L),
+                         new IPv6Addr(0xFF02000000000000L, 0x0000000000000016L),
+                         58).setHLimit((byte) 1))
+            .addKey(icmpv6(143, 0))
             .addAction(output(4))
             .addAction(output(3))
             .addAction(output(2))
@@ -175,17 +141,10 @@ public class OvsFlowsCreateTest
                 ethernet(macFromString("ae:b3:77:8C:A1:48"),
                          macFromString("33:33:00:00:00:fb")))
             .addKey(etherType(Type.ETH_P_IPV6))
-            .addKey(
-                ipv6(
-                    new IPv6Addr().setAddress(
-                        0xFE80000000000000L, 0xACB377FFFE8CA148L),
-                    new IPv6Addr().setAddress(
-                        0xFF02000000000000L, 0x00000000000000FBL),
-                    17)
-                    .setHLimit((byte) -1))
-            .addKey(
-                udp(5353, 5353)
-            )
+            .addKey(ipv6(new IPv6Addr(0xFE80000000000000L, 0xACB377FFFE8CA148L),
+                         new IPv6Addr(0xFF02000000000000L, 0x00000000000000FBL),
+                         17).setHLimit((byte) -1))
+            .addKey(udp(5353, 5353))
             .addAction(output(4))
             .addAction(output(3))
             .addAction(output(2))

@@ -161,15 +161,15 @@ public class IPv6 extends BasePacket {
      * @param srcAddrLowerWord the source IPv6 address value to set (lower 8 bytes)
      */
     public IPv6 setSourceAddress(long srcAddrUpperWord, long srcAddrLowerWord) {
-        this.sourceAddress.setAddress(srcAddrUpperWord, srcAddrLowerWord);
+        this.sourceAddress = new IPv6Addr(srcAddrUpperWord, srcAddrLowerWord);
         return this;
     }
 
     /**
-     * @param srcAddrString the source IPv6 address value to set
+     * @param sourceAddress the source IPv6 address value to set
      */
     public IPv6 setSourceAddress(String sourceAddress) {
-        this.sourceAddress.fromString(sourceAddress);
+        this.sourceAddress = IPv6Addr.fromString(sourceAddress);
         return this;
     }
 
@@ -193,15 +193,15 @@ public class IPv6 extends BasePacket {
      * @param dstAddrLowerWord the dest IPv6 address value to set (lower 8 bytes)
      */
     public IPv6 setDestinationAddress(long dstAddrUpperWord, long dstAddrLowerWord) {
-        this.destinationAddress.setAddress(dstAddrUpperWord, dstAddrLowerWord);
+        this.destinationAddress = new IPv6Addr(dstAddrUpperWord, dstAddrLowerWord);
         return this;
     }
 
     /**
-     * @param dstAddrString the dest IPv6 address value to set
+     * @param destinationAddress the dest IPv6 address value to set
      */
     public IPv6 setDestinationAddress(String destinationAddress) {
-        this.destinationAddress.fromString(destinationAddress);
+        this.destinationAddress = IPv6Addr.fromString(destinationAddress);
         return this;
     }
 
@@ -227,10 +227,10 @@ public class IPv6 extends BasePacket {
         bb.putShort(this.payloadLength);
         bb.put(this.nextHeader);
         bb.put(this.hopLimit);
-        bb.putLong(sourceAddress.getUpperWord());
-        bb.putLong(sourceAddress.getLowerWord());
-        bb.putLong(destinationAddress.getUpperWord());
-        bb.putLong(destinationAddress.getLowerWord());
+        bb.putLong(sourceAddress.upperWord());
+        bb.putLong(sourceAddress.lowerWord());
+        bb.putLong(destinationAddress.upperWord());
+        bb.putLong(destinationAddress.lowerWord());
         return data;
     }
 
@@ -255,8 +255,8 @@ public class IPv6 extends BasePacket {
         this.payloadLength = bb.getShort();
         this.nextHeader = bb.get();
         this.hopLimit = bb.get();
-        this.sourceAddress.setAddress(bb.getLong(), bb.getLong());
-        this.destinationAddress.setAddress(bb.getLong(), bb.getLong());
+        this.sourceAddress = new IPv6Addr(bb.getLong(), bb.getLong());
+        this.destinationAddress = new IPv6Addr(bb.getLong(), bb.getLong());
         payload.deserialize(bb.slice());
         payload.setParent(this);
         return this;

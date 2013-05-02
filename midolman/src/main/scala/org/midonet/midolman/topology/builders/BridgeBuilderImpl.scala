@@ -5,17 +5,16 @@
 package org.midonet.midolman.topology.builders
 
 import akka.actor.ActorRef
-import collection.mutable
 import collection.mutable.{Map => MMap}
 import java.util.{Map => JMap, UUID}
 
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.client.{Ip4MacMap, BridgeBuilder, MacLearningTable,
+import org.midonet.cluster.client.{IpMacMap, BridgeBuilder, MacLearningTable,
     SourceNatResource}
 import org.midonet.midolman.FlowController
 import org.midonet.midolman.topology.{BridgeConfig, BridgeManager, FlowTagger}
-import org.midonet.packets.{IPAddr, MAC}
+import org.midonet.packets.{IPv4Addr, IPAddr, MAC}
 import org.midonet.util.functors.Callback3
 
 
@@ -34,7 +33,7 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
 
     private var cfg = new BridgeConfig
     private var macPortMap: MacLearningTable = null
-    private var ip4MacMap: Ip4MacMap = null
+    private var ip4MacMap: IpMacMap[IPv4Addr] = null
     private var rtrMacToLogicalPortId: MMap[MAC, UUID] = null
     private var rtrIpToMac: MMap[IPAddr, MAC] = null
 
@@ -51,7 +50,7 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
         }
     }
 
-    override def setIp4MacMap(m: Ip4MacMap) {
+    override def setIp4MacMap(m: IpMacMap[IPv4Addr]) {
         if (m != null) {
             ip4MacMap = m
             // TODO(pino): set the notification callback on this map?
