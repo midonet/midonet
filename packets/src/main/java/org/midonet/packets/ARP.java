@@ -163,7 +163,7 @@ public class ARP extends BasePacket {
      * @return the senderHardwareAddress
      */
     public MAC getSenderHardwareAddress() {
-        return new MAC(senderHardwareAddress);
+        return MAC.fromAddress(senderHardwareAddress);
     }
 
     /**
@@ -193,7 +193,7 @@ public class ARP extends BasePacket {
      * @return the targetHardwareAddress
      */
     public MAC getTargetHardwareAddress() {
-        return new MAC(targetHardwareAddress);
+        return MAC.fromAddress(targetHardwareAddress);
     }
 
     /**

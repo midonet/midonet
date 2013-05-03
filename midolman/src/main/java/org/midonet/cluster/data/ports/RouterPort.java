@@ -36,7 +36,7 @@ public abstract class RouterPort<
         byte[] macBytes = new byte[6];
         rand.nextBytes(macBytes);
         macBytes[0] = 0x02;
-        return new MAC(macBytes);
+        return MAC.fromAddress(macBytes);
     }
 
     public String getNwAddr() {

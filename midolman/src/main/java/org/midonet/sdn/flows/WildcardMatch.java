@@ -56,23 +56,23 @@ public class WildcardMatch implements Cloneable {
         return usedFields;
     }
 
-    private Short inputPortNumber;
+    private short inputPortNumber = 0;
     private UUID inputPortUUID;
-    private Long tunnelID;
+    private long tunnelID = 0L;
     private MAC ethernetSource;
     private MAC ethernetDestination;
-    private Short etherType;
+    private short etherType = 0;
     private IPAddr networkSource;
     private IPAddr networkDestination;
-    private Byte networkProtocol;
-    private Byte networkTTL;
-    private Byte networkTOS;
+    private byte networkProtocol = 0;
+    private byte networkTTL = 0;
+    private byte networkTOS = 0;
     private IPFragmentType ipFragmentType;
-    private Integer transportSource;
-    private Integer transportDestination;
+    private int transportSource = 0;
+    private int transportDestination = 0;
 
     // Extended fields only supported inside MM
-    private Short icmpId;
+    private short icmpId = 0;
     private byte[] icmpData;
 
     @Nonnull
@@ -95,13 +95,13 @@ public class WildcardMatch implements Cloneable {
     @Nonnull
     public WildcardMatch unsetInputPortNumber() {
         usedFields.remove(Field.InputPortNumber);
-        this.inputPortNumber = null;
+        this.inputPortNumber = 0;
         return this;
     }
 
     @Nullable
     public Short getInputPortNumber() {
-        return inputPortNumber;
+        return usedFields.contains(Field.InputPortNumber) ? inputPortNumber : null;
     }
 
     @Nonnull
@@ -133,13 +133,13 @@ public class WildcardMatch implements Cloneable {
     @Nonnull
     public WildcardMatch unsetTunnelID() {
         usedFields.remove(Field.TunnelID);
-        this.tunnelID = null;
+        this.tunnelID = 0L;
         return this;
     }
 
     @Nullable
     public Long getTunnelID() {
-        return tunnelID;
+        return usedFields.contains(Field.TunnelID) ? tunnelID : null;
     }
 
 
@@ -227,13 +227,13 @@ public class WildcardMatch implements Cloneable {
     @Nonnull
     public WildcardMatch unsetEtherType() {
         usedFields.remove(Field.EtherType);
-        this.etherType = null;
+        this.etherType = 0;
         return this;
     }
 
     @Nullable
     public Short getEtherType() {
-        return etherType;
+        return usedFields.contains(Field.EtherType) ? etherType : null;
     }
 
     @Deprecated
@@ -244,7 +244,7 @@ public class WildcardMatch implements Cloneable {
 
     @Deprecated
     public short getDataLayerType() {
-        return etherType.shortValue();
+        return usedFields.contains(Field.EtherType) ? etherType : 0;
     }
 
     @Nonnull
@@ -300,28 +300,28 @@ public class WildcardMatch implements Cloneable {
     @Nonnull
     public WildcardMatch unsetNetworkProtocol() {
         usedFields.remove(Field.NetworkProtocol);
-        this.networkProtocol = null;
+        this.networkProtocol = 0;
         return this;
     }
 
     @Nullable
     public Byte getNetworkProtocolObject() {
-        return networkProtocol;
+        return usedFields.contains(Field.NetworkProtocol) ? networkProtocol : null;
     }
 
     @Deprecated
     public byte getNetworkProtocol() {
-        return networkProtocol.byteValue();
+        return networkProtocol;
     }
 
     @Nullable
     public Byte getNetworkTOS() {
-        return networkTOS;
+        return usedFields.contains(Field.NetworkTOS) ? networkTOS : null;
     }
 
     @Deprecated
     public byte getNetworkTypeOfService() {
-        return (null == networkTOS)? 0 : networkTOS;
+        return usedFields.contains(Field.NetworkTOS) ? networkTOS : 0;
     }
 
     @Nonnull
@@ -347,13 +347,13 @@ public class WildcardMatch implements Cloneable {
     @Nonnull
     public WildcardMatch unsetNetworkTTL() {
         usedFields.remove(Field.NetworkTTL);
-        this.networkTTL = null;
+        this.networkTTL = 0;
         return this;
     }
 
     @Nullable
     public Byte getNetworkTTL() {
-        return networkTTL;
+        return usedFields.contains(Field.NetworkTTL) ? networkTTL : null;
     }
 
     @Nonnull
@@ -389,13 +389,13 @@ public class WildcardMatch implements Cloneable {
     @Nonnull
     public WildcardMatch unsetTransportSource() {
         usedFields.remove(Field.TransportSource);
-        this.transportSource = null;
+        this.transportSource = 0;
         return this;
     }
 
     @Nullable
     public Integer getTransportSourceObject() {
-        return transportSource;
+        return usedFields.contains(Field.TransportSource) ? transportSource : null;
     }
 
     @Deprecated
@@ -417,13 +417,14 @@ public class WildcardMatch implements Cloneable {
     @Nonnull
     public WildcardMatch unsetTransportDestination() {
         usedFields.remove(Field.TransportDestination);
-        this.transportDestination = null;
+        this.transportDestination = 0;
         return this;
     }
 
     @Nullable
     public Integer getTransportDestinationObject() {
-        return transportDestination;
+        return usedFields.contains(Field.TransportDestination) ?
+            transportDestination : null;
     }
 
     @Deprecated
@@ -440,13 +441,13 @@ public class WildcardMatch implements Cloneable {
     @Nonnull
     public WildcardMatch unsetIcmpIdentifier() {
         usedFields.remove(Field.IcmpId);
-        this.icmpId = null;
+        this.icmpId = 0;
         return this;
     }
 
     @Nullable
     public Short getIcmpIdentifier() {
-        return icmpId;
+        return usedFields.contains(Field.IcmpId) ? icmpId : null;
     }
 
     @Nullable
@@ -479,77 +480,79 @@ public class WildcardMatch implements Cloneable {
         for (Field field : getUsedFields()) {
             switch (field) {
                 case EtherType:
-                    if (!isEqual(etherType, that.etherType))
+                    if (!isEqual(field, that, etherType, that.etherType))
                         return false;
                     break;
 
                 case FragmentType:
-                    if (!isEqual(ipFragmentType, that.ipFragmentType))
+                    if (!isEqual(field, that, ipFragmentType, that.ipFragmentType))
                         return false;
                     break;
 
                 case EthernetDestination:
-                    if (!isEqual(ethernetDestination, that.ethernetDestination))
+                    if (!isEqual(field, that, ethernetDestination, that.ethernetDestination))
                         return false;
                     break;
 
                 case EthernetSource:
-                    if (!isEqual(ethernetSource, that.ethernetSource))
+                    if (!isEqual(field, that, ethernetSource, that.ethernetSource))
                         return false;
                     break;
 
                 case TransportDestination:
-                    if (!isEqual(transportDestination, that.transportDestination))
+                    if (!isEqual(field, that, transportDestination, that.transportDestination))
                         return false;
                     break;
 
                 case TransportSource:
-                    if (!isEqual(transportSource, that.transportSource))
+                    if (!isEqual(field, that, transportSource, that.transportSource))
                         return false;
                     break;
 
                 case InputPortUUID:
-                    if (!isEqual(inputPortUUID, that.inputPortUUID))
+                    if (!isEqual(field, that, inputPortUUID, that.inputPortUUID))
                         return false;
                     break;
 
                 case InputPortNumber:
-                    if (!isEqual(inputPortNumber, that.inputPortNumber))
+                    if (!isEqual(field, that, inputPortNumber, that.inputPortNumber))
                         return false;
                     break;
 
                 case NetworkDestination:
-                    if (!isEqual(networkDestination, that.networkDestination))
+                    if (!isEqual(field, that, networkDestination, that.networkDestination))
                         return false;
                     break;
 
                 case NetworkSource:
-                    if (!isEqual(networkSource, that.networkSource))
+                    if (!isEqual(field, that, networkSource, that.networkSource))
                         return false;
                     break;
 
                 case NetworkProtocol:
-                    if (!isEqual(networkProtocol, that.networkProtocol))
+                    if (!isEqual(field, that, networkProtocol, that.networkProtocol))
                         return false;
                     break;
 
                 case NetworkTTL:
-                    if (!isEqual(networkTTL, that.networkTTL))
+                    if (!isEqual(field, that, networkTTL, that.networkTTL))
                         return false;
                     break;
 
                 case TunnelID:
-                    if (!isEqual(tunnelID, that.tunnelID))
+                    if (!isEqual(field, that, tunnelID, that.tunnelID))
                         return false;
                     break;
 
                 case IcmpId:
-                    if (!isEqual(icmpId, that.icmpId))
+                    if (!isEqual(field, that, icmpId, that.icmpId))
                         return false;
                     break;
 
                 case IcmpData:
-                    if (!isEqual(icmpData.hashCode(),  that.icmpData.hashCode()))
+                    int thisHash = icmpData != null ? icmpData.hashCode(): 0;
+                    int thatHash = that.icmpData != null ? that.icmpData.hashCode(): 0;
+                    if (!isEqual(field, that, thisHash, thatHash))
                         return false;
                     break;
 
@@ -559,8 +562,15 @@ public class WildcardMatch implements Cloneable {
         return true;
     }
 
-    private <T> boolean isEqual(T a, T b) {
-        return a != null ? a.equals(b) : b == null;
+    private <T> boolean isEqual(Field field, WildcardMatch that, T a, T b) {
+        if (usedFields.contains(field)) {
+            if (that.usedFields.contains(field))
+                return a != null ? a.equals(b) : b == null;
+            else
+                return false;
+        } else {
+            return !that.usedFields.contains(field);
+        }
     }
 
     @Override
@@ -569,7 +579,7 @@ public class WildcardMatch implements Cloneable {
         for (Field field : getUsedFields()) {
             switch (field) {
                 case EtherType:
-                    result = 31 * result + etherType.hashCode();
+                    result = 31 * result + etherType;
                     break;
                 case FragmentType:
                     result = 31 * result + ipFragmentType.hashCode();
@@ -581,16 +591,16 @@ public class WildcardMatch implements Cloneable {
                     result = 31 * result + ethernetSource.hashCode();
                     break;
                 case TransportDestination:
-                    result = 31 * result + transportDestination.hashCode();
+                    result = 31 * result + transportDestination;
                     break;
                 case TransportSource:
-                    result = 31 * result + transportSource.hashCode();
+                    result = 31 * result + transportSource;
                     break;
                 case InputPortUUID:
                     result = 31 * result + inputPortUUID.hashCode();
                     break;
                 case InputPortNumber:
-                    result = 31 * result + inputPortNumber.hashCode();
+                    result = 31 * result + inputPortNumber;
                     break;
                 case NetworkDestination:
                     result = 31 * result + networkDestination.hashCode();
@@ -599,16 +609,16 @@ public class WildcardMatch implements Cloneable {
                     result = 31 * result + networkSource.hashCode();
                     break;
                 case NetworkProtocol:
-                    result = 31 * result + networkProtocol.hashCode();
+                    result = 31 * result + networkProtocol;
                     break;
                 case NetworkTTL:
                     result = 31 * result + networkTTL;
                     break;
                 case TunnelID:
-                    result = 31 * result + tunnelID.hashCode();
+                    result = 31 * result + (int)(tunnelID ^ tunnelID >>> 32);
                     break;
                 case IcmpId:
-                    result = 31 * result + icmpId.hashCode();
+                    result = 31 * result + icmpId;
                 case IcmpData:
                     result = 31 * result + Arrays.hashCode(icmpData);
             }
@@ -619,71 +629,71 @@ public class WildcardMatch implements Cloneable {
 
     @Override
     public String toString() {
-        String output = "";
+        StringBuilder str = new StringBuilder();
         for (Field f: getUsedFields()) {
-            output += f.toString() + " : ";
+            str.append(f.toString() + " : ");
             switch (f) {
                 case EtherType:
-                    output += etherType.toString();
+                    str.append(etherType);
                     break;
 
                 case FragmentType:
-                    output += ipFragmentType.toString();
+                    str.append(ipFragmentType.toString());
                     break;
 
                 case EthernetDestination:
-                    output += ethernetDestination.toString();
+                    str.append(ethernetDestination.toString());
                     break;
 
                 case EthernetSource:
-                    output += ethernetSource.toString();
+                    str.append(ethernetSource.toString());
                     break;
 
                 case TransportDestination:
-                    output += transportDestination.toString();
+                    str.append(transportDestination);
                     break;
 
                 case TransportSource:
-                    output += transportSource.toString();
+                    str.append(transportSource);
                     break;
 
                 case InputPortUUID:
-                    output += inputPortUUID.toString();
+                    str.append(inputPortUUID.toString());
                     break;
 
                 case InputPortNumber:
-                    output += inputPortNumber.toString();
+                    str.append(inputPortNumber);
                     break;
 
                 case NetworkDestination:
-                    output += networkDestination.toString();
+                    str.append(networkDestination.toString());
                     break;
 
                 case NetworkSource:
-                    output += networkSource.toString();
+                    str.append(networkSource.toString());
                     break;
 
                 case NetworkProtocol:
-                    output += networkProtocol.toString();
+                    str.append(networkProtocol);
                     break;
 
                 case NetworkTTL:
-                    output += networkTTL.toString();
+                    str.append(networkTTL);
                     break;
 
                 case TunnelID:
-                    output += tunnelID.toString();
+                    str.append(tunnelID);
                     break;
                 case IcmpId:
-                    output += Short.toString(icmpId);
+                    str.append(icmpId);
                     break;
 
                 case IcmpData:
-                    output += Arrays.toString(icmpData);
+                    str.append(Arrays.toString(icmpData));
             }
-            output += ";";
+            str.append(";");
         }
-        return output;
+        return str.toString();
     }
 
     /**
@@ -817,8 +827,8 @@ public class WildcardMatch implements Cloneable {
                 case 4: // FlowKeyAttr<FlowKeyEthernet> ETHERNET = attr(4);
                     FlowKeyEthernet ethernet = as(flowKey,
                                                   FlowKeyEthernet.class);
-                    setEthernetSource(new MAC(ethernet.getSrc()));
-                    setEthernetDestination(new MAC(ethernet.getDst()));
+                    setEthernetSource(MAC.fromAddress(ethernet.getSrc()));
+                    setEthernetDestination(MAC.fromAddress(ethernet.getDst()));
                     break;
                 case 5: // FlowKeyAttr<FlowKeyVLAN> VLAN = attr(5);
                     // TODO(pino)

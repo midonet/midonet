@@ -79,7 +79,7 @@ public class Ethernet extends BasePacket {
      * @return the destinationMACAddress
      */
     public MAC getDestinationMACAddress() {
-        return new MAC(destinationMACAddress);
+        return MAC.fromAddress(destinationMACAddress);
     }
 
     /**
@@ -94,7 +94,7 @@ public class Ethernet extends BasePacket {
      * @return the sourceMACAddress
      */
     public MAC getSourceMACAddress() {
-        return new MAC(sourceMACAddress);
+        return MAC.fromAddress(sourceMACAddress);
     }
 
     /**
