@@ -40,6 +40,12 @@ public class FuncTest {
             "monitoring-cassandra_replication_factor";
     public final static String MONITORING_CASSANDRA_EXPIRATION_TIMEOUT =
             "monitoring-cassandra_expiration_timeout";
+
+    public final static String BASE_URI_CONFIG = "rest_api-base_uri";
+    public final static String CONTEXT_PATH = "/test";
+    public final static String OVERRIDE_BASE_URI =
+            "http://127.0.0.1:9998" + CONTEXT_PATH;
+
     public static int replicationFactor = 1;
     public static int ttlInSecs = 1000;
 
@@ -93,10 +99,13 @@ public class FuncTest {
                         "" + replicationFactor)
                 .contextParam(MONITORING_CASSANDRA_EXPIRATION_TIMEOUT,
                         "" + ttlInSecs)
-                .contextPath("/test").clientConfig(config);
+                .contextPath(CONTEXT_PATH).clientConfig(config);
     }
 
     public static final AppDescriptor appDesc = getBuilder().build();
+
+    public static final AppDescriptor appDescOverrideBaseUri =
+        getBuilder().contextParam(BASE_URI_CONFIG, OVERRIDE_BASE_URI).build();
 
     public static UUID getUuidFromLocation(URI location) {
         if (location == null) {
