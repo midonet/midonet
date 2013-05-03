@@ -16,16 +16,16 @@ import org.slf4j.LoggerFactory;
 import org.midonet.packets.IPAddr;
 import org.midonet.packets.Net;
 
-
-public class RoutingTable extends RoutesTrie {
+/**
+ * TODO (galo, ipv6) - this class is IPv4 specific, should eventually be
+ * be rewritten for compatibility with both versions and hooked in the
+ * RoutingTableIfc hierarchy.
+ */
+class RoutingTable extends RoutesTrie {
 
     private final static Logger log = LoggerFactory.getLogger(RoutingTable.class);
 
-    public Iterable<Route> lookup(IPv4Addr src, IPv4Addr dst) {
-        return lookup(src.toInt(), dst.toInt());
-    }
-
-    public Iterable<Route> lookup(int src, int dst) {
+    Iterable<Route> lookup(int src, int dst) {
         log.debug("lookup: src {} dst {} in table with {} routes",
                 new Object[] {
                     Net.convertIntAddressToString(src),

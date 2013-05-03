@@ -4,26 +4,40 @@
 
 package org.midonet.cluster;
 
-import org.midonet.midolman.guice.zookeeper.ZKConnectionProvider;
-import org.midonet.midolman.layer3.Route;
-import org.midonet.midolman.state.*;
-import org.midonet.midolman.state.zkManagers.RouteZkManager;
-import org.midonet.midolman.state.zkManagers.RouterZkManager;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import javax.inject.Inject;
+import javax.inject.Named;
+
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
 import org.midonet.cluster.client.ArpCache;
 import org.midonet.cluster.client.RouterBuilder;
-import org.midonet.packets.IntIPv4;
+import org.midonet.midolman.guice.zookeeper.ZKConnectionProvider;
+import org.midonet.midolman.layer3.Route;
+import org.midonet.midolman.state.ArpCacheEntry;
+import org.midonet.midolman.state.ArpTable;
+import org.midonet.midolman.state.Directory;
+import org.midonet.midolman.state.DirectoryCallback;
+import org.midonet.midolman.state.ReplicatedSet;
+import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.state.ZkConfigSerializer;
+import org.midonet.midolman.state.ZkStateSerializationException;
+import org.midonet.midolman.state.zkManagers.RouteZkManager;
+import org.midonet.midolman.state.zkManagers.RouterZkManager;
+import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.functors.Callback1;
 import org.midonet.util.functors.Callback2;
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.inject.Inject;
-import javax.inject.Named;
-import java.util.*;
 
 
 public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
@@ -465,11 +479,11 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
 
 
     class ArpCacheImpl implements ArpCache,
-            ArpTable.Watcher<IntIPv4, ArpCacheEntry> {
+            ArpTable.Watcher<IPv4Addr, ArpCacheEntry> {
 
         ArpTable arpTable;
-        private final Set<Callback2<IntIPv4, MAC>> listeners =
-                        new LinkedHashSet<Callback2<IntIPv4, MAC>>();
+        private final Set<Callback2<IPv4Addr, MAC>> listeners =
+                        new LinkedHashSet<Callback2<IPv4Addr, MAC>>();
 
         ArpCacheImpl(ArpTable arpTable) {
             this.arpTable = arpTable;
@@ -477,7 +491,7 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
         }
 
         @Override
-        public void processChange(IntIPv4 key, ArpCacheEntry oldV,
+        public void processChange(IPv4Addr key, ArpCacheEntry oldV,
                                                ArpCacheEntry newV) {
             if (oldV == null && newV == null)
                 return;
@@ -491,13 +505,13 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
             }
 
             synchronized (listeners) {
-                for (Callback2<IntIPv4, MAC> cb: listeners)
+                for (Callback2<IPv4Addr, MAC> cb: listeners)
                     cb.call(key, (newV != null) ? newV.macAddr : null);
             }
         }
 
         @Override
-        public void get(final IntIPv4 ipAddr,
+        public void get(final IPv4Addr ipAddr,
                         final Callback1<ArpCacheEntry> cb,
                         final Long expirationTime) {
             // It's ok to do a synchronous get on the map because it only
@@ -506,7 +520,7 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
         }
 
         @Override
-        public void add(final IntIPv4 ipAddr, final ArpCacheEntry entry) {
+        public void add(final IPv4Addr ipAddr, final ArpCacheEntry entry) {
             reactorLoop.submit(new Runnable() {
 
                 @Override
@@ -521,7 +535,7 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
         }
 
         @Override
-        public void remove(final IntIPv4 ipAddr) {
+        public void remove(final IPv4Addr ipAddr) {
             reactorLoop.submit(new Runnable() {
 
                 @Override
@@ -536,14 +550,14 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
         }
 
         @Override
-        public void notify(Callback2<IntIPv4, MAC> cb) {
+        public void notify(Callback2<IPv4Addr, MAC> cb) {
             synchronized (listeners) {
                 listeners.add(cb);
             }
         }
 
         @Override
-        public void unsubscribe(Callback2<IntIPv4, MAC> cb) {
+        public void unsubscribe(Callback2<IPv4Addr, MAC> cb) {
             synchronized (listeners) {
                 listeners.remove(cb);
             }

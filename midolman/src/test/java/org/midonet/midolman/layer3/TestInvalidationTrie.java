@@ -8,8 +8,8 @@ import java.util.Iterator;
 
 import org.junit.Assert;
 import org.junit.Test;
-
 import org.midonet.packets.IPv4;
+import org.midonet.packets.IPv4Addr;
 
 public class TestInvalidationTrie {
 
@@ -31,14 +31,14 @@ public class TestInvalidationTrie {
         child1.setDstNetworkAddr(ipRoute3);
         child1.dstNetworkLength = 32;
         trie.addRoute(child1);
-        Iterable<Integer> descendants =
+        Iterable<IPv4Addr> descendants =
             InvalidationTrie.getAllDescendantsIpDestination(trie.dstPrefixTrie);
-        Iterator<Integer> it = descendants.iterator();
-        String ip1 = IPv4.fromIPv4Address(it.next()).toString();
+        Iterator<IPv4Addr> it = descendants.iterator();
+        String ip1 = it.next().toString();
         Assert.assertEquals(ip1, ipRoute1);
-        String ip2 = IPv4.fromIPv4Address(it.next()).toString();
+        String ip2 = it.next().toString();
         Assert.assertEquals(ip2, ipRoute2);
-        String ip3 = IPv4.fromIPv4Address(it.next()).toString();
+        String ip3 = it.next().toString();
         Assert.assertEquals(ip3, ipRoute3);
     }
 }

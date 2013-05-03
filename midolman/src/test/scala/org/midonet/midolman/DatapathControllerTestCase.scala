@@ -4,21 +4,15 @@
 package org.midonet.midolman
 
 import akka.testkit.TestProbe
-import akka.util.Duration
 import collection.mutable
-import java.util.concurrent.TimeUnit
 
-import org.junit.{Ignore, Test}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.matchers.ShouldMatchers
 
-import org.midonet.midolman.FlowController.AddWildcardFlow
 import org.midonet.midolman.topology.rcu.{Host => RCUHost}
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.topology.VirtualToPhysicalMapper._
-import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
-import org.midonet.cluster.client.ExteriorBridgePort
 import org.midonet.cluster.data.{Bridge => ClusterBridge,
     Ports => ClusterPorts}
 import org.midonet.cluster.data.host.Host

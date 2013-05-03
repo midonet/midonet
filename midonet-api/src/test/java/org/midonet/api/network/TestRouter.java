@@ -176,7 +176,7 @@ public class TestRouter {
                 StaticMockDirectory.getDirectoryInstance(), "/test/midolman");
             ArpTable arpTable =
                 new ArpTable(routerMgr.getArpTableDirectory(resRouter.getId()));
-            arpTable.put(IntIPv4.fromString("10.0.0.3"),
+            arpTable.put(IPv4Addr.fromString("10.0.0.3"),
                 new ArpCacheEntry(MAC.fromString("02:00:dd:ee:ee:55"),
                     1000, 1000, 3000));
             dtoResource.deleteAndVerifyNoContent(

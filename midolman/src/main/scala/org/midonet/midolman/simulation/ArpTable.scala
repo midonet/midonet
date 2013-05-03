@@ -16,17 +16,17 @@ import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.logging.LoggerFactory
 import org.midonet.midolman.state.ArpCacheEntry
-import org.midonet.packets.{ARP, Ethernet, IntIPv4, IPAddr, IPv4, IPv4Addr, MAC}
+import org.midonet.packets.{ARP, Ethernet, IPv4, IPv4Addr, MAC}
 import org.midonet.util.functors.{Callback2, Callback1}
 
 
 /* The ArpTable is called from the Coordinators' actors and
  * processes and schedules ARPs. */
 trait ArpTable {
-    def get(ip: IntIPv4, port: RouterPort[_], expiry: Long)
+    def get(ip: IPv4Addr, port: RouterPort[_], expiry: Long)
           (implicit ec: ExecutionContext, actorSystem: ActorSystem,
            pktContext: PacketContext): Future[MAC]
-    def set(ip: IntIPv4, mac: MAC) (implicit actorSystem: ActorSystem)
+    def set(ip: IPv4Addr, mac: MAC) (implicit actorSystem: ActorSystem)
     def start()
     def stop()
 }
@@ -55,18 +55,18 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
     private val ARP_TIMEOUT_MILLIS = cfg.getArpTimeoutSeconds * 1000
     private val ARP_STALE_MILLIS = cfg.getArpStaleSeconds * 1000
     private val ARP_EXPIRATION_MILLIS = cfg.getArpExpirationSeconds * 1000
-    private val arpWaiters = new mutable.HashMap[IntIPv4,
+    private val arpWaiters = new mutable.HashMap[IPv4Addr,
                                              mutable.Set[Promise[MAC]]] with
-            SynchronizedMultiMap[IntIPv4, Promise[MAC]]
-    private var arpCacheCallback: Callback2[IntIPv4, MAC] = null
+            SynchronizedMultiMap[IPv4Addr, Promise[MAC]]
+    private var arpCacheCallback: Callback2[IPv4Addr, MAC] = null
 
     override def start() {
-        arpCacheCallback = new Callback2[IntIPv4, MAC] {
-            def call(ip: IntIPv4, mac: MAC) {
+        arpCacheCallback = new Callback2[IPv4Addr, MAC] {
+            def call(ip: IPv4Addr, mac: MAC) {
                 if (mac == null)
                     return
                 log.debug("invalidating flows for {}", ip)
-                observer(IPv4Addr.fromIntIPv4(ip), mac)
+                observer(ip, mac)
                 arpWaiters.remove(ip) match {
                     case Some(waiters)  =>
                         log.debug("ArpCache.notify cb, fwd to {} waiters -- {}",
@@ -122,7 +122,7 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
         promise
     }
 
-    private def fetchArpCacheEntry(ip: IntIPv4, expiry: Long)
+    private def fetchArpCacheEntry(ip: IPv4Addr, expiry: Long)
         (implicit ec: ExecutionContext) : Future[ArpCacheEntry] = {
         val promise = Promise[ArpCacheEntry]()(ec)
         arpCache.get(ip, new Callback1[ArpCacheEntry] {
@@ -131,11 +131,11 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
         promise.future
     }
 
-    private def removeArpWaiter(ip: IntIPv4, promise: Promise[MAC]) {
+    private def removeArpWaiter(ip: IPv4Addr, promise: Promise[MAC]) {
         arpWaiters.removeBinding(ip, promise)
     }
 
-    def waitForArpEntry(ip: IntIPv4, expiry: Long)
+    def waitForArpEntry(ip: IPv4Addr, expiry: Long)
                        (implicit ec: ExecutionContext,
                         actorSystem: ActorSystem) : Promise[MAC] = {
         val promise = Promise[MAC]()(ec)
@@ -143,7 +143,7 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
         promiseOnExpire[MAC](promise, expiry, p => removeArpWaiter(ip, p))
     }
 
-    def get(ip: IntIPv4, port: RouterPort[_], expiry: Long)
+    def get(ip: IPv4Addr, port: RouterPort[_], expiry: Long)
            (implicit ec: ExecutionContext,
             actorSystem: ActorSystem,
             pktContext: PacketContext): Future[MAC] = {
@@ -183,7 +183,7 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
         } fallbackTo { Promise.successful(null) }
     }
 
-    def set(ip: IntIPv4, mac: MAC) (implicit actorSystem: ActorSystem) {
+    def set(ip: IPv4Addr, mac: MAC) (implicit actorSystem: ActorSystem) {
         arpWaiters.remove(ip) match {
                 case Some(waiters) => waiters map { _ success mac}
                 case None =>
@@ -207,7 +207,7 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
         }
     }
 
-    private def makeArpRequest(srcMac: MAC, srcIP: IntIPv4, dstIP: IntIPv4):
+    private def makeArpRequest(srcMac: MAC, srcIP: IPv4Addr, dstIP: IPv4Addr):
                     Ethernet = {
         val arp = new ARP()
         arp.setHardwareType(ARP.HW_TYPE_ETHERNET)
@@ -218,9 +218,9 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
         arp.setSenderHardwareAddress(srcMac)
         arp.setTargetHardwareAddress(MAC.fromString("00:00:00:00:00:00"))
         arp.setSenderProtocolAddress(
-            IPv4.toIPv4AddressBytes(srcIP.addressAsInt))
+            IPv4.toIPv4AddressBytes(srcIP.toInt))
         arp.setTargetProtocolAddress(
-            IPv4.toIPv4AddressBytes(dstIP.addressAsInt))
+            IPv4.toIPv4AddressBytes(dstIP.toInt))
         val pkt: Ethernet = new Ethernet
         pkt.setPayload(arp)
         pkt.setSourceMACAddress(srcMac)
@@ -229,7 +229,7 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
     }
 
     // XXX cancel scheduled expires when an entry is refreshed?
-    private def expireCacheEntry(ip: IntIPv4)
+    private def expireCacheEntry(ip: IPv4Addr)
                                 (implicit ec: ExecutionContext) {
         val now = Platform.currentTime
         val entryFuture = fetchArpCacheEntry(ip, now + ARP_RETRY_MILLIS)
@@ -241,7 +241,7 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
         }
     }
 
-    private def arpForAddress(ip: IntIPv4, entry: ArpCacheEntry,
+    private def arpForAddress(ip: IPv4Addr, entry: ArpCacheEntry,
                               port: RouterPort[_])
                              (implicit ec: ExecutionContext,
                               actorSystem: ActorSystem,
@@ -317,8 +317,7 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
             newEntry = entry.clone()
         }
 
-        val pkt = makeArpRequest(port.portMac,
-                                 port.portAddr.getAddress.toIntIPv4, ip)
+        val pkt = makeArpRequest(port.portMac, port.portAddr.getAddress, ip)
         retryLoopBottomHalf(newEntry, pkt, 0)
     }
 

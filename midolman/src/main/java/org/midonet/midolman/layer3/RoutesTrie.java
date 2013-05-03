@@ -10,6 +10,7 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
+import org.midonet.packets.IPv4Addr;
 import org.slf4j.Logger;
 
 public abstract class RoutesTrie {
@@ -49,6 +50,12 @@ public abstract class RoutesTrie {
         }
     }
 
+    /**
+     * TODO (galo)
+     *
+     * DEPRECATED: Use IPSubnet.containsAddress
+     */
+    @Deprecated
     public static boolean addrsMatch(int addr1, int addr2, int bitlen) {
         if (bitlen <= 0)
             return true;

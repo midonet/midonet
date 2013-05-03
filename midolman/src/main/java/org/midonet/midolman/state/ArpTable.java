@@ -3,54 +3,48 @@
 package org.midonet.midolman.state;
 
 import org.apache.zookeeper.KeeperException;
+import org.midonet.packets.IPv4Addr;
 
-import org.midonet.packets.IntIPv4;
-
-public class ArpTable extends ReplicatedMap<IntIPv4, ArpCacheEntry> {
+public class ArpTable extends ReplicatedMap<IPv4Addr, ArpCacheEntry> {
 
     public ArpTable(Directory dir) {
         super(dir);
     }
 
-    private IntIPv4 unicastIPv4(IntIPv4 ip) {
-        return (ip.getMaskLength() != 32) ?
-            new IntIPv4(ip.getAddress(), 32) : ip;
+    @Override
+    public ArpCacheEntry get(IPv4Addr key) {
+        return super.get(key);
     }
 
     @Override
-    public ArpCacheEntry get(IntIPv4 key) {
-        return super.get(unicastIPv4(key));
+    public boolean containsKey(IPv4Addr key) {
+        return super.containsKey(key);
     }
 
     @Override
-    public boolean containsKey(IntIPv4 key) {
-        return super.containsKey(unicastIPv4(key));
+    public void put(IPv4Addr key, ArpCacheEntry value) {
+        super.put(key, value);
     }
 
     @Override
-    public void put(IntIPv4 key, ArpCacheEntry value) {
-        super.put(unicastIPv4(key), value);
-    }
-
-    @Override
-    public ArpCacheEntry removeIfOwner(IntIPv4 key)
+    public ArpCacheEntry removeIfOwner(IPv4Addr key)
         throws InterruptedException, KeeperException {
-        return super.removeIfOwner(unicastIPv4(key));
+        return super.removeIfOwner(key);
     }
 
     @Override
-    public synchronized boolean isKeyOwner(IntIPv4 key) {
-        return super.isKeyOwner(unicastIPv4(key));
+    public synchronized boolean isKeyOwner(IPv4Addr key) {
+        return super.isKeyOwner(key);
     }
 
     @Override
-    protected String encodeKey(IntIPv4 key) {
-        return key.toUnicastString();
+    protected String encodeKey(IPv4Addr key) {
+        return key.toString();
     }
 
     @Override
-    protected IntIPv4 decodeKey(String str) {
-        return IntIPv4.fromString(str);
+    protected IPv4Addr decodeKey(String str) {
+        return IPv4Addr.fromString(str);
     }
 
     @Override

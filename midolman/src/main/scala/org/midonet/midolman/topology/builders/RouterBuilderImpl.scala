@@ -7,7 +7,7 @@ package org.midonet.midolman.topology.builders
 import java.util.UUID
 import org.midonet.cluster.client.{ArpCache, SourceNatResource, RouterBuilder}
 import akka.actor.{ActorRef, ActorContext}
-import org.midonet.midolman.layer3.{RoutingTable, Route}
+import org.midonet.midolman.layer3.{IPv4RoutingTable, RoutingTable, Route}
 import org.midonet.midolman.topology.RouterManager.{InvalidateFlows, TriggerUpdate}
 import collection.immutable
 import collection.mutable
@@ -57,7 +57,7 @@ class RouterBuilderImpl(val id: UUID, val routerManager: ActorRef)
     def build() {
         // we always pass a new copy of the RoutingTable since this is accessed
         // by the RCU Router
-        val table = new RoutingTable()
+        val table = new IPv4RoutingTable()
         for (rt <- routes)
             table.addRoute(rt)
         if(routesToAdd.size > 0 || routesToRemove.size > 0){

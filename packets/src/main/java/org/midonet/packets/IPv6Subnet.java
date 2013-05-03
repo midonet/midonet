@@ -3,7 +3,7 @@
 package org.midonet.packets;
 
 
-public class IPv6Subnet implements IPSubnet<IPv6Addr> {
+public final class IPv6Subnet implements IPSubnet<IPv6Addr> {
 
     private IPv6Addr addr;
     private int prefixLen;
@@ -68,6 +68,27 @@ public class IPv6Subnet implements IPSubnet<IPv6Addr> {
     @Override
     public String toZkString() {
         return addr.toString() + "_" + prefixLen;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof IPv6Subnet)) return false;
+
+        IPv6Subnet that = (IPv6Subnet) o;
+
+        if (prefixLen != that.prefixLen) return false;
+        if (addr != null ? !addr.equals(that.addr) : that.addr != null)
+            return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = addr != null ? addr.hashCode() : 0;
+        result = 31 * result + prefixLen;
+        return result;
     }
 
     public static IPv6Subnet fromString(String subnetStr) {
