@@ -141,7 +141,7 @@ class PacketWorkflowActor(
             }
             workflowFuture onComplete {
                 case _ =>
-                    log.info("Packet with {} processed, stopping actor", cookieStr)
+                    log.debug("Packet with {} processed, stopping actor", cookieStr)
                     self ! PoisonPill
             }
     }
