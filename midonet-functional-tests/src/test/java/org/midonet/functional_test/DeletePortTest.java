@@ -4,12 +4,12 @@
 
 package org.midonet.functional_test;
 
-import akka.testkit.TestActor;
+import java.util.concurrent.TimeUnit;
+
 import akka.util.Duration;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.midonet.client.dto.DtoRoute;
-import org.midonet.client.resource.Host;
-import org.midonet.client.resource.ResourceCollection;
 import org.midonet.client.resource.Router;
 import org.midonet.client.resource.RouterPort;
 import org.midonet.functional_test.utils.TapWrapper;
@@ -20,15 +20,13 @@ import org.midonet.packets.MAC;
 import org.midonet.packets.MalformedPacketException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.concurrent.TimeUnit;
-
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
 import static org.midonet.util.Waiters.sleepBecause;
 
+@Ignore
 public class DeletePortTest extends TestBase {
 
     private final static Logger log = LoggerFactory.getLogger(
