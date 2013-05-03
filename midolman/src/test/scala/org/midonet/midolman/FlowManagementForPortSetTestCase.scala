@@ -34,7 +34,7 @@ import org.midonet.odp.FlowMatch
 import org.midonet.odp.Packet
 import org.midonet.odp.flows._
 import org.midonet.odp.flows.FlowKeys.{ethernet, inPort, tunnelID}
-import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
+import org.midonet.sdn.flows.{WildcardFlowBuilder, WildcardMatch}
 
 
 @RunWith(classOf[JUnitRunner])
@@ -137,7 +137,7 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
             .ifaceNameToDpPort("port1b").getPortNo
         val localPortNumber3 = dpController().underlyingActor
             .ifaceNameToDpPort("port1c").getPortNo
-        val wildcardFlow = new WildcardFlow()
+        val wildcardFlow = new WildcardFlowBuilder()
             .setMatch(new WildcardMatch().setInputPortUUID(port1OnHost1.getId)
                                          .setEthernetSource(srcMAC))
             .addAction(new FlowActionOutputToVrnPortSet(bridge.getId))
@@ -280,7 +280,7 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
         // VirtualToPhysicalMapper has the correct information for the PortSet.
         portsProbe.expectMsgClass(classOf[LocalPortActive])
 
-        val wildcardFlow = new WildcardFlow()
+        val wildcardFlow = new WildcardFlowBuilder()
             .setMatch(new WildcardMatch().setInputPortUUID(port1OnHost1.getId))
             .addAction(new FlowActionOutputToVrnPortSet(bridge.getId))
 
@@ -329,7 +329,7 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
         // VirtualToPhysicalMapper has the correct information for the PortSet.
         portsProbe.expectMsgClass(classOf[LocalPortActive])
 
-        val wildcardFlow = new WildcardFlow()
+        val wildcardFlow = new WildcardFlowBuilder()
             .setMatch(new WildcardMatch().setInputPortUUID(port1OnHost1.getId))
             .addAction(new FlowActionOutputToVrnPortSet(bridge.getId))
 
@@ -380,7 +380,7 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
         // VirtualToPhysicalMapper has the correct information for the PortSet.
         portsProbe.expectMsgClass(classOf[LocalPortActive])
 
-        val wildcardFlow = new WildcardFlow()
+        val wildcardFlow = new WildcardFlowBuilder()
             .setMatch(new WildcardMatch().setInputPortUUID(port1OnHost1.getId))
             .addAction(new FlowActionOutputToVrnPortSet(bridge.getId))
 
@@ -453,7 +453,7 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
         portsProbe.expectMsgClass(classOf[LocalPortActive])
         portsProbe.expectMsgClass(classOf[LocalPortActive])
 
-        val wildcardFlow = new WildcardFlow()
+        val wildcardFlow = new WildcardFlowBuilder()
             .setMatch(new WildcardMatch().setInputPortUUID(port1OnHost1.getId))
             .addAction(new FlowActionOutputToVrnPortSet(bridge.getId))
 

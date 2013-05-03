@@ -3,6 +3,7 @@
 */
 package org.midonet.midolman
 
+import scala.collection.JavaConversions._
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -118,7 +119,7 @@ class BridgeFloodOptimizationsTestCase extends MidolmanTestCase
         triggerPacketIn(ingressPortName, ethPkt)
         // expect one wild flow to be added
         var wflow = flowEventsProbe.expectMsgClass(classOf[WildcardFlowAdded]).f
-        outports = actionsToOutputPorts(wflow.getActions)
+        outports = actionsToOutputPorts(wflow.actions)
         outports should have size (1)
         outports should (contain (portId1))
         // one dp flow should also have been added and one packet forwarded
@@ -126,7 +127,7 @@ class BridgeFloodOptimizationsTestCase extends MidolmanTestCase
         mockDpConn().flowsTable.size() should be(1)
 
         pktOut = packetEventsProbe.expectMsgClass(classOf[PacketsExecute])
-        pktOut.packet.getActions should be (wflow.getActions)
+        (pktOut.packet.getActions.toArray) should be (wflow.getActions.toArray)
         pktOut.packet.getData should be (ethPkt.serialize())
         mockDpConn().packetsSent.size() should be (2)
         mockDpConn().packetsSent.get(1) should be (pktOut.packet)
@@ -147,7 +148,7 @@ class BridgeFloodOptimizationsTestCase extends MidolmanTestCase
         mockDpConn().flowsTable.size() should be(2)
 
         pktOut = packetEventsProbe.expectMsgClass(classOf[PacketsExecute])
-        pktOut.packet.getActions should be (wflow.getActions)
+        pktOut.packet.getActions.toArray should be (wflow.getActions.toArray)
         pktOut.packet.getData should be (ethPkt.serialize())
         mockDpConn().packetsSent.size() should be (3)
         mockDpConn().packetsSent.get(2) should be (pktOut.packet)

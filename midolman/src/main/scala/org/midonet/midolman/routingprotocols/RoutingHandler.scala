@@ -26,7 +26,7 @@ import org.midonet.odp.ports.NetDevPort
 import org.midonet.packets._
 import org.midonet.quagga._
 import org.midonet.quagga.ZebraProtocol.RIBType
-import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
+import org.midonet.sdn.flows.{WildcardFlowBuilder, WildcardMatch}
 import org.midonet.util.process.ProcessHelper
 import scala.collection.JavaConversions._
 import org.midonet.midolman.logging.ActorLogWithoutPath
@@ -749,7 +749,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
             .setNetworkDestination(IPv4Addr.fromIntIPv4(bgp.getPeerAddr.toHostAddress))
             .setTransportDestination(BGP_TCP_PORT)
 
-        var wildcardFlow = new WildcardFlow()
+        var wildcardFlow = new WildcardFlowBuilder()
             .setMatch(wildcardMatch)
             .addAction(new FlowActionOutputToVrnPort(bgpPort.id))
 
@@ -765,7 +765,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
             .setNetworkDestination(IPv4Addr.fromIntIPv4(bgp.getPeerAddr.toHostAddress))
             .setTransportSource(BGP_TCP_PORT)
 
-        wildcardFlow = new WildcardFlow()
+        wildcardFlow = new WildcardFlowBuilder()
             .setMatch(wildcardMatch)
             .addAction(new FlowActionOutputToVrnPort(bgpPort.id))
 
@@ -781,7 +781,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
             .setNetworkDestination(bgpPort.portAddr.getAddress)
             .setTransportDestination(BGP_TCP_PORT)
 
-        wildcardFlow = new WildcardFlow()
+        wildcardFlow = new WildcardFlowBuilder()
             .setMatch(wildcardMatch)
             .addAction(FlowActions.output(localPortNum))
 
@@ -797,7 +797,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
             .setNetworkDestination(bgpPort.portAddr.getAddress)
             .setTransportSource(BGP_TCP_PORT)
 
-        wildcardFlow = new WildcardFlow()
+        wildcardFlow = new WildcardFlowBuilder()
             .setMatch(wildcardMatch)
             .addAction(FlowActions.output(localPortNum))
 
@@ -809,7 +809,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
             .setInputPortNumber(localPortNum)
             .setEtherType(ARP.ETHERTYPE)
 
-        wildcardFlow = new WildcardFlow()
+        wildcardFlow = new WildcardFlowBuilder()
             .setMatch(wildcardMatch)
             .addAction(new FlowActionOutputToVrnPort(bgpPort.id))
 
@@ -829,7 +829,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
             .setNetworkSource(IPv4Addr.fromIntIPv4(bgp.getPeerAddr.toHostAddress))
             .setNetworkDestination(bgpPort.portAddr.getAddress)
 
-        wildcardFlow = new WildcardFlow()
+        wildcardFlow = new WildcardFlowBuilder()
             .setMatch(wildcardMatch)
             .addAction(FlowActions.output(localPortNum))
             .addAction(new FlowActionUserspace) // Netlink Pid filled by datapath controller
@@ -845,7 +845,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
             .setNetworkSource(bgpPort.portAddr.getAddress)
             .setNetworkDestination(IPv4Addr.fromIntIPv4(bgp.getPeerAddr.toHostAddress))
 
-        wildcardFlow = new WildcardFlow()
+        wildcardFlow = new WildcardFlowBuilder()
             .setMatch(wildcardMatch)
             .addAction(new FlowActionOutputToVrnPort(bgpPort.id))
 
@@ -860,7 +860,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
             .setNetworkSource(IPv4Addr.fromIntIPv4(bgp.getPeerAddr.toHostAddress))
             .setNetworkDestination(bgpPort.portAddr.getAddress)
 
-        wildcardFlow = new WildcardFlow()
+        wildcardFlow = new WildcardFlowBuilder()
             .setMatch(wildcardMatch)
             .addAction(FlowActions.output(localPortNum))
 

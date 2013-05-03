@@ -18,7 +18,7 @@ import org.midonet.cluster.data.zones.GreTunnelZoneHost
 import org.midonet.odp.flows.{FlowActionOutput, FlowActionSetKey,
     FlowKeyTunnelID}
 import org.midonet.packets.IntIPv4
-import org.midonet.sdn.flows.{WildcardMatch, WildcardFlow}
+import org.midonet.sdn.flows.{WildcardMatch, WildcardFlowBuilder}
 
 
 @RunWith(classOf[JUnitRunner])
@@ -74,7 +74,7 @@ class InstallWildcardFlowForRemotePortTestCase extends MidolmanTestCase
         val inputPortNo = dpController().underlyingActor
             .ifaceNameToDpPort("port1").getPortNo
 
-        val wildcardFlow = new WildcardFlow()
+        val wildcardFlow = new WildcardFlowBuilder()
             .setMatch(new WildcardMatch().setInputPortUUID(portOnHost1.getId))
             .addAction(new FlowActionOutputToVrnPort(portOnHost2.getId))
 
@@ -92,15 +92,15 @@ class InstallWildcardFlowForRemotePortTestCase extends MidolmanTestCase
         addFlowMsg.f.getMatch.getInputPortUUID should be(null)
         addFlowMsg.f.getMatch.getInputPortNumber should be(inputPortNo)
 
-        val flowActs = addFlowMsg.f.getActions
+        val flowActs = addFlowMsg.f.actions
         flowActs should not be (null)
         flowActs should have size(2)
 
-        val setKeyAction = as[FlowActionSetKey](flowActs.get(0))
+        val setKeyAction = as[FlowActionSetKey](flowActs(0))
         as[FlowKeyTunnelID](setKeyAction.getFlowKey)
                 .getTunnelID should be (portOnHost2.getTunnelKey)
 
-        val outputActions = as[FlowActionOutput](flowActs.get(1))
+        val outputActions = as[FlowActionOutput](flowActs(1))
         outputActions.getPortNumber should be (tunnelId)
     }
 }

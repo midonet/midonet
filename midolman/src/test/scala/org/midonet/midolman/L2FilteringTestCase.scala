@@ -57,14 +57,14 @@ class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture
         log.info("sending a packet that should be dropped by jump rule")
         expectPacketDropped(0, 3, icmpBetweenPorts)
         var flow = fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
-        flow.f.getActions.size() should be (0)
+        flow.f.actions.size should be (0)
 
         log.info("removing a rule from the jump rule itself (inner chain)")
         deleteRule(jumpRule.getId)
         fishForRequestOfType[WildcardFlowRemoved](wflowRemovedProbe)
         expectPacketAllowed(vmPortNumbers(0), vmPortNumbers(3), icmpBetweenPorts)
         flow = fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
-        flow.f.getActions.size() should (be > 0)
+        flow.f.actions.size should (be > 0)
 
         log.info("adding back rule from the jump rule itself (inner chain)")
         newLiteralRuleOnChain(jumpChain, 1, cond1, RuleResult.Action.DROP)
@@ -73,12 +73,12 @@ class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture
         // expect that packet is dropped
         expectPacketDropped(0, 3, icmpBetweenPorts)
         flow = fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
-        flow.f.getActions.size() should be (0)
+        flow.f.actions.size should be (0)
 
     }
 
     def test() {
-        flowController().underlyingActor.flowToTags.size should be === vmPorts.size
+        flowController().underlyingActor.flowManager.getNumWildcardFlows should be === vmPorts.size
 
         log.info("populating the mac learning table with an arp request from each port")
         (vmPortNames, vmMacs, vmIps).zipped foreach {
@@ -116,7 +116,7 @@ class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture
             fishForRequestOfType[WildcardFlowRemoved](wflowRemovedProbe)
             fishForRequestOfType[WildcardFlowRemoved](wflowRemovedProbe)
         }
-        flowController().underlyingActor.flowToTags.size should be === vmPorts.size
+        flowController().underlyingActor.flowManager.getNumWildcardFlows should be === vmPorts.size
         drainProbe(packetsEventsProbe)
         drainProbe(wflowAddedProbe)
         drainProbe(wflowRemovedProbe)
@@ -139,7 +139,7 @@ class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture
                                           RuleResult.Action.DROP)
 
         1 to 3 foreach { _ => fishForRequestOfType[WildcardFlowRemoved](wflowRemovedProbe) }
-        flowController().underlyingActor.flowToTags.size should be === vmPorts.size
+        flowController().underlyingActor.flowManager.getNumWildcardFlows should be === vmPorts.size
 
         log.info("sending two packets that should be dropped by rule 3")
         expectPacketDropped(4, 1, icmpBetweenPorts)
@@ -159,7 +159,7 @@ class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture
         val rule4 = newLiteralRuleOnChain(brInChain, 4, cond4,
                                           RuleResult.Action.DROP)
         1 to 4 foreach { _ => fishForRequestOfType[WildcardFlowRemoved](wflowRemovedProbe) }
-        flowController().underlyingActor.flowToTags.size should be === vmPorts.size
+        flowController().underlyingActor.flowManager.getNumWildcardFlows should be === vmPorts.size
 
         log.info("sending an lldp packet that should be dropped by rule 4")
         expectPacketDropped(4, 3, lldpBetweenPorts)
@@ -172,7 +172,7 @@ class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture
         clusterDataClient().rulesDelete(rule4.getId)
         fishForRequestOfType[WildcardFlowRemoved](wflowRemovedProbe)
         fishForRequestOfType[WildcardFlowRemoved](wflowRemovedProbe)
-        flowController().underlyingActor.flowToTags.size should be === vmPorts.size
+        flowController().underlyingActor.flowManager.getNumWildcardFlows should be === vmPorts.size
 
         log.info("sending an lldp packet that should be allowed by the " +
                  "removal of rule 4")
