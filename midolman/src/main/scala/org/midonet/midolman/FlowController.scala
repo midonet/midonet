@@ -40,7 +40,7 @@ object FlowController extends Referenceable {
 
     case class FlowAdded(flow: Flow)
 
-    case class RemoveWildcardFlow(flow: WildcardFlow)
+    case class RemoveWildcardFlow(wMatch: WildcardMatch)
 
     case class InvalidateFlowsByTag(tag: Any)
 
@@ -178,9 +178,15 @@ class FlowController extends Actor with ActorLogWithoutPath {
                         removeWildcardFlow(wildFlow)
             }
 
-        case RemoveWildcardFlow(flow) =>
-            log.debug("Removing wcflow {}", flow)
-            removeWildcardFlow(flow)
+        case RemoveWildcardFlow(wmatch) =>
+            log.debug("Removing wcflow for match {}", wmatch)
+            wildcardTables.get(wmatch.getUsedFields) match {
+                case null =>
+                case table => table.get(wmatch) match {
+                    case null =>
+                    case wflow => removeWildcardFlow(wflow)
+                }
+            }
 
         case CheckFlowExpiration() =>
             flowManager.checkFlowsExpiration()
@@ -340,7 +346,7 @@ class FlowController extends Actor with ActorLogWithoutPath {
         }
 
         def removeWildcardFlow(flow: WildcardFlow) {
-            self ! RemoveWildcardFlow(flow)
+            self ! RemoveWildcardFlow(flow.getMatch)
         }
 
         def getFlow(flowMatch: FlowMatch) {

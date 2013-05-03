@@ -9,6 +9,7 @@ import scala.collection.{Set => ROSet}
 
 import org.apache.commons.lang.builder.HashCodeBuilder
 
+import org.midonet.odp.FlowMatch
 import org.midonet.odp.flows.FlowAction
 import org.midonet.util.collections.WeakObjectPool
 import org.midonet.util.functors.Callback0
@@ -81,6 +82,7 @@ class WildcardFlow(override val priority: Short,
                    var lastUsedTimeMillis: Long = 0L,
                    var callbacks: Array[Callback0] = new Array[Callback0](0),
                    var tags: Array[Any] = new Array[Any](0)) extends WildcardFlowBase {
+    val dpFlows = new java.util.HashSet[FlowMatch](4)
 
     def getLastUsedTimeMillis = lastUsedTimeMillis
     def getCreationTimeMillis = creationTimeMillis

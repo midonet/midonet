@@ -256,7 +256,7 @@ class BridgeInvalidationTest extends MidolmanTestCase
 
         // this will make the flowCount for vmMac2 go to 0, so it will be unlearnt
         // and the flow from 1 to 2 should get invalidated
-        flowProbe().testActor ! RemoveWildcardFlow(flowToRemove.f)
+        flowProbe().testActor ! RemoveWildcardFlow(flowToRemove.f.getMatch)
         fishForRequestOfType[WildcardFlowRemoved](wflowRemovedProbe)
         // wait for the flow to be removed
         Thread.sleep(macPortExpiration + 100)

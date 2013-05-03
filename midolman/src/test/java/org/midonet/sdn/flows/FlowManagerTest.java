@@ -95,7 +95,7 @@ public class FlowManagerTest {
                    equalTo(numberOfFlowsAdded));
 
         assertThat("WildcardFlowsToDpFlows was not updated",
-                   flowManager.getWildFlowToDpFlows().size(),
+                   flowManager.getNumWildcardFlows(),
                    equalTo(numberOfFlowsAdded));
 
         assertThat("DpFlowToWildFlow table was not updated",
@@ -141,7 +141,7 @@ public class FlowManagerTest {
                    equalTo(numberOfFlowsAdded));
 
         assertThat("WildcardFlowsToDpFlows was not updated",
-                   flowManager.getWildFlowToDpFlows().size(),
+                   flowManager.getNumWildcardFlows(),
                    equalTo(numberOfFlowsAdded));
 
         assertThat("DpFlowToWildFlow table was not updated",
@@ -206,8 +206,8 @@ public class FlowManagerTest {
                    equalTo(numberOfFlowsAdded));
 
         assertThat("WildcardFlowsToDpFlows was not updated",
-                   flowManager.getWildFlowToDpFlows().get(wflow).size(),
-                   equalTo(numberOfFlowsAdded));
+                flowManager.getWildcardFlow(wflow.getMatch()).dpFlows().size(),
+                equalTo(numberOfFlowsAdded));
 
         assertThat("DpFlowToWildFlow table was not updated",
                    flowManager.getDpFlowToWildFlow().size(),
@@ -365,17 +365,17 @@ public class FlowManagerTest {
         }
 
         assertThat("FlowManager didn't accept the first wildcard flow", flowManager.add(flows.get(0).build()));
-        assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(1l));
+        assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(1));
         assertThat("FlowManager didn't accept the second wildcard flow", flowManager.add(flows.get(1).build()));
-        assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(2l));
+        assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(2));
         assertThat("FlowManager didn't accept the third wildcard flow", flowManager.add(flows.get(2).build()));
-        assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(3l));
+        assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(3));
         assertThat("FlowManager didn't accept the fourth wildcard flow", flowManager.add(flows.get(3).build()));
-        assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(4l));
+        assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(4));
         assertThat("FlowManager didn't accept the fifth wildcard flow", flowManager.add(flows.get(4).build()));
-        assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(5l));
+        assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(5));
         assertThat("FlowManager didn't reject the last wildcard flow", !flowManager.add(flows.get(5).build()));
-        assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(5l));
+        assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(5));
     }
 
     @Test
@@ -392,22 +392,22 @@ public class FlowManagerTest {
         }
 
         assertThat("FlowManager didn't accept the first wildcard flow", flowManager.add(flows.get(0).build()));
-        assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(1l));
+        assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(1));
         assertThat("FlowManager didn't accept the second wildcard flow", flowManager.add(flows.get(1).build()));
-        assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(2l));
+        assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(2));
         assertThat("FlowManager didn't accept the third wildcard flow", flowManager.add(flows.get(2).build()));
-        assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(3l));
+        assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(3));
         assertThat("FlowManager didn't accept the fourth wildcard flow", flowManager.add(flows.get(3).build()));
-        assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(4l));
+        assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(4));
         assertThat("FlowManager didn't accept the fifth wildcard flow", flowManager.add(flows.get(4).build()));
-        assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(5l));
+        assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(5));
 
         Thread.sleep(timeOut);
         // all wildcardflows should have been expired now, but they will be there.
-        assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(5l));
+        assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(5));
         // when adding a new wildcard flow it will clean the expired flows.
         assertThat("FlowManager didn't accept the new wildcard flow", flowManager.add(flows.get(5).build()));
-        assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(5l));
+        assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(5));
     }
 
     private List<FlowAction<?>>actionsAsJava(WildcardFlowBase wflow) {
