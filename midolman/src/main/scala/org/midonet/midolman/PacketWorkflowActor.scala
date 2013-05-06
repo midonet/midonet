@@ -39,7 +39,7 @@ import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.odp.Packet.Reason.FlowActionUserspace
 import org.midonet.util.functors.Callback0
 import org.midonet.util.throttling.ThrottlingGuard
-import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch, WildcardFlowBuilder}
+import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 
 
 object PacketWorkflowActor {
@@ -59,7 +59,7 @@ object PacketWorkflowActor {
 
     case class SendPacket(actions: List[FlowAction[_]]) extends SimulationAction
 
-    case class AddVirtualWildcardFlow(flow: WildcardFlowBuilder,
+    case class AddVirtualWildcardFlow(flow: WildcardFlow,
                                       flowRemovalCallbacks: ROSet[Callback0],
                                       tags: ROSet[Any]) extends SimulationAction
 }
@@ -155,7 +155,7 @@ class PacketWorkflowActor(
     private def flowAddedCallback(cookie: Int,
                                   promise: Promise[Boolean],
                                   flow: Flow,
-                                  newWildFlow: Option[WildcardFlowBuilder] = None,
+                                  newWildFlow: Option[WildcardFlow] = None,
                                   tags: ROSet[Any] = Set.empty,
                                   removalCallbacks: ROSet[Callback0] = Set.empty) =
         new NetlinkCallback[Flow] {
@@ -166,7 +166,7 @@ class PacketWorkflowActor(
                         FlowController.getRef() ! FlowAdded(dpFlow)
                     case Some(wf) =>
                         FlowController.getRef() !
-                            AddWildcardFlow(wf.build, Some(dpFlow),
+                            AddWildcardFlow(wf, Some(dpFlow),
                                 removalCallbacks, tags, lastInvalidation)
                 }
                 DeduplicationActor.getRef() ! ApplyFlow(dpFlow.getActions, Some(cookie))
@@ -200,7 +200,7 @@ class PacketWorkflowActor(
             }
         }
 
-    private def addTranslatedFlow(wildFlow: WildcardFlowBuilder,
+    private def addTranslatedFlow(wildFlow: WildcardFlow,
                                   tags: ROSet[Any] = Set.empty,
                                   removalCallbacks: ROSet[Callback0] = Set.empty,
                                   expiration: Long = 3000,
@@ -217,7 +217,7 @@ class PacketWorkflowActor(
 
             case Some(cook) if (valid && packet.getMatch.isUserSpaceOnly) =>
                 FlowController.getRef() !
-                    AddWildcardFlow(wildFlow.build, None, removalCallbacks,
+                    AddWildcardFlow(wildFlow, None, removalCallbacks,
                                     tags, lastInvalidation)
 
                 DeduplicationActor.getRef() ! ApplyFlow(wildFlow.getActions, cookie)
@@ -234,7 +234,7 @@ class PacketWorkflowActor(
             case None if (valid) =>
                 log.debug("Adding wildcard flow only for {}: {}", cookieStr, wildFlow)
                 FlowController.getRef() !
-                    AddWildcardFlow(wildFlow.build, None, removalCallbacks,
+                    AddWildcardFlow(wildFlow, None, removalCallbacks,
                                     tags, lastInvalidation)
                 flowPromise.success(true)
 
@@ -256,11 +256,11 @@ class PacketWorkflowActor(
                                             expiration: Int = 3000,
                                             priority: Short = 0): Future[Boolean] = {
 
-        val wildFlow = new WildcardFlowBuilder().
-            setMatch(WildcardMatch.fromFlowMatch(packet.getMatch)).
-            setIdleExpirationMillis(expiration).
-            setActions(actions.toList).
-            setPriority(priority)
+        val wildFlow = WildcardFlow(
+            wcmatch = WildcardMatch.fromFlowMatch(packet.getMatch),
+            idleExpirationMillis = expiration,
+            actions =  actions.toList,
+            priority = priority)
 
         addTranslatedFlow(wildFlow, tags, removalCallbacks, expiration, priority)
     }
@@ -381,10 +381,9 @@ class PacketWorkflowActor(
                 // it if the port comes up later on.
                 log.debug("PacketIn came from a tunnel port but " +
                     "the key does not map to any PortSet")
-                val wildFlow = new WildcardFlowBuilder().
-                    setMatch(wMatch).
-                    setHardExpirationMillis(ERROR_CONDITION_HARD_EXPIRATION)
-                wildFlow.setActions(Nil)
+                val wildFlow = WildcardFlow(
+                    wcmatch = wMatch,
+                    hardExpirationMillis = ERROR_CONDITION_HARD_EXPIRATION)
                 addTranslatedFlow(wildFlow,
                     Set(FlowTagger.invalidateByTunnelKey(wMatch.getTunnelID)),
                     Set.empty)
@@ -466,7 +465,7 @@ class PacketWorkflowActor(
         }
     }
 
-    def addVirtualWildcardFlow(flow: WildcardFlowBuilder,
+    def addVirtualWildcardFlow(flow: WildcardFlow,
                                flowRemovalCallbacks: ROSet[Callback0] = Set.empty,
                                tags: ROSet[Any] = Set.empty): Future[Boolean] = {
         translateVirtualWildcardFlow(flow, tags) flatMap {

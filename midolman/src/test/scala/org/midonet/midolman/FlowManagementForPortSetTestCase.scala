@@ -5,6 +5,7 @@ package org.midonet.midolman
 
 
 import scala.collection.JavaConversions._
+import scala.collection.immutable
 import scala.util.control.Breaks._
 import akka.testkit.TestProbe
 
@@ -31,8 +32,7 @@ import org.midonet.odp.FlowMatch
 import org.midonet.odp.Packet
 import org.midonet.odp.flows._
 import org.midonet.odp.flows.FlowKeys.{ethernet, inPort, tunnelID}
-import org.midonet.sdn.flows.{WildcardFlowBuilder, WildcardMatch}
-import collection.immutable
+import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 
 
 @RunWith(classOf[JUnitRunner])
@@ -135,10 +135,10 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
             .ifaceNameToDpPort("port1b").getPortNo
         val localPortNumber3 = dpController().underlyingActor
             .ifaceNameToDpPort("port1c").getPortNo
-        val wildcardFlow = new WildcardFlowBuilder()
-            .setMatch(new WildcardMatch().setInputPortUUID(port1OnHost1.getId)
-                                         .setEthernetSource(srcMAC))
-            .addAction(new FlowActionOutputToVrnPortSet(bridge.getId))
+        val wildcardFlow = WildcardFlow(
+            wcmatch = new WildcardMatch().setInputPortUUID(port1OnHost1.getId)
+                                          .setEthernetSource(srcMAC),
+            actions = List(new FlowActionOutputToVrnPortSet(bridge.getId)))
 
         dpProbe().testActor.tell(
             AddVirtualWildcardFlow(wildcardFlow, Set.empty, Set.empty))
@@ -278,9 +278,9 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
         // VirtualToPhysicalMapper has the correct information for the PortSet.
         portsProbe.expectMsgClass(classOf[LocalPortActive])
 
-        val wildcardFlow = new WildcardFlowBuilder()
-            .setMatch(new WildcardMatch().setInputPortUUID(port1OnHost1.getId))
-            .addAction(new FlowActionOutputToVrnPortSet(bridge.getId))
+        val wildcardFlow = WildcardFlow(
+            wcmatch = new WildcardMatch().setInputPortUUID(port1OnHost1.getId),
+            actions = List(new FlowActionOutputToVrnPortSet(bridge.getId)))
 
         dpProbe().testActor.tell(
             AddVirtualWildcardFlow(wildcardFlow, Set.empty, Set.empty))
@@ -327,9 +327,9 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
         // VirtualToPhysicalMapper has the correct information for the PortSet.
         portsProbe.expectMsgClass(classOf[LocalPortActive])
 
-        val wildcardFlow = new WildcardFlowBuilder()
-            .setMatch(new WildcardMatch().setInputPortUUID(port1OnHost1.getId))
-            .addAction(new FlowActionOutputToVrnPortSet(bridge.getId))
+        val wildcardFlow = WildcardFlow(
+            wcmatch = new WildcardMatch().setInputPortUUID(port1OnHost1.getId),
+            actions = List(new FlowActionOutputToVrnPortSet(bridge.getId)))
 
         dpProbe().testActor.tell(
             AddVirtualWildcardFlow(wildcardFlow, Set.empty, Set.empty))
@@ -377,9 +377,9 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
         // VirtualToPhysicalMapper has the correct information for the PortSet.
         portsProbe.expectMsgClass(classOf[LocalPortActive])
 
-        val wildcardFlow = new WildcardFlowBuilder()
-            .setMatch(new WildcardMatch().setInputPortUUID(port1OnHost1.getId))
-            .addAction(new FlowActionOutputToVrnPortSet(bridge.getId))
+        val wildcardFlow = WildcardFlow(
+            wcmatch = new WildcardMatch().setInputPortUUID(port1OnHost1.getId),
+            actions = List(new FlowActionOutputToVrnPortSet(bridge.getId)))
 
         dpProbe().testActor.tell(
             AddVirtualWildcardFlow(wildcardFlow, Set.empty, Set.empty))
@@ -451,9 +451,9 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
         portsProbe.expectMsgAllClassOf(classOf[LocalPortActive],
                                        classOf[LocalPortActive])
 
-        val wildcardFlow = new WildcardFlowBuilder()
-            .setMatch(new WildcardMatch().setInputPortUUID(port1OnHost1.getId))
-            .addAction(new FlowActionOutputToVrnPortSet(bridge.getId))
+        val wildcardFlow = WildcardFlow(
+            wcmatch = new WildcardMatch().setInputPortUUID(port1OnHost1.getId),
+            actions = List(new FlowActionOutputToVrnPortSet(bridge.getId)))
 
         dpProbe().testActor.tell(
             AddVirtualWildcardFlow(wildcardFlow, Set.empty, Set.empty))

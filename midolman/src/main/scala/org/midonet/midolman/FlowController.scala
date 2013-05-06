@@ -27,9 +27,9 @@ import org.midonet.netlink.exceptions.NetlinkException.ErrorCode
 import org.midonet.odp.{Datapath, Flow, FlowMatch}
 import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.util.functors.{Callback0, Callback1}
-import org.midonet.sdn.flows.{FlowManagerHelper, WildcardMatch, FlowManager,
-                              WildcardFlow}
-
+import org.midonet.sdn.flows.{FlowManagerHelper, ManagedWildcardFlow,
+                              WildcardMatch, FlowManager, WildcardFlow}
+import org.midonet.util.collection.{ArrayObjectPool, ObjectPool}
 
 // TODO(guillermo) - move to a scala util pkg in midonet-util
 sealed trait EventSearchResult
@@ -103,6 +103,8 @@ object FlowController extends Referenceable {
 
     case class FlowUpdateCompleted(flow: Flow)
 
+    val MIN_WILDCARD_FLOW_CAPACITY = 4096
+
     // TODO(guillermo) tune these values
     private val WILD_FLOW_TABLE_CONCURRENCY_LEVEL = 1
     private val WILD_FLOW_TABLE_LOAD_FACTOR = 0.75f
@@ -110,9 +112,9 @@ object FlowController extends Referenceable {
     private val WILD_FLOW_PARENT_TABLE_INITIAL_CAPACITY = 256
 
     private val wildcardTables: JMap[JSet[WildcardMatch.Field],
-                                        JMap[WildcardMatch, WildcardFlow]] =
+                                        JMap[WildcardMatch, ManagedWildcardFlow]] =
         new ConcHashMap[JSet[WildcardMatch.Field],
-                        JMap[WildcardMatch, WildcardFlow]](
+                        JMap[WildcardMatch, ManagedWildcardFlow]](
             WILD_FLOW_PARENT_TABLE_INITIAL_CAPACITY,
             WILD_FLOW_TABLE_LOAD_FACTOR,
             WILD_FLOW_TABLE_CONCURRENCY_LEVEL)
@@ -124,7 +126,7 @@ object FlowController extends Referenceable {
             override def addTable(pattern: JSet[WildcardMatch.Field]) = {
                 var table = wildcardTables.get(pattern)
                 if (table == null) {
-                    table = new ConcHashMap[WildcardMatch, WildcardFlow](
+                    table = new ConcHashMap[WildcardMatch, ManagedWildcardFlow](
                                     WILD_FLOW_TABLE_INITIAL_CAPACITY,
                                     WILD_FLOW_TABLE_LOAD_FACTOR,
                                     WILD_FLOW_TABLE_CONCURRENCY_LEVEL)
@@ -135,8 +137,8 @@ object FlowController extends Referenceable {
             }
         }
 
-    def queryWildcardFlowTable(flowMatch: FlowMatch): Option[WildcardFlow] = {
-        var wildFlow: WildcardFlow = null
+    def queryWildcardFlowTable(flowMatch: FlowMatch): Option[ManagedWildcardFlow] = {
+        var wildFlow: ManagedWildcardFlow = null
         val wildMatch = WildcardMatch.fromFlowMatch(flowMatch)
 
         for (entry <- wildcardTables.entrySet()) {
@@ -190,17 +192,22 @@ class FlowController extends Actor with ActorLogWithoutPath {
     var flowManager: FlowManager = null
     var flowManagerHelper: FlowManagerHelper = null
 
-    val tagToFlows: MultiMap[Any, WildcardFlow] =
-        new HashMap[Any, mutable.Set[WildcardFlow]]
-            with MultiMap[Any, WildcardFlow]
+    val tagToFlows: MultiMap[Any, ManagedWildcardFlow] =
+        new HashMap[Any, mutable.Set[ManagedWildcardFlow]]
+            with MultiMap[Any, ManagedWildcardFlow]
 
     var flowExpirationCheckInterval: Duration = null
+
+    private var wildFlowPool: ObjectPool[ManagedWildcardFlow] = null
 
     override def preStart() {
         super.preStart()
         FlowController.wildcardTables.clear()
         val maxDpFlows = midolmanConfig.getDatapathMaxFlowCount
-        val maxWildcardFlows = midolmanConfig.getDatapathMaxWildcardFlowCount
+        val maxWildcardFlows = midolmanConfig.getDatapathMaxWildcardFlowCount match {
+            case x if (x < MIN_WILDCARD_FLOW_CAPACITY) => MIN_WILDCARD_FLOW_CAPACITY
+            case y => y
+        }
         val idleFlowToleranceInterval = midolmanConfig.getIdleFlowToleranceInterval
         flowExpirationCheckInterval = Duration(midolmanConfig.getFlowExpirationInterval,
             TimeUnit.MILLISECONDS)
@@ -211,6 +218,9 @@ class FlowController extends Actor with ActorLogWithoutPath {
             FlowController.wildcardTablesProvider ,maxDpFlows, maxWildcardFlows,
             idleFlowToleranceInterval, context.system.eventStream)
 
+        wildFlowPool = new ArrayObjectPool[ManagedWildcardFlow](maxWildcardFlows) {
+            override def allocate = new ManagedWildcardFlow(this)
+        }
     }
 
     def receive = LoggingReceive {
@@ -227,7 +237,24 @@ class FlowController extends Actor with ActorLogWithoutPath {
 
         case AddWildcardFlow(wildFlow, flowOption, callbacks, tags, lastInval) =>
             if (FlowController.isTagSetStillValid(lastInval, tags)) {
-                handleFlowAddedForNewWildcard(wildFlow, flowOption, callbacks, tags)
+                wildFlowPool.take.orElse {
+                    flowManager.evictOneFlow()
+                    wildFlowPool.take
+                } match {
+                    case None =>
+                        log.warning("Failed to add wildcard flow, no capacity")
+                    case Some(managedFlow) =>
+                        managedFlow.reset(wildFlow)
+                        // the FlowController's ref
+                        managedFlow.ref()
+                        if (handleFlowAddedForNewWildcard(managedFlow, flowOption, callbacks, tags)) {
+                            context.system.eventStream.publish(WildcardFlowAdded(wildFlow))
+                            log.debug("Added wildcard flow {} with tags {}", wildFlow, tags)
+                        } else {
+                            // the FlowController's ref
+                            managedFlow.unref()
+                        }
+                }
             } else {
                 log.debug("Skipping obsolete wildcard flow {} with tags {}",
                           wildFlow.getMatch, tags)
@@ -273,7 +300,8 @@ class FlowController extends Actor with ActorLogWithoutPath {
 
         case getFlowOnError(callback) => callback.call(null)
 
-        case flowMissing(flowMatch) =>
+        case flowMissing(flowMatch, callback) =>
+            callback.call(null)
             Option(flowManager.getActionsForDpFlow(flowMatch)).foreach {
                 case actions =>
                     if (flowMatch.isUserSpaceOnly) {
@@ -292,32 +320,35 @@ class FlowController extends Actor with ActorLogWithoutPath {
 
     }
 
-    case class flowMissing(flowMatch: FlowMatch)
+    case class flowMissing(flowMatch: FlowMatch, flowCallback: Callback1[Flow])
     case class getFlowSucceded(flow: Flow, flowCallback: Callback1[Flow])
     case class getFlowOnError(flowCallback: Callback1[Flow])
     case class flowRemoved(flow: Flow)
 
-    private def removeWildcardFlow(wildFlow: WildcardFlow) {
+    private def removeWildcardFlow(wildFlow: ManagedWildcardFlow) {
         @tailrec
         def tagsCleanup(tags: Array[Any], i: Int = 0) {
-            if (tags.length > i) {
+            if (tags != null && tags.length > i) {
                 tagToFlows.removeBinding(tags(i), wildFlow)
                 tagsCleanup(tags, i+1)
             }
         }
         @tailrec
         def runCallbacks(callbacks: Array[Callback0], i: Int = 0) {
-            if (callbacks.length > i) {
+            if (callbacks != null && callbacks.length > i) {
                 callbacks(i).call()
                 runCallbacks(callbacks, i+1)
             }
         }
 
         log.info("removeWildcardFlow - Removing flow {}", wildFlow)
-        flowManager.remove(wildFlow)
-        tagsCleanup(wildFlow.tags)
-        runCallbacks(wildFlow.callbacks)
-        context.system.eventStream.publish(new WildcardFlowRemoved(wildFlow))
+        if (flowManager.remove(wildFlow)) {
+            tagsCleanup(wildFlow.tags)
+            wildFlow.unref() // tags ref
+            runCallbacks(wildFlow.callbacks)
+            context.system.eventStream.publish(WildcardFlowRemoved(wildFlow.immutable))
+            wildFlow.unref() // FlowController's ref
+        }
     }
 
     private def handleFlowAddedForExistingWildcard(dpFlow: Flow) {
@@ -337,22 +368,21 @@ class FlowController extends Actor with ActorLogWithoutPath {
         }
     }
 
-    private def handleFlowAddedForNewWildcard(wildFlow: WildcardFlow, flow: Option[Flow],
+    private def handleFlowAddedForNewWildcard(wildFlow: ManagedWildcardFlow, flow: Option[Flow],
                                               flowRemovalCallbacks: ROSet[Callback0],
-                                              tags: ROSet[Any]) {
+                                              tags: ROSet[Any]): Boolean = {
 
         if (!flowManager.add(wildFlow)) {
             log.error("FlowManager failed to install wildcard flow {}", wildFlow)
             if (null != flowRemovalCallbacks)
                 for (cb <- flowRemovalCallbacks)
                     cb.call()
-            return
+            return false
         }
-        context.system.eventStream.publish(new WildcardFlowAdded(wildFlow))
-        log.debug("Added wildcard flow {} with tags {}", wildFlow, tags)
 
         if (null != flowRemovalCallbacks)
             wildFlow.callbacks = flowRemovalCallbacks.toArray
+        wildFlow.ref() // tags ref
         if (null != tags) {
             wildFlow.tags = tags.toArray
             for (tag <- tags) {
@@ -364,15 +394,18 @@ class FlowController extends Actor with ActorLogWithoutPath {
             case Some(dpFlow) => flowManager.add(dpFlow, wildFlow)
             case None =>
         }
+        true
     }
 
     class FlowManagerInfoImpl() extends FlowManagerHelper {
+        val sched = context.system.scheduler
+
         private def _removeFlow(flow: Flow, retries: Int) {
             def scheduleRetry() {
                 if (retries > 0) {
                     log.info("Scheduling retry of flow deletion with match: {}",
                              flow.getMatch)
-                    context.system.scheduler.scheduleOnce(1 second){
+                    sched.scheduleOnce(1 second){
                         _removeFlow(flow, retries - 1)
                     }
                 } else {
@@ -426,8 +459,8 @@ class FlowController extends Actor with ActorLogWithoutPath {
             _removeFlow(flow, 10)
         }
 
-        def removeWildcardFlow(flow: WildcardFlow) {
-            self ! RemoveWildcardFlow(flow.getMatch)
+        def removeWildcardFlow(flow: ManagedWildcardFlow) {
+            FlowController.this.removeWildcardFlow(flow)
         }
 
         def getFlow(flowMatch: FlowMatch, flowCallback: Callback1[Flow] ) {
@@ -438,7 +471,7 @@ class FlowController extends Actor with ActorLogWithoutPath {
 
                     def handleError(ex: NetlinkException, timeout: Boolean) {
                         if (ex != null && ex.getErrorCodeEnum == ErrorCode.ENOENT) {
-                            self ! flowMissing(flowMatch)
+                            self ! flowMissing(flowMatch, flowCallback)
                         } else {
                             log.error("Got an exception {} or timeout {} when " +
                                 "trying to flowsGet() for flow match {}",
@@ -451,7 +484,7 @@ class FlowController extends Actor with ActorLogWithoutPath {
                         self ! (if (data != null)
                                     getFlowSucceded(data, flowCallback)
                                 else
-                                    flowMissing(flowMatch))
+                                    flowMissing(flowMatch, flowCallback))
                     }
                 })
         }

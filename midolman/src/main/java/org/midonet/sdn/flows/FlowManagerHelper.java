@@ -14,5 +14,5 @@ public interface FlowManagerHelper {
 
     public void removeFlow(Flow flow);
 
-    public void removeWildcardFlow(WildcardFlow flow);
+    public void removeWildcardFlow(ManagedWildcardFlow flow);
 }

@@ -39,21 +39,21 @@ public class FlowManagerTest {
     Mutex updateFlowLock = new Mutex();
 
     WildcardTablesProvider wildtablesProvider = new WildcardTablesProvider() {
-        Map<Set<WildcardMatch.Field>, Map<WildcardMatch, WildcardFlow>> tables =
-                new HashMap<Set<WildcardMatch.Field>, Map<WildcardMatch, WildcardFlow>>();
+        Map<Set<WildcardMatch.Field>, Map<WildcardMatch, ManagedWildcardFlow>> tables =
+                new HashMap<Set<WildcardMatch.Field>, Map<WildcardMatch, ManagedWildcardFlow>>();
 
         @Override
-        public Map<WildcardMatch, WildcardFlow> addTable(Set<WildcardMatch.Field> pattern) {
-            Map<WildcardMatch, WildcardFlow> table = tables().get(pattern);
+        public Map<WildcardMatch, ManagedWildcardFlow> addTable(Set<WildcardMatch.Field> pattern) {
+            Map<WildcardMatch, ManagedWildcardFlow> table = tables().get(pattern);
             if (table == null) {
-                table = new HashMap<WildcardMatch, WildcardFlow>();
+                table = new HashMap<WildcardMatch, ManagedWildcardFlow>();
                 tables.put(pattern, table);
             }
             return table;
         }
 
         @Override
-        public Map<Set<WildcardMatch.Field>, Map<WildcardMatch, WildcardFlow>> tables() {
+        public Map<Set<WildcardMatch.Field>, Map<WildcardMatch, ManagedWildcardFlow>> tables() {
             return tables;
         }
     };
@@ -78,16 +78,15 @@ public class FlowManagerTest {
 
         WildcardMatch wildcardMatch = WildcardMatch.fromFlowMatch(flowMatch);
 
-        WildcardFlowBuilder wildcardFlowBuilder = WildcardFlowBuilder.empty()
-            .setMatch(wildcardMatch)
-            .setHardExpirationMillis(timeOut);
+        WildcardFlow wildcardFlow =
+            WildcardFlowFactory.createHardExpiration(wildcardMatch, timeOut);
 
         Flow flow = new Flow().
                         setMatch(flowMatch).
-                        setActions(actionsAsJava(wildcardFlowBuilder));
+                        setActions(actionsAsJava(wildcardFlow));
 
         int numberOfFlowsAdded = 0;
-        WildcardFlow wflow = wildcardFlowBuilder.build();
+        ManagedWildcardFlow wflow = ManagedWildcardFlow.create(wildcardFlow);
         flowManager.add(wflow);
         flowManager.add(flow, wflow);
         // add flow
@@ -123,13 +122,12 @@ public class FlowManagerTest {
 
         WildcardMatch wildcardMatch = WildcardMatch.fromFlowMatch(flowMatch);
 
-        WildcardFlowBuilder wildcardFlowBuilder = WildcardFlowBuilder.empty()
-            .setMatch(wildcardMatch)
-            .setIdleExpirationMillis(timeOut);
+        WildcardFlow wildcardFlow =
+            WildcardFlowFactory.createIdleExpiration(wildcardMatch, timeOut);
         Flow flow = new Flow().setMatch(flowMatch).
-                setActions(actionsAsJava(wildcardFlowBuilder));
+                setActions(actionsAsJava(wildcardFlow));
         int numberOfFlowsAdded = 0;
-        WildcardFlow wflow = wildcardFlowBuilder.build();
+        ManagedWildcardFlow wflow = ManagedWildcardFlow.create(wildcardFlow);
         flowManager.add(wflow);
         flowManager.add(flow, wflow);
         flowManagerHelper.addFlow(new Flow().setMatch(flowMatch));
@@ -169,14 +167,13 @@ public class FlowManagerTest {
         FlowMatch flowMatch = new FlowMatch().addKey(FlowKeys.tunnelID(10L));
 
         WildcardMatch wildcardMatch = WildcardMatch.fromFlowMatch(flowMatch);
-        WildcardFlowBuilder wildcardFlowBuilder = WildcardFlowBuilder.empty()
-            .setMatch(wildcardMatch)
-            .setIdleExpirationMillis(timeOut);
+        WildcardFlow wildcardFlow =
+            WildcardFlowFactory.createIdleExpiration(wildcardMatch, timeOut);
         Flow flow = new Flow().setMatch(flowMatch).
-                setActions(actionsAsJava(wildcardFlowBuilder));
+                setActions(actionsAsJava(wildcardFlow));
 
         int numberOfFlowsAdded = 0;
-        WildcardFlow wflow = wildcardFlowBuilder.build();
+        ManagedWildcardFlow wflow = ManagedWildcardFlow.create(wildcardFlow);
         flowManager.add(wflow);
         flowManager.add(flow, wflow);
         flowManagerHelper.addFlow(new Flow().setMatch(flowMatch));
@@ -251,14 +248,13 @@ public class FlowManagerTest {
         FlowMatch flowMatch = new FlowMatch().addKey(FlowKeys.tunnelID(10L));
 
         WildcardMatch wildcardMatch = WildcardMatch.fromFlowMatch(flowMatch);
-        WildcardFlowBuilder wildcardFlowBuilder = WildcardFlowBuilder.empty()
-            .setMatch(wildcardMatch)
-            .setIdleExpirationMillis(timeOut);
-        Flow flow = new Flow().setActions(actionsAsJava(wildcardFlowBuilder)).
+        WildcardFlow wildcardFlow =
+            WildcardFlowFactory.createIdleExpiration(wildcardMatch, timeOut);
+        Flow flow = new Flow().setActions(actionsAsJava(wildcardFlow)).
                                setMatch(flowMatch);
 
 
-        WildcardFlow wflow = wildcardFlowBuilder.build();
+        ManagedWildcardFlow wflow = ManagedWildcardFlow.create(wildcardFlow);
         flowManager.add(wflow);
         flowManager.add(flow, wflow);
         flowManagerHelper.addFlow(new Flow().setMatch(flowMatch));
@@ -321,12 +317,13 @@ public class FlowManagerTest {
             WildcardMatch wildcardMatch =
                 WildcardMatch.fromFlowMatch(flowMatch);
             // no time out set
-            WildcardFlowBuilder wildcardFlow = WildcardFlowBuilder.empty()
-                .setMatch(wildcardMatch);
+            WildcardFlow wildcardFlow =
+                WildcardFlowFactory.create(wildcardMatch);
             Flow flow = new Flow().setActions(actionsAsJava(wildcardFlow))
                                   .setMatch(flowMatch);
-            flowManager.add(wildcardFlow.build());
-            flowManager.add(flow, wildcardFlow.build());
+            ManagedWildcardFlow managedFlow = ManagedWildcardFlow.create(wildcardFlow);
+            flowManager.add(managedFlow);
+            flowManager.add(flow, managedFlow);
             flowManagerHelper.addFlow(flow);
         }
         flowManager.checkFlowsExpiration();
@@ -340,62 +337,62 @@ public class FlowManagerTest {
     @Test
     public void testMaximumWildcardFlows() {
         int testSize = 6;
-        List<WildcardFlowBuilder> flows = new ArrayList<WildcardFlowBuilder>(testSize);
+        List<ManagedWildcardFlow> flows = new ArrayList<ManagedWildcardFlow>(testSize);
 
         for (int counter = 0; counter < testSize; counter++) {
             FlowMatch flowMatch = new FlowMatch().addKey(FlowKeys.tunnelID(counter * 10L));
             WildcardMatch wildcardMatch = WildcardMatch.fromFlowMatch(flowMatch);
-            flows.add(WildcardFlowBuilder.empty().setMatch(wildcardMatch));
+            WildcardFlow wf = WildcardFlowFactory.create(wildcardMatch);
+            flows.add(ManagedWildcardFlow.create(wf));
 
         }
 
-        assertThat("FlowManager didn't accept the first wildcard flow", flowManager.add(flows.get(0).build()));
+        assertThat("FlowManager didn't accept the first wildcard flow", flowManager.add(flows.get(0)));
         assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(1));
-        assertThat("FlowManager didn't accept the second wildcard flow", flowManager.add(flows.get(1).build()));
+        assertThat("FlowManager didn't accept the second wildcard flow", flowManager.add(flows.get(1)));
         assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(2));
-        assertThat("FlowManager didn't accept the third wildcard flow", flowManager.add(flows.get(2).build()));
+        assertThat("FlowManager didn't accept the third wildcard flow", flowManager.add(flows.get(2)));
         assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(3));
-        assertThat("FlowManager didn't accept the fourth wildcard flow", flowManager.add(flows.get(3).build()));
+        assertThat("FlowManager didn't accept the fourth wildcard flow", flowManager.add(flows.get(3)));
         assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(4));
-        assertThat("FlowManager didn't accept the fifth wildcard flow", flowManager.add(flows.get(4).build()));
+        assertThat("FlowManager didn't accept the fifth wildcard flow", flowManager.add(flows.get(4)));
         assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(5));
-        assertThat("FlowManager didn't reject the last wildcard flow", !flowManager.add(flows.get(5).build()));
+        assertThat("FlowManager didn't reject the last wildcard flow", !flowManager.add(flows.get(5)));
         assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(5));
     }
 
     @Test
     public void testMaximumWildcardFlowsWithExpiration() throws InterruptedException {
         int testSize = 6;
-        List<WildcardFlowBuilder> flows = new ArrayList<WildcardFlowBuilder>(testSize);
+        List<ManagedWildcardFlow> flows = new ArrayList<ManagedWildcardFlow>(testSize);
 
         for (int counter = 0; counter < testSize; counter++) {
             FlowMatch flowMatch = new FlowMatch().addKey(FlowKeys.tunnelID(counter * 10L));
             WildcardMatch wildcardMatch = WildcardMatch.fromFlowMatch(flowMatch);
-            flows.add(WildcardFlowBuilder.empty()
-                    .setMatch(wildcardMatch)
-                    .setHardExpirationMillis(timeOut));
+            WildcardFlow wf = WildcardFlowFactory.createHardExpiration(wildcardMatch, timeOut);
+            flows.add(ManagedWildcardFlow.create(wf));
         }
 
-        assertThat("FlowManager didn't accept the first wildcard flow", flowManager.add(flows.get(0).build()));
+        assertThat("FlowManager didn't accept the first wildcard flow", flowManager.add(flows.get(0)));
         assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(1));
-        assertThat("FlowManager didn't accept the second wildcard flow", flowManager.add(flows.get(1).build()));
+        assertThat("FlowManager didn't accept the second wildcard flow", flowManager.add(flows.get(1)));
         assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(2));
-        assertThat("FlowManager didn't accept the third wildcard flow", flowManager.add(flows.get(2).build()));
+        assertThat("FlowManager didn't accept the third wildcard flow", flowManager.add(flows.get(2)));
         assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(3));
-        assertThat("FlowManager didn't accept the fourth wildcard flow", flowManager.add(flows.get(3).build()));
+        assertThat("FlowManager didn't accept the fourth wildcard flow", flowManager.add(flows.get(3)));
         assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(4));
-        assertThat("FlowManager didn't accept the fifth wildcard flow", flowManager.add(flows.get(4).build()));
+        assertThat("FlowManager didn't accept the fifth wildcard flow", flowManager.add(flows.get(4)));
         assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(5));
 
         Thread.sleep(timeOut);
         // all wildcardflows should have been expired now, but they will be there.
         assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(5));
         // when adding a new wildcard flow it will clean the expired flows.
-        assertThat("FlowManager didn't accept the new wildcard flow", flowManager.add(flows.get(5).build()));
+        assertThat("FlowManager didn't accept the new wildcard flow", flowManager.add(flows.get(5)));
         assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(5));
     }
 
-    private List<FlowAction<?>>actionsAsJava(WildcardFlowBase wflow) {
+    private List<FlowAction<?>>actionsAsJava(WildcardFlow wflow) {
         return new JavaConversions.SeqWrapper<FlowAction<?>>(wflow.actions());
     }
 
@@ -420,7 +417,7 @@ public class FlowManagerTest {
         }
 
         @Override
-        public void removeWildcardFlow(WildcardFlow flow) {
+        public void removeWildcardFlow(ManagedWildcardFlow flow) {
             flowManager.remove(flow);
         }
 

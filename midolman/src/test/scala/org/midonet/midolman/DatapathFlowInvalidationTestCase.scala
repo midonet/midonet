@@ -20,7 +20,7 @@ import org.midonet.odp.Datapath
 import org.midonet.odp.flows.{FlowActions, FlowAction}
 import org.midonet.odp.ports.GreTunnelPort
 import org.midonet.packets.{IntIPv4, MAC}
-import org.midonet.sdn.flows.{WildcardMatch, WildcardFlowBuilder}
+import org.midonet.sdn.flows.{WildcardMatch, WildcardFlow}
 import org.midonet.cluster.data.Router
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.ports.MaterializedRouterPort
@@ -251,9 +251,9 @@ with RouterHelper{
         flowProbe().fishForMessage(Duration(3, TimeUnit.SECONDS),
             "Tag")(matchATagInvalidation(FlowTagger.invalidateDPPort(tunnelPortNumber.shortValue)))
 
-        val wildcardFlow = new WildcardFlowBuilder()
-            .setMatch(new WildcardMatch().setInputPortUUID(port1OnHost1.getId))
-            .addAction(new FlowActionOutputToVrnPortSet(bridge.getId))
+        val wildcardFlow = WildcardFlow(
+            wcmatch = new WildcardMatch().setInputPortUUID(port1OnHost1.getId),
+            actions = List(new FlowActionOutputToVrnPortSet(bridge.getId)))
 
         dpProbe().testActor.tell(AddVirtualWildcardFlow(
             wildcardFlow, Set.empty, Set.empty))

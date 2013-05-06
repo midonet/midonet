@@ -29,7 +29,7 @@ import org.midonet.cluster.data.Router
 import org.midonet.odp.{FlowMatch, FlowMatches, Flow, Datapath}
 import org.midonet.odp.flows.{FlowKeyTunnelID, FlowAction, FlowActions}
 import org.midonet.packets._
-import org.midonet.sdn.flows.{WildcardMatch, WildcardFlowBuilder}
+import org.midonet.sdn.flows.{WildcardMatch, WildcardFlow}
 
 
 @RunWith(classOf[JUnitRunner])
@@ -132,8 +132,7 @@ class RouterFlowInvalidationTest extends MidolmanTestCase with VirtualConfigurat
         actors().eventStream.subscribe(dpFlowProbe.ref, classOf[FlowAdded])
         actors().eventStream.subscribe(dpFlowProbe.ref, classOf[FlowRemoved])
 
-        val wflow = new WildcardFlowBuilder().setMatch(
-                new WildcardMatch().setTunnelID(7001))
+        val wflow = WildcardFlow(wcmatch = new WildcardMatch().setTunnelID(7001))
         val dpflow = new Flow().setMatch(
                 new FlowMatch().addKey(new FlowKeyTunnelID().setTunnelID(7001)))
         val tag = "tun_id:7001"
@@ -141,7 +140,7 @@ class RouterFlowInvalidationTest extends MidolmanTestCase with VirtualConfigurat
 
         dpconn.flowsCreate(datapath, dpflow)
         dpFlowProbe.expectMsgClass(classOf[FlowAdded])
-        fc ! AddWildcardFlow(wflow.build, Some(dpflow), ROSet.empty, tags)
+        fc ! AddWildcardFlow(wflow, Some(dpflow), ROSet.empty, tags)
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
 
         val lastInval = FlowController.lastInvalidationEvent
@@ -153,13 +152,13 @@ class RouterFlowInvalidationTest extends MidolmanTestCase with VirtualConfigurat
 
         dpconn.flowsCreate(datapath, dpflow)
         dpFlowProbe.expectMsgClass(classOf[FlowAdded])
-        fc ! AddWildcardFlow(wflow.build, Some(dpflow), ROSet.empty, tags, lastInval)
+        fc ! AddWildcardFlow(wflow, Some(dpflow), ROSet.empty, tags, lastInval)
         dpFlowProbe.expectMsgClass(classOf[FlowRemoved])
         wflowAddedProbe.expectNoMsg()
 
         dpconn.flowsCreate(datapath, dpflow)
         dpFlowProbe.expectMsgClass(classOf[FlowAdded])
-        fc ! AddWildcardFlow(wflow.build, Some(dpflow), ROSet.empty, tags)
+        fc ! AddWildcardFlow(wflow, Some(dpflow), ROSet.empty, tags)
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
     }
 

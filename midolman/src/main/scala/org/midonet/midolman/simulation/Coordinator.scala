@@ -23,7 +23,7 @@ import org.midonet.midolman.topology._
 import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.odp.flows._
 import org.midonet.packets.{Ethernet, ICMP, IPv4, IPv4Addr, IPv6Addr, TCP, UDP}
-import org.midonet.sdn.flows.{WildcardFlowBuilder, WildcardMatch}
+import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 import org.midonet.midolman.topology.VirtualTopologyActor.RouterRequest
 import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 import scala.Some
@@ -134,11 +134,12 @@ class Coordinator(var origMatch: WildcardMatch,
         pktContext.freeze()
         cookie match {
             case Some(_) =>
-                val wflow = new WildcardFlowBuilder().setMatch(origMatch)
-                if (temporary)
-                    wflow.setHardExpirationMillis(TEMPORARY_DROP_MILLIS)
-                else
-                    wflow.setIdleExpirationMillis(IDLE_EXPIRATION_MILLIS)
+                val idleExp = if (temporary) 0 else IDLE_EXPIRATION_MILLIS
+                val hardExp = if (temporary) TEMPORARY_DROP_MILLIS else 0
+                val wflow = WildcardFlow(
+                    wcmatch = origMatch,
+                    hardExpirationMillis = hardExp,
+                    idleExpirationMillis = idleExp)
 
                 AddVirtualWildcardFlow(wflow,
                         pktContext.getFlowRemovedCallbacks,
@@ -236,7 +237,7 @@ class Coordinator(var origMatch: WildcardMatch,
                 log.info("Dropping non-first fragment at simulation layer")
                 val wMatch = new WildcardMatch().
                     setIpFragmentType(IPFragmentType.Later)
-                val wFlow = new WildcardFlowBuilder().setMatch(wMatch)
+                val wFlow = WildcardFlow(wcmatch = wMatch)
                 Some(AddVirtualWildcardFlow(wFlow, Set.empty, Set.empty))
             case _ =>
                 None
@@ -348,12 +349,10 @@ class Coordinator(var origMatch: WildcardMatch,
                         secondFlow.flow.idleExpirationMillis
                     else f.flow.idleExpirationMillis
 
-                val mergedFlow =
-                    new WildcardFlowBuilder()
-                        .setMatch(f.flow.getMatch)
-                        .setActions(actions)
-                        .setHardExpirationMillis(hardExp)
-                        .setIdleExpirationMillis(idleExp)
+                val mergedFlow = WildcardFlow(wcmatch = f.flow.getMatch,
+                                              actions = actions,
+                                              hardExpirationMillis = hardExp,
+                                              idleExpirationMillis = idleExp)
                 //TODO(rossella) set the other fields Priority
                 val callbacks = f.flowRemovalCallbacks ++ secondFlow.flowRemovalCallbacks
                 val tags = f.tags ++ secondFlow.tags
@@ -458,7 +457,7 @@ class Coordinator(var origMatch: WildcardMatch,
                                         origMatch.getEthernetDestination)
                                     .setEtherType(origMatch.getEtherType))
                             AddVirtualWildcardFlow(
-                                    new WildcardFlowBuilder().setMatch(notIPv4Match),
+                                    WildcardFlow(wcmatch = notIPv4Match),
                                     pktContext.getFlowRemovedCallbacks,
                                     pktContext.getFlowTags)
                             // TODO(pino): Connection-tracking blob?
@@ -616,25 +615,28 @@ class Coordinator(var origMatch: WildcardMatch,
                             if (isPortSet) outputID else port.deviceID)
                 }
 
-                val wFlow = new WildcardFlowBuilder()
-                    .setMatch(origMatch)
-                    .setActions(actions.toList)
+                var idleExp = 0
+                var hardExp = 0
 
                 if (pktContext.isConnTracked) {
                     if (pktContext.isForwardFlow) {
                         // See #577: if fwd flow we expire the fwd bc. we want
                         // it to keep refreshing the cache key
-                        wFlow.setHardExpirationMillis(
-                            RETURN_FLOW_EXPIRATION_MILLIS / 2)
+                        hardExp = RETURN_FLOW_EXPIRATION_MILLIS / 2
                     } else {
                         // if ret flow, we need to simulate periodically to
                         // ensure that it's legit by checking that there is a
                         // matching fwd flow
-                        wFlow.setHardExpirationMillis(
-                            RETURN_FLOW_EXPIRATION_MILLIS)
+                        hardExp = RETURN_FLOW_EXPIRATION_MILLIS
                     }
-                 } else
-                    wFlow.setIdleExpirationMillis(IDLE_EXPIRATION_MILLIS)
+                } else {
+                    idleExp = IDLE_EXPIRATION_MILLIS
+                }
+                val wFlow = WildcardFlow(
+                        wcmatch = origMatch,
+                        actions = actions.toList,
+                        idleExpirationMillis = idleExp,
+                        hardExpirationMillis = hardExp)
 
                 AddVirtualWildcardFlow(wFlow,
                                        pktContext.getFlowRemovedCallbacks,

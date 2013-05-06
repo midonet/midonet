@@ -15,7 +15,7 @@ import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.cluster.data.{Bridge => ClusterBridge, Ports}
 import org.midonet.cluster.data.host.Host
 import org.midonet.odp.flows.FlowActions
-import org.midonet.sdn.flows.{WildcardMatch, WildcardFlowBuilder}
+import org.midonet.sdn.flows.{WildcardMatch, WildcardFlow}
 
 
 @RunWith(classOf[JUnitRunner])
@@ -59,9 +59,9 @@ class InstallWildcardFlowTestCase extends MidolmanTestCase {
         val wildcardMatch = new WildcardMatch()
             .setInputPortUUID(inputPort.getId)
 
-        val wildcardFlow = new WildcardFlowBuilder()
-            .addAction(vrnPortOutput)
-            .setMatch(wildcardMatch)
+        val wildcardFlow = WildcardFlow(
+            actions = List(vrnPortOutput),
+            wcmatch = wildcardMatch)
 
         fishForRequestOfType[AddWildcardFlow](flowProbe())
         fishForRequestOfType[AddWildcardFlow](flowProbe())

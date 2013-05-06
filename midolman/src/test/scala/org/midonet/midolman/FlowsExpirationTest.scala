@@ -23,7 +23,7 @@ import org.midonet.midolman.util.TestHelpers
 import org.midonet.odp._
 import org.midonet.odp.flows.FlowKeys
 import org.midonet.packets.{IntIPv4, MAC, Packets}
-import org.midonet.sdn.flows.{FlowManager, WildcardFlowBuilder, WildcardMatch}
+import org.midonet.sdn.flows.{FlowManager, WildcardFlow, WildcardMatch}
 import org.midonet.midolman.topology.{LocalPortActive, VirtualTopologyActor}
 import org.midonet.midolman.topology.VirtualTopologyActor.{BridgeRequest, PortRequest}
 
@@ -108,20 +108,21 @@ class FlowsExpirationTest extends MidolmanTestCase
 
         val pktInMsg = fishForRequestOfType[PacketIn](packetInProbe)
         val wflow = wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded]).f
-        val wflowBuilder = new WildcardFlowBuilder(wflow)
         flowProbe().testActor ! RemoveWildcardFlow(wflow.getMatch)
         wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
 
         val flow = new Flow().setMatch(FlowMatches.fromEthernetPacket(ethPkt))
         dpConn().flowsCreate(datapath, flow)
 
-        wflowBuilder.getMatch.unsetInputPortUUID()
-        wflowBuilder.getMatch.unsetInputPortNumber()
-        wflowBuilder.setActions(List().toList)
-        wflowBuilder.setHardExpirationMillis(getDilatedTime(timeOutFlow).toInt)
+        val newMatch = wflow.getMatch
+        newMatch.unsetInputPortUUID()
+        newMatch.unsetInputPortNumber()
+        val newWildFlow = WildcardFlow(
+                newMatch,
+                hardExpirationMillis = getDilatedTime(timeOutFlow).toInt)
 
         flowProbe().testActor.tell(
-            AddWildcardFlow(wflowBuilder.build, Some(flow), Set.empty, Set.empty))
+            AddWildcardFlow(newWildFlow, Some(flow), Set.empty, Set.empty))
 
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
 
@@ -180,17 +181,15 @@ class FlowsExpirationTest extends MidolmanTestCase
         flowProbe().testActor ! RemoveWildcardFlow(addedFlow.getMatch)
         wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
 
-        val wflow = new WildcardFlowBuilder(addedFlow)
-
         val flow = new Flow().setMatch(FlowMatches.fromEthernetPacket(ethPkt))
         dpConn().flowsCreate(datapath, flow)
 
-        wflow.getMatch.unsetInputPortUUID()
-        wflow actions = Nil
-        wflow.setIdleExpirationMillis(getDilatedTime(timeOutFlow).toInt)
+        addedFlow.wcmatch.unsetInputPortUUID()
+        val newWildFlow = WildcardFlow(addedFlow.wcmatch,
+                idleExpirationMillis = getDilatedTime(timeOutFlow).toInt)
 
         flowProbe().testActor.tell(
-            AddWildcardFlow(wflow.build, Some(flow), Set.empty, Set.empty))
+            AddWildcardFlow(newWildFlow, Some(flow), Set.empty, Set.empty))
 
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
         val timeAdded: Long = System.currentTimeMillis()
@@ -224,17 +223,15 @@ class FlowsExpirationTest extends MidolmanTestCase
         flowProbe().testActor ! RemoveWildcardFlow(addedFlow.getMatch)
         wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
 
-        val wflow = new WildcardFlowBuilder(addedFlow)
-
         val flow = new Flow().setMatch(FlowMatches.fromEthernetPacket(ethPkt))
         dpConn().flowsCreate(datapath, flow)
 
-        wflow.getMatch.unsetInputPortUUID()
-        wflow.setActions(List().toList)
-        wflow.setHardExpirationMillis(getDilatedTime(timeOutFlow).toInt)
+        addedFlow.getMatch.unsetInputPortUUID()
+        val newWildFlow = WildcardFlow(addedFlow.wcmatch,
+                hardExpirationMillis = getDilatedTime(timeOutFlow).toInt)
 
         flowProbe().testActor.tell(
-            AddWildcardFlow(wflow.build, Some(flow), Set.empty, Set.empty))
+            AddWildcardFlow(newWildFlow, Some(flow), Set.empty, Set.empty))
 
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
         val timeAdded: Long = System.currentTimeMillis()
@@ -264,17 +261,15 @@ class FlowsExpirationTest extends MidolmanTestCase
         flowProbe().testActor ! RemoveWildcardFlow(addedFlow.getMatch)
         wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
 
-        val wflow = new WildcardFlowBuilder(addedFlow)
-
         val flow = new Flow().setMatch(FlowMatches.fromEthernetPacket(ethPkt))
         dpConn().flowsCreate(datapath, flow)
 
-        wflow.getMatch.unsetInputPortUUID()
-        wflow.setActions(Nil)
-        wflow.setIdleExpirationMillis(getDilatedTime(timeOutFlow).toInt)
+        addedFlow.wcmatch.unsetInputPortUUID()
+        val newWildFlow = WildcardFlow(addedFlow.wcmatch,
+                idleExpirationMillis = getDilatedTime(timeOutFlow).toInt)
 
         flowProbe().testActor.tell(
-            AddWildcardFlow(wflow.build, Some(flow), Set.empty, Set.empty))
+            AddWildcardFlow(newWildFlow, Some(flow), Set.empty, Set.empty))
 
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
         val timeAdded = System.currentTimeMillis()
