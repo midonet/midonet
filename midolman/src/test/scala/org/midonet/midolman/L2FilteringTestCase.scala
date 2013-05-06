@@ -155,7 +155,7 @@ class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture
 
         log.info("adding a third rule: drop if ether-type == LLDP")
         val cond4 = new Condition()
-        cond4.dlType = LLDP.ETHERTYPE
+        cond4.dlType = Unsigned.unsign(LLDP.ETHERTYPE)
         val rule4 = newLiteralRuleOnChain(brInChain, 4, cond4,
                                           RuleResult.Action.DROP)
         1 to 4 foreach { _ => fishForRequestOfType[WildcardFlowRemoved](wflowRemovedProbe) }

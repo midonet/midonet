@@ -35,7 +35,7 @@ public class DtoRule {
     private boolean invOutPorts;
     private UUID portGroup;
     private boolean invPortGroup;
-    private Short dlType = null;
+    private Integer dlType = null;
     private boolean invDlType = false;
     private String dlSrc = null;
     private boolean invDlSrc = false;
@@ -193,12 +193,21 @@ public class DtoRule {
         this.invDlSrc = invDlSrc;
     }
 
-    public Short getDlType() {
+    public Integer getDlType() {
         return dlType;
     }
 
     public void setDlType(Short dlType) {
-        this.dlType = dlType;
+        Integer intDlType = null;
+        if (dlType != null) {
+            intDlType = dlType & 0xffff;
+
+            if (intDlType < 0x600 || intDlType > 0xFFFF) {
+                throw new IllegalArgumentException("EtherType must be in the " +
+                        "range 0x0600 to 0xFFFF.");
+            }
+        }
+        this.dlType = intDlType;
     }
 
     public boolean isInvDlType() {

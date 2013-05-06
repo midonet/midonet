@@ -13,6 +13,7 @@ import org.midonet.packets.IPSubnet;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IntIPv4;
 import org.midonet.packets.MAC;
+import org.midonet.packets.Unsigned;
 import org.midonet.sdn.flows.WildcardMatch;
 import static org.midonet.packets.Unsigned.unsign;
 
@@ -26,7 +27,7 @@ public class Condition {
     public boolean outPortInv;
     public UUID portGroup;
     public boolean invPortGroup;
-    public Short dlType = null;
+    public Integer dlType = null;
     public boolean invDlType = false;
     public MAC dlSrc = null;
     public boolean invDlSrc = false;
@@ -87,7 +88,8 @@ public class Condition {
         IPAddr pmDstIP = pktMatch.getNetworkDestinationIP();
         if (!matchPort(this.inPortIds, inPortId, this.inPortInv)
             || !matchPort(this.outPortIds, outPortId, this.outPortInv)
-            || !matchField(dlType, pktMatch.getEtherType(), invDlType)
+            || !matchField(dlType, pktMatch.getEtherType() != null ?
+                Unsigned.unsign(pktMatch.getEtherType()) : null, invDlType)
             || !matchField(dlSrc, pktMatch.getEthernetSource(), invDlSrc)
             || !matchField(dlDst, pktMatch.getEthernetDestination(), invDlDst)
             || !matchField(nwTos, pktMatch.getNetworkTOS(), nwTosInv)
@@ -189,7 +191,7 @@ public class Condition {
                 sb.append("invPortGroup=true, ");
         }
         if (null != dlType) {
-            sb.append("dlType=").append(dlType.shortValue()).append(", ");
+            sb.append("dlType=").append(dlType.intValue()).append(", ");
             if(invDlType)
                 sb.append("invDlType").append(invDlType).append(", ");
         }
