@@ -179,7 +179,13 @@ public class SelectLoop {
                 for (SelectableChannel ch: registrations.keySet()) {
                     int ops = 0;
                     for (Registration reg: registrations.get(ch)) {
-                        if (reg.queue == null || !reg.queue.isEmpty()) {
+                        if (reg.queue != null) {
+                            reg.queue.wakeupOn();
+                            if (!reg.queue.isEmpty()) {
+                                reg.queue.wakeupOff();
+                                ops |= reg.ops;
+                            }
+                        } else {
                             ops |= reg.ops;
                         }
                     }
@@ -192,6 +198,15 @@ public class SelectLoop {
 
             nEvents = selector.select(timeout);
             log.trace("got {} events", nEvents);
+
+            synchronized (registerLock) {
+                for (SelectableChannel ch: registrations.keySet()) {
+                    for (Registration reg: registrations.get(ch)) {
+                        if (reg.queue != null)
+                            reg.queue.wakeupOff();
+                    }
+                }
+            }
 
             if (nEvents > 0) {
                 for (SelectionKey sk : selector.selectedKeys()) {
@@ -243,10 +258,10 @@ public class SelectLoop {
         final SelectableChannel ch;
         final int ops;
         final SelectListener listener;
-        final BlockingQueue<?> queue;
+        final SelectorInputQueue<?> queue;
 
         Registration(SelectableChannel ch, int ops, SelectListener arg,
-                     BlockingQueue<?> queue) {
+                     SelectorInputQueue<?> queue) {
             this.ch = ch;
             this.ops = ops;
             this.listener = arg;
