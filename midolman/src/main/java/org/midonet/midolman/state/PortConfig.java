@@ -2,12 +2,29 @@
 
 package org.midonet.midolman.state;
 
+import org.codehaus.jackson.annotate.JsonSubTypes;
+import org.codehaus.jackson.annotate.JsonTypeInfo;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import org.midonet.midolman.state.PortDirectory.*;
 
+
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY,
+    property = "type")
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = MaterializedBridgePortConfig.class,
+        name = "ExteriorBridgePort"),
+    @JsonSubTypes.Type(value = MaterializedRouterPortConfig.class,
+        name = "ExteriorRouterPort"),
+    @JsonSubTypes.Type(value = LogicalBridgePortConfig.class,
+        name = "InteriorBridgePort"),
+    @JsonSubTypes.Type(value = LogicalRouterPortConfig.class,
+        name = "InteriorRouterPort")
+})
 public abstract class PortConfig {
 
     PortConfig(UUID device_id) {

@@ -113,8 +113,7 @@ public class RuleResource extends AbstractResource {
                     "Not authorized to view this rule.");
         }
 
-        org.midonet.cluster.data.Rule ruleData = dataClient.rulesGet(
-                id);
+        org.midonet.cluster.data.Rule ruleData = dataClient.rulesGet(id);
         if (ruleData == null) {
             throw new NotFoundHttpException(
                     "The requested resource was not found.");

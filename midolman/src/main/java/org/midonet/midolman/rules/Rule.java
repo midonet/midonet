@@ -8,6 +8,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import org.codehaus.jackson.annotate.JsonSubTypes;
+import org.codehaus.jackson.annotate.JsonTypeInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,6 +17,14 @@ import org.midonet.midolman.layer4.NatMapping;
 import org.midonet.midolman.rules.RuleResult.Action;
 
 
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY,
+    property = "type")
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = LiteralRule.class, name = "Literal"),
+    @JsonSubTypes.Type(value = JumpRule.class, name = "Jump"),
+    @JsonSubTypes.Type(value = ForwardNatRule.class, name = "ForwardNat"),
+    @JsonSubTypes.Type(value = ReverseNatRule.class, name = "ReverseNat")
+})
 public abstract class Rule implements Comparable<Rule> {
     private final static Logger log = LoggerFactory.getLogger(Rule.class);
 
