@@ -36,7 +36,7 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
     private var ip4MacMap: IpMacMap[IPv4Addr] = null
     private var rtrMacToLogicalPortId: MMap[MAC, UUID] = null
     private var rtrIpToMac: MMap[IPAddr, MAC] = null
-
+    private var vlanBridgePeerPortId: UUID = null
 
     def setTunnelKey(key: Long) {
         cfg = cfg.copy(tunnelKey = key.toInt)
@@ -64,6 +64,16 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
     def setInFilter(filterID: UUID) = {
         cfg = cfg.copy(inboundFilter = filterID)
         this
+    }
+
+    def setVlanBridgePeerPortId(portId: UUID) {
+        if (vlanBridgePeerPortId == null) {
+            vlanBridgePeerPortId = portId
+        } else if (vlanBridgePeerPortId != portId) {
+            log.warn("Trying to set a new vlan bridge peer port id in " +
+                     "bridge {}, but already has one associated {}", portId,
+                     vlanBridgePeerPortId)
+        }
     }
 
     def setOutFilter(filterID: UUID) = {
@@ -112,7 +122,8 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
         // Convert the mutable map to immutable
         bridgeMgr ! BridgeManager.TriggerUpdate(cfg, macPortMap, ip4MacMap,
             collection.immutable.HashMap(rtrMacToLogicalPortId.toSeq: _*),
-            collection.immutable.HashMap(rtrIpToMac.toSeq: _*))
+            collection.immutable.HashMap(rtrIpToMac.toSeq: _*),
+            vlanBridgePeerPortId)
     }
 
     private class MacTableNotifyCallBack extends Callback3[MAC, UUID, UUID] {

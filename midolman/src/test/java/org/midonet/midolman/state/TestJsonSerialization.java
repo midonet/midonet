@@ -80,4 +80,30 @@ public class TestJsonSerialization {
             PortConfig.class);
         assertEquals(port, port3);
     }
+
+    @Test
+    public void testTrunkVlanBridgePort() throws IOException {
+        TrunkVlanBridgePortConfig port = new TrunkVlanBridgePortConfig(
+            UUID.randomUUID());
+        String json = JSONSerializer.objToJsonString(port);
+        TrunkVlanBridgePortConfig port2 =
+            JSONSerializer.jsonStringToObj(json, TrunkVlanBridgePortConfig.class);
+        assertEquals(port, port2);
+        // Now deserialize to the superclass.
+        PortConfig port3 = JSONSerializer.jsonStringToObj(json, PortConfig.class);
+        assertEquals(port, port3);
+    }
+
+    @Test
+    public void testLogicalVlanBridgePort() throws IOException {
+        LogicalVlanBridgePortConfig port = new LogicalVlanBridgePortConfig(
+            UUID.randomUUID(), UUID.randomUUID(), (short)3);
+        String json = JSONSerializer.objToJsonString(port);
+        LogicalVlanBridgePortConfig port2 =
+            JSONSerializer.jsonStringToObj(json, LogicalVlanBridgePortConfig.class);
+        assertEquals(port, port2);
+        // Now deserialize to the superclass.
+        PortConfig port3 = JSONSerializer.jsonStringToObj(json, PortConfig.class);
+        assertEquals(port, port3);
+    }
 }

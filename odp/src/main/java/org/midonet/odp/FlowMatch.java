@@ -61,6 +61,15 @@ public class FlowMatch {
         return this;
     }
 
+    public FlowMatch addKeys(@Nonnull List<FlowKey<?>> keys) {
+        this.userSpaceOnly = false;
+        for (FlowKey<?> key: keys) {
+            userSpaceOnly |= (key instanceof FlowKey.UserSpaceOnly);
+            this.keys.add(FlowKeys.intern(key));
+        }
+        return this;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

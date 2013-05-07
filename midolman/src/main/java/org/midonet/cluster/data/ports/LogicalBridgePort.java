@@ -7,7 +7,6 @@ import java.util.UUID;
 
 import javax.annotation.Nonnull;
 
-import org.midonet.cluster.data.Bridge;
 import org.midonet.cluster.data.Port;
 
 /**

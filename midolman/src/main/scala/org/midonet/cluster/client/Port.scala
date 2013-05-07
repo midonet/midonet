@@ -88,6 +88,8 @@ trait InteriorPort[T] extends Port[T] {
 
 trait BridgePort[T] extends Port[T] {}
 
+trait VlanBridgePort[T] extends Port[T] {}
+
 trait RouterPort[T] extends Port[T] {
     var portAddr: IPSubnet[IPv4Addr] = null
     var portMac: MAC = null
@@ -119,4 +121,13 @@ class ExteriorRouterPort
 class InteriorRouterPort
     extends InteriorPort[InteriorRouterPort]
     with RouterPort[InteriorRouterPort] {}
+
+class TrunkPort extends ExteriorPort[TrunkPort] with VlanBridgePort[TrunkPort]{}
+
+class InteriorVlanBridgePort extends InteriorPort[InteriorVlanBridgePort]
+                             with VlanBridgePort[InteriorVlanBridgePort] {
+    var vlanID: Short = _
+    def setVlanId(id: Short): InteriorVlanBridgePort = { this.vlanID = id; self }
+}
+
 

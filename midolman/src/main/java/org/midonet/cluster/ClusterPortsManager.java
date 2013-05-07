@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.UUID;
 import javax.inject.Inject;
 
+import org.midonet.cluster.client.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,16 +17,6 @@ import org.midonet.midolman.state.LogicalPortConfig;
 import org.midonet.midolman.state.PortConfig;
 import org.midonet.midolman.state.PortConfigCache;
 import org.midonet.midolman.state.PortDirectory;
-import org.midonet.cluster.client.ExteriorBridgePort;
-import org.midonet.cluster.client.ExteriorPort;
-import org.midonet.cluster.client.ExteriorRouterPort;
-import org.midonet.cluster.client.InteriorBridgePort;
-import org.midonet.cluster.client.InteriorPort;
-import org.midonet.cluster.client.InteriorRouterPort;
-import org.midonet.cluster.client.Port;
-import org.midonet.cluster.client.PortBuilder;
-import org.midonet.cluster.client.RouterPort;
-import org.midonet.packets.IntIPv4;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 import org.midonet.util.functors.Callback1;
@@ -77,10 +68,20 @@ public class ClusterPortsManager extends ClusterManager<PortBuilder> {
                 (PortDirectory.LogicalRouterPortConfig) config;
 
             setPortFields(interiorRouterPort, cfg, id);
-            setInternalPortFields(interiorRouterPort,cfg);
-            setRouterPortFields(interiorRouterPort,cfg);
+            setInternalPortFields(interiorRouterPort, cfg);
+            setRouterPortFields(interiorRouterPort, cfg);
 
             port = interiorRouterPort;
+        }
+        else if (config instanceof PortDirectory.LogicalVlanBridgePortConfig) {
+            InteriorVlanBridgePort ibvp =  new InteriorVlanBridgePort();
+            PortDirectory.LogicalVlanBridgePortConfig cfg =
+                (PortDirectory.LogicalVlanBridgePortConfig) config;
+
+            setPortFields(ibvp, cfg, id);
+            setInternalPortFields(ibvp, cfg);
+
+            port = ibvp;
         }
         else if (config instanceof PortDirectory.MaterializedBridgePortConfig){
             ExteriorBridgePort exteriorBridgePort = new ExteriorBridgePort();
@@ -103,11 +104,21 @@ public class ClusterPortsManager extends ClusterManager<PortBuilder> {
 
             port = exteriorRouterPort;
         }
+        else if (config instanceof PortDirectory.TrunkVlanBridgePortConfig){
+            TrunkPort evbp = new TrunkPort();
+            PortDirectory.TrunkVlanBridgePortConfig cfg =
+                (PortDirectory.TrunkVlanBridgePortConfig) config;
+
+            setPortFields(evbp, cfg, id);
+            setTrunkPortFieldsVlanBridge(evbp, cfg);
+
+            port = evbp;
+        }
 
         PortBuilder builder = getBuilder(id);
         if (builder != null) {
             builder.setPort(port);
-            log.debug("Build port {}", port);
+            log.debug("Build port {}, id {}", port, id);
             builder.build();
         }
         // this runnable notifies the classes in the cluster of a change in the
@@ -141,6 +152,14 @@ public class ClusterPortsManager extends ClusterManager<PortBuilder> {
         if (cfg.portGroupIDs != null) {
             port.setPortGroups(cfg.portGroupIDs);
         }
+        port.setTunnelKey(cfg.tunnelKey);
+    }
+
+    void setTrunkPortFieldsVlanBridge(
+        TrunkPort port, PortDirectory.TrunkVlanBridgePortConfig cfg){
+
+        port.setHostID(cfg.getHostId());
+        port.setInterfaceName(cfg.getInterfaceName());
         port.setTunnelKey(cfg.tunnelKey);
     }
 

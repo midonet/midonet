@@ -90,7 +90,7 @@ public class OvsFlowsDeleteTest
             .addKey(ethernet(MAC.fromString("ae:b3:77:8c:a1:48").getAddress(),
                              MAC.fromString("33:33:00:00:00:16").getAddress()))
             .addKey(etherType(FlowKeyEtherType.Type.ETH_P_8021Q))
-            .addKey(vlan(0x0111))
+            .addKey(vlan(0x0101))
             .addKey(
                 encap()
                     .addKey(

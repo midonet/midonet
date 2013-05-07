@@ -66,4 +66,15 @@ public abstract class BridgePort extends Port {
     public boolean isRouterPort() {
         return false;
     }
+
+    @Override
+    public boolean isBridgePort() {
+        return true;
+    }
+
+    @Override
+    public boolean isVlanBridgePort() {
+        return false;
+    }
+
 }

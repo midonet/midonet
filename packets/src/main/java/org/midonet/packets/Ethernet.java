@@ -19,8 +19,11 @@ package org.midonet.packets;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import static org.midonet.packets.Unsigned.unsign;
@@ -37,6 +40,17 @@ public class Ethernet extends BasePacket {
      * optional fields.  Preamble and frame check sequence are not included.
      */
     public static final int MIN_HEADER_LEN = 14;
+
+    /**
+     * EtherType that indicates the presence of a VLAN TAG
+     */
+    public final static short VLAN_TAGGED_FRAME = (short)0x8100;
+
+    /**
+     * EthernetType used to indicate the presence of multiple VLAN tags
+     * (Provider bridging, QinQ)
+     */
+    public final static short PROVIDER_BRIDGING_TAG = (short)0x88A8;
 
     /**
      * The number of octets in the optional TPID field.
@@ -56,7 +70,7 @@ public class Ethernet extends BasePacket {
     protected byte[] destinationMACAddress;
     protected byte[] sourceMACAddress;
     protected byte priorityCode;
-    protected short vlanID;
+    protected List<Short> vlanIDs = new ArrayList<Short>();
     protected short etherType;
     protected boolean pad = false;
 
@@ -69,6 +83,7 @@ public class Ethernet extends BasePacket {
         sb.append(", dlDst=").append(
                 null == destinationMACAddress ? "null" :
                         Net.convertByteMacToString(destinationMACAddress));
+        sb.append(", vlanId=").append(vlanIDs);
         sb.append(", etherType=0x");
         sb.append(Integer.toHexString(unsign(etherType))).append(", payload=");
         sb.append(null == payload ? "null" : payload.toString());
@@ -124,15 +139,23 @@ public class Ethernet extends BasePacket {
     /**
      * @return the vlanID
      */
-    public short getVlanID() {
-        return vlanID;
+    public List<Short> getVlanIDs() {
+        return vlanIDs;
     }
 
     /**
      * @param vlanID the vlanID to set
      */
     public Ethernet setVlanID(short vlanID) {
-        this.vlanID = vlanID;
+        this.vlanIDs.add(vlanID);
+        return this;
+    }
+
+    /**
+     * @param vlanID the vlanIDs to set
+     */
+    public Ethernet setVlanIDs(List<Short> vlanIDs) {
+        this.vlanIDs.addAll(vlanIDs);
         return this;
     }
 
@@ -174,7 +197,7 @@ public class Ethernet extends BasePacket {
             payload.setParent(this);
             payloadData = payload.serialize();
         }
-        int length = 14 + ((vlanID == 0) ? 0 : 4) + ((payloadData == null) ? 0 : payloadData.length);
+        int length = 14 + (vlanIDs.size() * 4) + ((payloadData == null) ? 0 : payloadData.length);
         if (pad && length < 60) {
             length = 60;
         }
@@ -182,8 +205,10 @@ public class Ethernet extends BasePacket {
         ByteBuffer bb = ByteBuffer.wrap(data);
         bb.put(destinationMACAddress);
         bb.put(sourceMACAddress);
-        if (vlanID != 0) {
-            bb.putShort((short) 0x8100);
+        for (Iterator<Short> it = vlanIDs.iterator(); it.hasNext();) {
+            short vlanID = it.next();
+            // if it's the last tag we need to use the VLAN_TAGGED_FRAME type
+            bb.putShort(it.hasNext() ? PROVIDER_BRIDGING_TAG : VLAN_TAGGED_FRAME);
             bb.putShort((short) ((priorityCode << 13) | (vlanID & 0x0fff)));
         }
         bb.putShort(etherType);
@@ -225,7 +250,7 @@ public class Ethernet extends BasePacket {
         bb.get(this.sourceMACAddress);
 
         short etherType = bb.getShort();
-        if (etherType == (short) 0x8100) {
+        while (etherType == VLAN_TAGGED_FRAME || etherType == PROVIDER_BRIDGING_TAG) {
             // Check the buffer length.
             if (bb.remaining() < HEADER_TPID_LEN) {
                 throw new MalformedPacketException("Not enough buffer for "
@@ -233,7 +258,7 @@ public class Ethernet extends BasePacket {
             }
             short tci = bb.getShort();
             this.priorityCode = (byte) ((tci >> 13) & 0x07);
-            this.vlanID = (short) (tci & 0x0fff);
+            this.vlanIDs.add((short) (tci & 0x0fff));
             etherType = bb.getShort();
         }
         this.etherType = etherType;
@@ -334,8 +359,7 @@ public class Ethernet extends BasePacket {
         int result = super.hashCode();
         result = prime * result + Arrays.hashCode(destinationMACAddress);
         result = prime * result + etherType;
-        if (vlanID != 0)
-            result = prime * result + priorityCode << 16 + vlanID;
+        result = prime * result + priorityCode << 16 + vlanIDs.hashCode();
         result = prime * result + (pad ? 1231 : 1237);
         result = prime * result + Arrays.hashCode(sourceMACAddress);
         return result;
@@ -357,7 +381,7 @@ public class Ethernet extends BasePacket {
             return false;
         if (priorityCode != other.priorityCode)
             return false;
-        if (vlanID != other.vlanID)
+        if (!vlanIDs.equals(other.vlanIDs))
             return false;
         if (etherType != other.etherType)
             return false;

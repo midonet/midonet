@@ -17,7 +17,7 @@ public abstract class Port<PortData extends Port.Data,
     extends Entity.Base<UUID, PortData, Self> {
 
     public enum Property {
-        vif_id
+        vif_id, peer_id
     }
 
     protected Port(UUID uuid, PortData portData) {

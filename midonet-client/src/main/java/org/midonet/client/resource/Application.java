@@ -51,8 +51,20 @@ public class Application extends ResourceBase<Application, DtoApplication> {
     }
 
     /**
+     * Gets vlan bridges.
+     *
+     * @return Collection of vlan bridges
+     */
+    public ResourceCollection<VlanBridge> getVlanBridges(MultivaluedMap queryParams) {
+        return getChildResources(principalDto.getVlanBridges(),
+                                 queryParams,
+                                 VendorMediaType
+                                     .APPLICATION_VLAN_BRIDGE_COLLECTION_JSON,
+                                 VlanBridge.class, DtoVlanBridge.class);
+    }
+
+    /**
      * Gets bridges.
-     * i
      *
      * @return Collection of bridges
      */
@@ -130,6 +142,16 @@ public class Application extends ResourceBase<Application, DtoApplication> {
                                  VendorMediaType
                                      .APPLICATION_TUNNEL_ZONE_COLLECTION_JSON,
                                  TunnelZone.class, DtoTunnelZone.class);
+    }
+
+    /**
+     * Adds a vlan bridge.
+     *
+     * @return new VlanBridge resource
+     */
+    public VlanBridge addVlanBridge() {
+        return new VlanBridge(resource, principalDto.getVlanBridges(),
+                          new DtoVlanBridge());
     }
 
     /**
@@ -229,6 +251,20 @@ public class Application extends ResourceBase<Application, DtoApplication> {
     }
 
     /**
+     * Returns Vlan Bridge object
+     *
+     * @param id ID of bridge
+     * @return Bridge
+     */
+    public VlanBridge getVlanBridge(UUID id) {
+        URI uri = createUriFromTemplate(
+            principalDto.getVlanBridgeTemplate(), ID_TOKEN, id);
+        DtoVlanBridge bridge = resource.get(uri, null, DtoVlanBridge.class,
+                                        VendorMediaType.APPLICATION_VLAN_BRIDGE_JSON);
+        return new VlanBridge(resource, null, bridge);
+    }
+
+    /**
      * Returns Bridge object
      *
      * @param id ID of bridge
@@ -271,6 +307,10 @@ public class Application extends ResourceBase<Application, DtoApplication> {
             return new BridgePort(resource, null, (DtoBridgePort) port);
         } else if (port instanceof  DtoRouterPort) {
             return new RouterPort(resource, null, (DtoRouterPort) port);
+        } else if (port instanceof  DtoVlanBridgeInteriorPort) {
+            return new VlanBridgeInteriorPort(resource, null, (DtoVlanBridgeInteriorPort) port);
+        } else if (port instanceof  DtoVlanBridgeTrunkPort) {
+            return new VlanBridgeTrunkPort(resource, null, (DtoVlanBridgeTrunkPort) port);
         } else {
             throw new IllegalArgumentException(
                     "No port with ID (" + id + ") exists.");

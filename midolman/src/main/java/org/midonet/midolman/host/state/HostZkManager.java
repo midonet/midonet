@@ -621,6 +621,11 @@ public class HostZkManager extends ZkManager {
                 hostIdentifier);
             ((PortDirectory.MaterializedRouterPortConfig) port)
                 .setInterfaceName(localDeviceName);
+        } else if (port instanceof PortDirectory.TrunkVlanBridgePortConfig) {
+            ((PortDirectory.TrunkVlanBridgePortConfig) port).setHostId(
+                hostIdentifier);
+            ((PortDirectory.TrunkVlanBridgePortConfig) port)
+                .setInterfaceName(localDeviceName);
         } else {
             throw new UnsupportedOperationException(
                 "Cannot bind interface to a logical port");

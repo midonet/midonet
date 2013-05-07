@@ -8,22 +8,22 @@ import java.util.UUID
 import java.util.{HashSet => JSet}
 
 import org.midonet.midolman.layer3.Route.NextHop
-import rules.{NatTarget, Condition}
+import rules.NatTarget
 import rules.Condition
 import org.midonet.midolman.rules.RuleResult.Action
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.data.{Bridge => ClusterBridge, Chain,
-        Port, Ports, Router => ClusterRouter, Route}
+        Port, Ports, Router => ClusterRouter, Route,
+        VlanAwareBridge => ClusterVlanAwareBridge}
 import org.midonet.cluster.data.host.Host
-import org.midonet.cluster.data.rules.{NatRule, LiteralRule,
-                                                ForwardNatRule, ReverseNatRule}
+import org.midonet.cluster.data.rules.{ForwardNatRule, ReverseNatRule}
 import org.midonet.cluster.data.rules.{JumpRule, LiteralRule}
-import org.midonet.cluster.data.ports.{LogicalBridgePort,
-        LogicalRouterPort, MaterializedBridgePort, MaterializedRouterPort}
+import org.midonet.cluster.data.ports._
 import org.midonet.cluster.data.zones.GreTunnelZone
 import org.midonet.packets.MAC
 import org.midonet.cluster.data.dhcp.Subnet
 import org.midonet.cluster.data.dhcp.Subnet6
+import scala.Some
 
 
 trait VirtualConfigurationBuilders {
@@ -153,6 +153,26 @@ trait VirtualConfigurationBuilders {
 
     def newBridge(name: String): ClusterBridge =
             newBridge(new ClusterBridge().setName(name))
+
+    def newVlanAwareBridge(name: String): ClusterVlanAwareBridge = {
+        val br = new ClusterVlanAwareBridge().setName(name)
+        clusterDataClient()
+            .vlanBridgesGet(clusterDataClient().vlanBridgesCreate(br))
+    }
+
+    def newVlanBridgeTrunkPort(bridge: ClusterVlanAwareBridge): TrunkPort = {
+        val uuid = clusterDataClient().portsCreate(Ports.materializedVlanBridgePort(bridge))
+        // do a portsGet because some fields are set during the creating and are
+        // not copied in the port object we pass, eg. TunnelKey
+        clusterDataClient().portsGet(uuid).asInstanceOf[TrunkPort]
+    }
+
+    def newInteriorVlanBridgePort(bridge: ClusterVlanAwareBridge, vlanId: Short)
+    : LogicalVlanBridgePort = {
+        val uuid = clusterDataClient()
+                   .portsCreate(Ports.logicalVlanBridgePort(bridge, vlanId))
+        clusterDataClient().portsGet(uuid).asInstanceOf[LogicalVlanBridgePort]
+    }
 
     def newExteriorBridgePort(bridge: ClusterBridge): MaterializedBridgePort = {
         val uuid = clusterDataClient().portsCreate(Ports.materializedBridgePort(bridge))

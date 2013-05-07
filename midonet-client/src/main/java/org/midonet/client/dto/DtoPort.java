@@ -22,7 +22,11 @@ import java.util.UUID;
         @JsonSubTypes.Type(value = DtoExteriorRouterPort.class,
                 name = PortType.EXTERIOR_ROUTER),
         @JsonSubTypes.Type(value = DtoInteriorRouterPort.class,
-                name = PortType.INTERIOR_ROUTER)})
+                name = PortType.INTERIOR_ROUTER),
+        @JsonSubTypes.Type(value = DtoVlanBridgeTrunkPort.class,
+                name = PortType.TRUNK_VLAN_BRIDGE),
+        @JsonSubTypes.Type(value = DtoVlanBridgeInteriorPort.class,
+                name = PortType.INTERIOR_VLAN_BRIDGE)})
 public abstract class DtoPort {
     private UUID id = null;
     private UUID deviceId = null;

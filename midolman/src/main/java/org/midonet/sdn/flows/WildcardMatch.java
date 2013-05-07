@@ -4,6 +4,7 @@
 
 package org.midonet.sdn.flows;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
@@ -42,7 +43,8 @@ public class WildcardMatch implements Cloneable {
         // TODO (galo) extract MM-custom fields to a child class? We'd need
         // some more changes there since Enums can't inherit though
         IcmpId,
-        IcmpData
+        IcmpData,
+        VlanId
     }
 
     /**
@@ -71,6 +73,7 @@ public class WildcardMatch implements Cloneable {
     // Extended fields only supported inside MM
     private short icmpId = 0;
     private byte[] icmpData;
+    private List<Short> vlanIds = new ArrayList<Short>();
 
     @Nonnull
     public WildcardMatch setInputPortNumber(short inputPortNumber) {
@@ -466,6 +469,42 @@ public class WildcardMatch implements Cloneable {
         this.icmpData = null;
         return this;
     }
+    @Nonnull
+    public WildcardMatch unsetVlanIds() {
+        usedFields.remove(Field.VlanId);
+        this.vlanIds.clear();
+        return this;
+    }
+    @Nonnull
+    public WildcardMatch addVlanId(short vlanId) {
+        if (!usedFields.contains(Field.VlanId)) {
+            usedFields.add(Field.VlanId);
+        }
+        this.vlanIds.add(vlanId);
+        return this;
+    }
+
+    @Nonnull
+    public WildcardMatch addVlanIds(List<Short> vlanIds) {
+        if (!usedFields.contains(Field.VlanId)) {
+            usedFields.add(Field.VlanId);
+        }
+        this.vlanIds.addAll(vlanIds);
+        return this;
+    }
+
+    @Nonnull
+    public WildcardMatch removeVlanId(short vlanId) {
+        int index = vlanIds.indexOf(vlanId);
+        if (index != -1)
+            vlanIds.remove(index);
+        return this;
+    }
+
+    @Nullable
+    public List<Short> getVlanIds() {
+        return vlanIds;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -553,6 +592,11 @@ public class WildcardMatch implements Cloneable {
                         return false;
                     break;
 
+                case VlanId:
+                    if (!isEqual(field, that, vlanIds, that.vlanIds))
+                        return false;
+                    break;
+
             }
         }
 
@@ -618,6 +662,8 @@ public class WildcardMatch implements Cloneable {
                     result = 31 * result + icmpId;
                 case IcmpData:
                     result = 31 * result + Arrays.hashCode(icmpData);
+                case VlanId:
+                    result = 31 * result + vlanIds.hashCode();
             }
         }
 
@@ -687,6 +733,9 @@ public class WildcardMatch implements Cloneable {
 
                 case IcmpData:
                     str.append(Arrays.toString(icmpData));
+
+                case VlanId:
+                    str.append(vlanIds);
             }
             str.append(";");
         }
@@ -772,6 +821,10 @@ public class WildcardMatch implements Cloneable {
                             Arrays.copyOf(icmpData, icmpData.length);
                         break;
 
+                    case VlanId:
+                        newClone.vlanIds.addAll(vlanIds);
+                        break;
+
                     default:
                         throw new RuntimeException("Cannot clone a " +
                             "WildcardMatch with an unrecognized field: " +
@@ -812,7 +865,8 @@ public class WildcardMatch implements Cloneable {
         for (FlowKey<?> flowKey : flowKeys) {
             switch (flowKey.getKey().getId()) {
                 case 1: // FlowKeyAttr<FlowKeyEncap> ENCAP = attr(1);
-                    // TODO(pino)
+                    FlowKeyEncap encap = as(flowKey, FlowKeyEncap.class);
+                    processMatchKeys(encap.getKeys());
                     break;
                 case 2: // FlowKeyAttr<FlowKeyPriority> PRIORITY = attr(2);
                     // TODO(pino)
@@ -828,7 +882,8 @@ public class WildcardMatch implements Cloneable {
                     setEthernetDestination(MAC.fromAddress(ethernet.getDst()));
                     break;
                 case 5: // FlowKeyAttr<FlowKeyVLAN> VLAN = attr(5);
-                    // TODO(pino)
+                    FlowKeyVLAN vlan = as(flowKey, FlowKeyVLAN.class);
+                    addVlanId(vlan.getVLAN());
                     break;
                 case 6: // FlowKeyAttr<FlowKeyEtherType> ETHERTYPE = attr(6);
                     FlowKeyEtherType etherType = as(flowKey,

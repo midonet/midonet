@@ -17,10 +17,10 @@ import java.util.UUID
 import org.midonet.midolman.datapath.{FlowActionOutputToVrnPort,
         FlowActionOutputToVrnPortSet}
 import org.midonet.midolman.rules.{ChainPacketContext, RuleResult}
-import org.midonet.midolman.simulation.{Bridge => RCUBridge, Chain}
+import simulation.Coordinator.Device
+import simulation.{Bridge => RCUBridge, VlanAwareBridge, Chain}
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.PortSetRequest
-import org.midonet.midolman.topology.VirtualTopologyActor.{
-        BridgeRequest, ChainRequest, PortRequest}
+import topology.VirtualTopologyActor.{PortSetHolderRequest, BridgeRequest, ChainRequest, PortRequest}
 import org.midonet.midolman.topology.rcu.PortSet
 import org.midonet.midolman.topology.{
         FlowTagger, VirtualTopologyActor, VirtualToPhysicalMapper}
@@ -261,47 +261,56 @@ trait FlowTranslatingActor extends Actor {
                     VirtualToPhysicalMapper.getRef(),
                     PortSetRequest(portSet, update = false)).mapTo[PortSet]
 
-                val bridgeFuture = VirtualTopologyActor.expiringAsk(
-                        BridgeRequest(portSet, update = false)).mapTo[RCUBridge]
+                // The PortSet may be in a bridge, or a vlan-bridge
+                val deviceFuture = VirtualTopologyActor
+                    .expiringAsk(PortSetHolderRequest(portSet, update = false))
+                    .mapTo[Device]
 
                 portSetFuture map {
-                    set => bridgeFuture onSuccess {
+                    set => deviceFuture onSuccess {
                         case br =>
+                            val (deviceId, tunnelKey) = br match {
+                                case b: RCUBridge =>
+                                    log.info("It is a bridge")
+                                    (b.id, b.tunnelKey)
+                                case b: VlanAwareBridge =>
+                                    log.info("It is a vlan bridge")
+                                    (b.id, b.tunnelKey)
+                            }
                             // Don't include the input port in the expanded
                             // port set.
                             var outPorts = set.localPorts
+                            log.debug("hosts {}", set.hosts)
                             inPortUUID match {
                                 case Some(p) => outPorts -= p
                                 case None =>
                             }
-                            log.debug("Flooding on bridge {}. inPort: {}, " +
-                                "local bridge ports: {}, " +
-                                "remote hosts having ports on this bridge: {}",
-                                br.id, inPortUUID, set.localPorts, set.hosts)
+                            log.debug("Flooding on (vlan-bridge|bridge) {}. " +
+                                "inPort: {},  local ports: {}, remote hosts " +
+                                "having ports on it: {}", deviceId, inPortUUID,
+                                set.localPorts, set.hosts)
                             // add tag for flow invalidation
                             dpTags match {
                                 case None =>
                                 case Some(tags) =>
                                     tags += FlowTagger.invalidateBroadcastFlows(
-                                        br.id, br.id)
+                                                        deviceId, deviceId)
                             }
                             val localPortFutures =
                                 outPorts.toSeq map {
-                                    portID =>
-                                        VirtualTopologyActor.expiringAsk(
-                                                PortRequest(portID, update = false))
-                                            .mapTo[client.Port[_]]
+                                    portID => VirtualTopologyActor.expiringAsk(
+                                        PortRequest(portID, update = false))
+                                                   .mapTo[client.Port[_]]
                                 }
                             Future.sequence(localPortFutures) onComplete {
                                 case Right(localPorts) =>
                                     applyOutboundFilters(localPorts,
-                                        portSet, wMatch,
-                                        dpTags,
+                                        portSet, wMatch, dpTags,
                                         { portIDs => translated.success(
                                             Some(translateToDpPorts(
                                                 actions, portSet,
                                                 portsForLocalPorts(portIDs),
-                                                Some(br.tunnelKey),
+                                                Some(tunnelKey),
                                                 tunnelsForHosts(set.hosts.toSeq),
                                                 dpTags.orNull)))
                                         })
@@ -339,16 +348,16 @@ trait FlowTranslatingActor extends Actor {
         translated.future
     }
 
-    protected def tunnelsForHosts(hosts: Seq[UUID]): Seq[Short] = {
-        val tunnels = mutable.ListBuffer[Short]()
-
-        def tunnelForHost(host: UUID): Option[Short] = {
-            dpState.peerToTunnels.get(host).flatMap {
-                mappings => mappings.values.headOption.map {
-                    port => port.getPortNo.shortValue
-                }
+    protected def tunnelForHost(host: UUID): Option[Short] = {
+        dpState.peerToTunnels.get(host).flatMap {
+            mappings => mappings.values.headOption.map {
+                port => port.getPortNo.shortValue
             }
         }
+    }
+
+    protected def tunnelsForHosts(hosts: Seq[UUID]): Seq[Short] = {
+        val tunnels = mutable.ListBuffer[Short]()
 
         val hostIter = hosts.iterator
         while (hostIter.hasNext)

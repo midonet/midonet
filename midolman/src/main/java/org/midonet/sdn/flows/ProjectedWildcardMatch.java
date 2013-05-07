@@ -63,6 +63,9 @@ public class ProjectedWildcardMatch extends WildcardMatch {
                 case IcmpId:
                     setIcmpIdentifier(source.getIcmpIdentifier());
                     break;
+                case VlanId:
+                    addVlanIds(source.getVlanIds());
+                    break;
             }
         }
 

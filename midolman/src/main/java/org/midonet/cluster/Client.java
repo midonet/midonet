@@ -14,14 +14,18 @@ import org.midonet.cluster.client.PortBuilder;
 import org.midonet.cluster.client.PortSetBuilder;
 import org.midonet.cluster.client.RouterBuilder;
 import org.midonet.cluster.client.TunnelZones;
+import org.midonet.cluster.client.VlanAwareBridgeBuilder;
 
 public interface Client {
 
     enum PortType {
-        InteriorBridge, ExteriorBridge, InteriorRouter, ExteriorRouter
+        InteriorBridge, ExteriorBridge, InteriorRouter, ExteriorRouter,
+        VlanAwareBridge
     }
 
     void getBridge(UUID bridgeID, BridgeBuilder builder);
+
+    void getVlanAwareBridge(UUID bridgeID, VlanAwareBridgeBuilder builder);
 
     void getRouter(UUID routerID, RouterBuilder builder);
 

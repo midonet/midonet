@@ -288,6 +288,10 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
         dpController().underlyingActor.ifaceNameToDpPort(portName).getPortNo
     }
 
+    protected def getPort(portName: String) = {
+        dpController().underlyingActor.ifaceNameToDpPort(portName)
+    }
+
     protected def triggerPacketIn(portName: String, ethPkt: Ethernet) {
         val flowMatch = FlowMatches.fromEthernetPacket(ethPkt)
             .addKey(new FlowKeyInPort().setInPort(getPortNumber(portName)))

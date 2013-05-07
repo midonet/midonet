@@ -225,6 +225,7 @@ public class LocalClientImplTest {
     // hint could modify this class so we can get the map from it.
     class TestBridgeBuilder implements BridgeBuilder {
         int buildCallsCount = 0;
+        UUID vlanBridgePeerPortId = null;
         MacLearningTable mlTable;
         IpMacMap ipMacMap;
         MAC[] notifiedMAC = new MAC[1];
@@ -285,6 +286,11 @@ public class LocalClientImplTest {
         public void setLogicalPortsMap(Map<MAC, UUID> rtrMacToLogicalPortId,
                                        Map<IPAddr, MAC> rtrIpToMac) {
             //To change body of implemented methods use File | Settings | File Templates.
+        }
+
+        @Override
+        public void setVlanBridgePeerPortId(UUID id) {
+            vlanBridgePeerPortId = id;
         }
 
         @Override

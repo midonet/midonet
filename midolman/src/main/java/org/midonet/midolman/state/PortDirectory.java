@@ -8,8 +8,8 @@ import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 
-import org.midonet.midolman.layer3.Route;
 import org.midonet.cluster.data.BGP;
+import org.midonet.midolman.layer3.Route;
 import org.midonet.packets.IPv4;
 import org.midonet.packets.MAC;
 import org.midonet.packets.Net;
@@ -19,6 +19,26 @@ import org.midonet.packets.Net;
 @Deprecated
 public class PortDirectory {
     public static Random rand = new Random(System.currentTimeMillis());
+
+    public static abstract class VlanBridgePortConfig extends PortConfig {
+        public VlanBridgePortConfig(UUID device_id) {
+            super(device_id);
+        }
+
+        // Default constructor for the Jackson deserialization.
+        public VlanBridgePortConfig() { super(); }
+
+        @Override
+        public boolean equals(Object other) {
+            if (other == null)
+                return false;
+            if (other == this)
+                return true;
+            if (!(other instanceof VlanBridgePortConfig))
+                return false;
+            return super.equals(other);
+        }
+    }
 
     public static abstract class BridgePortConfig extends PortConfig {
         public BridgePortConfig(UUID device_id) {
@@ -39,7 +59,6 @@ public class PortDirectory {
             return super.equals(other);
         }
     }
-
 
     public static abstract class RouterPortConfig extends PortConfig {
         // TODO(pino): use IntIPv4 for Babuza!
@@ -163,6 +182,68 @@ public class PortDirectory {
         }
     }
 
+    public static class LogicalVlanBridgePortConfig extends VlanBridgePortConfig
+        implements LogicalPortConfig{
+
+        private Short vlanId;
+        private UUID peerId;
+
+        public LogicalVlanBridgePortConfig() {
+            super();
+        }
+
+        public LogicalVlanBridgePortConfig(UUID deviceId, UUID peerId, Short vlanId) {
+            this.device_id = deviceId;
+            this.peerId = peerId;
+            this.vlanId = vlanId;
+        }
+
+        public void setVlanId(Short vlanId) {
+            this.vlanId = vlanId;
+        }
+
+        public UUID peerId() { return peerId; }
+        public Short vlanId() { return vlanId; }
+
+        @Override
+        public void setPeerId(UUID id) {
+            peerId = id;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof LogicalVlanBridgePortConfig)) return false;
+            if (!super.equals(o)) return false;
+
+            LogicalVlanBridgePortConfig that = (LogicalVlanBridgePortConfig) o;
+
+            if (vlanId != null ? !vlanId.equals(
+                that.vlanId) : that.vlanId != null)
+                return false;
+
+            if (peerId != null ? !peerId.equals(that.peerId) :
+                that.peerId != null)
+                return false;
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = super.hashCode();
+            result = 31 * result + (vlanId != null ? vlanId.hashCode() : 0);
+            result = 31 * result + (peerId != null ? peerId.hashCode() : 0);
+            return result;
+        }
+
+        @Override
+        public String toString() {
+            return "LogicalVlanBridgePortConfig{peer_uuid=" + peerId +
+                ", vlan_id=" + vlanId + "}";
+        }
+    }
+
     public static class LogicalRouterPortConfig
             extends RouterPortConfig implements LogicalPortConfig {
         public UUID peer_uuid;
@@ -220,7 +301,7 @@ public class PortDirectory {
     }
 
     public static class MaterializedBridgePortConfig extends BridgePortConfig
-    implements MaterializedPortConfig {
+        implements MaterializedPortConfig {
 
         public UUID hostId;
         public String interfaceName;
@@ -254,7 +335,56 @@ public class PortDirectory {
                 return false;
 
             MaterializedBridgePortConfig that =
-                    (MaterializedBridgePortConfig) other;
+                (MaterializedBridgePortConfig) other;
+            if (hostId != null ? !hostId.equals(that.hostId) :
+                that.hostId != null)
+                return false;
+
+            if (interfaceName != null ?
+                !interfaceName.equals(that.interfaceName) :
+                that.interfaceName != null)
+                return false;
+
+            return super.equals(other);
+        }
+    }
+
+    public static class TrunkVlanBridgePortConfig
+        extends VlanBridgePortConfig implements MaterializedPortConfig {
+
+        public UUID hostId;
+        public String interfaceName;
+
+        public TrunkVlanBridgePortConfig(UUID device_id) {
+            super(device_id);
+        }
+
+        // Default constructor for the Jackson deserialization
+        public TrunkVlanBridgePortConfig() { super(); }
+
+        public UUID getHostId() { return hostId; }
+
+        public void setHostId(UUID hostId) {
+            this.hostId = hostId;
+        }
+
+        public String getInterfaceName() { return interfaceName; }
+
+        public void setInterfaceName(String interfaceName) {
+            this.interfaceName = interfaceName;
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            if (other == null)
+                return false;
+            if (other == this)
+                return true;
+            if (!(other instanceof TrunkVlanBridgePortConfig))
+                return false;
+
+            TrunkVlanBridgePortConfig that =
+                    (TrunkVlanBridgePortConfig) other;
             if (hostId != null ? !hostId.equals(that.hostId) :
                     that.hostId != null)
                 return false;

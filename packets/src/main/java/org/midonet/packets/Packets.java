@@ -5,6 +5,7 @@
 package org.midonet.packets;
 
 public class Packets {
+
     public static Ethernet udp(MAC dlSrc, MAC dlDst,
                                IntIPv4 nwSrc, IntIPv4 nwDst,
                                short sport, short dport, byte[] data) {
@@ -44,4 +45,30 @@ public class Packets {
         eth.setPayload(arp);
         return eth;
     }
+
+    public static byte[] bpdu(MAC srcMac, MAC dstMac, byte type, byte flags,
+                              long rootBridgeId, int rootPathCost,
+                              long senderBridgeId, short portId,
+                              short msgAge, short maxAge, short helloTime,
+                              short fwdDelay) {
+        BPDU bpdu = new BPDU();
+        bpdu.setBpduMsgType(type)
+            .setFlags(flags)
+            .setRootBridgeId(rootBridgeId)
+            .setRootPathCost(rootPathCost)
+            .setSenderBridgeId(senderBridgeId)
+            .setPortId(portId)
+            .setMsgAge(msgAge)
+            .setMaxAge(maxAge)
+            .setHelloTime(helloTime)
+            .setFwdDelay(fwdDelay);
+        Ethernet frame = new Ethernet();
+        frame.setEtherType(BPDU.ETHERTYPE);
+        frame.setPayload(bpdu);
+        frame.setSourceMACAddress(srcMac);
+        frame.setDestinationMACAddress(dstMac);
+        return frame.serialize();
+    }
+
+
 }

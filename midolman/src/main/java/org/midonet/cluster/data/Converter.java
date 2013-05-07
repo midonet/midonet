@@ -5,9 +5,13 @@ package org.midonet.cluster.data;
 
 import java.util.*;
 
+import org.midonet.cluster.data.ports.LogicalVlanBridgePort;
+import org.midonet.cluster.data.ports.TrunkPort;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.state.PortConfig;
+import org.midonet.midolman.state.PortDirectory;
 import org.midonet.midolman.state.PortDirectory.LogicalBridgePortConfig;
+import org.midonet.midolman.state.PortDirectory.LogicalVlanBridgePortConfig;
 import org.midonet.midolman.state.PortDirectory.LogicalRouterPortConfig;
 import org.midonet.midolman.state.PortDirectory.MaterializedBridgePortConfig;
 import org.midonet.midolman.state.PortDirectory.MaterializedRouterPortConfig;
@@ -18,6 +22,7 @@ import org.midonet.midolman.state.zkManagers.BridgeZkManager.BridgeConfig;
 import org.midonet.midolman.state.zkManagers.ChainZkManager.ChainConfig;
 import org.midonet.midolman.state.zkManagers.PortGroupZkManager.PortGroupConfig;
 import org.midonet.midolman.state.zkManagers.RouterZkManager.RouterConfig;
+import org.midonet.midolman.state.zkManagers.VlanAwareBridgeZkManager;
 import org.midonet.cluster.data.dhcp.Opt121;
 import org.midonet.cluster.data.dhcp.Subnet;
 import org.midonet.cluster.data.dhcp.Subnet6;
@@ -56,6 +61,27 @@ public class Converter {
                 .setPrefixLength(adRouteConfig.prefixLength);
 
     }
+
+    public static VlanAwareBridgeZkManager.VlanBridgeConfig toVlanBridgeConfig(VlanAwareBridge bridge) {
+        VlanAwareBridgeZkManager.VlanBridgeConfig bridgeConfig = new VlanAwareBridgeZkManager.VlanBridgeConfig();
+
+        bridgeConfig.setName(bridge.getName());
+        bridgeConfig.setTunnelKey(bridge.getTunnelKey());
+        bridgeConfig.setProperties(
+            new HashMap<String, String>(bridge.getProperties()));
+        return bridgeConfig;
+    }
+
+    public static VlanAwareBridge fromVLANBridgeConfig(VlanAwareBridgeZkManager.VlanBridgeConfig bridge) {
+        if (bridge == null)
+            return null;
+
+        return new VlanAwareBridge()
+            .setName(bridge.getName())
+            .setTunnelKey(bridge.getTunnelKey())
+            .setProperties(bridge.getProperties());
+    }
+
 
     public static BridgeConfig toBridgeConfig(Bridge bridge) {
         BridgeConfig bridgeConfig = new BridgeConfig();
@@ -147,6 +173,30 @@ public class Converter {
             portConfig = typedPortConfig;
         }
 
+        if (port instanceof LogicalVlanBridgePort) {
+            LogicalVlanBridgePort typedPort = (LogicalVlanBridgePort)port;
+            PortDirectory.LogicalVlanBridgePortConfig typedPortConfig =
+                new PortDirectory.LogicalVlanBridgePortConfig();
+
+            typedPortConfig.setPeerId(typedPort.getPeerId());
+            typedPortConfig.setVlanId(typedPort.getVlanId());
+
+            portConfig = typedPortConfig;
+
+        }
+
+        if (port instanceof TrunkPort) {
+            TrunkPort typedPort = (TrunkPort)port;
+            PortDirectory.TrunkVlanBridgePortConfig typedPortConfig =
+                new PortDirectory.TrunkVlanBridgePortConfig();
+
+            typedPortConfig.setInterfaceName(typedPort.getInterfaceName());
+            typedPortConfig.setHostId(typedPort.getHostId());
+
+            portConfig = typedPortConfig;
+
+        }
+
         if (port instanceof MaterializedRouterPort) {
             MaterializedRouterPort typedPort = (MaterializedRouterPort) port;
 
@@ -197,6 +247,25 @@ public class Converter {
     public static Port fromPortConfig(PortConfig portConfig) {
 
         Port port = null;
+
+        if (portConfig instanceof LogicalVlanBridgePortConfig) {
+            LogicalVlanBridgePortConfig bridgePortConfig =
+                (LogicalVlanBridgePortConfig) portConfig;
+            LogicalVlanBridgePort bridgePort = new LogicalVlanBridgePort();
+            bridgePort.setPeerId(bridgePortConfig.peerId());
+            bridgePort.setVlanId(bridgePortConfig.vlanId());
+            port = bridgePort;
+        }
+
+        if (portConfig instanceof PortDirectory.TrunkVlanBridgePortConfig) {
+            PortDirectory.TrunkVlanBridgePortConfig bridgePortConfig =
+                (PortDirectory.TrunkVlanBridgePortConfig) portConfig;
+            TrunkPort bridgePort = new TrunkPort();
+
+            bridgePort.setHostId(bridgePortConfig.getHostId());
+            bridgePort.setInterfaceName(bridgePortConfig.getInterfaceName());
+            port = bridgePort;
+        }
 
         if (portConfig instanceof LogicalBridgePortConfig) {
             LogicalBridgePortConfig bridgePortConfig =

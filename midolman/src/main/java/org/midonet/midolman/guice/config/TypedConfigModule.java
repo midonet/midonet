@@ -10,7 +10,7 @@ import com.google.inject.Provider;
 import org.midonet.config.ConfigProvider;
 
 /**
- * Simple module that allows one to expose only a specific Config interface
+ * Simple module that allows one to expose only a specific VlanBridgeconfig interface
  * backed up by the system config provider.
  */
 public class TypedConfigModule<T> extends AbstractModule {

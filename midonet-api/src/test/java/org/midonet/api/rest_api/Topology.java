@@ -48,9 +48,12 @@ public class Topology {
         private DtoApplication app;
         private final Map<String, DtoRouter> routers;
         private final Map<String, DtoBridge> bridges;
+        private final Map<String, DtoVlanBridge> vlanBridges;
         private final Map<String, DtoRuleChain> chains;
         private final Map<String, DtoExteriorRouterPort> extRouterPorts;
         private final Map<String, DtoInteriorRouterPort> intRouterPorts;
+        private final Map<String, DtoVlanBridgeTrunkPort> trunkVlanBridgePorts;
+        private final Map<String, DtoVlanBridgeInteriorPort> interiorVlanBridgePorts;
         private final Map<String, DtoBridgePort> extBridgePorts;
         private final Map<String, DtoInteriorBridgePort> intBridgePorts;
         private final Map<String, DtoPortGroup> portGroups;
@@ -59,15 +62,19 @@ public class Topology {
         private final Map<String, String> tagToOutChains;
         private final Map<String, String> tagToRouters;
         private final Map<String, String> tagToBridges;
+        private final Map<String, String> tagToVlanBridges;
         private final Map<String, String> links;
 
         public Builder(DtoWebResource resource) {
             this.resource = resource;
             this.routers = new HashMap<String, DtoRouter>();
             this.bridges = new HashMap<String, DtoBridge>();
+            this.vlanBridges = new HashMap<String, DtoVlanBridge>();
             this.chains = new HashMap<String, DtoRuleChain>();
             this.extRouterPorts = new HashMap<String, DtoExteriorRouterPort>();
             this.intRouterPorts = new HashMap<String, DtoInteriorRouterPort>();
+            this.trunkVlanBridgePorts = new HashMap<String, DtoVlanBridgeTrunkPort>();
+            this.interiorVlanBridgePorts = new HashMap<String, DtoVlanBridgeInteriorPort>();
             this.extBridgePorts = new HashMap<String, DtoBridgePort>();
             this.intBridgePorts = new HashMap<String, DtoInteriorBridgePort>();
             this.portGroups = new HashMap<String, DtoPortGroup>();
@@ -77,6 +84,7 @@ public class Topology {
             this.tagToOutChains = new HashMap<String, String>();
             this.tagToRouters = new HashMap<String, String>();
             this.tagToBridges = new HashMap<String, String>();
+            this.tagToVlanBridges = new HashMap<String, String>();
         }
 
         public DtoWebResource getResource() {
@@ -90,6 +98,11 @@ public class Topology {
 
         public Builder create(String tag, DtoBridge obj) {
             this.bridges.put(tag, obj);
+            return this;
+        }
+
+        public Builder create(String tag, DtoVlanBridge obj) {
+            this.vlanBridges.put(tag, obj);
             return this;
         }
 
@@ -109,6 +122,20 @@ public class Topology {
                 DtoInteriorRouterPort obj) {
             this.intRouterPorts.put(tag, obj);
             this.tagToRouters.put(tag, routerTag);
+            return this;
+        }
+
+        public Builder create(String vlanBridgeTag, String tag,
+                              DtoVlanBridgeInteriorPort obj) {
+            this.interiorVlanBridgePorts.put(tag, obj);
+            this.tagToVlanBridges.put(tag, vlanBridgeTag);
+            return this;
+        }
+
+        public Builder create(String vlanBridgeTag, String tag,
+                              DtoVlanBridgeTrunkPort obj) {
+            this.trunkVlanBridgePorts.put(tag, obj);
+            this.tagToVlanBridges.put(tag, vlanBridgeTag);
             return this;
         }
 
@@ -210,6 +237,15 @@ public class Topology {
 
                 obj = resource.postAndVerifyCreated(app.getRouters(),
                         APPLICATION_ROUTER_JSON, obj, DtoRouter.class);
+                entry.setValue(obj);
+            }
+
+            for (Map.Entry<String, DtoVlanBridge> entry : vlanBridges.entrySet()) {
+
+                DtoVlanBridge obj = entry.getValue();
+                // no chains in this device
+                obj = resource.postAndVerifyCreated(app.getVlanBridges(),
+                       APPLICATION_VLAN_BRIDGE_JSON, obj, DtoVlanBridge.class);
                 entry.setValue(obj);
             }
 
@@ -365,6 +401,41 @@ public class Topology {
                 entry.setValue(obj);
             }
 
+            for (Map.Entry<String, DtoVlanBridgeInteriorPort> entry :
+                interiorVlanBridgePorts.entrySet()) {
+
+                DtoVlanBridgeInteriorPort obj = entry.getValue();
+
+                // Set the vlan bridge ID
+                String tag = tagToVlanBridges.get(entry.getKey());
+                DtoVlanBridge b = vlanBridges.get(tag);
+                obj.setDeviceId(b.getId());
+
+                // No chains in this device's ports
+                obj = resource.postAndVerifyCreated(b.getInteriorPorts(),
+                                                    APPLICATION_PORT_JSON, entry.getValue(),
+                                                    DtoVlanBridgeInteriorPort.class);
+
+                entry.setValue(obj);
+            }
+
+            for (Map.Entry<String, DtoVlanBridgeTrunkPort> entry :
+                trunkVlanBridgePorts.entrySet()) {
+
+                DtoVlanBridgeTrunkPort obj = entry.getValue();
+
+                // Set the vlan-bridge ID
+                String tag = tagToVlanBridges.get(entry.getKey());
+                DtoVlanBridge b = vlanBridges.get(tag);
+                obj.setDeviceId(b.getId());
+
+                // No chains in this device's ports
+                obj = resource.postAndVerifyCreated(b.getTrunkPorts(),
+                                                    APPLICATION_PORT_JSON, entry.getValue(),
+                                                    DtoVlanBridgeTrunkPort.class);
+                entry.setValue(obj);
+            }
+
             for (Map.Entry<String, String> entry : links.entrySet()) {
                 // Get the Interior ports
                 DtoInteriorPort port1 = findInteriorPort(entry.getKey());
@@ -397,6 +468,10 @@ public class Topology {
         return this.builder.bridges.get(tag);
     }
 
+    public DtoVlanBridge getVlanBridge(String tag) {
+        return this.builder.vlanBridges.get(tag);
+    }
+
     public DtoPortGroup getPortGroup(String tag) {
         return this.builder.portGroups.get(tag);
     }
@@ -411,6 +486,14 @@ public class Topology {
 
     public DtoBridgePort getExtBridgePort(String tag) {
         return this.builder.extBridgePorts.get(tag);
+    }
+
+    public DtoVlanBridgeInteriorPort getVlanBridgeIntPort(String tag) {
+        return this.builder.interiorVlanBridgePorts.get(tag);
+    }
+
+    public DtoVlanBridgeTrunkPort getVlanBridgeTrunkPort(String tag) {
+        return this.builder.trunkVlanBridgePorts.get(tag);
     }
 
     public DtoInteriorRouterPort getIntRouterPort(String tag) {

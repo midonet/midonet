@@ -28,6 +28,8 @@ public interface ResourceFactory {
 
     BridgeResource getBridgeResource();
 
+    VlanBridgeResource getVlanBridgeResource();
+
     PortResource getPortResource();
 
     RouteResource getRouteResource();
@@ -81,5 +83,9 @@ public interface ResourceFactory {
     PortResource.RouterPeerPortResource getRouterPeerPortResource(UUID id);
 
     PortResource.PortGroupPortResource getPortGroupPortResource(UUID id);
+
+    PortResource.VlanBridgeInteriorPortResource getVlanBridgeInteriorPortResource(UUID id);
+
+    PortResource.VlanBridgeTrunkPortResource getVlanBridgeTrunkPortResource(UUID id);
 
 }

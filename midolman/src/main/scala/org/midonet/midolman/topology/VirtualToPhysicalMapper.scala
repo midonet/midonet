@@ -19,12 +19,13 @@ import org.midonet.midolman.services.{HostIdProviderService,
                                        MidolmanActorsService}
 import org.midonet.midolman.topology.rcu.Host
 import org.midonet.cluster.{Client, DataClient}
-import org.midonet.cluster.client.{BridgePort, Port}
+import org.midonet.cluster.client.{TrunkPort, VlanBridgePort, BridgePort, Port}
 import org.midonet.cluster.data.TunnelZone
 import org.midonet.cluster.data.zones._
-import org.midonet.midolman.topology.VirtualTopologyActor.{BridgeRequest,
-                                                            PortRequest}
+import org.midonet.midolman.topology.VirtualTopologyActor.{VlanBridgeRequest, BridgeRequest, PortRequest}
+import org.midonet.midolman.simulation.Coordinator.Device
 import org.midonet.midolman.simulation.Bridge
+import org.midonet.midolman.simulation.VlanAwareBridge
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.state.{ZkConnectionAwareWatcher, DirectoryCallback}
 import org.midonet.midolman.state.DirectoryCallback.Result
@@ -336,8 +337,8 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogWithout
                         log.error("Failed to get config for port that " +
                             "became {}: {}",
                             if (active) "active" else "inactive", vportID)
-                    case Right(port) =>
-                        if (port.isInstanceOf[BridgePort[_]]){
+                    case Right(port) => port match {
+                        case _: BridgePort[_] =>
                             log.debug("LocalPortActive - it's a bridge port")
                             // Get the bridge config. Make the timeout long
                             // enough that it has a chance to retry.
@@ -351,33 +352,51 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogWithout
                                         if (active) "active" else "inactive",
                                         vportID)
                                 case Right(br) =>
-                                    self ! _BridgePortStatus(port, br, active)
+                                    self ! _DevicePortStatus(port, br, active)
                             }
-                        } else { // not a bridge port
+                        case _: TrunkPort =>
+                            log.debug("LocalPortActive - a vlan-bridge port {}",
+                                      port.deviceID)
+                            // Get the bridge config. Make the timeout long
+                            // enough that it has a chance to retry.
+                            val f2 = VirtualTopologyActor.expiringAsk(
+                                VlanBridgeRequest(port.deviceID, update = false))
+                                .mapTo[VlanAwareBridge]
+                            f2 onComplete {
+                                case Left(ex) =>
+                                    log.error("Failed to get vlan-bridge " +
+                                        "config for port that became {}: {}",
+                                        if (active) "active"  else "inactive",
+                                        vportID)
+                                case Right(br) =>
+                                    self ! _DevicePortStatus(port, br, active)
+                            }
+                        case _ =>  // not a bridge port
                             context.system.eventStream.publish(
-                                LocalPortActive(vportID, active))
-                        }
+                                           LocalPortActive(vportID, active))
+                    }
                 }
 
-            case _BridgePortStatus(port, bridge, active) =>
-                assert(port.deviceID == bridge.id)
+            case _DevicePortStatus(port, device, active) =>
+                val (deviceId, tunnelKey) = deviceIdAndTunnelKey(device)
+                assert(port.deviceID == deviceId)
                 log.debug("Port {} in PortSet {} became {}.", port.id,
-                    bridge.id, if (active) "active" else "inactive")
+                    deviceId, if (active) "active" else "inactive")
                 var modPortSet = false
-                psetIdToLocalVports.get(bridge.id) match {
+                psetIdToLocalVports.get(deviceId) match {
                     case Some(ports) =>
                         if (active)
                             ports.add(port.id)
                         else if (ports.size == 1) {
                             // This is the last local port in the PortSet. We
                             // remove our host from the PortSet's host list.
-                            if (!inFlightPortSetMods.contains(bridge.id)) {
-                                unsubscribePortSet(bridge.id)
-                                inFlightPortSetMods.put(bridge.id, port.id)
+                            if (!inFlightPortSetMods.contains(deviceId)) {
+                                unsubscribePortSet(deviceId)
+                                inFlightPortSetMods.put(deviceId, port.id)
                                 modPortSet = true
                             }
-                            tunnelKeyToPortSet.remove(bridge.tunnelKey)
-                            psetIdToLocalVports.remove(bridge.id)
+                            tunnelKeyToPortSet.remove(tunnelKey)
+                            psetIdToLocalVports.remove(deviceId)
                         } else {
                             ports.remove(port.id)
                         }
@@ -387,20 +406,20 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogWithout
                         assert(active)
                         // This is the first local port in the PortSet. We
                         // add our host to the PortSet's host list in ZK.
-                        if (!inFlightPortSetMods.contains(bridge.id)) {
-                            subscribePortSet(bridge.id)
-                            inFlightPortSetMods.put(bridge.id, port.id)
+                        if (!inFlightPortSetMods.contains(deviceId)) {
+                            subscribePortSet(deviceId)
+                            inFlightPortSetMods.put(deviceId, port.id)
                             modPortSet = true
                         }
                         psetIdToLocalVports.put(
                             port.deviceID, mutable.Set(port.id))
-                        tunnelKeyToPortSet.put(bridge.tunnelKey, bridge.id)
+                        tunnelKeyToPortSet.put(tunnelKey, deviceId)
                 }
                 if (!modPortSet)
                     context.system.eventStream.publish(
                         LocalPortActive(port.id, active))
 
-                portSetUpdate(bridge.id)
+                portSetUpdate(deviceId)
 
             case _PortSetOpResult(subscribe, psetID, success, errorOp) =>
                 log.debug("PortSet operation results: operation {}, " +
@@ -448,6 +467,25 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogWithout
             case value =>
                 log.error("Unknown message: " + value)
 
+        }
+    }
+
+    /**
+     * Convenience method to retrieve id and tunnel key from different types
+     * of devices.
+     *
+     * TODO (galo) we could save this ugliness with a Trait
+     * @param device
+     * @return
+     */
+    private def deviceIdAndTunnelKey(device: Device): (UUID, Long) = {
+        device match {
+            case _: Bridge =>
+                val d = device.asInstanceOf[Bridge]
+                (d.id, d.tunnelKey)
+            case _: VlanAwareBridge =>
+                val d = device.asInstanceOf[VlanAwareBridge]
+                (d.id, d.tunnelKey)
         }
     }
 
@@ -545,8 +583,10 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogWithout
     /**
      * Message sent by the Mapper to itself to track membership changes in a
      * PortSet - but ONLY about vports that are/were materialized locally.
+     *
+     * Used for both normal bridges and vlan-aware bridges.
      */
-    private case class _BridgePortStatus(port: Port[_], bridge: Bridge,
+    private case class _DevicePortStatus(port: Port[_], device: Device,
                                          active: Boolean)
 
     private case class _PortSetOpResult(

@@ -16,13 +16,11 @@ import org.midonet.api.auth.AuthRole;
 import org.midonet.api.auth.Authorizer;
 import org.midonet.api.auth.ForbiddenHttpException;
 import org.midonet.api.bgp.rest_api.BgpResource.PortBgpResource;
-import org.midonet.api.network.*;
 import org.midonet.api.network.PortGroupPort.PortGroupPortCreateGroupSequence;
 import org.midonet.api.network.auth.BridgeAuthorizer;
 import org.midonet.api.network.auth.PortAuthorizer;
 import org.midonet.api.network.auth.PortGroupAuthorizer;
 import org.midonet.api.network.auth.RouterAuthorizer;
-import org.midonet.api.rest_api.*;
 import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.cluster.DataClient;
@@ -38,6 +36,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -84,8 +83,7 @@ public class PortResource extends AbstractResource {
             throws StateAccessException, InvalidStateOperationException {
 
         // Get the port and validate that this can be deleted
-        org.midonet.cluster.data.Port portData =
-                dataClient.portsGet(id);
+        org.midonet.cluster.data.Port portData = dataClient.portsGet(id);
         if (portData == null) {
             return;
         }
@@ -329,6 +327,186 @@ public class PortResource extends AbstractResource {
             if (ports != null) {
                 for (org.midonet.cluster.data.Port<?, ?> portData :
                         portDataList) {
+                    Port port = PortFactory.createPort(portData);
+                    port.setBaseUri(getBaseUri());
+                    ports.add(port);
+                }
+            }
+            return ports;
+        }
+    }
+
+    /**
+     * Sub-resource class for vlan bridge's trunk ports.
+     */
+    @RequestScoped
+    public static class VlanBridgeTrunkPortResource extends AbstractResource {
+
+        private final UUID bridgeId;
+        private final Authorizer authorizer;
+        private final Validator validator;
+        private final DataClient dataClient;
+
+        @Inject
+        public VlanBridgeTrunkPortResource(RestApiConfig config,
+                                              UriInfo uriInfo,
+                                              SecurityContext context,
+                                              BridgeAuthorizer authorizer,
+                                              Validator validator,
+                                              DataClient dataClient,
+                                              @Assisted UUID bridgeId) {
+            super(config, uriInfo, context);
+            this.authorizer = authorizer;
+            this.validator = validator;
+            this.dataClient = dataClient;
+            this.bridgeId = bridgeId;
+        }
+
+        /**
+         * Handler to create a vlan bridge trunk port.
+         *
+         * @throws StateAccessException
+         *             Data access error.
+         * @returns Response object with 201 status code set if successful.
+         */
+        @POST
+        @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
+        @Consumes({ VendorMediaType.APPLICATION_PORT_JSON,
+                      MediaType.APPLICATION_JSON })
+        public Response create(TrunkPort port)
+            throws StateAccessException, InvalidStateOperationException {
+
+            port.setDeviceId(bridgeId);
+
+            Set<ConstraintViolation<TrunkPort>> violations = validator
+                .validate(port);
+            if (!violations.isEmpty()) {
+                throw new BadRequestHttpException(violations);
+            }
+
+            if (!authorizer.authorize(context, AuthAction.WRITE, bridgeId)) {
+                throw new ForbiddenHttpException(
+                    "Not authorized to add port to this vlan bridge.");
+            }
+
+            UUID id = dataClient.portsCreate(port.toData());
+            URI portUri = ResourceUriBuilder.getPort(getBaseUri(), id);
+            return Response.created(portUri).build();
+        }
+
+        /**
+         * Handler to list vlan bridge trunk ports.
+         *
+         * @throws StateAccessException Data access error.
+         * @return A list of Port objects.
+         */
+        @GET
+        @PermitAll
+        @Produces({ VendorMediaType.APPLICATION_PORT_COLLECTION_JSON,
+                      MediaType.APPLICATION_JSON })
+        public List<Port> list() throws StateAccessException {
+
+            if (!authorizer.authorize(context, AuthAction.READ, bridgeId)) {
+                throw new ForbiddenHttpException(
+                    "Not authorized to view these ports.");
+            }
+
+            List<org.midonet.cluster.data.Port<?, ?>> portDataList =
+                dataClient.trunkPortsFindByVlanBridge(bridgeId);
+            ArrayList<Port> ports = new ArrayList<Port>();
+            if (ports != null) {
+                for (org.midonet.cluster.data.Port<?, ?> portData :
+                    portDataList) {
+                    Port port = PortFactory.createPort(portData);
+                    port.setBaseUri(getBaseUri());
+                    ports.add(port);
+                }
+            }
+            return ports;
+        }
+    }
+
+    /**
+     * Sub-resource class for vlan bridge's ports.
+     */
+    @RequestScoped
+    public static class VlanBridgeInteriorPortResource extends AbstractResource {
+
+        private final UUID bridgeId;
+        private final Authorizer authorizer;
+        private final Validator validator;
+        private final DataClient dataClient;
+
+        @Inject
+        public VlanBridgeInteriorPortResource(RestApiConfig config,
+                                      UriInfo uriInfo,
+                                      SecurityContext context,
+                                      BridgeAuthorizer authorizer,
+                                      Validator validator,
+                                      DataClient dataClient,
+                                      @Assisted UUID bridgeId) {
+            super(config, uriInfo, context);
+            this.authorizer = authorizer;
+            this.validator = validator;
+            this.dataClient = dataClient;
+            this.bridgeId = bridgeId;
+        }
+
+        /**
+         * Handler to create a vlan bridge port.
+         *
+         * @throws StateAccessException
+         *             Data access error.
+         * @returns Response object with 201 status code set if successful.
+         */
+        @POST
+        @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
+        @Consumes({ VendorMediaType.APPLICATION_PORT_JSON,
+                      MediaType.APPLICATION_JSON })
+        public Response create(InteriorVlanBridgePort port)
+            throws StateAccessException, InvalidStateOperationException {
+
+            port.setDeviceId(bridgeId);
+
+            Set<ConstraintViolation<InteriorVlanBridgePort>> violations = validator
+                .validate(port);
+            if (!violations.isEmpty()) {
+                throw new BadRequestHttpException(violations);
+            }
+
+            if (!authorizer.authorize(context, AuthAction.WRITE, bridgeId)) {
+                throw new ForbiddenHttpException(
+                    "Not authorized to add port to this vlan bridge.");
+            }
+
+            UUID id = dataClient.portsCreate(port.toData());
+            return Response.created(
+                ResourceUriBuilder.getPort(getBaseUri(), id)).build();
+        }
+
+        /**
+         * Handler to list vlan bridge interior ports.
+         *
+         * @throws StateAccessException Data access error.
+         * @return A list of Port objects.
+         */
+        @GET
+        @PermitAll
+        @Produces({ VendorMediaType.APPLICATION_PORT_COLLECTION_JSON,
+                      MediaType.APPLICATION_JSON })
+        public List<Port> list() throws StateAccessException {
+
+            if (!authorizer.authorize(context, AuthAction.READ, bridgeId)) {
+                throw new ForbiddenHttpException(
+                    "Not authorized to view these ports.");
+            }
+
+            List<org.midonet.cluster.data.Port<?, ?>> portDataList =
+                dataClient.interiorPortsFindByVlanBridge(bridgeId);
+            ArrayList<Port> ports = new ArrayList<Port>();
+            if (ports != null) {
+                for (org.midonet.cluster.data.Port<?, ?> portData :
+                    portDataList) {
                     Port port = PortFactory.createPort(portData);
                     port.setBaseUri(getBaseUri());
                     ports.add(port);

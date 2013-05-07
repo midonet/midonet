@@ -90,10 +90,6 @@ public class ZkPathManager {
         return buildBridgesPath().toString();
     }
 
-    protected StringBuilder buildBridgesPath() {
-        return basePath().append("/bridges");
-    }
-
     /**
      * Get ZK bridge path.
      *
@@ -493,6 +489,68 @@ public class ZkPathManager {
     private StringBuilder buildBridgeDhcpV6HostPath(UUID bridgeId, IPv6Subnet prefix, String clientId) {
         return new StringBuilder(getBridgeDhcpV6HostsPath(bridgeId, prefix))
             .append('/').append(clientId);
+    }
+
+    public String getVlanBridgeLogicalPortsPath(UUID bridgeId) {
+        return buildVlanBridgeLogicalPortsPath(bridgeId).toString();
+    }
+
+    public String getVlanBridgeTrunkPortsPath(UUID bridgeId) {
+        return buildVlanBridgeTrunkPortsPath(bridgeId).toString();
+    }
+
+    public String getVlanBridgeTrunkPortPath(UUID bridgeId, UUID portId) {
+        return buildVlanBridgeTrunkPortPath(bridgeId, portId).toString();
+    }
+
+    private StringBuilder buildVlanBridgeTrunkPortPath(UUID bridgeId, UUID portId) {
+        return buildVlanBridgeTrunkPortsPath(bridgeId)
+            .append("/").append(portId);
+    }
+
+    public String getVlanBridgeLogicalPortPath(UUID bridgeId, UUID portId) {
+        return buildVlanBridgeLogicalPortPath(bridgeId, portId).toString();
+    }
+
+    private StringBuilder buildVlanBridgeLogicalPortPath(UUID bridgeId, UUID portId) {
+        return buildVlanBridgeLogicalPortsPath(bridgeId)
+            .append("/").append(portId);
+    }
+
+    private StringBuilder buildVlanBridgeLogicalPortsPath(UUID bridgeId) {
+        return buildVlanBridgePath(bridgeId).append("/interior-ports");
+    }
+
+    public String getVlanBridgePortPath(UUID bridgeId, UUID portId) {
+        return buildVlanBridgePortPath(bridgeId, portId).toString();
+    }
+
+    private StringBuilder buildVlanBridgePortPath(UUID bridgeId, UUID portId) {
+        return buildVlanBridgeTrunkPortsPath(bridgeId).append("/").append(portId);
+    }
+
+    private StringBuilder buildVlanBridgeTrunkPortsPath(UUID bridgeId) {
+        return buildVlanBridgePath(bridgeId).append("/trunk-ports");
+    }
+
+    public String getVlanBridgesPath() {
+        return buildVlanBridgesPath().toString();
+    }
+
+    protected StringBuilder buildBridgesPath() {
+        return basePath().append("/bridges");
+    }
+
+    protected StringBuilder buildVlanBridgesPath() {
+        return basePath().append("/vlan-bridges");
+    }
+
+    public String getVlanBridgePath(UUID id) {
+        return buildVlanBridgePath(id).toString();
+    }
+
+    protected StringBuilder buildVlanBridgePath(UUID id) {
+        return buildVlanBridgesPath().append("/").append(id);
     }
 
     /**

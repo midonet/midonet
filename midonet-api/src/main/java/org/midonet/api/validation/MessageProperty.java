@@ -11,6 +11,8 @@ public class MessageProperty {
             "{midokura.javarx.IsUniqueRouterName.message}";
     public static final String IS_UNIQUE_BRIDGE_NAME =
             "{midokura.javarx.IsUniqueBridgeName.message}";
+    public static final String IS_UNIQUE_VLAN_BRIDGE_NAME =
+        "{midokura.javarx.IsUniqueVlanBridgeName.message}";
     public static final String IS_UNIQUE_PORT_GROUP_NAME =
             "{midokura.javarx.IsUniquePortGroupName.message}";
     public static final String IS_UNIQUE_CHAIN_NAME =

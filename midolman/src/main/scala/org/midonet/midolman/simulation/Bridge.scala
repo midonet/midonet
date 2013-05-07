@@ -30,6 +30,7 @@ class Bridge(val id: UUID, val tunnelKey: Long,
              val ip4MacMap: IpMacMap[IPv4Addr],
              val flowCount: MacFlowCount, val inFilter: Chain,
              val outFilter: Chain,
+             val vlanPortId: UUID,
              val flowRemovedCallbackGen: RemoveFlowCallbackGenerator,
              val rtrMacToLogicalPortId: ROMap[MAC, UUID],
              val rtrIpToMac: ROMap[IPAddr, MAC])
@@ -43,7 +44,7 @@ class Bridge(val id: UUID, val tunnelKey: Long,
             : Future[Coordinator.Action] = {
         implicit val pktContext = packetContext
         // Drop the packet if its L2 source is a multicast address.
-        log.debug("Bridge's process method called.")
+        log.debug("Bridge {} process method called.", id)
         if (Ethernet.isMcast(packetContext.getMatch.getEthernetSource)) {
             log.info("Bridge dropping a packet with a multi/broadcast source")
             Promise.successful(DropAction())
@@ -57,6 +58,8 @@ class Bridge(val id: UUID, val tunnelKey: Long,
         implicit val pktContext = packetContext
         val srcDlAddress = packetContext.getMatch.getEthernetSource
         val dstDlAddress = packetContext.getMatch.getEthernetDestination
+
+        log.debug("Processing frame: {}", pktContext.getFrame)
 
         // Tag the flow with this Bridge ID
         packetContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(id))
@@ -93,6 +96,7 @@ class Bridge(val id: UUID, val tunnelKey: Long,
             val nwDst = packetContext.getMatch.getNetworkDestinationIP
             if (Ethernet.isBroadcast(dstDlAddress) &&
                 packetContext.getMatch.getEtherType == ARP.ETHERTYPE) {
+
                 if (rtrIpToMac.contains(nwDst)) {
                     // Forward broadcast ARPs to their routers if we know how.
                     log.debug("The packet is intended for an interior router port.")
@@ -121,6 +125,17 @@ class Bridge(val id: UUID, val tunnelKey: Long,
                                 packetContext.getMatch.getEthernetSource)
                             packetContext.addFlowTag(
                                 FlowTagger.invalidateArpRequests(id))
+                            // if this bridge participates to a vlan and this packet didn't
+                            // come from a trunk port, we will have to forward it
+                            // to the VLAN Aware Bridge
+                            if (vlanPortId != null &&
+                                !packetContext.getInPortId.equals(vlanPortId)) {
+                                DeduplicationActor.getRef(actorSystem).tell(
+                                    EmitGeneratedPacket(vlanPortId, packetContext.getFrame,
+                                        if (packetContext != null)
+                                            Option(packetContext.getFlowCookie)
+                                        else None))
+                            }
                             ToPortSetAction(id)
                         case m: MAC =>
                             // We can reply to the ARP request.
@@ -132,8 +147,21 @@ class Bridge(val id: UUID, val tunnelKey: Long,
                 }
             } else {
                 // Not an ARP request.
-                // Flood to materialized ports only.
                 log.debug("flooding to port set {}", id)
+
+                // if this bridge participates to a vlan and this packet didn't
+                // come from a trunk port, we will have to forward it
+                // to the VLAN Aware Bridge
+                if (vlanPortId != null &&
+                    !packetContext.getInPortId.equals(vlanPortId)) {
+                    log.debug("flooding also to vlan port {}", vlanPortId)
+                    DeduplicationActor.getRef(actorSystem).tell(
+                        EmitGeneratedPacket(vlanPortId, packetContext.getFrame,
+                            if (packetContext != null)
+                                Option(packetContext.getFlowCookie)
+                            else None))
+                }
+
                 action = Promise.successful(ToPortSetAction(id))
                 packetContext.addFlowTag(
                     FlowTagger.invalidateBroadcastFlows(id, id))
@@ -148,11 +176,16 @@ class Bridge(val id: UUID, val tunnelKey: Long,
                     action = Promise.successful(ToPortAction(logicalPort))
                     packetContext.addFlowTag(
                         FlowTagger.invalidateFlowsByLogicalPort(id, logicalPort))
+
                 case None =>
                     // Not a logical port's MAC. Is dst MAC in
                     // macPortMap? (ie, learned)
                     val port = getPortOfMac(dstDlAddress, packetContext.expiry,
                             ec)
+                    // TODO(rossella, galo) we shouldn't need to add the case of
+                    // the LogicalVlanBridgePort the Bridge should have learnt
+                    // to send the packet there if they are for the physical
+                    // network
 
                     // Tag the flow with the (dst-port, dst-mac) pair so we can
                     // invalidate the flow if the MAC migrates.

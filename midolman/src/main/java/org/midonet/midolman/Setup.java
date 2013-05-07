@@ -67,6 +67,7 @@ public class Setup {
         paths.add(pathMgr.getAdRoutesPath());
         paths.add(pathMgr.getBgpPath());
         paths.add(pathMgr.getBridgesPath());
+        paths.add(pathMgr.getVlanBridgesPath());
         paths.add(pathMgr.getChainsPath());
         paths.add(pathMgr.getFiltersPath());
         paths.add(pathMgr.getRulesPath());

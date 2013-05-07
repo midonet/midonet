@@ -277,9 +277,12 @@ class Coordinator(val origMatch: WildcardMatch,
             case _: RouterPort[_] =>
                 deviceFuture = expiringAsk(
                     RouterRequest(port.deviceID, update = false), expiry)
+            case _: VlanBridgePort[_] =>
+                deviceFuture = expiringAsk(
+                    VlanBridgeRequest(port.deviceID, update = false), expiry)
             case _ =>
                 log.error("Port {} belongs to device {} which is neither a " +
-                          "bridge or router!", port, port.deviceID)
+                          "bridge, vlan-bridge, or router!", port, port.deviceID)
                 return dropFlow(temporary = true)
         }
         deviceFuture map {Option(_)} fallbackTo { Promise.successful(None) } flatMap {
@@ -615,6 +618,33 @@ class Coordinator(val origMatch: WildcardMatch,
                 }
             ))
         }
+        // Vlan tag
+        if (!orig.getVlanIds.equals(modif.getVlanIds)) {
+            val vlansToRemove = orig.getVlanIds.diff(modif.getVlanIds)
+            val vlansToAdd = modif.getVlanIds.diff(orig.getVlanIds)
+            log.debug("Vlan tags to pop {}, vlan tags to push {}",
+                      vlansToRemove, vlansToAdd)
+
+            for (vlan <- vlansToRemove) {
+                actions.append(new FlowActionPopVLAN)
+            }
+            var count = vlansToAdd.size
+            for (vlan <- vlansToAdd) {
+                count -= 1
+                val action: FlowActionPushVLAN = new FlowActionPushVLAN()
+                // check if this is the last VLAN to push
+                if (count == 0) {
+                    action.setTagProtocolIdentifier(Ethernet.VLAN_TAGGED_FRAME)
+                } else {
+                    action.setTagControlIdentifier(Ethernet.PROVIDER_BRIDGING_TAG)
+                }
+
+                // vlan tag is the last 12 bits of this short, since we don't
+                // care about the first 4 we just set it directly
+                action.setTagControlIdentifier((vlan | 0x1000).toShort)
+                actions.append(action)
+            }
+        }
         // ICMP errors
         if (!matchObjectsSame(orig.getIcmpData,
                               modif.getIcmpData)) {
@@ -651,6 +681,6 @@ class Coordinator(val origMatch: WildcardMatch,
                     // were translated, which is not the case, so leave alone
             }
         }
-        return actions
+        actions
     }
 } // end Coordinator class

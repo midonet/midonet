@@ -3,22 +3,28 @@
 */
 package org.midonet.odp.flows;
 
+import java.nio.ByteOrder;
+
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.BaseBuilder;
 
 public class FlowKeyVLAN implements FlowKey<FlowKeyVLAN> {
 
-    /* be16 */ short vlan;
+    /* be16 */
+    //short pcp; // Priority Code Point 3 bits
+    //short dei; // Drop Elegible Indicator 1 bit
+    short vlan; // 12 bit
 
     @Override
     public void serialize(BaseBuilder builder) {
-        builder.addValue(vlan);
+        builder.addValue((short)(vlan | 0x1000), ByteOrder.BIG_ENDIAN);
     }
 
     @Override
     public boolean deserialize(NetlinkMessage message) {
         try {
-            vlan = message.getShort();
+            short tci = message.getShort(ByteOrder.BIG_ENDIAN);
+            vlan = (short)(tci & 0x0fff);
             return true;
         } catch (Exception e) {
             return false;

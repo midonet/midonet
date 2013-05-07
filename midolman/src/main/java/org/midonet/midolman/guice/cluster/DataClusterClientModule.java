@@ -13,22 +13,27 @@ import com.google.inject.PrivateModule;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.name.Names;
-
-import org.midonet.midolman.config.ZookeeperConfig;
-import org.midonet.midolman.guice.zookeeper.ZKConnectionProvider;
-import org.midonet.midolman.host.state.HostZkManager;
-import org.midonet.midolman.monitoring.store.Store;
-import org.midonet.midolman.state.*;
-import org.midonet.midolman.state.zkManagers.*;
-import org.midonet.midolman.util.JSONSerializer;
 import org.midonet.cluster.ClusterBgpManager;
 import org.midonet.cluster.ClusterBridgeManager;
 import org.midonet.cluster.ClusterChainManager;
 import org.midonet.cluster.ClusterPortsManager;
 import org.midonet.cluster.ClusterRouterManager;
+import org.midonet.cluster.ClusterVlanBridgeManager;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.LocalDataClientImpl;
 import org.midonet.cluster.services.MidostoreSetupService;
+import org.midonet.midolman.config.ZookeeperConfig;
+import org.midonet.midolman.guice.zookeeper.ZKConnectionProvider;
+import org.midonet.midolman.host.state.HostZkManager;
+import org.midonet.midolman.monitoring.store.Store;
+import org.midonet.midolman.state.Directory;
+import org.midonet.midolman.state.PathBuilder;
+import org.midonet.midolman.state.PortConfigCache;
+import org.midonet.midolman.state.ZkConfigSerializer;
+import org.midonet.midolman.state.ZkConnectionAwareWatcher;
+import org.midonet.midolman.state.ZkManager;
+import org.midonet.midolman.state.zkManagers.*;
+import org.midonet.midolman.util.JSONSerializer;
 import org.midonet.util.eventloop.Reactor;
 
 /**
@@ -63,6 +68,9 @@ public class DataClusterClientModule extends PrivateModule {
 
         bind(ClusterBridgeManager.class)
                 .in(Singleton.class);
+
+        bind(ClusterVlanBridgeManager.class)
+            .in(Singleton.class);
 
         bind(ClusterBgpManager.class)
             .in(Singleton.class);
@@ -99,6 +107,7 @@ public class DataClusterClientModule extends PrivateModule {
         managers.add(TenantZkManager.class);
         managers.add(TunnelZoneZkManager.class);
         managers.add(PortSetZkManager.class);
+        managers.add(VlanAwareBridgeZkManager.class);
 
         for (Class<? extends ZkManager> managerClass : managers) {
             //noinspection unchecked
@@ -127,13 +136,10 @@ public class DataClusterClientModule extends PrivateModule {
         @Override
         public T get() {
             try {
-                Constructor<T> constructor =
-                        managerClass.getConstructor(Directory.class,
-                                String.class);
+                Constructor<T> constructor = managerClass.getConstructor(
+                                                 Directory.class, String.class);
 
-                return
-                        constructor.newInstance(
-                                directory,
+                return constructor.newInstance(directory,
                                 config.getMidolmanRootKey());
 
             } catch (Exception e) {

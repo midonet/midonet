@@ -48,6 +48,25 @@ public interface DataClient {
 
     List<BGP> bgpFindByPort(UUID portId) throws StateAccessException;
 
+    /* Vlan bridges related methods */
+
+    @CheckForNull VlanAwareBridge vlanBridgesGetByName(String tenantid,
+                                                       String name)
+        throws StateAccessException;
+
+    UUID vlanBridgesCreate(@Nonnull VlanAwareBridge bridge)
+        throws StateAccessException;
+
+    @CheckForNull
+    VlanAwareBridge vlanBridgesGet(UUID id) throws StateAccessException;
+
+    List<VlanAwareBridge> vlanBridgesFindByTenant(String tenantId)
+        throws StateAccessException;
+
+    void vlanBridgesUpdate(@Nonnull VlanAwareBridge bridge)
+        throws StateAccessException;
+
+    void vlanBridgesDelete(UUID id) throws StateAccessException;
 
     /* Bridges related methods */
     @CheckForNull Bridge bridgesGet(UUID id) throws StateAccessException;
@@ -93,7 +112,6 @@ public interface DataClient {
     void bridgeDeleteIp4Mac(@Nonnull UUID bridgeId, @Nonnull IntIPv4 ip4,
                             @Nonnull MAC mac)
         throws StateAccessException;
-
 
     /* Chains related methods */
     @CheckForNull Chain chainsGet(UUID id) throws StateAccessException;
@@ -303,6 +321,12 @@ public interface DataClient {
     UUID portsCreate(@Nonnull Port<?, ?> port) throws StateAccessException;
 
     void portsDelete(UUID id) throws StateAccessException;
+
+    List<Port<?, ?>> trunkPortsFindByVlanBridge(UUID bridgeId)
+        throws StateAccessException;
+
+    List<Port<?, ?>> interiorPortsFindByVlanBridge(UUID bridgeId)
+                     throws StateAccessException;
 
     List<Port<?, ?>> portsFindByBridge(UUID bridgeId) throws
             StateAccessException;

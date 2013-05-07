@@ -139,6 +139,7 @@ trait SimulationHelper extends MidolmanTestCase {
         eth.setSourceMACAddress(srcMac)
         eth.setDestinationMACAddress(dstMac)
         eth.setEtherType(ARP.ETHERTYPE)
+
         triggerPacketIn(portName, eth)
     }
 
@@ -285,17 +286,59 @@ trait SimulationHelper extends MidolmanTestCase {
         pktOut.getPacket
     }
 
-    def expectPacketOut(portNum : Int,
+    def expectPacketOut(portNums : Seq[Int],
                         packetEventsProbe: TestProbe): Ethernet = {
+        expectPacketOut(portNums, packetEventsProbe, List(), List())
+    }
+
+    /**
+     * Expects a packet on all the given ports, listening on the given events
+     * probe. The vlan ids provided in the vlanIdsPush and vlanIdsPop params
+     * will be used to compare against the actions. Since the packets won't
+     * have the actions applied, we will check here if the packet's actions
+     * contain those for pushing or popping those vlans.
+     */
+    def expectPacketOut(portNums : Seq[Int],
+                        packetEventsProbe: TestProbe,
+                        vlanIdsPush: List[Short],
+                        vlanIdsPop: List[Short]): Ethernet = {
         val pktOut = requestOfType[PacketsExecute](packetEventsProbe).packet
         pktOut should not be null
         pktOut.getPacket should not be null
-        pktOut.getActions.size should equal (1)
-        pktOut.getActions.toList map { action =>
-            action.getKey should be === FlowAction.FlowActionAttr.OUTPUT
-            action.getValue.getClass should be === classOf[FlowActionOutput]
-            action.getValue.asInstanceOf[FlowActionOutput].getPortNumber
-        } should contain (portNum)
+
+        pktOut.getActions.size should be === (portNums.size +
+            vlanIdsPush.size +
+            vlanIdsPop.size)
+
+        // Check that we're outputting on the right ports
+        portNums.foreach( portNum =>
+            pktOut.getActions.filter {
+                x => x.isInstanceOf[FlowActionOutput]}.toList map
+                { action =>
+                    action.getKey should be === FlowAction.FlowActionAttr.OUTPUT
+                    action.getValue.asInstanceOf[FlowActionOutput].getPortNumber
+                } should contain (portNum)
+        )
+
+        // Check that the vlan ids to push contained in the actions are those
+        // that were expected
+        vlanIdsPush.foreach( vlanId =>
+            pktOut.getActions.filter {
+                x => x.isInstanceOf[FlowActionPushVLAN]}.toList map
+                { action =>
+                    action.getKey should be === FlowAction.FlowActionAttr.PUSH_VLAN
+                    // The VlanId is just 12 bits in that field
+                    (action.getValue.asInstanceOf[FlowActionPushVLAN]
+                        .getTagControlIdentifier & 0x0fff).toShort
+                } should contain (vlanId)
+        )
+
+        // Pop actions don't have the vlan id, but check that we have the right
+        // number at least (this could be improved by verifying the actual
+        // ids in the frame)
+        vlanIdsPop.size should be === (pktOut.getActions
+            .count( _.isInstanceOf[FlowActionPopVLAN]))
+
         pktOut.getPacket
     }
 

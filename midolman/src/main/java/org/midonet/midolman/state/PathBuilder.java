@@ -14,6 +14,7 @@ import org.midonet.midolman.config.ZookeeperConfig;
 public class PathBuilder extends ZkPathManager {
 
     public static final String BRIDGE_NAMES_PATH = "bridge-names";
+    public static final String VLAN_BRIDGE_NAMES_PATH = "vlan-bridge-names";
     public static final String CHAIN_NAMES_PATH = "chain-names";
     public static final String ROUTER_NAMES_PATH = "router-names";
     public static final String TENANTS_PATH = "tenants";
@@ -57,7 +58,7 @@ public class PathBuilder extends ZkPathManager {
 
     private StringBuilder buildTenantPortGroupNamesPath(String tenantId) {
         return buildTenantPath(tenantId).append("/").append(
-                PORT_GROUP_NAMES_PATH);
+            PORT_GROUP_NAMES_PATH);
     }
 
     /**
@@ -114,8 +115,26 @@ public class PathBuilder extends ZkPathManager {
         return buildTenantBridgeNamesPath(tenantId).toString();
     }
 
+
     private StringBuilder buildTenantBridgeNamesPath(String tenantId) {
         return buildTenantPath(tenantId).append("/").append(BRIDGE_NAMES_PATH);
+    }
+
+    public String getTenantVlanBridgeNamePath(String tenantId, String name) {
+        return buildTenantVlanBridgeNamePath(tenantId, name).toString();
+    }
+
+    public StringBuilder buildTenantVlanBridgeNamePath(String tenantId,
+                                                       String name) {
+        return buildTenantVlanBridgeNamesPath(tenantId).append("/").append(name);
+    }
+
+    public String getTenantVlanBridgeNamesPath(String tenantId) {
+        return buildTenantVlanBridgeNamesPath(tenantId).toString();
+    }
+
+    private StringBuilder buildTenantVlanBridgeNamesPath(String tenantId) {
+        return buildTenantPath(tenantId).append("/").append(VLAN_BRIDGE_NAMES_PATH);
     }
 
     /**

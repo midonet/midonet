@@ -11,6 +11,7 @@ import java.util.UUID;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import org.midonet.cluster.client.VlanAwareBridgeBuilder;
 import org.midonet.midolman.state.*;
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
@@ -73,13 +74,17 @@ public class LocalClientImpl implements Client {
     ClusterBridgeManager bridgeManager;
 
     @Inject
+    ClusterVlanBridgeManager vlanBridgeManager;
+
+    @Inject
     ClusterPortsManager portsManager;
 
     @Inject
     ZkConnectionAwareWatcher connectionWatcher;
 
     /**
-     * We inject it because we want to use the same {@link Reactor} as {@link ZkDirectory}
+     * We inject it because we want to use the same {@link Reactor} as
+     * {@link ZkDirectory}
      */
     @Inject
     @Named(ZKConnectionProvider.DIRECTORY_REACTOR_TAG)
@@ -89,6 +94,13 @@ public class LocalClientImpl implements Client {
     public void getBridge(UUID bridgeID, BridgeBuilder builder) {
         bridgeManager.registerNewBuilder(bridgeID, builder);
         log.debug("getBridge {}", bridgeID);
+    }
+
+    @Override
+    public void getVlanAwareBridge(UUID bridgeID,
+                                   VlanAwareBridgeBuilder builder) {
+        vlanBridgeManager.registerNewBuilder(bridgeID, builder);
+        log.debug("getVlanAwareBridge {}", bridgeID);
     }
 
     @Override

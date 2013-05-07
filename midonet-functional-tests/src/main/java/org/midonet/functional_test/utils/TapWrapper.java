@@ -201,6 +201,9 @@ public class TapWrapper {
                 bb.position(length + bb.position());
             }
         }
+        if (etherType == BPDU.ETHERTYPE) {
+            return bb.position() + BPDU.FRAME_SIZE;
+        }
         if (etherType != IPv4.ETHERTYPE) {
             log.debug("Unknown ethertype {}", String.format("%x", etherType));
             return -2;

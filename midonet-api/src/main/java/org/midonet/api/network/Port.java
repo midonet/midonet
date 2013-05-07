@@ -23,6 +23,10 @@ import java.util.UUID;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY,
         property = "type")
 @JsonSubTypes({
+        @JsonSubTypes.Type(value = TrunkPort.class,
+                name = PortType.TRUNK_VLAN_BRIDGE),
+        @JsonSubTypes.Type(value = InteriorVlanBridgePort.class,
+                name = PortType.INTERIOR_VLAN_BRIDGE),
         @JsonSubTypes.Type(value = ExteriorBridgePort.class,
                 name = PortType.EXTERIOR_BRIDGE),
         @JsonSubTypes.Type(value = InteriorBridgePort.class,
@@ -239,7 +243,7 @@ public abstract class Port extends UriResource {
         }
 
         // Cannot link two bridges
-        if (!isRouterPort() && !port.isRouterPort()) {
+        if (isBridgePort() && port.isBridgePort()) {
             return false;
         }
 
@@ -250,15 +254,35 @@ public abstract class Port extends UriResource {
             }
         }
 
+        // Cannot link vlan bridges with anything else but interior br. ports
+        if (isVlanBridgePort() || port.isVlanBridgePort()) {
+            Port nonVlanPort = isVlanBridgePort() ? port : this;
+            if (!nonVlanPort.isBridgePort() && !nonVlanPort.isInterior()) {
+                return false;
+            }
+        }
+
         // Finally, both ports must be unlinked
         return (getAttachmentId() == null && port.getAttachmentId() == null);
     }
 
     /**
-     * @return True if it's a router port. False if it's a bridge port.
+     * @return True if it's a router port. False otherwise.
      */
     @XmlTransient
     public abstract boolean isRouterPort();
+
+    /**
+     * @return True if it's a vlan bridge port. False otherwise.
+     */
+    @XmlTransient
+    public abstract boolean isVlanBridgePort();
+
+    /**
+     * @return True if it's a bridge port. False otherwise.
+     */
+    @XmlTransient
+    public abstract boolean isBridgePort();
 
     /**
      * @param id

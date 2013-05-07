@@ -18,6 +18,7 @@ import org.midonet.midolman.config.ZookeeperConfig;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.Ip4ToMacReplicatedMap;
 import org.midonet.midolman.state.MacPortMap;
+import org.midonet.midolman.state.PortConfig;
 import org.midonet.midolman.state.PortDirectory;
 import org.midonet.midolman.state.ReplicatedMap;
 import org.midonet.midolman.state.StateAccessException;
@@ -159,39 +160,54 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
             // the watcher can consider just the port whose configuration changed,
             // not the whole list.
 
-            // Find the peer of the new logical port.
-            PortDirectory.LogicalBridgePortConfig bridgePort =
-                portsManager.getPortConfigAndRegisterWatcher(
-                    id, PortDirectory.LogicalBridgePortConfig.class, watcher);
+            // Find the peer of the new logical port. We don't cast to
+            // LogicalBridgePortConfig because it may also be a LogicalVlan..
+            PortDirectory.LogicalBridgePortConfig bridgePort = portsManager
+                .getPortConfigAndRegisterWatcher(
+                    id,  PortDirectory.LogicalBridgePortConfig.class, watcher);
+
             if (null == bridgePort) {
-                log.error("Failed to find the logical bridge port's config {}",
-                          id);
+                log.warn("Can't find the logical bridge port's config {}", id);
                 continue;
             }
+
             // Ignore dangling ports.
             if (null == bridgePort.peerId()) {
                 continue;
             }
-            PortDirectory.LogicalRouterPortConfig routerPort =
-                portsManager.getPortConfigAndRegisterWatcher(
-                    bridgePort.peerId(),
-                    PortDirectory.LogicalRouterPortConfig.class,
-                    watcher);
 
-            if (null == routerPort) {
-                log.error("Failed to get the config for the bridge's peer {}",
-                          bridgePort);
-                continue;
+            // The peer could be LogicalRouterPortConfig or LogicalVlanBridge..
+            PortConfig portCfg = portsManager.getPortConfigAndRegisterWatcher(
+                bridgePort.peerId(),
+                PortConfig.class,
+                watcher);
+
+            if (portCfg instanceof PortDirectory.LogicalRouterPortConfig) {
+
+                PortDirectory.LogicalRouterPortConfig routerPort =
+                    (PortDirectory.LogicalRouterPortConfig)portCfg;
+
+                if (null == routerPort) {
+                    log.warn("Failed to get the config for the bridge's peer {}",
+                             bridgePort);
+                    continue;
+                }
+
+                // 'Learn' that the router's mac is reachable via the bridge port.
+                rtrMacToLogicalPortId.put(routerPort.getHwAddr(), id);
+                // Add the router port's IP and MAC to the permanent ARP map.
+                IPv4Addr rtrPortIp = IPv4Addr.fromInt(routerPort.portAddr);
+                rtrIpToMac.put(rtrPortIp, routerPort.getHwAddr());
+                log.debug("added bridge port {} " +
+                              "connected to router port with MAC:{} and IP:{}",
+                          new Object[]{id, routerPort.getHwAddr(), rtrPortIp});
+
+            } else if (portCfg instanceof PortDirectory.LogicalVlanBridgePortConfig) {
+                builder.setVlanBridgePeerPortId(id);
+            } else {
+                log.warn("The peer isn't router nor vlan-bridge logical port");
             }
-            // 'Learn' that the router's mac is reachable via the bridge port.
-            rtrMacToLogicalPortId.put(routerPort.getHwAddr(), id);
-            // Add the router port's IP and MAC to the permanent ARP map.
-            IPv4Addr rtrPortIp = IPv4Addr.fromInt(routerPort.portAddr);
-            rtrIpToMac.put(rtrPortIp, routerPort.getHwAddr());
 
-            log.debug("added bridge port {} " +
-                          "connected to router port with MAC:{} and IP:{}",
-                      new Object[]{id, routerPort.getHwAddr(), rtrPortIp});
         }
         builder.setLogicalPortsMap(rtrMacToLogicalPortId, rtrIpToMac);
         // Trigger the update, this method was called by a watcher, because

@@ -3,6 +3,8 @@
  */
 package org.midonet.api.host;
 
+import org.midonet.client.dto.DtoVlanBridge;
+import org.midonet.client.dto.DtoVlanBridgeTrunkPort;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.api.VendorMediaType;
@@ -73,12 +75,20 @@ public class TestHostInterfacePort {
             bridge1.setName("bridge1-name");
             bridge1.setTenantId("tenant1-id");
 
+            DtoVlanBridge vlanBridge1 = new DtoVlanBridge();
+            vlanBridge1.setName("vlan-bridge1-name");
+            vlanBridge1.setTenantId("tenant1-id");
+
             DtoBridgePort bridgePort1 = new DtoBridgePort();
+            DtoVlanBridgeTrunkPort trunkPort1 = new DtoVlanBridgeTrunkPort();
 
             topology = new Topology.Builder(dtoResource)
                     .create("bridge1", bridge1)
+                    .create("vlanBridge1", vlanBridge1)
                     .create("bridge1", "bridgePort1", bridgePort1)
+                    .create("vlanBridge1", "vlanBridgePort1", trunkPort1)
                     .build();
+
             hostTopology = new HostTopology.Builder(dtoResource, hostManager)
                     .create(host1Id, host1).build();
 
@@ -97,6 +107,8 @@ public class TestHostInterfacePort {
 
             DtoHost host = hostTopology.getHost(host1Id);
             DtoBridgePort port1 = topology.getExtBridgePort("bridgePort1");
+            DtoVlanBridgeTrunkPort port2 = topology.getVlanBridgeTrunkPort(
+                "vlanBridgePort1");
 
             // List mappings.  There should be none.
             DtoHostInterfacePort[] maps = dtoResource.getAndVerifyOk(
@@ -107,27 +119,39 @@ public class TestHostInterfacePort {
             Assert.assertEquals(0, maps.length);
 
             // Map a tunnel zone to a host
-            DtoHostInterfacePort mapping = new DtoHostInterfacePort();
-            mapping.setPortId(port1.getId());
-            mapping.setInterfaceName("eth0");
-            mapping = dtoResource.postAndVerifyCreated(
+            DtoHostInterfacePort mapping1 = new DtoHostInterfacePort();
+            mapping1.setPortId(port1.getId());
+            mapping1.setInterfaceName("eth0");
+            mapping1 = dtoResource.postAndVerifyCreated(
                     host.getPorts(),
                     VendorMediaType.APPLICATION_HOST_INTERFACE_PORT_JSON,
-                    mapping,
+                    mapping1,
                     DtoHostInterfacePort.class);
 
-            // List mapping and verify that there is one
+            DtoHostInterfacePort mapping2 = new DtoHostInterfacePort();
+            mapping2.setPortId(port2.getId());
+            mapping2.setInterfaceName("eth1");
+            mapping2 = dtoResource.postAndVerifyCreated(
+                host.getPorts(),
+                VendorMediaType.APPLICATION_HOST_INTERFACE_PORT_JSON,
+                mapping2,
+                DtoHostInterfacePort.class);
+
+            // List bridge mapping and verify that there is one
             maps = dtoResource.getAndVerifyOk(
                     host.getPorts(),
                     VendorMediaType
                             .APPLICATION_HOST_INTERFACE_PORT_COLLECTION_JSON,
                     DtoHostInterfacePort[].class);
-            Assert.assertEquals(1, maps.length);
+            Assert.assertEquals(2, maps.length);
 
             // Remove mapping
             dtoResource.deleteAndVerifyNoContent(
-                    mapping.getUri(),
+                    mapping1.getUri(),
                     VendorMediaType.APPLICATION_HOST_INTERFACE_PORT_JSON);
+            dtoResource.deleteAndVerifyNoContent(
+                mapping2.getUri(),
+                VendorMediaType.APPLICATION_HOST_INTERFACE_PORT_JSON);
 
             // List mapping and verify that there is none
             maps = dtoResource.getAndVerifyOk(
@@ -135,6 +159,8 @@ public class TestHostInterfacePort {
                     VendorMediaType
                             .APPLICATION_HOST_INTERFACE_PORT_COLLECTION_JSON,
                     DtoHostInterfacePort[].class);
+
+            Assert.assertEquals(0, maps.length);
         }
 
         @Test
@@ -159,10 +185,14 @@ public class TestHostInterfacePort {
                             .tenantId("tenant-1")
                             .name("bridge-1")
                             .create();
+            VlanBridge vb = api.addVlanBridge()
+                           .tenantId("tenant-1")
+                           .name("vlan-bridge-1")
+                           .create();
 
             BridgePort bp1 = b1.addExteriorPort().create();
             BridgePort bp2 = b1.addExteriorPort().create();
-
+            VlanBridgeTrunkPort vbtp = vb.addTrunkPort().create();
 
             HostInterfacePort hip1 = host.addHostInterfacePort()
                                                       .interfaceName("tap-1")
@@ -174,25 +204,36 @@ public class TestHostInterfacePort {
                                                       .portId(bp2.getId())
                                                       .create();
 
+            HostInterfacePort hip3 = host.addHostInterfacePort()
+                                                      .interfaceName("tap-3")
+                                                      .portId(vbtp.getId())
+                                                      .create();
+
             ResourceCollection<HostInterfacePort> hips = host.getPorts();
 
             assertThat("There are two host interface port mappings.",
-                       hips.size(), is(2));
+                       hips.size(), is(3));
 
             assertThat("Correct host id is returned", hip1.getHostId(),
                        is(host.getId()));
             assertThat("Correct host id is returned", hip2.getHostId(),
+                       is(host.getId()));
+            assertThat("Correct host id is returned", hip3.getHostId(),
                        is(host.getId()));
 
             assertThat("Correct port id is returned",
                        hip1.getPortId(), is(bp1.getId()));
             assertThat("Correct port id is returned",
                        hip2.getPortId(), is(bp2.getId()));
+            assertThat("Correct port id is returned",
+                       hip3.getPortId(), is(vbtp.getId()));
 
             assertThat("Correct interface name is returned",
                        hip1.getInterfaceName(), is("tap-1"));
             assertThat("Correct interface name is returned",
                        hip2.getInterfaceName(), is("tap-2"));
+            assertThat("Correct interface name is returned",
+                       hip3.getInterfaceName(), is("tap-3"));
         }
     }
 }

@@ -46,6 +46,7 @@ import org.midonet.util.functors.Callback2;
 import org.midonet.util.functors.CollectionFunctors;
 import org.midonet.util.functors.Functor;
 
+@SuppressWarnings("unused")
 public class LocalDataClientImpl implements DataClient {
 
     @Inject
@@ -100,6 +101,9 @@ public class LocalDataClientImpl implements DataClient {
     private PortSetZkManager portSetZkManager;
 
     @Inject
+    private VlanAwareBridgeZkManager vlanBridgeZkManager;
+
+    @Inject
     private PathBuilder pathBuilder;
 
     @Inject
@@ -110,6 +114,9 @@ public class LocalDataClientImpl implements DataClient {
 
     @Inject
     private ClusterBridgeManager bridgeManager;
+
+    @Inject
+    private ClusterVlanBridgeManager vlanBridgeManager;
 
     @Inject
     @Named(ZKConnectionProvider.DIRECTORY_REACTOR_TAG)
@@ -186,13 +193,32 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
+    public @CheckForNull VlanAwareBridge vlanBridgesGetByName(String tenantId,
+                                                              String name)
+        throws StateAccessException {
+        log.debug("Entered: tenantId={}, name={}", tenantId, name);
+
+        VlanAwareBridge bridge = null;
+        String path = pathBuilder.getTenantVlanBridgeNamePath(tenantId, name);
+
+        if (vlanBridgeZkManager.exists(path)) {
+            byte[] data = vlanBridgeZkManager.get(path);
+            VlanBridgeName.Data nameData =
+                serializer.deserialize(data, VlanBridgeName.Data.class);
+            bridge = vlanBridgesGet(nameData.id);
+        }
+
+        log.debug("Exiting: vlan-bridge={}", bridge);
+        return bridge;
+    }
+
+    @Override
     public @CheckForNull Bridge bridgesGetByName(String tenantId, String name)
             throws StateAccessException {
         log.debug("Entered: tenantId={}, name={}", tenantId, name);
 
         Bridge bridge = null;
-        String path = pathBuilder.getTenantBridgeNamePath(tenantId, name)
-                .toString();
+        String path = pathBuilder.getTenantBridgeNamePath(tenantId, name);
 
         if (bridgeZkManager.exists(path)) {
             byte[] data = bridgeZkManager.get(path);
@@ -288,6 +314,129 @@ public class LocalDataClientImpl implements DataClient {
             throws StateAccessException {
         Ip4ToMacReplicatedMap.deletePersistentEntry(
             bridgeZkManager.getIP4MacMapDirectory(bridgeId), ip4, mac);
+    }
+
+    @Override
+    public UUID vlanBridgesCreate(@Nonnull VlanAwareBridge bridge)
+        throws StateAccessException {
+
+        log.debug("vlanBridgesCreate entered: vlan-bridge={}", bridge);
+        if (bridge.getId() == null) {
+            bridge.setId(UUID.randomUUID());
+        }
+
+        VlanAwareBridgeZkManager.VlanBridgeConfig config =
+            Converter.toVlanBridgeConfig(bridge);
+
+        List<Op> ops = vlanBridgeZkManager
+                       .prepareVlanBridgeCreate(bridge.getId(), config);
+
+        // Create the top level directories for
+        String tenantId = bridge.getProperty(
+                                 VlanAwareBridge.Property.tenant_id);
+        ops.addAll(tenantZkManager.prepareCreate(tenantId));
+
+        // Create the bridge names directory if it does not exist
+        String bridgeNamesPath = pathBuilder
+            .getTenantVlanBridgeNamesPath(tenantId);
+        if (!vlanBridgeZkManager.exists(bridgeNamesPath)) {
+            ops.add(vlanBridgeZkManager
+                    .getPersistentCreateOp(bridgeNamesPath, null));
+        }
+
+        // Index the name
+        String bridgeNamePath = pathBuilder
+            .getTenantVlanBridgeNamePath(tenantId, config.getName());
+        byte[] data = serializer
+            .serialize((new VlanBridgeName(bridge)).getData());
+        ops.add(vlanBridgeZkManager.getPersistentCreateOp(bridgeNamePath, data));
+
+        vlanBridgeZkManager.multi(ops);
+
+        log.debug("VlanBridgeZkDaoImpl.create exiting: vlan-bridge={}", bridge);
+        return bridge.getId();
+    }
+
+    @Override
+    public List<VlanAwareBridge> vlanBridgesFindByTenant(String tenantId)
+        throws StateAccessException  {
+        List<VlanAwareBridge> bridges = new ArrayList<VlanAwareBridge>();
+
+        String path = pathBuilder.getTenantVlanBridgeNamesPath(tenantId);
+        if (vlanBridgeZkManager.exists(path)) {
+            Set<String> bridgeNames = vlanBridgeZkManager.getChildren(path);
+            for (String name : bridgeNames) {
+                VlanAwareBridge bridge = vlanBridgesGetByName(tenantId, name);
+                if (bridge != null) {
+                    bridges.add(bridge);
+                }
+            }
+        }
+        return bridges;
+    }
+
+    @Override
+    public VlanAwareBridge vlanBridgesGet(UUID id)
+        throws StateAccessException {
+
+        VlanAwareBridge bridge = null;
+        if (vlanBridgeZkManager.exists(id)) {
+            bridge = Converter.fromVLANBridgeConfig(vlanBridgeZkManager.get(id));
+            bridge.setId(id);
+        }
+
+        return bridge;
+    }
+
+    @Override
+    public void vlanBridgesUpdate(@Nonnull VlanAwareBridge bridge)
+        throws StateAccessException {
+        List<Op> ops = new ArrayList<Op>();
+
+        // Get the original data
+        VlanAwareBridge oldBridge = vlanBridgesGet(bridge.getId());
+
+        VlanAwareBridgeZkManager.VlanBridgeConfig config =
+            Converter.toVlanBridgeConfig(bridge);
+
+        // Update the config
+        Op op = vlanBridgeZkManager.prepareUpdate(bridge.getId(), config);
+        if (op != null) {
+            ops.add(op);
+        }
+
+        // Update index if the name changed
+        String oldName = oldBridge.getData().name;
+        String newName = config.getName();
+        if (oldName == null ? newName != null : !oldName.equals(newName)) {
+            String tenantId = oldBridge
+                              .getProperty(VlanAwareBridge.Property.tenant_id);
+
+            String path = pathBuilder.getTenantVlanBridgeNamePath(tenantId, oldName);
+            ops.add(vlanBridgeZkManager.getDeleteOp(path));
+
+            path = pathBuilder.getTenantVlanBridgeNamePath(tenantId, newName);
+            byte[] data = serializer.serialize(new VlanBridgeName(bridge).getData());
+            ops.add(vlanBridgeZkManager.getPersistentCreateOp(path, data));
+        }
+
+        if (ops.size() > 0) {
+            vlanBridgeZkManager.multi(ops);
+        }
+    }
+
+    @Override
+    public void vlanBridgesDelete(UUID id) throws StateAccessException {
+        VlanAwareBridge bridge = vlanBridgesGet(id);
+        if (bridge == null) {
+            return;
+        }
+        List<Op> ops = vlanBridgeZkManager.prepareVlanBridgeDelete(id);
+        String path = pathBuilder.getTenantVlanBridgeNamePath(
+            bridge.getProperty(VlanAwareBridge.Property.tenant_id),
+            bridge.getData().name);
+        ops.add(vlanBridgeZkManager.getDeleteOp(path));
+        vlanBridgeZkManager.multi(ops);
     }
 
     @Override
@@ -586,13 +735,12 @@ public class LocalDataClientImpl implements DataClient {
                 }
                 if (config instanceof PortDirectory.MaterializedRouterPortConfig) {
                     UUID deviceId = config.device_id;
-                    routerManager.updateRoutesBecauseLocalPortChangedStatus(deviceId,
-                                                                 portID, active);
+                    routerManager.updateRoutesBecauseLocalPortChangedStatus(
+                        deviceId, portID, active);
                 }
             }
         });
-}
-
+    }
 
     public @CheckForNull Chain chainsGetByName(@Nonnull String tenantId, String name)
             throws StateAccessException {
@@ -1059,6 +1207,32 @@ public class LocalDataClientImpl implements DataClient {
     @Override
     public void portsDelete(UUID id) throws StateAccessException {
         portZkManager.delete(id);
+    }
+
+    @Override
+    public List<Port<?, ?>> trunkPortsFindByVlanBridge(UUID bridgeId)
+        throws StateAccessException {
+
+        Set<UUID> ids = portZkManager.getVlanBridgeTrunkPortIDs(bridgeId);
+        List<Port<?, ?>> ports = new ArrayList<Port<?, ?>>();
+        for (UUID id : ids) {
+            ports.add(portsGet(id));
+        }
+
+        return ports;
+    }
+
+    @Override
+    public List<Port<?, ?>> interiorPortsFindByVlanBridge(UUID bridgeId)
+        throws StateAccessException {
+
+        Set<UUID> ids = portZkManager.getVlanBridgeLogicalPortIDs(bridgeId);
+        List<Port<?, ?>> ports = new ArrayList<Port<?, ?>>();
+        for (UUID id : ids) {
+            ports.add(portsGet(id));
+        }
+
+        return ports;
     }
 
     @Override

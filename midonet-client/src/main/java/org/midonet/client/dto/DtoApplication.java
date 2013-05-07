@@ -14,6 +14,7 @@ public class DtoApplication {
     private URI hosts;
     private URI tunnelZones;
     private URI bridges;
+    private URI vlanBridges;
     private URI chains;
     private URI metricsFilter;
     private URI metricsQuery;
@@ -22,6 +23,7 @@ public class DtoApplication {
     private String adRouteTemplate;
     private String bgpTemplate;
     private String bridgeTemplate;
+    private String vlanBridgeTemplate;
     private String chainTemplate;
     private String ruleTemplate;
     private String hostTemplate;
@@ -53,6 +55,14 @@ public class DtoApplication {
 
     public void setBridges(URI bridges) {
         this.bridges = bridges;
+    }
+
+    public URI getVlanBridges() {
+        return vlanBridges;
+    }
+
+    public void setVlanBridges(URI vlanBridges) {
+        this.vlanBridges = vlanBridges;
     }
 
     public URI getChains() {
@@ -127,8 +137,16 @@ public class DtoApplication {
         this.bgpTemplate = bgpTemplate;
     }
 
+    public String getVlanBridgeTemplate() {
+        return vlanBridgeTemplate;
+    }
+
     public String getBridgeTemplate() {
         return bridgeTemplate;
+    }
+
+    public void setVlanBridgeTemplate(String template) {
+        this.vlanBridgeTemplate = template;
     }
 
     public void setBridgeTemplate(String bridgeTemplate) {

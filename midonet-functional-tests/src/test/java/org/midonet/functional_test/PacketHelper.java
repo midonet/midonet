@@ -93,6 +93,30 @@ public class PacketHelper {
         return frame.serialize();
     }
 
+    public static byte[] makeBPDU(MAC srcMac, MAC dstMac, byte type, byte flags,
+                                  long rootBridgeId, int rootPathCost,
+                                  long senderBridgeId, short portId,
+                                  short msgAge, short maxAge, short helloTime,
+                                  short fwdDelay) {
+        BPDU bpdu = new BPDU();
+        bpdu.setBpduMsgType(type)
+            .setFlags(flags)
+            .setRootBridgeId(rootBridgeId)
+            .setRootPathCost(rootPathCost)
+            .setSenderBridgeId(senderBridgeId)
+            .setPortId(portId)
+            .setMsgAge(msgAge)
+            .setMaxAge(maxAge)
+            .setHelloTime(helloTime)
+            .setFwdDelay(fwdDelay);
+        Ethernet frame = new Ethernet();
+        frame.setEtherType(BPDU.ETHERTYPE);
+        frame.setPayload(bpdu);
+        frame.setSourceMACAddress(srcMac);
+        frame.setDestinationMACAddress(dstMac);
+        return frame.serialize();
+    }
+
     /**
      * Check that the packet is an ARP reply from the gateway to the endpoint.
      *
@@ -202,6 +226,28 @@ public class PacketHelper {
         pkt.setSourceMACAddress(dlSrc);
         pkt.setDestinationMACAddress(MAC.fromString("ff:ff:ff:ff:ff:ff"));
         pkt.setEtherType(ARP.ETHERTYPE);
+        return pkt.serialize();
+    }
+
+    /**
+     * Takes a serialized Ethernet frame, adds the given VLAN ID, and
+     * seriaizes the packet again.
+     *
+     * @param ethBytes
+     * @param vlanId
+     * @return
+     */
+    public static byte[] addVlanId(byte[] ethBytes, short vlanId)
+        throws MalformedPacketException {
+        Ethernet pkt = Ethernet.deserialize(ethBytes);
+        pkt.setVlanID(vlanId);
+        return pkt.serialize();
+    }
+
+    public static byte[] delVlanId(byte[] ethBytes)
+        throws MalformedPacketException {
+        Ethernet pkt = Ethernet.deserialize(ethBytes);
+        pkt.setVlanID((short)0);
         return pkt.serialize();
     }
 

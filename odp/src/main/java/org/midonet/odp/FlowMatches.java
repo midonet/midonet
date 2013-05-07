@@ -3,12 +3,12 @@
  */
 package org.midonet.odp;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
+import org.midonet.odp.flows.FlowAction;
 import org.midonet.odp.flows.FlowKey;
-import org.midonet.odp.flows.FlowKeyICMP;
-import org.midonet.odp.flows.FlowKeyICMPEcho;
-import org.midonet.odp.flows.FlowKeyICMPError;
 import org.midonet.packets.ARP;
 import org.midonet.packets.Ethernet;
 import org.midonet.packets.ICMP;
@@ -54,51 +54,72 @@ public class FlowMatches {
                     ethPkt.getSourceMACAddress().getAddress(),
                     ethPkt.getDestinationMACAddress().getAddress()))
             .addKey(etherType(ethPkt.getEtherType()));
+
+        List<FlowKey<?>> payloadKeys = new ArrayList<FlowKey<?>>();
+
         switch (ethPkt.getEtherType()) {
             case ARP.ETHERTYPE:
                 ARP arpPkt = ARP.class.cast(ethPkt.getPayload());
-                match.addKey(
+                payloadKeys.add(
                     arp(
                         arpPkt.getSenderHardwareAddress().getAddress(),
                         arpPkt.getTargetHardwareAddress().getAddress())
-                    .setOp(arpPkt.getOpCode())
-                    .setSip(IPv4.toIPv4Address(arpPkt.getSenderProtocolAddress()))
-                    .setTip(IPv4.toIPv4Address(arpPkt.getTargetProtocolAddress()))
+                        .setOp(arpPkt.getOpCode())
+                        .setSip(IPv4.toIPv4Address(
+                            arpPkt.getSenderProtocolAddress()))
+                        .setTip(IPv4.toIPv4Address(
+                            arpPkt.getTargetProtocolAddress()))
                 );
                 break;
+
             case IPv4.ETHERTYPE:
                 IPv4 ipPkt = IPv4.class.cast(ethPkt.getPayload());
                 IPFragmentType fragmentType =
                     IPFragmentType.fromIPv4Flags(ipPkt.getFlags(),
                                                  ipPkt.getFragmentOffset());
-                match.addKey(
+                payloadKeys.add(
                     ipv4(ipPkt.getSourceIPAddress(),
                          ipPkt.getDestinationIPAddress(),
                          ipPkt.getProtocol())
-                    .setTtl(ipPkt.getTtl())
-                    .setFrag(IPFragmentType.toByte(fragmentType))
+                        .setTtl(ipPkt.getTtl())
+                        .setFrag(IPFragmentType.toByte(fragmentType))
                 );
                 switch (ipPkt.getProtocol()) {
                     case TCP.PROTOCOL_NUMBER:
                         TCP tcpPkt = TCP.class.cast(ipPkt.getPayload());
-                        match.addKey(tcp(tcpPkt.getSourcePort(),
-                                         tcpPkt.getDestinationPort())
+                        payloadKeys.add(tcp(tcpPkt.getSourcePort(),
+                                                tcpPkt.getDestinationPort())
                         );
                         break;
                     case UDP.PROTOCOL_NUMBER:
                         UDP udpPkt = UDP.class.cast(ipPkt.getPayload());
-                        match.addKey(udp(udpPkt.getSourcePort(),
-                                         udpPkt.getDestinationPort())
+                        payloadKeys.add(udp(udpPkt.getSourcePort(),
+                                                udpPkt.getDestinationPort())
                         );
                         break;
                     case ICMP.PROTOCOL_NUMBER:
                         ICMP icmpPkt = ICMP.class.cast(ipPkt.getPayload());
-                        match.addKey(makeIcmpFlowKey(icmpPkt));
+                        payloadKeys.add(makeIcmpFlowKey(icmpPkt));
                     default:
                         break;
                 }
             default:
                 break;
+        }
+
+        if (ethPkt.getVlanIDs().size() > 0) {
+            // process VLANS
+            for (Iterator<Short> it = ethPkt.getVlanIDs().iterator();
+                 it.hasNext(); ) {
+                short vlanID = it.next();
+                match.addKey(
+                    etherType(it.hasNext() ? Ethernet.PROVIDER_BRIDGING_TAG :
+                                  Ethernet.VLAN_TAGGED_FRAME));
+                match.addKey(vlan(vlanID));
+            }
+            match.addKey(encap().setKeys(payloadKeys));
+        } else {
+            match.addKeys(payloadKeys);
         }
         return match;
     }

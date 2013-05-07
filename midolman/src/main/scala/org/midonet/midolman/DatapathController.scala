@@ -4,14 +4,14 @@
 package org.midonet.midolman
 
 import scala.collection.JavaConverters._
-import scala.collection.{Set => ROSet, Map => ROMap, mutable}
+import scala.collection.{Set => ROSet, Map => ROMap}
 import scala.collection.mutable.{ConcurrentMap => ConcMap}
 import akka.actor.{ActorLogging, Cancellable, Actor, ActorRef}
 import akka.event.LoggingAdapter
 import akka.util.Timeout
 import akka.util.duration._
 import java.lang.{Boolean => JBoolean, Integer => JInteger, Short => JShort}
-import java.util.{Collection, Collections, HashSet, List => JList, Set => JSet, UUID}
+import java.util.{Collection, Collections, List => JList, Set => JSet, UUID}
 import java.util.concurrent.{ConcurrentHashMap => ConcHashMap}
 import java.nio.ByteBuffer
 
@@ -21,12 +21,12 @@ import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.datapath._
 import org.midonet.midolman.monitoring.MonitoringActor
-import org.midonet.midolman.rules.ChainPacketContext
 import org.midonet.midolman.services.HostIdProviderService
 import org.midonet.midolman.topology._
-import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
-import org.midonet.midolman.topology.rcu.Host
+import topology.VirtualTopologyActor.PortRequest
+import rcu.Host
 import org.midonet.cluster.client
+import client.ExteriorPort
 import org.midonet.cluster.data.TunnelZone
 import org.midonet.cluster.data.TunnelZone.{HostConfig => TZHostConfig}
 import org.midonet.cluster.data.zones.{IpsecTunnelZoneHost,
@@ -35,13 +35,14 @@ import org.midonet.netlink.Callback
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode
 import org.midonet.odp.{Flow => KernelFlow, _}
-import org.midonet.odp.flows.{FlowAction, FlowActions}
+import org.midonet.odp.flows.{FlowActions, FlowAction}
 import org.midonet.odp.ports._
 import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.sdn.flows.{WildcardFlowBuilder, WildcardMatch}
-import org.midonet.util.functors.Callback0
 import org.midonet.midolman.FlowController.AddWildcardFlow
 import org.midonet.midolman.PacketWorkflowActor.AddVirtualWildcardFlow
+import scala.collection.mutable
+
 
 /**
  * Holder object that keeps the external message definitions
@@ -437,6 +438,7 @@ object DatapathController extends Referenceable {
      */
     private case class LocalInterfaceTunnelInfoFinal(caller : ActorRef,
                                              interfaces: JList[InterfaceDescription])
+
 }
 
 
@@ -893,12 +895,33 @@ class DatapathController() extends Actor with ActorLogging with
         }
     }
 
+    private def installTunnelKeyFlow(port: Port[_, _], exterior: ExteriorPort[_]) {
+        val fc = FlowController.getRef()
+        // packets for the port may have arrived before the
+        // port came up and made us install temporary drop flows.
+        // Invalidate them before adding the new flow
+        fc ! FlowController.InvalidateFlowsByTag(
+            FlowTagger.invalidateByTunnelKey(exterior.tunnelKey))
+
+        val wMatch = new WildcardMatch().setTunnelID(exterior.tunnelKey)
+        val actions = List[FlowAction[_]](FlowActions.output(port.getPortNo.shortValue))
+        val tags = Set[Any](FlowTagger.invalidateDPPort(port.getPortNo.shortValue()))
+        fc ! AddWildcardFlow(new WildcardFlowBuilder().
+            setMatch(wMatch).
+            setActions(actions).
+            setIdleExpirationMillis(0).
+            setPriority(0).build,
+            None, ROSet.empty, tags)
+        log.debug("Added flow for tunnelkey {}", exterior.tunnelKey)
+    }
+
     private def installTunnelKeyFlow(port: Port[_, _], vifId: UUID, active: Boolean) {
         val clientPortFuture = VirtualTopologyActor.expiringAsk(
             PortRequest(vifId, update = false))
 
         clientPortFuture.mapTo[client.ExteriorPort[_]] onComplete {
             case Right(exterior) =>
+
                 // trigger invalidation. This is done regardless of
                 // whether we are activating or deactivating:
                 //
@@ -911,23 +934,7 @@ class DatapathController() extends Actor with ActorLogging with
                     FlowTagger.invalidateDPPort(port.getPortNo.shortValue()))
 
                 if (active) {
-                    // packets for the port may have arrived before the
-                    // port came up and made us install temporary drop flows.
-                    // Invalidate them before adding the new flow
-                    val fc = FlowController.getRef()
-                    fc ! FlowController.InvalidateFlowsByTag(
-                        FlowTagger.invalidateByTunnelKey(exterior.tunnelKey))
-
-                    val wMatch = new WildcardMatch().setTunnelID(exterior.tunnelKey)
-                    val actions = List[FlowAction[_]](FlowActions.output(port.getPortNo.shortValue))
-                    val tags = Set[Any](FlowTagger.invalidateDPPort(port.getPortNo.shortValue()))
-                    fc ! AddWildcardFlow(new WildcardFlowBuilder().
-                                             setMatch(wMatch).
-                                             setActions(actions).
-                                             setIdleExpirationMillis(0).
-                                             setPriority(0).build,
-                                         None, ROSet.empty, tags)
-                    log.debug("Added flow for tunnelkey {}", exterior.tunnelKey)
+                    installTunnelKeyFlow(port, exterior)
                 }
 
             case _ =>
@@ -1452,7 +1459,7 @@ class VirtualPortManager(
                     // ports of the dp to DATAPATH. It the endpoint is not DATAPATH
                     // it means that this is a dangling tap. We need to recreate
                     // the dp port. Use case: add tap, bind it to a vport, remove
-                    // the tap. The dp port gets destryed.
+                    // the tap. The dp port gets destroyed.
                     if (itf.getEndpoint != InterfaceDescription.Endpoint.UNKNOWN &&
                         itf.getEndpoint != InterfaceDescription.Endpoint.DATAPATH &&
                         interfaceToDpPort.contains(itf.getName) && isUp) {

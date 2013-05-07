@@ -2,11 +2,11 @@ package org.midonet.client;
 
 import java.net.URI;
 import java.util.UUID;
-
 import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.UriBuilder;
 
-import org.midonet.client.dto.*;
+import org.midonet.client.dto.DtoApplication;
+import org.midonet.client.dto.DtoCapwapTunnelZone;
+import org.midonet.client.dto.DtoGreTunnelZone;
 import org.midonet.client.resource.*;
 
 
@@ -37,6 +37,16 @@ public class MidonetApi {
 
     public void disableLogging() {
         resource.disableLogging();
+    }
+
+    /**
+     * Adds a Vlan Bridge.
+     *
+     * @return a vlan bridge resource
+     */
+    public VlanBridge addVlanBridge() {
+        ensureApplication();
+        return application.addVlanBridge();
     }
 
     /**
@@ -97,6 +107,16 @@ public class MidonetApi {
     public TunnelZone<DtoCapwapTunnelZone> addCapwapTunnelZone() {
         ensureApplication();
         return application.addCapwapTunnelZone();
+    }
+
+    /**
+     * Gets Vlan Bridges.
+     *
+     * @return collection of vlan bridges
+     */
+    public ResourceCollection<VlanBridge> getVlanBridges(MultivaluedMap queryParams) {
+        ensureApplication();
+        return application.getVlanBridges(queryParams);
     }
 
     /**
@@ -192,6 +212,17 @@ public class MidonetApi {
     public Bridge getBridge(UUID id) {
         ensureApplication();
         return application.getBridge(id);
+    }
+
+    /**
+     * Returns a VlanBridge object.
+     *
+     * @param id
+     * @return
+     */
+    public VlanBridge getVlanBridge(UUID id) {
+        ensureApplication();
+        return application.getVlanBridge(id);
     }
 
     /**

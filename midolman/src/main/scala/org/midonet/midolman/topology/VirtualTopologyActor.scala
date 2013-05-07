@@ -21,6 +21,8 @@ import org.midonet.midolman.logging.ActorLogWithoutPath
 import akka.dispatch.{Promise, Future, ExecutionContext}
 import compat.Platform
 import java.util.concurrent.TimeoutException
+import org.slf4j.LoggerFactory
+import org.midonet.midolman.simulation.VlanAwareBridge
 
 object VirtualTopologyActor extends Referenceable {
     override val Name: String = "VirtualTopologyActor"
@@ -40,11 +42,17 @@ object VirtualTopologyActor extends Referenceable {
 
     case class BridgeRequest(id: UUID, update: Boolean) extends DeviceRequest
 
+    case class VlanBridgeRequest(id: UUID, update: Boolean) extends DeviceRequest
+
+    case class PortSetHolderRequest(id: UUID, update: Boolean) extends DeviceRequest
+
     case class RouterRequest(id: UUID, update: Boolean) extends DeviceRequest
 
     case class ChainRequest(id: UUID, update: Boolean) extends DeviceRequest
 
     sealed trait Unsubscribe
+
+    case class VlanBridgeUnsubscribe(id: UUID) extends Unsubscribe
 
     case class BridgeUnsubscribe(id: UUID) extends Unsubscribe
 
@@ -55,6 +63,7 @@ object VirtualTopologyActor extends Referenceable {
     case class RouterUnsubscribe(id: UUID) extends Unsubscribe
 
     case class Everything(idToBridge: immutable.Map[UUID, Bridge],
+                          idToVlanBridge: immutable.Map[UUID, VlanAwareBridge],
                           idToChain: immutable.Map[UUID, Chain],
                           idToPort: immutable.Map[UUID, Port[_]],
                           idToRouter: immutable.Map[UUID, Router])
@@ -74,8 +83,9 @@ object VirtualTopologyActor extends Referenceable {
                     system: ActorSystem): Future[Any] = {
         val timeLeft = expiry match {
             case 0L => 3000L
-            case e => e - Platform.currentTime
+            case ex => ex - Platform.currentTime
         }
+
         if (timeLeft <= 0)
             return Promise.failed(new TimeoutException)
         val e = everything
@@ -85,15 +95,21 @@ object VirtualTopologyActor extends Referenceable {
 
         // Try using the cache
         val deviceMap: immutable.Map[UUID, Any] = request match {
+            case r: VlanBridgeRequest => e.idToVlanBridge
             case r: BridgeRequest => e.idToBridge
             case r: ChainRequest => e.idToChain
             case r: PortRequest => e.idToPort
             case r: RouterRequest => e.idToRouter
+            case r: PortSetHolderRequest =>
+                if (e.idToBridge.contains(request.id)) e.idToBridge
+                else if (e.idToVlanBridge.contains(request.id)) e.idToVlanBridge
+                else new immutable.HashMap[UUID, Any]
+
         }
-        return deviceMap.get(request.id) match {
-            case None =>
-                VirtualTopologyActor.getRef(system).ask(
-                    request)(timeLeft milliseconds)
+
+        deviceMap.get(request.id) match {
+            case None => VirtualTopologyActor.getRef(system)
+                        .ask(request)(timeLeft milliseconds)
             case Some(device) => Promise.successful(device)
         }
     }
@@ -103,6 +119,7 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
     import VirtualTopologyActor._
 
     private var idToBridge = immutable.Map[UUID, Bridge]()
+    private var idToVlanBridge = immutable.Map[UUID, VlanAwareBridge]()
     private var idToChain = immutable.Map[UUID, Chain]()
     private var idToPort = immutable.Map[UUID, Port[_]]()
     private var idToRouter = immutable.Map[UUID, Router]()
@@ -166,7 +183,8 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
             }
         }
         idToUnansweredClients(id).clear()
-        everything = Everything(idToBridge, idToChain, idToPort, idToRouter)
+        everything = Everything(idToBridge, idToVlanBridge, idToChain,
+                                idToPort, idToRouter)
     }
 
     private def unsubscribe(id: UUID, actor: ActorRef): Unit = {
@@ -178,12 +196,34 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
         remove(idToSubscribers.get(id))
     }
 
+    private def serveBridgeRequest(id: UUID, update: Boolean) {
+        log.debug("Bridge {} requested with update={}", id, update)
+        manageDevice(id, (x: UUID) =>
+                          new BridgeManager(x, clusterClient, config))
+        deviceRequested(id, idToBridge, update)
+    }
+
+    private def serveVlanBridgeRequest(id: UUID, update: Boolean) {
+        log.debug("VlanBridge {} requested with update={}", id, update)
+        manageDevice(id, (x: UUID) =>
+                          new VlanAwareBridgeManager(x, clusterClient, config))
+        deviceRequested(id, idToVlanBridge, update)
+    }
+
     def receive = {
-        case BridgeRequest(id, update) =>
-            log.debug("Bridge {} requested with update={}", id, update)
-            manageDevice(id, (x: UUID) => new BridgeManager(x, clusterClient,
-                                                            config))
-            deviceRequested(id, idToBridge, update)
+
+        case PortSetHolderRequest(id, update) =>
+            if (idToBridge.contains(id)) {
+                log.debug("PortSetHolderRequest for ye olde bridge")
+                serveBridgeRequest(id, update)
+            } else if (idToVlanBridge.contains(id)) {
+                log.debug("PortSetHolderRequest for vlan-bridge")
+                serveVlanBridgeRequest(id, update)
+            } else {
+                log.warning("PortSetHolderRequest with unknown device {}", id)
+            }
+        case VlanBridgeRequest(id, update) => serveVlanBridgeRequest(id, update)
+        case BridgeRequest(id, update) => serveBridgeRequest(id, update)
         case ChainRequest(id, update) =>
             log.debug("Chain {} requested with update={}", id, update)
             manageDevice(id, (x: UUID) => new ChainManager(x, clusterClient))
@@ -198,9 +238,14 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
                 (x: UUID) => new RouterManager(x, clusterClient, config))
             deviceRequested(id, idToRouter, update)
         case BridgeUnsubscribe(id) => unsubscribe(id, sender)
+        case VlanBridgeUnsubscribe(id) => unsubscribe(id, sender)
         case ChainUnsubscribe(id) => unsubscribe(id, sender)
         case PortUnsubscribe(id) => unsubscribe(id, sender)
         case RouterUnsubscribe(id) => unsubscribe(id, sender)
+        case vlanBridge: VlanAwareBridge =>
+            log.debug("Received a Vlan Bridge for {}", vlanBridge.id)
+            idToVlanBridge = idToVlanBridge.+((vlanBridge.id, vlanBridge))
+            updated(vlanBridge.id, vlanBridge)
         case bridge: Bridge =>
             log.debug("Received a Bridge for {}", bridge.id)
             idToBridge = idToBridge.+((bridge.id, bridge))

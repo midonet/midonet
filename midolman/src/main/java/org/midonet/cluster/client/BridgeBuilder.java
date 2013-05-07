@@ -17,4 +17,5 @@ public interface BridgeBuilder extends ForwardingElementBuilder {
     void setIp4MacMap(IpMacMap<IPv4Addr> m);
     void setLogicalPortsMap(Map<MAC, UUID> rtrMacToLogicalPortId,
                             Map<IPAddr, MAC> rtrIpToMac);
+    void setVlanBridgePeerPortId(UUID id);
 }

@@ -41,7 +41,7 @@ public class OvsFlowsCreateSet_VLAN_Truncated_Test
             .addKey(ethernet(macFromString("ae:b3:77:8c:a1:48"),
                              macFromString("33:33:00:00:00:16")))
             .addKey(etherType(FlowKeyEtherType.Type.ETH_P_8021Q))
-            .addKey(vlan(0x0111))
+            .addKey(vlan(0x0101))
             .addKey(encap());
     }
 

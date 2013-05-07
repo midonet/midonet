@@ -18,6 +18,7 @@
   * [Bridge](#bridge)
   * [Bridge MAC Table](#bridgemactable)
   * [Bridge ARP Table](#bridgearptable)
+  * [Vlan Aware Bridge](#vlanawarebridge)
   * [Port](#port)
   * [Port Link](#portlink)
   * [Route](#route)
@@ -68,6 +69,7 @@ The request above may yield the following output:
         "uri": "http://example.org/",
         "version": "1",
         "bridges": "http://example.org/bridges",
+        "vlan_bridges": "http://example.org/vlan_bridges",
         "chains": "http://example.org/chains",
         "hosts": "http://example.org/hosts",
         "metricsFilter": "http://example.org/metrics/filter",
@@ -77,6 +79,7 @@ The request above may yield the following output:
         "bgpTemplate": "http://example.org/bgps/{id}",
         "adRouteTemplate": "http://example.org/ad_routes/{id}",
         "bridgeTemplate": "http://example.org/bridges/{id}",
+        "vlanBridgeTemplate": "http://example.org/vlan_bridges/{id}",
         "chainTemplate": "http://example.org/chains/{id}",
         "hostTemplate": "http://example.org/hosts/{id}",
         "portTemplate": "http://example.org/ports/{id}",
@@ -574,6 +577,73 @@ contains the following fields:
     </tr>
 </table>
 
+<a name="vlanawarebridge"/>
+### Vlan Aware Bridge [application/vnd.org.midonet.VlanBridge-v1+json]
+
+    GET     /vlan_bridges?tenant_id=:tenantId
+    GET     /vlan_bridges/:vlanBridgeId
+    POST    /vlan_bridges
+    PUT     /vlan_bridges/:vlanBridgeId
+    DELETE  /vlan_bridges/:vlanBridgeId
+
+Vlan Aware Bridge is an entity that represents a virtual vlan-aware
+bridge device in MidoNet. It contains the following fields:
+
+<table>
+    <tr>
+        <th>Field Name</th>
+        <th>Type</th>
+        <th>POST/PUT</th>
+        <th>Required</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>uri</td>
+        <td>URI</td>
+        <td/>
+        <td/>
+        <td>A GET against this URI refreshes the representation of this
+         resource.</td>
+    </tr>
+    <tr>
+        <td>id</td>
+        <td>UUID</td>
+        <td>POST</td>
+        <td>No</td>
+        <td>A unique identifier of the resource.  If this field is omitted in
+         the POST request, a random UUID is generated.</td>
+    </tr>
+    <tr>
+        <td>name</td>
+        <td>String</td>
+        <td>POST/PUT</td>
+        <td>Yes</td>
+        <td>Name of the vlan-aware bridge.  Must be unique within each tenant.</td>
+    </tr>
+    <tr>
+        <td>tenantId</td>
+        <td>String</td>
+        <td/>
+        <td/>
+        <td>ID of the tenant that owns the vlan-aware bridge.</td>
+    </tr>
+    <tr>
+        <td>ports</td>
+        <td>URI</td>
+        <td/>
+        <td/>
+        <td>A GET against this URI retrieves ports on this vlan-aware bridge.</td>
+    </tr>
+    <tr>
+        <td>peerPorts</td>
+        <td>URI</td>
+        <td/>
+        <td/>
+        <td>A GET against this URI retrieves the interior vlan ports
+        attached to this vlan-aware bridge.</td>
+    </tr>
+</table>
+
 <a name="bridge"/>
 ### Bridge [application/vnd.org.midonet.Bridge-v1+json]
 
@@ -781,13 +851,15 @@ contains the following fields:
     GET     /routers/:routerId/peer_ports
     GET     /bridges/:bridgeId/ports
     GET     /bridges/:bridgeId/peer_ports
+    GET     /vlan_bridges/:vlan_bridgeId/ports
+    GET     /vlan_bridges/:vlan_bridgeId/peer_ports
     POST    /routers/:routerId/ports
     POST    /bridges/:bridgeId/ports
     PUT     /ports/:portId
     DELETE  /ports/:portId
 
-Port is an entity that represents a port on a virtual device (bridge or router)
-in MidoNet.  It contains the following fields:
+Port is an entity that represents a port on a virtual device (bridge,
+vlan bridge, or router) in MidoNet.  It contains the following fields:
 
 <table>
     <tr>
@@ -839,26 +911,51 @@ in MidoNet.  It contains the following fields:
 <li>InteriorRouter</li>
 <li>ExteriorBridge</li>
 <li>InteriorBridge</li>
+<li>TrunkVlanBridge</li>
+<li>InteriorVlanBridge</li>
 </ul>
 <p>
-Exterior router port is a virtual port that plugs into the VIF of an entity,
- such as a VM. It can also be a virtual port connected to a host physical port,
-  directly or after implementing tunnel encapsulation. Access to exterior
-   ports is managed by OpenVSwitch (OpenFlow switch).  Exterior bridge port
-    is the same as exterior router port but it is a port on a virtual
-     bridge.
+Exterior router port is a virtual port that plugs into the VIF of an
+entity, such as a VM. It can also be a virtual port connected to a host
+physical port, directly or after implementing tunnel encapsulation.
+Access to exterior ports is managed by OpenVSwitch (OpenFlow switch).
+ Exterior bridge port is the same as exterior router port but it is a
+port on a virtual bridge.
 </p>
 <p>
-Interior router port is a virtual port that only exists in the MidoNet virtual
- router network abstraction. It refers to a logical connection to another
-  virtual networking device such as another router.  Interior bridge is the
-   equivalent port type on a virtual bridge.
+Interior router port is a virtual port that only exists in the MidoNet
+virtual router network abstraction. It refers to a logical connection to
+another virtual networking device such as another router.  Interior
+bridge is the equivalent port type on a virtual bridge.
+</p>
+<p>
+A Trunk Vlan Bridge port is a virtual port similar to other exterior
+ports, it plugs into the VIF of an entity. However, it is exclusive to
+Vlan Aware Bridges. A maximum of two Trunk Vlan Bridge ports should be
+created on each device. If both ports are linked, the Vlan Aware Bridge
+will
+- Forward all STP traffic from one to the other(s).
+- Provide failover capabilities. Upon receiving traffic from the virtual
+  network, the VBA will inject the VLAN ID corresponding to the ingress
+  Interior Vlan Aware port, and output the resulting vlan-tagged frame
+  from *all* the trunk ports.
+</p>
+<p>
+Interior Vlan Bridge ports are virtual ports that only exist in Vlan
+Aware Bridges, connecting it to a given virtual Bridge. Each Interior
+Vlan Bridge port will have a VLAN ID assigned that is used by the device
+to MUX/DEMUX traffic traversing the device. VLAN tagged frames coming
+from the trunk port will get the VLAN tag popped and the frame emitted
+from the Interior Vlan Bridge port that has that VLAN ID assigned, or
+dropped if no such port exists. When traffic comes Interior Vlan Bridge
+ports can only be linked to Interior Bridge ports.  A Bridge can only
+have a single Interior Vlan Bridge port link.
 </p>
         </span></td>
     </tr>
     <tr>
         <td>peerId
-(Interior only)</td>
+(Interior)</td>
         <td>UUID</td>
         <td/>
         <td/>
@@ -866,7 +963,7 @@ Interior router port is a virtual port that only exists in the MidoNet virtual
     </tr>
     <tr>
         <td>peer
-(Interior only)</td>
+(Interior)</td>
         <td>URI</td>
         <td/>
         <td/>
@@ -900,7 +997,7 @@ Interior router port is a virtual port that only exists in the MidoNet virtual
     </tr>
     <tr>
         <td>vifId
-(Exterior only)</td>
+(Exterior and Trunk only)</td>
         <td>UUID</td>
         <td/>
         <td/>
@@ -968,6 +1065,13 @@ Interior router port is a virtual port that only exists in the MidoNet virtual
         <td/>
         <td>A GET against this URI retrieves the interface-binding information of this port.</td>
     </tr>
+    <tr>
+        <td>vlanId (Interior Vlan Bridge only)</td>
+        <td>Short</td>
+        <td>POST</td>
+        <td>Yes</td>
+        <td>A GET against this URI retrieves the interface-binding information of this port.</td>
+    </tr>
 </table>
 
 <a name="portlink"/>
@@ -976,8 +1080,15 @@ Interior router port is a virtual port that only exists in the MidoNet virtual
     POST     /ports/:portId/link
     DELETE   /ports/:portId/link
 
-Represents a link between two interior ports.  It contains the following
-fields:
+Represents a link between two interior ports. Links are possible
+between:
+
+- Two router ports.
+- A router port and a vlan-unaware bridge port.
+- A router port and a vlan-aware bridge.
+- A vlan-unaware bridge port and a vlan-aware bridge port.
+
+It contains the following fields:
 
 <table>
     <tr>

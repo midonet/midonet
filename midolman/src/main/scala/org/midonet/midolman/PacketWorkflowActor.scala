@@ -192,8 +192,9 @@ class PacketWorkflowActor(
                     // failed to install  ...but, if the cause of the error
                     // is a busy netlink channel then this policy is more
                     // sensible.
-                    log.error("Error {} while adding flow for {}. Dropping packets.",
-                        ex, cookieStr)
+                    log.error("Error {} while adding flow for {}. " +
+                              "Dropping packets. The flow was {}",
+                              ex, cookieStr, flow)
                     DeduplicationActor.getRef() ! ApplyFlow(Seq.empty, Some(cookie))
                     promise.failure(ex)
                 }

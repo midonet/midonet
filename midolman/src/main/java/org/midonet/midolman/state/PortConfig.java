@@ -23,7 +23,11 @@ import org.midonet.midolman.state.PortDirectory.*;
     @JsonSubTypes.Type(value = LogicalBridgePortConfig.class,
         name = "InteriorBridgePort"),
     @JsonSubTypes.Type(value = LogicalRouterPortConfig.class,
-        name = "InteriorRouterPort")
+        name = "InteriorRouterPort"),
+    @JsonSubTypes.Type(value = TrunkVlanBridgePortConfig.class,
+        name = "TrunkPort"),
+    @JsonSubTypes.Type(value = LogicalVlanBridgePortConfig.class,
+        name = "InteriorVlanBridgePort")
 })
 public abstract class PortConfig {
 

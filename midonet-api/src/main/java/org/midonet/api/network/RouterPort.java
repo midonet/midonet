@@ -167,6 +167,16 @@ public abstract class RouterPort extends Port {
         return true;
     }
 
+    @Override
+    public boolean isBridgePort() {
+        return false;
+    }
+
+    @Override
+    public boolean isVlanBridgePort() {
+        return false;
+    }
+
     /*
      * (non-Javadoc)
      *

@@ -36,12 +36,6 @@ public class BridgeZkManager extends ZkManager {
             super();
         }
 
-        public BridgeConfig(UUID inboundFilter, UUID outboundFilter) {
-            super();
-            this.inboundFilter = inboundFilter;
-            this.outboundFilter = outboundFilter;
-        }
-
         public BridgeConfig(String name, UUID inboundFilter, UUID outboundFilter) {
             super();
             this.name = name;
