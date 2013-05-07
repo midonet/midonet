@@ -20,6 +20,9 @@ import org.midonet.odp.protos.OvsDatapathConnection;
 
 /**
  * Interface sensor using Netlink.
+ * Currently implemented using polling. Should rather be done on listening
+ * to NETLINK_ROUTE for interface change. See #596 on GH. Also, this class
+ * has only two methods, one of which is new. Could rather be a function.
  */
 public class NetlinkInterfaceSensor implements InterfaceSensor {
 
@@ -37,55 +40,60 @@ public class NetlinkInterfaceSensor implements InterfaceSensor {
     public List<InterfaceDescription> updateInterfaceData
             (List<InterfaceDescription> interfaces) {
 
-        for (InterfaceDescription interfaceDescription : interfaces) {
+        try {
 
-            Port<?, ?> port = null;
+            for (InterfaceDescription desc : interfaces) {
 
-            try {
+                try {
 
-                port = getDatapathPort(interfaceDescription.getName());
+                    Port<?, ?> port = getDatapathPort( desc.getName() );
 
-            } catch (InterruptedException ex) {
-                log.debug("Got interrupted. Interrupting the current thread");
-                Thread.currentThread().interrupt();
-            } catch (ExecutionException ex) {
-                log.trace("Interface is not a datapath port " +
-                          interfaceDescription.getName());
-                // Try the next one
-                continue;
-            } catch (TimeoutException ex) {
-                log.warn("Timeout exception thrown with value: "
-                        + NETLINK_CONN_TIMEOUT);
-                // Try the next one
-                continue;
+                    /* set port type, endpoint to DATAPAH, type to VIRT */
+                    desc.setPortType(port.getType());
+                    desc.setEndpoint(InterfaceDescription.Endpoint.DATAPATH);
+                    desc.setType(InterfaceDescription.Type.VIRT);
+
+                } catch (ExecutionException ex) {
+                    /* interface is not a datapath port => try next one */
+                    log.trace(
+                        "Port not in datapath for interface " +
+                        desc.getName() + " => " + ex.getCause()
+                    );
+                } catch (TimeoutException ex) {
+                    /* ValueFuture#get() timeout because ??? => try next one */
+                    log.warn(
+                        "Timeout exception thrown with value: " +
+                        NETLINK_CONN_TIMEOUT + " ms"
+                    );
+                }
+
             }
 
-            // Existence of port implies this is port used in Midolman
-            if (port != null) {
-
-                // Set the port type
-                interfaceDescription.setPortType(port.getType());
-
-                // Set the endpoint to DATAPATH and type to VIRT if this inteface
-                // is a dp port
-                interfaceDescription.setEndpoint(
-                    InterfaceDescription.Endpoint.DATAPATH);
-                interfaceDescription.setType(
-                    InterfaceDescription.Type.VIRT);
-            }
-
+        } catch (InterruptedException ex) {
+            log.debug("Got interrupted => interrupting current thread");
+            Thread.currentThread().interrupt();
         }
 
         return interfaces;
     }
 
+    /**
+     * Helper function for NetlinkInterfaceSensor#updateInterfaceData.
+     * Query the OvsDatapathConnection instance for a port.
+     * The query returns an async Future which is immediately asked for
+     * its value. Possible improvement: have the datapath knows about its
+     * ports and have a O(1) hasPort method to skip useless polling on
+     * unknown ports. It would also allow disambiguation with real Execution
+     * Exceptions.
+     * @param portName name of the port to find
+     * @return the Port object used by updateInterfaceData to update the
+     * state of the list of InterfaceDescription
+     * @see NetlinkInterfaceSensor#updateInterfaceData
+     */
     protected Port getDatapathPort(String portName)
-            throws ExecutionException, TimeoutException, InterruptedException {
-
-        // Query datapath to see if there is a port with this name.
-        Future<Port<?, ?>> result =
-                datapathConnection.portsGet(portName, null);
-
-        return result.get(NETLINK_CONN_TIMEOUT, TimeUnit.MILLISECONDS);
+        throws ExecutionException, TimeoutException, InterruptedException {
+            return datapathConnection
+                .portsGet(portName, null)  /* return Future<Port> */
+                .get(NETLINK_CONN_TIMEOUT, TimeUnit.MILLISECONDS);
     }
 }
