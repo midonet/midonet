@@ -329,7 +329,9 @@ public abstract class AbstractNetlinkConnection {
                 nextPosition = position + len;
             }
 
-            final NetlinkRequest request = pendingRequests.get(seq);
+            final NetlinkRequest request = (seq != 0) ?
+                                            pendingRequests.get(seq) :
+                                            null;
             if (request == null && seq != 0) {
                 log.warn("Reply handler for netlink request with id {} " +
                          "not found.", seq);
@@ -358,23 +360,23 @@ public abstract class AbstractNetlinkConnection {
                     int errSeq = reply.getInt();        // sequence of the error
                     int errPid = reply.getInt();        // pid of the error
 
-                    String errorMessage = cLibrary.lib.strerror(-error);
-
-                    NetlinkRequest errRequest = pendingRequests.remove(seq);
-                    if (errRequest != null) {
+                    if (request != null) {
+                        pendingRequests.remove(seq);
                         throttler.tokenOut();
+                        // An ACK is a NLMSG_ERROR with 0 as error code
                         if (error == 0) {
-                            errRequest.callback.onSuccess(errRequest.inBuffers);
+                            request.callback.onSuccess(request.inBuffers);
                         } else {
-                            errRequest.callback.onError(
+                            String errorMessage = cLibrary.lib.strerror(-error);
+                            request.callback.onError(
                                 new NetlinkException(-error, errorMessage));
                         }
                     }
                     break;
 
                 case NLMSG_DONE:
-                    pendingRequests.remove(seq);
                     if (request != null) {
+                        pendingRequests.remove(seq);
                         throttler.tokenOut();
                         request.callback.onSuccess(request.inBuffers);
                     }
@@ -394,8 +396,8 @@ public abstract class AbstractNetlinkConnection {
                     }
 
                     if (!Flag.isSet(flags, Flag.NLM_F_MULTI)) {
-                        pendingRequests.remove(seq);
                         if (request != null) {
+                            pendingRequests.remove(seq);
                             throttler.tokenOut();
                             request.callback.onSuccess(request.inBuffers);
                         }
