@@ -269,7 +269,7 @@ public class TestRule {
             filteringRule.setMatchForwardFlow(true);
             filteringRule.setDlDst("aa:bb:cc:dd:ee:ff");
             filteringRule.setDlSrc("11:22:33:44:55:66");
-            filteringRule.setDlType(ARP.ETHERTYPE);
+            filteringRule.setDlType(Unsigned.unsign(ARP.ETHERTYPE));
             filteringRule.setType(DtoRule.Drop);
             filteringRule.setPosition(1);
             filteringRule.setProperties(properties);

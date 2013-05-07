@@ -197,7 +197,7 @@ public class DtoRule {
         return dlType;
     }
 
-    public void setDlType(Short dlType) {
+    public void setDlType(Integer dlType) {
         Integer intDlType = null;
         if (dlType != null) {
             intDlType = dlType & 0xffff;

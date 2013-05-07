@@ -591,7 +591,7 @@ public class Rule extends ResourceBase<Rule, DtoRule> {
      * @return this
      */
     public Rule dlType(Integer dlType) {
-        principalDto.setDlType(dlType.shortValue());
+        principalDto.setDlType(dlType);
         return this;
     }
 
