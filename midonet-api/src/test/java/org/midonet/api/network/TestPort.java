@@ -4,12 +4,11 @@
  */
 package org.midonet.api.network;
 
-import org.midonet.api.VendorMediaType;
-import org.midonet.api.rest_api.DtoWebResource;
-import org.midonet.api.zookeeper.StaticMockDirectory;
-import org.midonet.api.rest_api.FuncTest;
-import org.midonet.api.rest_api.Topology;
-import org.midonet.client.dto.*;
+import java.net.InetAddress;
+import java.net.URI;
+import java.util.*;
+import javax.ws.rs.core.Response;
+
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
 import org.junit.After;
@@ -20,14 +19,24 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import javax.ws.rs.core.Response;
-import java.util.*;
+import org.midonet.api.host.rest_api.HostTopology;
+import org.midonet.api.rest_api.DtoWebResource;
+import org.midonet.api.rest_api.FuncTest;
+import org.midonet.api.rest_api.Topology;
+import org.midonet.api.zookeeper.StaticMockDirectory;
+import org.midonet.client.MidonetApi;
+import org.midonet.client.dto.*;
+import org.midonet.midolman.host.state.HostZkManager;
+import org.midonet.midolman.state.Directory;
 
-import static org.midonet.api.VendorMediaType.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
+import static org.midonet.api.VendorMediaType.*;
 
 @RunWith(Enclosed.class)
 public class TestPort {
+    public static final String ZK_ROOT_MIDOLMAN = "/test/midolman";
 
     public static DtoExteriorRouterPort createExteriorRouterPort(
             UUID id, UUID deviceId, String networkAddr, int networkLen,
@@ -69,6 +78,78 @@ public class TestPort {
         port.setNetworkLength(networkLen);
         port.setPortAddress(portAddr);
         return port;
+    }
+
+    /**
+     * Create a client-side DTO object of a host-interface-port filled with
+     * specified parameters.
+     *
+     * @param hostId        an UUID of the host
+     * @param interfaceName a Name of the interface
+     * @param portId        an UUID of the port that contains the interface
+     * @return              the client-side DTO object of the
+     *                      host-interface-port binding
+     */
+    public static DtoHostInterfacePort createHostInterfacePort(UUID hostId,
+            String interfaceName, UUID portId) {
+        DtoHostInterfacePort hostInterfacePort = new DtoHostInterfacePort();
+        hostInterfacePort.setHostId(hostId);
+        hostInterfacePort.setInterfaceName(interfaceName);
+        hostInterfacePort.setPortId(portId);
+        return hostInterfacePort;
+    }
+
+    /**
+     * Create a client-side DTO object of a host filled with specified
+     * parameters.
+     *
+     * @param id        an UUID of the host to be created
+     * @param name      a name of the host to be created
+     * @param alive     an aliveness of the host to be created
+     * @param addresses an array contains addresses' string representation of a
+     *                  host to be created
+     * @return          the client-side DTO object of the host
+     */
+    public static DtoHost createHost(UUID id, String name, boolean alive,
+            String[] addresses) {
+        DtoHost host = new DtoHost();
+        host.setId(id);
+        host.setName(name);
+        host.setAlive(alive);
+        host.setAddresses(addresses);
+        return host;
+    }
+
+    /**
+     * Create a client-side DTO object of an interface filled with specified
+     * parameters.
+     *
+     * @param id        an UUID of an interface to be created
+     * @param hostId    an UUID of a host which contains an interface to be
+     *                  created
+     * @param name      a name of an interface to be created
+     * @param mac       a string representation of the MAC address of an
+     *                  interface to be created
+     * @param mtu       a MTU of an interface to be created
+     * @param status    a status of an interface to be created
+     * @param type      a type of an interface to be created
+     * @param addresses an array contains addresses' InetAddress representation
+     *                  of an interface to be created
+     * @return          the client-side DTO object of the interface
+     */
+    public static DtoInterface createInterface(UUID id, UUID hostId,
+            String name, String mac, int mtu, int status, DtoInterface.Type type,
+            InetAddress[] addresses) {
+        DtoInterface _interface = new DtoInterface();
+        _interface.setId(id);
+        _interface.setHostId(hostId);
+        _interface.setName(name);
+        _interface.setMac(mac);
+        _interface.setMtu(mtu);
+        _interface.setStatus(status);
+        _interface.setType(type);
+        _interface.setAddresses(addresses);
+        return _interface;
     }
 
     @RunWith(Parameterized.class)
@@ -750,4 +831,209 @@ public class TestPort {
 
     }
 
+    /**
+     * Test cases for the port-host-interface bindings can be retrieved from
+     * the port side when the bindings are already created in the host side.
+     */
+    public static class TestPortHostInterfaceGetSuccess extends JerseyTest {
+        private DtoWebResource dtoResource;
+        private Topology topology;
+        private HostTopology hostTopology;
+        private HostZkManager hostManager;
+        private Directory rootDirectory;
+        private MidonetApi api;
+
+        private DtoRouter router1;
+        private DtoBridge bridge1;
+        private DtoExteriorRouterPort port1;
+        private DtoBridgePort port2;
+        private DtoHost host1, host2;
+        private DtoInterface interface1, interface2;
+        private DtoHostInterfacePort hostInterfacePort1, hostInterfacePort2;
+
+        /**
+         * Constructor to initialize the test cases with the configuration.
+         */
+        public TestPortHostInterfaceGetSuccess() {
+            super(FuncTest.appDesc);
+        }
+
+        /**
+         * Set up the logical network topology and the host topology.
+         *
+         * @throws Exception
+         */
+        @Before
+        @Override
+        public void setUp() throws Exception {
+            WebResource resource = resource();
+            dtoResource = new DtoWebResource(resource);
+            rootDirectory = StaticMockDirectory.getDirectoryInstance();
+            hostManager = new HostZkManager(rootDirectory, ZK_ROOT_MIDOLMAN);
+
+            // Creating the topology for the exterior **router** port and the
+            // interface.
+            // Create a router.
+            router1 = new DtoRouter();
+            router1.setName("router1-name");
+            router1.setTenantId("tenant1-id");
+            // Create an exterior router port on the router.
+            port1 = createExteriorRouterPort(
+                    UUID.randomUUID(), router1.getId(), "10.0.0.0", 24,
+                    "10.0.0.1", null, null, null);
+            // Creating the topology for the exterior **bridge** port and the
+            // interface.
+            // Create a bridge.
+            bridge1 = new DtoBridge();
+            bridge1.setName("bridge1");
+            bridge1.setTenantId("bridge1-name");
+            // Create an exterior bridge port on the bridge.
+            port2 = createExteriorBridgePort(UUID.randomUUID(),
+                    bridge1.getId(), null, null, null);
+            topology = new Topology.Builder(dtoResource)
+                    .create("router1", router1)
+                    .create("router1", "port1", port1)
+                    .create("bridge1", bridge1)
+                    .create("bridge1", "port2", port2)
+                    .build();
+
+            // Create a host that contains an interface bound to the router port.
+            host1 = createHost(UUID.randomUUID(), "host1", true, null);
+            // Create an interface to be bound to the port.
+            interface1 = createInterface(UUID.randomUUID(),
+                    host1.getId(), "interface1", "01:23:45:67:89:01", 1500,
+                    0x01, DtoInterface.Type.Virtual,
+                    new InetAddress[]{
+                            InetAddress.getByAddress(new byte[]{10, 10, 10, 1})
+                    });
+            // Create a host that contains an interface bound to the bridge port.
+            host2 = createHost(UUID.randomUUID(), "host2", true, null);
+            // Create an interface to be bound to the port.
+            interface2 = createInterface(UUID.randomUUID(),
+                    host2.getId(), "interface2", "01:23:45:67:89:01", 1500,
+                    0x01, DtoInterface.Type.Virtual,
+                    new InetAddress[]{
+                            InetAddress.getByAddress(new byte[]{10, 10, 10, 1})
+                    });
+            port1 = topology.getExtRouterPort("port1");
+            port2 = topology.getExtBridgePort("port2");
+            // Create a host-interface-port binding finally.
+            hostInterfacePort1 = createHostInterfacePort(
+                    host1.getId(), interface1.getName(), port1.getId());
+            // Create a host-interface-port binding finally.
+            hostInterfacePort2 = createHostInterfacePort(
+                    host1.getId(), interface2.getName(), port2.getId());
+            hostTopology = new HostTopology.Builder(dtoResource, hostManager)
+                    .create(host1.getId(), host1)
+                    .create(hostInterfacePort1.getHostId(),
+                            hostInterfacePort1.getPortId(), hostInterfacePort1)
+                    .create(host2.getId(), host2)
+                    .create(hostInterfacePort2.getHostId(),
+                            hostInterfacePort2.getPortId(), hostInterfacePort2)
+                    .build();
+
+            URI baseUri = resource().getURI();
+            api = new MidonetApi(baseUri.toString());
+            api.enableLogging();
+        }
+
+        /**
+         * Teardown method to clean up the mock directory at the end of tests
+         * defined in this class.
+         *
+         * @throws Exception
+         */
+        @After
+        public void resetDirectory() throws Exception {
+            StaticMockDirectory.clearDirectoryInstance();
+        }
+
+        /**
+         * Test that the router's port has the appropriate host-interface-port
+         * binding.
+         *
+         * @throws Exception
+         */
+        @Test
+        public void testGetRouterPortHostInterfaceSuccess() throws Exception {
+            Map<UUID, DtoExteriorRouterPort> portMap =
+                    new HashMap<UUID, DtoExteriorRouterPort>();
+
+            DtoRouter router1 = topology.getRouter("router1");
+            DtoExteriorRouterPort[] routerPorts = dtoResource.getAndVerifyOk(
+                    router1.getPorts(),
+                    APPLICATION_PORT_COLLECTION_JSON,
+                    DtoExteriorRouterPort[].class);
+
+            for (DtoExteriorRouterPort port : routerPorts) {
+                portMap.put(port.getId(), port);
+            }
+            assertThat("router1 should contain the only one port.",
+                    portMap.size(), is(1));
+            // Update port1 to reflect the host-interface-port binding.
+            DtoPort updatedPort1 = dtoResource.getAndVerifyOk(port1.getUri(),
+                    APPLICATION_PORT_JSON, DtoExteriorRouterPort.class);
+            assertThat("port1 should not be the null value",
+                    portMap.get(updatedPort1.getId()), not(nullValue()));
+            assertThat("router1 should contain port1",
+                    portMap.get(updatedPort1.getId()), is(equalTo(updatedPort1)));
+
+            DtoHostInterfacePort hostInterfacePortFromPort1 =
+                    dtoResource.getAndVerifyOk(
+                            updatedPort1.getHostInterfacePort(),
+                            APPLICATION_HOST_INTERFACE_PORT_JSON,
+                            DtoHostInterfacePort.class);
+            assertThat("router1 should contain the host-interface-port binding.",
+                    hostInterfacePort1, is(notNullValue()));
+            DtoHostInterfacePort hostInterfacePort1 =
+                    hostTopology.getHostInterfacePort(
+                            hostInterfacePortFromPort1.getPortId());
+            assertThat("router1 should contain hostInterfacePort1",
+                    hostInterfacePortFromPort1,
+                    is(equalTo(hostInterfacePort1)));
+        }
+
+        /**
+         * Test that the bridge's port has the appropriate host-interface-port
+         * binding.
+         *
+         * @throws Exception
+         */
+        @Test
+        public void testGetBridgePortHostInterfaceSuccess() throws Exception {
+            Map<UUID, DtoBridgePort> portMap = new HashMap<UUID, DtoBridgePort>();
+
+            DtoBridge bridge1 = topology.getBridge("bridge1");
+            DtoBridgePort[] bridgePorts = dtoResource.getAndVerifyOk(
+                    bridge1.getPorts(),
+                    APPLICATION_PORT_COLLECTION_JSON,
+                    DtoBridgePort[].class);
+
+            for (DtoBridgePort port : bridgePorts) {
+                portMap.put(port.getId(), port);
+            }
+            assertThat("bridge1 should contain the only one port.",
+                    portMap.size(), is(1));
+            // Update port1 to reflect the host-interface-port binding.
+            DtoBridgePort updatedPort2 = dtoResource.getAndVerifyOk(port2.getUri(),
+                    APPLICATION_PORT_JSON, DtoBridgePort.class);
+            assertThat("bridge1 should not be the null value",
+                    portMap.get(updatedPort2.getId()), is(notNullValue()));
+            assertThat("bridge1 should contain port1",
+                    portMap.get(updatedPort2.getId()), is(equalTo(updatedPort2)));
+            DtoHostInterfacePort hostInterfacePortFromPort2 =
+                    dtoResource.getAndVerifyOk(
+                            updatedPort2.getHostInterfacePort(),
+                            APPLICATION_HOST_INTERFACE_PORT_JSON,
+                            DtoHostInterfacePort.class);
+            assertThat("bridge1 should contain the host-interface-port binding.",
+                    hostInterfacePort2, is(notNullValue()));
+            DtoHostInterfacePort hostInterfacePort2 =
+                    hostTopology.getHostInterfacePort(
+                            hostInterfacePortFromPort2.getPortId());
+            assertThat("router1 should contain hostInterfacePort2",
+                    hostInterfacePortFromPort2,
+                    is(equalTo(hostInterfacePort2)));
+        }
+    }
 }
