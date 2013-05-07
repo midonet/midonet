@@ -33,6 +33,7 @@ public abstract class DtoPort {
     private UUID vifId = null;
     private URI uri;
     private URI portGroups;
+    private URI hostInterfacePort = null;
 
     public UUID getId() {
         return id;
@@ -106,6 +107,29 @@ public abstract class DtoPort {
         this.portGroups = portGroups;
     }
 
+    /**
+     * Getter for the host-interface-port URI property in this storage-side
+     * port DTO.
+     *
+     *
+     * @return the URI of the host-interface-port associated with this
+     *         client-side port DTO object
+     */
+    public URI getHostInterfacePort() {
+        return hostInterfacePort;
+    }
+
+    /**
+     * Setter for the host-interface-port URI property in this storage-side
+     * port DTO.
+     *
+     * @param hostInterfacePort the URI of the host-interface-port associated
+     *                          with this client-side port DTO object
+     */
+    public void setHostInterfacePort(URI hostInterfacePort) {
+        this.hostInterfacePort = hostInterfacePort;
+    }
+
     public abstract String getType();
 
     @Override
@@ -144,6 +168,11 @@ public abstract class DtoPort {
 
         if (portGroups != null ? !portGroups.equals(that.portGroups)
                 : that.portGroups != null) {
+            return false;
+        }
+        if (hostInterfacePort != null ?
+                !hostInterfacePort.equals(that.hostInterfacePort) :
+                that.hostInterfacePort != null) {
             return false;
         }
 
