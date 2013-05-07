@@ -63,4 +63,35 @@ public class DtoHostInterfacePort {
             ", uri=" + uri +
             '}';
     }
+
+    /**
+     * General object comparison which dispatches the actual comparison.
+     *
+     * @param that an object to be compared with this object
+     * @return     <code>true</code> if the objects match with each other;
+     *             <code>false</code> otherwise
+     */
+    @Override
+    public boolean equals(Object that) {
+        return (that instanceof DtoHostInterfacePort) &&
+                this.equals((DtoHostInterfacePort) that);
+    }
+
+    /**
+     * Actual object comparison which compares all properties of the objects.
+     *
+     * @param that an object to be compared with this object
+     * @return     <code>true</code> if the objects match with each other;
+     *             <false>false</false> otherwise
+     */
+    public boolean equals(DtoHostInterfacePort that) {
+        boolean equality = this.getHostId().equals(that.getHostId()) &&
+                this.getPortId().equals(that.getPortId()) &&
+                this.getInterfaceName().equals(that.getInterfaceName());
+        URI uri = this.getUri();
+        if (uri != null) {
+            equality = equality && uri.equals(that.getUri());
+        }
+        return equality;
+    }
 }
