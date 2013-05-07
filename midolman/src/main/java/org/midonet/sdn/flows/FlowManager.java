@@ -155,14 +155,14 @@ public class FlowManager {
 
             // need to delete a wildcarflow, first priority are the ones that have an idle timeout.
             if (idleTimeOutQueue.size() > 0) {
-               toDelete = idleTimeOutQueue.poll();
+                toDelete = idleTimeOutQueue.poll();
             } else {
-               // if there are none, delete one of the wildcarflows that contain a hard timeout.
-               toDelete = hardTimeOutQueue.poll();
+                // if there are none, delete one of the wildcarflows that contain a hard timeout.
+                toDelete = hardTimeOutQueue.poll();
             }
 
             if (toDelete != null) {
-                remove(toDelete);
+                flowManagerHelper.removeWildcardFlow(toDelete);
             } else {
                 log.error("Could not add the new wildcardflow as the system reached its maximum.");
                 return false;
