@@ -28,7 +28,7 @@ watermarks for outstanding Netlink requests and network simulations.
 
 - No known issues.
 
-## Version 1.0.0 - Diyari - June 2013
+## Version 1.1.0 - Diyari - July 2013
 
 ### Highlights
 
