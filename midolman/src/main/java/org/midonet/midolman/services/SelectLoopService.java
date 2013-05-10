@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.eventloop.SelectLoop;
+import org.midonet.midolman.guice.reactor.ReactorModule;
 
 /**
  * Service implementation that will initialize the SelectLoop select thread.
@@ -22,32 +23,48 @@ public class SelectLoopService extends AbstractService {
         .getLogger(SelectLoopService.class);
 
     @Inject
-    SelectLoop selectLoop;
+    @ReactorModule.WRITE_LOOP
+    SelectLoop writeLoop;
+
+    @Inject
+    @ReactorModule.READ_LOOP
+    SelectLoop readLoop;
 
     @Inject
     Reactor reactor;
 
-    Thread selectLoopThread;
+    Thread readLoopThread;
+    Thread writeLoopThread;
+
+    private Thread startLoop(final SelectLoop loop) {
+        Thread th = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    loop.doLoop();
+                } catch (IOException e) {
+                    notifyFailed(e);
+                }
+            }
+        });
+
+        th.start();
+        return th;
+    }
 
     @Override
     protected void doStart() {
 
-        log.info("Starting the select loop thread.");
         try {
-            selectLoopThread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        selectLoop.doLoop();
-                    } catch (IOException e) {
-                        notifyFailed(e);
-                    }
-                }
-            });
+            log.info("Starting the write select loop thread.");
+            writeLoopThread = startLoop(writeLoop);
+            writeLoopThread.setName("write-select-loop");
+            log.info("Starting the read select loop thread.");
+            readLoopThread = startLoop(readLoop);
+            readLoopThread.setName("read-select-loop");
 
-            selectLoopThread.start();
             notifyStarted();
-            log.info("Select loop thread started correctly");
+            log.info("Select loop threads started correctly");
         } catch (Exception e) {
             notifyFailed(e);
         }
@@ -58,8 +75,10 @@ public class SelectLoopService extends AbstractService {
         // TODO: change the SelectLoop to support shutdown and use it here to stop the thread
         // cleanly
         reactor.shutDownNow();
-        selectLoop.shutdown();
-        selectLoopThread.stop();
+        readLoop.shutdown();
+        writeLoop.shutdown();
+        readLoopThread.stop();
+        writeLoopThread.stop();
         notifyStopped();
     }
 }

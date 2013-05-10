@@ -12,6 +12,7 @@ import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.midolman.guice.reactor.ReactorModule;
 import org.midonet.odp.protos.OvsDatapathConnection;
 import org.midonet.util.eventloop.SelectListener;
 import org.midonet.util.eventloop.SelectLoop;
@@ -26,7 +27,13 @@ public class DatapathConnectionService extends AbstractService {
         .getLogger(DatapathConnectionService.class);
 
     @Inject
-    SelectLoop selectLoop;
+    @ReactorModule.WRITE_LOOP
+    SelectLoop writeLoop;
+
+    @Inject
+    @ReactorModule.READ_LOOP
+    SelectLoop readLoop;
+
 
     @Inject
     OvsDatapathConnection datapathConnection;
@@ -36,7 +43,7 @@ public class DatapathConnectionService extends AbstractService {
         try {
             datapathConnection.getChannel().configureBlocking(false);
 
-            selectLoop.register(
+            readLoop.register(
                 datapathConnection.getChannel(),
                 SelectionKey.OP_READ,
                 new SelectListener() {
@@ -47,7 +54,7 @@ public class DatapathConnectionService extends AbstractService {
                     }
                 });
 
-            selectLoop.registerForInputQueue(
+            writeLoop.registerForInputQueue(
                     datapathConnection.getSendQueue(),
                     datapathConnection.getChannel(),
                     SelectionKey.OP_WRITE,
@@ -70,8 +77,10 @@ public class DatapathConnectionService extends AbstractService {
     @Override
     protected void doStop() {
         try {
-            selectLoop.unregister(datapathConnection.getChannel(),
-                                  SelectionKey.OP_READ);
+            readLoop.unregister(datapathConnection.getChannel(),
+                                SelectionKey.OP_READ);
+            writeLoop.unregister(datapathConnection.getChannel(),
+                                SelectionKey.OP_WRITE);
         } catch (ClosedChannelException e) {
             log.error("Exception while unregistering the datapath connection " +
                           "from the selector loop.", e);

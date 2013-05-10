@@ -10,6 +10,7 @@ import javax.inject.Singleton;
 import com.google.inject.*;
 
 import org.midonet.midolman.config.MidolmanConfig;
+import org.midonet.midolman.guice.reactor.ReactorModule;
 import org.midonet.midolman.services.DatapathConnectionService;
 import org.midonet.netlink.BufferPool;
 import org.midonet.odp.protos.OvsDatapathConnection;
@@ -34,7 +35,8 @@ public class DatapathModule extends PrivateModule {
     protected void configure() {
         binder().requireExplicitBindings();
         requireBinding(Reactor.class);
-        requireBinding(SelectLoop.class);
+        requireBinding(Key.get(SelectLoop.class, ReactorModule.READ_LOOP.class));
+        requireBinding(Key.get(SelectLoop.class, ReactorModule.WRITE_LOOP.class));
 
         bind(ThrottlingGuardFactory.class).
                 annotatedWith(DATAPATH_THROTTLING_GUARD.class).
