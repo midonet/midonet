@@ -28,7 +28,7 @@ watermarks for outstanding Netlink requests and network simulations.
 
 - No known issues.
 
-## Version 13.06.0 - Diyari - June 2013
+## Version 1.1.0 - Diyari - July 2013
 
 ### Highlights
 
@@ -37,3 +37,5 @@ watermarks for outstanding Netlink requests and network simulations.
 N is the number of Midolman peers).
 - [new] Package renames: midolman-mgmt=>midonet-api
 - [new] Java class name renames: com.midokura=>org.midonet
+- [enhancement] GC and memory usage optimization
+- [enhancement] performance improvement
