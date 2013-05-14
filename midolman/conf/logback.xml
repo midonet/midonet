@@ -25,7 +25,7 @@
     <logger name="org.apache.cassandra" level="INFO" />
     <logger name="me.prettyprint.cassandra" level="INFO" />
 
-    <root level="debug">
+    <root level="info">
         <appender-ref ref="STDOUT" />
         <appender-ref ref="FILE" />
     </root>
