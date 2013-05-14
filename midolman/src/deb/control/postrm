@@ -4,7 +4,6 @@
 
 if [ "$1" = purge ]; then
     test -h /etc/init.d/midolman && rm /etc/init.d/midolman
-    /usr/sbin/userdel midonet 2> /dev/null >/dev/null
 fi
 
 exit 0
