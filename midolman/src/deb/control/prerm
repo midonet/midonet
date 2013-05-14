@@ -1,6 +1,7 @@
 #!/bin/sh
 
 # Midokura
+POST_DIR=/var/lib/dpkg/info
 
 case "$1" in
     remove)
@@ -9,3 +10,10 @@ case "$1" in
         fi
         ;;
 esac
+
+# remove dangling symlinks
+MIDOLMAN_JAR_DIR=`cat $POST_DIR/midolman.list | grep midolman-\[^/\]*\.jar | xargs dirname`
+if [ -d "$MIDOLMAN_JAR_DIR" ] ; then
+    rm "$MIDOLMAN_JAR_DIR/midolman.jar"
+    rm "$MIDOLMAN_JAR_DIR/midonet-jdk-bootstrap.jar"
+fi
