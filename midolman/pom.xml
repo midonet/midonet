@@ -244,16 +244,6 @@
                             </sources>
                         </mapping>
                         <mapping>
-                            <directory>/etc/sudoers.d</directory>
-                            <directoryIncluded>false</directoryIncluded>
-                            <filemode>440</filemode>
-                            <sources>
-                                <source>
-                                    <location>src/deb/sudoers/midolman</location>
-                                </source>
-                            </sources>
-                        </mapping>
-                        <mapping>
                             <directory>/etc/quagga</directory>
                             <directoryIncluded>false</directoryIncluded>
                             <sources>
@@ -363,17 +353,6 @@
                                         <prefix>
                                             /usr/share/midolman/dep
                                         </prefix>
-                                    </mapper>
-                                </data>
-                                <data>
-                                    <src>
-                                        ${project.basedir}/src/deb/sudoers/midolman
-                                    </src>
-                                    <type>file</type>
-                                    <mapper>
-                                        <type>perm</type>
-                                        <prefix>/etc/sudoers.d</prefix>
-                                        <filemode>0440</filemode>
                                     </mapper>
                                 </data>
                                 <data>
