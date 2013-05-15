@@ -92,15 +92,15 @@ object FlowController extends Referenceable {
         for (entry <- wildcardTables.entrySet()) {
             val table = entry.getValue
             val pattern = entry.getKey
-            Option(wildMatch.project(pattern)) foreach {
-                projectedFlowMatch =>
-                    val candidate = table.get(projectedFlowMatch)
-                    if (null != candidate) {
-                        if (null == wildFlow)
-                            wildFlow = candidate
-                        else if (candidate.getPriority < wildFlow.getPriority)
-                            wildFlow = candidate
-                    }
+            val projectedFlowMatch = wildMatch.project(pattern)
+            if (projectedFlowMatch != null) {
+                val candidate = table.get(projectedFlowMatch)
+                if (null != candidate) {
+                    if (null == wildFlow)
+                        wildFlow = candidate
+                    else if (candidate.getPriority < wildFlow.getPriority)
+                        wildFlow = candidate
+                }
             }
         }
 
@@ -283,7 +283,10 @@ class FlowController extends Actor with ActorLogWithoutPath {
             }
         }
 
-        flow foreach { flowManager.add(_, wildFlow) }
+        flow match {
+            case Some(dpFlow) => flowManager.add(dpFlow, wildFlow)
+            case None =>
+        }
     }
 
     class FlowManagerInfoImpl() extends FlowManagerHelper {
