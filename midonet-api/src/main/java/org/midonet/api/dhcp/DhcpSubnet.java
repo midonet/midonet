@@ -39,9 +39,7 @@ public class DhcpSubnet extends RelativeUriResource {
              message = "is an invalid IP format")
     private String serverAddr;
 
-    @Pattern(regexp = StringUtil.IP_ADDRESS_REGEX_PATTERN,
-             message = "is an invalid IP format")
-    private String dnsServerAddr;
+    private List<String> dnsServerAddrs;
 
     // Min has to be set to zero since default case, client sets
     // interface MTU to zero, we have to be able to accept that
@@ -73,9 +71,13 @@ public class DhcpSubnet extends RelativeUriResource {
         if (null != srvAddr)
             this.setServerAddr(srvAddr.toUnicastString());
 
-        IntIPv4 dnsSrvAddr = subnet.getDnsServerAddr();
-        if (null != dnsSrvAddr)
-            this.setDnsServerAddr(dnsSrvAddr.toUnicastString());
+        if (null != subnet.getDnsServerAddrs()) {
+            List<String> dnsSrvAddrs = new ArrayList<String>();
+            for (IntIPv4 ipAddr : subnet.getDnsServerAddrs()) {
+                dnsSrvAddrs.add(ipAddr.toUnicastString());
+            }
+            this.setDnsServerAddrs(dnsSrvAddrs);
+        }
 
         int intfMTU = subnet.getInterfaceMTU();
         if (intfMTU != 0)
@@ -121,12 +123,12 @@ public class DhcpSubnet extends RelativeUriResource {
         this.serverAddr = serverAddr;
     }
 
-    public String getDnsServerAddr() {
-        return dnsServerAddr;
+    public List<String> getDnsServerAddrs() {
+        return dnsServerAddrs;
     }
 
-    public void setDnsServerAddr(String dnsServerAddr) {
-        this.dnsServerAddr = dnsServerAddr;
+    public void setDnsServerAddrs(List<String> dnsServerAddrs) {
+        this.dnsServerAddrs = dnsServerAddrs;
     }
 
     public int getInterfaceMTU() {
@@ -169,18 +171,24 @@ public class DhcpSubnet extends RelativeUriResource {
                 routes.add(opt.toData());
         }
 
+        List<IntIPv4> dnsSrvAddrs = null;
+        if (null != getDnsServerAddrs()) {
+            dnsSrvAddrs = new ArrayList<IntIPv4>();
+            for (String ipAddr : getDnsServerAddrs())
+                dnsSrvAddrs.add(IntIPv4.fromString(ipAddr));
+        }
+
         IntIPv4 subnetAddr = IntIPv4.fromString(subnetPrefix, subnetLength);
         IntIPv4 gtway = (null == defaultGateway) ? null
                 : IntIPv4.fromString(defaultGateway);
         IntIPv4 srvAddr = (null == serverAddr) ? null : IntIPv4.fromString(serverAddr);
-        IntIPv4 dnsSrvAddr = (null == dnsServerAddr) ? null : IntIPv4.fromString(dnsServerAddr);
 
         return new Subnet()
                 .setDefaultGateway(gtway)
                 .setSubnetAddr(subnetAddr)
                 .setOpt121Routes(routes)
                 .setServerAddr(srvAddr)
-                .setDnsServerAddr(dnsSrvAddr)
+                .setDnsServerAddrs(dnsSrvAddrs)
                 .setInterfaceMTU((short)interfaceMTU);
     }
 
@@ -189,7 +197,7 @@ public class DhcpSubnet extends RelativeUriResource {
         return "DhcpSubnet{" + "subnetPrefix='" + subnetPrefix + '\''
                 + ", subnetLength=" + subnetLength + ", defaultGateway='"
                 + defaultGateway + '\'' + ", serverAddr='" + serverAddr + '\''
-                + ", dnsServerAddr='" + dnsServerAddr + '\''
+                + ", dnsServerAddrs='" + dnsServerAddrs + '\''
                 + ", interfaceMTU='" + interfaceMTU + '\''
                 + ", opt121Routes=" + opt121Routes
                 + '}';

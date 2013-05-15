@@ -178,13 +178,17 @@ public class FloatingIpTest {
         opt121Routes.add(new DtoDhcpOption121(
             rtrPort2.getNetworkAddress(), rtrPort2.getNetworkLength(),
             rtrPort3.getPortAddress()));
+        List<String> dnsServers = new ArrayList<String>();
+        dnsServers.add("192.168.77.118");
+        dnsServers.add("192.168.77.119");
+        dnsServers.add("192.168.77.120");
         DhcpSubnet dhcpSubnet = br.addDhcpSubnet()
             .defaultGateway(rtrPort3.getPortAddress())
             .subnetPrefix(rtrPort3.getNetworkAddress())
             .subnetLength(rtrPort3.getNetworkLength())
             .serverAddr("192.168.77.118")
             // don't, this ends up breaking the dns on Jenkins
-            //.dnsServerAddr("192.168.77.128")
+            //.dnsServerAddrs(dnsServers)
             .interfaceMTU(1400)
             .opt121Routes(opt121Routes)
             .create();

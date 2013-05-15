@@ -71,8 +71,8 @@ public class DhcpSubnet extends ResourceBase<DhcpSubnet, DtoDhcpSubnet> {
      *
      * @return
      */
-    public String getDnsServerAddr() {
-        return principalDto.getDnsServerAddr();
+    public List<String> getDnsServerAddrs() {
+        return principalDto.getDnsServerAddrs();
     }
 
     /**
@@ -165,8 +165,8 @@ public class DhcpSubnet extends ResourceBase<DhcpSubnet, DtoDhcpSubnet> {
      * @param dnsServerAddr
      * @return this
      */
-    public DhcpSubnet dnsServerAddr(String dnsServerAddr) {
-        principalDto.setDnsServerAddr(dnsServerAddr);
+    public DhcpSubnet dnsServerAddrs(List<String> dnsServerAddr) {
+        principalDto.setDnsServerAddrs(dnsServerAddr);
         return this;
     }
 

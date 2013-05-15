@@ -28,7 +28,7 @@ public class BridgeDhcpZkManager extends ZkManager {
     public static class Subnet {
         IntIPv4 subnetAddr;
         IntIPv4 serverAddr;
-        IntIPv4 dnsServerAddr;
+        List<IntIPv4> dnsServerAddrs;
         IntIPv4 defaultGateway;
         short interfaceMTU;
         List<Opt121> opt121Routes;
@@ -38,7 +38,7 @@ public class BridgeDhcpZkManager extends ZkManager {
         }
 
         public Subnet(IntIPv4 subnetAddr, IntIPv4 defaultGateway,
-                      IntIPv4 serverAddr, IntIPv4 dnsServerAddr,
+                      IntIPv4 serverAddr, List<IntIPv4> dnsServerAddrs,
                       short interfaceMTU, List<Opt121> opt121Routes) {
             this.subnetAddr = subnetAddr;
             if (serverAddr != null) {
@@ -57,7 +57,7 @@ public class BridgeDhcpZkManager extends ZkManager {
             if (interfaceMTU != 0) {
                 this.interfaceMTU = interfaceMTU;
             }
-            this.dnsServerAddr = dnsServerAddr;
+            this.dnsServerAddrs = dnsServerAddrs;
             this.defaultGateway = defaultGateway;
             this.opt121Routes = opt121Routes;
         }
@@ -70,8 +70,8 @@ public class BridgeDhcpZkManager extends ZkManager {
             return serverAddr;
         }
 
-        public IntIPv4 getDnsServerAddr() {
-            return dnsServerAddr;
+        public List<IntIPv4> getDnsServerAddrs() {
+            return dnsServerAddrs;
         }
 
         public short getInterfaceMTU() {
@@ -102,8 +102,8 @@ public class BridgeDhcpZkManager extends ZkManager {
             this.serverAddr = serverAddr;
         }
 
-        public void setDnsServerAddr(IntIPv4 dnsServerAddr) {
-            this.dnsServerAddr = dnsServerAddr;
+        public void setDnsServerAddrs(List<IntIPv4> dnsServerAddrs) {
+            this.dnsServerAddrs = dnsServerAddrs;
         }
 
         public void setInterfaceMTU(short interfaceMTU) {
@@ -115,7 +115,7 @@ public class BridgeDhcpZkManager extends ZkManager {
             return "Subnet{" +
                 "subnetAddr=" + subnetAddr +
                 ", serverAddr=" + serverAddr +
-                ", dnsServerAddr=" + dnsServerAddr +
+                ", dnsServerAddrs=" + dnsServerAddrs +
                 ", defaultGateway=" + defaultGateway +
                 ", interfaceMTU=" + interfaceMTU +
                 ", opt121Routes=" + opt121Routes +
