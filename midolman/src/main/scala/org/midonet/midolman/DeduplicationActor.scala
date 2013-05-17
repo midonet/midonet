@@ -8,9 +8,12 @@ import collection.mutable
 import scala.collection.JavaConverters._
 import collection.mutable.{HashMap, MultiMap}
 import java.util.UUID
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import javax.annotation.Nullable
 import javax.inject.Inject
+
+import com.yammer.metrics.core.{Gauge, MetricsRegistry, Clock}
 
 import org.midonet.cache.Cache
 import org.midonet.cluster.DataClient
@@ -18,6 +21,11 @@ import org.midonet.midolman.PacketWorkflowActor.Start
 import org.midonet.midolman.datapath.ErrorHandlingCallback
 import org.midonet.midolman.guice.datapath.DatapathModule.SIMULATION_THROTTLING_GUARD
 import org.midonet.midolman.logging.ActorLogWithoutPath
+import org.midonet.midolman.monitoring.metrics.PacketPipelineMeter
+import org.midonet.midolman.monitoring.metrics.PacketPipelineHistogram
+import org.midonet.midolman.monitoring.metrics.PacketPipelineGauge
+import org.midonet.midolman.monitoring.metrics.PacketPipelineCounter
+import org.midonet.midolman.monitoring.metrics.PacketPipelineAccumulatedTime
 import org.midonet.netlink.Callback
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp.protos.OvsDatapathConnection
@@ -42,6 +50,85 @@ object DeduplicationActor extends Referenceable {
      * be forwarded. */
     case class EmitGeneratedPacket(egressPort: UUID, eth: Ethernet,
                                    parentCookie: Option[Int] = None)
+
+
+    class PacketPipelineMetrics(val registry: MetricsRegistry,
+                                val throttler: ThrottlingGuard) {
+        val pendedPackets = registry.newCounter(
+            classOf[PacketPipelineGauge], "currentPendedPackets")
+
+        val wildcardTableHits = registry.newMeter(
+            classOf[PacketPipelineMeter],
+            "wildcardTableHits", "packets",
+            TimeUnit.SECONDS)
+
+        val packetsToPortSet = registry.newMeter(
+            classOf[PacketPipelineMeter],
+            "packetsToPortSet", "packets",
+            TimeUnit.SECONDS)
+
+        val packetsSimulated = registry.newMeter(
+            classOf[PacketPipelineMeter],
+            "packetsSimulated", "packets",
+            TimeUnit.SECONDS)
+
+        val packetsProcessed = registry.newMeter(
+            classOf[PacketPipelineMeter],
+            "packetsProcessed", "packets",
+            TimeUnit.SECONDS)
+
+        // FIXME(guillermo) - make this a meter - the throttler needs to expose a callback
+        val packetsDropped = registry.newGauge(
+            classOf[PacketPipelineCounter],
+            "packetsDropped",
+            new Gauge[Long]{
+                override def value = throttler.numDroppedTokens()
+            })
+
+        val liveSimulations = registry.newGauge(
+            classOf[PacketPipelineGauge],
+            "liveSimulations",
+            new Gauge[Long]{
+                override def value = throttler.numTokens()
+            })
+
+        val wildcardTableHitLatency = registry.newHistogram(
+            classOf[PacketPipelineHistogram], "wildcardTableHitLatency")
+
+        val packetToPortSetLatency = registry.newHistogram(
+            classOf[PacketPipelineHistogram], "packetToPortSetLatency")
+
+        val simulationLatency = registry.newHistogram(
+            classOf[PacketPipelineHistogram], "simulationLatency")
+
+        val wildcardTableHitAccumulatedTime = registry.newCounter(
+            classOf[PacketPipelineAccumulatedTime], "wildcardTableHitAccumulatedTime")
+
+        val packetToPortSetAccumulatedTime = registry.newCounter(
+            classOf[PacketPipelineAccumulatedTime], "packetToPortSetAccumulatedTime")
+
+        val simulationAccumulatedTime = registry.newCounter(
+            classOf[PacketPipelineAccumulatedTime], "simulationAccumulatedTime")
+
+
+        def wildcardTableHit(latency: Int) {
+            wildcardTableHits.mark()
+            wildcardTableHitLatency.update(latency)
+            wildcardTableHitAccumulatedTime.inc(latency)
+        }
+
+        def packetToPortSet(latency: Int) {
+            packetsToPortSet.mark()
+            packetToPortSetLatency.update(latency)
+            packetToPortSetAccumulatedTime.inc(latency)
+        }
+
+        def packetSimulated(latency: Int) {
+            packetsSimulated.mark()
+            simulationLatency.update(latency)
+            simulationAccumulatedTime.inc(latency)
+        }
+    }
 }
 
 
@@ -58,6 +145,9 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
     @SIMULATION_THROTTLING_GUARD
     var tgFactory: ThrottlingGuardFactory = null
 
+    @Inject
+    var metricsRegistry: MetricsRegistry = null
+
     var throttler: ThrottlingGuard = null
 
     var datapath: Datapath = null
@@ -69,10 +159,12 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
     private val cookieToPendedPackets: MultiMap[Int, Packet] =
         new HashMap[Int, mutable.Set[Packet]] with MultiMap[Int, Packet]
 
+    var metrics: PacketPipelineMetrics = null
 
     override def preStart() {
         super.preStart()
         throttler = tgFactory.build("DeduplicationActor")
+        metrics = new PacketPipelineMetrics(metricsRegistry, throttler)
     }
 
     def receive = LoggingReceive {
@@ -87,23 +179,25 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
         case HandlePacket(packet) =>
             dpMatchToCookie.get(packet.getMatch) match {
             case None =>
-                 val cookie:Int = idGenerator.getAndIncrement
-                 cookieToPendedPackets.addBinding(cookie, packet)
-                 // if there is nothing here create the actor that will handle its flow,
-                 val packetActor =
+                val cookie: Int = idGenerator.getAndIncrement
+
+                cookieToPendedPackets.addBinding(cookie, packet)
+                // if there is nothing here create the actor that will handle its flow,
+                val packetActor =
                     context.system.actorOf(Props(
                         new PacketWorkflowActor(datapathConnection, dpState,
                             datapath, clusterDataClient, connectionCache, packet,
-                            Left(cookie), throttler)),
+                            Left(cookie), throttler, metrics)),
                         name = "PacketWorkflowActor-"+cookie)
 
-                 log.debug("Created new {} actor.", "PacketWorkflowActor-" + cookie)
-                 packetActor ! Start()
+                log.debug("Created new {} actor.", "PacketWorkflowActor-" + cookie)
+                packetActor ! Start()
 
             case Some(cookie: Int) =>
                 log.debug("A matching packet with cookie {} is already being handled ", cookie)
                 // Simulation in progress. Just pend the packet.
                 cookieToPendedPackets.addBinding(cookie, packet)
+                metrics.pendedPackets.inc()
             }
 
         case ApplyFlow(actions, cookieOpt) => cookieOpt foreach { cookie =>
@@ -116,7 +210,10 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
                 if (actions.length > 0) {
                     for (unpendedPacket <- pendedPackets.tail) {
                         executePacket(cookie, packet, actions)
+                        metrics.pendedPackets.dec()
                     }
+                } else {
+                    metrics.packetsProcessed.mark(pendedPackets.tail.size)
                 }
             }
 
@@ -134,7 +231,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
             context.system.actorOf(Props(
                 new PacketWorkflowActor(datapathConnection, dpState,
                     datapath, clusterDataClient, connectionCache, packet,
-                    Right(egressPort), throttler)),
+                    Right(egressPort), throttler, metrics)),
                 name = "PacketWorkflowActor-generated-"+ packetId)
 
             log.debug("Created new {} actor.", "PacketWorkflowActor-generated-"+packetId );
@@ -154,13 +251,16 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
 
             datapathConnection.packetsExecute(datapath, packet,
                 new ErrorHandlingCallback[java.lang.Boolean] {
-                    def onSuccess(data: java.lang.Boolean) {}
+                    def onSuccess(data: java.lang.Boolean) {
+                        metrics.packetsProcessed.mark()
+                    }
 
                     def handleError(ex: NetlinkException, timeout: Boolean) {
                         log.error(ex,
                             "Failed to send a packet {} due to {}",
                             packet,
                             if (timeout) "timeout" else "error")
+                        metrics.packetsProcessed.mark()
                     }
                 })
         }
@@ -174,6 +274,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
                          if (throttler.allowed()) {
                              val eth = data.getPacket
                              FlowMatches.addUserspaceKeys(eth, data.getMatch)
+                             data.setStartTimeNanos(Clock.defaultClock().tick())
                              self ! HandlePacket(data)
                          }
                      }
@@ -184,13 +285,4 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
          }).get()
     }
 
-    private def freePendedPackets(cookieOpt: Option[Int]): Unit = {
-        cookieOpt match {
-            case None => // no pended packets
-            case Some(cookie) =>
-                val pended = cookieToPendedPackets.remove(cookie)
-                val packet = pended.head.last
-                dpMatchToCookie.remove(packet.getMatch)
-        }
-    }
 }

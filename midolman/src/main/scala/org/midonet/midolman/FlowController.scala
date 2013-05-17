@@ -2,7 +2,7 @@
 
 package org.midonet.midolman
 
-import scala.Some
+import scala.annotation.tailrec
 import akka.actor._
 import akka.util.duration._
 import akka.util.Duration
@@ -15,12 +15,14 @@ import java.util.concurrent.{ConcurrentHashMap => ConcHashMap,
 import java.util.{Set => JSet, Map => JMap}
 import javax.inject.Inject
 
-import scala.annotation.tailrec
+import com.yammer.metrics.core.{Gauge, MetricsRegistry}
 
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.ErrorHandlingCallback
 import org.midonet.midolman.flows.WildcardTablesProvider
 import org.midonet.midolman.logging.ActorLogWithoutPath
+import org.midonet.midolman.monitoring.metrics.FlowTablesMeter
+import org.midonet.midolman.monitoring.metrics.FlowTablesGauge
 import org.midonet.netlink.{Callback => NetlinkCallback}
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode
@@ -177,6 +179,7 @@ object FlowController extends Referenceable {
     def lastInvalidationEvent = invalidationHistory.youngest
 }
 
+
 class FlowController extends Actor with ActorLogWithoutPath {
 
     import FlowController._
@@ -189,6 +192,9 @@ class FlowController extends Actor with ActorLogWithoutPath {
     @Inject
     var datapathConnection: OvsDatapathConnection = null
 
+    @Inject
+    var metricsRegistry: MetricsRegistry = null
+
     var flowManager: FlowManager = null
     var flowManagerHelper: FlowManagerHelper = null
 
@@ -199,6 +205,8 @@ class FlowController extends Actor with ActorLogWithoutPath {
     var flowExpirationCheckInterval: Duration = null
 
     private var wildFlowPool: ObjectPool[ManagedWildcardFlow] = null
+
+    var metrics: FlowTablesMetrics = null
 
     override def preStart() {
         super.preStart()
@@ -221,6 +229,8 @@ class FlowController extends Actor with ActorLogWithoutPath {
         wildFlowPool = new ArrayObjectPool[ManagedWildcardFlow](maxWildcardFlows) {
             override def allocate = new ManagedWildcardFlow(this)
         }
+
+        metrics = new FlowTablesMetrics(flowManager)
     }
 
     def receive = LoggingReceive {
@@ -250,6 +260,7 @@ class FlowController extends Actor with ActorLogWithoutPath {
                         if (handleFlowAddedForNewWildcard(managedFlow, flowOption, callbacks, tags)) {
                             context.system.eventStream.publish(WildcardFlowAdded(wildFlow))
                             log.debug("Added wildcard flow {} with tags {}", wildFlow, tags)
+                            metrics.wildFlowsMetric.mark()
                         } else {
                             // the FlowController's ref
                             managedFlow.unref()
@@ -266,6 +277,7 @@ class FlowController extends Actor with ActorLogWithoutPath {
 
         case FlowAdded(dpFlow) =>
             handleFlowAddedForExistingWildcard(dpFlow)
+            metrics.currentDpFlows = flowManager.getNumDpFlows
 
         case InvalidateFlowsByTag(tag) =>
             tagToFlows.remove(tag) match {
@@ -279,6 +291,7 @@ class FlowController extends Actor with ActorLogWithoutPath {
                         removeWildcardFlow(wildFlow)
             }
             invalidationHistory.put(tag)
+            metrics.currentDpFlows = flowManager.getNumDpFlows
 
         case RemoveWildcardFlow(wmatch) =>
             log.debug("Removing wcflow for match {}", wmatch)
@@ -289,9 +302,11 @@ class FlowController extends Actor with ActorLogWithoutPath {
                     case wflow => removeWildcardFlow(wflow)
                 }
             }
+            metrics.currentDpFlows = flowManager.getNumDpFlows
 
         case CheckFlowExpiration() =>
             flowManager.checkFlowsExpiration()
+            metrics.currentDpFlows = flowManager.getNumDpFlows
 
         case getFlowSucceded(flow, callback) =>
             log.debug("DP confirmed that flow was updated: {}", flow)
@@ -313,10 +328,12 @@ class FlowController extends Actor with ActorLogWithoutPath {
                         flowManager.forgetFlow(flowMatch)
                     }
             }
+            metrics.currentDpFlows = flowManager.getNumDpFlows
 
         case flowRemoved(flow) =>
             log.debug("DP confirmed that flow was removed: {}", flow)
             flowManager.removeFlowCompleted(flow)
+            metrics.currentDpFlows = flowManager.getNumDpFlows
 
     }
 
@@ -358,6 +375,7 @@ class FlowController extends Actor with ActorLogWithoutPath {
                 // wildcard flow is the same that the client has: the dp flow
                 // is valid anyway.
                 flowManager.add(dpFlow, wildFlow)
+                metrics.dpFlowsMetric.mark()
             case None =>
                 // The wildFlow timed out or was invalidated in the interval
                 // since the client queried for it the first time. We do not
@@ -391,7 +409,9 @@ class FlowController extends Actor with ActorLogWithoutPath {
         }
 
         flow match {
-            case Some(dpFlow) => flowManager.add(dpFlow, wildFlow)
+            case Some(dpFlow) =>
+                flowManager.add(dpFlow, wildFlow)
+                metrics.dpFlowsMetric.mark()
             case None =>
         }
         true
@@ -488,6 +508,32 @@ class FlowController extends Actor with ActorLogWithoutPath {
                     }
                 })
         }
+    }
+
+    class FlowTablesMetrics(val flowManager: FlowManager) {
+        @volatile var currentDpFlows: Long = 0L
+
+        val currentWildFlowsMetric = metricsRegistry.newGauge(
+                classOf[FlowTablesGauge],
+                "currentWildcardFlows",
+                new Gauge[Long]{
+                    override def value = flowManager.getNumWildcardFlows
+                })
+
+        val currentDpFlowsMetric = metricsRegistry.newGauge(
+                classOf[FlowTablesGauge],
+                "currentDatapathFlows",
+                new Gauge[Long]{
+                    override def value = currentDpFlows
+                })
+
+        val wildFlowsMetric = metricsRegistry.newMeter(
+                classOf[FlowTablesMeter], "wildcardFlowsCreated", "wildcardFlows",
+                TimeUnit.SECONDS)
+
+        val dpFlowsMetric = metricsRegistry.newMeter(
+                classOf[FlowTablesMeter], "datapathFlowsCreated", "datapathFlows",
+                TimeUnit.SECONDS)
     }
 
 }

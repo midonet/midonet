@@ -40,6 +40,17 @@ public class Packet {
     Reason reason;
     Ethernet eth;
 
+    long startTimeNanos = 0;
+
+    public long getStartTimeNanos() {
+        return startTimeNanos;
+    }
+
+    public Packet setStartTimeNanos(long time) {
+        this.startTimeNanos = time;
+        return this;
+    }
+
     public Ethernet getPacket() {
         return eth;
     }

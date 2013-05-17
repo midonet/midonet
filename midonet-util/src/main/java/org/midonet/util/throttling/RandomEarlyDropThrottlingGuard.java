@@ -2,7 +2,7 @@
 
 package org.midonet.util.throttling;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +17,8 @@ public class RandomEarlyDropThrottlingGuard implements ThrottlingGuard {
     private final ThrottlingCounter counter;
     private final int highWaterMark;
     private final int lowWaterMark;
-    private final AtomicInteger droppedTokens = new AtomicInteger();
+    private final AtomicLong droppedTokens = new AtomicLong();
+    private final AtomicLong allowedTokens = new AtomicLong();
     private final String name;
     private final Logger logger = LoggerFactory.getLogger(
             RandomEarlyDropThrottlingGuard.class);
@@ -58,10 +59,14 @@ public class RandomEarlyDropThrottlingGuard implements ThrottlingGuard {
     @Override
     public boolean allowed() {
         final int n = counter.get();
-        if (highWaterMark <= 0)
+        if (highWaterMark <= 0) {
+            tokenAllowed();
             return true;
-        if (n <= lowWaterMark)
+        }
+        if (n <= lowWaterMark) {
+            tokenAllowed();
             return true;
+        }
         if (n > highWaterMark) {
             tokenDropped();
             return false;
@@ -70,6 +75,7 @@ public class RandomEarlyDropThrottlingGuard implements ThrottlingGuard {
                                   ((double) (highWaterMark - lowWaterMark));
         final Object[] objs = {likelihood, lowWaterMark, highWaterMark, n};
         if (likelihood < Math.random()) {
+            tokenAllowed();
             return true;
         } else {
             tokenDropped();
@@ -83,10 +89,24 @@ public class RandomEarlyDropThrottlingGuard implements ThrottlingGuard {
     }
 
     private void tokenDropped() {
-        final int tokens = droppedTokens.incrementAndGet();
+        final long tokens = droppedTokens.incrementAndGet();
         if (tokens % 1000 == 0) {
-            logger.warn("{} dropped 1000 tokens ({} tokens in the system)",
+            logger.info("{} dropped 1000 tokens ({} tokens in the system)",
                         this.name, counter.get());
         }
+    }
+
+    private void tokenAllowed() {
+        allowedTokens.incrementAndGet();
+    }
+
+    @Override
+    public long numAllowedTokens() {
+        return allowedTokens.get();
+    }
+
+    @Override
+    public long numDroppedTokens() {
+        return droppedTokens.get();
     }
 }
