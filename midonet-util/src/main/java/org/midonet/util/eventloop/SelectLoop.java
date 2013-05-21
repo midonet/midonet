@@ -221,7 +221,7 @@ public class SelectLoop {
                             try {
                                 reg.listener.handleEvent(sk);
                             } catch (Exception e) {
-                                log.warn("Callback threw an exception: {}\n",
+                                log.error("Callback threw an exception: {}\n",
                                     Joiner.on("\n    ").join(e.getStackTrace()));
                             }
                             // We report each ready-op once, so after
