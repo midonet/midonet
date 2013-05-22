@@ -518,14 +518,6 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogWithout
     }
 
     private def portSetUpdate(portSetId: UUID) {
-        // Invalidate the flows that were going to this port set so that their
-        // output datapath ports can be recomputed. This is true regardless
-        // of whether the remote hosts or the local vports in the set changed.
-        FlowController.getRef() ! InvalidateFlowsByTag(
-            // the portSet id is the same as the bridge id
-            FlowTagger.invalidateBroadcastFlows(portSetId, portSetId)
-        )
-
         val hosts: Set[UUID] = psetIdToHosts.get(portSetId) match {
             case Some(hostSet) => hostSet
             case None => immutable.Set()
@@ -540,6 +532,14 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogWithout
             "remote hosts {}", portSetId, localVPorts, hosts)
         portSets.updateAndNotifySubscribers(portSetId,
             rcu.PortSet(portSetId, hosts, localVPorts))
+
+        // Invalidate the flows that were going to this port set so that their
+        // output datapath ports can be recomputed. This is true regardless
+        // of whether the remote hosts or the local vports in the set changed.
+        FlowController.getRef() ! InvalidateFlowsByTag(
+            // the portSet id is the same as the bridge id
+            FlowTagger.invalidateBroadcastFlows(portSetId, portSetId)
+        )
     }
 
     /**

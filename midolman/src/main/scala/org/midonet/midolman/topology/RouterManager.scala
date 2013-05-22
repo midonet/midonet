@@ -82,13 +82,13 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
             VirtualTopologyActor.getRef().tell(
                 new Router(id, cfg, rTable, arpTable, inFilter, outFilter,
                     new TagManagerImpl))
-    } else {
-        log.debug("The chains aren't ready yet. ")
-    }
+        } else {
+            log.debug("The chains aren't ready yet. ")
+        }
 
-        if(filterChanged){
-            FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
-            FlowTagger.invalidateFlowsByDevice(id))
+        if (filterChanged) {
+            VirtualTopologyActor.getRef() ! FlowController.InvalidateFlowsByTag(
+                FlowTagger.invalidateFlowsByDevice(id))
         }
         filterChanged = false
     }

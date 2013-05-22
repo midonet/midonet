@@ -973,9 +973,9 @@ class DatapathController() extends Actor with ActorLogging with
             zonesToTunnels.addBinding(zone, port)
             // trigger invalidation
             val tunnelPortNum: JShort = port.getPortNo.shortValue
+            dpState.addLocalTunnelPort(tunnelPortNum.intValue)
             FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
                 FlowTagger.invalidateDPPort(tunnelPortNum))
-            dpState.addLocalTunnelPort(tunnelPortNum.intValue)
             log.debug("Adding tunnel with port #{}", tunnelPortNum)
             context.system.eventStream.publish(
                 new TunnelChangeEvent(this.host.zones.get(zone), hConf,
@@ -985,13 +985,14 @@ class DatapathController() extends Actor with ActorLogging with
 
         def _handleTunnelDelete(port: Port[_,_],
                                 hConf: TZHostConfig[_,_], zone: UUID) {
-            if (dpState.removePeerTunnel(hConf.getId, zone)) {
-                FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
-                    FlowTagger.invalidateDPPort(port.getPortNo.shortValue()))
-            }
+            val invalidate = dpState.removePeerTunnel(hConf.getId, zone)
             tunnelsToHosts.remove(port.getPortNo)
             zonesToTunnels.removeBinding(zone, port)
             dpState.removeLocalTunnelPort(port.getPortNo.shortValue)
+            if (invalidate) {
+                FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
+                    FlowTagger.invalidateDPPort(port.getPortNo.shortValue()))
+            }
             log.debug("Removing tunnel with port #{}",
                       port.getPortNo.shortValue)
             context.system.eventStream.publish(
