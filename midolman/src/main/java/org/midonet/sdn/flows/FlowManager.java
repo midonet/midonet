@@ -343,25 +343,23 @@ public class FlowManager {
     }
 
     private void checkIdleTimeExpiration(){
-        WildcardFlow flowToExpire;
-        Iterator it = idleTimeOutQueue.iterator();
-        while(it.hasNext()){
-            flowToExpire = (WildcardFlow)it.next();
+        while (idleTimeOutQueue.peek() != null) {
+            WildcardFlow flowToExpire = idleTimeOutQueue.peek();
             //log.trace("Idle timeout queue size {}", idleTimeOutQueue.size());
             // since we remove the element lazily let's check if this element
             // has already been removed
             if (!isAlive(flowToExpire)) {
-                it.remove();
+                idleTimeOutQueue.poll();
                 continue;
             }
             long expirationDate = flowToExpire.getLastUsedTimeMillis() +
-            flowToExpire.getIdleExpirationMillis();
+                flowToExpire.getIdleExpirationMillis();
             // if the flow expired we don't delete it immediately, first we query
             // the kernel to get the updated lastUsedTime
             if (System.currentTimeMillis() >= expirationDate) {
-                    // remove it from the queue so we won't query it again
-                    it.remove();
-                    getKernelFlowsLastUsedTime(flowToExpire);
+                // remove it from the queue so we won't query it again
+                idleTimeOutQueue.poll();
+                getKernelFlowsLastUsedTime(flowToExpire);
             }else
                 break;
         }
