@@ -158,9 +158,9 @@ class BridgeManager(id: UUID, val clusterClient: Client,
                        else null,
                        flowCounts, inFilter, outFilter, flowRemovedCallback,
         rtrMacToLogicalPortId, rtrIpToMac))
-        if(filterChanged){
-            FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
-            FlowTagger.invalidateFlowsByDevice(id))
+        if (filterChanged) {
+            context.actorFor("..") ! FlowController.InvalidateFlowsByTag(
+                FlowTagger.invalidateFlowsByDevice(id))
         }
         filterChanged = false
     }

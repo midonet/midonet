@@ -47,9 +47,9 @@ class PortManager(id: UUID, val clusterClient: Client)
     override def receive = super.receive orElse {
         case TriggerUpdate(p: Port[_]) =>
             port = p
-            FlowController.getRef() !
-                InvalidateFlowsByTag(FlowTagger.invalidateFlowsByDevice(p.id))
             configUpdated()
+            context.actorFor("..") !
+                InvalidateFlowsByTag(FlowTagger.invalidateFlowsByDevice(p.id))
 
     }
 }
