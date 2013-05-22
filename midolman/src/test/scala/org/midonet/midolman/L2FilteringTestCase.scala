@@ -8,8 +8,9 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
 
-import org.midonet.midolman.FlowController.{WildcardFlowRemoved,
-                                             WildcardFlowAdded}
+import org.midonet.midolman.FlowController.{InvalidateFlowsByTag,
+    WildcardFlowRemoved, WildcardFlowAdded}
+import org.midonet.midolman.topology.FlowTagger
 import rules.{RuleResult, Condition}
 import org.midonet.packets._
 import util.SimulationHelper
@@ -75,6 +76,21 @@ class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture
         flow = fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
         flow.f.actions.size should be (0)
 
+    }
+
+    def testFloodTagging() {
+        val chain = newOutboundChainOnPort("p1OutChain", vmPorts(0))
+        val cond = new Condition()
+        val rule = newLiteralRuleOnChain(chain, 1, cond,
+            RuleResult.Action.ACCEPT)
+        clusterDataClient().bridgesUpdate(bridge)
+        expectPacketAllowed(1, 2, icmpBetweenPorts)
+        requestOfType[WildcardFlowAdded](wflowAddedProbe)
+        drainProbes()
+        drainProbe(wflowRemovedProbe)
+        FlowController.getRef(actors()).tell(InvalidateFlowsByTag(
+                FlowTagger.invalidateFlowsByDevice(chain.getId)))
+        requestOfType[WildcardFlowRemoved](wflowRemovedProbe)
     }
 
     def test() {

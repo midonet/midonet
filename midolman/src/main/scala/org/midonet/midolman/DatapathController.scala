@@ -410,26 +410,6 @@ object DatapathController extends Referenceable {
     case class PortStatsRequest(portID: UUID)
 
     /**
-     * Dummy ChainPacketContext used in egress port set chains.
-     * All that is available is the Output Port ID (there's no information
-     * on the ingress port or connection tracking at the egress controller).
-     * @param outportID UUID for the output port
-     */
-    class EgressPortSetChainPacketContext(outportID: UUID)
-            extends ChainPacketContext {
-        override def getInPortId() = null
-        override def getOutPortId() = outportID
-        override def getPortGroups() = new HashSet[UUID]()
-        override def addTraversedElementID(id: UUID) { }
-        override def isConnTracked() = false
-        override def isForwardFlow() = true
-        override def getFlowCookie() = null
-        override def addFlowTag(tag: Any) {}
-        override def addFlowRemovedCallback(cb: Callback0) {}
-        override def getParentCookie = null
-    }
-
-    /**
      * This message is sent every 2 seconds to check that the kernel contains exactly the same
      * ports/interfaces as the system. In case that somebody uses a command line tool (for example)
      * to bring down an interface, the system will react to it.

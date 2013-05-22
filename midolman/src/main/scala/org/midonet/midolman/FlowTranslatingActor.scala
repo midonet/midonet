@@ -2,8 +2,6 @@
 
 package org.midonet.midolman
 
-import scala.collection.JavaConverters._
-import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.collection.{Set => ROSet}
@@ -11,14 +9,14 @@ import akka.actor.Actor
 import akka.dispatch.{Promise, Future}
 import akka.event.LoggingAdapter
 import akka.pattern.ask
+import java.{util => ju}
 import akka.util.duration._
 import akka.util.Timeout
 import java.util.UUID
 
-import org.midonet.midolman.DatapathController.EgressPortSetChainPacketContext
 import org.midonet.midolman.datapath.{FlowActionOutputToVrnPort,
         FlowActionOutputToVrnPortSet}
-import org.midonet.midolman.rules.RuleResult
+import org.midonet.midolman.rules.{ChainPacketContext, RuleResult}
 import org.midonet.midolman.simulation.{Bridge => RCUBridge, Chain}
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.PortSetRequest
 import org.midonet.midolman.topology.VirtualTopologyActor.{
@@ -31,11 +29,42 @@ import org.midonet.cluster.client.ExteriorPort
 import org.midonet.odp.flows.{
         FlowActionUserspace, FlowKeys, FlowActions, FlowAction}
 import org.midonet.odp.protos.OvsDatapathConnection
-import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.sdn.flows.{WildcardMatch, WildcardFlowBuilder}
+import org.midonet.util.functors.Callback0
+
+object FlowTranslatingActor {
+    /**
+     * Dummy ChainPacketContext used in egress port set chains.
+     * All that is available is the Output Port ID (there's no information
+     * on the ingress port or connection tracking at the egress controller).
+     * @param outportID UUID for the output port
+     */
+    class EgressPortSetChainPacketContext(outportID: UUID, val tags: Option[mutable.Set[Any]])
+            extends ChainPacketContext {
+
+        override def getInPortId = null
+        override def getOutPortId = outportID
+        override def getPortGroups = new ju.HashSet[UUID]()
+        override def addTraversedElementID(id: UUID) { }
+        override def isConnTracked = false
+        override def isForwardFlow = true
+        override def getFlowCookie = null
+        override def addFlowRemovedCallback(cb: Callback0) {}
+        override def getParentCookie = null
+
+        override def addFlowTag(tag: Any) {
+            tags match {
+                case None =>
+                case Some(tset) => tset += tag
+            }
+        }
+    }
+}
 
 
 trait FlowTranslatingActor extends Actor {
+    import FlowTranslatingActor._
+
     protected val datapathConnection: OvsDatapathConnection
     protected val dpState: DatapathState
     val log: LoggingAdapter
@@ -93,6 +122,7 @@ trait FlowTranslatingActor extends Actor {
     protected def applyOutboundFilters[A](localPorts: Seq[client.Port[_]],
                                         portSetID: UUID,
                                         pktMatch: WildcardMatch,
+                                        tags: Option[mutable.Set[Any]],
                                         thunk: Seq[UUID] => Future[A]): Future[A] = {
         // Fetch all of the chains.
         val chainFutures = localPorts map { port =>
@@ -108,7 +138,7 @@ trait FlowTranslatingActor extends Actor {
                 val egressPorts = (localPorts zip chains) filter { portchain =>
                     val port = portchain._1
                     val chain = portchain._2
-                    val fwdInfo = new EgressPortSetChainPacketContext(port.id)
+                    val fwdInfo = new EgressPortSetChainPacketContext(port.id, tags)
 
                     // apply chain and check result is ACCEPT.
                     val result =
@@ -238,9 +268,11 @@ trait FlowTranslatingActor extends Actor {
                                 "remote hosts having ports on this bridge: {}",
                                 br.id, inPortUUID, set.localPorts, set.hosts)
                             // add tag for flow invalidation
-                            dpTags foreach { tags =>
-                                tags += FlowTagger.invalidateBroadcastFlows(
-                                    br.id, br.id)
+                            dpTags match {
+                                case None =>
+                                case Some(tags) =>
+                                    tags += FlowTagger.invalidateBroadcastFlows(
+                                        br.id, br.id)
                             }
                             val localPortFutures =
                                 outPorts.toSeq map {
@@ -253,6 +285,7 @@ trait FlowTranslatingActor extends Actor {
                                 case Right(localPorts) =>
                                     applyOutboundFilters(localPorts,
                                         portSet, wMatch,
+                                        dpTags,
                                         { portIDs => translated.success(
                                             translateToDpPorts(
                                                 actions, portSet,
