@@ -392,7 +392,10 @@ public abstract class AbstractNetlinkConnection {
                     payload.order(ByteOrder.nativeOrder());
 
                     if (buffers != null) {
-                        buffers.add(payload);
+                        if (Flag.isSet(flags, Flag.NLM_F_MULTI))
+                            buffers.add(cloneBuffer(payload));
+                        else
+                            buffers.add(payload);
                     }
 
                     if (!Flag.isSet(flags, Flag.NLM_F_MULTI)) {
@@ -411,6 +414,16 @@ public abstract class AbstractNetlinkConnection {
             reply.position(nextPosition);
         }
         return nbytes;
+    }
+
+    private ByteBuffer cloneBuffer(ByteBuffer from) {
+        int origPos = from.position();
+        ByteBuffer to = ByteBuffer.allocate(from.remaining());
+        to.order(from.order());
+        to.put(from);
+        to.flip();
+        from.position(origPos);
+        return to;
     }
 
     protected abstract void handleNotification(short type, byte cmd,
