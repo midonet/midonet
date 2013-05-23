@@ -46,9 +46,8 @@ public abstract class ForwardNatRule extends NatRule {
         for (org.midonet.midolman.rules.NatTarget natTarget : ruleTargets) {
             NatTarget target = new NatTarget();
 
-            target.addressFrom = Net
-                    .convertIntAddressToString(natTarget.nwStart);
-            target.addressTo = Net.convertIntAddressToString(natTarget.nwEnd);
+            target.addressFrom = natTarget.nwStart.toString();
+            target.addressTo = natTarget.nwEnd.toString();
 
             target.portFrom = natTarget.tpStart;
             target.portTo = natTarget.tpEnd;

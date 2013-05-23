@@ -2,17 +2,15 @@
 
 package org.midonet.packets
 
+import java.util.Random
+
 /**
  * An IPv4 address.
  *
  * As convention please prefer the static builder IPv4Addr.toInt to the
  * constructor IPv4Addr(int).
- *
- * TODO (galo): We can't make this immutable thanks to Jackson, who seems to be
- * unable to use the constructor and needs an empty one, it must be possible to
- * instruct him correctly.
  */
-class IPv4Addr(private val addr: Int) extends IPAddr {
+class IPv4Addr(val addr: Int) extends IPAddr with Ordered[IPv4Addr] {
     type T = IPv4Addr
 
     // Required for Jackson deserialization
@@ -33,12 +31,22 @@ class IPv4Addr(private val addr: Int) extends IPAddr {
         }
     }
 
+    // This works because integers are represented using two's complement
+    override def next: IPv4Addr = new IPv4Addr(addr + 1)
+
     def canEqual(o: Any) = o.isInstanceOf[IPv4Addr]
 
     override def hashCode() = addr
     override def subnet(len: Int = 32): IPv4Subnet = new IPv4Subnet(this, len)
     override def copy: IPv4Addr = new IPv4Addr(this.addr)
+    override def randomTo(limit: IPv4Addr, rand: Random): IPv4Addr = {
+        if (this > limit)
+            throw new IllegalArgumentException("Limit is lower than this ip")
 
+        IPv4Addr.fromInt(rand.nextInt(limit.toInt - addr + 1) + addr)
+    }
+
+    def compare(that: IPv4Addr): Int = this.addr.compare(that.toInt)
     def toIntIPv4 = new IntIPv4(addr)
     def toInt = addr
 

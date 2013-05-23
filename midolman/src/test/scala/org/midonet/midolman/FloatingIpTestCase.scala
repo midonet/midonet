@@ -18,7 +18,6 @@ import layer3.Route.NextHop
 import topology.LocalPortActive
 import org.midonet.packets._
 import topology.VirtualToPhysicalMapper.HostRequest
-import util.SimulationHelper
 import org.midonet.cluster.data.ports.{LogicalRouterPort, MaterializedBridgePort,
     MaterializedRouterPort}
 import util.RouterHelper
@@ -172,7 +171,7 @@ class FloatingIpTestCase extends VirtualConfigurationBuilders with RouterHelper 
 
         log.info("Feeding ARP cache on VM1")
         feedArpCache(rtrPort1Name, vm1Ip.toInt, vm1Mac,
-            routerIp1.toInt, routerMac1)
+                     routerIp1.toInt, routerMac1)
         requestOfType[PacketIn](packetInProbe)
         requestOfType[DiscardPacket](discardPacketProbe)
         drainProbes()

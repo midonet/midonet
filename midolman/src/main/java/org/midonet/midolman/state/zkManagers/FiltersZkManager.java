@@ -10,26 +10,23 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
 
-import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.ZkManager;
-import org.midonet.midolman.state.ZkStateSerializationException;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.KeeperException.NoNodeException;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.midonet.midolman.state.Directory;
+import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.state.ZkManager;
+import org.midonet.midolman.state.ZkStateSerializationException;
+import org.midonet.packets.IPAddr;
+import org.midonet.packets.IPAddr$;
 
 /**
  * Class to manage the ZK data for the implicit filters of Ports, Bridges,
  * and Routers.
  */
 public class FiltersZkManager extends ZkManager {
-
-    private final static Logger log =
-        LoggerFactory.getLogger(FiltersZkManager.class);
 
     /**
      * Initializes a FilterZkManager object with a ZooKeeper client and the root
@@ -76,11 +73,11 @@ public class FiltersZkManager extends ZkManager {
         String basePath = paths.getBasePath();
 
         // The SNAT blocks are nested under
-        // /filters/<deviceId>/snat_blocks/<ipv4>/<startPortRange>
+        // /filters/<deviceId>/snat_blocks/<ip>/<startPortRange>
         // Delete everything under snat_blocks
         String devicePath = paths.getFilterSnatBlocksPath(id);
         for (String ipStr : getChildren(devicePath, null)) {
-            int ipv4 = Integer.valueOf(ipStr, 16);
+            IPAddr ipv4 = IPAddr$.MODULE$.fromString(ipStr);
             String ipPath =
                 paths.getFilterSnatBlocksPath(id, ipv4);
             for (String portBlock : getChildren(ipPath, null))
@@ -120,11 +117,11 @@ public class FiltersZkManager extends ZkManager {
         multi(prepareDelete(id));
     }
 
-    public NavigableSet<Integer> getSnatBlocks(UUID parentId, int ip)
+    public NavigableSet<Integer> getSnatBlocks(UUID parentId, IPAddr ip)
             throws KeeperException, InterruptedException {
         StringBuilder sb = new StringBuilder(paths
                 .getFilterSnatBlocksPath(parentId));
-        sb.append("/").append(Integer.toHexString(ip));
+        sb.append("/").append(ip.toString());
         TreeSet<Integer> ports = new TreeSet<Integer>();
         Set<String> blocks = null;
         try {
@@ -137,11 +134,11 @@ public class FiltersZkManager extends ZkManager {
         return ports;
     }
 
-    public void addSnatReservation(UUID parentId, int ip, int startPort)
+    public void addSnatReservation(UUID parentId, IPAddr ip, int startPort)
             throws StateAccessException {
         StringBuilder sb = new StringBuilder(paths
                 .getFilterSnatBlocksPath(parentId));
-        sb.append("/").append(Integer.toHexString(ip));
+        sb.append("/").append(ip.toString());
 
         // Call the safe add method to avoid exception when node exists.
         addPersistent_safe(sb.toString(), null);

@@ -5,6 +5,8 @@ package org.midonet.packets
 /**
  * Common abstraction for any version of an IP address.
  */
+import java.util.{NoSuchElementException, Random}
+
 trait IPAddr {
     type T <: IPAddr
     def toString: String
@@ -24,9 +26,24 @@ trait IPAddr {
      * @return
      */
     def copy: T
+
+    /**
+     * Get the next ip to the current one
+     *
+     * ®return
+     */
+    def next: T
+
+    def randomTo(limit: T, rand: Random): T
+
 }
 
 object IPAddr {
+    implicit def ipAddrToOrdered[T <: IPAddr](ip: T): Ordered[T] = ip match {
+        case i: Ordered[T] => i
+        case _ => throw new IllegalArgumentException()
+    }
+
     def fromString(s: String): IPAddr = {
         if (s.contains(":"))
             IPv6Addr.fromString(s)
@@ -34,8 +51,35 @@ object IPAddr {
             IPv4Addr.fromString(s)
     }
 
-    def fromIntIPv4(ii: IntIPv4): IPv4Addr = {
-        if (ii == null) null
-        else new IPv4Addr(ii.addressAsInt)
+    def fromAddr[T <: IPAddr](ip: T): T = {
+        val newIp: T = ip match {
+            case ipv4: IPv4Addr => IPv4Addr.fromIPv4(ipv4).asInstanceOf[T]
+            case ipv6: IPv6Addr => IPv6Addr.fromIPv6(ipv6).asInstanceOf[T]
+        }
+        newIp
     }
+}
+
+class IPAddrRange[T <: IPAddr](start: T, end: T)
+                 (implicit o: T => Ordered[T]) extends Iterator[IPAddr] {
+
+    private var index: T = IPAddr.fromAddr(start)
+
+    override def hasNext: Boolean = index <= end
+    override def next(): T = {
+        if (!hasNext)
+            throw new NoSuchElementException
+        val curr = index
+        index = index.next.asInstanceOf[T]
+        curr
+    }
+
+}
+
+/**
+ * For usage from java, since IPAddrRange requires an implicit param.
+ */
+object IPAddrRangeBuilder {
+    def range[T <: IPAddr](ip1: T, ip2: T): IPAddrRange[T] =
+        new IPAddrRange(ip1, ip2)
 }

@@ -6,7 +6,6 @@ package org.midonet.midolman.layer4;
 
 import org.midonet.packets.IPAddr;
 
-
 public class NwTpPair {
 
     public final IPAddr nwAddr;
@@ -37,6 +36,8 @@ public class NwTpPair {
         if (!(other instanceof NwTpPair))
             return false;
         NwTpPair p = (NwTpPair) other;
+        if (nwAddr != null && p.nwAddr == null)
+            return false;
         return nwAddr.equals(p.nwAddr) && tpPort == p.tpPort;
     }
 

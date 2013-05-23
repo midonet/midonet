@@ -22,9 +22,6 @@ import org.slf4j.LoggerFactory;
 
 public class WildcardMatch implements Cloneable {
 
-    private static final Logger log =
-            LoggerFactory.getLogger(WildcardMatch.class);
-
     private EnumSet<Field> usedFields = EnumSet.noneOf(Field.class);
 
     public enum Field {

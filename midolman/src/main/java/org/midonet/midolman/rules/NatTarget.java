@@ -4,19 +4,30 @@
 
 package org.midonet.midolman.rules;
 
+import org.midonet.packets.IPAddr;
+import org.midonet.packets.IPAddr$;
 import org.midonet.packets.IPv4;
+import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.IPv4Addr$;
 import org.midonet.packets.Net;
 
 public class NatTarget {
 
-    public int nwStart;
-    public int nwEnd;
+    public IPAddr nwStart;
+    public IPAddr nwEnd;
     public int tpStart;
     public int tpEnd;
 
+    public NatTarget(IPAddr nwStart, IPAddr nwEnd, int tpStart, int tpEnd) {
+        this.nwStart = (IPAddr)nwStart.copy();
+        this.nwEnd = (IPAddr)nwEnd.copy();
+        this.tpStart = tpStart;
+        this.tpEnd = tpEnd;
+    }
+
     public NatTarget(int nwStart, int nwEnd, int tpStart, int tpEnd) {
-        this.nwStart = nwStart;
-        this.nwEnd = nwEnd;
+        this.nwStart = new IPv4Addr(nwStart);
+        this.nwEnd = new IPv4Addr(nwEnd);
         this.tpStart = tpStart;
         this.tpEnd = tpEnd;
     }
@@ -27,19 +38,19 @@ public class NatTarget {
     /* Custom accessors for Jackson serialization with more readable IPs. */
 
     public String getNwStart() {
-        return Net.convertIntAddressToString(this.nwStart);
+        return this.nwStart.toString();
     }
 
     public void setNwStart(String addr) {
-        this.nwStart = Net.convertStringAddressToInt(addr);
+        this.nwStart = IPAddr$.MODULE$.fromString(addr);
     }
 
     public String getNwEnd() {
-        return Net.convertIntAddressToString(this.nwEnd);
+        return this.nwEnd.toString();
     }
 
     public void setNwEnd(String addr) {
-        this.nwEnd = Net.convertStringAddressToInt(addr);
+        this.nwEnd = IPAddr$.MODULE$.fromString(addr);
     }
 
     @Override
@@ -48,15 +59,23 @@ public class NatTarget {
             return true;
         if (!(other instanceof NatTarget))
             return false;
+
         NatTarget nt = (NatTarget) other;
-        return nwStart == nt.nwStart && nwEnd == nt.nwEnd
-                && tpStart == nt.tpStart && tpEnd == nt.tpEnd;
+        if (nt.nwStart == null && nwStart != null)
+            return false;
+        if (nt.nwEnd == null && nwEnd != null)
+            return false;
+        if (!nt.nwStart.equals(nwStart))
+            return false;
+        if (!nt.nwEnd.equals(nwEnd))
+            return false;
+        return tpStart == nt.tpStart && tpEnd == nt.tpEnd;
     }
 
     @Override
     public int hashCode() {
-        int hash = nwStart;
-        hash = 13 * hash + nwEnd;
+        int hash = nwStart.hashCode();
+        hash = 13 * hash + nwEnd.hashCode();
         hash = 17 * hash + tpStart;
         return 23 * hash + tpEnd;
     }
@@ -64,8 +83,8 @@ public class NatTarget {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("NatTarget [");
-        sb.append("nwStart=").append(IPv4.fromIPv4Address(nwStart));
-        sb.append(", nwEnd=").append(IPv4.fromIPv4Address(nwEnd));
+        sb.append("nwStart=").append(nwStart.toString());
+        sb.append(", nwEnd=").append(nwEnd.toString());
         sb.append(", tpStart=").append(tpStart & 0xffff);
         sb.append(", tpEnd=").append(tpEnd & 0xffff);
         sb.append("]");
