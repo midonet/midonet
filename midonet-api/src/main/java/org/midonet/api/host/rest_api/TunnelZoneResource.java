@@ -11,6 +11,8 @@ import org.midonet.api.host.TunnelZone;
 import org.midonet.api.host.TunnelZoneFactory;
 import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.ResourceFactory;
+import org.midonet.api.rest_api.AbstractResource;
+import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.auth.AuthRole;
 import org.midonet.api.rest_api.BadRequestHttpException;
 import org.midonet.midolman.state.StateAccessException;
@@ -24,6 +26,7 @@ import javax.validation.Validator;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +34,7 @@ import java.util.Set;
 import java.util.UUID;
 
 @RequestScoped
-public class TunnelZoneResource {
+public class TunnelZoneResource extends AbstractResource {
 
     private final static Logger log = LoggerFactory
             .getLogger(TunnelZoneResource.class);
@@ -42,8 +45,11 @@ public class TunnelZoneResource {
     private final ResourceFactory factory;
 
     @Inject
-    public TunnelZoneResource(UriInfo uriInfo, DataClient dataClient,
+    public TunnelZoneResource(RestApiConfig config, UriInfo uriInfo,
+                              SecurityContext context,
+                              DataClient dataClient,
                               Validator validator, ResourceFactory factory) {
+        super(config, uriInfo, context);
         this.uriInfo = uriInfo;
         this.dataClient = dataClient;
         this.validator = validator;
@@ -62,7 +68,7 @@ public class TunnelZoneResource {
         for (org.midonet.cluster.data.TunnelZone<?, ?> zoneData :
                 tunnelZoneDataList) {
             TunnelZone zone = TunnelZoneFactory.createTunnelZone(zoneData);
-            zone.setBaseUri(uriInfo.getBaseUri());
+            zone.setBaseUri(getBaseUri());
             tunnelZones.add(zone);
         }
         return tunnelZones;
@@ -83,7 +89,7 @@ public class TunnelZoneResource {
         org.midonet.cluster.data.TunnelZone zoneData =
                 dataClient.tunnelZonesGet(id);
         TunnelZone zone = TunnelZoneFactory.createTunnelZone(zoneData);
-        zone.setBaseUri(uriInfo.getBaseUri());
+        zone.setBaseUri(getBaseUri());
 
         return zone;
     }
@@ -118,7 +124,7 @@ public class TunnelZoneResource {
 
         UUID id = dataClient.tunnelZonesCreate(tunnelZone.toData());
         return Response.created(
-                ResourceUriBuilder.getTunnelZone(uriInfo.getBaseUri(), id))
+                ResourceUriBuilder.getTunnelZone(getBaseUri(), id))
                 .build();
     }
 

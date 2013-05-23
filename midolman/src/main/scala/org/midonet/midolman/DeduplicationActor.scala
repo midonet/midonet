@@ -172,7 +172,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
                  new Callback[Packet] {
                      def onSuccess(data: Packet) {
                          if (throttler.allowed()) {
-                             val eth = Ethernet.deserialize(data.getData)
+                             val eth = data.getPacket
                              FlowMatches.addUserspaceKeys(eth, data.getMatch)
                              self ! HandlePacket(data)
                          }

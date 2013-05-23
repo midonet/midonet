@@ -4,13 +4,14 @@
 package org.midonet.api.host.rest_api;
 
 import org.midonet.api.rest_api.DtoWebResource;
-import org.midonet.midolman.host.state.HostDirectory;
-import org.midonet.midolman.host.state.HostZkManager;
-import org.midonet.midolman.state.StateAccessException;
 import org.midonet.client.dto.DtoApplication;
 import org.midonet.client.dto.DtoCapwapTunnelZone;
 import org.midonet.client.dto.DtoGreTunnelZone;
 import org.midonet.client.dto.DtoHost;
+import org.midonet.client.dto.DtoHostInterfacePort;
+import org.midonet.midolman.host.state.HostDirectory;
+import org.midonet.midolman.host.state.HostZkManager;
+import org.midonet.midolman.state.StateAccessException;
 
 import java.net.URI;
 import java.util.HashMap;
@@ -20,6 +21,7 @@ import java.util.UUID;
 import static org.midonet.api.VendorMediaType.APPLICATION_JSON;
 import static org.midonet.api.VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON;
 import static org.midonet.api.VendorMediaType.APPLICATION_HOST_COLLECTION_JSON;
+import static org.midonet.api.VendorMediaType.APPLICATION_HOST_INTERFACE_PORT_JSON;
 
 /**
  * Class to assist creating a network topology in unit tests. An example usage:
@@ -59,8 +61,9 @@ public class HostTopology {
         private final Map<UUID, DtoHost> hosts;
         private final Map<String, DtoGreTunnelZone> greTunnelZones;
         private final Map<String, DtoCapwapTunnelZone> capwapTunnelZones;
+        private final Map<UUID, DtoHostInterfacePort> hostInterfacePorts;
 
-        private final Map<String, String> tagToHosts;
+        private final Map<UUID, UUID> tagToHosts;
 
         public Builder(DtoWebResource resource, HostZkManager hostZkManager) {
             this.resource = resource;
@@ -68,8 +71,9 @@ public class HostTopology {
             this.hosts = new HashMap<UUID, DtoHost>();
             this.greTunnelZones = new HashMap<String, DtoGreTunnelZone>();
             this.capwapTunnelZones = new HashMap<String, DtoCapwapTunnelZone>();
+            this.hostInterfacePorts = new HashMap<UUID, DtoHostInterfacePort>();
 
-            this.tagToHosts = new HashMap<String, String>();
+            this.tagToHosts = new HashMap<UUID, UUID>();
         }
 
         public DtoWebResource getResource() {
@@ -88,6 +92,22 @@ public class HostTopology {
 
         public Builder create(String tag, DtoCapwapTunnelZone obj) {
             this.capwapTunnelZones.put(tag, obj);
+            return this;
+        }
+
+        /**
+         * Create the mock topology of the host-interface-port binding.
+         *
+         * @param hostTag an UUID of the host which the port-interface-port
+         *                binding is associated
+         * @param tag     an UUID of the port-interface-port.
+         * @param obj     a client-side DTO of the port-host-interface.
+         * @return        this builder object
+         */
+        public Builder create(UUID hostTag, UUID tag,
+                              DtoHostInterfacePort obj) {
+            this.hostInterfacePorts.put(tag, obj);
+            this.tagToHosts.put(tag, hostTag);
             return this;
         }
 
@@ -118,6 +138,22 @@ public class HostTopology {
 
                 for (Map.Entry<UUID, DtoHost> entry : hosts.entrySet()) {
                     entry.setValue(hostMap.get(entry.getKey()));
+                }
+
+                // Initialize the topology of the host-interface-port bindings.
+                for (Map.Entry<UUID, DtoHostInterfacePort> entry
+                        : hostInterfacePorts.entrySet()) {
+                    DtoHostInterfacePort hostInterfacePort = entry.getValue();
+                    // Set the interface name.
+                    UUID tag = tagToHosts.get(entry.getKey());
+                    DtoHost host = hosts.get(tag);
+                    hostInterfacePort.setInterfaceName(host.getName());
+                    // Set the host ID.
+                    hostInterfacePort.setHostId(host.getId());
+                    hostInterfacePort = resource.postAndVerifyCreated(host.getPorts(),
+                            APPLICATION_HOST_INTERFACE_PORT_JSON, hostInterfacePort,
+                            DtoHostInterfacePort.class);
+                    entry.setValue(hostInterfacePort);
                 }
             }
 
@@ -165,5 +201,15 @@ public class HostTopology {
 
     public DtoCapwapTunnelZone getCapwapTunnelZone(String tag) {
         return this.builder.capwapTunnelZones.get(tag);
+    }
+
+    /**
+     * Get a client-side DTO object associated with the specified UUID tag.
+     *
+     * @param tag  an UUID of the host-interface-port binding to be got
+     * @return     the DTO object of the host-interface-port binding
+     */
+    public DtoHostInterfacePort getHostInterfacePort(UUID tag) {
+        return this.builder.hostInterfacePorts.get(tag);
     }
 }

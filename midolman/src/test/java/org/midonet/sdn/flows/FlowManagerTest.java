@@ -14,7 +14,9 @@ import akka.actor.ActorSystem;
 import com.typesafe.config.ConfigFactory;
 import org.junit.Before;
 import org.junit.Test;
+import org.midonet.util.functors.Callback1;
 import scala.collection.JavaConversions;
+import sun.awt.Mutex;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsNull.nullValue;
@@ -25,15 +27,16 @@ import org.midonet.odp.FlowMatch;
 import org.midonet.odp.flows.FlowAction;
 import org.midonet.odp.flows.FlowKeys;
 
-
 public class FlowManagerTest {
 
     long maxDpFlowSize = 5;
     long maxWildcardFlowSize = 5;
     int dpFlowRemoveBatchSize = 2;
-    FlowManagerHelperImpl flowManagerHelper;
+    final FlowManagerHelperImpl flowManagerHelper = new FlowManagerHelperImpl();
     FlowManager flowManager;
     int timeOut = 4000;
+    long idleFlowToleranceInterval = 2;
+    Mutex updateFlowLock = new Mutex();
 
     WildcardTablesProvider wildtablesProvider = new WildcardTablesProvider() {
         Map<Set<WildcardMatch.Field>, Map<WildcardMatch, WildcardFlow>> tables =
@@ -57,14 +60,14 @@ public class FlowManagerTest {
 
     @Before
     public void setUp() {
-        flowManagerHelper = new FlowManagerHelperImpl();
-        // This is only used for loggging
+        // This is only used for logging
         ActorSystem actorSystem = ActorSystem.create("MidolmanActorsTest", ConfigFactory
             .load().getConfig("midolman"));
 
         flowManager = new FlowManager(flowManagerHelper,
                 wildtablesProvider,
-                maxDpFlowSize, maxWildcardFlowSize, actorSystem.eventStream(),
+                maxDpFlowSize, maxWildcardFlowSize, idleFlowToleranceInterval,
+                actorSystem.eventStream(),
                 dpFlowRemoveBatchSize);
     }
 
@@ -97,11 +100,6 @@ public class FlowManagerTest {
         assertThat("WildcardFlowsToDpFlows was not updated",
                    flowManager.getNumWildcardFlows(),
                    equalTo(numberOfFlowsAdded));
-
-        assertThat("DpFlowToWildFlow table was not updated",
-                   flowManager.getDpFlowToWildFlow().size(),
-                   equalTo(numberOfFlowsAdded));
-
 
         assertThat("DpFlowToWildFlow table was not updated",
                    flowManager.getWildcardTables().get(
@@ -145,21 +143,20 @@ public class FlowManagerTest {
                    equalTo(numberOfFlowsAdded));
 
         assertThat("DpFlowToWildFlow table was not updated",
-                   flowManager.getDpFlowToWildFlow().size(),
-                   equalTo(numberOfFlowsAdded));
-
-
-        assertThat("DpFlowToWildFlow table was not updated",
                    flowManager.getWildcardTables().get(
                                    wflow.getMatch().getUsedFields())
                               .get(wflow.getMatch()),
                    equalTo(wflow));
 
-        Thread.sleep(timeOut+1);
+        Thread.sleep(timeOut+idleFlowToleranceInterval);
 
         // the flow should be expired since lastUsedTime > timeOut
         flowManager.checkFlowsExpiration();
 
+        // checkFlowsExpiration calls getFlow that runs on another thread, getFlow
+        // must complete before checking the status of the maps. I hate sleeps
+        // but didn't want to make the code more complex, this is quick and dirty
+        Thread.sleep(10);
         assertThat("Flow was not deleted",
                    flowManagerHelper.flowsMap.get(flowMatch),
                    nullValue());
@@ -177,8 +174,6 @@ public class FlowManagerTest {
             .setIdleExpirationMillis(timeOut);
         Flow flow = new Flow().setMatch(flowMatch).
                 setActions(actionsAsJava(wildcardFlowBuilder));
-
-        long time1 = System.currentTimeMillis();
 
         int numberOfFlowsAdded = 0;
         WildcardFlow wflow = wildcardFlowBuilder.build();
@@ -210,27 +205,14 @@ public class FlowManagerTest {
                 equalTo(numberOfFlowsAdded));
 
         assertThat("DpFlowToWildFlow table was not updated",
-                   flowManager.getDpFlowToWildFlow().size(),
-                   equalTo(numberOfFlowsAdded));
-
-
-        assertThat("DpFlowToWildFlow table was not updated",
                    flowManager.getWildcardTables().get(
                        wflow.getMatch().getUsedFields())
                               .get(wflow.getMatch()),
                    equalTo(wflow));
 
-        long time2 = System.currentTimeMillis();
-        // this test is very sensitive to time, it's better to calibrate the
-        // sleep according to the speed of the operations
-        long sleepTime = timeOut - (time2-time1) + 1;
-        if (sleepTime < 0) {
-            throw new RuntimeException(
-                "This machine is too slow, increase timeout!");
-        }
-        Thread.sleep(sleepTime);
+        Thread.sleep(timeOut/2);
         // this call will check the flow expiration and if a flow has timeLived >
-        // idle-timeout/2, an update about the LastUsedTime will be requested
+        // idle-timeout, an update about the LastUsedTime will be requested
         // from the kernel
         flowManager.checkFlowsExpiration();
 
@@ -244,6 +226,11 @@ public class FlowManagerTest {
         Thread.sleep(timeOut);
 
         flowManager.checkFlowsExpiration();
+        // checkFlowsExpiration calls getFlow that runs on another thread, getFlow
+        // must complete before checking the status of the maps. I hate sleeps
+        // but didn't want to make the code more complex, this is quick and dirty
+        Thread.sleep(10);
+
         // both should be deleted
         assertThat("Flow was not deleted",
                    flowManagerHelper.flowsMap.get(flowMatch),
@@ -270,38 +257,36 @@ public class FlowManagerTest {
         Flow flow = new Flow().setActions(actionsAsJava(wildcardFlowBuilder)).
                                setMatch(flowMatch);
 
-        long time1 = System.currentTimeMillis();
 
         WildcardFlow wflow = wildcardFlowBuilder.build();
         flowManager.add(wflow);
         flowManager.add(flow, wflow);
         flowManagerHelper.addFlow(new Flow().setMatch(flowMatch));
 
-        Thread.sleep(5*timeOut/8);
+        Thread.sleep(timeOut);
 
         // update the flow LastUsedTime in the kernel (FlowManagerHelperImpl is
         // mocking the kernel in this test)
         flowManagerHelper.setLastUsedTimeToNow(flowMatch);
-        flowManager.checkFlowsExpiration();
 
-        Thread.sleep(timeOut/8);
+        // checkFlowsExpiration will iterate through the priority queue for idle
+        // expiration. For the expired flow it will do a FlowManagerHelper.getFlow
+        // and pass a callback. The callback will modify the priority queue.
+        // In this test if we use just one thread we get a ConcurrentModificationException
+        // because the queue is modified while iterating. That's why the callback
+        // runs in another thread and we need to synchronize
+        // In MM the synchronization will be done by Akka, since the callback is
+        // triggered by a message to the FlowController
+        updateFlowLock.lock();
+        flowManager.checkFlowsExpiration();
+        updateFlowLock.unlock();
+        Thread.sleep(timeOut/2);
 
         assertThat("Wildcard flow LastUsedTime was not updated",
-                   flowManager.getDpFlowToWildFlow().get(flowMatch).getLastUsedTimeMillis(),
+                   wflow.getLastUsedTimeMillis(),
                    equalTo(flowManagerHelper.flowsMap.get(flowMatch)
                                             .getLastUsedTime()));
-
-        long time2 = System.currentTimeMillis();
-
-        long sleepTime = timeOut - (time2-time1) + 1;
-        if (sleepTime < 0) {
-            throw new RuntimeException(
-                "This machine is too slow, increase timeout!");
-        }
-        // Since the timeLived > timeout/2 the FlowManager will request an update
-        // of the LastUsedTime of this flow
         flowManager.checkFlowsExpiration();
-
         // wildcard flow should still be there
         assertThat("DpFlowToWildFlow table was not updated",
                    flowManager.getWildcardTables().get(
@@ -310,8 +295,12 @@ public class FlowManagerTest {
                    equalTo(wflow));
 
         Thread.sleep(timeOut);
-
+        updateFlowLock.lock();
         flowManager.checkFlowsExpiration();
+        updateFlowLock.unlock();
+
+        Thread.sleep(5);
+
         // both should be deleted
         assertThat("Flow was not deleted",
                    flowManagerHelper.flowsMap.get(flowMatch),
@@ -344,10 +333,6 @@ public class FlowManagerTest {
 
         assertThat("DpFlowTable, a flow hasn't been removed",
                    flowManager.getDpFlowTable().size(),
-                   equalTo(maxAcceptedDpFlows));
-
-        assertThat("DpFlowToWildFlow, a flow hasn't been removed",
-                   flowManager.getDpFlowToWildFlow().size(),
                    equalTo(maxAcceptedDpFlows));
 
     }
@@ -419,18 +404,13 @@ public class FlowManagerTest {
 
         public Map<FlowMatch, Flow> flowsMap = new HashMap<FlowMatch, Flow>();
 
-        public void addFlow(Flow flow){
+        public void addFlow(Flow flow) {
             flow.setLastUsedTime(System.currentTimeMillis());
             flowsMap.put(flow.getMatch(), flow);
         }
 
         public void setLastUsedTimeToNow(FlowMatch match) {
             flowsMap.get(match).setLastUsedTime(System.currentTimeMillis());
-        }
-
-        @Override
-        public void getFlow(FlowMatch flowMatch) {
-            flowManager.updateFlowLastUsedTimeCompleted(flowsMap.get(flowMatch));
         }
 
         @Override
@@ -443,5 +423,29 @@ public class FlowManagerTest {
         public void removeWildcardFlow(WildcardFlow flow) {
             flowManager.remove(flow);
         }
+
+        @Override
+        public void getFlow(FlowMatch flowMatch, Callback1<Flow> flowCb) {
+            new Thread(new MockFlowUpdatedMessageRunnable(flowMatch, flowCb)).start();
+        }
+
+        class MockFlowUpdatedMessageRunnable implements Runnable {
+            Callback1<Flow> flowCb;
+            FlowMatch flowMatch;
+
+            MockFlowUpdatedMessageRunnable(FlowMatch flowMatch,
+                                           Callback1<Flow> flowCb) {
+                this.flowCb = flowCb;
+                this.flowMatch = flowMatch;
+            }
+
+            @Override
+            public void run() {
+                updateFlowLock.lock();
+                flowCb.call(flowsMap.get(flowMatch));
+                updateFlowLock.unlock();
+            }
+        }
     }
+
 }

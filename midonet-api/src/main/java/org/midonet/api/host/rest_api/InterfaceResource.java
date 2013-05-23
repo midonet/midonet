@@ -11,6 +11,8 @@ import org.midonet.api.VendorMediaType;
 import org.midonet.api.auth.AuthRole;
 import org.midonet.api.rest_api.BadRequestHttpException;
 import org.midonet.api.rest_api.NotFoundHttpException;
+import org.midonet.api.rest_api.AbstractResource;
+import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.host.HostCommand;
 import org.midonet.api.host.Interface;
 import org.midonet.midolman.state.StateAccessException;
@@ -23,6 +25,7 @@ import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +36,7 @@ import java.util.UUID;
  *         Date: 1/30/12
  */
 @RequestScoped
-public class InterfaceResource {
+public class InterfaceResource extends AbstractResource {
 
     private final static Logger log = LoggerFactory
         .getLogger(InterfaceResource.class);
@@ -43,9 +46,11 @@ public class InterfaceResource {
     private final DataClient dataClient;
 
     @Inject
-    public InterfaceResource(UriInfo uriInfo,
+    public InterfaceResource(RestApiConfig config, UriInfo uriInfo,
+                             SecurityContext context,
                              DataClient dataClient,
                              @Assisted UUID hostId) {
+        super(config, uriInfo, context);
         this.uriInfo = uriInfo;
         this.dataClient = dataClient;
         this.hostId = hostId;
@@ -75,7 +80,7 @@ public class InterfaceResource {
                 HostCommand hostCommand = new HostCommand();
                 hostCommand.setId(id);
                 hostCommand.setHostId(hostId);
-                hostCommand.setBaseUri(uriInfo.getBaseUri());
+                hostCommand.setBaseUri(getBaseUri());
 
                 return Response
                     .ok(hostCommand,
@@ -109,7 +114,7 @@ public class InterfaceResource {
         for (org.midonet.cluster.data.host.Interface ifConfig
                 : ifConfigs) {
             Interface iface = new Interface(hostId, ifConfig);
-            iface.setBaseUri(uriInfo.getBaseUri());
+            iface.setBaseUri(getBaseUri());
             interfaces.add(iface);
         }
 
@@ -139,7 +144,7 @@ public class InterfaceResource {
                     "The requested resource was not found.");
         }
         Interface iface = new Interface(hostId, ifaceConfig);
-        iface.setBaseUri(uriInfo.getBaseUri());
+        iface.setBaseUri(getBaseUri());
 
         return iface;
     }
@@ -165,7 +170,7 @@ public class InterfaceResource {
             HostCommand command = new HostCommand();
             command.setId(cmdId);
             command.setHostId(hostId);
-            command.setBaseUri(uriInfo.getBaseUri());
+            command.setBaseUri(getBaseUri());
 
             return
                 Response

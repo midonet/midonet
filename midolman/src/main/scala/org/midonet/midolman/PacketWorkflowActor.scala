@@ -490,11 +490,16 @@ class PacketWorkflowActor(
 
         val wildMatch = WildcardMatch.fromEthernetPacket(packet.getPacket)
         packet.setMatch(FlowMatches.fromEthernetPacket(packet.getPacket))
-        translateActions(origActions, None, None, wildMatch) flatMap {
-            actions =>
-                log.debug("Translated actions to action list {} for {}",
-                          actions, cookieStr)
-                executePacket(actions)
+        val actionsFuture = translateActions(origActions, None, None, wildMatch)
+        actionsFuture fallbackTo {Promise.successful(None)} flatMap {
+            actions => actions match {
+                case Some(a) =>
+                    log.debug("Translated actions to action list {} for {}",
+                              actions, cookieStr)
+                    executePacket(a)
+                case None =>
+                    Promise.successful(true)
+            }
         }
     }
 }

@@ -7,14 +7,14 @@ import java.util.UUID;
 
 import javax.annotation.Nonnull;
 
-import org.midonet.cluster.data.Bridge;
 import org.midonet.cluster.data.Port;
 
 /**
  * A {@link BridgePort} which is materialized on a certain host.
  */
 public class MaterializedBridgePort
-    extends BridgePort<MaterializedBridgePort.Data, MaterializedBridgePort> {
+    extends BridgePort<MaterializedBridgePort.Data, MaterializedBridgePort>
+    implements ExteriorPort<MaterializedBridgePort> {
 
     public MaterializedBridgePort(UUID bridgeId, UUID uuid, Data data) {
         super(bridgeId, uuid, data);
@@ -37,19 +37,51 @@ public class MaterializedBridgePort
         return this;
     }
 
+    /**
+     * Get the UUID of the host set in this server-side DTO object for the
+     * materialized bridge port.
+     *
+     * @return the UUID of the host associated with this materialized bridge
+     *         port
+     */
+    @Override
     public UUID getHostId() {
         return getData().hostId;
     }
 
+    /**
+     * Set the UUID of the host to this server-side DTO object for the
+     * materialized bridge port.
+     *
+     * @return the UUID of the host associated with this materialized bridge
+     *         port
+     */
+    @Override
     public MaterializedBridgePort setHostId(UUID hostId) {
         getData().hostId = hostId;
         return self();
     }
 
+    /**
+     * Get the interface name set in this server-side DTO object for the
+     * materialized bridge port.
+     *
+     * @return the string of interface name associated with this materialized
+     *         port
+     */
+    @Override
     public String getInterfaceName() {
         return getData().interfaceName;
     }
 
+    /**
+     * Set the interface name to this server-side DTO object for the
+     * materialized bridge port.
+     *
+     * @param interfaceName a name of the interface to be set
+     * @return              this server-side DTO object
+     */
+    @Override
     public MaterializedBridgePort setInterfaceName(String interfaceName) {
         getData().interfaceName = interfaceName;
         return self();

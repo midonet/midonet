@@ -795,7 +795,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             .build();
 
         newRequest(flowFamily, FlowFamily.Cmd.GET)
-            .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO, Flag.NLM_F_DUMP)
+            .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
             .withPayload(builder.build().getBuffer())
             .withCallback(
                 callback,
