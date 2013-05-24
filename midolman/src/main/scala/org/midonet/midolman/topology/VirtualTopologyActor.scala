@@ -11,8 +11,9 @@ import akka.util.duration._
 import java.util.UUID
 import com.google.inject.Inject
 
-import org.midonet.midolman.Referenceable
+import org.midonet.midolman.{FlowController, Referenceable}
 import org.midonet.midolman.config.MidolmanConfig
+import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.simulation.{Bridge, Chain, Router}
 import org.midonet.cluster.Client
 import org.midonet.cluster.client.Port
@@ -216,5 +217,7 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
             log.debug("Received a Router for {}", router.id)
             idToRouter = idToRouter.+((router.id, router))
             updated(router.id, router)
+        case invalidation: InvalidateFlowsByTag =>
+            FlowController.getRef() ! invalidation
     }
 }

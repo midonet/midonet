@@ -3,7 +3,7 @@
  */
 package org.midonet.midolman.topology
 
-import akka.actor.{ActorLogging, ActorRef, Actor}
+import akka.actor.{ActorRef, Actor}
 import collection.JavaConversions._
 import collection.mutable
 import java.util.UUID
@@ -16,7 +16,6 @@ import org.midonet.cluster.Client
 import org.midonet.cluster.client.ChainBuilder
 import java.util
 import org.midonet.midolman.topology.ChainManager.TriggerUpdate
-import org.midonet.midolman.FlowController
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.logging.ActorLogWithoutPath
 
@@ -101,13 +100,14 @@ class ChainManager(val id: UUID, val clusterClient: Client) extends Actor
 
         // Send the VirtualTopologyActor an updated chain.
         if (0 == waitingForChains) {
-            context.actorFor("..").tell(
-                new Chain(id, rules.toBuffer[Rule], idToChain.toMap,
-                    "TODO: need name", context.system.eventStream))
-        // invalidate all flow for this chain
-        FlowController.getRef() !
-            InvalidateFlowsByTag(FlowTagger.invalidateFlowsByDevice(id))
+            publishUpdate(new Chain(id, rules.toBuffer[Rule], idToChain.toMap,
+                                    "TODO: need name", context.system.eventStream))
         }
+    }
+
+    private def publishUpdate(chain: Chain) {
+        context.actorFor("..") ! chain
+        context.actorFor("..") ! InvalidateFlowsByTag(FlowTagger.invalidateFlowsByDevice(id))
     }
 
     private def chainUpdate(chain: Chain): Unit = {
@@ -121,12 +121,8 @@ class ChainManager(val id: UUID, val clusterClient: Client) extends Actor
                 // In either case, if we're not waiting for other jump-to
                 // chains, send an update for the chain we manage.
                 if (0 == waitingForChains) {
-                    context.actorFor("..").tell(
-                        new Chain(id, rules.toList, idToChain.toMap,
-                            "TODO: need name", context.system.eventStream))
-                    // invalidate all flow for this chain
-                    FlowController.getRef() ! InvalidateFlowsByTag(
-                        FlowTagger.invalidateFlowsByDevice(id))
+                    publishUpdate(new Chain(id, rules.toList, idToChain.toMap,
+                                            "TODO: need name", context.system.eventStream))
                 }
         }
     }
