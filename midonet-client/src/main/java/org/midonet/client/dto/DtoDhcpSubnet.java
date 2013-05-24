@@ -15,7 +15,7 @@ public class DtoDhcpSubnet {
     private int subnetLength;
     private String defaultGateway;
     private String serverAddr;
-    private String dnsServerAddr;
+    private List<String> dnsServerAddrs;
     private int interfaceMTU;
     private List<DtoDhcpOption121> opt121Routes;
     private URI hosts;
@@ -57,12 +57,12 @@ public class DtoDhcpSubnet {
         this.serverAddr = serverAddr;
     }
 
-    public String getDnsServerAddr() {
-        return dnsServerAddr;
+    public List<String> getDnsServerAddrs() {
+        return dnsServerAddrs;
     }
 
-    public void setDnsServerAddr(String dnsServerAddr) {
-        this.dnsServerAddr = dnsServerAddr;
+    public void setDnsServerAddrs(List<String> dnsServerAddrs) {
+        this.dnsServerAddrs = dnsServerAddrs;
     }
 
     public int getInterfaceMTU() {
@@ -129,9 +129,9 @@ public class DtoDhcpSubnet {
                 ? !serverAddr.equals(that.serverAddr)
                 : that.serverAddr != null)
             return false;
-        if (dnsServerAddr != null
-                ? !dnsServerAddr.equals(that.dnsServerAddr)
-                : that.dnsServerAddr!= null)
+        if (dnsServerAddrs != null
+                ? !dnsServerAddrs.equals(that.dnsServerAddrs)
+                : that.dnsServerAddrs!= null)
             return false;
         if (interfaceMTU != that.interfaceMTU)
             return false;
@@ -147,8 +147,8 @@ public class DtoDhcpSubnet {
                 ? defaultGateway.hashCode() : 0);
         result = 31 * result + (serverAddr != null
                 ? serverAddr.hashCode() : 0);
-        result = 31 * result + (dnsServerAddr != null
-                ? dnsServerAddr.hashCode() : 0);
+        result = 31 * result + (dnsServerAddrs != null
+                ? dnsServerAddrs.hashCode() : 0);
         result = 31 * result + interfaceMTU;
         result = 31 * result + (opt121Routes != null
                 ? opt121Routes.hashCode() : 0);
@@ -164,7 +164,7 @@ public class DtoDhcpSubnet {
                 ", subnetPrefix='" + subnetPrefix + '\'' +
                 ", subnetLength=" + subnetLength + '\'' + 
                 ", serverAddr='" + serverAddr + '\'' +
-                ", dnsServerAddr='" + dnsServerAddr + '\'' +
+                ", dnsServerAddrs='" + dnsServerAddrs + '\'' +
                 ", interfaceMTU=" + interfaceMTU +
                 ", opt121Routes=" + opt121Routes +
                 ", hosts=" + hosts +

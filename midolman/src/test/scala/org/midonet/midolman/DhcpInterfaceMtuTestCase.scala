@@ -156,10 +156,15 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase with
                         .setGateway(routerIp2)
                         .setRtDstSubnet(routerIp1.toNetworkAddress))
         var opt121Routes: List[Opt121] = List(opt121Obj)
+        var dnsSrvAddrs : List[IntIPv4] = List(
+          IntIPv4.fromString("192.168.77.118"),
+          IntIPv4.fromString("192.168.77.119"),
+          IntIPv4.fromString("192.168.77.120"))
         var dhcpSubnet = (new Subnet()
-                       .setSubnetAddr(routerIp2.toNetworkAddress)
-                       .setDefaultGateway(routerIp2)
-                       .setOpt121Routes(opt121Routes))
+                      .setSubnetAddr(routerIp2.toNetworkAddress)
+                      .setDefaultGateway(routerIp2)
+                      .setDnsServerAddrs(dnsSrvAddrs)
+                      .setOpt121Routes(opt121Routes))
         addDhcpSubnet(bridge, dhcpSubnet)
 
         materializePort(brPort2, host, vmPortName)
@@ -217,6 +222,7 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase with
         triggerPacketIn(portName, eth)
     }
 
+    // broaden to allow us to check other fields in the DHCP reply options
     private def extractInterfaceMtuDhcpReply(ethPkt : Ethernet) : Short = {
         ethPkt.getEtherType should be === IPv4.ETHERTYPE
         val ipPkt = ethPkt.getPayload.asInstanceOf[IPv4]
@@ -227,6 +233,7 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase with
         val dhcpPkt = udpPkt.getPayload.asInstanceOf[DHCP]
         val replyOptions = mutable.HashMap[Byte, DHCPOption]()
         val replyCodes = mutable.Set[Byte]()
+        var mtu : Short = 0
         for (opt <- dhcpPkt.getOptions) {
             val code = opt.getCode
             replyOptions.put(code, opt)
@@ -235,13 +242,26 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase with
                     if (opt.getLength != 2) {
                         fail("DHCP option interface mtu value invalid length")
                     }
-                    val mtu : Short = ByteBuffer.wrap(opt.getData).getShort
+                    mtu = ByteBuffer.wrap(opt.getData).getShort
                     log.debug("extractInterfaceMtuDhcpReply got data {} and value {}", opt.getData, mtu)
-                    return mtu
+                case b if (b == DHCPOption.Code.DNS.value) =>
+                    var len : Int = (opt.getLength).toInt
+                    var offset : Int = 0
+                    var byteptr = ByteBuffer.wrap(opt.getData)
+                    while (len > 0) {
+                        val ipAddr : Int = byteptr.getInt
+                        val ipv4Addr : IntIPv4 = new IntIPv4(ipAddr)
+                        log.debug("DNS server addr {}", ipv4Addr.toString)
+                        len = len - 4
+                        if (len > 0) {
+                            offset = offset + 4
+                            byteptr = ByteBuffer.wrap(opt.getData, offset, 4)
+                        }
+                    }
                 case _ => 0
             }
         }
-        0
+        mtu
     }
 
     def test() {
