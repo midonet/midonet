@@ -341,9 +341,9 @@ class PacketWorkflowActor(
                 Future.sequence(localPortFutures) flatMap { localPorts =>
                     // Take the outgoing filter for each port
                     // and apply it, checking for Action.ACCEPT.
-                    applyOutboundFilters(localPorts, portSet.id, wMatch,
+                    val tags = mutable.Set[Any]()
+                    applyOutboundFilters(localPorts, portSet.id, wMatch, Some(tags),
                         { portIDs =>
-                            val tags = mutable.Set[Any]()
                             addTranslatedFlowForActions(
                                 translateToDpPorts(List(action),
                                                    portSet.id,

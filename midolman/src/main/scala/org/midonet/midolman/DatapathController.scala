@@ -410,26 +410,6 @@ object DatapathController extends Referenceable {
     case class PortStatsRequest(portID: UUID)
 
     /**
-     * Dummy ChainPacketContext used in egress port set chains.
-     * All that is available is the Output Port ID (there's no information
-     * on the ingress port or connection tracking at the egress controller).
-     * @param outportID UUID for the output port
-     */
-    class EgressPortSetChainPacketContext(outportID: UUID)
-            extends ChainPacketContext {
-        override def getInPortId() = null
-        override def getOutPortId() = outportID
-        override def getPortGroups() = new HashSet[UUID]()
-        override def addTraversedElementID(id: UUID) { }
-        override def isConnTracked() = false
-        override def isForwardFlow() = true
-        override def getFlowCookie() = null
-        override def addFlowTag(tag: Any) {}
-        override def addFlowRemovedCallback(cb: Callback0) {}
-        override def getParentCookie = null
-    }
-
-    /**
      * This message is sent every 2 seconds to check that the kernel contains exactly the same
      * ports/interfaces as the system. In case that somebody uses a command line tool (for example)
      * to bring down an interface, the system will react to it.
@@ -973,9 +953,9 @@ class DatapathController() extends Actor with ActorLogging with
             zonesToTunnels.addBinding(zone, port)
             // trigger invalidation
             val tunnelPortNum: JShort = port.getPortNo.shortValue
+            dpState.addLocalTunnelPort(tunnelPortNum.intValue)
             FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
                 FlowTagger.invalidateDPPort(tunnelPortNum))
-            dpState.addLocalTunnelPort(tunnelPortNum.intValue)
             log.debug("Adding tunnel with port #{}", tunnelPortNum)
             context.system.eventStream.publish(
                 new TunnelChangeEvent(this.host.zones.get(zone), hConf,
@@ -985,13 +965,14 @@ class DatapathController() extends Actor with ActorLogging with
 
         def _handleTunnelDelete(port: Port[_,_],
                                 hConf: TZHostConfig[_,_], zone: UUID) {
-            if (dpState.removePeerTunnel(hConf.getId, zone)) {
-                FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
-                    FlowTagger.invalidateDPPort(port.getPortNo.shortValue()))
-            }
+            val invalidate = dpState.removePeerTunnel(hConf.getId, zone)
             tunnelsToHosts.remove(port.getPortNo)
             zonesToTunnels.removeBinding(zone, port)
             dpState.removeLocalTunnelPort(port.getPortNo.shortValue)
+            if (invalidate) {
+                FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
+                    FlowTagger.invalidateDPPort(port.getPortNo.shortValue()))
+            }
             log.debug("Removing tunnel with port #{}",
                       port.getPortNo.shortValue)
             context.system.eventStream.publish(
