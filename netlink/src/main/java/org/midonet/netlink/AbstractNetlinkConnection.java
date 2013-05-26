@@ -43,6 +43,7 @@ public abstract class AbstractNetlinkConnection {
 
     private static final int DEFAULT_MAX_BATCH_IO_OPS = 20;
     private static final int NETLINK_HEADER_LEN = 20;
+    private static final int NETLINK_READ_BUFSIZE = 0x10000;
 
     private AtomicInteger sequenceGenerator = new AtomicInteger(1);
 
@@ -61,7 +62,7 @@ public abstract class AbstractNetlinkConnection {
     // assume one read per call.
     private int maxBatchIoOps = DEFAULT_MAX_BATCH_IO_OPS;
 
-    private ByteBuffer reply = ByteBuffer.allocateDirect(cLibrary.PAGE_SIZE);
+    private ByteBuffer reply = ByteBuffer.allocateDirect(NETLINK_READ_BUFSIZE);
 
     private BufferPool requestPool = new BufferPool(128, 512, cLibrary.PAGE_SIZE);
 
