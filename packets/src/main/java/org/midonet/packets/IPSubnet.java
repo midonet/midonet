@@ -15,7 +15,7 @@ import org.codehaus.jackson.annotate.JsonTypeInfo;
 public interface IPSubnet<T extends IPAddr> {
     T getAddress();
     int getPrefixLen();
-    boolean containsAddress(T addr);
+    boolean containsAddress(IPAddr addr);
     String toString();
     String toZkString();
     /* Required for deserialization */
