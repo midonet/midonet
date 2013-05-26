@@ -133,7 +133,9 @@ public class Condition {
         if (condSubnet == null)
             return true;
         boolean cond = false;
-        if (pktIp != null && condSubnet.containsAddress(pktIp))
+        if (pktIp != null &&
+                condSubnet.getAddress().getClass().equals(pktIp.getClass()) &&
+                condSubnet.containsAddress(pktIp))
             cond = true;
         return negate? !cond : cond;
     }
