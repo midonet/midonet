@@ -84,6 +84,8 @@ class PacketWorkflowActor(
     // TODO marc get config from parent actors.
     def timeout = 5000 //config.getArpTimeoutSeconds * 1000
 
+    val ERROR_CONDITION_HARD_EXPIRATION = 10000
+
     val cookie = cookieOrEgressPort match {
         case Left(c) => Some(c)
         case Right(_) => None
@@ -381,10 +383,9 @@ class PacketWorkflowActor(
                 // it if the port comes up later on.
                 log.debug("PacketIn came from a tunnel port but " +
                     "the key does not map to any PortSet")
-                val wildFlow = new WildcardFlowBuilder()
-                wildFlow.setMatch(new WildcardMatch().
-                    setTunnelID(wMatch.getTunnelID).
-                    setInputPort(wMatch.getInputPort))
+                val wildFlow = new WildcardFlowBuilder().
+                    setMatch(wMatch).
+                    setHardExpirationMillis(ERROR_CONDITION_HARD_EXPIRATION)
                 wildFlow.setActions(Nil)
                 addTranslatedFlow(wildFlow,
                     Set(FlowTagger.invalidateByTunnelKey(wMatch.getTunnelID)),
