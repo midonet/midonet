@@ -10,6 +10,7 @@ import javax.annotation.Nullable;
 
 import com.google.common.util.concurrent.ValueFuture;
 
+import org.midonet.netlink.BufferPool;
 import org.midonet.netlink.Callback;
 import org.midonet.netlink.NetlinkChannel;
 import org.midonet.netlink.protos.NetlinkConnection;
@@ -35,20 +36,23 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
 
     // ThrottlingGuardFactory throttlerFactory) {
     protected OvsDatapathConnection(NetlinkChannel channel, Reactor reactor,
-                                    ThrottlingGuardFactory throttlerFactory)
+                                    ThrottlingGuardFactory throttlerFactory,
+                                    BufferPool sendPool)
         throws Exception {
-        super(channel, reactor, throttlerFactory);
+        super(channel, reactor, throttlerFactory, sendPool);
     }
 
     public static OvsDatapathConnection create(NetlinkChannel channel, Reactor reactor,
-                                               ThrottlingGuardFactory throttlerFactory)
+                                               ThrottlingGuardFactory throttlerFactory,
+                                               BufferPool sendPool)
         throws Exception {
-        return new OvsDatapathConnectionImpl(channel, reactor, throttlerFactory);
+        return new OvsDatapathConnectionImpl(channel, reactor, throttlerFactory, sendPool);
     }
 
     public static OvsDatapathConnection create(NetlinkChannel channel, Reactor reactor)
             throws Exception {
-        return create(channel, reactor, new NoOpThrottlingGuardFactory());
+        return create(channel, reactor, new NoOpThrottlingGuardFactory(),
+            new BufferPool(128, 512, 0x1000));
     }
 
     /**
