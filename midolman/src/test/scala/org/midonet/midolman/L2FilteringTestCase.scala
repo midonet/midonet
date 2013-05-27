@@ -93,6 +93,35 @@ class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture
         requestOfType[WildcardFlowRemoved](wflowRemovedProbe)
     }
 
+    def testV4ruleV6pktMatch() {
+        val fromPort = 1
+        val toPort = 2
+
+        val chain = newInboundChainOnPort("p1InChain", vmPorts(fromPort))
+        val cond = new Condition()
+        cond.nwSrcIp = new IPv4Subnet(
+                IPv4Addr.fromString(vmIps(fromPort).toUnicastString), 32)
+        val rule = newLiteralRuleOnChain(chain, 1, cond,
+            RuleResult.Action.DROP)
+
+        expectPacketDropped(fromPort, toPort, icmpBetweenPorts)
+        expectPacketAllowed(fromPort, toPort, ipv6BetweenPorts)
+    }
+
+    def testV6ruleV4pktMatch() {
+        val fromPort = 1
+        val toPort = 2
+
+        val chain = newInboundChainOnPort("p1InChain", vmPorts(fromPort))
+        val cond = new Condition()
+        cond.nwSrcIp = new IPv6Subnet(v6VmIps(fromPort), 128)
+        val rule = newLiteralRuleOnChain(chain, 1, cond,
+            RuleResult.Action.DROP)
+
+        expectPacketDropped(fromPort, toPort, ipv6BetweenPorts)
+        expectPacketAllowed(fromPort, toPort, icmpBetweenPorts)
+    }
+
     def test() {
         flowController().underlyingActor.flowManager.getNumWildcardFlows should be === vmPorts.size
 
