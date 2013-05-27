@@ -44,6 +44,12 @@ trait VMsBehindRouterFixture extends MidolmanTestCase with SimulationHelper with
         IntIPv4.fromString("10.0.0.4"),
         IntIPv4.fromString("10.0.0.5"))
     val vmNetworkIp = IntIPv4.fromString("10.0.0.0", 24)
+    val v6VmIps = IndexedSeq(
+        IPv6Addr.fromString("fe80:0:0:0:0:7ed1:c3ff:1"),
+        IPv6Addr.fromString("fe80:0:0:0:0:7ed1:c3ff:2"),
+        IPv6Addr.fromString("fe80:0:0:0:0:7ed1:c3ff:3"),
+        IPv6Addr.fromString("fe80:0:0:0:0:7ed1:c3ff:4"),
+        IPv6Addr.fromString("fe80:0:0:0:0:7ed1:c3ff:5"))
 
     var bridge: ClusterBridge = null
     var router: ClusterRouter = null
@@ -146,6 +152,18 @@ trait VMsBehindRouterFixture extends MidolmanTestCase with SimulationHelper with
             setDestinationAddress(vmIps(portIndexB).addressAsInt).
             setProtocol(ICMP.PROTOCOL_NUMBER).
             setPayload(echo))
+        eth
+    }
+
+    def ipv6BetweenPorts(portIndexA: Int, portIndexB: Int): Ethernet = {
+        val ip6 = new IPv6().setSourceAddress(v6VmIps(portIndexA)).
+                             setDestinationAddress(v6VmIps(portIndexB)).
+                             setPayload(new Data("IPv6 payload".getBytes))
+        val eth: Ethernet = new Ethernet().
+            setSourceMACAddress(vmMacs(portIndexA)).
+            setDestinationMACAddress(vmMacs(portIndexB)).
+            setEtherType(IPv6.ETHERTYPE)
+        eth.setPayload(ip6)
         eth
     }
 
