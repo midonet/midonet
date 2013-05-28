@@ -4,7 +4,6 @@
 
 package org.midonet.midolman
 
-import akka.testkit.TestProbe
 import akka.util.Duration
 import collection.JavaConversions._
 import collection.immutable.HashMap
@@ -18,7 +17,7 @@ import org.midonet.midolman.FlowController.{RemoveWildcardFlow,
     WildcardFlowRemoved, WildcardFlowAdded}
 import org.midonet.midolman.PacketWorkflowActor.PacketIn
 import topology.BridgeManager.CheckExpiredMacPorts
-import topology.{FlowTagger, BridgeManager, LocalPortActive}
+import org.midonet.midolman.topology.{VirtualTopologyActor, FlowTagger, LocalPortActive}
 import util.{SimulationHelper, TestHelpers}
 import org.midonet.cluster.data.Bridge
 import org.midonet.cluster.data.host.Host
@@ -29,6 +28,8 @@ import org.midonet.odp.flows.{FlowAction, FlowActions}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.midonet.packets.{IntIPv4, MAC}
+import org.midonet.midolman.topology.VirtualTopologyActor.{PortRequest,
+    RouterRequest, BridgeRequest}
 
 @RunWith(classOf[JUnitRunner])
 class BridgeInvalidationTest extends MidolmanTestCase
@@ -347,9 +348,18 @@ class BridgeInvalidationTest extends MidolmanTestCase
     }
 
     def testUnicastDeleteLogicalPort() {
+        val vta = VirtualTopologyActor.getRef(actors())
+        ask(vta, BridgeRequest(brPort1.getDeviceId, false))
+        ask(vta, RouterRequest(rtrPort.getDeviceId, false))
+        ask(vta, PortRequest(rtrPort.getId, false))
+        ask(vta, PortRequest(brPort1.getId, false))
 
-        drainProbes()
         clusterDataClient().portsLink(rtrPort.getId, brPort1.getId)
+        dilatedSleep(1000)
+        // guillermo: wait for all invalidations, the alternative to sleep()
+        // is have 4 waitForMsg[InvalidateFlowByTag].in a row. That'd be
+        // equally ugly and it'd more sensitive to code changes.
+        drainProbe(flowProbe())
 
         triggerPacketIn(port1Name, TestHelpers.createUdpPacket(macVm1, ipVm1,
             routerMac.toString, routerIp.toString))

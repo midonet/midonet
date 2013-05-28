@@ -4,6 +4,7 @@
 
 package org.midonet.midolman
 
+import collection.{Set => ROSet}
 import collection.immutable.HashMap
 import collection.mutable
 
@@ -16,8 +17,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.DeduplicationActor.DiscardPacket
-import org.midonet.midolman.FlowController.{RemoveWildcardFlow,
-    WildcardFlowAdded, WildcardFlowRemoved, InvalidateFlowsByTag}
+import org.midonet.midolman.FlowController.{AddWildcardFlow, RemoveWildcardFlow, WildcardFlowAdded, WildcardFlowRemoved, InvalidateFlowsByTag}
 import org.midonet.midolman.PacketWorkflowActor.PacketIn
 import org.midonet.midolman.layer3.Route._
 import org.midonet.midolman.topology.LocalPortActive
@@ -26,9 +26,10 @@ import org.midonet.midolman.util.{RouterHelper, TestHelpers}
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.ports.MaterializedRouterPort
 import org.midonet.cluster.data.Router
-import org.midonet.odp.Datapath
-import org.midonet.odp.flows.{FlowAction, FlowActions}
+import org.midonet.odp.{FlowMatch, FlowMatches, Flow, Datapath}
+import org.midonet.odp.flows.{FlowKeyTunnelID, FlowAction, FlowActions}
 import org.midonet.packets._
+import org.midonet.sdn.flows.{WildcardMatch, WildcardFlowBuilder}
 
 
 @RunWith(classOf[JUnitRunner])
@@ -114,6 +115,54 @@ class RouterFlowInvalidationTest extends MidolmanTestCase with VirtualConfigurat
 
     }
 
+    // Test that invalidations during packet processing are taken into account:
+    // 1. Add a flow and tell the flow controller. Should be added normally.
+    // 2. Save the last seen invalidation id
+    // 3. Invalidate the flow. Should be deleted normally.
+    // 4. Send a whole bunch of unrelated invalidation msgs to the FlowController
+    // 5. Re-add the flow, using the saved last-seen invalidation.
+    // 6. Check that the FC ignores the wildcard flow and deletes the dp flow
+    // 7. Re-add the flow, using the latest invalidation id. Should be added
+    //    normally
+    def testFlowInFlightInvalidation() {
+        val datapath = flowController().underlyingActor.datapath
+        val dpconn = flowController().underlyingActor.datapathConnection
+        val fc = FlowController.getRef(actors())
+        val dpFlowProbe = newProbe()
+        actors().eventStream.subscribe(dpFlowProbe.ref, classOf[FlowAdded])
+        actors().eventStream.subscribe(dpFlowProbe.ref, classOf[FlowRemoved])
+
+        val wflow = new WildcardFlowBuilder().setMatch(
+                new WildcardMatch().setTunnelID(7001))
+        val dpflow = new Flow().setMatch(
+                new FlowMatch().addKey(new FlowKeyTunnelID().setTunnelID(7001)))
+        val tag = "tun_id:7001"
+        val tags = ROSet[Any](tag)
+
+        dpconn.flowsCreate(datapath, dpflow)
+        dpFlowProbe.expectMsgClass(classOf[FlowAdded])
+        fc ! AddWildcardFlow(wflow.build, Some(dpflow), ROSet.empty, tags)
+        wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
+
+        val lastInval = FlowController.lastInvalidationEvent
+        for (i <- 1 to 20) { fc ! InvalidateFlowsByTag("a second tag") }
+        fc ! InvalidateFlowsByTag(tag)
+        for (i <- 1 to 20) { fc ! InvalidateFlowsByTag("a third tag") }
+        wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
+        dpFlowProbe.expectMsgClass(classOf[FlowRemoved])
+
+        dpconn.flowsCreate(datapath, dpflow)
+        dpFlowProbe.expectMsgClass(classOf[FlowAdded])
+        fc ! AddWildcardFlow(wflow.build, Some(dpflow), ROSet.empty, tags, lastInval)
+        dpFlowProbe.expectMsgClass(classOf[FlowRemoved])
+        wflowAddedProbe.expectNoMsg()
+
+        dpconn.flowsCreate(datapath, dpflow)
+        dpFlowProbe.expectMsgClass(classOf[FlowAdded])
+        fc ! AddWildcardFlow(wflow.build, Some(dpflow), ROSet.empty, tags)
+        wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
+    }
+
     // Characters of this test
     // inPort: it's the port that receives the inject packets
     // outPort: the port assigned as next hop in the routes
@@ -122,6 +171,7 @@ class RouterFlowInvalidationTest extends MidolmanTestCase with VirtualConfigurat
     // ipToReach, macToReach: it's the Ip that is the destination of the injected packets
     def testRouteRemovedInvalidation() {
         drainProbes()
+        drainProbe(flowProbe())
 
         val ipToReach = "11.11.0.2"
         val macToReach = "02:11:22:33:48:10"
@@ -129,20 +179,18 @@ class RouterFlowInvalidationTest extends MidolmanTestCase with VirtualConfigurat
         routeId = newRoute(clusterRouter, ipSource, 32, ipToReach, 32,
             NextHop.PORT, outPort.getId, new IntIPv4(NO_GATEWAY).toString,
             2)
-        // packet from ipSource to ipToReach enters from inPort
-        triggerPacketIn(inPortName, TestHelpers.createUdpPacket(macSource, ipSource,
-            macInPort, ipToReach))
         // we trigger the learning of macToReach
         feedArpCache(outPortName,
             IntIPv4.fromString(ipToReach).addressAsInt,
             MAC.fromString(macToReach),
             IntIPv4.fromString(ipOutPort).addressAsInt,
             MAC.fromString(macOutPort))
-
-        fishForRequestOfType[PacketIn](packetInProbe)
-        fishForRequestOfType[PacketIn](packetInProbe)
-
         fishForRequestOfType[DiscardPacket](discardPacketProbe)
+        fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
+
+        // packet from ipSource to ipToReach enters from inPort
+        triggerPacketIn(inPortName, TestHelpers.createUdpPacket(macSource, ipSource,
+            macInPort, ipToReach))
 
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
         tagEventProbe.expectMsg(new RouterInvTrieTagCountModified(
@@ -177,32 +225,41 @@ class RouterFlowInvalidationTest extends MidolmanTestCase with VirtualConfigurat
         newRoute(clusterRouter, ipSource, 32, networkToReach, networkToReachLength,
             NextHop.PORT, outPort.getId, new IntIPv4(NO_GATEWAY).toString,
             2)
-        triggerPacketIn(inPortName, TestHelpers.createUdpPacket(macSource, ipSource, macInPort, ipVm1))
+
+        drainProbe(flowProbe())
+
         feedArpCache(outPortName,
             IntIPv4.fromString(ipVm1).addressAsInt,
             MAC.fromString(macVm1),
             IntIPv4.fromString(ipOutPort).addressAsInt,
             MAC.fromString(macOutPort))
 
-        triggerPacketIn(inPortName, TestHelpers.createUdpPacket(macSource, ipSource, macInPort, ipVm2))
         feedArpCache(outPortName,
             IntIPv4.fromString(ipVm2).addressAsInt,
             MAC.fromString(macVm2),
             IntIPv4.fromString(ipOutPort).addressAsInt,
             MAC.fromString(macOutPort))
-        triggerPacketIn(inPortName, TestHelpers.createUdpPacket(macSource, ipSource, macInPort, ipVm3))
+
         feedArpCache(outPortName,
             IntIPv4.fromString(ipVm3).addressAsInt,
             MAC.fromString(macVm3),
             IntIPv4.fromString(ipOutPort).addressAsInt,
             MAC.fromString(macOutPort))
-        wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
-        wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
-        wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
 
+        flowProbe().expectMsgClass(classOf[InvalidateFlowsByTag])
+        flowProbe().expectMsgClass(classOf[InvalidateFlowsByTag])
+        flowProbe().expectMsgClass(classOf[InvalidateFlowsByTag])
 
+        triggerPacketIn(inPortName, TestHelpers.createUdpPacket(macSource, ipSource, macInPort, ipVm1))
+        wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
         tagEventProbe.expectMsgClass(classOf[RouterInvTrieTagCountModified])
+
+        triggerPacketIn(inPortName, TestHelpers.createUdpPacket(macSource, ipSource, macInPort, ipVm2))
+        wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
         tagEventProbe.expectMsgClass(classOf[RouterInvTrieTagCountModified])
+
+        triggerPacketIn(inPortName, TestHelpers.createUdpPacket(macSource, ipSource, macInPort, ipVm3))
+        wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
         tagEventProbe.expectMsgClass(classOf[RouterInvTrieTagCountModified])
 
         newRoute(clusterRouter, ipSource, 32, "11.11.1.0", networkToReachLength+8,
@@ -214,6 +271,8 @@ class RouterFlowInvalidationTest extends MidolmanTestCase with VirtualConfigurat
 
         wflowRemovedProbe.fishForMessage(Duration(3, TimeUnit.SECONDS),
             "WildcardFlowRemoved")(TestHelpers.getMatchFlowRemovedPacketPartialFunction)
+
+        wflowRemovedProbe.expectNoMsg(Duration(3, TimeUnit.SECONDS))
 
     }
     // Same scenario of the previous test.
@@ -234,27 +293,35 @@ class RouterFlowInvalidationTest extends MidolmanTestCase with VirtualConfigurat
         val ipVm1AsInt = IntIPv4.fromString(ipVm1).addressAsInt()
         val ipVm2AsInt = IntIPv4.fromString(ipVm2).addressAsInt()
 
+        drainProbe(flowProbe())
         // create a route to the network to reach
         newRoute(clusterRouter, "0.0.0.0", 0, networkToReach, networkToReachLength,
             NextHop.PORT, outPort.getId, new IntIPv4(NO_GATEWAY).toString,
             2)
-        triggerPacketIn(inPortName, TestHelpers.createUdpPacket(macSource, ipSource, macInPort, ipVm1))
         feedArpCache(outPortName,
             ipVm1AsInt,
             MAC.fromString(macVm1),
             IntIPv4.fromString(ipOutPort).addressAsInt,
             MAC.fromString(macOutPort))
+        fishForRequestOfType[DiscardPacket](discardPacketProbe)
+        fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
+        drainProbe(flowProbe())
 
+        triggerPacketIn(inPortName, TestHelpers.createUdpPacket(macSource, ipSource, macInPort, ipVm1))
         val flowTag1 = wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
+
         tagEventProbe.expectMsg(new RouterInvTrieTagCountModified(
                 IPv4Addr.fromInt(ipVm1AsInt), 1))
 
-        triggerPacketIn(inPortName, TestHelpers.createUdpPacket(macSource, ipSource, macInPort, ipVm2))
         feedArpCache(outPortName,
             ipVm2AsInt,
             MAC.fromString(macVm2),
             IntIPv4.fromString(ipOutPort).addressAsInt,
             MAC.fromString(macOutPort))
+        fishForRequestOfType[DiscardPacket](discardPacketProbe)
+        fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
+
+        triggerPacketIn(inPortName, TestHelpers.createUdpPacket(macSource, ipSource, macInPort, ipVm2))
 
         val flowTag2 = wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
         tagEventProbe.expectMsg(new RouterInvTrieTagCountModified(
@@ -305,9 +372,6 @@ class RouterFlowInvalidationTest extends MidolmanTestCase with VirtualConfigurat
         routeId = newRoute(clusterRouter, ipSource, 32, ipToReach, 32,
             NextHop.PORT, outPort.getId, new IntIPv4(NO_GATEWAY).toString,
             2)
-        // packet from ipSource to ipToReach enters from inPort
-        triggerPacketIn(inPortName, TestHelpers.createUdpPacket(macSource, ipSource,
-            macInPort, ipToReach))
         // we trigger the learning of firstMac
         feedArpCache(outPortName,
             IntIPv4.fromString(ipToReach).addressAsInt,
@@ -315,10 +379,12 @@ class RouterFlowInvalidationTest extends MidolmanTestCase with VirtualConfigurat
             IntIPv4.fromString(ipOutPort).addressAsInt,
             MAC.fromString(macOutPort))
 
-        fishForRequestOfType[PacketIn](packetInProbe)
-        fishForRequestOfType[PacketIn](packetInProbe)
-
         fishForRequestOfType[DiscardPacket](discardPacketProbe)
+        flowProbe().expectMsgClass(classOf[InvalidateFlowsByTag])
+
+        // packet from ipSource to ipToReach enters from inPort
+        triggerPacketIn(inPortName, TestHelpers.createUdpPacket(macSource, ipSource,
+            macInPort, ipToReach))
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
 
         // we trigger the learning of firstMac
@@ -329,7 +395,7 @@ class RouterFlowInvalidationTest extends MidolmanTestCase with VirtualConfigurat
             MAC.fromString(macOutPort))
 
         // when we update the ARP table we expect the flow to be invalidated
-        requestOfType[InvalidateFlowsByTag](flowProbe())
+        fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
         wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
     }
 }
