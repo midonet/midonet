@@ -9,9 +9,6 @@ import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.test.framework.JerseyTest;
 import com.sun.jersey.test.framework.WebAppDescriptor;
-import org.junit.Rule;
-import org.junit.rules.TestWatcher;
-import org.junit.runner.Description;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,40 +18,6 @@ import org.midonet.client.jaxrs.WildCardJacksonJaxbJsonProvider;
 public class ApiServer extends JerseyTest {
     private final static Logger log =
         LoggerFactory.getLogger(ApiServer.class);
-
-    @Rule
-    public TestWatcher testWatcher = new TestWatcher() {
-        private String separator =
-                "-------------------------------------------------------------";
-
-        @Override
-        protected void starting(Description description) {
-            log.info(separator);
-            log.info("Starting {}", description);
-            log.info(separator);
-        }
-
-        @Override
-        protected void finished(Description description) {
-            log.info(separator);
-            log.info("Finished: {}", description);
-            log.info(separator);
-        }
-
-        @Override
-        protected void succeeded(Description description) {
-            log.info(separator);
-            log.info("Succeeded: {}", description);
-            log.info(separator);
-        }
-
-        @Override
-        public void failed(Throwable e, Description description) {
-            log.info(separator);
-            log.info("failed: {}", description);
-            log.info(separator);
-        }
-    };
 
     String uri;
 
