@@ -146,7 +146,7 @@ public class FlowKeyTunnel implements FlowKey<FlowKeyTunnel> {
     }
 
     public long getTunnelID() {
-        return tun_id.longValue();
+        return tun_id;
     }
 
     public FlowKeyTunnel setTunnelID(long tunnelID) {
@@ -155,7 +155,7 @@ public class FlowKeyTunnel implements FlowKey<FlowKeyTunnel> {
     }
 
     public int getIpv4SrcAddr() {
-        return ipv4_src.intValue();
+        return ipv4_src;
     }
 
     public FlowKeyTunnel setIpv4SrcAddr(int ipv4SrcAddr) {
@@ -191,7 +191,7 @@ public class FlowKeyTunnel implements FlowKey<FlowKeyTunnel> {
     }
 
     public byte getTtl() {
-        return ipv4_ttl.byteValue();
+        return ipv4_ttl;
     }
 
     public FlowKeyTunnel setTtl(byte ttl) {
@@ -218,24 +218,39 @@ public class FlowKeyTunnel implements FlowKey<FlowKeyTunnel> {
 
     @Override
     public int hashCode() {
-        int result = (int) (tun_id.longValue() ^ (tun_id.longValue() >>> 32));
-        result = 31 * result + ipv4_src.intValue();
-        result = 31 * result + ipv4_dst.intValue();
-        result = 31 * result + tun_flags.intValue();
-        result = 31 * result + ipv4_tos.intValue();
-        result = 31 * result + ipv4_ttl.intValue();
+        int result = 0;
+
+        if (tun_id != null)
+            result = (int) (tun_id.longValue() ^ (tun_id.longValue() >>> 32));
+        if (ipv4_src != null)
+            result = 31 * result + ipv4_src.intValue();
+        if (ipv4_dst != null)
+            result = 31 * result + ipv4_dst.intValue();
+        if (tun_flags != null) 
+            result = 31 * result + tun_flags.intValue();
+        if (ipv4_tos != null)
+            result = 31 * result + ipv4_tos.intValue();
+        if (ipv4_ttl != null)
+            result = 31 * result + ipv4_ttl.intValue();
         return result;
     }
 
     @Override
     public String toString() {
-        return "FlowKeyTunnel{" +
-            "tun_id=" + tun_id.longValue() +
-            ", ipv4_src=" + ipv4_src.intValue() +
-            ", ipv4_dst=" + ipv4_dst.intValue() +
-            ", tun_flags=" + tun_flags.shortValue() +
-            ", ipv4_tos=" + ipv4_tos.byteValue() +
-            ", ipv4_ttl=" + ipv4_ttl.byteValue() +
-            '}';
+        String retString = "FlowKeyTunnel{";
+        if (tun_id != null)
+            retString = retString + "tun_id=" + tun_id.longValue() + ", ";
+        if (ipv4_src != null)
+            retString = retString + "ipv4_src=" + ipv4_src.intValue() + ", ";
+        if (ipv4_dst != null)
+            retString = retString + "ipv4_dst=" + ipv4_dst.intValue() + ", ";
+        if (tun_flags != null)
+            retString = retString + "tun_flag=" + tun_flags.shortValue() + ", ";
+        if (ipv4_tos != null)
+            retString = retString + "ipv4_tos=" + ipv4_tos.byteValue() + ", ";
+        if (ipv4_ttl != null)
+            retString = retString + "ipv4_ttl=" + ipv4_ttl.byteValue();
+        retString = retString + '}';
+        return retString;
     }
 }
