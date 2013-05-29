@@ -691,7 +691,7 @@ contains the following fields:
 </table>
 
 <a name="bridgemactable"/>
-### MacPort [application/vnd.com.midokura.midolman.mgmt.MacPort+json]
+### MacPort [application/vnd.org.midonet.MacPort+json]
 
     GET     /bridges/:bridgeId/mac_table
     GET     /bridges/:bridgeId/mac_table/:macPortPair
@@ -732,7 +732,7 @@ contains the following fields:
 </table>
 
 <a name="bridgearptable"/>
-### IP4MacPair [application/vnd.com.midokura.midolman.mgmt.IP4arp+json]
+### IP4MacPair [application/vnd.org.midonet.IP4arp+json]
 
     GET     /bridges/:bridgeId/arp_table
     GET     /bridges/:bridgeId/arp_table/:ip4MacPair
