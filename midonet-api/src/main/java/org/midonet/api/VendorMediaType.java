@@ -15,10 +15,10 @@ public class VendorMediaType {
     public static final String APPLICATION_ROUTER_COLLECTION_JSON = "application/vnd.org.midonet.collection.Router-v1+json";
     public static final String APPLICATION_BRIDGE_JSON = "application/vnd.org.midonet.Bridge-v1+json";
     public static final String APPLICATION_BRIDGE_COLLECTION_JSON = "application/vnd.org.midonet.collection.Bridge-v1+json";
-    public static final String APPLICATION_MAC_PORT_JSON = "application/vnd.com.midokura.midolman.mgmt.MacPort-v1+json";
-    public static final String APPLICATION_MAC_PORT_COLLECTION_JSON = "application/vnd.com.midokura.midolman.mgmt.collection.MacPort-v1+json";
-    public static final String APPLICATION_IP4_MAC_JSON = "application/vnd.com.midokura.midolman.mgmt.IP4Mac-v1+json";
-    public static final String APPLICATION_IP4_MAC_COLLECTION_JSON = "application/vnd.com.midokura.midolman.mgmt.collection.IP4Mac-v1+json";
+    public static final String APPLICATION_MAC_PORT_JSON = "application/vnd.org.midonet.MacPort-v1+json";
+    public static final String APPLICATION_MAC_PORT_COLLECTION_JSON = "application/vnd.org.midonet.collection.MacPort-v1+json";
+    public static final String APPLICATION_IP4_MAC_JSON = "application/vnd.org.midonet.IP4Mac-v1+json";
+    public static final String APPLICATION_IP4_MAC_COLLECTION_JSON = "application/vnd.org.midonet.collection.IP4Mac-v1+json";
     public static final String APPLICATION_HOST_JSON = "application/vnd.org.midonet.Host-v1+json";
     public static final String APPLICATION_HOST_COLLECTION_JSON = "application/vnd.org.midonet.collection.Host-v1+json";
     public static final String APPLICATION_INTERFACE_JSON = "application/vnd.org.midonet.Interface-v1+json";
