@@ -145,10 +145,6 @@ public class KeystoneService implements AuthService {
 
         // POST to get the token
         KeystoneAccess access = client.createToken(credentials);
-        if (access == null) {
-            log.debug("KeystoneService: authentication failed: {}", username);
-            return null;
-        }
 
         // Return the token
         return getToken(access);

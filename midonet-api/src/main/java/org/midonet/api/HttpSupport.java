@@ -23,6 +23,11 @@ public class HttpSupport {
     public final static String BASIC_AUTH_PREFIX = BASIC_AUTH + " ";
     public final static String BASIC_AUTH_REALM = BASIC_AUTH_PREFIX
             + AUTH_REALM;
+    public final static String BASIC_AUTH_REALM_FIELD =
+            BASIC_AUTH_PREFIX
+            + " realm=\""
+            + BASIC_AUTH_REALM
+            + "\"";
 
     public final static String ACCESS_CONTROL_ALLOW_ORIGIN_KEY =
             "Access-Control-Allow-Origin";

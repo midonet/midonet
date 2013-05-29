@@ -66,7 +66,8 @@ public class KeystoneClient {
     }
 
     public KeystoneAccess createToken(KeystoneAuthCredentials credentials)
-            throws KeystoneServerException, KeystoneConnectionException {
+            throws KeystoneServerException, KeystoneConnectionException,
+                   KeystoneBadCredsException {
 
         Client client = Client.create();
         String uri = getTokensUrl();
@@ -77,14 +78,22 @@ public class KeystoneClient {
                     .accept(MediaType.APPLICATION_JSON)
                     .post(KeystoneAccess.class, credentials);
         } catch (UniformInterfaceException e) {
-            if (e.getResponse().getStatus() == Response.Status.NOT_FOUND
-                    .getStatusCode()) {
-                // This indicates that the credentials were not found
-                log.warn("KeystoneClient: Creds not valid for {}", credentials);
-                return null;
-            }
-            throw new KeystoneServerException("Keystone server error.", e,
+            if (e.getResponse().getStatus()
+                == Response.Status.BAD_REQUEST.getStatusCode()) {
+                String err = "KeystoneClient: keystone login creds invalid "
+                              + credentials.toString();
+                log.warn(err);
+                throw new KeystoneBadCredsException(err, e);
+            } else if (e.getResponse().getStatus()
+                == Response.Status.UNAUTHORIZED.getStatusCode()) {
+                String err = "KeystoneClient: keystone login creds not found "
+                              + credentials.toString();
+                log.warn(err,credentials);
+                throw new KeystoneBadCredsException(err, e);
+            } else {
+                throw new KeystoneServerException("Keystone server error.", e,
                     e.getResponse().getStatus());
+            }
         } catch (ClientHandlerException e) {
             throw new KeystoneConnectionException(
                     "Could not connect to Keystone server. Uri=" + uri, e);

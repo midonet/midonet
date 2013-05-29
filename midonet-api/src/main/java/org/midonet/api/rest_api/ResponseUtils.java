@@ -96,7 +96,7 @@ public class ResponseUtils {
                                         String msg) throws IOException {
         setErrorResponse(resp, HttpServletResponse.SC_UNAUTHORIZED, msg);
         resp.setHeader(HttpSupport.WWW_AUTHENTICATE,
-                HttpSupport.BASIC_AUTH_REALM);
+                HttpSupport.BASIC_AUTH_REALM_FIELD);
     }
 
     public static void setCookie(HttpServletResponse resp, String key,

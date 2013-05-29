@@ -81,13 +81,9 @@ public class LoginFilter implements Filter {
 
         try {
             Token token = service.login(credList[0], credList[1], request);
-            if (token != null) {
-                // Set the Cookie
-                ResponseUtils.setCookie(response, token.getKey(),
-                        token.getExpires());
-            } else {
-                ResponseUtils.setAuthErrorResponse(response, "Login failed");
-            }
+            // Set the Cookie
+            ResponseUtils.setCookie(response, token.getKey(),
+                                    token.getExpires());
         } catch (AuthException ex) {
             ResponseUtils.setAuthErrorResponse(response, ex.getMessage());
             log.error("LoginFilter: auth error occurred. ", ex);
