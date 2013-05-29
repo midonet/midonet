@@ -1063,7 +1063,8 @@ have a single Interior Vlan Bridge port link.
         <td>URI</td>
         <td/>
         <td/>
-        <td>A GET against this URI retrieves the interface-binding information of this port.</td>
+        <td>A GET against this URI retrieves the interface-binding information
+        of this port.</td>
     </tr>
     <tr>
         <td>vlanId (Interior Vlan Bridge only)</td>
@@ -1942,6 +1943,21 @@ contains the following fields:
         <td/>
         <td>The of last seen ip addresses visible on the host</td>
     </tr>
+    <tr>
+        <td>interfaces</td>
+        <td>URI</td>
+        <td/>
+        <td/>
+        <td>A GET against this URI gets the interface names on this host.</td>
+    </tr>
+    <tr>
+        <td>ports</td>
+        <td>URI</td>
+        <td/>
+        <td/>
+        <td>A GET against this URI gets the virtual ports bound to the
+        interfaces on this host.</td>
+    </tr>
 </table>
 
 <a name="interface"/>
@@ -2106,7 +2122,7 @@ The value is the value of the operation as a string.</td>
 </table>
 
 <a name="hostinterfaceport"/>
-### Host-Interface-Port Binding [application/vnd.org.midonet.HostInterfacePort-v1+json]
+### HostInterfacePort [application/vnd.org.midonet.HostInterfacePort-v1+json]
 
     GET     /hosts/:hostId/ports
     GET     /hosts/:hostId/ports/:portId
