@@ -163,7 +163,7 @@ to 'login' using username and password, and let MidoNet handle the generation
 of session tokens that can be used for subsequent requests until they expire.
 Behind the scene, MidoNet is actually logging in to the external auth system
 on behalf of the user.  The username and password are sent using HTTP's Basic
-Authorization header as such:
+Access Authentication header as such:
 
 <pre><code>
 Authorization: Basic &lt;Base64 encoded value of 'username:password'&gt;

@@ -1,4 +1,4 @@
-# MidoNet API Specification (caddo-12.12.1)
+# MidoNet API Specification (diyari-v1.0)
 
 #### Table of Contents
 [Introduction](#introduction)
@@ -39,6 +39,8 @@
   * [Metric Query](#metricquery)
   * [Metric Query Response](#metricqueryresponse)
   * [Resource Collection](#resourcecollection)
+
+[Authentication/Authorization](#auth)
 
 [List of Acronyms](#acronyms)
 
@@ -1076,7 +1078,7 @@ have a single Interior Vlan Bridge port link.
 </table>
 
 <a name="portlink"/>
-### PortLink [application/vnd.org.midonet.PortLink-v1+json]
+### Port Link [application/vnd.org.midonet.PortLink-v1+json]
 
     POST     /ports/:portId/link
     DELETE   /ports/:portId/link
@@ -1253,7 +1255,7 @@ contains the following fields:
 </table>
 
 <a name="portgroup"/>
-### PortGroup [application/vnd.org.midonet.PortGroup-v1+json]
+### Port Group [application/vnd.org.midonet.PortGroup-v1+json]
 
     GET     /port_groups?tenant_id=:tenantId
     GET     /port_groups?port_id=:portId
@@ -1309,7 +1311,7 @@ contains the following fields:
 </table>
 
 <a name="portgroupport"/>
-### PortGroupPort [application/vnd.org.midonet.PortGroupPort-v1+json]
+### Port Group Port [application/vnd.org.midonet.PortGroupPort-v1+json]
 
     GET     /port_groups/:portGroupId/ports
     GET     /port_groups/:portGroupId/ports/:portId
@@ -2050,7 +2052,7 @@ Unknown | Physical | Virtual | Tunnel</td>
 </table>
 
 <a name="hostcommand"/>
-### HostCommand [application/vnd.org.midonet.HostCommand-v1+json]
+### Host Command [application/vnd.org.midonet.HostCommand-v1+json]
 
     GET     /hosts/:hostId/commands
     GET     /hosts/:hostId/commands/:hostCommandId
@@ -2174,7 +2176,7 @@ It contains the following fields:
 </table>
 
 <a name="tunnelzone"/>
-### TunnelZone [application/vnd.org.midonet.TunnelZone-v1+json]
+### Tunnel Zone [application/vnd.org.midonet.TunnelZone-v1+json]
 
     GET     /tunnel_zones
     GET     /tunnel_zones/:tunnelZoneId
@@ -2225,7 +2227,7 @@ isolated zone for tunneling. It contains the following fields:
 </table>
 
 <a name="tunnelzonehost"/>
-### TunnelZoneHost [application/vnd.org.midonet.TunnelZoneHost-v1+json]
+### Tunnel Zone Host [application/vnd.org.midonet.TunnelZoneHost-v1+json]
 
     GET     /tunnel_zones/:tunnelZoneId/hosts
     GET     /tunnel_zones/:tunnelZoneId/hosts/:hostId
@@ -2233,7 +2235,8 @@ isolated zone for tunneling. It contains the following fields:
     PUT     /tunnel_zones/:tunnelZoneId/hosts/:hostId
     DELETE  /tunnel_zones/:tunnelZoneId/hosts/:hostId
 
-Especially the following two `GET` requests are allowed to specify the media types to filter the responses.
+Especially the following two `GET` requests are allowed to specify the media
+types to filter the responses.
 
     GET     /tunnel_zones/:tunnelZoneId/hosts
     GET     /tunnel_zones/:tunnelZoneId/hosts/:hostId
@@ -2505,6 +2508,55 @@ for example, would be:
 
 *vnd.org.midonet.collection.Tenant-v1+json*
 
+<a name="auth"/>
+## Authentication/Authorization
+
+MidoNet API provides two ways to authenticate: username/password and token.
+MidoNet uses [Basic Access Authentication] [1] scheme for username/password
+authentication.  From the client with username 'foo' and password 'bar', the
+following HTTP POST request should be sent to '/login' path appended to the
+base URI:
+
+    POST    /login
+    Authorization: Basic Zm9vOmJhcg==
+
+where <i>Zm9vOmJhcg==</i> is the base64 encoded value of 'foo:bar'.
+
+If the API sever is configured to use OpenStack Keystone as its authentication
+service, you must also send the 'tenant ID' in the header:
+
+    X-Auth-Project: example_tenant
+
+The server returns 401 Unauthorized if the authentication fails, and 200 if
+succeeds.  When the login succeeds, the server sets 'Set-Cookie' header with
+the generated token and its expiration data as such:
+
+    Set-Cookie: sessionId=baz; Expires=Fri, 02 July 2014 1:00:00 GMT
+
+where 'baz' is the token and 'Wed, 09 Jun 2021 10:18:14 GM' is the expiration
+date.  The token can be used for all the subsequent requests until it expires.
+
+To send a token instead for authentication, the client needs to set it in
+<i>X-Auth-Token</i> HTTP header:
+
+    X-Auth-Token: baz
+
+The server returns 200 if the token is validated successfully, 401 if the token
+was invalid, and 500 if there was a server error.
+
+For authorization, if the requesting user attempts to perform operations or
+access resources that it does not have permission to, the API returns 403
+Forbidden in the response.  Currently there are only three roles in MidoNet:
+
+* Admin: Superuser that has access to everything
+* Tenant Admin: Admin of a tenant that has access to everything that belongs
+to the tenant.
+* Tenant User: User of a tenant that only has read-only access to resources
+belonging to the tenant.
+
+Roles and credentials are set up in the auth service used by the API.
+
+
 <a name="acronyms"/>
 ## List of Acronyms
 
@@ -2518,3 +2570,5 @@ for example, would be:
 * URI:  Uniform Resource Identifier
 * URL:  Uniform Resource Locator
 * VIF:  Virtual Interface
+
+[1]: http://tools.ietf.org/html/rfc2617
