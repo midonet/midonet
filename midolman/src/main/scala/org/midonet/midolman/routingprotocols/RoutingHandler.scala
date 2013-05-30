@@ -110,9 +110,9 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
                                        gateway: IPv4Addr)
 
     // BgpdProcess will notify via these messages
-    case class BGPD_READY()
+    case object BGPD_READY
 
-    case class BGPD_DEAD()
+    case object BGPD_DEAD
 
     // For testing
     case class BGPD_STATUS(port: UUID, isActive: Boolean)
@@ -679,6 +679,8 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
         log.debug("announcing BGPD_STATUS inactive")
         context.system.eventStream.publish(
             new BGPD_STATUS(rport.id, isActive = false))
+
+        self ! BGPD_DEAD
 
         log.debug("stopBGP - end")
     }
