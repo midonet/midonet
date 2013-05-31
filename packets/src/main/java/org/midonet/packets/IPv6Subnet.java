@@ -5,7 +5,7 @@ package org.midonet.packets;
 
 public final class IPv6Subnet implements IPSubnet<IPv6Addr> {
 
-    private IPv6Addr addr;
+    private IPv6Addr address;
     private int prefixLen;
 
     /* Default constructor for deserialization. */
@@ -13,13 +13,13 @@ public final class IPv6Subnet implements IPSubnet<IPv6Addr> {
     }
 
     public IPv6Subnet(IPv6Addr addr_, int prefixLen_) {
-        addr = addr_;
+        address = addr_;
         prefixLen = prefixLen_;
     }
 
     @Override
     public IPv6Addr getAddress() {
-        return addr;
+        return address;
     }
 
     @Override
@@ -29,7 +29,7 @@ public final class IPv6Subnet implements IPSubnet<IPv6Addr> {
 
     @Override
     public void setAddress(IPv6Addr address) {
-        this.addr = IPv6Addr.fromIPv6(address);
+        this.address = IPv6Addr.fromIPv6(address);
     }
 
     @Override
@@ -54,20 +54,20 @@ public final class IPv6Subnet implements IPSubnet<IPv6Addr> {
             upperMask = ~0L;
             lowerMask = ~0L << maskSize;
         }
-        return (addr.upperWord() & upperMask) ==
+        return (address.upperWord() & upperMask) ==
                (that.upperWord() & upperMask) &&
-               (addr.lowerWord() & lowerMask) ==
+               (address.lowerWord() & lowerMask) ==
                (that.lowerWord() & lowerMask);
     }
 
     @Override
     public String toString() {
-        return addr.toString() + "/" + prefixLen;
+        return address.toString() + "/" + prefixLen;
     }
 
     @Override
     public String toZkString() {
-        return addr.toString() + "_" + prefixLen;
+        return address.toString() + "_" + prefixLen;
     }
 
     @Override
@@ -78,7 +78,8 @@ public final class IPv6Subnet implements IPSubnet<IPv6Addr> {
         IPv6Subnet that = (IPv6Subnet) o;
 
         if (prefixLen != that.prefixLen) return false;
-        if (addr != null ? !addr.equals(that.addr) : that.addr != null)
+        if (address != null ? !address.equals(that.address)
+            : that.address != null)
             return false;
 
         return true;
@@ -86,7 +87,7 @@ public final class IPv6Subnet implements IPSubnet<IPv6Addr> {
 
     @Override
     public int hashCode() {
-        int result = addr != null ? addr.hashCode() : 0;
+        int result = address != null ? address.hashCode() : 0;
         result = 31 * result + prefixLen;
         return result;
     }

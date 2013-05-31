@@ -3,6 +3,8 @@
 package org.midonet.packets
 
 import java.util.Random
+import org.codehaus.jackson.annotate.JsonValue;
+import org.codehaus.jackson.annotate.JsonCreator;
 
 /**
  * An IPv4 address.
@@ -17,6 +19,7 @@ class IPv4Addr(val addr: Int) extends IPAddr with Ordered[IPv4Addr] {
     def this() = this(0)
 
     override def toUrlString = toString()
+    @JsonValue
     override def toString = { "%d.%d.%d.%d" format ((addr >> 24) & 0xff,
                                                     (addr >> 16) & 0xff,
                                                     (addr >> 8) & 0xff,
@@ -55,6 +58,7 @@ class IPv4Addr(val addr: Int) extends IPAddr with Ordered[IPv4Addr] {
 
 object IPv4Addr {
 
+    @JsonCreator
     def fromString(s: String): IPv4Addr = {
         val i: Int = Net.convertStringAddressToInt(s)
         new IPv4Addr(i)

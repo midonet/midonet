@@ -5,7 +5,7 @@ package org.midonet.packets;
 
 public final class IPv4Subnet implements IPSubnet<IPv4Addr> {
 
-    private IPv4Addr addr;
+    private IPv4Addr address;
     private int prefixLen;
 
     /* Default constructor for deserialization. */
@@ -13,18 +13,18 @@ public final class IPv4Subnet implements IPSubnet<IPv4Addr> {
     }
 
     public IPv4Subnet(IPv4Addr addr_, int prefixLen_) {
-        addr = addr_;
+        address = addr_;
         prefixLen = prefixLen_;
     }
 
     @Override
     public IPv4Addr getAddress() {
-        return addr;
+        return address;
     }
 
     @Override
     public void setAddress(IPv4Addr address) {
-        this.addr = IPv4Addr.fromIPv4(address);
+        this.address = IPv4Addr.fromIPv4(address);
     }
 
     @Override
@@ -39,7 +39,7 @@ public final class IPv4Subnet implements IPSubnet<IPv4Addr> {
 
     public IPv4Addr toBroadcastAddress() {
         int mask = 0xFFFFFFFF >>> prefixLen;
-        int bcast = addr.toInt() | mask;
+        int bcast = address.toInt() | mask;
         return IPv4Addr.fromInt(bcast);
     }
 
@@ -54,17 +54,17 @@ public final class IPv4Subnet implements IPSubnet<IPv4Addr> {
 
         int maskSize = 32-prefixLen;
         int mask = ~0 << maskSize;
-        return (addr.toInt() & mask) == (that.toInt() & mask);
+        return (address.toInt() & mask) == (that.toInt() & mask);
     }
 
     @Override
     public String toString() {
-        return addr.toString() + "/" + prefixLen;
+        return address.toString() + "/" + prefixLen;
     }
 
     @Override
     public String toZkString() {
-        return addr.toString() + "_" + prefixLen;
+        return address.toString() + "_" + prefixLen;
     }
 
     @Override
@@ -74,7 +74,8 @@ public final class IPv4Subnet implements IPSubnet<IPv4Addr> {
 
         IPv4Subnet that = (IPv4Subnet) o;
         if (prefixLen != that.prefixLen) return false;
-        if (addr != null ? !addr.equals(that.addr) : that.addr != null)
+        if (address != null ? !address.equals(that.address)
+            : that.address != null)
             return false;
 
         return true;
@@ -82,7 +83,7 @@ public final class IPv4Subnet implements IPSubnet<IPv4Addr> {
 
     @Override
     public int hashCode() {
-        int result = addr != null ? addr.hashCode() : 0;
+        int result = address != null ? address.hashCode() : 0;
         result = 31 * result + prefixLen;
         return result;
     }
