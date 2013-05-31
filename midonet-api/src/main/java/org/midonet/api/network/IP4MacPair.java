@@ -22,14 +22,14 @@ public class IP4MacPair extends RelativeUriResource {
 
     @NotNull
     @Pattern(regexp = StringUtil.MAC_ADDRESS_REGEX_PATTERN)
-    protected String mac;
+    protected String macAddr;
 
     /* Default constructor - for deserialization. */
     public IP4MacPair() {}
 
-    public IP4MacPair(String ip, String mac) {
+    public IP4MacPair(String ip, String macAddr) {
         this.ip = ip;
-        this.mac = mac;
+        this.macAddr = macAddr;
     }
 
     public String getIp() {
@@ -41,16 +41,16 @@ public class IP4MacPair extends RelativeUriResource {
     }
 
     public String getMac() {
-        return mac;
+        return macAddr;
     }
 
-    public void setMac(String mac) {
-        this.mac = mac;
+    public void setMac(String macAddr) {
+        this.macAddr = macAddr;
     }
 
     @Override
     public URI getUri() {
-        if (getParentUri() != null && mac != null && ip != null) {
+        if (getParentUri() != null && macAddr != null && ip != null) {
             return ResourceUriBuilder.getIP4MacPair(getParentUri(), this);
         } else {
             return null;
