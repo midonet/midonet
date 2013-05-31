@@ -7,6 +7,10 @@ package org.midonet.functional_test;
 import akka.actor.ActorRef;
 import akka.testkit.TestProbe;
 import akka.util.Duration;
+import com.google.common.base.Strings;
+import org.junit.Rule;
+import org.junit.rules.TestWatcher;
+import org.junit.runner.Description;
 import org.midonet.midolman.topology.LocalPortActive;
 import org.midonet.midolman.topology.VirtualTopologyActor;
 import org.midonet.midolman.topology.VirtualTopologyActor.RouterRequest;
@@ -28,7 +32,6 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,10 +47,40 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertTrue;
 
-@Ignore
 public class BgpTest {
 
     private final static Logger log = LoggerFactory.getLogger(BgpTest.class);
+
+    @Rule
+    public TestWatcher testWatcher = new TestWatcher() {
+        private String separator = Strings.repeat("-", 72);
+
+        @Override
+        protected void starting(Description description) {
+            print("starting", description);
+        }
+
+        @Override
+        protected void finished(Description description) {
+            print("finished", description);
+        }
+
+        @Override
+        protected void succeeded(Description description) {
+            print("succeeded", description);
+        }
+
+        @Override
+        public void failed(Throwable e, Description description) {
+            print("failed", description);
+        }
+
+        private void print(String event, Description description) {
+            log.info(separator);
+            log.info("{}: {}", event, description);
+            log.info(separator);
+        }
+    };
 
     final String tenantName = "tenant";
 
@@ -55,6 +88,13 @@ public class BgpTest {
     static final String pairedInterfaceLocal = "bgptest0";
     static final String pairedInterfacePeer  = "bgptest1";
     static final String peerVm = "peerVmPort";
+    static final String bgpdBinaryPath = "/usr/lib/quagga/bgpd";
+    static final String zebraBinaryPath = "/usr/lib/quagga/zebra";
+    static final String bgpPeerConfigPath =
+            "midolman_runtime_configurations/peer.bgpd.conf";
+    static final String zebraPeerConfigPath =
+            "midolman_runtime_configurations/peer.zebra.conf";
+    static final String bgpdPidFile = "/var/run/quagga/peer.bgpd.pid";
 
     ApiServer apiStarter;
     MidonetApi apiClient;
@@ -75,10 +115,26 @@ public class BgpTest {
     public static void setUpClass() {
         lock = LockHelper.lock(FunctionalTestsHelper.LOCK_NAME);
 
-        String bgpPeerConfig = "midolman_runtime_configurations/peer.bgpd.conf";
+        // Check bgpd and zebra files exist
+        File bgpdBinaryFile = new File(bgpdBinaryPath);
+        assertTrue("bgpd binary file exists", bgpdBinaryFile.exists());
+
+        File zebraBinaryFile = new File(zebraBinaryPath);
+        assertTrue("zebra binary file exists", zebraBinaryFile.exists());
+
+        File bgpdPeerConfigFile = new File(bgpPeerConfigPath);
+        assertTrue("bgpd.conf for peer exists", bgpdPeerConfigFile.exists());
+
+        File zebraPeerConfigFile = new File(zebraPeerConfigPath);
+        assertTrue("zebra.conf for peer exists", zebraPeerConfigFile.exists());
 
         ProcessHelper.ProcessResult result;
         String cmdLine;
+
+        // Check that brctl (bridge-utils) is installed
+        cmdLine = "which brctl";
+        result = ProcessHelper.executeCommandLine(cmdLine);
+        assertTrue("brctl is installed", result.returnValue == 0);
 
         // Create network namespace
         cmdLine = "sudo ip netns list";
@@ -130,16 +186,16 @@ public class BgpTest {
                 " ifconfig " + peerVm + " 2.0.0.2 up");
 
         // run zebra
-        cmdLine = "sudo ip netns exec " + networkNamespace + " zebra";
+        cmdLine = "sudo ip netns exec " + networkNamespace + " " + zebraBinaryPath +
+                " --config_file " + zebraPeerConfigPath;
         ProcessHelper.RunnerConfiguration zebra_runner =
                 ProcessHelper.newDemonProcess(cmdLine);
         zebra_runner.run();
 
         // run bgpd peer
         cmdLine = "sudo ip netns exec " +
-                networkNamespace + " /usr/local/sbin/bgpd --config_file " +
-                bgpPeerConfig + " --pid_file " +
-                "/var/run/quagga/peer.bgpd.pid";
+                networkNamespace + " " + bgpdBinaryPath + " --config_file " +
+                bgpPeerConfigPath + " --pid_file " + bgpdPidFile;
         ProcessHelper.RunnerConfiguration bgpd_runner =
                 ProcessHelper.newDemonProcess(cmdLine);
         bgpd_runner.run();
@@ -296,15 +352,6 @@ public class BgpTest {
         apiStarter.stop();
         stopCassandra();
         stopEmbeddedZookeeper();
-    }
-
-    @Test
-    public void testNoRouteConnectivity() throws Exception {
-        log.debug("testNoRouteConnectivity - start");
-
-        tap1_vm.send(packetHelper1.makeIcmpEchoRequest(IntIPv4.fromString("2.0.0.2")));
-
-        log.debug("testNoRouteConnectivity - stop");
     }
 
     @Test
