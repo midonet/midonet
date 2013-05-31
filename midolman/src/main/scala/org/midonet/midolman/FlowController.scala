@@ -31,13 +31,63 @@ import org.midonet.sdn.flows.{FlowManagerHelper, WildcardMatch, FlowManager,
                               WildcardFlow}
 
 
+// TODO(guillermo) - move to a scala util pkg in midonet-util
+sealed trait EventSearchResult
+case object EventSeen extends EventSearchResult
+case object EventNotSeen extends EventSearchResult
+case object EventSearchWindowMissed extends EventSearchResult
+
+class EventHistory[T](val slots: Int) {
+    @volatile private var events = Vector[HistoryEntry]()
+
+    class HistoryEntry(val event: T) {
+        val id: Long = youngest + 1
+    }
+
+    def youngest: Long = events.headOption match {
+        case Some(e) => e.id
+        case None => 0
+    }
+
+    def oldest: Long = events.lastOption match {
+        case Some(e) => e.id
+        case None => 0
+    }
+
+    def put(event: T): Long = {
+        events = new HistoryEntry(event) +: events
+        if (events.size > slots)
+            events = events dropRight 1
+        youngest
+    }
+
+    def exists(lastSeen: Long, eventSet: ROSet[T]): EventSearchResult = {
+        val frozen = events
+
+        if (frozen.isEmpty || oldest > lastSeen)
+            return EventSearchWindowMissed
+
+        var i = 0
+        while (frozen.isDefinedAt(i) && frozen(i).id > lastSeen) {
+            if (eventSet.contains(frozen(i).event))
+                return EventSeen
+            i = i+1
+        }
+        EventNotSeen
+    }
+
+    def exists(lastSeen: Long, ev: T): EventSearchResult =  exists(lastSeen, ROSet(ev))
+}
+
+
 object FlowController extends Referenceable {
     override val Name = "FlowController"
 
     case class AddWildcardFlow(wildFlow: WildcardFlow,
                                flow: Option[Flow],
                                flowRemovalCallbacks: ROSet[Callback0],
-                               tags: ROSet[Any])
+                               tags: ROSet[Any],
+                               lastInvalidation: Long = 0)
 
     case class FlowAdded(flow: Flow)
 
@@ -106,6 +156,23 @@ object FlowController extends Referenceable {
 
         Option(wildFlow)
     }
+
+
+    private val invalidationHistory = new EventHistory[Any](1024)
+
+    def isTagSetStillValid(lastSeenInvalidation: Long, tags: ROSet[Any]) = {
+        if (lastSeenInvalidation > 0) {
+            invalidationHistory.exists(lastSeenInvalidation, tags) match {
+                case EventSearchWindowMissed => tags.isEmpty
+                case EventSeen => false
+                case EventNotSeen => true
+            }
+        } else {
+            true
+        }
+    }
+
+    def lastInvalidationEvent = invalidationHistory.youngest
 }
 
 class FlowController extends Actor with ActorLogWithoutPath {
@@ -158,8 +225,17 @@ class FlowController extends Actor with ActorLogWithoutPath {
                     CheckFlowExpiration())
             }
 
-        case AddWildcardFlow(wildFlow, flow, callbacks, tags) =>
-            handleFlowAddedForNewWildcard(wildFlow, flow, callbacks, tags)
+        case AddWildcardFlow(wildFlow, flowOption, callbacks, tags, lastInval) =>
+            if (FlowController.isTagSetStillValid(lastInval, tags)) {
+                handleFlowAddedForNewWildcard(wildFlow, flowOption, callbacks, tags)
+            } else {
+                log.debug("Skipping obsolete wildcard flow {} with tags {}",
+                          wildFlow.getMatch, tags)
+                flowOption match {
+                    case Some(flow) => flowManagerHelper.removeFlow(flow)
+                    case None =>
+                }
+            }
 
         case FlowAdded(dpFlow) =>
             handleFlowAddedForExistingWildcard(dpFlow)
@@ -175,6 +251,7 @@ class FlowController extends Actor with ActorLogWithoutPath {
                     for (wildFlow <- flowSet)
                         removeWildcardFlow(wildFlow)
             }
+            invalidationHistory.put(tag)
 
         case RemoveWildcardFlow(wmatch) =>
             log.debug("Removing wcflow for match {}", wmatch)
