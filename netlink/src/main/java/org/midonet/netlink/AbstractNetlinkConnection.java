@@ -64,7 +64,7 @@ public abstract class AbstractNetlinkConnection {
 
     private ByteBuffer reply = ByteBuffer.allocateDirect(NETLINK_READ_BUFSIZE);
 
-    private BufferPool requestPool = new BufferPool(128, 512, cLibrary.PAGE_SIZE);
+    private BufferPool requestPool;
 
     private NetlinkChannel channel;
     private Reactor reactor;
@@ -73,11 +73,12 @@ public abstract class AbstractNetlinkConnection {
             new SelectorInputQueue<NetlinkRequest>();
 
     public AbstractNetlinkConnection(NetlinkChannel channel, Reactor reactor,
-            ThrottlingGuardFactory throttlerFactory) {
+            ThrottlingGuardFactory throttlerFactory, BufferPool sendPool) {
         this.channel = channel;
         this.reactor = reactor;
         this.throttler = throttlerFactory.buildForCollection(
                 "NetlinkConnection", pendingRequests.keySet());
+        this.requestPool = sendPool;
     }
 
     public NetlinkChannel getChannel() {

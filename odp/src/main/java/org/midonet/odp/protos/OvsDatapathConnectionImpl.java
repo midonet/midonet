@@ -18,6 +18,7 @@ import com.google.common.util.concurrent.ValueFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.netlink.BufferPool;
 import org.midonet.netlink.Callback;
 import org.midonet.netlink.NetlinkChannel;
 import org.midonet.netlink.NetlinkMessage;
@@ -56,9 +57,10 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
     public static final int FALLBACK_PORT_MULTICAT = 33;
 
     public OvsDatapathConnectionImpl(NetlinkChannel channel, Reactor reactor,
-                                     ThrottlingGuardFactory throttlerFactory)
+                                     ThrottlingGuardFactory throttlerFactory,
+                                     BufferPool sendPool)
         throws Exception {
-        super(channel, reactor, throttlerFactory);
+        super(channel, reactor, throttlerFactory, sendPool);
     }
 
     @Override
