@@ -24,6 +24,8 @@ import org.midonet.odp._
 import org.midonet.odp.flows.FlowKeys
 import org.midonet.packets.{IntIPv4, MAC, Packets}
 import org.midonet.sdn.flows.{FlowManager, WildcardFlowBuilder, WildcardMatch}
+import org.midonet.midolman.topology.{LocalPortActive, VirtualTopologyActor}
+import org.midonet.midolman.topology.VirtualTopologyActor.{BridgeRequest, PortRequest}
 
 
 @RunWith(classOf[JUnitRunner])
@@ -88,6 +90,15 @@ class FlowsExpirationTest extends MidolmanTestCase
 
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
+
+        val vta = VirtualTopologyActor.getRef(actors())
+        ask(vta, PortRequest(port1.getId, false))
+        ask(vta, PortRequest(port2.getId, false))
+        ask(vta, BridgeRequest(bridge.getId, false))
+
+        requestOfType[LocalPortActive](portsProbe)
+        requestOfType[LocalPortActive](portsProbe)
+
         drainProbe(eventProbe)
         drainProbes()
     }
@@ -139,14 +150,8 @@ class FlowsExpirationTest extends MidolmanTestCase
         triggerPacketIn("port1", ethPkt)
 
         val pktInMsg = fishForRequestOfType[PacketIn](packetInProbe)
-        val wFlow = new WildcardFlowBuilder()
-            .setMatch(pktInMsg.wMatch)
-            .setIdleExpirationMillis(getDilatedTime(timeOutFlow).toInt)
-
-        flowProbe().testActor.tell(
-            AddWildcardFlow(wFlow.build, None, null, null))
-
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
+
         val timeAdded: Long = System.currentTimeMillis()
 
         dilatedSleep(delayAsynchAddRemoveInDatapath)

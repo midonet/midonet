@@ -140,20 +140,21 @@ with RouterHelper{
         newRoute(clusterRouter, ipSource, 32, ipToReach, 32,
             NextHop.PORT, outPort.getId, new IntIPv4(Route.NO_GATEWAY).toString,
             2)
-        // packet from ipSource to ipToReach enters from inPort
-        triggerPacketIn(inPortName, TestHelpers.createUdpPacket(macSource, ipSource,
-            macInPort, ipToReach))
+
         // we trigger the learning of macToReach
+        drainProbe(flowProbe())
         feedArpCache(outPortName,
             IntIPv4.fromString(ipToReach).addressAsInt,
             MAC.fromString(macToReach),
             IntIPv4.fromString(ipOutPort).addressAsInt,
             MAC.fromString(macOutPort))
+        fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
 
-        fishForRequestOfType[PacketIn](packetInProbe)
-        fishForRequestOfType[PacketIn](packetInProbe)
-
+        // packet from ipSource to ipToReach enters from inPort
+        triggerPacketIn(inPortName, TestHelpers.createUdpPacket(macSource, ipSource,
+            macInPort, ipToReach))
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
+
 
         deletePort(inPort, host1)
 
@@ -171,20 +172,20 @@ with RouterHelper{
         newRoute(clusterRouter, ipSource, 32, ipToReach, 32,
             NextHop.PORT, outPort.getId, new IntIPv4(Route.NO_GATEWAY).toString,
             2)
-        // packet from ipSource to ipToReach enters from inPort
-        triggerPacketIn(inPortName, TestHelpers.createUdpPacket(macSource, ipSource,
-            macInPort, ipToReach))
+
         // we trigger the learning of macToReach
+        drainProbe(flowProbe())
         feedArpCache(outPortName,
             IntIPv4.fromString(ipToReach).addressAsInt,
             MAC.fromString(macToReach),
             IntIPv4.fromString(ipOutPort).addressAsInt,
             MAC.fromString(macOutPort))
+        fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
 
-        fishForRequestOfType[PacketIn](packetInProbe)
-        fishForRequestOfType[PacketIn](packetInProbe)
-
-        val flowAddedMessage = wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
+        // packet from ipSource to ipToReach enters from inPort
+        triggerPacketIn(inPortName, TestHelpers.createUdpPacket(macSource, ipSource,
+            macInPort, ipToReach))
+        wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
 
         deletePort(outPort, host1)
         wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])

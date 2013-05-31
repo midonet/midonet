@@ -96,6 +96,7 @@ class PacketWorkflowActor(
     implicit val requestReplyTimeout = new Timeout(1 second)
 
     val cookieStr: String = "[cookie:" + cookie.getOrElse("No Cookie") + "]"
+    val lastInvalidation = FlowController.lastInvalidationEvent
 
     override def preStart() {
         throttlingGuard.tokenIn()
@@ -166,7 +167,8 @@ class PacketWorkflowActor(
                         FlowController.getRef() ! FlowAdded(dpFlow)
                     case Some(wf) =>
                         FlowController.getRef() !
-                            AddWildcardFlow(wf.build, Some(dpFlow), removalCallbacks, tags)
+                            AddWildcardFlow(wf.build, Some(dpFlow),
+                                removalCallbacks, tags, lastInvalidation)
                 }
                 DeduplicationActor.getRef() ! ApplyFlow(dpFlow.getActions, Some(cookie))
                 promise.success(true)
@@ -205,25 +207,39 @@ class PacketWorkflowActor(
                                   priority: Short = 0): Future[Boolean] = {
 
         val flowPromise = Promise[Boolean]()(system.dispatcher)
+        val valid = FlowController.isTagSetStillValid(lastInvalidation, tags)
+
         cookie match {
-            case Some(cook) if (packet.getMatch.isUserSpaceOnly) =>
-                val dpFlow = new Flow().setActions(wildFlow.getActions).
-                                        setMatch(packet.getMatch)
-                FlowController.getRef() !
-                    AddWildcardFlow(wildFlow.build, Some(dpFlow), removalCallbacks, tags)
-                DeduplicationActor.getRef() ! ApplyFlow(dpFlow.getActions, cookie)
+            case Some(cook) if (!valid) =>
+                log.debug("Skipping creation of obsolete flow: {}", wildFlow.getMatch)
+                DeduplicationActor.getRef() ! ApplyFlow(wildFlow.getActions, cookie)
                 flowPromise.success(true)
-            case Some(cook) if (!packet.getMatch.isUserSpaceOnly) =>
+
+            case Some(cook) if (valid && packet.getMatch.isUserSpaceOnly) =>
+                FlowController.getRef() !
+                    AddWildcardFlow(wildFlow.build, None, removalCallbacks,
+                                    tags, lastInvalidation)
+
+                DeduplicationActor.getRef() ! ApplyFlow(wildFlow.getActions, cookie)
+                flowPromise.success(true)
+
+            case Some(cook) if (valid && !packet.getMatch.isUserSpaceOnly) =>
                 val dpFlow = new Flow().setActions(wildFlow.getActions).
                                         setMatch(packet.getMatch)
                 log.debug("Adding wildcard flow {} for {}", wildFlow, cookieStr)
                 datapathConnection.flowsCreate(datapath, dpFlow,
                     flowAddedCallback(cook, flowPromise, dpFlow,
                                       Some(wildFlow), tags, removalCallbacks))
-            case _ =>
+
+            case None if (valid) =>
                 log.debug("Adding wildcard flow only for {}: {}", cookieStr, wildFlow)
                 FlowController.getRef() !
-                    AddWildcardFlow(wildFlow.build, None, removalCallbacks, tags)
+                    AddWildcardFlow(wildFlow.build, None, removalCallbacks,
+                                    tags, lastInvalidation)
+                flowPromise.success(true)
+
+            case _ =>
+                log.debug("Skipping creation of obsolete flow: {}", wildFlow.getMatch)
                 flowPromise.success(true)
         }
 
