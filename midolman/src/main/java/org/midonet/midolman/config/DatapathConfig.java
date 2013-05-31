@@ -12,6 +12,13 @@ public interface DatapathConfig {
 
     public final static String GROUP_NAME = "datapath";
 
+    @ConfigInt(key = "send_buffer_pool_initial_size", defaultValue = 128)
+    public int getSendBufferPoolInitialSize();
+    @ConfigInt(key = "send_buffer_pool_max_size", defaultValue = 512)
+    public int getSendBufferPoolMaxSize();
+    @ConfigInt(key = "send_buffer_pool_buf_size_kb", defaultValue = 16)
+    public int getSendBufferPoolBufSizeKb();
+
     @ConfigInt(key = "max_flow_count", defaultValue = 10000)
     public int getDatapathMaxFlowCount();
 

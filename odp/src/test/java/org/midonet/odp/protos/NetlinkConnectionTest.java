@@ -11,6 +11,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.midonet.netlink.BufferPool;
 import org.mockito.Matchers;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -71,7 +72,7 @@ public class NetlinkConnectionTest
     public void setUp() throws Exception {
         super.setUp(responses);
         connection = new NetlinkConnection(channel, reactor,
-            new NoOpThrottlingGuardFactory());
+            new NoOpThrottlingGuardFactory(), new BufferPool(128, 512, 0x1000));
         connection.bypassSendQueue(true);
         connection.setMaxBatchIoOps(1);
     }

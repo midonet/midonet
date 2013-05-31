@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.netlink.AbstractNetlinkConnection;
+import org.midonet.netlink.BufferPool;
 import org.midonet.netlink.Callback;
 import org.midonet.netlink.CtrlFamily;
 import org.midonet.netlink.NetlinkChannel;
@@ -39,8 +40,9 @@ public class NetlinkConnection extends AbstractNetlinkConnection {
     final static CtrlFamily ctrlFamily = new CtrlFamily();
 
     public NetlinkConnection(NetlinkChannel channel, Reactor reactor,
-                             ThrottlingGuardFactory throttlerFactory) {
-        super(channel, reactor, throttlerFactory);
+                             ThrottlingGuardFactory throttlerFactory,
+                             BufferPool sendPool) {
+        super(channel, reactor, throttlerFactory, sendPool);
     }
 
     @Override

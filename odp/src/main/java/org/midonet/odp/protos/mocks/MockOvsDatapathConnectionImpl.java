@@ -17,6 +17,7 @@ import javax.annotation.Nullable;
 
 import com.google.common.util.concurrent.ValueFuture;
 
+import org.midonet.netlink.BufferPool;
 import org.midonet.netlink.Callback;
 import org.midonet.netlink.NetlinkChannel;
 import org.midonet.netlink.exceptions.NetlinkException;
@@ -59,7 +60,7 @@ public class MockOvsDatapathConnectionImpl extends OvsDatapathConnection {
 
     public MockOvsDatapathConnectionImpl(NetlinkChannel channel, Reactor reactor)
         throws Exception {
-        super(channel, reactor, new NoOpThrottlingGuardFactory());
+        super(channel, reactor, new NoOpThrottlingGuardFactory(), new BufferPool(128, 512, 0x1000));
     }
 
     @Override
