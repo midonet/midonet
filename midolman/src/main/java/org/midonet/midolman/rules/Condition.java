@@ -27,12 +27,12 @@ public class Condition {
     public boolean outPortInv;
     public UUID portGroup;
     public boolean invPortGroup;
-    public Integer dlType = null;
-    public boolean invDlType = false;
-    public MAC dlSrc = null;
-    public boolean invDlSrc = false;
-    public MAC dlDst = null;
-    public boolean invDlDst = false;
+    public Integer dlType;
+    public boolean invDlType;
+    public MAC dlSrc;
+    public boolean invDlSrc;
+    public MAC dlDst;
+    public boolean invDlDst;
     public Byte nwTos;
     public boolean nwTosInv;
     public Byte nwProto;
