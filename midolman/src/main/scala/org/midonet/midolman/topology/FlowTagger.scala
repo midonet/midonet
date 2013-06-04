@@ -11,8 +11,7 @@ import org.midonet.util.collections.WeakObjectPool
 
 object
 FlowTagger {
-
-    def INSTANCE_POOL : WeakObjectPool[String] = new WeakObjectPool[String]()
+    val INSTANCE_POOL : WeakObjectPool[String] = new WeakObjectPool[String]()
 
     def invalidateFlowsByDevice(device: UUID): AnyRef = {
         val tag = "device:" + device.toString
