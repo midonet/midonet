@@ -392,6 +392,39 @@ public class PacketHelper {
     }
 
     /**
+     * Check that an ICMP packet represents an ICMP unreachable error
+     * specified src L3 address.
+     *
+     * @param unreach the ICMP unreachable frame
+     * @param request the undeliverable packet
+     * @throws MalformedPacketException
+     */
+    public static void checkIcmpUnreachable(byte[] request, byte[] unreach)
+            throws MalformedPacketException {
+        assertNotNull(unreach);
+        assertNotNull(request);
+
+        Ethernet ethRequest = new Ethernet();
+        ByteBuffer bb = ByteBuffer.wrap(request, 0, request.length);
+        ethRequest.deserialize(bb);
+
+        Ethernet ethUnreach = new Ethernet();
+        bb = ByteBuffer.wrap(unreach, 0, unreach.length);
+        ethUnreach.deserialize(bb);
+
+        assertEquals(IPv4.ETHERTYPE, ethRequest.getEtherType());
+        assertEquals(IPv4.ETHERTYPE, ethUnreach.getEtherType());
+
+        IPv4 ipRequest = IPv4.class.cast(ethRequest.getPayload());
+        IPv4 ipUnreach = IPv4.class.cast(ethUnreach.getPayload());
+
+        assertEquals(ipRequest.getSourceAddress(), ipUnreach.getDestinationAddress());
+        assertEquals(ICMP.PROTOCOL_NUMBER, ipUnreach.getProtocol());
+        ICMP icmpUnreach = ICMP.class.cast(ipUnreach.getPayload());
+        assertEquals(icmpUnreach.getType(), ICMP.TYPE_UNREACH);
+    }
+
+    /**
      * Make an ICMP request from the endpoint to the specified destination.
      * Use the gw's mac as the L2 destination.
      *

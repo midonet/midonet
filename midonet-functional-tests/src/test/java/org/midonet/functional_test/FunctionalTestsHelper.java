@@ -550,4 +550,20 @@ public class FunctionalTestsHelper {
 
     }
 
+
+    private static String makeZkIptablesCommand(String op, int zkPort) {
+        return String.format("sudo iptables -%s INPUT -p tcp --dport %d -j DROP", op, zkPort);
+    }
+
+    public static int blockZkCommunications(int zkPort) {
+        return ProcessHelper.newProcess(makeZkIptablesCommand("I", zkPort)).
+                logOutput(log, "blockCommunications").
+                runAndWait();
+    }
+
+    public static int unblockZkCommunications(int zkPort) {
+        return ProcessHelper.newProcess(makeZkIptablesCommand("D", zkPort)).
+                logOutput(log, "unblockCommunications").
+                runAndWait();
+    }
 }

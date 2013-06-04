@@ -12,6 +12,8 @@ public interface ZkConnectionAwareWatcher extends Watcher {
 
     void scheduleOnReconnect(Runnable runnable);
 
+    void scheduleOnDisconnect(Runnable runnable);
+
     void handleDisconnect(Runnable runnable);
 
     void handleTimeout(Runnable runnable);

@@ -11,15 +11,12 @@ import com.google.common.base.Strings;
 import org.junit.Rule;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
+import org.midonet.client.resource.*;
+import org.midonet.functional_test.utils.EmbeddedZKLauncher;
 import org.midonet.midolman.topology.LocalPortActive;
 import org.midonet.midolman.topology.VirtualTopologyActor;
 import org.midonet.midolman.topology.VirtualTopologyActor.RouterRequest;
 import org.midonet.client.MidonetApi;
-import org.midonet.client.resource.Bgp;
-import org.midonet.client.resource.Host;
-import org.midonet.client.resource.ResourceCollection;
-import org.midonet.client.resource.Router;
-import org.midonet.client.resource.RouterPort;
 import org.midonet.functional_test.utils.EmbeddedMidolman;
 import org.midonet.functional_test.utils.MidolmanLauncher;
 import org.midonet.functional_test.utils.TapWrapper;
@@ -43,8 +40,7 @@ import java.util.concurrent.TimeUnit;
 import static org.midonet.functional_test.FunctionalTestsHelper.*;
 import static org.midonet.util.Waiters.sleepBecause;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertTrue;
 
 public class BgpTest {
@@ -106,6 +102,10 @@ public class BgpTest {
     PacketHelper packetHelper1;
 
     Bgp bgp1;
+    AdRoute adRoute1;
+    RouterPort exteriorRouterPort1_bgp;
+
+    int zkPort;
 
     static LockHelper.Lock lock;
     private static final String TEST_HOST_ID = "910de343-c39b-4933-86c7-540225fb02f9";
@@ -224,14 +224,14 @@ public class BgpTest {
 
         // start zookeeper with the designated port.
         log.info("Starting embedded zookeeper.");
-        int zookeeperPort = startEmbeddedZookeeper(testConfigurationPath);
-        assertThat(zookeeperPort, greaterThan(0));
+        zkPort = startEmbeddedZookeeper(testConfigurationPath);
+        assertThat(zkPort, greaterThan(0));
 
         log.info("Starting cassandra");
         startCassandra();
 
         log.info("Starting REST API");
-        apiStarter = new ApiServer(zookeeperPort);
+        apiStarter = new ApiServer(zkPort);
         apiClient = new MidonetApi(apiStarter.getURI());
 
         log.info("Starting midolman");
@@ -261,7 +261,7 @@ public class BgpTest {
                 .type("Normal")
                 .create();
 
-        RouterPort exteriorRouterPort1_bgp = (RouterPort) router1.addExteriorRouterPort()
+        exteriorRouterPort1_bgp = (RouterPort) router1.addExteriorRouterPort()
                 .portAddress("100.0.0.1")
                 .networkAddress("100.0.0.0")
                 .networkLength(30)
@@ -277,7 +277,7 @@ public class BgpTest {
         log.debug("Created BGP {} in exterior router port {} ",
                 bgp1.toString(), exteriorRouterPort1_bgp.toString());
 
-        bgp1.addAdRoute()
+        adRoute1 = bgp1.addAdRoute()
                 .nwPrefix("1.0.0.0")
                 .prefixLength(24)
                 .create();
@@ -347,6 +347,7 @@ public class BgpTest {
 
     @After
     public void tearDown() {
+        unblockZkCommunications(zkPort);
         removeTapWrapper(tap1_vm);
         stopEmbeddedMidolman();
         apiStarter.stop();
@@ -357,9 +358,69 @@ public class BgpTest {
     @Test
     public void testRouteConnectivity() throws Exception {
         log.debug("testRouteConnectivity - start");
-
         waitForBgp();
+        sendPingAndExpectReply();
+        log.debug("testRouteConnectivity - stop");
+    }
 
+    @Test
+    public void testBgpRemoval() throws Exception {
+        log.debug("testAdRouteRemoval - start");
+
+        TestProbe probe = waitForBgp();
+        sendPingAndExpectReply();
+
+        adRoute1.delete();
+        bgp1.delete();
+        log.debug("Deleted BGP {} in exterior router port {} ",
+                bgp1.toString(), exteriorRouterPort1_bgp.toString());
+
+        waitForBgpUpdate(probe);
+        sendPingAndExpectUnreachable();
+
+        bgp1 = exteriorRouterPort1_bgp.addBgp()
+                .localAS(1)
+                .peerAddr("100.0.0.2")
+                .peerAS(2)
+                .create();
+        adRoute1 = bgp1.addAdRoute()
+                .nwPrefix("1.0.0.0")
+                .prefixLength(24)
+                .create();
+        log.debug("Re-created BGP {} in exterior router port {} ",
+                  bgp1.toString(), exteriorRouterPort1_bgp.toString());
+
+        waitForBgpUpdate(probe);
+        sendPingAndExpectReply();
+
+        log.debug("testAdRouteRemoval - stop");
+    }
+
+    @Test
+    public void testZookeeperDisconnection() throws Exception {
+        log.debug("testZookeeperDisconnection - start");
+
+        TestProbe probe = waitForBgp();
+        sendPingAndExpectReply();
+
+        log.info("blocking communications with zookeeper");
+        assertThat("iptables command is successful", blockZkCommunications(zkPort) == 0);
+        sleepBecause("We want the ZK session to time out", 24);
+
+        sendPingAndExpectUnreachableOrSilence();
+
+        log.info("unblocking communications with zookeeper");
+        assertThat("iptables command is successful", unblockZkCommunications(zkPort) == 0);
+
+        sleepBecause("We want the BGP session restored", 10);
+        // routes deleted while disabling the bgp link
+        waitForBgpUpdate(probe);
+        // routes found again when bgp is up again
+        waitForBgpUpdate(probe);
+        sendPingAndExpectReply();
+    }
+
+    private void sendPingAndExpectReply() throws Exception {
         byte [] request;
         request = packetHelper1.makeIcmpEchoRequest(IntIPv4.fromString("2.0.0.2"));
         assertThat(String.format("The tap %s should have sent the packet",
@@ -368,11 +429,39 @@ public class BgpTest {
         sleepBecause("wait for ICMP to travel", 1);
 
         PacketHelper.checkIcmpEchoReply(request, tap1_vm.recv());
-
-        log.debug("testRouteConnectivity - stop");
     }
 
-    private void waitForBgp() {
+    private void sendPingAndExpectUnreachable() throws Exception {
+        byte [] request;
+        request = packetHelper1.makeIcmpEchoRequest(IntIPv4.fromString("2.0.0.2"));
+        assertThat(String.format("The tap %s should have sent the packet",
+                tap1_vm.getName()), tap1_vm.send(request));
+
+        sleepBecause("wait for ICMP to travel", 1);
+
+        PacketHelper.checkIcmpUnreachable(request, tap1_vm.recv());
+    }
+
+    private void sendPingAndExpectUnreachableOrSilence() throws Exception {
+        byte [] request;
+        request = packetHelper1.makeIcmpEchoRequest(IntIPv4.fromString("2.0.0.2"));
+        assertThat(String.format("The tap %s should have sent the packet",
+                tap1_vm.getName()), tap1_vm.send(request));
+
+        sleepBecause("wait for ICMP to travel", 1);
+
+        byte[] reply = tap1_vm.recv();
+        if (reply != null)
+            PacketHelper.checkIcmpUnreachable(request, reply);
+    }
+
+    private void waitForBgpUpdate(TestProbe probe) throws Exception {
+        probe.expectMsgClass(Duration.create(30, TimeUnit.SECONDS),
+            org.midonet.midolman.simulation.Router.class);
+        sleepBecause("let the VTA store the new router", 1);
+    }
+
+    private TestProbe waitForBgp() throws Exception {
         log.debug("begin");
 
         EmbeddedMidolman mm = getEmbeddedMidolman();
@@ -397,5 +486,7 @@ public class BgpTest {
                         org.midonet.midolman.simulation.Router.class);
 
         log.debug("end - router id: {}", router.id());
+        sleepBecause("let the VTA store the new router", 1);
+        return probe;
     }
 }

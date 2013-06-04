@@ -68,5 +68,11 @@ FlowTagger {
     def invalidateByIp(routerId: UUID, ipDestination: IPAddr): Any = {
         val tag = "rtr_ip:" + routerId.toString + ":" + ipDestination.toString
         INSTANCE_POOL.sharedRef(tag)
+
+    }
+
+    def invalidateByBgp(bgpId: UUID): Any = {
+        val tag = "bgp:" + bgpId
+        INSTANCE_POOL.sharedRef(tag)
     }
 }

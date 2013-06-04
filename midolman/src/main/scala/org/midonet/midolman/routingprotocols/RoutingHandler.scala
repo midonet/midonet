@@ -4,7 +4,7 @@
 
 package org.midonet.midolman.routingprotocols
 
-import akka.actor.{UntypedActorWithStash, ActorLogging}
+import akka.actor.UntypedActorWithStash
 import collection.mutable
 import java.io.File
 import java.util.UUID
@@ -16,7 +16,7 @@ import org.midonet.midolman.DatapathController.{PortNetdevOpReply, CreatePortNet
 import org.midonet.midolman.PacketWorkflowActor.AddVirtualWildcardFlow
 import org.midonet.midolman.datapath.FlowActionOutputToVrnPort
 import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
-import org.midonet.midolman.topology.VirtualTopologyActor
+import org.midonet.midolman.topology.{FlowTagger, VirtualTopologyActor}
 import org.midonet.cluster.{Client, DataClient}
 import org.midonet.cluster.client.{Port, ExteriorRouterPort, BGPListBuilder}
 import org.midonet.cluster.data.{Route, AdRoute, BGP}
@@ -31,7 +31,7 @@ import org.midonet.util.process.ProcessHelper
 import scala.collection.JavaConversions._
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.config.MidolmanConfig
-
+import org.midonet.midolman.state.{ZkConnectionAwareWatcher, StateAccessException}
 
 /**
  * The RoutingHandler manages the routing protocols for a single exterior
@@ -56,7 +56,8 @@ import org.midonet.midolman.config.MidolmanConfig
  */
 class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
                      val client: Client, val dataClient: DataClient,
-                     val config: MidolmanConfig)
+                     val config: MidolmanConfig,
+                     val connWatcher: ZkConnectionAwareWatcher)
     extends UntypedActorWithStash with ActorLogWithoutPath {
 
     private final val BGP_NETDEV_PORT_NAME: String =
@@ -92,6 +93,13 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
     // At this moment we only support one bgpd process
     private var bgpdProcess: BgpdProcess = null
 
+    case object Enable
+    case object Disable
+
+    // BgpdProcess will notify via these messages
+    case object BGPD_READY
+    case object BGPD_DEAD
+
     private case class NewBgpSession(bgp: BGP)
 
     private case class ModifyBgpSession(bgp: BGP)
@@ -109,11 +117,6 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
                                        destination: IPv4Subnet,
                                        gateway: IPv4Addr)
 
-    // BgpdProcess will notify via these messages
-    case object BGPD_READY
-
-    case object BGPD_DEAD
-
     // For testing
     case class BGPD_STATUS(port: UUID, isActive: Boolean)
 
@@ -129,6 +132,13 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
      * Starting -> Started : when the bgpd has come up
      * Started -> Starting : if the bgpd crashes or needs a restart
      * Started -> Stopping : when all the bgp configs have been removed
+     * Stopping -> NotStarted : when all the bgp configs have been removed
+     * (any) -> Disabling
+     * Disabled -> NotStarted: If NotStarted was the state before moving to Disabled
+     * Disabled -> Starting
+     * Disabled -> Enabling: Enabled msg arrived before BGPD_DEAD
+     * Enabling -> Starting
+     * Enabling -> NotStarted
      */
     object Phase extends Enumeration {
         type Phase = Value
@@ -136,6 +146,9 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
         val Starting = Value("Starting")
         val Started = Value("Started")
         val Stopping = Value("Stopping")
+        val Disabling = Value("Disabling")
+        val Enabling = Value("Enabling")
+        val Disabled = Value("Disabled")
     }
 
     import Phase._
@@ -184,6 +197,20 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
 
             def removeAdvertisedRoute(route: AdRoute) {
                 self ! StopAdvertisingRoute(route)
+            }
+        })
+
+        connWatcher.scheduleOnDisconnect(new Runnable() {
+            override def run() {
+                self ! Disable
+                connWatcher.scheduleOnDisconnect(this)
+            }
+        })
+
+        connWatcher.scheduleOnReconnect(new Runnable() {
+            override def run() {
+                self ! Enable
+                connWatcher.scheduleOnReconnect(this)
             }
         })
 
@@ -256,24 +283,31 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
                         // in common.
                         if (bgps.size == 0) {
                             log.error("This shouldn't be the first bgp connection" +
-                                " but other connections were already configured")
+                                " no other connections have been set up so far")
+
+                            val bgpPair = bgps.toList.head
+                            val originalBgp = bgpPair._2
+
+                            if (bgp.getLocalAS != originalBgp.getLocalAS) {
+                                log.error("new BGP connections must have same AS")
+                                return
+                            }
+
+                            if (bgps.contains(bgp.getId))
+                                bgps.remove(bgp.getId)
+                            bgps.put(bgp.getId, bgp)
+                            bgpVty.setPeer(bgp.getLocalAS,
+                                           IPv4Addr.fromIntIPv4(bgp.getPeerAddr),
+                                           bgp.getPeerAS)
+                        } else {
+                            log.error("Ignoring BGP session {}, only one BGP "+
+                                      "session per port is supported", bgp.getId)
                         }
-
-                        val bgpPair = bgps.toList.head
-                        val originalBgp = bgpPair._2
-
-                        if (bgp.getLocalAS != originalBgp.getLocalAS) {
-                            log.error("new BGP connections must have same AS")
-                            return
-                        }
-
-                        if (bgps.contains(bgp.getId)) bgps.remove(bgp.getId)
-                        bgps.put(bgp.getId, bgp)
-                        bgpVty.setPeer(bgp.getLocalAS,
-                                       IPv4Addr.fromIntIPv4(bgp.getPeerAddr),
-                                       bgp.getPeerAS)
 
                     case Stopping =>
+                        stash()
+                    case Disabled =>
+                        stash()
                 }
 
             case ModifyBgpSession(bgp) =>
@@ -299,19 +333,24 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
                                           IPv4Addr.fromIntIPv4(bgp.getPeerAddr))
                         // Remove all the flows for this BGP link
                         FlowController.getRef().tell(
-                            FlowController.InvalidateFlowsByTag(bgpID))
+                            FlowController.InvalidateFlowsByTag(FlowTagger.invalidateByBgp(bgpID)))
 
                         // If this is the last BGP for ths port, tear everything down.
                         if (bgps.size == 0) {
                             phase = Stopping
+                            peerRoutes.values foreach {
+                                routeId => deleteRoute(routeId)
+                            }
+                            peerRoutes.clear()
                             stopBGP()
                         }
                     case Stopping =>
                         stash()
+                    case Disabled =>
+                        stash()
                 }
 
-            case PortNetdevOpReply(netdevPort, PortOperation.Create,
-            false, null, null) =>
+            case PortNetdevOpReply(netdevPort, PortOperation.Create, false, null, null) =>
                 log.debug("PortNetdevOpReply - create, for port {}", rport.id)
                 phase match {
                     case Starting =>
@@ -369,12 +408,17 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
             case BGPD_DEAD =>
                 log.debug("BGPD_DEAD")
                 phase match {
+                    case Enabling =>
+                        phase = Disabled
+                        self ! Enable
+                    case Disabling =>
+                        phase = Disabled
+                    case Disabled =>
                     case Stopping =>
                         phase = NotStarted
                         unstashAll()
                     case _ =>
-                        log.error("BGP_DEAD expected only while " +
-                            "Stopping - we're now in {}", phase)
+                        log.error("unexpected BGPD_DEAD message, now in {} state", phase)
                 }
 
             case AdvertiseRoute(rt) =>
@@ -402,6 +446,8 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
                         log.debug("AdvertiseRoute, stopping phase")
                         //TODO(abel) do we need to stash the message when stopping?
                         stash()
+                    case Disabled =>
+                        stash()
                 }
 
             case StopAdvertisingRoute(rt) =>
@@ -421,6 +467,8 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
                         }
                     case Stopping =>
                         //TODO(abel) do we need to stash the message when stopping?
+                        stash()
+                    case Disabled =>
                         stash()
                 }
 
@@ -458,8 +506,9 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
                         val routeId = dataClient.routesCreateEphemeral(route)
                         peerRoutes.put(route, routeId)
                     case Stopping =>
-                        //TODO(abel) do we need to stash the message when stopping?
-                        stash()
+                        // ignore
+                    case Disabled =>
+                        // ignore
                 }
 
             case RemovePeerRoute(ribType, destination, gateway) =>
@@ -477,14 +526,74 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
                         route.setNextHopGateway(gateway.toString)
                         route.setNextHop(org.midonet.midolman.layer3.Route.NextHop.PORT)
                         route.setNextHopPort(rport.id)
-                        peerRoutes.get(route) match {
-                            case Some(routeId) => dataClient.routesDelete(routeId)
+                        peerRoutes.remove(route) match {
+                            case Some(routeId) => deleteRoute(routeId)
                             case None =>
                         }
                     case Stopping =>
-                        //TODO(abel) do we need to stash the message when stopping?
-                        stash()
+                        // ignore
+                    case Disabled =>
+                        // ignore
+                    case Disabling =>
+                    // ignore
+                    case _ =>
                 }
+            case Disable =>
+                if (bgps.size > 0) {
+                    log.info("ZK disconnection, disabling BGP link: {}", bgps.head._1)
+                    phase = Disabling
+
+                    FlowController.getRef().tell(
+                        FlowController.InvalidateFlowsByTag(FlowTagger.invalidateByBgp(bgps.head._1)))
+                    stopBGP()
+
+                    // NOTE(guillermo) the dataClient's write operations (such as
+                    // deleting a route) are synchronous. That implies that a) these
+                    // calls, because ZK is disconnected, will only return when
+                    // the session is restored or finally lost. The actor is
+                    // effectively 'suspended' for that period of time. and b)
+                    // these calls should be at the very end of this message
+                    // handler's code path, after the flow invalidation and
+                    // bgpd tear down.
+                    peerRoutes.values foreach {
+                        routeId => deleteRoute(routeId)
+                    }
+                    peerRoutes.clear()
+                } else {
+                    phase = Disabled
+                }
+
+            case Enable =>
+                phase match {
+                    case Disabled =>
+                        if (bgps.size > 0) {
+                            log.info("Reconnected to ZK, enabling BGP link: {}", bgps.head._1)
+                            startBGP()
+                            phase = Starting
+                        } else {
+                            phase = NotStarted
+                            unstashAll()
+                        }
+                    case Disabling =>
+                        phase = Enabling
+                }
+        }
+    }
+
+    def deleteRoute(routeId: UUID) {
+        try {
+            dataClient.routesDelete(routeId)
+        } catch {
+            case e: StateAccessException =>
+                log.error("Exception: {}", e)
+                val retry = new Runnable() {
+                    @Override
+                    override def run() {
+                        dataClient.routesDelete(routeId)
+                    }
+                }
+
+                connWatcher.handleError("BGP delete route: " + routeId, retry, e)
         }
     }
 
@@ -676,6 +785,11 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
         cmdLine = "sudo ip netns del " + BGP_NETWORK_NAMESPACE
         ProcessHelper.executeCommandLine(cmdLine)
 
+        // Delete port from datapath
+        DatapathController.getRef() !
+            CreatePortNetdev(
+                Ports.newNetDevPort(BGP_NETDEV_PORT_NAME), null)
+
         log.debug("announcing BGPD_STATUS inactive")
         context.system.eventStream.publish(
             new BGPD_STATUS(rport.id, isActive = false))
@@ -740,7 +854,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
         // Set the BGP ID in a set to use as a tag for the datapath flows
         // For some reason AddWilcardFlow needs a mutable set so this
         // construction is needed although I'm sure you can find a better one.
-        val bgpTagSet = Set[Any](bgp.getId)
+        val bgpTagSet = Set[Any](FlowTagger.invalidateByBgp(bgp.getId))
 
         // TCP4:->179 bgpd->link
         var wildcardMatch = new WildcardMatch()

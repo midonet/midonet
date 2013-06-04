@@ -90,9 +90,10 @@ public class ZkConnection implements Watcher {
             }
             if (!connected)
                 throw new Exception("Cannot reopen ZooKeeper session.");
+
+            log.info("Reconnected to ZooKeeper with session {}", zk.getSessionId());
+            notifyAll();
         }
-        log.info("Reconnected to ZooKeeper with session {}", zk.getSessionId());
-        notifyAll();
     }
 
     private void _close() {

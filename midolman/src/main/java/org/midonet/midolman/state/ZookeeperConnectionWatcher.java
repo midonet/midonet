@@ -14,8 +14,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -31,6 +29,7 @@ public class ZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
     private ZkConnection conn = null;
     private long sessionId = 0;
     private List<Runnable> reconnectCallbacks;
+    private List<Runnable> disconnectCallbacks;
 
     @Inject
     @Named(ZKConnectionProvider.DIRECTORY_REACTOR_TAG)
@@ -43,6 +42,7 @@ public class ZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
     public void setZkConnection(ZkConnection conn) {
         this.conn = conn;
         this.reconnectCallbacks = new LinkedList<Runnable>();
+        this.disconnectCallbacks = new LinkedList<Runnable>();
     }
 
     @Override
@@ -60,6 +60,7 @@ public class ZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
                     System.exit(-1);
                 }
             }, config.getZooKeeperGraceTime(), TimeUnit.MILLISECONDS);
+            submitDisconnectCallbacks();
         }
 
         if (event.getState() == Watcher.Event.KeeperState.SyncConnected) {
@@ -99,19 +100,36 @@ public class ZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
 
     private void submitReconnectCallbacks() {
         if (reconnectCallbacks.size() > 0) {
+            List<Runnable> callbacks = this.reconnectCallbacks;
+            this.reconnectCallbacks = new LinkedList<Runnable>();
             log.info("ZK connection restored, re-issuing {} requests",
-                    reconnectCallbacks.size());
-            for (Runnable r: reconnectCallbacks)
+                    callbacks.size());
+            for (Runnable r: callbacks)
                 reactorLoop.submit(r);
-            reconnectCallbacks.clear();
         }
+    }
 
+    private void submitDisconnectCallbacks() {
+        if (disconnectCallbacks.size() > 0) {
+            List<Runnable> callbacks = this.disconnectCallbacks;
+            this.disconnectCallbacks = new LinkedList<Runnable>();
+            log.info("ZK connection lost, firing {} disconnect callbacks",
+                     callbacks.size());
+            for (Runnable r: callbacks)
+                reactorLoop.submit(r);
+        }
     }
 
     @Override
     public void scheduleOnReconnect(Runnable runnable) {
         log.info("scheduling callback on zookeeper reconnection");
         reconnectCallbacks.add(runnable);
+    }
+
+    @Override
+    public void scheduleOnDisconnect(Runnable runnable) {
+        log.info("scheduling callback on zookeeper disconnection");
+        disconnectCallbacks.add(runnable);
     }
 
     /**

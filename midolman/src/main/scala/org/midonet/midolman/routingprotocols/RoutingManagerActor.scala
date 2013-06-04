@@ -17,6 +17,7 @@ import org.midonet.midolman.Referenceable
 import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.logging.ActorLogWithoutPath
+import org.midonet.midolman.state.ZkConnectionAwareWatcher
 
 object RoutingManagerActor extends Referenceable {
     override val Name = "RoutingManager"
@@ -35,6 +36,8 @@ class RoutingManagerActor extends Actor with ActorLogWithoutPath {
     var config: MidolmanConfig = null
     @Inject
     val client: Client = null
+    @Inject
+    var zkConnWatcher: ZkConnectionAwareWatcher = null
 
     private var bgpPortIdx = 0
 
@@ -83,6 +86,17 @@ class RoutingManagerActor extends Actor with ActorLogWithoutPath {
                 val result = portHandlers.get(portID)
                 result match {
                     case None =>
+                        // FIXME(guillermo)
+                        // * This stops the actor but does not remove it from
+                        //   the portHandlers map. It will not be restarted
+                        //   when the port becomes active again
+                        // * The zk managers do not allow unsubscription or
+                        //   multiple subscribers, thus stopping the actor
+                        //   is not an option, the actor must be told about
+                        //   the port status so it can stop BGPd while the
+                        //   port is inactive and start it up again when
+                        //   the port is up again.
+                        //   (See: ClusterManager:L040)
                     case Some(routingHandler) => context.stop(routingHandler)
                 }
             }
@@ -103,8 +117,9 @@ class RoutingManagerActor extends Actor with ActorLogWithoutPath {
                 portHandlers.put(
                     port.id,
                     context.actorOf(
-                        Props(new RoutingHandler(port, bgpPortIdx, client, dataClient,
-                        config)).withDispatcher("actors.stash-dispatcher"),
+                        Props(new RoutingHandler(port, bgpPortIdx, client,
+                                dataClient, config, zkConnWatcher)).
+                              withDispatcher("actors.stash-dispatcher"),
                         name = port.id.toString)
                 )
                 log.debug("RoutingManager - ExteriorRouterPort - RoutingHandler actor creation requested")

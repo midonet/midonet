@@ -34,6 +34,9 @@ public class MockZookeeperConnectionWatcher implements ZkConnectionAwareWatcher 
     public void scheduleOnReconnect(Runnable runnable) { }
 
     @Override
+    public void scheduleOnDisconnect(Runnable runnable) { }
+
+    @Override
     public void handleError(String operationDesc, Runnable retry, KeeperException e) {}
 
     @Override

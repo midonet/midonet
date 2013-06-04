@@ -11,6 +11,7 @@ import akka.pattern.Patterns;
 import akka.testkit.TestProbe;
 import akka.util.Duration;
 import org.junit.Ignore;
+import org.midonet.functional_test.utils.EmbeddedZKLauncher;
 import org.midonet.packets.*;
 import org.junit.After;
 import org.junit.Before;
@@ -180,27 +181,11 @@ public class ZookeeperDisconnectionTest {
     public void tearDown() throws Exception {
         removeTapWrapper(tapA);
         removeTapWrapper(tapB);
-        unblockCommunications();
+        unblockZkCommunications(zkPort);
         stopEmbeddedMidolman();
         apiStarter.stop();
         stopCassandra();
         stopEmbeddedZookeeper();
-    }
-
-    private String makeCommand(String op) {
-        return String.format("sudo iptables -%s INPUT -p tcp --dport %d -j DROP", op, zkPort);
-    }
-
-    private int blockCommunications() {
-        return ProcessHelper.newProcess(makeCommand("I")).
-                    logOutput(log, "blockCommunications").
-                    runAndWait();
-    }
-
-    private int unblockCommunications() {
-        return ProcessHelper.newProcess(makeCommand("D")).
-                    logOutput(log, "unblockCommunications").
-                    runAndWait();
     }
 
     private void icmpRoutedFromTapToTap(TapWrapper tapFrom, TapWrapper tapTo,
@@ -232,12 +217,12 @@ public class ZookeeperDisconnectionTest {
         icmpRoutedFromTapToTap(tapA, tapB, macA, rtrMacA, ipA, ipB);
 
         log.info("blocking communications with zookeeper");
-        assertThat("iptables command is successful", blockCommunications() == 0);
+        assertThat("iptables command is successful", blockZkCommunications(zkPort) == 0);
 
         Waiters.sleepBecause("We want the ZK client to transiently disconnect", 16);
 
         log.info("turning communications with zookeeper back on");
-        assertThat("iptables command is successful", unblockCommunications() == 0);
+        assertThat("iptables command is successful", unblockZkCommunications(zkPort) == 0);
 
         log.info("invalidating flows by tag: bridge id");
         TestProbe flowProbe = new TestProbe(midolman.getActorSystem());
@@ -257,7 +242,7 @@ public class ZookeeperDisconnectionTest {
     @Test
     public void testSimulationDuringAndAfterDisconnection() throws Exception {
         log.info("blocking communications with zookeeper");
-        assertThat("iptables command is successful", blockCommunications() == 0);
+        assertThat("iptables command is successful", blockZkCommunications(zkPort) == 0);
 
         Waiters.sleepBecause("We want the ZK client to transiently disconnect", 16);
 
@@ -268,7 +253,7 @@ public class ZookeeperDisconnectionTest {
         Waiters.sleepBecause("We want the ZK requests to fail", 5);
 
         log.info("turning communications with zookeeper back on");
-        assertThat("iptables command is successful", unblockCommunications() == 0);
+        assertThat("iptables command is successful", unblockZkCommunications(zkPort) == 0);
 
         log.info("draining tap...");
         for (byte[] pkt = tapB.recv(); pkt != null; pkt = tapB.recv()) {
@@ -285,7 +270,7 @@ public class ZookeeperDisconnectionTest {
     @Test
     public void testDisconnection() throws Exception {
         log.info("blocking communications with zookeeper");
-        assertThat("iptables command is successful", blockCommunications() == 0);
+        assertThat("iptables command is successful", blockZkCommunications(zkPort) == 0);
 
         log.info("sending a router request to the VirtualTopologyActor");
         ActorRef vta = VirtualTopologyActor.getRef(midolman.getActorSystem());
@@ -296,7 +281,7 @@ public class ZookeeperDisconnectionTest {
         assertThat("Router future has not completed", !routerFuture.isCompleted());
 
         log.info("turning communications with zookeeper back on");
-        assertThat("iptables command is successful", unblockCommunications() == 0);
+        assertThat("iptables command is successful", unblockZkCommunications(zkPort) == 0);
 
         log.info("waiting for the RCU bridge to be sent to us");
         Object result = Await.result(routerFuture, Duration.parse("30 seconds"));

@@ -2,6 +2,7 @@ package org.midonet.functional_test.utils;
 
 import org.apache.zookeeper.server.NIOServerCnxnFactory;
 import org.apache.zookeeper.server.ZooKeeperServer;
+import org.midonet.util.process.ProcessHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,4 +45,5 @@ public class EmbeddedZKLauncher {
             dir.delete();
         }
     }
+
 }

@@ -64,6 +64,11 @@ public class ZookeeperConnWatcher implements ZkConnectionAwareWatcher {
     }
 
     @Override
+    public void scheduleOnDisconnect(Runnable runnable) {
+        throw new NotImplementedException();
+    }
+
+    @Override
     public void handleError(String operationDesc, Runnable retry,
                             KeeperException e) {
         log.debug("handleError(): ignoring: {}", e);
