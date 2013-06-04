@@ -305,7 +305,6 @@ trait SimulationHelper extends MidolmanTestCase {
         val pktOut = requestOfType[PacketsExecute](packetEventsProbe).packet
         pktOut should not be null
         pktOut.getPacket should not be null
-
         pktOut.getActions.size should be === (portNums.size +
             vlanIdsPush.size +
             vlanIdsPop.size)

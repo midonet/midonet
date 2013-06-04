@@ -15,8 +15,7 @@ import org.midonet.midolman.logging.LoggerFactory
 import org.midonet.cluster.client._
 import org.midonet.midolman.DeduplicationActor
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
-import org.midonet.midolman.PacketWorkflowActor.{SendPacket,
-    AddVirtualWildcardFlow, NoOp, SimulationAction}
+import org.midonet.midolman.PacketWorkflowActor._
 import org.midonet.midolman.datapath.{FlowActionOutputToVrnPort,
                                       FlowActionOutputToVrnPortSet}
 import org.midonet.midolman.rules.RuleResult.{Action => RuleAction}
@@ -25,6 +24,17 @@ import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.odp.flows._
 import org.midonet.packets.{Ethernet, ICMP, IPv4, IPv4Addr, IPv6Addr, TCP, UDP}
 import org.midonet.sdn.flows.{WildcardFlowBuilder, WildcardMatch}
+import org.midonet.midolman.topology.VirtualTopologyActor.RouterRequest
+import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
+import scala.Some
+import org.midonet.midolman.PacketWorkflowActor.AddVirtualWildcardFlow
+import org.midonet.midolman.topology.VirtualTopologyActor.BridgeRequest
+import org.midonet.midolman.topology.VirtualTopologyActor.ChainRequest
+import org.midonet.midolman.PacketWorkflowActor.NoOp
+import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
+import org.midonet.midolman.PacketWorkflowActor.SendPacket
+import org.midonet.midolman.topology.VirtualTopologyActor.VlanBridgeRequest
+import org.midonet.util.functors.Callback0
 
 
 object Coordinator {
@@ -45,6 +55,12 @@ object Coordinator {
     trait ForwardAction extends Action
     case class ToPortAction(outPort: UUID) extends ForwardAction
     case class ToPortSetAction(portSetID: UUID) extends ForwardAction
+    // This action is used when one simulation has to return two forward actions
+    // A good example is when a bridge that has a vlan id set receives a broadcast
+    // from the virtual network. It will output it to all its materialized ports
+    // and to the logical port that connects it to the VAB
+    case class ForkAction(firstAction: Future[ForwardAction], forkedAction: Future[ForwardAction])
+        extends ForwardAction
 
     trait Device {
         /**
@@ -82,7 +98,7 @@ object Coordinator {
  * @param ec
  * @param actorSystem
  */
-class Coordinator(val origMatch: WildcardMatch,
+class Coordinator(var origMatch: WildcardMatch,
                   val origEthernetPkt: Ethernet,
                   val cookie: Option[Int],
                   val generatedPacketEgressPort: Option[UUID],
@@ -304,14 +320,83 @@ class Coordinator(val origMatch: WildcardMatch,
         }
     }
 
+    private def mergeSimulationResults(firstAction: SimulationAction,
+                                       secondAction: SimulationAction,
+                                       firstOrigMatch: WildcardMatch) : SimulationAction = {
+        if (!firstAction.getClass.equals(secondAction.getClass)) {
+            log.error("Matching actions of diffent types, {}, {}!", firstAction,
+                secondAction)
+            // we should restore original match
+            origMatch = firstOrigMatch
+            return dropFlow(temporary = true)
+        }
+        firstAction match {
+            case p: SendPacket =>
+                val actions = p.actions ++ secondAction.asInstanceOf[SendPacket].actions
+                SendPacket(actions)
+
+            case f: AddVirtualWildcardFlow =>
+                val secondFlow = secondAction.asInstanceOf[AddVirtualWildcardFlow]
+                val actions = f.flow.actions ++ secondFlow.flow.actions
+                val hardExp =
+                    if (f.flow.hardExpirationMillis >= secondFlow.flow.getHardExpirationMillis)
+                        secondFlow.flow.getHardExpirationMillis
+                    else f.flow.getHardExpirationMillis
+
+                val idleExp =
+                    if (f.flow.idleExpirationMillis >= secondFlow.flow.idleExpirationMillis)
+                        secondFlow.flow.idleExpirationMillis
+                    else f.flow.idleExpirationMillis
+
+                val mergedFlow =
+                    new WildcardFlowBuilder()
+                        .setMatch(f.flow.getMatch)
+                        .setActions(actions)
+                        .setHardExpirationMillis(hardExp)
+                        .setIdleExpirationMillis(idleExp)
+                //TODO(rossella) set the other fields Priority
+                val callbacks = f.flowRemovalCallbacks ++ secondFlow.flowRemovalCallbacks
+                val tags = f.tags ++ secondFlow.tags
+                val res = AddVirtualWildcardFlow(mergedFlow, callbacks, tags)
+                log.debug("Forked action merged results {}", res)
+                res
+            case a =>
+                log.debug("Receive unrecognized action {}", a)
+                origMatch = firstOrigMatch
+                dropFlow(temporary = true)
+        }
+    }
+
     private def handleActionFuture(actionF: Future[Action]): Future[SimulationAction] = {
         actionF recover {
             case e =>
-                log.error("Error instead of Action - {}", e)
+                log.error(e, "Error instead of Action - {}", e)
                 ErrorDropAction()
         } flatMap { case action =>
             log.info("Received action: {}", action)
             action match {
+
+                case f: ForkAction =>
+                    handleActionFuture(f.firstAction) flatMap {
+                        case first: SimulationAction  =>
+                            // override the original match because
+                            // we want the second simulation to use
+                            // the modified one, so we calculate only
+                            // the action that the new simulation applies
+                            log.debug("ForkedAction - First action is {}", first)
+                            val firstOrigMatch = origMatch.clone()
+                            origMatch = pktContext.getMatch.clone()
+                            // unfreeze the packet context to let the sencond
+                            // action modify it
+                            pktContext.unfreeze()
+                            handleActionFuture(f.forkedAction) flatMap {
+                                case second: SimulationAction =>
+                                    log.debug("ForkedAction - Second action is {}",
+                                        second)
+                                    mergeSimulationResults(first, second, firstOrigMatch)
+                            }
+                    }
+
                 case ToPortSetAction(portSetID) =>
                     emit(portSetID, isPortSet = true, null)
 

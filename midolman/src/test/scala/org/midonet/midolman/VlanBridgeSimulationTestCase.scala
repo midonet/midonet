@@ -175,7 +175,7 @@ with VirtualConfigurationBuilders with SimulationHelper {
         else
             pktInMsg.wMatch.getInputPort should be(getPortNumber(ingressPortName))
 
-        return Some(wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded]))
+        Some(wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded]))
     }
 
     /**
@@ -245,6 +245,40 @@ with VirtualConfigurationBuilders with SimulationHelper {
         eth
     }
 
+    private def expectBroadCast(materializedPort: Short,trunk1: Short,
+    trunk2: Short, vlanId: Short) = {
+        val msg = packetEventsProbe.expectMsgClass(classOf[PacketsExecute])
+        var trunkPorts = List[Short](trunk1, trunk2)
+        msg.packet.getActions.size should be === 4
+
+        msg.packet.getActions.get(0) match {
+            case act: FlowActionOutput =>
+                act.getPortNumber should be === materializedPort
+            case _ => fail("Action didn't match expected FlowActionOutput")
+        }
+
+        msg.packet.getActions.get(1) match {
+            case act: FlowActionPushVLAN =>
+                (act.getValue.getTagControlIdentifier & 0x0fff)
+                    .toShort should be === vlanId
+            case _ => fail("Action didn't match expected FlowActionPushVLAN")
+        }
+
+        msg.packet.getActions.get(2) match {
+            case act: FlowActionOutput =>
+                trunkPorts -= act.getPortNumber.toShort
+            case _ => fail("Action didn't match expected FlowActionOutput")
+        }
+
+        msg.packet.getActions.get(3) match {
+            case act: FlowActionOutput =>
+                trunkPorts -= act.getPortNumber.toShort
+            case _ => fail("Action didn't match expected FlowActionOutput")
+        }
+
+        trunkPorts should have size 0
+    }
+
     /**
      * Does an ARP request/reply starting on the VM2, asking for VM2_1's MAC
      */
@@ -261,32 +295,11 @@ with VirtualConfigurationBuilders with SimulationHelper {
 
         // we should see the ARP on both trunks AND the other VM on the same
         // bridge
-        var trunks = List[Int](getPortNumber("trunkPort1"),
-                               getPortNumber("trunkPort2"))
-        val msgs = packetEventsProbe.expectMsgAllClassOf(classOf[PacketsExecute],
-                                                         classOf[PacketsExecute])
-        log.info("Trunks are: {}, the vm2_2 port is",
-                 trunks, getPortNumber("vm2_2Port"))
-        msgs foreach ( msg => { val acts = msg.packet.getActions
-            acts.size() match {
-                case 1 => // must be the other vm port
-                    val act = acts.get(0).asInstanceOf[FlowActionOutput]
-                    getPortNumber("vm2_2Port") should be === (act.getPortNumber)
-                case 3 => // must be the trunk ports
-                    acts.toArray.foreach( act => act match {
-                        case act: FlowActionOutput =>
-                            trunks -= act.getPortNumber
-                        case act: FlowActionPushVLAN =>
-                            // the vlan id is packed in the lowest 12 bits
-                            (act.getValue.getTagControlIdentifier & 0x0fff)
-                                .toShort should be === vlanId2
-                    })
-                case _ => fail("Unexpected PacketsExecute")
-            }
-        })
-        trunks should have size (0)
+        expectBroadCast(getPortNumber("vm2_2Port").toShort,
+            getPortNumber("trunkPort1").toShort,
+            getPortNumber("trunkPort2").toShort, vlanId2)
 
-        // no other packet should be transmitted
+    // no other packet should be transmitted
         packetEventsProbe.expectNoMsg()
 
         log.info("ARP reply from trunk to VM 2_1")
@@ -489,34 +502,13 @@ with VirtualConfigurationBuilders with SimulationHelper {
         val addFlowMsg = injectOnePacket(ethRaw, vm2_1ExtPort.getId)
         addFlowMsg.getOrElse(fail("Expecting a WildcardFlowAdded")).f should not be null
 
-        // We should have 2 packet executes: one on the active trunk,
-        // with a push vlan action, another in the other exterior port in the
-        // VM, which should not have any actions
-        val msgs = packetEventsProbe.expectMsgAllClassOf(
-            Duration(3, TimeUnit.SECONDS),
-            classOf[PacketsExecute], classOf[PacketsExecute])
-        var trunks = Set(getPortNumber("trunkPort1"),
-                         getPortNumber("trunkPort2"))
-        msgs should have size (2)
-        msgs foreach ( msg => {
-            val acts = msg.packet.getActions
-            acts.size() match {
-                case 1 => // must be the other vm port
-                    val act = acts.get(0).asInstanceOf[FlowActionOutput]
-                    getPortNumber("vm2_2Port") should be === (act.getPortNumber)
-                case 3 => // must be the trunk ports
-                    acts.toArray.foreach( act => act match {
-                        case act: FlowActionOutput =>
-                            trunks -= act.getPortNumber
-                        case act: FlowActionPushVLAN =>
-                            // the vlan id is packed in the lowest 12 bits
-                            (act.getValue.getTagControlIdentifier & 0x0fff)
-                                .toShort should be === vlanId2
-                    })
-                case _ => fail("Unexpected PacketsExecute")
-            }
-        })
-        trunks should have size (0)
+        // We should have 1 packet executes whose actions are output to the materialized
+        // ports of the bridge and output to one on the active trunk,
+        // with a push vlan action
+        expectBroadCast(getPortNumber("vm2_2Port").toShort,
+            getPortNumber("trunkPort2").toShort,
+            getPortNumber("trunkPort1").toShort,
+            vlanId2)
     }
 
     /**

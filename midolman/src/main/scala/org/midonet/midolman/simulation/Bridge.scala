@@ -130,13 +130,12 @@ class Bridge(val id: UUID, val tunnelKey: Long,
                             // to the VLAN Aware Bridge
                             if (vlanPortId != null &&
                                 !packetContext.getInPortId.equals(vlanPortId)) {
-                                DeduplicationActor.getRef(actorSystem).tell(
-                                    EmitGeneratedPacket(vlanPortId, packetContext.getFrame,
-                                        if (packetContext != null)
-                                            Option(packetContext.getFlowCookie)
-                                        else None))
+                                ForkAction(Promise.successful(ToPortSetAction(id)),
+                                    Promise.successful(ToPortAction(vlanPortId)))
+
+                            } else {
+                                ToPortSetAction(id)
                             }
-                            ToPortSetAction(id)
                         case m: MAC =>
                             // We can reply to the ARP request.
                             processArpRequest(
@@ -155,14 +154,12 @@ class Bridge(val id: UUID, val tunnelKey: Long,
                 if (vlanPortId != null &&
                     !packetContext.getInPortId.equals(vlanPortId)) {
                     log.debug("flooding also to vlan port {}", vlanPortId)
-                    DeduplicationActor.getRef(actorSystem).tell(
-                        EmitGeneratedPacket(vlanPortId, packetContext.getFrame,
-                            if (packetContext != null)
-                                Option(packetContext.getFlowCookie)
-                            else None))
+                    action = Promise.successful(ForkAction(
+                        Promise.successful(ToPortSetAction(id)),
+                        Promise.successful(ToPortAction(vlanPortId))))
+                } else {
+                    action = Promise.successful(ToPortSetAction(id))
                 }
-
-                action = Promise.successful(ToPortSetAction(id))
                 packetContext.addFlowTag(
                     FlowTagger.invalidateBroadcastFlows(id, id))
             }
@@ -232,6 +229,14 @@ class Bridge(val id: UUID, val tunnelKey: Long,
                 packetContext.setOutputPort(a.outPort)
             case a: Coordinator.ToPortSetAction =>
                 packetContext.setOutputPort(a.portSetID)
+            case a: ForkAction =>
+                a.firstAction map {
+                    case c => c match {
+                        case b: Coordinator.ToPortAction =>
+                            packetContext.setOutputPort(b.outPort)
+                        case b: Coordinator.ToPortSetAction =>
+                            packetContext.setOutputPort(b.portSetID)
+                    }}
             case a =>
                 log.error("Unhandled Coordinator.ForwardAction {}", a)
         }

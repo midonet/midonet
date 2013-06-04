@@ -146,6 +146,10 @@ class PacketContext(val flowCookie: Option[Int], val frame: Ethernet,
         frozen = true
     }
 
+    def unfreeze(): Unit = this.synchronized {
+        frozen = false
+    }
+
     /* Packet context methods used by Chains. */
     override def getInPortId: UUID = inPortID
     override def getOutPortId: UUID = outPortID
