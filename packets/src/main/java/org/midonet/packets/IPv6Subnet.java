@@ -37,7 +37,11 @@ public class IPv6Subnet implements IPSubnet<IPv6Addr> {
         this.prefixLen = prefixLen;
     }
 
-    public boolean containsAddress(IPv6Addr other) {
+    @Override
+    public boolean containsAddress(IPAddr other) {
+        if (!(other instanceof IPv6Addr))
+            return false;
+        IPv6Addr that = (IPv6Addr) other;
         if (prefixLen == 0)
             return true;
 
@@ -51,9 +55,9 @@ public class IPv6Subnet implements IPSubnet<IPv6Addr> {
             lowerMask = ~0L << maskSize;
         }
         return (addr.upperWord() & upperMask) ==
-               (other.upperWord() & upperMask) &&
+               (that.upperWord() & upperMask) &&
                (addr.lowerWord() & lowerMask) ==
-               (other.lowerWord() & lowerMask);
+               (that.lowerWord() & lowerMask);
     }
 
     @Override

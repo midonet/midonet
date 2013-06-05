@@ -44,13 +44,17 @@ public class IPv4Subnet implements IPSubnet<IPv4Addr> {
     }
 
     @Override
-    public boolean containsAddress(IPv4Addr other) {
+    public boolean containsAddress(IPAddr other) {
+        if (! (other instanceof IPv4Addr))
+            return false;
+
+        IPv4Addr that =  (IPv4Addr) other;
         if (prefixLen == 0)
             return true;
 
         int maskSize = 32-prefixLen;
         int mask = ~0 << maskSize;
-        return (addr.toInt() & mask) == (other.toInt() & mask);
+        return (addr.toInt() & mask) == (that.toInt() & mask);
     }
 
     @Override
