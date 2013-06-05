@@ -56,7 +56,7 @@ public abstract class Rule extends UriResource {
 
     @Pattern(regexp = StringUtil.IP_ADDRESS_REGEX_PATTERN,
             message = "is an invalid IP format")
-    private String nwDstAddress = null;
+    private String nwDstAddress;
 
     @Min(0)
     @Max(32)
@@ -64,7 +64,7 @@ public abstract class Rule extends UriResource {
 
     @Pattern(regexp = StringUtil.IP_ADDRESS_REGEX_PATTERN,
             message = "is an invalid IP format")
-    private String nwSrcAddress = null;
+    private String nwSrcAddress;
 
     @Min(0)
     @Max(32)
@@ -72,29 +72,29 @@ public abstract class Rule extends UriResource {
 
     private Map<String, String> properties = new HashMap<String, String>();
 
-    private boolean condInvert = false;
-    private boolean matchForwardFlow = false;
-    private boolean matchReturnFlow = false;
-    private UUID[] inPorts = null;
-    private boolean invInPorts = false;
-    private UUID[] outPorts = null;
-    private boolean invOutPorts = false;
+    private boolean condInvert;
+    private boolean matchForwardFlow;
+    private boolean matchReturnFlow;
+    private UUID[] inPorts;
+    private boolean invInPorts;
+    private UUID[] outPorts;
+    private boolean invOutPorts;
     private UUID portGroup;
     private boolean invPortGroup;
     @Min(0x0600)
     @Max(0xFFFF)
-    private Integer dlType = null;
-    private boolean invDlType = false;
-    private String dlSrc = null;
-    private boolean invDlSrc = false;
-    private String dlDst = null;
-    private boolean invDlDst = false;
+    private Integer dlType;
+    private boolean invDlType;
+    private String dlSrc;
+    private boolean invDlSrc;
+    private String dlDst;
+    private boolean invDlDst;
     private int nwTos;
-    private boolean invNwTos = false;
+    private boolean invNwTos;
     private int nwProto;
-    private boolean invNwProto = false;
-    private boolean invNwSrc = false;
-    private boolean invNwDst = false;
+    private boolean invNwProto;
+    private boolean invNwSrc;
+    private boolean invNwDst;
 
     @Min(0)
     @Max(65535)
@@ -112,22 +112,11 @@ public abstract class Rule extends UriResource {
     @Max(65535)
     private int tpDstEnd;
 
-    private boolean invTpSrc = false;
-    private boolean invTpDst = false;
+    private boolean invTpSrc;
+    private boolean invTpDst;
 
-    /**
-     * Default constructor
-     */
-    public Rule() {
-        super();
-    }
+    public Rule() { super(); }
 
-    /**
-     * Constructor
-     *
-     * @param data
-     *            Rule data object
-     */
     public Rule(org.midonet.cluster.data.Rule data) {
         this.id = UUID.fromString(data.getId().toString());
         this.chainId = data.getChainId();
@@ -149,47 +138,26 @@ public abstract class Rule extends UriResource {
         data.setCondition(makeCondition());
     }
 
-    /**
-     * @return the id
-     */
     public UUID getId() {
         return id;
     }
 
-    /**
-     * @param id
-     *            the id to set
-     */
     public void setId(UUID id) {
         this.id = id;
     }
 
-    /**
-     * @return the chainId
-     */
     public UUID getChainId() {
         return chainId;
     }
 
-    /**
-     * @param chainId
-     *            the chainId to set
-     */
     public void setChainId(UUID chainId) {
         this.chainId = chainId;
     }
 
-    /**
-     * @return the position
-     */
     public int getPosition() {
         return position;
     }
 
-    /**
-     * @param position
-     *            the position to set
-     */
     public void setPosition(int position) {
         this.position = position;
     }
@@ -202,17 +170,10 @@ public abstract class Rule extends UriResource {
         this.properties = properties;
     }
 
-    /**
-     * @return the condInvert
-     */
     public boolean isCondInvert() {
         return condInvert;
     }
 
-    /**
-     * @param condInvert
-     *            the condInvert to set
-     */
     public void setCondInvert(boolean condInvert) {
         this.condInvert = condInvert;
     }
@@ -233,62 +194,34 @@ public abstract class Rule extends UriResource {
         this.matchReturnFlow = matchReturnFlow;
     }
 
-    /**
-     * @return the inPorts
-     */
     public UUID[] getInPorts() {
         return inPorts;
     }
 
-    /**
-     * @param inPorts
-     *            the inPorts to set
-     */
     public void setInPorts(UUID[] inPorts) {
         this.inPorts = inPorts;
     }
 
-    /**
-     * @return the invInPorts
-     */
     public boolean isInvInPorts() {
         return invInPorts;
     }
 
-    /**
-     * @param invInPorts
-     *            the invInPorts to set
-     */
     public void setInvInPorts(boolean invInPorts) {
         this.invInPorts = invInPorts;
     }
 
-    /**
-     * @return the outPorts
-     */
     public UUID[] getOutPorts() {
         return outPorts;
     }
 
-    /**
-     * @param outPorts
-     *            the outPorts to set
-     */
     public void setOutPorts(UUID[] outPorts) {
         this.outPorts = outPorts;
     }
 
-    /**
-     * @return the invOutPorts
-     */
     public boolean isInvOutPorts() {
         return invOutPorts;
     }
 
-    /**
-     * @param invOutPorts
-     *            the invOutPorts to set
-     */
     public void setInvOutPorts(boolean invOutPorts) {
         this.invOutPorts = invOutPorts;
     }
@@ -444,24 +377,14 @@ public abstract class Rule extends UriResource {
         return invDlType;
     }
 
-    /**
-     * @return the nwTos
-     */
     public int getNwTos() {
         return nwTos;
     }
 
-    /**
-     * @param nwTos
-     *            the nwTos to set
-     */
     public void setNwTos(int nwTos) {
         this.nwTos = nwTos;
     }
 
-    /**
-     * @return the invNwTos
-     */
     public boolean isInvNwTos() {
         return invNwTos;
     }
@@ -474,9 +397,6 @@ public abstract class Rule extends UriResource {
         this.invNwTos = invNwTos;
     }
 
-    /**
-     * @return the nwProto
-     */
     public int getNwProto() {
         return nwProto;
     }
@@ -489,9 +409,6 @@ public abstract class Rule extends UriResource {
         this.nwProto = nwProto;
     }
 
-    /**
-     * @return the invNwProto
-     */
     public boolean isInvNwProto() {
         return invNwProto;
     }
@@ -504,9 +421,6 @@ public abstract class Rule extends UriResource {
         this.invNwProto = invNwProto;
     }
 
-    /**
-     * @return the nwSrcAddress
-     */
     public String getNwSrcAddress() {
         return nwSrcAddress;
     }
@@ -519,9 +433,6 @@ public abstract class Rule extends UriResource {
         this.nwSrcAddress = nwSrcAddress;
     }
 
-    /**
-     * @return the nwSrcLength
-     */
     public int getNwSrcLength() {
         return nwSrcLength;
     }
@@ -534,9 +445,6 @@ public abstract class Rule extends UriResource {
         this.nwSrcLength = nwSrcLength;
     }
 
-    /**
-     * @return the invNwSrc
-     */
     public boolean isInvNwSrc() {
         return invNwSrc;
     }
@@ -549,9 +457,6 @@ public abstract class Rule extends UriResource {
         this.invNwSrc = invNwSrc;
     }
 
-    /**
-     * @return the nwDstAddress
-     */
     public String getNwDstAddress() {
         return nwDstAddress;
     }
@@ -564,9 +469,6 @@ public abstract class Rule extends UriResource {
         this.nwDstAddress = nwDstAddress;
     }
 
-    /**
-     * @return the nwDstLength
-     */
     public int getNwDstLength() {
         return nwDstLength;
     }
@@ -579,9 +481,6 @@ public abstract class Rule extends UriResource {
         this.nwDstLength = nwDstLength;
     }
 
-    /**
-     * @return the invNwDst
-     */
     public boolean isInvNwDst() {
         return invNwDst;
     }
