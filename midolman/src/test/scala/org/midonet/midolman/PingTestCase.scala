@@ -249,7 +249,6 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
         dhcpClientIp = dhcpPkt.getYourIPAddress
         dhcpServerIp = dhcpPkt.getServerIPAddress
         val replyOptions = mutable.HashMap[Byte, DHCPOption]()
-        val replyCodes = mutable.Set[Byte]()
         for (opt <- dhcpPkt.getOptions) {
             val code = opt.getCode
             replyOptions.put(code, opt)
@@ -319,7 +318,6 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
         val vm2IpInt = vm2IP.addressAsInt
         dhcpClientIp should be === vm2IpInt
 
-        log.info("Sending gratuitous ARP reply")
         feedArpCache(vm2PortName, vm2IP.addressAsInt, vm2Mac,
                      routerIp2.addressAsInt, routerMac2)
         requestOfType[PacketIn](packetInProbe)

@@ -112,7 +112,12 @@ class ExteriorBridgePort
 
 class InteriorBridgePort
     extends InteriorPort[InteriorBridgePort]
-    with BridgePort[InteriorBridgePort] {}
+    with BridgePort[InteriorBridgePort] {
+
+    var vlanId: Short = _
+    def setVlanId(id: Short): InteriorBridgePort = { this.vlanId = id; self }
+
+}
 
 class ExteriorRouterPort
     extends ExteriorPort[ExteriorRouterPort]

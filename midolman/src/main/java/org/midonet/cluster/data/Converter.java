@@ -169,6 +169,7 @@ public class Converter {
                     new LogicalBridgePortConfig();
 
             typedPortConfig.setPeerId(typedPort.getPeerId());
+            typedPortConfig.setVlanId(typedPort.getVlanId());
 
             portConfig = typedPortConfig;
         }
@@ -273,6 +274,7 @@ public class Converter {
             LogicalBridgePort bridgePort = new LogicalBridgePort();
 
             bridgePort.setPeerId(bridgePortConfig.peerId());
+            bridgePort.setVlanId(bridgePortConfig.vlanId());
             port = bridgePort;
         }
 

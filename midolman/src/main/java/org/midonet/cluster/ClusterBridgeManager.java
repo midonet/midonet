@@ -34,6 +34,8 @@ import org.midonet.util.functors.Callback1;
 import org.midonet.util.functors.Callback3;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import scala.Option;
+import scala.Some;
 
 public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
 
@@ -207,7 +209,7 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
                           new Object[]{id, routerPort.getHwAddr(), rtrPortIp});
 
             } else if (peerPortCfg instanceof PortDirectory.LogicalVlanBridgePortConfig) {
-                builder.setVlanBridgePeerPortId(id);
+                builder.setVlanBridgePeerPortId(new Some<UUID>(id));
             } else {
                 log.warn("The peer isn't router nor vlan-bridge logical port");
             }

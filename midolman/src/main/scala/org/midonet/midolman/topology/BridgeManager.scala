@@ -46,7 +46,7 @@ object BridgeManager {
                              ip4MacMap: IpMacMap[IPv4Addr],
                              rtrMacToLogicalPortId: ROMap[MAC, UUID],
                              rtrIpToMac: ROMap[IPAddr, MAC],
-                             vlanBridgePeerPortId: UUID)
+                             vlanBridgePeerPortId: Option[UUID])
 
     case class CheckExpiredMacPorts()
 
@@ -146,7 +146,7 @@ class BridgeManager(id: UUID, val clusterClient: Client,
     private var ip4MacMap: IpMacMap[IPv4Addr] = null
 
     private var filterChanged = false
-    private var vlanBridgePeerPortId: UUID = null
+    private var vlanBridgePeerPortId: Option[UUID] = None
 
     private val macPortExpiration: Int = config.getMacPortMappingExpireMillis
     private val learningMgr = new MacLearningManager(

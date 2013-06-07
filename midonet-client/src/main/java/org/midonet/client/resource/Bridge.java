@@ -159,8 +159,13 @@ public class Bridge extends ResourceBase<Bridge, DtoBridge> {
                 peerPorts.add(rp);
 
             } else if (pp instanceof DtoInteriorBridgePort) {
-                throw new IllegalStateException(
-                    "MidoNet doesn't support linking bridge to brdige.");
+                // Interior bridge ports can be linked if one of the 2 has a
+                // vlan id assigned, this should be validated upon creation
+                BridgePort bp = new BridgePort<DtoInteriorBridgePort>(
+                    resource,
+                    principalDto.getPorts(),
+                    (DtoInteriorBridgePort) pp);
+                peerPorts.add(bp);
             }
         }
         return peerPorts;

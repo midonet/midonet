@@ -8,6 +8,7 @@ import com.google.common.base.Predicate;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.client.MidonetApi;
 import org.midonet.client.RouterPredicates;
+import org.midonet.client.dto.DtoInteriorBridgePort;
 import org.midonet.client.resource.*;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 import com.sun.jersey.test.framework.JerseyTest;
@@ -123,20 +124,32 @@ public class ClientTest extends JerseyTest {
         b2.delete();
         assertThat(api.getBridges(qTenant1).size(), is(1));
 
+        // Recreate, we'll use it later to link via VLAN-tagged interior port
+        // to B1
+        b2 = api.addBridge().tenantId("tenant-1").name("bridge-2").create();
+        assertThat(api.getBridges(qTenant1).size(), is(2));
 
         // Bridge port
+        short vlanId = 234;
         BridgePort bp1 = (BridgePort) b1.addExteriorPort().create();
         BridgePort bp2 = (BridgePort) b1.addInteriorPort().create();
         BridgePort bp3 = (BridgePort) b1.addInteriorPort().create();
+        BridgePort bp4 = (BridgePort) b1.addInteriorPort().create();
+        BridgePort b2pVlan = (BridgePort)b2.addInteriorPort()
+                                           .setVlanId(vlanId).create();
 
         log.debug("bp1: {}", bp1);
         log.debug("bp2: {}", bp2);
         log.debug("bp3: {}", bp3);
+        log.debug("bp4: {}", bp4);
+        log.debug("b2pVlan: {}", b2pVlan);
 
         // Test GET with ID
         assertThat(bp1.getId(), is(notNullValue()));
         assertThat(bp2.getId(), is(notNullValue()));
         assertThat(bp3.getId(), is(notNullValue()));
+        assertThat(bp4.getId(), is(notNullValue()));
+        assertThat(b2pVlan.getId(), is(notNullValue()));
         Port p = api.getPort(bp1.getId());
         assertThat(p, is(notNullValue()));
         assertThat(p, is(instanceOf(BridgePort.class)));
@@ -146,8 +159,15 @@ public class ClientTest extends JerseyTest {
         p = api.getPort(bp3.getId());
         assertThat(p, is(notNullValue()));
         assertThat(p, is(instanceOf(BridgePort.class)));
+        p = api.getPort(bp4.getId());
+        assertThat(p, is(notNullValue()));
+        assertThat(p, is(instanceOf(BridgePort.class)));
+        p = api.getPort(b2pVlan.getId());
+        assertThat(p, is(notNullValue()));
+        assertThat(p, is(instanceOf(BridgePort.class)));
 
-        assertThat(b1.getPorts().size(), is(3));
+        assertThat(b1.getPorts().size(), is(4));
+        assertThat(b2.getPorts().size(), is(1));
 
         bp1.vifId(UUID.randomUUID()).update();
         bp2.outboundFilterId(UUID.randomUUID()).update();
@@ -184,6 +204,21 @@ public class ClientTest extends JerseyTest {
 
         assertThat(sn1.getDhcpHosts().size(), is(2));
 
+        // Try linking b1's interior port to b2's vlan-tagged interior port
+        bp4.link(b2pVlan.getId());
+        assertThat(bp4.getPeerId(), is(((BridgePort) b2pVlan.get()).getId()));
+        assertThat(b2pVlan.getPeerId(), is(((BridgePort) bp4.get()).getId()));
+        assertThat(b1.getPeerPorts().size(), is(1));
+        assertThat(b2.getPeerPorts().size(), is(1));
+        bp4.unlink();
+        assertThat(((BridgePort) bp4.get()).getPeerId(), is(nullValue()));
+        assertThat(((BridgePort) b2pVlan.get()).getPeerId(), is(nullValue()));
+        bp4.delete();
+        b2pVlan.delete();
+        assertThat(b1.getPorts().size(), is(3));
+        assertThat(b2.getPorts().size(), is(0));
+        assertThat(b1.getPeerPorts().size(), is(0));
+        assertThat(b2.getPeerPorts().size(), is(0));
 
         // Router
         Router r1 = api.addRouter().tenantId("tenant-1").name("router-1")

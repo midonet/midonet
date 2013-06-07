@@ -94,6 +94,15 @@ public class BridgePort<T extends DtoBridgePort> extends
     }
 
     /**
+     * Gets VLAN ID with which this port is tagged
+     *
+     * @return Short
+     */
+    public Short getVlanId() {
+        return ((DtoInteriorBridgePort) principalDto).getVlanId();
+    }
+
+    /**
      * Sets id to the inbound filter.
      *
      * @param id
@@ -166,6 +175,17 @@ public class BridgePort<T extends DtoBridgePort> extends
      */
     private BridgePort<T> peerId(UUID id) {
         ((DtoInteriorBridgePort) principalDto).setPeerId(id);
+        return this;
+    }
+
+    /**
+     * Sets the vlan id (in an interior bridge port)
+     *
+     * @param vlanId
+     * @return
+     */
+    public BridgePort<T> setVlanId(Short vlanId) {
+        ((DtoInteriorBridgePort) principalDto).setVlanId(vlanId);
         return this;
     }
 

@@ -11,6 +11,7 @@ public class DtoInteriorBridgePort extends DtoBridgePort implements
         DtoInteriorPort {
 
     private UUID peerId = null;
+    private Short vlanId = null;
     private URI peer = null;
     private URI link = null;
     private URI unlink = null;
@@ -50,6 +51,14 @@ public class DtoInteriorBridgePort extends DtoBridgePort implements
         return PortType.INTERIOR_BRIDGE;
     }
 
+    public Short getVlanId() {
+        return this.vlanId;
+    }
+
+    public void setVlanId(Short vlanId_) {
+        this.vlanId = vlanId_;
+    }
+
     @Override
     public boolean equals(Object other) {
         if (!super.equals(other)) {
@@ -70,6 +79,10 @@ public class DtoInteriorBridgePort extends DtoBridgePort implements
         }
 
         if (unlink != null ? !unlink.equals(port.unlink) : port.unlink != null) {
+            return false;
+        }
+
+        if (vlanId != null ? !vlanId.equals(port.vlanId) : port.vlanId != null) {
             return false;
         }
 

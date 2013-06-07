@@ -46,6 +46,7 @@ import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 import org.midonet.util.functors.Callback1;
 import org.midonet.util.functors.Callback3;
+import scala.Option;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
@@ -232,7 +233,7 @@ public class LocalClientImplTest {
     // hint could modify this class so we can get the map from it.
     class TestBridgeBuilder implements BridgeBuilder {
         int buildCallsCount = 0;
-        UUID vlanBridgePeerPortId = null;
+        Option<UUID> vlanBridgePeerPortId = Option.apply(null);
         MacLearningTable mlTable;
         IpMacMap ipMacMap;
         MAC[] notifiedMAC = new MAC[1];
@@ -296,7 +297,7 @@ public class LocalClientImplTest {
         }
 
         @Override
-        public void setVlanBridgePeerPortId(UUID id) {
+        public void setVlanBridgePeerPortId(Option<UUID> id) {
             vlanBridgePeerPortId = id;
         }
 

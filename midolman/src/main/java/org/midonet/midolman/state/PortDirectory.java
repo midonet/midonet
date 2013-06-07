@@ -140,20 +140,27 @@ public class PortDirectory {
     public static class LogicalBridgePortConfig
             extends BridgePortConfig implements LogicalPortConfig {
         public UUID peer_uuid;
+        public Short vlanId;
 
         public UUID peerId() { return peer_uuid; }
+        public Short vlanId() { return vlanId; }
 
         @Override
         public void setPeerId(UUID id) {
             peer_uuid = id;
         }
 
+        public void setVlanId(Short vlanId) {
+            this.vlanId = vlanId;
+        }
+
         // Default constructor for the Jackson deserialization.
         public LogicalBridgePortConfig() { super(); }
 
-        public LogicalBridgePortConfig(UUID device_id, UUID peer_uuid) {
+        public LogicalBridgePortConfig(UUID device_id, UUID peer_uuid, Short vlanId) {
             super(device_id);
             this.peer_uuid = peer_uuid;
+            this.vlanId = vlanId;
         }
 
         @Override
@@ -167,18 +174,25 @@ public class PortDirectory {
             if (peer_uuid != null ? !peer_uuid.equals(that.peer_uuid) :
                     that.peer_uuid != null)
                 return false;
+            if (vlanId != null ? !vlanId.equals(that.vlanId) :
+                that.vlanId != null)
+                return false;
 
             return true;
         }
 
         @Override
         public int hashCode() {
-            return peer_uuid != null ? peer_uuid.hashCode() : 0;
+            int result = super.hashCode();
+            result = 31 * result + (peer_uuid != null ? peer_uuid.hashCode() : 0);
+            result = 31 * result + (vlanId != null ? vlanId.hashCode() : 0);
+            return result;
         }
 
         @Override
         public String toString() {
-            return "LogicalBridgePortConfig{peer_uuid=" + peer_uuid + "}";
+            return "LogicalBridgePortConfig{peer_uuid=" + peer_uuid +
+                   ", vlanId = " + vlanId + "}";
         }
     }
 

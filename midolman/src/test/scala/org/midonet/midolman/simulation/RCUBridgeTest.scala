@@ -41,7 +41,8 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
                                         learnedMac -> learnedPort))
     private val ip4MacMap = new MockIpMacMap(Map(knownIp4 -> learnedMac))
     private val flowCount: MacFlowCount = new MockMacFlowCount
-    private val vlanBridgePortId = null
+    private val vlanBridgePortId = None
+
     val inFilter: Chain = null
     val outFilter: Chain = null
     val flowRemovedCallbackGen = new RemoveFlowCallbackGenerator {

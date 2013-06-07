@@ -19,6 +19,8 @@ public class InteriorBridgePort extends BridgePort implements InteriorPort {
      */
     private UUID peerId;
 
+    private Short vlanId;
+
     /**
      * Default constructor
      */
@@ -36,6 +38,7 @@ public class InteriorBridgePort extends BridgePort implements InteriorPort {
                     portData) {
         super(portData);
         this.peerId = portData.getPeerId();
+        this.vlanId = portData.getVlanId();
     }
 
     @Override
@@ -44,12 +47,19 @@ public class InteriorBridgePort extends BridgePort implements InteriorPort {
     }
 
     /**
-     * @param peerId
-     *            Peer port ID
+     * @param peerId Peer port ID
      */
     @Override
     public void setPeerId(UUID peerId) {
         this.peerId = peerId;
+    }
+
+    public Short getVlanId() {
+        return this.vlanId;
+    }
+
+    public void setVlanId(Short vlanId) {
+        this.vlanId = vlanId;
     }
 
     /**
@@ -97,13 +107,14 @@ public class InteriorBridgePort extends BridgePort implements InteriorPort {
     public org.midonet.cluster.data.Port toData() {
         org.midonet.cluster.data.ports.LogicalBridgePort data =
                 new org.midonet.cluster.data.ports.LogicalBridgePort()
-                        .setPeerId(this.peerId);
+                        .setPeerId(this.peerId)
+                        .setVlanId(this.vlanId);
         super.setConfig(data);
         return data;
     }
 
     @Override
     public String toString() {
-        return super.toString() + ", peerId=" + peerId;
+        return super.toString() + ", peerId=" + peerId + ", vlanId = " + vlanId;
     }
 }

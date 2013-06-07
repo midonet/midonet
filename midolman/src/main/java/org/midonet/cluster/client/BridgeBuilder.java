@@ -10,6 +10,7 @@ import java.util.UUID;
 import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
+import scala.Option;
 
 public interface BridgeBuilder extends ForwardingElementBuilder {
     void setTunnelKey(long key);
@@ -17,5 +18,5 @@ public interface BridgeBuilder extends ForwardingElementBuilder {
     void setIp4MacMap(IpMacMap<IPv4Addr> m);
     void setLogicalPortsMap(Map<MAC, UUID> rtrMacToLogicalPortId,
                             Map<IPAddr, MAC> rtrIpToMac);
-    void setVlanBridgePeerPortId(UUID id);
+    void setVlanBridgePeerPortId(Option<UUID> id);
 }

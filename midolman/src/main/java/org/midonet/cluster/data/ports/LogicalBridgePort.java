@@ -48,8 +48,18 @@ public class LogicalBridgePort
         return getData().peer_uuid;
     }
 
+    public LogicalBridgePort setVlanId(Short vlanId) {
+        getData().vlanId = vlanId;
+        return self();
+    }
+
+    public Short getVlanId() {
+        return getData().vlanId;
+    }
+
     public static class Data extends Port.Data {
         public UUID peer_uuid;
+        public Short vlanId;
 
         @Override
         public boolean equals(Object o) {
@@ -61,6 +71,8 @@ public class LogicalBridgePort
 
             if (peer_uuid != null ? !peer_uuid.equals(
                 data.peer_uuid) : data.peer_uuid != null) return false;
+            if (vlanId != null ? !vlanId.equals(
+                data.vlanId) : data.vlanId != null) return false;
 
             return true;
         }
@@ -69,6 +81,7 @@ public class LogicalBridgePort
         public int hashCode() {
             int result = super.hashCode();
             result = 31 * result + (peer_uuid != null ? peer_uuid.hashCode() : 0);
+            result = 31 * result + (vlanId != null ? vlanId.hashCode() : 0);
             return result;
         }
     }

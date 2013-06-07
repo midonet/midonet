@@ -25,12 +25,41 @@ import org.midonet.midolman.simulation.Coordinator.ToPortAction
 import org.midonet.midolman.simulation.Coordinator.ErrorDropAction
 
 
+/**
+ * A Bridge.
+ *
+ * Apart of the usual functionality, the Bridge can also be configured for
+ * vlan-awareness by adding a number of interior ports tagged with a vlan
+ * id. In this case, only frames from the physical network that carry the
+ * corresponding vlan-id will be sent through the interior port tagged with
+ * the same vlan-id, and only after POP'ing it. For frames coming from that
+ * port, the vlan-id will be PUSH'd into the frame.
+ *
+ * @param id
+ * @param tunnelKey
+ * @param macPortMap
+ * @param ip4MacMap
+ * @param flowCount
+ * @param inFilter
+ * @param outFilter
+ * @param vlanPortId this field is the vlan-id assigned to an interior peer port
+ *                   on a VlanAwareBridge or Bridge connected to this device.
+ *                   This means that if we have a value X, this Bridge is
+ *                   connected to a vlan-aware device who considers this device
+ *                   to be on vlan X. Note that a vlan-unaware bridge can only
+ *                   be connected to a single vlan-aware device (thus having
+ *                   only a single optional value)
+ * @param flowRemovedCallbackGen
+ * @param rtrMacToLogicalPortId
+ * @param rtrIpToMac
+ * @param actorSystem
+ */
 class Bridge(val id: UUID, val tunnelKey: Long,
              val macPortMap: MacLearningTable,
              val ip4MacMap: IpMacMap[IPv4Addr],
              val flowCount: MacFlowCount, val inFilter: Chain,
              val outFilter: Chain,
-             val vlanPortId: UUID,
+             val vlanPortId: Option[UUID],
              val flowRemovedCallbackGen: RemoveFlowCallbackGenerator,
              val rtrMacToLogicalPortId: ROMap[MAC, UUID],
              val rtrIpToMac: ROMap[IPAddr, MAC])
@@ -45,6 +74,7 @@ class Bridge(val id: UUID, val tunnelKey: Long,
         implicit val pktContext = packetContext
         // Drop the packet if its L2 source is a multicast address.
         log.debug("Bridge {} process method called.", id)
+        log.debug("Bridge vlnPortId {}.", vlanPortId)
         if (Ethernet.isMcast(packetContext.getMatch.getEthernetSource)) {
             log.info("Bridge dropping a packet with a multi/broadcast source")
             Promise.successful(DropAction())
@@ -125,16 +155,16 @@ class Bridge(val id: UUID, val tunnelKey: Long,
                                 packetContext.getMatch.getEthernetSource)
                             packetContext.addFlowTag(
                                 FlowTagger.invalidateArpRequests(id))
-                            // if this bridge participates to a vlan and this packet didn't
-                            // come from a trunk port, we will have to forward it
-                            // to the VLAN Aware Bridge
-                            if (vlanPortId != null &&
-                                !packetContext.getInPortId.equals(vlanPortId)) {
-                                ForkAction(Promise.successful(ToPortSetAction(id)),
-                                    Promise.successful(ToPortAction(vlanPortId)))
-
-                            } else {
-                                ToPortSetAction(id)
+                            // if this bridge participates to a vlan and this
+                            // packet didn't come from a trunk port, we will
+                            // have to forward it to the VLAN Aware Bridge
+                            val inPortId = packetContext.getInPortId
+                            vlanPortId match {
+                                case Some(pId: UUID) if !inPortId.equals(pId) =>
+                                    ForkAction(
+                                        Promise.successful(ToPortSetAction(id)),
+                                        Promise.successful(ToPortAction(pId)))
+                                case _ => ToPortSetAction(id)
                             }
                         case m: MAC =>
                             // We can reply to the ARP request.
@@ -149,16 +179,17 @@ class Bridge(val id: UUID, val tunnelKey: Long,
                 log.debug("flooding to port set {}", id)
 
                 // if this bridge participates to a vlan and this packet didn't
-                // come from a trunk port, we will have to forward it
-                // to the VLAN Aware Bridge
-                if (vlanPortId != null &&
-                    !packetContext.getInPortId.equals(vlanPortId)) {
-                    log.debug("flooding also to vlan port {}", vlanPortId)
-                    action = Promise.successful(ForkAction(
-                        Promise.successful(ToPortSetAction(id)),
-                        Promise.successful(ToPortAction(vlanPortId))))
-                } else {
-                    action = Promise.successful(ToPortSetAction(id))
+                // come from a trunk port, we will have to forward it to the
+                // VLAN Aware Bridge
+                val inPortId = packetContext.getInPortId
+                action = vlanPortId match {
+                    case Some(pId: UUID) if !inPortId.equals(pId) =>
+                        log.debug("flooding also to vlan port {}", pId)
+                        Promise.successful(ForkAction(
+                            Promise.successful(ToPortSetAction(id)),
+                            Promise.successful(ToPortAction(pId))))
+                     case _ =>
+                         Promise.successful(ToPortSetAction(id))
                 }
                 packetContext.addFlowTag(
                     FlowTagger.invalidateBroadcastFlows(id, id))

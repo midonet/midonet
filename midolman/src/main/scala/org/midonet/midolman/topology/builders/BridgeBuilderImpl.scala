@@ -36,7 +36,7 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
     private var ip4MacMap: IpMacMap[IPv4Addr] = null
     private var rtrMacToLogicalPortId: MMap[MAC, UUID] = null
     private var rtrIpToMac: MMap[IPAddr, MAC] = null
-    private var vlanBridgePeerPortId: UUID = null
+    private var vlanBridgePeerPortId: Option[UUID] = None
 
     def setTunnelKey(key: Long) {
         cfg = cfg.copy(tunnelKey = key.toInt)
@@ -66,13 +66,14 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
         this
     }
 
-    def setVlanBridgePeerPortId(portId: UUID) {
-        if (vlanBridgePeerPortId == null) {
-            vlanBridgePeerPortId = portId
-        } else if (vlanBridgePeerPortId != portId) {
-            log.warn("Trying to set a new vlan bridge peer port id in " +
-                     "bridge {}, but already has one associated {}", portId,
-                     vlanBridgePeerPortId)
+    def setVlanBridgePeerPortId(portId: Option[UUID]) {
+        vlanBridgePeerPortId = vlanBridgePeerPortId match {
+            case Some(pId) if !pId.equals(portId.getOrElse(null)) =>
+                log.warn("Trying to set a new vlan bridge peer port id in " +
+                    "bridge {}, but already has one associated {}", portId,
+                    pId)
+                vlanBridgePeerPortId
+            case _ => portId
         }
     }
 

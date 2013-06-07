@@ -217,8 +217,7 @@ public abstract class Port extends UriResource {
     public abstract UUID getAttachmentId();
 
     /**
-     * @param port
-     *            Port to check linkability with.
+     * @param port Port to check linkability with.
      * @return True if two ports can be linked.
      */
     public boolean isLinkable(Port port) {
@@ -242,9 +241,14 @@ public abstract class Port extends UriResource {
             return false;
         }
 
-        // Cannot link two bridges
+        // If both are bridge ports allowed as long as only one has VLAN ID
         if (isBridgePort() && port.isBridgePort()) {
-            return false;
+            Short myVlanId = ((InteriorBridgePort)this).getVlanId();
+            Short herVlanId = ((InteriorBridgePort)port).getVlanId();
+            if ((myVlanId == null && herVlanId == null) ||
+                (myVlanId != null && herVlanId != null)) {
+                return false;
+            }
         }
 
         // If two routers, must be on separate devices

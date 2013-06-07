@@ -317,7 +317,9 @@ public class TestPort {
 
             // Create a Interior bridge port
             DtoInteriorBridgePort b1Lp1 = new DtoInteriorBridgePort();
+            short vlanId = 666;
             b1Lp1.setDeviceId(b.getId());
+            b1Lp1.setVlanId(vlanId);
             b1Lp1 = dtoResource.postAndVerifyCreated(b.getPorts(),
                     APPLICATION_PORT_JSON, b1Lp1, DtoInteriorBridgePort.class);
 
