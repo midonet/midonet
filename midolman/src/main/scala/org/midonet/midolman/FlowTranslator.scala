@@ -350,9 +350,8 @@ trait FlowTranslator {
                                     dpTags.orNull)))
                             })(ec, system)
 
-                        case _ => log.error("Error getting " +
-                            "configurations of local ports of " +
-                            "PortSet {}", portSet)
+                        case _ => log.error("Error getting configurations of " +
+                                           "local ports of PortSet {}", portSet)
                         translated.success(None)
                     }
 

@@ -136,7 +136,7 @@ public class ClientTest extends JerseyTest {
         BridgePort bp3 = (BridgePort) b1.addInteriorPort().create();
         BridgePort bp4 = (BridgePort) b1.addInteriorPort().create();
         BridgePort b2pVlan = (BridgePort)b2.addInteriorPort()
-                                           .setVlanId(vlanId).create();
+                                           .vlanId(vlanId).create();
 
         log.debug("bp1: {}", bp1);
         log.debug("bp2: {}", bp2);

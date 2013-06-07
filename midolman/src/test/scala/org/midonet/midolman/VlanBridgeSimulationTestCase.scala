@@ -3,136 +3,74 @@
 */
 package org.midonet.midolman
 
-import org.apache.commons.configuration.HierarchicalConfiguration
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.{Bridge, VlanAwareBridge}
-import org.midonet.cluster.data.ports.{MaterializedBridgePort, LogicalBridgePort, TrunkPort, LogicalVlanBridgePort}
+import org.midonet.cluster.data.{Entity, Bridge}
+import org.midonet.cluster.data.ports._
 import org.midonet.packets._
 import org.junit.Test
 import org.slf4j.LoggerFactory
 import org.midonet.midolman.PacketWorkflow.PacketIn
 import topology.VirtualTopologyActor.{BridgeRequest, PortRequest}
 import topology.{VirtualTopologyActor, LocalPortActive}
-import org.midonet.midolman.FlowController.{InvalidateFlowsByTag, WildcardFlowAdded}
 import util.SimulationHelper
 import akka.testkit.TestProbe
 import java.nio.ByteBuffer
 import java.util.UUID
-import org.midonet.midolman.DeduplicationActor.DiscardPacket
-import akka.util.Duration
-import java.util.concurrent.TimeUnit
 import org.midonet.odp.flows.{FlowActionPushVLAN, FlowActionOutput}
+import scala.Some
+import org.midonet.midolman.FlowController.{WildcardFlowRemoved, WildcardFlowAdded}
+import org.midonet.cluster.data.host.Host
 
+trait VlanBridgeSimulationTestCase
+    extends SimulationHelper
+    with VirtualConfigurationBuilders {
 
-@RunWith(classOf[JUnitRunner])
-class VlanBridgeSimulationTestCase extends MidolmanTestCase
-with VirtualConfigurationBuilders with SimulationHelper {
+    type T <: Entity.Base[_, _, _]
 
-    private val log = LoggerFactory.getLogger(this.getClass)
+    val log = LoggerFactory.getLogger(this.getClass)
 
-    private var trunkPort1: TrunkPort = null
-    private var trunkPort2: TrunkPort = null
-    private var intVlanPort1: LogicalVlanBridgePort = null
-    private var intVlanPort2: LogicalVlanBridgePort = null
-    private var br1IntPort: LogicalBridgePort = null
-    private var br2IntPort: LogicalBridgePort = null
-    private var vm1_1ExtPort: MaterializedBridgePort = null
-    private var vm2_1ExtPort: MaterializedBridgePort = null
-    private var vm2_2ExtPort: MaterializedBridgePort = null
+    var trunk1Id: UUID = null
+    var trunk2Id: UUID = null
+    var intVlanPort1Id: UUID = null
+    var intVlanPort2Id: UUID = null
 
-    private var vlanBr: VlanAwareBridge = null
-    private var br1: Bridge = null // vlan 1
-    private var br2: Bridge = null // vlan 2
-
-    private val vlanId1: Short = 101
-    private val vlanId2: Short = 202
+    val vlanId1: Short = 101
+    val vlanId2: Short = 202
 
     // MAC of something plugged at the exterior ports of the vlan-bridge
-    private val trunkMac = MAC.fromString("aa:bb:cc:dd:dd:ff")
-    private val vm1_1Mac = MAC.fromString("aa:bb:aa:bb:cc:cc")
-    private val vm2_1Mac = MAC.fromString("cc:cc:aa:aa:bb:bb")
-    private val vm2_2Mac = MAC.fromString("cc:cc:aa:aa:ee:ee")
+    val trunkMac = MAC.fromString("aa:bb:cc:dd:dd:ff")
+    val vm1_1Mac = MAC.fromString("aa:bb:aa:bb:cc:cc")
+    val vm2_1Mac = MAC.fromString("cc:cc:aa:aa:bb:bb")
+    val vm2_2Mac = MAC.fromString("cc:cc:aa:aa:ee:ee")
 
-    private val trunkIp = IPv4Addr.fromString("10.1.1.1")
-    private val vm1_1Ip = IPv4Addr.fromString("10.1.1.1")
-    private val vm2_1Ip = IPv4Addr.fromString("10.2.2.2")
-    private val vm2_2Ip = IPv4Addr.fromString("10.2.2.2")
+    // various IPs
+    val trunkIp = IPv4Addr.fromString("10.1.1.1")
+    val vm1_1Ip = IPv4Addr.fromString("10.1.1.1")
+    val vm2_1Ip = IPv4Addr.fromString("10.2.2.2")
+    val vm2_2Ip = IPv4Addr.fromString("10.2.2.2")
 
-    private var packetEventsProbe: TestProbe = null
+    // Two ports in the normal bridges connecting to the VAB (be it the
+    // VlanAwareBridge or a normal, enhanced Brige
+    var br1IntPort: LogicalBridgePort = null
+    var br2IntPort: LogicalBridgePort = null
+    // These are the interior ports tagged with a VLAN ID that can be
+    // in the legacy VAB or in the enhanced Bridge
+    // The VMs have exterior ports
+    var vm1_1ExtPort: MaterializedBridgePort = null
+    var vm2_1ExtPort: MaterializedBridgePort = null
+    var vm2_2ExtPort: MaterializedBridgePort = null
 
-    override protected def fillConfig(config: HierarchicalConfiguration) = {
-        config.setProperty("datapath.max_flow_count", "10")
-        super.fillConfig(config)
-    }
+    var vlanBridge: T
+    var br1: Bridge = null // on vlan 1
+    var br2: Bridge = null // on vlan 2
 
-    override def beforeTest() {
+    var host: Host = null
 
-        val host = newHost("host1", hostId())
+    var packetEventsProbe: TestProbe = null
 
-        vlanBr = newVlanAwareBridge("vlan-bridge")
-        br1 = newBridge("bridge1")
-        br2 = newBridge("bridge2")
+    def hasMacLearning: Boolean
 
-        // Ports on the VLAN bridge
-        trunkPort1 = newVlanBridgeTrunkPort(vlanBr)
-        trunkPort2 = newVlanBridgeTrunkPort(vlanBr)
-        trunkPort1 = clusterDataClient().portsGet(trunkPort1.getId).asInstanceOf[TrunkPort]
-        trunkPort2 = clusterDataClient().portsGet(trunkPort2.getId).asInstanceOf[TrunkPort]
-
-        // Exterior ports on the bridges
-        vm1_1ExtPort = newExteriorBridgePort(br1)
-        vm2_1ExtPort = newExteriorBridgePort(br2)
-        vm2_2ExtPort = newExteriorBridgePort(br2)
-
-        // Logical ports connecting the Vlan-bridge to each bridge
-        intVlanPort1 = newInteriorVlanBridgePort(vlanBr, vlanId1)
-        intVlanPort2 = newInteriorVlanBridgePort(vlanBr, vlanId2)
-        br1IntPort = newInteriorBridgePort(br1)
-        br2IntPort = newInteriorBridgePort(br2)
-
-        log.info("Binding Vlan-bridge logical ports to bridges interior ports")
-        clusterDataClient().portsLink(intVlanPort1.getId, br1IntPort.getId)
-        clusterDataClient().portsLink(intVlanPort2.getId, br2IntPort.getId)
-
-        materializePort(trunkPort1, host, "trunkPort1")
-        materializePort(trunkPort2, host, "trunkPort2")
-        materializePort(vm1_1ExtPort, host, "vm1_1Port")
-        materializePort(vm2_1ExtPort, host, "vm2_1Port")
-        materializePort(vm2_2ExtPort, host, "vm2_2Port")
-
-        initializeDatapath() should not be (null)
-
-        flowProbe().expectMsgType[DatapathController.DatapathReady]
-            .datapath should not be (null)
-
-        for(i <- 1.to(5)) log.info(" EXT. PORT ACTIVE: {}",
-            portsProbe.expectMsgClass(classOf[LocalPortActive]))
-
-        drainProbes()
-
-        packetEventsProbe = newProbe()
-        actors().eventStream.subscribe(packetEventsProbe.ref, classOf[PacketsExecute])
-
-        // Request ports for the first time so that we trigger associated
-        // flow invalidations now and they don't impact expects during the tests
-        val vta = VirtualTopologyActor.getRef(actors())
-        ask(vta, PortRequest(trunkPort1.getId, update = false))
-        ask(vta, PortRequest(trunkPort2.getId, update = false))
-        ask(vta, PortRequest(intVlanPort1.getId, update = false))
-        ask(vta, PortRequest(intVlanPort2.getId, update = false))
-        ask(vta, PortRequest(br1IntPort.getId, update = false))
-        ask(vta, PortRequest(br2IntPort.getId, update = false))
-        ask(vta, BridgeRequest(br1.getId, update = false))
-        ask(vta, BridgeRequest(br2.getId, update = false))
-
-        drainProbes()
-        drainProbe(packetEventsProbe)
-
-    }
-
-    private def feedBridgeArpCaches() {
+    def feedBridgeArpCaches() {
         feedArpCache("vm1_1Port", vm1_1Ip.toInt, vm1_1Mac, vm2_1Ip.toInt, vm2_1Mac)
         feedArpCache("vm2_1Port", vm2_1Ip.toInt, vm2_1Mac, vm1_1Ip.toInt, vm1_1Mac)
         feedArpCache("vm2_2Port", vm2_2Ip.toInt, vm2_2Mac, vm1_1Ip.toInt, vm1_1Mac)
@@ -142,10 +80,10 @@ with VirtualConfigurationBuilders with SimulationHelper {
         drainProbe(packetEventsProbe)
     }
 
-    private def getPortName (portNo: UUID): String = {
+    def getPortName (portNo: UUID): String = {
         // TODO this doesn't seem to work with match :(
-        if (portNo.equals(trunkPort1.getId)) "trunkPort1"
-        else if (portNo.equals(trunkPort2.getId)) "trunkPort2"
+        if (portNo.equals(trunk1Id)) "trunkPort1"
+        else if (portNo.equals(trunk2Id)) "trunkPort2"
         else if (portNo.equals(vm1_1ExtPort.getId)) "vm1_1Port"
         else if (portNo.equals(vm2_1ExtPort.getId)) "vm2_1Port"
         else if (portNo.equals(vm2_2ExtPort.getId)) "vm2_2Port"
@@ -154,8 +92,8 @@ with VirtualConfigurationBuilders with SimulationHelper {
 
     // TODO(galo) review this method, copied in a rush from
     // BridgeSimulationTestCase
-    private def injectOnePacket (ethPkt : Ethernet, ingressPortId: UUID,
-                                 expectFlowAdded: Boolean = true):
+    def injectOnePacket (ethPkt : Ethernet, ingressPortId: UUID,
+                         expectFlowAdded: Boolean = true):
     Option[WildcardFlowAdded] = {
 
         val ingressPortName = getPortName(ingressPortId)
@@ -187,11 +125,11 @@ with VirtualConfigurationBuilders with SimulationHelper {
      * is false, it will not put a vlan id when injecting, but will expect it
      * when received on the other end.
      */
-    private def sendFrame(fromPort: UUID, toPorts: List[UUID],
-                          fromMac: MAC, toMac: MAC,
-                          fromIp: IPv4Addr, toIp: IPv4Addr,
-                          vlanId: Short, vlanOnInject: Boolean = false,
-                          expectFlowAdded: Boolean = true) {
+    def sendFrame(fromPort: UUID, toPorts: List[UUID],
+                  fromMac: MAC, toMac: MAC,
+                  fromIp: IPv4Addr, toIp: IPv4Addr,
+                  vlanId: Short, vlanOnInject: Boolean = false,
+                  expectFlowAdded: Boolean = true) {
 
         val ethRaw = Packets.udp(fromMac, toMac,
             fromIp.toIntIPv4, toIp.toIntIPv4,
@@ -212,7 +150,7 @@ with VirtualConfigurationBuilders with SimulationHelper {
         if (expectFlowAdded)
             addFlowMsg.get.f should not be null
         val ethRcv = expectPacketOut(toPortNos, packetEventsProbe,
-                                     vlanIdsToPush, vlanIdsToPop)
+            vlanIdsToPush, vlanIdsToPop)
 
         log.debug("SENT: {}", inEth)
         log.debug("GOT: {}", ethRcv)
@@ -224,7 +162,7 @@ with VirtualConfigurationBuilders with SimulationHelper {
 
     }
 
-    private def arpReq(srcMac: MAC, srcIp: Int, dstIp: Int, vlanId: Short) = {
+    def arpReq(srcMac: MAC, srcIp: Int, dstIp: Int, vlanId: Short) = {
         val arp = new ARP()
         arp.setHardwareType(ARP.HW_TYPE_ETHERNET)
         arp.setProtocolType(ARP.PROTO_TYPE_IP)
@@ -245,10 +183,11 @@ with VirtualConfigurationBuilders with SimulationHelper {
         eth
     }
 
-    private def expectBroadCast(materializedPort: Short,trunk1: Short,
-    trunk2: Short, vlanId: Short) = {
+    def expectBroadCast(materializedPort: Short,trunk1: Short,
+                        trunk2: Short, vlanId: Short) {
         val msg = packetEventsProbe.expectMsgClass(classOf[PacketsExecute])
         var trunkPorts = List[Short](trunk1, trunk2)
+
         msg.packet.getActions.size should be === 4
 
         msg.packet.getActions.get(0) match {
@@ -280,6 +219,79 @@ with VirtualConfigurationBuilders with SimulationHelper {
     }
 
     /**
+     * Builds all the pieces of the virtual topology that do not depend
+     * on what device is acting as Vlan Aware Bridge. Building that is
+     * responsibility of a subclass.
+     */
+    def buildCommonTopology() {
+
+        host = newHost("host1", hostId())
+
+        br1 = newBridge("bridge1")
+        br2 = newBridge("bridge2")
+
+        vm1_1ExtPort = newExteriorBridgePort(br1)
+        vm2_1ExtPort = newExteriorBridgePort(br2)
+        vm2_2ExtPort = newExteriorBridgePort(br2)
+
+        br1IntPort = newInteriorBridgePort(br1)
+        br2IntPort = newInteriorBridgePort(br2)
+
+        materializePort(vm1_1ExtPort, host, "vm1_1Port")
+        materializePort(vm2_1ExtPort, host, "vm2_1Port")
+        materializePort(vm2_2ExtPort, host, "vm2_2Port")
+
+        log.debug("VLAN BRIDGE SIMULATION TEST CASE -- TOPOLOGY SUMMARY")
+        log.debug("Bridge 1: {}, on vlan {}", br1.getId, vlanId1)
+        log.debug("Bridge 2: {}, on vlan {}", br2.getId, vlanId2)
+        log.debug("Vlan Bridge: {}", vlanBridge.getId)
+        log.debug("Vlan Bridge port to bridge 1: {}", intVlanPort1Id)
+        log.debug("Vlan Bridge port to bridge 2: {}", intVlanPort2Id)
+
+    }
+
+    /**
+     * Materializes the two ports with ids set in trunk1Id and trunk2Id
+     * and initializes the datapath.
+     */
+    def initialize() {
+        val trunk1 = clusterDataClient().portsGet(trunk1Id)
+        val trunk2 = clusterDataClient().portsGet(trunk2Id)
+        materializePort(trunk1, host, "trunkPort1")
+        materializePort(trunk2, host, "trunkPort2")
+
+        initializeDatapath() should not be (null)
+
+        flowProbe().expectMsgType[DatapathController.DatapathReady]
+            .datapath should not be (null)
+
+        // We expect 5 of these: 1 for each of 3 vlans + 2 trunks
+        for(i <- 1.to(5)) log.info(" EXT. PORT ACTIVE: {}",
+            portsProbe.expectMsgClass(classOf[LocalPortActive]))
+
+        drainProbes()
+
+        packetEventsProbe = newProbe()
+        actors().eventStream.subscribe(packetEventsProbe.ref, classOf[PacketsExecute])
+
+        // Request ports for the first time so that we trigger associated
+        // flow invalidations now and they don't impact expects during the tests
+        val vta = VirtualTopologyActor.getRef(actors())
+        ask(vta, PortRequest(trunk1Id, update = false))
+        ask(vta, PortRequest(trunk2Id, update = false))
+        ask(vta, PortRequest(intVlanPort1Id, update = false))
+        ask(vta, PortRequest(intVlanPort2Id, update = false))
+        ask(vta, PortRequest(br1IntPort.getId, update = false))
+        ask(vta, PortRequest(br2IntPort.getId, update = false))
+        ask(vta, BridgeRequest(br1.getId, update = false))
+        ask(vta, BridgeRequest(br2.getId, update = false))
+
+        drainProbes()
+        drainProbe(packetEventsProbe)
+
+    }
+
+    /**
      * Does an ARP request/reply starting on the VM2, asking for VM2_1's MAC
      */
     @Test
@@ -299,7 +311,7 @@ with VirtualConfigurationBuilders with SimulationHelper {
             getPortNumber("trunkPort1").toShort,
             getPortNumber("trunkPort2").toShort, vlanId2)
 
-    // no other packet should be transmitted
+        // no other packet should be transmitted
         packetEventsProbe.expectNoMsg()
 
         log.info("ARP reply from trunk to VM 2_1")
@@ -310,7 +322,7 @@ with VirtualConfigurationBuilders with SimulationHelper {
         triggerPacketIn("trunkPort1", arpRepEth)
 
         val inEth = expectPacketOut(List(getPortNumber("vm2_1Port")),
-                                    packetEventsProbe, List(), List(vlanId2))
+            packetEventsProbe, List(), List(vlanId2))
         inEth.getEtherType should be === ARP.ETHERTYPE
 
         // Again, no other packets should've been transmitted
@@ -328,8 +340,10 @@ with VirtualConfigurationBuilders with SimulationHelper {
         triggerPacketIn("trunkPort1", arpReqEth)
         // The vlan-bridge will pop the vlan tag and pass the ARP to the
         // unaware bridge, who should flood on all VMs on bridge 2
-        var toPorts = List[Int](getPortNumber("vm2_1Port"),
-                                getPortNumber("vm2_2Port"))
+        var toPorts = List(getPortNumber("vm2_1Port"),
+                           getPortNumber("vm2_2Port"))
+        if (hasMacLearning) toPorts = getPortNumber("trunkPort2") :: toPorts
+
         var inEth = expectPacketOut(toPorts, packetEventsProbe,
                                     List(), List(vlanId2))
         inEth.getEtherType should be === ARP.ETHERTYPE
@@ -342,14 +356,15 @@ with VirtualConfigurationBuilders with SimulationHelper {
 
         log.info("ARP reply from VM to trunk")
         val arpRepEth = ARP.makeArpReply(vm2_1Mac, trunkMac,
-                                        IPv4.toIPv4AddressBytes(vm2_1Ip.toInt),
-                                        IPv4.toIPv4AddressBytes(trunkIp.toInt))
+                                         IPv4.toIPv4AddressBytes(vm2_1Ip.toInt),
+                                         IPv4.toIPv4AddressBytes(trunkIp.toInt))
         triggerPacketIn("vm2_1Port", arpRepEth)
 
-        toPorts = List[Int](getPortNumber("trunkPort1"),
+        toPorts = if (hasMacLearning) List(getPortNumber("trunkPort1"))
+                  else List(getPortNumber("trunkPort1"),
                             getPortNumber("trunkPort2"))
-        inEth = expectPacketOut(toPorts, packetEventsProbe,
-                                List(vlanId2), List())
+        inEth = expectPacketOut(toPorts, packetEventsProbe, List(vlanId2),
+                                List())
         inEth.getEtherType should be === ARP.ETHERTYPE
         inEth.getSourceMACAddress should be === vm2_1Mac
         inEth.getDestinationMACAddress should be === trunkMac
@@ -366,17 +381,21 @@ with VirtualConfigurationBuilders with SimulationHelper {
     @Test
     def testFrameExchangeThroughVlanBridge() {
         feedBridgeArpCaches()
-        sendFrame(trunkPort1.getId, List(vm1_1ExtPort.getId), trunkMac,
+        sendFrame(trunk1Id, List(vm1_1ExtPort.getId), trunkMac,
                   vm1_1Mac, trunkIp, vm1_1Ip, vlanId1, vlanOnInject = true)
-        sendFrame(trunkPort1.getId, List(vm2_1ExtPort.getId), trunkMac,
+        sendFrame(trunk1Id, List(vm2_1ExtPort.getId), trunkMac,
                   vm2_1Mac, trunkIp, vm2_1Ip, vlanId2, vlanOnInject = true)
 
         log.debug("The bridge plugged to VM1 has learned trunkMac, active " +
-            "trunk port is trunkPort1 ({})", trunkPort1.getId)
+            "trunk port is trunkPort1 ({})", trunk1Id)
 
-        sendFrame(vm1_1ExtPort.getId, List(trunkPort1.getId, trunkPort2.getId),
+        sendFrame(vm1_1ExtPort.getId,
+                  if (hasMacLearning) List(trunk1Id)
+                  else List(trunk1Id, trunk2Id),
                   vm1_1Mac, trunkMac, vm1_1Ip, trunkIp, vlanId1)
-        sendFrame(vm2_1ExtPort.getId, List(trunkPort1.getId, trunkPort2.getId),
+        sendFrame(vm2_1ExtPort.getId,
+                  if (hasMacLearning) List(trunk1Id)
+                  else List(trunk1Id, trunk2Id),
                   vm2_1Mac, trunkMac, vm2_1Ip, trunkIp, vlanId2)
     }
 
@@ -394,31 +413,34 @@ with VirtualConfigurationBuilders with SimulationHelper {
     def testFrameWithNestedVlanTags() {
         feedBridgeArpCaches()
         // Activate the trunk
-        sendFrame(trunkPort1.getId, List(vm1_1ExtPort.getId), trunkMac,
+        sendFrame(trunk1Id, List(vm1_1ExtPort.getId), trunkMac,
                   vm1_1Mac, trunkIp, vm1_1Ip, vlanId1, vlanOnInject = true)
 
         // Send a frame from VM1 without VLAN ID (normal case)
-        sendFrame(vm1_1ExtPort.getId, List(trunkPort1.getId, trunkPort2.getId),
+        sendFrame(vm1_1ExtPort.getId,
+                  if (hasMacLearning) List(trunk1Id)
+                  else List(trunk1Id, trunk2Id),
                   vm1_1Mac, trunkMac, vm1_1Ip, trunkIp, vlanId1)
 
         // Now send a frame but with some private VLAN ID
         val eth = Packets.udp(vm1_1Mac, trunkMac, vm1_1Ip.toIntIPv4,
-                              trunkIp.toIntIPv4, 10, 11, "hello".getBytes)
+            trunkIp.toIntIPv4, 10, 11, "hello".getBytes)
         eth.setVlanID(666)
 
-        var trunks = Set(getPortNumber("trunkPort1"),
-                         getPortNumber("trunkPort2"))
+        var trunks = if (hasMacLearning) Set(getPortNumber("trunkPort1"))
+                     else Set(getPortNumber("trunkPort1"),
+                              getPortNumber("trunkPort2"))
         val addFlowMsg = injectOnePacket(eth, vm1_1ExtPort.getId)
         addFlowMsg match {
             case None => fail("Expecting a flow added")
             case Some(msg: WildcardFlowAdded) =>
                 msg.f.getActions should not be null
-                msg.f.getActions should have size (3)
+                msg.f.getActions should have size (trunks.size + 1)
                 msg.f.getActions foreach ( act => act match {
                     case a: FlowActionOutput => trunks -= a.getPortNumber
                     case a: FlowActionPushVLAN =>
                         (a.getTagControlIdentifier & 0x0fff) should be === (vlanId1)
-            })
+                })
         }
         trunks should have size (0)
     }
@@ -434,34 +456,39 @@ with VirtualConfigurationBuilders with SimulationHelper {
         // Send a frame from one port in the VLAN-Bridge that is
         // connected to a VM behind a bridge, to a VM on the other side
         log.info("Send a frame from trunk port 1, traffic should go to the vNw")
-        sendFrame(trunkPort1.getId, List(vm1_1ExtPort.getId), trunkMac,
+        sendFrame(trunk1Id, List(vm1_1ExtPort.getId), trunkMac,
                   vm1_1Mac, trunkIp, vm1_1Ip, vlanId1, vlanOnInject = true)
-        sendFrame(vm1_1ExtPort.getId, List(trunkPort1.getId, trunkPort2.getId),
+        sendFrame(vm1_1ExtPort.getId,
+                  if (hasMacLearning) List(trunk1Id)
+                  else List(trunk1Id, trunk2Id),
                   vm1_1Mac, trunkMac, vm1_1Ip, trunkIp, vlanId1)
 
         log.info("Now let's send a frame from trunk port 2")
-        sendFrame(trunkPort2.getId, List(vm2_2ExtPort.getId), trunkMac,
+        sendFrame(trunk2Id, List(vm2_2ExtPort.getId), trunkMac,
                   vm2_2Mac, trunkIp, vm2_2Ip, vlanId2, vlanOnInject = true)
 
-        log.info("Sending frames from VMs, should go to the two trunks, hitting flows")
-        sendFrame(vm1_1ExtPort.getId, List(trunkPort1.getId, trunkPort2.getId),
-                  vm1_1Mac, trunkMac, vm1_1Ip, trunkIp, vlanId1,
-                  vlanOnInject = false, expectFlowAdded = false)
-    }
+        if (hasMacLearning) {
+            // We've learned a new port for trunkMac, the old flow must be gone
+            val wfr = wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
+            wfr.f.getActions.foreach( act => act match {
+                case a: FlowActionOutput => // for trunkMac, port was trunk1
+                    a.getPortNumber should be === getPortNumber("trunkPort1")
+                case a: FlowActionPushVLAN =>
+                    (a.getTagControlIdentifier & 0x0fff) should be === (vlanId1)
+            })
+            // A new flow should be added, this is checked already in sendFrame
+            log.info("Sending frames from VMs, should go to trunk 2")
+            sendFrame(vm1_1ExtPort.getId, List(trunk2Id),
+                      vm1_1Mac, trunkMac, vm1_1Ip, trunkIp, vlanId1,
+                      vlanOnInject = false, expectFlowAdded = false)
 
-    /**
-     * Tests that the vlan-bridge drops a frame if it brings a vlan-id that
-     * is not assigned to one of its logical ports.
-     */
-    @Test
-    def testFrameFromTrunkWithUnknownVlanId() {
-        feedBridgeArpCaches()
-        val eth = Packets.udp(trunkMac, vm1_1Mac, trunkIp.toIntIPv4,
-                              vm1_1Ip.toIntIPv4, 10, 11, "hello".getBytes)
-        eth.deserialize(ByteBuffer.wrap(eth.serialize()))
-        eth.setVlanID(500)
-        injectOnePacket(eth, trunkPort1.getId)
-        discardPacketProbe.expectMsgClass(classOf[DiscardPacket])
+
+        } else {
+            log.info("Sending frames from VMs, should go to both trunks")
+            sendFrame(vm1_1ExtPort.getId, List(trunk1Id, trunk2Id),
+                      vm1_1Mac, trunkMac, vm1_1Ip, trunkIp, vlanId1,
+                      vlanOnInject = false, expectFlowAdded = false)
+        }
     }
 
     /**
@@ -471,24 +498,22 @@ with VirtualConfigurationBuilders with SimulationHelper {
     @Test
     def testBroadcastFrameWithVlanIdFromTrunk() {
         feedBridgeArpCaches()
-        sendFrame(trunkPort1.getId,
-            List(vm2_1ExtPort.getId, vm2_2ExtPort.getId), trunkMac,
-            MAC.fromString("ff:ff:ff:ff:ff:ff"), trunkIp,
-            vm2_1Ip, vlanId2, vlanOnInject = true)
+        val toPorts = List(vm2_1ExtPort.getId, vm2_2ExtPort.getId)
+        sendFrame(trunk1Id,
+                  if (hasMacLearning) toPorts :+ trunk2Id else toPorts,
+                  trunkMac,
+                  MAC.fromString("ff:ff:ff:ff:ff:ff"), trunkIp,
+                  vm2_1Ip, vlanId2, vlanOnInject = true)
     }
 
     /**
      * Send a broadcast from a vm in a vlan, should get to the trunk
-     *
-     * TODO (galo) test that if we send a broadcast first without knowing an
-     * active trunk, then learn the trunk, then send another broadcast, things
-     * go well - depends on flow invalidation
      */
     @Test
     def testBroadcastFrameWithoutVlanIdFromVM() {
         feedBridgeArpCaches()
         // learn an active trunk first
-        sendFrame(trunkPort1.getId, List(vm2_1ExtPort.getId), trunkMac, vm2_1Mac,
+        sendFrame(trunk1Id, List(vm2_1ExtPort.getId), trunkMac, vm2_1Mac,
             trunkIp, vm2_1Ip, vlanId2, vlanOnInject = true)
 
         val fromMac = vm2_1Mac
@@ -515,20 +540,25 @@ with VirtualConfigurationBuilders with SimulationHelper {
      * Tests that if the Vlan aware bridge sees traffic from the virtual network
      * before learning the active trunk, it'll send the frames on ALL trunks.
      */
+    @Test
     def testUnknownTrunk() {
         feedBridgeArpCaches()
         // Broadcast frame from the VM, no trunk is learned yet
-        sendFrame(vm1_1ExtPort.getId, List(trunkPort1.getId, trunkPort2.getId),
+        sendFrame(vm1_1ExtPort.getId, List(trunk1Id, trunk2Id),
             vm1_1Mac, MAC.fromString("ff:ff:ff:ff:ff:ff"), vm1_1Ip,
             trunkIp, vlanId1, vlanOnInject = false)
     }
 
+    /**
+     * Tests that BPDU frames flow correctly accross trunks.
+     */
+    @Test
     def testBPDU() {
         def doBpdu(from: UUID, to: UUID) {
             val bpdu = Packets.bpdu(MAC.random(),
-                                     MAC.fromString("01:80:c2:00:00:00"),
-                                     BPDU.MESSAGE_TYPE_TCNBPDU, 0x0, 100, 10,
-                                     1, 23, 1000, 2340, 100, 10)
+                MAC.fromString("01:80:c2:00:00:00"),
+                BPDU.MESSAGE_TYPE_TCNBPDU, 0x0, 100, 10,
+                1, 23, 1000, 2340, 100, 10)
             val eth = Ethernet.deserialize(bpdu)
             val afm = injectOnePacket(eth, from) // returns add flow msg
             afm match {
@@ -540,17 +570,17 @@ with VirtualConfigurationBuilders with SimulationHelper {
                     act.getPortNumber should be === getPortNumber(getPortName(to))
             }
         }
-        doBpdu(trunkPort1.getId, trunkPort2.getId)
-        doBpdu(trunkPort2.getId, trunkPort1.getId)
+        doBpdu(trunk1Id, trunk2Id)
+        doBpdu(trunk2Id, trunk1Id)
     }
 
     /**
-     * TODO (galo, rossella)
+     * This case works differently in the legacy VAB and the Bridge. It MUST
+     * be implemented, but the details will vary. Please refer to the
+     * implementations for details
      */
     @Test
-    def testTrunksUpDown() {
-        log.warn("-------- --------- -------- NOT IMPLEMENTED !!!!!! ")
-    }
+    def testFrameFromTrunkWithUnknownVlanId()
 
     /*
      * TODO - TESTS MIRRORED FROM Bridge tests
@@ -563,3 +593,4 @@ with VirtualConfigurationBuilders with SimulationHelper {
      */
 
 }
+

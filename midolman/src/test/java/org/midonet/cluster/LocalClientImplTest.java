@@ -23,6 +23,7 @@ import org.midonet.cluster.client.IpMacMap;
 import org.midonet.cluster.client.MacLearningTable;
 import org.midonet.cluster.client.RouterBuilder;
 import org.midonet.cluster.client.SourceNatResource;
+import org.midonet.cluster.client.VlanPortMap;
 import org.midonet.midolman.Setup;
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.config.ZookeeperConfig;
@@ -238,6 +239,7 @@ public class LocalClientImplTest {
         IpMacMap ipMacMap;
         MAC[] notifiedMAC = new MAC[1];
         UUID[] notifiedUUID = new UUID[2];
+        VlanPortMap vlanPortMap = new VlanPortMapImpl();
 
         public void simulateNewPacket(MAC mac, UUID portId) {
             mlTable.add(mac, portId);
@@ -291,9 +293,13 @@ public class LocalClientImplTest {
         }
 
         @Override
-        public void setLogicalPortsMap(Map<MAC, UUID> rtrMacToLogicalPortId,
-                                       Map<IPAddr, MAC> rtrIpToMac) {
-            //To change body of implemented methods use File | Settings | File Templates.
+        public void setVlanPortMap(VlanPortMap map) {
+            vlanPortMap = map;
+        }
+
+        @Override
+        public void setLogicalPortsMap(Map<MAC, UUID> macToLogicalPortId,
+                                       Map<IPAddr, MAC> ipToMac) {
         }
 
         @Override

@@ -167,10 +167,11 @@ trait VirtualConfigurationBuilders {
         clusterDataClient().portsGet(uuid).asInstanceOf[TrunkPort]
     }
 
-    def newInteriorVlanBridgePort(bridge: ClusterVlanAwareBridge, vlanId: Short)
-    : LogicalVlanBridgePort = {
+    def newInteriorVlanBridgePort(bridge: ClusterVlanAwareBridge,
+                                  vlanId: Option[Short]): LogicalVlanBridgePort = {
+        val jVlanId: java.lang.Short = if(vlanId.isDefined) vlanId.get else null
         val uuid = clusterDataClient()
-                   .portsCreate(Ports.logicalVlanBridgePort(bridge, vlanId))
+                   .portsCreate(Ports.logicalVlanBridgePort(bridge, jVlanId))
         clusterDataClient().portsGet(uuid).asInstanceOf[LogicalVlanBridgePort]
     }
 
@@ -181,8 +182,11 @@ trait VirtualConfigurationBuilders {
         clusterDataClient().portsGet(uuid).asInstanceOf[MaterializedBridgePort]
     }
 
-    def newInteriorBridgePort(bridge: ClusterBridge): LogicalBridgePort = {
-        val uuid = clusterDataClient().portsCreate(Ports.logicalBridgePort(bridge))
+    def newInteriorBridgePort(bridge: ClusterBridge,
+                              vlanId: Option[Short] = None): LogicalBridgePort = {
+        val jVlanId: java.lang.Short = if(vlanId.isDefined) vlanId.get else null
+        val uuid = clusterDataClient()
+                   .portsCreate(Ports.logicalBridgePort(bridge, jVlanId))
         clusterDataClient().portsGet(uuid).asInstanceOf[LogicalBridgePort]
     }
 

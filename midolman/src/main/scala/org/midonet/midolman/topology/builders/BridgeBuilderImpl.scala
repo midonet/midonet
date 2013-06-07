@@ -10,12 +10,12 @@ import java.util.{Map => JMap, UUID}
 
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.client.{IpMacMap, BridgeBuilder, MacLearningTable,
-    SourceNatResource}
+import org.midonet.cluster.client._
 import org.midonet.midolman.FlowController
 import org.midonet.midolman.topology.{BridgeConfig, BridgeManager, FlowTagger}
 import org.midonet.packets.{IPv4Addr, IPAddr, MAC}
 import org.midonet.util.functors.Callback3
+import org.midonet.midolman.topology.BridgeConfig
 
 
 /**
@@ -34,9 +34,10 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
     private var cfg = new BridgeConfig
     private var macPortMap: MacLearningTable = null
     private var ip4MacMap: IpMacMap[IPv4Addr] = null
-    private var rtrMacToLogicalPortId: MMap[MAC, UUID] = null
-    private var rtrIpToMac: MMap[IPAddr, MAC] = null
+    private var macToLogicalPortId: MMap[MAC, UUID] = null
+    private var ipToMac: MMap[IPAddr, MAC] = null
     private var vlanBridgePeerPortId: Option[UUID] = None
+    private var vlanPortMap: VlanPortMap = null
 
     def setTunnelKey(key: Long) {
         cfg = cfg.copy(tunnelKey = key.toInt)
@@ -77,6 +78,10 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
         }
     }
 
+    def setVlanPortMap(map: VlanPortMap) {
+        if (map != null) vlanPortMap = map
+    }
+
     def setOutFilter(filterID: UUID) = {
         cfg = cfg.copy(outboundFilter = filterID)
         this
@@ -84,14 +89,14 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
 
     def start() = null
 
-    def setLogicalPortsMap(newRtrMacToLogicalPortId: JMap[MAC, UUID],
-                           newRtrIpToMac: JMap[IPAddr, MAC]) {
+    def setLogicalPortsMap(newMacToLogicalPortId: JMap[MAC, UUID],
+                           newIpToMac: JMap[IPAddr, MAC]) {
         import collection.JavaConversions._
         log.debug("Diffing the maps.")
         // calculate diff between the 2 maps
-        if (null != rtrMacToLogicalPortId) {
+        if (null != macToLogicalPortId) {
             val deletedPortMap =
-                rtrMacToLogicalPortId -- (newRtrMacToLogicalPortId.keys)
+                macToLogicalPortId -- (newMacToLogicalPortId.keys)
             // invalidate all the Unicast flows to the logical port
             for ((mac, portId) <- deletedPortMap) {
                 flowController !
@@ -101,8 +106,8 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
             // 1. Invalidate all arp requests
             // 2. Invalidate all flooded flows to the router port's specific MAC
             // We don't expect MAC migration in this case otherwise we'd be
-            // invalidating Unicast flows to the router port's MAC
-            val addedPortMap = newRtrMacToLogicalPortId -- rtrMacToLogicalPortId.keys
+            // invalidating Unicast flows to the device port's MAC
+            val addedPortMap = newMacToLogicalPortId -- macToLogicalPortId.keys
             if (addedPortMap.size > 0)
                 flowController !
                 FlowController.InvalidateFlowsByTag(
@@ -113,8 +118,8 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
                         FlowTagger.invalidateFloodedFlowsByDstMac(id, mac))
             }
         }
-        rtrMacToLogicalPortId = newRtrMacToLogicalPortId
-        rtrIpToMac = newRtrIpToMac
+        macToLogicalPortId = newMacToLogicalPortId
+        ipToMac = newIpToMac
     }
 
     def build() {
@@ -122,9 +127,9 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
         // send messages to the BridgeManager
         // Convert the mutable map to immutable
         bridgeMgr ! BridgeManager.TriggerUpdate(cfg, macPortMap, ip4MacMap,
-            collection.immutable.HashMap(rtrMacToLogicalPortId.toSeq: _*),
-            collection.immutable.HashMap(rtrIpToMac.toSeq: _*),
-            vlanBridgePeerPortId)
+            collection.immutable.HashMap(macToLogicalPortId.toSeq: _*),
+            collection.immutable.HashMap(ipToMac.toSeq: _*),
+            vlanBridgePeerPortId, vlanPortMap)
     }
 
     private class MacTableNotifyCallBack extends Callback3[MAC, UUID, UUID] {

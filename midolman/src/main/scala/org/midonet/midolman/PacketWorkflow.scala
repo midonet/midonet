@@ -49,24 +49,23 @@ object PacketWorkflow {
                         reason: Packet.Reason,
                         cookie: Int)
 
-    sealed trait SimulationAction
+    sealed trait SimulationResult
 
-    case class NoOp() extends SimulationAction
+    case class NoOp() extends SimulationResult
 
-    case class ErrorDrop() extends SimulationAction
+    case class ErrorDrop() extends SimulationResult
 
-    case class SendPacket(actions: List[FlowAction[_]]) extends SimulationAction
+    case class SendPacket(actions: List[FlowAction[_]]) extends SimulationResult
 
     case class AddVirtualWildcardFlow(flow: WildcardFlow,
                                       flowRemovalCallbacks: ROSet[Callback0],
-                                      tags: ROSet[Any]) extends SimulationAction
+                                      tags: ROSet[Any]) extends SimulationResult
 
     private trait PipelinePath {}
 
     private case object WildcardTableHit extends PipelinePath
     private case object PacketToPortSet extends PipelinePath
     private case object Simulation extends PipelinePath
-
 }
 
 class PacketWorkflow(
@@ -435,7 +434,7 @@ class PacketWorkflow(
         }
     }
 
-    private def simulateGeneratedPacket(): Future[SimulationAction] = {
+    private def simulateGeneratedPacket(): Future[SimulationResult] = {
         // FIXME (guillermo) - The launching of the coordinator is missing
         // the connectionCache and parentCookie params. They will need
         // to be given to the PacketWorkFlowActor.
@@ -450,7 +449,7 @@ class PacketWorkflow(
         coordinator.simulate()
     }
 
-    private def simulatePacketIn(): Future[SimulationAction] = {
+    private def simulatePacketIn(): Future[SimulationResult] = {
         val inPortNo = WildcardMatch.fromFlowMatch(packet.getMatch).getInputPortNumber
 
         log.debug("Pass packet to simulation layer {}", cookieStr)

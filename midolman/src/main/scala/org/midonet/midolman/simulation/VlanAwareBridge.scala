@@ -9,13 +9,13 @@ import java.lang.{Short => JShort}
 import akka.dispatch.{ExecutionContext, Promise, Future}
 import org.midonet.midolman.simulation.Coordinator._
 import org.midonet.cluster.client.VlanPortMap
-import org.midonet.midolman.topology.{FlowTagger, VirtualToPhysicalMapper}
+import org.midonet.midolman.topology.FlowTagger
 import akka.actor.ActorSystem
 import org.midonet.midolman.logging.LoggerFactory
 import org.midonet.midolman.simulation.Coordinator.DropAction
 import org.midonet.midolman.simulation.Coordinator.ToPortAction
 import collection.immutable
-import org.midonet.packets.{MAC, BPDU}
+import org.midonet.packets.MAC
 
 /**
  * This is a VLAN-aware bridge created to support the L2 gateway feature.

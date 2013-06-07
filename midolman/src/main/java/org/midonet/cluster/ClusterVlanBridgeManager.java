@@ -147,29 +147,4 @@ public class ClusterVlanBridgeManager extends ClusterManager<VlanAwareBridgeBuil
         }
     }
 
-    class VlanPortMapImpl implements VlanPortMap {
-
-        private Map<Short, UUID> dir = new HashMap<Short, UUID>();
-        private Map<UUID, Short> rev = new HashMap<UUID, Short>();
-
-        public void add(Short vlanId, UUID portId) {
-            dir.put(vlanId, portId);
-            rev.put(portId, vlanId);
-        }
-
-        @Override
-        public Short getVlan(UUID portId) {
-            return rev.get(portId);
-        }
-
-        @Override
-        public UUID getPort(Short vlanId) {
-            return dir.get(vlanId);
-        }
-
-        @Override
-        public String toString() {
-            return "Direct vlan->port map: {" + dir.toString() + "}";
-        }
-    }
 }

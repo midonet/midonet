@@ -44,9 +44,10 @@ object BridgeManager {
     case class TriggerUpdate(cfg: BridgeConfig,
                              macLearningTable: MacLearningTable,
                              ip4MacMap: IpMacMap[IPv4Addr],
-                             rtrMacToLogicalPortId: ROMap[MAC, UUID],
-                             rtrIpToMac: ROMap[IPAddr, MAC],
-                             vlanBridgePeerPortId: Option[UUID])
+                             macToLogicalPortId: ROMap[MAC, UUID],
+                             ipToMac: ROMap[IPAddr, MAC],
+                             vlanBridgePeerPortId: Option[UUID],
+                             vlanPortMap: VlanPortMap)
 
     case class CheckExpiredMacPorts()
 
@@ -141,7 +142,7 @@ class BridgeManager(id: UUID, val clusterClient: Client,
     private val flowCounts = new MacFlowCountImpl
     private val flowRemovedCallback = new RemoveFlowCallbackGeneratorImpl
 
-    private var rtrMacToLogicalPortId: ROMap[MAC, UUID] = null
+    private var macToLogicalPortId: ROMap[MAC, UUID] = null
     private var rtrIpToMac: ROMap[IPAddr, MAC] = null
     private var ip4MacMap: IpMacMap[IPv4Addr] = null
 
@@ -152,6 +153,8 @@ class BridgeManager(id: UUID, val clusterClient: Client,
     private val learningMgr = new MacLearningManager(
         log, config.getMacPortMappingExpireMillis)
 
+    private var vlanToPort: VlanPortMap = null
+
     override def chainsUpdated() {
         log.info("chains updated")
         context.actorFor("..").tell(
@@ -160,7 +163,7 @@ class BridgeManager(id: UUID, val clusterClient: Client,
                 else null,
                 flowCounts, inFilter, outFilter,
                 vlanBridgePeerPortId, flowRemovedCallback,
-                rtrMacToLogicalPortId, rtrIpToMac))
+                macToLogicalPortId, rtrIpToMac, vlanToPort))
         if (filterChanged) {
             context.actorFor("..") ! FlowController.InvalidateFlowsByTag(
                 FlowTagger.invalidateFlowsByDevice(id))
@@ -214,9 +217,9 @@ class BridgeManager(id: UUID, val clusterClient: Client,
         case CheckExpiredMacPorts() =>
             learningMgr.doDeletions(Platform.currentTime)
 
-        case TriggerUpdate(newCfg, macLearningTable, ip4MacMap,
-                           newRtrMacToLogicalPortId, newRtrIpToMac,
-                           newVlanBridgePeerPortId) =>
+        case TriggerUpdate(newCfg, macLearningTable, newIp4MacMap,
+                           newMacToLogicalPortId, newRtrIpToMac,
+                           newVlanBridgePeerPortId, newVlanToPortMap) =>
             log.debug("Received a Bridge update from the data store.")
             if (newCfg != cfg && cfg != null) {
                 // the cfg of this bridge changed, invalidate all the flows
@@ -224,10 +227,11 @@ class BridgeManager(id: UUID, val clusterClient: Client,
             }
             cfg = newCfg
             learningMgr.backendMap = macLearningTable
-            this.ip4MacMap = ip4MacMap
-            rtrMacToLogicalPortId = newRtrMacToLogicalPortId
+            ip4MacMap = newIp4MacMap
+            macToLogicalPortId = newMacToLogicalPortId
             rtrIpToMac = newRtrIpToMac
             vlanBridgePeerPortId = newVlanBridgePeerPortId
+            vlanToPort = newVlanToPortMap
             // Notify that the update finished
             configUpdated()
     }

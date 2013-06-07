@@ -31,25 +31,30 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
-public class VlanAwareBridgeTest extends TestBase {
+/**
+ * This test provides the basic tests for functionality related to VlanAware
+ * bridges. We have two devices that implement it, the VlanAwareBridge and the
+ * new Bridge. Two implementing classes build specific topologies based on these
+ * devices and let this class run the tests.
+ *
+ * The topology is expected to have:
+ * - Two normal bridges, each connected to a tap vm1Tap and vm2Tap
+ * - A vlan-aware bridge with
+ *   - two trunks bound to trunkTap1 and trunkTap2
+ *   - two interior ports linked to the vlan-unaware bridges, each with
+ *     a vlanId
+ *
+ * The variables below are self-explanatory on what exact connections need to
+ * be made. Bridge1 has vm1Tap, with vm1Ip, vm1Mac, and connected to the vlan
+ * aware bridge on a port with vlanId1. Same with 2's.
+ *
+ * The implementing tests responsible to initialize MM and leave things ready
+ * for actual simulations. They are free to add more test cases with specifics
+ * related to each device (e.g.: the enhanced Bridge supports mac learning)
+ */
+abstract public class VlanAwareBridgeTest extends TestBase {
 
     final String tenantName = "tenant-1";
-    VlanBridge vlanBr;
-    VlanBridgeTrunkPort trunk1;
-    VlanBridgeTrunkPort trunk2;
-    VlanBridgeInteriorPort vlanPort1;
-    VlanBridgeInteriorPort vlanPort2;
-
-    Bridge br1;
-    Bridge br2;
-
-    BridgePort br1IntPort = null;
-    BridgePort br2IntPort = null;
-    BridgePort br1ExtPort = null;
-    BridgePort br2ExtPort = null;
-
-    Host host;
-
     TapWrapper trunkTap1 = new TapWrapper("vbtestTrunk1");
     TapWrapper trunkTap2 = new TapWrapper("vbtestTrunk2");
     TapWrapper vm1Tap = new TapWrapper("vm1Tap");
@@ -65,74 +70,6 @@ public class VlanAwareBridgeTest extends TestBase {
     IPv4Addr trunkIp = IPv4Addr.fromString("10.1.1.10");
     IPv4Addr vm1Ip = IPv4Addr.fromString("10.1.1.1");
     IPv4Addr vm2Ip = IPv4Addr.fromString("10.1.1.2");
-
-    @Override
-    public void setup() {
-        host = thisHost;
-
-        // Create the two virtual bridges and plug the "vm" taps
-        br1 = apiClient.addBridge().tenantId(tenantName).name("br1").create();
-        br1IntPort = br1.addInteriorPort().create();
-        br1ExtPort = br1.addExteriorPort().create();
-        host.addHostInterfacePort()
-            .interfaceName(vm1Tap.getName())
-            .portId(br1ExtPort.getId()).create();
-
-        br2 = apiClient.addBridge().tenantId(tenantName).name("br2").create();
-        br2IntPort = br2.addInteriorPort().create();
-        br2ExtPort = br2.addExteriorPort().create();
-        host.addHostInterfacePort()
-            .interfaceName(vm2Tap.getName())
-            .portId(br2ExtPort.getId()).create();
-
-        // Create the vlan-aware bridge
-        vlanBr = apiClient.addVlanBridge()
-                          .tenantId(tenantName)
-                          .name("vlanBr1")
-                          .create();
-
-        // Create ports linking vlan-bridge with each bridge, and assign vlan id
-        vlanPort1 = vlanBr.addInteriorPort().setVlanId(vlanId1).create();
-        vlanPort1.link(br1IntPort.getId());
-
-        vlanPort2 = vlanBr.addInteriorPort().setVlanId(vlanId2).create();
-        vlanPort2.link(br2IntPort.getId());
-
-        // Create the trunk ports
-        trunk1 = vlanBr.addTrunkPort().create();
-        trunk2 = vlanBr.addTrunkPort().create();
-
-        host.addHostInterfacePort()
-            .interfaceName(trunkTap1.getName())
-            .portId(trunk1.getId())
-            .create();
-
-        host.addHostInterfacePort()
-            .interfaceName(trunkTap2.getName())
-            .portId(trunk2.getId())
-            .create();
-
-        Set<UUID> activePorts = new HashSet<UUID>();
-        for (int i = 0; i < 4; i++) {
-            LocalPortActive activeMsg = probe.expectMsgClass(
-                Duration.create(10, TimeUnit.SECONDS),
-                LocalPortActive.class);
-            log.info("Received one LocalPortActive message from stream.");
-            assertTrue("The port should be active.", activeMsg.active());
-            activePorts.add(activeMsg.portID());
-        }
-        assertThat("The 4 ports should be active.", activePorts,
-                   hasItems(trunk1.getId(), trunk2.getId(),
-                            br1ExtPort.getId(), br2ExtPort.getId()));
-        // All set
-
-        try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            fail("W00t!! interrupted exception!!");
-        }
-
-    }
 
     @Override
     public void teardown() {
@@ -171,6 +108,17 @@ public class VlanAwareBridgeTest extends TestBase {
         }
 
     }
+
+    /**
+     * Implement as appropriate. This will have a main visible implication in
+     * the tests: when data must go to trunks (e.g.: a) a unicast from the vNw
+     * or b) a multicast from a trunk such as an ARP request), if mac-learning
+     * is enabled a) the frame will go to a single trunk if its mac is learned
+     * and b) the frame will be sent to the interior port and also to the
+     * other trunks - in the VAB implementation that doesn't have MAC learning
+     * it just goes to the internal nw.
+     */
+    abstract protected boolean hasMacLearning();
 
     @Test
     public void test() throws Exception {
