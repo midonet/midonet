@@ -5,6 +5,7 @@ package org.midonet.api.host.rest_api;
 
 import org.midonet.api.VendorMediaType;
 import org.midonet.api.host.TunnelZoneHostFactory;
+import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.auth.AuthRole;
@@ -12,6 +13,7 @@ import org.midonet.api.host.GreTunnelZoneHost;
 import org.midonet.api.host.CapwapTunnelZoneHost;
 import org.midonet.api.host.TunnelZoneHost;
 import org.midonet.api.rest_api.BadRequestHttpException;
+import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.TunnelZone;
@@ -24,6 +26,7 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +37,7 @@ import java.util.UUID;
  * REST API handler for tunnel zone - host mapping.
  */
 @RequestScoped
-public class TunnelZoneHostResource {
+public class TunnelZoneHostResource extends AbstractResource {
 
     private final UUID tunnelZoneId;
     private final UriInfo uriInfo;
@@ -42,10 +45,12 @@ public class TunnelZoneHostResource {
     private final DataClient dataClient;
 
     @Inject
-    public TunnelZoneHostResource(UriInfo uriInfo,
+    public TunnelZoneHostResource(RestApiConfig config, UriInfo uriInfo,
+                                  SecurityContext context,
                                   Validator validator,
                                   DataClient dataClient,
                                   @Assisted UUID tunnelZoneId) {
+        super(config, uriInfo, context);
         this.uriInfo = uriInfo;
         this.validator = validator;
         this.dataClient = dataClient;
@@ -65,7 +70,7 @@ public class TunnelZoneHostResource {
                 tzHost.toData());
 
         return Response.created(
-                ResourceUriBuilder.getTunnelZoneHost(uriInfo.getBaseUri(),
+                ResourceUriBuilder.getTunnelZoneHost(getBaseUri(),
                         tunnelZoneId, tzHost.getHostId()))
                 .build();
     }
@@ -101,7 +106,7 @@ public class TunnelZoneHostResource {
                     TunnelZoneHostFactory.createTunnelZoneHost(
                             tunnelZoneId, data);
             if (clazz == null || tzh.getClass().equals(clazz)) {
-                tzh.setBaseUri(uriInfo.getBaseUri());
+                tzh.setBaseUri(getBaseUri());
                 tunnelZoneHosts.add(tzh);
             }
         }
@@ -153,7 +158,7 @@ public class TunnelZoneHostResource {
         if (clazz != null && !tzh.getClass().equals(clazz))
             throw new NotFoundHttpException("The resource was not found");
 
-        tzh.setBaseUri(uriInfo.getBaseUri());
+        tzh.setBaseUri(getBaseUri());
         return tzh;
     }
 

@@ -28,6 +28,7 @@ import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import org.midonet.packets.MAC;
 
 import java.net.InetAddress;
 import java.net.URI;
@@ -36,7 +37,9 @@ import java.util.*;
 import javax.ws.rs.core.UriBuilder;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 
 @RunWith(Enclosed.class)
 public class TestTunnelZoneHost {
@@ -327,6 +330,99 @@ public class TestTunnelZoneHost {
             List<Map<String, String>> violations = error.getViolations();
             Assert.assertEquals(1, violations.size());
             Assert.assertEquals(property, violations.get(0).get("property"));
+        }
+    }
+
+    public static class TestBaseUriOverride extends JerseyTest {
+
+        private HostZkManager hostManager;
+        private Directory rootDirectory;
+        private UUID hostId = UUID.randomUUID();
+
+        public TestBaseUriOverride() {
+            super(FuncTest.appDescOverrideBaseUri);
+        }
+
+        @Before
+        public void setUp() throws StateAccessException {
+
+            rootDirectory = StaticMockDirectory.getDirectoryInstance();
+            hostManager = new HostZkManager(rootDirectory, ZK_ROOT_MIDOLMAN);
+        }
+
+        @After
+        public void resetDirectory() throws Exception {
+            StaticMockDirectory.clearDirectoryInstance();
+        }
+
+        @Test
+        public void testBaseUriOverride() throws Exception {
+
+            URI baseUri = resource().getURI();
+            MidonetApi api = new MidonetApi(baseUri.toString());
+            api.enableLogging();
+
+            HostDirectory.Metadata metadata = new HostDirectory.Metadata();
+            metadata.setName("test");
+            metadata.setAddresses(new InetAddress[]{
+                    InetAddress.getByAddress(
+                            new byte[]{(byte) 193, (byte) 231, 30, (byte) 197})
+            });
+
+            hostManager.createHost(hostId, metadata);
+            hostManager.makeAlive(hostId);
+
+            HostDirectory.Interface anInterface = new HostDirectory.Interface();
+
+            anInterface.setName("eth0");
+            anInterface.setMac(MAC.fromString("16:1f:5c:19:a0:60")
+                    .getAddress());
+            anInterface.setMtu(123);
+            anInterface.setType(HostDirectory.Interface.Type.Physical);
+            anInterface.setAddresses(new InetAddress[]{
+                    InetAddress.getByAddress(new byte[]{10, 10, 10, 1})
+            });
+
+            hostManager.createInterface(hostId, anInterface);
+
+            ResourceCollection<Host> hosts = api.getHosts();
+            org.midonet.client.resource.Host host = hosts.get(0);
+
+            TunnelZone greTunnelZone = api.addGreTunnelZone()
+                    .name("gre-tunnel-zone-1")
+                    .create();
+
+            // Check tunnel zone URI is overridden correctly
+            URI tzUri = greTunnelZone.getUri();
+            Assert.assertTrue("Should have correct base URI",
+                    tzUri.toString().startsWith(FuncTest.OVERRIDE_BASE_URI));
+
+            TunnelZoneHost tzHost = greTunnelZone.addTunnelZoneHost()
+                    .ipAddress("1.1.1.1")
+                    .hostId(hostId).create();
+
+            assertThat("There is one host entry under the tunnel zone.",
+                    greTunnelZone.getHosts().size(), is(1));
+
+            // Check tunnel zone host URI is overridden correctly
+            URI tzHostUri = tzHost.getUri();
+            Assert.assertTrue("Should have correct base URI",
+                    tzHostUri.toString()
+                            .startsWith(FuncTest.OVERRIDE_BASE_URI));
+
+            ResourceCollection<HostInterface> hIfaces = host.getInterfaces();
+
+            assertThat("The host should return a proper interfaces object",
+                    hIfaces, is(notNullValue()));
+
+            assertThat(hIfaces.size(), equalTo(1));
+
+            HostInterface hIface = hIfaces.get(0);
+
+            // Check URI is overridden correctly
+            Assert.assertTrue("Should have correct base URI",
+                    hIface.getUri().toString()
+                            .startsWith(FuncTest.OVERRIDE_BASE_URI));
         }
     }
 }
