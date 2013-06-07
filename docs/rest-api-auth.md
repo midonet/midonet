@@ -69,6 +69,7 @@ successful attempt at authentication, the roles of this user from the external
 services must be converted to the roles in MidoNet.  This conversion is one of
 the responsibilities of the auth provider class described in the section below.
 
+
 ## Authentication service
 
 Authentication service is a class that implements AuthService interface.  In
@@ -100,7 +101,7 @@ element as follows:
 <pre><code>
   ...
   &lt;context-param&gt;
-    &lt;param-name>auth-auth_provider&lt;/param-name&gt;
+    &lt;param-name&gt;auth-auth_provider&lt;/param-name&gt;
     &lt;param-value&gt;
       org.midonet.api.auth.MockAuthService
     &lt;/param-value&gt;
@@ -108,8 +109,37 @@ element as follows:
   ...
 </code></pre>
 
-MockAuthService class is provided as a way to mock the auth provider class.  See
-the 'Mocking auth service' section below for more details.
+For the value, specify the fully qualified name of the class that implements
+<i>org.midonet.api.auth.AuthService</i> interface.  In the example above,
+<i>org.midonet.api.auth.MockAuthService</i> class is specified which is a
+service that provides as a way to mock the auth service for testing or
+disabling auth.  See the 'Mocking auth service' section below for more details.
+
+As mentioned in the previous section, the auth service must convert the roles
+in the external service (like OpenStack Keystone) to those in MidoNet.  It
+relies on the entries specified in web.xml to determine the role mapping:
+
+<pre><code>
+  ...
+  &lt;context-param&gt;
+    &lt;param-name&gt;auth-admin_role&lt;/param-name&gt;
+    &lt;param-value&gt;mido_admin&lt;/param-value&gt;
+  &lt;/context-param&gt;
+    &lt;context-param&gt;
+      &lt;param-name&gt;auth-tenant_admin_role&lt;/param-name&gt;
+      &lt;param-value&gt;mido_tenant_admin&lt;/param-value&gt;
+  &lt;/context-param&gt;
+  &lt;context-param&gt;
+    &lt;param-name&gt;auth-tenant_user_role&lt;/param-name&gt;
+    &lt;param-value&gt;mido_tenant_user&lt;/param-value&gt;
+  &lt;/context-param&gt;
+  ...
+</code></pre>
+
+In the above example, mido\_admin, mido\_tenant\_admin,
+and mido\_tenant\_user roles stored in the external service are translated to
+admin, tenant\_admin, and tenant\_user in Midonet, respectively.
+
 
 ## Servlet filter (AuthFilter and LoginFilter)
 
@@ -125,15 +155,15 @@ authorization checks.  If the authentication fails, it responds with 401
 UNAUTHORIZED.
 
 LoginFilter is also a servlet filter, and it is applied to requests that are
-destined to '&lt;root_uri&gt;/login' URI.  AuthFilter is not applied for this URI,
-and LoginFilter is not applied for al the other requests.  Thus, there is never
-a case in which both of these filters are applied simultaneously.  LoginFilter
-is a convenience filter that allows externals clients of MidoNet to 'login'
-using username and password, and let MidoNet handle the generation of session
-tokens that can be used for subsequent requests until they expire.  Behind the
-scene, MidoNet is actually logging in to the external auth system on behalf of
-the user.  The username and password are sent using HTTP's Basic Authorization
-header as such:
+destined to '&lt;root_uri&gt;/login' URI.  AuthFilter is not applied for this
+URI, and LoginFilter is not applied for al the other requests.  Thus, there is
+never a case in which both of these filters are applied simultaneously.
+LoginFilter is a convenience filter that allows externals clients of MidoNet
+to 'login' using username and password, and let MidoNet handle the generation
+of session tokens that can be used for subsequent requests until they expire.
+Behind the scene, MidoNet is actually logging in to the external auth system
+on behalf of the user.  The username and password are sent using HTTP's Basic
+Authorization header as such:
 
 <pre><code>
 Authorization: Basic &lt;Base64 encoded value of 'username:password'&gt;
@@ -175,7 +205,7 @@ resource classes that will perform authorization checks.
 
 SecurtiyContext is an injectable interface that provides access to security
 related information.  This interface is described in detail in the
-[JSR-311 API page](http://jsr311.java.net/nonav/javadoc/javax/ws/rs/core/SecurityContext.html).
+[JSR-311 API page] [1].
 
 In MidoNet API, UserIdentitySecurityContext class implements SecurityContext,
 and it is injected into the API handler methods.  This object is used for
@@ -254,3 +284,5 @@ In the example above, setting 'X-Auth-Token' to '1111' instructs MockAuthService
 to instantiate a UserIdentity object with roles set to all of 'Admin',
 'TenantAdmin' and 'TenantUser'.  Also note that the authentication always
 succeeds when using MockAuthService.
+
+[1]: http://jsr311.java.net/nonav/javadoc/javax/ws/rs/core/SecurityContext.html
