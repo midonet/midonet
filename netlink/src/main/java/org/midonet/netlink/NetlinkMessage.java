@@ -132,6 +132,28 @@ public class NetlinkMessage {
         return buf.hasRemaining();
     }
 
+    /*
+     * Name: getAttrValueNone
+     * @ attr: a boolean attribute which isn't associated with any data,
+     *          declared as a boolean to own a boolean data type
+     * returns: TRUE if the attribute exists, null otherwise
+     * In some cases, we need to verify if an attribute exists where
+     * the attribute may not be corresponding to any data (a flag, for
+     * example)
+     * Note: parseBuffer returning false is intended to end the attribute
+     * buffer iteration - this has nothing to do with the Boolean this
+     * method returns
+     */
+    public Boolean getAttrValueNone(AttrKey<Boolean> attr) {
+        return new SingleAttributeParser<Boolean>(attr) {
+            @Override
+            protected boolean parseBuffer(ByteBuffer buffer) {
+                data = new Boolean(Boolean.TRUE);
+                return false;
+            }
+        }.parse(this);
+    }
+
     public Byte getAttrValueByte(AttrKey<Byte> attr) {
         return new SingleAttributeParser<Byte>(attr) {
             @Override

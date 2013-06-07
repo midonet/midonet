@@ -84,6 +84,9 @@ public interface FlowKey<Key extends FlowKey<Key>> extends BuilderAware, Netlink
         /** struct ovs_key_nd */
         public static final FlowKeyAttr<FlowKeyND> ND = attr(14);
 
+        /** struct ovs_key_ipv4_tunnel */
+        public static final FlowKeyAttr<FlowKeyTunnel> TUNNEL = attrNest(16);
+
         /** be64 tunnel ID */
         public static final FlowKeyAttr<FlowKeyTunnelID> TUN_ID = attr(63);
 
@@ -91,8 +94,16 @@ public interface FlowKey<Key extends FlowKey<Key>> extends BuilderAware, Netlink
             super(id);
         }
 
+        public FlowKeyAttr(int id, boolean nested) {
+            super(id, nested);
+        }
+
+        static <T extends FlowKey> FlowKeyAttr<T> attrNest(int id) {
+            return new FlowKeyAttr<T>(id, true);
+        }
+
         static <T extends FlowKey> FlowKeyAttr<T> attr(int id) {
-            return new FlowKeyAttr<T>(id);
+            return new FlowKeyAttr<T>(id, false);
         }
     }
 
@@ -114,6 +125,7 @@ public interface FlowKey<Key extends FlowKey<Key>> extends BuilderAware, Netlink
                 case 12: return new FlowKeyICMPv6();
                 case 13: return new FlowKeyARP();
                 case 14: return new FlowKeyND();
+                case 16: return new FlowKeyTunnel();
                 case 63: return new FlowKeyTunnelID();
                 default: return null;
             }
