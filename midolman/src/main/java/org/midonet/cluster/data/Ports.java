@@ -19,8 +19,10 @@ public class Ports {
         return new MaterializedBridgePort().setDeviceId(bridge.getId());
     }
 
-    public static LogicalBridgePort logicalBridgePort(Bridge bridge) {
-        return new LogicalBridgePort().setDeviceId(bridge.getId());
+    public static LogicalBridgePort logicalBridgePort(Bridge bridge, Short vlanId) {
+        return new LogicalBridgePort()
+                   .setDeviceId(bridge.getId())
+                   .setVlanId(vlanId);
     }
 
     public static MaterializedRouterPort materializedRouterPort(Router router) {

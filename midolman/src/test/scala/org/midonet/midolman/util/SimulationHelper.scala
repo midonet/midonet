@@ -306,8 +306,7 @@ trait SimulationHelper extends MidolmanTestCase {
         pktOut should not be null
         pktOut.getPacket should not be null
         pktOut.getActions.size should be === (portNums.size +
-            vlanIdsPush.size +
-            vlanIdsPop.size)
+                                             vlanIdsPush.size + vlanIdsPop.size)
 
         // Check that we're outputting on the right ports
         portNums.foreach( portNum =>

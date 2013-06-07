@@ -3,7 +3,6 @@
 package org.midonet.midolman.simulation
 
 import scala.Some
-import collection.{Set => ROSet}
 import collection.mutable
 import collection.JavaConversions._
 import java.util.UUID
@@ -17,7 +16,7 @@ import org.midonet.midolman.DeduplicationActor
 import org.midonet.midolman.PacketWorkflow.{SendPacket,
                                             AddVirtualWildcardFlow,
                                             NoOp,
-                                            SimulationAction}
+                                            SimulationResult}
 import org.midonet.midolman.datapath.{FlowActionOutputToVrnPort,
                                       FlowActionOutputToVrnPortSet}
 import org.midonet.midolman.logging.LoggerFactory
@@ -33,7 +32,6 @@ import org.midonet.midolman.topology.VirtualTopologyActor.VlanBridgeRequest
 import org.midonet.odp.flows._
 import org.midonet.packets.{Ethernet, ICMP, IPv4, IPv4Addr, IPv6Addr, TCP, UDP}
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
-import org.midonet.util.functors.Callback0
 
 
 object Coordinator {
@@ -54,12 +52,12 @@ object Coordinator {
     trait ForwardAction extends Action
     case class ToPortAction(outPort: UUID) extends ForwardAction
     case class ToPortSetAction(portSetID: UUID) extends ForwardAction
-    // This action is used when one simulation has to return two forward actions
-    // A good example is when a bridge that has a vlan id set receives a broadcast
-    // from the virtual network. It will output it to all its materialized ports
-    // and to the logical port that connects it to the VAB
-    case class ForkAction(firstAction: Future[ForwardAction], forkedAction: Future[ForwardAction])
-        extends ForwardAction
+    case class DoFlowAction[A <: FlowAction[A]](action: A) extends Action
+    // This action is used when one simulation has to return N forward actions
+    // A good example is when a bridge that has a vlan id set receives a
+    // broadcast from the virtual network. It will output it to all its
+    // materialized ports and to the logical port that connects it to the VAB
+    case class ForkAction(actions: List[Future[Action]]) extends ForwardAction
 
     trait Device {
 
@@ -124,11 +122,11 @@ class Coordinator(var origMatch: WildcardMatch,
     pktContext.setMatch(origMatch)
 
     implicit def simulationActionToSuccessfulFuture(
-        a: SimulationAction): Future[SimulationAction] = Promise.successful(a)
+        a: SimulationResult): Future[SimulationResult] = Promise.successful(a)
 
 
     private def dropFlow(temporary: Boolean, withTags: Boolean = false):
-            SimulationAction = {
+            SimulationResult = {
         // If the packet is from the datapath, install a temporary Drop flow.
         // Note: a flow with no actions drops matching packets.
         pktContext.freeze()
@@ -178,7 +176,7 @@ class Coordinator(var origMatch: WildcardMatch,
      * resulting from the simulation (install flow and/or execute packet)
      * have been completed.
      */
-    def simulate(): Future[SimulationAction] = {
+    def simulate(): Future[SimulationResult] = {
         log.debug("Simulate a packet {}", origEthernetPkt)
 
         generatedPacketEgressPort match {
@@ -220,7 +218,7 @@ class Coordinator(var origMatch: WildcardMatch,
         }
     }
 
-    private def dropFragmentedPackets(inPort: UUID): Option[Future[SimulationAction]] = {
+    private def dropFragmentedPackets(inPort: UUID): Option[Future[SimulationResult]] = {
         origMatch.getIpFragmentType match {
             case IPFragmentType.First =>
                 origMatch.getEtherType.shortValue match {
@@ -285,7 +283,7 @@ class Coordinator(var origMatch: WildcardMatch,
     }
 
 
-    private def packetIngressesDevice(port: Port[_]): Future[SimulationAction] = {
+    private def packetIngressesDevice(port: Port[_]): Future[SimulationResult] = {
         var deviceFuture: Future[Any] = null
         port match {
             case _: BridgePort[_] =>
@@ -321,9 +319,9 @@ class Coordinator(var origMatch: WildcardMatch,
         }
     }
 
-    private def mergeSimulationResults(firstAction: SimulationAction,
-                                       secondAction: SimulationAction,
-                                       firstOrigMatch: WildcardMatch) : SimulationAction = {
+    private def mergeSimulationResults(firstAction: SimulationResult,
+                                       secondAction: SimulationResult,
+                                       firstOrigMatch: WildcardMatch) : SimulationResult = {
         if (!firstAction.getClass.equals(secondAction.getClass)) {
             log.error("Matching actions of diffent types, {}, {}!", firstAction,
                 secondAction)
@@ -366,7 +364,25 @@ class Coordinator(var origMatch: WildcardMatch,
         }
     }
 
-    private def handleActionFuture(actionF: Future[Action]): Future[SimulationAction] = {
+    /**
+     * Takes a Seq[Future[A]], evaluates them sequentially with the given
+     * function and returns the results.
+     */
+    private def execSequential[A, B](l: Seq[Future[A]], handlr: A => Future[B]):
+    Future[Seq[B]] = {
+        def recurse(list: Seq[A], results: Seq[B]): Future[Seq[B]] = {
+            list match {
+                case Nil => Promise.successful(results)
+                case head::tail => handlr(head) flatMap ( res =>
+                    recurse(tail, results :+ res)
+                )
+            }
+        }
+        Future.sequence(l) flatMap ( elements => { recurse(elements, Nil) } )
+    }
+
+    private def handleActionFuture(actionF: Future[Action]): Future[SimulationResult] = {
+
         actionF recover {
             case e =>
                 log.error(e, "Error instead of Action - {}", e)
@@ -375,26 +391,44 @@ class Coordinator(var origMatch: WildcardMatch,
             log.info("Received action: {}", action)
             action match {
 
-                case f: ForkAction =>
-                    handleActionFuture(f.firstAction) flatMap {
-                        case first: SimulationAction  =>
-                            // override the original match because
-                            // we want the second simulation to use
-                            // the modified one, so we calculate only
-                            // the action that the new simulation applies
-                            log.debug("ForkedAction - First action is {}", first)
-                            val firstOrigMatch = origMatch.clone()
-                            origMatch = pktContext.getMatch.clone()
-                            // unfreeze the packet context to let the sencond
-                            // action modify it
+                case a: DoFlowAction[_] =>
+                    a.action match {
+                        case b: FlowActionPopVLAN =>
                             pktContext.unfreeze()
-                            handleActionFuture(f.forkedAction) flatMap {
-                                case second: SimulationAction =>
-                                    log.debug("ForkedAction - Second action is {}",
-                                        second)
-                                    mergeSimulationResults(first, second, firstOrigMatch)
-                            }
+                            val flow = WildcardFlow(
+                                wcmatch = origMatch,
+                                actions = List(a.action))
+                            val vlanId = pktContext.getMatch.getVlanIds.get(0)
+                            pktContext.getMatch.removeVlanId(vlanId)
+                            origMatch = pktContext.getMatch.clone()
+                            pktContext.freeze()
+                            AddVirtualWildcardFlow(flow,
+                                pktContext.getFlowRemovedCallbacks,
+                                pktContext.getFlowTags)
+                        case b => NoOp()
                     }
+
+                case f: ForkAction =>
+                    val results = execSequential(f.actions,
+                      (act: Coordinator.Action) => {
+                          // Our handler for each action consists on evaluating
+                          // the Coordinator action and pairing it with the
+                          // original WMatch at that point in time
+                          handleActionFuture(Promise.successful(act)) flatMap {
+                              simRes => {
+                                  val firstOrigMatch = origMatch.clone()
+                                  origMatch = pktContext.getMatch.clone()
+                                  pktContext.unfreeze()
+                                  Promise.successful(simRes, firstOrigMatch)
+                              }
+                          }
+                      })
+                    // When ready, merge the results of the simulations. The
+                    // resulting pair (SimulationResult, WildcardMatch) contains
+                    // the merge action resulting from the other partial ones
+                    results.map (results => results.reduceLeft(
+                        (a, b) => (mergeSimulationResults(a._1, b._1, a._2), b._2)
+                    )).map( r => r._1)
 
                 case ToPortSetAction(portSetID) =>
                     emit(portSetID, isPortSet = true, null)
@@ -472,7 +506,7 @@ class Coordinator(var origMatch: WildcardMatch,
     }
 
     private def packetIngressesPort(portID: UUID, getPortGroups: Boolean):
-            Future[SimulationAction] = {
+            Future[SimulationResult] = {
 
         // Avoid loops - simulate at most X devices.
         if (numDevicesSimulated >= MAX_DEVICES_TRAVERSED) {
@@ -507,8 +541,8 @@ class Coordinator(var origMatch: WildcardMatch,
     }
 
     def applyPortFilter(port: Port[_], filterID: UUID,
-                        thunk: (Port[_]) => Future[SimulationAction]):
-                        Future[SimulationAction] = {
+                        thunk: (Port[_]) => Future[SimulationResult]):
+                        Future[SimulationResult] = {
         if (filterID == null)
             return thunk(port)
         val chainFuture = expiringAsk(ChainRequest(filterID, update = false), expiry)
@@ -547,7 +581,7 @@ class Coordinator(var origMatch: WildcardMatch,
      * for output-ing to PortSets.
      * @param portID
      */
-    private def packetEgressesPort(portID: UUID): Future[SimulationAction] = {
+    private def packetEgressesPort(portID: UUID): Future[SimulationResult] = {
         val portFuture =  expiringAsk(PortRequest(portID, update = false), expiry)
         portFuture map {Option(_)} fallbackTo { Promise.successful(None) } flatMap {
             case None =>
@@ -587,7 +621,7 @@ class Coordinator(var origMatch: WildcardMatch,
      * @param port The port output to; unused if outputting to a port set.
      */
     private def emit(outputID: UUID, isPortSet: Boolean, port: Port[_]):
-            SimulationAction = {
+            SimulationResult = {
         val actions = actionsFromMatchDiff(origMatch, pktContext.getMatch)
         isPortSet match {
             case false =>

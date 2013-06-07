@@ -184,7 +184,7 @@ public class BridgePort<T extends DtoBridgePort> extends
      * @param vlanId
      * @return
      */
-    public BridgePort<T> setVlanId(Short vlanId) {
+    public BridgePort<T> vlanId(Short vlanId) {
         ((DtoInteriorBridgePort) principalDto).setVlanId(vlanId);
         return this;
     }

@@ -21,6 +21,7 @@ import org.midonet.cluster.client.{IpMacMap, MacLearningTable}
 import org.midonet.packets._
 import org.midonet.util.functors.{Callback0, Callback1, Callback3}
 import org.midonet.sdn.flows.WildcardMatch
+import org.midonet.cluster.VlanPortMapImpl
 
 
 @RunWith(classOf[JUnitRunner])
@@ -42,7 +43,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
     private val ip4MacMap = new MockIpMacMap(Map(knownIp4 -> learnedMac))
     private val flowCount: MacFlowCount = new MockMacFlowCount
     private val vlanBridgePortId = None
-
+    private val vlanToPort = new VlanPortMapImpl()
     val inFilter: Chain = null
     val outFilter: Chain = null
     val flowRemovedCallbackGen = new RemoveFlowCallbackGenerator {
@@ -65,7 +66,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
         bridge = new Bridge(bridgeID, 0, macPortMap, ip4MacMap, flowCount,
                             inFilter, outFilter, vlanBridgePortId,
                             flowRemovedCallbackGen, rtrMacToLogicalPortId,
-                            rtrIpToMac)
+                            rtrIpToMac, vlanToPort)
     }
 
 

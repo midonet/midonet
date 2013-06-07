@@ -52,7 +52,7 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
     PortZkManager portMgr;
 
     @Inject
-    ClusterPortsManager portsManager;
+    ClusterPortsManager portsMgr;
 
     private static final Logger log = LoggerFactory
         .getLogger(ClusterBridgeManager.class);
@@ -94,9 +94,7 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
                 ip4MacMap.setConnectionWatcher(connectionWatcher);
                 ip4MacMap.start();
                 builder.setIp4MacMap(new IpMacMapImpl(id, ip4MacMap));
-
                 updateLogicalPorts(builder, id, false);
-
             }
 
             /* NOTE(guillermo) this the last zk-related call in this block
@@ -126,7 +124,7 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
 
         log.debug("Populating builder for bridge {}", id);
         builder.setInFilter(config.inboundFilter)
-                .setOutFilter(config.outboundFilter);
+               .setOutFilter(config.outboundFilter);
         builder.setTunnelKey(config.tunnelKey);
         builder.build();
         log.info("Added watcher for bridge {}", id);
@@ -150,6 +148,7 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
         // and pass them to the builder
         Map<MAC, UUID> rtrMacToLogicalPortId = new HashMap<MAC, UUID>();
         Map<IPAddr, MAC> rtrIpToMac =  new HashMap<IPAddr, MAC>();
+        VlanPortMapImpl vlanIdPortMap = new VlanPortMapImpl();
         Set<UUID> logicalPortIDs;
         LogicalPortWatcher watcher = new LogicalPortWatcher(bridgeId, builder);
         try {
@@ -166,11 +165,9 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
             // the watcher can consider just the port whose configuration changed,
             // not the whole list.
 
-            // Find the peer of the new logical port. We don't cast to
-            // LogicalBridgePortConfig because it may also be a LogicalVlan..
-            PortDirectory.LogicalBridgePortConfig bridgePort = portsManager
+            PortDirectory.LogicalBridgePortConfig bridgePort = portsMgr
                 .getPortConfigAndRegisterWatcher(
-                    id,  PortDirectory.LogicalBridgePortConfig.class, watcher);
+                    id, PortDirectory.LogicalBridgePortConfig.class, watcher);
 
             if (null == bridgePort) {
                 log.warn("Can't find the logical bridge port's config {}", id);
@@ -182,40 +179,54 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
                 continue;
             }
 
-            // The peer could be LogicalRouterPortConfig or LogicalVlanBridge..
-            PortConfig peerPortCfg = portsManager.getPortConfigAndRegisterWatcher(
+            // The peer could be LogicalRouterPortConfig, LogicalVlanBridge..
+            // or a LogicalBridgePortConfig
+            PortConfig peerPortCfg = portsMgr.getPortConfigAndRegisterWatcher(
                 bridgePort.peerId(),
                 PortConfig.class,
                 watcher);
 
             if (peerPortCfg instanceof PortDirectory.LogicalRouterPortConfig) {
-
+                log.debug("Bridge peer is a Router's interior port");
                 PortDirectory.LogicalRouterPortConfig routerPort =
                     (PortDirectory.LogicalRouterPortConfig)peerPortCfg;
-
-                if (null == routerPort) {
-                    log.warn("Failed to get the config for the bridge's peer {}",
-                             bridgePort);
-                    continue;
-                }
-
                 // 'Learn' that the router's mac is reachable via the bridge port.
                 rtrMacToLogicalPortId.put(routerPort.getHwAddr(), id);
                 // Add the router port's IP and MAC to the permanent ARP map.
                 IPv4Addr rtrPortIp = IPv4Addr.fromInt(routerPort.portAddr);
                 rtrIpToMac.put(rtrPortIp, routerPort.getHwAddr());
-                log.debug("added bridge port {} " +
-                              "connected to router port with MAC:{} and IP:{}",
+                log.debug("Add bridge port linked to router port, MAC:{}, IP:{}",
                           new Object[]{id, routerPort.getHwAddr(), rtrPortIp});
-
             } else if (peerPortCfg instanceof PortDirectory.LogicalVlanBridgePortConfig) {
+                log.debug("Bridge peer is a VlanAwareBridge's interior port");
                 builder.setVlanBridgePeerPortId(new Some<UUID>(id));
+            } else if (peerPortCfg instanceof PortDirectory.LogicalBridgePortConfig) {
+                log.debug("Bridge peer is another Bridge's interior port");
+                // Let's see who of the two is acting as vlan-aware bridge
+                if (null == bridgePort.vlanId()) { // it's the peer
+                    PortDirectory.LogicalBridgePortConfig typedPeerCfg =
+                        ((PortDirectory.LogicalBridgePortConfig) peerPortCfg);
+                    Short herVlanId = typedPeerCfg.vlanId();
+                    if (herVlanId == null) {
+                        log.warn("Peer is vlan-aware, but has no vlan id {}",
+                                 bridgePort.peerId());
+                    } else {
+                        log.debug("Bridge peer is vlan-aware, my vlan-id {}",
+                                  herVlanId);
+                        builder.setVlanBridgePeerPortId(new Some<UUID>(id));
+                    }
+                } else { // it's the bridge
+                    log.debug("Bridge peer {} mapped to vlan-id {}",
+                              bridgePort.peerId(), bridgePort.vlanId());
+                    vlanIdPortMap.add(bridgePort.vlanId(), id);
+                }
             } else {
                 log.warn("The peer isn't router nor vlan-bridge logical port");
             }
 
         }
         builder.setLogicalPortsMap(rtrMacToLogicalPortId, rtrIpToMac);
+        builder.setVlanPortMap(vlanIdPortMap);
         // Trigger the update, this method was called by a watcher, because
         // something changed in the LogicalPortMap, so deliver the new maps.
         if(isUpdate)
