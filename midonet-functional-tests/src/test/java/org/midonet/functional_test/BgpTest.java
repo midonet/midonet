@@ -378,18 +378,7 @@ public class BgpTest {
         waitForBgpUpdate(probe);
         sendPingAndExpectUnreachable();
 
-        bgp1 = exteriorRouterPort1_bgp.addBgp()
-                .localAS(1)
-                .peerAddr("100.0.0.2")
-                .peerAS(2)
-                .create();
-        adRoute1 = bgp1.addAdRoute()
-                .nwPrefix("1.0.0.0")
-                .prefixLength(24)
-                .create();
-        log.debug("Re-created BGP {} in exterior router port {} ",
-                  bgp1.toString(), exteriorRouterPort1_bgp.toString());
-
+        reCreateBgp();
         waitForBgpUpdate(probe);
         sendPingAndExpectReply();
 
@@ -418,6 +407,80 @@ public class BgpTest {
         // routes found again when bgp is up again
         waitForBgpUpdate(probe);
         sendPingAndExpectReply();
+
+        log.debug("testZookeeperDisconnection - stop");
+    }
+
+    @Test
+    public void testLocalPortStateChange() throws Exception {
+        log.debug("testLocalPortStateChange - start");
+        String cmdLine = "sudo ifconfig " + pairedInterfaceLocal + " ";
+
+        TestProbe probe = waitForBgp();
+        sendPingAndExpectReply();
+
+        log.info("disabling local port");
+        ProcessHelper.executeCommandLine(cmdLine + "down");
+        // routes deleted while disabling the bgp link
+        waitForBgpUpdate(probe);
+        sendPingAndExpectUnreachable();
+
+        log.info("enabling local port");
+        ProcessHelper.executeCommandLine(cmdLine + "up");
+        // router rebuilt when the port becomes active
+        waitForBgpUpdate(probe);
+        // routes found again when bgp is up again
+        waitForBgpUpdate(probe);
+        sendPingAndExpectReply();
+
+        log.debug("testLocalPortStateChange - stop");
+    }
+
+    @Test
+    public void testLocalPortAndBgpStateChange() throws Exception {
+        log.debug("testLocalPortAndBgpStateChange - start");
+        String cmdLine = "sudo ifconfig " + pairedInterfaceLocal + " ";
+
+        TestProbe probe = waitForBgp();
+        sendPingAndExpectReply();
+
+        log.info("disabling local port");
+        ProcessHelper.executeCommandLine(cmdLine + "down");
+        // routes deleted while disabling the bgp link
+        waitForBgpUpdate(probe);
+        sendPingAndExpectUnreachable();
+
+        adRoute1.delete();
+        bgp1.delete();
+        log.debug("Deleted BGP {} in exterior router port {} ",
+                bgp1.toString(), exteriorRouterPort1_bgp.toString());
+
+        log.info("enabling local port");
+        ProcessHelper.executeCommandLine(cmdLine + "up");
+        sleepBecause("we want the port activation to take effect", 5);
+        waitForBgpUpdate(probe);
+        sendPingAndExpectUnreachable();
+
+        reCreateBgp();
+        waitForBgpUpdate(probe);
+        sendPingAndExpectReply();
+
+        log.debug("testLocalPortAndBgpStateChange - stop");
+    }
+
+    private void reCreateBgp() {
+        bgp1 = exteriorRouterPort1_bgp.addBgp()
+                .localAS(1)
+                .peerAddr("100.0.0.2")
+                .peerAS(2)
+                .create();
+        adRoute1 = bgp1.addAdRoute()
+                .nwPrefix("1.0.0.0")
+                .prefixLength(24)
+                .create();
+        log.debug("Re-created BGP {} in exterior router port {} ",
+                bgp1.toString(), exteriorRouterPort1_bgp.toString());
+
     }
 
     private void sendPingAndExpectReply() throws Exception {

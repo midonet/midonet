@@ -33,6 +33,36 @@ import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.state.{ZkConnectionAwareWatcher, StateAccessException}
 
+object RoutingHandler {
+    // BgpdProcess will notify via these messages
+    case object BGPD_READY
+    case object BGPD_DEAD
+
+    case class PortActive(active: Boolean)
+
+    private case class ZookeeperActive(active: Boolean)
+
+    private case class NewBgpSession(bgp: BGP)
+
+    private case class ModifyBgpSession(bgp: BGP)
+
+    private case class RemoveBgpSession(bgpID: UUID)
+
+    private case class AdvertiseRoute(route: AdRoute)
+
+    private case class StopAdvertisingRoute(route: AdRoute)
+
+    private case class AddPeerRoute(ribType: RIBType.Value,
+                                    destination: IPv4Subnet, gateway: IPv4Addr)
+
+    private case class RemovePeerRoute(ribType: RIBType.Value,
+                                       destination: IPv4Subnet,
+                                       gateway: IPv4Addr)
+
+    // For testing
+    case class BGPD_STATUS(port: UUID, isActive: Boolean)
+}
+
 /**
  * The RoutingHandler manages the routing protocols for a single exterior
  * virtual router port that is local to this MidoNet daemon's physical host.
@@ -59,6 +89,8 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
                      val config: MidolmanConfig,
                      val connWatcher: ZkConnectionAwareWatcher)
     extends UntypedActorWithStash with ActorLogWithoutPath {
+
+    import RoutingHandler._
 
     private final val BGP_NETDEV_PORT_NAME: String =
         "mbgp%d".format(bgpIdx)
@@ -93,39 +125,19 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
     // At this moment we only support one bgpd process
     private var bgpdProcess: BgpdProcess = null
 
-    case object Enable
-    case object Disable
-
-    // BgpdProcess will notify via these messages
-    case object BGPD_READY
-    case object BGPD_DEAD
-
-    private case class NewBgpSession(bgp: BGP)
-
-    private case class ModifyBgpSession(bgp: BGP)
-
-    private case class RemoveBgpSession(bgpID: UUID)
-
-    private case class AdvertiseRoute(route: AdRoute)
-
-    private case class StopAdvertisingRoute(route: AdRoute)
-
-    private case class AddPeerRoute(ribType: RIBType.Value,
-                                    destination: IPv4Subnet, gateway: IPv4Addr)
-
-    private case class RemovePeerRoute(ribType: RIBType.Value,
-                                       destination: IPv4Subnet,
-                                       gateway: IPv4Addr)
-
-    // For testing
-    case class BGPD_STATUS(port: UUID, isActive: Boolean)
-
     /**
      * This actor can be in these phases:
      * NotStarted: bgp has not been started (no known bgp configs on the port)
      * Starting: waiting for bgpd and netdev port to come up
      * Started: zebra, bgpVty and bgpd are up
      * Stopping: we're in the process of stopping the bgpd
+     * Disabled: bgp is temporarily disabled because the local port became
+     *           inactive or we are disconnected from zookeeper
+     * Disabling: bgp is being stopped on it's way to 'Disabled' state
+     * Enabling: the condition that made the actor go into 'Disabling' has
+     *           disappeared, but bgpd is in the processed of being stopped
+     *           so the actor is waiting for that work to finish before
+     *           enabling bgp again.
      *
      * The transitions are:
      * NotStarted -> Starting : when we learn about the first BGP config
@@ -154,6 +166,9 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
     import Phase._
 
     var phase = NotStarted
+
+    var zookeeperActive = true
+    var portActive = true
 
     override def preStart() {
         log.debug("Starting routingHandler for port {}.", rport.id)
@@ -202,14 +217,14 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
 
         connWatcher.scheduleOnDisconnect(new Runnable() {
             override def run() {
-                self ! Disable
+                self ! ZookeeperActive(false)
                 connWatcher.scheduleOnDisconnect(this)
             }
         })
 
         connWatcher.scheduleOnReconnect(new Runnable() {
             override def run() {
-                self ! Enable
+                self ! ZookeeperActive(true)
                 connWatcher.scheduleOnReconnect(this)
             }
         })
@@ -222,10 +237,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
 
     override def postStop() {
         super.postStop()
-        phase match {
-            case Started => stopBGP()
-            case _ => // nothing
-        }
+        disable()
     }
 
     private val handler = new ZebraProtocolHandler {
@@ -410,7 +422,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
                 phase match {
                     case Enabling =>
                         phase = Disabled
-                        self ! Enable
+                        enable()
                     case Disabling =>
                         phase = Disabled
                     case Disabled =>
@@ -538,45 +550,83 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
                     // ignore
                     case _ =>
                 }
-            case Disable =>
+
+            case PortActive(true) =>
+                log.info("Port became active")
+                portActive = true
+                if (zookeeperActive)
+                    enable()
+
+            case ZookeeperActive(true) =>
+                log.info("Reconnected to Zookeeper")
+                zookeeperActive = true
+                if (portActive)
+                    enable()
+
+            case PortActive(false) =>
+                log.info("Port became inactive")
+                portActive = false
+                disable()
+
+            case ZookeeperActive(false) =>
+                log.info("Disconnected from Zookeeper")
+                zookeeperActive = true
+                disable()
+
+        }
+    }
+
+    def enable() {
+        if (!portActive || !zookeeperActive) {
+            log.warning("enable() invoked in incorrect state zkActive:{} portActive:{}",
+                        zookeeperActive, portActive)
+            return
+        }
+        phase match {
+            case Disabled =>
                 if (bgps.size > 0) {
-                    log.info("ZK disconnection, disabling BGP link: {}", bgps.head._1)
-                    phase = Disabling
-
-                    FlowController.getRef().tell(
-                        FlowController.InvalidateFlowsByTag(FlowTagger.invalidateByBgp(bgps.head._1)))
-                    stopBGP()
-
-                    // NOTE(guillermo) the dataClient's write operations (such as
-                    // deleting a route) are synchronous. That implies that a) these
-                    // calls, because ZK is disconnected, will only return when
-                    // the session is restored or finally lost. The actor is
-                    // effectively 'suspended' for that period of time. and b)
-                    // these calls should be at the very end of this message
-                    // handler's code path, after the flow invalidation and
-                    // bgpd tear down.
-                    peerRoutes.values foreach {
-                        routeId => deleteRoute(routeId)
-                    }
-                    peerRoutes.clear()
+                    log.info("Enabling BGP link: {}", bgps.head._1)
+                    startBGP()
+                    phase = Starting
                 } else {
-                    phase = Disabled
+                    phase = NotStarted
+                    unstashAll()
                 }
+            case Disabling =>
+                phase = Enabling
+            case _ =>
+                log.warning("enable() invoked while in the wrong state: {}", phase)
+        }
+    }
 
-            case Enable =>
-                phase match {
-                    case Disabled =>
-                        if (bgps.size > 0) {
-                            log.info("Reconnected to ZK, enabling BGP link: {}", bgps.head._1)
-                            startBGP()
-                            phase = Starting
-                        } else {
-                            phase = NotStarted
-                            unstashAll()
-                        }
-                    case Disabling =>
-                        phase = Enabling
+    def disable() {
+        phase match {
+            case Disabled =>
+            case Disabling =>
+            case Enabling =>
+                phase = Disabled
+            case _ if bgps.size > 0 =>
+                log.info("Disabling BGP link: {}", bgps.head._1)
+                phase = Disabling
+
+                FlowController.getRef().tell(
+                    FlowController.InvalidateFlowsByTag(FlowTagger.invalidateByBgp(bgps.head._1)))
+                stopBGP()
+
+                // NOTE(guillermo) the dataClient's write operations (such as
+                // deleting a route) are synchronous. That implies that a) these
+                // calls, because ZK is disconnected, will only return when
+                // the session is restored or finally lost. The actor is
+                // effectively 'suspended' for that period of time. and b)
+                // these calls should be at the very end of this message
+                // handler's code path, after the flow invalidation and
+                // bgpd tear down.
+                peerRoutes.values foreach {
+                    routeId => deleteRoute(routeId)
                 }
+                peerRoutes.clear()
+            case _ =>
+                phase = Disabled
         }
     }
 

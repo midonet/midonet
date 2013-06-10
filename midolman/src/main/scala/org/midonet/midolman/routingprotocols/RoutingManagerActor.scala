@@ -17,6 +17,7 @@ import org.midonet.midolman.Referenceable
 import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.logging.ActorLogWithoutPath
+import org.midonet.midolman.routingprotocols.RoutingHandler.PortActive
 import org.midonet.midolman.state.ZkConnectionAwareWatcher
 
 object RoutingManagerActor extends Referenceable {
@@ -74,6 +75,10 @@ class RoutingManagerActor extends Actor with ActorLogWithoutPath {
                 VirtualTopologyActor.getRef() !
                     PortRequest(portID, update = false)
             }
+            portHandlers.get(portID) match {
+                case None =>
+                case Some(routingHandler) => routingHandler ! PortActive(true)
+            }
 
         case LocalPortActive(portID, false) =>
             log.debug("RoutingManager - LocalPortActive(false)" + portID)
@@ -97,7 +102,7 @@ class RoutingManagerActor extends Actor with ActorLogWithoutPath {
                         //   port is inactive and start it up again when
                         //   the port is up again.
                         //   (See: ClusterManager:L040)
-                    case Some(routingHandler) => context.stop(routingHandler)
+                    case Some(routingHandler) => routingHandler ! PortActive(false)
                 }
             }
 
