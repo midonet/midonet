@@ -7,7 +7,10 @@ package org.midonet.functional_test;
 import akka.actor.ActorRef;
 import akka.testkit.TestProbe;
 import akka.util.Duration;
-import org.junit.Ignore;
+import com.google.common.base.Strings;
+import org.junit.Rule;
+import org.junit.rules.TestWatcher;
+import org.junit.runner.Description;
 import org.midonet.midolman.routingprotocols.RoutingHandler;
 import org.midonet.midolman.routingprotocols.RoutingManagerActor;
 import org.midonet.client.MidonetApi;
@@ -35,10 +38,40 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.notNullValue;
 
-@Ignore
 public class BgpCleanUpTest {
 
     private final static Logger log = LoggerFactory.getLogger(BgpTest.class);
+
+    @Rule
+    public TestWatcher testWatcher = new TestWatcher() {
+        private String separator = Strings.repeat("-", 72);
+
+        @Override
+        protected void starting(Description description) {
+            print("starting", description);
+        }
+
+        @Override
+        protected void finished(Description description) {
+            print("finished", description);
+        }
+
+        @Override
+        protected void succeeded(Description description) {
+            print("succeeded", description);
+        }
+
+        @Override
+        public void failed(Throwable e, Description description) {
+            print("failed", description);
+        }
+
+        private void print(String event, Description description) {
+            log.info(separator);
+            log.info("{}: {}", event, description);
+            log.info(separator);
+        }
+    };
 
     ApiServer apiStarter;
     MidonetApi apiClient;
@@ -47,10 +80,22 @@ public class BgpCleanUpTest {
 
     private static final String TEST_HOST_ID = "910de343-c39b-4933-86c7-540225fb02f9";
 
+    static final String testConfigurationPath =
+        "midolman_runtime_configurations/midolman-with_bgp.conf";
+    static final String bgpdBinaryPath = "/usr/lib/quagga/bgpd";
+    static final String bgpdConfigPath = "/etc/quagga/bgpd.conf";
+
+
     @Before
     public void setUp() {
-        String testConfigurationPath = "midolman_runtime_configurations/midolman-with_bgp.conf";
         File testConfigurationFile = new File(testConfigurationPath);
+        assertThat("configuration file exists", testConfigurationFile.exists());
+
+        File bgpdBinaryFile = new File(bgpdBinaryPath);
+        assertThat("bgpd binary exists", bgpdBinaryFile.exists());
+
+        File bgpdConfigFile = new File(bgpdConfigPath);
+        assertThat("bgpd config exists", bgpdConfigFile.exists());
 
         // start zookeeper with the designated port.
         log.info("Starting embedded zookeeper.");
@@ -138,9 +183,9 @@ public class BgpCleanUpTest {
         ProcessHelper.newDemonProcess(cmdLine);
 
         cmdLine = "sudo ip netns exec mbgp1_ns " +
-                " /usr/lib/quagga/bgpd" +
+                bgpdBinaryPath +
                 " --vty_port 2606" +
-                " --config_file /etc/quagga/bgpd.conf" +
+                " --config_file " + bgpdConfigPath +
                 " --pid_file /var/run/quagga/bgpd.2606.pid ";
         ProcessHelper.newDemonProcess(cmdLine);
 
