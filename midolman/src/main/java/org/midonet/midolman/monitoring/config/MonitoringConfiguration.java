@@ -42,10 +42,10 @@ public interface MonitoringConfiguration extends CassandraConfig {
     String getMonitoringCassandraColumnFamily();
 
     /**
-     * @return the cassandra expiration timeout (in seconds).
+     * @return the cassandra expiration timeout (in minutes).
      */
     @ConfigInt(key = "cassandra_expiration_timeout_minutes",
-               defaultValue = 365 * 34 * 60)
+               defaultValue = 60 * 24 * 7)
     int getMonitoringCassandraExpirationTimeout();
 
     /**
@@ -64,6 +64,6 @@ public interface MonitoringConfiguration extends CassandraConfig {
     /**
      * @return the milliseconds between port stats requests.
      */
-    @ConfigInt(key = "port_stats_request_time", defaultValue=2000)
+    @ConfigInt(key = "port_stats_request_time", defaultValue = 2000)
     int getPortStatsRequestTime();
 }
