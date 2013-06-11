@@ -17,3 +17,5 @@ midovpn4
 *.ipr
 *.iws
 *.swp
+
+/tags
