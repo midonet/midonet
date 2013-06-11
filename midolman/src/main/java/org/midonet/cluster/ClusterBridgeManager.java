@@ -177,15 +177,15 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
             }
 
             // The peer could be LogicalRouterPortConfig or LogicalVlanBridge..
-            PortConfig portCfg = portsManager.getPortConfigAndRegisterWatcher(
+            PortConfig peerPortCfg = portsManager.getPortConfigAndRegisterWatcher(
                 bridgePort.peerId(),
                 PortConfig.class,
                 watcher);
 
-            if (portCfg instanceof PortDirectory.LogicalRouterPortConfig) {
+            if (peerPortCfg instanceof PortDirectory.LogicalRouterPortConfig) {
 
                 PortDirectory.LogicalRouterPortConfig routerPort =
-                    (PortDirectory.LogicalRouterPortConfig)portCfg;
+                    (PortDirectory.LogicalRouterPortConfig)peerPortCfg;
 
                 if (null == routerPort) {
                     log.warn("Failed to get the config for the bridge's peer {}",
@@ -202,7 +202,7 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
                               "connected to router port with MAC:{} and IP:{}",
                           new Object[]{id, routerPort.getHwAddr(), rtrPortIp});
 
-            } else if (portCfg instanceof PortDirectory.LogicalVlanBridgePortConfig) {
+            } else if (peerPortCfg instanceof PortDirectory.LogicalVlanBridgePortConfig) {
                 builder.setVlanBridgePeerPortId(id);
             } else {
                 log.warn("The peer isn't router nor vlan-bridge logical port");

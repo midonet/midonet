@@ -6,13 +6,13 @@ package org.midonet.midolman
 import scala.collection.JavaConverters._
 import scala.collection.{Set => ROSet, Map => ROMap}
 import scala.collection.mutable.{ConcurrentMap => ConcMap}
-import akka.actor.{ActorLogging, Cancellable, Actor, ActorRef}
+import akka.actor._
 import akka.event.LoggingAdapter
-import akka.util.Timeout
+import akka.util.{Duration, Timeout}
 import akka.util.duration._
 import java.lang.{Boolean => JBoolean, Integer => JInteger, Short => JShort}
 import java.util.{Collection, Collections, List => JList, Set => JSet, UUID}
-import java.util.concurrent.{ConcurrentHashMap => ConcHashMap}
+import java.util.concurrent.{ConcurrentHashMap => ConcHashMap, TimeUnit}
 import java.nio.ByteBuffer
 
 import com.google.inject.Inject
@@ -491,8 +491,6 @@ class DatapathController() extends Actor with ActorLogging with
     import VirtualToPhysicalMapper._
     import VirtualPortManager.Controller
     import context._
-
-    implicit val requestReplyTimeout = new Timeout(1 second)
 
     @Inject
     val datapathConnection: OvsDatapathConnection = null

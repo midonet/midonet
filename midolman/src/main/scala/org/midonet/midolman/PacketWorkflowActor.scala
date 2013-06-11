@@ -8,11 +8,9 @@ import scala.collection.mutable
 import scala.collection.{Set => ROSet}
 import scala.compat.Platform
 import akka.actor._
-import akka.dispatch.{Promise, Future}
+import akka.dispatch.{ExecutionContext, Promise, Future}
 import akka.event.LoggingReceive
 import akka.pattern.ask
-import akka.util.Timeout
-import akka.util.duration._
 import java.lang.{Integer => JInteger}
 import java.util.UUID
 
@@ -81,6 +79,7 @@ class PacketWorkflowActor(
     import PacketWorkflowActor._
     import context._
 
+
     // TODO marc get config from parent actors.
     def timeout = 5000 //config.getArpTimeoutSeconds * 1000
 
@@ -92,8 +91,6 @@ class PacketWorkflowActor(
         case Right(e) => Some(e)
         case Left(_) => None
     }
-
-    implicit val requestReplyTimeout = new Timeout(1 second)
 
     val cookieStr: String = "[cookie:" + cookie.getOrElse("No Cookie") + "]"
     val lastInvalidation = FlowController.lastInvalidationEvent
