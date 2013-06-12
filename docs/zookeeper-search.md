@@ -49,22 +49,13 @@ configure web.xml as follows:
 In the above example, <b>org.midonet.search.lucene.LuceneZkSearcher</b> is a
 concrete class that implements ZkSearcher interface.
 
-TODO: Go into more details on how the interfaces are designed (builder pattern
-with ZkSearcher?)  Also about indexAll() method.
-
-* searcher.type("router").query("field1", "foo").query("field2", "bar").search()
-
-Where "field1" and "field2" are the annotated string constants in the resource
-class on the fields that you want to index, and "foo" and "bar" are the values
-to search.
 
 
 ### Apache Lucene
 
-Currently there is only one set of Indexer and Searcher implemented,
-org.midonet.search.lucene.LuceneIndexer and
-org.midonet.search.lucene.LuceneSearcher, both implemented with
-[Apache Lucene][2], an open source search search technology library.
+Currently there is only one Searcher, org.midonet.search.lucene.LuceneSearcher,
+which is implemented with [Apache Lucene][2], an open source search search
+technology library.
 
 TODO: Explain benefits of using Lucene
 
@@ -76,11 +67,17 @@ unique resource ID, parent resource ID, names, tags, and others.  What to
 index is controlled by <i>@index</i> annotation applied to getter methods
 (search-related annotations are defined in org.midonet.search.annotation).
 
+The names of the searchable fields are defined in
+<i>org.midonet.search.lucene.SearchField</i> class as String constants.
+They can be used in the annotation to indicate the name of for the search
+field.
+
+
 <pre><code>
 class Foo {
     ...
 
-    <b>@index(k="")</b>      // Signals Indexer to index this field
+    <b>@index(name=SearchField.FooName)</b> // Signals Searcher to index this
     public String getField() {
         return this.field;
     }
@@ -89,25 +86,53 @@ class Foo {
 }
 </code></pre>
 
-
+<i>name</i> attribute indicates the value used to search for this field.
+If <i>name</i> is missing, it assumes the name of the field.
 
 DataClient class creates indices when resources are first created, removes
 indices when resources are deleted, and updates indices when searchable
 fields of resources are modified.
-
-All the ZooKeeper data is indexed when the API server starts.
 
 ### Lucene Indexing
 
 TODO: Go into details on how Lucene index data.
 
 
+## Initialization
+
+When the API server starts, it indexes all the ZooKeeper data.  If for some
+reason the indexed data gets out of sync with the actual ZooKeeper data,
+re-starting the API server re-syncs them.  Searcher has <i>init</i> interface
+that lets the concrete class implement re-indexing.  <i>init</i> is called
+once when the API server starts.  The API server is not available for service
+until <i>init</i> completes successfully.
+
+
 ## Searching
+
+Search interface defines a method to add a query value and to actually
+perform search.  An example query may be:
+
+<pre><code>
+search.query(SearchField.TYPE, "foo").query(SearchField.NAME, "bar").search();
+</code></pre>
+
+Where SearchField.TYPE and SearchField.NAME represent the fields to search.
+
+
+DataClient also exposes pagination feature using the <i>page</i> and
+<i>limit</i> arguments.  <i>page</i> indicates the page number (starting with
+1) to fetch, and <i>limit</i> indicates the number of items per page:
+
+<pre><code>
+search.query(SearchField.TYPE, "foo").page(10).limit(50).search();
+</code></pre>
 
 
 ### Lucene Searching
 
 TODO: Go into details of Lucene search implementation.
+
 
 ## Future Work
 
