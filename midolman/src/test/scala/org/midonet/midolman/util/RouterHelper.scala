@@ -19,15 +19,23 @@ trait RouterHelper extends SimulationHelper {
     def expectEmitIcmp(fromMac: MAC, fromIp: IntIPv4,
                                toMac: MAC, toIp: IntIPv4,
                                icmpType: Char, icmpCode: Char) {
-        val pkt = fishForRequestOfType[EmitGeneratedPacket](dedupProbe()).eth
-        pkt.getEtherType should be === IPv4.ETHERTYPE
-        val ipPkt = pkt.getPayload.asInstanceOf[IPv4]
-        ipPkt.getProtocol should be === ICMP.PROTOCOL_NUMBER
-        ipPkt.getDestinationAddress should be === toIp.addressAsInt
-        ipPkt.getSourceAddress should be === fromIp.addressAsInt
-        val icmpPkt = ipPkt.getPayload.asInstanceOf[ICMP]
-        icmpPkt.getType should be === icmpType
-        icmpPkt.getCode should be === icmpCode
+      val pkt = fishForRequestOfType[EmitGeneratedPacket](dedupProbe()).eth
+      assertExpectedIcmpPacket(fromMac, fromIp, toMac, toIp, icmpType,
+        icmpCode, pkt)
+    }
+
+    def assertExpectedIcmpPacket(fromMac: MAC, fromIp: IntIPv4,
+                                 toMac: MAC, toIp: IntIPv4,
+                                 icmpType: Char, icmpCode: Char,
+                                 pkt: Ethernet){
+      pkt.getEtherType should be === IPv4.ETHERTYPE
+      val ipPkt = pkt.getPayload.asInstanceOf[IPv4]
+      ipPkt.getProtocol should be === ICMP.PROTOCOL_NUMBER
+      ipPkt.getDestinationAddress should be === toIp.addressAsInt
+      ipPkt.getSourceAddress should be === fromIp.addressAsInt
+      val icmpPkt = ipPkt.getPayload.asInstanceOf[ICMP]
+      icmpPkt.getType should be === icmpType
+      icmpPkt.getCode should be === icmpCode
     }
 
     def expectEmitArpRequest(port: UUID, fromMac: MAC, fromIp: IntIPv4,
