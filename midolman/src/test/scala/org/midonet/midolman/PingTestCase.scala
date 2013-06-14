@@ -317,16 +317,17 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
         // Due to timing issues (how long it takes for ARP entry to be stored
         // on router side), we may get an ARP message before the ICMP message
         if (pkt.getEtherType == ARP.ETHERTYPE){
-          log.info("Got an ARP, ignore")
-          expectPacketOut(vm2PortNumber)
-          // Ignore this ARP packet and do a regular expect emit ICMP
-          expectEmitIcmp(routerMac2, routerIp2, vm2Mac, vm2IP,
-            ICMP.TYPE_ECHO_REPLY, ICMP.CODE_NONE)
+            log.info("Got an ARP, ignore")
+
+            expectPacketOut(vm2PortNumber)
+            // Ignore this ARP packet and do a regular expect emit ICMP
+            expectEmitIcmp(routerMac2, routerIp2, vm2Mac, vm2IP,
+                ICMP.TYPE_ECHO_REPLY, ICMP.CODE_NONE)
         } else {
-          log.info("Got an ICMP reply straight away")
-          // The packet we just found should be the expected ICMP packet
-          assertExpectedIcmpPacket(routerMac2, routerIp2, vm2Mac, vm2IP,
-            ICMP.TYPE_ECHO_REPLY, ICMP.CODE_NONE, pkt)
+            log.info("Got an ICMP reply straight away")
+            // The packet we just found should be the expected ICMP packet
+            assertExpectedIcmpPacket(routerMac2, routerIp2, vm2Mac, vm2IP,
+                ICMP.TYPE_ECHO_REPLY, ICMP.CODE_NONE, pkt)
         }
 
         expectPacketOut(vm2PortNumber)
