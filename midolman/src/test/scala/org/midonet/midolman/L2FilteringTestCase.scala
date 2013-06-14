@@ -31,16 +31,19 @@ class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture
         // add rule that drops everything return flows
         newLiteralRuleOnChain(brInChain, 1, new Condition(), RuleResult.Action.DROP)
         expectPacketDropped(vmPortNumbers(0), vmPortNumbers(3), icmpBetweenPorts)
+        fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
         drainProbes()
 
         // add rule that accepts everything
         newLiteralRuleOnChain(brInChain, 1, new Condition(), RuleResult.Action.ACCEPT)
+        fishForRequestOfType[WildcardFlowRemoved](wflowRemovedProbe)
         drainProbes()
         drainProbe(packetsEventsProbe)
         drainProbe(wflowAddedProbe)
         drainProbe(wflowRemovedProbe)
 
         expectPacketAllowed(vmPortNumbers(0), vmPortNumbers(3), icmpBetweenPorts)
+        fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
         drainProbes()
         drainProbe(packetsEventsProbe)
         drainProbe(wflowAddedProbe)
