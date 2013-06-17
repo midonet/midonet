@@ -80,12 +80,14 @@ public class TestHostInterfacePort {
             vlanBridge1.setTenantId("tenant1-id");
 
             DtoBridgePort bridgePort1 = new DtoBridgePort();
+            DtoBridgePort bridgePort2 = new DtoBridgePort();
             DtoVlanBridgeTrunkPort trunkPort1 = new DtoVlanBridgeTrunkPort();
 
             topology = new Topology.Builder(dtoResource)
                     .create("bridge1", bridge1)
                     .create("vlanBridge1", vlanBridge1)
                     .create("bridge1", "bridgePort1", bridgePort1)
+                    .create("bridge1", "bridgePort2", bridgePort2)
                     .create("vlanBridge1", "vlanBridgePort1", trunkPort1)
                     .build();
 
@@ -161,6 +163,39 @@ public class TestHostInterfacePort {
                     DtoHostInterfacePort[].class);
 
             Assert.assertEquals(0, maps.length);
+        }
+
+        @Test
+        public void testCreateWhenInterfaceIsTaken() {
+            DtoHost host = hostTopology.getHost(host1Id);
+            DtoBridgePort port1 = topology.getExtBridgePort("bridgePort1");
+            DtoBridgePort port2 = topology.getExtBridgePort("bridgePort2");
+
+            // List mappings.  There should be none.
+            DtoHostInterfacePort[] maps = dtoResource.getAndVerifyOk(
+                host.getPorts(),
+                VendorMediaType
+                    .APPLICATION_HOST_INTERFACE_PORT_COLLECTION_JSON,
+                DtoHostInterfacePort[].class);
+            Assert.assertEquals(0, maps.length);
+
+            DtoHostInterfacePort mapping = new DtoHostInterfacePort();
+            mapping.setPortId(port1.getId());
+            mapping.setInterfaceName("eth0");
+            dtoResource.postAndVerifyCreated(
+                host.getPorts(),
+                VendorMediaType.APPLICATION_HOST_INTERFACE_PORT_JSON,
+                mapping,
+                DtoHostInterfacePort.class);
+
+            mapping = new DtoHostInterfacePort();
+            mapping.setPortId(port2.getId());
+            mapping.setInterfaceName("eth0");
+            dtoResource.postAndVerifyBadRequest(
+                host.getPorts(),
+                VendorMediaType.APPLICATION_HOST_INTERFACE_PORT_JSON,
+                mapping);
+
         }
 
         @Test

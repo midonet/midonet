@@ -31,6 +31,8 @@ public class MessageProperty {
             "{midokura.javarx.TunnelZoneMemberExists.message}";
     public static final String HOST_ID_IS_INVALID =
             "{midokura.javarx.HostIdIsInvalid.message}";
+    public static final String HOST_INTERFACE_IS_USED =
+            "{midokura.javarx.HostInterfaceIsAlreadyUsed.message}";
     public static final String PORTS_LINKABLE =
             "{midokura.javarx.PortsLinkable.message}";
     public static final String BGP_NOT_UNIQUE =

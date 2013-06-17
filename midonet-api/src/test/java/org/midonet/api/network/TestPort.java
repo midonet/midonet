@@ -1128,7 +1128,7 @@ public class TestPort {
         private DtoExteriorRouterPort port1;
         private DtoBridgePort port2;
         private DtoVlanBridgeTrunkPort trunkPort1;
-        private DtoHost host1, host2;
+        private DtoHost host1, host2, host3;
         private DtoInterface interface1, interface2, interface3;
         private DtoHostInterfacePort hostInterfacePort1, hostInterfacePort2,
                                      hostInterfacePort3;
@@ -1207,15 +1207,18 @@ public class TestPort {
                                          0x01, DtoInterface.Type.Virtual,
                                          new InetAddress[]{
                                              InetAddress.getByAddress(
-                                                 new byte[]{10, 10, 10, 1})
+                                                 new byte[]{10, 10, 10, 2})
                                          });
+            // Create a host that contains an interface bound to the bridge port.
+            host3 = createHost(UUID.randomUUID(), "host3", true, null);
             // Create an interface to be bound to the trunk port
             interface3 = createInterface(UUID.randomUUID(),
-                                         host2.getId(), "interface3",
+                                         host3.getId(), "interface3",
                                          "11:22:33:44:55:66", 1500,
                                          0x01, DtoInterface.Type.Virtual,
                                          new InetAddress[]{
-                                             InetAddress.getByAddress(new byte[]{10, 10, 10, 5})
+                                             InetAddress.getByAddress(
+                                                 new byte[]{10, 10, 10, 3})
                                          });
             port1 = topology.getExtRouterPort("port1");
             port2 = topology.getExtBridgePort("port2");
@@ -1228,7 +1231,7 @@ public class TestPort {
             hostInterfacePort2 = createHostInterfacePort(
                     host2.getId(), interface2.getName(), port2.getId());
             hostInterfacePort3 = createHostInterfacePort(
-                host1.getId(), interface3.getName(), trunkPort1.getId());
+                host3.getId(), interface3.getName(), trunkPort1.getId());
             hostTopology = new HostTopology.Builder(dtoResource, hostManager)
                     .create(host1.getId(), host1)
                     .create(hostInterfacePort1.getHostId(),
@@ -1236,7 +1239,7 @@ public class TestPort {
                     .create(host2.getId(), host2)
                     .create(hostInterfacePort2.getHostId(),
                             hostInterfacePort2.getPortId(), hostInterfacePort2)
-                    .create(host2.getId(), host2)
+                    .create(host3.getId(), host3)
                     .create(hostInterfacePort3.getHostId(),
                             hostInterfacePort3.getPortId(), hostInterfacePort3)
                     .build();
