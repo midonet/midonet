@@ -3,6 +3,8 @@
 */
 package org.midonet.cluster.data;
 
+import java.util.Collection;
+
 import javax.annotation.Nonnull;
 
 /**
@@ -58,5 +60,16 @@ public interface Entity<Id, Data, Self extends Entity<Id, Data, Self>> {
                 ", data=" + data +
                 '}';
         }
+    }
+    
+    public static interface TaggableEntity {
+    	public int tagSize();
+
+    	public TaggableEntity addTags(Collection<String> tags);
+    	public void addTag(String tag);
+
+    	public Collection<String> getTags();
+    	
+    	public boolean containsTag(String tag);
     }
 }

@@ -92,6 +92,7 @@ public class Converter {
         bridgeConfig.tunnelKey = bridge.getTunnelKey();
         bridgeConfig.properties = new HashMap<String, String>(
                 bridge.getProperties());
+        bridgeConfig.addTags(bridge.getTags());
 
         return bridgeConfig;
     }
@@ -105,7 +106,8 @@ public class Converter {
                 .setTunnelKey(bridge.tunnelKey)
                 .setInboundFilter(bridge.inboundFilter)
                 .setOutboundFilter(bridge.outboundFilter)
-                .setProperties(bridge.properties);
+                .setProperties(bridge.properties)
+                .addTags(bridge.getTags());
     }
 
     public static ChainConfig toChainConfig(Chain chain) {
