@@ -4,11 +4,13 @@
 package org.midonet.midolman.state.zkManagers;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.Vector;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
@@ -33,7 +35,7 @@ public class BridgeZkManager extends AbstractZkManager {
     private final static Logger log = LoggerFactory
             .getLogger(BridgeZkManager.class);
 
-    public static class BridgeConfig {
+    public static class BridgeConfig implements TaggableConfig {
 
         public BridgeConfig() {
             super();
@@ -52,6 +54,7 @@ public class BridgeZkManager extends AbstractZkManager {
         public UUID outboundFilter;
         public String name;
         public Map<String, String> properties = new HashMap<String, String>();
+        private List<String> tags = new Vector<String>();
 
         @Override
         public boolean equals(Object o) {
@@ -93,6 +96,26 @@ public class BridgeZkManager extends AbstractZkManager {
             return "BridgeConfig{" + "tunnelKey=" + tunnelKey + ", inboundFilter="
                     + inboundFilter + ", outboundFilter=" + outboundFilter
                     + ", name=" + name + '}';
+        }
+        
+        public int tagSize() {
+        	return this.tags.size();
+        }
+        
+        public boolean addTag(String tag) {
+        	return this.tags.add(tag);
+        }
+        
+        public boolean addTags(Collection<String> tagCollection) {
+        	return this.tags.addAll(tagCollection);
+        }
+        
+        public Collection<String> getTags() {
+        	return this.tags;
+        }
+        
+        public boolean containsTag(String tag) {
+        	return this.tags.contains(tag);
         }
     }
 

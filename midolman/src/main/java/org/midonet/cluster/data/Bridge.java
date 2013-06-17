@@ -3,11 +3,15 @@
 */
 package org.midonet.cluster.data;
 
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.Vector;
 
-public class Bridge extends Entity.Base<UUID, Bridge.Data, Bridge> {
+public class Bridge extends Entity.Base<UUID, Bridge.Data, Bridge>
+		implements Entity.TaggableEntity{
 
     public enum Property {
         tenant_id
@@ -87,6 +91,27 @@ public class Bridge extends Entity.Base<UUID, Bridge.Data, Bridge> {
     public Map<String, String> getProperties() {
         return getData().properties;
     }
+    
+    public Bridge addTags(Collection<String> tags) {
+    	getData().tags.addAll(tags);
+    	return this;
+    }
+
+    public void addTag(String tag) {
+    	getData().tags.add(tag);
+    }
+    
+    public Collection<String> getTags() {
+    	return getData().tags;
+    }
+    
+    public int tagSize() {
+    	return getData().tags.size();
+    }
+
+    public boolean containsTag(String tag) {
+    	return getData().tags.contains(tag);
+    }
 
     public static class Data {
         public String name;
@@ -94,6 +119,7 @@ public class Bridge extends Entity.Base<UUID, Bridge.Data, Bridge> {
         public UUID inboundFilter;
         public UUID outboundFilter;
         public Map<String, String> properties = new HashMap<String, String>();
+        public List<String> tags = new Vector<String>();
 
         @Override
         public boolean equals(Object o) {
