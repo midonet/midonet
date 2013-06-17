@@ -16,6 +16,7 @@ import org.midonet.midolman.topology.VirtualToPhysicalMapper.HostRequest
 import org.midonet.midolman.util.RouterHelper
 import org.midonet.midolman.DeduplicationActor.DiscardPacket
 import org.midonet.packets._
+import org.midonet.util.Range
 
 class DnatPlusSnatTestCase extends MidolmanTestCase
         with VirtualConfigurationBuilders with RouterHelper {
@@ -70,8 +71,7 @@ class DnatPlusSnatTestCase extends MidolmanTestCase
         var tcpCond = new Condition()
         tcpCond.nwProto = Byte.box(TCP.PROTOCOL_NUMBER)
         tcpCond.nwDstIp = new IPv4Subnet(IPv4Addr.fromString("1.1.1.1"), 32)
-        tcpCond.tpDstStart = 80
-        tcpCond.tpDstEnd = 80
+        tcpCond.tpDstRange = new Range(Integer.valueOf(80))
         var nat = new NatTarget(IntIPv4.fromString("10.0.1.2").addressAsInt(),
             IntIPv4.fromString("10.0.1.3").addressAsInt(), 81, 81)
         newForwardNatRuleOnChain(inChain, 1, tcpCond,
@@ -84,16 +84,14 @@ class DnatPlusSnatTestCase extends MidolmanTestCase
         tcpCond = new Condition()
         tcpCond.nwProto = Byte.box(TCP.PROTOCOL_NUMBER)
         tcpCond.nwSrcIp = new IPv4Subnet(IPv4Addr.fromString("10.0.1.2"), 32)
-        tcpCond.tpSrcStart = 81
-        tcpCond.tpSrcEnd = 81
+        tcpCond.tpSrcRange = new Range(Integer.valueOf(81))
         // Now the outbound chain.
         newReverseNatRuleOnChain(outChain, 1, tcpCond,
             RuleResult.Action.ACCEPT, true)
         tcpCond = new Condition()
         tcpCond.nwProto = Byte.box(TCP.PROTOCOL_NUMBER)
         tcpCond.nwSrcIp = new IPv4Subnet(IPv4Addr.fromString("10.0.1.3"), 32)
-        tcpCond.tpSrcStart = 81
-        tcpCond.tpSrcEnd = 81
+        tcpCond.tpSrcRange = new Range(Integer.valueOf(81))
         newReverseNatRuleOnChain(outChain, 1, tcpCond,
             RuleResult.Action.ACCEPT, true)
         tcpCond = new Condition()

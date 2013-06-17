@@ -51,11 +51,9 @@ public class DtoRule {
     private String nwDstAddress;
     private int nwDstLength;
     private boolean invNwDst;
-    private int tpSrcStart;
-    private int tpSrcEnd;
+    private DtoRange<Integer> tpSrc;
     private boolean invTpSrc;
-    private int tpDstStart;
-    private int tpDstEnd;
+    private DtoRange<Integer> tpDst;
     private boolean invTpDst;
     private String type;
     private String jumpChainName;
@@ -298,22 +296,6 @@ public class DtoRule {
         this.invNwDst = invNwDst;
     }
 
-    public int getTpSrcStart() {
-        return tpSrcStart;
-    }
-
-    public void setTpSrcStart(int tpSrcStart) {
-        this.tpSrcStart = tpSrcStart;
-    }
-
-    public int getTpSrcEnd() {
-        return tpSrcEnd;
-    }
-
-    public void setTpSrcEnd(int tpSrcEnd) {
-        this.tpSrcEnd = tpSrcEnd;
-    }
-
     public boolean isInvTpSrc() {
         return invTpSrc;
     }
@@ -322,20 +304,20 @@ public class DtoRule {
         this.invTpSrc = invTpSrc;
     }
 
-    public int getTpDstStart() {
-        return tpDstStart;
+    public DtoRange<Integer> getTpSrc() {
+        return tpSrc;
     }
 
-    public void setTpDstStart(int tpDstStart) {
-        this.tpDstStart = tpDstStart;
+    public DtoRange<Integer> getTpDst() {
+        return tpDst;
     }
 
-    public int getTpDstEnd() {
-        return tpDstEnd;
+    public void setTpDst(DtoRange<Integer> tpDst) {
+        this.tpDst = tpDst;
     }
 
-    public void setTpDstEnd(int tpDstEnd) {
-        this.tpDstEnd = tpDstEnd;
+    public void setTpSrc(DtoRange<Integer> tpSrc) {
+        this.tpSrc = tpSrc;
     }
 
     public boolean isInvTpDst() {
@@ -416,5 +398,19 @@ public class DtoRule {
             this.portFrom = portFrom;
             this.portTo = portTo;
         }
+    }
+
+    public static class DtoRange<E> {
+        public E start;
+        public E end;
+
+        public DtoRange() {
+        }
+
+        public DtoRange(E start_, E end_) {
+            this.start = start_;
+            this.end = end_;
+        }
+
     }
 }

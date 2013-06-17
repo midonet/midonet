@@ -13,6 +13,7 @@ import org.midonet.midolman.util.SimulationHelper
 import org.midonet.cluster.data.{Chain, Rule}
 import org.midonet.packets._
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
+import org.midonet.util.Range
 
 @RunWith(classOf[JUnitRunner])
 class ChainModificationTestCase extends MidolmanTestCase with VMsBehindRouterFixture
@@ -37,29 +38,25 @@ class ChainModificationTestCase extends MidolmanTestCase with VMsBehindRouterFix
          */
         val tcpCond = new Condition()
         tcpCond.nwProto = Byte.box(TCP.PROTOCOL_NUMBER)
-        tcpCond.tpDstStart = 81
-        tcpCond.tpDstEnd = 81
+        tcpCond.tpDstRange = new org.midonet.util.Range(Integer.valueOf(81))
         r = newLiteralRuleOnChain(chain, 1, tcpCond, RuleResult.Action.DROP)
         chainRules = r.getId :: chainRules
 
         val tcpCond2 = new Condition()
         tcpCond2.nwProto = Byte.box(TCP.PROTOCOL_NUMBER)
-        tcpCond2.tpSrcStart = 3456
-        tcpCond2.tpSrcEnd = 3456
+        tcpCond2.tpSrcRange = new Range(Integer.valueOf(3456))
         r = newLiteralRuleOnChain(chain, 1, tcpCond2, RuleResult.Action.ACCEPT)
         chainRules = r.getId :: chainRules
 
         val tcpCond3 = new Condition()
         tcpCond3.nwProto = Byte.box(TCP.PROTOCOL_NUMBER)
-        tcpCond3.tpSrcStart = 9009
-        tcpCond3.tpSrcEnd = 9009
+        tcpCond3.tpSrcRange = new Range(Integer.valueOf(9009))
         r = newLiteralRuleOnChain(chain, 1, tcpCond3, RuleResult.Action.DROP)
         chainRules = r.getId :: chainRules
 
         val tcpCond4 = new Condition()
         tcpCond4.nwProto = Byte.box(TCP.PROTOCOL_NUMBER)
-        tcpCond4.tpDstStart = 80
-        tcpCond4.tpDstEnd = 80
+        tcpCond4.tpDstRange = new Range(Integer.valueOf(80))
         r = newLiteralRuleOnChain(chain, 1, tcpCond4, RuleResult.Action.ACCEPT)
         chainRules = r.getId :: chainRules
     }
@@ -118,8 +115,7 @@ class ChainModificationTestCase extends MidolmanTestCase with VMsBehindRouterFix
 
         val tcpCond = new Condition()
         tcpCond.nwProto = Byte.box(TCP.PROTOCOL_NUMBER)
-        tcpCond.tpSrcStart = 3456
-        tcpCond.tpSrcEnd = 3456
+        tcpCond.tpSrcRange = new Range(Integer.valueOf(3456))
         newLiteralRuleOnChain(chain, 1, tcpCond, RuleResult.Action.DROP)
         fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
 
@@ -136,8 +132,7 @@ class ChainModificationTestCase extends MidolmanTestCase with VMsBehindRouterFix
 
         val tcpCond = new Condition()
         tcpCond.nwProto = Byte.box(TCP.PROTOCOL_NUMBER)
-        tcpCond.tpSrcStart = 7000
-        tcpCond.tpSrcEnd = 7000
+        tcpCond.tpSrcRange = new Range(Integer.valueOf(7000))
         newLiteralRuleOnChain(chain, 5, tcpCond, RuleResult.Action.DROP)
         fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
 
