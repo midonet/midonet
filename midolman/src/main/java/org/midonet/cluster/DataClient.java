@@ -15,6 +15,7 @@ import org.midonet.midolman.state.DirectoryCallback;
 import org.midonet.midolman.state.RuleIndexOutOfBoundsException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.cluster.data.*;
+import org.midonet.cluster.data.Entity.TaggableEntity;
 import org.midonet.cluster.data.dhcp.Subnet;
 import org.midonet.cluster.data.dhcp.Subnet6;
 import org.midonet.cluster.data.dhcp.V6Host;
@@ -491,4 +492,49 @@ public interface DataClient {
         throws StateAccessException;
 
     Set<UUID> portSetsGet(UUID portSet) throws StateAccessException;
+
+    /**
+     * Adds a new tag to a resource represented by "taggable" data with id.
+     *
+     * @param taggable A resource to be tagged.
+     * @param id An id of the resource to be tagged.
+     * @param tag A tag to be added.
+     * @throws StateAccessException
+     */
+    public void tagsAdd(@Nonnull TaggableEntity taggable, UUID id, String tag)
+        throws StateAccessException;
+
+    /**
+     * Gets the data for the particular tag attached to a resource represented by
+     * "taggable" with "id" UUID.
+     *
+     * @param taggable A parent resource to which a tag is attached.
+     * @param id An id of the parent resource.
+     * @param tag A tag.
+     * @throws StateAccessException
+     */
+    public String tagsGet(@Nonnull TaggableEntity taggable, UUID id, String tag)
+            throws StateAccessException;
+
+    /**
+     * Returns a list of tags attached to a resource represented by "taggable"
+     * with "id" UUID.
+     *
+     * @param taggable A parent resource to which a tag is attached.
+     * @param id An id of the parent resource.
+     * @throws StateAccessException
+     */
+    public List<String> tagsList(@Nonnull TaggableEntity taggable, UUID id)
+            throws StateAccessException;
+
+    /**
+     * Deletes a tag attached to a resource represented by "taggable" data with id.
+     *
+     * @param taggable A parent resource to which tag is attached.
+     * @param id An id of the parent resource.
+     * @param tag A tag.
+     * @throws StateAccessException
+     */
+    public void tagsDelete(@Nonnull TaggableEntity taggable, UUID id, String tag)
+        throws StateAccessException;
 }

@@ -5,6 +5,7 @@ package org.midonet.cluster.data;
 
 import java.util.*;
 
+import org.midonet.cluster.data.Entity.TaggableEntity;
 import org.midonet.cluster.data.ports.LogicalVlanBridgePort;
 import org.midonet.cluster.data.ports.TrunkPort;
 import org.midonet.midolman.host.state.HostDirectory;
@@ -22,6 +23,7 @@ import org.midonet.midolman.state.zkManagers.BridgeZkManager.BridgeConfig;
 import org.midonet.midolman.state.zkManagers.ChainZkManager.ChainConfig;
 import org.midonet.midolman.state.zkManagers.PortGroupZkManager.PortGroupConfig;
 import org.midonet.midolman.state.zkManagers.RouterZkManager.RouterConfig;
+import org.midonet.midolman.state.zkManagers.TaggableConfig;
 import org.midonet.midolman.state.zkManagers.VlanAwareBridgeZkManager;
 import org.midonet.cluster.data.dhcp.Opt121;
 import org.midonet.cluster.data.dhcp.Subnet;
@@ -92,7 +94,6 @@ public class Converter {
         bridgeConfig.tunnelKey = bridge.getTunnelKey();
         bridgeConfig.properties = new HashMap<String, String>(
                 bridge.getProperties());
-        bridgeConfig.addTags(bridge.getTags());
 
         return bridgeConfig;
     }
@@ -106,8 +107,7 @@ public class Converter {
                 .setTunnelKey(bridge.tunnelKey)
                 .setInboundFilter(bridge.inboundFilter)
                 .setOutboundFilter(bridge.outboundFilter)
-                .setProperties(bridge.properties)
-                .addTags(bridge.getTags());
+                .setProperties(bridge.properties);
     }
 
     public static ChainConfig toChainConfig(Chain chain) {
@@ -686,6 +686,21 @@ public class Converter {
         return new VirtualPortMapping()
                 .setLocalDeviceName(mappingConfig.getLocalDeviceName())
                 .setVirtualPortId(mappingConfig.getVirtualPortId());
+    }
+
+    public static TaggableConfig toTaggableConfig(TaggableEntity taggableData) {
+        // These conditionals on implementing classes are ugly, but such
+        // conditionals are everywhere in this class:P
+        TaggableConfig config = null;
+        if (taggableData instanceof Bridge) {
+            config = toBridgeConfig((Bridge) taggableData);
+
+        } else {
+            throw new RuntimeException(
+                    "No conversion to TaggableConfig exists for "
+                            + taggableData.getClass());
+        }
+        return config;
     }
 
 }

@@ -32,6 +32,7 @@ import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.*;
 import org.midonet.midolman.state.zkManagers.*;
 import org.midonet.cluster.data.*;
+import org.midonet.cluster.data.Entity.TaggableEntity;
 import org.midonet.cluster.data.dhcp.Subnet;
 import org.midonet.cluster.data.dhcp.Subnet6;
 import org.midonet.cluster.data.dhcp.V6Host;
@@ -123,6 +124,9 @@ public class LocalDataClientImpl implements DataClient {
 
     @Inject
     private Serializer serializer;
+
+    @Inject
+    private TaggableConfigZkManager taggableConfigZkManager;
 
     @Inject
     @Named(ZKConnectionProvider.DIRECTORY_REACTOR_TAG)
@@ -566,6 +570,34 @@ public class LocalDataClientImpl implements DataClient {
         ops.add(zkManager.getDeleteOp(path));
 
         zkManager.multi(ops);
+    }
+
+    @Override
+    public void tagsAdd(@Nonnull TaggableEntity taggable, UUID id, String tag)
+            throws StateAccessException {
+        TaggableConfig taggableConfig = Converter.toTaggableConfig(taggable);
+        taggableConfigZkManager.create(id, taggableConfig, tag);
+    }
+
+    @Override
+    public String tagsGet(@Nonnull TaggableEntity taggable, UUID id, String tag)
+            throws StateAccessException {
+        TaggableConfig taggableConfig = Converter.toTaggableConfig(taggable);
+        return this.taggableConfigZkManager.get(id, taggableConfig, tag);
+    }
+
+    @Override
+    public List<String> tagsList(@Nonnull TaggableEntity taggable, UUID id)
+            throws StateAccessException {
+        TaggableConfig taggableConfig = Converter.toTaggableConfig(taggable);
+        return this.taggableConfigZkManager.listTags(id, taggableConfig, null);
+    }
+
+    @Override
+    public void tagsDelete(@Nonnull TaggableEntity taggable, UUID id, String tag)
+        throws StateAccessException {
+        TaggableConfig taggableConfig = Converter.toTaggableConfig(taggable);
+        this.taggableConfigZkManager.delete(id, taggableConfig, tag);
     }
 
     @Override

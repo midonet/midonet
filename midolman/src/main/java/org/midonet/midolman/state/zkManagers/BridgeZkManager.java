@@ -54,7 +54,6 @@ public class BridgeZkManager extends AbstractZkManager {
         public UUID outboundFilter;
         public String name;
         public Map<String, String> properties = new HashMap<String, String>();
-        private List<String> tags = new Vector<String>();
 
         @Override
         public boolean equals(Object o) {
@@ -96,26 +95,6 @@ public class BridgeZkManager extends AbstractZkManager {
             return "BridgeConfig{" + "tunnelKey=" + tunnelKey + ", inboundFilter="
                     + inboundFilter + ", outboundFilter=" + outboundFilter
                     + ", name=" + name + '}';
-        }
-        
-        public int tagSize() {
-        	return this.tags.size();
-        }
-        
-        public boolean addTag(String tag) {
-        	return this.tags.add(tag);
-        }
-        
-        public boolean addTags(Collection<String> tagCollection) {
-        	return this.tags.addAll(tagCollection);
-        }
-        
-        public Collection<String> getTags() {
-        	return this.tags;
-        }
-        
-        public boolean containsTag(String tag) {
-        	return this.tags.contains(tag);
         }
     }
 
@@ -190,6 +169,9 @@ public class BridgeZkManager extends AbstractZkManager {
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
         ops.add(Op.create(paths.getBridgeIP4MacMapPath(id), null,
+                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+
+        ops.add(Op.create(paths.getBridgeTagsPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
         // Add a port-set for this bridge
@@ -284,6 +266,7 @@ public class BridgeZkManager extends AbstractZkManager {
         ops.addAll(zk.getRecursiveDeleteOps(paths.getBridgeDhcpPath(id)));
         ops.addAll(zk.getRecursiveDeleteOps(paths.getBridgeDhcpV6Path(id)));
         ops.addAll(zk.getRecursiveDeleteOps(paths.getBridgeMacPortsPath(id)));
+        ops.addAll(zk.getRecursiveDeleteOps(paths.getBridgeTagsPath(id)));
         // The bridge may have been created before the ARP feature was added.
         if (zk.exists(paths.getBridgeIP4MacMapPath(id)))
             ops.addAll(zk.getRecursiveDeleteOps(
