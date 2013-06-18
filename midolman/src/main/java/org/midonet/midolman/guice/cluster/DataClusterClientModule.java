@@ -123,6 +123,7 @@ public class DataClusterClientModule extends PrivateModule {
         managers.add(TunnelZoneZkManager.class);
         managers.add(PortSetZkManager.class);
         managers.add(VlanAwareBridgeZkManager.class);
+        managers.add(TaggableConfigZkManager.class);
 
         for (Class<? extends AbstractZkManager> managerClass : managers) {
             //noinspection unchecked

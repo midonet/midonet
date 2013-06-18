@@ -7,6 +7,8 @@ package org.midonet.midolman.state;
 
 import java.util.UUID;
 
+import org.midonet.midolman.state.zkManagers.BridgeZkManager.BridgeConfig;
+import org.midonet.midolman.state.zkManagers.TaggableConfig;
 import org.midonet.packets.IPv6Subnet;
 import org.midonet.packets.IPAddr;
 import org.midonet.packets.IntIPv4;
@@ -600,6 +602,71 @@ public class ZkPathManager {
 
     protected StringBuilder buildVlanBridgePath(UUID id) {
         return buildVlanBridgesPath().append("/").append(id);
+    }
+
+    /**
+     * Get ZK bridge tags path.
+     *
+     * @param bridgeId Bridge UUID
+     * @return /bridges/bridgeId/tags
+     */
+    public String getBridgeTagsPath(UUID bridgeId) {
+        return buildBridgeTagsPath(bridgeId).toString();
+    }
+
+    private StringBuilder buildBridgeTagsPath(UUID bridgeId) {
+        return buildBridgePath(bridgeId).append("/tags");
+    }
+
+    public String getBridgeTagPath(UUID bridgeId, String tag) {
+        return buildBridgeTagPath(bridgeId, tag).toString();
+    }
+
+    private StringBuilder buildBridgeTagPath(UUID bridgeID, String tag) {
+        return buildBridgeTagsPath(bridgeID).append("/").append(tag);
+    }
+
+    /**
+     * Returns a ZK path for the given tag for the specified resource.
+     * @param resourceId UUID of the resource.
+     * @param taggableResource A config data for the taggable resource.
+     * @param tag A resource tag.
+     * @return A ZooKeeper path.
+     */
+    public String getResourceTagPath(
+            UUID resourceId, TaggableConfig taggableResource, String tag) {
+        String path = null;
+        // The following conditionals on the implementation class of the
+        // taggable resource are very ugly. The ZooKeeper path info should be
+        // kept with the Config classes.
+        // TODO(tomohiko) Refactor ZkPathManager and make Config classes have
+        // the path info.
+        if (taggableResource instanceof BridgeConfig) {
+            path = getBridgeTagPath(resourceId, tag);
+        } else {
+            throw new RuntimeException("No resource tag path defined for " +
+                                       taggableResource.getClass());
+        }
+        return path;
+    }
+
+    /**
+     * Returns a ZK path for tags for the specified resource.
+     * @param resourceId UUID of the resource.
+     * @param taggableResource A config data for the taggable resource.
+     * @return A ZooKeeper path.
+     */
+    public String getResourceTagsPath(UUID resourceId, TaggableConfig taggableResource) {
+        String path = null;
+        // TODO(tomohiko) Refactor ZkPathManager and make Config classes have
+        // the path info.
+        if (taggableResource instanceof BridgeConfig) {
+            path = getBridgeTagsPath(resourceId);
+        } else {
+            throw new RuntimeException("No resource tags path defined for " +
+                                       taggableResource.getClass());
+        }
+        return path;
     }
 
     /**
