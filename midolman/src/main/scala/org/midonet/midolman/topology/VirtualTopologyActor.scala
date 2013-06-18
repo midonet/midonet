@@ -21,7 +21,6 @@ import org.midonet.midolman.logging.ActorLogWithoutPath
 import akka.dispatch.{Promise, Future, ExecutionContext}
 import compat.Platform
 import java.util.concurrent.TimeoutException
-import org.slf4j.LoggerFactory
 import org.midonet.midolman.simulation.VlanAwareBridge
 
 object VirtualTopologyActor extends Referenceable {
@@ -147,7 +146,7 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
     private def manageDevice(id: UUID, ctr: UUID => Actor): Unit = {
         if (!managed(id)) {
             log.info("Build a manager for device {}", id)
-            context.actorOf(Props(ctr(id)), name = id.toString())
+            context.actorOf(Props(ctr(id)), name = id.toString)
             managed.add(id)
             idToUnansweredClients.put(id, mutable.Set[ActorRef]())
             idToSubscribers.put(id, mutable.Set[ActorRef]())
@@ -156,7 +155,7 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
 
     private def deviceRequested(id: UUID,
                                 idToDevice: immutable.Map[UUID, Any],
-                                update: Boolean): Unit = {
+                                update: Boolean) {
         if (idToDevice.contains(id))
             sender.tell(idToDevice(id))
         else {
@@ -169,7 +168,7 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
         }
     }
 
-    private def updated(id: UUID, device: Any): Unit = {
+    private def updated(id: UUID, device: Any) {
         for (client <- idToSubscribers(id)) {
             log.debug("Send subscriber the device update for {}", device)
             client ! device
@@ -190,7 +189,7 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
     private def unsubscribe(id: UUID, actor: ActorRef): Unit = {
         def remove(setOption: Option[mutable.Set[ActorRef]]) = setOption match {
             case Some(actorSet) => actorSet.remove(actor)
-            case None =>;
+            case None =>
         }
         remove(idToUnansweredClients.get(id))
         remove(idToSubscribers.get(id))

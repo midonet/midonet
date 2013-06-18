@@ -3,7 +3,7 @@
 package org.midonet.packets;
 
 
-public class IPv4Subnet implements IPSubnet<IPv4Addr> {
+public final class IPv4Subnet implements IPSubnet<IPv4Addr> {
 
     private IPv4Addr addr;
     private int prefixLen;
@@ -65,5 +65,25 @@ public class IPv4Subnet implements IPSubnet<IPv4Addr> {
     @Override
     public String toZkString() {
         return addr.toString() + "_" + prefixLen;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof IPv4Subnet)) return false;
+
+        IPv4Subnet that = (IPv4Subnet) o;
+        if (prefixLen != that.prefixLen) return false;
+        if (addr != null ? !addr.equals(that.addr) : that.addr != null)
+            return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = addr != null ? addr.hashCode() : 0;
+        result = 31 * result + prefixLen;
+        return result;
     }
 }

@@ -7,6 +7,7 @@ package org.midonet.packets
 
 import java.lang.Long.parseLong
 import java.util.Random
+import java.nio.ByteBuffer
 
 /**
  * An IPv6 address.
@@ -86,6 +87,13 @@ class IPv6Addr(val upperWord: Long, val lowerWord: Long) extends IPAddr
         val nextLower = lowerWord + (rand.nextLong % gap)
         new IPv6Addr(upperWord, nextLower)
 
+    }
+
+    override def toBytes: Array[Byte] = {
+        val bb = ByteBuffer.allocate(16)
+        bb.putLong(upperWord)
+        bb.putLong(lowerWord)
+        bb.array()
     }
 }
 

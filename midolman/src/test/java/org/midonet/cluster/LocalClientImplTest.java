@@ -16,11 +16,13 @@ import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.junit.Before;
 import org.junit.Test;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-
+import org.midonet.cluster.client.ArpCache;
+import org.midonet.cluster.client.BridgeBuilder;
+import org.midonet.cluster.client.ForwardingElementBuilder;
+import org.midonet.cluster.client.IpMacMap;
+import org.midonet.cluster.client.MacLearningTable;
+import org.midonet.cluster.client.RouterBuilder;
+import org.midonet.cluster.client.SourceNatResource;
 import org.midonet.midolman.Setup;
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.config.ZookeeperConfig;
@@ -34,21 +36,17 @@ import org.midonet.midolman.layer3.Route;
 import org.midonet.midolman.state.ArpCacheEntry;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.ZkStateSerializationException;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager;
 import org.midonet.midolman.state.zkManagers.RouterZkManager;
-import org.midonet.cluster.client.ArpCache;
-import org.midonet.cluster.client.BridgeBuilder;
-import org.midonet.cluster.client.ForwardingElementBuilder;
-import org.midonet.cluster.client.IpMacMap;
-import org.midonet.cluster.client.MacLearningTable;
-import org.midonet.cluster.client.RouterBuilder;
-import org.midonet.cluster.client.SourceNatResource;
-import org.midonet.packets.IntIPv4;
 import org.midonet.packets.IPAddr;
+import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 import org.midonet.util.functors.Callback1;
 import org.midonet.util.functors.Callback3;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 public class LocalClientImplTest {
 
@@ -153,7 +151,7 @@ public class LocalClientImplTest {
         assertThat("Build is called", routerBuilder.getBuildCallsCount(),
                    equalTo(1));
 
-        IntIPv4 ipAddr = IntIPv4.fromString("192.168.0.0_24");
+        IPv4Addr ipAddr = IPv4Addr.fromString("192.168.0.0");
         ArpCacheEntry arpEntry = new ArpCacheEntry(MAC.random(), 0, 0, 0);
         // add an entry in the arp cache.
         routerBuilder.addNewArpEntry(ipAddr, arpEntry);
@@ -167,7 +165,7 @@ public class LocalClientImplTest {
     }
 
     @Test
-    public void MacPortMapTest() throws InterruptedException, KeeperException, ZkStateSerializationException, StateAccessException {
+    public void MacPortMapTest() throws InterruptedException, KeeperException, StateAccessException {
         initializeZKStructure();
         Setup.createZkDirectoryStructure(zkDir(), zkRoot);
         UUID bridgeId = getBridgeZkManager().create(
@@ -332,11 +330,11 @@ public class LocalClientImplTest {
         int buildCallsCount = 0;
         ArpCache arpCache;
 
-        public void addNewArpEntry(IntIPv4 ipAddr, ArpCacheEntry entry) {
+        public void addNewArpEntry(IPv4Addr ipAddr, ArpCacheEntry entry) {
             arpCache.add(ipAddr, entry);
         }
 
-        public ArpCacheEntry getArpEntryForIp(IntIPv4 ipAddr) {
+        public ArpCacheEntry getArpEntryForIp(IPv4Addr ipAddr) {
             final ArpCacheEntry[] result = new ArpCacheEntry[1];
             arpCache.get(ipAddr, new Callback1<ArpCacheEntry>() {
                 @Override

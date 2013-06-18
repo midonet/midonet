@@ -3,7 +3,7 @@
  */
 package org.midonet.midolman.topology
 
-import collection.{Set => ROSet, immutable, mutable, Iterable}
+import collection.{Set => ROSet, mutable, Iterable}
 import collection.JavaConversions._
 import java.util.UUID
 
@@ -11,29 +11,29 @@ import org.midonet.cluster.Client
 import org.midonet.cluster.client.ArpCache
 import org.midonet.midolman.FlowController
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.layer3.{InvalidationTrie, Route, RoutingTable}
+import org.midonet.midolman.layer3.{RoutingTableIfc, InvalidationTrie, Route}
 import org.midonet.midolman.simulation.{ArpTable, ArpTableImpl, Router}
 import org.midonet.midolman.topology.RouterManager._
 import org.midonet.midolman.topology.builders.RouterBuilderImpl
-import org.midonet.packets.{IPAddr, IPv4, IPv4Addr, MAC}
+import org.midonet.packets.{IPAddr, IPv4Addr, MAC}
 import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.util.functors.Callback0
 
 
-class RoutingTableWrapper(val rTable: RoutingTable) {
+class RoutingTableWrapper[IP <: IPAddr](val rTable: RoutingTableIfc[IP]) {
     import collection.JavaConversions._
     def lookup(wmatch: WildcardMatch): Iterable[Route] =
-            // TODO (ipv6) de facto implementation for ipv4, that explains
-            // the casts at this point.
-            rTable.lookup(wmatch.getNetworkSourceIP.asInstanceOf[IPv4Addr],
-                          wmatch.getNetworkDestinationIP.asInstanceOf[IPv4Addr])
+        // TODO (ipv6) de facto implementation for ipv4, that explains
+        // the casts at this point.
+        rTable.lookup(wmatch.getNetworkSourceIP.asInstanceOf[IP],
+                      wmatch.getNetworkDestinationIP.asInstanceOf[IP])
 }
 
 object RouterManager {
     val Name = "RouterManager"
 
     case class TriggerUpdate(cfg: RouterConfig, arpCache: ArpCache,
-                             rTable: RoutingTableWrapper)
+                             rTable: RoutingTableWrapper[IPv4Addr])
     case class InvalidateFlows(addedRoutes: ROSet[Route],
                                deletedRoutes: ROSet[Route])
 
@@ -48,16 +48,31 @@ object RouterManager {
 case class RouterConfig(inboundFilter: UUID = null,
                         outboundFilter: UUID = null)
 
+/**
+ * Provided to the Router for operations on Tags.
+ */
 trait TagManager {
     def addTag(dstIp: IPAddr)
-
     def getFlowRemovalCallback(dstIp: IPAddr): Callback0
 }
 
+/**
+ * TODO (galo, ipv6) this class is still heavily dependant on IPv4. There are
+ * two points to tackle:
+ * - Routes and Invalidation Tries. This should be rewritten with an agnostic
+ * version so that it can work with both IP versions. A decent suggestion might
+ * be to offer a Trie for byte[] since both versions can easily be translated
+ * into a block of bytes.
+ * - ARP: this is not used in IPv6, an idea can be to make this a generic
+ * version for IPv6, then extend adding IPv4 and IPv6 "toolsets" to each.
+ * @param id
+ * @param client
+ * @param config
+ */
 class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
         extends DeviceManager(id) {
     private var cfg: RouterConfig = null
-    private var rTable: RoutingTableWrapper = null
+    private var rTable: RoutingTableWrapper[IPv4Addr]= null
     private var arpCache: ArpCache = null
     private var arpTable: ArpTable = null
     private var filterChanged = false
@@ -80,8 +95,8 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
             // Should this need to be decoupled from the VTA, the parent
             // actor reference should be passed in the constructor
             VirtualTopologyActor.getRef().tell(
-                new Router(id, cfg, rTable, arpTable, inFilter, outFilter,
-                    new TagManagerImpl))
+                new Router(id, cfg, rTable, inFilter, outFilter,
+                           new TagManagerImpl, arpTable))
         } else {
             log.debug("The chains aren't ready yet. ")
         }
@@ -147,11 +162,12 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
                 val subTree = dstIpTagTrie.projectRouteAndGetSubTree(route)
                 val ipToInvalidate = InvalidationTrie.getAllDescendantsIpDestination(subTree)
                 log.debug("Got the following ip destination to invalidate {}",
-                    ipToInvalidate.map(ip => IPv4.fromIPv4Address(ip)))
+                          ipToInvalidate)
+
                 val it = ipToInvalidate.iterator()
                 it.foreach(ip => FlowController.getRef() !
                     FlowController.InvalidateFlowsByTag(
-                        FlowTagger.invalidateByIp(id, IPv4Addr.fromInt(ip))))
+                        FlowTagger.invalidateByIp(id, ip)))
                 }
 
         case AddTag(dstIp) =>

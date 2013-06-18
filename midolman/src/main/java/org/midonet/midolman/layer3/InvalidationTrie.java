@@ -9,6 +9,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Stack;
 
+import org.midonet.packets.IPAddr;
+import org.midonet.packets.IPv4Addr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,19 +18,21 @@ public class InvalidationTrie extends RoutesTrie {
 
     private final static Logger log = LoggerFactory.getLogger(
         InvalidationTrie.class);
-    // TODO(ross) if in the routing table there's a route that is a child of the
-    // route corresponding to the node we pass, we shouldn't invalidate the ip
-    // destination that are below this more specific route.
-    public static Iterable<Integer> getAllDescendantsIpDestination(RoutesTrie.TrieNode node){
+
+     // TODO(ross) if in the routing table there's a route that is a child of the
+     // route corresponding to the node we pass, we shouldn't invalidate the ip
+     // destination that are below this more specific route.
+    public static Iterable<IPv4Addr>
+        getAllDescendantsIpDestination(RoutesTrie.TrieNode node){
         if (node == null)
             return Collections.emptyList();
-        List<Integer> destIps = new ArrayList<Integer>();
+        List<IPv4Addr> destIps = new ArrayList<IPv4Addr>();
         Stack<TrieNode> stack = new Stack<TrieNode>();
         stack.add(node);
         while(!stack.empty()){
             TrieNode n = stack.pop();
             for(Route route: n.getRoutes()){
-                destIps.add(route.dstNetworkAddr);
+                destIps.add(IPv4Addr.fromInt(route.dstNetworkAddr));
             }
             if(null != n.left)
                 stack.add(n.left);

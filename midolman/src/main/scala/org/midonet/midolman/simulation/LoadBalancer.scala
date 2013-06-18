@@ -7,8 +7,9 @@ import java.util.concurrent.atomic.AtomicLong
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.topology.RoutingTableWrapper
 import org.midonet.sdn.flows.WildcardMatch
+import org.midonet.packets.IPAddr
 
-class LoadBalancer(val rTable: RoutingTableWrapper) {
+class LoadBalancer[IP <: IPAddr](val rTable: RoutingTableWrapper[IP]) {
     val lookups: AtomicLong = new AtomicLong()
 
     def lookup(mmatch: WildcardMatch): Route = {

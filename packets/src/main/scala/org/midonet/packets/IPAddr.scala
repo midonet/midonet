@@ -11,6 +11,7 @@ trait IPAddr {
     type T <: IPAddr
     def toString: String
     def toUrlString: String
+    def toBytes: Array[Byte]
 
     /**
      * Provides an IPSubnet from this address and with the given length.
