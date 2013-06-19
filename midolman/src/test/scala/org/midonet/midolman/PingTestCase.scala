@@ -172,15 +172,6 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
         pktOut.getPacket
     }
 
-    private def arpAndCheckReply(portName: String, srcMac: MAC, srcIp: IntIPv4,
-                                 dstIp: IntIPv4, expectedMac: MAC, portNum : Int) {
-
-        injectArpRequest(portName, srcIp.getAddress, srcMac, dstIp.getAddress)
-        val pkt = expectPacketOut(portNum)
-        log.info("Packet out: {}", pkt)
-        // TODO(guillermo) check the arp reply packet
-    }
-
     private def injectDhcpDiscover(portName: String, srcMac : MAC) {
         val dhcpDiscover = new DHCP()
         dhcpDiscover.setOpCode(0x01)
@@ -274,6 +265,38 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
         }
     }
 
+    /**
+     * Sends an ICMP request and expects an ICMP reply back, it'll take care
+     * of possible race conditions that might result in an intermediate ARP
+     */
+    def doIcmpExchange(fromPort: String, srcMac: MAC, srcIp: IntIPv4,
+                       dstMac: MAC, dstIp: IntIPv4) {
+        injectIcmpEchoReq(fromPort, srcMac, srcIp, dstMac, dstIp)
+        requestOfType[PacketIn](packetInProbe)
+        log.info("Check ICMP Echo Reply")
+
+        val pkt = fishForRequestOfType[EmitGeneratedPacket](dedupProbe()).eth
+
+        // Due to timing issues (how long it takes for ARP entry to be stored
+        // on router side), we may get an ARP message before the ICMP message
+        if (pkt.getEtherType == ARP.ETHERTYPE){
+            log.info("Got an ARP, ignore")
+            expectPacketOut(getPortNumber(fromPort))
+            // Ignore this ARP packet and do a regular expect emit ICMP
+            expectEmitIcmp(dstMac, dstIp, srcMac, srcIp,
+                           ICMP.TYPE_ECHO_REPLY, ICMP.CODE_NONE)
+        } else {
+            log.info("Got an ICMP reply straight away")
+            // The packet we just found should be the expected ICMP packet
+            assertExpectedIcmpPacket(dstMac, dstIp, srcMac, srcIp,
+                                     ICMP.TYPE_ECHO_REPLY, ICMP.CODE_NONE, pkt)
+        }
+
+        expectPacketOut(getPortNumber(fromPort))
+        fishForRequestOfType[DiscardPacket](discardPacketProbe)
+        drainProbes()
+    }
+
     def test() {
 
         log.info("When the VM boots up, it should start sending DHCP discover")
@@ -296,10 +319,6 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
         val vm2IpInt = vm2IP.addressAsInt
         dhcpClientIp should be === vm2IpInt
 
-
-        //arpAndCheckReply(vm2PortName, vm2Mac, vm2IP, routerIp2,
-        //                 routerMac2, vm2PortNumber)
-
         log.info("Sending gratuitous ARP reply")
         feedArpCache(vm2PortName, vm2IP.addressAsInt, vm2Mac,
                      routerIp2.addressAsInt, routerMac2)
@@ -308,46 +327,19 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
         drainProbes()
 
         log.info("Ping Router port 2")
-        injectIcmpEchoReq(vm2PortName, vm2Mac, vm2IP, routerMac2, routerIp2)
-        requestOfType[PacketIn](packetInProbe)
-        log.info("Check ICMP Echo Reply from Router port 2")
-
-        val pkt = fishForRequestOfType[EmitGeneratedPacket](dedupProbe()).eth
-
-        // Due to timing issues (how long it takes for ARP entry to be stored
-        // on router side), we may get an ARP message before the ICMP message
-        if (pkt.getEtherType == ARP.ETHERTYPE){
-            log.info("Got an ARP, ignore")
-
-            expectPacketOut(vm2PortNumber)
-            // Ignore this ARP packet and do a regular expect emit ICMP
-            expectEmitIcmp(routerMac2, routerIp2, vm2Mac, vm2IP,
-                ICMP.TYPE_ECHO_REPLY, ICMP.CODE_NONE)
-        } else {
-            log.info("Got an ICMP reply straight away")
-            // The packet we just found should be the expected ICMP packet
-            assertExpectedIcmpPacket(routerMac2, routerIp2, vm2Mac, vm2IP,
-                ICMP.TYPE_ECHO_REPLY, ICMP.CODE_NONE, pkt)
-        }
-
-        expectPacketOut(vm2PortNumber)
+        doIcmpExchange(vm2PortName, vm2Mac, vm2IP, routerMac2, routerIp2)
 
         log.info("Ping Router port 1")
-        injectIcmpEchoReq(vm2PortName, vm2Mac, vm2IP, routerMac2, routerIp1)
-        requestOfType[PacketIn](packetInProbe)
-        log.info("Check ICMP Echo Reply from Router port 1")
-        expectEmitIcmp(routerMac2, routerIp1, vm2Mac, vm2IP,
-                       ICMP.TYPE_ECHO_REPLY, ICMP.CODE_NONE)
-        expectPacketOut(vm2PortNumber)
-        fishForRequestOfType[DiscardPacket](discardPacketProbe)
+        doIcmpExchange(vm2PortName, vm2Mac, vm2IP, routerMac2, routerIp1)
 
         log.info("Ping VM1, not expecting any reply")
         injectIcmpEchoReq(vm2PortName, vm2Mac, vm2IP, routerMac2, vm1Ip)
         requestOfType[PacketIn](packetInProbe)
-        // this is an ARP request, the ICMP echo will not be delivered
-        // because this ARP will go unanswered
+        // This generated packet is an ARP request, the ICMP echo will not be
+        // delivered because this ARP will go unanswered
         requestOfType[EmitGeneratedPacket](dedupProbe())
         expectPacketOut(rtrPort1Num)
+        drainProbes()
 
         log.info("Send Ping reply on behalf of VM1")
         injectIcmpEchoReply(rtrPort1Name, vm1Mac, vm1Ip, 16, 32,

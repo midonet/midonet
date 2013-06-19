@@ -7,13 +7,10 @@ package org.midonet.midolman
 import scala.collection.JavaConversions._
 import scala.util.control.Breaks._
 import akka.testkit.TestProbe
-import akka.util.Duration
-import java.util.concurrent.TimeUnit
 
 import akka.util.Duration
 import java.util.concurrent.TimeUnit
 import org.junit.runner.RunWith
-import org.scalatest.Ignore
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.Ignore
 import org.slf4j.LoggerFactory
@@ -35,6 +32,7 @@ import org.midonet.odp.Packet
 import org.midonet.odp.flows._
 import org.midonet.odp.flows.FlowKeys.{ethernet, inPort, tunnelID}
 import org.midonet.sdn.flows.{WildcardFlowBuilder, WildcardMatch}
+import collection.immutable
 
 
 @RunWith(classOf[JUnitRunner])
@@ -368,7 +366,6 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
         materializePort(portOnHost2, host2, "port2")
         materializePort(portOnHost3, host3, "port3")
 
-
         clusterDataClient().portSetsAddHost(bridge.getId, host2.getId)
         clusterDataClient().portSetsAddHost(bridge.getId, host3.getId)
 
@@ -404,20 +401,22 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
             case None =>
                 fail("Short data port number for port2OnHost1 not found.")
         }
-        // Expect various invalidation messages
-        var msg = fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
-        assert(msg.tag.equals(
-            FlowTagger.invalidateFlowsByDevice(port2OnHost1.getId)))
-        // invalidation with tag datapath port short id
-        msg = fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
-        assert(msg.tag.equals(FlowTagger.invalidateDPPort(numPort2OnHost1)))
-        // flow installed for tunnel key = port
-        msg = fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
-        assert(msg.tag.equals(
-            FlowTagger.invalidateByTunnelKey(port2OnHost1.getTunnelKey)))
-        msg = fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
-        assert(msg.tag.equals(FlowTagger.invalidateBroadcastFlows(bridge.getId,
-            bridge.getId)))
+
+        // Expect various invalidation messages, not necessarily in order
+        // to prevent races
+        var expected = immutable.Set(
+            FlowTagger.invalidateFlowsByDevice(port2OnHost1.getId),
+            FlowTagger.invalidateDPPort(numPort2OnHost1),
+            FlowTagger.invalidateByTunnelKey(port2OnHost1.getTunnelKey),
+            FlowTagger.invalidateBroadcastFlows(bridge.getId, bridge.getId)
+        )
+
+        for (i <- 1.to(expected size)) {
+            val msg = fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
+            expected = expected.filter(exp => !exp.equals(msg.tag))
+        }
+
+        expected should have size (0)
 
         val flowInvalidated = wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
         assert(flowInvalidated.f.equals(flowToInvalidate.f))
@@ -439,7 +438,6 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
         materializePort(portOnHost2, host2, "port2")
         materializePort(portOnHost3, host3, "port3")
 
-
         clusterDataClient().portSetsAddHost(bridge.getId, host2.getId)
         clusterDataClient().portSetsAddHost(bridge.getId, host3.getId)
 
@@ -450,8 +448,8 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
 
         // Wait for LocalPortActive messages - they prove the
         // VirtualToPhysicalMapper has the correct information for the PortSet.
-        portsProbe.expectMsgClass(classOf[LocalPortActive])
-        portsProbe.expectMsgClass(classOf[LocalPortActive])
+        portsProbe.expectMsgAllClassOf(classOf[LocalPortActive],
+                                       classOf[LocalPortActive])
 
         val wildcardFlow = new WildcardFlowBuilder()
             .setMatch(new WildcardMatch().setInputPortUUID(port1OnHost1.getId))
@@ -466,8 +464,7 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
         // flows, the one corresponding to this port will be removed
         deletePort(port2OnHost1, host1)
         val msg = fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
-        //assert(msg.tag.equals(FlowTagger.invalidateDPPort(localPortNumber2.asShort())))
-        wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
-        wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
+        wflowRemovedProbe.expectMsgAllClassOf(classOf[WildcardFlowRemoved],
+                                              classOf[WildcardFlowRemoved])
     }
 }
