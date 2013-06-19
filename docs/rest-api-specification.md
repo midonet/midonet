@@ -1693,40 +1693,22 @@ It contains the following fields:
           assumed to be 1.</td>
     </tr>
     <tr>
-        <td>tpSrcEnd</td>
-        <td>Int</td>
+        <td>tpSrc</td>
+        <td>Range[Int]</td>
         <td>POST</td>
         <td>No</td>
-        <td>The end of the tcp/udp source port range to match. This field is
-         required if tpSrcStart is set. When creating an ICMP rule, this field
-         should be set to the ICMP type value.</td>
+        <td>The tcp/udp source port range to match. When creating an
+        ICMP rule, this field should be set to the ICMP type value. The
+        absence of a Range will be interpreted as "any".</td>
     </tr>
     <tr>
-        <td>tpSrcStart</td>
-        <td>Int</td>
+        <td>tpDst</td>
+        <td>Range[Int]</td>
         <td>POST</td>
         <td>No</td>
-        <td>The beginning of the tcp/udp source port range to match.  This
-         field is required if invTpEnd is set. When creating an ICMP rule,
-         this field should be set to the ICMP type value.</td>
-    </tr>
-    <tr>
-        <td>tpDstEnd</td>
-        <td>Int</td>
-        <td>POST</td>
-        <td>No</td>
-        <td>The end of the tcp/udp port range to match.  This field is required
-         if tpDstStart is set. When creating an ICMP rule, this field should be
-         set to the ICMP code value.</td>
-    </tr>
-    <tr>
-        <td>tpDstStart</td>
-        <td>Int</td>
-        <td>POST</td>
-        <td>No</td>
-        <td>The beginning of the tcp/udp dest port range to match. This field
-         is required if tpDstEnd is set.  When creating an ICMP rule, this
-         field should be set to the ICMP code value.</td>
+        <td>The tcp/udp port range to match. When creating an ICMP rule,
+        this field should be set to the ICMP code value. A null value in
+        this field will be intepreted as "any".</td>
     </tr>
     <tr>
         <td>type</td>

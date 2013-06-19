@@ -19,6 +19,7 @@ import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.MAC;
+import org.midonet.util.Range;
 import org.midonet.util.StringUtil;
 
 import org.codehaus.jackson.annotate.JsonSubTypes;
@@ -96,21 +97,8 @@ public abstract class Rule extends UriResource {
     private boolean invNwSrc;
     private boolean invNwDst;
 
-    @Min(0)
-    @Max(65535)
-    private int tpSrcStart;
-
-    @Min(0)
-    @Max(65535)
-    private int tpSrcEnd;
-
-    @Min(0)
-    @Max(65535)
-    private int tpDstStart;
-
-    @Min(0)
-    @Max(65535)
-    private int tpDstEnd;
+    private Range<Integer> tpSrcRange;
+    private Range<Integer> tpDstRange;
 
     private boolean invTpSrc;
     private boolean invTpDst;
@@ -462,8 +450,7 @@ public abstract class Rule extends UriResource {
     }
 
     /**
-     * @param nwDstAddress
-     *            the nwDstAddress to set
+     * @param nwDstAddress the nwDstAddress to set
      */
     public void setNwDstAddress(String nwDstAddress) {
         this.nwDstAddress = nwDstAddress;
@@ -474,8 +461,7 @@ public abstract class Rule extends UriResource {
     }
 
     /**
-     * @param nwDstLength
-     *            the nwDstLength to set
+     * @param nwDstLength the nwDstLength to set
      */
     public void setNwDstLength(int nwDstLength) {
         this.nwDstLength = nwDstLength;
@@ -486,41 +472,24 @@ public abstract class Rule extends UriResource {
     }
 
     /**
-     * @param invNwDst
-     *            the invNwDst to set
+     * @param invNwDst the invNwDst to set
      */
     public void setInvNwDst(boolean invNwDst) {
         this.invNwDst = invNwDst;
     }
 
     /**
-     * @return the tpSrcStart
+     * @return the tpSrcRange
      */
-    public int getTpSrcStart() {
-        return tpSrcStart;
+    public Range<Integer> getTpSrcRange() {
+        return tpSrcRange;
     }
 
     /**
-     * @param tpSrcStart
-     *            the tpSrcStart to set
+     * @param tpSrcRange the tpSrcRange to set
      */
-    public void setTpSrcStart(int tpSrcStart) {
-        this.tpSrcStart = tpSrcStart;
-    }
-
-    /**
-     * @return the tpSrcEnd
-     */
-    public int getTpSrcEnd() {
-        return tpSrcEnd;
-    }
-
-    /**
-     * @param tpSrcEnd
-     *            the tpSrcEnd to set
-     */
-    public void setTpSrcEnd(int tpSrcEnd) {
-        this.tpSrcEnd = tpSrcEnd;
+    public void setTpSrcStart(Range<Integer> tpSrcRange) {
+        this.tpSrcRange = tpSrcRange;
     }
 
     /**
@@ -531,41 +500,31 @@ public abstract class Rule extends UriResource {
     }
 
     /**
-     * @param invTpSrc
-     *            the invTpSrc to set
+     * @param invTpSrc the invTpSrc to set
      */
     public void setInvTpSrc(boolean invTpSrc) {
         this.invTpSrc = invTpSrc;
     }
 
     /**
-     * @return the tpDstStart
+     * @return the tpDstRange
      */
-    public int getTpDstStart() {
-        return tpDstStart;
+    public Range<Integer> getTpDstRange() {
+        return tpDstRange;
     }
 
     /**
-     * @param tpDstStart
-     *            the tpDstStart to set
+     * @param tpDstRange the tpDstRange to set
      */
-    public void setTpDstStart(int tpDstStart) {
-        this.tpDstStart = tpDstStart;
+    public void setTpDstRange(Range<Integer> tpDstRange) {
+        this.tpDstRange = tpDstRange;
     }
 
     /**
-     * @return the tpDstEnd
+     * @param tpSrcRange the tpSrcRange to set
      */
-    public int getTpDstEnd() {
-        return tpDstEnd;
-    }
-
-    /**
-     * @param tpDstEnd
-     *            the tpDstEnd to set
-     */
-    public void setTpDstEnd(int tpDstEnd) {
-        this.tpDstEnd = tpDstEnd;
+    public void setTpSrcRange(Range<Integer> tpSrcRange) {
+        this.tpSrcRange = tpSrcRange;
     }
 
     /**
@@ -639,14 +598,12 @@ public abstract class Rule extends UriResource {
             c.outPortIds = new HashSet<UUID>();
         }
         c.outPortInv = this.isInvOutPorts();
-        if (tpDstEnd != 0) {
-            c.tpDstEnd = tpDstEnd;
-            c.tpDstStart = tpDstStart;
+        if (tpDstRange != null) {
+            c.tpDstRange = tpDstRange;
         }
         c.tpDstInv = this.isInvTpDst();
-        if (tpSrcEnd != 0) {
-            c.tpSrcEnd = tpSrcEnd;
-            c.tpSrcStart = tpSrcStart;
+        if (tpSrcRange != null) {
+            c.tpSrcRange = tpSrcRange;
         }
         c.tpSrcInv = this.isInvTpSrc();
         c.portGroup = this.portGroup;
@@ -695,14 +652,10 @@ public abstract class Rule extends UriResource {
             this.setNwProto(unsign(c.nwProto));
         if (null != c.nwTos)
             this.setNwTos(unsign(c.nwTos));
-        if (0 != c.tpDstEnd)
-            this.setTpDstEnd(c.tpDstEnd);
-        if (0 != c.tpDstStart)
-            this.setTpDstStart(c.tpDstStart);
-        if (0 != c.tpSrcEnd)
-            this.setTpSrcEnd(c.tpSrcEnd);
-        if (0 != c.tpSrcStart)
-            this.setTpSrcStart(c.tpSrcStart);
+        if (null != c.tpDstRange)
+            this.setTpDstRange(c.tpDstRange);
+        if (null != c.tpSrcRange)
+            this.setTpSrcRange(c.tpSrcRange);
     }
 
 }

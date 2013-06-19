@@ -342,39 +342,21 @@ public class Rule extends ResourceBase<Rule, DtoRule> {
     }
 
     /**
-     * Gets end of destination port range for this rule.
+     * Gets destination port range for this rule.
      *
      * @return
      */
-    public int getTpDstEnd() {
-        return principalDto.getTpDstEnd();
+    public DtoRule.DtoRange<Integer> getTpDst() {
+        return principalDto.getTpDst();
     }
 
     /**
-     * Gets start of destination port range for this rule.
+     * Gets source port range for this rule.
      *
      * @return
      */
-    public int getTpDstStart() {
-        return principalDto.getTpDstStart();
-    }
-
-    /**
-     * Gets end of the source port for this rule.
-     *
-     * @return
-     */
-    public int getTpSrcEnd() {
-        return principalDto.getTpSrcEnd();
-    }
-
-    /**
-     * Gets start of the source port for this rule.
-     *
-     * @return
-     */
-    public int getTpSrcStart() {
-        return principalDto.getTpSrcStart();
+    public DtoRule.DtoRange<Integer> getTpSrc() {
+        return principalDto.getTpSrc();
     }
 
     /**
@@ -486,17 +468,6 @@ public class Rule extends ResourceBase<Rule, DtoRule> {
     }
 
     /**
-     * Sets tpSrcStart.
-     *
-     * @param tpSrcStart
-     * @return this
-     */
-    public Rule tpSrcStart(int tpSrcStart) {
-        principalDto.setTpSrcStart(tpSrcStart);
-        return this;
-    }
-
-    /**
      * Sets invDlType.
      *
      * @param invDlType
@@ -508,13 +479,13 @@ public class Rule extends ResourceBase<Rule, DtoRule> {
     }
 
     /**
-     * Sets tpDstStart.
+     * Sets tpDst.
      *
-     * @param tpDstStart
+     * @param tpDst
      * @return this
      */
-    public Rule tpDstStart(int tpDstStart) {
-        principalDto.setTpDstStart(tpDstStart);
+    public Rule tpDst(DtoRule.DtoRange<Integer> tpDst) {
+        principalDto.setTpDst(tpDst);
         return this;
     }
 
@@ -662,17 +633,6 @@ public class Rule extends ResourceBase<Rule, DtoRule> {
     }
 
     /**
-     * Sets tpSrcEnd.
-     *
-     * @param tpSrcEnd
-     * @return this
-     */
-    public Rule tpSrcEnd(int tpSrcEnd) {
-        principalDto.setTpSrcEnd(tpSrcEnd);
-        return this;
-    }
-
-    /**
      * Sets nwSrcLength.
      *
      * @param nwSrcLength
@@ -783,13 +743,13 @@ public class Rule extends ResourceBase<Rule, DtoRule> {
     }
 
     /**
-     * Sets tpDstEnd.
+     * Sets tpDst.
      *
-     * @param tpDstEnd
+     * @param tpSrc
      * @return this
      */
-    public Rule tpDstEnd(int tpDstEnd) {
-        principalDto.setTpDstEnd(tpDstEnd);
+    public Rule tpSrc(DtoRule.DtoRange<Integer> tpSrc) {
+        principalDto.setTpSrc(tpSrc);
         return this;
     }
 
