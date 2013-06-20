@@ -173,7 +173,7 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
         // fallbackTo so that exceptions don't escape the ArpTable class.
         entryFuture flatMap {
             case entry: ArpCacheEntry =>
-                if (entry != null && entry.expiry >= Platform.currentTime) {
+                if (entry != null && entry.macAddr != null && entry.expiry >= Platform.currentTime) {
                     removeArpWaiter(ip, macPromise)
                     Promise.successful(entry.macAddr)
                 } else
