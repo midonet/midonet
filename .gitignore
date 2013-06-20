@@ -2,15 +2,12 @@
 # Try to keep these to a minimum, and use a minimum of wildcards,
 # since they can obscure bugs in the build system.
 #
-git.properties
 .classpath
 .project
 .settings
-target
 web.xml
 logback.xml
 .idea/
-target/
 midovpn0
 midovpn1
 midovpn2
@@ -30,4 +27,7 @@ midovpn4
 /tmp/
 
 # Build products. These should be moved to /.build/ at some point.
+/*/target/
+/midolman/src/main/resources/git.properties
 /midonet-functional-tests/src/main/resources/git.properties
+/midonet-client/dependency-reduced-pom.xml
