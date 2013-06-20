@@ -437,18 +437,23 @@ class FlowController extends Actor with ActorLogWithoutPath {
                 new ErrorHandlingCallback[Flow] {
 
                     def handleError(ex: NetlinkException, timeout: Boolean) {
-                        log.error("Got an exception {} or timeout {} when trying" +
-                            " to flowsGet()" + "for flow match {}", ex, timeout,
-                            flowMatch)
-                        self ! getFlowOnError(flowCallback)
+                        if (ex != null && ex.getErrorCodeEnum == ErrorCode.ENOENT) {
+                            self ! flowMissing(flowMatch)
+                        } else {
+                            log.error("Got an exception {} or timeout {} when " +
+                                "trying to flowsGet() for flow match {}",
+                                ex, timeout, flowMatch)
+                            self ! getFlowOnError(flowCallback)
+                        }
                     }
 
                     def onSuccess(data: Flow) {
-                        self ! (if (data != null) getFlowSucceded(data, flowCallback) else flowMissing(flowMatch))
+                        self ! (if (data != null)
+                                    getFlowSucceded(data, flowCallback)
+                                else
+                                    flowMissing(flowMatch))
                     }
-
                 })
-
         }
     }
 
