@@ -227,18 +227,15 @@ class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture
         expectPacketAllowed(4, 3, lldpBetweenPorts)
         requestOfType[WildcardFlowAdded](wflowAddedProbe)
 
-        log.info("sending two packets that should be dropped with the same " +
-                 "match as the return packets that will be sent later on")
+        log.info("sending one packet that should be dropped with the same " +
+                 "match as the return packet that will be sent later on")
         expectPacketDropped(4, 1, udpBetweenPorts)
-        requestOfType[WildcardFlowAdded](wflowAddedProbe)
-        expectPacketDropped(0, 3, udpBetweenPorts)
         requestOfType[WildcardFlowAdded](wflowAddedProbe)
 
         log.info("waiting for the return drop flows to timeout")
         // Flow expiration is checked every 10 seconds. The DROP flows should
-        // expire in 3 seconds, but we wait 11 seconds for expiration to run.
+        // expire in 3 seconds, but we wait 15 seconds for expiration to run.
         wflowRemovedProbe.within (15 seconds) {
-            requestOfType[WildcardFlowRemoved](wflowRemovedProbe)
             requestOfType[WildcardFlowRemoved](wflowRemovedProbe)
         }
         // The remaining (allowed) LLDP flow has an idle expiration of 60
@@ -247,15 +244,11 @@ class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture
 
         drainProbe(wflowRemovedProbe)
         drainProbe(wflowAddedProbe)
-        log.info("sending two packets that should install conntrack entries")
+        log.info("sending a packet that should install a conntrack entry")
         expectPacketAllowed(1, 4, udpBetweenPorts)
         fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
-        expectPacketAllowed(3, 0, udpBetweenPorts)
-        fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
 
-        log.info("sending two return packets that should be accepted due to " +
-                 "conntrack")
+        log.info("sending a return packet that should be accepted due to conntrack")
         expectPacketAllowed(4, 1, udpBetweenPorts)
-        expectPacketAllowed(0, 3, udpBetweenPorts)
     }
 }
