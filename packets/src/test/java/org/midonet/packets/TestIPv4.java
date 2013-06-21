@@ -159,15 +159,13 @@ public class TestIPv4 {
             ipPkt.deserialize(bb);
             Assert.assertArrayEquals(ipBytes, ipPkt.serialize());
 
-            // Now deserialize/serialize an incomplete packet. Note that the ICMP
-            // has 56 bytes of data - we'll only deserialize some of it, but the
-            // expected array is the same length as the original because it's
-            // determined by the IPv4 totalLength field.
-            Arrays.fill(ipBytes, ipBytes.length-20, ipBytes.length, (byte)0);
+            // Now deserialize/serialize an incomplete packet
+            byte[] truncatedIpBytes = Arrays.copyOf(ipBytes, ipBytes.length - 20);
             ipPkt = new IPv4();
-            bb = ByteBuffer.wrap(ipBytes, 0, ipBytes.length - 20);
+            bb = ByteBuffer.wrap(truncatedIpBytes);
             ipPkt.deserialize(bb);
-            Assert.assertArrayEquals(ipBytes, ipPkt.serialize());
+            truncatedIpBytes[3] -= 20; // Update packet length
+            Assert.assertArrayEquals(truncatedIpBytes, ipPkt.serialize());
         }
 
         @Test
@@ -262,7 +260,9 @@ public class TestIPv4 {
             // serialized array is longer than the original because the original
             // is truncated.
             byte[] expected = ipPkt.serialize();
-            expected = Arrays.copyOf(expected, data.length);
+            // Update IP and UDP length fields
+            data[3] = (byte ) data.length; // IP
+            data[25] = (byte ) (data.length - 20); // UDP
             Assert.assertArrayEquals(data, expected);
 
             // NOTE: in this case we can't test for a buffer/byte-array that's
@@ -325,11 +325,12 @@ public class TestIPv4 {
             Assert.assertArrayEquals(data, ipPkt.serialize());
 
             // Now try deserializaing/serializing a truncated packet.
-            Arrays.fill(data, data.length-30, data.length, (byte)0);
+            byte[] truncatedData = Arrays.copyOf(data, data.length - 30);
             ipPkt = new IPv4();
-            bb = ByteBuffer.wrap(data, 0, data.length - 30);
+            bb = ByteBuffer.wrap(truncatedData);
             ipPkt.deserialize(bb);
-            Assert.assertArrayEquals(data, ipPkt.serialize());
+            truncatedData[3] -= 30; // Update packet length
+            Assert.assertArrayEquals(truncatedData, ipPkt.serialize());
         }
     }
 

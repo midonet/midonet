@@ -157,8 +157,7 @@ public class UDP extends BasePacket implements Transport {
         int actualLength = (HEADER_LEN + ((payloadData == null) ? 0
                         : payloadData.length));
 
-        if (this.length == 0)
-            this.length = actualLength;
+        this.length = actualLength;
 
         byte[] data = new byte[actualLength & 0xffff];
         ByteBuffer bb = ByteBuffer.wrap(data);

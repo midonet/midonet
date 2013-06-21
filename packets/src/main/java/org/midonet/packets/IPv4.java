@@ -401,17 +401,13 @@ public class IPv4 extends BasePacket {
             payloadData = payload.serialize();
         }
 
-        if (this.headerLength == 0) {
-            int optionsLength = 0;
-            if (this.options != null)
-                optionsLength = this.options.length / 4;
-            this.headerLength = (byte) (5 + optionsLength);
-        }
+        int optionsLength = 0;
+        if (this.options != null)
+            optionsLength = this.options.length / 4;
+        this.headerLength = (byte) (5 + optionsLength);
 
-        if (this.totalLength == 0) {
-            this.totalLength = (this.headerLength * 4 + ((payloadData == null) ? 0
-                    : payloadData.length));
-        }
+        this.totalLength = (this.headerLength * 4 + ((payloadData == null) ? 0
+                : payloadData.length));
 
         byte[] data = new byte[this.totalLength];
         ByteBuffer bb = ByteBuffer.wrap(data);
