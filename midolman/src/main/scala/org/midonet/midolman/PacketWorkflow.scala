@@ -439,7 +439,7 @@ class PacketWorkflow(
         // FIXME (guillermo) - The launching of the coordinator is missing
         // the connectionCache and parentCookie params. They will need
         // to be given to the PacketWorkFlowActor.
-        val eth = Ethernet.deserialize(packet.getData)
+        val eth = packet.getPacket
         val coordinator = new Coordinator(
             WildcardMatch.fromEthernetPacket(eth),
             eth,
@@ -475,7 +475,7 @@ class PacketWorkflow(
                         Promise.successful(NoOp())
                     case false =>
                         val coordinator: Coordinator = new Coordinator(
-                            wMatch, Ethernet.deserialize(packet.getData), cookie,
+                            wMatch, packet.getPacket, cookie,
                             None, Platform.currentTime + timeout,
                             connectionCache, None)
                         coordinator.simulate()
@@ -498,7 +498,7 @@ class PacketWorkflow(
 
     private def handleDHCP(inPortId: UUID): Future[Boolean] = {
         // check if the packet is a DHCP request
-        val eth = Ethernet.deserialize(packet.getData)
+        val eth = packet.getPacket
         if (eth.getEtherType == IPv4.ETHERTYPE) {
             val ipv4 = eth.getPayload.asInstanceOf[IPv4]
             if (ipv4.getProtocol == UDP.PROTOCOL_NUMBER) {
