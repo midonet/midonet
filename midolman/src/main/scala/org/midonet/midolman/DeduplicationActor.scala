@@ -186,7 +186,10 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
                             this.context.dispatcher, this.context.system, this.context)
 
                 log.debug("Created new {} packet handler.", "PacketWorkflow-" + cookie)
-                packetWorkflow.start()
+                context.dispatcher.execute{new Runnable {
+                        override def run() { packetWorkflow.start() }
+                    }
+                }
 
             case Some(cookie: Int) =>
                 log.debug("A matching packet with cookie {} is already being handled ", cookie)
