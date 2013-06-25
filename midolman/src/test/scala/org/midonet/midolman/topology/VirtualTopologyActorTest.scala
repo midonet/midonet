@@ -83,7 +83,7 @@ class X extends VirtualTopologyActorTest {
         val actorRef = TestActorRef(new VirtualTopologyActor)
         val probe = TestProbe()
         initializeZKStructure()
-        Setup.createZkDirectoryStructure(zkDir(), zkRoot)
+        Setup.ensureZkDirectoryStructureExists(zkDir(), zkRoot)
 
         // TODO waiting
 

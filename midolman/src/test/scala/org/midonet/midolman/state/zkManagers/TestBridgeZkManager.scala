@@ -40,7 +40,7 @@ object TestBridgeZkManager {
     val basePath = "/midolman";
     val pathMgr = new ZkPathManager(basePath);
     dir.add(pathMgr.getBasePath, null, CreateMode.PERSISTENT)
-    Setup.createZkDirectoryStructure(dir, basePath)
+    Setup.ensureZkDirectoryStructureExists(dir, basePath)
     bridgeMgr = new BridgeZkManager(dir, basePath)
   }
 }

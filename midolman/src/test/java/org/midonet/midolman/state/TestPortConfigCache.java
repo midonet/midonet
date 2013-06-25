@@ -35,7 +35,7 @@ public class TestPortConfigCache {
         String basePath = "/midolman";
         Directory dir = new MockDirectory();
         dir.add(basePath, null, CreateMode.PERSISTENT);
-        Setup.createZkDirectoryStructure(dir, basePath);
+        Setup.ensureZkDirectoryStructureExists(dir, basePath);
         portMgr = new PortZkManager(dir, basePath);
         reactor = new MockReactor();
         portCache = new PortConfigCache(reactor, dir, basePath,

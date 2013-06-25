@@ -85,19 +85,15 @@ public class Setup {
         return paths;
     }
 
-    /* try to create the initial zookeeper directory structure if it is
-     * not yet there. */
-    public static void createZkDirectoryStructure(
-            Directory rootDir,
-            String basePath) throws KeeperException, InterruptedException {
+    public static void ensureZkDirectoryStructureExists(
+        Directory rootDir, String basePath)
+        throws KeeperException, InterruptedException
+    {
         for (String path : Setup.getTopLevelPaths(basePath)) {
-            if ( rootDir.has(path)  )
-                /* somebody already created initial ZK dir structure*/
-                log.debug(  "createZkDirectoryStructure: "
-                            + "skipping creation of already existing node {}",
-                            path );
-            else
+            try {
                 rootDir.add(path, null, CreateMode.PERSISTENT);
+            } catch (KeeperException.NodeExistsException ex) {
+            }
         }
     }
 

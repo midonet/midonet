@@ -49,7 +49,7 @@ public class MidostoreSetupService extends AbstractService {
                     log.warn("doStart: {} already exists.", currentPath);
                 }
             }
-            Setup.createZkDirectoryStructure(directory, rootKey);
+            Setup.ensureZkDirectoryStructureExists(directory, rootKey);
             notifyStarted();
         } catch (Exception e) {
             this.notifyFailed(e);

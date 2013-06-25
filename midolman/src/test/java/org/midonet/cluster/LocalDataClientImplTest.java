@@ -94,7 +94,7 @@ public class LocalDataClientImplTest {
                 path += "/";
             }
         }
-        Setup.createZkDirectoryStructure(zkDir(), zkRoot);
+        Setup.ensureZkDirectoryStructureExists(zkDir(), zkRoot);
     }
 
     @Test

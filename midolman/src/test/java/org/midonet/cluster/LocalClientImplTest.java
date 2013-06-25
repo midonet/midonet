@@ -98,7 +98,7 @@ public class LocalClientImplTest {
         throws StateAccessException, InterruptedException, KeeperException {
 
         initializeZKStructure();
-        Setup.createZkDirectoryStructure(zkDir(), zkRoot);
+        Setup.ensureZkDirectoryStructureExists(zkDir(), zkRoot);
         UUID bridgeId = getBridgeZkManager().create(
             new BridgeZkManager.BridgeConfig("test", null, null));
         TestBridgeBuilder bridgeBuilder = new TestBridgeBuilder();
@@ -122,7 +122,7 @@ public class LocalClientImplTest {
         throws StateAccessException, InterruptedException, KeeperException {
 
         initializeZKStructure();
-        Setup.createZkDirectoryStructure(zkDir(), zkRoot);
+        Setup.ensureZkDirectoryStructureExists(zkDir(), zkRoot);
         UUID routerId = getRouterZkManager().create();
         TestRouterBuilder routerBuilder = new TestRouterBuilder();
         client.getRouter(routerId, routerBuilder);
@@ -143,7 +143,7 @@ public class LocalClientImplTest {
     @Test
     public void ArpCacheTest() throws InterruptedException, KeeperException, StateAccessException {
         initializeZKStructure();
-        Setup.createZkDirectoryStructure(zkDir(), zkRoot);
+        Setup.ensureZkDirectoryStructureExists(zkDir(), zkRoot);
         UUID routerId = getRouterZkManager().create();
         TestRouterBuilder routerBuilder = new TestRouterBuilder();
         client.getRouter(routerId, routerBuilder);
@@ -167,7 +167,7 @@ public class LocalClientImplTest {
     @Test
     public void MacPortMapTest() throws InterruptedException, KeeperException, StateAccessException {
         initializeZKStructure();
-        Setup.createZkDirectoryStructure(zkDir(), zkRoot);
+        Setup.ensureZkDirectoryStructureExists(zkDir(), zkRoot);
         UUID bridgeId = getBridgeZkManager().create(
             new BridgeZkManager.BridgeConfig("test", UUID.randomUUID(), UUID.randomUUID()));
         TestBridgeBuilder bridgeBuilder = new TestBridgeBuilder();
