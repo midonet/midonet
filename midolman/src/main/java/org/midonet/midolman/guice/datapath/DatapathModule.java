@@ -17,6 +17,7 @@ import org.midonet.odp.protos.OvsDatapathConnection;
 import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.eventloop.SelectLoop;
 import org.midonet.util.throttling.RandomEarlyDropThrottlingGuardFactory;
+import org.midonet.util.throttling.ThrottlingGuard;
 import org.midonet.util.throttling.ThrottlingGuardFactory;
 
 import static java.lang.annotation.ElementType.FIELD;
@@ -25,7 +26,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 public class DatapathModule extends PrivateModule {
     @BindingAnnotation @Target({FIELD, METHOD}) @Retention(RUNTIME)
-    public @interface DATAPATH_THROTTLING_GUARD {}
+    public @interface DATAPATH_THROTTLING_GUARD_FACTORY {}
     @BindingAnnotation @Target({FIELD, METHOD}) @Retention(RUNTIME)
     public @interface SIMULATION_THROTTLING_GUARD {}
     @BindingAnnotation @Target({FIELD, METHOD}) @Retention(RUNTIME)
@@ -39,17 +40,17 @@ public class DatapathModule extends PrivateModule {
         requireBinding(Key.get(SelectLoop.class, ReactorModule.WRITE_LOOP.class));
 
         bind(ThrottlingGuardFactory.class).
-                annotatedWith(DATAPATH_THROTTLING_GUARD.class).
+                annotatedWith(DATAPATH_THROTTLING_GUARD_FACTORY.class).
                 toProvider(DatapathThrottlingGuardFactoryProvider.class).
                 asEagerSingleton();
-        bind(ThrottlingGuardFactory.class).
+        bind(ThrottlingGuard.class).
                 annotatedWith(SIMULATION_THROTTLING_GUARD.class).
-                toProvider(SimulationThrottlingGuardFactoryProvider.class).
+                toProvider(SimulationThrottlingGuardProvider.class).
                 asEagerSingleton();
-        expose(Key.get(ThrottlingGuardFactory.class,
+        expose(Key.get(ThrottlingGuard.class,
             SIMULATION_THROTTLING_GUARD.class));
         expose(Key.get(ThrottlingGuardFactory.class,
-            DATAPATH_THROTTLING_GUARD.class));
+            DATAPATH_THROTTLING_GUARD_FACTORY.class));
 
         bind(BufferPool.class).
                 annotatedWith(NETLINK_SEND_BUFFER_POOL.class).
@@ -95,15 +96,16 @@ public class DatapathModule extends PrivateModule {
         }
     }
 
-    private static class SimulationThrottlingGuardFactoryProvider
-            implements Provider<ThrottlingGuardFactory> {
+    private static class SimulationThrottlingGuardProvider
+            implements Provider<ThrottlingGuard> {
         @Inject MidolmanConfig config;
 
         @Override
-        public ThrottlingGuardFactory get() {
+        public ThrottlingGuard get() {
             return new RandomEarlyDropThrottlingGuardFactory(
                     config.getSimulationThrottlingLowWaterMark(),
-                    config.getSimulationThrottlingHighWaterMark());
+                    config.getSimulationThrottlingHighWaterMark()).
+                    build("SimulationThrottlingGuard");
         }
     }
 }

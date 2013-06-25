@@ -21,7 +21,9 @@ import org.midonet.odp.Packet;
 import org.midonet.odp.Port;
 import org.midonet.odp.Ports;
 import org.midonet.util.eventloop.Reactor;
+import org.midonet.util.throttling.NoOpThrottlingGuard;
 import org.midonet.util.throttling.NoOpThrottlingGuardFactory;
+import org.midonet.util.throttling.ThrottlingGuard;
 import org.midonet.util.throttling.ThrottlingGuardFactory;
 
 
@@ -34,25 +36,26 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
 
     public abstract boolean isInitialized();
 
-    // ThrottlingGuardFactory throttlerFactory) {
     protected OvsDatapathConnection(NetlinkChannel channel, Reactor reactor,
-                                    ThrottlingGuardFactory throttlerFactory,
-                                    BufferPool sendPool)
-        throws Exception {
-        super(channel, reactor, throttlerFactory, sendPool);
+            ThrottlingGuardFactory pendingWritesThrottlingFactory,
+            ThrottlingGuard upcallThrottler,
+            BufferPool sendPool) throws Exception {
+        super(channel, reactor, pendingWritesThrottlingFactory, upcallThrottler, sendPool);
     }
 
     public static OvsDatapathConnection create(NetlinkChannel channel, Reactor reactor,
-                                               ThrottlingGuardFactory throttlerFactory,
+                                               ThrottlingGuardFactory pendingWritesThrottlingFactory,
+                                               ThrottlingGuard upcallThrottler,
                                                BufferPool sendPool)
         throws Exception {
-        return new OvsDatapathConnectionImpl(channel, reactor, throttlerFactory, sendPool);
+        return new OvsDatapathConnectionImpl(channel, reactor,
+            pendingWritesThrottlingFactory, upcallThrottler, sendPool);
     }
 
     public static OvsDatapathConnection create(NetlinkChannel channel, Reactor reactor)
             throws Exception {
         return create(channel, reactor, new NoOpThrottlingGuardFactory(),
-            new BufferPool(128, 512, 0x1000));
+                new NoOpThrottlingGuard(), new BufferPool(128, 512, 0x1000));
     }
 
     /**

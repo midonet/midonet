@@ -142,12 +142,10 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
 
     @Inject
     @SIMULATION_THROTTLING_GUARD
-    var tgFactory: ThrottlingGuardFactory = null
+    var throttler: ThrottlingGuard = null
 
     @Inject
     var metricsRegistry: MetricsRegistry = null
-
-    var throttler: ThrottlingGuard = null
 
     var datapath: Datapath = null
     var dpState: DatapathState = null
@@ -162,7 +160,6 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
 
     override def preStart() {
         super.preStart()
-        throttler = tgFactory.build("DeduplicationActor")
         metrics = new PacketPipelineMetrics(metricsRegistry, throttler)
     }
 
@@ -194,6 +191,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
             case Some(cookie: Int) =>
                 log.debug("A matching packet with cookie {} is already being handled ", cookie)
                 // Simulation in progress. Just pend the packet.
+                throttler.tokenOut()
                 cookieToPendedPackets.addBinding(cookie, packet)
                 metrics.pendedPackets.inc()
             }
@@ -231,7 +229,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
                     Right(egressPort), throttler, metrics)(
                     this.context.dispatcher, this.context.system, this.context)
 
-            log.debug("Created new {} handler.", "PacketWorkflow-generated-"+packetId );
+            log.debug("Created new {} handler.", "PacketWorkflow-generated-"+packetId)
             packetWorkflow.start()
     }
 
@@ -268,12 +266,10 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
          datapathConnection.datapathsSetNotificationHandler(datapath,
                  new Callback[Packet] {
                      def onSuccess(data: Packet) {
-                         if (throttler.allowed()) {
-                             val eth = data.getPacket
-                             FlowMatches.addUserspaceKeys(eth, data.getMatch)
-                             data.setStartTimeNanos(Clock.defaultClock().tick())
-                             self ! HandlePacket(data)
-                         }
+                         val eth = data.getPacket
+                         FlowMatches.addUserspaceKeys(eth, data.getMatch)
+                         data.setStartTimeNanos(Clock.defaultClock().tick())
+                         self ! HandlePacket(data)
                      }
 
                  def onTimeout() {}

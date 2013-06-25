@@ -73,7 +73,6 @@ public class RandomEarlyDropThrottlingGuard implements ThrottlingGuard {
         }
         final double likelihood = ((double) (n - lowWaterMark)) /
                                   ((double) (highWaterMark - lowWaterMark));
-        final Object[] objs = {likelihood, lowWaterMark, highWaterMark, n};
         if (likelihood < Math.random()) {
             tokenAllowed();
             return true;

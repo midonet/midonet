@@ -27,7 +27,7 @@ import org.midonet.midolman.services.HostIdProviderService;
 import org.midonet.midolman.services.MidolmanActorsService;
 import org.midonet.midolman.topology.*;
 import org.midonet.odp.protos.OvsDatapathConnection;
-import org.midonet.util.throttling.ThrottlingGuardFactory;
+import org.midonet.util.throttling.ThrottlingGuard;
 
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.METHOD;
@@ -63,7 +63,7 @@ public class MidolmanActorsModule extends PrivateModule {
         requireBinding(Cache.class);
         requireBinding(OvsDatapathConnection.class);
         requireBinding(HostIdProviderService.class);
-        requireBinding(Key.get(ThrottlingGuardFactory.class,
+        requireBinding(Key.get(ThrottlingGuard.class,
                                DatapathModule.SIMULATION_THROTTLING_GUARD.class));
 
         bindMidolmanActorsService();

@@ -23,6 +23,7 @@ import static org.hamcrest.Matchers.is;
 
 import org.midonet.netlink.exceptions.NetlinkException;
 import org.midonet.netlink.protos.NetlinkConnection;
+import org.midonet.util.throttling.NoOpThrottlingGuard;
 import org.midonet.util.throttling.NoOpThrottlingGuardFactory;
 
 
@@ -72,7 +73,9 @@ public class NetlinkConnectionTest
     public void setUp() throws Exception {
         super.setUp(responses);
         connection = new NetlinkConnection(channel, reactor,
-            new NoOpThrottlingGuardFactory(), new BufferPool(128, 512, 0x1000));
+            new NoOpThrottlingGuardFactory(),
+            new NoOpThrottlingGuard(),
+            new BufferPool(128, 512, 0x1000));
         connection.bypassSendQueue(true);
         connection.setMaxBatchIoOps(1);
     }

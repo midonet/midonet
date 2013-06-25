@@ -47,7 +47,8 @@ public abstract class AbstractNetlinkConnection {
 
     private AtomicInteger sequenceGenerator = new AtomicInteger(1);
 
-    protected ThrottlingGuard throttler;
+    protected ThrottlingGuard pendingWritesThrottler;
+    protected ThrottlingGuard upcallThrottler;
 
     private Map<Integer, NetlinkRequest>
         pendingRequests = new ConcurrentHashMap<Integer, NetlinkRequest>();
@@ -73,11 +74,14 @@ public abstract class AbstractNetlinkConnection {
             new SelectorInputQueue<NetlinkRequest>();
 
     public AbstractNetlinkConnection(NetlinkChannel channel, Reactor reactor,
-            ThrottlingGuardFactory throttlerFactory, BufferPool sendPool) {
+            ThrottlingGuardFactory pendingWritesThrottlerFactory,
+            ThrottlingGuard upcallThrottler,
+            BufferPool sendPool) {
         this.channel = channel;
         this.reactor = reactor;
-        this.throttler = throttlerFactory.buildForCollection(
+        this.pendingWritesThrottler = pendingWritesThrottlerFactory.buildForCollection(
                 "NetlinkConnection", pendingRequests.keySet());
+        this.upcallThrottler = upcallThrottler;
         this.requestPool = sendPool;
     }
 
@@ -211,7 +215,7 @@ public abstract class AbstractNetlinkConnection {
                     ByteBuffer timedOutBuf = timedOutRequest.outBuffer.getAndSet(null);
                     if (timedOutBuf != null)
                         requestPool.release(timedOutBuf);
-                    throttler.tokenOut();
+                    pendingWritesThrottler.tokenOut();
                     timedOutRequest.callback.onTimeout();
                 }
 
@@ -223,7 +227,7 @@ public abstract class AbstractNetlinkConnection {
         if (writeQueue.offer(netlinkRequest)) {
             if (bypassSendQueue())
                 processWriteToChannel();
-            throttler.tokenIn();
+            pendingWritesThrottler.tokenIn();
             getReactor().schedule(netlinkRequest.timeoutHandler,
                                   timeoutMillis, TimeUnit.MILLISECONDS);
         } else {
@@ -364,7 +368,7 @@ public abstract class AbstractNetlinkConnection {
 
                     if (request != null) {
                         pendingRequests.remove(seq);
-                        throttler.tokenOut();
+                        pendingWritesThrottler.tokenOut();
                         // An ACK is a NLMSG_ERROR with 0 as error code
                         if (error == 0) {
                             request.callback.onSuccess(request.inBuffers);
@@ -379,7 +383,7 @@ public abstract class AbstractNetlinkConnection {
                 case NLMSG_DONE:
                     if (request != null) {
                         pendingRequests.remove(seq);
-                        throttler.tokenOut();
+                        pendingWritesThrottler.tokenOut();
                         request.callback.onSuccess(request.inBuffers);
                     }
                     break;
@@ -403,12 +407,14 @@ public abstract class AbstractNetlinkConnection {
                     if (!Flag.isSet(flags, Flag.NLM_F_MULTI)) {
                         if (request != null) {
                             pendingRequests.remove(seq);
-                            throttler.tokenOut();
+                            pendingWritesThrottler.tokenOut();
                             request.callback.onSuccess(request.inBuffers);
                         }
 
-                        if (seq == 0 && throttler.allowed())
-                            handleNotification(type, cmd, seq, pid, buffers);
+                        if (seq == 0 && pendingWritesThrottler.allowed()) {
+                            if (upcallThrottler.tokenInIfAllowed())
+                                handleNotification(type, cmd, seq, pid, buffers);
+                        }
                     }
             }
 

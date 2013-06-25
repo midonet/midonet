@@ -114,8 +114,6 @@ class PacketWorkflow(
         // Simulation, PacketToPortSet and WildcardTableHit 
         var pipelinePath: PipelinePath = null
 
-        throttlingGuard.tokenIn()
-
         log.debug("Initiating processing of packet {}", cookieStr)
         val workflowFuture = cookie match {
             case Some(cook) if (packet.getReason == FlowActionUserspace) =>
@@ -157,14 +155,18 @@ class PacketWorkflow(
         workflowFuture onComplete {
             case _ =>
                 log.debug("Packet with {} processed, stopping.", cookieStr)
-                throttlingGuard.tokenOut()
-                val latency = (Clock.defaultClock().tick() - packet.getStartTimeNanos).toInt
-                metrics.packetsProcessed.mark()
-                pipelinePath match {
-                    case WildcardTableHit => metrics.wildcardTableHit(latency)
-                    case PacketToPortSet => metrics.packetToPortSet(latency)
-                    case Simulation => metrics.packetSimulated(latency)
-                    case _ =>
+                cookie match {
+                    case None =>
+                    case Some(c) =>
+                        throttlingGuard.tokenOut()
+                        val latency = (Clock.defaultClock().tick() - packet.getStartTimeNanos).toInt
+                        metrics.packetsProcessed.mark()
+                        pipelinePath match {
+                            case WildcardTableHit => metrics.wildcardTableHit(latency)
+                            case PacketToPortSet => metrics.packetToPortSet(latency)
+                            case Simulation => metrics.packetSimulated(latency)
+                            case _ =>
+                        }
                 }
         }
     }
