@@ -13,16 +13,19 @@ import org.apache.zookeeper.Op;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.midolman.serialization.Serializer;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.Directory;
+import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
-import org.midonet.midolman.state.ZkStateSerializationException;
 
 
 /**
  * Class to manage the Tunnel ZooKeeper data.
  */
-public class TunnelZkManager extends ZkManager {
+public class TunnelZkManager extends AbstractZkManager {
     private final static Logger log =
          LoggerFactory.getLogger(TunnelZkManager.class);
 
@@ -45,12 +48,20 @@ public class TunnelZkManager extends ZkManager {
      * path of the ZooKeeper directory.
      *
      * @param zk
-     *            Directory object.
-     * @param basePath
-     *            The root path.
+     *         Zk data access class
+     * @param paths
+     *         PathBuilder class to construct ZK paths
+     * @param serializer
+     *         ZK data serialization class
      */
-    public TunnelZkManager(Directory zk, String basePath) {
-        super(zk, basePath);
+    public TunnelZkManager(ZkManager zk, PathBuilder paths,
+                           Serializer serializer) {
+        super(zk, paths, serializer);
+    }
+
+    public TunnelZkManager(Directory dir, String basePath,
+                           Serializer serializer) {
+        this(new ZkManager(dir), new PathBuilder(basePath), serializer);
     }
 
     private int extractTunnelKeyFromPath(String path) {
@@ -64,11 +75,11 @@ public class TunnelZkManager extends ZkManager {
      * @param tunnelKey
      *            TunnelKey ZooKeeper entry to update.
      * @return A list of Op objects representing the operations to perform.
-     * @throws org.midonet.midolman.state.ZkStateSerializationException
+     * @throws org.midonet.midolman.serialization.SerializationException
      *             Serialization error occurred.
      */
     public List<Op> prepareTunnelUpdate(int key, TunnelKey tunnelKey)
-            throws ZkStateSerializationException {
+            throws StateAccessException, SerializationException {
         List<Op> ops = new ArrayList<Op>();
         ops.add(Op.setData(paths.getTunnelKeyPath(key),
                 serializer.serialize(tunnelKey), -1));
@@ -76,9 +87,9 @@ public class TunnelZkManager extends ZkManager {
     }
 
     public TunnelKey get(int key)
-            throws StateAccessException {
+            throws StateAccessException, SerializationException {
         TunnelKey tunnelKey = null;
-        byte[] data = get(paths.getTunnelKeyPath(key));
+        byte[] data = zk.get(paths.getTunnelKeyPath(key));
         if (data != null) {
             tunnelKey = serializer.deserialize(data, TunnelKey.class);
         }
@@ -110,12 +121,12 @@ public class TunnelZkManager extends ZkManager {
      */
     public int createTunnelKey()
             throws StateAccessException {
-        String path = addPersistentSequential(paths.getTunnelPath(), null);
+        String path = zk.addPersistentSequential(paths.getTunnelPath(), null);
         int key = extractTunnelKeyFromPath(path);
         // We don't use Zero as a valid Tunnel key because our PacketIn method
         // uses that value to denote "The Tunnel ID wasn't set".
         if (0 == key) {
-            path = addPersistentSequential(paths.getTunnelPath(), null);
+            path = zk.addPersistentSequential(paths.getTunnelPath(), null);
             key = extractTunnelKeyFromPath(path);
         }
         return key;

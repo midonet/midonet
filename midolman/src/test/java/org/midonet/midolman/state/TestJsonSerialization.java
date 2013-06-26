@@ -10,7 +10,7 @@ import java.util.UUID;
 import org.junit.Test;
 import org.midonet.midolman.state.zkManagers.BridgeDhcpZkManager.Host;
 import org.midonet.midolman.state.PortDirectory.*;
-import org.midonet.midolman.util.JSONSerializer;
+import org.midonet.midolman.version.serialization.JsonVersionZkSerializer;
 import org.midonet.packets.IntIPv4;
 import org.midonet.packets.MAC;
 
@@ -22,18 +22,18 @@ public class TestJsonSerialization {
     @Test
     public void testIntIPv4() throws IOException {
         IntIPv4 ip = IntIPv4.fromString("10.1.2.3");
-        String json = JSONSerializer.objToJsonString(ip);
+        String json = JsonVersionZkSerializer.objToJsonString(ip);
         assertEquals("\"10.1.2.3\"", json);
-        IntIPv4 ip2 = JSONSerializer.jsonStringToObj(json, IntIPv4.class);
+        IntIPv4 ip2 = JsonVersionZkSerializer.jsonStringToObj(json, IntIPv4.class);
         assertEquals(ip, ip2);
     }
 
     @Test
     public void testMac() throws IOException {
         MAC mac = MAC.fromString("aa:bb:cc:dd:ee:11");
-        String json = JSONSerializer.objToJsonString(mac);
+        String json = JsonVersionZkSerializer.objToJsonString(mac);
         assertEquals("\"aa:bb:cc:dd:ee:11\"", json);
-        MAC mac2 = JSONSerializer.jsonStringToObj(json, MAC.class);
+        MAC mac2 = JsonVersionZkSerializer.jsonStringToObj(json, MAC.class);
         assertEquals(mac, mac2);
     }
 
@@ -42,11 +42,11 @@ public class TestJsonSerialization {
         Host host = new Host(MAC.fromString("aa:bb:cc:dd:ee:11"),
                              IntIPv4.fromString("10.1.2.3"),
                              "mars");
-        String json = JSONSerializer.objToJsonString(host);
+        String json = JsonVersionZkSerializer.objToJsonString(host);
         assertEquals(
             "{\"mac\":\"aa:bb:cc:dd:ee:11\",\"ip\":\"10.1.2.3\",\"name\":\"mars\"}",
             json);
-        Host host2 = JSONSerializer.jsonStringToObj(json, Host.class);
+        Host host2 = JsonVersionZkSerializer.jsonStringToObj(json, Host.class);
         assertEquals(host, host2);
     }
 
@@ -55,13 +55,13 @@ public class TestJsonSerialization {
         MaterializedRouterPortConfig port = new MaterializedRouterPortConfig(
             UUID.randomUUID(), 0x0a000000, 24,0x0a00000a,
             MAC.fromString("aa:bb:cc:dd:ee:00"), null, null);
-        String json = JSONSerializer.objToJsonString(port);
+        String json = JsonVersionZkSerializer.objToJsonString(port);
         MaterializedRouterPortConfig port2 =
-            JSONSerializer.jsonStringToObj(json,
+                JsonVersionZkSerializer.jsonStringToObj(json,
                 MaterializedRouterPortConfig.class);
         assertEquals(port, port2);
         // Now deserialize to the superclass.
-        PortConfig port3 = JSONSerializer.jsonStringToObj(json,
+        PortConfig port3 = JsonVersionZkSerializer.jsonStringToObj(json,
             PortConfig.class);
         assertEquals(port, port3);
     }
@@ -70,13 +70,13 @@ public class TestJsonSerialization {
     public void testMaterializedBridgePort() throws IOException {
         MaterializedBridgePortConfig port = new MaterializedBridgePortConfig(
             UUID.randomUUID());
-        String json = JSONSerializer.objToJsonString(port);
+        String json = JsonVersionZkSerializer.objToJsonString(port);
         MaterializedBridgePortConfig port2 =
-            JSONSerializer.jsonStringToObj(json,
+                JsonVersionZkSerializer.jsonStringToObj(json,
                 MaterializedBridgePortConfig.class);
         assertEquals(port, port2);
         // Now deserialize to the superclass.
-        PortConfig port3 = JSONSerializer.jsonStringToObj(json,
+        PortConfig port3 = JsonVersionZkSerializer.jsonStringToObj(json,
             PortConfig.class);
         assertEquals(port, port3);
     }
@@ -85,12 +85,14 @@ public class TestJsonSerialization {
     public void testTrunkVlanBridgePort() throws IOException {
         TrunkVlanBridgePortConfig port = new TrunkVlanBridgePortConfig(
             UUID.randomUUID());
-        String json = JSONSerializer.objToJsonString(port);
+        String json = JsonVersionZkSerializer.objToJsonString(port);
         TrunkVlanBridgePortConfig port2 =
-            JSONSerializer.jsonStringToObj(json, TrunkVlanBridgePortConfig.class);
+                JsonVersionZkSerializer.jsonStringToObj(
+                        json, TrunkVlanBridgePortConfig.class);
         assertEquals(port, port2);
         // Now deserialize to the superclass.
-        PortConfig port3 = JSONSerializer.jsonStringToObj(json, PortConfig.class);
+        PortConfig port3 = JsonVersionZkSerializer.jsonStringToObj(
+                json, PortConfig.class);
         assertEquals(port, port3);
     }
 
@@ -98,12 +100,14 @@ public class TestJsonSerialization {
     public void testLogicalVlanBridgePort() throws IOException {
         LogicalVlanBridgePortConfig port = new LogicalVlanBridgePortConfig(
             UUID.randomUUID(), UUID.randomUUID(), (short)3);
-        String json = JSONSerializer.objToJsonString(port);
+        String json = JsonVersionZkSerializer.objToJsonString(port);
         LogicalVlanBridgePortConfig port2 =
-            JSONSerializer.jsonStringToObj(json, LogicalVlanBridgePortConfig.class);
+                JsonVersionZkSerializer.jsonStringToObj(
+                        json, LogicalVlanBridgePortConfig.class);
         assertEquals(port, port2);
         // Now deserialize to the superclass.
-        PortConfig port3 = JSONSerializer.jsonStringToObj(json, PortConfig.class);
+        PortConfig port3 = JsonVersionZkSerializer.jsonStringToObj(
+                json, PortConfig.class);
         assertEquals(port, port3);
     }
 }

@@ -18,32 +18,45 @@ import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
 
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.serialization.Serializer;
+import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.Directory;
+import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
-import org.midonet.midolman.state.ZkStateSerializationException;
 import org.midonet.cluster.data.BGP;
 
-public class BgpZkManager extends ZkManager {
+
+public class BgpZkManager extends AbstractZkManager {
 
     /**
      * BgpZkManager constructor.
      *
      * @param zk
-     *            Zookeeper object.
-     * @param basePath
-     *            Directory to set as the base.
+     *         Zk data access class
+     * @param paths
+     *         PathBuilder class to construct ZK paths
+     * @param serializer
+     *         ZK data serialization class
      */
-    public BgpZkManager(Directory zk, String basePath) {
-        super(zk, basePath);
+    public BgpZkManager(ZkManager zk, PathBuilder paths,
+                        Serializer serializer) {
+        super(zk, paths, serializer);
+    }
+
+    public BgpZkManager(Directory dir, String basePath,
+                        Serializer serializer) {
+        this(new ZkManager(dir), new PathBuilder(basePath), serializer);
     }
 
     public List<Op> prepareBgpCreate(UUID id, BGP config)
-            throws ZkStateSerializationException {
+            throws StateAccessException, SerializationException {
 
         List<Op> ops = new ArrayList<Op>();
         ops.add(Op.create(paths.getBgpPath(id),
-                serializer.serialize(config.getData()), Ids.OPEN_ACL_UNSAFE,
+                serializer.serialize(config.getData()),
+                Ids.OPEN_ACL_UNSAFE,
                 CreateMode.PERSISTENT));
         ops.add(Op.create(paths.getBgpAdRoutesPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
@@ -54,17 +67,18 @@ public class BgpZkManager extends ZkManager {
         return ops;
     }
 
-    public List<Op> prepareBgpDelete(UUID id) throws StateAccessException {
+    public List<Op> prepareBgpDelete(UUID id) throws StateAccessException,
+            SerializationException {
         return prepareBgpDelete(id, getBGP(id));
     }
 
     public List<Op> prepareBgpDelete(UUID id, BGP config)
-            throws StateAccessException {
+            throws StateAccessException, SerializationException {
         List<Op> ops = new ArrayList<Op>();
 
         // Delete the advertising routes
-        AdRouteZkManager adRouteManager = new AdRouteZkManager(zk,
-                paths.getBasePath());
+        AdRouteZkManager adRouteManager = new AdRouteZkManager(zk, paths,
+                serializer);
         List<UUID> adRouteIds = adRouteManager.list(id);
         for (UUID adRouteId : adRouteIds) {
             ops.addAll(adRouteManager.prepareAdRouteDelete(adRouteId));
@@ -80,7 +94,8 @@ public class BgpZkManager extends ZkManager {
         return ops;
     }
 
-    public List<Op> preparePortDelete(UUID portId) throws StateAccessException {
+    public List<Op> preparePortDelete(UUID portId) throws StateAccessException,
+            SerializationException {
         List<Op> ops = new ArrayList<Op>();
 
         List<UUID> bgpIdList = list(portId);
@@ -91,19 +106,21 @@ public class BgpZkManager extends ZkManager {
         return ops;
     }
 
-    public UUID create(BGP bgp) throws StateAccessException {
+    public UUID create(BGP bgp) throws StateAccessException,
+            SerializationException {
         UUID id = UUID.randomUUID();
-        multi(prepareBgpCreate(id, bgp));
+        zk.multi(prepareBgpCreate(id, bgp));
         return id;
     }
 
     public BGP getBGP(UUID id, Runnable watcher) throws
-        StateAccessException {
-        byte[] data = get(paths.getBgpPath(id), watcher);
+            StateAccessException, SerializationException {
+        byte[] data = zk.get(paths.getBgpPath(id), watcher);
         return new BGP(id, serializer.deserialize(data, BGP.Data.class));
     }
 
-    public BGP getBGP(UUID id) throws StateAccessException {
+    public BGP getBGP(UUID id) throws StateAccessException,
+            SerializationException {
         return getBGP(id, null);
     }
 
@@ -119,9 +136,11 @@ public class BgpZkManager extends ZkManager {
                             @Override
                             public BGP apply(byte[] arg0) {
                                 try {
-                                    BGP.Data bgpData = serializer.deserialize(arg0, BGP.Data.class);
-                                    return new BGP(bgpId, bgpData);
-                                } catch (ZkStateSerializationException e) {
+                                    BGP.Data data =
+                                            serializer.deserialize(arg0,
+                                                    BGP.Data.class);
+                                    return new BGP(bgpId, data);
+                                } catch (SerializationException e) {
                                     log.warn("Could not deserialize BGP data");
                                 }
                                 return null;
@@ -131,13 +150,13 @@ public class BgpZkManager extends ZkManager {
     }
 
     public boolean exists(UUID id) throws StateAccessException {
-        return exists(paths.getBgpPath(id));
+        return zk.exists(paths.getBgpPath(id));
     }
 
     public List<UUID> list(UUID portId, Runnable watcher)
             throws StateAccessException {
         List<UUID> result = new ArrayList<UUID>();
-        Set<String> bgpIds = getChildren(paths.getPortBgpPath(portId),
+        Set<String> bgpIds = zk.getChildren(paths.getPortBgpPath(portId),
                 watcher);
         for (String bgpId : bgpIds) {
             // For now, get each one.
@@ -170,12 +189,14 @@ public class BgpZkManager extends ZkManager {
         return list(portId, null);
     }
 
-    public void update(UUID id, BGP config) throws StateAccessException {
+    public void update(UUID id, BGP config) throws StateAccessException,
+            SerializationException {
         byte[] data = serializer.serialize(config);
-        update(paths.getBgpPath(id), data);
+        zk.update(paths.getBgpPath(id), data);
     }
 
-    public void delete(UUID id) throws StateAccessException {
-        multi(prepareBgpDelete(id));
+    public void delete(UUID id) throws StateAccessException,
+            SerializationException {
+        zk.multi(prepareBgpDelete(id));
     }
 }

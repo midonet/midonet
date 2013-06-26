@@ -8,6 +8,7 @@ import org.midonet.api.network.Link;
 import org.midonet.api.network.Port;
 import org.midonet.api.network.PortFactory;
 import org.midonet.api.validation.MessageProperty;
+import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.cluster.DataClient;
 
@@ -55,6 +56,9 @@ public class PortsLinkableConstraintValidator implements
             }
         } catch (StateAccessException e) {
             throw new RuntimeException("Data access error while validating");
+        } catch (SerializationException e) {
+            throw new RuntimeException(
+                    "Serialization exception occurred in validation");
         }
 
         Port port = PortFactory.createPort(portData);

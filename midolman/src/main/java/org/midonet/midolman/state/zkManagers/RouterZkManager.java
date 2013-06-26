@@ -11,20 +11,24 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import org.midonet.midolman.serialization.Serializer;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.Directory;
+import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
-import org.midonet.midolman.state.ZkStateSerializationException;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
 /**
  * Class to manage the router ZooKeeper data.
  */
-public class RouterZkManager extends ZkManager {
+public class RouterZkManager extends AbstractZkManager {
 
     private final static Logger log = LoggerFactory
             .getLogger(RouterZkManager.class);
@@ -91,16 +95,23 @@ public class RouterZkManager extends ZkManager {
      * path of the ZooKeeper directory.
      *
      * @param zk
-     *            Directory object.
-     * @param basePath
-     *            The root path.
+     *         Zk data access class
+     * @param paths
+     *         PathBuilder class to construct ZK paths
+     * @param serializer
+     *         ZK data serialization class
      */
-    public RouterZkManager(Directory zk, String basePath) {
-        super(zk, basePath);
-        routeZkManager = new RouteZkManager(zk, basePath);
-        filterZkManager = new FiltersZkManager(zk, basePath);
-        portZkManager = new PortZkManager(zk, basePath);
+    public RouterZkManager(ZkManager zk, PathBuilder paths,
+                           Serializer serializer) {
+        super(zk, paths, serializer);
+        routeZkManager = new RouteZkManager(zk, paths, serializer);
+        filterZkManager = new FiltersZkManager(zk, paths, serializer);
+        portZkManager = new PortZkManager(zk, paths, serializer);
+    }
 
+    public RouterZkManager(Directory dir, String basePath,
+                           Serializer serializer) {
+        this(new ZkManager(dir), new PathBuilder(basePath), serializer);
     }
 
     /**
@@ -114,10 +125,11 @@ public class RouterZkManager extends ZkManager {
      * @return A list of Op objects to represent the operations to perform.
      */
     public List<Op> prepareRouterCreate(UUID id, RouterConfig config)
-            throws ZkStateSerializationException {
+            throws StateAccessException, SerializationException {
         List<Op> ops = new ArrayList<Op>();
         ops.add(Op.create(paths.getRouterPath(id),
-                serializer.serialize(config), Ids.OPEN_ACL_UNSAFE,
+                serializer.serialize(config),
+                Ids.OPEN_ACL_UNSAFE,
                 CreateMode.PERSISTENT));
 
         ops.add(Op.create(paths.getRouterPortsPath(id), null,
@@ -138,11 +150,12 @@ public class RouterZkManager extends ZkManager {
      * @param id
      *            The ID of a virtual router to delete.
      * @return A list of Op objects representing the operations to perform.
-     * @throws ZkStateSerializationException
+     * @throws SerializationException
      *             Serialization error occurred.
      * @throws org.midonet.midolman.state.StateAccessException
      */
-    public List<Op> prepareRouterDelete(UUID id) throws StateAccessException {
+    public List<Op> prepareRouterDelete(UUID id) throws StateAccessException,
+            SerializationException {
         List<Op> ops = new ArrayList<Op>();
 
         // Get routes delete ops.
@@ -171,7 +184,7 @@ public class RouterZkManager extends ZkManager {
 
         // Delete ARP table (and any ARP entries found).
         String arpTablePath = paths.getRouterArpTablePath(id);
-        for (String ipStr : getChildren(arpTablePath, null)) {
+        for (String ipStr : zk.getChildren(arpTablePath, null)) {
             ops.add(Op.delete(arpTablePath + "/" + ipStr, -1));
         }
         log.debug("Preparing to delete: " + arpTablePath);
@@ -184,12 +197,13 @@ public class RouterZkManager extends ZkManager {
         return ops;
     }
 
-    public void update(UUID id, RouterConfig cfg) throws StateAccessException {
+    public void update(UUID id, RouterConfig cfg) throws StateAccessException,
+            SerializationException {
         Op op = prepareUpdate(id, cfg);
         if (null != op) {
             List<Op> ops = new ArrayList<Op>();
             ops.add(op);
-            multi(ops);
+            zk.multi(ops);
         }
     }
 
@@ -202,11 +216,11 @@ public class RouterZkManager extends ZkManager {
      * @param config
      *            the new router configuration.
      * @return The ZK operation required to update the router.
-     * @throws ZkStateSerializationException
+     * @throws SerializationException
      *             if the RouterConfig could not be serialized.
      */
     public Op prepareUpdate(UUID id, RouterConfig config)
-            throws StateAccessException {
+            throws StateAccessException, SerializationException {
         RouterConfig oldConfig = get(id);
         // Have the inbound or outbound filter changed?
         boolean dataChanged = false;
@@ -246,9 +260,9 @@ public class RouterZkManager extends ZkManager {
      * @return The UUID of the newly created object.
      * @throws StateAccessException
      */
-    public UUID create() throws StateAccessException {
+    public UUID create() throws StateAccessException, SerializationException {
         UUID id = UUID.randomUUID();
-        multi(prepareRouterCreate(id, new RouterConfig()));
+        zk.multi(prepareRouterCreate(id, new RouterConfig()));
         return id;
     }
 
@@ -258,13 +272,13 @@ public class RouterZkManager extends ZkManager {
      *
      * @param id
      *            ID of the router to delete.
-     * @throws ZkStateSerializationException
+     * @throws SerializationException
      *             Serialization error occurred.
      * @throws StateAccessException
      */
-    public void delete(UUID id) throws ZkStateSerializationException,
+    public void delete(UUID id) throws SerializationException,
             StateAccessException {
-        multi(prepareRouterDelete(id));
+        zk.multi(prepareRouterDelete(id));
     }
 
     /**
@@ -276,7 +290,7 @@ public class RouterZkManager extends ZkManager {
      * @throws StateAccessException
      */
     public boolean exists(UUID id) throws StateAccessException {
-        return exists(paths.getRouterPath(id));
+        return zk.exists(paths.getRouterPath(id));
     }
 
     /**
@@ -289,7 +303,8 @@ public class RouterZkManager extends ZkManager {
      *             if deserialization of the Router's config failed, or if no
      *             Router with that ID could be found.
      */
-    public RouterConfig get(UUID id) throws StateAccessException {
+    public RouterConfig get(UUID id) throws StateAccessException,
+            SerializationException {
         return get(id, null);
     }
 
@@ -305,18 +320,18 @@ public class RouterZkManager extends ZkManager {
      *             Router with that ID could be found.
      */
     public RouterConfig get(UUID id, Runnable watcher)
-            throws StateAccessException {
-        byte[] data = get(paths.getRouterPath(id), watcher);
+            throws StateAccessException, SerializationException {
+        byte[] data = zk.get(paths.getRouterPath(id), watcher);
         return serializer.deserialize(data, RouterConfig.class);
     }
 
     public Directory getRoutingTableDirectory(UUID routerId)
             throws StateAccessException {
-        return getSubDirectory(paths.getRouterRoutingTablePath(routerId));
+        return zk.getSubDirectory(paths.getRouterRoutingTablePath(routerId));
     }
 
     public Directory getArpTableDirectory(UUID routerId)
             throws StateAccessException {
-        return getSubDirectory(paths.getRouterArpTablePath(routerId));
+        return zk.getSubDirectory(paths.getRouterArpTablePath(routerId));
     }
 }

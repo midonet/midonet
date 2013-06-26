@@ -15,6 +15,7 @@ import org.midonet.cluster.client.BridgeBuilder;
 import org.midonet.cluster.client.IpMacMap;
 import org.midonet.cluster.client.MacLearningTable;
 import org.midonet.midolman.config.ZookeeperConfig;
+import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.Ip4ToMacReplicatedMap;
 import org.midonet.midolman.state.MacPortMap;
@@ -105,6 +106,9 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
             log.warn("Cannot retrieve the configuration for bridge {}", id, e);
             connectionWatcher.handleError(
                     id.toString(), watchBridge(id, isUpdate), e);
+            return;
+        } catch (SerializationException e) {
+            log.error("Could not deserialize bridge config: {}", id, e);
             return;
         } catch (KeeperException e) {
             log.warn("Cannot retrieve the configuration for bridge {}", id, e);

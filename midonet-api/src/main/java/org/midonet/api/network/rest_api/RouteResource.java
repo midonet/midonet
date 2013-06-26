@@ -20,6 +20,7 @@ import org.midonet.api.network.auth.RouteAuthorizer;
 import org.midonet.api.network.auth.RouterAuthorizer;
 import org.midonet.api.rest_api.BadRequestHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.cluster.DataClient;
@@ -76,7 +77,9 @@ public class RouteResource extends AbstractResource {
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Path("{id}")
     public void delete(@PathParam("id") UUID id)
-            throws StateAccessException, InvalidStateOperationException {
+            throws StateAccessException,
+            InvalidStateOperationException,
+            SerializationException {
 
         org.midonet.cluster.data.Route routeData =
                 dataClient.routesGet(id);
@@ -106,7 +109,8 @@ public class RouteResource extends AbstractResource {
     @Path("{id}")
     @Produces({ VendorMediaType.APPLICATION_ROUTE_JSON,
             MediaType.APPLICATION_JSON })
-    public Route get(@PathParam("id") UUID id) throws StateAccessException {
+    public Route get(@PathParam("id") UUID id) throws StateAccessException,
+            SerializationException {
 
         if (!authorizer.authorize(context, AuthAction.READ, id)) {
             throw new ForbiddenHttpException(
@@ -167,7 +171,9 @@ public class RouteResource extends AbstractResource {
         @Consumes({ VendorMediaType.APPLICATION_ROUTE_JSON,
                 MediaType.APPLICATION_JSON })
         public Response create(Route route)
-                throws StateAccessException, InvalidStateOperationException {
+                throws StateAccessException,
+                InvalidStateOperationException,
+                SerializationException {
 
             route.setRouterId(routerId);
 
@@ -200,7 +206,8 @@ public class RouteResource extends AbstractResource {
         @Produces({ VendorMediaType.APPLICATION_ROUTE_COLLECTION_JSON,
                 MediaType.APPLICATION_JSON })
         public List<Route> list()
-                throws StateAccessException {
+                throws StateAccessException,
+                SerializationException {
 
             if (!authorizer.authorize(context, AuthAction.READ, routerId)) {
                 throw new ForbiddenHttpException(

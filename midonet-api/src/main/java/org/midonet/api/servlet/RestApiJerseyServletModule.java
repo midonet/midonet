@@ -24,6 +24,7 @@ import org.midonet.api.zookeeper.ZookeeperModule;
 import org.midonet.midolman.guice.MonitoringStoreModule;
 import org.midonet.midolman.guice.cluster.DataClusterClientModule;
 import org.midonet.midolman.guice.reactor.ReactorModule;
+import org.midonet.midolman.version.guice.VersionModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,6 +61,7 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
         log.debug("configureServlets: entered");
 
         install(new ConfigurationModule(servletContext));
+        install(new VersionModule());
         install(new AuthModule());
         install(new ErrorModule());
         install(new RestApiModule());

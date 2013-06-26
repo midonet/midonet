@@ -4,7 +4,11 @@
 
 package org.midonet.midolman.state.zkManagers;
 
+import org.midonet.midolman.serialization.Serializer;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.Directory;
+import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.packets.IPv6Subnet;
@@ -20,7 +24,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-public class BridgeDhcpV6ZkManager extends ZkManager {
+
+public class BridgeDhcpV6ZkManager extends AbstractZkManager {
 
     private static final Logger log = LoggerFactory
         .getLogger(BridgeDhcpV6ZkManager.class);
@@ -97,44 +102,53 @@ public class BridgeDhcpV6ZkManager extends ZkManager {
      * and the root path of the ZooKeeper directory.
      *
      * @param zk
-     *            ZooKeeper object.
-     * @param basePath
-     *            The root path.
+     *         Zk data access class
+     * @param paths
+     *         PathBuilder class to construct ZK paths
+     * @param serializer
+     *         ZK data serialization class
      */
-    public BridgeDhcpV6ZkManager(Directory zk, String basePath) {
-        super(zk, basePath);
+    public BridgeDhcpV6ZkManager(ZkManager zk, PathBuilder paths,
+                                 Serializer serializer) {
+        super(zk, paths, serializer);
+    }
+
+    public BridgeDhcpV6ZkManager(Directory dir, String basePath,
+                                 Serializer serializer) {
+        this(new ZkManager(dir), new PathBuilder(basePath), serializer);
     }
 
     public void createSubnet6(UUID bridgeId, Subnet6 subnet)
-            throws StateAccessException {
+            throws StateAccessException, SerializationException {
         List<Op> ops = new ArrayList<Op>();
         ops.add(Op.create(paths.getBridgeDhcpSubnet6Path(
                 bridgeId, subnet.getPrefix()),
-                serializer.serialize(subnet), ZooDefs.Ids.OPEN_ACL_UNSAFE,
+                serializer.serialize(subnet),
+                        ZooDefs.Ids.OPEN_ACL_UNSAFE,
                 CreateMode.PERSISTENT));
 
         ops.add(Op.create(paths.getBridgeDhcpV6HostsPath(
             bridgeId, subnet.getPrefix()), null,
                           ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-        multi(ops);
+        zk.multi(ops);
     }
 
     public void updateSubnet6(UUID bridgeId, Subnet6 subnet)
-            throws StateAccessException {
-        update(paths.getBridgeDhcpSubnet6Path(bridgeId,
+            throws StateAccessException, SerializationException {
+        zk.update(paths.getBridgeDhcpSubnet6Path(bridgeId,
                 subnet.getPrefix()), serializer.serialize(subnet));
     }
 
     public Subnet6 getSubnet6(UUID bridgeId, IPv6Subnet prefix)
-            throws StateAccessException {
-        byte[] data = get(paths.getBridgeDhcpSubnet6Path(bridgeId,
+            throws StateAccessException, SerializationException {
+        byte[] data = zk.get(paths.getBridgeDhcpSubnet6Path(bridgeId,
                 prefix), null);
         return serializer.deserialize(data, Subnet6.class);
     }
 
     public boolean existsSubnet6(UUID bridgeId, IPv6Subnet prefix)
             throws StateAccessException {
-        return exists(paths.getBridgeDhcpSubnet6Path(bridgeId,
+        return zk.exists(paths.getBridgeDhcpSubnet6Path(bridgeId,
                 prefix));
     }
 
@@ -152,12 +166,12 @@ public class BridgeDhcpV6ZkManager extends ZkManager {
         // Delete the subnet's root directory.
         ops.add(Op.delete(
                 paths.getBridgeDhcpSubnet6Path(bridgeId, prefix), -1));
-        multi(ops);
+        zk.multi(ops);
     }
 
     public List<IPv6Subnet> listSubnet6s(UUID bridgeId)
             throws StateAccessException {
-        Set<String> prefixStrings = getChildren(
+        Set<String> prefixStrings = zk.getChildren(
                 paths.getBridgeDhcpV6Path(bridgeId), null);
         List<IPv6Subnet> prefixes = new ArrayList<IPv6Subnet>();
         for (String prefixStr : prefixStrings)
@@ -166,8 +180,8 @@ public class BridgeDhcpV6ZkManager extends ZkManager {
     }
 
     public List<Subnet6> getSubnet6s(UUID bridgeId)
-            throws StateAccessException {
-        Set<String> prefixStrings = getChildren(
+            throws StateAccessException, SerializationException {
+        Set<String> prefixStrings = zk.getChildren(
                 paths.getBridgeDhcpV6Path(bridgeId));
         List<Subnet6> subnets = new ArrayList<Subnet6>();
         for (String prefixStr : prefixStrings)
@@ -176,38 +190,40 @@ public class BridgeDhcpV6ZkManager extends ZkManager {
     }
 
     public void addHost(UUID bridgeId, IPv6Subnet prefix, Host host)
-            throws StateAccessException {
-        addPersistent(paths.getBridgeDhcpV6HostPath(
-                bridgeId, prefix, host.getClientId()), serializer.serialize(host));
+            throws StateAccessException, SerializationException {
+        zk.addPersistent(paths.getBridgeDhcpV6HostPath(
+                bridgeId, prefix, host.getClientId()),
+                serializer.serialize(host));
     }
 
     public void updateHost(UUID bridgeId, IPv6Subnet prefix, Host host)
-            throws StateAccessException {
-        update(paths.getBridgeDhcpV6HostPath(
-                bridgeId, prefix, host.getClientId()), serializer.serialize(host));
+            throws StateAccessException, SerializationException {
+        zk.update(paths.getBridgeDhcpV6HostPath(
+                bridgeId, prefix, host.getClientId()),
+                serializer.serialize(host));
     }
 
     public Host getHost(UUID bridgeId, IPv6Subnet prefix, String clientId)
-            throws StateAccessException {
-        byte[] data = get(paths.getBridgeDhcpV6HostPath(
+            throws StateAccessException, SerializationException {
+        byte[] data = zk.get(paths.getBridgeDhcpV6HostPath(
                 bridgeId, prefix, clientId), null);
         return serializer.deserialize(data, Host.class);
     }
 
     public void deleteHost(UUID bridgId, IPv6Subnet prefix, String clientId)
             throws StateAccessException {
-        delete(paths.getBridgeDhcpV6HostPath(bridgId, prefix, clientId));
+        zk.delete(paths.getBridgeDhcpV6HostPath(bridgId, prefix, clientId));
     }
 
     public boolean existsHost(UUID bridgeId, IPv6Subnet prefix, String clientId)
             throws StateAccessException {
-        return exists(paths.getBridgeDhcpV6HostPath(
+        return zk.exists(paths.getBridgeDhcpV6HostPath(
                 bridgeId, prefix, clientId));
     }
 
     public List<String> listHosts(UUID bridgeId, IPv6Subnet prefix)
             throws StateAccessException {
-        Set<String> clientIds = getChildren(
+        Set<String> clientIds = zk.getChildren(
                 paths.getBridgeDhcpV6HostsPath(bridgeId, prefix));
         List<String> clientIdStrings = new ArrayList<String>();
         for (String clientId : clientIds)
@@ -216,8 +232,8 @@ public class BridgeDhcpV6ZkManager extends ZkManager {
     }
 
     public List<Host> getHosts(UUID bridgeId, IPv6Subnet prefix)
-            throws StateAccessException {
-        Set<String> clientIds = getChildren(
+            throws StateAccessException, SerializationException {
+        Set<String> clientIds = zk.getChildren(
                 paths.getBridgeDhcpV6HostsPath(bridgeId, prefix));
         List<Host> hosts = new ArrayList<Host>();
         for (String clientId : clientIds)

@@ -1,5 +1,6 @@
 /*
  * Copyright 2011 Midokura KK
+ * Copyright 2013 Midokura PTE LTD.
  */
 
 package org.midonet.midolman.state;
@@ -472,6 +473,12 @@ public class MockDirectory implements Directory {
             }, null);
         }
     }
+
+    /*
+     * currently unused in unit tests.
+     */
+    public void lock(String lockDir) {};
+    public void unlock(String lockDir) {};
 
     private static class MyTypedWatcher implements Watcher, Runnable {
         TypedWatcher watcher;

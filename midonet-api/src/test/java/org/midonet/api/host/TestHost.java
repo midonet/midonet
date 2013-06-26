@@ -5,8 +5,14 @@ package org.midonet.api.host;
 
 import java.net.InetAddress;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.UUID;
 
+import com.google.inject.AbstractModule;
+import com.google.inject.Provides;
+import com.google.inject.Singleton;
+import com.google.inject.Injector;
+import com.google.inject.Guice;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.test.framework.AppDescriptor;
 import com.sun.jersey.test.framework.JerseyTest;
@@ -23,11 +29,15 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 
+import org.midonet.api.serialization.SerializationModule;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.api.VendorMediaType;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.zookeeper.StaticMockDirectory;
+import org.midonet.midolman.serialization.Serializer;
+import org.midonet.midolman.state.PathBuilder;
+import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.ZkPathManager;
 import org.midonet.client.MidonetApi;
@@ -36,7 +46,9 @@ import org.midonet.client.dto.DtoInterface;
 import org.midonet.client.exception.HttpForbiddenException;
 import org.midonet.client.resource.*;
 import org.midonet.client.resource.Host;
+import org.midonet.midolman.version.guice.VersionModule;
 import org.midonet.packets.MAC;
+
 import static org.midonet.api.VendorMediaType.APPLICATION_HOST_COLLECTION_JSON;
 import static org.midonet.api.VendorMediaType.APPLICATION_HOST_JSON;
 import static org.midonet.api.VendorMediaType.APPLICATION_INTERFACE_COLLECTION_JSON;
@@ -47,8 +59,9 @@ public class TestHost extends JerseyTest {
 
     private HostZkManager hostManager;
     private ZkPathManager pathManager;
-    private Directory rootDirectory;
+    private Directory dir;
     private MidonetApi api;
+    private static Injector injector;
 
     public TestHost() {
         super(createWebApp());
@@ -62,16 +75,50 @@ public class TestHost extends JerseyTest {
 
     }
 
+    public class TestModule extends AbstractModule {
+
+        private final String basePath;
+
+        public TestModule(String basePath) {
+            this.basePath = basePath;
+        }
+
+        @Override
+        protected void configure() {
+            bind(PathBuilder.class).toInstance(new PathBuilder(basePath));
+        }
+
+        @Provides @Singleton
+        public Directory provideDirectory() {
+            Directory directory = StaticMockDirectory.getDirectoryInstance();
+            return directory;
+        }
+
+        @Provides @Singleton
+        public ZkManager provideZkManager(Directory directory) {
+            return new ZkManager(directory);
+        }
+
+        @Provides @Singleton
+        public HostZkManager provideHostZkManager(ZkManager zkManager,
+                                                  PathBuilder paths,
+                                                  Serializer serializer) {
+            return new HostZkManager(zkManager, paths, serializer);
+        }
+    }
+
     // This one also tests Create with given tenant ID string
     @Before
-    public void before() throws KeeperException {
+    public void before() throws KeeperException, InterruptedException {
+        injector = Guice.createInjector(
+                new VersionModule(),
+                new SerializationModule(),
+                new TestModule(ZK_ROOT_MIDOLMAN));
+        dir = injector.getInstance(Directory.class);
         resource().type(VendorMediaType.APPLICATION_JSON)
             .get(ClientResponse.class);
 
-        rootDirectory = StaticMockDirectory.getDirectoryInstance();
-
-        hostManager = new HostZkManager(rootDirectory, "/test/midolman");
-
+        hostManager = injector.getInstance(HostZkManager.class);
         URI baseUri = resource().getURI();
         api = new MidonetApi(baseUri.toString());
         api.enableLogging();
@@ -243,7 +290,7 @@ public class TestHost extends JerseyTest {
         hosts.get(0).delete();
 
         assertThat("Host should have been removed from ZooKeeper.",
-                   !rootDirectory.has(pathManager.getHostPath(hostId)));
+                   !dir.has(pathManager.getHostPath(hostId)));
     }
 
     @Test
@@ -283,7 +330,7 @@ public class TestHost extends JerseyTest {
         }
         assertThat("Deletion of host got 403", caught403, is(true));
         assertThat("Host was not removed from zk",
-                   rootDirectory.has(pathManager.getHostPath(hostId)),
+                   dir.has(pathManager.getHostPath(hostId)),
                    equalTo(true));
     }
 

@@ -3,6 +3,7 @@
  */
 package org.midonet.api.host.validation;
 
+import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.api.host.CapwapTunnelZoneHost;
 import org.midonet.api.host.GreTunnelZoneHost;
@@ -50,7 +51,11 @@ public class TunnelZoneHostValidator implements
             return dataClient.tunnelZonesGetMembership(
                     tzh.getTunnelZoneId(), tzh.getHostId()) == null;
         } catch (StateAccessException e) {
-            throw new RuntimeException("Error while validating tunnel zone host");
+            throw new RuntimeException(
+                    "State Access Error while validating tunnel zone host");
+        } catch (SerializationException e) {
+            throw new RuntimeException(
+                    "Serialization Error while validating tunnel zone host");
         }
 
     }

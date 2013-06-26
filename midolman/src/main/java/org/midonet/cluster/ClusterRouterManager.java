@@ -21,14 +21,14 @@ import org.midonet.cluster.client.ArpCache;
 import org.midonet.cluster.client.RouterBuilder;
 import org.midonet.midolman.guice.zookeeper.ZKConnectionProvider;
 import org.midonet.midolman.layer3.Route;
+import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.ArpCacheEntry;
 import org.midonet.midolman.state.ArpTable;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.DirectoryCallback;
 import org.midonet.midolman.state.ReplicatedSet;
 import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.ZkConfigSerializer;
-import org.midonet.midolman.state.ZkStateSerializationException;
+import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.zkManagers.RouteZkManager;
 import org.midonet.midolman.state.zkManagers.RouterZkManager;
 import org.midonet.packets.IPv4Addr;
@@ -53,7 +53,7 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
     Reactor reactorLoop;
 
     @Inject
-    ZkConfigSerializer serializer;
+    Serializer serializer;
 
     Map<UUID, Set<Route>> mapPortIdToRoutes =
         new HashMap<UUID, Set<Route>>();
@@ -108,6 +108,9 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
                 mapRouterIdToRoutes.remove(id);
             log.warn("Cannot retrieve the configuration for router {}", id, e);
             connectionWatcher.handleError(id.toString(), watchRouter(id, isUpdate), e);
+            return;
+        } catch (SerializationException e) {
+            log.error("Could not deserialize router config {}", id, e);
             return;
         }
 
@@ -416,8 +419,8 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
             //TODO(dmd): this is slightly ghetto
             try {
                 return new String(serializer.serialize(rt));
-            } catch (ZkStateSerializationException e) {
-                log.warn("Encoding route {}", rt, e);
+            } catch (SerializationException e) {
+                log.error("Could not serialize route {}", rt, e);
                 return null;
             }
         }
@@ -425,8 +428,8 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
         protected Route decode(String str) {
             try {
                 return serializer.deserialize(str.getBytes(), Route.class);
-            } catch (ZkStateSerializationException e) {
-                log.warn("Decoding route {}", str, e);
+            } catch (SerializationException e) {
+                log.error("Could not deserialize route {}", str, e);
                 return null;
             }
         }

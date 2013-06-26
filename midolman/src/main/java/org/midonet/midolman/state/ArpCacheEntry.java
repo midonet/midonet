@@ -2,6 +2,7 @@
 
 package org.midonet.midolman.state;
 
+import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.packets.MAC;
 
 public class ArpCacheEntry implements Cloneable {
@@ -27,10 +28,10 @@ public class ArpCacheEntry implements Cloneable {
     }
 
     public static ArpCacheEntry decode(String str)
-                throws ZkStateSerializationException {
+                throws SerializationException {
         String[] fields = str.split(";");
         if (fields.length != 4)
-            throw new ZkStateSerializationException(str, null, null);
+            throw new SerializationException(str, null, null);
         return new ArpCacheEntry(fields[0].equals("null") ? null
                                         : MAC.fromString(fields[0]),
                                  Long.parseLong(fields[1]),

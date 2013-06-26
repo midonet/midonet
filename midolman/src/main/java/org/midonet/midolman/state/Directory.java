@@ -1,7 +1,7 @@
 /*
  * Copyright 2011 Midokura KK
+ * Copyright 2013 Midokura PTE LTD.
  */
-
 package org.midonet.midolman.state;
 
 import java.util.List;
@@ -41,10 +41,13 @@ public interface Directory {
     void delete(String relativePath) throws KeeperException,
             InterruptedException;
 
+    void lock(String lockDir) throws KeeperException, InterruptedException;
+
+    void unlock(String lockDir);
+
     void asyncDelete(String relativePath, DirectoryCallback.Void callback);
 
     void asyncDelete(String relativePath);
-
 
     Directory getSubDirectory(String relativePath) throws KeeperException;
 

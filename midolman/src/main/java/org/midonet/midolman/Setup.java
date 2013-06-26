@@ -1,4 +1,7 @@
-// Copyright 2012 Midokura Inc.
+/*
+ * Copyright 2012 Midokura Inc.
+ * Copyright 2013 Midokura PTE LTD.
+ */
 
 package org.midonet.midolman;
 
@@ -25,6 +28,8 @@ import org.slf4j.LoggerFactory;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.util.Sudo;
+import org.midonet.midolman.version.DataWriteVersion;
+
 
 public class Setup {
 
@@ -82,7 +87,18 @@ public class Setup {
         paths.add(pathMgr.getPortGroupsPath());
         paths.add(pathMgr.getHostsPath());
         paths.add(pathMgr.getTenantsPath());
+        paths.add(pathMgr.getVersionsPath());
         return paths;
+    }
+
+    private static void createDataWriteVersion(Directory rootDir,
+                                               String basePath)
+            throws KeeperException, InterruptedException {
+        PathBuilder pathMgr = new PathBuilder(basePath);
+        if (!rootDir.has(pathMgr.getWriteVersionPath())) {
+            rootDir.add(pathMgr.getWriteVersionPath(),
+                    DataWriteVersion.CURRENT.getBytes(), CreateMode.PERSISTENT);
+        }
     }
 
     public static void ensureZkDirectoryStructureExists(
@@ -95,6 +111,8 @@ public class Setup {
             } catch (KeeperException.NodeExistsException ex) {
             }
         }
+
+        createDataWriteVersion(rootDir, basePath);
     }
 
     protected void setupTrafficPriorityQdiscsMidonet()

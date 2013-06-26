@@ -21,6 +21,7 @@ import org.midonet.api.bgp.auth.BgpAuthorizer;
 import org.midonet.api.bgp.rest_api.AdRouteResource.BgpAdRouteResource;
 import org.midonet.api.network.auth.PortAuthorizer;
 import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.cluster.DataClient;
@@ -74,7 +75,9 @@ public class BgpResource extends AbstractResource {
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Path("{id}")
     public void delete(@PathParam("id") UUID id)
-            throws StateAccessException, InvalidStateOperationException {
+            throws StateAccessException,
+            InvalidStateOperationException,
+            SerializationException {
 
         BGP bgpData = dataClient.bgpGet(id);
         if (bgpData == null) {
@@ -103,8 +106,9 @@ public class BgpResource extends AbstractResource {
     @Path("{id}")
     @Produces({ VendorMediaType.APPLICATION_BGP_JSON,
             MediaType.APPLICATION_JSON })
-    public Bgp get(@PathParam("id") UUID id) throws StateAccessException {
-
+    public Bgp get(@PathParam("id") UUID id) throws StateAccessException,
+            InvalidStateOperationException,
+            SerializationException {
         if (!authorizer.authorize(context, AuthAction.READ, id)) {
             throw new ForbiddenHttpException(
                     "Not authorized to view this BGP.");
@@ -173,7 +177,9 @@ public class BgpResource extends AbstractResource {
         @Consumes({ VendorMediaType.APPLICATION_BGP_JSON,
                 MediaType.APPLICATION_JSON })
         public Response create(Bgp bgp)
-                throws StateAccessException, InvalidStateOperationException {
+                throws StateAccessException,
+                InvalidStateOperationException,
+                SerializationException {
 
             bgp.setPortId(portId);
 
@@ -199,7 +205,9 @@ public class BgpResource extends AbstractResource {
         @PermitAll
         @Produces({ VendorMediaType.APPLICATION_BGP_COLLECTION_JSON,
                 MediaType.APPLICATION_JSON })
-        public List<Bgp> list() throws StateAccessException {
+        public List<Bgp> list() throws StateAccessException,
+                InvalidStateOperationException,
+                SerializationException {
 
             if (!authorizer.authorize(context, AuthAction.READ, portId)) {
                 throw new ForbiddenHttpException(

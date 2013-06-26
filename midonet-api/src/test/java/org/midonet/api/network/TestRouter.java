@@ -4,11 +4,19 @@
  */
 package org.midonet.api.network;
 
+import com.google.inject.*;
+import org.apache.zookeeper.KeeperException;
+import org.midonet.api.serialization.SerializationModule;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
+import org.midonet.midolman.serialization.Serializer;
+
+
+import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.ArpCacheEntry;
 import org.midonet.midolman.state.ArpTable;
-import org.midonet.midolman.state.Directory;
+import org.midonet.midolman.state.ZkManager;
+import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.zkManagers.FiltersZkManager;
 import org.midonet.midolman.state.zkManagers.RouterZkManager;
 import org.midonet.api.rest_api.DtoWebResource;
@@ -16,8 +24,8 @@ import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.Topology;
 import org.midonet.api.zookeeper.StaticMockDirectory;
 import org.midonet.client.dto.*;
+import org.midonet.midolman.version.guice.VersionModule;
 import org.midonet.packets.IPv4Addr;
-import org.midonet.packets.IntIPv4;
 import org.midonet.packets.MAC;
 
 import com.sun.jersey.api.client.ClientResponse;
@@ -32,7 +40,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import java.net.URI;
 import java.util.*;
 
 
@@ -48,6 +55,55 @@ public class TestRouter {
 
         private DtoWebResource dtoResource;
         private Topology topology;
+        private Directory dir;
+        private Injector injector = null;
+
+        public class TestModule extends AbstractModule {
+
+            private final String basePath;
+
+            public TestModule(String basePath) {
+                this.basePath = basePath;
+            }
+
+            @Override
+            protected void configure() {
+                bind(PathBuilder.class).toInstance(new PathBuilder(basePath));
+            }
+
+            @Provides @Singleton
+            public Directory provideDirectory() {
+                Directory directory
+                        = StaticMockDirectory.getDirectoryInstance();
+                return directory;
+            }
+
+            @Provides @Singleton
+            public ZkManager provideZkManager(Directory directory) {
+                return new ZkManager(directory);
+            }
+
+            @Provides @Singleton
+            public RouterZkManager provideRouterZkManager(ZkManager zkManager,
+                                                      PathBuilder paths,
+                                                      Serializer serializer) {
+                return new RouterZkManager(zkManager, paths, serializer);
+            }
+
+            @Provides @Singleton
+            public HostZkManager provideHostZkManager(ZkManager zkManager,
+                                                      PathBuilder paths,
+                                                      Serializer serializer) {
+                return new HostZkManager(zkManager, paths, serializer);
+            }
+
+            @Provides @Singleton
+            public FiltersZkManager provideFilterZkManager(ZkManager zkManager,
+                                                      PathBuilder paths,
+                                                      Serializer serializer) {
+                return new FiltersZkManager(zkManager, paths, serializer);
+            }
+        }
 
         public TestRouterCrud() {
             super(FuncTest.appDesc);
@@ -60,8 +116,12 @@ public class TestRouter {
         }
 
         @Before
-        public void setUp() {
-
+        public void setUp() throws KeeperException, InterruptedException {
+            String basePath = "/test/midolman";
+            injector = Guice.createInjector(
+                    new VersionModule(),
+                    new SerializationModule(),
+                    new TestModule(basePath));
             WebResource resource = resource();
             dtoResource = new DtoWebResource(resource);
 
@@ -172,8 +232,8 @@ public class TestRouter {
             // Add a router
             DtoRouter resRouter = createRouter("router1", "tenant1-id", false);
             // Add an ARP entry in this router's ARP cache.
-            RouterZkManager routerMgr = new RouterZkManager(
-                StaticMockDirectory.getDirectoryInstance(), "/test/midolman");
+            RouterZkManager routerMgr
+                    = injector.getInstance(RouterZkManager.class);
             ArpTable arpTable =
                 new ArpTable(routerMgr.getArpTableDirectory(resRouter.getId()));
             arpTable.put(IPv4Addr.fromString("10.0.0.3"),
@@ -188,8 +248,8 @@ public class TestRouter {
             // Add a router
             DtoRouter resRouter = createRouter("router1", "tenant1-id", false);
             // Reserve a SNAT block in this router.
-            FiltersZkManager filtersMgr = new FiltersZkManager(
-                StaticMockDirectory.getDirectoryInstance(), "/test/midolman");
+            FiltersZkManager filtersMgr
+                    = injector.getInstance(FiltersZkManager.class);
             filtersMgr.addSnatReservation(resRouter.getId(),
                                  new IPv4Addr(0x0a000001), 100);
             dtoResource.deleteAndVerifyNoContent(
@@ -209,8 +269,7 @@ public class TestRouter {
                 dtoResource.postAndVerifyCreated(resRouter.getPorts(),
                     APPLICATION_PORT_JSON, port, DtoExteriorRouterPort.class);
             // Create a host (this is not allowed via the API).
-            HostZkManager hostManager = new HostZkManager(
-                StaticMockDirectory.getDirectoryInstance(), "/test/midolman");
+            HostZkManager hostManager = injector.getInstance(HostZkManager.class);
             HostDirectory.Metadata metadata = new HostDirectory.Metadata();
             metadata.setName("semporiki");
             UUID hostId = UUID.randomUUID();

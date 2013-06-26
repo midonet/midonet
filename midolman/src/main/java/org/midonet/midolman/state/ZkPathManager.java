@@ -1,6 +1,7 @@
 /*
  * Copyright 2012 Midokura KK
  * Copyright 2012 Midokura PTE LTD.
+ * Copyright 2013 Midokura PTE LTD.
  */
 package org.midonet.midolman.state;
 
@@ -50,6 +51,27 @@ public class ZkPathManager {
         if (this.basePath == null) {
             this.basePath = "";
         }
+    }
+
+    public String getVersionDirPath() {
+        return new StringBuilder(getBasePath())
+                                    .append("/versions")
+                                    .toString();
+    }
+
+    public String getVersionPath(String version) {
+        return new StringBuilder(getVersionDirPath())
+                                 .append("/")
+                                 .append(version)
+                                 .toString();
+    }
+
+
+    public String getHostVersionPath(UUID uuid, String version) {
+        return new StringBuilder(getVersionPath(version))
+                                 .append("/")
+                                 .append(uuid)
+                                 .toString();
     }
 
     /**
@@ -185,6 +207,33 @@ public class ZkPathManager {
     private StringBuilder buildFilterSnatBlocksPath(UUID id, IPAddr ip,
                                                     int startPort) {
         return buildFilterSnatBlocksPath(id, ip).append("/").append(startPort);
+    }
+
+    /**
+     * Get Versions path.
+     *
+     * @return /version
+     */
+    public String getVersionsPath() {
+        return basePath().append("/versions").toString();
+    }
+
+    /**
+     * Get write-version path.
+     *
+     * @return /write_version
+     */
+    public String getWriteVersionPath() {
+        return basePath().append("/write_version").toString();
+    }
+
+    /**
+     * Get write-version-lock path.
+     *
+     * @return /write_version_lock
+     */
+    public String getWriteVersionLockPath() {
+        return basePath().append("/write_version_lock").toString();
     }
 
     /**

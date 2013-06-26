@@ -12,14 +12,14 @@ import javax.inject.Inject;
 
 import org.midonet.cluster.client.VlanAwareBridgeBuilder;
 import org.midonet.cluster.client.VlanPortMap;
-import org.midonet.midolman.config.ZookeeperConfig;
-import org.midonet.midolman.state.Directory;
+import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.PortDirectory;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.zkManagers.PortZkManager;
 import org.midonet.midolman.state.zkManagers.VlanAwareBridgeZkManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 
 public class ClusterVlanBridgeManager extends ClusterManager<VlanAwareBridgeBuilder>{
 
@@ -60,6 +60,10 @@ public class ClusterVlanBridgeManager extends ClusterManager<VlanAwareBridgeBuil
             log.warn("Cannot retrieve config for vlan bridge {}", id, e);
             connectionWatcher.handleError(
                 id.toString(), watchVlanBridge(id, isUpdate), e);
+            return;
+        } catch (SerializationException e) {
+            log.error("Could not deserialize config for vlan bridge {}", id,
+                    e);
             return;
         }
 

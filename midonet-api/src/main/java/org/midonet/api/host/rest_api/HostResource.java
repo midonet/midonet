@@ -15,6 +15,7 @@ import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.cluster.DataClient;
@@ -58,7 +59,9 @@ public class HostResource extends AbstractResource {
     @Produces({VendorMediaType.APPLICATION_HOST_COLLECTION_JSON,
                   MediaType.APPLICATION_JSON})
     public List<Host> list()
-        throws ForbiddenHttpException, StateAccessException {
+        throws ForbiddenHttpException,
+               StateAccessException,
+               SerializationException {
 
         List<org.midonet.cluster.data.host.Host> hostConfigs =
                 dataClient.hostsGetAll();
@@ -86,7 +89,9 @@ public class HostResource extends AbstractResource {
     @Produces({VendorMediaType.APPLICATION_HOST_JSON,
                   MediaType.APPLICATION_JSON})
     public Host get(@PathParam("id") UUID id)
-        throws NotFoundHttpException, StateAccessException {
+        throws NotFoundHttpException,
+               StateAccessException,
+               SerializationException {
 
         org.midonet.cluster.data.host.Host hostConfig =
                 dataClient.hostsGet(id);

@@ -16,6 +16,7 @@ import org.midonet.api.network.PortGroup;
 import org.midonet.api.network.auth.PortAuthorizer;
 import org.midonet.api.network.auth.PortGroupAuthorizer;
 import org.midonet.api.rest_api.*;
+import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.cluster.DataClient;
@@ -78,7 +79,8 @@ public class PortGroupResource extends AbstractResource {
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Path("{id}")
     public void delete(@PathParam("id") UUID id)
-            throws StateAccessException, InvalidStateOperationException {
+            throws StateAccessException,
+            InvalidStateOperationException, SerializationException {
 
         org.midonet.cluster.data.PortGroup portGroupData =
                 dataClient.portGroupsGet(id);
@@ -108,7 +110,7 @@ public class PortGroupResource extends AbstractResource {
     @Path("{id}")
     @Produces({ VendorMediaType.APPLICATION_PORTGROUP_JSON })
     public PortGroup get(@PathParam("id") UUID id)
-            throws StateAccessException {
+            throws StateAccessException, SerializationException {
 
         if (!authorizer.authorize(context, AuthAction.READ, id)) {
             throw new ForbiddenHttpException(
@@ -143,7 +145,8 @@ public class PortGroupResource extends AbstractResource {
     @Consumes({ VendorMediaType.APPLICATION_PORTGROUP_JSON,
                    MediaType.APPLICATION_JSON })
     public Response create(PortGroup group)
-            throws StateAccessException, InvalidStateOperationException {
+            throws StateAccessException,
+            InvalidStateOperationException, SerializationException {
 
         Set<ConstraintViolation<PortGroup>> violations = validator
                 .validate(group, PortGroup.PortGroupCreateGroupSequence.class);
@@ -169,7 +172,7 @@ public class PortGroupResource extends AbstractResource {
             MediaType.APPLICATION_JSON })
     public PortGroup getByName(@QueryParam("tenant_id") String tenantId,
                                @QueryParam("name") String name)
-            throws StateAccessException{
+            throws StateAccessException, SerializationException {
         if (tenantId == null || name == null) {
             throw new BadRequestHttpException(
                     "Currently tenant_id and name are required for search.");
@@ -208,7 +211,7 @@ public class PortGroupResource extends AbstractResource {
             MediaType.APPLICATION_JSON })
     public List<PortGroup> list(@QueryParam("tenant_id") String tenantId,
                                 @QueryParam("port_id") UUID portId)
-            throws StateAccessException {
+            throws StateAccessException, SerializationException {
 
         if (tenantId == null && portId == null) {
             throw new BadRequestHttpException(

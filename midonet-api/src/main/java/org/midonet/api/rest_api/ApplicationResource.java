@@ -17,6 +17,7 @@ import org.midonet.api.bgp.rest_api.BgpResource;
 import org.midonet.api.filter.rest_api.ChainResource;
 import org.midonet.api.host.rest_api.TunnelZoneResource;
 import org.midonet.api.monitoring.rest_api.MonitoringResource;
+import org.midonet.api.version.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -55,6 +55,8 @@ import org.midonet.util.functors.callbacks.AbstractCallback
 import protos.mocks.MockOvsDatapathConnectionImpl.FlowListener
 import org.midonet.cluster.data.{Port => VPort}
 import org.midonet.cluster.data.host.Host
+import org.midonet.midolman.version.guice.VersionModule
+import org.midonet.midolman.guice.serialization.SerializationModule
 
 object MidolmanTestCaseLock {
     val sequential: ReentrantLock = new ReentrantLock()
@@ -207,6 +209,8 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
     protected def getModules(config: HierarchicalConfiguration)
             : Iterable[Module] = {
         List(
+            new VersionModule(),
+            new SerializationModule(),
             new MockConfigProviderModule(config),
             new MockDatapathModule(),
             new MockFlowStateCacheModule(),

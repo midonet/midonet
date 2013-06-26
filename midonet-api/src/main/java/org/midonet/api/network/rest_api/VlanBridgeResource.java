@@ -42,6 +42,7 @@ import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.cluster.DataClient;
+import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.StateAccessException;
 
@@ -80,7 +81,9 @@ public class VlanBridgeResource extends AbstractResource {
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Path("{id}")
     public void delete(@PathParam("id") UUID id)
-            throws StateAccessException, InvalidStateOperationException {
+            throws StateAccessException,
+            InvalidStateOperationException,
+            SerializationException {
 
         org.midonet.cluster.data.VlanAwareBridge bridgeData =
                 dataClient.vlanBridgesGet(id);
@@ -109,7 +112,8 @@ public class VlanBridgeResource extends AbstractResource {
     @Produces({ VendorMediaType.APPLICATION_VLAN_BRIDGE_JSON,
             MediaType.APPLICATION_JSON })
     public VlanBridge get(@PathParam("id") UUID id)
-            throws StateAccessException {
+            throws StateAccessException,
+            SerializationException {
 
         if (!authorizer.authorize(context, AuthAction.READ, id)) {
             throw new ForbiddenHttpException(
@@ -167,7 +171,9 @@ public class VlanBridgeResource extends AbstractResource {
     @Consumes({ VendorMediaType.APPLICATION_VLAN_BRIDGE_JSON,
             MediaType.APPLICATION_JSON })
     public void update(@PathParam("id") UUID id, VlanBridge bridge)
-            throws StateAccessException, InvalidStateOperationException {
+            throws StateAccessException,
+            InvalidStateOperationException,
+            SerializationException {
 
         bridge.setId(id);
 
@@ -198,7 +204,9 @@ public class VlanBridgeResource extends AbstractResource {
     @Consumes({ VendorMediaType.APPLICATION_VLAN_BRIDGE_JSON,
             MediaType.APPLICATION_JSON })
     public Response create(VlanBridge bridge)
-            throws StateAccessException, InvalidStateOperationException {
+            throws StateAccessException,
+            InvalidStateOperationException,
+            SerializationException {
 
         Set<ConstraintViolation<VlanBridge>> violations = validator.validate(
                 bridge, VlanBridge.VlanBridgeCreateGroupSequence.class);
@@ -229,7 +237,8 @@ public class VlanBridgeResource extends AbstractResource {
     @Produces({ VendorMediaType.APPLICATION_VLAN_BRIDGE_COLLECTION_JSON,
             MediaType.APPLICATION_JSON })
     public List<VlanBridge> list(@QueryParam("tenant_id") String tenantId)
-            throws StateAccessException {
+            throws StateAccessException,
+            SerializationException {
 
         if (tenantId == null) {
             throw new BadRequestHttpException(

@@ -14,6 +14,7 @@ import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.auth.AuthRole;
 import org.midonet.api.rest_api.BadRequestHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.host.VirtualPortMapping;
@@ -59,7 +60,7 @@ public class HostInterfacePortResource extends AbstractResource {
     @Consumes({ VendorMediaType.APPLICATION_HOST_INTERFACE_PORT_JSON,
                    MediaType.APPLICATION_JSON })
     public Response create(HostInterfacePort map)
-            throws StateAccessException {
+            throws StateAccessException, SerializationException {
 
         map.setHostId(hostId);
 
@@ -83,7 +84,7 @@ public class HostInterfacePortResource extends AbstractResource {
     @RolesAllowed({AuthRole.ADMIN})
     @Path("{portId}")
     public void delete(@PathParam("portId") UUID portId)
-            throws StateAccessException {
+            throws StateAccessException, SerializationException {
 
         if (!dataClient.hostsVirtualPortMappingExists(hostId, portId)) {
             return;
@@ -96,7 +97,8 @@ public class HostInterfacePortResource extends AbstractResource {
     @RolesAllowed({AuthRole.ADMIN})
     @Produces({VendorMediaType
             .APPLICATION_HOST_INTERFACE_PORT_COLLECTION_JSON})
-    public List<HostInterfacePort> list() throws StateAccessException {
+    public List<HostInterfacePort> list()
+            throws StateAccessException, SerializationException {
 
         List<VirtualPortMapping> mapConfigs =
                 dataClient.hostsGetVirtualPortMappingsByHost(hostId);
@@ -115,7 +117,7 @@ public class HostInterfacePortResource extends AbstractResource {
     @RolesAllowed({AuthRole.ADMIN})
     @Path("{portId}")
     public HostInterfacePort get(@PathParam("portId") UUID portId)
-        throws StateAccessException {
+        throws StateAccessException, SerializationException {
 
         VirtualPortMapping data = dataClient.hostsGetVirtualPortMapping(
                 hostId, portId);

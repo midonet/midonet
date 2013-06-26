@@ -24,9 +24,11 @@ import org.midonet.midolman.config.ZookeeperConfig;
 import org.midonet.midolman.layer4.NatLeaseManager;
 import org.midonet.midolman.layer4.NatMapping;
 import org.midonet.midolman.layer4.NatMappingFactory;
+import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.zkManagers.FiltersZkManager;
 import org.midonet.util.eventloop.Reactor;
+
 
 /**
  * Main midolman configuration module
@@ -86,7 +88,10 @@ public class FlowStateCacheModule extends PrivateModule {
         private Directory zkDir;
 
         @Inject
-        ConfigProvider configProvider;
+        private ConfigProvider configProvider;
+
+        @Inject
+        private Serializer serializer;
 
         private static ConcurrentMap<UUID, NatMapping> natMappingMap =
                 new ConcurrentHashMap<UUID, NatMapping>();
@@ -109,7 +114,7 @@ public class FlowStateCacheModule extends PrivateModule {
                     } else {
                         log.debug("Creating a new NatMapping for {}", ownerID);
                         NatMapping natMapping = new NatLeaseManager(
-                                new FiltersZkManager(zkDir, zkBasePath),
+                                new FiltersZkManager(zkDir, zkBasePath, serializer),
                                 ownerID,
                                 new CacheWithPrefix(cache, ownerID.toString()),
                                 reactor);

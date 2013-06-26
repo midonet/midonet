@@ -31,13 +31,16 @@ import org.midonet.midolman.guice.cluster.ClusterClientModule;
 import org.midonet.midolman.guice.config.MockConfigProviderModule;
 import org.midonet.midolman.guice.config.TypedConfigModule;
 import org.midonet.midolman.guice.reactor.ReactorModule;
+import org.midonet.midolman.guice.serialization.SerializationModule;
 import org.midonet.midolman.guice.zookeeper.MockZookeeperConnectionModule;
 import org.midonet.midolman.layer3.Route;
+import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.ArpCacheEntry;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager;
 import org.midonet.midolman.state.zkManagers.RouterZkManager;
+import org.midonet.midolman.version.guice.VersionModule;
 import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
@@ -81,6 +84,8 @@ public class LocalClientImplTest {
         HierarchicalConfiguration config = fillConfig(
             new HierarchicalConfiguration());
         injector = Guice.createInjector(
+            new VersionModule(),
+            new SerializationModule(),
             new MockConfigProviderModule(config),
             new MockZookeeperConnectionModule(),
             new TypedConfigModule<MidolmanConfig>(MidolmanConfig.class),
@@ -95,7 +100,8 @@ public class LocalClientImplTest {
 
     @Test
     public void getBridgeTest()
-        throws StateAccessException, InterruptedException, KeeperException {
+            throws StateAccessException, InterruptedException, KeeperException,
+            SerializationException {
 
         initializeZKStructure();
         Setup.ensureZkDirectoryStructureExists(zkDir(), zkRoot);
@@ -119,7 +125,8 @@ public class LocalClientImplTest {
 
     @Test
     public void getRouterTest()
-        throws StateAccessException, InterruptedException, KeeperException {
+            throws StateAccessException, InterruptedException, KeeperException,
+            SerializationException {
 
         initializeZKStructure();
         Setup.ensureZkDirectoryStructureExists(zkDir(), zkRoot);
@@ -141,7 +148,8 @@ public class LocalClientImplTest {
     }
 
     @Test
-    public void ArpCacheTest() throws InterruptedException, KeeperException, StateAccessException {
+    public void ArpCacheTest() throws InterruptedException, KeeperException,
+            StateAccessException, SerializationException {
         initializeZKStructure();
         Setup.ensureZkDirectoryStructureExists(zkDir(), zkRoot);
         UUID routerId = getRouterZkManager().create();
@@ -165,7 +173,8 @@ public class LocalClientImplTest {
     }
 
     @Test
-    public void MacPortMapTest() throws InterruptedException, KeeperException, StateAccessException {
+    public void MacPortMapTest() throws InterruptedException,
+            KeeperException, SerializationException, StateAccessException {
         initializeZKStructure();
         Setup.ensureZkDirectoryStructureExists(zkDir(), zkRoot);
         UUID bridgeId = getBridgeZkManager().create(

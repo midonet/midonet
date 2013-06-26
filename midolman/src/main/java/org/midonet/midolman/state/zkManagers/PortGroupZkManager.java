@@ -4,10 +4,12 @@
  */
 package org.midonet.midolman.state.zkManagers;
 
-import org.midonet.midolman.state.*;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.serialization.Serializer;
+import org.midonet.midolman.state.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,7 +18,7 @@ import java.util.*;
 /**
  * Class to manage the router ZooKeeper data.
  */
-public class PortGroupZkManager extends ZkManager {
+public class PortGroupZkManager extends AbstractZkManager {
 
     private final static Logger log = LoggerFactory
             .getLogger(PortGroupZkManager.class);
@@ -44,14 +46,24 @@ public class PortGroupZkManager extends ZkManager {
      * root path of the ZooKeeper directory.
      *
      * @param zk
-     *            Directory object.
-     * @param basePath
-     *            The root path.
+     *         Zk data access class
+     * @param paths
+     *         PathBuilder class to construct ZK paths
+     * @param serializer
+     *         ZK data serialization class
+     * @versionProvider
+     *         Provides versioning information
      */
-    public PortGroupZkManager(Directory zk, String basePath) {
-        super(zk, basePath);
-        portDao = new PortZkManager(zk, basePath);
-        ruleDao = new RuleZkManager(zk, basePath);
+    public PortGroupZkManager(ZkManager zk, PathBuilder paths,
+                              Serializer serializer) {
+        super(zk, paths, serializer);
+        portDao = new PortZkManager(zk, paths, serializer);
+        ruleDao = new RuleZkManager(zk, paths, serializer);
+    }
+
+    public PortGroupZkManager(Directory dir, String basePath,
+                          Serializer serializer) {
+        this(new ZkManager(dir), new PathBuilder(basePath), serializer);
     }
 
     /**
@@ -65,12 +77,13 @@ public class PortGroupZkManager extends ZkManager {
      * @return A list of Op objects to represent the operations to perform.
      */
     public List<Op> prepareCreate(UUID id, PortGroupConfig config)
-            throws ZkStateSerializationException {
+            throws StateAccessException, SerializationException {
         log.debug("PortGroupZkManager.prepareCreate: entered");
 
         List<Op> ops = new ArrayList<Op>();
         ops.add(Op.create(paths.getPortGroupPath(id),
-                serializer.serialize(config), Ids.OPEN_ACL_UNSAFE,
+                serializer.serialize(config),
+                Ids.OPEN_ACL_UNSAFE,
                 CreateMode.PERSISTENT));
 
         // Keep the references to ports and rules that reference it.
@@ -91,20 +104,21 @@ public class PortGroupZkManager extends ZkManager {
      * @return A list of Op objects representing the operations to perform.
      * @throws StateAccessException
      */
-    public List<Op> prepareDelete(UUID id) throws StateAccessException {
+    public List<Op> prepareDelete(UUID id) throws StateAccessException,
+            SerializationException {
 
         List<Op> ops = new ArrayList<Op>();
 
         // Delete all the rules that reference this port group
         String rulesPath = paths.getPortGroupRulesPath(id);
-        Set<String> ruleIds = getChildren(rulesPath);
+        Set<String> ruleIds = zk.getChildren(rulesPath);
         for (String ruleId : ruleIds) {
             ops.addAll(ruleDao.prepareRuleDelete(UUID.fromString(ruleId)));
         }
 
         // Update all the ports that reference this port group.
         String portsPath = paths.getPortGroupPortsPath(id);
-        Set<String> portIds = getChildren(portsPath);
+        Set<String> portIds = zk.getChildren(portsPath);
         for (String portId : portIds) {
             UUID portUuid = UUID.fromString(portId);
             PortConfig port = portDao.get(portUuid);
@@ -132,9 +146,10 @@ public class PortGroupZkManager extends ZkManager {
      * @return The UUID of the newly created object.
      * @throws StateAccessException
      */
-    public UUID create(PortGroupConfig config) throws StateAccessException {
+    public UUID create(PortGroupConfig config) throws StateAccessException,
+            SerializationException {
         UUID id = UUID.randomUUID();
-        multi(prepareCreate(id, config));
+        zk.multi(prepareCreate(id, config));
         return id;
     }
 
@@ -146,8 +161,9 @@ public class PortGroupZkManager extends ZkManager {
      *            ID of the port group to delete.
      * @throws StateAccessException
      */
-    public void delete(UUID id) throws StateAccessException {
-        multi(prepareDelete(id));
+    public void delete(UUID id) throws StateAccessException,
+            SerializationException {
+        zk.multi(prepareDelete(id));
     }
 
     /**
@@ -159,7 +175,7 @@ public class PortGroupZkManager extends ZkManager {
      * @throws StateAccessException
      */
     public boolean exists(UUID id) throws StateAccessException {
-        return exists(paths.getPortGroupPath(id));
+        return zk.exists(paths.getPortGroupPath(id));
     }
 
     /**
@@ -170,19 +186,20 @@ public class PortGroupZkManager extends ZkManager {
      * @return PortGroupConfig object
      * @throws StateAccessException
      */
-    public PortGroupConfig get(UUID id) throws StateAccessException {
-        byte[] data = get(paths.getPortGroupPath(id));
+    public PortGroupConfig get(UUID id) throws StateAccessException,
+            SerializationException {
+        byte[] data = zk.get(paths.getPortGroupPath(id));
         return serializer.deserialize(data, PortGroupConfig.class);
     }
 
     public boolean portIsMember(UUID id, UUID portId)
         throws StateAccessException{
         String path = paths.getPortGroupPortPath(id, portId);
-        return exists(path);
+        return zk.exists(path);
     }
 
     public void addPortToPortGroup(UUID id, UUID portId)
-        throws StateAccessException {
+            throws StateAccessException, SerializationException {
 
         // Make sure that port group ID is valid
         if (!exists(id)) {
@@ -208,11 +225,11 @@ public class PortGroupZkManager extends ZkManager {
                 serializer.serialize(port), -1));
         ops.add(Op.create(paths.getPortGroupPortPath(id, portId), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-        multi(ops);
+        zk.multi(ops);
     }
 
     public void removePortFromPortGroup(UUID id, UUID portId)
-        throws StateAccessException {
+            throws StateAccessException, SerializationException {
 
         // Check to make sure that it exists and it's a member
         if (!exists(id) || !portIsMember(id, portId)) {
@@ -235,7 +252,7 @@ public class PortGroupZkManager extends ZkManager {
         ops.add(Op.setData(paths.getPortPath(portId),
                 serializer.serialize(port), -1));
         ops.add(Op.delete(paths.getPortGroupPortPath(id, portId), -1));
-        multi(ops);
+        zk.multi(ops);
 
     }
 }

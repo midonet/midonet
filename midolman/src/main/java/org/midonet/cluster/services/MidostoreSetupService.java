@@ -1,6 +1,7 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright 2012 Midokura Europe SARL
+ * Copyright 2013 Midokura PTE LTD
+ */
 package org.midonet.cluster.services;
 
 import com.google.common.util.concurrent.AbstractService;
@@ -9,6 +10,9 @@ import org.midonet.midolman.config.ZookeeperConfig;
 import org.midonet.midolman.state.Directory;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
+import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.version.DataVersionProvider;
+import org.midonet.midolman.version.DataWriteVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +32,9 @@ public class MidostoreSetupService extends AbstractService {
     @Inject
     ZookeeperConfig config;
 
+    @Inject
+    DataVersionProvider versionProvider;
+
     @Override
     protected void doStart() {
         try {
@@ -40,19 +47,36 @@ public class MidostoreSetupService extends AbstractService {
 
                 currentPath += "/" + part;
                 try {
-					if (!directory.has(currentPath)) {
-						log.debug("Adding " + currentPath);
-						directory.add(currentPath, null, CreateMode.PERSISTENT);
-					}
+                    if (!directory.has(currentPath)) {
+                        log.debug("Adding " + currentPath);
+                        directory.add(currentPath, null, CreateMode.PERSISTENT);
+                    }
                 } catch (KeeperException.NodeExistsException ex) {
                     // Don't exit even if the node exists.
                     log.warn("doStart: {} already exists.", currentPath);
                 }
             }
             Setup.ensureZkDirectoryStructureExists(directory, rootKey);
+
+            verifyVersion();
+
             notifyStarted();
         } catch (Exception e) {
             this.notifyFailed(e);
+        }
+    }
+
+    public void verifyVersion() throws StateAccessException {
+
+        if (!versionProvider.writeVersionExists()) {
+            versionProvider.setWriteVersion(DataWriteVersion.CURRENT);
+        }
+
+        if (versionProvider.isBeforeWriteVersion(DataWriteVersion.CURRENT)) {
+            throw new RuntimeException("Midolmans version ("
+                    + DataWriteVersion.CURRENT
+                    + ") is lower than the write version ("
+                    + versionProvider.getWriteVersion() + ").");
         }
     }
 

@@ -21,6 +21,7 @@ import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.auth.AuthAction;
 import org.midonet.api.auth.AuthRole;
 import org.midonet.api.rest_api.BadRequestHttpException;
+import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.dhcp.Subnet;
@@ -95,7 +96,8 @@ public class BridgeDhcpResource extends AbstractResource {
     @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
     @Consumes({ VendorMediaType.APPLICATION_DHCP_SUBNET_JSON,
             MediaType.APPLICATION_JSON })
-    public Response create(DhcpSubnet subnet) throws StateAccessException {
+    public Response create(DhcpSubnet subnet)
+            throws StateAccessException, SerializationException {
 
         if (!authorizer.authorize(context, AuthAction.WRITE, bridgeId)) {
             throw new ForbiddenHttpException(
@@ -136,7 +138,7 @@ public class BridgeDhcpResource extends AbstractResource {
             MediaType.APPLICATION_JSON })
     public Response update(@PathParam("subnetAddr") IntIPv4 subnetAddr,
             DhcpSubnet subnet)
-            throws StateAccessException {
+            throws StateAccessException, SerializationException {
 
         if (!authorizer.authorize(context, AuthAction.WRITE, bridgeId)) {
             throw new ForbiddenHttpException(
@@ -165,7 +167,7 @@ public class BridgeDhcpResource extends AbstractResource {
     @Produces({ VendorMediaType.APPLICATION_DHCP_SUBNET_JSON,
             MediaType.APPLICATION_JSON })
     public DhcpSubnet get(@PathParam("subnetAddr") IntIPv4 subnetAddr)
-            throws StateAccessException {
+            throws StateAccessException, SerializationException {
 
         if (!authorizer.authorize(context, AuthAction.READ, bridgeId)) {
             throw new ForbiddenHttpException(
@@ -195,7 +197,7 @@ public class BridgeDhcpResource extends AbstractResource {
     @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
     @Path("/{subnetAddr}")
     public void delete(@PathParam("subnetAddr") IntIPv4 subnetAddr)
-            throws StateAccessException {
+            throws StateAccessException, SerializationException {
 
         if (!authorizer.authorize(context, AuthAction.WRITE, bridgeId)) {
             throw new ForbiddenHttpException(
@@ -216,7 +218,8 @@ public class BridgeDhcpResource extends AbstractResource {
     @GET
     @PermitAll
     @Produces({ VendorMediaType.APPLICATION_DHCP_SUBNET_COLLECTION_JSON })
-    public List<DhcpSubnet> list() throws StateAccessException {
+    public List<DhcpSubnet> list()
+            throws StateAccessException, SerializationException {
 
         if (!authorizer.authorize(context, AuthAction.READ, bridgeId)) {
             throw new ForbiddenHttpException(

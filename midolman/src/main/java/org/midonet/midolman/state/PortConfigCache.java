@@ -9,6 +9,8 @@ import java.util.Set;
 import java.util.UUID;
 
 import com.google.inject.Inject;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.serialization.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,14 +39,18 @@ public class PortConfigCache extends LoadingCache<UUID, PortConfig> {
 
     ZkConnectionAwareWatcher connectionWatcher;
 
+    Serializer serializer;
+
     private PortZkManager portMgr;
     private Set<Callback1<UUID>> watchers = new HashSet<Callback1<UUID>>();
 
     public PortConfigCache(Reactor reactor, Directory zkDir,
-            String zkBasePath, ZkConnectionAwareWatcher connWatcher) {
+            String zkBasePath, ZkConnectionAwareWatcher connWatcher,
+            Serializer serializer) {
         super(reactor);
-        portMgr = new PortZkManager(zkDir, zkBasePath);
+        portMgr = new PortZkManager(zkDir, zkBasePath, serializer);
         connectionWatcher = connWatcher;
+        this.serializer = serializer;
     }
 
     public <T extends PortConfig> T get(UUID key, Class<T> clazz) {
@@ -82,7 +88,10 @@ public class PortConfigCache extends LoadingCache<UUID, PortConfig> {
             log.warn("Exception retrieving PortConfig", e);
             connectionWatcher.handleError(
                     "PortWatcher:" + key.toString(), watcher, e);
+        } catch (SerializationException e) {
+            log.error("Could not deserialize PortConfig key {}", key);
         }
+
         return null;
     }
 
@@ -106,6 +115,9 @@ public class PortConfigCache extends LoadingCache<UUID, PortConfig> {
                     log.warn("Exception refreshing PortConfig", e);
                     connectionWatcher.handleError(
                             "PortWatcher:" + portID.toString(), this, e);
+                } catch (SerializationException e) {
+                    log.error("Could not serialize PortConfig {}",
+                            portID.toString());
                 }
         }
     }

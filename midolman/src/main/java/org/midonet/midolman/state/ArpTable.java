@@ -3,6 +3,7 @@
 package org.midonet.midolman.state;
 
 import org.apache.zookeeper.KeeperException;
+import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.packets.IPv4Addr;
 
 public class ArpTable extends ReplicatedMap<IPv4Addr, ArpCacheEntry> {
@@ -56,7 +57,7 @@ public class ArpTable extends ReplicatedMap<IPv4Addr, ArpCacheEntry> {
     protected ArpCacheEntry decodeValue(String str) {
         try {
             return ArpCacheEntry.decode(str);
-        } catch (ZkStateSerializationException e) {
+        } catch (SerializationException e) {
             throw new RuntimeException(e);
         }
     }

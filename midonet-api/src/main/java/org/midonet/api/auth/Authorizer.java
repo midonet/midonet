@@ -3,6 +3,7 @@
  */
 package org.midonet.api.auth;
 
+import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 
 import javax.ws.rs.core.SecurityContext;
@@ -15,7 +16,7 @@ public abstract class Authorizer <T extends Serializable> {
 
     public abstract boolean authorize(SecurityContext context,
                                       AuthAction action, T id)
-            throws StateAccessException;
+            throws StateAccessException, SerializationException;
 
     public static boolean isAdmin(SecurityContext context) {
         return (context.isUserInRole(AuthRole.ADMIN));

@@ -11,6 +11,7 @@ import com.google.inject.Inject;
 import org.midonet.api.host.HostInterfacePort;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.host.VirtualPortMapping;
+import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 
 public class HostInterfacePortValidator implements
@@ -48,6 +49,9 @@ public class HostInterfacePortValidator implements
                     mapping.getVirtualPortId().equals(value.getPortId());
         } catch (StateAccessException e) {
             throw new RuntimeException("Error while validation host");
+        } catch (SerializationException e) {
+            throw new RuntimeException("Serialization error "  +
+                    "while validating host");
         }
 
     }

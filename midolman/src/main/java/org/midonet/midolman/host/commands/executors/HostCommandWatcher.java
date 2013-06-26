@@ -14,6 +14,7 @@ import java.util.UUID;
 import java.util.concurrent.Callable;
 
 import com.google.inject.Inject;
+import org.midonet.midolman.serialization.SerializationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,6 +22,7 @@ import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.state.StateAccessException;
 import static org.midonet.midolman.host.state.HostDirectory.Command;
+
 
 public class HostCommandWatcher {
 
@@ -73,6 +75,9 @@ public class HostCommandWatcher {
                 currentCommands.put(commandId, zkManager.getCommandData(hostId, commandId));
             } catch (StateAccessException e) {
                 log.warn("Cannot retrieve the Command.", e);
+                return;
+            } catch (SerializationException e) {
+                log.error("Could not deserialize Command.", e);
                 return;
             }
         }
@@ -140,6 +145,8 @@ public class HostCommandWatcher {
                               "commandID {}, interface {}",
                           new Object[]{hostId, cmdId, cmd.getInterfaceName(),
                               sae});
+            } catch (SerializationException sae) {
+                log.error("Could not serialize Command", ex);
             }
 
             return null;

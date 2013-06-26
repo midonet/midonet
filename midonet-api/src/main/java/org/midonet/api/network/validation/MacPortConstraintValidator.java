@@ -8,6 +8,7 @@ import javax.validation.ConstraintValidatorContext;
 
 import com.google.inject.Inject;
 
+import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.api.network.MacPort;
 import org.midonet.api.validation.MessageProperty;
@@ -38,6 +39,8 @@ public class MacPortConstraintValidator implements
             Port<?, ?> p = dataClient.portsGet(value.getPortId());
             return p != null && p.getDeviceId().equals(value.getBridgeId());
         } catch (StateAccessException e) {
+            return false;
+        } catch (SerializationException e) {
             return false;
         }
     }

@@ -21,6 +21,7 @@ import org.midonet.api.dhcp.rest_api.BridgeDhcpV6Resource;
 import org.midonet.api.network.Bridge;
 import org.midonet.api.network.Bridge.BridgeCreateGroupSequence;
 import org.midonet.api.network.Bridge.BridgeUpdateGroupSequence;
+import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.cluster.DataClient;
@@ -85,7 +86,8 @@ public class BridgeResource extends AbstractResource {
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Path("{id}")
     public void delete(@PathParam("id") UUID id)
-            throws StateAccessException, InvalidStateOperationException {
+            throws StateAccessException,
+            InvalidStateOperationException, SerializationException {
 
         org.midonet.cluster.data.Bridge bridgeData =
                 dataClient.bridgesGet(id);
@@ -116,7 +118,7 @@ public class BridgeResource extends AbstractResource {
     @Produces({ VendorMediaType.APPLICATION_BRIDGE_JSON,
             MediaType.APPLICATION_JSON })
     public Bridge get(@PathParam("id") UUID id)
-            throws StateAccessException {
+            throws StateAccessException, SerializationException {
 
         if (!authorizer.authorize(context, AuthAction.READ, id)) {
             throw new ForbiddenHttpException(
@@ -202,7 +204,8 @@ public class BridgeResource extends AbstractResource {
     @Consumes({ VendorMediaType.APPLICATION_BRIDGE_JSON,
             MediaType.APPLICATION_JSON })
     public void update(@PathParam("id") UUID id, Bridge bridge)
-            throws StateAccessException, InvalidStateOperationException {
+            throws StateAccessException,
+            InvalidStateOperationException, SerializationException {
 
         bridge.setId(id);
 
@@ -234,7 +237,8 @@ public class BridgeResource extends AbstractResource {
     @Consumes({ VendorMediaType.APPLICATION_BRIDGE_JSON,
             MediaType.APPLICATION_JSON })
     public Response create(Bridge bridge)
-            throws StateAccessException, InvalidStateOperationException {
+            throws StateAccessException, InvalidStateOperationException,
+                    SerializationException{
 
         Set<ConstraintViolation<Bridge>> violations = validator.validate(
                 bridge, BridgeCreateGroupSequence.class);
@@ -265,7 +269,8 @@ public class BridgeResource extends AbstractResource {
     @Produces({ VendorMediaType.APPLICATION_BRIDGE_COLLECTION_JSON,
             MediaType.APPLICATION_JSON })
     public List<Bridge> list(@QueryParam("tenant_id") String tenantId)
-            throws StateAccessException {
+            throws StateAccessException,
+                   SerializationException {
 
         if (tenantId == null) {
             throw new BadRequestHttpException(
@@ -309,7 +314,7 @@ public class BridgeResource extends AbstractResource {
     @Path("/{id}" + ResourceUriBuilder.MAC_TABLE)
     @Produces({ VendorMediaType.APPLICATION_MAC_PORT_COLLECTION_JSON })
     public List<MacPort> list(@PathParam("id") UUID id)
-            throws StateAccessException {
+            throws StateAccessException, SerializationException {
         if (!authorizer.authorize(context, AuthAction.READ, id)) {
             throw new ForbiddenHttpException(
                 "Not authorized to view this bridge's MAC table.");
@@ -342,7 +347,7 @@ public class BridgeResource extends AbstractResource {
     @Consumes({ VendorMediaType.APPLICATION_MAC_PORT_JSON,
         MediaType.APPLICATION_JSON })
     public Response addMacPort(@PathParam("id") UUID id, MacPort mp)
-            throws StateAccessException {
+            throws StateAccessException, SerializationException {
         if (!authorizer.authorize(context, AuthAction.WRITE, id)) {
             throw new ForbiddenHttpException(
                 "Not authorized to add to this bridge's MAC table.");
@@ -379,7 +384,7 @@ public class BridgeResource extends AbstractResource {
         MediaType.APPLICATION_JSON })
     public MacPort get(@PathParam("id") UUID id,
                        @PathParam("mac_port") String macPortString)
-        throws StateAccessException {
+        throws StateAccessException, SerializationException {
 
         if (!authorizer.authorize(context, AuthAction.READ, id)) {
             throw new ForbiddenHttpException(
@@ -412,7 +417,7 @@ public class BridgeResource extends AbstractResource {
     @Path("/{id}" + ResourceUriBuilder.MAC_TABLE + "/{mac_port}")
     public void delete(@PathParam("id") UUID id,
                        @PathParam("mac_port") String macPortString)
-            throws StateAccessException {
+            throws StateAccessException, SerializationException {
 
         if (!authorizer.authorize(context, AuthAction.WRITE, id)) {
             throw new ForbiddenHttpException(
@@ -440,7 +445,7 @@ public class BridgeResource extends AbstractResource {
     @Path("/{id}" + ResourceUriBuilder.ARP_TABLE)
     @Produces({ VendorMediaType.APPLICATION_IP4_MAC_COLLECTION_JSON })
     public List<IP4MacPair> listArpEntries(@PathParam("id") UUID id)
-        throws StateAccessException {
+        throws StateAccessException, SerializationException {
         if (!authorizer.authorize(context, AuthAction.READ, id)) {
             throw new ForbiddenHttpException(
                 "Not authorized to view this bridge's ARP table.");
@@ -473,7 +478,7 @@ public class BridgeResource extends AbstractResource {
     @Consumes({ VendorMediaType.APPLICATION_IP4_MAC_JSON,
         MediaType.APPLICATION_JSON })
     public Response addArpEntry(@PathParam("id") UUID id, IP4MacPair mp)
-        throws StateAccessException {
+        throws StateAccessException, SerializationException {
         if (!authorizer.authorize(context, AuthAction.WRITE, id)) {
             throw new ForbiddenHttpException(
                 "Not authorized to add to this bridge's ARP table.");
@@ -509,7 +514,7 @@ public class BridgeResource extends AbstractResource {
         MediaType.APPLICATION_JSON })
     public IP4MacPair getArpEntry(@PathParam("id") UUID id,
                        @PathParam("mac_port") String IP4MacPairString)
-        throws StateAccessException {
+        throws StateAccessException, SerializationException {
 
         if (!authorizer.authorize(context, AuthAction.READ, id)) {
             throw new ForbiddenHttpException(
@@ -542,7 +547,7 @@ public class BridgeResource extends AbstractResource {
     @Path("/{id}" + ResourceUriBuilder.ARP_TABLE + "/{ip4_mac}")
     public void deleteArpEntry(@PathParam("id") UUID id,
                        @PathParam("ip4_mac") String IP4MacPairString)
-        throws StateAccessException {
+        throws StateAccessException, SerializationException {
 
         if (!authorizer.authorize(context, AuthAction.WRITE, id)) {
             throw new ForbiddenHttpException(

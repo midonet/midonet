@@ -26,15 +26,16 @@ import org.midonet.midolman.config.ZookeeperConfig;
 import org.midonet.midolman.guice.zookeeper.ZKConnectionProvider;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.monitoring.store.Store;
+import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.PortConfigCache;
-import org.midonet.midolman.state.ZkConfigSerializer;
 import org.midonet.midolman.state.ZkConnectionAwareWatcher;
+import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.state.zkManagers.*;
-import org.midonet.midolman.util.JSONSerializer;
 import org.midonet.util.eventloop.Reactor;
+
 
 /**
  * Data cluster client module.  This class defines dependency bindings
@@ -52,10 +53,13 @@ public class DataClusterClientModule extends PrivateModule {
         requireBinding(ZkConnectionAwareWatcher.class);
         requireBinding(Store.class);
 
-        bind(PathBuilder.class);
-        bind(ZkConfigSerializer.class)
-                .toInstance(new ZkConfigSerializer(new JSONSerializer()));
+        bind(PathBuilder.class).toProvider(PathBuilderProvider.class)
+            .asEagerSingleton();
+        expose(PathBuilder.class);
 
+        bind(ZkManager.class).toProvider(BaseZkManagerProvider.class)
+                .asEagerSingleton();
+        expose(ZkManager.class);
         bindZkManagers();
 
         bind(DataClient.class).to(LocalDataClientImpl.class)
@@ -89,8 +93,20 @@ public class DataClusterClientModule extends PrivateModule {
         expose(MidostoreSetupService.class);
     }
 
+    private static class PathBuilderProvider implements Provider<PathBuilder> {
+
+        @Inject
+        ZookeeperConfig config;
+
+        @Override
+        public PathBuilder get() {
+            return new PathBuilder(config.getMidolmanRootKey());
+        }
+    }
+
     protected void bindZkManagers() {
-        List<Class<? extends ZkManager>> managers = new ArrayList<Class<? extends ZkManager>>();
+        List<Class<? extends AbstractZkManager>> managers =
+                new ArrayList<Class<? extends AbstractZkManager>>();
 
         managers.add(HostZkManager.class);
         managers.add(BgpZkManager.class);
@@ -109,7 +125,7 @@ public class DataClusterClientModule extends PrivateModule {
         managers.add(PortSetZkManager.class);
         managers.add(VlanAwareBridgeZkManager.class);
 
-        for (Class<? extends ZkManager> managerClass : managers) {
+        for (Class<? extends AbstractZkManager> managerClass : managers) {
             //noinspection unchecked
             bind(managerClass)
                     .toProvider(new ZkManagerProvider(managerClass))
@@ -118,14 +134,28 @@ public class DataClusterClientModule extends PrivateModule {
         }
     }
 
-    private static class ZkManagerProvider<T extends ZkManager>
-            implements Provider<T> {
+    private static class BaseZkManagerProvider implements Provider<ZkManager> {
 
         @Inject
         Directory directory;
 
+        @Override
+        public ZkManager get() {
+            return new ZkManager(directory);
+        }
+    }
+
+    private static class ZkManagerProvider<T extends AbstractZkManager>
+            implements Provider<T> {
+
         @Inject
-        ZookeeperConfig config;
+        ZkManager zk;
+
+        @Inject
+        PathBuilder paths;
+
+        @Inject
+        Serializer serializer;
 
         Class<T> managerClass;
 
@@ -137,10 +167,10 @@ public class DataClusterClientModule extends PrivateModule {
         public T get() {
             try {
                 Constructor<T> constructor = managerClass.getConstructor(
-                                                 Directory.class, String.class);
+                               ZkManager.class, PathBuilder.class,
+                               Serializer.class);
 
-                return constructor.newInstance(directory,
-                                config.getMidolmanRootKey());
+                return constructor.newInstance(zk, paths, serializer);
 
             } catch (Exception e) {
                 throw new RuntimeException(
@@ -165,10 +195,13 @@ public class DataClusterClientModule extends PrivateModule {
         @Inject
         ZkConnectionAwareWatcher connWatcher;
 
+        @Inject
+        Serializer serializer;
+
         @Override
         public PortConfigCache get() {
             return new PortConfigCache(reactor, directory,
-                                       config.getMidolmanRootKey(), connWatcher);
+                    config.getMidolmanRootKey(), connWatcher, serializer);
         }
     }
 }

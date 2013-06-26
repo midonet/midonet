@@ -17,21 +17,24 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.midolman.layer3.Route;
+import org.midonet.midolman.serialization.Serializer;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.DirectoryCallback;
 import org.midonet.midolman.state.DirectoryCallbackFactory;
+import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.PortConfig;
 import org.midonet.midolman.state.PortDirectory;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
-import org.midonet.midolman.state.ZkStateSerializationException;
 import org.midonet.util.functors.CollectionFunctors;
 import org.midonet.util.functors.Functor;
 
 /**
  * Class to manage the routing ZooKeeper data.
  */
-public class RouteZkManager extends ZkManager {
+public class RouteZkManager extends AbstractZkManager {
 
 
     private final Functor<Set<byte[]>, Set<Route>> byteArrayToRoutesSetMapper =
@@ -64,12 +67,20 @@ public class RouteZkManager extends ZkManager {
      * path of the ZooKeeper directory.
      *
      * @param zk
-     *            Directory object.
-     * @param basePath
-     *            The root path.
+     *         Zk data access class
+     * @param paths
+     *         PathBuilder class to construct ZK paths
+     * @param serializer
+     *         ZK data serialization class
      */
-    public RouteZkManager(Directory zk, String basePath) {
-        super(zk, basePath);
+    public RouteZkManager(ZkManager zk, PathBuilder paths,
+                          Serializer serializer) {
+        super(zk, paths, serializer);
+    }
+
+    public RouteZkManager(Directory dir, String basePath,
+                          Serializer serializer) {
+        this(new ZkManager(dir), new PathBuilder(basePath), serializer);
     }
 
     /**
@@ -84,7 +95,7 @@ public class RouteZkManager extends ZkManager {
      */
     private List<String> getSubDirectoryRoutePaths(
             UUID id, Route rtConfig, PortDirectory.RouterPortConfig portConfig)
-            throws StateAccessException {
+            throws StateAccessException, SerializationException {
         // Determine whether to add the Route data under routers or ports.
         // Router routes and logical port routes should also be added to the
         // routing table.
@@ -92,8 +103,8 @@ public class RouteZkManager extends ZkManager {
         if (rtConfig.nextHop.toPort()) {
             // Check what kind of port this is.
             if (null == portConfig) {
-                PortZkManager portZkManager = new PortZkManager(zk,
-                        paths.getBasePath());
+                PortZkManager portZkManager = new PortZkManager(zk, paths,
+                        serializer);
                 portConfig = portZkManager.get(
                     rtConfig.nextHopPort, PortDirectory.RouterPortConfig.class);
             }
@@ -111,7 +122,7 @@ public class RouteZkManager extends ZkManager {
     }
 
     private String getRouteInRoutingTable(Route rt)
-            throws ZkStateSerializationException {
+            throws StateAccessException, SerializationException {
         String rtStr = new String(serializer.serialize(rt));
         String rtable = paths.getRouterRoutingTablePath(rt.routerId);
         StringBuilder sb = new StringBuilder(rtable).append("/").append(rtStr);
@@ -131,7 +142,7 @@ public class RouteZkManager extends ZkManager {
      *             Serialization or data access error occurred.
      */
     public List<Op> prepareRouteCreate(UUID id, Route config, boolean persistent)
-            throws StateAccessException {
+            throws StateAccessException, SerializationException {
         return prepareRouteCreate(id, config, persistent, null);
     }
 
@@ -151,14 +162,16 @@ public class RouteZkManager extends ZkManager {
     public List<Op> prepareRouteCreate(
             UUID id, Route rtConfig, boolean persistent,
             PortDirectory.RouterPortConfig portConfig)
-        throws StateAccessException {
+            throws StateAccessException, SerializationException {
         CreateMode mode = persistent ? CreateMode.PERSISTENT
             : CreateMode.EPHEMERAL;
         // TODO(pino): sanity checking on route - egress belongs to device.
         List<Op> ops = new ArrayList<Op>();
         // Add to root
         ops.add(Op.create(paths.getRoutePath(id),
-            serializer.serialize(rtConfig), Ids.OPEN_ACL_UNSAFE, mode));
+                serializer.serialize(rtConfig),
+                Ids.OPEN_ACL_UNSAFE,
+                mode));
 
         // Add under port or router. Router routes and logical port routes
         // should also be added to the routing table.
@@ -170,7 +183,8 @@ public class RouteZkManager extends ZkManager {
     }
 
     public List<Op> prepareLocalRoutesCreate(UUID portId,
-            PortDirectory.RouterPortConfig config) throws StateAccessException {
+            PortDirectory.RouterPortConfig config) throws StateAccessException,
+            SerializationException {
         UUID routeId = UUID.randomUUID();
         Route route = new Route(0, 0, config.portAddr, 32, Route.NextHop.LOCAL,
                                 portId, Route.NO_GATEWAY, 0, null, config.device_id);
@@ -186,7 +200,8 @@ public class RouteZkManager extends ZkManager {
      * @throws StateAccessException
      *             Serialization or data access error occurred.
      */
-    public List<Op> prepareRouteDelete(UUID id) throws StateAccessException {
+    public List<Op> prepareRouteDelete(UUID id) throws StateAccessException,
+            SerializationException {
         List<Op> ops = new ArrayList<Op>();
         String routePath = paths.getRoutePath(id);
         log.debug("Preparing to delete: " + routePath);
@@ -209,13 +224,14 @@ public class RouteZkManager extends ZkManager {
      *             Serialization or data access error occurred.
      */
     public UUID create(Route route, boolean persistent)
-            throws StateAccessException {
+            throws StateAccessException, SerializationException {
         UUID id = UUID.randomUUID();
-        multi(prepareRouteCreate(id, route, persistent));
+        zk.multi(prepareRouteCreate(id, route, persistent));
         return id;
     }
 
-    public UUID create(Route route) throws StateAccessException {
+    public UUID create(Route route) throws StateAccessException,
+            SerializationException {
         return create(route, true);
     }
 
@@ -228,7 +244,8 @@ public class RouteZkManager extends ZkManager {
      * @throws StateAccessException
      *             Serialization or data access error occurred.
      */
-    public Route get(UUID id) throws StateAccessException {
+    public Route get(UUID id) throws StateAccessException,
+            SerializationException {
         return get(id, null);
     }
 
@@ -261,8 +278,9 @@ public class RouteZkManager extends ZkManager {
      * @throws StateAccessException
      *             Serialization or data access error occurred.
      */
-    public Route get(UUID id, Runnable watcher) throws StateAccessException {
-        byte[] routeData = get(paths.getRoutePath(id), watcher);
+    public Route get(UUID id, Runnable watcher) throws StateAccessException,
+            SerializationException {
+        byte[] routeData = zk.get(paths.getRoutePath(id), watcher);
         return serializer.deserialize(routeData, Route.class);
     }
 
@@ -282,7 +300,7 @@ public class RouteZkManager extends ZkManager {
     public List<UUID> listRouterRoutes(UUID routerId, Runnable watcher)
             throws StateAccessException {
         List<UUID> result = new ArrayList<UUID>();
-        Set<String> routeIds = getChildren(
+        Set<String> routeIds = zk.getChildren(
                 paths.getRouterRoutesPath(routerId), watcher);
         for (String routeId : routeIds) {
             result.add(UUID.fromString(routeId));
@@ -309,7 +327,7 @@ public class RouteZkManager extends ZkManager {
     public List<UUID> listPortRoutes(UUID portId, Runnable watcher)
             throws StateAccessException {
         List<UUID> result = new ArrayList<UUID>();
-        Set<String> routeIds = getChildren(
+        Set<String> routeIds = zk.getChildren(
                 paths.getPortRoutesPath(portId), watcher);
         for (String routeId : routeIds) {
             result.add(UUID.fromString(routeId));
@@ -346,14 +364,15 @@ public class RouteZkManager extends ZkManager {
      * @throws StateAccessException
      *             Serialization or data access error occurred.
      */
-    public List<UUID> list(UUID routerId) throws StateAccessException {
+    public List<UUID> list(UUID routerId) throws StateAccessException,
+            SerializationException {
         List<UUID> routes = listRouterRoutes(routerId, null);
-        Set<String> portIds = getChildren(
+        Set<String> portIds = zk.getChildren(
                 paths.getRouterPortsPath(routerId), null);
         for (String portId : portIds) {
             // For each MaterializedRouterPort, process it. Needs optimization.
             UUID portUUID = UUID.fromString(portId);
-            byte[] data = get(paths.getPortPath(portUUID), null);
+            byte[] data = zk.get(paths.getPortPath(portUUID), null);
             PortConfig port = serializer.deserialize(data, PortConfig.class);
             if (!(port instanceof PortDirectory.RouterPortConfig)) {
                 continue;
@@ -374,13 +393,14 @@ public class RouteZkManager extends ZkManager {
      * @throws StateAccessException
      *             Serialization or data access error occurred.
      */
-    public void delete(UUID id) throws StateAccessException {
-        multi(prepareRouteDelete(id));
+    public void delete(UUID id) throws StateAccessException,
+            SerializationException {
+        zk.multi(prepareRouteDelete(id));
     }
 
     public boolean exists(UUID id) throws StateAccessException {
 
         String path = paths.getRoutePath(id);
-        return exists(path);
+        return zk.exists(path);
     }
 }

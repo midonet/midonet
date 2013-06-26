@@ -2,12 +2,10 @@
  * Copyright 2012 Midokura KK
  * Copyright 2012 Midokura PTE LTD.
  */
-package org.midonet.midolman.util;
-
-import java.io.IOException;
+package org.midonet.midolman.serialization;
 
 /**
- * Interface for serializers.
+ * Interface for ZooKeeper metadata serializers.
  */
 public interface Serializer {
 
@@ -16,9 +14,9 @@ public interface Serializer {
      *
      * @param obj - the object to be serialized
      * @return the serialized representation of obj
-     * @throws IOException
+     * @throws SerializationException
      */
-    public <T> byte[] objToBytes(T obj) throws IOException;
+    public <T> byte[] serialize(T obj) throws SerializationException;
 
     /**
      * Convert an array of bytes to an object of type T.
@@ -33,9 +31,10 @@ public interface Serializer {
      *
      * @return The deserialized object.
      *
-     * @throws IOException
+     * @throws SerializationException
      *             IO error.
      */
-    public <T> T bytesToObj(byte[] data, Class<T> clazz) throws IOException;
+    public <T> T deserialize(byte[] data, Class<T> clazz)
+            throws SerializationException;
 
 }

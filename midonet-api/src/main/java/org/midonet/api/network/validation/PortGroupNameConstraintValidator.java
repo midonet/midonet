@@ -6,6 +6,7 @@ package org.midonet.api.network.validation;
 import com.google.inject.Inject;
 import org.midonet.api.network.PortGroup;
 import org.midonet.api.validation.MessageProperty;
+import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.cluster.DataClient;
 
@@ -48,6 +49,9 @@ public class PortGroupNameConstraintValidator implements
         } catch (StateAccessException e) {
             throw new RuntimeException(
                     "State access exception occurred in validation");
+        } catch (SerializationException e) {
+            throw new RuntimeException(
+                    "Serialization exception occurred in validation");
         }
 
         // It's valid if the duplicate named portGroup does not exist, or

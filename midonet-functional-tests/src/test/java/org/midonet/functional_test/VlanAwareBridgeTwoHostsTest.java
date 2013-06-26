@@ -17,6 +17,7 @@ import org.midonet.client.resource.VlanBridge;
 import org.midonet.client.resource.VlanBridgeInteriorPort;
 import org.midonet.client.resource.VlanBridgeTrunkPort;
 import org.midonet.functional_test.utils.TapWrapper;
+import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.topology.LocalPortActive;
 import org.midonet.packets.*;
@@ -111,6 +112,9 @@ public class VlanAwareBridgeTwoHostsTest extends TestBase {
         } catch (StateAccessException e) {
             log.error("Error creating host {}", e);
             fail("Cannot create host");
+        } catch (SerializationException e) {
+            log.error("Cannot create add port mappings due"
+                    + " to serialization error", e);
         }
 
         // Create a capwap tunnel zone
@@ -167,6 +171,9 @@ public class VlanAwareBridgeTwoHostsTest extends TestBase {
                 thisHostId, trunk1.getId(), "trunk1");
         } catch (StateAccessException e) {
             log.error("Cannot create add port mappings", e);
+        } catch (SerializationException e) {
+            log.error("Cannot create add port mappings due"
+                      + " to serialization error", e);
         }
 
         // We have 2 local ports: on a bridge, and one trunk

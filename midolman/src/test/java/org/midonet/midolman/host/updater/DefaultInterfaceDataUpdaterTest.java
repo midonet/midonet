@@ -20,6 +20,10 @@ import org.apache.zookeeper.CreateMode;
 import org.hamcrest.beans.HasPropertyWithValue;
 import org.junit.Before;
 import org.junit.Test;
+import org.midonet.midolman.guice.serialization.SerializationModule;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.version.DataWriteVersion;
+import org.midonet.midolman.version.guice.VersionModule;
 import scala.collection.JavaConversions;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
@@ -64,9 +68,10 @@ public class DefaultInterfaceDataUpdaterTest {
     public void setUp() throws Exception {
 
         final Directory cleanDirectory = new MockDirectory();
-        cleanDirectory.add("/hosts", null, CreateMode.PERSISTENT);
-
         pathManager = new ZkPathManager("");
+        cleanDirectory.add("/hosts", null, CreateMode.PERSISTENT);
+        cleanDirectory.add(pathManager.getWriteVersionPath(),
+                DataWriteVersion.CURRENT.getBytes(), CreateMode.PERSISTENT);
 
         final HierarchicalConfiguration configuration =
                 new HierarchicalConfiguration();
@@ -76,6 +81,8 @@ public class DefaultInterfaceDataUpdaterTest {
         ));
 
         Injector injector = Guice.createInjector(
+            new VersionModule(),
+            new SerializationModule(),
             new MockConfigProviderModule(configuration),
             new MockDatapathModule(),
             new MockFlowStateCacheModule(),
@@ -233,7 +240,7 @@ public class DefaultInterfaceDataUpdaterTest {
      */
     private Map<String, Interface> assertStoreDescriptions(
         InterfaceDescription... descriptions)
-        throws StateAccessException {
+            throws StateAccessException, SerializationException {
 
         updater.updateInterfacesData(hostID, metadata, descriptions);
 

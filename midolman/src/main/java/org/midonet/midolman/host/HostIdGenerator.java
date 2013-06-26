@@ -9,6 +9,7 @@ package org.midonet.midolman.host;
 import org.midonet.midolman.host.config.HostConfig;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
+import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,9 +84,9 @@ public class HostIdGenerator {
      */
     public static UUID getHostId(HostConfig config,
                                  HostZkManager zkManager)
-        throws HostIdAlreadyInUseException, StateAccessException,
-               PropertiesFileNotWritableException,
-               InterruptedException {
+            throws HostIdAlreadyInUseException, StateAccessException,
+            PropertiesFileNotWritableException,
+            InterruptedException, SerializationException {
         UUID myUUID;
         myUUID = getIdFromConfigFile(config, zkManager);
 

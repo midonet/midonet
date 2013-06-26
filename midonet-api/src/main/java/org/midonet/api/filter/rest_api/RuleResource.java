@@ -21,6 +21,7 @@ import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.BadRequestHttpException;
 import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.RuleIndexOutOfBoundsException;
@@ -76,7 +77,9 @@ public class RuleResource extends AbstractResource {
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Path("{id}")
     public void delete(@PathParam("id") UUID id)
-            throws StateAccessException, InvalidStateOperationException {
+            throws StateAccessException,
+            InvalidStateOperationException,
+            SerializationException {
 
         org.midonet.cluster.data.Rule ruleData = dataClient.rulesGet(
                 id);
@@ -106,7 +109,8 @@ public class RuleResource extends AbstractResource {
     @Path("{id}")
     @Produces({ VendorMediaType.APPLICATION_RULE_JSON,
             MediaType.APPLICATION_JSON })
-    public Rule get(@PathParam("id") UUID id) throws StateAccessException {
+    public Rule get(@PathParam("id") UUID id) throws StateAccessException,
+                SerializationException {
 
         if (!authorizer.authorize(context, AuthAction.READ, id)) {
             throw new ForbiddenHttpException(
@@ -166,7 +170,9 @@ public class RuleResource extends AbstractResource {
         @Consumes({ VendorMediaType.APPLICATION_RULE_JSON,
                 MediaType.APPLICATION_JSON })
         public Response create(Rule rule)
-                throws StateAccessException, InvalidStateOperationException {
+                throws StateAccessException,
+                InvalidStateOperationException,
+                SerializationException {
 
             rule.setChainId(chainId);
             if (rule.getPosition() == 0) {
@@ -206,7 +212,8 @@ public class RuleResource extends AbstractResource {
         @PermitAll
         @Produces({ VendorMediaType.APPLICATION_RULE_COLLECTION_JSON,
                 MediaType.APPLICATION_JSON })
-        public List<Rule> list() throws StateAccessException {
+        public List<Rule> list() throws StateAccessException,
+                SerializationException {
 
             if (!authorizer.authorize(context, AuthAction.READ, chainId)) {
                 throw new ForbiddenHttpException(

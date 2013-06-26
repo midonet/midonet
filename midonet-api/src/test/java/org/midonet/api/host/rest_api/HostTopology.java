@@ -11,6 +11,7 @@ import org.midonet.client.dto.DtoHost;
 import org.midonet.client.dto.DtoHostInterfacePort;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
+import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 
 import java.net.URI;
@@ -111,7 +112,8 @@ public class HostTopology {
             return this;
         }
 
-        public HostTopology build() throws StateAccessException {
+        public HostTopology build()
+                throws StateAccessException, SerializationException {
 
 
             this.app = resource.getWebResource().path("/")

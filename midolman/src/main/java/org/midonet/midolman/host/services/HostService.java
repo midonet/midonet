@@ -1,5 +1,6 @@
 /*
  * Copyright 2012 Midokura PTE LTD.
+ * Copyright 2013 Midokura PTE LTD.
  */
 package org.midonet.midolman.host.services;
 
@@ -11,6 +12,8 @@ import java.util.UUID;
 
 import com.google.common.util.concurrent.AbstractService;
 import com.google.inject.Inject;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.ZkManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,7 +59,10 @@ public class HostService extends AbstractService
     private InterfaceScanner scanner;
 
     @Inject
-    private HostZkManager zkManager;
+    private HostZkManager hostZkManager;
+
+    @Inject
+    private ZkManager zkManager;
 
     @Override
     protected void doStart() {
@@ -71,7 +77,7 @@ public class HostService extends AbstractService
             notifyStarted();
         } catch (Exception e) {
             notifyFailed(e);
-            throw new RuntimeException("Couldn't generate unique host ID", e);
+            throw new RuntimeException("Could not start Midolman", e);
         }
         log.info("Midolman host agent started.");
 
@@ -116,7 +122,7 @@ public class HostService extends AbstractService
      */
     private UUID identifyHostId()
             throws StateAccessException, PropertiesFileNotWritableException,
-            InterruptedException {
+            InterruptedException, SerializationException {
 
         log.debug("Identifying host");
         // Try to get the host Id
@@ -137,7 +143,7 @@ public class HostService extends AbstractService
         // If HostIdAlreadyInUseException is thrown it will loop forever
         while (hostId == null) {
             try {
-                hostId = HostIdGenerator.getHostId(configuration, zkManager);
+                hostId = HostIdGenerator.getHostId(configuration, hostZkManager);
                 if (hostId != null) {
                     String hostName;
                     try {
@@ -146,7 +152,8 @@ public class HostService extends AbstractService
                         hostName = "UNKNOWN";
                     }
                     metadata.setName(hostName);
-                    zkManager.makeAlive(hostId, metadata);
+                    hostZkManager.makeAlive(hostId, metadata);
+                    hostZkManager.setHostVersion(hostId);
                     break;
                 }
             } catch (HostIdAlreadyInUseException e) {

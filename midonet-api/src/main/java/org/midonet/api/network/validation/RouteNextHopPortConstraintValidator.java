@@ -10,6 +10,7 @@ import com.google.inject.Inject;
 
 import org.midonet.api.network.Route;
 import org.midonet.api.validation.MessageProperty;
+import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.Port;
@@ -44,6 +45,9 @@ public class RouteNextHopPortConstraintValidator implements
             return p != null && p.getDeviceId().equals(value.getRouterId());
         } catch (StateAccessException e) {
             return false;
+        } catch (SerializationException e) {
+            throw new RuntimeException(
+                    "Serialization exception occurred in validation");
         }
     }
 }

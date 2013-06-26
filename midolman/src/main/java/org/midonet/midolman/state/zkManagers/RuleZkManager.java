@@ -10,13 +10,16 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import org.midonet.midolman.serialization.Serializer;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.DirectoryCallback;
 import org.midonet.midolman.state.DirectoryCallbackFactory;
 import org.midonet.midolman.state.RuleIndexOutOfBoundsException;
+import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
-import org.midonet.midolman.state.ZkStateSerializationException;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
@@ -30,7 +33,7 @@ import org.midonet.util.functors.Functor;
 /**
  * This class was created to handle multiple ops feature in Zookeeper.
  */
-public class RuleZkManager extends ZkManager {
+public class RuleZkManager extends AbstractZkManager {
 
     private final static Logger log = LoggerFactory
             .getLogger(RuleZkManager.class);
@@ -39,16 +42,25 @@ public class RuleZkManager extends ZkManager {
      * Constructor to set ZooKeeper and base path.
      *
      * @param zk
-     *            Directory object.
-     * @param basePath
-     *            The root path.
+     *         Zk data access class
+     * @param paths
+     *         PathBuilder class to construct ZK paths
+     * @param serializer
+     *         ZK data serialization class
      */
-    public RuleZkManager(Directory zk, String basePath) {
-        super(zk, basePath);
+    public RuleZkManager(ZkManager zk, PathBuilder paths,
+                         Serializer serializer) {
+        super(zk, paths, serializer);
+    }
+
+    public RuleZkManager(Directory dir, String basePath,
+                         Serializer serializer) {
+        this(new ZkManager(dir), new PathBuilder(basePath), serializer);
     }
 
     private List<Op> prepareInsertPositionOrdering(UUID id, Rule ruleConfig)
-            throws RuleIndexOutOfBoundsException, StateAccessException {
+            throws RuleIndexOutOfBoundsException, StateAccessException,
+            SerializationException {
         // Make sure the position is greater than 0.
         int position = ruleConfig.position;
         if (position <= 0) {
@@ -87,7 +99,7 @@ public class RuleZkManager extends ZkManager {
     }
 
     private List<Op> prepareDeletePositionOrdering(UUID id, Rule ruleConfig)
-            throws StateAccessException {
+            throws StateAccessException, SerializationException {
         List<Op> ops = new ArrayList<Op>();
         // Delete this one
         ops.addAll(prepareRuleDelete(id, ruleConfig));
@@ -119,17 +131,18 @@ public class RuleZkManager extends ZkManager {
      * @param ruleConfig
      *            ZooKeeper node value representing a rule.
      * @return A list of Op objects to represent the operations to perform.
-     * @throws org.midonet.midolman.state.ZkStateSerializationException
+     * @throws org.midonet.midolman.serialization.SerializationException
      *             Serialization error occurred.
      */
     private List<Op> prepareRuleCreate(UUID id, Rule ruleConfig)
-            throws ZkStateSerializationException {
+            throws StateAccessException, SerializationException {
         String rulePath = paths.getRulePath(id);
         String chainRulePath = paths.getChainRulePath(ruleConfig.chainId,
                 id);
         List<Op> ops = new ArrayList<Op>();
         log.debug("Preparing to create: " + rulePath);
-        ops.add(Op.create(rulePath, serializer.serialize(ruleConfig),
+        ops.add(Op.create(rulePath,
+                serializer.serialize(ruleConfig),
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
         log.debug("Preparing to create: " + chainRulePath);
@@ -147,7 +160,8 @@ public class RuleZkManager extends ZkManager {
         return ops;
     }
 
-    public List<Op> prepareRuleDelete(UUID id) throws StateAccessException {
+    public List<Op> prepareRuleDelete(UUID id) throws StateAccessException,
+            SerializationException {
         return prepareDeletePositionOrdering(id, get(id));
     }
 
@@ -192,9 +206,9 @@ public class RuleZkManager extends ZkManager {
      * @throws RuleIndexOutOfBoundsException
      */
     public UUID create(Rule rule) throws RuleIndexOutOfBoundsException,
-            StateAccessException {
+            StateAccessException, SerializationException {
         UUID id = UUID.randomUUID();
-        multi(prepareInsertPositionOrdering(id, rule));
+        zk.multi(prepareInsertPositionOrdering(id, rule));
         return id;
     }
 
@@ -206,13 +220,14 @@ public class RuleZkManager extends ZkManager {
      * @return Rule object found.
      * @throws StateAccessException
      */
-    public Rule get(UUID id) throws StateAccessException {
-        byte[] data = get(paths.getRulePath(id), null);
+    public Rule get(UUID id) throws StateAccessException,
+            SerializationException {
+        byte[] data = zk.get(paths.getRulePath(id), null);
         return serializer.deserialize(data, Rule.class);
     }
 
     public boolean exists(UUID id) throws StateAccessException {
-        return exists(paths.getRulePath(id));
+        return zk.exists(paths.getRulePath(id));
     }
 
     public void getRuleAsync(
@@ -231,7 +246,7 @@ public class RuleZkManager extends ZkManager {
                     public Rule apply(byte[] arg0) {
                         try {
                             return serializer.deserialize(arg0, Rule.class);
-                        } catch (ZkStateSerializationException e) {
+                        } catch (SerializationException e) {
                             log.warn("Could not deserialize Rule data");
                         }
                         return null;
@@ -273,7 +288,7 @@ public class RuleZkManager extends ZkManager {
             throws StateAccessException {
         Set<UUID> result = new HashSet<UUID>();
         String path = paths.getChainRulesPath(chainId);
-        Set<String> ruleIds = getChildren(path, watcher);
+        Set<String> ruleIds = zk.getChildren(path, watcher);
         for (String ruleId : ruleIds) {
             result.add(UUID.fromString(ruleId));
         }
@@ -293,8 +308,9 @@ public class RuleZkManager extends ZkManager {
      *            ID of the rule to delete.
      * @throws StateAccessException
      */
-    public void delete(UUID id) throws StateAccessException {
-        multi(prepareRuleDelete(id));
+    public void delete(UUID id) throws StateAccessException,
+            SerializationException {
+        zk.multi(prepareRuleDelete(id));
     }
 
 }

@@ -16,6 +16,7 @@ import org.midonet.api.filter.auth.ChainAuthorizer;
 import org.midonet.api.filter.rest_api.RuleResource.ChainRuleResource;
 import org.midonet.api.auth.AuthRole;
 import org.midonet.api.rest_api.*;
+import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.cluster.DataClient;
@@ -74,7 +75,9 @@ public class ChainResource extends AbstractResource {
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Path("{id}")
     public void delete(@PathParam("id") UUID id)
-            throws StateAccessException, InvalidStateOperationException {
+            throws StateAccessException,
+            InvalidStateOperationException,
+            SerializationException {
 
         org.midonet.cluster.data.Chain chainData =
                 dataClient.chainsGet(id);
@@ -105,7 +108,8 @@ public class ChainResource extends AbstractResource {
     @Produces({ VendorMediaType.APPLICATION_CHAIN_JSON,
             MediaType.APPLICATION_JSON })
     public Chain get(@PathParam("id") UUID id)
-            throws StateAccessException {
+            throws StateAccessException,
+            SerializationException {
 
         if (!authorizer.authorize(context, AuthAction.READ, id)) {
             throw new ForbiddenHttpException(
@@ -152,7 +156,9 @@ public class ChainResource extends AbstractResource {
     @Consumes({ VendorMediaType.APPLICATION_CHAIN_JSON,
             MediaType.APPLICATION_JSON })
     public Response create(Chain chain)
-            throws StateAccessException, InvalidStateOperationException {
+            throws StateAccessException,
+            InvalidStateOperationException,
+            SerializationException {
 
         Set<ConstraintViolation<Chain>> violations = validator.validate(
                 chain, Chain.ChainGroupSequence.class);
@@ -178,7 +184,8 @@ public class ChainResource extends AbstractResource {
             MediaType.APPLICATION_JSON })
     public Chain getByName(@QueryParam("tenant_id") String tenantId,
                            @QueryParam("name") String name)
-            throws StateAccessException{
+            throws StateAccessException,
+            SerializationException {
         if (tenantId == null || name == null) {
             throw new BadRequestHttpException(
                     "Currently tenant_id and name are required for search.");
@@ -215,7 +222,8 @@ public class ChainResource extends AbstractResource {
     @Produces({ VendorMediaType.APPLICATION_CHAIN_COLLECTION_JSON,
             MediaType.APPLICATION_JSON })
     public List<Chain> list(@QueryParam("tenant_id") String tenantId)
-            throws StateAccessException {
+            throws StateAccessException,
+            SerializationException {
 
         if (tenantId == null) {
             throw new BadRequestHttpException(

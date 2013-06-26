@@ -4,32 +4,42 @@
 
 package org.midonet.midolman.rules;
 
-import java.util.HashSet;
-import java.util.Random;
-import java.util.Set;
-import java.util.UUID;
-
+import com.google.inject.AbstractModule;
+import com.google.inject.Provides;
+import com.google.inject.Singleton;
+import com.google.inject.Injector;
+import com.google.inject.Guice;
 import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.midonet.cache.Cache;
+import org.midonet.midolman.guice.serialization.SerializationModule;
 import org.midonet.midolman.layer4.NatLeaseManager;
 import org.midonet.midolman.layer4.NatMapping;
 import org.midonet.midolman.rules.RuleResult.Action;
+import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.MockDirectory;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.ZkPathManager;
+import org.midonet.midolman.state.PathBuilder;
+import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.state.zkManagers.FiltersZkManager;
 import org.midonet.midolman.util.MockCache;
+import org.midonet.midolman.version.DataWriteVersion;
+import org.midonet.midolman.version.guice.VersionModule;
 import org.midonet.midolman.vrn.ForwardInfo;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 import org.midonet.sdn.flows.WildcardMatch;
 import org.midonet.util.Range;
 import org.midonet.util.eventloop.MockReactor;
+import org.midonet.util.eventloop.Reactor;
+
+import java.util.HashSet;
+import java.util.Random;
+import java.util.Set;
+import java.util.UUID;
 
 
 public class TestRules {
@@ -46,10 +56,10 @@ public class TestRules {
     static NatMapping natMapping;
     RuleResult expRes, argRes;
     ForwardInfo fwdInfo;
+    private static Injector injector;
 
     @BeforeClass
-    public static void setupOnce() throws InterruptedException, KeeperException,
-            StateAccessException {
+    public static void setupOnce() {
         pktMatch = new WildcardMatch();
         pktMatch.setInputPort((short) 5);
         pktMatch.setDataLayerSource("02:11:33:00:11:01");
@@ -90,17 +100,77 @@ public class TestRules {
         nats.add(new NatTarget(0x0a090807, 0x0a090810, 21333,
                 32999));
 
-        Directory dir = new MockDirectory();
-        ZkPathManager pathMgr = new ZkPathManager("");
-        dir.add(pathMgr.getFiltersPath(), null, CreateMode.PERSISTENT);
-        FiltersZkManager filterMgr = new FiltersZkManager(dir, "");
-        filterMgr.create(ownerId);
-        natMapping = new NatLeaseManager(
-                filterMgr, ownerId, new MockCache(), new MockReactor());
+        injector = Guice.createInjector(
+                new TestModule("/midonet"),
+                new VersionModule(),
+                new SerializationModule()
+        );
+
+        natMapping = injector.getInstance(NatLeaseManager.class);
+    }
+
+    public static class TestModule extends AbstractModule {
+
+        private final String basePath;
+
+        public TestModule(String basePath) {
+            this.basePath = basePath;
+        }
+
+        @Override
+        protected void configure() {
+            bind(Cache.class).toInstance(new MockCache());
+            bind(Reactor.class).toInstance(new MockReactor());
+            bind(PathBuilder.class).toInstance(new PathBuilder(basePath));
+        }
+
+        @Provides @Singleton
+        public Directory provideDirectory(PathBuilder paths) {
+            Directory directory = new MockDirectory();
+            try {
+                directory.add(paths.getBasePath(), null, CreateMode.PERSISTENT);
+                directory.add(paths.getWriteVersionPath(),
+                        DataWriteVersion.CURRENT.getBytes(),
+                        CreateMode.PERSISTENT);
+                directory.add(paths.getFiltersPath(), null,
+                        CreateMode.PERSISTENT);
+            } catch (Exception ex) {
+                throw new RuntimeException("Could not initialize zk", ex);
+            }
+            return directory;
+        }
+
+        @Provides @Singleton
+        public ZkManager provideZkManager(Directory directory) {
+            return new ZkManager(directory);
+        }
+
+        @Provides @Singleton
+        public FiltersZkManager provideFiltersZkManager(ZkManager zkManager,
+                                                        PathBuilder paths,
+                                                        Serializer serializer) {
+            FiltersZkManager zk = new FiltersZkManager(zkManager, paths,
+                    serializer);
+            try {
+                zk.create(ownerId);
+            } catch (Exception e) {
+                throw new RuntimeException(
+                        "Could not initialize FiltersZkManager", e);
+            }
+            return zk;
+        }
+
+        @Provides @Singleton
+        public NatLeaseManager provideNatLeaseManager(
+                FiltersZkManager zk, Cache cache, Reactor reactor) {
+                return new NatLeaseManager(zk, ownerId, cache, reactor);
+        }
+
     }
 
     @Before
     public void setup() {
+
         expRes = new RuleResult(null, null, pktMatch.clone());
         argRes = new RuleResult(null, null, pktMatch.clone());
         fwdInfo = new ForwardInfo(false, null, null);

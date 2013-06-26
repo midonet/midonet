@@ -4,54 +4,122 @@
 
 package org.midonet.midolman.layer4;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-
+import com.google.inject.AbstractModule;
+import com.google.inject.Provides;
+import com.google.inject.Singleton;
+import com.google.inject.Injector;
+import com.google.inject.Guice;
 import org.apache.zookeeper.CreateMode;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.midonet.cache.Cache;
+import org.midonet.midolman.guice.serialization.SerializationModule;
 import org.midonet.midolman.rules.NatTarget;
+import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.MockDirectory;
-import org.midonet.midolman.state.ZkPathManager;
+import org.midonet.midolman.state.PathBuilder;
+import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.state.zkManagers.FiltersZkManager;
 import org.midonet.midolman.state.zkManagers.RouterZkManager;
 import org.midonet.midolman.util.MockCache;
+import org.midonet.midolman.version.DataWriteVersion;
+import org.midonet.midolman.version.guice.VersionModule;
 import org.midonet.packets.ICMP;
-import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv6Addr;
+import org.midonet.packets.IPAddr;
 import org.midonet.packets.TCP;
 import org.midonet.util.eventloop.MockReactor;
 import org.midonet.util.eventloop.Reactor;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 public class TestNatLeaseManager {
 
     private NatMapping natManager;
+    private Injector injector;
 
-    protected Cache createCache() {
-        return new MockCache();
+    public class TestModule extends AbstractModule {
+
+        private final String basePath;
+
+        public TestModule(String basePath) {
+            this.basePath = basePath;
+        }
+
+        @Override
+        protected void configure() {
+            bind(Cache.class).toInstance(new MockCache());
+            bind(Reactor.class).toInstance(new MockReactor());
+            bind(PathBuilder.class).toInstance(new PathBuilder(basePath));
+        }
+
+        @Provides @Singleton
+        public Directory provideDirectory(PathBuilder paths) {
+            Directory directory = new MockDirectory();
+            try {
+                directory.add(paths.getBasePath(), null, CreateMode.PERSISTENT);
+                directory.add(paths.getWriteVersionPath(),
+                        DataWriteVersion.CURRENT.getBytes(),
+                        CreateMode.PERSISTENT);
+                directory.add(paths.getRoutersPath(), null,
+                        CreateMode.PERSISTENT);
+                directory.add(paths.getFiltersPath(), null,
+                        CreateMode.PERSISTENT);
+            } catch (Exception ex) {
+                throw new RuntimeException("Could not initialize zk", ex);
+            }
+            return directory;
+        }
+
+        @Provides @Singleton
+        public ZkManager provideZkManager(Directory directory) {
+            return new ZkManager(directory);
+
+        }
+
+        @Provides @Singleton
+        public RouterZkManager provideRouterZkManager(ZkManager zkManager,
+                                                      PathBuilder paths,
+                                                      Serializer serializer) {
+            return new RouterZkManager(zkManager, paths, serializer);
+        }
+
+        @Provides @Singleton
+        public FiltersZkManager provideFiltersZkManager(ZkManager zkManager,
+                                                        PathBuilder paths,
+                                                        Serializer serializer) {
+            return new FiltersZkManager(zkManager, paths, serializer);
+        }
+
+        @Provides
+        public NatLeaseManager provideNatLeaseManager(
+                FiltersZkManager zk, Cache cache, Reactor reactor,
+                RouterZkManager routerZkManager) {
+            try {
+                return new NatLeaseManager(zk, routerZkManager.create(), cache,
+                        reactor);
+            } catch (Exception e) {
+                throw new RuntimeException(
+                        "Could not initialize NatLeaseManager", e);
+            }
+        }
     }
 
     @Before
     public void setUp() throws Exception {
-        String basePath = "/midolman";
-        ZkPathManager pathMgr = new ZkPathManager(basePath);
-        Directory dir = new MockDirectory();
-        dir.add(pathMgr.getBasePath(), null, CreateMode.PERSISTENT);
-        dir.add(pathMgr.getRoutersPath(), null, CreateMode.PERSISTENT);
-        dir.add(pathMgr.getFiltersPath(), null, CreateMode.PERSISTENT);
-        RouterZkManager routerMgr = new RouterZkManager(dir, basePath);
-        Reactor reactor = new MockReactor();
-
-        UUID rtrId = routerMgr.create();
-        natManager = new NatLeaseManager(new FiltersZkManager(dir, basePath),
-                rtrId, createCache(), reactor);
+        String basePath = "/midonet";
+        injector = Guice.createInjector(
+                new TestModule(basePath),
+                new VersionModule(),
+                new SerializationModule()
+        );
+        natManager = injector.getInstance(NatLeaseManager.class);
     }
 
     @Test

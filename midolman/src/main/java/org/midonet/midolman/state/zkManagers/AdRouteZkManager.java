@@ -11,19 +11,23 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import org.midonet.midolman.serialization.Serializer;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.DirectoryCallback;
 import org.midonet.midolman.state.DirectoryCallbackFactory;
+import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
-import org.midonet.midolman.state.ZkStateSerializationException;
+
 import org.midonet.util.functors.CollectionFunctors;
 import org.midonet.util.functors.Functor;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
 
-public class AdRouteZkManager extends ZkManager {
+public class AdRouteZkManager extends AbstractZkManager {
 
     public static final class AdRouteConfig {
 
@@ -44,21 +48,32 @@ public class AdRouteZkManager extends ZkManager {
     }
 
     /**
-     * AdRouteZkManager constructor. * @param zk Zookeeper object.
+     * AdRouteZkManager constructor.
      *
-     * @param basePath
-     *            Directory to set as the base.
+     * @param zk
+     *         Zk data access class
+     * @param paths
+     *         PathBuilder class to construct ZK paths
+     * @param serializer
+     *         ZK data serialization class
      */
-    public AdRouteZkManager(Directory zk, String basePath) {
-        super(zk, basePath);
+    public AdRouteZkManager(ZkManager zk, PathBuilder paths,
+                            Serializer serializer) {
+        super(zk, paths, serializer);
+    }
+
+    public AdRouteZkManager(Directory dir, String basePath,
+                            Serializer serializer) {
+        this(new ZkManager(dir), new PathBuilder(basePath), serializer);
     }
 
     public List<Op> prepareAdRouteCreate(UUID id, AdRouteConfig config)
-            throws ZkStateSerializationException {
+            throws StateAccessException, SerializationException {
 
         List<Op> ops = new ArrayList<Op>();
         ops.add(Op.create(paths.getAdRoutePath(id),
-                serializer.serialize(config), Ids.OPEN_ACL_UNSAFE,
+                serializer.serialize(config),
+                        Ids.OPEN_ACL_UNSAFE,
                 CreateMode.PERSISTENT));
 
         ops.add(Op.create(paths.getBgpAdRoutePath(config.bgpId, id),
@@ -68,12 +83,11 @@ public class AdRouteZkManager extends ZkManager {
     }
 
     public List<Op> prepareAdRouteDelete(UUID id) throws StateAccessException,
-            ZkStateSerializationException {
+            SerializationException {
         return prepareAdRouteDelete(id, get(id));
     }
 
-    public List<Op> prepareAdRouteDelete(UUID id, AdRouteConfig config)
-            throws ZkStateSerializationException {
+    public List<Op> prepareAdRouteDelete(UUID id, AdRouteConfig config) {
         // Delete the advertising route
         List<Op> ops = new ArrayList<Op>();
         ops.add(Op.delete(paths.getAdRoutePath(id), -1));
@@ -82,24 +96,25 @@ public class AdRouteZkManager extends ZkManager {
     }
 
     public UUID create(AdRouteConfig adRoute) throws StateAccessException,
-            ZkStateSerializationException {
+             SerializationException {
         UUID id = UUID.randomUUID();
-        multi(prepareAdRouteCreate(id, adRoute));
+        zk.multi(prepareAdRouteCreate(id, adRoute));
         return id;
     }
 
     public AdRouteConfig get(UUID id, Runnable watcher)
-            throws StateAccessException {
-        byte[] data = get(paths.getAdRoutePath(id), watcher);
+            throws StateAccessException, SerializationException {
+        byte[] data = zk.get(paths.getAdRoutePath(id), watcher);
         return serializer.deserialize(data, AdRouteConfig.class);
     }
 
-    public AdRouteConfig get(UUID id) throws StateAccessException {
+    public AdRouteConfig get(UUID id) throws StateAccessException,
+            SerializationException {
         return this.get(id, null);
     }
 
     public boolean exists(UUID id) throws StateAccessException {
-        return exists(paths.getAdRoutePath(id));
+        return zk.exists(paths.getAdRoutePath(id));
     }
 
     public void getAdRouteAsync(final UUID adRouteId, DirectoryCallback <AdRouteConfig> adRouteDirectoryCallback,
@@ -114,8 +129,9 @@ public class AdRouteZkManager extends ZkManager {
                             @Override
                             public AdRouteConfig apply(byte[] arg0) {
                                 try {
-                                    return serializer.deserialize(arg0, AdRouteConfig.class);
-                                } catch (ZkStateSerializationException e) {
+                                    return serializer.deserialize(arg0,
+                                            AdRouteConfig.class);
+                                } catch (SerializationException e) {
                                     log.warn("Could not deserialize AdRoute data");
                                 }
                                 return null;
@@ -146,7 +162,7 @@ public class AdRouteZkManager extends ZkManager {
     public List<UUID> list(UUID bgpId, Runnable watcher)
             throws StateAccessException {
         List<UUID> result = new ArrayList<UUID>();
-        Set<String> adRouteIds = getChildren(
+        Set<String> adRouteIds = zk.getChildren(
                 paths.getBgpAdRoutesPath(bgpId), watcher);
         for (String adRouteId : adRouteIds) {
             // For now, get each one.
@@ -160,12 +176,13 @@ public class AdRouteZkManager extends ZkManager {
     }
 
     public void update(UUID id, AdRouteConfig config)
-            throws StateAccessException {
+            throws StateAccessException, SerializationException {
         byte[] data = serializer.serialize(config);
-        update(paths.getAdRoutePath(id), data);
+        zk.update(paths.getAdRoutePath(id), data);
     }
 
-    public void delete(UUID id) throws StateAccessException {
-        multi(prepareAdRouteDelete(id));
+    public void delete(UUID id) throws StateAccessException,
+            SerializationException {
+        zk.multi(prepareAdRouteDelete(id));
     }
 }

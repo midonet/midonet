@@ -10,6 +10,7 @@ import com.google.inject.Inject;
 import org.midonet.api.network.Bridge;
 import org.midonet.api.validation.MessageProperty;
 import org.midonet.cluster.DataClient;
+import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 
 public class BridgeNameConstraintValidator implements
@@ -46,6 +47,9 @@ public class BridgeNameConstraintValidator implements
         } catch (StateAccessException e) {
             throw new RuntimeException(
                     "State access exception occurred in validation");
+        } catch (SerializationException e) {
+            throw new RuntimeException(
+                    "Serialization exception occurred in validation");
         }
 
         // It's valid if the duplicate named bridge does not exist, or

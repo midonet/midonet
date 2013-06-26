@@ -19,6 +19,7 @@ import org.midonet.api.auth.AuthAction;
 import org.midonet.api.auth.AuthRole;
 import org.midonet.api.auth.Authorizer;
 import org.midonet.api.bgp.auth.BgpAuthorizer;
+import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.cluster.DataClient;
@@ -70,7 +71,8 @@ public class AdRouteResource extends AbstractResource {
     @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
     @Path("{id}")
     public void delete(@PathParam("id") UUID id)
-            throws StateAccessException, InvalidStateOperationException {
+            throws StateAccessException,
+            InvalidStateOperationException, SerializationException {
 
         org.midonet.cluster.data.AdRoute adRouteData =
                 dataClient.adRoutesGet(id);
@@ -100,7 +102,8 @@ public class AdRouteResource extends AbstractResource {
     @Path("{id}")
     @Produces({ VendorMediaType.APPLICATION_AD_ROUTE_JSON,
             MediaType.APPLICATION_JSON })
-    public AdRoute get(@PathParam("id") UUID id) throws StateAccessException {
+    public AdRoute get(@PathParam("id") UUID id)
+            throws StateAccessException, SerializationException {
 
         if (!authorizer.authorize(context, AuthAction.READ, id)) {
             throw new ForbiddenHttpException(
@@ -157,7 +160,8 @@ public class AdRouteResource extends AbstractResource {
         @Consumes({ VendorMediaType.APPLICATION_AD_ROUTE_JSON,
                 MediaType.APPLICATION_JSON })
         public Response create(AdRoute adRoute)
-                throws StateAccessException, InvalidStateOperationException {
+                throws StateAccessException,
+                InvalidStateOperationException, SerializationException {
 
             adRoute.setBgpId(bgpId);
 
@@ -183,7 +187,8 @@ public class AdRouteResource extends AbstractResource {
         @PermitAll
         @Produces({ VendorMediaType.APPLICATION_AD_ROUTE_COLLECTION_JSON,
                 MediaType.APPLICATION_JSON })
-        public List<AdRoute> list() throws StateAccessException {
+        public List<AdRoute> list() throws StateAccessException,
+                SerializationException {
 
             if (!authorizer.authorize(context, AuthAction.READ, bgpId)) {
                 throw new ForbiddenHttpException(

@@ -3,6 +3,13 @@
  */
 package org.midonet.api.host;
 
+import com.google.inject.AbstractModule;
+import com.google.inject.Provides;
+import com.google.inject.Singleton;
+import com.google.inject.Injector;
+import com.google.inject.Guice;
+import org.apache.zookeeper.KeeperException;
+import org.midonet.api.serialization.SerializationModule;
 import org.midonet.client.dto.DtoVlanBridge;
 import org.midonet.client.dto.DtoVlanBridgeTrunkPort;
 import org.midonet.midolman.host.state.HostDirectory;
@@ -13,6 +20,10 @@ import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.Topology;
 import org.midonet.api.zookeeper.StaticMockDirectory;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.serialization.Serializer;
+import org.midonet.midolman.state.PathBuilder;
+import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.client.MidonetApi;
@@ -32,6 +43,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
+import org.midonet.midolman.version.guice.VersionModule;
 
 import java.net.InetAddress;
 import java.net.URI;
@@ -51,8 +63,8 @@ public class TestHostInterfacePort {
         private Topology topology;
         private HostTopology hostTopology;
         private HostZkManager hostManager;
-        private Directory rootDirectory;
         private MidonetApi api;
+        private Injector injector = null;
 
         private UUID host1Id = UUID.randomUUID();
 
@@ -60,13 +72,50 @@ public class TestHostInterfacePort {
             super(FuncTest.appDesc);
         }
 
-        @Before
-        public void setUp() throws StateAccessException {
+        public class TestModule extends AbstractModule {
 
+            private final String basePath;
+
+            public TestModule(String basePath) {
+                this.basePath = basePath;
+            }
+
+            @Override
+            protected void configure() {
+                bind(PathBuilder.class).toInstance(new PathBuilder(basePath));
+            }
+
+            @Provides
+            @Singleton
+            public Directory provideDirectory() {
+                Directory directory = StaticMockDirectory.getDirectoryInstance();
+                return directory;
+            }
+
+            @Provides @Singleton
+            public ZkManager provideZkManager(Directory directory) {
+                return new ZkManager(directory);
+            }
+
+            @Provides @Singleton
+            public HostZkManager provideHostZkManager(ZkManager zkManager,
+                                                      PathBuilder paths,
+                                                      Serializer serializer) {
+                return new HostZkManager(zkManager, paths, serializer);
+            }
+        }
+
+        @Before
+        public void setUp() throws StateAccessException,
+                InterruptedException, KeeperException, SerializationException {
+
+            injector = Guice.createInjector(
+                    new VersionModule(),
+                    new SerializationModule(),
+                    new TestModule(ZK_ROOT_MIDOLMAN));
             WebResource resource = resource();
             dtoResource = new DtoWebResource(resource);
-            rootDirectory = StaticMockDirectory.getDirectoryInstance();
-            hostManager = new HostZkManager(rootDirectory, ZK_ROOT_MIDOLMAN);
+            hostManager = injector.getInstance(HostZkManager.class);
 
             DtoHost host1 = new DtoHost();
             host1.setName("host1");

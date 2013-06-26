@@ -22,6 +22,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 @Produces({MediaType.APPLICATION_JSON})
 public class ConfiguredJacksonJaxbJsonProvider extends JacksonJaxbJsonProvider {
     public ConfiguredJacksonJaxbJsonProvider() {
+        super();
         configure();
     }
 

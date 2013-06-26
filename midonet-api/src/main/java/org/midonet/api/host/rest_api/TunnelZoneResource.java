@@ -15,6 +15,7 @@ import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.auth.AuthRole;
 import org.midonet.api.rest_api.BadRequestHttpException;
+import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.cluster.DataClient;
 import org.slf4j.Logger;
@@ -60,7 +61,8 @@ public class TunnelZoneResource extends AbstractResource {
     @RolesAllowed({AuthRole.ADMIN})
     @Produces({VendorMediaType.APPLICATION_TUNNEL_ZONE_COLLECTION_JSON,
                   MediaType.APPLICATION_JSON})
-    public List<TunnelZone> list() throws StateAccessException {
+    public List<TunnelZone> list() throws StateAccessException,
+            SerializationException {
 
         List<org.midonet.cluster.data.TunnelZone<?, ?>>
                 tunnelZoneDataList = dataClient.tunnelZonesGetAll();
@@ -80,7 +82,7 @@ public class TunnelZoneResource extends AbstractResource {
     @Produces({VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON,
                   MediaType.APPLICATION_JSON})
     public TunnelZone get(@PathParam("id") UUID id)
-        throws StateAccessException {
+        throws StateAccessException,  SerializationException {
 
         if (!dataClient.tunnelZonesExists(id)) {
             throw new NotFoundHttpException();
@@ -98,7 +100,7 @@ public class TunnelZoneResource extends AbstractResource {
     @RolesAllowed({AuthRole.ADMIN})
     @Path("{id}")
     public void delete(@PathParam("id") UUID id)
-            throws StateAccessException {
+            throws StateAccessException, SerializationException {
 
         org.midonet.cluster.data.TunnelZone zoneData =
                 dataClient.tunnelZonesGet(id);
@@ -114,7 +116,7 @@ public class TunnelZoneResource extends AbstractResource {
     @Consumes({ VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON,
             MediaType.APPLICATION_JSON })
     public Response create(TunnelZone tunnelZone)
-            throws StateAccessException {
+            throws StateAccessException, SerializationException {
 
         Set<ConstraintViolation<TunnelZone>> violations = validator.validate(
                 tunnelZone, TunnelZone.TunnelZoneCreateGroupSequence.class);
@@ -134,7 +136,7 @@ public class TunnelZoneResource extends AbstractResource {
             MediaType.APPLICATION_JSON })
     @Path("{id}")
     public void update(@PathParam("id") UUID id, TunnelZone tunnelZone)
-            throws StateAccessException {
+            throws StateAccessException, SerializationException {
 
         tunnelZone.setId(id);
 

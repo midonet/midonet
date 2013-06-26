@@ -3,26 +3,31 @@
  */
 package org.midonet.midolman.state.zkManagers;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.serialization.Serializer;
+import org.midonet.midolman.state.AbstractZkManager;
+import org.midonet.midolman.state.ZkManager;
+import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.ZkManager;
 import org.slf4j.Logger;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import java.util.Set;
+
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Class to manage the bridge ZooKeeper data.
  */
-public class VlanAwareBridgeZkManager extends ZkManager {
+public class VlanAwareBridgeZkManager extends AbstractZkManager {
 
     private final static Logger log = getLogger(VlanAwareBridgeZkManager.class);
 
@@ -104,14 +109,23 @@ public class VlanAwareBridgeZkManager extends ZkManager {
      * Initializes a VLANAwareBridgeZkManager object with a ZooKeeper client and
      * the root path of the ZooKeeper directory.
      *
-     * @param zk ZooKeeper object.
-     * @param basePath The root path.
+     * @param zk
+     *         Zk data access class
+     * @param paths
+     *         PathBuilder class to construct ZK paths
+     * @param serializer
+     *         ZK data serialization class
      */
-    public VlanAwareBridgeZkManager(Directory zk, String basePath)
-            throws StateAccessException {
-        super(zk, basePath);
-        this.tunnelZkManager = new TunnelZkManager(zk, basePath);
-        this.portZkManager = new PortZkManager(zk, basePath);
+    public VlanAwareBridgeZkManager(ZkManager zk, PathBuilder paths,
+                                    Serializer serializer) {
+        super(zk, paths, serializer);
+        this.tunnelZkManager = new TunnelZkManager(zk, paths, serializer);
+        this.portZkManager = new PortZkManager(zk, paths, serializer);
+    }
+
+    public VlanAwareBridgeZkManager(Directory dir, String basePath,
+                                    Serializer serializer) {
+        this(new ZkManager(dir), new PathBuilder(basePath), serializer);
     }
 
     /**
@@ -124,7 +138,7 @@ public class VlanAwareBridgeZkManager extends ZkManager {
      * @throws StateAccessException Error accessing ZooKeeper.
      */
     public List<Op> prepareVlanBridgeCreate(UUID id, VlanBridgeConfig config)
-            throws StateAccessException {
+            throws StateAccessException, SerializationException {
 
         // Create a new Tunnel key. Hide this from outside.
         int tunnelKey = tunnelZkManager.createTunnelKey();
@@ -132,7 +146,8 @@ public class VlanAwareBridgeZkManager extends ZkManager {
 
         List<Op> ops = new ArrayList<Op>();
         ops.add(Op.create(paths.getVlanBridgePath(id),
-                serializer.serialize(config), Ids.OPEN_ACL_UNSAFE,
+                serializer.serialize(config),
+                Ids.OPEN_ACL_UNSAFE,
                 CreateMode.PERSISTENT));
 
         ops.add(Op.create(paths.getVlanBridgeTrunkPortsPath(id), null,
@@ -161,7 +176,7 @@ public class VlanAwareBridgeZkManager extends ZkManager {
      * @throws StateAccessException the VlanBridgeconfig could not be serialized.
      */
     public Op prepareUpdate(UUID id, VlanBridgeConfig config)
-            throws StateAccessException {
+            throws StateAccessException, SerializationException {
         VlanBridgeConfig oldConfig = get(id);
         // Have the name, inbound or outbound filter changed?
         boolean dataChanged = false;
@@ -178,12 +193,13 @@ public class VlanAwareBridgeZkManager extends ZkManager {
             // Update the midolman data. Don't change the Vlan Bridge's GRE-key.
             config.tunnelKey = oldConfig.tunnelKey;
             return Op.setData(paths.getVlanBridgePath(id),
-                              serializer.serialize(config), -1);
+                    serializer.serialize(config), -1);
         }
         return null;
     }
 
-    public List<Op> prepareVlanBridgeDelete(UUID id) throws StateAccessException {
+    public List<Op> prepareVlanBridgeDelete(UUID id)
+            throws StateAccessException, SerializationException {
         return prepareVlanBridgeDelete(id, get(id));
     }
 
@@ -192,7 +208,7 @@ public class VlanAwareBridgeZkManager extends ZkManager {
      * @throws StateAccessException
      */
     public List<Op> prepareVlanBridgeDelete(UUID id, VlanBridgeConfig config)
-            throws StateAccessException {
+            throws StateAccessException, SerializationException {
         List<Op> ops = new ArrayList<Op>();
         // Delete the ports.
         Set<UUID> portIds = portZkManager.getVlanBridgeTrunkPortIDs(id);
@@ -212,7 +228,7 @@ public class VlanAwareBridgeZkManager extends ZkManager {
         ops.addAll(tunnelZkManager.prepareTunnelDelete(config.tunnelKey));
 
         // Delete this bridge's port-set
-        ops.addAll(getRecursiveDeleteOps(paths.getPortSetPath(id)));
+        ops.addAll(zk.getRecursiveDeleteOps(paths.getPortSetPath(id)));
 
         // Delete the bridge
         ops.add(Op.delete(paths.getVlanBridgePath(id), -1));
@@ -227,9 +243,10 @@ public class VlanAwareBridgeZkManager extends ZkManager {
      * @return The UUID of the newly created object.
      * @throws StateAccessException Serialization error occurred.
      */
-    public UUID create(VlanBridgeConfig bridge) throws StateAccessException {
+    public UUID create(VlanBridgeConfig bridge) throws StateAccessException,
+            SerializationException {
         UUID id = UUID.randomUUID();
-        multi(prepareVlanBridgeCreate(id, bridge));
+        zk.multi(prepareVlanBridgeCreate(id, bridge));
         return id;
     }
 
@@ -241,15 +258,16 @@ public class VlanAwareBridgeZkManager extends ZkManager {
      * @throws StateAccessException
      */
     public boolean exists(UUID id) throws StateAccessException {
-        return exists(paths.getVlanBridgePath(id));
+        return zk.exists(paths.getVlanBridgePath(id));
     }
 
-    public void update(UUID id, VlanBridgeConfig cfg) throws StateAccessException {
+    public void update(UUID id, VlanBridgeConfig cfg)
+            throws StateAccessException, SerializationException {
         Op op = prepareUpdate(id, cfg);
         if (null != op) {
             List<Op> ops = new ArrayList<Op>();
             ops.add(op);
-            multi(ops);
+            zk.multi(ops);
         }
     }
 
@@ -259,7 +277,8 @@ public class VlanAwareBridgeZkManager extends ZkManager {
      * @param id The ID of the bridge.
      * @return Bridge object found.
      */
-    public VlanBridgeConfig get(UUID id) throws StateAccessException {
+    public VlanBridgeConfig get(UUID id)
+            throws StateAccessException, SerializationException {
         return get(id, null);
     }
 
@@ -273,8 +292,8 @@ public class VlanAwareBridgeZkManager extends ZkManager {
      * @return Route object found.
      */
     public VlanBridgeConfig get(UUID id, Runnable watcher)
-            throws StateAccessException {
-        byte[] data = get(paths.getVlanBridgePath(id), watcher);
+            throws StateAccessException, SerializationException {
+        byte[] data = zk.get(paths.getVlanBridgePath(id), watcher);
         return serializer.deserialize(data, VlanBridgeConfig.class);
     }
 
@@ -284,8 +303,9 @@ public class VlanAwareBridgeZkManager extends ZkManager {
      *
      * @param id ID of the bridge to delete.
      */
-    public void delete(UUID id) throws StateAccessException {
-        multi(prepareVlanBridgeDelete(id));
+    public void delete(UUID id)
+            throws StateAccessException, SerializationException {
+        zk.multi(prepareVlanBridgeDelete(id));
     }
 
 }

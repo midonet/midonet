@@ -14,6 +14,7 @@ import org.midonet.api.host.CapwapTunnelZoneHost;
 import org.midonet.api.host.TunnelZoneHost;
 import org.midonet.api.rest_api.BadRequestHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.TunnelZone;
@@ -58,7 +59,7 @@ public class TunnelZoneHostResource extends AbstractResource {
     }
 
     private <T extends TunnelZoneHost> Response createTunnelZoneHost(T tzHost)
-            throws StateAccessException {
+            throws StateAccessException, SerializationException {
         tzHost.setTunnelZoneId(tunnelZoneId);
 
         Set<ConstraintViolation<T>> violations =validator.validate(tzHost,
@@ -79,7 +80,7 @@ public class TunnelZoneHostResource extends AbstractResource {
     @RolesAllowed({ AuthRole.ADMIN })
     @Consumes({ VendorMediaType.APPLICATION_GRE_TUNNEL_ZONE_HOST_JSON })
     public Response create(GreTunnelZoneHost tunnelZoneHost)
-            throws StateAccessException {
+            throws StateAccessException, SerializationException {
 
         return createTunnelZoneHost(tunnelZoneHost);
     }
@@ -88,7 +89,7 @@ public class TunnelZoneHostResource extends AbstractResource {
     @RolesAllowed({ AuthRole.ADMIN })
     @Consumes({ VendorMediaType.APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_JSON })
     public Response create(CapwapTunnelZoneHost tunnelZoneHost)
-            throws StateAccessException {
+            throws StateAccessException, SerializationException {
 
         return createTunnelZoneHost(tunnelZoneHost);
     }
@@ -146,7 +147,7 @@ public class TunnelZoneHostResource extends AbstractResource {
 
     private TunnelZoneHost getTunnelZoneHost(
             Class<? extends TunnelZoneHost> clazz,
-            UUID hostId) throws StateAccessException {
+            UUID hostId) throws StateAccessException, SerializationException {
         TunnelZone.HostConfig data = dataClient
                 .tunnelZonesGetMembership(tunnelZoneId, hostId);
         if (data == null) {
@@ -167,7 +168,8 @@ public class TunnelZoneHostResource extends AbstractResource {
     @Produces({ VendorMediaType.APPLICATION_TUNNEL_ZONE_HOST_JSON })
     @Path("/{hostId}")
     public TunnelZoneHost getUntypedTunnelZoneHost(
-            @PathParam("hostId") UUID hostId) throws StateAccessException {
+            @PathParam("hostId") UUID hostId)
+            throws StateAccessException, SerializationException {
         return getTunnelZoneHost(null, hostId);
     }
 
@@ -177,7 +179,7 @@ public class TunnelZoneHostResource extends AbstractResource {
     @Path("/{hostId}")
     public TunnelZoneHost getGreTunnelZoneHost(@PathParam("hostId")
                                                UUID hostId) throws
-            StateAccessException {
+            StateAccessException, SerializationException {
 
         return getTunnelZoneHost(GreTunnelZoneHost.class, hostId);
     }
@@ -188,7 +190,7 @@ public class TunnelZoneHostResource extends AbstractResource {
     @Path("/{hostId}")
     public TunnelZoneHost getCapwapTunnelZoneHost(@PathParam("hostId")
                                                UUID hostId) throws
-            StateAccessException {
+            StateAccessException, SerializationException {
 
         return getTunnelZoneHost(CapwapTunnelZoneHost.class, hostId);
     }
@@ -197,7 +199,7 @@ public class TunnelZoneHostResource extends AbstractResource {
     @RolesAllowed({ AuthRole.ADMIN })
     @Path("/{hostId}")
     public void delete(@PathParam("hostId") UUID hostId)
-            throws StateAccessException {
+            throws StateAccessException, SerializationException {
 
         TunnelZone.HostConfig data = dataClient
                 .tunnelZonesGetMembership(tunnelZoneId, hostId);

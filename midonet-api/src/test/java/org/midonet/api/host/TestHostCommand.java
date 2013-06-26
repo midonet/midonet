@@ -7,6 +7,11 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.UUID;
 
+import com.google.inject.AbstractModule;
+import com.google.inject.Provides;
+import com.google.inject.Singleton;
+import com.google.inject.Injector;
+import com.google.inject.Guice;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.ClientResponse.Status;
 import com.sun.jersey.test.framework.AppDescriptor;
@@ -16,18 +21,24 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.midonet.api.serialization.SerializationModule;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.VendorMediaType;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.zookeeper.StaticMockDirectory;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.serialization.Serializer;
+import org.midonet.midolman.state.PathBuilder;
+import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.client.dto.DtoApplication;
 import org.midonet.client.dto.DtoHost;
 import org.midonet.client.dto.DtoHostCommand;
 import org.midonet.client.dto.DtoInterface;
+import org.midonet.midolman.version.guice.VersionModule;
 import org.midonet.packets.MAC;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -45,8 +56,8 @@ public class TestHostCommand extends JerseyTest {
     public static final String ZK_ROOT_MIDOLMAN = "/test/midolman";
 
     private HostZkManager hostManager;
-    private Directory rootDirectory;
     private ClientResponse response;
+    private Injector injector;
 
     private DtoHost dtoHost;
     private URI baseUri;
@@ -61,17 +72,57 @@ public class TestHostCommand extends JerseyTest {
 
     }
 
+    public class TestModule extends AbstractModule {
+
+        private final String basePath;
+
+        public TestModule(String basePath) {
+            this.basePath = basePath;
+        }
+
+        @Override
+        protected void configure() {
+            bind(PathBuilder.class).toInstance(new PathBuilder(basePath));
+        }
+
+        @Provides
+        @Singleton
+        public Directory provideDirectory() {
+            Directory directory = StaticMockDirectory.getDirectoryInstance();
+            return directory;
+        }
+
+        @Provides @Singleton
+        public ZkManager provideZkManager(Directory directory) {
+            return new ZkManager(directory);
+        }
+
+        @Provides @Singleton
+        public HostZkManager provideHostZkManager(ZkManager zkManager,
+                                                  PathBuilder paths,
+                                                  Serializer serializer) {
+            return new HostZkManager(zkManager, paths, serializer);
+        }
+    }
+
     // This one also tests Create with given tenant ID string
     @Before
-    public void before() throws KeeperException, StateAccessException {
+    public void before() throws KeeperException,
+            StateAccessException,
+            InterruptedException,
+            SerializationException {
         DtoApplication application = resource()
             .type(VendorMediaType.APPLICATION_JSON)
             .get(DtoApplication.class);
 
-        baseUri = application.getUri();
-        rootDirectory = StaticMockDirectory.getDirectoryInstance();
 
-        hostManager = new HostZkManager(rootDirectory, "/test/midolman");
+        injector = Guice.createInjector(
+                new VersionModule(),
+                new SerializationModule(),
+                new TestModule(ZK_ROOT_MIDOLMAN));
+
+        baseUri = application.getUri();
+        hostManager = injector.getInstance(HostZkManager.class);
 
         HostDirectory.Metadata metadata = new HostDirectory.Metadata();
         metadata.setName("testHost");
@@ -331,7 +382,7 @@ public class TestHostCommand extends JerseyTest {
     }
 
     private DtoInterface saveInterface(HostDirectory.Interface anInterface)
-        throws StateAccessException, IOException {
+        throws StateAccessException, IOException, SerializationException {
         hostManager.createInterface(dtoHost.getId(), anInterface);
 
         // no properties

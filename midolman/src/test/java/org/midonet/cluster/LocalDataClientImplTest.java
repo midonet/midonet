@@ -25,22 +25,25 @@ import org.midonet.midolman.guice.cluster.DataClusterClientModule;
 import org.midonet.midolman.guice.config.MockConfigProviderModule;
 import org.midonet.midolman.guice.config.TypedConfigModule;
 import org.midonet.midolman.guice.reactor.ReactorModule;
+import org.midonet.midolman.guice.serialization.SerializationModule;
 import org.midonet.midolman.guice.zookeeper.MockZookeeperConnectionModule;
 import org.midonet.midolman.layer3.Route.NextHop;
+import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.zkManagers.RouteZkManager;
 import org.midonet.midolman.state.zkManagers.RouterZkManager;
+import org.midonet.midolman.version.guice.VersionModule;
 import org.midonet.cluster.data.Route;
 import org.midonet.cluster.data.Router;
 import org.midonet.cluster.data.ports.MaterializedRouterPort;
 import org.midonet.packets.MAC;
 import org.midonet.packets.Net;
 
-
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
+
 
 public class LocalDataClientImplTest {
 
@@ -75,6 +78,8 @@ public class LocalDataClientImplTest {
         HierarchicalConfiguration config = fillConfig(
             new HierarchicalConfiguration());
         injector = Guice.createInjector(
+            new VersionModule(),
+            new SerializationModule(),
             new MockConfigProviderModule(config),
             new MockZookeeperConnectionModule(),
             new TypedConfigModule<MidolmanConfig>(MidolmanConfig.class),
@@ -98,7 +103,8 @@ public class LocalDataClientImplTest {
     }
 
     @Test
-    public void routerPortLifecycleTest() throws StateAccessException {
+    public void routerPortLifecycleTest() throws StateAccessException,
+            SerializationException {
         // Create a materialized router port.
         UUID routerId = client.routersCreate(new Router());
         UUID portId = client.portsCreate(

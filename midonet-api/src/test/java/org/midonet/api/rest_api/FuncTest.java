@@ -9,6 +9,7 @@ import org.midonet.api.auth.AuthConfig;
 import org.midonet.api.auth.cors.CorsConfig;
 import org.midonet.api.serialization.WildCardJacksonJaxbJsonProvider;
 import org.midonet.api.servlet.JerseyGuiceServletContextListener;
+import org.midonet.api.version.VersionParser;
 import org.midonet.api.zookeeper.ExtendedZookeeperConfig;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
@@ -49,6 +50,8 @@ public class FuncTest {
     public static int replicationFactor = 1;
     public static int ttlInSecs = 1000;
 
+    public static WildCardJacksonJaxbJsonProvider jacksonJaxbJsonProvider;
+
     public static final WebAppDescriptor.Builder getBuilder() {
 
         // Start the cassandra server.  Calling this multiple times does not
@@ -59,7 +62,9 @@ public class FuncTest {
             throw new RuntimeException("Could not start Cassandra");
         }
 
-        config.getSingletons().add(new WildCardJacksonJaxbJsonProvider());
+        VersionParser parser = new VersionParser();
+        jacksonJaxbJsonProvider = new WildCardJacksonJaxbJsonProvider(parser);
+        config.getSingletons().add(jacksonJaxbJsonProvider);
 
         return new WebAppDescriptor.Builder()
                 .contextListenerClass(JerseyGuiceServletContextListener.class)

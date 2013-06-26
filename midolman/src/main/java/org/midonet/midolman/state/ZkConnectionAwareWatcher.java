@@ -6,6 +6,7 @@ package org.midonet.midolman.state;
 
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Watcher;
+import org.midonet.midolman.serialization.SerializationException;
 
 public interface ZkConnectionAwareWatcher extends Watcher {
     void setZkConnection(ZkConnection conn);

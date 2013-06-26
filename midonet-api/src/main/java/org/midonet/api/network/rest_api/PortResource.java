@@ -21,6 +21,7 @@ import org.midonet.api.network.auth.BridgeAuthorizer;
 import org.midonet.api.network.auth.PortAuthorizer;
 import org.midonet.api.network.auth.PortGroupAuthorizer;
 import org.midonet.api.network.auth.RouterAuthorizer;
+import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.cluster.DataClient;
@@ -80,7 +81,9 @@ public class PortResource extends AbstractResource {
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Path("{id}")
     public void delete(@PathParam("id") UUID id)
-            throws StateAccessException, InvalidStateOperationException {
+            throws StateAccessException,
+            InvalidStateOperationException,
+            SerializationException {
 
         // Get the port and validate that this can be deleted
         org.midonet.cluster.data.Port portData = dataClient.portsGet(id);
@@ -117,7 +120,8 @@ public class PortResource extends AbstractResource {
     @Path("{id}")
     @Produces({ VendorMediaType.APPLICATION_PORT_JSON,
             MediaType.APPLICATION_JSON })
-    public Port get(@PathParam("id") UUID id) throws StateAccessException {
+    public Port get(@PathParam("id") UUID id) throws StateAccessException,
+            SerializationException {
 
         if (!authorizer.authorize(context, AuthAction.READ, id)) {
             throw new ForbiddenHttpException(
@@ -153,7 +157,9 @@ public class PortResource extends AbstractResource {
     @Consumes({ VendorMediaType.APPLICATION_PORT_JSON,
             MediaType.APPLICATION_JSON })
     public void update(@PathParam("id") UUID id, Port port)
-            throws StateAccessException, InvalidStateOperationException {
+            throws StateAccessException,
+            InvalidStateOperationException,
+            SerializationException {
 
         port.setId(id);
 
@@ -186,7 +192,8 @@ public class PortResource extends AbstractResource {
     @Consumes({ VendorMediaType.APPLICATION_PORT_LINK_JSON,
             MediaType.APPLICATION_JSON })
     public Response link(@PathParam("id") UUID id, Link link)
-            throws StateAccessException {
+            throws StateAccessException,
+            SerializationException {
 
         link.setPortId(id);
 
@@ -215,7 +222,8 @@ public class PortResource extends AbstractResource {
     @DELETE
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Path("{id}/link")
-    public void unlink(@PathParam("id") UUID id) throws StateAccessException {
+    public void unlink(@PathParam("id") UUID id) throws StateAccessException,
+            SerializationException {
 
         // Idempotent operation: if the port does not exists, just return.
         org.midonet.cluster.data.Port portData =
@@ -282,7 +290,9 @@ public class PortResource extends AbstractResource {
         @Consumes({ VendorMediaType.APPLICATION_PORT_JSON,
                 MediaType.APPLICATION_JSON })
         public Response create(BridgePort port)
-                throws StateAccessException, InvalidStateOperationException {
+                throws StateAccessException,
+                InvalidStateOperationException,
+                SerializationException {
 
             port.setDeviceId(bridgeId);
 
@@ -314,7 +324,8 @@ public class PortResource extends AbstractResource {
         @PermitAll
         @Produces({ VendorMediaType.APPLICATION_PORT_COLLECTION_JSON,
                 MediaType.APPLICATION_JSON })
-        public List<Port> list() throws StateAccessException {
+        public List<Port> list()
+                throws StateAccessException, SerializationException {
 
             if (!authorizer.authorize(context, AuthAction.READ, bridgeId)) {
                 throw new ForbiddenHttpException(
@@ -374,7 +385,9 @@ public class PortResource extends AbstractResource {
         @Consumes({ VendorMediaType.APPLICATION_PORT_JSON,
                       MediaType.APPLICATION_JSON })
         public Response create(TrunkPort port)
-            throws StateAccessException, InvalidStateOperationException {
+                throws StateAccessException,
+                InvalidStateOperationException,
+                SerializationException {
 
             port.setDeviceId(bridgeId);
 
@@ -404,7 +417,8 @@ public class PortResource extends AbstractResource {
         @PermitAll
         @Produces({ VendorMediaType.APPLICATION_PORT_COLLECTION_JSON,
                       MediaType.APPLICATION_JSON })
-        public List<Port> list() throws StateAccessException {
+        public List<Port> list()
+                throws StateAccessException, SerializationException {
 
             if (!authorizer.authorize(context, AuthAction.READ, bridgeId)) {
                 throw new ForbiddenHttpException(
@@ -464,7 +478,9 @@ public class PortResource extends AbstractResource {
         @Consumes({ VendorMediaType.APPLICATION_PORT_JSON,
                       MediaType.APPLICATION_JSON })
         public Response create(InteriorVlanBridgePort port)
-            throws StateAccessException, InvalidStateOperationException {
+                throws StateAccessException,
+                InvalidStateOperationException,
+                SerializationException {
 
             port.setDeviceId(bridgeId);
 
@@ -494,7 +510,8 @@ public class PortResource extends AbstractResource {
         @PermitAll
         @Produces({ VendorMediaType.APPLICATION_PORT_COLLECTION_JSON,
                       MediaType.APPLICATION_JSON })
-        public List<Port> list() throws StateAccessException {
+        public List<Port> list()
+                throws StateAccessException, SerializationException {
 
             if (!authorizer.authorize(context, AuthAction.READ, bridgeId)) {
                 throw new ForbiddenHttpException(
@@ -550,7 +567,8 @@ public class PortResource extends AbstractResource {
         @PermitAll
         @Produces({ VendorMediaType.APPLICATION_PORT_COLLECTION_JSON,
                 MediaType.APPLICATION_JSON })
-        public List<Port> list() throws StateAccessException {
+        public List<Port> list()
+                throws StateAccessException, SerializationException {
 
             if (!authorizer.authorize(context, AuthAction.READ, bridgeId)) {
                 throw new ForbiddenHttpException(
@@ -610,7 +628,9 @@ public class PortResource extends AbstractResource {
         @Consumes({ VendorMediaType.APPLICATION_PORT_JSON,
                 MediaType.APPLICATION_JSON })
         public Response create(RouterPort port)
-                throws StateAccessException, InvalidStateOperationException {
+                throws StateAccessException,
+                InvalidStateOperationException,
+                SerializationException {
 
             port.setDeviceId(routerId);
 
@@ -645,7 +665,8 @@ public class PortResource extends AbstractResource {
         @PermitAll
         @Produces({ VendorMediaType.APPLICATION_PORT_COLLECTION_JSON,
                 MediaType.APPLICATION_JSON })
-        public List<Port> list() throws StateAccessException {
+        public List<Port> list()
+                throws StateAccessException, SerializationException {
 
             if (!authorizer.authorize(context, AuthAction.READ, routerId)) {
                 throw new ForbiddenHttpException(
@@ -701,7 +722,8 @@ public class PortResource extends AbstractResource {
         @PermitAll
         @Produces({ VendorMediaType.APPLICATION_PORT_COLLECTION_JSON,
                 MediaType.APPLICATION_JSON })
-        public List<Port> list() throws StateAccessException {
+        public List<Port> list()
+                throws StateAccessException, SerializationException {
 
             if (!authorizer.authorize(context, AuthAction.READ, routerId)) {
                 throw new ForbiddenHttpException(
@@ -756,7 +778,7 @@ public class PortResource extends AbstractResource {
         @Consumes({ VendorMediaType.APPLICATION_PORTGROUP_PORT_JSON,
                 MediaType.APPLICATION_JSON })
         public Response create(PortGroupPort portGroupPort)
-                throws StateAccessException {
+                throws StateAccessException, SerializationException {
 
             portGroupPort.setPortGroupId(portGroupId);
 
@@ -794,7 +816,7 @@ public class PortResource extends AbstractResource {
         @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
         @Path("{portId}")
         public void delete(@PathParam("portId") UUID portId)
-                throws StateAccessException {
+                throws StateAccessException, SerializationException {
 
             if (!dataClient.portGroupsExists(portGroupId)
                  || !dataClient.portsExists(portId)) {
@@ -823,7 +845,7 @@ public class PortResource extends AbstractResource {
                 MediaType.APPLICATION_JSON })
         @Path("{portId}")
         public PortGroupPort get(@PathParam("portId") UUID portId)
-            throws StateAccessException {
+            throws StateAccessException, SerializationException {
 
             if (!dataClient.portGroupsIsPortMember(portGroupId, portId)) {
                 throw new NotFoundHttpException(
@@ -848,7 +870,8 @@ public class PortResource extends AbstractResource {
         @PermitAll
         @Produces({ VendorMediaType.APPLICATION_PORTGROUP_PORT_COLLECTION_JSON,
                 MediaType.APPLICATION_JSON })
-        public List<PortGroupPort> list() throws StateAccessException {
+        public List<PortGroupPort> list() throws StateAccessException,
+                                                 SerializationException {
 
             if (!portGroupAuthorizer.authorize(
                     context, AuthAction.READ, portGroupId)) {

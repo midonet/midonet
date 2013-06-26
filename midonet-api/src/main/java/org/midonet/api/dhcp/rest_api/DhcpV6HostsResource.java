@@ -19,6 +19,7 @@ import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.auth.AuthAction;
 import org.midonet.api.auth.AuthRole;
+import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.dhcp.V6Host;
@@ -77,7 +78,8 @@ public class DhcpV6HostsResource extends AbstractResource {
     @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
     @Consumes({ VendorMediaType.APPLICATION_DHCPV6_HOST_JSON,
             MediaType.APPLICATION_JSON })
-    public Response create(DhcpV6Host host) throws StateAccessException {
+    public Response create(DhcpV6Host host)
+            throws StateAccessException, SerializationException {
 
         if (!authorizer.authorize(context, AuthAction.WRITE, bridgeId)) {
             throw new ForbiddenHttpException(
@@ -107,7 +109,7 @@ public class DhcpV6HostsResource extends AbstractResource {
     @Produces({ VendorMediaType.APPLICATION_DHCPV6_HOST_JSON,
             MediaType.APPLICATION_JSON })
     public DhcpV6Host get(@PathParam("clientId") String clientId)
-            throws StateAccessException {
+            throws StateAccessException, SerializationException {
 
         if (!authorizer.authorize(context, AuthAction.READ, bridgeId)) {
             throw new ForbiddenHttpException(
@@ -145,7 +147,7 @@ public class DhcpV6HostsResource extends AbstractResource {
     @Consumes({ VendorMediaType.APPLICATION_DHCPV6_HOST_JSON,
             MediaType.APPLICATION_JSON })
     public Response update(@PathParam("clientId") String clientId, DhcpV6Host host)
-            throws StateAccessException {
+            throws StateAccessException, SerializationException {
 
         if (!authorizer.authorize(context, AuthAction.WRITE, bridgeId)) {
             throw new ForbiddenHttpException(
@@ -172,7 +174,7 @@ public class DhcpV6HostsResource extends AbstractResource {
     @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
     @Path("/{clientId}")
     public void delete(@PathParam("clientId") String clientId)
-            throws StateAccessException {
+            throws StateAccessException, SerializationException {
 
         if (!authorizer.authorize(context, AuthAction.WRITE, bridgeId)) {
             throw new ForbiddenHttpException(
@@ -195,7 +197,8 @@ public class DhcpV6HostsResource extends AbstractResource {
     @GET
     @PermitAll
     @Produces({ VendorMediaType.APPLICATION_DHCPV6_HOST_COLLECTION_JSON })
-    public List<DhcpV6Host> list() throws StateAccessException {
+    public List<DhcpV6Host> list()
+            throws StateAccessException, SerializationException {
 
         if (!authorizer.authorize(context, AuthAction.READ, bridgeId)) {
             throw new ForbiddenHttpException(

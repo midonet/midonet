@@ -14,8 +14,12 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.midolman.Setup
 import org.midonet.midolman.state.zkManagers.BridgeZkManager.BridgeConfig
-import org.midonet.midolman.state.{ZkPathManager, MockDirectory}
+import org.midonet.midolman.state.{PathBuilder, ZkManager, MockDirectory}
+import org.midonet.midolman.version.VersionComparator
+
 import org.junit.{Test, BeforeClass, AfterClass}
+import org.midonet.midolman.version.serialization.JsonVersionZkSerializer
+import org.midonet.midolman.version.state.ZkDataVersionProvider
 
 
 /**
@@ -37,11 +41,17 @@ object TestBridgeZkManager {
   @BeforeClass
   def initializeTest() {
     val dir = new MockDirectory();
+    val zk = new ZkManager(dir);
     val basePath = "/midolman";
-    val pathMgr = new ZkPathManager(basePath);
+    val pathMgr = new PathBuilder(basePath);
+    val versionProvider = new ZkDataVersionProvider(zk, pathMgr,
+        new VersionComparator());
+    val serializer = new JsonVersionZkSerializer(versionProvider,
+      new VersionComparator());
     dir.add(pathMgr.getBasePath, null, CreateMode.PERSISTENT)
     Setup.ensureZkDirectoryStructureExists(dir, basePath)
-    bridgeMgr = new BridgeZkManager(dir, basePath)
+    bridgeMgr = new BridgeZkManager(new ZkManager(dir),
+                                    pathMgr, serializer)
   }
 }
 

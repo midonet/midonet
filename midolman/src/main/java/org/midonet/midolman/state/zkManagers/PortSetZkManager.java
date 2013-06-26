@@ -13,21 +13,43 @@ import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.midolman.serialization.Serializer;
+import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.DirectoryCallback;
 import org.midonet.midolman.state.DirectoryCallbackFactory;
+import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.util.functors.CollectionFunctors;
 import org.midonet.util.functors.Functor;
 
-public class PortSetZkManager extends ZkManager {
+
+public class PortSetZkManager extends AbstractZkManager {
 
     private static final Logger log = LoggerFactory
         .getLogger(PortSetZkManager.class);
 
-    public PortSetZkManager(Directory zk, String basePath) {
-        super(zk, basePath);
+
+    /**
+     * Initializes a PortGroupZkManager object with a ZooKeeper client and the
+     * root path of the ZooKeeper directory.
+     *
+     * @param zk
+     *         Zk data access class
+     * @param paths
+     *         PathBuilder class to construct ZK paths
+     * @param serializer
+     *         ZK data serialization class
+     */
+    public PortSetZkManager(ZkManager zk, PathBuilder paths,
+                            Serializer serializer) {
+        super(zk, paths, serializer);
+    }
+
+    public PortSetZkManager(Directory dir, String basePath,
+                            Serializer serializer) {
+        this(new ZkManager(dir), new PathBuilder(basePath), serializer);
     }
 
     public void getPortSetAsync(UUID portSetId,

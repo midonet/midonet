@@ -4,23 +4,33 @@
 
 package org.midonet.midolman.state;
 
-import java.util.HashSet;
-import java.util.UUID;
-
+import com.google.inject.AbstractModule;
+import com.google.inject.Provides;
+import com.google.inject.Singleton;
+import com.google.inject.Injector;
+import com.google.inject.Guice;
 import org.apache.zookeeper.CreateMode;
 import org.junit.Before;
 import org.junit.Test;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.core.IsNull.nullValue;
-
 import org.midonet.midolman.Setup;
+import org.midonet.midolman.guice.serialization.SerializationModule;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.PortDirectory.MaterializedBridgePortConfig;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager;
 import org.midonet.midolman.state.zkManagers.PortGroupZkManager;
 import org.midonet.midolman.state.zkManagers.PortZkManager;
+import org.midonet.midolman.version.guice.VersionModule;
 import org.midonet.util.eventloop.MockReactor;
+import org.midonet.util.eventloop.Reactor;
+
+import java.util.HashSet;
+import java.util.UUID;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.core.IsNull.nullValue;
 
 public class TestPortConfigCache {
     private MockReactor reactor;
@@ -29,24 +39,89 @@ public class TestPortConfigCache {
     private UUID portID;
     private UUID portGroupID;
     private PortConfigCache portCache;
+    private Injector injector;
+
+    public class TestModule extends AbstractModule {
+
+        private final String basePath;
+
+        public TestModule(String basePath) {
+            this.basePath = basePath;
+        }
+
+        @Override
+        protected void configure() {
+            bind(Reactor.class).toInstance(new MockReactor());
+            bind(PathBuilder.class).toInstance(new PathBuilder(basePath));
+            bind(ZkConnectionAwareWatcher.class).toInstance(
+                    new MockZookeeperConnectionWatcher());
+        }
+
+        @Provides @Singleton
+        public Directory provideDirectory(PathBuilder paths) {
+            Directory directory = new MockDirectory();
+            try {
+                directory.add(paths.getBasePath(), null, CreateMode.PERSISTENT);
+                Setup.ensureZkDirectoryStructureExists(directory,
+                        paths.getBasePath());
+            } catch (Exception ex) {
+                throw new RuntimeException("Could not initialize zk", ex);
+            }
+            return directory;
+        }
+
+        @Provides @Singleton
+        public ZkManager provideZkManager(Directory directory) {
+            return new ZkManager(directory);
+        }
+
+        @Provides @Singleton
+        public PortZkManager providePortZkManager(ZkManager zkManager,
+                                                  PathBuilder paths,
+                                                  Serializer serializer) {
+            return new PortZkManager(zkManager, paths, serializer);
+        }
+
+        @Provides @Singleton
+        public BridgeZkManager provideBridgeZkManager(ZkManager zkManager,
+                                                      PathBuilder paths,
+                                                      Serializer serializer) {
+            return new BridgeZkManager(zkManager, paths, serializer);
+        }
+
+        @Provides @Singleton
+        public PortGroupZkManager providePortGroupZkManager(
+                ZkManager zkManager, PathBuilder paths, Serializer serializer) {
+            return new PortGroupZkManager(zkManager, paths, serializer);
+        }
+
+        @Provides @Singleton
+        public PortConfigCache providePortConfigCache(
+                Reactor reactor, Directory directory, PathBuilder paths,
+                ZkConnectionAwareWatcher watcher, Serializer serializer) {
+            return new PortConfigCache(reactor, directory, paths.getBasePath(),
+                    watcher, serializer);
+        }
+
+    }
 
     @Before
     public void setUp() throws Exception {
         String basePath = "/midolman";
-        Directory dir = new MockDirectory();
-        dir.add(basePath, null, CreateMode.PERSISTENT);
-        Setup.ensureZkDirectoryStructureExists(dir, basePath);
-        portMgr = new PortZkManager(dir, basePath);
-        reactor = new MockReactor();
-        portCache = new PortConfigCache(reactor, dir, basePath,
-                                        new MockZookeeperConnectionWatcher());
-
-        BridgeZkManager bridgeMgr = new BridgeZkManager(dir, basePath);
+        injector = Guice.createInjector(
+                new TestModule(basePath),
+                new VersionModule(),
+                new SerializationModule()
+        );
+        portMgr = injector.getInstance(PortZkManager.class);
+        portCache = injector.getInstance(PortConfigCache.class);
+        BridgeZkManager bridgeMgr = injector.getInstance(BridgeZkManager.class);
         BridgeZkManager.BridgeConfig bridgeConfig =
                 new BridgeZkManager.BridgeConfig();
         bridgeID = bridgeMgr.create(bridgeConfig);
 
-        PortGroupZkManager portGroupMgr = new PortGroupZkManager(dir, basePath);
+        PortGroupZkManager portGroupMgr = injector.getInstance(
+                PortGroupZkManager.class);
         PortGroupZkManager.PortGroupConfig portGroupConfig =
                 new PortGroupZkManager.PortGroupConfig();
         portGroupID = portGroupMgr.create(portGroupConfig);
@@ -59,7 +134,8 @@ public class TestPortConfigCache {
     }
 
     @Test
-    public void testExistingPortID() throws StateAccessException {
+    public void testExistingPortID() throws StateAccessException,
+            SerializationException {
         PortConfig config = new MaterializedBridgePortConfig(bridgeID);
         config.outboundFilter = UUID.randomUUID();
         config.portGroupIDs = new HashSet<UUID>();
@@ -126,7 +202,8 @@ public class TestPortConfigCache {
     } */
 
     @Test
-    public void testConfigChanges() throws StateAccessException {
+    public void testConfigChanges() throws StateAccessException,
+            SerializationException {
         testExistingPortID();
         assertThat("The cache should contain the portID as key",
                 portCache.hasKey(portID));

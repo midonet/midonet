@@ -3,6 +3,14 @@
  */
 package org.midonet.api.host;
 
+import com.google.inject.AbstractModule;
+import com.google.inject.Provides;
+import com.google.inject.Singleton;
+import com.google.inject.Injector;
+import com.google.inject.Guice;
+import org.apache.zookeeper.KeeperException;
+import org.junit.Ignore;
+import org.midonet.api.serialization.SerializationModule;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.api.VendorMediaType;
@@ -10,8 +18,9 @@ import org.midonet.api.host.rest_api.HostTopology;
 import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.zookeeper.StaticMockDirectory;
-import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.serialization.Serializer;
+import org.midonet.midolman.state.*;
 import org.midonet.client.MidonetApi;
 import org.midonet.client.dto.*;
 import org.midonet.client.resource.*;
@@ -28,6 +37,7 @@ import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import org.midonet.midolman.version.guice.VersionModule;
 import org.midonet.packets.MAC;
 
 import java.net.InetAddress;
@@ -46,13 +56,47 @@ public class TestTunnelZoneHost {
 
     public static final String ZK_ROOT_MIDOLMAN = "/test/midolman";
 
+    @Ignore("helper class - not test")
+    public static class TestModule extends AbstractModule {
+
+        private final String basePath;
+
+        public TestModule(String basePath) {
+            this.basePath = basePath;
+        }
+
+        @Override
+        protected void configure() {
+            bind(PathBuilder.class).toInstance(new PathBuilder(basePath));
+        }
+
+        @Provides
+        @Singleton
+        public Directory provideDirectory() {
+            Directory directory = StaticMockDirectory.getDirectoryInstance();
+            return directory;
+        }
+
+        @Provides @Singleton
+        public ZkManager provideZkManager(Directory directory) {
+            return new ZkManager(directory);
+        }
+
+        @Provides @Singleton
+        public HostZkManager provideHostZkManager(ZkManager zkManager,
+                                                  PathBuilder paths,
+                                                  Serializer serializer) {
+            return new HostZkManager(zkManager, paths, serializer);
+        }
+    }
+
     public static class TestCrud extends JerseyTest {
 
         private DtoWebResource dtoResource;
         private HostTopology topologyGre;
         private HostTopology topologyCapwap;
         private HostZkManager hostManager;
-        private Directory rootDirectory;
+        private Injector injector = null;
 
         private UUID host1Id = UUID.randomUUID();
         private UUID host2Id = UUID.randomUUID();
@@ -62,12 +106,16 @@ public class TestTunnelZoneHost {
         }
 
         @Before
-        public void setUp() throws StateAccessException {
+        public void setUp() throws StateAccessException,
+                InterruptedException, KeeperException, SerializationException {
 
             WebResource resource = resource();
+            injector = Guice.createInjector(
+                    new VersionModule(),
+                    new SerializationModule(),
+                    new TestModule(ZK_ROOT_MIDOLMAN));
             dtoResource = new DtoWebResource(resource);
-            rootDirectory = StaticMockDirectory.getDirectoryInstance();
-            hostManager = new HostZkManager(rootDirectory, ZK_ROOT_MIDOLMAN);
+            hostManager = injector.getInstance(HostZkManager.class);
 
             DtoHost host1 = new DtoHost();
             host1.setName("host1");
@@ -276,7 +324,7 @@ public class TestTunnelZoneHost {
         private final DtoTunnelZoneHost tunnelZoneHost;
         private final String property;
         private HostZkManager hostManager;
-        private Directory rootDirectory;
+        private Injector injector;
 
         public TestBadRequestGreTunnelHostCreate(
                 DtoTunnelZoneHost tunnelZoneHost, String property) {
@@ -286,12 +334,16 @@ public class TestTunnelZoneHost {
         }
 
         @Before
-        public void setUp() throws StateAccessException {
+        public void setUp() throws StateAccessException,
+                KeeperException, InterruptedException, SerializationException {
 
             WebResource resource = resource();
             dtoResource = new DtoWebResource(resource);
-            rootDirectory = StaticMockDirectory.getDirectoryInstance();
-            hostManager = new HostZkManager(rootDirectory, ZK_ROOT_MIDOLMAN);
+            injector = Guice.createInjector(
+                    new VersionModule(),
+                    new SerializationModule(),
+                    new TestModule(ZK_ROOT_MIDOLMAN));
+            hostManager = injector.getInstance(HostZkManager.class);
 
             DtoGreTunnelZone tunnelZone1 = new DtoGreTunnelZone();
             tunnelZone1.setName("tz1-name");
@@ -336,18 +388,21 @@ public class TestTunnelZoneHost {
     public static class TestBaseUriOverride extends JerseyTest {
 
         private HostZkManager hostManager;
-        private Directory rootDirectory;
         private UUID hostId = UUID.randomUUID();
+        private Injector injector = null;
 
         public TestBaseUriOverride() {
             super(FuncTest.appDescOverrideBaseUri);
         }
 
         @Before
-        public void setUp() throws StateAccessException {
-
-            rootDirectory = StaticMockDirectory.getDirectoryInstance();
-            hostManager = new HostZkManager(rootDirectory, ZK_ROOT_MIDOLMAN);
+        public void setUp() throws StateAccessException,
+                InterruptedException, KeeperException{
+            injector = Guice.createInjector(
+                    new VersionModule(),
+                    new SerializationModule(),
+                    new TestModule(ZK_ROOT_MIDOLMAN));
+            hostManager = injector.getInstance(HostZkManager.class);
         }
 
         @After

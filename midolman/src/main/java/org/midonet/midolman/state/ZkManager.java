@@ -1,10 +1,11 @@
 /*
  * Copyright 2012 Midokura KK
  * Copyright 2012 Midokura PTE LTD.
+ * Copyright 2013 Midokura PTE LTD.
  */
 package org.midonet.midolman.state;
 
-import org.midonet.midolman.util.JSONSerializer;
+import com.google.inject.Inject;
 import org.midonet.util.functors.CollectionFunctors;
 import org.midonet.util.functors.Functor;
 import org.midonet.util.functors.TreeNode;
@@ -22,41 +23,68 @@ import java.util.*;
 
 import static org.midonet.util.functors.TreeNodeFunctors.recursiveBottomUpFold;
 
+import static org.midonet.util.functors.TreeNodeFunctors.recursiveBottomUpFold;
+
 
 /**
- * Abstract base class for ZkManagers.
+ *  Class that provides data access methods to Zookeeper as a wrapper of
+ *  Directory class.
  */
 public class ZkManager {
 
-    protected final static Logger log = LoggerFactory.getLogger(ZkManager.class);
+    private final static Logger log =
+            LoggerFactory.getLogger(ZkManager.class);
 
-    protected static final Functor<String, UUID> strToUUIDMapper =
-        new Functor<String, UUID>() {
-            @Override
-            public UUID apply(String arg0) {
-                try {
-                    return UUID.fromString(arg0);
-                } catch (IllegalArgumentException ex) {
-                    return null;
-                }
-            }
-        };
-    protected ZkPathManager paths = null;
-    protected Directory zk = null;
-    protected ZkConfigSerializer serializer;
+    private final Directory zk;
 
     /**
      * Constructor.
      *
      * @param zk
      *            Directory object.
-     * @param basePath
-     *            Path to set as the base.
      */
-    public ZkManager(Directory zk, String basePath) {
-        this.paths = new ZkPathManager(basePath);
+    @Inject
+    public ZkManager(Directory zk) {
         this.zk = zk;
-        this.serializer = new ZkConfigSerializer(new JSONSerializer());
+    }
+
+    public void asyncGet(String relativePath, DirectoryCallback<byte[]> data,
+                         Directory.TypedWatcher watcher) {
+        this.zk.asyncGet(relativePath, data, watcher);
+    }
+
+    public void asyncGetChildren(String relativePath,
+                          DirectoryCallback<Set<String>> childrenCallback,
+                          Directory.TypedWatcher watcher) {
+        this.zk.asyncGetChildren(relativePath, childrenCallback, watcher);
+    }
+
+    public void asyncAdd(String relativePath, byte[] data, CreateMode mode,
+                  DirectoryCallback.Add cb) {
+        this.zk.asyncAdd(relativePath, data, mode, cb);
+    }
+
+    public void asyncAdd(String relativePath, byte[] data, CreateMode mode) {
+        this.zk.asyncAdd(relativePath, data, mode);
+    }
+
+    public void asyncDelete(String relativePath,
+                            DirectoryCallback.Void callback) {
+        this.zk.asyncDelete(relativePath, callback);
+    }
+
+    public void asyncDelete(String relativePath) {
+        this.asyncDelete(relativePath);
+    }
+
+    public String add(String relativePath, byte[] data, CreateMode mode)
+            throws KeeperException, InterruptedException {
+        return this.zk.add(relativePath, data, mode);
+    }
+
+    public void asyncMultiPathGet(final Set<String> paths,
+                                  final DirectoryCallback<Set<byte[]>> cb) {
+        this.zk.asyncMultiPathGet(paths, cb);
     }
 
     public Directory getSubDirectory(String path) throws StateAccessException {
@@ -82,8 +110,8 @@ public class ZkManager {
                             + path + ": " + e.getMessage(), e);
         } catch (InterruptedException e) {
             throw new StateAccessException(
-                    "ZooKeeper thread interrupted while checking if path exists: "
-                            + path + ": " + e.getMessage(), e);
+                    "ZooKeeper thread interrupted while checking if path " +
+                            "exists: " + path + ": " + e.getMessage(), e);
         }
     }
 
@@ -96,16 +124,17 @@ public class ZkManager {
         } catch (NoNodeException e) {
             // Even safe doesn't allow adding to non-existing path.
             throw new NoStatePathException(
-                    "ZooKeeper error occurred while adding a persistent node to path "
-                            + path + ": " + e.getMessage(), e);
+                    "ZooKeeper error occurred while adding a persistent node " +
+                            "to path " + path + ": " + e.getMessage(), e);
         } catch (KeeperException e) {
             throw new StateAccessException(
-                    "ZooKeeper error occurred while adding a persistent node to path "
-                            + path + ": " + e.getMessage(), e);
+                    "ZooKeeper error occurred while adding a persistent node" +
+                            " to path " + path + ": " + e.getMessage(), e);
         } catch (InterruptedException e) {
             throw new StateAccessException(
-                    "ZooKeeper thread interrupted while adding a persistent node to the path "
-                            + path + ": " + e.getMessage(), e);
+                    "ZooKeeper thread interrupted while adding a persistent " +
+                            "node to the path " + path + ": " +
+                            e.getMessage(), e);
         }
     }
 
@@ -115,21 +144,46 @@ public class ZkManager {
             return zk.add(path, data, CreateMode.PERSISTENT);
         } catch (NodeExistsException e) {
             throw new StatePathExistsException(
-                    "ZooKeeper error occurred while adding the persistent node to path "
-                            + path + ": " + e.getMessage(), e);
+                    "ZooKeeper error occurred while adding the persistent " +
+                            "node to path " + path + ": " + e.getMessage(), e);
         } catch (NoNodeException e) {
             throw new NoStatePathException(
-                    "ZooKeeper error occurred while adding the persistent node to path "
-                            + path + ": " + e.getMessage(), e);
+                    "ZooKeeper error occurred while adding the persistent " +
+                            "node to path " + path + ": " + e.getMessage(), e);
         } catch (KeeperException e) {
             throw new StateAccessException(
-                    "ZooKeeper error occurred while adding a persistent node to path "
-                            + path + ": " + e.getMessage(), e);
+                    "ZooKeeper error occurred while adding a persistent " +
+                            "node to path " + path + ": " + e.getMessage(), e);
         } catch (InterruptedException e) {
             throw new StateAccessException(
-                    "ZooKeeper thread interrupted while adding a persistent node to the path "
-                            + path + ": " + e.getMessage(), e);
+                    "ZooKeeper thread interrupted while adding a persistent " +
+                            "node to the path " + path + ": "
+                            + e.getMessage(), e);
         }
+    }
+
+    /**
+     * @param lockPath path to the zk lock.
+     */
+    public void lock(String lockPath) throws StateAccessException {
+        try {
+            zk.lock(lockPath);
+        } catch (KeeperException e) {
+            throw new StateAccessException(
+                    "ZooKeeper error occurred while locking: "
+                            + lockPath + ": " + e.getMessage(), e);
+        } catch (InterruptedException e) {
+            throw new StateAccessException(
+                    "ZooKeeper thread interrupted while locking: "
+                            + lockPath + ": " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * @param lockPath path to the zk lock.
+     */
+    public void unlock(String lockPath) throws StateAccessException {
+        zk.unlock(lockPath);
     }
 
     public String addEphemeral(String path, byte[] data)
@@ -138,20 +192,21 @@ public class ZkManager {
             return zk.add(path, null, CreateMode.EPHEMERAL);
         } catch (NodeExistsException e) {
             throw new StatePathExistsException(
-                    "ZooKeeper error occurred while adding an ephemeral node to path "
-                            + path + ": " + e.getMessage(), e);
+                    "ZooKeeper error occurred while adding an ephemeral " +
+                            "node to path " + path + ": " + e.getMessage(), e);
         } catch (NoNodeException e) {
             throw new NoStatePathException(
-                    "ZooKeeper error occurred while adding an ephemeral node to path "
-                            + path + ": " + e.getMessage(), e);
+                    "ZooKeeper error occurred while adding an ephemeral " +
+                            "node to path " + path + ": " + e.getMessage(), e);
         } catch (KeeperException e) {
             throw new StateAccessException(
-                    "ZooKeeper error occurred while adding an ephemeral node to path "
-                            + path + ": " + e.getMessage(), e);
+                    "ZooKeeper error occurred while adding an ephemeral " +
+                            "node to path " + path + ": " + e.getMessage(), e);
         } catch (InterruptedException e) {
             throw new StateAccessException(
-                    "ZooKeeper thread interrupted while adding an ephemeral node to the path "
-                            + path + ": " + e.getMessage(), e);
+                    "ZooKeeper thread interrupted while adding an ephemeral " +
+                            "node to the path " + path + ": " +
+                            e.getMessage(), e);
         }
     }
 
@@ -160,12 +215,13 @@ public class ZkManager {
             zk.delete(path);
         } catch (KeeperException e) {
             throw new StateAccessException(
-                    "ZooKeeper error occurred while deleting an ephemeral node on path "
-                            + path + ": " + e.getMessage(), e);
+                    "ZooKeeper error occurred while deleting an ephemeral " +
+                            "node on path " + path + ": " + e.getMessage(), e);
         } catch (InterruptedException e) {
             throw new StateAccessException(
-                    "ZooKeeper thread interrupted while removing an ephemeral node on the path "
-                            + path + ": " + e.getMessage(), e);
+                    "ZooKeeper thread interrupted while removing an " +
+                            "ephemeral node on the path " + path + ": " +
+                            e.getMessage(), e);
         }
     }
 
@@ -175,20 +231,21 @@ public class ZkManager {
             return zk.add(path + "/", data, CreateMode.PERSISTENT_SEQUENTIAL);
         } catch (NodeExistsException e) {
             throw new StatePathExistsException(
-                    "ZooKeeper error occurred while adding a sequential node to path "
-                            + path + ": " + e.getMessage(), e);
+                    "ZooKeeper error occurred while adding a sequential " +
+                            "node to path " + path + ": " + e.getMessage(), e);
         } catch (NoNodeException e) {
             throw new NoStatePathException(
-                    "ZooKeeper error occurred while adding a sequential node to path "
-                            + path + ": " + e.getMessage(), e);
+                    "ZooKeeper error occurred while adding a sequential " +
+                            "node to path " + path + ": " + e.getMessage(), e);
         } catch (KeeperException e) {
             throw new StateAccessException(
-                    "ZooKeeper error occurred while adding a sequential node to path "
-                            + path + ": " + e.getMessage(), e);
+                    "ZooKeeper error occurred while adding a sequential " +
+                            "node to path " + path + ": " + e.getMessage(), e);
         } catch (InterruptedException e) {
             throw new StateAccessException(
-                    "ZooKeeper thread interrupted while adding a sequential node to the path "
-                            + path + ": " + e.getMessage(), e);
+                    "ZooKeeper thread interrupted while adding a sequential " +
+                            "node to the path " + path + ": " +
+                            e.getMessage(), e);
         }
     }
 
@@ -252,8 +309,8 @@ public class ZkManager {
                             + path + ": " + e.getMessage(), e);
         } catch (InterruptedException e) {
             throw new StateAccessException(
-                    "ZooKeeper thread interrupted while getting the children of "
-                            + path + ": " + e.getMessage(), e);
+                    "ZooKeeper thread interrupted while getting the " +
+                            "children of " + path + ": " + e.getMessage(), e);
         }
         return children;
     }
@@ -296,7 +353,7 @@ public class ZkManager {
     }
 
     private String getMultiErrorMessage(String message, List<Op> ops,
-            KeeperException ex) {
+                                        KeeperException ex) {
         message += ex.getMessage();
         List<OpResult> results = ex.getResults();
         if (results == null) {
@@ -308,7 +365,8 @@ public class ZkManager {
             Op operation = ops.get(i);
 
             if (result instanceof OpResult.ErrorResult) {
-                OpResult.ErrorResult errorResult = (OpResult.ErrorResult) result;
+                OpResult.ErrorResult errorResult =
+                        (OpResult.ErrorResult) result;
 
                 if (errorResult.getErr() != 0) {
                     message += "\r\n\t\t" + operation.getPath()
@@ -364,7 +422,7 @@ public class ZkManager {
         return Op.setData(path, data, -1);
     }
 
-    protected List<Op> getRecursiveDeleteOps(String root)
+    public List<Op> getRecursiveDeleteOps(String root)
             throws StateAccessException {
 
         try {
@@ -377,7 +435,7 @@ public class ZkManager {
         }
     }
 
-    protected class ZKTreeNode implements TreeNode<String> {
+    public class ZKTreeNode implements TreeNode<String> {
         String value;
 
         private ZKTreeNode(String value) {
@@ -392,17 +450,17 @@ public class ZkManager {
         @Override
         public List<TreeNode<String>> getChildren() throws Exception {
             return CollectionFunctors.map(
-                ZkManager.this.getChildren(value),
-                new Functor<String, TreeNode<String>>() {
-                    @Override
-                    public TreeNode<String> apply(String arg0) {
-                        return new ZKTreeNode(value + "/" + arg0);
-                    }
-                }, new LinkedList<TreeNode<String>>());
+                    ZkManager.this.getChildren(value),
+                    new Functor<String, TreeNode<String>>() {
+                        @Override
+                        public TreeNode<String> apply(String arg0) {
+                            return new ZKTreeNode(value + "/" + arg0);
+                        }
+                    }, new LinkedList<TreeNode<String>>());
         }
     }
 
-    protected static class DeleteZookeeperPathOp implements
+    public static class DeleteZookeeperPathOp implements
             org.midonet.util.functors.Functor<String, Op> {
         @Override
         public Op apply(String arg0) {

@@ -1,7 +1,7 @@
 /*
  * Copyright 2013 Midokura PTE LTD.
  */
-package org.midonet.api.rest_api;
+package org.midonet.api.version;
 
 /**
  *  Version of MidoNet API

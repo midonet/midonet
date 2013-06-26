@@ -15,6 +15,7 @@ import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.host.HostCommand;
 import org.midonet.api.host.Interface;
+import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.cluster.DataClient;
 import org.slf4j.Logger;
@@ -69,7 +70,7 @@ public class InterfaceResource extends AbstractResource {
     @Consumes({VendorMediaType.APPLICATION_INTERFACE_JSON,
                   MediaType.APPLICATION_JSON})
     public Response create(Interface anInterface)
-        throws StateAccessException {
+        throws StateAccessException, SerializationException {
 
         try {
 
@@ -105,7 +106,8 @@ public class InterfaceResource extends AbstractResource {
     @RolesAllowed({AuthRole.ADMIN})
     @Produces({VendorMediaType.APPLICATION_INTERFACE_COLLECTION_JSON,
                   MediaType.APPLICATION_JSON})
-    public List<Interface> list() throws StateAccessException {
+    public List<Interface> list()
+            throws StateAccessException, SerializationException {
 
         List<org.midonet.cluster.data.host.Interface> ifConfigs =
                 dataClient.interfacesGetByHost(hostId);
@@ -134,7 +136,7 @@ public class InterfaceResource extends AbstractResource {
     @Produces({VendorMediaType.APPLICATION_INTERFACE_JSON,
                   MediaType.APPLICATION_JSON})
     public Interface get(@PathParam("name") String name)
-        throws StateAccessException {
+        throws StateAccessException, SerializationException {
 
         org.midonet.cluster.data.host.Interface ifaceConfig =
                 dataClient.interfacesGet(hostId, name);
@@ -161,7 +163,7 @@ public class InterfaceResource extends AbstractResource {
     @Path("{name}")
     public Response update(@PathParam("name") String name,
                            Interface newInterfaceData)
-        throws StateAccessException {
+        throws StateAccessException, SerializationException {
 
         try {
             Integer cmdId = dataClient.commandsCreateForInterfaceupdate(

@@ -11,6 +11,7 @@ import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.auth.AuthRole;
 import org.midonet.api.host.HostCommand;
+import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.host.Command;
@@ -56,7 +57,7 @@ public class HostCommandResource extends AbstractResource {
     @Produces({VendorMediaType.APPLICATION_HOST_COMMAND_COLLECTION_JSON,
                   MediaType.APPLICATION_JSON})
     public List<HostCommand> list()
-        throws StateAccessException {
+        throws StateAccessException, SerializationException {
 
         List<Command> commandConfigs = dataClient.commandsGetByHost(hostId);
         List<HostCommand> commands = new ArrayList<HostCommand>();
@@ -82,7 +83,7 @@ public class HostCommandResource extends AbstractResource {
     @Produces({VendorMediaType.APPLICATION_HOST_COMMAND_JSON,
                   MediaType.APPLICATION_JSON})
     public HostCommand get(@PathParam("id") Integer id)
-        throws StateAccessException {
+        throws StateAccessException, SerializationException {
 
         Command commandConfig = dataClient.commandsGet(hostId, id);
         HostCommand command = null;

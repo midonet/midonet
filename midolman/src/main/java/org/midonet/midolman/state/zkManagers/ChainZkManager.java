@@ -11,10 +11,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import org.midonet.midolman.serialization.Serializer;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.Directory;
+import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
-import org.midonet.midolman.state.ZkStateSerializationException;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
@@ -26,7 +29,7 @@ import org.midonet.midolman.rules.Rule;
 /**
  * ZooKeeper DAO class for Chains.
  */
-public class ChainZkManager extends ZkManager {
+public class ChainZkManager extends AbstractZkManager {
 
     public static class ChainConfig {
 
@@ -49,12 +52,20 @@ public class ChainZkManager extends ZkManager {
      * Constructor to set ZooKeeper and base path.
      *
      * @param zk
-     *            Directory object.
-     * @param basePath
-     *            The root path.
+     *         Zk data access class
+     * @param paths
+     *         PathBuilder class to construct ZK paths
+     * @param serializer
+     *         ZK data serialization class
      */
-    public ChainZkManager(Directory zk, String basePath) {
-        super(zk, basePath);
+    public ChainZkManager(ZkManager zk, PathBuilder paths,
+                          Serializer serializer) {
+        super(zk, paths, serializer);
+    }
+
+    public ChainZkManager(Directory dir, String basePath,
+                          Serializer serializer) {
+        this(new ZkManager(dir), new PathBuilder(basePath), serializer);
     }
 
     /**
@@ -66,14 +77,15 @@ public class ChainZkManager extends ZkManager {
      * @param config
      *            ChainConfig object.
      * @return A list of Op objects to represent the operations to perform.
-     * @throws org.midonet.midolman.state.ZkStateSerializationException
+     * @throws org.midonet.midolman.serialization.SerializationException
      *             Serialization error occurred.
      */
     public List<Op> prepareChainCreate(UUID id, ChainConfig config)
-            throws ZkStateSerializationException {
+            throws StateAccessException, SerializationException {
         List<Op> ops = new ArrayList<Op>();
         ops.add(Op.create(paths.getChainPath(id),
-                serializer.serialize(config), Ids.OPEN_ACL_UNSAFE,
+                serializer.serialize(config),
+                Ids.OPEN_ACL_UNSAFE,
                 CreateMode.PERSISTENT));
         ops.add(Op.create(paths.getChainRulesPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
@@ -88,10 +100,10 @@ public class ChainZkManager extends ZkManager {
      * @return A list of Op objects representing the operations to perform.
      * @throws org.midonet.midolman.state.StateAccessException
      */
-    public List<Op> prepareChainDelete(UUID id) throws StateAccessException {
+    public List<Op> prepareChainDelete(UUID id)
+            throws StateAccessException, SerializationException {
         List<Op> ops = new ArrayList<Op>();
-        RuleZkManager ruleZkManager = new RuleZkManager(zk,
-                paths.getBasePath());
+        RuleZkManager ruleZkManager = new RuleZkManager(zk, paths, serializer);
         Set<UUID> ruleIds = ruleZkManager.getRuleIds(id);
         for (UUID ruleId : ruleIds) {
             Rule rule = ruleZkManager.get(ruleId);
@@ -114,13 +126,13 @@ public class ChainZkManager extends ZkManager {
      * @param chain
      *            ChainConfig object to add to the ZooKeeper directory.
      * @return The UUID of the newly created object.
-     * @throws ZkStateSerializationException
+     * @throws SerializationException
      *             Serialization error occurred.
      */
     public UUID create(ChainConfig chain) throws StateAccessException,
-            ZkStateSerializationException {
+            SerializationException {
         UUID id = UUID.randomUUID();
-        multi(prepareChainCreate(id, chain));
+        zk.multi(prepareChainCreate(id, chain));
         return id;
     }
 
@@ -133,7 +145,7 @@ public class ChainZkManager extends ZkManager {
      * @throws StateAccessException
      */
     public boolean exists(UUID id) throws StateAccessException {
-        return exists(paths.getChainPath(id));
+        return zk.exists(paths.getChainPath(id));
     }
 
     /**
@@ -144,8 +156,9 @@ public class ChainZkManager extends ZkManager {
      * @return ChainConfig object found.
      * @throws StateAccessException
      */
-    public ChainConfig get(UUID id) throws StateAccessException {
-        byte[] data = get(paths.getChainPath(id), null);
+    public ChainConfig get(UUID id) throws StateAccessException,
+            SerializationException {
+        byte[] data = zk.get(paths.getChainPath(id), null);
         return serializer.deserialize(data, ChainConfig.class);
     }
 
@@ -157,9 +170,10 @@ public class ChainZkManager extends ZkManager {
      *            ChainConfig object to save.
      * @throws StateAccessException
      */
-    public void update(UUID id, ChainConfig config) throws StateAccessException {
+    public void update(UUID id, ChainConfig config) throws StateAccessException,
+            SerializationException {
         byte[] data = serializer.serialize(config);
-        update(paths.getChainPath(id), data);
+        zk.update(paths.getChainPath(id), data);
     }
 
     /***
@@ -168,11 +182,12 @@ public class ChainZkManager extends ZkManager {
      *
      * @param id
      *            ID of the chain to delete.
-     * @throws ZkStateSerializationException
+     * @throws SerializationException
      *             Serialization error occurred.
      */
     public void delete(UUID id) throws StateAccessException,
-            ZkStateSerializationException {
-        multi(prepareChainDelete(id));
+            SerializationException
+    {
+        zk.multi(prepareChainDelete(id));
     }
 }

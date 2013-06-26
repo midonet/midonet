@@ -6,6 +6,7 @@ package org.midonet.api.network.auth;
 import com.google.inject.Inject;
 import org.midonet.api.auth.AuthAction;
 import org.midonet.api.auth.Authorizer;
+import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.Router;
@@ -32,7 +33,8 @@ public class RouterAuthorizer extends Authorizer<UUID> {
 
     @Override
     public boolean authorize(SecurityContext context, AuthAction action,
-                             UUID id) throws StateAccessException {
+                             UUID id) throws StateAccessException,
+                                             SerializationException {
         log.debug("authorize entered: id=" + id + ",action=" + action);
 
         if (isAdmin(context)) {

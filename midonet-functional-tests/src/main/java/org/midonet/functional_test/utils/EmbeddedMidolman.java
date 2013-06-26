@@ -9,6 +9,8 @@ import com.google.common.base.Service;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
+import org.midonet.midolman.guice.serialization.SerializationModule;
+import org.midonet.midolman.version.guice.VersionModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,6 +51,8 @@ public class EmbeddedMidolman {
 
         log.info("Getting configuration file from: {}", configFilePath);
         injector = Guice.createInjector(
+                new VersionModule(),
+                new SerializationModule(),
                 new ZookeeperConnectionModule(),
                 new ReactorModule(),
                 new HostModule(),

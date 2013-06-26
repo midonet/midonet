@@ -17,9 +17,15 @@ import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.cluster.data.TunnelZone;
+import org.midonet.cluster.data.zones.CapwapTunnelZone;
+import org.midonet.cluster.data.zones.CapwapTunnelZoneHost;
+import org.midonet.cluster.data.zones.GreTunnelZone;
+import org.midonet.cluster.data.zones.GreTunnelZoneHost;
 import org.midonet.midolman.guice.zookeeper.ZKConnectionProvider;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
+import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.zkManagers.PortSetZkManager;
 import org.midonet.midolman.state.zkManagers.TunnelZoneZkManager;
 import org.midonet.cluster.client.BGPListBuilder;
@@ -30,15 +36,11 @@ import org.midonet.cluster.client.PortBuilder;
 import org.midonet.cluster.client.PortSetBuilder;
 import org.midonet.cluster.client.RouterBuilder;
 import org.midonet.cluster.client.TunnelZones;
-import org.midonet.cluster.data.TunnelZone;
-import org.midonet.cluster.data.zones.GreTunnelZone;
-import org.midonet.cluster.data.zones.GreTunnelZoneHost;
-import org.midonet.cluster.data.zones.CapwapTunnelZone;
-import org.midonet.cluster.data.zones.CapwapTunnelZoneHost;
 import org.midonet.util.eventloop.Reactor;
 
 import static org.midonet.cluster.client.TunnelZones.GreBuilder;
 import static org.midonet.cluster.client.TunnelZones.CapwapBuilder;
+
 
 /**
  * Implementation of the Cluster.Client using ZooKeeper
@@ -132,7 +134,8 @@ public class LocalClientImpl implements Client {
     }
 
     @Override
-    public void getTunnelZones(final UUID zoneID, final TunnelZones.BuildersProvider builders) {
+    public void getTunnelZones(final UUID zoneID,
+                               final TunnelZones.BuildersProvider builders) {
         reactorLoop.submit(new Runnable() {
             @Override
             public void run() {
@@ -145,6 +148,12 @@ public class LocalClientImpl implements Client {
                 } catch (StateAccessException e) {
                     connectionWatcher.handleError(
                             "TunnelZone:" + zoneID.toString(), this, e);
+                } catch (SerializationException e) {
+                    log.error("Non recoverable error on serialization for" +
+                            " TunnelZone:" + zoneID.toString());
+                    throw new RuntimeException("Non recoverable error on " +
+                            "serialization for TunnelZone:"
+                            + zoneID.toString());
                 }
             }
         });
@@ -265,6 +274,9 @@ public class LocalClientImpl implements Client {
             //
             // For now, this error is left unhandled.
             log.error("Exception while reading hosts", e);
+        }catch (SerializationException e) {
+            // There is no reason to retry for serialization error.
+            log.error("Serialization error while reading hosts: ", e);
         }
     }
 
@@ -310,7 +322,8 @@ public class LocalClientImpl implements Client {
     }
 
     private TunnelZone<?, ?> readTunnelZone(final UUID zoneID,
-            final TunnelZones.BuildersProvider builders) throws StateAccessException {
+            final TunnelZones.BuildersProvider builders)
+            throws StateAccessException, SerializationException {
 
         TunnelZone<?, ?> zone;
         try {
@@ -329,7 +342,12 @@ public class LocalClientImpl implements Client {
 
                         @Override
                         public void _run() throws StateAccessException {
-                            readTunnelZone(zoneID, builders);
+
+                            try {
+                                readTunnelZone(zoneID, builders);
+                            } catch (SerializationException e) {
+                                log.error("Serialization error");
+                            }
                         }
                     });
         } catch (StateAccessException e) {
@@ -364,7 +382,8 @@ public class LocalClientImpl implements Client {
     }
 
     private HostDirectory.Metadata retrieveHostMetadata(final UUID hostId,
-            final HostBuilder builder, final boolean isUpdate) throws StateAccessException {
+            final HostBuilder builder, final boolean isUpdate)
+            throws StateAccessException, SerializationException {
         try {
             HostDirectory.Metadata metadata = hostManager.getHostMetadata(hostId,
                     new Directory.DefaultPersistentWatcher(connectionWatcher) {
@@ -375,7 +394,13 @@ public class LocalClientImpl implements Client {
 
                         @Override
                         public void _run() throws StateAccessException {
-                            retrieveHostMetadata(hostId, builder, true);
+                            try {
+                                retrieveHostMetadata(hostId, builder, true);
+                            } catch (SerializationException e) {
+                                // There is not much to do for this type of
+                                // exception.
+                                log.error("Serialization exception.");
+                            }
                         }
 
                         @Override
@@ -396,6 +421,9 @@ public class LocalClientImpl implements Client {
         } catch (StateAccessException e) {
             log.error("Exception: ", e);
             // trigger delete if that's the case.
+            throw e;
+        } catch (SerializationException e) {
+            log.error("Serialization Exception: ", e);
             throw e;
         }
     }
@@ -431,6 +459,9 @@ public class LocalClientImpl implements Client {
 
             connectionWatcher.handleError(
                     "HostDatapathName" + hostId.toString(), retry, e);
+            return null;
+        } catch (SerializationException e) {
+            log.error("Serialization Exception: ", e);
             return null;
         }
     }
@@ -484,6 +515,10 @@ public class LocalClientImpl implements Client {
             connectionWatcher.handleError(
                     "HostVirtualPortMappings:" + hostId.toString(), retry, e);
             return null;
+        } catch (SerializationException e) {
+            // Not much you can do here, as bad data exists in ZK.
+            log.error("Serialization error.");
+            return null;
         }
 
         for (HostDirectory.VirtualPortMapping mapping : oldMappings) {
@@ -529,6 +564,9 @@ public class LocalClientImpl implements Client {
             };
             connectionWatcher.handleError(
                     "HostConfig:" + hostId.toString(), retry, e);
+            return;
+        } catch (SerializationException e) {
+            log.error("Serialization error");
             return;
         }
 
@@ -599,6 +637,11 @@ public class LocalClientImpl implements Client {
             //
             // For now, this error is left unhandled.
             log.error("Exception", e);
+        } catch (SerializationException e) {
+            // Ditto as above.
+            //
+            // For now, this error is left unhandled.
+            log.error("Serialization Exception: ", e);
         }
     }
 }

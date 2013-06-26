@@ -3,10 +3,14 @@
 */
 package org.midonet.cluster.data;
 
+import org.codehaus.jackson.annotate.JsonSubTypes;
+import org.codehaus.jackson.annotate.JsonTypeInfo;
+import org.midonet.cluster.data.zones.*;
 import org.midonet.packets.IntIPv4;
 
 import java.util.UUID;
 import javax.annotation.Nonnull;
+
 
 public abstract class TunnelZone<
     Zone extends TunnelZone<Zone, ZoneData>,
@@ -41,6 +45,22 @@ public abstract class TunnelZone<
         return getData().name;
     }
 
+    @JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        include = JsonTypeInfo.As.PROPERTY, property = "@type")
+    @JsonSubTypes(
+        {
+            @JsonSubTypes.Type(
+                value = GreTunnelZone.Data.class,
+                name = "gre"),
+            @JsonSubTypes.Type(
+                value = IpsecTunnelZone.Data.class,
+                name = "ipsec"),
+            @JsonSubTypes.Type(
+                value = CapwapTunnelZone.Data.class,
+                name = "capwap")
+        }
+    )
     public static class Data {
         String name;
 
@@ -69,6 +89,7 @@ public abstract class TunnelZone<
                 '}';
         }
     }
+
 
     public abstract static class HostConfig<
         ActualHostConfig extends HostConfig<ActualHostConfig, HostConfigData>,
@@ -102,6 +123,22 @@ public abstract class TunnelZone<
             return getData().equals(hostConfig.getData());
         }
 
+        @JsonTypeInfo(
+            use = JsonTypeInfo.Id.NAME,
+            include = JsonTypeInfo.As.PROPERTY, property = "@type")
+        @JsonSubTypes(
+            {
+            @JsonSubTypes.Type(
+                                value = GreTunnelZoneHost.Data.class,
+                                name = "gre"),
+                        @JsonSubTypes.Type(
+                                value = IpsecTunnelZoneHost.Data.class,
+                                name = "ipsec"),
+                        @JsonSubTypes.Type(
+                                value = CapwapTunnelZoneHost.Data.class,
+                                name = "capwap")
+                }
+        )
         public static class Data {
             IntIPv4 ip;
 

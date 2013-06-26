@@ -13,13 +13,16 @@ import java.util.UUID;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
+import org.midonet.midolman.serialization.Serializer;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.LogicalPortConfig;
+import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.PortConfig;
 import org.midonet.midolman.state.PortDirectory;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
-import org.midonet.midolman.state.ZkStateSerializationException;
 import org.midonet.midolman.state.zkManagers.TunnelZkManager.TunnelKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +30,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Class to manage the port ZooKeeper data.
  */
-public class PortZkManager extends ZkManager {
+public class PortZkManager extends AbstractZkManager {
 
     private final static Logger log = LoggerFactory
                                       .getLogger(PortZkManager.class);
@@ -41,40 +44,53 @@ public class PortZkManager extends ZkManager {
      * path of the ZooKeeper directory.
      *
      * @param zk
-     *            Directory object.
-     * @param basePath
-     *            The root path.
+     *         Zk data access class
+     * @param paths
+     *         PathBuilder class to construct ZK paths
+     * @param serializer
+     *         ZK data serialization class
      */
-    public PortZkManager(Directory zk, String basePath) {
-        super(zk, basePath);
-        tunnelZkManager = new TunnelZkManager(zk, basePath);
-        filterZkManager = new FiltersZkManager(zk, basePath);
-        this.bgpManager = new BgpZkManager(zk, basePath);
-        this.routeZkManager = new RouteZkManager(zk, basePath);
+    public PortZkManager(ZkManager zk, PathBuilder paths,
+                         Serializer serializer) {
+        super(zk, paths, serializer);
+        tunnelZkManager = new TunnelZkManager(zk, paths, serializer);
+        this.filterZkManager = new FiltersZkManager(zk, paths, serializer);
+        this.bgpManager = new BgpZkManager(zk, paths, serializer);
+        this.routeZkManager = new RouteZkManager(zk, paths, serializer);
     }
 
+    public PortZkManager(Directory zk, PathBuilder paths,
+                         Serializer serializer) {
+        this(new ZkManager(zk), paths, serializer);
+    }
+
+    public PortZkManager(Directory zk, String basePath, Serializer serializer) {
+        this(new ZkManager(zk), new PathBuilder(basePath), serializer);
+    }
     public <T extends PortConfig> T get(UUID id, Class<T> clazz)
-            throws StateAccessException {
+            throws StateAccessException, SerializationException {
         return get(id, clazz, null);
     }
 
     public <T extends PortConfig> T get(UUID id, Class<T> clazz,
-            Runnable watcher) throws StateAccessException {
-        byte[] data = get(paths.getPortPath(id), watcher);
+            Runnable watcher) throws StateAccessException,
+            SerializationException {
+        byte[] data = zk.get(paths.getPortPath(id), watcher);
         return serializer.deserialize(data, clazz);
     }
 
     public PortConfig get(UUID id, Runnable watcher)
-            throws StateAccessException {
+            throws StateAccessException, SerializationException {
         return get(id, PortConfig.class, watcher);
     }
 
-    public PortConfig get(UUID id) throws StateAccessException {
+    public PortConfig get(UUID id) throws StateAccessException,
+            SerializationException {
         return get(id, PortConfig.class, null);
     }
 
     public boolean exists(UUID id) throws StateAccessException {
-        return exists(paths.getPortPath(id));
+        return zk.exists(paths.getPortPath(id));
     }
 
     private void addToPortGroupsOps(List<Op> ops, UUID id,
@@ -83,7 +99,7 @@ public class PortZkManager extends ZkManager {
 
             // Check to make sure that the port group path exists.
             String pgPath =  paths.getPortGroupPortsPath(portGroupId);
-            if (!exists(pgPath)) {
+            if (!zk.exists(pgPath)) {
                 throw new IllegalArgumentException("Invalid port group " +
                         "passed in: " + portGroupId);
             }
@@ -103,11 +119,13 @@ public class PortZkManager extends ZkManager {
     }
 
     private List<Op> prepareRouterPortCreate(UUID id,
-            PortDirectory.RouterPortConfig config) throws StateAccessException {
+            PortDirectory.RouterPortConfig config) throws StateAccessException,
+            SerializationException {
         List<Op> ops = new ArrayList<Op>();
 
         ops.add(Op.create(paths.getPortPath(id),
-                serializer.serialize(config), Ids.OPEN_ACL_UNSAFE,
+                serializer.serialize(config),
+                Ids.OPEN_ACL_UNSAFE,
                 CreateMode.PERSISTENT));
         ops.add(Op.create(paths.getRouterPortPath(config.device_id, id),
                 null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
@@ -127,7 +145,7 @@ public class PortZkManager extends ZkManager {
 
     public List<Op> prepareCreate(UUID id,
             PortDirectory.MaterializedRouterPortConfig config)
-            throws StateAccessException {
+            throws StateAccessException, SerializationException {
 
         // Create a new GRE key. Hide this from outside.
         int tunnelKey = tunnelZkManager.createTunnelKey();
@@ -149,19 +167,21 @@ public class PortZkManager extends ZkManager {
 
     public List<Op> prepareCreate(UUID id,
             PortDirectory.LogicalRouterPortConfig config)
-            throws StateAccessException {
+            throws StateAccessException, SerializationException {
 
         // Add common router port create operations
         return prepareRouterPortCreate(id, config);
     }
 
     private List<Op> prepareBridgePortCreate(UUID id,
-            PortDirectory.BridgePortConfig config) throws StateAccessException {
+            PortDirectory.BridgePortConfig config) throws StateAccessException,
+            SerializationException {
 
         List<Op> ops = new ArrayList<Op>();
 
         ops.add(Op.create(paths.getPortPath(id),
-                serializer.serialize(config), Ids.OPEN_ACL_UNSAFE,
+                serializer.serialize(config),
+                Ids.OPEN_ACL_UNSAFE,
                 CreateMode.PERSISTENT));
 
         ops.addAll(filterZkManager.prepareCreate(id));
@@ -175,13 +195,15 @@ public class PortZkManager extends ZkManager {
     }
 
     private List<Op> prepareVlanBridgePortCreate(UUID id,
-        PortDirectory.VlanBridgePortConfig config) throws StateAccessException {
+        PortDirectory.VlanBridgePortConfig config) throws StateAccessException,
+            SerializationException {
 
         List<Op> ops = new ArrayList<Op>();
 
         ops.add(Op.create(paths.getPortPath(id),
-                          serializer.serialize(config), Ids.OPEN_ACL_UNSAFE,
-                          CreateMode.PERSISTENT));
+                serializer.serialize(config),
+                Ids.OPEN_ACL_UNSAFE,
+                CreateMode.PERSISTENT));
 
         ops.addAll(filterZkManager.prepareCreate(id));
 
@@ -195,7 +217,7 @@ public class PortZkManager extends ZkManager {
 
     public List<Op> prepareCreate(UUID id,
             PortDirectory.MaterializedBridgePortConfig config)
-            throws StateAccessException {
+            throws StateAccessException, SerializationException {
 
         // Create a new GRE key. Hide this from outside.
         int tunnelKey = tunnelZkManager.createTunnelKey();
@@ -217,7 +239,7 @@ public class PortZkManager extends ZkManager {
 
     public List<Op> prepareCreate(UUID id,
             PortDirectory.LogicalBridgePortConfig config)
-            throws StateAccessException {
+            throws StateAccessException, SerializationException {
 
         // Add common bridge port create operations
         List<Op> ops = prepareBridgePortCreate(id, config);
@@ -232,7 +254,7 @@ public class PortZkManager extends ZkManager {
 
     public List<Op> prepareCreate(UUID id,
                                   PortDirectory.LogicalVlanBridgePortConfig config)
-        throws StateAccessException {
+            throws StateAccessException, SerializationException {
 
         // Add common bridge port create operations
         List<Op> ops = prepareVlanBridgePortCreate(id, config);
@@ -247,7 +269,7 @@ public class PortZkManager extends ZkManager {
 
     public List<Op> prepareCreate(UUID id,
                                   PortDirectory.TrunkVlanBridgePortConfig config)
-        throws StateAccessException {
+            throws StateAccessException, SerializationException {
 
         // Create a new GRE key. Hide this from outside.
         int tunnelKey = tunnelZkManager.createTunnelKey();
@@ -268,7 +290,7 @@ public class PortZkManager extends ZkManager {
     }
 
     public List<Op> prepareCreate(UUID id, PortConfig config)
-            throws StateAccessException {
+            throws StateAccessException, SerializationException {
         if (config instanceof PortDirectory.MaterializedRouterPortConfig) {
             return prepareCreate(id,
                     (PortDirectory.MaterializedRouterPortConfig) config);
@@ -294,65 +316,66 @@ public class PortZkManager extends ZkManager {
     }
 
     public UUID create(PortDirectory.MaterializedBridgePortConfig port, UUID id)
-            throws StateAccessException, ZkStateSerializationException {
-        multi(prepareCreate(id, port));
+            throws StateAccessException, SerializationException {
+        zk.multi(prepareCreate(id, port));
         return id;
     }
 
     public UUID create(PortDirectory.LogicalBridgePortConfig port, UUID id)
-            throws StateAccessException, ZkStateSerializationException {
-        multi(prepareCreate(id, port));
+            throws StateAccessException, SerializationException {
+        zk.multi(prepareCreate(id, port));
         return id;
     }
 
     public UUID create(PortDirectory.MaterializedBridgePortConfig port)
-            throws StateAccessException, ZkStateSerializationException {
+            throws StateAccessException, SerializationException {
         UUID id = UUID.randomUUID();
-        multi(prepareCreate(id, port));
+        zk.multi(prepareCreate(id, port));
         return id;
     }
 
     public UUID create(PortDirectory.LogicalBridgePortConfig port)
-            throws StateAccessException, ZkStateSerializationException {
+            throws StateAccessException, SerializationException {
         UUID id = UUID.randomUUID();
-        multi(prepareCreate(id, port));
+        zk.multi(prepareCreate(id, port));
         return id;
     }
 
     public UUID create(PortDirectory.MaterializedRouterPortConfig port, UUID id)
-            throws StateAccessException {
-        multi(prepareCreate(id, port));
+            throws StateAccessException, SerializationException {
+        zk.multi(prepareCreate(id, port));
         return id;
     }
 
     public UUID create(PortDirectory.MaterializedRouterPortConfig port)
-            throws StateAccessException {
+            throws StateAccessException, SerializationException {
         UUID id = UUID.randomUUID();
-        multi(prepareCreate(id, port));
+        zk.multi(prepareCreate(id, port));
         return id;
     }
 
     public UUID create(PortDirectory.LogicalRouterPortConfig port, UUID id)
-            throws StateAccessException {
-        multi(prepareCreate(id, port));
+            throws StateAccessException, SerializationException {
+        zk.multi(prepareCreate(id, port));
         return id;
     }
 
     public UUID create(PortDirectory.LogicalRouterPortConfig port)
-            throws StateAccessException {
+            throws StateAccessException, SerializationException {
         UUID id = UUID.randomUUID();
-        multi(prepareCreate(id, port));
+        zk.multi(prepareCreate(id, port));
         return id;
     }
 
-    public UUID create(PortConfig port) throws StateAccessException {
+    public UUID create(PortConfig port) throws StateAccessException,
+            SerializationException {
         UUID id = UUID.randomUUID();
-        multi(prepareCreate(id, port));
+        zk.multi(prepareCreate(id, port));
         return id;
     }
 
     public List<Op> prepareLink(UUID id, UUID peerId)
-            throws StateAccessException {
+            throws StateAccessException, SerializationException {
 
         PortConfig port = get(id);
 
@@ -369,9 +392,9 @@ public class PortZkManager extends ZkManager {
 
             List<Op> ops = new ArrayList<Op>();
             ops.add(Op.setData(paths.getPortPath(id),
-                               serializer.serialize(port), -1));
+                    serializer.serialize(port), -1));
             ops.add(Op.setData(paths.getPortPath(peerId),
-                               serializer.serialize(peerPort), -1));
+                    serializer.serialize(peerPort), -1));
 
             return ops;
         } else {
@@ -380,7 +403,8 @@ public class PortZkManager extends ZkManager {
         }
     }
 
-    public List<Op> prepareUnlink(UUID id) throws StateAccessException {
+    public List<Op> prepareUnlink(UUID id) throws StateAccessException,
+            SerializationException {
         PortConfig port = get(id);
         if (!(port instanceof  LogicalPortConfig)) {
             throw new IllegalArgumentException("id is not for a logical port:" +
@@ -409,7 +433,7 @@ public class PortZkManager extends ZkManager {
     }
 
     public List<Op> prepareUpdate(UUID id, PortConfig config)
-            throws StateAccessException {
+            throws StateAccessException, SerializationException {
         List<Op> ops = new ArrayList<Op>();
 
         // Get the old port config so that we can find differences created from
@@ -429,12 +453,14 @@ public class PortZkManager extends ZkManager {
         return ops;
     }
 
-    public void update(UUID id, PortConfig port) throws StateAccessException {
-        multi(prepareUpdate(id, port));
+    public void update(UUID id, PortConfig port) throws StateAccessException,
+            SerializationException {
+        zk.multi(prepareUpdate(id, port));
     }
 
     private List<Op> prepareRouterPortDelete(UUID id,
-            PortDirectory.RouterPortConfig config) throws StateAccessException {
+            PortDirectory.RouterPortConfig config) throws StateAccessException,
+            SerializationException {
         List<Op> ops = new ArrayList<Op>();
 
         List<UUID> routeIds = routeZkManager.listPortRoutes(id, null);
@@ -491,7 +517,7 @@ public class PortZkManager extends ZkManager {
 
     public List<Op> prepareDelete(UUID id,
             PortDirectory.MaterializedRouterPortConfig config)
-            throws StateAccessException {
+            throws StateAccessException, SerializationException {
 
         // Add materialized router port specific operations
         List<Op> ops = new ArrayList<Op>();
@@ -515,7 +541,7 @@ public class PortZkManager extends ZkManager {
 
     public List<Op> prepareDelete(UUID id,
             PortDirectory.LogicalRouterPortConfig config)
-            throws StateAccessException {
+            throws StateAccessException, SerializationException {
 
         List<Op> ops = new ArrayList<Op>();
 
@@ -555,7 +581,7 @@ public class PortZkManager extends ZkManager {
 
     public List<Op> prepareDelete(UUID id,
             PortDirectory.LogicalBridgePortConfig config)
-            throws StateAccessException {
+            throws StateAccessException, SerializationException {
 
         List<Op> ops = new ArrayList<Op>();
 
@@ -596,7 +622,7 @@ public class PortZkManager extends ZkManager {
 
     public List<Op> prepareDelete(UUID id,
                           PortDirectory.LogicalVlanBridgePortConfig config)
-        throws StateAccessException {
+            throws StateAccessException, SerializationException {
 
         List<Op> ops = new ArrayList<Op>();
 
@@ -612,7 +638,8 @@ public class PortZkManager extends ZkManager {
         return ops;
     }
 
-    public List<Op> prepareDelete(UUID id) throws StateAccessException {
+    public List<Op> prepareDelete(UUID id) throws StateAccessException,
+            SerializationException {
         List<Op> ops = new ArrayList<Op>();
 
         PortConfig config = get(id);
@@ -650,7 +677,7 @@ public class PortZkManager extends ZkManager {
     public Set<UUID> listPortIDs(String path, Runnable watcher)
             throws StateAccessException {
         Set<UUID> result = new HashSet<UUID>();
-        Set<String> portIds = getChildren(path, watcher);
+        Set<String> portIds = zk.getChildren(path, watcher);
         for (String portId : portIds) {
             result.add(UUID.fromString(portId));
         }
@@ -764,25 +791,28 @@ public class PortZkManager extends ZkManager {
      * @param id
      *            ID of the port to delete.
      */
-    public void delete(UUID id) throws StateAccessException {
-        multi(prepareDelete(id));
+    public void delete(UUID id) throws StateAccessException,
+            SerializationException {
+        zk.multi(prepareDelete(id));
     }
 
-    public void link(UUID id, UUID peerId) throws StateAccessException {
+    public void link(UUID id, UUID peerId) throws StateAccessException,
+            SerializationException {
         List<Op> ops = prepareLink(id, peerId);
-        multi(ops);
+        zk.multi(ops);
     }
 
-    public void unlink(UUID id) throws StateAccessException {
+    public void unlink(UUID id) throws StateAccessException,
+            SerializationException {
         List<Op> ops = prepareUnlink(id);
-        multi(ops);
+        zk.multi(ops);
     }
 
     public Set<UUID> getPortGroupPortIds(UUID portGroupId)
             throws StateAccessException {
 
         String path = paths.getPortGroupPortsPath(portGroupId);
-        Set<String> ids =  getChildren(path);
+        Set<String> ids =  zk.getChildren(path);
         Set<UUID> portIds = new HashSet<UUID>(ids.size());
         for (String id : ids) {
             portIds.add(UUID.fromString(id));
