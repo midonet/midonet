@@ -8,6 +8,8 @@ package org.midonet.packets
 import java.lang.Long.parseLong
 import java.util.Random
 import java.nio.ByteBuffer
+import org.codehaus.jackson.annotate.JsonValue;
+import org.codehaus.jackson.annotate.JsonCreator;
 
 /**
  * An IPv6 address.
@@ -27,6 +29,7 @@ class IPv6Addr(val upperWord: Long, val lowerWord: Long) extends IPAddr
     // Required for Jackson deserialization
     def this() = this(0, 0)
 
+    @JsonValue
     override def toString = {
         "%x:%x:%x:%x:%x:%x:%x:%x" format ((upperWord >> 48) & 0xffff,
                                           (upperWord >> 32) & 0xffff,
@@ -99,8 +102,9 @@ class IPv6Addr(val upperWord: Long, val lowerWord: Long) extends IPAddr
 
 object IPv6Addr {
 
-    // TODO: Support :: notation
+    // TODO: Support ":: (abbreviated)" notation
     // TODO: Verify each piece is valid 1-4 digit hex.
+    @JsonCreator
     def fromString(s: String): IPv6Addr = {
         val unsplit = if (s.charAt(0) == '[' && s.charAt(s.length - 1) == ']')
                           s.substring(1, s.length - 1)
