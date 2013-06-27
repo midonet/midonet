@@ -23,11 +23,10 @@ public interface DatapathConfig {
     public int getDatapathMaxFlowCount();
 
     /**
-     * TODO: This features is not documented in the configuration file.
      * The wildcard flows have idle times, so the table should take care of itself. Having a smaller table (a limited
      * size table) means that the system would be potentially evicting valid flows often, causing more simulations and
      * hence, more CPU usage.
      */
-    @ConfigInt(key = "max_wildcard_flow_count", defaultValue = 0) // 0 means NO_LIMIT
+    @ConfigInt(key = "max_wildcard_flow_count", defaultValue = 10000)
     public int getDatapathMaxWildcardFlowCount();
 }

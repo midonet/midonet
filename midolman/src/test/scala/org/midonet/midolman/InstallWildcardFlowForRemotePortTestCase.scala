@@ -18,7 +18,7 @@ import org.midonet.cluster.data.zones.GreTunnelZoneHost
 import org.midonet.odp.flows.{FlowActionOutput, FlowActionSetKey,
     FlowKeyTunnelID}
 import org.midonet.packets.IntIPv4
-import org.midonet.sdn.flows.{WildcardMatch, WildcardFlowBuilder}
+import org.midonet.sdn.flows.{WildcardMatch, WildcardFlow}
 
 
 @RunWith(classOf[JUnitRunner])
@@ -74,9 +74,9 @@ class InstallWildcardFlowForRemotePortTestCase extends MidolmanTestCase
         val inputPortNo = dpController().underlyingActor
             .ifaceNameToDpPort("port1").getPortNo
 
-        val wildcardFlow = new WildcardFlowBuilder()
-            .setMatch(new WildcardMatch().setInputPortUUID(portOnHost1.getId))
-            .addAction(new FlowActionOutputToVrnPort(portOnHost2.getId))
+        val wildcardFlow = WildcardFlow(
+            wcmatch = new WildcardMatch().setInputPortUUID(portOnHost1.getId),
+            actions = List(new FlowActionOutputToVrnPort(portOnHost2.getId)))
 
         fishForRequestOfType[AddWildcardFlow](flowProbe())
         drainProbe(wflowAddedProbe)

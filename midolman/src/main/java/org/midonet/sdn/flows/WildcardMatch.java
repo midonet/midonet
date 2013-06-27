@@ -75,6 +75,40 @@ public class WildcardMatch implements Cloneable {
     private byte[] icmpData;
     private List<Short> vlanIds = new ArrayList<Short>();
 
+    public void reset(WildcardMatch that) {
+        inputPortNumber = that.inputPortNumber;
+        inputPortUUID = that.inputPortUUID;
+        tunnelID = that.tunnelID;
+        ethernetSource = that.ethernetSource;
+        ethernetDestination = that.ethernetDestination;
+        etherType = that.etherType;
+        networkSource = that.networkSource;
+        networkDestination = that.networkDestination;
+        networkProtocol = that.networkProtocol;
+        networkTTL = that.networkTTL;
+        networkTOS = that.networkTOS;
+        ipFragmentType = that.ipFragmentType;
+        transportSource = that.transportSource;
+        transportDestination = that.transportDestination;
+        usedFields.clear();
+        usedFields.addAll(that.usedFields);
+        icmpId = that.icmpId;
+        if (that.icmpData != null)
+            this.setIcmpData(that.icmpData);
+        else
+            this.icmpData = null;
+    }
+
+    public void clear() {
+        this.usedFields.clear();
+        this.icmpData = null;
+        this.networkSource = null;
+        this.networkDestination = null;
+        this.ethernetSource = null;
+        this.ethernetDestination = null;
+        this.inputPortUUID = null;
+    }
+
     @Nonnull
     public WildcardMatch setInputPortNumber(short inputPortNumber) {
         usedFields.add(Field.InputPortNumber);

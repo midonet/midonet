@@ -29,7 +29,7 @@ import client.{Port, ExteriorPort}
 import org.midonet.odp.flows.{
         FlowActionUserspace, FlowKeys, FlowActions, FlowAction}
 import org.midonet.odp.protos.OvsDatapathConnection
-import org.midonet.sdn.flows.{WildcardMatch, WildcardFlowBuilder}
+import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 import org.midonet.util.functors.Callback0
 import collection.generic.CanBuildFrom
 import java.util.concurrent.TimeUnit
@@ -76,8 +76,8 @@ trait FlowTranslatingActor extends Actor {
     import context._
 
     protected def translateVirtualWildcardFlow(
-            flow: WildcardFlowBuilder, tags: ROSet[Any] = Set.empty):
-                Future[Tuple2[WildcardFlowBuilder, ROSet[Any]]] = {
+            flow: WildcardFlow, tags: ROSet[Any] = Set.empty):
+                Future[Tuple2[WildcardFlow, ROSet[Any]]] = {
         val flowMatch = flow.getMatch
         val inPortId = flowMatch.getInputPortUUID
 
@@ -101,12 +101,19 @@ trait FlowTranslatingActor extends Actor {
 
         translatedFuture fallbackTo { Promise.successful(None) } map {
             case None =>
-                flow.actions = Nil
-                flow.setHardExpirationMillis(5000)
-                (flow, dpTags)
+                val newFlow = WildcardFlow(
+                    wcmatch = flow.wcmatch,
+                    priority = flow.priority,
+                    hardExpirationMillis = 5000)
+                (newFlow, dpTags)
             case Some(translated) =>
-                flow.actions = translated.toList
-                (flow, dpTags)
+                val newFlow = WildcardFlow(
+                    wcmatch = flow.wcmatch,
+                    actions = translated.toList,
+                    priority = flow.priority,
+                    hardExpirationMillis = flow.hardExpirationMillis,
+                    idleExpirationMillis = flow.idleExpirationMillis)
+                (newFlow, dpTags)
         }
     }
 
