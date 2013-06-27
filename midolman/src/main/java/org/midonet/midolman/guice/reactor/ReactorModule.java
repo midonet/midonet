@@ -3,20 +3,31 @@
 */
 package org.midonet.midolman.guice.reactor;
 
-import com.google.inject.PrivateModule;
-import com.google.inject.Provider;
-import com.google.inject.Singleton;
+import java.io.IOException;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+
+import com.google.inject.*;
 
 import org.midonet.midolman.services.SelectLoopService;
 import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.eventloop.SelectLoop;
 import org.midonet.util.eventloop.TryCatchReactor;
 
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
 /**
  * This is an Guice module that will expose a {@link SelectLoop} and a {@link Reactor}
  * binding to the enclosing injector.
  */
 public class ReactorModule extends PrivateModule {
+    @BindingAnnotation @Target({FIELD, METHOD}) @Retention(RUNTIME)
+    public @interface WRITE_LOOP {}
+    @BindingAnnotation @Target({FIELD, METHOD}) @Retention(RUNTIME)
+    public @interface READ_LOOP {}
+
     @Override
     protected void configure() {
 
@@ -25,15 +36,33 @@ public class ReactorModule extends PrivateModule {
             .asEagerSingleton();
 
         bind(SelectLoop.class)
-            .in(Singleton.class);
+                .annotatedWith(WRITE_LOOP.class)
+                .toProvider(SelectLoopProvider.class)
+                .in(Singleton.class);
+        bind(SelectLoop.class)
+                .annotatedWith(READ_LOOP.class)
+                .toProvider(SelectLoopProvider.class)
+                .in(Singleton.class);
+
+        expose(Key.get(SelectLoop.class, WRITE_LOOP.class));
+        expose(Key.get(SelectLoop.class, READ_LOOP.class));
 
         bind(SelectLoopService.class)
             .in(Singleton.class);
 
-        expose(SelectLoop.class);
         expose(Reactor.class);
         expose(SelectLoopService.class);
+    }
 
+    public static class SelectLoopProvider implements Provider<SelectLoop> {
+        @Override
+        public SelectLoop get() {
+            try {
+                return new SelectLoop();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     public static class NetlinkReactorProvider implements Provider<Reactor> {
