@@ -253,8 +253,9 @@ trait FlowTranslator {
         val actionsFutures: Seq[Future[Option[Seq[FlowAction[_]]]]] =
             actions map {
                 case s: FlowActionOutputToVrnPortSet =>
-                    expandPortSetAction(Seq(s), s.portSetId, inPortUUID, dpTags,
-                        wMatch)(ec, system)
+                    // expandPortSetAction
+                    epsa(Seq(s), s.portSetId, inPortUUID, dpTags,
+                         wMatch)(ec, system)
                 case p: FlowActionOutputToVrnPort =>
                     expandPortAction(Seq(p), p.portId, inPortUUID, dpTags,
                         wMatch)(ec, system)
@@ -277,14 +278,13 @@ trait FlowTranslator {
         actionsResults.future
     }
 
-    private def expandPortSetAction(actions: Seq[FlowAction[_]],
-                                    portSet: UUID,
-                                    inPortUUID: Option[UUID],
-                                    dpTags: Option[mutable.Set[Any]],
-                                    wMatch: WildcardMatch)
-                                   (implicit ec: ExecutionContext,
-                                    system: ActorSystem):
-    Future[Option[Seq[FlowAction[_]]]] = {
+    // expandPortSetAction, name shortened to avoid an ENAMETOOLONG on ecryptfs
+    // from a triply nested anonfun.
+    private def epsa(actions: Seq[FlowAction[_]], portSet: UUID,
+                     inPortUUID: Option[UUID], dpTags: Option[mutable.Set[Any]],
+                     wMatch: WildcardMatch)
+                    (implicit ec: ExecutionContext, system: ActorSystem):
+            Future[Option[Seq[FlowAction[_]]]] = {
 
         val translated = Promise[Option[Seq[FlowAction[_]]]]()
 
