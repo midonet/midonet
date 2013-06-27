@@ -7,6 +7,7 @@ import com.google.inject.Inject;
 import com.google.inject.PrivateModule;
 import com.google.inject.Provider;
 
+import com.yammer.metrics.core.MetricsRegistry;
 import org.midonet.config.ConfigProvider;
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.services.DatapathConnectionService;
@@ -36,6 +37,9 @@ public class MidolmanModule extends PrivateModule {
             .toProvider(MidolmanConfigProvider.class)
             .asEagerSingleton();
         expose(MidolmanConfig.class);
+
+        bind(MetricsRegistry.class).toInstance(new MetricsRegistry());
+        expose(MetricsRegistry.class);
 
         requestStaticInjection(Chain.class);
 

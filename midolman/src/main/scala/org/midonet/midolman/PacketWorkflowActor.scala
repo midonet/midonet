@@ -40,6 +40,7 @@ import org.midonet.odp.Packet.Reason.FlowActionUserspace
 import org.midonet.util.functors.Callback0
 import org.midonet.util.throttling.ThrottlingGuard
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
+import com.yammer.metrics.core.{Clock, Counter}
 
 
 object PacketWorkflowActor {
@@ -62,6 +63,13 @@ object PacketWorkflowActor {
     case class AddVirtualWildcardFlow(flow: WildcardFlow,
                                       flowRemovalCallbacks: ROSet[Callback0],
                                       tags: ROSet[Any]) extends SimulationAction
+
+    private trait PipelinePath {}
+
+    private case object WildcardTableHit extends PipelinePath
+    private case object PacketToPortSet extends PipelinePath
+    private case object Simulation extends PipelinePath
+
 }
 
 class PacketWorkflowActor(
@@ -72,7 +80,8 @@ class PacketWorkflowActor(
         connectionCache: Cache,
         packet: Packet,
         cookieOrEgressPort: Either[Int, UUID],
-        throttlingGuard: ThrottlingGuard) extends Actor with
+        throttlingGuard: ThrottlingGuard,
+        metrics: PacketPipelineMetrics) extends Actor with
             ActorLogWithoutPath with FlowTranslatingActor with
             UserspaceFlowActionTranslator {
 
@@ -97,12 +106,22 @@ class PacketWorkflowActor(
     val cookieStr: String = "[cookie:" + cookie.getOrElse("No Cookie") + "]"
     val lastInvalidation = FlowController.lastInvalidationEvent
 
+    private var pipelinePath: PipelinePath = null
+
     override def preStart() {
         throttlingGuard.tokenIn()
     }
 
     override def postStop() {
         throttlingGuard.tokenOut()
+        val latency = (Clock.defaultClock().tick() - packet.getStartTimeNanos).toInt
+        metrics.packetsProcessed.mark()
+        pipelinePath match {
+            case WildcardTableHit => metrics.wildcardTableHit(latency)
+            case PacketToPortSet => metrics.packetToPortSet(latency)
+            case Simulation => metrics.packetSimulated(latency)
+            case _ =>
+        }
     }
 
     def receive = LoggingReceive {
@@ -112,18 +131,21 @@ class PacketWorkflowActor(
                 case Some(cook) if (packet.getReason == FlowActionUserspace) =>
                     log.debug("Simulating packet addressed to userspace {}",
                               cookieStr)
+                    pipelinePath = Simulation
                     doSimulation()
 
                 case Some(cook) =>
                     FlowController.queryWildcardFlowTable(packet.getMatch) match {
                         case Some(wildFlow) =>
                             log.debug("Packet {} matched a wildcard flow", cookieStr)
+                            pipelinePath = WildcardTableHit
                             handleWildcardTableMatch(wildFlow, cook)
                         case None =>
                             val wildMatch = WildcardMatch.fromFlowMatch(packet.getMatch)
                             Option(wildMatch.getTunnelID) match {
                                 case Some(tunnelId) =>
                                     log.debug("Packet {} addressed to a port set", cookieStr)
+                                    pipelinePath = PacketToPortSet
                                     handlePacketToPortSet(cook)
                                 case None =>
                                     /** QUESTION: do we need another de-duplication
@@ -131,12 +153,14 @@ class PacketWorkflowActor(
                                      *  differ only in TTL from going to the simulation
                                      *  stage? */
                                     log.debug("Simulating packet {}", cookieStr)
+                                    pipelinePath = Simulation
                                     doSimulation()
                             }
                     }
 
                 case None =>
                     log.debug("Simulating generated packet")
+                    pipelinePath = Simulation
                     doSimulation()
             }
             workflowFuture onComplete {

@@ -31,4 +31,14 @@ public interface ThrottlingGuard {
      * @return the number of tokens currently in the system.
      */
     int numTokens();
+
+    /**
+     * @return the number of tokens dropped so far
+     */
+    long numDroppedTokens();
+
+    /**
+     * @return the number of tokens allowed so far
+     */
+    long numAllowedTokens();
 }

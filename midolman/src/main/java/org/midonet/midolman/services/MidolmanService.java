@@ -6,6 +6,8 @@ package org.midonet.midolman.services;
 import com.google.common.base.Service;
 import com.google.common.util.concurrent.AbstractService;
 import com.google.inject.Inject;
+import com.yammer.metrics.core.MetricsRegistry;
+import com.yammer.metrics.reporting.JmxReporter;
 import org.midonet.midolman.host.services.HostService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +32,9 @@ public class MidolmanService extends AbstractService {
     @Inject
     SelectLoopService selectLoopService;
 
+    @Inject
+    MetricsRegistry metrics;
+
     @Inject(optional = true)
     HostService hostService;
 
@@ -43,6 +48,7 @@ public class MidolmanService extends AbstractService {
         startService(actorsService);
         startService(hostService);
         startService(storeService);
+        JmxReporter.startDefault(metrics);
         notifyStarted();
     }
 
