@@ -7,7 +7,8 @@ package org.midonet.midolman.simulation
 import collection.{Set => ROSet, mutable}
 
 import akka.actor.ActorSystem
-import java.util.{Set => JSet, UUID}
+import java.text.SimpleDateFormat
+import java.util.{Date, Set => JSet, UUID}
 
 import org.midonet.cache.Cache
 import org.midonet.cluster.client.Port
@@ -38,8 +39,8 @@ import org.midonet.util.functors.Callback0
 /* TODO(Diyari release): Move inPortID & outPortID out of PacketContext. */
 class PacketContext(val flowCookie: Option[Int], val frame: Ethernet,
                     val expiry: Long, val connectionCache: Cache,
-                    val isGenerated: Boolean,
-                    val parentCookie: Option[Int])(implicit actorSystem: ActorSystem)
+                    val isGenerated: Boolean, val parentCookie: Option[Int])
+                   (implicit actorSystem: ActorSystem)
          extends ChainPacketContext {
     import PacketContext._
 
@@ -51,10 +52,10 @@ class PacketContext(val flowCookie: Option[Int], val frame: Ethernet,
     private var frozen = false
     private var wcmatch: WildcardMatch = null
     private var origMatch: WildcardMatch = null
-    // ingressFE is used for connection tracking. conntrack keys use the 
+    // ingressFE is used for connection tracking. conntrack keys use the
     // forward flow's egress device id. For return packets, symmetrically,
     // the ingress device is used to lookup the conntrack key that would have
-    // been written by the forward packet. PacketContext needs to now 
+    // been written by the forward packet. PacketContext needs to now
     // the ingress device to do this lookup in isForwardFlow()
     private var ingressFE: UUID = null
     private var portGroups: JSet[UUID] = null
@@ -62,6 +63,9 @@ class PacketContext(val flowCookie: Option[Int], val frame: Ethernet,
     private var forwardFlow = false
     private var inPortID: UUID = null
     private var outPortID: UUID = null
+    private var traceID: UUID = null
+    private var traceStep = 0
+    private var isTraced = false
 
     def isFrozen = frozen
 
@@ -148,6 +152,27 @@ class PacketContext(val flowCookie: Option[Int], val frame: Ethernet,
 
     def unfreeze(): Unit = this.synchronized {
         frozen = false
+    }
+
+    def setTraced(flag: Boolean) {
+        if (!isTraced && flag) {
+            traceID = UUID.randomUUID
+        }
+        isTraced = flag
+    }
+
+    def traceMessage(equipmentID: UUID, msg: String) {
+        if (isTraced) {
+            traceStep += 1
+            val key: String = "trace:" + traceID + ":" + traceStep
+            val equipStr: String = if (equipmentID == null)
+                                       "(none)"
+                                   else
+                                       equipmentID.toString
+            val value: String = (new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS "
+                                ).format(new Date)) + equipStr + " " + msg
+            connectionCache.set(key, value)
+        }
     }
 
     /* Packet context methods used by Chains. */

@@ -66,7 +66,6 @@ public class DataClusterClientModule extends PrivateModule {
                 .asEagerSingleton();
         expose(DataClient.class);
 
-
         bind(ClusterRouterManager.class)
                 .in(Singleton.class);
 

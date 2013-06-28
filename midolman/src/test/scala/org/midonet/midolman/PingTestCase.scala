@@ -26,7 +26,6 @@ import org.midonet.cluster.data.dhcp.Subnet
 import org.midonet.cluster.data.ports.{MaterializedBridgePort, MaterializedRouterPort}
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput, FlowActions}
 import org.midonet.packets._
-import org.midonet.midolman.{DatapathController, VirtualConfigurationBuilders}
 
 
 @RunWith(classOf[JUnitRunner])

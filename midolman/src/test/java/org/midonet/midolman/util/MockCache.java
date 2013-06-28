@@ -14,8 +14,8 @@ import org.midonet.util.functors.Callback1;
 
 public class MockCache implements Cache {
 
-    private static class CacheEntry {
-        String value;
+    public static class CacheEntry {
+        public String value;
         long timeExpiredMillis;
     }
 
@@ -53,6 +53,10 @@ public class MockCache implements Cache {
     @Override
     public String getAndTouch(String key) {
         return get(key, true);
+    }
+
+    public void clear() {
+        map.clear();
     }
 
     private String get(String key, boolean refresh) {

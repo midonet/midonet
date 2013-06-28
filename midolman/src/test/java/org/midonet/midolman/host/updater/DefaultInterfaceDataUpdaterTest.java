@@ -33,6 +33,7 @@ import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsNull.notNullValue;
 
 import org.midonet.midolman.config.ZookeeperConfig;
+import org.midonet.midolman.guice.DummyConditionSetModule;
 import org.midonet.midolman.guice.MidolmanModule;
 import org.midonet.midolman.guice.MockFlowStateCacheModule;
 import org.midonet.midolman.guice.actors.TestableMidolmanActorsModule;
@@ -53,6 +54,7 @@ import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkPathManager;
 
 import static org.midonet.midolman.host.state.HostDirectory.Interface;
+
 
 public class DefaultInterfaceDataUpdaterTest {
 
@@ -95,7 +97,8 @@ public class DefaultInterfaceDataUpdaterTest {
                 JavaConversions.asScalaMap(new HashMap<String, TestKit>()),
                 JavaConversions.asScalaMap(new HashMap<String, TestActorRef<Actor>>())),
             new MidolmanModule(),
-            new InterfaceScannerModule());
+            new InterfaceScannerModule(),
+            new DummyConditionSetModule(false));
 
         directory = cleanDirectory;
         updater = injector.getInstance(InterfaceDataUpdater.class);
