@@ -33,7 +33,7 @@ import org.midonet.util.eventloop.Reactor;
 /**
  * Main midolman configuration module
  */
-public class FlowStateCacheModule extends PrivateModule {
+public class CacheModule extends PrivateModule {
 
     @Override
     protected void configure() {
@@ -52,23 +52,39 @@ public class FlowStateCacheModule extends PrivateModule {
     }
 
     protected void bindCache() {
-        bind(Cache.class)
-            .toProvider(CacheProvider.class)
+        bind(Cache.class).annotatedWith(NAT_CACHE.class)
+            .toProvider(new CacheProvider("nat"))
+            .in(Singleton.class);
+        bind(Cache.class).annotatedWith(TRACE_MESSAGES.class)
+            .toProvider(new CacheProvider("trace_messages"))
+            .in(Singleton.class);
+        bind(Cache.class).annotatedWith(TRACE_INDEX.class)
+            .toProvider(new CacheProvider("trace_index"))
             .in(Singleton.class);
         expose(Cache.class);
     }
 
+    public @interface NAT_CACHE {}
+    public @interface TRACE_MESSAGES {}
+    public @interface TRACE_INDEX {}
+
     public static class CacheProvider implements Provider<Cache> {
         Logger log = LoggerFactory.getLogger(CacheProvider.class);
+        String columnName;
 
         @Inject
         ConfigProvider configProvider;
+
+        CacheProvider(String columnName_) {
+            columnName = columnName_;
+        }
 
         @Override
         public Cache get() {
             try {
                 return CacheFactory.create(
-                        configProvider.getConfig(MidolmanConfig.class));
+                        configProvider.getConfig(MidolmanConfig.class),
+                        columnName);
             } catch (Exception e) {
                 log.error("Exception trying to create Cache:", e);
                 return null;

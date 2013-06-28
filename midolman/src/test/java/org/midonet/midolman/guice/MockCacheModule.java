@@ -8,7 +8,8 @@ import com.google.inject.Singleton;
 import org.midonet.cache.Cache;
 import org.midonet.midolman.util.MockCache;
 
-public class MockFlowStateCacheModule extends FlowStateCacheModule {
+
+public class MockCacheModule extends CacheModule {
 
     @Override
     protected void bindCache() {

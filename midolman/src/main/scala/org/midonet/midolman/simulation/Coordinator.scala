@@ -95,6 +95,10 @@ object Coordinator {
  * @param expiry The time (as returned by currentTime) at which to expire
  *               this simulation.
  * @param connectionCache The Cache to use for connection tracking.
+ * @param traceMessageCache The Cache to use for trace messages.
+ * @param traceIndexCache The Cache to use for the trace index.
+ * @param parentCookie TODO
+ * @param tracedConditions Set of Conditions which will trigger tracing.
  * @param ec
  * @param actorSystem
  */
@@ -104,6 +108,8 @@ class Coordinator(var origMatch: WildcardMatch,
                   val generatedPacketEgressPort: Option[UUID],
                   val expiry: Long,
                   val connectionCache: Cache,
+                  val traceMessageCache: Cache,
+                  val traceIndexCache: Cache,
                   val parentCookie: Option[Int],
                   val tracedConditions: ConditionSet)
                  (implicit val ec: ExecutionContext,
@@ -121,8 +127,8 @@ class Coordinator(var origMatch: WildcardMatch,
     private var numDevicesSimulated = 0
     private val devicesSimulated = mutable.Map[UUID, Int]()
     implicit private val pktContext = new PacketContext(cookie, origEthernetPkt,
-         expiry, connectionCache, generatedPacketEgressPort.isDefined,
-         parentCookie)
+         expiry, connectionCache, traceMessageCache, traceIndexCache,
+         generatedPacketEgressPort.isDefined, parentCookie)
     pktContext.setMatch(origMatch)
     pktContext.setTraced(tracedConditions.matches(pktContext, origMatch, false))
 

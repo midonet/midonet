@@ -19,6 +19,8 @@ import org.midonet.cache.Cache
 import org.midonet.cluster.DataClient
 import org.midonet.midolman.datapath.ErrorHandlingCallback
 import org.midonet.midolman.guice.datapath.DatapathModule.SIMULATION_THROTTLING_GUARD
+import org.midonet.midolman.guice.CacheModule.{NAT_CACHE, TRACE_MESSAGES,
+                                               TRACE_INDEX}
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMeter
 import org.midonet.midolman.monitoring.metrics.PacketPipelineHistogram
@@ -139,7 +141,9 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
 
     @Inject var datapathConnection: OvsDatapathConnection = null
     @Inject var clusterDataClient: DataClient = null
-    @Inject @Nullable var connectionCache: Cache = null
+    @Inject @Nullable @NAT_CACHE var connectionCache: Cache = null
+    @Inject @TRACE_MESSAGES var traceMessageCache: Cache = null
+    @Inject @TRACE_INDEX var traceIndexCache: Cache = null
     @Inject var tracedConditions: ConditionSet = null
 
     @Inject
@@ -182,10 +186,12 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
                 cookieToPendedPackets.addBinding(cookie, packet)
                 // If there is no match on the cookie, create an object to
                 // handle the packet.
-                val packetWorkflow = new PacketWorkflow(datapathConnection, dpState,
-                            datapath, clusterDataClient, connectionCache, packet,
-                            Left(cookie), throttler, metrics, tracedConditions)(
-                            this.context.dispatcher, this.context.system, this.context)
+                val packetWorkflow = new PacketWorkflow(
+                        datapathConnection, dpState, datapath,
+                        clusterDataClient, connectionCache, traceMessageCache,
+                        traceIndexCache, packet, Left(cookie), throttler,
+                        metrics, tracedConditions)(this.context.dispatcher,
+                        this.context.system, this.context)
 
                 log.debug("Created new {} packet handler.", "PacketWorkflow-" + cookie)
                 context.dispatcher.execute{new Runnable {
@@ -230,7 +236,8 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
             val packetId = scala.util.Random.nextLong()
             val packetWorkflow =
                 new PacketWorkflow(datapathConnection, dpState,
-                    datapath, clusterDataClient, connectionCache, packet,
+                    datapath, clusterDataClient, connectionCache,
+                    traceMessageCache, traceIndexCache, packet,
                     Right(egressPort), throttler, metrics, tracedConditions)(
                     this.context.dispatcher, this.context.system, this.context)
 

@@ -75,6 +75,8 @@ class PacketWorkflow(
         datapath: Datapath,
         dataClient: DataClient,
         connectionCache: Cache,
+        traceMessageCache: Cache,
+        traceIndexCache: Cache,
         packet: Packet,
         cookieOrEgressPort: Either[Int, UUID],
         throttlingGuard: ThrottlingGuard,
@@ -438,16 +440,14 @@ class PacketWorkflow(
 
     private def simulateGeneratedPacket(): Future[SimulationResult] = {
         // FIXME (guillermo) - The launching of the coordinator is missing
-        // the connectionCache and parentCookie params. They will need
-        // to be given to the PacketWorkFlowActor.
+        // the parentCookie params.  They will need to be given to the
+        // PacketWorkflow object.
         val eth = packet.getPacket
         val coordinator = new Coordinator(
             WildcardMatch.fromEthernetPacket(eth),
-            eth,
-            None,
-            egressPort,
-            Platform.currentTime + timeout,
-            connectionCache, None, tracedConditions)
+            eth, None, egressPort, Platform.currentTime + timeout,
+            connectionCache, traceMessageCache, traceIndexCache, None,
+            tracedConditions)
         coordinator.simulate()
     }
 
@@ -476,9 +476,10 @@ class PacketWorkflow(
                         Promise.successful(NoOp())
                     case false =>
                         val coordinator: Coordinator = new Coordinator(
-                            wMatch, packet.getPacket, cookie,
-                            None, Platform.currentTime + timeout,
-                            connectionCache, None, tracedConditions)
+                            wMatch, packet.getPacket, cookie, None,
+                            Platform.currentTime + timeout, connectionCache,
+                            traceMessageCache, traceIndexCache, None,
+                            tracedConditions)
                         coordinator.simulate()
                 }
 

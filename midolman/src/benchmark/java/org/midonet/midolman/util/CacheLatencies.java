@@ -160,7 +160,7 @@ public class CacheLatencies {
 
         HierarchicalConfiguration config =
             new HierarchicalINIConfiguration("./conf/midolman.conf");
-        Cache cache = CacheFactory.create(config);
+        Cache cache = CacheFactory.create(config, "benchmark");
         CacheLatencies measure = new CacheLatencies(cache);
         measure.setIgnoreFirst(true);
 

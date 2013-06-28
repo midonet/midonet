@@ -218,7 +218,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
             new SerializationModule(),
             new MockConfigProviderModule(config),
             new MockDatapathModule(),
-            new MockFlowStateCacheModule(),
+            new MockCacheModule(),
             new MockZookeeperConnectionModule(),
             new AbstractModule {
                 def configure() {
