@@ -8,7 +8,7 @@ import com.google.common.base.Service;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
-import org.midonet.midolman.guice.FlowStateCacheModule;
+import org.midonet.midolman.guice.CacheModule;
 import org.midonet.midolman.guice.InterfaceScannerModule;
 import org.midonet.midolman.guice.MidolmanActorsModule;
 import org.midonet.midolman.guice.MidolmanModule;
@@ -108,7 +108,7 @@ public class Midolman {
             new MonitoringStoreModule(),
             new ClusterClientModule(),
             new SerializationModule(),
-            new FlowStateCacheModule(),
+            new CacheModule(),
             new MidolmanActorsModule(),
             new MidolmanModule(),
             new InterfaceScannerModule(),

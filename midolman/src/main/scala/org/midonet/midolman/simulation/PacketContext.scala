@@ -39,6 +39,7 @@ import org.midonet.util.functors.Callback0
 /* TODO(Diyari release): Move inPortID & outPortID out of PacketContext. */
 class PacketContext(val flowCookie: Option[Int], val frame: Ethernet,
                     val expiry: Long, val connectionCache: Cache,
+                    val traceMessageCache: Cache, val traceIndexCache: Cache,
                     val isGenerated: Boolean, val parentCookie: Option[Int])
                    (implicit actorSystem: ActorSystem)
          extends ChainPacketContext {
@@ -155,6 +156,10 @@ class PacketContext(val flowCookie: Option[Int], val frame: Ethernet,
     }
 
     def setTraced(flag: Boolean) {
+        if (flag && traceMessageCache == null) {
+            log.error("Attempting to trace with no message cache")
+            return
+        }
         if (!isTraced && flag) {
             traceID = UUID.randomUUID
         }
@@ -164,14 +169,15 @@ class PacketContext(val flowCookie: Option[Int], val frame: Ethernet,
     def traceMessage(equipmentID: UUID, msg: String) {
         if (isTraced) {
             traceStep += 1
-            val key: String = "trace:" + traceID + ":" + traceStep
+            val key: String = traceID.toString + ":" + traceStep
             val equipStr: String = if (equipmentID == null)
                                        "(none)"
                                    else
                                        equipmentID.toString
             val value: String = (new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS "
                                 ).format(new Date)) + equipStr + " " + msg
-            connectionCache.set(key, value)
+            traceMessageCache.set(key, value)
+            traceIndexCache.set(traceID.toString, traceStep.toString)
         }
     }
 

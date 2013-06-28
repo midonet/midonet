@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
 import akka.actor.ActorSystem;
 
 import org.midonet.midolman.guice.MidolmanActorsModule;
-import org.midonet.midolman.guice.FlowStateCacheModule;
+import org.midonet.midolman.guice.CacheModule;
 import org.midonet.midolman.guice.InterfaceScannerModule;
 import org.midonet.midolman.guice.MidolmanModule;
 import org.midonet.midolman.guice.MonitoringStoreModule;
@@ -60,7 +60,7 @@ public class EmbeddedMidolman {
                 new DatapathModule(),
                 new MonitoringStoreModule(),
                 new ClusterClientModule(),
-                new FlowStateCacheModule(),
+                new CacheModule(),
                 new MidolmanActorsModule(),
                 new MidolmanModule(),
                 new InterfaceScannerModule()

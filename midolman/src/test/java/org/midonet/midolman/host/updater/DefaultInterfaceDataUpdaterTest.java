@@ -35,7 +35,7 @@ import static org.hamcrest.core.IsNull.notNullValue;
 import org.midonet.midolman.config.ZookeeperConfig;
 import org.midonet.midolman.guice.DummyConditionSetModule;
 import org.midonet.midolman.guice.MidolmanModule;
-import org.midonet.midolman.guice.MockFlowStateCacheModule;
+import org.midonet.midolman.guice.MockCacheModule;
 import org.midonet.midolman.guice.actors.TestableMidolmanActorsModule;
 import org.midonet.midolman.guice.InterfaceScannerModule;
 import org.midonet.midolman.guice.MockMonitoringStoreModule;
@@ -87,7 +87,7 @@ public class DefaultInterfaceDataUpdaterTest {
             new SerializationModule(),
             new MockConfigProviderModule(configuration),
             new MockDatapathModule(),
-            new MockFlowStateCacheModule(),
+            new MockCacheModule(),
             new MockZookeeperConnectionModule(cleanDirectory),
             new HostModule(),
             new ReactorModule(),

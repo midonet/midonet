@@ -27,10 +27,11 @@ public class CacheFactory {
      * Create a Cache object.
      *
      * @param config configuration for the Cache object
+     * @param columnName name to use for the column family
      * @return a Cache object
      * @throws org.midonet.cache.CacheException if an error occurs
      */
-    public static Cache create(MidolmanConfig config)
+    public static Cache create(MidolmanConfig config, String columnName)
         throws CacheException {
         Cache cache = null;
         String cacheType = config.getMidolmanCacheType();
@@ -47,7 +48,7 @@ public class CacheFactory {
                 int replicationFactor = config.getCassandraReplicationFactor();
 
                 cache = new CassandraCache(servers, maxConns, cluster, keyspace,
-                                           "nat", replicationFactor,
+                                           columnName, replicationFactor,
                                            CACHE_EXPIRATION_SECONDS);
             }
         } catch (Exception e) {

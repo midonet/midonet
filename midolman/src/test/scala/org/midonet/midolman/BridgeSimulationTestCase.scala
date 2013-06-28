@@ -134,24 +134,20 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         flowActs.contains(FlowActions.output(tunnelId1)) should be (true)
         flowActs.contains(FlowActions.output(tunnelId2)) should be (true)
 
-        cache.map.size should equal (2)
+        cache.map.size should equal (3)
         val cacheMap: MMap[String, MockCache.CacheEntry] = cache.map
-        val traceMsgs = cacheMap.toArray
-        val key0 = traceMsgs(0)._1
-        val key1 = traceMsgs(1)._1
-        key0 should not equal (key1)
-        key0.substring(0, key0.length - 1) should equal (
-            key1.substring(0, key1.length - 1))
-        List(key0.substring(key0.length - 1, key0.length),
-             key1.substring(key1.length - 1, key1.length)).sorted should equal (
-                 List("1", "2"))
-        val value0 = traceMsgs(0)._2.value
-        val value1 = traceMsgs(1)._2.value
-        val values = List(value0.substring(23, value0.length),
-                          value1.substring(23, value1.length)).sorted
-        values should equal (List(
-            " " + bridge.getId + " Entering device",
-            " " + bridge.getId + " Flooded to port set"))
+        val keySet = cacheMap.keySet
+        val uuidSet = keySet filter { _.length == 36 }
+        uuidSet.size should equal (1)
+        val traceID = uuidSet.toArray.apply(0)
+        keySet should equal (Set(traceID, traceID + ":1", traceID + ":2"))
+        cacheMap.get(traceID).get.value should equal ("2")
+        val value1 = cacheMap.get(traceID + ":1").get.value
+        val value2 = cacheMap.get(traceID + ":2").get.value
+        value1.substring(23, value1.length) should equal (
+            " " + bridge.getId + " Entering device")
+        value2.substring(23, value2.length) should equal (
+            " " + bridge.getId + " Flooded to port set")
 
         verifyMacLearned("02:11:22:33:44:10", "port1")
     }
