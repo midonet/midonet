@@ -52,7 +52,7 @@ Using a Mac? You're on your own. :-)
 }
 
 assert_maven() {
-    mvn --version >/dev/null 2>&1 \
+    mvn --version >/dev/null \
         || err "Failed to run 'mvn'. (Install 'maven' package?)"
     ver=$(mvn --version 2>&1 | sed -n -e '1s/[^0-9]*//p')
 
