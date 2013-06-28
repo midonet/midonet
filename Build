@@ -15,17 +15,30 @@
 #  clean.
 #
 
+usage() {
+    err "$@
+Usage: $(basename $0) [-c]
+    -c   clean build
+"
+}
+
 main() {
     trap -- '
         [ "$NO_INTERNAL_ERROR" = OK ] \
             || echo 1>&2 "INTERNAL ERROR: Uncaught failure in Build script.";
     ' EXIT
 
-    [ -z "$1" ] || err "We don't currently accept command line arguments."
+    clean=
+    while true; do case "$1" in
+        -c)     shift; clean=clean;;
+        -*)     usage "Unknown option: $1";;
+        *)      break;;
+    esac; done
+    [ -z "$1" ] || usage "Unknown argument: $1"
 
     assert_java
     assert_maven
-    mvn package -DskipFunctionalTests   # no "clean" until we get -c option
+    mvn $clean package -DskipFunctionalTests
     NO_INTERNAL_ERROR=OK
 }
 
