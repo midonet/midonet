@@ -25,6 +25,7 @@ import org.midonet.midolman.monitoring.metrics.PacketPipelineHistogram
 import org.midonet.midolman.monitoring.metrics.PacketPipelineGauge
 import org.midonet.midolman.monitoring.metrics.PacketPipelineCounter
 import org.midonet.midolman.monitoring.metrics.PacketPipelineAccumulatedTime
+import org.midonet.midolman.state.ConditionSet
 import org.midonet.netlink.Callback
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp.protos.OvsDatapathConnection
@@ -139,6 +140,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
     @Inject var datapathConnection: OvsDatapathConnection = null
     @Inject var clusterDataClient: DataClient = null
     @Inject @Nullable var connectionCache: Cache = null
+    @Inject var tracedConditions: ConditionSet = null
 
     @Inject
     @SIMULATION_THROTTLING_GUARD
@@ -182,7 +184,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
                 // handle the packet.
                 val packetWorkflow = new PacketWorkflow(datapathConnection, dpState,
                             datapath, clusterDataClient, connectionCache, packet,
-                            Left(cookie), throttler, metrics)(
+                            Left(cookie), throttler, metrics, tracedConditions)(
                             this.context.dispatcher, this.context.system, this.context)
 
                 log.debug("Created new {} packet handler.", "PacketWorkflow-" + cookie)
@@ -229,10 +231,11 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
             val packetWorkflow =
                 new PacketWorkflow(datapathConnection, dpState,
                     datapath, clusterDataClient, connectionCache, packet,
-                    Right(egressPort), throttler, metrics)(
+                    Right(egressPort), throttler, metrics, tracedConditions)(
                     this.context.dispatcher, this.context.system, this.context)
 
-            log.debug("Created new {} handler.", "PacketWorkflow-generated-"+packetId)
+            log.debug("Created new {} handler.",
+                      "PacketWorkflow-generated-" + packetId)
             packetWorkflow.start()
     }
 

@@ -96,8 +96,7 @@ public class PortSetZkManager extends AbstractZkManager {
 
     public void delMemberAsync(UUID portSetId, UUID entryId,
                                DirectoryCallback.Void callback) {
-        String portSetPath = paths.getPortSetEntryPath(portSetId,
-                                                             entryId);
+        String portSetPath = paths.getPortSetEntryPath(portSetId, entryId);
         zk.asyncDelete(portSetPath, callback);
     }
 

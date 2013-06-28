@@ -16,6 +16,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.midonet.midolman.layer3.Route;
+import org.midonet.midolman.serialization.SerializationException;
+
 
 public class TestReplicatedSet {
 
@@ -112,7 +114,8 @@ public class TestReplicatedSet {
     }
 
     @Test
-    public void testStartThenAdd() throws KeeperException, InterruptedException {
+    public void testStartThenAdd() throws KeeperException, InterruptedException,
+            SerializationException {
         stringSet.start();
         for (String str : testStrings) {
             stringSet.add(str);
@@ -122,7 +125,7 @@ public class TestReplicatedSet {
 
     @Test
     public void testStartThenAddDelete() throws KeeperException,
-            InterruptedException {
+            InterruptedException, SerializationException {
         stringSet.start();
         for (String str : testStrings) {
             stringSet.add(str);
@@ -135,7 +138,7 @@ public class TestReplicatedSet {
 
     @Test
     public void testStartThenAddDeleteToDirectory() throws KeeperException,
-            InterruptedException {
+            InterruptedException, SerializationException {
         stringSet.start();
         for (String str : testStrings) {
             stringDir.add("/" + str, null, CreateMode.PERSISTENT);
@@ -147,7 +150,7 @@ public class TestReplicatedSet {
     }
 
     public void testAddStringExists() throws KeeperException,
-            InterruptedException {
+            InterruptedException, SerializationException {
         // Since the stringSet's CreateMode is EPHEMERAL, it does not throw
         // NodeExists exceptions - it overwrites the existing node to claim
         // ownership.
@@ -169,7 +172,7 @@ public class TestReplicatedSet {
 
     @Test
     public void testChangeWatchers() throws KeeperException,
-            InterruptedException {
+            InterruptedException, SerializationException {
         MyWatcher watch1 = new MyWatcher();
         MyWatcher watch2 = new MyWatcher();
         stringSet.addWatcher(watch1);

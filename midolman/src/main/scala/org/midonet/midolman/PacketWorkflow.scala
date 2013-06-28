@@ -22,6 +22,7 @@ import org.midonet.midolman.FlowController.AddWildcardFlow
 import org.midonet.midolman.datapath.{FlowActionOutputToVrnPortSet,
     ErrorHandlingCallback}
 import org.midonet.midolman.simulation.{DhcpImpl, Coordinator}
+import org.midonet.midolman.state.ConditionSet
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.
     PortSetForTunnelKeyRequest
 import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
@@ -77,10 +78,11 @@ class PacketWorkflow(
         packet: Packet,
         cookieOrEgressPort: Either[Int, UUID],
         throttlingGuard: ThrottlingGuard,
-        metrics: PacketPipelineMetrics)
-        (implicit val executor: ExecutionContext,
-            val system: ActorSystem,
-            val context: ActorContext)
+        metrics: PacketPipelineMetrics,
+        private val tracedConditions: ConditionSet)
+       (implicit val executor: ExecutionContext,
+        val system: ActorSystem,
+        val context: ActorContext)
     extends FlowTranslator with UserspaceFlowActionTranslator {
 
     import PacketWorkflow._
@@ -445,7 +447,7 @@ class PacketWorkflow(
             None,
             egressPort,
             Platform.currentTime + timeout,
-            connectionCache, None)
+            connectionCache, None, tracedConditions)
         coordinator.simulate()
     }
 
@@ -476,7 +478,7 @@ class PacketWorkflow(
                         val coordinator: Coordinator = new Coordinator(
                             wMatch, packet.getPacket, cookie,
                             None, Platform.currentTime + timeout,
-                            connectionCache, None)
+                            connectionCache, None, tracedConditions)
                         coordinator.simulate()
                 }
 

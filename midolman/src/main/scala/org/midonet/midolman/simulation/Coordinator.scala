@@ -20,7 +20,9 @@ import org.midonet.midolman.PacketWorkflow.{SendPacket,
 import org.midonet.midolman.datapath.{FlowActionOutputToVrnPort,
                                       FlowActionOutputToVrnPortSet}
 import org.midonet.midolman.logging.LoggerFactory
+import org.midonet.midolman.rules.Condition
 import org.midonet.midolman.rules.RuleResult.{Action => RuleAction}
+import org.midonet.midolman.state.ConditionSet
 import org.midonet.midolman.topology._
 import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.midolman.topology.VirtualTopologyActor.RouterRequest
@@ -102,7 +104,8 @@ class Coordinator(var origMatch: WildcardMatch,
                   val generatedPacketEgressPort: Option[UUID],
                   val expiry: Long,
                   val connectionCache: Cache,
-                  val parentCookie: Option[Int])
+                  val parentCookie: Option[Int],
+                  val tracedConditions: ConditionSet)
                  (implicit val ec: ExecutionContext,
                   val actorSystem: ActorSystem,
                   val actorContext: ActorContext) {
@@ -117,9 +120,11 @@ class Coordinator(var origMatch: WildcardMatch,
     // Used to detect loops: devices simulated (with duplicates).
     private var numDevicesSimulated = 0
     private val devicesSimulated = mutable.Map[UUID, Int]()
-    implicit private val pktContext = new PacketContext(cookie, origEthernetPkt, expiry,
-            connectionCache, generatedPacketEgressPort.isDefined, parentCookie)
+    implicit private val pktContext = new PacketContext(cookie, origEthernetPkt,
+         expiry, connectionCache, generatedPacketEgressPort.isDefined,
+         parentCookie)
     pktContext.setMatch(origMatch)
+    pktContext.setTraced(tracedConditions.matches(pktContext, origMatch, false))
 
     implicit def simulationActionToSuccessfulFuture(
         a: SimulationResult): Future[SimulationResult] = Promise.successful(a)
@@ -130,6 +135,7 @@ class Coordinator(var origMatch: WildcardMatch,
         // If the packet is from the datapath, install a temporary Drop flow.
         // Note: a flow with no actions drops matching packets.
         pktContext.freeze()
+        pktContext.traceMessage(null, "Dropping flow")
         cookie match {
             case Some(_) =>
                 val idleExp = if (temporary) 0 else IDLE_EXPIRATION_MILLIS
@@ -303,16 +309,19 @@ class Coordinator(var origMatch: WildcardMatch,
         deviceFuture map {Option(_)} fallbackTo { Promise.successful(None) } flatMap {
             case None =>
                 log.warning("Failed to get device: {}", port.deviceID)
+                pktContext.traceMessage(port.deviceID, "Couldn't get device")
                 dropFlow(temporary = true)
             case Some(deviceReply) =>
                 if (!deviceReply.isInstanceOf[Device]) {
                     log.error("VirtualTopologyManager didn't return a device!")
+                    pktContext.traceMessage(port.deviceID, "ERROR Not a device")
                     dropFlow(temporary = true)
                 } else {
                     numDevicesSimulated += 1
                     devicesSimulated.put(port.deviceID, numDevicesSimulated)
                     log.debug("Simulating packet with match {}, device {}",
                         pktContext.getMatch, port.deviceID)
+                    pktContext.traceMessage(port.deviceID, "Entering device")
                     handleActionFuture(deviceReply.asInstanceOf[Device].process(
                         pktContext))
                 }
@@ -431,12 +440,15 @@ class Coordinator(var origMatch: WildcardMatch,
                     )).map( r => r._1)
 
                 case ToPortSetAction(portSetID) =>
+                    pktContext.traceMessage(portSetID, "Flooded to port set")
                     emit(portSetID, isPortSet = true, null)
 
                 case ToPortAction(outPortID) =>
+                    pktContext.traceMessage(outPortID, "Forwarded to port")
                     packetEgressesPort(outPortID)
 
                 case _: ConsumedAction =>
+                    pktContext.traceMessage(null, "Consumed")
                     pktContext.freeze()
                     pktContext.getFlowRemovedCallbacks foreach {
                         cb => cb.call()
@@ -444,6 +456,7 @@ class Coordinator(var origMatch: WildcardMatch,
                     NoOp()
 
                 case _: ErrorDropAction =>
+                    pktContext.traceMessage(null, "Encountered error")
                     pktContext.freeze()
                     cookie match {
                         case None => // Do nothing.
@@ -457,6 +470,7 @@ class Coordinator(var origMatch: WildcardMatch,
                     }
 
                 case _: DropAction =>
+                    pktContext.traceMessage(null, "Dropping flow")
                     pktContext.freeze()
                     log.debug("Device returned DropAction for {}",
                         origMatch)
@@ -473,6 +487,7 @@ class Coordinator(var origMatch: WildcardMatch,
                     }
 
                 case _: NotIPv4Action =>
+                    pktContext.traceMessage(null, "Unsupported protocol")
                     log.debug("Device returned NotIPv4Action for {}",
                         origMatch)
                     pktContext.freeze()
@@ -499,6 +514,8 @@ class Coordinator(var origMatch: WildcardMatch,
 
 
                 case _ =>
+                    pktContext.traceMessage(null,
+                                            "ERROR Unexpected action returned")
                     log.error("Device returned unexpected action!")
                     dropFlow(temporary = true)
             } // end action match

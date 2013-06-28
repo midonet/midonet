@@ -10,8 +10,6 @@ import org.midonet.config.ConfigString;
 /**
  * Possible configuration entries for zookeeper connection information.
  *
- * @author Mihai Claudiu Toader <mtoader@midokura.com>
- *         Date: 6/14/12
  */
 @ConfigGroup(ZookeeperConfig.GROUP_NAME)
 public interface ZookeeperConfig {

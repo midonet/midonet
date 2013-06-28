@@ -18,6 +18,7 @@ public class PathBuilder extends ZkPathManager {
     public static final String CHAIN_NAMES_PATH = "chain-names";
     public static final String ROUTER_NAMES_PATH = "router-names";
     public static final String TENANTS_PATH = "tenants";
+    public static final String TRACED_CONDITIONS_PATH = "traced-conditions";
     public static final String PORT_GROUP_NAMES_PATH = "port_group-names";
 
     @Inject
@@ -190,5 +191,14 @@ public class PathBuilder extends ZkPathManager {
 
     private StringBuilder buildTenantsPath() {
         return new StringBuilder(basePath).append("/").append(TENANTS_PATH);
+    }
+
+    public String getTracedConditionsPath() {
+        return buildTracedConditionsPath().toString();
+    }
+
+    private StringBuilder buildTracedConditionsPath() {
+        return new StringBuilder(basePath).append("/")
+                                          .append(TRACED_CONDITIONS_PATH);
     }
 }

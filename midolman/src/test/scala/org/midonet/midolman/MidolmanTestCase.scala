@@ -62,6 +62,7 @@ import org.midonet.midolman.FlowController.WildcardFlowRemoved
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.DeduplicationActor.DiscardPacket
 
+
 object MidolmanTestCaseLock {
     val sequential: ReentrantLock = new ReentrantLock()
 }
@@ -211,8 +212,8 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
     }
 
     protected def getModules(config: HierarchicalConfiguration)
-            : Iterable[Module] = {
-        List(
+            : List[Module] = {
+        List[Module](
             new VersionModule(),
             new SerializationModule(),
             new MockConfigProviderModule(config),
@@ -239,9 +240,12 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
                         .to(classOf[MockInterfaceScanner]).asEagerSingleton()
                     expose(classOf[InterfaceScanner])
                 }
-            }
+            },
+            getConditionSetModule
         )
     }
+
+    protected def getConditionSetModule = new DummyConditionSetModule(false)
 
     protected def ask[T](actor: ActorRef, msg: Object): T = {
         val t = Timeout(3 second)

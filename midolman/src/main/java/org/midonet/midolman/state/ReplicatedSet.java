@@ -15,6 +15,9 @@ import org.apache.zookeeper.KeeperException.NodeExistsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.midolman.serialization.SerializationException;
+
+
 public abstract class ReplicatedSet<T> {
     private final static Logger log = LoggerFactory.getLogger(ReplicatedSet.class);
 
@@ -28,7 +31,8 @@ public abstract class ReplicatedSet<T> {
         connectionWatcher = watcher;
     }
 
-    private void updateItems(Set<String> newStrings){
+    private void updateItems(Set<String> newStrings)
+            throws SerializationException {
         Set<String> oldStrings = strings;
         log.debug("Got set update. Old strings {} New strings {}",
             strings, newStrings);
@@ -54,10 +58,9 @@ public abstract class ReplicatedSet<T> {
         strings = newStrings;
     }
 
-    private class DirectoryWatcher extends Directory.DefaultTypedWatcher
-    {
+    private class DirectoryWatcher extends Directory.DefaultTypedWatcher {
         @Override
-        public void pathChildrenUpdated(String path){
+        public void pathChildrenUpdated(String path) {
             if (!running)
                 return;
             dir.asyncGetChildren("", new GetItemsCallback(), this);
@@ -102,14 +105,14 @@ public abstract class ReplicatedSet<T> {
         strings.clear();
     }
 
-    public void add(T item) {
+    public void add(T item) throws SerializationException {
         // Just modify the ZK state. Internal structures will be updated
         // when our watcher is called.
         String path = "/" + encode(item);
         dir.asyncAdd(path, null, createMode, new AddCallback(item));
     }
 
-    public void remove(T item) {
+    public void remove(T item) throws SerializationException {
         // Just modify the ZK state. Internal structures will be updated
         // when our watcher is called.
         dir.asyncDelete("/" + encode(item), new DeleteCallback(item));
@@ -129,7 +132,11 @@ public abstract class ReplicatedSet<T> {
     class GetItemsCallback implements DirectoryCallback<Set<String>> {
         @Override
         public void onSuccess(Result<Set<String>> data) {
-            updateItems(data.getData());
+            try {
+                updateItems(data.getData());
+            } catch (SerializationException e) {
+                log.error("Serialization error: ", e);
+            }
         }
 
         @Override
@@ -191,14 +198,20 @@ public abstract class ReplicatedSet<T> {
         }
 
         public void onError(KeeperException ex) {
-            if(ex instanceof NodeExistsException){
+            if (ex instanceof NodeExistsException) {
                 // If the item already exists and we need it to be ephemeral, we
                 // delete it and re-create it so that it belongs to this ZK client
                 // and will only be removed when this client's session expires.
                 if (createMode.equals(CreateMode.EPHEMERAL)) {
                     log.warn("Item {} already exists. Delete it and recreate it " +
                                  "as an Ephemeral node in order to own it.", item);
-                    String path = "/" + encode(item);
+                    String path = "";
+                    try {
+                        path = "/" + encode(item);
+                    } catch (Exception e) {
+                        log.error("Exception when trying to serialize", e);
+                        return;
+                    }
                     try {
                         // TODO(pino): can it be done in a multi to save a trip?
                         dir.delete(path);
@@ -217,6 +230,6 @@ public abstract class ReplicatedSet<T> {
         }
     }
 
-    protected abstract String encode(T item);
-    protected abstract T decode(String str);
+    protected abstract String encode(T item) throws SerializationException;
+    protected abstract T decode(String str) throws SerializationException;
 }

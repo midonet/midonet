@@ -3,15 +3,19 @@
 */
 package org.midonet.midolman
 
+import scala.collection.JavaConversions._
+import scala.collection.mutable.{Map => MMap}
 import akka.testkit.TestProbe
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
+import org.midonet.cache.Cache
 import org.midonet.midolman.DatapathController.TunnelChangeEvent
 import org.midonet.midolman.FlowController.{WildcardFlowRemoved, WildcardFlowAdded}
 import org.midonet.midolman.PacketWorkflow.PacketIn
+import org.midonet.midolman.guice.DummyConditionSetModule
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.cluster.data.{Bridge => ClusterBridge}
 import org.midonet.cluster.data.ports.MaterializedBridgePort
@@ -19,7 +23,7 @@ import org.midonet.cluster.data.zones.GreTunnelZoneHost
 import org.midonet.odp.flows.{FlowActionOutput, FlowActions, FlowActionSetKey,
     FlowKeyTunnelID}
 import org.midonet.packets.{Ethernet, IntIPv4, MAC, Packets}
-import org.slf4j.LoggerFactory
+import org.midonet.midolman.util.MockCache
 
 
 @RunWith(classOf[JUnitRunner])
@@ -78,7 +82,8 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         clusterDataClient().portSetsAddHost(bridge.getId, host3.getId)
 
         tunnelEventsProbe = newProbe()
-        actors().eventStream.subscribe(tunnelEventsProbe.ref, classOf[TunnelChangeEvent])
+        actors().eventStream.subscribe(tunnelEventsProbe.ref,
+                                       classOf[TunnelChangeEvent])
 
         initializeDatapath() should not be (null)
 
@@ -104,8 +109,14 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         }
     }
 
+    override def getConditionSetModule = new DummyConditionSetModule(true)
+
     @Test
     def testPacketInBridgeSimulation() {
+        val cache = injector.getInstance(classOf[Cache]).asInstanceOf[MockCache]
+        cache.clear()
+        cache.map.size should equal (0)
+
         val ethPkt = Packets.udp(
                 MAC.fromString("02:11:22:33:44:10"),
                 MAC.fromString("02:11:22:33:44:11"),
@@ -122,10 +133,30 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         flowActs.contains(FlowActions.output(portId5)) should be (true)
         flowActs.contains(FlowActions.output(tunnelId1)) should be (true)
         flowActs.contains(FlowActions.output(tunnelId2)) should be (true)
+
+        cache.map.size should equal (2)
+        val cacheMap: MMap[String, MockCache.CacheEntry] = cache.map
+        val traceMsgs = cacheMap.toArray
+        val key0 = traceMsgs(0)._1
+        val key1 = traceMsgs(1)._1
+        key0 should not equal (key1)
+        key0.substring(0, key0.length - 1) should equal (
+            key1.substring(0, key1.length - 1))
+        List(key0.substring(key0.length - 1, key0.length),
+             key1.substring(key1.length - 1, key1.length)).sorted should equal (
+                 List("1", "2"))
+        val value0 = traceMsgs(0)._2.value
+        val value1 = traceMsgs(1)._2.value
+        val values = List(value0.substring(23, value0.length),
+                          value1.substring(23, value1.length)).sorted
+        values should equal (List(
+            " " + bridge.getId + " Entering device",
+            " " + bridge.getId + " Flooded to port set"))
+
         verifyMacLearned("02:11:22:33:44:10", "port1")
     }
 
-    def testBcastPktBridgeSim () {
+    def testBcastPktBridgeSim() {
         val inputPort = "port1"
         val ethPkt = Packets.udp(
                 MAC.fromString("0a:fe:88:70:44:55"),
