@@ -19,6 +19,8 @@ usage() {
     err "$@
 Usage: $(basename $0) [-c]
     -c   clean build
+    -tn  Do not run any tests.
+    -ta  Run all tests (unit and integration)
 "
 }
 
@@ -29,8 +31,11 @@ main() {
     ' EXIT
 
     clean=
+    test_spec=-DskipFunctionalTests
     while true; do case "$1" in
         -c)     shift; clean=clean;;
+        -ta)    shift; test_spec=;;
+        -tn)    shift; test_spec=-DskipTests;;
         -*)     usage "Unknown option: $1";;
         *)      break;;
     esac; done
@@ -38,7 +43,7 @@ main() {
 
     assert_java
     assert_maven
-    mvn $clean package -DskipFunctionalTests
+    mvn $clean package $test_spec
     NO_INTERNAL_ERROR=OK
 }
 
