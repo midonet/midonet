@@ -48,11 +48,10 @@ public class HostInterfaceWatcher implements Runnable {
         }
 
         while (isRunning) {
-            InterfaceDescription[] descriptions;
 
-            descriptions = interfaceScanner.scanInterfaces();
+            interfaceDataUpdater.updateInterfacesData(
+                hostId, hostMetadata, interfaceScanner.scanInterfaces());
 
-            interfaceDataUpdater.updateInterfacesData(hostId, hostMetadata, descriptions);
             try {
                 Thread.sleep(configuration.getWaitTimeBetweenHostScans());
             } catch (InterruptedException e) {

@@ -129,11 +129,9 @@ public class HostService extends AbstractService
         HostDirectory.Metadata metadata = new HostDirectory.Metadata();
 
         // Retrieve the interfaces and store the addresses in the metadata
-        InterfaceDescription[] interfaces = scanner.scanInterfaces();
-
         List<InetAddress> listAddresses = new ArrayList<InetAddress>();
-        for (InterfaceDescription interfaceDescription : interfaces) {
-            listAddresses.addAll(interfaceDescription.getInetAddresses());
+        for (InterfaceDescription info: scanner.scanInterfaces()) {
+            listAddresses.addAll(info.getInetAddresses());
         }
 
         metadata.setAddresses(

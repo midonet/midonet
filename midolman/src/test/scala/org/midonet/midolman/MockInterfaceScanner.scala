@@ -23,8 +23,8 @@ class MockInterfaceScanner extends InterfaceScanner {
         this.synchronized { interfaces.remove(name) }
     }
 
-    override def scanInterfaces(): Array[InterfaceDescription] = {
-        this.synchronized { interfaces.values.toArray }
+    override def scanInterfaces(): JList[InterfaceDescription] = {
+        this.synchronized { interfaces.values.toSeq }
     }
 
     override def scanInterfaces(
