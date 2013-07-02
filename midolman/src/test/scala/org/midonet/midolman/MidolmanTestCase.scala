@@ -240,12 +240,9 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
                         .to(classOf[MockInterfaceScanner]).asEagerSingleton()
                     expose(classOf[InterfaceScanner])
                 }
-            },
-            getConditionSetModule
+            }
         )
     }
-
-    protected def getConditionSetModule = new DummyConditionSetModule(false)
 
     protected def ask[T](actor: ActorRef, msg: Object): T = {
         val t = Timeout(3 second)
@@ -339,6 +336,10 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
 
     protected def virtualTopologyActor(): TestActorRef[VirtualTopologyActor] = {
         actorByName(VirtualTopologyActor.Name)
+    }
+
+    protected def deduplicationActor(): TestActorRef[DeduplicationActor] = {
+        actorByName(DeduplicationActor.Name)
     }
 
     protected def dpProbe(): TestKit = {

@@ -3,6 +3,7 @@
  */
 package org.midonet.midolman.topology
 
+import collection.JavaConverters._
 import collection.mutable
 import collection.immutable
 import akka.actor._
@@ -14,6 +15,7 @@ import com.google.inject.Inject
 import org.midonet.midolman.{FlowController, Referenceable}
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
+import org.midonet.midolman.rules.Condition
 import org.midonet.midolman.simulation.{Bridge, Chain, Router}
 import org.midonet.cluster.Client
 import org.midonet.cluster.client.Port
@@ -49,6 +51,8 @@ object VirtualTopologyActor extends Referenceable {
 
     case class ChainRequest(id: UUID, update: Boolean) extends DeviceRequest
 
+    case class ConditionSetRequest(id: UUID, update: Boolean) extends DeviceRequest
+
     sealed trait Unsubscribe
 
     case class VlanBridgeUnsubscribe(id: UUID) extends Unsubscribe
@@ -56,6 +60,8 @@ object VirtualTopologyActor extends Referenceable {
     case class BridgeUnsubscribe(id: UUID) extends Unsubscribe
 
     case class ChainUnsubscribe(id: UUID) extends Unsubscribe
+
+    case class ConditionSetUnsubscribe(id: UUID) extends Unsubscribe
 
     case class PortUnsubscribe(id: UUID) extends Unsubscribe
 
@@ -65,7 +71,9 @@ object VirtualTopologyActor extends Referenceable {
                           idToVlanBridge: immutable.Map[UUID, VlanAwareBridge],
                           idToChain: immutable.Map[UUID, Chain],
                           idToPort: immutable.Map[UUID, Port[_]],
-                          idToRouter: immutable.Map[UUID, Router])
+                          idToRouter: immutable.Map[UUID, Router],
+                          idToConditionSet:
+                              immutable.Map[UUID, immutable.Set[Condition]])
 
     // This variable should only be updated by the singleton
     // VirtualTopologyInstance. Also, we strongly recommend not accessing
@@ -97,13 +105,13 @@ object VirtualTopologyActor extends Referenceable {
             case r: VlanBridgeRequest => e.idToVlanBridge
             case r: BridgeRequest => e.idToBridge
             case r: ChainRequest => e.idToChain
+            case r: ConditionSetRequest => e.idToConditionSet
             case r: PortRequest => e.idToPort
             case r: RouterRequest => e.idToRouter
             case r: PortSetHolderRequest =>
                 if (e.idToBridge.contains(request.id)) e.idToBridge
                 else if (e.idToVlanBridge.contains(request.id)) e.idToVlanBridge
                 else new immutable.HashMap[UUID, Any]
-
         }
 
         deviceMap.get(request.id) match {
@@ -122,6 +130,7 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
     private var idToChain = immutable.Map[UUID, Chain]()
     private var idToPort = immutable.Map[UUID, Port[_]]()
     private var idToRouter = immutable.Map[UUID, Router]()
+    private var traceConditions = immutable.Set[Condition]()
 
     // TODO(pino): unload devices with no subscribers that haven't been used
     // TODO:       in a while.
@@ -174,7 +183,7 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
             client ! device
         }
         for (client <- idToUnansweredClients(id)) {
-        // Avoid notifying the subscribed clients twice.
+            // Avoid notifying the subscribed clients twice.
             if (!idToSubscribers(id).contains(client)) {
                 log.debug("Send unanswered client the device update for {}",
                     device)
@@ -183,7 +192,8 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
         }
         idToUnansweredClients(id).clear()
         everything = Everything(idToBridge, idToVlanBridge, idToChain,
-                                idToPort, idToRouter)
+                                idToPort, idToRouter,
+                                Map(TraceConditionsManager.uuid -> traceConditions))
     }
 
     private def unsubscribe(id: UUID, actor: ActorRef): Unit = {
@@ -261,6 +271,9 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
             log.debug("Received a Router for {}", router.id)
             idToRouter = idToRouter.+((router.id, router))
             updated(router.id, router)
+        case TraceConditionsManager.TriggerUpdate(conditions) =>
+            traceConditions = conditions.asScala.toSet
+            updated(TraceConditionsManager.uuid, traceConditions)
         case invalidation: InvalidateFlowsByTag =>
             FlowController.getRef() ! invalidation
     }

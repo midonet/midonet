@@ -4,7 +4,7 @@ package org.midonet.midolman
 
 import scala.collection.JavaConverters._
 import scala.collection.JavaConversions._
-import scala.collection.mutable
+import scala.collection.{immutable, mutable}
 import scala.collection.{Set => ROSet}
 import scala.compat.Platform
 import akka.actor._
@@ -15,14 +15,16 @@ import akka.util.Timeout
 import java.lang.{Integer => JInteger}
 import java.util.UUID
 
+import com.yammer.metrics.core.{Clock, Counter}
+
 import org.midonet.cache.Cache
 import org.midonet.midolman.DeduplicationActor._
 import org.midonet.midolman.FlowController.FlowAdded
 import org.midonet.midolman.FlowController.AddWildcardFlow
 import org.midonet.midolman.datapath.{FlowActionOutputToVrnPortSet,
     ErrorHandlingCallback}
+import org.midonet.midolman.rules.Condition
 import org.midonet.midolman.simulation.{DhcpImpl, Coordinator}
-import org.midonet.midolman.state.ConditionSet
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.
     PortSetForTunnelKeyRequest
 import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
@@ -41,7 +43,7 @@ import org.midonet.odp.Packet.Reason.FlowActionUserspace
 import org.midonet.util.functors.Callback0
 import org.midonet.util.throttling.ThrottlingGuard
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
-import com.yammer.metrics.core.{Clock, Counter}
+
 
 object PacketWorkflow {
     case class PacketIn(wMatch: WildcardMatch,
@@ -81,7 +83,7 @@ class PacketWorkflow(
         cookieOrEgressPort: Either[Int, UUID],
         throttlingGuard: ThrottlingGuard,
         metrics: PacketPipelineMetrics,
-        private val tracedConditions: ConditionSet)
+        private val traceConditions: immutable.Set[Condition])
        (implicit val executor: ExecutionContext,
         val system: ActorSystem,
         val context: ActorContext)
@@ -447,7 +449,7 @@ class PacketWorkflow(
             WildcardMatch.fromEthernetPacket(eth),
             eth, None, egressPort, Platform.currentTime + timeout,
             connectionCache, traceMessageCache, traceIndexCache, None,
-            tracedConditions)
+            traceConditions)
         coordinator.simulate()
     }
 
@@ -479,7 +481,7 @@ class PacketWorkflow(
                             wMatch, packet.getPacket, cookie, None,
                             Platform.currentTime + timeout, connectionCache,
                             traceMessageCache, traceIndexCache, None,
-                            tracedConditions)
+                            traceConditions)
                         coordinator.simulate()
                 }
 

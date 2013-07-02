@@ -2,8 +2,7 @@
 
 package org.midonet.midolman.simulation
 
-import scala.Some
-import collection.mutable
+import collection.{immutable, mutable}
 import collection.JavaConversions._
 import java.util.UUID
 
@@ -22,7 +21,6 @@ import org.midonet.midolman.datapath.{FlowActionOutputToVrnPort,
 import org.midonet.midolman.logging.LoggerFactory
 import org.midonet.midolman.rules.Condition
 import org.midonet.midolman.rules.RuleResult.{Action => RuleAction}
-import org.midonet.midolman.state.ConditionSet
 import org.midonet.midolman.topology._
 import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.midolman.topology.VirtualTopologyActor.RouterRequest
@@ -111,7 +109,7 @@ class Coordinator(var origMatch: WildcardMatch,
                   val traceMessageCache: Cache,
                   val traceIndexCache: Cache,
                   val parentCookie: Option[Int],
-                  val tracedConditions: ConditionSet)
+                  val traceConditions: immutable.Set[Condition])
                  (implicit val ec: ExecutionContext,
                   val actorSystem: ActorSystem,
                   val actorContext: ActorContext) {
@@ -130,11 +128,18 @@ class Coordinator(var origMatch: WildcardMatch,
          expiry, connectionCache, traceMessageCache, traceIndexCache,
          generatedPacketEgressPort.isDefined, parentCookie)
     pktContext.setMatch(origMatch)
-    pktContext.setTraced(tracedConditions.matches(pktContext, origMatch, false))
+    pktContext.setTraced(matchTraceConditions())
 
     implicit def simulationActionToSuccessfulFuture(
         a: SimulationResult): Future[SimulationResult] = Promise.successful(a)
 
+    private def matchTraceConditions(): Boolean = {
+        for (condition <- traceConditions) {
+            if (condition.matches(pktContext, origMatch, false))
+                return true
+        }
+        return false
+    }
 
     private def dropFlow(temporary: Boolean, withTags: Boolean = false):
             SimulationResult = {

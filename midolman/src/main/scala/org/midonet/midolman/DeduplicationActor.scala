@@ -4,7 +4,7 @@ package org.midonet.midolman
 
 import akka.actor._
 import akka.event.LoggingReceive
-import collection.mutable
+import collection.{immutable, mutable}
 import scala.collection.JavaConverters._
 import collection.mutable.{HashMap, MultiMap}
 import java.util.UUID
@@ -27,7 +27,9 @@ import org.midonet.midolman.monitoring.metrics.PacketPipelineHistogram
 import org.midonet.midolman.monitoring.metrics.PacketPipelineGauge
 import org.midonet.midolman.monitoring.metrics.PacketPipelineCounter
 import org.midonet.midolman.monitoring.metrics.PacketPipelineAccumulatedTime
-import org.midonet.midolman.state.ConditionSet
+import org.midonet.midolman.rules.Condition
+import org.midonet.midolman.topology.TraceConditionsManager
+import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.netlink.Callback
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp.protos.OvsDatapathConnection
@@ -144,7 +146,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
     @Inject @Nullable @NAT_CACHE var connectionCache: Cache = null
     @Inject @TRACE_MESSAGES var traceMessageCache: Cache = null
     @Inject @TRACE_INDEX var traceIndexCache: Cache = null
-    @Inject var tracedConditions: ConditionSet = null
+    var traceConditions: immutable.Set[Condition] = Set()
 
     @Inject
     @SIMULATION_THROTTLING_GUARD
@@ -167,6 +169,9 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
     override def preStart() {
         super.preStart()
         metrics = new PacketPipelineMetrics(metricsRegistry, throttler)
+        VirtualTopologyActor.getRef().tell(
+            VirtualTopologyActor.ConditionSetRequest(
+                TraceConditionsManager.uuid, true))
     }
 
     def receive = LoggingReceive {
@@ -178,7 +183,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
                 log.info("Datapath hook installed")
             }
 
-        case HandlePacket(packet) =>
+        case HandlePacket(packet) => {
             dpMatchToCookie.get(packet.getMatch) match {
             case None =>
                 val cookie: Int = idGenerator.getAndIncrement
@@ -190,7 +195,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
                         datapathConnection, dpState, datapath,
                         clusterDataClient, connectionCache, traceMessageCache,
                         traceIndexCache, packet, Left(cookie), throttler,
-                        metrics, tracedConditions)(this.context.dispatcher,
+                        metrics, traceConditions)(this.context.dispatcher,
                         this.context.system, this.context)
 
                 log.debug("Created new {} packet handler.", "PacketWorkflow-" + cookie)
@@ -206,6 +211,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
                 cookieToPendedPackets.addBinding(cookie, packet)
                 metrics.pendedPackets.inc()
             }
+        }
 
         case ApplyFlow(actions, cookieOpt) => cookieOpt foreach { cookie =>
             cookieToPendedPackets.remove(cookie) foreach { pendedPackets =>
@@ -230,7 +236,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
         }
 
         // This creates a new PacketWorkflowActor and
-        // and executes the simulation method directly.
+        // executes the simulation method directly.
         case EmitGeneratedPacket(egressPort, ethernet, parentCookie) =>
             val packet = new Packet().setPacket(ethernet)
             val packetId = scala.util.Random.nextLong()
@@ -238,12 +244,15 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
                 new PacketWorkflow(datapathConnection, dpState,
                     datapath, clusterDataClient, connectionCache,
                     traceMessageCache, traceIndexCache, packet,
-                    Right(egressPort), throttler, metrics, tracedConditions)(
+                    Right(egressPort), throttler, metrics, traceConditions)(
                     this.context.dispatcher, this.context.system, this.context)
 
             log.debug("Created new {} handler.",
                       "PacketWorkflow-generated-" + packetId)
             packetWorkflow.start()
+
+        case newTraceConditions: immutable.Set[Condition] =>
+            traceConditions = newTraceConditions
     }
 
     private def executePacket(cookie: Int,

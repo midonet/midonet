@@ -13,6 +13,7 @@ import org.midonet.cluster.client.HostBuilder;
 import org.midonet.cluster.client.PortBuilder;
 import org.midonet.cluster.client.PortSetBuilder;
 import org.midonet.cluster.client.RouterBuilder;
+import org.midonet.cluster.client.TraceConditionsBuilder;
 import org.midonet.cluster.client.TunnelZones;
 import org.midonet.cluster.client.VlanAwareBridgeBuilder;
 
@@ -38,6 +39,8 @@ public interface Client {
     void getTunnelZones(UUID uuid, TunnelZones.BuildersProvider builders);
 
     void getPortSet(UUID uuid, PortSetBuilder builder);
+
+    void getTraceConditions(TraceConditionsBuilder builder);
 
     void subscribeBgp(UUID portID, BGPListBuilder builder);
 }

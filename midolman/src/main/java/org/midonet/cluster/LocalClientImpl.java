@@ -28,6 +28,7 @@ import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.zkManagers.PortSetZkManager;
 import org.midonet.midolman.state.zkManagers.TunnelZoneZkManager;
+import org.midonet.midolman.topology.TraceConditionsManager;
 import org.midonet.cluster.client.BGPListBuilder;
 import org.midonet.cluster.client.BridgeBuilder;
 import org.midonet.cluster.client.ChainBuilder;
@@ -35,6 +36,7 @@ import org.midonet.cluster.client.HostBuilder;
 import org.midonet.cluster.client.PortBuilder;
 import org.midonet.cluster.client.PortSetBuilder;
 import org.midonet.cluster.client.RouterBuilder;
+import org.midonet.cluster.client.TraceConditionsBuilder;
 import org.midonet.cluster.client.TunnelZones;
 import org.midonet.util.eventloop.Reactor;
 
@@ -62,6 +64,9 @@ public class LocalClientImpl implements Client {
 
     @Inject
     ClusterChainManager chainManager;
+
+    @Inject
+    ClusterConditionManager conditionManager;
 
     @Inject
     TunnelZoneZkManager tunnelZoneZkManager;
@@ -115,6 +120,12 @@ public class LocalClientImpl implements Client {
     public void getChain(UUID chainID, ChainBuilder builder) {
         chainManager.registerNewBuilder(chainID, builder);
         log.debug("getChain {}", chainID);
+    }
+
+    @Override
+    public void getTraceConditions(TraceConditionsBuilder builder) {
+        conditionManager.registerNewBuilder(TraceConditionsManager.getUuid(), builder);
+        log.debug("getTraceConditions");
     }
 
     @Override

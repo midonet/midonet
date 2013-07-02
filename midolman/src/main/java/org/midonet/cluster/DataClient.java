@@ -537,4 +537,9 @@ public interface DataClient {
      */
     public void tagsDelete(@Nonnull TaggableEntity taggable, UUID id, String tag)
         throws StateAccessException;
+
+    /* Conditions for packet tracing */
+    TraceCondition traceConditionGet(UUID id);
+    void traceConditionRemove(UUID id);
+    Set<TraceCondition> traceConditionGetAll();
 }
