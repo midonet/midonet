@@ -17,7 +17,6 @@ import org.midonet.midolman.guice.cluster.ClusterClientModule;
 import org.midonet.midolman.guice.config.ConfigProviderModule;
 import org.midonet.midolman.guice.datapath.DatapathModule;
 import org.midonet.midolman.guice.reactor.ReactorModule;
-import org.midonet.midolman.guice.state.ConditionSetModule;
 import org.midonet.midolman.guice.zookeeper.ZookeeperConnectionModule;
 import org.midonet.midolman.host.guice.HostModule;
 import org.midonet.midolman.monitoring.MonitoringAgent;
@@ -109,7 +108,6 @@ public class Midolman {
             new ClusterClientModule(),
             new SerializationModule(),
             new CacheModule(),
-            new ConditionSetModule(),
             new MidolmanActorsModule(),
             new MidolmanModule(),
             new InterfaceScannerModule()

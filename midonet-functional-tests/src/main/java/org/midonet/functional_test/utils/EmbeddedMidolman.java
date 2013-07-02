@@ -22,7 +22,6 @@ import org.midonet.midolman.guice.config.ConfigProviderModule;
 import org.midonet.midolman.guice.datapath.DatapathModule;
 import org.midonet.midolman.guice.reactor.ReactorModule;
 import org.midonet.midolman.guice.serialization.SerializationModule;
-import org.midonet.midolman.guice.state.ConditionSetModule;
 import org.midonet.midolman.guice.zookeeper.ZookeeperConnectionModule;
 import org.midonet.midolman.host.guice.HostModule;
 import org.midonet.midolman.monitoring.MonitoringAgent;
@@ -61,8 +60,7 @@ public class EmbeddedMidolman {
                 new CacheModule(),
                 new MidolmanActorsModule(),
                 new MidolmanModule(),
-                new InterfaceScannerModule(),
-                new ConditionSetModule()
+                new InterfaceScannerModule()
         );
 
         // start the services

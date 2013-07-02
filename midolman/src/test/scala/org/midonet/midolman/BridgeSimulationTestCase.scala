@@ -5,6 +5,7 @@ package org.midonet.midolman
 
 import guice.CacheModule.{TRACE_INDEX, TRACE_MESSAGES}
 import scala.collection.JavaConversions._
+import scala.collection.immutable
 import scala.collection.mutable.{Map => MMap}
 import akka.testkit.TestProbe
 import org.apache.commons.configuration.HierarchicalConfiguration
@@ -16,7 +17,7 @@ import org.midonet.cache.Cache
 import org.midonet.midolman.DatapathController.TunnelChangeEvent
 import org.midonet.midolman.FlowController.{WildcardFlowRemoved, WildcardFlowAdded}
 import org.midonet.midolman.PacketWorkflow.PacketIn
-import org.midonet.midolman.guice.DummyConditionSetModule
+import org.midonet.midolman.rules.Condition
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.cluster.data.{Bridge => ClusterBridge}
 import org.midonet.cluster.data.ports.MaterializedBridgePort
@@ -111,10 +112,15 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         }
     }
 
-    override def getConditionSetModule = new DummyConditionSetModule(true)
-
     @Test
     def testPacketInBridgeSimulation() {
+        val srcMac = MAC.fromString("02:11:22:33:44:10")
+        val condition = new Condition
+        condition.dlSrc = srcMac
+        val conditionSet: immutable.Set[Condition] = Set(condition)
+        // FIXME(jlm): racy
+        deduplicationActor() ! conditionSet
+
         val msgCache = injector.getInstance(Key.get(classOf[Cache],
                                                     classOf[TRACE_MESSAGES]))
                             .asInstanceOf[MockCache]
@@ -127,7 +133,7 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         msgCache.map should have size 0
 
         val ethPkt = Packets.udp(
-                MAC.fromString("02:11:22:33:44:10"),
+                srcMac,
                 MAC.fromString("02:11:22:33:44:11"),
                 IntIPv4.fromString("10.0.1.10"),
                 IntIPv4.fromString("10.0.1.11"),

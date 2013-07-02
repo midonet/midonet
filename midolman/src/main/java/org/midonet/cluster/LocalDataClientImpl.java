@@ -1919,4 +1919,19 @@ public class LocalDataClientImpl implements DataClient {
     public Set<UUID> portSetsGet(UUID portSetId) throws StateAccessException {
         return portSetZkManager.getPortSet(portSetId, null);
     }
+
+    @Override
+    public TraceCondition traceConditionGet(UUID id) {
+        return null; /* XXX(art) */
+    };
+
+    @Override
+    public void traceConditionRemove(UUID id) {
+        /* XXX(art) */
+    };
+
+    @Override
+    public Set<TraceCondition> traceConditionGetAll() {
+        return null; /* XXX(art) */
+    };
 }

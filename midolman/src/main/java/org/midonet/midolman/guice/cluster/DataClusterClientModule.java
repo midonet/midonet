@@ -16,6 +16,7 @@ import com.google.inject.name.Names;
 import org.midonet.cluster.ClusterBgpManager;
 import org.midonet.cluster.ClusterBridgeManager;
 import org.midonet.cluster.ClusterChainManager;
+import org.midonet.cluster.ClusterConditionManager;
 import org.midonet.cluster.ClusterPortsManager;
 import org.midonet.cluster.ClusterRouterManager;
 import org.midonet.cluster.ClusterVlanBridgeManager;
@@ -81,6 +82,9 @@ public class DataClusterClientModule extends PrivateModule {
         bind(ClusterChainManager.class)
             .in(Singleton.class);
 
+        bind(ClusterConditionManager.class)
+            .in(Singleton.class);
+
         bind(ClusterPortsManager.class)
                     .in(Singleton.class);
 
@@ -124,6 +128,7 @@ public class DataClusterClientModule extends PrivateModule {
         managers.add(PortSetZkManager.class);
         managers.add(VlanAwareBridgeZkManager.class);
         managers.add(TaggableConfigZkManager.class);
+        managers.add(TraceConditionZkManager.class);
 
         for (Class<? extends AbstractZkManager> managerClass : managers) {
             //noinspection unchecked

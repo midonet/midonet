@@ -4,6 +4,7 @@
  */
 package org.midonet.midolman.state;
 
+import java.util.UUID;
 import com.google.inject.Inject;
 import org.midonet.midolman.config.ZookeeperConfig;
 
@@ -200,5 +201,17 @@ public class PathBuilder extends ZkPathManager {
     private StringBuilder buildTracedConditionsPath() {
         return new StringBuilder(basePath).append("/")
                                           .append(TRACED_CONDITIONS_PATH);
+    }
+
+    /**
+    * Get ZK trace condition path
+    *
+    * @param id Trace condition id
+    * @return /trace-conditions/id
+    */
+    public String getTracedConditionPath(UUID id) {
+        StringBuilder tcBuilder =
+            new StringBuilder(getTracedConditionsPath()).append("/").append(id);
+        return tcBuilder.toString();
     }
 }

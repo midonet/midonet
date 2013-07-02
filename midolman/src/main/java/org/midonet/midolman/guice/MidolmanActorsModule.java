@@ -14,7 +14,6 @@ import akka.actor.SupervisorStrategy.Directive;
 import akka.japi.Function;
 import akka.util.Duration;
 import com.google.inject.*;
-import org.midonet.midolman.state.ConditionSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,7 +62,6 @@ public class MidolmanActorsModule extends PrivateModule {
         binder().requireExplicitBindings();
 
         requireBinding(MidolmanConfig.class);
-        requireBinding(ConditionSet.class);
         requireBinding(Key.get(Cache.class, NAT_CACHE.class));
         requireBinding(OvsDatapathConnection.class);
         requireBinding(HostIdProviderService.class);
