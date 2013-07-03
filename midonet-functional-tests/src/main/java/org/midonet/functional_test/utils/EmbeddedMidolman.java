@@ -5,35 +5,33 @@
 package org.midonet.functional_test.utils;
 
 import akka.actor.ActorRef;
+import akka.actor.ActorSystem;
 import com.google.common.base.Service;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-
-import org.midonet.midolman.guice.serialization.SerializationModule;
-import org.midonet.midolman.version.guice.VersionModule;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import akka.actor.ActorSystem;
-
-import org.midonet.midolman.guice.MidolmanActorsModule;
+import org.midonet.cluster.DataClient;
+import org.midonet.cluster.services.MidostoreSetupService;
+import org.midonet.midolman.FlowController;
 import org.midonet.midolman.guice.CacheModule;
 import org.midonet.midolman.guice.InterfaceScannerModule;
+import org.midonet.midolman.guice.MidolmanActorsModule;
 import org.midonet.midolman.guice.MidolmanModule;
 import org.midonet.midolman.guice.MonitoringStoreModule;
 import org.midonet.midolman.guice.cluster.ClusterClientModule;
 import org.midonet.midolman.guice.config.ConfigProviderModule;
 import org.midonet.midolman.guice.datapath.DatapathModule;
 import org.midonet.midolman.guice.reactor.ReactorModule;
+import org.midonet.midolman.guice.serialization.SerializationModule;
+import org.midonet.midolman.guice.state.ConditionSetModule;
 import org.midonet.midolman.guice.zookeeper.ZookeeperConnectionModule;
 import org.midonet.midolman.host.guice.HostModule;
 import org.midonet.midolman.monitoring.MonitoringAgent;
 import org.midonet.midolman.services.MidolmanActorsService;
 import org.midonet.midolman.services.MidolmanService;
-import org.midonet.midolman.FlowController;
-import org.midonet.cluster.DataClient;
-import org.midonet.cluster.services.MidostoreSetupService;
+import org.midonet.midolman.version.guice.VersionModule;
 import org.midonet.remote.RemoteHost;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class EmbeddedMidolman {
 
@@ -63,7 +61,8 @@ public class EmbeddedMidolman {
                 new CacheModule(),
                 new MidolmanActorsModule(),
                 new MidolmanModule(),
-                new InterfaceScannerModule()
+                new InterfaceScannerModule(),
+                new ConditionSetModule()
         );
 
         // start the services

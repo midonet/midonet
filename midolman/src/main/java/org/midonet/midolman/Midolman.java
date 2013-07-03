@@ -109,10 +109,10 @@ public class Midolman {
             new ClusterClientModule(),
             new SerializationModule(),
             new CacheModule(),
+            new ConditionSetModule(),
             new MidolmanActorsModule(),
             new MidolmanModule(),
-            new InterfaceScannerModule(),
-            new ConditionSetModule()
+            new InterfaceScannerModule()
         );
 
         // start the services
