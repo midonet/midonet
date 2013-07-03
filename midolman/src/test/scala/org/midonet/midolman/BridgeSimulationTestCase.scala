@@ -3,6 +3,7 @@
 */
 package org.midonet.midolman
 
+import guice.CacheModule.{TRACE_INDEX, TRACE_MESSAGES}
 import scala.collection.JavaConversions._
 import scala.collection.mutable.{Map => MMap}
 import akka.testkit.TestProbe
@@ -24,6 +25,7 @@ import org.midonet.odp.flows.{FlowActionOutput, FlowActions, FlowActionSetKey,
     FlowKeyTunnelID}
 import org.midonet.packets.{Ethernet, IntIPv4, MAC, Packets}
 import org.midonet.midolman.util.MockCache
+import com.google.inject.Key
 
 
 @RunWith(classOf[JUnitRunner])
@@ -113,9 +115,16 @@ class BridgeSimulationTestCase extends MidolmanTestCase
 
     @Test
     def testPacketInBridgeSimulation() {
-        val cache = injector.getInstance(classOf[Cache]).asInstanceOf[MockCache]
-        cache.clear()
-        cache.map.size should equal (0)
+        val msgCache = injector.getInstance(Key.get(classOf[Cache],
+                                                    classOf[TRACE_MESSAGES]))
+                            .asInstanceOf[MockCache]
+        val idxCache = injector.getInstance(Key.get(classOf[Cache],
+                                                    classOf[TRACE_INDEX]))
+                            .asInstanceOf[MockCache]
+        idxCache.clear()
+        msgCache.clear()
+        idxCache.map should have size 0
+        msgCache.map should have size 0
 
         val ethPkt = Packets.udp(
                 MAC.fromString("02:11:22:33:44:10"),
@@ -134,16 +143,19 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         flowActs.contains(FlowActions.output(tunnelId1)) should be (true)
         flowActs.contains(FlowActions.output(tunnelId2)) should be (true)
 
-        cache.map.size should equal (3)
-        val cacheMap: MMap[String, MockCache.CacheEntry] = cache.map
+        idxCache.map should have size 1
+        msgCache.map should have size 2
+
+        val cacheMap: MMap[String, MockCache.CacheEntry] = idxCache.map
         val keySet = cacheMap.keySet
         val uuidSet = keySet filter { _.length == 36 }
-        uuidSet.size should equal (1)
+        uuidSet should have size 1
         val traceID = uuidSet.toArray.apply(0)
-        keySet should equal (Set(traceID, traceID + ":1", traceID + ":2"))
-        cacheMap.get(traceID).get.value should equal ("2")
-        val value1 = cacheMap.get(traceID + ":1").get.value
-        val value2 = cacheMap.get(traceID + ":2").get.value
+        keySet should equal (Set(traceID))
+        idxCache.map.get(traceID).value should equal ("2")
+
+        val value1 = msgCache.map.get(traceID + ":1").value
+        val value2 = msgCache.map.get(traceID + ":2").value
         value1.substring(23, value1.length) should equal (
             " " + bridge.getId + " Entering device")
         value2.substring(23, value2.length) should equal (
