@@ -1,6 +1,7 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright 2012 Midokura Europe SARL
+ * Copyright 2013 Midokura Pte Ltd
+ */
 package org.midonet.cluster;
 
 import java.util.List;
@@ -28,7 +29,6 @@ import org.midonet.packets.IntIPv4;
 import org.midonet.packets.MAC;
 import org.midonet.packets.IPv6Subnet;
 import org.midonet.util.functors.Callback2;
-
 
 public interface DataClient {
 
@@ -538,8 +538,17 @@ public interface DataClient {
     public void tagsDelete(@Nonnull TaggableEntity taggable, UUID id, String tag)
         throws StateAccessException;
 
-    /* Conditions for packet tracing */
-    TraceCondition traceConditionGet(UUID id);
-    void traceConditionRemove(UUID id);
-    Set<TraceCondition> traceConditionGetAll();
+    /* Trace condition methods */
+    UUID traceConditionCreate(@Nonnull TraceCondition traceCondition)
+        throws StateAccessException, SerializationException;
+
+    void traceConditionDelete(UUID uuid) throws StateAccessException;
+
+    boolean traceConditionExists(UUID uuid) throws StateAccessException;
+
+    @CheckForNull TraceCondition traceConditionGet(UUID uuid)
+        throws StateAccessException, SerializationException;
+
+    List<TraceCondition> traceConditionsGetAll()
+        throws StateAccessException, SerializationException;
 }

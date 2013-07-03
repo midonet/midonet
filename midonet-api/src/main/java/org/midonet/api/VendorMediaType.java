@@ -156,4 +156,11 @@ public class VendorMediaType {
             APPLICATION_HOST_INTERFACE_PORT_COLLECTION_JSON =
             "application/vnd.org.midonet.collection" +
                     ".HostInterfacePort-v1+json";
+
+    // Trace Conditions
+    public static final String APPLICATION_TRACE_CONDITION_JSON =
+            "application/vnd.org.midonet.TraceCondition-v1+json";
+    public static final String APPLICATION_TRACE_CONDITION_COLLECTION_JSON =
+            "application/vnd.org.midonet.collection" +
+                    ".TraceCondition-v1+json";
 }

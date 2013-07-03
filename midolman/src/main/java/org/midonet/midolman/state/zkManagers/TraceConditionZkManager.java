@@ -56,7 +56,7 @@ public class TraceConditionZkManager extends AbstractZkManager {
         throws StateAccessException, SerializationException
     {
         List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.create(paths.getTracedConditionPath(id),
+        ops.add(Op.create(paths.getTraceConditionPath(id),
                 serializer.serialize(condition),
                 Ids.OPEN_ACL_UNSAFE,
                 CreateMode.PERSISTENT));
@@ -75,7 +75,7 @@ public class TraceConditionZkManager extends AbstractZkManager {
     {
         List<Op> ops = new ArrayList<Op>();
 
-        String traceConditionPath = paths.getTracedConditionPath(id);
+        String traceConditionPath = paths.getTraceConditionPath(id);
         log.debug("Preparing to delete: " + traceConditionPath);
         ops.add(Op.delete(traceConditionPath, -1));
 
@@ -107,7 +107,7 @@ public class TraceConditionZkManager extends AbstractZkManager {
      * @throws StateAccessException
      */
     public boolean exists(UUID id) throws StateAccessException {
-        return zk.exists(paths.getTracedConditionPath(id));
+        return zk.exists(paths.getTraceConditionPath(id));
     }
 
     /**
@@ -121,7 +121,7 @@ public class TraceConditionZkManager extends AbstractZkManager {
     public Condition get(UUID id)
         throws StateAccessException, SerializationException
     {
-        byte[] data = zk.get(paths.getTracedConditionPath(id), null);
+        byte[] data = zk.get(paths.getTraceConditionPath(id), null);
         return serializer.deserialize(data, Condition.class);
     }
 
@@ -131,7 +131,7 @@ public class TraceConditionZkManager extends AbstractZkManager {
      * @throws StateAccessException
      */
     public Set<UUID> getIds() throws StateAccessException {
-        String path = paths.getTracedConditionsPath();
+        String path = paths.getTraceConditionsPath();
         Set<String> idSet = zk.getChildren(path);
         Set<UUID> ids = new HashSet<UUID>(idSet.size());
         for (String id : idSet) {
@@ -149,7 +149,7 @@ public class TraceConditionZkManager extends AbstractZkManager {
      */
     public Set<Condition> getConditions(Runnable watcher)
             throws StateAccessException, SerializationException {
-        String path = paths.getTracedConditionsPath();
+        String path = paths.getTraceConditionsPath();
         Set<String> idSet = zk.getChildren(path, watcher);
         Set<Condition> conditions = new HashSet<Condition>(idSet.size());
         for (String id : idSet) {
@@ -159,8 +159,8 @@ public class TraceConditionZkManager extends AbstractZkManager {
         return conditions;
     }
 
-    /***
-     * Deletes a trace condition ZooKeeper
+    /**
+     * Deletes a trace condition from ZooKeeper
      *
      * @param id ID of the trace condition to delete
      * @throws SerializationException

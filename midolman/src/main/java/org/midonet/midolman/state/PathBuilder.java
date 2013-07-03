@@ -6,6 +6,7 @@ package org.midonet.midolman.state;
 
 import java.util.UUID;
 import com.google.inject.Inject;
+import java.util.UUID;
 import org.midonet.midolman.config.ZookeeperConfig;
 
 /**
@@ -19,7 +20,7 @@ public class PathBuilder extends ZkPathManager {
     public static final String CHAIN_NAMES_PATH = "chain-names";
     public static final String ROUTER_NAMES_PATH = "router-names";
     public static final String TENANTS_PATH = "tenants";
-    public static final String TRACED_CONDITIONS_PATH = "traced-conditions";
+    public static final String TRACED_CONDITIONS_PATH = "trace-conditions";
     public static final String PORT_GROUP_NAMES_PATH = "port_group-names";
 
     @Inject
@@ -194,24 +195,24 @@ public class PathBuilder extends ZkPathManager {
         return new StringBuilder(basePath).append("/").append(TENANTS_PATH);
     }
 
-    public String getTracedConditionsPath() {
-        return buildTracedConditionsPath().toString();
+    public String getTraceConditionsPath() {
+        return buildTraceConditionsPath().toString();
     }
 
-    private StringBuilder buildTracedConditionsPath() {
+    private StringBuilder buildTraceConditionsPath() {
         return new StringBuilder(basePath).append("/")
                                           .append(TRACED_CONDITIONS_PATH);
     }
 
     /**
-    * Get ZK trace condition path
-    *
-    * @param id Trace condition id
-    * @return /trace-conditions/id
-    */
-    public String getTracedConditionPath(UUID id) {
+     * Get ZK trace condition path
+     *
+     * @param id Trace condition id
+     * @return /trace-conditions/id
+     */
+    public String getTraceConditionPath(UUID id) {
         StringBuilder tcBuilder =
-            new StringBuilder(getTracedConditionsPath()).append("/").append(id);
+            new StringBuilder(getTraceConditionsPath()).append("/").append(id);
         return tcBuilder.toString();
     }
 }

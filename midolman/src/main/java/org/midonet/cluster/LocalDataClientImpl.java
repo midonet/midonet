@@ -1,6 +1,7 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright 2012 Midokura Europe SARL
+ * Copyright 2013 Midokura Pte Ltd
+ */
 package org.midonet.cluster;
 
 import java.util.ArrayList;
@@ -27,6 +28,7 @@ import org.midonet.midolman.host.commands.HostCommandGenerator;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.monitoring.store.Store;
+import org.midonet.midolman.rules.Condition;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.*;
@@ -106,6 +108,9 @@ public class LocalDataClientImpl implements DataClient {
 
     @Inject
     private VlanAwareBridgeZkManager vlanBridgeZkManager;
+
+    @Inject
+    private TraceConditionZkManager traceConditionZkManager;
 
     @Inject
     private ZkManager zkManager;
@@ -1920,18 +1925,49 @@ public class LocalDataClientImpl implements DataClient {
         return portSetZkManager.getPortSet(portSetId, null);
     }
 
+    /* Trace condition methods */
     @Override
-    public TraceCondition traceConditionGet(UUID id) {
-        return null; /* XXX(art) */
-    };
+    public UUID traceConditionCreate(@Nonnull TraceCondition traceCondition)
+        throws StateAccessException, SerializationException
+    {
+        return traceConditionZkManager.create(traceCondition.getCondition());
+    }
 
     @Override
-    public void traceConditionRemove(UUID id) {
-        /* XXX(art) */
-    };
+    public void traceConditionDelete(UUID uuid)
+        throws StateAccessException
+    {
+        traceConditionZkManager.delete(uuid);
+    }
 
     @Override
-    public Set<TraceCondition> traceConditionGetAll() {
-        return null; /* XXX(art) */
-    };
+    public boolean traceConditionExists(UUID uuid) throws StateAccessException
+    {
+        return traceConditionZkManager.exists(uuid);
+    }
+
+    public @CheckForNull TraceCondition traceConditionGet(UUID uuid)
+        throws StateAccessException, SerializationException
+    {
+        Condition condition = traceConditionZkManager.get(uuid);
+        TraceCondition traceCondition = new TraceCondition(uuid, condition);
+        return traceCondition;
+    }
+
+    @Override
+    public List<TraceCondition> traceConditionsGetAll()
+        throws StateAccessException, SerializationException
+    {
+        Collection<UUID> ids = traceConditionZkManager.getIds();
+        List<TraceCondition> traceConditions = new ArrayList<TraceCondition>();
+
+        for (UUID id : ids) {
+            TraceCondition traceCondition = traceConditionGet(id);
+            if (traceCondition != null) {
+                traceConditions.add(traceCondition);
+            }
+        }
+
+        return traceConditions;
+    }
 }
