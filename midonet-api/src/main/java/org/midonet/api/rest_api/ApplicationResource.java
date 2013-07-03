@@ -1,6 +1,6 @@
 /*
  * Copyright 2011 Midokura KK
- * Copyright 2012 Midokura PTE LTD.
+ * Copyright 2012-2013 Midokura PTE LTD.
  */
 package org.midonet.api.rest_api;
 
@@ -17,6 +17,7 @@ import org.midonet.api.bgp.rest_api.BgpResource;
 import org.midonet.api.filter.rest_api.ChainResource;
 import org.midonet.api.host.rest_api.TunnelZoneResource;
 import org.midonet.api.monitoring.rest_api.MonitoringResource;
+import org.midonet.api.tracing.rest_api.TraceConditionResource;
 import org.midonet.api.version.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -177,6 +178,16 @@ public class ApplicationResource extends AbstractResource {
     @Path(ResourceUriBuilder.TUNNEL_ZONES)
     public TunnelZoneResource getTunnelZoneResource() {
         return factory.getTunnelZoneResource();
+    }
+
+    /**
+     * Trace condition resource locator
+     *
+     * @return TraceConditionResource object to handle sub-resource requests.
+     */
+    @Path(ResourceUriBuilder.TRACE_CONDITIONS)
+    public TraceConditionResource getTraceConditionResource() {
+        return factory.getTraceConditionResource();
     }
 
     /**

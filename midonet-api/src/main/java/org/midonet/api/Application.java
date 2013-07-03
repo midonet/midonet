@@ -1,6 +1,6 @@
 /*
  * Copyright 2011 Midokura KK
- * Copyright 2012 Midokura PTE LTD.
+ * Copyright 2012-2013 Midokura PTE LTD.
  */
 package org.midonet.api;
 
@@ -282,6 +282,28 @@ public class Application extends UriResource {
     public URI getUri() {
         if (getBaseUri() != null) {
             return ResourceUriBuilder.getRoot(getBaseUri());
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * @return Trace conditions URI
+     */
+    public URI getTraceConditions() {
+        if (getBaseUri() != null) {
+            return ResourceUriBuilder.getTraceConditions(getBaseUri());
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * @return Trace conditions template URI
+     */
+    public String getTraceConditionTemplate() {
+        if (getBaseUri() != null) {
+            return ResourceUriBuilder.getTraceConditionTemplate(getBaseUri());
         } else {
             return null;
         }

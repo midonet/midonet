@@ -45,6 +45,7 @@ public class ResourceUriBuilder {
     public static final String TUNNEL_ZONES = "/tunnel_zones";
     public static final String ID_TOKEN = "/{id}";
     public static final String PORT_ID_QS = "port_id";
+    public static final String TRACE_CONDITIONS ="/trace_conditions";
 
     private ResourceUriBuilder() {
     }
@@ -526,5 +527,41 @@ public class ResourceUriBuilder {
      */
     public static String getTunnelZoneTemplate(URI baseUri) {
         return buildIdTemplateUri(getTunnelZones(baseUri));
+    }
+
+    /**
+     * Generate trace conditions URI
+     *
+     * @param baseUri Base service URI
+     * @return Trace conditions URI
+     */
+    public static URI getTraceConditions(URI baseUri) {
+        return UriBuilder.fromUri(getRoot(baseUri)).path(TRACE_CONDITIONS).build();
+    }
+
+    /**
+     * Generate trace condition URI
+     *
+     * @param baseUri Base service URI
+     * @param traceConditionId UUID of trace condition
+     * @return Trace condition URI
+     */
+    public static URI getTraceCondition(URI baseUri, UUID traceConditionId) {
+        if (baseUri == null || traceConditionId == null) {
+            return null;
+        }
+
+        return UriBuilder.fromUri(getTraceConditions(baseUri)).path(
+                 traceConditionId.toString()).build();
+    }
+
+    /**
+     * Generate trace conditions URI template
+     *
+     * @param baseUri Base URI
+     * @return Trace conditions template URI
+     */
+    public static String getTraceConditionTemplate(URI baseUri) {
+        return buildIdTemplateUri(getTraceConditions(baseUri));
     }
 }

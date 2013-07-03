@@ -88,7 +88,7 @@ public class Setup {
         paths.add(pathMgr.getHostsPath());
         paths.add(pathMgr.getTenantsPath());
         paths.add(pathMgr.getVersionsPath());
-        paths.add(pathMgr.getTracedConditionsPath());
+        paths.add(pathMgr.getTraceConditionsPath());
         return paths;
     }
 
