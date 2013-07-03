@@ -86,9 +86,13 @@ trait VirtualPortsResolver {
 
     def getInterfaceForVport(vportId: UUID): Option[String]
 
+    def getVportForInterface(itfName: String): Option[UUID]
+
     def getDpPort(itfName: String): Option[Port[_, _]]
 
     def getDpPortName(num: JInteger): Option[String]
+
+    def dpPortIsInProgress(itfname: String): Boolean
 }
 
 trait DatapathState {
@@ -974,7 +978,17 @@ class DatapathController() extends Actor with ActorLogging with
 
             case PortNetdevOpReply(p, PortOperation.Delete,
                                    false, null, None) =>
-                dpState.updateVports(dpState.vportManager.datapathPortRemoved(p.getName))
+                dpState.updateVports(
+                    dpState.vportManager.datapathPortRemoved(p.getName))
+
+            case PortNetdevOpReply(p, PortOperation.Create, _, ex, tag) => {
+                log.warning("port {} creation failed: OVS returned {}",
+                    p, ex.getErrorCodeEnum)
+                // This will make the vport manager retry the create operation
+                // the next time the interfaces are scanned (2 secs).
+                if (ex.getErrorCodeEnum == ErrorCode.EBUSY)
+                    dpState.updateVports(dpState.vportManager.datapathPortForget(p))
+            }
 
             //            case PortInternalOpReply(_,_,_,_,_) =>
             //            case TunnelPatchOpReply(_,_,_,_,_) =>
@@ -1503,7 +1517,11 @@ class VirtualPortManager(
                 interfaceToVport -= ifname
                 // This binding was removed. Was there a datapath port for it?
                 interfaceToDpPort.get(ifname) match {
-                    case None => // do nothing
+                    case None =>
+                        /* if no port were added, it could still be marked as
+                         * in progress => we untrack it as such if it was */
+                        if (dpPortsInProgress.contains(ifname))
+                            dpPortsInProgress -= ifname
                     case Some(port) =>
                         requestDpPortRemove(port)
                         // If the port was up, the vport just became inactive.
@@ -1512,6 +1530,18 @@ class VirtualPortManager(
                 }
             }
         }
+    }
+
+    def datapathPortForget(port: Port[_,_]) = {
+        val ret = copy
+        ret._datapathPortForget(port)
+        ret
+    }
+
+    protected[VirtualPortManager] def _datapathPortForget(port: Port[_, _]) {
+        dpPortsInProgress -= port.getName
+        dpPortsWeAdded -= port.getName
+        interfaceToStatus -= port.getName
     }
 
     def datapathPortAdded(port: Port[_, _]) = {
@@ -1583,11 +1613,10 @@ class VirtualPortManager(
         }
     }
 
-    def getDpPortNumberForVport(vportId: UUID): Option[JInteger] = {
+    def getDpPortNumberForVport(vportId: UUID): Option[JInteger] =
         interfaceToVport.inverse.get(vportId) flatMap { itfName =>
             interfaceToDpPort.get(itfName) map { _.getPortNo }
         }
-    }
 
     def getVportForDpPortNumber(portNum: JInteger): Option[UUID] =
         dpPortNumToInterface.get(portNum) flatMap { interfaceToVport.get(_) }
@@ -1595,12 +1624,17 @@ class VirtualPortManager(
     def getInterfaceForVport(vportId: UUID): Option[String] =
         interfaceToVport.inverse.get(vportId)
 
+    def getVportForInterface(itfname: String): Option[UUID] =
+        interfaceToVport.get(itfname)
+
+    def dpPortIsInProgress(itfname: String): Boolean =
+        dpPortsInProgress.contains(itfname)
+
     def getDpPort(itfName: String): Option[Port[_, _]] =
         interfaceToDpPort.get(itfName)
 
-    def getDpPortName(num: JInteger): Option[String] = {
+    def getDpPortName(num: JInteger): Option[String] =
         dpPortNumToInterface.get(num)
-    }
 }
 
 
