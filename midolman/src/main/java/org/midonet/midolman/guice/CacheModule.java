@@ -3,6 +3,8 @@
 */
 package org.midonet.midolman.guice;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -12,6 +14,8 @@ import com.google.inject.Inject;
 import com.google.inject.PrivateModule;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
+import com.google.inject.BindingAnnotation;
+import com.google.inject.Key;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,6 +33,9 @@ import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.zkManagers.FiltersZkManager;
 import org.midonet.util.eventloop.Reactor;
 
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
  * Main midolman configuration module
@@ -61,11 +68,16 @@ public class CacheModule extends PrivateModule {
         bind(Cache.class).annotatedWith(TRACE_INDEX.class)
             .toProvider(new CacheProvider("trace_index"))
             .in(Singleton.class);
-        expose(Cache.class);
+        expose(Key.get(Cache.class, NAT_CACHE.class));
+        expose(Key.get(Cache.class, TRACE_MESSAGES.class));
+        expose(Key.get(Cache.class, TRACE_INDEX.class));
     }
 
+    @BindingAnnotation @Target({FIELD, METHOD}) @Retention(RUNTIME)
     public @interface NAT_CACHE {}
+    @BindingAnnotation @Target({FIELD, METHOD}) @Retention(RUNTIME)
     public @interface TRACE_MESSAGES {}
+    @BindingAnnotation @Target({FIELD, METHOD}) @Retention(RUNTIME)
     public @interface TRACE_INDEX {}
 
     public static class CacheProvider implements Provider<Cache> {
@@ -94,7 +106,7 @@ public class CacheModule extends PrivateModule {
 
     private static class NatMappingFactoryProvider
             implements Provider<NatMappingFactory> {
-        @Inject @Nullable
+        @Inject @Nullable @NAT_CACHE
         private Cache cache;
 
         @Inject
