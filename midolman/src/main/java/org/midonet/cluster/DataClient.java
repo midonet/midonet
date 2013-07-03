@@ -22,6 +22,7 @@ import org.midonet.cluster.data.host.Command;
 import org.midonet.cluster.data.host.Host;
 import org.midonet.cluster.data.host.Interface;
 import org.midonet.cluster.data.host.VirtualPortMapping;
+import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IntIPv4;
 import org.midonet.packets.MAC;
 import org.midonet.packets.IPv6Subnet;
@@ -112,18 +113,18 @@ public interface DataClient {
                              @Nonnull UUID portId)
         throws StateAccessException;
 
-    void bridgeAddIp4Mac(@Nonnull UUID bridgeId, @Nonnull IntIPv4 ip4,
+    void bridgeAddIp4Mac(@Nonnull UUID bridgeId, @Nonnull IPv4Addr ip4,
                          @Nonnull MAC mac)
         throws StateAccessException;
 
     boolean bridgeHasIP4MacPair(@Nonnull UUID bridgeId,
-                                @Nonnull IntIPv4 ip, @Nonnull MAC mac)
+                                @Nonnull IPv4Addr ip, @Nonnull MAC mac)
         throws StateAccessException;
 
-    Map<IntIPv4, MAC> bridgeGetIP4MacPairs(@Nonnull UUID bridgeId)
+    Map<IPv4Addr, MAC> bridgeGetIP4MacPairs(@Nonnull UUID bridgeId)
         throws StateAccessException;
 
-    void bridgeDeleteIp4Mac(@Nonnull UUID bridgeId, @Nonnull IntIPv4 ip4,
+    void bridgeDeleteIp4Mac(@Nonnull UUID bridgeId, @Nonnull IPv4Addr ip4,
                             @Nonnull MAC mac)
         throws StateAccessException;
 

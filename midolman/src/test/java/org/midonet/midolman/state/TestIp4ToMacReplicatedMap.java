@@ -4,6 +4,7 @@ package org.midonet.midolman.state;
 
 import java.util.UUID;
 
+import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IntIPv4;
 import org.midonet.packets.MAC;
 
@@ -18,7 +19,7 @@ public class TestIp4ToMacReplicatedMap {
     Ip4ToMacReplicatedMap map;
     MockDirectory dir;
 
-    final IntIPv4 ip = IntIPv4.fromString("1.2.3.4");
+    final IPv4Addr ip = IPv4Addr.fromString("1.2.3.4");
     final byte[] macBytes = { 0, 1, 2, 3, 4, 5 };
     final MAC mac = new MAC(macBytes);
 

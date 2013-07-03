@@ -18,6 +18,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import org.apache.zookeeper.Op;
+import org.midonet.packets.IPv4Addr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -299,7 +300,7 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public Map<IntIPv4, MAC> bridgeGetIP4MacPairs(@Nonnull UUID bridgeId)
+    public Map<IPv4Addr, MAC> bridgeGetIP4MacPairs(@Nonnull UUID bridgeId)
         throws StateAccessException {
         return Ip4ToMacReplicatedMap.getAsMap(
             bridgeZkManager.getIP4MacMapDirectory(bridgeId));
@@ -307,7 +308,7 @@ public class LocalDataClientImpl implements DataClient {
 
     @Override
     public void bridgeAddIp4Mac(
-            @Nonnull UUID bridgeId, @Nonnull IntIPv4 ip4, @Nonnull MAC mac)
+            @Nonnull UUID bridgeId, @Nonnull IPv4Addr ip4, @Nonnull MAC mac)
             throws StateAccessException {
         Ip4ToMacReplicatedMap.addPersistentEntry(
             bridgeZkManager.getIP4MacMapDirectory(bridgeId), ip4, mac);
@@ -315,7 +316,7 @@ public class LocalDataClientImpl implements DataClient {
 
     @Override
     public boolean bridgeHasIP4MacPair(@Nonnull UUID bridgeId,
-                                       @Nonnull IntIPv4 ip, @Nonnull MAC mac)
+                                       @Nonnull IPv4Addr ip, @Nonnull MAC mac)
         throws StateAccessException {
         return Ip4ToMacReplicatedMap.hasPersistentEntry(
             bridgeZkManager.getIP4MacMapDirectory(bridgeId), ip, mac);
@@ -323,7 +324,7 @@ public class LocalDataClientImpl implements DataClient {
 
     @Override
     public void bridgeDeleteIp4Mac(
-            @Nonnull UUID bridgeId, @Nonnull IntIPv4 ip4, @Nonnull MAC mac)
+            @Nonnull UUID bridgeId, @Nonnull IPv4Addr ip4, @Nonnull MAC mac)
             throws StateAccessException {
         Ip4ToMacReplicatedMap.deletePersistentEntry(
             bridgeZkManager.getIP4MacMapDirectory(bridgeId), ip4, mac);

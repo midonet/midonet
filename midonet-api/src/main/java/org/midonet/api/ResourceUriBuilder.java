@@ -6,6 +6,7 @@ package org.midonet.api;
 
 import org.midonet.api.network.IP4MacPair;
 import org.midonet.api.network.MacPort;
+import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IntIPv4;
 import org.midonet.packets.MAC;
 import org.midonet.packets.IPv6Subnet;
@@ -170,9 +171,9 @@ public class ResourceUriBuilder {
         return MAC.fromString(macFromUri(parts[1]));
     }
 
-    public static IntIPv4 ip4MacPairToIP4(String macPortString) {
+    public static IPv4Addr ip4MacPairToIP4(String macPortString) {
         String[] parts = macPortString.split("_");
-        return IntIPv4.fromString(parts[0]);
+        return IPv4Addr.fromString(parts[0]);
     }
 
     public static String macToUri(String mac) {

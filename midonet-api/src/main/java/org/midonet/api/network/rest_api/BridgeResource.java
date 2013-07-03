@@ -25,6 +25,7 @@ import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.cluster.DataClient;
+import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IntIPv4;
 import org.midonet.packets.MAC;
 
@@ -452,9 +453,9 @@ public class BridgeResource extends AbstractResource {
         }
 
         URI bridgeUri = ResourceUriBuilder.getBridge(getBaseUri(), id);
-        Map<IntIPv4, MAC> IP4MacPairMap = dataClient.bridgeGetIP4MacPairs(id);
+        Map<IPv4Addr, MAC> IP4MacPairMap = dataClient.bridgeGetIP4MacPairs(id);
         List<IP4MacPair> IP4MacPairList = new ArrayList<IP4MacPair>();
-        for (Map.Entry<IntIPv4, MAC> entry : IP4MacPairMap.entrySet()) {
+        for (Map.Entry<IPv4Addr, MAC> entry : IP4MacPairMap.entrySet()) {
             IP4MacPair pair = new IP4MacPair(
                 entry.getKey().toString(), entry.getValue().toString());
             pair.setParentUri(bridgeUri);
@@ -491,7 +492,7 @@ public class BridgeResource extends AbstractResource {
         }
 
         dataClient.bridgeAddIp4Mac(id,
-            IntIPv4.fromString(mp.getIp()), MAC.fromString(mp.getMac()));
+            IPv4Addr.fromString(mp.getIp()), MAC.fromString(mp.getMac()));
         URI bridgeUri = ResourceUriBuilder.getBridge(getBaseUri(), id);
         return Response.created(
             ResourceUriBuilder.getIP4MacPair(bridgeUri, mp))
@@ -522,7 +523,7 @@ public class BridgeResource extends AbstractResource {
         }
 
         // The mac in the URI uses '-' instead of ':'
-        IntIPv4 ip = ResourceUriBuilder.ip4MacPairToIP4(IP4MacPairString);
+        IPv4Addr ip = ResourceUriBuilder.ip4MacPairToIP4(IP4MacPairString);
         MAC mac = ResourceUriBuilder.ip4MacPairToMac(IP4MacPairString);
         if (!dataClient.bridgeHasIP4MacPair(id, ip, mac)) {
             throw new NotFoundHttpException(

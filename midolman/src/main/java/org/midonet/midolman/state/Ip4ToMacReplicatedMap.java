@@ -8,54 +8,23 @@ import java.util.Map;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 
-import org.midonet.packets.IntIPv4;
+import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 
-public class Ip4ToMacReplicatedMap extends ReplicatedMap<IntIPv4, MAC> {
+public class Ip4ToMacReplicatedMap extends ReplicatedMap<IPv4Addr, MAC> {
 
     public Ip4ToMacReplicatedMap(Directory dir) {
         super(dir);
     }
 
-    private IntIPv4 unicastIPv4(IntIPv4 ip) {
-        return (ip.getMaskLength() != 32) ?
-            new IntIPv4(ip.getAddress(), 32) : ip;
+    @Override
+    protected String encodeKey(IPv4Addr key) {
+        return key.toString();
     }
 
     @Override
-    public MAC get(IntIPv4 key) {
-        return super.get(unicastIPv4(key));
-    }
-
-    @Override
-    public boolean containsKey(IntIPv4 key) {
-        return super.containsKey(unicastIPv4(key));
-    }
-
-    @Override
-    public void put(IntIPv4 key, MAC value) {
-        super.put(unicastIPv4(key), value);
-    }
-
-    @Override
-    public MAC removeIfOwner(IntIPv4 key)
-        throws InterruptedException, KeeperException {
-        return super.removeIfOwner(unicastIPv4(key));
-    }
-
-    @Override
-    public synchronized boolean isKeyOwner(IntIPv4 key) {
-        return super.isKeyOwner(unicastIPv4(key));
-    }
-
-    @Override
-    protected String encodeKey(IntIPv4 key) {
-        return key.toUnicastString();
-    }
-
-    @Override
-    protected IntIPv4 decodeKey(String str) {
-        return IntIPv4.fromString(str);
+    protected IPv4Addr decodeKey(String str) {
+        return IPv4Addr.fromString(str);
     }
 
     @Override
@@ -68,15 +37,15 @@ public class Ip4ToMacReplicatedMap extends ReplicatedMap<IntIPv4, MAC> {
         return MAC.fromString(str);
     }
 
-    public static Map<IntIPv4, MAC> getAsMap(Directory dir)
+    public static Map<IPv4Addr, MAC> getAsMap(Directory dir)
         throws StateAccessException {
         try {
             Iterable<String> paths = dir.getChildren("/", null);
-            Map<IntIPv4, MAC> m = new HashMap<IntIPv4, MAC>();
+            Map<IPv4Addr, MAC> m = new HashMap<IPv4Addr, MAC>();
             for (String path : paths) {
                 String[] parts = ReplicatedMap.getKeyValueVersion(path);
                 // TODO(pino): consider the version too.
-                m.put(IntIPv4.fromString(parts[0]), MAC.fromString(parts[1]));
+                m.put(IPv4Addr.fromString(parts[0]), MAC.fromString(parts[1]));
             }
             return m;
         } catch (KeeperException e) {
@@ -86,7 +55,7 @@ public class Ip4ToMacReplicatedMap extends ReplicatedMap<IntIPv4, MAC> {
         }
     }
 
-    public static boolean hasPersistentEntry(Directory dir, IntIPv4 key,
+    public static boolean hasPersistentEntry(Directory dir, IPv4Addr key,
                                              MAC value)
             throws StateAccessException {
         // Version 1 is used for all persistent entries added to the map.
@@ -102,13 +71,13 @@ public class Ip4ToMacReplicatedMap extends ReplicatedMap<IntIPv4, MAC> {
         }
     }
 
-    public static void addPersistentEntry(Directory dir, IntIPv4 key,
+    public static void addPersistentEntry(Directory dir, IPv4Addr key,
                                           MAC value)
             throws StateAccessException {
         // Use version 1 for all persistent entries added to the map.
         // This avoids having to enumerate the map entries in order to delete.
         String path = ReplicatedMap.encodeFullPath(
-            key.toUnicastString(), value.toString(), 1);
+            key.toString(), value.toString(), 1);
         try {
             dir.add(path, null, CreateMode.PERSISTENT);
         } catch (KeeperException e) {
@@ -118,13 +87,13 @@ public class Ip4ToMacReplicatedMap extends ReplicatedMap<IntIPv4, MAC> {
         }
     }
 
-    public static void deletePersistentEntry(Directory dir, IntIPv4 key,
+    public static void deletePersistentEntry(Directory dir, IPv4Addr key,
                                              MAC value)
             throws StateAccessException {
         // Version 1 is used for all persistent entries added to the map.
         // This avoids having to enumerate the map entries in order to delete.
         String path = ReplicatedMap.encodeFullPath(
-            key.toUnicastString(), value.toString(), 1);
+            key.toString(), value.toString(), 1);
         try {
             dir.delete(path);
         } catch (KeeperException e) {
