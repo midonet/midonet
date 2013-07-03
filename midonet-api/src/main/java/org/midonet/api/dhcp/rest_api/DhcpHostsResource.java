@@ -23,6 +23,7 @@ import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.dhcp.Host;
+import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IntIPv4;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,7 +89,7 @@ public class DhcpHostsResource extends AbstractResource {
         Host h = host.toData();
         dataClient.dhcpHostsCreate(bridgeId, subnet, h);
         // Update the Bridge's ARP table.
-        dataClient.bridgeAddIp4Mac(bridgeId, h.getIp(), h.getMAC());
+        dataClient.bridgeAddIp4Mac(bridgeId, IPv4Addr.fromIntIPv4(h.getIp()), h.getMAC());
         URI dhcpUri = ResourceUriBuilder.getBridgeDhcp(getBaseUri(),
                 bridgeId, subnet);
         return Response.created(
@@ -169,8 +170,8 @@ public class DhcpHostsResource extends AbstractResource {
 
         // Update the bridge's arp table.
         dataClient.bridgeDeleteIp4Mac(
-            bridgeId, oldHost.getIp(), oldHost.getMAC());
-        dataClient.bridgeAddIp4Mac(bridgeId, newHost.getIp(), newHost.getMAC());
+            bridgeId, IPv4Addr.fromIntIPv4(oldHost.getIp()), oldHost.getMAC());
+        dataClient.bridgeAddIp4Mac(bridgeId, IPv4Addr.fromIntIPv4(newHost.getIp()), newHost.getMAC());
 
         return Response.ok().build();
     }
@@ -201,7 +202,7 @@ public class DhcpHostsResource extends AbstractResource {
         Host h = dataClient.dhcpHostsGet(bridgeId, subnet, mac);
         dataClient.dhcpHostsDelete(bridgeId, subnet, mac);
         // Update the bridge's arp table.
-        dataClient.bridgeDeleteIp4Mac(bridgeId, h.getIp(), h.getMAC());
+        dataClient.bridgeDeleteIp4Mac(bridgeId, IPv4Addr.fromIntIPv4(h.getIp()), h.getMAC());
     }
 
     /**

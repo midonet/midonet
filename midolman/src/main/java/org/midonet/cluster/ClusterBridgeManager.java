@@ -321,7 +321,7 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
                         final Long expirationTime) {
             // It's ok to do a synchronous get on the map because it only
             // queries local state (doesn't go remote like the other calls.
-            cb.call(map.get(ip.toIntIPv4()));
+            cb.call(map.get(ip));
         }
 
         // This notify() registers its callback directly with the underlying
@@ -334,11 +334,11 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
 
                 @Override
                 public void run() {
-                    map.addWatcher(new ReplicatedMap.Watcher<IntIPv4, MAC>() {
+                    map.addWatcher(new ReplicatedMap.Watcher<IPv4Addr, MAC>() {
                         @Override
-                        public void processChange(IntIPv4 key, MAC oldValue,
+                        public void processChange(IPv4Addr key, MAC oldValue,
                                                   MAC newValue) {
-                        cb.call(IPv4Addr.fromIntIPv4(key), oldValue, newValue);
+                        cb.call(key, oldValue, newValue);
                         }
                     });
                 }
