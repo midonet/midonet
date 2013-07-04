@@ -49,15 +49,15 @@ public class ZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
     public synchronized void process(WatchedEvent event) {
         if (event.getState() == Watcher.Event.KeeperState.Disconnected) {
             log.warn("KeeperState is Disconnected, will shutdown in {} " +
-                "seconds if the connection is not restored.",
+                "milliseconds if the connection is not restored.",
                 config.getZooKeeperGraceTime());
 
             disconnectHandle = reactorLoop.schedule(new Runnable() {
                 @Override
                 public void run() {
-                    log.error("have been disconnected for {} seconds, " +
-                            "so exiting", config.getZooKeeperGraceTime());
-                    System.exit(-1);
+                    log.error("have been disconnected for {} milliseconds, " +
+                              "so exiting", config.getZooKeeperGraceTime());
+                    System.exit(7453);
                 }
             }, config.getZooKeeperGraceTime(), TimeUnit.MILLISECONDS);
             submitDisconnectCallbacks();
@@ -156,9 +156,17 @@ public class ZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
             handleDisconnect(retry);
         else if (e instanceof KeeperException.OperationTimeoutException)
             handleTimeout(retry);
-        else
-            log.error("Non recoverable error on ZK operation for {} - {}",
-                      operationDesc, e);
+        else if (e instanceof KeeperException.NoNodeException)
+            log.warn("Expected a ZK node for {} but not found: {}",
+                     operationDesc, e);
+        else if (e instanceof KeeperException.SessionExpiredException ||
+                 e instanceof KeeperException.SessionMovedException) {
+            log.error("Exiting: Non-recoverable error on ZK operation for " +
+                      "{} - {}", operationDesc, e);
+            System.exit(7453);
+        } else {
+            log.warn("ZK operation for {} failed: {}", operationDesc, e);
+        }
     }
 
     // TODO(guillermo) There is a bit of an abstraction leak in the ZK exception
