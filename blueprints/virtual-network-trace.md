@@ -44,8 +44,13 @@ virtual network.  If the `PacketContext` has its trace flag set, the
 `Coordinator` records every network element it sends the packet to and
 the packet's final disposition to Cassandra using fire-and-forget write calls.
 These messages are keyed by a trace ID and step number.  Viz, a Cassandra
-key of "trace:*traceID*:*traceStep*" and a value of the time in the format
-"yyyy-MM-dd HH:mm:ss.SSS" followed by unstructured text.
+key of "*traceID*:*traceStep*" under the "trace_messages" column family,
+and a value consisting of the time in the format "yyyy-MM-dd HH:mm:ss.SSS",
+a space, the UUID of the component emitting the message or else "(none)",
+a space, and unstructured text descriping the traced operation.  A list
+of all available packet traces is kept under the "trace_index" column
+family, with keys consisting of the trace ID and values of the number
+of messages in the trace.
 
 ## Viewing a trace
 
