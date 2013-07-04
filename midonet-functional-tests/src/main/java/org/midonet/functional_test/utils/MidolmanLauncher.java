@@ -90,7 +90,7 @@ public class MidolmanLauncher {
         return format(
             "sudo java " +
             "-Xbootclasspath/p:../midonet-jdk-bootstrap/target/" +
-                "midonet-jdk-bootstrap-1.1.0-SNAPSHOT.jar " +
+                "midonet-jdk-bootstrap-1.2.0-SNAPSHOT.jar " +
             " -Djava.library.path=%s " +
             "-cp %s -Dmidolman.log.file=%s org.midonet.midolman.Midolman " +
             "-c %s",
@@ -158,11 +158,11 @@ public class MidolmanLauncher {
             // version from a file dumped by maven at the build time.
             addEntry(classPathEntries,
                     new File(midonetLocation,
-                            "midolman/target/midolman-1.1.0-SNAPSHOT.jar"));
+                            "midolman/target/midolman-1.2.0-SNAPSHOT.jar"));
 
             addEntry(classPathEntries,
                     new File(midonetLocation,
-                            "midonet-util/target/midonet-util-1.1.0-SNAPSHOT" +
+                            "midonet-util/target/midonet-util-1.2.0-SNAPSHOT" +
                                 ".jar"));
         }
 

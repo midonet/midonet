@@ -5,11 +5,11 @@
     <parent>
         <groupId>com.midokura</groupId>
         <artifactId>midonet-parent</artifactId>
-        <version>1.1.0-SNAPSHOT</version>
+        <version>1.2.0-SNAPSHOT</version>
     </parent>
 
     <groupId>com.midokura</groupId>
-    <version>1.1.0-SNAPSHOT</version>
+    <version>1.2.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <artifactId>midolman</artifactId>
@@ -460,7 +460,7 @@
                     <arguments>
                         <argument>java</argument>
                         <argument>-Djava.library.path=/lib:/usr/lib</argument>
-                        <argument>-Xbootclasspath/p:${project.basedir}/../midonet-jdk-bootstrap/target/classes:${project.basedir}/../midonet-jdk-bootstrap/target/midonet-jdk-bootstrap-1.1.0-SNAPSHOT.jar</argument>
+                        <argument>-Xbootclasspath/p:${project.basedir}/../midonet-jdk-bootstrap/target/classes:${project.basedir}/../midonet-jdk-bootstrap/target/midonet-jdk-bootstrap-1.2.0-SNAPSHOT.jar</argument>
                         <argument>-cp</argument>
                         <classpath />
                         <argument>org.midonet.midolman.Midolman</argument>
@@ -760,31 +760,31 @@
         <dependency>
             <groupId>com.midokura</groupId>
             <artifactId>packets</artifactId>
-            <version>1.1.0-SNAPSHOT</version>
+            <version>1.2.0-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.midokura</groupId>
             <artifactId>midonet-util</artifactId>
-            <version>1.1.0-SNAPSHOT</version>
+            <version>1.2.0-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.midokura</groupId>
             <artifactId>netlink</artifactId>
-            <version>1.1.0-SNAPSHOT</version>
+            <version>1.2.0-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.midokura</groupId>
             <artifactId>odp</artifactId>
-            <version>1.1.0-SNAPSHOT</version>
+            <version>1.2.0-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.midokura</groupId>
             <artifactId>midonet-jdk-bootstrap</artifactId>
-            <version>1.1.0-SNAPSHOT</version>
+            <version>1.2.0-SNAPSHOT</version>
         </dependency>
 
         <dependency>
