@@ -1,9 +1,6 @@
 /* Copyright 2013 Midokura Europe SARL */
 package org.midonet.midolman.state
 
-import _root_.org.apache.zookeeper.CreateMode
-import _root_.org.midonet.packets.{MAC, IPv4Addr}
-import java.util.HashMap
 import java.util.Map
 import org.apache.zookeeper.CreateMode
 import org.apache.zookeeper.KeeperException
@@ -49,9 +46,6 @@ object Ip4ToMacReplicatedMap {
     def addPersistentEntry(dir: Directory, key: IPv4Addr, value: MAC)
         = convertException(dir.add(
             encodePersistentPath(key, value), null, CreateMode.PERSISTENT))
-
-    def deletePersistentEntry(dir: Directory, key: IPv4Addr, value: MAC)
-        = convertException(dir.delete(encodePersistentPath(key, value)))
 
     def deleteEntry(dir: Directory, key: IPv4Addr, mac: MAC) = {
         getAsMapWithVersion(dir).get(key) match {

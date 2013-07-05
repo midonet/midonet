@@ -295,7 +295,7 @@ public class LocalDataClientImpl implements DataClient {
     public void bridgeDeleteMacPort(
             @Nonnull UUID bridgeId, @Nonnull MAC mac, @Nonnull UUID portId)
             throws StateAccessException {
-        MacPortMap.deletePersistentEntry(
+        MacPortMap.deleteEntry(
             bridgeZkManager.getMacPortMapDirectory(bridgeId), mac, portId);
     }
 
