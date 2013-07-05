@@ -326,7 +326,7 @@ public class LocalDataClientImpl implements DataClient {
     public void bridgeDeleteIp4Mac(
             @Nonnull UUID bridgeId, @Nonnull IPv4Addr ip4, @Nonnull MAC mac)
             throws StateAccessException {
-        Ip4ToMacReplicatedMap.deletePersistentEntry(
+        Ip4ToMacReplicatedMap.deleteEntry(
             bridgeZkManager.getIP4MacMapDirectory(bridgeId), ip4, mac);
     }
 
