@@ -9,6 +9,7 @@ import org.apache.zookeeper.CreateMode
 import org.apache.zookeeper.KeeperException
 import org.midonet.packets.IPv4Addr
 import org.midonet.packets.MAC
+import collection.immutable._
 import collection.JavaConversions._
 
 class Ip4ToMacReplicatedMap(dir: Directory)
@@ -22,15 +23,24 @@ class Ip4ToMacReplicatedMap(dir: Directory)
 
 object Ip4ToMacReplicatedMap {
 
-    def getAsMap(dir: Directory): Map[IPv4Addr, MAC] = convertException {
-        val paths: Iterable[java.lang.String] = dir.getChildren("/", null)
-        val m: Map[IPv4Addr, MAC] = new HashMap[IPv4Addr, MAC]
-        for (path <- paths) {
-            val parts: Array[String] =
-                ReplicatedMap.getKeyValueVersion(path)
-            m.put(IPv4Addr.fromString(parts(0)), MAC.fromString(parts(1)))
+    def getAsMap(dir: Directory): Map[IPv4Addr, MAC] =
+        getAsMapBase(dir, (ip: String, mac: String, version: String) =>
+            (IPv4Addr.fromString(ip), MAC.fromString(mac)))
+
+    def getAsMapWithVersion(dir: Directory): Map[IPv4Addr, (MAC, Int)] =
+        getAsMapBase(dir, (ip: String, mac: String, version: String) =>
+            (IPv4Addr.fromString(ip), (MAC.fromString(mac), version.toInt)))
+
+    def getAsMapBase[K,V](dir: Directory,
+            mapEntryConvert: (String, String, String) => (K,V))
+            :collection.immutable.Map[K,V] =
+        convertException {
+            def makeMapEntry(path:String) = {
+                val parts: Array[String] =
+                    ReplicatedMap.getKeyValueVersion(path)
+                mapEntryConvert(parts(0), parts(1), parts(2))
         }
-        m
+        dir.getChildren("/", null).map(makeMapEntry).toMap
     }
 
     def hasPersistentEntry(dir: Directory, key: IPv4Addr, value: MAC): Boolean
@@ -43,8 +53,19 @@ object Ip4ToMacReplicatedMap {
     def deletePersistentEntry(dir: Directory, key: IPv4Addr, value: MAC)
         = convertException(dir.delete(encodePersistentPath(key, value)))
 
+    def deleteEntry(dir: Directory, key: IPv4Addr, mac: MAC) = {
+        getAsMapWithVersion(dir).get(key) match {
+            case (m,ver) => if (m.equals(mac))
+                               dir.delete(encodePath(key, mac, ver))
+            case _ => ()
+        }
+    }
+
     def encodePersistentPath(k :IPv4Addr, v :MAC) =
-        ReplicatedMap.encodeFullPath(k.toString, v.toString, 1)
+        encodePath(k, v, 1)
+
+    def encodePath(k :IPv4Addr, v :MAC, ver: Int) =
+        ReplicatedMap.encodeFullPath(k.toString, v.toString, ver)
 
     def convertException[T](f :T) :T = {
         try { f } catch {
