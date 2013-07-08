@@ -163,4 +163,11 @@ public class VendorMediaType {
     public static final String APPLICATION_CONDITION_COLLECTION_JSON =
             "application/vnd.org.midonet.collection" +
                     ".Condition-v1+json";
+
+    // Packet Trace
+    public static final String APPLICATION_TRACE_JSON =
+            "application/vnd.org.midonet.Trace-v1+json";
+    public static final String APPLICATION_TRACE_COLLECTION_JSON =
+            "application/vnd.org.midonet.collection" +
+                    ".Trace-v1+json";
 }

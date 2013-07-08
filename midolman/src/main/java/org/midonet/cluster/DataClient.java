@@ -551,4 +551,18 @@ public interface DataClient {
 
     List<TraceCondition> traceConditionsGetAll()
         throws StateAccessException, SerializationException;
+
+    /*
+     * Packet Trace related methods
+     */
+
+    // First String is key (UUID traceID represented as String)
+    // Second String is value (int number of trace messages represent as String)
+    Map<String, String> traceIdList(int maxEntries);
+
+    void traceIdDelete(UUID traceId);
+
+    List<String> packetTraceGet(UUID traceId);
+
+    void packetTraceDelete(UUID traceId);
 }

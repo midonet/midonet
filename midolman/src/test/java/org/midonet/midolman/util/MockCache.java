@@ -5,6 +5,7 @@
 package org.midonet.midolman.util;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.midonet.cache.Cache;
@@ -48,6 +49,24 @@ public class MockCache implements Cache {
     @Override
     public String get(String key) {
         return get(key, false);
+    }
+
+    /*
+     * Needed for compilation (Interface Cache has this declared)
+     */
+    @Override
+    public Map<String, String> dump(int maxEntries) {
+        // does nothing
+        return null;
+    }
+
+    /*
+     * Needed for compilation (Interface Cache has this declared)
+     */
+    @Override
+    public void delete(String key) {
+        // does nothing
+        return;
     }
 
     @Override

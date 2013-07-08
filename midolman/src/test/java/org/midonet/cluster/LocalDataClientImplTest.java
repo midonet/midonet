@@ -20,6 +20,7 @@ import org.junit.Test;
 import org.midonet.midolman.Setup;
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.config.ZookeeperConfig;
+import org.midonet.midolman.guice.CacheModule;
 import org.midonet.midolman.guice.MockMonitoringStoreModule;
 import org.midonet.midolman.guice.cluster.DataClusterClientModule;
 import org.midonet.midolman.guice.config.MockConfigProviderModule;
@@ -83,7 +84,7 @@ public class LocalDataClientImplTest {
             new MockConfigProviderModule(config),
             new MockZookeeperConnectionModule(),
             new TypedConfigModule<MidolmanConfig>(MidolmanConfig.class),
-
+            new CacheModule(),
             new ReactorModule(),
             new MockMonitoringStoreModule(),
             new DataClusterClientModule()

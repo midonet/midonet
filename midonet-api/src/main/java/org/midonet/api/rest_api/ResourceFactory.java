@@ -15,6 +15,7 @@ import org.midonet.api.dhcp.rest_api.DhcpV6HostsResource;
 import org.midonet.api.filter.rest_api.ChainResource;
 import org.midonet.api.monitoring.rest_api.MonitoringResource;
 import org.midonet.api.tracing.rest_api.TraceConditionResource;
+import org.midonet.api.tracing.rest_api.TraceResource;
 import org.midonet.packets.IntIPv4;
 import org.midonet.packets.IPv6Subnet;
 
@@ -90,4 +91,6 @@ public interface ResourceFactory {
     PortResource.VlanBridgeTrunkPortResource getVlanBridgeTrunkPortResource(UUID id);
 
     TraceConditionResource getTraceConditionResource();
+
+    TraceResource getTraceResource();
 }

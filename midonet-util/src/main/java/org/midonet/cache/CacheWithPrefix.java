@@ -4,6 +4,8 @@
  */
 package org.midonet.cache;
 
+import java.util.List;
+import java.util.Map;
 
 public class CacheWithPrefix implements Cache {
 
@@ -27,6 +29,17 @@ public class CacheWithPrefix implements Cache {
     public String get(String key) {
         String pkey = prefix+key;
         return cache.get(pkey);
+    }
+
+    @Override
+    public void delete(String key) {
+        String pkey = prefix+key;
+        cache.delete(pkey);
+    }
+
+    @Override
+    public Map<String, String> dump(int maxEntries) {
+        return(cache.dump(maxEntries));
     }
 
     @Override

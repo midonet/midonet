@@ -46,6 +46,7 @@ public class ResourceUriBuilder {
     public static final String ID_TOKEN = "/{id}";
     public static final String PORT_ID_QS = "port_id";
     public static final String TRACE_CONDITIONS ="/trace_conditions";
+    public static final String TRACES = "/traces";
 
     private ResourceUriBuilder() {
     }
@@ -563,5 +564,41 @@ public class ResourceUriBuilder {
      */
     public static String getTraceConditionTemplate(URI baseUri) {
         return buildIdTemplateUri(getTraceConditions(baseUri));
+    }
+
+    /**
+     * Generate trace URI
+     *
+     * @param baseUri Base service URI
+     * @return Trace URI
+     */
+    public static URI getTraces(URI baseUri) {
+        return UriBuilder.fromUri(getRoot(baseUri)).path(TRACES).build();
+    }
+
+    /**
+     * Generate trace URI
+     *
+     * @param baseUri Base service URI
+     * @param traceId UUID of trace
+     * @return Trace URI
+     */
+    public static URI getTrace(URI baseUri, UUID traceId) {
+        if (baseUri == null || traceId == null) {
+            return null;
+        }
+
+        return UriBuilder.fromUri(getTraces(baseUri)).path(
+                 traceId.toString()).build();
+    }
+
+    /**
+     * Generate trace URI template
+     *
+     * @param baseUri Base URI
+     * @return Trace template URI
+     */
+    public static String getTraceTemplate(URI baseUri) {
+        return buildIdTemplateUri(getTraces(baseUri));
     }
 }

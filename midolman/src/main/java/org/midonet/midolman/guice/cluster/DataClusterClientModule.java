@@ -13,6 +13,7 @@ import com.google.inject.PrivateModule;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.name.Names;
+import org.midonet.cache.Cache;
 import org.midonet.cluster.ClusterBgpManager;
 import org.midonet.cluster.ClusterBridgeManager;
 import org.midonet.cluster.ClusterChainManager;
@@ -36,6 +37,8 @@ import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.state.zkManagers.*;
 import org.midonet.util.eventloop.Reactor;
+import static org.midonet.midolman.guice.CacheModule.TRACE_INDEX;
+import static org.midonet.midolman.guice.CacheModule.TRACE_MESSAGES;
 
 
 /**
@@ -53,6 +56,8 @@ public class DataClusterClientModule extends PrivateModule {
             ZKConnectionProvider.DIRECTORY_REACTOR_TAG)));
         requireBinding(ZkConnectionAwareWatcher.class);
         requireBinding(Store.class);
+        requireBinding(Key.get(Cache.class, TRACE_INDEX.class));
+        requireBinding(Key.get(Cache.class, TRACE_MESSAGES.class));
 
         bind(PathBuilder.class).toProvider(PathBuilderProvider.class)
             .asEagerSingleton();

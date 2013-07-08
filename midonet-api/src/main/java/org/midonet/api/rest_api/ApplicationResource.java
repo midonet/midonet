@@ -18,6 +18,7 @@ import org.midonet.api.filter.rest_api.ChainResource;
 import org.midonet.api.host.rest_api.TunnelZoneResource;
 import org.midonet.api.monitoring.rest_api.MonitoringResource;
 import org.midonet.api.tracing.rest_api.TraceConditionResource;
+import org.midonet.api.tracing.rest_api.TraceResource;
 import org.midonet.api.version.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -188,6 +189,16 @@ public class ApplicationResource extends AbstractResource {
     @Path(ResourceUriBuilder.TRACE_CONDITIONS)
     public TraceConditionResource getTraceConditionResource() {
         return factory.getTraceConditionResource();
+    }
+
+    /**
+     * Packet Trace resource locator
+     *
+     * @return TraceResource object to handle sub-resource requests.
+     */
+    @Path(ResourceUriBuilder.TRACES)
+    public TraceResource getTraceResource() {
+        return factory.getTraceResource();
     }
 
     /**

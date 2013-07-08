@@ -18,6 +18,7 @@ import me.prettyprint.hector.api.Cluster;
 import me.prettyprint.hector.api.Keyspace;
 import me.prettyprint.hector.api.beans.ColumnSlice;
 import me.prettyprint.hector.api.beans.HColumn;
+import me.prettyprint.hector.api.beans.OrderedRows;
 import me.prettyprint.hector.api.beans.Row;
 import me.prettyprint.hector.api.beans.Rows;
 import me.prettyprint.hector.api.ddl.ColumnFamilyDefinition;
@@ -30,6 +31,7 @@ import me.prettyprint.hector.api.mutation.Mutator;
 import me.prettyprint.hector.api.query.ColumnQuery;
 import me.prettyprint.hector.api.query.MultigetSliceQuery;
 import me.prettyprint.hector.api.query.QueryResult;
+import me.prettyprint.hector.api.query.RangeSlicesQuery;
 import me.prettyprint.hector.api.query.SliceQuery;
 import org.apache.cassandra.locator.SimpleStrategy;
 import org.slf4j.Logger;
@@ -171,6 +173,16 @@ public class CassandraClient {
         return (value.length() != 0) ? value : null;
     }
 
+    // columnName can be null, in which case the whole column is removed
+    public void delete(String key, String columnName) {
+        try {
+            Mutator<String> mutator = HFactory.createMutator(keyspace, ss);
+            mutator.delete(key, columnFamily, columnName, ss);
+        } catch (HectorException e) {
+            log.error("delete failed", e);
+        }
+    }
+
     public <T> Map<String, T> executeSliceQuery(String key, String startRange,
                                                 String endRange,
                                                 Class<T> returnValueClass,
@@ -264,4 +276,40 @@ public class CassandraClient {
         return expirationSecs;
     }
 
+    public <T> Map<String, List<T>> dumpTable(String startRange,
+                                              String endRange,
+                                              Class<T> returnValueClass,
+                                              int maxRowCount,
+                                              int maxResultItems) {
+        Map<String, List<T>> res = new HashMap<String, List<T>>();
+        List<T> retList = new ArrayList<T>();
+        try {
+            RangeSlicesQuery<String, String, String> sliceQuery = HFactory.createRangeSlicesQuery(
+                    keyspace, ss, ss, ss);
+            sliceQuery.setColumnFamily(columnFamily);
+            if (maxResultItems > 0)
+                sliceQuery.setRange(startRange, endRange, false,
+                                    maxResultItems);
+            sliceQuery.setKeys("", "");
+            if (maxRowCount > 0)
+                sliceQuery.setRowCount(maxRowCount);
+
+            QueryResult<OrderedRows<String, String, String>> result =
+                                        sliceQuery.execute();
+            OrderedRows<String, String, String> orderedRows = result.get();
+            for (Row<String, String, String> r : orderedRows) {
+                String key = r.getKey();
+                for (HColumn<String, String> entry :
+                        r.getColumnSlice().getColumns()) {
+                    T value = convertSafely(returnValueClass,
+                                            entry.getValue());
+                    retList.add(value);
+                }
+                res.put(key, retList);
+            }
+        } catch (HectorException e) {
+            log.error("slice query failed", e);
+        }
+        return res;
+    }
 }
