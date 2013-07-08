@@ -27,6 +27,7 @@ import org.midonet.cluster.client.VlanPortMap;
 import org.midonet.midolman.Setup;
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.config.ZookeeperConfig;
+import org.midonet.midolman.guice.CacheModule;
 import org.midonet.midolman.guice.MockMonitoringStoreModule;
 import org.midonet.midolman.guice.cluster.ClusterClientModule;
 import org.midonet.midolman.guice.config.MockConfigProviderModule;
@@ -92,6 +93,7 @@ public class LocalClientImplTest {
             new MockZookeeperConnectionModule(),
             new TypedConfigModule<MidolmanConfig>(MidolmanConfig.class),
 
+            new CacheModule(),
             new ReactorModule(),
             new MockMonitoringStoreModule(),
             new ClusterClientModule()

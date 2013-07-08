@@ -6,6 +6,11 @@
 
 package org.midonet.cassandra;
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
 import me.prettyprint.hector.api.exceptions.HectorException;
 
 import org.midonet.cache.Cache;
@@ -35,6 +40,31 @@ public class CassandraCache implements Cache {
     @Override
     public String get(String key) {
         return client.get(key, column);
+    }
+
+    @Override
+    public void delete(String key) {
+        client.delete(key, column);
+    }
+
+    @Override
+    public Map<String, String> dump(int maxEntries) {
+        // here we assume key <-> value mapping is one to one
+        Map<String, String> retMap = new HashMap<String, String>();
+        Map<String, List<String>> origMap = client.dumpTable(null, null, 
+                                    String.class, maxEntries, maxEntries);
+        if (origMap.isEmpty() == false) {
+            Iterator<String> it = origMap.keySet().iterator();
+            while (it.hasNext()) {
+                String key = it.next();
+                List<String> columns = origMap.get(key);
+
+                for (String column : columns) {
+                    retMap.put(key, column);
+                }
+            }
+        }
+        return retMap;
     }
 
     @Override

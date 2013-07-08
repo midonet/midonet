@@ -6,7 +6,9 @@ package org.midonet.cluster;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -15,6 +17,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -23,6 +26,9 @@ import org.midonet.packets.IPv4Addr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.cache.Cache;
+import static org.midonet.midolman.guice.CacheModule.TRACE_MESSAGES;
+import static org.midonet.midolman.guice.CacheModule.TRACE_INDEX;
 import org.midonet.midolman.guice.zookeeper.ZKConnectionProvider;
 import org.midonet.midolman.host.commands.HostCommandGenerator;
 import org.midonet.midolman.host.state.HostDirectory;
@@ -142,6 +148,14 @@ public class LocalDataClientImpl implements DataClient {
 
     @Inject
     private Store monitoringStore;
+
+    @Inject @Nullable
+    @TRACE_INDEX
+    private Cache traceIndexCache;
+
+    @Inject @Nullable
+    @TRACE_MESSAGES
+    private Cache traceMessageCache;
 
     private final static Logger log =
             LoggerFactory.getLogger(LocalDataClientImpl.class);
@@ -1969,5 +1983,49 @@ public class LocalDataClientImpl implements DataClient {
         }
 
         return traceConditions;
+    }
+
+    @Override
+    public Map<String, String> traceIdList(int maxEntries) {
+        return(traceIndexCache.dump(maxEntries));
+    }
+
+    @Override
+    public void traceIdDelete(UUID traceId) {
+        traceIndexCache.delete(traceId.toString());
+    }
+
+    @Override
+    public List<String> packetTraceGet(UUID traceId) {
+        List<String> retList = new ArrayList<String>();
+        String key = "trace" + traceId;
+        int numTraceMessages = 0;
+        String numTraceMessagesStr = traceIndexCache.get(traceId.toString());
+        if (numTraceMessagesStr == null) return null;
+        numTraceMessages = Integer.parseInt(numTraceMessagesStr);
+        for (int traceStep = 1; traceStep <= numTraceMessages; traceStep++) {
+            key = key + ":" + traceStep;
+            String retVal = traceMessageCache.get(key);
+            if (retVal == null) {
+                log.error("Number of Trace Messages out of sync " +
+                        "with Trace Index table");
+                break;
+            }
+            retList.add(retVal);
+        }
+        return retList;
+    }
+
+    @Override
+    public void packetTraceDelete(UUID traceId) {
+        int numTraceMessages = 0;
+        String numTraceMessagesStr = traceIndexCache.get(traceId.toString());
+        String key = "trace" + traceId;
+        if (numTraceMessagesStr == null) return;
+        numTraceMessages = Integer.parseInt(numTraceMessagesStr);
+        for (int traceStep = 1; traceStep <= numTraceMessages; traceStep++) {
+            key = key + ":" + traceStep;
+            traceMessageCache.delete(key);
+        }
     }
 }

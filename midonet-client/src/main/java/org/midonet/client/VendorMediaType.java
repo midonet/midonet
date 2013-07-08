@@ -96,4 +96,13 @@ public class VendorMediaType {
             APPLICATION_HOST_INTERFACE_PORT_COLLECTION_JSON =
             "application/vnd.org.midonet.collection" +
                     ".HostInterfacePort-v1+json";
+
+    // Packet Trace
+    public static final String APPLICATION_PACKET_TRACE_JSON =
+            "application/vnd.org.midonet" +
+                    ".Trace-v1+json";
+    public static final String
+            APPLICATION_PACKET_TRACE_COLLECTION_JSON =
+            "application/vnd.org.midonet.collection" +
+                    ".Trace-v1+json";
 }

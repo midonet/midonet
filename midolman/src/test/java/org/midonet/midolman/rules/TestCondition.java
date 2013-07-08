@@ -14,6 +14,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
@@ -443,6 +445,8 @@ public class TestCondition {
     static class DummyCache implements Cache {
         public void set(String key, String value) { }
         public String get(String key) { return storedValue; }
+        public Map<String, String> dump(int maxEntries) {return null;}
+        public void delete(String key) {}
         public void getAsync(String key, Callback1<String> cb) {
             throw new UnsupportedOperationException();
         }
