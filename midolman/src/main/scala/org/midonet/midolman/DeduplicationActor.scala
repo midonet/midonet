@@ -146,7 +146,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
     @Inject @Nullable @NAT_CACHE var connectionCache: Cache = null
     @Inject @TRACE_MESSAGES var traceMessageCache: Cache = null
     @Inject @TRACE_INDEX var traceIndexCache: Cache = null
-    var traceConditions: immutable.Set[Condition] = Set()
+    var traceConditions = immutable.Seq[Condition]()
 
     @Inject
     @SIMULATION_THROTTLING_GUARD
@@ -170,7 +170,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
         super.preStart()
         metrics = new PacketPipelineMetrics(metricsRegistry, throttler)
         VirtualTopologyActor.getRef().tell(
-            VirtualTopologyActor.ConditionSetRequest(
+            VirtualTopologyActor.ConditionListRequest(
                 TraceConditionsManager.uuid, true))
     }
 
@@ -251,7 +251,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
                       "PacketWorkflow-generated-" + packetId)
             packetWorkflow.start()
 
-        case newTraceConditions: immutable.Set[Condition] =>
+        case newTraceConditions: immutable.Seq[Condition] =>
             traceConditions = newTraceConditions
     }
 

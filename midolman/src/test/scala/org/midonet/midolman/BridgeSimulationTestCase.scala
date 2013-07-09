@@ -117,9 +117,9 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         val srcMac = MAC.fromString("02:11:22:33:44:10")
         val condition = new Condition
         condition.dlSrc = srcMac
-        val conditionSet: immutable.Set[Condition] = Set(condition)
+        val conditionList = immutable.Seq[Condition](condition)
         // FIXME(jlm): racy
-        deduplicationActor() ! conditionSet
+        deduplicationActor() ! conditionList
 
         val msgCache = injector.getInstance(Key.get(classOf[Cache],
                                                     classOf[TRACE_MESSAGES]))

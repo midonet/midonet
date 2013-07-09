@@ -3,8 +3,8 @@
 package org.midonet.cluster;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
-import java.util.Set;
 import javax.inject.Inject;
 
 import org.slf4j.Logger;
@@ -24,25 +24,25 @@ public class ClusterConditionManager extends ClusterManager<TraceConditionsBuild
     @Inject
     TraceConditionZkManager conditionMgr;
 
-    Set<Condition> conditionSet = null;
+    List<Condition> conditionList = null;
 
     @Override
     protected void getConfig(UUID id) {
         TraceConditionsBuilder builder = getBuilder(id);
         try {
-            conditionSet = conditionMgr.getConditions(watchConditionSet(id));
+            conditionList = conditionMgr.getConditions(watchConditionList(id));
         } catch (StateAccessException e) {
             log.error("Unable to get condition set: ", e);
-            conditionSet = Collections.emptySet();
+            conditionList = Collections.emptyList();
         } catch (SerializationException e) {
             log.error("Unable to get condition set: ", e);
-            conditionSet = Collections.emptySet();
+            conditionList = Collections.emptyList();
         }
-        builder.setConditions(conditionSet);
+        builder.setConditions(conditionList);
         builder.build();
     }
 
-    Runnable watchConditionSet(final UUID id) {
+    Runnable watchConditionList(final UUID id) {
         return new Runnable() {
             @Override
             public void run() {

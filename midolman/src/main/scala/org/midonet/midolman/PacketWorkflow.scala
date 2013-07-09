@@ -83,7 +83,7 @@ class PacketWorkflow(
         cookieOrEgressPort: Either[Int, UUID],
         throttlingGuard: ThrottlingGuard,
         metrics: PacketPipelineMetrics,
-        private val traceConditions: immutable.Set[Condition])
+        private val traceConditions: immutable.Seq[Condition])
        (implicit val executor: ExecutionContext,
         val system: ActorSystem,
         val context: ActorContext)
