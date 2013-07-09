@@ -51,7 +51,7 @@ object VirtualTopologyActor extends Referenceable {
 
     case class ChainRequest(id: UUID, update: Boolean) extends DeviceRequest
 
-    case class ConditionSetRequest(id: UUID, update: Boolean) extends DeviceRequest
+    case class ConditionListRequest(id: UUID, update: Boolean) extends DeviceRequest
 
     sealed trait Unsubscribe
 
@@ -61,7 +61,7 @@ object VirtualTopologyActor extends Referenceable {
 
     case class ChainUnsubscribe(id: UUID) extends Unsubscribe
 
-    case class ConditionSetUnsubscribe(id: UUID) extends Unsubscribe
+    case class ConditionListUnsubscribe(id: UUID) extends Unsubscribe
 
     case class PortUnsubscribe(id: UUID) extends Unsubscribe
 
@@ -72,8 +72,8 @@ object VirtualTopologyActor extends Referenceable {
                           idToChain: immutable.Map[UUID, Chain],
                           idToPort: immutable.Map[UUID, Port[_]],
                           idToRouter: immutable.Map[UUID, Router],
-                          idToConditionSet:
-                              immutable.Map[UUID, immutable.Set[Condition]])
+                          idToConditionList:
+                              immutable.Map[UUID, immutable.Seq[Condition]])
 
     // This variable should only be updated by the singleton
     // VirtualTopologyInstance. Also, we strongly recommend not accessing
@@ -105,7 +105,7 @@ object VirtualTopologyActor extends Referenceable {
             case r: VlanBridgeRequest => e.idToVlanBridge
             case r: BridgeRequest => e.idToBridge
             case r: ChainRequest => e.idToChain
-            case r: ConditionSetRequest => e.idToConditionSet
+            case r: ConditionListRequest => e.idToConditionList
             case r: PortRequest => e.idToPort
             case r: RouterRequest => e.idToRouter
             case r: PortSetHolderRequest =>
@@ -130,7 +130,7 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
     private var idToChain = immutable.Map[UUID, Chain]()
     private var idToPort = immutable.Map[UUID, Port[_]]()
     private var idToRouter = immutable.Map[UUID, Router]()
-    private var traceConditions = immutable.Set[Condition]()
+    private var traceConditions = immutable.Seq[Condition]()
 
     // TODO(pino): unload devices with no subscribers that haven't been used
     // TODO:       in a while.
@@ -272,7 +272,7 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
             idToRouter = idToRouter.+((router.id, router))
             updated(router.id, router)
         case TraceConditionsManager.TriggerUpdate(conditions) =>
-            traceConditions = conditions.asScala.toSet
+            traceConditions = conditions.asScala.toList
             updated(TraceConditionsManager.uuid, traceConditions)
         case invalidation: InvalidateFlowsByTag =>
             FlowController.getRef() ! invalidation

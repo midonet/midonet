@@ -96,7 +96,7 @@ object Coordinator {
  * @param traceMessageCache The Cache to use for trace messages.
  * @param traceIndexCache The Cache to use for the trace index.
  * @param parentCookie TODO
- * @param tracedConditions Set of Conditions which will trigger tracing.
+ * @param tracedConditions Seq of Conditions which will trigger tracing.
  * @param ec
  * @param actorSystem
  */
@@ -109,7 +109,7 @@ class Coordinator(var origMatch: WildcardMatch,
                   val traceMessageCache: Cache,
                   val traceIndexCache: Cache,
                   val parentCookie: Option[Int],
-                  val traceConditions: immutable.Set[Condition])
+                  val traceConditions: immutable.Seq[Condition])
                  (implicit val ec: ExecutionContext,
                   val actorSystem: ActorSystem,
                   val actorContext: ActorContext) {
