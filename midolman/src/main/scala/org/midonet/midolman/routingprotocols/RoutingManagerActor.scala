@@ -9,24 +9,24 @@ import akka.actor._
 import com.google.inject.Inject
 import java.util.UUID
 
-import org.midonet.util.functors.Callback2
-import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.cluster.{Client, DataClient}
 import org.midonet.cluster.client.{Port, ExteriorRouterPort}
 import org.midonet.midolman.Referenceable
+import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.routingprotocols.RoutingHandler.PortActive
 import org.midonet.midolman.state.ZkConnectionAwareWatcher
+import org.midonet.midolman.guice.reactor.ReactorModule
+import org.midonet.util.eventloop.SelectLoop
+import org.midonet.util.functors.Callback2
 
 object RoutingManagerActor extends Referenceable {
     override val Name = "RoutingManager"
 }
 
 class RoutingManagerActor extends Actor with ActorLogWithoutPath {
-    import context.dispatcher
-    import context.system
 
     @Inject
     override val supervisorStrategy: SupervisorStrategy = null
@@ -39,6 +39,9 @@ class RoutingManagerActor extends Actor with ActorLogWithoutPath {
     val client: Client = null
     @Inject
     var zkConnWatcher: ZkConnectionAwareWatcher = null
+    @Inject
+    @ReactorModule.ZEBRA_SERVER_LOOP
+    var zebraLoop: SelectLoop = null
 
     private var bgpPortIdx = 0
 
@@ -123,8 +126,8 @@ class RoutingManagerActor extends Actor with ActorLogWithoutPath {
                     port.id,
                     context.actorOf(
                         Props(new RoutingHandler(port, bgpPortIdx, client,
-                                dataClient, config, zkConnWatcher)).
-                              withDispatcher("actors.stash-dispatcher"),
+                                dataClient, config, zkConnWatcher, zebraLoop)).
+                              withDispatcher("zebra-dispatcher"),
                         name = port.id.toString)
                 )
                 log.debug("RoutingManager - ExteriorRouterPort - RoutingHandler actor creation requested")
