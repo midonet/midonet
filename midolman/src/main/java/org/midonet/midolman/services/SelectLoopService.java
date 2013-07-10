@@ -31,10 +31,15 @@ public class SelectLoopService extends AbstractService {
     SelectLoop readLoop;
 
     @Inject
+    @ReactorModule.ZEBRA_SERVER_LOOP
+    SelectLoop zebraLoop;
+
+    @Inject
     Reactor reactor;
 
     Thread readLoopThread;
     Thread writeLoopThread;
+    Thread zebraLoopThread;
 
     private Thread startLoop(final SelectLoop loop) {
         Thread th = new Thread(new Runnable() {
@@ -62,6 +67,9 @@ public class SelectLoopService extends AbstractService {
             log.info("Starting the read select loop thread.");
             readLoopThread = startLoop(readLoop);
             readLoopThread.setName("read-select-loop");
+            log.info("Starting the zebra server select loop thread.");
+            zebraLoopThread = startLoop(zebraLoop);
+            zebraLoopThread.setName("zebra-server-loop");
 
             notifyStarted();
             log.info("Select loop threads started correctly");
@@ -75,10 +83,14 @@ public class SelectLoopService extends AbstractService {
         // TODO: change the SelectLoop to support shutdown and use it here to stop the thread
         // cleanly
         reactor.shutDownNow();
+
         readLoop.shutdown();
         writeLoop.shutdown();
+        zebraLoop.shutdown();
+
         readLoopThread.stop();
         writeLoopThread.stop();
+        zebraLoopThread.stop();
         notifyStopped();
     }
 }
