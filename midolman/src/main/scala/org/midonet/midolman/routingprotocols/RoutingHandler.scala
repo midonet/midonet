@@ -4,12 +4,10 @@
 
 package org.midonet.midolman.routingprotocols
 
-import akka.actor.UntypedActorWithStash
+import akka.actor.{ActorRef, Props, UntypedActorWithStash}
 import collection.mutable
 import java.io.File
 import java.util.UUID
-
-import org.newsclub.net.unix.AFUNIXSocketAddress
 
 import org.midonet.midolman.{PortOperation, DatapathController, FlowController}
 import org.midonet.midolman.DatapathController.{PortNetdevOpReply, CreatePortNetdev}
@@ -32,6 +30,8 @@ import scala.collection.JavaConversions._
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.state.{ZkConnectionAwareWatcher, StateAccessException}
+import org.midonet.util.eventloop.SelectLoop
+import org.midonet.netlink.AfUnix
 
 object RoutingHandler {
     // BgpdProcess will notify via these messages
@@ -87,7 +87,8 @@ object RoutingHandler {
 class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
                      val client: Client, val dataClient: DataClient,
                      val config: MidolmanConfig,
-                     val connWatcher: ZkConnectionAwareWatcher)
+                     val connWatcher: ZkConnectionAwareWatcher,
+                     val selectLoop: SelectLoop)
     extends UntypedActorWithStash with ActorLogWithoutPath {
 
     import RoutingHandler._
@@ -114,13 +115,13 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
     private final val BGP_VTY_PORT: Int = 2605 + bgpIdx
     private final val BGP_TCP_PORT: Short = 179
 
-    private var zebra: ZebraServer = null
+    private var zebra: ActorRef = null
     private var bgpVty: BgpConnection = null
 
     private val bgps = mutable.Map[UUID, BGP]()
     private val adRoutes = mutable.Set[AdRoute]()
     private val peerRoutes = mutable.Map[Route, UUID]()
-    private var socketAddress: AFUNIXSocketAddress = null
+    private var socketAddress: AfUnix.Address = null
 
     // At this moment we only support one bgpd process
     private var bgpdProcess: BgpdProcess = null
@@ -689,11 +690,9 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
         if (socketFile.exists())
             socketFile.delete()
 
-        socketAddress = new AFUNIXSocketAddress(socketFile)
-
-        zebra = new ZebraServer(socketAddress, handler,
-            rport.portAddr.getAddress, BGP_NETDEV_PORT_MIRROR_NAME)
-        zebra.start()
+        socketAddress = new AfUnix.Address(socketFile.getAbsolutePath)
+        zebra = ZebraServer(socketAddress, handler, rport.portAddr.getAddress,
+                            BGP_NETDEV_PORT_MIRROR_NAME, selectLoop)
 
         // Does the namespace exist?
         var cmdLine = "sudo ip netns list"
@@ -814,6 +813,8 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
         if (bgpdProcess != null) {
             bgpdProcess.stop()
         }
+
+        context.stop(zebra)
 
         // delete vty interface pair
         var cmdLine = "sudo ip link del " + BGP_VTY_PORT_NAME

@@ -1,5 +1,5 @@
 /**
- * ZebraServer.scala - Quagga Zebra server classes.
+ * Requestrver.scala - Quagga Zebra server classes.
  *
  * A pure Scala implementation of the Quagga Zebra server to connect
  * MidoNet and protocol daemons like BGP, OSPF and RIP.
@@ -12,114 +12,128 @@
 
 package org.midonet.quagga
 
-import scala.actors._
-import scala.actors.Actor._
+import akka.actor.{ActorContext, Props, ActorRef, Actor}
+import akka.event.LoggingReceive
 import scala.collection.mutable
-import scala.collection.mutable.ListBuffer
-
-import java.io.IOException
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
+import java.nio.file.attribute.UserPrincipal
+import java.nio.file.attribute.GroupPrincipal
+import java.nio.file.attribute.PosixFileAttributeView
 import java.net.{Socket, SocketAddress}
 
-import org.slf4j.LoggerFactory
+import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.packets.IPv4Addr
-import org.newsclub.net.unix.AFUNIXServerSocket
+import org.midonet.util.eventloop.{SelectListener, SelectLoop}
+import java.nio.channels.{ByteChannel, SelectionKey}
+import org.midonet.netlink.{AfUnix, NetlinkSelectorProvider, UnixDomainChannel}
+import java.nio.channels.spi.SelectorProvider
 
-case class Request(socket: Socket, reqId: Int)
-case class Response(reqId: Int)
+case class SpawnConnection(channel: ByteChannel)
+case class ConnectionClosed(reqId: Int)
 
-trait ZebraServerService {
-    def start()
-    def stop()
+object ZebraServer {
+    def apply(address: AfUnix.Address, handler: ZebraProtocolHandler,
+              ifAddr: IPv4Addr, ifName: String, selectLoop: SelectLoop)
+             (implicit context: ActorContext): ActorRef = {
+        context.actorOf(
+            Props(new ZebraServer(address, handler, ifAddr, ifName, selectLoop)).
+                withDispatcher("zebra-dispatcher"),
+            "zebra-server-" + ifAddr + "-" + ifName)
+    }
 }
 
-class ZebraServer(val address: SocketAddress,
-                  val handler: ZebraProtocolHandler,
-                  val ifAddr: IPv4Addr,
-                  val ifName: String)
-    extends ZebraServerService {
+class ZebraServer(val address: AfUnix.Address, val handler: ZebraProtocolHandler,
+                  val ifAddr: IPv4Addr, val ifName: String,
+                  val selectLoop: SelectLoop) extends Actor with ActorLogWithoutPath {
 
-    private final val log = LoggerFactory.getLogger(this.getClass)
-    private var run = false
+    var lastRequestId = 0
+    val server = makeServer
 
-    // Pool of Actors.
-    val zebraConnPool = ListBuffer[ZebraConnection]()
-    val zebraConnMap = mutable.Map[Int, ZebraConnection]()
+    val zebraConnections = mutable.Set[ActorRef]()
+    val zebraConnMap = mutable.Map[ActorRef, ByteChannel]()
 
-    val server = AFUNIXServerSocket.newInstance()
-
-    val dispatcher = actor {
-
-        def addZebraConn(dispatcher: Actor, requestId: Int) {
-            log.debug("begin, requestId: {}", requestId)
-            val zebraConn =
-                new ZebraConnection(dispatcher, handler, ifAddr, ifName, requestId)
-            log.debug("ifAddr: {}, ifName: {}", ifAddr, ifName)
-            zebraConnPool += zebraConn
-            zebraConn.start()
-            log.debug("end")
-        }
-
-        loop {
-            react {
-                case Request(conn: Socket, requestId: Int) => {
-                    log.debug("client id {}", requestId)
-                    if (zebraConnPool.isEmpty) {
-                        addZebraConn(self, requestId)
-                    }
-                    val zebraConn = zebraConnPool.remove(0)
-                    zebraConnMap(requestId) = zebraConn
-                    zebraConn ! HandleConnection(conn)
-                }
-                case Response(requestId) => {
-                    log.debug("dispatcher: response %d".format(requestId))
-                    // Return the worker to the pool.
-                    zebraConnMap.remove(requestId).foreach(zebraConnPool += _)
-                }
-                case _ =>
-                    { log.error("dispatcher: unknown message received.") }
-            }
+    private def makeServer: UnixDomainChannel = {
+        SelectorProvider.provider() match {
+            case nl: NetlinkSelectorProvider =>
+                nl.openUnixDomainSocketChannel(AfUnix.Type.SOCK_STREAM)
+            case other =>
+                log.error("Invalid selector type: {}", other.getClass());
+                throw new RuntimeException()
         }
     }
 
-    server.bind(address)
+    private def setSocketOwnership() {
+        val file: Path = Paths.get(address.getPath)
 
+        val owner: UserPrincipal = file.getFileSystem().
+            getUserPrincipalLookupService().lookupPrincipalByName("quagga")
+        Files.setOwner(file, owner);
 
-    def start() {
-        run = true
-        log.info("start")
-
-        actor {
-            log.debug("zebra actor initialized")
-            var requestId = 0
-            loopWhile(run) {
-                try {
-                    // this is blocking
-                    // from: http://www.scala-lang.org/node/242
-                    // "[scala] Actors are executed on a thread pool. Initially,
-                    // there are 4 worker threads. The thread pool grows if all
-                    // worker threads are blocked but there are still remaining
-                    // tasks to be processed"
-                    val conn = server.accept
-                    log.debug("start.actor accepted connection {}", conn)
-
-                    dispatcher ! Request(conn, requestId)
-                    requestId += 1
-                } catch {
-                    case e: IOException => {
-                        log.error("accept failed", e)
-                        run = false
-                    }
-                }
-            }
-        }
+        val group: GroupPrincipal = file.getFileSystem().
+            getUserPrincipalLookupService().lookupPrincipalByGroupName("quagga")
+        Files.getFileAttributeView(file, classOf[PosixFileAttributeView]).
+            setGroup(group);
     }
 
-    def stop() {
-        log.info("stop")
-        run = false
+    override def preStart() {
+        log.info("creating ZebraServer on {}", address.getPath)
+        server.bind(address)
+        server.configureBlocking(false)
+        setSocketOwnership()
+        selectLoop.register(server, SelectionKey.OP_READ | SelectionKey.OP_ACCEPT,
+            new SelectListener() {
+                override def handleEvent(key: SelectionKey) {
+                    log.info("Accepting connection")
+                    val clientConn = server.accept
+                    clientConn.configureBlocking(true)
+                    self ! SpawnConnection(clientConn)
+                }
+            })
+    }
+
+    override def postStop() {
+        log.info("Stopping zebra server with {} connections", zebraConnections.size)
+        selectLoop.unregister(server, SelectionKey.OP_ACCEPT | SelectionKey.OP_READ)
         server.close()
+        for ((actor, sock) <- zebraConnMap) {
+            if (sock.isOpen)
+                sock.close()
+            context.system.stop(actor)
+        }
+        zebraConnMap.clear()
+        zebraConnections.clear()
+        log.debug("Server stopped")
     }
 
+    private def addZebraConn(requestId: Int, channel: ByteChannel): ActorRef = {
+        log.debug("creating a ZebraConnection for id: {}", requestId)
+
+        val connName = "zebra-conn-" + ifName + "-" + requestId
+        val zebraConn = context.actorOf(
+            Props(new ZebraConnection(self, handler, ifAddr, ifName, requestId, channel)).
+                withDispatcher("zebra-dispatcher"), connName)
+
+        zebraConnections += zebraConn
+        zebraConnMap(zebraConn) = channel
+        log.debug("ZebraConnection created for ifAddr: {}, ifName: {}", ifAddr, ifName)
+        zebraConn
+    }
+
+    override def receive = LoggingReceive {
+        case SpawnConnection(channel) =>
+            lastRequestId += 1
+            log.debug("new client with id {}", lastRequestId)
+            val zebraConn = addZebraConn(lastRequestId, channel)
+            zebraConn ! ProcessMessage
+
+        case ConnectionClosed(requestId) =>
+            log.debug("client with id {} disconnected", requestId)
+            zebraConnections -= sender
+            zebraConnMap -= sender
+            context.system.stop(sender)
+
+        case m => log.error("Unknown message received - {}", m)
+    }
 }
-
-

@@ -4,14 +4,16 @@
 
 package org.midonet.quagga
 
-import org.slf4j.LoggerFactory
-import org.midonet.util.process.ProcessHelper
-import org.midonet.util.Waiters.sleepBecause
-import org.newsclub.net.unix.AFUNIXSocketAddress
 import akka.actor.ActorRef
 
+import org.slf4j.LoggerFactory
+
+import org.midonet.util.process.ProcessHelper
+import org.midonet.util.Waiters.sleepBecause
+import org.midonet.netlink.AfUnix
+
 class BgpdProcess(routingHandler: ActorRef, vtyPortNumber: Int,
-                  listenAddress: String, socketAddress:AFUNIXSocketAddress,
+                  listenAddress: String, socketAddress: AfUnix.Address,
                   networkNamespace: String) {
     private final val log = LoggerFactory.getLogger(this.getClass)
     var bgpdProcess: Process = null
@@ -27,7 +29,7 @@ class BgpdProcess(routingHandler: ActorRef, vtyPortNumber: Int,
         //" --vty_addr 127.0.0.1" +
         " --config_file /etc/quagga/bgpd.conf" +
         " --pid_file /var/run/quagga/bgpd." + vtyPortNumber + ".pid " +
-        " --socket " + socketAddress.getSocketFile
+        " --socket " + socketAddress.getPath
 
         log.debug("bgpd command line: {}", bgpdCmdLine)
 
