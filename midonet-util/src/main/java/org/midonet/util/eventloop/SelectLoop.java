@@ -84,6 +84,8 @@ public class SelectLoop {
     public void register(SelectableChannel ch, int ops,
                                  SelectListener arg)
         throws ClosedChannelException {
+        if (ch == null)
+            throw new RuntimeException("can't register interest in a null channel");
         synchronized (registerLock) {
             selector.wakeup();
             // The doLoop won't re-enter select() because we hold the
@@ -143,6 +145,8 @@ public class SelectLoop {
                                       int ops,
                                       SelectListener arg) {
         log.debug("Registering channel bound to input queue");
+        if (ch == null)
+            throw new RuntimeException("can't register interest in a null channel");
         synchronized (registerLock) {
             selector.wakeup();
             queue.bind(selector);
