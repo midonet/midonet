@@ -158,9 +158,9 @@ public class VendorMediaType {
                     ".HostInterfacePort-v1+json";
 
     // Trace Conditions
-    public static final String APPLICATION_TRACE_CONDITION_JSON =
-            "application/vnd.org.midonet.TraceCondition-v1+json";
-    public static final String APPLICATION_TRACE_CONDITION_COLLECTION_JSON =
+    public static final String APPLICATION_CONDITION_JSON =
+            "application/vnd.org.midonet.Condition-v1+json";
+    public static final String APPLICATION_CONDITION_COLLECTION_JSON =
             "application/vnd.org.midonet.collection" +
-                    ".TraceCondition-v1+json";
+                    ".Condition-v1+json";
 }
