@@ -16,7 +16,7 @@ import util.SimulationHelper
 import akka.testkit.TestProbe
 import java.nio.ByteBuffer
 import java.util.UUID
-import org.midonet.odp.flows.{FlowActionPushVLAN, FlowActionOutput}
+import org.midonet.odp.flows.{FlowActionPopVLAN, FlowActionPushVLAN, FlowActionOutput}
 import scala.Some
 import org.midonet.midolman.FlowController.{WildcardFlowRemoved, WildcardFlowAdded}
 import org.midonet.cluster.data.host.Host
@@ -440,9 +440,11 @@ trait VlanBridgeSimulationTestCase
                     case a: FlowActionOutput => trunks -= a.getPortNumber
                     case a: FlowActionPushVLAN =>
                         (a.getTagControlIdentifier & 0x0fff) should be === (vlanId1)
+                    case a: FlowActionPopVLAN =>
                 })
         }
         trunks should have size (0)
+        wflowAddedProbe.expectNoMsg()
     }
 
     /**
@@ -468,21 +470,26 @@ trait VlanBridgeSimulationTestCase
                   vm2_2Mac, trunkIp, vm2_2Ip, vlanId2, vlanOnInject = true)
 
         if (hasMacLearning) {
-            // We've learned a new port for trunkMac, the old flow must be gone
-            val wfr = wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
-            wfr.f.getActions.foreach( act => act match {
-                case a: FlowActionOutput => // for trunkMac, port was trunk1
-                    a.getPortNumber should be === getPortNumber("trunkPort1")
-                case a: FlowActionPushVLAN =>
-                    (a.getTagControlIdentifier & 0x0fff) should be === (vlanId1)
+            // We've learned a new port for trunkMac, the old flows must be gone
+            val wfrs = wflowRemovedProbe.expectMsgAllClassOf(
+                classOf[WildcardFlowRemoved], classOf[WildcardFlowRemoved])
+            wfrs.foreach( wfr => wfr.f.actions match {
+                case List(popAct: FlowActionPopVLAN, outAct: FlowActionOutput) =>
+                    // the flow trunk -> intPort that pops the vlan
+                    outAct.getPortNumber should be === getPortNumber("vm1_1Port")
+                case List(pushAct: FlowActionPushVLAN, outAct: FlowActionOutput) =>
+                    // the flow intPort -> trunk that pushes the vlan
+                    (pushAct.getTagControlIdentifier & 0x0fff) should be === (vlanId1)
+                    outAct.getPortNumber should be === getPortNumber("trunkPort1")
+                case acts =>
+                    fail("Unexpected WildcardFlowRemoved with actions: " + acts)
             })
+            wflowAddedProbe.expectNoMsg()
             // A new flow should be added, this is checked already in sendFrame
             log.info("Sending frames from VMs, should go to trunk 2")
             sendFrame(vm1_1ExtPort.getId, List(trunk2Id),
                       vm1_1Mac, trunkMac, vm1_1Ip, trunkIp, vlanId1,
                       vlanOnInject = false, expectFlowAdded = false)
-
-
         } else {
             log.info("Sending frames from VMs, should go to both trunks")
             sendFrame(vm1_1ExtPort.getId, List(trunk1Id, trunk2Id),

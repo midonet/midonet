@@ -146,7 +146,7 @@ class Bridge(val id: UUID, val tunnelKey: Long,
         val action: Future[Coordinator.Action] =
              if (isArpBroadcast()) handleARPRequest()
              else if (Ethernet.isMcast(dstDlAddress)) handleL2Multicast()
-             else handleL2Unicast()
+             else handleL2Unicast() // including ARP replies
 
         action map doPostBridging(packetContext)
     }
@@ -165,6 +165,7 @@ class Bridge(val id: UUID, val tunnelKey: Long,
         // L2 unicast
         log.debug("Handling L2 unicast")
         val dlDst = packetContext.getMatch.getEthernetDestination
+        val dlSrc = packetContext.getMatch.getEthernetSource
         macToLogicalPortId.get(dlDst) match {
             case Some(logicalPort: UUID) => // some device (router|vab-bridge)
                 log.debug("Packet intended for interior port.")
@@ -186,6 +187,9 @@ class Bridge(val id: UUID, val tunnelKey: Long,
                                   dlDst, portId)
                         packetContext.addFlowTag(
                             FlowTagger.invalidateFlowsByPort(id, dlDst, portId))
+                        packetContext.addFlowTag(
+                            FlowTagger.invalidateFlowsByPort(id, dlSrc,
+                                                packetContext.getInPortId))
                         unicastAction(portId)
                 }
         }
@@ -350,7 +354,7 @@ class Bridge(val id: UUID, val tunnelKey: Long,
                     pktContext.addFlowTag(FlowTagger.invalidateArpRequests(id))
                     multicastAction()
                 case m: MAC =>
-                    // We can reply to the ARP request.
+                    log.debug("Known MAC, {} reply to the ARP req.", mac)
                     processArpRequest(
                         pktContext.getFrame.getPayload.asInstanceOf[ARP], m,
                         pktContext.getInPortId)
