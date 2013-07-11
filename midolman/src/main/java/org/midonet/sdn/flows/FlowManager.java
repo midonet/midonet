@@ -155,10 +155,6 @@ public class FlowManager {
     /**
      * Add a new wildcard flow.
      *
-     * FIXME: if this happens because there is already a flow,
-     * we're losing the tags for the ignored wcflow, we should
-     * copy them to the existing one
-     *
      * @param wildFlow
      * @return True iff the wildcard flow was added. The flow will not be
      *         added if the table already contains a wildcard flow with the same
