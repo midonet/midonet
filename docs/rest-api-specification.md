@@ -2230,6 +2230,35 @@ target.
 
 It’s an entity representing a metric in the monitoring system.
 
+List of metrics available:
+
+##### VMMetricsCollection (for every MidoNet agent)
+* AvailableProcessors
+* CommittedHeapMemory
+* FreePhysicalMemorySize
+* FreeSwapSpaceSize
+* MaxHeapMemory
+* OpenFileDescriptorCount
+* ProcessCPUTime
+* SystemLoadAverage
+* ThreadCount
+* TotalPhysicalMemorySize
+* TotalSwapSpaceSize
+* UsedHeapMemory
+
+##### VifMetrics (for every virtual interface)
+* rxBytes
+* rxPacket
+* txBytes
+* txPacket
+
+##### ZookeeperMetricsCollection (for every Zookeeper Node)
+* ZKPacketsSent
+* ZKPacketsReceived
+* ZKAvgRequestLatency
+* ZKNodeCount
+* ZKWatchCount
+
 <table>
     <tr>
         <th>Field Name</th>
