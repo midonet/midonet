@@ -23,7 +23,7 @@ import static org.junit.Assert.assertTrue;
 
 
 public class PacketHelper {
-    private final static Logger log = LoggerFactory.getLogger(BaseTunnelTest.class);
+    private final static Logger log = LoggerFactory.getLogger(PacketHelper.class);
 
     static Random rand = new Random();
     MAC epMac; // simulated endpoint's mac
@@ -354,13 +354,15 @@ public class PacketHelper {
             IntIPv4 srcIp) throws MalformedPacketException {
         assertNotNull(request);
         assertNotNull(reply);
-        assertEquals(request.length, reply.length);
         Ethernet pktRequest = new Ethernet();
         ByteBuffer bb = ByteBuffer.wrap(request, 0, request.length);
         pktRequest.deserialize(bb);
         Ethernet pktReply = new Ethernet();
         bb = ByteBuffer.wrap(reply, 0, reply.length);
         pktReply.deserialize(bb);
+        log.info("ICMP REQUEST: " + pktRequest.toString());
+        log.info("ICMP REPLY: " + pktReply.toString());
+        assertEquals(request.length, reply.length);
         assertEquals(pktRequest.getSourceMACAddress(),
                      pktReply.getDestinationMACAddress());
         assertEquals(pktRequest.getDestinationMACAddress(),
