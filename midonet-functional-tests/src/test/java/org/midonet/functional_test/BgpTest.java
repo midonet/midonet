@@ -13,6 +13,7 @@ import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 import org.midonet.client.resource.*;
 import org.midonet.functional_test.utils.EmbeddedZKLauncher;
+import org.midonet.midolman.routingprotocols.RoutingHandler;
 import org.midonet.midolman.topology.LocalPortActive;
 import org.midonet.midolman.topology.VirtualTopologyActor;
 import org.midonet.midolman.topology.VirtualTopologyActor.RouterRequest;
@@ -98,12 +99,14 @@ public class BgpTest {
 
     Router router1;
     TapWrapper tap1_vm;
-
-    PacketHelper packetHelper1;
-
+    Host host;
     Bgp bgp1;
     AdRoute adRoute1;
-    RouterPort exteriorRouterPort1_bgp;
+    HostInterfacePort tapBinding, peerBinding;
+    RouterPort exteriorRouterPort1_vm, exteriorRouterPort1_bgp;
+    TestProbe portActiveProbe, peerRouteAddedProbe;
+
+    PacketHelper packetHelper1;
 
     int zkPort;
 
@@ -216,35 +219,29 @@ public class BgpTest {
                 networkNamespace);
     }
 
-    @Before
-    public void setUp() throws InterruptedException, IOException {
+    private void tearDownTopology() {
+        peerBinding.delete();
+        tapBinding.delete();
+        adRoute1.delete();
+        bgp1.delete();
+        exteriorRouterPort1_vm.delete();
+        exteriorRouterPort1_bgp.delete();
+        router1.delete();
+        // Wait for the ports to become inactive
+        for (int i = 0; i < 2; i++) {
+            LocalPortActive activeMsg = portActiveProbe.expectMsgClass(
+                    Duration.create(10, TimeUnit.SECONDS),
+                    LocalPortActive.class);
+            log.info("Received one LocalPortActive message from stream.");
+            assertTrue("The port should be inactive.", !activeMsg.active());
+        }
+    }
 
-        String testConfigurationPath = "midolman_runtime_configurations/midolman-with_bgp.conf";
-        File testConfigurationFile = new File(testConfigurationPath);
-
-        // start zookeeper with the designated port.
-        log.info("Starting embedded zookeeper.");
-        zkPort = startEmbeddedZookeeper(testConfigurationPath);
-        assertThat(zkPort, greaterThan(0));
-
-        log.info("Starting cassandra");
-        startCassandra();
-
-        log.info("Starting REST API");
-        apiStarter = new ApiServer(zkPort);
-        apiClient = new MidonetApi(apiStarter.getURI());
-
-        log.info("Starting midolman");
-        EmbeddedMidolman mm = startEmbeddedMidolman(
-                testConfigurationFile.getAbsolutePath());
-        TestProbe probe = new TestProbe(mm.getActorSystem());
-        mm.getActorSystem().eventStream().subscribe(
-                probe.ref(), LocalPortActive.class);
-
+    private void setupTopology() {
         router1 = apiClient.addRouter().tenantId(tenantName).name("router1").create();
         log.debug("Created router " + router1.getName());
 
-        RouterPort exteriorRouterPort1_vm = (RouterPort) router1.addExteriorRouterPort()
+        exteriorRouterPort1_vm = (RouterPort) router1.addExteriorRouterPort()
                 .portAddress("1.0.0.1")
                 .networkAddress("1.0.0.0")
                 .networkLength(24)
@@ -282,37 +279,21 @@ public class BgpTest {
                 .prefixLength(24)
                 .create();
 
-        log.debug("Getting host from REST API");
-        ResourceCollection<Host> hosts = apiClient.getHosts();
-
-        Host host = null;
-        for (Host h : hosts) {
-            log.debug("Host: " + h.getId());
-            if (h.getId().toString().matches(TEST_HOST_ID)) {
-                host = h;
-                log.debug("Host match.");
-            }
-        }
-        assertThat(host, notNullValue());
-
-        log.debug("Creating TAP1 vm");
-        tap1_vm = new TapWrapper("tap1_vm");
-
         log.debug("Adding interface to host.");
-        host.addHostInterfacePort()
+        tapBinding = host.addHostInterfacePort()
                 .interfaceName(tap1_vm.getName())
                 .portId(exteriorRouterPort1_vm.getId())
                 .create();
 
         log.debug("Adding interface to host.");
-        host.addHostInterfacePort()
+        peerBinding = host.addHostInterfacePort()
                 .interfaceName(pairedInterfaceLocal)
                 .portId(exteriorRouterPort1_bgp.getId())
                 .create();
 
         // Wait for the ports to become active
         for (int i = 0; i < 2; i++) {
-            LocalPortActive activeMsg = probe.expectMsgClass(
+            LocalPortActive activeMsg = portActiveProbe.expectMsgClass(
                     Duration.create(10, TimeUnit.SECONDS),
                     LocalPortActive.class);
             log.info("Received one LocalPortActive message from stream.");
@@ -345,6 +326,55 @@ public class BgpTest {
 
     }
 
+    @Before
+    public void setUp() throws InterruptedException, IOException {
+
+        String testConfigurationPath = "midolman_runtime_configurations/midolman-with_bgp.conf";
+        File testConfigurationFile = new File(testConfigurationPath);
+
+        // start zookeeper with the designated port.
+        log.info("Starting embedded zookeeper.");
+        zkPort = startEmbeddedZookeeper(testConfigurationPath);
+        assertThat(zkPort, greaterThan(0));
+
+        log.info("Starting cassandra");
+        startCassandra();
+
+        log.info("Starting REST API");
+        apiStarter = new ApiServer(zkPort);
+        apiClient = new MidonetApi(apiStarter.getURI());
+
+        log.info("Starting midolman");
+        EmbeddedMidolman mm = startEmbeddedMidolman(
+                testConfigurationFile.getAbsolutePath());
+
+        portActiveProbe = new TestProbe(mm.getActorSystem());
+        mm.getActorSystem().eventStream().subscribe(
+                portActiveProbe.ref(), LocalPortActive.class);
+        peerRouteAddedProbe = new TestProbe(mm.getActorSystem());
+        mm.getActorSystem().eventStream().subscribe(
+                peerRouteAddedProbe.ref(),
+                RoutingHandler.PEER_ROUTE_ADDED.class);
+
+        log.debug("Getting host from REST API");
+        ResourceCollection<Host> hosts = apiClient.getHosts();
+
+        for (Host h : hosts) {
+            log.debug("Host: " + h.getId());
+            if (h.getId().toString().matches(TEST_HOST_ID)) {
+                host = h;
+                log.debug("Host match.");
+            }
+        }
+        assertThat(host, notNullValue());
+
+        log.debug("Creating TAP1 vm");
+        tap1_vm = new TapWrapper("tap1_vm");
+
+        setupTopology();
+
+    }
+
     @After
     public void tearDown() {
         unblockZkCommunications(zkPort);
@@ -358,31 +388,60 @@ public class BgpTest {
     @Test
     public void testRouteConnectivity() throws Exception {
         log.debug("testRouteConnectivity - start");
-        waitForBgp();
+        waitForPeerRoute();
         sendPingAndExpectReply();
         log.debug("testRouteConnectivity - stop");
     }
 
     @Test
-    public void testBgpRemoval() throws Exception {
-        log.debug("testAdRouteRemoval - start");
+    public void testTopologyRemoval() throws Exception {
+        log.debug("testTopologyRemoval - start");
 
-        TestProbe probe = waitForBgp();
+        waitForPeerRoute();
         sendPingAndExpectReply();
 
+        for (int i = 0; i < 7; i++) {
+            log.debug("testTopologyRemoval - bgp teardown/setup iteration #" + i);
+            tearDownTopology();
+            sendPingAndExpectUnreachableOrSilence();
+            setupTopology();
+            waitForPeerRoute();
+            sendPingAndExpectReply();
+
+        }
+
+        log.debug("testTopologyRemoval - stop");
+    }
+
+    @Test
+    public void testBgpRemoval() throws Exception {
+        log.debug("testBgpRemoval - start");
+
+        log.debug("testBgpRemoval - waiting for BGP");
+        TestProbe probe = waitForBgp();
+        log.debug("testBgpRemoval - sending a ping through the peer-advertised route");
+        sendPingAndExpectReply();
+
+        log.debug("testBgpRemoval - deleting ad-route");
         adRoute1.delete();
+        log.debug("testBgpRemoval - deleting bgp");
         bgp1.delete();
         log.debug("Deleted BGP {} in exterior router port {} ",
                 bgp1.toString(), exteriorRouterPort1_bgp.toString());
 
+        log.debug("testBgpRemoval - waiting for bgp update");
         waitForBgpUpdate(probe);
+        log.debug("testBgpRemoval - sending unreachable ping");
         sendPingAndExpectUnreachable();
 
+        log.debug("testBgpRemoval - re-creating bgp");
         reCreateBgp();
-        waitForBgpUpdate(probe);
+        log.debug("testBgpRemoval - waiting for bgp update, again");
+        waitForPeerRoute();
+        log.debug("testBgpRemoval - sending a reachable ping");
         sendPingAndExpectReply();
 
-        log.debug("testAdRouteRemoval - stop");
+        log.debug("testBgpRemoval - stop");
     }
 
     @Test
@@ -530,6 +589,8 @@ public class BgpTest {
         EmbeddedMidolman mm = getEmbeddedMidolman();
         assertThat(mm, notNullValue());
 
+        waitForPeerRoute();
+
         TestProbe probe = new TestProbe(mm.getActorSystem());
         ActorRef vta = VirtualTopologyActor.getRef(mm.getActorSystem());
 
@@ -538,18 +599,18 @@ public class BgpTest {
 
         // Ask VTA to give us (TestProbe) the router, and keep us updated
         org.midonet.midolman.simulation.Router router =
-                probe.expectMsgClass(Duration.create(10, TimeUnit.MILLISECONDS),
+                probe.expectMsgClass(Duration.create(3000, TimeUnit.MILLISECONDS),
                   org.midonet.midolman.simulation.Router.class);
-
         log.debug("router id: {}", router.id());
-
-        // We received the router, now lets wait for the router update.
-        // The router is updated when it receives the routes from BGP.
-        router = probe.expectMsgClass(Duration.create(30, TimeUnit.SECONDS),
-                        org.midonet.midolman.simulation.Router.class);
-
-        log.debug("end - router id: {}", router.id());
-        sleepBecause("let the VTA store the new router", 1);
         return probe;
+    }
+
+    private void waitForPeerRoute() throws Exception {
+        RoutingHandler.PEER_ROUTE_ADDED routeAdded =
+            peerRouteAddedProbe.expectMsgClass(
+                Duration.create(20, TimeUnit.SECONDS),
+                RoutingHandler.PEER_ROUTE_ADDED.class);
+        assertThat(routeAdded.router(), equalTo(router1.getId()));
+        sleepBecause("let the route change propagate", 3);
     }
 }
