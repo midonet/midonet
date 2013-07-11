@@ -9,7 +9,7 @@ import scala.collection.{Set => ROSet}
 import scala.compat.Platform
 import akka.actor._
 import akka.dispatch.{ExecutionContext, Promise, Future}
-import akka.event.{Logging, LoggingAdapter, LoggingReceive}
+import akka.event.{Logging, LoggingAdapter}
 import akka.pattern.ask
 import akka.util.Timeout
 import java.lang.{Integer => JInteger}
@@ -41,7 +41,8 @@ import org.midonet.odp.Packet.Reason.FlowActionUserspace
 import org.midonet.util.functors.Callback0
 import org.midonet.util.throttling.ThrottlingGuard
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
-import com.yammer.metrics.core.{Clock, Counter}
+import com.yammer.metrics.core.Clock
+import annotation.tailrec
 
 object PacketWorkflow {
     case class PacketIn(wMatch: WildcardMatch,
@@ -212,6 +213,7 @@ class PacketWorkflow(
                     log.info("File exists while adding flow for {}", cookieStr)
                     DeduplicationActor.getRef() !
                         ApplyFlow(flow.getActions, Some(cookie))
+                    runCallbacks(removalCallbacks.toArray)
                     promise.success(true)
                 } else {
                     // NOTE(pino) - it'd be more correct to execute the
@@ -226,7 +228,15 @@ class PacketWorkflow(
                     promise.failure(ex)
                 }
             }
+    }
+
+    @tailrec
+    private def runCallbacks(callbacks: Array[Callback0], i: Int = 0) {
+        if (callbacks != null && callbacks.length > i) {
+            callbacks(i).call()
+            runCallbacks(callbacks, i+1)
         }
+    }
 
     private def addTranslatedFlow(wildFlow: WildcardFlow,
                                   tags: ROSet[Any] = Set.empty,
