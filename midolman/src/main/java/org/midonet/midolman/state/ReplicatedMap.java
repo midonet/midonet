@@ -195,6 +195,13 @@ public abstract class ReplicatedMap<K, V> {
         return localMap.containsKey(key);
     }
 
+    /**
+     * Provides <pre>Map</pre> with a copy of the local map.
+     *
+     * Synchronized.
+     *
+     * @return
+     */
     public synchronized Map<K, V> getMap() {
         Map<K, V> result = new HashMap<K, V>();
         for (Map.Entry<K, MapValue> entry : localMap.entrySet())
@@ -202,6 +209,13 @@ public abstract class ReplicatedMap<K, V> {
         return result;
     }
 
+    /**
+     * Synchronized method to retrieve the list of keys associated with the
+     * given <pre>value</pre> in the local map.
+     *
+     * @param value
+     * @return the list of keys. Empty if none.
+     */
     public synchronized List<K> getByValue(V value) {
         ArrayList<K> keyList = new ArrayList<K>();
         for (Map.Entry<K, MapValue> entry : localMap.entrySet())
@@ -237,15 +251,30 @@ public abstract class ReplicatedMap<K, V> {
         }
     }
 
+    /**
+     * Asynchronous add to associate <pre>key</pre> to <pre>value</pre> in the
+     * map.
+     *
+     * Our notifies for this change are called from the update notification to
+     * the DirectoryWatcher after ZK has accepted it.
+     *
+     * @param key
+     * @param value
+     */
     public void put(final K key, final V value) {
         dir.asyncAdd(encodePath(key, value), null,
                      CreateMode.EPHEMERAL_SEQUENTIAL,
                      new PutCallback(key, value));
-
-        // Our notifies for this change are called from the update
-        // notification to the DirectoryWatcher after ZK has accepted it.
     }
 
+    /**
+     * Check <pre>key</pre> ownership.
+     *
+     * Synchronized.
+     *
+     * @param key
+     * @return true if the key's <pre>MapValue</pre> version is owned here.
+     */
     public synchronized boolean isKeyOwner(K key) {
         MapValue mv = localMap.get(key);
         if (null == mv)
@@ -253,16 +282,39 @@ public abstract class ReplicatedMap<K, V> {
         return ownedVersions.contains(mv.version);
     }
 
-    // TODO(pino): it might be useful to take the value as another argument.
-    // TODO: e.g. to prevent a delayed callback meant to remove an old value
-    // TODO: from removing a newer one.
-    public V removeIfOwner(K key) throws KeeperException, InterruptedException {
+    /**
+     * This is essentially the same as removeIfOwner(K key), but will also
+     * verify that the value being deleted is <pre>val</pre>. This helps prevent
+     * races where value A is replaced with B, then a pending deletion for A
+     * comes and wipes off B (by key).
+     *
+     * If a deletion actually happened, this will notify all watchers that the
+     * new value for <pre>key</pre> is null.
+     *
+     * The get and verifications are performed synchronously blocking on the
+     * map itself. Notifications and deletion from the ZK directory are not.
+     *
+     * NOTE: when val is null, the behaviour will be the same as removeIfOwner,
+     * that is, it'll delete whatever value is there.
+     *
+     * @param key the key
+     * @param ensureVal value that you're trying to delete
+     * @return the value that was deleted (val) or null if either the key
+     *         was not in the map, the version was not owned, or the value was
+     *         different
+     * @throws KeeperException
+     * @throws InterruptedException
+     */
+    public V removeIfOwnerAndValue(K key, V ensureVal)
+        throws KeeperException, InterruptedException {
         MapValue mv;
         synchronized(this) {
             mv = localMap.get(key);
             if (null == mv)
                 return null;
             if (!ownedVersions.contains(mv.version))
+                return null;
+            if ((ensureVal != null) && !mv.value.equals(ensureVal))
                 return null;
             localMap.remove(key);
             ownedVersions.remove(mv.version);
@@ -273,6 +325,22 @@ public abstract class ReplicatedMap<K, V> {
         notifyWatchers(key, mv.value, null);
         dir.delete(encodePath(key, mv.value, mv.version));
         return mv.value;
+    }
+
+    /**
+     * Removes the entry with <pre>key</pre>, notifying all watchers with the
+     * removed value. It'll delete wahtever value is associated for the key.
+     *
+     * The get and verifications are performed synchronously blocking on the
+     * map itself. Notifications and deletion from the ZK directory are not.
+     *
+     * @param key
+     * @return
+     * @throws KeeperException
+     * @throws InterruptedException
+     */
+    public V removeIfOwner(K key) throws KeeperException, InterruptedException {
+        return removeIfOwnerAndValue(key, null);
     }
 
     private void notifyWatchers(K key, V oldValue, V newValue) {
@@ -350,7 +418,16 @@ public abstract class ReplicatedMap<K, V> {
         return false;
     }
 
-    // TODO(pino): document that the encoding may not contain ','.
+    /**
+     * Encodes <pre>key</pre>.
+     *
+     * Note that the encoding key may not contain ','.
+     *
+     * TODO: document that limitation (where?)
+     *
+     * @param key
+     * @return
+     */
     protected abstract String encodeKey(K key);
 
     protected abstract K decodeKey(String str);
