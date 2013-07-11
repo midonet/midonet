@@ -17,7 +17,7 @@ import org.scalatest.junit.JUnitRunner
 import org.scalatest.matchers.ShouldMatchers
 
 import org.midonet.midolman.topology._
-import org.midonet.cluster.client.{IpMacMap, MacLearningTable}
+import org.midonet.cluster.client.{ExteriorRouterPort, IpMacMap, MacLearningTable}
 import org.midonet.packets._
 import org.midonet.util.functors.{Callback0, Callback1, Callback3}
 import org.midonet.sdn.flows.WildcardMatch
@@ -121,11 +121,12 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
         val ingressMatch = ((new WildcardMatch)
                 .setEthernetSource(MAC.fromString("0a:54:ce:50:44:de"))
                 .setEthernetDestination(learnedMac))
+                .setInputPortUUID(rtr2port)
         val origMatch = ingressMatch.clone
         val context = new PacketContext(null, null,
                                         Platform.currentTime + 10000, null,
                                         null, null, true, None)
-        //context.setInputPort(rtr2port)
+        context.setInputPort(new ExteriorRouterPort().setID(rtr2port))
         context.setMatch(ingressMatch)
         val future = bridge.process(context)
 
