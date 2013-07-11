@@ -90,13 +90,14 @@ public class WildcardMatch implements Cloneable {
         ipFragmentType = that.ipFragmentType;
         transportSource = that.transportSource;
         transportDestination = that.transportDestination;
-        usedFields.clear();
-        usedFields.addAll(that.usedFields);
         icmpId = that.icmpId;
+        vlanIds = new ArrayList<Short>(that.vlanIds);
         if (that.icmpData != null)
             this.setIcmpData(that.icmpData);
         else
             this.icmpData = null;
+        usedFields.clear();
+        usedFields.addAll(that.usedFields);
     }
 
     public void clear() {
@@ -107,6 +108,7 @@ public class WildcardMatch implements Cloneable {
         this.ethernetSource = null;
         this.ethernetDestination = null;
         this.inputPortUUID = null;
+        this.vlanIds = null;
     }
 
     @Nonnull
