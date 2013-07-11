@@ -314,7 +314,7 @@ class ZebraConnection(val dispatcher: ActorRef,
     override def receive = LoggingReceive {
         case ProcessMessage =>
             try {
-                log.debug("recvHeader")
+                log.debug("ProcessMessage")
                 val (message, _) = recvHeader(in)
                 handleMessage(message)
                 self ! ProcessMessage

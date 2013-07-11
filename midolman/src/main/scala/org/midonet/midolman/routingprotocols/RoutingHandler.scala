@@ -61,6 +61,8 @@ object RoutingHandler {
 
     // For testing
     case class BGPD_STATUS(port: UUID, isActive: Boolean)
+
+    case class PEER_ROUTE_ADDED(router: UUID, route: Route)
 }
 
 /**
@@ -518,6 +520,9 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
                         route.setNextHopPort(rport.id)
                         val routeId = dataClient.routesCreateEphemeral(route)
                         peerRoutes.put(route, routeId)
+                        log.debug("announcing we've added a peer route")
+                        context.system.eventStream.publish(
+                            new PEER_ROUTE_ADDED(rport.deviceID, route))
                     case Stopping =>
                         // ignore
                     case Disabled =>
