@@ -63,7 +63,7 @@ public class TraceConditionResource extends AbstractResource {
 
     @GET
     @RolesAllowed({AuthRole.ADMIN})
-    @Produces({VendorMediaType.APPLICATION_TRACE_CONDITION_COLLECTION_JSON,
+    @Produces({VendorMediaType.APPLICATION_CONDITION_COLLECTION_JSON,
                 MediaType.APPLICATION_JSON})
     public List<TraceCondition> list()
         throws StateAccessException, SerializationException
@@ -85,7 +85,7 @@ public class TraceConditionResource extends AbstractResource {
     @GET
     @RolesAllowed({AuthRole.ADMIN})
     @Path("{id}")
-    @Produces({VendorMediaType.APPLICATION_TRACE_CONDITION_JSON,
+    @Produces({VendorMediaType.APPLICATION_CONDITION_JSON,
                 MediaType.APPLICATION_JSON})
     public TraceCondition get(@PathParam("id") UUID id)
         throws StateAccessException, SerializationException
@@ -119,7 +119,7 @@ public class TraceConditionResource extends AbstractResource {
 
     @POST
     @RolesAllowed({AuthRole.ADMIN})
-    @Consumes({VendorMediaType.APPLICATION_TRACE_CONDITION_JSON,
+    @Consumes({VendorMediaType.APPLICATION_CONDITION_JSON,
                 MediaType.APPLICATION_JSON })
     public Response create(TraceCondition traceCondition)
         throws StateAccessException, SerializationException
