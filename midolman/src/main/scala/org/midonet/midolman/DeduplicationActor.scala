@@ -184,10 +184,13 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
             }
 
         case HandlePacket(packet) => {
+            log.debug("Handling packet with match {}", packet.getMatch)
             dpMatchToCookie.get(packet.getMatch) match {
             case None =>
                 val cookie: Int = idGenerator.getAndIncrement
+                log.debug("No match, generate new cookie: {}", packet.getMatch)
 
+                dpMatchToCookie.put(packet.getMatch, cookie)
                 cookieToPendedPackets.addBinding(cookie, packet)
                 // If there is no match on the cookie, create an object to
                 // handle the packet.
@@ -198,14 +201,16 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
                         metrics, traceConditions)(this.context.dispatcher,
                         this.context.system, this.context)
 
-                log.debug("Created new {} packet handler.", "PacketWorkflow-" + cookie)
+                    log.debug("Created new {} packet handler.",
+                              "PacketWorkflow-" + cookie)
                 context.dispatcher.execute{new Runnable {
                         override def run() { packetWorkflow.start() }
                     }
                 }
 
             case Some(cookie: Int) =>
-                log.debug("A matching packet with cookie {} is already being handled ", cookie)
+                    log.debug("A matching packet with cookie {} is already " +
+                              "being handled ", cookie)
                 // Simulation in progress. Just pend the packet.
                 throttler.tokenOut()
                 cookieToPendedPackets.addBinding(cookie, packet)
