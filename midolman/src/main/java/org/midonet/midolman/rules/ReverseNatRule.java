@@ -96,6 +96,8 @@ public class ReverseNatRule extends NatRule {
 
         // ICMP error data contains an IP packet + part of its payload
         byte[] data = match.getIcmpData();
+        if (data == null)
+            return;
         int dataSize = data.length;
         ByteBuffer bb = ByteBuffer.wrap(data);
         IPv4 header = new IPv4();
@@ -110,8 +112,9 @@ public class ReverseNatRule extends NatRule {
         int ipHeadSize = dataSize - bb.remaining();
 
         // What's left inside bb is the IP payload with the orig. message
-        short tpSrc = bb.getShort();
-        short tpDst = bb.getShort();
+        ByteBuffer packet = bb.slice();
+        short tpSrc = (short) TCP.getSourcePort(packet);
+        short tpDst = (short) TCP.getDestinationPort(packet);
         switch (header.getProtocol()) {
             case TCP.PROTOCOL_NUMBER:
             case UDP.PROTOCOL_NUMBER:
@@ -129,6 +132,8 @@ public class ReverseNatRule extends NatRule {
         natBB.put(header.serialize(), 0, ipHeadSize);
         natBB.putShort(tpSrc);
         natBB.putShort(tpDst);
+        // we need to take away 4 byte that are the old tpSrc and tpDst
+        bb.position(bb.position() + 4);
         natBB.put(bb);
         match.setIcmpData(natBB.array());
     }
