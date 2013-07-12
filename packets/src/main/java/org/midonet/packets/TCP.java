@@ -225,4 +225,24 @@ public class TCP extends BasePacket implements Transport {
         return (Data) payload;
     }
 
+    public static int getSourcePort(ByteBuffer bb) throws MalformedPacketException {
+        Short srcPort = 0;
+        try {
+            srcPort = bb.getShort(0);
+        } catch (Exception e) {
+            throw new MalformedPacketException("Cannot read tpSrc, corrupted data");
+        }
+        return srcPort;
+    }
+
+    public static int getDestinationPort(ByteBuffer bb) throws MalformedPacketException {
+        Short srcPort = 0;
+        try {
+            srcPort = bb.getShort(2);
+        } catch (Exception e) {
+            throw new MalformedPacketException("Cannot read tpSrc, corrupted data");
+        }
+        return srcPort;
+    }
+
 }
