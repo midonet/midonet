@@ -25,13 +25,17 @@ public class FlowKeyICMPError extends FlowKeyICMP
         if (o == null || getClass() != o.getClass()) return false;
 
         FlowKeyICMPError that = (FlowKeyICMPError) o;
-        return super.equals(o) && (icmp_data == that.icmp_data);
+        if (icmp_code != that.icmp_code) return false;
+        if (icmp_type != that.icmp_type) return false;
+        if (!Arrays.equals(icmp_data, that.icmp_data)) return false;
+        return true;
     }
 
     @Override
     public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + Arrays.hashCode(icmp_data);
+        int result = (int) icmp_type;
+        result = 35 * result + (int) icmp_code;
+        result = 35 * result + icmp_data.hashCode();
         return result;
     }
 
