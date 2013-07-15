@@ -39,7 +39,6 @@ There are conceptually two types of objects that we want to track metrics for
 
 Our proposed list of metrics, resolutions and the maximum amount of time we
 would keep the data is presented in the following shared document:
-[Metrics list](https://docs.google.com/a/midokura.jp/spreadsheet/ccc?key=0Akpc6N0bsY9fdEJvc09sREJMRkkyb21QMGVrZWNSVlE)
 
 ### Use-cases
 
