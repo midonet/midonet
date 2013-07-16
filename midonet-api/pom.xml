@@ -117,11 +117,6 @@
                     <parallel>false</parallel>
                     <argLine>-XX:-UseSplitVerifier</argLine>
                     <useUnlimitedThreads>true</useUnlimitedThreads>
-                    <systemPropertyVariables>
-                        <org.newsclub.net.unix.library.path>
-                            ${project.build.directory}/lib-native
-                        </org.newsclub.net.unix.library.path>
-                    </systemPropertyVariables>
                 </configuration>
             </plugin>
             <plugin>
