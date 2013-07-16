@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.AbstractMap;
 import java.util.Set;
 import javax.annotation.Nonnull;
 
@@ -250,6 +251,16 @@ public class MockDirectory implements Directory {
     @Override
     public byte[] get(String path, Runnable watcher) throws NoNodeException {
         return getNode(path).getData(wrapCallback(watcher));
+    }
+
+    @Override
+    public Map.Entry<byte[], Integer> getWithVersion(String path,
+            Runnable watcher) throws NoNodeException {
+        int version = -1;
+
+        byte[] data = getNode(path).getData(wrapCallback(watcher));
+
+        return new AbstractMap.SimpleEntry<byte[], Integer>(data, version);
     }
 
     @Override
