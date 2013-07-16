@@ -152,8 +152,8 @@ public class PortZkManager extends AbstractZkManager {
             throws StateAccessException, SerializationException {
 
         // Create a new GRE key. Hide this from outside.
-        int tunnelKey = tunnelZkManager.createTunnelKey();
-        config.tunnelKey = tunnelKey;
+        int tunnelKeyId = tunnelZkManager.createTunnelKeyId();
+        config.tunnelKey = tunnelKeyId;
 
         // Add common router port create operations
         List<Op> ops = prepareRouterPortCreate(id, config);
@@ -163,8 +163,8 @@ public class PortZkManager extends AbstractZkManager {
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
         // Update TunnelKey to reference the port.
-        TunnelKey tunnel = new TunnelZkManager.TunnelKey(id);
-        ops.addAll(tunnelZkManager.prepareTunnelUpdate(tunnelKey, tunnel));
+        TunnelKey tunnelKey = new TunnelZkManager.TunnelKey(id);
+        ops.addAll(tunnelZkManager.prepareTunnelUpdate(tunnelKeyId, tunnelKey));
 
         return ops;
     }
@@ -224,8 +224,8 @@ public class PortZkManager extends AbstractZkManager {
             throws StateAccessException, SerializationException {
 
         // Create a new GRE key. Hide this from outside.
-        int tunnelKey = tunnelZkManager.createTunnelKey();
-        config.tunnelKey = tunnelKey;
+        int tunnelKeyId = tunnelZkManager.createTunnelKeyId();
+        config.tunnelKey = tunnelKeyId;
 
         // Add common bridge port create operations
         List<Op> ops = prepareBridgePortCreate(id, config);
@@ -235,8 +235,8 @@ public class PortZkManager extends AbstractZkManager {
                 null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
         // Update TunnelKey to reference the port.
-        TunnelKey tunnel = new TunnelKey(id);
-        ops.addAll(tunnelZkManager.prepareTunnelUpdate(tunnelKey, tunnel));
+        TunnelKey tunnelKey = new TunnelKey(id);
+        ops.addAll(tunnelZkManager.prepareTunnelUpdate(tunnelKeyId, tunnelKey));
 
         return ops;
     }
@@ -287,8 +287,8 @@ public class PortZkManager extends AbstractZkManager {
             throws StateAccessException, SerializationException {
 
         // Create a new GRE key. Hide this from outside.
-        int tunnelKey = tunnelZkManager.createTunnelKey();
-        config.tunnelKey = tunnelKey;
+        int tunnelKeyId = tunnelZkManager.createTunnelKeyId();
+        config.tunnelKey = tunnelKeyId;
 
         // Add common bridge port create operations
         List<Op> ops = prepareVlanBridgePortCreate(id, config);
@@ -298,8 +298,8 @@ public class PortZkManager extends AbstractZkManager {
                           null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
         // Update TunnelKey to reference the port.
-        TunnelKey tunnel = new TunnelKey(id);
-        ops.addAll(tunnelZkManager.prepareTunnelUpdate(tunnelKey, tunnel));
+        TunnelKey tunnelKey = new TunnelKey(id);
+        ops.addAll(tunnelZkManager.prepareTunnelUpdate(tunnelKeyId, tunnelKey));
 
         return ops;
     }

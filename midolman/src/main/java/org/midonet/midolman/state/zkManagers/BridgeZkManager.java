@@ -4,13 +4,11 @@
 package org.midonet.midolman.state.zkManagers;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.Vector;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
@@ -144,8 +142,8 @@ public class BridgeZkManager extends AbstractZkManager {
             throws StateAccessException, SerializationException {
 
         // Create a new Tunnel key. Hide this from outside.
-        int tunnelKey = tunnelZkManager.createTunnelKey();
-        config.tunnelKey = tunnelKey;
+        int tunnelKeyId = tunnelZkManager.createTunnelKeyId();
+        config.tunnelKey = tunnelKeyId;
 
         List<Op> ops = new ArrayList<Op>();
         ops.add(Op.create(paths.getBridgePath(id),
@@ -182,8 +180,8 @@ public class BridgeZkManager extends AbstractZkManager {
                           null, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
         // Update TunnelKey to reference the bridge.
-        TunnelZkManager.TunnelKey tunnel = new TunnelZkManager.TunnelKey(id);
-        ops.addAll(tunnelZkManager.prepareTunnelUpdate(tunnelKey, tunnel));
+        TunnelZkManager.TunnelKey tunnelKey = new TunnelZkManager.TunnelKey(id);
+        ops.addAll(tunnelZkManager.prepareTunnelUpdate(tunnelKeyId, tunnelKey));
 
         ops.addAll(filterZkManager.prepareCreate(id));
         return ops;
