@@ -19,31 +19,32 @@ import java.nio.ByteBuffer
 
 import com.google.inject.Inject
 
-import org.midonet.midolman.host.interfaces.InterfaceDescription
-import org.midonet.midolman.host.scanner.InterfaceScanner
-import org.midonet.midolman.datapath._
-import org.midonet.midolman.monitoring.MonitoringActor
-import org.midonet.midolman.services.HostIdProviderService
-import org.midonet.midolman.topology._
-import topology.VirtualTopologyActor.PortRequest
-import rcu.Host
 import org.midonet.cluster.client
-import client.ExteriorPort
+import org.midonet.cluster.client.ExteriorPort
 import org.midonet.cluster.data.TunnelZone
 import org.midonet.cluster.data.TunnelZone.{HostConfig => TZHostConfig}
 import org.midonet.cluster.data.zones.{IpsecTunnelZoneHost,
         CapwapTunnelZoneHost, GreTunnelZoneHost}
+import org.midonet.midolman.FlowController.AddWildcardFlow
+import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
+import org.midonet.midolman.datapath._
+import org.midonet.midolman.host.interfaces.InterfaceDescription
+import org.midonet.midolman.host.scanner.InterfaceScanner
+import org.midonet.midolman.monitoring.MonitoringActor
+import org.midonet.midolman.services.HostIdProviderService
+import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
+import org.midonet.midolman.topology._
+import org.midonet.midolman.topology.rcu.Host
 import org.midonet.netlink.Callback
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode
-import org.midonet.odp.{Flow => KernelFlow, _}
 import org.midonet.odp.flows.{FlowActions, FlowAction}
 import org.midonet.odp.ports._
 import org.midonet.odp.protos.OvsDatapathConnection
+import org.midonet.odp.{Flow => KernelFlow, _}
 import org.midonet.sdn.flows.WildcardFlow
 import org.midonet.sdn.flows.WildcardMatch
-import org.midonet.midolman.FlowController.AddWildcardFlow
-import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
+import org.midonet.util.collection.Bimap
 
 
 /**
@@ -78,46 +79,6 @@ sealed trait PortOpReply[P <: Port[_ <: PortOptions, P]] {
     val timeout: Boolean
     val error: NetlinkException
 }
-
-// TODO(guillermo) - move to a new util pkg
-class Bimap[A,B](private val forward: Map[A,B] = Map[A,B](),
-                 val inverse: Map[B,A] = Map[B,A]()) extends Iterable[(A,B)] {
-
-    def empty = new Bimap[A,B]()
-
-    def get(key: A): Option[B] = forward.get(key)
-
-    def contains(k: A) = forward.contains(k)
-
-    override def iterator = forward.iterator
-
-    def keys: Iterable[A] = forward.keys
-
-    def values: Iterable[B] = inverse.keys
-
-    def + (kv: (A, B)): Bimap[A, B] =
-        new Bimap[A,B](forward + kv, inverse.+((kv._2, kv._1)))
-
-    def ++ (other: Bimap[A, B]): Bimap[A, B] = {
-        def _add(map: Bimap[A,B], other: Iterator[(A,B)]): Bimap[A,B] =
-            if (!other.hasNext) map else _add(map + other.next(), other)
-
-        _add(this, other.iterator)
-    }
-
-    def - (k: A): Bimap[A, B] = get(k) match {
-        case Some(v) => new Bimap(forward - k, inverse - v)
-        case None => this
-    }
-
-    def -- (other: Bimap[A, B]): Bimap[A, B] = {
-        def _sub(map: Bimap[A,B], other: Iterator[A]): Bimap[A,B] =
-            if (!other.hasNext) map else _sub(map - other.next(), other)
-
-        _sub(this, other.keys.iterator)
-    }
-}
-
 trait VirtualPortsResolver {
     def getDpPortNumberForVport(vportId: UUID): Option[JInteger]
 
