@@ -5,6 +5,7 @@
 package org.midonet.midolman.state;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.zookeeper.*;
@@ -24,6 +25,9 @@ public interface Directory {
 
     byte[] get(String relativePath, Runnable watcher) throws KeeperException,
             InterruptedException;
+
+    Map.Entry<byte[], Integer> getWithVersion(String relativePath,
+            Runnable watcher) throws KeeperException, InterruptedException;
 
     void asyncGet(String relativePath, DirectoryCallback<byte[]> data,
                   TypedWatcher watcher);
