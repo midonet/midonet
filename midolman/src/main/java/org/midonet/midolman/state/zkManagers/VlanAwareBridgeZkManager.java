@@ -141,8 +141,8 @@ public class VlanAwareBridgeZkManager extends AbstractZkManager {
             throws StateAccessException, SerializationException {
 
         // Create a new Tunnel key. Hide this from outside.
-        int tunnelKey = tunnelZkManager.createTunnelKey();
-        config.tunnelKey = tunnelKey;
+        int tunnelKeyId = tunnelZkManager.createTunnelKeyId();
+        config.tunnelKey = tunnelKeyId;
 
         List<Op> ops = new ArrayList<Op>();
         ops.add(Op.create(paths.getVlanBridgePath(id),
@@ -161,8 +161,8 @@ public class VlanAwareBridgeZkManager extends AbstractZkManager {
                           null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
         // Update TunnelKey to reference the bridge.
-        TunnelZkManager.TunnelKey tunnel = new TunnelZkManager.TunnelKey(id);
-        ops.addAll(tunnelZkManager.prepareTunnelUpdate(tunnelKey, tunnel));
+        TunnelZkManager.TunnelKey tunnelKey = new TunnelZkManager.TunnelKey(id);
+        ops.addAll(tunnelZkManager.prepareTunnelUpdate(tunnelKeyId, tunnelKey));
         return ops;
     }
 
