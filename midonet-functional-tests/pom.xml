@@ -148,12 +148,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.newsclub</groupId>
-            <artifactId>junixsocket</artifactId>
-            <version>1.3</version>
-        </dependency>
-
-        <dependency>
             <groupId>net.java.dev.jna</groupId>
             <artifactId>jna</artifactId>
             <version>3.3.0</version>
