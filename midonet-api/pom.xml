@@ -133,6 +133,11 @@
                 <groupId>org.mortbay.jetty</groupId>
                 <artifactId>jetty-maven-plugin</artifactId>
                 <version>8.1.5.v20120716</version>
+                <configuration>
+                    <webApp>
+                        <contextPath>/midonet-api</contextPath>
+                    </webApp>
+                </configuration>
             </plugin>
             <!--<plugin>-->
                 <!--<groupId>org.apache.tomcat.maven</groupId>-->
