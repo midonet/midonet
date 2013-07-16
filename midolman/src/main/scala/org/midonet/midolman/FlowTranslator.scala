@@ -189,8 +189,9 @@ trait FlowTranslator {
         // TODO(pino): when we detect the flow won't have output actions,
         // set the flow to expire soon so that we can retry.
         if (localPorts.length == 0 && tunnelPorts.length == 0)
-            log.error("No local datapath ports or tunnels found. This flow " +
-                "will be dropped because we cannot make Output actions.")
+            log.warning("No local datapath ports or tunnels found. Expected " +
+                        "only for forked actions, otherwise this flow will " +
+                        "be dropped because we cannot make Output actions.")
         val newActs = ListBuffer[FlowAction[_]]()
         var newTags = new mutable.HashSet[Any]
 
