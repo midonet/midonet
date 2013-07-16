@@ -23,13 +23,17 @@ public class FlowKeyICMPEcho extends FlowKeyICMP
         if (o == null || getClass() != o.getClass()) return false;
 
         FlowKeyICMPEcho that = (FlowKeyICMPEcho) o;
-        return super.equals(o) && (icmp_id == that.icmp_id);
+        if (icmp_code != that.icmp_code) return false;
+        if (icmp_type != that.icmp_type) return false;
+        if (icmp_id != that.icmp_id) return false;
+        return true;
     }
 
     @Override
     public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + icmp_id;
+        int result = (int) icmp_type;
+        result = 33 * result + (int) icmp_code;
+        result = 33 * result + (int) icmp_id;
         return result;
     }
 
