@@ -118,12 +118,16 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
     }
 
     def testLearnedMac() {
+        val srcMac = MAC.fromString("0a:54:ce:50:44:ce")
+        val frame = new Ethernet()
+            .setSourceMACAddress(srcMac)
+            .setDestinationMACAddress(learnedMac)
         val ingressMatch = ((new WildcardMatch)
-                .setEthernetSource(MAC.fromString("0a:54:ce:50:44:de"))
+                .setEthernetSource(srcMac)
                 .setEthernetDestination(learnedMac))
                 .setInputPortUUID(rtr2port)
         val origMatch = ingressMatch.clone
-        val context = new PacketContext(null, null,
+        val context = new PacketContext(null, frame,
                                         Platform.currentTime + 10000, null,
                                         null, null, true, None)
         context.setInputPort(new ExteriorRouterPort().setID(rtr2port))
@@ -165,13 +169,20 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
     }
 
     def testBroadcastArp() {
+        // We need a dumb frame because the Bridge looks into this object
+        // and will NPE if the frame is not set
+        val srcMac = MAC.fromString("0a:54:ce:50:44:ce")
+        val dstMac = MAC.fromString("ff:ff:ff:ff:ff:ff")
+        val frame = new Ethernet()
+                        .setSourceMACAddress(srcMac)
+                        .setDestinationMACAddress(dstMac)
         val ingressMatch = ((new WildcardMatch)
-                .setEthernetSource(MAC.fromString("0a:54:ce:50:44:ce"))
-                .setEthernetDestination(MAC.fromString("ff:ff:ff:ff:ff:ff"))
+                .setEthernetSource(srcMac)
+                .setEthernetDestination(dstMac)
                 .setNetworkDestination(rtr1ipaddr)
                 .setEtherType(ARP.ETHERTYPE))
         val origMatch = ingressMatch.clone
-        val context = new PacketContext(null, null,
+        val context = new PacketContext(null, frame,
                                         Platform.currentTime + 10000, null,
                                         null, null, true, None)
         context.setMatch(ingressMatch)
