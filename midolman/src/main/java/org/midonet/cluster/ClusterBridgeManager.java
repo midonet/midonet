@@ -275,7 +275,7 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
                 @Override
                 public void run() {
                     try {
-                        map.removeIfOwner(mac);
+                        map.removeIfOwnerAndValue(mac, portID);
                     } catch (Exception e) {
                         log.error("Failed removing mac {} from port {}",
                                   new Object[]{mac, portID, e});
