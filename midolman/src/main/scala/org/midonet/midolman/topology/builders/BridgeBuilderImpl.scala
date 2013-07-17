@@ -142,11 +142,14 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
 
             //1. MAC was removed from port
             if (newPort == null && oldPort != null) {
+                log.debug("MAC {} removed from port {}", oldPort)
                 flowController ! FlowController.InvalidateFlowsByTag(
                     FlowTagger.invalidateFlowsByPort(id, mac, oldPort))
             }
             //2. MAC moved from port-x to port-y
             if (newPort != null && oldPort != null && !newPort.equals(oldPort)) {
+                log.debug("MAC {} moved from port {} to {}",
+                          Array(mac, oldPort, newPort))
                 flowController ! FlowController.InvalidateFlowsByTag(
                     FlowTagger.invalidateFlowsByPort(id, mac, oldPort))
             }
@@ -160,6 +163,7 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
             //    the port was in the PortSet, broadcast and ARP requests were
             //    correctly delivered.
             if (newPort != null && oldPort == null){
+                log.debug("MAC {} added to port {}", mac, newPort)
                 flowController ! FlowController.InvalidateFlowsByTag(
                     FlowTagger.invalidateFloodedFlowsByDstMac(id, mac)
                 )

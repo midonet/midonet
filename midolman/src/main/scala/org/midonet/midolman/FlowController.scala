@@ -270,7 +270,16 @@ class FlowController extends Actor with ActorLogWithoutPath {
                 log.debug("Skipping obsolete wildcard flow {} with tags {}",
                           wildFlow.getMatch, tags)
                 flowOption match {
-                    case Some(flow) => flowManagerHelper.removeFlow(flow)
+                    case Some(flow) =>
+                        @tailrec
+                        def runCallbacks(callbacks: Array[Callback0], i: Int = 0) {
+                            if (callbacks != null && callbacks.length > i) {
+                                callbacks(i).call()
+                                runCallbacks(callbacks, i+1)
+                            }
+                        }
+                        flowManagerHelper.removeFlow(flow)
+                        runCallbacks(callbacks.toArray)
                     case None =>
                 }
             }
@@ -360,6 +369,8 @@ class FlowController extends Actor with ActorLogWithoutPath {
 
         log.info("removeWildcardFlow - Removing flow {}", wildFlow)
         if (flowManager.remove(wildFlow)) {
+            log.debug("removeWildcardFlow - cleaning tags and executing {} " +
+                      "callbacks", wildFlow.callbacks.size)
             tagsCleanup(wildFlow.tags)
             wildFlow.unref() // tags ref
             runCallbacks(wildFlow.callbacks)
@@ -410,6 +421,7 @@ class FlowController extends Actor with ActorLogWithoutPath {
 
         flow match {
             case Some(dpFlow) =>
+                log.debug("Binding dpFlow {} to wcFlow {}", dpFlow, wildFlow)
                 flowManager.add(dpFlow, wildFlow)
                 metrics.dpFlowsMetric.mark()
             case None =>
