@@ -162,6 +162,28 @@ trait VlanBridgeSimulationTestCase
 
     }
 
+    def sendFrameExpectDrop(fromPort: UUID, toPorts: List[UUID],
+                            fromMac: MAC, toMac: MAC,
+                            fromIp: IPv4Addr, toIp: IPv4Addr,
+                            vlanId: Short, vlanOnInject: Boolean = false) {
+
+        val ethRaw = Packets.udp(fromMac, toMac,
+            fromIp.toIntIPv4, toIp.toIntIPv4,
+            10, 11, "hello".getBytes)
+
+        // same, with VLAN
+        val ethVlan = new Ethernet()
+        ethVlan.deserialize(ByteBuffer.wrap(ethRaw.serialize()))
+        ethVlan.setVlanID(vlanId)
+        val inEth = if (vlanOnInject) ethVlan else ethRaw
+        injectOnePacket(inEth, fromPort, expectFlowAdded = false)
+        packetEventsProbe.expectNoMsg()
+        val wFlowAdded = wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
+        wFlowAdded.f.getMatch.getEthernetSource should be (fromMac)
+        wFlowAdded.f.getMatch.getEthernetDestination should be (toMac)
+        log.info("Actions {}", wFlowAdded)
+    }
+
     def arpReq(srcMac: MAC, srcIp: Int, dstIp: Int, vlanId: Short) = {
         val arp = new ARP()
         arp.setHardwareType(ARP.HW_TYPE_ETHERNET)
@@ -382,21 +404,21 @@ trait VlanBridgeSimulationTestCase
     def testFrameExchangeThroughVlanBridge() {
         feedBridgeArpCaches()
         sendFrame(trunk1Id, List(vm1_1ExtPort.getId), trunkMac,
-                  vm1_1Mac, trunkIp, vm1_1Ip, vlanId1, vlanOnInject = true)
+            vm1_1Mac, trunkIp, vm1_1Ip, vlanId1, vlanOnInject = true)
         sendFrame(trunk1Id, List(vm2_1ExtPort.getId), trunkMac,
-                  vm2_1Mac, trunkIp, vm2_1Ip, vlanId2, vlanOnInject = true)
+            vm2_1Mac, trunkIp, vm2_1Ip, vlanId2, vlanOnInject = true)
 
         log.debug("The bridge plugged to VM1 has learned trunkMac, active " +
             "trunk port is trunkPort1 ({})", trunk1Id)
 
         sendFrame(vm1_1ExtPort.getId,
-                  if (hasMacLearning) List(trunk1Id)
-                  else List(trunk1Id, trunk2Id),
-                  vm1_1Mac, trunkMac, vm1_1Ip, trunkIp, vlanId1)
+            if (hasMacLearning) List(trunk1Id)
+            else List(trunk1Id, trunk2Id),
+            vm1_1Mac, trunkMac, vm1_1Ip, trunkIp, vlanId1)
         sendFrame(vm2_1ExtPort.getId,
-                  if (hasMacLearning) List(trunk1Id)
-                  else List(trunk1Id, trunk2Id),
-                  vm2_1Mac, trunkMac, vm2_1Ip, trunkIp, vlanId2)
+            if (hasMacLearning) List(trunk1Id)
+            else List(trunk1Id, trunk2Id),
+            vm2_1Mac, trunkMac, vm2_1Ip, trunkIp, vlanId2)
     }
 
     /**
