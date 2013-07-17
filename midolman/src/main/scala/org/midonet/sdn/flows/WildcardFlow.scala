@@ -183,10 +183,13 @@ class ManagedWildcardFlow(override val pool: ObjectPool[ManagedWildcardFlow])
     }
 
     override def toString: String = {
-        "ManagedWildcardFlow{" +
-            "actions=" + actions +
+        "ManagedWildcardFlow{"+
+            "objref=" + System.identityHashCode(this) +
+            ", actions=" + actions +
             ", priority=" + priority +
             ", wcmatch=" + wcmatch +
+            ", wcmatch hash=" + (if (wcmatch == null) ""
+                                 else wcmatch.hashCode()) +
             ", creationTimeMillis=" + creationTimeMillis +
             ", lastUsedTimeMillis=" + lastUsedTimeMillis +
             ", hardExpirationMillis=" + hardExpirationMillis +

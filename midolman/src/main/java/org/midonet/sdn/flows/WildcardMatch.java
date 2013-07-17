@@ -48,6 +48,20 @@ public class WildcardMatch implements Cloneable {
     }
 
     /**
+     * WARNING: this is giving you a reference to the private Set itself. Be
+     * aware that the Match is free to wipe the contents of the set off at
+     * any point (e.g.: when a match is returned to a pool and its contents
+     * cleared), so you should consider making a copy if you need to keep the
+     * set around (e.g.: if it's used as a key to the WildcardMatch table
+     * like in FlowController). This is unless you are holding a reference to
+     * the enclosing ManagedWildcardFlow for as long as you're going to keep
+     * the Set in use. (Even so, you should probably make a copy since the
+     * match modify it).
+     *
+     * The reason for not returning a defensive copy is mainly efficiency, we
+     * prefer not to incurr in the copy overhead always, and rather rely on
+     * clients doing the copy if it's really needed.
+     *
      * @return the set of Fields that have been set in this instance.
      */
     @Nonnull
@@ -534,12 +548,15 @@ public class WildcardMatch implements Cloneable {
         int index = vlanIds.indexOf(vlanId);
         if (index != -1)
             vlanIds.remove(index);
+        if (vlanIds.isEmpty())
+            usedFields.remove(Field.VlanId);
         return this;
     }
 
     @Nullable
     public List<Short> getVlanIds() {
-        return vlanIds;
+        return (usedFields.contains(Field.VlanId)) ? vlanIds
+                                                   : new ArrayList<Short>();
     }
 
     @Override

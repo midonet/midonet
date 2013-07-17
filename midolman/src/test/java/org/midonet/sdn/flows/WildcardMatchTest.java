@@ -7,13 +7,18 @@ package org.midonet.sdn.flows;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.junit.Assert;
 import org.junit.Test;
 import org.midonet.odp.FlowMatch;
 import org.midonet.odp.FlowMatches;
+import org.midonet.packets.ARP;
 import org.midonet.packets.IPAddr;
+import org.midonet.packets.IPv4;
 import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.MAC;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
@@ -247,5 +252,35 @@ public class WildcardMatchTest {
         assertThat(wcm.getTransportDestinationObject(),
                    equalTo(50000));
 
+    }
+
+    @Test
+    public void testFieldSetEquality() {
+        WildcardMatch m1 = new WildcardMatch();
+        WildcardMatch m2 = new WildcardMatch();
+
+        m1.setInputPort((short) 1);
+        m1.setEthernetSource(MAC.fromString("aa:ff:bb:dd:ee:dd"));
+        m1.setEthernetDestination(MAC.fromString("bb:ff:bb:ff:ff:dd"));
+        m1.setEtherType(ARP.ETHERTYPE);
+        m1.setNetworkSource(IPv4Addr.fromString("10.0.0.1"));
+        m1.setNetworkDestination(IPv4Addr.fromString("10.0.0.2"));
+
+        m2.setInputPort((short) 1);
+        m2.setEthernetSource(MAC.fromString("ee:ee:bb:dd:ee:dd"));
+        m2.setEthernetDestination(MAC.fromString("ee:ff:ee:ff:ff:dd"));
+        m2.setEtherType(IPv4.ETHERTYPE);
+        m2.setNetworkSource(IPv4Addr.fromString("10.0.0.1"));
+
+        Assert.assertNotSame(m1.getUsedFields(), m2.getUsedFields());
+        Map<Set<WildcardMatch.Field>, Object> m = new
+            ConcurrentHashMap<Set<WildcardMatch.Field>, Object>(10, 10, 1);
+        m.put(m1.getUsedFields(), new Object());
+        Assert.assertFalse(m.containsKey(m2.getUsedFields()));
+
+        m2.setNetworkDestination(IPv4Addr.fromString("10.0.0.2"));
+
+        Assert.assertEquals(m1.getUsedFields(), m2.getUsedFields());
+        Assert.assertTrue(m.containsKey(m2.getUsedFields()));
     }
 }

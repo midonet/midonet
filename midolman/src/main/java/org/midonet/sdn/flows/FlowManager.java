@@ -5,6 +5,7 @@
 package org.midonet.sdn.flows;
 
 import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -170,12 +171,18 @@ public class FlowManager {
             }
         }
 
-        // Get the WildcardFlowTable for this wild flow's pattern.
+        // WARNING: this is a ref to the private set itself
         Set<WildcardMatch.Field> pattern =
             wildFlow.getMatch().getUsedFields();
-        Map<WildcardMatch, ManagedWildcardFlow> wildTable = wildcardTables.tables().get(pattern);
-        if (null == wildTable)
-            wildTable = wildcardTables.addTable(pattern);
+
+        // Get the WildcardFlowTable for this wild flow's pattern.
+        Map<WildcardMatch, ManagedWildcardFlow> wildTable =
+            wildcardTables.tables().get(pattern);
+        if (null == wildTable) {
+            // WARNING: use a copy of the field set because pattern is
+            // a ref. to the private collection in the match
+            wildTable = wildcardTables.addTable(EnumSet.copyOf(pattern));
+        }
         if (!wildTable.containsKey(wildFlow.wcmatch())) {
             wildTable.put(wildFlow.wcmatch(), wildFlow);
             // FlowManager's ref
@@ -200,6 +207,8 @@ public class FlowManager {
             log.debug("Added wildcard flow {}", wildFlow.getMatch());
             return true;
         }
+        log.warning("Can't add wildFlow, there is already a matching flow in " +
+                    "the table: {}", wildTable.get(wildFlow.wcmatch()));
         return false;
     }
 
