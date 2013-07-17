@@ -208,26 +208,50 @@ class Bridge(val id: UUID, val tunnelKey: Long,
         multicastAction()
     }
 
+    /**
+     * Does a unicastAction, validating and doing PUSH/POP of vlan ids as
+     * appropriate. All other methods in this device are expected NOT to
+     * build ToPortActions by themselves, and instead delegate on this method,
+     * which allows them to remain agnostic of vlan related details.
+     *
+     * Should be used whenever an unicastAction needs to happen. For example,
+     * after doing MAC learning and deciding that a frame needs to go to toPort
+     * just delegate on this method to create the right action.
+     *
+     * @param toPort
+     * @param pktCtx
+     * @return
+     */
     private def unicastAction(toPort: UUID)(implicit pktCtx: PacketContext):
     Future[Coordinator.Action] = {
-        vlanToPort.getVlan(pktCtx.getInPortId) match {
-            case null => // the inbound port has no vlan assigned
-                vlanToPort.getVlan(toPort) match {
-                    case null => // the outbound port has no vlan assigned
-                        Promise.successful(ToPortAction(toPort))
-                    case vlanId if !pktCtx.getFrame.getVlanIDs.isEmpty =>
-                        log.debug("OutPort has vlan {}, POP & forward", vlanId)
-                        pktCtx.getMatch.removeVlanId(vlanId)
-                        Promise.successful(ToPortAction(toPort))
-                    case vlanId if pktCtx.getFrame.getVlanIDs.isEmpty =>
-                        log.warning("Out port has vlan {}, but frame did not" +
-                            "have any, DROP", vlanId)
-                        Promise.successful(new DropAction())
-                }
-            case vlanId =>
-                log.debug("InPort has vlan {}, PUSH & fwd to trunks", vlanId)
-                pktCtx.getMatch.addVlanId(vlanId)
+
+        val inPortVlan = vlanToPort.getVlan(pktCtx.getInPortId)
+        if (inPortVlan != null) {
+            log.debug("InPort has vlan {}, PUSH & fwd to trunks", inPortVlan)
+            pktCtx.getMatch.addVlanId(inPortVlan)
+            return Promise.successful(ToPortAction(toPort))
+        }
+
+        val vlanInFrame: Option[JShort]= pktCtx.getFrame.getVlanIDs match {
+            case l: java.util.List[JShort] if !l.isEmpty => Some(l.get(0))
+            case _ => None
+        }
+
+        vlanToPort.getVlan(toPort) match {
+            case null => // the outbound port has no vlan assigned
                 Promise.successful(ToPortAction(toPort))
+            case vlanId if vlanInFrame == None =>
+                log.warning("Out port has vlan {}, but frame did not" +
+                    "have any, DROP", vlanId)
+                Promise.successful(new DropAction())
+            case vlanId if vlanInFrame.get == vlanId =>
+                log.debug("OutPort has vlan {}, POP & forward", vlanId)
+                pktCtx.getMatch.removeVlanId(vlanId)
+                Promise.successful(ToPortAction(toPort))
+            case vlanId =>
+                log.warning("OutPort has vlan {} but frame has {}, " +
+                            "DROP", vlanInFrame.get)
+                Promise.successful(new DropAction())
         }
     }
 
