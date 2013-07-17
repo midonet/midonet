@@ -6,7 +6,7 @@ package org.midonet.cluster;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -31,8 +31,8 @@ public class ClusterChainManager extends ClusterManager<ChainBuilder> {
 
     private Map<UUID, Map<UUID, Rule>> chainIdToRuleMap =
             new HashMap<UUID, Map<UUID, Rule>>();
-    private Map<UUID, Set<UUID>> chainToRuleIds =
-            new HashMap<UUID, Set<UUID>>();
+    private Map<UUID, List<UUID>> chainToRuleIds =
+            new HashMap<UUID, List<UUID>>();
     private Multimap<UUID, UUID> chainToMissingRuleIds =
             HashMultimap.create();
 
@@ -52,18 +52,7 @@ public class ClusterChainManager extends ClusterManager<ChainBuilder> {
         ruleMgr.getRuleAsync(ruleID, ruleCallback, ruleCallback);
     }
 
-    private boolean isChainConsistent(Collection<Rule> rules) {
-        Set<Integer> positions = new HashSet<Integer>();
-        for (Rule r: rules) {
-            if (r.position > rules.size())
-                return false;
-            else
-                positions.add(r.position);
-        }
-        return (positions.size() == rules.size());
-    }
-
-    private class RuleListCallback extends CallbackWithWatcher<Set<UUID>> {
+    private class RuleListCallback extends CallbackWithWatcher<List<UUID>> {
         private UUID chainId;
 
         private RuleListCallback(UUID chainId) {
@@ -76,9 +65,13 @@ public class ClusterChainManager extends ClusterManager<ChainBuilder> {
         }
 
         @Override
-        public void onSuccess(Result<Set<UUID>> data) {
-            Set<UUID> curRuleIds = data.getData();
+        public void onSuccess(Result<List<UUID>> data) {
+            // This is an ordered list of the UUIDs of current rules
+            List<UUID> curRuleIds = data.getData();
+
+            // UUID to actual rule for each rule in chain
             Map<UUID, Rule> ruleMap = chainIdToRuleMap.get(chainId);
+
             // If null, we no longer care about this chainId.
             if (null == ruleMap) {
                 chainToRuleIds.remove(chainId);
@@ -86,18 +79,22 @@ public class ClusterChainManager extends ClusterManager<ChainBuilder> {
             } else {
                 chainToRuleIds.put(chainId, curRuleIds);
             }
+
+            // List of old rule IDs from chain
             Set<UUID> oldRuleIds = ruleMap.keySet();
+
+            // If the new ordered list tells us a rule disappeared,
+            // remove it from the chain's rule id -> rule info map
             Iterator<UUID> ruleIter = oldRuleIds.iterator();
             while (ruleIter.hasNext()) {
                 if (!curRuleIds.contains(ruleIter.next()))
                     ruleIter.remove();
             }
 
-            // Are there any rules that need to be added?
-            if (oldRuleIds.size() == curRuleIds.size() &&
-                isChainConsistent(ruleMap.values())) {
-
-                getBuilder(chainId).setRules(new HashSet<Rule>(ruleMap.values()));
+            // If we have all the rules in the new ordered list, we're
+            // ready to call the chainbuilder
+            if (oldRuleIds.size() == curRuleIds.size()) {
+                getBuilder(chainId).setRules(curRuleIds, ruleMap);
                 return;
             }
             // Otherwise, we have to fetch some rules.
@@ -110,9 +107,7 @@ public class ClusterChainManager extends ClusterManager<ChainBuilder> {
         }
 
         @Override
-        public void pathChildrenUpdated(String path) {
-            // The list of bgp's for this port has changed. Fetch it again
-            // asynchronously.
+        public void pathDataChanged(String path) {
             ruleMgr.getRuleIdListAsync(chainId, this, this);
         }
 
@@ -126,6 +121,7 @@ public class ClusterChainManager extends ClusterManager<ChainBuilder> {
                 }
             };
         }
+
     }
 
     private class RuleCallback extends CallbackWithWatcher<Rule> {
@@ -145,7 +141,7 @@ public class ClusterChainManager extends ClusterManager<ChainBuilder> {
             Rule rule = data.getData();
             Collection<UUID> missingRuleIds =
                     chainToMissingRuleIds.get(rule.chainId);
-            Set<UUID> ruleIds = chainToRuleIds.get(rule.chainId);
+            List<UUID> ruleIds = chainToRuleIds.get(rule.chainId);
             // Does the chain still care about this rule?
             if (ruleIds == null || ! ruleIds.contains(ruleId))
                 return;
@@ -154,9 +150,8 @@ public class ClusterChainManager extends ClusterManager<ChainBuilder> {
 
             ruleMap.put(ruleId, rule);
 
-            if ((missingRuleIds.size() == 0) && isChainConsistent(ruleMap.values())) {
-                getBuilder(rule.chainId).setRules(
-                        new HashSet<Rule>(ruleMap.values()));
+            if ((missingRuleIds.size() == 0)) {
+                getBuilder(rule.chainId).setRules(ruleIds, ruleMap);
             }
         }
 
