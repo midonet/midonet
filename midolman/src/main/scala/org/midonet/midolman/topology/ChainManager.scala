@@ -20,7 +20,7 @@ import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.logging.ActorLogWithoutPath
 
 object ChainManager {
-    case class TriggerUpdate(rules: util.Collection[Rule])
+    case class TriggerUpdate(rules: util.List[Rule])
 }
 
 class ChainManager(val id: UUID, val clusterClient: Client) extends Actor
@@ -66,9 +66,9 @@ class ChainManager(val id: UUID, val clusterClient: Client) extends Actor
         // Else we have some serious bug...
     }
 
-    var rules: util.Collection[Rule] = null
+    var rules: util.List[Rule] = null
 
-    private def updateRules(curRules: util.Collection[Rule]): Unit = {
+    private def updateRules(curRules: util.List[Rule]): Unit = {
         for (r <- curRules) {
             if ((null == rules || !rules.contains(r))
                     && r.isInstanceOf[JumpRule]) {
@@ -100,7 +100,7 @@ class ChainManager(val id: UUID, val clusterClient: Client) extends Actor
 
         // Send the VirtualTopologyActor an updated chain.
         if (0 == waitingForChains) {
-            publishUpdate(new Chain(id, rules.toBuffer[Rule], idToChain.toMap,
+            publishUpdate(new Chain(id, rules, idToChain.toMap,
                                     "TODO: need name", context.system.eventStream))
         }
     }
@@ -134,7 +134,12 @@ class ChainManager(val id: UUID, val clusterClient: Client) extends Actor
 }
 
 class ChainBuilderImpl(val chainMgr: ActorRef) extends ChainBuilder {
-    def setRules(rules: util.Collection[Rule]) {
+    def setRules(rules: util.List[Rule]) {
         chainMgr.tell(TriggerUpdate(rules))
+    }
+
+    def setRules(ruleOrder: util.List[UUID], rules: util.Map[UUID, Rule]) {
+        val orderedRules = ruleOrder.map(x => rules.get(x))
+        setRules(orderedRules)
     }
 }

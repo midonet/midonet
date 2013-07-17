@@ -22,6 +22,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import org.apache.zookeeper.Op;
+import org.midonet.midolman.rules.RuleList;
 import org.midonet.packets.IPv4Addr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1880,6 +1881,10 @@ public class LocalDataClientImpl implements DataClient {
         if (ruleZkManager.exists(id)) {
             rule = Converter.fromRuleConfig(ruleZkManager.get(id));
             rule.setId(id);
+            // Find position of rule in chain
+            RuleList ruleList = ruleZkManager.getRuleList(rule.getChainId());
+            int position = ruleList.getRuleList().indexOf(id) + 1;
+            rule.setPosition(position);
         }
 
         log.debug("Exiting: rule={}", rule);
@@ -1896,16 +1901,22 @@ public class LocalDataClientImpl implements DataClient {
     public UUID rulesCreate(@Nonnull Rule<?, ?> rule)
             throws StateAccessException, RuleIndexOutOfBoundsException,
             SerializationException {
-        return ruleZkManager.create(Converter.toRuleConfig(rule));
+        return ruleZkManager.create(Converter.toRuleConfig(rule),
+                rule.getPosition());
     }
 
     @Override
     public List<Rule<?, ?>> rulesFindByChain(UUID chainId)
             throws StateAccessException, SerializationException {
-        Set<UUID> ruleIds = ruleZkManager.getRuleIds(chainId);
+        List<UUID> ruleIds = ruleZkManager.getRuleList(chainId).getRuleList();
         List<Rule<?, ?>> rules = new ArrayList<Rule<?, ?>>();
+
+        int position = 1;
         for (UUID id : ruleIds) {
-            rules.add(rulesGet(id));
+            Rule rule = rulesGet(id);
+            rule.setPosition(position);
+            position++;
+            rules.add(rule);
         }
         return rules;
     }
