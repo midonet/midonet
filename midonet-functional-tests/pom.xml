@@ -78,7 +78,9 @@
                     <jvm>${project.basedir}/src/test/resources/sudoJava</jvm>
                     <useUnlimitedThreads>true</useUnlimitedThreads>
                     <argLine>-Djava.library.path=/lib:/usr/lib -XX:-UseSplitVerifier
-                        -Xbootclasspath/p:${project.basedir}/../midonet-jdk-bootstrap/target/classes:${project.basedir}/../midonet-jdk-bootstrap/target/midonet-jdk-bootstrap-${project.version}.jar</argLine>
+                        -Xbootclasspath/p:${project.basedir}/../midonet-jdk-bootstrap/target/classes:${project.basedir}/../midonet-jdk-bootstrap/target/midonet-jdk-bootstrap-${project.version}.jar
+                        -Dconfig.file=${project.basedir}/../midolman/conf/midolman-akka.conf
+                        -Dakka.log-config-on-start=on</argLine>
                     <systemPropertyVariables>
                         <org.newsclub.net.unix.library.path>
                             ${project.build.directory}/lib-native
