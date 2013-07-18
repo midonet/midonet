@@ -1,25 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project
+    xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
         <groupId>com.midokura</groupId>
-        <artifactId>midonet-parent</artifactId>
+        <artifactId>midonet</artifactId>
         <version>1.2.0-SNAPSHOT</version>
     </parent>
 
-    <groupId>com.midokura</groupId>
-    <version>1.2.0-SNAPSHOT</version>
     <artifactId>midonet-functional-tests</artifactId>
+    <name>Midonet functional test suite</name>
     <packaging>jar</packaging>
 
-    <name>Midonet Functional test suite</name>
-
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
-
     <build>
+
         <defaultGoal>package</defaultGoal>
 
         <resources>
@@ -41,64 +39,31 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
+                    <source>${versions.java}</source>
+                    <target>${versions.java}</target>
                 </configuration>
                 <version>2.3</version>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <configuration>
-                </configuration>
-                <version>2.3</version>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.7</version>
-                <configuration>
-                </configuration>
             </plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.12.4</version>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.apache.maven.surefire</groupId>
-                        <artifactId>surefire-junit47</artifactId>
-                        <version>2.12.4</version>
-                    </dependency>
-                </dependencies>
+                <version>${versions.maven.surefire}</version>
                 <configuration>
                     <jvm>${project.basedir}/src/test/resources/sudoJava</jvm>
                     <useUnlimitedThreads>true</useUnlimitedThreads>
-                    <argLine>-Djava.library.path=/lib:/usr/lib -XX:-UseSplitVerifier
-                        -Xbootclasspath/p:${project.basedir}/../midonet-jdk-bootstrap/target/classes:${project.basedir}/../midonet-jdk-bootstrap/target/midonet-jdk-bootstrap-${project.version}.jar
+                    <argLine>-Djava.library.path=/lib:/usr/lib -XX:-UseSplitVerifier ${bootstrap}
                         -Dconfig.file=${project.basedir}/../midolman/conf/midolman-akka.conf
                         -Dakka.log-config-on-start=on</argLine>
                     <systemPropertyVariables>
-                        <org.newsclub.net.unix.library.path>
-                            ${project.build.directory}/lib-native
-                        </org.newsclub.net.unix.library.path>
                         <midonet.functional.tests.current_midonet_project>
                             ${basedir}/../
                         </midonet.functional.tests.current_midonet_project>
                     </systemPropertyVariables>
-                    <parallel>false</parallel>
                     <additionalClasspathElements>
                        <additionalClasspathElement>${project.basedir}/midolman_runtime_configurations/</additionalClasspathElement>
                     </additionalClasspathElements>
                 </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
             </plugin>
 
             <plugin>
@@ -125,13 +90,6 @@
                     </execution>
                 </executions>
             </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-deploy-plugin</artifactId>
-                <version>2.7</version>
-            </plugin>
-
 
             <!-- GIT COMMIT ID PLUGIN CONFIGURATION
            https://github.com/ktoso/maven-git-commit-id-plugin/ -->
@@ -163,6 +121,7 @@
     </build>
 
     <dependencies>
+
         <dependency>
             <groupId>com.typesafe.akka</groupId>
             <artifactId>akka-actor</artifactId>
@@ -213,18 +172,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>1.6.4</version>
-        </dependency>
-
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>${versions.logback}</version>
-        </dependency>
-
-        <dependency>
             <groupId>com.sun.jersey</groupId>
             <artifactId>jersey-client</artifactId>
             <version>${versions.jersey}</version>
@@ -249,34 +196,46 @@
         </dependency>
 
         <dependency>
-            <groupId>com.midokura</groupId>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>odp</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>${project.groupId}</groupId>
             <artifactId>packets</artifactId>
-            <version>1.2.0-SNAPSHOT</version>
+            <version>${project.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
-            <groupId>com.midokura</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>midonet-util</artifactId>
-            <version>1.2.0-SNAPSHOT</version>
+            <version>${project.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
-            <groupId>com.midokura</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>midolman</artifactId>
-            <version>1.2.0-SNAPSHOT</version>
+            <version>${project.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
-            <groupId>com.midokura</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>midonet-api</artifactId>
-            <version>1.2.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>com.midokura</groupId>
-            <artifactId>midonet-client</artifactId>
-            <version>1.2.0-SNAPSHOT</version>
+            <version>${project.version}</version>
+            <scope>provided</scope>
         </dependency>
 
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>midonet-client</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
 
         <dependency>
             <groupId>org.hamcrest</groupId>
@@ -294,13 +253,6 @@
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest-integration</artifactId>
             <version>${versions.hamcrest}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit-dep</artifactId>
-            <version>${versions.junit}</version>
-            <scope>test</scope>
         </dependency>
 
         <dependency>
@@ -327,19 +279,6 @@
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
             <version>1.10</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.testng</groupId>
-            <artifactId>testng</artifactId>
-            <version>${versions.testng}</version>
-            <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>junit</groupId>
-                    <artifactId>junit</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <dependency>

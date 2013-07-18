@@ -1,26 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project
+    xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.midokura</groupId>
-    <artifactId>midonet-parent</artifactId>
+    <artifactId>midonet</artifactId>
     <packaging>pom</packaging>
     <version>1.2.0-SNAPSHOT</version>
-    <name>Midokura MidoNet aggregator project</name>
+    <name>Midonet aggregator project</name>
 
     <modules>
+        <module>midonet-jdk-bootstrap</module>
+        <module>midonet-util</module>
+        <module>packets</module>
         <module>netlink</module>
         <module>odp</module>
         <module>midolman</module>
-        <module>midonet-util</module>
         <module>midonet-api</module>
         <module>midonet-client</module>
         <module>midonet-functional-tests</module>
-        <module>midonet-jdk-bootstrap</module>
-        <module>packets</module>
     </modules>
 
     <scm>
@@ -28,28 +29,52 @@
         <connection>scm:git:git@github.com:midokura/midonet.git</connection>
         <url>scm:git:git@github.com:midokura/midonet.git</url>
       <tag>midonet-1.1.0</tag>
-  </scm>
+    </scm>
 
     <properties>
-        <versions.jackson>1.9.3</versions.jackson>
-        <versions.logback>1.0.1</versions.logback>
-        <versions.jersey>1.10</versions.jersey>
-        <versions.jetty>6.1.26</versions.jetty>
-        <versions.powermock>1.4.11</versions.powermock>
-        <versions.commons.io>2.3</versions.commons.io>
-        <versions.commons.cli>1.2</versions.commons.cli>
-        <versions.commons.config>1.8</versions.commons.config>
-        <versions.hamcrest>1.3</versions.hamcrest>
+
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <versions.java>1.7</versions.java>
         <versions.scala.library>2.9.2</versions.scala.library>
         <versions.scala.akka>2.0.3</versions.scala.akka>
+        <versions.compiler.scala-maven>3.1.5</versions.compiler.scala-maven>
+
+        <versions.jna>3.3.0</versions.jna>
+        <versions.slf4j>1.6.4</versions.slf4j>
+        <versions.logback>1.0.1</versions.logback>
+        <versions.jackson>1.9.3</versions.jackson>
+        <versions.jersey>1.10</versions.jersey>
+        <versions.jetty>6.1.26</versions.jetty>
+        <versions.javax.servlet>2.5</versions.javax.servlet>
         <versions.yammer.metrics>2.1.2</versions.yammer.metrics>
+        <versions.guice>3.0</versions.guice>
+        <versions.findbugs>2.0.0</versions.findbugs>
+        <versions.hamcrest>1.3</versions.hamcrest>
+
+        <versions.commons.lang>2.6</versions.commons.lang>
+        <versions.commons.io>2.3</versions.commons.io>
+        <versions.commons.cli>1.2</versions.commons.cli>
+        <versions.commons.codec>1.2</versions.commons.codec>
+        <versions.commons.config>1.8</versions.commons.config>
+
+        <versions.powermock>1.4.11</versions.powermock>
+        <versions.mockito>1.9.0</versions.mockito>
         <versions.testng>6.5.2</versions.testng>
         <versions.junit>4.10</versions.junit>
+        <versions.scalatest>2.0.M4</versions.scalatest>
+
+        <versions.maven.dependency>2.4</versions.maven.dependency>
+        <versions.maven.surefire>2.12.4</versions.maven.surefire>
+        <versions.maven.jar>2.3</versions.maven.jar>
+        <versions.maven.doc>2.7</versions.maven.doc>
+        <versions.maven.deploy>2.4</versions.maven.deploy>
+
         <versions.plugins.jdeb>0.10</versions.plugins.jdeb>
         <versions.plugins.rpm>2.1-alpha-2</versions.plugins.rpm>
-        <versions.javax.servlet>2.5</versions.javax.servlet>
-        <versions.guice>3.0</versions.guice>
-        <versions.scalatest>2.0.M4</versions.scalatest>
+
+        <bootstrap>-Xbootclasspath/p:${project.basedir}/../midonet-jdk-bootstrap/target/classes:${project.basedir}/../midonet-jdk-bootstrap/target/midonet-jdk-bootstrap-${project.version}.jar</bootstrap>
+
     </properties>
 
     <pluginRepositories>
@@ -120,7 +145,32 @@
     </repositories>
 
     <build>
+
         <plugins>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>${versions.maven.dependency}</version>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${versions.maven.surefire}</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.maven.surefire</groupId>
+                        <artifactId>surefire-junit47</artifactId>
+                        <version>${versions.maven.surefire}</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <failIfNoTests>false</failIfNoTests>
+                    <parallel>false</parallel>
+                </configuration>
+            </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
@@ -141,6 +191,7 @@
                     </execution>
                 </executions>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-release-plugin</artifactId>
@@ -152,7 +203,27 @@
                     <!--<allowTimestampedSnapshots>true</allowTimestampedSnapshots>-->
                 </configuration>
             </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>${versions.maven.jar}</version>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>${versions.maven.doc}</version>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>${versions.maven.deploy}</version>
+            </plugin>
+
         </plugins>
+
     </build>
 
     <reporting>
@@ -166,10 +237,110 @@
     </reporting>
 
     <dependencies>
+
+        <!-- scala -->
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
             <version>${versions.scala.library}</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.scalatest</groupId>
+            <artifactId>scalatest_2.9.2</artifactId>
+            <version>${versions.scalatest}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- other common facilities -->
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>r08</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
+            <version>${versions.findbugs}</version>
+        </dependency>
+
+        <!-- logging facility -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${versions.slf4j}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${versions.logback}</version>
+        </dependency>
+
+        <!-- testing libraries -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit-dep</artifactId>
+            <version>${versions.junit}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <version>${versions.testng}</version>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>junit</groupId>
+                    <artifactId>junit</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-module-junit4</artifactId>
+            <version>${versions.powermock}</version>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>junit</groupId>
+                    <artifactId>junit</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-api-mockito</artifactId>
+            <version>${versions.powermock}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <version>${versions.mockito}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.easymock</groupId>
+            <artifactId>easymock</artifactId>
+            <version>3.0</version>
+            <scope>test</scope>
+        </dependency>
+<!--
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-api-mockito</artifactId>
+            <version>${versions.powermock}</version>
+            <scope>test</scope>
+        </dependency>
+-->
+
     </dependencies>
+
 </project>

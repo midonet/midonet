@@ -1,26 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project
+    xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
         <groupId>com.midokura</groupId>
-        <artifactId>midonet-parent</artifactId>
+        <artifactId>midonet</artifactId>
         <version>1.2.0-SNAPSHOT</version>
     </parent>
 
-    <groupId>com.midokura</groupId>
-    <version>1.2.0-SNAPSHOT</version>
     <artifactId>midonet-api</artifactId>
+    <name>MidoNet REST API server</name>
     <packaging>war</packaging>
 
-    <name>Midolman API daemon</name>
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
-
     <build>
+
         <defaultGoal>package</defaultGoal>
+
         <plugins>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                </configuration>
+                <version>2.3</version>
+            </plugin>
+
             <plugin>
                 <artifactId>maven-war-plugin</artifactId>
                 <version>2.1.1</version>
@@ -28,6 +39,7 @@
                     <failOnMissingWebXml>false</failOnMissingWebXml>
                 </configuration>
             </plugin>
+
             <plugin>
                 <artifactId>maven-antrun-plugin</artifactId>
                 <executions>
@@ -49,6 +61,7 @@
                     </execution>
                 </executions>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
@@ -66,6 +79,7 @@
                     </execution>
                 </executions>
             </plugin>
+
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
@@ -90,45 +104,17 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
-                </configuration>
-                <version>2.3</version>
-            </plugin>
-            <!-- plugin> <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-jar-plugin</artifactId>
-        <configuration> </configuration> <version>2.3</version> </plugin -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.7</version>
-                <configuration>
-                </configuration>
-            </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.12.4</version>
+                <version>${versions.maven.surefire}</version>
                 <configuration>
-                    <failIfNoTests>false</failIfNoTests>
-                    <parallel>false</parallel>
                     <argLine>-XX:-UseSplitVerifier</argLine>
                     <useUnlimitedThreads>true</useUnlimitedThreads>
-                    <systemPropertyVariables>
-                        <org.newsclub.net.unix.library.path>
-                            ${project.build.directory}/lib-native
-                        </org.newsclub.net.unix.library.path>
-                    </systemPropertyVariables>
                 </configuration>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <version>2.4</version>
-            </plugin>
+
             <plugin>
                 <groupId>org.mortbay.jetty</groupId>
                 <artifactId>jetty-maven-plugin</artifactId>
@@ -139,6 +125,7 @@
                     </webApp>
                 </configuration>
             </plugin>
+
             <!--<plugin>-->
                 <!--<groupId>org.apache.tomcat.maven</groupId>-->
                 <!--<artifactId>tomcat6-maven-plugin</artifactId>-->
@@ -161,6 +148,7 @@
                     <!--</systemProperties>-->
                 <!--</configuration>-->
             <!--</plugin>-->
+
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>tomcat-maven-plugin</artifactId>
@@ -172,6 +160,7 @@
                     </systemProperties>
                 </configuration>
             </plugin>
+
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>rpm-maven-plugin</artifactId>
@@ -209,6 +198,7 @@
                     </mappings>
                 </configuration>
             </plugin>
+
             <plugin>
                 <groupId>org.vafer</groupId>
                 <artifactId>jdeb</artifactId>
@@ -249,7 +239,9 @@
                     </execution>
                 </executions>
             </plugin>
+
         </plugins>
+
     </build>
 
     <dependencies>
@@ -278,18 +270,6 @@
             <artifactId>jackson-xc</artifactId>
             <version>${versions.jackson}</version>
         </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>1.6.4</version>
-        </dependency>
-
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>${versions.logback}</version>
-        </dependency>
-
         <dependency>
             <groupId>com.google.inject</groupId>
             <artifactId>guice</artifactId>
@@ -351,6 +331,18 @@
         </dependency>
 
         <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+            <version>${versions.commons.lang}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>${versions.commons.codec}</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest-core</artifactId>
             <version>${versions.hamcrest}</version>
@@ -368,32 +360,6 @@
             <version>${versions.hamcrest}</version>
             <scope>test</scope>
         </dependency>
-
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit-dep</artifactId>
-            <version>4.10</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.powermock</groupId>
-            <artifactId>powermock-module-junit4</artifactId>
-            <version>${versions.powermock}</version>
-            <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>junit</groupId>
-                    <artifactId>junit</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.powermock</groupId>
-            <artifactId>powermock-api-mockito</artifactId>
-            <version>${versions.powermock}</version>
-            <scope>test</scope>
-        </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>servlet-api</artifactId>
@@ -401,14 +367,14 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.midokura</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>packets</artifactId>
-            <version>1.2.0-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.midokura</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>midonet-util</artifactId>
-            <version>1.2.0-SNAPSHOT</version>
+            <version>${project.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.sun</groupId>
@@ -417,14 +383,14 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>com.midokura</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>midolman</artifactId>
-            <version>1.2.0-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
          <dependency>
-            <groupId>com.midokura</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>midonet-client</artifactId>
-            <version>1.2.0-SNAPSHOT</version>
+            <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -546,4 +512,5 @@
             </build>
         </profile>
     </profiles>
+
 </project>
