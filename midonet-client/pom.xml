@@ -1,25 +1,85 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project
+    xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
     <parent>
-        <artifactId>midonet-parent</artifactId>
         <groupId>com.midokura</groupId>
+        <artifactId>midonet</artifactId>
         <version>1.2.0-SNAPSHOT</version>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
 
     <artifactId>midonet-client</artifactId>
     <name>MidoNet REST API client library</name>
+    <!-- packaging>jar</packaging -->
+
     <build>
+
         <plugins>
+
+            <plugin>
+                <groupId>net.alchim31.maven</groupId>
+                <artifactId>scala-maven-plugin</artifactId>
+                <version>3.1.5</version>
+
+                <configuration>
+                    <recompileMode>incremental</recompileMode>
+                    <useZincServer>true</useZincServer>
+                    <args>
+                        <arg>-deprecation</arg>
+                        <arg>-unchecked</arg>
+                        <arg>-dependencyfile</arg>
+                        <arg>${project.build.directory}/.scala_dependencies</arg>
+                    </args>
+                    <source>1.7</source>
+                    <target>1.7</target>
+                    <addJavacArgs>-Xlint:all</addJavacArgs>
+                </configuration>
+
+                <executions>
+
+                    <execution>
+                        <id>scala-compile</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                    </execution>
+
+                    <execution>
+                        <id>scala-test-compile</id>
+                        <phase>process-test-resources</phase>
+                        <goals>
+                            <goal>testCompile</goal>
+                        </goals>
+                    </execution>
+
+                </executions>
+
+            </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.5.1</version>
                 <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
+                    <excludes>
+                        <exclude>**/*.java</exclude>
+                    </excludes>
                 </configuration>
-                <version>2.3.2</version>
+                <executions>
+                    <execution>
+                        <id>default-testCompile</id>
+                        <phase>test-compile</phase>
+                        <goals><goal>testCompile</goal></goals>
+                        <configuration><skip>true</skip></configuration>
+                    </execution>
+                </executions>
             </plugin>
+
             <!-- TODO: get rid of shading so we don't redistribute dependencies-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -37,65 +97,59 @@
                     <minimizeJar>true</minimizeJar>
                 </configuration>
             </plugin>
+
         </plugins>
+
     </build>
+
     <dependencies>
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>r08</version>
-        </dependency>
-        <dependency>
-            <groupId>com.google.code.findbugs</groupId>
-            <artifactId>jsr305</artifactId>
-            <version>2.0.0</version>
-        </dependency>
+
         <dependency>
             <groupId>com.sun.jersey</groupId>
             <artifactId>jersey-client</artifactId>
-            <version>1.10</version>
+            <version>${versions.jersey}</version>
         </dependency>
+
         <dependency>
             <groupId>javax.persistence</groupId>
             <artifactId>persistence-api</artifactId>
             <version>1.0</version>
         </dependency>
+
         <dependency>
             <groupId>javax.ws.rs</groupId>
             <artifactId>jsr311-api</artifactId>
             <version>1.1</version>
         </dependency>
+
         <dependency>
             <groupId>javax.annotation</groupId>
             <artifactId>jsr250-api</artifactId>
             <version>1.0</version>
         </dependency>
+
         <dependency>
             <groupId>org.codehaus.jackson</groupId>
             <artifactId>jackson-core-asl</artifactId>
             <version>${versions.jackson}</version>
         </dependency>
+
         <dependency>
             <groupId>org.codehaus.jackson</groupId>
             <artifactId>jackson-mapper-asl</artifactId>
             <version>${versions.jackson}</version>
         </dependency>
+
         <dependency>
             <groupId>org.codehaus.jackson</groupId>
             <artifactId>jackson-jaxrs</artifactId>
             <version>${versions.jackson}</version>
         </dependency>
+
         <dependency>
             <groupId>org.codehaus.jackson</groupId>
             <artifactId>jackson-xc</artifactId>
             <version>${versions.jackson}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit-dep</artifactId>
-            <version>4.10</version>
-            <scope>test</scope>
         </dependency>
 
         <dependency>
@@ -104,6 +158,7 @@
             <version>${versions.jersey}</version>
             <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>com.sun.jersey.jersey-test-framework</groupId>
             <artifactId>jersey-test-framework-grizzly2</artifactId>
@@ -116,22 +171,26 @@
                 </exclusion>
             </exclusions>
         </dependency>
+
         <dependency>
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest-core</artifactId>
             <version>${versions.hamcrest}</version>
         </dependency>
+
         <dependency>
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest-library</artifactId>
             <version>${versions.hamcrest}</version>
         </dependency>
+
         <dependency>
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest-integration</artifactId>
             <version>${versions.hamcrest}</version>
             <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>org.cassandraunit</groupId>
             <artifactId>cassandra-unit</artifactId>
@@ -148,5 +207,7 @@
                 </exclusion>
             </exclusions>
         </dependency>
+
     </dependencies>
+
 </project>
