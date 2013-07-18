@@ -201,11 +201,26 @@ public class ZkDirectory implements Directory {
     }
 
     @Override
-
     public byte[] get(String relativePath, Runnable watcher)
         throws KeeperException, InterruptedException {
         String absPath = getAbsolutePath(relativePath);
         return zk.getZooKeeper().getData(absPath, wrapCallback(watcher), null);
+    }
+
+    @Override
+    public Map.Entry<byte[], Integer> getWithVersion(String relativePath, Runnable watcher)
+            throws KeeperException, InterruptedException {
+        String absPath = getAbsolutePath(relativePath);
+        Stat returnStat = new Stat();
+        int version = -1;
+
+        byte[] data = zk.getZooKeeper().getData(absPath, wrapCallback(watcher), returnStat);
+
+        if(returnStat != null){
+            version = returnStat.getVersion();
+        }
+
+        return new AbstractMap.SimpleEntry<byte[], Integer>(data, version);
     }
 
     @Override

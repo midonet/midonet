@@ -290,6 +290,25 @@ public class ZkManager {
         }
     }
 
+    public Map.Entry<byte[], Integer> getWithVersion(String path, Runnable watcher)
+            throws StateAccessException {
+        try {
+            return zk.getWithVersion(path, watcher);
+        } catch (NoNodeException e) {
+            throw new NoStatePathException(
+                    "ZooKeeper error occurred while getting a node with path "
+                            + path + ": " + e.getMessage(), e);
+        } catch (KeeperException e) {
+            throw new StateAccessException(
+                    "ZooKeeper error occurred while getting the path " + path
+                            + ": " + e.getMessage(), e);
+        } catch (InterruptedException e) {
+            throw new StateAccessException(
+                    "ZooKeeper thread interrupted while getting the path "
+                            + path + ": " + e.getMessage(), e);
+        }
+    }
+
     public Set<String> getChildren(String path) throws StateAccessException {
         return getChildren(path, null);
     }

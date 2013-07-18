@@ -442,7 +442,6 @@ public class Converter {
             return ruleConfig;
 
         ruleConfig.chainId = rule.getChainId();
-        ruleConfig.position = rule.getPosition();
         ruleConfig.setProperties(rule.getProperties());
 
         return ruleConfig;
@@ -493,7 +492,6 @@ public class Converter {
 
         return rule
                 .setChainId(ruleConfig.chainId)
-                .setPosition(ruleConfig.position)
                 .setProperties(ruleConfig.getProperties());
     }
 
