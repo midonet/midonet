@@ -720,7 +720,7 @@ contains the following fields:
         <td>macAddr</td>
         <td>String</td>
         <td/>
-        <td>Yes</>
+        <td>Yes</td>
         <td>A MAC address in the form "aa:bb:cc:dd:ee:ff"</td>
     </tr>
     <tr>
@@ -768,7 +768,7 @@ contains the following fields:
         <td>mac</td>
         <td>String</td>
         <td/>
-        <td>Yes</>
+        <td>Yes</td>
         <td>A MAC address in the form "aa:bb:cc:dd:ee:ff". If ARP replies
         are enabled on the bridge, the ip will resolve to this MAC.</td>
     </tr>
