@@ -68,4 +68,42 @@ class VlanAwareSimulationWithBridgeTest extends MidolmanTestCase
         }
     }
 
+    /**
+     * Basically the same as testFrameExchangeThroughVlanBridge, but will send
+     * an additional frame from the trunk to a MAC using the wrong vlan id.
+     *
+     * So basically, if we have a MAC1 on interior port 1 which has vlan id 1,
+     * we'll send a frame to MAC1 using vlan id 2.
+     *
+     * The expected behaviour is that the frame is dropped.
+     *
+     * This test doesn't make sense in the VAB test implementation because it
+     * does not do mac learning.
+     */
+    @Test
+    def testFrameToWrongPort() {
+        feedBridgeArpCaches()
+        sendFrame(trunk1Id, List(vm1_1ExtPort.getId), trunkMac,
+            vm1_1Mac, trunkIp, vm1_1Ip, vlanId1, vlanOnInject = true)
+        sendFrame(trunk1Id, List(vm2_1ExtPort.getId), trunkMac,
+            vm2_1Mac, trunkIp, vm2_1Ip, vlanId2, vlanOnInject = true)
+
+        log.debug("The bridge plugged to VM1 has learned trunkMac, active " +
+            "trunk port is trunkPort1 ({})", trunk1Id)
+
+        sendFrame(vm1_1ExtPort.getId,
+            if (hasMacLearning) List(trunk1Id)
+            else List(trunk1Id, trunk2Id),
+            vm1_1Mac, trunkMac, vm1_1Ip, trunkIp, vlanId1)
+        sendFrame(vm2_1ExtPort.getId,
+            if (hasMacLearning) List(trunk1Id)
+            else List(trunk1Id, trunk2Id),
+            vm2_1Mac, trunkMac, vm2_1Ip, trunkIp, vlanId2)
+
+        log.debug("Sending to VM1's MAC but with the wrong vlan id (2)")
+        sendFrameExpectDrop(trunk1Id, List(), trunkMac, vm1_1Mac, trunkIp,
+            vm1_1Ip, vlanId2, vlanOnInject = true)
+
+    }
+
 }
