@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * A {@link SelectorProvider} service implementation that can create
- * NetlinkChannel objects.
+ * NetlinkChannel and UnixDomainChannel objects.
  */
 public class NetlinkSelectorProvider extends SelectorProvider {
 
@@ -89,6 +89,24 @@ public class NetlinkSelectorProvider extends SelectorProvider {
                 clazz.getConstructor(SelectorProvider.class, Netlink.Protocol.class);
 
             return constructor.newInstance(this, protocol);
+        } catch (Throwable e) {
+            log.error("Exception while instantiating class of type: {}", NAME, e);
+            return null;
+        }
+    }
+
+    public UnixDomainChannel openUnixDomainSocketChannel(AfUnix.Type socketType) {
+        final String NAME = "org.midonet.netlink.UnixDomainChannelImpl";
+        //final String NAME = "org.midonet.netlink.NetlinkTracingChannelImpl";
+
+        try {
+            Class<? extends UnixDomainChannel> clazz =
+                    (Class<? extends UnixDomainChannel>) Class.forName(NAME);
+
+            Constructor<? extends UnixDomainChannel> constructor =
+                    clazz.getConstructor(SelectorProvider.class, AfUnix.Type.class);
+
+            return constructor.newInstance(this, socketType);
         } catch (Throwable e) {
             log.error("Exception while instantiating class of type: {}", NAME, e);
             return null;

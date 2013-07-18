@@ -4,14 +4,17 @@
 
 package org.midonet.quagga
 
-import org.slf4j.LoggerFactory
-import actors.Actor
-import org.midonet.packets.{IPAddr, IPv4Addr, IPv4Subnet}
+import akka.actor.{ActorRef, Actor}
+import akka.event.LoggingReceive
 import java.io._
-import java.net.{Socket, InetAddress}
-import org.midonet.midolman.state.NoStatePathException
+import java.net.InetAddress
+import java.nio.channels.{Channels, ByteChannel}
 
-case class HandleConnection(socket: Socket)
+import org.midonet.midolman.state.NoStatePathException
+import org.midonet.midolman.logging.ActorLogWithoutPath
+import org.midonet.packets.{IPv4Addr, IPv4Subnet}
+
+case object ProcessMessage
 
 object ZebraConnection {
 
@@ -19,23 +22,22 @@ object ZebraConnection {
     private final val MidolmanMTU = 1300
 }
 
-class ZebraConnection(val dispatcher: Actor,
+class ZebraConnection(val dispatcher: ActorRef,
                       val handler: ZebraProtocolHandler,
                       val ifAddr: IPv4Addr,
                       val ifName: String,
-                      val clientId: Int)
-    extends Actor {
+                      val clientId: Int,
+                      val channel: ByteChannel)
+    extends Actor with ActorLogWithoutPath {
 
     import ZebraConnection._
     import ZebraProtocol._
 
-    private final val log = LoggerFactory.getLogger(this.getClass)
+    implicit def inputStreamWrapper(in: InputStream) = new DataInputStream(in)
+    implicit def outputStreamWrapper(out: OutputStream) = new DataOutputStream(out)
 
-    implicit def inputStreamWrapper(in: InputStream) =
-        new DataInputStream(in)
-
-    implicit def outputStreamWrapper(out: OutputStream) =
-        new DataOutputStream(out)
+    val in: DataInputStream = Channels.newInputStream(channel)
+    val out: DataOutputStream = Channels.newOutputStream(channel)
 
     private def sendInterfaceName(out: DataOutputStream, ifName: String) {
         val ifNameBuf = new StringBuffer(ifName)
@@ -120,7 +122,7 @@ class ZebraConnection(val dispatcher: Actor,
         log.debug("dstAddr: %x".format(ipv4addr))
     }
 
-    private def interfaceAdd(out: DataOutputStream) {
+    private def interfaceAdd() {
         log.debug("begin, clientId: {}", clientId)
 
         val ifAddr4: IPv4Addr = ifAddr match {
@@ -154,7 +156,7 @@ class ZebraConnection(val dispatcher: Actor,
         log.debug("end")
     }
 
-    def routerIdUpdate(out: DataOutputStream) {
+    def routerIdUpdate() {
         // TODO(pino): shouldn't we be using the router's IP address,
         // TODO(pino): not that of the local host?
         val ia = InetAddress.getLocalHost
@@ -166,7 +168,7 @@ class ZebraConnection(val dispatcher: Actor,
         log.debug("ZebraRouterIdUpdate: %s".format(ia.getHostAddress))
     }
 
-    def ipv4RouteAdd(in: DataInputStream) {
+    def ipv4RouteAdd() {
         log.debug("begin")
         val ribType = in.readByte
         log.debug("ribType: {}", ribType)
@@ -226,7 +228,7 @@ class ZebraConnection(val dispatcher: Actor,
         log.debug("end")
     }
 
-    def ipv4RouteDelete(in: DataInputStream, out: DataOutputStream) {
+    def ipv4RouteDelete() {
         log.debug("begin")
 
         val ribType = in.readByte
@@ -276,7 +278,7 @@ class ZebraConnection(val dispatcher: Actor,
         log.debug("end")
     }
 
-    def hello(in: DataInputStream, out: DataOutputStream) {
+    def hello() {
         log.debug("begin, clientId: {}", clientId)
 
         val proto = in.readByte
@@ -286,152 +288,53 @@ class ZebraConnection(val dispatcher: Actor,
         log.debug("end")
     }
 
-    def handleConnection(in: DataInputStream, out: DataOutputStream) {
-        log.debug("begin - clientId: {}", clientId)
+    def handleMessage(message: Short) {
+        def unsupported() {
+            val msgStr = ZebraMessageTable.get(message).getOrElse("unrecognized-message")
+            log.error("%s isn't implemented yet".format(msgStr))
+            throw new RuntimeException("not implemented")
+        }
 
-        while (true) {
-            val (message, _) = recvHeader(in)
+        message match {
+            case ZebraInterfaceAdd => interfaceAdd()
+            case ZebraIpv4RouteAdd => ipv4RouteAdd()
+            case ZebraIpv4RouteDelete => ipv4RouteDelete()
+            case ZebraRouterIdAdd => routerIdUpdate()
+            case ZebraHello => hello()
 
-            message match {
-                case ZebraInterfaceAdd => {
-                    interfaceAdd(out)
-                }
-                case ZebraInterfaceDelete => {
-                    log.error("%s isn't implemented yet".format(
-                        ZebraMessageTable(message)))
-                    throw new RuntimeException("not implemented")
-                }
-                case ZebraInterfaceAddressAdd => {
-                    log.error("%s isn't implemented yet".format(
-                        ZebraMessageTable(message)))
-                    throw new RuntimeException("not implemented")
-                }
-                case ZebraInterfaceAddressDelete => {
-                    log.error("%s isn't implemented yet".format(
-                        ZebraMessageTable(message)))
-                    throw new RuntimeException("not implemented")
-                }
-                case ZebraInterfaceUp => {
-                    log.error("%s isn't implemented yet".format(
-                        ZebraMessageTable(message)))
-                    throw new RuntimeException("not implemented")
-                }
-                case ZebraInterfaceDown => {
-                    log.error("%s isn't implemented yet".format(
-                        ZebraMessageTable(message)))
-                    throw new RuntimeException("not implemented")
-                }
-                case ZebraIpv4RouteAdd => {
-                    ipv4RouteAdd(in)
-                }
-                case ZebraIpv4RouteDelete => {
-                    ipv4RouteDelete(in, out)
-                }
-                case ZebraIpv6RouteAdd => {
-                    log.error("%s isn't implemented yet".format(
-                        ZebraMessageTable(message)))
-                    throw new RuntimeException("not implemented")
-                }
-                case ZebraIpv6RouteDelete => {
-                    log.error("%s isn't implemented yet".format(
-                        ZebraMessageTable(message)))
-                    throw new RuntimeException("not implemented")
-                }
-                case ZebraRedistributeAdd => {
-                    log.error("%s isn't implemented yet".format(
-                        ZebraMessageTable(message)))
-                    throw new RuntimeException("not implemented")
-                }
-                case ZebraRedistributeDelete => {
-                    log.error("%s isn't implemented yet".format(
-                        ZebraMessageTable(message)))
-                    throw new RuntimeException("not implemented")
-                }
-                case ZebraRedistributeDefaultAdd => {
-                    log.error("%s isn't implemented yet".format(
-                        ZebraMessageTable(message)))
-                    throw new RuntimeException("not implemented")
-                }
-                case ZebraRedistributeDefaultDelete => {
-                    log.error("%s isn't implemented yet".format(
-                        ZebraMessageTable(message)))
-                    throw new RuntimeException("not implemented")
-                }
-                case ZebraIpv4NextHopLookup => {
-                    log.error("%s isn't implemented yet".format(
-                        ZebraMessageTable(message)))
-                    throw new RuntimeException("not implemented")
-                }
-                case ZebraIpv6NextHopLookup => {
-                    log.error("%s isn't implemented yet".format(
-                        ZebraMessageTable(message)))
-                    throw new RuntimeException("not implemented")
-                }
-                case ZebraIpv4ImportLookup => {
-                    log.error("%s isn't implemented yet".format(
-                        ZebraMessageTable(message)))
-                    throw new RuntimeException("not implemented")
-                }
-                case ZebraIpv6ImportLookup => {
-                    log.error("%s isn't implemented yet".format(
-                        ZebraMessageTable(message)))
-                    throw new RuntimeException("not implemented")
-                }
-                case ZebraInterfaceRename => {
-                    log.error("%s isn't implemented yet".format(
-                        ZebraMessageTable(message)))
-                    throw new RuntimeException("not implemented")
-                }
-                case ZebraRouterIdAdd => {
-                    routerIdUpdate(out)
-                }
-                case ZebraRouterIdDelete => {
-                    log.error("%s isn't implemented yet".format(
-                        ZebraMessageTable(message)))
-                    throw new RuntimeException("not implemented")
-                }
-                case ZebraRouterIdUpdate => {
-                    log.error("%s isn't implemented yet".format(
-                        ZebraMessageTable(message)))
-                    throw new RuntimeException("not implemented")
-                }
-                case ZebraHello => {
-                    hello(in, out)
-                }
-                case _ => {
-                    log.error("received unknown message %s".format(message))
-                }
-            }
+            case _ => unsupported()
         }
     }
 
-    def act() {
-        loop {
-            react {
-                case HandleConnection(socket: Socket) => {
-                    log.debug("clientId: {}", clientId)
-                    try {
-                        handleConnection(socket.getInputStream,
-                            socket.getOutputStream)
-                    } catch {
-                        case e: NoStatePathException => {
-                            log.warn("config isn't in the directory")
-                        }
-                        case e: EOFException => {
-                            log.warn("connection closed by the peer")
-                        }
-                        case e: IOException => {
-                            log.warn("IO error", e)
-                        }
-                    } finally {
-                        socket.close()
-                        dispatcher ! Response(clientId)
-                    }
-                }
-                case _ => {
-                    log.error("received unknown request")
-                }
+    override def postStop() {
+        if (channel.isOpen)
+            channel.close()
+    }
+
+    override def receive = LoggingReceive {
+        case ProcessMessage =>
+            try {
+                log.debug("ProcessMessage")
+                val (message, _) = recvHeader(in)
+                handleMessage(message)
+                self ! ProcessMessage
+            } catch {
+                case e: NoStatePathException =>
+                    log.warning("config isn't in the directory")
+                    dispatcher ! ConnectionClosed(clientId)
+                case e: EOFException =>
+                    log.warning("connection closed by the peer")
+                    dispatcher ! ConnectionClosed(clientId)
+                case e: IOException =>
+                    log.warning("IO error", e)
+                    dispatcher ! ConnectionClosed(clientId)
+                case e =>
+                    log.warning("unexpected error", e)
+                    dispatcher ! ConnectionClosed(clientId)
             }
+
+        case _ => {
+            log.error("received unknown request")
         }
     }
 }
