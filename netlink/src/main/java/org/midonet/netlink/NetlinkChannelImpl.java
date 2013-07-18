@@ -7,7 +7,6 @@ import java.io.FileDescriptor;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.channels.SelectionKey;
 import java.nio.channels.spi.SelectorProvider;
 
 import com.sun.jna.Native;
@@ -19,9 +18,7 @@ import sun.nio.ch.SelectionKeyImpl;
 
 import org.midonet.netlink.clib.cLibrary;
 import org.midonet.netlink.hacks.IOUtil;
-import org.midonet.netlink.hacks.PollArrayWrapper;
 import org.midonet.netlink.hacks.SelectionKeyImplCaller;
-import org.midonet.netlink.hacks.SelectorCaller;
 
 /**
  * Implementation of a NetlinkChannel.
@@ -156,25 +153,19 @@ public class NetlinkChannelImpl extends NetlinkChannel implements SelChImpl {
         state = ST_CONNECTED;
     }
 
+    @Override
     public boolean translateAndUpdateReadyOps(int ops, SelectionKeyImpl sk) {
         return translateReadyOps(ops, SelectionKeyImplCaller.nioReadyOps(sk), sk);
     }
 
+    @Override
     public boolean translateAndSetReadyOps(int ops, SelectionKeyImpl sk) {
         return translateReadyOps(ops, 0, sk);
     }
 
+    @Override
     public void translateAndSetInterestOps(int ops, SelectionKeyImpl sk) {
-        int newOps = 0;
-
-        if ((ops & SelectionKey.OP_READ) != 0)
-            newOps |= PollArrayWrapper.POLLIN;
-        if ((ops & SelectionKey.OP_WRITE) != 0)
-            newOps |= PollArrayWrapper.POLLOUT;
-        if ((ops & SelectionKey.OP_CONNECT) != 0)
-            newOps |= PollArrayWrapper.POLLIN;
-
-        SelectorCaller.putEventOps(sk.selector(), sk, newOps);
+        _translateAndSetInterestOps(ops, sk);
     }
 
     @Override
