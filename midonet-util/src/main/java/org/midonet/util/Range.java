@@ -18,8 +18,10 @@ public class Range<E extends Comparable<E>> {
     public Range() {}
 
     public Range(E start, E end) {
-        if (start.compareTo(end) > 0)
-            throw new IllegalArgumentException("Range start > range end!");
+        if ((start != null) && (end != null)) {
+            if (start.compareTo(end) > 0)
+                throw new IllegalArgumentException("Range start > range end!");
+        }
         this.start = start;
         this.end = end;
     }
@@ -57,10 +59,17 @@ public class Range<E extends Comparable<E>> {
 
     /**
      * Tells whether the given value inside the range?
+     *
+     * Null value on any of the two bounds indicates will be considered as
+     * unbound. That is, inInside(4) in a Range(null, 4) will mean the same as
+     * (value<4)
      */
     public boolean isInside(E value) {
-        return (this.start.compareTo(value) <= 0) &&
-               (this.end.compareTo(value) >= 0);
+        boolean aboveStart =
+            (this.start == null) || (this.start.compareTo(value) <= 0);
+        boolean belowEnd =
+            (this.end == null) || (this.end.compareTo(value) >= 0);
+        return aboveStart && belowEnd;
     }
 
     @Override
