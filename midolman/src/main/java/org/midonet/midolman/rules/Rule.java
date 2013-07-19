@@ -25,13 +25,12 @@ import org.midonet.midolman.rules.RuleResult.Action;
     @JsonSubTypes.Type(value = ForwardNatRule.class, name = "ForwardNat"),
     @JsonSubTypes.Type(value = ReverseNatRule.class, name = "ReverseNat")
 })
-public abstract class Rule implements Comparable<Rule> {
+public abstract class Rule {
     private final static Logger log = LoggerFactory.getLogger(Rule.class);
 
     private Condition condition;
     public Action action;
     public UUID chainId;
-    public int position;
     private Map<String, String> properties = new HashMap<String, String>();
 
     public Rule(Condition condition, Action action) {
@@ -42,7 +41,6 @@ public abstract class Rule implements Comparable<Rule> {
         this.condition = condition;
         this.action = action;
         this.chainId = chainId;
-        this.position = position;
     }
 
     // Default constructor for the Jackson deserialization.
@@ -127,10 +125,6 @@ public abstract class Rule implements Comparable<Rule> {
         }
     }
 
-    @Override
-    public int compareTo(Rule other) {
-        return this.position - other.position;
-    }
 
     @Override
     public String toString() {
@@ -138,7 +132,6 @@ public abstract class Rule implements Comparable<Rule> {
         sb.append("condition=").append(condition);
         sb.append(", action=").append(action);
         sb.append(", chainId=").append(chainId);
-        sb.append(", position=").append(position);
         return sb.toString();
     }
 }

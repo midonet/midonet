@@ -926,22 +926,6 @@ public class ZkPathManager {
     }
 
     /**
-     * Get ZK chain rule path.
-     *
-     * @param chainId Chain UUID
-     * @param ruleId  Rule UUID.
-     * @return /chains/chainId/rules/ruleId
-     */
-    public String getChainRulePath(UUID chainId, UUID ruleId) {
-        return buildChainRulePath(chainId, ruleId).toString();
-    }
-
-    private StringBuilder buildChainRulePath(UUID chainId, UUID ruleId) {
-        return buildChainRulesPath(chainId).append("/").append(
-            ruleId);
-    }
-
-    /**
      * Get ZK router routing table path.
      *
      * @param routerId Router UUID

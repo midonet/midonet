@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import org.midonet.midolman.rules.RuleList;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.AbstractZkManager;
@@ -87,7 +88,8 @@ public class ChainZkManager extends AbstractZkManager {
                 serializer.serialize(config),
                 Ids.OPEN_ACL_UNSAFE,
                 CreateMode.PERSISTENT));
-        ops.add(Op.create(paths.getChainRulesPath(id), null,
+        ops.add(Op.create(paths.getChainRulesPath(id),
+                serializer.serialize(new RuleList()),
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         return ops;
     }
@@ -104,7 +106,7 @@ public class ChainZkManager extends AbstractZkManager {
             throws StateAccessException, SerializationException {
         List<Op> ops = new ArrayList<Op>();
         RuleZkManager ruleZkManager = new RuleZkManager(zk, paths, serializer);
-        Set<UUID> ruleIds = ruleZkManager.getRuleIds(id);
+        List<UUID> ruleIds = ruleZkManager.getRuleList(id).getRuleList();
         for (UUID ruleId : ruleIds) {
             Rule rule = ruleZkManager.get(ruleId);
             ops.addAll(ruleZkManager.prepareRuleDelete(ruleId, rule));
