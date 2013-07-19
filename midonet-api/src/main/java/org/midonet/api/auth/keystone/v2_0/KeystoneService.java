@@ -1,9 +1,11 @@
 /*
  * Copyright 2012 Midokura PTE LTD.
  */
-package org.midonet.api.auth.keystone;
+package org.midonet.api.auth.keystone.v2_0;
 
 import org.midonet.api.auth.*;
+import org.midonet.api.auth.keystone.KeystoneConfig;
+import org.midonet.api.auth.keystone.KeystoneInvalidFormatException;
 import org.midonet.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

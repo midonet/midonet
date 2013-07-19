@@ -1,13 +1,16 @@
 /*
  * Copyright 2012 Midokura PTE LTD.
  */
-package org.midonet.api.auth.keystone;
+package org.midonet.api.auth.keystone.v2_0;
 
 import com.google.inject.Inject;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
+import org.midonet.api.auth.keystone.KeystoneBadCredsException;
+import org.midonet.api.auth.keystone.KeystoneConnectionException;
+import org.midonet.api.auth.keystone.KeystoneServerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,7 +70,7 @@ public class KeystoneClient {
 
     public KeystoneAccess createToken(KeystoneAuthCredentials credentials)
             throws KeystoneServerException, KeystoneConnectionException,
-                   KeystoneBadCredsException {
+            KeystoneBadCredsException {
 
         Client client = Client.create();
         String uri = getTokensUrl();
