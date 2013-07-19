@@ -1034,9 +1034,13 @@ public class LocalDataClientImpl implements DataClient {
 
         Host host = null;
         if (hostsExists(hostId)) {
-
             HostDirectory.Metadata hostMetadata =
                     hostZkManager.getHostMetadata(hostId);
+
+            if (hostMetadata == null) {
+                log.error("Failed to fetch metadata for host {}", hostId);
+                return null;
+            }
 
             host = Converter.fromHostConfig(hostMetadata);
             host.setId(hostId);
