@@ -967,7 +967,7 @@ bridge is the equivalent port type on a virtual bridge.
         <td>vlanId (Interior Bridge only)</td>
         <td>Short</td>
         <td>POST</td>
-        <td>Yes</td>
+        <td>No</td>
         <td>A GET against this URI retrieves the vlan-id assigned to this
         port</td>
     </tr>
