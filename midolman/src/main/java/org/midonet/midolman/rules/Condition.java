@@ -36,8 +36,8 @@ public class Condition {
     public boolean nwProtoInv;
     public IPSubnet nwSrcIp;
     public IPSubnet nwDstIp;
-    public Range<Integer> tpSrcRange;
-    public Range<Integer> tpDstRange;
+    public Range<Integer> tpSrc;
+    public Range<Integer> tpDst;
     public boolean nwSrcInv;
     public boolean nwDstInv;
     public boolean tpSrcInv;
@@ -91,9 +91,9 @@ public class Condition {
             || !matchField(nwProto, pktMatch.getNetworkProtocolObject(), nwProtoInv)
             || !matchIP(nwSrcIp, pmSrcIP, nwSrcInv)
             || !matchIP(nwDstIp, pmDstIP, nwDstInv)
-            || !matchRange(tpSrcRange,
+            || !matchRange(tpSrc,
                            pktMatch.getTransportSourceObject(), tpSrcInv)
-            || !matchRange(tpDstRange,
+            || !matchRange(tpDst,
                            pktMatch.getTransportDestinationObject(), tpDstInv)
             )
             cond = false;
@@ -207,13 +207,13 @@ public class Condition {
             if(nwDstInv)
                 sb.append("nwDstInv").append(nwDstInv).append(", ");
         }
-        if (null != tpSrcRange) {
-            sb.append("tpSrcRange=").append(tpSrcRange).append(", ");
+        if (null != tpSrc) {
+            sb.append("tpSrc=").append(tpSrc).append(", ");
             if(tpSrcInv)
                 sb.append("tpSrcInv").append(tpSrcInv).append(", ");
         }
-        if (null != tpDstRange) {
-            sb.append("tpDstRange=").append(tpDstRange).append(", ");
+        if (null != tpDst) {
+            sb.append("tpDst=").append(tpDst).append(", ");
             if(tpDstInv)
                 sb.append("tpDstInv").append(tpDstInv).append(", ");
         }
@@ -263,9 +263,9 @@ public class Condition {
             return false;
         if (portGroup != null ? !portGroup.equals(condition.portGroup) : condition.portGroup != null)
             return false;
-        if (tpDstRange != null ? !tpDstRange.equals(condition.tpDstRange) : condition.tpDstRange != null)
+        if (tpDst != null ? !tpDst.equals(condition.tpDst) : condition.tpDst != null)
             return false;
-        if (tpSrcRange != null ? !tpSrcRange.equals(condition.tpSrcRange) : condition.tpSrcRange != null)
+        if (tpSrc != null ? !tpSrc.equals(condition.tpSrc) : condition.tpSrc != null)
             return false;
 
         return true;
@@ -296,9 +296,9 @@ public class Condition {
         result = 31 * result + (nwSrcInv ? 1 : 0);
         result = 31 * result + (nwDstIp != null ? nwDstIp.hashCode() : 0);
         result = 31 * result + (nwDstInv ? 1 : 0);
-        result = 31 * result + (tpSrcRange != null ? tpSrcRange.hashCode() : 0);
+        result = 31 * result + (tpSrc != null ? tpSrc.hashCode() : 0);
         result = 31 * result + (tpSrcInv ? 1 : 0);
-        result = 31 * result + (tpDstRange != null ? tpDstRange.hashCode() : 0);
+        result = 31 * result + (tpDst != null ? tpDst.hashCode() : 0);
         result = 31 * result + (tpDstInv ? 1 : 0);
         return result;
     }
