@@ -58,8 +58,8 @@ public abstract class Condition extends UriResource {
     private boolean invNwSrc;
     private boolean invNwDst;
 
-    private Range<Integer> tpSrcRange;
-    private Range<Integer> tpDstRange;
+    private Range<Integer> tpSrc;
+    private Range<Integer> tpDst;
 
     private boolean invTpSrc;
     private boolean invTpDst;
@@ -388,17 +388,17 @@ public abstract class Condition extends UriResource {
     }
 
     /**
-     * @return the tpSrcRange
+     * @return the tpSrc
      */
-    public Range<Integer> getTpSrcRange() {
-        return tpSrcRange;
+    public Range<Integer> getTpSrc() {
+        return tpSrc;
     }
 
     /**
-     * @param tpSrcRange the tpSrcRange to set
+     * @param tpSrc the tpSrc to set
      */
-    public void setTpSrcStart(Range<Integer> tpSrcRange) {
-        this.tpSrcRange = tpSrcRange;
+    public void setTpSrcStart(Range<Integer> tpSrc) {
+        this.tpSrc = tpSrc;
     }
 
     /**
@@ -416,24 +416,24 @@ public abstract class Condition extends UriResource {
     }
 
     /**
-     * @return the tpDstRange
+     * @return the tpDst
      */
-    public Range<Integer> getTpDstRange() {
-        return tpDstRange;
+    public Range<Integer> getTpDst() {
+        return tpDst;
     }
 
     /**
-     * @param tpDstRange the tpDstRange to set
+     * @param tpDst the tpDst to set
      */
-    public void setTpDstRange(Range<Integer> tpDstRange) {
-        this.tpDstRange = tpDstRange;
+    public void setTpDst(Range<Integer> tpDst) {
+        this.tpDst = tpDst;
     }
 
     /**
-     * @param tpSrcRange the tpSrcRange to set
+     * @param tpSrc the tpSrc to set
      */
-    public void setTpSrcRange(Range<Integer> tpSrcRange) {
-        this.tpSrcRange = tpSrcRange;
+    public void setTpSrc(Range<Integer> tpSrc) {
+        this.tpSrc = tpSrc;
     }
 
     /**
@@ -496,12 +496,12 @@ public abstract class Condition extends UriResource {
             c.outPortIds = new HashSet<UUID>();
         }
         c.outPortInv = this.isInvOutPorts();
-        if (tpDstRange != null) {
-            c.tpDstRange = tpDstRange;
+        if (tpDst != null) {
+            c.tpDst = tpDst;
         }
         c.tpDstInv = this.isInvTpDst();
-        if (tpSrcRange != null) {
-            c.tpSrcRange = tpSrcRange;
+        if (tpSrc != null) {
+            c.tpSrc = tpSrc;
         }
         c.tpSrcInv = this.isInvTpSrc();
         c.portGroup = this.portGroup;
@@ -550,9 +550,9 @@ public abstract class Condition extends UriResource {
             this.setNwProto(unsign(c.nwProto));
         if (null != c.nwTos)
             this.setNwTos(unsign(c.nwTos));
-        if (null != c.tpDstRange)
-            this.setTpDstRange(c.tpDstRange);
-        if (null != c.tpSrcRange)
-            this.setTpSrcRange(c.tpSrcRange);
+        if (null != c.tpDst)
+            this.setTpDst(c.tpDst);
+        if (null != c.tpSrc)
+            this.setTpSrc(c.tpSrc);
     }
 }

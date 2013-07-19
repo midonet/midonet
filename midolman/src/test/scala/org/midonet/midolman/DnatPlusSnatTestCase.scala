@@ -71,7 +71,7 @@ class DnatPlusSnatTestCase extends MidolmanTestCase
         var tcpCond = new Condition()
         tcpCond.nwProto = Byte.box(TCP.PROTOCOL_NUMBER)
         tcpCond.nwDstIp = new IPv4Subnet(IPv4Addr.fromString("1.1.1.1"), 32)
-        tcpCond.tpDstRange = new Range(Integer.valueOf(80))
+        tcpCond.tpDst = new Range(Integer.valueOf(80))
         var nat = new NatTarget(IntIPv4.fromString("10.0.1.2").addressAsInt(),
             IntIPv4.fromString("10.0.1.3").addressAsInt(), 81, 81)
         newForwardNatRuleOnChain(inChain, 1, tcpCond,
@@ -84,14 +84,14 @@ class DnatPlusSnatTestCase extends MidolmanTestCase
         tcpCond = new Condition()
         tcpCond.nwProto = Byte.box(TCP.PROTOCOL_NUMBER)
         tcpCond.nwSrcIp = new IPv4Subnet(IPv4Addr.fromString("10.0.1.2"), 32)
-        tcpCond.tpSrcRange = new Range(Integer.valueOf(81))
+        tcpCond.tpSrc = new Range(Integer.valueOf(81))
         // Now the outbound chain.
         newReverseNatRuleOnChain(outChain, 1, tcpCond,
             RuleResult.Action.ACCEPT, true)
         tcpCond = new Condition()
         tcpCond.nwProto = Byte.box(TCP.PROTOCOL_NUMBER)
         tcpCond.nwSrcIp = new IPv4Subnet(IPv4Addr.fromString("10.0.1.3"), 32)
-        tcpCond.tpSrcRange = new Range(Integer.valueOf(81))
+        tcpCond.tpSrc = new Range(Integer.valueOf(81))
         newReverseNatRuleOnChain(outChain, 1, tcpCond,
             RuleResult.Action.ACCEPT, true)
         tcpCond = new Condition()

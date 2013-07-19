@@ -92,9 +92,9 @@ public class TestRules {
         cond.nwSrcIp = new IPv4Subnet(IPv4Addr.fromString("10.0.20.0"), 24);
         cond.nwProto = 15;
         cond.nwProtoInv = true;
-        cond.tpSrcRange = new Range<Integer>(2000, 3000);
+        cond.tpSrc = new Range<Integer>(2000, 3000);
         cond.tpSrcInv = true;
-        cond.tpDstRange = new Range<Integer>(1000, 2000);
+        cond.tpDst = new Range<Integer>(1000, 2000);
 
         nats = new HashSet<NatTarget>();
         nats.add(new NatTarget(0x0a090807, 0x0a090810, 21333,
