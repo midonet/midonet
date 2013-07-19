@@ -1,5 +1,6 @@
 package org.midonet.util;
 
+import junit.framework.Assert;
 import org.junit.Test;
 import static junit.framework.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -23,6 +24,18 @@ public class RangeTest {
         assertTrue(r.isInside(15));
         assertTrue(r.isInside(10));
         assertTrue(r.isInside(100));
+    }
+
+    @Test
+    public void testInsideWithNullBounds() {
+        Range<Integer> r = new Range<Integer>(100, null);
+        Assert.assertTrue(r.isInside(101));
+        Assert.assertTrue(r.isInside(123123));
+        Assert.assertFalse(r.isInside(99));
+        r = new Range<Integer>(null, 100);
+        Assert.assertTrue(r.isInside(1));
+        Assert.assertTrue(r.isInside(99));
+        Assert.assertFalse(r.isInside(101));
     }
 
     @Test
