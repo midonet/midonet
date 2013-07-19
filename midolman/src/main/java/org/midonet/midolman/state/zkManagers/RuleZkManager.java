@@ -7,9 +7,11 @@ package org.midonet.midolman.state.zkManagers;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
+import java.util.AbstractMap;
 import java.util.UUID;
 
+import org.midonet.midolman.rules.RuleList;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.AbstractZkManager;
@@ -58,65 +60,61 @@ public class RuleZkManager extends AbstractZkManager {
         this(new ZkManager(dir), new PathBuilder(basePath), serializer);
     }
 
-    private List<Op> prepareInsertPositionOrdering(UUID id, Rule ruleConfig)
+    private List<Op> prepareInsertPositionOrdering(UUID id, Rule ruleConfig,
+                                                   int position)
             throws RuleIndexOutOfBoundsException, StateAccessException,
             SerializationException {
         // Make sure the position is greater than 0.
-        int position = ruleConfig.position;
         if (position <= 0) {
             throw new RuleIndexOutOfBoundsException("Invalid rule position "
                     + position);
         }
 
         List<Op> ops = new ArrayList<Op>();
+
         // Add this one
         ops.addAll(prepareRuleCreate(id, ruleConfig));
 
-        // Get all the rules for this chain
-        Set<UUID> ruleIds = getRuleIds(ruleConfig.chainId);
+        // Get the ordered list of rules for this chain
+        Map.Entry<RuleList, Integer> ruleListWithVersion =
+                getRuleListWithVersion(ruleConfig.chainId);
+        List<UUID> ruleIds = ruleListWithVersion.getKey().getRuleList();
+        int version = ruleListWithVersion.getValue();
 
-        int max = 0;
-        for (UUID ruleId : ruleIds) {
-            Rule rule = get(ruleId);
-            if (rule.position > max) {
-                max = rule.position;
-            }
-            // For any node that has the >= position value, shift up.
-            if (rule.position >= position) {
-                String path = paths.getRulePath(ruleId);
-                (rule.position)++;
-                ops.add(Op.setData(path, serializer.serialize(rule), -1));
-
-            }
-        }
         // If the new rule index is bigger than the max position by
         // more than 1, it's invalid.
-        if (position > max + 1) {
+        if (position > ruleIds.size() + 1) {
             throw new RuleIndexOutOfBoundsException("Invalid rule position "
                     + position);
         }
+
+        // Create the new ordered list with the new item
+        int insertionIndex = position -1;
+        ruleIds.add(insertionIndex, id);
+        String path = paths.getChainRulesPath(ruleConfig.chainId);
+        ops.add(Op.setData(path, serializer.serialize(new RuleList(ruleIds)),
+                version));
+
         return ops;
     }
 
     private List<Op> prepareDeletePositionOrdering(UUID id, Rule ruleConfig)
             throws StateAccessException, SerializationException {
         List<Op> ops = new ArrayList<Op>();
-        // Delete this one
+        // Delete this rule
         ops.addAll(prepareRuleDelete(id, ruleConfig));
 
-        // Get all the rules for this chain
-        Set<UUID> ruleIds = getRuleIds(ruleConfig.chainId);
+        // Get the ordered list of rules for this chain
+        Map.Entry<RuleList, Integer> ruleListWithVersion =
+                getRuleListWithVersion(ruleConfig.chainId);
+        List<UUID> ruleIds = ruleListWithVersion.getKey().getRuleList();
+        int version = ruleListWithVersion.getValue();
 
-        int position = ruleConfig.position;
-        for (UUID ruleId : ruleIds) {
-            Rule rule = get(ruleId);
-            // For any rule that has position > the deleted rule, shift down.
-            if (rule.position > position) {
-                String path = paths.getRulePath(ruleId);
-                rule.position--;
-                ops.add(Op.setData(path, serializer.serialize(rule), -1));
-            }
-        }
+        // Create the new ordered list without the deleted item
+        ruleIds.remove(id);
+        String path = paths.getChainRulesPath(ruleConfig.chainId);
+        ops.add(Op.setData(path, serializer.serialize(new RuleList(ruleIds)),
+                version));
 
         return ops;
     }
@@ -137,17 +135,12 @@ public class RuleZkManager extends AbstractZkManager {
     private List<Op> prepareRuleCreate(UUID id, Rule ruleConfig)
             throws StateAccessException, SerializationException {
         String rulePath = paths.getRulePath(id);
-        String chainRulePath = paths.getChainRulePath(ruleConfig.chainId,
-                id);
         List<Op> ops = new ArrayList<Op>();
+
         log.debug("Preparing to create: " + rulePath);
         ops.add(Op.create(rulePath,
                 serializer.serialize(ruleConfig),
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-
-        log.debug("Preparing to create: " + chainRulePath);
-        ops.add(Op.create(chainRulePath, null, Ids.OPEN_ACL_UNSAFE,
-                CreateMode.PERSISTENT));
 
         // Add a reference entry to port group if port group is specified.
         UUID portGroupId = ruleConfig.getCondition().portGroup;
@@ -177,9 +170,6 @@ public class RuleZkManager extends AbstractZkManager {
      */
     public List<Op> prepareRuleDelete(UUID id, Rule rule) {
         List<Op> ops = new ArrayList<Op>();
-        String chainRulePath = paths.getChainRulePath(rule.chainId, id);
-        log.debug("Preparing to delete: " + chainRulePath);
-        ops.add(Op.delete(chainRulePath, -1));
         String rulePath = paths.getRulePath(id);
         log.debug("Preparing to delete: " + rulePath);
         ops.add(Op.delete(rulePath, -1));
@@ -205,10 +195,11 @@ public class RuleZkManager extends AbstractZkManager {
      * @throws StateAccessException
      * @throws RuleIndexOutOfBoundsException
      */
-    public UUID create(Rule rule) throws RuleIndexOutOfBoundsException,
+    public UUID create(Rule rule, int position)
+            throws RuleIndexOutOfBoundsException,
             StateAccessException, SerializationException {
         UUID id = UUID.randomUUID();
-        zk.multi(prepareInsertPositionOrdering(id, rule));
+        zk.multi(prepareInsertPositionOrdering(id, rule, position));
         return id;
     }
 
@@ -257,22 +248,27 @@ public class RuleZkManager extends AbstractZkManager {
 
     public void getRuleIdListAsync(
             UUID chainId,
-            DirectoryCallback<Set<UUID>> ruleIdsCallback,
+            DirectoryCallback<List<UUID>> ruleIdsCallback,
             Directory.TypedWatcher watcher) {
         String path = paths.getChainRulesPath(chainId);
 
-        zk.asyncGetChildren(
-            path,
-            DirectoryCallbackFactory.transform(
-                ruleIdsCallback,
-                new Functor<Set<String>, Set<UUID>>() {
-                    @Override
-                    public Set<UUID> apply(Set<String> arg0) {
-                        return CollectionFunctors.map(
-                            arg0, strToUUIDMapper, new HashSet<UUID>());
-                    }
-                }),
-            watcher);
+        zk.asyncGet(
+                path,
+                DirectoryCallbackFactory.transform(
+                        ruleIdsCallback,
+                        new Functor<byte[], List<UUID>>() {
+                            @Override
+                            public List<UUID> apply(byte[] arg0) {
+                                try {
+                                    return serializer.deserialize(arg0,
+                                            RuleList.class).getRuleList();
+                                } catch (SerializationException e) {
+                                    log.warn("Could not deserialize RuleList data");
+                                }
+                                return null;
+                            }
+                        }),
+                watcher);
     }
 
     /**
@@ -284,19 +280,34 @@ public class RuleZkManager extends AbstractZkManager {
      * @return A list of rule IDs
      * @throws StateAccessException
      */
-    public Set<UUID> getRuleIds(UUID chainId, Runnable watcher)
-            throws StateAccessException {
-        Set<UUID> result = new HashSet<UUID>();
+    public Map.Entry<RuleList, Integer> getRuleListWithVersion(UUID chainId,
+            Runnable watcher) throws StateAccessException {
         String path = paths.getChainRulesPath(chainId);
-        Set<String> ruleIds = zk.getChildren(path, watcher);
-        for (String ruleId : ruleIds) {
-            result.add(UUID.fromString(ruleId));
+        Map.Entry<byte[], Integer> ruleIdsVersion = zk.getWithVersion(path,
+                watcher);
+
+        byte[] data = ruleIdsVersion.getKey();
+        int version = ruleIdsVersion.getValue();
+
+        // convert
+        try {
+            RuleList ruleList = serializer.deserialize(data,
+                    RuleList.class);
+            return new AbstractMap.SimpleEntry<RuleList, Integer>(ruleList,
+                    version);
+        } catch (SerializationException e) {
+            log.error("Could not deserialize rule list {}", data, e);
+            return null;
         }
-        return result;
     }
 
-    public Set<UUID> getRuleIds(UUID chainId) throws StateAccessException {
-        return getRuleIds(chainId, null);
+    public RuleList getRuleList(UUID chainId) throws StateAccessException {
+        return getRuleListWithVersion(chainId, null).getKey();
+    }
+
+    public Map.Entry<RuleList, Integer> getRuleListWithVersion(UUID chainId)
+            throws StateAccessException {
+        return getRuleListWithVersion(chainId, null);
     }
 
     /***

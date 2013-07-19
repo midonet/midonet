@@ -40,7 +40,6 @@ public class Chain {
                  String name_, LoggingBus loggingBus) {
         id = id_;
         rules = new ArrayList<Rule>(rules_);
-        Collections.sort(rules);
         jumpTargets = jumpTargets_;
         name = name_;
         log = LoggerFactory.getSimulationAwareLog(this.getClass(),
