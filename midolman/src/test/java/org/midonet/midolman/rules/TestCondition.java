@@ -261,24 +261,24 @@ public class TestCondition {
         Condition cond = new Condition();
         fwdInfo.inPortId = UUID.randomUUID();
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
-        cond.tpSrcRange = new Range<Integer>(30, Transport.MAX_PORT_NO);
+        cond.tpSrc = new Range<Integer>(30, Transport.MAX_PORT_NO);
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
         cond.tpSrcInv = true;
         Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
         cond.tpSrcInv = false;
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
-        cond.tpSrcRange = new Range<Integer>(4322, Transport.MAX_PORT_NO);
+        cond.tpSrc = new Range<Integer>(4322, Transport.MAX_PORT_NO);
         Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
         cond.tpSrcInv = true;
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
         cond.tpSrcInv = false;
         Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
-        cond.tpSrcRange = new Range<Integer>(4321, 4321) ;
+        cond.tpSrc = new Range<Integer>(4321, 4321) ;
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
         cond.tpSrcInv = true;
         Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
         cond.tpSrcInv = false;
-        cond.tpSrcRange = new Range<Integer>(0, 4322);
+        cond.tpSrc = new Range<Integer>(0, 4322);
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
     }
 
@@ -289,24 +289,24 @@ public class TestCondition {
         Condition cond = new Condition();
         fwdInfo.inPortId = UUID.randomUUID();
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
-        cond.tpSrcRange = new Range<Integer>(30000, Transport.MAX_PORT_NO);
+        cond.tpSrc = new Range<Integer>(30000, Transport.MAX_PORT_NO);
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
         cond.tpSrcInv = true;
         Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
         cond.tpSrcInv = false;
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
-        cond.tpSrcRange = new Range<Integer>(45000, Transport.MAX_PORT_NO);
+        cond.tpSrc = new Range<Integer>(45000, Transport.MAX_PORT_NO);
         Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
         cond.tpSrcInv = true;
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
         cond.tpSrcInv = false;
         Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
-        cond.tpSrcRange = new Range<Integer>(35000, 45000);
+        cond.tpSrc = new Range<Integer>(35000, 45000);
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
         cond.tpSrcInv = true;
         Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
         cond.tpSrcInv = false;
-        cond.tpSrcRange = new Range<Integer>(0, Transport.MAX_PORT_NO);
+        cond.tpSrc = new Range<Integer>(0, Transport.MAX_PORT_NO);
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
     }
 
@@ -316,24 +316,24 @@ public class TestCondition {
         Condition cond = new Condition();
         fwdInfo.inPortId = UUID.randomUUID();
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
-        cond.tpDstRange = new Range<Integer>(1235, Transport.MAX_PORT_NO);
+        cond.tpDst = new Range<Integer>(1235, Transport.MAX_PORT_NO);
         Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
         cond.tpDstInv = true;
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
         cond.tpDstInv = false;
-        cond.tpDstRange = new Range<Integer>(1233, Transport.MAX_PORT_NO);
+        cond.tpDst = new Range<Integer>(1233, Transport.MAX_PORT_NO);
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
         cond.tpDstInv = true;
         Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
         cond.tpDstInv = false;
-        cond.tpDstRange = new Range<Integer>(1233, 1233);
+        cond.tpDst = new Range<Integer>(1233, 1233);
         Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
-        cond.tpDstRange = new Range<Integer>(1233, 1234);
+        cond.tpDst = new Range<Integer>(1233, 1234);
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
         cond.tpDstInv = true;
         Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
         cond.tpDstInv = false;
-        cond.tpDstRange = new Range<Integer>(0, 1234);
+        cond.tpDst = new Range<Integer>(0, 1234);
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
     }
 
@@ -344,24 +344,24 @@ public class TestCondition {
         Condition cond = new Condition();
         fwdInfo.inPortId = UUID.randomUUID();
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
-        cond.tpDstRange = new Range<Integer>(40000, Transport.MAX_PORT_NO);
+        cond.tpDst = new Range<Integer>(40000, Transport.MAX_PORT_NO);
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
         cond.tpDstInv = true;
         Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
         cond.tpDstInv = false;
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
-        cond.tpDstRange = new Range<Integer>(55000, Transport.MAX_PORT_NO);
+        cond.tpDst = new Range<Integer>(55000, Transport.MAX_PORT_NO);
         Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
         cond.tpDstInv = true;
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
         cond.tpDstInv = false;
         Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
-        cond.tpDstRange = new Range<Integer>(45000, 55000);
+        cond.tpDst = new Range<Integer>(45000, 55000);
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
         cond.tpDstInv = true;
         Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
         cond.tpDstInv = false;
-        cond.tpDstRange = new Range<Integer>(0, Transport.MAX_PORT_NO);
+        cond.tpDst = new Range<Integer>(0, Transport.MAX_PORT_NO);
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
     }
 
@@ -418,9 +418,9 @@ public class TestCondition {
         ids.add(UUID.randomUUID());
         cond.inPortIds = ids;
         cond.portGroup = UUID.randomUUID();
-        cond.tpSrcRange = new Range<Integer>(40000, 41000);
+        cond.tpSrc = new Range<Integer>(40000, 41000);
         cond.tpSrcInv = false;
-        cond.tpDstRange = new Range<Integer>(42000, 43000);
+        cond.tpDst = new Range<Integer>(42000, 43000);
         cond.tpDstInv = true;
         cond.dlType = 0x86DD;
 
