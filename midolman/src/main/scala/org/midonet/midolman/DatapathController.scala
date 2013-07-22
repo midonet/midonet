@@ -981,14 +981,18 @@ class DatapathController() extends Actor with ActorLogging with
                 dpState.updateVports(
                     dpState.vportManager.datapathPortRemoved(p.getName))
 
-            case PortNetdevOpReply(p, PortOperation.Create, _, ex, tag) => {
+            case PortNetdevOpReply(p, PortOperation.Create, false, ex, tag)  if (ex != null) =>
                 log.warning("port {} creation failed: OVS returned {}",
                     p, ex.getErrorCodeEnum)
                 // This will make the vport manager retry the create operation
                 // the next time the interfaces are scanned (2 secs).
                 if (ex.getErrorCodeEnum == ErrorCode.EBUSY)
                     dpState.updateVports(dpState.vportManager.datapathPortForget(p))
-            }
+
+            case PortNetdevOpReply(p, PortOperation.Create, timeout, ex, tag) =>
+                log.warning("UNHANDLED port {} creation op reply: " +
+                            "OVS returned {}, timeout: {}, ex: {}, tag:{}",
+                            p, timeout, ex, tag)
 
             //            case PortInternalOpReply(_,_,_,_,_) =>
             //            case TunnelPatchOpReply(_,_,_,_,_) =>
