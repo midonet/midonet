@@ -20,6 +20,14 @@ When a new packet is not matched by the flows installed insde the kernel datapat
 it will sent to the datapath via a software installed callback. The following is
 the flow of the processing of a packet in.
 
+#### Fragmented packets
+
+Fragmented packets will be dropped by Midolman when they traverse a
+virtual device that reads from any L4 field in the WildcardMatch (e.g.:
+NAT).  This check is done in the Coordinator, after the simulation has
+been executed. When a first fragment is dropped, an `ICMP_FRAG_NEEDED`
+error will also be sent back to the packet's sender.
+
 #### FlowController (packet-in code path)
 
 The actor will post itself a *PacketIn(Packet)* message via a callback installed
