@@ -46,6 +46,7 @@ public class WildcardMatchTest {
         assertThat(wmatch.getUsedFields(), hasSize(1));
         assertThat(wmatch.getUsedFields(),
             contains(WildcardMatch.Field.EthernetDestination));
+        Assert.assertEquals(wmatch.highestLayerSeen(), 2);
     }
 
     @Test
@@ -58,6 +59,7 @@ public class WildcardMatchTest {
         assertThat(wmatch.getUsedFields(), hasSize(1));
         assertThat(wmatch.getUsedFields(),
             contains(WildcardMatch.Field.EthernetSource));
+        Assert.assertEquals(wmatch.highestLayerSeen(), 2);
     }
 
     @Test
@@ -69,6 +71,7 @@ public class WildcardMatchTest {
         assertThat(wmatch.getUsedFields(), hasSize(1));
         assertThat(wmatch.getUsedFields(),
             contains(WildcardMatch.Field.EtherType));
+        Assert.assertEquals(wmatch.highestLayerSeen(), 2);
     }
 
     @Test
@@ -102,6 +105,7 @@ public class WildcardMatchTest {
         assertThat(wmatch.getUsedFields(), hasSize(1));
         assertThat(wmatch.getUsedFields(),
             contains(WildcardMatch.Field.TransportDestination));
+        Assert.assertEquals(wmatch.highestLayerSeen(), 4);
     }
 
     @Test
@@ -113,6 +117,7 @@ public class WildcardMatchTest {
         assertThat(wmatch.getUsedFields(), hasSize(1));
         assertThat(wmatch.getUsedFields(),
                 contains(WildcardMatch.Field.TransportDestination));
+        Assert.assertEquals(wmatch.highestLayerSeen(), 4);
     }
 
     @Test
@@ -124,6 +129,7 @@ public class WildcardMatchTest {
         assertThat(wmatch.getUsedFields(), hasSize(1));
         assertThat(wmatch.getUsedFields(),
             contains(WildcardMatch.Field.TransportSource));
+        Assert.assertEquals(wmatch.highestLayerSeen(), 4);
     }
 
     @Test
@@ -134,7 +140,8 @@ public class WildcardMatchTest {
         Assert.assertEquals(tpSource, wmatch.getTransportSource());
         assertThat(wmatch.getUsedFields(), hasSize(1));
         assertThat(wmatch.getUsedFields(),
-                contains(WildcardMatch.Field.TransportSource));
+               contains(WildcardMatch.Field.TransportSource));
+        Assert.assertEquals(wmatch.highestLayerSeen(), 4);
     }
 
     @Test
@@ -149,6 +156,7 @@ public class WildcardMatchTest {
         assertThat(wmatch.getUsedFields(), hasSize(1));
         assertThat(wmatch.getUsedFields(),
             contains(WildcardMatch.Field.NetworkDestination));
+        Assert.assertEquals(wmatch.highestLayerSeen(), 3);
     }
 
     @Test
@@ -162,6 +170,7 @@ public class WildcardMatchTest {
         assertThat(wmatch.getUsedFields(), hasSize(1));
         assertThat(wmatch.getUsedFields(),
                 contains(WildcardMatch.Field.NetworkDestination));
+        Assert.assertEquals(wmatch.highestLayerSeen(), 3);
     }
 
     @Test
@@ -176,6 +185,7 @@ public class WildcardMatchTest {
         assertThat(wmatch.getUsedFields(), hasSize(1));
         assertThat(wmatch.getUsedFields(),
             contains(WildcardMatch.Field.NetworkSource));
+        Assert.assertEquals(wmatch.highestLayerSeen(), 3);
     }
 
     @Test
@@ -189,6 +199,7 @@ public class WildcardMatchTest {
         assertThat(wmatch.getUsedFields(), hasSize(1));
         assertThat(wmatch.getUsedFields(),
                 contains(WildcardMatch.Field.NetworkSource));
+        Assert.assertEquals(wmatch.highestLayerSeen(), 3);
     }
 
     @Test
@@ -283,4 +294,18 @@ public class WildcardMatchTest {
         Assert.assertEquals(m1.getUsedFields(), m2.getUsedFields());
         Assert.assertTrue(m.containsKey(m2.getUsedFields()));
     }
+
+    @Test
+    public void testHighestLayerUsed() {
+        WildcardMatch m = new WildcardMatch();
+        Assert.assertEquals(m.highestLayerSeen(), 0);
+        m.getEthernetSource();
+        Assert.assertEquals(m.highestLayerSeen(), 2);
+        m.getTransportDestinationObject();
+        Assert.assertEquals(m.highestLayerSeen(), 4);
+        m.getNetworkSourceIP();
+        m.getNetworkTTL();
+        Assert.assertEquals(m.highestLayerSeen(), 4);
+    }
+
 }
