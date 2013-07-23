@@ -12,7 +12,7 @@ import java.lang.annotation.ElementType;
  * Annotation to denote version that a given field is valid Since.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.FIELD })
+@Target({ ElementType.FIELD, ElementType.METHOD })
 public @interface Until {
     String value() default "";
 }
