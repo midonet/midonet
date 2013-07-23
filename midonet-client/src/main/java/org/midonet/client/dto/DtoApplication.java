@@ -21,6 +21,7 @@ public class DtoApplication {
     private URI portGroups;
     private URI routers;
     private URI traces;
+    private URI tenants;
     private String adRouteTemplate;
     private String bgpTemplate;
     private String bridgeTemplate;
@@ -51,8 +52,16 @@ public class DtoApplication {
         this.uri = uri;
     }
 
+    public URI getTenants() {
+        return tenants;
+    }
+
     public URI getBridges() {
         return bridges;
+    }
+
+    public void setTenants(URI tenants) {
+        this.tenants = tenants;
     }
 
     public void setBridges(URI bridges) {

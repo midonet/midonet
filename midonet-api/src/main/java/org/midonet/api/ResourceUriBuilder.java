@@ -18,6 +18,7 @@ import java.util.UUID;
 public class ResourceUriBuilder {
 
     public static final String ROOT = "/";
+    public static final String TENANTS = "/tenants";
     public static final String ROUTERS = "/routers";
     public static final String VLAN_BRIDGES = "/vlan_bridges";
     public static final String BRIDGES = "/bridges";
@@ -53,6 +54,10 @@ public class ResourceUriBuilder {
 
     public static URI getRoot(URI baseUri) {
         return UriBuilder.fromUri(baseUri).path(ROOT).build();
+    }
+
+    public static URI getTenants(URI baseUri) {
+        return UriBuilder.fromUri(baseUri).path(TENANTS).build();
     }
 
     public static URI getRouters(URI baseUri) {
@@ -537,7 +542,8 @@ public class ResourceUriBuilder {
      * @return Trace conditions URI
      */
     public static URI getTraceConditions(URI baseUri) {
-        return UriBuilder.fromUri(getRoot(baseUri)).path(TRACE_CONDITIONS).build();
+        return UriBuilder.fromUri(getRoot(baseUri)).path(
+                TRACE_CONDITIONS).build();
     }
 
     /**

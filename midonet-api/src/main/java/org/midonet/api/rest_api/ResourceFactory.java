@@ -3,6 +3,7 @@
  */
 package org.midonet.api.rest_api;
 
+import org.midonet.api.auth.rest_api.TenantResource;
 import org.midonet.api.filter.rest_api.RuleResource;
 import org.midonet.api.host.rest_api.*;
 import org.midonet.api.network.rest_api.*;
@@ -25,6 +26,8 @@ import java.util.UUID;
  * Resource factory used by Guice to inject resource classes.
  */
 public interface ResourceFactory {
+
+    TenantResource getTenantResource();
 
     RouterResource getRouterResource();
 
