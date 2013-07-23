@@ -2049,4 +2049,16 @@ public class LocalDataClientImpl implements DataClient {
             traceMessageCache.delete(key);
         }
     }
+
+    /**
+     * Gets all the tenants stored in the data store.
+     *
+     * @return Set containing tenant IDs
+     * @throws StateAccessException
+     * @throws SerializationException
+     */
+    @Override
+    public Set<String> tenantsGetAll() throws StateAccessException {
+        return tenantZkManager.list();
+    }
 }

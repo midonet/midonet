@@ -3,20 +3,18 @@
  */
 package org.midonet.midolman.state.zkManagers;
 
-import org.midonet.midolman.serialization.Serializer;
-import org.midonet.midolman.state.AbstractZkManager;
-import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.PathBuilder;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.ZkManager;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs;
+import org.midonet.midolman.serialization.Serializer;
+import org.midonet.midolman.state.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 
 /**
@@ -64,5 +62,21 @@ public class TenantZkManager extends AbstractZkManager {
         }
 
         return ops;
+    }
+
+    /**
+     * Gets a list of all tenants.
+     *
+     * @return Set containing tenant IDs
+     * @throws StateAccessException
+     */
+    public Set<String> list() throws StateAccessException {
+
+        String tenantsPath = paths.getTenantsPath();
+        if (zk.exists(tenantsPath)) {
+            return zk.getChildren(tenantsPath);
+        } else {
+            return new HashSet<String>();
+        }
     }
 }
