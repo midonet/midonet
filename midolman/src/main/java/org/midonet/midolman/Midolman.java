@@ -57,6 +57,7 @@ public class Midolman {
         properties.load(
             getClass().getClassLoader().getResourceAsStream("git.properties"));
         log.info("main start -------------------------");
+        log.info("git describe: {}", properties.get("git.commit.id.describe"));
         log.info("branch: {}", properties.get("git.branch"));
         log.info("commit.time: {}", properties.get("git.commit.time"));
         log.info("commit.id: {}", properties.get("git.commit.id"));
