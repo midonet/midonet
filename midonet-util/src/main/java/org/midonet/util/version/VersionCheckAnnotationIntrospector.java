@@ -61,15 +61,7 @@ public class VersionCheckAnnotationIntrospector
         }
     }
 
-    /**
-     * returns false if we want to serialize the field,
-     * true if we want to filter it out.
-     */
-    @Override
-    public boolean isIgnorableField(AnnotatedField field) {
-        Since s = field.getAnnotation(Since.class);
-        Until u = field.getAnnotation(Until.class);
-
+    private boolean isIgnorable(Since s, Until u) {
         // Check if version is before Since
         if (s != null && compare(s.value(), this.runningVersion) > 0) {
             return true;
@@ -79,6 +71,27 @@ public class VersionCheckAnnotationIntrospector
             return true;
         }
         return false;
+    }
+
+    /**
+     * returns false if we want to serialize the field,
+     * true if we want to filter it out.
+     */
+    @Override
+    public boolean isIgnorableField(AnnotatedField field) {
+        Since s = field.getAnnotation(Since.class);
+        Until u = field.getAnnotation(Until.class);
+
+        return isIgnorable(s, u);
+    }
+
+    @Override
+    public boolean isIgnorableMethod(AnnotatedMethod method) {
+
+        Since s = method.getAnnotation(Since.class);
+        Until u = method.getAnnotation(Until.class);
+
+        return isIgnorable(s, u);
     }
 
     /**
