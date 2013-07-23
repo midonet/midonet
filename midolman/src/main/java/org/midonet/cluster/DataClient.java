@@ -568,4 +568,12 @@ public interface DataClient {
     List<String> packetTraceGet(UUID traceId);
 
     void packetTraceDelete(UUID traceId);
+
+    /**
+     * Get tenants
+     *
+     * @return Set of tenant IDs
+     * @throws StateAccessException
+     */
+    Set<String> tenantsGetAll() throws StateAccessException;
 }
