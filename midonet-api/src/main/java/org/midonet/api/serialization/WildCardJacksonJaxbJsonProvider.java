@@ -6,15 +6,8 @@
 package org.midonet.api.serialization;
 
 import com.google.inject.Inject;
-import org.codehaus.jackson.annotate.JsonAutoDetect;
-import org.codehaus.jackson.map.AnnotationIntrospector;
-import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.SerializationConfig;
-import org.codehaus.jackson.map.introspect.JacksonAnnotationIntrospector;
-import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
 import org.midonet.api.version.VersionParser;
-import org.midonet.util.version.VersionCheckAnnotationIntrospector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,42 +32,16 @@ public class WildCardJacksonJaxbJsonProvider
     private final static Logger log =
             LoggerFactory.getLogger(WildCardJacksonJaxbJsonProvider.class);
 
-    private static ConcurrentHashMap<Integer, ObjectMapper> mapperMap =
-            new ConcurrentHashMap<Integer, ObjectMapper>();
-
     private VersionParser versionParser;
+    private ObjectMapperProvider objectMapperProvider;
 
     @Inject
-    public WildCardJacksonJaxbJsonProvider(VersionParser versionParser) {
+    public WildCardJacksonJaxbJsonProvider(
+            ObjectMapperProvider objectMapperProvider,
+            VersionParser versionParser) {
         super();
         this.versionParser = versionParser;
-    }
-
-    private ObjectMapper getMapper(int version, Class<?> type,
-                                         MediaType mediaType) {
-
-        ObjectMapper mapper = new ObjectMapper();
-        JacksonAnnotationIntrospector jackIntr =
-                new JacksonAnnotationIntrospector();
-        JaxbAnnotationIntrospector jaxbIntro =
-                new JaxbAnnotationIntrospector();
-        VersionCheckAnnotationIntrospector introspector =
-                new VersionCheckAnnotationIntrospector(
-                        Integer.toString(version));
-
-        AnnotationIntrospector defPair =
-                AnnotationIntrospector.pair(jackIntr, jaxbIntro);
-        AnnotationIntrospector versionPair =
-                AnnotationIntrospector.pair(defPair, introspector);
-
-        mapper.configure(DeserializationConfig.Feature
-                .FAIL_ON_UNKNOWN_PROPERTIES, false)
-                .setAnnotationIntrospector(versionPair)
-                .setVisibilityChecker(mapper.getVisibilityChecker()
-                        .withFieldVisibility(
-                                JsonAutoDetect.Visibility.ANY));
-
-        return mapper;
+        this.objectMapperProvider = objectMapperProvider;
     }
 
     /**
@@ -101,11 +68,6 @@ public class WildCardJacksonJaxbJsonProvider
 
         log.debug("WildCardJacksonJaxbJsonProvider.locateMapper exiting:" +
                 " version=" + version);
-        ObjectMapper mapper = mapperMap.get(version);
-        if (mapper == null) {
-            mapper = getMapper(version, type, mediaType);
-            mapperMap.putIfAbsent(version, mapper);
-        }
-        return mapper;
+        return objectMapperProvider.get(version, mediaType);
     }
 }
