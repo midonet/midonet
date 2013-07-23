@@ -243,7 +243,8 @@ public class DefaultInterfaceDataUpdaterTest {
         InterfaceDescription... descriptions)
             throws StateAccessException, SerializationException {
 
-        updater.updateInterfacesData(hostID, metadata, descriptions);
+        updater.updateInterfacesData(
+            hostID, metadata, Arrays.asList(descriptions));
 
         Set<String> interfaces = hostManager.getInterfaces(hostID);
 

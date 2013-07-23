@@ -4,6 +4,7 @@
 package org.midonet.midolman.host.updater;
 
 import java.util.UUID;
+import java.util.List;
 
 import org.midonet.midolman.host.interfaces.InterfaceDescription;
 import org.midonet.midolman.host.state.HostDirectory;
@@ -26,5 +27,5 @@ public interface InterfaceDataUpdater {
      * @param interfaces the list of interface data we wish to use when updating
      */
     void updateInterfacesData(UUID hostID, HostDirectory.Metadata host,
-                              InterfaceDescription ... interfaces);
+                              List<InterfaceDescription> interfaces);
 }

@@ -15,6 +15,7 @@ import java.net.InetAddress;
 import java.util.*;
 
 import static org.midonet.midolman.host.state.HostDirectory.Interface;
+import static org.midonet.midolman.host.state.HostDirectory.Metadata;
 
 public class DefaultInterfaceDataUpdater implements InterfaceDataUpdater {
 
@@ -28,12 +29,11 @@ public class DefaultInterfaceDataUpdater implements InterfaceDataUpdater {
     private Map<String, Interface> previousDescriptions = new HashMap<String, Interface>();
 
     @Override
-    public synchronized void updateInterfacesData(UUID hostID,
-                                                  HostDirectory.Metadata host,
-                                                  InterfaceDescription...
-                                                          descriptions) {
+    public synchronized void updateInterfacesData(UUID hostID, Metadata host,
+            List<InterfaceDescription> descriptions) {
+
         log.debug("Start uploading the interface data ({} entries).",
-                  descriptions.length);
+                  descriptions.size());
 
         Map<String, Interface> currentInterfacesByName =
                 getPreviousDescriptions();
