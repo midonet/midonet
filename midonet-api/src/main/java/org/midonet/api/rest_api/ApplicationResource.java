@@ -7,16 +7,17 @@ package org.midonet.api.rest_api;
 import com.google.inject.Inject;
 import com.google.inject.servlet.RequestScoped;
 import org.midonet.api.Application;
-import org.midonet.api.VendorMediaType;
-import org.midonet.api.filter.rest_api.RuleResource;
-import org.midonet.api.host.rest_api.HostResource;
-import org.midonet.api.network.rest_api.*;
 import org.midonet.api.ResourceUriBuilder;
+import org.midonet.api.VendorMediaType;
+import org.midonet.api.auth.rest_api.TenantResource;
 import org.midonet.api.bgp.rest_api.AdRouteResource;
 import org.midonet.api.bgp.rest_api.BgpResource;
 import org.midonet.api.filter.rest_api.ChainResource;
+import org.midonet.api.filter.rest_api.RuleResource;
+import org.midonet.api.host.rest_api.HostResource;
 import org.midonet.api.host.rest_api.TunnelZoneResource;
 import org.midonet.api.monitoring.rest_api.MonitoringResource;
+import org.midonet.api.network.rest_api.*;
 import org.midonet.api.tracing.rest_api.TraceConditionResource;
 import org.midonet.api.tracing.rest_api.TraceResource;
 import org.midonet.api.version.Version;
@@ -50,6 +51,17 @@ public class ApplicationResource extends AbstractResource {
         super(config, uriInfo, context);
         this.factory = factory;
     }
+
+    /**
+     * Tenant resource locator.
+     *
+     * @return TenantResource object to handle sub-resource requests.
+     */
+    @Path(ResourceUriBuilder.TENANTS)
+    public TenantResource getTenantResource() {
+        return factory.getTenantResource();
+    }
+
 
     /**
      * Router resource locator.

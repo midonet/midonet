@@ -5,19 +5,20 @@
 package org.midonet.client.dto;
 
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
-import java.net.URI;
 
 @XmlRootElement
 public class DtoTenant {
 
     private String id;
-    private URI bridges;
-    private URI routers;
-    private URI chains;
-    private URI portGroups;
-    @XmlTransient
-    private URI uri;
+    private String name;
+
+    public DtoTenant(){
+    }
+
+    public DtoTenant(String id, String name) {
+        this.id = id;
+        this.name = name;
+    }
 
     public String getId() {
         return id;
@@ -27,44 +28,30 @@ public class DtoTenant {
         this.id = id;
     }
 
-    public URI getBridges() {
-        return bridges;
+    public String getName() {
+        return name;
     }
 
-    public void setBridges(URI bridges) {
-        this.bridges = bridges;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public URI getRouters() {
-        return routers;
-    }
+    @Override
+    public boolean equals(Object other) {
 
-    public void setRouters(URI routers) {
-        this.routers = routers;
-    }
+        if (other == null) return false;
+        if (other == this) return true;
 
-    public URI getChains() {
-        return chains;
-    }
+        DtoTenant otherTenant = (DtoTenant) other;
+        if (!otherTenant.getId().equals(this.id)) {
+             return false;
+        }
 
-    public void setChains(URI chains) {
-        this.chains = chains;
-    }
+        if (!otherTenant.getName().equals(this.name)) {
+            return false;
+        }
 
-    public URI getPortGroups() {
-        return portGroups;
-    }
-
-    public void setPortGroups(URI portGroups) {
-        this.portGroups = portGroups;
-    }
-
-    public URI getUri() {
-        return uri;
-    }
-
-    public void setUri(URI uri) {
-        this.uri = uri;
+        return true;
     }
 
 }
