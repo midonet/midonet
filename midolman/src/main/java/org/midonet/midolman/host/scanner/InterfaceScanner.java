@@ -23,7 +23,7 @@ public interface InterfaceScanner {
      *
      * @return list of interfaces
      */
-    InterfaceDescription[] scanInterfaces();
+    List<InterfaceDescription> scanInterfaces();
 
     void scanInterfaces(Callback<List<InterfaceDescription>> callback);
 
