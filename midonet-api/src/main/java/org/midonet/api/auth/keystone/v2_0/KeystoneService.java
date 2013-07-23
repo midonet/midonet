@@ -14,6 +14,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.List;
 import java.util.TimeZone;
 
 /**
@@ -113,6 +114,20 @@ public class KeystoneService implements AuthService {
         return token;
     }
 
+    private int parseLimit(HttpServletRequest request) {
+        String limit = request.getParameter(KeystoneClient.LIMIT_QUERY);
+        if (StringUtil.isNullOrEmpty(limit)) {
+            return 0;
+        }
+
+        try {
+            return Integer.parseInt(limit);
+        } catch (RuntimeException ex) {
+            log.warn("Invalid limit value passed in: " + limit);
+            return 0;
+        }
+    }
+
     @Override
     public UserIdentity getUserIdentityByToken(String token)
             throws AuthException {
@@ -132,7 +147,7 @@ public class KeystoneService implements AuthService {
 
     @Override
     public Token login(String username, String password,
-                           HttpServletRequest request)
+                       HttpServletRequest request)
             throws AuthException {
 
         // For Keystone, since we need a scoped token, project is required.
@@ -150,5 +165,40 @@ public class KeystoneService implements AuthService {
 
         // Return the token
         return getToken(access);
+    }
+
+    /**
+     * Gets a list of tenants from the Keystone identity service, and returns
+     * the result in a list of {@link Tenant} objects.
+     *
+     * @param request Keystone API v2.0 accepts the following query string
+     *                parameters:
+     *                <ul>
+     *                <li>marker: ID of the last tenant in the previous request.
+     *                The result set from this request starts from the tenant
+     *                whose ID is after this one.</li>
+     *                <li>limit: Number of tenants to fetch.</li>
+     *                </ul>
+     *                All other request fields are ignored.
+     * @return  A list of {@link Tenant} objects representing the tenants in
+     *          Keystone.
+     * @throws AuthException
+     */
+    @Override
+    public List<Tenant> getTenants(HttpServletRequest request)
+            throws AuthException {
+        log.debug("KeystoneService.getTenants entered.  Request: " + request);
+
+        // Parse out marker and limit
+        String marker = request.getParameter(KeystoneClient.MARKER_QUERY);
+        int limit = parseLimit(request);
+
+        KeystoneTenantList tenantList = client.getTenants(marker, limit);
+
+        log.debug("KeystoneService.getTenants exiting.  "
+                + tenantList.getTenants().size()
+                + " tenants found with marker = " + marker + ", limit = ",
+                + limit);
+        return (List<Tenant>) tenantList.get();
     }
 }

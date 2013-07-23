@@ -8,14 +8,19 @@ import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
+import org.midonet.api.auth.Tenant;
 import org.midonet.api.auth.keystone.KeystoneBadCredsException;
 import org.midonet.api.auth.keystone.KeystoneConnectionException;
 import org.midonet.api.auth.keystone.KeystoneServerException;
+import org.midonet.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Keystone Client V2.0
@@ -31,6 +36,8 @@ public class KeystoneClient {
     private final String adminToken;
 
     public static final String KEYSTONE_TOKEN_HEADER_KEY = "X-Auth-Token";
+    public static final String MARKER_QUERY = "marker";
+    public static final String LIMIT_QUERY = "limit";
 
     @Inject
     public KeystoneClient(String host, int port, String protocol,
@@ -68,13 +75,16 @@ public class KeystoneClient {
                 .toString();
     }
 
+    private String getTenantsUrl() {
+        return new StringBuilder(getServiceUrl()).append("/tenants").toString();
+    }
+
     public KeystoneAccess createToken(KeystoneAuthCredentials credentials)
             throws KeystoneServerException, KeystoneConnectionException,
             KeystoneBadCredsException {
 
         Client client = Client.create();
-        String uri = getTokensUrl();
-        WebResource resource = client.resource(uri);
+        WebResource resource = client.resource(getTokensUrl());
 
         try {
             return resource.type(MediaType.APPLICATION_JSON)
@@ -99,7 +109,8 @@ public class KeystoneClient {
             }
         } catch (ClientHandlerException e) {
             throw new KeystoneConnectionException(
-                    "Could not connect to Keystone server. Uri=" + uri, e);
+                    "Could not connect to Keystone server. Uri="
+                            + resource.getURI(), e);
         }
     }
 
@@ -107,8 +118,7 @@ public class KeystoneClient {
             KeystoneConnectionException {
 
         Client client = Client.create();
-        String uri = getTokensUrl(token);
-        WebResource resource = client.resource(uri);
+        WebResource resource = client.resource(getTokensUrl(token));
 
         try {
             return resource.accept(MediaType.APPLICATION_JSON)
@@ -125,8 +135,57 @@ public class KeystoneClient {
                     e.getResponse().getStatus());
         } catch (ClientHandlerException e) {
             throw new KeystoneConnectionException(
-                    "Could not connect to Keystone server. Uri=" + uri, e);
+                    "Could not connect to Keystone server. Uri="
+                            + resource.getURI(), e);
         }
 
+    }
+
+    /**
+     * Retrieves from Keystone server a list of tenants from the given optional
+     * marker and limit values.  The marker and limit values are appended to
+     * the actual HTTP request to Keystone as query string parameters.  The
+     * return object of {@link KeystoneTenantList} represents the response body
+     * from the Keystone API containing the tenant list.
+     *
+     * @param marker The ID of the tenant fetched in the previous request.
+     *               The returned list will start from the tenant after the
+     *               tenant with this ID.  A null and empty values are ignored.
+     * @param limit  The number of tenants to fetch.  Must be greater than 0.
+     *               This field is ignored if the value is less than 1.
+     * @return {@link KeystoneTenantList} object, representing the response from
+     *         the Keystone API.
+     * @throws KeystoneServerException
+     * @throws KeystoneConnectionException
+     */
+    public KeystoneTenantList getTenants(String marker, int limit)
+            throws KeystoneServerException, KeystoneConnectionException {
+        log.debug("KeystoneClient.getTenants: entered marker=" + marker +
+                ", limit=" + limit);
+
+        Client client = Client.create();
+        WebResource resource = client.resource(getTenantsUrl());
+
+        if (!StringUtil.isNullOrEmpty(marker)) {
+            resource = resource.queryParam(MARKER_QUERY, marker);
+        }
+
+        if (limit > 0) {
+            resource = resource.queryParam(LIMIT_QUERY,
+                    Integer.toString(limit));
+        }
+
+        try {
+            return resource.accept(MediaType.APPLICATION_JSON)
+                    .header(KEYSTONE_TOKEN_HEADER_KEY, this.adminToken)
+                    .get(KeystoneTenantList.class);
+        } catch (UniformInterfaceException e) {
+            throw new KeystoneServerException("Keystone server error.", e,
+                    e.getResponse().getStatus());
+        } catch (ClientHandlerException e) {
+            throw new KeystoneConnectionException(
+                    "Could not connect to Keystone server. Uri="
+                            + resource.getURI(), e);
+        }
     }
 }

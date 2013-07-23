@@ -13,6 +13,7 @@ import org.midonet.api.auth.cloudstack.CloudStackJsonParser;
 import org.midonet.api.auth.keystone.v2_0.KeystoneClient;
 import org.midonet.api.auth.keystone.KeystoneConfig;
 import org.midonet.api.auth.keystone.v2_0.KeystoneService;
+import org.midonet.cluster.DataClient;
 import org.midonet.config.ConfigProvider;
 
 /**
@@ -21,10 +22,12 @@ import org.midonet.config.ConfigProvider;
 public class AuthServiceProvider implements Provider<AuthService> {
 
     private final ConfigProvider provider;
+    private final DataClient dataClient;
 
     @Inject
-    public AuthServiceProvider(ConfigProvider provider) {
+    public AuthServiceProvider(ConfigProvider provider, DataClient dataClient) {
         this.provider = provider;
+        this.dataClient = dataClient;
     }
 
     @Override
@@ -69,7 +72,7 @@ public class AuthServiceProvider implements Provider<AuthService> {
         } else if (clazz == MockAuthService.class) {
             MockAuthConfig mockAuthConfig = provider.getConfig(
                     MockAuthConfig.class);
-            return new MockAuthService(mockAuthConfig);
+            return new MockAuthService(mockAuthConfig, dataClient);
         } else {
             try {
                 // Try instantiating with no parameter

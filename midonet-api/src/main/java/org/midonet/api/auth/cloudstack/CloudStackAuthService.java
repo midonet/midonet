@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 /**
  * CloudStackAuthService Client.
@@ -84,4 +85,11 @@ public class CloudStackAuthService implements AuthService {
         throw new UnsupportedOperationException("Cloudstack auth does not " +
                 "support login.");
     }
- }
+
+    @Override
+    public List<Tenant> getTenants(HttpServletRequest request)
+            throws AuthException {
+        throw new UnsupportedOperationException("Cloudstack auth does not " +
+                "support getTenants.");
+    }
+}
