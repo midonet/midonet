@@ -300,6 +300,12 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
+    public void ensureBridgeHasVlanDirectory(@Nonnull UUID bridgeId)
+            throws StateAccessException {
+        bridgeZkManager.ensureBridgeHasVlanDirectory(bridgeId);
+    }
+
+    @Override
     public void bridgeAddMacPort(
         @Nonnull UUID bridgeId, @Nonnull MAC mac, @Nonnull UUID portId)
             throws StateAccessException {

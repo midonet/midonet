@@ -143,6 +143,51 @@ public class ZkPathManager {
     }
 
     /**
+     * Get the path of VLANs under a bridge.
+     *
+     * @param id Bridge UUID
+     * @return /bridges/bridgeId/vlans
+     */
+    public String getBridgeVlansPath(UUID id) {
+        return buildBridgeVlansPath(id).toString();
+    }
+
+    protected StringBuilder buildBridgeVlansPath(UUID id) {
+        return buildBridgePath(id).append("/vlans");
+    }
+
+    /**
+     * Get the path of a specific VLAN under a bridge.
+     *
+     * @param id Bridge UUID
+     * @param vlanId Vlan Short
+     * @return /bridges/bridgeId/vlans/vlanId
+     */
+    public String getBridgeVlanPath(UUID id, Short vlanId) {
+        return buildBridgeVlanPath(id, vlanId).toString();
+    }
+
+    protected StringBuilder buildBridgeVlanPath(UUID id, Short vlanId) {
+        return buildBridgeVlansPath(id).append("/").append(vlanId);
+    }
+
+    /**
+     * Get the path of a bridge's dynamic filtering database (mac to ports map)
+     * for a specific VLAN.
+     *
+     * @param id Bridge UUID
+     * @param vlanId Vlan Short
+     * @return /bridges/bridgeId/vlans/vlanId/mac_ports
+     */
+    public String getBridgeVlanMacPortsPath(UUID id, Short vlanId) {
+        return buildBridgeVlanMacPortsPath(id, vlanId).toString();
+    }
+
+    protected StringBuilder buildBridgeVlanMacPortsPath(UUID id, Short vlanId) {
+        return buildBridgeVlanPath(id, vlanId).append("/mac_ports");
+    }
+
+    /**
      +     * Get the path of a bridge's arp table.
      +     *
      +     * @param id Bridge UUID

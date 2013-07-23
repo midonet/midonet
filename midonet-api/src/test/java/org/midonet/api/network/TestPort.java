@@ -308,6 +308,46 @@ public class TestPort {
         }
 
         @Test
+        public void testCrudBridgePortSameVLAN() {
+
+            // Get the bridge and chains
+            DtoBridge b = topology.getBridge("bridge1");
+            DtoRuleChain c1 = topology.getChain("chain1");
+            DtoRuleChain c2 = topology.getChain("chain2");
+
+            // Create an Interior bridge port
+            DtoInteriorBridgePort b1Lp1 = new DtoInteriorBridgePort();
+            short vlanId = 2727;
+            b1Lp1.setDeviceId(b.getId());
+            b1Lp1.setVlanId(vlanId);
+            b1Lp1 = dtoResource.postAndVerifyCreated(b.getPorts(),
+                    APPLICATION_PORT_JSON, b1Lp1, DtoInteriorBridgePort.class);
+
+            // This test can't be used because MockDirectory.multi doesn't handle failed ops
+
+            // Create another Interior bridge port with same VLAN, should fail
+            //DtoInteriorBridgePort b1Lp2 = new DtoInteriorBridgePort();
+            //b1Lp2.setDeviceId(b.getId());
+            //b1Lp2.setVlanId(vlanId);
+            //dtoResource.postAndVerifyBadRequest(b.getPorts(),
+            //        APPLICATION_PORT_JSON, b1Lp2);
+
+            // Delete the initial port
+            dtoResource.deleteAndVerifyNoContent(b1Lp1.getUri(),
+                    APPLICATION_PORT_JSON);
+
+            // Should now be able to add a port with same VLAN
+            DtoInteriorBridgePort b1Lp2 = new DtoInteriorBridgePort();
+            b1Lp2.setDeviceId(b.getId());
+            b1Lp2.setVlanId(vlanId);
+            b1Lp2 = dtoResource.postAndVerifyCreated(b.getPorts(),
+                    APPLICATION_PORT_JSON, b1Lp2, DtoInteriorBridgePort.class);
+
+            // Try delete the bridge, test it deletes cleanly
+            dtoResource.deleteAndVerifyNoContent(b.getUri(), APPLICATION_BRIDGE_JSON);
+        }
+
+        @Test
         public void testCrudBridgePort() {
 
             // Get the bridge and chains

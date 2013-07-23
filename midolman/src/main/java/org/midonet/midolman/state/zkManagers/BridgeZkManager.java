@@ -174,6 +174,9 @@ public class BridgeZkManager extends AbstractZkManager {
         ops.add(Op.create(paths.getBridgeTagsPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
+        ops.add(Op.create(paths.getBridgeVlansPath(id), null,
+                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+
         // Add a port-set for this bridge
         ops.add(Op.create(paths.getPortSetPath(id),
                           null, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
@@ -272,6 +275,10 @@ public class BridgeZkManager extends AbstractZkManager {
             ops.addAll(zk.getRecursiveDeleteOps(
                     paths.getBridgeIP4MacMapPath(id)));
 
+        if (zk.exists(paths.getBridgeVlansPath(id))){
+            ops.add(Op.delete(paths.getBridgeVlansPath(id), -1));
+        }
+
         // Delete GRE
         ops.addAll(tunnelZkManager.prepareTunnelDelete(config.tunnelKey));
 
@@ -300,6 +307,22 @@ public class BridgeZkManager extends AbstractZkManager {
         UUID id = UUID.randomUUID();
         zk.multi(prepareBridgeCreate(id, bridge));
         return id;
+    }
+
+    /**
+     * Ensures the bridge has a VLANs directory.
+     * For backwards compatibility with pre-1.2
+     *
+     * @param id
+     *            Bridge ID to check
+     * @return True if VLAN directory exists
+     * @throws StateAccessException
+     */
+    public void ensureBridgeHasVlanDirectory(UUID id)
+            throws StateAccessException {
+        if(!zk.exists(paths.getBridgeVlansPath(id))) {
+            zk.addPersistent(paths.getBridgeVlansPath(id), null);
+        }
     }
 
     /**
