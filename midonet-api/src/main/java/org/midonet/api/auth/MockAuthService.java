@@ -4,12 +4,13 @@
 package org.midonet.api.auth;
 
 import com.google.inject.Inject;
+import org.midonet.cluster.DataClient;
+import org.midonet.midolman.state.StateAccessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Configurable auth client that skips authentication but allows setting of
@@ -21,17 +22,21 @@ public final class MockAuthService implements AuthService {
             .getLogger(MockAuthService.class);
     private final MockAuthConfig config;
     private final Map<String, UserIdentity> tokenMap;
+    private final DataClient dataClient;
 
     /**
      * Create a MockAuthService object.
      *
      * @param config
      *            MockAuthConfig object.
+     * @param dataClient
+     *            {@link DataClient} object to retrieve from data store
      */
     @Inject
-    public MockAuthService(MockAuthConfig config) {
+    public MockAuthService(MockAuthConfig config, DataClient dataClient) {
 
         this.config = config;
+        this.dataClient = dataClient;
         this.tokenMap = new HashMap<String, UserIdentity>();
         String token = config.getAdminToken();
         if (token != null && token.length() > 0) {
@@ -108,5 +113,51 @@ public final class MockAuthService implements AuthService {
     public Token login(String _username, String _password,
                            HttpServletRequest _request) throws AuthException {
         return new Token(this.config.getAdminToken(), null);
+    }
+
+    /**
+     * Gets the tenants stored in data store.
+     *
+     * @param request Servlet request if additional field is needed to retrieve
+     *                tenants.
+     * @return List of Tenant objects
+     * @throws AuthException
+     */
+    @Override
+    public List<Tenant> getTenants(HttpServletRequest request)
+            throws AuthException {
+        List<Tenant> tenantIds = new ArrayList<Tenant>();
+
+        try {
+            Set<String> ids = dataClient.tenantsGetAll();
+            for (String id : ids) {
+                tenantIds.add(new MockTenant(id));
+            }
+
+        } catch (StateAccessException ex) {
+            throw new AuthDataAccessException(
+                    "Data access error while getting tenants", ex);
+        }
+
+        return tenantIds;
+    }
+
+    public static class MockTenant implements Tenant {
+
+        private final String id;
+
+        public MockTenant(String id) {
+            this.id = id;
+        }
+
+        @Override
+        public String getId() {
+            return id;
+        }
+
+        @Override
+        public String getName() {
+            return id;
+        }
     }
 }

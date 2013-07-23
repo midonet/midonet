@@ -3,7 +3,10 @@
  */
 package org.midonet.api.auth;
 
+import org.midonet.midolman.state.StateAccessException;
+
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 /**
  * Interface for auth service.
@@ -33,4 +36,15 @@ public interface AuthService {
     public Token login(String username, String password,
                        HttpServletRequest request)
         throws AuthException;
+
+
+    /**
+     * Get a list of all the Tenant objects in the identity system.
+     *
+     * @param request Servlet request if additional field is needed to retrieve
+     *                tenants.
+     * @return List of Tenant objects
+     */
+    public List<Tenant> getTenants(HttpServletRequest request)
+            throws AuthException;
 }
