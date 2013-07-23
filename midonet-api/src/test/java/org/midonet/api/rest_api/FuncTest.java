@@ -7,6 +7,7 @@ package org.midonet.api.rest_api;
 import com.google.inject.servlet.GuiceFilter;
 import org.midonet.api.auth.AuthConfig;
 import org.midonet.api.auth.cors.CorsConfig;
+import org.midonet.api.serialization.ObjectMapperProvider;
 import org.midonet.api.serialization.WildCardJacksonJaxbJsonProvider;
 import org.midonet.api.servlet.JerseyGuiceServletContextListener;
 import org.midonet.api.version.VersionParser;
@@ -63,7 +64,9 @@ public class FuncTest {
         }
 
         VersionParser parser = new VersionParser();
-        jacksonJaxbJsonProvider = new WildCardJacksonJaxbJsonProvider(parser);
+        ObjectMapperProvider mapperProvider = new ObjectMapperProvider();
+        jacksonJaxbJsonProvider = new WildCardJacksonJaxbJsonProvider(
+                mapperProvider, parser);
         config.getSingletons().add(jacksonJaxbJsonProvider);
 
         return new WebAppDescriptor.Builder()

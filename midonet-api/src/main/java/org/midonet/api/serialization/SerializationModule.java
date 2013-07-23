@@ -22,6 +22,7 @@ public class SerializationModule extends AbstractModule {
         install(new org.midonet.midolman.guice.serialization
                 .SerializationModule());
 
+        bind(ObjectMapperProvider.class).asEagerSingleton();
         bind(WildCardJacksonJaxbJsonProvider.class).asEagerSingleton();
         bind(JsonMappingExceptionMapper.class).asEagerSingleton();
 
