@@ -91,7 +91,7 @@ public class TraceResource extends AbstractResource {
     @RolesAllowed({AuthRole.ADMIN})
     @Produces({VendorMediaType.APPLICATION_JSON,
                   MediaType.APPLICATION_JSON})
-    public Trace getTraceMessages(UUID traceId)
+    public Trace getTraceMessages(@PathParam("id") UUID traceId)
         throws StateAccessException {
 
         Trace trace = new Trace();
@@ -112,7 +112,7 @@ public class TraceResource extends AbstractResource {
     @DELETE
     @Path("{id}")
     @RolesAllowed({AuthRole.ADMIN})
-    public void deleteTrace(UUID traceId)
+    public void deleteTrace(@PathParam("id") UUID traceId)
         throws StateAccessException {
 
         dataClient.packetTraceDelete(traceId);
