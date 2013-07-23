@@ -968,8 +968,8 @@ bridge is the equivalent port type on a virtual bridge.
         <td>Short</td>
         <td>POST</td>
         <td>No</td>
-        <td>A GET against this URI retrieves the vlan-id assigned to this
-        port</td>
+        <td>The vlan-id assigned to this port. On a given bridge, each vlan-id
+            can be present at most in one interior port.</td>
     </tr>
 </table>
 

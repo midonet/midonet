@@ -11,8 +11,10 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
+import org.midonet.cluster.data.Converter;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.AbstractZkManager;
@@ -22,6 +24,8 @@ import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.PortConfig;
 import org.midonet.midolman.state.PortDirectory;
 import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.state.StatePathExistsException;
+import org.midonet.midolman.state.VlanPathExistsException;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.state.zkManagers.TunnelZkManager.TunnelKey;
 import org.slf4j.Logger;
@@ -249,6 +253,17 @@ public class PortZkManager extends AbstractZkManager {
                 paths.getBridgeLogicalPortPath(config.device_id, id),
                 null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
+        // Add VLAN specific MAC learning table if this is a VLAN tagged port
+        Short portVlanId = config.vlanId();
+        if(portVlanId != null){
+            ops.add(Op.create(paths.getBridgeVlanPath(config.device_id,
+                    config.vlanId()), null,
+                    Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+            ops.add(Op.create(paths.getBridgeVlanMacPortsPath(config.device_id,
+                    config.vlanId()), null,
+                    Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+        }
+
         return ops;
     }
 
@@ -315,62 +330,30 @@ public class PortZkManager extends AbstractZkManager {
         }
     }
 
-    public UUID create(PortDirectory.MaterializedBridgePortConfig port, UUID id)
-            throws StateAccessException, SerializationException {
-        zk.multi(prepareCreate(id, port));
-        return id;
-    }
-
-    public UUID create(PortDirectory.LogicalBridgePortConfig port, UUID id)
-            throws StateAccessException, SerializationException {
-        zk.multi(prepareCreate(id, port));
-        return id;
-    }
-
-    public UUID create(PortDirectory.MaterializedBridgePortConfig port)
-            throws StateAccessException, SerializationException {
-        UUID id = UUID.randomUUID();
-        zk.multi(prepareCreate(id, port));
-        return id;
-    }
-
-    public UUID create(PortDirectory.LogicalBridgePortConfig port)
-            throws StateAccessException, SerializationException {
-        UUID id = UUID.randomUUID();
-        zk.multi(prepareCreate(id, port));
-        return id;
-    }
-
-    public UUID create(PortDirectory.MaterializedRouterPortConfig port, UUID id)
-            throws StateAccessException, SerializationException {
-        zk.multi(prepareCreate(id, port));
-        return id;
-    }
-
-    public UUID create(PortDirectory.MaterializedRouterPortConfig port)
-            throws StateAccessException, SerializationException {
-        UUID id = UUID.randomUUID();
-        zk.multi(prepareCreate(id, port));
-        return id;
-    }
-
-    public UUID create(PortDirectory.LogicalRouterPortConfig port, UUID id)
-            throws StateAccessException, SerializationException {
-        zk.multi(prepareCreate(id, port));
-        return id;
-    }
-
-    public UUID create(PortDirectory.LogicalRouterPortConfig port)
-            throws StateAccessException, SerializationException {
-        UUID id = UUID.randomUUID();
-        zk.multi(prepareCreate(id, port));
-        return id;
-    }
-
     public UUID create(PortConfig port) throws StateAccessException,
             SerializationException {
         UUID id = UUID.randomUUID();
-        zk.multi(prepareCreate(id, port));
+        try {
+            zk.multi(prepareCreate(id, port));
+        } catch (StatePathExistsException e) {
+            // Give clearer error in case where bridge interior port
+            // was created with already-existing VLAN
+            if(e.getCause() instanceof KeeperException.NodeExistsException &&
+                    port instanceof PortDirectory.LogicalBridgePortConfig) {
+                KeeperException.NodeExistsException e2 =
+                        (KeeperException.NodeExistsException)e.getCause();
+                PortDirectory.LogicalBridgePortConfig port2 =
+                        (PortDirectory.LogicalBridgePortConfig) port;
+
+                if(e2.getPath().equals(paths.getBridgeVlanPath(
+                        port2.device_id, port2.vlanId))){
+                    throw new VlanPathExistsException("VLAN ID " +
+                            port2.vlanId() +
+                            " already exists on a port on this bridge.", e);
+                }
+            }
+            throw e;
+        }
         return id;
     }
 
@@ -515,6 +498,22 @@ public class PortZkManager extends AbstractZkManager {
         return ops;
     }
 
+    private List<Op> prepareBridgeVlanDelete(UUID id,
+            Short vlanId, PortDirectory.BridgePortConfig config)
+            throws StateAccessException {
+
+        // Delete
+        List<Op> ops = new ArrayList<Op>();
+
+        // The bridge may have been created before the per-VLAN MAC learning
+        // feature was added.
+        String vlanPath = paths.getBridgeVlanPath(id, vlanId);
+        if (zk.exists(vlanPath)) {
+            ops.addAll(zk.getRecursiveDeleteOps(vlanPath));
+        }
+        return ops;
+    }
+
     public List<Op> prepareDelete(UUID id,
             PortDirectory.MaterializedRouterPortConfig config)
             throws StateAccessException, SerializationException {
@@ -592,6 +591,12 @@ public class PortZkManager extends AbstractZkManager {
 
         ops.add(Op.delete(
                 paths.getBridgeLogicalPortPath(config.device_id, id), -1));
+
+        // If the port has a VLAN, delete all VLAN stuff
+        if(config.vlanId() != null){
+            ops.addAll(prepareBridgeVlanDelete(config.device_id, config.vlanId(), config));
+        }
+
         ops.addAll(prepareBridgePortDelete(id, config));
 
         return ops;

@@ -99,6 +99,9 @@ public interface DataClient {
     List<Bridge> bridgesFindByTenant(String tenantId)
             throws StateAccessException, SerializationException;
 
+    void ensureBridgeHasVlanDirectory(@Nonnull UUID bridgeId)
+            throws StateAccessException;
+
     void bridgeAddMacPort(@Nonnull UUID bridgeId, @Nonnull MAC mac,
                           @Nonnull UUID portId)
         throws StateAccessException;
