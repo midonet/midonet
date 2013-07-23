@@ -1,18 +1,16 @@
-# MidoNet API Specification (diyari-v1.0)
+# MidoNet API Specification (v1.1)
 
-#### Table of Contents
-[Introduction](#introduction)
+## Table of Contents
 
-[Getting Started](#getstarted)
-
-[Common Behaviors](#commonbehaviors)
-  * [Media Types](#mediatypes)
-  * [Request Headers](#requestheaders)
-  * [Response Headers](#responseheaders)
-  * [HTTP Status Codes](#statuscodes)
-  * [URI Templates](#uritemplates)
-
-[Resource Models](#resourcemodels)
+* [Introduction](#introduction)
+* [Getting Started](#getstarted)
+* [Common Behaviors](#commonbehaviors)
+* [Media Types](#mediatypes)
+* [Request Headers](#requestheaders)
+* [Response Headers](#responseheaders)
+* [HTTP Status Codes](#statuscodes)
+* [URI Templates](#uritemplates)
+* [Resource Models](#resourcemodels)
   * [Application](#application)
   * [Router](#router)
   * [Bridge](#bridge)
@@ -31,25 +29,24 @@
   * [Interface](#interface)
   * [Host Command](#hostcommand)
   * [Host-Interface-Port Binding](#hostinterfaceport)
+  * [Tenant](#tenant)
   * [Tunnel Zone](#tunnelzone)
   * [Tunnel Zone Host](#tunnelzonehost)
   * [Metric Target](#metrictarget)
   * [Metric](#metric)
   * [Metric Query](#metricquery)
   * [Metric Query Response](#metricqueryresponse)
-  * [Resource Collection](#resourcecollection)
+* [Resource Collection](#resourcecollection)
+* [Authentication/Authorization](#auth)
+* [List of Acronyms](#acronyms)
 
-[Authentication/Authorization](#auth)
-
-[List of Acronyms](#acronyms)
-
-<a name="introduction"/>
-## Introduction
+<a name="introduction"></a>
+## Introduction
 
 This document specifies a RESTful API for creating and managing MidoNet
 resources.  The API uses JSON as its format.
 
-<a name="getstarted"/>
+<a name="getstarted"></a>
 ## Getting Started
 
 This section is intended to help users get started on using the API.  It assumes
@@ -94,13 +91,13 @@ also includes information about the API version.  The URIs with "{id}" in them
 are [URI templates](#uritemplates), and they are explained later in this
 document.
 
-<a name="commonbehaviors"/>
+<a name="commonbehaviors"></a>
 ## Common Behaviors
 
 This section specifies the common constraints that apply to all the requests
 and responses that occur in the MidoNet Management REST API.
 
-<a name="mediatypes"/>
+<a name="mediatypes"></a>
 ### Media Types
 
 In MidoNet REST API, the resources are encoded in JSON, as specified in
@@ -111,7 +108,7 @@ pattern:
 
 where “xxxxx“ represents the unique resource identifier.
 
-<a name="requestheaders"/>
+<a name="requestheaders"></a>
 ### Request Headers
 
 The following HTTP request headers are relevant to MidoNet REST API:
@@ -139,7 +136,7 @@ The following HTTP request headers are relevant to MidoNet REST API:
     </tr>
 </table>
 
-<a name="responseheaders"/>
+<a name="responseheaders"></a>
 ### Response Headers
 
 The following HTTP response headers exist in MidoNet REST API:
@@ -168,7 +165,7 @@ The following HTTP response headers exist in MidoNet REST API:
     </tr>
 </table>
 
-<a name="statuscodes"/>
+<a name="statuscodes"></a>
 ### HTTP Status Codes
 
 The following HTTP status codes are returned from MidoNet REST API:
@@ -242,7 +239,7 @@ The following HTTP status codes are returned from MidoNet REST API:
     </tr>
 </table>
 
-<a name="uritemplates"/>
+<a name="uritemplates"></a>
 ### URI Templates
 
 A URI may contain a part that is left out to the client to fill.  These parts
@@ -267,7 +264,7 @@ what they should be replaced with.
     </tr>
 </table>
 
-<a name="resourcemodels"/>
+<a name="resourcemodels"></a>
 ## Resource Models
 
 This section specifies the representations of the MidoNet REST API resources.
@@ -278,14 +275,15 @@ The POST/PUT column indicates whether the field can be included in the request
 with these verbs.  If they are not specified, the field should not be included
 in the request.
 
-<a name="application"/>
-### Application [application/vnd.org.midonet.Application-v1+json]
+<a name="application"></a>
+### Application
 
     GET     /
 
 This is the root object in MidoNet REST API.  From this object, clients can
 traverse the URIs to discover all the available services.
 
+#### Version 1 [application/vnd.org.midonet.Application-v1+json]
 <table>
     <tr>
         <th>Field Name</th>
@@ -457,7 +455,186 @@ traverse the URIs to discover all the available services.
     </tr>
 </table>
 
-<a name="router"/>
+#### Version 2 [application/vnd.org.midonet.Application-v2+json]
+<table>
+    <tr>
+        <th>Field Name</th>
+        <th>Type</th>
+        <th>POST/PUT</th>
+        <th>Required</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>tenants</td>
+        <td>URI</td>
+        <td></td>
+        <td></td>
+        <td>A GET against this URI gets a list of tenants.</td>
+    </tr>
+    <tr>
+        <td>uri</td>
+        <td>URI</td>
+        <td/>
+        <td/>
+        <td>A GET against this URI refreshes the representation of this
+         resource.</td>
+    </tr>
+    <tr>
+        <td>version</td>
+        <td>Integer</td>
+        <td></td>
+        <td></td>
+        <td>The version of MidoNet REST API.</td>
+    </tr>
+    <tr>
+        <td>bridges</td>
+        <td>URI</td>
+        <td></td>
+        <td></td>
+        <td>A GET against this URI gets a list of bridges.</td>
+    </tr>
+    <tr>
+        <td>chains</td>
+        <td>URI</td>
+        <td></td>
+        <td></td>
+        <td>A GET against this URI gets a list of chains.</td>
+    </tr>
+    <tr>
+        <td>hosts</td>
+        <td>URI</td>
+        <td></td>
+        <td></td>
+        <td>A GET against this URI gets a list of hosts.</td>
+    </tr>
+    <tr>
+    <tr>
+        <td>metricsFilter</td>
+        <td>URI</td>
+        <td></td>
+        <td></td>
+        <td>A POST against this URI gets a list of metrics
+        available for a given metric target.</td>
+    </tr>
+        <td>metricsQuery</td>
+        <td>URI</td>
+        <td></td>
+        <td></td>
+        <td>A POST against this URI gets a list of metric
+        query responses for a given list of metric queries.</td>
+    </tr>
+    <tr>
+        <td>portGroups</td>
+        <td>URI</td>
+        <td></td>
+        <td></td>
+        <td>A GET against this URI gets a list of port groups.</td>
+    </tr>
+    <tr>
+        <td>routers</td>
+        <td>URI</td>
+        <td></td>
+        <td></td>
+        <td>A GET against this URI gets a list of routers.</td>
+    </tr>
+    <tr>
+        <td>tunnelZones</td>
+        <td>URI</td>
+        <td></td>
+        <td></td>
+        <td>A GET against this URI gets a list of tunnel zones.</td>
+    </tr>
+    <tr>
+        <td>adRouteTemplate</td>
+        <td>String</td>
+        <td></td>
+        <td></td>
+        <td>Template of the URI that represents the location of ad route with
+        the provided ID.</td>
+    </tr>
+    <tr>
+        <td>bgpTemplate</td>
+        <td>String</td>
+        <td></td>
+        <td></td>
+        <td>Template of the URI that represents the location of BGP with
+        the provided ID.</td>
+    </tr>
+    <tr>
+        <td>bridgeTemplate</td>
+        <td>String</td>
+        <td></td>
+        <td></td>
+        <td>Template of the URI that represents the location of bridge with
+        the provided ID.</td>
+    </tr>
+    <tr>
+        <td>chainTemplate</td>
+        <td>String</td>
+        <td></td>
+        <td></td>
+        <td>Template of the URI that represents the location of chain with
+        the provided ID.</td>
+    </tr>
+    <tr>
+        <td>hostTemplate</td>
+        <td>String</td>
+        <td></td>
+        <td></td>
+        <td>Template of the URI that represents the location of host with
+        the provided ID.</td>
+    </tr>
+    <tr>
+        <td>portTemplate</td>
+        <td>String</td>
+        <td></td>
+        <td></td>
+        <td>Template of the URI that represents the location of port with
+        the provided ID.</td>
+    </tr>
+    <tr>
+        <td>portGroupTemplate</td>
+        <td>String</td>
+        <td></td>
+        <td></td>
+        <td>Template of the URI that represents the location of port group with
+        the provided ID.</td>
+    </tr>
+    <tr>
+        <td>routeTemplate</td>
+        <td>String</td>
+        <td></td>
+        <td></td>
+        <td>Template of the URI that represents the location of route with the
+        provided ID.</td>
+    </tr>
+    <tr>
+        <td>routerTemplate</td>
+        <td>String</td>
+        <td></td>
+        <td></td>
+        <td>Template of the URI that represents the location of router with the
+        provided ID.</td>
+    </tr>
+    <tr>
+        <td>ruleTemplate</td>
+        <td>String</td>
+        <td></td>
+        <td></td>
+        <td>Template of the URI that represents the location of rule with the
+        provided ID.</td>
+    </tr>
+    <tr>
+        <td>tunnelZoneTemplate</td>
+        <td>String</td>
+        <td></td>
+        <td></td>
+        <td>Template of the URI that represents the location of tunnel zone
+        with the provided ID.</td>
+    </tr>
+</table>
+
+<a name="router"></a>
 ### Router [application/vnd.org.midonet.Router-v1+json]
 
     GET     /routers?tenant_id=:tenantId
@@ -576,7 +753,7 @@ contains the following fields:
     </tr>
 </table>
 
-<a name="bridge"/>
+<a name="bridge"></a>
 ### Bridge [application/vnd.org.midonet.Bridge-v1+json]
 
     GET     /bridges?tenant_id=:tenantId
@@ -692,7 +869,7 @@ contains the following fields:
     </tr>
 </table>
 
-<a name="bridgemactable"/>
+<a name="bridgemactable"></a>
 ### MacPort [application/vnd.org.midonet.MacPort+json]
 
     GET     /bridges/:bridgeId/mac_table
@@ -733,7 +910,7 @@ contains the following fields:
     </tr>
 </table>
 
-<a name="bridgearptable"/>
+<a name="bridgearptable"></a>
 ### IP4MacPair [application/vnd.org.midonet.IP4arp+json]
 
     GET     /bridges/:bridgeId/arp_table
@@ -774,7 +951,7 @@ contains the following fields:
     </tr>
 </table>
 
-<a name="port"/>
+<a name="port"></a>
 ### Port [application/vnd.org.midonet.Port-v1+json]
 
     GET     /ports?tenant_id=:tenantId
@@ -973,7 +1150,7 @@ bridge is the equivalent port type on a virtual bridge.
     </tr>
 </table>
 
-<a name="portlink"/>
+<a name="portlink"></a>
 ### Port Link [application/vnd.org.midonet.PortLink-v1+json]
 
     POST     /ports/:portId/link
@@ -1038,7 +1215,7 @@ It contains the following fields:
     </tr>
 </table>
 
-<a name="route"/>
+<a name="route"></a>
 ### Route [application/vnd.org.midonet.Route-v1+json]
 
     GET     /routes/:routeId
@@ -1153,7 +1330,7 @@ contains the following fields:
     </tr>
 </table>
 
-<a name="portgroup"/>
+<a name="portgroup"></a>
 ### Port Group [application/vnd.org.midonet.PortGroup-v1+json]
 
     GET     /port_groups?tenant_id=:tenantId
@@ -1209,7 +1386,7 @@ contains the following fields:
         <td>URI for port membership operations.</td>
 </table>
 
-<a name="portgroupport"/>
+<a name="portgroupport"></a>
 ### Port Group Port [application/vnd.org.midonet.PortGroupPort-v1+json]
 
     GET     /port_groups/:portGroupId/ports
@@ -1265,7 +1442,7 @@ PortGroupPort represents membership of ports in port groups.
      </tr>
 </table>
 
-<a name="chain"/>
+<a name="chain"></a>
 ### Chain [application/vnd.org.midonet.Chain-v1+json]
 
     GET     /chains
@@ -1325,7 +1502,7 @@ It contains the following fields:
     </tr>
 </table>
 
-<a name="rule"/>
+<a name="rule"></a>
 ### Rule [application/vnd.org.midonet.Rule-v1+json]
 
     GET     /chains/:chainId/rules
@@ -1627,7 +1804,7 @@ It contains the following fields:
     </tr>
 </table>
 
-<a name="bgp"/>
+<a name="bgp"></a>
 ### BGP [application/vnd.org.midonet.Bgp-v1+json]
 
     GET     /ports/:portId/bgps
@@ -1706,7 +1883,7 @@ contains the following fields:
     </tr>
 </table>
 
-<a name="routeadvertisement"/>
+<a name="routeadvertisement"></a>
 ### Route Advertisement [application/vnd.org.midonet.AdRoute-v1+json]
 
     GET     /bgps/:bgpId/ad_routes
@@ -1770,7 +1947,7 @@ contains the following fields:
     </tr>
 </table>
 
-<a name="host"/>
+<a name="host"></a>
 ### Host [application/vnd.org.midonet.Host-v1+json]
 
     GET     /hosts
@@ -1843,7 +2020,7 @@ contains the following fields:
     </tr>
 </table>
 
-<a name="interface"/>
+<a name="interface"></a>
 ### Interface [application/vnd.org.midonet.Interface-v1+json]
 
     GET     /hosts/:hostId/interfaces
@@ -1932,7 +2109,7 @@ Unknown | Physical | Virtual | Tunnel</td>
     </tr>
 </table>
 
-<a name="hostcommand"/>
+<a name="hostcommand"></a>
 ### Host Command [application/vnd.org.midonet.HostCommand-v1+json]
 
     GET     /hosts/:hostId/commands
@@ -2004,7 +2181,7 @@ The value is the value of the operation as a string.</td>
     </tr>
 </table>
 
-<a name="hostinterfaceport"/>
+<a name="hostinterfaceport"></a>
 ### HostInterfacePort [application/vnd.org.midonet.HostInterfacePort-v1+json]
 
     GET     /hosts/:hostId/ports
@@ -2056,7 +2233,7 @@ It contains the following fields:
     </tr>
 </table>
 
-<a name="tunnelzone"/>
+<a name="tunnelzone"></a>
 ### Tunnel Zone [application/vnd.org.midonet.TunnelZone-v1+json]
 
     GET     /tunnel_zones
@@ -2107,7 +2284,7 @@ isolated zone for tunneling. It contains the following fields:
     </tr>
 </table>
 
-<a name="tunnelzonehost"/>
+<a name="tunnelzonehost"></a>
 ### Tunnel Zone Host [application/vnd.org.midonet.TunnelZoneHost-v1+json]
 
     GET     /tunnel_zones/:tunnelZoneId/hosts
@@ -2196,7 +2373,7 @@ Represents a host's membership in a tunnel zone:
     </tr>
 </table>
 
-<a name="metrictarget"/>
+<a name="metrictarget"></a>
 ### Metric Target [application/vnd.org.midonet.MetricTarget-v1+json]
 
     POST    /metrics/filter
@@ -2223,7 +2400,7 @@ target.
     </tr>
 </table>
 
-<a name="metric"/>
+<a name="metric"></a>
 ### Metric [application/vnd.org.midonet.collection.Metric-v1+json]
 
     POST    /metrics/filter
@@ -2292,7 +2469,7 @@ List of metrics available:
     </tr>
 </table>
 
-<a name="metricquery"/>
+<a name="metricquery"></a>
 ### Metric Query [application/vnd.org.midonet.MetricQuery-v1+json]
 
     POST    /metrics/query
@@ -2346,7 +2523,7 @@ MetricQueryResponse containing the result of the queries.
     </tr>
 </table>
 
-<a name="metricqueryresponse"/>
+<a name="metricqueryresponse"></a>
 ### Metric Query Response [application/vnd.org.midonet.MetricQueryResponse-v1+json]
 
     POST    /metrics/query
@@ -2406,19 +2583,84 @@ It represents the result of a query to the monitoring system.
     </tr>
 </table>
 
-<a name="resourcecollection"/>
-### Resource Collection [application/vnd.org.midonet.collection.resource-v1+json]
+<a name="tenant"></a>
+### Tenant [application/vnd.org.midonet.Tenant-v1+json]
 
-A collection of a resource is represented by the media type format:
+    GET     /tenants
 
-*application/vnd.org.midonet.collection.xxxx-v1+json*
+Represents a tenant, or a group of users, in the identitity services.
+Currently there is only GET operation to retrieve a list of tenants,
+and there is no operation to retieve information about a particular
+tenant.
 
-where xxxx is the resource name.  The media type of a collection of tenants,
-for example, would be:
+<table>
+    <tr>
+        <th>Field Name</th>
+        <th>Type</th>
+        <th>POST/PUT</th>
+        <th>Required</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>id</td>
+        <td>String</td>
+        <td/>
+        <td/>
+        <td>ID of the tenant unique in the identity system.</td>
+    </tr>
+    <tr>
+        <td>name</td>
+        <td>String</td>
+        <td/>
+        <td/>
+        <td>Name of the tenant in the identity system</td>
+    </tr>
+</table>
+
+
+#### <u>Query Parameters</u>
+
+Query strings for Tenant may vary based on the Authtentication Service used.
+
+
+**Keystone:**
+
+<table>
+    <tr>
+        <th>Name</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>marker</td>
+        <td>
+            ID of the last tenant in the previous search.  If this is
+            specified, the GET returns a list of Tenants starting the next
+            item after this ID.
+        </td>
+    </tr>
+    <tr>
+        <td>limit</td>
+        <td>
+            Number of items to fetch.
+        </td>
+    </tr>
+</table>
+
+<a name="resourcecollection"></a>
+## Resource Collection
+
+A collection of a resource is represented by inserting 'collection' right
+before the resource name in the media type.  For example, to get a collection
+of Tenants V1 you would represent:
+
+*vnd.org.midonet.Tenant-v1+json*
+
+as:
 
 *vnd.org.midonet.collection.Tenant-v1+json*
 
-<a name="auth"/>
+
+<a name="auth"></a>
 ## Authentication/Authorization
 
 MidoNet API provides two ways to authenticate: username/password and token.
@@ -2467,7 +2709,7 @@ belonging to the tenant.
 Roles and credentials are set up in the auth service used by the API.
 
 
-<a name="acronyms"/>
+<a name="acronyms"></a>
 ## List of Acronyms
 
 * API:  Application Programmable Interface
