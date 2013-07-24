@@ -2,7 +2,7 @@
 /*
 * Copyright 2012 Midokura Europe SARL
 */
-package org.midonet.odp.protos.mocks;
+package org.midonet.odp.protos;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,7 +29,6 @@ import org.midonet.odp.Packet;
 import org.midonet.odp.Port;
 import org.midonet.odp.Ports;
 import org.midonet.odp.ports.InternalPort;
-import org.midonet.odp.protos.OvsDatapathConnection;
 import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.throttling.NoOpThrottlingGuard;
 import org.midonet.util.throttling.NoOpThrottlingGuardFactory;
@@ -39,7 +38,7 @@ import static org.midonet.netlink.exceptions.NetlinkException.ErrorCode.*;
 /**
  * Mock implementation to be used in test cases and non linux hosts.
  */
-public class MockOvsDatapathConnectionImpl extends OvsDatapathConnection {
+public class MockOvsDatapathConnection extends OvsDatapathConnection {
 
     Set<Datapath> datapaths = new HashSet<Datapath>();
 
@@ -59,7 +58,7 @@ public class MockOvsDatapathConnectionImpl extends OvsDatapathConnection {
 
     AtomicInteger datapathIds = new AtomicInteger(1);
 
-    public MockOvsDatapathConnectionImpl(NetlinkChannel channel, Reactor reactor)
+    public MockOvsDatapathConnection(NetlinkChannel channel, Reactor reactor)
         throws Exception {
         super(channel, reactor, new NoOpThrottlingGuardFactory(),
               new NoOpThrottlingGuard(), new BufferPool(128, 512, 0x1000));

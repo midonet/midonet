@@ -23,12 +23,15 @@ import org.slf4j.LoggerFactory;
 import static junit.framework.Assert.fail;
 
 import org.midonet.netlink.AbstractNetlinkConnection;
+import org.midonet.netlink.BufferPool;
 import org.midonet.netlink.Netlink;
 import org.midonet.netlink.NetlinkChannel;
 import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.eventloop.TryCatchReactor;
+import org.midonet.util.throttling.NoOpThrottlingGuard;
+import org.midonet.util.throttling.NoOpThrottlingGuardFactory;
 
-public abstract class AbstractNetlinkProtocolTest<NetlinkConnection extends AbstractNetlinkConnection> {
+public abstract class AbstractNetlinkProtocolTest {
 
     private static final Logger log = LoggerFactory
         .getLogger(AbstractNetlinkProtocolTest.class);
@@ -36,8 +39,13 @@ public abstract class AbstractNetlinkProtocolTest<NetlinkConnection extends Abst
     NetlinkChannel channel = PowerMockito.mock(NetlinkChannel.class);
     BlockingQueue<ValueFuture<ByteBuffer>> listWrites;
     Reactor reactor = null;
+    OvsDatapathConnection connection = null;
 
-    NetlinkConnection connection;
+    protected void setConnection() throws Exception {
+        connection = new OvsDatapathConnectionImpl(channel, reactor,
+            new NoOpThrottlingGuardFactory(), new NoOpThrottlingGuard(),
+            new BufferPool(128, 512, 0x1000));
+    }
 
     protected void setUp(final byte[][] responses) throws Exception {
 
@@ -85,6 +93,7 @@ public abstract class AbstractNetlinkProtocolTest<NetlinkConnection extends Abst
         );
 
         listWrites = new LinkedBlockingQueue<ValueFuture<ByteBuffer>>();
+
     }
 
 

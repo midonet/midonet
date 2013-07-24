@@ -29,8 +29,7 @@ import static org.midonet.odp.flows.FlowKeys.ethernet;
 import static org.midonet.odp.flows.FlowKeys.inPort;
 
 
-public class OvsPacketInTest
-    extends AbstractNetlinkProtocolTest<OvsDatapathConnection> {
+public class OvsPacketInTest extends AbstractNetlinkProtocolTest {
 
     private static final Logger log = LoggerFactory
         .getLogger(OvsPacketInTest.class);
@@ -38,8 +37,7 @@ public class OvsPacketInTest
     @Before
     public void setUp() throws Exception {
         super.setUp(responses);
-
-        connection = OvsDatapathConnection.create(channel, reactor);
+        setConnection();
         connection.bypassSendQueue(true);
         connection.setMaxBatchIoOps(1);
     }

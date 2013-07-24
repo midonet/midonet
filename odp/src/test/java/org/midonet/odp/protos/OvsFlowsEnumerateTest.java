@@ -29,8 +29,7 @@ import static org.midonet.odp.flows.FlowKeys.neighborDiscovery;
 import static org.midonet.odp.flows.FlowKeys.udp;
 
 
-public class OvsFlowsEnumerateTest
-    extends AbstractNetlinkProtocolTest<OvsDatapathConnection> {
+public class OvsFlowsEnumerateTest extends AbstractNetlinkProtocolTest {
 
     private static final Logger log = LoggerFactory
         .getLogger(OvsFlowsEnumerateTest.class);
@@ -38,8 +37,7 @@ public class OvsFlowsEnumerateTest
     @Before
     public void setUp() throws Exception {
         super.setUp(responses);
-
-        connection = OvsDatapathConnection.create(channel, reactor);
+        setConnection();
         connection.bypassSendQueue(true);
         connection.setMaxBatchIoOps(1);
     }

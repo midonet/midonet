@@ -12,8 +12,8 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import org.midonet.midolman.odp.NetlinkClient;
 import org.midonet.odp.Datapath;
+import org.midonet.odp.DatapathClient;
 import org.midonet.odp.Flow;
 import org.midonet.odp.FlowMatch;
 import org.midonet.odp.flows.*;
@@ -39,9 +39,7 @@ public class OvsFlowsTunnelTest {
     @Before
     public void setUp() {
         try {
-            connection = NetlinkClient.createDatapathConnection();
-            //connection.initialize();
-            //while (!connection.isInitialized());
+            connection = DatapathClient.createConnection();
         } catch (Exception e) {
             log.error("Could not connect to netlink: " + e.getMessage());
         }

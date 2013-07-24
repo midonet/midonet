@@ -77,39 +77,45 @@ public class NetlinkSelectorProvider extends SelectorProvider {
         return underlyingSelector.openDatagramChannel(family);
     }
 
-    public NetlinkChannel openNetlinkSocketChannel(Netlink.Protocol protocol) {
-        final String NAME = "org.midonet.netlink.NetlinkChannelImpl";
-        //final String NAME = "org.midonet.netlink.NetlinkTracingChannelImpl";
+    public NetlinkChannel openNetlinkSocketChannel(Netlink.Protocol prot) {
+        String type = "org.midonet.netlink.NetlinkChannelImpl";
+        Class[] argTypes = {SelectorProvider.class, Netlink.Protocol.class};
+        Object[] args = {this, prot};
 
-        try {
-            Class<? extends NetlinkChannel> clazz =
-                (Class<? extends NetlinkChannel>) Class.forName(NAME);
+        return (NetlinkChannel) makeInstanceOf(type, argTypes, args);
+    }
 
-            Constructor<? extends NetlinkChannel> constructor =
-                clazz.getConstructor(SelectorProvider.class, Netlink.Protocol.class);
+    public NetlinkChannel openMockNetlinkSocketChannel(Netlink.Protocol prot) {
+        String type = "org.midonet.netlink.MockNetlinkChannel";
+        Class[] argTypes = {SelectorProvider.class, Netlink.Protocol.class};
+        Object[] args = {this, prot};
 
-            return constructor.newInstance(this, protocol);
-        } catch (Throwable e) {
-            log.error("Exception while instantiating class of type: {}", NAME, e);
-            return null;
-        }
+        return (NetlinkChannel) makeInstanceOf(type, argTypes, args);
     }
 
     public UnixDomainChannel openUnixDomainSocketChannel(AfUnix.Type socketType) {
-        final String NAME = "org.midonet.netlink.UnixDomainChannelImpl";
-        //final String NAME = "org.midonet.netlink.NetlinkTracingChannelImpl";
+        String type = "org.midonet.netlink.UnixDomainChannelImpl";
+        Class[] argTypes = {SelectorProvider.class, AfUnix.Type.class};
+        Object[] args = {this, socketType};
 
-        try {
-            Class<? extends UnixDomainChannel> clazz =
-                    (Class<? extends UnixDomainChannel>) Class.forName(NAME);
-
-            Constructor<? extends UnixDomainChannel> constructor =
-                    clazz.getConstructor(SelectorProvider.class, AfUnix.Type.class);
-
-            return constructor.newInstance(this, socketType);
-        } catch (Throwable e) {
-            log.error("Exception while instantiating class of type: {}", NAME, e);
-            return null;
-        }
+        return (UnixDomainChannel) makeInstanceOf(type, argTypes, args);
     }
+
+    private Object makeInstanceOf(
+            String type, Class[] argTypes, Object[] args) {
+        try {
+            Class<?> clazz = Class.forName(type);
+            Constructor<?> constructor = clazz.getConstructor(argTypes);
+            return constructor.newInstance(args);
+        } catch (ClassNotFoundException e) {
+            log.error("Can't find class of type: {}", type);
+        } catch (SecurityException e) {
+            log.error("Security exception when trying to instantiate class {}"
+                + "   midonet-jdk-boostrap might be missing ? {}", type, e);
+        } catch (Throwable e) {
+            log.error("Exception making instance of class {}: {}", type, e);
+        }
+        return null;
+    }
+
 }

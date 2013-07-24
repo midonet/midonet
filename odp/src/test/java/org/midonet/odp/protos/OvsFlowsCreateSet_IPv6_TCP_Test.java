@@ -34,7 +34,7 @@ public class OvsFlowsCreateSet_IPv6_TCP_Test
     @Before
     public void setUp() throws Exception {
         super.setUp(responses);
-        connection = OvsDatapathConnection.create(channel, reactor);
+        setConnection();
         connection.bypassSendQueue(true);
         connection.setMaxBatchIoOps(1);
     }

@@ -29,8 +29,7 @@ import static org.midonet.odp.flows.FlowKeys.inPort;
 import static org.midonet.odp.flows.FlowKeys.vlan;
 
 
-public class OvsFlowsDeleteTest
-    extends AbstractNetlinkProtocolTest<OvsDatapathConnection> {
+public class OvsFlowsDeleteTest extends AbstractNetlinkProtocolTest {
 
     private static final Logger log = LoggerFactory
         .getLogger(OvsFlowsDeleteTest.class);
@@ -38,8 +37,7 @@ public class OvsFlowsDeleteTest
     @Before
     public void setUp() throws Exception {
         super.setUp(responses);
-
-        connection = OvsDatapathConnection.create(channel, reactor);
+        setConnection();
         connection.bypassSendQueue(true);
         connection.setMaxBatchIoOps(1);
     }

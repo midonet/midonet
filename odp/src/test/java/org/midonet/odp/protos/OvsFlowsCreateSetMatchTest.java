@@ -18,14 +18,14 @@ import org.midonet.odp.flows.FlowAction;
 
 
 public abstract class OvsFlowsCreateSetMatchTest
-    extends AbstractNetlinkProtocolTest<OvsDatapathConnection> {
+        extends AbstractNetlinkProtocolTest {
 
     private static final Logger log = LoggerFactory
         .getLogger(OvsFlowsCreateSetMatchTest.class);
 
     protected void setUp(final byte[][] responses) throws Exception {
         super.setUp(responses);
-        connection = OvsDatapathConnection.create(channel, reactor);
+        setConnection();
         connection.bypassSendQueue(true);
         connection.setMaxBatchIoOps(1);
     }

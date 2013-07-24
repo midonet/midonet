@@ -21,8 +21,7 @@ import static org.midonet.odp.flows.FlowKeys.etherType;
 import static org.midonet.odp.flows.FlowKeys.ethernet;
 import static org.midonet.odp.flows.FlowKeys.inPort;
 
-public class OvsFlowsCreateSet_ARP_Test
-    extends OvsFlowsCreateSetMatchTest {
+public class OvsFlowsCreateSet_ARP_Test extends OvsFlowsCreateSetMatchTest {
 
     private static final Logger log = LoggerFactory
         .getLogger(OvsFlowsCreateSet_ARP_Test.class);
@@ -30,7 +29,7 @@ public class OvsFlowsCreateSet_ARP_Test
     @Before
     public void setUp() throws Exception {
         super.setUp(responses);
-        connection = OvsDatapathConnection.create(channel, reactor);
+        setConnection();
         connection.bypassSendQueue(true);
         connection.setMaxBatchIoOps(1);
     }
