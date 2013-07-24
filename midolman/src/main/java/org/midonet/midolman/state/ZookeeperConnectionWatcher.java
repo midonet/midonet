@@ -154,11 +154,18 @@ public class ZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
                             KeeperException e) {
         if (e instanceof KeeperException.ConnectionLossException)
             handleDisconnect(retry);
+        else if (e instanceof KeeperException.NoNodeException)
+            log.warn("Expected a ZK node for {} but not found: {}",
+                     operationDesc, e);
         else if (e instanceof KeeperException.OperationTimeoutException)
             handleTimeout(retry);
-        else
-            log.error("Non recoverable error on ZK operation for {} - {}",
-                      operationDesc, e);
+        else if (e instanceof KeeperException.SessionExpiredException ||
+                 e instanceof KeeperException.SessionMovedException) {
+            log.error("Exiting: Non-recoverable error on ZK operation for " +
+                      "{} - {}", operationDesc, e);
+            System.exit(7453);
+        } else
+            log.warn("ZK operation for {} failed: {}", operationDesc, e);
     }
 
     // TODO(guillermo) There is a bit of an abstraction leak in the ZK exception
@@ -168,12 +175,13 @@ public class ZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
     @Override
     public void handleError(String operationDesc, Runnable retry,
                             StateAccessException e) {
-        if (e.getCause() instanceof KeeperException)
-            handleError(operationDesc, retry, (KeeperException) e.getCause());
-        else if (e.getCause() instanceof InterruptedException)
+        Throwable cause = e.getCause();
+        if (cause instanceof KeeperException)
+            handleError(operationDesc, retry, (KeeperException) cause);
+        else if (cause instanceof InterruptedException)
             handleTimeout(retry);
         else
-            log.error("Non recoverable error on ZK operation for {} - {}",
+            log.error("Failed state access operation for {} - {}",
                       operationDesc, e);
     }
 
