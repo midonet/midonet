@@ -25,14 +25,12 @@ import static org.midonet.odp.flows.FlowKeys.neighborDiscovery;
 import static org.midonet.odp.flows.FlowKeys.udp;
 
 
-public class OvsFlowsCreateTest
-    extends AbstractNetlinkProtocolTest<OvsDatapathConnection> {
+public class OvsFlowsCreateTest extends AbstractNetlinkProtocolTest {
 
     @Before
     public void setUp() throws Exception {
         super.setUp(responses);
-
-        connection = OvsDatapathConnection.create(channel, reactor);
+        setConnection();
         connection.bypassSendQueue(true);
         connection.setMaxBatchIoOps(1);
     }

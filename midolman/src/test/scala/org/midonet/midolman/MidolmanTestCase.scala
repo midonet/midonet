@@ -45,10 +45,10 @@ import org.midonet.cluster.services.MidostoreSetupService
 import org.midonet.odp._
 import org.midonet.odp.flows.FlowKeyInPort
 import org.midonet.odp.protos.OvsDatapathConnection
-import org.midonet.odp.protos.mocks.MockOvsDatapathConnectionImpl
+import org.midonet.odp.protos.MockOvsDatapathConnection
+import org.midonet.odp.protos.MockOvsDatapathConnection.FlowListener
 import org.midonet.packets.Ethernet
 import org.midonet.util.functors.callbacks.AbstractCallback
-import protos.mocks.MockOvsDatapathConnectionImpl.FlowListener
 import org.midonet.cluster.data.{Port => VPort}
 import org.midonet.cluster.data.host.Host
 import org.midonet.midolman.version.guice.VersionModule
@@ -95,8 +95,8 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
         config
     }
 
-    def mockDpConn(): MockOvsDatapathConnectionImpl = {
-        dpConn().asInstanceOf[MockOvsDatapathConnectionImpl]
+    def mockDpConn(): MockOvsDatapathConnection = {
+        dpConn().asInstanceOf[MockOvsDatapathConnection]
     }
 
     protected def dpConn(): OvsDatapathConnection = {
@@ -311,11 +311,11 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
     }
 
     protected def triggerPacketIn(packet: Packet) {
-        dpConn().asInstanceOf[MockOvsDatapathConnectionImpl].triggerPacketIn(packet)
+        dpConn().asInstanceOf[MockOvsDatapathConnection].triggerPacketIn(packet)
     }
 
     protected def setFlowLastUsedTimeToNow(flow: FlowMatch) {
-        dpConn().asInstanceOf[MockOvsDatapathConnectionImpl].setFlowLastUsedTimeToNow(flow)
+        dpConn().asInstanceOf[MockOvsDatapathConnection].setFlowLastUsedTimeToNow(flow)
     }
 
     protected def dpController(): TestActorRef[DatapathController] = {

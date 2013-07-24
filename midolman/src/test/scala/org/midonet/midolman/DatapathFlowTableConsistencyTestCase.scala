@@ -9,7 +9,7 @@ import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
 
 import org.midonet.midolman.util.SimulationHelper
-import org.midonet.odp.protos.mocks.MockOvsDatapathConnectionImpl
+import org.midonet.odp.protos.MockOvsDatapathConnection
 import org.midonet.odp.FlowMatch
 import org.midonet.odp.flows.{FlowKeyICMPEcho, FlowKeyTCP, FlowKeyICMP}
 import org.midonet.sdn.flows.FlowManager
@@ -24,7 +24,7 @@ class DatapathFlowTableConsistencyTestCase extends MidolmanTestCase
         with VirtualConfigurationBuilders
 {
 
-    var datapath: MockOvsDatapathConnectionImpl = null
+    var datapath: MockOvsDatapathConnection = null
     var flowManager: FlowManager = null
     val flowExpiration: Long = 60000
 
@@ -40,7 +40,7 @@ class DatapathFlowTableConsistencyTestCase extends MidolmanTestCase
         super.beforeTest()
 
         flowManager = flowController().underlyingActor.flowManager
-        datapath = dpConn().asInstanceOf[MockOvsDatapathConnectionImpl]
+        datapath = dpConn().asInstanceOf[MockOvsDatapathConnection]
 
         arpVmToRouterAndCheckReply(vmPortNames(0), vmMacs(0), vmIps(0), routerIp, routerMac)
         arpVmToRouterAndCheckReply(vmPortNames(1), vmMacs(1), vmIps(1), routerIp, routerMac)

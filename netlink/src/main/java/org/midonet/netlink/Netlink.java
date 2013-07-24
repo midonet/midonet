@@ -3,12 +3,35 @@
 */
 package org.midonet.netlink;
 
+import java.nio.channels.IllegalSelectorException;
+import java.nio.channels.spi.SelectorProvider;
 import javax.annotation.Nonnull;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Netlink API interface.
  */
-public interface Netlink {
+public abstract class Netlink {
+
+    private static final Logger log = LoggerFactory.getLogger(Netlink.class);
+
+    /** returns the system-wide selector provider used to instantiate
+     *  selectable Netlink and UnixDomainSocket channels, in addition to
+     *  any other java.nio channels. */
+    public static NetlinkSelectorProvider selectorProvider() {
+
+        SelectorProvider provider = SelectorProvider.provider();
+
+        if (!(provider instanceof NetlinkSelectorProvider)) {
+            log.error("Invalid selector type: {} => jdk-bootstrap shadowing "
+                + "may have failed ?", provider.getClass());
+            throw new IllegalSelectorException();
+        }
+
+        return (NetlinkSelectorProvider) provider;
+    }
 
     public enum Protocol {
         NETLINK_ROUTE(0), NETLINK_W1(1), NETLINK_USERSOCK(2),
@@ -123,7 +146,7 @@ public interface Netlink {
     /**
      * Abstracts a netlink address.
      */
-    public class Address {
+    public static class Address {
 
         private int pid;
 
@@ -164,4 +187,5 @@ public interface Netlink {
     public interface ShortConstant {
         short getValue();
     }
+
 }

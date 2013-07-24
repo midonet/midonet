@@ -28,8 +28,7 @@ import org.midonet.util.throttling.NoOpThrottlingGuardFactory;
 
 
 @RunWith(PowerMockRunner.class)
-public class NetlinkConnectionTest
-    extends AbstractNetlinkProtocolTest<NetlinkConnection> {
+public class NetlinkConnectionTest extends AbstractNetlinkProtocolTest {
 
     byte[][] responses = new byte[][]{
         {
@@ -72,10 +71,7 @@ public class NetlinkConnectionTest
     @Before
     public void setUp() throws Exception {
         super.setUp(responses);
-        connection = new NetlinkConnection(channel, reactor,
-            new NoOpThrottlingGuardFactory(),
-            new NoOpThrottlingGuard(),
-            new BufferPool(128, 512, 0x1000));
+        setConnection();
         connection.bypassSendQueue(true);
         connection.setMaxBatchIoOps(1);
     }

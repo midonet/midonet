@@ -29,10 +29,6 @@
                 <configuration>
                     <source>1.7</source>
                     <target>1.7</target>
-                    <compilerArgument>-Xbootclasspath/p:${project.basedir}/../midonet-jdk-bootstrap/target/classes:${project.basedir}/../midonet-jdk-bootstrap/target/midonet-jdk-bootstrap-${project.version}.jar</compilerArgument>
-                    <excludes>
-                        <exclude>sun/nio/ch/*</exclude>
-                    </excludes>
                 </configuration>
                 <version>2.5.1</version>
             </plugin>
@@ -92,7 +88,7 @@
             <groupId>com.midokura</groupId>
             <artifactId>midonet-jdk-bootstrap</artifactId>
             <version>1.2.0-SNAPSHOT</version>
-            <scope>provided</scope>
+            <scope>runtime</scope>
         </dependency>
 
         <dependency>

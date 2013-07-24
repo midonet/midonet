@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import org.midonet.mmdpctl.commands.*;
 import org.midonet.mmdpctl.commands.results.Result;
-import org.midonet.mmdpctl.netlink.NetlinkClient;
+import org.midonet.odp.DatapathClient;
 import org.midonet.odp.protos.OvsDatapathConnection;
 
 
@@ -22,8 +22,7 @@ import org.midonet.odp.protos.OvsDatapathConnection;
  */
 public class Mmdpctl {
 
-    private static final Logger log = LoggerFactory
-            .getLogger(Mmdpctl.class);
+    private static final Logger log = LoggerFactory.getLogger(Mmdpctl.class);
 
     private int timeout = 0;
 
@@ -34,7 +33,7 @@ public class Mmdpctl {
     public int execute(Command<? extends Result> command) {
         OvsDatapathConnection connection;
         try {
-            connection = NetlinkClient.createDatapathConnection();
+            connection = DatapathClient.createConnection();
         } catch (Exception e) {
             System.out.println("Could not connect to netlink: "+ e.getMessage());
             return -1;

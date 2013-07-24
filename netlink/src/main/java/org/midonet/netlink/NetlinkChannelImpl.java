@@ -21,9 +21,9 @@ import org.midonet.netlink.hacks.IOUtil;
 import org.midonet.netlink.hacks.SelectionKeyImplCaller;
 
 /**
- * Implementation of a NetlinkChannel.
+ * Package private implementation of a NetlinkChannel.
  */
-public class NetlinkChannelImpl extends NetlinkChannel implements SelChImpl {
+class NetlinkChannelImpl extends NetlinkChannel implements SelChImpl {
 
     private static final Logger log = LoggerFactory
         .getLogger(NetlinkChannelImpl.class);

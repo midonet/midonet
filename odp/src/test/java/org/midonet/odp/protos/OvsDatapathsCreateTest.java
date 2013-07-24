@@ -17,13 +17,12 @@ import org.midonet.odp.Datapath;
 /**
  * Tests the createDatapath code path.
  */
-public class OvsDatapathsCreateTest
-    extends AbstractNetlinkProtocolTest<OvsDatapathConnection> {
+public class OvsDatapathsCreateTest extends AbstractNetlinkProtocolTest {
 
     @Before
     public void setUp() throws Exception {
         super.setUp(responses);
-        connection = OvsDatapathConnection.create(channel, reactor);
+        setConnection();
         connection.bypassSendQueue(true);
         connection.setMaxBatchIoOps(1);
     }

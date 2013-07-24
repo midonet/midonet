@@ -9,10 +9,14 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import com.google.common.util.concurrent.ValueFuture;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.midonet.netlink.BufferPool;
 import org.midonet.netlink.Callback;
+import org.midonet.netlink.Netlink;
 import org.midonet.netlink.NetlinkChannel;
+import org.midonet.netlink.NetlinkSelectorProvider;
 import org.midonet.netlink.protos.NetlinkConnection;
 import org.midonet.odp.Datapath;
 import org.midonet.odp.Flow;
@@ -32,6 +36,9 @@ import org.midonet.util.throttling.ThrottlingGuardFactory;
  */
 public abstract class OvsDatapathConnection extends NetlinkConnection {
 
+    private static final Logger log =
+        LoggerFactory.getLogger(OvsDatapathConnection.class);
+
     public abstract Future<Boolean> initialize() throws Exception;
 
     public abstract boolean isInitialized();
@@ -40,22 +47,44 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
             ThrottlingGuardFactory pendingWritesThrottlingFactory,
             ThrottlingGuard upcallThrottler,
             BufferPool sendPool) throws Exception {
-        super(channel, reactor, pendingWritesThrottlingFactory, upcallThrottler, sendPool);
+        super(channel, reactor, pendingWritesThrottlingFactory,
+            upcallThrottler, sendPool);
     }
 
-    public static OvsDatapathConnection create(NetlinkChannel channel, Reactor reactor,
-                                               ThrottlingGuardFactory pendingWritesThrottlingFactory,
-                                               ThrottlingGuard upcallThrottler,
-                                               BufferPool sendPool)
-        throws Exception {
+    public static OvsDatapathConnection create(
+            Netlink.Address address, Reactor reactor,
+            ThrottlingGuardFactory pendingWritesThrottlingFactory,
+            ThrottlingGuard upcallThrottler,
+            BufferPool sendPool) throws Exception {
+
+        NetlinkChannel channel;
+
+        try {
+            channel = Netlink.selectorProvider()
+                .openNetlinkSocketChannel(Netlink.Protocol.NETLINK_GENERIC);
+
+            channel.connect(address);
+        } catch (Exception e) {
+            log.error("Error connecting to Netlink");
+            throw new RuntimeException(e);
+        }
+
         return new OvsDatapathConnectionImpl(channel, reactor,
             pendingWritesThrottlingFactory, upcallThrottler, sendPool);
     }
 
-    public static OvsDatapathConnection create(NetlinkChannel channel, Reactor reactor)
-            throws Exception {
-        return create(channel, reactor, new NoOpThrottlingGuardFactory(),
+    public static OvsDatapathConnection create(
+            Netlink.Address address, Reactor reactor) throws Exception {
+        return create(address, reactor, new NoOpThrottlingGuardFactory(),
                 new NoOpThrottlingGuard(), new BufferPool(128, 512, 0x1000));
+    }
+
+    public static OvsDatapathConnection createMock(Reactor reactor) throws Exception {
+
+        NetlinkChannel channel = Netlink.selectorProvider()
+            .openMockNetlinkSocketChannel(Netlink.Protocol.NETLINK_GENERIC);
+
+        return new MockOvsDatapathConnection(channel, reactor);
     }
 
     /**

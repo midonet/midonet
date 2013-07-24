@@ -18,8 +18,7 @@ import org.midonet.odp.Ports;
 import org.midonet.odp.ports.InternalPort;
 
 
-public class OvsPortsSetTest
-    extends AbstractNetlinkProtocolTest<OvsDatapathConnection> {
+public class OvsPortsSetTest extends AbstractNetlinkProtocolTest {
 
     private static final Logger log = LoggerFactory
         .getLogger(OvsPortsSetTest.class);
@@ -27,8 +26,7 @@ public class OvsPortsSetTest
     @Before
     public void setUp() throws Exception {
         super.setUp(responses);
-
-        connection = OvsDatapathConnection.create(channel, reactor);
+        setConnection();
         connection.bypassSendQueue(true);
         connection.setMaxBatchIoOps(1);
     }

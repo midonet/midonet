@@ -1,48 +1,27 @@
-package org.midonet.mmdpctl.netlink;
+package org.midonet.odp;
 
 import java.io.IOException;
 import java.nio.channels.SelectionKey;
-import java.nio.channels.spi.SelectorProvider;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.netlink.BufferPool;
 import org.midonet.netlink.Netlink;
 import org.midonet.netlink.NetlinkChannel;
-import org.midonet.netlink.NetlinkSelectorProvider;
 import org.midonet.odp.protos.OvsDatapathConnection;
 import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.eventloop.SelectListener;
 import org.midonet.util.eventloop.SelectLoop;
 import org.midonet.util.eventloop.TryCatchReactor;
 
+public abstract class DatapathClient {
 
-public class NetlinkClient {
+    private static final Logger log =
+        LoggerFactory.getLogger(DatapathClient.class);
 
-    private static final Logger log = LoggerFactory
-            .getLogger(NetlinkClient.class);
-
-    public static OvsDatapathConnection createDatapathConnection()
-            throws Exception {
-        SelectorProvider provider = SelectorProvider.provider();
-
-        if (!(provider instanceof NetlinkSelectorProvider)) {
-            log.error("Invalid selector type: {}", provider.getClass());
-            throw new RuntimeException();
-        }
-
-        NetlinkSelectorProvider netlinkSelector = (NetlinkSelectorProvider) provider;
-
-        final NetlinkChannel netlinkChannel =
-                netlinkSelector.openNetlinkSocketChannel(Netlink.Protocol.NETLINK_GENERIC);
-
-        if (netlinkChannel == null) {
-            throw new Exception("Cannot connect to the Netlink module.");
-        }
-
-        log.info("Connecting");
-        netlinkChannel.connect(new Netlink.Address(0));
+    public static OvsDatapathConnection createConnection() throws Exception {
 
         log.info("Creating the selector loop");
         final SelectLoop loop = new SelectLoop();
@@ -50,13 +29,13 @@ public class NetlinkClient {
 
         log.info("Making the ovsConnection");
         final OvsDatapathConnection ovsConnection =
-                OvsDatapathConnection.create(netlinkChannel, reactor);
+            OvsDatapathConnection.create(new Netlink.Address(0), reactor);
 
         log.info("Setting the channel to non blocking");
-        netlinkChannel.configureBlocking(false);
+        ovsConnection.getChannel().configureBlocking(false);
 
         log.info("Registering the channel into the selector");
-        loop.register(netlinkChannel, SelectionKey.OP_READ,
+        loop.register(ovsConnection.getChannel(), SelectionKey.OP_READ,
                 new SelectListener() {
                     @Override
                     public void handleEvent(SelectionKey key)
@@ -64,6 +43,7 @@ public class NetlinkClient {
                         ovsConnection.handleReadEvent(key);
                     }
                 });
+
 
         loop.registerForInputQueue(
             ovsConnection.getSendQueue(),
