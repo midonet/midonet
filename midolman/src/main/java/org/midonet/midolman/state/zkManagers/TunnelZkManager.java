@@ -78,18 +78,18 @@ public class TunnelZkManager extends AbstractZkManager {
      * @throws org.midonet.midolman.serialization.SerializationException
      *             Serialization error occurred.
      */
-    public List<Op> prepareTunnelUpdate(int key, TunnelKey tunnelKey)
+    public List<Op> prepareTunnelUpdate(int tunnelKeyId, TunnelKey tunnelKey)
             throws StateAccessException, SerializationException {
         List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.setData(paths.getTunnelKeyPath(key),
+        ops.add(Op.setData(paths.getTunnelPath(tunnelKeyId),
                 serializer.serialize(tunnelKey), -1));
         return ops;
     }
 
-    public TunnelKey get(int key)
+    public TunnelKey get(int tunnelKeyId)
             throws StateAccessException, SerializationException {
         TunnelKey tunnelKey = null;
-        byte[] data = zk.get(paths.getTunnelKeyPath(key));
+        byte[] data = zk.get(paths.getTunnelPath(tunnelKeyId));
         if (data != null) {
             tunnelKey = serializer.deserialize(data, TunnelKey.class);
         }
@@ -99,11 +99,11 @@ public class TunnelZkManager extends AbstractZkManager {
     /***
      * Constructs a list of operations to perform in a tunnel deletion.
      *
-     * @param tunnelKey
+     * @param tunnelKeyId
      *            ZK entry of the tunnel to delete.
      */
-    public List<Op> prepareTunnelDelete(int tunnelKey) {
-        String path = paths.getTunnelKeyPath(tunnelKey);
+    public List<Op> prepareTunnelDelete(int tunnelKeyId) {
+        String path = paths.getTunnelPath(tunnelKeyId);
         log.debug("Preparing to delete: " + path);
         List<Op> ops = new ArrayList<Op>();
         ops.add(Op.delete(path, -1));
@@ -119,7 +119,7 @@ public class TunnelZkManager extends AbstractZkManager {
      * @throws InterruptedException
      *             ZooKeeper was unresponsive.
      */
-    public int createTunnelKey()
+    public int createTunnelKeyId()
             throws StateAccessException {
         String path = zk.addPersistentSequential(paths.getTunnelPath(), null);
         int key = extractTunnelKeyFromPath(path);
