@@ -185,7 +185,9 @@ public abstract class TunnelPortOptions<Options extends TunnelPortOptions<Option
     @Override
     public void serialize(BaseBuilder builder) {
         builder.addAttr(Attr.OVS_TUNNEL_ATTR_FLAGS, flags);
-        builder.addAttr(Attr.OVS_TUNNEL_ATTR_DST_IPV4, dstIPv4, ByteOrder.BIG_ENDIAN);
+        if (this.dstIPv4 != null) {
+            builder.addAttr(Attr.OVS_TUNNEL_ATTR_DST_IPV4, dstIPv4, ByteOrder.BIG_ENDIAN);
+        }
         if (this.srcIPv4 != null) {
             builder.addAttr(Attr.OVS_TUNNEL_ATTR_SRC_IPV4, srcIPv4, ByteOrder.BIG_ENDIAN);
         }
