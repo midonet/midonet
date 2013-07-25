@@ -117,28 +117,28 @@ class PacketWorkflow(
         // can be tracked accordingly at the end of the workflow.
         // there are three PipelinePaths, all case objects:
         // Simulation, PacketToPortSet and WildcardTableHit 
-        var pipelinePath: PipelinePath = null
+        var pipelinePath: Option[PipelinePath] = None
 
         log.debug("Initiating processing of packet {}", cookieStr)
         val workflowFuture = cookie match {
             case Some(cook) if (packet.getReason == FlowActionUserspace) =>
                 log.debug("Simulating packet addressed to userspace {}",
                     cookieStr)
-                pipelinePath = Simulation
+                pipelinePath = Some(Simulation)
                 doSimulation()
 
             case Some(cook) =>
                 FlowController.queryWildcardFlowTable(packet.getMatch) match {
                     case Some(wildFlow) =>
                         log.debug("Packet {} matched a wildcard flow", cookieStr)
-                        pipelinePath = WildcardTableHit
+                        pipelinePath = Some(WildcardTableHit)
                         handleWildcardTableMatch(wildFlow, cook)
                     case None =>
                         val wildMatch = WildcardMatch.fromFlowMatch(packet.getMatch)
                         Option(wildMatch.getTunnelID) match {
                             case Some(tunnelId) =>
                                 log.debug("Packet {} addressed to a port set", cookieStr)
-                                pipelinePath = PacketToPortSet
+                                pipelinePath = Some(PacketToPortSet)
                                 handlePacketToPortSet(cook)
                             case None =>
                                 /* QUESTION: do we need another de-duplication
@@ -146,20 +146,20 @@ class PacketWorkflow(
                                  *  differ only in TTL from going to the simulation
                                  *  stage? */
                                 log.debug("Simulating packet {}", cookieStr)
-                                pipelinePath = Simulation
+                                pipelinePath = Some(Simulation)
                                 doSimulation()
                         }
                 }
 
             case None =>
                 log.debug("Simulating generated packet")
-                pipelinePath = Simulation
+                pipelinePath = Some(Simulation)
                 doSimulation()
         }
 
         workflowFuture onComplete {
-            case _ =>
-                log.debug("Packet with {} processed, stopping.", cookieStr)
+            case Right(bool) =>
+                log.debug("Packet with {} processed.", cookieStr)
                 cookie match {
                     case None =>
                     case Some(c) =>
@@ -167,12 +167,14 @@ class PacketWorkflow(
                         val latency = (Clock.defaultClock().tick() - packet.getStartTimeNanos).toInt
                         metrics.packetsProcessed.mark()
                         pipelinePath match {
-                            case WildcardTableHit => metrics.wildcardTableHit(latency)
-                            case PacketToPortSet => metrics.packetToPortSet(latency)
-                            case Simulation => metrics.packetSimulated(latency)
+                            case Some(WildcardTableHit) => metrics.wildcardTableHit(latency)
+                            case Some(PacketToPortSet) => metrics.packetToPortSet(latency)
+                            case Some(Simulation) => metrics.packetSimulated(latency)
                             case _ =>
                         }
                 }
+            case Left(ex) =>
+                log.error(ex, "Exception while processing packet with {}")
         }
     }
 
@@ -432,7 +434,11 @@ class PacketWorkflow(
             case Right(haveEgress) =>
                 simulateGeneratedPacket()
         }
-        actionFuture fallbackTo { Promise.successful(ErrorDrop()) } flatMap {
+        actionFuture recoverWith {
+            case ex =>
+                log.error(ex, "Simulation failed")
+                Promise.successful(ErrorDrop())
+        } flatMap {
             case AddVirtualWildcardFlow(flow, callbacks, tags) =>
                 log.debug("Simulation phase returned: AddVirtualWildcardFlow")
                 addVirtualWildcardFlow(flow, callbacks, tags)
@@ -540,7 +546,11 @@ class PacketWorkflow(
         val wildMatch = WildcardMatch.fromEthernetPacket(packet.getPacket)
         packet.setMatch(FlowMatches.fromEthernetPacket(packet.getPacket))
         val actionsFuture = translateActions(origActions, None, None, wildMatch)
-        actionsFuture fallbackTo {Promise.successful(None)} flatMap {
+        actionsFuture recoverWith {
+            case ex =>
+                log.error(ex, "failed to translate actions")
+                Promise.successful(None)
+        } flatMap {
             actions => actions match {
                 case Some(a) =>
                     log.debug("Translated actions to action list {} for {}",
