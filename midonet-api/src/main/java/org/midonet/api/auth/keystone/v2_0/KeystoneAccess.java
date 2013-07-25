@@ -1,7 +1,7 @@
 /*
  * Copyright 2013 Midokura PTE LTD.
  */
-package org.midonet.api.auth.keystone;
+package org.midonet.api.auth.keystone.v2_0;
 
 import javax.print.attribute.standard.DateTimeAtCompleted;
 import javax.xml.bind.annotation.XmlAccessType;

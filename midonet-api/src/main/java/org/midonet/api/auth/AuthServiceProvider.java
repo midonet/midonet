@@ -10,9 +10,9 @@ import org.midonet.api.auth.cloudstack.CloudStackAuthService;
 import org.midonet.api.auth.cloudstack.CloudStackClient;
 import org.midonet.api.auth.cloudstack.CloudStackConfig;
 import org.midonet.api.auth.cloudstack.CloudStackJsonParser;
-import org.midonet.api.auth.keystone.KeystoneClient;
+import org.midonet.api.auth.keystone.v2_0.KeystoneClient;
 import org.midonet.api.auth.keystone.KeystoneConfig;
-import org.midonet.api.auth.keystone.KeystoneService;
+import org.midonet.api.auth.keystone.v2_0.KeystoneService;
 import org.midonet.config.ConfigProvider;
 
 /**
