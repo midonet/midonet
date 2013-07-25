@@ -317,9 +317,12 @@ class Coordinator(var origMatch: WildcardMatch,
                           "bridge, vlan-bridge, or router!", port, port.deviceID)
                 return dropFlow(temporary = true)
         }
-        deviceFuture map {Option(_)} fallbackTo { Promise.successful(None) } flatMap {
+        deviceFuture map {Option(_)} recoverWith {
+            case ex =>
+                log.warning("Failed to get device: {} -- {}", port.deviceID, ex)
+                Promise.successful(None)
+        } flatMap {
             case None =>
-                log.warning("Failed to get device: {}", port.deviceID)
                 pktContext.traceMessage(port.deviceID, "Couldn't get device")
                 dropFlow(temporary = true)
             case Some(deviceReply) =>
@@ -543,9 +546,12 @@ class Coordinator(var origMatch: WildcardMatch,
 
         // Get the RCU port object and start simulation.
         val portFuture = expiringAsk(PortRequest(portID, update = false), expiry)
-        portFuture map {Option(_)} fallbackTo { Promise.successful(None) } flatMap {
+        portFuture map {Option(_)} recoverWith {
+            case ex =>
+                log.warning("Failed to get port: {} - {}", portID, ex)
+                Promise.successful(None)
+        } flatMap {
             case None =>
-                log.warning("Failed to get port: {}", portID)
                 dropFlow(temporary = true)
             case Some(p) => p match {
                 case port: Port[_] =>
@@ -574,9 +580,12 @@ class Coordinator(var origMatch: WildcardMatch,
         if (filterID == null)
             return thunk(port)
         val chainFuture = expiringAsk(ChainRequest(filterID, update = false), expiry)
-        chainFuture map {Option(_)} fallbackTo { Promise.successful(None) } flatMap {
+        chainFuture map {Option(_)} recoverWith {
+            case ex =>
+                log.warning("Failed to get chain: {} - {}", filterID, ex)
+                Promise.successful(None)
+        } flatMap {
             case None =>
-                log.warning("Failed to get chain: {}", filterID)
                 dropFlow(temporary = true)
             case Some(c) => c match {
                 case chain: Chain =>
@@ -611,9 +620,12 @@ class Coordinator(var origMatch: WildcardMatch,
      */
     private def packetEgressesPort(portID: UUID): Future[SimulationResult] = {
         val portFuture =  expiringAsk(PortRequest(portID, update = false), expiry)
-        portFuture map {Option(_)} fallbackTo { Promise.successful(None) } flatMap {
+        portFuture map {Option(_)} recoverWith {
+            case ex =>
+                log.warning("Failed to get port: {} - {}", portID, ex)
+                Promise.successful(None)
+        } flatMap {
             case None =>
-                log.warning("Failed to get port: {}", portID)
                 dropFlow(temporary = true)
             case Some(reply) => reply match {
                 case port: Port[_] =>
