@@ -176,12 +176,13 @@ public class ZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
     @Override
     public void handleError(String operationDesc, Runnable retry,
                             StateAccessException e) {
-        if (e.getCause() instanceof KeeperException)
-            handleError(operationDesc, retry, (KeeperException) e.getCause());
-        else if (e.getCause() instanceof InterruptedException)
+        Throwable cause = e.getCause();
+        if (cause instanceof KeeperException)
+            handleError(operationDesc, retry, (KeeperException) cause);
+        else if (cause instanceof InterruptedException)
             handleTimeout(retry);
         else
-            log.error("Non recoverable error on ZK operation for {} - {}",
+            log.error("Failed state access operation for {} - {}",
                       operationDesc, e);
     }
 
