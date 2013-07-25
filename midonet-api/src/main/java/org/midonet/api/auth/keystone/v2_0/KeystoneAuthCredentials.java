@@ -1,7 +1,7 @@
 /*
  * Copyright 2013 Midokura PTE LTD.
  */
-package org.midonet.api.auth.keystone;
+package org.midonet.api.auth.keystone.v2_0;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.ObjectMapper;
