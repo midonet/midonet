@@ -114,6 +114,8 @@ For the value, specify the fully qualified name of the class that implements
 <i>org.midonet.api.auth.MockAuthService</i> class is specified which is a
 service that provides as a way to mock the auth service for testing or
 disabling auth.  See the 'Mocking auth service' section below for more details.
+For authentication with OpenStack Keystone, specify
+<i>org.midonet.api.auth.keystone.KeystoneService</i>.
 
 As mentioned in the previous section, the auth service must convert the roles
 in the external service (like OpenStack Keystone) to those in MidoNet.  It
