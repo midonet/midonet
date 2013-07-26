@@ -213,7 +213,7 @@ trait SimulationHelper extends MidolmanTestCase {
     }
 
     def localPortNumberToName(portNo: Short): Option[String] = {
-        dpController().underlyingActor.dpState.vportManager.getDpPortName(
+        dpController().underlyingActor.dpState.getDpPortName(
             Unsigned.unsign(portNo))
     }
 
