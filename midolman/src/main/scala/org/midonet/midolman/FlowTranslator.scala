@@ -84,7 +84,7 @@ trait FlowTranslator {
         if (tags != null)
             dpTags ++= tags
 
-        dpState.vportResolver.getDpPortNumberForVport(inPortId) match {
+        dpState.getDpPortNumberForVport(inPortId) match {
             case Some(portNo) =>
                 flowMatch.setInputPortNumber(portNo.shortValue())
                          .unsetInputPortUUID()
@@ -117,7 +117,7 @@ trait FlowTranslator {
 
     protected def portsForLocalPorts(localVrnPorts: Seq[UUID]): Seq[Short] = {
         localVrnPorts flatMap {
-            dpState.vportResolver.getDpPortNumberForVport(_) match {
+            dpState.getDpPortNumberForVport(_) match {
                 case Some(value) => Some(value.shortValue())
                 case None =>
                     // TODO(pino): log that the port number was not found.
@@ -372,7 +372,7 @@ trait FlowTranslator {
         val translated = Promise[Option[Seq[FlowAction[_]]]]()
 
         // we need to translate a single port
-        dpState.vportResolver.getDpPortNumberForVport(port) match {
+        dpState.getDpPortNumberForVport(port) match {
             case Some(portNum) =>
                 translated.success(Some(translateToDpPorts(
                     actions, port, List(portNum.shortValue()),

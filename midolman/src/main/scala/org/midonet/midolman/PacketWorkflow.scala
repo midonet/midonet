@@ -481,7 +481,7 @@ class PacketWorkflow(
         val wMatch = WildcardMatch.fromFlowMatch(packet.getMatch)
         val port: JInteger = Unsigned.unsign(inPortNo)
         log.debug("PacketIn on port #{}", port)
-        dpState.vportResolver.getVportForDpPortNumber(port) match {
+        dpState.getVportForDpPortNumber(port) match {
             case Some(vportId) =>
                 wMatch.setInputPortUUID(vportId)
                 system.eventStream.publish(
