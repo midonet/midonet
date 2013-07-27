@@ -19,12 +19,9 @@ class IPv4Addr(val addr: Int) extends IPAddr with Ordered[IPv4Addr] {
     def this() = this(0)
 
     override def toUrlString = toString()
+
     @JsonValue
-    override def toString = { "%d.%d.%d.%d" format ((addr >> 24) & 0xff,
-                                                    (addr >> 16) & 0xff,
-                                                    (addr >> 8) & 0xff,
-                                                    (addr >> 0) & 0xff)
-    }
+    override def toString = IPv4Addr.intToIpStr(addr)
 
     // See "Programming in Scala" sec. 30.4
     override def equals(o: Any): Boolean = {
@@ -58,19 +55,19 @@ class IPv4Addr(val addr: Int) extends IPAddr with Ordered[IPv4Addr] {
 
 object IPv4Addr {
 
+    def apply(s: String): IPv4Addr = fromString(s)
+
+    def apply(i: Int): IPv4Addr = fromInt(i)
+
     @JsonCreator
-    def fromString(s: String): IPv4Addr = {
-        val i: Int = Net.convertStringAddressToInt(s)
-        new IPv4Addr(i)
-    }
+    def fromString(s: String): IPv4Addr =
+        new IPv4Addr(Net.convertStringAddressToInt(s))
 
-    def fromInt(i: Int): IPv4Addr = {
+    def fromInt(i: Int): IPv4Addr =
         new IPv4Addr(i)
-    }
 
-    def fromIntIPv4(ii: IntIPv4): IPv4Addr = {
+    def fromIntIPv4(ii: IntIPv4): IPv4Addr =
         new IPv4Addr(ii.addressAsInt)
-    }
 
     def fromBytes(addr: Array[Byte]) = {
         if (addr.length != 4)
@@ -82,9 +79,13 @@ object IPv4Addr {
                      ((addr(3) <<  0) & 0x000000FF))
     }
 
-    def fromIPv4(ipv4: IPv4Addr) = {
-        new IPv4Addr(ipv4.addr)
-    }
+    def fromIPv4(ipv4: IPv4Addr) = ipv4
+
+    def intToIpStr(addr: Int): String =
+        "%d.%d.%d.%d" format ((addr >> 24) & 0xff,
+                              (addr >> 16) & 0xff,
+                              (addr >> 8) & 0xff,
+                              (addr >> 0) & 0xff)
 
 }
 
