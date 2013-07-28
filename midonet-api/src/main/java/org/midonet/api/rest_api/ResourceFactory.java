@@ -89,6 +89,9 @@ public interface ResourceFactory {
 
     PortResource.PortGroupPortResource getPortGroupPortResource(UUID id);
 
+    PortGroupResource.PortPortGroupResource getPortPortGroupResource(
+            UUID portId);
+
     PortResource.VlanBridgeInteriorPortResource getVlanBridgeInteriorPortResource(UUID id);
 
     PortResource.VlanBridgeTrunkPortResource getVlanBridgeTrunkPortResource(UUID id);
