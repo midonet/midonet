@@ -96,6 +96,9 @@ public interface DataClient {
     void bridgesUpdate(@Nonnull Bridge bridge)
             throws StateAccessException, SerializationException;
 
+    List<Bridge> bridgesGetAll() throws StateAccessException,
+            SerializationException;
+
     List<Bridge> bridgesFindByTenant(String tenantId)
             throws StateAccessException, SerializationException;
 
@@ -144,6 +147,9 @@ public interface DataClient {
 
     @CheckForNull Chain chainsGetByName(String tenantId, String name)
             throws StateAccessException, SerializationException;
+
+    List<Chain> chainsGetAll() throws StateAccessException,
+            SerializationException;
 
     List<Chain> chainsFindByTenant(String tenantId)
             throws StateAccessException, SerializationException;
@@ -405,6 +411,9 @@ public interface DataClient {
     @CheckForNull PortGroup portGroupsGetByName(String tenantId, String name)
             throws StateAccessException, SerializationException;
 
+    List<PortGroup> portGroupsGetAll() throws StateAccessException,
+            SerializationException;
+
     List<PortGroup> portGroupsFindByPort(UUID portId)
             throws StateAccessException, SerializationException;
 
@@ -453,6 +462,9 @@ public interface DataClient {
 
     @CheckForNull Router routersGetByName(String tenantId, String name)
             throws StateAccessException, SerializationException;
+
+    List<Router> routersGetAll() throws StateAccessException,
+            SerializationException;
 
     List<Router> routersFindByTenant(String tenantId)
             throws StateAccessException, SerializationException;
