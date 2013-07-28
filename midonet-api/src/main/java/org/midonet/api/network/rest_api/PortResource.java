@@ -255,6 +255,19 @@ public class PortResource extends AbstractResource {
     }
 
     /**
+     * Port resource locator for port group.
+     *
+     * @param id
+     *            Port ID from the request.
+     * @returns PortPortGroupResource object to handle sub-resource requests.
+     */
+    @Path("/{id}" + ResourceUriBuilder.PORT_GROUPS)
+    public PortGroupResource.PortPortGroupResource getPortGroupResource(
+            @PathParam("id") UUID id) {
+        return factory.getPortPortGroupResource(id);
+    }
+
+    /**
      * Sub-resource class for bridge's ports.
      */
     @RequestScoped

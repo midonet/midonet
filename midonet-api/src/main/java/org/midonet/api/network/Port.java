@@ -166,7 +166,7 @@ public abstract class Port extends UriResource {
 
     public URI getPortGroups() {
         if (getBaseUri() != null && id != null) {
-            return ResourceUriBuilder.getPortGroups(getBaseUri(), id);
+            return ResourceUriBuilder.getPortPortGroups(getBaseUri(), id);
         } else {
             return null;
         }
