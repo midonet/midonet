@@ -16,6 +16,7 @@ import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.BindingAnnotation;
 import com.google.inject.Key;
+import org.midonet.util.eventloop.TryCatchReactor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,14 +42,20 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * Main midolman configuration module
  */
 public class CacheModule extends PrivateModule {
+    @BindingAnnotation @Target({FIELD, METHOD}) @Retention(RUNTIME)
+    public @interface CACHE_REACTOR {}
 
     @Override
     protected void configure() {
         binder().requireExplicitBindings();
 
         requireBinding(ConfigProvider.class);
-        requireBinding(Reactor.class);
         requireBinding(Directory.class);
+
+        bind(Reactor.class).
+                annotatedWith(CACHE_REACTOR.class).
+                toInstance(new TryCatchReactor("cache-reactor", 1));
+        expose(Key.get(Reactor.class, CACHE_REACTOR.class));
 
         bindCache();
 
@@ -88,6 +95,9 @@ public class CacheModule extends PrivateModule {
         @Inject
         ConfigProvider configProvider;
 
+        @Inject @CACHE_REACTOR
+        private Reactor reactor;
+
         CacheProvider(String columnName_, int cacheExpirationSeconds_) {
             columnName = columnName_;
             cacheExpirationSeconds = cacheExpirationSeconds_;
@@ -98,7 +108,7 @@ public class CacheModule extends PrivateModule {
             try {
                 return CacheFactory.create(
                         configProvider.getConfig(MidolmanConfig.class),
-                        columnName, cacheExpirationSeconds);
+                        columnName, cacheExpirationSeconds, reactor);
             } catch (Exception e) {
                 log.error("Exception trying to create Cache:", e);
                 return null;
@@ -111,7 +121,7 @@ public class CacheModule extends PrivateModule {
         @Inject @Nullable @NAT_CACHE
         private Cache cache;
 
-        @Inject
+        @Inject @CACHE_REACTOR
         private Reactor reactor;
 
         @Inject

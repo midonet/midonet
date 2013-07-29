@@ -14,21 +14,21 @@ import java.util.Map;
 import me.prettyprint.hector.api.exceptions.HectorException;
 
 import org.midonet.cache.Cache;
+import org.midonet.util.eventloop.Reactor;
 
 
 public class CassandraCache implements Cache {
-
     private final String column = "target";
     private CassandraClient client;
 
     public CassandraCache(String servers, int maxActiveConns,
                           String clusterName, String keyspaceName,
                           String columnFamily, int replicationFactor,
-                          int expirationSecs)
+                          int expirationSecs, Reactor reactor)
             throws HectorException {
         client = new CassandraClient(servers, maxActiveConns, clusterName,
                                      keyspaceName, columnFamily,
-                                     replicationFactor, expirationSecs);
+                                     replicationFactor, expirationSecs, reactor);
         client.connect();
     }
 

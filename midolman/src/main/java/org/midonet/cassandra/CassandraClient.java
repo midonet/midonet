@@ -9,9 +9,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import me.prettyprint.cassandra.serializers.StringSerializer;
-import me.prettyprint.cassandra.service.CassandraHost;
 import me.prettyprint.cassandra.service.CassandraHostConfigurator;
 import me.prettyprint.cassandra.service.FailoverPolicy;
 import me.prettyprint.hector.api.Cluster;
@@ -37,14 +37,25 @@ import org.apache.cassandra.locator.SimpleStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.util.eventloop.Reactor;
 
 public class CassandraClient {
 
     private static final Logger log =
             LoggerFactory.getLogger(CassandraClient.class);
 
-    private Cluster cluster;
-    private Keyspace keyspace;
+    private static class CassandraConnection {
+        private Cluster cluster;
+        private Keyspace keyspace;
+
+        CassandraConnection(Cluster cl, Keyspace ks) {
+            this.cluster = cl;
+            this.keyspace = ks;
+        }
+    }
+
+    private CassandraConnection conn = null;
+
     private final String servers;
     private final int maxActiveConns;
     private final String clusterName;
@@ -56,12 +67,14 @@ public class CassandraClient {
     // maximum value (setRange is required in a slice query)
     private final int maxColumnsPerFetch = 1000;
     private final int maxRowsPerFetch = 1000;
+    private final Reactor reactor;
 
     private static StringSerializer ss = StringSerializer.get();
 
     public CassandraClient(String servers, int maxActiveConns, String clusterName,
                            String keyspaceName, String columnFamily,
-                           int replicationFactor, int expirationSecs) {
+                           int replicationFactor, int expirationSecs,
+                           Reactor reactor) {
         this.servers = servers;
         this.maxActiveConns = maxActiveConns;
         this.clusterName = clusterName;
@@ -69,19 +82,30 @@ public class CassandraClient {
         this.columnFamily = columnFamily;
         this.replicationFactor = replicationFactor;
         this.expirationSecs = expirationSecs;
+        this.reactor = reactor;
     }
 
-    public void connect() throws HectorException {
+    public synchronized void connect() throws HectorException {
         boolean success = false;
+        if (conn != null)
+            return;
+
+        Cluster cluster = null;
+        Keyspace keyspace = null;
 
         try {
             CassandraHostConfigurator config = new CassandraHostConfigurator();
             config.setHosts(servers);
             config.setMaxActive(maxActiveConns);
-            this.cluster = HFactory.getOrCreateCluster(clusterName, config);
+            config.setUseSocketKeepalive(true);
+            config.setRetryDownedHosts(true);
+            config.setRetryDownedHostsDelayInSeconds(5);
+            config.setCassandraThriftSocketTimeout(5000);
+
+            cluster = HFactory.getOrCreateCluster(clusterName, config);
             // Using FAIL_FAST because if Hector blocks the operations too
             // long, midolman gets disconnected from OVS and crashes.
-            this.keyspace = HFactory.createKeyspace(
+            keyspace = HFactory.createKeyspace(
                     keyspaceName, cluster,
                     HFactory.createDefaultConsistencyLevelPolicy(),
                     FailoverPolicy.FAIL_FAST);
@@ -130,42 +154,95 @@ public class CassandraClient {
             }
 
             success = true;
+        } catch (HectorException ex) {
+            scheduleReconnect();
         } finally {
-            if (!success) {
-                log.error("Connection to Cassandra FAILED");
+            if (success) {
+                log.info("Connection to Cassandra {}:{} ESTABLISHED",
+                         keyspaceName, columnFamily);
+                this.conn = new CassandraConnection(cluster, keyspace);
+            } else {
+                if (cluster != null)
+                    HFactory.shutdownCluster(cluster);
+                log.error("Connection to Cassandra {}:{} FAILED",
+                          keyspaceName, columnFamily);
             }
         }
 
     }
 
+    private synchronized void handleHectorException(HectorException ex) {
+        // FIXME - guillermo, this ugly hack works around the fact that hector
+        // cannot recover from an 'All host pools marked down' error and neither
+        // does it offer an exception subclass or error code to signal that case.
+        if (ex.getMessage().contains("All host pools marked down.")) {
+            if (this.conn != null)
+                scheduleReconnect();
+        }
+    }
+
+    private synchronized void scheduleReconnect() {
+        if (this.conn != null) {
+            HFactory.shutdownCluster(this.conn.cluster);
+            this.conn = null;
+        }
+
+        log.info("Scheduling cassandra reconnection retry");
+        if (reactor != null) {
+            reactor.schedule(new Runnable() {
+                @Override
+                public void run() {
+                    log.info("Trying to reconnect to cassandra");
+                    connect();
+                }
+            }, 5, TimeUnit.SECONDS);
+        } else {
+            log.error("Permanently lost connection to cassandra and there is "+
+                      "no reactor to schedule reconnects");
+        }
+    }
+
     public void set(String key, String value, String newColumn) {
+        CassandraConnection c = this.conn;
+        if (c == null) {
+            log.debug("skipping write op while disconnected from cassandra");
+            return;
+        }
         try {
             // Mutator is not thread safe, cannot be accessed by different threads
             // at the same time. See the class or
             // http://comments.gmane.org/gmane.comp.db.hector.user/5046
             // We create a new one every time and only one thread will use it, should
             // be fine.
-            Mutator<String> mutator = HFactory.createMutator(keyspace, ss);
+            Mutator<String> mutator = HFactory.createMutator(c.keyspace, ss);
             mutator.insert(key, columnFamily,
                            HFactory.createColumn(newColumn, value,
                                                  expirationSecs,
                                                  ss, ss));
         } catch (HectorException e) {
             log.error("set failed", e);
+            handleHectorException(e);
         }
     }
 
     public String get(String key, String columnName) {
+        CassandraConnection c = this.conn;
+        if (c == null) {
+            log.debug("skipping read op while disconnected from cassandra");
+            return null;
+        }
+
         // All get operations in Hector are performed by ExecutingKeyspace.doExecute
         // which is thread safe
         HColumn<String, String> result = null;
         try {
             ColumnQuery<String, String, String> query =
-                    HFactory.createColumnQuery(keyspace, ss, ss, ss);
+                    HFactory.createColumnQuery(c.keyspace, ss, ss, ss);
             query.setColumnFamily(columnFamily).setKey(key).setName(columnName);
             result = query.execute().get();
         } catch (HectorException e) {
             log.error("get failed", e);
+            handleHectorException(e);
             return null;
         }
 
@@ -178,8 +255,14 @@ public class CassandraClient {
 
     // columnName can be null, in which case the whole column is removed
     public void delete(String key, String columnName) {
+        CassandraConnection c = this.conn;
+        if (c == null) {
+            log.debug("skipping read op while disconnected from cassandra");
+            return;
+        }
+
         try {
-            Mutator<String> mutator = HFactory.createMutator(keyspace, ss);
+            Mutator<String> mutator = HFactory.createMutator(c.keyspace, ss);
             mutator.delete(key, columnFamily, columnName, ss);
         } catch (HectorException e) {
             log.error("delete failed", e);
@@ -191,9 +274,16 @@ public class CassandraClient {
                                                 Class<T> returnValueClass,
                                                 int maxResultItems) {
         Map<String, T> res = new HashMap<String, T>();
+
+        CassandraConnection c = this.conn;
+        if (c == null) {
+            log.debug("skipping query while disconnected from cassandra");
+            return res;
+        }
+
         try {
             SliceQuery<String, String, String> sliceQuery = HFactory.createSliceQuery(
-                    keyspace, ss, ss, ss);
+                    c.keyspace, ss, ss, ss);
             sliceQuery.setColumnFamily(columnFamily);
             sliceQuery.setKey(key);
             sliceQuery.setRange(startRange, endRange, false, maxResultItems);
@@ -206,6 +296,7 @@ public class CassandraClient {
             }
         } catch (HectorException e) {
             log.error("slice query failed", e);
+            handleHectorException(e);
         }
         return res;
     }
@@ -216,9 +307,16 @@ public class CassandraClient {
                                                 Class<T> returnValueClass,
                                                 int maxResultItems) {
         Map<String, T> res = new HashMap<String, T>();
+
+        CassandraConnection c = this.conn;
+        if (c == null) {
+            log.debug("skipping query while disconnected from cassandra");
+            return res;
+        }
+
         try {
             MultigetSliceQuery<String, String, String> sliceQuery = HFactory.createMultigetSliceQuery(
-                    keyspace, ss, ss, ss);
+                    c.keyspace, ss, ss, ss);
             sliceQuery.setColumnFamily(columnFamily);
             sliceQuery.setKeys(keys);
             sliceQuery.setRange(startRange, endRange, false, maxResultItems);
@@ -233,6 +331,7 @@ public class CassandraClient {
             }
         } catch (HectorException e) {
             log.error("multiget slice query failed", e);
+            handleHectorException(e);
         }
         return res;
     }
@@ -241,9 +340,16 @@ public class CassandraClient {
                                            Class<T> returnValueClass,
                                            int maxResultItems) {
         List<T> res = new ArrayList<T>();
+
+        CassandraConnection c = this.conn;
+        if (c == null) {
+            log.debug("skipping query while disconnected from cassandra");
+            return res;
+        }
+
         try {
             SliceQuery<String, String, String> sliceQuery = HFactory.createSliceQuery(
-                    keyspace, ss, ss, ss);
+                    c.keyspace, ss, ss, ss);
             sliceQuery.setColumnFamily(columnFamily);
             sliceQuery.setKey(key);
             sliceQuery.setRange(null, null, false, maxResultItems);
@@ -256,6 +362,7 @@ public class CassandraClient {
             }
         } catch (HectorException e) {
             log.error("getAllColumnsValues failed", e);
+            handleHectorException(e);
             return null;
         }
         return res;
@@ -286,9 +393,15 @@ public class CassandraClient {
                                               int maxResultItems) {
         Map<String, List<T>> res = new HashMap<String, List<T>>();
         List<T> retList = new ArrayList<T>();
+        CassandraConnection c = this.conn;
+        if (c == null) {
+            log.debug("skipping query while disconnected from cassandra");
+            return res;
+        }
+
         try {
             RangeSlicesQuery<String, String, String> sliceQuery = HFactory.createRangeSlicesQuery(
-                    keyspace, ss, ss, ss);
+                    c.keyspace, ss, ss, ss);
             sliceQuery.setColumnFamily(columnFamily);
             /*
              * maxResultItems==0 means caller wants all the entries
