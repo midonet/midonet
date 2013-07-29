@@ -46,6 +46,7 @@ public class Topology {
         private final DtoWebResource resource;
 
         private DtoApplication app;
+        private final Map<String, DtoTenant> tenants;
         private final Map<String, DtoRouter> routers;
         private final Map<String, DtoBridge> bridges;
         private final Map<String, DtoVlanBridge> vlanBridges;
@@ -67,6 +68,7 @@ public class Topology {
 
         public Builder(DtoWebResource resource) {
             this.resource = resource;
+            this.tenants = new HashMap<String, DtoTenant>();
             this.routers = new HashMap<String, DtoRouter>();
             this.bridges = new HashMap<String, DtoBridge>();
             this.vlanBridges = new HashMap<String, DtoVlanBridge>();
@@ -448,6 +450,15 @@ public class Topology {
                         Response.Status.CREATED.getStatusCode());
             }
 
+            // Tenants are created behind the scene.  Get all tenants
+            DtoTenant[] tenantList = resource.getAndVerifyOk(app.getTenants(),
+                    APPLICATION_TENANT_COLLECTION_JSON, DtoTenant[].class);
+            if (tenantList != null) {
+                for (DtoTenant t : tenantList) {
+                    tenants.put(t.getId(), t);
+                }
+            }
+
             return new Topology(this);
         }
     }
@@ -458,6 +469,10 @@ public class Topology {
 
     public DtoApplication getApplication() {
         return this.builder.app;
+    }
+
+    public DtoTenant getTenant(String id) {
+        return this.builder.tenants.get(id);
     }
 
     public DtoRouter getRouter(String tag) {

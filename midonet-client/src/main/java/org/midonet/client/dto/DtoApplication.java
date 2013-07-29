@@ -35,6 +35,7 @@ public class DtoApplication {
     private String routerTemplate;
     private String tunnelZoneTemplate;
     private String traceTemplate;
+    private String tenantTemplate;
 
     public String getVersion() {
         return version;
@@ -56,12 +57,12 @@ public class DtoApplication {
         return tenants;
     }
 
-    public URI getBridges() {
-        return bridges;
-    }
-
     public void setTenants(URI tenants) {
         this.tenants = tenants;
+    }
+
+    public URI getBridges() {
+        return bridges;
     }
 
     public void setBridges(URI bridges) {
@@ -242,5 +243,13 @@ public class DtoApplication {
 
     public void setTraceTemplate(String traceTemplate) {
         this.traceTemplate = traceTemplate;
+    }
+
+    public String getTenantTemplate() {
+        return tenantTemplate;
+    }
+
+    public void setTenantTemplate(String tenantTemplate) {
+        this.tenantTemplate = tenantTemplate;
     }
 }

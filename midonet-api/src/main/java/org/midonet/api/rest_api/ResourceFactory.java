@@ -29,6 +29,18 @@ public interface ResourceFactory {
 
     TenantResource getTenantResource();
 
+    BridgeResource.TenantBridgeResource getTenantBridgeResource(
+            String tenantId);
+
+    ChainResource.TenantChainResource getTenantChainResource(
+            String tenantId);
+
+    PortGroupResource.TenantPortGroupResource getTenantPortGroupResource(
+            String tenantId);
+
+    RouterResource.TenantRouterResource getTenantRouterResource(
+            String tenantId);
+
     RouterResource getRouterResource();
 
     BridgeResource getBridgeResource();
