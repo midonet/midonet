@@ -252,8 +252,11 @@ class PacketWorkflow(
 
         cookie match {
             case Some(cook) if (!valid) =>
-                log.debug("Skipping creation of obsolete flow: {}", wildFlow.getMatch)
-                DeduplicationActor.getRef() ! ApplyFlow(wildFlow.getActions, cookie)
+                log.debug("Skipping creation of obsolete flow for cookie {} {}",
+                          cookie, wildFlow.getMatch)
+                DeduplicationActor.getRef() !
+                    ApplyFlow(wildFlow.getActions,cookie)
+                runCallbacks(removalCallbacks.toArray)
                 flowPromise.success(true)
 
             case Some(cook) if (valid && packet.getMatch.isUserSpaceOnly) =>
@@ -281,6 +284,7 @@ class PacketWorkflow(
 
             case _ =>
                 log.debug("Skipping creation of obsolete flow: {}", wildFlow.getMatch)
+                runCallbacks(removalCallbacks.toArray)
                 flowPromise.success(true)
         }
 
