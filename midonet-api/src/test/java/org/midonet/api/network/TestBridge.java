@@ -14,6 +14,7 @@ import java.util.UUID;
 
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
+import org.codehaus.jackson.type.JavaType;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,21 +27,141 @@ import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.Topology;
 import org.midonet.api.zookeeper.StaticMockDirectory;
-import org.midonet.client.dto.DtoApplication;
-import org.midonet.client.dto.DtoBridge;
-import org.midonet.client.dto.DtoBridgePort;
-import org.midonet.client.dto.DtoError;
-import org.midonet.client.dto.DtoIP4MacPair;
-import org.midonet.client.dto.DtoMacPort;
-import org.midonet.client.dto.DtoRuleChain;
+import org.midonet.client.VendorMediaType;
+import org.midonet.client.dto.*;
 
+import javax.ws.rs.core.UriBuilder;
+
+import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalTo;
 import static org.midonet.api.VendorMediaType.*;
-import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
-import static org.hamcrest.Matchers.arrayWithSize;
 import static org.junit.Assert.*;
 
 @RunWith(Enclosed.class)
 public class TestBridge {
+
+    public static class TestBridgeList extends JerseyTest {
+
+        private Topology topology;
+        private DtoWebResource dtoResource;
+
+        public TestBridgeList() {
+            super(FuncTest.appDesc);
+        }
+
+        private void addActualBridges(Topology.Builder builder, String tenantId,
+                                      int count) {
+            for (int i = 0 ; i < count ; i++) {
+                DtoBridge bridge = new DtoBridge();
+                String tag = Integer.toString(i) + tenantId;
+                bridge.setName(tag);
+                bridge.setTenantId(tenantId);
+                builder.create(tag, bridge);
+            }
+        }
+
+        private DtoBridge getExpectedBridge(URI bridgesUri, String tag) {
+
+            DtoBridge b = topology.getBridge(tag);
+            String uri = bridgesUri.toString() + "/" + b.getId();
+
+            // Make sure you set the non-ID fields to values you expect
+            b.setName(tag);
+            b.setUri(UriBuilder.fromUri(uri).build());
+            b.setArpTable(UriBuilder.fromUri(uri + "/arp_table").build());
+            b.setDhcpSubnet6s(UriBuilder.fromUri(uri + "/dhcpV6").build());
+            b.setDhcpSubnets(UriBuilder.fromUri(uri + "/dhcp").build());
+            b.setMacTable(UriBuilder.fromUri(uri + "/mac_table").build());
+            b.setPorts(UriBuilder.fromUri(uri + "/ports").build());
+            b.setPeerPorts(UriBuilder.fromUri(uri + "/peer_ports").build());
+
+            return b;
+        }
+
+        private List<DtoBridge> getExpectedBridges(URI bridgesUri,
+                                                   String tenantId,
+                                                   int startTagNum,
+                                                   int endTagNum) {
+            List<DtoBridge> bridges = new ArrayList<DtoBridge>();
+
+            for (int i = startTagNum; i <= endTagNum; i++) {
+                String tag = Integer.toString(i) + tenantId;
+                DtoBridge b = getExpectedBridge(bridgesUri, tag);
+                bridges.add(b);
+            }
+
+            return bridges;
+        }
+
+        @Before
+        public void setUp() {
+
+            WebResource resource = resource();
+            dtoResource = new DtoWebResource(resource);
+
+            Topology.Builder builder = new Topology.Builder(dtoResource);
+
+            // Create 5 bridges for tenant 0
+            addActualBridges(builder, "tenant0", 5);
+
+            // Create 5 bridges for tenant 1
+            addActualBridges(builder, "tenant1", 5);
+
+            topology = builder.build();
+        }
+
+        @After
+        public void resetDirectory() throws Exception {
+            StaticMockDirectory.clearDirectoryInstance();
+        }
+
+        @Test
+        public void testListAllBridges() throws Exception {
+
+            // Get the expected list of DtoBridge objects
+            DtoApplication app = topology.getApplication();
+            List<DtoBridge> expected = getExpectedBridges(app.getBridges(),
+                    "tenant0", 0, 4);
+            expected.addAll(getExpectedBridges(
+                    app.getBridges(),"tenant1", 0, 4));
+
+            // Get the actual DtoBridge objects
+            String actualRaw = dtoResource.getAndVerifyOk(app.getBridges(),
+                    VendorMediaType.APPLICATION_BRIDGE_COLLECTION_JSON,
+                    String.class);
+            JavaType type = FuncTest.objectMapper.getTypeFactory()
+                    .constructParametricType(List.class, DtoBridge.class);
+            List<DtoBridge> actual = FuncTest.objectMapper.readValue(
+                    actualRaw, type);
+
+            // Compare the actual and expected
+            assertThat(actual, hasSize(expected.size()));
+            assertThat(actual, containsInAnyOrder(expected.toArray()));
+        }
+
+        @Test
+        public void testListBridgesPerTenant() throws Exception {
+
+            // Get the expected list of DtoBridge objects
+            DtoApplication app = topology.getApplication();
+            DtoTenant tenant = topology.getTenant("tenant0");
+            List<DtoBridge> expected = getExpectedBridges(app.getBridges(),
+                    tenant.getId(), 0, 4);
+
+            // Get the actual DtoBridge objects
+            String actualRaw = dtoResource.getAndVerifyOk(tenant.getBridges(),
+                    VendorMediaType.APPLICATION_BRIDGE_COLLECTION_JSON,
+                    String.class);
+            JavaType type = FuncTest.objectMapper.getTypeFactory()
+                    .constructParametricType(List.class, DtoBridge.class);
+            List<DtoBridge> actual = FuncTest.objectMapper.readValue(
+                    actualRaw, type);
+
+            // Compare the actual and expected
+            assertThat(actual, hasSize(expected.size()));
+            assertThat(actual, containsInAnyOrder(expected.toArray()));
+        }
+    }
 
     public static class TestBridgeCrud extends JerseyTest {
 

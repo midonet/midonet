@@ -51,6 +51,19 @@ public class Application extends ResourceBase<Application, DtoApplication> {
     }
 
     /**
+     * Gets tenants.
+     *
+     * @return Collection of tenants
+     */
+    public ResourceCollection<Tenant> getTenants(MultivaluedMap queryParams) {
+        return getChildResources(principalDto.getTenants(),
+                queryParams,
+                VendorMediaType
+                        .APPLICATION_TENANT_COLLECTION_JSON,
+                Tenant.class, DtoTenant.class);
+    }
+
+    /**
      * Gets vlan bridges.
      *
      * @return Collection of vlan bridges
@@ -385,6 +398,20 @@ public class Application extends ResourceBase<Application, DtoApplication> {
         DtoRuleChain chain = resource.get(uri, null, DtoRuleChain.class,
                 VendorMediaType.APPLICATION_CHAIN_JSON);
         return new RuleChain(resource, null, chain);
+    }
+
+    /**
+     * Returns Tenant object
+     *
+     * @param id ID of tenant
+     * @return Tenant
+     */
+    public Tenant getTenant(String id) {
+        URI uri = createUriFromTemplate(
+                principalDto.getTenantTemplate(), ID_TOKEN, id);
+        DtoTenant tenant = resource.get(uri, null, DtoTenant.class,
+                VendorMediaType.APPLICATION_TENANT_JSON);
+        return new Tenant(resource, null, tenant);
     }
 
     /**

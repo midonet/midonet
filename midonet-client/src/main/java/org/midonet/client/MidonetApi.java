@@ -171,6 +171,16 @@ public class MidonetApi {
     }
 
     /**
+     * Gets Tenants
+     *
+     * @return collection of tenants
+     */
+    public ResourceCollection<Tenant> getTenants() {
+        ensureApplication();
+        return application.getTenants(null);
+    }
+
+    /**
      * Gets Tunnel Zones
      *
      * @return collection of tunnel zone
@@ -300,6 +310,17 @@ public class MidonetApi {
     public Rule getRule(UUID id) {
         ensureApplication();
         return application.getRule(id);
+    }
+
+    /**
+     * Returns Tenant object
+     *
+     * @param id ID of tenant
+     * @return Tenant
+     */
+    public Tenant getTenant(String id) {
+        ensureApplication();
+        return application.getTenant(id);
     }
 
     /**

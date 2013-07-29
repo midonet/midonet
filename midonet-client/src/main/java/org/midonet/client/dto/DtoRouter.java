@@ -4,6 +4,8 @@
 
 package org.midonet.client.dto;
 
+import com.google.common.base.Objects;
+
 import javax.xml.bind.annotation.XmlRootElement;
 import java.net.URI;
 import java.util.UUID;
@@ -108,5 +110,68 @@ public class DtoRouter {
 
     public void setPeerPorts(URI peerPorts) {
         this.peerPorts = peerPorts;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+
+        if (other == this) {
+            return true;
+        }
+
+        if (other == null || getClass() != other.getClass()) {
+            return false;
+        }
+
+        DtoRouter otherRouter = (DtoRouter) other;
+        if (!Objects.equal(this.id, otherRouter.getId())) {
+            return false;
+        }
+
+        if (!Objects.equal(this.name, otherRouter.getName())) {
+            return false;
+        }
+
+        if (!Objects.equal(this.tenantId, otherRouter.getTenantId())) {
+            return false;
+        }
+
+        if (!Objects.equal(
+                this.inboundFilterId, otherRouter.getInboundFilterId())) {
+            return false;
+        }
+
+        if (!Objects.equal(
+                this.inboundFilter, otherRouter.getInboundFilter())) {
+            return false;
+        }
+
+        if (!Objects.equal(
+                this.outboundFilterId, otherRouter.getOutboundFilterId())) {
+            return false;
+        }
+
+        if (!Objects.equal(
+                this.outboundFilter, otherRouter.getInboundFilter())) {
+            return false;
+        }
+
+        if (!Objects.equal(this.uri, otherRouter.getUri())) {
+            return false;
+        }
+
+        if (!Objects.equal(this.ports, otherRouter.getPorts())) {
+            return false;
+        }
+
+        if (!Objects.equal(this.peerPorts, otherRouter.getPeerPorts())) {
+            return false;
+        }
+
+        if (!Objects.equal(this.routes, otherRouter.getRoutes())) {
+            return false;
+        }
+
+        return true;
     }
 }

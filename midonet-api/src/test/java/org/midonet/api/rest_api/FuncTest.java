@@ -5,6 +5,8 @@
 package org.midonet.api.rest_api;
 
 import com.google.inject.servlet.GuiceFilter;
+import org.codehaus.jackson.map.DeserializationConfig;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.midonet.api.auth.AuthConfig;
 import org.midonet.api.auth.cors.CorsConfig;
 import org.midonet.api.serialization.ObjectMapperProvider;
@@ -50,6 +52,14 @@ public class FuncTest {
 
     public static int replicationFactor = 1;
     public static int ttlInSecs = 1000;
+
+    public static ObjectMapper objectMapper;
+
+    static {
+        objectMapper = new ObjectMapper();
+        objectMapper.configure(
+                DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, true);
+    }
 
     public static WildCardJacksonJaxbJsonProvider jacksonJaxbJsonProvider;
 
