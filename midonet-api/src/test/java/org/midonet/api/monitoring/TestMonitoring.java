@@ -64,7 +64,8 @@ public class TestMonitoring extends JerseyTest {
                 FuncTest.cassandraCluster,
                 FuncTest.monitoringCassandraKeyspace,
                 FuncTest.monitoringCassandraColumnFamily,
-                FuncTest.replicationFactor, FuncTest.ttlInSecs
+                FuncTest.replicationFactor, FuncTest.ttlInSecs,
+                null
         );
         store = new CassandraStore(client);
         store.initialize();
