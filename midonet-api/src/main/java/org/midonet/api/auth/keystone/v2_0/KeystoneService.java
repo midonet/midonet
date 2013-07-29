@@ -168,6 +168,21 @@ public class KeystoneService implements AuthService {
     }
 
     /**
+     * Gets a {@link Tenant} object from Keystone server.
+     *
+     * @param id Tenant ID
+     * @return {@link Tenant} object
+     * @throws AuthException
+     */
+    @Override
+    public Tenant getTenant(String id) throws AuthException {
+        log.debug("KeystoneService.getTenant entered.  id: " + id);
+
+        KeystoneTenant tenant = client.getTenant(id);
+        return (tenant == null) ? null : tenant.getTenant();
+    }
+
+    /**
      * Gets a list of tenants from the Keystone identity service, and returns
      * the result in a list of {@link Tenant} objects.
      *
