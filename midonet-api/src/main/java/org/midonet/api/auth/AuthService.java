@@ -37,6 +37,14 @@ public interface AuthService {
                        HttpServletRequest request)
         throws AuthException;
 
+    /**
+     * Get a {@link Tenant} object given its ID.
+     *
+     * @param id Tenant ID
+     * @return {@link Tenant} object
+     * @throws AuthException
+     */
+    public Tenant getTenant(String id) throws AuthException;
 
     /**
      * Get a list of all the Tenant objects in the identity system.
