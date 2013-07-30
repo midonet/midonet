@@ -513,10 +513,12 @@ class FlowController extends Actor with ActorLogWithoutPath {
                     }
 
                     def onSuccess(data: Flow) {
-                        self ! (if (data != null)
-                                    getFlowSucceded(data, flowCallback)
-                                else
-                                    flowMissing(flowMatch, flowCallback))
+                        self ! (if (data != null) {
+                            getFlowSucceded(data, flowCallback)
+                        } else {
+                            log.warning("Unexpected getFlow() result: success, but a null flow")
+                            flowMissing(flowMatch, flowCallback)
+                        })
                     }
                 })
         }
