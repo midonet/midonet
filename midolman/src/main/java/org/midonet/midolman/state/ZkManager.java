@@ -162,30 +162,6 @@ public class ZkManager {
         }
     }
 
-    /**
-     * @param lockPath path to the zk lock.
-     */
-    public void lock(String lockPath) throws StateAccessException {
-        try {
-            zk.lock(lockPath);
-        } catch (KeeperException e) {
-            throw new StateAccessException(
-                    "ZooKeeper error occurred while locking: "
-                            + lockPath + ": " + e.getMessage(), e);
-        } catch (InterruptedException e) {
-            throw new StateAccessException(
-                    "ZooKeeper thread interrupted while locking: "
-                            + lockPath + ": " + e.getMessage(), e);
-        }
-    }
-
-    /**
-     * @param lockPath path to the zk lock.
-     */
-    public void unlock(String lockPath) throws StateAccessException {
-        zk.unlock(lockPath);
-    }
-
     public String addEphemeral(String path, byte[] data)
             throws StateAccessException {
         try {
