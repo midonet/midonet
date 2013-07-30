@@ -1,14 +1,11 @@
 /*
  * Copyright 2013 Midokura PTE
  */
-package org.midonet.midolman.version.state;
+package org.midonet.midolman.state;
 
 import com.google.inject.Inject;
-import org.midonet.midolman.state.PathBuilder;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.ZkManager;
-import org.midonet.midolman.version.DataVersionProvider;
 import org.midonet.midolman.version.guice.VerCheck;
+import org.midonet.midolman.SystemDataProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,21 +14,27 @@ import java.util.Comparator;
 /**
  * This class is the zookeeper data access class for the version info.
  */
-public class ZkDataVersionProvider implements DataVersionProvider {
+public class ZkSystemDataProvider implements SystemDataProvider {
 
     private final static Logger log =
-        LoggerFactory.getLogger(ZkDataVersionProvider.class);
+        LoggerFactory.getLogger(ZkSystemDataProvider.class);
 
     private ZkManager zk;
     private PathBuilder paths;
     private final Comparator comparator;
 
     @Inject
-    public ZkDataVersionProvider(ZkManager zk, PathBuilder paths,
+    public ZkSystemDataProvider(ZkManager zk, PathBuilder paths,
                                  @VerCheck Comparator comparator) {
         this.zk = zk;
         this.paths = paths;
         this.comparator = comparator;
+    }
+
+    @Override
+    public boolean systemUpgradeStateExists() throws StateAccessException {
+        String systemStateUpgradePath = paths.getSystemStateUpgradePath();
+        return zk.exists(systemStateUpgradePath);
     }
 
     @Override
@@ -58,23 +61,13 @@ public class ZkDataVersionProvider implements DataVersionProvider {
      */
     @Override
     public String getWriteVersion() throws StateAccessException {
-        log.debug("Entered ZkDataVersionProvider.getWriteVersion");
-        final String lockPath = paths.getWriteVersionLockPath();
-        /*
-         * The version needs to be under lock because the upgrade
-         * coordinator may be in the process of updating the version
-         * info.
-         */
+        log.debug("Entered ZkSystemDataProvider.getWriteVersion");
         String version = null;
-
-        zk.lock(lockPath);
         byte[] data = zk.get(paths.getWriteVersionPath());
         if (data != null) {
             version = new String(data);
         }
-        zk.unlock(lockPath);
-
-        log.debug("Exiting ZkDataVersionProvider.getWriteVersion. " +
+        log.debug("Exiting ZkSystemDataProvider.getWriteVersion. " +
                 "Version={}", version);
         return version;
     }
