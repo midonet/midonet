@@ -993,7 +993,86 @@ contains the following fields:
     </tr>
 </table>
 
-<a name="port"></a>
+<a name="dhcp"/>
+### DHCP Subnet [application/vnd.org.midonet.DhcpSubnet+json]
+
+    GET     /bridges/:bridgeId/dhcp
+    GET     /bridges/:bridgeId/dhcp/:subnetAddr
+    POST    /bridges/:bridgeId/dhcp
+    DELETE  /bridges/:bridgeId/dhcp/:subnetAddr
+
+<table>
+    <tr>
+        <th>Field Name</th>
+        <th>Type</th>
+        <th>POST/PUT</th>
+        <th>Required</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>uri</td>
+        <td>URI</td>
+        <td/>
+        <td/>
+        <td>A GET against this URI returns or refreshes the representation
+         of this resource.</td>
+    </tr>
+    <tr>
+        <td>subnetPrefix</td>
+        <td>String</td>
+        <td>POST</td>
+        <td>No</td>
+        <td>Subnet Prefix in the form of "1.2.3.4"</td>
+    </tr>
+    <tr>
+        <td>subnetLength</td>
+        <td>Integer</td>
+        <td>POST</td>
+        <td>No</td>
+        <td>Subnet Length (0-32)</td>
+    </tr>
+    <tr>
+        <td>defaultGateway</td>
+        <td>String</td>
+        <td>POST</td>
+        <td>No</td>
+        <td>Default Gateway in the form "1.2.3.4"</td>
+    </tr>
+    <tr>
+        <td>serverAddr</td>
+        <td>String</td>
+        <td>POST</td>
+        <td>No</td>
+        <td>DHCP Server Address in the form of "1.2.3.4"</td>
+    </tr>
+    <tr>
+        <td>dnsServerAddrs</td>
+        <td>List(String)</td>
+        <td>POST</td>
+        <td>No</td>
+        <td>List of DNS Server Addresses in the form of "1.2.3.4"</td>
+    </tr>
+    <tr>
+        <td>interfaceMTU</td>
+        <td>Integer</td>
+        <td>POST</td>
+        <td>No</td>
+        <td>Interface Maximum Transmission Unit advertised by DHCP</td>
+    </tr>
+    <tr>
+        <td>opt121Routes</td>
+        <td>List(String, Integer, String)</td>
+        <td>POST</td>
+        <td>No</td>
+        <td>List of DHCP Option 121 routes, each of which consists of
+         {destination prefix (String, "1.2.3.4" form),
+          destination prefix length (Integer, 0-32),
+          gateway address (String, "1.2.3.4" form)}
+        </td>
+    </tr>
+</table>
+
+<a name="port"/>
 ### Port [application/vnd.org.midonet.Port-v1+json]
 
     GET     /ports/:portId
