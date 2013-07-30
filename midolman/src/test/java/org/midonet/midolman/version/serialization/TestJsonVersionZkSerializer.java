@@ -11,7 +11,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.version.DataVersionProvider;
+import org.midonet.midolman.SystemDataProvider;
 import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
@@ -32,7 +32,7 @@ public class TestJsonVersionZkSerializer {
     private Comparator versionComparator;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
-    private DataVersionProvider versionProvider;
+    private SystemDataProvider systemDataProvider;
 
     // Use these constants for convenience
     private static final String DUMMY_VERSION = "dummy_version";
@@ -124,7 +124,7 @@ public class TestJsonVersionZkSerializer {
     public void setUp() throws Exception {
 
         // Use spy so that we can stub 'getObjectMapper'
-        testObject = spy(new JsonVersionZkSerializer(versionProvider,
+        testObject = spy(new JsonVersionZkSerializer(systemDataProvider,
                versionComparator));
 
         ObjectMapper mapper = new ObjectMapper();
@@ -132,7 +132,7 @@ public class TestJsonVersionZkSerializer {
                 SerializationConfig.Feature.SORT_PROPERTIES_ALPHABETICALLY,
                 true);
         doReturn(mapper).when(testObject).getObjectMapper(DUMMY_VERSION);
-        doReturn(DUMMY_VERSION).when(versionProvider).getWriteVersion();
+        doReturn(DUMMY_VERSION).when(systemDataProvider).getWriteVersion();
     }
 
     @Test

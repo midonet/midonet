@@ -10,7 +10,6 @@ import org.apache.zookeeper.*;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.data.ACL;
 import org.apache.zookeeper.data.Stat;
-import org.apache.zookeeper.recipes.lock.WriteLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,7 +23,6 @@ public class ZkDirectory implements Directory {
     private String basePath;
     private List<ACL> acl;
     private Reactor reactor;
-    private WriteLock writeLock;
 
     /**
      * @param zk       the zookeeper object
@@ -180,24 +178,6 @@ public class ZkDirectory implements Directory {
                     break;
             }
         }
-    }
-
-    @Override
-    public void lock(String lockDir) throws KeeperException,
-                                            InterruptedException {
-        if (writeLock == null) {
-            /*
-             * only one lock is ever set. Not very versatile for now, but in
-             * this version (1.1) it doesn't need to be.
-             */
-            writeLock = new WriteLock(zk.getZooKeeper(), lockDir, null);
-        }
-        writeLock.lock();
-    }
-
-    @Override
-    public void unlock(String lockDir) {
-        writeLock.unlock();
     }
 
     @Override

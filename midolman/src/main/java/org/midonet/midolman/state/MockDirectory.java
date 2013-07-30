@@ -485,12 +485,6 @@ public class MockDirectory implements Directory {
         }
     }
 
-    /*
-     * currently unused in unit tests.
-     */
-    public void lock(String lockDir) {};
-    public void unlock(String lockDir) {};
-
     private static class MyTypedWatcher implements Watcher, Runnable {
         TypedWatcher watcher;
         WatchedEvent watchedEvent;

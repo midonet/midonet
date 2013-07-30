@@ -106,13 +106,17 @@ The Midonet Upgrade Work has five main parts:
     * we can NOT guarantee forward compatibility. Therefore, if any Midonet
       agent comes up with an older version than what is in the "write_version"
       node, then the Midonet Agent will abort startup.
-    * Eventually, we will have a watcher on the write version so that when it
-      changes, we can change which version we are writing. However, for the
-      first version, this is not necessary because this version will never
-      write in a lower version.
-    * The write_version node is accessed inside of a lock. This is to prevent
-      race conditions where the upgrade coordinator is changing the write
-      version at the same time a node is changing the read version.
+    * The write_version is checked before each write to zookeeper, so that all
+      writes are up-to-date on which write version should be used.
+    * The write_version node can have its value changed by the administrator
+      or a script we write to manage the upgrade process. To
+      protect against race conditions (ie a 1.0 node coming up just as we
+      change the write version to 1.1), we have a "system_state" node to use
+      as a check. if "system_state" is set to "UPGRADE", then any node trying
+      to come up during that time will abort startup. So, in order to ensure
+      no race conditions when changing the value of write_version, the
+      administrator first sets system_state to UPGRADE, then sets write_version
+      to the new version, then changes system_state back to RUN.
 
 5. host version node in ZK
     * Every host will put their version in ZK as an Ephemeral node (meaning a

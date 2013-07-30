@@ -17,7 +17,7 @@ import org.codehaus.jackson.type.JavaType;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.version.DataVersionProvider;
+import org.midonet.midolman.SystemDataProvider;
 import org.midonet.midolman.version.guice.VerCheck;
 import org.midonet.midolman.version.state.VersionConfig;
 import org.midonet.util.version.VersionCheckAnnotationIntrospector;
@@ -37,7 +37,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class JsonVersionZkSerializer implements Serializer {
 
-    private final DataVersionProvider versionProvider;
+    private final SystemDataProvider systemDataProvider;
     private final Comparator versionComparator;
     private static ObjectMapper objectMapper;
 
@@ -52,9 +52,9 @@ public class JsonVersionZkSerializer implements Serializer {
     }
 
     @Inject
-    public JsonVersionZkSerializer(DataVersionProvider versionProvider,
+    public JsonVersionZkSerializer(SystemDataProvider systemDataProvider,
                                    @VerCheck Comparator versionComparator) {
-        this.versionProvider = versionProvider;
+        this.systemDataProvider = systemDataProvider;
         this.versionComparator = versionComparator;
     }
 
@@ -86,7 +86,7 @@ public class JsonVersionZkSerializer implements Serializer {
             throws SerializationException {
 
         try {
-            String version = versionProvider.getWriteVersion();
+            String version = systemDataProvider.getWriteVersion();
             ObjectMapper objectMapper = getObjectMapper(version);
             VersionConfig<T> config = new VersionConfig<T>(obj, version);
 
@@ -118,7 +118,7 @@ public class JsonVersionZkSerializer implements Serializer {
     public <T> T deserialize(byte[] data, Class<T> clazz)
             throws SerializationException {
         try {
-            String version = versionProvider.getWriteVersion();
+            String version = systemDataProvider.getWriteVersion();
             ObjectMapper objectMapper = getObjectMapper(version);
 
             JavaType type = objectMapper.getTypeFactory()

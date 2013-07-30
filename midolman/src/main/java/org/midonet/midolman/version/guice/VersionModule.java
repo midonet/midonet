@@ -4,8 +4,8 @@
 package org.midonet.midolman.version.guice;
 
 import com.google.inject.PrivateModule;
-import org.midonet.midolman.version.DataVersionProvider;
-import org.midonet.midolman.version.state.ZkDataVersionProvider;
+import org.midonet.midolman.SystemDataProvider;
+import org.midonet.midolman.state.ZkSystemDataProvider;
 import org.midonet.midolman.version.VersionComparator;
 
 import java.util.Comparator;
@@ -25,9 +25,8 @@ public class VersionModule extends PrivateModule {
             .asEagerSingleton();
         expose(Comparator.class).annotatedWith(VerCheck.class);
 
-        bind(DataVersionProvider.class)
-                .to(ZkDataVersionProvider.class).asEagerSingleton();
-        expose(DataVersionProvider.class);
+        bind(SystemDataProvider.class)
+                .to(ZkSystemDataProvider.class).asEagerSingleton();
+        expose(SystemDataProvider.class);
     }
-
 }

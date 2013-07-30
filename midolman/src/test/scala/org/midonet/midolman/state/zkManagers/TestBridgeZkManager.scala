@@ -19,7 +19,7 @@ import org.midonet.midolman.version.VersionComparator
 
 import org.junit.{Test, BeforeClass, AfterClass}
 import org.midonet.midolman.version.serialization.JsonVersionZkSerializer
-import org.midonet.midolman.version.state.ZkDataVersionProvider
+import org.midonet.midolman.state.ZkSystemDataProvider
 
 
 /**
@@ -44,9 +44,9 @@ object TestBridgeZkManager {
     val zk = new ZkManager(dir);
     val basePath = "/midolman";
     val pathMgr = new PathBuilder(basePath);
-    val versionProvider = new ZkDataVersionProvider(zk, pathMgr,
+    val dataProvider = new ZkSystemDataProvider(zk, pathMgr,
         new VersionComparator());
-    val serializer = new JsonVersionZkSerializer(versionProvider,
+    val serializer = new JsonVersionZkSerializer(dataProvider,
       new VersionComparator());
     dir.add(pathMgr.getBasePath, null, CreateMode.PERSISTENT)
     Setup.ensureZkDirectoryStructureExists(dir, basePath)
