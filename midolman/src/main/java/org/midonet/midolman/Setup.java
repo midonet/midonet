@@ -88,6 +88,7 @@ public class Setup {
         paths.add(pathMgr.getHostsPath());
         paths.add(pathMgr.getTenantsPath());
         paths.add(pathMgr.getVersionsPath());
+        paths.add(pathMgr.getSystemStatePath());
         paths.add(pathMgr.getTraceConditionsPath());
         return paths;
     }
@@ -113,6 +114,12 @@ public class Setup {
             }
         }
 
+        /*
+         * Why is this path created seperately from all
+         * the others? because for this path, we need to
+         * create the initial state IF AND ONLY IF it has not
+         * already been initialized by a different node.
+         */
         createDataWriteVersion(rootDir, basePath);
     }
 

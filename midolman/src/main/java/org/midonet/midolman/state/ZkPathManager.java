@@ -275,13 +275,33 @@ public class ZkPathManager {
     }
 
     /**
-     * Get write-version-lock path.
+     * build system-state path.
      *
-     * @return /write_version_lock
+     * @return /system_state StringBuilder
      */
-    public String getWriteVersionLockPath() {
-        return basePath().append("/write_version_lock").toString();
+    public StringBuilder buildSystemStatePath() {
+        return basePath().append("/system_state");
     }
+
+    /**
+     * Get system-state path.
+     *
+     * @return /system_state
+     */
+    public String getSystemStatePath() {
+        return basePath().append("/system_state").toString();
+    }
+
+
+    /**
+     * Get system-state path.
+     *
+     * @return /system_state/UPGRADE
+     */
+    public String getSystemStateUpgradePath() {
+        return buildSystemStatePath().append("/UPGRADE").toString();
+    }
+
 
     /**
      * Get ZK router path.
