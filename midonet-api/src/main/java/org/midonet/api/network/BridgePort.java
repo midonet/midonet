@@ -12,7 +12,9 @@ import java.util.UUID;
 /**
  * Class representing a bridge port.
  */
-public abstract class BridgePort extends Port {
+public class BridgePort extends Port {
+
+    protected Short vlanId;
 
     /**
      * Default constructor
@@ -42,12 +44,34 @@ public abstract class BridgePort extends Port {
     }
 
     /**
+     * Constructor
+     *
      * @param portData
-     *            BridgePort data object to set.
+     *            Exterior bridge port data object
      */
-    public void setConfig(
-            org.midonet.cluster.data.ports.BridgePort portData) {
-        super.setConfig(portData);
+    public BridgePort(
+            org.midonet.cluster.data.ports.MaterializedBridgePort
+                    portData) {
+        super(portData);
+        if (portData.getProperty(
+            org.midonet.cluster.data.Port.Property.vif_id) != null) {
+            this.vifId = UUID.fromString(portData.getProperty(
+                org.midonet.cluster.data.Port.Property.vif_id));
+        }
+        this.hostId = portData.getHostId();
+    }
+
+    /**
+     * Constructor
+     *
+     * @param portData
+     */
+    public BridgePort(
+            org.midonet.cluster.data.ports.LogicalBridgePort
+                    portData) {
+        super(portData);
+        this.peerId = portData.getPeerId();
+        this.vlanId = portData.getVlanId();
     }
 
     /**
@@ -63,18 +87,82 @@ public abstract class BridgePort extends Port {
     }
 
     @Override
-    public boolean isRouterPort() {
-        return false;
-    }
-
-    @Override
-    public boolean isBridgePort() {
-        return true;
-    }
-
-    @Override
     public boolean isVlanBridgePort() {
         return false;
     }
+
+    public Short getVlanId() {
+        return vlanId;
+    }
+
+    public void setVlanId(Short vlanId) {
+        this.vlanId = vlanId;
+    }
+
+    @Override
+    public String getType() {
+            return PortType.BRIDGE;
+    }
+
+    @Override
+    public org.midonet.cluster.data.Port toData() {
+        if(isExterior()) {
+            org.midonet.cluster.data.ports.MaterializedBridgePort data =
+                    new org.midonet.cluster.data.ports
+                            .MaterializedBridgePort();
+            if (this.vifId != null) {
+                data.setProperty(org.midonet.cluster.data.Port.Property.vif_id,
+                    this.vifId.toString());
+            }
+            super.setConfig(data);
+            return data;
+        } else if(isInterior()) {
+            org.midonet.cluster.data.ports.LogicalBridgePort data =
+                    new org.midonet.cluster.data.ports.LogicalBridgePort()
+                            .setPeerId(this.peerId)
+                            .setVlanId(this.vlanId);
+            super.setConfig(data);
+            return data;
+        } else
+            return null; //av-mido: Unplugged ports are not yet implemented (in
+                         // this commit) at the cluster layer.
+    }
+
+    @Override
+    public boolean isLinkable(Port port) {
+
+        if (port == null) {
+            throw new IllegalArgumentException("port cannot be null");
+        }
+
+        // Must be two unplugged/interior ports
+        if (!isUnplugged() || !port.isUnplugged()) {
+            return false;
+        }
+
+        // IDs must be set
+        if (id == null || port.getId() == null) {
+            return false;
+        }
+
+        // IDs must not be the same
+        if (id == port.getId()) {
+            return false;
+        }
+
+        // If both are bridge ports allowed as long as only one has VLAN ID
+        if (port instanceof BridgePort) {
+            Short myVlanId = getVlanId();
+            Short herVlanId = ((BridgePort) port).getVlanId();
+            if ((myVlanId == null && herVlanId == null) ||
+                    (myVlanId != null && herVlanId != null)) {
+                return false;
+            }
+        }
+
+        // Finally, both ports must be unlinked
+        return (getPeerId() == null && port.getAttachmentId() == null);
+    }
+
 
 }

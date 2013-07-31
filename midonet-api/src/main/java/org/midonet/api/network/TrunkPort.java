@@ -124,16 +124,6 @@ public class TrunkPort extends VlanBridgePort implements ExteriorPort {
         return this.vifId;
     }
 
-    @Override
-    public void setAttachmentId(UUID id) {
-        this.vifId = id;
-    }
-
-    @Override
-    public boolean isVlanBridgePort() {
-        return true;
-    }
-
     public URI getLink() {
         if (id != null) {
             return ResourceUriBuilder.getPortLink(getBaseUri(), id);

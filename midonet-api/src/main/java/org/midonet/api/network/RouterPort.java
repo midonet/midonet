@@ -18,7 +18,7 @@ import java.util.UUID;
 /**
  * Data transfer class for router port.
  */
-public abstract class RouterPort extends Port {
+public class RouterPort extends Port {
 
     /**
      * Network IP address
@@ -63,10 +63,7 @@ public abstract class RouterPort extends Port {
     public RouterPort(
             org.midonet.cluster.data.ports.RouterPort portData) {
         super(portData);
-        this.networkAddress = portData.getNwAddr();
-        this.networkLength = portData.getNwLength();
-        this.portAddress = portData.getPortAddr();
-        this.portMac = portData.getHwAddr().toString();
+        setRouterPortFields(portData);
     }
 
     /**
@@ -82,6 +79,46 @@ public abstract class RouterPort extends Port {
     }
 
     /**
+     * Constructor
+     *
+     * @param portData
+     */
+    public RouterPort(
+            org.midonet.cluster.data.ports.LogicalRouterPort
+                    portData) {
+        super(portData);
+        setRouterPortFields(portData);
+        this.peerId = portData.getPeerId();
+    }
+
+    /**
+     * Constructor
+     *
+     * @param portData
+     *            Exterior bridge port data object
+     */
+    public RouterPort(
+            org.midonet.cluster.data.ports.MaterializedRouterPort
+                    portData) {
+        super(portData);
+        setRouterPortFields(portData);
+        if (portData.getProperty(org.midonet.cluster.data.Port.Property.vif_id)
+            != null) {
+            this.vifId = UUID.fromString(portData.getProperty(
+                org.midonet.cluster.data.Port.Property.vif_id));
+        }
+        this.hostId = portData.getHostId();
+    }
+
+    private void setRouterPortFields(
+            org.midonet.cluster.data.ports.RouterPort portData) {
+        this.networkAddress = portData.getNwAddr();
+        this.networkLength = portData.getNwLength();
+        this.portAddress = portData.getPortAddr();
+        this.portMac = portData.getHwAddr().toString();
+    }
+
+    /**
      * @return the router URI
      */
     @Override
@@ -90,6 +127,30 @@ public abstract class RouterPort extends Port {
             return ResourceUriBuilder.getRouter(getBaseUri(), deviceId);
         } else {
             return null;
+        }
+    }
+
+    @Override
+    public org.midonet.cluster.data.Port toData() {
+        if(isInterior()) {
+            org.midonet.cluster.data.ports.LogicalRouterPort data =
+                    new org.midonet.cluster.data.ports.LogicalRouterPort()
+                            .setPeerId(this.peerId);
+            super.setConfig(data);
+            return data;
+        } else if(isExterior()) {
+            org.midonet.cluster.data.ports.MaterializedRouterPort data =
+                    new org.midonet.cluster.data.ports
+                            .MaterializedRouterPort();
+            if (this.vifId != null) {
+                data.setProperty(org.midonet.cluster.data.Port.Property.vif_id,
+                        this.vifId.toString());
+            }
+            super.setConfig(data);
+            return data;
+        } else {
+            return null; //av-mido: Unplugged ports are not yet implemented (in
+                         // this commit) at the cluster layer.
         }
     }
 
@@ -163,18 +224,56 @@ public abstract class RouterPort extends Port {
     }
 
     @Override
-    public boolean isRouterPort() {
-        return true;
-    }
-
-    @Override
-    public boolean isBridgePort() {
-        return false;
-    }
-
-    @Override
     public boolean isVlanBridgePort() {
         return false;
+    }
+
+    @Override
+    public String getType() {
+        return PortType.ROUTER;
+    }
+
+    /**
+     * @return the bgps URI
+     */
+    public URI getBgps() {
+        if (getBaseUri() != null && this.getId() != null) {
+            return ResourceUriBuilder.getPortBgps(getBaseUri(), this.getId());
+        } else {
+            return null;
+        }
+    }
+
+    public boolean isLinkable(Port port) {
+
+        if (port == null) {
+            throw new IllegalArgumentException("port cannot be null");
+        }
+
+        // Must be two unplugged/interior ports
+        if (!isUnplugged() || !port.isUnplugged()) {
+            return false;
+        }
+
+        // IDs must be set
+        if (id == null || port.getId() == null) {
+            return false;
+        }
+
+        // IDs must not be the same
+        if (id == port.getId()) {
+            return false;
+        }
+
+        // If two routers, must be on separate devices
+        if (port instanceof RouterPort) {
+            if (deviceId == port.getDeviceId()) {
+                return false;
+            }
+        }
+
+        // Finally, both ports must be unlinked
+        return (getVifId() == null && port.getAttachmentId() == null);
     }
 
     /*

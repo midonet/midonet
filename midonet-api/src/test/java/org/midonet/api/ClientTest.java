@@ -424,56 +424,5 @@ public class ClientTest extends JerseyTest {
         }
 
         rules.findBy("type", "reject");
-
-        // Test for vlan bridge
-        VlanBridge vb1 = api.addVlanBridge().tenantId("tenant-1").name("vlan-bridge-1")
-                       .create();
-        VlanBridge vb2 = api.addVlanBridge().tenantId("tenant-1").name("vlan-bridge-2")
-                       .create();
-        // Test GET with ID
-        assertThat(vb1.getId(), is(notNullValue()));
-        assertThat(vb2.getId(), is(notNullValue()));
-        vb1 = api.getVlanBridge(vb1.getId());
-        assertThat(vb1, is(notNullValue()));
-        vb2 = api.getVlanBridge(vb2.getId());
-        assertThat(vb2, is(notNullValue()));
-
-        vb2 = vb2.name("vlan-bridge-222").update();
-
-        assertThat(api.getVlanBridges(qTenant1).size(), is(2));
-        for (VlanBridge b : api.getVlanBridges(qTenant1)) {
-            log.debug("VLAN BRIDGE: {}", b);
-        }
-        vb2.delete();
-        assertThat(api.getVlanBridges(qTenant1).size(), is(1));
-
-
-        // Vlan Bridge ports
-        VlanBridgeTrunkPort vbtp3 = vb1.addTrunkPort().create();
-        VlanBridgeInteriorPort vbip1 = vb1.addInteriorPort().create();
-        VlanBridgeInteriorPort vbip2 = vb1.addInteriorPort().create();
-
-        log.debug("vbip1: {}", vbip1);
-        log.debug("vbip2: {}", vbip2);
-        log.debug("vbtp3: {}", vbtp3);
-
-        // Test GET with ID
-        assertThat(vbip1.getId(), is(notNullValue()));
-        assertThat(vbip2.getId(), is(notNullValue()));
-        assertThat(vbtp3.getId(), is(notNullValue()));
-        p = api.getPort(vbip1.getId());
-        assertThat(p, is(notNullValue()));
-        assertThat(p, is(instanceOf(VlanBridgeInteriorPort.class)));
-        p = api.getPort(vbip2.getId());
-        assertThat(p, is(notNullValue()));
-        assertThat(p, is(instanceOf(VlanBridgeInteriorPort.class)));
-        p = api.getPort(vbtp3.getId());
-        assertThat(p, is(notNullValue()));
-        assertThat(p, is(instanceOf(VlanBridgeTrunkPort.class)));
-
-        assertThat(vb1.getInteriorPorts().size(), is(2));
-        assertThat(vb1.getTrunkPorts().size(), is(1));
-
-        // vlan id cannot be changed so no need to test it
     }
 }
