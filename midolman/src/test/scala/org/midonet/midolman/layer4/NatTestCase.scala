@@ -25,6 +25,7 @@ import org.midonet.cluster.data.ports.MaterializedRouterPort
 import org.midonet.packets._
 import org.midonet.packets.util.AddressConversions._
 import org.midonet.midolman.{VMsBehindRouterFixture, MidolmanTestCase}
+import org.midonet.odp.flows.IPFragmentType
 
 @RunWith(classOf[JUnitRunner])
 class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
@@ -383,6 +384,40 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
 
         mapping.flowCount.get should be === (0)
         leaseManager.fwdKeys.size should be === (0)
+    }
+
+    /**
+     * Sends a fragment, since the NAT rules look at L4 fields this should
+     * trigger an ICMP reply with FRAG NEEDED.
+     */
+    def testFragmentationNeeded() {
+        log.info("Sending a tcp packet")
+        injectTcp(vmPortNames.head, vmMacs.head, vmIps.head, 30501,
+            routerMac, "62.72.82.1", 22, syn = true, rst = false, ack = false,
+            fragmentType = IPFragmentType.First)
+
+        val pktOut = expectPacketOut(getPortNumber(vmPortNames.head))
+
+        // a new mapping is expected since the simulation did happen
+        val newMappings: Set[String] = updateAndDiffMappings()
+        newMappings.size should be === (1)
+        leaseManager.fwdKeys.get(newMappings.head).flowCount.get should be === (1)
+
+        pktOut.getEtherType should be(IPv4.ETHERTYPE)
+        pktOut.getPayload.getClass should be === classOf[IPv4]
+        pktOut.getDestinationMACAddress should be === vmMacs.head
+        pktOut.getSourceMACAddress should be === routerMac
+
+        val ip = pktOut.getPayload.asInstanceOf[IPv4]
+        ip.getSourceAddress should be(IPv4Addr.fromString("62.72.82.1").toInt)
+        ip.getDestinationAddress should be(vmIps.head.addressAsInt)
+        ip.getProtocol should be(ICMP.PROTOCOL_NUMBER)
+        ip.getPayload.getClass should be === classOf[ICMP]
+
+        val icmp = ip.getPayload.asInstanceOf[ICMP]
+        icmp.getType should be(ICMP.TYPE_UNREACH)
+        icmp.getCode should be(ICMP.UNREACH_CODE.UNREACH_FRAG_NEEDED.toChar)
+
     }
 
     // -----------------------------------------------
