@@ -487,9 +487,9 @@ trait VlanBridgeSimulationTestCase
                   else List(trunk1Id, trunk2Id),
                   vm1_1Mac, trunkMac, vm1_1Ip, trunkIp, vlanId1)
 
-        log.info("Now let's send a frame from trunk port 2")
-        sendFrame(trunk2Id, List(vm2_2ExtPort.getId), trunkMac,
-                  vm2_2Mac, trunkIp, vm2_2Ip, vlanId2, vlanOnInject = true)
+        log.info("Now let's send a frame from trunk port 2, same vlan / src mac")
+        sendFrame(trunk2Id, List(vm1_1ExtPort.getId), trunkMac,
+                  vm1_1Mac, trunkIp, vm1_1Ip, vlanId1, vlanOnInject = true)
 
         if (hasMacLearning) {
             // We've learned a new port for trunkMac, the old flows must be gone
@@ -510,8 +510,8 @@ trait VlanBridgeSimulationTestCase
             // A new flow should be added, this is checked already in sendFrame
             log.info("Sending frames from VMs, should go to trunk 2")
             sendFrame(vm1_1ExtPort.getId, List(trunk2Id),
-                      vm1_1Mac, trunkMac, vm1_1Ip, trunkIp, vlanId1,
-                      vlanOnInject = false, expectFlowAdded = false)
+                       vm1_1Mac, trunkMac, vm1_1Ip, trunkIp, vlanId1,
+                       vlanOnInject = false, expectFlowAdded = false)
         } else {
             log.info("Sending frames from VMs, should go to both trunks")
             sendFrame(vm1_1ExtPort.getId, List(trunk1Id, trunk2Id),

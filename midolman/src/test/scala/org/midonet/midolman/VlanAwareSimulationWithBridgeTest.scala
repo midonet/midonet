@@ -52,6 +52,7 @@ class VlanAwareSimulationWithBridgeTest extends MidolmanTestCase
      * with a vlan-id that the bridge will not recognize. It should just send
      * the frame to the other trunks (in this scenario, one).
      */
+
     @Test
     def testFrameFromTrunkWithUnknownVlanId() {
         feedBridgeArpCaches()
@@ -101,9 +102,8 @@ class VlanAwareSimulationWithBridgeTest extends MidolmanTestCase
             vm2_1Mac, trunkMac, vm2_1Ip, trunkIp, vlanId2)
 
         log.debug("Sending to VM1's MAC but with the wrong vlan id (2)")
-        sendFrameExpectDrop(trunk1Id, List(), trunkMac, vm1_1Mac, trunkIp,
-            vm1_1Ip, vlanId2, vlanOnInject = true)
-
+        sendFrame(trunk1Id, List(trunk2Id, vm2_1ExtPort.getId, vm2_2ExtPort.getId), trunkMac, vm1_1Mac,
+            trunkIp, vm1_1Ip, vlanId2, vlanOnInject = true)
     }
 
 }

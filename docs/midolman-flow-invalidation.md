@@ -176,19 +176,20 @@ Configuration change -> invalidate all flows tagged with this bridge id
 ##### Materialized ports
 React to the changes in the MAC learning table
 
-    1) A new association {port, mac} is learnt -> invalidate all flows tagged
-                                                (bridgeId, MAC)
+    1) A new association {port, mac, vlan id} is learnt -> invalidate all flows tagged
+                                                (bridgeId, MAC, VLAN ID)
 
     2) A MAC entry expires -> invalidate all the flows tagged (bridgeId, oldport,
-       MAC)
+       MAC, VLAN ID)
 
     3) A MAC moves from port1 to port2 -> invalidate all the flows tagged
-       (bridgeId, port1, MAC)
+       (bridgeId, port1, MAC, VLAN ID)
 
 ##### Logical ports
-Added -> invalidate all ARP requests for the port's MAC
-         invalidate all flooded flows to the port's MAC, tagged (bridge ID, MAC)
-Removed -> remove all the flows tagged (bridge ID, port ID). Where port ID is
+Added -> Invalidate all ARP requests for the port's MAC.
+         Invalidate all flooded flows to the port's MAC, tagged (bridge ID, MAC,
+         VLAN ID)
+Removed -> Remove all the flows tagged (bridge ID, port ID). Where port ID is
            ID of bridge's logical port
 
 Tagging in Bridge.
@@ -249,12 +250,12 @@ If a chain get modified all the flows tagged by its ID need to be invalidated
 ##### Tagging by Bridge:
 - gives every flow a tag consisting of its own ID
 - gives every flow forwarded to a single port (interior or exterior) a tag
-  consisting of the tuple (bridge ID, port ID, dst MAC)
+  consisting of the tuple (bridge ID, port ID, dst MAC, dst VLAN)
 - gives every broadcast flow a tag consisting of the tuple (bridge ID, portSet ID)
 - gives every flow forwarded to a logical port a tag consisting of a tuple
   (bridge ID, port ID) where port ID is the ID of the logical port on the bridge
-- gives every flow flooded a tag (bridge ID, dst MAC) where MAC is the unknown
-  MAC address
+- gives every flow flooded a tag (bridge ID, dst MAC, DST VLAN ID) where MAC is the
+ unknown MAC address
 - gives every flow a tag consisting of the inFilter
 - gives every flow a tag consisting of the (its id + inFilter)
 - gives every flow a tag consisting of the outFilter

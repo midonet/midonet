@@ -8,7 +8,7 @@ import akka.event.Logging
 import akka.util.duration._
 import collection.mutable.{Map, Queue}
 import compat.Platform
-import java.lang.{Long => JLong}
+import java.lang.{Long => JLong, Short => JShort}
 import java.util.UUID
 
 import org.junit.runner.RunWith
@@ -18,6 +18,7 @@ import org.scalatest.matchers.ShouldMatchers
 
 import org.midonet.midolman.topology._
 import org.midonet.cluster.client.{ExteriorRouterPort, IpMacMap, MacLearningTable}
+import org.midonet.cluster.data
 import org.midonet.packets._
 import org.midonet.util.functors.{Callback0, Callback1, Callback3}
 import org.midonet.sdn.flows.WildcardMatch
@@ -47,7 +48,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
     val inFilter: Chain = null
     val outFilter: Chain = null
     val flowRemovedCallbackGen = new RemoveFlowCallbackGenerator {
-        def getCallback(mac: MAC, port: UUID) = new Callback0 {
+        def getCallback(mac: MAC, vlanId: JShort, port: UUID) = new Callback0 {
             def call() {}
         }
     }
@@ -63,7 +64,10 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
                                         rtr2mac -> rtr2port)
         val rtrIpToMac = Map(rtr1ipaddr -> rtr1mac, rtr2ipaddr -> rtr2mac)
 
-        bridge = new Bridge(bridgeID, 0, macPortMap, ip4MacMap, flowCount,
+        val macLearningTables = Map[JShort, MacLearningTable]()
+        macLearningTables.put(data.Bridge.UNTAGGED_VLAN_ID, macPortMap)
+
+        bridge = new Bridge(bridgeID, 0, macLearningTables, ip4MacMap, flowCount,
                             inFilter, outFilter, vlanBridgePortId,
                             flowRemovedCallbackGen, rtrMacToLogicalPortId,
                             rtrIpToMac, vlanToPort)
@@ -217,8 +221,8 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
 }
 
 private class MockMacFlowCount extends MacFlowCount {
-    override def increment(mac: MAC, port: UUID) {}
-    override def decrement(mac: MAC, port: UUID) {}
+    override def increment(mac: MAC, vlanId: JShort, port: UUID) {}
+    override def decrement(mac: MAC,vlanId: JShort, port: UUID) {}
 }
 
 private class MockMacLearningTable(val table: Map[MAC, UUID])

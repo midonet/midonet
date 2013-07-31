@@ -7,10 +7,12 @@ import akka.actor.ActorSystem
 import akka.event.Logging
 import collection.mutable
 import org.midonet.cluster.client.MacLearningTable
+import org.midonet.cluster.data.Bridge
 import org.midonet.midolman.topology.MacLearningManager
 import org.midonet.packets.MAC
 import org.midonet.util.functors.{Callback3, Callback1}
 import java.util.UUID
+import java.lang.{Short => JShort}
 import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.FunSuite
 
@@ -28,25 +30,27 @@ class TestMacLearningManager  extends FunSuite with ShouldMatchers {
         val expiry: Long = 40
         val mgr = new MacLearningManager(log, expiry)
         val table = mutable.Map[MAC, UUID]()
-        mgr.backendMap = new MockMacLearningTable(table)
+        val macLearningTables = mutable.Map[JShort, MacLearningTable]()
+        macLearningTables.put(Bridge.UNTAGGED_VLAN_ID, new MockMacLearningTable(table))
+        mgr.vlanMacTableMap = macLearningTables
 
         // Initially, the backend has no entry for mac1.
         var p = table.get(mac1)
         p should equal (None)
         // Then we increase the refCount and the backend gets the entry.
-        mgr.incRefCount(mac1, port1)
+        mgr.incRefCount(mac1, Bridge.UNTAGGED_VLAN_ID, port1)
         p = table.get(mac1)
         p should equal (Some(port1))
         // We increase the refCount again, and the entry is still there.
-        mgr.incRefCount(mac1, port1)
+        mgr.incRefCount(mac1, Bridge.UNTAGGED_VLAN_ID, port1)
         p = table.get(mac1)
         p should equal (Some(port1))
         // We decrease the refCount at time 10 and the entry is still there.
-        mgr.decRefCount(mac1, port1, 10)
+        mgr.decRefCount(mac1, Bridge.UNTAGGED_VLAN_ID, port1, 10)
         p = table.get(mac1)
         p should equal (Some(port1))
         // We decrease the refCount again at 20 and the entry is still there.
-        mgr.decRefCount(mac1, port1, 20)
+        mgr.decRefCount(mac1, Bridge.UNTAGGED_VLAN_ID, port1, 20)
         p = table.get(mac1)
         p should equal (Some(port1))
         // We do a cleanup at time 59 and the entry is still there
@@ -59,28 +63,28 @@ class TestMacLearningManager  extends FunSuite with ShouldMatchers {
         p should equal (None)
 
         // We decrement the refcount past zero, nothing happens
-        mgr.decRefCount(mac1, port1, 60)
+        mgr.decRefCount(mac1, Bridge.UNTAGGED_VLAN_ID, port1, 60)
         p = table.get(mac1)
         p should equal (None)
 
         // Again, we decrement the refcount past zero, nothing happens
-        mgr.decRefCount(mac1, port1, 60)
+        mgr.decRefCount(mac1, Bridge.UNTAGGED_VLAN_ID, port1, 60)
         p = table.get(mac1)
         p should equal (None)
 
         // We increase then decrease the refCount back-to-back. Entry is added.
-        mgr.incRefCount(mac1, port1)
-        mgr.decRefCount(mac1, port1, 100)
+        mgr.incRefCount(mac1, Bridge.UNTAGGED_VLAN_ID, port1)
+        mgr.decRefCount(mac1, Bridge.UNTAGGED_VLAN_ID, port1, 100)
         p = table.get(mac1)
         p should equal (Some(port1))
 
         // Increase then decrease the refCount of other mac-port entries.
-        mgr.incRefCount(mac2, port1)
-        mgr.decRefCount(mac2, port1, 110)
-        mgr.incRefCount(mac3, port2)
-        mgr.decRefCount(mac3, port2, 110)
-        mgr.incRefCount(mac4, port2)
-        mgr.decRefCount(mac4, port2, 110)
+        mgr.incRefCount(mac2, Bridge.UNTAGGED_VLAN_ID, port1)
+        mgr.decRefCount(mac2, Bridge.UNTAGGED_VLAN_ID, port1, 110)
+        mgr.incRefCount(mac3, Bridge.UNTAGGED_VLAN_ID, port2)
+        mgr.decRefCount(mac3, Bridge.UNTAGGED_VLAN_ID, port2, 110)
+        mgr.incRefCount(mac4, Bridge.UNTAGGED_VLAN_ID, port2)
+        mgr.decRefCount(mac4, Bridge.UNTAGGED_VLAN_ID, port2, 110)
 
         // At time 139 we do a cleanup, but the entry is not removed.
         mgr.doDeletions(139)
