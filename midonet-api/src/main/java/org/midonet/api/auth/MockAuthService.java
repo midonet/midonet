@@ -115,6 +115,11 @@ public final class MockAuthService implements AuthService {
         return new Token(this.config.getAdminToken(), null);
     }
 
+    @Override
+    public Tenant getTenant(String id) throws AuthException {
+        return new MockTenant(id);
+    }
+
     /**
      * Gets the tenants stored in data store.
      *

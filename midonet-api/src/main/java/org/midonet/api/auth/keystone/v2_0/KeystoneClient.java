@@ -8,7 +8,6 @@ import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
-import org.midonet.api.auth.Tenant;
 import org.midonet.api.auth.keystone.KeystoneBadCredsException;
 import org.midonet.api.auth.keystone.KeystoneConnectionException;
 import org.midonet.api.auth.keystone.KeystoneServerException;
@@ -18,9 +17,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Keystone Client V2.0
@@ -79,6 +75,29 @@ public class KeystoneClient {
         return new StringBuilder(getServiceUrl()).append("/tenants").toString();
     }
 
+    private String getTenantUrl(String id) {
+        return new StringBuilder(getTenantsUrl()).append("/").append(
+                id).toString();
+    }
+
+    private <T> T sendGetRequest(WebResource resource, Class<T> clazz)
+            throws KeystoneServerException, KeystoneConnectionException {
+
+        try {
+            return resource.accept(MediaType.APPLICATION_JSON)
+                    .header(KEYSTONE_TOKEN_HEADER_KEY, this.adminToken)
+                    .get(clazz);
+        } catch (UniformInterfaceException e) {
+            throw new KeystoneServerException("Keystone server error.", e,
+                    e.getResponse().getStatus());
+        } catch (ClientHandlerException e) {
+            throw new KeystoneConnectionException(
+                    "Could not connect to Keystone server. Uri="
+                            + resource.getURI(), e);
+        }
+    }
+
+
     public KeystoneAccess createToken(KeystoneAuthCredentials credentials)
             throws KeystoneServerException, KeystoneConnectionException,
             KeystoneBadCredsException {
@@ -121,24 +140,46 @@ public class KeystoneClient {
         WebResource resource = client.resource(getTokensUrl(token));
 
         try {
-            return resource.accept(MediaType.APPLICATION_JSON)
-                    .header(KEYSTONE_TOKEN_HEADER_KEY, this.adminToken)
-                    .get(KeystoneAccess.class);
-        } catch (UniformInterfaceException e) {
-            if (e.getResponse().getStatus() == Response.Status.NOT_FOUND
+            return sendGetRequest(resource, KeystoneAccess.class);
+        } catch (KeystoneServerException ex) {
+            if (ex.getStatus() == Response.Status.NOT_FOUND
                     .getStatusCode()) {
                 // This indicates that the token was not found
                 log.warn("KeystoneClient: Token not found {}", token);
                 return null;
             }
-            throw new KeystoneServerException("Keystone server error.", e,
-                    e.getResponse().getStatus());
-        } catch (ClientHandlerException e) {
-            throw new KeystoneConnectionException(
-                    "Could not connect to Keystone server. Uri="
-                            + resource.getURI(), e);
-        }
 
+            throw ex;
+        }
+    }
+
+    /**
+     * Retrieves from Keystone server a tenant given its ID.
+     *
+     * @param id  ID of the tenant
+     * @return {@link KeystoneTenant} object
+     * @throws KeystoneServerException
+     * @throws KeystoneConnectionException
+     */
+    public KeystoneTenant getTenant(String id) throws KeystoneServerException,
+            KeystoneConnectionException {
+        log.debug("KeystoneClient.getTenant: entered id=" + id);
+
+        Client client = Client.create();
+        WebResource resource = client.resource(getTenantUrl(id));
+
+        try {
+            return sendGetRequest(resource, KeystoneTenant.class);
+        } catch (KeystoneServerException ex) {
+            if (ex.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
+                // This indicates that the tenant was not found.  Not an error
+                // from MidoNet.
+                log.info("KeystoneClient: Tenant not found {}", id);
+                return null;
+            }
+
+            throw ex;
+        }
     }
 
     /**
@@ -175,17 +216,6 @@ public class KeystoneClient {
                     Integer.toString(limit));
         }
 
-        try {
-            return resource.accept(MediaType.APPLICATION_JSON)
-                    .header(KEYSTONE_TOKEN_HEADER_KEY, this.adminToken)
-                    .get(KeystoneTenantList.class);
-        } catch (UniformInterfaceException e) {
-            throw new KeystoneServerException("Keystone server error.", e,
-                    e.getResponse().getStatus());
-        } catch (ClientHandlerException e) {
-            throw new KeystoneConnectionException(
-                    "Could not connect to Keystone server. Uri="
-                            + resource.getURI(), e);
-        }
+        return sendGetRequest(resource, KeystoneTenantList.class);
     }
 }
