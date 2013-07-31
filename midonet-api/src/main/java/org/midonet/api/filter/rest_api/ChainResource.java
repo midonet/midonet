@@ -5,21 +5,22 @@
 package org.midonet.api.filter.rest_api;
 
 import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.VendorMediaType;
 import org.midonet.api.auth.AuthAction;
+import org.midonet.api.auth.AuthRole;
 import org.midonet.api.auth.Authorizer;
 import org.midonet.api.auth.ForbiddenHttpException;
 import org.midonet.api.filter.Chain;
 import org.midonet.api.filter.auth.ChainAuthorizer;
 import org.midonet.api.filter.rest_api.RuleResource.ChainRuleResource;
-import org.midonet.api.auth.AuthRole;
 import org.midonet.api.rest_api.*;
+import org.midonet.cluster.DataClient;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.StateAccessException;
-import org.midonet.cluster.DataClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -222,23 +223,15 @@ public class ChainResource extends AbstractResource {
     @Produces({ VendorMediaType.APPLICATION_CHAIN_COLLECTION_JSON,
             MediaType.APPLICATION_JSON })
     public List<Chain> list(@QueryParam("tenant_id") String tenantId)
-            throws StateAccessException,
-            SerializationException {
+            throws StateAccessException, SerializationException {
 
+        List<org.midonet.cluster.data.Chain> dataChains = null;
         if (tenantId == null) {
-            throw new BadRequestHttpException(
-                    "Tenant_id is required for search.");
+            dataChains = dataClient.chainsGetAll();
+        } else {
+            dataChains = dataClient.chainsFindByTenant(tenantId);
         }
 
-        // Tenant ID query string is a special parameter that is used to check
-        // authorization.
-        if (!Authorizer.isAdminOrOwner(context, tenantId)) {
-            throw new ForbiddenHttpException(
-                    "Not authorized to view chains of this request.");
-        }
-
-        List<org.midonet.cluster.data.Chain> dataChains =
-                dataClient.chainsFindByTenant(tenantId);
         List<Chain> chains = new ArrayList<Chain>();
         if (dataChains != null) {
             for (org.midonet.cluster.data.Chain dataChain :
@@ -252,4 +245,57 @@ public class ChainResource extends AbstractResource {
         return chains;
     }
 
+    /**
+     * Sub-resource class for tenant's chains.
+     */
+    @RequestScoped
+    public static class TenantChainResource extends AbstractResource {
+
+        private final String tenantId;
+        private final DataClient dataClient;
+
+        @Inject
+        public TenantChainResource(RestApiConfig config,
+                                   UriInfo uriInfo,
+                                   SecurityContext context,
+                                   DataClient dataClient,
+                                   @Assisted String tenantId) {
+            super(config, uriInfo, context);
+            this.tenantId = tenantId;
+            this.dataClient = dataClient;
+        }
+
+        /**
+         * Handler to list tenant chains.
+         *
+         * @throws StateAccessException
+         *             Data access error.
+         * @return A list of Chain objects.
+         */
+        @GET
+        @RolesAllowed({ AuthRole.ADMIN })
+        @Produces({ VendorMediaType.APPLICATION_CHAIN_COLLECTION_JSON,
+                MediaType.APPLICATION_JSON })
+        public List<Chain> list() throws StateAccessException,
+                SerializationException {
+
+            if (!Authorizer.isAdminOrOwner(context, tenantId)) {
+                throw new ForbiddenHttpException(
+                        "Not authorized to view chains of this request.");
+            }
+
+            List<org.midonet.cluster.data.Chain> dataChains =
+                    dataClient.chainsFindByTenant(tenantId);
+            List<Chain> chains = new ArrayList<Chain>();
+            if (dataChains != null) {
+                for (org.midonet.cluster.data.Chain dataChain :
+                        dataChains) {
+                    Chain chain = new Chain(dataChain);
+                    chain.setBaseUri(getBaseUri());
+                    chains.add(chain);
+                }
+            }
+            return chains;
+        }
+    }
 }

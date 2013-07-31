@@ -12,6 +12,8 @@ public class VendorMediaType {
     public static final String APPLICATION_JSON = "application/vnd.org.midonet.Application-v1+json";
     public static final String APPLICATION_ERROR_JSON = "application/vnd.org.midonet.Error-v1+json";
 
+    public static final String APPLICATION_TENANT_JSON =
+            "application/vnd.org.midonet.Tenant-v1+json";
     public static final String APPLICATION_TENANT_COLLECTION_JSON =
             "application/vnd.org.midonet.collection.Tenant-v1+json";
 

@@ -5,30 +5,29 @@
 package org.midonet.api.network.rest_api;
 
 import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.VendorMediaType;
-import org.midonet.api.auth.ForbiddenHttpException;
-import org.midonet.api.network.IP4MacPair;
-import org.midonet.api.network.MacPort;
-import org.midonet.api.network.auth.BridgeAuthorizer;
-import org.midonet.api.rest_api.*;
 import org.midonet.api.auth.AuthAction;
 import org.midonet.api.auth.AuthRole;
 import org.midonet.api.auth.Authorizer;
+import org.midonet.api.auth.ForbiddenHttpException;
 import org.midonet.api.dhcp.rest_api.BridgeDhcpResource;
 import org.midonet.api.dhcp.rest_api.BridgeDhcpV6Resource;
 import org.midonet.api.network.Bridge;
 import org.midonet.api.network.Bridge.BridgeCreateGroupSequence;
 import org.midonet.api.network.Bridge.BridgeUpdateGroupSequence;
+import org.midonet.api.network.IP4MacPair;
+import org.midonet.api.network.MacPort;
+import org.midonet.api.network.auth.BridgeAuthorizer;
+import org.midonet.api.rest_api.*;
+import org.midonet.cluster.DataClient;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.StateAccessException;
-import org.midonet.cluster.DataClient;
 import org.midonet.packets.IPv4Addr;
-import org.midonet.packets.IntIPv4;
 import org.midonet.packets.MAC;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,11 +42,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Root resource class for Virtual bridges.
@@ -259,34 +254,25 @@ public class BridgeResource extends AbstractResource {
     }
 
     /**
-     * Handler to list tenant bridges.
+     * Handler to list all bridges.
      *
      * @throws StateAccessException
      *             Data access error.
      * @return A list of Bridge objects.
      */
     @GET
-    @PermitAll
+    @RolesAllowed({ AuthRole.ADMIN })
     @Produces({ VendorMediaType.APPLICATION_BRIDGE_COLLECTION_JSON,
             MediaType.APPLICATION_JSON })
     public List<Bridge> list(@QueryParam("tenant_id") String tenantId)
-            throws StateAccessException,
-                   SerializationException {
+            throws StateAccessException, SerializationException {
 
+        List<org.midonet.cluster.data.Bridge> dataBridges = null;
         if (tenantId == null) {
-            throw new BadRequestHttpException(
-                    "Currently tenant_id is required for search.");
+            dataBridges = dataClient.bridgesGetAll();
+        } else {
+            dataBridges = dataClient.bridgesFindByTenant(tenantId);
         }
-
-        // Tenant ID query string is a special parameter that is used to check
-        // authorization.
-        if (!Authorizer.isAdminOrOwner(context, tenantId)) {
-            throw new ForbiddenHttpException(
-                    "Not authorized to view bridges of this request.");
-        }
-
-        List<org.midonet.cluster.data.Bridge> dataBridges =
-                dataClient.bridgesFindByTenant(tenantId);
         List<Bridge> bridges = new ArrayList<Bridge>();
         if (dataBridges != null) {
             for (org.midonet.cluster.data.Bridge dataBridge :
@@ -558,5 +544,59 @@ public class BridgeResource extends AbstractResource {
         dataClient.bridgeDeleteIp4Mac(id,
             ResourceUriBuilder.ip4MacPairToIP4(IP4MacPairString),
             ResourceUriBuilder.ip4MacPairToMac(IP4MacPairString));
+    }
+
+    /**
+     * Sub-resource class for tenant's bridges.
+     */
+    @RequestScoped
+    public static class TenantBridgeResource extends AbstractResource {
+
+        private final String tenantId;
+        private final DataClient dataClient;
+
+        @Inject
+        public TenantBridgeResource(RestApiConfig config,
+                                    UriInfo uriInfo,
+                                    SecurityContext context,
+                                    DataClient dataClient,
+                                    @Assisted String tenantId) {
+            super(config, uriInfo, context);
+            this.tenantId = tenantId;
+            this.dataClient = dataClient;
+        }
+
+        /**
+         * Handler to list tenant bridges.
+         *
+         * @throws StateAccessException
+         *             Data access error.
+         * @return A list of Bridge objects.
+         */
+        @GET
+        @PermitAll
+        @Produces({ VendorMediaType.APPLICATION_BRIDGE_COLLECTION_JSON,
+                MediaType.APPLICATION_JSON })
+        public List<Bridge> list() throws StateAccessException,
+                SerializationException {
+
+            if (!Authorizer.isAdminOrOwner(context, tenantId)) {
+                throw new ForbiddenHttpException(
+                        "Not authorized to view bridges of this request.");
+            }
+
+            List<org.midonet.cluster.data.Bridge> dataBridges =
+                    dataClient.bridgesFindByTenant(tenantId);
+            List<Bridge> bridges = new ArrayList<Bridge>();
+            if (dataBridges != null) {
+                for (org.midonet.cluster.data.Bridge dataBridge :
+                        dataBridges) {
+                    Bridge bridge = new Bridge(dataBridge);
+                    bridge.setBaseUri(getBaseUri());
+                    bridges.add(bridge);
+                }
+            }
+            return bridges;
+        }
     }
 }
