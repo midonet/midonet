@@ -17,13 +17,12 @@ import org.midonet.odp.FlowMatch;
 import org.midonet.odp.FlowMatches;
 import org.midonet.odp.flows.*;
 import org.midonet.packets.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 public class WildcardMatch implements Cloneable {
 
     private EnumSet<Field> usedFields = EnumSet.noneOf(Field.class);
+    private EnumSet<Field> seenFields = EnumSet.noneOf(Field.class);
 
     public enum Field {
         InputPortNumber,
@@ -45,6 +44,33 @@ public class WildcardMatch implements Cloneable {
         IcmpId,
         IcmpData,
         VlanId
+    }
+
+    private short getLayer(Field f) {
+        switch(f) {
+            case EthernetSource:
+            case EthernetDestination:
+            case EtherType:
+            case VlanId:
+                return 2;
+            case NetworkDestination:
+            case NetworkProtocol:
+            case NetworkSource:
+            case NetworkTOS:
+            case NetworkTTL:
+            case FragmentType:
+                return 3;
+            case TransportDestination:
+            case TransportSource:
+            case IcmpData:
+            case IcmpId:
+                return 4;
+            case InputPortNumber:
+            case InputPortUUID:
+            case TunnelID:
+            default:
+                return 1;
+        }
     }
 
     /**
@@ -89,6 +115,57 @@ public class WildcardMatch implements Cloneable {
     private byte[] icmpData;
     private List<Short> vlanIds = new ArrayList<Short>();
 
+    private boolean trackSeenFields = true;
+
+    /**
+     * Log the fact that <pre>field</pre> has been seen in this match. Will
+     * NOT log it if <pre>doNotTrackSeenFields</pre> has last been called.
+     */
+    private void fieldSeen(Field field) {
+        if (this.trackSeenFields) {
+            this.seenFields.add(field);
+        }
+    }
+
+    /**
+     * Track seen fields from now on.
+     */
+    public void doTrackSeenFields() {
+        this.trackSeenFields = true;
+    }
+
+    /**
+     * Do not track seen fields from now on.
+     */
+    public void doNotTrackSeenFields() {
+        this.trackSeenFields = false;
+    }
+
+    /**
+     * Reports the highest layer seen among the fields accessed on this match.
+     * E.g.: if only ethernetSource was seen, it'll return 2, if also
+     * transportSource was seen, it'll return 4.
+     *
+     * @return
+     */
+    public short highestLayerSeen() {
+        short layer = 0;
+        short fLayer;
+        for (Field f : this.seenFields) {
+            fLayer = getLayer(f);
+            layer = (fLayer > layer) ? fLayer : layer;
+        }
+        return layer;
+    }
+
+    /**
+     * Resets the contents of this WildcardMatch setting them to the values
+     * in <pre>that</pre>. The list of used fields will be cleared and all
+     * the used fields in <pre>that</pre> copied (but not creating a new
+     * collection for the new used fields)
+     *
+     * @param that
+     */
     public void reset(WildcardMatch that) {
         inputPortNumber = that.inputPortNumber;
         inputPortUUID = that.inputPortUUID;
@@ -112,8 +189,15 @@ public class WildcardMatch implements Cloneable {
             this.icmpData = null;
         usedFields.clear();
         usedFields.addAll(that.usedFields);
+        trackSeenFields = that.trackSeenFields;
+        seenFields.clear();
+        seenFields.addAll(that.seenFields);
     }
 
+    /**
+     * Clears the contents of the fields. It will also empty the collection of
+     * used fields.
+     */
     public void clear() {
         this.usedFields.clear();
         this.icmpData = null;
@@ -123,6 +207,8 @@ public class WildcardMatch implements Cloneable {
         this.ethernetDestination = null;
         this.inputPortUUID = null;
         this.vlanIds = null;
+        this.trackSeenFields = true;
+        this.seenFields.clear();
     }
 
     @Nonnull
@@ -192,7 +278,6 @@ public class WildcardMatch implements Cloneable {
         return usedFields.contains(Field.TunnelID) ? tunnelID : null;
     }
 
-
     @Nonnull
     public WildcardMatch setEthernetSource(@Nonnull MAC addr) {
         usedFields.add(Field.EthernetSource);
@@ -221,12 +306,14 @@ public class WildcardMatch implements Cloneable {
 
     @Nullable
     public MAC getEthernetSource() {
+        fieldSeen(Field.EthernetSource);
         return ethernetSource;
     }
 
     @Deprecated
     @Nullable
     public byte[] getDataLayerSource() {
+        fieldSeen(Field.EthernetSource);
         return ethernetSource.getAddress();
     }
 
@@ -258,12 +345,14 @@ public class WildcardMatch implements Cloneable {
 
     @Nullable
     public MAC getEthernetDestination() {
+        fieldSeen(Field.EthernetDestination);
         return ethernetDestination;
     }
 
     @Deprecated
     @Nullable
     public byte[] getDataLayerDestination() {
+        fieldSeen(Field.EthernetDestination);
         return ethernetDestination.getAddress();
     }
 
@@ -283,6 +372,7 @@ public class WildcardMatch implements Cloneable {
 
     @Nullable
     public Short getEtherType() {
+        fieldSeen(Field.EtherType);
         return usedFields.contains(Field.EtherType) ? etherType : null;
     }
 
@@ -294,6 +384,7 @@ public class WildcardMatch implements Cloneable {
 
     @Deprecated
     public short getDataLayerType() {
+        fieldSeen(Field.EtherType);
         return usedFields.contains(Field.EtherType) ? etherType : 0;
     }
 
@@ -313,11 +404,11 @@ public class WildcardMatch implements Cloneable {
 
     @Nullable
     public IPAddr getNetworkSourceIP() {
+        fieldSeen(Field.NetworkSource);
         return networkSource;
     }
 
     /**
-     *
      * @param addr doesn't support network range, just host IP
      * @return
      */
@@ -337,6 +428,7 @@ public class WildcardMatch implements Cloneable {
 
     @Nullable
     public IPAddr getNetworkDestinationIP() {
+        fieldSeen(Field.NetworkDestination);
         return networkDestination;
     }
 
@@ -356,21 +448,25 @@ public class WildcardMatch implements Cloneable {
 
     @Nullable
     public Byte getNetworkProtocolObject() {
+        fieldSeen(Field.NetworkProtocol);
         return usedFields.contains(Field.NetworkProtocol) ? networkProtocol : null;
     }
 
     @Deprecated
     public byte getNetworkProtocol() {
+        fieldSeen(Field.NetworkProtocol);
         return networkProtocol;
     }
 
     @Nullable
     public Byte getNetworkTOS() {
+        fieldSeen(Field.NetworkTOS);
         return usedFields.contains(Field.NetworkTOS) ? networkTOS : null;
     }
 
     @Deprecated
     public byte getNetworkTypeOfService() {
+        fieldSeen(Field.NetworkTOS);
         return usedFields.contains(Field.NetworkTOS) ? networkTOS : 0;
     }
 
@@ -403,6 +499,7 @@ public class WildcardMatch implements Cloneable {
 
     @Nullable
     public Byte getNetworkTTL() {
+        fieldSeen(Field.NetworkTTL);
         return usedFields.contains(Field.NetworkTTL) ? networkTTL : null;
     }
 
@@ -422,6 +519,7 @@ public class WildcardMatch implements Cloneable {
 
     @Nullable
     public IPFragmentType getIpFragmentType() {
+        fieldSeen(Field.FragmentType);
         return ipFragmentType;
     }
 
@@ -445,11 +543,13 @@ public class WildcardMatch implements Cloneable {
 
     @Nullable
     public Integer getTransportSourceObject() {
+        fieldSeen(Field.TransportSource);
         return usedFields.contains(Field.TransportSource) ? transportSource : null;
     }
 
     @Deprecated
     public int getTransportSource() {
+        fieldSeen(Field.TransportSource);
         return transportSource;
     }
 
@@ -473,12 +573,14 @@ public class WildcardMatch implements Cloneable {
 
     @Nullable
     public Integer getTransportDestinationObject() {
+        fieldSeen(Field.TransportDestination);
         return usedFields.contains(Field.TransportDestination) ?
             transportDestination : null;
     }
 
     @Deprecated
     public int getTransportDestination() {
+        fieldSeen(Field.TransportDestination);
         return transportDestination;
     }
 
@@ -497,11 +599,13 @@ public class WildcardMatch implements Cloneable {
 
     @Nullable
     public Short getIcmpIdentifier() {
+        fieldSeen(Field.IcmpId);
         return usedFields.contains(Field.IcmpId) ? icmpId : null;
     }
 
     @Nullable
     public byte[] getIcmpData() {
+        fieldSeen(Field.IcmpData);
         return (icmpData == null) ? null
                                   : Arrays.copyOf(icmpData, icmpData.length);
     }
@@ -555,6 +659,7 @@ public class WildcardMatch implements Cloneable {
 
     @Nullable
     public List<Short> getVlanIds() {
+        fieldSeen(Field.VlanId);
         return (usedFields.contains(Field.VlanId)) ? vlanIds
                                                    : new ArrayList<Short>();
     }

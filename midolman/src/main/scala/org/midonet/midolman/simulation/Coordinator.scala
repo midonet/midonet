@@ -12,10 +12,7 @@ import akka.dispatch.{ExecutionContext, Future, Promise}
 import org.midonet.cache.Cache
 import org.midonet.cluster.client._
 import org.midonet.midolman.DeduplicationActor
-import org.midonet.midolman.PacketWorkflow.{SendPacket,
-                                            AddVirtualWildcardFlow,
-                                            NoOp,
-                                            SimulationResult}
+import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.datapath.{FlowActionOutputToVrnPort,
                                       FlowActionOutputToVrnPortSet}
 import org.midonet.midolman.logging.LoggerFactory
@@ -23,15 +20,20 @@ import org.midonet.midolman.rules.Condition
 import org.midonet.midolman.rules.RuleResult.{Action => RuleAction}
 import org.midonet.midolman.topology._
 import org.midonet.midolman.topology.VirtualTopologyActor._
-import org.midonet.midolman.topology.VirtualTopologyActor.RouterRequest
-import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
-import org.midonet.midolman.topology.VirtualTopologyActor.BridgeRequest
-import org.midonet.midolman.topology.VirtualTopologyActor.ChainRequest
-import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
-import org.midonet.midolman.topology.VirtualTopologyActor.VlanBridgeRequest
 import org.midonet.odp.flows._
 import org.midonet.packets.{Ethernet, ICMP, IPv4, IPv4Addr, IPv6Addr, TCP, UDP}
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
+import org.midonet.midolman.topology.VirtualTopologyActor.RouterRequest
+import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
+import scala.Some
+import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
+import org.midonet.midolman.topology.VirtualTopologyActor.BridgeRequest
+import org.midonet.midolman.topology.VirtualTopologyActor.ChainRequest
+import org.midonet.midolman.PacketWorkflow.NoOp
+import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
+import org.midonet.midolman.PacketWorkflow.SendPacket
+import org.midonet.midolman.topology.VirtualTopologyActor.VlanBridgeRequest
+import java.lang.{Short => JShort}
 
 
 object Coordinator {
@@ -96,7 +98,7 @@ object Coordinator {
  * @param traceMessageCache The Cache to use for trace messages.
  * @param traceIndexCache The Cache to use for the trace index.
  * @param parentCookie TODO
- * @param tracedConditions Seq of Conditions which will trigger tracing.
+ * @param traceConditions Seq of Conditions which will trigger tracing.
  * @param ec
  * @param actorSystem
  */
@@ -208,21 +210,28 @@ class Coordinator(var origMatch: WildcardMatch,
                                 origMatch.toString, origEthernetPkt.toString))
                         dropFlow(temporary = true)
 
-                    case id: UUID =>
-                        dropFragmentedPackets(id) match {
-                            case None =>
-                                packetIngressesPort(id, getPortGroups = true)
-                            case Some(future) =>
-                                // packet dropped
-                                future
+                    case inPortId: UUID =>
+                        val simRes = packetIngressesPort(inPortId,
+                                                         getPortGroups = true)
+                        origMatch.getEtherType.shortValue() match {
+                            case IPv4.ETHERTYPE => origMatch.getIpFragmentType
+                            match {
+                                case IPFragmentType.None => simRes
+                                case _ =>
+                                    log.debug("Handling fragmented packet")
+                                    simRes.recoverWith {
+                                        case e =>Promise.successful(ErrorDrop())
+                                    } flatMap {
+                                        sr => handleFragmentation(inPortId, sr)
+                                    }
+                            }
+                            case _ => simRes
                         }
                 }
 
             case Some(egressID) =>
                 origMatch.getInputPortUUID match {
-                    case null =>
-                        packetEgressesPort(egressID)
-
+                    case null => packetEgressesPort(egressID)
                     case id: UUID =>
                         log.error(
                             "Coordinator cannot simulate a flow that " +
@@ -235,28 +244,41 @@ class Coordinator(var origMatch: WildcardMatch,
         }
     }
 
-    private def dropFragmentedPackets(inPort: UUID): Option[Future[SimulationResult]] = {
-        origMatch.getIpFragmentType match {
-            case IPFragmentType.First =>
-                origMatch.getEtherType.shortValue match {
-                    case IPv4.ETHERTYPE =>
-                        sendIpv4FragNeeded(inPort)
-                        Some(dropFlow(temporary = true))
+    /**
+     * After a simulation, take care of fragmentation. This checks if the sim
+     * touched any L4 fields in the WcMatch. If it didn't it'll let the packet
+     * through. Otherwise it'll reply with a Frag. Needed for the first fragment
+     * and drop subsequent ones.
+     */
+    private def handleFragmentation(inPort: UUID,
+                                    simRes: Future[SimulationResult])
+    : Future[SimulationResult] = simRes map {
 
-                    case ethertype =>
-                        log.info("Dropping fragmented packet of unsupported " +
-                                 "ethertype={}", ethertype)
-                        Some(dropFlow(temporary = false))
-                }
-            case IPFragmentType.Later =>
-                log.info("Dropping non-first fragment at simulation layer")
-                val wMatch = new WildcardMatch().
-                    setIpFragmentType(IPFragmentType.Later)
-                val wFlow = WildcardFlow(wcmatch = wMatch)
-                Some(AddVirtualWildcardFlow(wFlow, Set.empty, Set.empty))
-            case _ =>
-                None
-        }
+        case sr: ErrorDrop => sr
+        case sr if pktContext.getMatch.highestLayerSeen() < 4 =>
+            log.debug("Fragmented packet, L4 fields untouched: execute")
+            sr
+        case sr =>
+            log.debug("Fragmented packet, L4 fields touched..")
+            origMatch.getIpFragmentType match {
+                case IPFragmentType.First =>
+                    origMatch.getEtherType.shortValue match {
+                        case IPv4.ETHERTYPE =>
+                            log.debug("Reply with frag needed and DROP")
+                            sendIpv4FragNeeded(inPort)
+                            dropFlow(temporary = true)
+                        case ethertype =>
+                            log.info("Dropping fragmented packet of " +
+                                     "unsupported ethertype={}", ethertype)
+                            dropFlow(temporary = false)
+                    }
+                case IPFragmentType.Later =>
+                    log.info("Dropping non-first fragment at simulation layer")
+                    val wMatch = new WildcardMatch()
+                                     .setIpFragmentType(IPFragmentType.Later)
+                    val wFlow = WildcardFlow(wcmatch = wMatch)
+                    AddVirtualWildcardFlow(wFlow, Set.empty, Set.empty)
+            }
     }
 
     private def sendIpv4FragNeeded(inPort: UUID) {
@@ -750,6 +772,8 @@ class Coordinator(var origMatch: WildcardMatch,
     private def actionsFromMatchDiff(orig: WildcardMatch, modif: WildcardMatch)
     : mutable.ListBuffer[FlowAction[_]] = {
         val actions = mutable.ListBuffer[FlowAction[_]]()
+        modif.doNotTrackSeenFields()
+        orig.doNotTrackSeenFields()
         if (!orig.getEthernetSource.equals(modif.getEthernetSource) ||
             !orig.getEthernetDestination.equals(modif.getEthernetDestination)) {
             actions.append(FlowActions.setKey(FlowKeys.ethernet(
@@ -806,6 +830,7 @@ class Coordinator(var origMatch: WildcardMatch,
                 actions.append(action)
             }
         }
+
         // ICMP errors
         if (!matchObjectsSame(orig.getIcmpData,
                               modif.getIcmpData)) {
@@ -842,6 +867,8 @@ class Coordinator(var origMatch: WildcardMatch,
                     // were translated, which is not the case, so leave alone
             }
         }
+        modif.doTrackSeenFields()
+        orig.doTrackSeenFields()
         actions
     }
 } // end Coordinator class

@@ -146,7 +146,8 @@ trait SimulationHelper extends MidolmanTestCase {
     def injectTcp(port: String,
               fromMac: MAC, fromIp: IntIPv4, fromPort: Int,
               toMac: MAC, toIp: IntIPv4, toPort: Int,
-              syn: Boolean = false, rst: Boolean = false, ack: Boolean = false) {
+              syn: Boolean = false, rst: Boolean = false, ack: Boolean = false,
+              fragmentType: IPFragmentType = IPFragmentType.None) {
         val tcp = new TCP()
         tcp.setSourcePort(fromPort)
         tcp.setDestinationPort(toPort)
@@ -155,9 +156,14 @@ trait SimulationHelper extends MidolmanTestCase {
                         (if (ack) 0x00 else 0x10)
         tcp.setFlags(flags.toShort)
         tcp.setPayload(new Data("TCP Payload".getBytes))
+
+        val ipFlags = if (fragmentType == IPFragmentType.None) 0 else IPv4.IP_FLAGS_MF
+        val offset = if (fragmentType == IPFragmentType.Later) 0x4321 else 0
         val ip = new IPv4().setSourceAddress(fromIp.addressAsInt).
                             setDestinationAddress(toIp.addressAsInt).
                             setProtocol(TCP.PROTOCOL_NUMBER).
+                            setFlags(ipFlags.toByte).
+                            setFragmentOffset(offset.toShort).
                             setTtl(64).
                             setPayload(tcp)
         val eth = new Ethernet().setSourceMACAddress(fromMac).
