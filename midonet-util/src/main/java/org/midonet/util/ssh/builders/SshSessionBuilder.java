@@ -21,6 +21,13 @@ import org.midonet.util.ssh.jsch.PasswordCredentialsUserInfo;
 public abstract class SshSessionBuilder<Builder extends SshSessionBuilder<Builder>>
     implements SshHelper.SshOpBuilder<Builder> {
 
+    public static class BaseSshBuilder extends SshSessionBuilder<BaseSshBuilder> {
+        @Override
+        protected BaseSshBuilder self() {
+            return this;
+        }
+    }
+
     protected String hostname;
     protected int port;
     protected String username;

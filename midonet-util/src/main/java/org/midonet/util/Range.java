@@ -77,7 +77,8 @@ public class Range<E extends Comparable<E>> {
         if (this == o) return true;
         if (!(o instanceof Range)) return false;
 
-        Range range = (Range) o;
+        // safe to cast to range, but unknown type
+        Range<?> range = (Range<?>) o;
 
         if (end != null ? !end.equals(range.end) : range.end != null)
             return false;
