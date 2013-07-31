@@ -12,7 +12,8 @@ public class NoOpThrottlingGuardFactory implements ThrottlingGuardFactory {
     }
 
     @Override
-    public ThrottlingGuard buildForCollection(String name, Collection col) {
+    public <E> ThrottlingGuard buildForCollection(
+            String name, Collection<E> col) {
         return new NoOpThrottlingGuard();
     }
 }

@@ -60,8 +60,9 @@ public abstract class ConfigProvider {
     }
 
     @SuppressWarnings("unchecked")
-    public static <Config> Config getConfig(Class<Config> interfaces,
-                                            final ConfigProvider provider) {
+    public static <Config> Config getConfig(
+            Class<Config> interfaces, final ConfigProvider provider) {
+
         ClassLoader classLoader = provider.getClass().getClassLoader();
 
         InvocationHandler handler = new InvocationHandler() {
@@ -72,9 +73,10 @@ public abstract class ConfigProvider {
             }
         };
 
-        return (Config) Proxy.newProxyInstance(classLoader,
-                                               new Class[]{interfaces},
-                                               handler);
+        Class[] intsArray = {interfaces};
+
+        return (Config) Proxy.newProxyInstance(
+            classLoader, intsArray, handler);
     }
 
     private static Object handleInvocation(Method method, Object[] args,

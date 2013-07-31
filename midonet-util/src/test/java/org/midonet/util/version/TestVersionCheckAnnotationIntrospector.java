@@ -28,6 +28,12 @@ public class TestVersionCheckAnnotationIntrospector {
 
     public static VersionCheckAnnotationIntrospector testObject;
 
+    public static Comparator<String> mockComparator() {
+        @SuppressWarnings("unchecked")                      /* safe since it */
+        Comparator<String> comp = mock(Comparator.class);   /* is a mock obj */
+        return comp;
+    }
+
     private static class TestClass {
 
         public String nonAnnotated;
@@ -54,7 +60,7 @@ public class TestVersionCheckAnnotationIntrospector {
         return new AnnotatedField(field, map);
     }
 
-    private static void setComparator(Comparator comparator,
+    private static void setComparator(Comparator<String> comparator,
                                       String v1,
                                       String v2,
                                       int result) {
@@ -127,12 +133,12 @@ public class TestVersionCheckAnnotationIntrospector {
     public static class TestIsIgnorableFieldWithComparator {
 
         private final AnnotatedField annotatedFieldInput;
-        private final Comparator comparatorInput;
+        private final Comparator<String> comparatorInput;
         private final boolean expected;
         private static final String RUNNING_VERSION = "running_version";
 
         public TestIsIgnorableFieldWithComparator(
-                AnnotatedField annotatedFieldInput,Comparator comparatorInput,
+                AnnotatedField annotatedFieldInput,Comparator<String> comparatorInput,
                 boolean expected) {
             this.annotatedFieldInput = annotatedFieldInput;
             this.comparatorInput = comparatorInput;
@@ -149,28 +155,28 @@ public class TestVersionCheckAnnotationIntrospector {
             AnnotatedField nullAnnotatedField =
                     getAnnotatedField("nonAnnotated");
             params.add(new Object[]{nullAnnotatedField,
-                    mock(Comparator.class), false});
+                    mockComparator(), false});
 
             // Test when Since exists but Until does not
             AnnotatedField onlySinceAnnotatedFieldBefore =
                     getAnnotatedField("sinceOnly");
 
             // Version is less than since
-            Comparator lessThanSinceComp = mock(Comparator.class);
+            Comparator<String> lessThanSinceComp = mockComparator();
             setComparator(lessThanSinceComp, "since_version",
                     RUNNING_VERSION, 1);
             params.add(new Object[]{onlySinceAnnotatedFieldBefore,
                     lessThanSinceComp, true});
 
             // Version is equal to since
-            Comparator equalToSinceComp = mock(Comparator.class);
+            Comparator<String> equalToSinceComp = mockComparator();
             setComparator(equalToSinceComp, "since_version",
                     RUNNING_VERSION, 0);
             params.add(new Object[]{onlySinceAnnotatedFieldBefore,
                     equalToSinceComp, false});
 
             // Version is greater than since
-            Comparator greaterThanSinceComp = mock(Comparator.class);
+            Comparator<String> greaterThanSinceComp = mockComparator();
             setComparator(greaterThanSinceComp, "since_version",
                     RUNNING_VERSION, -1);
             params.add(new Object[]{onlySinceAnnotatedFieldBefore,
@@ -181,21 +187,21 @@ public class TestVersionCheckAnnotationIntrospector {
                     getAnnotatedField("untilOnly");
 
             // Version is greater than until
-            Comparator greaterThanUntilComp = mock(Comparator.class);
+            Comparator<String> greaterThanUntilComp = mockComparator();
             setComparator(greaterThanUntilComp, "until_version",
                     RUNNING_VERSION, -1);
             params.add(new Object[]{onlyUntilAnnotatedFieldBefore,
                     greaterThanUntilComp, true});
 
             // Version is equal to since
-            Comparator equalToUntilComp = mock(Comparator.class);
+            Comparator<String> equalToUntilComp = mockComparator();
             setComparator(equalToUntilComp, "until_version",
                     RUNNING_VERSION, 0);
             params.add(new Object[]{onlyUntilAnnotatedFieldBefore,
                     equalToUntilComp, false});
 
             // Version is greater than since
-            Comparator lessThanUntilComp = mock(Comparator.class);
+            Comparator<String> lessThanUntilComp = mockComparator();
             setComparator(lessThanUntilComp, "until_version",
                     RUNNING_VERSION, 1);
             params.add(new Object[]{onlyUntilAnnotatedFieldBefore,
@@ -206,7 +212,7 @@ public class TestVersionCheckAnnotationIntrospector {
                     getAnnotatedField("sinceAndUntil");
 
             // Version is less than since
-            Comparator lessThanSinceUntilComp = mock(Comparator.class);
+            Comparator<String> lessThanSinceUntilComp = mockComparator();
             setComparator(lessThanSinceUntilComp, "since_version",
                     RUNNING_VERSION, -1);
             setComparator(lessThanSinceUntilComp, "until_version",
@@ -215,7 +221,7 @@ public class TestVersionCheckAnnotationIntrospector {
                     lessThanSinceUntilComp, true});
 
             // Version is between since and until
-            Comparator betweenSinceUntilComp = mock(Comparator.class);
+            Comparator<String> betweenSinceUntilComp = mockComparator();
             setComparator(betweenSinceUntilComp, "since_version",
                     RUNNING_VERSION, -1);
             setComparator(betweenSinceUntilComp, "until_version",
@@ -224,7 +230,7 @@ public class TestVersionCheckAnnotationIntrospector {
                     betweenSinceUntilComp, false});
 
             // Version is equal to both since and until
-            Comparator equalsSinceUntilComp = mock(Comparator.class);
+            Comparator<String> equalsSinceUntilComp = mockComparator();
             setComparator(equalsSinceUntilComp, "since_version",
                     RUNNING_VERSION, 0);
             setComparator(equalsSinceUntilComp, "until_version",
@@ -233,7 +239,7 @@ public class TestVersionCheckAnnotationIntrospector {
                     equalsSinceUntilComp, false});
 
             // Version is equal to since but less than until
-            Comparator equalsSinceLessUntilComp = mock(Comparator.class);
+            Comparator<String> equalsSinceLessUntilComp = mockComparator();
             setComparator(equalsSinceLessUntilComp, "since_version",
                     RUNNING_VERSION, 0);
             setComparator(equalsSinceLessUntilComp, "until_version",
@@ -242,7 +248,7 @@ public class TestVersionCheckAnnotationIntrospector {
                     equalsSinceLessUntilComp, false});
 
             // Version is greater than since and equals to until
-            Comparator greaterSinceEqualsUntilComp = mock(Comparator.class);
+            Comparator<String> greaterSinceEqualsUntilComp = mockComparator();
             setComparator(greaterSinceEqualsUntilComp, "since_version",
                     RUNNING_VERSION, -1);
             setComparator(greaterSinceEqualsUntilComp, "until_version",
@@ -251,7 +257,7 @@ public class TestVersionCheckAnnotationIntrospector {
                     greaterSinceEqualsUntilComp, false});
 
             // Version is greater than until and since
-            Comparator greaterSinceUntilComp = mock(Comparator.class);
+            Comparator<String> greaterSinceUntilComp = mockComparator();
             setComparator(greaterSinceUntilComp, "since_version",
                     RUNNING_VERSION, -1);
             setComparator(greaterSinceUntilComp, "until_version",
@@ -260,7 +266,7 @@ public class TestVersionCheckAnnotationIntrospector {
                     greaterSinceUntilComp, true});
 
             // Version is less than since but greater than until (error case)
-            Comparator lessSinceGreaterUntil = mock(Comparator.class);
+            Comparator<String> lessSinceGreaterUntil = mockComparator();
             setComparator(lessSinceGreaterUntil, "since_version",
                     RUNNING_VERSION, 1);
             setComparator(lessSinceGreaterUntil, "until_version",
