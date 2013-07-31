@@ -34,6 +34,12 @@ import org.midonet.util.eventloop.SelectLoop
 import org.midonet.netlink.AfUnix
 
 object RoutingHandler {
+
+    /** A conventional value for Ip prefix of BGP pairs.
+     *  173 is the MS byte value and 23 the second byte value.
+     *  Last 2 LS bytes are available for assigning BGP pairs. */
+    val BGP_IP_PREFIX = 173 * (1<<24) + 23 * (1<<16)
+
     // BgpdProcess will notify via these messages
     case object BGPD_READY
     case object BGPD_DEAD
@@ -106,9 +112,9 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
     private final val BGP_VTY_BRIDGE_NAME: String =
         "mbgp%d_br".format(bgpIdx)
     private final val BGP_VTY_LOCAL_IP: String =
-        "172.23.0.%d".format((bgpIdx * 4) + 1)
+        IPv4Addr.intToIpStr(BGP_IP_PREFIX + 1 + 4 * bgpIdx)
     private final val BGP_VTY_MIRROR_IP: String =
-        "172.23.0.%d".format((bgpIdx * 4) + 2)
+        IPv4Addr.intToIpStr(BGP_IP_PREFIX + 2 + 4 * bgpIdx)
     private final val BGP_VTY_MASK_LEN: Int = 30
     private final val BGP_NETWORK_NAMESPACE: String =
         "mbgp%d_ns".format(bgpIdx)
