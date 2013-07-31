@@ -26,9 +26,10 @@ public class RandomEarlyDropThrottlingGuardFactory
     }
 
     @Override
-    public ThrottlingGuard buildForCollection(String name, Collection col) {
+    public <E> ThrottlingGuard buildForCollection(
+            String name, Collection<E> col) {
         return new RandomEarlyDropThrottlingGuard(
-                name, new CollectionThrottlingCounter(col),
+                name, new CollectionThrottlingCounter<E>(col),
                 this.highWaterMark, this.lowWaterMark);
     }
 }

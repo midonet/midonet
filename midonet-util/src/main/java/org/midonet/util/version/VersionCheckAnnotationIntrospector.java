@@ -27,10 +27,10 @@ public class VersionCheckAnnotationIntrospector
 
     // Custom comparator in case you want to override the default Comparable
     // behavior.
-    private final Comparator versionComparator;
+    private final Comparator<String> versionComparator;
 
-    public VersionCheckAnnotationIntrospector(String runningVersion,
-                                              Comparator vsnComparator) {
+    public VersionCheckAnnotationIntrospector(
+            String runningVersion, Comparator<String> vsnComparator) {
         this.runningVersion = runningVersion;
         this.versionComparator = vsnComparator;
     }
@@ -100,9 +100,9 @@ public class VersionCheckAnnotationIntrospector
      */
     @Override
     public boolean isHandled(Annotation ann) {
-        Class clazz = ann.annotationType();
-        return (Since.class.equals(clazz) ||
-                Until.class.equals(clazz));
+        Class<?> clazz = ann.annotationType();  /* safe to cast to ? since   */
+        return (Since.class.equals(clazz) ||    /* the method checks handled */
+                Until.class.equals(clazz));     /* Annotations types         */
     }
 }
 

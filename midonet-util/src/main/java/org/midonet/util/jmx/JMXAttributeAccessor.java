@@ -36,7 +36,9 @@ public class JMXAttributeAccessor<T> {
     public T getValue()
         throws InstanceNotFoundException, IOException, ReflectionException,
                AttributeNotFoundException, MBeanException {
-        return (T)connection.getAttribute(name, attributeName);
+        @SuppressWarnings("unchecked")
+        T val = (T) connection.getAttribute(name, attributeName); // unsafe
+        return val;
     }
 
     public <T> T getValue(Class<T> clazz)

@@ -18,7 +18,10 @@ public class MockReactor implements Reactor {
         .getLogger(MockReactor.class);
 
     // public so that unittests can access.
-    public PriorityQueue<DelayedCall> calls = new PriorityQueue<DelayedCall>();
+    /* DelayedCall is parametrized to Any since the reactor can accept any
+     * typed Callable */
+    public PriorityQueue<DelayedCall<?>> calls =
+        new PriorityQueue<DelayedCall<?>>();
     long currentTimeMillis;
 
     public class DelayedCall<V> implements ScheduledFuture<V> {
