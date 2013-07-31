@@ -4,6 +4,7 @@
 package org.midonet.api.network.rest_api;
 
 import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
 import org.midonet.api.VendorMediaType;
 import org.midonet.api.auth.ForbiddenHttpException;
@@ -257,4 +258,60 @@ public class PortGroupResource extends AbstractResource {
         return factory.getPortGroupPortResource(id);
     }
 
+    /**
+     * Sub-resource class for port's port groups.
+     */
+    @RequestScoped
+    public static class PortPortGroupResource extends AbstractResource {
+
+        private final UUID portId;
+        private final DataClient dataClient;
+        private final PortAuthorizer portAuthorizer;
+
+        @Inject
+        public PortPortGroupResource(RestApiConfig config,
+                                     UriInfo uriInfo,
+                                     SecurityContext context,
+                                     PortAuthorizer portAuthorizer,
+                                     DataClient dataClient,
+                                     @Assisted UUID portId) {
+            super(config, uriInfo, context);
+            this.portId = portId;
+            this.portAuthorizer = portAuthorizer;
+            this.dataClient = dataClient;
+        }
+
+        /**
+         * Handler to list port's PortGroups.
+         *
+         * @throws StateAccessException
+         *             Data access error.
+         * @return A list of PortGroup objects.
+         */
+        @GET
+        @PermitAll
+        @Produces({ VendorMediaType.APPLICATION_PORTGROUP_COLLECTION_JSON,
+                MediaType.APPLICATION_JSON })
+        public List<PortGroup> list() throws StateAccessException,
+                SerializationException {
+
+            if (!portAuthorizer.authorize(context, AuthAction.READ, portId)) {
+                throw new ForbiddenHttpException(
+                        "Not authorized to view port groups for this port.");
+            }
+            List<org.midonet.cluster.data.PortGroup> portGroupDataList =
+                    dataClient.portGroupsFindByPort(portId);
+
+            List<PortGroup> portGroups = new ArrayList<PortGroup>();
+            if (portGroupDataList != null) {
+                for (org.midonet.cluster.data.PortGroup portGroupData :
+                        portGroupDataList) {
+                    PortGroup portGroup = new PortGroup(portGroupData);
+                    portGroup.setBaseUri(getBaseUri());
+                    portGroups.add(portGroup);
+                }
+            }
+            return portGroups;
+        }
+    }
 }

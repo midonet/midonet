@@ -138,7 +138,18 @@ public class TestPortGroup {
                     equalTo(group1.getId()));
 
             // Retrieve port groups by port Id
-            URI portSearchUri = UriBuilder.fromUri(app.getPortGroups())
+            URI portSearchUri = UriBuilder.fromUri(
+                    port.getPortGroups()).build();
+            groups = dtoResource
+                    .getAndVerifyOk(portSearchUri,
+                            APPLICATION_PORTGROUP_COLLECTION_JSON,
+                            DtoPortGroup[].class);
+            assertThat("Port has 1 groups.", groups, arrayWithSize(1));
+            assertThat("We expect the listed groups to match those we created.",
+                    groups, arrayContainingInAnyOrder(group1));
+
+            // Retrieve port groups by port Id
+            portSearchUri = UriBuilder.fromUri(app.getPortGroups())
                     .queryParam("port_id", port.getId()).build();
             groups = dtoResource
                     .getAndVerifyOk(portSearchUri,
