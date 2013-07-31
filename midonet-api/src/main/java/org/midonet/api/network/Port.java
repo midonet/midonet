@@ -57,6 +57,20 @@ public abstract class Port extends UriResource {
      */
     protected UUID outboundFilterId;
 
+    /**
+     * VIF ID
+     */
+    protected UUID vifId;
+
+    /**
+     * Host ID required to generate `hostInterfacePort` property.
+     */
+    protected UUID hostId;
+    /**
+     * Peer port ID
+     */
+    protected UUID peerId;
+
 
     /**
      * Default constructor
@@ -208,91 +222,90 @@ public abstract class Port extends UriResource {
      * @return whether this port is a interior port
      */
     @XmlTransient
-    public abstract boolean isInterior();
+    public boolean isInterior() {
+        return peerId != null;
+    }
+
+    public boolean isExterior() {
+        return hostId != null && vifId != null;
+    }
+
+    /**
+     * An unplugged port can become interior or exterior
+     * depending on what it is attached to later.
+     */
+    public boolean isUnplugged() {
+        return !isInterior() && !isExterior();
+    }
 
     /**
      * @return ID of the attached resource
      */
     @XmlTransient
-    public abstract UUID getAttachmentId();
+    public UUID getAttachmentId() {
+        if (isInterior())
+            return getPeerId();
+        else if (isExterior())
+            return getVifId();
+        else
+            return null;
+    }
+
+    public UUID getPeerId() {
+        return peerId;
+    }
+    public void setPeerId(UUID _peerId) {
+        if(isExterior()) {
+            throw new RuntimeException("Cannot add a peerId to an exterior" +
+                    "port");
+        }
+        peerId = _peerId;
+    }
+
+    /**
+     * @return the peer port URI
+     */
+    public URI getPeer() {
+        if (peerId != null) {
+            return ResourceUriBuilder.getPort(getBaseUri(), peerId);
+        } else {
+            return null;
+        }
+    }
+
+    public URI getLink() {
+        if (id != null) {
+            return ResourceUriBuilder.getPortLink(getBaseUri(), id);
+        } else {
+            return null;
+        }
+    }
+
+    public UUID getVifId() {
+        return vifId;
+    }
+
+    public void setVifId(UUID _vifId) {
+        if(isInterior())
+            throw new RuntimeException("Cannot set vifId" +
+                    "on an Interior port.");
+        vifId = _vifId;
+    }
+
+
 
     /**
      * @param port Port to check linkability with.
      * @return True if two ports can be linked.
      */
-    public boolean isLinkable(Port port) {
+    public abstract boolean isLinkable(Port port);
 
-        if (port == null) {
-            throw new IllegalArgumentException("port cannot be null");
-        }
-
-        // Must be two interior ports
-        if (!isInterior() || !port.isInterior()) {
-            return false;
-        }
-
-        // IDs must be set
-        if (id == null || port.getId() == null) {
-            return false;
-        }
-
-        // IDs must not be the same
-        if (id == port.getId()) {
-            return false;
-        }
-
-        // If both are bridge ports allowed as long as only one has VLAN ID
-        if (isBridgePort() && port.isBridgePort()) {
-            Short myVlanId = ((InteriorBridgePort)this).getVlanId();
-            Short herVlanId = ((InteriorBridgePort)port).getVlanId();
-            if ((myVlanId == null && herVlanId == null) ||
-                (myVlanId != null && herVlanId != null)) {
-                return false;
-            }
-        }
-
-        // If two routers, must be on separate devices
-        if (isRouterPort() && port.isRouterPort()) {
-            if (deviceId == port.getDeviceId()) {
-                return false;
-            }
-        }
-
-        // Cannot link vlan bridges with anything else but interior br. ports
-        if (isVlanBridgePort() || port.isVlanBridgePort()) {
-            Port nonVlanPort = isVlanBridgePort() ? port : this;
-            if (!nonVlanPort.isBridgePort() && !nonVlanPort.isInterior()) {
-                return false;
-            }
-        }
-
-        // Finally, both ports must be unlinked
-        return (getAttachmentId() == null && port.getAttachmentId() == null);
-    }
-
-    /**
-     * @return True if it's a router port. False otherwise.
-     */
-    @XmlTransient
-    public abstract boolean isRouterPort();
 
     /**
      * @return True if it's a vlan bridge port. False otherwise.
      */
     @XmlTransient
     public abstract boolean isVlanBridgePort();
-
-    /**
-     * @return True if it's a bridge port. False otherwise.
-     */
-    @XmlTransient
-    public abstract boolean isBridgePort();
-
-    /**
-     * @param id
-     *            Attachment resource ID
-     */
-    public abstract void setAttachmentId(UUID id);
 
     /**
      * @return　The port type
@@ -330,6 +343,25 @@ public abstract class Port extends UriResource {
      */
     @GroupSequence({ PortDeleteGroup.class })
     public interface PortDeleteGroupSequence {
+    }
+
+    /**
+     * Getter to be used to generate "host-interface-port" property's value.
+     *
+     * <code>host-interface-port</code> property in the JSON representation
+     * of this client-side port DTO object would be generated by this method
+     * automatically.
+     *
+     * @return the URI of the host-interface-port binding
+     */
+    public URI getHostInterfacePort() {
+        if (getBaseUri() != null && this.hostId != null &&
+                this.getId() != null) {
+            return ResourceUriBuilder.getHostInterfacePort(
+                    getBaseUri(), this.hostId, this.getId());
+        } else {
+            return null;
+        }
     }
 
 }

@@ -17,11 +17,6 @@ import java.util.UUID;
 public class InteriorRouterPort extends RouterPort implements InteriorPort {
 
     /**
-     * Peer port ID
-     */
-    protected UUID peerId;
-
-    /**
      * Constructor
      */
     public InteriorRouterPort() {
@@ -40,44 +35,6 @@ public class InteriorRouterPort extends RouterPort implements InteriorPort {
         this.peerId = portData.getPeerId();
     }
 
-    /**
-     * @return the peerId
-     */
-    @Override
-    public UUID getPeerId() {
-        return peerId;
-    }
-
-    /**
-     * @param peerId
-     *            the peerId to set
-     */
-    @Override
-    public void setPeerId(UUID peerId) {
-        this.peerId = peerId;
-    }
-
-    /**
-     * @return the peer port URI
-     */
-    @Override
-    public URI getPeer() {
-        if (peerId != null) {
-            return ResourceUriBuilder.getPort(getBaseUri(), peerId);
-        } else {
-            return null;
-        }
-    }
-
-    @Override
-    public URI getLink() {
-        if (id != null) {
-            return ResourceUriBuilder.getPortLink(getBaseUri(), id);
-        } else {
-            return null;
-        }
-    }
-
     @Override
     public org.midonet.cluster.data.Port toData() {
         org.midonet.cluster.data.ports.LogicalRouterPort data =
@@ -90,21 +47,6 @@ public class InteriorRouterPort extends RouterPort implements InteriorPort {
     @Override
     public String getType() {
         return PortType.INTERIOR_ROUTER;
-    }
-
-    @Override
-    public boolean isInterior() {
-        return true;
-    }
-
-    @Override
-    public UUID getAttachmentId() {
-        return this.peerId;
-    }
-
-    @Override
-    public void setAttachmentId(UUID id) {
-        this.peerId = id;
     }
 
     @Override

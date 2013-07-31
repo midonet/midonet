@@ -102,11 +102,6 @@ public class InteriorVlanBridgePort extends VlanBridgePort
     }
 
     @Override
-    public void setAttachmentId(UUID id) {
-        this.peerId = id;
-    }
-
-    @Override
     public org.midonet.cluster.data.Port toData() {
         LogicalVlanBridgePort data = new LogicalVlanBridgePort()
                                          .setPeerId(this.peerId)

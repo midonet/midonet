@@ -91,24 +91,6 @@ public class TestPort {
         return port;
     }
 
-    public static DtoVlanBridgeInteriorPort createVlanBridgeInteriorPort(
-        UUID id, UUID deviceId, Short vlanId) {
-        DtoVlanBridgeInteriorPort port = new DtoVlanBridgeInteriorPort();
-        port.setId(id);
-        port.setDeviceId(deviceId);
-        port.setVlanId(vlanId);
-        return port;
-    }
-
-    public static DtoVlanBridgeTrunkPort createVlanBridgeTrunkPort(
-        UUID id, UUID deviceId, UUID vifId) {
-        DtoVlanBridgeTrunkPort port = new DtoVlanBridgeTrunkPort();
-        port.setId(id);
-        port.setDeviceId(deviceId);
-        port.setVifId(vifId);
-        return port;
-    }
-
     /**
      * Create a client-side DTO object of a host-interface-port filled with
      * specified parameters.
@@ -615,11 +597,6 @@ public class TestPort {
             b1.setName("bridge1-name");
             b1.setTenantId("tenant1-id");
 
-            // Create a vlan bridge
-            DtoVlanBridge vb = new DtoVlanBridge();
-            vb.setName("vlan-bride1-name");
-            vb.setTenantId("tenant1-id");
-
             // Create a Interior router1 port
             DtoInteriorRouterPort r1Lp1 = createInteriorRouterPort(null, null,
                     "10.0.0.0", 24, "10.0.0.1");
@@ -638,25 +615,11 @@ public class TestPort {
                                                                    24,
                                                                    "192.168.1.1");
 
-            DtoVlanBridgeTrunkPort vbTp1 =
-                createVlanBridgeTrunkPort(null, null, null);
-            DtoVlanBridgeTrunkPort vbTp2 =
-                createVlanBridgeTrunkPort(null, null, null);
-
-            DtoVlanBridgeInteriorPort vbIp1 =
-                createVlanBridgeInteriorPort(null, null, (short)101);
-            DtoVlanBridgeInteriorPort vbIp2 =
-                createVlanBridgeInteriorPort(null, null, (short)202);
 
             topology = new Topology.Builder(dtoResource)
                     .create("router1", r1)
                     .create("router2", r2)
                     .create("bridge1", b1)
-                    .create("vlan-bridge1", vb)
-                    .create("vlan-bridge1", "vbIntPort1", vbIp1)
-                    .create("vlan-bridge1", "vbIntPort2", vbIp2)
-                    .create("vlan-bridge1", "vbTrunkPort1", vbTp1)
-                    .create("vlan-bridge1", "vbTrunkPort2", vbTp2)
                     .create("router1", "router1Port1", r1Lp1)
                     .create("router1", "router1Port2", r1Lp2)
                     .create("router2", "router2Port1", r2Lp1)
@@ -664,11 +627,6 @@ public class TestPort {
                     .create("bridge1", "bridge1Port1",
                             new DtoInteriorBridgePort())
                     .create("bridge1", "bridge1Port2",
-                            new DtoInteriorBridgePort())
-                // These two we'll link to the Vlan Bridge
-                    .create("bridge1", "bridge1Port3",
-                            new DtoInteriorBridgePort())
-                    .create("bridge1", "bridge1Port4",
                             new DtoInteriorBridgePort())
                     .build();
         }
@@ -684,7 +642,6 @@ public class TestPort {
             DtoRouter router1 = topology.getRouter("router1");
             DtoRouter router2 = topology.getRouter("router2");
             DtoBridge bridge1 = topology.getBridge("bridge1");
-            DtoVlanBridge vlanBridge = topology.getVlanBridge("vlan-bridge1");
             DtoInteriorRouterPort r1p1 = topology
                     .getIntRouterPort("router1Port1");
             DtoInteriorRouterPort r1p2 = topology
@@ -697,18 +654,6 @@ public class TestPort {
                     .getIntBridgePort("bridge1Port1");
             DtoInteriorBridgePort b1p2 = topology
                     .getIntBridgePort("bridge1Port2");
-            DtoInteriorBridgePort b1p3 = topology
-                    .getIntBridgePort("bridge1Port3");
-            DtoInteriorBridgePort b1p4 = topology
-                    .getIntBridgePort("bridge1Port4");
-            DtoVlanBridgeInteriorPort vbIp1 = topology
-                    .getVlanBridgeIntPort("vbIntPort1");
-            DtoVlanBridgeInteriorPort vbIp2 = topology
-                    .getVlanBridgeIntPort("vbIntPort2");
-            DtoVlanBridgeTrunkPort vbTp1 = topology
-                .getVlanBridgeTrunkPort("vbTrunkPort1");
-            DtoVlanBridgeTrunkPort vbTp2 = topology
-                .getVlanBridgeTrunkPort("vbTrunkPort2");
 
             // Link router1 and router2
             DtoLink link = new DtoLink();
@@ -734,22 +679,6 @@ public class TestPort {
                             APPLICATION_PORT_LINK_JSON, link,
                             Response.Status.CREATED.getStatusCode());
 
-            // Link vlan-bridge and br1 on VLAN 101
-            link = new DtoLink();
-            link.setPeerId(b1p3.getId());
-            dtoResource.postAndVerifyStatus(
-                vbIp1.getLink(),
-                APPLICATION_PORT_LINK_JSON, link,
-                Response.Status.CREATED.getStatusCode());
-
-            // Link vlan-bridge and br1 on VLAN 202
-            link = new DtoLink();
-            link.setPeerId(b1p4.getId());
-            dtoResource.postAndVerifyStatus(
-                vbIp2.getLink(),
-                APPLICATION_PORT_LINK_JSON, link,
-                Response.Status.CREATED.getStatusCode());
-
             // Get the peers
             DtoPort[] ports = dtoResource.getAndVerifyOk(
                     router1.getPeerPorts(), APPLICATION_PORT_COLLECTION_JSON,
@@ -767,12 +696,6 @@ public class TestPort {
             ports = dtoResource.getAndVerifyOk(bridge1.getPeerPorts(),
                     APPLICATION_PORT_COLLECTION_JSON, DtoPort[].class);
             assertNotNull(ports);
-            assertEquals(4, ports.length); // 2 rt, 2 vlan br.
-
-            // Get the peers of vlan bridge
-            ports = dtoResource.getAndVerifyOk(vlanBridge.getInteriorPorts(),
-                    APPLICATION_PORT_COLLECTION_JSON, DtoPort[].class);
-            assertNotNull(ports);
             assertEquals(2, ports.length);
 
             // Cannot link already linked ports
@@ -785,22 +708,9 @@ public class TestPort {
             dtoResource.postAndVerifyBadRequest(b1p2.getLink(),
                     APPLICATION_PORT_LINK_JSON, link);
 
-            // Cannot link already linked ports
-            link = new DtoLink();
-            link.setPeerId(b1p3.getId());
-            dtoResource.postAndVerifyBadRequest(vbIp1.getLink(),
-                    APPLICATION_PORT_LINK_JSON, link);
-
-            // Cannot link ports in a vlan bridge
-            link = new DtoLink();
-            link.setPeerId(vbTp1.getId());
-            dtoResource.postAndVerifyBadRequest(vbIp2.getLink(),
-                    APPLICATION_PORT_LINK_JSON, link);
-
             // Cannot delete linked ports
             dtoResource.deleteAndVerifyBadRequest(r1p1.getUri(), APPLICATION_PORT_JSON);
             dtoResource.deleteAndVerifyBadRequest(b1p1.getUri(), APPLICATION_PORT_JSON);
-            dtoResource.deleteAndVerifyBadRequest(vbIp1.getUri(), APPLICATION_PORT_JSON);
 
             // Unlink
             dtoResource.deleteAndVerifyStatus(r1p1.getLink(),
@@ -821,12 +731,6 @@ public class TestPort {
             dtoResource.deleteAndVerifyStatus(r2p2.getLink(),
                     APPLICATION_PORT_LINK_JSON,
                     Response.Status.NO_CONTENT.getStatusCode());
-            dtoResource.deleteAndVerifyStatus(vbIp1.getLink(),
-                    APPLICATION_PORT_LINK_JSON,
-                    Response.Status.NO_CONTENT.getStatusCode());
-            dtoResource.deleteAndVerifyStatus(vbIp2.getLink(),
-                    APPLICATION_PORT_LINK_JSON,
-                    Response.Status.NO_CONTENT.getStatusCode());
 
             // Delete all the ports
             dtoResource.deleteAndVerifyNoContent(r1p1.getUri(),
@@ -841,189 +745,7 @@ public class TestPort {
                     APPLICATION_PORT_JSON);
             dtoResource.deleteAndVerifyNoContent(b1p2.getUri(),
                     APPLICATION_PORT_JSON);
-            dtoResource.deleteAndVerifyNoContent(b1p3.getUri(),
-                    APPLICATION_PORT_JSON);
-            dtoResource.deleteAndVerifyNoContent(b1p4.getUri(),
-                    APPLICATION_PORT_JSON);
-            dtoResource.deleteAndVerifyNoContent(vbIp1.getUri(),
-                    APPLICATION_PORT_JSON);
-            dtoResource.deleteAndVerifyNoContent(vbIp2.getUri(),
-                    APPLICATION_PORT_JSON);
-            dtoResource.deleteAndVerifyNoContent(vbTp1.getUri(),
-                    APPLICATION_PORT_JSON);
-            dtoResource.deleteAndVerifyNoContent(vbTp2.getUri(),
-                    APPLICATION_PORT_JSON);
         }
-
-        public static class TestVlanBridgeInteriorPortCrudSuccess extends JerseyTest {
-
-            private DtoWebResource dtoResource;
-            private Topology topology;
-
-            public TestVlanBridgeInteriorPortCrudSuccess() {
-                super(FuncTest.appDesc);
-            }
-
-            @Before
-            public void setUp() {
-                WebResource resource = resource();
-                dtoResource = new DtoWebResource(resource);
-
-                // Create a vlan bridge
-                DtoVlanBridge b = new DtoVlanBridge();
-                b.setName("vlan-bridge1-name");
-                b.setTenantId("tenant1-id");
-
-                // Create a couple of ports
-                DtoVlanBridgeInteriorPort p1 = createVlanBridgeInteriorPort(
-                    null, null, null);
-                DtoVlanBridgeTrunkPort p2 = createVlanBridgeTrunkPort(
-                    null, null, null);
-
-                topology = new Topology.Builder(dtoResource)
-                    .create("vlan-bridge1", b)
-                    .create("vlan-bridge1", "interior-port", p1)
-                    .create("vlan-bridge1", "trunk-port", p2)
-                    .build();
-            }
-
-            @After
-            public void resetDirectory() throws Exception {
-                StaticMockDirectory.clearDirectoryInstance();
-            }
-
-            @Test
-            public void testCrudVlanBridgePort() {
-
-                // Get the vlan bridge
-                DtoVlanBridge b = topology.getVlanBridge("vlan-bridge1");
-
-                // Create a Interior bridge port
-                DtoVlanBridgeInteriorPort b1Lp1 = new DtoVlanBridgeInteriorPort();
-                b1Lp1.setDeviceId(b.getId());
-                b1Lp1.setVlanId((short) 100);
-                b1Lp1 = dtoResource.postAndVerifyCreated(b.getInteriorPorts(),
-                                        APPLICATION_PORT_JSON, b1Lp1,
-                                        DtoVlanBridgeInteriorPort.class);
-
-                // Create an exterior vlan bridge trunk port
-                DtoVlanBridgeTrunkPort b1Tp1 = new DtoVlanBridgeTrunkPort();
-                b1Tp1.setDeviceId(b.getId());
-                b1Tp1 = dtoResource.postAndVerifyCreated(b.getTrunkPorts(),
-                                                 APPLICATION_PORT_JSON, b1Tp1,
-                                                 DtoVlanBridgeTrunkPort.class);
-
-                assertEquals(b.getId(), b1Tp1.getDeviceId());
-
-                // List ports
-                DtoVlanBridgeInteriorPort[] ports = dtoResource.getAndVerifyOk(
-                                            b.getInteriorPorts(),
-                                            APPLICATION_PORT_COLLECTION_JSON,
-                                            DtoVlanBridgeInteriorPort[].class);
-                assertEquals(1, ports.length);
-
-                DtoVlanBridgeTrunkPort[] tPorts = dtoResource.getAndVerifyOk(
-                    b.getTrunkPorts(),
-                    APPLICATION_PORT_COLLECTION_JSON,
-                    DtoVlanBridgeTrunkPort[].class);
-                assertEquals(1, tPorts.length);
-
-                // Update VIFs
-                assertNull(b1Tp1.getVifId());
-                UUID vifId = UUID.randomUUID();
-                b1Tp1.setVifId(vifId);
-                b1Tp1 = dtoResource.putAndVerifyNoContent(b1Tp1.getUri(),
-                                                  APPLICATION_PORT_JSON, b1Tp1,
-                                                  DtoVlanBridgeTrunkPort.class);
-                assertEquals(vifId, b1Tp1.getVifId());
-
-                b1Tp1.setVifId(null);
-                b1Tp1 = dtoResource.putAndVerifyNoContent(b1Tp1.getUri(),
-                                                  APPLICATION_PORT_JSON, b1Tp1,
-                                                  DtoVlanBridgeTrunkPort.class);
-                assertNull(b1Tp1.getVifId());
-
-                // Delete the Interior port.
-                dtoResource.deleteAndVerifyNoContent(b1Lp1.getUri(),
-                                                     APPLICATION_PORT_JSON);
-
-                // Make sure it's no longer there
-                dtoResource.getAndVerifyNotFound(b1Lp1.getUri(),
-                                                 APPLICATION_PORT_JSON);
-
-                // Delete the mat port.
-                dtoResource.deleteAndVerifyNoContent(b1Tp1.getUri(),
-                                                     APPLICATION_PORT_JSON);
-
-                // Make sure it's no longer there
-                dtoResource.getAndVerifyNotFound(b1Tp1.getUri(),
-                                                 APPLICATION_PORT_JSON);
-
-                // List and make sure no port is found
-                tPorts = dtoResource.getAndVerifyOk(b.getTrunkPorts(),
-                                           APPLICATION_PORT_COLLECTION_JSON,
-                                           DtoVlanBridgeTrunkPort[].class);
-                assertEquals(0, ports.length);
-
-                DtoVlanBridgeInteriorPort[] lPorts =
-                    dtoResource.getAndVerifyOk(b.getInteriorPorts(),
-                                           APPLICATION_PORT_COLLECTION_JSON,
-                                           DtoVlanBridgeInteriorPort[].class);
-                assertEquals(0, lPorts.length);
-            }
-        }
-    }
-
-    public static class TestVlanBridgeTrunkPortUpdateSuccess extends JerseyTest {
-
-        private DtoWebResource dtoResource;
-        private Topology topology;
-
-        public TestVlanBridgeTrunkPortUpdateSuccess() {
-            super(FuncTest.appDesc);
-        }
-
-        @Before
-        public void setUp() {
-            WebResource resource = resource();
-            dtoResource = new DtoWebResource(resource);
-
-            // Create a vlan bridge
-            DtoVlanBridge b1 = new DtoVlanBridge();
-            b1.setName("vlan-bridge1-name");
-            b1.setTenantId("tenant1-id");
-
-            // Create a port
-            DtoVlanBridgeTrunkPort port1 = createVlanBridgeTrunkPort(
-                null, null, null);
-
-            topology = new Topology.Builder(dtoResource)
-                .create("vlan-bridge1", b1)
-                .create("vlan-bridge1", "port1", port1).build();
-        }
-
-        @After
-        public void resetDirectory() throws Exception {
-            StaticMockDirectory.clearDirectoryInstance();
-        }
-
-        @Test
-        public void testUpdate() throws Exception {
-
-            DtoVlanBridgeTrunkPort origPort = topology
-                                              .getVlanBridgeTrunkPort("port1");
-
-            assertNull(origPort.getVifId());
-
-            origPort.setVifId(UUID.randomUUID());
-            DtoVlanBridgeTrunkPort newPort = dtoResource.putAndVerifyNoContent(
-                origPort.getUri(), APPLICATION_PORT_JSON, origPort,
-                DtoVlanBridgeTrunkPort.class);
-
-            assertEquals(origPort.getVifId(), newPort.getVifId());
-
-        }
-
     }
 
     public static class TestExteriorBridgePortUpdateSuccess extends
@@ -1177,15 +899,11 @@ public class TestPort {
 
         private DtoRouter router1;
         private DtoBridge bridge1;
-        private DtoVlanBridge vlanBridge1;
         private DtoExteriorRouterPort port1;
         private DtoBridgePort port2;
-        private DtoVlanBridgeTrunkPort trunkPort1;
         private DtoHost host1, host2, host3;
-        private DtoInterface interface1, interface2, interface3;
-        private DtoHostInterfacePort hostInterfacePort1, hostInterfacePort2,
-                                     hostInterfacePort3;
-
+        private DtoInterface interface1, interface2;
+        private DtoHostInterfacePort hostInterfacePort1, hostInterfacePort2;
         /**
          * Constructor to initialize the test cases with the configuration.
          */
@@ -1254,10 +972,6 @@ public class TestPort {
                     "10.0.0.1", null, null, null);
             // Creating the topology for the exterior **bridge** port and the
             // interface.
-            // Create a vlan bridge
-            vlanBridge1 = new DtoVlanBridge();
-            vlanBridge1.setName("vlan-bridge1");
-            vlanBridge1.setTenantId("vlan-bridge1-name");
             // Create a bridge.
             bridge1 = new DtoBridge();
             bridge1.setName("bridge1");
@@ -1266,16 +980,11 @@ public class TestPort {
             port2 = createExteriorBridgePort(UUID.randomUUID(),
                     bridge1.getId(), null, null, null);
             // Create a trunk port on the vlan bridge.
-            trunkPort1 = createVlanBridgeTrunkPort(UUID.randomUUID(),
-                                                   vlanBridge1.getId(),
-                                                   null);
             topology = new Topology.Builder(dtoResource)
                     .create("router1", router1)
                     .create("router1", "port1", port1)
                     .create("bridge1", bridge1)
                     .create("bridge1", "port2", port2)
-                    .create("vlan-bridge1", vlanBridge1)
-                    .create("vlan-bridge1", "trunk1", trunkPort1)
                     .build();
 
             // Create a host that contains an interface bound to the router port.
@@ -1300,18 +1009,8 @@ public class TestPort {
                                          });
             // Create a host that contains an interface bound to the bridge port.
             host3 = createHost(UUID.randomUUID(), "host3", true, null);
-            // Create an interface to be bound to the trunk port
-            interface3 = createInterface(UUID.randomUUID(),
-                                         host3.getId(), "interface3",
-                                         "11:22:33:44:55:66", 1500,
-                                         0x01, DtoInterface.Type.Virtual,
-                                         new InetAddress[]{
-                                             InetAddress.getByAddress(
-                                                 new byte[]{10, 10, 10, 3})
-                                         });
             port1 = topology.getExtRouterPort("port1");
             port2 = topology.getExtBridgePort("port2");
-            trunkPort1 = topology.getVlanBridgeTrunkPort("trunk1");
 
             // Create a host-interface-port binding finally.
             hostInterfacePort1 = createHostInterfacePort(
@@ -1319,8 +1018,6 @@ public class TestPort {
             // Create a host-interface-port binding finally.
             hostInterfacePort2 = createHostInterfacePort(
                     host2.getId(), interface2.getName(), port2.getId());
-            hostInterfacePort3 = createHostInterfacePort(
-                host3.getId(), interface3.getName(), trunkPort1.getId());
             hostTopology = new HostTopology.Builder(dtoResource, hostManager)
                     .create(host1.getId(), host1)
                     .create(hostInterfacePort1.getHostId(),
@@ -1329,8 +1026,6 @@ public class TestPort {
                     .create(hostInterfacePort2.getHostId(),
                             hostInterfacePort2.getPortId(), hostInterfacePort2)
                     .create(host3.getId(), host3)
-                    .create(hostInterfacePort3.getHostId(),
-                            hostInterfacePort3.getPortId(), hostInterfacePort3)
                     .build();
 
             URI baseUri = resource().getURI();
@@ -1436,52 +1131,6 @@ public class TestPort {
                     hostInterfacePortFromPort2,
                     is(equalTo(hostInterfacePort2)));
         }
-
-        /**
-         * Test that the vlan bridge's port has the appropriate host-interface-port
-         * binding.
-         *
-         * @throws Exception
-         */
-        @Test
-        public void testGetVlanBridgePortHostInterfaceSuccess() throws Exception {
-            Map<UUID, DtoVlanBridgeTrunkPort> portMap =
-                new HashMap<UUID, DtoVlanBridgeTrunkPort>();
-
-            DtoVlanBridge vlanBr = topology.getVlanBridge("vlan-bridge1");
-            DtoVlanBridgeTrunkPort[] trunkPorts = dtoResource.getAndVerifyOk(
-                vlanBr.getTrunkPorts(),
-                APPLICATION_PORT_COLLECTION_JSON,
-                DtoVlanBridgeTrunkPort[].class);
-
-            for (DtoVlanBridgeTrunkPort port : trunkPorts) {
-                portMap.put(port.getId(), port);
-            }
-            assertThat("vlan-bridge1 should contain the only one port.",
-                       portMap.size(), is(1));
-            // Update trunk port to reflect the host-interface-port binding.
-            DtoVlanBridgeTrunkPort updatedPort2 = dtoResource.getAndVerifyOk(
-                                    trunkPort1.getUri(), APPLICATION_PORT_JSON,
-                                    DtoVlanBridgeTrunkPort.class);
-            assertThat("vlan bridge1 should not be the null value",
-                       portMap.get(updatedPort2.getId()), is(notNullValue()));
-            assertThat("vlan bridge1 should contain port1",
-                       portMap.get(updatedPort2.getId()), is(equalTo(updatedPort2)));
-            DtoHostInterfacePort hostInterfacePortFromPort2 =
-                dtoResource.getAndVerifyOk(
-                    updatedPort2.getHostInterfacePort(),
-                    APPLICATION_HOST_INTERFACE_PORT_JSON,
-                    DtoHostInterfacePort.class);
-            assertThat("vlan bridge1 should contain the host-interface-port binding.",
-                       hostInterfacePort3, is(notNullValue()));
-            DtoHostInterfacePort hostInterfacePort2 =
-                hostTopology.getHostInterfacePort(
-                    hostInterfacePortFromPort2.getPortId());
-            assertThat("router1 should contain hostInterfacePort2",
-                       hostInterfacePortFromPort2,
-                       is(equalTo(hostInterfacePort2)));
-        }
-
     }
 
 }

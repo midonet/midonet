@@ -15,13 +15,6 @@ import java.util.UUID;
 public class InteriorBridgePort extends BridgePort implements InteriorPort {
 
     /**
-     * Peer port ID
-     */
-    private UUID peerId;
-
-    private Short vlanId;
-
-    /**
      * Default constructor
      */
     public InteriorBridgePort() {
@@ -42,65 +35,8 @@ public class InteriorBridgePort extends BridgePort implements InteriorPort {
     }
 
     @Override
-    public UUID getPeerId() {
-        return peerId;
-    }
-
-    /**
-     * @param peerId Peer port ID
-     */
-    @Override
-    public void setPeerId(UUID peerId) {
-        this.peerId = peerId;
-    }
-
-    public Short getVlanId() {
-        return this.vlanId;
-    }
-
-    public void setVlanId(Short vlanId) {
-        this.vlanId = vlanId;
-    }
-
-    /**
-     * @return the peer port URI
-     */
-    @Override
-    public URI getPeer() {
-        if (peerId != null) {
-            return ResourceUriBuilder.getPort(getBaseUri(), peerId);
-        } else {
-            return null;
-        }
-    }
-
-    @Override
-    public URI getLink() {
-        if (id != null) {
-            return ResourceUriBuilder.getPortLink(getBaseUri(), id);
-        } else {
-            return null;
-        }
-    }
-
-    @Override
     public String getType() {
         return PortType.INTERIOR_BRIDGE;
-    }
-
-    @Override
-    public boolean isInterior() {
-        return true;
-    }
-
-    @Override
-    public UUID getAttachmentId() {
-        return this.peerId;
-    }
-
-    @Override
-    public void setAttachmentId(UUID id) {
-        this.peerId = id;
     }
 
     @Override

@@ -61,17 +61,15 @@ public abstract class VlanBridgePort extends Port {
     }
 
     @Override
-    public boolean isRouterPort() {
-        return false;
-    }
-
-    @Override
-    public boolean isBridgePort() {
-        return false;
-    }
-
-    @Override
     public boolean isVlanBridgePort() {
         return true;
+    }
+
+    /**
+     * Dummy method, vlan ports are deprecated.
+     */
+    @Override
+    public boolean isLinkable(Port port) {
+        return false;
     }
 }
