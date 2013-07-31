@@ -87,6 +87,12 @@ public class CloudStackAuthService implements AuthService {
     }
 
     @Override
+    public Tenant getTenant(String id) throws AuthException {
+        throw new UnsupportedOperationException("Cloudstack auth does not " +
+                "support getTenant.");
+    }
+
+    @Override
     public List<Tenant> getTenants(HttpServletRequest request)
             throws AuthException {
         throw new UnsupportedOperationException("Cloudstack auth does not " +
