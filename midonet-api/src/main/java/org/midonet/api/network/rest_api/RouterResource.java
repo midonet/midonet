@@ -5,24 +5,24 @@
 package org.midonet.api.network.rest_api;
 
 import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
-import org.midonet.api.VendorMediaType;
-import org.midonet.api.auth.ForbiddenHttpException;
-import org.midonet.api.network.Router;
-import org.midonet.api.rest_api.*;
 import org.midonet.api.ResourceUriBuilder;
+import org.midonet.api.VendorMediaType;
 import org.midonet.api.auth.AuthAction;
 import org.midonet.api.auth.AuthRole;
 import org.midonet.api.auth.Authorizer;
+import org.midonet.api.auth.ForbiddenHttpException;
+import org.midonet.api.network.Router;
 import org.midonet.api.network.auth.RouterAuthorizer;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.InvalidStateOperationException;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.api.rest_api.*;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.Port;
 import org.midonet.cluster.data.ports.LogicalRouterPort;
 import org.midonet.cluster.data.ports.MaterializedRouterPort;
-
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.InvalidStateOperationException;
+import org.midonet.midolman.state.StateAccessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -268,34 +268,26 @@ public class RouterResource extends AbstractResource {
     }
 
     /**
-     * Handler to list tenant routers.
+     * Handler to list all routers.
      *
      * @throws StateAccessException
      *             Data access error.
      * @return A list of Router objects.
      */
     @GET
-    @PermitAll
+    @RolesAllowed({ AuthRole.ADMIN })
     @Produces({ VendorMediaType.APPLICATION_ROUTER_COLLECTION_JSON,
             MediaType.APPLICATION_JSON })
     public List<Router> list(@QueryParam("tenant_id") String tenantId)
-            throws StateAccessException,
-            SerializationException {
+            throws StateAccessException, SerializationException {
 
+        List<org.midonet.cluster.data.Router> dataRouters = null;
         if (tenantId == null) {
-            throw new BadRequestHttpException(
-                    "Currently tenant_id is required for search.");
+            dataRouters = dataClient.routersGetAll();
+        } else {
+            dataRouters = dataClient.routersFindByTenant(tenantId);
         }
 
-        // Tenant ID query string is a special parameter that is used to check
-        // authorization.
-        if (!Authorizer.isAdminOrOwner(context, tenantId)) {
-            throw new ForbiddenHttpException(
-                    "Not authorized to view routers of this request.");
-        }
-
-        List<org.midonet.cluster.data.Router> dataRouters =
-                dataClient.routersFindByTenant(tenantId);
         List<Router> routers = new ArrayList<Router>();
         if (dataRouters != null) {
             for (org.midonet.cluster.data.Router dataRouter :
@@ -308,4 +300,57 @@ public class RouterResource extends AbstractResource {
         return routers;
     }
 
+    /**
+     * Sub-resource class for tenant's routers.
+     */
+    @RequestScoped
+    public static class TenantRouterResource extends AbstractResource {
+
+        private final String tenantId;
+        private final DataClient dataClient;
+
+        @Inject
+        public TenantRouterResource(RestApiConfig config,
+                                    UriInfo uriInfo,
+                                    SecurityContext context,
+                                    DataClient dataClient,
+                                    @Assisted String tenantId) {
+            super(config, uriInfo, context);
+            this.tenantId = tenantId;
+            this.dataClient = dataClient;
+        }
+
+        /**
+         * Handler to list tenant routers.
+         *
+         * @throws StateAccessException
+         *             Data access error.
+         * @return A list of Router objects.
+         */
+        @GET
+        @PermitAll
+        @Produces({ VendorMediaType.APPLICATION_ROUTER_COLLECTION_JSON,
+                MediaType.APPLICATION_JSON })
+        public List<Router> list() throws StateAccessException,
+                SerializationException {
+
+            if (!Authorizer.isAdminOrOwner(context, tenantId)) {
+                throw new ForbiddenHttpException(
+                        "Not authorized to view routers of this request.");
+            }
+
+            List<org.midonet.cluster.data.Router> dataRouters =
+                    dataClient.routersFindByTenant(tenantId);
+            List<Router> routers = new ArrayList<Router>();
+            if (dataRouters != null) {
+                for (org.midonet.cluster.data.Router dataRouter :
+                        dataRouters) {
+                    Router router = new Router(dataRouter);
+                    router.setBaseUri(getBaseUri());
+                    routers.add(router);
+                }
+            }
+            return routers;
+        }
+    }
 }

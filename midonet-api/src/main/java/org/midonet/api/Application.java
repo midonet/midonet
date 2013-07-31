@@ -274,6 +274,16 @@ public class Application extends UriResource {
             return null;
         }
     }
+    /**
+     * @return the tenant URI template
+     */
+    public String getTenantTemplate() {
+        if (getBaseUri() != null) {
+            return ResourceUriBuilder.getTenantTemplate(getBaseUri());
+        } else {
+            return null;
+        }
+    }
 
     /**
      * @return the tunnel zone URI template

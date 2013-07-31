@@ -4,6 +4,8 @@
 
 package org.midonet.client.dto;
 
+import com.google.common.base.Objects;
+
 import javax.xml.bind.annotation.XmlRootElement;
 import java.net.URI;
 import java.util.UUID;
@@ -135,5 +137,80 @@ public class DtoBridge {
 
     public void setDhcpSubnet6s(URI dhcpSubnet6s) {
         this.dhcpSubnet6s = dhcpSubnet6s;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+
+        if (other == this) {
+            return true;
+        }
+
+        if (other == null || getClass() != other.getClass()) {
+            return false;
+        }
+
+        DtoBridge otherBridge = (DtoBridge) other;
+        if (!Objects.equal(this.id, otherBridge.getId())) {
+            return false;
+        }
+
+        if (!Objects.equal(this.name, otherBridge.getName())) {
+            return false;
+        }
+
+        if (!Objects.equal(this.tenantId, otherBridge.getTenantId())) {
+            return false;
+        }
+
+        if (!Objects.equal(
+                this.inboundFilterId, otherBridge.getInboundFilterId())) {
+            return false;
+        }
+
+        if (!Objects.equal(
+                this.inboundFilter, otherBridge.getInboundFilter())) {
+            return false;
+        }
+
+        if (!Objects.equal(
+                this.outboundFilterId, otherBridge.getOutboundFilterId())) {
+            return false;
+        }
+
+        if (!Objects.equal(
+                this.outboundFilter, otherBridge.getInboundFilter())) {
+            return false;
+        }
+
+        if (!Objects.equal(this.uri, otherBridge.getUri())) {
+            return false;
+        }
+
+        if (!Objects.equal(this.ports, otherBridge.getPorts())) {
+            return false;
+        }
+
+        if (!Objects.equal(this.peerPorts, otherBridge.getPeerPorts())) {
+            return false;
+        }
+
+        if (!Objects.equal(this.macTable, otherBridge.getMacTable())) {
+            return false;
+        }
+
+        if (!Objects.equal(this.arpTable, otherBridge.getArpTable())) {
+            return false;
+        }
+
+        if (!Objects.equal(this.dhcpSubnet6s, otherBridge.getDhcpSubnet6s())) {
+            return false;
+        }
+
+        if (!Objects.equal(this.dhcpSubnets, otherBridge.getDhcpSubnets())) {
+            return false;
+        }
+
+        return true;
     }
 }

@@ -6,7 +6,9 @@ package org.midonet.api.network;
 
 import com.google.inject.*;
 import org.apache.zookeeper.KeeperException;
+import org.codehaus.jackson.type.JavaType;
 import org.midonet.api.serialization.SerializationModule;
+import org.midonet.client.VendorMediaType;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.serialization.Serializer;
@@ -40,9 +42,14 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
+import javax.ws.rs.core.UriBuilder;
+import java.net.URI;
 import java.util.*;
 
 
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.Assert.assertThat;
 import static org.midonet.api.VendorMediaType.*;
 import static javax.ws.rs.core.Response.Status.*;
 import static org.junit.Assert.assertEquals;
@@ -50,6 +57,126 @@ import static org.junit.Assert.assertNotNull;
 
 @RunWith(Enclosed.class)
 public class TestRouter {
+
+    public static class TestRouterList extends JerseyTest {
+
+        private Topology topology;
+        private DtoWebResource dtoResource;
+
+        public TestRouterList() {
+            super(FuncTest.appDesc);
+        }
+
+        private void addActualRouters(Topology.Builder builder, String tenantId,
+                                      int count) {
+            for (int i = 0 ; i < count ; i++) {
+                DtoRouter router = new DtoRouter();
+                String tag = Integer.toString(i) + tenantId;
+                router.setName(tag);
+                router.setTenantId(tenantId);
+                builder.create(tag, router);
+            }
+        }
+
+        private DtoRouter getExpectedRouter(URI routersUri, String tag) {
+
+            DtoRouter r = topology.getRouter(tag);
+            String uri = routersUri.toString() + "/" + r.getId();
+
+            // Make sure you set the non-ID fields to values you expect
+            r.setName(tag);
+            r.setUri(UriBuilder.fromUri(uri).build());
+            r.setPorts(UriBuilder.fromUri(uri + "/ports").build());
+            r.setPeerPorts(UriBuilder.fromUri(uri + "/peer_ports").build());
+            r.setRoutes(UriBuilder.fromUri(uri + "/routes").build());
+
+            return r;
+        }
+
+        private List<DtoRouter> getExpectedRouters(URI routersUri,
+                                                   String tenantId,
+                                                   int startTagNum,
+                                                   int endTagNum) {
+            List<DtoRouter> routers = new ArrayList<DtoRouter>();
+
+            for (int i = startTagNum; i <= endTagNum; i++) {
+                String tag = Integer.toString(i) + tenantId;
+                DtoRouter r = getExpectedRouter(routersUri, tag);
+                routers.add(r);
+            }
+
+            return routers;
+        }
+
+        @Before
+        public void setUp() {
+
+            WebResource resource = resource();
+            dtoResource = new DtoWebResource(resource);
+
+            Topology.Builder builder = new Topology.Builder(dtoResource);
+
+            // Create 5 routers for tenant 0
+            addActualRouters(builder, "tenant0", 5);
+
+            // Create 5 routers for tenant 1
+            addActualRouters(builder, "tenant1", 5);
+
+            topology = builder.build();
+        }
+
+        @After
+        public void resetDirectory() throws Exception {
+            StaticMockDirectory.clearDirectoryInstance();
+        }
+
+        @Test
+        public void testListAllRouters() throws Exception {
+
+            // Get the expected list of DtoBridge objects
+            DtoApplication app = topology.getApplication();
+            List<DtoRouter> expected = getExpectedRouters(app.getRouters(),
+                    "tenant0", 0, 4);
+            expected.addAll(getExpectedRouters(
+                    app.getRouters(),"tenant1", 0, 4));
+
+            // Get the actual DtoRouter objects
+            String actualRaw = dtoResource.getAndVerifyOk(app.getRouters(),
+                    VendorMediaType.APPLICATION_ROUTER_COLLECTION_JSON,
+                    String.class);
+            JavaType type = FuncTest.objectMapper.getTypeFactory()
+                    .constructParametricType(List.class, DtoRouter.class);
+            List<DtoRouter> actual = FuncTest.objectMapper.readValue(
+                    actualRaw, type);
+
+            // Compare the actual and expected
+            assertThat(actual, hasSize(expected.size()));
+            assertThat(actual, containsInAnyOrder(expected.toArray()));
+        }
+
+        @Test
+        public void testListRoutersPerTenant() throws Exception {
+
+            // Get the expected list of DtoBridge objects
+            DtoApplication app = topology.getApplication();
+            DtoTenant tenant = topology.getTenant("tenant0");
+            List<DtoRouter> expected = getExpectedRouters(app.getRouters(),
+                    tenant.getId(), 0, 4);
+
+            // Get the actual DtoRouter objects
+            String actualRaw = dtoResource.getAndVerifyOk(tenant.getRouters(),
+                    VendorMediaType.APPLICATION_ROUTER_COLLECTION_JSON,
+                    String.class);
+            JavaType type = FuncTest.objectMapper.getTypeFactory()
+                    .constructParametricType(List.class, DtoRouter.class);
+            List<DtoRouter> actual = FuncTest.objectMapper.readValue(
+                    actualRaw, type);
+
+            // Compare the actual and expected
+            assertThat(actual, hasSize(expected.size()));
+            assertThat(actual, containsInAnyOrder(expected.toArray()));
+        }
+    }
 
     public static class TestRouterCrud extends JerseyTest {
 

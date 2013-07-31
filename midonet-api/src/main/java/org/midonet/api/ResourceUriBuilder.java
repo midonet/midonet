@@ -45,7 +45,6 @@ public class ResourceUriBuilder {
     public static final String LINK = "/link";
     public static final String TUNNEL_ZONES = "/tunnel_zones";
     public static final String ID_TOKEN = "/{id}";
-    public static final String PORT_ID_QS = "port_id";
     public static final String TRACE_CONDITIONS ="/trace_conditions";
     public static final String TRACES = "/traces";
 
@@ -58,6 +57,34 @@ public class ResourceUriBuilder {
 
     public static URI getTenants(URI baseUri) {
         return UriBuilder.fromUri(baseUri).path(TENANTS).build();
+    }
+
+    public static URI getTenant(URI baseUri, String tenantId) {
+        return UriBuilder.fromUri(getTenants(baseUri)).path(tenantId).build();
+    }
+
+    public static String getTenantTemplate(URI baseUri) {
+        return buildIdTemplateUri(getTenants(baseUri));
+    }
+
+    public static URI getTenantRouters(URI baseUri, String tenantId) {
+        return UriBuilder.fromUri(getTenant(baseUri, tenantId)).path(ROUTERS)
+                .build();
+    }
+
+    public static URI getTenantBridges(URI baseUri, String tenantId) {
+        return UriBuilder.fromUri(getTenant(baseUri, tenantId)).path(BRIDGES)
+                .build();
+    }
+
+    public static URI getTenantChains(URI baseUri, String tenantId) {
+        return UriBuilder.fromUri(getTenant(baseUri, tenantId)).path(CHAINS)
+                .build();
+    }
+
+    public static URI getTenantPortGroups(URI baseUri, String tenantId) {
+        return UriBuilder.fromUri(getTenant(baseUri, tenantId))
+                .path(PORT_GROUPS).build();
     }
 
     public static URI getRouters(URI baseUri) {

@@ -625,6 +625,14 @@ traverse the URIs to discover all the available services.
         provided ID.</td>
     </tr>
     <tr>
+        <td>tenantTemplate</td>
+        <td>String</td>
+        <td></td>
+        <td></td>
+        <td>Template of the URI that represents the location of tenant with the
+        provided ID.</td>
+    </tr>
+    <tr>
         <td>tunnelZoneTemplate</td>
         <td>String</td>
         <td></td>
@@ -637,7 +645,8 @@ traverse the URIs to discover all the available services.
 <a name="router"></a>
 ### Router [application/vnd.org.midonet.Router-v1+json]
 
-    GET     /routers?tenant_id=:tenantId
+    GET     /routers
+    GET     /tenants/:tenantId/routers
     GET     /routers/:routerId
     POST    /routers
     PUT     /routers/:routerId
@@ -753,10 +762,27 @@ contains the following fields:
     </tr>
 </table>
 
+#### <u>Query Parameters</u>
+
+<table>
+    <tr>
+        <th>Name</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>tenant_id</td>
+        <td>
+            ID of the tenant to filter the search with.
+        </td>
+    </tr>
+</table>
+
+
 <a name="bridge"></a>
 ### Bridge [application/vnd.org.midonet.Bridge-v1+json]
 
-    GET     /bridges?tenant_id=:tenantId
+    GET     /bridges
+    GET     /tenants/:tenantId/bridges
     GET     /bridges/:bridgeId
     POST    /bridges
     PUT     /bridges/:bridgeId
@@ -869,6 +895,22 @@ contains the following fields:
     </tr>
 </table>
 
+#### <u>Query Parameters</u>
+
+<table>
+    <tr>
+        <th>Name</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>tenant_id</td>
+        <td>
+            ID of the tenant to filter the search with.
+        </td>
+    </tr>
+</table>
+
+
 <a name="bridgemactable"></a>
 ### MacPort [application/vnd.org.midonet.MacPort+json]
 
@@ -954,7 +996,6 @@ contains the following fields:
 <a name="port"></a>
 ### Port [application/vnd.org.midonet.Port-v1+json]
 
-    GET     /ports?tenant_id=:tenantId
     GET     /ports/:portId
     GET     /routers/:routerId/ports
     GET     /routers/:routerId/peer_ports
@@ -1333,10 +1374,10 @@ contains the following fields:
 <a name="portgroup"></a>
 ### Port Group [application/vnd.org.midonet.PortGroup-v1+json]
 
-    GET     /port_groups?tenant_id=:tenantId
-    GET     /port_groups?port_id=:portId
+    GET     /port_groups
+    GET     /tenants/:tenantId/port_groups
+    GET     /ports/:portId/port_groups
     GET     /port_groups/:portGroupId
-    GET     /port_groups/:name?tenant_id=:tenantId
     POST    /port_groups
     PUT     /port_groups/:portGroupId
     DELETE  /port_groups/:portGroupId
@@ -1384,6 +1425,27 @@ contains the following fields:
         <td/>
         <td/>
         <td>URI for port membership operations.</td>
+</table>
+
+#### <u>Query Parameters</u>
+
+<table>
+    <tr>
+        <th>Name</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>tenant_id</td>
+        <td>
+            ID of the tenant to filter the search with.
+        </td>
+    </tr>
+    <tr>
+        <td>port_id</td>
+        <td>
+            ID of the port to filter the search with.
+        </td>
+    </tr>
 </table>
 
 <a name="portgroupport"></a>
@@ -1446,9 +1508,8 @@ PortGroupPort represents membership of ports in port groups.
 ### Chain [application/vnd.org.midonet.Chain-v1+json]
 
     GET     /chains
-    GET     /chains?tenant_id=:tenantId
+    GET     /tenants/:tenantId/chains
     GET     /chains/:chainId
-    GET     /chains/:name?tenant_id=:tenantId
     POST    /chains
     DELETE  /chains/:chainId
 
@@ -1499,6 +1560,21 @@ It contains the following fields:
         <td/>
         <td>A GET against this URI retrieves the representation of the rules
          set for this chain.</td>
+    </tr>
+</table>
+
+#### <u>Query Parameters</u>
+
+<table>
+    <tr>
+        <th>Name</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>tenant_id</td>
+        <td>
+            ID of the tenant to filter the search with.
+        </td>
     </tr>
 </table>
 
@@ -2587,11 +2663,9 @@ It represents the result of a query to the monitoring system.
 ### Tenant [application/vnd.org.midonet.Tenant-v1+json]
 
     GET     /tenants
+    GET     /tenants/:tenantId
 
 Represents a tenant, or a group of users, in the identitity services.
-Currently there is only GET operation to retrieve a list of tenants,
-and there is no operation to retieve information about a particular
-tenant.
 
 <table>
     <tr>
@@ -2614,6 +2688,42 @@ tenant.
         <td/>
         <td/>
         <td>Name of the tenant in the identity system</td>
+    </tr>
+    <tr>
+        <td>uri</td>
+        <td>URI</td>
+        <td/>
+        <td/>
+        <td>A GET against this URI refreshes the representation of this
+         resource.</td>
+    </tr>
+    <tr>
+        <td>bridges</td>
+        <td>URI</td>
+        <td/>
+        <td/>
+        <td>A GET against this URI retrieves tenant's bridges.</td>
+    </tr>
+    <tr>
+        <td>chains</td>
+        <td>URI</td>
+        <td/>
+        <td/>
+        <td>A GET against this URI retrieves tenant's chains.</td>
+    </tr>
+    <tr>
+        <td>port_groups</td>
+        <td>URI</td>
+        <td/>
+        <td/>
+        <td>A GET against this URI retrieves tenant's port groups.</td>
+    </tr>
+    <tr>
+        <td>routers</td>
+        <td>URI</td>
+        <td/>
+        <td/>
+        <td>A GET against this URI retrieves tenant's routers.</td>
     </tr>
 </table>
 
@@ -2659,6 +2769,8 @@ as:
 
 *vnd.org.midonet.collection.Tenant-v1+json*
 
+See the Query Parameters section of each resource type whether the collection
+can be filtered.
 
 <a name="auth"></a>
 ## Authentication/Authorization
