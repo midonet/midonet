@@ -357,9 +357,9 @@ public class ResourceUriBuilder {
         return UriBuilder.fromUri(getRoot(baseUri)).path(PORT_GROUPS).build();
     }
 
-    public static URI getPortGroups(URI baseUri, UUID portId) {
-        return UriBuilder.fromUri(getPortGroups(baseUri)).queryParam(
-                PORT_ID_QS, portId).build();
+    public static URI getPortPortGroups(URI baseUri, UUID portId) {
+        return UriBuilder.fromUri(getPort(baseUri, portId)).path(
+                PORT_GROUPS).build();
     }
 
     public static URI getPortGroup(URI baseUri, UUID id) {
