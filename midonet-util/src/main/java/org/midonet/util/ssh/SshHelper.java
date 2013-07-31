@@ -15,13 +15,8 @@ import org.midonet.util.ssh.builders.UploadFileBuilder;
  */
 public class SshHelper {
 
-    public static SshSessionBuilder newSession() {
-        return new SshSessionBuilder() {
-            @Override
-            protected SshSessionBuilder self() {
-                return this;
-            }
-        };
+    public static SshSessionBuilder.BaseSshBuilder newSession() {
+        return new SshSessionBuilder.BaseSshBuilder();
     }
 
     public static RemoteCommandBuilder newRemoteCommand(final String command) {

@@ -109,11 +109,15 @@ public class Callbacks {
                             String methodName = method.getName();
 
                             if (methodName.equals("onSuccess")) {
-                                registerResult(identifier, (T) args[0]);
+                                @SuppressWarnings("unchecked")
+                                T res = (T) args[0]; // unsafe
+                                registerResult(identifier, res);
                             } else if (methodName.equals("onTimeout")) {
                                 registerTimeout(identifier);
                             } else if (methodName.equals("onError")) {
-                                registerError(identifier, (E) args[0]);
+                                @SuppressWarnings("unchecked")
+                                E res = (E) args[0]; // unsafe
+                                registerError(identifier, res);
                             }
 
                             return null;

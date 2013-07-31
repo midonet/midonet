@@ -8,5 +8,5 @@ public interface ThrottlingGuardFactory {
 
     ThrottlingGuard build(String name);
 
-    ThrottlingGuard buildForCollection(String name, Collection col);
+    <E> ThrottlingGuard buildForCollection(String name, Collection<E> col);
 }

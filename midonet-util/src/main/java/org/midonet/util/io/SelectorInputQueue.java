@@ -14,6 +14,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * to be combined with a selector used to write data to a channel as it arrives
  * to this queue.
  */
+@SuppressWarnings("serial") // unless someones wants to serialize this ...
 public class SelectorInputQueue<E> extends LinkedBlockingQueue<E> {
     private Selector selector = null;
 
@@ -106,7 +107,7 @@ public class SelectorInputQueue<E> extends LinkedBlockingQueue<E> {
     }
 
     @Override
-    public boolean addAll(Collection c) {
+    public boolean addAll(Collection<? extends E> c) {
         if (super.addAll(c)) {
             notifySelector();
             return true;
