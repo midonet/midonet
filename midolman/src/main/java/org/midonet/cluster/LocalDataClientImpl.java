@@ -566,7 +566,29 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public @CheckForNull Bridge bridgesGet(UUID id)
+    public List<Bridge> bridgesGetAll() throws StateAccessException,
+            SerializationException {
+        log.debug("bridgesGetAll entered");
+
+        List<Bridge> bridges = new ArrayList<Bridge>();
+
+        String path = pathBuilder.getBridgesPath();
+        if (zkManager.exists(path)) {
+            Set<String> bridgeIds = zkManager.getChildren(path);
+            for (String id : bridgeIds) {
+                Bridge bridge = bridgesGet(UUID.fromString(id));
+                if (bridge != null) {
+                   bridges.add(bridge);
+                }
+            }
+        }
+
+        log.debug("bridgesGetAll exiting: {} bridges found", bridges.size());
+        return bridges;
+    }
+
+    @Override
+   public @CheckForNull Bridge bridgesGet(UUID id)
             throws StateAccessException, SerializationException {
         log.debug("Entered: id={}", id);
 
@@ -624,6 +646,28 @@ public class LocalDataClientImpl implements DataClient {
         throws StateAccessException {
         TaggableConfig taggableConfig = Converter.toTaggableConfig(taggable);
         this.taggableConfigZkManager.delete(id, taggableConfig, tag);
+    }
+
+     @Override
+    public List<Chain> chainsGetAll() throws StateAccessException,
+            SerializationException {
+        log.debug("chainsGetAll entered");
+
+        List<Chain> chains = new ArrayList<Chain>();
+
+        String path = pathBuilder.getChainsPath();
+        if (zkManager.exists(path)) {
+            Set<String> chainIds = zkManager.getChildren(path);
+            for (String id : chainIds) {
+                Chain chain = chainsGet(UUID.fromString(id));
+                if (chain != null) {
+                    chains.add(chain);
+                }
+            }
+        }
+
+        log.debug("chainsGetAll exiting: {} chains found", chains.size());
+        return chains;
     }
 
     @Override
@@ -1589,6 +1633,28 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
+    public List<PortGroup> portGroupsGetAll() throws StateAccessException,
+            SerializationException {
+        log.debug("portGroupsGetAll entered");
+        List<PortGroup> portGroups = new ArrayList<PortGroup>();
+
+        String path = pathBuilder.getPortGroupsPath();
+        if (zkManager.exists(path)) {
+            Set<String> portGroupIds = zkManager.getChildren(path);
+            for (String id : portGroupIds) {
+                PortGroup portGroup = portGroupsGet(UUID.fromString(id));
+                if (portGroup != null) {
+                    portGroups.add(portGroup);
+                }
+            }
+        }
+
+        log.debug("portGroupsGetAll exiting: {} port groups found",
+                portGroups.size());
+        return portGroups;
+    }
+
+    @Override
     public @CheckForNull PortGroup portGroupsGet(UUID id)
             throws StateAccessException, SerializationException {
         log.debug("Entered: id={}", id);
@@ -1724,6 +1790,27 @@ public class LocalDataClientImpl implements DataClient {
         }
         return routes;
 
+    }
+
+    @Override
+    public List<Router> routersGetAll() throws StateAccessException,
+            SerializationException {
+        log.debug("routersGetAll entered");
+        List<Router> routers = new ArrayList<Router>();
+
+        String path = pathBuilder.getRoutersPath();
+        if (zkManager.exists(path)) {
+            Set<String> routerIds = zkManager.getChildren(path);
+            for (String id : routerIds) {
+                Router router = routersGet(UUID.fromString(id));
+                if (router != null) {
+                    routers.add(router);
+                }
+            }
+        }
+
+        log.debug("routersGetAll exiting: {} routers found", routers.size());
+        return routers;
     }
 
     @Override
