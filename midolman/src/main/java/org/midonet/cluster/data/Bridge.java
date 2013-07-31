@@ -3,15 +3,16 @@
 */
 package org.midonet.cluster.data;
 
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.Vector;
 
 public class Bridge extends Entity.Base<UUID, Bridge.Data, Bridge>
         implements Entity.TaggableEntity{
+
+    // As a convention, we consider frames with no VLAN tags
+    // as VLAN ID 0
+    public static final short UNTAGGED_VLAN_ID = 0;
 
     public enum Property {
         tenant_id

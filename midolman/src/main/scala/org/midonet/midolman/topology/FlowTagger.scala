@@ -5,6 +5,7 @@
 package org.midonet.midolman.topology
 
 import java.util.UUID
+import java.lang.{Short => JShort}
 import org.midonet.packets.{IPAddr, MAC}
 import org.midonet.util.collections.WeakObjectPool
 
@@ -23,8 +24,10 @@ FlowTagger {
         INSTANCE_POOL.sharedRef(tag)
     }
 
-    def invalidateFloodedFlowsByDstMac(bridgeId: UUID, mac: MAC): AnyRef = {
-        val tag = "br_flood_mac:" + bridgeId.toString + ":" + mac.toString
+    def invalidateFloodedFlowsByDstMac(bridgeId: UUID, mac: MAC,
+                                       vlanId: JShort): AnyRef = {
+        val tag = "br_flood_mac:" + bridgeId.toString + ":" + mac.toString +
+            ":" + vlanId.toString()
         INSTANCE_POOL.sharedRef(tag)
     }
 
@@ -33,9 +36,10 @@ FlowTagger {
         INSTANCE_POOL.sharedRef(tag)
     }
 
-    def invalidateFlowsByPort(bridgeId: UUID, mac: MAC, port: UUID): AnyRef = {
+    def invalidateFlowsByPort(bridgeId: UUID, mac: MAC, vlanId: JShort,
+                              port: UUID): AnyRef = {
         val tag = "br_fwd_mac:" + bridgeId.toString + ":" + mac.toString + ":" +
-            port.toString
+            vlanId.toString + ":" + port.toString
         INSTANCE_POOL.sharedRef(tag)
     }
 

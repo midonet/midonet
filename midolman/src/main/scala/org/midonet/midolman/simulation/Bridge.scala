@@ -9,10 +9,12 @@ import scala.collection.{Map => ROMap}
 import java.util.UUID
 
 import org.midonet.cluster.client._
+import org.midonet.cluster.data
 import org.midonet.midolman.logging.LoggerFactory
 import org.midonet.midolman.rules.RuleResult.Action
 import org.midonet.midolman.simulation.Coordinator._
-import org.midonet.midolman.topology.{FlowTagger, MacFlowCount, RemoveFlowCallbackGenerator}
+import org.midonet.midolman.topology.{FlowTagger,
+    MacFlowCount, RemoveFlowCallbackGenerator}
 import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.packets._
 import org.midonet.util.functors.Callback1
@@ -57,7 +59,7 @@ import org.midonet.odp.flows.FlowActionPopVLAN
  *
  * @param id
  * @param tunnelKey
- * @param macPortMap
+ * @param vlanMacTableMap
  * @param ip4MacMap
  * @param flowCount
  * @param inFilter
@@ -74,7 +76,7 @@ import org.midonet.odp.flows.FlowActionPopVLAN
  * @param actorSystem
  */
 class Bridge(val id: UUID, val tunnelKey: Long,
-             val macPortMap: MacLearningTable,
+             val vlanMacTableMap: ROMap[JShort, MacLearningTable],
              val ip4MacMap: IpMacMap[IPv4Addr],
              val flowCount: MacFlowCount, val inFilter: Chain,
              val outFilter: Chain,
@@ -142,6 +144,10 @@ class Bridge(val id: UUID, val tunnelKey: Long,
             return Promise.successful(ErrorDropAction())
         }
 
+        // Learn the entry
+        val srcDlAddress = packetContext.getMatch.getEthernetSource
+        updateFlowCount(srcDlAddress, packetContext)
+
         val dstDlAddress = packetContext.getMatch.getEthernetDestination
         val action: Future[Coordinator.Action] =
              if (isArpBroadcast()) handleARPRequest()
@@ -173,24 +179,28 @@ class Bridge(val id: UUID, val tunnelKey: Long,
                     FlowTagger.invalidateFlowsByLogicalPort(id, logicalPort))
                 unicastAction(logicalPort)
             case None => // not a logical port, is the dstMac learned?
-                val port = getPortOfMac(dlDst, packetContext.expiry, ec)
+                val vlanId = srcVlanTag(packetContext)
+                val port = getPortOfMac(dlDst, vlanId, packetContext.expiry, ec)
                 // Tag the flow with the (dst-port, dst-mac) pair so we can
                 // invalidate the flow if the MAC migrates.
                 port flatMap {
-                    case null =>
-                        log.debug("Dst MAC {} is not learned: Flood", dlDst)
+                    case Some(portId: UUID) =>
+                        log.debug("Dst MAC {}, VLAN ID {} on port {}: Forward",
+                            dlDst, vlanId, portId)
                         packetContext.addFlowTag(
-                            FlowTagger.invalidateFloodedFlowsByDstMac(id, dlDst))
-                        multicastAction()
-                    case portId: UUID =>
-                        log.debug("Dst MAC {} on port {}: Forward",
-                                  dlDst, portId)
-                        packetContext.addFlowTag(
-                            FlowTagger.invalidateFlowsByPort(id, dlDst, portId))
+                            FlowTagger.invalidateFlowsByPort(id, dlDst,
+                                vlanId, portId))
                         packetContext.addFlowTag(
                             FlowTagger.invalidateFlowsByPort(id, dlSrc,
-                                                packetContext.getInPortId))
+                                vlanId, packetContext.getInPortId))
                         unicastAction(portId)
+                    case None =>
+                        log.debug("Dst MAC {}, VLAN ID {} is not learned:" +
+                            " Flood", dlDst, vlanId)
+                        packetContext.addFlowTag(
+                            FlowTagger.invalidateFloodedFlowsByDstMac(id,
+                                dlDst, vlanId))
+                        multicastAction()
                 }
         }
     }
@@ -203,8 +213,6 @@ class Bridge(val id: UUID, val tunnelKey: Long,
                            ec: ExecutionContext): Future[Coordinator.Action] = {
         log.debug("Handling L2 multicast {}", id)
         packetContext.addFlowTag(FlowTagger.invalidateBroadcastFlows(id, id))
-        // TODO (galo) -> if coming from interior port, ok, but if coming
-        // from exterior port depends on the vlan id on the frame
         multicastAction()
     }
 
@@ -401,9 +409,6 @@ class Bridge(val id: UUID, val tunnelKey: Long,
         implicit val pktContext = packetContext
 
         log.debug("Post-Bridging..")
-        // First, learn the mac-port entry.
-        // TODO(pino): what if the filters can modify the L2 addresses?
-        updateFlowCount(packetContext.getMatch.getEthernetSource, packetContext)
         //XXX: Add to traversed elements list if flooding.
 
         // If the packet's not being forwarded, we're done.
@@ -454,30 +459,68 @@ class Bridge(val id: UUID, val tunnelKey: Long,
         }
     }
 
+    /**
+     * Decide what source VLAN  this packet is from.
+     *
+     * - If the in port is tagged with a vlan, that's the source VLAN
+     * - Else if the traffic is tagged with a vlan, the outermost tag
+     * is the source VLAN
+     * - Else it is untagged (None)
+     */
+    private def srcVlanTagOption(packetContext: PacketContext) = {
+        val inPortVlan = Option.apply(
+            vlanToPort.getVlan(packetContext.getInPortId))
+
+        def getVlanFromFlowMatch = packetContext.getMatch.getVlanIds match {
+            case l: java.util.List[JShort] if !l.isEmpty => Some(l.get(0))
+            case _ => None
+        }
+
+        inPortVlan orElse getVlanFromFlowMatch
+    }
+
+    /**
+     * Decide what source VLAN  this packet is from.
+     *
+     * - If the in port is tagged with a vlan, that's the source VLAN
+     * - Else if the traffic is tagged with a vlan, the outermost tag
+     * is the source VLAN
+     * - Else we return the reserved "untagged VLAN" ID
+     */
+    private def srcVlanTag(packetContext: PacketContext): JShort = {
+        srcVlanTagOption(packetContext).getOrElse(
+            data.Bridge.UNTAGGED_VLAN_ID)
+    }
+
     private def updateFlowCount(srcDlAddress: MAC,
                                 packetContext: PacketContext) {
         implicit val pktContext = packetContext
         // Learn the src MAC unless it's a logical port's.
+        val vlanId = srcVlanTag(packetContext)
+
         if (!macToLogicalPortId.contains(srcDlAddress)) {
-            log.debug("Increasing the reference count for MAC {} on port {}",
-                srcDlAddress, packetContext.getInPortId())
-            flowCount.increment(srcDlAddress, packetContext.getInPortId)
+            log.debug("Increasing the reference count for MAC {}, VLAN {}" +
+                " on port {}", srcDlAddress, vlanId, packetContext.getInPortId())
+            flowCount.increment(srcDlAddress, vlanId, packetContext.getInPortId)
             // Add a flow-removal callback that decrements the reference count.
             packetContext.addFlowRemovedCallback(
                 flowRemovedCallbackGen.getCallback(srcDlAddress,
-                                                   packetContext.getInPortId))
+                    short2Short(vlanId), packetContext.getInPortId))
             // Flow invalidations caused by MACs migrating between ports
             // are done by the BridgeManager's MacTableNotifyCallBack.
         }
     }
 
-    private def getPortOfMac(mac: MAC, expiry: Long, ec: ExecutionContext) = {
-        val rv = Promise[UUID]()(ec)
-        macPortMap.get(mac, new Callback1[UUID] {
-            def call(port: UUID) {
-                rv.success(port)
-            }
-        }, expiry)
+    private def getPortOfMac(mac: MAC, vlanId: JShort, expiry: Long, ec: ExecutionContext) = {
+        val rv = Promise[Option[UUID]]()(ec)
+        vlanMacTableMap.get(vlanId) match {
+            case Some(macPortMap: MacLearningTable) => macPortMap.get(mac, new Callback1[UUID] {
+                def call(port: UUID) {
+                    rv.success(Option.apply(port))
+                }
+            }, expiry)
+            case _ => rv.success(None)
+        }
         rv
     }
 

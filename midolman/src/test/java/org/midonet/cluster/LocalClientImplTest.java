@@ -6,6 +6,8 @@ package org.midonet.cluster;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.UUID;
 
 import com.google.inject.Guice;
@@ -285,7 +287,16 @@ public class LocalClientImplTest {
         }
 
         @Override
-        public void setMacLearningTable(MacLearningTable table) {
+        public void removeMacLearningTable(short vlanId) {
+        }
+
+        @Override
+        public Set<Short> vlansInMacLearningTable() {
+            return new HashSet<Short>();
+        }
+
+        @Override
+        public void setMacLearningTable(short vlanId, MacLearningTable table) {
             mlTable = table;
         }
 

@@ -6,6 +6,7 @@ package org.midonet.cluster;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import javax.inject.Inject;
@@ -14,6 +15,7 @@ import org.apache.zookeeper.KeeperException;
 import org.midonet.cluster.client.BridgeBuilder;
 import org.midonet.cluster.client.IpMacMap;
 import org.midonet.cluster.client.MacLearningTable;
+import org.midonet.cluster.data.Bridge;
 import org.midonet.midolman.config.ZookeeperConfig;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.Directory;
@@ -34,7 +36,6 @@ import org.midonet.util.functors.Callback1;
 import org.midonet.util.functors.Callback3;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import scala.Option;
 import scala.Some;
 
 public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
@@ -84,10 +85,10 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
                 macPortMap = new MacPortMap(dir.getSubDirectory(
                         pathManager.getBridgeMacPortsPath(id)));
                 macPortMap.setConnectionWatcher(connectionWatcher);
-
                 macPortMap.start();
-                builder.setMacLearningTable(
-                        new MacLearningTableImpl(id, macPortMap));
+                builder.setMacLearningTable(Bridge.UNTAGGED_VLAN_ID,
+                        new MacLearningTableImpl(id, macPortMap,
+                                Bridge.UNTAGGED_VLAN_ID));
 
                 ip4MacMap = new Ip4ToMacReplicatedMap(
                     bridgeMgr.getIP4MacMapDirectory(id));
@@ -150,6 +151,9 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
         Map<IPAddr, MAC> rtrIpToMac =  new HashMap<IPAddr, MAC>();
         VlanPortMapImpl vlanIdPortMap = new VlanPortMapImpl();
         Set<UUID> logicalPortIDs;
+        Set<Short> currentVlans = new HashSet<Short>();
+        currentVlans.add(Bridge.UNTAGGED_VLAN_ID);
+
         LogicalPortWatcher watcher = new LogicalPortWatcher(bridgeId, builder);
         try {
             logicalPortIDs = portMgr.getBridgeLogicalPortIDs(bridgeId, watcher);
@@ -203,7 +207,8 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
             } else if (peerPortCfg instanceof PortDirectory.LogicalBridgePortConfig) {
                 log.debug("Bridge peer is another Bridge's interior port");
                 // Let's see who of the two is acting as vlan-aware bridge
-                if (null == bridgePort.vlanId()) { // it's the peer
+                Short bridgePortVlanId = bridgePort.vlanId();
+                if (null == bridgePortVlanId) { // it's the peer
                     PortDirectory.LogicalBridgePortConfig typedPeerCfg =
                         ((PortDirectory.LogicalBridgePortConfig) peerPortCfg);
                     Short herVlanId = typedPeerCfg.vlanId();
@@ -217,14 +222,54 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
                     }
                 } else { // it's the bridge
                     log.debug("Bridge peer {} mapped to vlan-id {}",
-                              bridgePort.peerId(), bridgePort.vlanId());
-                    vlanIdPortMap.add(bridgePort.vlanId(), id);
+                              bridgePort.peerId(), bridgePortVlanId);
+                    vlanIdPortMap.add(bridgePortVlanId, id);
+                    currentVlans.add(bridgePortVlanId);
                 }
             } else {
                 log.warn("The peer isn't router nor vlan-bridge logical port");
             }
-
         }
+
+        // Deal with VLAN changes
+        Set<Short> oldVlans = builder.vlansInMacLearningTable();
+
+        Set<Short> deletedVlans = new HashSet<Short>(oldVlans);
+        deletedVlans.removeAll(currentVlans);
+
+        Set<Short> createdVlans = new HashSet<Short>(currentVlans);
+        createdVlans.removeAll(oldVlans);
+
+        ZkPathManager pathManager = new ZkPathManager(
+                zkConfig.getMidolmanRootKey());
+
+        for(Short createdVlanId: createdVlans) {
+            try {
+                // Create MAC learning table for VLAN we hadn't
+                // seen before
+                MacPortMap macPortMap = new MacPortMap(
+                        dir.getSubDirectory(
+                                pathManager.getBridgeVlanMacPortsPath(bridgeId,
+                                createdVlanId)));
+                macPortMap.setConnectionWatcher(connectionWatcher);
+                macPortMap.start();
+                builder.setMacLearningTable(createdVlanId,
+                        new MacLearningTableImpl(bridgeId, macPortMap,
+                                createdVlanId));
+            } catch (KeeperException e) {
+                log.warn("Error retrieving mac-ports for VLAN ID" +
+                        " {}, bridge {}",
+                        new Object[]{createdVlanId, bridgeId}, e);
+                connectionWatcher.handleError(
+                        bridgeId.toString(),
+                        watchBridge(bridgeId, isUpdate), e);
+            }
+        }
+
+        for(Short deletedVlanId: deletedVlans) {
+            builder.removeMacLearningTable(deletedVlanId);
+        }
+
         builder.setLogicalPortsMap(rtrMacToLogicalPortId, rtrIpToMac);
         builder.setVlanPortMap(vlanIdPortMap);
         // Trigger the update, this method was called by a watcher, because
@@ -236,12 +281,14 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
 
     class MacLearningTableImpl implements MacLearningTable {
 
-        MacPortMap map;
-        UUID bridgeID;
+        final MacPortMap map;
+        final UUID bridgeID;
+        final short vlanId;
 
-        MacLearningTableImpl(UUID bridgeID, MacPortMap map) {
+        MacLearningTableImpl(UUID bridgeID, MacPortMap map, short vlanId) {
             this.bridgeID = bridgeID;
             this.map = map;
+            this.vlanId = vlanId;
         }
 
         @Override
@@ -260,11 +307,11 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
                     try {
                         map.put(mac, portID);
                     } catch (Exception e) {
-                        log.error("Failed adding mac {} to port {}",
-                                  new Object[]{mac, portID, e});
+                        log.error("Failed adding mac {}, VLAN {} to port {}",
+                                  new Object[]{mac, vlanId, portID, e});
                     }
-                    log.info("Added mac {} to port {} for bridge {}",
-                             new Object[]{mac, portID, bridgeID});
+                    log.info("Added mac {}, VLAN {} to port {} for bridge {}",
+                             new Object[]{mac, vlanId, portID, bridgeID});
                 }
             });
         }
@@ -277,8 +324,8 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
                     try {
                         map.removeIfOwnerAndValue(mac, portID);
                     } catch (Exception e) {
-                        log.error("Failed removing mac {} from port {}",
-                                  new Object[]{mac, portID, e});
+                        log.error("Failed removing mac {}, VLAN {} from port {}",
+                                  new Object[]{mac, vlanId, portID, e});
                     }
                 }
             });

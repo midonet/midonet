@@ -17,7 +17,7 @@ import org.midonet.midolman.FlowController.{RemoveWildcardFlow,
     WildcardFlowRemoved, WildcardFlowAdded}
 import org.midonet.midolman.PacketWorkflow.PacketIn
 import topology.BridgeManager.CheckExpiredMacPorts
-import org.midonet.midolman.topology.{VirtualTopologyActor, FlowTagger, LocalPortActive}
+import topology.{VirtualTopologyActor, FlowTagger, LocalPortActive}
 import util.{SimulationHelper, TestHelpers}
 import org.midonet.cluster.data.Bridge
 import org.midonet.cluster.data.host.Host
@@ -296,7 +296,7 @@ class BridgeInvalidationTest extends MidolmanTestCase
 
     def testUnicastAddLogicalPort() {
         drainProbes()
-        // trigger packet in before linking the port. Since routerMac is unknow
+        // trigger packet in before linking the port. Since routerMac is unknown
         // the bridge logic will flood the packet
         triggerPacketIn(port1Name, TestHelpers.createUdpPacket(macVm1, ipVm1,
             routerMac.toString, routerIp.toString))
@@ -317,7 +317,8 @@ class BridgeInvalidationTest extends MidolmanTestCase
 
         flowProbe().fishForMessage(Duration(3, TimeUnit.SECONDS), "InvalidateFlowsByTag")(
         TestHelpers.matchFlowTag(
-            FlowTagger.invalidateFloodedFlowsByDstMac(bridge.getId, routerMac)))
+            FlowTagger.invalidateFloodedFlowsByDstMac(bridge.getId, routerMac,
+                Bridge.UNTAGGED_VLAN_ID)))
 
     }
 
@@ -344,7 +345,8 @@ class BridgeInvalidationTest extends MidolmanTestCase
                 FlowTagger.invalidateArpRequests(bridge.getId)))
         flowProbe().fishForMessage(Duration(3, TimeUnit.SECONDS), "InvalidateFlowsByTag")(
             TestHelpers.matchFlowTag(
-                FlowTagger.invalidateFloodedFlowsByDstMac(bridge.getId, routerMac)))
+                FlowTagger.invalidateFloodedFlowsByDstMac(bridge.getId, routerMac,
+                    Bridge.UNTAGGED_VLAN_ID)))
     }
 
     def testUnicastDeleteLogicalPort() {
