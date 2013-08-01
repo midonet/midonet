@@ -149,6 +149,7 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
         Map<MAC, UUID> rtrMacToLogicalPortId = new HashMap<MAC, UUID>();
         Map<IPAddr, MAC> rtrIpToMac =  new HashMap<IPAddr, MAC>();
         VlanPortMapImpl vlanIdPortMap = new VlanPortMapImpl();
+        UUID vlanBridgePeerPortId = null;
         Set<UUID> logicalPortIDs;
         LogicalPortWatcher watcher = new LogicalPortWatcher(bridgeId, builder);
         try {
@@ -199,7 +200,7 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
                           new Object[]{id, routerPort.getHwAddr(), rtrPortIp});
             } else if (peerPortCfg instanceof PortDirectory.LogicalVlanBridgePortConfig) {
                 log.debug("Bridge peer is a VlanAwareBridge's interior port");
-                builder.setVlanBridgePeerPortId(new Some<UUID>(id));
+                vlanBridgePeerPortId = id;
             } else if (peerPortCfg instanceof PortDirectory.LogicalBridgePortConfig) {
                 log.debug("Bridge peer is another Bridge's interior port");
                 // Let's see who of the two is acting as vlan-aware bridge
@@ -225,6 +226,7 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
             }
 
         }
+        builder.setVlanBridgePeerPortId(Option.apply(vlanBridgePeerPortId));
         builder.setLogicalPortsMap(rtrMacToLogicalPortId, rtrIpToMac);
         builder.setVlanPortMap(vlanIdPortMap);
         // Trigger the update, this method was called by a watcher, because
