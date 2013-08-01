@@ -3,7 +3,6 @@ package org.midonet.midolman.state
 
 import java.util.Map
 import org.apache.zookeeper.CreateMode
-import org.apache.zookeeper.KeeperException
 import org.midonet.packets.IPv4Addr
 import org.midonet.packets.MAC
 import collection.immutable._
@@ -31,20 +30,20 @@ object Ip4ToMacReplicatedMap {
     def getAsMapBase[K,V](dir: Directory,
             mapEntryConvert: (String, String, String) => (K,V))
             :collection.immutable.Map[K,V] =
-        convertException {
+        ZKExceptions.adapt {
             def makeMapEntry(path:String) = {
                 val parts: Array[String] =
                     ReplicatedMap.getKeyValueVersion(path)
                 mapEntryConvert(parts(0), parts(1), parts(2))
+            }
+            dir.getChildren("/", null).map(makeMapEntry).toMap
         }
-        dir.getChildren("/", null).map(makeMapEntry).toMap
-    }
 
     def hasPersistentEntry(dir: Directory, key: IPv4Addr, value: MAC): Boolean
-        = convertException(dir.has(encodePersistentPath(key, value)))
+        = ZKExceptions.adapt(dir.has(encodePersistentPath(key, value)))
 
     def addPersistentEntry(dir: Directory, key: IPv4Addr, value: MAC)
-        = convertException(dir.add(
+        = ZKExceptions.adapt(dir.add(
             encodePersistentPath(key, value), null, CreateMode.PERSISTENT))
 
     def deleteEntry(dir: Directory, key: IPv4Addr, mac: MAC) = {
@@ -61,11 +60,5 @@ object Ip4ToMacReplicatedMap {
     def encodePath(k :IPv4Addr, v :MAC, ver: Int) =
         ReplicatedMap.encodeFullPath(k.toString, v.toString, ver)
 
-    def convertException[T](f :T) :T = {
-        try { f } catch {
-            case e: KeeperException      => throw new StateAccessException(e)
-            case e: InterruptedException => throw new StateAccessException(e)
-        }
-    }
 }
 
