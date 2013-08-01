@@ -5,7 +5,6 @@ import java.util.HashMap
 import java.util.Map
 import java.util.UUID
 import org.apache.zookeeper.CreateMode
-import org.apache.zookeeper.KeeperException
 import org.midonet.packets.MAC
 import scala.collection.JavaConversions._
 
@@ -29,7 +28,7 @@ object MacPortMap {
     def getAsMapBase[K,V](dir: Directory,
                           mapEntryConvert: (String, String, String) => (K,V))
     :collection.immutable.Map[K,V] =
-        convertException {
+        ZKExceptions.adapt {
             def makeMapEntry(path:String) = {
                 val parts: Array[String] =
                     ReplicatedMap.getKeyValueVersion(path)
@@ -39,11 +38,11 @@ object MacPortMap {
         }
 
     def hasPersistentEntry(dir: Directory, key: MAC, value: UUID): Boolean
-    = convertException(dir.has(encodePersistentPath(key, value)))
+    = ZKExceptions.adapt(dir.has(encodePersistentPath(key, value)))
 
     def addPersistentEntry(dir: Directory, key: MAC, value: UUID)
-    = convertException(dir.add(
-        encodePersistentPath(key, value), null, CreateMode.PERSISTENT))
+    = ZKExceptions.adapt(
+        dir.add(encodePersistentPath(key, value), null, CreateMode.PERSISTENT))
 
     def deleteEntry(dir: Directory, key: MAC, mac: UUID) = {
         getAsMapWithVersion(dir).get(key) match {
@@ -59,10 +58,4 @@ object MacPortMap {
     def encodePath(k :MAC, v :UUID, ver: Int) =
         ReplicatedMap.encodeFullPath(k.toString, v.toString, ver)
 
-    def convertException[T](f :T) :T = {
-        try { f } catch {
-            case e: KeeperException      => throw new StateAccessException(e)
-            case e: InterruptedException => throw new StateAccessException(e)
-        }
-    }
 }
