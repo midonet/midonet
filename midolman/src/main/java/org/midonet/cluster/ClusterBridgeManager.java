@@ -36,6 +36,7 @@ import org.midonet.util.functors.Callback1;
 import org.midonet.util.functors.Callback3;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import scala.Option;
 import scala.Some;
 
 public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
@@ -150,6 +151,7 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
         Map<MAC, UUID> rtrMacToLogicalPortId = new HashMap<MAC, UUID>();
         Map<IPAddr, MAC> rtrIpToMac =  new HashMap<IPAddr, MAC>();
         VlanPortMapImpl vlanIdPortMap = new VlanPortMapImpl();
+        UUID vlanBridgePeerPortId = null;
         Set<UUID> logicalPortIDs;
         Set<Short> currentVlans = new HashSet<Short>();
         currentVlans.add(Bridge.UNTAGGED_VLAN_ID);
@@ -203,7 +205,7 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
                           new Object[]{id, routerPort.getHwAddr(), rtrPortIp});
             } else if (peerPortCfg instanceof PortDirectory.LogicalVlanBridgePortConfig) {
                 log.debug("Bridge peer is a VlanAwareBridge's interior port");
-                builder.setVlanBridgePeerPortId(new Some<UUID>(id));
+                vlanBridgePeerPortId = id;
             } else if (peerPortCfg instanceof PortDirectory.LogicalBridgePortConfig) {
                 log.debug("Bridge peer is another Bridge's interior port");
                 // Let's see who of the two is acting as vlan-aware bridge
@@ -270,6 +272,7 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
             builder.removeMacLearningTable(deletedVlanId);
         }
 
+        builder.setVlanBridgePeerPortId(Option.apply(vlanBridgePeerPortId));
         builder.setLogicalPortsMap(rtrMacToLogicalPortId, rtrIpToMac);
         builder.setVlanPortMap(vlanIdPortMap);
         // Trigger the update, this method was called by a watcher, because
