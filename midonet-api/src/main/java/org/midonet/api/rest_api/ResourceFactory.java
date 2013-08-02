@@ -104,10 +104,6 @@ public interface ResourceFactory {
     PortGroupResource.PortPortGroupResource getPortPortGroupResource(
             UUID portId);
 
-    PortResource.VlanBridgeInteriorPortResource getVlanBridgeInteriorPortResource(UUID id);
-
-    PortResource.VlanBridgeTrunkPortResource getVlanBridgeTrunkPortResource(UUID id);
-
     TraceConditionResource getTraceConditionResource();
 
     TraceResource getTraceResource();

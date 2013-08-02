@@ -25,11 +25,6 @@ public class PortFactory {
                 org.midonet.cluster.data.ports.MaterializedBridgePort) {
             return new ExteriorBridgePort((org.midonet.cluster.data.ports
                                            .MaterializedBridgePort) data);
-        } else if (data instanceof LogicalVlanBridgePort) {
-            return new InteriorVlanBridgePort((LogicalVlanBridgePort) data);
-        } else if (data instanceof org.midonet.cluster.data.ports.TrunkPort) {
-            return new TrunkPort(
-                (org.midonet.cluster.data.ports.TrunkPort) data);
         } else {
             throw new UnsupportedOperationException(
                     "Cannot instantiate this port type.");

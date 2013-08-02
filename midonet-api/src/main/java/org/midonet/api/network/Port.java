@@ -23,10 +23,6 @@ import java.util.UUID;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY,
         property = "type")
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = TrunkPort.class,
-                name = PortType.TRUNK_VLAN_BRIDGE),
-        @JsonSubTypes.Type(value = InteriorVlanBridgePort.class,
-                name = PortType.INTERIOR_VLAN_BRIDGE),
         @JsonSubTypes.Type(value = ExteriorBridgePort.class,
                 name = PortType.EXTERIOR_BRIDGE),
         @JsonSubTypes.Type(value = InteriorBridgePort.class,
