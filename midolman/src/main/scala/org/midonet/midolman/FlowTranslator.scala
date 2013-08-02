@@ -299,8 +299,8 @@ trait FlowTranslator {
             .mapTo[Device]
 
         portSetFuture map {
-            set => deviceFuture onSuccess {
-                case br =>
+            set => deviceFuture onComplete {
+                case Right(br) =>
                     val (deviceId, tunnelKey) = br match {
                         case b: RCUBridge =>
                             log.info("It is a bridge")
@@ -355,7 +355,9 @@ trait FlowTranslator {
                                            "local ports of PortSet {}", portSet)
                         translated.success(None)
                     }
-
+                case Left(ex) =>
+                    log.warning("Error retrieving portset future {}", portSet)
+                    translated.failure(ex)
             }
         }
         translated.future
