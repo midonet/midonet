@@ -135,29 +135,6 @@ public class VlanBridgeResource extends AbstractResource {
     }
 
     /**
-     * Trunk Port resource locator for bridges.
-     *
-     * @param id Vlan Bridge ID from the request.
-     * @return VlanBridgeTrunkPortResource object to handle sub-resource requests.
-     */
-    @Path("/{id}" + ResourceUriBuilder.PORTS)
-    public PortResource.VlanBridgeTrunkPortResource getTrunkPortResource(@PathParam("id") UUID id) {
-        return factory.getVlanBridgeTrunkPortResource(id);
-    }
-
-    /**
-     * Interior port resource locator for vlan bridges.
-     *
-     * @param id bridge ID from the request.
-     * @return VlanBridgeInteriorPortResource object to handle sub-resource requests.
-     */
-    @Path("/{id}" + ResourceUriBuilder.PEER_PORTS)
-    public PortResource.VlanBridgeInteriorPortResource getInteriorPortResource(
-        @PathParam("id") UUID id) {
-        return factory.getVlanBridgeInteriorPortResource(id);
-    }
-
-    /**
      * Handler to updating a bridge.
      *
      * @param id Bridge ID from the request.
