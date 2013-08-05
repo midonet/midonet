@@ -67,32 +67,8 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
         this
     }
 
-    /**
-     * Sets portId as the vlan bridge peer port id as long as:
-     * - there is no current set port
-     * - portId is None
-     * - portId equals current set port
-     *
-     * @param portId the new port id if any, or None
-     */
     def setVlanBridgePeerPortId(portId: Option[UUID]) {
-        val currPortId = vlanBridgePeerPortId.getOrElse(null)
-        vlanBridgePeerPortId = portId match {
-            case None =>
-                log.debug("VlanBridgePeerPortId reset")
-                None // if new is None, always override
-            case Some(pId) if currPortId == null =>
-                log.debug("VlanBridgePeerPortId changed to {}", currPortId)
-                Some(pId)
-            case Some(pId) if currPortId != null && !pId.equals(currPortId) =>
-                log.warn("Trying to set a new vlan peer port id in bridge {}," +
-                    " but already has one associated {}",
-                    portId, currPortId)
-                Some(currPortId)
-            case _ =>
-                log.debug("VlanBridgePeerPortId unchanged to {}", currPortId)
-                Some(currPortId)
-        }
+        vlanBridgePeerPortId = portId
     }
 
     def setVlanPortMap(map: VlanPortMap) {
