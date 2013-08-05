@@ -220,7 +220,7 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
                     } else {
                         log.debug("Bridge peer is vlan-aware, my vlan-id {}",
                                   herVlanId);
-                        builder.setVlanBridgePeerPortId(new Some<UUID>(id));
+                        vlanBridgePeerPortId = id;
                     }
                 } else { // it's the bridge
                     log.debug("Bridge peer {} mapped to vlan-id {}",
