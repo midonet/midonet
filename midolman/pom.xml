@@ -325,7 +325,7 @@
                                 </data>
                                 <data>
                                     <src>
-                                        ${project.basedir}/CHANGES.txt
+                                        ${project.basedir}/CHANGE-LOG.txt
                                     </src>
                                     <type>file</type>
                                     <mapper>
