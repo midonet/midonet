@@ -29,10 +29,10 @@ class InstallWildcardFlowTestCase extends MidolmanTestCase {
         val bridge = new ClusterBridge().setName("test")
         bridge.setId(clusterDataClient().bridgesCreate(bridge))
 
-        val inputPort = Ports.materializedBridgePort(bridge)
+        val inputPort = Ports.bridgePort(bridge)
         inputPort.setId(clusterDataClient().portsCreate(inputPort))
 
-        val outputPort = Ports.materializedBridgePort(bridge)
+        val outputPort = Ports.bridgePort(bridge)
         outputPort.setId(clusterDataClient().portsCreate(outputPort))
 
         val portEventsProbe = newProbe()

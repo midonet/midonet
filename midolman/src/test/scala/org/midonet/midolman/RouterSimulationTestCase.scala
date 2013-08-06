@@ -26,8 +26,7 @@ import org.midonet.midolman.state.ArpCacheEntry
 import org.midonet.midolman.state.ReplicatedMap.Watcher
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.HostRequest
 import org.midonet.cluster.data.{Ports, Router => ClusterRouter}
-import org.midonet.cluster.data.ports.{LogicalRouterPort,
-    MaterializedRouterPort}
+import org.midonet.cluster.data.ports.RouterPort
 import org.midonet.cluster.data.host.Host
 import org.midonet.packets._
 import org.midonet.odp.flows.{FlowActionSetKey, FlowActionOutput,
@@ -38,6 +37,7 @@ import topology.LocalPortActive
 import util.RouterHelper
 import akka.testkit.TestProbe
 import annotation.tailrec
+import org.scalatest.Ignore
 
 @RunWith(classOf[JUnitRunner])
 class RouterSimulationTestCase extends MidolmanTestCase with
@@ -56,11 +56,11 @@ class RouterSimulationTestCase extends MidolmanTestCase with
     private val uplinkNwLen = 24
     private val uplinkPortAddr = "180.0.1.2"
     private val uplinkMacAddr = MAC.fromString("02:0a:08:06:04:02")
-    private var uplinkPort: MaterializedRouterPort = null
+    private var uplinkPort: RouterPort = null
     private var upLinkRoute: UUID = null
     private var host: Host = null
 
-    private val portConfigs = mutable.Map[Int, MaterializedRouterPort]()
+    private val portConfigs = mutable.Map[Int, RouterPort]()
     private val portNumToId = mutable.Map[Int, UUID]()
     private val portNumToMac = mutable.Map[Int, MAC]()
     private val portNumToName = mutable.Map[Int, String]()
@@ -89,10 +89,12 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         requestOfType[OutgoingMessage](vtpProbe())
 
         // Create one port that works as an uplink for the router.
-        uplinkPort = newExteriorRouterPort(clusterRouter, uplinkMacAddr,
+        uplinkPort = newRouterPort(clusterRouter,
+          uplinkMacAddr,
             uplinkPortAddr, uplinkNwAddr, uplinkNwLen)
         uplinkPort should not be null
-        materializePort(uplinkPort, host, "uplinkPort")
+        uplinkPort = materializePort(uplinkPort, host,
+          "uplinkPort").asInstanceOf[RouterPort]
         var portEvent = requestOfType[LocalPortActive](portsProbe)
         portEvent.active should be(true)
         portEvent.portID should be(uplinkPort.getId)
@@ -112,11 +114,12 @@ class RouterSimulationTestCase extends MidolmanTestCase with
                 val segmentAddr = new IPv4Addr(nwAddr + j*4)
                 val portAddr = new IPv4Addr(nwAddr + j*4 + 1)
 
-                val port = newExteriorRouterPort(clusterRouter, macAddr,
+                var port = newRouterPort(clusterRouter, macAddr,
                     portAddr.toString, segmentAddr.toString, 30)
                 port should not be null
 
-                materializePort(port, host, portName)
+                port = materializePort(port, host,
+                  portName).asInstanceOf[RouterPort]
                 portEvent = requestOfType[LocalPortActive](portsProbe)
                 portEvent.active should be(true)
                 portEvent.portID should be(port.getId)
@@ -531,9 +534,20 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         val privIp = IPv4Addr.fromString("176.28.0.1")
         val nwAddr = "176.28.0.0"
         val nwLen =16
-        val port = newInteriorRouterPort(clusterRouter, mac,
+        val port = newRouterPort(clusterRouter, mac,
                                          privIp.toString, nwAddr, nwLen)
         port should not be null
+
+        // The interior port routes do not take effect until it is linked.
+        // So link it to a dummy router
+        val peerRouter = newRouter("peer_router")
+        peerRouter should not be null
+        val peerMac = MAC.fromString("cc:dd:ee:44:22:34")
+        val peerIp = IPv4Addr.fromString("176.28.0.2")
+        val peerPort = newRouterPort(peerRouter, peerMac, peerIp.toString,
+                                     nwAddr, nwLen)
+        peerPort should not be null
+        linkPorts(port.getId(), peerPort.getId())
 
         log.info("Feeding ARP cache for the uplink")
         feedArpCache("uplinkPort",
@@ -622,17 +636,21 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         val nwAddr = "13.0.0.0"
         val nwLen = 8
         val hwAddr = MAC.fromString("34:12:34:12:34:12")
-        var logicalPort = Ports.logicalRouterPort(clusterRouter).
+        var logicalPort = Ports.routerPort(clusterRouter).
             setPortAddr(portAddr).
             setNwAddr(nwAddr).
             setNwLength(nwLen).
             setNwAddr(nwAddr).
             setNwLength(nwLen)
         logicalPort = clusterDataClient().portsGet(clusterDataClient().
-            portsCreate(logicalPort)).asInstanceOf[LogicalRouterPort]
+            portsCreate(logicalPort)).asInstanceOf[RouterPort]
         logicalPort should not be null
         newRoute(clusterRouter, "0.0.0.0", 0, "16.0.0.0", 8,
             NextHop.PORT, logicalPort.getId, "13.13.13.2", 1)
+
+        // Remove the uplink route so that the traffic won't get forwarded
+        // there.
+        deleteRoute(upLinkRoute)
 
         val onPort = 23
         val fromMac = MAC.fromString("01:02:03:04:05:06")

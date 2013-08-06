@@ -10,7 +10,7 @@ import com.google.inject.Inject
 import java.util.UUID
 
 import org.midonet.cluster.{Client, DataClient}
-import org.midonet.cluster.client.{Port, ExteriorRouterPort}
+import org.midonet.cluster.client.{Port, RouterPort}
 import org.midonet.midolman.Referenceable
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
@@ -86,7 +86,8 @@ class RoutingManagerActor extends Actor with ActorLogWithoutPath {
         case LocalPortActive(portID, false) =>
             log.debug("RoutingManager - LocalPortActive(false)" + portID)
             if (!activePorts.contains(portID)) {
-                log.error("we should have had information about port {}", portID)
+                log.error("we should have had information about port {}",
+                    portID)
             } else {
                 activePorts.remove(portID)
 
@@ -105,11 +106,12 @@ class RoutingManagerActor extends Actor with ActorLogWithoutPath {
                         //   port is inactive and start it up again when
                         //   the port is up again.
                         //   (See: ClusterManager:L040)
-                    case Some(routingHandler) => routingHandler ! PortActive(false)
+                    case Some(routingHandler) =>
+                        routingHandler ! PortActive(false)
                 }
             }
 
-        case port: ExteriorRouterPort =>
+        case port: RouterPort if !port.isInterior =>
             log.debug("RoutingManager - ExteriorRouterPort: " + port.id)
             // Only exterior virtual router ports support BGP.
             // Create a handler if there isn't one and the port is active
@@ -117,9 +119,11 @@ class RoutingManagerActor extends Actor with ActorLogWithoutPath {
                 log.debug("RoutingManager - port is active: " + port.id)
 
             if (portHandlers.get(port.id) == None)
-                log.debug("RoutingManager - no RoutingHandler actor is registered with port: " + port.id)
+                log.debug("RoutingManager - no RoutingHandler actor is " +
+                    "registered with port: " + port.id)
 
-            if (activePorts.contains(port.id) && portHandlers.get(port.id) == None) {
+            if (activePorts.contains(port.id)
+                && portHandlers.get(port.id) == None) {
                 bgpPortIdx += 1
 
                 portHandlers.put(
@@ -130,12 +134,13 @@ class RoutingManagerActor extends Actor with ActorLogWithoutPath {
                               withDispatcher("zebra-dispatcher"),
                         name = port.id.toString)
                 )
-                log.debug("RoutingManager - ExteriorRouterPort - RoutingHandler actor creation requested")
+                log.debug("RoutingManager - ExteriorRouterPort - " +
+                    "RoutingHandler actor creation requested")
             }
             log.debug("RoutingManager - ExteriorRouterPort - end")
 
         case port: Port[_] =>
-            log.debug("Port type not supported to handle routing protocols.")
+            log.warning("Port type not supported to handle routing protocols.")
 
         case _ => log.error("Unknown message.")
     }

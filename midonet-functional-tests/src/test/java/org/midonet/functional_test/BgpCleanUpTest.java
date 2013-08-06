@@ -135,7 +135,7 @@ public class BgpCleanUpTest {
         Router router = apiClient.addRouter().tenantId(tenantName).name("router").create();
         log.debug("Created router " + router.getName());
 
-        RouterPort materializedRouterPort_bgp = (RouterPort) router.addExteriorRouterPort()
+        RouterPort materializedRouterPort_bgp = (RouterPort) router.addPort()
                 .portAddress("100.0.0.1")
                 .networkAddress("100.0.0.0")
                 .networkLength(30)
@@ -213,7 +213,7 @@ public class BgpCleanUpTest {
         Router router = apiClient.addRouter().tenantId(tenantName).name("router").create();
         log.debug("Created router " + router.getName());
 
-        RouterPort materializedRouterPort_bgp = (RouterPort) router.addExteriorRouterPort()
+        RouterPort materializedRouterPort_bgp = (RouterPort) router.addPort()
                 .portAddress("100.0.0.1")
                 .networkAddress("100.0.0.0")
                 .networkLength(30)

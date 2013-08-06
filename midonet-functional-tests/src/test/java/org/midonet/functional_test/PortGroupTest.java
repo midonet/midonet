@@ -20,13 +20,9 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import org.midonet.client.dto.*;
 import org.midonet.midolman.topology.LocalPortActive;
 import org.midonet.client.MidonetApi;
-import org.midonet.client.dto.DtoBridgePort;
-import org.midonet.client.dto.DtoInteriorBridgePort;
-import org.midonet.client.dto.DtoInteriorRouterPort;
-import org.midonet.client.dto.DtoRoute;
-import org.midonet.client.dto.DtoRule;
 import org.midonet.client.resource.Bridge;
 import org.midonet.client.resource.BridgePort;
 import org.midonet.client.resource.Host;
@@ -60,7 +56,7 @@ import static org.junit.Assert.assertTrue;
 @Ignore
 public class PortGroupTest {
     IPv4Subnet rtrIp = new IPv4Subnet("10.0.0.254", 24);
-    RouterPort<DtoInteriorRouterPort> rtrPort;
+    RouterPort rtrPort;
     ApiServer apiStarter;
     TapWrapper tap1;
     TapWrapper tap2;
@@ -110,7 +106,7 @@ public class PortGroupTest {
             apiClient.addRouter().tenantId("pgroup_tnt").name("rtr1").create();
         // Add a interior port to the router.
         rtrPort = rtr
-            .addInteriorRouterPort()
+            .addPort()
             .portAddress(rtrIp.getAddress().toString())
             .networkAddress(rtrIp.getAddress().toString())
             .networkLength(rtrIp.getPrefixLen())
@@ -126,8 +122,8 @@ public class PortGroupTest {
         Bridge br =
             apiClient.addBridge().tenantId("pgroup_tnt").name("br").create();
         // Link the bridge to the router.
-        BridgePort<DtoInteriorBridgePort> logBrPort =
-            br.addInteriorPort().create();
+        BridgePort logBrPort =
+            br.addPort().create();
         rtrPort.link(logBrPort.getId());
 
         // A port group is basically a tag that can be attached to a vport.
@@ -182,7 +178,7 @@ public class PortGroupTest {
         portOutChain1.addRule().type(DtoRule.Jump).position(2)
             .jumpChainName("SG1").jumpChainId(secG1.getId()).create();
         portOutChain1.addRule().type(DtoRule.Drop).position(3).create();
-        BridgePort<DtoBridgePort> brPort1 = br.addExteriorPort()
+        BridgePort brPort1 = br.addPort()
             .outboundFilterId(portOutChain1.getId()).create();
         // XXX: Add the port to portG1 port group.
 
@@ -195,7 +191,7 @@ public class PortGroupTest {
         portOutChain2.addRule().type(DtoRule.Jump).position(2)
             .jumpChainName("SG2").jumpChainId(secG2.getId()).create();
         portOutChain2.addRule().type(DtoRule.Drop).position(3).create();
-        BridgePort<DtoBridgePort> brPort2 = br.addExteriorPort()
+        BridgePort brPort2 = br.addPort()
             .outboundFilterId(portOutChain2.getId()).create();
         // XXX: Add the port to portG2 port group.
 
@@ -210,12 +206,12 @@ public class PortGroupTest {
         portOutChain3.addRule().type(DtoRule.Jump).position(3)
             .jumpChainName("SG2").jumpChainId(secG2.getId()).create();
         portOutChain3.addRule().type(DtoRule.Drop).position(4).create();
-        BridgePort<DtoBridgePort> brPort3 = br.addExteriorPort()
+        BridgePort brPort3 = br.addPort()
             .outboundFilterId(portOutChain3.getId()).create();
         // XXX: Add the port to portG1 and portG2 port groups.
 
         // The bridge's 4th exterior port is not in any security groups.
-        BridgePort<DtoBridgePort> brPort4 = br.addExteriorPort().create();
+        BridgePort brPort4 = br.addPort().create();
 
         tap1 = new TapWrapper("sgTap1");
         tap2 = new TapWrapper("sgTap2");

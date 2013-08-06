@@ -65,7 +65,7 @@ public class MonitoringTest extends TestBase {
 
         ipInt = IPv4Addr.fromString("192.168.231.4");
         MAC macInt = MAC.fromString("02:aa:bb:cc:ee:d1");
-        intBridgePort = bridge.addExteriorPort().create();
+        intBridgePort = bridge.addPort().create();
         //ovsBridge.addInternalPort(intBridgePort.getId(), "metricsInt",
         //        ipInt, 24);
         thisHost.addHostInterfacePort()
@@ -79,7 +79,7 @@ public class MonitoringTest extends TestBase {
         ipTap = IPv4Addr.fromString("192.168.231.4");
         MAC macTap = MAC.fromString("02:aa:bb:cc:ee:d2");
 
-        tapBridgePort = bridge.addExteriorPort().create();
+        tapBridgePort = bridge.addPort().create();
         metricsTap = new TapWrapper("metricsTap");
 
         log.debug("Bind datapath's local port to bridge's exterior port.");

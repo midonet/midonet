@@ -5,6 +5,7 @@
 package org.midonet.api.network;
 
 import org.midonet.api.ResourceUriBuilder;
+import org.midonet.cluster.Client;
 import org.midonet.cluster.data.Port;
 
 import java.net.URI;
@@ -37,44 +38,23 @@ public class ExteriorRouterPort extends RouterPort implements ExteriorPort {
     /**
      * Constructor
      *
-     * @param id
-     *            ID of the port
-     * @param deviceId
-     *            ID of the device
-     * @param vifId
-     *            ID of the VIF.
-     */
-    public ExteriorRouterPort(UUID id, UUID deviceId, UUID vifId) {
-        super(id, deviceId);
-        this.vifId = vifId;
-    }
-
-    /**
-     * Constructor
-     *
      * @param portData
      *            Exterior bridge port data object
      */
     public ExteriorRouterPort(
-            org.midonet.cluster.data.ports.MaterializedRouterPort
+            org.midonet.cluster.data.ports.RouterPort
                     portData) {
         super(portData);
-        if (portData.getProperty(Port.Property.vif_id) != null) {
-            this.vifId = UUID.fromString(
-                    portData.getProperty(Port.Property.vif_id));
-        }
-        this.hostId = portData.getHostId();
     }
 
     @Override
     public org.midonet.cluster.data.Port toData() {
-        org.midonet.cluster.data.ports.MaterializedRouterPort data =
+        org.midonet.cluster.data.ports.RouterPort data =
                 new org.midonet.cluster.data.ports
-                        .MaterializedRouterPort();
-        if (this.vifId != null) {
-            data.setProperty(Port.Property.vif_id, this.vifId.toString());
-        }
+                        .RouterPort();
         super.setConfig(data);
+        data.setProperty(Port.Property.v1PortType,
+                Client.PortType.ExteriorRouter.toString());
         return data;
     }
 

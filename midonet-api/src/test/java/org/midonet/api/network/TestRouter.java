@@ -388,13 +388,13 @@ public class TestRouter {
             // Add a router
             DtoRouter resRouter = createRouter("router1", "tenant1-id", false);
             // Add an exterior port.
-            DtoExteriorRouterPort port = new DtoExteriorRouterPort();
+            DtoRouterPort port = new DtoRouterPort();
             port.setNetworkAddress("10.0.0.0");
             port.setNetworkLength(24);
             port.setPortAddress("10.0.0.1");
-            DtoExteriorRouterPort resPort =
+            DtoRouterPort resPort =
                 dtoResource.postAndVerifyCreated(resRouter.getPorts(),
-                    APPLICATION_PORT_JSON, port, DtoExteriorRouterPort.class);
+                    APPLICATION_PORT_V2_JSON, port, DtoRouterPort.class);
             // Create a host (this is not allowed via the API).
             HostZkManager hostManager = injector.getInstance(HostZkManager.class);
             HostDirectory.Metadata metadata = new HostDirectory.Metadata();
@@ -431,13 +431,14 @@ public class TestRouter {
             // Add a router
             DtoRouter resRouter = createRouter("router1", "tenant1-id", false);
             // Add an interior router port.
-            DtoInteriorRouterPort port = new DtoInteriorRouterPort();
+            DtoRouterPort port = new DtoRouterPort();
             port.setNetworkAddress("10.0.0.0");
             port.setNetworkLength(24);
             port.setPortAddress("10.0.0.1");
-            DtoInteriorRouterPort resPort =
+            DtoRouterPort resPort =
                 dtoResource.postAndVerifyCreated(resRouter.getPorts(),
-                    APPLICATION_PORT_JSON, port, DtoInteriorRouterPort.class);
+                    APPLICATION_PORT_V2_JSON, port, DtoRouterPort.class);
+            assertNotNull(resPort.getId());
             // Create a bridge that we can link to the router.
             DtoBridge bridge = new DtoBridge();
             bridge.setName("bridge1");
@@ -448,9 +449,9 @@ public class TestRouter {
             assertNotNull(resBridge.getId());
             assertNotNull(resBridge.getUri());
             // Add an interior bridge port.
-            DtoInteriorBridgePort bPort = dtoResource.postAndVerifyCreated(
-                resBridge.getPorts(), APPLICATION_PORT_JSON,
-                new DtoInteriorBridgePort(), DtoInteriorBridgePort.class);
+            DtoBridgePort bPort = dtoResource.postAndVerifyCreated(
+                resBridge.getPorts(), APPLICATION_PORT_V2_JSON,
+                new DtoBridgePort(), DtoBridgePort.class);
             assertNotNull(bPort.getId());
             assertNotNull(bPort.getUri());
             // Link the bridge and router ports.

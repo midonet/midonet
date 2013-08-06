@@ -38,7 +38,7 @@ class DnatPlusSnatTestCase extends MidolmanTestCase
         requestOfType[HostRequest](vtpProbe())
         requestOfType[OutgoingMessage](vtpProbe())
 
-        val rtrPort1 = newExteriorRouterPort(router,
+        val rtrPort1 = newRouterPort(router,
             MAC.fromString("02:aa:bb:bb:aa:11"), "10.0.0.1", "10.0.0.0", 24)
         rtrPort1 should not be null
         newRoute(router, "0.0.0.0", 0, "10.0.0.0", 24, NextHop.PORT,
@@ -46,7 +46,7 @@ class DnatPlusSnatTestCase extends MidolmanTestCase
         materializePort(rtrPort1, host, "port1")
         requestOfType[LocalPortActive](portsProbe)
 
-        val rtrPort2 = newExteriorRouterPort(router,
+        val rtrPort2 = newRouterPort(router,
             MAC.fromString("02:aa:bb:bb:aa:21"), "10.0.1.1", "10.0.1.0", 24)
         rtrPort1 should not be null
         newRoute(router, "0.0.0.0", 0, "10.0.1.0", 24, NextHop.PORT,

@@ -21,7 +21,6 @@ public class ResourceUriBuilder {
     public static final String ROOT = "/";
     public static final String TENANTS = "/tenants";
     public static final String ROUTERS = "/routers";
-    public static final String VLAN_BRIDGES = "/vlan_bridges";
     public static final String BRIDGES = "/bridges";
     public static final String VLANS = "/vlans";
     public static final String MAC_TABLE = "/mac_table";
@@ -115,15 +114,6 @@ public class ResourceUriBuilder {
                 .path(bridgeId.toString()).build();
     }
 
-    public static URI getVlanBridges(URI baseUri) {
-        return UriBuilder.fromUri(getRoot(baseUri)).path(VLAN_BRIDGES).build();
-    }
-
-    public static URI getVlanBridge(URI baseUri, UUID bridgeId) {
-        return UriBuilder.fromUri(getVlanBridges(baseUri))
-                         .path(bridgeId.toString()).build();
-    }
-
     public static URI getPorts(URI baseUri) {
         return UriBuilder.fromUri(getRoot(baseUri)).path(PORTS).build();
     }
@@ -136,16 +126,6 @@ public class ResourceUriBuilder {
     public static URI getPortLink(URI baseUri, UUID portId) {
         return UriBuilder.fromUri(getPorts(baseUri)).path(portId.toString())
                 .path(LINK).build();
-    }
-
-    public static URI getVlanBridgeTrunkPorts(URI baseUri, UUID bridgeId) {
-        return UriBuilder.fromUri(getVlanBridge(baseUri, bridgeId)).path(PORTS)
-                         .build();
-    }
-
-    public static URI getVlanBridgeInteriorPorts(URI baseUri, UUID bridgeId) {
-        return UriBuilder.fromUri(getVlanBridge(baseUri, bridgeId))
-                         .path(PEER_PORTS).build();
     }
 
     public static URI getBridgePorts(URI baseUri, UUID bridgeId) {
@@ -506,16 +486,6 @@ public class ResourceUriBuilder {
      */
     public static String getBridgeTemplate(URI baseUri) {
         return buildIdTemplateUri(getBridges(baseUri));
-    }
-
-    /**
-     * Generate a Vlan bridge URI template
-     *
-     * @param baseUri Base URI
-     * @return Vlan Bridge template URI
-     */
-    public static String getVlanBridgeTemplate(URI baseUri) {
-        return buildIdTemplateUri(getVlanBridges(baseUri));
     }
 
     /**

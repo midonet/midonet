@@ -61,8 +61,8 @@ public class PortsLinkableConstraintValidator implements
                     "Serialization exception occurred in validation");
         }
 
-        Port port = PortFactory.createPort(portData);
-        Port peerPort = PortFactory.createPort(peerPortData);
+        Port port = PortFactory.convertToApiPort(portData);
+        Port peerPort = PortFactory.convertToApiPort(peerPortData);
         return port.isLinkable(peerPort);
     }
 }

@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit;
 
 import akka.util.Duration;
 import org.junit.Test;
-import org.midonet.client.dto.DtoInteriorBridgePort;
+import org.midonet.client.dto.DtoBridgePort;
 import org.midonet.client.dto.DtoRoute;
 import org.midonet.client.dto.DtoRule;
 import org.midonet.client.resource.Bridge;
@@ -90,13 +90,13 @@ public class NatTest extends TestBase {
 
         // PORTS
         rtrPortInt = rtr
-            .addInteriorRouterPort()
+            .addPort()
             .portAddress(rtrIpPriv.toUnicastString())
             .networkAddress(rtrIpPriv.toNetworkAddress().toString())
             .networkLength(rtrIpPriv.getPrefixLen())
             .create();
         rtrPortExt = rtr
-            .addExteriorRouterPort()
+            .addPort()
             .portAddress(rtrIpExt.toUnicastString())
             .networkAddress(rtrIpExt.toNetworkAddress().toString())
             .networkLength(rtrIpExt.getPrefixLen())
@@ -148,8 +148,8 @@ public class NatTest extends TestBase {
         assertEquals("The port id should match.", activeMsg.portID(),
                                                   rtrPortExt.getId());
         // Bind the bridge to the router.
-        BridgePort<DtoInteriorBridgePort> logBrPort =
-            br.addInteriorPort().create();
+        BridgePort logBrPort =
+            br.addPort().create();
         rtrPortInt.link(logBrPort.getId());
 
         // CHAINS

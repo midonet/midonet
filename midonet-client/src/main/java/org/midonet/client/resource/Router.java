@@ -12,13 +12,7 @@ import javax.ws.rs.core.MultivaluedMap;
 
 import org.midonet.client.VendorMediaType;
 import org.midonet.client.WebResource;
-import org.midonet.client.dto.DtoInteriorBridgePort;
-import org.midonet.client.dto.DtoInteriorRouterPort;
-import org.midonet.client.dto.DtoExteriorRouterPort;
-import org.midonet.client.dto.DtoPort;
-import org.midonet.client.dto.DtoRoute;
-import org.midonet.client.dto.DtoRouter;
-import org.midonet.client.dto.DtoRouterPort;
+import org.midonet.client.dto.*;
 
 public class Router extends ResourceBase<Router, DtoRouter> {
 
@@ -116,17 +110,17 @@ public class Router extends ResourceBase<Router, DtoRouter> {
     }
 
     /**
-     * Gets ports under the router.
+     * Gets V2 ports under the router.
      *
      * @return collection of router ports
      */
     public ResourceCollection<RouterPort> getPorts(MultivaluedMap queryParams) {
         return getChildResources(
-            principalDto.getPorts(),
-            queryParams,
-            VendorMediaType.APPLICATION_PORT_COLLECTION_JSON,
-            RouterPort.class,
-            DtoRouterPort.class);
+                principalDto.getPorts(),
+                queryParams,
+                VendorMediaType.APPLICATION_PORT_V2_COLLECTION_JSON,
+                RouterPort.class,
+                DtoRouterPort.class);
     }
 
     /**
@@ -150,26 +144,26 @@ public class Router extends ResourceBase<Router, DtoRouter> {
      */
     public ResourceCollection<Port> getPeerPorts(MultivaluedMap queryParams) {
         ResourceCollection<Port> peerPorts =
-            new ResourceCollection<Port>(new ArrayList<Port>());
+                new ResourceCollection<Port>(new ArrayList<Port>());
 
         DtoPort[] dtoPeerPorts = resource
-            .get(principalDto.getPeerPorts(),
-                 queryParams,
-                 DtoPort[].class,
-                 VendorMediaType.APPLICATION_PORT_COLLECTION_JSON);
+                .get(principalDto.getPeerPorts(),
+                        queryParams,
+                        DtoPort[].class,
+                        VendorMediaType.APPLICATION_PORT_V2_COLLECTION_JSON);
 
         for (DtoPort pp : dtoPeerPorts) {
             Port p = null;
-            if (pp instanceof DtoInteriorRouterPort) {
-                p = new RouterPort<DtoInteriorRouterPort>(
-                    resource,
-                    principalDto.getPorts(),
-                    (DtoInteriorRouterPort) pp);
-            } else if (pp instanceof DtoInteriorBridgePort) {
-                p = new BridgePort<DtoInteriorBridgePort>(
-                    resource,
-                    principalDto.getPorts(),
-                    (DtoInteriorBridgePort) pp);
+            if (pp instanceof DtoRouterPort) {
+                p = new RouterPort(
+                        resource,
+                        principalDto.getPorts(),
+                        (DtoRouterPort) pp);
+            } else if (pp instanceof DtoBridgePort) {
+                p = new BridgePort(
+                        resource,
+                        principalDto.getPorts(),
+                        (DtoBridgePort) pp);
 
             }
             peerPorts.add(p);
@@ -178,28 +172,15 @@ public class Router extends ResourceBase<Router, DtoRouter> {
     }
 
     /**
-     * Returns Exterior port resource for creation.
+     * Returns Router port resource for creation.
      *
-     * @return Exterior port resource
+     * @return router port resource
      */
-    public RouterPort<DtoExteriorRouterPort> addExteriorRouterPort() {
-        return new RouterPort<DtoExteriorRouterPort>(
-            resource,
-            principalDto.getPorts(),
-            new DtoExteriorRouterPort());
-    }
-
-    /**
-     * Returns Interior port resource for creation.
-     *
-     * @return Interior port resource
-     */
-
-    public RouterPort<DtoInteriorRouterPort> addInteriorRouterPort() {
-        return new RouterPort<DtoInteriorRouterPort>(
-            resource,
-            principalDto.getPorts(),
-            new DtoInteriorRouterPort());
+    public RouterPort addPort() {
+        return new RouterPort(
+                resource,
+                principalDto.getPorts(),
+                new DtoRouterPort());
     }
 
     /**

@@ -23,7 +23,7 @@ import org.midonet.util.functors.{Callback2, Callback1}
 /* The ArpTable is called from the Coordinators' actors and
  * processes and schedules ARPs. */
 trait ArpTable {
-    def get(ip: IPv4Addr, port: RouterPort[_], expiry: Long)
+    def get(ip: IPv4Addr, port: RouterPort, expiry: Long)
           (implicit ec: ExecutionContext, actorSystem: ActorSystem,
            pktContext: PacketContext): Future[MAC]
     def set(ip: IPv4Addr, mac: MAC) (implicit actorSystem: ActorSystem)
@@ -143,7 +143,7 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
         promiseOnExpire[MAC](promise, expiry, p => removeArpWaiter(ip, p))
     }
 
-    def get(ip: IPv4Addr, port: RouterPort[_], expiry: Long)
+    def get(ip: IPv4Addr, port: RouterPort, expiry: Long)
            (implicit ec: ExecutionContext,
             actorSystem: ActorSystem,
             pktContext: PacketContext): Future[MAC] = {
@@ -242,7 +242,7 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
     }
 
     private def arpForAddress(ip: IPv4Addr, entry: ArpCacheEntry,
-                              port: RouterPort[_])
+                              port: RouterPort)
                              (implicit ec: ExecutionContext,
                               actorSystem: ActorSystem,
                               pktContext: PacketContext) {

@@ -70,8 +70,8 @@ class FlowsExpirationTest extends MidolmanTestCase
 
         val bridge = newBridge("bridge")
 
-        val port1 = newExteriorBridgePort(bridge)
-        val port2 = newExteriorBridgePort(bridge)
+        val port1 = newBridgePort(bridge)
+        val port2 = newBridgePort(bridge)
 
         materializePort(port1, myHost, "port1")
         materializePort(port2, myHost, "port2")

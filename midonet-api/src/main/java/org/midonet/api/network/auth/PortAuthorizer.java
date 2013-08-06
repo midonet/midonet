@@ -56,7 +56,7 @@ public class PortAuthorizer extends Authorizer<UUID> {
                 return false;
             }
 
-            Port port = PortFactory.createPort(portData);
+            Port port = PortFactory.convertToApiPort(portData);
             if (port instanceof RouterPort) {
                 Router router = dataClient.routersGet(port.getDeviceId());
                 tenantId = router.getProperty(Router.Property.tenant_id);

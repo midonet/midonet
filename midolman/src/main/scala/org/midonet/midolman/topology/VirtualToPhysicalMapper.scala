@@ -19,7 +19,7 @@ import org.midonet.midolman.services.{HostIdProviderService,
                                        MidolmanActorsService}
 import org.midonet.midolman.topology.rcu.Host
 import org.midonet.cluster.{Client, DataClient}
-import org.midonet.cluster.client.{TrunkPort, VlanBridgePort, BridgePort, Port}
+import org.midonet.cluster.client.{BridgePort, Port}
 import org.midonet.cluster.data.TunnelZone
 import org.midonet.cluster.data.zones._
 import org.midonet.midolman.topology.VirtualTopologyActor.{VlanBridgeRequest, BridgeRequest, PortRequest}
@@ -310,7 +310,7 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogWithout
                             "became {}: {}",
                             if (active) "active" else "inactive", vportID)
                     case Right(port) => port match {
-                        case _: BridgePort[_] =>
+                        case _: BridgePort =>
                             log.debug("LocalPortActive - it's a bridge port")
                             // Get the bridge config. Make the timeout long
                             // enough that it has a chance to retry.
@@ -322,23 +322,6 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogWithout
                                     log.error("Failed to get bridge config " +
                                         "for bridge port that became {}: {}",
                                         if (active) "active" else "inactive",
-                                        vportID)
-                                case Right(br) =>
-                                    self ! _DevicePortStatus(port, br, active)
-                            }
-                        case _: TrunkPort =>
-                            log.debug("LocalPortActive - a vlan-bridge port {}",
-                                      port.deviceID)
-                            // Get the bridge config. Make the timeout long
-                            // enough that it has a chance to retry.
-                            val f2 = VirtualTopologyActor.expiringAsk(
-                                VlanBridgeRequest(port.deviceID, update = false))
-                                .mapTo[VlanAwareBridge]
-                            f2 onComplete {
-                                case Left(ex) =>
-                                    log.error("Failed to get vlan-bridge " +
-                                        "config for port that became {}: {}",
-                                        if (active) "active"  else "inactive",
                                         vportID)
                                 case Right(br) =>
                                     self ! _DevicePortStatus(port, br, active)

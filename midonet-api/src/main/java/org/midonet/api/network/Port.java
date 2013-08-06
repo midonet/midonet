@@ -8,9 +8,11 @@ import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.UriResource;
 import org.codehaus.jackson.annotate.JsonSubTypes;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
+import org.midonet.util.version.Since;
 
 import javax.validation.GroupSequence;
 import javax.validation.constraints.AssertFalse;
+import javax.validation.constraints.AssertTrue;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import java.net.URI;
@@ -23,6 +25,10 @@ import java.util.UUID;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY,
         property = "type")
 @JsonSubTypes({
+        @JsonSubTypes.Type(value = BridgePort.class,
+                name = PortType.BRIDGE),
+        @JsonSubTypes.Type(value = RouterPort.class,
+                name = PortType.ROUTER),
         @JsonSubTypes.Type(value = ExteriorBridgePort.class,
                 name = PortType.EXTERIOR_BRIDGE),
         @JsonSubTypes.Type(value = InteriorBridgePort.class,
@@ -59,14 +65,21 @@ public abstract class Port extends UriResource {
     protected UUID vifId;
 
     /**
-     * Host ID required to generate `hostInterfacePort` property.
+     * Host ID where the port is bound to
      */
+    @Since("2")
     protected UUID hostId;
+
+    /**
+     * Interface name where the port is bound to
+     */
+    @Since("2")
+    protected String interfaceName;
+
     /**
      * Peer port ID
      */
     protected UUID peerId;
-
 
     /**
      * Default constructor
@@ -97,6 +110,14 @@ public abstract class Port extends UriResource {
                 portData.getDeviceId());
         this.inboundFilterId = portData.getInboundFilter();
         this.outboundFilterId = portData.getOutboundFilter();
+        this.hostId = portData.getHostId();
+        this.interfaceName = portData.getInterfaceName();
+        this.peerId = portData.getPeerId();
+        if (portData.getProperty(org.midonet.cluster.data.Port.Property.vif_id)
+                != null) {
+            this.vifId = UUID.fromString(portData.getProperty(
+                    org.midonet.cluster.data.Port.Property.vif_id));
+        }
     }
 
     /**
@@ -130,7 +151,7 @@ public abstract class Port extends UriResource {
     /**
      * @return the device URI
      */
-    abstract public URI getDevice();
+    public abstract URI getDevice();
 
     /**
      * Set device ID.
@@ -212,6 +233,13 @@ public abstract class Port extends UriResource {
         data.setDeviceId(this.deviceId);
         data.setInboundFilter(this.inboundFilterId);
         data.setOutboundFilter(this.outboundFilterId);
+        data.setHostId(this.hostId);
+        data.setInterfaceName(this.interfaceName);
+        data.setPeerId(this.peerId);
+        if (vifId != null) {
+            data.setProperty(org.midonet.cluster.data.Port.Property.vif_id,
+                    vifId.toString());
+        }
     }
 
     /**
@@ -222,29 +250,21 @@ public abstract class Port extends UriResource {
         return peerId != null;
     }
 
+    @XmlTransient
     public boolean isExterior() {
-        return hostId != null && vifId != null;
+        return hostId != null && interfaceName != null;
     }
 
     /**
      * An unplugged port can become interior or exterior
      * depending on what it is attached to later.
+     *
+     * AssertTrue: Must be unplugged to be deleted.
      */
+    @AssertTrue(groups = PortDeleteGroup.class)
+    @XmlTransient
     public boolean isUnplugged() {
         return !isInterior() && !isExterior();
-    }
-
-    /**
-     * @return ID of the attached resource
-     */
-    @XmlTransient
-    public UUID getAttachmentId() {
-        if (isInterior())
-            return getPeerId();
-        else if (isExterior())
-            return getVifId();
-        else
-            return null;
     }
 
     public UUID getPeerId() {
@@ -256,6 +276,41 @@ public abstract class Port extends UriResource {
                     "port");
         }
         peerId = _peerId;
+    }
+
+
+    public String getInterfaceName() {
+        return interfaceName;
+    }
+
+    public void setInterfaceName(String interfaceName) {
+        if(isInterior() && interfaceName != null) {
+            throw new RuntimeException("Cannot add a interface to an interior" +
+                    "port");
+        }
+        this.interfaceName = interfaceName;
+    }
+
+    public UUID getHostId() {
+        return hostId;
+    }
+
+    public void setHostId(UUID hostId) {
+        if(isInterior() && hostId != null) {
+            throw new RuntimeException("Cannot add a hostId to an interior" +
+                    "port");
+        }
+        this.hostId = hostId;
+    }
+
+
+    @Since("2")
+    public URI getHost() {
+        if (getBaseUri() != null && hostId != null) {
+            return ResourceUriBuilder.getHost(getBaseUri(), hostId);
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -285,20 +340,11 @@ public abstract class Port extends UriResource {
         vifId = _vifId;
     }
 
-
-
     /**
      * @param port Port to check linkability with.
      * @return True if two ports can be linked.
      */
     public abstract boolean isLinkable(Port port);
-
-
-    /**
-     * @return True if it's a vlan bridge port. False otherwise.
-     */
-    @XmlTransient
-    public abstract boolean isVlanBridgePort();
 
     /**
      * @return　The port type
@@ -306,18 +352,34 @@ public abstract class Port extends UriResource {
     public abstract String getType();
 
     /**
-     * Checks whether this object can be deleted.
+     * VLAN ID attached to the port, if appropriate
+     *
+     * @return ID of VLAN
      */
-    @AssertFalse(groups = PortDeleteGroup.class)
-    public boolean hasAttachment() {
-        return (getAttachmentId() != null);
+    public Short getVlanId() {
+        return -1;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.lang.Object#toString()
-     */
+    public String getNetworkAddress() {
+        return null;
+    }
+
+    public int getNetworkLength() {
+        return -1;
+    }
+
+    public String getPortAddress() {
+        return null;
+    }
+
+    public String getPortMac() {
+        return null;
+    }
+
+    public URI getBgps() {
+        return null;
+    }
+
     @Override
     public String toString() {
         return "id=" + id + ", deviceId=" + deviceId + ", inboundFilterId="

@@ -3,11 +3,9 @@
 */
 package org.midonet.cluster.data;
 
-import org.midonet.cluster.data.ports.LogicalBridgePort;
-import org.midonet.cluster.data.ports.LogicalRouterPort;
+import org.midonet.cluster.data.ports.BridgePort;
+import org.midonet.cluster.data.ports.RouterPort;
 import org.midonet.cluster.data.ports.LogicalVlanBridgePort;
-import org.midonet.cluster.data.ports.MaterializedBridgePort;
-import org.midonet.cluster.data.ports.MaterializedRouterPort;
 import org.midonet.cluster.data.ports.TrunkPort;
 
 /**
@@ -15,22 +13,18 @@ import org.midonet.cluster.data.ports.TrunkPort;
  */
 public class Ports {
 
-    public static MaterializedBridgePort materializedBridgePort(Bridge bridge) {
-        return new MaterializedBridgePort().setDeviceId(bridge.getId());
+    public static BridgePort bridgePort(Bridge bridge) {
+        return new BridgePort().setDeviceId(bridge.getId());
     }
 
-    public static LogicalBridgePort logicalBridgePort(Bridge bridge, Short vlanId) {
-        return new LogicalBridgePort()
+    public static BridgePort bridgePort(Bridge bridge, Short vlanId) {
+        return new BridgePort()
                    .setDeviceId(bridge.getId())
                    .setVlanId(vlanId);
     }
 
-    public static MaterializedRouterPort materializedRouterPort(Router router) {
-        return new MaterializedRouterPort().setDeviceId(router.getId());
-    }
-
-    public static LogicalRouterPort logicalRouterPort(Router router) {
-        return new LogicalRouterPort().setDeviceId(router.getId());
+    public static RouterPort routerPort(Router router) {
+        return new RouterPort().setDeviceId(router.getId());
     }
 
     public static LogicalVlanBridgePort logicalVlanBridgePort(VlanAwareBridge b, Short vlanId) {

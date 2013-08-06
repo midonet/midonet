@@ -24,13 +24,12 @@ import org.midonet.midolman.topology.VirtualTopologyActor.{
 import org.midonet.midolman.topology.rcu.PortSet
 import org.midonet.midolman.topology.{
         FlowTagger, VirtualTopologyActor, VirtualToPhysicalMapper}
-import org.midonet.cluster.client
-import org.midonet.cluster.client.ExteriorPort
 import org.midonet.odp.flows.{
         FlowActionUserspace, FlowKeys, FlowActions, FlowAction}
 import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 import org.midonet.util.functors.Callback0
+import org.midonet.cluster.client.Port
 
 object FlowTranslator {
 
@@ -129,7 +128,7 @@ trait FlowTranslator {
         }
     }
 
-    protected def applyOutboundFilters[A](localPorts: Seq[client.Port[_]],
+    protected def applyOutboundFilters[A](localPorts: Seq[Port[_]],
                                           portSetID: UUID,
                                           pktMatch: WildcardMatch,
                                           tags: Option[mutable.Set[Any]],
@@ -137,7 +136,7 @@ trait FlowTranslator {
                                          (implicit ec: ExecutionContext,
                                           system: ActorSystem): Future[A] = {
 
-        def chainMatch(port: client.Port[_], chain: Chain): Boolean = {
+        def chainMatch(port: Port[_], chain: Chain): Boolean = {
             val fwdInfo = new EgressPortSetChainPacketContext(port.id, tags)
             Chain.apply(chain, fwdInfo, pktMatch, port.id, true).action match {
                 case RuleResult.Action.ACCEPT =>
@@ -155,7 +154,7 @@ trait FlowTranslator {
             for ( (p, c) <- (localPorts zip chains) if chainMatch(p, c) )
                 yield p.id
 
-        def portToChain(port: client.Port[_]): Future[Chain] =
+        def portToChain(port: Port[_]): Future[Chain] =
             if (port.outFilterID == null)
                 Promise.successful(null)(ec)
             else
@@ -364,7 +363,7 @@ trait FlowTranslator {
                 val localPortFutures = outPorts.toSeq map {
                     portID => VirtualTopologyActor.expiringAsk(
                         PortRequest(portID, update = false))(ec, system)
-                        .mapTo[client.Port[_]].recoverWith {
+                        .mapTo[Port[_]].recoverWith {
                             case e =>
                                 log.error(e, "VTA didn't provide port {}",
                                           portID)
@@ -373,7 +372,7 @@ trait FlowTranslator {
                 }
 
                 val futSeq = Future.sequence(localPortFutures)
-                                          (Seq.canBuildFrom[client.Port[_]], ec)
+                                          (Seq.canBuildFrom[Port[_]], ec)
                 futSeq recoverWith {
                     case ex => log.error(ex, "Error with local ports {}", ex)
                     Promise.failed(ex)
@@ -402,9 +401,9 @@ trait FlowTranslator {
 
         val tags = dpTags.orNull
 
-        def askVTA(): Future[client.Port[_]] = VirtualTopologyActor
+        def askVTA(): Future[Port[_]] = VirtualTopologyActor
             .expiringAsk(PortRequest(port, update = false))(ec,system)
-            .mapTo[client.Port[_]]
+            .mapTo[Port[_]]
 
         /* does the DPC has a local Dp Port for this UUID ? */
         dpState.getDpPortNumberForVport(port) map { portNum =>
@@ -415,9 +414,12 @@ trait FlowTranslator {
         } getOrElse {
             /* otherwise we translate to a remote port */
             askVTA map {
-                case p: ExteriorPort[_] =>
+                case p: Port[_] if p.isExterior =>
                     towardsRemoteHosts(
                         actions, port, p.tunnelKey, p.hostID, tags)
+                case _ =>
+                    log.warning("Port should be exterior.")
+                    Nil
             }
         }
     }

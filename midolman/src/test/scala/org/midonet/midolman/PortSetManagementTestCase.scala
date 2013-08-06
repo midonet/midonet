@@ -30,7 +30,7 @@ class PortSetManagementTestCase extends MidolmanTestCase with ShouldMatchers {
         bridge.setId(clusterDataClient().bridgesCreate(bridge))
 
         // make a port on the bridge
-        val inputPort = Ports.materializedBridgePort(bridge)
+        val inputPort = Ports.bridgePort(bridge)
         inputPort.setId(clusterDataClient().portsCreate(inputPort))
 
         // make a host for myself and put in the proper tunnel zone.
@@ -76,11 +76,11 @@ class PortSetManagementTestCase extends MidolmanTestCase with ShouldMatchers {
         bridge.setId(clusterDataClient().bridgesCreate(bridge))
 
         // make a port on the bridge
-        val inputPort1 = Ports.materializedBridgePort(bridge)
+        val inputPort1 = Ports.bridgePort(bridge)
         inputPort1.setId(clusterDataClient().portsCreate(inputPort1))
 
         // make a port on the bridge
-        val inputPort2 = Ports.materializedBridgePort(bridge)
+        val inputPort2 = Ports.bridgePort(bridge)
         inputPort2.setId(clusterDataClient().portsCreate(inputPort2))
 
         // make a host for myself and put in the proper tunnel zone.
@@ -109,7 +109,7 @@ class PortSetManagementTestCase extends MidolmanTestCase with ShouldMatchers {
         fetchRcuPortSet(bridge.getId).localPorts should have size (2)
 
         // make a third port
-        val inputPort3 = Ports.materializedBridgePort(bridge)
+        val inputPort3 = Ports.bridgePort(bridge)
         inputPort3.setId(clusterDataClient().portsCreate(inputPort3))
         materializePort(inputPort3, myHost, "port3")
 

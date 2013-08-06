@@ -23,18 +23,12 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
+import org.midonet.client.dto.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.midolman.topology.LocalPortActive;
 import org.midonet.client.MidonetApi;
-import org.midonet.client.dto.DtoBridgePort;
-import org.midonet.client.dto.DtoDhcpOption121;
-import org.midonet.client.dto.DtoInteriorBridgePort;
-import org.midonet.client.dto.DtoInteriorRouterPort;
-import org.midonet.client.dto.DtoExteriorRouterPort;
-import org.midonet.client.dto.DtoRoute;
-import org.midonet.client.dto.DtoRule;
 import org.midonet.client.resource.Bridge;
 import org.midonet.client.resource.BridgePort;
 import org.midonet.client.resource.DhcpSubnet;
@@ -119,8 +113,8 @@ public class FloatingIpTest {
         org.midonet.client.resource.Router rtr =
             apiClient.addRouter().tenantId("fl_ip_tnt").name("rtr1").create();
 
-        RouterPort<DtoExteriorRouterPort> rtrPort1 = rtr
-            .addExteriorRouterPort()
+        RouterPort rtrPort1 = rtr
+            .addPort()
             .portAddress(rtrIp1.toUnicastString())
             .networkAddress(rtrIp1.toNetworkAddress().toString())
             .networkLength(rtrIp1.getPrefixLen())
@@ -132,8 +126,8 @@ public class FloatingIpTest {
             .type(DtoRoute.Normal).weight(10)
             .create();
 
-        RouterPort<DtoExteriorRouterPort> rtrPort2 = rtr
-            .addExteriorRouterPort()
+        RouterPort rtrPort2 = rtr
+            .addPort()
             .portAddress(rtrIp2.toUnicastString())
             .networkAddress(rtrIp2.toNetworkAddress().toString())
             .networkLength(rtrIp2.getPrefixLen())
@@ -145,8 +139,8 @@ public class FloatingIpTest {
             .type(DtoRoute.Normal).weight(10)
             .create();
 
-        RouterPort<DtoInteriorRouterPort> rtrPort3 = rtr
-            .addInteriorRouterPort()
+        RouterPort rtrPort3 = rtr
+            .addPort()
             .portAddress(rtrIp3.toUnicastString())
             .networkAddress(rtrIp3.toNetworkAddress().toString())
             .networkLength(rtrIp3.getPrefixLen())
@@ -161,13 +155,13 @@ public class FloatingIpTest {
         // Build a bridge and link it to the router's interior port
         Bridge br = apiClient.addBridge().tenantId("fl_ip_tnt")
             .name("br").create();
-        BridgePort<DtoInteriorBridgePort> brPort1 =
-            br.addInteriorPort().create();
+        BridgePort brPort1 =
+            br.addPort().create();
         // Link the bridge to the router's third (interior) port.
         rtrPort3.link(brPort1.getId());
 
         // Add a exterior port on the bridge.
-        BridgePort<DtoBridgePort> brPort2 = br.addExteriorPort().create();
+        BridgePort brPort2 = br.addPort().create();
 
         // Add a DHCP static assignment for the VM on the bridge (vm3).
         // We need a DHCP option 121 fr a static route to the other VMs.

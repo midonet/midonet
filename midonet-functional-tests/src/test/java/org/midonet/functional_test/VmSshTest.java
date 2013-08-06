@@ -38,14 +38,14 @@ public class VmSshTest extends TestBase {
     public void setup() {
         Router router = apiClient.addRouter().name("rtr1").create();
 
-        RouterPort p1 = router.addExteriorRouterPort()
+        RouterPort p1 = router.addPort()
             .portAddress("192.168.231.1")
             .networkAddress("192.168.231.0").networkLength(24)
             .create();
         tapPort = new TapWrapper(tapPortName);
         //ovsBridge.addSystemPort(p1.port.getId(), tapPortName);
 
-        RouterPort p2 = router.addExteriorRouterPort()
+        RouterPort p2 = router.addPort()
             .portAddress("192.168.232.1")
             .networkAddress("192.168.232.0").networkLength(24)
             .create();

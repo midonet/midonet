@@ -66,7 +66,7 @@ class MonitoringTest extends MidolmanTestCase {
     // make a bridge, and a port.
     val bridge = new ClusterBridge().setName("test")
     bridge.setId(clusterDataClient().bridgesCreate(bridge))
-    val port = ClusterPorts.materializedBridgePort(bridge)
+    val port = ClusterPorts.bridgePort(bridge)
 
 
     port.setId(clusterDataClient().portsCreate(port))

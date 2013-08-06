@@ -18,8 +18,7 @@ import org.midonet.api.network.auth.RouterAuthorizer;
 import org.midonet.api.rest_api.*;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.Port;
-import org.midonet.cluster.data.ports.LogicalRouterPort;
-import org.midonet.cluster.data.ports.MaterializedRouterPort;
+import org.midonet.cluster.data.ports.RouterPort;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.StateAccessException;
@@ -97,26 +96,23 @@ public class RouterResource extends AbstractResource {
         // - the exterior ports are not bound to host interfaces.
         // - the interior ports are not linked to other devices.
         List<Port<?, ?>> ports = dataClient.portsFindByRouter(id);
-        for (Port port :  ports) {
-            if (port instanceof LogicalRouterPort &&
-                    LogicalRouterPort.class.cast(port).getPeerId() != null)
+        for (Port port : ports) {
+            if (port.getPeerId() != null) {
                 throw new WebApplicationException(
-                    ResponseUtils.buildErrorResponse(
-                        Response.Status.CONFLICT.getStatusCode(),
-                        "Interior port " + port.getId() + " must be " +
-                            "unlinked before the router can be deleted."));
-            if (port instanceof MaterializedRouterPort) {
-                MaterializedRouterPort mrPort =
-                    MaterializedRouterPort.class.cast(port);
-                if (mrPort.getInterfaceName() != null)
-                    throw new WebApplicationException(
-                        ResponseUtils.buildErrorResponse(
-                            Response.Status.CONFLICT.getStatusCode(),
-                            "Exterior port " + port.getId() +
-                                " must be unbound from interface " +
-                                mrPort.getInterfaceName() +
-                                " on host " + mrPort.getHostId() +
-                                " before the router can be deleted."));
+                  ResponseUtils.buildErrorResponse(
+                    Response.Status.CONFLICT.getStatusCode(),
+                      "Interior port " + port.getId() + " must be " +
+                        "unlinked before the router can be deleted."));
+            }
+            if (port.getInterfaceName() != null) {
+              throw new WebApplicationException(
+                ResponseUtils.buildErrorResponse(
+                  Response.Status.CONFLICT.getStatusCode(),
+                    "Exterior port " + port.getId() +
+                       " must be unbound from interface " +
+                       port.getInterfaceName() +
+                       " on host " + port.getHostId() +
+                       " before the router can be deleted."));
             }
         }
 

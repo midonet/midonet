@@ -4,10 +4,8 @@
  */
 package org.midonet.api.network;
 
-import org.midonet.api.ResourceUriBuilder;
-
-import java.net.URI;
-import java.util.UUID;
+import org.midonet.cluster.Client;
+import org.midonet.cluster.data.Port;
 
 /**
  * DTO for interior bridge port.
@@ -27,11 +25,9 @@ public class InteriorBridgePort extends BridgePort implements InteriorPort {
      * @param portData
      */
     public InteriorBridgePort(
-            org.midonet.cluster.data.ports.LogicalBridgePort
+            org.midonet.cluster.data.ports.BridgePort
                     portData) {
         super(portData);
-        this.peerId = portData.getPeerId();
-        this.vlanId = portData.getVlanId();
     }
 
     @Override
@@ -41,11 +37,12 @@ public class InteriorBridgePort extends BridgePort implements InteriorPort {
 
     @Override
     public org.midonet.cluster.data.Port toData() {
-        org.midonet.cluster.data.ports.LogicalBridgePort data =
-                new org.midonet.cluster.data.ports.LogicalBridgePort()
-                        .setPeerId(this.peerId)
-                        .setVlanId(this.vlanId);
+        org.midonet.cluster.data.ports.BridgePort data =
+                new org.midonet.cluster.data.ports.BridgePort();
         super.setConfig(data);
+        data.setProperty(Port.Property.v1PortType,
+                Client.PortType.InteriorBridge.toString());
+
         return data;
     }
 

@@ -12,6 +12,7 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
 import org.midonet.cluster.data.ports.VlanMacPort;
+import org.midonet.cluster.data.ports.BridgePort;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.DirectoryCallback;
 import org.midonet.midolman.state.RuleIndexOutOfBoundsException;
@@ -341,6 +342,11 @@ public interface DataClient {
                                 @Nonnull String localPortName)
             throws StateAccessException, SerializationException;
 
+    Port hostsAddVrnPortMappingAndReturnPort(
+            @Nonnull UUID hostId, @Nonnull UUID portId,
+            @Nonnull String localPortName)
+            throws StateAccessException, SerializationException;
+
     void hostsAddDatapathMapping(
             @Nonnull UUID hostId, @Nonnull String datapathName)
             throws StateAccessException, SerializationException;
@@ -378,7 +384,7 @@ public interface DataClient {
     List<Port<?, ?>> interiorPortsFindByVlanBridge(UUID bridgeId)
             throws StateAccessException, SerializationException;
 
-    List<Port<?, ?>> portsFindByBridge(UUID bridgeId) throws
+    List<BridgePort> portsFindByBridge(UUID bridgeId) throws
             StateAccessException, SerializationException;
 
     List<Port<?, ?>> portsFindPeersByBridge(UUID bridgeId)

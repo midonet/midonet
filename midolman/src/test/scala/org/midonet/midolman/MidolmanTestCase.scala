@@ -257,14 +257,19 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
         Await.result(promise, timeout)
     }
 
-    def materializePort(port: VPort[_, _], host: Host, name: String): Unit = {
-        clusterDataClient().hostsAddVrnPortMapping(host.getId, port.getId, name)
+    def materializePort(port: VPort[_, _],
+                        host: Host, name: String): VPort[_,_] = {
+        val updatedPort =
+          clusterDataClient().
+            hostsAddVrnPortMappingAndReturnPort(host.getId, port.getId, name);
+
         if (host.getId == hostId()) {
             val itf = new InterfaceDescription(name)
             itf.setHasLink(true)
             itf.setUp(true)
             interfaceScanner.addInterface(itf)
         }
+      return updatedPort;
     }
 
     def datapathPorts(datapath: Datapath): mutable.Map[String, Port[_, _]] = {

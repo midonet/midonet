@@ -4,10 +4,8 @@
  */
 package org.midonet.api.network;
 
-import org.midonet.api.ResourceUriBuilder;
+import org.midonet.cluster.Client;
 import org.midonet.cluster.data.Port.Property;
-
-import java.net.URI;
 import java.util.UUID;
 /**
  * DTO for exterior bridge port
@@ -55,13 +53,9 @@ public class ExteriorBridgePort extends BridgePort implements ExteriorPort {
      *            Exterior bridge port data object
      */
     public ExteriorBridgePort(
-            org.midonet.cluster.data.ports.MaterializedBridgePort
+            org.midonet.cluster.data.ports.BridgePort
                     portData) {
         super(portData);
-        if (portData.getProperty(Property.vif_id) != null) {
-            this.vifId = UUID.fromString(portData.getProperty(Property.vif_id));
-        }
-        this.hostId = portData.getHostId();
     }
 
     /*
@@ -76,13 +70,12 @@ public class ExteriorBridgePort extends BridgePort implements ExteriorPort {
 
     @Override
     public org.midonet.cluster.data.Port toData() {
-        org.midonet.cluster.data.ports.MaterializedBridgePort data =
+        org.midonet.cluster.data.ports.BridgePort data =
                 new org.midonet.cluster.data.ports
-                        .MaterializedBridgePort();
-        if (this.vifId != null) {
-            data.setProperty(Property.vif_id, this.vifId.toString());
-        }
+                        .BridgePort();
         super.setConfig(data);
+        data.setProperty(Property.v1PortType,
+                Client.PortType.ExteriorBridge.toString());
         return data;
     }
 

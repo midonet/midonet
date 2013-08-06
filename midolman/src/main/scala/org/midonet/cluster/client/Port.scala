@@ -15,6 +15,54 @@ trait Port[T] {
     var inFilterID: UUID = null
     var outFilterID: UUID = null
     var properties: Map[String, String] = null  //move (What's this mean?)
+    var tunnelKey: Long = _
+    var portGroups: Set[UUID] = null
+    var hostID: UUID = null
+    var interfaceName: String = null
+    var peerID: UUID = null
+
+    def isExterior: Boolean = {
+        (this.hostID != null && this.interfaceName != null)
+    }
+
+    def isInterior: Boolean = {
+        (this.peerID != null)
+    }
+
+    def isPlugged: Boolean = {
+        (this.isInterior || this.isExterior)
+    }
+
+    def setPeerID(id: UUID): T = {
+        this.peerID = id; self
+    }
+
+    def setTunnelKey(key: Long): T = {
+        this.tunnelKey = key; self
+    }
+
+    def setPortGroups(groups: Set[UUID]): T = {
+        portGroups = groups; self
+    }
+
+    def setPortGroups(groups: java.util.Set[UUID]): T = {
+        portGroups = Set(groups.toSeq:_*)
+        self
+    }
+
+    def setHostID(id: UUID): T = {
+        this.hostID = id; self
+    }
+
+    def setInterfaceName(name: String): T = {
+        this.interfaceName = name; self
+    }
+
+    var vlanId: Short = _
+    def setVlanId(id: Short): T = {
+        this.vlanId = id;
+        self
+    }
 
     def self: T = {
         this.asInstanceOf[T]
@@ -50,89 +98,27 @@ trait Port[T] {
     }
 }
 
-trait ExteriorPort[T] extends Port[T] {
-    var tunnelKey: Long = _
-    var portGroups: Set[UUID] = null
-    var hostID: UUID = null
-    var interfaceName: String = null
-
-    def setTunnelKey(key: Long): T = {
-        this.tunnelKey = key; self
-    }
-
-    def setPortGroups(groups: Set[UUID]): T = {
-        portGroups = groups; self
-    }
-
-    def setPortGroups(groups: java.util.Set[UUID]): T = {
-        portGroups = Set(groups.toSeq:_*)
-        self
-    }
-
-    def setHostID(id: UUID): T = {
-        this.hostID = id; self
-    }
-
-    def setInterfaceName(name: String): T = {
-        this.interfaceName = name; self
-    }
+class BridgePort
+    extends Port[BridgePort] {
 }
 
-trait InteriorPort[T] extends Port[T] {
-    var peerID: UUID = null
-
-    def setPeerID(id: UUID): T = {
-        this.peerID = id; self
-    }
-}
-
-trait BridgePort[T] extends Port[T] {}
-
-trait VlanBridgePort[T] extends Port[T] {}
-
-trait RouterPort[T] extends Port[T] {
+class RouterPort extends Port[RouterPort] {
     var portAddr: IPSubnet[IPv4Addr] = null
     var portMac: MAC = null
 
     def nwSubnet = portAddr
 
-    def setPortAddr(addr: IPSubnet[IPv4Addr]): T = {
-        this.portAddr = addr; self
+    def setPortAddr(addr: IPSubnet[IPv4Addr]): RouterPort = {
+        this.portAddr = addr
+        self
     }
 
-    def setPortMac(mac: MAC): T = {
-        this.portMac = mac; self
+    def setPortMac(mac: MAC): RouterPort = {
+        this.portMac = mac
+        self
     }
 
 }
 
-class ExteriorBridgePort
-    extends ExteriorPort[ExteriorBridgePort]
-    with BridgePort[ExteriorBridgePort] {}
-
-class InteriorBridgePort
-    extends InteriorPort[InteriorBridgePort]
-    with BridgePort[InteriorBridgePort] {
-
-    var vlanId: Short = _
-    def setVlanId(id: Short): InteriorBridgePort = { this.vlanId = id; self }
-
-}
-
-class ExteriorRouterPort
-    extends ExteriorPort[ExteriorRouterPort]
-    with RouterPort[ExteriorRouterPort] {}
-
-class InteriorRouterPort
-    extends InteriorPort[InteriorRouterPort]
-    with RouterPort[InteriorRouterPort] {}
-
-class TrunkPort extends ExteriorPort[TrunkPort] with VlanBridgePort[TrunkPort]{}
-
-class InteriorVlanBridgePort extends InteriorPort[InteriorVlanBridgePort]
-                             with VlanBridgePort[InteriorVlanBridgePort] {
-    var vlanID: Short = _
-    def setVlanId(id: Short): InteriorVlanBridgePort = { this.vlanID = id; self }
-}
 
 

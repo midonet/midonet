@@ -11,10 +11,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
 
-import org.midonet.midolman.DeduplicationActor.{ApplyFlow, EmitGeneratedPacket, DiscardPacket}
-import org.midonet.midolman.FlowController.{WildcardFlowAdded,
-    WildcardFlowRemoved}
-import org.midonet.midolman.PacketWorkflow.PacketIn
+import org.midonet.midolman.DeduplicationActor.{EmitGeneratedPacket, DiscardPacket}
 import org.midonet.midolman.guice.actors.OutgoingMessage
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
@@ -23,8 +20,8 @@ import org.midonet.midolman.topology.VirtualToPhysicalMapper.HostRequest
 import org.midonet.midolman.util.RouterHelper
 import org.midonet.cluster.data.dhcp.Opt121
 import org.midonet.cluster.data.dhcp.Subnet
-import org.midonet.cluster.data.ports.{MaterializedBridgePort, MaterializedRouterPort}
 import org.midonet.odp.Packet
+import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput, FlowActions}
 import org.midonet.packets._
 
@@ -45,12 +42,12 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
     // DHCP client
     val vm2IP = new IPv4Subnet("192.168.222.2", 24)
     val vm2Mac = MAC.fromString("02:DD:AA:DD:AA:03")
-    var brPort2 : MaterializedBridgePort = null
+    var brPort2 : BridgePort = null
     val vm2PortName = "VM2"
     var vm2PortNumber = 0
     var dhcpServerIp = 0
     var dhcpClientIp = 0
-    var rtrPort1 : MaterializedRouterPort = null
+    var rtrPort1 : RouterPort = null
     val rtrPort1Name = "RouterPort1"
     var rtrPort1Num = 0
 
@@ -71,7 +68,7 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
         expect[OutgoingMessage] on vtpProbe()
 
         // set up materialized port on router
-        rtrPort1 = newExteriorRouterPort(router, routerMac1,
+        rtrPort1 = newRouterPort(router, routerMac1,
             routerIp1.toUnicastString,
             routerIp1.toNetworkAddress.toString,
             routerIp1.getPrefixLen)
@@ -91,7 +88,7 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
             new IPv4Addr(Route.NO_GATEWAY).toString, 10)
 
         // set up logical port on router
-        val rtrPort2 = newInteriorRouterPort(router, routerMac2,
+        val rtrPort2 = newRouterPort(router, routerMac2,
             routerIp2.toUnicastString,
             routerIp2.toNetworkAddress.toString,
             routerIp2.getPrefixLen)
@@ -106,12 +103,12 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
         val bridge = newBridge("bridge")
         bridge should not be null
 
-        val brPort1 = newInteriorBridgePort(bridge)
+        val brPort1 = newBridgePort(bridge)
         brPort1 should not be null
         clusterDataClient().portsLink(rtrPort2.getId, brPort1.getId)
 
         // add a materialized port on bridge, logically connect to VM2
-        brPort2 = newExteriorBridgePort(bridge)
+        brPort2 = newBridgePort(bridge)
         brPort2 should not be null
 
         // DHCP related setup

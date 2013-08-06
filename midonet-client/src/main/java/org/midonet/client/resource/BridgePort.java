@@ -10,14 +10,13 @@ import java.util.UUID;
 import org.midonet.client.VendorMediaType;
 import org.midonet.client.WebResource;
 import org.midonet.client.dto.DtoBridgePort;
-import org.midonet.client.dto.DtoInteriorBridgePort;
 
-public class BridgePort<T extends DtoBridgePort> extends
-        Port<BridgePort<T>, T> {
+public class BridgePort extends
+        Port<BridgePort, DtoBridgePort> {
 
-    public BridgePort(WebResource resource, URI uriForCreation, T port) {
+    public BridgePort(WebResource resource, URI uriForCreation, DtoBridgePort port) {
         super(resource, uriForCreation, port, VendorMediaType
-                .APPLICATION_PORT_JSON);
+                .APPLICATION_PORT_V2_JSON);
     }
 
     /**
@@ -90,7 +89,7 @@ public class BridgePort<T extends DtoBridgePort> extends
      * @return uuid of the peer port
      */
     public UUID getPeerId() {
-        return ((DtoInteriorBridgePort) principalDto).getPeerId();
+        return principalDto.getPeerId();
     }
 
     /**
@@ -99,7 +98,7 @@ public class BridgePort<T extends DtoBridgePort> extends
      * @return Short
      */
     public Short getVlanId() {
-        return ((DtoInteriorBridgePort) principalDto).getVlanId();
+        return principalDto.getVlanId();
     }
 
     /**
@@ -109,7 +108,7 @@ public class BridgePort<T extends DtoBridgePort> extends
      * @return this
      */
 
-    public BridgePort<T> inboundFilterId(UUID id) {
+    public BridgePort inboundFilterId(UUID id) {
         principalDto.setInboundFilterId(id);
         return this;
     }
@@ -120,7 +119,7 @@ public class BridgePort<T extends DtoBridgePort> extends
      * @param id
      * @return this
      */
-    public BridgePort<T> outboundFilterId(UUID id) {
+    public BridgePort outboundFilterId(UUID id) {
         principalDto.setOutboundFilterId(id);
         return this;
     }
@@ -131,7 +130,7 @@ public class BridgePort<T extends DtoBridgePort> extends
      * @param id
      * @return
      */
-    public BridgePort<T> vifId(UUID id) {
+    public BridgePort vifId(UUID id) {
         principalDto.setVifId(id);
         return this;
     }
@@ -142,9 +141,9 @@ public class BridgePort<T extends DtoBridgePort> extends
      * @param id id of the peer port
      * @return this
      */
-    public BridgePort<T> link(UUID id) {
+    public BridgePort link(UUID id) {
         peerId(id);
-        resource.post(((DtoInteriorBridgePort) principalDto).getLink(),
+        resource.post(principalDto.getLink(),
                 principalDto, VendorMediaType.APPLICATION_PORT_LINK_JSON);
         return get(getUri());
     }
@@ -154,8 +153,8 @@ public class BridgePort<T extends DtoBridgePort> extends
      *
      * @return this
      */
-    public BridgePort<T> unlink() {
-        resource.delete(((DtoInteriorBridgePort) principalDto).getLink());
+    public BridgePort unlink() {
+        resource.delete(principalDto.getLink());
         return get(getUri());
     }
 
@@ -173,8 +172,8 @@ public class BridgePort<T extends DtoBridgePort> extends
      * @param id
      * @return
      */
-    private BridgePort<T> peerId(UUID id) {
-        ((DtoInteriorBridgePort) principalDto).setPeerId(id);
+    private BridgePort peerId(UUID id) {
+        principalDto.setPeerId(id);
         return this;
     }
 
@@ -184,8 +183,8 @@ public class BridgePort<T extends DtoBridgePort> extends
      * @param vlanId
      * @return
      */
-    public BridgePort<T> vlanId(Short vlanId) {
-        ((DtoInteriorBridgePort) principalDto).setVlanId(vlanId);
+    public BridgePort vlanId(Short vlanId) {
+        principalDto.setVlanId(vlanId);
         return this;
     }
 

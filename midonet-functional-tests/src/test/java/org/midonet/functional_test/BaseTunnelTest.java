@@ -91,8 +91,8 @@ public abstract class BaseTunnelTest {
         // Create a bridge with two ports
         log.info("Creating bridge and two ports.");
         bridge = apiClient.addBridge().tenantId(TENANT_NAME).name("br1").create();
-        localPort = bridge.addExteriorPort().create();
-        remotePort = bridge.addExteriorPort().create();
+        localPort = bridge.addPort().create();
+        remotePort = bridge.addPort().create();
 
         ResourceCollection<Host> hosts = apiClient.getHosts();
         thisHost = null;

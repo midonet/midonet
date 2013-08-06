@@ -19,8 +19,7 @@ import topology.{VirtualTopologyActor, FlowTagger, LocalPortActive}
 import util.{SimulationHelper, TestHelpers}
 import org.midonet.cluster.data.Bridge
 import org.midonet.cluster.data.host.Host
-import org.midonet.cluster.data.ports.{LogicalBridgePort, LogicalRouterPort,
-    MaterializedBridgePort}
+import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
 import org.midonet.odp.Datapath
 import org.midonet.odp.flows.{FlowAction, FlowActions}
 import org.junit.runner.RunWith
@@ -56,11 +55,11 @@ class BridgeInvalidationTest extends MidolmanTestCase
 
     var bridge: Bridge = null
     var host: Host = null
-    var port1: MaterializedBridgePort = null
-    var port2: MaterializedBridgePort = null
-    var port3: MaterializedBridgePort = null
-    var rtrPort: LogicalRouterPort = null
-    var brPort1: LogicalBridgePort = null
+    var port1: BridgePort = null
+    var port2: BridgePort = null
+    var port3: BridgePort = null
+    var rtrPort: RouterPort = null
+    var brPort1: BridgePort = null
     val macPortExpiration = 1000
 
     var mapPortNameShortNumber: Map[String,Short] = new HashMap[String, Short]()
@@ -88,13 +87,13 @@ class BridgeInvalidationTest extends MidolmanTestCase
         router should not be null
 
         // set up logical port on router
-        rtrPort = newInteriorRouterPort(router, routerMac,
+        rtrPort = newRouterPort(router, routerMac,
             routerIp.toUnicastString,
             routerIp.toNetworkAddress.toString,
             routerIp.getPrefixLen)
         rtrPort should not be null
 
-        brPort1 = newInteriorBridgePort(bridge)
+        brPort1 = newBridgePort(bridge)
         brPort1 should not be null
 
 
@@ -102,9 +101,9 @@ class BridgeInvalidationTest extends MidolmanTestCase
 
         flowProbe().expectMsgType[DatapathController.DatapathReady].datapath should not be (null)
 
-        port1 = newExteriorBridgePort(bridge)
-        port2 = newExteriorBridgePort(bridge)
-        port3 = newExteriorBridgePort(bridge)
+        port1 = newBridgePort(bridge)
+        port2 = newBridgePort(bridge)
+        port3 = newBridgePort(bridge)
 
         //requestOfType[WildcardFlowAdded](flowProbe)
         materializePort(port1, host, port1Name)

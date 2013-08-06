@@ -4,8 +4,7 @@ import java.util.UUID;
 import javax.annotation.Nonnull;
 
 public class LogicalVlanBridgePort
-    extends VlanBridgePort<LogicalVlanBridgePort.Data, LogicalVlanBridgePort>
-        implements LogicalPort<LogicalVlanBridgePort> {
+    extends VlanBridgePort<LogicalVlanBridgePort.Data, LogicalVlanBridgePort> {
 
     public LogicalVlanBridgePort(UUID bridgeId, UUID uuid, Data data) {
         super(bridgeId, uuid, data);
@@ -48,7 +47,7 @@ public class LogicalVlanBridgePort
         return this.getData().vlanId;
     }
 
-    public static class Data extends LogicalBridgePort.Data {
+    public static class Data extends BridgePort.Data {
 
         Short vlanId; // actually 10 bits as per IIEE 802.1Q
 

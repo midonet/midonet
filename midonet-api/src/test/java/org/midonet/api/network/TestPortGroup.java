@@ -115,8 +115,9 @@ public class TestPortGroup {
             // PortGroups
             DtoBridgePort port = new DtoBridgePort();
             port = dtoResource.postAndVerifyCreated(bridge.getPorts(),
-                    APPLICATION_PORT_JSON, port, DtoBridgePort.class);
-            assertEquals("Bridge1", bridge.getName());
+                    APPLICATION_PORT_V2_JSON, port, DtoBridgePort.class);
+            assertEquals("Bridge1", bridge.
+                getName());
             assertEquals(bridge.getId(), port.getDeviceId());
 
             // Add this port to a port group and verify that it exists
@@ -140,13 +141,13 @@ public class TestPortGroup {
             // Retrieve port groups by port Id
             URI portSearchUri = UriBuilder.fromUri(
                     port.getPortGroups()).build();
-            groups = dtoResource
+            portGroupPorts = dtoResource
                     .getAndVerifyOk(portSearchUri,
-                            APPLICATION_PORTGROUP_COLLECTION_JSON,
-                            DtoPortGroup[].class);
-            assertThat("Port has 1 groups.", groups, arrayWithSize(1));
+                            APPLICATION_PORTGROUP_PORT_COLLECTION_JSON,
+                            DtoPortGroupPort[].class);
+            assertThat("Port has 1 groups.", portGroupPorts, arrayWithSize(1));
             assertThat("We expect the listed groups to match those we created.",
-                    groups, arrayContainingInAnyOrder(group1));
+                    portGroupPorts, arrayContainingInAnyOrder(portGroupPort));
 
             // Retrieve port groups by port Id
             portSearchUri = UriBuilder.fromUri(app.getPortGroups())

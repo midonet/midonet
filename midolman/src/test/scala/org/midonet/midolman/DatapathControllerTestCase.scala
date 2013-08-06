@@ -67,7 +67,7 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
     bridge.setId(clusterDataClient().bridgesCreate(bridge))
 
     // make a port on the bridge
-    val port = ClusterPorts.materializedBridgePort(bridge)
+    val port = ClusterPorts.bridgePort(bridge)
     port.setId(clusterDataClient().portsCreate(port))
 
     materializePort(port, host, "tapDevice")
@@ -121,7 +121,7 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
     bridge.setId(clusterDataClient().bridgesCreate(bridge))
 
     // make a port on the bridge
-    val port = ClusterPorts.materializedBridgePort(bridge)
+    val port = ClusterPorts.bridgePort(bridge)
     port.setId(clusterDataClient().portsCreate(port))
 
     clusterDataClient().hostsAddDatapathMapping(hostId, "test")
@@ -154,7 +154,7 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
     bridge.setId(clusterDataClient().bridgesCreate(bridge))
 
     // make a port on the bridge
-    val port = ClusterPorts.materializedBridgePort(bridge)
+    val port = ClusterPorts.bridgePort(bridge)
     port.setId(clusterDataClient().portsCreate(port))
 
     clusterDataClient().hostsAddDatapathMapping(hostId, "test")
@@ -230,7 +230,7 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
     bridge.setId(clusterDataClient().bridgesCreate(bridge))
 
     // make a port on the bridge
-    val port1 = ClusterPorts.materializedBridgePort(bridge)
+    val port1 = ClusterPorts.bridgePort(bridge)
     port1.setId(clusterDataClient().portsCreate(port1))
 
     materializePort(port1, host, "port1")
@@ -256,7 +256,7 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
 
 
     // make a port on the bridge
-    val port2 = ClusterPorts.materializedBridgePort(bridge)
+    val port2 = ClusterPorts.bridgePort(bridge)
     port2.setId(clusterDataClient().portsCreate(port2))
 
     materializePort(port2, host, "port2")

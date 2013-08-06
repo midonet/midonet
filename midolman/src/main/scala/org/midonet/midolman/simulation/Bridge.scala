@@ -10,18 +10,15 @@ import scala.collection.{Map => ROMap}
 import akka.actor.ActorSystem
 import akka.dispatch.{ExecutionContext, Future, Promise}
 
-import org.midonet.cluster.client.BridgePort
 import org.midonet.cluster.client._
 import org.midonet.cluster.data
 import org.midonet.midolman.DeduplicationActor
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.logging.LoggerFactory
 import org.midonet.midolman.rules.RuleResult
-import org.midonet.midolman.simulation.Coordinator
 import org.midonet.midolman.topology.FlowTagger
 import org.midonet.midolman.topology.MacFlowCount
 import org.midonet.midolman.topology.RemoveFlowCallbackGenerator
-import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.odp.flows.FlowActionPopVLAN
 import org.midonet.packets._
@@ -297,10 +294,10 @@ class Bridge(val id: UUID, val tunnelKey: Long,
       *
       * Refer to multicastAction for details.
       */
-    private def multicastVlanAware(bp: BridgePort[_])(
+    private def multicastVlanAware(bp: BridgePort)(
             implicit pktCtx: PacketContext): Coordinator.Action =
         bp match {
-            case p: ExteriorBridgePort =>
+            case p: BridgePort if p.isExterior =>
                 // multicast from trunk, goes only to designated log. port
                 val vlanIds = pktCtx.getFrame.getVlanIDs
                 val vlanId = if (vlanIds.isEmpty) null else vlanIds.get(0)
@@ -317,7 +314,7 @@ class Bridge(val id: UUID, val tunnelKey: Long,
                             ToPortAction(vlanPort))
                         )
                 }
-            case p: InteriorBridgePort =>
+            case p: BridgePort if p.isInterior =>
                 vlanToPort.getVlan(pktCtx.getInPortId) match {
                     case vlanId: JShort =>
                         log.debug("Frame from log. br. port: PUSH {}", vlanId)
@@ -336,9 +333,9 @@ class Bridge(val id: UUID, val tunnelKey: Long,
       */
     private def getPort(portId: UUID, expiry: Long)(
             implicit actorSystem: ActorSystem,
-            pktCtx: PacketContext): Future[BridgePort[_]] =
+            pktCtx: PacketContext): Future[BridgePort] =
         expiringAsk(PortRequest(portId, update = false), expiry)
-            .mapTo[BridgePort[_]]
+            .mapTo[BridgePort]
 
     /**
       * Used by normalProcess to handle specifically ARP multicast

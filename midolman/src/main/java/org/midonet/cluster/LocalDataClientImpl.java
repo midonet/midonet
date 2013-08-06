@@ -96,8 +96,8 @@ import org.midonet.cluster.data.host.Command;
 import org.midonet.cluster.data.host.Host;
 import org.midonet.cluster.data.host.Interface;
 import org.midonet.cluster.data.host.VirtualPortMapping;
-import org.midonet.cluster.data.ports.LogicalBridgePort;
-import org.midonet.cluster.data.ports.LogicalRouterPort;
+import org.midonet.cluster.data.ports.BridgePort;
+import org.midonet.cluster.data.ports.RouterPort;
 import org.midonet.packets.IntIPv4;
 import org.midonet.packets.IPv6Subnet;
 import org.midonet.packets.MAC;
@@ -611,7 +611,7 @@ public class LocalDataClientImpl implements DataClient {
 
         zkManager.multi(ops);
 
-        log.debug("BridgeZkDaoImpl.create exiting: bridge={}", bridge);
+        log.debug("bridgesCreate exiting: bridge={}", bridge);
         return bridge.getId();
     }
 
@@ -960,8 +960,7 @@ public class LocalDataClientImpl implements DataClient {
                 for (Callback2<UUID, Boolean> cb : subscriptionPortsActive) {
                     cb.call(portID, active);
                 }
-                if (config instanceof
-                        PortDirectory.MaterializedRouterPortConfig) {
+                if (config instanceof PortDirectory.RouterPortConfig) {
                     UUID deviceId = config.device_id;
                     routerManager.updateRoutesBecauseLocalPortChangedStatus(
                         deviceId, portID, active);
@@ -1475,18 +1474,18 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public List<Port<?, ?>> portsFindByBridge(UUID bridgeId)
+    public List<BridgePort> portsFindByBridge(UUID bridgeId)
             throws StateAccessException, SerializationException {
 
         Set<UUID> ids = portZkManager.getBridgePortIDs(bridgeId);
-        List<Port<?, ?>> ports = new ArrayList<Port<?, ?>>();
+        List<BridgePort> ports = new ArrayList<BridgePort>();
         for (UUID id : ids) {
-            ports.add(portsGet(id));
+            ports.add((BridgePort) portsGet(id));
         }
 
         ids = portZkManager.getBridgeLogicalPortIDs(bridgeId);
         for (UUID id : ids) {
-            ports.add(portsGet(id));
+            ports.add((BridgePort) portsGet(id));
         }
 
         return ports;
@@ -1500,9 +1499,8 @@ public class LocalDataClientImpl implements DataClient {
         List<Port<?, ?>> ports = new ArrayList<Port<?, ?>>();
         for (UUID id : ids) {
             Port<?, ?> portData = portsGet(id);
-            if (portData instanceof LogicalBridgePort &&
-                    ((LogicalBridgePort) portData).getPeerId() != null) {
-                ports.add(portsGet(((LogicalBridgePort) portData).getPeerId()));
+            if (portData.getPeerId() != null) {
+                ports.add(portsGet(portData.getPeerId()));
             }
         }
 
@@ -1530,9 +1528,8 @@ public class LocalDataClientImpl implements DataClient {
         List<Port<?, ?>> ports = new ArrayList<Port<?, ?>>();
         for (UUID id : ids) {
             Port<?, ?> portData = portsGet(id);
-            if (portData instanceof LogicalRouterPort &&
-                    ((LogicalRouterPort) portData).getPeerId() != null) {
-                ports.add(portsGet(((LogicalRouterPort) portData).getPeerId()));
+            if (portData.getPeerId() != null) {
+                ports.add(portsGet(portData.getPeerId()));
             }
         }
 
@@ -1797,6 +1794,21 @@ public class LocalDataClientImpl implements DataClient {
             throws StateAccessException, SerializationException {
         hostZkManager.addVirtualPortMapping(
                 hostId, new HostDirectory.VirtualPortMapping(portId, localPortName));
+    }
+
+    /**
+     * Does the same thing as @hostsAddVrnPortMapping(),
+     * except this returns the updated port object.
+     */
+    @Override
+    public Port hostsAddVrnPortMappingAndReturnPort(
+                    @Nonnull UUID hostId, @Nonnull UUID portId,
+                    @Nonnull String localPortName)
+            throws StateAccessException, SerializationException {
+        return
+            hostZkManager.addVirtualPortMapping(
+            hostId,
+            new HostDirectory.VirtualPortMapping(portId, localPortName));
     }
 
     @Override
@@ -2206,7 +2218,7 @@ public class LocalDataClientImpl implements DataClient {
             String key = traceIdString + ":" + traceStep;
             String retVal = traceMessageCache.get(key);
             if (retVal == null) {
-                log.debug("Number of Trace Messages {} out of sync " +
+                log.info("Number of Trace Messages {} out of sync " +
                           "with Trace Index table", traceStep);
             } else {
                 retList.add(retVal);

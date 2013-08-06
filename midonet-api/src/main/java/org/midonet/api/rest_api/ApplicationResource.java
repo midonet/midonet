@@ -87,16 +87,6 @@ public class ApplicationResource extends AbstractResource {
     }
 
     /**
-     * Vlan Bridge resource locator.
-     *
-     * @return VlanBridgeResource object to handle sub-resource requests.
-     */
-    @Path(ResourceUriBuilder.VLAN_BRIDGES)
-    public VlanBridgeResource getVlanBridgeResource() {
-        return factory.getVlanBridgeResource();
-    }
-
-    /**
      * Port resource locator.
      *
      * @return PortResource object to handle sub-resource requests.

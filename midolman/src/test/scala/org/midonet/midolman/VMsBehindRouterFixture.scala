@@ -19,7 +19,7 @@ import org.midonet.midolman.util.SimulationHelper
 import org.midonet.cluster.data.{Bridge => ClusterBridge,
                                  Router => ClusterRouter}
 import org.midonet.cluster.data.host.Host
-import org.midonet.cluster.data.ports.MaterializedBridgePort
+import org.midonet.cluster.data.ports.BridgePort
 import org.midonet.packets._
 import org.midonet.midolman.topology.LocalPortActive
 import scala.Some
@@ -36,8 +36,8 @@ trait VMsBehindRouterFixture extends MidolmanTestCase with SimulationHelper with
     val routerMac = MAC.fromString("22:aa:aa:ff:ff:ff")
 
     val vmPortNames = IndexedSeq("port0", "port1", "port2", "port3", "port4")
+    var vmPorts: IndexedSeq[BridgePort] = null
 
-    var vmPorts: IndexedSeq[MaterializedBridgePort] = null
     var vmPortNumbers: IndexedSeq[Int] = null
     val vmMacs = IndexedSeq(MAC.fromString("02:aa:bb:cc:dd:d1"),
         MAC.fromString("02:aa:bb:cc:dd:d2"),
@@ -75,7 +75,7 @@ trait VMsBehindRouterFixture extends MidolmanTestCase with SimulationHelper with
         requestOfType[HostRequest](vtpProbe())
         requestOfType[OutgoingMessage](vtpProbe())
 
-        val rtrPort = newInteriorRouterPort(router, routerMac,
+        val rtrPort = newRouterPort(router, routerMac,
             routerIp.toUnicastString, routerIp.toNetworkAddress.toString,
             routerIp.getPrefixLen)
         rtrPort should not be null
@@ -88,12 +88,11 @@ trait VMsBehindRouterFixture extends MidolmanTestCase with SimulationHelper with
         bridge = newBridge("bridge")
         bridge should not be null
 
-        val brPort = newInteriorBridgePort(bridge)
+        val brPort = newBridgePort(bridge)
         brPort should not be null
         clusterDataClient().portsLink(rtrPort.getId, brPort.getId)
 
-        vmPorts = vmPortNames map { _ => newExteriorBridgePort(bridge) }
-
+        vmPorts = vmPortNames map { _ => newBridgePort(bridge) }
         vmPorts zip vmPortNames foreach {
             case (port, name) =>
                 log.debug("Materializing port {}", name)
@@ -105,7 +104,7 @@ trait VMsBehindRouterFixture extends MidolmanTestCase with SimulationHelper with
         drainProbes()
     }
 
-    def ensureAllPortsUp(vmPorts: IndexedSeq[MaterializedBridgePort]): IndexedSeq[Int] = {
+    def ensureAllPortsUp(vmPorts: IndexedSeq[BridgePort]): IndexedSeq[Int] = {
         Thread.sleep(1000) // wait 1 sec to allow DPC to process ports
         vmPorts map { port =>
             vifToLocalPortNumber(port.getId) match {

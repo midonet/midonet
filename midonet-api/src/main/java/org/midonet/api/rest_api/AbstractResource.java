@@ -25,7 +25,7 @@ public abstract class AbstractResource {
     }
 
     /**
-     * @return The URI specified in teh configuration file.  If not set, then
+     * @return The URI specified in the configuration file.  If not set, then
      * the base URI from the current request is returned.
      */
     public URI getBaseUri() {

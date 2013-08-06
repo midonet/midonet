@@ -52,7 +52,7 @@ public class BridgeDHCPTest extends TestBase {
     protected void setup() {
         bridge = apiClient.addBridge()
             .tenantId("bridge-dhcp-test").name("br1").create();
-        BridgePort port1 = bridge.addExteriorPort().create();
+        BridgePort port1 = bridge.addPort().create();
         tap = new TapWrapper("vmTap");
         thisHost.addHostInterfacePort()
             .interfaceName(tap.getName())
@@ -61,7 +61,7 @@ public class BridgeDHCPTest extends TestBase {
         probe.expectMsgClass(Duration.create(10, TimeUnit.SECONDS),
             LocalPortActive.class);
 
-        BridgePort port2 = bridge.addExteriorPort().create();
+        BridgePort port2 = bridge.addPort().create();
         // Bind the internal 'local' port to the second exterior port.
         String localName = "midonet";
         log.debug("Bind datapath's local port to bridge's exterior port.");

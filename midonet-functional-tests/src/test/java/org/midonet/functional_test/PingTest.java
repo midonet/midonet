@@ -17,18 +17,14 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.midonet.client.dto.DtoDhcpOption121;
+import org.midonet.client.dto.DtoRoute;
 import org.midonet.packets.IPv4Subnet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.midolman.topology.LocalPortActive;
 import org.midonet.client.MidonetApi;
-import org.midonet.client.dto.DtoBridgePort;
-import org.midonet.client.dto.DtoDhcpOption121;
-import org.midonet.client.dto.DtoInteriorBridgePort;
-import org.midonet.client.dto.DtoInteriorRouterPort;
-import org.midonet.client.dto.DtoExteriorRouterPort;
-import org.midonet.client.dto.DtoRoute;
 import org.midonet.client.resource.Bridge;
 import org.midonet.client.resource.BridgePort;
 import org.midonet.client.resource.DhcpSubnet;
@@ -98,8 +94,8 @@ public class PingTest {
         Router rtr = apiClient.addRouter().tenantId(TENANT_NAME)
             .name("rtr1").create();
         // Add a exterior port.
-        RouterPort<DtoExteriorRouterPort> rtrPort1 = rtr
-            .addExteriorRouterPort()
+        RouterPort rtrPort1 = rtr
+            .addPort()
             .portAddress(rtrIp1.getAddress().toString())
             .networkAddress(rtrIp1.toUnicastString())
             .networkLength(rtrIp1.getPrefixLen())
@@ -112,7 +108,7 @@ public class PingTest {
             .create();
 
         // Add a interior port to the router.
-        RouterPort<DtoInteriorRouterPort> rtrPort2 = rtr.addInteriorRouterPort()
+        RouterPort rtrPort2 = rtr.addPort()
             .portAddress(rtrIp2.toUnicastString())
             .networkAddress(rtrIp2.toNetworkAddress().toString())
             .networkLength(rtrIp2.getPrefixLen())
@@ -127,13 +123,13 @@ public class PingTest {
         // Build a bridge and link it to the router's interior port
         Bridge br = apiClient.addBridge().tenantId(TENANT_NAME)
             .name("br").create();
-        BridgePort<DtoInteriorBridgePort> brPort1 =
-            br.addInteriorPort().create();
+        BridgePort brPort1 =
+            br.addPort().create();
         // Link the bridge to the router
         rtrPort2.link(brPort1.getId());
 
         // Add a exterior port on the bridge.
-        BridgePort<DtoBridgePort> brPort2 = br.addExteriorPort().create();
+        BridgePort brPort2 = br.addPort().create();
 
         // Add a DHCP static assignment for the VM on the bridge (vm2).
         // We need a DHCP option 121 fr a static route to the other VM (vm1).

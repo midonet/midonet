@@ -12,11 +12,14 @@
 * [URI Templates](#uritemplates)
 * [Resource Models](#resourcemodels)
   * [Application](#application)
+  * [Application - v1, Deprecated](#application-v1)
   * [Router](#router)
   * [Bridge](#bridge)
   * [Bridge MAC Table](#bridgemactable)
+  * [Bridge MAC Table - v1, Deprecated](#bridgemactable-v1)
   * [Bridge ARP Table](#bridgearptable)
   * [Port](#port)
+  * [Port - v1, Deprecated](#port-v1)
   * [Port Link](#portlink)
   * [Route](#route)
   * [Port Group](#portgroup)
@@ -288,187 +291,14 @@ included in the request to create/update the object. Note that fields
 may be required for PUT but not POST, and viceversa.  In this case it
 will be indicated in the specific cell for the field.
 
-<a name="application"></a>
-### Application
+<a name ="application"></a>
+### Application [application/vnd.org.midonet.Application-v2+json]
 
     GET     /
 
 This is the root object in MidoNet REST API.  From this object, clients can
 traverse the URIs to discover all the available services.
 
-#### Version 1 [application/vnd.org.midonet.Application-v1+json]
-<table>
-    <tr>
-        <th>Field Name</th>
-        <th>Type</th>
-        <th>POST/PUT</th>
-        <th>Required</th>
-        <th>Description</th>
-    </tr>
-    <tr>
-        <td>uri</td>
-        <td>URI</td>
-        <td/>
-        <td/>
-        <td>A GET against this URI refreshes the representation of this
-         resource.</td>
-    </tr>
-    <tr>
-        <td>version</td>
-        <td>Integer</td>
-        <td></td>
-        <td></td>
-        <td>The version of MidoNet REST API.</td>
-    </tr>
-    <tr>
-        <td>bridges</td>
-        <td>URI</td>
-        <td></td>
-        <td></td>
-        <td>A GET against this URI gets a list of bridges.</td>
-    </tr>
-    <tr>
-        <td>chains</td>
-        <td>URI</td>
-        <td></td>
-        <td></td>
-        <td>A GET against this URI gets a list of chains.</td>
-    </tr>
-    <tr>
-        <td>hosts</td>
-        <td>URI</td>
-        <td></td>
-        <td></td>
-        <td>A GET against this URI gets a list of hosts.</td>
-    </tr>
-    <tr>
-    <tr>
-        <td>metricsFilter</td>
-        <td>URI</td>
-        <td></td>
-        <td></td>
-        <td>A POST against this URI gets a list of metrics
-        available for a given metric target.</td>
-    </tr>
-        <td>metricsQuery</td>
-        <td>URI</td>
-        <td></td>
-        <td></td>
-        <td>A POST against this URI gets a list of metric
-        query responses for a given list of metric queries.</td>
-    </tr>
-    <tr>
-        <td>portGroups</td>
-        <td>URI</td>
-        <td></td>
-        <td></td>
-        <td>A GET against this URI gets a list of port groups.</td>
-    </tr>
-    <tr>
-        <td>routers</td>
-        <td>URI</td>
-        <td></td>
-        <td></td>
-        <td>A GET against this URI gets a list of routers.</td>
-    </tr>
-    <tr>
-        <td>tunnelZones</td>
-        <td>URI</td>
-        <td></td>
-        <td></td>
-        <td>A GET against this URI gets a list of tunnel zones.</td>
-    </tr>
-    <tr>
-        <td>adRouteTemplate</td>
-        <td>String</td>
-        <td></td>
-        <td></td>
-        <td>Template of the URI that represents the location of ad route with
-        the provided ID.</td>
-    </tr>
-    <tr>
-        <td>bgpTemplate</td>
-        <td>String</td>
-        <td></td>
-        <td></td>
-        <td>Template of the URI that represents the location of BGP with
-        the provided ID.</td>
-    </tr>
-    <tr>
-        <td>bridgeTemplate</td>
-        <td>String</td>
-        <td></td>
-        <td></td>
-        <td>Template of the URI that represents the location of bridge with
-        the provided ID.</td>
-    </tr>
-    <tr>
-        <td>chainTemplate</td>
-        <td>String</td>
-        <td></td>
-        <td></td>
-        <td>Template of the URI that represents the location of chain with
-        the provided ID.</td>
-    </tr>
-    <tr>
-        <td>hostTemplate</td>
-        <td>String</td>
-        <td></td>
-        <td></td>
-        <td>Template of the URI that represents the location of host with
-        the provided ID.</td>
-    </tr>
-    <tr>
-        <td>portTemplate</td>
-        <td>String</td>
-        <td></td>
-        <td></td>
-        <td>Template of the URI that represents the location of port with
-        the provided ID.</td>
-    </tr>
-    <tr>
-        <td>portGroupTemplate</td>
-        <td>String</td>
-        <td></td>
-        <td></td>
-        <td>Template of the URI that represents the location of port group with
-        the provided ID.</td>
-    </tr>
-    <tr>
-        <td>routeTemplate</td>
-        <td>String</td>
-        <td></td>
-        <td></td>
-        <td>Template of the URI that represents the location of route with the
-        provided ID.</td>
-    </tr>
-    <tr>
-        <td>routerTemplate</td>
-        <td>String</td>
-        <td></td>
-        <td></td>
-        <td>Template of the URI that represents the location of router with the
-        provided ID.</td>
-    </tr>
-    <tr>
-        <td>ruleTemplate</td>
-        <td>String</td>
-        <td></td>
-        <td></td>
-        <td>Template of the URI that represents the location of rule with the
-        provided ID.</td>
-    </tr>
-    <tr>
-        <td>tunnelZoneTemplate</td>
-        <td>String</td>
-        <td></td>
-        <td></td>
-        <td>Template of the URI that represents the location of tunnel zone
-        with the provided ID.</td>
-    </tr>
-</table>
-
-#### Version 2 [application/vnd.org.midonet.Application-v2+json]
 <table>
     <tr>
         <th>Field Name</th>
@@ -643,6 +473,185 @@ traverse the URIs to discover all the available services.
         <td></td>
         <td></td>
         <td>Template of the URI that represents the location of tenant with the
+        provided ID.</td>
+    </tr>
+    <tr>
+        <td>tunnelZoneTemplate</td>
+        <td>String</td>
+        <td></td>
+        <td></td>
+        <td>Template of the URI that represents the location of tunnel zone
+        with the provided ID.</td>
+    </tr>
+</table>
+
+<a name="application-v1"></a>
+### Application - v1, Deprecated [application/vnd.org.midonet.Application-v1+json]
+
+    GET     /
+
+This is the root object in MidoNet REST API.  From this object, clients can
+traverse the URIs to discover all the available services.
+
+<table>
+    <tr>
+        <th>Field Name</th>
+        <th>Type</th>
+        <th>POST/PUT</th>
+        <th>Required</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>uri</td>
+        <td>URI</td>
+        <td/>
+        <td/>
+        <td>A GET against this URI refreshes the representation of this
+         resource.</td>
+    </tr>
+    <tr>
+        <td>version</td>
+        <td>Integer</td>
+        <td></td>
+        <td></td>
+        <td>The version of MidoNet REST API.</td>
+    </tr>
+    <tr>
+        <td>bridges</td>
+        <td>URI</td>
+        <td></td>
+        <td></td>
+        <td>A GET against this URI gets a list of bridges.</td>
+    </tr>
+    <tr>
+        <td>chains</td>
+        <td>URI</td>
+        <td></td>
+        <td></td>
+        <td>A GET against this URI gets a list of chains.</td>
+    </tr>
+    <tr>
+        <td>hosts</td>
+        <td>URI</td>
+        <td></td>
+        <td></td>
+        <td>A GET against this URI gets a list of hosts.</td>
+    </tr>
+    <tr>
+    <tr>
+        <td>metricsFilter</td>
+        <td>URI</td>
+        <td></td>
+        <td></td>
+        <td>A POST against this URI gets a list of metrics
+        available for a given metric target.</td>
+    </tr>
+        <td>metricsQuery</td>
+        <td>URI</td>
+        <td></td>
+        <td></td>
+        <td>A POST against this URI gets a list of metric
+        query responses for a given list of metric queries.</td>
+    </tr>
+    <tr>
+        <td>portGroups</td>
+        <td>URI</td>
+        <td></td>
+        <td></td>
+        <td>A GET against this URI gets a list of port groups.</td>
+    </tr>
+    <tr>
+        <td>routers</td>
+        <td>URI</td>
+        <td></td>
+        <td></td>
+        <td>A GET against this URI gets a list of routers.</td>
+    </tr>
+    <tr>
+        <td>tunnelZones</td>
+        <td>URI</td>
+        <td></td>
+        <td></td>
+        <td>A GET against this URI gets a list of tunnel zones.</td>
+    </tr>
+    <tr>
+        <td>adRouteTemplate</td>
+        <td>String</td>
+        <td></td>
+        <td></td>
+        <td>Template of the URI that represents the location of ad route with
+        the provided ID.</td>
+    </tr>
+    <tr>
+        <td>bgpTemplate</td>
+        <td>String</td>
+        <td></td>
+        <td></td>
+        <td>Template of the URI that represents the location of BGP with
+        the provided ID.</td>
+    </tr>
+    <tr>
+        <td>bridgeTemplate</td>
+        <td>String</td>
+        <td></td>
+        <td></td>
+        <td>Template of the URI that represents the location of bridge with
+        the provided ID.</td>
+    </tr>
+    <tr>
+        <td>chainTemplate</td>
+        <td>String</td>
+        <td></td>
+        <td></td>
+        <td>Template of the URI that represents the location of chain with
+        the provided ID.</td>
+    </tr>
+    <tr>
+        <td>hostTemplate</td>
+        <td>String</td>
+        <td></td>
+        <td></td>
+        <td>Template of the URI that represents the location of host with
+        the provided ID.</td>
+    </tr>
+    <tr>
+        <td>portTemplate</td>
+        <td>String</td>
+        <td></td>
+        <td></td>
+        <td>Template of the URI that represents the location of port with
+        the provided ID.</td>
+    </tr>
+    <tr>
+        <td>portGroupTemplate</td>
+        <td>String</td>
+        <td></td>
+        <td></td>
+        <td>Template of the URI that represents the location of port group with
+        the provided ID.</td>
+    </tr>
+    <tr>
+        <td>routeTemplate</td>
+        <td>String</td>
+        <td></td>
+        <td></td>
+        <td>Template of the URI that represents the location of route with the
+        provided ID.</td>
+    </tr>
+    <tr>
+        <td>routerTemplate</td>
+        <td>String</td>
+        <td></td>
+        <td></td>
+        <td>Template of the URI that represents the location of router with the
+        provided ID.</td>
+    </tr>
+    <tr>
+        <td>ruleTemplate</td>
+        <td>String</td>
+        <td></td>
+        <td></td>
+        <td>Template of the URI that represents the location of rule with the
         provided ID.</td>
     </tr>
     <tr>
@@ -969,51 +978,8 @@ contains the following fields:
     </tr>
 </table>
 
-
 <a name="bridgemactable"></a>
-### MacPort
-
-#### Version 1 [application/vnd.org.midonet.midolman.mgmt.MacPort-v1+json]
-
-    GET     /bridges/:bridgeId/mac_table
-    GET     /bridges/:bridgeId/mac_table/:macPortPair
-    POST    /bridges/:bridgeId/mac_table
-    DELETE  /bridges/:bridgeId/mac_table/:macPortPair
-
-<table>
-    <tr>
-        <th>Field Name</th>
-        <th>Type</th>
-        <th>POST/PUT</th>
-        <th>Required</th>
-        <th>Description</th>
-    </tr>
-    <tr>
-        <td>uri</td>
-        <td>URI</td>
-        <td/>
-        <td/>
-        <td>A GET against this URI refreshes the representation of this
-         resource.</td>
-    </tr>
-    <tr>
-        <td>macAddr</td>
-        <td>String</td>
-        <td/>
-        <td>Yes</td>
-        <td>A MAC address in the form "aa:bb:cc:dd:ee:ff"</td>
-    </tr>
-    <tr>
-        <td>portId</td>
-        <td>UUID</td>
-        <td/>
-        <td>Yes</td>
-        <td>ID of the port to which the packets destined to the macAddr will
-        be emitted.</td>
-    </tr>
-</table>
-
-#### Version 2 [application/vnd.org.midonet.midolman.mgmt.MacPort-v2+json]
+### MacPort [application/vnd.org.midonet.midolman.mgmt.MacPort-v2+json]
 
     GET     /bridges/:bridgeId/mac_table
     GET     /bridges/:bridgeId/vlans/:vlanId/mac_table
@@ -1066,6 +1032,75 @@ contains the following fields:
     </tr>
 </table>
 
+#### <u>Path Parameters</u>
+
+<table>
+    <tr>
+        <th>Name</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>bridgeId</td>
+        <td>
+            UUID of the bridge owning the MAC table to query or modify.
+        </td>
+    </tr>
+    <tr>
+        <td>vlanId</td>
+        <td>
+            ID of the VLAN owning the MAC table to query or modify.
+        </td>
+    </tr>
+    <tr>
+        <td>macPortPair</td>
+        <td>
+            Consists of a MAC address in the form "12-34-56-78-9a-bc"
+            and the destination port's ID, separated by an underscore.
+            For example: "12-34-56-78-9a-bc_01234567-89ab-cdef-0123-4567890abcdef".
+        </td>
+    </tr>
+</table>
+
+<a name="bridgemactable-v1"></a>
+### MacPort - v1, Deprecated [application/vnd.org.midonet.midolman.mgmt.MacPort-v1+json]
+
+    GET     /bridges/:bridgeId/mac_table
+    GET     /bridges/:bridgeId/mac_table/:macPortPair
+    POST    /bridges/:bridgeId/mac_table
+    DELETE  /bridges/:bridgeId/mac_table/:macPortPair
+
+<table>
+    <tr>
+        <th>Field Name</th>
+        <th>Type</th>
+        <th>POST/PUT</th>
+        <th>Required</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>uri</td>
+        <td>URI</td>
+        <td/>
+        <td/>
+        <td>A GET against this URI refreshes the representation of this
+         resource.</td>
+    </tr>
+    <tr>
+        <td>macAddr</td>
+        <td>String</td>
+        <td/>
+        <td>Yes</td>
+        <td>A MAC address in the form "aa:bb:cc:dd:ee:ff"</td>
+    </tr>
+    <tr>
+        <td>portId</td>
+        <td>UUID</td>
+        <td/>
+        <td>Yes</td>
+        <td>ID of the port to which the packets destined to the macAddr will
+        be emitted.</td>
+    </tr>
+</table>
 
 #### <u>Path Parameters</u>
 
@@ -1217,7 +1252,7 @@ contains the following fields:
 </table>
 
 <a name="port"/>
-### Port [application/vnd.org.midonet.Port-v1+json]
+### Port [application/vnd.org.midonet.Port-v2+json]
 
     GET     /ports/:portId
     GET     /routers/:routerId/ports
@@ -1229,6 +1264,248 @@ contains the following fields:
     PUT     /ports/:portId
     DELETE  /ports/:portId
 
+Port is an entity that represents a port on a virtual device (bridge or
+router) in MidoNet.  It contains the following fields:
+
+<table>
+    <tr>
+        <th>Field Name</th>
+        <th>Type</th>
+        <th>POST/PUT</th>
+        <th>Required</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>uri</td>
+        <td>URI</td>
+        <td/>
+        <td/>
+        <td>A GET against this URI refreshes the representation of this
+         resource.</td>
+    </tr>
+    <tr>
+        <td>id</td>
+        <td>UUID</td>
+        <td/>
+        <td/>
+        <td>A unique identifier of the resource.</td>
+    </tr>
+    <tr>
+        <td>deviceId</td>
+        <td>UUID</td>
+        <td/>
+        <td/>
+        <td>ID of the device (bridge or router) that this port belongs to.</td>
+    </tr>
+    <tr>
+        <td>device</td>
+        <td>URI</td>
+        <td/>
+        <td/>
+        <td>A GET against this URI retrieves the device resource that the port
+         belongs to.  If the port is a router port, it gets a router resource,
+          and if it’s a bridge port, it gets a bridge resource.</td>
+    </tr>
+    <tr>
+        <td>type</td>
+        <td>String</td>
+        <td>POST</td>
+        <td>Yes</td>
+        <td>Type of device port.  It must be one of:
+<ul>
+<li>Router</li>
+<li>Bridge</li>
+</ul>
+<p>
+A new router or bridge port is unplugged. Depending on what it
+is later attached to, it is referred to as an exterior or interior port.
+</p>
+<p>
+An exterior router port is a virtual port that plugs into the VIF of an
+entity, such as a VM. It can also be a virtual port connected to a host
+physical port, directly or after implementing tunnel encapsulation.
+Access to exterior ports is managed by OpenVSwitch (OpenFlow switch).
+Exterior bridge port is the same as exterior router port but it is a
+port on a virtual bridge.
+Upon being bound to an interface, the port becomes exterior and will have the
+hostId, host, and interfaceName fields be non-null. The peer and peerId
+fields will be null.
+</p>
+<p>
+An interior router port is a virtual port that only exists in the MidoNet
+virtual router network abstraction. It refers to a logical connection to
+another virtual networking device such as another router.  Interior
+bridge is the equivalent on a virtual bridge.
+Upon being linked to a peer, a port will become interior and will have the
+peer and peerId fields be non-null. The hostId, host, and interfaceName fields
+will be null.
+</p>
+</span></td>
+    </tr>
+    <tr>
+        <td>peerId</td>
+        <td>UUID</td>
+        <td/>
+        <td/>
+        <td>ID of the peer port that this port is linked to. This will be
+        set when linking a port to another peer (becoming an interior port)
+        </td>
+    </tr>
+    <tr>
+        <td>peer</td>
+        <td>URI</td>
+        <td/>
+        <td/>
+        <td>A GET against this URI retrieves the peer port resource.
+        Requires a port to be linked to another port.</td>
+    </tr>
+    <tr>
+        <td>networkAddress (Router only)</td>
+        <td>String</td>
+        <td>POST</td>
+        <td>Yes</td>
+        <td>IP address of the network attached to this port. For example
+         192.168.10.32/27</td>
+    </tr>
+    <tr>
+        <td>networkLength (Router only)</td>
+        <td>Int</td>
+        <td>POST</td>
+        <td>Yes</td>
+        <td>Prefix length of the network attached to this port (number of
+        fixed network bits).</td>
+    </tr>
+    <tr>
+        <td>portAddress (Router only)</td>
+        <td>String</td>
+        <td>POST</td>
+        <td>Yes</td>
+        <td>IP address assigned to the port.</td>
+    </tr>
+    <tr>
+        <td>portMac (Router only)</td>
+        <td>String</td>
+        <td>POST</td>
+        <td></td>
+        <td>Port mac address.</td>
+    </tr>
+    <tr>
+        <td>vifId</td>
+        <td>UUID</td>
+        <td/>
+        <td/>
+        <td>ID of the VIF plugged into the port.</td>
+    </tr>
+    <tr>
+        <td>hostId</td>
+        <td>UUID</td>
+        <td/>
+        <td>No</td>
+        <td>ID of the port's host. This will be set when binding a port to a
+            host (becoming an exterior port ). </td>
+    </tr>
+    <tr>
+        <td>host</td>
+        <td>URI</td>
+        <td/>
+        <td/>
+        <td>The port host's URI. Requires a port to be bound to a host.</td>
+    </tr>
+
+    <tr>
+        <td>interfaceName</td>
+        <td>String</td>
+        <td/>
+        <td/>
+        <td>Interface name of a bound port. This will be set when binding
+            a port to a host (becoming an exterior port). </td>
+    </tr>
+    <tr>
+        <td>bgps (Router only)</td>
+        <td>URI</td>
+        <td/>
+        <td/>
+        <td>A GET against this BGP configurations for this port.</td>
+    </tr>
+    <tr>
+        <td>link</td>
+        <td>URI</td>
+        <td/>
+        <td/>
+        <td>Location of the port link resource.
+         A POST against this URI links two interior ports.  In the body of the
+         request, 'peerId' must be specified to indicate the peer interior port
+         ID.  A DELETE against this URI removes the link.</td>
+    </tr>
+    <tr>
+        <td>inboundFilterId</td>
+        <td>UUID</td>
+        <td>POST/PUT</td>
+        <td>No</td>
+        <td>ID of the filter chain to be applied for incoming packets.</td>
+    </tr>
+    <tr>
+        <td>inboundFilter</td>
+        <td>URI</td>
+        <td/>
+        <td/>
+        <td>A GET against this URI retrieves the inbound filter chain.</td>
+    </tr>
+    <tr>
+        <td>outboundFilterId</td>
+        <td>UUID</td>
+        <td>POST/PUT</td>
+        <td>No</td>
+        <td>ID of the filter chain to be applied for outgoing packets.</td>
+    </tr>
+    <tr>
+        <td>outboundFilter</td>
+        <td>URI</td>
+        <td/>
+        <td/>
+        <td>A GET against this URI retrieves the outbound filter chain.</td>
+    </tr>
+    <tr>
+        <td>portGroups</td>
+        <td>URI</td>
+        <td/>
+        <td/>
+        <td>A GET against this URI retrieves the port groups that this port
+        is a member of.</td>
+    </tr>
+    <tr>
+        <td>hostInterfacePort</td>
+        <td>URI</td>
+        <td/>
+        <td/>
+        <td>A GET against this URI retrieves the interface-binding information
+        of this port.</td>
+    </tr>
+    <tr>
+        <td>vlanId (Bridge only)</td>
+        <td>Short</td>
+        <td>POST</td>
+        <td>No</td>
+        <td>The vlan-id assigned to this port. On a given bridge, each vlan-id
+            can be present at most in one interior port.</td>
+    </tr>
+</table>
+
+<a name="port-v1"/>
+### Port-v1 (deprecated) [application/vnd.org.midonet.Port-v1+json]
+
+    GET     /ports/:portId
+    GET     /routers/:routerId/ports
+    GET     /routers/:routerId/peer_ports
+    GET     /bridges/:bridgeId/ports
+    GET     /bridges/:bridgeId/peer_ports
+    POST    /routers/:routerId/ports
+    POST    /bridges/:bridgeId/ports
+    PUT     /ports/:portId
+    DELETE  /ports/:portId
+
+This port type has been deprecated. Please use the updated v2 Port api
+described above.
 Port is an entity that represents a port on a virtual device (bridge or
 router) in MidoNet.  It contains the following fields:
 

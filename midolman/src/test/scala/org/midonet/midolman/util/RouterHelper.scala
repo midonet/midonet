@@ -61,7 +61,7 @@ trait RouterHelper extends SimulationHelper {
     }
 
     def fetchRouterAndPort(portName: String,
-                           portId: UUID) : (SimRouter, RouterPort[_]) = {
+                           portId: UUID) : (SimRouter, RouterPort) = {
         // Simulate a dummy packet so the system creates the Router RCU object
         val eth = (new Ethernet()).setEtherType(IPv6_ETHERTYPE).
             setDestinationMACAddress(MAC.fromString("de:de:de:de:de:de")).
@@ -71,7 +71,7 @@ trait RouterHelper extends SimulationHelper {
         fishForRequestOfType[AddWildcardFlow](flowProbe())
 
         val port = VirtualTopologyActor.everything.idToPort(portId)
-             .asInstanceOf[RouterPort[_]]
+             .asInstanceOf[RouterPort]
         val router = VirtualTopologyActor.everything.idToRouter(port.deviceID)
         drainProbes()
         (router, port)

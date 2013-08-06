@@ -88,18 +88,6 @@ public class Application extends UriResource {
     }
 
     /**
-     * @return the bridges URI
-     */
-    public URI getVlanBridges() {
-        if (getBaseUri() != null) {
-            return ResourceUriBuilder.getVlanBridges(getBaseUri());
-        } else {
-            return null;
-        }
-    }
-
-
-    /**
      * @return the chains URI
      */
     public URI getChains() {
@@ -182,17 +170,6 @@ public class Application extends UriResource {
     public String getBridgeTemplate() {
         if (getBaseUri() != null) {
             return ResourceUriBuilder.getBridgeTemplate(getBaseUri());
-        } else {
-            return null;
-        }
-    }
-
-    /**
-     * @return the vlan bridge URI template
-     */
-    public String getVlanBridgeTemplate() {
-        if (getBaseUri() != null) {
-            return ResourceUriBuilder.getVlanBridgeTemplate(getBaseUri());
         } else {
             return null;
         }

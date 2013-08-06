@@ -10,6 +10,7 @@ import com.google.inject.Injector;
 import com.google.inject.Guice;
 import org.apache.zookeeper.KeeperException;
 import org.midonet.api.serialization.SerializationModule;
+import org.midonet.client.dto.*;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.api.VendorMediaType;
@@ -25,10 +26,6 @@ import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.client.MidonetApi;
-import org.midonet.client.dto.DtoBridge;
-import org.midonet.client.dto.DtoBridgePort;
-import org.midonet.client.dto.DtoHost;
-import org.midonet.client.dto.DtoHostInterfacePort;
 import org.midonet.client.resource.*;
 import org.midonet.client.resource.Host;
 import org.midonet.client.resource.HostInterfacePort;
@@ -129,7 +126,7 @@ public class TestHostInterfacePort {
                     .create("bridge1", bridge1)
                     .create("bridge1", "bridgePort1", bridgePort1)
                     .create("bridge1", "bridgePort2", bridgePort2)
-                    .build();//TODO this used to test vlan ports
+                    .build();
 
             hostTopology = new HostTopology.Builder(dtoResource, hostManager)
                     .create(host1Id, host1).build();
@@ -148,7 +145,8 @@ public class TestHostInterfacePort {
         public void testCrud() throws Exception {
 
             DtoHost host = hostTopology.getHost(host1Id);
-            DtoBridgePort port1 = topology.getExtBridgePort("bridgePort1");
+            DtoBridgePort port1 = topology.getBridgePort(
+                    "bridgePort1");
 
             // List mappings.  There should be none.
             DtoHostInterfacePort[] maps = dtoResource.getAndVerifyOk(
@@ -194,8 +192,10 @@ public class TestHostInterfacePort {
         @Test
         public void testCreateWhenInterfaceIsTaken() {
             DtoHost host = hostTopology.getHost(host1Id);
-            DtoBridgePort port1 = topology.getExtBridgePort("bridgePort1");
-            DtoBridgePort port2 = topology.getExtBridgePort("bridgePort2");
+            DtoBridgePort port1 = topology.getBridgePort(
+                    "bridgePort1");
+            DtoBridgePort port2 = topology.getBridgePort(
+                    "bridgePort2");
 
             // List mappings.  There should be none.
             DtoHostInterfacePort[] maps = dtoResource.getAndVerifyOk(
@@ -247,8 +247,8 @@ public class TestHostInterfacePort {
                             .name("bridge-1")
                             .create();
 
-            BridgePort bp1 = b1.addExteriorPort().create();
-            BridgePort bp2 = b1.addExteriorPort().create();
+            BridgePort bp1 = b1.addPort().create();
+            BridgePort bp2 = b1.addPort().create();
 
             HostInterfacePort hip1 = host.addHostInterfacePort()
                                                       .interfaceName("tap-1")

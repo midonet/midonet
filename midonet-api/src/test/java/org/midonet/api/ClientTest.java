@@ -9,6 +9,7 @@ import org.midonet.api.rest_api.FuncTest;
 import org.midonet.client.MidonetApi;
 import org.midonet.client.RouterPredicates;
 import org.midonet.client.exception.HttpNotFoundException;
+import org.midonet.client.dto.DtoBridgePort;
 import org.midonet.client.resource.*;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 import com.sun.jersey.test.framework.JerseyTest;
@@ -139,13 +140,13 @@ public class ClientTest extends JerseyTest {
 
         // Bridge port
         short vlanId = 234;
-        BridgePort bp1 = (BridgePort) b1.addExteriorPort().create();
-        BridgePort bp2 = (BridgePort) b1.addInteriorPort().create();
-        BridgePort bp3 = (BridgePort) b1.addInteriorPort().create();
-        BridgePort bp4 = (BridgePort) b1.addInteriorPort().create();
-        BridgePort bpVlan = (BridgePort) b1.addInteriorPort()
+        BridgePort bp1 = (BridgePort) b1.addPort().create();
+        BridgePort bp2 = (BridgePort) b1.addPort().create();
+        BridgePort bp3 = (BridgePort) b1.addPort().create();
+        BridgePort bp4 = (BridgePort) b1.addPort().create();
+        BridgePort bpVlan = (BridgePort) b1.addPort()
                                            .vlanId(vlanId).create();
-        BridgePort b2pVlan = (BridgePort)b2.addInteriorPort()
+        BridgePort b2pVlan = (BridgePort)b2.addPort()
                                            .vlanId(vlanId).create();
 
         log.debug("bp1: {}", bp1);
@@ -317,35 +318,35 @@ public class ClientTest extends JerseyTest {
         r2.delete();
         assertThat(api.getRouters(qTenant1).size(), is(1));
 
-        RouterPort mrp1 = (RouterPort) r1.addExteriorRouterPort()
-                                         .portAddress("1.1.1.1")
-                                         .networkAddress("1.1.1.0")
-                                         .networkLength(24)
-                                         .create();
+        RouterPort mrp1 = r1.addPort()
+            .portAddress("1.1.1.1")
+            .networkAddress("1.1.1.0")
+            .networkLength(24)
+            .create();
 
-        RouterPort mrp2 = (RouterPort) r1.addExteriorRouterPort()
-                                         .portAddress("1.1.1.2")
-                                         .networkAddress("1.1.1.0")
-                                         .networkLength(24)
-                                         .create();
+        RouterPort mrp2 = r1.addPort()
+            .portAddress("1.1.1.2")
+            .networkAddress("1.1.1.0")
+            .networkLength(24)
+            .create();
 
-        RouterPort lrp1 = (RouterPort) r1.addInteriorRouterPort()
-                                         .portAddress("2.2.2.1")
-                                         .networkAddress("2.2.2.0")
-                                         .networkLength(24)
-                                         .create();
+        RouterPort lrp1 = r1.addPort()
+            .portAddress("2.2.2.1")
+            .networkAddress("2.2.2.0")
+            .networkLength(24)
+            .create();
 
-        RouterPort lrp2 = (RouterPort) r1.addInteriorRouterPort()
-                                         .portAddress("2.2.2.2")
-                                         .networkAddress("2.2.2.0")
-                                         .networkLength(24)
-                                         .create();
+        RouterPort lrp2 = r1.addPort()
+            .portAddress("2.2.2.2")
+            .networkAddress("2.2.2.0")
+            .networkLength(24)
+            .create();
 
-        RouterPort lrp3 = (RouterPort) r1.addInteriorRouterPort()
-                                         .portAddress("2.2.2.3")
-                                         .networkAddress("2.2.2.0")
-                                         .networkLength(24)
-                                         .create();
+        RouterPort lrp3 = r1.addPort()
+            .portAddress("2.2.2.3")
+            .networkAddress("2.2.2.0")
+            .networkLength(24)
+            .create();
 
         // Test GET with ID
         assertThat(mrp1.getId(), is(notNullValue()));

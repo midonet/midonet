@@ -51,7 +51,7 @@ public abstract class RouterBridgeBaseTest extends TestBase {
             .tenantId(TENANT_NAME).create();
         IPv4Addr gwIP = IPv4Addr.fromString("172.16.0.2");
         TapWrapper rtrUplinkTap = new TapWrapper("routerUplink");
-        routerUplink = router1.addExteriorRouterPort()
+        routerUplink = router1.addPort()
             .portAddress("172.16.0.1")
             .networkAddress("172.16.0.0").networkLength(24).create();
         router1.addRoute().dstNetworkAddr("0.0.0.0").dstNetworkLength(0)
@@ -75,15 +75,15 @@ public abstract class RouterBridgeBaseTest extends TestBase {
         // Create the bridge and link it to the router.
         bridge1 = apiClient.addBridge().name("br1")
             .tenantId(TENANT_NAME).create();
-        routerDownlink = router1.addInteriorRouterPort()
+        routerDownlink = router1.addPort()
                 .networkAddress("10.0.0.0").networkLength(24)
                 .portAddress("10.0.0.1").create();
-        bridgeUplink = bridge1.addInteriorPort().create();
+        bridgeUplink = bridge1.addPort().create();
         bridgeUplink.link(routerDownlink.getId());
 
         // Add ports to the bridge.
         for (int i = 0; i < numBridgePorts; i++) {
-            bports.add(bridge1.addExteriorPort().create());
+            bports.add(bridge1.addPort().create());
             vmEndpoints.add(new EndPoint(
                     IPv4Addr.fromString("10.0.0.1" + i),
                     MAC.fromString("02:aa:bb:cc:dd:d" + i),
