@@ -32,8 +32,11 @@
     </scm>
 
     <properties>
-
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
+        <mido.rpm.version>${project.version}</mido.rpm.version>
+        <mido.rpm.release>0.0.${maven.build.timestamp}</mido.rpm.release>
 
         <versions.java>1.7</versions.java>
         <versions.scala.library>2.9.2</versions.scala.library>

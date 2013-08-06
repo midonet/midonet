@@ -171,6 +171,8 @@
                     <prefix>/usr</prefix>
                     <group>System Environment/Daemons</group>
                     <needarch>false</needarch>
+                    <version>${mido.rpm.version}</version>
+                    <release>${mido.rpm.release}</release>
                     <requires>
                         <require>java7</require>
                         <require>tomcat7</require>
