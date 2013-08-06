@@ -20,7 +20,6 @@ import akka.util.duration._
 import com.google.inject.Inject
 
 import org.midonet.cluster.client
-import org.midonet.cluster.client.ExteriorPort
 import org.midonet.cluster.data.TunnelZone
 import org.midonet.cluster.data.TunnelZone.{HostConfig => TZHostConfig}
 import org.midonet.cluster.data.zones.GreTunnelZoneHost
@@ -650,7 +649,7 @@ class DatapathController() extends Actor with ActorLogging with
     }
 
     private def installTunnelKeyFlow(
-            port: Port[_, _], exterior: ExteriorPort[_]): Unit = {
+            port: Port[_, _], exterior: client.Port[_]): Unit = {
         val fc = FlowController.getRef()
         // packets for the port may have arrived before the
         // port came up and made us install temporary drop flows.
@@ -670,9 +669,10 @@ class DatapathController() extends Actor with ActorLogging with
             port: Port[_, _], vifId: UUID, active: Boolean): Unit =
         VirtualTopologyActor
             .expiringAsk(PortRequest(vifId, update = false))
-            .mapTo[client.ExteriorPort[_]]
+            .mapTo[client.Port[_]]
             .onComplete {
-                case Right(exterior) =>
+            case Right(p) =>
+                if (!p.isInterior) {
                     // trigger invalidation. This is done regardless of
                     // whether we are activating or deactivating:
                     //
@@ -684,11 +684,12 @@ class DatapathController() extends Actor with ActorLogging with
                     FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
                         FlowTagger.invalidateDPPort(port.getPortNo.shortValue()))
                     if (active)
-                        installTunnelKeyFlow(port, exterior)
-                case _ =>
-                    log.warning("local port {} activated, but it's not an " +
-                        "ExteriorPort: I don't know what to do with it: {}", port)
-            }
+                        installTunnelKeyFlow(port, p)
+                }
+            case _ =>
+                log.warning("local port {} activated, but it's not an " +
+                    "ExteriorPort: I don't know what to do with it: {}", port)
+        }
 
     def handlePortOperationReply(opReply: DpPortReply) {
         log.debug("Port operation reply: {}", opReply)

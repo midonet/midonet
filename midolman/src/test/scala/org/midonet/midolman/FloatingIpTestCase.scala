@@ -18,8 +18,7 @@ import layer3.Route.NextHop
 import topology.LocalPortActive
 import org.midonet.packets._
 import topology.VirtualToPhysicalMapper.HostRequest
-import org.midonet.cluster.data.ports.{LogicalRouterPort, MaterializedBridgePort,
-    MaterializedRouterPort}
+import org.midonet.cluster.data.ports.{RouterPort, BridgePort}
 import util.RouterHelper
 import org.midonet.midolman.PacketWorkflow.PacketIn
 
@@ -47,13 +46,13 @@ class FloatingIpTestCase extends VirtualConfigurationBuilders with RouterHelper 
     val subnet2 = new IPv4Subnet("192.168.222.0", 24)
 
     // Other stuff
-    var brPort2 : MaterializedBridgePort = null
+    var brPort2 : BridgePort = null
     val vm2PortName = "VM2"
     var vm2PortNumber = 0
-    var rtrPort1 : MaterializedRouterPort = null
+    var rtrPort1 : RouterPort = null
     val rtrPort1Name = "RouterPort1"
     var rtrPort1Num = 0
-    var rtrPort2 : LogicalRouterPort = null
+    var rtrPort2 : RouterPort = null
 
     val floatingIP = IPv4Addr.fromString("10.0.173.5")
 
@@ -74,7 +73,7 @@ class FloatingIpTestCase extends VirtualConfigurationBuilders with RouterHelper 
         requestOfType[OutgoingMessage](vtpProbe())
 
         // set up materialized port on router
-        rtrPort1 = newExteriorRouterPort(router, routerMac1,
+        rtrPort1 = newRouterPort(router, routerMac1,
             routerIp1.toString,
             routerRange1.getAddress.toString,
             routerRange1.getPrefixLen)
@@ -95,7 +94,7 @@ class FloatingIpTestCase extends VirtualConfigurationBuilders with RouterHelper 
             IPv4Addr(Route.NO_GATEWAY).toString, 10)
 
         // set up logical port on router
-        rtrPort2 = newInteriorRouterPort(router, routerMac2,
+        rtrPort2 = newRouterPort(router, routerMac2,
             routerIp2.toString(),
             routerRange2.getAddress.toString,
             routerRange2.getPrefixLen)
@@ -110,12 +109,12 @@ class FloatingIpTestCase extends VirtualConfigurationBuilders with RouterHelper 
         val bridge = newBridge("bridge")
         bridge should not be null
 
-        val brPort1 = newInteriorBridgePort(bridge)
+        val brPort1 = newBridgePort(bridge)
         brPort1 should not be null
         clusterDataClient().portsLink(rtrPort2.getId, brPort1.getId)
 
         // add a materialized port on bridge, logically connect to VM2
-        brPort2 = newExteriorBridgePort(bridge)
+        brPort2 = newBridgePort(bridge)
         brPort2 should not be null
 
         materializePort(brPort2, host, vm2PortName)

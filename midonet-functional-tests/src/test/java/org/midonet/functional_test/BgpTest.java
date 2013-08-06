@@ -240,7 +240,7 @@ public class BgpTest {
         router1 = apiClient.addRouter().tenantId(tenantName).name("router1").create();
         log.debug("Created router " + router1.getName());
 
-        exteriorRouterPort1_vm = (RouterPort) router1.addExteriorRouterPort()
+        exteriorRouterPort1_vm = (RouterPort) router1.addPort()
                 .portAddress("1.0.0.1")
                 .networkAddress("1.0.0.0")
                 .networkLength(24)
@@ -257,7 +257,7 @@ public class BgpTest {
                 .type("Normal")
                 .create();
 
-        exteriorRouterPort1_bgp = (RouterPort) router1.addExteriorRouterPort()
+        exteriorRouterPort1_bgp = (RouterPort) router1.addPort()
                 .portAddress("100.0.0.1")
                 .networkAddress("100.0.0.0")
                 .networkLength(30)

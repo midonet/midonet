@@ -7,8 +7,7 @@ import akka.actor.{ActorContext, ActorSystem}
 import akka.dispatch.{ExecutionContext, Future, Promise}
 import java.util.UUID
 
-import org.midonet.cluster.client.{ExteriorRouterPort, InteriorRouterPort,
-                                   Port, RouterPort}
+import org.midonet.cluster.client.{Port, RouterPort}
 import org.midonet.midolman.DeduplicationActor
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.rules.RuleResult
@@ -21,6 +20,7 @@ import org.midonet.packets._
 import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.topology.RouterConfig
+import org.midonet.cluster.client.RouterPort
 
 /**
  * The IPv4 specific implementation of a Router.
@@ -36,7 +36,7 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
 
     override def unsupportedPacketAction = NotIPv4Action
 
-    private def processArp(pkt: IPacket, inPort: RouterPort[_])
+    private def processArp(pkt: IPacket, inPort: RouterPort)
                           (implicit ec: ExecutionContext,
                            actorSystem: ActorSystem,
                            originalPktContext: PacketContext): Action = pkt match {
@@ -57,7 +57,7 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
             DropAction
     }
 
-    override protected def handleL2Broadcast(inPort: RouterPort[_])
+    override protected def handleL2Broadcast(inPort: RouterPort)
                                             (implicit pktContext: PacketContext,
                                              ec: ExecutionContext,
                                              actorSystem: ActorSystem): Action = {
@@ -70,7 +70,7 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
             DropAction
     }
 
-    override def handleNeighbouring(inPort: RouterPort[_])
+    override def handleNeighbouring(inPort: RouterPort)
                                    (implicit ec: ExecutionContext,
                                     pktContext: PacketContext,
                                     actorSystem: ActorSystem): Option[Action] = {
@@ -82,7 +82,7 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
             None
     }
 
-    override def sendIcmpUnreachableProhibError(inPort: RouterPort[_],
+    override def sendIcmpUnreachableProhibError(inPort: RouterPort,
                                                 wMatch: WildcardMatch,
                                                 frame: Ethernet)
                                                (implicit ec: ExecutionContext,
@@ -92,7 +92,7 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
                       UNREACH_CODE.UNREACH_FILTER_PROHIB)
     }
 
-    override def sendIcmpUnreachableNetError(inPort: RouterPort[_],
+    override def sendIcmpUnreachableNetError(inPort: RouterPort,
                                              wMatch: WildcardMatch,
                                              frame: Ethernet)
                                             (implicit ec: ExecutionContext,
@@ -102,7 +102,7 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
                       UNREACH_CODE.UNREACH_NET)
     }
 
-    override def sendIcmpUnreachableHostError(inPort: RouterPort[_],
+    override def sendIcmpUnreachableHostError(inPort: RouterPort,
                                               wMatch: WildcardMatch,
                                               frame: Ethernet)
                                              (implicit ec: ExecutionContext,
@@ -112,7 +112,7 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
             UNREACH_CODE.UNREACH_HOST)
     }
 
-    override def sendIcmpTimeExceededError(inPort: RouterPort[_],
+    override def sendIcmpTimeExceededError(inPort: RouterPort,
                                            wMatch: WildcardMatch,
                                            frame: Ethernet)
                                           (implicit ec: ExecutionContext,
@@ -122,7 +122,7 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
                       EXCEEDED_CODE.EXCEEDED_TTL)
     }
 
-    private def processArpRequest(pkt: ARP, inPort: RouterPort[_])
+    private def processArpRequest(pkt: ARP, inPort: RouterPort)
                                  (implicit ec: ExecutionContext,
                                            actorSystem: ActorSystem,
                                            originalPktContex: PacketContext) {
@@ -169,7 +169,7 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
             if (originalPktContex != null) Option(originalPktContex.getFlowCookie) else None)
     }
 
-    private def processArpReply(pkt: ARP, port: RouterPort[_])
+    private def processArpReply(pkt: ARP, port: RouterPort)
                                (implicit actorSystem: ActorSystem,
                                          pktContext: PacketContext) {
 
@@ -250,7 +250,7 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
         sendIPPacket(ip, expiry)
     }
 
-    private def getPeerMac(rtrPort: InteriorRouterPort, expiry: Long)
+    private def getPeerMac(rtrPort: RouterPort, expiry: Long)
                           (implicit ec: ExecutionContext,
                            actorSystem: ActorSystem,
                            pktContext: PacketContext): Future[MAC] = {
@@ -260,7 +260,7 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
             case null =>
                 log.error("getPeerMac: cannot get port {}", rtrPort.peerID)
                 null
-            case rp: RouterPort[_] =>
+            case rp: RouterPort =>
                 rp.portMac
             case nrp =>
                 log.debug("getPeerMac asked for MAC of non-router port {}", nrp)
@@ -268,30 +268,30 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
         }
     }
 
-    private def getMacForIP(port: RouterPort[_], nextHopIP: IPv4Addr,
+    private def getMacForIP(port: RouterPort, nextHopIP: IPv4Addr,
                             expiry: Long)
                            (implicit ec: ExecutionContext,
                             actorSystem: ActorSystem,
                             pktContext: PacketContext): Future[MAC] = {
-        port match {
-            case extPort: ExteriorRouterPort =>
-                extPort.nwSubnet match {
-                    case extAddr: IPv4Subnet =>
-                        if (!extAddr.containsAddress(nextHopIP)) {
-                            log.warning("getMacForIP: cannot get MAC for {} - "+
-                                "address not in network segment of port {} ({})",
-                                nextHopIP, port.id, extAddr)
-                            return Promise.successful(null)(ec)
-                        }
-                    case _ =>
-                        return Promise.failed(new IllegalArgumentException)
-                }
-            case _ => /* Fall through */
+
+        if (!port.isInterior) {
+          port.nwSubnet match {
+            case extAddr: IPv4Subnet =>
+              if (!extAddr.containsAddress(nextHopIP)) {
+                log.warning("getMacForIP: cannot get MAC for {} - "+
+                  "address not in network segment of port {} ({})",
+                  nextHopIP, port.id, extAddr)
+                return Promise.successful(null)(ec)
+              }
+            case _ =>
+              return Promise.failed(new IllegalArgumentException)
+          }
         }
+
         arpTable.get(nextHopIP, port, expiry)
     }
 
-    override protected def getNextHopMac(outPort: RouterPort[_], rt: Route,
+    override protected def getNextHopMac(outPort: RouterPort, rt: Route,
                                          ipDest: IPv4Addr, expiry: Long)
                              (implicit ec: ExecutionContext,
                               actorSystem: ActorSystem,
@@ -299,15 +299,15 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
         if (outPort == null)
             return Promise.successful(null)
 
-        if (outPort.isInstanceOf[InteriorRouterPort]
-                && outPort.asInstanceOf[InteriorRouterPort].peerID == null) {
+        if (outPort.isInterior
+                && outPort.peerID == null) {
             log.warning("Packet sent to dangling logical port {}", rt.nextHopPort)
             return Promise.successful(null)
         }
 
         (outPort match {
-            case interior: InteriorRouterPort =>
-                getPeerMac(interior, expiry)
+            case p: Port[_] if p.isInterior =>
+                getPeerMac(p, expiry)
             case _ => /* Fall through to ARP'ing below. */
                 Promise.successful(null)
         }) flatMap {
@@ -372,7 +372,7 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
             eth.setPayload(packet)
         }
 
-        def _sendIPPacket(outPort: RouterPort[_], rt: Route) {
+        def _sendIPPacket(outPort: RouterPort, rt: Route) {
             if (packet.getDestinationIPAddress == outPort.portAddr.getAddress) {
                 /* should never happen: it means we are trying to send a packet
                  * to ourselves, probably means that somebody sent an IP packet
@@ -453,7 +453,7 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
      * @return True if-and-only-if the packet meets none of the above conditions
      *         - i.e. it can trigger an ICMP error message.
      */
-     private def canSendIcmp(ethPkt: Ethernet, outPort: RouterPort[_])
+     private def canSendIcmp(ethPkt: Ethernet, outPort: RouterPort)
                             (implicit pktContext: PacketContext) : Boolean = {
         var ipPkt: IPv4 = null
         ethPkt.getPayload match {
@@ -544,7 +544,7 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
      * @param packet
      *            The original packet that started the simulation
      */
-     def sendIcmpError(inPort: RouterPort[_], ingressMatch: WildcardMatch,
+     def sendIcmpError(inPort: RouterPort, ingressMatch: WildcardMatch,
                        packet: Ethernet, icmpType: Char, icmpCode: Any)
                       (implicit ec: ExecutionContext,
                                 actorSystem: ActorSystem,

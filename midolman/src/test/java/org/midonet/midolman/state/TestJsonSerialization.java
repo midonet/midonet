@@ -53,13 +53,13 @@ public class TestJsonSerialization {
 
     @Test
     public void testMaterializedRouterPort() throws IOException {
-        MaterializedRouterPortConfig port = new MaterializedRouterPortConfig(
+        RouterPortConfig port = new RouterPortConfig(
             UUID.randomUUID(), 0x0a000000, 24,0x0a00000a,
             MAC.fromString("aa:bb:cc:dd:ee:00"), null, null);
         String json = JsonVersionZkSerializer.objToJsonString(port);
-        MaterializedRouterPortConfig port2 =
+        RouterPortConfig port2 =
                 JsonVersionZkSerializer.jsonStringToObj(json,
-                MaterializedRouterPortConfig.class);
+                RouterPortConfig.class);
         assertEquals(port, port2);
         // Now deserialize to the superclass.
         PortConfig port3 = JsonVersionZkSerializer.jsonStringToObj(json,
@@ -69,12 +69,12 @@ public class TestJsonSerialization {
 
     @Test
     public void testMaterializedBridgePort() throws IOException {
-        MaterializedBridgePortConfig port = new MaterializedBridgePortConfig(
+        BridgePortConfig port = new BridgePortConfig(
             UUID.randomUUID());
         String json = JsonVersionZkSerializer.objToJsonString(port);
-        MaterializedBridgePortConfig port2 =
+        BridgePortConfig port2 =
                 JsonVersionZkSerializer.jsonStringToObj(json,
-                MaterializedBridgePortConfig.class);
+                BridgePortConfig.class);
         assertEquals(port, port2);
         // Now deserialize to the superclass.
         PortConfig port3 = JsonVersionZkSerializer.jsonStringToObj(json,
@@ -83,32 +83,21 @@ public class TestJsonSerialization {
     }
 
     @Test
-    public void testTrunkVlanBridgePort() throws IOException {
-        TrunkVlanBridgePortConfig port = new TrunkVlanBridgePortConfig(
-            UUID.randomUUID());
+    public void testDeserializationWithMissingJsonField() throws IOException {
+        RouterPortConfig port = new RouterPortConfig(
+            UUID.randomUUID(), 0x0a000000, 24,0x0a00000a,
+            MAC.fromString("aa:bb:cc:dd:ee:00"), null, null);
         String json = JsonVersionZkSerializer.objToJsonString(port);
-        TrunkVlanBridgePortConfig port2 =
-                JsonVersionZkSerializer.jsonStringToObj(
-                        json, TrunkVlanBridgePortConfig.class);
+        // Test backwards compatibility by removing 'v1ApiType' from
+        // the json string.
+        json = json.replaceAll("\"v1ApiType\":null,", "");
+        RouterPortConfig port2 =
+            JsonVersionZkSerializer.jsonStringToObj(json,
+                RouterPortConfig.class);
         assertEquals(port, port2);
         // Now deserialize to the superclass.
-        PortConfig port3 = JsonVersionZkSerializer.jsonStringToObj(
-                json, PortConfig.class);
-        assertEquals(port, port3);
-    }
-
-    @Test
-    public void testLogicalVlanBridgePort() throws IOException {
-        LogicalVlanBridgePortConfig port = new LogicalVlanBridgePortConfig(
-            UUID.randomUUID(), UUID.randomUUID(), (short)3);
-        String json = JsonVersionZkSerializer.objToJsonString(port);
-        LogicalVlanBridgePortConfig port2 =
-                JsonVersionZkSerializer.jsonStringToObj(
-                        json, LogicalVlanBridgePortConfig.class);
-        assertEquals(port, port2);
-        // Now deserialize to the superclass.
-        PortConfig port3 = JsonVersionZkSerializer.jsonStringToObj(
-                json, PortConfig.class);
+        PortConfig port3 = JsonVersionZkSerializer.jsonStringToObj(json,
+            PortConfig.class);
         assertEquals(port, port3);
     }
 }

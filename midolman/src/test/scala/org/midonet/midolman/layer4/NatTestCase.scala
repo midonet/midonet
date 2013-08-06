@@ -21,7 +21,7 @@ import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.rules.{NatTarget, RuleResult, Condition}
 import org.midonet.midolman.topology.{FlowTagger, LocalPortActive}
 import org.midonet.cluster.data.Chain
-import org.midonet.cluster.data.ports.MaterializedRouterPort
+import org.midonet.cluster.data.ports.RouterPort
 import org.midonet.packets._
 import org.midonet.packets.util.AddressConversions._
 import org.midonet.midolman.{VMsBehindRouterFixture, MidolmanTestCase}
@@ -36,7 +36,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
     private val uplinkNwAddr = new IPv4Subnet("180.0.1.0", 24)
     private val uplinkPortAddr = IPv4Addr("180.0.1.2")
     private val uplinkPortMac: MAC = "02:0a:08:06:04:02"
-    private var uplinkPort: MaterializedRouterPort = null
+    private var uplinkPort: RouterPort = null
     private var uplinkPortNum: Short = 0
 
     private val dnatAddress = IPv4Addr("180.0.1.100")
@@ -130,7 +130,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
     override def beforeTest() {
         super.beforeTest()
 
-        uplinkPort = newExteriorRouterPort(
+        uplinkPort = newRouterPort(
             router, uplinkPortMac, uplinkPortAddr.toString,
             uplinkNwAddr.getAddress.toString, uplinkNwAddr.getPrefixLen)
         uplinkPort should not be null

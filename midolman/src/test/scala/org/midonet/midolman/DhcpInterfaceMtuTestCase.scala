@@ -24,7 +24,7 @@ import util.RouterHelper
 import org.midonet.packets._
 import org.midonet.cluster.data.dhcp.Opt121
 import org.midonet.cluster.data.dhcp.Subnet
-import org.midonet.cluster.data.ports.MaterializedBridgePort
+import org.midonet.cluster.data.ports.BridgePort
 import org.midonet.odp.flows.{FlowActionOutput, FlowAction}
 import host.interfaces.InterfaceDescription
 import org.midonet.midolman.PacketWorkflow.PacketIn
@@ -41,7 +41,7 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase with
     val routerIp2 = new IPv4Subnet("192.168.222.1", 24)
     val routerMac2 = MAC.fromString("22:ab:cd:ff:ff:ff")
     val vmMac = MAC.fromString("02:23:24:25:26:27")
-    var brPort : MaterializedBridgePort = null
+    var brPort : BridgePort = null
     var vmIP : IPv4Subnet = null
     val vmPortName = "VirtualMachine"
     var vmPortNumber = 0
@@ -113,7 +113,7 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase with
         requestOfType[HostRequest](vtpProbe())
         requestOfType[OutgoingMessage](vtpProbe())
 
-        val rtrPort1 = newExteriorRouterPort(router, routerMac1,
+        val rtrPort1 = newRouterPort(router, routerMac1,
             routerIp1.getAddress.toString,
             routerIp1.toNetworkAddress.toString,
             routerIp1.getPrefixLen)
@@ -128,17 +128,17 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase with
             NextHop.PORT, rtrPort1.getId,
             IPv4Addr(Route.NO_GATEWAY).toString, 10)
 
-        val rtrPort2 = newInteriorRouterPort(router, routerMac2,
+        val rtrPort2 = newRouterPort(router, routerMac2,
             routerIp2.getAddress.toString,
             routerIp2.toNetworkAddress.toString,
             routerIp2.getPrefixLen)
         rtrPort2 should not be null
 
-        val brPort1 = newInteriorBridgePort(bridge)
+        val brPort1 = newBridgePort(bridge)
         brPort1 should not be null
         clusterDataClient().portsLink(rtrPort2.getId, brPort1.getId)
 
-        val brPort2 = newExteriorBridgePort(bridge)
+        val brPort2 = newBridgePort(bridge)
         brPort2 should not be null
 
         val tzRequest = fishForRequestOfType[TunnelZoneRequest](vtpProbe())

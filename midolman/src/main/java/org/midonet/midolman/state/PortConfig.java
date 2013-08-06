@@ -2,9 +2,9 @@
 
 package org.midonet.midolman.state;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonSubTypes;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -12,22 +12,21 @@ import java.util.UUID;
 
 import org.midonet.midolman.state.PortDirectory.*;
 
-
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY,
     property = "type")
 @JsonSubTypes({
-    @JsonSubTypes.Type(value = MaterializedBridgePortConfig.class,
+    @JsonSubTypes.Type(value = BridgePortConfig.class,
+        name = "BridgePort"),
+    @JsonSubTypes.Type(value = RouterPortConfig.class,
+        name = "RouterPort"),
+    @JsonSubTypes.Type(value = BridgePortConfig.class,
         name = "ExteriorBridgePort"),
-    @JsonSubTypes.Type(value = MaterializedRouterPortConfig.class,
+    @JsonSubTypes.Type(value = RouterPortConfig.class,
         name = "ExteriorRouterPort"),
-    @JsonSubTypes.Type(value = LogicalBridgePortConfig.class,
+    @JsonSubTypes.Type(value = BridgePortConfig.class,
         name = "InteriorBridgePort"),
-    @JsonSubTypes.Type(value = LogicalRouterPortConfig.class,
-        name = "InteriorRouterPort"),
-    @JsonSubTypes.Type(value = TrunkVlanBridgePortConfig.class,
-        name = "TrunkPort"),
-    @JsonSubTypes.Type(value = LogicalVlanBridgePortConfig.class,
-        name = "InteriorVlanBridgePort")
+    @JsonSubTypes.Type(value = RouterPortConfig.class,
+        name = "InteriorRouterPort")
 })
 public abstract class PortConfig {
 
@@ -43,6 +42,33 @@ public abstract class PortConfig {
     public Set<UUID> portGroupIDs;
     public int tunnelKey;
     public Map<String, String> properties = new HashMap<String, String>();
+
+    public UUID hostId;
+    public String interfaceName;
+    public UUID peerId;
+    public String v1ApiType;
+
+    public String getV1ApiType() { return v1ApiType; }
+    public void setV1ApiType(String type) { v1ApiType=type; }
+
+    // Custom accessors for Jackson serialization
+    public UUID getHostId() { return hostId; }
+    public void setHostId(UUID hostId) {
+        this.hostId = hostId;
+    }
+    public String getInterfaceName() { return interfaceName; }
+    public void setInterfaceName(String interfaceName) {
+        this.interfaceName = interfaceName;
+    }
+    public UUID getPeerId() { return peerId; }
+    public void setPeerId(UUID pId) { peerId = pId; }
+
+    @JsonIgnore
+    public boolean isInterior() { return peerId != null; }
+    @JsonIgnore
+    public boolean isExterior() { return hostId != null; }
+    @JsonIgnore
+    public boolean isUnplugged() { return !isInterior() && !isExterior(); }
 
     @Override
     public boolean equals(Object o) {
@@ -66,8 +92,16 @@ public abstract class PortConfig {
         if (portGroupIDs != null ? !portGroupIDs.equals(that.portGroupIDs)
                 : that.portGroupIDs != null)
             return false;
-
-        return true;
+        if (v1ApiType != null ? v1ApiType.equals(that.v1ApiType)
+                : that.v1ApiType != null)
+            return false;
+        return
+            hostId == null ? that.hostId == null : hostId.equals(that.hostId)
+            && interfaceName == null ?
+               that.interfaceName == null :
+               interfaceName.equals(that.interfaceName)
+            && peerId == null? that.peerId == null :
+               peerId.equals(that.peerId);
     }
 
     @Override
@@ -80,6 +114,21 @@ public abstract class PortConfig {
         result = 31 * result +
                 (portGroupIDs != null ? portGroupIDs.hashCode() : 0);
         result = 31 * result + tunnelKey;
+        result = 31 * result + (peerId != null ? peerId.hashCode() : 0);
+        result = 31 * result + (hostId != null ? hostId.hashCode() : 0);
+        result = 31 * result +
+                 (interfaceName != null ? interfaceName.hashCode() : 0);
+        result = 31 * result +
+            (v1ApiType != null ? v1ApiType.hashCode() : 0);
         return result;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("");
+        sb.append(", hostId=").append(hostId);
+        sb.append(", interfaceName=").append(interfaceName);
+        sb.append(", peerId=").append(peerId);
+        return sb.toString();
     }
 }

@@ -28,10 +28,6 @@ public class VendorMediaType {
             "application/vnd.org.midonet.collection.Router-v1+json";
     public static final String APPLICATION_BRIDGE_JSON =
             "application/vnd.org.midonet.Bridge-v1+json";
-    public static final String APPLICATION_VLAN_BRIDGE_JSON =
-            "application/vnd.org.midonet.VlanBridge-v1+json";
-    public static final String APPLICATION_VLAN_BRIDGE_COLLECTION_JSON =
-            "application/vnd.org.midonet.collection.VlanBridge-v1+json";
     public static final String APPLICATION_BRIDGE_COLLECTION_JSON =
             "application/vnd.org.midonet.collection.Bridge-v1+json";
     public static final String APPLICATION_MAC_PORT_JSON =
@@ -62,14 +58,10 @@ public class VendorMediaType {
             "application/vnd.org.midonet.Port-v1+json";
     public static final String APPLICATION_PORT_COLLECTION_JSON =
             "application/vnd.org.midonet.collection.Port-v1+json";
-    public static final String APPLICATION_BRIDGEPORT_JSON =
-            "application/vnd.org.midonet.BridgePort-v1+json";
-    public static final String APPLICATION_ROUTERPORT_JSON =
-            "application/vnd.org.midonet.RouterPort-v1+json";
-    public static final String APPLICATION_BRIDGEPORT_COLLECTION_JSON =
-            "application/vnd.org.midonet.collection.BridgePort-v1+json";
-    public static final String APPLICATION_ROUTERPORT_COLLECTION_JSON =
-            "application/vnd.org.midonet.collection.RouterPort-v1+json";
+    public static final String APPLICATION_PORT_V2_JSON =
+            "application/vnd.org.midonet.Port-v2+json";
+    public static final String APPLICATION_PORT_V2_COLLECTION_JSON =
+            "application/vnd.org.midonet.collection.Port-v2+json";
     public static final String APPLICATION_PORT_LINK_JSON =
             "application/vnd.org.midonet.PortLink-v1+json";
     public static final String APPLICATION_ROUTE_JSON =

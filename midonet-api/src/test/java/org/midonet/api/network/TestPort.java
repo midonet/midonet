@@ -49,11 +49,11 @@ import static org.midonet.api.VendorMediaType.*;
 public class TestPort {
     public static final String ZK_ROOT_MIDOLMAN = "/test/midolman";
 
-    public static DtoExteriorRouterPort createExteriorRouterPort(
-            UUID id, UUID deviceId, String networkAddr, int networkLen,
-            String portAddr, UUID vifId, UUID inboundFilterId,
-            UUID outboundFilterId) {
-        DtoExteriorRouterPort port = new DtoExteriorRouterPort();
+    public static DtoRouterPort createRouterPort(
+        UUID id, UUID deviceId, String networkAddr, int networkLen,
+        String portAddr, UUID vifId, UUID inboundFilterId,
+        UUID outboundFilterId) {
+        DtoRouterPort port = new DtoRouterPort();
         port.setId(id);
         port.setDeviceId(deviceId);
         port.setNetworkAddress(networkAddr);
@@ -66,9 +66,9 @@ public class TestPort {
         return port;
     }
 
-    public static DtoBridgePort createExteriorBridgePort(
-            UUID id, UUID deviceId, UUID inboundFilterId,
-            UUID outboundFilterId, UUID vifId) {
+    public static DtoBridgePort createBridgePort(
+        UUID id, UUID deviceId, UUID inboundFilterId,
+        UUID outboundFilterId, UUID vifId) {
         DtoBridgePort port = new DtoBridgePort();
         port.setId(id);
         port.setDeviceId(deviceId);
@@ -79,10 +79,10 @@ public class TestPort {
         return port;
     }
 
-    public static DtoInteriorRouterPort createInteriorRouterPort(UUID id,
-            UUID deviceId, String networkAddr, int networkLen, 
+    public static DtoRouterPort createRouterPort(UUID id,
+            UUID deviceId, String networkAddr, int networkLen,
             String portAddr) {
-        DtoInteriorRouterPort port = new DtoInteriorRouterPort();
+        DtoRouterPort port = new DtoRouterPort();
         port.setId(id);
         port.setDeviceId(deviceId);
         port.setNetworkAddress(networkAddr);
@@ -203,22 +203,22 @@ public class TestPort {
             List<Object[]> params = new ArrayList<Object[]>();
 
             // Bad network address
-            DtoRouterPort badNetworkAddr = createInteriorRouterPort(null, null,
+            DtoRouterPort badNetworkAddr = createRouterPort(null, null,
                     "badAddr", 24, "192.168.100.1");
             params.add(new Object[] { badNetworkAddr, "networkAddress" });
 
             // Bad port address
-            DtoRouterPort badPortAddr = createInteriorRouterPort(null, null,
+            DtoRouterPort badPortAddr = createRouterPort(null, null,
                     "10.0.0.0", 24, "badAddr");
             params.add(new Object[] { badPortAddr, "portAddress" });
 
             // Bad network len
-            DtoRouterPort networkLenTooBig = createInteriorRouterPort(null,
+            DtoRouterPort networkLenTooBig = createRouterPort(null,
                     null, "10.0.0.0", 33, "192.168.100.1");
             params.add(new Object[] { networkLenTooBig, "networkLength" });
 
             // Negative network len
-            DtoRouterPort networkLenNegative = createInteriorRouterPort(null,
+            DtoRouterPort networkLenNegative = createRouterPort(null,
                     null, "10.0.0.0", -1, "192.168.100.1");
             params.add(new Object[] { networkLenNegative, "networkLength" });
 
@@ -231,7 +231,7 @@ public class TestPort {
             DtoRouter router = topology.getRouter("router1");
 
             DtoError error = dtoResource.postAndVerifyBadRequest(
-                    router.getPorts(), APPLICATION_PORT_JSON, port);
+                    router.getPorts(), APPLICATION_PORT_V2_JSON, port);
             List<Map<String, String>> violations = error.getViolations();
             assertEquals(1, violations.size());
             assertEquals(property, violations.get(0).get("property"));
@@ -298,32 +298,32 @@ public class TestPort {
             DtoRuleChain c2 = topology.getChain("chain2");
 
             // Create an Interior bridge port
-            DtoInteriorBridgePort b1Lp1 = new DtoInteriorBridgePort();
+            DtoBridgePort b1Lp1 = new DtoBridgePort();
             short vlanId = 2727;
             b1Lp1.setDeviceId(b.getId());
-            b1Lp1.setVlanId(vlanId);
+            b1Lp1.setVlanId(new Short(vlanId));
             b1Lp1 = dtoResource.postAndVerifyCreated(b.getPorts(),
-                    APPLICATION_PORT_JSON, b1Lp1, DtoInteriorBridgePort.class);
+                    APPLICATION_PORT_V2_JSON, b1Lp1, DtoBridgePort.class);
 
             // This test can't be used because MockDirectory.multi doesn't handle failed ops
 
             // Create another Interior bridge port with same VLAN, should fail
-            //DtoInteriorBridgePort b1Lp2 = new DtoInteriorBridgePort();
+            //DtoBridgePort b1Lp2 = new DtoBridgePort();
             //b1Lp2.setDeviceId(b.getId());
             //b1Lp2.setVlanId(vlanId);
             //dtoResource.postAndVerifyBadRequest(b.getPorts(),
-            //        APPLICATION_PORT_JSON, b1Lp2);
+            //        APPLICATION_PORT_V2_JSON, b1Lp2);
 
             // Delete the initial port
             dtoResource.deleteAndVerifyNoContent(b1Lp1.getUri(),
-                    APPLICATION_PORT_JSON);
+                    APPLICATION_PORT_V2_JSON);
 
             // Should now be able to add a port with same VLAN
-            DtoInteriorBridgePort b1Lp2 = new DtoInteriorBridgePort();
+            DtoBridgePort b1Lp2 = new DtoBridgePort();
             b1Lp2.setDeviceId(b.getId());
             b1Lp2.setVlanId(vlanId);
             b1Lp2 = dtoResource.postAndVerifyCreated(b.getPorts(),
-                    APPLICATION_PORT_JSON, b1Lp2, DtoInteriorBridgePort.class);
+                    APPLICATION_PORT_V2_JSON, b1Lp2, DtoBridgePort.class);
 
             // Try delete the bridge, test it deletes cleanly
             dtoResource.deleteAndVerifyNoContent(b.getUri(), APPLICATION_BRIDGE_JSON);
@@ -331,31 +331,30 @@ public class TestPort {
 
         @Test
         public void testCrudBridgePort() {
-
             // Get the bridge and chains
             DtoBridge b = topology.getBridge("bridge1");
             DtoRuleChain c1 = topology.getChain("chain1");
             DtoRuleChain c2 = topology.getChain("chain2");
 
-            // Create a Interior bridge port
-            DtoInteriorBridgePort b1Lp1 = new DtoInteriorBridgePort();
+            DtoBridgePort b1Lp1 = new DtoBridgePort();
             short vlanId = 666;
             b1Lp1.setDeviceId(b.getId());
             b1Lp1.setVlanId(vlanId);
             b1Lp1 = dtoResource.postAndVerifyCreated(b.getPorts(),
-                    APPLICATION_PORT_JSON, b1Lp1, DtoInteriorBridgePort.class);
+                APPLICATION_PORT_V2_JSON, b1Lp1, DtoBridgePort.class);
 
-            // Create a Exterior bridge port
+            //Create exterior bridge port
             DtoBridgePort b1Mp1 = new DtoBridgePort();
             b1Mp1.setDeviceId(b.getId());
             b1Mp1.setInboundFilterId(c1.getId());
             b1Mp1.setOutboundFilterId(c2.getId());
             b1Mp1 = dtoResource.postAndVerifyCreated(b.getPorts(),
-                    APPLICATION_PORT_JSON, b1Mp1, DtoBridgePort.class);
+                APPLICATION_PORT_V2_JSON, b1Mp1, DtoBridgePort.class);
 
             // List ports
-            DtoBridgePort[] ports = dtoResource.getAndVerifyOk(b.getPorts(),
-                    APPLICATION_PORT_COLLECTION_JSON, DtoBridgePort[].class);
+            DtoBridgePort[] ports = dtoResource.getAndVerifyOk(
+                b.getPorts(), APPLICATION_PORT_V2_COLLECTION_JSON,
+                DtoBridgePort[].class);
             assertEquals(2, ports.length);
 
             // Update VIFs
@@ -363,12 +362,12 @@ public class TestPort {
             UUID vifId = UUID.randomUUID();
             b1Mp1.setVifId(vifId);
             b1Mp1 = dtoResource.putAndVerifyNoContent(b1Mp1.getUri(),
-                    APPLICATION_PORT_JSON, b1Mp1, DtoBridgePort.class);
+                APPLICATION_PORT_V2_JSON, b1Mp1, DtoBridgePort.class);
             assertEquals(vifId, b1Mp1.getVifId());
 
             b1Mp1.setVifId(null);
             b1Mp1 = dtoResource.putAndVerifyNoContent(b1Mp1.getUri(),
-                    APPLICATION_PORT_JSON, b1Mp1, DtoBridgePort.class);
+                APPLICATION_PORT_V2_JSON, b1Mp1, DtoBridgePort.class);
             assertNull(b1Mp1.getVifId());
 
             // Update chains
@@ -377,14 +376,14 @@ public class TestPort {
             b1Mp1.setInboundFilterId(null);
             b1Mp1.setOutboundFilterId(null);
             b1Mp1 = dtoResource.putAndVerifyNoContent(b1Mp1.getUri(),
-                    APPLICATION_PORT_JSON, b1Mp1, DtoBridgePort.class);
+                APPLICATION_PORT_V2_JSON, b1Mp1, DtoBridgePort.class);
             assertNull(b1Mp1.getInboundFilterId());
             assertNull(b1Mp1.getOutboundFilterId());
 
             b1Mp1.setInboundFilterId(c1.getId());
             b1Mp1.setOutboundFilterId(c2.getId());
             b1Mp1 = dtoResource.putAndVerifyNoContent(b1Mp1.getUri(),
-                    APPLICATION_PORT_JSON, b1Mp1, DtoBridgePort.class);
+                APPLICATION_PORT_V2_JSON, b1Mp1, DtoBridgePort.class);
             assertEquals(c1.getId(), b1Mp1.getInboundFilterId());
             assertEquals(c2.getId(), b1Mp1.getOutboundFilterId());
 
@@ -392,29 +391,30 @@ public class TestPort {
             b1Mp1.setInboundFilterId(c2.getId());
             b1Mp1.setOutboundFilterId(c1.getId());
             b1Mp1 = dtoResource.putAndVerifyNoContent(b1Mp1.getUri(),
-                    APPLICATION_PORT_JSON, b1Mp1, DtoBridgePort.class);
+                APPLICATION_PORT_V2_JSON, b1Mp1, DtoBridgePort.class);
             assertEquals(c2.getId(), b1Mp1.getInboundFilterId());
             assertEquals(c1.getId(), b1Mp1.getOutboundFilterId());
 
             // Delete the Interior port.
             dtoResource.deleteAndVerifyNoContent(b1Lp1.getUri(),
-                    APPLICATION_PORT_JSON);
+                APPLICATION_PORT_V2_JSON);
 
             // Make sure it's no longer there
             dtoResource.getAndVerifyNotFound(b1Lp1.getUri(),
-                    APPLICATION_PORT_JSON);
+                APPLICATION_PORT_V2_JSON);
 
             // Delete the mat port.
             dtoResource.deleteAndVerifyNoContent(b1Mp1.getUri(),
-                    APPLICATION_PORT_JSON);
+                APPLICATION_PORT_V2_JSON);
 
             // Make sure it's no longer there
             dtoResource.getAndVerifyNotFound(b1Mp1.getUri(),
-                    APPLICATION_PORT_JSON);
+                APPLICATION_PORT_V2_JSON);
 
             // List and make sure not port found
             ports = dtoResource.getAndVerifyOk(b.getPorts(),
-                    APPLICATION_PORT_COLLECTION_JSON, DtoBridgePort[].class);
+                APPLICATION_PORT_V2_COLLECTION_JSON,
+                DtoBridgePort[].class);
             assertEquals(0, ports.length);
         }
     }
@@ -472,48 +472,47 @@ public class TestPort {
 
         @Test
         public void testCrudRouterPort() {
-
             // Get the router and chains
             DtoRouter r = topology.getRouter("router1");
             DtoRuleChain c1 = topology.getChain("chain1");
             DtoRuleChain c2 = topology.getChain("chain2");
 
             // Create a Interior router port
-            DtoInteriorRouterPort r1Lp1 = createInteriorRouterPort(null,
-                                                                   r.getId(),
-                                                                   "10.0.0.0",
-                                                                   24,
-                                                                   "10.0.0.1");
+            DtoRouterPort r1Lp1 = createRouterPort(null,
+                r.getId(),
+                "10.0.0.0",
+                24,
+                "10.0.0.1");
             r1Lp1 = dtoResource.postAndVerifyCreated(r.getPorts(),
-                    APPLICATION_PORT_JSON, r1Lp1, DtoInteriorRouterPort.class);
+                APPLICATION_PORT_V2_JSON, r1Lp1, DtoRouterPort.class);
 
             // Create a Exterior router port
             UUID vifId = UUID.randomUUID();
-            DtoExteriorRouterPort r1Mp1 = createExteriorRouterPort(
-                    null, r.getId(), "10.0.0.0", 24, "10.0.0.1",
-                    vifId, c1.getId(), c2.getId());
+            DtoRouterPort r1Mp1 = createRouterPort(
+                null, r.getId(), "10.0.0.0", 24, "10.0.0.1",
+                vifId, c1.getId(), c2.getId());
             r1Mp1 = dtoResource.postAndVerifyCreated(r.getPorts(),
-                    APPLICATION_PORT_JSON, r1Mp1,
-                    DtoExteriorRouterPort.class);
+                APPLICATION_PORT_V2_JSON, r1Mp1,
+                DtoRouterPort.class);
             assertEquals(vifId, r1Mp1.getVifId());
 
             // List ports
             DtoRouterPort[] ports = dtoResource.getAndVerifyOk(r.getPorts(),
-                    APPLICATION_PORT_COLLECTION_JSON, DtoRouterPort[].class);
+                APPLICATION_PORT_V2_COLLECTION_JSON, DtoRouterPort[].class);
             assertEquals(2, ports.length);
 
             // Update VIFs
             vifId = UUID.randomUUID();
             r1Mp1.setVifId(vifId);
             r1Mp1 = dtoResource.putAndVerifyNoContent(r1Mp1.getUri(),
-                    APPLICATION_PORT_JSON, r1Mp1,
-                    DtoExteriorRouterPort.class);
+                APPLICATION_PORT_V2_JSON, r1Mp1,
+                DtoRouterPort.class);
             assertEquals(vifId, r1Mp1.getVifId());
 
             r1Mp1.setVifId(null);
             r1Mp1 = dtoResource.putAndVerifyNoContent(r1Mp1.getUri(),
-                    APPLICATION_PORT_JSON, r1Mp1,
-                    DtoExteriorRouterPort.class);
+                APPLICATION_PORT_V2_JSON, r1Mp1,
+                DtoRouterPort.class);
             assertNull(r1Mp1.getVifId());
 
             // Update chains
@@ -522,17 +521,17 @@ public class TestPort {
             r1Mp1.setInboundFilterId(null);
             r1Mp1.setOutboundFilterId(null);
             r1Mp1 = dtoResource.putAndVerifyNoContent(r1Mp1.getUri(),
-                                                      APPLICATION_PORT_JSON,
-                                                      r1Mp1,
-                                                      DtoExteriorRouterPort.class);
+                APPLICATION_PORT_V2_JSON,
+                r1Mp1,
+                DtoRouterPort.class);
             assertNull(r1Mp1.getInboundFilterId());
             assertNull(r1Mp1.getOutboundFilterId());
 
             r1Mp1.setInboundFilterId(c1.getId());
             r1Mp1.setOutboundFilterId(c2.getId());
             r1Mp1 = dtoResource.putAndVerifyNoContent(r1Mp1.getUri(),
-                    APPLICATION_PORT_JSON, r1Mp1,
-                    DtoExteriorRouterPort.class);
+                APPLICATION_PORT_V2_JSON, r1Mp1,
+                DtoRouterPort.class);
             assertEquals(c1.getId(), r1Mp1.getInboundFilterId());
             assertEquals(c2.getId(), r1Mp1.getOutboundFilterId());
 
@@ -540,30 +539,128 @@ public class TestPort {
             r1Mp1.setInboundFilterId(c2.getId());
             r1Mp1.setOutboundFilterId(c1.getId());
             r1Mp1 = dtoResource.putAndVerifyNoContent(r1Mp1.getUri(),
-                    APPLICATION_PORT_JSON, r1Mp1,
-                    DtoExteriorRouterPort.class);
+                APPLICATION_PORT_V2_JSON, r1Mp1,
+                DtoRouterPort.class);
             assertEquals(c2.getId(), r1Mp1.getInboundFilterId());
             assertEquals(c1.getId(), r1Mp1.getOutboundFilterId());
 
             // Delete the Interior port.
             dtoResource.deleteAndVerifyNoContent(r1Lp1.getUri(),
-                                                 APPLICATION_PORT_JSON);
+                APPLICATION_PORT_V2_JSON);
 
             // Make sure it's no longer there
             dtoResource.getAndVerifyNotFound(r1Lp1.getUri(),
-                                             APPLICATION_PORT_JSON);
+                APPLICATION_PORT_V2_JSON);
 
             // Delete the mat port.
             dtoResource.deleteAndVerifyNoContent(r1Mp1.getUri(),
-                                                 APPLICATION_PORT_JSON);
+                APPLICATION_PORT_V2_JSON);
 
             // Make sure it's no longer there
             dtoResource.getAndVerifyNotFound(r1Mp1.getUri(),
-                                             APPLICATION_PORT_JSON);
+                APPLICATION_PORT_V2_JSON);
 
             // List and make sure not port found
             ports = dtoResource.getAndVerifyOk(r.getPorts(),
-                    APPLICATION_PORT_COLLECTION_JSON, DtoRouterPort[].class);
+                APPLICATION_PORT_V2_COLLECTION_JSON, DtoRouterPort[].class);
+            assertEquals(0, ports.length);
+        }
+
+        @Test
+        @Deprecated
+        public void testCrudDeprecatedV1RouterPort() {
+
+            // Get the router and chains
+            DtoRouter r = topology.getRouter("router1");
+            DtoRuleChain c1 = topology.getChain("chain1");
+            DtoRuleChain c2 = topology.getChain("chain2");
+
+            // Create a Interior router port
+            DtoRouterPort r1Lp1 = createRouterPort(null,
+                                                                   r.getId(),
+                                                                   "10.0.0.0",
+                                                                   24,
+                                                                   "10.0.0.1");
+            r1Lp1 = dtoResource.postAndVerifyCreated(r.getPorts(),
+                    APPLICATION_PORT_V2_JSON, r1Lp1, DtoRouterPort.class);
+
+            // Create a Exterior router port
+            UUID vifId = UUID.randomUUID();
+            DtoRouterPort r1Mp1 = createRouterPort(
+                    null, r.getId(), "10.0.0.0", 24, "10.0.0.1",
+                    vifId, c1.getId(), c2.getId());
+            r1Mp1 = dtoResource.postAndVerifyCreated(r.getPorts(),
+                    APPLICATION_PORT_V2_JSON, r1Mp1,
+                    DtoRouterPort.class);
+            assertEquals(vifId, r1Mp1.getVifId());
+
+            // List ports
+            DtoRouterPort[] ports = dtoResource.getAndVerifyOk(r.getPorts(),
+                    APPLICATION_PORT_V2_COLLECTION_JSON, DtoRouterPort[].class);
+            assertEquals(2, ports.length);
+
+            // Update VIFs
+            vifId = UUID.randomUUID();
+            r1Mp1.setVifId(vifId);
+            r1Mp1 = dtoResource.putAndVerifyNoContent(r1Mp1.getUri(),
+                    APPLICATION_PORT_V2_JSON, r1Mp1,
+                    DtoRouterPort.class);
+            assertEquals(vifId, r1Mp1.getVifId());
+
+            r1Mp1.setVifId(null);
+            r1Mp1 = dtoResource.putAndVerifyNoContent(r1Mp1.getUri(),
+                    APPLICATION_PORT_V2_JSON, r1Mp1,
+                    DtoRouterPort.class);
+            assertNull(r1Mp1.getVifId());
+
+            // Update chains
+            assertNotNull(r1Mp1.getInboundFilterId());
+            assertNotNull(r1Mp1.getOutboundFilterId());
+            r1Mp1.setInboundFilterId(null);
+            r1Mp1.setOutboundFilterId(null);
+            r1Mp1 = dtoResource.putAndVerifyNoContent(r1Mp1.getUri(),
+                                                      APPLICATION_PORT_V2_JSON,
+                                                      r1Mp1,
+                                                      DtoRouterPort.class);
+            assertNull(r1Mp1.getInboundFilterId());
+            assertNull(r1Mp1.getOutboundFilterId());
+
+            r1Mp1.setInboundFilterId(c1.getId());
+            r1Mp1.setOutboundFilterId(c2.getId());
+            r1Mp1 = dtoResource.putAndVerifyNoContent(r1Mp1.getUri(),
+                    APPLICATION_PORT_V2_JSON, r1Mp1,
+                    DtoRouterPort.class);
+            assertEquals(c1.getId(), r1Mp1.getInboundFilterId());
+            assertEquals(c2.getId(), r1Mp1.getOutboundFilterId());
+
+            // Swap
+            r1Mp1.setInboundFilterId(c2.getId());
+            r1Mp1.setOutboundFilterId(c1.getId());
+            r1Mp1 = dtoResource.putAndVerifyNoContent(r1Mp1.getUri(),
+                    APPLICATION_PORT_V2_JSON, r1Mp1,
+                    DtoRouterPort.class);
+            assertEquals(c2.getId(), r1Mp1.getInboundFilterId());
+            assertEquals(c1.getId(), r1Mp1.getOutboundFilterId());
+
+            // Delete the Interior port.
+            dtoResource.deleteAndVerifyNoContent(r1Lp1.getUri(),
+                                                 APPLICATION_PORT_V2_JSON);
+
+            // Make sure it's no longer there
+            dtoResource.getAndVerifyNotFound(r1Lp1.getUri(),
+                                             APPLICATION_PORT_V2_JSON);
+
+            // Delete the mat port.
+            dtoResource.deleteAndVerifyNoContent(r1Mp1.getUri(),
+                                                 APPLICATION_PORT_V2_JSON);
+
+            // Make sure it's no longer there
+            dtoResource.getAndVerifyNotFound(r1Mp1.getUri(),
+                                             APPLICATION_PORT_V2_JSON);
+
+            // List and make sure not port found
+            ports = dtoResource.getAndVerifyOk(r.getPorts(),
+                    APPLICATION_PORT_V2_COLLECTION_JSON, DtoRouterPort[].class);
             assertEquals(0, ports.length);
         }
     }
@@ -598,37 +695,37 @@ public class TestPort {
             b1.setTenantId("tenant1-id");
 
             // Create a Interior router1 port
-            DtoInteriorRouterPort r1Lp1 = createInteriorRouterPort(null, null,
-                    "10.0.0.0", 24, "10.0.0.1");
+            DtoRouterPort r1Lp1 = createRouterPort(null, null,
+                "10.0.0.0", 24, "10.0.0.1");
 
             // Create another Interior router1 port
-            DtoInteriorRouterPort r1Lp2 = createInteriorRouterPort(null, null,
-                    "192.168.0.0", 24, "192.168.0.1");
+            DtoRouterPort r1Lp2 = createRouterPort(null, null,
+                "192.168.0.0", 24, "192.168.0.1");
 
             // Create a Interior router2 port
-            DtoInteriorRouterPort r2Lp1 = createInteriorRouterPort(null, null,
-                    "10.0.1.0", 24, "10.0.1.1");
+            DtoRouterPort r2Lp1 = createRouterPort(null, null,
+                "10.0.1.0", 24, "10.0.1.1");
 
             // Create another Interior router2 port
-            DtoInteriorRouterPort r2Lp2 = createInteriorRouterPort(null, null,
-                                                                   "192.168.1.0",
-                                                                   24,
-                                                                   "192.168.1.1");
+            DtoRouterPort r2Lp2 = createRouterPort(null, null,
+                "192.168.1.0",
+                24,
+                "192.168.1.1");
 
 
             topology = new Topology.Builder(dtoResource)
-                    .create("router1", r1)
-                    .create("router2", r2)
-                    .create("bridge1", b1)
-                    .create("router1", "router1Port1", r1Lp1)
-                    .create("router1", "router1Port2", r1Lp2)
-                    .create("router2", "router2Port1", r2Lp1)
-                    .create("router2", "router2Port2", r2Lp2)
-                    .create("bridge1", "bridge1Port1",
-                            new DtoInteriorBridgePort())
-                    .create("bridge1", "bridge1Port2",
-                            new DtoInteriorBridgePort())
-                    .build();
+                .create("router1", r1)
+                .create("router2", r2)
+                .create("bridge1", b1)
+                .create("router1", "router1Port1", r1Lp1)
+                .create("router1", "router1Port2", r1Lp2)
+                .create("router2", "router2Port1", r2Lp1)
+                .create("router2", "router2Port2", r2Lp2)
+                .create("bridge1", "bridge1Port1",
+                    new DtoBridgePort())
+                .create("bridge1", "bridge1Port2",
+                    new DtoBridgePort())
+                .build();
         }
 
         @After
@@ -642,59 +739,59 @@ public class TestPort {
             DtoRouter router1 = topology.getRouter("router1");
             DtoRouter router2 = topology.getRouter("router2");
             DtoBridge bridge1 = topology.getBridge("bridge1");
-            DtoInteriorRouterPort r1p1 = topology
-                    .getIntRouterPort("router1Port1");
-            DtoInteriorRouterPort r1p2 = topology
-                    .getIntRouterPort("router1Port2");
-            DtoInteriorRouterPort r2p1 = topology
-                    .getIntRouterPort("router2Port1");
-            DtoInteriorRouterPort r2p2 = topology
-                    .getIntRouterPort("router2Port2");
-            DtoInteriorBridgePort b1p1 = topology
-                    .getIntBridgePort("bridge1Port1");
-            DtoInteriorBridgePort b1p2 = topology
-                    .getIntBridgePort("bridge1Port2");
+            DtoRouterPort r1p1 = topology
+                .getRouterPort("router1Port1");
+            DtoRouterPort r1p2 = topology
+                .getRouterPort("router1Port2");
+            DtoRouterPort r2p1 = topology
+                .getRouterPort("router2Port1");
+            DtoRouterPort r2p2 = topology
+                .getRouterPort("router2Port2");
+            DtoBridgePort b1p1 = topology
+                .getBridgePort("bridge1Port1");
+            DtoBridgePort b1p2 = topology
+                .getBridgePort("bridge1Port2");
 
             // Link router1 and router2
             DtoLink link = new DtoLink();
             link.setPeerId(r2p1.getId());
             dtoResource
-                    .postAndVerifyStatus(r1p1.getLink(),
-                            APPLICATION_PORT_LINK_JSON, link,
-                            Response.Status.CREATED.getStatusCode());
+                .postAndVerifyStatus(r1p1.getLink(),
+                    APPLICATION_PORT_LINK_JSON, link,
+                    Response.Status.CREATED.getStatusCode());
 
             // Link router1 and bridge1
             link = new DtoLink();
             link.setPeerId(b1p1.getId());
             dtoResource
-                    .postAndVerifyStatus(r1p2.getLink(),
-                            APPLICATION_PORT_LINK_JSON, link,
-                            Response.Status.CREATED.getStatusCode());
+                .postAndVerifyStatus(r1p2.getLink(),
+                    APPLICATION_PORT_LINK_JSON, link,
+                    Response.Status.CREATED.getStatusCode());
 
             // Link bridge1 and router2
             link = new DtoLink();
             link.setPeerId(r2p2.getId());
             dtoResource
-                    .postAndVerifyStatus(b1p2.getLink(),
-                            APPLICATION_PORT_LINK_JSON, link,
-                            Response.Status.CREATED.getStatusCode());
+                .postAndVerifyStatus(b1p2.getLink(),
+                    APPLICATION_PORT_LINK_JSON, link,
+                    Response.Status.CREATED.getStatusCode());
 
             // Get the peers
             DtoPort[] ports = dtoResource.getAndVerifyOk(
-                    router1.getPeerPorts(), APPLICATION_PORT_COLLECTION_JSON,
-                    DtoPort[].class);
+                router1.getPeerPorts(), APPLICATION_PORT_V2_COLLECTION_JSON,
+                DtoPort[].class);
             assertNotNull(ports);
             assertEquals(2, ports.length);
 
             // Get the peers of router2
             ports = dtoResource.getAndVerifyOk(router2.getPeerPorts(),
-                    APPLICATION_PORT_COLLECTION_JSON, DtoPort[].class);
+                APPLICATION_PORT_V2_COLLECTION_JSON, DtoPort[].class);
             assertNotNull(ports);
             assertEquals(2, ports.length);
 
             // Get the peers of bridge1
             ports = dtoResource.getAndVerifyOk(bridge1.getPeerPorts(),
-                    APPLICATION_PORT_COLLECTION_JSON, DtoPort[].class);
+                APPLICATION_PORT_V2_COLLECTION_JSON, DtoPort[].class);
             assertNotNull(ports);
             assertEquals(2, ports.length);
 
@@ -702,49 +799,51 @@ public class TestPort {
             link = new DtoLink();
             link.setPeerId(r2p1.getId());
             dtoResource.postAndVerifyBadRequest(r1p1.getLink(),
-                    APPLICATION_PORT_LINK_JSON, link);
+                APPLICATION_PORT_LINK_JSON, link);
             link = new DtoLink();
             link.setPeerId(r2p1.getId());
             dtoResource.postAndVerifyBadRequest(b1p2.getLink(),
-                    APPLICATION_PORT_LINK_JSON, link);
+                APPLICATION_PORT_LINK_JSON, link);
 
             // Cannot delete linked ports
-            dtoResource.deleteAndVerifyBadRequest(r1p1.getUri(), APPLICATION_PORT_JSON);
-            dtoResource.deleteAndVerifyBadRequest(b1p1.getUri(), APPLICATION_PORT_JSON);
+            dtoResource.deleteAndVerifyBadRequest(r1p1.getUri(),
+                APPLICATION_PORT_V2_JSON);
+            dtoResource.deleteAndVerifyBadRequest(b1p1.getUri(),
+                APPLICATION_PORT_V2_JSON);
 
             // Unlink
             dtoResource.deleteAndVerifyStatus(r1p1.getLink(),
-                    APPLICATION_PORT_LINK_JSON,
-                    Response.Status.NO_CONTENT.getStatusCode());
+                APPLICATION_PORT_LINK_JSON,
+                Response.Status.NO_CONTENT.getStatusCode());
             dtoResource.deleteAndVerifyStatus(r1p2.getLink(),
-                    APPLICATION_PORT_LINK_JSON,
-                    Response.Status.NO_CONTENT.getStatusCode());
+                APPLICATION_PORT_LINK_JSON,
+                Response.Status.NO_CONTENT.getStatusCode());
             dtoResource.deleteAndVerifyStatus(b1p1.getLink(),
-                    APPLICATION_PORT_LINK_JSON,
-                    Response.Status.NO_CONTENT.getStatusCode());
+                APPLICATION_PORT_LINK_JSON,
+                Response.Status.NO_CONTENT.getStatusCode());
             dtoResource.deleteAndVerifyStatus(b1p2.getLink(),
-                    APPLICATION_PORT_LINK_JSON,
-                    Response.Status.NO_CONTENT.getStatusCode());
+                APPLICATION_PORT_LINK_JSON,
+                Response.Status.NO_CONTENT.getStatusCode());
             dtoResource.deleteAndVerifyStatus(r2p1.getLink(),
-                    APPLICATION_PORT_LINK_JSON,
-                    Response.Status.NO_CONTENT.getStatusCode());
+                APPLICATION_PORT_LINK_JSON,
+                Response.Status.NO_CONTENT.getStatusCode());
             dtoResource.deleteAndVerifyStatus(r2p2.getLink(),
-                    APPLICATION_PORT_LINK_JSON,
-                    Response.Status.NO_CONTENT.getStatusCode());
+                APPLICATION_PORT_LINK_JSON,
+                Response.Status.NO_CONTENT.getStatusCode());
 
             // Delete all the ports
             dtoResource.deleteAndVerifyNoContent(r1p1.getUri(),
-                    APPLICATION_PORT_JSON);
+                APPLICATION_PORT_V2_JSON);
             dtoResource.deleteAndVerifyNoContent(r1p2.getUri(),
-                    APPLICATION_PORT_JSON);
+                APPLICATION_PORT_V2_JSON);
             dtoResource.deleteAndVerifyNoContent(r2p1.getUri(),
-                    APPLICATION_PORT_JSON);
+                APPLICATION_PORT_V2_JSON);
             dtoResource.deleteAndVerifyNoContent(r2p2.getUri(),
-                    APPLICATION_PORT_JSON);
+                APPLICATION_PORT_V2_JSON);
             dtoResource.deleteAndVerifyNoContent(b1p1.getUri(),
-                    APPLICATION_PORT_JSON);
+                APPLICATION_PORT_V2_JSON);
             dtoResource.deleteAndVerifyNoContent(b1p2.getUri(),
-                    APPLICATION_PORT_JSON);
+                APPLICATION_PORT_V2_JSON);
         }
     }
 
@@ -769,7 +868,7 @@ public class TestPort {
             b1.setTenantId("tenant1-id");
 
             // Create a port
-            DtoBridgePort port1 = createExteriorBridgePort(null, null,
+            DtoBridgePort port1 = createBridgePort(null, null,
                     null, null, null);
 
             topology = new Topology.Builder(dtoResource)
@@ -785,14 +884,14 @@ public class TestPort {
         @Test
         public void testUpdate() throws Exception {
 
-            DtoBridgePort origPort = topology.getExtBridgePort("port1");
+            DtoBridgePort origPort = topology.getBridgePort("port1");
 
             assertNull(origPort.getVifId());
 
             origPort.setVifId(UUID.randomUUID());
             DtoBridgePort newPort = dtoResource.putAndVerifyNoContent(
                     origPort.getUri(),
-                    APPLICATION_PORT_JSON, origPort,
+                    APPLICATION_PORT_V2_JSON, origPort,
                     DtoBridgePort.class);
 
             assertEquals(origPort.getVifId(), newPort.getVifId());
@@ -826,7 +925,7 @@ public class TestPort {
             bg1.setTenantId("tenant1-id");
 
             // Create a port
-            DtoBridgePort bridgePort = createExteriorBridgePort(null,
+            DtoBridgePort bridgePort = createBridgePort(null,
                     null, null, null, null);
 
             topology = new Topology.Builder(dtoResource)
@@ -839,7 +938,7 @@ public class TestPort {
         public void testCrudSuccess() throws Exception {
 
             DtoPortGroup pg1 = topology.getPortGroup("pg1");
-            DtoBridgePort port1 = topology.getExtBridgePort("port1");
+            DtoBridgePort port1 = topology.getBridgePort("port1");
 
             // List and make sure there is no membership
             DtoPortGroupPort[] portGroupPorts = dtoResource.getAndVerifyOk(
@@ -864,10 +963,10 @@ public class TestPort {
             assertEquals(1, portGroupPorts.length);
 
             // List from port's URI
-            DtoPortGroup[] portGroups = dtoResource.getAndVerifyOk(
+            DtoPortGroupPort[] portGroups = dtoResource.getAndVerifyOk(
                     port1.getPortGroups(),
-                    APPLICATION_PORTGROUP_COLLECTION_JSON,
-                    DtoPortGroup[].class);
+                    APPLICATION_PORTGROUP_PORT_COLLECTION_JSON,
+                    DtoPortGroupPort[].class);
             assertEquals(1, portGroups.length);
 
             // Delete the membership
@@ -899,7 +998,7 @@ public class TestPort {
 
         private DtoRouter router1;
         private DtoBridge bridge1;
-        private DtoExteriorRouterPort port1;
+        private DtoRouterPort port1;
         private DtoBridgePort port2;
         private DtoHost host1, host2, host3;
         private DtoInterface interface1, interface2;
@@ -967,7 +1066,7 @@ public class TestPort {
             router1.setName("router1-name");
             router1.setTenantId("tenant1-id");
             // Create an exterior router port on the router.
-            port1 = createExteriorRouterPort(
+            port1 = createRouterPort(
                     UUID.randomUUID(), router1.getId(), "10.0.0.0", 24,
                     "10.0.0.1", null, null, null);
             // Creating the topology for the exterior **bridge** port and the
@@ -977,7 +1076,7 @@ public class TestPort {
             bridge1.setName("bridge1");
             bridge1.setTenantId("bridge1-name");
             // Create an exterior bridge port on the bridge.
-            port2 = createExteriorBridgePort(UUID.randomUUID(),
+            port2 = createBridgePort(UUID.randomUUID(),
                     bridge1.getId(), null, null, null);
             // Create a trunk port on the vlan bridge.
             topology = new Topology.Builder(dtoResource)
@@ -1009,8 +1108,8 @@ public class TestPort {
                                          });
             // Create a host that contains an interface bound to the bridge port.
             host3 = createHost(UUID.randomUUID(), "host3", true, null);
-            port1 = topology.getExtRouterPort("port1");
-            port2 = topology.getExtBridgePort("port2");
+            port1 = topology.getRouterPort("port1");
+            port2 = topology.getBridgePort("port2");
 
             // Create a host-interface-port binding finally.
             hostInterfacePort1 = createHostInterfacePort(
@@ -1052,34 +1151,36 @@ public class TestPort {
          */
         @Test
         public void testGetRouterPortHostInterfaceSuccess() throws Exception {
-            Map<UUID, DtoExteriorRouterPort> portMap =
-                    new HashMap<UUID, DtoExteriorRouterPort>();
+            Map<UUID, DtoRouterPort> portMap =
+                    new HashMap<UUID, DtoRouterPort>();
 
             DtoRouter router1 = topology.getRouter("router1");
-            DtoExteriorRouterPort[] routerPorts = dtoResource.getAndVerifyOk(
+            DtoRouterPort[] routerPorts = dtoResource.getAndVerifyOk(
                     router1.getPorts(),
-                    APPLICATION_PORT_COLLECTION_JSON,
-                    DtoExteriorRouterPort[].class);
+                    APPLICATION_PORT_V2_COLLECTION_JSON,
+                    DtoRouterPort[].class);
 
-            for (DtoExteriorRouterPort port : routerPorts) {
+            for (DtoRouterPort port : routerPorts) {
                 portMap.put(port.getId(), port);
             }
             assertThat("router1 should contain the only one port.",
                     portMap.size(), is(1));
             // Update port1 to reflect the host-interface-port binding.
             DtoPort updatedPort1 = dtoResource.getAndVerifyOk(port1.getUri(),
-                    APPLICATION_PORT_JSON, DtoExteriorRouterPort.class);
+                    APPLICATION_PORT_V2_JSON, DtoRouterPort.class);
             assertThat("port1 should not be the null value",
                     portMap.get(updatedPort1.getId()), not(nullValue()));
             assertThat("router1 should contain port1",
-                    portMap.get(updatedPort1.getId()), is(equalTo(updatedPort1)));
+                    portMap.get(updatedPort1.getId()),
+                    is(equalTo(updatedPort1)));
 
             DtoHostInterfacePort hostInterfacePortFromPort1 =
                     dtoResource.getAndVerifyOk(
                             updatedPort1.getHostInterfacePort(),
                             APPLICATION_HOST_INTERFACE_PORT_JSON,
                             DtoHostInterfacePort.class);
-            assertThat("router1 should contain the host-interface-port binding.",
+            assertThat(
+                    "router1 should contain the host-interface-port binding.",
                     hostInterfacePort1, is(notNullValue()));
             DtoHostInterfacePort hostInterfacePort1 =
                     hostTopology.getHostInterfacePort(
@@ -1097,12 +1198,13 @@ public class TestPort {
          */
         @Test
         public void testGetBridgePortHostInterfaceSuccess() throws Exception {
-            Map<UUID, DtoBridgePort> portMap = new HashMap<UUID, DtoBridgePort>();
+            Map<UUID, DtoBridgePort> portMap =
+                    new HashMap<UUID, DtoBridgePort>();
 
             DtoBridge bridge1 = topology.getBridge("bridge1");
             DtoBridgePort[] bridgePorts = dtoResource.getAndVerifyOk(
                     bridge1.getPorts(),
-                    APPLICATION_PORT_COLLECTION_JSON,
+                    APPLICATION_PORT_V2_COLLECTION_JSON,
                     DtoBridgePort[].class);
 
             for (DtoBridgePort port : bridgePorts) {
@@ -1111,18 +1213,21 @@ public class TestPort {
             assertThat("bridge1 should contain the only one port.",
                     portMap.size(), is(1));
             // Update port1 to reflect the host-interface-port binding.
-            DtoBridgePort updatedPort2 = dtoResource.getAndVerifyOk(port2.getUri(),
-                    APPLICATION_PORT_JSON, DtoBridgePort.class);
+            DtoBridgePort updatedPort2 = dtoResource.getAndVerifyOk(
+                    port2.getUri(),
+                    APPLICATION_PORT_V2_JSON, DtoBridgePort.class);
             assertThat("bridge1 should not be the null value",
                     portMap.get(updatedPort2.getId()), is(notNullValue()));
             assertThat("bridge1 should contain port1",
-                    portMap.get(updatedPort2.getId()), is(equalTo(updatedPort2)));
+                    portMap.get(updatedPort2.getId()),
+                    is(equalTo(updatedPort2)));
             DtoHostInterfacePort hostInterfacePortFromPort2 =
                     dtoResource.getAndVerifyOk(
                             updatedPort2.getHostInterfacePort(),
                             APPLICATION_HOST_INTERFACE_PORT_JSON,
                             DtoHostInterfacePort.class);
-            assertThat("bridge1 should contain the host-interface-port binding.",
+            assertThat(
+                    "bridge1 should contain the host-interface-port binding.",
                     hostInterfacePort2, is(notNullValue()));
             DtoHostInterfacePort hostInterfacePort2 =
                     hostTopology.getHostInterfacePort(

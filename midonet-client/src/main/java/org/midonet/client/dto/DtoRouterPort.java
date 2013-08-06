@@ -4,12 +4,17 @@
 
 package org.midonet.client.dto;
 
-public abstract class DtoRouterPort extends DtoPort {
-    private String networkAddress = null;
-    private int networkLength;
-    private String portAddress = null;
-    private String portMac = null;
+import java.net.URI;
 
+public class DtoRouterPort extends DtoPort {
+
+    private String networkAddress;
+    private int networkLength;
+    private String portAddress;
+    private String portMac;
+    private URI bgps;
+
+    @Override
     public String getNetworkAddress() {
         return networkAddress;
     }
@@ -18,6 +23,7 @@ public abstract class DtoRouterPort extends DtoPort {
         this.networkAddress = networkAddress;
     }
 
+    @Override
     public int getNetworkLength() {
         return networkLength;
     }
@@ -26,6 +32,7 @@ public abstract class DtoRouterPort extends DtoPort {
         this.networkLength = networkLength;
     }
 
+    @Override
     public String getPortAddress() {
         return portAddress;
     }
@@ -34,12 +41,27 @@ public abstract class DtoRouterPort extends DtoPort {
         this.portAddress = portAddress;
     }
 
+    @Override
     public String getPortMac() {
         return portMac;
     }
 
     public void setPortMac(String portMac) {
         this.portMac = portMac;
+    }
+
+    @Override
+    public URI getBgps() {
+        return this.bgps;
+    }
+
+    public void setBgps(URI bgps) {
+        this.bgps = bgps;
+    }
+
+    @Override
+    public String getType() {
+        return PortType.ROUTER;
     }
 
     @Override
@@ -67,6 +89,10 @@ public abstract class DtoRouterPort extends DtoPort {
 
         if (portMac != null ? !portMac.equals(port.portMac)
                 : port.portMac != null) {
+            return false;
+        }
+
+        if (bgps != null ? !bgps.equals(port.bgps) : port.bgps != null) {
             return false;
         }
 

@@ -4,24 +4,26 @@
 package org.midonet.cluster.data.ports;
 
 import java.util.Random;
+import java.util.Set;
 import java.util.UUID;
 
+import org.midonet.cluster.data.BGP;
 import org.midonet.cluster.data.Port;
 import org.midonet.packets.MAC;
 import org.midonet.packets.Net;
+
+import javax.annotation.Nonnull;
 
 
 /**
  * Basic abstraction for a Router Port.
  */
-public abstract class RouterPort<
-    PortData extends RouterPort.Data,
-    Self extends RouterPort<PortData, Self>
-    > extends Port<PortData, Self> {
-
+public class RouterPort
+        extends Port<RouterPort.Data, RouterPort>
+{
     public static Random rand = new Random(System.currentTimeMillis());
 
-    protected RouterPort(UUID routerId, UUID uuid, PortData portData){
+    public RouterPort(UUID routerId, UUID uuid, Data portData){
         super(uuid, portData);
         if (getData() != null && routerId != null)
             setDeviceId(routerId);
@@ -29,6 +31,18 @@ public abstract class RouterPort<
         if (getData() != null && portData.hwAddr == null) {
             setHwAddr(generateHwAddr());
         }
+    }
+
+    public RouterPort(UUID uuid, Data data) {
+        this(null, uuid, data);
+    }
+
+    public RouterPort(@Nonnull Data data) {
+        this(null, null, data);
+    }
+
+    public RouterPort() {
+        this(null, null, new Data());
     }
 
     private MAC generateHwAddr() {
@@ -43,36 +57,45 @@ public abstract class RouterPort<
         return Net.convertIntAddressToString(getData().nwAddr);
     }
 
-    public Self setNwAddr(String nwAddr) {
+    public RouterPort setNwAddr(String nwAddr) {
         getData().nwAddr = Net.convertStringAddressToInt(nwAddr);
-        return self();
+        return this;
     }
 
     public int getNwLength() {
         return getData().nwLength;
     }
 
-    public Self setNwLength(int nwLength) {
+    public RouterPort setNwLength(int nwLength) {
         getData().nwLength = nwLength;
-        return self();
+        return this;
     }
 
     public String getPortAddr() {
         return Net.convertIntAddressToString(getData().portAddr);
     }
 
-    public Self setPortAddr(String portAddr) {
+    public RouterPort setPortAddr(String portAddr) {
         getData().portAddr = Net.convertStringAddressToInt(portAddr);
-        return self();
+        return this;
     }
 
     public MAC getHwAddr() {
         return getData().hwAddr;
     }
 
-    public Self setHwAddr(MAC hwAddr) {
+    public RouterPort setHwAddr(MAC hwAddr) {
         getData().hwAddr = hwAddr;
-        return self();
+        return this;
+    }
+
+    @Override
+    protected RouterPort self() {
+        return this;
+    }
+
+    public Set<BGP> getBgps() {
+        return getData().bgps;
     }
 
     public static class Data extends Port.Data {
@@ -80,6 +103,7 @@ public abstract class RouterPort<
         public int nwLength;
         public int portAddr;
         public MAC hwAddr;
+        public transient Set<BGP> bgps;
 
         @Override
         public boolean equals(Object o) {
@@ -96,6 +120,8 @@ public abstract class RouterPort<
             if (hwAddr != null ? !hwAddr.equals(
                 data.hwAddr) : data.hwAddr != null)
                 return false;
+            if (bgps != null ? !bgps.equals(data.bgps) : data.bgps != null)
+                return false;
 
             return true;
         }
@@ -107,6 +133,7 @@ public abstract class RouterPort<
             result = 31 * result + nwLength;
             result = 31 * result + portAddr;
             result = 31 * result + (hwAddr != null ? hwAddr.hashCode() : 0);
+            result = 31 * result + (bgps != null ? bgps.hashCode() : 0);
             return result;
         }
     }

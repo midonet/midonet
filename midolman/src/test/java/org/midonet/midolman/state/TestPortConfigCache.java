@@ -16,7 +16,6 @@ import org.midonet.midolman.Setup;
 import org.midonet.midolman.guice.serialization.SerializationModule;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
-import org.midonet.midolman.state.PortDirectory.MaterializedBridgePortConfig;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager;
 import org.midonet.midolman.state.zkManagers.PortGroupZkManager;
 import org.midonet.midolman.state.zkManagers.PortZkManager;
@@ -136,7 +135,7 @@ public class TestPortConfigCache {
     @Test
     public void testExistingPortID() throws StateAccessException,
             SerializationException {
-        PortConfig config = new MaterializedBridgePortConfig(bridgeID);
+        PortConfig config = new PortDirectory.BridgePortConfig(bridgeID);
         config.outboundFilter = UUID.randomUUID();
         config.portGroupIDs = new HashSet<UUID>();
         config.portGroupIDs.add(portGroupID);
@@ -151,9 +150,9 @@ public class TestPortConfigCache {
                 cachedConfig, equalTo(zkConfig));
     }
 
-    private MaterializedBridgePortConfig getNewConfig(int greKey) {
-        MaterializedBridgePortConfig config =
-                new MaterializedBridgePortConfig(bridgeID);
+    private PortDirectory.BridgePortConfig getNewConfig(int greKey) {
+        PortDirectory.BridgePortConfig config =
+                new PortDirectory.BridgePortConfig(bridgeID);
         config.tunnelKey = greKey;
         config.inboundFilter = UUID.randomUUID();
         config.outboundFilter = UUID.randomUUID();

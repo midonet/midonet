@@ -24,7 +24,7 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
 
 import org.midonet.midolman.topology.LocalPortActive;
-import org.midonet.client.dto.DtoExteriorRouterPort;
+import org.midonet.client.dto.DtoRouterPort;
 import org.midonet.client.dto.DtoRoute;
 import org.midonet.client.resource.ResourceCollection;
 import org.midonet.client.resource.Route;
@@ -54,8 +54,8 @@ public class LinksTest extends TestBase {
 
     final String TENANT_NAME = "tenant-link";
     Router rtr;
-    RouterPort<DtoExteriorRouterPort> rtrPort1;
-    RouterPort<DtoExteriorRouterPort> rtrPort2;
+    RouterPort rtrPort1;
+    RouterPort rtrPort2;
 
     TapWrapper tap1;
     TapWrapper tap2;
@@ -81,7 +81,7 @@ public class LinksTest extends TestBase {
         rtr = apiClient.addRouter().tenantId(TENANT_NAME)
                        .name("rtr1").create();
         // Add a exterior port.
-        rtrPort1 = rtr.addExteriorRouterPort()
+        rtrPort1 = rtr.addPort()
                       .portAddress(rtrIp1.toUnicastString())
                       .networkAddress(rtrIp1.toNetworkAddress().toString())
                       .networkLength(rtrIp1.getPrefixLen())
@@ -94,7 +94,7 @@ public class LinksTest extends TestBase {
            .type(DtoRoute.Normal).weight(10).create();
 
         // Add a interior port to the router.
-        rtrPort2 = rtr.addExteriorRouterPort()
+        rtrPort2 = rtr.addPort()
                       .portAddress(rtrIp2.toUnicastString())
                       .networkAddress(rtrIp2.toNetworkAddress().toString())
                       .networkLength(rtrIp2.getPrefixLen())

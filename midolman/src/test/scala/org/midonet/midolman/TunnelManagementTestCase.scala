@@ -18,10 +18,10 @@ import org.midonet.midolman.topology.rcu.{Host => RCUHost}
 import org.midonet.cluster.data.zones.{GreTunnelZone, GreTunnelZoneHost}
 import org.midonet.odp.ports.{NetDevPort, GreTunnelPort}
 import org.midonet.packets.{IPv4Addr, IntIPv4}
-import org.midonet.cluster.data.ports.MaterializedBridgePort
 import org.midonet.cluster.data.Bridge
 import org.midonet.cluster.data.host.Host
 import akka.testkit.TestProbe
+import org.midonet.cluster.data.ports.BridgePort
 
 
 @RunWith(classOf[JUnitRunner])
@@ -34,7 +34,7 @@ class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers with
     var host1: Host = null
     var host2: Host = null
     var bridge: Bridge = null
-    var portOnHost1: MaterializedBridgePort = null
+    var portOnHost1: BridgePort = null
 
     var portChangedProbe: TestProbe = null
     var portActiveProbe: TestProbe = null
@@ -53,7 +53,7 @@ class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers with
 
         bridge = newBridge("bridge")
 
-        portOnHost1 = newExteriorBridgePort(bridge)
+        portOnHost1 = newBridgePort(bridge)
 
         materializePort(portOnHost1, host1, "port1")
 

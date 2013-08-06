@@ -13,6 +13,7 @@ import org.midonet.api.auth.AuthRole;
 import org.midonet.api.auth.Authorizer;
 import org.midonet.api.auth.ForbiddenHttpException;
 import org.midonet.api.network.PortGroup;
+import org.midonet.api.network.PortGroupPort;
 import org.midonet.api.network.auth.PortAuthorizer;
 import org.midonet.api.network.auth.PortGroupAuthorizer;
 import org.midonet.api.rest_api.*;
@@ -268,9 +269,9 @@ public class PortGroupResource extends AbstractResource {
          */
         @GET
         @PermitAll
-        @Produces({ VendorMediaType.APPLICATION_PORTGROUP_COLLECTION_JSON,
+        @Produces({ VendorMediaType.APPLICATION_PORTGROUP_PORT_COLLECTION_JSON,
                 MediaType.APPLICATION_JSON })
-        public List<PortGroup> list() throws StateAccessException,
+        public List<PortGroupPort> list() throws StateAccessException,
                 SerializationException {
 
             if (!portAuthorizer.authorize(context, AuthAction.READ, portId)) {
@@ -280,11 +281,13 @@ public class PortGroupResource extends AbstractResource {
             List<org.midonet.cluster.data.PortGroup> portGroupDataList =
                     dataClient.portGroupsFindByPort(portId);
 
-            List<PortGroup> portGroups = new ArrayList<PortGroup>();
+            List<PortGroupPort> portGroups = new ArrayList<>();
             if (portGroupDataList != null) {
                 for (org.midonet.cluster.data.PortGroup portGroupData :
                         portGroupDataList) {
-                    PortGroup portGroup = new PortGroup(portGroupData);
+                    PortGroupPort portGroup = new PortGroupPort();
+                    portGroup.setPortGroupId(portGroupData.getId());
+                    portGroup.setPortId(portId);
                     portGroup.setBaseUri(getBaseUri());
                     portGroups.add(portGroup);
                 }

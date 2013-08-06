@@ -329,15 +329,12 @@ class Coordinator(var origMatch: WildcardMatch,
     private def packetIngressesDevice(port: Port[_]): Future[SimulationResult] = {
         var deviceFuture: Future[Any] = null
         port match {
-            case _: BridgePort[_] =>
+            case _: BridgePort =>
                 deviceFuture = expiringAsk(
                     BridgeRequest(port.deviceID, update = false), expiry)
-            case _: RouterPort[_] =>
+            case _: RouterPort =>
                 deviceFuture = expiringAsk(
                     RouterRequest(port.deviceID, update = false), expiry)
-            case _: VlanBridgePort[_] =>
-                deviceFuture = expiringAsk(
-                    VlanBridgeRequest(port.deviceID, update = false), expiry)
             case _ =>
                 log.error("Port {} belongs to device {} which is neither a " +
                           "bridge, vlan-bridge, or router!", port, port.deviceID)
@@ -548,10 +545,8 @@ class Coordinator(var origMatch: WildcardMatch,
                 dropFlow(temporary = true)
             case Some(p) => p match {
                 case port: Port[_] =>
-                    if (getPortGroups &&
-                        port.isInstanceOf[ExteriorPort[_]]) {
-                        pktContext.setPortGroups(
-                            port.asInstanceOf[ExteriorPort[_]].portGroups)
+                    if (getPortGroups && port.isExterior) {
+                        pktContext.setPortGroups(port.portGroups)
                     }
 
                     pktContext.setInputPort(port)
@@ -625,15 +620,13 @@ class Coordinator(var origMatch: WildcardMatch,
                     pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(portID))
                     pktContext.setOutputPort(port.id)
                     applyPortFilter(port, port.outFilterID, {
-                        case _: ExteriorPort[_] =>
+                        case port: Port[_] if port.isExterior =>
                             emit(portID, isPortSet = false, port)
-                        case interiorPort: InteriorPort[_] =>
-                            packetIngressesPort(interiorPort.peerID,
-                                                getPortGroups = false)
+                        case port: Port[_] if port.isInterior =>
+                            packetIngressesPort(port.peerID,
+                                getPortGroups = false)
                         case _ =>
-                            log.error(
-                                "Port {} neither interior nor exterior port",
-                                port)
+                            log.warning("Port {} is unplugged", port)
                             dropFlow(temporary = true)
                     })
                 case _ =>

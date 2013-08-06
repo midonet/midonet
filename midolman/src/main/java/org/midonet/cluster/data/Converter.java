@@ -5,17 +5,16 @@ package org.midonet.cluster.data;
 
 import java.util.*;
 
+import org.midonet.cluster.Client;
 import org.midonet.cluster.data.Entity.TaggableEntity;
 import org.midonet.cluster.data.ports.LogicalVlanBridgePort;
 import org.midonet.cluster.data.ports.TrunkPort;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.state.PortConfig;
 import org.midonet.midolman.state.PortDirectory;
-import org.midonet.midolman.state.PortDirectory.LogicalBridgePortConfig;
+import org.midonet.midolman.state.PortDirectory.BridgePortConfig;
 import org.midonet.midolman.state.PortDirectory.LogicalVlanBridgePortConfig;
-import org.midonet.midolman.state.PortDirectory.LogicalRouterPortConfig;
-import org.midonet.midolman.state.PortDirectory.MaterializedBridgePortConfig;
-import org.midonet.midolman.state.PortDirectory.MaterializedRouterPortConfig;
+import org.midonet.midolman.state.PortDirectory.RouterPortConfig;
 import org.midonet.midolman.state.zkManagers.AdRouteZkManager.AdRouteConfig;
 import org.midonet.midolman.state.zkManagers.BridgeDhcpZkManager;
 import org.midonet.midolman.state.zkManagers.BridgeDhcpV6ZkManager;
@@ -30,10 +29,8 @@ import org.midonet.cluster.data.dhcp.Subnet;
 import org.midonet.cluster.data.dhcp.Subnet6;
 import org.midonet.cluster.data.dhcp.V6Host;
 import org.midonet.cluster.data.host.*;
-import org.midonet.cluster.data.ports.LogicalBridgePort;
-import org.midonet.cluster.data.ports.LogicalRouterPort;
-import org.midonet.cluster.data.ports.MaterializedBridgePort;
-import org.midonet.cluster.data.ports.MaterializedRouterPort;
+import org.midonet.cluster.data.ports.BridgePort;
+import org.midonet.cluster.data.ports.RouterPort;
 import org.midonet.cluster.data.rules.ForwardNatRule;
 import org.midonet.cluster.data.rules.JumpRule;
 import org.midonet.cluster.data.rules.LiteralRule;
@@ -64,8 +61,10 @@ public class Converter {
 
     }
 
-    public static VlanAwareBridgeZkManager.VlanBridgeConfig toVlanBridgeConfig(VlanAwareBridge bridge) {
-        VlanAwareBridgeZkManager.VlanBridgeConfig bridgeConfig = new VlanAwareBridgeZkManager.VlanBridgeConfig();
+    public static VlanAwareBridgeZkManager.VlanBridgeConfig
+        toVlanBridgeConfig(VlanAwareBridge bridge) {
+        VlanAwareBridgeZkManager.VlanBridgeConfig bridgeConfig =
+                new VlanAwareBridgeZkManager.VlanBridgeConfig();
 
         bridgeConfig.setName(bridge.getName());
         bridgeConfig.setTunnelKey(bridge.getTunnelKey());
@@ -74,7 +73,8 @@ public class Converter {
         return bridgeConfig;
     }
 
-    public static VlanAwareBridge fromVLANBridgeConfig(VlanAwareBridgeZkManager.VlanBridgeConfig bridge) {
+    public static VlanAwareBridge
+    fromVLANBridgeConfig(VlanAwareBridgeZkManager.VlanBridgeConfig bridge) {
         if (bridge == null)
             return null;
 
@@ -151,91 +151,54 @@ public class Converter {
     public static PortConfig toPortConfig(Port port) {
 
         PortConfig portConfig = null;
-        if (port instanceof MaterializedBridgePort) {
-            MaterializedBridgePort typedPort =
-                    (MaterializedBridgePort) port;
-
-            MaterializedBridgePortConfig typedPortConfig =
-                    new MaterializedBridgePortConfig();
-
+        if (port instanceof BridgePort) {
+            BridgePort typedPort = (BridgePort) port;
+            BridgePortConfig typedPortConfig = new BridgePortConfig();
             typedPortConfig.setHostId(typedPort.getHostId());
             typedPortConfig.setInterfaceName(typedPort.getInterfaceName());
-
-            portConfig = typedPortConfig;
-        }
-
-        if (port instanceof LogicalBridgePort) {
-            LogicalBridgePort typedPort = (LogicalBridgePort) port;
-
-            LogicalBridgePortConfig typedPortConfig =
-                    new LogicalBridgePortConfig();
-
             typedPortConfig.setPeerId(typedPort.getPeerId());
             typedPortConfig.setVlanId(typedPort.getVlanId());
 
+            if(typedPort.getProperty(Port.Property.v1PortType) != null) {
+                if(typedPort.getProperty(Port.Property.v1PortType)
+                        .equals(Client.PortType.ExteriorBridge.toString())) {
+                    typedPortConfig.setV1ApiType("ExteriorBridgePort");
+                } else if (typedPort.getProperty(Port.Property.v1PortType)
+                        .equals(Client.PortType.InteriorBridge.toString())) {
+                    typedPortConfig.setV1ApiType("InteriorBridgePort");
+                }
+            }
+
             portConfig = typedPortConfig;
         }
 
-        if (port instanceof LogicalVlanBridgePort) {
-            LogicalVlanBridgePort typedPort = (LogicalVlanBridgePort)port;
-            PortDirectory.LogicalVlanBridgePortConfig typedPortConfig =
-                new PortDirectory.LogicalVlanBridgePortConfig();
+        if (port instanceof RouterPort) {
+            RouterPort typedPort = (RouterPort) port;
+            RouterPortConfig routerPortConfig = new RouterPortConfig();
+            routerPortConfig.setHostId(typedPort.getHostId());
+            routerPortConfig.setInterfaceName(typedPort.getInterfaceName());
+            routerPortConfig.setBgps(typedPort.getBgps());
+            routerPortConfig.setPeerId(typedPort.getPeerId());
+            routerPortConfig.setHwAddr(typedPort.getHwAddr());
+            routerPortConfig.setPortAddr(typedPort.getPortAddr());
+            routerPortConfig.setNwAddr(typedPort.getNwAddr());
+            routerPortConfig.nwLength = typedPort.getNwLength();
 
-            typedPortConfig.setPeerId(typedPort.getPeerId());
-            typedPortConfig.setVlanId(typedPort.getVlanId());
+            if(typedPort.getProperty(Port.Property.v1PortType) != null) {
+                if(typedPort.getProperty(Port.Property.v1PortType)
+                        .equals(Client.PortType.ExteriorRouter.toString())) {
+                    routerPortConfig.setV1ApiType("ExteriorRouterPort");
+                } else if (typedPort.getProperty(Port.Property.v1PortType)
+                        .equals(Client.PortType.InteriorRouter.toString())) {
+                    routerPortConfig.setV1ApiType("InteriorRouterPort");
+                }
+            }
 
-            portConfig = typedPortConfig;
-
-        }
-
-        if (port instanceof TrunkPort) {
-            TrunkPort typedPort = (TrunkPort)port;
-            PortDirectory.TrunkVlanBridgePortConfig typedPortConfig =
-                new PortDirectory.TrunkVlanBridgePortConfig();
-
-            typedPortConfig.setInterfaceName(typedPort.getInterfaceName());
-            typedPortConfig.setHostId(typedPort.getHostId());
-
-            portConfig = typedPortConfig;
-
-        }
-
-        if (port instanceof MaterializedRouterPort) {
-            MaterializedRouterPort typedPort = (MaterializedRouterPort) port;
-
-            MaterializedRouterPortConfig typedPortConfig =
-                    new MaterializedRouterPortConfig();
-
-            portConfig = typedPortConfig;
-
-            typedPortConfig.setHostId(typedPort.getHostId());
-            typedPortConfig.setInterfaceName(typedPort.getInterfaceName());
-            typedPortConfig.setBgps(typedPort.getBgps());
-
-            typedPortConfig.setHwAddr(typedPort.getHwAddr());
-            typedPortConfig.setPortAddr(typedPort.getPortAddr());
-            typedPortConfig.setNwAddr(typedPort.getNwAddr());
-            typedPortConfig.nwLength = typedPort.getNwLength();
-        }
-
-        if (port instanceof LogicalRouterPort) {
-            LogicalRouterPort typedPort = (LogicalRouterPort) port;
-
-            LogicalRouterPortConfig typedPortConfig =
-                    new LogicalRouterPortConfig();
-
-            portConfig = typedPortConfig;
-
-            typedPortConfig.setPeerId(typedPort.getPeerId());
-
-            typedPortConfig.setHwAddr(typedPort.getHwAddr());
-            typedPortConfig.setPortAddr(typedPort.getPortAddr());
-            typedPortConfig.setNwAddr(typedPort.getNwAddr());
-            typedPortConfig.nwLength = typedPort.getNwLength();
+            portConfig = routerPortConfig;
         }
 
         if (portConfig == null)
-            return portConfig;
+            return null;
 
         portConfig.device_id = port.getDeviceId();
         portConfig.inboundFilter = port.getInboundFilter();
@@ -251,68 +214,47 @@ public class Converter {
 
         Port port = null;
 
-        if (portConfig instanceof LogicalVlanBridgePortConfig) {
-            LogicalVlanBridgePortConfig bridgePortConfig =
-                (LogicalVlanBridgePortConfig) portConfig;
-            LogicalVlanBridgePort bridgePort = new LogicalVlanBridgePort();
-            bridgePort.setPeerId(bridgePortConfig.peerId());
-            bridgePort.setVlanId(bridgePortConfig.vlanId());
-            port = bridgePort;
-        }
-
-        if (portConfig instanceof PortDirectory.TrunkVlanBridgePortConfig) {
-            PortDirectory.TrunkVlanBridgePortConfig bridgePortConfig =
-                (PortDirectory.TrunkVlanBridgePortConfig) portConfig;
-            TrunkPort bridgePort = new TrunkPort();
-
+        if (portConfig instanceof BridgePortConfig) {
+            BridgePortConfig bridgePortConfig =
+                    (BridgePortConfig) portConfig;
+            BridgePort bridgePort = new BridgePort();
+            bridgePort.setPeerId(bridgePortConfig.getPeerId());
+            bridgePort.setVlanId(bridgePortConfig.getVlanId());
             bridgePort.setHostId(bridgePortConfig.getHostId());
             bridgePort.setInterfaceName(bridgePortConfig.getInterfaceName());
+            if(portConfig.isExterior()
+                    || (portConfig.getV1ApiType() != null
+                        && portConfig.getV1ApiType()
+                           .equals("ExteriorBridgePort")))
+                bridgePort.setProperty(Port.Property.v1PortType,
+                        Client.PortType.ExteriorBridge.toString());
+            else
+                bridgePort.setProperty(Port.Property.v1PortType,
+                        Client.PortType.InteriorBridge.toString());
             port = bridgePort;
         }
 
-        if (portConfig instanceof LogicalBridgePortConfig) {
-            LogicalBridgePortConfig bridgePortConfig =
-                    (LogicalBridgePortConfig) portConfig;
-            LogicalBridgePort bridgePort = new LogicalBridgePort();
+        if (portConfig instanceof RouterPortConfig) {
+            RouterPortConfig routerPortConfig =
+                    (RouterPortConfig) portConfig;
 
-            bridgePort.setPeerId(bridgePortConfig.peerId());
-            bridgePort.setVlanId(bridgePortConfig.vlanId());
-            port = bridgePort;
-        }
-
-        if (portConfig instanceof MaterializedBridgePortConfig) {
-            MaterializedBridgePortConfig bridgePortConfig =
-                    (MaterializedBridgePortConfig) portConfig;
-            MaterializedBridgePort bridgePort = new MaterializedBridgePort();
-
-            bridgePort.setHostId(bridgePortConfig.getHostId());
-            bridgePort.setInterfaceName(bridgePortConfig.getInterfaceName());
-            port = bridgePort;
-        }
-
-        if (portConfig instanceof LogicalRouterPortConfig) {
-            LogicalRouterPortConfig routerPortConfig =
-                    (LogicalRouterPortConfig) portConfig;
-
-            port = new LogicalRouterPort()
-                    .setPeerId(routerPortConfig.peerId())
+            port = new RouterPort()
+                    .setPeerId(routerPortConfig.getPeerId())
                     .setNwAddr(routerPortConfig.getNwAddr())
                     .setNwLength(routerPortConfig.nwLength)
                     .setPortAddr(routerPortConfig.getPortAddr())
-                    .setHwAddr(routerPortConfig.getHwAddr());
-        }
-
-        if (portConfig instanceof MaterializedRouterPortConfig) {
-            MaterializedRouterPortConfig routerPortConfig =
-                    (MaterializedRouterPortConfig) portConfig;
-
-            port = new MaterializedRouterPort()
+                    .setHwAddr(routerPortConfig.getHwAddr())
                     .setHostId(routerPortConfig.getHostId())
-                    .setInterfaceName(routerPortConfig.getInterfaceName())
-                    .setNwAddr(routerPortConfig.getNwAddr())
-                    .setNwLength(routerPortConfig.nwLength)
-                    .setPortAddr(routerPortConfig.getPortAddr())
-                    .setHwAddr(routerPortConfig.getHwAddr());
+                    .setInterfaceName(routerPortConfig.getInterfaceName());
+            if(port.isExterior()
+                    || (portConfig.getV1ApiType() != null
+                        && portConfig.getV1ApiType()
+                           .equals("ExteriorRouterPort"))) {
+                port.setProperty(Port.Property.v1PortType,
+                        Client.PortType.ExteriorRouter.toString());
+            } else
+                port.setProperty(Port.Property.v1PortType,
+                        Client.PortType.InteriorRouter.toString());
         }
 
         if (port == null)
@@ -524,7 +466,8 @@ public class Converter {
 
         return new BridgeDhcpZkManager.Subnet(subnet.getSubnetAddr(),
                 subnet.getDefaultGateway(), subnet.getServerAddr(),
-                subnet.getDnsServerAddrs(), subnet.getInterfaceMTU(), opt121Configs);
+                subnet.getDnsServerAddrs(), subnet.getInterfaceMTU(),
+                opt121Configs);
     }
 
     public static Subnet fromDhcpSubnetConfig(
@@ -686,7 +629,8 @@ public class Converter {
                 .setVirtualPortId(mappingConfig.getVirtualPortId());
     }
 
-    public static TaggableConfig toTaggableConfig(TaggableEntity taggableData) {
+    public static TaggableConfig
+    toTaggableConfig(TaggableEntity taggableData) {
         // These conditionals on implementing classes are ugly, but such
         // conditionals are everywhere in this class:P
         TaggableConfig config = null;

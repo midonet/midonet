@@ -97,17 +97,4 @@ public class TestPortResource {
         testObject.get(id);
     }
 
-    @Test(expected = NotFoundHttpException.class)
-    public void testCreateBadRouterUUID() throws Exception {
-        // Set up
-        UUID id = UUID.randomUUID();
-        doReturn(null).when(dataClient).routersGet(id);
-
-        // Execute
-        PortResource.RouterPortResource portResource = new PortResource.RouterPortResource(config, uriInfo, context, routerAuth, validator,
-                dataClient, id);
-        RouterPort routerPort = new ExteriorRouterPort(UUID.randomUUID(), id);
-        portResource.create(routerPort);
-    }
-
 }

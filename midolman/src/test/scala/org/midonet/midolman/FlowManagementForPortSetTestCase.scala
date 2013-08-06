@@ -15,8 +15,8 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.midolman.datapath.FlowActionOutputToVrnPortSet
 import org.midonet.midolman.rules.{Condition, RuleResult}
-import org.midonet.midolman.topology.FlowTagger
-import org.midonet.cluster.data.Bridge
+import org.midonet.midolman.topology.{FlowTagger, LocalPortActive}
+import org.midonet.cluster.data.{Port, Bridge}
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.zones.{GreTunnelZone, GreTunnelZoneHost}
 import org.midonet.packets._
@@ -78,15 +78,15 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
 
     def testInstallFlowForPortSet() {
 
-        val port1OnHost1 = newExteriorBridgePort(bridge)
+        val port1OnHost1 = newBridgePort(bridge)
         //port1OnHost1.getTunnelKey should be (2)
-        val port2OnHost1 = newExteriorBridgePort(bridge)
+        val port2OnHost1 = newBridgePort(bridge)
         //port2OnHost1.getTunnelKey should be (3)
-        val port3OnHost1 = newExteriorBridgePort(bridge)
+        val port3OnHost1 = newBridgePort(bridge)
         //port3OnHost1.getTunnelKey should be (4)
-        val portOnHost2 = newExteriorBridgePort(bridge)
+        val portOnHost2 = newBridgePort(bridge)
         //portOnHost2.getTunnelKey should be (5)
-        val portOnHost3 = newExteriorBridgePort(bridge)
+        val portOnHost3 = newBridgePort(bridge)
         //portOnHost3.getTunnelKey should be (6)
 
         val srcMAC = MAC.fromString("00:11:22:33:44:55")
@@ -162,15 +162,15 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
     def testInstallFlowForPortSetFromTunnel() {
         log.debug("Starting testInstallFlowForPortSetFromTunnel")
 
-        val port1OnHost1 = newExteriorBridgePort(bridge)
+        val port1OnHost1 = newBridgePort(bridge)
         //port1OnHost1.getTunnelKey should be (2)
-        val port2OnHost1 = newExteriorBridgePort(bridge)
+        val port2OnHost1 = newBridgePort(bridge)
         //port2OnHost1.getTunnelKey should be (3)
-        val port3OnHost1 = newExteriorBridgePort(bridge)
+        val port3OnHost1 = newBridgePort(bridge)
         //port3OnHost1.getTunnelKey should be (4)
-        val portOnHost2 = newExteriorBridgePort(bridge)
+        val portOnHost2 = newBridgePort(bridge)
         //portOnHost2.getTunnelKey should be (5)
-        val portOnHost3 = newExteriorBridgePort(bridge)
+        val portOnHost3 = newBridgePort(bridge)
         //portOnHost3.getTunnelKey should be (6)
 
         val srcMAC = MAC.fromString("00:11:22:33:44:55")
@@ -242,11 +242,11 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
 
     def testInvalidationHostRemovedFromPortSet() {
 
-        val port1OnHost1 = newExteriorBridgePort(bridge)
+        val port1OnHost1 = newBridgePort(bridge)
         //port1OnHost1.getTunnelKey should be (2)
-        val portOnHost2 = newExteriorBridgePort(bridge)
+        val portOnHost2 = newBridgePort(bridge)
         //portOnHost2.getTunnelKey should be (3)
-        val portOnHost3 = newExteriorBridgePort(bridge)
+        val portOnHost3 = newBridgePort(bridge)
         //portOnHost3.getTunnelKey should be (4)
 
 
@@ -291,11 +291,11 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
 
     def testInvalidationNewHostAddedToPortSet() {
 
-        val port1OnHost1 = newExteriorBridgePort(bridge)
+        val port1OnHost1 = newBridgePort(bridge)
         //port1OnHost1.getTunnelKey should be (2)
-        val portOnHost2 = newExteriorBridgePort(bridge)
+        val portOnHost2 = newBridgePort(bridge)
         //portOnHost2.getTunnelKey should be (3)
-        val portOnHost3 = newExteriorBridgePort(bridge)
+        val portOnHost3 = newBridgePort(bridge)
         //portOnHost3.getTunnelKey should be (4)
 
 
@@ -341,11 +341,11 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
 
     def testInvalidationNewPortAddedToPortSet() {
 
-        val port1OnHost1 = newExteriorBridgePort(bridge)
+        val port1OnHost1 = newBridgePort(bridge)
         //port1OnHost1.getTunnelKey should be (2)
-        val portOnHost2 = newExteriorBridgePort(bridge)
+        val portOnHost2 = newBridgePort(bridge)
         //portOnHost2.getTunnelKey should be (3)
-        val portOnHost3 = newExteriorBridgePort(bridge)
+        val portOnHost3 = newBridgePort(bridge)
         //portOnHost3.getTunnelKey should be (4)
 
 
@@ -374,12 +374,14 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
         val flowToInvalidate =
             fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
 
-        val port2OnHost1 = newExteriorBridgePort(bridge)
-        port2OnHost1.getTunnelKey should be (5)
+        val port2OnHost1_unMaterialized = newBridgePort(bridge)
+        //port2OnHost1.getTunnelKey should be (5)
         // Drain the flowProbe
         while(flowProbe().msgAvailable)
             flowProbe().receiveOne(Duration(10, TimeUnit.MILLISECONDS))
-        materializePort(port2OnHost1, host1, "port1b")
+        val port2OnHost1 =
+          materializePort(port2OnHost1_unMaterialized, host1, "port1b")
+        //port2OnHost1 = getPort()
         portsProbe.expectMsgClass(classOf[LocalPortActive])
         var numPort2OnHost1: Short = 0
         vifToLocalPortNumber(port2OnHost1.getId) match {
@@ -410,13 +412,13 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
 
     def testInvalidationRemovePortFromPortSet() {
 
-        val port1OnHost1 = newExteriorBridgePort(bridge)
+        val port1OnHost1 = newBridgePort(bridge)
         //port1OnHost1.getTunnelKey should be (2)
-        val port2OnHost1 = newExteriorBridgePort(bridge)
+        val port2OnHost1 = newBridgePort(bridge)
         //port2OnHost1.getTunnelKey should be (3)
-        val portOnHost2 = newExteriorBridgePort(bridge)
+        val portOnHost2 = newBridgePort(bridge)
         //portOnHost2.getTunnelKey should be (4)
-        val portOnHost3 = newExteriorBridgePort(bridge)
+        val portOnHost3 = newBridgePort(bridge)
         //portOnHost3.getTunnelKey should be (5)
 
         materializePort(port1OnHost1, host1, "port1a")

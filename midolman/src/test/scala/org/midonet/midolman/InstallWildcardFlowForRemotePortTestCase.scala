@@ -36,11 +36,13 @@ class InstallWildcardFlowForRemotePortTestCase extends MidolmanTestCase
 
         val bridge = newBridge("bridge")
 
-        val portOnHost1 = newExteriorBridgePort(bridge)
-        val portOnHost2 = newExteriorBridgePort(bridge)
+        val portOnHost1_unMaterialized = newBridgePort(bridge)
+        val portOnHost2_unMaterialized = newBridgePort(bridge)
 
-        materializePort(portOnHost1, host1, "port1")
-        materializePort(portOnHost2, host2, "port2")
+        val portOnHost1 = materializePort(portOnHost1_unMaterialized, host1,
+          "port1")
+        val portOnHost2 = materializePort(portOnHost2_unMaterialized, host2,
+          "port2")
 
         clusterDataClient().tunnelZonesAddMembership(
             tunnelZone.getId, new GreTunnelZoneHost(host1.getId).setIp(srcIp.toIntIPv4))

@@ -24,7 +24,7 @@ import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.topology.RouterManager.RouterInvTrieTagCountModified
 import org.midonet.midolman.util.{RouterHelper, TestHelpers}
 import org.midonet.cluster.data.host.Host
-import org.midonet.cluster.data.ports.MaterializedRouterPort
+import org.midonet.cluster.data.ports.RouterPort
 import org.midonet.cluster.data.Router
 import org.midonet.odp.{FlowMatch, Flow, Datapath}
 import org.midonet.odp.flows.{FlowKeyTunnelID, FlowAction, FlowActions}
@@ -57,8 +57,8 @@ class RouterFlowInvalidationTest extends MidolmanTestCase with VirtualConfigurat
     var clusterRouter: Router = null
     var host: Host = null
     val ttl: Byte = 17
-    var outPort: MaterializedRouterPort = null
-    var inPort: MaterializedRouterPort = null
+    var outPort: RouterPort = null
+    var inPort: RouterPort = null
     var mapPortNameShortNumber: Map[String,Short] = new HashMap[String, Short]()
 
 
@@ -89,11 +89,11 @@ class RouterFlowInvalidationTest extends MidolmanTestCase with VirtualConfigurat
 
         flowProbe().expectMsgType[DatapathController.DatapathReady].datapath should not be (null)
 
-        inPort = newExteriorRouterPort(clusterRouter, MAC.fromString(macInPort),
+        inPort = newRouterPort(clusterRouter, MAC.fromString(macInPort),
             ipInPort, ipInPort, 32)
         inPort should not be null
 
-        outPort = newExteriorRouterPort(clusterRouter, MAC.fromString(macOutPort),
+        outPort = newRouterPort(clusterRouter, MAC.fromString(macOutPort),
             ipOutPort, networkToReach, networkToReachLength)
 
         //requestOfType[WildcardFlowAdded](flowProbe)

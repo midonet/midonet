@@ -12,13 +12,12 @@ import javax.ws.rs.core.MultivaluedMap;
 import java.net.URI;
 import java.util.UUID;
 
-public class RouterPort<T extends DtoRouterPort> extends
-                                                 Port<RouterPort<T>, T> {
+public class RouterPort extends Port<RouterPort, DtoRouterPort> {
 
 
-    public RouterPort(WebResource resource, URI uriForCreation, T p) {
+    public RouterPort(WebResource resource, URI uriForCreation, DtoRouterPort p) {
         super(resource, uriForCreation, p,
-              VendorMediaType.APPLICATION_PORT_JSON);
+              VendorMediaType.APPLICATION_PORT_V2_JSON);
     }
 
     /**
@@ -127,7 +126,7 @@ public class RouterPort<T extends DtoRouterPort> extends
      * @return port UUID
      */
     public UUID getPeerId() {
-        return ((DtoInteriorRouterPort) principalDto).getPeerId();
+        return principalDto.getPeerId();
     }
 
     /**
@@ -136,8 +135,8 @@ public class RouterPort<T extends DtoRouterPort> extends
      * @param networkLength length of network address mask
      * @return this
      */
-    public RouterPort<T> networkLength(int networkLength) {
-        ((DtoRouterPort) principalDto).setNetworkLength(networkLength);
+    public RouterPort networkLength(int networkLength) {
+        principalDto.setNetworkLength(networkLength);
         return this;
     }
 
@@ -147,7 +146,7 @@ public class RouterPort<T extends DtoRouterPort> extends
      * @param outboundFilterId
      * @return this
      */
-    public RouterPort<T> outboundFilterId(UUID outboundFilterId) {
+    public RouterPort outboundFilterId(UUID outboundFilterId) {
         principalDto.setOutboundFilterId(outboundFilterId);
         return this;
     }
@@ -158,8 +157,8 @@ public class RouterPort<T extends DtoRouterPort> extends
      * @param portAddress
      * @return this
      */
-    public RouterPort<T> portAddress(String portAddress) {
-        ((DtoRouterPort) principalDto).setPortAddress(portAddress);
+    public RouterPort portAddress(String portAddress) {
+        principalDto.setPortAddress(portAddress);
         return this;
     }
 
@@ -169,7 +168,7 @@ public class RouterPort<T extends DtoRouterPort> extends
      * @param vifId
      * @return this
      */
-    public RouterPort<T> vifId(UUID vifId) {
+    public RouterPort vifId(UUID vifId) {
         principalDto.setVifId(vifId);
         return this;
     }
@@ -180,7 +179,7 @@ public class RouterPort<T extends DtoRouterPort> extends
      * @param portMac
      * @return this
      */
-    public RouterPort<T> portMac(String portMac) {
+    public RouterPort portMac(String portMac) {
         principalDto.setPortMac(portMac);
         return this;
     }
@@ -191,7 +190,7 @@ public class RouterPort<T extends DtoRouterPort> extends
      * @param inboundFilterId
      * @return this
      */
-    public RouterPort<T> inboundFilterId(UUID inboundFilterId) {
+    public RouterPort inboundFilterId(UUID inboundFilterId) {
         principalDto.setInboundFilterId(inboundFilterId);
         return this;
     }
@@ -202,7 +201,7 @@ public class RouterPort<T extends DtoRouterPort> extends
      * @param networkAddress
      * @return
      */
-    public RouterPort<T> networkAddress(String networkAddress) {
+    public RouterPort networkAddress(String networkAddress) {
         principalDto.setNetworkAddress(networkAddress);
         return this;
     }
@@ -213,8 +212,8 @@ public class RouterPort<T extends DtoRouterPort> extends
      * @param id
      * @return this
      */
-    public RouterPort<T> peerId(UUID id) {
-        ((DtoInteriorRouterPort) principalDto).setPeerId(id);
+    public RouterPort peerId(UUID id) {
+        principalDto.setPeerId(id);
         return this;
     }
 
@@ -224,12 +223,8 @@ public class RouterPort<T extends DtoRouterPort> extends
      * @return collection of bgps
      */
     public ResourceCollection<Bgp> getBgps(MultivaluedMap queryParams) {
-        if (!principalDto.getType().equals(PortType.EXTERIOR_ROUTER)) {
-            throw new IllegalArgumentException("bgp must be added to " +
-                                                   "exterior router port");
-        }
         return getChildResources(
-            ((DtoExteriorRouterPort) principalDto).getBgps(),
+            principalDto.getBgps(),
             queryParams,
             VendorMediaType.APPLICATION_BGP_COLLECTION_JSON,
             Bgp.class, DtoBgp.class);
@@ -241,12 +236,8 @@ public class RouterPort<T extends DtoRouterPort> extends
      * @return new Bgp()
      */
     public Bgp addBgp() {
-        if (!principalDto.getType().equals(PortType.EXTERIOR_ROUTER)) {
-            throw new IllegalArgumentException("bgp must be added to " +
-                                                   "exterior router port");
-        }
         return new Bgp(resource,
-                       ((DtoExteriorRouterPort) principalDto).getBgps(),
+                       principalDto.getBgps(),
                        new DtoBgp());
     }
 
@@ -259,8 +250,9 @@ public class RouterPort<T extends DtoRouterPort> extends
     // TODO(pino): this should be defined in a interior port subtype.
     public RouterPort link(UUID id) {
         peerId(id);
-        resource.post(((DtoInteriorRouterPort) principalDto).getLink(),
-                      principalDto, VendorMediaType.APPLICATION_PORT_LINK_JSON);
+        resource.post(principalDto.getLink(),
+                      principalDto,
+                      VendorMediaType.APPLICATION_PORT_LINK_JSON);
         get(getUri());
         return this;
     }
@@ -271,7 +263,7 @@ public class RouterPort<T extends DtoRouterPort> extends
      * @return this
      */
     public RouterPort unlink() {
-        resource.delete(((DtoInteriorRouterPort) principalDto).getLink());
+        resource.delete(principalDto.getLink());
         get(getUri());
         return this;
     }

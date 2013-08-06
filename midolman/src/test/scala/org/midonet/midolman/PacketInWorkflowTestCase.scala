@@ -30,7 +30,7 @@ class PacketInWorkflowTestCase extends MidolmanTestCase {
         val bridge = new ClusterBridge().setName("test")
         bridge.setId(clusterDataClient().bridgesCreate(bridge))
 
-        val vifPort = Ports.materializedBridgePort(bridge)
+        val vifPort = Ports.bridgePort(bridge)
         vifPort.setId(clusterDataClient().portsCreate(vifPort))
 
         materializePort(vifPort, host, "port")

@@ -10,14 +10,15 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * // TODO: mtoader ! Please explain yourself.
+ * Recursive type definition enables use of a builder pattern,
+ * such as where set__() methods have return type Self.
  */
 public abstract class Port<PortData extends Port.Data,
                            Self extends Port<PortData, Self>>
     extends Entity.Base<UUID, PortData, Self> {
 
     public enum Property {
-        vif_id, peer_id
+        vif_id, peer_id, v1PortType
     }
 
     protected Port(UUID uuid, PortData portData) {
@@ -104,6 +105,45 @@ public abstract class Port<PortData extends Port.Data,
         return getData().properties.get(property.name());
     }
 
+    public Self setPeerId(UUID peerId) {
+        getData().peer_uuid = peerId;
+        return self();
+    }
+
+    public UUID getHostId() {
+        return getData().hostId;
+    }
+
+    public Self setHostId(UUID hostId) {
+        getData().hostId = hostId;
+        return self();
+    }
+
+    public String getInterfaceName() {
+        return getData().interfaceName;
+    }
+
+    public Self setInterfaceName(String interfaceName) {
+        getData().interfaceName = interfaceName;
+        return self();
+    }
+
+    public UUID getPeerId() {
+        return getData().peer_uuid;
+    }
+
+    public boolean isInterior() {
+        return getPeerId() != null;
+    }
+
+    public boolean isExterior() {
+        return getHostId() != null && getInterfaceName() != null;
+    }
+
+    public boolean isUnplugged() {
+        return !isInterior() && !isExterior();
+    }
+
     public static class Data {
         public UUID device_id;
         public UUID inboundFilter;
@@ -111,7 +151,9 @@ public abstract class Port<PortData extends Port.Data,
         public Set<UUID> portGroupIDs = new HashSet<UUID>();
         public int tunnelKey;
         public Map<String, String> properties = new HashMap<String, String>();
-
+        public UUID peer_uuid;
+        public UUID hostId;
+        public String interfaceName;
 
         @Override
         public boolean equals(Object o) {
@@ -132,6 +174,14 @@ public abstract class Port<PortData extends Port.Data,
                 data.portGroupIDs) : data.portGroupIDs != null) return false;
             if (properties != null ? !properties.equals(
                 data.properties) : data.properties != null) return false;
+            if (peer_uuid != null ? !peer_uuid.equals(
+                    data.peer_uuid) : data.peer_uuid != null) return false;
+            if (hostId != null ? !hostId.equals(
+                    data.hostId) : data.hostId != null)
+                return false;
+            if (interfaceName != null ? !interfaceName.equals(
+                    data.interfaceName) : data.interfaceName != null)
+                return false;
 
             return true;
         }
@@ -144,6 +194,9 @@ public abstract class Port<PortData extends Port.Data,
             result = 31 * result + (portGroupIDs != null ? portGroupIDs.hashCode() : 0);
             result = 31 * result + tunnelKey;
             result = 31 * result + (properties != null ? properties.hashCode() : 0);
+            result = 31 * result + (peer_uuid != null ? peer_uuid.hashCode() : 0);
+            result = 31 * result + (hostId != null ? hostId.hashCode() : 0);
+            result = 31 * result + (interfaceName != null ? interfaceName.hashCode() : 0);
             return result;
         }
     }

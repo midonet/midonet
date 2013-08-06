@@ -40,7 +40,7 @@ public class BridgePortDeleteTest extends TestBase {
     public void setup() {
         bridge1 = apiClient.addBridge()
             .tenantId("del-br-port-test").name("br1").create();
-        bPort1 = bridge1.addExteriorPort().create();
+        bPort1 = bridge1.addPort().create();
         tap1 = new TapWrapper("tapBridgeDel1");
         thisHost.addHostInterfacePort()
             .interfaceName(tap1.getName())
@@ -52,7 +52,7 @@ public class BridgePortDeleteTest extends TestBase {
         assertThat(msg.portID(), equalTo(bPort1.getId()));
         assertThat(msg.active(), equalTo(true));
 
-        bPort2 = bridge1.addExteriorPort().create();
+        bPort2 = bridge1.addPort().create();
         tap2 = new TapWrapper("tapBridgeDel2");
         thisHost.addHostInterfacePort()
             .interfaceName(tap2.getName())
@@ -64,7 +64,7 @@ public class BridgePortDeleteTest extends TestBase {
         assertThat(msg.portID(), equalTo(bPort2.getId()));
         assertThat(msg.active(), equalTo(true));
 
-        bPort3 = bridge1.addExteriorPort().create();
+        bPort3 = bridge1.addPort().create();
         tap3 = new TapWrapper("tapBridgeDel3");
         thisHost.addHostInterfacePort()
             .interfaceName(tap3.getName())

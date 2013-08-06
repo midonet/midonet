@@ -4,11 +4,9 @@
  */
 package org.midonet.api.network;
 
-import org.midonet.api.ResourceUriBuilder;
-
+import org.midonet.cluster.Client;
+import org.midonet.cluster.data.Port;
 import javax.xml.bind.annotation.XmlRootElement;
-import java.net.URI;
-import java.util.UUID;
 
 /**
  * Data transfer class for interior router port.
@@ -29,18 +27,18 @@ public class InteriorRouterPort extends RouterPort implements InteriorPort {
      * @param portData
      */
     public InteriorRouterPort(
-            org.midonet.cluster.data.ports.LogicalRouterPort
+            org.midonet.cluster.data.ports.RouterPort
                     portData) {
         super(portData);
-        this.peerId = portData.getPeerId();
     }
 
     @Override
     public org.midonet.cluster.data.Port toData() {
-        org.midonet.cluster.data.ports.LogicalRouterPort data =
-                new org.midonet.cluster.data.ports.LogicalRouterPort()
-                        .setPeerId(this.peerId);
+        org.midonet.cluster.data.ports.RouterPort data =
+                new org.midonet.cluster.data.ports.RouterPort();
         super.setConfig(data);
+        data.setProperty(Port.Property.v1PortType,
+                Client.PortType.InteriorRouter.toString());
         return data;
     }
 

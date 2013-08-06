@@ -10,8 +10,8 @@ import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.nullValue;
 
-import org.midonet.client.dto.DtoInteriorBridgePort;
-import org.midonet.client.dto.DtoInteriorRouterPort;
+import org.midonet.client.dto.DtoBridgePort;
+import org.midonet.client.dto.DtoRouterPort;
 import org.midonet.client.dto.DtoRoute;
 import org.midonet.client.dto.DtoRule;
 import org.midonet.client.resource.Bridge;
@@ -36,7 +36,7 @@ import static org.midonet.util.Waiters.sleepBecause;
 public class L2FilteringTest extends TestBase {
 
     IPv4Subnet rtrIp = new IPv4Subnet("10.0.0.254", 24);
-    RouterPort<DtoInteriorRouterPort> rtrPort;
+    RouterPort rtrPort;
     Bridge bridge;
     BridgePort[] brPorts;
     TapWrapper[] taps;
@@ -55,7 +55,7 @@ public class L2FilteringTest extends TestBase {
                               .create();
         // Add a interior port to the router.
         rtrPort = rtr
-            .addInteriorRouterPort()
+            .addPort()
             .portAddress(rtrIp.toUnicastString())
             .networkAddress(rtrIp.toUnicastString())
             .networkLength(rtrIp.getPrefixLen())
@@ -74,8 +74,8 @@ public class L2FilteringTest extends TestBase {
             .create();
 
         // Link the bridge to the router.
-        BridgePort<DtoInteriorBridgePort> logBrPort =
-            bridge.addInteriorPort().create();
+        BridgePort logBrPort =
+            bridge.addPort().create();
         rtrPort.link(logBrPort.getId());
 
 

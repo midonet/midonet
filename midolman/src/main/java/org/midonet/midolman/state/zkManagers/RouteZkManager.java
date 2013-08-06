@@ -89,7 +89,8 @@ public class RouteZkManager extends AbstractZkManager {
      * @param rtConfig   The configuration of the route
      * @param portConfig If the route is LOCAL, the port has not been created
      *                   yet, but the config is needed because it determines
-     *                   where the route is stored.
+     *                   where the route is stored. This is null on route
+     *                   create, needs to be fetched.
      * @return
      * @throws StateAccessException
      */
@@ -101,18 +102,16 @@ public class RouteZkManager extends AbstractZkManager {
         // routing table.
         List<String> ret = new ArrayList<String>();
         if (rtConfig.nextHop.toPort()) {
-            // Check what kind of port this is.
-            if (null == portConfig) {
+            ret.add(paths.getPortRoutePath(rtConfig.nextHopPort, id));
+            if (portConfig == null) {
                 PortZkManager portZkManager = new PortZkManager(zk, paths,
-                        serializer);
+                    serializer);
                 portConfig = portZkManager.get(
                     rtConfig.nextHopPort, PortDirectory.RouterPortConfig.class);
             }
-
-            ret.add(paths.getPortRoutePath(rtConfig.nextHopPort, id));
-            // If it's a logical port, add the route to the routing table.
-            if (portConfig instanceof PortDirectory.LogicalRouterPortConfig)
+            if(portConfig.isInterior()){
                 ret.add(getRouteInRoutingTable(rtConfig));
+            }
         } else {
             ret.add(paths.getRouterRoutePath(rtConfig.routerId, id));
             // Add the route to the routing table.
@@ -121,7 +120,7 @@ public class RouteZkManager extends AbstractZkManager {
         return ret;
     }
 
-    private String getRouteInRoutingTable(Route rt)
+    public String getRouteInRoutingTable(Route rt)
             throws StateAccessException, SerializationException {
         String rtStr = new String(serializer.serialize(rt));
         String rtable = paths.getRouterRoutingTablePath(rt.routerId);
@@ -179,6 +178,64 @@ public class RouteZkManager extends AbstractZkManager {
                 getSubDirectoryRoutePaths(id, rtConfig, portConfig)) {
             ops.add(Op.create(path, null, Ids.OPEN_ACL_UNSAFE, mode));
         }
+        return ops;
+    }
+
+    private Set<String> getRoutingTablePaths(UUID portId)
+            throws StateAccessException, SerializationException {
+        Set<String> routePaths = new HashSet<String>();
+        String portRoutesPath = paths.getPortRoutesPath(portId);
+        Set<String> routeIds = zk.getChildren(portRoutesPath);
+        for (String routeId : routeIds) {
+            Route route = get(UUID.fromString(routeId));
+            String routeKey = getRouteInRoutingTable(route);
+
+            // Assume only persistent routes are processed
+            routePaths.add(routeKey);
+        }
+
+        return routePaths;
+    }
+
+    /***
+     * Copy all the routes in port route directory to the router's routing
+     * table.
+     *
+     * @param portId  Port ID of the routes
+     * @return  List of Op objects to perform the action
+     * @throws StateAccessException
+     */
+    public List<Op> prepareCreatePortRoutesInTable(UUID portId)
+            throws StateAccessException, SerializationException {
+
+        List<Op> ops = new ArrayList<Op>();
+        Set<String> routePaths = getRoutingTablePaths(portId);
+        for (String routePath : routePaths) {
+            // Assume only persistent routes are processed
+            ops.add(Op.create(routePath, null, Ids.OPEN_ACL_UNSAFE,
+                    CreateMode.PERSISTENT));
+        }
+
+        return ops;
+    }
+
+    /***
+     * Delete all the routes in port route directory from the router's routing
+     * table.
+     *
+     * @param portId  Port ID of the routes
+     * @return  List of Op objects to perform the action
+     * @throws StateAccessException
+     */
+    public List<Op> prepareDeletePortRoutesFromTable(UUID portId)
+        throws StateAccessException, SerializationException {
+
+        List<Op> ops = new ArrayList<Op>();
+        Set<String> routePaths = getRoutingTablePaths(portId);
+        for (String routePath : routePaths) {
+            ops.add(Op.delete(routePath, -1));
+        }
+
         return ops;
     }
 

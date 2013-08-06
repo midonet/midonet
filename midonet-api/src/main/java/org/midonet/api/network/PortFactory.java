@@ -4,27 +4,50 @@
  */
 package org.midonet.api.network;
 
+import org.midonet.cluster.Client;
+import org.midonet.cluster.data.Port.Property;
 import org.midonet.cluster.data.ports.*;
 
 public class PortFactory {
 
-    public static Port createPort(org.midonet.cluster.data.Port data) {
+    public static Port convertToApiPortV1(org.midonet.cluster.data.Port data) {
+        //TODO av-mido: This is for backwards compatibility, the new api
+        //TODO   will just return BridgePort or RouterPort.
+        if (data instanceof org.midonet.cluster.data.ports.RouterPort) {
+            if (data.isExterior()
+                  || (data.isUnplugged()
+                      && Client.PortType.ExteriorRouter.toString()
+                         .equals(data.getProperty(Property.v1PortType)))) {
+                return new ExteriorRouterPort((org.midonet.cluster.data.ports
+                        .RouterPort) data);
+            } else {
+                return new InteriorRouterPort(
+                        (org.midonet.cluster.data.ports.RouterPort)data);
+            }
+        } else if (data instanceof org.midonet.cluster.data.ports.BridgePort) {
+            if(data.isExterior()
+                  || (data.isUnplugged()
+                      && Client.PortType.ExteriorBridge.toString()
+                         .equals(data.getProperty(Property.v1PortType)))) {
+                return new ExteriorBridgePort((org.midonet.cluster.data.ports
+                        .BridgePort) data);
+            } else {
+                return new InteriorBridgePort(
+                        (org.midonet.cluster.data.ports.BridgePort)data);
+            }
+        } else {
+            throw new UnsupportedOperationException(
+                    "Cannot instantiate this port type.");
+        }
+    }
 
-        if (data instanceof org.midonet.cluster.data.ports.LogicalRouterPort) {
-            return new InteriorRouterPort(
-                    (org.midonet.cluster.data.ports.LogicalRouterPort)data);
-        } else if (data instanceof
-                org.midonet.cluster.data.ports.LogicalBridgePort) {
-            return new InteriorBridgePort(
-                    (org.midonet.cluster.data.ports.LogicalBridgePort)data);
-        } else if (data instanceof org.midonet.cluster.data.ports
-                                      .MaterializedRouterPort) {
-            return new ExteriorRouterPort((org.midonet.cluster.data.ports
-                            .MaterializedRouterPort) data);
-        } else if (data instanceof
-                org.midonet.cluster.data.ports.MaterializedBridgePort) {
-            return new ExteriorBridgePort((org.midonet.cluster.data.ports
-                                           .MaterializedBridgePort) data);
+    public static Port convertToApiPort(org.midonet.cluster.data.Port data) {
+        if (data instanceof org.midonet.cluster.data.ports.RouterPort) {
+            return new RouterPort(
+                    (org.midonet.cluster.data.ports.RouterPort)data);
+        } else if (data instanceof org.midonet.cluster.data.ports.BridgePort) {
+            return new BridgePort(
+                    (org.midonet.cluster.data.ports.BridgePort)data);
         } else {
             throw new UnsupportedOperationException(
                     "Cannot instantiate this port type.");

@@ -8,7 +8,7 @@ import javax.validation.ConstraintValidatorContext;
 
 import com.google.inject.Inject;
 
-import org.midonet.cluster.data.ports.LogicalBridgePort;
+import org.midonet.cluster.data.ports.BridgePort;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.api.network.MacPort;
@@ -45,8 +45,8 @@ public class MacPortConstraintValidator implements
 
         // If the port is tagged with a VLAN, the MAC-port mapping must
         // specify that VLAN ID.
-        if (p instanceof LogicalBridgePort) {
-            LogicalBridgePort.Data data = ((LogicalBridgePort)p).getData();
+        if (p instanceof BridgePort) {
+            BridgePort.Data data = ((BridgePort)p).getData();
             if (data.vlanId != null && !data.vlanId.equals(value.getVlanId())) {
                 String msg = MessageProperty.getMessage(
                         MessageProperty.VLAN_ID_MATCHES_PORT_VLAN_ID,

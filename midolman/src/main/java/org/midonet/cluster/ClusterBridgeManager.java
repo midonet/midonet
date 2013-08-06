@@ -166,13 +166,13 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
 
         for (UUID id : logicalPortIDs) {
             log.debug("Found logical port {}", id);
-            // TODO(rossella) consider keeping in memory the old ports list so that
-            // the watcher can consider just the port whose configuration changed,
-            // not the whole list.
+            // TODO(rossella) consider keeping in memory the old ports list
+            // so that the watcher can consider just the port whose
+            // configuration changed, not the whole list.
 
-            PortDirectory.LogicalBridgePortConfig bridgePort = portsMgr
+            PortDirectory.BridgePortConfig bridgePort = portsMgr
                 .getPortConfigAndRegisterWatcher(
-                    id, PortDirectory.LogicalBridgePortConfig.class, watcher);
+                    id, PortDirectory.BridgePortConfig.class, watcher);
 
             if (null == bridgePort) {
                 log.warn("Can't find the logical bridge port's config {}", id);
@@ -180,21 +180,21 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
             }
 
             // Ignore dangling ports.
-            if (null == bridgePort.peerId()) {
+            if (null == bridgePort.getPeerId()) {
+                log.error("There shouldn't be a dangling " +
+                    "port in the 'logical-ports/' subfolder.");
                 continue;
             }
 
-            // The peer could be LogicalRouterPortConfig, LogicalVlanBridge..
-            // or a LogicalBridgePortConfig
             PortConfig peerPortCfg = portsMgr.getPortConfigAndRegisterWatcher(
-                bridgePort.peerId(),
+                bridgePort.getPeerId(),
                 PortConfig.class,
                 watcher);
 
-            if (peerPortCfg instanceof PortDirectory.LogicalRouterPortConfig) {
+            if (peerPortCfg instanceof PortDirectory.RouterPortConfig) {
                 log.debug("Bridge peer is a Router's interior port");
-                PortDirectory.LogicalRouterPortConfig routerPort =
-                    (PortDirectory.LogicalRouterPortConfig)peerPortCfg;
+                PortDirectory.RouterPortConfig routerPort =
+                    (PortDirectory.RouterPortConfig)peerPortCfg;
                 // 'Learn' that the router's mac is reachable via the bridge port.
                 rtrMacToLogicalPortId.put(routerPort.getHwAddr(), id);
                 // Add the router port's IP and MAC to the permanent ARP map.
@@ -205,17 +205,17 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
             } else if (peerPortCfg instanceof PortDirectory.LogicalVlanBridgePortConfig) {
                 log.debug("Bridge peer is a VlanAwareBridge's interior port");
                 vlanBridgePeerPortId = id;
-            } else if (peerPortCfg instanceof PortDirectory.LogicalBridgePortConfig) {
+            } else if (peerPortCfg instanceof PortDirectory.BridgePortConfig) {
                 log.debug("Bridge peer is another Bridge's interior port");
                 // Let's see who of the two is acting as vlan-aware bridge
-                Short bridgePortVlanId = bridgePort.vlanId();
+                Short bridgePortVlanId = bridgePort.getVlanId();
                 if (null == bridgePortVlanId) { // it's the peer
-                    PortDirectory.LogicalBridgePortConfig typedPeerCfg =
-                        ((PortDirectory.LogicalBridgePortConfig) peerPortCfg);
-                    Short herVlanId = typedPeerCfg.vlanId();
+                    PortDirectory.BridgePortConfig typedPeerCfg =
+                        ((PortDirectory.BridgePortConfig) peerPortCfg);
+                    Short herVlanId = typedPeerCfg.getVlanId();
                     if (herVlanId == null) {
                         log.warn("Peer is vlan-aware, but has no vlan id {}",
-                                 bridgePort.peerId());
+                                 bridgePort.getPeerId());
                     } else {
                         log.debug("Bridge peer is vlan-aware, my vlan-id {}",
                                   herVlanId);
@@ -223,7 +223,7 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
                     }
                 } else { // it's the bridge
                     log.debug("Bridge peer {} mapped to vlan-id {}",
-                              bridgePort.peerId(), bridgePortVlanId);
+                              bridgePort.getPeerId(), bridgePortVlanId);
                     vlanIdPortMap.add(bridgePortVlanId, id);
                     currentVlans.add(bridgePortVlanId);
                 }

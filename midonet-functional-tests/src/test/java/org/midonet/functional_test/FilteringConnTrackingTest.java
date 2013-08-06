@@ -46,11 +46,11 @@ public class FilteringConnTrackingTest extends TestBase {
             .name("rtr1")
             .create();
         // Link the Bridge and Router
-        rPort1 = rtr.addInteriorRouterPort()
+        rPort1 = rtr.addPort()
                     .networkAddress("10.0.0.0")
                     .networkLength(24)
                     .portAddress("10.0.0.1").create();
-        interiorBrPort = bridge1.addInteriorPort().create();
+        interiorBrPort = bridge1.addPort().create();
         rPort1.link(interiorBrPort.getId());
 
         ports = buildBridgePorts(bridge1, true, 5);

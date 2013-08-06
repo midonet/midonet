@@ -22,6 +22,7 @@ import org.junit.runners.Parameterized.Parameters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.*;
 
@@ -70,7 +71,7 @@ public class TestRoute {
 
             // Create a Exterior router port.
             log.debug("routerPortUri: {} ", router.getPorts());
-            DtoExteriorRouterPort port = new DtoExteriorRouterPort();
+            DtoRouterPort port = new DtoRouterPort();
             port.setNetworkAddress("10.0.0.0");
             port.setNetworkLength(24);
             port.setPortAddress("10.0.0.1");
@@ -78,7 +79,7 @@ public class TestRoute {
                     .fromString("372b0040-12ae-11e1-be50-0800200c9a66"));
 
             response = resource().uri(router.getPorts())
-                    .type(APPLICATION_PORT_JSON)
+                    .type(APPLICATION_PORT_V2_JSON)
                     .post(ClientResponse.class, port);
             assertEquals(201, response.getStatus());
             log.debug("location: {}", response.getLocation());
@@ -295,6 +296,89 @@ public class TestRoute {
             List<Map<String, String>> violations = error.getViolations();
             assertEquals(1, violations.size());
             assertEquals(property, violations.get(0).get("property"));
+        }
+    }
+
+    public static class TestPortLinkAddRouteUnlinkSuccess extends JerseyTest {
+        private DtoWebResource dtoResource;
+        private Topology topology;
+
+        public TestPortLinkAddRouteUnlinkSuccess() {
+            super(FuncTest.appDesc);
+        }
+
+        @Before
+        public void setUp() {
+            WebResource resource = resource();
+            dtoResource = new DtoWebResource(resource);
+
+            // Create a router
+            DtoRouter r1 = new DtoRouter();
+            r1.setName("router1-name");
+            r1.setTenantId("tenant1-id");
+
+            // Create a bridge
+            DtoBridge b1 = new DtoBridge();
+            b1.setName("bridge1-name");
+            b1.setTenantId("tenant1-id");
+
+            // Create a router port
+            DtoRouterPort r1Lp1 = TestPort.createRouterPort(null, null,
+                "10.0.0.0", 24, "10.0.0.1");
+
+            // Create a bridge port
+            UUID inboundFilterUuid = UUID.randomUUID();
+            DtoBridgePort b1Lp1 = TestPort.createBridgePort(null, null,
+                inboundFilterUuid, null, null);
+
+            topology = new Topology.Builder(dtoResource)
+                .create("router1", r1)
+                .create("bridge1", b1)
+                .create("router1", "router1Port1", r1Lp1)
+                .create("bridge1", "bridge1Port1", b1Lp1)
+                .build();
+        }
+
+        @After
+        public void resetDirectory() throws Exception {
+            StaticMockDirectory.clearDirectoryInstance();
+        }
+
+        @Test
+        public void testLinkAddRouteUnlink() {
+            DtoRouter r1 = topology.getRouter("router1");
+            DtoBridge bridge1 = topology.getBridge("bridge1");
+            DtoRouterPort r1p1 = topology
+                .getRouterPort("router1Port1");
+            DtoBridgePort b1p1 = topology
+                .getBridgePort("bridge1Port1");
+
+            // Link the router and bridge
+            DtoLink link = new DtoLink();
+            link.setPeerId(b1p1.getId());
+            dtoResource.postAndVerifyStatus(r1p1.getLink(),
+                APPLICATION_PORT_LINK_JSON, link, Response.Status.CREATED
+                .getStatusCode());
+
+            DtoRoute route = new DtoRoute();
+            route.setRouterId(r1.getId());
+            route.setType(DtoRoute.Normal);
+            route.setSrcNetworkAddr("0.0.0.0");
+            route.setSrcNetworkLength(0);
+            route.setDstNetworkAddr("2.2.2.0");
+            route.setDstNetworkLength(24);
+            route.setWeight(100);
+            route.setNextHopPort(r1p1.getId());
+
+            dtoResource.postAndVerifyStatus(r1.getRoutes(),
+                APPLICATION_ROUTE_JSON, route,
+                Response.Status.CREATED.getStatusCode());
+
+            // Unlink
+            dtoResource.deleteAndVerifyStatus(r1p1.getLink(),
+                APPLICATION_PORT_LINK_JSON,
+                Response.Status.NO_CONTENT.getStatusCode());
+
         }
     }
 }

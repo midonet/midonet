@@ -7,7 +7,7 @@ import org.midonet.api.VendorMediaType;
 import org.midonet.api.zookeeper.StaticMockDirectory;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.client.dto.DtoBgp;
-import org.midonet.client.dto.DtoExteriorRouterPort;
+import org.midonet.client.dto.DtoRouterPort;
 import org.midonet.client.dto.DtoRouter;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
@@ -58,13 +58,13 @@ public class TestBGP extends JerseyTest {
         // Create a Exterior router port.
         URI routerPortUri = URI.create(testRouterUri.toString() + "/ports");
         log.debug("routerPortUri: {} ", routerPortUri);
-        DtoExteriorRouterPort port = new DtoExteriorRouterPort();
+        DtoRouterPort port = new DtoRouterPort();
         port.setNetworkAddress("10.0.0.0");
         port.setNetworkLength(24);
         port.setPortAddress("10.0.0.1");
         port.setVifId(UUID.fromString("372b0040-12ae-11e1-be50-0800200c9a66"));
 
-        response = resource().uri(routerPortUri).type(VendorMediaType.APPLICATION_PORT_JSON)
+        response = resource().uri(routerPortUri).type(VendorMediaType.APPLICATION_PORT_V2_JSON)
                 .post(ClientResponse.class, port);
         assertEquals(201, response.getStatus());
         log.debug("location: {}", response.getLocation());

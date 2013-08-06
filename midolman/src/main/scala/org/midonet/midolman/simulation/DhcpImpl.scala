@@ -56,10 +56,10 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
         // Get the RCU port object and start simulation.
         expiringAsk(PortRequest(inPortId, false)).mapTo[Port[_]].flatMap {
             port: Port[_] => port match {
-                case p: ExteriorBridgePort =>
+                case p: BridgePort if p.isExterior=>
                     log.debug("Handle DHCP request arriving on bridge port.")
                     dhcpFromBridgePort(p)
-                case p: ExteriorRouterPort =>
+                case p: RouterPort if p.isExterior=>
                     // We still don't handle DHCP on router ports.
                     log.debug("Don't handle DHCP arriving on a router port.")
                     Promise.successful(false)
@@ -72,7 +72,7 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
         }
     }
 
-    private def dhcpFromBridgePort(port: ExteriorBridgePort): Future[Boolean] =
+    private def dhcpFromBridgePort(port: BridgePort): Future[Boolean] =
     {
         // TODO(pino): use an async API
         val subnets = dataClient.dhcpSubnetsGetByBridge(port.deviceID)

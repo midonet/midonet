@@ -37,7 +37,7 @@ import org.midonet.midolman.state.zkManagers.RouterZkManager;
 import org.midonet.midolman.version.guice.VersionModule;
 import org.midonet.cluster.data.Route;
 import org.midonet.cluster.data.Router;
-import org.midonet.cluster.data.ports.MaterializedRouterPort;
+import org.midonet.cluster.data.ports.RouterPort;
 import org.midonet.packets.MAC;
 import org.midonet.packets.Net;
 
@@ -109,7 +109,7 @@ public class LocalDataClientImplTest {
         // Create a materialized router port.
         UUID routerId = client.routersCreate(new Router());
         UUID portId = client.portsCreate(
-            new MaterializedRouterPort().setDeviceId(routerId)
+            new RouterPort().setDeviceId(routerId)
                 .setHwAddr(MAC.fromString("02:BB:EE:EE:FF:01"))
                 .setPortAddr("10.0.0.3").setNwAddr("10.0.0.0")
                 .setNwLength(24)

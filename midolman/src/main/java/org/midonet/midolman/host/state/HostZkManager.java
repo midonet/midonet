@@ -4,6 +4,10 @@
  */
 package org.midonet.midolman.host.state;
 
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.ZooDefs;
+import org.midonet.cluster.data.Converter;
+import org.midonet.cluster.data.Port;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.*;
@@ -579,7 +583,7 @@ public class HostZkManager extends AbstractZkManager {
         zk.multi(operations);
     }
 
-    public void addVirtualPortMapping(
+    public Port addVirtualPortMapping(
             UUID hostIdentifier, HostDirectory.VirtualPortMapping portMapping)
             throws StateAccessException, SerializationException {
 
@@ -625,11 +629,17 @@ public class HostZkManager extends AbstractZkManager {
                 hostVrnPortMappingPath,
                     serializer.serialize(portMapping)));
 
-        // Update the port config with host/interface
-        operations.add(getMapUpdatePortOp(portId, hostIdentifier,
-                                          portMapping.getLocalDeviceName()));
+        PortConfig port = portZkManager.get(portId);
+
+        // Edits port config
+        operations.add(getMapUpdatePortOp(port, portId, hostIdentifier,
+                portMapping.getLocalDeviceName()));
 
         zk.multi(operations);
+
+        Port updatedPort = Converter.fromPortConfig(port);
+        updatedPort.setId(portId);
+        return updatedPort;
     }
 
     public void delVirtualPortMapping(UUID hostIdentifier, UUID portId)
@@ -638,47 +648,31 @@ public class HostZkManager extends AbstractZkManager {
         String virtualMappingPath =
             paths.getHostVrnPortMappingPath(hostIdentifier, portId);
 
-        List<Op> operations = new ArrayList<Op>();
+        List<Op> ops = new ArrayList<Op>();
         if (zk.exists(virtualMappingPath)) {
 
-            operations.add(zk.getDeleteOp(virtualMappingPath));
+            ops.add(zk.getDeleteOp(virtualMappingPath));
+
+            PortConfig port = portZkManager.get(portId);
 
             // Update the port config
-            operations.add(getMapUpdatePortOp(portId, null, null));
+            ops.add(getMapUpdatePortOp(port, portId, null, null));
 
-            zk.multi(operations);
+            zk.multi(ops);
         }
 
     }
 
-    private Op getMapUpdatePortOp(UUID portId, UUID hostIdentifier,
+    private Op getMapUpdatePortOp(PortConfig port, UUID portId,
+                                  UUID hostIdentifier,
                                   String localDeviceName)
             throws StateAccessException, SerializationException {
 
-        PortConfig port = portZkManager.get(portId);
-        if (port instanceof PortDirectory.MaterializedBridgePortConfig) {
-            ((PortDirectory.MaterializedBridgePortConfig) port).setHostId(
-                hostIdentifier);
-            ((PortDirectory.MaterializedBridgePortConfig) port)
-                .setInterfaceName(localDeviceName);
-        } else if (port instanceof PortDirectory.MaterializedRouterPortConfig) {
-            ((PortDirectory.MaterializedRouterPortConfig) port).setHostId(
-                hostIdentifier);
-            ((PortDirectory.MaterializedRouterPortConfig) port)
-                .setInterfaceName(localDeviceName);
-        } else if (port instanceof PortDirectory.TrunkVlanBridgePortConfig) {
-            ((PortDirectory.TrunkVlanBridgePortConfig) port).setHostId(
-                hostIdentifier);
-            ((PortDirectory.TrunkVlanBridgePortConfig) port)
-                .setInterfaceName(localDeviceName);
-        } else {
-            throw new UnsupportedOperationException(
-                "Cannot bind interface to a logical port");
-        }
+        port.setHostId(hostIdentifier);
+        port.setInterfaceName(localDeviceName);
 
         String portPath = paths.getPortPath(portId);
         return zk.getSetDataOp(portPath, serializer.serialize(port));
-
     }
 
     public Set<UUID> getTunnelZoneIds(UUID hostId,

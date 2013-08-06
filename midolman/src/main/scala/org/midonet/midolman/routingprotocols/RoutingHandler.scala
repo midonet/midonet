@@ -11,7 +11,7 @@ import scala.collection.mutable
 
 import akka.actor.{ActorRef, Props, UntypedActorWithStash}
 
-import org.midonet.cluster.client.{Port, ExteriorRouterPort, BGPListBuilder}
+import org.midonet.cluster.client.{Port, RouterPort, BGPListBuilder}
 import org.midonet.cluster.data.{Route, AdRoute, BGP}
 import org.midonet.cluster.{Client, DataClient}
 import org.midonet.midolman.DatapathController
@@ -93,7 +93,7 @@ object RoutingHandler {
  * physical hosts, therefore MidoNet must anyway be able to use different
  * RoutingHandlers for different virtual ports of the same router. *
  */
-class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
+class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                      val client: Client, val dataClient: DataClient,
                      val config: MidolmanConfig,
                      val connWatcher: ZkConnectionAwareWatcher,
@@ -266,7 +266,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
     @scala.throws(classOf[Exception])
     def onReceive(message: Any) {
         message match {
-            case port: ExteriorRouterPort =>
+            case port: RouterPort if port.isExterior =>
                 var store = true
                 phase match {
                     case Starting =>
@@ -278,7 +278,6 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
                 }
                 if (store)
                     rport = port
-
             case port: Port[_] =>
                 log.error("Cannot run BGP on anything but an exterior " +
                     "virtual router port. We got {}", port)
@@ -853,7 +852,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
     }
 
     def setBGPFlows(localPortNum: Short, bgp: BGP,
-                    bgpPort: ExteriorRouterPort) {
+                    bgpPort: RouterPort) {
 
         log.debug("setBGPFlows - begin")
 

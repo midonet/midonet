@@ -21,7 +21,7 @@ import org.midonet.midolman.util.RouterHelper
 import org.midonet.cluster.data.Router
 import org.midonet.packets._
 import org.midonet.cluster.data.host.Host
-import org.midonet.cluster.data.ports.MaterializedRouterPort
+import org.midonet.cluster.data.ports.RouterPort
 import org.midonet.odp.flows.FlowActionOutput
 import org.midonet.midolman.FlowController.WildcardFlowRemoved
 
@@ -42,8 +42,8 @@ class LinksTestCase extends MidolmanTestCase
     val vm1Mac = MAC.fromString("aa:bb:cc:dd:11:11")
     val vm2Mac = MAC.fromString("aa:bb:cc:dd:22:22")
 
-    var rtrPort1 : MaterializedRouterPort = null
-    var rtrPort2 : MaterializedRouterPort = null
+    var rtrPort1 : RouterPort = null
+    var rtrPort2 : RouterPort = null
 
     val rtrPort1Name = "RouterPort1"
     val rtrPort2Name = "RouterPort2"
@@ -80,9 +80,9 @@ class LinksTestCase extends MidolmanTestCase
     }
 
 
-    private def buildExteriorRouterPort
-            (ip: IPv4Subnet, mac: MAC, name: String): MaterializedRouterPort = {
-        val rtrPort = newExteriorRouterPort(router, mac,
+    private def buildRouterPort
+            (ip: IPv4Subnet, mac: MAC, name: String): RouterPort = {
+        val rtrPort = newRouterPort(router, mac,
             ip.toUnicastString,
             ip.toNetworkAddress.toString,
             ip.getPrefixLen)
@@ -111,12 +111,12 @@ class LinksTestCase extends MidolmanTestCase
     }
 
     private def setupPorts() {
-        rtrPort1 = buildExteriorRouterPort(rtrIp1, rtrMac1, rtrPort1Name)
+        rtrPort1 = buildRouterPort(rtrIp1, rtrMac1, rtrPort1Name)
         vifToLocalPortNumber(rtrPort1.getId) match {
             case Some(portNo : Short) => rtrPort1Num = portNo
             case None => fail("Can't find data port number for Router port 1")
         }
-        rtrPort2 = buildExteriorRouterPort(rtrIp2, rtrMac2, rtrPort2Name)
+        rtrPort2 = buildRouterPort(rtrIp2, rtrMac2, rtrPort2Name)
         vifToLocalPortNumber(rtrPort2.getId) match {
             case Some(portNo : Short) => rtrPort2Num = portNo
             case None => fail("Can't find data port number for Router port 2")

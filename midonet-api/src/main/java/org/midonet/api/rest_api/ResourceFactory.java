@@ -48,8 +48,6 @@ public interface ResourceFactory {
 
     BridgeResource getBridgeResource();
 
-    VlanBridgeResource getVlanBridgeResource();
-
     PortResource getPortResource();
 
     RouteResource getRouteResource();

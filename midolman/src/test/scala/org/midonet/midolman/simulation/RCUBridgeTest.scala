@@ -17,7 +17,7 @@ import org.scalatest.junit.JUnitRunner
 import org.scalatest.matchers.ShouldMatchers
 
 import org.midonet.midolman.topology._
-import org.midonet.cluster.client.{ExteriorRouterPort, IpMacMap, MacLearningTable}
+import org.midonet.cluster.client.{RouterPort, IpMacMap, MacLearningTable}
 import org.midonet.cluster.data
 import org.midonet.packets._
 import org.midonet.util.functors.{Callback0, Callback1, Callback3}
@@ -133,7 +133,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
         val context = new PacketContext(null, frame,
                                         Platform.currentTime + 10000, null,
                                         null, null, true, None, ingressMatch)
-        context.setInputPort(new ExteriorRouterPort().setID(rtr2port))
+        context.setInputPort(new RouterPort().setID(rtr2port))
         val future = bridge.process(context)
 
         ingressMatch should be === origMatch

@@ -11,7 +11,7 @@ import org.scalatest.junit.JUnitRunner
 import org.midonet.cluster.data.{Bridge => ClusterBridge}
 import org.midonet.packets._
 import akka.testkit.TestProbe
-import org.midonet.cluster.data.ports.MaterializedBridgePort
+import org.midonet.cluster.data.ports.BridgePort
 import org.midonet.midolman.topology.LocalPortActive
 import scala.Some
 import org.midonet.midolman.FlowController.WildcardFlowAdded
@@ -23,9 +23,9 @@ class BridgeFloodOptimizationsTestCase extends MidolmanTestCase
         with VirtualConfigurationBuilders with SimulationHelper {
     private var flowEventsProbe: TestProbe = null
     private var packetEventsProbe: TestProbe = null
-    private var port1: MaterializedBridgePort = null
-    private var port2: MaterializedBridgePort = null
-    private var port3: MaterializedBridgePort = null
+    private var port1: BridgePort = null
+    private var port2: BridgePort = null
+    private var port3: BridgePort = null
     private var bridge: ClusterBridge = null
     private var portId1 : Short = 0
     private var portId2 : Short = 0
@@ -43,9 +43,9 @@ class BridgeFloodOptimizationsTestCase extends MidolmanTestCase
         val host1 = newHost("host1", hostId())
 
         bridge = newBridge("bridge")
-        port1 = newExteriorBridgePort(bridge)
-        port2 = newExteriorBridgePort(bridge)
-        port3 = newExteriorBridgePort(bridge)
+        port1 = newBridgePort(bridge)
+        port2 = newBridgePort(bridge)
+        port3 = newBridgePort(bridge)
 
         materializePort(port1, host1, "port1")
         materializePort(port2, host1, "port2")

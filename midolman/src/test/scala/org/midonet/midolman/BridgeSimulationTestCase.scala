@@ -18,7 +18,7 @@ import org.midonet.midolman.PacketWorkflow.PacketIn
 import org.midonet.midolman.rules.Condition
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.cluster.data.{Bridge => ClusterBridge}
-import org.midonet.cluster.data.ports.MaterializedBridgePort
+import org.midonet.cluster.data.ports.BridgePort
 import org.midonet.cluster.data.zones.GreTunnelZoneHost
 import org.midonet.odp.flows.FlowActions
 import org.midonet.odp.flows.{FlowActionOutput, FlowActionSetKey, FlowKeyTunnel}
@@ -38,9 +38,10 @@ import org.midonet.midolman.FlowController.WildcardFlowRemoved
 @RunWith(classOf[JUnitRunner])
 class BridgeSimulationTestCase extends MidolmanTestCase
         with VirtualConfigurationBuilders {
-    private var port1OnHost1: MaterializedBridgePort = null
-    private var port2OnHost1: MaterializedBridgePort = null
-    private var port3OnHost1: MaterializedBridgePort = null
+    private var port1OnHost1: BridgePort = null
+    private var port2OnHost1: BridgePort = null
+    private var port3OnHost1: BridgePort = null
+
     private var bridge: ClusterBridge = null
     private var portId4 : Short = 0
     private var portId5 : Short = 0
@@ -68,11 +69,11 @@ class BridgeSimulationTestCase extends MidolmanTestCase
 
         bridge = newBridge("bridge")
 
-        port1OnHost1 = newExteriorBridgePort(bridge)
-        port2OnHost1 = newExteriorBridgePort(bridge)
-        port3OnHost1 = newExteriorBridgePort(bridge)
-        val portOnHost2 = newExteriorBridgePort(bridge)
-        val portOnHost3 = newExteriorBridgePort(bridge)
+        port1OnHost1 = newBridgePort(bridge)
+        port2OnHost1 = newBridgePort(bridge)
+        port3OnHost1 = newBridgePort(bridge)
+        val portOnHost2 = newBridgePort(bridge)
+        val portOnHost3 = newBridgePort(bridge)
 
         materializePort(port1OnHost1, host1, "port1")
         materializePort(portOnHost2, host2, "port2")
@@ -370,7 +371,7 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         triggerPacketIn(ingressPortName, ethPkt)
 
         val pktInMsg = packetInProbe.expectMsgClass(classOf[PacketIn])
-        val ingressPort = getMaterializedPort(ingressPortName)
+        val ingressPort = getBridgePort(ingressPortName)
 
         pktInMsg should not be null
         pktInMsg.eth should not be null
@@ -386,7 +387,7 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
     }
 
-    private def getMaterializedPort (portName : String) : MaterializedBridgePort = {
+    private def getBridgePort (portName : String) : BridgePort = {
         portName match {
             case "port1" => port1OnHost1
             case "port4" => port2OnHost1
@@ -407,7 +408,7 @@ class BridgeSimulationTestCase extends MidolmanTestCase
                 10, 12, "Test UDP packet".getBytes)
         ethPkt.setVlanIDs(networkVlans)
         val addFlowMsg = injectOnePacket(ethPkt, "port4", isDropExpected = false)
-        val expectedPort = getMaterializedPort(expectedPortName)
+        val expectedPort = getBridgePort(expectedPortName)
         val flowActs = addFlowMsg.f.getActions
         flowActs should have size(1)
         vifToLocalPortNumber(expectedPort.getId) match {

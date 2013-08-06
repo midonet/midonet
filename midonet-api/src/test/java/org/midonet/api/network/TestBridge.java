@@ -36,7 +36,7 @@ import org.midonet.client.dto.DtoBridge;
 import org.midonet.client.dto.DtoBridgePort;
 import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoIP4MacPair;
-import org.midonet.client.dto.DtoInteriorBridgePort;
+import org.midonet.client.dto.DtoBridgePort;
 import org.midonet.client.dto.DtoMacPort;
 import org.midonet.client.dto.DtoPort;
 import org.midonet.client.dto.DtoRuleChain;
@@ -60,7 +60,7 @@ import static org.midonet.client.VendorMediaType.APPLICATION_MAC_PORT_COLLECTION
 import static org.midonet.client.VendorMediaType.APPLICATION_MAC_PORT_COLLECTION_JSON_V2;
 import static org.midonet.client.VendorMediaType.APPLICATION_MAC_PORT_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_MAC_PORT_JSON_V2;
-import static org.midonet.client.VendorMediaType.APPLICATION_PORT_JSON;
+import static org.midonet.client.VendorMediaType.APPLICATION_PORT_V2_JSON;
 import static org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID;
 
 @RunWith(Enclosed.class)
@@ -222,17 +222,17 @@ public class TestBridge {
         private DtoBridgePort addTrunkPort(DtoBridge bridge) {
             DtoBridgePort port = new DtoBridgePort();
             port = dtoResource.postAndVerifyCreated(bridge.getPorts(),
-                    APPLICATION_PORT_JSON, port, DtoBridgePort.class);
+                    APPLICATION_PORT_V2_JSON, port, DtoBridgePort.class);
             assertNotNull(port.getId());
             return port;
         }
 
-        private DtoInteriorBridgePort addInteriorPort(
+        private DtoBridgePort addInteriorPort(
                 DtoBridge bridge, Short vlanId) {
-            DtoInteriorBridgePort port = new DtoInteriorBridgePort();
+            DtoBridgePort port = new DtoBridgePort();
             port.setVlanId(vlanId);
             port = dtoResource.postAndVerifyCreated(bridge.getPorts(),
-                    APPLICATION_PORT_JSON, port, DtoInteriorBridgePort.class);
+                    APPLICATION_PORT_V2_JSON, port, DtoBridgePort.class);
             assertNotNull(port.getId());
             return port;
         }
@@ -448,10 +448,12 @@ public class TestBridge {
             DtoMacPort mp1 = addMacPortV1(
                     bridge, "02:11:22:33:44:55", p1.getId());
 
+
             // Create a second port and Mac-Port mapping
             DtoBridgePort p2 = addTrunkPort(bridge);
             DtoMacPort mp2 = addMacPortV1(
                     bridge, "02:11:22:33:44:66", p2.getId());
+
 
             // List the MacPort entries.
             DtoMacPort[] entries = getMacTable(bridge);
@@ -492,10 +494,10 @@ public class TestBridge {
         public void testVlanMacTables() throws Exception {
             // Create bridge and ports.
             DtoBridge bridge = addBridge("bridge1");
-            DtoInteriorBridgePort ip0 = addInteriorPort(bridge, null);
-            DtoInteriorBridgePort ip1 = addInteriorPort(bridge, (short)1);
-            DtoInteriorBridgePort ip2 = addInteriorPort(bridge, (short)2);
-            DtoInteriorBridgePort ip3 = addInteriorPort(bridge, (short)3);
+            DtoBridgePort ip0 = addInteriorPort(bridge, null);
+            DtoBridgePort ip1 = addInteriorPort(bridge, (short)1);
+            DtoBridgePort ip2 = addInteriorPort(bridge, (short)2);
+            DtoBridgePort ip3 = addInteriorPort(bridge, (short)3);
             DtoBridgePort tp = addTrunkPort(bridge);
 
             // Create mac-port mappings.
@@ -574,8 +576,8 @@ public class TestBridge {
         @Test
         public void testVlanMacPortCreation() throws Exception {
             DtoBridge bridge = addBridge("bridge1");
-            DtoInteriorBridgePort ip0 = addInteriorPort(bridge, null);
-            DtoInteriorBridgePort ip1 = addInteriorPort(bridge, (short)1);
+            DtoBridgePort ip0 = addInteriorPort(bridge, null);
+            DtoBridgePort ip1 = addInteriorPort(bridge, (short)1);
             DtoBridgePort tp = addTrunkPort(bridge);
 
             // Create MAC-port mappings for untagged VLAN and VLAN1

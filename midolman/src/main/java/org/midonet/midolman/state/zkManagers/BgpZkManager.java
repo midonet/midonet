@@ -54,6 +54,7 @@ public class BgpZkManager extends AbstractZkManager {
             throws StateAccessException, SerializationException {
 
         List<Op> ops = new ArrayList<Op>();
+
         ops.add(Op.create(paths.getBgpPath(id),
                 serializer.serialize(config.getData()),
                 Ids.OPEN_ACL_UNSAFE,

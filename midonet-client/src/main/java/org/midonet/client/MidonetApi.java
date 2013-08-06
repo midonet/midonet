@@ -40,16 +40,6 @@ public class MidonetApi {
     }
 
     /**
-     * Adds a Vlan Bridge.
-     *
-     * @return a vlan bridge resource
-     */
-    public VlanBridge addVlanBridge() {
-        ensureApplication();
-        return application.addVlanBridge();
-    }
-
-    /**
      * Adds a Bridge.
      *
      * @return a bridge resource
@@ -107,16 +97,6 @@ public class MidonetApi {
     public TunnelZone<DtoCapwapTunnelZone> addCapwapTunnelZone() {
         ensureApplication();
         return application.addCapwapTunnelZone();
-    }
-
-    /**
-     * Gets Vlan Bridges.
-     *
-     * @return collection of vlan bridges
-     */
-    public ResourceCollection<VlanBridge> getVlanBridges(MultivaluedMap queryParams) {
-        ensureApplication();
-        return application.getVlanBridges(queryParams);
     }
 
     /**
@@ -222,17 +202,6 @@ public class MidonetApi {
     public Bridge getBridge(UUID id) {
         ensureApplication();
         return application.getBridge(id);
-    }
-
-    /**
-     * Returns a VlanBridge object.
-     *
-     * @param id
-     * @return
-     */
-    public VlanBridge getVlanBridge(UUID id) {
-        ensureApplication();
-        return application.getVlanBridge(id);
     }
 
     /**

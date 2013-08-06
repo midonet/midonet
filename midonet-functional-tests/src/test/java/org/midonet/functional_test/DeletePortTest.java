@@ -58,7 +58,7 @@ public class DeletePortTest extends TestBase {
 
         rtr = apiClient.addRouter().tenantId("tenant-id").name("rtr1").create();
 
-        p1 = rtr.addExteriorRouterPort()
+        p1 = rtr.addPort()
                 .portAddress(ip1.toUnicastString())
                 .networkAddress(ip1.toNetworkAddress().toString())
                 .networkLength(ip1.getPrefixLen())
@@ -82,7 +82,7 @@ public class DeletePortTest extends TestBase {
         log.info("Received one LocalPortActive message from stream.");
         assertTrue("The port should be active.", activeMsg.active());
 
-        p2 = rtr.addExteriorRouterPort()
+        p2 = rtr.addPort()
                 .portAddress(ip2.toUnicastString())
                 .networkAddress(ip2.toNetworkAddress().toString())
                 .networkLength(ip2.getPrefixLen())
@@ -106,7 +106,7 @@ public class DeletePortTest extends TestBase {
         log.info("Received one LocalPortActive message from stream.");
         assertTrue("The port should be active.", activeMsg.active());
 
-        p3 = rtr.addExteriorRouterPort()
+        p3 = rtr.addPort()
                 .portAddress(ip3.toUnicastString())
                 .networkAddress(ip3.toNetworkAddress().toString())
                 .networkLength(ip3.getPrefixLen())

@@ -17,10 +17,9 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.Router
 import org.midonet.cluster.data.host.Host
-import org.midonet.cluster.data.ports.MaterializedRouterPort
+import org.midonet.cluster.data.ports.RouterPort
 import org.midonet.cluster.data.zones.{GreTunnelZone, GreTunnelZoneHost}
 import org.midonet.midolman.DatapathController.DpPortCreate
-import org.midonet.midolman.FlowController.AddWildcardFlow
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.FlowController.WildcardFlowAdded
 import org.midonet.midolman.FlowController.WildcardFlowRemoved
@@ -67,8 +66,8 @@ with RouterHelper{
     var host2: Host = null
     var host3: Host = null
     val ttl: Byte = 17
-    var outPort: MaterializedRouterPort = null
-    var inPort: MaterializedRouterPort = null
+    var outPort: RouterPort = null
+    var inPort: RouterPort = null
     var mapPortNameShortNumber: Map[String,Short] = new HashMap[String, Short]()
 
 
@@ -101,18 +100,20 @@ with RouterHelper{
 
         flowProbe().expectMsgType[DatapathController.DatapathReady].datapath should not be (null)
 
-        inPort = newExteriorRouterPort(clusterRouter, MAC.fromString(macInPort),
+        inPort = newRouterPort(clusterRouter, MAC.fromString(macInPort),
             ipInPort, ipInPort, 32)
         inPort should not be null
 
-        outPort = newExteriorRouterPort(clusterRouter, MAC.fromString(macOutPort),
+        outPort = newRouterPort(clusterRouter, MAC.fromString(macOutPort),
             ipOutPort, networkToReach, networkToReachLength)
 
         //requestOfType[WildcardFlowAdded](flowProbe)
-        materializePort(inPort, host1, inPortName)
+        inPort = materializePort(
+            inPort, host1, inPortName).asInstanceOf[RouterPort]
         mapPortNameShortNumber += inPortName -> 1
         requestOfType[LocalPortActive](portsProbe)
-        materializePort(outPort, host1, outPortName)
+        outPort = materializePort(
+            outPort, host1, outPortName).asInstanceOf[RouterPort]
         mapPortNameShortNumber += outPortName -> 2
         requestOfType[LocalPortActive](portsProbe)
 
@@ -192,7 +193,6 @@ with RouterHelper{
             (FlowActions.output(mapPortNameShortNumber(outPortName)))))*/
     }
 
-
     def testTunnelPortAddedAndRemoved() {
 
         drainProbe(datapathEventsProbe)
@@ -204,8 +204,8 @@ with RouterHelper{
 
         val bridge = newBridge("bridge")
 
-        val port1OnHost1 = newExteriorBridgePort(bridge)
-        val portOnHost2 = newExteriorBridgePort(bridge)
+        val port1OnHost1 = newBridgePort(bridge)
+        val portOnHost2 = newBridgePort(bridge)
 
         materializePort(port1OnHost1, host1, "port1")
         materializePort(portOnHost2, host2, "port2")

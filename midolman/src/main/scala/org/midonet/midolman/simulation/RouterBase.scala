@@ -74,7 +74,7 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
         }
     }
 
-    private def applyIngressChain(inPort: RouterPort[_])
+    private def applyIngressChain(inPort: RouterPort)
                                  (implicit ec: ExecutionContext,
                                   pktContext: PacketContext,
                                   actorSystem: ActorSystem): Option[Action] = {
@@ -106,7 +106,7 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
     }
 
 
-    private def preRouting(inPort: RouterPort[_])
+    private def preRouting(inPort: RouterPort)
                           (implicit pktContext: PacketContext,
                                     ec: ExecutionContext,
                                     actorSystem: ActorSystem): Future[Action] ={
@@ -138,7 +138,7 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
 
     }
 
-    private def routing(inPort: RouterPort[_])
+    private def routing(inPort: RouterPort)
                        (implicit ec: ExecutionContext,
                                  pktContext: PacketContext,
                                  actorSystem: ActorSystem): Future[Action] = {
@@ -229,7 +229,7 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
     }
 
     // POST ROUTING
-    private def postRouting(inPort: RouterPort[_], outPort: RouterPort[_],
+    private def postRouting(inPort: RouterPort, outPort: RouterPort,
                             rt: Route, pktContext: PacketContext)
                            (implicit ec: ExecutionContext,
                             actorSystem: ActorSystem): Future[Action] = {
@@ -295,9 +295,9 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
     final protected def getRouterPort(portID: UUID, expiry: Long)
                                      (implicit actorSystem: ActorSystem,
                                       pktContext: PacketContext):
-                                     Future[RouterPort[_]] =
+                                     Future[RouterPort] =
         expiringAsk(PortRequest(portID, update = false), expiry)
-            .mapTo[RouterPort[_]]
+            .mapTo[RouterPort]
 
     // Auxiliary, IP version specific abstract methods.
 
@@ -311,7 +311,7 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
      * @param ec
      * @return
      */
-    protected def getNextHopMac(outPort: RouterPort[_], rt: Route,
+    protected def getNextHopMac(outPort: RouterPort, rt: Route,
                                          ipDest: IP, expiry: Long)
                                         (implicit ec: ExecutionContext,
                                          actorSystem: ActorSystem,
@@ -321,7 +321,7 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
      * Will be called whenever an ICMP unreachable is needed for the given
      * IP version.
      */
-    protected def sendIcmpUnreachableProhibError(inPort: RouterPort[_],
+    protected def sendIcmpUnreachableProhibError(inPort: RouterPort,
                                                           wMatch: WildcardMatch,
                                                           frame: Ethernet)
                                                 (implicit ec: ExecutionContext,
@@ -332,7 +332,7 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
      * Will be called whenever an ICMP Unreachable network is needed for the
      * given IP version.
      */
-    protected def sendIcmpUnreachableNetError(inPort: RouterPort[_],
+    protected def sendIcmpUnreachableNetError(inPort: RouterPort,
                                                        wMatch: WildcardMatch,
                                                        frame: Ethernet)
                                              (implicit ec: ExecutionContext,
@@ -343,7 +343,7 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
      * Will be called whenever an ICMP Unreachable host is needed for the
      * given IP version.
      */
-    protected def sendIcmpUnreachableHostError(inPort: RouterPort[_],
+    protected def sendIcmpUnreachableHostError(inPort: RouterPort,
                                                         wMatch: WildcardMatch,
                                                         frame: Ethernet)
                                               (implicit ec: ExecutionContext,
@@ -353,7 +353,7 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
      * Will be called whenever an ICMP Time Exceeded is needed for the given
      * IP version.
      */
-    protected def sendIcmpTimeExceededError(inPort: RouterPort[_],
+    protected def sendIcmpTimeExceededError(inPort: RouterPort,
                                                      wMatch: WildcardMatch,
                                                      frame: Ethernet)
                                            (implicit ec: ExecutionContext,
@@ -374,7 +374,7 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
      * Will be called from the pre-routing process immediately after receiving
      * the frame, if Ethernet.isBroadcast(hwDst).
      */
-    protected def handleL2Broadcast(inPort: RouterPort[_])
+    protected def handleL2Broadcast(inPort: RouterPort)
                                    (implicit pktContext: PacketContext,
                                     ec: ExecutionContext,
                                     actorSystem: ActorSystem): Action
@@ -384,7 +384,7 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
      * including handling broadcasts and reacting to frames not addressed to
      * our MAC.
      */
-    protected def handleNeighbouring(inPort: RouterPort[_])
+    protected def handleNeighbouring(inPort: RouterPort)
                                  (implicit ec: ExecutionContext,
                                   pktContext: PacketContext,
                                   actorSystem: ActorSystem): Option[Action]

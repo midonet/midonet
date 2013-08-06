@@ -313,12 +313,12 @@ public class FlowInvalidationTest extends RouterBridgeBaseTest {
         // Now we add a router port with a route to floatingIP1
         TapWrapper tapNew = new TapWrapper("newRouterPort");
         IPv4Addr gwIp = IPv4Addr.fromString("172.16.1.2");
-        RouterPort rtrNewPort = router1.addExteriorRouterPort()
+        RouterPort rtrNewPort = router1.addPort()
                 .portMac(tapNew.getHwAddr().toString())
                 .portAddress(gwIp.toString())
                 .networkAddress(gwIp.toString())
                 .networkLength(32).create();
-        routerUplink = router1.addExteriorRouterPort()
+        routerUplink = router1.addPort()
             .portAddress("172.16.0.1")
             .networkAddress("172.16.0.0").networkLength(24).create();
         //.setLocalLink(IPv4Addr.fromString("172.16.1.1"), gwIp)

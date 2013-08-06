@@ -131,10 +131,10 @@ public class Bridge extends ResourceBase<Bridge, DtoBridge> {
 
     public ResourceCollection<BridgePort> getPorts() {
         return getChildResources(
-            principalDto.getPorts(),
-            null,
-            VendorMediaType.APPLICATION_PORT_COLLECTION_JSON,
-            BridgePort.class, DtoBridgePort.class);
+                principalDto.getPorts(),
+                null,
+                VendorMediaType.APPLICATION_PORT_V2_COLLECTION_JSON,
+                BridgePort.class, DtoBridgePort.class);
     }
 
     /**
@@ -144,29 +144,29 @@ public class Bridge extends ResourceBase<Bridge, DtoBridge> {
      */
     public ResourceCollection<Port> getPeerPorts() {
         ResourceCollection<Port> peerPorts =
-            new ResourceCollection<Port>(new ArrayList<Port>());
+                new ResourceCollection<Port>(new ArrayList<Port>());
 
         DtoPort[] dtoPeerPorts = resource.get(
-            principalDto.getPeerPorts(),
-            null,
-            DtoPort[].class,
-            VendorMediaType.APPLICATION_PORT_COLLECTION_JSON);
+                principalDto.getPeerPorts(),
+                null,
+                DtoPort[].class,
+                VendorMediaType.APPLICATION_PORT_V2_COLLECTION_JSON);
 
         for (DtoPort pp : dtoPeerPorts) {
-            if (pp instanceof DtoInteriorRouterPort) {
-                RouterPort rp = new RouterPort<DtoInteriorRouterPort>(
-                    resource,
-                    principalDto.getPorts(),
-                    (DtoInteriorRouterPort) pp);
+            if (pp instanceof DtoRouterPort) {
+                RouterPort rp = new RouterPort(
+                        resource,
+                        principalDto.getPorts(),
+                        (DtoRouterPort) pp);
                 peerPorts.add(rp);
 
-            } else if (pp instanceof DtoInteriorBridgePort) {
+            } else if (pp instanceof DtoBridgePort) {
                 // Interior bridge ports can be linked if one of the 2 has a
                 // vlan id assigned, this should be validated upon creation
-                BridgePort bp = new BridgePort<DtoInteriorBridgePort>(
-                    resource,
-                    principalDto.getPorts(),
-                    (DtoInteriorBridgePort) pp);
+                BridgePort bp = new BridgePort(
+                        resource,
+                        principalDto.getPorts(),
+                        (DtoBridgePort) pp);
                 peerPorts.add(bp);
             }
         }
@@ -174,23 +174,15 @@ public class Bridge extends ResourceBase<Bridge, DtoBridge> {
     }
 
     /**
-     * Returns bridge port resource object.
+     * Returns Bridge port resource for creation.
      *
-     * @return bridge port object
+     * @return Bridge port resource
      */
-    public BridgePort<DtoBridgePort> addExteriorPort() {
-        return new BridgePort<DtoBridgePort>(resource, principalDto.getPorts(),
-                                             new DtoBridgePort());
-    }
-
-    /**
-     * Returns bridge port resource object.
-     *
-     * @return bridge port object for
-     */
-    public BridgePort<DtoInteriorBridgePort> addInteriorPort() {
-        return new BridgePort<DtoInteriorBridgePort>(
-                resource, principalDto.getPorts(), new DtoInteriorBridgePort());
+    public BridgePort addPort() {
+        return new BridgePort(
+                resource,
+                principalDto.getPorts(),
+                new DtoBridgePort());
     }
 
     public DhcpSubnet addDhcpSubnet() {

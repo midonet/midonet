@@ -18,7 +18,7 @@ import org.midonet.cluster.data.{Bridge => ClusterBridge, Chain,
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.rules.{ForwardNatRule, ReverseNatRule}
 import org.midonet.cluster.data.rules.{JumpRule, LiteralRule}
-import org.midonet.cluster.data.ports._
+import org.midonet.cluster.data.ports.{LogicalVlanBridgePort, TrunkPort, RouterPort, BridgePort}
 import org.midonet.cluster.data.zones.GreTunnelZone
 import org.midonet.packets.MAC
 import org.midonet.cluster.data.dhcp.Subnet
@@ -175,19 +175,19 @@ trait VirtualConfigurationBuilders {
         clusterDataClient().portsGet(uuid).asInstanceOf[LogicalVlanBridgePort]
     }
 
-    def newExteriorBridgePort(bridge: ClusterBridge): MaterializedBridgePort = {
-        val uuid = clusterDataClient().portsCreate(Ports.materializedBridgePort(bridge))
+    def newBridgePort(bridge: ClusterBridge): BridgePort = {
+        val uuid = clusterDataClient().portsCreate(Ports.bridgePort(bridge))
         // do a portsGet because some fields are set during the creating and are
         // not copied in the port object we pass, eg. TunnelKey
-        clusterDataClient().portsGet(uuid).asInstanceOf[MaterializedBridgePort]
+        clusterDataClient().portsGet(uuid).asInstanceOf[BridgePort]
     }
 
-    def newInteriorBridgePort(bridge: ClusterBridge,
-                              vlanId: Option[Short] = None): LogicalBridgePort = {
+    def newBridgePort(bridge: ClusterBridge,
+                              vlanId: Option[Short] = None): BridgePort = {
         val jVlanId: java.lang.Short = if(vlanId.isDefined) vlanId.get else null
         val uuid = clusterDataClient()
-                   .portsCreate(Ports.logicalBridgePort(bridge, jVlanId))
-        clusterDataClient().portsGet(uuid).asInstanceOf[LogicalBridgePort]
+                   .portsCreate(Ports.bridgePort(bridge, jVlanId))
+        clusterDataClient().portsGet(uuid).asInstanceOf[BridgePort]
     }
 
     def deletePort(port: Port[_, _], host: Host){
@@ -201,26 +201,26 @@ trait VirtualConfigurationBuilders {
     def newRouter(name: String): ClusterRouter =
             newRouter(new ClusterRouter().setName(name))
 
-    def newExteriorRouterPort(router: ClusterRouter, mac: MAC, portAddr: String,
-                        nwAddr: String, nwLen: Int): MaterializedRouterPort = {
-        val port = Ports.materializedRouterPort(router)
+    def newRouterPort(router: ClusterRouter, mac: MAC, portAddr: String,
+                        nwAddr: String, nwLen: Int): RouterPort = {
+        val port = Ports.routerPort(router)
                         .setPortAddr(portAddr)
                         .setNwAddr(nwAddr)
                         .setNwLength(nwLen)
                         .setHwAddr(mac)
         val uuid = clusterDataClient().portsCreate(port)
-        clusterDataClient().portsGet(uuid).asInstanceOf[MaterializedRouterPort]
+        clusterDataClient().portsGet(uuid).asInstanceOf[RouterPort]
     }
 
     def newInteriorRouterPort(router: ClusterRouter, mac: MAC, portAddr: String,
-                              nwAddr: String, nwLen: Int): LogicalRouterPort = {
-        val port = Ports.logicalRouterPort(router)
+                              nwAddr: String, nwLen: Int): RouterPort = {
+        val port = Ports.routerPort(router)
                         .setPortAddr(portAddr)
                         .setNwAddr(nwAddr)
                         .setNwLength(nwLen)
                         .setHwAddr(mac)
         val uuid = clusterDataClient().portsCreate(port)
-        clusterDataClient().portsGet(uuid).asInstanceOf[LogicalRouterPort]
+        clusterDataClient().portsGet(uuid).asInstanceOf[RouterPort]
     }
 
     def newRoute(router: ClusterRouter,
@@ -237,6 +237,10 @@ trait VirtualConfigurationBuilders {
             .setNextHopPort(nextHopPort)
             .setNextHopGateway(nextHopGateway)
             .setWeight(weight))
+    }
+
+    def deleteRoute(routeId: UUID) {
+        clusterDataClient().routesDelete(routeId);
     }
 
     def addDhcpSubnet(bridge : ClusterBridge,
@@ -259,5 +263,9 @@ trait VirtualConfigurationBuilders {
                     host : org.midonet.cluster.data.dhcp.V6Host) = {
         clusterDataClient().dhcpV6HostCreate(bridge.getId,
                                               subnet.getPrefix, host)
+    }
+
+    def linkPorts(portId: UUID, peerPortId: UUID) {
+        clusterDataClient().portsLink(portId, peerPortId)
     }
 }

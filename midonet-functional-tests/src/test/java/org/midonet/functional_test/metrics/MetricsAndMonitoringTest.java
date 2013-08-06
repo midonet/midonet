@@ -57,7 +57,7 @@ public class MetricsAndMonitoringTest extends TestBase {
 
         ipTap = IPv4Addr.fromString("192.168.231.4");
         MAC macTap = MAC.fromString("02:aa:bb:cc:ee:d2");
-        bridgePort = bridge.addExteriorPort().create();
+        bridgePort = bridge.addPort().create();
         metricsTap = new TapWrapper("metricsTap");
         thisHost.addHostInterfacePort()
                 .interfaceName(metricsTap.getName())
