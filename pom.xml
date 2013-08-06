@@ -31,6 +31,9 @@
   </scm>
 
     <properties>
+        <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
+        <mido.rpm.version>${project.version}</mido.rpm.version>
+        <mido.rpm.release>0.0.${maven.build.timestamp}</mido.rpm.release>
         <versions.jackson>1.9.3</versions.jackson>
         <versions.logback>1.0.1</versions.logback>
         <versions.jersey>1.10</versions.jersey>
