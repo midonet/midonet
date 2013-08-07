@@ -10,67 +10,93 @@ import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.matchers.ShouldMatchers
-import org.slf4j.{Logger, LoggerFactory}
 
 import org.midonet.midolman.DatapathController.{DatapathPortChangedEvent,
     TunnelChangeEvent}
 import org.midonet.midolman.topology.VirtualToPhysicalMapper._
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.topology.rcu.{Host => RCUHost}
-import org.midonet.cluster.data.zones.{GreTunnelZone,
-                                       GreTunnelZoneHost}
+import org.midonet.cluster.data.zones.{GreTunnelZone, GreTunnelZoneHost}
 import org.midonet.odp.ports.{NetDevPort, GreTunnelPort}
 import org.midonet.packets.IntIPv4
+import org.midonet.cluster.data.ports.MaterializedBridgePort
+import org.midonet.cluster.data.Bridge
+import org.midonet.cluster.data.host.Host
+import akka.testkit.TestProbe
 
 
 @RunWith(classOf[JUnitRunner])
 class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers with VirtualConfigurationBuilders {
 
-    private final val log: Logger = LoggerFactory.getLogger(classOf[TunnelManagementTestCase])
-
     val myselfId = UUID.randomUUID()
+    var greZone: GreTunnelZone = null
+    var myGreConfig: GreTunnelZoneHost = null
+    var herGreConfig: GreTunnelZoneHost = null
+    var dpc: DatapathController = null
+    var host1: Host = null
+    var host2: Host = null
+    var bridge: Bridge = null
+    var portOnHost1: MaterializedBridgePort = null
+
+    var portChangedProbe: TestProbe = null
+    var portActiveProbe: TestProbe = null
+    var tunnelChangeProbe: TestProbe = null
 
     override protected def fillConfig(config: HierarchicalConfiguration): HierarchicalConfiguration = {
         config.setProperty("host-host_uuid", myselfId.toString)
         config
     }
 
+    override def beforeTest() {
+        dpc = dpController().underlyingActor
 
-    def testTunnelZone() {
-        val dpc = dpController().underlyingActor
+        greZone = greTunnelZone("default")
 
-        val greZone = greTunnelZone("default")
+        host1 = newHost("me", hostId())
+        host2 = newHost("she")
 
-        val host1 = newHost("me", hostId())
-        val host2 = newHost("she")
+        bridge = newBridge("bridge")
 
-        val bridge = newBridge("bridge")
-
-        val portOnHost1 = newExteriorBridgePort(bridge)
+        portOnHost1 = newExteriorBridgePort(bridge)
 
         materializePort(portOnHost1, host1, "port1")
 
         // Wait to add myself to the tunnel zone so that the tunnel port
         // gets created after the virtual port.
-        val myGreConfig = new GreTunnelZoneHost(host1.getId)
-            .setIp(IntIPv4.fromString("192.168.100.1"))
+        myGreConfig = new GreTunnelZoneHost(host1.getId)
+                          .setIp(IntIPv4.fromString("192.168.100.1"))
 
-        val herGreConfig = new GreTunnelZoneHost(host2.getId)
-            .setIp(IntIPv4.fromString("192.168.200.1"))
+        herGreConfig = new GreTunnelZoneHost(host2.getId)
+                           .setIp(IntIPv4.fromString("192.168.200.1"))
 
         clusterDataClient()
             .tunnelZonesAddMembership(greZone.getId, herGreConfig)
 
+        portChangedProbe = newProbe()
+        portActiveProbe = newProbe()
+        tunnelChangeProbe = newProbe()
+
         // make a probe and make it listen to the DatapathPortChangedEvents (fired by the Datapath Controller)
-        val portChangedProbe = newProbe()
-        val portActiveProbe = newProbe()
-        val tunnelChangeProbe = newProbe()
         actors().eventStream.subscribe(portChangedProbe.ref, classOf[DatapathPortChangedEvent])
         actors().eventStream.subscribe(portActiveProbe.ref, classOf[LocalPortActive])
         actors().eventStream.subscribe(tunnelChangeProbe.ref, classOf[TunnelChangeEvent])
 
         // start initialization
         initializeDatapath() should not be (null)
+    }
+
+    /**
+     * Mostly here to ensure that deletions of tunnel zones result also in
+     * deletion of the memberships.
+     */
+    def testTunnelZoneCreationDeletion() {
+        // The zone is created by now, and there is 1 member
+        clusterDataClient().tunnelZonesDelete(greZone.getId)
+        clusterDataClient().hostsGet(host1.getId).getTunnelZones should have size (0)
+        clusterDataClient().tunnelZonesGetMemberships(greZone.getId) should have size (0)
+    }
+
+    def testTunnelZone() {
 
         // assert that the port event was fired properly
         var portChangedEvent = portChangedProbe.expectMsgClass(classOf[DatapathPortChangedEvent])

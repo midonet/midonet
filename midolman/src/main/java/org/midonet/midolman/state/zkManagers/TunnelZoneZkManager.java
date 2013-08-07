@@ -262,11 +262,18 @@ public class TunnelZoneZkManager extends AbstractZkManager {
 
     public void deleteZone(UUID uuid) throws StateAccessException {
 
-        String zonePath = paths.getTunnelZonePath(uuid);
-
-        if (zk.exists(zonePath)) {
-            zk.multi(zk.getRecursiveDeleteOps(zonePath));
+        List<Op> ops = new ArrayList<Op>();
+        for (UUID membershipId : this.getZoneMemberships(uuid, null)) {
+            ops.add(
+                zk.getDeleteOp(paths.getHostTunnelZonePath(membershipId, uuid))
+            );
         }
+
+        String zonePath = paths.getTunnelZonePath(uuid);
+        if (zk.exists(zonePath)) {
+            ops.addAll(zk.getRecursiveDeleteOps(zonePath));
+        }
+        zk.multi(ops);
     }
 
     public void delMembership(UUID zoneId, UUID membershipId)
