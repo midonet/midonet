@@ -44,6 +44,7 @@ import org.midonet.util.throttling.ThrottlingGuard
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 import com.yammer.metrics.core.Clock
 import annotation.tailrec
+import java.util.concurrent.TimeUnit
 
 object PacketWorkflow {
     case class PacketIn(wMatch: WildcardMatch,
@@ -106,7 +107,7 @@ class PacketWorkflow(
         case Left(_) => None
     }
 
-    implicit val requestReplyTimeout = new Timeout(1)
+    implicit val requestReplyTimeout = new Timeout(5, TimeUnit.SECONDS)
 
     val log: LoggingAdapter = Logging.getLogger(system, this.getClass)
     val cookieStr: String = "[cookie:" + cookie.getOrElse("No Cookie") + "]"
