@@ -261,6 +261,7 @@ class PacketWorkflow(
                 flowPromise.success(true)
 
             case Some(cook) if (valid && packet.getMatch.isUserSpaceOnly) =>
+                log.debug("Adding wildcard flow, for userspace only match")
                 FlowController.getRef() !
                     AddWildcardFlow(wildFlow, None, removalCallbacks,
                                     tags, lastInvalidation)

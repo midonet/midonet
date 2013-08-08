@@ -350,7 +350,12 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogWithout
                 }
 
             case _DevicePortStatus(port, device, active) =>
-                val (deviceId, tunnelKey) = deviceIdAndTunnelKey(device)
+                val (deviceId: UUID, tunnelKey: Long) = device match {
+                    case b: Bridge => (b.id, b.tunnelKey)
+                    case b: VlanAwareBridge => (b.id, b.tunnelKey)
+                    case b => log.warning("Unexpected device: {}", b)
+                              (null, null)
+                }
                 assert(port.deviceID == deviceId)
                 log.debug("Port {} in PortSet {} became {}.", port.id,
                     deviceId, if (active) "active" else "inactive")
@@ -439,25 +444,6 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogWithout
             case value =>
                 log.error("Unknown message: " + value)
 
-        }
-    }
-
-    /**
-     * Convenience method to retrieve id and tunnel key from different types
-     * of devices.
-     *
-     * TODO (galo) we could save this ugliness with a Trait
-     * @param device
-     * @return
-     */
-    private def deviceIdAndTunnelKey(device: Device): (UUID, Long) = {
-        device match {
-            case _: Bridge =>
-                val d = device.asInstanceOf[Bridge]
-                (d.id, d.tunnelKey)
-            case _: VlanAwareBridge =>
-                val d = device.asInstanceOf[VlanAwareBridge]
-                (d.id, d.tunnelKey)
         }
     }
 
