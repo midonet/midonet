@@ -166,15 +166,23 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
 
     var metrics: PacketPipelineMetrics = null
 
+    private sealed class GetConditionListFromVta { }
+
     override def preStart() {
         super.preStart()
         metrics = new PacketPipelineMetrics(metricsRegistry, throttler)
-        VirtualTopologyActor.getRef().tell(
-            VirtualTopologyActor.ConditionListRequest(
-                TraceConditionsManager.uuid, true))
+        // Defer this until actor start-up finishes, so that the VTA
+        // will have an actor (ie, self) in 'sender' to send replies to.
+        self ! new GetConditionListFromVta
     }
 
     def receive = LoggingReceive {
+        case _: GetConditionListFromVta =>
+            val vta = VirtualTopologyActor.getRef()
+            log.debug("Subscribing to VTA {} for ConditionListRequests.", vta)
+            vta.tell(VirtualTopologyActor.ConditionListRequest(
+                         TraceConditionsManager.uuid, true))
+
         case DatapathController.DatapathReady(dp, state) =>
             if (null == datapath) {
                 datapath = dp
@@ -257,6 +265,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
             packetWorkflow.start()
 
         case newTraceConditions: immutable.Seq[Condition] =>
+            log.debug("traceConditions updated to {}", newTraceConditions)
             traceConditions = newTraceConditions
     }
 

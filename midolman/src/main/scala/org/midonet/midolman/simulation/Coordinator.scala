@@ -136,6 +136,8 @@ class Coordinator(var origMatch: WildcardMatch,
         a: SimulationResult): Future[SimulationResult] = Promise.successful(a)
 
     private def matchTraceConditions(): Boolean = {
+        log.debug("Checking packet {} against conditions {}",
+                  pktContext, traceConditions);
         for (condition <- traceConditions) {
             if (condition.matches(pktContext, origMatch, false))
                 return true

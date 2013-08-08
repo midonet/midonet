@@ -2050,27 +2050,22 @@ public class LocalDataClientImpl implements DataClient {
     /* Trace condition methods */
     @Override
     public UUID traceConditionCreate(@Nonnull TraceCondition traceCondition)
-        throws StateAccessException, SerializationException
-    {
+        throws StateAccessException, SerializationException {
         return traceConditionZkManager.create(traceCondition.getCondition());
     }
 
     @Override
-    public void traceConditionDelete(UUID uuid)
-        throws StateAccessException
-    {
+    public void traceConditionDelete(UUID uuid) throws StateAccessException {
         traceConditionZkManager.delete(uuid);
     }
 
     @Override
-    public boolean traceConditionExists(UUID uuid) throws StateAccessException
-    {
+    public boolean traceConditionExists(UUID uuid) throws StateAccessException {
         return traceConditionZkManager.exists(uuid);
     }
 
     public @CheckForNull TraceCondition traceConditionGet(UUID uuid)
-        throws StateAccessException, SerializationException
-    {
+        throws StateAccessException, SerializationException {
         Condition condition = traceConditionZkManager.get(uuid);
         TraceCondition traceCondition = new TraceCondition(uuid, condition);
         return traceCondition;
@@ -2078,8 +2073,8 @@ public class LocalDataClientImpl implements DataClient {
 
     @Override
     public List<TraceCondition> traceConditionsGetAll()
-        throws StateAccessException, SerializationException
-    {
+        throws StateAccessException, SerializationException {
+        log.debug("Getting all the trace conditions from ZK.");
         Collection<UUID> ids = traceConditionZkManager.getIds();
         List<TraceCondition> traceConditions = new ArrayList<TraceCondition>();
 

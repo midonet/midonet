@@ -499,12 +499,11 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             return;
         }
 
-        if (Port.Type
-            .Tunnels
-            .contains(port.getType()) && port.getOptions() == null) {
+        if (Port.Type.Tunnels.contains(port.getType()) &&
+                port.getOptions() == null) {
             callback.onError(
                 new OvsDatapathInvalidParametersException(
-                    "A tunnel port needs to have it's options set"));
+                    "A tunnel port needs to have its options set"));
             return;
         }
 
@@ -560,7 +559,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         if (datapathId == null && name == null) {
             callback.onError(new OvsDatapathInvalidParametersException(
-                "Either a datapath id or a datapath name should be provided"));
+                "Either a datapath ID or a datapath name should be provided"));
             return;
         }
 

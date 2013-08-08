@@ -576,6 +576,7 @@ class DatapathController() extends Actor with ActorLogging with
         * Handle personal create port requests
         */
         case newPortOp: CreatePortOp[Port[_, _]] if (sender == self) =>
+            log.debug("Got CreatePortOp {} message from myself", newPortOp)
             createDatapathPort(sender, newPortOp.port, newPortOp.tag)
 
         /**
@@ -694,6 +695,7 @@ class DatapathController() extends Actor with ActorLogging with
             handleZoneChange(m)
 
         case newPortOp: CreatePortOp[Port[_, _]] =>
+            log.debug("Got CreatePortOp {} from {}", newPortOp, sender)
             createDatapathPort(sender, newPortOp.port, newPortOp.tag)
 
         case delPortOp: DeletePortOp[Port[_, _]] =>
@@ -810,6 +812,7 @@ class DatapathController() extends Actor with ActorLogging with
             val options = tunnelPort.getOptions.asInstanceOf[TunnelPortOptions[_]]
             options.setSourceIPv4(myConfig.getIp.addressAsInt())
             options.setDestinationIPv4(peerConf.getIp.addressAsInt())
+            log.debug("Opening tunnel port {}", tunnelPort)
             createDatapathPort(self, tunnelPort, Some((peerConf, zone)))
         }
 
