@@ -142,92 +142,64 @@ trait DeviceHandler {
 class DeviceHandlersManager[T <: AnyRef](handler: DeviceHandler) {
 
     val devices = mutable.Map[UUID, T]()
-    val deviceHandlers = mutable.Set[UUID]()
-    val deviceSubscribers = mutable.Map[UUID, mutable.Set[ActorRef]]()
-    val deviceObservers = mutable.Map[UUID, mutable.Set[ActorRef]]()
+    
+    private[this] val deviceHandlers = mutable.Set[UUID]()
+    private[this] val deviceSubscribers = mutable.Map[UUID, mutable.Set[ActorRef]]()
+    private[this] val deviceOneShotSubscribers = mutable.Map[UUID, mutable.Set[ActorRef]]()
 
     def removeSubscriber(deviceId: UUID, subscriber: ActorRef) {
         deviceSubscribers.get(deviceId) foreach {
             subscribers => subscribers.remove(subscriber)
         }
-        deviceObservers.get(deviceId) foreach {
-            observers => observers.remove(subscriber)
+        deviceOneShotSubscribers.get(deviceId) foreach {
+            subscribers => subscribers.remove(subscriber)
         }
     }
 
     def addSubscriber(deviceId: UUID, subscriber: ActorRef, updates: Boolean) {
-        if (updates) {
-            deviceSubscribers.get(deviceId) match {
-                case None =>
-                    deviceSubscribers.put(deviceId, mutable.Set(subscriber))
-                case Some(subscribers) =>
-                    subscribers + subscriber
-            }
-        }
+        if (updates) 
+            deviceSubscribers.getOrElseUpdate(deviceId, mutable.Set()) += subscriber
 
         devices.get(deviceId) match {
             case Some(device) => subscriber ! device
             case None =>
-                deviceSubscribers.get(deviceId) map {
-                    subscribers => subscribers.find(_ == subscriber)
-                } match {
-                    case None =>
-                        deviceObservers.get(deviceId) match {
-                            case None =>
-                                deviceObservers.put(deviceId, mutable.Set(subscriber))
-                            case Some(observers) =>
-                                observers + subscriber
-                        }
-                    case _ =>
-                }
+                if (!updates) 
+                    deviceOneShotSubscribers.getOrElseUpdate(deviceId, mutable.Set()) += subscriber
         }
 
-        makeHandler(deviceId)
+        ensureHandler(deviceId)
     }
 
-    private def makeHandler(deviceId: UUID): Unit = {
+    def updateAndNotifySubscribers(deviceId: UUID, device: T) {
+        updateAndNotifySubscribers(deviceId, device, device)
+    }
+
+    def updateAndNotifySubscribers(deviceId: UUID, device: T, message: AnyRef) {
+        devices.put(deviceId, device)
+        notifySubscribers(deviceId, message)
+    }
+
+    def notifySubscribers(deviceId: UUID, message: AnyRef) {
+        ensureHandler(deviceId)
+    
+        doNotifySubscribers(deviceSubscribers, deviceId, message)
+    
+        doNotifySubscribers(deviceOneShotSubscribers, deviceId, message)
+        deviceOneShotSubscribers.remove(deviceId)
+    }
+
+    @inline
+    private[this] def ensureHandler(deviceId: UUID) {
         if (!deviceHandlers.contains(deviceId)) {
             handler.handle(deviceId)
             deviceHandlers.add(deviceId)
         }
     }
 
-    def updateAndNotifySubscribers(uuid: UUID, device: T, message: AnyRef) {
-        devices.put(uuid, device)
-        notifySubscribers(uuid, message)
+    @inline
+    private[this] def doNotifySubscribers(ss: mutable.Map[UUID, mutable.Set[ActorRef]], deviceId: UUID, message: AnyRef) {
+        for (subscribers <- ss.get(deviceId); actor <- subscribers) { actor ! message }
     }
-
-    def updateAndNotifySubscribers(uuid: UUID, device: T ) {
-        devices.put(uuid, device)
-        notifySubscribers(uuid, device)
-    }
-
-    def notifySubscribers(uuid: UUID, message: AnyRef) {
-        notifySubscribers(uuid) { (s, _) => s ! message }
-    }
-
-    def notifySubscribers(uuid: UUID)(code: (ActorRef, T) => Unit) {
-        makeHandler(uuid)
-
-        devices.get(uuid) match {
-            case None =>
-            case Some(device) =>
-                deviceSubscribers.get(uuid) match {
-                    case Some(subscribers) => subscribers map { s => code(s, device) }
-                    case None =>
-                        // this should not happen
-                }
-
-                deviceObservers.get(uuid) match {
-                    case Some(subscribers) => subscribers map { s => code(s, device) }
-                    case None => // it's good
-                }
-
-                deviceObservers.remove(uuid)
-        }
-    }
-
-    def getById(uuid: UUID): Option[T] = devices.get(uuid)
 }
 
 class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogWithoutPath {
