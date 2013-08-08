@@ -124,8 +124,8 @@ public class LocalClientImpl implements Client {
 
     @Override
     public void getTraceConditions(TraceConditionsBuilder builder) {
-        conditionManager.registerNewBuilder(TraceConditionsManager.getUuid(), builder);
         log.debug("getTraceConditions");
+        conditionManager.registerNewBuilder(TraceConditionsManager.getUuid(), builder);
     }
 
     @Override

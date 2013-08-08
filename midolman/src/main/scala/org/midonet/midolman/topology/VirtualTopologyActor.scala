@@ -12,7 +12,7 @@ import akka.util.duration._
 import java.util.UUID
 import com.google.inject.Inject
 
-import org.midonet.midolman.{FlowController, Referenceable}
+import org.midonet.midolman.{DeduplicationActor, FlowController, Referenceable}
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.rules.Condition
@@ -131,6 +131,9 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
     private var idToPort = immutable.Map[UUID, Port[_]]()
     private var idToRouter = immutable.Map[UUID, Router]()
     private var traceConditions = immutable.Seq[Condition]()
+    private var idToTraceConditions =
+                        immutable.Map[UUID, immutable.Seq[Condition]](
+                            TraceConditionsManager.uuid -> traceConditions)
 
     // TODO(pino): unload devices with no subscribers that haven't been used
     // TODO:       in a while.
@@ -172,14 +175,16 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
             idToUnansweredClients(id).add(sender)
         }
         if (update) {
-            log.debug("Adding requester to subscribed clients")
+            log.debug("Adding requester {} to subscribed clients for {}",
+                      sender, id)
             idToSubscribers(id).add(sender)
         }
     }
 
     private def updated(id: UUID, device: Any) {
         for (client <- idToSubscribers(id)) {
-            log.debug("Send subscriber the device update for {}", device)
+            log.debug("Sending subscriber {} the device update for {}",
+                      client, device)
             client ! device
         }
         for (client <- idToUnansweredClients(id)) {
@@ -192,8 +197,7 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
         }
         idToUnansweredClients(id).clear()
         everything = Everything(idToBridge, idToVlanBridge, idToChain,
-                                idToPort, idToRouter,
-                                Map(TraceConditionsManager.uuid -> traceConditions))
+                                idToPort, idToRouter, idToTraceConditions)
     }
 
     private def unsubscribe(id: UUID, actor: ActorRef): Unit = {
@@ -233,6 +237,11 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
             }
         case VlanBridgeRequest(id, update) => serveVlanBridgeRequest(id, update)
         case BridgeRequest(id, update) => serveBridgeRequest(id, update)
+        case ConditionListRequest(id, update) =>
+            log.debug("ConditionList {} requested with update={}", id, update)
+            manageDevice(id, (x: UUID) =>
+                                 new TraceConditionsManager(x, clusterClient))
+            deviceRequested(id, idToTraceConditions, update)
         case ChainRequest(id, update) =>
             log.debug("Chain {} requested with update={}", id, update)
             manageDevice(id, (x: UUID) => new ChainManager(x, clusterClient))
@@ -272,8 +281,15 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
             idToRouter = idToRouter.+((router.id, router))
             updated(router.id, router)
         case TraceConditionsManager.TriggerUpdate(conditions) =>
+            log.debug("TraceConditions updated to {}", conditions)
             traceConditions = conditions.asScala.toList
+            idToTraceConditions = immutable.Map[UUID, immutable.Seq[Condition]](
+                TraceConditionsManager.uuid -> traceConditions)
             updated(TraceConditionsManager.uuid, traceConditions)
+            // We know the DDA should always get an update to the trace
+            // conditions.  For some reason the ChainRequest(update=true)
+            // message from the DDA doesn't get the sender properly set.
+            DeduplicationActor.getRef().tell(traceConditions)
         case invalidation: InvalidateFlowsByTag =>
             FlowController.getRef() ! invalidation
     }

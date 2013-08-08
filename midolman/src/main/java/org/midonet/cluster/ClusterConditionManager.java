@@ -28,6 +28,7 @@ public class ClusterConditionManager extends ClusterManager<TraceConditionsBuild
 
     @Override
     protected void getConfig(UUID id) {
+        log.debug("getConfig({}) - start", id);
         TraceConditionsBuilder builder = getBuilder(id);
         try {
             conditionList = conditionMgr.getConditions(watchConditionList(id));
@@ -38,6 +39,7 @@ public class ClusterConditionManager extends ClusterManager<TraceConditionsBuild
             log.error("Unable to get condition set: ", e);
             conditionList = Collections.emptyList();
         }
+        log.debug("Got the condition set: {}", conditionList);
         builder.setConditions(conditionList);
         builder.build();
     }

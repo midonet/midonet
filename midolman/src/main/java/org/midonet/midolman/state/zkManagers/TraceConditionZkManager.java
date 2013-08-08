@@ -37,8 +37,7 @@ public class TraceConditionZkManager extends AbstractZkManager {
      * @param serializer Data serialization class
      */
     public TraceConditionZkManager(ZkManager zk, PathBuilder paths,
-                                   Serializer serializer)
-    {
+                                   Serializer serializer) {
         super(zk, paths, serializer);
     }
 
@@ -131,6 +130,7 @@ public class TraceConditionZkManager extends AbstractZkManager {
      * @throws StateAccessException
      */
     public List<UUID> getIds() throws StateAccessException {
+        log.debug("Getting trace condition ID's.");
         String path = paths.getTraceConditionsPath();
         Set<String> idSet = zk.getChildren(path);
         List<UUID> ids = new ArrayList<UUID>(idSet.size());
@@ -149,10 +149,12 @@ public class TraceConditionZkManager extends AbstractZkManager {
      */
     public List<Condition> getConditions(Runnable watcher)
             throws StateAccessException, SerializationException {
+        log.debug("Getting trace conditions list.");
         String path = paths.getTraceConditionsPath();
         Set<String> idSet = zk.getChildren(path, watcher);
         List<Condition> conditions = new ArrayList<Condition>(idSet.size());
         for (String id : idSet) {
+            log.debug("Fetch trace condition {}", id);
             conditions.add(get(UUID.fromString(id)));
         }
 
