@@ -60,28 +60,6 @@ public interface DataClient {
     List<BGP> bgpFindByPort(UUID portId)
             throws StateAccessException, SerializationException;
 
-    /* Vlan bridges related methods */
-
-    @CheckForNull VlanAwareBridge vlanBridgesGetByName(String tenantid,
-                                                       String name)
-            throws StateAccessException, SerializationException;
-
-    UUID vlanBridgesCreate(@Nonnull VlanAwareBridge bridge)
-            throws StateAccessException, SerializationException;
-
-    @CheckForNull
-    VlanAwareBridge vlanBridgesGet(UUID id)
-            throws StateAccessException, SerializationException;
-
-    List<VlanAwareBridge> vlanBridgesFindByTenant(String tenantId)
-            throws StateAccessException, SerializationException;
-
-    void vlanBridgesUpdate(@Nonnull VlanAwareBridge bridge)
-            throws StateAccessException, SerializationException;
-
-    void vlanBridgesDelete(UUID id)
-            throws StateAccessException, SerializationException;
-
     /* Bridges related methods */
     @CheckForNull boolean bridgeExists(UUID id)
             throws StateAccessException;
@@ -376,12 +354,6 @@ public interface DataClient {
             throws StateAccessException, SerializationException;
 
     void portsDelete(UUID id)
-            throws StateAccessException, SerializationException;
-
-    List<Port<?, ?>> trunkPortsFindByVlanBridge(UUID bridgeId)
-            throws StateAccessException, SerializationException;
-
-    List<Port<?, ?>> interiorPortsFindByVlanBridge(UUID bridgeId)
             throws StateAccessException, SerializationException;
 
     List<BridgePort> portsFindByBridge(UUID bridgeId) throws

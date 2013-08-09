@@ -202,11 +202,8 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
                 rtrIpToMac.put(rtrPortIp, routerPort.getHwAddr());
                 log.debug("Add bridge port linked to router port, MAC:{}, IP:{}",
                           new Object[]{id, routerPort.getHwAddr(), rtrPortIp});
-            } else if (peerPortCfg instanceof PortDirectory.LogicalVlanBridgePortConfig) {
-                log.debug("Bridge peer is a VlanAwareBridge's interior port");
-                vlanBridgePeerPortId = id;
             } else if (peerPortCfg instanceof PortDirectory.BridgePortConfig) {
-                log.debug("Bridge peer is another Bridge's interior port");
+               log.debug("Bridge peer is another Bridge's interior port");
                 // Let's see who of the two is acting as vlan-aware bridge
                 Short bridgePortVlanId = bridgePort.getVlanId();
                 if (null == bridgePortVlanId) { // it's the peer

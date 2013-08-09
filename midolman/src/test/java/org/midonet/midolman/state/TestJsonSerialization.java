@@ -8,13 +8,12 @@ import java.io.IOException;
 import java.util.UUID;
 
 import org.junit.Test;
+import org.midonet.midolman.state.PortDirectory.BridgePortConfig;
+import org.midonet.midolman.state.PortDirectory.RouterPortConfig;
 import org.midonet.midolman.state.zkManagers.BridgeDhcpZkManager.Host;
-import org.midonet.midolman.state.PortDirectory.*;
 import org.midonet.midolman.version.serialization.JsonVersionZkSerializer;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
-
-
 import static junit.framework.Assert.assertEquals;
 
 public class TestJsonSerialization {

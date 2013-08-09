@@ -7,6 +7,7 @@ import collection.mutable.ListBuffer
 import collection.{immutable, mutable}
 import java.lang.{Short => JShort}
 import java.util.UUID
+import scala.Some
 
 import akka.actor.{ActorContext, ActorSystem}
 import akka.dispatch.{ExecutionContext, Future, Promise}
@@ -14,26 +15,26 @@ import akka.dispatch.{ExecutionContext, Future, Promise}
 import org.midonet.cache.Cache
 import org.midonet.cluster.client._
 import org.midonet.midolman.DeduplicationActor
-import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
-import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
-import org.midonet.midolman.PacketWorkflow.NoOp
-import org.midonet.midolman.PacketWorkflow.SendPacket
 import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.datapath.FlowActionOutputToVrnPort
 import org.midonet.midolman.datapath.FlowActionOutputToVrnPortSet
 import org.midonet.midolman.logging.LoggerFactory
-import org.midonet.midolman.rules.Condition
 import org.midonet.midolman.rules.RuleResult
-import org.midonet.midolman.topology.VirtualTopologyActor.BridgeRequest
-import org.midonet.midolman.topology.VirtualTopologyActor.ChainRequest
-import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
-import org.midonet.midolman.topology.VirtualTopologyActor.RouterRequest
-import org.midonet.midolman.topology.VirtualTopologyActor.VlanBridgeRequest
+import org.midonet.midolman.rules.RuleResult.{Action => RuleAction}
 import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.midolman.topology._
+import org.midonet.midolman.topology.VirtualTopologyActor.RouterRequest
+import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
+import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
+import org.midonet.midolman.topology.VirtualTopologyActor.BridgeRequest
+import org.midonet.midolman.topology.VirtualTopologyActor.ChainRequest
+import org.midonet.midolman.PacketWorkflow.NoOp
+import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
+import org.midonet.midolman.PacketWorkflow.SendPacket
 import org.midonet.odp.flows._
 import org.midonet.packets.{Ethernet, ICMP, IPv4, IPv4Addr, IPv6Addr, TCP, UDP}
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
+import org.midonet.midolman.rules.Condition
 
 
 object Coordinator {

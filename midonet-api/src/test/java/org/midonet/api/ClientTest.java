@@ -4,36 +4,31 @@
 
 package org.midonet.api;
 
+import java.net.URI;
+import java.util.UUID;
+import javax.annotation.Nullable;
+import javax.ws.rs.core.MultivaluedMap;
+
 import com.google.common.base.Predicate;
-import org.midonet.api.rest_api.FuncTest;
-import org.midonet.client.MidonetApi;
-import org.midonet.client.RouterPredicates;
-import org.midonet.client.exception.HttpNotFoundException;
-import org.midonet.client.dto.DtoBridgePort;
-import org.midonet.client.resource.*;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 import com.sun.jersey.test.framework.JerseyTest;
 import org.junit.Before;
 import org.junit.Test;
-import org.midonet.client.resource.AdRoute;
-import org.midonet.client.resource.Bridge;
-import org.midonet.client.resource.Port;
-import org.midonet.client.resource.PortGroup;
-import org.midonet.client.resource.Route;
-import org.midonet.client.resource.Router;
-import org.midonet.client.resource.Rule;
+import org.midonet.api.rest_api.FuncTest;
+import org.midonet.client.MidonetApi;
+import org.midonet.client.RouterPredicates;
+import org.midonet.client.exception.HttpNotFoundException;
+import org.midonet.client.resource.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.annotation.Nullable;
-import javax.ws.rs.core.MultivaluedMap;
-import java.net.URI;
-import java.util.UUID;
-
 import static com.google.common.base.Predicates.and;
 import static com.google.common.base.Predicates.or;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID;
 
 

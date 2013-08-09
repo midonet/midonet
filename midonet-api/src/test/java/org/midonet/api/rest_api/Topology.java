@@ -3,13 +3,20 @@
  */
 package org.midonet.api.rest_api;
 
-import org.midonet.client.dto.*;
-
-import javax.ws.rs.core.Response;
 import java.util.HashMap;
 import java.util.Map;
+import javax.ws.rs.core.Response;
 
-import static org.midonet.api.VendorMediaType.*;
+import org.midonet.client.dto.*;
+import static org.midonet.api.VendorMediaType.APPLICATION_BRIDGE_JSON;
+import static org.midonet.api.VendorMediaType.APPLICATION_CHAIN_JSON;
+import static org.midonet.api.VendorMediaType.APPLICATION_CONDITION_JSON;
+import static org.midonet.api.VendorMediaType.APPLICATION_JSON;
+import static org.midonet.api.VendorMediaType.APPLICATION_PORTGROUP_JSON;
+import static org.midonet.api.VendorMediaType.APPLICATION_PORT_LINK_JSON;
+import static org.midonet.api.VendorMediaType.APPLICATION_PORT_V2_JSON;
+import static org.midonet.api.VendorMediaType.APPLICATION_ROUTER_JSON;
+import static org.midonet.api.VendorMediaType.APPLICATION_TENANT_COLLECTION_JSON;
 
 
 /**
@@ -58,7 +65,6 @@ public class Topology {
         private final Map<String, String> tagToOutChains;
         private final Map<String, String> tagToRouters;
         private final Map<String, String> tagToBridges;
-        private final Map<String, String> tagToVlanBridges;
         private final Map<String, String> links;
 
         public Builder(DtoWebResource resource) {
@@ -77,7 +83,6 @@ public class Topology {
             this.tagToOutChains = new HashMap<String, String>();
             this.tagToRouters = new HashMap<String, String>();
             this.tagToBridges = new HashMap<String, String>();
-            this.tagToVlanBridges = new HashMap<String, String>();
         }
 
         public DtoWebResource getResource() {
