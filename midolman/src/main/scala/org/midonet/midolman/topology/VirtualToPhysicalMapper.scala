@@ -22,10 +22,9 @@ import org.midonet.cluster.{Client, DataClient}
 import org.midonet.cluster.client.{BridgePort, Port}
 import org.midonet.cluster.data.TunnelZone
 import org.midonet.cluster.data.zones._
-import org.midonet.midolman.topology.VirtualTopologyActor.{VlanBridgeRequest, BridgeRequest, PortRequest}
+import org.midonet.midolman.topology.VirtualTopologyActor.{BridgeRequest, PortRequest}
 import org.midonet.midolman.simulation.Coordinator.Device
 import org.midonet.midolman.simulation.Bridge
-import org.midonet.midolman.simulation.VlanAwareBridge
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.state.{ZkConnectionAwareWatcher, DirectoryCallback}
 import org.midonet.midolman.state.DirectoryCallback.Result
@@ -306,9 +305,9 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogWithout
                     PortRequest(vportID, update = false)).mapTo[Port[_]]
                 f1 onComplete {
                     case Left(ex) =>
-                        log.error("Failed to get config for port that " +
-                            "became {}: {}",
-                            if (active) "active" else "inactive", vportID)
+                        log.error(ex, "Failed to get config for port that " +
+                            "became {}: {}", if (active) "active"
+                            else "inactive", vportID)
                     case Right(port) => port match {
                         case _: BridgePort =>
                             log.debug("LocalPortActive - it's a bridge port")
@@ -319,10 +318,10 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogWithout
                                 .mapTo[Bridge]
                             f2 onComplete {
                                 case Left(ex) =>
-                                    log.error("Failed to get bridge config " +
-                                        "for bridge port that became {}: {}",
-                                        if (active) "active" else "inactive",
-                                        vportID)
+                                    log.error(ex, "Failed to get bridge " +
+                                        "config for bridge port that became " +
+                                        "{}: {}", if (active) "active"
+                                        else "inactive", vportID)
                                 case Right(br) =>
                                     self ! _DevicePortStatus(port, br, active)
                             }
@@ -335,13 +334,12 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogWithout
             case _DevicePortStatus(port, device, active) =>
                 val (deviceId: UUID, tunnelKey: Long) = device match {
                     case b: Bridge => (b.id, b.tunnelKey)
-                    case b: VlanAwareBridge => (b.id, b.tunnelKey)
                     case b => log.warning("Unexpected device: {}", b)
                               (null, null)
                 }
                 assert(port.deviceID == deviceId)
                 log.debug("Port {} in PortSet {} became {}.", port.id,
-                    deviceId, if (active) "active" else "inactive")
+                          deviceId, if (active) "active" else "inactive")
                 var modPortSet = false
                 psetIdToLocalVports.get(deviceId) match {
                     case Some(ports) =>

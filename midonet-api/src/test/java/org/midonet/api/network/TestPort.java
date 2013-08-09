@@ -6,15 +6,19 @@ package org.midonet.api.network;
 
 import java.net.InetAddress;
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import javax.ws.rs.core.Response;
 
-
 import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
-import com.google.inject.Injector;
-import com.google.inject.Guice;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
 import org.junit.After;
@@ -24,7 +28,6 @@ import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-
 import org.midonet.api.host.rest_api.HostTopology;
 import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.FuncTest;
@@ -35,15 +38,28 @@ import org.midonet.client.MidonetApi;
 import org.midonet.client.dto.*;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.serialization.Serializer;
+import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.ZkManager;
-import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.version.guice.VersionModule;
-
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
-import static org.midonet.api.VendorMediaType.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.midonet.api.VendorMediaType.APPLICATION_HOST_INTERFACE_PORT_JSON;
+import static org.midonet.api.VendorMediaType.APPLICATION_PORTGROUP_COLLECTION_JSON;
+import static org.midonet.api.VendorMediaType.APPLICATION_PORTGROUP_PORT_COLLECTION_JSON;
+import static org.midonet.api.VendorMediaType.APPLICATION_PORTGROUP_PORT_JSON;
+import static org.midonet.api.VendorMediaType.APPLICATION_PORT_COLLECTION_JSON;
+import static org.midonet.api.VendorMediaType.APPLICATION_PORT_V2_COLLECTION_JSON;
+import static org.midonet.api.VendorMediaType.APPLICATION_PORT_V2_JSON;
+import static org.midonet.api.VendorMediaType.APPLICATION_PORT_LINK_JSON;
+import static org.midonet.api.VendorMediaType.APPLICATION_BRIDGE_JSON;
 
 @RunWith(Enclosed.class)
 public class TestPort {
@@ -712,7 +728,6 @@ public class TestPort {
                 24,
                 "192.168.1.1");
 
-
             topology = new Topology.Builder(dtoResource)
                 .create("router1", r1)
                 .create("router2", r2)
@@ -1003,6 +1018,7 @@ public class TestPort {
         private DtoHost host1, host2, host3;
         private DtoInterface interface1, interface2;
         private DtoHostInterfacePort hostInterfacePort1, hostInterfacePort2;
+
         /**
          * Constructor to initialize the test cases with the configuration.
          */
@@ -1026,8 +1042,7 @@ public class TestPort {
             @Provides
             @Singleton
             public Directory provideDirectory() {
-                Directory directory = StaticMockDirectory.getDirectoryInstance();
-                return directory;
+                return StaticMockDirectory.getDirectoryInstance();
             }
 
             @Provides @Singleton
@@ -1078,7 +1093,6 @@ public class TestPort {
             // Create an exterior bridge port on the bridge.
             port2 = createBridgePort(UUID.randomUUID(),
                     bridge1.getId(), null, null, null);
-            // Create a trunk port on the vlan bridge.
             topology = new Topology.Builder(dtoResource)
                     .create("router1", router1)
                     .create("router1", "port1", port1)
@@ -1124,7 +1138,6 @@ public class TestPort {
                     .create(host2.getId(), host2)
                     .create(hostInterfacePort2.getHostId(),
                             hostInterfacePort2.getPortId(), hostInterfacePort2)
-                    .create(host3.getId(), host3)
                     .build();
 
             URI baseUri = resource().getURI();
@@ -1237,5 +1250,4 @@ public class TestPort {
                     is(equalTo(hostInterfacePort2)));
         }
     }
-
 }

@@ -4,10 +4,10 @@
  */
 package org.midonet.api.network;
 
-import org.midonet.api.ResourceUriBuilder;
-
 import java.net.URI;
 import java.util.UUID;
+
+import org.midonet.api.ResourceUriBuilder;
 
 /**
  * Class representing a bridge port.
