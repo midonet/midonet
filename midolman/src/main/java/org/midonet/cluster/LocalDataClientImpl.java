@@ -6,9 +6,8 @@ package org.midonet.cluster;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -22,7 +21,54 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import org.apache.zookeeper.Op;
+import org.midonet.cluster.data.AdRoute;
+import org.midonet.cluster.data.BGP;
+import org.midonet.cluster.data.Bridge;
+import org.midonet.cluster.data.BridgeName;
+import org.midonet.cluster.data.Chain;
+import org.midonet.cluster.data.ChainName;
+import org.midonet.cluster.data.Converter;
+import org.midonet.cluster.data.Port;
+import org.midonet.cluster.data.PortGroup;
+import org.midonet.cluster.data.PortGroupName;
+import org.midonet.cluster.data.Route;
+import org.midonet.cluster.data.Router;
+import org.midonet.cluster.data.RouterName;
+import org.midonet.cluster.data.Rule;
+import org.midonet.cluster.data.TraceCondition;
+import org.midonet.cluster.data.TunnelZone;
+import org.midonet.cluster.data.VlanAwareBridge;
+import org.midonet.cluster.data.VlanBridgeName;
+import org.midonet.cluster.data.ports.VlanMacPort;
 import org.midonet.midolman.rules.RuleList;
+import org.midonet.midolman.state.DirectoryCallback;
+import org.midonet.midolman.state.Ip4ToMacReplicatedMap;
+import org.midonet.midolman.state.MacPortMap;
+import org.midonet.midolman.state.PathBuilder;
+import org.midonet.midolman.state.PortConfig;
+import org.midonet.midolman.state.PortConfigCache;
+import org.midonet.midolman.state.PortDirectory;
+import org.midonet.midolman.state.RuleIndexOutOfBoundsException;
+import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.state.ZkManager;
+import org.midonet.midolman.state.zkManagers.AdRouteZkManager;
+import org.midonet.midolman.state.zkManagers.BgpZkManager;
+import org.midonet.midolman.state.zkManagers.BridgeDhcpV6ZkManager;
+import org.midonet.midolman.state.zkManagers.BridgeDhcpZkManager;
+import org.midonet.midolman.state.zkManagers.BridgeZkManager;
+import org.midonet.midolman.state.zkManagers.ChainZkManager;
+import org.midonet.midolman.state.zkManagers.PortGroupZkManager;
+import org.midonet.midolman.state.zkManagers.PortSetZkManager;
+import org.midonet.midolman.state.zkManagers.PortZkManager;
+import org.midonet.midolman.state.zkManagers.RouteZkManager;
+import org.midonet.midolman.state.zkManagers.RouterZkManager;
+import org.midonet.midolman.state.zkManagers.RuleZkManager;
+import org.midonet.midolman.state.zkManagers.TaggableConfig;
+import org.midonet.midolman.state.zkManagers.TaggableConfigZkManager;
+import org.midonet.midolman.state.zkManagers.TenantZkManager;
+import org.midonet.midolman.state.zkManagers.TraceConditionZkManager;
+import org.midonet.midolman.state.zkManagers.TunnelZoneZkManager;
+import org.midonet.midolman.state.zkManagers.VlanAwareBridgeZkManager;
 import org.midonet.packets.IPv4Addr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,9 +84,6 @@ import org.midonet.midolman.monitoring.store.Store;
 import org.midonet.midolman.rules.Condition;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.*;
-import org.midonet.midolman.state.zkManagers.*;
-import org.midonet.cluster.data.*;
 import org.midonet.cluster.data.Entity.TaggableEntity;
 import org.midonet.cluster.data.dhcp.Subnet;
 import org.midonet.cluster.data.dhcp.Subnet6;
@@ -292,11 +335,43 @@ public class LocalDataClientImpl implements DataClient {
         return bridges;
     }
 
+    /**
+     * Returns a list of all MAC-port mappings for the specified bridge.
+     * @throws StateAccessException
+     */
     @Override
-    public Map<MAC, UUID> bridgeGetMacPorts(@Nonnull UUID bridgeId)
+    public List<VlanMacPort> bridgeGetMacPorts(@Nonnull UUID bridgeId)
             throws StateAccessException {
-        return MacPortMap.getAsMap(
-            bridgeZkManager.getMacPortMapDirectory(bridgeId));
+        // Get entries for the untagged VLAN.
+        List<VlanMacPort> allPorts = new LinkedList<VlanMacPort>();
+        allPorts.addAll(bridgeGetMacPorts(bridgeId, Bridge.UNTAGGED_VLAN_ID));
+
+        // Get entries for the other VLANs.
+        short[] vlanIds = bridgeZkManager.getVlanIds(bridgeId);
+        for (short vlanId : vlanIds)
+            allPorts.addAll(bridgeGetMacPorts(bridgeId, vlanId));
+        return allPorts;
+    }
+
+    /**
+     * Gets MAC-port mappings for the specified bridge and VLAN.
+     * @param bridgeId Bridge whose MAC-port mappings are requested.
+     * @param vlanId VLAN whose MAC-port mappings are requested. The value
+     *               Bridge.UNTAGGED_VLAN_ID indicates the untagged VLAN.
+     * @return List of MAC-port mappings.
+     * @throws StateAccessException
+     */
+    @Override
+    public List<VlanMacPort> bridgeGetMacPorts(
+            @Nonnull UUID bridgeId, short vlanId)
+            throws StateAccessException {
+        Map<MAC, UUID> portsMap = MacPortMap.getAsMap(
+                bridgeZkManager.getMacPortMapDirectory(bridgeId, vlanId));
+        List<VlanMacPort> ports = new ArrayList<>(portsMap.size());
+        for (Map.Entry<MAC, UUID> e : portsMap.entrySet()) {
+            ports.add(new VlanMacPort(e.getKey(), e.getValue(), vlanId));
+        }
+        return ports;
     }
 
     @Override
@@ -306,27 +381,35 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public void bridgeAddMacPort(
-        @Nonnull UUID bridgeId, @Nonnull MAC mac, @Nonnull UUID portId)
+    public boolean bridgeHasMacTable(@Nonnull UUID bridgeId, short vlanId)
+            throws StateAccessException {
+        return bridgeZkManager.hasVlanMacTable(bridgeId, vlanId);
+    }
+
+
+    @Override
+    public void bridgeAddMacPort(@Nonnull UUID bridgeId, short vlanId,
+                                 @Nonnull MAC mac, @Nonnull UUID portId)
             throws StateAccessException {
         MacPortMap.addPersistentEntry(
-            bridgeZkManager.getMacPortMapDirectory(bridgeId), mac, portId);
+            bridgeZkManager.getMacPortMapDirectory(bridgeId, vlanId), mac, portId);
     }
 
     @Override
-    public boolean bridgeHasMacPort(
-        @Nonnull UUID bridgeId, @Nonnull MAC mac, @Nonnull UUID portId)
+    public boolean bridgeHasMacPort(@Nonnull UUID bridgeId, Short vlanId,
+                                    @Nonnull MAC mac, @Nonnull UUID portId)
             throws StateAccessException {
         return MacPortMap.hasPersistentEntry(
-            bridgeZkManager.getMacPortMapDirectory(bridgeId), mac, portId);
+            bridgeZkManager.getMacPortMapDirectory(bridgeId, vlanId), mac, portId);
     }
 
     @Override
-    public void bridgeDeleteMacPort(
-            @Nonnull UUID bridgeId, @Nonnull MAC mac, @Nonnull UUID portId)
+    public void bridgeDeleteMacPort(@Nonnull UUID bridgeId, Short vlanId,
+                                    @Nonnull MAC mac, @Nonnull UUID portId)
             throws StateAccessException {
         MacPortMap.deleteEntry(
-            bridgeZkManager.getMacPortMapDirectory(bridgeId), mac, portId);
+                bridgeZkManager.getMacPortMapDirectory(bridgeId, vlanId),
+                mac, portId);
     }
 
     @Override
@@ -341,7 +424,7 @@ public class LocalDataClientImpl implements DataClient {
             @Nonnull UUID bridgeId, @Nonnull IPv4Addr ip4, @Nonnull MAC mac)
             throws StateAccessException {
         Ip4ToMacReplicatedMap.addPersistentEntry(
-            bridgeZkManager.getIP4MacMapDirectory(bridgeId), ip4, mac);
+                bridgeZkManager.getIP4MacMapDirectory(bridgeId), ip4, mac);
     }
 
     @Override
@@ -588,7 +671,12 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-   public @CheckForNull Bridge bridgesGet(UUID id)
+    public boolean bridgeExists(UUID id) throws StateAccessException {
+        return bridgeZkManager.exists(id);
+    }
+
+    @Override
+    public @CheckForNull Bridge bridgesGet(UUID id)
             throws StateAccessException, SerializationException {
         log.debug("Entered: id={}", id);
 
@@ -865,7 +953,8 @@ public class LocalDataClientImpl implements DataClient {
                 for (Callback2<UUID, Boolean> cb : subscriptionPortsActive) {
                     cb.call(portID, active);
                 }
-                if (config instanceof PortDirectory.MaterializedRouterPortConfig) {
+                if (config instanceof
+                        PortDirectory.MaterializedRouterPortConfig) {
                     UUID deviceId = config.device_id;
                     routerManager.updateRoutesBecauseLocalPortChangedStatus(
                         deviceId, portID, active);

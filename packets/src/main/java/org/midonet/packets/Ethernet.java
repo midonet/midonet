@@ -286,16 +286,23 @@ public class Ethernet extends BasePacket {
      * @return
      */
     static byte[] toMACAddress(String macAddress) {
-        byte[] address = new byte[6];
+        final String errorMsg = "Specified MAC Address must contain 12 " +
+                "hex digits separated pairwise by :'s.";
         String[] macBytes = macAddress.split(":");
         if (macBytes.length != 6)
-            throw new IllegalArgumentException(
-                    "Specified MAC Address must contain 12 hex digits" +
-                    " separated pairwise by :'s.");
+            throw new IllegalArgumentException(errorMsg);
+
+        byte[] address = new byte[6];
         for (int i = 0; i < 6; ++i) {
-            address[i] = (byte) ((HEXES.indexOf(macBytes[i].toUpperCase()
-                    .charAt(0)) << 4) | HEXES.indexOf(macBytes[i].toUpperCase()
-                    .charAt(1)));
+            String thisByte = macBytes[i].toUpperCase();
+            if (thisByte.length() != 2)
+                throw new IllegalArgumentException(errorMsg);
+
+            int high = HEXES.indexOf(thisByte.charAt(0));
+            int low = HEXES.indexOf(thisByte.charAt(1));
+            if (high < 0 || low < 0)
+                throw new IllegalArgumentException(errorMsg);
+            address[i] = (byte) ((high << 4) | low);
         }
 
         return address;

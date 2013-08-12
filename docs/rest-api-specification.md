@@ -913,7 +913,9 @@ contains the following fields:
 
 
 <a name="bridgemactable"></a>
-### MacPort [application/vnd.org.midonet.MacPort+json]
+### MacPort
+
+#### Version 1 [application/vnd.org.midonet.midolman.mgmt.MacPort-v1+json]
 
     GET     /bridges/:bridgeId/mac_table
     GET     /bridges/:bridgeId/mac_table/:macPortPair
@@ -950,6 +952,89 @@ contains the following fields:
         <td>Yes</td>
         <td>ID of the port to which the packets destined to the macAddr will
         be emitted.</td>
+    </tr>
+</table>
+
+#### Version 2 [application/vnd.org.midonet.midolman.mgmt.MacPort-v2+json]
+
+    GET     /bridges/:bridgeId/mac_table
+    GET     /bridges/:bridgeId/vlans/:vlanId/mac_table
+    GET     /bridges/:bridgeId/mac_table/:macPortPair
+    GET     /bridges/:bridgeId/vlans/:vlanId/mac_table/:macPortPair
+    POST    /bridges/:bridgeId/mac_table
+    POST    /bridges/:bridgeId/vlans/:vlanId/mac_table
+    DELETE  /bridges/:bridgeId/mac_table/:macPortPair
+    DELETE  /bridges/:bridgeId/vlans/:vlanId/mac_table/:macPortPair
+
+<table>
+    <tr>
+        <th>Field Name</th>
+        <th>Type</th>
+        <th>POST/PUT</th>
+        <th>Required</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>uri</td>
+        <td>URI</td>
+        <td/>
+        <td/>
+        <td>A GET against this URI refreshes the representation of this
+         resource.</td>
+    </tr>
+    <tr>
+        <td>vlanId</td>
+        <td>short</td>
+        <td/>
+        <td/>
+        <td>ID of the VLAN to which the port with ID portId belongs. This
+        field is used only in responses to GET requests and will be ignored
+        in POST requests.</td>
+    </tr>
+    <tr>
+        <td>macAddr</td>
+        <td>String</td>
+        <td/>
+        <td>Yes</td>
+        <td>A MAC address in the form "aa:bb:cc:dd:ee:ff"</td>
+    </tr>
+    <tr>
+        <td>portId</td>
+        <td>UUID</td>
+        <td/>
+        <td>Yes</td>
+        <td>ID of the port to which the packets destined to the macAddr will
+        be emitted.</td>
+    </tr>
+</table>
+
+
+#### <u>Path Parameters</u>
+
+<table>
+    <tr>
+        <th>Name</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>bridgeId</td>
+        <td>
+            UUID of the bridge owning the MAC table to query or modify.
+        </td>
+    </tr>
+    <tr>
+        <td>vlanId</td>
+        <td>
+            ID of the VLAN owning the MAC table to query or modify.
+        </td>
+    </tr>
+    <tr>
+        <td>macPortPair</td>
+        <td>
+            Consists of a MAC address in the form "12-34-56-78-9a-bc"
+            and the destination port's ID, separated by an underscore.
+            For example: "12-34-56-78-9a-bc_01234567-89ab-cdef-0123-4567890abcdef".
+        </td>
     </tr>
 </table>
 

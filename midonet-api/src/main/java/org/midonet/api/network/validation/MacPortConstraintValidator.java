@@ -8,6 +8,7 @@ import javax.validation.ConstraintValidatorContext;
 
 import com.google.inject.Inject;
 
+import org.midonet.cluster.data.ports.LogicalBridgePort;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.api.network.MacPort;
@@ -28,20 +29,41 @@ public class MacPortConstraintValidator implements
     public boolean isValid(MacPort value, ConstraintValidatorContext context) {
 
         context.disableDefaultConstraintViolation();
-        context.buildConstraintViolationWithTemplate(
-                MessageProperty.MAC_PORT_ON_BRIDGE)
-                .addNode("macPort").addConstraintViolation();
 
         if (value.getPortId() == null)
-            return false;
+            return portNotOnBridgeError(context);
 
+        // Port must belong to the specified bridge.
+        Port<?, ?> p = null;
         try {
-            Port<?, ?> p = dataClient.portsGet(value.getPortId());
-            return p != null && p.getDeviceId().equals(value.getBridgeId());
-        } catch (StateAccessException e) {
-            return false;
-        } catch (SerializationException e) {
-            return false;
+            p = dataClient.portsGet(value.getPortId());
+            if (p == null || !p.getDeviceId().equals(value.getBridgeId()))
+                return portNotOnBridgeError(context);
+        } catch (StateAccessException|SerializationException e) {
+            return portNotOnBridgeError(context);
         }
+
+        // If the port is tagged with a VLAN, the MAC-port mapping must
+        // specify that VLAN ID.
+        if (p instanceof LogicalBridgePort) {
+            LogicalBridgePort.Data data = ((LogicalBridgePort)p).getData();
+            if (data.vlanId != null && !data.vlanId.equals(value.getVlanId())) {
+                String msg = MessageProperty.getMessage(
+                        MessageProperty.VLAN_ID_MATCHES_PORT_VLAN_ID,
+                        data.vlanId);
+                context.buildConstraintViolationWithTemplate(msg)
+                        .addNode("macPort").addConstraintViolation();
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private boolean portNotOnBridgeError(ConstraintValidatorContext context) {
+        context.buildConstraintViolationWithTemplate(
+                MessageProperty.MAC_PORT_ON_BRIDGE)
+                        .addNode("macPort").addConstraintViolation();
+        return false;
     }
 }

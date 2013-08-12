@@ -3,17 +3,11 @@
  */
 package org.midonet.midolman.state.zkManagers;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.ZooDefs.Ids;
+import org.midonet.cluster.data.Bridge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,6 +18,15 @@ import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * Class to manage the bridge ZooKeeper data.
@@ -163,7 +166,8 @@ public class BridgeZkManager extends AbstractZkManager {
         ops.add(Op.create(paths.getBridgeDhcpV6Path(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
-        ops.add(Op.create(paths.getBridgeMacPortsPath(id), null,
+        ops.add(Op.create(
+                paths.getBridgeMacPortsPath(id, Bridge.UNTAGGED_VLAN_ID), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
         ops.add(Op.create(paths.getBridgeIP4MacMapPath(id), null,
@@ -266,7 +270,8 @@ public class BridgeZkManager extends AbstractZkManager {
         ops.add(Op.delete(paths.getBridgeLogicalPortsPath(id), -1));
         ops.addAll(zk.getRecursiveDeleteOps(paths.getBridgeDhcpPath(id)));
         ops.addAll(zk.getRecursiveDeleteOps(paths.getBridgeDhcpV6Path(id)));
-        ops.addAll(zk.getRecursiveDeleteOps(paths.getBridgeMacPortsPath(id)));
+        ops.addAll(zk.getRecursiveDeleteOps(
+                paths.getBridgeMacPortsPath(id, Bridge.UNTAGGED_VLAN_ID)));
         // The bridge may have been created before the tagging was added.
         if (zk.exists(paths.getBridgeTagsPath(id))) {
             ops.addAll(zk.getRecursiveDeleteOps(paths.getBridgeTagsPath(id)));
@@ -401,8 +406,39 @@ public class BridgeZkManager extends AbstractZkManager {
         return zk.getSubDirectory(path);
     }
 
-    public Directory getMacPortMapDirectory(UUID id)
-        throws StateAccessException{
-        return zk.getSubDirectory(paths.getBridgeMacPortsPath(id));
+
+    public Directory getMacPortMapDirectory(UUID id, short vlanId)
+            throws StateAccessException{
+        return zk.getSubDirectory(paths.getBridgeMacPortsPath(id, vlanId));
+    }
+
+    public short[] getVlanIds(UUID id)
+            throws StateAccessException {
+        Collection<String> children =
+                zk.getChildren(paths.getBridgeVlansPath(id));
+        short[] vlanIds = new short[children.size()];
+        int i = 0;
+        for (String child : children) {
+            try {
+                // Don't change this to vlanIds[i++] = ..., because i will get
+                // incremented even when parseShort() throws an exception. Yes,
+                // I tested it. No, it doesn't make sense.
+                vlanIds[i] = Short.parseShort(child);
+                i++;
+            } catch (NumberFormatException ex) {
+                // Log a warning and ignore it.
+                log.warn("Ignoring invalid VLAN ID '{}' for bridge {}. VLAN " +
+                         "table in Zookeeper is corrupt.", child, id);
+            }
+        }
+
+        // i != children.size() only if parseShort() threw an exception above,
+        // which only happens if Zookeeper is corrupt.
+        return (i == children.size()) ? vlanIds : Arrays.copyOf(vlanIds, i);
+    }
+
+    public boolean hasVlanMacTable(UUID id, short vlanId)
+            throws StateAccessException {
+        return zk.exists(paths.getBridgeMacPortsPath(id, vlanId));
     }
 }

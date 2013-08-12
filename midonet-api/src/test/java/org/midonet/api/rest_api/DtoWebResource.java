@@ -97,6 +97,12 @@ public class DtoWebResource {
         return resp.getEntity(DtoError.class);
     }
 
+    public DtoError getAndVerifyBadRequest(URI uri, String mediaType) {
+        ClientResponse resp = getAndVerifyStatus(uri, mediaType,
+                BAD_REQUEST.getStatusCode());
+        return resp.getEntity(DtoError.class);
+    }
+
     public <T> T postAndVerifyCreated(URI uri, String mediaType, Object object,
             Class<T> clazz) {
         ClientResponse resp = postAndVerifyStatus(uri, mediaType, object,
@@ -131,9 +137,17 @@ public class DtoWebResource {
     }
 
     public DtoError deleteAndVerifyBadRequest(URI uri, String mediaType) {
-        ClientResponse resp = deleteAndVerifyStatus(uri, mediaType,
-                BAD_REQUEST.getStatusCode());
-        return resp.getEntity(DtoError.class);
+        return deleteAndVerifyError(
+                uri, mediaType, BAD_REQUEST.getStatusCode());
     }
 
+    public DtoError deleteAndVerifyNotFound(URI uri, String mediaType) {
+        return deleteAndVerifyError(uri, mediaType, NOT_FOUND.getStatusCode());
+    }
+
+    public DtoError deleteAndVerifyError(
+            URI uri, String mediaType, int errorCode) {
+        ClientResponse resp = deleteAndVerifyStatus(uri, mediaType, errorCode);
+        return resp.getEntity(DtoError.class);
+    }
 }

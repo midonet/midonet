@@ -12,6 +12,7 @@ import java.util.UUID;
 public class DtoMacPort {
     String macAddr;
     UUID portId;
+    Short vlanId;
     URI uri;
 
     // Default constructor needed for deserialization
@@ -20,6 +21,11 @@ public class DtoMacPort {
     public DtoMacPort(String macAddr, UUID portId) {
         this.macAddr = macAddr;
         this.portId = portId;
+    }
+
+    public DtoMacPort(String macAddr, UUID portId, Short vlanId) {
+        this(macAddr, portId);
+        this.vlanId = vlanId;
     }
 
     public String getMacAddr() {
@@ -36,6 +42,14 @@ public class DtoMacPort {
 
     public void setPortId(UUID portId) {
         this.portId = portId;
+    }
+
+    public Short getVlanId() {
+        return vlanId;
+    }
+
+    public void setVlanId(Short vlanId) {
+        this.vlanId = vlanId;
     }
 
     public URI getUri() {
@@ -57,6 +71,8 @@ public class DtoMacPort {
             return false;
         if (portId != null ? !portId.equals(that.portId) : that.portId != null)
             return false;
+        if (vlanId != null ? !vlanId.equals(that.vlanId) : that.vlanId != null)
+            return false;
         if (uri != null ? !uri.equals(that.uri) : that.uri != null)
             return false;
 
@@ -67,6 +83,7 @@ public class DtoMacPort {
     public int hashCode() {
         int result = macAddr != null ? macAddr.hashCode() : 0;
         result = 31 * result + (portId != null ? portId.hashCode() : 0);
+        result = 31 * result + (vlanId != null ? vlanId.hashCode() : 0);
         result = 31 * result + (uri != null ? uri.hashCode() : 0);
         return result;
     }

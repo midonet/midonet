@@ -84,7 +84,8 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
                 ZkPathManager pathManager = new ZkPathManager(
                         zkConfig.getMidolmanRootKey());
                 macPortMap = new MacPortMap(dir.getSubDirectory(
-                        pathManager.getBridgeMacPortsPath(id)));
+                        pathManager.getBridgeMacPortsPath(
+                                id, Bridge.UNTAGGED_VLAN_ID)));
                 macPortMap.setConnectionWatcher(connectionWatcher);
                 macPortMap.start();
                 builder.setMacLearningTable(Bridge.UNTAGGED_VLAN_ID,
@@ -251,8 +252,8 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
                 // seen before
                 MacPortMap macPortMap = new MacPortMap(
                         dir.getSubDirectory(
-                                pathManager.getBridgeVlanMacPortsPath(bridgeId,
-                                createdVlanId)));
+                                pathManager.getBridgeMacPortsPath(
+                                        bridgeId, createdVlanId)));
                 macPortMap.setConnectionWatcher(connectionWatcher);
                 macPortMap.start();
                 builder.setMacLearningTable(createdVlanId,

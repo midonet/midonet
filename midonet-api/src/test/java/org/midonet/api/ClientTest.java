@@ -8,12 +8,19 @@ import com.google.common.base.Predicate;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.client.MidonetApi;
 import org.midonet.client.RouterPredicates;
-import org.midonet.client.dto.DtoInteriorBridgePort;
+import org.midonet.client.exception.HttpNotFoundException;
 import org.midonet.client.resource.*;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 import com.sun.jersey.test.framework.JerseyTest;
 import org.junit.Before;
 import org.junit.Test;
+import org.midonet.client.resource.AdRoute;
+import org.midonet.client.resource.Bridge;
+import org.midonet.client.resource.Port;
+import org.midonet.client.resource.PortGroup;
+import org.midonet.client.resource.Route;
+import org.midonet.client.resource.Router;
+import org.midonet.client.resource.Rule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,6 +33,7 @@ import static com.google.common.base.Predicates.and;
 import static com.google.common.base.Predicates.or;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID;
 
 
 /*
@@ -135,6 +143,8 @@ public class ClientTest extends JerseyTest {
         BridgePort bp2 = (BridgePort) b1.addInteriorPort().create();
         BridgePort bp3 = (BridgePort) b1.addInteriorPort().create();
         BridgePort bp4 = (BridgePort) b1.addInteriorPort().create();
+        BridgePort bpVlan = (BridgePort) b1.addInteriorPort()
+                                           .vlanId(vlanId).create();
         BridgePort b2pVlan = (BridgePort)b2.addInteriorPort()
                                            .vlanId(vlanId).create();
 
@@ -166,7 +176,7 @@ public class ClientTest extends JerseyTest {
         assertThat(p, is(notNullValue()));
         assertThat(p, is(instanceOf(BridgePort.class)));
 
-        assertThat(b1.getPorts().size(), is(4));
+        assertThat(b1.getPorts().size(), is(5));
         assertThat(b2.getPorts().size(), is(1));
 
         bp1.vifId(UUID.randomUUID()).update();
@@ -175,6 +185,49 @@ public class ClientTest extends JerseyTest {
         assertThat(bp1.getVifId(), notNullValue());
         log.debug("bp2: {}", bp2);
         assertThat(bp2.getOutboundFilterId(), notNullValue());
+
+        // MAC-port mappings.
+        final String mac1 = "01:23:45:67:89:ab";
+        final String mac2 = "12:34:56:78:9a:bc";
+        MacPort[] mp = new MacPort[4];
+        mp[0] = b1.addMacPort(null, mac1, bp2.getId()).create();
+        mp[1] = b1.addMacPort(null, mac2, bp3.getId()).create();
+        mp[2] = b1.addMacPort(bpVlan.getVlanId(), mac1, bpVlan.getId())
+                .create();
+        mp[3] = b1.addMacPort(bpVlan.getVlanId(), mac2, bpVlan.getId())
+                .create();
+
+        ResourceCollection<MacPort> macTable = b1.getMacTable(null);
+        assertThat(macTable.size(), equalTo(mp.length));
+        for (int i = 0; i < mp.length; i++)
+            assertThat(String.format("Should contain mp[%d]", i),
+                    macTable.contains(mp[i]));
+
+        macTable = b1.getMacTable(UNTAGGED_VLAN_ID);
+        assertThat("Should contain mp[0]", macTable.contains(mp[0]));
+        assertThat("Should contain mp[1]", macTable.contains(mp[1]));
+
+        macTable = b1.getMacTable(bpVlan.getVlanId());
+        assertThat("Should contain mp[2]", macTable.contains(mp[2]));
+        assertThat("Should contain mp[3]", macTable.contains(mp[3]));
+
+        for(int i = 0; i < mp.length; i++) {
+            MacPort result = b1.getMacPort(
+                    mp[i].getVlanId(), mp[i].getMacAddr(), mp[i].getPortId());
+            assertThat(result, equalTo(mp[i]));
+        }
+
+        for (int i = 0; i < mp.length; i++) {
+            mp[i].delete();
+            try {
+                // Should throw HttpNotFoundException, since we just deleted it.
+                MacPort result = b1.getMacPort(mp[i].getVlanId(),
+                        mp[i].getMacAddr(), mp[i].getPortId());
+            } catch (HttpNotFoundException ex) {
+                continue;
+            }
+            throw new RuntimeException(String.format("mp[%d] not deleted."));
+        }
 
         // subnet
         DhcpSubnet sn1 = b1.addDhcpSubnet()
@@ -215,7 +268,7 @@ public class ClientTest extends JerseyTest {
         assertThat(((BridgePort) b2pVlan.get()).getPeerId(), is(nullValue()));
         bp4.delete();
         b2pVlan.delete();
-        assertThat(b1.getPorts().size(), is(3));
+        assertThat(b1.getPorts().size(), is(4));
         assertThat(b2.getPorts().size(), is(0));
         assertThat(b1.getPeerPorts().size(), is(0));
         assertThat(b2.getPeerPorts().size(), is(0));

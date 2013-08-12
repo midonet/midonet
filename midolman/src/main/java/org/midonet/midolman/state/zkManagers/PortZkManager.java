@@ -259,7 +259,7 @@ public class PortZkManager extends AbstractZkManager {
             ops.add(Op.create(paths.getBridgeVlanPath(config.device_id,
                     config.vlanId()), null,
                     Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-            ops.add(Op.create(paths.getBridgeVlanMacPortsPath(config.device_id,
+            ops.add(Op.create(paths.getBridgeMacPortsPath(config.device_id,
                     config.vlanId()), null,
                     Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         }
@@ -345,7 +345,7 @@ public class PortZkManager extends AbstractZkManager {
                 PortDirectory.LogicalBridgePortConfig port2 =
                         (PortDirectory.LogicalBridgePortConfig) port;
 
-                if(e2.getPath().equals(paths.getBridgeVlanPath(
+                if(e.getMessage().contains(paths.getBridgeVlanPath(
                         port2.device_id, port2.vlanId))){
                     throw new VlanPathExistsException("VLAN ID " +
                             port2.vlanId() +

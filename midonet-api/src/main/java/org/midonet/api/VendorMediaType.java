@@ -10,6 +10,10 @@ package org.midonet.api;
  */
 public class VendorMediaType {
 
+    // IMPORTANT: There are two copies of this file, one in midonet-api and
+    // one in midonet-client. When updating one, make sure to make the same
+    // change in the other.
+
     public static final String APPLICATION_JSON =
             "application/vnd.org.midonet.Application-v1+json";
     public static final String APPLICATION_ERROR_JSON =
@@ -31,15 +35,17 @@ public class VendorMediaType {
     public static final String APPLICATION_BRIDGE_COLLECTION_JSON =
             "application/vnd.org.midonet.collection.Bridge-v1+json";
     public static final String APPLICATION_MAC_PORT_JSON =
-            "application/vnd.com.midokura.midolman.mgmt.MacPort-v1+json";
+            "application/vnd.org.midonet.MacPort-v1+json";
+    public static final String APPLICATION_MAC_PORT_JSON_V2 =
+            "application/vnd.org.midonet.MacPort-v2+json";
     public static final String APPLICATION_MAC_PORT_COLLECTION_JSON =
-            "application/vnd.com.midokura.midolman.mgmt.collection." +
-                    "MacPort-v1+json";
+            "application/vnd.org.midonet.collection.MacPort-v1+json";
+    public static final String APPLICATION_MAC_PORT_COLLECTION_JSON_V2 =
+            "application/vnd.org.midonet.collection.MacPort-v2+json";
     public static final String APPLICATION_IP4_MAC_JSON =
-            "application/vnd.com.midokura.midolman.mgmt.IP4Mac-v1+json";
+            "application/vnd.org.midonet.IP4Mac-v1+json";
     public static final String APPLICATION_IP4_MAC_COLLECTION_JSON =
-            "application/vnd.com.midokura.midolman.mgmt.collection." +
-                    "IP4Mac-v1+json";
+            "application/vnd.org.midonet.collection.IP4Mac-v1+json";
     public static final String APPLICATION_HOST_JSON =
             "application/vnd.org.midonet.Host-v1+json";
     public static final String APPLICATION_HOST_COLLECTION_JSON =

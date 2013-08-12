@@ -1,7 +1,6 @@
 /* Copyright 2011 Midokura Inc. */
 package org.midonet.midolman.state
 
-import java.util.HashMap
 import java.util.Map
 import java.util.UUID
 import org.apache.zookeeper.CreateMode

@@ -11,6 +11,7 @@ import java.util.UUID;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
+import org.midonet.cluster.data.ports.VlanMacPort;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.DirectoryCallback;
 import org.midonet.midolman.state.RuleIndexOutOfBoundsException;
@@ -81,6 +82,9 @@ public interface DataClient {
             throws StateAccessException, SerializationException;
 
     /* Bridges related methods */
+    @CheckForNull boolean bridgeExists(UUID id)
+            throws StateAccessException;
+
     @CheckForNull Bridge bridgesGet(UUID id)
             throws StateAccessException, SerializationException;
 
@@ -105,19 +109,25 @@ public interface DataClient {
     void ensureBridgeHasVlanDirectory(@Nonnull UUID bridgeId)
             throws StateAccessException;
 
-    void bridgeAddMacPort(@Nonnull UUID bridgeId, @Nonnull MAC mac,
-                          @Nonnull UUID portId)
+    boolean bridgeHasMacTable(@Nonnull UUID bridgeId, short vlanId)
+            throws StateAccessException;
+
+    void bridgeAddMacPort(@Nonnull UUID bridgeId, short vlanId,
+                          @Nonnull MAC mac, @Nonnull UUID portId)
         throws StateAccessException;
 
-    boolean bridgeHasMacPort(@Nonnull UUID bridgeId, @Nonnull MAC mac,
-                          @Nonnull UUID portId)
+    boolean bridgeHasMacPort(@Nonnull UUID bridgeId, Short vlanId,
+                             @Nonnull MAC mac, @Nonnull UUID portId)
         throws StateAccessException;
 
-    Map<MAC, UUID> bridgeGetMacPorts(@Nonnull UUID bridgeId)
+    List<VlanMacPort> bridgeGetMacPorts(@Nonnull UUID bridgeId)
         throws StateAccessException;
 
-    void bridgeDeleteMacPort(@Nonnull UUID bridgeId, @Nonnull MAC mac,
-                             @Nonnull UUID portId)
+    List<VlanMacPort> bridgeGetMacPorts(@Nonnull UUID bridgeId, short vlanId)
+        throws StateAccessException;
+
+    void bridgeDeleteMacPort(@Nonnull UUID bridgeId, Short vlanId,
+                             @Nonnull MAC mac, @Nonnull UUID portId)
         throws StateAccessException;
 
     void bridgeAddIp4Mac(@Nonnull UUID bridgeId, @Nonnull IPv4Addr ip4,

@@ -16,6 +16,7 @@ import org.midonet.midolman.topology.LocalPortActive
 import scala.Some
 import org.midonet.midolman.FlowController.WildcardFlowAdded
 import org.midonet.midolman.util.SimulationHelper
+import org.midonet.cluster.data.Bridge
 
 @RunWith(classOf[JUnitRunner])
 class BridgeFloodOptimizationsTestCase extends MidolmanTestCase
@@ -52,7 +53,8 @@ class BridgeFloodOptimizationsTestCase extends MidolmanTestCase
         // Seed the bridge with mac, ip, vport for port1.
         clusterDataClient().bridgeAddIp4Mac(bridge.getId,
             IPv4Addr.fromIntIPv4(ip1), mac1)
-        clusterDataClient().bridgeAddMacPort(bridge.getId, mac1, port1.getId)
+        clusterDataClient().bridgeAddMacPort(
+            bridge.getId, Bridge.UNTAGGED_VLAN_ID, mac1, port1.getId)
 
         flowEventsProbe = newProbe()
         packetEventsProbe = newProbe()
