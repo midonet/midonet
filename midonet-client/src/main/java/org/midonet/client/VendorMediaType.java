@@ -5,65 +5,121 @@
 package org.midonet.client;
 
 /**
- * Vendor media types
+ * Vendor media types that represent resources available in MidoNet API.
  */
 public class VendorMediaType {
 
-    public static final String APPLICATION_JSON = "application/vnd.org.midonet.Application-v1+json";
-    public static final String APPLICATION_ERROR_JSON = "application/vnd.org.midonet.Error-v1+json";
+    // IMPORTANT: There are two copies of this file, one in midonet-api and
+    // one in midonet-client. When updating one, make sure to make the same
+    // change in the other.
 
+    public static final String APPLICATION_JSON =
+            "application/vnd.org.midonet.Application-v1+json";
+    public static final String APPLICATION_ERROR_JSON =
+            "application/vnd.org.midonet.Error-v1+json";
     public static final String APPLICATION_TENANT_JSON =
             "application/vnd.org.midonet.Tenant-v1+json";
     public static final String APPLICATION_TENANT_COLLECTION_JSON =
             "application/vnd.org.midonet.collection.Tenant-v1+json";
-
-    public static final String APPLICATION_ROUTER_JSON = "application/vnd.org.midonet.Router-v1+json";
-    public static final String APPLICATION_ROUTER_COLLECTION_JSON = "application/vnd.org.midonet.collection.Router-v1+json";
-    public static final String APPLICATION_VLAN_BRIDGE_JSON = "application/vnd.org.midonet.VlanBridge-v1+json";
-    public static final String APPLICATION_VLAN_BRIDGE_COLLECTION_JSON = "application/vnd.org.midonet.collection.VlanBridge-v1+json";
-    public static final String APPLICATION_BRIDGE_JSON = "application/vnd.org.midonet.Bridge-v1+json";
-    public static final String APPLICATION_BRIDGE_COLLECTION_JSON = "application/vnd.org.midonet.collection.Bridge-v1+json";
-    public static final String APPLICATION_HOST_JSON = "application/vnd.org.midonet.Host-v1+json";
-    public static final String APPLICATION_HOST_COLLECTION_JSON = "application/vnd.org.midonet.collection.Host-v1+json";
-    public static final String APPLICATION_INTERFACE_JSON = "application/vnd.org.midonet.Interface-v1+json";
-    public static final String APPLICATION_INTERFACE_COLLECTION_JSON = "application/vnd.org.midonet.collection.Interface-v1+json";
-    public static final String APPLICATION_HOST_COMMAND_JSON = "application/vnd.org.midonet.HostCommand-v1+json";
-    public static final String APPLICATION_HOST_COMMAND_COLLECTION_JSON = "application/vnd.org.midonet.collection.HostCommand-v1+json";
-    public static final String APPLICATION_PORT_JSON = "application/vnd.org.midonet.Port-v1+json";
-    public static final String APPLICATION_PORT_COLLECTION_JSON = "application/vnd.org.midonet.collection.Port-v1+json";
-    public static final String APPLICATION_PORT_LINK_JSON = "application/vnd.org.midonet.PortLink-v1+json";
-    public static final String APPLICATION_ROUTE_JSON = "application/vnd.org.midonet.Route-v1+json";
-    public static final String APPLICATION_ROUTE_COLLECTION_JSON = "application/vnd.org.midonet.collection.Route-v1+json";
-    public static final String APPLICATION_PORTGROUP_JSON = "application/vnd.org.midonet.PortGroup-v1+json";
-    public static final String APPLICATION_PORTGROUP_COLLECTION_JSON = "application/vnd.org.midonet.collection.PortGroup-v1+json";
+    public static final String APPLICATION_ROUTER_JSON =
+            "application/vnd.org.midonet.Router-v1+json";
+    public static final String APPLICATION_ROUTER_COLLECTION_JSON =
+            "application/vnd.org.midonet.collection.Router-v1+json";
+    public static final String APPLICATION_BRIDGE_JSON =
+            "application/vnd.org.midonet.Bridge-v1+json";
+    public static final String APPLICATION_VLAN_BRIDGE_JSON =
+            "application/vnd.org.midonet.VlanBridge-v1+json";
+    public static final String APPLICATION_VLAN_BRIDGE_COLLECTION_JSON =
+            "application/vnd.org.midonet.collection.VlanBridge-v1+json";
+    public static final String APPLICATION_BRIDGE_COLLECTION_JSON =
+            "application/vnd.org.midonet.collection.Bridge-v1+json";
+    public static final String APPLICATION_MAC_PORT_JSON =
+            "application/vnd.org.midonet.MacPort-v1+json";
+    public static final String APPLICATION_MAC_PORT_JSON_V2 =
+            "application/vnd.org.midonet.MacPort-v2+json";
+    public static final String APPLICATION_MAC_PORT_COLLECTION_JSON =
+            "application/vnd.org.midonet.collection.MacPort-v1+json";
+    public static final String APPLICATION_MAC_PORT_COLLECTION_JSON_V2 =
+            "application/vnd.org.midonet.collection.MacPort-v2+json";
+    public static final String APPLICATION_IP4_MAC_JSON =
+            "application/vnd.org.midonet.IP4Mac-v1+json";
+    public static final String APPLICATION_IP4_MAC_COLLECTION_JSON =
+            "application/vnd.org.midonet.collection.IP4Mac-v1+json";
+    public static final String APPLICATION_HOST_JSON =
+            "application/vnd.org.midonet.Host-v1+json";
+    public static final String APPLICATION_HOST_COLLECTION_JSON =
+            "application/vnd.org.midonet.collection.Host-v1+json";
+    public static final String APPLICATION_INTERFACE_JSON =
+            "application/vnd.org.midonet.Interface-v1+json";
+    public static final String APPLICATION_INTERFACE_COLLECTION_JSON =
+            "application/vnd.org.midonet.collection.Interface-v1+json";
+    public static final String APPLICATION_HOST_COMMAND_JSON =
+            "application/vnd.org.midonet.HostCommand-v1+json";
+    public static final String APPLICATION_HOST_COMMAND_COLLECTION_JSON =
+            "application/vnd.org.midonet.collection.HostCommand-v1+json";
+    public static final String APPLICATION_PORT_JSON =
+            "application/vnd.org.midonet.Port-v1+json";
+    public static final String APPLICATION_PORT_COLLECTION_JSON =
+            "application/vnd.org.midonet.collection.Port-v1+json";
+    public static final String APPLICATION_PORT_LINK_JSON =
+            "application/vnd.org.midonet.PortLink-v1+json";
+    public static final String APPLICATION_ROUTE_JSON =
+            "application/vnd.org.midonet.Route-v1+json";
+    public static final String APPLICATION_ROUTE_COLLECTION_JSON =
+            "application/vnd.org.midonet.collection.Route-v1+json";
+    public static final String APPLICATION_PORTGROUP_JSON =
+            "application/vnd.org.midonet.PortGroup-v1+json";
+    public static final String APPLICATION_PORTGROUP_COLLECTION_JSON =
+            "application/vnd.org.midonet.collection.PortGroup-v1+json";
     public static final String APPLICATION_PORTGROUP_PORT_JSON =
             "application/vnd.org.midonet.PortGroupPort-v1+json";
     public static final String APPLICATION_PORTGROUP_PORT_COLLECTION_JSON =
             "application/vnd.org.midonet.collection.PortGroupPort-v1+json";
-    public static final String APPLICATION_CHAIN_JSON = "application/vnd.org.midonet.Chain-v1+json";
-    public static final String APPLICATION_CHAIN_COLLECTION_JSON = "application/vnd.org.midonet.collection.Chain-v1+json";
-    public static final String APPLICATION_RULE_JSON = "application/vnd.org.midonet.Rule-v1+json";
-    public static final String APPLICATION_RULE_COLLECTION_JSON = "application/vnd.org.midonet.collection.Rule-v1+json";
-    public static final String APPLICATION_BGP_JSON = "application/vnd.org.midonet.Bgp-v1+json";
-    public static final String APPLICATION_BGP_COLLECTION_JSON = "application/vnd.org.midonet.collection.Bgp-v1+json";
-    public static final String APPLICATION_AD_ROUTE_JSON = "application/vnd.org.midonet.AdRoute-v1+json";
-    public static final String APPLICATION_AD_ROUTE_COLLECTION_JSON = "application/vnd.org.midonet.collection.AdRoute-v1+json";
+    public static final String APPLICATION_CHAIN_JSON =
+            "application/vnd.org.midonet.Chain-v1+json";
+    public static final String APPLICATION_CHAIN_COLLECTION_JSON =
+            "application/vnd.org.midonet.collection.Chain-v1+json";
+    public static final String APPLICATION_RULE_JSON =
+            "application/vnd.org.midonet.Rule-v1+json";
+    public static final String APPLICATION_RULE_COLLECTION_JSON =
+            "application/vnd.org.midonet.collection.Rule-v1+json";
+    public static final String APPLICATION_BGP_JSON =
+            "application/vnd.org.midonet.Bgp-v1+json";
+    public static final String APPLICATION_BGP_COLLECTION_JSON =
+            "application/vnd.org.midonet.collection.Bgp-v1+json";
+    public static final String APPLICATION_AD_ROUTE_JSON =
+            "application/vnd.org.midonet.AdRoute-v1+json";
+    public static final String APPLICATION_AD_ROUTE_COLLECTION_JSON =
+            "application/vnd.org.midonet.collection.AdRoute-v1+json";
 
     /* DHCP configuration types. */
-    public static final String APPLICATION_DHCP_SUBNET_JSON = "application/vnd.org.midonet.DhcpSubnet-v1+json";
-    public static final String APPLICATION_DHCP_SUBNET_COLLECTION_JSON = "application/vnd.org.midonet.collection.DhcpSubnet-v1+json";
-    public static final String APPLICATION_DHCP_HOST_JSON = "application/vnd.org.midonet.DhcpHost-v1+json";
-    public static final String APPLICATION_DHCP_HOST_COLLECTION_JSON = "application/vnd.org.midonet.collection.DhcpHost-v1+json";
-    public static final String APPLICATION_DHCPV6_SUBNET_JSON = "application/vnd.org.midonet.DhcpV6Subnet-v1+json";
-    public static final String APPLICATION_DHCPV6_SUBNET_COLLECTION_JSON = "application/vnd.org.midonet.collection.DhcpV6Subnet-v1+json";
-    public static final String APPLICATION_DHCPV6_HOST_JSON = "application/vnd.org.midonet.DhcpV6Host-v1+json";
-    public static final String APPLICATION_DHCPV6_HOST_COLLECTION_JSON = "application/vnd.org.midonet.collection.DhcpV6Host-v1+json";
+    public static final String APPLICATION_DHCP_SUBNET_JSON =
+            "application/vnd.org.midonet.DhcpSubnet-v1+json";
+    public static final String APPLICATION_DHCP_SUBNET_COLLECTION_JSON =
+            "application/vnd.org.midonet.collection.DhcpSubnet-v1+json";
+    public static final String APPLICATION_DHCP_HOST_JSON =
+            "application/vnd.org.midonet.DhcpHost-v1+json";
+    public static final String APPLICATION_DHCP_HOST_COLLECTION_JSON =
+            "application/vnd.org.midonet.collection.DhcpHost-v1+json";
+    public static final String APPLICATION_DHCPV6_SUBNET_JSON =
+            "application/vnd.org.midonet.DhcpV6Subnet-v1+json";
+    public static final String APPLICATION_DHCPV6_SUBNET_COLLECTION_JSON =
+            "application/vnd.org.midonet.collection.DhcpV6Subnet-v1+json";
+    public static final String APPLICATION_DHCPV6_HOST_JSON =
+            "application/vnd.org.midonet.DhcpV6Host-v1+json";
+    public static final String APPLICATION_DHCPV6_HOST_COLLECTION_JSON =
+            "application/vnd.org.midonet.collection.DhcpV6Host-v1+json";
 
-    public static final String APPLICATION_MONITORING_QUERY_RESPONSE_COLLECTION_JSON =
-            "application/vnd.org.midonet.collection.mgmt.MetricQueryResponse-v1+json";
-    public static final String APPLICATION_MONITORING_QUERY_COLLECTION_JSON = "application/vnd.org.midonet.collection.MetricQuery-v1+json";
-    public static final String APPLICATION_METRICS_COLLECTION_JSON = "application/vnd.org.midonet.collection.Metric-v1+json";
-    public static final String APPLICATION_METRIC_TARGET_JSON = "application/vnd.org.midonet.MetricTarget-v1+json";
+    public static final String
+            APPLICATION_MONITORING_QUERY_RESPONSE_COLLECTION_JSON =
+            "application/vnd.org.midonet.collection.mgmt." +
+                    "MetricQueryResponse-v1+json";
+    public static final String APPLICATION_MONITORING_QUERY_COLLECTION_JSON =
+            "application/vnd.org.midonet.collection.MetricQuery-v1+json";
+    public static final String APPLICATION_METRICS_COLLECTION_JSON =
+            "application/vnd.org.midonet.collection.Metric-v1+json";
+    public static final String APPLICATION_METRIC_TARGET_JSON =
+            "application/vnd.org.midonet.MetricTarget-v1+json";
 
     // Tunnel Zones
     public static final String APPLICATION_TUNNEL_ZONE_JSON =
@@ -72,6 +128,13 @@ public class VendorMediaType {
             "application/vnd.org.midonet.collection" +
                     ".TunnelZone-v1+json";
 
+    public static final String APPLICATION_TUNNEL_ZONE_HOST_JSON =
+            "application/vnd.org.midonet" +
+                    ".TunnelZoneHost-v1+json";
+    public static final String
+            APPLICATION_TUNNEL_ZONE_HOST_COLLECTION_JSON =
+            "application/vnd.org.midonet.collection" +
+                    ".TunnelZoneHost-v1+json";
     public static final String APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_JSON =
             "application/vnd.org.midonet" +
                     ".CapwapTunnelZoneHost-v1+json";
@@ -103,12 +166,17 @@ public class VendorMediaType {
             "application/vnd.org.midonet.collection" +
                     ".HostInterfacePort-v1+json";
 
+    // Trace Conditions
+    public static final String APPLICATION_CONDITION_JSON =
+            "application/vnd.org.midonet.Condition-v1+json";
+    public static final String APPLICATION_CONDITION_COLLECTION_JSON =
+            "application/vnd.org.midonet.collection" +
+                    ".Condition-v1+json";
+
     // Packet Trace
-    public static final String APPLICATION_PACKET_TRACE_JSON =
-            "application/vnd.org.midonet" +
-                    ".Trace-v1+json";
-    public static final String
-            APPLICATION_PACKET_TRACE_COLLECTION_JSON =
+    public static final String APPLICATION_TRACE_JSON =
+            "application/vnd.org.midonet.Trace-v1+json";
+    public static final String APPLICATION_TRACE_COLLECTION_JSON =
             "application/vnd.org.midonet.collection" +
                     ".Trace-v1+json";
 }

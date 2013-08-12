@@ -192,7 +192,11 @@ public class Bridge extends UriResource {
      * @return the URI for the Bridge's MAC table.
      */
     public URI getMacTable() {
-        return ResourceUriBuilder.getMacTable(getUri());
+        return getMacTable(null);
+    }
+
+    public URI getMacTable(Short vlanId) {
+        return ResourceUriBuilder.getMacTable(getUri(), vlanId);
     }
 
     /**
@@ -234,6 +238,18 @@ public class Bridge extends UriResource {
         } else {
             return null;
         }
+    }
+
+    public String getVlanMacTableTemplate() {
+        return ResourceUriBuilder.getVlanMacTableTemplate(getUri());
+    }
+
+    public String getMacPortTemplate() {
+        return ResourceUriBuilder.getMacPortTemplate(getUri());
+    }
+
+    public String getVlanMacPortTemplate() {
+        return ResourceUriBuilder.getVlanMacPortTemplate(getUri());
     }
 
     /**

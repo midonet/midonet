@@ -16,6 +16,7 @@ import org.midonet.api.RelativeUriResource;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.network.validation.MacPortValid;
 import org.midonet.util.StringUtil;
+import org.midonet.util.version.Since;
 
 @MacPortValid(groups = MacPort.MacPortExtended.class)
 @XmlRootElement
@@ -27,12 +28,20 @@ public class MacPort  extends RelativeUriResource {
     @NotNull
     protected UUID portId;
 
+    @Since("2")
+    protected Short vlanId;
+
     // This is only needed for validating that the port belongs to the bridge.
     protected UUID bridgeId;
 
     public MacPort(String macAddr, UUID portId) {
         this.macAddr = macAddr;
         this.portId = portId;
+    }
+
+    public MacPort(Short vlanId, String macAddr, UUID portId) {
+        this(macAddr, portId);
+        this.vlanId = vlanId;
     }
 
     /* Default constructor - for deserialization. */
@@ -62,6 +71,14 @@ public class MacPort  extends RelativeUriResource {
 
     public void setPortId(UUID portId) {
         this.portId = portId;
+    }
+
+    public Short getVlanId() {
+        return vlanId;
+    }
+
+    public void setVlanId(Short vlanId) {
+        this.vlanId = vlanId;
     }
 
     public UUID getBridgeId() {

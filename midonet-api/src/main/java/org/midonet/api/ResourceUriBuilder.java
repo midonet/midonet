@@ -6,6 +6,7 @@ package org.midonet.api;
 
 import org.midonet.api.network.IP4MacPair;
 import org.midonet.api.network.MacPort;
+import org.midonet.cluster.data.Bridge;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IntIPv4;
 import org.midonet.packets.MAC;
@@ -22,6 +23,7 @@ public class ResourceUriBuilder {
     public static final String ROUTERS = "/routers";
     public static final String VLAN_BRIDGES = "/vlan_bridges";
     public static final String BRIDGES = "/bridges";
+    public static final String VLANS = "/vlans";
     public static final String MAC_TABLE = "/mac_table";
     public static final String ARP_TABLE = "/arp_table";
     public static final String DHCP = "/dhcp";
@@ -47,6 +49,11 @@ public class ResourceUriBuilder {
     public static final String ID_TOKEN = "/{id}";
     public static final String TRACE_CONDITIONS ="/trace_conditions";
     public static final String TRACES = "/traces";
+    public static final String VLAN_ID = "/{vlanId}";
+    public static final String MAC_ADDR = "/{macAddress}";
+    public static final String PORT_ID = "/{portId}";
+    public static final String PORT_ID_NO_SLASH = "{portId}";
+
 
     private ResourceUriBuilder() {
     }
@@ -168,8 +175,11 @@ public class ResourceUriBuilder {
         return UriBuilder.fromUri(bridgeDhcpUri).path(DHCP_HOSTS).build();
     }
 
-    public static URI getMacTable(URI bridgeUri) {
-        return UriBuilder.fromUri(bridgeUri).path(MAC_TABLE).build();
+    public static URI getMacTable(URI bridgeUri, Short vlanId) {
+        UriBuilder builder = UriBuilder.fromUri(bridgeUri);
+        if (vlanId != null && vlanId != Bridge.UNTAGGED_VLAN_ID)
+            builder = builder.path(VLANS).path(vlanId.toString());
+        return builder.path(MAC_TABLE).build();
     }
 
     public static String macPortToUri(MacPort mp) {
@@ -181,7 +191,7 @@ public class ResourceUriBuilder {
 
     public static MAC macPortToMac(String macPortString) {
         String[] parts = macPortString.split("_");
-        return MAC.fromString(macFromUri(parts[0]));
+        return macFromUri(parts[0]);
     }
 
     public static UUID macPortToUUID(String macPortString) {
@@ -202,7 +212,7 @@ public class ResourceUriBuilder {
 
     public static MAC ip4MacPairToMac(String macPortString) {
         String[] parts = macPortString.split("_");
-        return MAC.fromString(macFromUri(parts[1]));
+        return MAC.fromString(macStrFromUri(parts[1]));
     }
 
     public static IPv4Addr ip4MacPairToIP4(String macPortString) {
@@ -214,8 +224,22 @@ public class ResourceUriBuilder {
         return mac.replace(':', '-');
     }
 
-    public static String macFromUri(String mac) {
+    /**
+     * Converts a MAC address from its URI format to standard format.
+     * @param mac MAC address in URI format (e.g., 01-23-45-67-89-ab)
+     * @return MAC address in standard format (e.g., 01:23:45:67:89:ab)
+     */
+    public static String macStrFromUri(String mac) {
         return mac.replace('-', ':');
+    }
+
+    /**
+     * Converts a MAC address in URI format to a MAC object.
+     * @param mac MAC address in URI format (e.g., 01-23-45-67-89-ab)
+     * @return MAC object representing the address.
+     */
+    public static MAC macFromUri(String mac) {
+        return MAC.fromString(macStrFromUri(mac));
     }
 
     public static URI getDhcpHost(URI bridgeDhcpUri, String macAddr) {
@@ -228,9 +252,18 @@ public class ResourceUriBuilder {
             .path(ip4MacPairToUri(pair)).build();
     }
 
+    public static URI getMacPort(URI bridgeUri, Short vlanId,
+                                 String macAddress, UUID portId) {
+        return getMacPort(bridgeUri, new MacPort(vlanId, macAddress, portId));
+    }
+
     public static URI getMacPort(URI bridgeUri, MacPort mp) {
-        return UriBuilder.fromUri(getMacTable(bridgeUri))
-            .path(macPortToUri(mp)).build();
+        UriBuilder builder = UriBuilder.fromUri(bridgeUri);
+        if (mp.getVlanId() != null &&
+                !mp.getVlanId().equals(Bridge.UNTAGGED_VLAN_ID)) {
+            builder.path(VLANS).path(mp.getVlanId().toString());
+        }
+        return builder.path(MAC_TABLE).path(macPortToUri(mp)).build();
     }
 
     public static URI getBridgeDhcpV6s(URI baseUri, UUID bridgeId) {
@@ -560,6 +593,19 @@ public class ResourceUriBuilder {
      */
     public static String getTunnelZoneTemplate(URI baseUri) {
         return buildIdTemplateUri(getTunnelZones(baseUri));
+    }
+
+    public static String getVlanMacTableTemplate(URI bridgeUri) {
+        return bridgeUri + VLANS + VLAN_ID + MAC_TABLE;
+    }
+
+    public static String getMacPortTemplate(URI bridgeUri) {
+        return bridgeUri + MAC_TABLE + MAC_ADDR + "_" + PORT_ID_NO_SLASH;
+    }
+
+    public static String getVlanMacPortTemplate(URI bridgeUri) {
+        return bridgeUri + VLANS + VLAN_ID + MAC_TABLE +
+                MAC_ADDR + "_" + PORT_ID_NO_SLASH;
     }
 
     /**

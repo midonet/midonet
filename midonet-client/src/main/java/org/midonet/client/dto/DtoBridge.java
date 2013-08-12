@@ -26,6 +26,9 @@ public class DtoBridge {
     private URI arpTable;
     private URI dhcpSubnets;
     private URI dhcpSubnet6s;
+    private String vlanMacTableTemplate;
+    private String macPortTemplate;
+    private String vlanMacPortTemplate;
 
     public UUID getId() {
         return id;
@@ -137,6 +140,30 @@ public class DtoBridge {
 
     public void setDhcpSubnet6s(URI dhcpSubnet6s) {
         this.dhcpSubnet6s = dhcpSubnet6s;
+    }
+
+    public String getVlanMacTableTemplate() {
+        return vlanMacTableTemplate;
+    }
+
+    public void setVlanMacTableTemplate(String vlanMacTableTemplate) {
+        this.vlanMacTableTemplate = vlanMacTableTemplate;
+    }
+
+    public String getMacPortTemplate() {
+        return macPortTemplate;
+    }
+
+    public void setMacPortTemplate(String macPortTemplate) {
+        this.macPortTemplate = macPortTemplate;
+    }
+
+    public String getVlanMacPortTemplate() {
+        return vlanMacPortTemplate;
+    }
+
+    public void setVlanMacPortTemplate(String vlanMacPortTemplate) {
+        this.vlanMacPortTemplate = vlanMacPortTemplate;
     }
 
     @Override

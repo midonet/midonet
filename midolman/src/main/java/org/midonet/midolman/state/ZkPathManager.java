@@ -7,6 +7,7 @@ package org.midonet.midolman.state;
 
 import java.util.UUID;
 
+import org.midonet.cluster.data.Bridge;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager.BridgeConfig;
 import org.midonet.midolman.state.zkManagers.TaggableConfig;
 import org.midonet.packets.IPv6Subnet;
@@ -102,7 +103,7 @@ public class ZkPathManager {
 
     protected StringBuilder buildTunnelPath(int tunnelKeyId) {
         return buildTunnelPath().append("/").append(
-            String.format("%010d", tunnelKeyId));
+                String.format("%010d", tunnelKeyId));
     }
 
     /**
@@ -132,14 +133,16 @@ public class ZkPathManager {
      * Get the path of a bridge's dynamic filtering database (mac to ports map).
      *
      * @param id Bridge UUID
-     * @return /bridges/bridgeId/mac_ports
+     * @param vlanId VLAN ID. Bridge.UNTAGGED_VLAN_ID for the untagged VLAN.
+     * @return If vlanId == UNTAGGED_VLAN_ID: /bridges/bridgeId/mac_ports.
+     *         Otherwise: /bridges/bridgeId/vlans/vlanId/mac_ports.
      */
-    public String getBridgeMacPortsPath(UUID id) {
-        return buildBridgeMacPortsPath(id).toString();
-    }
-
-    protected StringBuilder buildBridgeMacPortsPath(UUID id) {
-        return buildBridgePath(id).append("/mac_ports");
+    public String getBridgeMacPortsPath(UUID id, short vlanId) {
+        StringBuilder builder = buildBridgePath(id);
+        if (vlanId != Bridge.UNTAGGED_VLAN_ID)
+            builder.append("/vlans/").append(vlanId);
+        builder.append("/mac_ports");
+        return builder.toString();
     }
 
     /**
@@ -169,22 +172,6 @@ public class ZkPathManager {
 
     protected StringBuilder buildBridgeVlanPath(UUID id, Short vlanId) {
         return buildBridgeVlansPath(id).append("/").append(vlanId);
-    }
-
-    /**
-     * Get the path of a bridge's dynamic filtering database (mac to ports map)
-     * for a specific VLAN.
-     *
-     * @param id Bridge UUID
-     * @param vlanId Vlan Short
-     * @return /bridges/bridgeId/vlans/vlanId/mac_ports
-     */
-    public String getBridgeVlanMacPortsPath(UUID id, Short vlanId) {
-        return buildBridgeVlanMacPortsPath(id, vlanId).toString();
-    }
-
-    protected StringBuilder buildBridgeVlanMacPortsPath(UUID id, Short vlanId) {
-        return buildBridgeVlanPath(id, vlanId).append("/mac_ports");
     }
 
     /**

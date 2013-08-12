@@ -7,11 +7,13 @@ package org.midonet.client.resource;
 import org.midonet.client.WebResource;
 
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.UriBuilder;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Objects;
 
 /**
  * Author: Tomoe Sugihara <tomoe@midokura.com>
@@ -195,5 +197,34 @@ public abstract class ResourceBase<T extends ResourceBase, U> {
      */
     public void delete() {
         resource.delete(getUri());
+    }
+
+    /**
+     * Create a URI object from a URI template, token string and the replacement
+     * value.
+     *
+     * @param template URI template string
+     * @param token Token to replace
+     * @param value Value to replace the token with
+     * @return URI with token replaced with value
+     */
+    protected URI createUriFromTemplate(String template, String token,
+                                        Object value) {
+        return UriBuilder.fromUri(
+                template.replace(token, value.toString())).build();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this)
+            return true;
+
+        if (obj == null || getClass() != obj.getClass())
+            return false;
+
+        ResourceBase<T, U> otherResource = (ResourceBase<T, U>)obj;
+
+        return Objects.equals(principalDto, otherResource.principalDto) &&
+               Objects.equals(mediaType, otherResource.mediaType);
     }
 }

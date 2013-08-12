@@ -7,6 +7,7 @@ package org.midonet.api.network.rest_api;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
+import org.apache.zookeeper.KeeperException.NoNodeException;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.VendorMediaType;
 import org.midonet.api.auth.AuthAction;
@@ -22,9 +23,12 @@ import org.midonet.api.network.IP4MacPair;
 import org.midonet.api.network.MacPort;
 import org.midonet.api.network.auth.BridgeAuthorizer;
 import org.midonet.api.rest_api.*;
+import org.midonet.api.validation.MessageProperty;
 import org.midonet.cluster.DataClient;
+import org.midonet.cluster.data.ports.VlanMacPort;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.InvalidStateOperationException;
+import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
@@ -43,6 +47,11 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.util.*;
+
+import static org.midonet.api.ResourceUriBuilder.MAC_TABLE;
+import static org.midonet.api.ResourceUriBuilder.VLANS;
+import static org.midonet.api.validation.MessageProperty.getMessage;
+import static org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID;
 
 /**
  * Root resource class for Virtual bridges.
@@ -125,7 +134,7 @@ public class BridgeResource extends AbstractResource {
                 dataClient.bridgesGet(id);
         if (bridgeData == null) {
             throw new NotFoundHttpException(
-                    "The requested resource was not found.");
+                    getMessage(MessageProperty.RESOURCE_NOT_FOUND));
         }
 
         // Convert to the REST API DTO
@@ -290,7 +299,9 @@ public class BridgeResource extends AbstractResource {
 +     */
 
     /**
-     * Handler to list the MAC table's entries..
+     * Handler to list the MAC table's entries with V1 semantics, meaning that
+     * it returns only entries not associated with a particular VLAN and does
+     * not serialize the VLAN field.
      *
      * @throws StateAccessException
      *             Data access error.
@@ -298,22 +309,74 @@ public class BridgeResource extends AbstractResource {
      */
     @GET
     @PermitAll
-    @Path("/{id}" + ResourceUriBuilder.MAC_TABLE)
+    @Path("/{id}" + MAC_TABLE)
     @Produces({ VendorMediaType.APPLICATION_MAC_PORT_COLLECTION_JSON })
     public List<MacPort> list(@PathParam("id") UUID id)
             throws StateAccessException, SerializationException {
+        return listHelper(id, UNTAGGED_VLAN_ID);
+    }
+
+    /**
+     * Handler to list the MAC table's entries with V2 semantics, meaning that
+     * it does serialize the VLAN field. Returns all MAC ports regardless of
+     * VLAN association.
+     *
+     * @throws StateAccessException
+     *             Data access error.
+     * @return A list of MacPort objects.
+     */
+    @GET
+    @PermitAll
+    @Path("/{id}" + MAC_TABLE)
+    @Produces({ VendorMediaType.APPLICATION_MAC_PORT_COLLECTION_JSON_V2 })
+    public List<MacPort> listV2(@PathParam("id") UUID id)
+            throws StateAccessException, SerializationException {
+        return listHelper(id, null);
+    }
+
+    /**
+     * Handler to list the MAC table's entries with V2 semantics, meaning that
+     * it does serialize the VLAN field. Returns only those MAC ports associated
+     * with the specified VLAN ID
+     *
+     * @param id Bridge's UUID.
+     * @param vlanId ID of the VLAN whose MAC table is requested. Specify 0 to
+     *               request MAC ports not associated with a VLAN.
+     *
+     * @throws StateAccessException
+     *             Data access error.
+     * @return A list of MacPort objects.
+     */
+    @GET
+    @PermitAll
+    @Path("/{id}" + VLANS + "/{vlanId}" + MAC_TABLE)
+    @Produces({ VendorMediaType.APPLICATION_MAC_PORT_COLLECTION_JSON_V2 })
+    public List<MacPort> list(@PathParam("id") UUID id,
+                              @PathParam("vlanId") short vlanId)
+            throws StateAccessException, SerializationException {
+        return listHelper(id, vlanId);
+    }
+
+    protected List<MacPort> listHelper(UUID id, Short vlanId)
+            throws StateAccessException, SerializationException {
         if (!authorizer.authorize(context, AuthAction.READ, id)) {
             throw new ForbiddenHttpException(
-                "Not authorized to view this bridge's MAC table.");
+                    "Not authorized to view this bridge's MAC table.");
         }
 
-        URI bridgeUri = ResourceUriBuilder.getBridge(getBaseUri(), id);
-        Map<MAC, UUID> macPortMap = dataClient.bridgeGetMacPorts(id);
+        assertBridgeExists(id);
+        if (vlanId != null && vlanId != UNTAGGED_VLAN_ID)
+            assertBridgeHasVlan(id, vlanId);
+
+        List<VlanMacPort> ports = (vlanId == null) ?
+                dataClient.bridgeGetMacPorts(id) :
+                dataClient.bridgeGetMacPorts(id, vlanId);
+
         List<MacPort> macPortList = new ArrayList<MacPort>();
-        for (Map.Entry<MAC, UUID> entry : macPortMap.entrySet()) {
-            MacPort mp = new MacPort(
-                entry.getKey().toString(), entry.getValue());
-            mp.setParentUri(bridgeUri);
+        for (VlanMacPort port : ports) {
+            MacPort mp = new MacPort(port.macAddress.toString(), port.portId);
+            mp.setParentUri(ResourceUriBuilder.getBridge(getBaseUri(), id));
+            mp.setVlanId(port.vlanId);
             macPortList.add(mp);
         }
         return macPortList;
@@ -330,90 +393,194 @@ public class BridgeResource extends AbstractResource {
      */
     @POST
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
-    @Path("/{id}" + ResourceUriBuilder.MAC_TABLE)
+    @Path("/{id}" + MAC_TABLE)
     @Consumes({ VendorMediaType.APPLICATION_MAC_PORT_JSON,
-        MediaType.APPLICATION_JSON })
+                VendorMediaType.APPLICATION_MAC_PORT_JSON_V2,
+                MediaType.APPLICATION_JSON })
     public Response addMacPort(@PathParam("id") UUID id, MacPort mp)
+            throws StateAccessException, SerializationException {
+        return addMacPortHelper(id, UNTAGGED_VLAN_ID, mp);
+    }
+
+    @POST
+    @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
+    @Path("/{id}" + VLANS + "/{vlanId}" + MAC_TABLE)
+    @Consumes({ VendorMediaType.APPLICATION_MAC_PORT_JSON_V2,
+                MediaType.APPLICATION_JSON })
+    public Response addMacPort(@PathParam("id") UUID id,
+                               @PathParam("vlanId") Short vlanId, MacPort mp)
+            throws StateAccessException, SerializationException {
+        return addMacPortHelper(id, vlanId, mp);
+    }
+
+    private Response addMacPortHelper(UUID id, short vlanId, MacPort mp)
             throws StateAccessException, SerializationException {
         if (!authorizer.authorize(context, AuthAction.WRITE, id)) {
             throw new ForbiddenHttpException(
-                "Not authorized to add to this bridge's MAC table.");
+                    "Not authorized to add to this bridge's MAC table.");
         }
 
+        // Need to set these properties for validation.
         mp.setBridgeId(id);
+        mp.setVlanId(vlanId);
         Set<ConstraintViolation<MacPort>> violations = validator.validate(
-            mp, MacPort.MacPortGroupSequence.class);
+                mp, MacPort.MacPortGroupSequence.class);
         if (!violations.isEmpty()) {
             throw new BadRequestHttpException(violations);
         }
 
-        dataClient.bridgeAddMacPort(id, MAC.fromString(mp.getMacAddr()),
-            mp.getPortId());
+        dataClient.bridgeAddMacPort(id, vlanId,
+                MAC.fromString(mp.getMacAddr()), mp.getPortId());
         URI bridgeUri = ResourceUriBuilder.getBridge(getBaseUri(), id);
+
+        // Need to set MacPort's vlanId so getMacPort constructs the right URI.
+        mp.setVlanId(vlanId);
         return Response.created(
-            ResourceUriBuilder.getMacPort(bridgeUri, mp))
-            .build();
+                ResourceUriBuilder.getMacPort(bridgeUri, mp))
+                .build();
     }
 
     /**
      * Handler to getting a MAC table entry.
      *
-     * @param macPortString
-     *            MacPort entry in the mac table.
+     * @param id
+     *      Bridge's UUID.
+     * @param macAddress
+     *      MAC address of mapping to get, in URI format,
+     *      e.g., 12-34-56-78-9a-bc.
+     * @param portId
+     *      UUID of port in the MAC-port mapping to get.
      * @throws StateAccessException
-     *             Data access error.
+     *      Data access error.
      * @return A MacPort object.
      */
     @GET
     @PermitAll
-    @Path("/{id}" + ResourceUriBuilder.MAC_TABLE + "/{mac_port}")
+    @Path("/{id}" + MAC_TABLE + "/{mac}_{portId}")
     @Produces({ VendorMediaType.APPLICATION_MAC_PORT_JSON,
-        MediaType.APPLICATION_JSON })
+            VendorMediaType.APPLICATION_MAC_PORT_JSON_V2,
+            MediaType.APPLICATION_JSON })
     public MacPort get(@PathParam("id") UUID id,
-                       @PathParam("mac_port") String macPortString)
-        throws StateAccessException, SerializationException {
+                       @PathParam("mac") String macAddress,
+                       @PathParam("portId") UUID portId)
+            throws StateAccessException, SerializationException {
+        return getHelper(id, UNTAGGED_VLAN_ID, macAddress, portId);
+    }
 
+    /**
+     * Handler to getting a MAC table entry.
+     *
+     * @param id
+     *      Bridge's UUID.
+     * @param macAddress
+     *      MAC address of mapping to get, in URI format,
+     *      e.g., 12-34-56-78-9a-bc.
+     * @param portId
+     *      UUID of port in the MAC-port mapping to get.
+     * @throws StateAccessException
+     *      Data access error.
+     * @return A MacPort object.
+     */
+    @GET
+    @PermitAll
+    @Path("/{id}" + VLANS + "/{vlanId}" + MAC_TABLE + "/{mac}_{portId}")
+    @Produces({ VendorMediaType.APPLICATION_MAC_PORT_JSON_V2,
+            MediaType.APPLICATION_JSON })
+    public MacPort get(@PathParam("id") UUID id,
+                       @PathParam("vlanId") Short vlanId,
+                       @PathParam("mac") String macAddress,
+                       @PathParam("portId") UUID portId)
+            throws StateAccessException, SerializationException {
+        return getHelper(id, vlanId, macAddress, portId);
+    }
+
+    public MacPort getHelper(UUID id, short vlanId,
+                             String macAddress, UUID portId)
+            throws StateAccessException, SerializationException {
         if (!authorizer.authorize(context, AuthAction.READ, id)) {
             throw new ForbiddenHttpException(
-                "Not authorized to view this bridge's mac table.");
+                    "Not authorized to view this bridge's mac table.");
         }
 
-        // The mac in the URI uses '-' instead of ':'
-        MAC mac = ResourceUriBuilder.macPortToMac(macPortString);
-        UUID port = ResourceUriBuilder.macPortToUUID(macPortString);
-        if (!dataClient.bridgeHasMacPort(id, mac, port)) {
+        assertBridgeExists(id);
+        assertBridgeExists(id);
+        if (vlanId != UNTAGGED_VLAN_ID)
+            assertBridgeHasVlan(id, vlanId);
+
+        MAC mac = validateMacAddress(macAddress);
+        if (!dataClient.bridgeHasMacPort(id, vlanId, mac, portId)) {
             throw new NotFoundHttpException(
-                "The requested resource was not found.");
-        } else {
-            MacPort mp = new MacPort(mac.toString(), port);
-            mp.setParentUri(ResourceUriBuilder.getBridge(getBaseUri(), id));
-            return mp;
+                    getMessage(MessageProperty.RESOURCE_NOT_FOUND));
         }
+
+        MacPort mp = new MacPort(mac.toString(), portId);
+        mp.setVlanId(vlanId);
+        mp.setParentUri(ResourceUriBuilder.getBridge(getBaseUri(), id));
+        return mp;
+    }
+
+
+    /**
+     * Handler to deleting a MAC table entry.
+     *
+     * @param id
+     *      Bridge UUID.
+     * @param macAddress
+     *      MAC address of MAC-port mapping to delete.
+     * @param portId
+     *      UUID of port in MAC-port mapping to delete.
+     * @throws org.midonet.midolman.state.StateAccessException
+     *      Data access error.
+     */
+    @DELETE
+    @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
+    @Path("/{id}" + MAC_TABLE + "/{mac}_{portId}")
+    public void delete(@PathParam("id") UUID id,
+                       @PathParam("mac") String macAddress,
+                       @PathParam("portId") UUID portId)
+            throws StateAccessException, SerializationException {
+        deleteHelper(id, UNTAGGED_VLAN_ID, macAddress, portId);
     }
 
     /**
      * Handler to deleting a MAC table entry.
      *
-     * @param macPortString
-     *            MacPort entry in the mac table.
+     * @param id
+     *      Bridge UUID.
+     * @param vlanId
+     *      VLAN ID of MAC-port mapping to delete.
+     * @param macAddress
+     *      MAC address of MAC-port mapping to delete.
+     * @param portId
+     *      UUID of port in MAC-port mapping to delete.
      * @throws org.midonet.midolman.state.StateAccessException
-     *             Data access error.
+     *      Data access error.
      */
     @DELETE
     @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
-    @Path("/{id}" + ResourceUriBuilder.MAC_TABLE + "/{mac_port}")
+    @Path("/{id}" + VLANS + "/{vlanId}" + MAC_TABLE + "/{mac}_{portId}")
     public void delete(@PathParam("id") UUID id,
-                       @PathParam("mac_port") String macPortString)
+                       @PathParam("vlanId") short vlanId,
+                       @PathParam("mac") String macAddress,
+                       @PathParam("portId") UUID portId)
             throws StateAccessException, SerializationException {
+        deleteHelper(id, vlanId, macAddress, portId);
+    }
 
+    private void deleteHelper(UUID id, Short vlanId,
+                              String macAddress, UUID portId)
+            throws StateAccessException, SerializationException {
         if (!authorizer.authorize(context, AuthAction.WRITE, id)) {
             throw new ForbiddenHttpException(
-                "Not authorized to delete from this bridge's MAC table.");
+                    "Not authorized to delete from this bridge's MAC table.");
         }
 
-        dataClient.bridgeDeleteMacPort(id,
-            ResourceUriBuilder.macPortToMac(macPortString),
-            ResourceUriBuilder.macPortToUUID(macPortString));
+        assertBridgeExists(id);
+        if (vlanId != UNTAGGED_VLAN_ID)
+            assertBridgeHasVlan(id, vlanId);
+        MAC mac = validateMacAddress(macAddress);
+
+        dataClient.bridgeDeleteMacPort(id, vlanId, mac, portId);
     }
 
     /*
@@ -513,7 +680,7 @@ public class BridgeResource extends AbstractResource {
         MAC mac = ResourceUriBuilder.ip4MacPairToMac(IP4MacPairString);
         if (!dataClient.bridgeHasIP4MacPair(id, ip, mac)) {
             throw new NotFoundHttpException(
-                "The requested resource was not found.");
+                    getMessage(MessageProperty.RESOURCE_NOT_FOUND));
         } else {
             IP4MacPair mp = new IP4MacPair(ip.toString(), mac.toString());
             mp.setParentUri(ResourceUriBuilder.getBridge(getBaseUri(), id));
@@ -597,6 +764,37 @@ public class BridgeResource extends AbstractResource {
                 }
             }
             return bridges;
+	}
+    }
+
+    private void assertBridgeExists(UUID id) throws StateAccessException {
+        if (!dataClient.bridgeExists(id))
+            throw new NotFoundHttpException(
+                    getMessage(MessageProperty.BRIDGE_EXISTS, id));
+    }
+
+    private void assertBridgeHasVlan(UUID id, short vlanId)
+            throws StateAccessException {
+        if (!dataClient.bridgeHasMacTable(id, vlanId))
+            throw new NotFoundHttpException(
+                    getMessage(MessageProperty.BRIDGE_HAS_VLAN, vlanId));
+    }
+
+    private void assertBridgeHasMacPort(UUID id, Short vlanId,
+                                        String macAddress, UUID portId)
+            throws StateAccessException {
+        if (!dataClient.bridgeHasMacPort(
+                id, vlanId, MAC.fromString(macAddress), portId))
+            throw new NotFoundHttpException(
+                    getMessage(MessageProperty.BRIDGE_HAS_MAC_PORT));
+    }
+
+    private MAC validateMacAddress(String macAddress) {
+        try {
+            return ResourceUriBuilder.macFromUri(macAddress);
+        } catch (IllegalArgumentException ex) {
+            throw new BadRequestHttpException(
+                    getMessage(MessageProperty.MAC_URI_FORMAT));
         }
     }
 }

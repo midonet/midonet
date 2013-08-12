@@ -120,7 +120,7 @@ public class DhcpHostsResource extends AbstractResource {
         }
 
         // The mac in the URI uses '-' instead of ':'
-        mac = ResourceUriBuilder.macFromUri(mac);
+        mac = ResourceUriBuilder.macStrFromUri(mac);
         Host hostConfig = dataClient.dhcpHostsGet(bridgeId, subnet, mac);
         if (hostConfig == null) {
             throw new NotFoundHttpException(
@@ -158,7 +158,7 @@ public class DhcpHostsResource extends AbstractResource {
         }
 
         // The mac in the URI uses '-' instead of ':'
-        mac = ResourceUriBuilder.macFromUri(mac);
+        mac = ResourceUriBuilder.macStrFromUri(mac);
         // Make sure that the DhcpHost has the same mac address as the URI.
         host.setMacAddr(mac);
 
@@ -197,7 +197,7 @@ public class DhcpHostsResource extends AbstractResource {
         }
 
         // The mac in the URI uses '-' instead of ':'
-        mac = ResourceUriBuilder.macFromUri(mac);
+        mac = ResourceUriBuilder.macStrFromUri(mac);
         // Get the old dhcp host assignment.
         Host h = dataClient.dhcpHostsGet(bridgeId, subnet, mac);
         dataClient.dhcpHostsDelete(bridgeId, subnet, mac);

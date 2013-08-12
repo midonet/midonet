@@ -448,20 +448,4 @@ public class Application extends ResourceBase<Application, DtoApplication> {
                     "No tunnel zone with ID (" + id + ") exists.");
         }
     }
-
-    /**
-     * Create a URI object from a URI template, token string and the replacement
-     * value.
-     *
-     * @param template URI template string
-     * @param token Token to replace
-     * @param value Value to replace the token with
-     * @param <T> Type of the value
-     * @return URI with token replaced with value
-     */
-    protected <T> URI createUriFromTemplate(String template, String token,
-                                            T value) {
-        return UriBuilder.fromUri(
-                template.replace(token, value.toString())).build();
-    }
 }

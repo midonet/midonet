@@ -8,6 +8,8 @@ import org.midonet.client.VendorMediaType;
 import org.midonet.client.WebResource;
 import org.midonet.client.dto.*;
 
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.UriBuilder;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.UUID;
@@ -222,6 +224,36 @@ public class Bridge extends ResourceBase<Bridge, DtoBridge> {
             null,
             VendorMediaType.APPLICATION_DHCPV6_SUBNET_COLLECTION_JSON,
             DhcpSubnet6.class, DtoDhcpSubnet6.class);
+    }
+
+    private URI getMacTableUri(Short vlanId) {
+        return (vlanId == null) ?
+                principalDto.getMacTable() :
+                createUriFromTemplate(principalDto.getVlanMacTableTemplate(),
+                        "{vlanId}", vlanId);
+    }
+
+    public ResourceCollection<MacPort> getMacTable(Short vlanId) {
+        return getChildResources(getMacTableUri(vlanId), null,
+                VendorMediaType.APPLICATION_MAC_PORT_COLLECTION_JSON_V2,
+                MacPort.class, DtoMacPort.class);
+    }
+
+    public MacPort addMacPort(Short vlanId, String macAddr, UUID portId) {
+        DtoMacPort mp = new DtoMacPort(macAddr, portId);
+        return new MacPort(resource, getMacTableUri(vlanId), mp);
+    }
+
+    public MacPort getMacPort(Short vlanId, String macAddr, UUID portId) {
+        String uriMacAddr = macAddr.replace(':', '-');
+        URI uri = (vlanId == null) ?
+                UriBuilder.fromPath(principalDto.getMacPortTemplate())
+                        .build(uriMacAddr, portId) :
+                UriBuilder.fromPath(principalDto.getVlanMacPortTemplate())
+                        .build(vlanId, uriMacAddr, portId);
+        DtoMacPort mp = resource.get(uri, null, DtoMacPort.class,
+                            VendorMediaType.APPLICATION_MAC_PORT_JSON_V2);
+        return new MacPort(resource, mp.getUri(), mp);
     }
 
     @Override
