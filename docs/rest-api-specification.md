@@ -1925,21 +1925,25 @@ It contains the following fields:
     </tr>
     <tr>
         <td>tpSrc</td>
-        <td>Range[Int]</td>
+        <td>Range</td>
         <td>POST</td>
         <td>No</td>
-        <td>The tcp/udp source port range to match. When creating an
-        ICMP rule, this field should be set to the ICMP type value. The
-        absence of a Range will be interpreted as "any".</td>
+        <td>A JSON representation of the Range object representing the
+        tcp/udp source port range to match, like {"start":80,"end":400}.
+        When creating an ICMP rule, this field should be set to the ICMP
+        type value. The absence of a Range will be interpreted as
+        "any".</td>
     </tr>
     <tr>
         <td>tpDst</td>
-        <td>Range[Int]</td>
+        <td>Range</td>
         <td>POST</td>
         <td>No</td>
-        <td>The tcp/udp port range to match. When creating an ICMP rule,
-        this field should be set to the ICMP code value. A null value in
-        this field will be intepreted as "any".</td>
+        <td>A JSON representation of the Range object representing the
+        tcp/udp source port range to match, like {"start":80,"end":400}.
+        When creating an ICMP rule, this field should be set to the ICMP
+        code value. A null value in this field will be intepreted as
+        "any".</td>
     </tr>
     <tr>
         <td>type</td>
