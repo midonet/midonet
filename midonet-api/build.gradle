@@ -1,0 +1,98 @@
+apply plugin: 'war'
+apply plugin: 'java-library-distribution'
+apply from: "${rootProject.projectDir}/fpm.gradle"
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'MidNet REST API server',
+                   'Implementation-Version': version
+    }
+}
+
+dependencies {
+    compile project(':packets'), project(':midolman')
+    compile(project(':midonet-util')) {
+        exclude group: 'com.sun', module: 'tools'
+    }
+    testCompile project(':midonet-client')
+
+    providedCompile libraries.servlet
+
+    compile libraries.persistence, libraries.jsr311, libraries.jsr250,
+            libraries.jackson_jaxrs, libraries.jackson_xc, libraries.guice,
+            libraries.guice_servlet, libraries.jersey_servlet,
+            libraries.jersey_server, libraries.jersey_client,
+            libraries.jersey_json, libraries.jersey_guice,
+            libraries.commons_lang, libraries.commons_codec,
+            libraries.hamcrest_core, libraries.hamcrest_lib,
+            libraries.validation, libraries.hibernate_validator
+
+    testCompile libraries.hamcrest_integration, libraries.grizzly_servlet,
+                libraries.jersey_grizzly, libraries.jersey_test_grizzly,
+                libraries.jersey_test_core, libraries.cassandra_unit
+}
+
+distributions {
+    main {
+        baseName = project.name
+    }
+}
+
+task preparePkg(type: Copy, dependsOn: installDist) {
+    String webapp = "usr/share/midonet-api"
+
+    from("${buildDir}/install/midonet-api/lib/") {
+        include "*.jar"
+        into "${webapp}/WEB-INF/lib/"
+    }
+    from("${buildDir}/classes/main") {
+        into "${webapp}/WEB-INF/classes/"
+        include "**/*"
+    }
+    from("conf/midonet-api.xml") {
+        into "etc/tomcat7/Catalina/localhost/"
+    }
+    from("CHANGE-LOG.txt") {
+        into "usr/share/doc/midonet-api/"
+    }
+    from("src/main/webapp/WEB-INF/web.xml.sample") {
+        into "${webapp}/WEB-INF"
+        rename ('web.xml.sample', 'web.xml')
+    }
+    from("conf/logback.xml.sample") {
+        into "${webapp}/WEB-INF/classes"
+        rename ('logback.xml.sample', 'logback.xml')
+    }
+    into "${pkgDestDir}"
+
+    doLast {
+        new File("${pkgDestDir}/${webapp}/META-INF").mkdirs()
+    }
+}
+
+packaging {
+    version = project.debVersion
+    maintainer = project.maintainer
+    vendor = project.vendor
+    url = project.url
+    description = 'Midonet-API is the REST API for Midolman, a virtual network controller'
+    dependencies = [ 'tomcat7' ]
+    confFiles = ['/usr/share/midonet-api/WEB-INF/web.xml',
+                 '/usr/share/midonet-api/WEB-INF/classes/logback.xml']
+    fpmOpts = ['-a', 'all']
+}
+
+preparePkg.dependsOn cleanPkg
+debian.dependsOn preparePkg
+rpm.dependsOn preparePkg
+
+debian.doFirst {
+    project.packaging.version = project.debVersion
+    project.packaging.fpmOpts.addAll([
+        '--deb-recommends', 'java7-runtime-headless | java7-runtime'])
+}
+
+rpm.doFirst {
+    project.packaging.version = project.rpmVersion
+    project.packaging.iteration = project.rpmRelease
+}

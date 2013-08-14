@@ -1,0 +1,112 @@
+apply plugin: 'scala'
+apply plugin: 'java-library-distribution'
+apply from: "${rootProject.projectDir}/fpm.gradle"
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'Midolman Java daemon',
+                   'Implementation-Version': version
+    }
+}
+
+sourceSets {
+    main {
+        scala { srcDirs = ['src/main/scala', 'src/main/java'] }
+        java { srcDirs = [] }
+    }
+    test {
+        scala { srcDirs = ['src/test/scala', 'src/test/java'] }
+        java { srcDirs = [] }
+    }
+}
+
+dependencies {
+    runtime project(':midonet-jdk-bootstrap')
+    compile project(':packets'), project(':midonet-util'), project(':netlink'),
+            project(':odp')
+
+    compile libraries.scala, libraries.akka, libraries.hamcrest, libraries.jna,
+            libraries.commons_lang, libraries.commons_conf,
+            libraries.commons_cli, libraries.commons_io, libraries.guava,
+            libraries.guice, libraries.yammer, libraries.cassandra,
+            libraries.hector, libraries.jetty, libraries.jackson_scala,
+            libraries.zookeeper
+
+    testCompile libraries.akkatest, libraries.scalatest, libraries.cassandra_unit
+}
+
+distributions {
+    main {
+        baseName = project.name
+    }
+}
+
+task preparePkg(type: Copy, dependsOn: installDist) {
+    from("${buildDir}/install/${project.name}") {
+        include "**/*"
+        into "usr/share/midolman"
+    }
+    from("CHANGE-LOG.txt") {
+        into "usr/share/doc/midolman/"
+    }
+    from("src/deb/init/midolman.conf") {
+        into "etc/init"
+    }
+    from("conf") {
+        into "etc/midolman"
+    }
+    from("src/deb/quagga/bgpd.conf") {
+        into "etc/quagga"
+    }
+    from("src/deb/bin/mm-dpctl") {
+        into "usr/bin"
+    }
+    into "${pkgDestDir}"
+
+    doLast {
+        new File("${pkgDestDir}/usr/share/midolman/lib").
+                renameTo("${pkgDestDir}/usr/share/midolman/dep")
+    }
+}
+
+packaging {
+    version = project.debVersion
+    maintainer = project.maintainer
+    vendor = project.vendor
+    url = project.url
+    description = 'Midolman is a virtual network controller'
+    dependencies = [ 'quagga (>= 0.99.21)', 'bridge-utils',
+      'java7-runtime-headless',
+      'openvswitch-datapath-dkms (>= 1.9) | openvswitch-datapath-source (>= 1.9)']
+    confFiles = ['/etc/midolman/midolman.conf',
+                 '/etc/midolman/midolman-akka.conf',
+                 '/etc/midolman/midolman-env.sh',
+                 '/etc/midolman/midolman-agent.conf',
+                 '/etc/midolman/logback.xml' ] 
+    fpmOpts = ['-a', 'all',
+               '--before-install', "${project.projectDir}/src/deb/control/preinst",
+               '--after-remove', "${project.projectDir}/src/deb/control/postrm",
+               '--before-remove', "${project.projectDir}/src/deb/control/prerm" ]
+}
+
+preparePkg.dependsOn cleanPkg
+debian.dependsOn preparePkg
+rpm.dependsOn preparePkg
+
+debian.doFirst {
+    project.packaging.version = project.debVersion
+    project.packaging.fpmOpts = project.packaging.fpmOpts.clone()
+    project.packaging.fpmOpts.addAll([
+        '--deb-recommends', 'java7-runtime-headless | java7-runtime',
+        '--after-install', "${project.projectDir}/src/deb/control/postinst"])
+}
+
+// TODO - the RPM package uses a different init.d script. Move it to pkgDestDir
+// in doFirst, and remove in doLast.
+rpm.doFirst {
+    project.packaging.version = project.rpmVersion
+    project.packaging.iteration = project.rpmRelease
+    project.packaging.fpmOpts = project.packaging.fpmOpts.clone()
+    project.packaging.fpmOpts.addAll([
+        '--after-install', "${project.projectDir}/src/rhel6/control/postinst"])
+}

@@ -1,0 +1,152 @@
+/*
+* Derived from gradle-fpm-plugin at https://github.com/kenshoo/gradle-fpm-plugin
+*
+* Copyright 2012 Kenshoo.com
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
+
+import org.gradle.api.DefaultTask
+import org.gradle.api.Plugin
+import org.gradle.api.Project
+import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.OutputDirectory
+
+apply plugin: PackagingPlugin
+
+class PackagingPlugin implements Plugin<Project> {
+
+    @Override
+    void apply(Project project) {
+        project.ext.pkgDestDir = "${project.buildDir}/TMPINST"
+        project.extensions.create('packaging', PackagingPluginExtension)
+        project.packaging.packageDir = new File(project.buildDir, "/packages")
+        project.task('debian', group: 'Build', type: DebianTask)
+        project.task('rpm', group: 'Build', type: RpmTask)
+        project.task('cleanPkg', group: 'Build', type: Delete) {
+            delete "${project.pkgDestDir}"
+        }
+    }
+
+}
+
+class PackagingPluginExtension {
+    @Input
+    def version
+
+    @Input
+    def iteration
+
+    @Input
+    def maintainer
+
+    @Input
+    def vendor
+
+    @Input
+    def url
+
+    @Input
+    def description
+
+    @Input
+    def dependencies = []
+
+    @Input
+    def prefix
+
+    @OutputDirectory
+    def packageDir
+
+    @Input
+    def fpmOpts = []
+
+    @Input
+    def confFiles = []
+}
+
+class DebianTask extends PackagingTask {
+    DebianTask(){
+        super('deb')
+    }
+}
+
+class RpmTask extends PackagingTask {
+    RpmTask(){
+        super('rpm')
+    }
+}
+
+class PackagingTask extends DefaultTask {
+    def conf
+    def type
+
+    PackagingTask(String type_){
+        type = type_
+    }
+
+    @TaskAction
+    pkg() {
+        conf = project.packaging
+
+        def outDir = conf.packageDir
+        if (!outDir.exists())
+            outDir.mkdirs()
+
+
+        def fpmArgs = getArgs()
+        logger.info('running fpm with: ' + fpmArgs)
+
+        project.exec {
+            commandLine 'fpm'
+            args fpmArgs
+            workingDir outDir.getAbsolutePath()
+        }
+    }
+
+    def getArgs() {
+        def version = project.version
+        if (conf.version)
+            version = conf.version
+
+        def fpmArgs = ["-t", this.type, "-s", "dir", "-n", "${project.name}",
+                       "-v", version, "-C", project.ext.pkgDestDir]
+
+        if (conf.prefix)
+            fpmArgs.addAll(["--prefix", prefix])
+        if (conf.description)
+            fpmArgs.addAll(["--description", conf.description])
+        if (conf.vendor)
+            fpmArgs.addAll(["--vendor", conf.vendor])
+        if (conf.iteration)
+            fpmArgs.addAll(["--iteration", conf.iteration])
+        if (conf.maintainer)
+            fpmArgs.addAll(["--vendor", conf.maintainer])
+        if (conf.url)
+            fpmArgs.addAll(["--url", conf.url])
+        conf.dependencies.each() {
+            fpmArgs << "-d"
+            fpmArgs << it
+        }
+        conf.confFiles.each() {
+            fpmArgs << "--config-files"
+            fpmArgs << it
+        }
+        if (conf.fpmOpts)
+            fpmArgs.addAll(conf.fpmOpts)
+        fpmArgs << "."
+
+        fpmArgs
+    }
+}
