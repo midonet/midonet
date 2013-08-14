@@ -61,13 +61,13 @@ public class ZkSystemDataProvider implements SystemDataProvider {
      */
     @Override
     public String getWriteVersion() throws StateAccessException {
-        log.debug("Entered ZkSystemDataProvider.getWriteVersion");
+        log.trace("Entered ZkSystemDataProvider.getWriteVersion");
         String version = null;
         byte[] data = zk.get(paths.getWriteVersionPath());
         if (data != null) {
             version = new String(data);
         }
-        log.debug("Exiting ZkSystemDataProvider.getWriteVersion. " +
+        log.trace("Exiting ZkSystemDataProvider.getWriteVersion. " +
                 "Version={}", version);
         return version;
     }
