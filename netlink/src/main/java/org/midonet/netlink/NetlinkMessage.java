@@ -326,7 +326,7 @@ public class NetlinkMessage {
 
         try {
             while (buf.hasRemaining()) {
-                short   len         = buf.getShort();
+                char   len         = buf.getChar();
                 if ( len == 0 )
                     return;
 
