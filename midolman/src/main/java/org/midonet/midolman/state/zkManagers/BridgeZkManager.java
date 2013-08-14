@@ -267,7 +267,10 @@ public class BridgeZkManager extends AbstractZkManager {
         ops.addAll(zk.getRecursiveDeleteOps(paths.getBridgeDhcpPath(id)));
         ops.addAll(zk.getRecursiveDeleteOps(paths.getBridgeDhcpV6Path(id)));
         ops.addAll(zk.getRecursiveDeleteOps(paths.getBridgeMacPortsPath(id)));
-        ops.addAll(zk.getRecursiveDeleteOps(paths.getBridgeTagsPath(id)));
+        // The bridge may have been created before the tagging was added.
+        if (zk.exists(paths.getBridgeTagsPath(id))) {
+            ops.addAll(zk.getRecursiveDeleteOps(paths.getBridgeTagsPath(id)));
+        }
         // The bridge may have been created before the ARP feature was added.
         if (zk.exists(paths.getBridgeIP4MacMapPath(id)))
             ops.addAll(zk.getRecursiveDeleteOps(
