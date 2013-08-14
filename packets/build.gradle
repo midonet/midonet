@@ -1,0 +1,24 @@
+apply plugin: 'scala'
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'MidoNet packets library',
+        'Implementation-Version': version
+    }
+}
+
+sourceSets {
+    main {
+        scala { srcDirs = ['src/main/scala', 'src/main/java'] }
+        java { srcDirs = [] }
+    }
+    test {
+        scala { srcDirs = ['src/test/scala', 'src/test/java'] }
+        java { srcDirs = [] }
+    }
+}
+
+dependencies {
+    compile libraries.scala, libraries.jackson_core
+    testCompile libraries.scalatest
+}

@@ -1,0 +1,19 @@
+apply plugin: 'scala'
+
+dependencies {
+    testCompile project(':packets')
+
+    compile libraries.commons_cli, libraries.commons_conf, libraries.commons_io,
+            libraries.findbugs, libraries.guava, libraries.hamcrest_core,
+            libraries.hamcrest_lib, libraries.hamcrest_integration,
+            libraries.jackson_core, libraries.jackson_mapper, libraries.jsch,
+            libraries.scala, libraries.servlet, libraries.sun_tools
+}
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'MidoNet util library',
+                   'Implementation-Version': version
+    }
+}
+

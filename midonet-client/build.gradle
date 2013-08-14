@@ -1,0 +1,17 @@
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'MidNet REST API client library',
+        'Implementation-Version': version
+    }
+}
+
+dependencies {
+    compile libraries.persistence, libraries.jsr311, libraries.jsr250,
+            libraries.jersey_client, libraries.jersey_core,
+            libraries.jackson_jaxrs, libraries.jackson_xc,
+            libraries.jackson_mapper, libraries.jackson_core,
+            libraries.hamcrest_core, libraries.hamcrest_lib
+
+    testCompile libraries.hamcrest_integration, libraries.cassandra_unit,
+                libraries.jersey_grizzly, libraries.jersey_test_grizzly
+}
