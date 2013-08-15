@@ -58,6 +58,7 @@ public class Topology {
         private final Map<String, DtoBridgePort> extBridgePorts;
         private final Map<String, DtoInteriorBridgePort> intBridgePorts;
         private final Map<String, DtoPortGroup> portGroups;
+        private final Map<String, DtoTraceCondition> traceConditions;
 
         private final Map<String, String> tagToInChains;
         private final Map<String, String> tagToOutChains;
@@ -80,6 +81,7 @@ public class Topology {
             this.extBridgePorts = new HashMap<String, DtoBridgePort>();
             this.intBridgePorts = new HashMap<String, DtoInteriorBridgePort>();
             this.portGroups = new HashMap<String, DtoPortGroup>();
+            this.traceConditions = new HashMap<String, DtoTraceCondition>();
 
             this.links = new HashMap<String, String>();
             this.tagToInChains = new HashMap<String, String>();
@@ -156,6 +158,11 @@ public class Topology {
 
         public Builder create(String tag, DtoPortGroup obj) {
             this.portGroups.put(tag, obj);
+            return this;
+        }
+
+        public Builder create(String tag, DtoTraceCondition traceCondition) {
+            this.traceConditions.put(tag, traceCondition);
             return this;
         }
 
@@ -450,6 +457,16 @@ public class Topology {
                         Response.Status.CREATED.getStatusCode());
             }
 
+            for (Map.Entry<String, DtoTraceCondition> entry :
+                     traceConditions.entrySet()) {
+                DtoTraceCondition traceCondition = entry.getValue();
+                traceCondition =
+                    resource.postAndVerifyCreated(app.getTraceConditions(),
+                        APPLICATION_CONDITION_JSON, traceCondition,
+                        DtoTraceCondition.class);
+                entry.setValue(traceCondition);
+            }
+
             // Tenants are created behind the scene.  Get all tenants
             DtoTenant[] tenantList = resource.getAndVerifyOk(app.getTenants(),
                     APPLICATION_TENANT_COLLECTION_JSON, DtoTenant[].class);
@@ -517,5 +534,9 @@ public class Topology {
 
     public DtoInteriorBridgePort getIntBridgePort(String tag) {
         return this.builder.intBridgePorts.get(tag);
+    }
+
+    public DtoTraceCondition getTraceCondition(String tag) {
+        return this.builder.traceConditions.get(tag);
     }
 }
