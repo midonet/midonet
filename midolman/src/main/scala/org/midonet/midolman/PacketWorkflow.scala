@@ -209,6 +209,7 @@ class PacketWorkflow(
             def onTimeout() {
                 log.warning("Flow creation for {} timed out, deleting", cookieStr)
                 datapathConnection.flowsDelete(datapath, flow, noOpCallback)
+                DeduplicationActor.getRef() ! ApplyFlow(flow.getActions, Some(cookie))
                 promise.success(true)
             }
 
