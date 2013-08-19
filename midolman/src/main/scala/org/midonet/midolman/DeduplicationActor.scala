@@ -6,6 +6,7 @@ import akka.actor._
 import akka.event.LoggingReceive
 import collection.{immutable, mutable}
 import scala.collection.JavaConverters._
+import mutable.PriorityQueue
 import collection.mutable.{HashMap, MultiMap}
 import java.util.UUID
 import java.util.concurrent.TimeUnit
@@ -37,6 +38,8 @@ import org.midonet.odp.{FlowMatches, Datapath, FlowMatch, Packet}
 import org.midonet.odp.flows.FlowAction
 import org.midonet.packets.Ethernet
 import org.midonet.util.throttling.{ThrottlingGuard, ThrottlingGuardFactory}
+import scala.compat.Platform
+import akka.util.Duration
 
 
 object DeduplicationActor extends Referenceable {
@@ -54,6 +57,8 @@ object DeduplicationActor extends Referenceable {
      * be forwarded. */
     case class EmitGeneratedPacket(egressPort: UUID, eth: Ethernet,
                                    parentCookie: Option[Int] = None)
+
+    case object _ExpireCookies
 
 
     class PacketPipelineMetrics(val registry: MetricsRegistry,
@@ -164,6 +169,13 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
     private val cookieToPendedPackets: MultiMap[Int, Packet] =
         new HashMap[Int, mutable.Set[Packet]] with MultiMap[Int, Packet]
 
+    private val cookieTimeToLiveMillis  = 30000L
+    private val cookieExpirationCheckIntervalMillis  = 5000L
+
+    private val cookieExpirations: PriorityQueue[(FlowMatch, Long)] =
+        new PriorityQueue[(FlowMatch, Long)]()(
+            Ordering.by[(FlowMatch,Long), Long](_._2).reverse)
+
     var metrics: PacketPipelineMetrics = null
 
     private sealed class GetConditionListFromVta { }
@@ -189,7 +201,11 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
                 dpState = state
                 installPacketInHook()
                 log.info("Datapath hook installed")
-            }
+                val expInterval = Duration(cookieExpirationCheckIntervalMillis,
+                                           TimeUnit.MILLISECONDS)
+                context.system.scheduler.schedule(expInterval, expInterval,
+                                                  self, _ExpireCookies)
+             }
 
         case HandlePacket(packet) => {
             log.debug("Handling packet with match {}", packet.getMatch)
@@ -199,6 +215,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
                 log.debug("No match, generate new cookie: {}", packet.getMatch)
 
                 dpMatchToCookie.put(packet.getMatch, cookie)
+                scheduleCookieExpiration(packet.getMatch)
                 cookieToPendedPackets.addBinding(cookie, packet)
                 // If there is no match on the cookie, create an object to
                 // handle the packet.
@@ -267,6 +284,23 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
         case newTraceConditions: immutable.Seq[Condition] =>
             log.debug("traceConditions updated to {}", newTraceConditions)
             traceConditions = newTraceConditions
+
+        case _ExpireCookies => {
+            val now = Platform.currentTime
+            while (cookieExpirations.size > 0 && cookieExpirations.head._2 < now) {
+                val (flowMatch, _) = cookieExpirations.dequeue()
+                dpMatchToCookie.remove(flowMatch) match {
+                    case Some(cookie) =>
+                        log.warning("Expiring cookie:{}", cookie)
+                        cookieToPendedPackets.remove(cookie)
+                    case None =>
+                }
+            }
+        }
+    }
+
+    private def scheduleCookieExpiration(flowMatch: FlowMatch) {
+        cookieExpirations += ((flowMatch, Platform.currentTime + cookieTimeToLiveMillis))
     }
 
     private def executePacket(cookie: Int,
