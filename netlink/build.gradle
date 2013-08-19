@@ -1,0 +1,16 @@
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'MidoNet packets library',
+        'Implementation-Version': version
+    }
+}
+
+dependencies {
+    compile project(":packets"), project(":midonet-util"),
+            project(":midonet-jdk-bootstrap")
+    compile libraries.jna, libraries.commons_io, libraries.guava
+}
+
+compileJava {
+    options.bootClasspath = project.jdkBootstrap
+}

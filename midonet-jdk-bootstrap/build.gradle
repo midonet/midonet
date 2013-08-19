@@ -1,0 +1,7 @@
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'MidoNet JDK bootstrap classes',
+        'Implementation-Version': version
+    }
+}
+

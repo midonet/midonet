@@ -1,0 +1,78 @@
+import org.gradle.api.DefaultTask
+import org.gradle.api.Plugin
+import org.gradle.api.Project
+import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.OutputFile
+
+apply plugin: GitPropertiesPlugin
+
+class GitPropertiesPlugin implements Plugin<Project> {
+    def describe
+    def id
+    def commitUser
+    def commitDate
+    def branch
+    def buildDate
+    def buildUser
+    def propsFile
+
+    @Override
+    void apply(Project project) {
+        project.ext.gitPropertiesPath = "${project.buildDir}/resources/main/git.properties"
+        project.task('gitProps', group: 'Build') << {
+            this.propsFile = new File(project.ext.gitPropertiesPath)
+            project.exec {
+                commandLine 'git describe'.split()
+                standardOutput = new ByteArrayOutputStream()
+                this.describe = { standardOutput.toString().trim() }
+                workingDir project.projectDir
+            }
+            project.exec {
+                commandLine 'git rev-parse HEAD'.split()
+                standardOutput = new ByteArrayOutputStream()
+                this.id = { standardOutput.toString().trim() }
+            }
+            project.exec {
+                commandLine 'git log -1 HEAD --pretty=format:%ae'.split()
+                standardOutput = new ByteArrayOutputStream()
+                this.commitUser = { standardOutput.toString().trim() }
+            }
+            project.exec {
+                commandLine 'git rev-parse --abbrev-ref HEAD'.split()
+                standardOutput = new ByteArrayOutputStream()
+                this.branch = { standardOutput.toString().trim() }
+            }
+            project.exec {
+                commandLine 'git log -1 HEAD --pretty=format:%ad'.split()
+                standardOutput = new ByteArrayOutputStream()
+                this.commitDate = { standardOutput.toString().trim() }
+            }
+            project.exec {
+                commandLine 'date'.split()
+                standardOutput = new ByteArrayOutputStream()
+                this.buildDate = { standardOutput.toString().trim() }
+            }
+            project.exec {
+                commandLine 'whoami'.split()
+                standardOutput = new ByteArrayOutputStream()
+                this.buildUser = { standardOutput.toString().trim() }
+            }
+        }
+        project.tasks.gitProps.doLast {
+            this.propsFile.parentFile.mkdirs()
+            this.propsFile.write(
+                "git.commit.id.describe=${describe()}\n" +
+                "git.commit.id=${id()}\n" +
+                "git.commit.time=${commitDate()}\n" +
+                "git.commit.user.name=${commitUser()}\n" +
+                "git.branch=${branch()}\n" +
+                "git.build.time=${buildDate()}\n" +
+                "git.build.user.name=${buildUser()}\n")
+        }
+
+        project.tasks.jar.dependsOn project.tasks.gitProps
+        project.tasks.gitProps.outputs.file project.ext.gitPropertiesPath
+        project.tasks.gitProps.inputs.files project.sourceSets.main.output.classesDir
+    }
+}
