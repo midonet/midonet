@@ -1,0 +1,231 @@
+project.ext {
+    midonetVersion = "1.2.0-SNAPSHOT"
+    vendor = 'Midokura'
+    maintainer = "MidoNet Team <info@midokura.com>"
+    url = "http://midokura.com"
+
+    jdkBootstrap = "${rootDir}/midonet-jdk-bootstrap/build/classes/main:${System.properties['java.home']}/lib/rt.jar"
+    ideaJdkBootstrap = "-Xbootclasspath/p:${rootDir}/idea/out/midonet-jdk-bootstrap"
+    scalaLangLevel = 'Scala 2.9'
+
+    versions = [akka: "2.0.3", guice: "3.0", hamcrest: "1.3", jackson: "1.9.3",
+                java: "1.7",   jersey: "1.10" ]
+
+    libraries = [
+        sun_tools: project.files("${System.properties['java.home']}/../lib/tools.jar"),
+
+        scala: "org.scala-lang:scala-library:2.9.2",
+        scalatest: "org.scalatest:scalatest_2.9.2:2.0.M4",
+        akka: ["com.typesafe.akka:akka-slf4j:${versions.akka}",
+               "com.typesafe.akka:akka-actor:${versions.akka}"],
+        akkatest: "com.typesafe.akka:akka-testkit:${versions.akka}",
+
+        guava: "com.google.guava:guava:r08",
+        slf4j: "org.slf4j:slf4j-api:1.6.4",
+        findbugs: "com.google.code.findbugs:jsr305:2.0.0",
+        logback: "ch.qos.logback:logback-classic:1.0.1",
+        jna: "net.java.dev.jna:jna:3.3.0",
+        jsch: 'com.jcraft:jsch:0.1.45',
+        commons_codec: "commons-codec:commons-codec:1.2",
+        commons_conf: "commons-configuration:commons-configuration:1.8",
+        commons_lang: "commons-lang:commons-lang:2.6",
+        commons_cli: "commons-cli:commons-cli:1.2",
+        commons_io: "commons-io:commons-io:2.3",
+        guice: ["com.google.inject:guice:${versions.guice}",
+                "com.google.inject.extensions:guice-assistedinject:${versions.guice}"],
+        guice_servlet: "com.google.inject.extensions:guice-servlet:${versions.guice}",
+        yammer: ["com.yammer.metrics:metrics-core:2.1.2",
+                 "com.yammer.metrics:metrics-ganglia:2.1.2"],
+
+        jackson_jaxrs: "org.codehaus.jackson:jackson-jaxrs:${versions.jackson}",
+        jackson_xc: "org.codehaus.jackson:jackson-xc:${versions.jackson}",
+        jackson_core: "org.codehaus.jackson:jackson-core-asl:${versions.jackson}",
+        jackson_mapper: "org.codehaus.jackson:jackson-mapper-asl:${versions.jackson}",
+        jackson_scala: dependencies.create("com.fasterxml:jackson-module-scala:${versions.jackson}") {
+            exclude group: 'junit', module: 'junit'
+            exclude group: 'org.scalatest', module: 'scalatest_2.9.1'
+            exclude group: 'com.google.guava', module: 'guava'},
+
+        test_frameworks: ["junit:junit-dep:4.10",
+                          "org.testng:testng:6.5.2",
+                          "org.powermock:powermock-module-junit4:1.4.11",
+                          "org.powermock:powermock-api-mockito:1.4.11",
+                          "org.mockito:mockito-all:1.9.0",
+                          "org.easymock:easymock:3.0"],
+
+        hamcrest: "org.hamcrest:hamcrest-all:${versions.hamcrest}",
+        hamcrest_core: "org.hamcrest:hamcrest-core:${versions.hamcrest}",
+        hamcrest_lib: "org.hamcrest:hamcrest-library:${versions.hamcrest}",
+        hamcrest_integration: "org.hamcrest:hamcrest-integration:${versions.hamcrest}",
+
+        cassandra: dependencies.create("org.apache.cassandra:cassandra-all:1.0.7") {
+            exclude group: 'junit', module: 'junit'
+            exclude group: 'org.mortbay.jetty', module: 'servlet-api'
+            exclude group: 'javax.servlet', module: 'servlet-api'
+            exclude group: 'commons-lang', module: 'commons-lang'
+            exclude group: 'log4j', module: 'log4j'
+            exclude group: 'org.slf4j', module: 'slf4j-log4j12'},
+        cassandra_unit: dependencies.create("org.cassandraunit:cassandra-unit:1.0.3.1") {
+            exclude group: 'org.apache.cassandra', module: 'cassandra-all'
+            exclude group: 'org.apache.cassandra', module: 'cassandra-parent'
+            exclude group: 'org.apache.cassandra', module: 'cassandra-thrift'
+            exclude group: 'org.hamcrest', module: 'hamcrest-all'
+            exclude group: 'junit', module: 'junit'
+            exclude group: 'log4j', module: 'log4j'
+            exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+            exclude group: 'com.google.guava', module: 'guava'},
+        hector: dependencies.create("me.prettyprint:hector-core:1.0-2") {
+            exclude group: 'org.apache.cassandra', module: 'cassandra-all'
+            exclude group: 'org.apache.cassandra', module: 'cassandra-parent'
+            exclude group: 'org.apache.cassandra', module: 'cassandra-thrift'
+            exclude group: 'com.google.guava', module: 'guava'},
+
+        zookeeper: dependencies.create("org.apache.zookeeper:zookeeper:3.4.5") {
+            exclude group: 'jline', module: 'jline'
+            exclude group: 'javax.jms', module: 'javax.jms'
+            exclude group: 'com.sun.jdmk', module: 'jmxtools'
+            exclude group: 'com.sun.jmx', module: 'jmxri'
+            exclude group: 'log4j', module: 'log4j'
+            exclude group: 'org.slf4j', module: 'slf4j-log4j12'},
+
+        persistence: "javax.persistence:persistence-api:1.0",
+        jsr250: "javax.annotation:jsr250-api:1.0",
+        jsr311: "javax.ws.rs:jsr311-api:1.1",
+        validation: "javax.validation:validation-api:1.0.0.GA",
+        servlet: "javax.servlet:servlet-api:2.5",
+
+        jetty: dependencies.create("org.mortbay.jetty:jetty:6.1.26") {
+            exclude group: 'org.mortbay.jetty', module: 'servlet-api'},
+        hibernate_validator: "org.hibernate:hibernate-validator:4.3.0.Final",
+
+        grizzly_servlet: "org.glassfish.grizzly:grizzly-http-servlet:2.1.2",
+        jersey_core: "com.sun.jersey:jersey-core:${versions.jersey}",
+        jersey_servlet: "com.sun.jersey:jersey-servlet:${versions.jersey}",
+        jersey_server: "com.sun.jersey:jersey-server:${versions.jersey}",
+        jersey_client: "com.sun.jersey:jersey-client:${versions.jersey}",
+        jersey_grizzly: "com.sun.jersey:jersey-grizzly2:${versions.jersey}",
+        jersey_guice: "com.sun.jersey.contribs:jersey-guice:${versions.jersey}",
+        jersey_json: dependencies.create("com.sun.jersey:jersey-json:${versions.jersey}") {
+            exclude group: 'com.sun.xml.bind', module: 'jaxb-impl'},
+        jersey_test_grizzly: dependencies.create(
+            "com.sun.jersey.jersey-test-framework:jersey-test-framework-grizzly2:${versions.jersey}") {
+                exclude group: 'junit', module: 'junit'},
+        jersey_test_core: dependencies.create(
+            "com.sun.jersey.jersey-test-framework:jersey-test-framework-core:${versions.jersey}") {
+                exclude group: 'junit', module: 'junit'},
+    ]
+
+    timestamp = new Date().format("YYYYMMddHHmm")
+    debVersion = midonetVersion.replaceAll(/SNAPSHOT$/, "${timestamp}").
+                                replaceAll(/-/, "~")
+    rpmVersion = midonetVersion.replaceAll(/-.*$/, "")
+    rpmRelease = midonetVersion.replaceAll(/^[^-]+$/, "1.0").
+                                replaceAll(/^.*SNAPSHOT$/, "0.0.${timestamp}").
+                                replaceAll(/^.*-(.*)$/, "0.1.\$1")
+
+}
+
+allprojects {
+    apply plugin: 'idea'
+
+    plugins.withType(ScalaPlugin).whenPluginAdded {
+        dependencies { compile libraries.scala }
+
+        tasks.withType(ScalaCompile) {
+            scalaCompileOptions.fork = true
+            scalaCompileOptions.useAnt = false
+        }
+        idea.module.iml.withXml { p -> addScalaLangLevelToIdea(p) }
+    }
+    idea.module.iml.withXml { p -> reorderIdeaJdkBootstrapDependency(p) }
+    idea.module.iml.generateTo = file("${rootDir}/idea")
+}
+
+idea.project {
+    languageLevel = versions.java
+    outputFile = file("${rootDir}/idea/midonet.ipr")
+}
+
+subprojects {
+    apply plugin: 'java'
+    apply from: "${rootProject.projectDir}/git.gradle"
+
+    sourceCompatibility = versions.java
+    version = midonetVersion
+    group = 'org.midonet'
+
+    configurations { provided }
+
+    sourceSets.test.compileClasspath += configurations.provided
+    sourceSets.main.compileClasspath += configurations.provided
+
+    repositories {
+        mavenCentral()
+        mavenLocal()
+        maven {
+            url "http://mido-iida-1.midokura.jp:8081/artifactory/repo"
+            credentials {
+                username midoUsername
+                password midoPassword
+            }
+        }
+        maven { url "http://jsch.sf.net/maven2/" }
+        maven { url "http://repo.typesafe.com/typesafe/releases/" }
+        maven { url "https://oss.sonatype.org/content/groups/public/" }
+    }
+
+
+    dependencies {
+        compile libraries.slf4j
+        compile libraries.guava
+        compile libraries.findbugs
+        testCompile libraries.test_frameworks
+        runtime libraries.logback
+    }
+
+    idea.module {
+        scopes.PROVIDED.plus += configurations.provided
+        inheritOutputDirs = false
+        outputDir = file("${rootDir}/idea/out/${project.name}")
+        testOutputDir = file("${rootDir}/idea/test/${project.name}")
+    }
+}
+
+
+// Utiilty methods start here
+
+def addScalaLangLevelToIdea(iml) {
+    def facets = iml.asNode().component.find { it.@name == 'FacetManager' } ?:
+        iml.asNode().appendNode('component', [name: 'FacetManager'])
+    def scala = facets.facet.find { it.@type == 'scala' } ?:
+        facets.appendNode('facet', [type: 'scala', name: 'Scala'])
+    def config = scala.configuration ? scala.configuration[0] :
+                                       scala.appendNode('configuration', [])
+    config.option.find { it.@name == 'languageLevel' } ?:
+        config.appendNode('option', ['name': 'languageLevel',
+                                     'value': scalaLangLevel])
+}
+
+def reorderIdeaJdkBootstrapDependency(iml) {
+    def manager = iml.asNode().component.find { it.@name == 'NewModuleRootManager' }
+    if (manager) {
+        def jdk = manager.orderEntry.find { it.@type == 'inheritedJdk' }
+        if (jdk) {
+            def bootstrap = manager.orderEntry.find {
+                it.@type == 'module' && it.@'module-name' == 'midonet-jdk-bootstrap' }
+            if (bootstrap) {
+                def i = 0
+                def pos = 0
+                manager.children().each {
+                    if (it == jdk)
+                        pos = i
+                    i++;
+                }
+                if (pos != 0) {
+                    if (manager.remove(bootstrap))
+                        manager.children().add(pos, bootstrap)
+                }
+            }
+        }
+    }
+}

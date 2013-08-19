@@ -1,0 +1,13 @@
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'OpenVSwitch Datapath client library',
+        'Implementation-Version': version
+    }
+}
+
+dependencies {
+    compile project(":packets"), project(":midonet-util"), project(":netlink")
+
+    compile libraries.hamcrest_core, libraries.hamcrest_lib,
+            libraries.commons_cli
+}

@@ -173,7 +173,7 @@
                     <needarch>false</needarch>
                     <requires>
                         <require>java7</require>
-                        <require>tomcat6</require>
+                        <require>tomcat7</require>
                     </requires>
                     <mappings>
                         <mapping>
@@ -186,7 +186,7 @@
                             </sources>
                         </mapping>
                         <mapping>
-                            <directory>/etc/tomcat6/Catalina/localhost</directory>
+                            <directory>/etc/tomcat7/Catalina/localhost</directory>
                             <configuration>true</configuration>
                             <directoryIncluded>false</directoryIncluded>
                             <sources>
