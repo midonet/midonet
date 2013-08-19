@@ -60,13 +60,13 @@ public class CacheModule extends PrivateModule {
 
     protected void bindCache() {
         bind(Cache.class).annotatedWith(NAT_CACHE.class)
-            .toProvider(new CacheProvider("nat"))
+            .toProvider(new CacheProvider("nat", 60))
             .in(Singleton.class);
         bind(Cache.class).annotatedWith(TRACE_MESSAGES.class)
-            .toProvider(new CacheProvider("trace_messages"))
+            .toProvider(new CacheProvider("trace_messages", 604800))
             .in(Singleton.class);
         bind(Cache.class).annotatedWith(TRACE_INDEX.class)
-            .toProvider(new CacheProvider("trace_index"))
+            .toProvider(new CacheProvider("trace_index", 604800))
             .in(Singleton.class);
         expose(Key.get(Cache.class, NAT_CACHE.class));
         expose(Key.get(Cache.class, TRACE_MESSAGES.class));
@@ -83,12 +83,14 @@ public class CacheModule extends PrivateModule {
     public static class CacheProvider implements Provider<Cache> {
         Logger log = LoggerFactory.getLogger(CacheProvider.class);
         String columnName;
+        int cacheExpirationSeconds;
 
         @Inject
         ConfigProvider configProvider;
 
-        CacheProvider(String columnName_) {
+        CacheProvider(String columnName_, int cacheExpirationSeconds_) {
             columnName = columnName_;
+            cacheExpirationSeconds = cacheExpirationSeconds_;
         }
 
         @Override
@@ -96,7 +98,7 @@ public class CacheModule extends PrivateModule {
             try {
                 return CacheFactory.create(
                         configProvider.getConfig(MidolmanConfig.class),
-                        columnName);
+                        columnName, cacheExpirationSeconds);
             } catch (Exception e) {
                 log.error("Exception trying to create Cache:", e);
                 return null;
