@@ -36,6 +36,7 @@
   * [Metric](#metric)
   * [Metric Query](#metricquery)
   * [Metric Query Response](#metricqueryresponse)
+  * [Trace Capture Conditions](#traceconditions)
 * [Resource Collection](#resourcecollection)
 * [Authentication/Authorization](#auth)
 * [List of Acronyms](#acronyms)
@@ -1711,7 +1712,7 @@ It contains the following fields:
         <td>Short</td>
         <td>POST</td>
         <td>No</td>
-        <td>Set the data link layer tpe (ethertype) of packets matched by
+        <td>Set the data link layer type (ethertype) of packets matched by
          this rule. The type provided is not check for validity.</td>
     </tr>
     <tr>
@@ -2895,6 +2896,251 @@ belonging to the tenant.
 
 Roles and credentials are set up in the auth service used by the API.
 
+<a name="traceconditions"></a>
+### Trace Capture Conditions [application/vnd.org.midonet.Condition-v1+json]
+
+    GET     /traceconditions/:conditionId
+    POST    /traceconditions
+    DELETE  /traceconditions/:conditionId
+
+Trace condition specifies parameters for capturing traffic traces. You may
+create and delete conditions. Update operation is not supported. Trace capture
+condition contains the following fields:
+
+<table>
+    <tr>
+        <th>Field Name</th>
+        <th>Type</th>
+        <th>POST/PUT</th>
+        <th>Required</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>conditionId</td>
+        <td>UUID</td>
+        <td>GET/DELETE</>
+        <td>Yes</td>
+        <td>A unique identifier of the resource.</td>
+    </tr>
+    <tr>
+        <td>condInvert</td>
+        <td>Bool</td>
+        <td>POST</td>
+        <td>No</td>
+        <td>Invert the conjunction of all the other predicates</td>
+    </tr>
+    <tr>
+        <td>dlDst</td>
+        <td>String</td>
+        <td>POST</td>
+        <td>No</td>
+        <td>The data link layer destination that this condition matches on. A
+         MAC address in the form "aa:bb:cc:dd:ee:ff"</td>
+    </tr>
+    <tr>
+        <td>dlSrc</td>
+        <td>String</td>
+        <td>POST</td>
+        <td>No</td>
+        <td>The data link layer source that this condition matches on. A MAC
+         address in the form "aa:bb:cc:dd:ee:ff"</td>
+    </tr>
+    <tr>
+        <td>dlType</td>
+        <td>Short</td>
+        <td>POST</td>
+        <td>No</td>
+        <td>Set the data link layer type (ethertype) of packets matched by
+         this condition. The type provided is not checked for validity</td>
+    </tr>
+    <tr>
+        <td>inPorts</td>
+        <td>UUID</td>
+        <td>POST</td>
+        <td>No</td>
+        <td>The list of ingress port UUIDs to match</td>
+    </tr>
+    <tr>
+        <td>invDlDst</td>
+        <td>Bool</td>
+        <td>POST</td>
+        <td>No</td>
+        <td>Set whether the match on the data link layer destination should
+         be inverted (match packets whose data link layer destination is NOT
+         equal to dlDst). Will be stored, but ignored until dlDst is
+         set</td>
+    </tr>
+    <tr>
+        <td>invDlSrc</td>
+        <td>Bool</td>
+        <td>POST</td>
+        <td>No</td>
+        <td>Set whether the match on the data link layer source should be
+         inverted (match packets whose data layer link source is NOT equal to
+         dlSrc). Will be stored, but ignored until dlSrc is set</td>
+    </tr>
+    <tr>
+        <td>invDlType</td>
+        <td>Bool</td>
+        <td>POST</td>
+        <td>No</td>
+        <td>Set whether the match on the data link layer type should be
+         inverted (match packets whose data link layer type is NOT equal to
+         the Ethertype set by dlType). Will be stored, but ignored until
+         dlType is set</td>
+    </tr>
+    <tr>
+        <td>invInPorts</td>
+        <td>Bool</td>
+        <td>POST</td>
+        <td>No</td>
+        <td>Inverts the in_ports predicate. Match if the packet's ingress is
+         NOT in in_ports</td>
+    </tr>
+    <tr>
+        <td>invNwDst</td>
+        <td>Bool</td>
+        <td>POST</td>
+        <td>No</td>
+        <td>Invert the IP dest prefix predicate. Match packets whose
+         destination is NOT in the prefix</td>
+    </tr>
+    <tr>
+        <td>invNwProto</td>
+        <td>Bool</td>
+        <td>POST</td>
+        <td>No</td>
+        <td>Invert the nwProto predicate. Match if the packet's protocol number
+         is not nwProto</td>
+    </tr>
+    <tr>
+        <td>invNwSrc</td>
+        <td>Bool</td>
+        <td>POST</td>
+        <td>No</td>
+        <td>Invert the IP source prefix predicate. Match packets whose source
+         is NOT in the prefix</td>
+    </tr>
+    <tr>
+        <td>invNwTos</td>
+        <td>Bool</td>
+        <td>POST</td>
+        <td>No</td>
+        <td>Invert the nwTos predicate. Match if the packet's protocol number
+         is not nwTos</td>
+    </tr>
+    <tr>
+        <td>invOutPorts</td>
+        <td>Bool</td>
+        <td>POST</td>
+        <td>No</td>
+        <td>Inverts the out_ports predicate. Match if the packet’s egress is
+        NOT in out_ports</td>
+    </tr>
+    <tr>
+        <td>invTpDst</td>
+        <td>Bool</td>
+        <td>POST</td>
+        <td>No</td>
+        <td>Invert the destination tcp/udp port range predicate. Match packets
+         whose dest port is NOT in the range</td>
+    </tr>
+    <tr>
+        <td>invTpSrc</td>
+        <td>Bool</td>
+        <td>POST</td>
+        <td>No</td>
+        <td>Invert the source tcp/udp port range predicate. Match packets whose
+         source port is NOT in the range</td>
+    </tr>
+    <tr>
+        <td>nwDstAddress</td>
+        <td>String</td>
+        <td>POST</td>
+        <td>No</td>
+        <td>The address part of the IP destination prefix to match</td>
+    </tr>
+    <tr>
+        <td>nwDstLength</td>
+        <td>Int</td>
+        <td>POST</td>
+        <td>No</td>
+        <td>The length of the IP destination prefix to match</td>
+    </tr>
+    <tr>
+        <td>nwProto</td>
+        <td>Int</td>
+        <td>POST</td>
+        <td>No</td>
+        <td>The Network protocol number to match (0-255)</td>
+    </tr>
+    <tr>
+        <td>nwSrcAddress</td>
+        <td>String</td>
+        <td>POST</td>
+        <td>No</td>
+        <td>The IP address of the IP source prefix to match</td>
+    </tr>
+    <tr>
+        <td>nwSrcLength</td>
+        <td>Int</td>
+        <td>POST</td>
+        <td>No</td>
+        <td>The length of the source IP prefix to match (number of fixed
+         network bits)</td>
+    </tr>
+    <tr>
+        <td>nwTos</td>
+        <td>Int</td>
+        <td>POST</td>
+        <td>No</td>
+        <td>The value of the IP packet TOS field to match (0-255)</td>
+    </tr>
+    <tr>
+        <td>outPorts</td>
+        <td>Array of UUID</td>
+        <td>POST</td>
+        <td>No</td>
+        <td>The list of (interior or exterior) egress port UUIDs to match
+        </td>
+    </tr>
+    <tr>
+        <td>portGroup</td>
+        <td>UUID</td>
+        <td>POST</td>
+        <td>No</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td>tpSrc</td>
+        <td>Range</td>
+        <td>POST</td>
+        <td>No</td>
+        <td>A JSON representation of the Range object representing the
+        tcp/udp source port range to match, like {"start":80,"end":400}.
+        When creating an ICMP condition, this field should be set to the ICMP
+        type value. The absence of a Range will be interpreted as "any"</td>
+    </tr>
+    <tr>
+        <td>tpDst</td>
+        <td>Range</td>
+        <td>POST</td>
+        <td>No</td>
+        <td>A JSON representation of the Range object representing the
+        tcp/udp source port range to match, like {"start":80,"end":400}.
+        When creating an ICMP condition, this field should be set to the ICMP
+        code value. A null value in this field will be intepreted as
+        "any"</td>
+    </tr>
+    <tr>
+        <td>uri</td>
+        <td>URI</td>
+        <td/>
+        <td/>
+        <td>A GET against this URI refreshes the representation of this
+         resource</td>
+    </tr>
+</table>
 
 <a name="acronyms"></a>
 ## List of Acronyms
