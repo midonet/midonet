@@ -43,29 +43,16 @@ in-progress call.  Using this technique, our example method would be
 
     public Future<Integer> fetchIntData(String key);
 
-The future can be passed around, until it reaches code which knows what
-to do when the call completes, and attach that to the future with its
-`onComplete` method.  Futures in Midolman generally come from two sources:
+The future can be passed around until it reaches code which knows what to do
+when the call completes. Futures in Midolman generally come from two sources:
 The `ask` method of Akka's `ActorRef` (and our `expiringAsk` wrapping method
 around it); and the `Promise` class, which is a future which can be completed
-with the `success` and `failure` methods.  So, an asynchronous call which 
-depends on another call's result could be written like this in Scala:
+with the `success` and `failure` methods.
 
-    def fetchIntData(key: String): Future[Int] = {
-        val p = new Promise[Int]
-        val f = expiringAsk(dataStoreActor, FetchData(key), expiry)
-        f.mapTo[Data].onComplete {
-            case Right(data) =>
-                p.success(convertToInt(data))
-            case Left(error) =>
-                p.failure(error)
-        }
-        return p
-    }
-
-Akka provides a shortcut method "map" for when the calculation on a 
-future's result is simply applied to a lambda expression and used to complete 
-a promise, so the above method could be written as:
+Akka's Future is a Monad, meaning that we can perform an operation on the result
+of a Future and chain futures by calling "map" with a lambda expression to be
+applied on the result of the future. With future and a monadic map operation,
+the above remote database call can be written as:
 
     def fetchIntData(key: String): Future[Int] = {
         val f = expiringAsk(dataStoreActor, FetchData(key), expiry)
@@ -80,6 +67,22 @@ returns a `Future[Int]`, we would write:
     def fetchIntData(key: String): Future[Int] = {
         val f = expiringAsk(dataStoreActor, FetchData(key), expiry)
         return f.mapTo[Data].flatMap { data => convertToFutureInt(data) }
+    }
+
+We can also write callbacks on a future with its `onComplete` method. Combined with Promise,
+the above asynchronous call could be written like this in Scala, though it is more complex
+than it needs to be and involves extra indirection.
+
+    def fetchIntData(key: String): Future[Int] = {
+        val p = new Promise[Int]
+        val f = expiringAsk(dataStoreActor, FetchData(key), expiry)
+        f.mapTo[Data].onComplete {
+            case Right(data) =>
+                p.success(convertToInt(data))
+            case Left(error) =>
+                p.failure(error)
+        }
+        return p
     }
         
 We try to restrict as much as possible the mutable state shared between
