@@ -1,0 +1,3 @@
+[submodule "python-midonetclient"]
+	path = python-midonetclient
+	url = https://github.com/midokura/python-midonetclient.git
