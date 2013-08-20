@@ -1,3 +1,5 @@
+checkUserConfig()
+
 project.ext {
     midonetVersion = "1.2.0-SNAPSHOT"
     vendor = 'Midokura'
@@ -227,5 +229,14 @@ def reorderIdeaJdkBootstrapDependency(iml) {
                 }
             }
         }
+    }
+}
+
+def checkUserConfig() {
+    def fail = false
+    if (!hasProperty('midoUsername') || !hasProperty('midoPassword')) {
+        throw new GradleException(
+            "Maven artifactory credentials are not set up. Please set the 'midoUsername'\n"+
+            "and 'midoPassword' properties in your ~/.gradle/gradle.properties file.")
     }
 }
