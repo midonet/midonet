@@ -120,16 +120,13 @@ object DatapathController extends Referenceable {
     override val Name = "DatapathController"
 
     // Java API
-    def getInitialize: Initialize = {
-        Initialize()
-    }
+    val initializeMsg = Initialize()
 
     /**
      * Reply sent back to the sender of the Initialize message when the basic
      * initialization of the datapath is complete.
      */
     case class InitializationComplete()
-
 
     /**
      * Message sent to the [[org.midonet.midolman.FlowController]] actor to let
