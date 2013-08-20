@@ -72,7 +72,7 @@ public class TraceResource extends AbstractResource {
                 Trace trace = new Trace();
                 trace.setTraceId(UUID.fromString(key));
                 trace.setNumTraceMessages(Integer.parseInt(value));
-
+                trace.setBaseUri(getBaseUri());
                 retList.add(trace);
             }
         }
@@ -89,7 +89,7 @@ public class TraceResource extends AbstractResource {
     @GET
     @Path("{id}")
     @RolesAllowed({AuthRole.ADMIN})
-    @Produces({VendorMediaType.APPLICATION_JSON,
+    @Produces({VendorMediaType.APPLICATION_TRACE_JSON,
                   MediaType.APPLICATION_JSON})
     public Trace getTraceMessages(@PathParam("id") UUID traceId)
         throws StateAccessException {
@@ -98,6 +98,7 @@ public class TraceResource extends AbstractResource {
 
         trace.setTraceId(traceId);
         trace.setTraceMessages(dataClient.packetTraceGet(traceId));
+        trace.setBaseUri(getBaseUri());
 
         return trace;
     }
@@ -110,8 +111,8 @@ public class TraceResource extends AbstractResource {
      * @throws StateAccessException
      */
     @DELETE
-    @Path("{id}")
     @RolesAllowed({AuthRole.ADMIN})
+    @Path("{id}")
     public void deleteTrace(@PathParam("id") UUID traceId)
         throws StateAccessException {
 

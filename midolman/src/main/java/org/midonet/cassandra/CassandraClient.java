@@ -52,6 +52,10 @@ public class CassandraClient {
     private final String columnFamily;
     private final int replicationFactor;
     private final int expirationSecs;
+    // Hector requires setRange to be done on a slice query with an actual
+    // maximum value (setRange is required in a slice query)
+    private final int maxColumnsPerFetch = 1000;
+    private final int maxRowsPerFetch = 1000;
 
     private static StringSerializer ss = StringSerializer.get();
 
@@ -286,25 +290,34 @@ public class CassandraClient {
             RangeSlicesQuery<String, String, String> sliceQuery = HFactory.createRangeSlicesQuery(
                     keyspace, ss, ss, ss);
             sliceQuery.setColumnFamily(columnFamily);
-            if (maxResultItems > 0)
-                sliceQuery.setRange(startRange, endRange, false,
-                                    maxResultItems);
+            /*
+             * maxResultItems==0 means caller wants all the entries
+             * in this column family; though Hector mandates that
+             * there has to be an actual maximum value in a slice query
+             */
+            sliceQuery.setRange(startRange, endRange, false,
+                    (maxResultItems==0)?maxColumnsPerFetch:maxResultItems);
             sliceQuery.setKeys("", "");
-            if (maxRowCount > 0)
-                sliceQuery.setRowCount(maxRowCount);
+            sliceQuery.setRowCount((maxRowCount==0)?
+                                    maxRowsPerFetch:maxRowCount);
 
             QueryResult<OrderedRows<String, String, String>> result =
                                         sliceQuery.execute();
             OrderedRows<String, String, String> orderedRows = result.get();
             for (Row<String, String, String> r : orderedRows) {
                 String key = r.getKey();
-                for (HColumn<String, String> entry :
+                if (r.getColumnSlice().getColumns().isEmpty()) {
+                    // filter out the tombstones
+                    log.debug("Entry {} contains no data - tombstone", key);
+                } else {
+                    for (HColumn<String, String> entry :
                         r.getColumnSlice().getColumns()) {
-                    T value = convertSafely(returnValueClass,
+                        T value = convertSafely(returnValueClass,
                                             entry.getValue());
-                    retList.add(value);
+                        retList.add(value);
+                    }
+                    res.put(key, retList);
                 }
-                res.put(key, retList);
             }
         } catch (HectorException e) {
             log.error("slice query failed", e);
