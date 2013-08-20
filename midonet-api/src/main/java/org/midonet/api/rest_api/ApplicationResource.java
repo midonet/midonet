@@ -208,7 +208,7 @@ public class ApplicationResource extends AbstractResource {
      *
      * @return TraceResource object to handle sub-resource requests.
      */
-    @Path(ResourceUriBuilder.TRACES)
+    @Path(ResourceUriBuilder.TRACE)
     public TraceResource getTraceResource() {
         return factory.getTraceResource();
     }

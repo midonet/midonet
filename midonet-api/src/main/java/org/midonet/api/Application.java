@@ -329,4 +329,26 @@ public class Application extends UriResource {
             return null;
         }
     }
+
+    /**
+     * @return Trace URI
+     */
+    public URI getTraces() {
+        if (getBaseUri() != null) {
+            return ResourceUriBuilder.getTraces(getBaseUri());
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * @return Trace template URI
+     */
+    public String getTraceTemplate() {
+        if (getBaseUri() != null) {
+            return ResourceUriBuilder.getTraceTemplate(getBaseUri());
+        } else {
+            return null;
+        }
+    }
 }

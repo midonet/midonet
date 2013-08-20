@@ -2190,21 +2190,22 @@ public class LocalDataClientImpl implements DataClient {
     @Override
     public List<String> packetTraceGet(UUID traceId) {
         List<String> retList = new ArrayList<String>();
-        String key = "trace" + traceId;
+        String traceIdString = traceId.toString();
         int numTraceMessages = 0;
         String numTraceMessagesStr = traceIndexCache.get(traceId.toString());
         if (numTraceMessagesStr == null) return null;
         numTraceMessages = Integer.parseInt(numTraceMessagesStr);
         for (int traceStep = 1; traceStep <= numTraceMessages; traceStep++) {
-            key = key + ":" + traceStep;
+            String key = traceIdString + ":" + traceStep;
             String retVal = traceMessageCache.get(key);
             if (retVal == null) {
-                log.error("Number of Trace Messages out of sync " +
-                        "with Trace Index table");
-                break;
+                log.debug("Number of Trace Messages {} out of sync " +
+                          "with Trace Index table", traceStep);
+            } else {
+                retList.add(retVal);
             }
-            retList.add(retVal);
         }
+
         return retList;
     }
 
@@ -2212,11 +2213,11 @@ public class LocalDataClientImpl implements DataClient {
     public void packetTraceDelete(UUID traceId) {
         int numTraceMessages = 0;
         String numTraceMessagesStr = traceIndexCache.get(traceId.toString());
-        String key = "trace" + traceId;
+        String traceIdString = traceId.toString();
         if (numTraceMessagesStr == null) return;
         numTraceMessages = Integer.parseInt(numTraceMessagesStr);
         for (int traceStep = 1; traceStep <= numTraceMessages; traceStep++) {
-            key = key + ":" + traceStep;
+            String key = traceIdString + ":" + traceStep;
             traceMessageCache.delete(key);
         }
     }

@@ -59,8 +59,8 @@ public class CassandraCache implements Cache {
                 String key = it.next();
                 List<String> columns = origMap.get(key);
 
-                for (String column : columns) {
-                    retMap.put(key, column);
+                for (String singleColumn : columns) {
+                    retMap.put(key, singleColumn);
                 }
             }
         }

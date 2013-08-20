@@ -48,7 +48,7 @@ public class ResourceUriBuilder {
     public static final String TUNNEL_ZONES = "/tunnel_zones";
     public static final String ID_TOKEN = "/{id}";
     public static final String TRACE_CONDITIONS ="/trace_conditions";
-    public static final String TRACES = "/traces";
+    public static final String TRACE = "/trace";
     public static final String VLAN_ID = "/{vlanId}";
     public static final String MAC_ADDR = "/{macAddress}";
     public static final String PORT_ID = "/{portId}";
@@ -652,7 +652,7 @@ public class ResourceUriBuilder {
      * @return Trace URI
      */
     public static URI getTraces(URI baseUri) {
-        return UriBuilder.fromUri(getRoot(baseUri)).path(TRACES).build();
+        return UriBuilder.fromUri(getRoot(baseUri)).path(TRACE).build();
     }
 
     /**

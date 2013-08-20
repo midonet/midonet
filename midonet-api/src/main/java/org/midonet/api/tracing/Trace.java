@@ -22,6 +22,7 @@ public class Trace extends UriResource {
     List<String> traceMessages;
 
     public Trace() {
+        super();
     }
 
     public UUID getTraceId() {
