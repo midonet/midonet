@@ -45,11 +45,19 @@ public class ZkDirectory implements Directory {
 
     @Override
     public String add(String relativePath, byte[] data, CreateMode mode)
-        throws KeeperException, InterruptedException {
+            throws KeeperException, InterruptedException {
         String absPath = getAbsolutePath(relativePath);
         String path = null;
         path = zk.getZooKeeper().create(absPath, data, acl, mode);
         return path.substring(basePath.length());
+    }
+
+    @Override
+    public void ensureHas(String relativePath, byte[] data)
+            throws KeeperException, InterruptedException {
+        try {
+            this.add(relativePath, data, CreateMode.PERSISTENT);
+        } catch (KeeperException.NodeExistsException e) { /* node was there */ }
     }
 
     @Override

@@ -217,6 +217,14 @@ public class MockDirectory implements Directory {
     }
 
     @Override
+    public void ensureHas(String relativePath, byte[] data)
+            throws NoNodeException, NoChildrenForEphemeralsException {
+        try {
+            add(relativePath, data, CreateMode.PERSISTENT, false);
+        } catch (KeeperException.NodeExistsException e) { /* node was there */ }
+    }
+
+    @Override
     public void asyncAdd(String relativePath, byte[] data, CreateMode mode) {
         try {
             add(relativePath, data, mode);
