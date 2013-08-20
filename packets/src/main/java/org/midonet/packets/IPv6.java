@@ -228,7 +228,7 @@ public class IPv6 extends BasePacket {
             payloadData = payload.serialize();
         }
 
-        this.totalLength = (this.MIN_HEADER_LEN + ((payloadData == null) ? 0
+        this.totalLength = (MIN_HEADER_LEN + ((payloadData == null) ? 0
                     : payloadData.length));
         byte[] data = new byte[totalLength];
         ByteBuffer bb = ByteBuffer.wrap(data);
