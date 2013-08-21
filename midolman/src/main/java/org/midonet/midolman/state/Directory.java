@@ -13,7 +13,10 @@ import org.apache.zookeeper.*;
 public interface Directory {
 
     String add(String relativePath, byte[] data, CreateMode mode)
-            throws KeeperException, InterruptedException;
+        throws KeeperException, InterruptedException;
+
+    void ensureHas(String relativePath, byte[] data)
+        throws KeeperException, InterruptedException;
 
     void asyncAdd(String relativePath, byte[] data, CreateMode mode,
                   DirectoryCallback.Add cb);
