@@ -93,34 +93,16 @@ public class Setup {
         return paths;
     }
 
-    private static void createDataWriteVersion(Directory rootDir,
-                                               String basePath)
-            throws KeeperException, InterruptedException {
-        PathBuilder pathMgr = new PathBuilder(basePath);
-        if (!rootDir.has(pathMgr.getWriteVersionPath())) {
-            rootDir.add(pathMgr.getWriteVersionPath(),
-                    DataWriteVersion.CURRENT.getBytes(), CreateMode.PERSISTENT);
-        }
-    }
-
     public static void ensureZkDirectoryStructureExists(
         Directory rootDir, String basePath)
         throws KeeperException, InterruptedException
     {
         for (String path : Setup.getTopLevelPaths(basePath)) {
-            try {
-                rootDir.add(path, null, CreateMode.PERSISTENT);
-            } catch (KeeperException.NodeExistsException ex) {
-            }
+            rootDir.ensureHas(path, null);
         }
-
-        /*
-         * Why is this path created seperately from all
-         * the others? because for this path, we need to
-         * create the initial state IF AND ONLY IF it has not
-         * already been initialized by a different node.
-         */
-        createDataWriteVersion(rootDir, basePath);
+        /* ensure write version node for this host exists */
+        String versionPath = new PathBuilder(basePath).getWriteVersionPath();
+        rootDir.ensureHas(versionPath, DataWriteVersion.CURRENT.getBytes());
     }
 
     protected void setupTrafficPriorityQdiscsMidonet()
