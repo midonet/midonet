@@ -21,8 +21,6 @@ public class CacheFactory {
     private static final Logger log =
         LoggerFactory.getLogger(CacheFactory.class);
 
-    public static final int CACHE_EXPIRATION_SECONDS = 60;
-
     /**
      * Create a Cache object.
      *
@@ -31,7 +29,8 @@ public class CacheFactory {
      * @return a Cache object
      * @throws org.midonet.cache.CacheException if an error occurs
      */
-    public static Cache create(MidolmanConfig config, String columnName)
+    public static Cache create(MidolmanConfig config, String columnName,
+                               int cacheExpirationSeconds)
         throws CacheException {
         Cache cache = null;
         String cacheType = config.getMidolmanCacheType();
@@ -49,7 +48,7 @@ public class CacheFactory {
 
                 cache = new CassandraCache(servers, maxConns, cluster, keyspace,
                                            columnName, replicationFactor,
-                                           CACHE_EXPIRATION_SECONDS);
+                                           cacheExpirationSeconds);
             }
         } catch (Exception e) {
             throw new CacheException("error while creating cache", e);
