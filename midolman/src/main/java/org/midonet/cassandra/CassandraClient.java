@@ -146,7 +146,6 @@ public class CassandraClient {
                            HFactory.createColumn(newColumn, value,
                                                  expirationSecs,
                                                  ss, ss));
-            mutator.execute();
         } catch (HectorException e) {
             log.error("set failed", e);
         }

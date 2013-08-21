@@ -29,7 +29,7 @@ public class TestCacheFactory {
                 .providerForIniConfig(configStore)
                 .getConfig(MidolmanConfig.class);
 
-        CacheFactory.create(config, "unittest");
+        CacheFactory.create(config, "unittest", 60);
 
         // shouldn't really reach here
         assertTrue(false);
@@ -48,7 +48,7 @@ public class TestCacheFactory {
         CacheFactory.create(
             ConfigProvider.providerForIniConfig(hierarhicalConfig)
                           .getConfig(MidolmanConfig.class),
-            "unittest");
+            "unittest", 60);
 
         // shouldn't really reach here
         assertTrue(false);
@@ -63,7 +63,7 @@ public class TestCacheFactory {
         CacheFactory.create(
             ConfigProvider.providerForIniConfig(hierarhicalConfig)
                           .getConfig(MidolmanConfig.class),
-            "unittest");
+            "unittest", 60);
 
         // shouldn't really reach here
         assertTrue(false);
