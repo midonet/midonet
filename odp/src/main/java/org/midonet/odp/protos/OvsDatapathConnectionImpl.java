@@ -402,8 +402,10 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             builder.addAttr(PortFamily.Attr.PORT_TYPE,
                             OvsPortType.getOvsPortTypeId(port.getType()));
 
-        if (port.getAddress() != null)
-            builder.addAttr(PortFamily.Attr.ADDRESS, port.getAddress());
+//  Address attribute is removed in ovs 1.10
+//        if (port.getAddress() != null)
+//            builder.addAttr(PortFamily.Attr.ADDRESS, port.getAddress());
+
 
 //        if (port.getOptions() != null)
 //            builder.addAttr(PortFamily.Attr.OPTIONS, port.getOptions());
@@ -499,6 +501,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             return;
         }
 
+/*
         if (Port.Type.Tunnels.contains(port.getType()) &&
                 port.getOptions() == null) {
             callback.onError(
@@ -506,6 +509,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                     "A tunnel port needs to have its options set"));
             return;
         }
+*/
 
         int localPid = getChannel().getLocalAddress().getPid();
 
@@ -520,8 +524,9 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         if (port.getPortNo() != null)
             builder.addAttr(PortFamily.Attr.PORT_NO, port.getPortNo());
 
-        if (port.getAddress() != null)
-            builder.addAttr(PortFamily.Attr.ADDRESS, port.getAddress());
+//  Address attribute is removed in ovs 1.10
+//        if (port.getAddress() != null)
+//            builder.addAttr(PortFamily.Attr.ADDRESS, port.getAddress());
 
         if (port.getOptions() != null) {
             builder.addAttr(PortFamily.Attr.OPTIONS, port.getOptions());
@@ -984,15 +989,16 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         if (type == null || name == null)
             return null;
 
-        Port port =
-            Ports.newPortByType(OvsPortType.getOvsPortTypeId(type), name);
+        Port.Type portType = OvsPortType.getOvsPortTypeId(type);
+        Port port = Ports.newPortByType(portType, name);
 
         //noinspection unchecked
-        port.setAddress(m.getAttrValueBytes(PortFamily.Attr.ADDRESS))
-            .setPortNo(m.getAttrValueInt(PortFamily.Attr.PORT_NO))
-            .setStats(m.getAttrValue(PortFamily.Attr.STATS, new Port.Stats()))
-            .setOptions(
-                m.getAttrValue(PortFamily.Attr.OPTIONS, port.newOptions()));
+//  Address attribute is removed in ovs 1.10
+//        port.setAddress(m.getAttrValueBytes(PortFamily.Attr.ADDRESS));
+        port.setPortNo(m.getAttrValueInt(PortFamily.Attr.PORT_NO));
+        port.setStats(m.getAttrValue(PortFamily.Attr.STATS, new Port.Stats()));
+        port.setOptions(
+            m.getAttrValue(PortFamily.Attr.OPTIONS, port.newOptions()));
 
         return port;
     }
@@ -1179,21 +1185,27 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         }
     }
 
+    // include/linux/openvswitch.h extract
+    //  enum ovs_vport_type {
+    //      OVS_VPORT_TYPE_UNSPEC,
+    //      OVS_VPORT_TYPE_NETDEV,      /* network device */
+    //      OVS_VPORT_TYPE_INTERNAL,    /* network device implemented by datapath */
+    //      OVS_VPORT_TYPE_GRE,         /* GRE tunnel */
+    //      OVS_VPORT_TYPE_VXLAN,       /* VXLAN tunnel */
+    //      OVS_VPORT_TYPE_GRE64 = 104, /* GRE tunnel with 64-bit key */
+    //      __OVS_VPORT_TYPE_MAX
+    //  };
     enum OvsPortType {
-        //        enum ovs_vport_type {
-//            OVS_VPORT_TYPE_UNSPEC,
-//            OVS_VPORT_TYPE_NETDEV,   /* network device */
-//            OVS_VPORT_TYPE_INTERNAL, /* network device implemented by datapath */
-//            OVS_VPORT_TYPE_PATCH = 100, /* virtual tunnel connecting two vports */
-//            OVS_VPORT_TYPE_GRE,      /* GRE tunnel */
-//            OVS_VPORT_TYPE_CAPWAP,   /* CAPWAP tunnel */
-//            __OVS_VPORT_TYPE_MAX
-//        };
+
         NetDev(Port.Type.NetDev, 1),
         Internal(Port.Type.Internal, 2),
-        Patch(Port.Type.Patch, 100),
-        Gre(Port.Type.Gre, 101),
-        CapWap(Port.Type.CapWap, 102);
+        Gre(Port.Type.Gre, 3),
+        //Gre(Port.Type.VxLan, 4),    // not yet supported
+        Patch(Port.Type.Patch, 100), // obsolete in ovs 1.10+
+        Gre101(Port.Type.Gre, 101), // ovs 1.9 gre tunnel compatibility
+        CapWap(Port.Type.CapWap, 102), // obsolete in ovs 1.10+, not supported anymore
+        Gre64(Port.Type.Gre, 104); // gre 64 bit key
+
         private final Port.Type portType;
         private final int ovsKey;
 

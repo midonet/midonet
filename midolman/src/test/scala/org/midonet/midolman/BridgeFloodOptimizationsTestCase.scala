@@ -74,17 +74,17 @@ class BridgeFloodOptimizationsTestCase extends MidolmanTestCase
         portEventsProbe.expectMsgClass(classOf[LocalPortActive])
         drainProbes()
 
-        dpController().underlyingActor.vifToLocalPortNumber(port1.getId) match {
+        vifToLocalPortNumber(port1.getId) match {
             case Some(portNo : Short) => portId1 = portNo
             case None =>
                 fail("Data port number for materialize Port 1 not found")
         }
-        dpController().underlyingActor.vifToLocalPortNumber(port2.getId) match {
+        vifToLocalPortNumber(port2.getId) match {
             case Some(portNo : Short) => portId2 = portNo
             case None =>
                 fail("Data port number for materialize Port 2 not found")
         }
-        dpController().underlyingActor.vifToLocalPortNumber(port3.getId) match {
+        vifToLocalPortNumber(port3.getId) match {
             case Some(portNo : Short) => portId3 = portNo
             case None =>
                 fail("Data port number for materialize Port 3 not found")

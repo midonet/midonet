@@ -49,7 +49,8 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
     datapaths.head should have('name("midonet"))
 
     val ports = datapathPorts(datapaths.head)
-    ports should have size 1
+    ports should have size 2
+    ports should contain key ("tngre-mm")
     ports should contain key ("midonet")
   }
 
@@ -82,9 +83,11 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
     datapaths.head should have('name("midonet"))
 
     val ports = datapathPorts(datapaths.head)
-    ports should have size 2
+    /* int port "midonet" + tunnel port "tngre-mm" + netdev port "tapDevice" */
+    ports should have size 3
     ports should contain key ("midonet")
     ports should contain key ("tapDevice")
+    ports should contain key ("tngre-mm")
   }
 
   def testDatapathEmpty() {
@@ -104,7 +107,8 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
     datapaths.head should have('name("test"))
 
     val ports = datapathPorts(datapaths.head)
-    ports should have size 1
+    ports should have size 2
+    ports should contain key ("tngre-mm")
     ports should contain key ("test")
   }
 
@@ -135,7 +139,8 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
     datapaths.head should have('name("test"))
 
     val ports = datapathPorts(datapaths.head)
-    ports should have size 2
+    ports should have size 3
+    ports should contain key ("tngre-mm")
     ports should contain key ("test")
     ports should contain key ("port1")
   }
@@ -172,7 +177,8 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
     datapaths.head should have('name("test"))
 
     val ports = datapathPorts(datapaths.head)
-    ports should have size 2
+    ports should have size 3
+    ports should contain key ("tngre-mm")
     ports should contain key ("test")
     ports should contain key ("port1")
   }
@@ -200,7 +206,8 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
     datapaths.head should have('name("test"))
 
     var ports = datapathPorts(datapaths.head)
-    ports should have size 2
+    ports should have size 3
+    ports should contain key ("tngre-mm")
     ports should contain key ("test")
     ports should contain key ("netdev")
 
@@ -211,7 +218,8 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
     opReply should not be (null)
 
     ports = datapathPorts(datapaths.head)
-    ports should have size 1
+    ports should have size 2
+    ports should contain key ("tngre-mm")
     ports should contain key ("test")
   }
 
@@ -232,8 +240,12 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
     initializeDatapath() should not be (null)
     portEventsProbe.expectMsgClass(classOf[LocalPortActive])
 
+    val ports = datapathPorts(dpConn().datapathsEnumerate().get().head)
+    ports should contain key ("port1")
+    val port1DpId = ports("port1").getPortNo
+
     dpController().underlyingActor.dpState
-        .getDpPortNumberForVport(port1.getId) should equal(Some(1))
+        .getDpPortNumberForVport(port1.getId) should be (Some(port1DpId))
 
     requestOfType[HostRequest](vtpProbe())
     val rcuHost = replyOfType[RCUHost](vtpProbe())
@@ -253,10 +265,15 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
     replyOfType[RCUHost](vtpProbe())
     requestOfType[LocalPortActive](vtpProbe())
 
+    val newPorts = datapathPorts(dpConn().datapathsEnumerate().get().head)
+    newPorts should contain key ("port1")
+    newPorts should contain key ("port2")
+    val port2DpId = newPorts("port2").getPortNo
+
     dpController().underlyingActor.dpState
-      .getDpPortNumberForVport(port1.getId) should equal(Some(1))
+      .getDpPortNumberForVport(port1.getId) should equal(Some(port1DpId))
     dpController().underlyingActor.dpState
-      .getDpPortNumberForVport(port2.getId) should equal(Some(2))
+      .getDpPortNumberForVport(port2.getId) should equal(Some(port2DpId))
   }
 
 }

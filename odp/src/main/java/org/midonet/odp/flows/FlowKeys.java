@@ -22,7 +22,8 @@ public class FlowKeys {
             flowKey instanceof FlowKeyND ||
             flowKey instanceof FlowKeyVLAN ||
             flowKey instanceof FlowKeyTunnelID ||
-            flowKey instanceof FlowKeyARP)
+            flowKey instanceof FlowKeyARP ||
+            flowKey instanceof FlowKeyTunnel)
             return (T) FLOW_KEYS_POOL.sharedRef(flowKey);
         else
             return flowKey;
@@ -126,5 +127,20 @@ public class FlowKeys {
 
     public static FlowKeyEncap encap() {
         return intern(new FlowKeyEncap());
+    }
+
+    public static FlowKeyTunnel tunnel(long tunnelId, int Ipv4SrcAddr,
+            int ipv4DstAddr) {
+        // OVS kernel module requires the TTL field to be set. Here we set it to
+        // the maximum possible value. We leave TOS and flags not set. We may
+        // set the tunnel key flag, but it's not a required field. DONT FRAGMENT
+        // and CHECKSUM are for the outer header. We leave those alone for now
+        // as well. CHECKSUM defaults to zero in OVS kernel module. GRE header
+        // checksum is not checked in gre_rcv, and it is also not required for
+        // GRE packets.
+        return intern(new FlowKeyTunnel().setTunnelID(tunnelId)
+                .setIpv4SrcAddr(Ipv4SrcAddr)
+                .setIpv4DstAddr(ipv4DstAddr))
+                .setTtl((byte) 127);  // A maximum number.
     }
 }

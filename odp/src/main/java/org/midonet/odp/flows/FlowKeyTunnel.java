@@ -24,6 +24,8 @@ public class FlowKeyTunnel implements FlowKey<FlowKeyTunnel> {
     public static final short OVS_TNL_F_CSUM = (short) (1 << 1);
     public static final short OVS_TNL_F_KEY = (short) (1 << 2);
 
+    public static final short ATTR_ID = (short) ((1 << 15) | 16);
+
     @Override
     public NetlinkMessage.AttrKey<FlowKeyTunnel> getKey() {
         return FlowKeyAttr.TUNNEL;

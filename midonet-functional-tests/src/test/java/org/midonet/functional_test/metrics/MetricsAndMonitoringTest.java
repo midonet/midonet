@@ -3,36 +3,36 @@
 */
 package org.midonet.functional_test.metrics;
 
-import akka.util.Duration;
 import java.lang.management.ManagementFactory;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import javax.management.MBeanServerConnection;
 import javax.management.remote.JMXConnector;
-import org.junit.Test;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import akka.util.Duration;
+import org.junit.Test;
+import org.midonet.midolman.topology.LocalPortActive;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
+import org.midonet.midolman.monitoring.metrics.vrn.VifMetrics;
 import org.midonet.client.resource.Bridge;
 import org.midonet.client.resource.BridgePort;
-import org.midonet.functional_test.PacketHelper;
 import org.midonet.functional_test.TestBase;
-import org.midonet.functional_test.utils.TapWrapper;
-import org.midonet.midolman.monitoring.MonitoringActor.MetricsUpdated;
-import org.midonet.midolman.monitoring.metrics.vrn.VifMetrics;
-import org.midonet.midolman.topology.LocalPortActive;
-import org.midonet.odp.Port;
 import org.midonet.packets.IntIPv4;
 import org.midonet.packets.MAC;
+import org.midonet.functional_test.PacketHelper;
+import org.midonet.functional_test.utils.TapWrapper;
 import org.midonet.util.jmx.JMXAttributeAccessor;
 import org.midonet.util.jmx.JMXHelper;
 import static org.midonet.functional_test.FunctionalTestsHelper.assertPacketWasSentOnTap;
 import static org.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
+import org.midonet.midolman.monitoring.MonitoringActor.MetricsUpdated;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Functional tests for the metrics and monitoring.

@@ -55,9 +55,9 @@ object PacketWorkflow {
 
     sealed trait SimulationResult
 
-    case class NoOp() extends SimulationResult
+    case object NoOp extends SimulationResult
 
-    case class ErrorDrop() extends SimulationResult
+    case object ErrorDrop extends SimulationResult
 
     case class SendPacket(actions: List[FlowAction[_]]) extends SimulationResult
 
@@ -65,7 +65,7 @@ object PacketWorkflow {
                                       flowRemovalCallbacks: ROSet[Callback0],
                                       tags: ROSet[Any]) extends SimulationResult
 
-    private trait PipelinePath {}
+    private trait PipelinePath
 
     private case object WildcardTableHit extends PipelinePath
     private case object PacketToPortSet extends PipelinePath
@@ -86,8 +86,8 @@ class PacketWorkflow(
         metrics: PacketPipelineMetrics,
         private val traceConditions: immutable.Seq[Condition])
        (implicit val executor: ExecutionContext,
-        val system: ActorSystem,
-        val context: ActorContext)
+        implicit val system: ActorSystem,
+        implicit val context: ActorContext)
     extends FlowTranslator with UserspaceFlowActionTranslator {
 
     import PacketWorkflow._
@@ -291,11 +291,9 @@ class PacketWorkflow(
                 flowPromise.success(true)
         }
 
-        log.debug("Executing packet {}", cookieStr)
-        val execPromise = executePacket(wildFlow.getActions)
-
-        val futures = Future.sequence(List(flowPromise, execPromise))
-        futures map { _ => true } fallbackTo { Promise.successful(false) }
+        Future.sequence(List(flowPromise, executePacket(wildFlow.getActions)))
+            .map { _ => true }
+            .recover { case _ => false }
     }
 
     private def addTranslatedFlowForActions(actions: Seq[FlowAction[_]],
@@ -314,6 +312,7 @@ class PacketWorkflow(
     }
 
     private def executePacket(actions: Seq[FlowAction[_]]): Future[Boolean] = {
+        log.debug("Executing packet {}", cookieStr)
         packet.setActions(actions.asJava)
         if (packet.getMatch.isUserSpaceOnly) {
             log.debug("Applying userspace actions to packet {}", cookieStr)
@@ -405,10 +404,8 @@ class PacketWorkflow(
                     applyOutboundFilters(localPorts, portSet.id, wMatch, Some(tags),
                         { portIDs =>
                             addTranslatedFlowForActions(
-                                translateToDpPorts(List(action),
-                                                   portSet.id,
-                                                   portsForLocalPorts(portIDs),
-                                                   None, Nil, tags),
+                                towardsLocalDpPorts(List(action), portSet.id,
+                                    portsForLocalPorts(portIDs), tags),
                                 tags)
                         })
                 } recoverWith { case e =>
@@ -434,17 +431,16 @@ class PacketWorkflow(
         }
     }
 
-    private def doSimulation(): Future[Boolean] = {
-        val actionFuture = cookieOrEgressPort match {
+    private def doSimulation(): Future[Boolean] =
+        (cookieOrEgressPort match {
             case Left(haveCookie) =>
                 simulatePacketIn()
             case Right(haveEgress) =>
                 simulateGeneratedPacket()
-        }
-        actionFuture recoverWith {
+        }) recover {
             case ex =>
-                log.error(ex, "Simulation failed")
-                Promise.successful(ErrorDrop())
+                log.error("Simulation failed: {}", ex)
+                ErrorDrop
         } flatMap {
             case AddVirtualWildcardFlow(flow, callbacks, tags) =>
                 log.debug("Simulation phase returned: AddVirtualWildcardFlow")
@@ -452,15 +448,14 @@ class PacketWorkflow(
             case SendPacket(actions) =>
                 log.debug("Simulation phase returned: SendPacket")
                 sendPacket(actions)
-            case NoOp() =>
+            case NoOp =>
                 log.debug("Simulation phase returned: NoOp")
                 DeduplicationActor.getRef() ! ApplyFlow(Nil, cookie)
                 Promise.successful(true)
-            case ErrorDrop() =>
+            case ErrorDrop =>
                 log.debug("Simulation phase returned: ErrorDrop")
                 addTranslatedFlowForActions(Nil, expiration = 5000)
         }
-    }
 
     private def simulateGeneratedPacket(): Future[SimulationResult] = {
         // FIXME (guillermo) - The launching of the coordinator is missing
@@ -476,16 +471,16 @@ class PacketWorkflow(
     }
 
     private def simulatePacketIn(): Future[SimulationResult] = {
-        val inPortNo = WildcardMatch.fromFlowMatch(packet.getMatch).getInputPortNumber
-
         log.debug("Pass packet to simulation layer {}", cookieStr)
+
+        val wMatch = WildcardMatch.fromFlowMatch(packet.getMatch)
+        val inPortNo = wMatch.getInputPortNumber
         if (inPortNo == null) {
-            log.error("SCREAM: got a PacketIn with no inPort number {}.", cookieStr)
-            return Promise.successful(NoOp())
+            log.error(
+                "SCREAM: got a PacketIn with no inPort number {}.", cookieStr)
+            return Promise.successful(NoOp)
         }
 
-        // translate
-        val wMatch = WildcardMatch.fromFlowMatch(packet.getMatch)
         val port: JInteger = Unsigned.unsign(inPortNo)
         log.debug("PacketIn on port #{}", port)
         dpState.getVportForDpPortNumber(port) match {
@@ -497,7 +492,7 @@ class PacketWorkflow(
 
                 handleDHCP(vportId) flatMap {
                     case true =>
-                        Promise.successful(NoOp())
+                        Promise.successful(NoOp)
                     case false =>
                         val coordinator: Coordinator = new Coordinator(
                             wMatch, packet.getPacket, cookie, None,
@@ -509,7 +504,7 @@ class PacketWorkflow(
 
             case None =>
                 wMatch.setInputPort(port.toShort)
-                Promise.successful(ErrorDrop())
+                Promise.successful(ErrorDrop)
         }
     }
 
@@ -553,19 +548,16 @@ class PacketWorkflow(
         val wildMatch = WildcardMatch.fromEthernetPacket(packet.getPacket)
         packet.setMatch(FlowMatches.fromEthernetPacket(packet.getPacket))
         val actionsFuture = translateActions(origActions, None, None, wildMatch)
-        actionsFuture recoverWith {
+        actionsFuture recover {
             case ex =>
                 log.error(ex, "failed to translate actions")
-                Promise.successful(None)
+                Nil
         } flatMap {
-            actions => actions match {
-                case Some(a) =>
-                    log.debug("Translated actions to action list {} for {}",
-                              actions, cookieStr)
-                    executePacket(a)
-                case None =>
-                    Promise.successful(true)
-            }
+            case Nil =>
+                Promise.successful(true)
+            case actions =>
+                log.debug("Translated actions to {} for {}", actions, cookieStr)
+                executePacket(actions)
         }
     }
 }

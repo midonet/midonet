@@ -22,16 +22,16 @@ class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture
 
     def testAddAndModifyJumpChain() {
         drainProbes()
+
         log.info("creating inbound chain, assigning the chain to the bridge")
         val brInChain = newInboundChainOnBridge("brInFilter", bridge)
-
         // this is a chain that will be set as jump chain for brInChain
         val jumpChain = createChain("jumpRule", None)
 
         // add rule that drops everything return flows
         newLiteralRuleOnChain(brInChain, 1, new Condition(), RuleResult.Action.DROP)
-        expectPacketDropped(vmPortNumbers(0), vmPortNumbers(3), icmpBetweenPorts)
-        fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
+        expectPacketDropped(0, 3, icmpBetweenPorts)
+        requestOfType[WildcardFlowAdded](wflowAddedProbe)
         drainProbes()
 
         // add rule that accepts everything
@@ -39,15 +39,11 @@ class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture
         fishForRequestOfType[WildcardFlowRemoved](wflowRemovedProbe)
         drainProbes()
         drainProbe(packetsEventsProbe)
-        drainProbe(wflowAddedProbe)
-        drainProbe(wflowRemovedProbe)
 
-        expectPacketAllowed(vmPortNumbers(0), vmPortNumbers(3), icmpBetweenPorts)
+        expectPacketAllowed(0, 3, icmpBetweenPorts)
         fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
         drainProbes()
         drainProbe(packetsEventsProbe)
-        drainProbe(wflowAddedProbe)
-        drainProbe(wflowRemovedProbe)
 
         // add a rule that drops the packets from 0 to 3 in the jump chain
         val cond1 = new Condition()
@@ -66,7 +62,7 @@ class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture
         log.info("removing a rule from the jump rule itself (inner chain)")
         deleteRule(jumpRule.getId)
         fishForRequestOfType[WildcardFlowRemoved](wflowRemovedProbe)
-        expectPacketAllowed(vmPortNumbers(0), vmPortNumbers(3), icmpBetweenPorts)
+        expectPacketAllowed(0, 3, icmpBetweenPorts)
         flow = fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
         flow.f.actions.size should (be > 0)
 
@@ -84,16 +80,22 @@ class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture
     def testFloodTagging() {
         val chain = newOutboundChainOnPort("p1OutChain", vmPorts(0))
         val cond = new Condition()
-        val rule = newLiteralRuleOnChain(chain, 1, cond,
-            RuleResult.Action.ACCEPT)
+
+        drainProbe(wflowAddedProbe)
+
+        newLiteralRuleOnChain(chain, 1, cond, RuleResult.Action.ACCEPT)
         clusterDataClient().bridgesUpdate(bridge)
+
         expectPacketAllowed(1, 2, icmpBetweenPorts)
         requestOfType[WildcardFlowAdded](wflowAddedProbe)
-        drainProbes()
+
         drainProbe(wflowRemovedProbe)
+
         FlowController.getRef(actors()).tell(InvalidateFlowsByTag(
-                FlowTagger.invalidateFlowsByDevice(chain.getId)))
+            FlowTagger.invalidateFlowsByDevice(chain.getId)))
+
         requestOfType[WildcardFlowRemoved](wflowRemovedProbe)
+
     }
 
     def testV4ruleV6pktMatch() {
@@ -104,8 +106,8 @@ class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture
         val cond = new Condition()
         cond.nwSrcIp = new IPv4Subnet(
                 IPv4Addr.fromString(vmIps(fromPort).toUnicastString), 32)
-        val rule = newLiteralRuleOnChain(chain, 1, cond,
-            RuleResult.Action.DROP)
+
+        newLiteralRuleOnChain(chain, 1, cond, RuleResult.Action.DROP)
 
         expectPacketDropped(fromPort, toPort, icmpBetweenPorts)
         expectPacketAllowed(fromPort, toPort, ipv6BetweenPorts)
@@ -114,12 +116,11 @@ class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture
     def testV6ruleV4pktMatch() {
         val fromPort = 1
         val toPort = 2
-
         val chain = newInboundChainOnPort("p1InChain", vmPorts(fromPort))
         val cond = new Condition()
         cond.nwSrcIp = new IPv6Subnet(v6VmIps(fromPort), 128)
-        val rule = newLiteralRuleOnChain(chain, 1, cond,
-            RuleResult.Action.DROP)
+
+        newLiteralRuleOnChain(chain, 1, cond, RuleResult.Action.DROP)
 
         expectPacketDropped(fromPort, toPort, ipv6BetweenPorts)
         expectPacketAllowed(fromPort, toPort, icmpBetweenPorts)

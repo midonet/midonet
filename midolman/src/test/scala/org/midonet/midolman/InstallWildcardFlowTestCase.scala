@@ -47,11 +47,8 @@ class InstallWildcardFlowTestCase extends MidolmanTestCase {
         portEventsProbe.expectMsgClass(classOf[LocalPortActive])
         portEventsProbe.expectMsgClass(classOf[LocalPortActive])
 
-        val inputPortNo = dpController().underlyingActor
-            .ifaceNameToDpPort("inputPort").getPortNo
-
-        val outputPortNo = dpController().underlyingActor
-            .ifaceNameToDpPort("outputPort").getPortNo
+        val inputPortNo = getPortNumber("inputPort")
+        val outputPortNo = getPortNumber("outputPort")
 
         val vrnPortOutput = new FlowActionOutputToVrnPort(outputPort.getId)
         val dpPortOutput = FlowActions.output(outputPortNo)

@@ -1142,10 +1142,10 @@ public class WildcardMatch implements Cloneable {
                 case 14: // FlowKeyAttr<FlowKeyND> ND = attr(14);
                     // XXX(jlm, s3wong): Neighbor Discovery
                     break;
-                case 63: // FlowKeyAttr<FlowKeyTunnelID> TUN_ID = attr(63);
-                    FlowKeyTunnelID tunnelID = as(flowKey,
-                                                  FlowKeyTunnelID.class);
-                    setTunnelID(tunnelID.getTunnelID());
+                case FlowKeyTunnel.ATTR_ID:
+                    // FlowKeyAttr<FlowKeyTunnel> tun = attrNest(16); ( neq 16 )
+                    // since ovs 1.9, required for ovs 1.10+
+                    setTunnelID(as(flowKey, FlowKeyTunnel.class).getTunnelID());
                     break;
             }
         }
