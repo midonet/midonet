@@ -5,20 +5,26 @@
 package org.midonet.midolman
 
 import collection.JavaConversions.asJavaCollection
+import java.util.UUID
+
+import akka.event.LoggingAdapter
+import org.junit.runner.RunWith
+import org.scalatest.BeforeAndAfter
+import org.scalatest.Suite
+import org.scalatest.junit.JUnitRunner
+import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.mock.EasyMockSugar
 
 import host.interfaces.InterfaceDescription
 import org.easymock.EasyMock._
-import org.scalatest.{BeforeAndAfter, Suite}
-import org.scalatest.matchers.ShouldMatchers
-import org.scalatest.mock.EasyMockSugar
+
 import org.midonet.midolman.VirtualPortManager.Controller
-import java.util.UUID
-import akka.event.LoggingAdapter
-import org.slf4j.LoggerFactory
 import org.midonet.odp.ports.NetDevPort
 
-class VirtualPortManagerTest extends Suite with BeforeAndAfter
-        with ShouldMatchers with EasyMockSugar {
+//@RunWith(classOf[JUnitRunner])
+class VirtualPortManagerTest extends Suite
+        with BeforeAndAfter with ShouldMatchers with EasyMockSugar {
+
     var vportMgr: VirtualPortManager = _
     var mockController: Controller = _
     var vport1: UUID = _
@@ -26,39 +32,11 @@ class VirtualPortManagerTest extends Suite with BeforeAndAfter
     var itfList: List[InterfaceDescription] = _
     var dpPort: NetDevPort = _
 
+    implicit val log = SoloLogger(classOf[VirtualPortManagerTest])
+
     before {
         mockController = mock[Controller]
-        vportMgr = new VirtualPortManager(mockController,
-            new LoggingAdapter {
-                val log =
-                    LoggerFactory.getLogger(classOf[VirtualPortManagerTest])
-
-                def isErrorEnabled = true
-                def isWarningEnabled = true
-                def isInfoEnabled = true
-                def isDebugEnabled = true
-
-                protected def notifyError(cause: Throwable, message: String) {
-                    log.error(message, cause)
-                }
-
-                protected def notifyError(message: String) {
-                    log.error(message)
-                }
-
-                protected def notifyWarning(message: String) {
-                    log.warn(message)
-                }
-
-                protected def notifyInfo(message: String) {
-                    log.info(message)
-                }
-
-                protected def notifyDebug(message: String) {
-                    log.debug(message)
-                }
-            }
-        )
+        vportMgr = new VirtualPortManager(mockController)
         vport1 = UUID.randomUUID()
         itf = new InterfaceDescription("eth0")
         itfList = List(itf)

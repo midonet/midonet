@@ -14,7 +14,6 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cache.Cache
-import org.midonet.midolman.DatapathController.TunnelChangeEvent
 import org.midonet.midolman.FlowController.{WildcardFlowRemoved, WildcardFlowAdded}
 import org.midonet.midolman.PacketWorkflow.PacketIn
 import org.midonet.midolman.rules.Condition
@@ -22,8 +21,10 @@ import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.cluster.data.{Bridge => ClusterBridge}
 import org.midonet.cluster.data.ports.MaterializedBridgePort
 import org.midonet.cluster.data.zones.GreTunnelZoneHost
-import org.midonet.odp.flows.{FlowActionOutput, FlowActions, FlowActionSetKey,
-    FlowKeyTunnelID}
+import org.midonet.odp.flows.FlowAction
+import org.midonet.odp.flows.FlowActions
+import org.midonet.odp.flows.{FlowActionOutput, FlowActionSetKey, FlowKeyTunnel}
+import org.midonet.packets.IPv4Addr
 import org.midonet.packets.{Ethernet, IntIPv4, MAC, Packets}
 import org.midonet.midolman.util.MockCache
 import com.google.inject.Key
@@ -34,7 +35,6 @@ import java.lang.{Short => JShort}
 @RunWith(classOf[JUnitRunner])
 class BridgeSimulationTestCase extends MidolmanTestCase
         with VirtualConfigurationBuilders {
-    private var tunnelEventsProbe: TestProbe = null
     private var port1OnHost1: MaterializedBridgePort = null
     private var port2OnHost1: MaterializedBridgePort = null
     private var port3OnHost1: MaterializedBridgePort = null
@@ -43,6 +43,13 @@ class BridgeSimulationTestCase extends MidolmanTestCase
     private var portId5 : Short = 0
     private var tunnelId1: Short = 0
     private var tunnelId2: Short = 0
+
+    val host1Ip = IPv4Addr("192.168.100.1")
+    val host2Ip = IPv4Addr("192.168.125.1")
+    val host3Ip = IPv4Addr("192.168.150.1")
+
+    var bridgeTunnelTo2: FlowKeyTunnel => Boolean = null
+    var bridgeTunnelTo3: FlowKeyTunnel => Boolean = null
 
     override protected def fillConfig(config: HierarchicalConfiguration) = {
         config.setProperty("datapath.max_flow_count", "10")
@@ -70,32 +77,24 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         materializePort(port2OnHost1, host1, "port4")
         materializePort(port3OnHost1, host1, "port5")
 
-        clusterDataClient().tunnelZonesAddMembership(
-            tunnelZone.getId,
-            new GreTunnelZoneHost(host1.getId)
-                .setIp(IntIPv4.fromString("192.168.100.1")))
-        clusterDataClient().tunnelZonesAddMembership(
-            tunnelZone.getId,
-            new GreTunnelZoneHost(host2.getId)
-                .setIp(IntIPv4.fromString("192.168.125.1")))
-        clusterDataClient().tunnelZonesAddMembership(
-            tunnelZone.getId,
-            new GreTunnelZoneHost(host3.getId)
-                .setIp(IntIPv4.fromString("192.168.150.1")))
+        List(host1, host2, host3).zip(List(host1Ip, host2Ip, host3Ip)).foreach{
+            case (host, ip) =>
+                clusterDataClient().tunnelZonesAddMembership(tunnelZone.getId,
+                    new GreTunnelZoneHost(host.getId).setIp(ip.toIntIPv4))
+        }
+
+        bridgeTunnelTo2 =
+            tunnelIsLike(host1Ip.toInt, host2Ip.toInt, bridge.getTunnelKey)
+        bridgeTunnelTo3 =
+            tunnelIsLike(host1Ip.toInt, host3Ip.toInt, bridge.getTunnelKey)
 
         clusterDataClient().portSetsAddHost(bridge.getId, host2.getId)
         clusterDataClient().portSetsAddHost(bridge.getId, host3.getId)
-
-        tunnelEventsProbe = newProbe()
-        actors().eventStream.subscribe(tunnelEventsProbe.ref,
-                                       classOf[TunnelChangeEvent])
 
         initializeDatapath() should not be (null)
 
         flowProbe().expectMsgType[DatapathController.DatapathReady].datapath should not be (null)
 
-        tunnelId1 = tunnelEventsProbe.expectMsgClass(classOf[TunnelChangeEvent]).portOption.get
-        tunnelId2 = tunnelEventsProbe.expectMsgClass(classOf[TunnelChangeEvent]).portOption.get
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
@@ -104,11 +103,11 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         portsProbe.expectMsgClass(classOf[LocalPortActive])
         drainProbes()
 
-        dpController().underlyingActor.vifToLocalPortNumber(port2OnHost1.getId) match {
+        vifToLocalPortNumber(port2OnHost1.getId) match {
             case Some(portNo : Short) => portId4 = portNo
             case None => fail("Not able to find data port number for materialize Port 4")
         }
-        dpController().underlyingActor.vifToLocalPortNumber(port3OnHost1.getId) match {
+        vifToLocalPortNumber(port3OnHost1.getId) match {
             case Some(portNo : Short) => portId5 = portNo
             case None => fail("Not able to find data port number for materialize Port 5")
         }
@@ -161,13 +160,18 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         val addFlowMsg = injectOnePacket(ethPkt, "port1", false)
         addFlowMsg.f should not be null
         val flowActs = addFlowMsg.f.getActions
-        flowActs should have size(5)
-        as[FlowActionSetKey](flowActs(2)).getFlowKey should equal (
-            new FlowKeyTunnelID().setTunnelID(bridge.getTunnelKey))
-        flowActs.contains(FlowActions.output(portId4)) should be (true)
-        flowActs.contains(FlowActions.output(portId5)) should be (true)
-        flowActs.contains(FlowActions.output(tunnelId1)) should be (true)
-        flowActs.contains(FlowActions.output(tunnelId2)) should be (true)
+        flowActs should have size(6)
+
+        val (outputs, tunnelKeys) = parseTunnelActions(flowActs)
+
+        outputs should have size(4)
+        outputs.contains(FlowActions.output(greTunnelId)) should be (true)
+        outputs.contains(FlowActions.output(portId4)) should be (true)
+        outputs.contains(FlowActions.output(portId5)) should be (true)
+
+        tunnelKeys should have size(2)
+        tunnelKeys.find(bridgeTunnelTo2) should not be None
+        tunnelKeys.find(bridgeTunnelTo3) should not be None
 
         idxCache.map should have size 1
         msgCache.map should have size 2
@@ -201,13 +205,18 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         ethPkt.setVlanIDs(networkVlans)
         val addFlowMsg = injectOnePacket(ethPkt, inputPort, false)
         val flowActs = addFlowMsg.f.getActions
-        flowActs should have size(5)
-        as[FlowActionSetKey](flowActs(2)).getFlowKey should equal (
-            new FlowKeyTunnelID().setTunnelID(bridge.getTunnelKey))
-        flowActs.contains(FlowActions.output(portId4)) should be (true)
-        flowActs.contains(FlowActions.output(portId5)) should be (true)
-        flowActs.contains(FlowActions.output(tunnelId1)) should be (true)
-        flowActs.contains(FlowActions.output(tunnelId2)) should be (true)
+        flowActs should have size(6)
+
+        val (outputs, tunnelKeys) = parseTunnelActions(flowActs)
+
+        outputs should have size(4)
+        outputs.contains(FlowActions.output(greTunnelId)) should be (true)
+        outputs.contains(FlowActions.output(portId4)) should be (true)
+        outputs.contains(FlowActions.output(portId5)) should be (true)
+
+        tunnelKeys should have size(2)
+        tunnelKeys.find(bridgeTunnelTo2) should not be None
+        tunnelKeys.find(bridgeTunnelTo3) should not be None
         //Our source MAC should also be learned
         //verifyMacLearned("0a:fe:88:70:44:55", inputPort)
     }
@@ -221,13 +230,18 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         ethPkt.setVlanIDs(networkVlans)
         val addFlowMsg = injectOnePacket(ethPkt, inputPort, false)
         val flowActs = addFlowMsg.f.getActions
-        flowActs should have size(5)
-        as[FlowActionSetKey](flowActs(2)).getFlowKey should equal (
-            new FlowKeyTunnelID().setTunnelID(bridge.getTunnelKey))
-        flowActs.contains(FlowActions.output(portId4)) should be (true)
-        flowActs.contains(FlowActions.output(portId5)) should be (true)
-        flowActs.contains(FlowActions.output(tunnelId2)) should be (true)
-        flowActs.contains(FlowActions.output(tunnelId2)) should be (true)
+        flowActs should have size(6)
+
+        val (outputs, tunnelKeys) = parseTunnelActions(flowActs)
+
+        outputs should have size(4)
+        outputs.contains(FlowActions.output(greTunnelId)) should be (true)
+        outputs.contains(FlowActions.output(portId4)) should be (true)
+        outputs.contains(FlowActions.output(portId5)) should be (true)
+
+        tunnelKeys should have size(2)
+        tunnelKeys.find(bridgeTunnelTo2) should not be None
+        tunnelKeys.find(bridgeTunnelTo3) should not be None
         //Our source MAC should also be learned
         //verifyMacLearned("0a:fe:88:90:22:33", inputPort)
     }
@@ -242,13 +256,18 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         ethPkt.setVlanIDs(networkVlans)
         val addFlowMsg = injectOnePacket(ethPkt, inputPort, false)
         val flowActs = addFlowMsg.f.getActions
-        flowActs should have size(5)
-        as[FlowActionSetKey](flowActs(2)).getFlowKey should equal (
-            new FlowKeyTunnelID().setTunnelID(bridge.getTunnelKey))
-        flowActs.contains(FlowActions.output(portId4)) should be (true)
-        flowActs.contains(FlowActions.output(portId5)) should be (true)
-        flowActs.contains(FlowActions.output(tunnelId1)) should be (true)
-        flowActs.contains(FlowActions.output(tunnelId2)) should be (true)
+        flowActs should have size(6)
+
+        val (outputs, tunnelKeys) = parseTunnelActions(flowActs)
+
+        outputs should have size(4)
+        outputs.contains(FlowActions.output(greTunnelId)) should be (true)
+        outputs.contains(FlowActions.output(portId4)) should be (true)
+        outputs.contains(FlowActions.output(portId5)) should be (true)
+
+        tunnelKeys should have size(2)
+        tunnelKeys.find(bridgeTunnelTo2) should not be None
+        tunnelKeys.find(bridgeTunnelTo3) should not be None
     }
 
     def testMcastSrcBridgeSim () {
@@ -277,13 +296,19 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         var addFlowMsg = injectOnePacket(ethPkt, inputPort, true)
         addFlowMsg.f should not be null
         var flowActs = addFlowMsg.f.getActions
-        flowActs should have size(5)
-        as[FlowActionSetKey](flowActs(2)).getFlowKey should equal (
-            new FlowKeyTunnelID().setTunnelID(bridge.getTunnelKey))
-        flowActs.contains(FlowActions.output(portId4)) should be (true)
-        flowActs.contains(FlowActions.output(portId5)) should be (true)
-        flowActs.contains(FlowActions.output(tunnelId1)) should be (true)
-        flowActs.contains(FlowActions.output(tunnelId2)) should be (true)
+        flowActs should have size(6)
+
+        val (outputs, tunnelKeys) = parseTunnelActions(flowActs)
+
+        outputs should have size(4)
+        outputs.contains(FlowActions.output(greTunnelId)) should be (true)
+        outputs.contains(FlowActions.output(portId4)) should be (true)
+        outputs.contains(FlowActions.output(portId5)) should be (true)
+
+        tunnelKeys should have size(2)
+        tunnelKeys.find(bridgeTunnelTo2) should not be None
+        tunnelKeys.find(bridgeTunnelTo3) should not be None
+
         verifyMacLearned("02:13:66:77:88:99", "port1")
         /*
          * MAC moved from port1 to port5
@@ -301,8 +326,14 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         addFlowMsg.f should not be null
         flowActs = addFlowMsg.f.getActions
         flowActs should have size(1)
-        as[FlowActionOutput](flowActs(0)).getPortNumber should equal (portId4)
+
+        val (outputs2, tunnelKeys2) = parseTunnelActions(flowActs)
+        outputs2 should have size 1
+        outputs2.contains(FlowActions.output(portId4)) should be (true)
+        tunnelKeys2 should have size 0
+
         requestOfType[WildcardFlowRemoved](wflowRemovedProbe)
+
         verifyMacLearned("02:13:66:77:88:99", "port5")
     }
 
@@ -352,8 +383,7 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         val expectedPort = getMaterializedPort(expectedPortName)
         val flowActs = addFlowMsg.f.getActions
         flowActs should have size(1)
-        dpController().underlyingActor.vifToLocalPortNumber(expectedPort.getId)
-        match {
+        vifToLocalPortNumber(expectedPort.getId) match {
             case Some(portNo : Short) =>
                 as[FlowActionOutput](flowActs(0)).getPortNumber should equal (portNo)
             case None => fail("Not able to find data port number for" +

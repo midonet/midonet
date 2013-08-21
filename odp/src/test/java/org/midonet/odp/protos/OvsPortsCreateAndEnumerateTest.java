@@ -132,8 +132,7 @@ public class OvsPortsCreateAndEnumerateTest extends AbstractNetlinkProtocolTest 
     private Port expectedInternalPort() {
         InternalPort port =
             Ports.newInternalPort("internalPort")
-                 .setPortNo(1)
-                 .setAddress(macFromString("9a:f0:9b:71:9c:0d"));
+                 .setPortNo(1);
 
         port.setStats(new Port.Stats());
         port.setOptions(port.newOptions());
@@ -144,8 +143,7 @@ public class OvsPortsCreateAndEnumerateTest extends AbstractNetlinkProtocolTest 
     private Port expectedNetdevPort() {
         NetDevPort port =
             Ports.newNetDevPort("netdevPort")
-                 .setPortNo(2)
-                 .setAddress(macFromString("e6:0a:c4:71:de:a6"));
+                 .setPortNo(2);
 
         port.setStats(new Port.Stats());
         port.setOptions(port.newOptions());
@@ -156,8 +154,7 @@ public class OvsPortsCreateAndEnumerateTest extends AbstractNetlinkProtocolTest 
     private Port expectedPatchTunnelPort() {
         PatchTunnelPort tunPatchPort =
             Ports.newPatchTunnelPort("patchPort")
-                 .setPortNo(3)
-                 .setAddress(macFromString("9a:c3:94:ec:d6:b2"));
+                 .setPortNo(3);
 
         tunPatchPort.setStats(new Port.Stats());
         tunPatchPort.setOptions(Ports.newPortOptions(tunPatchPort, "peer"));
@@ -168,8 +165,7 @@ public class OvsPortsCreateAndEnumerateTest extends AbstractNetlinkProtocolTest 
     private Port expectedGreTunnelPort() {
         GreTunnelPort tunGrePort =
             Ports.newGreTunnelPort("grePort")
-                 .setPortNo(4)
-                 .setAddress(macFromString("72:67:52:d0:49:df"));
+                 .setPortNo(4);
 
         tunGrePort.setStats(new Port.Stats());
         tunGrePort.setOptions(
@@ -183,8 +179,7 @@ public class OvsPortsCreateAndEnumerateTest extends AbstractNetlinkProtocolTest 
     private Port expectedCapwapTunnelPort() {
         CapWapTunnelPort tunCapwapGrePort =
             Ports.newCapwapTunnelPort("tunCapwapPort")
-                 .setPortNo(5)
-                 .setAddress(macFromString("ea:53:9a:b7:89:02"));
+                 .setPortNo(5);
 
         tunCapwapGrePort.setStats(new Port.Stats());
         tunCapwapGrePort.setOptions(

@@ -79,8 +79,7 @@ public class OvsPortsGetTest extends AbstractNetlinkProtocolTest {
     private Port expectedLocalPort() {
         InternalPort port =
             Ports.newInternalPort("test-ports")
-                 .setPortNo(0)
-                 .setAddress(macFromString("ba:0c:ce:42:79:f2"));
+                 .setPortNo(0);
 
         port.setStats(new Port.Stats());
         port.setOptions(port.newOptions());
@@ -91,8 +90,7 @@ public class OvsPortsGetTest extends AbstractNetlinkProtocolTest {
     private Port expectedInternalPort() {
         InternalPort port =
             Ports.newInternalPort("internalPort")
-                 .setPortNo(1)
-                 .setAddress(macFromString("aa:92:26:6c:43:2c"));
+                 .setPortNo(1);
 
         port.setStats(new Port.Stats());
         port.setOptions(port.newOptions());
@@ -103,8 +101,7 @@ public class OvsPortsGetTest extends AbstractNetlinkProtocolTest {
     private Port<?, ?> expectedNetdevPort() {
         NetDevPort port =
             Ports.newNetDevPort("netdevPort")
-                 .setPortNo(2)
-                 .setAddress(macFromString("e6:0a:c4:71:de:a6"));
+                 .setPortNo(2);
 
         port.setStats(new Port.Stats());
         port.setOptions(Ports.newPortOptions(port));
@@ -115,8 +112,7 @@ public class OvsPortsGetTest extends AbstractNetlinkProtocolTest {
     private Port expectedPatchPort() {
         PatchTunnelPort port =
             Ports.newPatchTunnelPort("patchPort")
-            .setPortNo(3)
-            .setAddress(macFromString("9a:c3:94:ec:d6:b2"));
+            .setPortNo(3);
 
         port.setOptions(Ports.newPortOptions(port, "peer"));
         port.setStats(new Port.Stats());
@@ -127,9 +123,7 @@ public class OvsPortsGetTest extends AbstractNetlinkProtocolTest {
     private Port expectedGrePort() {
         GreTunnelPort tunGrePort =
             Ports.newGreTunnelPort("grePort")
-                 .setPortNo(4)
-                 .setAddress(
-                     macFromString("72:67:52:d0:49:df"));
+                 .setPortNo(4);
 
         tunGrePort.setStats(new Port.Stats());
         tunGrePort.setOptions(
@@ -143,8 +137,7 @@ public class OvsPortsGetTest extends AbstractNetlinkProtocolTest {
     private Port<?, ?> expectedCapwapPort() {
         CapWapTunnelPort capwapPort =
             Ports.newCapwapTunnelPort("tunCapwapPort")
-                 .setPortNo(5)
-                 .setAddress(macFromString("ea:53:9a:b7:89:02"));
+                 .setPortNo(5);
 
         capwapPort.setStats(new Port.Stats());
         capwapPort.setOptions(

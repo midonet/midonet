@@ -61,8 +61,8 @@ public abstract class DatapathClient {
                     log.info("Entering loop");
                     loop.doLoop();
                 } catch (IOException e) {
-                    e.printStackTrace();
-                    System.exit(-1);
+                    log.error("Error in io loop: {}", e);
+                    System.exit(1);
                 }
             }
         });

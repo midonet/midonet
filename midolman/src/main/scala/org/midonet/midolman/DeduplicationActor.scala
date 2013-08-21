@@ -10,7 +10,6 @@ import mutable.PriorityQueue
 import collection.mutable.{HashMap, MultiMap}
 import java.util.UUID
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicInteger
 import javax.annotation.Nullable
 import javax.inject.Inject
 
@@ -162,7 +161,11 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
 
     var datapath: Datapath = null
     var dpState: DatapathState = null
-    val idGenerator: AtomicInteger = new AtomicInteger(0)
+
+    implicit val dispatcher = this.context.dispatcher
+    implicit val system = this.context.system
+
+    private var cookieId = 0
 
     // data structures to handle the duplicate packets.
     private val dpMatchToCookie = HashMap[FlowMatch, Int]()
@@ -210,36 +213,32 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
         case HandlePacket(packet) => {
             log.debug("Handling packet with match {}", packet.getMatch)
             dpMatchToCookie.get(packet.getMatch) match {
-            case None =>
-                val cookie: Int = idGenerator.getAndIncrement
-                log.debug("No match, generate new cookie: {}", packet.getMatch)
+                case None =>
+                    // If there is no match on the match, create a new cookie
+                    // and a new PacketWorkflow to handle the packet
+                    val cookie = nextCookieId
+                    log.debug("make new cookie #{} for new match: {}",
+                        cookie, packet.getMatch)
 
-                dpMatchToCookie.put(packet.getMatch, cookie)
-                scheduleCookieExpiration(packet.getMatch)
-                cookieToPendedPackets.addBinding(cookie, packet)
-                // If there is no match on the cookie, create an object to
-                // handle the packet.
-                val packetWorkflow = new PacketWorkflow(
+                    dpMatchToCookie.put(packet.getMatch, cookie)
+                    scheduleCookieExpiration(packet.getMatch)
+                    cookieToPendedPackets.addBinding(cookie, packet)
+                    val packetWorkflow = new PacketWorkflow(
                         datapathConnection, dpState, datapath,
                         clusterDataClient, connectionCache, traceMessageCache,
                         traceIndexCache, packet, Left(cookie), throttler,
-                        metrics, traceConditions)(this.context.dispatcher,
-                        this.context.system, this.context)
+                        metrics, traceConditions)
 
-                    log.debug("Created new {} packet handler.",
-                              "PacketWorkflow-" + cookie)
-                context.dispatcher.execute{new Runnable {
-                        override def run() { packetWorkflow.start() }
-                    }
-                }
+                    log.debug("Created new PacketWorkflow for cookie " + cookie)
+                    packetWorkflow.start()
 
-            case Some(cookie: Int) =>
+                case Some(cookie) =>
+                    // Simulation in progress. Just pend the packet.
                     log.debug("A matching packet with cookie {} is already " +
-                              "being handled ", cookie)
-                // Simulation in progress. Just pend the packet.
-                throttler.tokenOut()
-                cookieToPendedPackets.addBinding(cookie, packet)
-                metrics.pendedPackets.inc()
+                        "being handled", cookie)
+                    throttler.tokenOut()
+                    cookieToPendedPackets.addBinding(cookie, packet)
+                    metrics.pendedPackets.inc()
             }
         }
 
@@ -265,7 +264,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
             }
         }
 
-        // This creates a new PacketWorkflowActor and
+        // This creates a new PacketWorkflow and
         // executes the simulation method directly.
         case EmitGeneratedPacket(egressPort, ethernet, parentCookie) =>
             val packet = new Packet().setPacket(ethernet)
@@ -274,11 +273,9 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
                 new PacketWorkflow(datapathConnection, dpState,
                     datapath, clusterDataClient, connectionCache,
                     traceMessageCache, traceIndexCache, packet,
-                    Right(egressPort), throttler, metrics, traceConditions)(
-                    this.context.dispatcher, this.context.system, this.context)
+                    Right(egressPort), throttler, metrics, traceConditions)
 
-            log.debug("Created new {} handler.",
-                      "PacketWorkflow-generated-" + packetId)
+            log.debug("Created new PacketWorkflow handler for emiting packet.")
             packetWorkflow.start()
 
         case newTraceConditions: immutable.Seq[Condition] =>
@@ -346,6 +343,13 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
 
                  def onError(e: NetlinkException) {}
          }).get()
+    }
+
+    /* Increment the cookie id number and return the value. Since this method
+     * is called in the actor receive block, it is not thread safe. */
+    private def nextCookieId: Int = {
+        cookieId += 1
+        cookieId
     }
 
 }

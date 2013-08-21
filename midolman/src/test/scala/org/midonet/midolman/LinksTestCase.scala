@@ -112,14 +112,12 @@ class LinksTestCase extends MidolmanTestCase
 
     private def setupPorts() {
         rtrPort1 = buildExteriorRouterPort(rtrIp1, rtrMac1, rtrPort1Name)
-        val dpActor = dpController().underlyingActor
-        dpActor.vifToLocalPortNumber(rtrPort1.getId)
-        match {
+        vifToLocalPortNumber(rtrPort1.getId) match {
             case Some(portNo : Short) => rtrPort1Num = portNo
             case None => fail("Can't find data port number for Router port 1")
         }
         rtrPort2 = buildExteriorRouterPort(rtrIp2, rtrMac2, rtrPort2Name)
-        dpActor.vifToLocalPortNumber(rtrPort2.getId) match {
+        vifToLocalPortNumber(rtrPort2.getId) match {
             case Some(portNo : Short) => rtrPort2Num = portNo
             case None => fail("Can't find data port number for Router port 2")
         }

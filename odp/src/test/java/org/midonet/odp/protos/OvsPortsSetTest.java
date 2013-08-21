@@ -58,13 +58,10 @@ public class OvsPortsSetTest extends AbstractNetlinkProtocolTest {
                    portFuture.get(), is(expectedPort));
 
 
-        port.setAddress(macFromString("aa:92:26:6c:43:2c"));
-
         log.info("Updating port address.");
         portFuture = connection.portsSet(port, datapath);
         exchangeMessage();
 
-        expectedPort.setAddress(macFromString("aa:92:26:6c:43:2c"));
         assertThat("The returned port should match what we expected",
                    portFuture.get(), is(expectedPort));
     }
@@ -72,8 +69,7 @@ public class OvsPortsSetTest extends AbstractNetlinkProtocolTest {
     private Port expectedInternalPort() {
         InternalPort port =
             Ports.newInternalPort("internalPort")
-                 .setPortNo(1)
-                 .setAddress(macFromString("9a:f0:9b:71:9c:0d"));
+                 .setPortNo(1);
 
         port.setStats(new Port.Stats());
         port.setOptions(port.newOptions());

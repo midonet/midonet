@@ -74,7 +74,8 @@ public class FlowManagerTest {
     @Test
     public void testHardTimeExpiration() throws InterruptedException {
 
-        FlowMatch flowMatch = new FlowMatch().addKey(FlowKeys.tunnelID(10L));
+        FlowMatch flowMatch =
+            new FlowMatch().addKey(FlowKeys.tunnel(10L, 100, 200));
 
         WildcardMatch wildcardMatch = WildcardMatch.fromFlowMatch(flowMatch);
 
@@ -118,7 +119,8 @@ public class FlowManagerTest {
 
     @Test
     public void testIdleExpiration() throws InterruptedException {
-        FlowMatch flowMatch = new FlowMatch().addKey(FlowKeys.tunnelID(10L));
+        FlowMatch flowMatch =
+            new FlowMatch().addKey(FlowKeys.tunnel(10L, 100, 200));
 
         WildcardMatch wildcardMatch = WildcardMatch.fromFlowMatch(flowMatch);
 
@@ -164,7 +166,8 @@ public class FlowManagerTest {
 
     @Test
     public void testIdleExpirationUpdate() throws InterruptedException{
-        FlowMatch flowMatch = new FlowMatch().addKey(FlowKeys.tunnelID(10L));
+        FlowMatch flowMatch =
+            new FlowMatch().addKey(FlowKeys.tunnel(10L, 100, 200));
 
         WildcardMatch wildcardMatch = WildcardMatch.fromFlowMatch(flowMatch);
         WildcardFlow wildcardFlow =
@@ -183,10 +186,12 @@ public class FlowManagerTest {
 
         // add another flow that matches, that will update the LastUsedTime of a
         // value > timeOut/2
-        FlowMatch flowMatch1 = new FlowMatch().addKey(FlowKeys.tunnelID(10L))
-                                      .addKey(FlowKeys.tcp(1000, 1002));
-        Flow flow2 = new Flow().setActions(actionsAsJava(wflow)).
-                                setMatch(flowMatch1);
+        FlowMatch flowMatch1 =
+            new FlowMatch().addKey(FlowKeys.tunnel(10L, 100, 200))
+                .addKey(FlowKeys.tcp(1000, 1002));
+        Flow flow2 =
+            new Flow().setActions(actionsAsJava(wflow)).setMatch(flowMatch1);
+
         // create the flow
         flowManager.add(flow2, wflow);
         flowManagerHelper.addFlow(flow2);
@@ -245,7 +250,8 @@ public class FlowManagerTest {
     @Test
     public void wildcardFlowUpdatedBecauseOfKernelFlowUpdated()
             throws InterruptedException {
-        FlowMatch flowMatch = new FlowMatch().addKey(FlowKeys.tunnelID(10L));
+        FlowMatch flowMatch =
+            new FlowMatch().addKey(FlowKeys.tunnel(10L, 100, 200));
 
         WildcardMatch wildcardMatch = WildcardMatch.fromFlowMatch(flowMatch);
         WildcardFlow wildcardFlow =
@@ -313,7 +319,7 @@ public class FlowManagerTest {
         // fill the table with a number of flow > maxAcceptedDpFlows
         for (int i=0; i<=maxAcceptedDpFlows; i++) {
             FlowMatch flowMatch =
-                new FlowMatch().addKey(FlowKeys.tunnelID(i+1));
+                new FlowMatch().addKey(FlowKeys.tunnel(i+1, 100, 200));
             WildcardMatch wildcardMatch =
                 WildcardMatch.fromFlowMatch(flowMatch);
             // no time out set
@@ -340,7 +346,8 @@ public class FlowManagerTest {
         List<ManagedWildcardFlow> flows = new ArrayList<ManagedWildcardFlow>(testSize);
 
         for (int counter = 0; counter < testSize; counter++) {
-            FlowMatch flowMatch = new FlowMatch().addKey(FlowKeys.tunnelID(counter * 10L));
+            FlowMatch flowMatch =
+                new FlowMatch().addKey(FlowKeys.tunnel(counter * 10L, 100, 200));
             WildcardMatch wildcardMatch = WildcardMatch.fromFlowMatch(flowMatch);
             WildcardFlow wf = WildcardFlowFactory.create(wildcardMatch);
             flows.add(ManagedWildcardFlow.create(wf));
@@ -367,7 +374,8 @@ public class FlowManagerTest {
         List<ManagedWildcardFlow> flows = new ArrayList<ManagedWildcardFlow>(testSize);
 
         for (int counter = 0; counter < testSize; counter++) {
-            FlowMatch flowMatch = new FlowMatch().addKey(FlowKeys.tunnelID(counter * 10L));
+            FlowMatch flowMatch =
+                new FlowMatch().addKey(FlowKeys.tunnel(counter * 10L, 100, 200));
             WildcardMatch wildcardMatch = WildcardMatch.fromFlowMatch(flowMatch);
             WildcardFlow wf = WildcardFlowFactory.createHardExpiration(wildcardMatch, timeOut);
             flows.add(ManagedWildcardFlow.create(wf));
