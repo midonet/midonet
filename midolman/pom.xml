@@ -17,116 +17,23 @@
     <packaging>jar</packaging>
 
     <build>
-
-        <defaultGoal>package</defaultGoal>
-
-        <resources>
-            <!-- GIT COMMIT ID PLUGIN CONFIGURATION
-                 https://github.com/ktoso/maven-git-commit-id-plugin/ -->
-            <resource>
-                <directory>src/main/resources</directory>
-                <filtering>true</filtering>
-                <includes>
-                    <include>**/*.properties</include>
-                    <include>**/*.xml</include>
-                    <include>**/*.conf</include>
-                </includes>
-            </resource>
-        </resources>
-
         <plugins>
-
             <plugin>
                 <groupId>net.alchim31.maven</groupId>
                 <artifactId>scala-maven-plugin</artifactId>
-                <version>3.1.5</version>
-
-                <configuration>
-                    <recompileMode>incremental</recompileMode>
-                    <useZincServer>true</useZincServer>
-                    <args>
-                        <arg>-deprecation</arg>
-                        <arg>-unchecked</arg>
-                        <arg>-dependencyfile</arg>
-                        <arg>${project.build.directory}/.scala_dependencies</arg>
-                    </args>
-                    <source>1.7</source>
-                    <target>1.7</target>
-                </configuration>
-
-                <executions>
-
-                    <execution>
-                        <id>scala-compile</id>
-                        <phase>process-resources</phase>
-                        <goals>
-                            <goal>compile</goal>
-                        </goals>
-                    </execution>
-
-                    <execution>
-                        <id>scala-test-compile</id>
-                        <phase>process-test-resources</phase>
-                        <goals>
-                            <goal>testCompile</goal>
-                        </goals>
-                    </execution>
-
-                </executions>
-
             </plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.5.1</version>
-                <configuration>
-                    <excludes>
-                        <exclude>**/*.java</exclude>
-                    </excludes>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>default-testCompile</id>
-                        <phase>test-compile</phase>
-                        <goals><goal>testCompile</goal></goals>
-                        <configuration><skip>true</skip></configuration>
-                    </execution>
-                </executions>
             </plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>${versions.maven.surefire}</version>
                 <configuration>
-                    <argLine>-Djava.library.path=/lib:/usr/lib -XX:-UseSplitVerifier ${bootstrap}</argLine>
+                    <argLine>${javalib} ${splitVerif} ${bootstrap}</argLine>
                 </configuration>
-            </plugin>
-
-            <plugin>
-                <artifactId>maven-resources-plugin</artifactId>
-                <version>2.5</version>
-                <executions>
-                    <execution>
-                        <id>copy-resources</id>
-                        <phase>process-test-resources</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>
-                                ${project.build.directory}/lib-native
-                            </outputDirectory>
-                            <resources>
-                                <resource>
-                                    <directory>${project.basedir}/lib-native
-                                    </directory>
-                                </resource>
-                            </resources>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
 
             <plugin>
@@ -134,7 +41,6 @@
                 <artifactId>rpm-maven-plugin</artifactId>
                 <configuration>
                     <requires>
-                        <require>kmod-openvswitch &gt;= 1.9</require>
                         <require>java7</require>
                         <require>quagga &gt;= 0.99.21</require>
                         <require>bridge-utils</require>
@@ -184,9 +90,6 @@
                             <sources>
                                 <source>
                                     <location>${project.build.directory}/dep</location>
-                                </source>
-                                <source>
-                                    <location>${project.build.directory}/dep-midokura</location>
                                 </source>
                             </sources>
                         </mapping>
@@ -239,7 +142,6 @@
                 <groupId>org.vafer</groupId>
                 <artifactId>jdeb</artifactId>
                 <configuration>
-                    <timestamped>true</timestamped>
                     <deb>[[buildDir]]/midolman_[[version]].[[extension]]</deb>
                     <dataSet>
                         <data>
@@ -269,14 +171,6 @@
                         </data>
                         <data>
                             <src>${project.build.directory}/dep</src>
-                            <type>directory</type>
-                            <mapper>
-                                <type>perm</type>
-                                <prefix>/usr/share/midolman/dep</prefix>
-                            </mapper>
-                        </data>
-                        <data>
-                            <src>${project.build.directory}/dep-midokura</src>
                             <type>directory</type>
                             <mapper>
                                 <type>perm</type>
@@ -322,77 +216,43 @@
                 </configuration>
             </plugin>
 
-
-            <!-- GIT COMMIT ID PLUGIN CONFIGURATION
-                 https://github.com/ktoso/maven-git-commit-id-plugin/ -->
             <plugin>
-                <groupId>pl.project13.maven</groupId>
-                <artifactId>git-commit-id-plugin</artifactId>
-                <version>2.1.5</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>revision</goal>
-                        </goals>
-                    </execution>
-                </executions>
-
-                <configuration>
-                    <prefix>git</prefix>
-                    <dateFormat>yyyy-MMM-dd '@' HH:mm:ss z</dateFormat>
-                    <verbose>true</verbose>
-                    <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
-                    <generateGitPropertiesFile>true</generateGitPropertiesFile>
-                    <generateGitPropertiesFilename>
-                        src/main/resources/git.properties
-                    </generateGitPropertiesFilename>
-                </configuration>
-            </plugin>
-
-            <plugin>
+                <!-- copy midolman runtime jar deps for final packages -->
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
                 <version>2.4</version>
-
                 <executions>
                     <execution>
-                        <id>copy-non-midokura-dependencies</id>
-                        <phase>process-sources</phase>
-                        <goals>
-                            <goal>copy-dependencies</goal>
-                        </goals>
+                        <id>copy-midokura-dependencies</id>
+                        <phase>prepare-package</phase>
+                        <goals><goal>copy-dependencies</goal></goals>
                         <configuration>
-                            <excludeGroupIds>${project.groupId}</excludeGroupIds>
-                            <!--
-                            Use this to avoid copying libraries that are
-                            in the test scope. Normally one would do
-                                excludeScope test
-                            but this doesn't seem to work properly so we are
-                            forced to express it like this.
-                            -->
                             <includeScope>runtime</includeScope>
                             <outputDirectory>
                                 ${project.build.directory}/dep/
                             </outputDirectory>
                         </configuration>
                     </execution>
+                </executions>
+            </plugin>
+
+            <!--  this can be used to generate a jar file including all external
+                    dependencies with it. Should we package midolman that way ?
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <executions>
                     <execution>
-                        <id>copy-midokura-dependencies</id>
                         <phase>prepare-package</phase>
-                        <goals>
-                            <goal>copy-dependencies</goal>
-                        </goals>
-                        <configuration>
-                            <includeGroupIds>${project.groupId}</includeGroupIds>
-                            <includeScope>runtime</includeScope>
-                            <outputDirectory>
-                                ${project.build.directory}/dep-midokura/
-                            </outputDirectory>
-                        </configuration>
+                        <goals><goal>single</goal></goals>
                     </execution>
                 </executions>
-
+                <configuration>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                </configuration>
             </plugin>
+            -->
 
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
@@ -402,7 +262,7 @@
                     <executable>sudo</executable>
                     <arguments>
                         <argument>java</argument>
-                        <argument>-Djava.library.path=/lib:/usr/lib</argument>
+                        <argument>${javalib}</argument>
                         <argument>${bootstrap}</argument>
                         <argument>-cp</argument>
                         <classpath />
@@ -411,302 +271,222 @@
                 </configuration>
             </plugin>
 
+            <plugin>
+                <!-- this plugin creates a resource file gathering info from the
+                last commit info which is then logged at midolman startup and
+                helps to identify which midolman code is running. Resource
+                filtering needs some custom configuration to include this file
+                in the packaging (see below). -->
+                <groupId>pl.project13.maven</groupId>
+                <artifactId>git-commit-id-plugin</artifactId>
+                <version>2.1.5</version>
+                <executions>
+                    <execution><goals><goal>revision</goal></goals></execution>
+                </executions>
+                <configuration>
+                    <verbose>false</verbose>
+                    <dateFormat>yyyy-MM-dd '@' HH:mm:ss z</dateFormat>
+                    <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
+                    <generateGitPropertiesFile>true</generateGitPropertiesFile>
+                    <generateGitPropertiesFilename>
+                        src/main/resources/git.properties
+                    </generateGitPropertiesFilename>
+                </configuration>
+            </plugin>
+
         </plugins>
+
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>**/*.properties</include>  <!-- for git -->
+                    <include>**/*.xml</include>         <!-- for logger conf -->
+                    <include>**/*.conf</include>        <!-- for mm conf -->
+                </includes>
+            </resource>
+        </resources>
 
     </build>
-
-    <reporting>
-        <plugins>
-            <plugin>
-                <groupId>org.scala-tools</groupId>
-                <artifactId>maven-scala-plugin</artifactId>
-                <version>2.15.0</version>
-            </plugin>
-        </plugins>
-    </reporting>
 
     <dependencies>
 
         <dependency>
-            <groupId>org.hamcrest</groupId>
-            <artifactId>hamcrest-all</artifactId>
-            <version>${versions.hamcrest}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-actor</artifactId>
-            <version>${versions.scala.akka}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-slf4j</artifactId>
-            <version>${versions.scala.akka}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-testkit</artifactId>
-            <version>${versions.scala.akka}</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.cassandra</groupId>
-            <artifactId>cassandra-all</artifactId>
-            <version>1.0.7</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>junit</groupId>
-                    <artifactId>junit</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.mortbay.jetty</groupId>
-                    <artifactId>servlet-api</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>javax.servlet</groupId>
-                    <artifactId>servlet-api</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>commons-lang</groupId>
-                    <artifactId>commons-lang</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>log4j</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-log4j12</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>org.cassandraunit</groupId>
-            <artifactId>cassandra-unit</artifactId>
-            <version>1.0.3.1</version>
-            <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.cassandra</groupId>
-                    <artifactId>cassandra-all</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.apache.cassandra</groupId>
-                    <artifactId>cassandra-parent</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.apache.cassandra</groupId>
-                    <artifactId>cassandra-thrift</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>junit</groupId>
-                    <artifactId>junit</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.hamcrest</groupId>
-                    <artifactId>hamcrest-all</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>log4j</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-log4j12</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>me.prettyprint</groupId>
-            <artifactId>hector-core</artifactId>
-            <version>1.0-2</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.cassandra</groupId>
-                    <artifactId>cassandra-all</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.apache.cassandra</groupId>
-                    <artifactId>cassandra-parent</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.apache.cassandra</groupId>
-                    <artifactId>cassandra-thrift</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>org.mortbay.jetty</groupId>
-            <artifactId>jetty</artifactId>
-            <version>${versions.jetty}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.mortbay.jetty</groupId>
-                    <artifactId>servlet-api</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>net.java.dev.jna</groupId>
-            <artifactId>jna</artifactId>
-            <version>${versions.jna}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.fasterxml</groupId>
-            <artifactId>jackson-module-scala</artifactId>
-            <version>${versions.jackson}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.scalatest</groupId>
-                    <artifactId>scalatest_2.9.1</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>junit</groupId>
-                    <artifactId>junit</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>org.codehaus.jackson</groupId>
-            <artifactId>jackson-core-asl</artifactId>
-            <version>${versions.jackson}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.codehaus.jackson</groupId>
-            <artifactId>jackson-mapper-asl</artifactId>
-            <version>${versions.jackson}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.zookeeper</groupId>
-            <artifactId>zookeeper</artifactId>
-            <version>3.4.5</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>jline</groupId>
-                    <artifactId>jline</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>javax.jms</groupId>
-                    <artifactId>jms</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.sun.jdmk</groupId>
-                    <artifactId>jmxtools</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.sun.jmx</groupId>
-                    <artifactId>jmxri</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>log4j</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-log4j12</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>commons-lang</groupId>
-            <artifactId>commons-lang</artifactId>
-            <version>${versions.commons.lang}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>commons-configuration</groupId>
-            <artifactId>commons-configuration</artifactId>
-            <version>${versions.commons.config}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>commons-cli</groupId>
-            <artifactId>commons-cli</artifactId>
-            <version>${versions.commons.cli}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-            <version>${versions.commons.io}</version>
-        </dependency>
-
-        <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>packets</artifactId>
-            <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>midonet-util</artifactId>
-            <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>netlink</artifactId>
-            <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>odp</artifactId>
-            <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>midonet-jdk-bootstrap</artifactId>
-            <version>${project.version}</version>
             <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-library</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.scalatest</groupId>
+            <artifactId>scalatest_2.9.2</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-actor</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-slf4j</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-testkit</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>javax.inject</groupId>
+            <artifactId>javax.inject</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>commons-configuration</groupId>
+            <artifactId>commons-configuration</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>commons-cli</groupId>
+            <artifactId>commons-cli</artifactId>
+        </dependency>
+
+        <dependency> <!-- needed by midonet-util & netlink -->
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-core-asl</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-mapper-asl</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-library</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
         </dependency>
 
         <dependency>
             <groupId>com.google.inject</groupId>
             <artifactId>guice</artifactId>
-            <version>${versions.guice}</version>
         </dependency>
 
         <dependency>
-            <groupId>com.google.inject.extensions</groupId>
-            <artifactId>guice-assistedinject</artifactId>
-            <version>${versions.guice}</version>
+            <groupId>org.apache.zookeeper</groupId>
+            <artifactId>zookeeper</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.cassandra</groupId>
+            <artifactId>cassandra-all</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.cassandra</groupId>
+            <artifactId>cassandra-thrift</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.thrift</groupId>
+            <artifactId>libthrift</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>me.prettyprint</groupId>
+            <artifactId>hector-core</artifactId>
+        </dependency>
+
+        <dependency> <!-- needed at compile time via netlink dependency -->
+            <groupId>net.java.dev.jna</groupId>
+            <artifactId>jna</artifactId>
         </dependency>
 
         <dependency>
             <groupId>com.yammer.metrics</groupId>
             <artifactId>metrics-core</artifactId>
-            <version>${versions.yammer.metrics}</version>
+            <version>2.1.2</version>
         </dependency>
 
         <dependency>
-            <groupId>com.yammer.metrics</groupId>
-            <artifactId>metrics-ganglia</artifactId>
-            <version>${versions.yammer.metrics}</version>
+            <groupId>org.easymock</groupId>
+            <artifactId>easymock</artifactId>
+            <version>3.0</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
         </dependency>
 
     </dependencies>
 
     <profiles>
+
         <profile>
+            <!-- activate this profile to generate rpm package for the midolman.
+            On ubuntu this requieres the rpm tools. -->
             <id>rpm</id>
             <activation>
-                <property>
-                    <name>rpm</name>
-                </property>
+                <property><name>rpm</name></property>
             </activation>
             <build>
                 <plugins>
@@ -716,9 +496,7 @@
                         <executions>
                             <execution>
                                 <phase>package</phase>
-                                <goals>
-                                    <goal>rpm</goal>
-                                </goals>
+                                <goals><goal>rpm</goal></goals>
                             </execution>
                         </executions>
                     </plugin>
@@ -726,25 +504,6 @@
             </build>
         </profile>
 
-        <profile>
-            <id>functional-tests</id>
-            <activation>
-                <property>
-                    <name>justFunctionalTests</name>
-                </property>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <configuration>
-                            <skipTests>true</skipTests>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
     </profiles>
 
 </project>
