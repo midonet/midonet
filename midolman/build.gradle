@@ -67,6 +67,11 @@ task preparePkg(type: Copy, dependsOn: installDist) {
         new File("${pkgDestDir}/usr/share/midolman/lib").
                 renameTo("${pkgDestDir}/usr/share/midolman/dep")
     }
+    // XXX - guillermo: create a main output dir for installDist because
+    // otherwise installDist will fail to run the second time.
+    doFirst {
+        new File("${buildDir}/install/${project.name}/main").mkdirs()
+    }
 }
 
 packaging {
