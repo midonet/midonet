@@ -5,6 +5,7 @@ import java.util.UUID;
 import javax.ws.rs.core.MultivaluedMap;
 
 import org.midonet.client.dto.DtoApplication;
+import org.midonet.client.dto.DtoTunnelZone;
 import org.midonet.client.dto.DtoCapwapTunnelZone;
 import org.midonet.client.dto.DtoGreTunnelZone;
 import org.midonet.client.resource.*;
@@ -104,7 +105,8 @@ public class MidonetApi {
      *
      * @return collection of bridge
      */
-    public ResourceCollection<Bridge> getBridges(MultivaluedMap queryParams) {
+    public ResourceCollection<Bridge> getBridges(
+            MultivaluedMap<String,String> queryParams) {
         ensureApplication();
         return application.getBridges(queryParams);
     }
@@ -114,7 +116,8 @@ public class MidonetApi {
      *
      * @return collection of router
      */
-    public ResourceCollection<Router> getRouters(MultivaluedMap queryParams) {
+    public ResourceCollection<Router> getRouters(
+            MultivaluedMap<String,String> queryParams) {
         ensureApplication();
         return application.getRouters(queryParams);
     }
@@ -124,7 +127,8 @@ public class MidonetApi {
      *
      * @return collection of chain
      */
-    public ResourceCollection<RuleChain> getChains(MultivaluedMap queryParams) {
+    public ResourceCollection<RuleChain> getChains(
+            MultivaluedMap<String,String> queryParams) {
         ensureApplication();
         return application.getChains(queryParams);
     }
@@ -135,7 +139,7 @@ public class MidonetApi {
      * @return collection of port group
      */
     public ResourceCollection<PortGroup> getPortGroups(
-        MultivaluedMap queryParams) {
+            MultivaluedMap<String,String> queryParams) {
         ensureApplication();
         return application.getPortGroups(queryParams);
     }
@@ -165,8 +169,7 @@ public class MidonetApi {
      *
      * @return collection of tunnel zone
      */
-    public ResourceCollection<TunnelZone>
-        getTunnelZones() {
+    public ResourceCollection<TunnelZone> getTunnelZones() {
         ensureApplication();
         return application.getTunnelZones(null);
     }
@@ -232,7 +235,7 @@ public class MidonetApi {
      * @param id ID of port
      * @return Port
      */
-    public Port getPort(UUID id) {
+    public Port<?,?> getPort(UUID id) {
         ensureApplication();
         return application.getPort(id);
     }
@@ -326,7 +329,7 @@ public class MidonetApi {
      * @param id ID of tunnel zone
      * @return TunnelZone
      */
-    public TunnelZone getTunnelZone(UUID id) {
+    public TunnelZone<? extends DtoTunnelZone> getTunnelZone(UUID id) {
         ensureApplication();
         return application.getTunnelZone(id);
     }

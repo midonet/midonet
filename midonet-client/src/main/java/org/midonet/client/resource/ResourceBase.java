@@ -28,7 +28,7 @@ import java.util.Objects;
  * @param <U> type of principal DTO
  */
 // TODO(pino): ResourceBase<T extends ResourceBase<T>, U>?
-public abstract class ResourceBase<T extends ResourceBase, U> {
+public abstract class ResourceBase<T extends ResourceBase<T,U>, U> {
 
     final WebResource resource;
     U principalDto;
@@ -95,8 +95,8 @@ public abstract class ResourceBase<T extends ResourceBase, U> {
         ResourceCollection<T> container =
             new ResourceCollection<T>(new ArrayList<T>());
 
-        Class newPrincipalDtoArrayClazz = Array
-            .newInstance(newPrincipalDtoClazz, 0).getClass();
+        Class<?> newPrincipalDtoArrayClazz =
+            Array.newInstance(newPrincipalDtoClazz, 0).getClass();
 
         // newPrincipalDtoArrray should be T[]
         @SuppressWarnings("unchecked")
@@ -222,6 +222,7 @@ public abstract class ResourceBase<T extends ResourceBase, U> {
         if (obj == null || getClass() != obj.getClass())
             return false;
 
+        @SuppressWarnings("unchecked") // safe at this point
         ResourceBase<T, U> otherResource = (ResourceBase<T, U>)obj;
 
         return Objects.equals(principalDto, otherResource.principalDto) &&

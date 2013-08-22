@@ -18,10 +18,10 @@ import org.midonet.client.dto.DtoTunnelZoneHost;
  * Time: 11:09 PM
  */
 public class TunnelZone<T extends DtoTunnelZone>
-    extends ResourceBase<TunnelZone, T> {
+        extends ResourceBase<TunnelZone<T>, T> {
+
     private String tunnelZoneHostMediaType = null;
     private String tunnelZoneHostListMediaType = null;
-
 
     public TunnelZone(WebResource resource, URI uriForCreation,
                       T tunnelZone, String tunnelZoneHostMediaType,

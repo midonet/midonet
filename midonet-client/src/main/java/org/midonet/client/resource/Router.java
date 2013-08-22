@@ -114,7 +114,8 @@ public class Router extends ResourceBase<Router, DtoRouter> {
      *
      * @return collection of router ports
      */
-    public ResourceCollection<RouterPort> getPorts(MultivaluedMap queryParams) {
+    public ResourceCollection<RouterPort> getPorts(
+            MultivaluedMap<String,String> queryParams) {
         return getChildResources(
                 principalDto.getPorts(),
                 queryParams,
@@ -128,7 +129,8 @@ public class Router extends ResourceBase<Router, DtoRouter> {
      *
      * @return collection of routes
      */
-    public ResourceCollection<Route> getRoutes(MultivaluedMap queryParams) {
+    public ResourceCollection<Route> getRoutes(
+            MultivaluedMap<String,String> queryParams) {
         return getChildResources(
             principalDto.getRoutes(),
             queryParams,
@@ -142,9 +144,10 @@ public class Router extends ResourceBase<Router, DtoRouter> {
      *
      * @return collection of ports
      */
-    public ResourceCollection<Port> getPeerPorts(MultivaluedMap queryParams) {
-        ResourceCollection<Port> peerPorts =
-                new ResourceCollection<Port>(new ArrayList<Port>());
+    public ResourceCollection<Port<?,?>> getPeerPorts(
+            MultivaluedMap<String,String> queryParams) {
+        ResourceCollection<Port<?,?>> peerPorts =
+                new ResourceCollection<>(new ArrayList<Port<?,?>>());
 
         DtoPort[] dtoPeerPorts = resource
                 .get(principalDto.getPeerPorts(),
@@ -153,20 +156,14 @@ public class Router extends ResourceBase<Router, DtoRouter> {
                         VendorMediaType.APPLICATION_PORT_V2_COLLECTION_JSON);
 
         for (DtoPort pp : dtoPeerPorts) {
-            Port p = null;
             if (pp instanceof DtoRouterPort) {
-                p = new RouterPort(
-                        resource,
-                        principalDto.getPorts(),
-                        (DtoRouterPort) pp);
+                peerPorts.add(new RouterPort(
+                    resource, principalDto.getPorts(), (DtoRouterPort) pp));
             } else if (pp instanceof DtoBridgePort) {
-                p = new BridgePort(
-                        resource,
-                        principalDto.getPorts(),
-                        (DtoBridgePort) pp);
+                peerPorts.add(new BridgePort(
+                    resource, principalDto.getPorts(), (DtoBridgePort) pp));
 
             }
-            peerPorts.add(p);
         }
         return peerPorts;
     }

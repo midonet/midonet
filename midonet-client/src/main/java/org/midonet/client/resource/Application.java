@@ -55,7 +55,8 @@ public class Application extends ResourceBase<Application, DtoApplication> {
      *
      * @return Collection of tenants
      */
-    public ResourceCollection<Tenant> getTenants(MultivaluedMap queryParams) {
+    public ResourceCollection<Tenant> getTenants(
+            MultivaluedMap<String,String> queryParams) {
         return getChildResources(principalDto.getTenants(),
                 queryParams,
                 VendorMediaType
@@ -68,7 +69,8 @@ public class Application extends ResourceBase<Application, DtoApplication> {
      *
      * @return Collection of bridges
      */
-    public ResourceCollection<Bridge> getBridges(MultivaluedMap queryParams) {
+    public ResourceCollection<Bridge> getBridges(
+            MultivaluedMap<String,String> queryParams) {
         return getChildResources(principalDto.getBridges(),
                                  queryParams,
                                  VendorMediaType
@@ -81,7 +83,8 @@ public class Application extends ResourceBase<Application, DtoApplication> {
      *
      * @return collection of routers
      */
-    public ResourceCollection<Router> getRouters(MultivaluedMap queryParams) {
+    public ResourceCollection<Router> getRouters(
+            MultivaluedMap<String,String> queryParams) {
         return getChildResources(principalDto.getRouters(),
                                  queryParams,
                                  VendorMediaType
@@ -94,7 +97,8 @@ public class Application extends ResourceBase<Application, DtoApplication> {
      *
      * @return collection of chains
      */
-    public ResourceCollection<RuleChain> getChains(MultivaluedMap queryParams) {
+    public ResourceCollection<RuleChain> getChains(
+            MultivaluedMap<String,String> queryParams) {
         return getChildResources(principalDto.getChains(),
                                  queryParams,
                                  VendorMediaType
@@ -108,7 +112,7 @@ public class Application extends ResourceBase<Application, DtoApplication> {
      * @return collection of port groups
      */
     public ResourceCollection<PortGroup> getPortGroups(
-        MultivaluedMap queryParams) {
+            MultivaluedMap<String,String> queryParams) {
         return getChildResources(principalDto.getPortGroups(),
                                  queryParams,
                                  VendorMediaType
@@ -122,7 +126,7 @@ public class Application extends ResourceBase<Application, DtoApplication> {
      * @return collection host
      */
     public ResourceCollection<Host> getHosts(
-        MultivaluedMap queryParams) {
+            MultivaluedMap<String,String> queryParams) {
         return getChildResources(principalDto.getHosts(),
                                  queryParams,
                                  VendorMediaType
@@ -135,13 +139,11 @@ public class Application extends ResourceBase<Application, DtoApplication> {
      *
      * @return collection of tunnel zones
      */
-    public ResourceCollection<TunnelZone> getTunnelZones(
-        MultivaluedMap queryParams) {
-        return getChildResources(principalDto.getTunnelZones(),
-                                 queryParams,
-                                 VendorMediaType
-                                     .APPLICATION_TUNNEL_ZONE_COLLECTION_JSON,
-                                 TunnelZone.class, DtoTunnelZone.class);
+    public ResourceCollection<TunnelZone>
+            getTunnelZones(MultivaluedMap<String,String> queryParams) {
+        return getChildResources(principalDto.getTunnelZones(), queryParams,
+            VendorMediaType.APPLICATION_TUNNEL_ZONE_COLLECTION_JSON,
+            TunnelZone.class, DtoTunnelZone.class);
     }
 
     /**
@@ -274,7 +276,7 @@ public class Application extends ResourceBase<Application, DtoApplication> {
      * @param id ID of port
      * @return Port
      */
-    public Port getPort(UUID id) {
+    public Port<?,?> getPort(UUID id) {
         URI uri = createUriFromTemplate(
                 principalDto.getPortTemplate(), ID_TOKEN, id);
         DtoPort port = resource.get(uri, null, DtoPort.class,
@@ -416,29 +418,30 @@ public class Application extends ResourceBase<Application, DtoApplication> {
      * @param id ID of tunnel zone
      * @return TunnelZone
      */
-    public TunnelZone getTunnelZone(UUID id) {
+    public TunnelZone<? extends DtoTunnelZone> getTunnelZone(UUID id) {
         URI uri = createUriFromTemplate(
                 principalDto.getTunnelZoneTemplate(), ID_TOKEN,
                 id);
         DtoTunnelZone tunnelZone = resource.get(uri, null, DtoTunnelZone.class,
                 VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON);
         if (tunnelZone instanceof DtoGreTunnelZone) {
-            return new TunnelZone(resource, null, (DtoGreTunnelZone) tunnelZone,
-                    VendorMediaType.APPLICATION_GRE_TUNNEL_ZONE_HOST_JSON,
-                    VendorMediaType
-                            .APPLICATION_GRE_TUNNEL_ZONE_HOST_COLLECTION_JSON);
+            return new TunnelZone<DtoGreTunnelZone>(resource, null,
+                (DtoGreTunnelZone) tunnelZone,
+                VendorMediaType.APPLICATION_GRE_TUNNEL_ZONE_HOST_JSON,
+                VendorMediaType.APPLICATION_GRE_TUNNEL_ZONE_HOST_COLLECTION_JSON
+            );
         } else if (tunnelZone instanceof DtoCapwapTunnelZone) {
-            return new TunnelZone(resource, null,
-                    (DtoCapwapTunnelZone) tunnelZone,
-                    VendorMediaType.APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_JSON,
-                    VendorMediaType
-                          .APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_COLLECTION_JSON);
+            return new TunnelZone<DtoCapwapTunnelZone>(resource, null,
+                (DtoCapwapTunnelZone) tunnelZone,
+                VendorMediaType.APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_JSON,
+                VendorMediaType.APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_COLLECTION_JSON
+            );
         } else if (tunnelZone instanceof DtoIpsecTunnelZone) {
-            return new TunnelZone(resource, null,
-                    (DtoIpsecTunnelZone) tunnelZone,
-                    VendorMediaType.APPLICATION_IPSEC_TUNNEL_ZONE_HOST_JSON,
-                    VendorMediaType
-                           .APPLICATION_IPSEC_TUNNEL_ZONE_HOST_COLLECTION_JSON);
+            return new TunnelZone<DtoIpsecTunnelZone>(resource, null,
+                (DtoIpsecTunnelZone) tunnelZone,
+                VendorMediaType.APPLICATION_IPSEC_TUNNEL_ZONE_HOST_JSON,
+                VendorMediaType.APPLICATION_IPSEC_TUNNEL_ZONE_HOST_COLLECTION_JSON
+            );
         } else {
             throw new IllegalArgumentException(
                     "No tunnel zone with ID (" + id + ") exists.");
