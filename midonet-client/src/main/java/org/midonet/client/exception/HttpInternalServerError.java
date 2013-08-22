@@ -11,8 +11,9 @@ import com.sun.jersey.api.client.ClientResponse;
  * Date: 8/14/12
  * Time: 2:22 PM
  */
-
 public class HttpInternalServerError extends HttpException {
+
+    static final long serialVersionUID = 1L;
 
     public HttpInternalServerError(ClientResponse response) {
         super(response);

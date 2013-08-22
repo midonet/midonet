@@ -106,7 +106,8 @@ public class Bgp extends ResourceBase<Bgp, DtoBgp> {
      *
      * @return collection of AdRoute resource
      */
-    public ResourceCollection<AdRoute> getAdRoutes(MultivaluedMap queryParams) {
+    public ResourceCollection<AdRoute> getAdRoutes(
+            MultivaluedMap<String,String> queryParams) {
         return getChildResources(principalDto.getAdRoutes(),
                                  queryParams,
                                  VendorMediaType

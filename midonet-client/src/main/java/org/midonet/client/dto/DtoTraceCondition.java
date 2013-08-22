@@ -319,6 +319,7 @@ public class DtoTraceCondition {
             if (o == null || getClass() != o.getClass())
                 return false;
 
+            @SuppressWarnings("unchecked") // safe cast at that point
             DtoRange<E> that = (DtoRange<E>) o;
             if (start != null ? !start.equals(that.start) : that.start != null ||
                 end != null ? !end.equals(that.end) : that.end != null)

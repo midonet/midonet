@@ -142,9 +142,9 @@ public class Bridge extends ResourceBase<Bridge, DtoBridge> {
      *
      * @return collection of ports
      */
-    public ResourceCollection<Port> getPeerPorts() {
-        ResourceCollection<Port> peerPorts =
-                new ResourceCollection<Port>(new ArrayList<Port>());
+    public ResourceCollection<Port<?,?>> getPeerPorts() {
+        ResourceCollection<Port<?,?>> peerPorts =
+                new ResourceCollection<>(new ArrayList<Port<?,?>>());
 
         DtoPort[] dtoPeerPorts = resource.get(
                 principalDto.getPeerPorts(),
@@ -196,7 +196,7 @@ public class Bridge extends ResourceBase<Bridge, DtoBridge> {
      * @return collection of subnets
      */
 
-    public ResourceCollection getDhcpSubnets() {
+    public ResourceCollection<DhcpSubnet> getDhcpSubnets() {
         return getChildResources(
             principalDto.getDhcpSubnets(),
             null,
@@ -210,7 +210,7 @@ public class Bridge extends ResourceBase<Bridge, DtoBridge> {
                           new DtoDhcpSubnet6());
     }
 
-    public ResourceCollection getDhcpSubnet6s() {
+    public ResourceCollection<DhcpSubnet6> getDhcpSubnet6s() {
         return getChildResources(
             principalDto.getDhcpSubnet6s(),
             null,

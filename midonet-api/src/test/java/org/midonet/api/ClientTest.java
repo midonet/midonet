@@ -372,7 +372,7 @@ public class ClientTest extends JerseyTest {
 
         assertThat(lrp2.getPeerId(), is(((RouterPort) lrp1.get()).getId()));
 
-        ResourceCollection<Port> peerPorts = r1.getPeerPorts(null);
+        ResourceCollection<Port<?,?>> peerPorts = r1.getPeerPorts(null);
 
         lrp2.unlink();
         lrp3.unlink();

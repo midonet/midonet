@@ -13,9 +13,9 @@ import org.midonet.client.dto.DtoError;
  * Date: 8/14/12
  * Time: 2:22 PM
  */
-
-
 public class HttpException extends RuntimeException {
+
+    static final long serialVersionUID = 1L;
 
     ClientResponse response;
 

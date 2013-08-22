@@ -222,7 +222,8 @@ public class RouterPort extends Port<RouterPort, DtoRouterPort> {
      *
      * @return collection of bgps
      */
-    public ResourceCollection<Bgp> getBgps(MultivaluedMap queryParams) {
+    public ResourceCollection<Bgp> getBgps(
+            MultivaluedMap<String,String> queryParams) {
         return getChildResources(
             principalDto.getBgps(),
             queryParams,
