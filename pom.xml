@@ -13,6 +13,8 @@
     <name>Midonet aggregator project</name>
 
     <modules>
+        <!-- subprojects this pom file controls. If maven cannot figure out in
+        which order it should build them, it uses this list ordering. -->
         <module>midonet-jdk-bootstrap</module>
         <module>midonet-util</module>
         <module>packets</module>
@@ -24,13 +26,6 @@
         <module>midonet-functional-tests</module>
     </modules>
 
-    <scm>
-        <developerConnection>scm:git:git@github.com:midokura/midonet.git</developerConnection>
-        <connection>scm:git:git@github.com:midokura/midonet.git</connection>
-        <url>scm:git:git@github.com:midokura/midonet.git</url>
-      <tag>midonet-1.1.0</tag>
-    </scm>
-
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
@@ -38,98 +33,21 @@
         <mido.rpm.release>0.0.${maven.build.timestamp}</mido.rpm.release>
 
         <versions.java>1.7</versions.java>
+        <javasource>**/*.java</javasource>
         <versions.scala.library>2.9.2</versions.scala.library>
-        <versions.scala.akka>2.0.3</versions.scala.akka>
-        <versions.compiler.scala-maven>3.1.5</versions.compiler.scala-maven>
-
-        <versions.jna>3.3.0</versions.jna>
-        <versions.slf4j>1.6.4</versions.slf4j>
-        <versions.logback>1.0.1</versions.logback>
-        <versions.jackson>1.9.3</versions.jackson>
-        <versions.jersey>1.10</versions.jersey>
-        <versions.jetty>6.1.26</versions.jetty>
-        <versions.javax.servlet>2.5</versions.javax.servlet>
-        <versions.yammer.metrics>2.1.2</versions.yammer.metrics>
-        <versions.guice>3.0</versions.guice>
-        <versions.findbugs>2.0.0</versions.findbugs>
-        <versions.hamcrest>1.3</versions.hamcrest>
-
-        <versions.commons.lang>2.6</versions.commons.lang>
-        <versions.commons.io>2.3</versions.commons.io>
-        <versions.commons.cli>1.2</versions.commons.cli>
-        <versions.commons.codec>1.2</versions.commons.codec>
-        <versions.commons.config>1.8</versions.commons.config>
-
-        <versions.powermock>1.4.11</versions.powermock>
-        <versions.mockito>1.9.0</versions.mockito>
-        <versions.testng>6.5.2</versions.testng>
-        <versions.junit>4.10</versions.junit>
-        <versions.scalatest>2.0.M4</versions.scalatest>
-
-        <versions.maven.dependency>2.4</versions.maven.dependency>
-        <versions.maven.surefire>2.12.4</versions.maven.surefire>
-        <versions.maven.jar>2.3</versions.maven.jar>
-        <versions.maven.doc>2.7</versions.maven.doc>
-        <versions.maven.deploy>2.4</versions.maven.deploy>
-
-        <versions.plugins.jdeb>0.10</versions.plugins.jdeb>
-        <versions.plugins.rpm>2.1-alpha-2</versions.plugins.rpm>
-
         <bootstrap>-Xbootclasspath/p:${project.basedir}/../midonet-jdk-bootstrap/target/classes:${project.basedir}/../midonet-jdk-bootstrap/target/midonet-jdk-bootstrap-${project.version}.jar</bootstrap>
-
+        <javalib>-Djava.library.path=/lib:/usr/lib</javalib>
+        <splitVerif>-XX:-UseSplitVerifier</splitVerif>
     </properties>
 
-    <pluginRepositories>
-        <pluginRepository>
-            <id>mido-maven</id>
-            <name>mido-maven</name>
-            <url>http://mido-iida-1.midokura.jp:8081/artifactory/repo</url>
-        </pluginRepository>
-
-        <pluginRepository>
-            <id>apache.snapshots</id>
-            <name>Apache Snapshots</name>
-            <url>http://people.apache.org/repo/m2-snapshot-repository</url>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </pluginRepository>
-
-    </pluginRepositories>
-
-    <distributionManagement>
-        <snapshotRepository>
-            <id>mido-maven-local-snapshots</id>
-            <name>mido-maven-local-snapshots</name>
-            <url>
-                http://mido-iida-1.midokura.jp:8081/artifactory/libs-snapshot-local
-            </url>
-        </snapshotRepository>
-
-        <repository>
-            <id>mido-maven-local-releases</id>
-            <name>mido-maven-local-releases</name>
-            <url>
-                http://mido-iida-1.midokura.jp:8081/artifactory/libs-release-local
-            </url>
-        </repository>
-    </distributionManagement>
-
     <repositories>
-
+        <!-- this section specifies repositories from which maven will fetch
+        jar files declared as dependencies. Most of the dependencies should be
+        found in maven central repo or in the sonatype repo. -->
         <repository>
-            <id>mido-maven</id>
-            <name>mido-maven</name>
-            <url>http://mido-iida-1.midokura.jp:8081/artifactory/repo</url>
-        </repository>
-
-        <repository>
-            <id>jsch-maven</id>
-            <name>Jsch maven repository</name>
-            <url>http://jsch.sf.net/maven2/</url>
+            <id>sonatype</id>
+            <name>Sonatype Repository</name>
+            <url>https://oss.sonatype.org/content/groups/public/</url>
         </repository>
 
         <repository>
@@ -137,132 +55,181 @@
             <name>Typesafe Repository</name>
             <url>http://repo.typesafe.com/typesafe/releases/</url>
         </repository>
-
-        <repository>
-            <id>sonatype</id>
-            <name>Sonatype Repository</name>
-            <url>https://oss.sonatype.org/content/groups/public/</url>
-        </repository>
-
     </repositories>
 
     <build>
 
         <defaultGoal>package</defaultGoal>
+        <!-- if no goal is specified, maven will execute the package goal -->
 
-        <pluginManagement>
-            <plugins>
-
-                <plugin>
-                    <groupId>org.vafer</groupId>
-                    <artifactId>jdeb</artifactId>
-                    <version>${versions.plugins.jdeb}</version>
-                    <executions>
-                        <execution>
-                            <phase>package</phase>
-                            <goals><goal>jdeb</goal></goals>
-                        </execution>
-                    </executions>
-                </plugin>
-
-                <plugin>
-                    <groupId>org.codehaus.mojo</groupId>
-                    <artifactId>rpm-maven-plugin</artifactId>
-                    <version>${versions.plugins.rpm}</version>
-                    <configuration>
-                        <copyright>2013, Midokura</copyright>
-                        <packager>Midokura</packager>
-                        <prefix>/usr</prefix>
-                        <group>System Environment/Daemons</group>
-                        <needarch>false</needarch>
-                        <release>${mido.rpm.release}</release>
-                    </configuration>
-                    <executions>
-                        <execution> <!-- rpm:version will remove -SNAPSHOT -->
-                            <id>property</id>
-                            <goals><goal>version</goal></goals>
-                        </execution>
-                    </executions>
-                </plugin>
-
-            </plugins>
-        </pluginManagement>
-
-        <plugins>
+        <pluginManagement> <plugins>
+        <!-- this section declares plugin configuration shared by subprojects.
+        Unless subprojects explicitly reference these plugins, they are not
+        executed. -->
 
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <version>${versions.maven.dependency}</version>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>${versions.maven.surefire}</version>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.apache.maven.surefire</groupId>
-                        <artifactId>surefire-junit47</artifactId>
-                        <version>${versions.maven.surefire}</version>
-                    </dependency>
-                </dependencies>
+                <!-- All subprojects but midonet-api are compiled with sbt with
+                incremental compilation. If zinc is available maven will try to
+                use it instead of starting a new sbt process. -->
+                <groupId>net.alchim31.maven</groupId>
+                <artifactId>scala-maven-plugin</artifactId>
+                <version>3.1.5</version>
                 <configuration>
-                    <failIfNoTests>false</failIfNoTests>
-                    <parallel>false</parallel>
+                    <recompileMode>incremental</recompileMode>
+                    <useZincServer>true</useZincServer>
+                    <args>
+                        <arg>-deprecation</arg>
+                        <arg>-unchecked</arg>
+                        <arg>-dependencyfile</arg>
+                        <arg>${project.build.directory}/.scala_dependencies</arg>
+                    </args>
+                    <source>${versions.java}</source>
+                    <target>${versions.java}</target>
+                    <addJavacArgs>-Xlint:all</addJavacArgs>
                 </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-enforcer-plugin</artifactId>
-                <version>1.1.1</version>
                 <executions>
+                    <!-- by default sbt is not bound to any standard goals. -->
                     <execution>
-                        <id>enforce-versions</id>
-                        <goals>
-                            <goal>enforce</goal>
-                        </goals>
-                        <configuration>
-                            <rules>
-                                <requireJavaVersion>
-                                    <version>1.7</version>
-                                </requireJavaVersion>
-                            </rules>
-                        </configuration>
+                        <id>sbt-compile</id>
+                        <phase>compile</phase>
+                        <goals><goal>compile</goal></goals>
+                    </execution>
+                    <execution>
+                        <id>sbt-test-compile</id>
+                        <phase>test-compile</phase>
+                        <goals><goal>testCompile</goal></goals>
                     </execution>
                 </executions>
             </plugin>
 
             <plugin>
+                <!-- these settings turn off the default maven compiler. -->
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>${versions.maven.jar}</version>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.5.1</version>
+                <configuration>
+                    <excludes><exclude>${javasource}</exclude></excludes>
+                    <skip>true</skip>
+                </configuration>
             </plugin>
 
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>${versions.maven.doc}</version>
+                <!-- for debian packaging of midolman and midonet-api -->
+                <groupId>org.vafer</groupId>
+                <artifactId>jdeb</artifactId>
+                <version>1.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals><goal>jdeb</goal></goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <timestamped>true</timestamped>
+                    <verbose>false</verbose>
+                </configuration>
             </plugin>
 
+            <plugin>
+                <!-- for rpm packaging of midolman and midonet-api -->
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>rpm-maven-plugin</artifactId>
+                <version>2.1-alpha-2</version>
+                <configuration>
+                    <copyright>2013, Midokura</copyright>
+                    <packager>Midokura</packager>
+                    <prefix>/usr</prefix>
+                    <group>System Environment/Daemons</group>
+                    <needarch>false</needarch>
+                    <release>${mido.rpm.release}</release>
+                </configuration>
+                <executions>
+                    <!-- rpm:version will remove the -SNAPSHOT tag from the
+                            mavenproject version string if it exists and
+                            replace it with a timestamp. Don't manually set
+                            the rpm.version property. -->
+                    <execution>
+                        <id>property</id>
+                        <goals><goal>version</goal></goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+        </plugins> </pluginManagement>
+
+        <plugins>
+            <!-- this section configures the surefire plugin which is used
+            across all subprojects for unit tests. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.12.4</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.maven.surefire</groupId>
+                        <artifactId>surefire-junit47</artifactId>
+                        <version>2.12.4</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <failIfNoTests>false</failIfNoTests>
+                    <parallel>false</parallel>
+                    <printSummary>false</printSummary>
+                    <reportFormat>brief</reportFormat>
+                    <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                </configuration>
+            </plugin>
         </plugins>
 
     </build>
 
-    <reporting>
-        <plugins>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>cobertura-maven-plugin</artifactId>
-                <version>2.5.1</version>
-            </plugin>
-        </plugins>
-    </reporting>
+    <dependencyManagement> <dependencies>
+    <!-- dependencies in this section are loaded on demand by subprojects. -->
 
-    <dependencies>
+        <!-- internal subproject dependencies -->
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>packets</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
-        <!-- scala -->
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>midonet-util</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>midonet-jdk-bootstrap</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>netlink</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>odp</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>midolman</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+         <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>midonet-client</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- scala and scalatest -->
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
@@ -271,12 +238,170 @@
 
         <dependency>
             <groupId>org.scalatest</groupId>
-            <artifactId>scalatest_2.9.2</artifactId>
-            <version>${versions.scalatest}</version>
+            <artifactId>scalatest_${versions.scala.library}</artifactId>
+            <version>2.0.M4</version>
             <scope>test</scope>
         </dependency>
 
-        <!-- other common facilities -->
+        <!-- akka framework -->
+        <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-actor</artifactId>
+            <version>2.0.3</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-slf4j</artifactId>
+            <version>2.0.3</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-testkit</artifactId>
+            <version>2.0.3</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- javax -->
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+            <version>2.5</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>javax.persistence</groupId>
+            <artifactId>persistence-api</artifactId>
+            <version>1.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>javax.ws.rs</groupId>
+            <artifactId>jsr311-api</artifactId>
+            <version>1.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>javax.annotation</groupId>
+            <artifactId>jsr250-api</artifactId>
+            <version>1.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>javax.inject</groupId>
+            <artifactId>javax.inject</artifactId>
+            <version>1</version>
+        </dependency>
+
+        <!-- apache commons -->
+        <dependency>
+            <groupId>commons-configuration</groupId>
+            <artifactId>commons-configuration</artifactId>
+            <version>1.8</version>
+        </dependency>
+
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.3</version>
+        </dependency>
+
+        <dependency>
+            <groupId>commons-cli</groupId>
+            <artifactId>commons-cli</artifactId>
+            <version>1.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+            <version>2.6</version>
+        </dependency>
+
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>1.2</version>
+        </dependency>
+
+        <!-- jackson -->
+        <dependency>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-core-asl</artifactId>
+            <version>1.9.3</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-mapper-asl</artifactId>
+            <version>1.9.3</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-jaxrs</artifactId>
+            <version>1.9.3</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-xc</artifactId>
+            <version>1.9.3</version>
+        </dependency>
+
+        <!-- hamcrest -->
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-core</artifactId>
+            <version>1.3</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-library</artifactId>
+            <version>1.3</version>
+        </dependency>
+
+        <!-- jersey -->
+        <dependency>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-client</artifactId>
+            <version>1.10</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-server</artifactId>
+            <version>1.10</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-servlet</artifactId>
+            <version>1.10</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.sun.jersey.contribs</groupId>
+            <artifactId>jersey-guice</artifactId>
+            <version>1.10</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-json</artifactId>
+            <version>1.10</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.sun.xml.bind</groupId>
+                    <artifactId>jaxb-impl</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- google projects -->
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
@@ -286,85 +411,229 @@
         <dependency>
             <groupId>com.google.code.findbugs</groupId>
             <artifactId>jsr305</artifactId>
-            <version>${versions.findbugs}</version>
+            <version>2.0.0</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.google.inject</groupId>
+            <artifactId>guice</artifactId>
+            <version>3.0</version>
+        </dependency>
+
+        <!-- zookeeper -->
+        <dependency>
+            <groupId>org.apache.zookeeper</groupId>
+            <artifactId>zookeeper</artifactId>
+            <version>3.4.5</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>jline</groupId>
+                    <artifactId>jline</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>javax.jms</groupId>
+                    <artifactId>jms</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.sun.jdmk</groupId>
+                    <artifactId>jmxtools</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.sun.jmx</groupId>
+                    <artifactId>jmxri</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- cassandra -->
+        <dependency>
+            <groupId>org.apache.cassandra</groupId>
+            <artifactId>cassandra-all</artifactId>
+            <version>1.0.7</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-lang</groupId>
+                    <artifactId>commons-lang</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>junit</groupId>
+                    <artifactId>junit</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.cassandra</groupId>
+            <artifactId>cassandra-thrift</artifactId>
+            <version>1.0.7</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.thrift</groupId>
+            <artifactId>libthrift</artifactId>
+            <version>0.6.1</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>junit</groupId>
+                    <artifactId>junit</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.cassandraunit</groupId>
+            <artifactId>cassandra-unit</artifactId>
+            <version>1.0.3.1</version> <!-- why different from cass-all ?-->
+            <scope>test</scope>
+            <exclusions> <!-- version conflicts with declared dependencies -->
+                <exclusion>
+                    <groupId>junit</groupId>
+                    <artifactId>junit</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>me.prettyprint</groupId>
+            <artifactId>hector-core</artifactId>
+            <version>1.0-2</version> <!-- compatible with cass 1.0.7 ?-->
+            <exclusions> <!-- version conflicts with declared dependencies -->
+                <exclusion>
+                    <groupId>org.apache.cassandra</groupId>
+                    <artifactId>cassandra-all</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.cassandra</groupId>
+                    <artifactId>cassandra-parent</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.cassandra</groupId>
+                    <artifactId>cassandra-thrift</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>junit</groupId>
+                    <artifactId>junit</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- jna, used by the netlink layer -->
+        <dependency>
+            <groupId>net.java.dev.jna</groupId>
+            <artifactId>jna</artifactId>
+            <version>3.3.0</version>
+        </dependency>
+
+        <!-- testing -->
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <version>6.5.2</version>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>junit</groupId>
+                    <artifactId>junit</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <version>1.9.0</version>
+            <scope>test</scope>
+        </dependency>
+
+   </dependencies> </dependencyManagement>
+
+    <dependencies>
+    <!-- these dependencies are always present in all subprojects. -->
 
         <!-- logging facility -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>${versions.slf4j}</version>
+            <version>1.6.4</version>
         </dependency>
 
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>${versions.logback}</version>
+            <version>1.0.1</version>
         </dependency>
 
         <!-- testing libraries -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit-dep</artifactId>
-            <version>${versions.junit}</version>
+            <version>4.10</version>
             <scope>test</scope>
         </dependency>
-
-        <dependency>
-            <groupId>org.testng</groupId>
-            <artifactId>testng</artifactId>
-            <version>${versions.testng}</version>
-            <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>junit</groupId>
-                    <artifactId>junit</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>org.powermock</groupId>
-            <artifactId>powermock-module-junit4</artifactId>
-            <version>${versions.powermock}</version>
-            <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>junit</groupId>
-                    <artifactId>junit</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>org.powermock</groupId>
-            <artifactId>powermock-api-mockito</artifactId>
-            <version>${versions.powermock}</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-all</artifactId>
-            <version>${versions.mockito}</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.easymock</groupId>
-            <artifactId>easymock</artifactId>
-            <version>3.0</version>
-            <scope>test</scope>
-        </dependency>
-<!--
-        <dependency>
-            <groupId>org.powermock</groupId>
-            <artifactId>powermock-api-mockito</artifactId>
-            <version>${versions.powermock}</version>
-            <scope>test</scope>
-        </dependency>
--->
 
     </dependencies>
+
+    <reporting>
+        <plugins>
+            <!-- to generate cobertura reports, run $ mvn cobertura:cobertura
+                    from a clean mvn project. You can target subprojects as
+                    usual with the -pl option. To make it working you should
+                    first turn off the zinc server with $ zinc -shutdown.
+                    You can look at the output in direclty in your browser by
+                    loading at subproject/site/cobertura/index.html -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>cobertura-maven-plugin</artifactId>
+                <version>2.6</version>
+                <configuration>
+                    <formats><format>html</format></formats>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </reporting>
+
+    <profiles>
+        <profile>
+            <id>report</id>
+            <activation><activeByDefault>true</activeByDefault></activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <printSummary>true</printSummary>
+                            <redirectTestOutputToFile>false</redirectTestOutputToFile>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
 </project>

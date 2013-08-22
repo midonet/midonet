@@ -17,94 +17,25 @@
     <packaging>jar</packaging>
 
     <build>
-
-        <defaultGoal>package</defaultGoal>
-
         <plugins>
-
             <plugin>
                 <groupId>net.alchim31.maven</groupId>
                 <artifactId>scala-maven-plugin</artifactId>
-                <version>3.1.5</version>
-
-                <configuration>
-                    <recompileMode>incremental</recompileMode>
-                    <useZincServer>true</useZincServer>
-                    <args>
-                        <arg>-deprecation</arg>
-                        <arg>-unchecked</arg>
-                        <arg>-dependencyfile</arg>
-                        <arg>${project.build.directory}/.scala_dependencies</arg>
-                    </args>
-                    <source>${versions.java}</source>
-                    <target>${versions.java}</target>
-                    <addJavacArgs>-Xlint:all</addJavacArgs>
-                </configuration>
-
-                <executions>
-
-                    <execution>
-                        <id>scala-compile-first</id>
-                        <phase>process-resources</phase>
-                        <goals>
-                            <goal>compile</goal>
-                        </goals>
-                        <configuration>
-                            <compilerPlugins>
-                                <compilerPlugin>
-                                    <groupId>org.scala-lang.plugins</groupId>
-                                    <artifactId>continuations</artifactId>
-                                    <version>${versions.scala.library}</version>
-                                </compilerPlugin>
-                            </compilerPlugins>
-                        </configuration>
-                    </execution>
-
-                    <execution>
-                        <id>scala-test-compile</id>
-                        <phase>process-test-resources</phase>
-                        <goals>
-                            <goal>testCompile</goal>
-                        </goals>
-                    </execution>
-
-                </executions>
-
             </plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.5.1</version>
-                <configuration>
-                    <excludes>
-                        <exclude>**/*.java</exclude>
-                    </excludes>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>default-testCompile</id>
-                        <phase>test-compile</phase>
-                        <goals><goal>testCompile</goal></goals>
-                        <configuration><skip>true</skip></configuration>
-                    </execution>
-                </executions>
             </plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>${versions.maven.surefire}</version>
                 <configuration>
-                    <argLine>
-                        -Djava.library.path=/lib:/usr/lib
-                        -XX:-UseSplitVerifier
-                    </argLine>
+                    <argLine>${javalib} ${splitVerif}</argLine>
                 </configuration>
             </plugin>
-
         </plugins>
-
     </build>
 
     <dependencies>
@@ -112,62 +43,50 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>packets</artifactId>
-            <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
 
-        <!-- ssh support library in pure java: jsch or ganymed-ssh2 -->
-        <dependency>
-            <groupId>com.jcraft</groupId>
-            <artifactId>jsch</artifactId>
-            <version>0.1.45</version>
+        <dependency> <!-- needed by ServletConfigProvider used in api-server -->
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
         </dependency>
 
         <dependency>
             <groupId>commons-configuration</groupId>
             <artifactId>commons-configuration</artifactId>
-            <version>${versions.commons.config}</version>
         </dependency>
 
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
-            <version>${versions.commons.io}</version>
         </dependency>
 
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>servlet-api</artifactId>
-            <version>${versions.javax.servlet}</version>
-            <scope>provided</scope>
+        <dependency> <!-- needed by version checker -->
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-mapper-asl</artifactId>
         </dependency>
 
         <dependency>
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest-core</artifactId>
-            <version>${versions.hamcrest}</version>
         </dependency>
 
         <dependency>
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest-library</artifactId>
-            <version>${versions.hamcrest}</version>
         </dependency>
 
-        <dependency>
-            <groupId>org.hamcrest</groupId>
-            <artifactId>hamcrest-integration</artifactId>
-            <version>${versions.hamcrest}</version>
-            <scope>test</scope>
+        <dependency> <!-- needed by selectLoop -->
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>commons-cli</groupId>
-            <artifactId>commons-cli</artifactId>
-            <version>${versions.commons.cli}</version>
+        <dependency> <!-- needed for @Nonnull -->
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
         </dependency>
 
-        <dependency>
+        <dependency> <!-- needed by jmx session helper -->
             <groupId>com.sun</groupId>
             <artifactId>tools</artifactId>
             <version>${java.version}</version>
@@ -175,41 +94,28 @@
             <systemPath>${java.home}/../lib/tools.jar</systemPath>
         </dependency>
 
-        <dependency>
-            <groupId>org.codehaus.jackson</groupId>
-            <artifactId>jackson-core-asl</artifactId>
-            <version>${versions.jackson}</version>
+        <dependency> <!-- ssh lib, obsolete after retiring func-tests -->
+            <groupId>com.jcraft</groupId>
+            <artifactId>jsch</artifactId>
+            <version>0.1.45</version>
         </dependency>
 
         <dependency>
-            <groupId>org.codehaus.jackson</groupId>
-            <artifactId>jackson-mapper-asl</artifactId>
-            <version>${versions.jackson}</version>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-library</artifactId>
+            <scope>test</scope>
         </dependency>
 
     </dependencies>
-
-
-    <profiles>
-        <profile>
-            <id>functional-tests</id>
-            <activation>
-                <property>
-                    <name>justFunctionalTests</name>
-                </property>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <configuration>
-                            <skipTests>true</skipTests>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 
 </project>
