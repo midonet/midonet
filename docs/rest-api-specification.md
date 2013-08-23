@@ -276,6 +276,14 @@ The POST/PUT column indicates whether the field can be included in the request
 with these verbs.  If they are not specified, the field should not be included
 in the request.
 
+The Required column indicates is only relevant for POST/PUT operations.
+You should not see any entry for 'Required' if the 'POST/PUT' column is
+empty. When the Required value is set, it will have indicate whether the
+field is relevant for POST, PUT or both. Required fields need to be
+included in the request to create/update the object. Note that fields
+may be required for PUT but not POST, and viceversa.  In this case it
+will be indicated in the specific cell for the field.
+
 <a name="application"></a>
 ### Application
 
