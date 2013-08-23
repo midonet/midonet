@@ -18,18 +18,15 @@ import akka.util.Timeout;
 import com.google.common.util.concurrent.AbstractService;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
-import org.midonet.midolman.DeduplicationActor;
 import com.typesafe.config.ConfigFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static akka.pattern.Patterns.ask;
-import static akka.pattern.Patterns.gracefulStop;
-
 import org.midonet.midolman.DatapathController;
+import org.midonet.midolman.DeduplicationActor;
 import org.midonet.midolman.FlowController;
-import org.midonet.midolman.SupervisorActor;
 import org.midonet.midolman.SupervisorActor.StartChild;
+import org.midonet.midolman.SupervisorActor;
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.monitoring.MonitoringActor;
 import org.midonet.midolman.routingprotocols.RoutingManagerActor;
@@ -142,14 +139,12 @@ public class MidolmanActorsService extends AbstractService {
     private void stopActor(ActorRef actorRef) {
         log.debug("Stopping actor: {}", actorRef.toString());
         try {
-            Future<Boolean> stopFuture =
-                    gracefulStop(actorRef,
-                            Duration.create(100, TimeUnit.MILLISECONDS),
-                            actorSystem);
-            Await.result(stopFuture,
-                    Duration.create(150, TimeUnit.MILLISECONDS));
+            Future<Boolean> stopFuture = Patterns.gracefulStop(actorRef,
+                Duration.create(100, TimeUnit.MILLISECONDS), actorSystem);
+            Await.result(
+                stopFuture, Duration.create(150, TimeUnit.MILLISECONDS));
         } catch (Exception e) {
-            log.debug("Actor {} didn't stop on time. ");
+            log.warn("Actor {} didn't stop on time. ");
         }
     }
 
@@ -185,20 +180,14 @@ public class MidolmanActorsService extends AbstractService {
     protected ActorRef makeActorRef(Props actorProps, String actorName)
             throws Exception {
         Timeout tout = new Timeout(Duration.parse("3 seconds"));
-        Future<Object> actorFuture = ask(
+        Future<Object> actorFuture = Patterns.ask(
                 supervisorActor, new StartChild(actorProps, actorName), tout);
         return (ActorRef) Await.result(actorFuture, tout.duration());
     }
 
     public void initProcessing() throws Exception {
         log.debug("Sending Initialization message to datapath controller.");
-
-        Timeout timeout = new Timeout(Duration.parse("3 seconds"));
-
-        Await.result(
-                Patterns.ask(datapathControllerActor,
-                        DatapathController.getInitialize(), timeout),
-                timeout.duration());
+        datapathControllerActor.tell(DatapathController.initializeMsg());
     }
 
     public ActorSystem system() {
