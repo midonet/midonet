@@ -245,7 +245,7 @@ do_prepare() {
     if [ -z "$1" ] ; then
          echo "Usage: $0 prepare <VERSION>"
          exit 1
-    fi	
+    fi
     v=$1
     debV=`version_git_to_deb $v`
     rpmV=`version_git_to_rpm_version $v`
@@ -261,7 +261,7 @@ do_prepare() {
         sed -i -e "s/^Release: .*$/Release:    $rpmR/" $pkg/rhel/$pkg.spec
     done
     find . -maxdepth 2 -name pom.xml | \
-        while read pom ; do 
+        while read pom ; do
             sed -i -e "s/$mvnV/$v/g" $pom
         done
     echo "DONE"

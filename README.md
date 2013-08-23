@@ -68,12 +68,41 @@ the functional tests can run.
     ~/midonet$ mvn
 
 This will build all the modules while running all the tests from all the modules.
-
-### Complete build (skipping the tests)
+To skip the tests, you can run the command:
 
     ~/midonet$ mvn -DskipTests
 
-This will build all the modules while skipping all the tests from the modules.
+### Distro packages
+
+By default, the mvn build will only generate debian packages for midolman and
+midonet, which can be found respectively in midolman/target and
+midonet-api/target directories. To build rpm packages you should run
+
+    ~/midonet$ mvn -Drpm -DskipTests
+
+On ubuntu this requires the rpm tools which you can install with
+
+    # apt-get install rpm
+
+rpm packages for midolman and midonet will be found in
+target/rpm/midolman/RPMS/noarch directories of midolman/ and midonet-api/
+subprojects respectively.
+
+### Versioning
+
+To change the version number consistently across pom files in all subprojects,
+you can run the command
+
+    $ mvn versions:set -DnewVersion=x.y.z-whatever_tag
+
+This will create backup pom files. If you are happy with the change, you can
+remove these backup files with
+
+    $ mvn versions:commit
+
+or if you want to revert your changes
+
+    $ mvn versions:revert
 
 ### Build all & Run functional tests
 
