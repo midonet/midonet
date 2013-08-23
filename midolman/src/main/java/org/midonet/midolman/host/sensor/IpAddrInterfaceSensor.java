@@ -98,7 +98,7 @@ public class IpAddrInterfaceSensor implements InterfaceSensor {
 
             if (interfaceDescription.getName().equals("lo") ) {
                 interfaceDescription.setEndpoint(Endpoint.LOCALHOST);
-                interfaceDescription.setType(Type.PHYS);
+                interfaceDescription.setType(Type.VIRT);
             }
 
             if (state.equals("UP") || hasUp(statusFlags)) {
@@ -127,7 +127,7 @@ public class IpAddrInterfaceSensor implements InterfaceSensor {
             interfaceDescription.setMac(matcher.group(2));
             if ( matcher.group(1).equals("loopback")) {
                 interfaceDescription.setEndpoint(Endpoint.LOCALHOST);
-                interfaceDescription.setType(Type.PHYS);
+                interfaceDescription.setType(Type.VIRT);
             }
             return;
         }
