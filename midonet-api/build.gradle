@@ -23,9 +23,10 @@ dependencies {
             libraries.guice_servlet, libraries.jersey_servlet,
             libraries.jersey_server, libraries.jersey_client,
             libraries.jersey_json, libraries.jersey_guice,
-            libraries.commons_lang, libraries.commons_codec,
-            libraries.hamcrest_core, libraries.hamcrest_lib,
-            libraries.validation, libraries.hibernate_validator
+            libraries.jersey_core, libraries.commons_lang,
+            libraries.commons_codec, libraries.hamcrest_core,
+            libraries.hamcrest_lib, libraries.validation,
+            libraries.hibernate_validator
 
     testCompile libraries.hamcrest_integration, libraries.grizzly_servlet,
                 libraries.jersey_grizzly, libraries.jersey_test_grizzly,
@@ -67,6 +68,11 @@ task preparePkg(type: Copy, dependsOn: installDist) {
 
     doLast {
         new File("${pkgDestDir}/${webapp}/META-INF").mkdirs()
+    }
+    // XXX - guillermo: create a main output dir for installDist because
+    // otherwise installDist will fail to run the second time.
+    doFirst {
+        new File("${buildDir}/install/${project.name}/main").mkdirs()
     }
 }
 
