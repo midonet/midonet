@@ -214,6 +214,20 @@ a device's dynamic state (mac-learning table, arp-cache), or introduce new
 packets into the virtual network on behalf of a device that emits a packet
 (e.g. a router making an ARP request).
 
+These changes in the dynamic state of a device present an important
+divergence with respect to their physical counterparts. An example can
+be found in the bridge's mac-learning table. If a given bridge learns a
+mac-port association, the state change will not be effective until the
+new state has propagated to the distributed storage. A virtual bridge
+may simulate a frame with src mac = M1 from port A and trigger an update
+on the mac-learning table adding the M1-A mac-port association. If a
+frame addressed to M1 ingresses the node immediately afterwards, it will
+be racing with the state change confirmation from the state storage. If
+the simulation happens first, the bridge will trigger a flood because
+the recently learned mac-port association is not yet effective. Then it
+will see the mac-learning table update and send all other subsequent
+frames addressed to M1 correctly to port A.
+
 ### Port Service Manager
 
 When the Datapath Controller successfully associates a virtual port with a
