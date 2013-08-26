@@ -32,9 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * @author Mihai Claudiu Toader <mtoader@midokura.com> Date: 1/30/12
- */
+
 @RequestScoped
 public class HostResource extends AbstractResource {
 
