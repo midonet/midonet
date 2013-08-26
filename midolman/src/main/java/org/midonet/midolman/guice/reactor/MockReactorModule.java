@@ -1,54 +1,41 @@
 /*
-* Copyright 2012 Midokura Europe SARL
+* Copyright 2013 Midokura Europe SARL
 */
 package org.midonet.midolman.guice.reactor;
 
 import java.io.IOException;
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
 
 import com.google.inject.*;
 
 import org.midonet.midolman.services.SelectLoopService;
-import org.midonet.util.eventloop.Reactor;
-import org.midonet.util.eventloop.SelectLoop;
-import org.midonet.util.eventloop.SimpleSelectLoop;
-import org.midonet.util.eventloop.TryCatchReactor;
+import org.midonet.util.eventloop.*;
 
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import static org.midonet.midolman.guice.reactor.ReactorModule.WRITE_LOOP;
+import static org.midonet.midolman.guice.reactor.ReactorModule.READ_LOOP;
+import static org.midonet.midolman.guice.reactor.ReactorModule.ZEBRA_SERVER_LOOP;
 
 /**
  * This is an Guice module that will expose a {@link SelectLoop} and a {@link Reactor}
  * binding to the enclosing injector.
  */
-public class ReactorModule extends PrivateModule {
-    @BindingAnnotation @Target({FIELD, METHOD}) @Retention(RUNTIME)
-    public @interface WRITE_LOOP {}
-    @BindingAnnotation @Target({FIELD, METHOD}) @Retention(RUNTIME)
-    public @interface READ_LOOP {}
-    @BindingAnnotation @Target({FIELD, METHOD}) @Retention(RUNTIME)
-    public @interface ZEBRA_SERVER_LOOP {}
-
+public class MockReactorModule extends PrivateModule {
     @Override
     protected void configure() {
-
         bind(Reactor.class)
-            .toProvider(NetlinkReactorProvider.class)
+            .toProvider(MockNetlinkReactorProvider.class)
             .asEagerSingleton();
 
         bind(SelectLoop.class)
                 .annotatedWith(WRITE_LOOP.class)
-                .toProvider(SelectLoopProvider.class)
+                .toProvider(MockSelectLoopProvider.class)
                 .in(Singleton.class);
         bind(SelectLoop.class)
                 .annotatedWith(READ_LOOP.class)
-                .toProvider(SelectLoopProvider.class)
+                .toProvider(MockSelectLoopProvider.class)
                 .in(Singleton.class);
         bind(SelectLoop.class)
                 .annotatedWith(ZEBRA_SERVER_LOOP.class)
-                .toProvider(SelectLoopProvider.class)
+                .toProvider(MockSelectLoopProvider.class)
                 .in(Singleton.class);
 
         expose(Key.get(SelectLoop.class, WRITE_LOOP.class));
@@ -62,22 +49,22 @@ public class ReactorModule extends PrivateModule {
         expose(SelectLoopService.class);
     }
 
-    public static class SelectLoopProvider implements Provider<SelectLoop> {
+    public static class MockSelectLoopProvider implements Provider<SelectLoop> {
         @Override
         public SelectLoop get() {
             try {
-                return new SimpleSelectLoop();
+                return new MockSelectLoop();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
     }
 
-    public static class NetlinkReactorProvider implements Provider<Reactor> {
+    public static class MockNetlinkReactorProvider implements Provider<Reactor> {
 
         @Override
         public Reactor get() {
-            return new TryCatchReactor("netlink", 1);
+            return new MockReactor();
         }
     }
 }
