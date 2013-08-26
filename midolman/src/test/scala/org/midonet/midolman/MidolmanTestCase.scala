@@ -30,7 +30,7 @@ import org.midonet.midolman.guice.actors.{OutgoingMessage,
 import org.midonet.midolman.guice.cluster.ClusterClientModule
 import org.midonet.midolman.guice.config.MockConfigProviderModule
 import org.midonet.midolman.guice.datapath.MockDatapathModule
-import org.midonet.midolman.guice.reactor.ReactorModule
+import org.midonet.midolman.guice.reactor.MockReactorModule
 import org.midonet.midolman.guice.zookeeper.MockZookeeperConnectionModule
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.host.scanner.InterfaceScanner
@@ -229,7 +229,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
                     })
                 }
             },
-            new ReactorModule(),
+            new MockReactorModule(),
             new MockMonitoringStoreModule(),
             new ClusterClientModule(),
             new TestableMidolmanActorsModule(probesByName, actorsByName),

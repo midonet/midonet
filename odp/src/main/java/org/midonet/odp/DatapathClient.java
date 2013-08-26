@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.channels.SelectionKey;
 import java.util.concurrent.TimeUnit;
 
+import org.midonet.util.eventloop.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,10 +12,6 @@ import org.midonet.netlink.BufferPool;
 import org.midonet.netlink.Netlink;
 import org.midonet.netlink.NetlinkChannel;
 import org.midonet.odp.protos.OvsDatapathConnection;
-import org.midonet.util.eventloop.Reactor;
-import org.midonet.util.eventloop.SelectListener;
-import org.midonet.util.eventloop.SelectLoop;
-import org.midonet.util.eventloop.TryCatchReactor;
 
 public abstract class DatapathClient {
 
@@ -24,7 +21,7 @@ public abstract class DatapathClient {
     public static OvsDatapathConnection createConnection() throws Exception {
 
         log.info("Creating the selector loop");
-        final SelectLoop loop = new SelectLoop();
+        final SelectLoop loop = new SimpleSelectLoop();
         final Reactor reactor = new TryCatchReactor("ovs-connection", 1);
 
         log.info("Making the ovsConnection");
