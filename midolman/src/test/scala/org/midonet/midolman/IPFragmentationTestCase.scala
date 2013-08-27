@@ -3,19 +3,26 @@
 */
 package org.midonet.midolman
 
-import akka.util.Duration
+import akka.util.{Timeout, Duration}
+import akka.pattern.ask
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
 
+import akka.util.duration._
+import akka.dispatch.Await
+
 import org.midonet.midolman.FlowController.{InvalidateFlowsByTag, AddWildcardFlow, WildcardFlowAdded, WildcardFlowRemoved}
+import org.midonet.midolman.topology.VirtualTopologyActor.ChainRequest
+import org.midonet.midolman.simulation.Chain
 import org.midonet.midolman.util.SimulationHelper
 import org.midonet.odp.flows.IPFragmentType
 import org.midonet.packets._
 import rules.{RuleResult, Condition}
 import topology.LocalPortActive
 import org.midonet.cluster.data.Rule
+import java.util.concurrent.TimeUnit
 
 
 @RunWith(classOf[JUnitRunner])
@@ -44,13 +51,15 @@ class IPFragmentationTestCase extends MidolmanTestCase with VMsBehindRouterFixtu
      */
     private def setupL4TouchingChain() {
         val chain = newInboundChainOnBridge("brInFilter", bridge)
+        println("Chainid: " + chain.getId)
         var r: Rule[_,_] = null
         val tcpCond = new Condition()
         tcpCond.nwProto = Byte.box(TCP.PROTOCOL_NUMBER)
         tcpCond.tpDst = new org.midonet.util.Range(Integer.valueOf(80))
         r = newLiteralRuleOnChain(chain, 1, tcpCond, RuleResult.Action.ACCEPT)
+
         // Wait until the rule change is picked up
-        // Wait until the rule change is picked up
+        Await.result(vtaProbe().testActor.ask(ChainRequest(chain.getId, update = false))(new Timeout(3, TimeUnit.SECONDS)), 3 second)
         fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
     }
 
