@@ -68,7 +68,7 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
 
         // Broadcast packet:  Handle if ARP, drop otherwise.
         val payload = pktContext.getFrame.getPayload
-        if (pktContext.getMatch.getEtherType == ARP.ETHERTYPE)
+        if (pktContext.wcmatch.getEtherType == ARP.ETHERTYPE)
             Promise.successful(processArp(payload, inPort))(ec)
         else
             Promise.successful(new DropAction)(ec)
@@ -78,7 +78,7 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
                                    (implicit ec: ExecutionContext,
                                     pktContext: PacketContext,
                                     actorSystem: ActorSystem): Option[Action] = {
-        if (pktContext.getMatch.getEtherType == ARP.ETHERTYPE) {
+        if (pktContext.wcmatch.getEtherType == ARP.ETHERTYPE) {
             // Non-broadcast ARP.  Handle reply, drop rest.
             val payload = pktContext.getFrame.getPayload
             Some(processArp(payload, inPort))
@@ -400,7 +400,7 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
                     val egrMatch = WildcardMatch.fromEthernetPacket(eth)
                     val egrPktContext =
                         new PacketContext(null, eth, 0, null, null, null,
-                                          true, None)
+                                          true, None, egrMatch)
                     egrPktContext.setOutputPort(outPort.id)
                     val postRoutingResult = Chain.apply(outFilter,
                                        egrPktContext, egrMatch, id, false)

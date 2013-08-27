@@ -100,7 +100,7 @@ class Bridge(val id: UUID, val tunnelKey: Long,
         log.debug("Current vlan-port map {}", vlanToPort)
 
         // Some basic sanity checks
-        if (Ethernet.isMcast(packetContext.getMatch.getEthernetSource)) {
+        if (Ethernet.isMcast(packetContext.wcmatch.getEthernetSource)) {
             log.info("Packet has multi/broadcast source, DROP")
             Promise.successful(DropAction())
         } else
@@ -122,12 +122,12 @@ class Bridge(val id: UUID, val tunnelKey: Long,
         // InputPort is already set.
         packetContext.setOutputPort(null)
         val preBridgeResult = Chain.apply(inFilter, packetContext,
-                                          packetContext.getMatch, id, false)
+                                          packetContext.wcmatch, id, false)
         log.debug("The ingress chain returned {}", preBridgeResult)
 
         if (preBridgeResult.action == Action.DROP ||
                 preBridgeResult.action == Action.REJECT) {
-            val srcDlAddress = packetContext.getMatch.getEthernetSource
+            val srcDlAddress = packetContext.wcmatch.getEthernetSource
             updateFlowCount(srcDlAddress, packetContext)
             // No point in tagging by dst-MAC+Port because the outPort was
             // not used in deciding to drop the flow.
@@ -138,17 +138,17 @@ class Bridge(val id: UUID, val tunnelKey: Long,
                       preBridgeResult.action)
             return Promise.successful(ErrorDropAction())
         }
-        if (preBridgeResult.pmatch ne packetContext.getMatch) {
+        if (preBridgeResult.pmatch ne packetContext.wcmatch) {
             log.error("Pre-bridging for {} returned a different match object",
                       id)
             return Promise.successful(ErrorDropAction())
         }
 
         // Learn the entry
-        val srcDlAddress = packetContext.getMatch.getEthernetSource
+        val srcDlAddress = packetContext.wcmatch.getEthernetSource
         updateFlowCount(srcDlAddress, packetContext)
 
-        val dstDlAddress = packetContext.getMatch.getEthernetDestination
+        val dstDlAddress = packetContext.wcmatch.getEthernetDestination
         val action: Future[Coordinator.Action] =
              if (isArpBroadcast()) handleARPRequest()
              else if (Ethernet.isMcast(dstDlAddress)) handleL2Multicast()
@@ -158,8 +158,8 @@ class Bridge(val id: UUID, val tunnelKey: Long,
     }
 
     private def isArpBroadcast()(implicit pktCtx: PacketContext) = {
-        Ethernet.isBroadcast(pktCtx.getMatch.getEthernetDestination) &&
-                             pktCtx.getMatch.getEtherType == ARP.ETHERTYPE
+        Ethernet.isBroadcast(pktCtx.wcmatch.getEthernetDestination) &&
+                             pktCtx.wcmatch.getEtherType == ARP.ETHERTYPE
     }
 
     /**
@@ -170,8 +170,8 @@ class Bridge(val id: UUID, val tunnelKey: Long,
                                        ec: ExecutionContext): Future[Coordinator.Action] = {
         // L2 unicast
         log.debug("Handling L2 unicast")
-        val dlDst = packetContext.getMatch.getEthernetDestination
-        val dlSrc = packetContext.getMatch.getEthernetSource
+        val dlDst = packetContext.wcmatch.getEthernetDestination
+        val dlSrc = packetContext.wcmatch.getEthernetSource
         macToLogicalPortId.get(dlDst) match {
             case Some(logicalPort: UUID) => // some device (router|vab-bridge)
                 log.debug("Packet intended for interior port.")
@@ -236,7 +236,7 @@ class Bridge(val id: UUID, val tunnelKey: Long,
         val inPortVlan = vlanToPort.getVlan(pktCtx.getInPortId)
         if (inPortVlan != null) {
             log.debug("InPort has vlan {}, PUSH & fwd to trunks", inPortVlan)
-            pktCtx.getMatch.addVlanId(inPortVlan)
+            pktCtx.wcmatch.addVlanId(inPortVlan)
             return Promise.successful(ToPortAction(toPort))
         }
 
@@ -254,7 +254,7 @@ class Bridge(val id: UUID, val tunnelKey: Long,
                 Promise.successful(new DropAction())
             case vlanId if vlanInFrame.get == vlanId =>
                 log.debug("OutPort has vlan {}, POP & forward", vlanId)
-                pktCtx.getMatch.removeVlanId(vlanId)
+                pktCtx.wcmatch.removeVlanId(vlanId)
                 Promise.successful(ToPortAction(toPort))
             case vlanId =>
                 log.warning("OutPort has vlan {} but frame has {}, " +
@@ -327,7 +327,7 @@ class Bridge(val id: UUID, val tunnelKey: Long,
                 vlanToPort.getVlan(pktCtx.getInPortId) match {
                     case vlanId: JShort =>
                         log.debug("Frame from log. br. port: PUSH {}", vlanId)
-                        pktCtx.getMatch.addVlanId(vlanId)
+                        pktCtx.wcmatch.addVlanId(vlanId)
                         Promise.successful(ToPortSetAction(id))
                     case _ =>
                         log.debug("Send to port set")
@@ -359,7 +359,7 @@ class Bridge(val id: UUID, val tunnelKey: Long,
     private def handleARPRequest()(implicit pktContext: PacketContext,
                           ec: ExecutionContext): Future[Coordinator.Action] = {
         log.debug("Handling ARP multicast")
-        val pMatch = pktContext.getMatch
+        val pMatch = pktContext.wcmatch
         val nwDst = pMatch.getNetworkDestinationIP
         if (ipToMac.contains(nwDst)) {
             // Forward broadcast ARPs to their devices if we know how.
@@ -439,7 +439,7 @@ class Bridge(val id: UUID, val tunnelKey: Long,
                 log.error("Unhandled Coordinator.ForwardAction {}", a)
         }
         val postBridgeResult = Chain.apply(outFilter, packetContext,
-                                           packetContext.getMatch, id, false)
+                                           packetContext.wcmatch, id, false)
 
         if (postBridgeResult.action == Action.DROP ||
                 postBridgeResult.action == Action.REJECT) {
@@ -471,7 +471,7 @@ class Bridge(val id: UUID, val tunnelKey: Long,
         val inPortVlan = Option.apply(
             vlanToPort.getVlan(packetContext.getInPortId))
 
-        def getVlanFromFlowMatch = packetContext.getMatch.getVlanIds match {
+        def getVlanFromFlowMatch = packetContext.wcmatch.getVlanIds match {
             case l: java.util.List[JShort] if !l.isEmpty => Some(l.get(0))
             case _ => None
         }
