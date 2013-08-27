@@ -30,6 +30,7 @@ import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.state.StatePathExistsException;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 import org.slf4j.Logger;
@@ -256,10 +257,16 @@ public class BridgeResource extends AbstractResource {
                     "Not authorized to add bridge to this tenant.");
         }
 
-        UUID id = dataClient.bridgesCreate(bridge.toData());
-        return Response.created(
-                ResourceUriBuilder.getBridge(getBaseUri(), id))
-                .build();
+        try {
+            UUID id = dataClient.bridgesCreate(bridge.toData());
+            return Response.created(
+                    ResourceUriBuilder.getBridge(getBaseUri(), id))
+                    .build();
+        } catch (StatePathExistsException ex) {
+            throw new BadRequestHttpException(
+                    MessageProperty.getMessage(
+                            MessageProperty.IS_UNIQUE_BRIDGE_NAME));
+        }
     }
 
     /**

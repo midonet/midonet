@@ -1524,7 +1524,7 @@ contains the following fields:
         <td>Int</td>
         <td>POST</td>
         <td>Yes</td>
-        <td>The priority weight of the route.</td>
+        <td>The priority weight of the route. Lower weights take precedence over higher weights.</td>
     </tr>
     <tr>
         <td>nextHopPort
