@@ -2488,7 +2488,8 @@ It contains the following fields:
     DELETE  /tunnel_zones/:tunnelZoneId
 
 Tunnel zone represents a group in which hosts can be included to form an
-isolated zone for tunneling. It contains the following fields:
+isolated zone for tunneling. They must have unique, case insensitive
+names per type. It contains the following fields:
 
 <table>
     <tr>

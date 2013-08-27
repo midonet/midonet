@@ -47,6 +47,8 @@ public class MessageProperty {
             "{midokura.javarx.RouteNextHopPortValid.message}";
     public static final String TUNNEL_ZONE_ID_IS_INVALID =
             "{midokura.javarx.TunnelZoneIdIsInvalid.message}";
+    public static final String IS_UNIQUE_TUNNEL_ZONE_NAME_TYPE =
+        "{midokura.javarx.TunnelZoneNameTypeExists.message}";
     public static final String TUNNEL_ZONE_MEMBER_EXISTS =
             "{midokura.javarx.TunnelZoneMemberExists.message}";
     public static final String VLAN_ID_MATCHES_PORT_VLAN_ID =
