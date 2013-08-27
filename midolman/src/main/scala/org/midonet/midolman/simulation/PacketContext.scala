@@ -40,7 +40,8 @@ import org.midonet.util.functors.Callback0
 class PacketContext(val flowCookie: Option[Int], val frame: Ethernet,
                     val expiry: Long, val connectionCache: Cache,
                     val traceMessageCache: Cache, val traceIndexCache: Cache,
-                    val isGenerated: Boolean, val parentCookie: Option[Int])
+                    val isGenerated: Boolean, val parentCookie: Option[Int],
+                    val origMatch: WildcardMatch)
                    (implicit actorSystem: ActorSystem)
          extends ChainPacketContext {
     import PacketContext._
@@ -51,8 +52,6 @@ class PacketContext(val flowCookie: Option[Int], val frame: Ethernet,
     // and tags added.  Freezing it switches it from write-only to
     // read-only.
     private var frozen = false
-    private var wcmatch: WildcardMatch = null
-    private var origMatch: WildcardMatch = null
     // ingressFE is used for connection tracking. conntrack keys use the
     // forward flow's egress device id. For return packets, symmetrically,
     // the ingress device is used to lookup the conntrack key that would have
@@ -68,30 +67,13 @@ class PacketContext(val flowCookie: Option[Int], val frame: Ethernet,
     private var traceStep = 0
     private var isTraced = false
 
+    val wcmatch: WildcardMatch = origMatch.clone
+
     def isFrozen = frozen
 
     def getFrame: Ethernet = frame
 
     def getExpiry: Long = expiry
-
-    /**
-     * Sets the WildcardMatch for this packet context. The passed object is
-     * guaranteed not to be modified, all modify operations will be done
-     * on a copy.
-     *
-     * @param m
-     * @return
-     */
-    def setMatch(m: WildcardMatch): PacketContext = {
-        wcmatch = m.clone
-        origMatch = m
-        this
-    }
-
-    /**
-     * @return The modifiable WildcardMatch for this context.
-     */
-    def getMatch: WildcardMatch = wcmatch
 
     def setPortGroups(groups: JSet[UUID]): PacketContext = {
         portGroups = groups
