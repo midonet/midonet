@@ -39,9 +39,9 @@ public class WildcardMatch implements Cloneable {
         FragmentType,
         TransportSource,
         TransportDestination,
-        // TODO (galo) extract MM-custom fields to a child class? We'd need
-        // some more changes there since Enums can't inherit though
+        // MM-custom fields below this point
         IcmpId,
+        IcmpSeq,
         IcmpData,
         VlanId
     }
@@ -64,6 +64,7 @@ public class WildcardMatch implements Cloneable {
             case TransportSource:
             case IcmpData:
             case IcmpId:
+            case IcmpSeq:
                 return 4;
             case InputPortNumber:
             case InputPortUUID:
@@ -112,6 +113,7 @@ public class WildcardMatch implements Cloneable {
 
     // Extended fields only supported inside MM
     private short icmpId = 0;
+    private short icmpSeq = 0;
     private byte[] icmpData;
     private List<Short> vlanIds = new ArrayList<Short>();
 
@@ -182,6 +184,7 @@ public class WildcardMatch implements Cloneable {
         transportSource = that.transportSource;
         transportDestination = that.transportDestination;
         icmpId = that.icmpId;
+        icmpSeq = that.icmpSeq;
         vlanIds = new ArrayList<Short>(that.vlanIds);
         if (that.icmpData != null)
             this.setIcmpData(that.icmpData);
@@ -603,6 +606,18 @@ public class WildcardMatch implements Cloneable {
         return usedFields.contains(Field.IcmpId) ? icmpId : null;
     }
 
+    public WildcardMatch setIcmpSeq(Short seq) {
+        usedFields.add(Field.IcmpSeq);
+        this.icmpSeq = seq;
+        return this;
+    }
+
+    @Nullable
+    public Short getIcmpSeq() {
+        fieldSeen(Field.IcmpSeq);
+        return usedFields.contains(Field.IcmpSeq) ? icmpSeq : null;
+    }
+
     @Nullable
     public byte[] getIcmpData() {
         fieldSeen(Field.IcmpData);
@@ -743,6 +758,11 @@ public class WildcardMatch implements Cloneable {
                         return false;
                     break;
 
+                case IcmpSeq:
+                    if (!isEqual(field, that, icmpSeq, that.icmpSeq))
+                        return false;
+                    break;
+
                 case IcmpData:
                     int thisHash = icmpData != null ? icmpData.hashCode(): 0;
                     int thatHash = that.icmpData != null ? that.icmpData.hashCode(): 0;
@@ -818,6 +838,8 @@ public class WildcardMatch implements Cloneable {
                     break;
                 case IcmpId:
                     result = 31 * result + icmpId;
+                case IcmpSeq:
+                    result = 31 * result + icmpSeq;
                 case IcmpData:
                     result = 31 * result + Arrays.hashCode(icmpData);
                 case VlanId:
@@ -885,8 +907,13 @@ public class WildcardMatch implements Cloneable {
                 case TunnelID:
                     str.append(tunnelID);
                     break;
+
                 case IcmpId:
                     str.append(icmpId);
+                    break;
+
+                case IcmpSeq:
+                    str.append(icmpSeq);
                     break;
 
                 case IcmpData:
@@ -970,8 +997,13 @@ public class WildcardMatch implements Cloneable {
                     case TunnelID:
                         newClone.tunnelID = tunnelID;
                         break;
+
                     case IcmpId:
                         newClone.icmpId = icmpId;
+                        break;
+
+                    case IcmpSeq:
+                        newClone.icmpSeq = icmpSeq;
                         break;
 
                     case IcmpData:
@@ -1091,6 +1123,7 @@ public class WildcardMatch implements Cloneable {
                     if (icmp instanceof FlowKeyICMPEcho) {
                         FlowKeyICMPEcho icmpEcho = ((FlowKeyICMPEcho) icmp);
                         setIcmpIdentifier(icmpEcho.getIdentifier());
+                        setIcmpSeq(icmpEcho.getSeq());
                     } else if (icmp instanceof FlowKeyICMPError) {
                         setIcmpData(((FlowKeyICMPError) icmp).getIcmpData());
                     }
