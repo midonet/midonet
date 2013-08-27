@@ -34,47 +34,47 @@ import org.midonet.odp.flows.FlowActionPopVLAN
 
 
 /**
- * A bridge.
- *
- * Take into account that the bridge may now have ports that are
- * assigned to specific vlans for l2gateway. You can refer to the
- * l2gateway documentation but briefly, when a bridge has vlan-tagged
- * interior ports:
- * - all frames that come from that port must be PUSH'd the appropriate
- *   VLAN ID.
- * - only frames coming into the bridge with the port's vlan id may
- *   egress the device through it, and only after POP'ing the vlan-id
- *
- * To make this clearer, ToPortXActions should not be used directly, but
- * instead call the unicastAction and multicastAction methods to
- * generate the appropriate actions to send to one port (unicastAction)
- * or many ports (multicastAction).
- *
- * The Bridge can be configured for vlan-awareness by adding a number of
- * interior ports tagged with a vlan id. In this case, only frames from
- * the physical network that carry the corresponding vlan-id will be
- * sent through the interior port tagged with the same vlan-id, and only
- * after POP'ing it. For frames coming from that port, the vlan-id will
- * be PUSH'd into the frame.
- *
- * @param id
- * @param tunnelKey
- * @param vlanMacTableMap
- * @param ip4MacMap
- * @param flowCount
- * @param inFilter
- * @param outFilter
- * @param vlanPortId this field is the id of the interior port of a peer
- *                   VlanAwareBridge or Bridge connected to this device.
- *                   This means that this Bridge is considered to be on VLAN X,
- *                   Note that a vlan-unaware bridge can only be connected to a
- *                   single vlan-aware device (thus having only a single
- *                   optional value)
- * @param flowRemovedCallbackGen
- * @param macToLogicalPortId
- * @param ipToMac
- * @param actorSystem
- */
+  * A bridge.
+  *
+  * Take into account that the bridge may now have ports that are
+  * assigned to specific vlans for l2gateway. You can refer to the
+  * l2gateway documentation but briefly, when a bridge has vlan-tagged
+  * interior ports:
+  * - all frames that come from that port must be PUSH'd the appropriate
+  *   VLAN ID.
+  * - only frames coming into the bridge with the port's vlan id may
+  *   egress the device through it, and only after POP'ing the vlan-id
+  *
+  * To make this clearer, ToPortXActions should not be used directly, but
+  * instead call the unicastAction and multicastAction methods to
+  * generate the appropriate actions to send to one port (unicastAction)
+  * or many ports (multicastAction).
+  *
+  * The Bridge can be configured for vlan-awareness by adding a number of
+  * interior ports tagged with a vlan id. In this case, only frames from
+  * the physical network that carry the corresponding vlan-id will be
+  * sent through the interior port tagged with the same vlan-id, and only
+  * after POP'ing it. For frames coming from that port, the vlan-id will
+  * be PUSH'd into the frame.
+  *
+  * @param id
+  * @param tunnelKey
+  * @param vlanMacTableMap
+  * @param ip4MacMap
+  * @param flowCount
+  * @param inFilter
+  * @param outFilter
+  * @param vlanPortId this field is the id of the interior port of a peer
+  *                   VlanAwareBridge or Bridge connected to this device.
+  *                   This means that this Bridge is considered to be on VLAN X,
+  *                   Note that a vlan-unaware bridge can only be connected to a
+  *                   single vlan-aware device (thus having only a single
+  *                   optional value)
+  * @param flowRemovedCallbackGen
+  * @param macToLogicalPortId
+  * @param ipToMac
+  * @param actorSystem
+  */
 class Bridge(val id: UUID, val tunnelKey: Long,
              val vlanMacTableMap: ROMap[JShort, MacLearningTable],
              val ip4MacMap: IpMacMap[IPv4Addr],
@@ -163,12 +163,11 @@ class Bridge(val id: UUID, val tunnelKey: Long,
     }
 
     /**
-     * Used by normalProcess to deal with L2 Unicast frames, this just decides
-     * on a port based on MAC
-     */
+      * Used by normalProcess to deal with L2 Unicast frames, this just decides
+      * on a port based on MAC
+      */
     private def handleL2Unicast()(implicit packetContext: PacketContext,
                                        ec: ExecutionContext): Future[Coordinator.Action] = {
-        // L2 unicast
         log.debug("Handling L2 unicast")
         val dlDst = packetContext.wcmatch.getEthernetDestination
         val dlSrc = packetContext.wcmatch.getEthernetSource
@@ -206,9 +205,9 @@ class Bridge(val id: UUID, val tunnelKey: Long,
     }
 
     /**
-     * Used by normalProcess to deal with frames having an L2 multicast addr.
-     * that are not ARPs.
-     */
+      * Used by normalProcess to deal with frames having an L2 multicast addr.
+      * that are not ARPs.
+      */
     private def handleL2Multicast()(implicit packetContext: PacketContext,
                            ec: ExecutionContext): Future[Coordinator.Action] = {
         log.debug("Handling L2 multicast {}", id)
@@ -217,21 +216,17 @@ class Bridge(val id: UUID, val tunnelKey: Long,
     }
 
     /**
-     * Does a unicastAction, validating and doing PUSH/POP of vlan ids as
-     * appropriate. All other methods in this device are expected NOT to
-     * build ToPortActions by themselves, and instead delegate on this method,
-     * which allows them to remain agnostic of vlan related details.
-     *
-     * Should be used whenever an unicastAction needs to happen. For example,
-     * after doing MAC learning and deciding that a frame needs to go to toPort
-     * just delegate on this method to create the right action.
-     *
-     * @param toPort
-     * @param pktCtx
-     * @return
-     */
+      * Does a unicastAction, validating and doing PUSH/POP of vlan ids as
+      * appropriate. All other methods in this device are expected NOT to
+      * build ToPortActions by themselves, and instead delegate on this method,
+      * which allows them to remain agnostic of vlan related details.
+      *
+      * Should be used whenever an unicastAction needs to happen. For example,
+      * after doing MAC learning and deciding that a frame needs to go to toPort
+      * just delegate on this method to create the right action.
+      */
     private def unicastAction(toPort: UUID)(implicit pktCtx: PacketContext):
-    Future[Coordinator.Action] = {
+        Future[Coordinator.Action] = {
 
         val inPortVlan = vlanToPort.getVlan(pktCtx.getInPortId)
         if (inPortVlan != null) {
@@ -264,26 +259,26 @@ class Bridge(val id: UUID, val tunnelKey: Long,
     }
 
     /**
-     * Possible cases of an L2 multicast happenning on any bridge (vlan-aware or
-     * not). This is generally a ToPortSetAction, but:
-     *
-     * - If the bridge is connected to another vlan-aware bridge, it'll fork
-     *   and do also a ToPortAction that sends the frame to the vab-bridge
-     * - If the bridge is vlan-aware itself (that is: has ports with vlan-ids
-     *   assigned to them) it'll jump to multicastVlanAware. This will:
-     *   - If the frame comes from an exterior port and has a vlan id, restrict
-     *     the ToPortSetAction to a single ToPortSet, the one with that vlan-id,
-     *     after popping the vlan tag.
-     *   - If the frame comes from an exterior port, but has no vlan id, send
-     *     to the ordinary port set (for example: BPDU, or an ARP request)
-     *   - If the frame comes from an interior port, POP the vlan id if the
-     *     port has one assigned, and send to the PortSet.
-     */
+      * Possible cases of an L2 multicast happenning on any bridge (vlan-aware
+      * or not). This is generally a ToPortSetAction, but:
+      *
+      * - If the bridge is connected to another vlan-aware bridge, it'll fork
+      *   and do also a ToPortAction that sends the frame to the vab-bridge
+      * - If the bridge is vlan-aware itself (that is: has ports with vlan-ids
+      *   assigned to them) it'll jump to multicastVlanAware. This will:
+      *   - If the frame comes from an exterior port and has a vlan id, restrict
+      *     the ToPortSetAction to a single ToPortSet, the one with that vlan-id,
+      *     after popping the vlan tag.
+      *   - If the frame comes from an exterior port, but has no vlan id, send
+      *     to the ordinary port set (for example: BPDU, or an ARP request)
+      *   - If the frame comes from an interior port, POP the vlan id if the
+      *     port has one assigned, and send to the PortSet.
+      */
     private def multicastAction()(implicit pktCtx: PacketContext):
-    Future[Coordinator.Action] = {
+        Future[Coordinator.Action] = {
         vlanPortId match {
             case Some(vPId) if (!pktCtx.getInPortId.equals(vPId)) =>
-                // This bridge is connected to a vlan-aware bridge: send there too
+                // This bridge is connected to a vlan-aware one: send there too
                 log.debug("Add vlan-aware bridge to port set")
                 Promise.successful(ForkAction(List(
                         Promise.successful(ToPortSetAction(id)),
@@ -299,12 +294,13 @@ class Bridge(val id: UUID, val tunnelKey: Long,
     }
 
     /**
-     * Possible cases of an L2 multicast happening on a vlan-aware bridge.
-     *
-     * Refer to multicastAction for details.
-     */
+      * Possible cases of an L2 multicast happening on a vlan-aware bridge.
+      *
+      * Refer to multicastAction for details.
+      */
     private def multicastVlanAware()(implicit pktCtx: PacketContext):
-    Future[Coordinator.Action] = {
+        Future[Coordinator.Action] = {
+
         getPort(pktCtx.getInPortId, pktCtx.getExpiry) flatMap {
             case p: ExteriorBridgePort =>
                 // multicast from trunk, goes only to designated log. port
@@ -318,9 +314,9 @@ class Bridge(val id: UUID, val tunnelKey: Long,
                         log.info("Frame from trunk on vlan {}, send to other " +
                             "trunks, POP, send to port {}", vlanId, vlanPort)
                         Promise.successful(ForkAction(List(
-                                Promise.successful(new ToPortSetAction(id)),
-                                Promise.successful(new DoFlowAction(new FlowActionPopVLAN)),
-                                Promise.successful(new ToPortAction(vlanPort)))
+                            Promise.successful(new ToPortSetAction(id)),
+                            Promise.successful(new DoFlowAction(new FlowActionPopVLAN)),
+                            Promise.successful(new ToPortAction(vlanPort)))
                         ))
                 }
             case p: InteriorBridgePort =>
@@ -340,8 +336,8 @@ class Bridge(val id: UUID, val tunnelKey: Long,
     }
 
     /**
-     * Retrieves a BridgePort
-     */
+      * Retrieves a BridgePort
+      */
     private def getPort(portId: UUID, expiry: Long)
                          (implicit actorSystem: ActorSystem,
                           pktContext: PacketContext): Future[BridgePort[_]] = {
@@ -354,8 +350,8 @@ class Bridge(val id: UUID, val tunnelKey: Long,
     }
 
     /**
-     * Used by normalProcess to handle specifically ARP multicast
-     */
+      * Used by normalProcess to handle specifically ARP multicast
+      */
     private def handleARPRequest()(implicit pktContext: PacketContext,
                           ec: ExecutionContext): Future[Coordinator.Action] = {
         log.debug("Handling ARP multicast")
@@ -396,14 +392,14 @@ class Bridge(val id: UUID, val tunnelKey: Long,
     }
 
     /**
-     * Perform post-bridging actions.
-     *
-     * It will learn the mac-port entry, and:
-     * - If the simulation resulted in single ToPort actions, set the output
-     *   port and apply post-chains.
-     * - If the simulation resulted in a Fork action, set the output port to
-     *   the first action in the fork.
-     */
+      * Perform post-bridging actions.
+      *
+      * It will learn the mac-port entry, and:
+      * - If the simulation resulted in single ToPort actions, set the output
+      *   port and apply post-chains.
+      * - If the simulation resulted in a Fork action, set the output port to
+      *   the first action in the fork.
+      */
     private def doPostBridging(packetContext: PacketContext)
                               (act: Coordinator.Action): Coordinator.Action = {
         implicit val pktContext = packetContext
@@ -460,13 +456,13 @@ class Bridge(val id: UUID, val tunnelKey: Long,
     }
 
     /**
-     * Decide what source VLAN  this packet is from.
-     *
-     * - If the in port is tagged with a vlan, that's the source VLAN
-     * - Else if the traffic is tagged with a vlan, the outermost tag
-     * is the source VLAN
-     * - Else it is untagged (None)
-     */
+      * Decide what source VLAN  this packet is from.
+      *
+      * - If the in port is tagged with a vlan, that's the source VLAN
+      * - Else if the traffic is tagged with a vlan, the outermost tag
+      * is the source VLAN
+      * - Else it is untagged (None)
+      */
     private def srcVlanTagOption(packetContext: PacketContext) = {
         val inPortVlan = Option.apply(
             vlanToPort.getVlan(packetContext.getInPortId))
@@ -480,60 +476,91 @@ class Bridge(val id: UUID, val tunnelKey: Long,
     }
 
     /**
-     * Decide what source VLAN  this packet is from.
-     *
-     * - If the in port is tagged with a vlan, that's the source VLAN
-     * - Else if the traffic is tagged with a vlan, the outermost tag
-     * is the source VLAN
-     * - Else we return the reserved "untagged VLAN" ID
-     */
+      * Decide what source VLAN this packet is from.
+      *
+      * - Vlan 0 ("untagged") will be used when:
+      *   - The frame is actually untagged
+      *   - The frame is vlan-tagged, but the bridge is a VUB (i.e.: the bridge
+      *     has no interior ports tagged with a vlan id).
+      * - If the in-port is tagged with a vlan, that's the source VLAN
+      * - Else if the traffic is tagged with a vlan, the outermost tag
+      *   is the source VLAN. This will be expected to exist as a tag in one
+      *   of the bridge's interior ports.
+      */
     private def srcVlanTag(packetContext: PacketContext): JShort = {
-        srcVlanTagOption(packetContext).getOrElse(
-            data.Bridge.UNTAGGED_VLAN_ID)
+        if (vlanMacTableMap.size == 1) data.Bridge.UNTAGGED_VLAN_ID
+        else srcVlanTagOption(packetContext)
+                              .getOrElse(data.Bridge.UNTAGGED_VLAN_ID)
     }
 
+    /**
+      * Learns the given source MAC unless it's a logical port's, also
+      * increasing the reference count for the tuple mac-vlan-port. What vlan is
+      * chosen depends on the rules in Bridge::srcVlanTag.
+      *
+      * This will also install a flow removed callback in the pktContext so that
+      * we can decrement the mac-vlan-port flow count accordingly.
+      *
+      * NOTE: Flow invalidations caused by MACs migrating between ports are
+      * done by the BridgeManager's MacTableNotifyCallBack.
+      */
     private def updateFlowCount(srcDlAddress: MAC,
                                 packetContext: PacketContext) {
         implicit val pktContext = packetContext
-        // Learn the src MAC unless it's a logical port's.
-        val vlanId = srcVlanTag(packetContext)
-
         if (!macToLogicalPortId.contains(srcDlAddress)) {
-            log.debug("Increasing the reference count for MAC {}, VLAN {}" +
-                " on port {}", srcDlAddress, vlanId, packetContext.getInPortId())
-            flowCount.increment(srcDlAddress, vlanId, packetContext.getInPortId)
-            // Add a flow-removal callback that decrements the reference count.
-            packetContext.addFlowRemovedCallback(
-                flowRemovedCallbackGen.getCallback(srcDlAddress,
-                    short2Short(vlanId), packetContext.getInPortId))
-            // Flow invalidations caused by MACs migrating between ports
-            // are done by the BridgeManager's MacTableNotifyCallBack.
+            val vlanId = short2Short(srcVlanTag(packetContext))
+            val inPortId = packetContext.getInPortId
+            log.debug("Increasing ref. count for MAC {}, VLAN {} on port {}",
+                      srcDlAddress, vlanId, inPortId)
+            flowCount.increment(srcDlAddress, vlanId, inPortId)
+            val callback = flowRemovedCallbackGen
+                           .getCallback(srcDlAddress, vlanId, inPortId)
+            packetContext.addFlowRemovedCallback(callback)
         }
     }
 
-    private def getPortOfMac(mac: MAC, vlanId: JShort, expiry: Long, ec: ExecutionContext) = {
-        val rv = Promise[Option[UUID]]()(ec)
+    /**
+      * Asynchronously gets the port of the given MAC address, the behaviour
+      * varies slightly if the Bridge is vlan-aware or not.
+      *
+      * - On Vlan-aware bridges (that is: those that have at least one interior
+      *   port tagged with a vlan ID) the MAC will be looked for *only* in the
+      *   partition for the given vlanId (the one contained in the simulated
+      *   frame)
+      * - On Vlan-unaware bridge (that is: those that do not have any interior
+      *   ports tagged with a vlan ID), the mac will be looked for *only* in the
+      *   default partition (which corresponds to the Bridge.UNTAGGED_VLAN_ID)
+      *   regardless of the frame's vlan id.
+      */
+    private def getPortOfMac(mac: MAC, vlanId: JShort, expiry: Long,
+                             ec: ExecutionContext)
+                            (implicit pktCtx: PacketContext) = {
+
         vlanMacTableMap.get(vlanId) match {
-            case Some(macPortMap: MacLearningTable) => macPortMap.get(mac, new Callback1[UUID] {
-                def call(port: UUID) {
-                    rv.success(Option.apply(port))
+            case Some(macPortMap: MacLearningTable) =>
+                val rv = Promise[Option[UUID]]()(ec)
+                val getCallback = new Callback1[UUID] {
+                    def call(port: UUID) { rv.success(Option.apply(port)) }
                 }
-            }, expiry)
-            case _ => rv.success(None)
+                macPortMap.get(mac, getCallback, expiry)
+                rv
+            case _ => Promise.successful(None)(ec)
         }
-        rv
     }
 
+    /**
+      * Asynchronously returns the MAC associated to the given IP, or None if
+      * the IP is unknown.
+      */
     private def getMacOfIp(ip: IPv4Addr, expiry: Long, ec: ExecutionContext) = {
         ip4MacMap match {
             case null => Promise.successful[MAC](null)
             case map =>
                 val rv = Promise[MAC]()(ec)
-                map.get(ip, new Callback1[MAC] {
-                    def call(mac: MAC) {
-                        rv.success(mac)
-                    }
-                }, expiry)
+                val getCallback = new Callback1[MAC] {
+                    def call(mac: MAC) { rv.success(mac) }
+                }
+                map.get(ip, getCallback, expiry)
                 rv
         }
     }
