@@ -3,49 +3,59 @@
  */
 package org.midonet.api.host;
 
+import java.net.InetAddress;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import javax.ws.rs.core.UriBuilder;
+
 import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
-import com.google.inject.Injector;
-import com.google.inject.Guice;
-import org.apache.zookeeper.KeeperException;
-import org.junit.Ignore;
-import org.midonet.api.serialization.SerializationModule;
-import org.midonet.midolman.host.state.HostDirectory;
-import org.midonet.midolman.host.state.HostZkManager;
-import org.midonet.api.VendorMediaType;
-import org.midonet.api.host.rest_api.HostTopology;
-import org.midonet.api.rest_api.DtoWebResource;
-import org.midonet.api.rest_api.FuncTest;
-import org.midonet.api.zookeeper.StaticMockDirectory;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.serialization.Serializer;
-import org.midonet.midolman.state.*;
-import org.midonet.client.MidonetApi;
-import org.midonet.client.dto.*;
-import org.midonet.client.resource.*;
-import org.midonet.client.resource.Host;
-import org.midonet.client.resource.TunnelZone;
-import org.midonet.client.resource.TunnelZoneHost;
-
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
 import junit.framework.Assert;
+import org.apache.zookeeper.KeeperException;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import org.midonet.api.VendorMediaType;
+import org.midonet.api.host.rest_api.HostTopology;
+import org.midonet.api.rest_api.DtoWebResource;
+import org.midonet.api.rest_api.FuncTest;
+import org.midonet.api.serialization.SerializationModule;
+import org.midonet.api.zookeeper.StaticMockDirectory;
+import org.midonet.client.MidonetApi;
+import org.midonet.client.dto.DtoCapwapTunnelZone;
+import org.midonet.client.dto.DtoError;
+import org.midonet.client.dto.DtoGreTunnelZone;
+import org.midonet.client.dto.DtoHost;
+import org.midonet.client.dto.DtoTunnelZone;
+import org.midonet.client.dto.DtoTunnelZoneHost;
+import org.midonet.client.resource.Host;
+import org.midonet.client.resource.HostInterface;
+import org.midonet.client.resource.ResourceCollection;
+import org.midonet.client.resource.TunnelZone;
+import org.midonet.client.resource.TunnelZoneHost;
+import org.midonet.midolman.host.state.HostDirectory;
+import org.midonet.midolman.host.state.HostZkManager;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.serialization.Serializer;
+import org.midonet.midolman.state.Directory;
+import org.midonet.midolman.state.PathBuilder;
+import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.version.guice.VersionModule;
 import org.midonet.packets.MAC;
-
-import java.net.InetAddress;
-import java.net.URI;
-import java.util.*;
-
-import javax.ws.rs.core.UriBuilder;
-
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
