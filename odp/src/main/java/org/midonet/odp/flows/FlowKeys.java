@@ -74,10 +74,11 @@ public class FlowKeys {
                 .setCode((byte) code));
     }
 
-    public static FlowKeyICMPEcho icmpEcho(int type, int code, short id) {
+    public static FlowKeyICMPEcho icmpEcho(int type, int code,
+                                           short id, short seq) {
         FlowKeyICMPEcho key = new FlowKeyICMPEcho();
         key.setType((byte) type).setCode((byte) code);
-        return intern(key.setIdentifier(id));
+        return intern(key.setIdentifier(id).setSeq(seq));
     }
 
     public static FlowKeyICMPError icmpError(int type, int code, byte[] data) {

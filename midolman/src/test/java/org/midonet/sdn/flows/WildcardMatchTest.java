@@ -97,6 +97,28 @@ public class WildcardMatchTest {
     }
 
     @Test
+    public void testSetIcmpIdentifier() {
+        WildcardMatch wmatch = new WildcardMatch();
+        Short icmpId = 0x25;
+        wmatch.setIcmpIdentifier(icmpId);
+        Assert.assertEquals(icmpId, wmatch.getIcmpIdentifier());
+        assertThat(wmatch.getUsedFields(), hasSize(1));
+        assertThat(wmatch.getUsedFields(),
+                   contains(WildcardMatch.Field.IcmpId));
+    }
+
+    @Test
+    public void testSetIcmpSeq() {
+        WildcardMatch wmatch = new WildcardMatch();
+        Short icmpSeq = 0x53;
+        wmatch.setIcmpSeq(icmpSeq);
+        Assert.assertEquals(icmpSeq, wmatch.getIcmpSeq());
+        assertThat(wmatch.getUsedFields(), hasSize(1));
+        assertThat(wmatch.getUsedFields(),
+                   contains(WildcardMatch.Field.IcmpSeq));
+    }
+
+    @Test
     public void testSetTpDest() {
         WildcardMatch wmatch = new WildcardMatch();
         int tpDest = 0x11ee;
@@ -146,7 +168,6 @@ public class WildcardMatchTest {
 
     @Test
     public void testSetNwDst_networkRange() {
-        int expectedLen = 32;
         WildcardMatch wmatch = new WildcardMatch();
         int nwDest = 0x12345678;
         wmatch.setNetworkDestination(IPv4Addr.fromInt(nwDest));
@@ -175,7 +196,6 @@ public class WildcardMatchTest {
 
     @Test
     public void testSetNwSrc_networkRange() {
-        int expectedLen = 32;
         WildcardMatch wmatch = new WildcardMatch();
         int nwSource = 0x12345678;
         wmatch.setNetworkSource(IPv4Addr.fromInt(nwSource));
