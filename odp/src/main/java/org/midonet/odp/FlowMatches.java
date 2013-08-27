@@ -163,7 +163,8 @@ public class FlowMatches {
             case ICMP.TYPE_ECHO_REQUEST:
                 return icmpEcho(icmp.getType(),
                                 icmp.getCode(),
-                                icmp.getIdentifier());
+                                icmp.getIdentifier(),
+                                icmp.getSequenceNum());
             case ICMP.TYPE_UNREACH:
             case ICMP.TYPE_TIME_EXCEEDED:
             case ICMP.TYPE_PARAMETER_PROBLEM:
