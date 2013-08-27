@@ -138,7 +138,6 @@ public class ICMP extends BasePacket {
         type = TYPE_ECHO_REQUEST;
         code = CODE_NONE;
         checksum = 0;
-        // TODO: check on the byte order for quench.
         quench = id << 16 | seq & 0xffff;
         this.data = data;
     }
@@ -154,7 +153,6 @@ public class ICMP extends BasePacket {
         type = TYPE_ECHO_REPLY;
         code = CODE_NONE;
         checksum = 0;
-        // TODO: check on the byte order for quench.
         quench = (id << 16) | (seq & 0xffff);
         this.data = data;
     }

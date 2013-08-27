@@ -99,31 +99,41 @@ public class FlowMatchTest {
         ICMP icmp1 = new ICMP();
         ICMP icmp2 = new ICMP();
         ICMP icmp3 = new ICMP();
+        ICMP icmp4 = new ICMP();
         icmp1.setEchoRequest((short)9507, (short)10, "hello".getBytes());
-        icmp2.setEchoRequest((short)9507, (short)11, "hello".getBytes());
-        icmp3.setEchoRequest((short)9508, (short)12, "hello".getBytes());
+        icmp2.setEchoRequest((short)9507, (short)10, "hello".getBytes());
+        icmp3.setEchoRequest((short)9508, (short)11, "hello".getBytes());
+        icmp4.setEchoRequest((short)9508, (short)12, "hello".getBytes());
         Ethernet eth1 = makeFrame(srcMac, dstMac, srcIp, dstIp, icmp1);
         Ethernet eth2 = makeFrame(srcMac, dstMac, srcIp, dstIp, icmp2);
         Ethernet eth3 = makeFrame(srcMac, dstMac, srcIp, dstIp, icmp3);
+        Ethernet eth4 = makeFrame(srcMac, dstMac, srcIp, dstIp, icmp4);
         FlowMatch m1 = new FlowMatch();
         FlowMatch m2 = new FlowMatch();
         FlowMatch m3 = new FlowMatch();
+        FlowMatch m4 = new FlowMatch();
         m1.addKey(makeFlowKeyICMP((byte)ICMP.TYPE_ECHO_REQUEST,
                                   (byte)ICMP.CODE_NONE));
         m2.addKey(makeFlowKeyICMP((byte)ICMP.TYPE_ECHO_REQUEST,
                                   (byte)ICMP.CODE_NONE));
         m3.addKey(makeFlowKeyICMP((byte)ICMP.TYPE_ECHO_REQUEST,
                                   (byte)ICMP.CODE_NONE));
+        m4.addKey(makeFlowKeyICMP((byte)ICMP.TYPE_ECHO_REQUEST,
+                                  (byte)ICMP.CODE_NONE));
 
         assertEquals(m1, m2);
         assertNotSame(m1, m3);
+        assertNotSame(m1, m4);
+        assertNotSame(m3, m4);
 
         FlowMatches.addUserspaceKeys(eth1, m1);
         FlowMatches.addUserspaceKeys(eth2, m2);
         FlowMatches.addUserspaceKeys(eth3, m3);
+        FlowMatches.addUserspaceKeys(eth4, m4);
 
         assertEquals(m1, m2);
         assertNotSame(m1, m3);
+        assertNotSame(m1, m4);
 
     }
 
