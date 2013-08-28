@@ -36,7 +36,7 @@ public class TestSelectLoop {
     public void setup() {
         try {
             log.info("Eventloop set-up starting.");
-            loop = new SelectLoop();
+            loop = new SimpleSelectLoop();
             reactor = new TryCatchReactor("test", 1);
             assertTrue(reactor != null);
             pipe1 = Pipe.open();
