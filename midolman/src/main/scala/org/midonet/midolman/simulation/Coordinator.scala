@@ -128,8 +128,7 @@ class Coordinator(var origMatch: WildcardMatch,
     private val devicesSimulated = mutable.Map[UUID, Int]()
     implicit private val pktContext = new PacketContext(cookie, origEthernetPkt,
          expiry, connectionCache, traceMessageCache, traceIndexCache,
-         generatedPacketEgressPort.isDefined, parentCookie)
-    pktContext.setMatch(origMatch)
+         generatedPacketEgressPort.isDefined, parentCookie, origMatch)
     pktContext.setTraced(matchTraceConditions())
 
     implicit def simulationActionToSuccessfulFuture(
@@ -257,7 +256,7 @@ class Coordinator(var origMatch: WildcardMatch,
     : Future[SimulationResult] = simRes map {
 
         case sr: ErrorDrop => sr
-        case sr if pktContext.getMatch.highestLayerSeen() < 4 =>
+        case sr if pktContext.wcmatch.highestLayerSeen() < 4 =>
             log.debug("Fragmented packet, L4 fields untouched: execute")
             sr
         case sr =>
@@ -358,7 +357,7 @@ class Coordinator(var origMatch: WildcardMatch,
                     numDevicesSimulated += 1
                     devicesSimulated.put(port.deviceID, numDevicesSimulated)
                     log.debug("Simulating packet with match {}, device {}",
-                        pktContext.getMatch, port.deviceID)
+                        pktContext.wcmatch, port.deviceID)
                     pktContext.traceMessage(port.deviceID, "Entering device")
                     handleActionFuture(deviceReply.asInstanceOf[Device].process(
                         pktContext))
@@ -445,9 +444,9 @@ class Coordinator(var origMatch: WildcardMatch,
                             val flow = WildcardFlow(
                                 wcmatch = origMatch,
                                 actions = List(a.action))
-                            val vlanId = pktContext.getMatch.getVlanIds.get(0)
-                            pktContext.getMatch.removeVlanId(vlanId)
-                            origMatch = pktContext.getMatch.clone()
+                            val vlanId = pktContext.wcmatch.getVlanIds.get(0)
+                            pktContext.wcmatch.removeVlanId(vlanId)
+                            origMatch = pktContext.wcmatch.clone()
                             pktContext.freeze()
                             AddVirtualWildcardFlow(flow,
                                 pktContext.getFlowRemovedCallbacks,
@@ -464,7 +463,7 @@ class Coordinator(var origMatch: WildcardMatch,
                           handleActionFuture(Promise.successful(act)) flatMap {
                               simRes => {
                                   val firstOrigMatch = origMatch.clone()
-                                  origMatch = pktContext.getMatch.clone()
+                                  origMatch = pktContext.wcmatch.clone()
                                   pktContext.unfreeze()
                                   Promise.successful(simRes, firstOrigMatch)
                               }
@@ -619,7 +618,7 @@ class Coordinator(var origMatch: WildcardMatch,
                         FlowTagger.invalidateFlowsByDeviceFilter(port.id, filterID))
 
                     val result = Chain.apply(chain, pktContext,
-                        pktContext.getMatch, port.id, true)
+                        pktContext.wcmatch, port.id, true)
                     if (result.action == RuleAction.ACCEPT) {
                         thunk(port)
                     } else if (result.action == RuleAction.DROP ||
@@ -686,7 +685,7 @@ class Coordinator(var origMatch: WildcardMatch,
      */
     private def emit(outputID: UUID, isPortSet: Boolean, port: Port[_]):
             SimulationResult = {
-        val actions = actionsFromMatchDiff(origMatch, pktContext.getMatch)
+        val actions = actionsFromMatchDiff(origMatch, pktContext.wcmatch)
         isPortSet match {
             case false =>
                 log.debug("Emitting packet from vport {}", outputID)
@@ -709,7 +708,7 @@ class Coordinator(var origMatch: WildcardMatch,
                 // TODO(guillermo,pino) don't assume that portset id == bridge id
                 if (pktContext.isConnTracked && pktContext.isForwardFlow) {
                     // Write the packet's data to the connectionCache.
-                    installConnectionCacheEntry(outputID, pktContext.getMatch,
+                    installConnectionCacheEntry(outputID, pktContext.wcmatch,
                             if (isPortSet) outputID else port.deviceID)
                 }
 

@@ -104,9 +104,8 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
         val origMatch = ingressMatch.clone
         val context = new PacketContext(null, null,
                                         Platform.currentTime + 10000, null,
-                                        null, null, true, None)
+                                        null, null, true, None, ingressMatch)
         //context.setInputPort(rtr1port)
-        context.setMatch(ingressMatch)
         val future = bridge.process(context)
 
         ingressMatch should be === origMatch
@@ -133,9 +132,8 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
         val origMatch = ingressMatch.clone
         val context = new PacketContext(null, frame,
                                         Platform.currentTime + 10000, null,
-                                        null, null, true, None)
+                                        null, null, true, None, ingressMatch)
         context.setInputPort(new ExteriorRouterPort().setID(rtr2port))
-        context.setMatch(ingressMatch)
         val future = bridge.process(context)
 
         ingressMatch should be === origMatch
@@ -157,8 +155,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
         val origMatch = ingressMatch.clone
         val context = new PacketContext(null, null,
                                         Platform.currentTime + 10000, null,
-                                        null, null, true, None)
-        context.setMatch(ingressMatch)
+                                        null, null, true, None, ingressMatch)
         val future = bridge.process(context)
 
         ingressMatch should be === origMatch
@@ -188,8 +185,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
         val origMatch = ingressMatch.clone
         val context = new PacketContext(null, frame,
                                         Platform.currentTime + 10000, null,
-                                        null, null, true, None)
-        context.setMatch(ingressMatch)
+                                        null, null, true, None, ingressMatch)
         val future = bridge.process(context)
 
         ingressMatch should be === origMatch
@@ -209,8 +205,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
         val origMatch = ingressMatch.clone
         val context = new PacketContext(null, null,
                                         Platform.currentTime + 10000, null,
-                                        null, null, true, None)
-        context.setMatch(ingressMatch)
+                                        null, null, true, None, ingressMatch)
         val future = bridge.process(context)
 
         ingressMatch should be === origMatch
