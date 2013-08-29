@@ -30,22 +30,22 @@ import org.midonet.midolman.monitoring.metrics.PacketPipelineAccumulatedTime
 import org.midonet.midolman.rules.Condition
 import org.midonet.midolman.topology.TraceConditionsManager
 import org.midonet.midolman.topology.VirtualTopologyActor
-import org.midonet.netlink.Callback
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.odp.{FlowMatches, Datapath, FlowMatch, Packet}
 import org.midonet.odp.flows.FlowAction
 import org.midonet.packets.Ethernet
-import org.midonet.util.throttling.{ThrottlingGuard, ThrottlingGuardFactory}
+import org.midonet.util.throttling.ThrottlingGuard
 import scala.compat.Platform
 import akka.util.Duration
+import org.midonet.util.BatchCollector
 
 
 object DeduplicationActor extends Referenceable {
     override val Name = "DeduplicationActor"
 
     // Messages
-    case class HandlePacket(packet: Packet)
+    case class HandlePackets(packet: Array[Packet])
 
     case class ApplyFlow(actions: Seq[FlowAction[_]], cookie: Option[Int])
 
@@ -210,37 +210,16 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
                                                   self, _ExpireCookies)
              }
 
-        case HandlePacket(packet) => {
-            log.debug("Handling packet with match {}", packet.getMatch)
-            dpMatchToCookie.get(packet.getMatch) match {
-                case None =>
-                    // If there is no match on the match, create a new cookie
-                    // and a new PacketWorkflow to handle the packet
-                    val cookie = nextCookieId
-                    log.debug("make new cookie #{} for new match: {}",
-                        cookie, packet.getMatch)
-
-                    dpMatchToCookie.put(packet.getMatch, cookie)
-                    scheduleCookieExpiration(packet.getMatch)
-                    cookieToPendedPackets.addBinding(cookie, packet)
-                    val packetWorkflow = new PacketWorkflow(
-                        datapathConnection, dpState, datapath,
-                        clusterDataClient, connectionCache, traceMessageCache,
-                        traceIndexCache, packet, Left(cookie), throttler,
-                        metrics, traceConditions)
-
-                    log.debug("Created new PacketWorkflow for cookie " + cookie)
-                    packetWorkflow.start()
-
-                case Some(cookie) =>
-                    // Simulation in progress. Just pend the packet.
-                    log.debug("A matching packet with cookie {} is already " +
-                        "being handled", cookie)
-                    throttler.tokenOut()
-                    cookieToPendedPackets.addBinding(cookie, packet)
-                    metrics.pendedPackets.inc()
+        case HandlePackets(packets) =>
+            /* Use an array and a while loop (as opposed to a list and a for loop
+             * to minimize garbage generation (for loops are closures, while loops
+             * are not).
+             */
+            var i = 0
+            while (i < packets.length && packets(i) != null) {
+                handlePacket(packets(i))
+                i += 1
             }
-        }
 
         case ApplyFlow(actions, cookieOpt) => cookieOpt foreach { cookie =>
             cookieToPendedPackets.remove(cookie) foreach { pendedPackets =>
@@ -296,6 +275,38 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
         }
     }
 
+    private def handlePacket(packet: Packet) {
+        log.debug("Handling packet with match {}", packet.getMatch)
+        dpMatchToCookie.get(packet.getMatch) match {
+            case None =>
+                // If there is no match on the match, create a new cookie
+                // and a new PacketWorkflow to handle the packet
+                val cookie = nextCookieId
+                log.debug("make new cookie #{} for new match: {}",
+                    cookie, packet.getMatch)
+
+                dpMatchToCookie.put(packet.getMatch, cookie)
+                scheduleCookieExpiration(packet.getMatch)
+                cookieToPendedPackets.addBinding(cookie, packet)
+                val packetWorkflow = new PacketWorkflow(
+                    datapathConnection, dpState, datapath,
+                    clusterDataClient, connectionCache, traceMessageCache,
+                    traceIndexCache, packet, Left(cookie), throttler,
+                    metrics, traceConditions)
+
+                log.debug("Created new PacketWorkflow for cookie " + cookie)
+                packetWorkflow.start()
+
+            case Some(cookie) =>
+                // Simulation in progress. Just pend the packet.
+                log.debug("A matching packet with cookie {} is already " +
+                    "being handled", cookie)
+                throttler.tokenOut()
+                cookieToPendedPackets.addBinding(cookie, packet)
+                metrics.pendedPackets.inc()
+        }
+    }
+
     private def scheduleCookieExpiration(flowMatch: FlowMatch) {
         cookieExpirations += ((flowMatch, Platform.currentTime + cookieTimeToLiveMillis))
     }
@@ -331,17 +342,28 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
     private def installPacketInHook() = {
          log.info("Installing packet in handler in the DDA")
          datapathConnection.datapathsSetNotificationHandler(datapath,
-                 new Callback[Packet] {
-                     def onSuccess(data: Packet) {
+                 new BatchCollector[Packet] {
+                     val BATCH_SIZE = 16
+                     var packets = new Array[Packet](BATCH_SIZE)
+                     var cursor = 0
+
+                     override def endBatch() {
+                         if (cursor > 0) {
+                             self ! HandlePackets(packets)
+                             packets = new Array[Packet](BATCH_SIZE)
+                             cursor = 0
+                         }
+                     }
+
+                     override def submit(data: Packet) {
                          val eth = data.getPacket
                          FlowMatches.addUserspaceKeys(eth, data.getMatch)
                          data.setStartTimeNanos(Clock.defaultClock().tick())
-                         self ! HandlePacket(data)
+                         packets(cursor) = data
+                         cursor += 1
+                         if (cursor == BATCH_SIZE)
+                             endBatch()
                      }
-
-                 def onTimeout() {}
-
-                 def onError(e: NetlinkException) {}
          }).get()
     }
 
