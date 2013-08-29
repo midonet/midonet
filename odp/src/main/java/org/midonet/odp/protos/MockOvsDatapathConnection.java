@@ -29,6 +29,7 @@ import org.midonet.odp.Packet;
 import org.midonet.odp.Port;
 import org.midonet.odp.Ports;
 import org.midonet.odp.ports.InternalPort;
+import org.midonet.util.BatchCollector;
 import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.throttling.NoOpThrottlingGuard;
 import org.midonet.util.throttling.NoOpThrottlingGuardFactory;
@@ -77,11 +78,11 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
         return initialized;
     }
 
-    Callback<Packet> notificationHandler;
+    BatchCollector<Packet> notificationHandler;
 
     @Override
     protected void _doDatapathsSetNotificationHandler(@Nonnull Datapath datapath,
-                                                      @Nonnull Callback<Packet> notificationHandler,
+                                                      @Nonnull BatchCollector<Packet> notificationHandler,
                                                       @Nonnull Callback<Boolean> operationCallback,
                                                       long timeoutMillis) {
         this.notificationHandler = notificationHandler;
@@ -89,7 +90,8 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
     }
 
     public void triggerPacketIn(@Nonnull Packet packet) {
-        notificationHandler.onSuccess(packet);
+        notificationHandler.submit(packet);
+        notificationHandler.endBatch();
     }
 
     @Override

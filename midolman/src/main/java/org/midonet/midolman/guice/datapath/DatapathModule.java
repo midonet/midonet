@@ -36,6 +36,7 @@ public class DatapathModule extends PrivateModule {
     protected void configure() {
         binder().requireExplicitBindings();
         requireBinding(Reactor.class);
+        requireBinding(MidolmanConfig.class);
         requireBinding(Key.get(SelectLoop.class, ReactorModule.READ_LOOP.class));
         requireBinding(Key.get(SelectLoop.class, ReactorModule.WRITE_LOOP.class));
 

@@ -16,7 +16,7 @@ import org.scalatest.junit.JUnitRunner
 import org.scalatest.Ignore
 import org.slf4j.LoggerFactory
 
-import org.midonet.midolman.DeduplicationActor.HandlePacket
+import org.midonet.midolman.DeduplicationActor.HandlePackets
 import org.midonet.midolman.FlowController.{WildcardFlowAdded,
         InvalidateFlowsByTag, WildcardFlowRemoved}
 import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
@@ -219,7 +219,7 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
         eth.setPayload(new IPv4().setPayload(new Data("Payload".getBytes)))
 
         val packet = new Packet().setMatch(dpMatch).setPacket(eth)
-        dedupProbe().testActor.tell(HandlePacket(packet))
+        dedupProbe().testActor.tell(HandlePackets(Array(packet)))
 
         val addFlowMsg = fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
 

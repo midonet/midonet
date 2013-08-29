@@ -15,6 +15,7 @@ import static java.lang.String.format;
 
 import com.google.common.base.Function;
 import com.google.common.util.concurrent.ValueFuture;
+import org.midonet.util.BatchCollector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -91,7 +92,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                     packet.setReason(Packet.Reason.FlowTableMiss);
                 }
 
-                notificationHandler.onSuccess(packet);
+                notificationHandler.submit(packet);
             }
         } else {
             super.handleNotification(type, cmd, seq, pid, buffers);
@@ -100,7 +101,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
     @Override
     protected void _doDatapathsSetNotificationHandler(@Nonnull final Datapath datapath,
-                                                      @Nonnull Callback<Packet> notificationHandler,
+                                                      @Nonnull BatchCollector<Packet> notificationHandler,
                                                       @Nonnull final Callback<Boolean> installCallback,
                                                       final long timeoutMillis) {
         this.notificationHandler = notificationHandler;
@@ -158,7 +159,13 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
     int datapathMulticast;
     int portMulticast;
 
-    private Callback<Packet> notificationHandler;
+    private BatchCollector<Packet> notificationHandler;
+
+    @Override
+    protected void endBatch() {
+        if (notificationHandler != null)
+            notificationHandler.endBatch();
+    }
 
     @Override
     protected void _doDatapathsEnumerate(@Nonnull Callback<Set<Datapath>> callback,
@@ -171,7 +178,11 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                 .addValue(0)
                 .build();
 
-        newRequest(datapathFamily, DatapathFamily.Cmd.GET)
+        RequestBuilder<DatapathFamily.Cmd,
+                       DatapathFamily,
+                       Set<Datapath>> reqBuilder =
+                           newRequest(datapathFamily, DatapathFamily.Cmd.GET);
+        reqBuilder
             .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO,
                        Flag.NLM_F_DUMP)
             .withPayload(message.getBuffer())
@@ -218,7 +229,11 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                 .addAttr(DatapathFamily.Attr.NAME, name)
                 .build();
 
-        newRequest(datapathFamily, DatapathFamily.Cmd.NEW)
+        RequestBuilder<DatapathFamily.Cmd,
+                       DatapathFamily,
+                       Datapath> reqBuilder =
+                           newRequest(datapathFamily, DatapathFamily.Cmd.NEW);
+        reqBuilder
             .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
             .withPayload(message.getBuffer())
             .withCallback(
@@ -262,7 +277,11 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         NetlinkMessage message = builder.build();
 
-        newRequest(datapathFamily, DatapathFamily.Cmd.DEL)
+        RequestBuilder<DatapathFamily.Cmd,
+                       DatapathFamily,
+                       Datapath> reqBuilder =
+                           newRequest(datapathFamily, DatapathFamily.Cmd.DEL);
+        reqBuilder
             .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
             .withPayload(message.getBuffer())
             .withCallback(
@@ -322,7 +341,11 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         NetlinkMessage message = builder.build();
 
-        newRequest(portFamily, PortFamily.Cmd.GET)
+        RequestBuilder<PortFamily.Cmd,
+                       PortFamily,
+                       Port<?,?>> reqBuilder =
+                           newRequest(portFamily, PortFamily.Cmd.GET);
+        reqBuilder
             .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
             .withPayload(message.getBuffer())
             .withCallback(
@@ -350,7 +373,11 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         builder.addValue(datapathIndex);
         builder.addAttr(PortFamily.Attr.PORT_NO, port.getPortNo());
 
-        newRequest(portFamily, PortFamily.Cmd.DEL)
+        RequestBuilder<PortFamily.Cmd,
+                       PortFamily,
+                       Port<?,?>> reqBuilder =
+                           newRequest(portFamily, PortFamily.Cmd.DEL);
+        reqBuilder
             .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
             .withPayload(builder.build().getBuffer())
             .withCallback(
@@ -415,7 +442,11 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         NetlinkMessage message = builder.build();
 
-        newRequest(portFamily, PortFamily.Cmd.SET)
+        RequestBuilder<PortFamily.Cmd,
+                       PortFamily,
+                       Port<?,?>> reqBuilder =
+                           newRequest(portFamily, PortFamily.Cmd.SET);
+        reqBuilder
             .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
             .withPayload(message.getBuffer())
             .withCallback(
@@ -446,9 +477,13 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             .addValue(datapath.getIndex())
             .build();
 
-        newRequest(portFamily, PortFamily.Cmd.GET)
+        RequestBuilder<PortFamily.Cmd,
+                       PortFamily,
+                       Set<Port<?,?>>> reqBuilder =
+                           newRequest(portFamily, PortFamily.Cmd.GET);
+        reqBuilder
             .withFlags(Flag.NLM_F_DUMP, Flag.NLM_F_ECHO,
-                       Flag.NLM_F_REQUEST, Flag.NLM_F_ACK)
+                    Flag.NLM_F_REQUEST, Flag.NLM_F_ACK)
             .withPayload(message.getBuffer())
             .withCallback(
                 callback,
@@ -534,7 +569,11 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         NetlinkMessage message = builder.build();
 
-        newRequest(portFamily, PortFamily.Cmd.NEW)
+        RequestBuilder<PortFamily.Cmd,
+                       PortFamily,
+                       Port<?,?>> reqBuilder =
+                           newRequest(portFamily, PortFamily.Cmd.NEW);
+        reqBuilder
             .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
             .withPayload(message.getBuffer())
             .withCallback(callback,
@@ -578,7 +617,11 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         NetlinkMessage message = builder.build();
 
-        newRequest(datapathFamily, DatapathFamily.Cmd.GET)
+        RequestBuilder<DatapathFamily.Cmd,
+                       DatapathFamily,
+                       Datapath> reqBuilder =
+                           newRequest(datapathFamily, DatapathFamily.Cmd.GET);
+        reqBuilder
             .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
             .withPayload(message.getBuffer())
             .withCallback(
@@ -617,9 +660,13 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             .addValue(datapathId)
             .build();
 
-        newRequest(flowFamily, FlowFamily.Cmd.GET)
+        RequestBuilder<FlowFamily.Cmd,
+                       FlowFamily,
+                       Set<Flow>> reqBuilder =
+                           newRequest(flowFamily, FlowFamily.Cmd.GET);
+        reqBuilder
             .withFlags(Flag.NLM_F_DUMP, Flag.NLM_F_ECHO,
-                       Flag.NLM_F_REQUEST, Flag.NLM_F_ACK)
+                    Flag.NLM_F_REQUEST, Flag.NLM_F_ACK)
             .withPayload(message.getBuffer())
             .withCallback(
                 callback,
@@ -672,7 +719,11 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         NetlinkMessage message = builder.build();
 
-        newRequest(flowFamily, FlowFamily.Cmd.NEW)
+        RequestBuilder<FlowFamily.Cmd,
+                       FlowFamily,
+                       Flow> reqBuilder =
+                           newRequest(flowFamily, FlowFamily.Cmd.NEW);
+        reqBuilder
             .withFlags(Flag.NLM_F_CREATE, Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
             .withPayload(message.getBuffer())
             .withCallback(
@@ -725,7 +776,11 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                 .build()
             .build();
 
-        newRequest(flowFamily, FlowFamily.Cmd.DEL)
+        RequestBuilder<FlowFamily.Cmd,
+                       FlowFamily,
+                       Flow> reqBuilder =
+                           newRequest(flowFamily, FlowFamily.Cmd.DEL);
+        reqBuilder
             .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
             .withPayload(message.getBuffer())
             .withCallback(
@@ -765,7 +820,11 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             .addValue(datapathId)
             .build();
 
-        newRequest(flowFamily, FlowFamily.Cmd.DEL)
+        RequestBuilder<FlowFamily.Cmd,
+                       FlowFamily,
+                       Boolean> reqBuilder =
+                           newRequest(flowFamily, FlowFamily.Cmd.DEL);
+        reqBuilder
             .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ACK)
             .withPayload(message.getBuffer())
             .withCallback(
@@ -802,7 +861,11 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             .addAttrs(match.getKeys())
             .build();
 
-        newRequest(flowFamily, FlowFamily.Cmd.GET)
+        RequestBuilder<FlowFamily.Cmd,
+                       FlowFamily,
+                       Flow> reqBuilder =
+                           newRequest(flowFamily, FlowFamily.Cmd.GET);
+        reqBuilder
             .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
             .withPayload(builder.build().getBuffer())
             .withCallback(
@@ -863,7 +926,11 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                    .build();
         }
 
-        newRequest(flowFamily, FlowFamily.Cmd.SET)
+        RequestBuilder<FlowFamily.Cmd,
+                       FlowFamily,
+                       Flow> reqBuilder =
+                           newRequest(flowFamily, FlowFamily.Cmd.SET);
+        reqBuilder
             .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
             .withPayload(builder.build().getBuffer())
             .withCallback(
@@ -936,7 +1003,11 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             .addAttr(PacketFamily.AttrKey.PACKET, packet.getPacket())
             .build();
 
-        newRequest(packetFamily, PacketFamily.Cmd.EXECUTE)
+        RequestBuilder<PacketFamily.Cmd,
+                      PacketFamily,
+                      Boolean> reqBuilder =
+                          newRequest(packetFamily, PacketFamily.Cmd.EXECUTE);
+        reqBuilder
             .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO, Flag.NLM_F_ACK)
             .withPayload(message.getBuffer())
             .withCallback(

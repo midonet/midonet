@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import org.midonet.netlink.clib.cLibrary;
 import org.midonet.netlink.exceptions.NetlinkException;
 import org.midonet.netlink.messages.Builder;
+import org.midonet.util.BatchCollector;
 import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.io.SelectorInputQueue;
 import org.midonet.util.throttling.ThrottlingGuard;
@@ -41,7 +42,7 @@ public abstract class AbstractNetlinkConnection {
     private static final Logger log = LoggerFactory
         .getLogger(AbstractNetlinkConnection.class);
 
-    private static final int DEFAULT_MAX_BATCH_IO_OPS = 100;
+    private static final int DEFAULT_MAX_BATCH_IO_OPS = 200;
     private static final int NETLINK_HEADER_LEN = 20;
     private static final int NETLINK_READ_BUFSIZE = 0x10000;
 
@@ -69,6 +70,7 @@ public abstract class AbstractNetlinkConnection {
 
     private NetlinkChannel channel;
     private Reactor reactor;
+    protected BatchCollector<Runnable> dispatcher;
 
     private SelectorInputQueue<NetlinkRequest> writeQueue =
             new SelectorInputQueue<NetlinkRequest>();
@@ -83,6 +85,18 @@ public abstract class AbstractNetlinkConnection {
                 "NetlinkConnection", pendingRequests.keySet());
         this.upcallThrottler = upcallThrottler;
         this.requestPool = sendPool;
+
+        // default implementation runs callbacks out of the calling thread one by one
+        this.dispatcher = new BatchCollector<Runnable>() {
+            @Override
+            public void submit(Runnable r) {
+                r.run();
+            }
+
+            @Override
+            public void endBatch() {
+            }
+        };
     }
 
     public NetlinkChannel getChannel() {
@@ -91,6 +105,10 @@ public abstract class AbstractNetlinkConnection {
 
     protected Reactor getReactor() {
         return reactor;
+    }
+
+    public void setCallbackDispatcher(BatchCollector<Runnable> dispatcher) {
+        this.dispatcher = dispatcher;
     }
 
     public boolean bypassSendQueue() {
@@ -115,14 +133,15 @@ public abstract class AbstractNetlinkConnection {
 
     public class RequestBuilder<
         Cmd extends Enum<Cmd> & Netlink.ByteConstant,
-        Family extends Netlink.CommandFamily<Cmd, ?>
-        > {
+        Family extends Netlink.CommandFamily<Cmd, ?>,
+        T> {
 
         private Family cmdFamily;
         private Cmd cmd;
         private Flag[] flags;
         private ByteBuffer payload;
-        private Callback<List<ByteBuffer>> callback;
+        private Callback<T> callback;
+        private Function<List<ByteBuffer>, T> translationFunction;
         private long timeoutMillis;
 
         private RequestBuilder(Family cmdFamily, Cmd cmd) {
@@ -130,13 +149,13 @@ public abstract class AbstractNetlinkConnection {
             this.cmd = cmd;
         }
 
-        public RequestBuilder<Cmd, Family> withFlags(Flag... flags) {
+        public RequestBuilder<Cmd, Family, T> withFlags(Flag... flags) {
             this.flags = flags;
 
             return this;
         }
 
-        public RequestBuilder<Cmd, Family> withPayload(ByteBuffer payload) {
+        public RequestBuilder<Cmd, Family, T> withPayload(ByteBuffer payload) {
             this.payload = payload;
             return this;
         }
@@ -147,29 +166,15 @@ public abstract class AbstractNetlinkConnection {
          * to the callback will be reused after invocation, the caller
          * is not entitled to keeping a reference to them.
          */
-        public <T> RequestBuilder<Cmd, Family> withCallback(final Callback<T> callback,
-                                                            final Function<List<ByteBuffer>, T> translationFunction) {
-            this.callback = new Callback<List<ByteBuffer>>() {
-                @Override
-                public void onSuccess(List<ByteBuffer> data) {
-                    callback.onSuccess(translationFunction.apply(data));
-                }
-
-                @Override
-                public void onTimeout() {
-                    callback.onTimeout();
-                }
-
-                @Override
-                public void onError(NetlinkException e) {
-                    callback.onError(e);
-                }
-            };
-
+        public RequestBuilder<Cmd, Family, T> withCallback(
+                final Callback<T> callback,
+                final Function<List<ByteBuffer>, T> translationFunction) {
+            this.callback = callback;
+            this.translationFunction = translationFunction;
             return this;
         }
 
-        public RequestBuilder<Cmd, Family> withTimeout(long timeoutMillis) {
+        public RequestBuilder<Cmd, Family, T> withTimeout(long timeoutMillis) {
             this.timeoutMillis = timeoutMillis;
             return this;
         }
@@ -177,13 +182,14 @@ public abstract class AbstractNetlinkConnection {
         public void send() {
             sendNetLinkMessage(cmdFamily.getFamilyId(), cmd.getValue(),
                                Flag.or(flags), cmdFamily.getVersion(),
-                               payload, callback, timeoutMillis);
+                               payload, callback, translationFunction, timeoutMillis);
         }
     }
 
-    private void sendNetLinkMessage(short cmdFamily, byte cmd, short flags,
+    private <T> void sendNetLinkMessage(short cmdFamily, byte cmd, short flags,
                                     byte version, ByteBuffer payload,
-                                    Callback<List<ByteBuffer>> callback,
+                                    Callback<T> callback,
+                                    Function<List<ByteBuffer>, T> translationFunction,
                                     final long timeoutMillis) {
         final int seq = sequenceGenerator.getAndIncrement();
 
@@ -197,18 +203,15 @@ public abstract class AbstractNetlinkConnection {
         // set the header length
         headerBuf.putInt(0, totalSize);
 
-        final NetlinkRequest netlinkRequest = new NetlinkRequest();
-        netlinkRequest.family = cmdFamily;
-        netlinkRequest.cmd = cmd;
-        netlinkRequest.callback = callback;
-        netlinkRequest.outBuffer.set(payload);
+        final NetlinkRequest<T> netlinkRequest =
+                new NetlinkRequest<>(cmdFamily, cmd, callback,
+                                     translationFunction, payload);
 
         // send the request
         netlinkRequest.timeoutHandler = new Callable<Object>() {
             @Override
             public Object call() throws Exception {
-                NetlinkRequest timedOutRequest =
-                    pendingRequests.remove(seq);
+                NetlinkRequest<T> timedOutRequest = pendingRequests.remove(seq);
 
                 if (timedOutRequest != null) {
                     log.debug("Signalling timeout to the callback: {}", seq);
@@ -216,7 +219,7 @@ public abstract class AbstractNetlinkConnection {
                     if (timedOutBuf != null)
                         requestPool.release(timedOutBuf);
                     pendingWritesThrottler.tokenOut();
-                    timedOutRequest.callback.onTimeout();
+                    timedOutRequest.expired().run();
                 }
 
                 return null;
@@ -233,18 +236,18 @@ public abstract class AbstractNetlinkConnection {
         } else {
             requestPool.release(payload);
             pendingRequests.remove(seq);
-            netlinkRequest.callback.onError(new NetlinkException(
-                            NetlinkException.ERROR_SENDING_REQUEST,
-                            "Too many pending netlink requests"));
+            netlinkRequest.failed(new NetlinkException(
+                    NetlinkException.ERROR_SENDING_REQUEST,
+                    "Too many pending netlink requests")).run();
         }
     }
 
     protected <
         Cmd extends Enum<Cmd> & Netlink.ByteConstant,
-        Family extends Netlink.CommandFamily<Cmd, ?>
-        >
-    RequestBuilder<Cmd, Family> newRequest(Family commandFamily, Cmd cmd) {
-        return new RequestBuilder<Cmd, Family>(commandFamily, cmd);
+        Family extends Netlink.CommandFamily<Cmd, ?>,
+        T>
+    RequestBuilder<Cmd, Family, T> newRequest(Family commandFamily, Cmd cmd) {
+        return new RequestBuilder<Cmd, Family, T>(commandFamily, cmd);
     }
 
     public void handleWriteEvent(final SelectionKey key) throws IOException {
@@ -261,7 +264,7 @@ public abstract class AbstractNetlinkConnection {
     }
 
     private int processWriteToChannel() {
-        final NetlinkRequest request = writeQueue.poll();
+        final NetlinkRequest<?> request = writeQueue.poll();
         if (request == null)
             return 0;
         ByteBuffer outBuf = request.outBuffer.getAndSet(null);
@@ -273,10 +276,9 @@ public abstract class AbstractNetlinkConnection {
             bytes = channel.write(outBuf);
         } catch (IOException e) {
             log.warn("NETLINK write() exception: {}", e);
-            request.callback
-                .onError(new NetlinkException(
-                        NetlinkException.ERROR_SENDING_REQUEST,
-                        e));
+            request.failed(new NetlinkException(
+                        NetlinkException.ERROR_SENDING_REQUEST, e))
+                    .run();
         } finally {
             requestPool.release(outBuf);
         }
@@ -297,8 +299,13 @@ public abstract class AbstractNetlinkConnection {
             }
         } catch (IOException e) {
             log.error("NETLINK read() exception: {}", e);
+        } finally {
+            endBatch();
+            dispatcher.endBatch();
         }
     }
+
+    protected void endBatch() {}
 
     private synchronized int processReadFromChannel(SelectionKey key) throws IOException {
 
@@ -335,7 +342,7 @@ public abstract class AbstractNetlinkConnection {
                 nextPosition = position + len;
             }
 
-            final NetlinkRequest request = (seq != 0) ?
+            final NetlinkRequest<?> request = (seq != 0) ?
                                             pendingRequests.get(seq) :
                                             null;
             if (request == null && seq != 0) {
@@ -371,11 +378,11 @@ public abstract class AbstractNetlinkConnection {
                         pendingWritesThrottler.tokenOut();
                         // An ACK is a NLMSG_ERROR with 0 as error code
                         if (error == 0) {
-                            request.callback.onSuccess(request.inBuffers);
+                            dispatcher.submit(request.successful(request.inBuffers));
                         } else {
                             String errorMessage = cLibrary.lib.strerror(-error);
-                            request.callback.onError(
-                                new NetlinkException(-error, errorMessage));
+                            dispatcher.submit(request.failed(
+                                    new NetlinkException(-error, errorMessage)));
                         }
                     }
                     break;
@@ -384,7 +391,7 @@ public abstract class AbstractNetlinkConnection {
                     if (request != null) {
                         pendingRequests.remove(seq);
                         pendingWritesThrottler.tokenOut();
-                        request.callback.onSuccess(request.inBuffers);
+                        dispatcher.submit(request.successful(request.inBuffers));
                     }
                     break;
 
@@ -408,7 +415,7 @@ public abstract class AbstractNetlinkConnection {
                         if (request != null) {
                             pendingRequests.remove(seq);
                             pendingWritesThrottler.tokenOut();
-                            request.callback.onSuccess(request.inBuffers);
+                            dispatcher.submit(request.successful(request.inBuffers));
                         }
 
                         if (seq == 0 && pendingWritesThrottler.allowed()) {
@@ -460,13 +467,109 @@ public abstract class AbstractNetlinkConnection {
         return request.position() - startPos;
     }
 
-    class NetlinkRequest {
+    protected class DelayedCallbackExecutor<T> implements Runnable {
+        private boolean succeeded = false;
+        private boolean expired = false;
+        private boolean hasRun = false;
+        private Callback<T> callback;
+        private T result = null;
+        private NetlinkException error = null;
+
+        public DelayedCallbackExecutor(Callback<T> cb) {
+            this.callback = cb;
+        }
+
+        private boolean initialized() {
+            return succeeded || expired || (error != null);
+        }
+
+        private void ensureNotInitialized() {
+            if (initialized()) {
+                throw new IllegalStateException(
+                        "Tried to provide result for the same callback twice");
+            }
+        }
+
+        private void ensureInitialized() {
+            if (!initialized()) {
+                throw new IllegalStateException(
+                        "No result was given for this callback");
+            }
+        }
+
+        public DelayedCallbackExecutor<T> successful(T result) {
+            ensureNotInitialized();
+            this.succeeded = true;
+            this.result = result;
+            this.expired = false;
+            return this;
+        }
+
+        public DelayedCallbackExecutor<T> failed(NetlinkException e) {
+            ensureNotInitialized();
+            this.succeeded = false;
+            this.error = e;
+            this.expired = false;
+            return this;
+        }
+
+        public DelayedCallbackExecutor<T> expired() {
+            ensureNotInitialized();
+            this.succeeded = false;
+            this.error = null;
+            this.expired = true;
+            return this;
+        }
+
+        @Override
+        public void run() {
+            if (hasRun)
+                throw new IllegalStateException("Tried to run callback twice");
+
+            ensureInitialized();
+            this.hasRun = true;
+            if (this.succeeded)
+                callback.onSuccess(this.result);
+            else if (this.error != null)
+                callback.onError(this.error);
+            else if (this.expired)
+                callback.onTimeout();
+
+        }
+    }
+
+    class NetlinkRequest<T> {
         short family;
         byte cmd;
-        List<ByteBuffer> inBuffers = new ArrayList<ByteBuffer>();
-        Callback<List<ByteBuffer>> callback;
+        List<ByteBuffer> inBuffers = new ArrayList<>();
+        AtomicReference<ByteBuffer> outBuffer = new AtomicReference<>();
+        private final Callback<T> userCallback;
+        private final Function<List<ByteBuffer>, T> translationFunction;
         Callable<?> timeoutHandler;
-        AtomicReference<ByteBuffer> outBuffer = new AtomicReference<ByteBuffer>();
+
+        public NetlinkRequest(short family, byte cmd,
+                              Callback<T> callback,
+                              Function<List<ByteBuffer>, T> translationFunc,
+                              ByteBuffer data) {
+            this.family = family;
+            this.cmd = cmd;
+            this.userCallback = callback;
+            this.translationFunction = translationFunc;
+            this.outBuffer.set(data);
+        }
+
+        public Runnable successful(List<ByteBuffer> data) {
+            return new DelayedCallbackExecutor<T>(userCallback)
+                    .successful(translationFunction.apply(data));
+        }
+
+        public Runnable failed(NetlinkException e) {
+            return new DelayedCallbackExecutor<T>(userCallback).failed(e);
+        }
+
+        public Runnable expired() {
+            return new DelayedCallbackExecutor<T>(userCallback).expired();
+        }
 
         @Override
         public String toString() {
@@ -474,6 +577,10 @@ public abstract class AbstractNetlinkConnection {
                 "family=" + family +
                 ", cmd=" + cmd +
                 '}';
+        }
+
+        public AtomicReference<ByteBuffer> getOutBuffer() {
+            return outBuffer;
         }
     }
 
