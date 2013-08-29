@@ -60,7 +60,7 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
                                   actorSystem: ActorSystem): Future[Action] = {
         implicit val packetContext = pktContext
 
-        if (!validEthertypes.contains(pktContext.getMatch.getEtherType)) {
+        if (!validEthertypes.contains(pktContext.wcmatch.getEtherType)) {
             return Promise.successful(unsupportedPacketAction)(ec)
         }
 
@@ -80,12 +80,12 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
         // Apply the pre-routing (ingress) chain
         pktContext.setOutputPort(null) // input port should be set already
         val preRoutingResult = Chain.apply(inFilter, pktContext,
-                pktContext.getMatch, id, false)
+                pktContext.wcmatch, id, false)
 
         if (preRoutingResult.action == RuleAction.DROP) {
             Some(new DropAction)
         } else if (preRoutingResult.action == RuleAction.REJECT) {
-            sendIcmpUnreachableProhibError(inPort, pktContext.getMatch,
+            sendIcmpUnreachableProhibError(inPort, pktContext.wcmatch,
                 pktContext.getFrame)
             Some(new DropAction)
         } else if (preRoutingResult.action != RuleAction.ACCEPT) {
@@ -93,7 +93,7 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
                 "not ACCEPT, DROP, or REJECT.", id, preRoutingResult.action)
             Some(new ErrorDropAction)
         }
-        if (preRoutingResult.pmatch ne pktContext.getMatch) {
+        if (preRoutingResult.pmatch ne pktContext.wcmatch) {
             log.error("Pre-routing for {} returned a different match obj.", id)
             Some(new ErrorDropAction)
         }
@@ -106,7 +106,7 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
                                     ec: ExecutionContext,
                                     actorSystem: ActorSystem): Future[Action] ={
 
-        val hwDst = pktContext.getMatch.getEthernetDestination
+        val hwDst = pktContext.wcmatch.getEthernetDestination
         if (Ethernet.isBroadcast(hwDst)) {
             log.debug("Received an L2 broadcast packet.")
             return handleL2Broadcast(inPort)
@@ -138,7 +138,7 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
                                  pktContext: PacketContext,
                                  actorSystem: ActorSystem): Future[Action] = {
 
-        val pMatch = pktContext.getMatch
+        val pMatch = pktContext.wcmatch
         val pFrame = pktContext.getFrame
 
         /* TODO(D-release): Have WildcardMatch take a DecTTLBy instead,
@@ -231,7 +231,7 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
 
         implicit val packetContext = pktContext
 
-        val pMatch = pktContext.getMatch
+        val pMatch = pktContext.wcmatch
         val pFrame = pktContext.getFrame
 
         pktContext.setOutputPort(outPort.id)

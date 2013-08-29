@@ -64,7 +64,7 @@ class VlanAwareBridge(val id: UUID,
             case _: JShort =>
                 log.debug("Frame from logical port, add vlan id to match {} ",
                           vlanId)
-                pktCtx.getMatch.addVlanId(vlanId)
+                pktCtx.wcmatch.addVlanId(vlanId)
                 Promise.successful(ToPortSetAction(id))
             case _ =>
                 log.debug("Frame from port {} without vlan id, DROP",
@@ -97,7 +97,7 @@ class VlanAwareBridge(val id: UUID,
                 case p: UUID =>
                     log.debug("Vlan Id {} maps to port {}, remove and send",
                               vlanId, outPortId)
-                    pktCtx.getMatch.removeVlanId(vlanId)
+                    pktCtx.wcmatch.removeVlanId(vlanId)
                     Promise.successful(ToPortAction(outPortId))
                 case _ =>
                     log.debug("Frame with unknown Vlan Id, discard")
