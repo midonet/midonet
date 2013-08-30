@@ -265,21 +265,16 @@ public class PortGroupResource extends AbstractResource {
          *
          * @throws StateAccessException
          *             Data access error.
-         * @return A list of PortGroup objects.
+         * @return A list of PortGroupPort objects.
          */
         @GET
         @PermitAll
-        @Produces({ VendorMediaType.APPLICATION_PORTGROUP_PORT_COLLECTION_JSON,
-                MediaType.APPLICATION_JSON })
+        @Produces({ VendorMediaType.APPLICATION_PORTGROUP_PORT_COLLECTION_JSON })
         public List<PortGroupPort> list() throws StateAccessException,
                 SerializationException {
 
-            if (!portAuthorizer.authorize(context, AuthAction.READ, portId)) {
-                throw new ForbiddenHttpException(
-                        "Not authorized to view port groups for this port.");
-            }
             List<org.midonet.cluster.data.PortGroup> portGroupDataList =
-                    dataClient.portGroupsFindByPort(portId);
+                fetchPortGroupsHelper();
 
             List<PortGroupPort> portGroups = new ArrayList<>();
             if (portGroupDataList != null) {
@@ -293,6 +288,40 @@ public class PortGroupResource extends AbstractResource {
                 }
             }
             return portGroups;
+        }
+
+        /** Deprecated version of list() - uses a different mediatype
+         *  @return List<PortGroup>
+         */
+        @GET
+        @PermitAll
+        @Deprecated
+        @Produces({ VendorMediaType.APPLICATION_PORTGROUP_COLLECTION_JSON })
+        public List<PortGroup> listV1() throws StateAccessException,
+            SerializationException {
+
+            List<org.midonet.cluster.data.PortGroup> portGroupDataList =
+                fetchPortGroupsHelper();
+
+            List<PortGroup> portGroups = new ArrayList<PortGroup>();
+            if (portGroupDataList != null) {
+                for (org.midonet.cluster.data.PortGroup portGroupData :
+                    portGroupDataList) {
+                    PortGroup portGroup = new PortGroup(portGroupData);
+                    portGroup.setBaseUri(getBaseUri());
+                    portGroups.add(portGroup);
+                }
+            }
+            return portGroups;
+        }
+
+        private List<org.midonet.cluster.data.PortGroup> fetchPortGroupsHelper()
+            throws StateAccessException, SerializationException {
+            if (!portAuthorizer.authorize(context, AuthAction.READ, portId)) {
+                throw new ForbiddenHttpException(
+                    "Not authorized to view port groups for this port.");
+            }
+            return dataClient.portGroupsFindByPort(portId);
         }
     }
 
