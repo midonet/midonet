@@ -27,7 +27,7 @@ FlowTagger {
     def invalidateFloodedFlowsByDstMac(bridgeId: UUID, mac: MAC,
                                        vlanId: JShort): AnyRef = {
         val tag = "br_flood_mac:" + bridgeId.toString + ":" + mac.toString +
-            ":" + vlanId.toString()
+            ":" + vlanId.toString
         INSTANCE_POOL.sharedRef(tag)
     }
 

@@ -5,8 +5,8 @@
 package org.midonet.cluster;
 
 import java.util.HashMap;
-import java.util.Map;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import javax.inject.Inject;
@@ -30,14 +30,12 @@ import org.midonet.midolman.state.zkManagers.BridgeZkManager;
 import org.midonet.midolman.state.zkManagers.PortZkManager;
 import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPv4Addr;
-import org.midonet.packets.IntIPv4;
 import org.midonet.packets.MAC;
 import org.midonet.util.functors.Callback1;
 import org.midonet.util.functors.Callback3;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.Option;
-import scala.Some;
 
 public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
 

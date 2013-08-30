@@ -28,6 +28,8 @@ import org.midonet.packets.{Ethernet, IntIPv4, MAC, Packets}
 import org.midonet.midolman.util.MockCache
 import com.google.inject.Key
 
+import java.lang.{Short => JShort}
+
 
 @RunWith(classOf[JUnitRunner])
 class BridgeSimulationTestCase extends MidolmanTestCase
@@ -112,6 +114,23 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         }
     }
 
+    /**
+      * All frames generated from this test will get the vlan tags set in this
+      * list. The bridge (in this case it's a VUB) should simply let them pass
+      * and apply mac-learning based on the default vlan id (0).
+      *
+      * Here the list is simply empty, but just extending this test and
+      * overriding the method with a different list you get all the test cases
+      * but with vlan-tagged traffic.
+      *
+      * At the bottom there are a couple of classes that add vlan ids to the
+      * same test cases.
+      *
+      * See MN-200
+      *
+      */
+    def networkVlans: List[JShort] = List()
+
     @Test
     def testPacketInBridgeSimulation() {
         val srcMac = MAC.fromString("02:11:22:33:44:10")
@@ -138,6 +157,7 @@ class BridgeSimulationTestCase extends MidolmanTestCase
                 IntIPv4.fromString("10.0.1.10"),
                 IntIPv4.fromString("10.0.1.11"),
                 10, 11, "My UDP packet".getBytes)
+        ethPkt.setVlanIDs(networkVlans)
         val addFlowMsg = injectOnePacket(ethPkt, "port1", false)
         addFlowMsg.f should not be null
         val flowActs = addFlowMsg.f.getActions
@@ -178,6 +198,7 @@ class BridgeSimulationTestCase extends MidolmanTestCase
                 IntIPv4.fromString("10.10.10.10"),
                 IntIPv4.fromString("10.11.11.11"),
                 10, 12, "Test UDP packet".getBytes)
+        ethPkt.setVlanIDs(networkVlans)
         val addFlowMsg = injectOnePacket(ethPkt, inputPort, false)
         val flowActs = addFlowMsg.f.getActions
         flowActs should have size(5)
@@ -197,6 +218,7 @@ class BridgeSimulationTestCase extends MidolmanTestCase
                 MAC.fromString("0a:fe:88:90:22:33"),
                 IntIPv4.fromString("10.10.10.11"),
                 IntIPv4.fromString("10.11.11.10"))
+        ethPkt.setVlanIDs(networkVlans)
         val addFlowMsg = injectOnePacket(ethPkt, inputPort, false)
         val flowActs = addFlowMsg.f.getActions
         flowActs should have size(5)
@@ -217,6 +239,7 @@ class BridgeSimulationTestCase extends MidolmanTestCase
                 MAC.fromString("01:00:cc:cc:dd:dd"),
                 IntIPv4.fromString("10.10.10.11"),
                 IntIPv4.fromString("10.11.11.10"), 10, 12, "Test UDP Packet".getBytes)
+        ethPkt.setVlanIDs(networkVlans)
         val addFlowMsg = injectOnePacket(ethPkt, inputPort, false)
         val flowActs = addFlowMsg.f.getActions
         flowActs should have size(5)
@@ -236,6 +259,7 @@ class BridgeSimulationTestCase extends MidolmanTestCase
                 IntIPv4.fromString("10.10.10.12"),
                 IntIPv4.fromString("10.11.11.12"),
                 10, 12, "Test UDP packet".getBytes)
+        ethPkt.setVlanIDs(networkVlans)
         val addFlowMsg = injectOnePacket(ethPkt, inputPort, true)
         val flowActs = addFlowMsg.f.getActions
         flowActs should have size(0)
@@ -249,6 +273,7 @@ class BridgeSimulationTestCase extends MidolmanTestCase
                 IntIPv4.fromString("10.0.1.10"),
                 IntIPv4.fromString("10.0.1.11"),
                 10, 11, "My UDP packet".getBytes)
+        ethPkt.setVlanIDs(networkVlans)
         var addFlowMsg = injectOnePacket(ethPkt, inputPort, true)
         addFlowMsg.f should not be null
         var flowActs = addFlowMsg.f.getActions
@@ -271,12 +296,12 @@ class BridgeSimulationTestCase extends MidolmanTestCase
                      IntIPv4.fromString("10.0.1.10"),
                      IntIPv4.fromString("10.0.1.11"),
                      10, 11, "My UDP packet".getBytes)
+        ethPkt.setVlanIDs(networkVlans)
         addFlowMsg = injectOnePacket(ethPkt, inputPort, true)
         addFlowMsg.f should not be null
-        var expectedPort = getMaterializedPort("port4")
         flowActs = addFlowMsg.f.getActions
         flowActs should have size(1)
-        as[FlowActionOutput](flowActs(0)).getPortNumber() should equal (portId4)
+        as[FlowActionOutput](flowActs(0)).getPortNumber should equal (portId4)
         requestOfType[WildcardFlowRemoved](wflowRemovedProbe)
         verifyMacLearned("02:13:66:77:88:99", "port5")
     }
@@ -315,22 +340,48 @@ class BridgeSimulationTestCase extends MidolmanTestCase
      * In this test, always assume input port is port4 (keep src mac
      * consistent), and dst mac should always go out toward port1
      */
-    private def verifyMacLearned(learnedMac : String, expectedPortName : String) = {
+    private def verifyMacLearned(learnedMac : String, expectedPortName : String) {
         val ethPkt = Packets.udp(
                 MAC.fromString("0a:fe:88:70:33:ab"),
                 MAC.fromString(learnedMac),
                 IntIPv4.fromString("10.10.10.10"),
                 IntIPv4.fromString("10.11.11.11"),
                 10, 12, "Test UDP packet".getBytes)
-        val addFlowMsg = injectOnePacket(ethPkt, "port4", false)
+        ethPkt.setVlanIDs(networkVlans)
+        val addFlowMsg = injectOnePacket(ethPkt, "port4", isDropExpected = false)
         val expectedPort = getMaterializedPort(expectedPortName)
         val flowActs = addFlowMsg.f.getActions
         flowActs should have size(1)
-        dpController().underlyingActor.vifToLocalPortNumber(expectedPort.getId) match {
+        dpController().underlyingActor.vifToLocalPortNumber(expectedPort.getId)
+        match {
             case Some(portNo : Short) =>
                 as[FlowActionOutput](flowActs(0)).getPortNumber should equal (portNo)
-            case None => fail("Not able to find data port number for materialize Port " +
-                              expectedPort.getId)
+            case None => fail("Not able to find data port number for" +
+                              "materialized Port " + expectedPort.getId)
         }
+    }
+}
+
+/**
+  * The same tests as the parent
+  * [[org.midonet.midolman.BridgeSimulationTestCase]], but transmitting frames
+  * that have one vlan id.
+  *
+  * The tests are expected to work in exactly the same way, since here we're
+  * adding a Vlan Unaware Bridge (all its interior ports are not vlan-tagged)
+  * and therefore it should behave with vlan traffic in the same way as if it
+  * was not tagged.
+  */
+class BridgeSimulationTestCaseWithOneVlan extends BridgeSimulationTestCase {
+    override def networkVlans: List[JShort] = List(2.toShort)
+}
+
+/**
+  * The same tests [[org.midonet.midolman.BridgeSimulationTestCase]], but
+  * transmitting frames that have one vlan id.
+  */
+class BridgeSimulationTestCaseWithManyVlans extends BridgeSimulationTestCase {
+    override def networkVlans: List[JShort] = List(3,4,5,6) map {
+        x => short2Short(x.toShort)
     }
 }
