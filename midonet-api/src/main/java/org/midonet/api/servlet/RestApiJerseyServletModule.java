@@ -3,6 +3,7 @@
  */
 package org.midonet.api.servlet;
 
+import com.google.inject.Key;
 import com.sun.jersey.api.container.filter.RolesAllowedResourceFilterFactory;
 import com.sun.jersey.api.core.ResourceConfig;
 import com.sun.jersey.guice.JerseyServletModule;
@@ -26,6 +27,8 @@ import org.midonet.midolman.guice.MonitoringStoreModule;
 import org.midonet.midolman.guice.cluster.DataClusterClientModule;
 import org.midonet.midolman.guice.reactor.ReactorModule;
 import org.midonet.midolman.version.guice.VersionModule;
+import org.midonet.util.eventloop.Reactor;
+import org.midonet.util.eventloop.TryCatchReactor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

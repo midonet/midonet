@@ -7,7 +7,9 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 
 import org.midonet.cassandra.CassandraClient;
+import org.midonet.midolman.guice.CacheModule;
 import org.midonet.midolman.monitoring.config.MonitoringConfiguration;
+import org.midonet.util.eventloop.Reactor;
 
 /**
  * Providers CassandraClient
@@ -15,6 +17,9 @@ import org.midonet.midolman.monitoring.config.MonitoringConfiguration;
 public class CassandraClientProvider implements Provider<CassandraClient> {
 
     private final MonitoringConfiguration config;
+
+    @Inject @CacheModule.CACHE_REACTOR
+    Reactor reactor;
 
     @Inject
     public CassandraClientProvider(MonitoringConfiguration config) {
@@ -30,7 +35,8 @@ public class CassandraClientProvider implements Provider<CassandraClient> {
                 config.getMonitoringCassandraKeyspace(),
                 config.getMonitoringCassandraColumnFamily(),
                 config.getCassandraReplicationFactor(),
-                config.getMonitoringCassandraExpirationTimeout()
+                config.getMonitoringCassandraExpirationTimeout(),
+                reactor
         );
     }
 }

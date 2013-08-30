@@ -29,7 +29,6 @@ import org.midonet.util.lock.LockHelper;
 
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.midonet.functional_test.FunctionalTestsHelper.assertPacketWasSentOnTap;
 import static org.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
@@ -97,7 +96,7 @@ public class MonitoringTest extends TestBase {
 
         CassandraClient client = new CassandraClient("localhost:9171", 3,
                 "midonet", "midonet_monitoring", "monitoring_data",
-                replicationFactor, ttlInSecs);
+                replicationFactor, ttlInSecs, null);
         store = new CassandraStore(client);
         store.initialize();
 
