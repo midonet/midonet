@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.apache.zookeeper.Op;
+import org.midonet.midolman.state.TunnelZoneExistsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -188,6 +189,11 @@ public class TunnelZoneZkManager extends AbstractZkManager {
 
     }
 
+    /**
+     * Creates a new tunnel zone, but validates that there is not one already
+     * with the same name. This same check is done in the API but added here
+     * for extra safety.
+     */
     public UUID createZone(TunnelZone<?, ?> zone, Directory.TypedWatcher watcher)
             throws StateAccessException, SerializationException {
 
@@ -198,6 +204,16 @@ public class TunnelZoneZkManager extends AbstractZkManager {
 
         if (zoneId == null) {
             zoneId = UUID.randomUUID();
+        }
+
+        for (UUID tzId : this.getZoneIds()) {
+            TunnelZone tz = this.getZone(tzId, null);
+            if (tz.getType().equals(zone.getType()) &&
+                tz.getName().equalsIgnoreCase(zone.getName())) {
+                throw new StatePathExistsException(
+                    "There is already a tunnel zone with the same type and" +
+                    "name, its id: " + tz.getId());
+            }
         }
 
         createMulti.add(

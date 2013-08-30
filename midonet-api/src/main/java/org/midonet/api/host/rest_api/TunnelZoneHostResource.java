@@ -3,36 +3,42 @@
  */
 package org.midonet.api.host.rest_api;
 
-import org.midonet.api.VendorMediaType;
-import org.midonet.api.host.TunnelZoneHostFactory;
-import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.NotFoundHttpException;
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.auth.AuthRole;
-import org.midonet.api.host.GreTunnelZoneHost;
-import org.midonet.api.host.CapwapTunnelZoneHost;
-import org.midonet.api.host.TunnelZoneHost;
-import org.midonet.api.rest_api.BadRequestHttpException;
-import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.cluster.DataClient;
-import org.midonet.cluster.data.TunnelZone;
-
-import com.google.inject.Inject;
-import com.google.inject.assistedinject.Assisted;
-import com.google.inject.servlet.RequestScoped;
-import javax.annotation.security.RolesAllowed;
-import javax.validation.ConstraintViolation;
-import javax.validation.Validator;
-import javax.ws.rs.*;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import javax.annotation.security.RolesAllowed;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validator;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
+
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.servlet.RequestScoped;
+import org.midonet.api.ResourceUriBuilder;
+import org.midonet.api.VendorMediaType;
+import org.midonet.api.auth.AuthRole;
+import org.midonet.api.host.CapwapTunnelZoneHost;
+import org.midonet.api.host.GreTunnelZoneHost;
+import org.midonet.api.host.TunnelZoneHost;
+import org.midonet.api.host.TunnelZoneHostFactory;
+import org.midonet.api.rest_api.AbstractResource;
+import org.midonet.api.rest_api.BadRequestHttpException;
+import org.midonet.api.rest_api.NotFoundHttpException;
+import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.cluster.DataClient;
+import org.midonet.cluster.data.TunnelZone;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.StateAccessException;
 
 /**
  * REST API handler for tunnel zone - host mapping.

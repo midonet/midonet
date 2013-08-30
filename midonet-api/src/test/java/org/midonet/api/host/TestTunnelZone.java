@@ -3,42 +3,43 @@
  */
 package org.midonet.api.host;
 
+import java.net.URI;
+import java.util.UUID;
+import javax.ws.rs.core.UriBuilder;
+
 import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
-import com.google.inject.Injector;
-import com.google.inject.Guice;
-import org.apache.zookeeper.KeeperException;
-import org.midonet.api.VendorMediaType;
-import org.midonet.api.rest_api.DtoWebResource;
-import org.midonet.api.serialization.SerializationModule;
-import org.midonet.api.zookeeper.StaticMockDirectory;
-import org.midonet.midolman.host.state.HostZkManager;
-import org.midonet.api.host.rest_api.HostTopology;
-import org.midonet.api.rest_api.FuncTest;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.serialization.Serializer;
-import org.midonet.midolman.state.PathBuilder;
-import org.midonet.midolman.state.ZkManager;
-import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.client.MidonetApi;
-import org.midonet.client.dto.DtoApplication;
-import org.midonet.client.dto.DtoGreTunnelZone;
-import org.midonet.client.dto.DtoTunnelZone;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
 import junit.framework.Assert;
+import org.apache.zookeeper.KeeperException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
+import org.midonet.api.VendorMediaType;
+import org.midonet.api.host.rest_api.HostTopology;
+import org.midonet.api.rest_api.DtoWebResource;
+import org.midonet.api.rest_api.FuncTest;
+import org.midonet.api.serialization.SerializationModule;
+import org.midonet.api.zookeeper.StaticMockDirectory;
+import org.midonet.client.MidonetApi;
+import org.midonet.client.dto.DtoApplication;
+import org.midonet.client.dto.DtoError;
+import org.midonet.client.dto.DtoGreTunnelZone;
+import org.midonet.client.dto.DtoTunnelZone;
+import org.midonet.midolman.host.state.HostZkManager;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.serialization.Serializer;
+import org.midonet.midolman.state.Directory;
+import org.midonet.midolman.state.PathBuilder;
+import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.version.guice.VersionModule;
-
-import java.net.URI;
-import java.util.UUID;
-import javax.ws.rs.core.UriBuilder;
 
 @RunWith(Enclosed.class)
 public class TestTunnelZone {
@@ -75,8 +76,7 @@ public class TestTunnelZone {
             @Provides
             @Singleton
             public Directory provideDirectory() {
-                Directory directory = StaticMockDirectory.getDirectoryInstance();
-                return directory;
+                return StaticMockDirectory.getDirectoryInstance();
             }
 
             @Provides @Singleton
@@ -133,6 +133,20 @@ public class TestTunnelZone {
             Assert.assertNotNull(tunnelZone.getId());
             Assert.assertEquals("tz1-name", tunnelZone.getName());
 
+            // Do not allow duplicates
+            DtoGreTunnelZone tunnelZone2 = new DtoGreTunnelZone();
+            tunnelZone2.setName("tz1-name");
+            DtoError error = dtoResource.postAndVerifyBadRequest(tunnelZonesUri,
+                VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON, tunnelZone2);
+            Assert.assertEquals(1, error.getViolations().size());
+
+            // There should only be one
+            DtoTunnelZone[] tunnelZones = dtoResource.getAndVerifyOk(
+                tunnelZonesUri,
+                VendorMediaType.APPLICATION_TUNNEL_ZONE_COLLECTION_JSON,
+                DtoTunnelZone[].class);
+            Assert.assertEquals(1, tunnelZones.length);
+
             // Update tunnel zone name
             tunnelZone.setName("tz1-name-updated");
             tunnelZone = dtoResource.putAndVerifyNoContent(tunnelZone.getUri(),
@@ -141,7 +155,7 @@ public class TestTunnelZone {
             Assert.assertEquals("tz1-name-updated", tunnelZone.getName());
 
             // List and make sure that there is one
-            DtoTunnelZone[] tunnelZones = dtoResource.getAndVerifyOk(
+            tunnelZones = dtoResource.getAndVerifyOk(
                     tunnelZonesUri,
                     VendorMediaType.APPLICATION_TUNNEL_ZONE_COLLECTION_JSON,
                     DtoTunnelZone[].class);
