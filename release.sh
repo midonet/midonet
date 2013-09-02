@@ -187,7 +187,7 @@ do_package_deb() {
     echo "Checking version numbers in maven project"
     check_mvn_version . $pkgver
 
-    destdir="$project_name-$pkgver"
+    destdir="$project_name-$pkgver-deb"
     echo "Packages will be placed in $destdir"
     mkdir $destdir
 
@@ -223,7 +223,7 @@ do_package_rhel() {
     echo "Checking version numbers in maven project"
     check_mvn_version . $pkgver
 
-    destdir="$project_name-$pkgver"
+    destdir="$project_name-$pkgver-rhel"
     echo "Packages will be placed in $destdir"
     mkdir $destdir
 
