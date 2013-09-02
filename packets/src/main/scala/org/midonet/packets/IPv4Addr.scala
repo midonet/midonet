@@ -43,7 +43,7 @@ class IPv4Addr(val addr: Int) extends IPAddr with Ordered[IPv4Addr] {
         if (this > limit)
             throw new IllegalArgumentException("Limit is lower than this ip")
 
-        IPv4Addr.fromInt(rand.nextInt(limit.toInt - addr + 1) + addr)
+        IPv4Addr.fromInt(rand.nextInt(limit.addr - addr + 1) + addr)
     }
 
     def compare(that: IPv4Addr): Int = this.addr.compare(that.toInt)
