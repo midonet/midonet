@@ -443,7 +443,7 @@ public class IPv4 extends BasePacket {
             try {
                 payload = clazz.newInstance();
             } catch (Exception e) {
-                throw new RuntimeException("Error parsing payload for IPv4 packet", e);
+                payload = new Data();
             }
         } else {
             payload = new Data();
@@ -459,7 +459,11 @@ public class IPv4 extends BasePacket {
         // cut off the packet.  In the future, we will fix this perhaps
         // by adding a catch-all flow rule that sends the right length
         // of each type of packet to the controller.
-        payload.deserialize(bb.slice());
+        try {
+            payload.deserialize(bb.slice());
+        } catch (Exception e) {
+            payload = (new Data()).deserialize(bb.slice());
+        }
         payload.setParent(this);
         return this;
     }
