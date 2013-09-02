@@ -40,15 +40,10 @@ import org.midonet.odp.flows.FlowActionPopVLAN
   * assigned to specific vlans for l2gateway. You can refer to the
   * l2gateway documentation but briefly, when a bridge has vlan-tagged
   * interior ports:
-  * - all frames that come from that port must be PUSH'd the appropriate
-  *   VLAN ID.
+  * - the bridge must PUSH the vlan-id tagged in the ingress port into all
+  *   frames coming from it.
   * - only frames coming into the bridge with the port's vlan id may
   *   egress the device through it, and only after POP'ing the vlan-id
-  *
-  * To make this clearer, ToPortXActions should not be used directly, but
-  * instead call the unicastAction and multicastAction methods to
-  * generate the appropriate actions to send to one port (unicastAction)
-  * or many ports (multicastAction).
   *
   * The Bridge can be configured for vlan-awareness by adding a number of
   * interior ports tagged with a vlan id. In this case, only frames from
@@ -89,6 +84,13 @@ class Bridge(val id: UUID, val tunnelKey: Long,
 
     var log = LoggerFactory.getSimulationAwareLog(this.getClass)(actorSystem.eventStream)
 
+    /*
+     * Avoid generating ToPortXActions directly in the processing methods
+     * that spawn from this entry point since the frame may also require having
+     * vlan ids POP'd or PUSH'd if this is a Vlan-Aware bridge. Instead, call
+     * the unicastAction and multicastAction methods to generate unicast and
+     * multicast actions, these will take care of the vlan-id details for you.
+     */
     override def process(packetContext: PacketContext)
                         (implicit ec: ExecutionContext,
                          actorSystem: ActorSystem)
@@ -262,10 +264,10 @@ class Bridge(val id: UUID, val tunnelKey: Long,
       * Possible cases of an L2 multicast happenning on any bridge (vlan-aware
       * or not). This is generally a ToPortSetAction, but:
       *
-      * - If the bridge is connected to another vlan-aware bridge, it'll fork
-      *   and do also a ToPortAction that sends the frame to the vab-bridge
-      * - If the bridge is vlan-aware itself (that is: has ports with vlan-ids
-      *   assigned to them) it'll jump to multicastVlanAware. This will:
+      * - If this is a VUB connected to a VAB, it'll fork and do also a
+      *   ToPortAction that sends the frame to the VAB.
+      * - If this is VAB (that is: has ports with vlan-ids assigned to them)
+      *   it'll jump to multicastVlanAware. This will:
       *   - If the frame comes from an exterior port and has a vlan id, restrict
       *     the ToPortSetAction to a single ToPortSet, the one with that vlan-id,
       *     after popping the vlan tag.
@@ -278,7 +280,7 @@ class Bridge(val id: UUID, val tunnelKey: Long,
         Future[Coordinator.Action] = {
         vlanPortId match {
             case Some(vPId) if (!pktCtx.getInPortId.equals(vPId)) =>
-                // This bridge is connected to a vlan-aware one: send there too
+                // This VUB is connected to a VAB: send there too
                 log.debug("Add vlan-aware bridge to port set")
                 Promise.successful(ForkAction(List(
                         Promise.successful(ToPortSetAction(id)),
@@ -456,7 +458,7 @@ class Bridge(val id: UUID, val tunnelKey: Long,
     }
 
     /**
-      * Decide what source VLAN  this packet is from.
+      * Decide what source VLAN this packet is from.
       *
       * - If the in port is tagged with a vlan, that's the source VLAN
       * - Else if the traffic is tagged with a vlan, the outermost tag
