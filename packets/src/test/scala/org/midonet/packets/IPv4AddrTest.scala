@@ -50,11 +50,11 @@ class IPv4AddrTest extends Suite with ShouldMatchers {
     }
 
     def testRandomInRange() {
-        val ip1: IPv4Addr = IPv4Addr.fromString("192.168.1.1")
-        val ip2: IPv4Addr = IPv4Addr.fromString("192.168.5.1")
+        val ip1 = IPv4Addr("192.168.1.1")
+        val ip2 = IPv4Addr("192.168.5.1")
 
-        val ip3: IPv4Addr = IPv4Addr.fromString("10.1.3.4")
-        val ip4: IPv4Addr = IPv4Addr.fromString("10.1.4.0")
+        val ip3 = IPv4Addr("10.1.3.4")
+        val ip4 = IPv4Addr("10.1.4.0")
 
         var r1 = ip1
         do {
@@ -64,7 +64,7 @@ class IPv4AddrTest extends Suite with ShouldMatchers {
         var r2 = ip3
         do {
             r2 = ip3.randomTo(ip4, new Random())
-        } while (r2.equals(ip3) || r2.equals(ip3))
+        } while (r2.equals(ip3) || r2.equals(ip4))
 
 
         r1.compare(ip1) should be === 1
