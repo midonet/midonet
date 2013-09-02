@@ -203,7 +203,8 @@
                 <groupId>org.vafer</groupId>
                 <artifactId>jdeb</artifactId>
                 <configuration>
-                    <deb>${project.build.directory}/${project.artifactId}_${project.version}-${maven.build.timestamp}.deb</deb>
+                    <timestamped>true</timestamped>
+                    <deb>[[buildDir]]/midonet-api_[[version]].[[extension]]</deb>
                     <dataSet>
                         <data>
                             <src>${project.build.directory}/${project.build.finalName}</src>
