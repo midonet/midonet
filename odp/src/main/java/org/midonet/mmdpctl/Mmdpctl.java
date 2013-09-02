@@ -35,7 +35,7 @@ public class Mmdpctl {
         try {
             connection = DatapathClient.createConnection();
         } catch (Exception e) {
-            System.out.println("Could not connect to netlink: "+ e.getMessage());
+            log.error("Could not connect to netlink: {}", e);
             return -1;
         }
 
@@ -57,7 +57,7 @@ public class Mmdpctl {
             resultFuture.cancel(true);
             return -1;
         } catch (Exception e) {
-            System.out.println("Error while retrieving the datapath: " + e.getMessage());
+            log.error("Error while retrieving the datapath: {}", e);
             return -1;
         }
 
@@ -121,7 +121,7 @@ public class Mmdpctl {
                     mmdpctl.setTimeout(timeout);
                 } else {
                     System.out.println("The timeout needs to be a positive number, bigger than 0.");
-                    System.exit(-1);
+                    System.exit(1);
                 }
             }
 
@@ -140,13 +140,15 @@ public class Mmdpctl {
         } catch (ParseException e) {
             showHelpAndExit(options, e.getMessage());
         }
+
+        System.exit(0);
     }
 
     private static void showHelpAndExit(Options options, String message) {
-        System.out.println("Error with the options: "+ message);
+        System.out.println("Error with the options: " + message);
         HelpFormatter formatter = new HelpFormatter();
         formatter.printHelp( "mm-dpctl", options );
-        System.exit(-1);
+        System.exit(1);
     }
 
 

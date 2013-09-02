@@ -126,5 +126,29 @@ public class Flow {
             ", lastUsedTime=" + lastUsedTime +
             '}';
     }
+
+    public List<String> toPrettyStrings() {
+        List<String> desc = new ArrayList<>();
+        List<FlowKey<?>> matchKeys = match.getKeys();
+        if (matchKeys.isEmpty())
+            desc.add("match keys: empty");
+        else {
+            desc.add("match keys:");
+            for (FlowKey<?> key: matchKeys) desc.add("  " + key.toString());
+        }
+        if (actions.isEmpty())
+            desc.add("actions: empty");
+        else {
+            desc.add("actions: ");
+            for (FlowAction<?> act: actions) desc.add("  " + act.toString());
+        }
+        if (stats != null)
+            desc.add("stats: " + stats);
+        if (tcpFlags != null)
+            desc.add("tcpFlags: " + tcpFlags);
+        if (lastUsedTime != null)
+            desc.add("lastUsedTime: " + lastUsedTime);
+        return  desc;
+    }
 }
 

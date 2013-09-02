@@ -29,7 +29,6 @@ import org.midonet.odp.flows.{FlowActionOutput, FlowAction}
 import host.interfaces.InterfaceDescription
 import org.midonet.midolman.PacketWorkflow.PacketIn
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
-import org.midonet.midolman.DatapathController.TunnelChangeEvent
 
 @RunWith(classOf[JUnitRunner])
 class DhcpInterfaceMtuTestCase extends MidolmanTestCase with
@@ -49,13 +48,10 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase with
     var intfMtu = 0
 
     private var packetsEventsProbe: TestProbe = null
-    private var tunnelChangeProbe : TestProbe = null
 
     override def beforeTest() {
         packetsEventsProbe = newProbe()
-        tunnelChangeProbe = newProbe()
         actors().eventStream.subscribe(packetsEventsProbe.ref, classOf[PacketsExecute])
-        actors().eventStream.subscribe(tunnelChangeProbe.ref, classOf[TunnelChangeEvent])
 
         val host = newHost("myself", hostId())
         host should not be null
@@ -147,10 +143,6 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase with
 
         val tzRequest = fishForRequestOfType[TunnelZoneRequest](vtpProbe())
         tzRequest.zoneId should be === greZone.getId
-
-        var tunnelEvent = requestOfType[TunnelChangeEvent](tunnelChangeProbe)
-        tunnelEvent.op should be(TunnelChangeEventOperation.Established)
-        tunnelEvent.peer.getId should be(host2.getId)
 
         var opt121Obj = (new Opt121()
                         .setGateway(routerIp2)

@@ -3,6 +3,7 @@
 */
 package org.midonet.midolman
 
+import java.lang.Thread
 import scala.collection.JavaConversions._
 import scala.Some
 import akka.testkit.TestProbe
@@ -26,13 +27,14 @@ trait VMsBehindRouterFixture extends MidolmanTestCase with SimulationHelper with
     private final val log =
         LoggerFactory.getLogger(classOf[VMsBehindRouterFixture])
 
+    val vmNetworkIp = IntIPv4.fromString("10.0.0.0", 24)
     val routerIp = IntIPv4.fromString("10.0.0.254", 24)
     val routerMac = MAC.fromString("22:aa:aa:ff:ff:ff")
 
     val vmPortNames = IndexedSeq("port0", "port1", "port2", "port3", "port4")
+
     var vmPorts: IndexedSeq[MaterializedBridgePort] = null
     var vmPortNumbers: IndexedSeq[Int] = null
-
     val vmMacs = IndexedSeq(MAC.fromString("02:aa:bb:cc:dd:d1"),
         MAC.fromString("02:aa:bb:cc:dd:d2"),
         MAC.fromString("02:aa:bb:cc:dd:d3"),
@@ -43,7 +45,6 @@ trait VMsBehindRouterFixture extends MidolmanTestCase with SimulationHelper with
         IntIPv4.fromString("10.0.0.3"),
         IntIPv4.fromString("10.0.0.4"),
         IntIPv4.fromString("10.0.0.5"))
-    val vmNetworkIp = IntIPv4.fromString("10.0.0.0", 24)
     val v6VmIps = IndexedSeq(
         IPv6Addr.fromString("fe80:0:0:0:0:7ed1:c3ff:1"),
         IPv6Addr.fromString("fe80:0:0:0:0:7ed1:c3ff:2"),
@@ -88,23 +89,28 @@ trait VMsBehindRouterFixture extends MidolmanTestCase with SimulationHelper with
         clusterDataClient().portsLink(rtrPort.getId, brPort.getId)
 
         vmPorts = vmPortNames map { _ => newExteriorBridgePort(bridge) }
+
         vmPorts zip vmPortNames foreach {
             case (port, name) =>
                 log.debug("Materializing port {}", name)
                 materializePort(port, host, name)
                 requestOfType[LocalPortActive](portsProbe)
         }
-        vmPortNumbers = vmPorts map { port =>
-            dpController().underlyingActor.vifToLocalPortNumber(port.getId) match {
+        flowProbe().expectMsgType[DatapathController.DatapathReady].datapath should not be (null)
+        vmPortNumbers = ensureAllPortsUp(vmPorts)
+        drainProbes()
+    }
+
+    def ensureAllPortsUp(vmPorts: IndexedSeq[MaterializedBridgePort]): IndexedSeq[Int] = {
+        Thread.sleep(1000) // wait 1 sec to allow DPC to process ports
+        vmPorts map { port =>
+            vifToLocalPortNumber(port.getId) match {
                 case Some(portNo : Short) => portNo
                 case None =>
                     fail("Unable to find data port number for " + port.getInterfaceName)
                     0
             }
         }
-
-        flowProbe().expectMsgType[DatapathController.DatapathReady].datapath should not be (null)
-        drainProbes()
     }
 
     def expectPacketOut(port: Int, numPorts: Seq[Int] = List(1)): Ethernet = {
@@ -114,7 +120,6 @@ trait VMsBehindRouterFixture extends MidolmanTestCase with SimulationHelper with
         val outPorts = getOutPacketPorts(pktOut)
         numPorts should contain (outPorts.size)
         outPorts should contain (port.toShort)
-
         pktOut.getPacket
     }
 

@@ -9,15 +9,16 @@ import akka.util.Duration
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.midolman.DatapathController.TunnelChangeEvent
 import org.midonet.midolman.FlowController.{AddWildcardFlow, WildcardFlowAdded}
 import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
 import org.midonet.midolman.datapath.FlowActionOutputToVrnPort
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.cluster.data.zones.GreTunnelZoneHost
-import org.midonet.odp.flows.{FlowActionOutput, FlowActionSetKey,
-    FlowKeyTunnelID}
+import org.midonet.odp.flows.FlowAction
+import org.midonet.odp.flows.FlowActions
+import org.midonet.odp.flows.{FlowActionOutput, FlowActionSetKey, FlowKeyTunnel}
 import org.midonet.packets.IntIPv4
+import org.midonet.packets.IPv4Addr
 import org.midonet.sdn.flows.{WildcardMatch, WildcardFlow}
 
 
@@ -26,6 +27,9 @@ class InstallWildcardFlowForRemotePortTestCase extends MidolmanTestCase
     with VirtualConfigurationBuilders {
 
     def testInstallFlowForRemoteSinglePort() {
+
+        val srcIp = IPv4Addr("192.168.100.1")
+        val dstIp = IPv4Addr("192.168.200.1")
 
         val tunnelZone = greTunnelZone("default")
 
@@ -41,18 +45,10 @@ class InstallWildcardFlowForRemotePortTestCase extends MidolmanTestCase
         materializePort(portOnHost2, host2, "port2")
 
         clusterDataClient().tunnelZonesAddMembership(
-            tunnelZone.getId,
-            new GreTunnelZoneHost(host1.getId)
-                .setIp(IntIPv4.fromString("192.168.100.1")))
+            tunnelZone.getId, new GreTunnelZoneHost(host1.getId).setIp(srcIp.toIntIPv4))
+
         clusterDataClient().tunnelZonesAddMembership(
-            tunnelZone.getId,
-            new GreTunnelZoneHost(host2.getId)
-                .setIp(IntIPv4.fromString("192.168.200.1")))
-
-
-        val tunnelEventsProbe = newProbe()
-        actors().eventStream.subscribe(tunnelEventsProbe.ref,
-                                       classOf[TunnelChangeEvent])
+            tunnelZone.getId, new GreTunnelZoneHost(host2.getId).setIp(dstIp.toIntIPv4))
 
         val flowEventsProbe = newProbe()
         actors().eventStream.subscribe(flowEventsProbe.ref,
@@ -68,11 +64,7 @@ class InstallWildcardFlowForRemotePortTestCase extends MidolmanTestCase
             DatapathController.DatapathReady].datapath should not be (null)
         portEventsProbe.expectMsgClass(classOf[LocalPortActive])
 
-        val tunnelId = tunnelEventsProbe
-            .expectMsgClass(classOf[TunnelChangeEvent]).portOption.get
-
-        val inputPortNo = dpController().underlyingActor
-            .ifaceNameToDpPort("port1").getPortNo
+        val inputPortNo = getPortNumber("port1")
 
         val wildcardFlow = WildcardFlow(
             wcmatch = new WildcardMatch().setInputPortUUID(portOnHost1.getId),
@@ -94,13 +86,17 @@ class InstallWildcardFlowForRemotePortTestCase extends MidolmanTestCase
 
         val flowActs = addFlowMsg.f.actions
         flowActs should not be (null)
+
         flowActs should have size(2)
 
-        val setKeyAction = as[FlowActionSetKey](flowActs(0))
-        as[FlowKeyTunnelID](setKeyAction.getFlowKey)
-                .getTunnelID should be (portOnHost2.getTunnelKey)
+        val (outputs, tunnelKeys) = parseTunnelActions(flowActs)
 
-        val outputActions = as[FlowActionOutput](flowActs(1))
-        outputActions.getPortNumber should be (tunnelId)
+        outputs should have size(1)
+        outputs should contain(FlowActions.output(greTunnelId))
+
+        tunnelKeys should have size(1)
+        tunnelKeys.find(tunnelIsLike(srcIp.toInt, dstIp.toInt, portOnHost2.getTunnelKey)) should not be None
+
     }
+
 }

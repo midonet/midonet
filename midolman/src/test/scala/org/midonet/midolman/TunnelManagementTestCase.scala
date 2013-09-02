@@ -11,8 +11,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.matchers.ShouldMatchers
 
-import org.midonet.midolman.DatapathController.{DatapathPortChangedEvent,
-    TunnelChangeEvent}
+import org.midonet.midolman.DatapathController.DatapathPortChangedEvent
 import org.midonet.midolman.topology.VirtualToPhysicalMapper._
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.topology.rcu.{Host => RCUHost}
@@ -32,7 +31,6 @@ class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers with
     var greZone: GreTunnelZone = null
     var myGreConfig: GreTunnelZoneHost = null
     var herGreConfig: GreTunnelZoneHost = null
-    var dpc: DatapathController = null
     var host1: Host = null
     var host2: Host = null
     var bridge: Bridge = null
@@ -48,8 +46,6 @@ class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers with
     }
 
     override def beforeTest() {
-        dpc = dpController().underlyingActor
-
         greZone = greTunnelZone("default")
 
         host1 = newHost("me", hostId())
@@ -74,12 +70,10 @@ class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers with
 
         portChangedProbe = newProbe()
         portActiveProbe = newProbe()
-        tunnelChangeProbe = newProbe()
 
         // make a probe and make it listen to the DatapathPortChangedEvents (fired by the Datapath Controller)
         actors().eventStream.subscribe(portChangedProbe.ref, classOf[DatapathPortChangedEvent])
         actors().eventStream.subscribe(portActiveProbe.ref, classOf[LocalPortActive])
-        actors().eventStream.subscribe(tunnelChangeProbe.ref, classOf[TunnelChangeEvent])
 
         // start initialization
         initializeDatapath() should not be (null)
@@ -98,13 +92,23 @@ class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers with
 
     def testTunnelZone() {
 
-        // assert that the port event was fired properly
+        // assert that the gre tunnel port was created
         var portChangedEvent = portChangedProbe.expectMsgClass(classOf[DatapathPortChangedEvent])
+        portChangedEvent.op should be(PortOperation.Create)
+        portChangedEvent.port.getName should be("tngre-mm")
+        portChangedEvent.port.isInstanceOf[GreTunnelPort] should be(true)
+
+        // assert that the port event was fired properly
+        portChangedEvent = portChangedProbe.expectMsgClass(classOf[DatapathPortChangedEvent])
         portChangedEvent.op should be(PortOperation.Create)
         portChangedEvent.port.getName should be("port1")
         portChangedEvent.port.isInstanceOf[NetDevPort] should be(true)
 
         portActiveProbe.expectMsgClass(classOf[LocalPortActive])
+
+        // check that no route exists yet
+        val noRoute = dpState().peerTunnelInfo(host2.getId)
+        noRoute should be (None)
 
         // Now add myself to the tunnel zone.
         clusterDataClient()
@@ -121,26 +125,14 @@ class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers with
         fishForReplyOfType[GreZoneMembers](vtpProbe())
         fishForReplyOfType[GreZoneChanged](vtpProbe())
 
-        // assert that the creation event for the tunnel was fired.
-        var tunnelEvent = requestOfType[TunnelChangeEvent](tunnelChangeProbe)
-        tunnelEvent.op should be(TunnelChangeEventOperation.Established)
-        tunnelEvent.peer.getId should be(host2.getId)
+        // check that the route was correctly indexed by the DPC
+        val route = dpState().peerTunnelInfo(host2.getId)
+        route should not be (None)
 
-        portChangedEvent = requestOfType[DatapathPortChangedEvent](portChangedProbe)
-        portChangedEvent.op should be(PortOperation.Create)
-        portChangedEvent.port.getName should be("tngreC0A8C801")
-        portChangedEvent.port.isInstanceOf[GreTunnelPort] should be(true)
-
-        var grePort = portChangedEvent.port.asInstanceOf[GreTunnelPort]
-        grePort.getOptions.getSourceIPv4 should be(myGreConfig.getIp.addressAsInt())
-        grePort.getOptions.getDestinationIPv4 should be(herGreConfig.getIp.addressAsInt())
-
-        // check the internal data in the datapath controller is correct
-        // the host peer contains a map which maps the zone to the tunnel name
-        dpc.dpState.peerToTunnels should contain key (host2.getId)
-        dpc.dpState.peerToTunnels(host2.getId).size should be(1)
-        dpc.dpState.peerToTunnels(host2.getId) should contain key (greZone.getId)
-        dpc.dpState.peerToTunnels(host2.getId)(greZone.getId).getName should be("tngreC0A8C801")
+        // and that the ips match
+        val (ipMe, ipShe) = route.getOrElse((0,0))
+        ipMe should be (myGreConfig.getIp.addressAsInt())
+        ipShe should be (herGreConfig.getIp.addressAsInt())
 
         // update the gre ip of the second host
         val herSecondGreConfig = new GreTunnelZoneHost(host2.getId)
@@ -150,38 +142,18 @@ class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers with
         clusterDataClient().tunnelZonesAddMembership(
             greZone.getId, herSecondGreConfig)
 
-        // assert a delete event was fired on the bus.
-        tunnelEvent = requestOfType[TunnelChangeEvent](tunnelChangeProbe)
-        tunnelEvent.op should be(TunnelChangeEventOperation.Removed)
-        tunnelEvent.peer.getId should be(host2.getId)
+        Thread.sleep(500) // guard against spurious failures
 
-        portChangedEvent = requestOfType[DatapathPortChangedEvent](portChangedProbe)
-        portChangedEvent.op should be(PortOperation.Delete)
-        portChangedEvent.port.getName should be("tngreC0A8C801")
-        portChangedEvent.port.isInstanceOf[GreTunnelPort] should be(true)
+        // assert new route with updated dst ip
+        val route2 = dpState().peerTunnelInfo(host2.getId)
+        route2 should not be (None)
 
-        // assert the proper datapath port changed event is fired
-        tunnelEvent = requestOfType[TunnelChangeEvent](tunnelChangeProbe)
-        tunnelEvent.op should be(TunnelChangeEventOperation.Established)
-        tunnelEvent.peer.getId should be(host2.getId)
+        val (ipMe2, ipShe2) = route2.getOrElse((0,0))
+        ipMe2 should be (ipMe)
+        ipShe2 should not be (ipShe)
+        ipShe2 should be (herSecondGreConfig.getIp.addressAsInt)
 
-        portChangedEvent = requestOfType[DatapathPortChangedEvent](portChangedProbe)
-
-        portChangedEvent.op should be(PortOperation.Create)
-        portChangedEvent.port.getName should be("tngreC0A8D201")
-        portChangedEvent.port.isInstanceOf[GreTunnelPort] should be(true)
-
-        grePort = portChangedEvent.port.asInstanceOf[GreTunnelPort]
-
-        grePort.getOptions.getSourceIPv4 should be(myGreConfig.getIp.addressAsInt())
-        grePort.getOptions.getDestinationIPv4 should be(herSecondGreConfig.getIp.addressAsInt())
-
-        // assert the internal state of the datapath controller vas fired
-        dpc.dpState.peerToTunnels should contain key (host2.getId)
-        dpc.dpState.peerToTunnels(host2.getId).size should be(1)
-        dpc.dpState.peerToTunnels(host2.getId) should contain key (greZone.getId)
-        dpc.dpState.peerToTunnels(host2.getId)(greZone.getId).getName should be("tngreC0A8D201")
-
+        // assert datapath state
         val dp = dpConn().datapathsGet("midonet").get()
         dp should not be (null)
 
@@ -189,28 +161,16 @@ class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers with
         ports should have size 3
         ports should contain key ("midonet")
         ports should contain key ("port1")
-        ports should contain key ("tngreC0A8D201")
+        ports should contain key ("tngre-mm")
 
         // delete this host from the tunnel zone
-        val portNumbers = dpc.zonesToTunnels(greZone.getId) map { t => t.getPortNo }
-        portNumbers.size should be(1)
-        val herPortNumber = portNumbers.head
-
         clusterDataClient().tunnelZonesDeleteMembership(greZone.getId, host1.getId)
-
         fishForReplyOfType[GreZoneChanged](vtpProbe())
 
-        // assert that the removal event for the tunnel was fired.
-        tunnelEvent = requestOfType[TunnelChangeEvent](tunnelChangeProbe)
-        tunnelEvent.op should be(TunnelChangeEventOperation.Removed)
-        tunnelEvent.peer.getId should be(host2.getId)
+        Thread.sleep(500) // guard against spurious failures
 
-        portChangedEvent = requestOfType[DatapathPortChangedEvent](portChangedProbe)
-        portChangedEvent.op should be(PortOperation.Delete)
-        portChangedEvent.port.getName should be("tngreC0A8D201")
-        portChangedEvent.port.isInstanceOf[GreTunnelPort] should be(true)
-
-        dpc.zonesToTunnels.get(greZone.getId).getOrElse(mutable.Set()).size should be (0)
-        dpc.tunnelsToHosts.get(herPortNumber) should be(None)
+        // assert no route left
+        val route3 = dpState().peerTunnelInfo(host2.getId)
+        route3 should be (None)
     }
 }

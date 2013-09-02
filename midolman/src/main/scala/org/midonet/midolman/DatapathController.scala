@@ -23,8 +23,7 @@ import org.midonet.cluster.client
 import org.midonet.cluster.client.ExteriorPort
 import org.midonet.cluster.data.TunnelZone
 import org.midonet.cluster.data.TunnelZone.{HostConfig => TZHostConfig}
-import org.midonet.cluster.data.zones.{IpsecTunnelZoneHost,
-        CapwapTunnelZoneHost, GreTunnelZoneHost}
+import org.midonet.cluster.data.zones.GreTunnelZoneHost
 import org.midonet.midolman.FlowController.AddWildcardFlow
 import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
 import org.midonet.midolman.datapath._
@@ -42,6 +41,7 @@ import org.midonet.odp.flows.{FlowActions, FlowAction}
 import org.midonet.odp.ports._
 import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.odp.{Flow => KernelFlow, _}
+import org.midonet.packets.IPv4Addr
 import org.midonet.sdn.flows.WildcardFlow
 import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.util.collection.Bimap
@@ -52,10 +52,6 @@ import org.midonet.util.collection.Bimap
  */
 object PortOperation extends Enumeration {
     val Create, Delete = Value
-}
-
-object TunnelChangeEventOperation extends Enumeration {
-    val Established, Removed = Value
 }
 
 sealed trait PortOp[P <: Port[_ <: PortOptions, P]] {
@@ -80,28 +76,48 @@ sealed trait PortOpReply[P <: Port[_ <: PortOptions, P]] {
     val error: NetlinkException
 }
 
+trait UnderlayResolver {
+
+    /** object representing the current host */
+    def host: Host
+
+    /** pair of IPv4 addresses from current host to remote peer host.
+     *  None if information not available or peer outside of tunnel Zone. */
+
+    /** looks for a tunnel route to a remote peer and return a pair of IPv4
+     *  addresses as 4B int from current host to remote peer host.
+     *  @param  peer a peer midolman UUID
+     *  @return first possible tunnel route, or None if unknown peer or no
+     *          route to that peer
+     */
+    def peerTunnelInfo(peer: UUID): Option[(Int,Int)]
+
+    /** reference to the datapath GRE tunnel port.
+     *  None if port is not available. */
+    def tunnelGre: Option[Port[_,_]]
+
+}
+
 trait VirtualPortsResolver {
 
+    /** Returns bounded datapath port or None if port not found */
     def getDpPortNumberForVport(vportId: UUID): Option[JInteger]
 
+    /** Returns bounded datapath port or None if port not found */
+    def getDpPortForInterface(itfName: String): Option[Port[_, _]]
+
+    /** Returns vport UUID of bounded datapath port, or None if not found */
     def getVportForDpPortNumber(portNum: JInteger): Option[UUID]
 
+    /** Returns bounded datapath port interface or None if port not found */
     def getDpPortName(num: JInteger): Option[String]
 
 }
 
-trait TunnelPortsResolver {
-
-    def localTunnelPorts: ROSet[JInteger]
-
-    def peerToTunnels: ROMap[UUID, ROMap[UUID, Port[_,_]]]
-
-}
-
-trait DatapathState extends VirtualPortsResolver with TunnelPortsResolver {
+trait DatapathState extends VirtualPortsResolver with UnderlayResolver {
 
     // TODO(guillermo) - for future use. Decisions based on the datapath state
-    // need to be aware of its versioning bacause flows added by fast-path
+    // need to be aware of its versioning because flows added by fast-path
     // simulations race with invalidations sent out-of-band by the datapath
     // controller to the flow controller.
     def version: Long
@@ -296,46 +312,6 @@ object DatapathController extends Referenceable {
         extends PortOpReply[GreTunnelPort]
 
     /**
-     * Will trigger an `capwap` tunnel creation operation. The sender will
-     * receive an [[org.midonet.midolman.DatapathController.TunnelCapwapOpReply]]
-     * message in return.
-     *
-     * @param port the tunnel port information
-     * @param tag a value that is going to be copied to the reply message
-     */
-    case class CreateTunnelCapwap(port: CapWapTunnelPort, tag: Option[AnyRef])
-        extends CreatePortOp[CapWapTunnelPort]
-
-    /**
-     * Will trigger an `capwap` tunnel deletion operation. The sender will
-     * receive an [[org.midonet.midolman.DatapathController.TunnelCapwapOpReply]]
-     * message in return.
-     *
-     * @param port the tunnel port information
-     * @param tag a value that is going to be copied to the reply message
-     */
-    case class DeleteTunnelCapwap(port: CapWapTunnelPort, tag: Option[AnyRef])
-        extends DeletePortOp[CapWapTunnelPort]
-
-    /**
-     * Reply message that is sent when a [[org.midonet.midolman.DatapathController.CreateTunnelCapwap]]
-     * or [[org.midonet.midolman.DatapathController.DeleteTunnelCapwap]]
-     * operation completes. It contains the operation type, the port data
-     * (updated or the original) and any error or timeout if the operation failed.
-     *
-     * @param port the internal port data
-     * @param op the operation type
-     * @param timeout true if the operation timed out
-     * @param error non null if the underlying layer has thrown exceptions
-     * @param tag is the same value that was passed in the initial operation by
-     *            the caller
-     */
-    case class TunnelCapwapOpReply(port: CapWapTunnelPort, op: PortOperation.Value,
-                                   timeout: Boolean, error: NetlinkException,
-                                   tag: Option[AnyRef])
-        extends PortOpReply[CapWapTunnelPort]
-
-    /**
      * This message requests that the DatapathController keep a temporary
      * binding of a virtual port (port in the virtual topology) to a local
      * datapath port. This may be used e.g. by the VPNManager to create
@@ -350,10 +326,6 @@ object DatapathController extends Referenceable {
     case class BindToInternalPort(vportID: UUID, port: InternalPort)
     case class BindToNetDevPort(vportID: UUID, port: NetDevPort)
 
-    case class InstallFlow(flow: KernelFlow)
-
-    case class DeleteFlow(flow: KernelFlow)
-
    /**
     * This message encapsulates a given port stats to the monitoring agent.
     * @param stats
@@ -361,11 +333,6 @@ object DatapathController extends Referenceable {
     case class PortStats(portID: UUID, stats: Port.Stats)
 
     class DatapathPortChangedEvent(val port: Port[_, _], val op: PortOperation.Value) {}
-
-    class TunnelChangeEvent(val myself: Option[TZHostConfig[_,_]],
-                            val peer: TZHostConfig[_, _],
-                            val portOption: Option[Short],
-                            val op: TunnelChangeEventOperation.Value)
 
     /**
      * This message requests stats for a given port.
@@ -457,6 +424,7 @@ class DatapathController() extends Actor with ActorLogging with
 
     implicit val executor: ExecutionContext = this.context.dispatcher
     implicit val system = this.context.system
+    implicit val logger: LoggingAdapter = log
 
     override implicit val requestReplyTimeout: Timeout = new Timeout(1 second)
 
@@ -472,7 +440,7 @@ class DatapathController() extends Actor with ActorLogging with
     var datapath: Datapath = null
 
     val dpState = new DatapathStateManager(
-        new VirtualPortManager(new Controller {
+        new Controller {
             override def addToDatapath(itfName: String): Unit = {
                 log.debug("VportManager requested add port {}", itfName)
                 createDatapathPort(self, Ports.newNetDevPort(itfName), None)
@@ -491,19 +459,15 @@ class DatapathController() extends Actor with ActorLogging with
                 VirtualToPhysicalMapper.getRef() !
                     LocalPortActive(vportId, isActive)
             }
-        }, log))
-
-    val zonesToTunnels: mutable.MultiMap[UUID, Port[_,_]] =
-        new mutable.HashMap[UUID, mutable.Set[Port[_,_]]] with
-            mutable.MultiMap[UUID, Port[_,_]]
-    val tunnelsToHosts = mutable.Map[JInteger, TZHostConfig[_,_]]()
+        }
+    )
 
     var recentInterfacesScanned = new java.util.ArrayList[InterfaceDescription]()
 
     var pendingUpdateCount = 0
 
     var initializer: ActorRef = null
-    var initialized = false
+
     var host: Host = null
     // If a Host message arrives while one is being processed, we stash it
     // in this variable. We don't use Akka's stash here, because we only
@@ -519,12 +483,6 @@ class DatapathController() extends Actor with ActorLogging with
     }
 
     protected def receive = null
-
-    def vifToLocalPortNumber(vportId: UUID): Option[Short] =
-        dpState.getDpPortNumberForVport(vportId) map { _.shortValue }
-
-    def ifaceNameToDpPort(itfName: String): Port[_, _] =
-        dpState.getDpPortForInterface(itfName).getOrElse(null)
 
     val DatapathInitializationActor: Receive = {
 
@@ -543,6 +501,7 @@ class DatapathController() extends Actor with ActorLogging with
                     // Only set it if the datapath is known.
                     if (null != h.datapath) {
                         this.host = h
+                        dpState.host = h
                         readDatapathInformation(h.datapath)
                     }
                 case _ =>
@@ -554,8 +513,6 @@ class DatapathController() extends Actor with ActorLogging with
             ports.foreach { _ match {
                     case p: GreTunnelPort =>
                         deleteDatapathPort(self, p, None)
-                    case p: CapWapTunnelPort =>
-                        deleteDatapathPort(self, p, None)
                     case p: NetDevPort =>
                         deleteDatapathPort(self, p, None)
                     case p =>
@@ -566,8 +523,13 @@ class DatapathController() extends Actor with ActorLogging with
             }
             log.debug("Finished processing datapath's existing ports. " +
                 "Pending updates {}", pendingUpdateCount)
-            if (pendingUpdateCount == 0)
+
+            log.debug("Initial creation of GRE tunnel port")
+            createDatapathPort(self, GreTunnelPort.make("tngre-mm"), null)
+
+            if (checkInitialization)
                 completeInitialization
+
 
         /**
         * Handle personal create port requests
@@ -583,7 +545,11 @@ class DatapathController() extends Actor with ActorLogging with
             deleteDatapathPort(sender, delPortOp.port, delPortOp.tag)
 
         case opReply: PortOpReply[Port[_, _]] if (sender == self) =>
+            pendingUpdateCount -= 1
+            log.debug("Pending update(s) {}", pendingUpdateCount)
             handlePortOperationReply(opReply)
+            if (checkInitialization)
+                completeInitialization
 
         case Messages.Ping(value) =>
             sender ! Messages.Pong(value)
@@ -595,12 +561,15 @@ class DatapathController() extends Actor with ActorLogging with
             log.info("(behaving as InitializationActor). Not handling message: " + m)
     }
 
+    /** checks if the DPC can switch to regular Receive loop */
+    private def checkInitialization: Boolean =
+        pendingUpdateCount == 0 && dpState.tunnelGre.isDefined
+
     /**
      * Complete initialization and notify the actor that requested init.
      */
     private def completeInitialization() {
         log.info("Initialization complete. Starting to act as a controller.")
-        initialized = true
         become(DatapathControllerActor)
         FlowController.getRef() ! DatapathController.DatapathReady(datapath, dpState)
         DeduplicationActor.getRef() ! DatapathController.DatapathReady(datapath, dpState)
@@ -624,6 +593,7 @@ class DatapathController() extends Actor with ActorLogging with
             val newZones = nextHost.zones
 
             host = nextHost
+            dpState.host = host
             nextHost = null
 
             dpState.updateVPortInterfaceBindings(host.ports)
@@ -637,7 +607,9 @@ class DatapathController() extends Actor with ActorLogging with
         val dropped = oldZones.keySet.diff(newZones.keySet)
         for (zone <- dropped) {
             VirtualToPhysicalMapper.getRef() ! TunnelZoneUnsubscribe(zone)
-            dropTunnelsInZone(zone)
+            for (tag <- dpState.removePeersForZone(zone)) {
+                FlowController.getRef() ! FlowController.InvalidateFlowsByTag(tag)
+            }
         }
 
         val added = newZones.keySet.diff(oldZones.keySet)
@@ -653,7 +625,6 @@ class DatapathController() extends Actor with ActorLogging with
         // When initialization is completed we will revert back to this Actor
         // loop for general message response
         case m: Initialize =>
-            initialized = false
             become(DatapathInitializationActor)
             // In case there were some scheduled port update checks, cancel them.
             if (portWatcher != null) {
@@ -675,21 +646,20 @@ class DatapathController() extends Actor with ActorLogging with
             processNextHost()
 
         case zoneMembers: ZoneMembers[_] =>
-            if (!host.zones.contains(zoneMembers.zone)) {
-                log.debug("Got ZoneMembers for zone:{} but I'm no " +
-                    "longer subscribed", zoneMembers.zone)
-            } else {
-                log.debug("ZoneMembers: {}", zoneMembers)
+            log.debug("ZoneMembers event: {}", zoneMembers)
+            if (dpState.host.zones contains zoneMembers.zone) {
+                val zone = zoneMembers.zone
                 for (member <- zoneMembers.members) {
-                    handleZoneChange(zoneMembers.zone,
-                                     member.asInstanceOf[TZHostConfig[_,_]],
-                                     HostConfigOperation.Added)
+                    val config = member.asInstanceOf[TZHostConfig[_,_]]
+                    handleZoneChange(zone, config, HostConfigOperation.Added)
                 }
             }
 
         case m: ZoneChanged[_] =>
             log.debug("ZoneChanged: {}", m)
-            handleZoneChange(m)
+            val config = m.hostConfig.asInstanceOf[TZHostConfig[_,_]]
+            if (dpState.host.zones contains m.zone)
+                handleZoneChange(m.zone, config, m.op)
 
         case newPortOp: CreatePortOp[Port[_, _]] =>
             log.debug("Got CreatePortOp {} from {}", newPortOp, sender)
@@ -699,7 +669,11 @@ class DatapathController() extends Actor with ActorLogging with
             deleteDatapathPort(sender, delPortOp.port, delPortOp.tag)
 
         case opReply: PortOpReply[Port[_, _]] =>
+            pendingUpdateCount -= 1
+            log.debug("Pending update(s) {}", pendingUpdateCount)
             handlePortOperationReply(opReply)
+            if(pendingUpdateCount == 0)
+                processNextHost()
 
         case Messages.Ping(value) =>
             sender ! Messages.Pong(value)
@@ -764,96 +738,37 @@ class DatapathController() extends Actor with ActorLogging with
         })
     }
 
-    def newTunnelPort[HostType <: TZHostConfig[_,_]](
-            source: HostType, target: HostType): Port[_,_] = {
-        source match {
-            case capwap: CapwapTunnelZoneHost =>
-                val name = "tncpw%08X" format target.getIp.addressAsInt()
-                Ports.newCapwapTunnelPort(name)
-            case gre: GreTunnelZoneHost =>
-                val name = "tngre%08X" format target.getIp.addressAsInt()
-                Ports.newGreTunnelPort(name)
-            case ipsec: IpsecTunnelZoneHost =>
-                val name = "ipsec%08X" format target.getIp.addressAsInt()
-                log.error("Tunnel host type not implemented: {}", source)
-                null
-            case _ =>
-                log.error("Tunnel host config did not match: {}", source)
-                null
-        }
-    }
-
-    def handleZoneChange(m: ZoneChanged[_]) {
-        val hostConfig = m.hostConfig.asInstanceOf[TZHostConfig[_, _]]
-        handleZoneChange(m.zone, hostConfig, m.op)
-    }
-
-    def handleZoneChange(zone: UUID,
-                         hostConfig: TZHostConfig[_,_],
+    def handleZoneChange(zone: UUID, config: TZHostConfig[_,_],
                          op: HostConfigOperation.Value) {
-        def _closeTunnel[HostType <: TZHostConfig[_,_]](peerConf: HostType) {
-            dpState.peerToTunnels.get(peerConf.getId).foreach {
-                mapping => mapping.get(zone).foreach {
-                    case tunnelPort: Port[_,_] =>
-                        log.debug("Need to close the tunnel with name: {}",
-                            tunnelPort.getName)
-                        deleteDatapathPort(self, tunnelPort, Some((peerConf, zone)))
-                }
-            }
-        }
 
-        def _openTunnel[HostType <: TZHostConfig[_,_]](peerConf: HostType) {
-            val myConfig = host.zones(zone)
-            val tunnelPort = newTunnelPort(myConfig, peerConf)
-            tunnelPort.setOptions()
-            val options = tunnelPort.getOptions.asInstanceOf[TunnelPortOptions[_]]
-            options.setSourceIPv4(myConfig.getIp.addressAsInt())
-            options.setDestinationIPv4(peerConf.getIp.addressAsInt())
-            log.debug("Opening tunnel port {}", tunnelPort)
-            createDatapathPort(self, tunnelPort, Some((peerConf, zone)))
-        }
-
-        if (hostConfig.getId == host.id)
-            return
-        if (!host.zones.contains(zone))
+        if (config.getId == dpState.host.id)
             return
 
-        hostConfig match {
-            case peer: GreTunnelZoneHost if op == HostConfigOperation.Added =>
-                log.info("Opening a tunnel port to {}", hostConfig)
-                _openTunnel(peer)
+        log.debug("Zone {} member {} change events: {}", zone, config, op)
 
-            case peer: CapwapTunnelZoneHost if op == HostConfigOperation.Added =>
-                log.info("Opening a tunnel port to {}", hostConfig)
-                _openTunnel(peer)
+        val peerUUID = config.getId
 
-            case peer: GreTunnelZoneHost if op == HostConfigOperation.Deleted =>
-                log.info("Closing a tunnel port to {}", hostConfig)
-                _closeTunnel(peer)
-
-            case peer: CapwapTunnelZoneHost if op == HostConfigOperation.Deleted =>
-                log.info("Closing a tunnel port to {}", hostConfig)
-                _closeTunnel(peer)
-
-            case _ =>
+        op match {
+            case HostConfigOperation.Added => processAddPeer
+            case HostConfigOperation.Deleted => processDelPeer
         }
-    }
 
-    def dropTunnelsInZone(zoneId: UUID) {
-        zonesToTunnels.get(zoneId) foreach { tunnels =>
-            log.info("dropping all tunnels in zone: {}", zoneId)
-            for (port <- tunnels) {
-                tunnelsToHosts.get(port.getPortNo) match {
-                    case Some(tzhost: GreTunnelZoneHost) =>
-                        deleteDatapathPort(self, port, Some((tzhost, zoneId)))
-                    case Some(tzhost: CapwapTunnelZoneHost) =>
-                        deleteDatapathPort(self, port, Some((tzhost, zoneId)))
-                    case _ =>
-                        log.error("Cannot find TZHost for port {} while "+
-                            "dropping tunnels in zone {}", port.getPortNo, zoneId)
-                }
+        def processTags(tags: TraversableOnce[Any]): Unit = tags.foreach {
+            FlowController.getRef() ! FlowController.InvalidateFlowsByTag(_)
+        }
+
+        def processDelPeer(): Unit =
+            processTags(dpState.removePeer(peerUUID, zone))
+
+        def processAddPeer() =
+            host.zones.get(zone) map { _.getIp.addressAsInt() } match {
+                case Some(srcIp) =>
+                    val ipPair = (srcIp, config.getIp.addressAsInt)
+                    processTags(dpState.addPeer(peerUUID, zone, ipPair))
+                case None =>
+                    log.info("could not find this host Ip for zone {}", zone)
             }
-        }
+
     }
 
     private def installTunnelKeyFlow(port: Port[_, _], exterior: ExteriorPort[_]) {
@@ -905,63 +820,10 @@ class DatapathController() extends Actor with ActorLogging with
     def handlePortOperationReply(opReply: PortOpReply[_]) {
         log.debug("Port operation reply: {}", opReply)
 
-        pendingUpdateCount -= 1
-        log.debug("Pending count for handlePortOperationReply {}", pendingUpdateCount)
-
-        def _handleTunnelCreate(port: Port[_,_],
-                                hConf: TZHostConfig[_,_], zone: UUID) {
-            dpState.addPeerTunnel(hConf.getId, zone, port)
-            log.debug("handleTunnelCreate - added zone {} port {} to" +
-                      "tunnels map", zone, port.getName)
-            tunnelsToHosts.put(port.getPortNo, hConf)
-            zonesToTunnels.addBinding(zone, port)
-            // trigger invalidation
-            val tunnelPortNum: JShort = port.getPortNo.shortValue
-            dpState.addLocalTunnelPort(tunnelPortNum.intValue)
-            FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
-                FlowTagger.invalidateDPPort(tunnelPortNum))
-            log.debug("Adding tunnel with port #{}", tunnelPortNum)
-            context.system.eventStream.publish(
-                new TunnelChangeEvent(this.host.zones.get(zone), hConf,
-                    Some(tunnelPortNum),
-                    TunnelChangeEventOperation.Established))
-        }
-
-        def _handleTunnelDelete(port: Port[_,_],
-                                hConf: TZHostConfig[_,_], zone: UUID) {
-            val invalidate = dpState.removePeerTunnel(hConf.getId, zone)
-            tunnelsToHosts.remove(port.getPortNo)
-            zonesToTunnels.removeBinding(zone, port)
-            dpState.removeLocalTunnelPort(port.getPortNo.shortValue)
-            if (invalidate) {
-                FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
-                    FlowTagger.invalidateDPPort(port.getPortNo.shortValue()))
-            }
-            log.debug("Removing tunnel with port #{}",
-                      port.getPortNo.shortValue)
-            context.system.eventStream.publish(
-                new TunnelChangeEvent(
-                    host.zones.get(zone), hConf,
-                    None, TunnelChangeEventOperation.Removed))
-        }
-
         opReply match {
 
-            case TunnelGreOpReply(p, PortOperation.Create, false, null,
-                    Some((hConf: GreTunnelZoneHost, zone: UUID))) =>
-                _handleTunnelCreate(p, hConf, zone)
-
-            case TunnelCapwapOpReply(p, PortOperation.Create, false, null,
-                    Some((hConf: CapwapTunnelZoneHost, zone: UUID))) =>
-                _handleTunnelCreate(p, hConf, zone)
-
-            case TunnelCapwapOpReply(p, PortOperation.Delete, false, null,
-                    Some((hConf: CapwapTunnelZoneHost, zone: UUID))) =>
-                _handleTunnelDelete(p, hConf, zone)
-
-            case TunnelGreOpReply(p, PortOperation.Delete, false, null,
-                    Some((hConf: GreTunnelZoneHost, zone: UUID))) =>
-                _handleTunnelDelete(p, hConf, zone)
+            case tpReply: TunnelGreOpReply =>
+                handleTunnelPortOpReply(tpReply)
 
             case PortNetdevOpReply(p, PortOperation.Create,
                                    false, null, None) =>
@@ -987,6 +849,7 @@ class DatapathController() extends Actor with ActorLogging with
             //            case PortInternalOpReply(_,_,_,_,_) =>
             //            case TunnelPatchOpReply(_,_,_,_,_) =>
             case _ =>
+                log.debug("not handling port op reply {}", opReply)
         }
 
         if (opReply.error == null && !opReply.timeout) {
@@ -1000,12 +863,31 @@ class DatapathController() extends Actor with ActorLogging with
             log.warning("Failed to delete port: {} due to timeout", opReply.port)
         }
 
-        if (pendingUpdateCount == 0) {
-            if (!initialized)
-                completeInitialization()
-            else
-                processNextHost()
+    }
+
+    /** Deleguate of handlePortOperationReply. Processes tunnel ports events and
+     *  updates the DPC state or reschedule port creation accordingly */
+    private def handleTunnelPortOpReply(opReply: PortOpReply[_]) {
+        log.debug("Tunnel Port op reply: {}", opReply)
+
+        opReply match {
+
+            case TunnelGreOpReply(p, PortOperation.Create, false, null, _) =>
+                dpState.tunnelGre = Some(p)
+
+            case TunnelGreOpReply(p, PortOperation.Create, timeout, null, tags) =>
+                log.warning("GRE tunnel port creation timeout => retrying")
+                createDatapathPort(self, p, tags)
+
+            case TunnelGreOpReply(p, PortOperation.Create, _, ex, tags) =>
+                log.warning("GRE tunnel port creation failed because of {}"
+                    + " => retrying", ex)
+                createDatapathPort(self, p, tags)
+
+            case _ =>
+                log.debug("not handling tunnel port op reply {}", opReply)
         }
+
     }
 
     def createDatapathPort(caller: ActorRef, port: Port[_, _], tag: Option[AnyRef]) {
@@ -1059,8 +941,6 @@ class DatapathController() extends Actor with ActorLogging with
                 actor ! TunnelPatchOpReply(p, op, timeout, ex, tag)
             case p: GreTunnelPort =>
                 actor ! TunnelGreOpReply(p, op, timeout, ex, tag)
-            case p: CapWapTunnelPort =>
-                actor ! TunnelCapwapOpReply(p, op, timeout, ex, tag)
         }
     }
 
@@ -1109,14 +989,6 @@ class DatapathController() extends Actor with ActorLogging with
             if (zoneConfig.isInstanceOf[GreTunnelZoneHost]) {
                 addrTunnelMapping.addBinding(zoneConfig.getIp.addressAsInt,
                                              TunnelZone.Type.Gre)
-            }
-            if (zoneConfig.isInstanceOf[CapwapTunnelZoneHost]) {
-                addrTunnelMapping.addBinding(zoneConfig.getIp.addressAsInt,
-                                             TunnelZone.Type.Capwap)
-            }
-            if (zoneConfig.isInstanceOf[IpsecTunnelZoneHost]) {
-                addrTunnelMapping.addBinding(zoneConfig.getIp.addressAsInt,
-                                             TunnelZone.Type.Ipsec)
             }
         }
 
@@ -1267,7 +1139,7 @@ object VirtualPortManager {
  *    and up to date view of the state of the virtual ports.
  */
 class VirtualPortManager(
-        val controller: VirtualPortManager.Controller, val log: LoggingAdapter,
+        val controller: VirtualPortManager.Controller,
         // Map the interfaces this manager knows about to their status.
         var interfaceToStatus: Map[String, Boolean] = Map[String, Boolean](),
         // The interfaces that are ports on the datapath, and their
@@ -1285,16 +1157,15 @@ class VirtualPortManager(
         // Track which dp ports have add/remove in flight because while we wait
         // for a change to complete, the binding may be deleted or re-created.
         var dpPortsInProgress: Set[String] = Set[String]()
-    ) {
+    )(implicit val log: LoggingAdapter) {
 
     private def copy = new VirtualPortManager(controller,
-                                                log,
-                                                interfaceToStatus,
-                                                interfaceToDpPort,
-                                                dpPortNumToInterface,
-                                                interfaceToVport,
-                                                dpPortsWeAdded,
-                                                dpPortsInProgress)
+                                              interfaceToStatus,
+                                              interfaceToDpPort,
+                                              dpPortNumToInterface,
+                                              interfaceToVport,
+                                              dpPortsWeAdded,
+                                              dpPortsInProgress)
 
     /*
     This note explains the life-cycle of the datapath's non-tunnel ports.
@@ -1599,92 +1470,157 @@ class VirtualPortManager(
 
 }
 
-class DatapathStateManager(@scala.volatile private var _vportMgr: VirtualPortManager)
-    extends DatapathState {
+/** class which manages the state changes triggered by message receive by
+ *  the DatapathController. It also exposes the DatapathController managed
+ *  data to clients for WilcardFlow translation. */
+class DatapathStateManager(val controller: VirtualPortManager.Controller)(
+        implicit val context: ActorContext,
+        implicit val log: LoggingAdapter) extends DatapathState {
 
+    @scala.volatile private var _vportMgr = new VirtualPortManager(controller)
     @scala.volatile private var _version: Long = 0
 
+    /** update the internal version number of the DatapathStateManager.
+     *  @param  sideEffect block of code with side effect on this object.
+     *  @return the return valpue of the block of code passed as argument.
+     */
     private def versionUp[T](sideEffect: => T): T = {
         _version += 1
         sideEffect
     }
 
-    private val _localTunnelPorts: mutable.Set[JInteger] =
-        Collections.newSetFromMap[JInteger](new ConcHashMap[JInteger,JBoolean]()).asScala
-
-    // peerHostId -> { ZoneID -> Port[_,_] }
-    private val _peerToTunnels: ConcMap[UUID, ConcMap[UUID, Port[_,_]]] =
-        new ConcHashMap[UUID, ConcMap[UUID, Port[_,_]]]().asScala
-
     override def version = _version
 
+    /** used internally by the DPC on InterfaceUpdate msg.*/
     def updateInterfaces(itfs: Collection[InterfaceDescription]) =
         versionUp { _vportMgr = _vportMgr.updateInterfaces(itfs) }
 
+    /** used internally by the DPC when processing host info.*/
     def updateVPortInterfaceBindings(bindings: Map[UUID, String]) =
         versionUp { _vportMgr = _vportMgr.updateVPortInterfaceBindings(bindings) }
 
-    def dpPortAdded(p: Port[_,_]) =
-        versionUp { _vportMgr = _vportMgr.datapathPortAdded(p) }
+    /** to be called by the DatapathController in reaction to a successful
+     *  non-tunnel port creation operation.
+     *  @param  port port which was successfully created
+     */
+    def dpPortAdded(port: Port[_,_]) =
+        versionUp { _vportMgr = _vportMgr.datapathPortAdded(port) }
 
-    def dpPortRemoved(p: Port[_,_]) =
-        versionUp { _vportMgr = _vportMgr.datapathPortRemoved(p.getName) }
+    /** to be called by the DatapathController in reaction to a successful
+     *  non-tunnel port deletion operation.
+     *  @param  port port which was successfully deleted
+     */
+    def dpPortRemoved(port: Port[_,_]) =
+        versionUp { _vportMgr = _vportMgr.datapathPortRemoved(port.getName) }
 
-    def dpPortForget(p: Port[_,_]) =
-        versionUp { _vportMgr = _vportMgr.datapathPortForget(p) }
+    /** to be called by the DatapathController in reaction to a failed
+     *  non-tunnel port creation operation so that the DatapathController can
+     *  reschedule a try.
+     *  @param  port port which could not be created.
+     */
+    def dpPortForget(port: Port[_,_]) =
+        versionUp { _vportMgr = _vportMgr.datapathPortForget(port) }
 
-    def addLocalTunnelPort(portNo: JInteger) =
-        versionUp { _localTunnelPorts.add(portNo) }
+    var _tunnelGre: Option[Port[_,_]] = None
 
-    def removeLocalTunnelPort(portNo: JInteger): Boolean =
-        versionUp { _localTunnelPorts.remove(portNo) }
+    override def tunnelGre = _tunnelGre
 
-    override def localTunnelPorts: ROSet[JInteger] = _localTunnelPorts
-
-    def addPeerTunnel(peer: UUID, zone: UUID, port: Port[_,_]) = versionUp {
-        _peerToTunnels.get(peer) match {
-            case Some(tunnels) => tunnels.put(zone, port)
-            case None =>
-                val mapping = new ConcHashMap[UUID, Port[_,_]]()
-                mapping.put(zone, port)
-                _peerToTunnels.put(peer, mapping.asScala)
-        }
+    /** updates the DPC reference to the tunnel port bound in the datapath */
+    def tunnelGre_=(p: Option[Port[_,_]]) = versionUp {
+        _tunnelGre = p
+        log.info("gre tunnel port was assigned to {}", p)
     }
 
-    def removePeerTunnel(peer: UUID, zone: UUID): Boolean = versionUp {
-        _peerToTunnels.get(peer) match {
-            case Some(tunnels) =>
-                val deleted = tunnels.remove(zone)
-                if (tunnels.size == 0)
-                    _peerToTunnels.remove(peer)
-                deleted match {
-                    case None => false
-                    case Some(a) => true
-                }
-            case None =>
-                false
-        }
+    /** reference to the current host information. Used to query this host ip
+     *  when adding tunnel routes to peer host for given zone uuid. */
+    var _host: Option[Host] = None
+
+    override def host = _host.getOrElse {
+        log.info("request for host reference but _host was not set yet")
+        null
     }
 
-    override def peerToTunnels: ROMap[UUID, ROMap[UUID, Port[_,_]]] = _peerToTunnels
+    /** updates the DPC reference to the current host info */
+    def host_=(h: Host) = versionUp { _host = Option(h) }
 
+    /** 2D immutable map of peerUUID -> zoneUUID -> (srcIp, dstIp)
+     *  this map stores all the possible underlay routes from this host
+     *  to remote midolman host.
+     */
+    var _peersRoutes: Map[UUID,Map[UUID,(Int,Int)]] =
+        Map[UUID,Map[UUID,(Int, Int)]]()
+
+    override def peerTunnelInfo(peer: UUID) =
+        _peersRoutes.get(peer).flatMap{ _.values.headOption }
+
+    /** helper for route string formating. */
+    private def routeStr(route: (Int,Int)): (String,String) =
+        (IPv4Addr.intToIpStr(route._1), IPv4Addr.intToIpStr(route._2))
+
+    /** add route info about peer for given zone and retrieve ip for this host
+     *  and for this zone from dpState.
+     *  @param  peer  remote host UUID
+     *  @param  zone  zone UUID the underlay route to add is associated to.
+     *  @param  dstIp the underlay ip of the remote host
+     *  @return possible tags to send to the FlowController for invalidation
+     */
+    def addPeer(peer: UUID, zone: UUID, ipPair: (Int, Int)): Seq[Any] =
+       versionUp {
+            log.info("new tunnel route {} to peer {}", routeStr(ipPair), peer)
+
+            val routes = _peersRoutes.getOrElse(peer, Map[UUID,(Int,Int)]())
+            // invalidate the old route if overwrite
+            val oldRouteTag = routes.get(zone)
+
+            _peersRoutes += ( peer -> ( routes + (zone -> ipPair) ) )
+            val tags = FlowTagger.invalidateTunnelPort(ipPair) :: Nil
+
+            oldRouteTag
+                .map{ FlowTagger.invalidateTunnelPort(_) :: tags }
+                .getOrElse(tags)
+        }
+
+    /** delete a tunnel route info about peer for given zone.
+     *  @param  peer  remote host UUID
+     *  @param  zone  zone UUID the underlay route to remove is associated to.
+     *  @return possible tag to send to the FlowController for invalidation
+     */
+    def removePeer(peer: UUID, zone: UUID): Option[Any] =
+        _peersRoutes.get(peer).flatMap(_.get(zone)).map { ipPair =>
+            log.info(
+                "removing tunnel route {} to peer {}", routeStr(ipPair), peer)
+            versionUp {
+                // TODO(hugo): remove nested map if becomes empty (mem leak)
+                _peersRoutes += (peer -> (_peersRoutes(peer) - zone))
+                FlowTagger.invalidateTunnelPort(ipPair)
+            }
+        }
+
+    /** delete all tunnel routes associated with a given zone
+     *  @param  peer  remote host UUID
+     *  @return sequence of tags to send to the FlowController for invalidation
+     */
+    def removePeersForZone(zone: UUID): Seq[Any] =
+        _peersRoutes.keys.toSeq.flatMap{ removePeer(_, zone) }
+
+    /** used internally by the Datapath Controller to answer PortStatsRequest */
     def getInterfaceForVport(vportId: UUID): Option[String] =
         _vportMgr.interfaceToVport.inverse.get(vportId)
 
-    def getDpPortForInterface(itfName: String): Option[Port[_,_]] =
+    override def getDpPortForInterface(itfName: String): Option[Port[_,_]] =
         _vportMgr.interfaceToDpPort.get(itfName)
 
-    def getDpPortNumberForVport(vportId: UUID): Option[JInteger] =
+    override def getDpPortNumberForVport(vportId: UUID): Option[JInteger] =
         _vportMgr.interfaceToVport.inverse.get(vportId) flatMap { itfName =>
             _vportMgr.interfaceToDpPort.get(itfName) map { _.getPortNo }
         }
 
-    def getVportForDpPortNumber(portNum: JInteger): Option[UUID] =
+    override def getVportForDpPortNumber(portNum: JInteger): Option[UUID] =
         _vportMgr
             .dpPortNumToInterface.get(portNum)
             .flatMap { _vportMgr.interfaceToVport.get(_) }
 
-    def getDpPortName(num: JInteger): Option[String] =
+    override def getDpPortName(num: JInteger): Option[String] =
         _vportMgr.dpPortNumToInterface.get(num)
 
 }

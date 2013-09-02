@@ -26,4 +26,11 @@ public class GreTunnelPort extends Port<GreTunnelPortOptions, GreTunnelPort> {
         return new GreTunnelPortOptions();
     }
 
+    /** returns a new GreTunnelPort instance with empty options */
+    public static GreTunnelPort make(String name) {
+        GreTunnelPort p = new GreTunnelPort(name);
+        p.setOptions(new GreTunnelPortOptions());
+        return p;
+    }
+
 }
