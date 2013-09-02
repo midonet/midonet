@@ -3,11 +3,11 @@
 */
 package org.midonet.mmdpctl.commands.results;
 
+import java.util.Set;
+import java.util.List;
+
 import org.midonet.odp.Datapath;
 import org.midonet.odp.Flow;
-
-import java.util.Set;
-
 
 public class DumpDatapathResult implements Result {
     Set<Flow> flows;
@@ -20,12 +20,11 @@ public class DumpDatapathResult implements Result {
 
     @Override
     public void printResult() {
-        if (flows.isEmpty()) {
-            System.out.println("No flows for the selected datapath ("+datapath.getName()+").");
-        } else {
-            System.out.println("Displaying " + flows.size() + " flows: ");
-            for (Flow flow : flows) {
-                System.out.println("\t"+flow.toString());
+        System.out.println("" + flows.size() + " flows");
+        for (Flow flow : flows) {
+            System.out.println("  Flow:");
+            for (String s: flow.toPrettyStrings()) {
+                System.out.println("    " + s);
             }
         }
     }

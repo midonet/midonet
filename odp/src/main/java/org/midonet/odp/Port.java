@@ -101,9 +101,9 @@ public abstract class Port<PortOptions extends org.midonet.odp.PortOptions, Actu
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
+        @SuppressWarnings("unchecked")
         Port port = (Port) o;
 
-        if (!Arrays.equals(address, port.address)) return false;
         if (name != null ? !name.equals(port.name) : port.name != null)
             return false;
         if (options != null ? !options.equals(
@@ -123,7 +123,6 @@ public abstract class Port<PortOptions extends org.midonet.odp.PortOptions, Actu
         int result = portNo != null ? portNo.hashCode() : 0;
         result = 31 * result + (type != null ? type.hashCode() : 0);
         result = 31 * result + (name != null ? name.hashCode() : 0);
-        result = 31 * result + (address != null ? Arrays.hashCode(address) : 0);
         result = 31 * result + (options != null ? options.hashCode() : 0);
         result = 31 * result + (stats != null ? stats.hashCode() : 0);
         return result;

@@ -87,12 +87,10 @@ trait SimulationHelper extends MidolmanTestCase {
         eth
     }
 
-    def actionsToOutputPorts(actions: JList[FlowAction[_]]): Set[Short] = {
-        actions.flatMap(action => action match {
-            case a: FlowActionOutput => Option(a.getValue.getPortNumber.toShort)
-            case _ => None
-        }).toSet
-    }
+    def actionsToOutputPorts(actions: JList[FlowAction[_]]): Set[Short] =
+        actions.withFilter( _.isInstanceOf[FlowActionOutput] )
+            .map{ _.asInstanceOf[FlowActionOutput].getPortNumber.toShort }
+            .toSet
 
     def getOutPacketPorts(packet: Packet): Set[Short] = {
         packet should not be null

@@ -3,11 +3,13 @@
 */
 package org.midonet.mmdpctl.commands.results;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Set;
+
 import org.midonet.odp.Datapath;
 import org.midonet.odp.Port;
-import org.midonet.odp.ports.TunnelPortOptions;
-
-import java.util.Set;
 
 public class GetDatapathResult implements Result {
 
@@ -19,9 +21,26 @@ public class GetDatapathResult implements Result {
         this.ports = ports;
     }
 
+    public String assembleString(Port<?,?> p) {
+        return "Port #" + p.getPortNo() + " \"" + p.getName() + "\"  "
+            + p.getType().toString() +  "  " + p.getStats().toString();
+    }
+
+    public ArrayList<Port<?,?>> sortPorts() {
+        ArrayList<Port<?,?>> toPrint = new ArrayList<>(ports);
+
+        Collections.sort(toPrint, new Comparator<Port<?,?>>() {
+            @Override public int compare(Port<?,?> o1, Port<?,?> o2) {
+                return o1.getPortNo().compareTo(o2.getPortNo());
+            }
+        });
+
+        return toPrint;
+    }
+
     @Override
     public void printResult() {
-        System.out.println("Datpath name   : " + datapath.getName());
+        System.out.println("Datapath name   : " + datapath.getName());
         System.out.println("Datapath index : " + datapath.getIndex());
         Datapath.Stats stats = datapath.getStats();
         System.out.println("Datapath Stats: ");
@@ -30,16 +49,8 @@ public class GetDatapathResult implements Result {
         System.out.println("  Lost  :"+stats.getLost());
         System.out.println("  Misses:" +stats.getMisses());
         if (ports != null && (!ports.isEmpty())) {
-            for (Port<?,?> port: ports) {
-                System.out.println("Port Name: " + port.getName());
-                System.out.println("  Port number: " + port.getPortNo());
-                System.out.println("  Port type  : " + port.getType().toString());
-                System.out.println("  "+port.getStats().toString());
-                Port.Type portType = port.getType();
-                if (portType.equals(Port.Type.Gre) || portType.equals(Port.Type.CapWap)) {
-                    TunnelPortOptions options = (TunnelPortOptions) port.getOptions();
-                    System.out.println("  " + options.toString());
-                }
+            for (Port<?,?> port: sortPorts()) {
+                System.out.println(assembleString(port));
             }
         } else {
             System.out.println("Datapath does not contain any port.");

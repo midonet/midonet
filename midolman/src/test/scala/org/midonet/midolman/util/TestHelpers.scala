@@ -68,37 +68,45 @@ object TestHelpers {
             commandExitCode, is(equalTo(0)))
     }
 
-    def getMatchFlowRemovedPacketPartialFunction: PartialFunction[Any, Boolean] = {
-        {
-            case msg: WildcardFlowRemoved => true
-            case _ => false
-        }
+    def getMatchFlowRemovedPacketPartialFunction = matchWCRemoved
+
+    def partialMatch(acts: Seq[FlowAction[_]], targ: Seq[FlowAction[_]]) =
+        targ.forall(acts.contains(_))
+
+    def totalMatch(acts: Seq[FlowAction[_]], targ: Seq[FlowAction[_]]) =
+        acts.size == targ.size && partialMatch(acts, targ)
+
+    def matchWCAdded: PartialFunction[Any, Boolean] = {
+        case msg: WildcardFlowAdded => true
+        case _ => false
     }
 
-    def matchActionsFlowAddedOrRemoved(flowActions: mutable.Buffer[FlowAction[_]]):
-    PartialFunction[Any, Boolean] = {
-        {
-            case msg: WildcardFlowAdded =>
-                if(msg.f.getActions.equals(flowActions.toList))
-                    true
-                else
-                    false
-
-            case msg: WildcardFlowRemoved =>
-                if(msg.f.getActions.equals(flowActions.toList))
-                    true
-                else
-                    false
-            case _ => false
-        }
+    def matchWCRemoved: PartialFunction[Any, Boolean] = {
+        case msg: WildcardFlowRemoved => true
+        case _ => false
     }
 
-    def matchFlowTag(tag: AnyRef):
-    PartialFunction[Any, Boolean] = {
-        {
-            case msg: InvalidateFlowsByTag => msg.tag.equals(tag)
-            case _ => false
-        }
+    def matchActionsFlowAddedOrRemoved(
+            flowActions: Seq[FlowAction[_]]): PartialFunction[Any, Boolean] = {
+        case msg: WildcardFlowAdded =>
+            totalMatch(msg.f.getActions, flowActions)
+        case msg: WildcardFlowRemoved =>
+            totalMatch(msg.f.getActions, flowActions)
+        case _ => false
+    }
+
+    def partialMatchActionsFlowAddedOrRemoved(
+            flowActions: Seq[FlowAction[_]]): PartialFunction[Any, Boolean] = {
+        case msg: WildcardFlowAdded =>
+            partialMatch(msg.f.getActions, flowActions)
+        case msg: WildcardFlowRemoved =>
+            partialMatch(msg.f.getActions, flowActions)
+        case _ => false
+    }
+
+    def matchFlowTag(tag: AnyRef): PartialFunction[Any, Boolean] = {
+        case msg: InvalidateFlowsByTag => msg.tag.equals(tag)
+        case _ => false
     }
 
     def createUdpPacket(srcMac: String, srcIp: String, dstMac: String, dstIp: String): Ethernet = {

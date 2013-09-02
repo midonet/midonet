@@ -137,7 +137,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         materializePort(uplinkPort, host, "uplinkPort")
         requestOfType[LocalPortActive](portsProbe)
 
-        uplinkPortNum = dpController().underlyingActor.
+        uplinkPortNum =
             vifToLocalPortNumber(uplinkPort.getId).getOrElse(0.toShort)
         uplinkPortNum should not be === (0)
 

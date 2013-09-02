@@ -19,13 +19,14 @@ import org.scalatest.junit.JUnitRunner
 import org.midonet.odp.Datapath
 import org.midonet.odp.flows.{FlowActions, FlowAction}
 import org.midonet.odp.ports.GreTunnelPort
+import org.midonet.packets.IPv4Addr
 import org.midonet.packets.{IntIPv4, MAC}
 import org.midonet.sdn.flows.{WildcardMatch, WildcardFlow}
 import org.midonet.cluster.data.Router
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.ports.MaterializedRouterPort
 import org.midonet.cluster.data.zones.{GreTunnelZone, GreTunnelZoneHost}
-import org.midonet.midolman.DatapathController.{DatapathPortChangedEvent, TunnelChangeEvent}
+import org.midonet.midolman.DatapathController.DatapathPortChangedEvent
 import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, PacketIn}
 import org.midonet.midolman.FlowController.AddWildcardFlow
 import org.midonet.midolman.FlowController.WildcardFlowAdded
@@ -44,7 +45,6 @@ class DatapathFlowInvalidationTestCase extends MidolmanTestCase with VirtualConf
 with RouterHelper{
 
     var tagEventProbe: TestProbe = null
-    var tunnelEventsProbe: TestProbe = null
     var datapathEventsProbe: TestProbe = null
 
     var datapath: Datapath = null
@@ -85,7 +85,6 @@ with RouterHelper{
     }
 
     override def beforeTest() {
-        tunnelEventsProbe = newProbe()
         datapathEventsProbe = newProbe()
 
         drainProbes()
@@ -96,8 +95,6 @@ with RouterHelper{
         clusterRouter = newRouter("router")
         clusterRouter should not be null
 
-        actors().eventStream.subscribe(tunnelEventsProbe.ref,
-            classOf[TunnelChangeEvent])
         actors().eventStream.subscribe(datapathEventsProbe.ref,
             classOf[DatapathPortChangedEvent])
 
@@ -227,29 +224,29 @@ with RouterHelper{
         portsProbe.expectMsgClass(classOf[LocalPortActive])
         requestOfType[DatapathPortChangedEvent](datapathEventsProbe)
 
+        val srcIp = IPv4Addr("192.168.100.1")
+        val dstIp1 = IPv4Addr("192.168.125.1")
+        val dstIp2 = IPv4Addr("192.168.210.1")
+
+        val ipPair1 = (srcIp.toInt, dstIp1.toInt)
+        val ipPair2 = (srcIp.toInt, dstIp2.toInt)
+
         clusterDataClient().tunnelZonesAddMembership(
             tunnelZone.getId,
-            new GreTunnelZoneHost(host1.getId)
-                .setIp(IntIPv4.fromString("192.168.100.1")))
+            new GreTunnelZoneHost(host1.getId).setIp(srcIp.toIntIPv4))
         clusterDataClient().tunnelZonesAddMembership(
             tunnelZone.getId,
-            new GreTunnelZoneHost(host2.getId)
-                .setIp(IntIPv4.fromString("192.168.125.1")))
+            new GreTunnelZoneHost(host2.getId).setIp(dstIp1.toIntIPv4))
 
         fishForReplyOfType[GreZoneMembers](vtpProbe())
         fishForReplyOfType[GreZoneChanged](vtpProbe())
 
-        // assert that the creation event for the tunnel was fired.
-        var portChangedEvent = requestOfType[DatapathPortChangedEvent](datapathEventsProbe)
-        portChangedEvent.op should be(PortOperation.Create)
-        portChangedEvent.port.isInstanceOf[GreTunnelPort] should be(true)
+        // assert that the tunnel route was added
+        dpState().peerTunnelInfo(host2.getId()) should be (Some(ipPair1))
 
-        var tunnelPortNumber = portChangedEvent.port.getPortNo
-
-        // assert that a invalidateFlowByTag where tag is the port datapath short
-        // id is sent
+        // assert that a invalidateFlowByTag where tag is the route info is sent
         flowProbe().fishForMessage(Duration(3, TimeUnit.SECONDS),
-            "Tag")(matchATagInvalidation(FlowTagger.invalidateDPPort(tunnelPortNumber.shortValue)))
+            "Tag")(matchATagInvalidation(FlowTagger.invalidateTunnelPort(ipPair1)))
 
         val wildcardFlow = WildcardFlow(
             wcmatch = new WildcardMatch().setInputPortUUID(port1OnHost1.getId),
@@ -261,49 +258,31 @@ with RouterHelper{
         val flowToInvalidate = wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
 
         // update the gre ip of the second host
-        val secondGreConfig = new GreTunnelZoneHost(host2.getId)
-            .setIp(IntIPv4.fromString("192.168.210.1"))
+        val secondGreConfig =
+            new GreTunnelZoneHost(host2.getId).setIp(dstIp2.toIntIPv4)
         clusterDataClient().tunnelZonesDeleteMembership(
             tunnelZone.getId, host2.getId)
         clusterDataClient().tunnelZonesAddMembership(
             tunnelZone.getId, secondGreConfig)
 
-        // assert a delete event was fired on the bus.
-        portChangedEvent = requestOfType[DatapathPortChangedEvent](datapathEventsProbe)
-        portChangedEvent.op should be(PortOperation.Delete)
-        portChangedEvent.port.isInstanceOf[GreTunnelPort] should be(true)
-
-        // assert that a invalidateFlowByTag is sent
+        // assert that the old route was removed and a invalidateFlowByTag is sent
         flowProbe().fishForMessage(Duration(3, TimeUnit.SECONDS),
-            "Tag")(matchATagInvalidation(FlowTagger.invalidateDPPort(tunnelPortNumber.shortValue)))
+            "Tag")(matchATagInvalidation(FlowTagger.invalidateTunnelPort(ipPair1)))
+
+        // assert that the new route is in place
+        dpState().peerTunnelInfo(host2.getId()) should be (Some(ipPair2))
+
         // assert that the flow gets deleted
         val flowRemoved = wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
         flowRemoved.f.getMatch should be(flowToInvalidate.f.getMatch)
 
-        // assert the proper datapath port changed event is fired
-        portChangedEvent = requestOfType[DatapathPortChangedEvent](datapathEventsProbe)
-
-        portChangedEvent.op should be(PortOperation.Create)
-        portChangedEvent.port.isInstanceOf[GreTunnelPort] should be(true)
-
-        tunnelPortNumber = portChangedEvent.port.getPortNo
-        // assert that a flow invalidation by tag is sent with tag = port short id
+        // assert that a flow invalidation by tag is sent with new tunnel route
         flowProbe().expectMsg(new InvalidateFlowsByTag(
-            FlowTagger.invalidateDPPort(tunnelPortNumber.shortValue)))
+            FlowTagger.invalidateTunnelPort(ipPair2)))
     }
 
-    def matchATagInvalidation(tagToTest: Any):
-    PartialFunction[Any, Boolean] = {
-        {
-            case msg: InvalidateFlowsByTag =>
-                if(msg.tag.equals(tagToTest)){
-                    true
-                }
-                else {
-                    false
-
-                }
-            case _ => false
-        }
+    def matchATagInvalidation(tagToTest: Any): PartialFunction[Any, Boolean] = {
+        case msg: InvalidateFlowsByTag => msg.tag.equals(tagToTest)
+        case _ => false
     }
 }

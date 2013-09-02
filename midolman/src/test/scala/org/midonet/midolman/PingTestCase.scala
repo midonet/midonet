@@ -78,7 +78,7 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
         val portEvent = requestOfType[LocalPortActive](portsProbe)
         portEvent.active should be(true)
         portEvent.portID should be(rtrPort1.getId)
-        dpController().underlyingActor.vifToLocalPortNumber(rtrPort1.getId) match {
+        vifToLocalPortNumber(rtrPort1.getId) match {
             case Some(portNo : Short) => rtrPort1Num = portNo
             case None => fail("Not able to find data port number for Router port 1")
         }
@@ -127,7 +127,7 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
         // set DHCP host
         materializePort(brPort2, host, vm2PortName)
         requestOfType[LocalPortActive](portsProbe)
-        dpController().underlyingActor.vifToLocalPortNumber(brPort2.getId) match {
+        vifToLocalPortNumber(brPort2.getId) match {
             case Some(portNo : Short) => vm2PortNumber = portNo
             case None => fail("Not able to find data port number for bridge port 2")
         }

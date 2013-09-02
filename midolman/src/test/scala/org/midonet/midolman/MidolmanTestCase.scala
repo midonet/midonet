@@ -43,6 +43,8 @@ import org.midonet.midolman.topology.{LocalPortActive, VirtualTopologyActor,
 import org.midonet.cluster.{Client, DataClient}
 import org.midonet.cluster.services.MidostoreSetupService
 import org.midonet.odp._
+import org.midonet.odp.flows.FlowAction
+import org.midonet.odp.flows.{FlowActionOutput, FlowActionSetKey, FlowKeyTunnel}
 import org.midonet.odp.flows.FlowKeyInPort
 import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.odp.protos.MockOvsDatapathConnection
@@ -61,6 +63,7 @@ import org.midonet.midolman.PacketWorkflow.PacketIn
 import org.midonet.midolman.FlowController.WildcardFlowRemoved
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.DeduplicationActor.DiscardPacket
+import org.midonet.midolman.util.TestHelpers
 
 
 object MidolmanTestCaseLock {
@@ -86,6 +89,8 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
     var wflowRemovedProbe: TestProbe = null
     var portsProbe: TestProbe = null
     var discardPacketProbe: TestProbe = null
+
+    val timeout = Duration(3, TimeUnit.SECONDS)
 
     protected def fillConfig(config: HierarchicalConfiguration)
             : HierarchicalConfiguration = {
@@ -293,14 +298,6 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
         result
     }
 
-    protected def getPortNumber(portName: String): Int = {
-        dpController().underlyingActor.ifaceNameToDpPort(portName).getPortNo
-    }
-
-    protected def getPort(portName: String) = {
-        dpController().underlyingActor.ifaceNameToDpPort(portName)
-    }
-
     protected def triggerPacketIn(portName: String, ethPkt: Ethernet) {
         val flowMatch = FlowMatches.fromEthernetPacket(ethPkt)
             .addKey(new FlowKeyInPort().setInPort(getPortNumber(portName)))
@@ -321,6 +318,16 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
     protected def dpController(): TestActorRef[DatapathController] = {
         actorByName(DatapathController.Name)
     }
+
+    def dpState(): DatapathState = dpController().underlyingActor.dpState
+
+    def getPort(portName: String) =
+        dpState.getDpPortForInterface(portName).getOrElse(null)
+
+    def getPortNumber(portName: String): Int = getPort(portName).getPortNo
+
+    def vifToLocalPortNumber(vportId: UUID): Option[Short] =
+        dpState.getDpPortNumberForVport(vportId) map { _.shortValue }
 
     protected def flowController(): TestActorRef[FlowController] = {
         actorByName(FlowController.Name)
@@ -451,6 +458,40 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
         drainProbe(wflowRemovedProbe)
         drainProbe(packetInProbe)
     }
+
+    def greTunnelId = dpController().underlyingActor.dpState.tunnelGre
+        .getOrElse(null).getPortNo.shortValue
+
+    def parseTunnelActions(acts: Seq[FlowAction[_]]):
+            (Seq[FlowActionOutput], Seq[FlowKeyTunnel]) = {
+        val outputs: Seq[FlowActionOutput] = acts
+            .withFilter { _.isInstanceOf[FlowActionOutput] }
+            .map { _.asInstanceOf[FlowActionOutput] }
+
+        val tunnelKeys: Seq[FlowKeyTunnel] = acts
+            .withFilter { _.isInstanceOf[FlowActionSetKey] }
+            .map { _.asInstanceOf[FlowActionSetKey].getFlowKey.asInstanceOf[FlowKeyTunnel] }
+
+        (outputs, tunnelKeys)
+    }
+
+    def tunnelIsLike(srcIp: Int, dstIp: Int, key: Long):
+        FlowKeyTunnel => Boolean = { tunnelInfo =>
+            tunnelInfo.getIpv4SrcAddr() == srcIp &&
+            tunnelInfo.getIpv4DstAddr() == dstIp &&
+            tunnelInfo.getTunnelID() == key
+        }
+
+    def ackWCAdded(
+            isLike: PartialFunction[Any,Boolean] = TestHelpers.matchWCAdded,
+            until: Duration = timeout) =
+        wflowAddedProbe.fishForMessage(until, "WildcardFlowAdded")(isLike)
+
+    def ackWCRemoved(
+            isLike: PartialFunction[Any,Boolean] = TestHelpers.matchWCRemoved,
+            until: Duration = timeout) =
+        wflowRemovedProbe.fishForMessage(until, "WildcardFlowRemoved")(isLike)
+
 }
 
 trait Dilation {

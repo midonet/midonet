@@ -165,7 +165,7 @@ class Coordinator(var origMatch: WildcardMatch,
 
             case None => // Internally-generated packet. Do nothing.
                 pktContext.getFlowRemovedCallbacks foreach { cb => cb.call() }
-                NoOp()
+                NoOp
         }
     }
 
@@ -220,8 +220,8 @@ class Coordinator(var origMatch: WildcardMatch,
                                 case IPFragmentType.None => simRes
                                 case _ =>
                                     log.debug("Handling fragmented packet")
-                                    simRes.recoverWith {
-                                        case e =>Promise.successful(ErrorDrop())
+                                    simRes.recover {
+                                        case e => ErrorDrop
                                     } flatMap {
                                         sr => handleFragmentation(inPortId, sr)
                                     }
@@ -255,7 +255,7 @@ class Coordinator(var origMatch: WildcardMatch,
                                     simRes: Future[SimulationResult])
     : Future[SimulationResult] = simRes map {
 
-        case sr: ErrorDrop => sr
+        case ErrorDrop => ErrorDrop
         case sr if pktContext.wcmatch.highestLayerSeen() < 4 =>
             log.debug("Fragmented packet, L4 fields untouched: execute")
             sr
@@ -451,7 +451,7 @@ class Coordinator(var origMatch: WildcardMatch,
                             AddVirtualWildcardFlow(flow,
                                 pktContext.getFlowRemovedCallbacks,
                                 pktContext.getFlowTags)
-                        case b => NoOp()
+                        case b => NoOp
                     }
 
                 case f: ForkAction =>
@@ -490,7 +490,7 @@ class Coordinator(var origMatch: WildcardMatch,
                     pktContext.getFlowRemovedCallbacks foreach {
                         cb => cb.call()
                     }
-                    NoOp()
+                    NoOp
 
                 case _: ErrorDropAction =>
                     pktContext.traceMessage(null, "Encountered error")
@@ -500,7 +500,7 @@ class Coordinator(var origMatch: WildcardMatch,
                             pktContext.getFlowRemovedCallbacks foreach {
                                 cb => cb.call()
                             }
-                            NoOp()
+                            NoOp
                         case Some(_) =>
                             // Drop the flow temporarily
                             dropFlow(temporary = true)
@@ -516,7 +516,7 @@ class Coordinator(var origMatch: WildcardMatch,
                             pktContext.getFlowRemovedCallbacks foreach {
                                 cb => cb.call()
                             }
-                            NoOp()
+                            NoOp
                         case Some(_) =>
                             var temporary = false
                             temporary = pktContext.isConnTracked()
@@ -533,7 +533,7 @@ class Coordinator(var origMatch: WildcardMatch,
                             pktContext.getFlowRemovedCallbacks foreach {
                                 cb => cb.call()
                             }
-                            NoOp()
+                            NoOp
                         case Some(_) =>
                             val notIPv4Match =
                                 (new WildcardMatch()

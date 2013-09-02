@@ -83,7 +83,7 @@ class FloatingIpTestCase extends VirtualConfigurationBuilders with RouterHelper 
         val portEvent = requestOfType[LocalPortActive](portsProbe)
         portEvent.active should be(true)
         portEvent.portID should be(rtrPort1.getId)
-        dpController().underlyingActor.vifToLocalPortNumber(rtrPort1.getId)
+        vifToLocalPortNumber(rtrPort1.getId)
         match {
             case Some(portNo : Short) => rtrPort1Num = portNo
             case None => fail("Unable to find data port no. for Router port 1")
@@ -120,7 +120,7 @@ class FloatingIpTestCase extends VirtualConfigurationBuilders with RouterHelper 
 
         materializePort(brPort2, host, vm2PortName)
         requestOfType[LocalPortActive](portsProbe)
-        dpController().underlyingActor.vifToLocalPortNumber(brPort2.getId)
+        vifToLocalPortNumber(brPort2.getId)
         match {
             case Some(portNo : Short) => vm2PortNumber = portNo
             case None => fail("Unable to find data port no. for bridge port 2")

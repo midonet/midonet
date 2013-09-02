@@ -16,7 +16,6 @@ import org.scalatest.junit.JUnitRunner
 import org.scalatest.Ignore
 import org.slf4j.LoggerFactory
 
-import org.midonet.midolman.DatapathController.TunnelChangeEvent
 import org.midonet.midolman.DeduplicationActor.HandlePacket
 import org.midonet.midolman.FlowController.{WildcardFlowAdded,
         InvalidateFlowsByTag, WildcardFlowRemoved}
@@ -31,7 +30,7 @@ import org.midonet.packets.{Data, IPv4, Ethernet, IntIPv4, MAC}
 import org.midonet.odp.FlowMatch
 import org.midonet.odp.Packet
 import org.midonet.odp.flows._
-import org.midonet.odp.flows.FlowKeys.{ethernet, inPort, tunnelID}
+import org.midonet.odp.flows.FlowKeys.{ethernet, inPort, tunnel}
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 
 
@@ -45,8 +44,12 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
     var host2: Host = null
     var host3: Host = null
 
+    val ip1 = IntIPv4.fromString("192.168.100.1")
+    val ip2 = IntIPv4.fromString("192.168.125.1")
+    val ip3 = IntIPv4.fromString("192.168.150.1")
+
     var bridge: Bridge = null
-    var tunnelEventsProbe: TestProbe = null
+    var tunnelId = 0
 
     private val log = LoggerFactory.getLogger(
         classOf[FlowManagementForPortSetTestCase])
@@ -60,29 +63,19 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
 
         bridge = newBridge("bridge")
 
-        clusterDataClient().tunnelZonesAddMembership(
-            tunnelZone.getId,
-            new GreTunnelZoneHost(host1.getId)
-                .setIp(IntIPv4.fromString("192.168.100.1")))
-        clusterDataClient().tunnelZonesAddMembership(
-            tunnelZone.getId,
-            new GreTunnelZoneHost(host2.getId)
-                .setIp(IntIPv4.fromString("192.168.125.1")))
-        clusterDataClient().tunnelZonesAddMembership(
-            tunnelZone.getId,
-            new GreTunnelZoneHost(host3.getId)
-                .setIp(IntIPv4.fromString("192.168.150.1")))
-
-        tunnelEventsProbe = newProbe()
-        actors().eventStream.subscribe(tunnelEventsProbe.ref,
-            classOf[TunnelChangeEvent])
+        for ( (host, ip) <- List(host1,host2,host3).zip(List(ip1,ip2,ip3)) ) {
+            val zoneId = tunnelZone.getId
+            val greHost = new GreTunnelZoneHost(host.getId).setIp(ip)
+            clusterDataClient().tunnelZonesAddMembership(zoneId, greHost)
+        }
 
         initializeDatapath() should not be (null)
 
         flowProbe().expectMsgType[DatapathController.DatapathReady].datapath should not be (null)
+
+        tunnelId = dpState.tunnelGre.get.getPortNo
     }
 
-    @Ignore
     def testInstallFlowForPortSet() {
 
         val port1OnHost1 = newExteriorBridgePort(bridge)
@@ -109,13 +102,8 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
         materializePort(portOnHost2, host2, "port2")
         materializePort(portOnHost3, host3, "port3")
 
-
         clusterDataClient().portSetsAddHost(bridge.getId, host2.getId)
         clusterDataClient().portSetsAddHost(bridge.getId, host3.getId)
-
-        val tunnelId1 = tunnelEventsProbe.expectMsgClass(classOf[TunnelChangeEvent]).portOption.get
-        val tunnelId2 = tunnelEventsProbe.expectMsgClass(classOf[TunnelChangeEvent]).portOption.get
-
 
         // flows installed for tunnel key = port when the port becomes active.
         // There are three ports on this host.
@@ -129,12 +117,10 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
         portsProbe.expectMsgClass(classOf[LocalPortActive])
         portsProbe.expectMsgClass(classOf[LocalPortActive])
 
-        val localPortNumber1 = dpController().underlyingActor
-            .ifaceNameToDpPort("port1a").getPortNo
-        val localPortNumber2 = dpController().underlyingActor
-            .ifaceNameToDpPort("port1b").getPortNo
-        val localPortNumber3 = dpController().underlyingActor
-            .ifaceNameToDpPort("port1c").getPortNo
+        val localPortNumber1 = getPortNumber("port1a")
+        val localPortNumber2 = getPortNumber("port1b")
+        val localPortNumber3 = getPortNumber("port1c")
+
         val wildcardFlow = WildcardFlow(
             wcmatch = new WildcardMatch().setInputPortUUID(port1OnHost1.getId)
                                           .setEthernetSource(srcMAC),
@@ -146,28 +132,33 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
         val addFlowMsg = fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
 
         addFlowMsg should not be null
-        addFlowMsg.f should equal (wildcardFlow)
+        //addFlowMsg.f should equal (wildcardFlow)
         addFlowMsg.f.getMatch.getInputPortUUID should be(null)
         addFlowMsg.f.getMatch.getInputPortNumber should be(localPortNumber1)
 
         val flowActs = addFlowMsg.f.getActions.toList
 
         flowActs should not be (null)
-        // The ingress port should not be in the expanded port set
-        flowActs should have size (4)
 
-        // Compare FlowKeyTunnelID against bridge.getTunnelKey
-        val setKeyAction = as[FlowActionSetKey](flowActs.get(flowActs.length - 3))
-        as[FlowKeyTunnelID](setKeyAction.getFlowKey).getTunnelID should be(bridge.getTunnelKey)
+        val tunKey = bridge.getTunnelKey
+        val (outputs, tunInf) = parseTunnelActions(flowActs)
 
-        // TODO: Why does the "should contain" syntax fail here?
-        assert(flowActs.contains(FlowActions.output(tunnelId1)))
-        assert(flowActs.contains(FlowActions.output(tunnelId2)))
-        assert(!flowActs.contains(FlowActions.output(localPortNumber2)))
-        assert(flowActs.contains(FlowActions.output(localPortNumber3)))
+        outputs should have size(3)
+        outputs.contains(
+            FlowActions.output(tunnelId)) should be (true)
+        outputs.contains(
+            FlowActions.output(localPortNumber3)) should be (true)
+        outputs.contains(
+            FlowActions.output(localPortNumber2)) should not be (true)
+
+        tunInf should have size(2)
+        tunInf.find(tunnelIsLike(
+            ip1.addressAsInt, ip2.addressAsInt, tunKey)) should not be None
+        tunInf.find(tunnelIsLike(
+            ip1.addressAsInt, ip3.addressAsInt, tunKey)) should not be None
+
     }
 
-    @Ignore
     def testInstallFlowForPortSetFromTunnel() {
         log.debug("Starting testInstallFlowForPortSetFromTunnel")
 
@@ -200,10 +191,6 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
         clusterDataClient().portSetsAddHost(bridge.getId, host2.getId)
         clusterDataClient().portSetsAddHost(bridge.getId, host3.getId)
 
-        val tunnelId1 = tunnelEventsProbe.expectMsgClass(classOf[TunnelChangeEvent]).portOption.get
-        val tunnelId2 = tunnelEventsProbe.expectMsgClass(classOf[TunnelChangeEvent]).portOption.get
-
-
         // flows installed for tunnel key = port when the port becomes active.
         // There are three ports on this host.
         fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
@@ -216,22 +203,21 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
         portsProbe.expectMsgClass(classOf[LocalPortActive])
         portsProbe.expectMsgClass(classOf[LocalPortActive])
 
-        val localPortNumber1 = dpController().underlyingActor
-            .ifaceNameToDpPort("port1a").getPortNo
-        val localPortNumber2 = dpController().underlyingActor
-            .ifaceNameToDpPort("port1b").getPortNo
-        val localPortNumber3 = dpController().underlyingActor
-            .ifaceNameToDpPort("port1c").getPortNo
-        val dpMatch = new FlowMatch().
-                addKey(ethernet(srcMAC.getAddress, dstMAC.getAddress)).
-                addKey(inPort(tunnelId1)).
-                addKey(tunnelID(bridge.getTunnelKey))
+        val localPortNumber1 = getPortNumber("port1a")
+        val localPortNumber2 = getPortNumber("port1b")
+        val localPortNumber3 = getPortNumber("port1c")
+
+        val dpMatch = new FlowMatch()
+                .addKey(ethernet(srcMAC.getAddress, dstMAC.getAddress))
+                .addKey(inPort(tunnelId))
+                .addKey(tunnel(bridge.getTunnelKey, 42, 142))
 
         val eth = new Ethernet().
                 setSourceMACAddress(srcMAC).
                 setDestinationMACAddress(dstMAC).
                 setEtherType(IPv4.ETHERTYPE)
         eth.setPayload(new IPv4().setPayload(new Data("Payload".getBytes)))
+
         val packet = new Packet().setMatch(dpMatch).setPacket(eth)
         dedupProbe().testActor.tell(HandlePacket(packet))
 
@@ -239,18 +225,19 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
 
         addFlowMsg should not be null
         addFlowMsg.f.getMatch.getInputPortUUID should be (null)
-        addFlowMsg.f.getMatch.getInputPortNumber should be (tunnelId1)
+        addFlowMsg.f.getMatch.getInputPortNumber should be (tunnelId)
 
         val flowActs = addFlowMsg.f.getActions.toList
 
-        flowActs should not be (null)
         // Should output to local ports 1 and 3 only.
+        flowActs should not be (null)
         flowActs should have size (2)
-
-        // TODO: Why does the "should contain" syntax fail here?
-        assert(flowActs.contains(FlowActions.output(localPortNumber1)))
-        assert(!flowActs.contains(FlowActions.output(localPortNumber2)))
-        assert(flowActs.contains(FlowActions.output(localPortNumber3)))
+        flowActs.contains(
+            FlowActions.output(localPortNumber1)) should be (true)
+        flowActs.contains(
+            FlowActions.output(localPortNumber2)) should not be (true)
+        flowActs.contains(
+            FlowActions.output(localPortNumber3)) should be (true)
     }
 
     def testInvalidationHostRemovedFromPortSet() {
@@ -395,8 +382,7 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
         materializePort(port2OnHost1, host1, "port1b")
         portsProbe.expectMsgClass(classOf[LocalPortActive])
         var numPort2OnHost1: Short = 0
-        dpController().underlyingActor.vifToLocalPortNumber(
-                port2OnHost1.getId) match {
+        vifToLocalPortNumber(port2OnHost1.getId) match {
             case Some(portNo : Short) => numPort2OnHost1 = portNo
             case None =>
                 fail("Short data port number for port2OnHost1 not found.")
