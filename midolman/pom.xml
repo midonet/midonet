@@ -240,12 +240,11 @@
                 <groupId>org.vafer</groupId>
                 <artifactId>jdeb</artifactId>
                 <configuration>
-                    <deb>${project.build.directory}/${project.artifactId}_${project.version}-${maven.build.timestamp}.deb</deb>
+                    <timestamped>true</timestamped>
+                    <deb>[[buildDir]]/midolman_[[version]].[[extension]]</deb>
                     <dataSet>
                         <data>
-                            <src>
-                                ${project.build.directory}/${project.build.finalName}.jar
-                            </src>
+                            <src>${project.build.directory}/${project.build.finalName}.jar</src>
                             <type>file</type>
                             <mapper>
                                 <type>perm</type>
