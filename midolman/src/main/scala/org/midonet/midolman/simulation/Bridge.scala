@@ -175,7 +175,7 @@ class Bridge(val id: UUID, val tunnelKey: Long,
                 log.debug("Packet intended for interior port.")
                 packetContext.addFlowTag(
                     FlowTagger.invalidateFlowsByLogicalPort(id, logicalPort))
-                unicastAction(logicalPort)
+                Promise.successful(unicastAction(logicalPort))
             case None => // not a logical port, is the dstMac learned?
                 val vlanId = srcVlanTag(packetContext)
                 val port = getPortOfMac(dlDst, vlanId, packetContext.expiry, ec)
@@ -191,7 +191,7 @@ class Bridge(val id: UUID, val tunnelKey: Long,
                         packetContext.addFlowTag(
                             FlowTagger.invalidateFlowsByPort(id, dlSrc,
                                 vlanId, packetContext.getInPortId))
-                        unicastAction(portId)
+                        Promise.successful(unicastAction(portId))
                     case None =>
                         log.debug("Dst MAC {}, VLAN ID {} is not learned:" +
                             " Flood", dlDst, vlanId)
@@ -225,13 +225,13 @@ class Bridge(val id: UUID, val tunnelKey: Long,
       * just delegate on this method to create the right action.
       */
     private def unicastAction(toPort: UUID)(implicit pktCtx: PacketContext):
-        Future[Coordinator.Action] = {
+        Coordinator.Action = {
 
         val inPortVlan = vlanToPort.getVlan(pktCtx.getInPortId)
         if (inPortVlan != null) {
             log.debug("InPort has vlan {}, PUSH & fwd to trunks", inPortVlan)
             pktCtx.wcmatch.addVlanId(inPortVlan)
-            return Promise.successful(ToPortAction(toPort))
+            ToPortAction(toPort)
         }
 
         val vlanInFrame: Option[JShort]= pktCtx.getFrame.getVlanIDs match {
@@ -241,19 +241,19 @@ class Bridge(val id: UUID, val tunnelKey: Long,
 
         vlanToPort.getVlan(toPort) match {
             case null => // the outbound port has no vlan assigned
-                Promise.successful(ToPortAction(toPort))
+                ToPortAction(toPort)
             case vlanId if vlanInFrame == None =>
                 log.warning("Out port has vlan {}, but frame did not" +
                     "have any, DROP", vlanId)
-                Promise.successful(DropAction)
+                DropAction
             case vlanId if vlanInFrame.get == vlanId =>
                 log.debug("OutPort has vlan {}, POP & forward", vlanId)
                 pktCtx.wcmatch.removeVlanId(vlanId)
-                Promise.successful(ToPortAction(toPort))
+                ToPortAction(toPort)
             case vlanId =>
                 log.warning("OutPort has vlan {} but frame has {}, " +
                             "DROP", vlanInFrame.get)
-                Promise.successful(DropAction)
+                DropAction
         }
     }
 
@@ -274,33 +274,31 @@ class Bridge(val id: UUID, val tunnelKey: Long,
       *     port has one assigned, and send to the PortSet.
       */
     private def multicastAction()(implicit pktCtx: PacketContext):
-        Future[Coordinator.Action] = {
+            Future[Coordinator.Action] =
         vlanPortId match {
             case Some(vPId) if (!pktCtx.getInPortId.equals(vPId)) =>
                 // This VUB is connected to a VAB: send there too
                 log.debug("Add vlan-aware bridge to port set")
-                Promise.successful(ForkAction(List(
-                        Promise.successful(ToPortSetAction(id)),
-                        Promise.successful(ToPortAction(vPId)))))
+                Promise.successful(
+                    ForkAction(List(ToPortSetAction(id), ToPortAction(vPId))))
             case None if (!vlanToPort.isEmpty) =>
                 log.debug("Vlan-aware ToPortSet")
-                multicastVlanAware()
+                getPort(pktCtx.getInPortId, pktCtx.getExpiry)
+                    .map { multicastVlanAware(_)(pktCtx) }
             case _ =>
                 // normal bridge
                 log.debug("Normal ToPortSet")
                 Promise.successful(ToPortSetAction(id))
         }
-    }
 
     /**
       * Possible cases of an L2 multicast happening on a vlan-aware bridge.
       *
       * Refer to multicastAction for details.
       */
-    private def multicastVlanAware()(implicit pktCtx: PacketContext):
-        Future[Coordinator.Action] = {
-
-        getPort(pktCtx.getInPortId, pktCtx.getExpiry) flatMap {
+    private def multicastVlanAware(bp: BridgePort[_])(
+            implicit pktCtx: PacketContext): Coordinator.Action =
+        bp match {
             case p: ExteriorBridgePort =>
                 // multicast from trunk, goes only to designated log. port
                 val vlanIds = pktCtx.getFrame.getVlanIDs
@@ -308,45 +306,38 @@ class Bridge(val id: UUID, val tunnelKey: Long,
                 vlanToPort.getPort(vlanId) match {
                     case null =>
                         log.debug("Frame to port set")
-                        Promise.successful(new ToPortSetAction(id))
+                        ToPortSetAction(id)
                     case vlanPort =>
                         log.info("Frame from trunk on vlan {}, send to other " +
                             "trunks, POP, send to port {}", vlanId, vlanPort)
-                        Promise.successful(ForkAction(List(
-                            Promise.successful(new ToPortSetAction(id)),
-                            Promise.successful(new DoFlowAction(new FlowActionPopVLAN)),
-                            Promise.successful(new ToPortAction(vlanPort)))
-                        ))
+                        ForkAction(List(
+                            ToPortSetAction(id),
+                            DoFlowAction(new FlowActionPopVLAN),
+                            ToPortAction(vlanPort))
+                        )
                 }
             case p: InteriorBridgePort =>
                 vlanToPort.getVlan(pktCtx.getInPortId) match {
                     case vlanId: JShort =>
                         log.debug("Frame from log. br. port: PUSH {}", vlanId)
                         pktCtx.wcmatch.addVlanId(vlanId)
-                        Promise.successful(ToPortSetAction(id))
                     case _ =>
                         log.debug("Send to port set")
-                        Promise.successful(ToPortSetAction(id))
                 }
+                ToPortSetAction(id)
             case _ =>
                 log.warning("Unexpected InPort type!")
-                Promise.successful(ErrorDropAction)
+                ErrorDropAction
         }
-    }
 
     /**
       * Retrieves a BridgePort
       */
-    private def getPort(portId: UUID, expiry: Long)
-                         (implicit actorSystem: ActorSystem,
-                          pktContext: PacketContext): Future[BridgePort[_]] = {
+    private def getPort(portId: UUID, expiry: Long)(
+            implicit actorSystem: ActorSystem,
+            pktCtx: PacketContext): Future[BridgePort[_]] =
         expiringAsk(PortRequest(portId, update = false), expiry)
-            .mapTo[BridgePort[_]] map {
-            case null => log.warning("Can't find port: {}", portId)
-                         null
-            case p => p
-        }
-    }
+            .mapTo[BridgePort[_]]
 
     /**
       * Used by normalProcess to handle specifically ARP multicast
@@ -360,7 +351,7 @@ class Bridge(val id: UUID, val tunnelKey: Long,
             // Forward broadcast ARPs to their devices if we know how.
             log.debug("The packet is intended for an interior port.")
             val portID = macToLogicalPortId.get(ipToMac.get(nwDst).get).get
-            unicastAction(portID) // TODO (galo) read comments inside
+            Promise.successful(unicastAction(portID)) // TODO (galo) read comments inside
         } else {
             // If it's an ARP request, can we answer from the Bridge's IpMacMap?
             var mac: Future[MAC]= null
@@ -414,22 +405,22 @@ class Bridge(val id: UUID, val tunnelKey: Long,
 
         // Otherwise, apply egress (post-bridging) chain
         act match {
-            case a: Coordinator.ToPortAction =>
-                log.debug("To port: {}", a.outPort)
-                packetContext.setOutputPort(a.outPort)
-            case a: Coordinator.ToPortSetAction =>
-                log.debug("To port set: {}", a.portSetID)
-                packetContext.setOutputPort(a.portSetID)
-            case a: ForkAction =>
+            case ToPortAction(port) =>
+                log.debug("To port: {}", port)
+                packetContext.setOutputPort(port)
+            case ToPortSetAction(portSet) =>
+                log.debug("To port set: {}", portSet)
+                packetContext.setOutputPort(portSet)
+            case ForkAction(acts) =>
                 log.debug("Fork, to port and port set")
                 // TODO (galo) check that we only want to apply to the first
                 // action
-                a.actions.head map { case c => c match {
-                        case b: Coordinator.ToPortAction =>
-                            packetContext.setOutputPort(b.outPort)
-                        case b: Coordinator.ToPortSetAction =>
-                            packetContext.setOutputPort(b.portSetID)
-                    }}
+                acts.head match {
+                    case ToPortAction(port) =>
+                        packetContext.setOutputPort(port)
+                    case ToPortSetAction(portSet) =>
+                        packetContext.setOutputPort(portSet)
+                }
             case a =>
                 log.error("Unhandled Coordinator.ForwardAction {}", a)
         }

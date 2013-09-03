@@ -1,13 +1,15 @@
 package org.midonet.midolman
 
+import java.nio.ByteBuffer
+
+import org.apache.commons.configuration.HierarchicalConfiguration
+import org.junit.Test
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-import org.apache.commons.configuration.HierarchicalConfiguration
+
 import org.midonet.cluster.data.Bridge
-import org.junit.Test
-import org.midonet.packets.{Packets, IPv4Addr}
-import java.nio.ByteBuffer
 import org.midonet.odp.flows.FlowActionOutput
+import org.midonet.packets.{Packets, IPv4Addr}
 
 @RunWith(classOf[JUnitRunner])
 class VlanAwareSimulationWithBridgeTest extends MidolmanTestCase
@@ -52,7 +54,6 @@ class VlanAwareSimulationWithBridgeTest extends MidolmanTestCase
      * with a vlan-id that the bridge will not recognize. It should just send
      * the frame to the other trunks (in this scenario, one).
      */
-
     @Test
     def testFrameFromTrunkWithUnknownVlanId() {
         feedBridgeArpCaches()
