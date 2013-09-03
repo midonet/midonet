@@ -4,17 +4,16 @@
 
 package org.midonet.midolman.simulation
 
-import java.util.UUID
-import java.lang.{Short => JShort}
-import akka.dispatch.{ExecutionContext, Promise, Future}
-import org.midonet.midolman.simulation.Coordinator._
-import org.midonet.cluster.client.VlanPortMap
-import org.midonet.midolman.topology.FlowTagger
-import akka.actor.ActorSystem
-import org.midonet.midolman.logging.LoggerFactory
-import org.midonet.midolman.simulation.Coordinator.DropAction
-import org.midonet.midolman.simulation.Coordinator.ToPortAction
 import collection.immutable
+import java.lang.{Short => JShort}
+import java.util.UUID
+
+import akka.actor.ActorSystem
+import akka.dispatch.{ExecutionContext, Promise, Future}
+
+import org.midonet.cluster.client.VlanPortMap
+import org.midonet.midolman.logging.LoggerFactory
+import org.midonet.midolman.topology.FlowTagger
 import org.midonet.packets.MAC
 
 /**
@@ -31,7 +30,9 @@ class VlanAwareBridge(val id: UUID,
                       val tunnelKey: Long,
                       val vlanPortMap: VlanPortMap,
                       val trunkPorts: immutable.Set[UUID])
-                     (implicit val actorSystem: ActorSystem) extends Device {
+                     (implicit val actorSystem: ActorSystem) extends Coordinator.Device {
+
+    import Coordinator._
 
     var log = LoggerFactory
         .getSimulationAwareLog(this.getClass)(actorSystem.eventStream)
@@ -69,7 +70,7 @@ class VlanAwareBridge(val id: UUID,
             case _ =>
                 log.debug("Frame from port {} without vlan id, DROP",
                           pktCtx.getInPortId)
-                Promise.successful(DropAction())
+                Promise.successful(DropAction)
         }
     }
 
@@ -101,7 +102,7 @@ class VlanAwareBridge(val id: UUID,
                     Promise.successful(ToPortAction(outPortId))
                 case _ =>
                     log.debug("Frame with unknown Vlan Id, discard")
-                    Promise.successful(DropAction())
+                    Promise.successful(DropAction)
             }
         }
     }

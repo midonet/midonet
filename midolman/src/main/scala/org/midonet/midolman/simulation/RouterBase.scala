@@ -3,23 +3,21 @@
  */
 package org.midonet.midolman.simulation
 
-import akka.dispatch.{Promise, Future, ExecutionContext}
-import akka.actor.{ActorContext, ActorSystem}
 import java.util.UUID
 
-import org.midonet.midolman.rules.RuleResult.{Action => RuleAction}
-import org.midonet.midolman.topology.VirtualTopologyActor.expiringAsk
-import org.midonet.midolman.simulation.Coordinator._
-import org.midonet.midolman.topology.{FlowTagger, RoutingTableWrapper, TagManager, RouterConfig}
-import org.midonet.packets.{MAC, Unsigned, Ethernet, IPAddr}
-import org.midonet.midolman.logging.{LoggerFactory, SimulationAwareBusLogging}
+import akka.dispatch.{Promise, Future, ExecutionContext}
+import akka.actor.{ActorContext, ActorSystem}
+
 import org.midonet.cluster.client.RouterPort
 import org.midonet.midolman.layer3.Route
-import org.midonet.sdn.flows.WildcardMatch
-import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
-import org.midonet.midolman.simulation.Coordinator.DropAction
+import org.midonet.midolman.logging.{LoggerFactory, SimulationAwareBusLogging}
+import org.midonet.midolman.rules.RuleResult.{Action => RuleAction}
 import org.midonet.midolman.topology.RouterConfig
-import org.midonet.midolman.simulation.Coordinator.ErrorDropAction
+import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
+import org.midonet.midolman.topology.VirtualTopologyActor.expiringAsk
+import org.midonet.midolman.topology.{FlowTagger, RoutingTableWrapper, TagManager, RouterConfig}
+import org.midonet.packets.{MAC, Unsigned, Ethernet, IPAddr}
+import org.midonet.sdn.flows.WildcardMatch
 
 /**
  * Defines the base Router device that is meant to be extended with specific
@@ -27,7 +25,10 @@ import org.midonet.midolman.simulation.Coordinator.ErrorDropAction
  * such as ARP vs. NDP.
  */
 abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
-    extends Device {
+    extends Coordinator.Device {
+
+    import Coordinator._
+
     val id: UUID
     val cfg: RouterConfig
     val rTable: RoutingTableWrapper[IP]
@@ -67,7 +68,7 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
         getRouterPort(pktContext.getInPortId, pktContext.getExpiry) flatMap {
             case null => log.debug("Router - in port {} was null",
                 pktContext.getInPortId())
-            Promise.successful(new DropAction)(ec)
+            Promise.successful(DropAction)(ec)
             case inPort => preRouting(inPort)
         }
     }
@@ -83,19 +84,19 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
                 pktContext.wcmatch, id, false)
 
         if (preRoutingResult.action == RuleAction.DROP) {
-            Some(new DropAction)
+            Some(DropAction)
         } else if (preRoutingResult.action == RuleAction.REJECT) {
             sendIcmpUnreachableProhibError(inPort, pktContext.wcmatch,
                 pktContext.getFrame)
-            Some(new DropAction)
+            Some(DropAction)
         } else if (preRoutingResult.action != RuleAction.ACCEPT) {
             log.error("Pre-routing for {} returned an action which was {}, " +
                 "not ACCEPT, DROP, or REJECT.", id, preRoutingResult.action)
-            Some(new ErrorDropAction)
+            Some(ErrorDropAction)
         }
         if (preRoutingResult.pmatch ne pktContext.wcmatch) {
             log.error("Pre-routing for {} returned a different match obj.", id)
-            Some(new ErrorDropAction)
+            Some(ErrorDropAction)
         }
         None
     }
@@ -115,7 +116,7 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
         if (hwDst != inPort.portMac) { // Not addressed to us, log.warn and drop
             log.warning("{} neither broadcast nor inPort's MAC ({})", hwDst,
                 inPort.portMac)
-            return Promise.successful(new DropAction)(ec)
+            return Promise.successful(DropAction)(ec)
         }
 
         pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(id))
@@ -147,7 +148,7 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
             val ttl = Unsigned.unsign(pMatch.getNetworkTTL)
             if (ttl <= 1) {
                 sendIcmpTimeExceededError(inPort, pMatch, pFrame)
-                Promise.successful(new DropAction)(ec)
+                Promise.successful(DropAction)(ec)
             } else {
                 pMatch.setNetworkTTL((ttl - 1).toByte)
             }
@@ -168,7 +169,7 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
             log.debug("Route lookup: No route to network (dst:{}), {}",
                 dstIP, rTable.rTable)
             sendIcmpUnreachableNetError(inPort, pMatch, pFrame)
-            return Promise.successful(new DropAction)(ec)
+            return Promise.successful(DropAction)(ec)
         }
 
         // tag using this route
@@ -179,32 +180,32 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
                 if (isIcmpEchoRequest(pMatch)) {
                     log.debug("got ICMP echo")
                     sendIcmpEchoReply(pMatch, pFrame, pktContext.getExpiry)
-                    Promise.successful(new ConsumedAction)(ec)
+                    Promise.successful(ConsumedAction)(ec)
                 } else {
-                    Promise.successful(new DropAction)(ec)
+                    Promise.successful(DropAction)(ec)
                 }
 
             case Route.NextHop.BLACKHOLE =>
                 log.debug("Dropping packet, BLACKHOLE route (dst:{})",
                     pMatch.getNetworkDestinationIP)
-                Promise.successful(new DropAction)(ec)
+                Promise.successful(DropAction)(ec)
 
             case Route.NextHop.REJECT =>
                 sendIcmpUnreachableProhibError(inPort, pMatch, pFrame)
                 log.debug("Dropping packet, REJECT route (dst:{})",
                     pMatch.getNetworkDestinationIP)
-                Promise.successful(new DropAction)(ec)
+                Promise.successful(DropAction)(ec)
 
             case Route.NextHop.PORT =>
                 if (rt.nextHopPort == null) {
                     log.error("Routing table lookup for {} forwarded to port " +
                         "null.", dstIP)
                     // TODO(pino): should we remove this route?
-                    Promise.successful(new DropAction)(ec)
+                    Promise.successful(DropAction)(ec)
                 } else {
                     getRouterPort(rt.nextHopPort, pktContext.getExpiry) flatMap {
                         case null =>
-                            Promise.successful(new ErrorDropAction)(ec)
+                            Promise.successful(ErrorDropAction)(ec)
                         case outPort =>
                             postRouting(inPort, outPort, rt, pktContext)
                     }
@@ -218,7 +219,7 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
                 // 'sane'. If such routes were created, this flow will be
                 // invalidated. Thus, we can return DropAction and not
                 // ErrorDropAction
-                Promise.successful(new DropAction)(ec)
+                Promise.successful(DropAction)(ec)
         }
 
     }
@@ -240,25 +241,25 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
 
         if (postRoutingResult.action == RuleAction.DROP) {
             log.debug("PostRouting DROP rule")
-            return Promise.successful(new DropAction)
+            return Promise.successful(DropAction)
         } else if (postRoutingResult.action == RuleAction.REJECT) {
             log.debug("PostRouting REJECT rule")
             sendIcmpUnreachableProhibError(inPort, pMatch, pFrame)
-            return Promise.successful(new DropAction)
+            return Promise.successful(DropAction)
         } else if (postRoutingResult.action != RuleAction.ACCEPT) {
             log.error("Post-routing for {} returned an action which was {}, " +
                 "not ACCEPT, DROP, or REJECT.", id, postRoutingResult.action)
-            return Promise.successful(new ErrorDropAction)
+            return Promise.successful(ErrorDropAction)
         }
 
         if (postRoutingResult.pmatch ne pMatch) {
             log.error("Post-routing for {} returned a different match obj.", id)
-            return Promise.successful(new ErrorDropAction)(ec)
+            return Promise.successful(ErrorDropAction)(ec)
         }
 
         if (pMatch.getNetworkDestinationIP == outPort.portAddr.getAddress) {
             log.error("Got a packet addressed to a port without a LOCAL route")
-            return Promise.successful(new DropAction)(ec)
+            return Promise.successful(DropAction)(ec)
         }
 
         // Set HWSrc
@@ -278,7 +279,7 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
                     log.debug("icmp net unreachable, gw mac unknown")
                     sendIcmpUnreachableNetError(inPort, pMatch, pFrame)
                 }
-                new ErrorDropAction: Action
+                ErrorDropAction
             case nextHopMac =>
                 log.debug("routing packet to {}", nextHopMac)
                 pMatch.setEthernetDestination(nextHopMac)

@@ -20,9 +20,6 @@ import org.midonet.packets.ICMP.{EXCEEDED_CODE, UNREACH_CODE}
 import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.packets._
 import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
-import org.midonet.midolman.simulation.Coordinator.ConsumedAction
-import org.midonet.midolman.simulation.Coordinator.DropAction
-import org.midonet.midolman.simulation.Coordinator.NotIPv4Action
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.topology.RouterConfig
 
@@ -38,7 +35,7 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
 
     override val validEthertypes: Set[Short]= Set(IPv4.ETHERTYPE, ARP.ETHERTYPE)
 
-    override def unsupportedPacketAction = new NotIPv4Action()
+    override def unsupportedPacketAction = NotIPv4Action
 
     private def processArp(pkt: IPacket, inPort: RouterPort[_])
                           (implicit ec: ExecutionContext,
@@ -49,16 +46,16 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
             arp.getOpCode match {
                 case ARP.OP_REQUEST =>
                     processArpRequest(arp, inPort)
-                    new ConsumedAction
+                    ConsumedAction
                 case ARP.OP_REPLY =>
                     processArpReply(arp, inPort)
-                    new ConsumedAction
+                    ConsumedAction
                 case _ =>
-                    new DropAction
+                    DropAction
             }
         case badType =>
             log.warning("Non-ARP packet with ethertype ARP: {}", badType)(null)
-            new DropAction
+            DropAction
     }
 
     override protected def handleL2Broadcast(inPort: RouterPort[_])
@@ -71,7 +68,7 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
         if (pktContext.wcmatch.getEtherType == ARP.ETHERTYPE)
             Promise.successful(processArp(payload, inPort))(ec)
         else
-            Promise.successful(new DropAction)(ec)
+            Promise.successful(DropAction)(ec)
     }
 
     override def handleNeighbouring(inPort: RouterPort[_])
