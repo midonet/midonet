@@ -3,34 +3,29 @@
  */
 package org.midonet.midolman.simulation
 
+import java.lang.{Short => JShort}
+import java.util.UUID
+import scala.collection.{Map => ROMap}
+
 import akka.actor.ActorSystem
 import akka.dispatch.{ExecutionContext, Future, Promise}
-import scala.collection.{Map => ROMap}
-import java.util.UUID
 
+import org.midonet.cluster.client.BridgePort
 import org.midonet.cluster.client._
 import org.midonet.cluster.data
+import org.midonet.midolman.DeduplicationActor
+import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.logging.LoggerFactory
 import org.midonet.midolman.rules.RuleResult.Action
-import org.midonet.midolman.simulation.Coordinator._
-import org.midonet.midolman.topology.{FlowTagger,
-    MacFlowCount, RemoveFlowCallbackGenerator}
+import org.midonet.midolman.simulation.Coordinator
+import org.midonet.midolman.topology.FlowTagger
+import org.midonet.midolman.topology.MacFlowCount
+import org.midonet.midolman.topology.RemoveFlowCallbackGenerator
+import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 import org.midonet.midolman.topology.VirtualTopologyActor._
+import org.midonet.odp.flows.FlowActionPopVLAN
 import org.midonet.packets._
 import org.midonet.util.functors.Callback1
-import org.midonet.midolman.DeduplicationActor
-import java.lang.{Short => JShort}
-import org.midonet.cluster.client.BridgePort
-import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
-import org.midonet.midolman.simulation.Coordinator.ConsumedAction
-import org.midonet.midolman.simulation.Coordinator.ToPortSetAction
-import scala.Some
-import org.midonet.midolman.simulation.Coordinator.DropAction
-import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
-import org.midonet.midolman.simulation.Coordinator.ForkAction
-import org.midonet.midolman.simulation.Coordinator.ToPortAction
-import org.midonet.midolman.simulation.Coordinator.ErrorDropAction
-import org.midonet.odp.flows.FlowActionPopVLAN
 
 
 /**
@@ -80,7 +75,9 @@ class Bridge(val id: UUID, val tunnelKey: Long,
              val macToLogicalPortId: ROMap[MAC, UUID],
              val ipToMac: ROMap[IPAddr, MAC],
              val vlanToPort: VlanPortMap)
-            (implicit val actorSystem: ActorSystem) extends Device {
+            (implicit val actorSystem: ActorSystem) extends Coordinator.Device {
+
+    import Coordinator._
 
     var log = LoggerFactory.getSimulationAwareLog(this.getClass)(actorSystem.eventStream)
 
@@ -104,7 +101,7 @@ class Bridge(val id: UUID, val tunnelKey: Long,
         // Some basic sanity checks
         if (Ethernet.isMcast(packetContext.wcmatch.getEthernetSource)) {
             log.info("Packet has multi/broadcast source, DROP")
-            Promise.successful(DropAction())
+            Promise.successful(DropAction)
         } else
             normalProcess(packetContext)
     }
@@ -133,17 +130,17 @@ class Bridge(val id: UUID, val tunnelKey: Long,
             updateFlowCount(srcDlAddress, packetContext)
             // No point in tagging by dst-MAC+Port because the outPort was
             // not used in deciding to drop the flow.
-            return Promise.successful(DropAction())
+            return Promise.successful(DropAction)
         } else if (preBridgeResult.action != Action.ACCEPT) {
             log.error("Pre-bridging for {} returned an action which was {}, " +
                       "not ACCEPT, DROP, or REJECT.", id,
                       preBridgeResult.action)
-            return Promise.successful(ErrorDropAction())
+            return Promise.successful(ErrorDropAction)
         }
         if (preBridgeResult.pmatch ne packetContext.wcmatch) {
             log.error("Pre-bridging for {} returned a different match object",
                       id)
-            return Promise.successful(ErrorDropAction())
+            return Promise.successful(ErrorDropAction)
         }
 
         // Learn the entry
@@ -248,7 +245,7 @@ class Bridge(val id: UUID, val tunnelKey: Long,
             case vlanId if vlanInFrame == None =>
                 log.warning("Out port has vlan {}, but frame did not" +
                     "have any, DROP", vlanId)
-                Promise.successful(new DropAction())
+                Promise.successful(DropAction)
             case vlanId if vlanInFrame.get == vlanId =>
                 log.debug("OutPort has vlan {}, POP & forward", vlanId)
                 pktCtx.wcmatch.removeVlanId(vlanId)
@@ -256,7 +253,7 @@ class Bridge(val id: UUID, val tunnelKey: Long,
             case vlanId =>
                 log.warning("OutPort has vlan {} but frame has {}, " +
                             "DROP", vlanInFrame.get)
-                Promise.successful(new DropAction())
+                Promise.successful(DropAction)
         }
     }
 
@@ -333,7 +330,7 @@ class Bridge(val id: UUID, val tunnelKey: Long,
                 }
             case _ =>
                 log.warning("Unexpected InPort type!")
-                Promise.successful(ErrorDropAction())
+                Promise.successful(ErrorDropAction)
         }
     }
 
@@ -388,7 +385,7 @@ class Bridge(val id: UUID, val tunnelKey: Long,
                     processArpRequest(
                         pktContext.getFrame.getPayload.asInstanceOf[ARP], m,
                         pktContext.getInPortId)
-                    Promise.successful(new ConsumedAction)
+                    Promise.successful(ConsumedAction)
             }
         }
     }
@@ -442,14 +439,14 @@ class Bridge(val id: UUID, val tunnelKey: Long,
         if (postBridgeResult.action == Action.DROP ||
                 postBridgeResult.action == Action.REJECT) {
             log.debug("Dropping the packet due to egress filter.")
-            DropAction()
+            DropAction
         } else if (postBridgeResult.action != Action.ACCEPT) {
             log.error("Post-bridging for {} returned an action which was {}, " +
                       "not ACCEPT, DROP, or REJECT.", id,
                       postBridgeResult.action)
             // TODO(pino): decrement the mac-port reference count?
             // TODO(pino): remove the flow tag?
-            ErrorDropAction()
+            ErrorDropAction
         } else {
             log.debug("Forwarding the packet with action {}", act)
             // Note that the filter is not permitted to change the output port.

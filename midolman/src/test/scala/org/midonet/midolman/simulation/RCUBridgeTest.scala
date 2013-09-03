@@ -211,7 +211,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
         ingressMatch should be === origMatch
 
         val result = Await.result(future, 1 second)
-        assert(result.isInstanceOf[Coordinator.DropAction])
+        assert(result == Coordinator.DropAction)
     }
 }
 

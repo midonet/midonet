@@ -5,6 +5,7 @@ package org.midonet.midolman.simulation
 import collection.{immutable, mutable}
 import collection.JavaConversions._
 import java.util.UUID
+import java.lang.{Short => JShort}
 
 import akka.actor.{ActorContext, ActorSystem}
 import akka.dispatch.{ExecutionContext, Future, Promise}
@@ -12,49 +13,51 @@ import akka.dispatch.{ExecutionContext, Future, Promise}
 import org.midonet.cache.Cache
 import org.midonet.cluster.client._
 import org.midonet.midolman.DeduplicationActor
+import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
+import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
+import org.midonet.midolman.PacketWorkflow.NoOp
+import org.midonet.midolman.PacketWorkflow.SendPacket
 import org.midonet.midolman.PacketWorkflow._
-import org.midonet.midolman.datapath.{FlowActionOutputToVrnPort,
-                                      FlowActionOutputToVrnPortSet}
+import org.midonet.midolman.datapath.FlowActionOutputToVrnPort
+import org.midonet.midolman.datapath.FlowActionOutputToVrnPortSet
 import org.midonet.midolman.logging.LoggerFactory
 import org.midonet.midolman.rules.Condition
 import org.midonet.midolman.rules.RuleResult.{Action => RuleAction}
-import org.midonet.midolman.topology._
+import org.midonet.midolman.topology.VirtualTopologyActor.BridgeRequest
+import org.midonet.midolman.topology.VirtualTopologyActor.ChainRequest
+import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
+import org.midonet.midolman.topology.VirtualTopologyActor.RouterRequest
+import org.midonet.midolman.topology.VirtualTopologyActor.VlanBridgeRequest
 import org.midonet.midolman.topology.VirtualTopologyActor._
+import org.midonet.midolman.topology._
 import org.midonet.odp.flows._
 import org.midonet.packets.{Ethernet, ICMP, IPv4, IPv4Addr, IPv6Addr, TCP, UDP}
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
-import org.midonet.midolman.topology.VirtualTopologyActor.RouterRequest
-import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
-import scala.Some
-import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
-import org.midonet.midolman.topology.VirtualTopologyActor.BridgeRequest
-import org.midonet.midolman.topology.VirtualTopologyActor.ChainRequest
-import org.midonet.midolman.PacketWorkflow.NoOp
-import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
-import org.midonet.midolman.PacketWorkflow.SendPacket
-import org.midonet.midolman.topology.VirtualTopologyActor.VlanBridgeRequest
-import java.lang.{Short => JShort}
 
 
 object Coordinator {
-    trait Action
+
+    sealed trait Action
 
     // ErrorDropAction is used to signal that the Drop is being requested
     // because of an error, not because the virtual topology justifies it.
     // The resulting Drop rule may be temporary to allow retrying.
-    case class ErrorDropAction() extends Action
-    case class DropAction() extends Action
+    case object ErrorDropAction extends Action
+    case object DropAction extends Action
+
     // NotIPv4Action implies a DROP flow. However, it differs from DropAction
     // in that the installed flow match can have all fields >L2 wildcarded.
     // TODO(pino): make the installed flow computation smarter so that it
     // TODO:       wildcards any field that wasn't used by the simulation. Then
     // TODO:       remove NotIPv4Action
-    case class NotIPv4Action() extends Action
-    case class ConsumedAction() extends Action
-    trait ForwardAction extends Action
+    case object NotIPv4Action extends Action
+    case object ConsumedAction extends Action
+
+    sealed trait ForwardAction extends Action
     case class ToPortAction(outPort: UUID) extends ForwardAction
     case class ToPortSetAction(portSetID: UUID) extends ForwardAction
     case class DoFlowAction[A <: FlowAction[A]](action: A) extends Action
+
     // This action is used when one simulation has to return N forward actions
     // A good example is when a bridge that has a vlan id set receives a
     // broadcast from the virtual network. It will output it to all its
@@ -432,7 +435,7 @@ class Coordinator(var origMatch: WildcardMatch,
         actionF recover {
             case e =>
                 log.error(e, "Error instead of Action - {}", e)
-                ErrorDropAction()
+                ErrorDropAction
         } flatMap { case action =>
             log.info("Received action: {}", action)
             action match {
@@ -484,7 +487,7 @@ class Coordinator(var origMatch: WildcardMatch,
                     pktContext.traceMessage(outPortID, "Forwarded to port")
                     packetEgressesPort(outPortID)
 
-                case _: ConsumedAction =>
+                case ConsumedAction =>
                     pktContext.traceMessage(null, "Consumed")
                     pktContext.freeze()
                     pktContext.getFlowRemovedCallbacks foreach {
@@ -492,7 +495,7 @@ class Coordinator(var origMatch: WildcardMatch,
                     }
                     NoOp
 
-                case _: ErrorDropAction =>
+                case ErrorDropAction =>
                     pktContext.traceMessage(null, "Encountered error")
                     pktContext.freeze()
                     cookie match {
@@ -506,7 +509,7 @@ class Coordinator(var origMatch: WildcardMatch,
                             dropFlow(temporary = true)
                     }
 
-                case _: DropAction =>
+                case DropAction =>
                     pktContext.traceMessage(null, "Dropping flow")
                     pktContext.freeze()
                     log.debug("Device returned DropAction for {}",
@@ -523,7 +526,7 @@ class Coordinator(var origMatch: WildcardMatch,
                             dropFlow(temporary, withTags = true)
                     }
 
-                case _: NotIPv4Action =>
+                case NotIPv4Action =>
                     pktContext.traceMessage(null, "Unsupported protocol")
                     log.debug("Device returned NotIPv4Action for {}",
                         origMatch)
