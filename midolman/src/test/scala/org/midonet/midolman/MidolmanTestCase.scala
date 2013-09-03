@@ -372,28 +372,25 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
     // TODO(pino): clean-up. Leave it for now to minimize test-code changes.
     protected def simProbe() = sProbe
 
-    protected def fishForRequestOfType[T](testKit: TestKit,
-            timeout: Duration = Duration(3, TimeUnit.SECONDS))
-            (implicit m: Manifest[T]):T = {
+    protected def fishForRequestOfType[T](
+            testKit: TestKit, _timeout: Duration = timeout)(
+            implicit m: Manifest[T]): T = {
 
-        def messageMatcher(clazz: Class[_]): PartialFunction[Any, Boolean] = {
-            {
-                case o if (o.getClass == clazz) => true
-                case _ => false
-            }
-        }
         val clazz = m.erasure.asInstanceOf[Class[T]]
-        val msg = testKit.fishForMessage(timeout)(messageMatcher(clazz))
+        val msg = testKit.fishForMessage(_timeout) {
+            case o if (o.getClass == clazz) => true
+            case _ => false
+        }
         assert(clazz.isInstance(msg),
                "Message should have been of type %s but was %s" format
                    (clazz, msg.getClass))
         clazz.cast(msg)
     }
 
-    protected def fishForReplyOfType[T](testKit: TestKit,
-                                        timeout: Duration = Duration(3, TimeUnit.SECONDS))
-                                       (implicit m: Manifest[T]): T = {
-        val deadline = Platform.currentTime + timeout.toMillis
+    protected def fishForReplyOfType[T](
+            testKit: TestKit, _timeout: Duration = timeout)(
+            implicit m: Manifest[T]): T = {
+        val deadline = Platform.currentTime + _timeout.toMillis
         val clazz = manifest.erasure.asInstanceOf[Class[T]]
         @tailrec
         def fish: T = {
@@ -416,6 +413,14 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
                                   (implicit m: Manifest[T]): T = {
         testKit.expectMsgClass(m.erasure.asInstanceOf[Class[T]])
     }
+
+    trait OnProbe[T] { def on(probe: TestKit): T }
+
+    def expect[T](implicit m: Manifest[T]): OnProbe[T] =
+        new OnProbe[T] {
+            override def on(probe: TestKit): T =
+                probe.expectMsgClass(m.erasure.asInstanceOf[Class[T]])
+        }
 
     protected def replyOfType[T](testKit: TestKit)
                                 (implicit manifest: Manifest[T]): T = {
@@ -491,6 +496,8 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
             isLike: PartialFunction[Any,Boolean] = TestHelpers.matchWCRemoved,
             until: Duration = timeout) =
         wflowRemovedProbe.fishForMessage(until, "WildcardFlowRemoved")(isLike)
+
+    def expectPacketIn() = expect[PacketIn].on(packetInProbe)
 
 }
 
