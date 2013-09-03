@@ -4,26 +4,27 @@
 package org.midonet.midolman.topology
 
 import collection.JavaConverters._
-import collection.mutable
 import collection.immutable
+import collection.mutable
+import compat.Platform
+import java.util.UUID
+import java.util.concurrent.TimeoutException
+
 import akka.actor._
+import akka.dispatch.{Promise, Future, ExecutionContext}
 import akka.pattern.ask
 import akka.util.duration._
-import java.util.UUID
 import com.google.inject.Inject
 
-import org.midonet.midolman.{DeduplicationActor, FlowController, Referenceable}
-import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.FlowController.InvalidateFlowsByTag
-import org.midonet.midolman.rules.Condition
-import org.midonet.midolman.simulation.{Bridge, Chain, Router}
 import org.midonet.cluster.Client
 import org.midonet.cluster.client.Port
+import org.midonet.midolman.FlowController.InvalidateFlowsByTag
+import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.logging.ActorLogWithoutPath
-import akka.dispatch.{Promise, Future, ExecutionContext}
-import compat.Platform
-import java.util.concurrent.TimeoutException
+import org.midonet.midolman.rules.Condition
 import org.midonet.midolman.simulation.VlanAwareBridge
+import org.midonet.midolman.simulation.{Bridge, Chain, Router}
+import org.midonet.midolman.{DeduplicationActor, FlowController, Referenceable}
 
 object VirtualTopologyActor extends Referenceable {
     override val Name: String = "VirtualTopologyActor"
@@ -88,20 +89,23 @@ object VirtualTopologyActor extends Referenceable {
     def expiringAsk(request: DeviceRequest, expiry: Long = 0L)
                    (implicit ec: ExecutionContext,
                     system: ActorSystem): Future[Any] = {
-        val timeLeft = expiry match {
-            case 0L => 3000L
-            case ex => ex - Platform.currentTime
-        }
+
+        def requestFuture(timeleft: Long): Future[Any] =
+            VirtualTopologyActor
+                .getRef(system).ask(request)(timeleft milliseconds)
+
+        val timeLeft =
+            if (expiry == 0L) 3000L else expiry - Platform.currentTime
 
         if (timeLeft <= 0)
             return Promise.failed(new TimeoutException)
+
         val e = everything
         if (null == e || request.update)
-            return VirtualTopologyActor.getRef(system)
-                .ask(request)(timeLeft milliseconds)
+            return requestFuture(timeLeft)
 
         // Try using the cache
-        val deviceMap: immutable.Map[UUID, Any] = request match {
+        (request match {
             case r: VlanBridgeRequest => e.idToVlanBridge
             case r: BridgeRequest => e.idToBridge
             case r: ChainRequest => e.idToChain
@@ -112,13 +116,10 @@ object VirtualTopologyActor extends Referenceable {
                 if (e.idToBridge.contains(request.id)) e.idToBridge
                 else if (e.idToVlanBridge.contains(request.id)) e.idToVlanBridge
                 else new immutable.HashMap[UUID, Any]
-        }
+        }).get(request.id).map {
+            Promise.successful(_) // return what's in the cache
+        }.getOrElse(requestFuture(timeLeft)) // ask for device
 
-        deviceMap.get(request.id) match {
-            case None => VirtualTopologyActor.getRef(system)
-                        .ask(request)(timeLeft milliseconds)
-            case Some(device) => Promise.successful(device)
-        }
     }
 }
 
@@ -168,9 +169,12 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
     private def deviceRequested(id: UUID,
                                 idToDevice: immutable.Map[UUID, Any],
                                 update: Boolean) {
-        if (idToDevice.contains(id))
-            sender.tell(idToDevice(id))
-        else {
+        if (idToDevice.contains(id)) {
+            val dev = idToDevice(id)
+            if (dev == null)
+                log.warning("request for device with id {} returned null", id)
+            sender.tell(dev)
+        } else {
             log.debug("Adding requester to unanswered clients")
             idToUnansweredClients(id).add(sender)
         }

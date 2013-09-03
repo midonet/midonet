@@ -62,14 +62,15 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
         implicit val packetContext = pktContext
 
         if (!validEthertypes.contains(pktContext.wcmatch.getEtherType)) {
-            return Promise.successful(unsupportedPacketAction)(ec)
+            return Promise.successful(unsupportedPacketAction)
         }
 
         getRouterPort(pktContext.getInPortId, pktContext.getExpiry) flatMap {
             case null => log.debug("Router - in port {} was null",
                 pktContext.getInPortId())
-            Promise.successful(DropAction)(ec)
-            case inPort => preRouting(inPort)
+                Promise.successful(DropAction)
+            case inPort =>
+                preRouting(inPort)
         }
     }
 
@@ -110,23 +111,23 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
         val hwDst = pktContext.wcmatch.getEthernetDestination
         if (Ethernet.isBroadcast(hwDst)) {
             log.debug("Received an L2 broadcast packet.")
-            return handleL2Broadcast(inPort)
+            return Promise.successful(handleL2Broadcast(inPort))
         }
 
         if (hwDst != inPort.portMac) { // Not addressed to us, log.warn and drop
             log.warning("{} neither broadcast nor inPort's MAC ({})", hwDst,
                 inPort.portMac)
-            return Promise.successful(DropAction)(ec)
+            return Promise.successful(DropAction)
         }
 
         pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(id))
         handleNeighbouring(inPort) match {
-            case Some(a: Action) => return Promise.successful(a)(ec)
+            case Some(a: Action) => return Promise.successful(a)
             case None =>
         }
 
         applyIngressChain(inPort) match {
-            case Some(a: Action) => return Promise.successful(a)(ec)
+            case Some(a: Action) => return Promise.successful(a)
             case None =>
         }
 
@@ -148,7 +149,7 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
             val ttl = Unsigned.unsign(pMatch.getNetworkTTL)
             if (ttl <= 1) {
                 sendIcmpTimeExceededError(inPort, pMatch, pFrame)
-                Promise.successful(DropAction)(ec)
+                return Promise.successful(DropAction)
             } else {
                 pMatch.setNetworkTTL((ttl - 1).toByte)
             }
@@ -169,7 +170,7 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
             log.debug("Route lookup: No route to network (dst:{}), {}",
                 dstIP, rTable.rTable)
             sendIcmpUnreachableNetError(inPort, pMatch, pFrame)
-            return Promise.successful(DropAction)(ec)
+            return Promise.successful(DropAction)
         }
 
         // tag using this route
@@ -180,32 +181,32 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
                 if (isIcmpEchoRequest(pMatch)) {
                     log.debug("got ICMP echo")
                     sendIcmpEchoReply(pMatch, pFrame, pktContext.getExpiry)
-                    Promise.successful(ConsumedAction)(ec)
+                    Promise.successful(ConsumedAction)
                 } else {
-                    Promise.successful(DropAction)(ec)
+                    Promise.successful(DropAction)
                 }
 
             case Route.NextHop.BLACKHOLE =>
                 log.debug("Dropping packet, BLACKHOLE route (dst:{})",
                     pMatch.getNetworkDestinationIP)
-                Promise.successful(DropAction)(ec)
+                Promise.successful(DropAction)
 
             case Route.NextHop.REJECT =>
                 sendIcmpUnreachableProhibError(inPort, pMatch, pFrame)
                 log.debug("Dropping packet, REJECT route (dst:{})",
                     pMatch.getNetworkDestinationIP)
-                Promise.successful(DropAction)(ec)
+                Promise.successful(DropAction)
 
             case Route.NextHop.PORT =>
                 if (rt.nextHopPort == null) {
                     log.error("Routing table lookup for {} forwarded to port " +
                         "null.", dstIP)
                     // TODO(pino): should we remove this route?
-                    Promise.successful(DropAction)(ec)
+                    Promise.successful(DropAction)
                 } else {
                     getRouterPort(rt.nextHopPort, pktContext.getExpiry) flatMap {
                         case null =>
-                            Promise.successful(ErrorDropAction)(ec)
+                            Promise.successful(ErrorDropAction)
                         case outPort =>
                             postRouting(inPort, outPort, rt, pktContext)
                     }
@@ -219,7 +220,7 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
                 // 'sane'. If such routes were created, this flow will be
                 // invalidated. Thus, we can return DropAction and not
                 // ErrorDropAction
-                Promise.successful(DropAction)(ec)
+                Promise.successful(DropAction)
         }
 
     }
@@ -254,12 +255,12 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
 
         if (postRoutingResult.pmatch ne pMatch) {
             log.error("Post-routing for {} returned a different match obj.", id)
-            return Promise.successful(ErrorDropAction)(ec)
+            return Promise.successful(ErrorDropAction)
         }
 
         if (pMatch.getNetworkDestinationIP == outPort.portAddr.getAddress) {
             log.error("Got a packet addressed to a port without a LOCAL route")
-            return Promise.successful(DropAction)(ec)
+            return Promise.successful(DropAction)
         }
 
         // Set HWSrc
@@ -283,7 +284,7 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
             case nextHopMac =>
                 log.debug("routing packet to {}", nextHopMac)
                 pMatch.setEthernetDestination(nextHopMac)
-                new ToPortAction(rt.nextHopPort): Action
+                new ToPortAction(rt.nextHopPort)
         }
 
     }
@@ -291,15 +292,9 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
     final protected def getRouterPort(portID: UUID, expiry: Long)
                                      (implicit actorSystem: ActorSystem,
                                       pktContext: PacketContext):
-                                     Future[RouterPort[_]] = {
+                                     Future[RouterPort[_]] =
         expiringAsk(PortRequest(portID, update = false), expiry)
-            .mapTo[RouterPort[_]] map {
-            case null =>
-                log.error("Can't find router port: {}", portID)
-                null
-            case rtrPort => rtrPort
-        }
-    }
+            .mapTo[RouterPort[_]]
 
     // Auxiliary, IP version specific abstract methods.
 
@@ -379,7 +374,7 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
     protected def handleL2Broadcast(inPort: RouterPort[_])
                                    (implicit pktContext: PacketContext,
                                     ec: ExecutionContext,
-                                    actorSystem: ActorSystem): Future[Action]
+                                    actorSystem: ActorSystem): Action
 
     /**
      * This method will be executed after basic L2 processing is done,
