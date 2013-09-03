@@ -22,6 +22,8 @@ public class DtoApplication {
     private URI routers;
     private URI traceConditions;
     private URI traces;
+    private URI writeVersion;
+    private URI systemState;
     private URI tenants;
     private String adRouteTemplate;
     private String bgpTemplate;
@@ -149,6 +151,22 @@ public class DtoApplication {
 
     public void setTraces(URI traces) {
         this.traces = traces;
+    }
+
+    public URI getWriteVersion() {
+        return writeVersion;
+    }
+
+    public void setWriteVersion(URI writeVersion) {
+        this.writeVersion = writeVersion;
+    }
+
+    public URI getSystemState() {
+        return this.systemState;
+    }
+
+    public void setSystemState(URI systemState) {
+        this.systemState = systemState;
     }
 
     public String getAdRouteTemplate() {

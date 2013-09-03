@@ -18,6 +18,11 @@ public interface SystemDataProvider {
 
     public boolean systemUpgradeStateExists() throws StateAccessException;
 
+    public void createSystemUpgradeState()
+            throws StateAccessException;
+
+    public void deleteSystemUpgradeState() throws StateAccessException;
+
     public boolean isBeforeWriteVersion(String version)
             throws StateAccessException;
 }

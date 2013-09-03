@@ -74,12 +74,23 @@ public class ZkManager {
     }
 
     public void asyncDelete(String relativePath) {
-        this.asyncDelete(relativePath);
+        this.zk.asyncDelete(relativePath);
     }
 
     public String add(String relativePath, byte[] data, CreateMode mode)
-            throws KeeperException, InterruptedException {
-        return this.zk.add(relativePath, data, mode);
+            throws StateAccessException {
+        try {
+            return this.zk.add(relativePath, data, mode);
+        } catch (KeeperException e) {
+            throw new StateAccessException(
+                    "ZooKeeper error occurred while checking if path exists: "
+                            + relativePath + ": " + e.getMessage(), e);
+        } catch (InterruptedException e) {
+            throw new StateAccessException(
+                    "ZooKeeper thread interrupted while checking if path " +
+                            "exists: " + relativePath +
+                            ": " + e.getMessage(), e);
+        }
     }
 
     public void asyncMultiPathGet(final Set<String> paths,

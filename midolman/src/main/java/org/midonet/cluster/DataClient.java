@@ -598,4 +598,36 @@ public interface DataClient {
      * @throws StateAccessException
      */
     Set<String> tenantsGetAll() throws StateAccessException;
+
+    /**
+     * Get the current write version.
+     *
+     * @return current write version.
+     */
+    public WriteVersion writeVersionGet() throws StateAccessException;
+
+    /**
+     * Overwrites the current write version with the string supplied
+     * @param newVersion The new version to set the write version to.
+     */
+    public void writeVersionUpdate(WriteVersion newVersion)
+            throws StateAccessException;
+
+    /**
+     * Get the system state
+     *
+     * @return system state info
+     * @throws StateAccessException
+     */
+    public SystemState systemStateGet()
+            throws StateAccessException;
+
+    /**
+     * Update the system state
+     *
+     * @param systemState the new system state
+     * @throws StateAccessException
+     */
+    public void systemStateUpdate(SystemState systemState)
+        throws StateAccessException;
 }

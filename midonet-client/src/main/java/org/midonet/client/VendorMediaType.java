@@ -179,4 +179,10 @@ public class VendorMediaType {
     public static final String APPLICATION_TRACE_COLLECTION_JSON =
             "application/vnd.org.midonet.collection" +
                     ".Trace-v1+json";
+
+    // Upgrade Control
+    public static final String APPLICATION_WRITE_VERSION_JSON =
+            "application/vnd.org.midonet.WriteVersion-v1+json";
+    public static final String APPLICATION_SYSTEM_STATE_JSON =
+            "application/vnd.org.midonet.SystemState-v1+json";
 }

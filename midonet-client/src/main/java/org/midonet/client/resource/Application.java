@@ -415,6 +415,32 @@ public class Application extends ResourceBase<Application, DtoApplication> {
     }
 
     /**
+     * Gets the WriteVersion object.
+     *
+     * @return WriteVersion
+     */
+    public WriteVersion getWriteVersion() {
+        URI uri = principalDto.getWriteVersion();
+        DtoWriteVersion writeVersion = resource.get(uri, null,
+                DtoWriteVersion.class,
+                VendorMediaType.APPLICATION_WRITE_VERSION_JSON);
+        return new WriteVersion(resource, null, writeVersion);
+    }
+
+    /**
+     * Gets the SystemState object.
+     *
+     * @return SystemState
+     */
+    public SystemState getSystemState() {
+        URI uri = principalDto.getSystemState();
+        DtoSystemState systemState = resource.get(uri, null,
+                DtoSystemState.class,
+                VendorMediaType.APPLICATION_SYSTEM_STATE_JSON);
+        return new SystemState(resource, null, systemState);
+    }
+
+    /**
      * Returns TunnelZone object
      *
      * @param id ID of tunnel zone
