@@ -37,6 +37,8 @@
   * [Metric Query](#metricquery)
   * [Metric Query Response](#metricqueryresponse)
   * [Trace Capture Conditions](#traceconditions)
+  * [System State](#systemstate)
+  * [Write Version](#writeversion)
 * [Resource Collection](#resourcecollection)
 * [Authentication/Authorization](#auth)
 * [List of Acronyms](#acronyms)
@@ -648,6 +650,52 @@ traverse the URIs to discover all the available services.
         <td></td>
         <td>Template of the URI that represents the location of tunnel zone
         with the provided ID.</td>
+    </tr>
+    <tr>
+        <td>traces</td>
+        <td>URI</td>
+        <td></td>
+        <td></td>
+        <td>A GET against this URI returns a list of traces</td>
+    </tr>
+    <tr>
+        <td>traceConditions</td>
+        <td>URI</td>
+        <td></td>
+        <td></td>
+        <td>A GET against this URI returns a list of trace conditions</td>
+    </tr>
+    <tr>
+        <td>traceTemplate</td>
+        <td>String</td>
+        <td></td>
+        <td></td>
+        <td>Template of the URI that represents the location of the trace
+        with the provided ID.</td>
+    </tr>
+    <tr>
+        <td>traceConditionTemplate</td>
+        <td>URI</td>
+        <td></td>
+        <td></td>
+        <td>Template of the URI that represents the location of the trace
+        condition with the provided ID.</td>
+    </tr>
+    <tr>
+        <td>writeVersion</td>
+        <td>URI</td>
+        <td></td>
+        <td></td>
+        <td>URI that represents the location of the write version
+        information</td>
+    </tr>
+    <tr>
+        <td>systemState</td>
+        <td>URI</td>
+        <td></td>
+        <td></td>
+        <td>URI that represents the location of the system state
+        information</td>
     </tr>
 </table>
 
@@ -3233,6 +3281,73 @@ condition contains the following fields:
         <td/>
         <td>A GET against this URI refreshes the representation of this
          resource</td>
+    </tr>
+</table>
+
+<a name="systemstate"></a>
+### System State [application/vnd.org.midonet.SystemState-v1+json]
+
+    GET     /system_state
+    PUT     /system_state
+
+System State specifies parameters for the various states the deployment
+might be in. You may modify the system state to make limited changes
+to the behavior of midonet. For example, changing the "upgrade" state to
+true will cause the spawning of new midolman agents to abort.
+
+<table>
+    <tr>
+        <th>Field Name</th>
+        <th>Type</th>
+        <th>POST/PUT</th>
+        <th>Required</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>upgrade</td>
+        <td>boolean</td>
+        <td>PUT</td>
+        <td>yes</td>
+        <td>setting the upgrade field to "true" will put the midolman into
+        'upgrade mode', which will cause all new midolman agents starting
+        up in the deployment to abort the start up process. This is used
+        during deployment wide upgrades to prevent unexpected startups of
+        any midolman agent that might have the wrong version. This state can
+        be reversed by setting the upgrade field to "false". The deployment is
+        not in upgrade state by default.</td>
+    </tr>
+</table>
+
+<a name="writeversion"></a>
+### Write Version [application/vnd.org.midonet.WriteVersion-v1+json]
+
+    GET     /write_version
+    PUT     /write_version
+
+Write Version specifies the version information that is relevant to the
+midonet deployment as a whole. For example, the "version" field specifies
+the version of the topology information that all midolman agents must write
+to, regardless of that midolman agent's version.
+
+<table>
+    <tr>
+        <th>Field Name</th>
+        <th>Type</th>
+        <th>POST/PUT</th>
+        <th>Required</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>version</td>
+        <td>string</td>
+        <td>PUT</td>
+        <td>yes</td>
+        <td>The version field determines the version of the topology data
+        that the midolman agents will be writing. This matters during upgrade
+        operations where we will change the write version only after all
+        midolman agents are upgraded. The format of the version field is
+        '[major].[minor]', where 'major' is the Major version, and 'minor'
+        is the minor version. For example '1.2'.</td>
     </tr>
 </table>
 
