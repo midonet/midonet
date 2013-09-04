@@ -11,7 +11,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.matchers.ShouldMatchers
 
-import org.midonet.midolman.DatapathController.DatapathPortChangedEvent
+import org.midonet.midolman.DatapathController.DpPortCreate
 import org.midonet.midolman.topology.VirtualToPhysicalMapper._
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.topology.rcu.{Host => RCUHost}
@@ -71,9 +71,11 @@ class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers with
         portChangedProbe = newProbe()
         portActiveProbe = newProbe()
 
-        // make a probe and make it listen to the DatapathPortChangedEvents (fired by the Datapath Controller)
-        actors().eventStream.subscribe(portChangedProbe.ref, classOf[DatapathPortChangedEvent])
-        actors().eventStream.subscribe(portActiveProbe.ref, classOf[LocalPortActive])
+        // listen to the DatapathController.DpPortCreate
+        actors().eventStream.subscribe(
+            portChangedProbe.ref, classOf[DpPortCreate])
+        actors().eventStream.subscribe(
+            portActiveProbe.ref, classOf[LocalPortActive])
 
         // start initialization
         initializeDatapath() should not be (null)
@@ -93,14 +95,16 @@ class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers with
     def testTunnelZone() {
 
         // assert that the gre tunnel port was created
-        var portChangedEvent = portChangedProbe.expectMsgClass(classOf[DatapathPortChangedEvent])
-        portChangedEvent.op should be(PortOperation.Create)
+        var portChangedEvent =
+            portChangedProbe.expectMsgClass(classOf[DpPortCreate])
+
         portChangedEvent.port.getName should be("tngre-mm")
         portChangedEvent.port.isInstanceOf[GreTunnelPort] should be(true)
 
         // assert that the port event was fired properly
-        portChangedEvent = portChangedProbe.expectMsgClass(classOf[DatapathPortChangedEvent])
-        portChangedEvent.op should be(PortOperation.Create)
+        portChangedEvent =
+            portChangedProbe.expectMsgClass(classOf[DpPortCreate])
+
         portChangedEvent.port.getName should be("port1")
         portChangedEvent.port.isInstanceOf[NetDevPort] should be(true)
 

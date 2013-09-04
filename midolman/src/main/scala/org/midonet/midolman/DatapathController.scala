@@ -7,16 +7,16 @@ import scala.collection.JavaConverters._
 import scala.collection.{Set => ROSet, Map => ROMap}
 import scala.collection.mutable.{ConcurrentMap => ConcMap}
 import scala.collection.mutable
-import akka.actor._
-import akka.dispatch.ExecutionContext
-import akka.event.LoggingAdapter
-import akka.util.Timeout
-import akka.util.duration._
 import java.lang.{Boolean => JBoolean, Integer => JInteger, Short => JShort}
 import java.util.{Collection, Collections, List => JList, Set => JSet, UUID}
 import java.util.concurrent.{ConcurrentHashMap => ConcHashMap, TimeUnit}
 import java.nio.ByteBuffer
 
+import akka.actor._
+import akka.dispatch.ExecutionContext
+import akka.event.LoggingAdapter
+import akka.util.Timeout
+import akka.util.duration._
 import com.google.inject.Inject
 
 import org.midonet.cluster.client
@@ -45,36 +45,6 @@ import org.midonet.packets.IPv4Addr
 import org.midonet.sdn.flows.WildcardFlow
 import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.util.collection.Bimap
-
-
-/**
- * Holder object that keeps the external message definitions
- */
-object PortOperation extends Enumeration {
-    val Create, Delete = Value
-}
-
-sealed trait PortOp[P <: Port[_ <: PortOptions, P]] {
-    val port: P
-    val tag: Option[AnyRef]
-    val op: PortOperation.Value
-}
-
-sealed trait CreatePortOp[P <: Port[_ <: PortOptions, P]] extends {
-    val op = PortOperation.Create
-} with PortOp[P]
-
-sealed trait DeletePortOp[P <: Port[_ <: PortOptions, P]] extends {
-    val op = PortOperation.Delete
-} with PortOp[P]
-
-sealed trait PortOpReply[P <: Port[_ <: PortOptions, P]] {
-    val port: P
-    val tag: Option[AnyRef]
-    val op: PortOperation.Value
-    val timeout: Boolean
-    val error: NetlinkException
-}
 
 trait UnderlayResolver {
 
@@ -124,25 +94,24 @@ trait DatapathState extends VirtualPortsResolver with UnderlayResolver {
 
 }
 
-
-/**
- * This will make the Datapath Controller to start the local state
- * initialization process.
- */
-case class Initialize()
-
 object DatapathController extends Referenceable {
 
     override val Name = "DatapathController"
 
-    // Java API
-    val initializeMsg = Initialize()
+    /**
+     * This will make the Datapath Controller to start the local state
+     * initialization process.
+     */
+    case object Initialize
+
+    /** Java API */
+    val initializeMsg = Initialize
 
     /**
      * Reply sent back to the sender of the Initialize message when the basic
      * initialization of the datapath is complete.
      */
-    case class InitializationComplete()
+    case object InitializationComplete
 
     /**
      * Message sent to the [[org.midonet.midolman.FlowController]] actor to let
@@ -152,164 +121,63 @@ object DatapathController extends Referenceable {
      */
     case class DatapathReady(datapath: Datapath, state: DatapathState)
 
-    /**
-     * Will trigger an internal port creation operation. The sender will
-     * receive an [[org.midonet.midolman.DatapathController.PortInternalOpReply]]
-     * message in return.
-     *
-     * @param port the port information
-     * @param tag a value that is going to be copied to the reply message
-     */
-    case class CreatePortInternal(port: InternalPort, tag: Option[AnyRef])
-        extends CreatePortOp[InternalPort]
+    sealed trait DpPortOperation
+    case object Create extends DpPortOperation
+    case object Delete extends DpPortOperation
 
     /**
-     * Will trigger an internal port delete operation. The sender will
-     * receive an [[org.midonet.midolman.DatapathController.PortInternalOpReply]]
-     * message when the operation is completed.
-     *
-     * @param port the port information
-     * @param tag a value that is going to be copied to the reply message
+     * Message to ask a port operation inside the datapath. The operation can
+     * either be a create or delete request according to the return value of
+     * DpPortRequest#op. The sender will receive a DpPortReply holding the
+     * original request and which can be either of type DpPortSuccess to
+     * indicate a successful create/delete operation in the datapath or a
+     * DpPortError indicating some kind of error occured.
      */
-    case class DeletePortInternal(port: InternalPort, tag: Option[AnyRef])
-        extends DeletePortOp[InternalPort]
+    sealed trait DpPortRequest {
+        type TypedPort <: Port[_ <: PortOptions, TypedPort]
+        val port: TypedPort
+        val tag: Option[AnyRef]
+        val op: DpPortOperation // only used by tests
+        def successReply = DpPortSuccess(this)
+        def errorReply(timeout: Boolean, error: NetlinkException) =
+            DpPortError(this, timeout, error)
+    }
 
-    /**
-     * Reply message that is sent when a [[org.midonet.midolman.DatapathController.CreatePortInternal]]
-     * or [[org.midonet.midolman.DatapathController.DeletePortInternal]]
-     * operation completes. It contains the operation type, the port data
-     * (updated or the original) and any error or timeout if the operation failed.
-     *
-     * @param port the internal port data
-     * @param op the operation type
-     * @param timeout true if the operation timed out
-     * @param error non null if the underlying layer has thrown exceptions
-     * @param tag is the same value that was passed in the initial operation by
-     *            the caller
-     */
-    case class PortInternalOpReply(port: InternalPort, op: PortOperation.Value,
-                                   timeout: Boolean, error: NetlinkException,
-                                   tag: Option[AnyRef])
-        extends PortOpReply[InternalPort]
+    sealed trait DpPortCreate extends DpPortRequest { val op = Create }
+    sealed trait DpPortDelete extends DpPortRequest { val op = Delete }
 
-    /**
-     * Will trigger an netdev port creation operation. The sender will
-     * receive an `PortNetdevOpReply` message in return.
-     *
-     * @param port the port information
-     * @param tag a value that is going to be copied to the reply message
-     */
+    sealed trait DpPortReply { val request: DpPortRequest }
+    case class DpPortSuccess(request: DpPortRequest) extends DpPortReply
+    case class DpPortError(
+        request: DpPortRequest, timeout: Boolean, error: NetlinkException
+    ) extends DpPortReply
+
+
+    trait InternalDpPortHolder { type TypedPort = InternalPort }
+
+    case class CreateDpPortInternal(port: InternalPort, tag: Option[AnyRef])
+        extends DpPortCreate with InternalDpPortHolder
+
+    case class DeleteDpPortInternal(port: InternalPort, tag: Option[AnyRef])
+        extends DpPortDelete with InternalDpPortHolder
+
+
+    trait NetDevDpPortHolder { type TypedPort = NetDevPort }
+
     case class CreatePortNetdev(port: NetDevPort, tag: Option[AnyRef])
-        extends CreatePortOp[NetDevPort]
+        extends DpPortCreate with NetDevDpPortHolder
 
-    /**
-     * Will trigger an netdev port deletion operation. The sender will
-     * receive an [[org.midonet.midolman.DatapathController.PortNetdevOpReply]]
-     * message in return.
-     *
-     * @param port the port information
-     * @param tag a value that is going to be copied to the reply message
-     */
     case class DeletePortNetdev(port: NetDevPort, tag: Option[AnyRef])
-        extends DeletePortOp[NetDevPort]
+        extends DpPortDelete with NetDevDpPortHolder
 
-    /**
-     * Reply message that is sent when a [[org.midonet.midolman.DatapathController.CreatePortNetdev]]
-     * or [[org.midonet.midolman.DatapathController.DeletePortNetdev]]
-     * operation completes. It contains the operation type, the port data
-     * (updated or the original) and any error or timeout if the operation failed.
-     *
-     * @param port the internal port data
-     * @param op the operation type
-     * @param timeout true if the operation timed out
-     * @param error non null if the underlying layer has thrown exceptions
-     * @param tag is the same value that was passed in the initial operation by
-     *            the caller
-     */
-    case class PortNetdevOpReply(port: NetDevPort, op: PortOperation.Value,
-                                 timeout: Boolean, error: NetlinkException,
-                                 tag: Option[AnyRef])
-        extends PortOpReply[NetDevPort]
 
-    /**
-     * Will trigger an `patch` tunnel creation operation. The sender will
-     * receive an [[org.midonet.midolman.DatapathController.TunnelPatchOpReply]]
-     * message in return.
-     *
-     * @param port the tunnel port information
-     * @param tag a value that is going to be copied to the reply message
-     */
-    case class CreateTunnelPatch(port: PatchTunnelPort, tag: Option[AnyRef])
-        extends CreatePortOp[PatchTunnelPort]
+    trait GreDpPortHolder { type TypedPort = GreTunnelPort }
 
-    /**
-     * Will trigger an `patch` tunnel deletion operation. The sender will
-     * receive an [[org.midonet.midolman.DatapathController.TunnelPatchOpReply]]
-     * message in return.
-     *
-     * @param port the tunnel port information
-     * @param tag a value that is going to be copied to the reply message
-     */
-    case class DeleteTunnelPatch(port: PatchTunnelPort, tag: Option[AnyRef])
-        extends DeletePortOp[PatchTunnelPort]
-
-    /**
-     * Reply message that is sent when a [[org.midonet.midolman.DatapathController.CreateTunnelPatch]]
-     * or [[org.midonet.midolman.DatapathController.DeleteTunnelPatch]]
-     * operation completes. It contains the operation type, the port data
-     * (updated or the original) and any error or timeout if the operation failed.
-     *
-     * @param port the internal port data
-     * @param op the operation type
-     * @param timeout true if the operation timed out
-     * @param error non null if the underlying layer has thrown exceptions
-     * @param tag is the same value that was passed in the initial operation by
-     *            the caller
-     */
-    case class TunnelPatchOpReply(port: PatchTunnelPort, op: PortOperation.Value,
-                                  timeout: Boolean, error: NetlinkException,
-                                  tag: Option[AnyRef])
-        extends PortOpReply[PatchTunnelPort]
-
-    /**
-     * Will trigger an `gre` tunnel creation operation. The sender will
-     * receive an [[org.midonet.midolman.DatapathController.TunnelGreOpReply]]
-     * message in return.
-     *
-     * @param port the tunnel port information
-     * @param tag a value that is going to be copied to the reply message
-     */
     case class CreateTunnelGre(port: GreTunnelPort, tag: Option[AnyRef])
-        extends CreatePortOp[GreTunnelPort]
+        extends DpPortCreate with GreDpPortHolder
 
-    /**
-     * Will trigger an `gre` tunnel deletion operation. The sender will
-     * receive an [[org.midonet.midolman.DatapathController.TunnelGreOpReply]]
-     * message in return.
-     *
-     * @param port the tunnel port information
-     * @param tag a value that is going to be copied to the reply message
-     */
     case class DeleteTunnelGre(port: GreTunnelPort, tag: Option[AnyRef])
-        extends DeletePortOp[GreTunnelPort]
-
-    /**
-     * Reply message that is sent when a [[org.midonet.midolman.DatapathController.CreateTunnelGre]]
-     * or [[org.midonet.midolman.DatapathController.DeleteTunnelGre]]
-     * operation completes. It contains the operation type, the port data
-     * (updated or the original) and any error or timeout if the operation failed.
-     *
-     * @param port the internal port data
-     * @param op the operation type
-     * @param timeout true if the operation timed out
-     * @param error non null if the underlying layer has thrown exceptions
-     * @param tag is the same value that was passed in the initial operation by
-     *            the caller
-     */
-    case class TunnelGreOpReply(port: GreTunnelPort, op: PortOperation.Value,
-                                timeout: Boolean, error: NetlinkException,
-                                tag: Option[AnyRef])
-        extends PortOpReply[GreTunnelPort]
+        extends DpPortDelete with GreDpPortHolder
 
     /**
      * This message requests that the DatapathController keep a temporary
@@ -332,8 +200,6 @@ object DatapathController extends Referenceable {
     */
     case class PortStats(portID: UUID, stats: Port.Stats)
 
-    class DatapathPortChangedEvent(val port: Port[_, _], val op: PortOperation.Value) {}
-
     /**
      * This message requests stats for a given port.
      * @param portID
@@ -341,15 +207,18 @@ object DatapathController extends Referenceable {
     case class PortStatsRequest(portID: UUID)
 
     /**
-     * This message is sent every 2 seconds to check that the kernel contains exactly the same
-     * ports/interfaces as the system. In case that somebody uses a command line tool (for example)
-     * to bring down an interface, the system will react to it.
-     * TODO this version is constantly checking for changes. It should react to 'netlink' notifications instead.
+     * This message is sent every 2 seconds to check that the kernel contains
+     * exactly the same ports/interfaces as the system. In case that somebody
+     * uses a command line tool (for example) to bring down an interface, the
+     * system will react to it.
+     * TODO this version is constantly checking for changes. It should react to
+     * 'netlink' notifications instead.
      */
     case class CheckForPortUpdates(datapathName: String)
 
     /**
-     * This message is sent when the separate thread has succesfully retrieved all information about the interfaces.
+     * This message is sent when the separate thread has succesfully retrieved
+     * all information about the interfaces.
      */
     case class InterfacesUpdate(interfaces: JList[InterfaceDescription])
 
@@ -443,12 +312,14 @@ class DatapathController() extends Actor with ActorLogging with
         new Controller {
             override def addToDatapath(itfName: String): Unit = {
                 log.debug("VportManager requested add port {}", itfName)
-                createDatapathPort(self, Ports.newNetDevPort(itfName), None)
+                val port = Ports.newNetDevPort(itfName)
+                createDatapathPort(self, CreatePortNetdev(port, None))
             }
 
             override def removeFromDatapath(port: Port[_, _]): Unit = {
                 log.debug("VportManager requested remove port {}", port.getName)
-                deleteDatapathPort(self, port, None)
+                val netdevPort = port.asInstanceOf[NetDevPort]
+                deleteDatapathPort(self, DeletePortNetdev(netdevPort, None))
             }
 
             override def setVportStatus(port: Port[_, _], vportId: UUID,
@@ -486,10 +357,8 @@ class DatapathController() extends Actor with ActorLogging with
 
     val DatapathInitializationActor: Receive = {
 
-        /**
-         * Initialization request message
-         */
-        case Initialize() =>
+        // Initialization request message
+        case Initialize =>
             initializer = sender
             log.info("Initialize from: " + sender)
             VirtualToPhysicalMapper.getRef() ! HostRequest(hostService.getHostId)
@@ -511,10 +380,12 @@ class DatapathController() extends Actor with ActorLogging with
         case _SetLocalDatapathPorts(datapathObj, ports) =>
             this.datapath = datapathObj
             ports.foreach { _ match {
+                    //TODO: check we can safely recycle existing ports (MN-128)
+                    // not the case for port created by the BGP actor !
                     case p: GreTunnelPort =>
-                        deleteDatapathPort(self, p, None)
+                        deleteDatapathPort(self, DeleteTunnelGre(p, None))
                     case p: NetDevPort =>
-                        deleteDatapathPort(self, p, None)
+                        deleteDatapathPort(self, DeletePortNetdev(p, None))
                     case p =>
                         log.debug("Keeping port {} found during " +
                             "initialization", p)
@@ -525,26 +396,24 @@ class DatapathController() extends Actor with ActorLogging with
                 "Pending updates {}", pendingUpdateCount)
 
             log.debug("Initial creation of GRE tunnel port")
-            createDatapathPort(self, GreTunnelPort.make("tngre-mm"), null)
+
+            createDatapathPort(
+                self, CreateTunnelGre(GreTunnelPort.make("tngre-mm"), null))
 
             if (checkInitialization)
                 completeInitialization
 
 
-        /**
-        * Handle personal create port requests
-        */
-        case newPortOp: CreatePortOp[Port[_, _]] if (sender == self) =>
-            log.debug("Got CreatePortOp {} message from myself", newPortOp)
-            createDatapathPort(sender, newPortOp.port, newPortOp.tag)
+        // Handle personal create/delete/reply port message
+        case req: DpPortCreate if (sender == self) =>
+            log.debug("Received {} message from myself", req)
+            createDatapathPort(self, req)
 
-        /**
-         * Handle personal delete port requests
-         */
-        case delPortOp: DeletePortOp[Port[_, _]] if (sender == self) =>
-            deleteDatapathPort(sender, delPortOp.port, delPortOp.tag)
+        case req: DpPortDelete if (sender == self) =>
+            log.debug("Received {} message from myself", req)
+            deleteDatapathPort(self, req)
 
-        case opReply: PortOpReply[Port[_, _]] if (sender == self) =>
+        case opReply: DpPortReply if (sender == self) =>
             pendingUpdateCount -= 1
             log.debug("Pending update(s) {}", pendingUpdateCount)
             handlePortOperationReply(opReply)
@@ -554,11 +423,9 @@ class DatapathController() extends Actor with ActorLogging with
         case Messages.Ping(value) =>
             sender ! Messages.Pong(value)
 
-        /**
-         * Log unhandled messages.
-         */
+        // Log unhandled messages.
         case m =>
-            log.info("(behaving as InitializationActor). Not handling message: " + m)
+            log.info("Not handling {} (behaving as InitializationActor)", m)
     }
 
     /** checks if the DPC can switch to regular Receive loop */
@@ -571,8 +438,8 @@ class DatapathController() extends Actor with ActorLogging with
     private def completeInitialization() {
         log.info("Initialization complete. Starting to act as a controller.")
         become(DatapathControllerActor)
-        FlowController.getRef() ! DatapathController.DatapathReady(datapath, dpState)
-        DeduplicationActor.getRef() ! DatapathController.DatapathReady(datapath, dpState)
+        FlowController.getRef() ! DatapathReady(datapath, dpState)
+        DeduplicationActor.getRef() ! DatapathReady(datapath, dpState)
         for ((zoneId, zone) <- host.zones) {
             VirtualToPhysicalMapper.getRef() ! TunnelZoneRequest(zoneId)
         }
@@ -582,7 +449,7 @@ class DatapathController() extends Actor with ActorLogging with
             portWatcher = system.scheduler.schedule(1 second, 2 seconds,
                 self, CheckForPortUpdates(datapath.getName))
         }
-        initializer ! InitializationComplete()
+        initializer ! InitializationComplete
         log.info("Process the host's zones and vport bindings. {}", host)
         dpState.updateVPortInterfaceBindings(host.ports)
     }
@@ -624,13 +491,13 @@ class DatapathController() extends Actor with ActorLogging with
         // mode and only respond to some messages.
         // When initialization is completed we will revert back to this Actor
         // loop for general message response
-        case m: Initialize =>
+        case Initialize =>
             become(DatapathInitializationActor)
             // In case there were some scheduled port update checks, cancel them.
             if (portWatcher != null) {
                 portWatcher.cancel()
             }
-            self ! m
+            self ! Initialize
 
         case AddVirtualWildcardFlow(flow, callbacks, tags) =>
             log.debug("Translating and installing wildcard flow: {}", flow)
@@ -661,14 +528,14 @@ class DatapathController() extends Actor with ActorLogging with
             if (dpState.host.zones contains m.zone)
                 handleZoneChange(m.zone, config, m.op)
 
-        case newPortOp: CreatePortOp[Port[_, _]] =>
-            log.debug("Got CreatePortOp {} from {}", newPortOp, sender)
-            createDatapathPort(sender, newPortOp.port, newPortOp.tag)
+        case req: DpPortCreate =>
+            log.debug("Got {} from {}", req, sender)
+            createDatapathPort(sender, req)
 
-        case delPortOp: DeletePortOp[Port[_, _]] =>
-            deleteDatapathPort(sender, delPortOp.port, delPortOp.tag)
+        case req: DpPortDelete =>
+            deleteDatapathPort(sender, req)
 
-        case opReply: PortOpReply[Port[_, _]] =>
+        case opReply: DpPortReply =>
             pendingUpdateCount -= 1
             log.debug("Pending update(s) {}", pendingUpdateCount)
             handlePortOperationReply(opReply)
@@ -771,7 +638,8 @@ class DatapathController() extends Actor with ActorLogging with
 
     }
 
-    private def installTunnelKeyFlow(port: Port[_, _], exterior: ExteriorPort[_]) {
+    private def installTunnelKeyFlow(
+            port: Port[_, _], exterior: ExteriorPort[_]): Unit = {
         val fc = FlowController.getRef()
         // packets for the port may have arrived before the
         // port came up and made us install temporary drop flows.
@@ -787,110 +655,81 @@ class DatapathController() extends Actor with ActorLogging with
         log.debug("Added flow for tunnelkey {}", exterior.tunnelKey)
     }
 
-    private def installTunnelKeyFlow(port: Port[_, _], vifId: UUID, active: Boolean) {
-        val clientPortFuture = VirtualTopologyActor.expiringAsk(
-            PortRequest(vifId, update = false))
+    private def installTunnelKeyFlow(
+            port: Port[_, _], vifId: UUID, active: Boolean): Unit =
+        VirtualTopologyActor
+            .expiringAsk(PortRequest(vifId, update = false))
+            .mapTo[client.ExteriorPort[_]]
+            .onComplete {
+                case Right(exterior) =>
+                    // trigger invalidation. This is done regardless of
+                    // whether we are activating or deactivating:
+                    //
+                    //   + The case for invalidating on deactivation is
+                    //     obvious.
+                    //   + On activation we invalidate flows for this dp port
+                    //     number in case it has been reused by the dp: we
+                    //     want to start with a clean state.
+                    FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
+                        FlowTagger.invalidateDPPort(port.getPortNo.shortValue()))
+                    if (active)
+                        installTunnelKeyFlow(port, exterior)
 
-        clientPortFuture.mapTo[client.ExteriorPort[_]] onComplete {
-            case Right(exterior) =>
-
-                // trigger invalidation. This is done regardless of
-                // whether we are activating or deactivating:
-                //
-                //   + The case for invalidating on deactivation is
-                //     obvious.
-                //   + On activation we invalidate flows for this dp port
-                //     number in case it has been reused by the dp: we
-                //     want to start with a clean state.
-                FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
-                    FlowTagger.invalidateDPPort(port.getPortNo.shortValue()))
-
-                if (active) {
-                    installTunnelKeyFlow(port, exterior)
-                }
-
-            case _ =>
-                log.warning("local port activated, but it's not an " +
-                    "ExteriorPort, I don't know what to do with it: {}",
-                    port)
-
+                case _ =>
+                    log.warning("local port {} activated, but it's not an " +
+                        "ExteriorPort: I don't know what to do with it: {}", port)
         }
-    }
 
-    def handlePortOperationReply(opReply: PortOpReply[_]) {
+    def handlePortOperationReply(opReply: DpPortReply) {
         log.debug("Port operation reply: {}", opReply)
 
         opReply match {
 
-            case tpReply: TunnelGreOpReply =>
-                handleTunnelPortOpReply(tpReply)
+            case DpPortSuccess(CreateTunnelGre(p, _)) =>
+                dpState.tunnelGre = Some(p)
 
-            case PortNetdevOpReply(p, PortOperation.Create,
-                                   false, null, None) =>
+            case DpPortError(req @ CreateTunnelGre(p, tags), _, _) =>
+                log.warning(
+                    "GRE port creation failed: {} => scheduling retry", opReply)
+                system.scheduler.scheduleOnce(5 second, self, req)
+
+            case DpPortSuccess(CreatePortNetdev(p, _)) =>
                 dpState.dpPortAdded(p)
 
-            case PortNetdevOpReply(p, PortOperation.Delete,
-                                   false, null, None) =>
+            case DpPortSuccess(DeletePortNetdev(p, _)) =>
                 dpState.dpPortRemoved(p)
 
-            case PortNetdevOpReply(p, PortOperation.Create, false, ex, tag)  if (ex != null) =>
-                log.warning("port {} creation failed: OVS returned {}",
-                    p, ex.getErrorCodeEnum)
-                // This will make the vport manager retry the create operation
-                // the next time the interfaces are scanned (2 secs).
-                if (ex.getErrorCodeEnum == ErrorCode.EBUSY)
-                    dpState.dpPortForget(p)
+            case DpPortError(CreatePortNetdev(p, tag), false, ex) =>
+                if (ex != null) {
+                    log.warning("port {} creation failed: OVS returned {}",
+                        p, ex.getErrorCodeEnum)
+                    // This will make the vport manager retry the create op
+                    // the next time the interfaces are scanned (2 secs).
+                    if (ex.getErrorCodeEnum == ErrorCode.EBUSY)
+                        dpState.dpPortForget(p)
+                }
 
-            case PortNetdevOpReply(p, PortOperation.Create, timeout, ex, tag) =>
-                log.warning("UNHANDLED port {} creation op reply: " +
-                            "OVS returned {}, timeout: {}, ex: {}, tag:{}",
-                            p, timeout, ex, tag)
+            case DpPortError(_: DpPortDelete, _, _) =>
+                log.warning("Failed DpPortDelete {}", opReply)
 
-            //            case PortInternalOpReply(_,_,_,_,_) =>
-            //            case TunnelPatchOpReply(_,_,_,_,_) =>
+            case DpPortError(req, timeout, ex) =>
+                log.warning("not handling DpPortError reply {}", opReply)
+
             case _ =>
                 log.debug("not handling port op reply {}", opReply)
         }
 
-        if (opReply.error == null && !opReply.timeout) {
-            context.system.eventStream.publish(
-                new DatapathPortChangedEvent(
-                    opReply.port.asInstanceOf[Port[_, _]], opReply.op))
-        } else if (opReply.error != null) {
-            log.warning("Failed to delete port: {} due to error: {}",
-                opReply.port, opReply.error)
-        } else if (opReply.timeout) {
-            log.warning("Failed to delete port: {} due to timeout", opReply.port)
-        }
-
-    }
-
-    /** Deleguate of handlePortOperationReply. Processes tunnel ports events and
-     *  updates the DPC state or reschedule port creation accordingly */
-    private def handleTunnelPortOpReply(opReply: PortOpReply[_]) {
-        log.debug("Tunnel Port op reply: {}", opReply)
-
+        /** used in tests only */
         opReply match {
-
-            case TunnelGreOpReply(p, PortOperation.Create, false, null, _) =>
-                dpState.tunnelGre = Some(p)
-
-            case TunnelGreOpReply(p, PortOperation.Create, timeout, null, tags) =>
-                log.warning("GRE tunnel port creation timeout => retrying")
-                createDatapathPort(self, p, tags)
-
-            case TunnelGreOpReply(p, PortOperation.Create, _, ex, tags) =>
-                log.warning("GRE tunnel port creation failed because of {}"
-                    + " => retrying", ex)
-                createDatapathPort(self, p, tags)
-
-            case _ =>
-                log.debug("not handling tunnel port op reply {}", opReply)
+            case DpPortSuccess(req) =>
+                context.system.eventStream.publish(req)
         }
 
     }
 
-    def createDatapathPort(caller: ActorRef, port: Port[_, _], tag: Option[AnyRef]) {
+    def createDatapathPort(caller: ActorRef, request: DpPortCreate) {
+        val (port, tag) = (request.port, request.tag)
+
         if (caller == self)
             pendingUpdateCount += 1
         log.info("creating port: {} (by request of: {})", port, caller)
@@ -898,50 +737,37 @@ class DatapathController() extends Actor with ActorLogging with
         datapathConnection.portsCreate(datapath, port,
             new ErrorHandlingCallback[Port[_, _]] {
                 def onSuccess(data: Port[_, _]) {
-                    sendOpReply(caller, data, tag, PortOperation.Create, null, timeout = false)
+                    caller ! request.successReply
                 }
 
                 def handleError(ex: NetlinkException, timeout: Boolean) {
-                    sendOpReply(caller, port, tag, PortOperation.Create, ex, timeout)
+                    caller ! request.errorReply(timeout, ex)
                 }
             })
     }
 
-    def deleteDatapathPort(caller: ActorRef, port: Port[_, _], tag: Option[AnyRef]) {
+    def deleteDatapathPort(caller: ActorRef, request: DpPortDelete) {
+        val (port, tag) = (request.port, request.tag)
         if (caller == self)
             pendingUpdateCount += 1
         log.info("deleting port: {} (by request of: {})", port, caller)
 
-        datapathConnection.portsDelete(port, datapath, new ErrorHandlingCallback[Port[_, _]] {
-            def onSuccess(data: Port[_, _]) {
-                sendOpReply(caller, data, tag, PortOperation.Delete, null, timeout = false)
-            }
-
-            def handleError(ex: NetlinkException, timeout: Boolean) {
-                // check if the port has already been removed, if that's the
-                // case we can consider that the delete operation succeeded
-                if (ex.getErrorCodeEnum == NetlinkException.ErrorCode.ENOENT) {
-                    sendOpReply(caller, port, tag, PortOperation.Delete, null, timeout = false)
-                } else {
-                    sendOpReply(caller, port, tag, PortOperation.Delete, ex, timeout = false)
+        datapathConnection.portsDelete(port, datapath,
+            new ErrorHandlingCallback[Port[_, _]] {
+                def onSuccess(data: Port[_, _]) {
+                    caller ! request.successReply
                 }
-            }
-        })
-    }
 
-    private def sendOpReply(actor: ActorRef, port: Port[_, _], tag: Option[AnyRef],
-                            op: PortOperation.Value,
-                            ex: NetlinkException, timeout: Boolean) {
-        port match {
-            case p: InternalPort =>
-                actor ! PortInternalOpReply(p, op, timeout, ex, tag)
-            case p: NetDevPort =>
-                actor ! PortNetdevOpReply(p, op, timeout, ex, tag)
-            case p: PatchTunnelPort =>
-                actor ! TunnelPatchOpReply(p, op, timeout, ex, tag)
-            case p: GreTunnelPort =>
-                actor ! TunnelGreOpReply(p, op, timeout, ex, tag)
-        }
+                def handleError(ex: NetlinkException, timeout: Boolean) {
+                    // check if the port has already been removed, if that's the
+                    // case we can consider that the delete operation succeeded
+                    if (ex.getErrorCodeEnum == NetlinkException.ErrorCode.ENOENT) {
+                        caller ! request.errorReply(false, null)
+                    } else {
+                        caller ! request.errorReply(false, ex)
+                    }
+                }
+        })
     }
 
     private def getLocalInterfaceTunnelPhaseOne(caller: ActorRef) {

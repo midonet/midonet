@@ -15,7 +15,7 @@ import org.scalatest.matchers.ShouldMatchers
 
 import org.midonet.cluster.data.{Ports, Bridge => ClusterBridge}
 import org.midonet.cluster.data.host.Host
-import org.midonet.midolman.DatapathController.DatapathPortChangedEvent
+import org.midonet.midolman.DatapathController.DpPortCreate
 import org.midonet.midolman.topology.rcu.PortSet
 import topology.LocalPortActive
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.PortSetRequest
@@ -41,14 +41,14 @@ class PortSetManagementTestCase extends MidolmanTestCase with ShouldMatchers {
 
         // make two probes and make them listen DatapathController events
         val portChangedProbe = newProbe()
-        actors().eventStream.subscribe(portChangedProbe.ref, classOf[DatapathPortChangedEvent])
+        actors().eventStream.subscribe(portChangedProbe.ref, classOf[DpPortCreate])
         val portActiveProbe = newProbe()
         actors().eventStream.subscribe(portActiveProbe.ref, classOf[LocalPortActive])
 
         // make the bridge port to a local interface
         materializePort(inputPort, myHost, "port1")
 
-        portChangedProbe.expectMsgClass(classOf[DatapathPortChangedEvent])
+        portChangedProbe.expectMsgClass(classOf[DpPortCreate])
 
         portActiveProbe.expectMsgClass(classOf[LocalPortActive])
 

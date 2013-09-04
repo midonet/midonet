@@ -17,6 +17,7 @@ import org.midonet.cluster.data.{Bridge => ClusterBridge,
     Ports => ClusterPorts}
 import org.midonet.cluster.data.host.Host
 import org.midonet.odp.{Datapath, Ports}
+import org.midonet.odp.ports.NetDevPort
 
 
 @RunWith(classOf[JUnitRunner])
@@ -72,8 +73,8 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
     materializePort(port, host, "tapDevice")
 
     val eventProbe = newProbe()
-    actors().eventStream.subscribe(eventProbe.ref, classOf[DatapathPortChangedEvent])
-    requestOfType[DatapathPortChangedEvent](eventProbe)
+    actors().eventStream.subscribe(eventProbe.ref, classOf[DpPortCreate])
+    requestOfType[DpPortCreate](eventProbe)
     portEventsProbe.expectMsgClass(classOf[LocalPortActive])
 
     // validate the final datapath state
@@ -192,12 +193,11 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
 
     initializeDatapath() should not be (null)
 
-    var opReply =
-      ask[PortNetdevOpReply](
-        DatapathController.getRef(actors()),
-        CreatePortNetdev(Ports.newNetDevPort("netdev"), None))
+    var opReply = ask[DpPortReply](
+        dpController(), CreatePortNetdev(Ports.newNetDevPort("netdev"), None))
 
     opReply should not be (null)
+    val netdevPort: NetDevPort = opReply.request.port.asInstanceOf[NetDevPort]
 
     // validate the final datapath state
     val datapaths: mutable.Set[Datapath] = dpConn().datapathsEnumerate().get()
@@ -211,10 +211,8 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
     ports should contain key ("test")
     ports should contain key ("netdev")
 
-    opReply =
-      ask[PortNetdevOpReply](
-        DatapathController.getRef(actors()),
-        DeletePortNetdev(opReply.port, None))
+    val nextRequest = DeletePortNetdev(netdevPort, None)
+    opReply = ask[DpPortReply](dpController(), nextRequest)
     opReply should not be (null)
 
     ports = datapathPorts(datapaths.head)
