@@ -263,18 +263,16 @@ public class Ethernet extends BasePacket {
         }
         this.etherType = etherType;
 
-        IPacket payload;
         if (Ethernet.etherTypeClassMap.containsKey(this.etherType)) {
             Class<? extends IPacket> clazz = Ethernet.etherTypeClassMap.get(this.etherType);
             try {
-                payload = clazz.newInstance();
+                this.payload = clazz.newInstance().deserialize(bb.slice());
             } catch (Exception e) {
-                throw new RuntimeException("Error parsing payload for Ethernet packet", e);
+                this.payload = (new Data()).deserialize(bb.slice());
             }
         } else {
-            payload = new Data();
+            this.payload = (new Data()).deserialize(bb.slice());
         }
-        this.payload = payload.deserialize(bb.slice());
         this.payload.setParent(this);
         return this;
     }

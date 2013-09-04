@@ -284,13 +284,13 @@ public class UDP extends BasePacket implements Transport {
             try {
                 payload = UDP.decodeMap.get(this.destinationPort).getConstructor().newInstance();
             } catch (Exception e) {
-                throw new RuntimeException("Failure instantiating class", e);
+                payload = new Data();
             }
         } else if (UDP.decodeMap.containsKey(this.sourcePort)) {
             try {
                 payload = UDP.decodeMap.get(this.sourcePort).getConstructor().newInstance();
             } catch (Exception e) {
-                throw new RuntimeException("Failure instantiating class", e);
+                payload = new Data();
             }
         } else {
             payload = new Data();
@@ -302,7 +302,11 @@ public class UDP extends BasePacket implements Transport {
             bb.limit(len);
         }
 
-        payload.deserialize(bb.slice());
+        try {
+            payload.deserialize(bb.slice());
+        } catch (Exception e) {
+            payload = (new Data()).deserialize(bb.slice());
+        }
         payload.setParent(this);
         return this;
     }
