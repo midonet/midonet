@@ -35,7 +35,6 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
-        <mido.rpm.version>${project.version}</mido.rpm.version>
         <mido.rpm.release>0.0.${maven.build.timestamp}</mido.rpm.release>
 
         <versions.java>1.7</versions.java>
@@ -162,6 +161,26 @@
                         <execution>
                             <phase>package</phase>
                             <goals><goal>jdeb</goal></goals>
+                        </execution>
+                    </executions>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>rpm-maven-plugin</artifactId>
+                    <version>${versions.plugins.rpm}</version>
+                    <configuration>
+                        <copyright>2013, Midokura</copyright>
+                        <packager>Midokura</packager>
+                        <prefix>/usr</prefix>
+                        <group>System Environment/Daemons</group>
+                        <needarch>false</needarch>
+                        <release>${mido.rpm.release}</release>
+                    </configuration>
+                    <executions>
+                        <execution> <!-- rpm:version will remove -SNAPSHOT -->
+                            <id>property</id>
+                            <goals><goal>version</goal></goals>
                         </execution>
                     </executions>
                 </plugin>
