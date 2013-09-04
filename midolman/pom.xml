@@ -132,24 +132,13 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>rpm-maven-plugin</artifactId>
-                <version>${versions.plugins.rpm}</version>
                 <configuration>
-                    <copyright>2013, Midokura</copyright>
-                    <packager>Midokura</packager>
-                    <prefix>/usr</prefix>
-                    <group>System Environment/Daemons</group>
-                    <needarch>false</needarch>
-                    <version>${mido.rpm.version}</version>
-                    <release>${mido.rpm.release}</release>
                     <requires>
                         <require>kmod-openvswitch &gt;= 1.9</require>
                         <require>java7</require>
                         <require>quagga &gt;= 0.99.21</require>
                         <require>bridge-utils</require>
                     </requires>
-                    <conflicts>
-                        <conflict>kmod-openvswitch &gt;= 1.10</conflict>
-                    </conflicts>
                     <mappings>
                         <mapping>
                             <directory>/usr/share/midolman</directory>

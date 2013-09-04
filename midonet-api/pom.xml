@@ -162,15 +162,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>rpm-maven-plugin</artifactId>
-                <version>${versions.plugins.rpm}</version>
                 <configuration>
-                    <copyright>2013, Midokura</copyright>
-                    <packager>Midokura</packager>
-                    <prefix>/usr</prefix>
-                    <group>System Environment/Daemons</group>
-                    <needarch>false</needarch>
-                    <version>${mido.rpm.version}</version>
-                    <release>${mido.rpm.release}</release>
                     <requires>
                         <require>java7</require>
                         <require>tomcat7</require>
