@@ -7,6 +7,7 @@ import java.util.concurrent.Future;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.midonet.util.BatchCollector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static org.hamcrest.CoreMatchers.allOf;
@@ -730,11 +731,11 @@ public class OvsPacketInTest extends AbstractNetlinkProtocolTest {
     };
 
     private static class PacketReceivingCallback
-        implements Callback<Packet> {
+        implements BatchCollector<Packet> {
         Packet packet;
 
         @Override
-        public void onSuccess(Packet data) {
+        public void submit(Packet data) {
             packet = data;
         }
 
@@ -747,11 +748,6 @@ public class OvsPacketInTest extends AbstractNetlinkProtocolTest {
         }
 
         @Override
-        public void onTimeout() {
-        }
-
-        @Override
-        public void onError(NetlinkException e) {
-        }
+        public void endBatch() {}
     }
 }

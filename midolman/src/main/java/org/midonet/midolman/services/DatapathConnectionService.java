@@ -12,6 +12,7 @@ import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.guice.reactor.ReactorModule;
 import org.midonet.odp.protos.OvsDatapathConnection;
 import org.midonet.util.eventloop.SelectListener;
@@ -34,14 +35,17 @@ public class DatapathConnectionService extends AbstractService {
     @ReactorModule.READ_LOOP
     SelectLoop readLoop;
 
-
     @Inject
     OvsDatapathConnection datapathConnection;
+
+    @Inject
+    MidolmanConfig config;
 
     @Override
     protected void doStart() {
         try {
             datapathConnection.getChannel().configureBlocking(false);
+            datapathConnection.setMaxBatchIoOps(config.getMaxMessagesPerBatch());
 
             readLoop.register(
                 datapathConnection.getChannel(),
@@ -61,7 +65,7 @@ public class DatapathConnectionService extends AbstractService {
                     new SelectListener() {
                         @Override
                         public void handleEvent(SelectionKey key)
-                            throws IOException {
+                                throws IOException {
                             datapathConnection.handleWriteEvent(key);
                         }
                     });

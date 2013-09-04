@@ -70,7 +70,10 @@ public class NetlinkConnection extends AbstractNetlinkConnection {
                 .addAttr(CtrlFamily.AttrKey.FAMILY_NAME, familyName)
                 .build();
 
-        newRequest(ctrlFamily, CtrlFamily.Cmd.GETFAMILY)
+        RequestBuilder<CtrlFamily.Cmd, CtrlFamily, Short> reqBuilder =
+            newRequest(ctrlFamily, CtrlFamily.Cmd.GETFAMILY);
+
+        reqBuilder
             .withFlags(Flag.NLM_F_REQUEST)
             .withPayload(message.getBuffer())
             .withCallback(callback, new Function<List<ByteBuffer>, Short>() {
@@ -104,7 +107,10 @@ public class NetlinkConnection extends AbstractNetlinkConnection {
                 .addAttr(CtrlFamily.AttrKey.FAMILY_NAME, familyName)
                 .build();
 
-        newRequest(ctrlFamily, CtrlFamily.Cmd.GETFAMILY)
+        RequestBuilder<CtrlFamily.Cmd, CtrlFamily, Integer> reqBuilder =
+                newRequest(ctrlFamily, CtrlFamily.Cmd.GETFAMILY);
+
+        reqBuilder
             .withFlags(Flag.NLM_F_REQUEST)
             .withPayload(message.getBuffer())
             .withCallback(callback, new Function<List<ByteBuffer>, Integer>() {
