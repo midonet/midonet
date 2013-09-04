@@ -25,8 +25,9 @@ import org.slf4j.LoggerFactory;
 import org.midonet.midolman.DatapathController;
 import org.midonet.midolman.DeduplicationActor;
 import org.midonet.midolman.FlowController;
-import org.midonet.midolman.SupervisorActor.StartChild;
+import org.midonet.midolman.NetlinkCallbackDispatcher;
 import org.midonet.midolman.SupervisorActor;
+import org.midonet.midolman.SupervisorActor.StartChild;
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.monitoring.MonitoringActor;
 import org.midonet.midolman.routingprotocols.RoutingManagerActor;
@@ -60,6 +61,7 @@ public class MidolmanActorsService extends AbstractService {
     ActorRef monitoringActor;
     ActorRef routingManagerActor;
     ActorRef deduplicationActor;
+    ActorRef netlinkCallbackDispatcher;
 
     @Override
     protected void doStart() {
@@ -100,6 +102,10 @@ public class MidolmanActorsService extends AbstractService {
         deduplicationActor =
                 startActor(getGuiceAwareFactory(DeduplicationActor.class),
                         DeduplicationActor.Name());
+
+        netlinkCallbackDispatcher =
+                startActor(getGuiceAwareFactory(NetlinkCallbackDispatcher.class),
+                        NetlinkCallbackDispatcher.Name());
 
         if (config.getMidolmanEnableMonitoring()) {
             monitoringActor = startActor(getGuiceAwareFactory(MonitoringActor.class),

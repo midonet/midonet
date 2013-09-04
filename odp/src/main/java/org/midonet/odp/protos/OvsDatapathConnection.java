@@ -9,6 +9,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import com.google.common.util.concurrent.ValueFuture;
+import org.midonet.util.BatchCollector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -92,7 +93,7 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
      * specific datapath.
      */
     public Future<Boolean> datapathsSetNotificationHandler(@Nonnull Datapath datapath,
-                                                           @Nonnull Callback<Packet> notificationHandler) {
+                                                           @Nonnull BatchCollector<Packet> notificationHandler) {
         ValueFuture<Boolean> valueFuture = ValueFuture.create();
         datapathsSetNotificationHandler(datapath, notificationHandler,
                                         wrapFuture(valueFuture));
@@ -104,7 +105,7 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
      * specific datapath.
      */
     public void datapathsSetNotificationHandler(@Nonnull final Datapath datapath,
-                                                @Nonnull final Callback<Packet> notificationHandler,
+                                                @Nonnull final BatchCollector<Packet> notificationHandler,
                                                 @Nonnull final Callback<Boolean> operationCallback) {
         _doDatapathsSetNotificationHandler(datapath, notificationHandler,
                                            operationCallback,
@@ -113,7 +114,7 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
 
     protected abstract void
     _doDatapathsSetNotificationHandler(@Nonnull final Datapath datapath,
-                                       @Nonnull final Callback<Packet> notificationHandler,
+                                       @Nonnull final BatchCollector<Packet> notificationHandler,
                                        @Nonnull final Callback<Boolean> operationCallback,
                                        long timeoutMillis);
 

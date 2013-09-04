@@ -22,6 +22,9 @@ public interface DatapathConfig {
     @ConfigInt(key = "max_flow_count", defaultValue = 10000)
     public int getDatapathMaxFlowCount();
 
+    @ConfigInt(key = "msgs_per_batch", defaultValue = 200)
+    public int getMaxMessagesPerBatch();
+
     /**
      * The wildcard flows have idle times, so the table should take care of itself. Having a smaller table (a limited
      * size table) means that the system would be potentially evicting valid flows often, causing more simulations and
