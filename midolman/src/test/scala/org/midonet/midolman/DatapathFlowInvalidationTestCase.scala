@@ -9,27 +9,22 @@ import scala.collection.immutable.HashMap
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
-import akka.util.Duration
 import akka.testkit.TestProbe
-
+import akka.util.Duration
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.odp.Datapath
-import org.midonet.odp.flows.{FlowActions, FlowAction}
-import org.midonet.packets.IPv4Addr
-import org.midonet.packets.MAC
-import org.midonet.sdn.flows.{WildcardMatch, WildcardFlow}
 import org.midonet.cluster.data.Router
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.ports.MaterializedRouterPort
 import org.midonet.cluster.data.zones.{GreTunnelZone, GreTunnelZoneHost}
-import org.midonet.midolman.DatapathController.DatapathPortChangedEvent
-import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
+import org.midonet.midolman.DatapathController.DpPortCreate
+import org.midonet.midolman.FlowController.AddWildcardFlow
+import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.FlowController.WildcardFlowAdded
 import org.midonet.midolman.FlowController.WildcardFlowRemoved
-import org.midonet.midolman.FlowController.InvalidateFlowsByTag
+import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
 import org.midonet.midolman.datapath.FlowActionOutputToVrnPortSet
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
@@ -37,6 +32,11 @@ import org.midonet.midolman.topology.VirtualToPhysicalMapper.GreZoneChanged
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.GreZoneMembers
 import org.midonet.midolman.topology.{FlowTagger, LocalPortActive}
 import org.midonet.midolman.util.{TestHelpers, RouterHelper}
+import org.midonet.odp.Datapath
+import org.midonet.odp.flows.{FlowActions, FlowAction}
+import org.midonet.packets.IPv4Addr
+import org.midonet.packets.MAC
+import org.midonet.sdn.flows.{WildcardMatch, WildcardFlow}
 
 @RunWith(classOf[JUnitRunner])
 class DatapathFlowInvalidationTestCase extends MidolmanTestCase with VirtualConfigurationBuilders
@@ -93,8 +93,8 @@ with RouterHelper{
         clusterRouter = newRouter("router")
         clusterRouter should not be null
 
-        actors().eventStream.subscribe(datapathEventsProbe.ref,
-            classOf[DatapathPortChangedEvent])
+        actors().eventStream.subscribe(
+            datapathEventsProbe.ref,classOf[DpPortCreate])
 
 
         initializeDatapath() should not be (null)
@@ -220,7 +220,7 @@ with RouterHelper{
         // Wait for LocalPortActive messages - they prove the
         // VirtualToPhysicalMapper has the correct information for the PortSet.
         portsProbe.expectMsgClass(classOf[LocalPortActive])
-        requestOfType[DatapathPortChangedEvent](datapathEventsProbe)
+        requestOfType[DpPortCreate](datapathEventsProbe)
 
         val srcIp = IPv4Addr("192.168.100.1")
         val dstIp1 = IPv4Addr("192.168.125.1")

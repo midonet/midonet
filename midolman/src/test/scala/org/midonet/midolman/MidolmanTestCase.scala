@@ -16,6 +16,7 @@ import akka.dispatch.{Await, Future}
 import akka.testkit._
 import akka.util.{Duration, Timeout}
 import akka.util.duration._
+import akka.pattern.ask
 
 import com.google.inject._
 import org.apache.commons.configuration.HierarchicalConfiguration
@@ -58,6 +59,7 @@ import org.midonet.midolman.guice.serialization.SerializationModule
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.FlowController.WildcardFlowAdded
 import org.midonet.midolman.guice.actors.OutgoingMessage
+import org.midonet.midolman.DatapathController.Initialize
 import org.midonet.midolman.DatapathController.InitializationComplete
 import org.midonet.midolman.PacketWorkflow.PacketIn
 import org.midonet.midolman.FlowController.WildcardFlowRemoved
@@ -91,6 +93,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
     var discardPacketProbe: TestProbe = null
 
     val timeout = Duration(3, TimeUnit.SECONDS)
+    implicit val askTimeout = Timeout(3 second)
 
     protected def fillConfig(config: HierarchicalConfiguration)
             : HierarchicalConfiguration = {
@@ -250,10 +253,8 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
     }
 
     protected def ask[T](actor: ActorRef, msg: Object): T = {
-        val t = Timeout(3 second)
-        val promise = akka.pattern.ask(actor, msg)(t).asInstanceOf[Future[T]]
-
-        Await.result(promise, t.duration)
+        val promise = akka.pattern.ask(actor, msg).asInstanceOf[Future[T]]
+        Await.result(promise, timeout)
     }
 
     def materializePort(port: VPort[_, _], host: Host, name: String): Unit = {
@@ -287,15 +288,10 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
         actorsByName(name).asInstanceOf[TestActorRef[A]]
     }
 
-    protected def initializeDatapath(): InitializationComplete = {
-
-        val result = ask[InitializationComplete](
-            DatapathController.getRef(actors()), Initialize())
-
-        dpProbe().expectMsgType[Initialize] should not be null
-        dpProbe().expectMsgType[OutgoingMessage] should not be null
-
-        result
+    protected def initializeDatapath() = {
+        val result = Await.result(dpController() ? Initialize, timeout)
+        result should be (InitializationComplete)
+        InitializationComplete
     }
 
     protected def triggerPacketIn(portName: String, ethPkt: Ethernet) {

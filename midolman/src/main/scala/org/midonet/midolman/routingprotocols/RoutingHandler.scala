@@ -4,10 +4,10 @@
 
 package org.midonet.midolman.routingprotocols
 
-import collection.mutable
 import java.io.File
 import java.util.UUID
 import scala.collection.JavaConversions._
+import scala.collection.mutable
 
 import akka.actor.{ActorRef, Props, UntypedActorWithStash}
 
@@ -15,9 +15,7 @@ import org.midonet.cluster.client.{Port, ExteriorRouterPort, BGPListBuilder}
 import org.midonet.cluster.data.{Route, AdRoute, BGP}
 import org.midonet.cluster.{Client, DataClient}
 import org.midonet.midolman.DatapathController
-import org.midonet.midolman.DatapathController.CreatePortNetdev
-import org.midonet.midolman.DatapathController.DeletePortNetdev
-import org.midonet.midolman.DatapathController.PortNetdevOpReply
+import org.midonet.midolman.FlowController
 import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.FlowActionOutputToVrnPort
@@ -25,7 +23,6 @@ import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.state.{ZkConnectionAwareWatcher, StateAccessException}
 import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 import org.midonet.midolman.topology.{FlowTagger, VirtualTopologyActor}
-import org.midonet.midolman.{PortOperation, FlowController}
 import org.midonet.netlink.AfUnix
 import org.midonet.odp.Ports
 import org.midonet.odp.flows.{FlowActionUserspace, FlowActions}
@@ -104,6 +101,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
     extends UntypedActorWithStash with ActorLogWithoutPath {
 
     import RoutingHandler._
+    import DatapathController._
 
     private final val BGP_NETDEV_PORT_NAME: String =
         "mbgp%d".format(bgpIdx)
@@ -375,7 +373,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
                         stash()
                 }
 
-            case PortNetdevOpReply(netdevPort, PortOperation.Create, false, null, null) =>
+            case DpPortSuccess(CreatePortNetdev(netdevPort, _)) =>
                 log.debug("PortNetdevOpReply - create, for port {}", rport.id)
                 phase match {
                     case Starting =>
@@ -385,13 +383,10 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
                             "Starting - we're now in {}", phase)
                 }
 
-            case PortNetdevOpReply(port, op, timeout, ex, tag) => // Do nothing
-                log.debug("PortNetdevOpReply - unknown")
-                log.debug("port: {}", port)
-                log.debug("op: {}", op)
-                log.debug("timeout: {}", timeout)
-                log.debug("ex: {}", ex)
-                log.debug("tag: {}", tag)
+            case DpPortError(CreatePortNetdev(port, _), timeout, ex) =>
+                // Do nothing
+                log.debug("Netdev port {} creation request failed: " +
+                    "timeout={}, error={}", port, timeout, ex)
 
             case BGPD_READY =>
                 log.debug("BGPD_READY for port {}", rport.id)
@@ -737,7 +732,6 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
         // Add port to datapath
         DatapathController.getRef() !
             CreatePortNetdev(Ports.newNetDevPort(BGP_NETDEV_PORT_NAME), null)
-
 
         /* VTY interface configuration */
 
