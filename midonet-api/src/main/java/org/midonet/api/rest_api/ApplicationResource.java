@@ -249,7 +249,7 @@ public class ApplicationResource extends AbstractResource {
         Application a = new Application(getBaseUri());
         a.setVersion(Version.CURRENT);
 
-        log.debug("ApplicationResource: existing: " + a);
+        log.debug("ApplicationResource: exiting: " + a);
         return a;
     }
 }

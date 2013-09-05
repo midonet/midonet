@@ -71,13 +71,13 @@ public class ZookeeperConnWatcher implements ZkConnectionAwareWatcher {
     @Override
     public void handleError(String operationDesc, Runnable retry,
                             KeeperException e) {
-        log.debug("handleError(): ignoring: {}", e);
+        log.warn("handleError(): ignoring: {}", e);
     }
 
     @Override
     public void handleError(String operationDesc, Runnable retry,
                             StateAccessException e) {
-        log.debug("handleError(): ignoring: {}", e);
+        log.warn("handleError(): ignoring: {}", e);
     }
 
     @Override
