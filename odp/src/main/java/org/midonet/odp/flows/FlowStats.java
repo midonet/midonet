@@ -16,7 +16,7 @@ public class FlowStats implements BuilderAware {
     /*__u64*/ long n_bytes;
 
     @Override
-    public void serialize(BaseBuilder builder) {
+    public void serialize(BaseBuilder<?,?> builder) {
         builder.addValue(n_packets);
         builder.addValue(n_bytes);
     }

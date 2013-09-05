@@ -12,7 +12,7 @@ public class FlowActionOutput implements FlowAction<FlowActionOutput> {
     int portNumber;
 
     @Override
-    public void serialize(BaseBuilder builder) {
+    public void serialize(BaseBuilder<?,?> builder) {
         builder.addValue(portNumber);
     }
 

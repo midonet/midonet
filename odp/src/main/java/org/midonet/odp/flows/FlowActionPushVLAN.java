@@ -17,7 +17,7 @@ public class FlowActionPushVLAN implements FlowAction<FlowActionPushVLAN> {
     /*__be16*/ short vlan_tci;
 
     @Override
-    public void serialize(BaseBuilder builder) {
+    public void serialize(BaseBuilder<?,?> builder) {
         builder.addValue(vlan_tpid, ByteOrder.BIG_ENDIAN);
         builder.addValue(vlan_tci, ByteOrder.BIG_ENDIAN);
     }

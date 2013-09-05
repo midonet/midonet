@@ -14,7 +14,7 @@ public class FlowKeyUDP implements FlowKey<FlowKeyUDP> {
     /*__be16*/ int udp_dst;
 
     @Override
-    public void serialize(BaseBuilder builder) {
+    public void serialize(BaseBuilder<?,?> builder) {
         builder.addValue((short)udp_src, ByteOrder.BIG_ENDIAN);
         builder.addValue((short)udp_dst, ByteOrder.BIG_ENDIAN);
     }

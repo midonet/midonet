@@ -74,7 +74,7 @@ public class Packet {
         return this;
     }
 
-    public Packet addKey(FlowKey key) {
+    public Packet addKey(FlowKey<?> key) {
         match.addKey(key);
         return this;
     }

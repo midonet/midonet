@@ -10,7 +10,7 @@ import org.midonet.odp.PortOptions;
 public abstract class AbstractPortOptions implements PortOptions {
 
     @Override
-    public void serialize(BaseBuilder builder) {
+    public void serialize(BaseBuilder<?,?> builder) {
     }
 
     @Override

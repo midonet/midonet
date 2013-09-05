@@ -51,7 +51,7 @@ public class FlowMatchTest {
     public void testAddKey() {
         FlowMatch m = new FlowMatch();
         assertFalse(m.isUserSpaceOnly());
-        for (FlowKey key : supported) {
+        for (FlowKey<?> key : supported) {
             m.addKey(key);
         }
         assertFalse(m.isUserSpaceOnly());

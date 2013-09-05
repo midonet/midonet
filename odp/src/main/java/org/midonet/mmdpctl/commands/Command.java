@@ -23,7 +23,7 @@ public abstract class Command<T> {
      * @param task
      * @return
      */
-    protected Future<T> run(Callable task) {
+    protected Future<T> run(Callable<T> task) {
         ExecutorService executorService = Executors.newCachedThreadPool();
         Future<T> result = executorService.submit(task);
         executorService.shutdown();

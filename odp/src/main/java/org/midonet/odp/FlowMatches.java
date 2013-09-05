@@ -173,7 +173,7 @@ public class FlowMatches {
     }
 
     public static void addUserspaceKeys (Ethernet ethPkt, FlowMatch match) {
-        for (FlowKey key: match.getKeys()) {
+        for (FlowKey<?> key: match.getKeys()) {
             if (key instanceof FlowKeyICMP) {
                 ICMP icmpPkt = ICMP.class.cast(
                         IPv4.class.cast(ethPkt.getPayload()).

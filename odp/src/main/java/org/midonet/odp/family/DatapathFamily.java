@@ -6,18 +6,25 @@ package org.midonet.odp.family;
 import org.midonet.netlink.Netlink;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.odp.Datapath;
+import org.midonet.odp.OpenVSwitch;
 
 /**
  * Abstraction for the NETLINK OvsDatapath family of commands and attributes.
  */
-public class DatapathFamily extends Netlink.CommandFamily<DatapathFamily.Cmd, DatapathFamily.Attr>{
+public class DatapathFamily extends
+        Netlink.CommandFamily<DatapathFamily.Cmd,
+            DatapathFamily.Attr<DatapathFamily>> {
 
-    public static final byte VERSION = 1;
-    public static final String NAME = "ovs_datapath";
-    public static final String MC_GROUP = "ovs_datapath";
+    public static final byte VERSION = OpenVSwitch.Datapath.version;
+    public static final String NAME = OpenVSwitch.Datapath.Family;
+    public static final String MC_GROUP = OpenVSwitch.Datapath.MCGroup;
 
     public enum Cmd implements Netlink.ByteConstant {
-        NEW(1), DEL(2), GET(3), SET(4);
+
+        NEW(OpenVSwitch.Datapath.Cmd.New),
+        DEL(OpenVSwitch.Datapath.Cmd.Del),
+        GET(OpenVSwitch.Datapath.Cmd.Get),
+        SET(OpenVSwitch.Datapath.Cmd.Set);
 
         byte value;
 
@@ -33,9 +40,14 @@ public class DatapathFamily extends Netlink.CommandFamily<DatapathFamily.Cmd, Da
 
     public static class Attr<T> extends NetlinkMessage.AttrKey<T> {
 
-        public static final Attr<String> NAME = attr(1);
-        public static final Attr<Integer> UPCALL_PID = attr(2);
-        public static final Attr<Datapath.Stats> STATS = attr(3);
+        public static final Attr<String> NAME =
+            attr(OpenVSwitch.Datapath.Attr.Name);
+
+        public static final Attr<Integer> UPCALL_PID =
+            attr(OpenVSwitch.Datapath.Attr.UpcallPID);
+
+        public static final Attr<Datapath.Stats> STATS =
+            attr(OpenVSwitch.Datapath.Attr.Stat);
 
         public Attr(int id) {
             super(id);

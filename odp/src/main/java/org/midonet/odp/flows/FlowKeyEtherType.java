@@ -44,7 +44,7 @@ public class FlowKeyEtherType implements FlowKey<FlowKeyEtherType> {
     /* be16 */ short etherType;
 
     @Override
-    public void serialize(BaseBuilder builder) {
+    public void serialize(BaseBuilder<?,?> builder) {
         builder.addValue(etherType, ByteOrder.BIG_ENDIAN);
     }
 

@@ -19,7 +19,7 @@ public class FlowKeyARP implements FlowKey<FlowKeyARP> {
     /*__u8*/ byte[] arp_tha = new byte[6]; // 6 bytes long
 
     @Override
-    public void serialize(BaseBuilder builder) {
+    public void serialize(BaseBuilder<?,?> builder) {
         builder.addValue(arp_sip, ByteOrder.BIG_ENDIAN)
                .addValue(arp_tip, ByteOrder.BIG_ENDIAN)
                .addValue(arp_op, ByteOrder.BIG_ENDIAN)

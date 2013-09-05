@@ -23,7 +23,7 @@ public class FlowKeyIPv6 implements FlowKey<FlowKeyIPv6> {
     /*__u8*/ byte ipv6_frag;    /* One of OVS_FRAG_TYPE_*. */
 
     @Override
-    public void serialize(BaseBuilder builder) {
+    public void serialize(BaseBuilder<?,?> builder) {
         builder.addValue(ipv6_src, ByteOrder.BIG_ENDIAN)
                .addValue(ipv6_dst, ByteOrder.BIG_ENDIAN)
                .addValue(ipv6_label, ByteOrder.BIG_ENDIAN)

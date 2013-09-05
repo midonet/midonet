@@ -11,7 +11,7 @@ public class FlowKeyInPort implements FlowKey<FlowKeyInPort> {
     /*__be32*/ int portNo;
 
     @Override
-    public void serialize(BaseBuilder builder) {
+    public void serialize(BaseBuilder<?,?> builder) {
         builder.addValue(portNo);
     }
 

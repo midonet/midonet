@@ -74,12 +74,12 @@ public class Flow {
         return this;
     }
 
-    public Flow addAction(FlowAction action) {
+    public Flow addAction(FlowAction<?> action) {
         actions.add(action);
         return this;
     }
 
-    public Flow addKey(FlowKey key) {
+    public Flow addKey(FlowKey<?> key) {
         if  (match == null) {
             match = new FlowMatch();
         }

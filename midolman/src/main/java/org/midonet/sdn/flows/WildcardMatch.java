@@ -13,6 +13,7 @@ import java.util.UUID;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import org.midonet.odp.OpenVSwitch;
 import org.midonet.odp.FlowMatch;
 import org.midonet.odp.FlowMatches;
 import org.midonet.odp.flows.*;
@@ -1054,33 +1055,40 @@ public class WildcardMatch implements Cloneable {
     private void processMatchKeys(List<FlowKey<?>> flowKeys) {
         for (FlowKey<?> flowKey : flowKeys) {
             switch (flowKey.getKey().getId()) {
-                case 1: // FlowKeyAttr<FlowKeyEncap> ENCAP = attr(1);
+
+                case OpenVSwitch.FlowKey.Attr.Encap:
                     FlowKeyEncap encap = as(flowKey, FlowKeyEncap.class);
                     processMatchKeys(encap.getKeys());
                     break;
-                case 2: // FlowKeyAttr<FlowKeyPriority> PRIORITY = attr(2);
+
+                case OpenVSwitch.FlowKey.Attr.Priority:
                     // TODO(pino)
                     break;
-                case 3: // FlowKeyAttr<FlowKeyInPort> IN_PORT = attr(3);
+
+                case OpenVSwitch.FlowKey.Attr.InPort:
                     FlowKeyInPort inPort = as(flowKey, FlowKeyInPort.class);
                     setInputPortNumber((short) inPort.getInPort());
                     break;
-                case 4: // FlowKeyAttr<FlowKeyEthernet> ETHERNET = attr(4);
+
+                case OpenVSwitch.FlowKey.Attr.Ethernet:
                     FlowKeyEthernet ethernet = as(flowKey,
                                                   FlowKeyEthernet.class);
                     setEthernetSource(MAC.fromAddress(ethernet.getSrc()));
                     setEthernetDestination(MAC.fromAddress(ethernet.getDst()));
                     break;
-                case 5: // FlowKeyAttr<FlowKeyVLAN> VLAN = attr(5);
+
+                case OpenVSwitch.FlowKey.Attr.VLan:
                     FlowKeyVLAN vlan = as(flowKey, FlowKeyVLAN.class);
                     addVlanId(vlan.getVLAN());
                     break;
-                case 6: // FlowKeyAttr<FlowKeyEtherType> ETHERTYPE = attr(6);
+
+                case OpenVSwitch.FlowKey.Attr.Ethertype:
                     FlowKeyEtherType etherType = as(flowKey,
                                                     FlowKeyEtherType.class);
                     setEtherType(etherType.getEtherType());
                     break;
-                case 7: // FlowKeyAttr<FlowKeyIPv4> IPv4 = attr(7);
+
+                case OpenVSwitch.FlowKey.Attr.IPv4:
                     FlowKeyIPv4 ipv4 = as(flowKey, FlowKeyIPv4.class);
                     setNetworkSource(
                         IPv4Addr.fromInt(ipv4.getSrc()));
@@ -1090,7 +1098,8 @@ public class WildcardMatch implements Cloneable {
                     setIpFragmentType(IPFragmentType.fromByte(ipv4.getFrag()));
                     setNetworkTTL(ipv4.getTtl());
                     break;
-                case 8: // FlowKeyAttr<FlowKeyIPv6> IPv6 = attr(8);
+
+                case OpenVSwitch.FlowKey.Attr.IPv6:
                     FlowKeyIPv6 ipv6 = as(flowKey, FlowKeyIPv6.class);
                     int[] intSrc = ipv6.getSrc();
                     int[] intDst = ipv6.getDst();
@@ -1104,19 +1113,22 @@ public class WildcardMatch implements Cloneable {
                     setIpFragmentType(ipv6.getFrag());
                     setNetworkTTL(ipv6.getHLimit());
                     break;
-                case 9: //FlowKeyAttr<FlowKeyTCP> TCP = attr(9);
+
+                case OpenVSwitch.FlowKey.Attr.TCP:
                     FlowKeyTCP tcp = as(flowKey, FlowKeyTCP.class);
                     setTransportSource(tcp.getSrc());
                     setTransportDestination(tcp.getDst());
                     setNetworkProtocol(TCP.PROTOCOL_NUMBER);
                     break;
-                case 10: // FlowKeyAttr<FlowKeyUDP> UDP = attr(10);
+
+                case OpenVSwitch.FlowKey.Attr.UDP:
                     FlowKeyUDP udp = as(flowKey, FlowKeyUDP.class);
                     setTransportSource(udp.getUdpSrc());
                     setTransportDestination(udp.getUdpDst());
                     setNetworkProtocol(UDP.PROTOCOL_NUMBER);
                     break;
-                case 11: // FlowKeyAttr<FlowKeyICMP> ICMP = attr(11);
+
+                case OpenVSwitch.FlowKey.Attr.ICMP:
                     FlowKeyICMP icmp = as(flowKey, FlowKeyICMP.class);
                     setTransportSource(icmp.getType());
                     setTransportDestination(icmp.getCode());
@@ -1129,22 +1141,27 @@ public class WildcardMatch implements Cloneable {
                     }
                     setNetworkProtocol(ICMP.PROTOCOL_NUMBER);
                     break;
-                case 12: // FlowKeyAttr<FlowKeyICMPv6> ICMPv6 = attr(12);
+
+                case OpenVSwitch.FlowKey.Attr.ICMPv6:
                     // XXX(jlm, s3wong)
                     break;
-                case 13: // FlowKeyAttr<FlowKeyARP> ARP = attr(13);
+
+                case OpenVSwitch.FlowKey.Attr.ARP:
                     FlowKeyARP arp = as(flowKey, FlowKeyARP.class);
                     setNetworkSource(IPv4Addr.fromInt(arp.getSip()));
                     setNetworkDestination(IPv4Addr.fromInt(arp.getTip()));
                     setEtherType(ARP.ETHERTYPE);
                     setNetworkProtocol((byte)(arp.getOp() & 0xff));
                     break;
-                case 14: // FlowKeyAttr<FlowKeyND> ND = attr(14);
+
+                case OpenVSwitch.FlowKey.Attr.ND:
                     // XXX(jlm, s3wong): Neighbor Discovery
                     break;
-                case FlowKeyTunnel.ATTR_ID:
-                    // FlowKeyAttr<FlowKeyTunnel> tun = attrNest(16); ( neq 16 )
+
+                case ((short)OpenVSwitch.FlowKey.Attr.Tunnel_N):
                     // since ovs 1.9, required for ovs 1.10+
+                    // matched in "nested" flagged type id:
+                    // FlowKeyAttr<FlowKeyTunnel> tun = attrNest(16); ( neq 16 )
                     setTunnelID(as(flowKey, FlowKeyTunnel.class).getTunnelID());
                     break;
             }

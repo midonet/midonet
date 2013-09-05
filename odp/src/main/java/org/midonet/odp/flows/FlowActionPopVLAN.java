@@ -9,7 +9,7 @@ import org.midonet.netlink.messages.BaseBuilder;
 public class FlowActionPopVLAN implements FlowAction<FlowActionPopVLAN> {
 
     @Override
-    public void serialize(BaseBuilder builder) {
+    public void serialize(BaseBuilder<?,?> builder) {
     }
 
     @Override

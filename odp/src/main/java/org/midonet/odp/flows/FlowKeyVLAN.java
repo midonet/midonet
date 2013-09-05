@@ -16,7 +16,7 @@ public class FlowKeyVLAN implements FlowKey<FlowKeyVLAN> {
     short vlan; // 12 bit
 
     @Override
-    public void serialize(BaseBuilder builder) {
+    public void serialize(BaseBuilder<?,?> builder) {
         builder.addValue((short)(vlan | 0x1000), ByteOrder.BIG_ENDIAN);
     }
 

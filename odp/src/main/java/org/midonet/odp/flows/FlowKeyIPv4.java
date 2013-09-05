@@ -20,7 +20,7 @@ public class FlowKeyIPv4 implements FlowKey<FlowKeyIPv4> {
     /*__u8*/ byte ipv4_frag;    /* One of OVS_FRAG_TYPE_*. */
 
     @Override
-    public void serialize(BaseBuilder builder) {
+    public void serialize(BaseBuilder<?,?> builder) {
         builder.addValue(ipv4_src, ByteOrder.BIG_ENDIAN)
                .addValue(ipv4_dst, ByteOrder.BIG_ENDIAN)
                .addValue(ipv4_proto)

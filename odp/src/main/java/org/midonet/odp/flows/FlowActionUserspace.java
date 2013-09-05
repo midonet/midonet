@@ -5,6 +5,7 @@ package org.midonet.odp.flows;
 
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.BaseBuilder;
+import org.midonet.odp.OpenVSwitch;
 
 public class FlowActionUserspace implements FlowAction<FlowActionUserspace> {
 
@@ -12,7 +13,7 @@ public class FlowActionUserspace implements FlowAction<FlowActionUserspace> {
     Long userData;
 
     @Override
-    public void serialize(BaseBuilder builder) {
+    public void serialize(BaseBuilder<?,?> builder) {
         builder.addAttr(Attr.OVS_USERSPACE_ATTR_PID, uplinkPid);
         if (userData != null) {
             builder.addAttr(Attr.OVS_USERSPACE_ATTR_USERDATA, userData);
@@ -44,11 +45,11 @@ public class FlowActionUserspace implements FlowAction<FlowActionUserspace> {
 
         /* u32 Netlink PID to receive upcalls. */
         public static final Attr<Integer> OVS_USERSPACE_ATTR_PID
-            = attr(1);
+            = attr(OpenVSwitch.FlowAction.UserspaceAttr.PID);
 
         /* u64 optional user-specified cookie. */
         public static final Attr<Long> OVS_USERSPACE_ATTR_USERDATA
-            = attr(2);
+            = attr(OpenVSwitch.FlowAction.UserspaceAttr.Userdata);
 
         public Attr(int id) {
             super(id);

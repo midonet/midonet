@@ -71,40 +71,46 @@ public class Mmdpctl {
         // The command line tool can only accept one of these options:
         OptionGroup mutuallyExclusiveOptions = new OptionGroup();
 
-        mutuallyExclusiveOptions.addOption(OptionBuilder.withDescription("List all the installed datapaths")
-                .isRequired()
-                .withLongOpt("list-dps")
-                .create());
-        mutuallyExclusiveOptions.addOption(OptionBuilder.withDescription("Show all the information related to a given datapath.")
-                .hasArg()
-                .isRequired()
-                .withLongOpt("show-dp")
-                .create());
-        mutuallyExclusiveOptions.addOption(OptionBuilder.withDescription("Show all the flows installed for a given datapath.")
-                .hasArg()
-                .isRequired()
-                .withLongOpt("dump-dp")
-                .create());
-        mutuallyExclusiveOptions.addOption(OptionBuilder.withDescription("Add a new datapath.")
-                .hasArg()
-                .withLongOpt("add-dp")
-                .create());
-        mutuallyExclusiveOptions.addOption(OptionBuilder.withDescription("Delete a datapath.")
-                .hasArg()
-                .withLongOpt("delete-dp")
-                .create());
+        OptionBuilder.withDescription("List all the installed datapaths");
+        OptionBuilder.isRequired();
+        OptionBuilder.withLongOpt("list-dps");
+        mutuallyExclusiveOptions.addOption(OptionBuilder.create());
+
+        OptionBuilder.withDescription(
+            "Show all the information related to a given datapath.");
+        OptionBuilder.hasArg();
+        OptionBuilder.isRequired();
+        OptionBuilder.withLongOpt("show-dp");
+        mutuallyExclusiveOptions.addOption(OptionBuilder.create());
+
+        OptionBuilder.withDescription(
+            "Show all the flows installed for a given datapath.");
+        OptionBuilder.hasArg();
+        OptionBuilder.isRequired();
+        OptionBuilder.withLongOpt("dump-dp");
+        mutuallyExclusiveOptions.addOption(OptionBuilder.create());
+
+        OptionBuilder.withDescription("Add a new datapath.");
+        OptionBuilder.hasArg();
+        OptionBuilder.withLongOpt("add-dp");
+        mutuallyExclusiveOptions.addOption(OptionBuilder.create());
+
+        OptionBuilder.withDescription("Delete a datapath.");
+        OptionBuilder.hasArg();
+        OptionBuilder.withLongOpt("delete-dp");
+        mutuallyExclusiveOptions.addOption(OptionBuilder.create());
 
         // make sure that there is at least one.
         mutuallyExclusiveOptions.setRequired(true);
         options.addOptionGroup(mutuallyExclusiveOptions);
 
         // add an optional timeout to the command.
-        options.addOption(OptionBuilder.withLongOpt("timeout")
-                .hasArg()
-                .withDescription("Specifies a timeout in seconds. If the program is " +
-                        "not able to get the results in less than this amount of time it will " +
-                        "stop and return with an error code")
-                .create());
+        OptionBuilder.withDescription("Specifies a timeout in seconds. " +
+            "If the program is not able to get the results in less than " +
+            "this amount of time it will stop and return with an error code");
+        OptionBuilder.hasArg();
+        OptionBuilder.withLongOpt("timeout");
+        options.addOption(OptionBuilder.create());
 
         CommandLineParser parser = new PosixParser();
         try {

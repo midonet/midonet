@@ -13,7 +13,7 @@ public class FlowKeyTunnelID implements FlowKey<FlowKeyTunnelID> {
     /* be64 */  long tunnelID;
 
     @Override
-    public void serialize(BaseBuilder builder) {
+    public void serialize(BaseBuilder<?,?> builder) {
         builder.addValue(tunnelID, ByteOrder.BIG_ENDIAN);
     }
 

@@ -88,7 +88,7 @@ public class Datapath {
         }
 
         @Override
-        public void serialize(BaseBuilder builder) {
+        public void serialize(BaseBuilder<?,?> builder) {
             builder.addValue(hits);
             builder.addValue(misses);
             builder.addValue(lost);
