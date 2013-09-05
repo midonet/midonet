@@ -119,8 +119,7 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
                  .setPortNo(0);
 
         port.setOptions(port.newOptions())
-            .setStats(new Port.Stats())
-            .setAddress(MAC.random().getAddress());
+            .setStats(new Port.Stats());
 
         return port;
     }
@@ -187,9 +186,6 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
         port.setStats(new Port.Stats())
             .setPortNo(portsIndexes.get(datapath).incrementAndGet());
 
-        if (port.getAddress() == null) {
-            port.setAddress(MAC.random().getAddress());
-        }
         if (port.getOptions() == null) {
             port.setOptions();
         }

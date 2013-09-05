@@ -13,7 +13,7 @@ public class FlowActionSetKey implements FlowAction<FlowActionSetKey> {
     FlowKey<?> flowKey;
 
     @Override
-    public void serialize(BaseBuilder builder) {
+    public void serialize(BaseBuilder<?,?> builder) {
         builder.addAttr(flowKey.getKey(), flowKey);
     }
 
@@ -45,11 +45,11 @@ public class FlowActionSetKey implements FlowAction<FlowActionSetKey> {
         return this;
     }
 
-    public FlowKey getFlowKey() {
+    public FlowKey<?> getFlowKey() {
         return flowKey;
     }
 
-    public FlowActionSetKey setFlowKey(FlowKey flowKey) {
+    public FlowActionSetKey setFlowKey(FlowKey<?> flowKey) {
         this.flowKey = flowKey;
         return this;
     }

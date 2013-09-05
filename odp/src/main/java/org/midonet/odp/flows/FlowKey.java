@@ -5,8 +5,10 @@ package org.midonet.odp.flows;
 
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.BuilderAware;
+import org.midonet.odp.OpenVSwitch;
 
-public interface FlowKey<Key extends FlowKey<Key>> extends BuilderAware, NetlinkMessage.Attr<Key> {
+public interface FlowKey<Key extends FlowKey<Key>>
+        extends BuilderAware, NetlinkMessage.Attr<Key> {
 
     /**
      * Should be used by those keys that are only supported in user space.
@@ -39,56 +41,72 @@ public interface FlowKey<Key extends FlowKey<Key>> extends BuilderAware, Netlink
 
     }
 
-    public static class FlowKeyAttr<T extends FlowKey> extends
-                                                NetlinkMessage.AttrKey<T> {
+    public static class FlowKeyAttr<T extends FlowKey<T>>
+            extends NetlinkMessage.AttrKey<T> {
 
         /** Nested set of encapsulated attributes. */
-        public static final FlowKeyAttr<FlowKeyEncap> ENCAP = attr(1);
+        public static final FlowKeyAttr<FlowKeyEncap> ENCAP =
+            attr(OpenVSwitch.FlowKey.Attr.Encap);
 
         /** u32 skb->priority */
-        public static final FlowKeyAttr<FlowKeyPriority> PRIORITY = attr(2);
+        public static final FlowKeyAttr<FlowKeyPriority> PRIORITY =
+            attr(OpenVSwitch.FlowKey.Attr.Priority);
 
         /** u32 OVS dp port number */
-        public static final FlowKeyAttr<FlowKeyInPort> IN_PORT = attr(3);
+        public static final FlowKeyAttr<FlowKeyInPort> IN_PORT =
+            attr(OpenVSwitch.FlowKey.Attr.InPort);
 
         /** struct ovs_key_ethernet */
-        public static final FlowKeyAttr<FlowKeyEthernet> ETHERNET = attr(4);
+        public static final FlowKeyAttr<FlowKeyEthernet> ETHERNET =
+            attr(OpenVSwitch.FlowKey.Attr.Ethernet);
 
         /** be16 VLAN TCI */
-        public static final FlowKeyAttr<FlowKeyVLAN> VLAN = attr(5);
+        public static final FlowKeyAttr<FlowKeyVLAN> VLAN =
+            attr(OpenVSwitch.FlowKey.Attr.VLan);
 
         /** be16 Ethernet type */
-        public static final FlowKeyAttr<FlowKeyEtherType> ETHERTYPE = attr(6);
+        public static final FlowKeyAttr<FlowKeyEtherType> ETHERTYPE =
+            attr(OpenVSwitch.FlowKey.Attr.Ethertype);
 
         /** struct ovs_key_ipv4 */
-        public static final FlowKeyAttr<FlowKeyIPv4> IPv4 = attr(7);
+        public static final FlowKeyAttr<FlowKeyIPv4> IPv4 =
+            attr(OpenVSwitch.FlowKey.Attr.IPv4);
 
         /** struct ovs_key_ipv6 */
-        public static final FlowKeyAttr<FlowKeyIPv6> IPv6 = attr(8);
+        public static final FlowKeyAttr<FlowKeyIPv6> IPv6 =
+            attr(OpenVSwitch.FlowKey.Attr.IPv6);
 
         /** struct ovs_key_tcp */
-        public static final FlowKeyAttr<FlowKeyTCP> TCP = attr(9);
+        public static final FlowKeyAttr<FlowKeyTCP> TCP =
+            attr(OpenVSwitch.FlowKey.Attr.TCP);
 
         /** struct ovs_key_udp */
-        public static final FlowKeyAttr<FlowKeyUDP> UDP = attr(10);
+        public static final FlowKeyAttr<FlowKeyUDP> UDP =
+            attr(OpenVSwitch.FlowKey.Attr.UDP);
 
         /** struct ovs_key_icmp */
-        public static final FlowKeyAttr<FlowKeyICMP> ICMP = attr(11);
+        public static final FlowKeyAttr<FlowKeyICMP> ICMP =
+            attr(OpenVSwitch.FlowKey.Attr.ICMP);
 
         /** struct ovs_key_icmpv6 */
-        public static final FlowKeyAttr<FlowKeyICMPv6> ICMPv6 = attr(12);
+        public static final FlowKeyAttr<FlowKeyICMPv6> ICMPv6 =
+            attr(OpenVSwitch.FlowKey.Attr.ICMPv6);
 
         /** struct ovs_key_arp */
-        public static final FlowKeyAttr<FlowKeyARP> ARP = attr(13);
+        public static final FlowKeyAttr<FlowKeyARP> ARP =
+            attr(OpenVSwitch.FlowKey.Attr.ARP);
 
         /** struct ovs_key_nd */
-        public static final FlowKeyAttr<FlowKeyND> ND = attr(14);
+        public static final FlowKeyAttr<FlowKeyND> ND =
+            attr(OpenVSwitch.FlowKey.Attr.ND);
 
         /** struct ovs_key_ipv4_tunnel */
-        public static final FlowKeyAttr<FlowKeyTunnel> TUNNEL = attrNest(16);
+        public static final FlowKeyAttr<FlowKeyTunnel> TUNNEL =
+            attrNest(OpenVSwitch.FlowKey.Attr.Tunnel);
 
         /** be64 tunnel ID */
-        public static final FlowKeyAttr<FlowKeyTunnelID> TUN_ID = attr(63);
+        public static final FlowKeyAttr<FlowKeyTunnelID> TUN_ID =
+            attr(OpenVSwitch.FlowKey.Attr.TunnelId);
 
         public FlowKeyAttr(int id) {
             super(id);
@@ -98,37 +116,71 @@ public interface FlowKey<Key extends FlowKey<Key>> extends BuilderAware, Netlink
             super(id, nested);
         }
 
-        static <T extends FlowKey> FlowKeyAttr<T> attrNest(int id) {
+        static <T extends FlowKey<T>> FlowKeyAttr<T> attrNest(int id) {
             return new FlowKeyAttr<T>(id, true);
         }
 
-        static <T extends FlowKey> FlowKeyAttr<T> attr(int id) {
+        static <T extends FlowKey<T>> FlowKeyAttr<T> attr(int id) {
             return new FlowKeyAttr<T>(id, false);
         }
     }
 
-    static NetlinkMessage.CustomBuilder<FlowKey<?>> Builder = new NetlinkMessage.CustomBuilder<FlowKey<?>>() {
-        @Override
-        public FlowKey newInstance(short type) {
-            switch (type) {
-                case 1: return new FlowKeyEncap();
-                case 2: return new FlowKeyPriority();
-                case 3: return new FlowKeyInPort();
-                case 4: return new FlowKeyEthernet();
-                case 5: return new FlowKeyVLAN();
-                case 6: return new FlowKeyEtherType();
-                case 7: return new FlowKeyIPv4();
-                case 8: return new FlowKeyIPv6();
-                case 9: return new FlowKeyTCP();
-                case 10: return new FlowKeyUDP();
-                case 11: return new FlowKeyICMP();
-                case 12: return new FlowKeyICMPv6();
-                case 13: return new FlowKeyARP();
-                case 14: return new FlowKeyND();
-                case 16: return new FlowKeyTunnel();
-                case 63: return new FlowKeyTunnelID();
-                default: return null;
+    static NetlinkMessage.CustomBuilder<FlowKey<?>> Builder =
+        new NetlinkMessage.CustomBuilder<FlowKey<?>>() {
+            @Override
+            public FlowKey newInstance(short type) {
+                switch (type) {
+
+                    case OpenVSwitch.FlowKey.Attr.Encap:
+                        return new FlowKeyEncap();
+
+                    case OpenVSwitch.FlowKey.Attr.Priority:
+                        return new FlowKeyPriority();
+
+                    case OpenVSwitch.FlowKey.Attr.InPort:
+                        return new FlowKeyInPort();
+
+                    case OpenVSwitch.FlowKey.Attr.Ethernet:
+                        return new FlowKeyEthernet();
+
+                    case OpenVSwitch.FlowKey.Attr.VLan:
+                        return new FlowKeyVLAN();
+
+                    case OpenVSwitch.FlowKey.Attr.Ethertype:
+                        return new FlowKeyEtherType();
+
+                    case OpenVSwitch.FlowKey.Attr.IPv4:
+                        return new FlowKeyIPv4();
+
+                    case OpenVSwitch.FlowKey.Attr.IPv6:
+                        return new FlowKeyIPv6();
+
+                    case OpenVSwitch.FlowKey.Attr.TCP:
+                        return new FlowKeyTCP();
+
+                    case OpenVSwitch.FlowKey.Attr.UDP:
+                        return new FlowKeyUDP();
+
+                    case OpenVSwitch.FlowKey.Attr.ICMP:
+                        return new FlowKeyICMP();
+
+                    case OpenVSwitch.FlowKey.Attr.ICMPv6:
+                        return new FlowKeyICMPv6();
+
+                    case OpenVSwitch.FlowKey.Attr.ARP:
+                        return new FlowKeyARP();
+
+                    case OpenVSwitch.FlowKey.Attr.ND:
+                        return new FlowKeyND();
+
+                    case OpenVSwitch.FlowKey.Attr.Tunnel:
+                        return new FlowKeyTunnel();
+
+                    case OpenVSwitch.FlowKey.Attr.TunnelId:
+                        return new FlowKeyTunnelID();
+
+                    default: return null;
+                }
             }
-        }
-    };
+        };
 }

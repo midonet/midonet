@@ -1,0 +1,74 @@
+## Maintenance of the openvswitch integration layer
+
+### Overview
+
+Midolman network controller lives on top of a programmable switch we refer to as
+"the datapath". In its current architecture, midolman knows and exploit the
+low-level functions of this datapath module to route packets and control traffic
+in and out of virtual ports it manages. This tigthly coupled architecture
+requires a certain level of maintenance. This document gives pointers to
+places that can break and needs monitoring.
+
+### Southbound netlink facing interface
+
+At the moment, the only datapath interaction we support is the netlink based
+interface to openvswitch kernel module. When used together, the netlink and odp
+layers allow midolman to start a client connection to the kernel datapath module
+over a netlink socket. Midolman can then send message to the datapath to create
+and bind virtual ports, create flows for routing packets in and out of virtual
+ports, and receive new packet events from the datapath.
+
+The protocol used by midolman to talk to the datapath is generic netlink.
+Details about the available commands and objects that clients can exchange with
+the openvswitch datapath module can be found in openvswitch source code in
+/include/linux/openvswitch.h. This header file defines integer constants which
+are used to serialize and deserialize msg over the netlink connection between
+clients and the datapath. All these constants needs to be referenced in
+different places in midolman code. For this purpose the OpenVSwitch java
+interface found in the org.midonet.odp package should be used instead of
+directly hard-coding the values in the code. This eases maintenance and helps
+keep the codebase in sync with itself and with openvswitch.
+
+When a new version of openvswitch needs to be supported in midolman, the first
+step is to take a diff of /include/linux/openvswitch.h and see if some
+constants were changed or dropped. In general, the netlink interface should be
+pretty stable, but non-compatible changes between versions can happen (for
+example, the drop of port-based-tunneling in ovs 1.10). When changes are
+required, most of them would be in the odp layer. On top of this, changes in
+the midolman layer may be required (see next paragraph).
+
+### Northbound actor facing interface
+
+Several midolman actors and classes know about the odp layer and which kind of
+actions can be invoked there. A non-exhaustive list of these entities:
+
+- the DatapathController actor, which creates, reads and deletes ports, flush
+flows at starti-up, and initializes the datapath instance in the kernel space if
+it was not created yet before midolman started.
+
+- the FlowController actor, which installs, reads and deletes flows based on
+existing WildcardFlow instances.
+
+- the PacketWorkflow class, which also installs and deletes flows, and on top of
+this can push back packets to the datapath to "execute" them with associated
+flow actions (like tunneling or local forwarding)
+
+- the Deduplication Actor, which like the PacketWorkflow can execute packets and
+which receives uplink call from the datapath kernel module when new unknown
+types of packets needs to be handled.
+
+- the FlowTranslator trait, which creates a list of FlowAction from a list of
+"virtual" actions defined at the virtual topology level after a simulation
+successfully returned.
+
+- the WildcardMatch class, which can be instantiated from a list of FlowKeys
+that represent information that the datapath module collected after inspecting
+packets headers at different L layers.
+
+Unfortunately this "northbound" interface is not standard and is hard to
+maintain in its current form. Ideally the odp layer interface presented to
+midolman actors should be as close as possible to dpif (DataPath InterFace).
+This would allow to use midolman controller layer against different datapath
+implementation (like intel dpkg based datapath). Information about functions
+available at the dpif layer can be found in /lib/dpif.h and /lib/dpif-provider.h
+in the openvswitch source code directory.

@@ -9,10 +9,9 @@ import java.util.List;
  * Builder class to allow easier building of FlowAction instances.
  */
 public class FlowActions {
+
     public static FlowActionOutput output(int portNumber) {
-        return
-            new FlowActionOutput()
-                .setPortNumber(portNumber);
+        return new FlowActionOutput().setPortNumber(portNumber);
     }
 
     public static FlowActionUserspace userspace() {
@@ -34,7 +33,11 @@ public class FlowActions {
         return new FlowActionPopVLAN();
     }
 
-    public static FlowActionSample sample(int probability, List<FlowAction<?>> actions) {
-        return new FlowActionSample().setProbability(probability).setActions(actions);
+    public static FlowActionSample sample(
+            int probability, List<FlowAction<?>> actions) {
+        return
+            new FlowActionSample()
+                .setProbability(probability)
+                .setActions(actions);
     }
 }

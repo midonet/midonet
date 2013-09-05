@@ -59,8 +59,8 @@ public class OvsFlowsTunnelTest {
         IPv4Subnet dstIp = new IPv4Subnet("10.10.11.10", 24);
         IPv4Subnet tunnelSrcIp = new IPv4Subnet("10.11.12.13", 24);
         IPv4Subnet tunnelDstIp = new IPv4Subnet("10.11.12.14", 24);
-        MAC srcMac = new MAC().fromString("aa:33:44:55:66:77");
-        MAC dstMac = new MAC().fromString("aa:22:44:66:88:bb");
+        MAC srcMac = MAC.fromString("aa:33:44:55:66:77");
+        MAC dstMac = MAC.fromString("aa:22:44:66:88:bb");
         FlowKeyEthernet ethernetKey = new FlowKeyEthernet()
                                         .setSrc(srcMac.getAddress())
                                         .setDst(dstMac.getAddress());

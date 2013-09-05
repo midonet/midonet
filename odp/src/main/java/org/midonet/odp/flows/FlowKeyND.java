@@ -19,7 +19,7 @@ public class FlowKeyND implements FlowKey<FlowKeyND> {
     /*__u8*/ byte[] nd_tll = new byte[6];   // always 6 bytes long
 
     @Override
-    public void serialize(BaseBuilder builder) {
+    public void serialize(BaseBuilder<?,?> builder) {
         builder.addValue(nd_target, ByteOrder.BIG_ENDIAN);
         builder.addValue(nd_sll);
         builder.addValue(nd_tll);

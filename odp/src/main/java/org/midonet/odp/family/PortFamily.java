@@ -7,21 +7,26 @@ import org.midonet.netlink.Netlink;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.odp.Port;
 import org.midonet.odp.PortOptions;
+import org.midonet.odp.OpenVSwitch;
 
 /**
  * Abstraction for the NETLINK OvsVPort family of commands and attributes.
  */
-public class PortFamily
-    extends Netlink.CommandFamily<PortFamily.Cmd, PortFamily.Attr>{
+public class PortFamily extends
+        Netlink.CommandFamily<PortFamily.Cmd, PortFamily.Attr<PortFamily>>{
 
-    public static final byte VERSION = 1;
-    public static final String NAME = "ovs_vport";
-    public static final String MC_GROUP = "ovs_vport";
+    public static final byte VERSION = OpenVSwitch.Port.version;
+    public static final String NAME = OpenVSwitch.Port.Family;
+    public static final String MC_GROUP = OpenVSwitch.Port.MCGroup;
 
-    public static final int FALLBACK_MC_GROUP = 33;
+    public static final int FALLBACK_MC_GROUP = OpenVSwitch.Port.fallbackMCGroup;
 
     public enum Cmd implements Netlink.ByteConstant {
-        NEW(1), DEL(2), GET(3), SET(4);
+
+        NEW(OpenVSwitch.Port.Cmd.New),
+        DEL(OpenVSwitch.Port.Cmd.Del),
+        GET(OpenVSwitch.Port.Cmd.Get),
+        SET(OpenVSwitch.Port.Cmd.Set);
 
         byte value;
 
@@ -38,25 +43,28 @@ public class PortFamily
     public static class Attr<T> extends NetlinkMessage.AttrKey<T> {
 
         /* u32 port number within datapath */
-        public static final Attr<Integer> PORT_NO = attr(1);
+        public static final Attr<Integer> PORT_NO =
+            attr(OpenVSwitch.Port.Attr.PortNo);
 
         /* u32 OVS_VPORT_TYPE_* constant. */
-        public static final Attr<Integer> PORT_TYPE = attr(2);
+        public static final Attr<Integer> PORT_TYPE =
+            attr(OpenVSwitch.Port.Attr.Type);
 
         /* string name, up to IFNAMSIZ bytes long */
-        public static final Attr<String> NAME = attr(3);
+        public static final Attr<String> NAME =
+            attr(OpenVSwitch.Port.Attr.Name);
 
         /* nested attributes, varies by vport type */
-        public static final Attr<PortOptions> OPTIONS = attrNested(4);
+        public static final Attr<PortOptions> OPTIONS =
+            attrNested(OpenVSwitch.Port.Attr.Options);
 
         /* u32 Netlink PID to receive upcalls */
-        public static final Attr<Integer> UPCALL_PID = attr(5);
+        public static final Attr<Integer> UPCALL_PID =
+            attr(OpenVSwitch.Port.Attr.UpcallPID);
 
         /* struct ovs_vport_stats */
-        public static final Attr<Port.Stats> STATS = attr(6);
-
-        /* hardware address */
-        public static final Attr<byte[]> ADDRESS = attr(100);
+        public static final Attr<Port.Stats> STATS =
+            attr(OpenVSwitch.Port.Attr.Stats);
 
 
         private Attr(int id, boolean nested) {

@@ -45,31 +45,27 @@ public class OvsPortsSetTest extends AbstractNetlinkProtocolTest {
         assertThat("Datapath was parsed correctly",
                    datapath, is(expectedDatapath()));
 
-        Port expectedPort;
+        Port expectedPort = expectedInternalPort();
         Future<Port<?, ?>> portFuture;
 
-        expectedPort = expectedInternalPort();
         log.info("Get the internal port by name.");
         portFuture = connection.portsGet("internalPort", null);
         exchangeMessage();
 
-        Port port = portFuture.get();
         assertThat("The returned port should match what we expected",
                    portFuture.get(), is(expectedPort));
 
 
         log.info("Updating port address.");
-        portFuture = connection.portsSet(port, datapath);
+        portFuture = connection.portsSet(portFuture.get(), datapath);
         exchangeMessage();
 
         assertThat("The returned port should match what we expected",
                    portFuture.get(), is(expectedPort));
     }
 
-    private Port expectedInternalPort() {
-        InternalPort port =
-            Ports.newInternalPort("internalPort")
-                 .setPortNo(1);
+    private Port<?,?> expectedInternalPort() {
+        InternalPort port = Ports.newInternalPort("internalPort").setPortNo(1);
 
         port.setStats(new Port.Stats());
         port.setOptions(port.newOptions());

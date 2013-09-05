@@ -18,16 +18,14 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import org.midonet.odp.Datapath;
 import org.midonet.odp.Port;
 import org.midonet.odp.Ports;
-import org.midonet.odp.ports.CapWapTunnelPort;
 import org.midonet.odp.ports.GreTunnelPort;
 import org.midonet.odp.ports.InternalPort;
 import org.midonet.odp.ports.NetDevPort;
-import org.midonet.odp.ports.PatchTunnelPort;
 
 public class OvsPortsCreateAndEnumerateTest extends AbstractNetlinkProtocolTest {
 
-    private static final Logger log = LoggerFactory
-        .getLogger(OvsPortsCreateAndEnumerateTest.class);
+    private static final Logger log =
+        LoggerFactory.getLogger(OvsPortsCreateAndEnumerateTest.class);
 
     @Before
     public void setUp() throws Exception {
@@ -40,99 +38,69 @@ public class OvsPortsCreateAndEnumerateTest extends AbstractNetlinkProtocolTest 
     @Test
     public void testPortsCreate() throws Exception {
 
-        initializeConnection(connection.initialize(), 6);
+        initializeConnection(connection.initialize(), 6); // first 6 byte msgs
 
         Future<Datapath> dpFuture = connection.datapathsGet("test-port");
-        // multi containing the datapaths data
-        exchangeMessage();
-
+        exchangeMessage(); // 7th byte msg
         Datapath datapath = dpFuture.get();
-        assertThat("Datapath was parsed correctly",
-                   datapath, is(expectedDatapath()));
+        assertThat(
+            "Datapath was parsed correctly", datapath, is(expectedDatapath()));
 
         Port expectedPort;
-        Set<Port> expectedPorts = new HashSet<Port>();
+        Port readPort;
+        Future<Port<?,?>> futPort;
+        Set<Port<?,?>> expectedPorts = new HashSet<Port<?,?>>();
 
 
         log.info("Creating an internal port.");
-        Future<Port<?, ?>> internalPort =
-            connection.portsCreate(datapath,
-                                   Ports.newInternalPort("internalPort"));
-        exchangeMessage();
-
+        futPort = connection.portsCreate(datapath,
+            Ports.newInternalPort("internalPort"));
+        exchangeMessage(); // 8th byte msg
         expectedPort = expectedInternalPort();
-        assertThat("Internal port was created correctly",
-                   internalPort.get(), is(expectedPort));
-        expectedPorts.add(expectedPort);
+        readPort = futPort.get();
+        assertThat(
+            "Internal port was created correctly", readPort, is(expectedPort));
+        expectedPorts.add(readPort);
+
 
         log.info("Creating an netdev port.");
         Future<Port<?, ?>> netdevPort =
+        futPort =
             connection.portsCreate(datapath, Ports.newNetDevPort("netdevPort"));
-
-        exchangeMessage();
+        exchangeMessage(); // 9th byte msg
 
         expectedPort = expectedNetdevPort();
-        assertThat("Netdev port was created correctly",
-                   netdevPort.get(), is(expectedPort));
-        expectedPorts.add(expectedPort);
+        readPort = futPort.get();
+        assertThat(
+            "Netdev port was created correctly", readPort, is(expectedPort));
+        expectedPorts.add(readPort);
 
-        log.info("Creating an patch tunnel port.");
-        PatchTunnelPort tunPatchPort = Ports.newPatchTunnelPort("tunPatchPort");
-        tunPatchPort.setOptions(Ports.newPortOptions(tunPatchPort, "peer"));
-        Future<Port<?, ?>> tunPatchPortFuture =
-            connection.portsCreate(datapath, tunPatchPort);
-        exchangeMessage();
-
-        expectedPort = expectedPatchTunnelPort();
-        assertThat("Patch Tunnel port was created correctly",
-                   tunPatchPortFuture.get(), is(expectedPort));
-        expectedPorts.add(expectedPort);
 
         log.info("Creating an gre tunnel port.");
         GreTunnelPort tunGrePort = Ports.newGreTunnelPort("tunGrePort");
         tunGrePort.setOptions(
             Ports.newPortOptions(tunGrePort, ipFromString("192.168.100.1")));
-
-        Future<Port<?, ?>> tunGrePortFuture = connection.portsCreate(datapath,
-                                                               tunGrePort);
-        exchangeMessage();
-
+        futPort = connection.portsCreate(datapath, tunGrePort);
+        exchangeMessage(); // 10th byte msg
         expectedPort = expectedGreTunnelPort();
-        assertThat("Gre Tunnel port was created correctly",
-                   tunGrePortFuture.get(), is(expectedPort));
-        expectedPorts.add(expectedPort);
+        readPort = futPort.get();
+        assertThat(
+            "Gre port was created correctly", readPort, is(expectedPort));
+        expectedPorts.add(readPort);
 
-        log.info("Creating an capwap tunnel port.");
-        CapWapTunnelPort tunCapwapPort =
-            Ports.newCapwapTunnelPort("tunCapwapPort");
 
-        tunCapwapPort.setOptions(
-            Ports.newPortOptions(
-                tunCapwapPort,
-                ipFromString("192.168.100.1")));
-
-        Future<Port<?, ?>> tunCapwapPortFuture =
-            connection.portsCreate(datapath, tunCapwapPort);
-        exchangeMessage();
-
-        expectedPort = expectedCapwapTunnelPort();
-        assertThat("Capwap Tunnel port was created correctly",
-                   tunCapwapPortFuture.get(), is(expectedPort));
-        expectedPorts.add(expectedPort);
-
-        Future<Set<Port<?, ?>>> portsFutures = connection.portsEnumerate(datapath);
-        exchangeMessage(2);
+        Future<Set<Port<?, ?>>> portsFutures =
+            connection.portsEnumerate(datapath);
+        exchangeMessage(2); // 11th and 12th byte msg (same NL request id)
 
         for (Port<?, ?> port : expectedPorts) {
-            assertThat("The ports list contains a created port",
+            assertThat("The ports list contains all expected ports",
                        portsFutures.get(), hasItem(port));
         }
     }
 
-    private Port expectedInternalPort() {
-        InternalPort port =
-            Ports.newInternalPort("internalPort")
-                 .setPortNo(1);
+    private Port<?,?> expectedInternalPort() {
+        InternalPort port = Ports.newInternalPort("internalPort").setPortNo(1);
 
         port.setStats(new Port.Stats());
         port.setOptions(port.newOptions());
@@ -140,10 +108,8 @@ public class OvsPortsCreateAndEnumerateTest extends AbstractNetlinkProtocolTest 
         return port;
     }
 
-    private Port expectedNetdevPort() {
-        NetDevPort port =
-            Ports.newNetDevPort("netdevPort")
-                 .setPortNo(2);
+    private Port<?,?> expectedNetdevPort() {
+        NetDevPort port = Ports.newNetDevPort("netdevPort").setPortNo(2);
 
         port.setStats(new Port.Stats());
         port.setOptions(port.newOptions());
@@ -151,46 +117,17 @@ public class OvsPortsCreateAndEnumerateTest extends AbstractNetlinkProtocolTest 
         return port;
     }
 
-    private Port expectedPatchTunnelPort() {
-        PatchTunnelPort tunPatchPort =
-            Ports.newPatchTunnelPort("patchPort")
-                 .setPortNo(3);
-
-        tunPatchPort.setStats(new Port.Stats());
-        tunPatchPort.setOptions(Ports.newPortOptions(tunPatchPort, "peer"));
-
-        return tunPatchPort;
-    }
-
-    private Port expectedGreTunnelPort() {
+    private Port<?,?> expectedGreTunnelPort() {
         GreTunnelPort tunGrePort =
-            Ports.newGreTunnelPort("grePort")
-                 .setPortNo(4);
+            Ports.newGreTunnelPort("grePort").setPortNo(4);
 
         tunGrePort.setStats(new Port.Stats());
+
+        // this is necessary to match the hardcoded byte msg from netlink
         tunGrePort.setOptions(
-            Ports
-                .newPortOptions(tunGrePort, ipFromString("192.168.100.1"))
-        );
+            Ports.newPortOptions(tunGrePort, ipFromString("192.168.100.1")));
 
         return tunGrePort;
-    }
-
-    private Port expectedCapwapTunnelPort() {
-        CapWapTunnelPort tunCapwapGrePort =
-            Ports.newCapwapTunnelPort("tunCapwapPort")
-                 .setPortNo(5);
-
-        tunCapwapGrePort.setStats(new Port.Stats());
-        tunCapwapGrePort.setOptions(
-            Ports
-                .newPortOptions(
-                    tunCapwapGrePort,
-                    ipFromString("192.168.100.1")
-                )
-        );
-
-        return tunCapwapGrePort;
     }
 
     private Datapath expectedDatapath() {
@@ -199,6 +136,19 @@ public class OvsPortsCreateAndEnumerateTest extends AbstractNetlinkProtocolTest 
 
         return datapath;
     }
+
+    /*
+        Netlink msg replies are hardcoded below as arrays of bytes.
+        Replies contains the nl header which has a request id number.
+        when changing the order of datapath request in the test code, this
+        field needs to be updated. it is the 9th byte (index 8) starting from
+        the beginning of the array. Everytime the function exhangeMessage() is
+        called, it will send the next byte array in the netlink handler. The
+        initialization of the connection and datapath takes 6 msgs.
+
+        I assume the byte arrays kept in comments are the binary requests that
+        the userspace is supposedly writing to netlink.
+    */
 
     final byte[][] responses = {
 /*
@@ -214,6 +164,7 @@ public class OvsPortsCreateAndEnumerateTest extends AbstractNetlinkProtocolTest 
     },
 */
         // read - time: 1342190625609
+        /* datapath initilization byte msg #1 */
         {
             (byte)0xC0, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x10, (byte)0x00,
             (byte)0x00, (byte)0x00, (byte)0x01, (byte)0x00, (byte)0x00, (byte)0x00,
@@ -260,6 +211,7 @@ public class OvsPortsCreateAndEnumerateTest extends AbstractNetlinkProtocolTest 
     },
 */
         // read - time: 1342190625628
+        /* datapath initilization byte msg #2 */
         {
             (byte)0xB8, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x10, (byte)0x00,
             (byte)0x00, (byte)0x00, (byte)0x02, (byte)0x00, (byte)0x00, (byte)0x00,
@@ -305,6 +257,7 @@ public class OvsPortsCreateAndEnumerateTest extends AbstractNetlinkProtocolTest 
     },
 */
         // read - time: 1342190625630
+        /* datapath initilization byte msg #3 */
         {
             (byte)0xB8, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x10, (byte)0x00,
             (byte)0x00, (byte)0x00, (byte)0x03, (byte)0x00, (byte)0x00, (byte)0x00,
@@ -350,6 +303,7 @@ public class OvsPortsCreateAndEnumerateTest extends AbstractNetlinkProtocolTest 
     },
 */
         // read - time: 1342190625631
+        /* datapath initilization byte msg #4 */
         {
             (byte)0x5C, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x10, (byte)0x00,
             (byte)0x00, (byte)0x00, (byte)0x04, (byte)0x00, (byte)0x00, (byte)0x00,
@@ -381,6 +335,7 @@ public class OvsPortsCreateAndEnumerateTest extends AbstractNetlinkProtocolTest 
     },
 */
         // read - time: 1342190625634
+        /* datapath initilization byte msg #5 */
         {
             (byte)0xC0, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x10, (byte)0x00,
             (byte)0x00, (byte)0x00, (byte)0x05, (byte)0x00, (byte)0x00, (byte)0x00,
@@ -427,6 +382,7 @@ public class OvsPortsCreateAndEnumerateTest extends AbstractNetlinkProtocolTest 
     },
 */
         // read - time: 1342190625635
+        /* datapath initilization byte msg #6 */
         {
             (byte)0xB8, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x10, (byte)0x00,
             (byte)0x00, (byte)0x00, (byte)0x06, (byte)0x00, (byte)0x00, (byte)0x00,
@@ -473,6 +429,7 @@ public class OvsPortsCreateAndEnumerateTest extends AbstractNetlinkProtocolTest 
     },
 */
         // read - time: 1342190625694
+        /* reply to datapath query request */
         {
             (byte)0x4C, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x18, (byte)0x00,
             (byte)0x00, (byte)0x00, (byte)0x07, (byte)0x00, (byte)0x00, (byte)0x00,
@@ -504,6 +461,7 @@ public class OvsPortsCreateAndEnumerateTest extends AbstractNetlinkProtocolTest 
     },
 */
         // read - time: 1342190625708
+        /* internal port creation answer */
         {
             (byte)0x98, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x19, (byte)0x00,
             (byte)0x00, (byte)0x00, (byte)0x08, (byte)0x00, (byte)0x00, (byte)0x00,
@@ -548,6 +506,7 @@ public class OvsPortsCreateAndEnumerateTest extends AbstractNetlinkProtocolTest 
     },
 */
         // read - time: 1342190625718
+        /* netdev port creation answer */
         {
             (byte)0x94, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x19, (byte)0x00,
             (byte)0x00, (byte)0x00, (byte)0x09, (byte)0x00, (byte)0x00, (byte)0x00,
@@ -576,57 +535,10 @@ public class OvsPortsCreateAndEnumerateTest extends AbstractNetlinkProtocolTest 
             (byte)0x04, (byte)0x00, (byte)0x04, (byte)0x00
         },
 /*
-// write - time: 1342190625721
-    {
-        (byte)0x48, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x19, (byte)0x00,
-        (byte)0x09, (byte)0x00, (byte)0x0A, (byte)0x00, (byte)0x00, (byte)0x00,
-        (byte)0x49, (byte)0x0F, (byte)0x00, (byte)0x00, (byte)0x01, (byte)0x01,
-        (byte)0x00, (byte)0x00, (byte)0x73, (byte)0x00, (byte)0x00, (byte)0x00,
-        (byte)0x08, (byte)0x00, (byte)0x02, (byte)0x00, (byte)0x64, (byte)0x00,
-        (byte)0x00, (byte)0x00, (byte)0x0E, (byte)0x00, (byte)0x03, (byte)0x00,
-        (byte)0x70, (byte)0x61, (byte)0x74, (byte)0x63, (byte)0x68, (byte)0x50,
-        (byte)0x6F, (byte)0x72, (byte)0x74, (byte)0x00, (byte)0x00, (byte)0x00,
-        (byte)0x08, (byte)0x00, (byte)0x05, (byte)0x00, (byte)0x49, (byte)0x0F,
-        (byte)0x00, (byte)0x00, (byte)0x10, (byte)0x00, (byte)0x04, (byte)0x00,
-        (byte)0x09, (byte)0x00, (byte)0x01, (byte)0x00, (byte)0x70, (byte)0x65,
-        (byte)0x65, (byte)0x72, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00
-    },
-*/
-        // read - time: 1342190625721
-        {
-            (byte)0xA0, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x19, (byte)0x00,
-            (byte)0x00, (byte)0x00, (byte)0x0A, (byte)0x00, (byte)0x00, (byte)0x00,
-            (byte)0x49, (byte)0x0F, (byte)0x00, (byte)0x00, (byte)0x01, (byte)0x01,
-            (byte)0x00, (byte)0x00, (byte)0x73, (byte)0x00, (byte)0x00, (byte)0x00,
-            (byte)0x08, (byte)0x00, (byte)0x01, (byte)0x00, (byte)0x03, (byte)0x00,
-            (byte)0x00, (byte)0x00, (byte)0x08, (byte)0x00, (byte)0x02, (byte)0x00,
-            (byte)0x64, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x0E, (byte)0x00,
-            (byte)0x03, (byte)0x00, (byte)0x70, (byte)0x61, (byte)0x74, (byte)0x63,
-            (byte)0x68, (byte)0x50, (byte)0x6F, (byte)0x72, (byte)0x74, (byte)0x00,
-            (byte)0x00, (byte)0x00, (byte)0x08, (byte)0x00, (byte)0x05, (byte)0x00,
-            (byte)0x49, (byte)0x0F, (byte)0x00, (byte)0x00, (byte)0x44, (byte)0x00,
-            (byte)0x06, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-            (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-            (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-            (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-            (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-            (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-            (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-            (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-            (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-            (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-            (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-            (byte)0x0A, (byte)0x00, (byte)0x64, (byte)0x00, (byte)0x9A, (byte)0xC3,
-            (byte)0x94, (byte)0xEC, (byte)0xD6, (byte)0xB2, (byte)0x00, (byte)0x00,
-            (byte)0x10, (byte)0x00, (byte)0x04, (byte)0x00, (byte)0x09, (byte)0x00,
-            (byte)0x01, (byte)0x00, (byte)0x70, (byte)0x65, (byte)0x65, (byte)0x72,
-            (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00
-        },
-/*
 // write - time: 1342190625726
     {
         (byte)0x48, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x19, (byte)0x00,
-        (byte)0x09, (byte)0x00, (byte)0x0B, (byte)0x00, (byte)0x00, (byte)0x00,
+        (byte)0x09, (byte)0x00, (byte)0x0A, (byte)0x00, (byte)0x00, (byte)0x00,
         (byte)0x49, (byte)0x0F, (byte)0x00, (byte)0x00, (byte)0x01, (byte)0x01,
         (byte)0x00, (byte)0x00, (byte)0x73, (byte)0x00, (byte)0x00, (byte)0x00,
         (byte)0x08, (byte)0x00, (byte)0x02, (byte)0x00, (byte)0x65, (byte)0x00,
@@ -640,9 +552,10 @@ public class OvsPortsCreateAndEnumerateTest extends AbstractNetlinkProtocolTest 
     },
 */
         // read - time: 1342190625726
+        /* gre port creation answer */
         {
             (byte)0xA0, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x19, (byte)0x00,
-            (byte)0x00, (byte)0x00, (byte)0x0B, (byte)0x00, (byte)0x00, (byte)0x00,
+            (byte)0x00, (byte)0x00, (byte)0x0A, (byte)0x00, (byte)0x00, (byte)0x00,
             (byte)0x49, (byte)0x0F, (byte)0x00, (byte)0x00, (byte)0x01, (byte)0x01,
             (byte)0x00, (byte)0x00, (byte)0x73, (byte)0x00, (byte)0x00, (byte)0x00,
             (byte)0x08, (byte)0x00, (byte)0x01, (byte)0x00, (byte)0x04, (byte)0x00,
@@ -670,68 +583,19 @@ public class OvsPortsCreateAndEnumerateTest extends AbstractNetlinkProtocolTest 
             (byte)0xC0, (byte)0xA8, (byte)0x64, (byte)0x01,
         },
 /*
-// write - time: 1342190625729
-    {
-        (byte)0x50, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x19, (byte)0x00,
-        (byte)0x09, (byte)0x00, (byte)0x0C, (byte)0x00, (byte)0x00, (byte)0x00,
-        (byte)0x49, (byte)0x0F, (byte)0x00, (byte)0x00, (byte)0x01, (byte)0x01,
-        (byte)0x00, (byte)0x00, (byte)0x73, (byte)0x00, (byte)0x00, (byte)0x00,
-        (byte)0x08, (byte)0x00, (byte)0x02, (byte)0x00, (byte)0x66, (byte)0x00,
-        (byte)0x00, (byte)0x00, (byte)0x12, (byte)0x00, (byte)0x03, (byte)0x00,
-        (byte)0x74, (byte)0x75, (byte)0x6E, (byte)0x43, (byte)0x61, (byte)0x70,
-        (byte)0x77, (byte)0x61, (byte)0x70, (byte)0x50, (byte)0x6F, (byte)0x72,
-        (byte)0x74, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x08, (byte)0x00,
-        (byte)0x05, (byte)0x00, (byte)0x49, (byte)0x0F, (byte)0x00, (byte)0x00,
-        (byte)0x14, (byte)0x00, (byte)0x04, (byte)0x00, (byte)0x08, (byte)0x00,
-        (byte)0x01, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-        (byte)0x08, (byte)0x00, (byte)0x02, (byte)0x00, (byte)0x01, (byte)0x64,
-        (byte)0xA8, (byte)0xC0,
-    },
-*/
-        // read - time: 1342190625729
-        {
-            (byte)0xA8, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x19, (byte)0x00,
-            (byte)0x00, (byte)0x00, (byte)0x0C, (byte)0x00, (byte)0x00, (byte)0x00,
-            (byte)0x49, (byte)0x0F, (byte)0x00, (byte)0x00, (byte)0x01, (byte)0x01,
-            (byte)0x00, (byte)0x00, (byte)0x73, (byte)0x00, (byte)0x00, (byte)0x00,
-            (byte)0x08, (byte)0x00, (byte)0x01, (byte)0x00, (byte)0x05, (byte)0x00,
-            (byte)0x00, (byte)0x00, (byte)0x08, (byte)0x00, (byte)0x02, (byte)0x00,
-            (byte)0x66, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x12, (byte)0x00,
-            (byte)0x03, (byte)0x00, (byte)0x74, (byte)0x75, (byte)0x6E, (byte)0x43,
-            (byte)0x61, (byte)0x70, (byte)0x77, (byte)0x61, (byte)0x70, (byte)0x50,
-            (byte)0x6F, (byte)0x72, (byte)0x74, (byte)0x00, (byte)0x00, (byte)0x00,
-            (byte)0x08, (byte)0x00, (byte)0x05, (byte)0x00, (byte)0x49, (byte)0x0F,
-            (byte)0x00, (byte)0x00, (byte)0x44, (byte)0x00, (byte)0x06, (byte)0x00,
-            (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-            (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-            (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-            (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-            (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-            (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-            (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-            (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-            (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-            (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-            (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x0A, (byte)0x00,
-            (byte)0x64, (byte)0x00, (byte)0xEA, (byte)0x53, (byte)0x9A, (byte)0xB7,
-            (byte)0x89, (byte)0x02, (byte)0x00, (byte)0x00, (byte)0x14, (byte)0x00,
-            (byte)0x04, (byte)0x00, (byte)0x08, (byte)0x00, (byte)0x01, (byte)0x00,
-            (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x08, (byte)0x00,
-            (byte)0x02, (byte)0x00, (byte)0xC0, (byte)0xA8, (byte)0x64, (byte)0x01,
-        },
-/*
 // write - time: 1342190625731
     {
         (byte)0x18, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x19, (byte)0x00,
-        (byte)0x0D, (byte)0x06, (byte)0x0D, (byte)0x00, (byte)0x00, (byte)0x00,
+        (byte)0x0D, (byte)0x06, (byte)0x0B, (byte)0x00, (byte)0x00, (byte)0x00,
         (byte)0x49, (byte)0x0F, (byte)0x00, (byte)0x00, (byte)0x03, (byte)0x01,
         (byte)0x00, (byte)0x00, (byte)0x73, (byte)0x00, (byte)0x00, (byte)0x00
     },
 */
         // read - time: 1342190625733
+        /* ports enumerate request reply #1 */
         {
             (byte)0x94, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x19, (byte)0x00,
-            (byte)0x02, (byte)0x00, (byte)0x0D, (byte)0x00, (byte)0x00, (byte)0x00,
+            (byte)0x02, (byte)0x00, (byte)0x0B, (byte)0x00, (byte)0x00, (byte)0x00,
             (byte)0x49, (byte)0x0F, (byte)0x00, (byte)0x00, (byte)0x01, (byte)0x01,
             (byte)0x00, (byte)0x00, (byte)0x73, (byte)0x00, (byte)0x00, (byte)0x00,
             (byte)0x08, (byte)0x00, (byte)0x01, (byte)0x00, (byte)0x00, (byte)0x00,
@@ -756,7 +620,7 @@ public class OvsPortsCreateAndEnumerateTest extends AbstractNetlinkProtocolTest 
             (byte)0xCE, (byte)0x42, (byte)0x79, (byte)0xF2, (byte)0x00, (byte)0x00,
             (byte)0x04, (byte)0x00, (byte)0x04, (byte)0x00, (byte)0x98, (byte)0x00,
             (byte)0x00, (byte)0x00, (byte)0x19, (byte)0x00, (byte)0x02, (byte)0x00,
-            (byte)0x0D, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x49, (byte)0x0F,
+            (byte)0x0B, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x49, (byte)0x0F,
             (byte)0x00, (byte)0x00, (byte)0x01, (byte)0x01, (byte)0x00, (byte)0x00,
             (byte)0x73, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x08, (byte)0x00,
             (byte)0x01, (byte)0x00, (byte)0x01, (byte)0x00, (byte)0x00, (byte)0x00,
@@ -781,7 +645,7 @@ public class OvsPortsCreateAndEnumerateTest extends AbstractNetlinkProtocolTest 
             (byte)0x9A, (byte)0xF0, (byte)0x9B, (byte)0x71, (byte)0x9C, (byte)0x0D,
             (byte)0x00, (byte)0x00, (byte)0x04, (byte)0x00, (byte)0x04, (byte)0x00,
             (byte)0x94, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x19, (byte)0x00,
-            (byte)0x02, (byte)0x00, (byte)0x0D, (byte)0x00, (byte)0x00, (byte)0x00,
+            (byte)0x02, (byte)0x00, (byte)0x0B, (byte)0x00, (byte)0x00, (byte)0x00,
             (byte)0x49, (byte)0x0F, (byte)0x00, (byte)0x00, (byte)0x01, (byte)0x01,
             (byte)0x00, (byte)0x00, (byte)0x73, (byte)0x00, (byte)0x00, (byte)0x00,
             (byte)0x08, (byte)0x00, (byte)0x01, (byte)0x00, (byte)0x02, (byte)0x00,
@@ -806,7 +670,7 @@ public class OvsPortsCreateAndEnumerateTest extends AbstractNetlinkProtocolTest 
             (byte)0xC4, (byte)0x71, (byte)0xDE, (byte)0xA6, (byte)0x00, (byte)0x00,
             (byte)0x04, (byte)0x00, (byte)0x04, (byte)0x00, (byte)0xA0, (byte)0x00,
             (byte)0x00, (byte)0x00, (byte)0x19, (byte)0x00, (byte)0x02, (byte)0x00,
-            (byte)0x0D, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x49, (byte)0x0F,
+            (byte)0x0B, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x49, (byte)0x0F,
             (byte)0x00, (byte)0x00, (byte)0x01, (byte)0x01, (byte)0x00, (byte)0x00,
             (byte)0x73, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x08, (byte)0x00,
             (byte)0x01, (byte)0x00, (byte)0x03, (byte)0x00, (byte)0x00, (byte)0x00,
@@ -832,7 +696,7 @@ public class OvsPortsCreateAndEnumerateTest extends AbstractNetlinkProtocolTest 
             (byte)0x04, (byte)0x00, (byte)0x09, (byte)0x00, (byte)0x01, (byte)0x00,
             (byte)0x70, (byte)0x65, (byte)0x65, (byte)0x72, (byte)0x00, (byte)0x00,
             (byte)0x00, (byte)0x00, (byte)0xA0, (byte)0x00, (byte)0x00, (byte)0x00,
-            (byte)0x19, (byte)0x00, (byte)0x02, (byte)0x00, (byte)0x0D, (byte)0x00,
+            (byte)0x19, (byte)0x00, (byte)0x02, (byte)0x00, (byte)0x0B, (byte)0x00,
             (byte)0x00, (byte)0x00, (byte)0x49, (byte)0x0F, (byte)0x00, (byte)0x00,
             (byte)0x01, (byte)0x01, (byte)0x00, (byte)0x00, (byte)0x73, (byte)0x00,
             (byte)0x00, (byte)0x00, (byte)0x08, (byte)0x00, (byte)0x01, (byte)0x00,
@@ -859,7 +723,7 @@ public class OvsPortsCreateAndEnumerateTest extends AbstractNetlinkProtocolTest 
             (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x08, (byte)0x00,
             (byte)0x02, (byte)0x00, (byte)0xC0, (byte)0xA8, (byte)0x64, (byte)0x01,
             (byte)0xA8, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x19, (byte)0x00,
-            (byte)0x02, (byte)0x00, (byte)0x0D, (byte)0x00, (byte)0x00, (byte)0x00,
+            (byte)0x02, (byte)0x00, (byte)0x0B, (byte)0x00, (byte)0x00, (byte)0x00,
             (byte)0x49, (byte)0x0F, (byte)0x00, (byte)0x00, (byte)0x01, (byte)0x01,
             (byte)0x00, (byte)0x00, (byte)0x73, (byte)0x00, (byte)0x00, (byte)0x00,
             (byte)0x08, (byte)0x00, (byte)0x01, (byte)0x00, (byte)0x05, (byte)0x00,
@@ -889,9 +753,10 @@ public class OvsPortsCreateAndEnumerateTest extends AbstractNetlinkProtocolTest 
         },
 
         // read - time: 1342190625734
+        /* ports enumerate request reply #2 */
         {
             (byte)0x14, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x03, (byte)0x00,
-            (byte)0x02, (byte)0x00, (byte)0x0D, (byte)0x00, (byte)0x00, (byte)0x00,
+            (byte)0x02, (byte)0x00, (byte)0x0B, (byte)0x00, (byte)0x00, (byte)0x00,
             (byte)0x49, (byte)0x0F, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
             (byte)0x00, (byte)0x00
         },

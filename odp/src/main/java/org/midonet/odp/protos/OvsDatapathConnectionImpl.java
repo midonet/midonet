@@ -28,6 +28,7 @@ import org.midonet.netlink.messages.Builder;
 import org.midonet.odp.Datapath;
 import org.midonet.odp.Flow;
 import org.midonet.odp.FlowMatch;
+import org.midonet.odp.OpenVSwitch;
 import org.midonet.odp.Packet;
 import org.midonet.odp.Port;
 import org.midonet.odp.Ports;
@@ -53,10 +54,11 @@ import static org.midonet.odp.family.FlowFamily.AttrKey;
  */
 public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
-    private static final Logger log = LoggerFactory
-        .getLogger(OvsDatapathConnectionImpl.class);
+    private static final Logger log =
+        LoggerFactory.getLogger(OvsDatapathConnectionImpl.class);
 
-    public static final int FALLBACK_PORT_MULTICAT = 33;
+    public static final int FALLBACK_PORT_MULTICAT =
+        OpenVSwitch.Port.fallbackMCGroup;
 
     public OvsDatapathConnectionImpl(NetlinkChannel channel, Reactor reactor,
             ThrottlingGuardFactory pendingWritesThrottlerFactory,
@@ -173,10 +175,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         if (!validateState(callback))
             return;
 
-        NetlinkMessage message =
-            newMessage()
-                .addValue(0)
-                .build();
+        NetlinkMessage message = newMessage().addValue(0).build();
 
         RequestBuilder<DatapathFamily.Cmd,
                        DatapathFamily,
@@ -426,14 +425,9 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             builder.addAttr(PortFamily.Attr.PORT_NO, port.getPortNo());
 
         if (port.getType() != null)
-            builder.addAttr(PortFamily.Attr.PORT_TYPE,
-                            OvsPortType.getOvsPortTypeId(port.getType()));
+            builder.addAttr(PortFamily.Attr.PORT_TYPE, port.getType().attrId);
 
-//  Address attribute is removed in ovs 1.10
-//        if (port.getAddress() != null)
-//            builder.addAttr(PortFamily.Attr.ADDRESS, port.getAddress());
-
-
+// Options only relevant for tunnel type VXLan and LISP, which we don't support
 //        if (port.getOptions() != null)
 //            builder.addAttr(PortFamily.Attr.OPTIONS, port.getOptions());
 
@@ -497,8 +491,8 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                         Set<Port<?, ?>> ports = new HashSet<Port<?, ?>>();
 
                         for (ByteBuffer buffer : input) {
-                            Port port = deserializePort(buffer,
-                                                        datapath.getIndex());
+                            Port<?, ?> port =
+                                deserializePort(buffer, datapath.getIndex());
 
                             if (port == null)
                                 continue;
@@ -536,36 +530,30 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             return;
         }
 
-/*
-        if (Port.Type.Tunnels.contains(port.getType()) &&
-                port.getOptions() == null) {
-            callback.onError(
-                new OvsDatapathInvalidParametersException(
-                    "A tunnel port needs to have its options set"));
-            return;
-        }
-*/
+// Options only relevant for tunnel type VXLan and LISP, which we don't support
+//        if (Port.Type.Tunnels.contains(port.getType()) &&
+//                port.getOptions() == null) {
+//            callback.onError(
+//                new OvsDatapathInvalidParametersException(
+//                    "A tunnel port needs to have its options set"));
+//            return;
+//        }
 
         int localPid = getChannel().getLocalAddress().getPid();
 
-        int portTypeId = OvsPortType.getOvsPortTypeId(port.getType());
-
         Builder builder = newMessage()
             .addValue(datapath.getIndex())
-            .addAttr(PortFamily.Attr.PORT_TYPE, portTypeId)
+            .addAttr(PortFamily.Attr.PORT_TYPE, port.getType().attrId)
             .addAttr(PortFamily.Attr.NAME, port.getName())
             .addAttr(PortFamily.Attr.UPCALL_PID, localPid);
 
         if (port.getPortNo() != null)
             builder.addAttr(PortFamily.Attr.PORT_NO, port.getPortNo());
 
-//  Address attribute is removed in ovs 1.10
-//        if (port.getAddress() != null)
-//            builder.addAttr(PortFamily.Attr.ADDRESS, port.getAddress());
-
-        if (port.getOptions() != null) {
-            builder.addAttr(PortFamily.Attr.OPTIONS, port.getOptions());
-        }
+// Options only relevant for tunnel type VXLan and LISP, which we don't support
+//        if (port.getOptions() != null) {
+//            builder.addAttr(PortFamily.Attr.OPTIONS, port.getOptions());
+//        }
 
         NetlinkMessage message = builder.build();
 
@@ -1060,12 +1048,11 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         if (type == null || name == null)
             return null;
 
-        Port.Type portType = OvsPortType.getOvsPortTypeId(type);
-        Port port = Ports.newPortByType(portType, name);
+        Port port = Ports.newPortByTypeId(type, name);
+
+        if (port == null) return port; // unknown port type requested;
 
         //noinspection unchecked
-//  Address attribute is removed in ovs 1.10
-//        port.setAddress(m.getAttrValueBytes(PortFamily.Attr.ADDRESS));
         port.setPortNo(m.getAttrValueInt(PortFamily.Attr.PORT_NO));
         port.setStats(m.getAttrValue(PortFamily.Attr.STATS, new Port.Stats()));
         port.setOptions(
@@ -1210,7 +1197,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         return state == State.Initialized;
     }
 
-    private boolean validateState(Callback callback) {
+    private boolean validateState(Callback<?> callback) {
         switch (state) {
             case ErrorInInitialization:
                 callback.onError(stateInitializationEx);
@@ -1256,56 +1243,4 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         }
     }
 
-    // include/linux/openvswitch.h extract
-    //  enum ovs_vport_type {
-    //      OVS_VPORT_TYPE_UNSPEC,
-    //      OVS_VPORT_TYPE_NETDEV,      /* network device */
-    //      OVS_VPORT_TYPE_INTERNAL,    /* network device implemented by datapath */
-    //      OVS_VPORT_TYPE_GRE,         /* GRE tunnel */
-    //      OVS_VPORT_TYPE_VXLAN,       /* VXLAN tunnel */
-    //      OVS_VPORT_TYPE_GRE64 = 104, /* GRE tunnel with 64-bit key */
-    //      __OVS_VPORT_TYPE_MAX
-    //  };
-    enum OvsPortType {
-
-        NetDev(Port.Type.NetDev, 1),
-        Internal(Port.Type.Internal, 2),
-        Gre(Port.Type.Gre, 3),
-        //Gre(Port.Type.VxLan, 4),    // not yet supported
-        Patch(Port.Type.Patch, 100), // obsolete in ovs 1.10+
-        Gre101(Port.Type.Gre, 101), // ovs 1.9 gre tunnel compatibility
-        CapWap(Port.Type.CapWap, 102), // obsolete in ovs 1.10+, not supported anymore
-        Gre64(Port.Type.Gre, 104); // gre 64 bit key
-
-        private final Port.Type portType;
-        private final int ovsKey;
-
-        OvsPortType(Port.Type portType, int ovsKey) {
-            this.portType = portType;
-            this.ovsKey = ovsKey;
-        }
-
-        static Integer getOvsPortTypeId(Port.Type type) {
-            for (OvsPortType ovsPortType : OvsPortType.values()) {
-                if (ovsPortType.portType == type)
-                    return ovsPortType.ovsKey;
-            }
-
-            return null;
-        }
-
-        static Port.Type getOvsPortTypeId(Integer ovsKey) {
-            if (ovsKey == null)
-                return null;
-
-            for (OvsPortType ovsPortType : OvsPortType.values()) {
-                if (ovsPortType.ovsKey == ovsKey)
-                    return ovsPortType.portType;
-            }
-
-            return null;
-        }
-    }
 }
-
-

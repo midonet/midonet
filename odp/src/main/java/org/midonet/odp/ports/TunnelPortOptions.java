@@ -183,7 +183,7 @@ public abstract class TunnelPortOptions<Options extends TunnelPortOptions<Option
     }
 
     @Override
-    public void serialize(BaseBuilder builder) {
+    public void serialize(BaseBuilder<?,?> builder) {
         builder.addAttr(Attr.OVS_TUNNEL_ATTR_FLAGS, flags);
         if (this.dstIPv4 != null) {
             builder.addAttr(Attr.OVS_TUNNEL_ATTR_DST_IPV4, dstIPv4, ByteOrder.BIG_ENDIAN);
@@ -235,7 +235,7 @@ public abstract class TunnelPortOptions<Options extends TunnelPortOptions<Option
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
 
-        TunnelPortOptions that = (TunnelPortOptions) o;
+        TunnelPortOptions<?> that = (TunnelPortOptions) o;
 
         if (flags != that.flags) return false;
         if (dstIPv4 != null ? !dstIPv4.equals(

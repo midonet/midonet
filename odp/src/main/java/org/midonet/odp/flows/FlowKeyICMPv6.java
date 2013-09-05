@@ -14,7 +14,7 @@ public class FlowKeyICMPv6 implements FlowKey<FlowKeyICMPv6> {
     /*__u8*/ byte icmpv6_code;
 
     @Override
-    public void serialize(BaseBuilder builder) {
+    public void serialize(BaseBuilder<?,?> builder) {
         builder.addValue(icmpv6_type);
         builder.addValue(icmpv6_code);
     }

@@ -25,7 +25,7 @@ public class FlowKeyEncap implements FlowKey<FlowKeyEncap> {
     }
 
     @Override
-    public void serialize(BaseBuilder builder) {
+    public void serialize(BaseBuilder<?,?> builder) {
         builder.addAttrs(keys);
     }
 
@@ -82,7 +82,7 @@ public class FlowKeyEncap implements FlowKey<FlowKeyEncap> {
         return this;
     }
 
-    public FlowKeyEncap addKey(FlowKey key) {
+    public FlowKeyEncap addKey(FlowKey<?> key) {
         keys.add(key);
         return this;
     }

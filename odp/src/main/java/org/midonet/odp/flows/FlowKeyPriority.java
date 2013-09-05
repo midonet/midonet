@@ -13,7 +13,7 @@ public class FlowKeyPriority implements FlowKey<FlowKeyPriority> {
     /*__be32*/ int priority;
 
     @Override
-    public void serialize(BaseBuilder builder) {
+    public void serialize(BaseBuilder<?,?> builder) {
         builder.addValue(priority);
     }
 

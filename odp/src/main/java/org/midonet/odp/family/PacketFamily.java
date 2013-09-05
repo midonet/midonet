@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.midonet.netlink.Netlink;
 import org.midonet.netlink.NetlinkMessage;
+import org.midonet.odp.OpenVSwitch;
 import org.midonet.odp.flows.FlowAction;
 import org.midonet.odp.flows.FlowKey;
 import org.midonet.packets.Ethernet;
@@ -14,14 +15,18 @@ import org.midonet.packets.Ethernet;
 /**
  *
  */
-public class PacketFamily
-    extends Netlink.CommandFamily<PacketFamily.Cmd, PacketFamily.AttrKey> {
+public class PacketFamily extends
+        Netlink.CommandFamily<PacketFamily.Cmd,
+            PacketFamily.AttrKey<PacketFamily>> {
 
-    public static final String NAME = "ovs_packet";
-    public static final byte VERSION = 1;
+    public static final String NAME = OpenVSwitch.Packet.Family;
+    public static final byte VERSION = OpenVSwitch.Packet.version;
 
     public enum Cmd implements Netlink.ByteConstant {
-        MISS(1), ACTION(2), EXECUTE(3);
+
+        MISS(OpenVSwitch.Packet.Cmd.Miss),
+        ACTION(OpenVSwitch.Packet.Cmd.Action),
+        EXECUTE(OpenVSwitch.Packet.Cmd.Exec);
 
         byte value;
 
@@ -40,22 +45,26 @@ public class PacketFamily
         /**
          * Packet data.
          */
-        public static final AttrKey<Ethernet> PACKET = attr(1);
+        public static final AttrKey<Ethernet> PACKET =
+            attr(OpenVSwitch.Packet.Attr.Packet);
 
         /**
          * Nested OVS_KEY_ATTR_* attributes.
          */
-        public static final AttrKey<List<FlowKey<?>>> KEY = attr(2);
+        public static final AttrKey<List<FlowKey<?>>> KEY =
+            attr(OpenVSwitch.Packet.Attr.Key);
 
         /**
          * Nested OVS_ACTION_ATTR_* attributes.
          */
-        public static final AttrKey<List<FlowAction<?>>> ACTIONS = attr(3);
+        public static final AttrKey<List<FlowAction<?>>> ACTIONS =
+            attr(OpenVSwitch.Packet.Attr.Actions);
 
         /**
          * u64 OVS_ACTION_ATTR_USERSPACE arg.
          */
-        public static final AttrKey<Long> USERDATA = attr(4);
+        public static final AttrKey<Long> USERDATA =
+            attr(OpenVSwitch.Packet.Attr.Userdata);
 
         public AttrKey(int id) {
             super(id);

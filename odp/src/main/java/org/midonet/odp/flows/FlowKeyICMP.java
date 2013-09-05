@@ -11,7 +11,7 @@ public class FlowKeyICMP implements FlowKey<FlowKeyICMP> {
     /*__u8*/ byte icmp_code;
 
     @Override
-    public void serialize(BaseBuilder builder) {
+    public void serialize(BaseBuilder<?,?> builder) {
         builder.addValue(icmp_type);
         builder.addValue(icmp_code);
     }

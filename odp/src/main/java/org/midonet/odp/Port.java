@@ -14,35 +14,48 @@ import org.midonet.netlink.messages.BuilderAware;
 /**
  * Abstract port abstraction.
  */
-public abstract class Port<PortOptions extends org.midonet.odp.PortOptions, ActualPort extends Port<PortOptions, ActualPort>> {
+public abstract class Port<Opts extends PortOptions, Self extends Port<Opts, Self>> {
 
     protected Port(@Nonnull String name, @Nonnull Type type) {
         this.name = name;
         this.type = type;
     }
 
-    public abstract PortOptions newOptions();
+    public abstract Opts newOptions();
 
     public enum Type {
-        NetDev, Internal, Patch, Gre, CapWap;
 
-        public static EnumSet<Type> Tunnels = EnumSet.of(Patch, Gre, CapWap);
+        NetDev(OpenVSwitch.Port.Type.Netdev),
+        Internal(OpenVSwitch.Port.Type.Internal),
+        Gre(OpenVSwitch.Port.Type.Gre),
+        VXLan(OpenVSwitch.Port.Type.VXLan),     // not yet supported
+        Gre101(OpenVSwitch.Port.Type.GreOld),   // ovs 1.9 gre compatibility
+        Gre64(OpenVSwitch.Port.Type.Gre64),
+        Lisp(OpenVSwitch.Port.Type.Lisp);       // not yet supported
+
+        public int attrId;
+
+        Type(int attr) {
+            this.attrId = attr;
+        }
+
+        public static EnumSet<Type> Tunnels =
+            EnumSet.of(Gre, VXLan, Lisp, Gre101, Gre64);
     }
 
-    protected abstract ActualPort self();
+    protected abstract Self self();
 
     Integer portNo;
     Type type;
     String name;
-    byte[] address;
-    PortOptions options;
+    Opts options;
     Stats stats;
 
     public Integer getPortNo() {
         return portNo;
     }
 
-    public ActualPort setPortNo(Integer portNo) {
+    public Self setPortNo(Integer portNo) {
         this.portNo = portNo;
         return self();
     }
@@ -51,7 +64,7 @@ public abstract class Port<PortOptions extends org.midonet.odp.PortOptions, Actu
         return type;
     }
 
-    public ActualPort setType(Type type) {
+    public Self setType(Type type) {
         this.type = type;
         return self();
     }
@@ -60,30 +73,21 @@ public abstract class Port<PortOptions extends org.midonet.odp.PortOptions, Actu
         return name;
     }
 
-    public ActualPort setName(String name) {
+    public Self setName(String name) {
         this.name = name;
         return self();
     }
 
-    public byte[] getAddress() {
-        return address;
-    }
-
-    public ActualPort setAddress(byte[] address) {
-        this.address = address;
-        return self();
-    }
-
-    public ActualPort setOptions(PortOptions options) {
+    public Self setOptions(Opts options) {
         this.options = options;
         return self();
     }
 
-    public ActualPort setOptions() {
+    public Self setOptions() {
         return setOptions(newOptions());
     }
 
-    public PortOptions getOptions() {
+    public Opts getOptions() {
         return options;
     }
 
@@ -91,7 +95,7 @@ public abstract class Port<PortOptions extends org.midonet.odp.PortOptions, Actu
         return stats;
     }
 
-    public ActualPort setStats(Stats stats) {
+    public Self setStats(Stats stats) {
         this.stats = stats;
         return self();
     }
@@ -101,8 +105,8 @@ public abstract class Port<PortOptions extends org.midonet.odp.PortOptions, Actu
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        @SuppressWarnings("unchecked")
-        Port port = (Port) o;
+        @SuppressWarnings("unchecked") // safe cast
+        Port<?,?> port = (Port) o;
 
         if (name != null ? !name.equals(port.name) : port.name != null)
             return false;
@@ -134,23 +138,9 @@ public abstract class Port<PortOptions extends org.midonet.odp.PortOptions, Actu
             "portNo=" + portNo +
             ", type=" + type +
             ", name='" + name + '\'' +
-            ", address=" + macAddressAsString(address) +
             ", options=" + options +
             ", stats=" + stats +
             '}';
-    }
-
-    private String macAddressAsString(byte[] address) {
-        if (address == null ) {
-            return "null";
-        }
-
-        StringBuilder sb = new StringBuilder();
-        sb.append(String.format("%02x", address[0]));
-        for (int i=1; i<address.length; i++)
-            sb.append(":").append(String.format("%02x", address[i]));
-
-        return sb.toString();
     }
 
     public static class Stats implements BuilderAware {
@@ -170,7 +160,7 @@ public abstract class Port<PortOptions extends org.midonet.odp.PortOptions, Actu
         public long getTxDropped() {return txDropped;}
 
         @Override
-        public void serialize(BaseBuilder builder) {
+        public void serialize(BaseBuilder<?,?> builder) {
             builder.addValue(rxPackets);
             builder.addValue(txPackets);
             builder.addValue(rxBytes);

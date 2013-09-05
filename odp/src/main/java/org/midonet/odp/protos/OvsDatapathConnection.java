@@ -422,7 +422,7 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
      * @param datapath the datapath which holds the port
      * @return a future holding the updated port information.
      */
-    public Future<Port<?, ?>> portsSet(final @Nonnull Port port,
+    public Future<Port<?, ?>> portsSet(final @Nonnull Port<?, ?> port,
                                        final @Nullable Datapath datapath) {
         ValueFuture<Port<?, ?>> future = ValueFuture.create();
         portsSet(port, datapath, wrapFuture(future), DEF_REPLY_TIMEOUT);
@@ -450,7 +450,7 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
      * @param callback      the callback that will be called with the result.
      * @param timeoutMillis the timeout we are willing to wait for a result.
      */
-    public void portsSet(final @Nonnull Port port,
+    public void portsSet(final @Nonnull Port<?, ?> port,
                          final @Nullable Datapath datapath,
                          final @Nonnull Callback<Port<?, ?>> callback,
                          final long timeoutMillis) {

@@ -15,7 +15,7 @@ public class FlowKeyEthernet implements FlowKey<FlowKeyEthernet> {
     /*__u8*/ byte[] eth_dst = new byte[6]; // always 6 bytes long
 
     @Override
-    public void serialize(BaseBuilder builder) {
+    public void serialize(BaseBuilder<?,?> builder) {
         builder.addValue(eth_src);
         builder.addValue(eth_dst);
     }
