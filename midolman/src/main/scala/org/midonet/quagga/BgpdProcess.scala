@@ -5,37 +5,34 @@
 package org.midonet.quagga
 
 import akka.actor.ActorRef
-
 import org.slf4j.LoggerFactory
 
-import org.midonet.util.process.ProcessHelper
-import org.midonet.util.Waiters.sleepBecause
+import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.netlink.AfUnix
+import org.midonet.util.Waiters.sleepBecause
+import org.midonet.util.process.ProcessHelper
 
 class BgpdProcess(routingHandler: ActorRef, vtyPortNumber: Int,
                   listenAddress: String, socketAddress: AfUnix.Address,
-                  networkNamespace: String) {
+                  networkNamespace: String, val config: MidolmanConfig) {
     private final val log = LoggerFactory.getLogger(this.getClass)
     var bgpdProcess: Process = null
 
     def start(): Boolean = {
         log.debug("Starting bgpd process. Vty: {}", vtyPortNumber)
 
-        //TODO(abel) the bgpd binary path should be provided by midolman config file
-        //TODO(abel) the bgpd config path should be provided by midolman config file
-        val bgpdCmdLine = "sudo ip netns exec " + networkNamespace +
-        " /usr/lib/quagga/bgpd" +
-        " --vty_port " + vtyPortNumber +
-        //" --vty_addr 127.0.0.1" +
-        " --config_file /etc/quagga/bgpd.conf" +
-        " --pid_file /var/run/quagga/bgpd." + vtyPortNumber + ".pid " +
-        " --socket " + socketAddress.getPath
+        val bgpdCmdLine = "ip netns exec " + networkNamespace +
+            config.pathToBGPD + "/bgpd" +
+            " --vty_port " + vtyPortNumber +
+            //" --vty_addr 127.0.0.1" +
+            " --config_file " + config.pathToBGPDConfig + "/bgpd.conf" +
+            " --pid_file /var/run/quagga/bgpd." + vtyPortNumber + ".pid " +
+            " --socket " + socketAddress.getPath
 
         log.debug("bgpd command line: {}", bgpdCmdLine)
 
         val daemonRunConfig =
             ProcessHelper.newDemonProcess(bgpdCmdLine, log, "bgpd-" + vtyPortNumber)
-                .withSudo()
 
         bgpdProcess = daemonRunConfig.run()
 

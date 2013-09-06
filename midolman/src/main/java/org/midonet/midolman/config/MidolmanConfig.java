@@ -43,6 +43,12 @@ public interface MidolmanConfig
     @ConfigInt(key = "bgp_connect_retry", defaultValue = 120)
     public int getMidolmanBGPConnectRetry();
 
+    @ConfigString(key = "bgpd_binary", defaultValue = "/usr/sbin")
+    public String pathToBGPD();
+
+    @ConfigString(key = "bgpd_config", defaultValue = "/etc/quagga")
+    public String pathToBGPDConfig();
+
     @ConfigInt(key = "dhcp_mtu", defaultValue = 1450)
     int getMidolmanDhcpMtu();
 

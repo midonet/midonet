@@ -4,41 +4,45 @@
 
 package org.midonet.midolman.routingprotocols
 
-import akka.actor.{ActorRef, Props, UntypedActorWithStash}
 import collection.mutable
 import java.io.File
 import java.util.UUID
+import scala.collection.JavaConversions._
 
-import org.midonet.midolman.{PortOperation, DatapathController, FlowController}
-import org.midonet.midolman.DatapathController.{PortNetdevOpReply, CreatePortNetdev}
-import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
-import org.midonet.midolman.datapath.FlowActionOutputToVrnPort
-import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
-import org.midonet.midolman.topology.{FlowTagger, VirtualTopologyActor}
-import org.midonet.cluster.{Client, DataClient}
+import akka.actor.{ActorRef, Props, UntypedActorWithStash}
+
 import org.midonet.cluster.client.{Port, ExteriorRouterPort, BGPListBuilder}
 import org.midonet.cluster.data.{Route, AdRoute, BGP}
+import org.midonet.cluster.{Client, DataClient}
+import org.midonet.midolman.DatapathController
+import org.midonet.midolman.DatapathController.CreatePortNetdev
+import org.midonet.midolman.DatapathController.DeletePortNetdev
+import org.midonet.midolman.DatapathController.PortNetdevOpReply
+import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
+import org.midonet.midolman.config.MidolmanConfig
+import org.midonet.midolman.datapath.FlowActionOutputToVrnPort
+import org.midonet.midolman.logging.ActorLogWithoutPath
+import org.midonet.midolman.state.{ZkConnectionAwareWatcher, StateAccessException}
+import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
+import org.midonet.midolman.topology.{FlowTagger, VirtualTopologyActor}
+import org.midonet.midolman.{PortOperation, FlowController}
+import org.midonet.netlink.AfUnix
 import org.midonet.odp.Ports
 import org.midonet.odp.flows.{FlowActionUserspace, FlowActions}
 import org.midonet.odp.ports.NetDevPort
 import org.midonet.packets._
-import org.midonet.quagga._
 import org.midonet.quagga.ZebraProtocol.RIBType
+import org.midonet.quagga._
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
-import org.midonet.util.process.ProcessHelper
-import scala.collection.JavaConversions._
-import org.midonet.midolman.logging.ActorLogWithoutPath
-import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.state.{ZkConnectionAwareWatcher, StateAccessException}
 import org.midonet.util.eventloop.SelectLoop
-import org.midonet.netlink.AfUnix
+import org.midonet.util.process.ProcessHelper
 
 object RoutingHandler {
 
     /** A conventional value for Ip prefix of BGP pairs.
      *  173 is the MS byte value and 23 the second byte value.
      *  Last 2 LS bytes are available for assigning BGP pairs. */
-    val BGP_IP_PREFIX = 173 * (1<<24) + 23 * (1<<16)
+    val BGP_IP_INT_PREFIX = 173 * (1<<24) + 23 * (1<<16)
 
     // BgpdProcess will notify via these messages
     case object BGPD_READY
@@ -112,9 +116,9 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
     private final val BGP_VTY_BRIDGE_NAME: String =
         "mbgp%d_br".format(bgpIdx)
     private final val BGP_VTY_LOCAL_IP: String =
-        IPv4Addr.intToIpStr(BGP_IP_PREFIX + 1 + 4 * bgpIdx)
+        IPv4Addr.intToIpStr(BGP_IP_INT_PREFIX + 1 + 4 * bgpIdx)
     private final val BGP_VTY_MIRROR_IP: String =
-        IPv4Addr.intToIpStr(BGP_IP_PREFIX + 2 + 4 * bgpIdx)
+        IPv4Addr.intToIpStr(BGP_IP_INT_PREFIX + 2 + 4 * bgpIdx)
     private final val BGP_VTY_MASK_LEN: Int = 30
     private final val BGP_NETWORK_NAMESPACE: String =
         "mbgp%d_ns".format(bgpIdx)
@@ -419,7 +423,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
 
                         log.debug("announcing we are BGPD_STATUS active")
                         context.system.eventStream.publish(
-                            new BGPD_STATUS(rport.id, isActive = true))
+                            BGPD_STATUS(rport.id, true))
 
                     case _ =>
                         log.error("BGP_READY expected only while " +
@@ -663,17 +667,15 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
         log.debug("startBGP - begin for port {}", rport.id)
 
         // In Linux interface names can be at most 15 characters long
-        val interfaces = List(
+        List(
             BGP_NETDEV_PORT_NAME,
             BGP_NETDEV_PORT_MIRROR_NAME,
             BGP_VTY_PORT_NAME,
             BGP_VTY_PORT_MIRROR_NAME
-        )
-
-        interfaces.foreach(interface => if (interface.length > 15) {
-            log.error("Interface name can be at most 15 characters: {}", interface)
+        ).withFilter{ _.length > 15 }.foreach { itf =>
+            log.error("Interface name can be at most 15 characters: {}", itf)
             return
-        })
+        }
 
         // If there was a bgpd running in a previous execution and wasn't
         // properly stopped, it may still be running -> kill it
@@ -685,7 +687,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
 
             // we only expect one pid stored here
             if (lines.hasNext) {
-                val cmdLine = "sudo kill -9 " + lines.next()
+                val cmdLine = "kill -9 " + lines.next()
                 ProcessHelper.executeCommandLine(cmdLine)
             }
         }
@@ -705,115 +707,70 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
         zebra = ZebraServer(socketAddress, handler, rport.portAddr.getAddress,
                             BGP_NETDEV_PORT_MIRROR_NAME, selectLoop)
 
-        // Does the namespace exist?
-        var cmdLine = "sudo ip netns list"
-        val foundNamespace = ProcessHelper.executeCommandLine(cmdLine)
-            .consoleOutput.exists(line => line.contains(BGP_NETWORK_NAMESPACE))
 
-        if (foundNamespace == false) {
-            // Create the network namespace
-            cmdLine = "sudo ip netns add " + BGP_NETWORK_NAMESPACE
-            ProcessHelper.executeCommandLine(cmdLine)
-        } else {
-            // do not try to delete the old network namespace, because trying
-            // to do so when there's a process still running or interfaces
-            // still using it, it can lead to namespace corruption
-        }
+        /* Bgp namespace configuration */
 
-        // does the bgp interface already exist?
-        cmdLine = "sudo ip link"
-        val foundBgpPort = ProcessHelper.executeCommandLine(cmdLine)
-            .consoleOutput.exists(line => line.contains(BGP_NETDEV_PORT_NAME))
+        val bgpNS = BGP_NETWORK_NAMESPACE
 
-        if (foundBgpPort) {
-            // It already existed: delete it
-            cmdLine = "sudo ip link delete " + BGP_NETDEV_PORT_NAME
-            log.debug("cmdLine: {}", cmdLine)
-            ProcessHelper.executeCommandLine(cmdLine)
-        }
+        IP.ensureNamespace(bgpNS)
 
-        // Create the interface bgpd will run on.
-        cmdLine = "sudo ip link add name " + BGP_NETDEV_PORT_NAME +
-            " type veth peer name " + BGP_NETDEV_PORT_MIRROR_NAME
-        ProcessHelper.executeCommandLine(cmdLine)
 
-        // Move the mirror interface inside the network namespace
-        cmdLine = "sudo ip link set " + BGP_NETDEV_PORT_MIRROR_NAME +
-            " netns " + BGP_NETWORK_NAMESPACE
-        ProcessHelper.executeCommandLine(cmdLine)
+        /* Bgp interface configuration */
 
-        // Configure the mirror interface
-        cmdLine = "sudo ip netns exec " + BGP_NETWORK_NAMESPACE +
-            " ip link set dev " + BGP_NETDEV_PORT_MIRROR_NAME +
-            " up" +
-            " address " + rport.portMac.toString
-        ProcessHelper.executeCommandLine(cmdLine)
+        val bgpPort = BGP_NETDEV_PORT_NAME
+        val bgpMirror = BGP_NETDEV_PORT_MIRROR_NAME
+        val (bgpMac, bgpIp) = (rport.portMac.toString, rport.portAddr.toString)
 
-        cmdLine = "sudo ip netns exec " + BGP_NETWORK_NAMESPACE +
-            " ip addr add " + rport.portAddr.toString + " dev " +
-            BGP_NETDEV_PORT_MIRROR_NAME
-        ProcessHelper.executeCommandLine(cmdLine)
+        IP.ensureNoInterface(bgpPort)
+
+        IP.preparePair(bgpPort, bgpMirror, bgpNS)
+
+        IP.configureMac(bgpMirror, bgpMac, bgpNS)
+
+        IP.configureIp(bgpMirror, bgpIp, bgpNS)
 
         // wake up loopback inside network namespace
-        cmdLine = "sudo ip netns exec " + BGP_NETWORK_NAMESPACE +
-            " ifconfig lo up"
-        ProcessHelper.executeCommandLine(cmdLine)
+        IP.execIn(bgpNS, " ifconfig lo up")
 
-        // wake up local port
-        cmdLine = "sudo ip link set dev " + BGP_NETDEV_PORT_NAME + " up"
-        ProcessHelper.executeCommandLine(cmdLine)
+        IP.configureUp(bgpPort)
 
         // Add port to datapath
         DatapathController.getRef() !
-            CreatePortNetdev(
-                Ports.newNetDevPort(BGP_NETDEV_PORT_NAME), null)
+            CreatePortNetdev(Ports.newNetDevPort(BGP_NETDEV_PORT_NAME), null)
 
-        // VTY
 
-        // Create the interface pair for VTY communication
-        cmdLine = "sudo ip link add name " + BGP_VTY_PORT_NAME +
-            " type veth peer name " + BGP_VTY_PORT_MIRROR_NAME
-        ProcessHelper.executeCommandLine(cmdLine)
+        /* VTY interface configuration */
 
-        // Move the mirror VTY interface inside the network namespace
-        cmdLine = "sudo ip link set " + BGP_VTY_PORT_MIRROR_NAME +
-            " netns " + BGP_NETWORK_NAMESPACE
-        ProcessHelper.executeCommandLine(cmdLine)
+        val vtyPort = BGP_VTY_PORT_NAME
+        val vtyMirror = BGP_VTY_PORT_MIRROR_NAME
+        val vtyLocalIp = BGP_VTY_LOCAL_IP + "/" + BGP_VTY_MASK_LEN
+        val vtyMirrorIp = BGP_VTY_MIRROR_IP + "/" + BGP_VTY_MASK_LEN
 
-        // Configure the mirror VTY interface
-        cmdLine = "sudo ip netns exec " + BGP_NETWORK_NAMESPACE +
-            " ip link set dev " + BGP_VTY_PORT_MIRROR_NAME +
-            " up"
-        ProcessHelper.executeCommandLine(cmdLine)
+        IP.ensureNoInterface(vtyPort)
 
-        cmdLine = "sudo ip netns exec " + BGP_NETWORK_NAMESPACE +
-            " ip addr add " + BGP_VTY_MIRROR_IP +
-            "/" + BGP_VTY_MASK_LEN + " dev " +
-            BGP_VTY_PORT_MIRROR_NAME
-        ProcessHelper.executeCommandLine(cmdLine)
+        IP.preparePair(vtyPort, vtyMirror, bgpNS)
 
-        // Wake up local vty interface
-        cmdLine = "sudo ip link set dev " + BGP_VTY_PORT_NAME + " up"
-        ProcessHelper.executeCommandLine(cmdLine)
+        IP.configureUp(vtyMirror, bgpNS)
+
+        IP.configureIp(vtyMirror, vtyMirrorIp, bgpNS)
+
+        IP.configureUp(vtyPort)
+
+        /* bridge configuration */
+
+        val bgpBridge = BGP_VTY_BRIDGE_NAME
 
         // Create a bridge for VTY communication
-        cmdLine = "sudo brctl addbr  " + BGP_VTY_BRIDGE_NAME
-        ProcessHelper.executeCommandLine(cmdLine)
+        BRCTL.addBr(bgpBridge)
 
         // Add VTY interface to VTY bridge
-        cmdLine = "sudo brctl addif " + BGP_VTY_BRIDGE_NAME +
-            " " + BGP_VTY_PORT_NAME
-        ProcessHelper.executeCommandLine(cmdLine)
+        BRCTL.addItf(bgpBridge, vtyPort)
 
         // Set up bridge as local VTY interface
-        cmdLine = "sudo ip addr add " + BGP_VTY_LOCAL_IP +
-            "/" + BGP_VTY_MASK_LEN + " dev " +
-            BGP_VTY_BRIDGE_NAME
-        ProcessHelper.executeCommandLine(cmdLine)
+        IP.configureIp(bgpBridge, vtyLocalIp)
 
         // Bring up bridge interface for VTY
-        cmdLine = "sudo ip link set dev " + BGP_VTY_BRIDGE_NAME + " up"
-        ProcessHelper.executeCommandLine(cmdLine)
+        IP.configureUp(bgpBridge)
 
         log.debug("startBGP - end")
     }
@@ -828,33 +785,26 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
         context.stop(zebra)
 
         // delete vty interface pair
-        var cmdLine = "sudo ip link del " + BGP_VTY_PORT_NAME
-        ProcessHelper.executeCommandLine(cmdLine)
+        IP.deleteItf(BGP_VTY_PORT_NAME)
 
         // get vty bridge down
-        cmdLine = "sudo ip link set dev " + BGP_VTY_BRIDGE_NAME + " down"
-        ProcessHelper.executeCommandLine(cmdLine)
+        IP.configureDown(BGP_VTY_BRIDGE_NAME )
 
         // delete vty bridge
-        cmdLine = "sudo brctl delbr " + BGP_VTY_BRIDGE_NAME
-        ProcessHelper.executeCommandLine(cmdLine)
+        BRCTL.deleteBr(BGP_VTY_BRIDGE_NAME)
 
         // delete bgp interface pair
-        cmdLine = "sudo ip link del " + BGP_NETDEV_PORT_NAME
-        ProcessHelper.executeCommandLine(cmdLine)
+        IP.deleteItf(BGP_NETDEV_PORT_NAME)
 
         // delete network namespace
-        cmdLine = "sudo ip netns del " + BGP_NETWORK_NAMESPACE
-        ProcessHelper.executeCommandLine(cmdLine)
+        IP.deleteNS(BGP_NETWORK_NAMESPACE)
 
         // Delete port from datapath
         DatapathController.getRef() !
-            CreatePortNetdev(
-                Ports.newNetDevPort(BGP_NETDEV_PORT_NAME), null)
+            DeletePortNetdev(Ports.newNetDevPort(BGP_NETDEV_PORT_NAME), null)
 
         log.debug("announcing BGPD_STATUS inactive")
-        context.system.eventStream.publish(
-            new BGPD_STATUS(rport.id, isActive = false))
+        context.system.eventStream.publish(BGPD_STATUS(rport.id, false))
 
         self ! BGPD_DEAD
 
@@ -878,7 +828,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
 
         bgpdProcess = new BgpdProcess(self, BGP_VTY_PORT,
             rport.portAddr.getAddress.toString, socketAddress,
-            BGP_NETWORK_NAMESPACE)
+            BGP_NETWORK_NAMESPACE, config)
         val didStart = bgpdProcess.start()
         if (didStart) {
             self ! BGPD_READY
@@ -1048,5 +998,74 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
 
         log.debug("setBGPFlows - end")
     }
+
+}
+
+object IP { /* wrapper to ip commands => TODO: implement with RTNETLINK */
+
+    val exec: String => Int =
+        ProcessHelper.executeCommandLine(_).returnValue
+
+    val link: String => Int =
+        s => exec("ip link " + s)
+
+    val netns: String => Int =
+        s => exec("ip netns " + s)
+
+    def execIn(ns: String, cmd: String): Int =
+        if (ns == "") exec(cmd) else netns("exec " + ns + " " + cmd)
+
+    def addNS(ns: String) = netns("add " + ns)
+
+    def deleteNS(ns: String) = netns("del " + ns)
+
+    def namespaceExist(ns: String) =
+        ProcessHelper.executeCommandLine("ip netns list")
+            .consoleOutput.exists(_.contains(ns))
+
+    /** Create a network namespace with name "ns" if it does not already exist.
+     *  Do not try to delete an old network namespace with same name, because
+     *  trying to do so when there's a process still running or interfaces
+     *  still using it, it can lead to namespace corruption.
+     */
+    def ensureNamespace(ns: String): Int =
+        if (!namespaceExist(ns)) addNS(ns) else 0
+
+    /** checks if an interface exists and deletes if it does */
+    def ensureNoInterface(itf: String) =
+        if (link("show " + itf) == 0) IP.deleteItf(itf) else 0
+
+    def deleteItf(itf: String) = link(" delete " + itf)
+
+    /** creates an interface anad put a mirror in given network namespace */
+    def preparePair(itf: String, mirror: String, ns: String) =
+        link("add name " + itf + " type veth peer name " + mirror) |
+        link("set " + mirror + " netns " + ns)
+
+    /** wake up local interface with given name */
+    def configureUp(itf: String, ns: String = "") =
+        execIn(ns, "ip link set dev " + itf + " up")
+
+    /** wake up local interface with given name */
+    def configureDown(itf: String, ns: String = "") =
+        execIn(ns, "ip link set dev " + itf + " down")
+
+    /** Configure the mac address of given interface */
+    def configureMac(itf: String, mac: String, ns: String = "") =
+        execIn(ns, " ip link set dev " + itf + " up address " + mac)
+
+    /** Configure the ip address of given interface */
+    def configureIp(itf: String, ip: String, ns: String = "") =
+        execIn(ns, " ip addr add " + ip + " dev " + itf)
+
+}
+
+object BRCTL { /* wrapper to brctl commands => TODO: implement with RTNETLINK */
+
+    def addBr(br: String) = IP.exec("brctl addbr " + br)
+
+    def deleteBr(br: String) = IP.exec("brctl delbr " + br)
+
+    def addItf(br: String, it: String) = IP.exec("brctl addif " + br + " " + it)
 
 }

@@ -12,23 +12,24 @@
 
 package org.midonet.quagga
 
-import akka.actor.{ActorContext, Props, ActorRef, Actor}
-import akka.event.LoggingReceive
-import scala.collection.mutable
+import java.net.{Socket, SocketAddress}
+import java.nio.channels.spi.SelectorProvider
+import java.nio.channels.{ByteChannel, SelectionKey}
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.nio.file.attribute.UserPrincipal
 import java.nio.file.attribute.GroupPrincipal
 import java.nio.file.attribute.PosixFileAttributeView
-import java.net.{Socket, SocketAddress}
+import java.nio.file.attribute.UserPrincipal
+import scala.collection.mutable
+
+import akka.actor.{ActorContext, Props, ActorRef, Actor}
+import akka.event.LoggingReceive
 
 import org.midonet.midolman.logging.ActorLogWithoutPath
+import org.midonet.netlink.{AfUnix, NetlinkSelectorProvider, UnixDomainChannel}
 import org.midonet.packets.IPv4Addr
 import org.midonet.util.eventloop.{SelectListener, SelectLoop}
-import java.nio.channels.{ByteChannel, SelectionKey}
-import org.midonet.netlink.{AfUnix, NetlinkSelectorProvider, UnixDomainChannel}
-import java.nio.channels.spi.SelectorProvider
 
 case class SpawnConnection(channel: ByteChannel)
 case class ConnectionClosed(reqId: Int)
