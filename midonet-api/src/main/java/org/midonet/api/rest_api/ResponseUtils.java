@@ -123,4 +123,25 @@ public class ResponseUtils {
 
         resp.setHeader(HttpSupport.SET_COOKIE, sb.toString());
     }
+
+    /**
+     * Sets the serialized form of the object passed to the body
+     * of the response.
+     *
+     * @param resp the Response whose body we will modify.
+     * @param entity the object to serialize and put in the response.
+     * @throws IOException
+     */
+    public static void setEntity(HttpServletResponse resp, Object entity)
+            throws IOException {
+        resp.setContentType(VendorMediaType.APPLICATION_TOKEN_JSON);
+        resp.setCharacterEncoding(HttpSupport.UTF8_ENC);
+        resp.setStatus(HttpServletResponse.SC_OK);
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        JsonGenerator jsonGenerator = jsonFactory.createJsonGenerator(bos,
+                JsonEncoding.UTF8);
+        jsonGenerator.writeObject(entity);
+        bos.close();
+        resp.getWriter().write(bos.toString());
+    }
 }
