@@ -17,6 +17,8 @@ import org.midonet.api.filter.rest_api.ChainResource;
 import org.midonet.api.monitoring.rest_api.MonitoringResource;
 import org.midonet.api.tracing.rest_api.TraceConditionResource;
 import org.midonet.api.tracing.rest_api.TraceResource;
+import org.midonet.api.system_data.rest_api.SystemStateResource;
+import org.midonet.api.system_data.rest_api.WriteVersionResource;
 import org.midonet.packets.IntIPv4;
 import org.midonet.packets.IPv6Subnet;
 
@@ -107,4 +109,8 @@ public interface ResourceFactory {
     TraceConditionResource getTraceConditionResource();
 
     TraceResource getTraceResource();
+
+    WriteVersionResource getWriteVersionResource();
+
+    SystemStateResource getSystemStateResource();
 }

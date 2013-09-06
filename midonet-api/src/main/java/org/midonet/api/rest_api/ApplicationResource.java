@@ -18,6 +18,8 @@ import org.midonet.api.host.rest_api.HostResource;
 import org.midonet.api.host.rest_api.TunnelZoneResource;
 import org.midonet.api.monitoring.rest_api.MonitoringResource;
 import org.midonet.api.network.rest_api.*;
+import org.midonet.api.system_data.rest_api.WriteVersionResource;
+import org.midonet.api.system_data.rest_api.SystemStateResource;
 import org.midonet.api.tracing.rest_api.TraceConditionResource;
 import org.midonet.api.tracing.rest_api.TraceResource;
 import org.midonet.api.version.Version;
@@ -211,6 +213,26 @@ public class ApplicationResource extends AbstractResource {
     @Path(ResourceUriBuilder.TRACE)
     public TraceResource getTraceResource() {
         return factory.getTraceResource();
+    }
+
+    /**
+     * Write Version resource locator
+     *
+     * @return WriteVersionResource object to handle changes to write version.
+     */
+    @Path(ResourceUriBuilder.WRITE_VERSION)
+    public WriteVersionResource getWriteVersionResource() {
+        return factory.getWriteVersionResource();
+    }
+
+    /**
+     * System State resource locator
+     *
+     * @return SystemStateResource object to handle changes to system state.
+     */
+    @Path(ResourceUriBuilder.SYSTEM_STATE)
+    public SystemStateResource getSystemStateResource() {
+        return factory.getSystemStateResource();
     }
 
     /**

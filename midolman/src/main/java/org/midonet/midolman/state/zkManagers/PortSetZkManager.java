@@ -86,12 +86,7 @@ public class PortSetZkManager extends AbstractZkManager {
 
         String memberEntryPath =
             paths.getPortSetEntryPath(portSetId, memberId);
-
-        try {
-            zk.add(memberEntryPath, null, CreateMode.EPHEMERAL);
-        } catch (Exception e) {
-            throw new StateAccessException(e);
-        }
+        zk.add(memberEntryPath, null, CreateMode.EPHEMERAL);
     }
 
     public void delMemberAsync(UUID portSetId, UUID entryId,
@@ -104,11 +99,7 @@ public class PortSetZkManager extends AbstractZkManager {
         throws StateAccessException {
         String portSetPath =
             paths.getPortSetEntryPath(portSetId, memberID);
-        try {
-            zk.delete(portSetPath);
-        } catch (Exception e) {
-            throw new StateAccessException(e);
-        }
+        zk.delete(portSetPath);
     }
 
     public Set<UUID> getPortSet(UUID portSetId, Directory.TypedWatcher watcher)
