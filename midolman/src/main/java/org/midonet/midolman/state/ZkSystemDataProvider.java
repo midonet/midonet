@@ -4,6 +4,7 @@
 package org.midonet.midolman.state;
 
 import com.google.inject.Inject;
+import org.apache.zookeeper.CreateMode;
 import org.midonet.midolman.version.guice.VerCheck;
 import org.midonet.midolman.SystemDataProvider;
 import org.slf4j.Logger;
@@ -12,7 +13,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Comparator;
 
 /**
- * This class is the zookeeper data access class for the version info.
+ * This class is the zookeeper data access class for system data info.
  */
 public class ZkSystemDataProvider implements SystemDataProvider {
 
@@ -38,6 +39,17 @@ public class ZkSystemDataProvider implements SystemDataProvider {
     }
 
     @Override
+    public void createSystemUpgradeState()
+        throws StateAccessException {
+        zk.add(paths.getSystemStateUpgradePath(), null, CreateMode.PERSISTENT);
+    }
+
+    @Override
+    public void deleteSystemUpgradeState() throws StateAccessException {
+        zk.delete(paths.getSystemStateUpgradePath());
+    }
+
+    @Override
     public boolean writeVersionExists() throws StateAccessException {
         String writeVersionPath = paths.getWriteVersionPath();
         if (zk.exists(writeVersionPath)) {
@@ -54,9 +66,9 @@ public class ZkSystemDataProvider implements SystemDataProvider {
     }
 
     /**
-     * Get the current write version.
+     * Get the current write version in a plain string.
      *
-     * @return  The curretn write version
+     * @return  The current write version
      * @throws StateAccessException
      */
     @Override

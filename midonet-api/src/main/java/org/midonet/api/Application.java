@@ -351,4 +351,26 @@ public class Application extends UriResource {
             return null;
         }
     }
+
+    /**
+     * @return Write Version URI
+     */
+    public URI getWriteVersion() {
+        if (getBaseUri() != null) {
+            return ResourceUriBuilder.getWriteVersion(getBaseUri());
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * @return System State URI
+     */
+    public URI getSystemState() {
+        if (getBaseUri() != null) {
+            return ResourceUriBuilder.getSystemState(getBaseUri());
+        } else {
+            return null;
+        }
+    }
 }

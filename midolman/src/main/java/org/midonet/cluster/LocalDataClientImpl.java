@@ -23,11 +23,11 @@ import javax.inject.Named;
 import org.apache.zookeeper.Op;
 import org.midonet.cluster.data.AdRoute;
 import org.midonet.cluster.data.BGP;
-import org.midonet.cluster.data.Bridge;
-import org.midonet.cluster.data.BridgeName;
 import org.midonet.cluster.data.Chain;
 import org.midonet.cluster.data.ChainName;
 import org.midonet.cluster.data.Converter;
+import org.midonet.cluster.data.Bridge;
+import org.midonet.cluster.data.BridgeName;
 import org.midonet.cluster.data.Port;
 import org.midonet.cluster.data.PortGroup;
 import org.midonet.cluster.data.PortGroupName;
@@ -35,11 +35,14 @@ import org.midonet.cluster.data.Route;
 import org.midonet.cluster.data.Router;
 import org.midonet.cluster.data.RouterName;
 import org.midonet.cluster.data.Rule;
-import org.midonet.cluster.data.TraceCondition;
+import org.midonet.cluster.data.SystemState;
 import org.midonet.cluster.data.TunnelZone;
-import org.midonet.cluster.data.VlanAwareBridge;
+import org.midonet.cluster.data.TraceCondition;
 import org.midonet.cluster.data.VlanBridgeName;
+import org.midonet.cluster.data.VlanAwareBridge;
+import org.midonet.cluster.data.WriteVersion;
 import org.midonet.cluster.data.ports.VlanMacPort;
+import org.midonet.midolman.SystemDataProvider;
 import org.midonet.midolman.rules.RuleList;
 import org.midonet.midolman.state.DirectoryCallback;
 import org.midonet.midolman.state.Ip4ToMacReplicatedMap;
@@ -182,6 +185,9 @@ public class LocalDataClientImpl implements DataClient {
 
     @Inject
     private TaggableConfigZkManager taggableConfigZkManager;
+
+    @Inject
+    private SystemDataProvider systemDataProvider;
 
     @Inject
     @Named(ZKConnectionProvider.DIRECTORY_REACTOR_TAG)
@@ -367,7 +373,7 @@ public class LocalDataClientImpl implements DataClient {
             throws StateAccessException {
         Map<MAC, UUID> portsMap = MacPortMap.getAsMap(
                 bridgeZkManager.getMacPortMapDirectory(bridgeId, vlanId));
-        List<VlanMacPort> ports = new ArrayList<>(portsMap.size());
+        List<VlanMacPort> ports = new ArrayList<VlanMacPort>(portsMap.size());
         for (Map.Entry<MAC, UUID> e : portsMap.entrySet()) {
             ports.add(new VlanMacPort(e.getKey(), e.getValue(), vlanId));
         }
@@ -2232,5 +2238,61 @@ public class LocalDataClientImpl implements DataClient {
     @Override
     public Set<String> tenantsGetAll() throws StateAccessException {
         return tenantZkManager.list();
+    }
+
+    /**
+     * Get the current write version.
+     *
+     * @return current write version.
+     */
+    public WriteVersion writeVersionGet()
+        throws StateAccessException {
+        WriteVersion writeVersion = new WriteVersion();
+        String version = systemDataProvider.getWriteVersion();
+        writeVersion.setVersion(version);
+        return writeVersion;
+    }
+
+    /**
+     * Overwrites the current write version with the string supplied
+     * @param newVersion The new version to set the write version to.
+     */
+    public void writeVersionUpdate(WriteVersion newVersion)
+            throws StateAccessException {
+        systemDataProvider.setWriteVersion(newVersion.getVersion());
+    }
+
+    /**
+     * Get the system state info.
+     *
+     * @return System State info.
+     * @throws StateAccessException
+     */
+    public SystemState systemStateGet()
+            throws StateAccessException {
+        SystemState systemState = new SystemState();
+        boolean upgrade = systemDataProvider.systemUpgradeStateExists();
+        systemState.setState(upgrade ? SystemState.State.UPGRADE.toString()
+                                     : SystemState.State.ACTIVE.toString());
+        return systemState;
+    }
+
+    /**
+     * Update the system state info.
+     *
+     * @param systemState the new system state
+     * @throws StateAccessException
+     */
+    public void systemStateUpdate(SystemState systemState)
+            throws StateAccessException {
+        if (!systemDataProvider.systemUpgradeStateExists() &&
+                (systemState.getState().equalsIgnoreCase(
+                        SystemState.State.UPGRADE.toString()))) {
+            systemDataProvider.createSystemUpgradeState();
+        } else if (systemDataProvider.systemUpgradeStateExists() &&
+                !(systemState.getState().equalsIgnoreCase(
+                        SystemState.State.UPGRADE.toString()))) {
+            systemDataProvider.deleteSystemUpgradeState();
+        }
     }
 }
