@@ -14,7 +14,7 @@ import org.midonet.client.resource.RouterPort;
 import org.midonet.client.resource.Rule;
 import org.midonet.client.resource.RuleChain;
 import org.midonet.functional_test.utils.TapWrapper;
-import org.midonet.packets.IntIPv4;
+import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 import org.midonet.packets.MalformedPacketException;
 
@@ -77,12 +77,12 @@ public class FilteringConnTrackingTest extends TestBase {
         MAC mac3 = MAC.fromString("02:aa:bb:cc:dd:d3");
         MAC mac4 = MAC.fromString("02:aa:bb:cc:dd:d4");
         MAC mac5 = MAC.fromString("02:aa:bb:cc:dd:d5");
-        IntIPv4 rtrIp = IntIPv4.fromString("10.0.0.1");
-        IntIPv4 ip1 = IntIPv4.fromString("10.0.0.2");
-        IntIPv4 ip2 = IntIPv4.fromString("10.0.0.3");
-        IntIPv4 ip3 = IntIPv4.fromString("10.0.0.4");
-        IntIPv4 ip4 = IntIPv4.fromString("10.0.0.5");
-        IntIPv4 ip5 = IntIPv4.fromString("10.0.0.6");
+        IPv4Addr rtrIp = IPv4Addr.fromString("10.0.0.1");
+        IPv4Addr ip1 = IPv4Addr.fromString("10.0.0.2");
+        IPv4Addr ip2 = IPv4Addr.fromString("10.0.0.3");
+        IPv4Addr ip3 = IPv4Addr.fromString("10.0.0.4");
+        IPv4Addr ip4 = IPv4Addr.fromString("10.0.0.5");
+        IPv4Addr ip5 = IPv4Addr.fromString("10.0.0.6");
         final short port1 = 1;
         final short port2 = 2;
         final short port3 = 3;
@@ -117,8 +117,8 @@ public class FilteringConnTrackingTest extends TestBase {
         // Add a rule that drops packets from ip4 to ip1. Because of the
         // previous rule, return packets from ip4 to ip1 will still pass.
         brInFilter.addRule().position(2)
-            .nwSrcAddress(ip4.toUnicastString()).nwSrcLength(32)
-            .nwDstAddress(ip1.toUnicastString()).nwDstLength(32)
+            .nwSrcAddress(ip4.toString()).nwSrcLength(32)
+            .nwDstAddress(ip1.toString()).nwDstLength(32)
             .type(DtoRule.Drop)
             .create();
 

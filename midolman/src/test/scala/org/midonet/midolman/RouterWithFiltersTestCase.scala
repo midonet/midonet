@@ -40,22 +40,22 @@ class RouterWithFiltersTestCase extends VMsBehindRouterFixture
         Await.result(resp, 3 second)
 
         feedArpCache(vmPortNames(1),
-            vmIps(1).addressAsInt,
+            vmIps(1).addr,
             vmMacs(1),
-            routerIp.addressAsInt,
+            routerIp.getAddress.addr,
             routerMac)
         fishForRequestOfType[DiscardPacket](discardPacketProbe)
         fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
         drainProbes()
 
         val pckt = { eth src vmMacs(1) dst routerMac } << 
-                   { ip4 src vmIps(1) dst routerIp } << 
+                   { ip4 src vmIps(1).addr dst routerIp.getAddress.addr } <<
                    icmp.echo.request
 
         triggerPacketIn(vmPortNames(1), pckt)
         expectPacketOnPort(vmPorts(1).getId())
         requestOfType[DiscardPacket](discardPacketProbe)
-        expectEmitIcmp(routerMac, routerIp, vmMacs(1), vmIps(1), 
+        expectEmitIcmp(routerMac, routerIp.getAddress, vmMacs(1), vmIps(1),
                        ICMP.TYPE_ECHO_REPLY, ICMP.CODE_NONE)
     }
 }

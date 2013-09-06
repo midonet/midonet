@@ -12,7 +12,6 @@ import org.junit.Rule;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 import org.midonet.client.resource.*;
-import org.midonet.functional_test.utils.EmbeddedZKLauncher;
 import org.midonet.midolman.routingprotocols.RoutingHandler;
 import org.midonet.midolman.topology.LocalPortActive;
 import org.midonet.midolman.topology.VirtualTopologyActor;
@@ -21,7 +20,7 @@ import org.midonet.client.MidonetApi;
 import org.midonet.functional_test.utils.EmbeddedMidolman;
 import org.midonet.functional_test.utils.MidolmanLauncher;
 import org.midonet.functional_test.utils.TapWrapper;
-import org.midonet.packets.IntIPv4;
+import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 import org.midonet.packets.MalformedPacketException;
 import org.midonet.util.lock.LockHelper;
@@ -302,16 +301,16 @@ public class BgpTest {
 
         packetHelper1 = new PacketHelper(
                 MAC.fromString("02:00:00:00:01:02"),
-                IntIPv4.fromString("1.0.0.2"),
+                IPv4Addr.fromString("1.0.0.2"),
                 MAC.fromString("02:00:00:00:01:01"),
-                IntIPv4.fromString("1.0.0.1"));
+                IPv4Addr.fromString("1.0.0.1"));
 
         // This is just for ARP between fake VM and router, so the
         // router has the fake VM MAC
         PacketHelper helper1 = new PacketHelper(
                 MAC.fromString("02:00:00:00:01:02"),
-                IntIPv4.fromString("1.0.0.2"),
-                IntIPv4.fromString("1.0.0.1"));
+                IPv4Addr.fromString("1.0.0.2"),
+                IPv4Addr.fromString("1.0.0.1"));
 
         // arp for router's mac
         assertThat("The ARP request was sent properly",
@@ -543,8 +542,8 @@ public class BgpTest {
     }
 
     private void sendPingAndExpectReply() throws Exception {
-        byte [] request;
-        request = packetHelper1.makeIcmpEchoRequest(IntIPv4.fromString("2.0.0.2"));
+        byte [] request = packetHelper1.makeIcmpEchoRequest(
+                IPv4Addr.fromString("2.0.0.2"));
         assertThat(String.format("The tap %s should have sent the packet",
                 tap1_vm.getName()), tap1_vm.send(request));
 
@@ -554,8 +553,8 @@ public class BgpTest {
     }
 
     private void sendPingAndExpectUnreachable() throws Exception {
-        byte [] request;
-        request = packetHelper1.makeIcmpEchoRequest(IntIPv4.fromString("2.0.0.2"));
+        byte [] request = packetHelper1.makeIcmpEchoRequest(
+                IPv4Addr.fromString("2.0.0.2"));
         assertThat(String.format("The tap %s should have sent the packet",
                 tap1_vm.getName()), tap1_vm.send(request));
 
@@ -565,8 +564,8 @@ public class BgpTest {
     }
 
     private void sendPingAndExpectUnreachableOrSilence() throws Exception {
-        byte [] request;
-        request = packetHelper1.makeIcmpEchoRequest(IntIPv4.fromString("2.0.0.2"));
+        byte [] request = packetHelper1.makeIcmpEchoRequest(
+                IPv4Addr.fromString("2.0.0.2"));
         assertThat(String.format("The tap %s should have sent the packet",
                 tap1_vm.getName()), tap1_vm.send(request));
 

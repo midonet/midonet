@@ -36,13 +36,13 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase with
 
     private final val log = LoggerFactory.getLogger(classOf[DhcpInterfaceMtuTestCase])
 
-    val routerIp1 = IntIPv4.fromString("192.168.111.1", 24)
+    val routerIp1 = new IPv4Subnet("192.168.111.1", 24)
     val routerMac1 = MAC.fromString("22:aa:aa:ff:ff:ff")
-    val routerIp2 = IntIPv4.fromString("192.168.222.1", 24)
+    val routerIp2 = new IPv4Subnet("192.168.222.1", 24)
     val routerMac2 = MAC.fromString("22:ab:cd:ff:ff:ff")
     val vmMac = MAC.fromString("02:23:24:25:26:27")
     var brPort : MaterializedBridgePort = null
-    var vmIP : IntIPv4 = null
+    var vmIP : IPv4Subnet = null
     val vmPortName = "VirtualMachine"
     var vmPortNumber = 0
     var intfMtu = 0
@@ -90,7 +90,7 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase with
         // TODO(guillermo) use pino's mock interface scanner when merged.
         intfMtu = intfMtu_string.toInt
 
-        vmIP = IntIPv4.fromString(ipString, 24)
+        vmIP = new IPv4Subnet(ipString, 24)
 
         // add this interface in MockInterfaceScanner list
         val intf = new InterfaceDescription("My Interface")
@@ -101,10 +101,10 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase with
         val greZone = greTunnelZone("default")
 
         val myGreConfig = new GreTunnelZoneHost(host.getId)
-            .setIp(IntIPv4.fromString(ipString))
+            .setIp(IPv4Addr(ipString).toIntIPv4)
 
         val peerGreConfig = new GreTunnelZoneHost(host2.getId)
-            .setIp(IntIPv4.fromString("192.168.200.1"))
+            .setIp(IPv4Addr("192.168.200.1").toIntIPv4)
 
         clusterDataClient().tunnelZonesAddMembership(greZone.getId, peerGreConfig)
         clusterDataClient().tunnelZonesAddMembership(greZone.getId, myGreConfig)
@@ -114,9 +114,9 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase with
         requestOfType[OutgoingMessage](vtpProbe())
 
         val rtrPort1 = newExteriorRouterPort(router, routerMac1,
-            routerIp1.toUnicastString,
-            routerIp1.toNetworkAddress.toUnicastString,
-            routerIp1.getMaskLength)
+            routerIp1.getAddress.toString,
+            routerIp1.toNetworkAddress.toString,
+            routerIp1.getPrefixLen)
         rtrPort1 should not be null
         materializePort(rtrPort1, host, "RouterPort1")
         val portEvent = requestOfType[LocalPortActive](portsProbe)
@@ -124,14 +124,14 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase with
         portEvent.portID should be(rtrPort1.getId)
 
         newRoute(router, "0.0.0.0", 0,
-            routerIp1.toNetworkAddress.toUnicastString, routerIp1.getMaskLength,
+            routerIp1.toNetworkAddress.toString, routerIp1.getPrefixLen,
             NextHop.PORT, rtrPort1.getId,
-            new IntIPv4(Route.NO_GATEWAY).toUnicastString, 10)
+            IPv4Addr(Route.NO_GATEWAY).toString, 10)
 
         val rtrPort2 = newInteriorRouterPort(router, routerMac2,
-            routerIp2.toUnicastString,
-            routerIp2.toNetworkAddress.toUnicastString,
-            routerIp2.getMaskLength)
+            routerIp2.getAddress.toString,
+            routerIp2.toNetworkAddress.toString,
+            routerIp2.getPrefixLen)
         rtrPort2 should not be null
 
         val brPort1 = newInteriorBridgePort(bridge)
@@ -145,17 +145,17 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase with
         tzRequest.zoneId should be === greZone.getId
 
         var opt121Obj = (new Opt121()
-                        .setGateway(routerIp2)
-                        .setRtDstSubnet(routerIp1.toNetworkAddress))
+                        .setGateway(routerIp2.toIntIPv4)
+                        .setRtDstSubnet(routerIp1.toNetworkAddress.toIntIPv4))
         var opt121Routes: List[Opt121] = List(opt121Obj)
-        var dnsSrvAddrs : List[IntIPv4] = List(
-          IntIPv4.fromString("192.168.77.118"),
-          IntIPv4.fromString("192.168.77.119"),
-          IntIPv4.fromString("192.168.77.120"))
+        var dnsSrvAddrs : List[IPv4Addr] = List(
+          IPv4Addr("192.168.77.118"),
+          IPv4Addr("192.168.77.119"),
+          IPv4Addr("192.168.77.120"))
         var dhcpSubnet = (new Subnet()
-                      .setSubnetAddr(routerIp2.toNetworkAddress)
-                      .setDefaultGateway(routerIp2)
-                      .setDnsServerAddrs(dnsSrvAddrs)
+                      .setSubnetAddr(routerIp2.toNetworkAddress.toIntIPv4)
+                      .setDefaultGateway(routerIp2.toIntIPv4)
+                      .setDnsServerAddrs(dnsSrvAddrs.map(_.toIntIPv4))
                       .setOpt121Routes(opt121Routes))
         addDhcpSubnet(bridge, dhcpSubnet)
 
@@ -164,7 +164,7 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase with
 
         val dhcpHost = (new org.midonet.cluster.data.dhcp.Host()
                        .setMAC(vmMac)
-                       .setIp(vmIP))
+                       .setIp(vmIP.toIntIPv4))
         addDhcpHost(bridge, dhcpSubnet, dhcpHost)
 
         flowProbe().expectMsgType[DatapathController.DatapathReady].datapath should not be (null)
@@ -242,7 +242,7 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase with
                     var byteptr = ByteBuffer.wrap(opt.getData)
                     while (len > 0) {
                         val ipAddr : Int = byteptr.getInt
-                        val ipv4Addr : IntIPv4 = new IntIPv4(ipAddr)
+                        val ipv4Addr : IPv4Addr = IPv4Addr(ipAddr)
                         log.debug("DNS server addr {}", ipv4Addr.toString)
                         len = len - 4
                         if (len > 0) {

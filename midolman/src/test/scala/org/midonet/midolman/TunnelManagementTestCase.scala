@@ -17,7 +17,7 @@ import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.topology.rcu.{Host => RCUHost}
 import org.midonet.cluster.data.zones.{GreTunnelZone, GreTunnelZoneHost}
 import org.midonet.odp.ports.{NetDevPort, GreTunnelPort}
-import org.midonet.packets.IntIPv4
+import org.midonet.packets.{IPv4Addr, IntIPv4}
 import org.midonet.cluster.data.ports.MaterializedBridgePort
 import org.midonet.cluster.data.Bridge
 import org.midonet.cluster.data.host.Host
@@ -60,10 +60,10 @@ class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers with
         // Wait to add myself to the tunnel zone so that the tunnel port
         // gets created after the virtual port.
         myGreConfig = new GreTunnelZoneHost(host1.getId)
-                          .setIp(IntIPv4.fromString("192.168.100.1"))
+            .setIp(IPv4Addr.fromString("192.168.100.1").toIntIPv4)
 
         herGreConfig = new GreTunnelZoneHost(host2.getId)
-                           .setIp(IntIPv4.fromString("192.168.200.1"))
+            .setIp(IPv4Addr.fromString("192.168.200.1").toIntIPv4)
 
         clusterDataClient()
             .tunnelZonesAddMembership(greZone.getId, herGreConfig)
@@ -136,7 +136,7 @@ class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers with
 
         // update the gre ip of the second host
         val herSecondGreConfig = new GreTunnelZoneHost(host2.getId)
-            .setIp(IntIPv4.fromString("192.168.210.1"))
+            .setIp(IPv4Addr.fromString("192.168.210.1").toIntIPv4)
         clusterDataClient().tunnelZonesDeleteMembership(
             greZone.getId, host2.getId)
         clusterDataClient().tunnelZonesAddMembership(

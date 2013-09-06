@@ -19,7 +19,7 @@ import org.midonet.functional_test.utils.TapWrapper;
 import org.midonet.functional_test.vm.HypervisorType;
 import org.midonet.functional_test.vm.VMController;
 import org.midonet.functional_test.vm.libvirt.LibvirtHandler;
-import org.midonet.packets.IntIPv4;
+import org.midonet.packets.IPv4Addr;
 import org.midonet.tools.timed.Timed;
 import org.midonet.util.lock.LockHelper;
 import org.midonet.util.ssh.SshHelper;
@@ -80,7 +80,7 @@ public class BridgeDHCPTest extends TestBase {
             .create();
 
         // XXX TODO(pino): assing an IP address to the internal port.
-        IntIPv4 ip2 = IntIPv4.fromString("192.168.231.3");
+        IPv4Addr ip2 = IPv4Addr.fromString("192.168.231.3");
 
         tap.closeFd();
 

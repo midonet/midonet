@@ -137,29 +137,23 @@ class PacketsTest extends Suite with ShouldMatchers {
         intAddr should be === IPv4.toIPv4Address(bytesAddr2)
     }
 
-    def testIntIPv4() {
+    def testIPv4Subnet() {
         val bytes = Array[Byte](0x0a, 0x0f, 0x0f, 0x21)
-        val addr = new IntIPv4(0x0a0f0f21, 24)
-        val net = new IntIPv4(0x0a0f0f00, 24)
-        val bcast = new IntIPv4(0x0a0f0fff, 24)
-        val host = new IntIPv4(0x0a0f0f21, 32)
+        val subnet = new IPv4Subnet(0x0a0f0f21, 24)
+        val net = IPv4Addr(0x0a0f0f00)
+        val bcast = IPv4Addr(0x0a0f0fff)
+        val host = new IPv4Subnet(0x0a0f0f21, 32)
 
-        addr.unicastEquals(host) should be === true
-        addr.subnetContains(0x0a0f0f21) should be === true
-        addr.subnetContains(0x0a0f0d21) should be === false
-        host should be === new IntIPv4(bytes)
-        addr.toNetworkAddress should be === net
-        addr.toBroadcastAddress should be === bcast
-        addr.toHostAddress should be === host
-        addr should be === IntIPv4.fromBytes(bytes, 24)
+        subnet.getAddress should be === host.getAddress
+        subnet.containsAddress(IPv4Addr(0x0a0f0f21)) should be === true
+        subnet.containsAddress(IPv4Addr(0x0a0f0d21)) should be === false
+        host.getAddress should be === IPv4Addr.fromBytes(bytes)
+        subnet.toNetworkAddress should be === net
+        subnet.toBroadcastAddress should be === bcast
+        subnet.getAddress should be === host.getAddress
+        subnet should be === new IPv4Subnet(IPv4Addr.fromBytes(bytes), 24)
 
-        addr should not be equal(net)
-        addr should not be equal(host)
-        addr should not be equal(bcast)
-
-        addr.## should not be equal(net.##)
-        addr.## should not be equal(host.##)
-        addr.## should not be equal(bcast.##)
+        subnet.## should not be equal(host.##)
     }
 
 }

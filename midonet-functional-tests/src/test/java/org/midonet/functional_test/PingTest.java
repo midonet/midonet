@@ -17,6 +17,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.midonet.packets.IPv4Subnet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +38,6 @@ import org.midonet.client.resource.Router;
 import org.midonet.client.resource.RouterPort;
 import org.midonet.functional_test.utils.EmbeddedMidolman;
 import org.midonet.functional_test.utils.TapWrapper;
-import org.midonet.packets.IntIPv4;
 import org.midonet.packets.MAC;
 import org.midonet.packets.MalformedPacketException;
 import org.midonet.util.lock.LockHelper;
@@ -55,10 +55,10 @@ public class PingTest {
 
     private final static Logger log = LoggerFactory.getLogger(PingTest.class);
 
-    IntIPv4 rtrIp1 = IntIPv4.fromString("192.168.111.1", 24);
-    IntIPv4 rtrIp2 = IntIPv4.fromString("192.168.222.1", 24);
-    IntIPv4 vm1IP = IntIPv4.fromString("192.168.111.2", 24);
-    IntIPv4 vm2IP = IntIPv4.fromString("192.168.222.2", 24);
+    IPv4Subnet rtrIp1 = new IPv4Subnet("192.168.111.1", 24);
+    IPv4Subnet rtrIp2 = new IPv4Subnet("192.168.222.1", 24);
+    IPv4Subnet vm1IP = new IPv4Subnet("192.168.111.2", 24);
+    IPv4Subnet vm2IP = new IPv4Subnet("192.168.222.2", 24);
     MAC vm2Mac = MAC.fromString("02:DD:AA:DD:AA:03");
 
     TapWrapper tap1;
@@ -100,9 +100,9 @@ public class PingTest {
         // Add a exterior port.
         RouterPort<DtoExteriorRouterPort> rtrPort1 = rtr
             .addExteriorRouterPort()
-            .portAddress(rtrIp1.toUnicastString())
-            .networkAddress(rtrIp1.toNetworkAddress().toUnicastString())
-            .networkLength(rtrIp1.getMaskLength())
+            .portAddress(rtrIp1.getAddress().toString())
+            .networkAddress(rtrIp1.toUnicastString())
+            .networkLength(rtrIp1.getPrefixLen())
             .create();
         rtr.addRoute().srcNetworkAddr("0.0.0.0").srcNetworkLength(0)
             .dstNetworkAddr(rtrPort1.getNetworkAddress())
@@ -114,8 +114,8 @@ public class PingTest {
         // Add a interior port to the router.
         RouterPort<DtoInteriorRouterPort> rtrPort2 = rtr.addInteriorRouterPort()
             .portAddress(rtrIp2.toUnicastString())
-            .networkAddress(rtrIp2.toNetworkAddress().toUnicastString())
-            .networkLength(rtrIp2.getMaskLength())
+            .networkAddress(rtrIp2.toNetworkAddress().toString())
+            .networkLength(rtrIp2.getPrefixLen())
             .create();
         rtr.addRoute().srcNetworkAddr("0.0.0.0").srcNetworkLength(0)
             .dstNetworkAddr(rtrPort2.getNetworkAddress())
@@ -229,7 +229,8 @@ public class PingTest {
     public void testArpResolutionAndPortPing()
             throws MalformedPacketException, InterruptedException {
         PacketHelper helper1 = new PacketHelper(
-            MAC.fromString("02:00:00:aa:aa:01"), vm1IP, rtrIp1);
+                MAC.fromString("02:00:00:aa:aa:01"),
+                vm1IP.getAddress(), rtrIp1.getAddress());
         byte[] request;
 
         // First arp for router's mac.
@@ -240,7 +241,7 @@ public class PingTest {
         helper1.setGwMac(rtrMac);
 
         // Ping near router port.
-        request = helper1.makeIcmpEchoRequest(rtrIp1);
+        request = helper1.makeIcmpEchoRequest(rtrIp1.getAddress());
         assertThat(String.format("The tap %s should have sent the packet",
             tap1.getName()), tap1.send(request));
 
@@ -249,7 +250,7 @@ public class PingTest {
         PacketHelper.checkIcmpEchoReply(request, tap1.recv());
 
         // Ping far router port.
-        request = helper1.makeIcmpEchoRequest(rtrIp2);
+        request = helper1.makeIcmpEchoRequest(rtrIp2.getAddress());
         assertThat(String.format("The tap %s should have sent the packet",
             tap1.getName()), tap1.send(request));
 
@@ -258,7 +259,7 @@ public class PingTest {
         PacketHelper.checkIcmpEchoReply(request, tap1.recv());
 
         // Ping internal port p3.
-        request = helper1.makeIcmpEchoRequest(vm2IP);
+        request = helper1.makeIcmpEchoRequest(vm2IP.getAddress());
         assertThat("The tap should have sent the packet again",
                 tap1.send(request));
         // Finally, the icmp echo reply from the peer.
@@ -271,7 +272,8 @@ public class PingTest {
     public void testLLCPacketDoesNotBlockArpResolution()
             throws MalformedPacketException, InterruptedException {
         PacketHelper helper1 = new PacketHelper(
-                MAC.fromString("02:00:00:aa:aa:01"), vm1IP, rtrIp1);
+                MAC.fromString("02:00:00:aa:aa:01"),
+                vm1IP.getAddress(), rtrIp1.getAddress());
         byte[] request;
         // First arp for router's mac.
         assertThat("The ARP request was sent properly",

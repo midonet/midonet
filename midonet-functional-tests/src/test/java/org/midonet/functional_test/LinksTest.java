@@ -10,6 +10,7 @@ import akka.testkit.TestProbe;
 import akka.util.Duration;
 import org.junit.Assert;
 import org.junit.Test;
+import org.midonet.packets.IPv4Subnet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static org.hamcrest.Matchers.equalTo;
@@ -32,7 +33,6 @@ import org.midonet.client.resource.RouterPort;
 import org.midonet.functional_test.utils.EmbeddedMidolman;
 import org.midonet.functional_test.utils.TapWrapper;
 import org.midonet.packets.ICMP;
-import org.midonet.packets.IntIPv4;
 import org.midonet.packets.MAC;
 import org.midonet.packets.MalformedPacketException;
 import org.midonet.util.lock.LockHelper;
@@ -41,11 +41,11 @@ public class LinksTest extends TestBase {
 
     private final static Logger log = LoggerFactory.getLogger(LinksTest.class);
 
-    final IntIPv4 rtrIp1 = IntIPv4.fromString("192.168.111.1", 24);
-    final IntIPv4 vm1IP = IntIPv4.fromString("192.168.111.2", 24);
+    final IPv4Subnet rtrIp1 = new IPv4Subnet("192.168.111.1", 24);
+    final IPv4Subnet vm1IP = new IPv4Subnet("192.168.111.2", 24);
 
-    final IntIPv4 rtrIp2 = IntIPv4.fromString("192.168.222.1", 24);
-    final IntIPv4 vm2IP = IntIPv4.fromString("192.168.222.2", 24);
+    final IPv4Subnet rtrIp2 = new IPv4Subnet("192.168.222.1", 24);
+    final IPv4Subnet vm2IP = new IPv4Subnet("192.168.222.2", 24);
 
     final MAC vm1Mac = MAC.fromString("02:aa:bb:cc:dd:d1");
     final MAC vm2Mac = MAC.fromString("02:aa:bb:cc:dd:d2");
@@ -83,26 +83,26 @@ public class LinksTest extends TestBase {
         // Add a exterior port.
         rtrPort1 = rtr.addExteriorRouterPort()
                       .portAddress(rtrIp1.toUnicastString())
-                      .networkAddress(rtrIp1.toNetworkAddress().toUnicastString())
-                      .networkLength(rtrIp1.getMaskLength())
+                      .networkAddress(rtrIp1.toNetworkAddress().toString())
+                      .networkLength(rtrIp1.getPrefixLen())
                       .create();
 
         rtr.addRoute().srcNetworkAddr("0.0.0.0").srcNetworkLength(0)
            .dstNetworkAddr(vm1IP.toUnicastString())
-           .dstNetworkLength(vm1IP.getMaskLength())
+           .dstNetworkLength(vm1IP.getPrefixLen())
            .nextHopPort(rtrPort1.getId())
            .type(DtoRoute.Normal).weight(10).create();
 
         // Add a interior port to the router.
         rtrPort2 = rtr.addExteriorRouterPort()
                       .portAddress(rtrIp2.toUnicastString())
-                      .networkAddress(rtrIp2.toNetworkAddress().toUnicastString())
-                      .networkLength(rtrIp2.getMaskLength())
+                      .networkAddress(rtrIp2.toNetworkAddress().toString())
+                      .networkLength(rtrIp2.getPrefixLen())
                       .create();
 
         rtr.addRoute().srcNetworkAddr("0.0.0.0").srcNetworkLength(0)
            .dstNetworkAddr(vm2IP.toUnicastString())
-           .dstNetworkLength(vm2IP.getMaskLength())
+           .dstNetworkLength(vm2IP.getPrefixLen())
            .nextHopPort(rtrPort2.getId())
            .type(DtoRoute.Normal).weight(10)
            .create();
@@ -136,9 +136,11 @@ public class LinksTest extends TestBase {
             assertTrue("The port should be active.", activeMsg.active());
         }
 
-        helper1 = new PacketHelper(vm1Mac, vm1IP, rtrIp1);
+        helper1 = new PacketHelper(
+                vm1Mac, vm1IP.getAddress(), rtrIp1.getAddress());
         helper1.setGwMac(rtrMac1);
-        helper2 = new PacketHelper(vm2Mac, vm2IP, rtrIp2);
+        helper2 = new PacketHelper(
+                vm2Mac, vm2IP.getAddress(), rtrIp2.getAddress());
         helper2.setGwMac(rtrMac2);
     }
 
@@ -149,15 +151,16 @@ public class LinksTest extends TestBase {
         removeTapWrapper(tap2);
     }
 
-    private void doPingsToVms() throws MalformedPacketException, InterruptedException {
+    private void doPingsToVms()
+            throws MalformedPacketException, InterruptedException {
         byte[] req;
         log.info("Ping vm1 -> vm2");
-        req = helper1.makeIcmpEchoRequest(vm2IP);
+        req = helper1.makeIcmpEchoRequest(vm2IP.getAddress());
         tap1.send(req);
         log.info("Expecting ICMP request on vm2");
         helper2.checkIcmpEchoRequest(req, tap2.recv());
         log.info("Ping vm2 -> vm1");
-        req = helper2.makeIcmpEchoRequest(vm1IP);
+        req = helper2.makeIcmpEchoRequest(vm1IP.getAddress());
         tap2.send(req);
         log.info("Expecting ICMP request on vm2");
         helper1.checkIcmpEchoRequest(req, tap1.recv());
@@ -166,13 +169,13 @@ public class LinksTest extends TestBase {
     private void doPingsToRouter() throws MalformedPacketException {
         byte[] req;
         log.info("Ping vm1 -> rtrIp2");
-        req = helper2.makeIcmpEchoRequest(rtrIp1);
+        req = helper2.makeIcmpEchoRequest(rtrIp1.getAddress());
         tap2.send(req);
-        PacketHelper.checkIcmpEchoReply(req, tap2.recv(), rtrIp1);
+        PacketHelper.checkIcmpEchoReply(req, tap2.recv(), rtrIp1.getAddress());
         log.info("Ping vm2 -> rtrIp1");
-        req = helper1.makeIcmpEchoRequest(rtrIp2);
+        req = helper1.makeIcmpEchoRequest(rtrIp2.getAddress());
         tap1.send(req);
-        PacketHelper.checkIcmpEchoReply(req, tap1.recv(), rtrIp2);
+        PacketHelper.checkIcmpEchoReply(req, tap1.recv(), rtrIp2.getAddress());
     }
 
     @Test
@@ -180,8 +183,10 @@ public class LinksTest extends TestBase {
         throws MalformedPacketException, InterruptedException {
 
         // First arp for router's macs
-        arpAndCheckReply(tap1, vm1Mac, vm1IP, rtrIp1, rtrMac1);
-        arpAndCheckReply(tap2, vm2Mac, vm2IP, rtrIp2, rtrMac2);
+        arpAndCheckReply(tap1, vm1Mac, vm1IP.getAddress(),
+                rtrIp1.getAddress(), rtrMac1);
+        arpAndCheckReply(tap2, vm2Mac, vm2IP.getAddress(),
+                rtrIp2.getAddress(), rtrMac2);
 
         assertNoMorePacketsOnTap(tap1);
         assertNoMorePacketsOnTap(tap2);
@@ -217,16 +222,18 @@ public class LinksTest extends TestBase {
         byte[] req = null;
         log.info("Sending ping request to the tap that went down.");
         log.info("Ping vm1 -> rtrIp2");
-        req = icmpFromTapDoesntArriveAtTap(tap1, tap2, vm1Mac, rtrMac1, vm1IP, rtrIp2);
+        req = icmpFromTapDoesntArriveAtTap(tap1, tap2, vm1Mac, rtrMac1,
+                vm1IP.getAddress(), rtrIp2.getAddress());
         PacketHelper.checkIcmpError(tap1.recv(), ICMP.UNREACH_CODE.UNREACH_NET,
-                                    rtrMac1, rtrIp1,
-                                    vm1Mac, vm1IP, req);
+                                    rtrMac1, rtrIp1.getAddress(),
+                                    vm1Mac, vm1IP.getAddress(), req);
         log.info("Sending ping request to the network that went down.");
         log.info("Ping vm1 -> vm2");
-        req = icmpFromTapDoesntArriveAtTap(tap1, tap2, vm1Mac, rtrMac1, vm1IP, vm2IP);
+        req = icmpFromTapDoesntArriveAtTap(tap1, tap2, vm1Mac, rtrMac1,
+                vm1IP.getAddress(), vm2IP.getAddress());
         PacketHelper.checkIcmpError(tap1.recv(), ICMP.UNREACH_CODE.UNREACH_NET,
-                                    rtrMac1, rtrIp1,
-                                    vm1Mac, vm1IP, req);
+                                    rtrMac1, rtrIp1.getAddress(),
+                                    vm1Mac, vm1IP.getAddress(), req);
 
         log.info("Bringing the tap up again");
         tap2.up();
@@ -254,11 +261,11 @@ public class LinksTest extends TestBase {
 
         log.info("Sending ping request to the tap that went down.");
         log.info("Ping vm1 -> rtrIp2");
-        req = helper1.makeIcmpEchoRequest(rtrIp2);
+        req = helper1.makeIcmpEchoRequest(rtrIp2.getAddress());
         tap1.send(req);
         PacketHelper.checkIcmpError(tap1.recv(), ICMP.UNREACH_CODE.UNREACH_NET,
-                                    rtrMac1, rtrIp1,
-                                    vm1Mac, vm1IP, req);
+                                    rtrMac1, rtrIp1.getAddress(),
+                                    vm1Mac, vm1IP.getAddress(), req);
 
         log.info("Resurrecting the tap.");
         tap2 = new TapWrapper(TAP2NAME);

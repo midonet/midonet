@@ -42,8 +42,10 @@ class DatapathFlowTableConsistencyTestCase extends MidolmanTestCase
         flowManager = flowController().underlyingActor.flowManager
         datapath = dpConn().asInstanceOf[MockOvsDatapathConnection]
 
-        arpVmToRouterAndCheckReply(vmPortNames(0), vmMacs(0), vmIps(0), routerIp, routerMac)
-        arpVmToRouterAndCheckReply(vmPortNames(1), vmMacs(1), vmIps(1), routerIp, routerMac)
+        arpVmToRouterAndCheckReply(vmPortNames(0), vmMacs(0), vmIps(0),
+            routerIp.getAddress, routerMac)
+        arpVmToRouterAndCheckReply(vmPortNames(1), vmMacs(1), vmIps(1),
+            routerIp.getAddress, routerMac)
         findMatch[FlowKeyICMP] should be (None)
         findMatch[FlowKeyICMPEcho] should be (None)
         findMatch[FlowKeyTCP] should be (None)

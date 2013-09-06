@@ -11,7 +11,7 @@ import org.junit.Ignore;
 
 import org.midonet.packets.Ethernet;
 import org.midonet.packets.IPv4;
-import org.midonet.packets.IntIPv4;
+import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 import org.midonet.packets.MalformedPacketException;
 import org.midonet.functional_test.utils.TapWrapper;
@@ -26,11 +26,11 @@ public class EndPoint {
     public TapWrapper tap;
     public MAC mac;
     public MAC gwMac;
-    public IntIPv4 gwIp;
-    public IntIPv4 ip;
-    public IntIPv4 floatingIp;
+    public IPv4Addr gwIp;
+    public IPv4Addr ip;
+    public IPv4Addr floatingIp;
 
-    public EndPoint(IntIPv4 ip, MAC mac, IntIPv4 gwIp, MAC gwMac,
+    public EndPoint(IPv4Addr ip, MAC mac, IPv4Addr gwIp, MAC gwMac,
                      TapWrapper tap) {
         this.ip = ip;
         this.mac = mac;
@@ -70,10 +70,10 @@ public class EndPoint {
                 receiver.tap.recv(), nullValue());
     }
 
-    private static boolean sameSubnet(IntIPv4 ip1, IntIPv4 ip2) {
+    private static boolean sameSubnet(IPv4Addr ip1, IPv4Addr ip2) {
         // Assume all subnet masks are 24bits.
         int mask = 0xffffff00;
-        return (ip1.getAddress() & mask) == (ip2.getAddress() & mask);
+        return (ip1.addr() & mask) == (ip2.addr() & mask);
     }
 
     public static void retrySentPacket(EndPoint sender, EndPoint receiver,
@@ -90,8 +90,8 @@ public class EndPoint {
         return icmpTest(sender, receiver.ip, receiver, false);
     }
 
-    public static PacketPair icmpTest(EndPoint sender, IntIPv4 dstIp, EndPoint receiver,
-                                boolean dstIpTranslated)
+    public static PacketPair icmpTest(EndPoint sender, IPv4Addr dstIp,
+            EndPoint receiver, boolean dstIpTranslated)
             throws MalformedPacketException {
         if (null == dstIp) {
             dstIp = receiver.ip;
@@ -121,21 +121,21 @@ public class EndPoint {
         IPv4 ipPkt = IPv4.class.cast(ethPkt.getPayload());
         // The pkt's srcIp depends on whether the dstIp is in the sender's
         // subnet and whether the sender has a floatingIP.
-        IntIPv4 srcIP = sameSubnet
+        IPv4Addr srcIP = sameSubnet
                 ? sender.ip
                 : (sender.floatingIp != null)? sender.floatingIp : sender.ip;
         assertThat("The src IP", ipPkt.getSourceAddress(),
-                equalTo(srcIP.getAddress()));
+                equalTo(srcIP.addr()));
         // The pkt's nwDst depends on whether the dstIp is translated.
         assertThat("The dst IP is the dst endpoint's",
                 ipPkt.getDestinationAddress(),
                 equalTo(dstIpTranslated ?
-                        receiver.ip.getAddress() : dstIp.getAddress()));
+                        receiver.ip.addr() : dstIp.addr()));
 
         // If we reset the fields that were translated, the packets should be
         // identical.
-        ipPkt.setSourceAddress(sender.ip.getAddress());
-        ipPkt.setDestinationAddress(dstIp.getAddress());
+        ipPkt.setSourceAddress(sender.ip.addr());
+        ipPkt.setDestinationAddress(dstIp.addr());
         // Reset the IPv4 pkt's checksum so that it's recomputed.
         ipPkt.setChecksum((short)0);
         ethPkt.setSourceMACAddress(sender.mac);

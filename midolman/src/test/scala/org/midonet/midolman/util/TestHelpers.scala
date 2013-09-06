@@ -14,8 +14,11 @@ import org.midonet.midolman.FlowController.{InvalidateFlowsByTag,
         WildcardFlowAdded, WildcardFlowRemoved}
 import collection.mutable
 import org.midonet.odp.flows.FlowAction
-import org.midonet.packets.{Packets, MAC, IntIPv4, Ethernet}
+import org.midonet.packets._
 import scala.collection.JavaConversions._
+import org.midonet.midolman.FlowController.WildcardFlowAdded
+import org.midonet.midolman.FlowController.InvalidateFlowsByTag
+import org.midonet.midolman.FlowController.WildcardFlowRemoved
 
 
 /**
@@ -113,8 +116,8 @@ object TestHelpers {
         Packets.udp(
             MAC.fromString(srcMac),
             MAC.fromString(dstMac),
-            IntIPv4.fromString(srcIp),
-            IntIPv4.fromString(dstIp),
+            IPv4Addr.fromString(srcIp),
+            IPv4Addr.fromString(dstIp),
             10, 11, "My UDP packet".getBytes)
     }
 }

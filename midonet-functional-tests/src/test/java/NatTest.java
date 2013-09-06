@@ -24,29 +24,24 @@ import org.midonet.midolman.topology.LocalPortActive;
 import org.midonet.packets.Ethernet;
 import org.midonet.packets.ICMP;
 import org.midonet.packets.IPv4;
-import org.midonet.packets.IntIPv4;
+import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.MAC;
 import org.midonet.packets.MalformedPacketException;
 import org.midonet.packets.TCP;
 import org.midonet.packets.UDP;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.AllOf.allOf;
-import static org.hamcrest.core.AllOf.allOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.midonet.functional_test.FunctionalTestsHelper.assertNoMorePacketsOnTap;
-import static org.midonet.functional_test.FunctionalTestsHelper.arpAndCheckReply;
 import static org.midonet.functional_test.FunctionalTestsHelper.arpAndCheckReplyDrainBroadcasts;
 import static org.midonet.functional_test.FunctionalTestsHelper.bindTapsToBridgePorts;
 import static org.midonet.functional_test.FunctionalTestsHelper.buildBridgePorts;
-import static org.midonet.functional_test.FunctionalTestsHelper.icmpFromTapArrivesAtTap;
 import static org.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
-import static org.midonet.functional_test.FunctionalTestsHelper.udpFromTapArrivesAtTap;
 import static org.midonet.functional_test.PacketHelper.makeArpReply;
 import static org.midonet.functional_test.PacketHelper.makeIcmpEchoReply;
 import static org.midonet.functional_test.PacketHelper.makeIcmpEchoRequest;
@@ -61,14 +56,14 @@ public class NatTest extends TestBase {
     MAC vm2Mac = MAC.fromString("aa:bb:cc:dd:22:22");
     MAC extMac = MAC.fromString("99:88:77:66:55:44");
 
-    IntIPv4 extNw = IntIPv4.fromString("192.168.1.0", 24);
-    IntIPv4 privNw = IntIPv4.fromString("10.0.1.0", 24);
+    IPv4Subnet extNw = new IPv4Subnet("192.168.1.0", 24);
+    IPv4Subnet privNw = new IPv4Subnet("10.0.1.0", 24);
 
-    IntIPv4 rtrIpPriv = IntIPv4.fromString("10.0.1.100", 24);
-    IntIPv4 rtrIpExt = IntIPv4.fromString("192.168.1.100", 24);
-    IntIPv4 vm1Ip = IntIPv4.fromString("10.0.1.1", 24);
-    IntIPv4 vm2Ip = IntIPv4.fromString("10.0.1.2", 24);
-    IntIPv4 extIp = IntIPv4.fromString("192.168.1.99", 24);
+    IPv4Subnet rtrIpPriv = new IPv4Subnet("10.0.1.100", 24);
+    IPv4Subnet rtrIpExt = new IPv4Subnet("192.168.1.100", 24);
+    IPv4Subnet vm1Ip = new IPv4Subnet("10.0.1.1", 24);
+    IPv4Subnet vm2Ip = new IPv4Subnet("10.0.1.2", 24);
+    IPv4Subnet extIp = new IPv4Subnet("192.168.1.99", 24);
 
     Router rtr;
     RouterPort rtrPortInt;
@@ -97,29 +92,29 @@ public class NatTest extends TestBase {
         rtrPortInt = rtr
             .addInteriorRouterPort()
             .portAddress(rtrIpPriv.toUnicastString())
-            .networkAddress(rtrIpPriv.toNetworkAddress().toUnicastString())
-            .networkLength(rtrIpPriv.getMaskLength())
+            .networkAddress(rtrIpPriv.toNetworkAddress().toString())
+            .networkLength(rtrIpPriv.getPrefixLen())
             .create();
         rtrPortExt = rtr
             .addExteriorRouterPort()
             .portAddress(rtrIpExt.toUnicastString())
-            .networkAddress(rtrIpExt.toNetworkAddress().toUnicastString())
-            .networkLength(rtrIpExt.getMaskLength())
+            .networkAddress(rtrIpExt.toNetworkAddress().toString())
+            .networkLength(rtrIpExt.getPrefixLen())
             .create();
         log.info("The Router's interior port is {}", rtrPortInt);
         log.info("The Router's exterior port is {}", rtrPortExt);
 
         // ROUTES
         rtr.addRoute().srcNetworkAddr("0.0.0.0").srcNetworkLength(0)
-           .dstNetworkAddr(privNw.toNetworkAddress().toUnicastString())
-           .dstNetworkLength(privNw.getMaskLength())
+           .dstNetworkAddr(privNw.toNetworkAddress().toString())
+           .dstNetworkLength(privNw.getPrefixLen())
            .nextHopPort(rtrPortInt.getId())
            .type(DtoRoute.Normal).weight(10)
            .create();
 
         rtr.addRoute().srcNetworkAddr("0.0.0.0").srcNetworkLength(0)
-           .dstNetworkAddr(extNw.toNetworkAddress().toUnicastString())
-           .dstNetworkLength(extNw.getMaskLength())
+           .dstNetworkAddr(extNw.toNetworkAddress().toString())
+           .dstNetworkLength(extNw.getPrefixLen())
            .nextHopPort(rtrPortExt.getId())
            .type(DtoRoute.Normal).weight(10)
            .create();
@@ -174,9 +169,9 @@ public class NatTest extends TestBase {
         pre.addRule().type(DtoRule.RevSNAT).flowAction(DtoRule.Continue).create();
         post.addRule().type(DtoRule.SNAT).flowAction(DtoRule.Accept)
             .nwSrcAddress(privNw.toUnicastString())
-            .nwSrcLength(privNw.getMaskLength())
+            .nwSrcLength(privNw.getPrefixLen())
             .nwDstAddress(extNw.toUnicastString())
-            .nwDstLength(extNw.getMaskLength())
+            .nwDstLength(extNw.getPrefixLen())
             .outPorts(new UUID[]{rtrPortExt.getId()})
             .natTargets(new DtoRule.DtoNatTarget[]{
                 new DtoRule.DtoNatTarget(rtrIpExt.toUnicastString(),
@@ -192,7 +187,7 @@ public class NatTest extends TestBase {
         post.addRule().type(DtoRule.RevDNAT).flowAction(DtoRule.Continue).create();
         pre.addRule().type(DtoRule.DNAT).flowAction(DtoRule.Accept)
             .nwSrcAddress(privNw.toUnicastString())
-            .nwSrcLength(privNw.getMaskLength())
+            .nwSrcLength(privNw.getPrefixLen())
             .invNwSrc(true)
             .nwDstAddress(rtrIpExt.toUnicastString())
             .inPorts(new UUID[]{rtrPortExt.getId()})
@@ -211,12 +206,13 @@ public class NatTest extends TestBase {
     private void feedRouterARPTable() throws Exception {
 
         // Send ARPs from each VM so that the router can learn MACs.
-        arpAndCheckReplyDrainBroadcasts(taps[0], vm1Mac, vm1Ip, rtrIpPriv,
-                                        rtrMacPriv, taps);
-        arpAndCheckReplyDrainBroadcasts(taps[1], vm2Mac, vm2Ip, rtrIpPriv,
-                                        rtrMacPriv, taps);
+        arpAndCheckReplyDrainBroadcasts(taps[0], vm1Mac,
+                vm1Ip.getAddress(), rtrIpPriv.getAddress(), rtrMacPriv, taps);
+        arpAndCheckReplyDrainBroadcasts(taps[1], vm2Mac,
+                vm2Ip.getAddress(), rtrIpPriv.getAddress(), rtrMacPriv, taps);
         // Feed router's ARP table with the extIp's MAC
-        tapExt.send(makeArpReply(extMac, extIp, rtrMacExt, rtrIpExt));
+        tapExt.send(makeArpReply(extMac, extIp.getAddress(),
+                rtrMacExt, rtrIpExt.getAddress()));
 
         log.info("Waiting while the router learns the remote host's MAC");
         Thread.sleep(500);
@@ -235,8 +231,8 @@ public class NatTest extends TestBase {
      */
     private void icmpArrivesNATed(TapWrapper tapSrc, TapWrapper tapDst,
                                   MAC dlSrc, MAC dlDst,
-                                  IntIPv4 nwSrc, IntIPv4 nwDst,
-                                  IntIPv4 natAddr, boolean isSnat)
+                                  IPv4Addr nwSrc, IPv4Addr nwDst,
+                                  IPv4Addr natAddr, boolean isSnat)
         throws MalformedPacketException {
 
         log.info("Sending ICMP request from {} to {} ", nwSrc, nwDst);
@@ -257,11 +253,11 @@ public class NatTest extends TestBase {
         log.info("This is the IPv4 received as request {}", ip);
 
         if (isSnat) {
-            assertEquals(natAddr.addressAsInt(), ip.getSourceAddress());
-            assertEquals(nwDst.addressAsInt(), ip.getDestinationAddress());
+            assertEquals(natAddr.addr(), ip.getSourceAddress());
+            assertEquals(nwDst.addr(), ip.getDestinationAddress());
         } else {
-            assertEquals(nwSrc.addressAsInt(), ip.getSourceAddress());
-            assertEquals(natAddr.addressAsInt(), ip.getDestinationAddress());
+            assertEquals(nwSrc.addr(), ip.getSourceAddress());
+            assertEquals(natAddr.addr(), ip.getDestinationAddress());
         }
 
         assertEquals(origIcmp.getType(), icmp.getType());
@@ -271,9 +267,9 @@ public class NatTest extends TestBase {
 
         log.info("Sending ICMP reply");
         out = makeIcmpEchoReply(eth.getDestinationMACAddress(),
-                                new IntIPv4(ip.getDestinationAddress()),
+                                new IPv4Addr(ip.getDestinationAddress()),
                                 eth.getSourceMACAddress(),
-                                new IntIPv4(ip.getSourceAddress()),
+                                new IPv4Addr(ip.getSourceAddress()),
                                 icmp.getIdentifier(), icmp.getSequenceNum());
         assertThat("The reply is sent from the destination tap",
                    tapDst.send(out));
@@ -290,8 +286,8 @@ public class NatTest extends TestBase {
         log.info("This is the IPv4 received as reply {}", ip);
 
         // Expects are reversed because this is matching on the reply
-        assertEquals(nwDst.addressAsInt(), ip.getSourceAddress());
-        assertEquals(nwSrc.addressAsInt(), ip.getDestinationAddress());
+        assertEquals(nwDst.addr(), ip.getSourceAddress());
+        assertEquals(nwSrc.addr(), ip.getDestinationAddress());
         assertEquals(origIcmp.getType(), icmp.getType());
         assertEquals(origIcmp.getCode(), icmp.getCode());
         assertEquals(origIcmp.getSequenceNum(), icmp.getSequenceNum());
@@ -393,13 +389,17 @@ public class NatTest extends TestBase {
         // Test some pings
         log.info("Send ping from private network to external IP");
         icmpArrivesNATed(
-            taps[0], tapExt, vm1Mac, rtrMacPriv, vm1Ip, extIp, rtrIpExt, true);
+                taps[0], tapExt, vm1Mac, rtrMacPriv, vm1Ip.getAddress(),
+                extIp.getAddress(), rtrIpExt.getAddress(), true);
         icmpArrivesNATed(
-            taps[1], tapExt, vm2Mac, rtrMacPriv, vm2Ip, extIp, rtrIpExt, true);
+                taps[1], tapExt, vm2Mac, rtrMacPriv, vm2Ip.getAddress(),
+                extIp.getAddress(), rtrIpExt.getAddress(), true);
         icmpArrivesNATed(
-            taps[0], tapExt, vm1Mac, rtrMacPriv, vm1Ip, extIp, rtrIpExt, true);
+                taps[0], tapExt, vm1Mac, rtrMacPriv, vm1Ip.getAddress(),
+                extIp.getAddress(), rtrIpExt.getAddress(), true);
         icmpArrivesNATed(
-            taps[1], tapExt, vm2Mac, rtrMacPriv, vm2Ip, extIp, rtrIpExt, true);
+                taps[1], tapExt, vm2Mac, rtrMacPriv, vm2Ip.getAddress(),
+                extIp.getAddress(), rtrIpExt.getAddress(), true);
     }
 
     /**
@@ -416,10 +416,10 @@ public class NatTest extends TestBase {
 
         // Test some pings
         log.info("Send ping from private network to external IP");
-        icmpArrivesNATed(tapExt, taps[0], extMac, rtrMacExt, extIp, rtrIpExt,
-                         vm1Ip, false);
-        icmpArrivesNATed(tapExt, taps[0], extMac, rtrMacExt, extIp, rtrIpExt,
-                         vm1Ip, false);
+        icmpArrivesNATed(tapExt, taps[0], extMac, rtrMacExt, extIp.getAddress(),
+                rtrIpExt.getAddress(), vm1Ip.getAddress(), false);
+        icmpArrivesNATed(tapExt, taps[0], extMac, rtrMacExt, extIp.getAddress(),
+                rtrIpExt.getAddress(), vm1Ip.getAddress(), false);
     }
 
     /**
@@ -438,8 +438,8 @@ public class NatTest extends TestBase {
 
         short tpSrc = 33;
         short tpDst = 99;
-        byte[] out =PacketHelper.makeUDPPacket(vm1Mac, vm1Ip, rtrMacPriv, extIp,
-                                               tpSrc, tpDst, "meh".getBytes());
+        byte[] out =PacketHelper.makeUDPPacket(vm1Mac, vm1Ip.getAddress(),
+                rtrMacPriv, extIp.getAddress(), tpSrc, tpDst, "meh".getBytes());
 
         // This is the original IP packet send from the VM
         IPv4 origIp = IPv4.class.cast(Ethernet.deserialize(out).getPayload());
@@ -452,7 +452,7 @@ public class NatTest extends TestBase {
         UDP udp = UDP.class.cast(natdIp.getPayload());
         assertEquals(origIp.getDestinationAddress(),
                      natdIp.getDestinationAddress());
-        assertEquals(rtrIpExt.addressAsInt(), natdIp.getSourceAddress());
+        assertEquals(rtrIpExt.getAddress().addr(), natdIp.getSourceAddress());
         // Expect port translated to the first available
         assertEquals(1000, udp.getSourcePort());
         assertEquals(tpDst, udp.getDestinationPort());
@@ -477,7 +477,8 @@ public class NatTest extends TestBase {
 
         // Send a ping from the private network
         log.info("Sending ICMP request from {} to {} ", vm2Ip, extIp);
-        byte[] out = makeIcmpEchoRequest(vm2Mac, vm2Ip, rtrMacPriv, extIp);
+        byte[] out = makeIcmpEchoRequest(vm2Mac, vm2Ip.getAddress(),
+                                         rtrMacPriv, extIp.getAddress());
         Ethernet origEth = Ethernet.deserialize(out);
         IPv4 origIp = IPv4.class.cast(origEth.getPayload());
         ICMP origIcmp = ICMP.class.cast(origIp.getPayload());
@@ -494,8 +495,8 @@ public class NatTest extends TestBase {
         ICMP icmp = ICMP.class.cast(natdIp.getPayload());
         log.info("This is the IPv4 received as request {}", natdIp);
 
-        assertEquals(rtrIpExt.addressAsInt(), natdIp.getSourceAddress());
-        assertEquals(extIp.addressAsInt(), natdIp.getDestinationAddress());
+        assertEquals(rtrIpExt.getAddress().addr(), natdIp.getSourceAddress());
+        assertEquals(extIp.getAddress().addr(), natdIp.getDestinationAddress());
 
         assertEquals(origIcmp.getType(), icmp.getType());
         assertEquals(origIcmp.getCode(), icmp.getCode());
@@ -523,8 +524,8 @@ public class NatTest extends TestBase {
 
         short tpSrc = 33;
         short tpDst = 99;
-        byte[] out =PacketHelper.makeUDPPacket(extMac, extIp,
-                                               rtrMacExt, rtrIpExt,
+        byte[] out =PacketHelper.makeUDPPacket(extMac, extIp.getAddress(),
+                                               rtrMacExt, rtrIpExt.getAddress(),
                                                tpSrc, tpDst, "meh".getBytes());
 
         // This is the original IP packet send from the VM
@@ -537,8 +538,8 @@ public class NatTest extends TestBase {
         assertNotNull("The packet is received", in);
         // This is the NAT'd packet received at the VM
         IPv4 natdIp = IPv4.class.cast(Ethernet.deserialize(in).getPayload());
-        assertEquals(vm1Ip.addressAsInt(), natdIp.getDestinationAddress());
-        assertEquals(extIp.addressAsInt(), natdIp.getSourceAddress());
+        assertEquals(vm1Ip.getAddress().addr(), natdIp.getDestinationAddress());
+        assertEquals(extIp.getAddress().addr(), natdIp.getSourceAddress());
 
         // Looks like the DNAT happened correctly, let's reply with an error
         log.info("UDP packet reached destination, reply with ICMP UNREACH");

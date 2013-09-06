@@ -21,14 +21,18 @@ import org.midonet.cluster.data.{Bridge => ClusterBridge,
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.ports.MaterializedBridgePort
 import org.midonet.packets._
+import org.midonet.midolman.topology.LocalPortActive
+import scala.Some
+import org.midonet.midolman.guice.actors.OutgoingMessage
+import org.midonet.midolman.topology.VirtualToPhysicalMapper.HostRequest
 
 trait VMsBehindRouterFixture extends MidolmanTestCase with SimulationHelper with
         VirtualConfigurationBuilders {
     private final val log =
         LoggerFactory.getLogger(classOf[VMsBehindRouterFixture])
 
-    val vmNetworkIp = IntIPv4.fromString("10.0.0.0", 24)
-    val routerIp = IntIPv4.fromString("10.0.0.254", 24)
+    val vmNetworkIp = new IPv4Subnet("10.0.0.0", 24)
+    val routerIp = new IPv4Subnet("10.0.0.254", 24)
     val routerMac = MAC.fromString("22:aa:aa:ff:ff:ff")
 
     val vmPortNames = IndexedSeq("port0", "port1", "port2", "port3", "port4")
@@ -40,11 +44,11 @@ trait VMsBehindRouterFixture extends MidolmanTestCase with SimulationHelper with
         MAC.fromString("02:aa:bb:cc:dd:d3"),
         MAC.fromString("02:aa:bb:cc:dd:d4"),
         MAC.fromString("02:aa:bb:cc:dd:d5"))
-    val vmIps = IndexedSeq(IntIPv4.fromString("10.0.0.1"),
-        IntIPv4.fromString("10.0.0.2"),
-        IntIPv4.fromString("10.0.0.3"),
-        IntIPv4.fromString("10.0.0.4"),
-        IntIPv4.fromString("10.0.0.5"))
+    val vmIps = IndexedSeq(IPv4Addr.fromString("10.0.0.1"),
+        IPv4Addr.fromString("10.0.0.2"),
+        IPv4Addr.fromString("10.0.0.3"),
+        IPv4Addr.fromString("10.0.0.4"),
+        IPv4Addr.fromString("10.0.0.5"))
     val v6VmIps = IndexedSeq(
         IPv6Addr.fromString("fe80:0:0:0:0:7ed1:c3ff:1"),
         IPv6Addr.fromString("fe80:0:0:0:0:7ed1:c3ff:2"),
@@ -72,14 +76,14 @@ trait VMsBehindRouterFixture extends MidolmanTestCase with SimulationHelper with
         requestOfType[OutgoingMessage](vtpProbe())
 
         val rtrPort = newInteriorRouterPort(router, routerMac,
-            routerIp.toUnicastString, routerIp.toNetworkAddress.toUnicastString,
-            routerIp.getMaskLength)
+            routerIp.toUnicastString, routerIp.toNetworkAddress.toString,
+            routerIp.getPrefixLen)
         rtrPort should not be null
 
         newRoute(router, "0.0.0.0", 0,
-            routerIp.toNetworkAddress.toUnicastString, routerIp.getMaskLength,
+            routerIp.toNetworkAddress.toString, routerIp.getPrefixLen,
             NextHop.PORT, rtrPort.getId,
-            new IntIPv4(Route.NO_GATEWAY).toUnicastString, 10)
+            new IPv4Addr(Route.NO_GATEWAY).toString, 10)
 
         bridge = newBridge("bridge")
         bridge should not be null
@@ -129,9 +133,9 @@ trait VMsBehindRouterFixture extends MidolmanTestCase with SimulationHelper with
     def expectPacketOutVmToVm(port: Int): Ethernet =
         expectPacketOut(port, List(1, vmPortNames.size - 1))
 
-    def arpVmToRouterAndCheckReply(portName: String, srcMac: MAC, srcIp: IntIPv4,
-                               dstIp: IntIPv4, expectedMac: MAC) {
-        injectArpRequest(portName, srcIp.getAddress, srcMac, dstIp.getAddress)
+    def arpVmToRouterAndCheckReply(portName: String, srcMac: MAC, srcIp: IPv4Addr,
+                               dstIp: IPv4Addr, expectedMac: MAC) {
+        injectArpRequest(portName, srcIp.addr, srcMac, dstIp.addr)
         val pkt = expectPacketOutRouterToVm(vmPortNameToPortNumber(portName))
         log.debug("Packet out: {}", pkt)
         // TODO(guillermo) check the arp reply packet
@@ -153,8 +157,8 @@ trait VMsBehindRouterFixture extends MidolmanTestCase with SimulationHelper with
             setSourceMACAddress(vmMacs(portIndexA)).
             setDestinationMACAddress(vmMacs(portIndexB)).
             setEtherType(IPv4.ETHERTYPE)
-        eth.setPayload(new IPv4().setSourceAddress(vmIps(portIndexA).addressAsInt).
-            setDestinationAddress(vmIps(portIndexB).addressAsInt).
+        eth.setPayload(new IPv4().setSourceAddress(vmIps(portIndexA)).
+            setDestinationAddress(vmIps(portIndexB)).
             setProtocol(ICMP.PROTOCOL_NUMBER).
             setPayload(echo))
         eth
@@ -182,8 +186,8 @@ trait VMsBehindRouterFixture extends MidolmanTestCase with SimulationHelper with
             setSourceMACAddress(vmMacs(portIndexA)).
             setDestinationMACAddress(vmMacs(portIndexB)).
             setEtherType(IPv4.ETHERTYPE)
-        eth.setPayload(new IPv4().setSourceAddress(vmIps(portIndexA).addressAsInt).
-            setDestinationAddress(vmIps(portIndexB).addressAsInt).
+        eth.setPayload(new IPv4().setSourceAddress(vmIps(portIndexA)).
+            setDestinationAddress(vmIps(portIndexB)).
             setProtocol(TCP.PROTOCOL_NUMBER).
             setPayload(tcp))
         eth
@@ -198,8 +202,8 @@ trait VMsBehindRouterFixture extends MidolmanTestCase with SimulationHelper with
             setSourceMACAddress(vmMacs(portIndexA)).
             setDestinationMACAddress(vmMacs(portIndexB)).
             setEtherType(IPv4.ETHERTYPE)
-        eth.setPayload(new IPv4().setSourceAddress(vmIps(portIndexA).addressAsInt).
-            setDestinationAddress(vmIps(portIndexB).addressAsInt).
+        eth.setPayload(new IPv4().setSourceAddress(vmIps(portIndexA)).
+            setDestinationAddress(vmIps(portIndexB)).
             setProtocol(UDP.PROTOCOL_NUMBER).
             setPayload(udp))
         eth

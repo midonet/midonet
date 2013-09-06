@@ -20,7 +20,17 @@ import org.midonet.functional_test.utils.TapWrapper;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.topology.LocalPortActive;
-import org.midonet.packets.*;
+import org.midonet.packets.BPDU;
+import org.midonet.packets.CAPWAP;
+import org.midonet.packets.Data;
+import org.midonet.packets.Ethernet;
+import org.midonet.packets.IPacket;
+import org.midonet.packets.IPv4;
+import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.IPv4Subnet;
+import org.midonet.packets.MAC;
+import org.midonet.packets.MalformedPacketException;
+import org.midonet.packets.UDP;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static org.hamcrest.CoreMatchers.hasItems;
@@ -42,8 +52,8 @@ public class VlanAwareBridgeTwoHostsTest extends TestBase {
         "midolman_runtime_configurations/midolman-default.conf";
 
     // The physical network
-    final IntIPv4 physTapLocalIp = IntIPv4.fromString("10.245.215.1", 24);
-    final IntIPv4 physTapRemoteIp = IntIPv4.fromString("10.245.215.2");
+    final IPv4Subnet physTapLocalIp = new IPv4Subnet("10.245.215.1", 24);
+    final IPv4Addr physTapRemoteIp = IPv4Addr.fromString("10.245.215.2");
     final MAC physTapRemoteMac = MAC.fromString("22:aa:aa:cc:cc:cc");
     MAC physTapLocalMac = null;
 
@@ -68,7 +78,7 @@ public class VlanAwareBridgeTwoHostsTest extends TestBase {
 
     MAC trunkMac = MAC.fromString("aa:bb:cc:dd:ee:ff");
 
-    IPv4Addr trunkIp = IPv4Addr.fromString("10.1.1.10");
+    IPv4Subnet trunkIp = new IPv4Subnet("10.1.1.10", 32);
 
     @Override
     protected void setup() {
@@ -85,7 +95,7 @@ public class VlanAwareBridgeTwoHostsTest extends TestBase {
 
         log.info("Creating tap for the trunk1");
         trunkTap1 = new TapWrapper("trunk1");
-        trunkTap1.setIpAddress(trunkIp.toIntIPv4());
+        trunkTap1.setIpAddress(trunkIp);
         trunkMac = physTap.getHwAddr();
         assertNotNull("The physical tap's HW address", trunkTap1);
 
@@ -96,7 +106,7 @@ public class VlanAwareBridgeTwoHostsTest extends TestBase {
         remoteHost = new org.midonet.cluster.data.host.Host();
         try {
             InetAddress[] tmp = {
-                InetAddress.getByName(physTapRemoteIp.toUnicastString()) };
+                InetAddress.getByName(physTapRemoteIp.toString()) };
             remoteHost.setName("remoteHost")
                       .setId(remoteHostId)
                       .setIsAlive(true)
@@ -127,13 +137,13 @@ public class VlanAwareBridgeTwoHostsTest extends TestBase {
         log.info("Adding this host {} to tunnel zone.", thisHostId);
         tunnelZone.addTunnelZoneHost().
             hostId(thisHostId).
-                      ipAddress(physTapLocalIp.toUnicastString()).
+                      ipAddress(physTapLocalIp.getAddress().toString()).
                       create();
 
         log.info("Adding remote host to tunnelzone");
         tunnelZone.addTunnelZoneHost()
                   .hostId(remoteHostId)
-                  .ipAddress(physTapRemoteIp.toUnicastString()).create();
+                  .ipAddress(physTapRemoteIp.toString()).create();
 
         // Create the two virtual bridges and plug the "vm" taps
         br1 = apiClient.addBridge().tenantId(TENANT_NAME).name("br1").create();
@@ -209,8 +219,8 @@ public class VlanAwareBridgeTwoHostsTest extends TestBase {
         trunkTap1.send(bpdu);
 
         IPacket encap = matchTunnelPacket(physTap,
-                                          physTapLocalMac, physTapLocalIp,
-                                          physTapRemoteMac, physTapRemoteIp);
+                physTapLocalMac, physTapLocalIp.getAddress(),
+                physTapRemoteMac, physTapRemoteIp);
         Ethernet eth = (Ethernet) encap;
         assertEquals(eth.getEtherType(), BPDU.ETHERTYPE);
 
@@ -244,8 +254,8 @@ public class VlanAwareBridgeTwoHostsTest extends TestBase {
 
 
     protected IPacket matchTunnelPacket(TapWrapper device,
-                                        MAC fromMac, IntIPv4 fromIp,
-                                        MAC toMac, IntIPv4 toIp)
+                                        MAC fromMac, IPv4Addr fromIp,
+                                        MAC toMac, IPv4Addr toIp)
         throws MalformedPacketException {
         byte[] received = device.recv();
         assertNotNull(String.format("Expected packet on %s", device.getName()),
@@ -263,9 +273,9 @@ public class VlanAwareBridgeTwoHostsTest extends TestBase {
         assertTrue("payload is IPv4", eth.getPayload() instanceof IPv4);
         IPv4 ipPkt = (IPv4) eth.getPayload();
         assertEquals("source ipv4 address",
-                     fromIp.addressAsInt(), ipPkt.getSourceAddress());
+                     fromIp.addr(), ipPkt.getSourceAddress());
         assertEquals("destination ipv4 address",
-                     toIp.addressAsInt(), ipPkt.getDestinationAddress());
+                     toIp.addr(), ipPkt.getDestinationAddress());
 
         assertTrue("payload is UDP", ipPkt.getPayload() instanceof UDP);
         UDP udpPkt = (UDP) ipPkt.getPayload();

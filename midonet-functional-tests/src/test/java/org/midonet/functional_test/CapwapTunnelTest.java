@@ -7,27 +7,22 @@ package org.midonet.functional_test;
 import java.util.UUID;
 import java.nio.ByteBuffer;
 
+import org.midonet.packets.IPv4;
+import org.midonet.packets.IPv4Addr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.client.resource.*;
-import org.midonet.cluster.DataClient;
-import org.midonet.cluster.data.zones.CapwapTunnelZoneHost;
-import org.midonet.cluster.data.zones.CapwapTunnelZone;
 import org.midonet.functional_test.utils.TapWrapper;
-import org.midonet.packets.IntIPv4;
 import org.midonet.packets.MAC;
 import org.midonet.packets.Ethernet;
-import org.midonet.packets.IPv4;
 import org.midonet.packets.UDP;
 import org.midonet.packets.IPacket;
-import org.midonet.packets.GRE;
 import org.midonet.packets.Data;
 import org.midonet.packets.CAPWAP;
 import org.midonet.packets.MalformedPacketException;
 
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 
@@ -50,14 +45,14 @@ public class CapwapTunnelTest extends BaseTunnelTest {
         log.info("Adding remote host to tunnelzone");
         tunnelZone.addTunnelZoneHost().
                 hostId(remoteHostId).
-                ipAddress(physTapRemoteIp.toUnicastString()).
+                ipAddress(physTapRemoteIp.toString()).
                 create();
     }
 
     @Override
     protected IPacket matchTunnelPacket(TapWrapper device,
-                                      MAC fromMac, IntIPv4 fromIp,
-                                      MAC toMac, IntIPv4 toIp)
+                                      MAC fromMac, IPv4Addr fromIp,
+                                      MAC toMac, IPv4Addr toIp)
                                 throws MalformedPacketException {
         byte[] received = device.recv();
         assertNotNull(String.format("Expected packet on %s", device.getName()),
@@ -75,9 +70,9 @@ public class CapwapTunnelTest extends BaseTunnelTest {
         assertTrue("payload is IPv4", eth.getPayload() instanceof IPv4);
         IPv4 ipPkt = (IPv4) eth.getPayload();
         assertEquals("source ipv4 address",
-            fromIp.addressAsInt(), ipPkt.getSourceAddress());
+            fromIp.addr(), ipPkt.getSourceAddress());
         assertEquals("destination ipv4 address",
-            toIp.addressAsInt(), ipPkt.getDestinationAddress());
+            toIp.addr(), ipPkt.getDestinationAddress());
 
         assertTrue("payload is UDP", ipPkt.getPayload() instanceof UDP);
         UDP udpPkt = (UDP) ipPkt.getPayload();

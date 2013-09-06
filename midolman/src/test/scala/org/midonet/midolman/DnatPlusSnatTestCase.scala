@@ -72,8 +72,8 @@ class DnatPlusSnatTestCase extends MidolmanTestCase
         tcpCond.nwProto = Byte.box(TCP.PROTOCOL_NUMBER)
         tcpCond.nwDstIp = new IPv4Subnet(IPv4Addr.fromString("1.1.1.1"), 32)
         tcpCond.tpDst = new Range(Integer.valueOf(80))
-        var nat = new NatTarget(IntIPv4.fromString("10.0.1.2").addressAsInt(),
-            IntIPv4.fromString("10.0.1.3").addressAsInt(), 81, 81)
+        var nat = new NatTarget(IPv4Addr("10.0.1.2").addr,
+            IPv4Addr("10.0.1.3").addr, 81, 81)
         newForwardNatRuleOnChain(inChain, 1, tcpCond,
             RuleResult.Action.ACCEPT, Set(nat), true)
         tcpCond = new Condition()
@@ -97,36 +97,36 @@ class DnatPlusSnatTestCase extends MidolmanTestCase
         tcpCond = new Condition()
         tcpCond.nwProto = Byte.box(TCP.PROTOCOL_NUMBER)
         tcpCond.nwSrcIp = new IPv4Subnet(IPv4Addr.fromString("10.0.0.0"), 24)
-        nat = new NatTarget(IntIPv4.fromString("10.0.1.1").addressAsInt(),
-            IntIPv4.fromString("10.0.1.1").addressAsInt(), 11000, 30000)
+        nat = new NatTarget(IPv4Addr("10.0.1.1").addr,
+            IPv4Addr("10.0.1.1").addr, 11000, 30000)
         newForwardNatRuleOnChain(outChain, 1, tcpCond,
             RuleResult.Action.ACCEPT, Set(nat), false)
         drainProbes()
     }
 
     def test() {
-        val clientGw = IntIPv4.fromString("10.0.0.1")
+        val clientGw = IPv4Addr("10.0.0.1")
         val clientGwMac = MAC.fromString("02:aa:bb:bb:aa:11")
-        val client1 = IntIPv4.fromString("10.0.0.2")
+        val client1 = IPv4Addr("10.0.0.2")
         val client1Mac = MAC.fromString("02:aa:bb:bb:aa:12")
-        val serverGw = IntIPv4.fromString("10.0.1.1")
+        val serverGw = IPv4Addr("10.0.1.1")
         val serverGwMac = MAC.fromString("02:aa:bb:bb:aa:21")
-        val server1 = IntIPv4.fromString("10.0.1.2")
+        val server1 = IPv4Addr("10.0.1.2")
         val server1Mac = MAC.fromString("02:aa:bb:bb:aa:22")
-        val server2 = IntIPv4.fromString("10.0.1.3")
+        val server2 = IPv4Addr("10.0.1.3")
         val server2Mac = MAC.fromString("02:aa:bb:bb:aa:23")
 
-        val dnatDst = IntIPv4.fromString("1.1.1.1")
+        val dnatDst = IPv4Addr("1.1.1.1")
 
         // Feed ARP cache for the client and 2 servers
-        feedArpCache("port1", client1.addressAsInt(), client1Mac,
-            clientGw.addressAsInt(), clientGwMac)
+        feedArpCache("port1", client1.addr, client1Mac,
+            clientGw.addr, clientGwMac)
         requestOfType[DiscardPacket](discardPacketProbe)
-        feedArpCache("port2", server1.addressAsInt(), server1Mac,
-            serverGw.addressAsInt(), serverGwMac)
+        feedArpCache("port2", server1.addr, server1Mac,
+            serverGw.addr, serverGwMac)
         requestOfType[DiscardPacket](discardPacketProbe)
-        feedArpCache("port2", server2.addressAsInt(), server2Mac,
-            serverGw.addressAsInt(), serverGwMac)
+        feedArpCache("port2", server2.addr, server2Mac,
+            serverGw.addr, serverGwMac)
         requestOfType[DiscardPacket](discardPacketProbe)
         drainProbe(packetEventsProbe)
 
@@ -143,9 +143,9 @@ class DnatPlusSnatTestCase extends MidolmanTestCase
             be(server1Mac) or be(server2Mac))
         var ipPak = eth.getPayload.asInstanceOf[IPv4]
         ipPak should not be null
-        ipPak.getSourceAddress should be (serverGw.addressAsInt)
+        ipPak.getSourceAddress should be (serverGw.addr)
         ipPak.getDestinationAddress should (
-            be (server1.addressAsInt) or be (server2.addressAsInt))
+            be (server1.addr) or be (server2.addr))
         var tcpPak = ipPak.getPayload.asInstanceOf[TCP]
         val snatPort = tcpPak.getSourcePort
         snatPort should not be (12345)
@@ -153,7 +153,7 @@ class DnatPlusSnatTestCase extends MidolmanTestCase
 
         // Send a reply packet that will be reverse-SNATed and
         // reverse-DNATed.
-        val fromServer1 = ipPak.getDestinationAddress == server1.addressAsInt
+        val fromServer1 = ipPak.getDestinationAddress == server1.addr
         val serverIp = if (fromServer1) server1 else server2
         val serverMac = if (fromServer1) server1Mac else server2Mac
         injectTcp("port2", serverMac, serverIp, 81,
@@ -166,8 +166,8 @@ class DnatPlusSnatTestCase extends MidolmanTestCase
         eth.getDestinationMACAddress should be(client1Mac)
         ipPak = eth.getPayload.asInstanceOf[IPv4]
         ipPak should not be null
-        ipPak.getSourceAddress should be (dnatDst.addressAsInt())
-        ipPak.getDestinationAddress should be(client1.addressAsInt())
+        ipPak.getSourceAddress should be (dnatDst.addr)
+        ipPak.getDestinationAddress should be(client1.addr)
         tcpPak = ipPak.getPayload.asInstanceOf[TCP]
         tcpPak.getSourcePort should be (80)
         tcpPak.getDestinationPort should be (12345)

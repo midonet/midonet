@@ -22,7 +22,7 @@ import org.midonet.midolman.monitoring.metrics.vrn.VifMetrics;
 import org.midonet.client.resource.Bridge;
 import org.midonet.client.resource.BridgePort;
 import org.midonet.functional_test.TestBase;
-import org.midonet.packets.IntIPv4;
+import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 import org.midonet.functional_test.PacketHelper;
 import org.midonet.functional_test.utils.TapWrapper;
@@ -31,8 +31,6 @@ import org.midonet.util.jmx.JMXHelper;
 import static org.midonet.functional_test.FunctionalTestsHelper.assertPacketWasSentOnTap;
 import static org.midonet.functional_test.FunctionalTestsHelper.removeTapWrapper;
 import org.midonet.midolman.monitoring.MonitoringActor.MetricsUpdated;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Functional tests for the metrics and monitoring.
@@ -42,8 +40,8 @@ public class MetricsAndMonitoringTest extends TestBase {
     private Bridge bridge;
     private BridgePort bridgePort;
     private PacketHelper helperTap_int;
-    private IntIPv4 ipDst;
-    private IntIPv4 ipTap;
+    private IPv4Addr ipDst;
+    private IPv4Addr ipTap;
     private TapWrapper metricsTap;
 
     @Override
@@ -54,10 +52,10 @@ public class MetricsAndMonitoringTest extends TestBase {
         bridge = apiClient.addBridge().name("bridge-metrics")
                           .tenantId("tenant1")
                           .create();
-        ipDst = IntIPv4.fromString("192.168.231.4");
+        ipDst = IPv4Addr.fromString("192.168.231.4");
         MAC macInt = MAC.fromString("02:aa:bb:cc:ee:d1");
 
-        ipTap = IntIPv4.fromString("192.168.231.4");
+        ipTap = IPv4Addr.fromString("192.168.231.4");
         MAC macTap = MAC.fromString("02:aa:bb:cc:ee:d2");
         bridgePort = bridge.addExteriorPort().create();
         metricsTap = new TapWrapper("metricsTap");

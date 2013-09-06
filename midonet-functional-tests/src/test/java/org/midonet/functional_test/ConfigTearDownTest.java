@@ -6,8 +6,7 @@ package org.midonet.functional_test;
 
 import org.junit.Ignore;
 import org.junit.Test;
-
-import org.midonet.packets.IntIPv4;
+import org.midonet.packets.IPv4Addr;
 
 @Ignore
 public class ConfigTearDownTest extends TestBase {
@@ -28,9 +27,9 @@ public class ConfigTearDownTest extends TestBase {
 
     @Test
     public void test2() {
-        IntIPv4 ip1 = IntIPv4.fromString("192.168.231.2");
-        IntIPv4 ip2 = IntIPv4.fromString("192.168.231.3");
-        IntIPv4 ip3 = IntIPv4.fromString("192.168.231.4");
+        IPv4Addr ip1 = IPv4Addr.fromString("192.168.231.2");
+        IPv4Addr ip2 = IPv4Addr.fromString("192.168.231.3");
+        IPv4Addr ip3 = IPv4Addr.fromString("192.168.231.4");
 
         /*Tenant t = new Tenant.Builder(mgmt).setName("tenant-config-2").build
             ();
@@ -50,17 +49,17 @@ public class ConfigTearDownTest extends TestBase {
             .build();
         Router router1 = tenant1.addRouter().setName("rtr1").build();
 
-        IntIPv4 tapAddr1 = IntIPv4.fromString("192.168.66.2");
+        IPv4Addr tapAddr1 = IPv4Addr.fromString("192.168.66.2");
         ExteriorRouterPort p1 = router1.addVmPort().setVMAddress(tapAddr1).build();
 
-        IntIPv4 tapAddr2 = IntIPv4.fromString("192.168.66.3");
+        IPv4Addr tapAddr2 = IPv4Addr.fromString("192.168.66.3");
         ExteriorRouterPort p2 = router1.addVmPort().setVMAddress(tapAddr2).build();
 
         // The internal port has private address 192.168.55.5; floating ip
         // 10.0.173.5 is mapped to 192.168.55.5. Treat tapPort1 as the uplink:
         // only packets that go via the uplink use the the floatingIP.
-        IntIPv4 privAddr = IntIPv4.fromString("192.168.55.5");
-        IntIPv4 pubAddr = IntIPv4.fromString("10.0.173.5");
+        IPv4Addr privAddr = IPv4Addr.fromString("192.168.55.5");
+        IPv4Addr pubAddr = IPv4Addr.fromString("10.0.173.5");
         ExteriorRouterPort p3 = router1.addVmPort().setVMAddress(privAddr).build();
         router1.addFilters();
         router1.addFloatingIp(privAddr, pubAddr, p1.port.getId());

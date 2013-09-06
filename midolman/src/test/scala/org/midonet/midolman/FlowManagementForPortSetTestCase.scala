@@ -4,34 +4,34 @@
 package org.midonet.midolman
 
 
-import scala.collection.JavaConversions._
 import scala.collection.immutable
 import scala.util.control.Breaks._
-import akka.testkit.TestProbe
 
 import akka.util.Duration
 import java.util.concurrent.TimeUnit
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.Ignore
 import org.slf4j.LoggerFactory
 
-import org.midonet.midolman.DeduplicationActor.HandlePackets
-import org.midonet.midolman.FlowController.{WildcardFlowAdded,
-        InvalidateFlowsByTag, WildcardFlowRemoved}
-import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
 import org.midonet.midolman.datapath.FlowActionOutputToVrnPortSet
 import org.midonet.midolman.rules.{Condition, RuleResult}
-import org.midonet.midolman.topology.{FlowTagger, LocalPortActive}
+import org.midonet.midolman.topology.FlowTagger
 import org.midonet.cluster.data.Bridge
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.zones.{GreTunnelZone, GreTunnelZoneHost}
-import org.midonet.packets.{Data, IPv4, Ethernet, IntIPv4, MAC}
+import org.midonet.packets._
 import org.midonet.odp.FlowMatch
 import org.midonet.odp.Packet
 import org.midonet.odp.flows._
 import org.midonet.odp.flows.FlowKeys.{ethernet, inPort, tunnel}
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
+import org.midonet.midolman.topology.LocalPortActive
+import scala.Some
+import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
+import org.midonet.midolman.FlowController.WildcardFlowAdded
+import org.midonet.midolman.FlowController.WildcardFlowRemoved
+import org.midonet.midolman.DeduplicationActor.HandlePackets
+import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 
 
 @RunWith(classOf[JUnitRunner])
@@ -44,9 +44,9 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
     var host2: Host = null
     var host3: Host = null
 
-    val ip1 = IntIPv4.fromString("192.168.100.1")
-    val ip2 = IntIPv4.fromString("192.168.125.1")
-    val ip3 = IntIPv4.fromString("192.168.150.1")
+    val ip1 = IPv4Addr("192.168.100.1")
+    val ip2 = IPv4Addr("192.168.125.1")
+    val ip3 = IPv4Addr("192.168.150.1")
 
     var bridge: Bridge = null
     var tunnelId = 0
@@ -65,7 +65,7 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
 
         for ( (host, ip) <- List(host1,host2,host3).zip(List(ip1,ip2,ip3)) ) {
             val zoneId = tunnelZone.getId
-            val greHost = new GreTunnelZoneHost(host.getId).setIp(ip)
+            val greHost = new GreTunnelZoneHost(host.getId).setIp(ip.toIntIPv4)
             clusterDataClient().tunnelZonesAddMembership(zoneId, greHost)
         }
 
@@ -153,9 +153,9 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
 
         tunInf should have size(2)
         tunInf.find(tunnelIsLike(
-            ip1.addressAsInt, ip2.addressAsInt, tunKey)) should not be None
+            ip1.addr, ip2.addr, tunKey)) should not be None
         tunInf.find(tunnelIsLike(
-            ip1.addressAsInt, ip3.addressAsInt, tunKey)) should not be None
+            ip1.addr, ip3.addr, tunKey)) should not be None
 
     }
 

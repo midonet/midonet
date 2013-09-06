@@ -57,8 +57,8 @@ class VlanAwareSimulationWithBridgeTest extends MidolmanTestCase
     @Test
     def testFrameFromTrunkWithUnknownVlanId() {
         feedBridgeArpCaches()
-        val eth = Packets.arpRequest(trunkMac, trunkIp.toIntIPv4,
-            IPv4Addr.fromString("10.1.1.22").toIntIPv4)
+        val eth = Packets.arpRequest(trunkMac, trunkIp,
+            IPv4Addr.fromString("10.1.1.22"))
         eth.deserialize(ByteBuffer.wrap(eth.serialize()))
         eth.setVlanID(500)
         injectOnePacket(eth, trunk1Id)

@@ -32,10 +32,10 @@ class LinksTestCase extends MidolmanTestCase
 
     private final val log = LoggerFactory.getLogger(classOf[LinksTestCase])
 
-    val rtrIp1 = IntIPv4.fromString("192.168.111.1", 24)
-    val rtrIp2 = IntIPv4.fromString("192.168.222.1", 24)
-    val vm1Ip = IntIPv4.fromString("192.168.111.2", 24)
-    val vm2Ip = IntIPv4.fromString("192.168.222.2", 24)
+    val rtrIp1 = new IPv4Subnet("192.168.111.1", 24)
+    val rtrIp2 = new IPv4Subnet("192.168.222.1", 24)
+    val vm1Ip = new IPv4Subnet("192.168.111.2", 24)
+    val vm2Ip = new IPv4Subnet("192.168.222.2", 24)
 
     val rtrMac1 = MAC.fromString("aa:bb:cc:dd:11:11")
     val rtrMac2 = MAC.fromString("aa:bb:cc:dd:22:11")
@@ -81,11 +81,11 @@ class LinksTestCase extends MidolmanTestCase
 
 
     private def buildExteriorRouterPort
-            (ip: IntIPv4, mac: MAC, name: String): MaterializedRouterPort = {
+            (ip: IPv4Subnet, mac: MAC, name: String): MaterializedRouterPort = {
         val rtrPort = newExteriorRouterPort(router, mac,
             ip.toUnicastString,
-            ip.toNetworkAddress.toUnicastString,
-            ip.getMaskLength)
+            ip.toNetworkAddress.toString,
+            ip.getPrefixLen)
         rtrPort should not be null
         materializePort(rtrPort, host, name)
         val portEvent = requestOfType[LocalPortActive](portsProbe)
@@ -97,16 +97,16 @@ class LinksTestCase extends MidolmanTestCase
     private def setupRoutes() {
         // 0.0.0.0/32 -> 192.168.111.0/24 via port 1
         val route1 = newRoute(router, "0.0.0.0", 0,
-            rtrIp1.toNetworkAddress.toUnicastString, rtrIp1.getMaskLength,
+            rtrIp1.toNetworkAddress.toString, rtrIp1.getPrefixLen,
             NextHop.PORT, rtrPort1.getId,
-            new IntIPv4(Route.NO_GATEWAY).toUnicastString, 10)
+            new IPv4Addr(Route.NO_GATEWAY).toString, 10)
         route1 should not be null
 
         // 0.0.0.0/32 -> 192.168.222.0/24 via port 2
         val route2 = newRoute(router, "0.0.0.0", 0,
-            rtrIp2.toNetworkAddress.toUnicastString, rtrIp2.getMaskLength,
+            rtrIp2.toNetworkAddress.toString, rtrIp2.getPrefixLen,
             NextHop.PORT, rtrPort2.getId,
-            new IntIPv4(Route.NO_GATEWAY).toUnicastString, 10)
+            new IPv4Addr(Route.NO_GATEWAY).toString, 10)
         route2 should not be null
     }
 
@@ -126,32 +126,34 @@ class LinksTestCase extends MidolmanTestCase
     def test() {
         // Feed ARP cache
         log.debug("Feeding ARP cache")
-        feedArpCache(rtrPort1Name, vm1Ip.addressAsInt(), vm1Mac,
-            rtrIp1.addressAsInt(), rtrMac1)
+        feedArpCache(rtrPort1Name, vm1Ip.getAddress.addr, vm1Mac,
+            rtrIp1.getAddress.addr, rtrMac1)
         requestOfType[PacketIn](packetInProbe)
-        feedArpCache(rtrPort2Name, vm2Ip.addressAsInt(), vm2Mac,
-            rtrIp2.addressAsInt(), rtrMac2)
+        feedArpCache(rtrPort2Name, vm2Ip.getAddress.addr, vm2Mac,
+            rtrIp2.getAddress.addr, rtrMac2)
         requestOfType[PacketIn](packetInProbe)
         fishForRequestOfType[DiscardPacket](discardPacketProbe)
         drainProbes()
 
         log.debug("PING vm1 -> vm2")
-        injectIcmpEchoReq(rtrPort1Name, vm1Mac, vm1Ip, rtrMac1, vm2Ip)
+        injectIcmpEchoReq(rtrPort1Name, vm1Mac, vm1Ip.getAddress,
+            rtrMac1, vm2Ip.getAddress)
         requestOfType[PacketIn](packetInProbe)
         var pkt = expectRoutedPacketOut(rtrPort2Num, packetEventsProbe)
                   .getPayload.asInstanceOf[IPv4]
         pkt.getProtocol should be === ICMP.PROTOCOL_NUMBER
-        pkt.getSourceAddress should be === vm1Ip.addressAsInt
-        pkt.getDestinationAddress should be === vm2Ip.addressAsInt
+        pkt.getSourceAddress should be === vm1Ip.getAddress.addr
+        pkt.getDestinationAddress should be === vm2Ip.getAddress.addr
 
         log.debug("PING vm1 -> vm2")
-        injectIcmpEchoReq(rtrPort2Name, vm2Mac, vm2Ip, rtrMac2, vm1Ip)
+        injectIcmpEchoReq(rtrPort2Name, vm2Mac, vm2Ip.getAddress,
+            rtrMac2, vm1Ip.getAddress)
         requestOfType[PacketIn](packetInProbe)
         pkt = expectRoutedPacketOut(rtrPort1Num, packetEventsProbe)
               .getPayload.asInstanceOf[IPv4]
         pkt.getProtocol should be === ICMP.PROTOCOL_NUMBER
-        pkt.getSourceAddress should be === vm2Ip.addressAsInt
-        pkt.getDestinationAddress should be === vm1Ip.addressAsInt
+        pkt.getSourceAddress should be === vm2Ip.getAddress.addr
+        pkt.getDestinationAddress should be === vm1Ip.getAddress.addr
 
         log.debug("Deactivate rtrPort2");
         val port2Ifc = new InterfaceDescription(rtrPort2Name)
@@ -168,7 +170,8 @@ class LinksTestCase extends MidolmanTestCase
         fishForRequestOfType[simulation.Router](vtaProbe())
         requestOfType[WildcardFlowRemoved](wflowRemovedProbe)
 
-        injectIcmpEchoReq(rtrPort1Name, vm1Mac, vm1Ip, rtrMac1, vm2Ip)
+        injectIcmpEchoReq(rtrPort1Name, vm1Mac, vm1Ip.getAddress,
+            rtrMac1, vm2Ip.getAddress)
         requestOfType[PacketIn](packetInProbe)
 
         // can't use expectPacketOut because we inspect actions differently
@@ -184,8 +187,8 @@ class LinksTestCase extends MidolmanTestCase
         pkt = Ethernet.deserialize(pktOut.getData).getPayload.asInstanceOf[IPv4]
 
         pkt.getProtocol should be === ICMP.PROTOCOL_NUMBER
-        pkt.getSourceAddress should be === rtrIp1.addressAsInt
-        pkt.getDestinationAddress should be === vm1Ip.addressAsInt
+        pkt.getSourceAddress should be === rtrIp1.getAddress.addr
+        pkt.getDestinationAddress should be === vm1Ip.getAddress.addr
 
         val icmp = pkt.getPayload.asInstanceOf[ICMP]
         icmp should not be null
@@ -214,11 +217,12 @@ class LinksTestCase extends MidolmanTestCase
         drainProbes()
 
         log.info("PING vm1 -> vm2, should pass now")
-        injectIcmpEchoReq(rtrPort1Name, vm1Mac, vm1Ip, rtrMac1, vm2Ip)
+        injectIcmpEchoReq(rtrPort1Name, vm1Mac, vm1Ip.getAddress,
+            rtrMac1, vm2Ip.getAddress)
         pkt = expectRoutedPacketOut(rtrPort2Num, packetEventsProbe)
             .getPayload.asInstanceOf[IPv4]
-        pkt.getSourceAddress should be === vm1Ip.addressAsInt
-        pkt.getDestinationAddress should be === vm2Ip.addressAsInt
+        pkt.getSourceAddress should be === vm1Ip.getAddress.addr
+        pkt.getDestinationAddress should be === vm2Ip.getAddress.addr
 
     }
 

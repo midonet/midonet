@@ -22,7 +22,8 @@ import org.midonet.client.resource.Rule;
 import org.midonet.client.resource.RuleChain;
 import org.midonet.functional_test.utils.TapWrapper;
 import org.midonet.packets.IPv4;
-import org.midonet.packets.IntIPv4;
+import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.LLDP;
 import org.midonet.packets.MAC;
 import org.midonet.packets.MalformedPacketException;
@@ -34,7 +35,7 @@ import static org.midonet.util.Waiters.sleepBecause;
 
 public class L2FilteringTest extends TestBase {
 
-    IntIPv4 rtrIp = IntIPv4.fromString("10.0.0.254", 24);
+    IPv4Subnet rtrIp = new IPv4Subnet("10.0.0.254", 24);
     RouterPort<DtoInteriorRouterPort> rtrPort;
     Bridge bridge;
     BridgePort[] brPorts;
@@ -56,8 +57,8 @@ public class L2FilteringTest extends TestBase {
         rtrPort = rtr
             .addInteriorRouterPort()
             .portAddress(rtrIp.toUnicastString())
-            .networkAddress(rtrIp.toNetworkAddress().toUnicastString())
-            .networkLength(rtrIp.getMaskLength())
+            .networkAddress(rtrIp.toUnicastString())
+            .networkLength(rtrIp.getPrefixLen())
             .create();
         rtr.addRoute().srcNetworkAddr("0.0.0.0").srcNetworkLength(0)
             .dstNetworkAddr(rtrPort.getNetworkAddress())
@@ -101,11 +102,11 @@ public class L2FilteringTest extends TestBase {
         MAC mac3 = MAC.fromString("02:aa:bb:cc:dd:d3");
         MAC mac4 = MAC.fromString("02:aa:bb:cc:dd:d4");
         MAC mac5 = MAC.fromString("02:aa:bb:cc:dd:d5");
-        IntIPv4 ip1 = IntIPv4.fromString("10.0.0.1");
-        IntIPv4 ip2 = IntIPv4.fromString("10.0.0.2");
-        IntIPv4 ip3 = IntIPv4.fromString("10.0.0.3");
-        IntIPv4 ip4 = IntIPv4.fromString("10.0.0.4");
-        IntIPv4 ip5 = IntIPv4.fromString("10.0.0.5");
+        IPv4Addr ip1 = IPv4Addr.fromString("10.0.0.1");
+        IPv4Addr ip2 = IPv4Addr.fromString("10.0.0.2");
+        IPv4Addr ip3 = IPv4Addr.fromString("10.0.0.3");
+        IPv4Addr ip4 = IPv4Addr.fromString("10.0.0.4");
+        IPv4Addr ip5 = IPv4Addr.fromString("10.0.0.5");
 
         // Extract taps to variables for clarity (tap1 better than taps[0])
         final TapWrapper tap1 = taps[0];
@@ -117,11 +118,16 @@ public class L2FilteringTest extends TestBase {
         // Send ARPs from each edge port so that the bridge can learn MACs.
         // If broadcasts happen, drain them
         MAC rtrMac = MAC.fromString(rtrPort.getPortMac());
-        arpAndCheckReplyDrainBroadcasts(tap1, mac1, ip1, rtrIp, rtrMac, taps);
-        arpAndCheckReplyDrainBroadcasts(tap2, mac2, ip2, rtrIp, rtrMac, taps);
-        arpAndCheckReplyDrainBroadcasts(tap3, mac3, ip3, rtrIp, rtrMac, taps);
-        arpAndCheckReplyDrainBroadcasts(tap4, mac4, ip4, rtrIp, rtrMac, taps);
-        arpAndCheckReplyDrainBroadcasts(tap5, mac5, ip5, rtrIp, rtrMac, taps);
+        arpAndCheckReplyDrainBroadcasts(
+                tap1, mac1, ip1, rtrIp.getAddress(), rtrMac, taps);
+        arpAndCheckReplyDrainBroadcasts(
+                tap2, mac2, ip2, rtrIp.getAddress(), rtrMac, taps);
+        arpAndCheckReplyDrainBroadcasts(
+                tap3, mac3, ip3, rtrIp.getAddress(), rtrMac, taps);
+        arpAndCheckReplyDrainBroadcasts(
+                tap4, mac4, ip4, rtrIp.getAddress(), rtrMac, taps);
+        arpAndCheckReplyDrainBroadcasts(
+                tap5, mac5, ip5, rtrIp.getAddress(), rtrMac, taps);
 
         // All traffic is allowed now.
         icmpFromTapArrivesAtTap(tap1, tap2, mac1, mac2, ip1, ip2);
@@ -147,8 +153,8 @@ public class L2FilteringTest extends TestBase {
             .name("brInFilter").tenantId("pgroup_tnt").create();
         // Add a rule that drops packets from ip4 to ip1.
         Rule rule1 = brInFilter.addRule().type(DtoRule.Drop)
-            .nwSrcAddress(ip4.toUnicastString()).nwSrcLength(32)
-            .nwDstAddress(ip1.toUnicastString()).nwDstLength(32)
+            .nwSrcAddress(ip4.toString()).nwSrcLength(32)
+            .nwDstAddress(ip1.toString()).nwDstLength(32)
             .create();
         // Add a rule that drops packets from mac5 to mac2.
         Rule rule2 = brInFilter.addRule().type(DtoRule.Drop)
@@ -209,19 +215,20 @@ public class L2FilteringTest extends TestBase {
         lldpFromTapDoesntArriveAtTap(tap1, tap5, mac1, mac5);
         // ARPs from mac1 will also be dropped.
         assertThat("The ARP request should have been sent.",
-            tap1.send(PacketHelper.makeArpRequest(mac1, ip1, rtrIp)));
+            tap1.send(PacketHelper.makeArpRequest(
+                    mac1, ip1, rtrIp.getAddress())));
         assertThat("No ARP reply since the request should not have arrived.",
             tap1.recv(), nullValue());
         // Other ARPs pass and are correctly resolved.
-        arpAndCheckReply(tap2, mac2, ip2, rtrIp, rtrMac);
-        arpAndCheckReply(tap4, mac4, ip4, rtrIp, rtrMac);
+        arpAndCheckReply(tap2, mac2, ip2, rtrIp.getAddress(), rtrMac);
+        arpAndCheckReply(tap4, mac4, ip4, rtrIp.getAddress(), rtrMac);
 
         // ICMPs ingressing on tap3 should now be dropped.
         icmpFromTapDoesntArriveAtTap(tap3, tap2, mac3, mac2, ip3, ip2);
         icmpFromTapDoesntArriveAtTap(tap3, tap4, mac3, mac4, ip3, ip4);
         icmpFromTapDoesntArriveAtTap(tap3, tap5, mac3, mac5, ip3, ip5);
         // But ARPs ingressing on tap3 may pass.
-        arpAndCheckReply(tap3, mac3, ip3, rtrIp, rtrMac);
+        arpAndCheckReply(tap3, mac3, ip3, rtrIp.getAddress(), rtrMac);
         // And LLDPs ingressing tap3 also pass.
         lldpFromTapArrivesAtTap(tap3, tap4, mac3, mac4);
         lldpFromTapArrivesAtTap(tap3, tap5, mac3, mac5);
@@ -237,7 +244,7 @@ public class L2FilteringTest extends TestBase {
         lldpFromTapArrivesAtTap(tap1, tap4, mac1, mac4);
         lldpFromTapArrivesAtTap(tap1, tap5, mac1, mac5);
         // ARPs ingressing on tap1 are again delivered
-        arpAndCheckReply(tap1, mac1, ip1, rtrIp, rtrMac);
+        arpAndCheckReply(tap1, mac1, ip1, rtrIp.getAddress(), rtrMac);
 
         // ICMPs ingressing on tap3 again pass.
         icmpFromTapArrivesAtTap(tap3, tap2, mac3, mac2, ip3, ip2);
