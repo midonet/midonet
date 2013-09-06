@@ -62,8 +62,10 @@ abstract class VtyConnection(val addr: String, val port: Int,
 
             connected = true
         } catch {
-            case e: IOException => log.error("Could not open VTY connection: {}", e)
-            case e: UnknownHostException => log.error("Could not open VTP connection: {}", e)
+            case e: IOException =>
+                log.error("Could not open VTY connection: {}", e)
+            case e: UnknownHostException =>
+                log.error("Could not open VTP connection: {}", e)
         }
         log.debug("end")
     }
