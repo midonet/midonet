@@ -251,7 +251,7 @@ public abstract class Port extends UriResource {
         return peerId;
     }
     public void setPeerId(UUID _peerId) {
-        if(isExterior()) {
+        if(isExterior() && _peerId != null) {
             throw new RuntimeException("Cannot add a peerId to an exterior" +
                     "port");
         }
@@ -282,9 +282,6 @@ public abstract class Port extends UriResource {
     }
 
     public void setVifId(UUID _vifId) {
-        if(isInterior())
-            throw new RuntimeException("Cannot set vifId" +
-                    "on an Interior port.");
         vifId = _vifId;
     }
 
