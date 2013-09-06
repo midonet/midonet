@@ -31,7 +31,7 @@ class BridgeFloodOptimizationsTestCase extends MidolmanTestCase
     private var portId2 : Short = 0
     private var portId3 : Short = 0
     val mac1 = MAC.fromString("02:11:11:11:11:09")
-    val ip1 = IntIPv4.fromString("10.0.1.1")
+    val ip1 = IPv4Addr.fromString("10.0.1.1")
 
     override protected def fillConfig(config: HierarchicalConfiguration) = {
         config.setProperty("datapath.max_flow_count", "10")
@@ -51,8 +51,7 @@ class BridgeFloodOptimizationsTestCase extends MidolmanTestCase
         materializePort(port2, host1, "port2")
         materializePort(port3, host1, "port3")
         // Seed the bridge with mac, ip, vport for port1.
-        clusterDataClient().bridgeAddIp4Mac(bridge.getId,
-            IPv4Addr.fromIntIPv4(ip1), mac1)
+        clusterDataClient().bridgeAddIp4Mac(bridge.getId, ip1, mac1)
         clusterDataClient().bridgeAddMacPort(
             bridge.getId, Bridge.UNTAGGED_VLAN_ID, mac1, port1.getId)
 
@@ -101,14 +100,14 @@ class BridgeFloodOptimizationsTestCase extends MidolmanTestCase
         // Make an ARP request
         val ingressPortName = "port2"
         val mac2 = MAC.fromString("0a:fe:88:90:22:33")
-        val ip2 = IntIPv4.fromString("10.10.10.11")
+        val ip2 = IPv4Addr.fromString("10.10.10.11")
         var ethPkt = Packets.arpRequest(mac2, ip2, ip1)
         triggerPacketIn(ingressPortName, ethPkt)
         // The bridge should generate the ARP reply and emit to port2.
         var pktOut = packetEventsProbe.expectMsgClass(classOf[PacketsExecute])
         pktOut.packet.getData should be (ARP.makeArpReply(
-            mac1, mac2, IPv4.toIPv4AddressBytes(ip1.addressAsInt()),
-            IPv4.toIPv4AddressBytes(ip2.addressAsInt())).serialize())
+            mac1, mac2, IPv4.toIPv4AddressBytes(ip1.addr),
+            IPv4.toIPv4AddressBytes(ip2.addr)).serialize())
         var outports = actionsToOutputPorts(pktOut.packet.getActions)
         outports should have size (1)
         outports should (contain (portId2))
@@ -137,7 +136,7 @@ class BridgeFloodOptimizationsTestCase extends MidolmanTestCase
 
         // If a packet is sent to mac3 it's flooded (mac3 hasn't been learned).
         val mac3 = MAC.fromString("0a:fe:88:90:ee:ee")
-        val ip3 = IntIPv4.fromString("10.10.10.13")
+        val ip3 = IPv4Addr.fromString("10.10.10.13")
         ethPkt = Packets.udp(mac2, mac3, ip2, ip3, 10, 12, "Test".getBytes)
         triggerPacketIn(ingressPortName, ethPkt)
         // expect one wild flow to be added

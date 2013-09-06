@@ -13,9 +13,8 @@ class IPv4AddrTest extends Suite with ShouldMatchers {
 
     // IPs that have a negative int representation
     def testNextWithNegativeIp() {
-        val intIp = IntIPv4.fromString("192.168.1.1")
-        val iIp = intIp.addressAsInt()
-        var ip = new IPv4Addr(iIp)
+        var ip = IPv4Addr.fromString("192.168.1.1")
+        val iIp = ip.addr
         ip = ip.next
         ip.toString should be === "192.168.1.2"
         ip.toInt should be === iIp + 1

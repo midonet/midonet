@@ -25,7 +25,7 @@ import org.midonet.odp.Datapath
 import org.midonet.odp.flows.{FlowAction, FlowActions}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-import org.midonet.packets.{IntIPv4, MAC}
+import org.midonet.packets.{IPv4Subnet, IPv4Addr, MAC}
 import org.midonet.midolman.topology.VirtualTopologyActor.{PortRequest,
     RouterRequest, BridgeRequest}
 
@@ -52,7 +52,7 @@ class BridgeInvalidationTest extends MidolmanTestCase
     val port3Name = "port3"
 
     val routerMac = MAC.fromString("02:11:22:33:46:13")
-    val routerIp = IntIPv4.fromString("11.11.11.1")
+    val routerIp = new IPv4Subnet("11.11.11.1", 32)
 
     var bridge: Bridge = null
     var host: Host = null
@@ -90,8 +90,8 @@ class BridgeInvalidationTest extends MidolmanTestCase
         // set up logical port on router
         rtrPort = newInteriorRouterPort(router, routerMac,
             routerIp.toUnicastString,
-            routerIp.toNetworkAddress.toUnicastString,
-            routerIp.getMaskLength)
+            routerIp.toNetworkAddress.toString,
+            routerIp.getPrefixLen)
         rtrPort should not be null
 
         brPort1 = newInteriorBridgePort(bridge)
@@ -306,7 +306,7 @@ class BridgeInvalidationTest extends MidolmanTestCase
         // trigger packet in before linking the port. Since routerMac is unknown
         // the bridge logic will flood the packet
         triggerPacketIn(port1Name, TestHelpers.createUdpPacket(macVm1, ipVm1,
-            routerMac.toString, routerIp.toString))
+            routerMac.toString, routerIp.getAddress.toString))
 
         val flowShouldBeInvalidated =
             wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
@@ -331,8 +331,8 @@ class BridgeInvalidationTest extends MidolmanTestCase
     def testArpRequestAddLogicalPort() {
         drainProbes()
         // send arp request before linking the port. The arp request will be flooded
-        injectArpRequest(port1Name, IntIPv4.fromString(ipVm1).addressAsInt(),
-            MAC.fromString(macVm1), routerIp.addressAsInt())
+        injectArpRequest(port1Name, IPv4Addr(ipVm1).addr,
+            MAC.fromString(macVm1), routerIp.getAddress.addr)
 
         val flowShouldBeInvalidated =
             wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
@@ -370,7 +370,7 @@ class BridgeInvalidationTest extends MidolmanTestCase
         drainProbe(flowProbe())
 
         triggerPacketIn(port1Name, TestHelpers.createUdpPacket(macVm1, ipVm1,
-            routerMac.toString, routerIp.toString))
+            routerMac.toString, routerIp.getAddress.toString))
 
         val flowShouldBeInvalidated =
             wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])

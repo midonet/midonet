@@ -176,13 +176,13 @@ class RouterFlowInvalidationTest extends MidolmanTestCase with VirtualConfigurat
         val macToReach = "02:11:22:33:48:10"
         // add a route from ipSource to ipToReach/32, next hop is outPort
         routeId = newRoute(clusterRouter, ipSource, 32, ipToReach, 32,
-            NextHop.PORT, outPort.getId, new IntIPv4(NO_GATEWAY).toString,
+            NextHop.PORT, outPort.getId, new IPv4Addr(NO_GATEWAY).toString,
             2)
         // we trigger the learning of macToReach
         feedArpCache(outPortName,
-            IntIPv4.fromString(ipToReach).addressAsInt,
+            IPv4Addr.fromString(ipToReach).addr,
             MAC.fromString(macToReach),
-            IntIPv4.fromString(ipOutPort).addressAsInt,
+            IPv4Addr.fromString(ipOutPort).addr,
             MAC.fromString(macOutPort))
         fishForRequestOfType[DiscardPacket](discardPacketProbe)
         fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
@@ -222,27 +222,27 @@ class RouterFlowInvalidationTest extends MidolmanTestCase with VirtualConfigurat
 
         // create a route to the network to reach
         newRoute(clusterRouter, ipSource, 32, networkToReach, networkToReachLength,
-            NextHop.PORT, outPort.getId, new IntIPv4(NO_GATEWAY).toString,
+            NextHop.PORT, outPort.getId, new IPv4Addr(NO_GATEWAY).toString,
             2)
 
         drainProbe(flowProbe())
 
         feedArpCache(outPortName,
-            IntIPv4.fromString(ipVm1).addressAsInt,
+            IPv4Addr.fromString(ipVm1).addr,
             MAC.fromString(macVm1),
-            IntIPv4.fromString(ipOutPort).addressAsInt,
+            IPv4Addr.fromString(ipOutPort).addr,
             MAC.fromString(macOutPort))
 
         feedArpCache(outPortName,
-            IntIPv4.fromString(ipVm2).addressAsInt,
+            IPv4Addr.fromString(ipVm2).addr,
             MAC.fromString(macVm2),
-            IntIPv4.fromString(ipOutPort).addressAsInt,
+            IPv4Addr.fromString(ipOutPort).addr,
             MAC.fromString(macOutPort))
 
         feedArpCache(outPortName,
-            IntIPv4.fromString(ipVm3).addressAsInt,
+            IPv4Addr.fromString(ipVm3).addr,
             MAC.fromString(macVm3),
-            IntIPv4.fromString(ipOutPort).addressAsInt,
+            IPv4Addr.fromString(ipOutPort).addr,
             MAC.fromString(macOutPort))
 
         flowProbe().expectMsgClass(classOf[InvalidateFlowsByTag])
@@ -262,7 +262,7 @@ class RouterFlowInvalidationTest extends MidolmanTestCase with VirtualConfigurat
         tagEventProbe.expectMsgClass(classOf[RouterInvTrieTagCountModified])
 
         newRoute(clusterRouter, ipSource, 32, "11.11.1.0", networkToReachLength+8,
-            NextHop.PORT, outPort.getId, new IntIPv4(NO_GATEWAY).toString,
+            NextHop.PORT, outPort.getId, new IPv4Addr(NO_GATEWAY).toString,
             2)
 
         wflowRemovedProbe.fishForMessage(Duration(3, TimeUnit.SECONDS),
@@ -289,18 +289,18 @@ class RouterFlowInvalidationTest extends MidolmanTestCase with VirtualConfigurat
         val ipVm2 = "11.11.1.3"
         val macVm2 = "11:22:33:44:55:03"
 
-        val ipVm1AsInt = IntIPv4.fromString(ipVm1).addressAsInt()
-        val ipVm2AsInt = IntIPv4.fromString(ipVm2).addressAsInt()
+        val ipVm1AsInt = IPv4Addr.fromString(ipVm1).addr
+        val ipVm2AsInt = IPv4Addr.fromString(ipVm2).addr
 
         drainProbe(flowProbe())
         // create a route to the network to reach
         newRoute(clusterRouter, "0.0.0.0", 0, networkToReach, networkToReachLength,
-            NextHop.PORT, outPort.getId, new IntIPv4(NO_GATEWAY).toString,
+            NextHop.PORT, outPort.getId, new IPv4Addr(NO_GATEWAY).toString,
             2)
         feedArpCache(outPortName,
             ipVm1AsInt,
             MAC.fromString(macVm1),
-            IntIPv4.fromString(ipOutPort).addressAsInt,
+            IPv4Addr.fromString(ipOutPort).addr,
             MAC.fromString(macOutPort))
         fishForRequestOfType[DiscardPacket](discardPacketProbe)
         fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
@@ -315,7 +315,7 @@ class RouterFlowInvalidationTest extends MidolmanTestCase with VirtualConfigurat
         feedArpCache(outPortName,
             ipVm2AsInt,
             MAC.fromString(macVm2),
-            IntIPv4.fromString(ipOutPort).addressAsInt,
+            IPv4Addr.fromString(ipOutPort).addr,
             MAC.fromString(macOutPort))
         fishForRequestOfType[DiscardPacket](discardPacketProbe)
         fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
@@ -369,13 +369,13 @@ class RouterFlowInvalidationTest extends MidolmanTestCase with VirtualConfigurat
         val secondMac = "02:11:44:66:96:20"
         // add a route from ipSource to ipToReach/32, next hop is outPort
         routeId = newRoute(clusterRouter, ipSource, 32, ipToReach, 32,
-            NextHop.PORT, outPort.getId, new IntIPv4(NO_GATEWAY).toString,
+            NextHop.PORT, outPort.getId, new IPv4Addr(NO_GATEWAY).toString,
             2)
         // we trigger the learning of firstMac
         feedArpCache(outPortName,
-            IntIPv4.fromString(ipToReach).addressAsInt,
+            IPv4Addr.fromString(ipToReach).addr,
             MAC.fromString(firstMac),
-            IntIPv4.fromString(ipOutPort).addressAsInt,
+            IPv4Addr.fromString(ipOutPort).addr,
             MAC.fromString(macOutPort))
 
         fishForRequestOfType[DiscardPacket](discardPacketProbe)
@@ -388,9 +388,9 @@ class RouterFlowInvalidationTest extends MidolmanTestCase with VirtualConfigurat
 
         // we trigger the learning of firstMac
         feedArpCache(outPortName,
-            IntIPv4.fromString(ipToReach).addressAsInt,
+            IPv4Addr.fromString(ipToReach).addr,
             MAC.fromString(secondMac),
-            IntIPv4.fromString(ipOutPort).addressAsInt,
+            IPv4Addr.fromString(ipOutPort).addr,
             MAC.fromString(macOutPort))
 
         // when we update the ARP table we expect the flow to be invalidated

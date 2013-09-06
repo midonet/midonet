@@ -5,9 +5,7 @@ package org.midonet.odp.protos;
 
 import java.util.Arrays;
 import java.util.concurrent.Future;
-import java.util.List;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -17,8 +15,7 @@ import org.midonet.odp.DatapathClient;
 import org.midonet.odp.Flow;
 import org.midonet.odp.FlowMatch;
 import org.midonet.odp.flows.*;
-import org.midonet.odp.protos.OvsDatapathConnection;
-import org.midonet.packets.IntIPv4;
+import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.MAC;
 
 import org.slf4j.Logger;
@@ -58,12 +55,10 @@ public class OvsFlowsTunnelTest {
                       " " + e.getMessage());
         }
 
-        Flow tunnelFlow = new Flow();
-        FlowMatch flowMatch = new FlowMatch();
-        IntIPv4 srcIp = new IntIPv4().fromString("10.10.10.10_24");
-        IntIPv4 dstIp = new IntIPv4().fromString("10.10.11.10_24");
-        IntIPv4 tunnelSrcIp = new IntIPv4().fromString("10.11.12.13_24");
-        IntIPv4 tunnelDstIp = new IntIPv4().fromString("10.11.12.14_24");
+        IPv4Subnet srcIp = new IPv4Subnet("10.10.10.10", 24);
+        IPv4Subnet dstIp = new IPv4Subnet("10.10.11.10", 24);
+        IPv4Subnet tunnelSrcIp = new IPv4Subnet("10.11.12.13", 24);
+        IPv4Subnet tunnelDstIp = new IPv4Subnet("10.11.12.14", 24);
         MAC srcMac = new MAC().fromString("aa:33:44:55:66:77");
         MAC dstMac = new MAC().fromString("aa:22:44:66:88:bb");
         FlowKeyEthernet ethernetKey = new FlowKeyEthernet()
@@ -78,12 +73,12 @@ public class OvsFlowsTunnelTest {
                          .addKey(etherTypeKey)
                          .addKey(ipv4Key);
         FlowKeyTunnel ipv4TunnelKey = new FlowKeyTunnel()
-                                    .setTunnelID(10)
-                                    .setIpv4SrcAddr(tunnelSrcIp.getAddress())
-                                    .setIpv4DstAddr(tunnelDstIp.getAddress())
-                                    .setTunnelFlags((short)0)
-                                    .setTos((byte)3)
-                                    .setTtl((byte)100);
+                .setTunnelID(10)
+                .setIpv4SrcAddr(tunnelSrcIp.getAddress().addr())
+                .setIpv4DstAddr(tunnelDstIp.getAddress().addr())
+                .setTunnelFlags((short)0)
+                .setTos((byte)3)
+                .setTtl((byte)100);
         FlowActionSetKey setKeyAction = new FlowActionSetKey()
                                         .setFlowKey(ipv4TunnelKey);
         Flow downloadFlow = new Flow()

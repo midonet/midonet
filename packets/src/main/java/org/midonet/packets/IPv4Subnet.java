@@ -17,6 +17,14 @@ public final class IPv4Subnet implements IPSubnet<IPv4Addr> {
         prefixLen = prefixLen_;
     }
 
+    public IPv4Subnet(int addr_, int prefixLen_) {
+        this(new IPv4Addr(addr_), prefixLen_);
+    }
+
+    public IPv4Subnet(String addr_, int prefixLen_) {
+        this(IPv4Addr.fromString(addr_), prefixLen_);
+    }
+
     @Override
     public IPv4Addr getAddress() {
         return address;
@@ -43,6 +51,13 @@ public final class IPv4Subnet implements IPSubnet<IPv4Addr> {
         return IPv4Addr.fromInt(bcast);
     }
 
+    public IPv4Addr toNetworkAddress() {
+        if (prefixLen == 0)
+            return new IPv4Addr(0);
+        int mask = 0xFFFFFFFF << (32 - prefixLen);
+        return new IPv4Addr(address.addr() & mask);
+    }
+
     @Override
     public boolean containsAddress(IPAddr other) {
         if (! (other instanceof IPv4Addr))
@@ -55,6 +70,14 @@ public final class IPv4Subnet implements IPSubnet<IPv4Addr> {
         int maskSize = 32-prefixLen;
         int mask = ~0 << maskSize;
         return (address.toInt() & mask) == (that.toInt() & mask);
+    }
+
+    public IntIPv4 toIntIPv4() {
+        return new IntIPv4(address.addr(), prefixLen);
+    }
+
+    public String toUnicastString() {
+        return getAddress().toString();
     }
 
     @Override

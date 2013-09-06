@@ -14,6 +14,7 @@ import akka.util.Duration;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.midonet.packets.IPv4Addr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,7 +27,6 @@ import org.midonet.client.resource.ResourceCollection;
 import org.midonet.functional_test.utils.EmbeddedMidolman;
 import org.midonet.functional_test.utils.MidolmanLauncher;
 import org.midonet.functional_test.utils.TapWrapper;
-import org.midonet.packets.IntIPv4;
 import org.midonet.packets.MAC;
 import org.midonet.util.lock.LockHelper;
 
@@ -41,7 +41,7 @@ public class BridgeTestOneDatapath {
     private final static Logger log = LoggerFactory.getLogger(BridgeTestOneDatapath.class);
 
     final String TENANT_NAME = "tenant-br-one-dp";
-    IntIPv4 ip1, ip2, ip3;
+    IPv4Addr ip1, ip2, ip3;
     MAC mac1, mac2, mac3;
     PacketHelper helper1_2;
     PacketHelper helper2_1;
@@ -89,15 +89,15 @@ public class BridgeTestOneDatapath {
         // Create 3 virtual bridge ports. Internally, keep track of the
         // IP/MAC we want to use behind each port. Use IP addresses from the
         // testing range 198.18.0.0/15.
-        ip1 = IntIPv4.fromString("198.18.231.2");
+        ip1 = IPv4Addr.fromString("198.18.231.2");
         mac1 = MAC.fromString("02:aa:bb:cc:dd:d1");
         port1 = bridge.addExteriorPort().create();
 
-        ip2 = IntIPv4.fromString("198.18.231.3");
+        ip2 = IPv4Addr.fromString("198.18.231.3");
         mac2 = MAC.fromString("02:aa:bb:cc:dd:d2");
         port2 = bridge.addExteriorPort().create();
 
-        ip3 = IntIPv4.fromString("198.18.231.4");
+        ip3 = IPv4Addr.fromString("198.18.231.4");
         mac3 = MAC.fromString("02:aa:bb:cc:dd:d3");
         port3 = bridge.addExteriorPort().create();
 

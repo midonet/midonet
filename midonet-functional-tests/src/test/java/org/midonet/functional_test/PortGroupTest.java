@@ -38,7 +38,8 @@ import org.midonet.client.resource.RuleChain;
 import org.midonet.functional_test.utils.EmbeddedMidolman;
 import org.midonet.functional_test.utils.TapWrapper;
 import org.midonet.packets.ARP;
-import org.midonet.packets.IntIPv4;
+import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.MAC;
 import org.midonet.packets.MalformedPacketException;
 import org.midonet.packets.Unsigned;
@@ -48,7 +49,6 @@ import org.midonet.util.lock.LockHelper;
 import static org.midonet.functional_test.FunctionalTestsHelper.*;
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -59,7 +59,7 @@ import static org.junit.Assert.assertTrue;
  */
 @Ignore
 public class PortGroupTest {
-    IntIPv4 rtrIp = IntIPv4.fromString("10.0.0.254", 24);
+    IPv4Subnet rtrIp = new IPv4Subnet("10.0.0.254", 24);
     RouterPort<DtoInteriorRouterPort> rtrPort;
     ApiServer apiStarter;
     TapWrapper tap1;
@@ -111,9 +111,9 @@ public class PortGroupTest {
         // Add a interior port to the router.
         rtrPort = rtr
             .addInteriorRouterPort()
-            .portAddress(rtrIp.toUnicastString())
-            .networkAddress(rtrIp.toNetworkAddress().toUnicastString())
-            .networkLength(rtrIp.getMaskLength())
+            .portAddress(rtrIp.getAddress().toString())
+            .networkAddress(rtrIp.getAddress().toString())
+            .networkLength(rtrIp.getPrefixLen())
             .create();
         rtr.addRoute().srcNetworkAddr("0.0.0.0").srcNetworkLength(0)
             .dstNetworkAddr(rtrPort.getNetworkAddress())
@@ -143,7 +143,8 @@ public class PortGroupTest {
             .name("common").tenantId("pgroup_tnt").create();
         log.debug("ChainID for common is {}", commonChain.getId());
         commonChain.addRule().type(DtoRule.Accept).position(1)
-            .nwSrcAddress(rtrIp.toUnicastString()).nwSrcLength(32).create();
+                .nwSrcAddress(rtrIp.getAddress().toString())
+                .nwSrcLength(32).create();
         commonChain.addRule().type(DtoRule.Accept).position(2)
             .dlType(Unsigned.unsign(ARP.ETHERTYPE)).create();
 
@@ -286,96 +287,96 @@ public class PortGroupTest {
         MAC mac2 = MAC.fromString("02:aa:bb:cc:dd:d2");
         MAC mac3 = MAC.fromString("02:aa:bb:cc:dd:d3");
         MAC mac4 = MAC.fromString("02:aa:bb:cc:dd:d4");
-        IntIPv4 ip1 = IntIPv4.fromString("10.0.0.1");
-        IntIPv4 ip2 = IntIPv4.fromString("10.0.0.2");
-        IntIPv4 ip3 = IntIPv4.fromString("10.0.0.3");
-        IntIPv4 ip4 = IntIPv4.fromString("10.0.0.4");
+        IPv4Addr ip1 = IPv4Addr.fromString("10.0.0.1");
+        IPv4Addr ip2 = IPv4Addr.fromString("10.0.0.2");
+        IPv4Addr ip3 = IPv4Addr.fromString("10.0.0.3");
+        IPv4Addr ip4 = IPv4Addr.fromString("10.0.0.4");
 
         // Send ARPs from each edge port so that the bridge can learn MACs.
         MAC rtrMac = MAC.fromString(rtrPort.getPortMac());
-        arpAndCheckReply(tap1, mac1, ip1, rtrIp, rtrMac);
-        arpAndCheckReply(tap2, mac2, ip2, rtrIp, rtrMac);
-        arpAndCheckReply(tap3, mac3, ip3, rtrIp, rtrMac);
-        arpAndCheckReply(tap4, mac4, ip4, rtrIp, rtrMac);
+        arpAndCheckReply(tap1, mac1, ip1, rtrIp.getAddress(), rtrMac);
+        arpAndCheckReply(tap2, mac2, ip2, rtrIp.getAddress(), rtrMac);
+        arpAndCheckReply(tap3, mac3, ip3, rtrIp.getAddress(), rtrMac);
+        arpAndCheckReply(tap4, mac4, ip4, rtrIp.getAddress(), rtrMac);
 
         // A packet from 10.3.3.4 and port 4 should fail to arrive at port1
         // because SecGroup1 only accepts packets from 10.1.1.0/24.
         icmpFromTapDoesntArriveAtTap(tap4, tap1, mac4, mac1,
-            IntIPv4.fromString("10.3.3.4"), ip1);
+            IPv4Addr.fromString("10.3.3.4"), ip1);
 
         // A packet from 10.2.2.4 and port 4 should fail to arrive at port1
         // because SecGroup1 only accepts packets from 10.1.1.0/24.
         icmpFromTapDoesntArriveAtTap(tap4, tap1, mac4, mac1,
-            IntIPv4.fromString("10.2.2.4"), ip1);
+            IPv4Addr.fromString("10.2.2.4"), ip1);
 
         // A packet from 10.1.1.4 and port 4 should arrive at port1 because its
         // nwSrc is inside an acceptable prefix.
         icmpFromTapArrivesAtTap(tap4, tap1, mac4, mac1,
-            IntIPv4.fromString("10.1.1.4"), ip1);
+            IPv4Addr.fromString("10.1.1.4"), ip1);
 
         // A packet from 10.1.1.4 and port 4 should fail to arrive at port2
         // because port 4 isn't in the SecGroups accepted by SecGroup2 nor is
         // the packet's source IP in 10.2.2.0/24.
         icmpFromTapDoesntArriveAtTap(tap4, tap2, mac4, mac2,
-            IntIPv4.fromString("10.1.1.4"), ip2);
+            IPv4Addr.fromString("10.1.1.4"), ip2);
 
         // A packet from 10.3.3.4 and port 4 should fail to arrive at port2
         // because port 4 isn't in the SecGroups accepted by SecGroup2 nor is
         // the packet's source IP in 10.2.2.0/24.
         icmpFromTapDoesntArriveAtTap(tap4, tap2, mac4, mac2,
-            IntIPv4.fromString("10.3.3.4"), ip2);
+            IPv4Addr.fromString("10.3.3.4"), ip2);
 
         // A packet from 10.2.2.4 and port 4 should arrive at port2 because its
         // nwSrc is inside an acceptable prefix.
         icmpFromTapArrivesAtTap(tap4, tap2, mac4, mac2,
-            IntIPv4.fromString("10.2.2.4"), ip2);
+            IPv4Addr.fromString("10.2.2.4"), ip2);
 
         // A packet from 10.3.3.4 and port 4 should fail to arrive at port3
         // because it's not from an accepted SecGroup or IP src prefix.
         icmpFromTapDoesntArriveAtTap(tap4, tap3, mac4, mac3,
-            IntIPv4.fromString("10.3.3.4"), ip3);
+            IPv4Addr.fromString("10.3.3.4"), ip3);
 
         // A packet from 10.1.1.4 and port 4 should arrive at port3 because its
         // nwSrc is inside an acceptable prefix.
         icmpFromTapArrivesAtTap(tap4, tap3, mac4, mac3,
-            IntIPv4.fromString("10.1.1.4"), ip3);
+            IPv4Addr.fromString("10.1.1.4"), ip3);
 
         // A packet from 10.2.2.4 and port 4 should arrive at port3 because its
         // nwSrc is inside an acceptable prefix.
         icmpFromTapArrivesAtTap(tap4, tap3, mac4, mac3,
-            IntIPv4.fromString("10.2.2.4"), ip3);
+            IPv4Addr.fromString("10.2.2.4"), ip3);
 
         // A packet from 10.3.3.3 and port 3 should fail to arrive at port1
         // even though they are in the same security group. SecGroup1 does not
         // necessarily accept packets from members of its own group.
         icmpFromTapDoesntArriveAtTap(tap3, tap1, mac3, mac1,
-            IntIPv4.fromString("10.3.3.3"), ip1);
+            IPv4Addr.fromString("10.3.3.3"), ip1);
 
         // A packet from 10.3.3.3 and port 3 should arrive at port2 because
         // they're both in SecGroup2, which accepts packets from its own
         // members.
         icmpFromTapArrivesAtTap(tap3, tap2, mac3, mac2,
-            IntIPv4.fromString("10.3.3.3"), ip2);
+            IPv4Addr.fromString("10.3.3.3"), ip2);
 
         // A packet from 10.3.3.1 and port 1 should arrive at port2 because
         // port2 is in SecGroup2 which accepts packets from SecGroup1.
         icmpFromTapArrivesAtTap(tap1, tap2, mac1, mac2,
-            IntIPv4.fromString("10.3.3.1"), ip2);
+            IPv4Addr.fromString("10.3.3.1"), ip2);
 
         // A packet from 10.3.3.2 and port 2 should arrive at port3 because
         // they're both in SecGroup2, which accepts packets from its own
         // members.
         icmpFromTapArrivesAtTap(tap2, tap3, mac2, mac3,
-            IntIPv4.fromString("10.3.3.2"), ip3);
+            IPv4Addr.fromString("10.3.3.2"), ip3);
 
         // A packet from 10.3.3.1 and port 1 should arrive at port3 because
         // port3 is in SecGroup2 which accepts packets from SecGroup1.
         icmpFromTapArrivesAtTap(tap1, tap3, mac1, mac3,
-            IntIPv4.fromString("10.3.3.1"), ip3);
+            IPv4Addr.fromString("10.3.3.1"), ip3);
 
         // A packet from 10.3.3.1 and port 1 should arrive at port4 because
         // port4 isn't in any Security Group.
         icmpFromTapArrivesAtTap(tap1, tap4, mac1, mac4,
-            IntIPv4.fromString("10.3.3.1"), ip4);
+            IPv4Addr.fromString("10.3.3.1"), ip4);
     }
 }

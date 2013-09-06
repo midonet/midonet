@@ -142,8 +142,8 @@ trait SimulationHelper extends MidolmanTestCase {
     }
 
     def injectTcp(port: String,
-              fromMac: MAC, fromIp: IntIPv4, fromPort: Int,
-              toMac: MAC, toIp: IntIPv4, toPort: Int,
+              fromMac: MAC, fromIp: IPv4Addr, fromPort: Int,
+              toMac: MAC, toIp: IPv4Addr, toPort: Int,
               syn: Boolean = false, rst: Boolean = false, ack: Boolean = false,
               fragmentType: IPFragmentType = IPFragmentType.None) {
         val tcp = new TCP()
@@ -157,8 +157,8 @@ trait SimulationHelper extends MidolmanTestCase {
 
         val ipFlags = if (fragmentType == IPFragmentType.None) 0 else IPv4.IP_FLAGS_MF
         val offset = if (fragmentType == IPFragmentType.Later) 0x4321 else 0
-        val ip = new IPv4().setSourceAddress(fromIp.addressAsInt).
-                            setDestinationAddress(toIp.addressAsInt).
+        val ip = new IPv4().setSourceAddress(fromIp.addr).
+                            setDestinationAddress(toIp.addr).
                             setProtocol(TCP.PROTOCOL_NUMBER).
                             setFlags(ipFlags.toByte).
                             setFragmentOffset(offset.toShort).
@@ -221,8 +221,8 @@ trait SimulationHelper extends MidolmanTestCase {
             Unsigned.unsign(portNo))
     }
 
-    def injectIcmpEchoReq(portName : String, srcMac : MAC, srcIp : IntIPv4,
-                       dstMac : MAC, dstIp : IntIPv4, icmpId: Short = 16,
+    def injectIcmpEchoReq(portName : String, srcMac : MAC, srcIp : IPv4Addr,
+                       dstMac : MAC, dstIp : IPv4Addr, icmpId: Short = 16,
                        icmpSeq: Short = 32) : ICMP =  {
         val echo = new ICMP()
         echo.setEchoRequest(icmpId, icmpSeq, "My ICMP".getBytes)
@@ -230,25 +230,25 @@ trait SimulationHelper extends MidolmanTestCase {
             setSourceMACAddress(srcMac).
             setDestinationMACAddress(dstMac).
             setEtherType(IPv4.ETHERTYPE)
-        eth.setPayload(new IPv4().setSourceAddress(srcIp.addressAsInt).
-            setDestinationAddress(dstIp.addressAsInt).
+        eth.setPayload(new IPv4().setSourceAddress(srcIp.addr).
+            setDestinationAddress(dstIp.addr).
             setProtocol(ICMP.PROTOCOL_NUMBER).
             setPayload(echo))
         triggerPacketIn(portName, eth)
         echo
     }
 
-    def injectIcmpEchoReply(portName : String, srcMac : MAC, srcIp : IntIPv4,
+    def injectIcmpEchoReply(portName : String, srcMac : MAC, srcIp : IPv4Addr,
                             echoId : Short, echoSeqNum : Short, dstMac : MAC,
-                            dstIp : IntIPv4) = {
+                            dstIp : IPv4Addr) = {
         val echoReply = new ICMP()
         echoReply.setEchoReply(echoId, echoSeqNum, "My ICMP".getBytes)
         val eth: Ethernet = new Ethernet().
             setSourceMACAddress(srcMac).
             setDestinationMACAddress(dstMac).
             setEtherType(IPv4.ETHERTYPE)
-        eth.setPayload(new IPv4().setSourceAddress(srcIp.addressAsInt).
-            setDestinationAddress(dstIp.addressAsInt).
+        eth.setPayload(new IPv4().setSourceAddress(srcIp.addr).
+            setDestinationAddress(dstIp.addr).
             setProtocol(ICMP.PROTOCOL_NUMBER).
             setPayload(echoReply))
         triggerPacketIn(portName, eth)

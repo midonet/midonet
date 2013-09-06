@@ -7,15 +7,15 @@ package org.midonet.packets;
 public class Packets {
 
     public static Ethernet udp(MAC dlSrc, MAC dlDst,
-                               IntIPv4 nwSrc, IntIPv4 nwDst,
+                               IPv4Addr nwSrc, IPv4Addr nwDst,
                                short sport, short dport, byte[] data) {
         UDP udp = new UDP();
         udp.setDestinationPort(dport);
         udp.setSourcePort(sport);
         udp.setPayload(new Data(data));
         IPv4 ip = new IPv4();
-        ip.setDestinationAddress(nwDst.getAddress());
-        ip.setSourceAddress(nwSrc.getAddress());
+        ip.setDestinationAddress(nwDst.addr());
+        ip.setSourceAddress(nwSrc.addr());
         ip.setProtocol(UDP.PROTOCOL_NUMBER);
         ip.setPayload(udp);
         Ethernet eth = new Ethernet();
@@ -26,8 +26,8 @@ public class Packets {
         return eth;
     }
 
-    public static Ethernet arpRequest(MAC dlSrc, IntIPv4 nwSrc,
-                                      IntIPv4 targetAddr) {
+    public static Ethernet arpRequest(MAC dlSrc, IPv4Addr nwSrc,
+                                      IPv4Addr targetAddr) {
         ARP arp = new ARP();
         arp.setHardwareType(ARP.HW_TYPE_ETHERNET);
         arp.setProtocolType(ARP.PROTO_TYPE_IP);
@@ -35,8 +35,8 @@ public class Packets {
         arp.setProtocolAddressLength((byte)0x04);
         arp.setOpCode(ARP.OP_REQUEST);
         arp.setSenderHardwareAddress(dlSrc);
-        arp.setSenderProtocolAddress(IPv4.toIPv4AddressBytes(nwSrc.addressAsInt()));
-        arp.setTargetProtocolAddress(IPv4.toIPv4AddressBytes(targetAddr.addressAsInt()));
+        arp.setSenderProtocolAddress(IPv4.toIPv4AddressBytes(nwSrc.addr()));
+        arp.setTargetProtocolAddress(IPv4.toIPv4AddressBytes(targetAddr.addr()));
         arp.setTargetHardwareAddress(MAC.fromString("ff:ff:ff:ff:ff:ff"));
         Ethernet eth = new Ethernet();
         eth.setDestinationMACAddress(MAC.fromString("ff:ff:ff:ff:ff:ff"));

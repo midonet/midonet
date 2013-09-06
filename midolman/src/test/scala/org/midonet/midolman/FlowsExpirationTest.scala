@@ -5,13 +5,10 @@
 package org.midonet.midolman
 
 import scala.Predef._
-import scala.collection.JavaConversions._
 import java.util.concurrent.TimeUnit
 
-import akka.actor.ActorSystem
-import akka.testkit.{TestKit, TestKitExtension, TestProbe}
+import akka.testkit.TestProbe
 import akka.util.Duration
-import akka.util.duration._
 
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.runner.RunWith
@@ -21,9 +18,8 @@ import org.midonet.midolman.FlowController._
 import org.midonet.midolman.PacketWorkflow.PacketIn
 import org.midonet.midolman.util.TestHelpers
 import org.midonet.odp._
-import org.midonet.odp.flows.FlowKeys
-import org.midonet.packets.{IntIPv4, MAC, Packets}
-import org.midonet.sdn.flows.{FlowManager, WildcardFlow, WildcardMatch}
+import org.midonet.packets.{IPv4Addr, MAC, Packets}
+import org.midonet.sdn.flows.WildcardFlow
 import org.midonet.midolman.topology.{LocalPortActive, VirtualTopologyActor}
 import org.midonet.midolman.topology.VirtualTopologyActor.{BridgeRequest, PortRequest}
 
@@ -41,15 +37,15 @@ class FlowsExpirationTest extends MidolmanTestCase
     val ethPkt = Packets.udp(
         MAC.fromString("02:11:22:33:44:10"),
         MAC.fromString("02:11:22:33:44:11"),
-        IntIPv4.fromString("10.0.1.10"),
-        IntIPv4.fromString("10.0.1.11"),
+        IPv4Addr.fromString("10.0.1.10"),
+        IPv4Addr.fromString("10.0.1.11"),
         10, 11, "My UDP packet".getBytes)
 
     val ethPkt1 = Packets.udp(
         MAC.fromString("02:11:22:33:44:10"),
         MAC.fromString("02:11:22:33:44:12"),
-        IntIPv4.fromString("10.0.1.10"),
-        IntIPv4.fromString("10.0.1.11"),
+        IPv4Addr.fromString("10.0.1.10"),
+        IPv4Addr.fromString("10.0.1.11"),
         10, 11, "My UDP packet 2".getBytes)
 
 

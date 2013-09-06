@@ -16,30 +16,30 @@ import org.midonet.midolman.topology.VirtualTopologyActor
 
 trait RouterHelper extends SimulationHelper {
 
-    def expectEmitIcmp(fromMac: MAC, fromIp: IntIPv4,
-                               toMac: MAC, toIp: IntIPv4,
+    def expectEmitIcmp(fromMac: MAC, fromIp: IPv4Addr,
+                               toMac: MAC, toIp: IPv4Addr,
                                icmpType: Char, icmpCode: Char) {
         val pkt = fishForRequestOfType[EmitGeneratedPacket](dedupProbe()).eth
         assertExpectedIcmpPacket(fromMac, fromIp, toMac, toIp, icmpType,
             icmpCode, pkt)
     }
 
-    def assertExpectedIcmpPacket(fromMac: MAC, fromIp: IntIPv4,
-                                 toMac: MAC, toIp: IntIPv4,
+    def assertExpectedIcmpPacket(fromMac: MAC, fromIp: IPv4Addr,
+                                 toMac: MAC, toIp: IPv4Addr,
                                  icmpType: Char, icmpCode: Char,
                                  pkt: Ethernet){
         pkt.getEtherType should be === IPv4.ETHERTYPE
         val ipPkt = pkt.getPayload.asInstanceOf[IPv4]
         ipPkt.getProtocol should be === ICMP.PROTOCOL_NUMBER
-        ipPkt.getDestinationAddress should be === toIp.addressAsInt
-        ipPkt.getSourceAddress should be === fromIp.addressAsInt
+        ipPkt.getDestinationAddress should be === toIp.addr
+        ipPkt.getSourceAddress should be === fromIp.addr
         val icmpPkt = ipPkt.getPayload.asInstanceOf[ICMP]
         icmpPkt.getType should be === icmpType
         icmpPkt.getCode should be === icmpCode
     }
 
-    def expectEmitArpRequest(port: UUID, fromMac: MAC, fromIp: IntIPv4,
-                                     toIp: IntIPv4) {
+    def expectEmitArpRequest(port: UUID, fromMac: MAC, fromIp: IPv4Addr,
+                                     toIp: IPv4Addr) {
         val toMac = MAC.fromString("ff:ff:ff:ff:ff:ff")
         val msg = fishForRequestOfType[EmitGeneratedPacket](dedupProbe())
         msg.egressPort should be === port
@@ -53,8 +53,8 @@ trait RouterHelper extends SimulationHelper {
         arp.getProtocolAddressLength should be === 4
         arp.getSenderHardwareAddress should be === fromMac
         arp.getTargetHardwareAddress should be === MAC.fromString("00:00:00:00:00:00")
-        new IntIPv4(arp.getSenderProtocolAddress) should be === fromIp
-        new IntIPv4(arp.getTargetProtocolAddress) should be === toIp
+        IPv4Addr.fromBytes(arp.getSenderProtocolAddress) should be === fromIp
+        IPv4Addr.fromBytes(arp.getTargetProtocolAddress) should be === toIp
         arp.getOpCode should be === ARP.OP_REQUEST
     }
 

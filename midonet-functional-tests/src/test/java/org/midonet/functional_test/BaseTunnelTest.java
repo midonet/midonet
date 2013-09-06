@@ -14,6 +14,8 @@ import akka.util.Duration;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.IPv4Subnet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +29,6 @@ import org.midonet.cluster.DataClient;
 import org.midonet.functional_test.utils.EmbeddedMidolman;
 import org.midonet.functional_test.utils.TapWrapper;
 import org.midonet.packets.IPacket;
-import org.midonet.packets.IntIPv4;
 import org.midonet.packets.MAC;
 import org.midonet.packets.MalformedPacketException;
 
@@ -45,13 +46,13 @@ public abstract class BaseTunnelTest {
             "midolman_runtime_configurations/midolman-default.conf";
 
     // The two VMs that will send traffic across the bridge
-    final IntIPv4 localVmIp = IntIPv4.fromString("192.168.231.1", 24);
-    final IntIPv4 remoteVmIp = IntIPv4.fromString("192.168.231.2", 24);
+    final IPv4Subnet localVmIp = new IPv4Subnet("192.168.231.1", 24);
+    final IPv4Subnet remoteVmIp = new IPv4Subnet("192.168.231.2", 24);
     final MAC localVmMac = MAC.fromString("22:55:55:11:11:11");
     final MAC remoteVmMac = MAC.fromString("22:33:33:44:44:44");
     // The physical network
-    final IntIPv4 physTapLocalIp = IntIPv4.fromString("10.245.215.1", 24);
-    final IntIPv4 physTapRemoteIp = IntIPv4.fromString("10.245.215.2");
+    final IPv4Subnet physTapLocalIp = new IPv4Subnet("10.245.215.1", 24);
+    final IPv4Addr physTapRemoteIp = IPv4Addr.fromString("10.245.215.2");
     final MAC physTapRemoteMac = MAC.fromString("22:aa:aa:cc:cc:cc");
     MAC physTapLocalMac = null;
 
@@ -129,7 +130,7 @@ public abstract class BaseTunnelTest {
         org.midonet.cluster.data.host.Host remoteHost;
         remoteHost = new org.midonet.cluster.data.host.Host();
         InetAddress[] tmp =
-            { InetAddress.getByName(physTapRemoteIp.toUnicastString()) };
+            { InetAddress.getByName(physTapRemoteIp.toString()) };
         remoteHost.setName("remoteHost").
                 setId(remoteHostId).
                 setIsAlive(true).
@@ -160,24 +161,24 @@ public abstract class BaseTunnelTest {
     }
 
     protected abstract IPacket matchTunnelPacket(TapWrapper device,
-                                                 MAC fromMac, IntIPv4 fromIp,
-                                                 MAC toMac, IntIPv4 toIp)
+                                                 MAC fromMac, IPv4Addr fromIp,
+                                                 MAC toMac, IPv4Addr toIp)
                                             throws MalformedPacketException;
 
     private void sendToTunnelAndVerifyEncapsulation()
             throws MalformedPacketException {
-        byte[] pkt = PacketHelper.makeUDPPacket(localVmMac, localVmIp,
-                                                remoteVmMac, remoteVmIp,
-                                                (short) 2345, (short) 9876,
-                                                "The Payload".getBytes());
+        byte[] pkt = PacketHelper.makeUDPPacket(
+                localVmMac, localVmIp.getAddress(),
+                remoteVmMac, remoteVmIp.getAddress(),
+                (short) 2345, (short) 9876, "The Payload".getBytes());
         assertPacketWasSentOnTap(vmTap, pkt);
 
         log.info("Waiting for packet on physical tap");
         IPacket encap = matchTunnelPacket(physTap,
-                                          physTapLocalMac, physTapLocalIp,
-                                          physTapRemoteMac, physTapRemoteIp);
-        PacketHelper.matchUdpPacket(encap, localVmMac, localVmIp,
-                              remoteVmMac, remoteVmIp,
+                physTapLocalMac, physTapLocalIp.getAddress(),
+                physTapRemoteMac, physTapRemoteIp);
+        PacketHelper.matchUdpPacket(encap, localVmMac, localVmIp.getAddress(),
+                              remoteVmMac, remoteVmIp.getAddress(),
                               (short) 2345, (short) 9876);
     }
 
@@ -187,8 +188,8 @@ public abstract class BaseTunnelTest {
         assertPacketWasSentOnTap(physTap, pkt);
 
         log.info("Waiting for packet on vm tap");
-        PacketHelper.matchUdpPacket(vmTap, remoteVmMac, remoteVmIp,
-                              localVmMac, localVmIp,
+        PacketHelper.matchUdpPacket(vmTap, remoteVmMac, remoteVmIp.getAddress(),
+                              localVmMac, localVmIp.getAddress(),
                               (short) 9876, (short) 2345);
     }
 

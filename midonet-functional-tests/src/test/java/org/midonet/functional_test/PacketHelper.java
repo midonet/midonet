@@ -5,9 +5,19 @@
 package org.midonet.functional_test;
 
 import org.midonet.functional_test.utils.TapWrapper;
-import org.midonet.packets.*;
+import org.midonet.packets.ARP;
+import org.midonet.packets.BPDU;
+import org.midonet.packets.Data;
+import org.midonet.packets.Ethernet;
+import org.midonet.packets.ICMP;
 import org.midonet.packets.ICMP.UNREACH_CODE;
 import org.junit.Assert;
+import org.midonet.packets.IPacket;
+import org.midonet.packets.IPv4;
+import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.MAC;
+import org.midonet.packets.MalformedPacketException;
+import org.midonet.packets.UDP;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,17 +37,17 @@ public class PacketHelper {
 
     static Random rand = new Random();
     MAC epMac; // simulated endpoint's mac
-    IntIPv4 epIp; // simulated endpoint's ip
+    IPv4Addr epIp; // simulated endpoint's ip
     MAC gwMac;
-    IntIPv4 gwIp;
+    IPv4Addr gwIp;
 
     // This constructor can be used when the gwMac isn't known. Call setGwMac
     // when the gwMac is finally known.
-    public PacketHelper(MAC mac, IntIPv4 ip, IntIPv4 gwIp) {
+    public PacketHelper(MAC mac, IPv4Addr ip, IPv4Addr gwIp) {
         this(mac, ip, null, gwIp);
     }
 
-    public PacketHelper(MAC mac, IntIPv4 ip, MAC gwMac, IntIPv4 gwIp) {
+    public PacketHelper(MAC mac, IPv4Addr ip, MAC gwMac, IPv4Addr gwIp) {
         this.epMac = mac;
         this.epIp = ip;
         this.gwMac = gwMac;
@@ -57,8 +67,8 @@ public class PacketHelper {
         return makeArpReply(epMac, epIp, gwMac, gwIp);
     }
 
-    public static byte[] makeArpReply(MAC dlSrc, IntIPv4 nwSrc, MAC dlDst,
-                                      IntIPv4 nwDst) {
+    public static byte[] makeArpReply(MAC dlSrc, IPv4Addr nwSrc,
+                                      MAC dlDst, IPv4Addr nwDst) {
         ARP arp = new ARP();
         arp.setHardwareType(ARP.HW_TYPE_ETHERNET);
         arp.setProtocolType(ARP.PROTO_TYPE_IP);
@@ -66,9 +76,9 @@ public class PacketHelper {
         arp.setProtocolAddressLength((byte) 4);
         arp.setOpCode(ARP.OP_REPLY);
         arp.setSenderHardwareAddress(dlSrc);
-        arp.setSenderProtocolAddress(IPv4.toIPv4AddressBytes(nwSrc.addressAsInt()));
+        arp.setSenderProtocolAddress(IPv4.toIPv4AddressBytes(nwSrc.addr()));
         arp.setTargetHardwareAddress(dlDst);
-        arp.setTargetProtocolAddress(IPv4.toIPv4AddressBytes(nwDst.addressAsInt()));
+        arp.setTargetProtocolAddress(IPv4.toIPv4AddressBytes(nwDst.addr()));
         Ethernet pkt = new Ethernet();
         pkt.setPayload(arp);
         pkt.setSourceMACAddress(dlSrc);
@@ -77,16 +87,16 @@ public class PacketHelper {
         return pkt.serialize();
     }
 
-    public static byte[] makeUDPPacket(MAC dlSrc, IntIPv4 ipSrc, MAC dlDst,
-                                       IntIPv4 ipDst, short tpSrc, short tpDst,
+    public static byte[] makeUDPPacket(MAC dlSrc, IPv4Addr ipSrc, MAC dlDst,
+                                       IPv4Addr ipDst, short tpSrc, short tpDst,
                                        byte[] payload) {
         UDP udp = new UDP();
         udp.setSourcePort(tpSrc);
         udp.setDestinationPort(tpDst);
         udp.setPayload(new Data(payload));
         IPv4 ip = new IPv4();
-        ip.setProtocol(UDP.PROTOCOL_NUMBER).setSourceAddress(ipSrc.getAddress())
-          .setDestinationAddress(ipDst.getAddress()).setPayload(udp);
+        ip.setProtocol(UDP.PROTOCOL_NUMBER).setSourceAddress(ipSrc)
+          .setDestinationAddress(ipDst).setPayload(udp);
         Ethernet frame = new Ethernet();
         frame.setSourceMACAddress(dlSrc).setDestinationMACAddress(dlDst)
              .setEtherType(IPv4.ETHERTYPE).setPayload(ip);
@@ -144,8 +154,8 @@ public class PacketHelper {
         return checkArpReply(frame, gwIp, epMac, epIp);
     }
 
-    public static MAC checkArpReply(byte[] recv, IntIPv4 nwSrc,
-                                    MAC dlDst, IntIPv4 nwDst)
+    public static MAC checkArpReply(byte[] recv, IPv4Addr nwSrc,
+                                    MAC dlDst, IPv4Addr nwDst)
             throws MalformedPacketException {
         assertThat("We actually have a packet buffer", recv, notNullValue());
 
@@ -157,8 +167,8 @@ public class PacketHelper {
     }
 
     public static MAC checkArpReply(Ethernet frame,
-                                    IntIPv4 nwSrc, MAC dlDst,
-                                    IntIPv4 nwDst) {
+                                    IPv4Addr nwSrc, MAC dlDst,
+                                    IPv4Addr nwDst) {
 
         assertThat("We expected an ARP packet",
                    frame.getEtherType(), equalTo(ARP.ETHERTYPE));
@@ -190,12 +200,12 @@ public class PacketHelper {
                        hasProperty("senderHardwareAddress", equalTo(dlSrc)),
                        hasProperty("senderProtocolAddress",
                                    equalTo(
-                                       IPv4.toIPv4AddressBytes(nwSrc.addressAsInt()))),
+                                       IPv4.toIPv4AddressBytes(nwSrc.addr()))),
                        hasProperty("targetHardwareAddress",
                                    equalTo(dlDst)),
                        hasProperty("targetProtocolAddress",
                                    equalTo(
-                                       IPv4.toIPv4AddressBytes(nwDst.addressAsInt())))
+                                       IPv4.toIPv4AddressBytes(nwDst.addr())))
                    ));
         return dlSrc;
     }
@@ -209,8 +219,8 @@ public class PacketHelper {
         return makeArpRequest(epMac, epIp, gwIp);
     }
 
-    public static byte[] makeArpRequest(MAC dlSrc, IntIPv4 nwSrc,
-                                        IntIPv4 nwDst) {
+    public static byte[] makeArpRequest(MAC dlSrc, IPv4Addr nwSrc,
+                                        IPv4Addr nwDst) {
         ARP arp = new ARP();
         arp.setHardwareType(ARP.HW_TYPE_ETHERNET);
         arp.setProtocolType(ARP.PROTO_TYPE_IP);
@@ -218,9 +228,9 @@ public class PacketHelper {
         arp.setProtocolAddressLength((byte) 4);
         arp.setOpCode(ARP.OP_REQUEST);
         arp.setSenderHardwareAddress(dlSrc);
-        arp.setSenderProtocolAddress(IPv4.toIPv4AddressBytes(nwSrc.addressAsInt()));
+        arp.setSenderProtocolAddress(IPv4.toIPv4AddressBytes(nwSrc.addr()));
         arp.setTargetHardwareAddress(MAC.fromString("00:00:00:00:00:00"));
-        arp.setTargetProtocolAddress(IPv4.toIPv4AddressBytes(nwDst.addressAsInt()));
+        arp.setTargetProtocolAddress(IPv4.toIPv4AddressBytes(nwDst.addr()));
         Ethernet pkt = new Ethernet();
         pkt.setPayload(arp);
         pkt.setSourceMACAddress(dlSrc);
@@ -277,8 +287,8 @@ public class PacketHelper {
         checkArpRequest(frame, gwMac, gwIp, epIp);
     }
 
-    public static void checkArpRequest(byte[] frameBuffer,
-                                       MAC dlSrc, IntIPv4 nwSrc, IntIPv4 nwDst)
+    public static void checkArpRequest(byte[] frameBuffer, MAC dlSrc,
+                                       IPv4Addr nwSrc, IPv4Addr nwDst)
         throws MalformedPacketException {
 
         assertThat("We actually have a packet buffer.", frameBuffer, notNullValue());
@@ -291,7 +301,7 @@ public class PacketHelper {
     }
 
     public static void checkArpRequest(Ethernet frame, MAC dlSrc,
-                                       IntIPv4 nwSrc, IntIPv4 nwDst)
+                                       IPv4Addr nwSrc, IPv4Addr nwDst)
         throws MalformedPacketException {
 
         assertThat("the packet ether type is ARP",
@@ -319,14 +329,14 @@ public class PacketHelper {
                    arp.getSenderHardwareAddress(), equalTo(dlSrc));
         assertThat("the ARP sender protocol address is set to the source IP",
                    arp.getSenderProtocolAddress(),
-                   equalTo(IPv4.toIPv4AddressBytes(nwSrc.addressAsInt())));
+                   equalTo(IPv4.toIPv4AddressBytes(nwSrc.addr())));
         assertThat("the ARP target hardware address is set to the empty MAC",
                    arp.getTargetHardwareAddress(),
                    equalTo(MAC.fromString("00:00:00:00:00:00")));
         assertThat(
             "the ARP target protocol address is set to the destination IP",
             arp.getTargetProtocolAddress(),
-            equalTo(IPv4.toIPv4AddressBytes(nwDst.addressAsInt())));
+            equalTo(IPv4.toIPv4AddressBytes(nwDst.addr())));
     }
 
     /**
@@ -351,7 +361,7 @@ public class PacketHelper {
      * @throws MalformedPacketException
      */
     public static void checkIcmpEchoReply(byte[] request, byte[] reply,
-            IntIPv4 srcIp) throws MalformedPacketException {
+            IPv4Addr srcIp) throws MalformedPacketException {
         assertNotNull(request);
         assertNotNull(reply);
         Ethernet pktRequest = new Ethernet();
@@ -377,7 +387,7 @@ public class PacketHelper {
             assertEquals(ipRequest.getDestinationAddress(),
                          ipReply.getSourceAddress());
         else
-            assertEquals(srcIp.addressAsInt(),
+            assertEquals(srcIp.addr(),
                          ipReply.getSourceAddress());
         assertEquals(ICMP.PROTOCOL_NUMBER, ipRequest.getProtocol());
         assertEquals(ICMP.PROTOCOL_NUMBER, ipReply.getProtocol());
@@ -433,12 +443,12 @@ public class PacketHelper {
      * @param dstIp target ip we want to build the echo request for
      * @return the echo request as a byte array
      */
-    public byte[] makeIcmpEchoRequest(IntIPv4 dstIp) {
+    public byte[] makeIcmpEchoRequest(IPv4Addr dstIp) {
         return makeIcmpEchoRequest(epMac, epIp, gwMac, dstIp);
     }
 
-    public static byte[] makeIcmpEchoRequest(MAC dlSrc, IntIPv4 nwSrc,
-                                             MAC dlDst, IntIPv4 nwDst) {
+    public static byte[] makeIcmpEchoRequest(MAC dlSrc, IPv4Addr nwSrc,
+                                             MAC dlDst, IPv4Addr nwDst) {
         short id = (short) rand.nextInt();
         short seq = (short) rand.nextInt();
         byte[] data = new byte[17];
@@ -449,8 +459,8 @@ public class PacketHelper {
         ip.setTtl((byte)12);
         ip.setPayload(icmp);
         ip.setProtocol(ICMP.PROTOCOL_NUMBER);
-        ip.setSourceAddress(nwSrc.addressAsInt());
-        ip.setDestinationAddress(nwDst.addressAsInt());
+        ip.setSourceAddress(nwSrc.addr());
+        ip.setDestinationAddress(nwDst.addr());
         Ethernet pkt = new Ethernet();
         pkt.setPayload(ip);
         pkt.setEtherType(IPv4.ETHERTYPE);
@@ -459,8 +469,8 @@ public class PacketHelper {
         return pkt.serialize();
     }
 
-    public static byte[] makeIcmpEchoReply(MAC dlSrc, IntIPv4 nwSrc,
-                                           MAC dlDst, IntIPv4 nwDst,
+    public static byte[] makeIcmpEchoReply(MAC dlSrc, IPv4Addr nwSrc,
+                                           MAC dlDst, IPv4Addr nwDst,
                                            short id, short seq) {
         byte[] data = new byte[17];
         rand.nextBytes(data);
@@ -470,8 +480,8 @@ public class PacketHelper {
         ip.setTtl((byte)12);
         ip.setPayload(icmp);
         ip.setProtocol(ICMP.PROTOCOL_NUMBER);
-        ip.setSourceAddress(nwSrc.addressAsInt());
-        ip.setDestinationAddress(nwDst.addressAsInt());
+        ip.setSourceAddress(nwSrc.addr());
+        ip.setDestinationAddress(nwDst.addr());
         Ethernet pkt = new Ethernet();
         pkt.setPayload(ip);
         pkt.setEtherType(IPv4.ETHERTYPE);
@@ -553,12 +563,12 @@ public class PacketHelper {
      * @throws MalformedPacketException
      */
     public void checkIcmpError(byte[] recv, UNREACH_CODE code,
-            IntIPv4 srcIp, byte[] triggerPkt) throws MalformedPacketException {
+            IPv4Addr srcIp, byte[] triggerPkt) throws MalformedPacketException {
         checkIcmpError(recv, code, gwMac, srcIp, epMac, epIp, triggerPkt);
     }
 
     public static void checkIcmpError(byte[] recv, UNREACH_CODE code, MAC dlSrc,
-            IntIPv4 nwSrc, MAC dlDst, IntIPv4 nwDst, byte[] triggerPkt)
+            IPv4Addr nwSrc, MAC dlDst, IPv4Addr nwDst, byte[] triggerPkt)
                     throws MalformedPacketException {
         Assert.assertThat("Received data is null", recv, notNullValue());
         Assert.assertThat("Trigger packet is null", triggerPkt, notNullValue());
@@ -569,8 +579,8 @@ public class PacketHelper {
         assertEquals(dlDst, pkt.getDestinationMACAddress());
         assertEquals(IPv4.ETHERTYPE, pkt.getEtherType());
         IPv4 ip = IPv4.class.cast(pkt.getPayload());
-        assertEquals(nwSrc.addressAsInt(), ip.getSourceAddress());
-        assertEquals(nwDst.addressAsInt(), ip.getDestinationAddress());
+        assertEquals(nwSrc.addr(), ip.getSourceAddress());
+        assertEquals(nwDst.addr(), ip.getDestinationAddress());
         assertEquals(ICMP.PROTOCOL_NUMBER, ip.getProtocol());
         ICMP icmp = ICMP.class.cast(ip.getPayload());
         assertTrue(icmp.isError());
@@ -583,8 +593,8 @@ public class PacketHelper {
     }
 
     public static void matchUdpPacket(TapWrapper device,
-                                      MAC fromMac, IntIPv4 fromIp,
-                                      MAC toMac, IntIPv4 toIp,
+                                      MAC fromMac, IPv4Addr fromIp,
+                                      MAC toMac, IPv4Addr toIp,
                                       short udpSrc, short udpDst)
             throws MalformedPacketException {
         byte[] received = device.recv();
@@ -596,8 +606,8 @@ public class PacketHelper {
     }
 
     public static void matchUdpPacket(IPacket pkt,
-                                      MAC fromMac, IntIPv4 fromIp,
-                                      MAC toMac, IntIPv4 toIp,
+                                      MAC fromMac, IPv4Addr fromIp,
+                                      MAC toMac, IPv4Addr toIp,
                                       short udpSrc, short udpDst)
             throws MalformedPacketException {
         assertTrue("packet is ethernet", pkt instanceof Ethernet);
@@ -612,9 +622,9 @@ public class PacketHelper {
         assertTrue("payload is IPv4", eth.getPayload() instanceof IPv4);
         IPv4 ipPkt = (IPv4) eth.getPayload();
         assertEquals("source ipv4 address",
-                fromIp.addressAsInt(), ipPkt.getSourceAddress());
+                fromIp.addr(), ipPkt.getSourceAddress());
         assertEquals("destination ipv4 address",
-                toIp.addressAsInt(), ipPkt.getDestinationAddress());
+                toIp.addr(), ipPkt.getDestinationAddress());
 
         assertTrue("payload is UDP", ipPkt.getPayload() instanceof UDP);
         UDP udpPkt = (UDP) ipPkt.getPayload();

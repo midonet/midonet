@@ -7,7 +7,6 @@ import guice.CacheModule.{TRACE_INDEX, TRACE_MESSAGES}
 import scala.collection.JavaConversions._
 import scala.collection.immutable
 import scala.collection.mutable.{Map => MMap}
-import akka.testkit.TestProbe
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -21,7 +20,6 @@ import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.cluster.data.{Bridge => ClusterBridge}
 import org.midonet.cluster.data.ports.MaterializedBridgePort
 import org.midonet.cluster.data.zones.GreTunnelZoneHost
-import org.midonet.odp.flows.FlowAction
 import org.midonet.odp.flows.FlowActions
 import org.midonet.odp.flows.{FlowActionOutput, FlowActionSetKey, FlowKeyTunnel}
 import org.midonet.packets._
@@ -182,8 +180,8 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         val ethPkt = Packets.udp(
                 srcMac,
                 MAC.fromString("02:11:22:33:44:11"),
-                IntIPv4.fromString("10.0.1.10"),
-                IntIPv4.fromString("10.0.1.11"),
+                IPv4Addr.fromString("10.0.1.10"),
+                IPv4Addr.fromString("10.0.1.11"),
                 10, 11, "My UDP packet".getBytes)
         ethPkt.setVlanIDs(networkVlans)
         val addFlowMsg = injectOnePacket(ethPkt, "port1", false)
@@ -228,8 +226,8 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         val ethPkt = Packets.udp(
                 MAC.fromString("0a:fe:88:70:44:55"),
                 MAC.fromString("ff:ff:ff:ff:ff:ff"),
-                IntIPv4.fromString("10.10.10.10"),
-                IntIPv4.fromString("10.11.11.11"),
+                IPv4Addr.fromString("10.10.10.10"),
+                IPv4Addr.fromString("10.11.11.11"),
                 10, 12, "Test UDP packet".getBytes)
         ethPkt.setVlanIDs(networkVlans)
         val addFlowMsg = injectOnePacket(ethPkt, inputPort, false)
@@ -254,8 +252,8 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         val inputPort = "port1"
         val ethPkt = Packets.arpRequest(
                 MAC.fromString("0a:fe:88:90:22:33"),
-                IntIPv4.fromString("10.10.10.11"),
-                IntIPv4.fromString("10.11.11.10"))
+                IPv4Addr.fromString("10.10.10.11"),
+                IPv4Addr.fromString("10.11.11.10"))
         ethPkt.setVlanIDs(networkVlans)
         val addFlowMsg = injectOnePacket(ethPkt, inputPort, false)
         val flowActs = addFlowMsg.f.getActions
@@ -280,8 +278,8 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         val ethPkt = Packets.udp(
                 MAC.fromString("0a:fe:88:90:22:33"),
                 MAC.fromString("01:00:cc:cc:dd:dd"),
-                IntIPv4.fromString("10.10.10.11"),
-                IntIPv4.fromString("10.11.11.10"), 10, 12, "Test UDP Packet".getBytes)
+                IPv4Addr.fromString("10.10.10.11"),
+                IPv4Addr.fromString("10.11.11.10"), 10, 12, "Test UDP Packet".getBytes)
         ethPkt.setVlanIDs(networkVlans)
         val addFlowMsg = injectOnePacket(ethPkt, inputPort, false)
         val flowActs = addFlowMsg.f.getActions
@@ -304,8 +302,8 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         val ethPkt = Packets.udp(
                 MAC.fromString("ff:54:ce:50:44:ce"),
                 MAC.fromString("0a:de:57:16:a3:06"),
-                IntIPv4.fromString("10.10.10.12"),
-                IntIPv4.fromString("10.11.11.12"),
+                IPv4Addr.fromString("10.10.10.12"),
+                IPv4Addr.fromString("10.11.11.12"),
                 10, 12, "Test UDP packet".getBytes)
         ethPkt.setVlanIDs(networkVlans)
         val addFlowMsg = injectOnePacket(ethPkt, inputPort, true)
@@ -318,8 +316,8 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         var ethPkt = Packets.udp(
                 MAC.fromString("02:13:66:77:88:99"),
                 MAC.fromString("02:11:22:33:44:55"),
-                IntIPv4.fromString("10.0.1.10"),
-                IntIPv4.fromString("10.0.1.11"),
+                IPv4Addr.fromString("10.0.1.10"),
+                IPv4Addr.fromString("10.0.1.11"),
                 10, 11, "My UDP packet".getBytes)
         ethPkt.setVlanIDs(networkVlans)
         var addFlowMsg = injectOnePacket(ethPkt, inputPort, true)
@@ -347,8 +345,8 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         ethPkt = Packets.udp(
                      MAC.fromString("02:13:66:77:88:99"),
                      MAC.fromString("0a:fe:88:70:33:ab"),
-                     IntIPv4.fromString("10.0.1.10"),
-                     IntIPv4.fromString("10.0.1.11"),
+                     IPv4Addr.fromString("10.0.1.10"),
+                     IPv4Addr.fromString("10.0.1.11"),
                      10, 11, "My UDP packet".getBytes)
         ethPkt.setVlanIDs(networkVlans)
         addFlowMsg = injectOnePacket(ethPkt, inputPort, true)
@@ -404,8 +402,8 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         val ethPkt = Packets.udp(
                 MAC.fromString("0a:fe:88:70:33:ab"),
                 MAC.fromString(learnedMac),
-                IntIPv4.fromString("10.10.10.10"),
-                IntIPv4.fromString("10.11.11.11"),
+                IPv4Addr.fromString("10.10.10.10"),
+                IPv4Addr.fromString("10.11.11.11"),
                 10, 12, "Test UDP packet".getBytes)
         ethPkt.setVlanIDs(networkVlans)
         val addFlowMsg = injectOnePacket(ethPkt, "port4", isDropExpected = false)

@@ -13,7 +13,7 @@ import org.midonet.midolman.topology.LocalPortActive;
 import org.midonet.client.resource.Bridge;
 import org.midonet.client.resource.BridgePort;
 import org.midonet.functional_test.utils.TapWrapper;
-import org.midonet.packets.IntIPv4;
+import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 
 import static org.midonet.functional_test.FunctionalTestsHelper
@@ -24,9 +24,9 @@ import static org.hamcrest.Matchers.equalTo;
 public class BridgePortDeleteTest extends TestBase {
 
     //Tenant tenant1;
-    IntIPv4 ip1 = IntIPv4.fromString("192.168.231.2");
-    IntIPv4 ip2 = IntIPv4.fromString("192.168.231.3");
-    IntIPv4 ip3 = IntIPv4.fromString("192.168.231.4");
+    IPv4Addr ip1 = IPv4Addr.fromString("192.168.231.2");
+    IPv4Addr ip2 = IPv4Addr.fromString("192.168.231.3");
+    IPv4Addr ip3 = IPv4Addr.fromString("192.168.231.4");
 
     BridgePort bPort1;
     BridgePort bPort2;

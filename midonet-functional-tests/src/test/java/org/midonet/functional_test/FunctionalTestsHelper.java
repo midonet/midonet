@@ -33,6 +33,7 @@ import com.google.inject.Module;
 import org.apache.commons.io.FileUtils;
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
 import org.midonet.midolman.topology.LocalPortActive;
+import org.midonet.packets.IPv4Addr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -42,7 +43,6 @@ import static org.testng.Assert.assertEquals;
 
 import org.midonet.functional_test.vm.VMController;
 import org.midonet.packets.Ethernet;
-import org.midonet.packets.IntIPv4;
 import org.midonet.packets.LLDP;
 import org.midonet.packets.LLDPTLV;
 import org.midonet.packets.MAC;
@@ -337,7 +337,7 @@ public class FunctionalTestsHelper {
 
     public static byte[] icmpFromTapArrivesAtTap(
         TapWrapper tapSrc, TapWrapper tapDst,
-        MAC dlSrc, MAC dlDst, IntIPv4 ipSrc, IntIPv4 ipDst) {
+        MAC dlSrc, MAC dlDst, IPv4Addr ipSrc, IPv4Addr ipDst) {
         byte[] pkt = PacketHelper.makeIcmpEchoRequest(
             dlSrc, ipSrc, dlDst, ipDst);
         assertThat("The packet should have been sent from the source tap.",
@@ -349,7 +349,7 @@ public class FunctionalTestsHelper {
 
     public static byte[] icmpFromTapDoesntArriveAtTap(
         TapWrapper tapSrc, TapWrapper tapDst,
-        MAC dlSrc, MAC dlDst, IntIPv4 ipSrc, IntIPv4 ipDst) {
+        MAC dlSrc, MAC dlDst, IPv4Addr ipSrc, IPv4Addr ipDst) {
         byte[] pkt = PacketHelper.makeIcmpEchoRequest(
             dlSrc, ipSrc, dlDst, ipDst);
         assertThat("The packet should have been sent from the source tap.",
@@ -360,7 +360,7 @@ public class FunctionalTestsHelper {
     }
 
     public static void udpFromTapArrivesAtTap(TapWrapper tapSrc, TapWrapper tapDst,
-                                       MAC dlSrc, MAC dlDst, IntIPv4 ipSrc, IntIPv4 ipDst,
+                                       MAC dlSrc, MAC dlDst, IPv4Addr ipSrc, IPv4Addr ipDst,
                                        short tpSrc, short tpDst, byte[] payload) {
         byte[] pkt = PacketHelper.makeUDPPacket(
             dlSrc, ipSrc, dlDst, ipDst, tpSrc, tpDst, payload);
@@ -371,7 +371,7 @@ public class FunctionalTestsHelper {
     }
 
     public static void udpFromTapDoesntArriveAtTap(TapWrapper tapSrc, TapWrapper tapDst,
-                                            MAC dlSrc, MAC dlDst, IntIPv4 ipSrc, IntIPv4 ipDst,
+                                            MAC dlSrc, MAC dlDst, IPv4Addr ipSrc, IPv4Addr ipDst,
                                             short tpSrc, short tpDst, byte[] payload) {
         byte[] pkt = PacketHelper.makeUDPPacket(
             dlSrc, ipSrc, dlDst, ipDst, tpSrc, tpDst, payload);
@@ -382,8 +382,8 @@ public class FunctionalTestsHelper {
     }
 
     public static void arpAndCheckReply(
-            TapWrapper tap, MAC srcMac, IntIPv4 srcIp,
-            IntIPv4 dstIp, MAC expectedMac)
+            TapWrapper tap, MAC srcMac, IPv4Addr srcIp,
+            IPv4Addr dstIp, MAC expectedMac)
         throws MalformedPacketException {
         assertThat("The ARP request was sent properly",
             tap.send(PacketHelper.makeArpRequest(srcMac, srcIp, dstIp)));
@@ -412,8 +412,8 @@ public class FunctionalTestsHelper {
      * @throws MalformedPacketException
      */
     public static void arpAndCheckReplyDrainBroadcasts(
-            TapWrapper tap, MAC srcMac, IntIPv4 srcIp,
-            IntIPv4 dstIp, MAC expectedMac, TapWrapper[] taps)
+            TapWrapper tap, MAC srcMac, IPv4Addr srcIp,
+            IPv4Addr dstIp, MAC expectedMac, TapWrapper[] taps)
             throws MalformedPacketException {
 
         arpAndCheckReply(tap, srcMac, srcIp, dstIp, expectedMac);

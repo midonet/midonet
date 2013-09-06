@@ -34,16 +34,16 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
     private final val log = LoggerFactory.getLogger(classOf[PingTestCase])
 
     // Router port one connecting to host VM1
-    val routerIp1 = IntIPv4.fromString("192.168.111.1", 24)
+    val routerIp1 = new IPv4Subnet("192.168.111.1", 24)
     val routerMac1 = MAC.fromString("22:aa:aa:ff:ff:ff")
     // Interior router port connecting to bridge
-    val routerIp2 = IntIPv4.fromString("192.168.222.1", 24)
+    val routerIp2 = new IPv4Subnet("192.168.222.1", 24)
     val routerMac2 = MAC.fromString("22:ab:cd:ff:ff:ff")
     // VM1: remote host to ping
     val vm1Mac = MAC.fromString("02:23:24:25:26:27")
-    val vm1Ip = IntIPv4.fromString("192.168.111.2", 24)
+    val vm1Ip = new IPv4Subnet("192.168.111.2", 24)
     // DHCP client
-    val vm2IP = IntIPv4.fromString("192.168.222.2", 24)
+    val vm2IP = new IPv4Subnet("192.168.222.2", 24)
     val vm2Mac = MAC.fromString("02:DD:AA:DD:AA:03")
     var brPort2 : MaterializedBridgePort = null
     val vm2PortName = "VM2"
@@ -73,8 +73,8 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
         // set up materialized port on router
         rtrPort1 = newExteriorRouterPort(router, routerMac1,
             routerIp1.toUnicastString,
-            routerIp1.toNetworkAddress.toUnicastString,
-            routerIp1.getMaskLength)
+            routerIp1.toNetworkAddress.toString,
+            routerIp1.getPrefixLen)
         rtrPort1 should not be null
         materializePort(rtrPort1, host, rtrPort1Name)
         val portEvent = expect[LocalPortActive] on portsProbe
@@ -86,21 +86,21 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
         }
 
         newRoute(router, "0.0.0.0", 0,
-            routerIp1.toNetworkAddress.toUnicastString, routerIp1.getMaskLength,
+            routerIp1.toNetworkAddress.toString, routerIp1.getPrefixLen,
             NextHop.PORT, rtrPort1.getId,
-            new IntIPv4(Route.NO_GATEWAY).toUnicastString, 10)
+            new IPv4Addr(Route.NO_GATEWAY).toString, 10)
 
         // set up logical port on router
         val rtrPort2 = newInteriorRouterPort(router, routerMac2,
             routerIp2.toUnicastString,
-            routerIp2.toNetworkAddress.toUnicastString,
-            routerIp2.getMaskLength)
+            routerIp2.toNetworkAddress.toString,
+            routerIp2.getPrefixLen)
         rtrPort2 should not be null
 
         newRoute(router, "0.0.0.0", 0,
-            routerIp2.toNetworkAddress.toUnicastString, routerIp2.getMaskLength,
+            routerIp2.toNetworkAddress.toString, routerIp2.getPrefixLen,
             NextHop.PORT, rtrPort2.getId,
-            new IntIPv4(Route.NO_GATEWAY).toUnicastString, 10)
+            new IPv4Addr(Route.NO_GATEWAY).toString, 10)
 
         // create bridge link to router's logical port
         val bridge = newBridge("bridge")
@@ -117,13 +117,13 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
         // DHCP related setup
         // set up Option 121
         var opt121Obj = (new Opt121()
-                       .setGateway(routerIp2)
-                       .setRtDstSubnet(routerIp1.toNetworkAddress))
+                       .setGateway(routerIp2.toIntIPv4)
+                       .setRtDstSubnet(routerIp1.toIntIPv4.toNetworkAddress))
         var opt121Routes: List[Opt121] = List(opt121Obj)
         // set DHCP subnet
         var dhcpSubnet = (new Subnet()
-                       .setSubnetAddr(routerIp2.toNetworkAddress)
-                       .setDefaultGateway(routerIp2)
+                       .setSubnetAddr(routerIp2.toIntIPv4.toNetworkAddress)
+                       .setDefaultGateway(routerIp2.toIntIPv4)
                        .setOpt121Routes(opt121Routes))
         addDhcpSubnet(bridge, dhcpSubnet)
         // set DHCP host
@@ -135,7 +135,7 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
         }
         var dhcpHost = (new org.midonet.cluster.data.dhcp.Host()
                            .setMAC(vm2Mac)
-                           .setIp(vm2IP))
+                           .setIp(vm2IP.toIntIPv4))
         addDhcpHost(bridge, dhcpSubnet, dhcpHost)
 
         flowProbe().expectMsgType[DatapathController.DatapathReady].datapath should not be (null)
@@ -273,8 +273,8 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
      * Sends an ICMP request and expects an ICMP reply back, it'll take care
      * of possible race conditions that might result in an intermediate ARP
      */
-    def doIcmpExchange(fromPort: String, srcMac: MAC, srcIp: IntIPv4,
-                       dstMac: MAC, dstIp: IntIPv4) {
+    def doIcmpExchange(fromPort: String, srcMac: MAC, srcIp: IPv4Addr,
+                       dstMac: MAC, dstIp: IPv4Addr) {
 
         drainProbe(packetInProbe)
         drainProbe(dedupProbe())
@@ -325,23 +325,26 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
         expectEmitDhcpReply(DHCPOption.MsgType.ACK.value)
         expectPacketOut(vm2PortNumber)
 
-        val vm2IpInt = vm2IP.addressAsInt
+        val vm2IpInt = vm2IP.getAddress.addr
         dhcpClientIp should be === vm2IpInt
 
-        feedArpCache(vm2PortName, vm2IP.addressAsInt, vm2Mac,
-                     routerIp2.addressAsInt, routerMac2)
+        feedArpCache(vm2PortName, vm2IP.getAddress.addr, vm2Mac,
+                     routerIp2.getAddress.addr, routerMac2)
         expectPacketIn()
         fishForRequestOfType[DiscardPacket](discardPacketProbe)
         drainProbes()
 
         log.info("Ping Router port 2")
-        doIcmpExchange(vm2PortName, vm2Mac, vm2IP, routerMac2, routerIp2)
+        doIcmpExchange(vm2PortName, vm2Mac, vm2IP.getAddress,
+            routerMac2, routerIp2.getAddress)
 
         log.info("Ping Router port 1")
-        doIcmpExchange(vm2PortName, vm2Mac, vm2IP, routerMac2, routerIp1)
+        doIcmpExchange(vm2PortName, vm2Mac, vm2IP.getAddress,
+            routerMac2, routerIp1.getAddress)
 
         log.info("Ping VM1, not expecting any reply")
-        injectIcmpEchoReq(vm2PortName, vm2Mac, vm2IP, routerMac2, vm1Ip)
+        injectIcmpEchoReq(vm2PortName, vm2Mac, vm2IP.getAddress,
+            routerMac2, vm1Ip.getAddress)
         expectPacketIn()
         // This generated packet is an ARP request, the ICMP echo will not be
         // delivered because this ARP will go unanswered
@@ -350,8 +353,8 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
         drainProbes()
 
         log.info("Send Ping reply on behalf of VM1")
-        injectIcmpEchoReply(rtrPort1Name, vm1Mac, vm1Ip, 16, 32,
-                            routerMac1, vm2IP)
+        injectIcmpEchoReply(rtrPort1Name, vm1Mac, vm1Ip.getAddress, 16, 32,
+                            routerMac1, vm2IP.getAddress)
         expectPacketIn()
 
         log.info("Expecting packet out on VM2 port")
@@ -359,8 +362,8 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
         val ipPak = eth.getPayload.asInstanceOf[IPv4]
         ipPak should not be null
         ipPak.getProtocol should be (ICMP.PROTOCOL_NUMBER)
-        ipPak.getSourceAddress should be (vm1Ip.addressAsInt)
-        ipPak.getDestinationAddress should be (vm2IP.addressAsInt)
+        ipPak.getSourceAddress should be (vm1Ip.getAddress.addr)
+        ipPak.getDestinationAddress should be (vm2IP.getAddress.addr)
         val icmpPak= ipPak.getPayload.asInstanceOf[ICMP]
         icmpPak should not be null
         icmpPak.getType should be (ICMP.TYPE_ECHO_REPLY)

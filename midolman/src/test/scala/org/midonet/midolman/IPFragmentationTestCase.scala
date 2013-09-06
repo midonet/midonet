@@ -38,7 +38,8 @@ class IPFragmentationTestCase extends MidolmanTestCase with VMsBehindRouterFixtu
 
         log.info("populating the mac learning table with an arp request from each port")
         (vmPortNames, vmMacs, vmIps).zipped foreach {
-            (name, mac, ip) => arpVmToRouterAndCheckReply(name, mac, ip, routerIp, routerMac)
+            (name, mac, ip) => arpVmToRouterAndCheckReply(
+                name, mac, ip, routerIp.getAddress, routerMac)
         }
 
         drainProbes()
@@ -83,8 +84,8 @@ class IPFragmentationTestCase extends MidolmanTestCase with VMsBehindRouterFixtu
         tcp.setSourcePort(81)
 
         val ip = new IPv4().
-                setSourceAddress(vmIps(sendingVm).addressAsInt).
-                setDestinationAddress(vmIps(receivingVm).addressAsInt).
+                setSourceAddress(vmIps(sendingVm).addr).
+                setDestinationAddress(vmIps(receivingVm).addr).
                 setProtocol(TCP.PROTOCOL_NUMBER).
                 setFlags(flags.toByte).
                 setFragmentOffset(offset.toShort).
@@ -115,8 +116,8 @@ class IPFragmentationTestCase extends MidolmanTestCase with VMsBehindRouterFixtu
         pktOut.getSourceMACAddress should be === vmMacs(receivingVm)
 
         val ip = pktOut.getPayload.asInstanceOf[IPv4]
-        ip.getSourceAddress should be(vmIps(receivingVm).addressAsInt)
-        ip.getDestinationAddress should be(vmIps(sendingVm).addressAsInt)
+        ip.getSourceAddress should be(vmIps(receivingVm).addr)
+        ip.getDestinationAddress should be(vmIps(sendingVm).addr)
         ip.getProtocol should be(ICMP.PROTOCOL_NUMBER)
         ip.getPayload.getClass should be === classOf[ICMP]
 

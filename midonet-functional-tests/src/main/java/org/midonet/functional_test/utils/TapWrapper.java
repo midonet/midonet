@@ -1,6 +1,12 @@
 package org.midonet.functional_test.utils;
 
-import org.midonet.packets.*;
+import org.midonet.packets.ARP;
+import org.midonet.packets.BPDU;
+import org.midonet.packets.IPv4;
+import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.IPv4Subnet;
+import org.midonet.packets.LLDP;
+import org.midonet.packets.MAC;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,19 +66,20 @@ public class TapWrapper {
         return MAC.fromString(Tap.getHwAddress(this.name, fd));
     }
 
-    public void addNeighbour(IntIPv4 ip, MAC mac) {
+    public void addNeighbour(IPv4Addr ip, MAC mac) {
         newProcess(
             String.format(
                 "sudo -n ip neigh add %s lladdr %s dev %s",
-                ip.toUnicastString(), mac.toString(), name))
+                ip.toString(), mac.toString(), name))
             .logOutput(log, "create_tap")
             .runAndWait();
     }
 
-    public void setIpAddress(IntIPv4 address) {
+    public void setIpAddress(IPv4Subnet subnet) {
         newProcess(
                 String.format("sudo -n ip addr add %s/%d dev %s",
-                    address.toUnicastString(), address.getMaskLength(), name))
+                        subnet.getAddress().toString(),
+                        subnet.getPrefixLen(), name))
                 .logOutput(log, "remote_host_mock")
                 .runAndWait();
     }

@@ -29,22 +29,22 @@ class FloatingIpTestCase extends VirtualConfigurationBuilders with RouterHelper 
     private final val log = LoggerFactory.getLogger(classOf[FloatingIpTestCase])
 
     // Router port one connecting to host VM1
-    val routerIp1 = IPv4Addr.fromString("192.168.111.1")
-    val routerRange1 = new IPv4Subnet(IPv4Addr.fromString("192.168.111.0"), 24)
+    val routerIp1 = IPv4Addr("192.168.111.1")
+    val routerRange1 = new IPv4Subnet("192.168.111.0", 24)
     val routerMac1 = MAC.fromString("22:aa:aa:ff:ff:ff")
     // Interior router port connecting to bridge
-    val routerIp2 = IPv4Addr.fromString("192.168.222.1")
-    val routerRange2 = new IPv4Subnet(IPv4Addr.fromString("192.168.222.0"), 24)
+    val routerIp2 = IPv4Addr("192.168.222.1")
+    val routerRange2 = new IPv4Subnet("192.168.222.0", 24)
     val routerMac2 = MAC.fromString("22:ab:cd:ff:ff:ff")
     // VM1: remote host to ping
-    val vm1Ip = IPv4Addr.fromString("192.168.111.2")
+    val vm1Ip = IPv4Addr("192.168.111.2")
     val vm1Mac = MAC.fromString("02:23:24:25:26:27")
     // VM2
-    val vm2Ip = IPv4Addr.fromString("192.168.222.2")
+    val vm2Ip = IPv4Addr("192.168.222.2")
     val vm2Mac = MAC.fromString("02:DD:AA:DD:AA:03")
 
-    val subnet1 = new IPv4Subnet(IPv4Addr.fromString("192.168.111.0"), 24)
-    val subnet2 = new IPv4Subnet(IPv4Addr.fromString("192.168.222.0"), 24)
+    val subnet1 = new IPv4Subnet("192.168.111.0", 24)
+    val subnet2 = new IPv4Subnet("192.168.222.0", 24)
 
     // Other stuff
     var brPort2 : MaterializedBridgePort = null
@@ -92,7 +92,7 @@ class FloatingIpTestCase extends VirtualConfigurationBuilders with RouterHelper 
         newRoute(router, "0.0.0.0", 0,
             routerRange1.getAddress.toString, routerRange1.getPrefixLen,
             NextHop.PORT, rtrPort1.getId,
-            new IntIPv4(Route.NO_GATEWAY).toUnicastString, 10)
+            IPv4Addr(Route.NO_GATEWAY).toString, 10)
 
         // set up logical port on router
         rtrPort2 = newInteriorRouterPort(router, routerMac2,
@@ -104,7 +104,7 @@ class FloatingIpTestCase extends VirtualConfigurationBuilders with RouterHelper 
         newRoute(router, "0.0.0.0", 0,
             routerRange2.getAddress.toString, routerRange2.getPrefixLen,
             NextHop.PORT, rtrPort2.getId,
-            new IntIPv4(Route.NO_GATEWAY).toUnicastString, 10)
+            IPv4Addr(Route.NO_GATEWAY).toString, 10)
 
         // create bridge link to router's logical port
         val bridge = newBridge("bridge")
@@ -177,8 +177,8 @@ class FloatingIpTestCase extends VirtualConfigurationBuilders with RouterHelper 
         drainProbes()
 
         log.info("Sending a tcp packet VM2 -> floating IP, should be DNAT'ed")
-        injectTcp(vm2PortName, vm2Mac, vm2Ip.toIntIPv4, 20301, routerMac2,
-                  floatingIP.toIntIPv4, 80, syn = true)
+        injectTcp(vm2PortName, vm2Mac, vm2Ip, 20301, routerMac2,
+                  floatingIP, 80, syn = true)
         var pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
         pktOut should not be null
         pktOut.getPacket should not be null
@@ -191,8 +191,8 @@ class FloatingIpTestCase extends VirtualConfigurationBuilders with RouterHelper 
 
         log.info(
             "Replying with tcp packet floatingIP -> VM2, should be SNAT'ed")
-        injectTcp(rtrPort1Name, vm1Mac, vm1Ip.toIntIPv4, 20301, routerMac1,
-                  vm2Ip.toIntIPv4, 80, syn = true)
+        injectTcp(rtrPort1Name, vm1Mac, vm1Ip, 20301, routerMac1,
+                  vm2Ip, 80, syn = true)
         pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
         pktOut should not be null
         pktOut.getPacket should not be null
@@ -204,8 +204,8 @@ class FloatingIpTestCase extends VirtualConfigurationBuilders with RouterHelper 
         ipPak.getDestinationAddress should be (vm2Ip.toInt)
 
         log.info("Sending tcp packet from VM2 -> VM1, private ips, no NAT")
-        injectTcp(vm2PortName, vm2Mac, vm2Ip.toIntIPv4, 20301, routerMac2,
-                  vm1Ip.toIntIPv4, 80, syn = true)
+        injectTcp(vm2PortName, vm2Mac, vm2Ip, 20301, routerMac2,
+                  vm1Ip, 80, syn = true)
         pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
         pktOut should not be null
         pktOut.getPacket should not be null
@@ -217,8 +217,7 @@ class FloatingIpTestCase extends VirtualConfigurationBuilders with RouterHelper 
         ipPak.getDestinationAddress should be (vm1Ip.toInt)
 
         log.info("ICMP echo, VM1 -> VM2, should be SNAT'ed")
-        injectIcmpEchoReq(rtrPort1Name, vm1Mac, vm1Ip.toIntIPv4, routerMac1,
-                          vm2Ip.toIntIPv4)
+        injectIcmpEchoReq(rtrPort1Name, vm1Mac, vm1Ip, routerMac1, vm2Ip)
         pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
         pktOut should not be null
         pktOut.getPacket should not be null
@@ -230,8 +229,7 @@ class FloatingIpTestCase extends VirtualConfigurationBuilders with RouterHelper 
         ipPak.getDestinationAddress should be (vm2Ip.toInt)
 
         log.info("ICMP echo, VM2 -> floatingIp, should be DNAT'ed")
-        injectIcmpEchoReq(rtrPort1Name, vm2Mac, vm2Ip.toIntIPv4, routerMac1,
-                          floatingIP.toIntIPv4)
+        injectIcmpEchoReq(rtrPort1Name, vm2Mac, vm2Ip, routerMac1, floatingIP)
         pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
         pktOut should not be null
         pktOut.getPacket should not be null
@@ -244,8 +242,7 @@ class FloatingIpTestCase extends VirtualConfigurationBuilders with RouterHelper 
 
         log.info(
             "ICMP echo, VM1 -> floatingIp, should be DNAT'ed, but not SNAT'ed")
-        injectIcmpEchoReq(rtrPort1Name, vm1Mac, vm1Ip.toIntIPv4, routerMac1,
-                          floatingIP.toIntIPv4)
+        injectIcmpEchoReq(rtrPort1Name, vm1Mac, vm1Ip, routerMac1, floatingIP)
         pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
         pktOut should not be null
         pktOut.getPacket should not be null

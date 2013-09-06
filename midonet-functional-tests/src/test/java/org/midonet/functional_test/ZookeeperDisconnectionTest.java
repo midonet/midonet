@@ -12,15 +12,14 @@ import akka.testkit.TestProbe;
 import akka.util.Duration;
 import org.junit.Ignore;
 import org.midonet.functional_test.utils.EmbeddedZKLauncher;
-import org.midonet.packets.*;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.midonet.packets.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.util.Waiters;
-import org.midonet.util.process.ProcessHelper;
 import org.midonet.midolman.topology.FlowTagger;
 import org.midonet.midolman.FlowController.WildcardFlowRemoved;
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag;
@@ -57,10 +56,10 @@ public class ZookeeperDisconnectionTest {
     MAC macB = MAC.fromString("02:21:43:65:87:09");
     MAC rtrMacA = MAC.fromString("02:13:35:57:79:91");
     MAC rtrMacB = MAC.fromString("02:22:44:66:99:22");
-    IntIPv4 ipA = IntIPv4.fromString("192.168.1.1");
-    IntIPv4 ipB = IntIPv4.fromString("192.168.2.2");
-    IntIPv4 rtrIpA = IntIPv4.fromString("192.168.1.254", 24);
-    IntIPv4 rtrIpB = IntIPv4.fromString("192.168.2.254", 24);
+    IPv4Addr ipA = IPv4Addr.fromString("192.168.1.1");
+    IPv4Addr ipB = IPv4Addr.fromString("192.168.2.2");
+    IPv4Subnet rtrIpA = new IPv4Subnet("192.168.1.254", 24);
+    IPv4Subnet rtrIpB = new IPv4Subnet("192.168.2.254", 24);
 
     TapWrapper tapA;
     TapWrapper tapB;
@@ -110,16 +109,16 @@ public class ZookeeperDisconnectionTest {
                 create();
 
         RouterPort routerToA = router.addInteriorRouterPort().
-                portAddress(rtrIpA.toUnicastString()).
-                networkAddress(rtrIpA.toNetworkAddress().toUnicastString()).
-                networkLength(rtrIpA.getMaskLength()).
+                portAddress(rtrIpA.getAddress().toString()).
+                networkAddress(rtrIpA.toNetworkAddress().toString()).
+                networkLength(rtrIpA.getPrefixLen()).
                 portMac(rtrMacA.toString()).
                 create();
 
         RouterPort routerToB = router.addInteriorRouterPort().
-                portAddress(rtrIpB.toUnicastString()).
-                networkAddress(rtrIpB.toNetworkAddress().toUnicastString()).
-                networkLength(rtrIpB.getMaskLength()).
+                portAddress(rtrIpB.getAddress().toString()).
+                networkAddress(rtrIpB.toNetworkAddress().toString()).
+                networkLength(rtrIpB.getPrefixLen()).
                 portMac(rtrMacB.toString()).
                 create();
 
@@ -189,7 +188,8 @@ public class ZookeeperDisconnectionTest {
     }
 
     private void icmpRoutedFromTapToTap(TapWrapper tapFrom, TapWrapper tapTo,
-            MAC macFrom, MAC macTo, IntIPv4 ipFrom, IntIPv4 ipTo) throws Exception {
+            MAC macFrom, MAC macTo, IPv4Addr ipFrom, IPv4Addr ipTo)
+            throws Exception {
         byte[] pkt = makeIcmpEchoRequest(macFrom, ipFrom, macTo, ipTo);
 
         assertThat("The packet should have been sent from the source tap.",
@@ -201,8 +201,8 @@ public class ZookeeperDisconnectionTest {
         Ethernet pktOut = Ethernet.deserialize(bytesOut);
         assertThat("Received an IPv4 packet", pktOut.getPayload() instanceof IPv4);
         IPv4 ip = (IPv4) pktOut.getPayload();
-        assertThat("Src address", ip.getSourceAddress() == ipFrom.addressAsInt());
-        assertThat("Dst address", ip.getDestinationAddress() == ipTo.addressAsInt());
+        assertThat("Src address", ip.getSourceAddress() == ipFrom.addr());
+        assertThat("Dst address", ip.getDestinationAddress() == ipTo.addr());
         assertThat("Is ICMP", ip.getPayload() instanceof ICMP);
         ICMP icmp = (ICMP) ip.getPayload();
         assertThat("Is echo", icmp.getType() == ICMP.TYPE_ECHO_REQUEST);
@@ -213,7 +213,7 @@ public class ZookeeperDisconnectionTest {
     @Test
     public void testSimulationBeforeAndAfterDisconnection() throws Exception {
         log.info("simulating a packet");
-        arpAndCheckReply(tapB, macB, ipB, rtrIpB, rtrMacB);
+        arpAndCheckReply(tapB, macB, ipB, rtrIpB.getAddress(), rtrMacB);
         icmpRoutedFromTapToTap(tapA, tapB, macA, rtrMacA, ipA, ipB);
 
         log.info("blocking communications with zookeeper");
@@ -247,7 +247,7 @@ public class ZookeeperDisconnectionTest {
         Waiters.sleepBecause("We want the ZK client to transiently disconnect", 16);
 
         log.info("simulating a packet");
-        tapB.send(PacketHelper.makeArpRequest(macB, ipB, rtrIpB));
+        tapB.send(PacketHelper.makeArpRequest(macB, ipB, rtrIpB.getAddress()));
         Waiters.sleepBecause("We want the ZK requests to fail", 5);
         icmpFromTapDoesntArriveAtTap(tapA, tapB, macA, rtrMacA, ipA, ipB);
         Waiters.sleepBecause("We want the ZK requests to fail", 5);
@@ -263,7 +263,7 @@ public class ZookeeperDisconnectionTest {
 
         log.info("simulating an identical packet");
         Waiters.sleepBecause("We want the temporary drop flow to time out", 6);
-        arpAndCheckReply(tapB, macB, ipB, rtrIpB, rtrMacB);
+        arpAndCheckReply(tapB, macB, ipB, rtrIpB.getAddress(), rtrMacB);
         icmpRoutedFromTapToTap(tapA, tapB, macA, rtrMacA, ipA, ipB);
     }
 

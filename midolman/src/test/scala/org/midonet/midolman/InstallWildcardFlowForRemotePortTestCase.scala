@@ -14,10 +14,8 @@ import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
 import org.midonet.midolman.datapath.FlowActionOutputToVrnPort
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.cluster.data.zones.GreTunnelZoneHost
-import org.midonet.odp.flows.FlowAction
 import org.midonet.odp.flows.FlowActions
 import org.midonet.odp.flows.{FlowActionOutput, FlowActionSetKey, FlowKeyTunnel}
-import org.midonet.packets.IntIPv4
 import org.midonet.packets.IPv4Addr
 import org.midonet.sdn.flows.{WildcardMatch, WildcardFlow}
 

@@ -23,7 +23,7 @@ import org.midonet.client.resource.Bridge;
 import org.midonet.client.resource.BridgePort;
 import org.midonet.functional_test.utils.TapWrapper;
 import org.midonet.midolman.topology.LocalPortActive;
-import org.midonet.packets.IntIPv4;
+import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 import org.midonet.util.lock.LockHelper;
 
@@ -48,8 +48,8 @@ public class MonitoringTest extends TestBase {
     private BridgePort intBridgePort;
     private BridgePort tapBridgePort;
     private PacketHelper helperTap_int;
-    private IntIPv4 ipInt;
-    private IntIPv4 ipTap;
+    private IPv4Addr ipInt;
+    private IPv4Addr ipTap;
     private TapWrapper metricsTap;
 
     private static LockHelper.Lock lock;
@@ -63,7 +63,7 @@ public class MonitoringTest extends TestBase {
             .name("bridge-metrics")
             .create();
 
-        ipInt = IntIPv4.fromString("192.168.231.4");
+        ipInt = IPv4Addr.fromString("192.168.231.4");
         MAC macInt = MAC.fromString("02:aa:bb:cc:ee:d1");
         intBridgePort = bridge.addExteriorPort().create();
         //ovsBridge.addInternalPort(intBridgePort.getId(), "metricsInt",
@@ -76,7 +76,7 @@ public class MonitoringTest extends TestBase {
         assertTrue(activeMsg.active());
         log.info("Received local port active {}", activeMsg);
 
-        ipTap = IntIPv4.fromString("192.168.231.4");
+        ipTap = IPv4Addr.fromString("192.168.231.4");
         MAC macTap = MAC.fromString("02:aa:bb:cc:ee:d2");
 
         tapBridgePort = bridge.addExteriorPort().create();

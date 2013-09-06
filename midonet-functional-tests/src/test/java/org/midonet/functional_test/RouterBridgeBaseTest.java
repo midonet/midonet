@@ -20,7 +20,7 @@ import org.midonet.client.resource.Router;
 import org.midonet.client.resource.RouterPort;
 import org.midonet.functional_test.utils.TapWrapper;
 import org.midonet.midolman.topology.LocalPortActive;
-import org.midonet.packets.IntIPv4;
+import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 
 
@@ -41,15 +41,15 @@ public abstract class RouterBridgeBaseTest extends TestBase {
     List<EndPoint> vmEndpoints = new ArrayList<EndPoint>();
     List<TapWrapper> taps = new ArrayList<TapWrapper>();
     List<HostInterfacePort> portBindings = new ArrayList<HostInterfacePort>();
-    static final IntIPv4 floatingIP0 = IntIPv4.fromString("112.0.0.10");
-    static final IntIPv4 floatingIP1 = IntIPv4.fromString("112.0.0.20");
+    static final IPv4Addr floatingIP0 = IPv4Addr.fromString("112.0.0.10");
+    static final IPv4Addr floatingIP1 = IPv4Addr.fromString("112.0.0.20");
 
     @Override
     public void setup() {
         // Create a router with an uplink.
         router1 = apiClient.addRouter().name("rtr1")
             .tenantId(TENANT_NAME).create();
-        IntIPv4 gwIP = IntIPv4.fromString("172.16.0.2");
+        IPv4Addr gwIP = IPv4Addr.fromString("172.16.0.2");
         TapWrapper rtrUplinkTap = new TapWrapper("routerUplink");
         routerUplink = router1.addExteriorRouterPort()
             .portAddress("172.16.0.1")
@@ -59,7 +59,7 @@ public abstract class RouterBridgeBaseTest extends TestBase {
             .nextHopPort(routerUplink.getId()).type(DtoRoute.Normal)
             .weight(100).create();
         rtrUplinkEndpoint = new EndPoint(gwIP, MAC.random(),
-            IntIPv4.fromString(routerUplink.getPortAddress()),
+                IPv4Addr.fromString(routerUplink.getPortAddress()),
             MAC.fromString(routerUplink.getPortMac()),
             rtrUplinkTap);
         portBindings.add(
@@ -85,9 +85,9 @@ public abstract class RouterBridgeBaseTest extends TestBase {
         for (int i = 0; i < numBridgePorts; i++) {
             bports.add(bridge1.addExteriorPort().create());
             vmEndpoints.add(new EndPoint(
-                    IntIPv4.fromString("10.0.0.1" + i),
+                    IPv4Addr.fromString("10.0.0.1" + i),
                     MAC.fromString("02:aa:bb:cc:dd:d" + i),
-                    IntIPv4.fromString(routerDownlink.getPortAddress()),
+                    IPv4Addr.fromString(routerDownlink.getPortAddress()),
                     MAC.fromString(routerDownlink.getPortMac()),
                     new TapWrapper("invalTap" + i)));
             taps.add(vmEndpoints.get(i).tap);

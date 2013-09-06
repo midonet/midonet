@@ -6,7 +6,7 @@ package org.midonet.functional_test;
 
 import org.midonet.client.resource.*;
 import org.midonet.functional_test.utils.TapWrapper;
-import org.midonet.packets.IntIPv4;
+import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 import org.midonet.packets.Ethernet;
 import org.midonet.packets.IPv4;
@@ -41,14 +41,14 @@ public class GreTunnelTest extends BaseTunnelTest {
         log.info("Adding remote host to tunnelzone");
         tunnelZone.addTunnelZoneHost().
                 hostId(remoteHostId).
-                ipAddress(physTapRemoteIp.toUnicastString()).
+                ipAddress(physTapRemoteIp.toString()).
                 create();
     }
 
     @Override
     protected IPacket matchTunnelPacket(TapWrapper device,
-                                      MAC fromMac, IntIPv4 fromIp,
-                                      MAC toMac, IntIPv4 toIp)
+                                      MAC fromMac, IPv4Addr fromIp,
+                                      MAC toMac, IPv4Addr toIp)
                                 throws MalformedPacketException {
         byte[] received = device.recv();
         assertNotNull(String.format("Expected packet on %s", device.getName()),
@@ -66,9 +66,9 @@ public class GreTunnelTest extends BaseTunnelTest {
         assertTrue("payload is IPv4", eth.getPayload() instanceof IPv4);
         IPv4 ipPkt = (IPv4) eth.getPayload();
         assertEquals("source ipv4 address",
-            fromIp.addressAsInt(), ipPkt.getSourceAddress());
+            fromIp.addr(), ipPkt.getSourceAddress());
         assertEquals("destination ipv4 address",
-            toIp.addressAsInt(), ipPkt.getDestinationAddress());
+            toIp.addr(), ipPkt.getDestinationAddress());
 
         assertTrue("payload is GRE", ipPkt.getPayload() instanceof GRE);
         GRE grePkt = (GRE) ipPkt.getPayload();

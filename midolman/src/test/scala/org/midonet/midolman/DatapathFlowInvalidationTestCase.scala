@@ -18,17 +18,15 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.odp.Datapath
 import org.midonet.odp.flows.{FlowActions, FlowAction}
-import org.midonet.odp.ports.GreTunnelPort
 import org.midonet.packets.IPv4Addr
-import org.midonet.packets.{IntIPv4, MAC}
+import org.midonet.packets.MAC
 import org.midonet.sdn.flows.{WildcardMatch, WildcardFlow}
 import org.midonet.cluster.data.Router
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.ports.MaterializedRouterPort
 import org.midonet.cluster.data.zones.{GreTunnelZone, GreTunnelZoneHost}
 import org.midonet.midolman.DatapathController.DatapathPortChangedEvent
-import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, PacketIn}
-import org.midonet.midolman.FlowController.AddWildcardFlow
+import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
 import org.midonet.midolman.FlowController.WildcardFlowAdded
 import org.midonet.midolman.FlowController.WildcardFlowRemoved
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
@@ -135,15 +133,15 @@ with RouterHelper{
         val macToReach = "02:11:22:33:48:10"
         // add a route from ipSource to ipToReach/32, next hop is outPort
         newRoute(clusterRouter, ipSource, 32, ipToReach, 32,
-            NextHop.PORT, outPort.getId, new IntIPv4(Route.NO_GATEWAY).toString,
+            NextHop.PORT, outPort.getId, IPv4Addr(Route.NO_GATEWAY).toString,
             2)
 
         // we trigger the learning of macToReach
         drainProbe(flowProbe())
         feedArpCache(outPortName,
-            IntIPv4.fromString(ipToReach).addressAsInt,
+            IPv4Addr(ipToReach).addr,
             MAC.fromString(macToReach),
-            IntIPv4.fromString(ipOutPort).addressAsInt,
+            IPv4Addr(ipOutPort).addr,
             MAC.fromString(macOutPort))
         fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
 
@@ -167,15 +165,15 @@ with RouterHelper{
         val macToReach = "02:11:22:33:48:10"
         // add a route from ipSource to ipToReach/32, next hop is outPort
         newRoute(clusterRouter, ipSource, 32, ipToReach, 32,
-            NextHop.PORT, outPort.getId, new IntIPv4(Route.NO_GATEWAY).toString,
+            NextHop.PORT, outPort.getId, IPv4Addr(Route.NO_GATEWAY).toString,
             2)
 
         // we trigger the learning of macToReach
         drainProbe(flowProbe())
         feedArpCache(outPortName,
-            IntIPv4.fromString(ipToReach).addressAsInt,
+            IPv4Addr(ipToReach).addr,
             MAC.fromString(macToReach),
-            IntIPv4.fromString(ipOutPort).addressAsInt,
+            IPv4Addr(ipOutPort).addr,
             MAC.fromString(macOutPort))
         fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
 

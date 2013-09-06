@@ -11,7 +11,7 @@ import org.junit.Test;
 import org.midonet.midolman.state.zkManagers.BridgeDhcpZkManager.Host;
 import org.midonet.midolman.state.PortDirectory.*;
 import org.midonet.midolman.version.serialization.JsonVersionZkSerializer;
-import org.midonet.packets.IntIPv4;
+import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 
 
@@ -20,11 +20,12 @@ import static junit.framework.Assert.assertEquals;
 public class TestJsonSerialization {
 
     @Test
-    public void testIntIPv4() throws IOException {
-        IntIPv4 ip = IntIPv4.fromString("10.1.2.3");
+    public void testIPv4Addr() throws IOException {
+        IPv4Addr ip = IPv4Addr.fromString("10.1.2.3");
         String json = JsonVersionZkSerializer.objToJsonString(ip);
         assertEquals("\"10.1.2.3\"", json);
-        IntIPv4 ip2 = JsonVersionZkSerializer.jsonStringToObj(json, IntIPv4.class);
+        IPv4Addr ip2 =
+                JsonVersionZkSerializer.jsonStringToObj(json, IPv4Addr.class);
         assertEquals(ip, ip2);
     }
 
@@ -40,7 +41,7 @@ public class TestJsonSerialization {
     @Test
     public void testHost() throws IOException {
         Host host = new Host(MAC.fromString("aa:bb:cc:dd:ee:11"),
-                             IntIPv4.fromString("10.1.2.3"),
+                             IPv4Addr.fromString("10.1.2.3").toIntIPv4(),
                              "mars");
         String json = JsonVersionZkSerializer.objToJsonString(host);
         assertEquals(

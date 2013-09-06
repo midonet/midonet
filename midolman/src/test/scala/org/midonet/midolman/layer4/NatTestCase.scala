@@ -31,18 +31,17 @@ import org.midonet.odp.flows.IPFragmentType
 class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
     private final val log = LoggerFactory.getLogger(classOf[NatTestCase])
 
-    private val uplinkGatewayAddr: IntIPv4 = "180.0.1.1"
+    private val uplinkGatewayAddr = IPv4Addr("180.0.1.1")
     private val uplinkGatewayMac: MAC = "02:0b:09:07:05:03"
-    private val uplinkNwAddr: IntIPv4 = "180.0.1.0"
-    private val uplinkNwLen = 24
-    private val uplinkPortAddr: IntIPv4 = "180.0.1.2"
+    private val uplinkNwAddr = new IPv4Subnet("180.0.1.0", 24)
+    private val uplinkPortAddr = IPv4Addr("180.0.1.2")
     private val uplinkPortMac: MAC = "02:0a:08:06:04:02"
     private var uplinkPort: MaterializedRouterPort = null
     private var uplinkPortNum: Short = 0
 
-    private val dnatAddress = "180.0.1.100"
-    private val snatAddressStart: IntIPv4 = "180.0.1.200"
-    private val snatAddressEnd: IntIPv4 = "180.0.1.205"
+    private val dnatAddress = IPv4Addr("180.0.1.100")
+    private val snatAddressStart = IPv4Addr("180.0.1.200")
+    private val snatAddressEnd = IPv4Addr("180.0.1.205")
 
     private var leaseManager: NatLeaseManager = null
     private var mappings = Set[String]()
@@ -69,21 +68,21 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         def revInFromMac: MAC = fwdOutToMac
         def revInToMac: MAC = fwdOutFromMac
 
-        def fwdInFromIp: IntIPv4 =
-                fwdInPacket.getPayload.asInstanceOf[IPv4].getSourceAddress
-        def fwdInToIp: IntIPv4 =
-                fwdInPacket.getPayload.asInstanceOf[IPv4].getDestinationAddress
+        def fwdInFromIp: IPv4Addr = new IPv4Addr(
+                fwdInPacket.getPayload.asInstanceOf[IPv4].getSourceAddress)
+        def fwdInToIp: IPv4Addr = new IPv4Addr(
+                fwdInPacket.getPayload.asInstanceOf[IPv4].getDestinationAddress)
 
-        def revOutFromIp: IntIPv4 = fwdInToIp
-        def revOutToIp: IntIPv4 = fwdInFromIp
+        def revOutFromIp: IPv4Addr = fwdInToIp
+        def revOutToIp: IPv4Addr = fwdInFromIp
 
-        def fwdOutFromIp: IntIPv4 =
-                fwdOutPacket.getPayload.asInstanceOf[IPv4].getSourceAddress
-        def fwdOutToIp: IntIPv4 =
-                fwdOutPacket.getPayload.asInstanceOf[IPv4].getDestinationAddress
+        def fwdOutFromIp: IPv4Addr = new IPv4Addr(
+                fwdOutPacket.getPayload.asInstanceOf[IPv4].getSourceAddress)
+        def fwdOutToIp: IPv4Addr = new IPv4Addr(
+                fwdOutPacket.getPayload.asInstanceOf[IPv4].getDestinationAddress)
 
-        def revInFromIp: IntIPv4 = fwdOutToIp
-        def revInToIp: IntIPv4 = fwdOutFromIp
+        def revInFromIp: IPv4Addr = fwdOutToIp
+        def revInToIp: IPv4Addr = fwdOutFromIp
 
         def fwdInFromPort: Int =
             fwdInPacket.getPayload.asInstanceOf[IPv4].
@@ -110,8 +109,8 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
             val tcp = ip.getPayload.asInstanceOf[TCP]
             eth.getSourceMACAddress should be === (fwdOutFromMac)
             eth.getDestinationMACAddress should be === (fwdOutToMac)
-            intToIp(ip.getSourceAddress) should be === (fwdOutFromIp)
-            intToIp(ip.getDestinationAddress) should be === (fwdOutToIp)
+            IPv4Addr(ip.getSourceAddress) should be === (fwdOutFromIp)
+            IPv4Addr(ip.getDestinationAddress) should be === (fwdOutToIp)
             tcp.getSourcePort should be === (fwdOutFromPort)
             tcp.getDestinationPort should be === (fwdOutToPort)
         }
@@ -121,8 +120,8 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
             val tcp = ip.getPayload.asInstanceOf[TCP]
             eth.getSourceMACAddress should be === (revOutFromMac)
             eth.getDestinationMACAddress should be === (revOutToMac)
-            intToIp(ip.getSourceAddress) should be === (revOutFromIp)
-            intToIp(ip.getDestinationAddress) should be === (revOutToIp)
+            IPv4Addr(ip.getSourceAddress) should be === (revOutFromIp)
+            IPv4Addr(ip.getDestinationAddress) should be === (revOutToIp)
             tcp.getSourcePort should be === (revOutFromPort)
             tcp.getDestinationPort should be === (revOutToPort)
         }
@@ -131,8 +130,9 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
     override def beforeTest() {
         super.beforeTest()
 
-        uplinkPort = newExteriorRouterPort(router, uplinkPortMac,
-            uplinkPortAddr, uplinkNwAddr, uplinkNwLen)
+        uplinkPort = newExteriorRouterPort(
+            router, uplinkPortMac, uplinkPortAddr.toString,
+            uplinkNwAddr.getAddress.toString, uplinkNwAddr.getPrefixLen)
         uplinkPort should not be null
         materializePort(uplinkPort, host, "uplinkPort")
         requestOfType[LocalPortActive](portsProbe)
@@ -142,10 +142,11 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         uplinkPortNum should not be === (0)
 
         var route = newRoute(router, "0.0.0.0", 0, "0.0.0.0", 0,
-            NextHop.PORT, uplinkPort.getId, uplinkGatewayAddr, 1)
+            NextHop.PORT, uplinkPort.getId, uplinkGatewayAddr.toString, 1)
         route should not be null
 
-        route = newRoute(router, "0.0.0.0", 0, uplinkNwAddr, uplinkNwLen,
+        route = newRoute(router, "0.0.0.0", 0,
+            uplinkNwAddr.getAddress.toString, uplinkNwAddr.getPrefixLen,
             NextHop.PORT, uplinkPort.getId, intToIp(Route.NO_GATEWAY), 10)
         route should not be null
 
@@ -168,11 +169,9 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         val dnatCond = new Condition()
         dnatCond.nwSrcIp = new IPv4Subnet(
                            IPv4Addr.fromString(vmNetworkIp.toUnicastString),
-                           vmNetworkIp.getMaskLength)
+                           vmNetworkIp.getPrefixLen)
         dnatCond.nwSrcInv = true
-        dnatCond.nwDstIp = new IPv4Subnet(
-                           IPv4Addr.fromString(dnatAddress.toUnicastString),
-                           dnatAddress.getMaskLength)
+        dnatCond.nwDstIp = new IPv4Subnet(dnatAddress, 32)
         /*
          * (Galo): removed this since it prevents matching on ICMP packets for
          * testDnatPing
@@ -206,16 +205,16 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         leaseManager should not be null
 
         // feed the router arp cache with the uplink gateway's mac address
-        feedArpCache("uplinkPort", uplinkGatewayAddr, uplinkGatewayMac,
-            uplinkPortAddr, uplinkPortMac)
+        feedArpCache("uplinkPort", uplinkGatewayAddr.addr, uplinkGatewayMac,
+            uplinkPortAddr.addr, uplinkPortMac)
         fishForRequestOfType[DiscardPacket](discardPacketProbe)
         drainProbes()
 
         // feed the router's arp cache with each of the vm's addresses
         (vmPortNames, vmMacs, vmIps).zipped foreach {
             (name, mac, ip) =>
-                feedArpCache(name, ip.addressAsInt, mac,
-                    routerIp.addressAsInt, routerMac)
+                feedArpCache(name, ip.addr, mac,
+                    routerIp.getAddress.addr, routerMac)
                 fishForRequestOfType[DiscardPacket](discardPacketProbe)
         }
         drainProbes()
@@ -272,7 +271,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
 
     def testDnat() {
         log.info("Sending a tcp packet that should be DNAT'ed")
-        injectTcp("uplinkPort", uplinkGatewayMac, "62.72.82.1", 20301,
+        injectTcp("uplinkPort", uplinkGatewayMac, IPv4Addr("62.72.82.1"), 20301,
                                 uplinkPortMac, dnatAddress, 80,
                                 syn = true)
         var pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
@@ -304,9 +303,9 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         mapping.flowCount.get should be === (1)
 
         log.debug("sending a second forward packet, from a different router")
-        injectTcp("uplinkPort", "02:99:99:77:77:77", "62.72.82.1", 20301,
-            uplinkPortMac, dnatAddress, 80,
-            ack = true)
+        injectTcp("uplinkPort",
+            MAC.fromString("02:99:99:77:77:77"), IPv4Addr("62.72.82.1"), 20301,
+            uplinkPortMac, dnatAddress, 80, ack = true)
         pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
         outPorts = getOutPacketPorts(pktOut)
         drainProbes()
@@ -330,7 +329,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
     def testSnat() {
         log.info("Sending a tcp packet that should be SNAT'ed")
         injectTcp(vmPortNames.head, vmMacs.head, vmIps.head, 30501,
-            routerMac, "62.72.82.1", 22,
+            routerMac, IPv4Addr("62.72.82.1"), 22,
             syn = true)
         var pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
         var outPorts = getOutPacketPorts(pktOut)
@@ -364,7 +363,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
 
         log.debug("sending a second forward packet, from a different network card")
         injectTcp(vmPortNames.head, "02:34:34:43:43:20", vmIps.head, 30501,
-            routerMac, "62.72.82.1", 22,
+            routerMac, IPv4Addr("62.72.82.1"), 22,
             ack = true)
         pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
         outPorts = getOutPacketPorts(pktOut)
@@ -393,7 +392,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
     def testFragmentationNeeded() {
         log.info("Sending a tcp packet")
         injectTcp(vmPortNames.head, vmMacs.head, vmIps.head, 30501,
-            routerMac, "62.72.82.1", 22, syn = true, rst = false, ack = false,
+            routerMac, IPv4Addr("62.72.82.1"), 22, syn = true, rst = false, ack = false,
             fragmentType = IPFragmentType.First)
 
         val pktOut = expectPacketOut(getPortNumber(vmPortNames.head))
@@ -409,8 +408,8 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         pktOut.getSourceMACAddress should be === routerMac
 
         val ip = pktOut.getPayload.asInstanceOf[IPv4]
-        ip.getSourceAddress should be(IPv4Addr.fromString("62.72.82.1").toInt)
-        ip.getDestinationAddress should be(vmIps.head.addressAsInt)
+        ip.getSourceAddress should be(IPv4Addr("62.72.82.1").toInt)
+        ip.getDestinationAddress should be(vmIps.head.addr)
         ip.getProtocol should be(ICMP.PROTOCOL_NUMBER)
         ip.getPayload.getClass should be === classOf[ICMP]
 
@@ -427,8 +426,8 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
     // -----------------------------------------------
 
     private def pingExpectDnated(outPort: String,
-                                 srcMac: MAC, srcIp: IntIPv4,
-                                 dstMac: MAC, dstIp: IntIPv4,
+                                 srcMac: MAC, srcIp: IPv4Addr,
+                                 dstMac: MAC, dstIp: IPv4Addr,
                                  icmpId: Short, icmpSeq: Short): Mapping = {
 
         log.info("Sending a PING that should be DNAT'ed")
@@ -454,9 +453,9 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         ipPak should not be null
         ipPak = eth.getPayload.asInstanceOf[IPv4]
         ipPak.getProtocol should be (ICMP.PROTOCOL_NUMBER)
-        ipPak.getSourceAddress should be === srcIp.addressAsInt
+        ipPak.getSourceAddress should be === srcIp.addr
         ipPak.getDestinationAddress should be ===
-            mapping.fwdOutToIp.addressAsInt
+            mapping.fwdOutToIp.addr
 
         val icmpPak = ipPak.getPayload.asInstanceOf[ICMP]
         icmpPak should not be null
@@ -468,9 +467,9 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
     }
 
     private def pongExpectRevDnated(outPort: String,
-                                    srcMac: MAC, srcIp: IntIPv4,
-                                    dstMac: MAC, dstIp: IntIPv4,
-                                    origSrcIp: IntIPv4, icmpId: Short, icmpSeq: Short) {
+                                    srcMac: MAC, srcIp: IPv4Addr,
+                                    dstMac: MAC, dstIp: IPv4Addr,
+                                    origSrcIp: IPv4Addr, icmpId: Short, icmpSeq: Short) {
 
         log.info("Send ICMP reply into the router, should be revSnat'ed")
         val icmpReply = injectIcmpEchoReply(outPort, srcMac, srcIp,
@@ -487,8 +486,8 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         val ipPak = eth.getPayload.asInstanceOf[IPv4]
         ipPak should not be null
         ipPak.getProtocol should be (ICMP.PROTOCOL_NUMBER)
-        ipPak.getSourceAddress should be === dnatAddress.addressAsInt
-        ipPak.getDestinationAddress should be === origSrcIp.addressAsInt
+        ipPak.getSourceAddress should be === dnatAddress.addr
+        ipPak.getDestinationAddress should be === origSrcIp.addr
         val icmpPak = ipPak.getPayload.asInstanceOf[ICMP]
         icmpPak should not be null
         icmpPak.getType should be === (ICMP.TYPE_ECHO_REPLY)
@@ -564,15 +563,15 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
      * a host beyond the gateway). Expects that the router outputs the packet
      * on the gateway link, with the srcIp translated
      */
-    private def pingExpectSnated(port: String, srcMac: MAC, srcIp: IntIPv4,
-                                dstMac: MAC, dstIp: IntIPv4,
+    private def pingExpectSnated(port: String, srcMac: MAC, srcIp: IPv4Addr,
+                                dstMac: MAC, dstIp: IPv4Addr,
                                 icmpId: Short, icmpSeq: Short,
-                                transSrcIp: IntIPv4) {
+                                transSrcIp: IPv4Addr) {
 
         log.info("Sending a PING that should be NAT'ed")
         val icmpReq = injectIcmpEchoReq(port,
-                        srcMac, IntIPv4.fromString(srcIp.toString),
-                        dstMac, IntIPv4.fromString(dstIp.toString),
+                        srcMac, srcIp,
+                        dstMac, dstIp,
                         icmpId, icmpSeq)
 
         val pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
@@ -585,8 +584,8 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         ipPak should not be null
         ipPak = eth.getPayload.asInstanceOf[IPv4]
         ipPak.getProtocol should be (ICMP.PROTOCOL_NUMBER)
-        ipPak.getSourceAddress should be === transSrcIp.addressAsInt
-        ipPak.getDestinationAddress should be === dstIp.addressAsInt
+        ipPak.getSourceAddress should be === transSrcIp.addr
+        ipPak.getDestinationAddress should be === dstIp.addr
 
         val icmpPak = ipPak.getPayload.asInstanceOf[ICMP]
         icmpPak should not be null
@@ -602,10 +601,10 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
      * origSrcIp (a VM) receives the packet on its port, with the dstIp
      * translated to origSrcIp
      */
-    private def pongExpectRevNatd(port: String, srcMac: MAC, srcIp: IntIPv4,
-                                      dstMac: MAC, dstIp: IntIPv4,
+    private def pongExpectRevNatd(port: String, srcMac: MAC, srcIp: IPv4Addr,
+                                      dstMac: MAC, dstIp: IPv4Addr,
                                       icmpId: Short, icmpSeq: Short,
-                                      origSrcIp: IntIPv4){
+                                      origSrcIp: IPv4Addr){
 
         log.info("Send ICMP reply into the router, should be revSnat'ed")
         val icmpReply = injectIcmpEchoReply(port, srcMac, srcIp,
@@ -624,8 +623,8 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         val ipPak = eth.getPayload.asInstanceOf[IPv4]
         ipPak should not be null
         ipPak.getProtocol should be (ICMP.PROTOCOL_NUMBER)
-        ipPak.getSourceAddress should be === srcIp.addressAsInt
-        ipPak.getDestinationAddress should be === origSrcIp.addressAsInt
+        ipPak.getSourceAddress should be === srcIp.addr
+        ipPak.getDestinationAddress should be === origSrcIp.addr
         val icmpPak = ipPak.getPayload.asInstanceOf[ICMP]
         icmpPak should not be null
         icmpPak.getType should be === (ICMP.TYPE_ECHO_REPLY)
@@ -649,7 +648,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         val src5Mac = vmMacs.last // VM inside the private network
         val src5Ip = vmIps.last
         val dstMac = routerMac   // A destination beyond the gateway
-        val dstIp = IntIPv4.fromString("62.72.82.1")
+        val dstIp = IPv4Addr("62.72.82.1")
         val snatIp = snatAddressStart // expected translated source
 
         log.info("Sending ICMP pings into private network")
@@ -680,7 +679,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
      * reply gets back correctly.
      */
     def testDnatPing() {
-        val srcIp = IntIPv4.fromString("62.72.82.1")
+        val srcIp = IPv4Addr("62.72.82.1")
         val mp = pingExpectDnated("uplinkPort", uplinkGatewayMac, srcIp,
                                   uplinkPortMac, dnatAddress, 92, 1)
         pongExpectRevDnated(mp.revInPort, mp.revInFromMac,  mp.revInFromIp,
@@ -766,7 +765,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
      * back from the destination, we expect it to get to the VM
      */
     def testSnatICMPErrorAfterTCP() {
-        val dstIp = IntIPv4.fromString("62.72.82.1")
+        val dstIp = IPv4Addr("62.72.82.1")
         log.info("Sending a TCP packet that should be SNAT'ed")
         injectTcp(vmPortNames.head, vmMacs.head, vmIps.head, 5555,
             routerMac, dstIp, 1111, syn = true)
@@ -780,7 +779,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
      * an ICMP error is sent, we expect it to get back
      */
     def testDnatICMPErrorAfterTCP() {
-        val srcIp = IntIPv4.fromString("62.72.82.1")
+        val srcIp = IPv4Addr("62.72.82.1")
         log.info("Sending a TCP packet that should be DNAT'ed")
         injectTcp("uplinkPort", uplinkGatewayMac, srcIp, 888,
             uplinkPortMac, dnatAddress, 333, syn = true)
@@ -794,7 +793,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
      * an ICMP error is sent, we expect it to get back
      */
     def testSnatICMPErrorAfterICMP() {
-        val dstIp = IntIPv4.fromString("62.72.82.1")
+        val dstIp = IPv4Addr("62.72.82.1")
         log.info("Sending a TCP packet that should be SNAT'ed")
         injectIcmpEchoReq(
             vmPortNames.head, vmMacs.head, vmIps.head, routerMac, dstIp, 22, 55)
@@ -808,7 +807,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
      * an ICMP error is sent, we expect it to get back
      */
     def testDnatICMPErrorAfterICMP() {
-        val srcIp = IntIPv4.fromString("62.72.82.1")
+        val srcIp = IPv4Addr("62.72.82.1")
         log.info("Sending a TCP packet that should be DNAT'ed")
         injectIcmpEchoReq("uplinkPort", uplinkGatewayMac, srcIp,
             uplinkPortMac, dnatAddress, 7, 6)

@@ -124,7 +124,7 @@ abstract public class VlanAwareBridgeTest extends TestBase {
     public void test() throws Exception {
 
         byte[] icmp = PacketHelper.makeIcmpEchoRequest(
-                trunkMac, trunkIp.toIntIPv4(), vm1Mac, vm1Ip.toIntIPv4());
+                trunkMac, trunkIp, vm1Mac, vm1Ip);
 
         log.info("Send a PING to vm1, on vlanId1");
         sendExpect(icmp, trunkTap1,  new TapWrapper[]{vm1Tap},
@@ -135,14 +135,14 @@ abstract public class VlanAwareBridgeTest extends TestBase {
                    new TapWrapper[]{vm1Tap, trunkTap2},  vlanId2, true);
 
         icmp = PacketHelper.makeIcmpEchoRequest(
-                    vm1Mac, vm1Ip.toIntIPv4(), trunkMac, trunkIp.toIntIPv4());
+                    vm1Mac, vm1Ip, trunkMac, trunkIp);
 
         log.info("Send a PING from VM1 to trunk, should have vlan1 injected");
         sendExpect(icmp, vm1Tap, new TapWrapper[]{trunkTap1, trunkTap2},
                    new TapWrapper[]{vm1Tap, vm2Tap}, vlanId1, false);
 
         icmp = PacketHelper.makeIcmpEchoRequest(
-                    vm2Mac, vm2Ip.toIntIPv4(), trunkMac, trunkIp.toIntIPv4());
+                    vm2Mac, vm2Ip, trunkMac, trunkIp);
 
         log.info("Send a PING from VM2 to trunk, should have vlan2 injected");
         sendExpect(icmp, vm2Tap, new TapWrapper[]{trunkTap1, trunkTap2},
@@ -154,13 +154,13 @@ abstract public class VlanAwareBridgeTest extends TestBase {
     public void testDataFromBothTrunks() throws Exception {
 
         byte[] icmpToVm1 = PacketHelper.makeIcmpEchoRequest(
-                trunkMac, trunkIp.toIntIPv4(), vm1Mac, vm1Ip.toIntIPv4());
+                trunkMac, trunkIp, vm1Mac, vm1Ip);
         byte[] icmpToVm2 = PacketHelper.makeIcmpEchoRequest(
-                trunkMac, trunkIp.toIntIPv4(), vm2Mac, vm2Ip.toIntIPv4());
+                trunkMac, trunkIp, vm2Mac, vm2Ip);
         byte[] icmpFromVm1= PacketHelper.makeIcmpEchoRequest(
-                vm1Mac, vm1Ip.toIntIPv4(), trunkMac, trunkIp.toIntIPv4());
+                vm1Mac, vm1Ip, trunkMac, trunkIp);
         byte[] icmpFromVm2 = PacketHelper.makeIcmpEchoRequest(
-                vm2Mac, vm2Ip.toIntIPv4(), trunkMac, trunkIp.toIntIPv4());
+                vm2Mac, vm2Ip, trunkMac, trunkIp);
 
 
         // This will also get ARP tables ready

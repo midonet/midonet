@@ -132,9 +132,8 @@ trait VlanBridgeSimulationTestCase
                   vlanId: Short, vlanOnInject: Boolean = false,
                   expectFlowAdded: Boolean = true) {
 
-        val ethRaw = Packets.udp(fromMac, toMac,
-            fromIp.toIntIPv4, toIp.toIntIPv4,
-            10, 11, "hello".getBytes)
+        val ethRaw = Packets.udp(fromMac, toMac, fromIp, toIp,
+                                 10, 11, "hello".getBytes)
 
         // same, with VLAN
         val ethVlan = new Ethernet()
@@ -168,9 +167,8 @@ trait VlanBridgeSimulationTestCase
                             fromIp: IPv4Addr, toIp: IPv4Addr,
                             vlanId: Short, vlanOnInject: Boolean = false) {
 
-        val ethRaw = Packets.udp(fromMac, toMac,
-            fromIp.toIntIPv4, toIp.toIntIPv4,
-            10, 11, "hello".getBytes)
+        val ethRaw = Packets.udp(fromMac, toMac, fromIp, toIp,
+                                 10, 11, "hello".getBytes)
 
         // same, with VLAN
         val ethVlan = new Ethernet()
@@ -446,8 +444,8 @@ trait VlanBridgeSimulationTestCase
                   vm1_1Mac, trunkMac, vm1_1Ip, trunkIp, vlanId1)
 
         // Now send a frame but with some private VLAN ID
-        val eth = Packets.udp(vm1_1Mac, trunkMac, vm1_1Ip.toIntIPv4,
-            trunkIp.toIntIPv4, 10, 11, "hello".getBytes)
+        val eth = Packets.udp(vm1_1Mac, trunkMac, vm1_1Ip,
+            trunkIp, 10, 11, "hello".getBytes)
         eth.setVlanID(666)
 
         var trunks = if (hasMacLearning) Set(getPortNumber("trunkPort1"))
@@ -548,11 +546,9 @@ trait VlanBridgeSimulationTestCase
 
         val fromMac = vm2_1Mac
         val toMac = MAC.fromString("ff:ff:ff:ff:ff:ff")
-        val fromIp = vm2_1Ip.toIntIPv4
-        val toIp = trunkIp.toIntIPv4
 
-        val ethRaw = Packets.udp(fromMac, toMac, fromIp, toIp, 10, 11,
-            "hello".getBytes)
+        val ethRaw = Packets.udp(
+            fromMac, toMac, vm2_1Ip, trunkIp, 10, 11, "hello".getBytes)
 
         val addFlowMsg = injectOnePacket(ethRaw, vm2_1ExtPort.getId)
         addFlowMsg.getOrElse(fail("Expecting a WildcardFlowAdded")).f should not be null

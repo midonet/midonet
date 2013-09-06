@@ -15,7 +15,7 @@ import org.midonet.client.resource.RouterPort;
 import org.midonet.functional_test.utils.TapWrapper;
 import org.midonet.midolman.FlowController;
 import org.midonet.midolman.topology.LocalPortActive;
-import org.midonet.packets.IntIPv4;
+import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.MAC;
 import org.midonet.packets.MalformedPacketException;
 import org.slf4j.Logger;
@@ -32,9 +32,9 @@ public class DeletePortTest extends TestBase {
     private final static Logger log = LoggerFactory.getLogger(
         DeletePortTest.class);
 
-    IntIPv4 ip1 = IntIPv4.fromString("192.168.1.1", 24);
-    IntIPv4 ip2 = IntIPv4.fromString("192.168.2.1", 24);
-    IntIPv4 ip3 = IntIPv4.fromString("192.168.3.1", 24);
+    IPv4Subnet ip1 = new IPv4Subnet("192.168.1.1", 24);
+    IPv4Subnet ip2 = new IPv4Subnet("192.168.2.1", 24);
+    IPv4Subnet ip3 = new IPv4Subnet("192.168.3.1", 24);
 
     Router rtr;
     RouterPort p1;
@@ -45,9 +45,9 @@ public class DeletePortTest extends TestBase {
     TapWrapper tap2;
     TapWrapper tap3;
 
-    IntIPv4 tap1Ip = IntIPv4.fromString("192.168.1.5", 24);
-    IntIPv4 tap2Ip = IntIPv4.fromString("192.168.2.5", 24);
-    IntIPv4 tap3Ip = IntIPv4.fromString("192.168.3.5", 24);
+    IPv4Subnet tap1Ip = new IPv4Subnet("192.168.1.5", 24);
+    IPv4Subnet tap2Ip = new IPv4Subnet("192.168.2.5", 24);
+    IPv4Subnet tap3Ip = new IPv4Subnet("192.168.3.5", 24);
 
     MAC tap1Mac = MAC.fromString("02:00:00:aa:aa:01");
     MAC tap2Mac = MAC.fromString("02:00:00:aa:aa:02");
@@ -60,8 +60,8 @@ public class DeletePortTest extends TestBase {
 
         p1 = rtr.addExteriorRouterPort()
                 .portAddress(ip1.toUnicastString())
-                .networkAddress(ip1.toNetworkAddress().toUnicastString())
-                .networkLength(ip1.getMaskLength())
+                .networkAddress(ip1.toNetworkAddress().toString())
+                .networkLength(ip1.getPrefixLen())
                 .create();
         rtr.addRoute().srcNetworkAddr("0.0.0.0").srcNetworkLength(0)
                 .dstNetworkAddr(p1.getNetworkAddress())
@@ -84,8 +84,8 @@ public class DeletePortTest extends TestBase {
 
         p2 = rtr.addExteriorRouterPort()
                 .portAddress(ip2.toUnicastString())
-                .networkAddress(ip2.toNetworkAddress().toUnicastString())
-                .networkLength(ip2.getMaskLength())
+                .networkAddress(ip2.toNetworkAddress().toString())
+                .networkLength(ip2.getPrefixLen())
                 .create();
         rtr.addRoute().srcNetworkAddr("0.0.0.0").srcNetworkLength(0)
                 .dstNetworkAddr(p2.getNetworkAddress())
@@ -108,8 +108,8 @@ public class DeletePortTest extends TestBase {
 
         p3 = rtr.addExteriorRouterPort()
                 .portAddress(ip3.toUnicastString())
-                .networkAddress(ip3.toNetworkAddress().toUnicastString())
-                .networkLength(ip3.getMaskLength())
+                .networkAddress(ip3.toNetworkAddress().toString())
+                .networkLength(ip3.getPrefixLen())
                 .create();
         rtr.addRoute().srcNetworkAddr("0.0.0.0").srcNetworkLength(0)
                 .dstNetworkAddr(p3.getNetworkAddress())
@@ -132,11 +132,14 @@ public class DeletePortTest extends TestBase {
         // simple check that everything is fine.
         try {
             FunctionalTestsHelper.arpAndCheckReply(tap1, tap1Mac,
-                    tap1Ip, ip1, MAC.fromString(p1.getPortMac()));
+                    tap1Ip.getAddress(), ip1.getAddress(),
+                    MAC.fromString(p1.getPortMac()));
             FunctionalTestsHelper.arpAndCheckReply(tap2, tap2Mac,
-                    tap2Ip, ip2, MAC.fromString(p2.getPortMac()) );
+                    tap2Ip.getAddress(), ip2.getAddress(),
+                    MAC.fromString(p2.getPortMac()) );
             FunctionalTestsHelper.arpAndCheckReply(tap3, tap3Mac,
-                    tap3Ip, ip3, MAC.fromString(p3.getPortMac()));
+                    tap3Ip.getAddress(), ip3.getAddress(),
+                    MAC.fromString(p3.getPortMac()));
         } catch (MalformedPacketException e) {
             fail(e.getMessage());
         }
@@ -162,11 +165,11 @@ public class DeletePortTest extends TestBase {
         // tap2 --> tap3
 
         PacketHelper helper1 = new PacketHelper(
-            tap1Mac, tap1Ip,
-            MAC.fromString(p1.getPortMac()), ip1);
+            tap1Mac, tap1Ip.getAddress(),
+            MAC.fromString(p1.getPortMac()), ip1.getAddress());
 
         // Send ICMPs from p1 to internal port p3.
-        byte[] ping1_3 = helper1.makeIcmpEchoRequest(ip3);
+        byte[] ping1_3 = helper1.makeIcmpEchoRequest(ip3.getAddress());
 
         assertThat("The tap should have sent the packet",
                    tap1.send(ping1_3));
@@ -175,11 +178,11 @@ public class DeletePortTest extends TestBase {
         PacketHelper.checkIcmpEchoReply(ping1_3, tap1.recv());
 
         PacketHelper helper2 = new PacketHelper(
-                tap2Mac, tap2Ip,
-                MAC.fromString(p2.getPortMac()), ip2);
+                tap2Mac, tap2Ip.getAddress(),
+                MAC.fromString(p2.getPortMac()), ip2.getAddress());
 
         // Send ICMPs from p2 to internal port p3.
-        byte[] ping2_3 = helper2.makeIcmpEchoRequest(tap3Ip);
+        byte[] ping2_3 = helper2.makeIcmpEchoRequest(tap3Ip.getAddress());
         assertThat("The tap should have sent the packet", tap2.send(ping2_3));
         log.info("Sending the second ping");
 

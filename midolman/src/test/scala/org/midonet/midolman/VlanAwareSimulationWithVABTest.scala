@@ -51,8 +51,8 @@ with VlanBridgeSimulationTestCase {
     @Test
     override def testFrameFromTrunkWithUnknownVlanId() {
         feedBridgeArpCaches()
-        val eth = Packets.udp(trunkMac, vm1_1Mac, trunkIp.toIntIPv4,
-            vm1_1Ip.toIntIPv4, 10, 11, "hello".getBytes)
+        val eth = Packets.udp(trunkMac, vm1_1Mac, trunkIp,
+            vm1_1Ip, 10, 11, "hello".getBytes)
         eth.deserialize(ByteBuffer.wrap(eth.serialize()))
         eth.setVlanID(500)
         injectOnePacket(eth, trunk1Id)
