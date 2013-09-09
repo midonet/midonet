@@ -24,12 +24,17 @@ import org.midonet.cluster.data.zones.GreTunnelZoneHost
 import org.midonet.odp.flows.FlowAction
 import org.midonet.odp.flows.FlowActions
 import org.midonet.odp.flows.{FlowActionOutput, FlowActionSetKey, FlowKeyTunnel}
-import org.midonet.packets.IPv4Addr
-import org.midonet.packets.{Ethernet, IntIPv4, MAC, Packets}
+import org.midonet.packets._
+import org.midonet.packets.util.PacketBuilder._
 import org.midonet.midolman.util.MockCache
 import com.google.inject.Key
 
 import java.lang.{Short => JShort}
+import org.midonet.midolman.topology.LocalPortActive
+import scala.Some
+import org.midonet.midolman.FlowController.WildcardFlowAdded
+import org.midonet.midolman.PacketWorkflow.PacketIn
+import org.midonet.midolman.FlowController.WildcardFlowRemoved
 
 
 @RunWith(classOf[JUnitRunner])
@@ -129,6 +134,30 @@ class BridgeSimulationTestCase extends MidolmanTestCase
       *
       */
     def networkVlans: List[JShort] = List()
+
+    @Test
+    def testMalformedL3() {
+        val inputPort = "port1"
+        val malformed = eth mac "02:11:22:33:44:10" -> "02:11:22:33:44:20"
+        malformed << payload("00:00")
+        malformed ether_type IPv4.ETHERTYPE vlans networkVlans
+
+        val addFlowMsg = injectOnePacket(malformed, inputPort, false)
+        addFlowMsg.f should not be null
+        val flowActs = addFlowMsg.f.getActions
+        flowActs should have size(6)
+
+        val (outputs, tunnelKeys) = parseTunnelActions(flowActs)
+
+        outputs should have size(4)
+        outputs.contains(FlowActions.output(greTunnelId)) should be (true)
+        outputs.contains(FlowActions.output(portId4)) should be (true)
+        outputs.contains(FlowActions.output(portId5)) should be (true)
+
+        tunnelKeys should have size(2)
+        tunnelKeys.find(bridgeTunnelTo2) should not be None
+        tunnelKeys.find(bridgeTunnelTo3) should not be None
+    }
 
     @Test
     def testPacketInBridgeSimulation() {
