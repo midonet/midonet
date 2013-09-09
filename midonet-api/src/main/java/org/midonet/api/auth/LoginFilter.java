@@ -83,7 +83,7 @@ public class LoginFilter implements Filter {
             Token token = service.login(credList[0], credList[1], request);
             // Set the Cookie
             ResponseUtils.setCookie(response, token.getKey(),
-                                    token.getExpires());
+                                    token.getExpiresString());
             // Set the Token object as the body of the response.
             ResponseUtils.setEntity(response, token);
         } catch (AuthException ex) {

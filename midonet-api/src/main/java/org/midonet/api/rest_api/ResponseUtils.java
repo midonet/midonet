@@ -100,25 +100,17 @@ public class ResponseUtils {
     }
 
     public static void setCookie(HttpServletResponse resp, String key,
-                                 Date expires) {
-
-        String expiresGmt = null;
-        if (expires != null) {
-            DateFormat df = new SimpleDateFormat(
-                    HttpSupport.SET_COOKIE_EXPIRES_FORMAT);
-            df.setTimeZone(TimeZone.getTimeZone("GMT"));
-            expiresGmt = df.format(expires);
-        }
+                                 String expires) {
 
         StringBuilder sb = new StringBuilder();
         sb.append(HttpSupport.SET_COOKIE_SESSION_KEY);
         sb.append("=");
         sb.append(key);
-        if (expiresGmt != null) {
+        if (expires != null) {
             sb.append("; ");
             sb.append(HttpSupport.SET_COOKIE_EXPIRES);
             sb.append("=");
-            sb.append(expiresGmt);
+            sb.append(expires);
         }
 
         resp.setHeader(HttpSupport.SET_COOKIE, sb.toString());

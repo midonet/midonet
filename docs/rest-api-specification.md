@@ -39,6 +39,7 @@
   * [Trace Capture Conditions](#traceconditions)
   * [System State](#systemstate)
   * [Write Version](#writeversion)
+  * [Token](#token)
 * [Resource Collection](#resourcecollection)
 * [Authentication/Authorization](#auth)
 * [List of Acronyms](#acronyms)
@@ -2974,70 +2975,6 @@ Query strings for Tenant may vary based on the Authtentication Service used.
     </tr>
 </table>
 
-<a name="resourcecollection"></a>
-## Resource Collection
-
-A collection of a resource is represented by inserting 'collection' right
-before the resource name in the media type.  For example, to get a collection
-of Tenants V1 you would represent:
-
-*vnd.org.midonet.Tenant-v1+json*
-
-as:
-
-*vnd.org.midonet.collection.Tenant-v1+json*
-
-See the Query Parameters section of each resource type whether the collection
-can be filtered.
-
-<a name="auth"></a>
-## Authentication/Authorization
-
-MidoNet API provides two ways to authenticate: username/password and token.
-MidoNet uses [Basic Access Authentication] [1] scheme for username/password
-authentication.  From the client with username 'foo' and password 'bar', the
-following HTTP POST request should be sent to '/login' path appended to the
-base URI:
-
-    POST    /login
-    Authorization: Basic Zm9vOmJhcg==
-
-where <i>Zm9vOmJhcg==</i> is the base64 encoded value of 'foo:bar'.
-
-If the API sever is configured to use OpenStack Keystone as its authentication
-service, you must also send the 'tenant ID' in the header:
-
-    X-Auth-Project: example_tenant
-
-The server returns 401 Unauthorized if the authentication fails, and 200 if
-succeeds.  When the login succeeds, the server sets 'Set-Cookie' header with
-the generated token and its expiration data as such:
-
-    Set-Cookie: sessionId=baz; Expires=Fri, 02 July 2014 1:00:00 GMT
-
-where 'baz' is the token and 'Wed, 09 Jun 2021 10:18:14 GM' is the expiration
-date.  The token can be used for all the subsequent requests until it expires.
-
-To send a token instead for authentication, the client needs to set it in
-<i>X-Auth-Token</i> HTTP header:
-
-    X-Auth-Token: baz
-
-The server returns 200 if the token is validated successfully, 401 if the token
-was invalid, and 500 if there was a server error.
-
-For authorization, if the requesting user attempts to perform operations or
-access resources that it does not have permission to, the API returns 403
-Forbidden in the response.  Currently there are only three roles in MidoNet:
-
-* Admin: Superuser that has access to everything
-* Tenant Admin: Admin of a tenant that has access to everything that belongs
-to the tenant.
-* Tenant User: User of a tenant that only has read-only access to resources
-belonging to the tenant.
-
-Roles and credentials are set up in the auth service used by the API.
-
 <a name="traceconditions"></a>
 ### Trace Capture Conditions [application/vnd.org.midonet.Condition-v1+json]
 
@@ -3350,6 +3287,108 @@ to, regardless of that midolman agent's version.
         is the minor version. For example '1.2'.</td>
     </tr>
 </table>
+
+<a name="token"></a>
+### Token [application/vnd.org.midonet.Token-v1+json]
+
+A token represents the info required for the 'token authentication' method.
+It can NOT be retrieved through a GET request, but instead must be retrieved
+in the body or the header of a login request.
+
+<table>
+    <tr>
+        <th>Field Name</th>
+        <th>Type</th>
+        <th>POST/PUT</th>
+        <th>Required</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>key</td>
+        <td>string</td>
+        <td></td>
+        <td></td>
+        <td>The authentication token</td>
+    </tr>
+    <tr>
+        <td>expires</td>
+        <td>string</td>
+        <td></td>
+        <td></td>
+        <td>The expiration date for the authentication token</td>
+    </tr>
+</table>
+
+<a name="resourcecollection"></a>
+## Resource Collection
+
+A collection of a resource is represented by inserting 'collection' right
+before the resource name in the media type.  For example, to get a collection
+of Tenants V1 you would represent:
+
+*vnd.org.midonet.Tenant-v1+json*
+
+as:
+
+*vnd.org.midonet.collection.Tenant-v1+json*
+
+See the Query Parameters section of each resource type whether the collection
+can be filtered.
+
+<a name="auth"></a>
+## Authentication/Authorization
+
+MidoNet API provides two ways to authenticate: username/password and token.
+MidoNet uses [Basic Access Authentication] [1] scheme for username/password
+authentication.  From the client with username 'foo' and password 'bar', the
+following HTTP POST request should be sent to '/login' path appended to the
+base URI:
+
+    POST    /login
+    Authorization: Basic Zm9vOmJhcg==
+
+where <i>Zm9vOmJhcg==</i> is the base64 encoded value of 'foo:bar'.
+
+If the API sever is configured to use OpenStack Keystone as its authentication
+service, you must also send the 'tenant ID' in the header:
+
+    X-Auth-Project: example_tenant
+
+The server returns 401 Unauthorized if the authentication fails, and 200 if
+succeeds.  When the login succeeds, the server sets 'Set-Cookie' header with
+the generated token and its expiration data as such:
+
+    Set-Cookie: sessionId=baz; Expires=Fri, 02 July 2014 1:00:00 GMT
+
+where 'baz' is the token and 'Wed, 09 Jun 2021 10:18:14 GM' is the expiration
+date.  The token can be used for all the subsequent requests until it expires.
+Additionally, the content type is set to a Token json type as such:
+
+    Content-Type: application/vnd.org.midonet.Token-v1+json;charset=UTF-8
+
+with the body of the response set to the token information:
+
+    {"key":"baz","expires":"Fri, 02 July 2014 1:00:00 GMT"}
+
+To send a token instead for authentication, the client needs to set it in
+<i>X-Auth-Token</i> HTTP header:
+
+    X-Auth-Token: baz
+
+The server returns 200 if the token is validated successfully, 401 if the token
+was invalid, and 500 if there was a server error.
+
+For authorization, if the requesting user attempts to perform operations or
+access resources that it does not have permission to, the API returns 403
+Forbidden in the response.  Currently there are only three roles in MidoNet:
+
+* Admin: Superuser that has access to everything
+* Tenant Admin: Admin of a tenant that has access to everything that belongs
+to the tenant.
+* Tenant User: User of a tenant that only has read-only access to resources
+belonging to the tenant.
+
+Roles and credentials are set up in the auth service used by the API.
 
 <a name="acronyms"></a>
 ## List of Acronyms
