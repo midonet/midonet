@@ -3,7 +3,13 @@
  */
 package org.midonet.api.auth;
 
+import org.codehaus.jackson.annotate.JsonProperty;
+import org.midonet.api.HttpSupport;
+
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.TimeZone;
 
 /**
  * An API token
@@ -11,6 +17,7 @@ import java.util.Date;
 public class Token {
 
     private String key;
+
     private Date expires;
 
     public Token(){
@@ -35,6 +42,21 @@ public class Token {
 
     public void setExpires(Date expires) {
         this.expires = expires;
+    }
+
+    @JsonProperty("expires")
+    public String getExpiresString(){
+        return getExpiresString(HttpSupport.SET_COOKIE_EXPIRES_FORMAT);
+    }
+
+    public String getExpiresString(String format) {
+        String expiresGmt = null;
+        if (expires != null) {
+            DateFormat df = new SimpleDateFormat(format);
+            df.setTimeZone(TimeZone.getTimeZone("GMT"));
+            expiresGmt = df.format(expires);
+        }
+        return expiresGmt;
     }
 
     @Override
