@@ -3,6 +3,8 @@
  */
 package org.midonet.packets.util
 
+import scala.collection.JavaConverters._
+
 import org.midonet.packets.util.AddressConversions._
 import org.midonet.packets._
 import org.midonet.packets.ICMP.UNREACH_CODE
@@ -275,7 +277,8 @@ case class EthBuilder(packet: Ethernet = new Ethernet()) extends PacketBuilder[E
     def dst(addr: String): EthBuilder = dst(stringToMac(addr))
     def dst(addr: MAC): EthBuilder = { packet.setDestinationMACAddress(addr) ; this }
     def with_pad: EthBuilder = { packet.setPad(true) ; this }
-    def vlan(vid: Short): EthBuilder = { packet.setVlanID(vid) ; this }
+    def vlan(vid: Short): EthBuilder = { packet.setVlanID(vid); this }
+    def vlans(vids: List[java.lang.Short]): EthBuilder = { packet.setVlanIDs(vids.asJava); this }
     def priority(prio: Byte): EthBuilder = { packet.setPriorityCode(prio) ; this }
     def ether_type(t: Short): EthBuilder = { packet.setEtherType(t) ; this }
 }

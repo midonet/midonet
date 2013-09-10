@@ -2,6 +2,7 @@
 
 package org.midonet.midolman
 
+import annotation.tailrec
 import scala.collection.JavaConverters._
 import scala.collection.JavaConversions._
 import scala.collection.{immutable, mutable}
@@ -14,7 +15,9 @@ import akka.pattern.ask
 import akka.util.Timeout
 import java.lang.{Integer => JInteger}
 import java.util.UUID
+import java.util.concurrent.TimeUnit
 
+import com.yammer.metrics.core.Clock
 
 import org.midonet.cache.Cache
 import org.midonet.midolman.DeduplicationActor._
@@ -34,17 +37,14 @@ import org.midonet.cluster.{DataClient, client}
 import org.midonet.netlink.{Callback => NetlinkCallback}
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode
-import org.midonet.packets.{DHCP, UDP, IPv4, Ethernet, Unsigned}
+import org.midonet.packets._
 import org.midonet.odp._
-import org.midonet.odp.flows.FlowAction
+import org.midonet.odp.flows.{FlowKey, FlowKeyUDP, FlowAction}
 import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.odp.Packet.Reason.FlowActionUserspace
 import org.midonet.util.functors.Callback0
 import org.midonet.util.throttling.ThrottlingGuard
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
-import com.yammer.metrics.core.Clock
-import annotation.tailrec
-import java.util.concurrent.TimeUnit
 
 object PacketWorkflow {
     case class PacketIn(wMatch: WildcardMatch,
@@ -518,24 +518,34 @@ class PacketWorkflow(
     }
 
     private def handleDHCP(inPortId: UUID): Future[Boolean] = {
-        // check if the packet is a DHCP request
+        def isUdpDhcpFlowKey(k: FlowKey[_]): Boolean = k match {
+            case udp: FlowKeyUDP => (udp.getUdpSrc == 68) && (udp.getUdpDst == 67)
+            case _ => false
+        }
+
+        def payloadAs[T](pkt: IPacket)(implicit manifest: Manifest[T]): Option[T] = {
+            val clazz = manifest.erasure.asInstanceOf[Class[T]]
+            val payload = pkt.getPayload
+            if (clazz == payload.getClass)
+                Some(payload.asInstanceOf[T])
+            else
+                None
+        }
+
+        if (packet.getMatch.getKeys.filter(isUdpDhcpFlowKey).isEmpty)
+            return Promise.successful(false)
+
         val eth = packet.getPacket
-        if (eth.getEtherType == IPv4.ETHERTYPE) {
-            val ipv4 = eth.getPayload.asInstanceOf[IPv4]
-            if (ipv4.getProtocol == UDP.PROTOCOL_NUMBER) {
-                val udp = ipv4.getPayload.asInstanceOf[UDP]
-                if (udp.getSourcePort == 68
-                    && udp.getDestinationPort == 67) {
-                    val dhcp = udp.getPayload.asInstanceOf[DHCP]
-                    if (dhcp.getOpCode == DHCP.OPCODE_REQUEST) {
-                        return new DhcpImpl(
-                            dataClient, inPortId, dhcp,
-                            eth.getSourceMACAddress, cookie).handleDHCP
-                    }
+        payloadAs[IPv4](eth) flatMap {
+            payloadAs[UDP](_) flatMap {
+                payloadAs[DHCP](_) flatMap {
+                    case dhcp if dhcp.getOpCode == DHCP.OPCODE_REQUEST =>
+                        Some(new DhcpImpl(dataClient, inPortId, dhcp,
+                             eth.getSourceMACAddress, cookie).handleDHCP)
+                    case _ => None
                 }
             }
-        }
-        Promise.successful(false)
+        } getOrElse { Promise.successful(false) }
     }
 
     def sendPacket(origActions: List[FlowAction[_]]): Future[Boolean] = {
