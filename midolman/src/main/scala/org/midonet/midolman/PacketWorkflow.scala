@@ -439,7 +439,7 @@ class PacketWorkflow(
                 simulateGeneratedPacket()
         }) recover {
             case ex =>
-                log.error("Simulation failed: {}", ex)
+                log.error(ex, "Simulation failed: {}", ex)
                 ErrorDrop
         } flatMap {
             case AddVirtualWildcardFlow(flow, callbacks, tags) =>
