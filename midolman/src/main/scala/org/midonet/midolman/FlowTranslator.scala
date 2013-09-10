@@ -139,14 +139,16 @@ trait FlowTranslator {
 
         def chainMatch(port: client.Port[_], chain: Chain): Boolean = {
             val fwdInfo = new EgressPortSetChainPacketContext(port.id, tags)
-            val result =
-                Chain.apply(chain, fwdInfo, pktMatch, port.id, true).action
-            if (result != RuleResult.Action.ACCEPT &&
-                result != RuleResult.Action.DROP &&
-                result != RuleResult.Action.REJECT)
-                log.error("Applying chain {} produced {}, not " +
-                    "ACCEPT, DROP, or REJECT", chain.id, result)
-            result == RuleResult.Action.ACCEPT
+            Chain.apply(chain, fwdInfo, pktMatch, port.id, true).action match {
+                case RuleResult.Action.ACCEPT =>
+                    true
+                case RuleResult.Action.DROP | RuleResult.Action.REJECT =>
+                    false
+                case other =>
+                    log.error("Applying chain {} produced {} which was not " +
+                        "ACCEPT, DROP, or REJECT", chain.id, other)
+                    false
+            }
         }
 
         def chainsToPortsId(chains: Seq[Chain]): Seq[UUID] =

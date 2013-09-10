@@ -16,7 +16,7 @@ import org.midonet.cluster.data
 import org.midonet.midolman.DeduplicationActor
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.logging.LoggerFactory
-import org.midonet.midolman.rules.RuleResult.Action
+import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.Coordinator
 import org.midonet.midolman.topology.FlowTagger
 import org.midonet.midolman.topology.MacFlowCount
@@ -124,19 +124,20 @@ class Bridge(val id: UUID, val tunnelKey: Long,
                                           packetContext.wcmatch, id, false)
         log.debug("The ingress chain returned {}", preBridgeResult)
 
-        if (preBridgeResult.action == Action.DROP ||
-                preBridgeResult.action == Action.REJECT) {
-            val srcDlAddress = packetContext.wcmatch.getEthernetSource
-            updateFlowCount(srcDlAddress, packetContext)
-            // No point in tagging by dst-MAC+Port because the outPort was
-            // not used in deciding to drop the flow.
-            return Promise.successful(DropAction)
-        } else if (preBridgeResult.action != Action.ACCEPT) {
-            log.error("Pre-bridging for {} returned an action which was {}, " +
-                      "not ACCEPT, DROP, or REJECT.", id,
-                      preBridgeResult.action)
-            return Promise.successful(ErrorDropAction)
+        preBridgeResult.action match {
+            case RuleResult.Action.ACCEPT => // pass through
+            case RuleResult.Action.DROP | RuleResult.Action.REJECT =>
+                val srcDlAddress = packetContext.wcmatch.getEthernetSource
+                updateFlowCount(srcDlAddress, packetContext)
+                // No point in tagging by dst-MAC+Port because the outPort was
+                // not used in deciding to drop the flow.
+                return Promise.successful(DropAction)
+            case other =>
+                log.error("Pre-bridging for {} returned {} which was not " +
+                          "ACCEPT, DROP or REJECT.", id, other)
+                return Promise.successful(ErrorDropAction)
         }
+
         if (preBridgeResult.pmatch ne packetContext.wcmatch) {
             log.error("Pre-bridging for {} returned a different match object",
                       id)
@@ -424,24 +425,23 @@ class Bridge(val id: UUID, val tunnelKey: Long,
             case a =>
                 log.error("Unhandled Coordinator.ForwardAction {}", a)
         }
-        val postBridgeResult = Chain.apply(outFilter, packetContext,
-                                           packetContext.wcmatch, id, false)
 
-        if (postBridgeResult.action == Action.DROP ||
-                postBridgeResult.action == Action.REJECT) {
-            log.debug("Dropping the packet due to egress filter.")
-            DropAction
-        } else if (postBridgeResult.action != Action.ACCEPT) {
-            log.error("Post-bridging for {} returned an action which was {}, " +
-                      "not ACCEPT, DROP, or REJECT.", id,
-                      postBridgeResult.action)
-            // TODO(pino): decrement the mac-port reference count?
-            // TODO(pino): remove the flow tag?
-            ErrorDropAction
-        } else {
-            log.debug("Forwarding the packet with action {}", act)
-            // Note that the filter is not permitted to change the output port.
-            act
+        val postBridgeResult = Chain.apply(
+            outFilter, packetContext, packetContext.wcmatch, id, false)
+        postBridgeResult.action match {
+            case RuleResult.Action.ACCEPT => // pass through
+                log.debug("Forwarding the packet with action {}", act)
+                // Note that the filter cannot change the output port.
+                act
+            case RuleResult.Action.DROP | RuleResult.Action.REJECT =>
+                log.debug("Dropping the packet due to egress filter.")
+                DropAction
+            case other =>
+                log.error("Post-bridging for {} returned {} which was not " +
+                          "ACCEPT, DROP, or REJECT.", id, other)
+                // TODO(pino): decrement the mac-port reference count?
+                // TODO(pino): remove the flow tag?
+                ErrorDropAction
         }
     }
 

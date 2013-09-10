@@ -12,7 +12,6 @@ import org.midonet.cluster.client.{ExteriorRouterPort, InteriorRouterPort,
 import org.midonet.midolman.DeduplicationActor
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.rules.RuleResult
-import org.midonet.midolman.rules.RuleResult.{Action => RuleAction}
 import org.midonet.midolman.simulation.Coordinator._
 import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.midolman.topology._
@@ -404,17 +403,17 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
                                        egrPktContext, egrMatch, id, false)
                     _applyPostActions(eth, postRoutingResult)
 
-                    if (postRoutingResult.action == RuleAction.ACCEPT) {
-                        DeduplicationActor.getRef(actorSystem).tell(
-                            EmitGeneratedPacket(rt.nextHopPort, eth,
-                                if (packetContext != null)
-                                    Option(packetContext.getFlowCookie)
-                                else None))
-                    } else if (postRoutingResult.action != RuleAction.DROP &&
-                               postRoutingResult.action != RuleAction.REJECT) {
-                        log.error("Post-routing for {} returned an action " +
-                                  "which was {}, not ACCEPT, DROP, or REJECT.",
-                                  id, postRoutingResult.action)
+                    postRoutingResult.action match {
+                        case RuleResult.Action.ACCEPT =>
+                            val cookie = if (packetContext == null) None
+                                else Option[Int](packetContext.getFlowCookie)
+                            DeduplicationActor.getRef(actorSystem) !
+                                EmitGeneratedPacket(rt.nextHopPort, eth, cookie)
+                        case RuleResult.Action.DROP =>
+                        case RuleResult.Action.REJECT =>
+                        case other =>
+                            log.error("Post-routing for {} returned {} which " +
+                                "was not ACCEPT, DROP or REJECT.", id, other)
                     }
             }
         }
