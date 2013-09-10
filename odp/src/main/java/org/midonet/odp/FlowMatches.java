@@ -7,12 +7,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.midonet.odp.flows.FlowAction;
-import org.midonet.odp.flows.FlowKey;
+import org.midonet.odp.flows.*;
 import org.midonet.packets.*;
-import org.midonet.odp.flows.FlowKeyEtherType;
-import org.midonet.odp.flows.IPFragmentType;
-import org.midonet.odp.flows.IpProtocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -177,14 +173,14 @@ public class FlowMatches {
     }
 
     public static void addUserspaceKeys (Ethernet ethPkt, FlowMatch match) {
-        switch (ethPkt.getEtherType()) {
-            case IPv4.ETHERTYPE:
-                IPv4 ipPkt = IPv4.class.cast(ethPkt.getPayload());
-                if (ICMP.PROTOCOL_NUMBER == ipPkt.getProtocol()) {
-                    ICMP icmpPkt = ICMP.class.cast(ipPkt.getPayload());
-                    FlowKey<?> k = makeIcmpFlowKey(icmpPkt);
-                    replaceKey(match, (FlowKey.UserSpaceOnly)k);
-                }
+        for (FlowKey key: match.getKeys()) {
+            if (key instanceof FlowKeyICMP) {
+                ICMP icmpPkt = ICMP.class.cast(
+                        IPv4.class.cast(ethPkt.getPayload()).
+                                getPayload());
+                replaceKey(match, (FlowKey.UserSpaceOnly) makeIcmpFlowKey(icmpPkt));
+                return;
+            }
         }
     }
 
