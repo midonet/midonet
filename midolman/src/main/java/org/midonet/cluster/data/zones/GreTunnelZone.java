@@ -15,6 +15,8 @@ import org.midonet.cluster.data.TunnelZone;
 public class GreTunnelZone
     extends TunnelZone<GreTunnelZone, GreTunnelZone.Data> {
 
+    public static final short TUNNEL_OVERHEAD = (short)46;
+
     public GreTunnelZone() {
         super(null, new Data());
     }
@@ -36,7 +38,7 @@ public class GreTunnelZone
      * 14 + 20 + 4 + 4 + 4 = 46
      */
     public short getTunnelOverhead() {
-        return ((short)46);
+        return TUNNEL_OVERHEAD;
     }
 
     public GreTunnelZone(UUID uuid, @Nonnull Data data) {

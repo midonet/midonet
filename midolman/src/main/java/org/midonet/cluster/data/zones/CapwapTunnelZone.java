@@ -15,6 +15,8 @@ import org.midonet.cluster.data.TunnelZone;
 public class CapwapTunnelZone
     extends TunnelZone<CapwapTunnelZone, CapwapTunnelZone.Data> {
 
+    public static final short TUNNEL_OVERHEAD = (short)62;
+
     public CapwapTunnelZone() {
         this(null, new Data());
     }
@@ -37,7 +39,7 @@ public class CapwapTunnelZone
          * sizeof(struct capwaphdr_wsi_key) ===
          * 14 + 20 + 8 + 8 + 4 + 8 = 62
          */
-        return ((short)62);
+        return TUNNEL_OVERHEAD;
     }
 
     public CapwapTunnelZone(UUID zoneId, @Nonnull Data data) {
