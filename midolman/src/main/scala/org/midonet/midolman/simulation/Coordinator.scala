@@ -2,10 +2,11 @@
 
 package org.midonet.midolman.simulation
 
-import collection.{immutable, mutable}
 import collection.JavaConversions._
-import java.util.UUID
+import collection.mutable.ListBuffer
+import collection.{immutable, mutable}
 import java.lang.{Short => JShort}
+import java.util.UUID
 
 import akka.actor.{ActorContext, ActorSystem}
 import akka.dispatch.{ExecutionContext, Future, Promise}
@@ -62,7 +63,7 @@ object Coordinator {
     // A good example is when a bridge that has a vlan id set receives a
     // broadcast from the virtual network. It will output it to all its
     // materialized ports and to the logical port that connects it to the VAB
-    case class ForkAction(actions: List[Future[Action]]) extends ForwardAction
+    case class ForkAction(actions: Seq[Action]) extends ForwardAction
 
     trait Device {
 
@@ -371,196 +372,163 @@ class Coordinator(var origMatch: WildcardMatch,
     private def mergeSimulationResults(firstAction: SimulationResult,
                                        secondAction: SimulationResult,
                                        firstOrigMatch: WildcardMatch) : SimulationResult = {
-        if (!firstAction.getClass.equals(secondAction.getClass)) {
-            log.error("Matching actions of diffent types, {}, {}!", firstAction,
-                secondAction)
-            // we should restore original match
-            origMatch = firstOrigMatch
-            return dropFlow(temporary = true)
-        }
-        firstAction match {
-            case p: SendPacket =>
-                val actions = p.actions ++ secondAction.asInstanceOf[SendPacket].actions
-                SendPacket(actions)
-
-            case f: AddVirtualWildcardFlow =>
-                val secondFlow = secondAction.asInstanceOf[AddVirtualWildcardFlow]
-                val actions = f.flow.actions ++ secondFlow.flow.actions
-                val hardExp =
-                    if (f.flow.hardExpirationMillis >= secondFlow.flow.getHardExpirationMillis)
-                        secondFlow.flow.getHardExpirationMillis
-                    else f.flow.getHardExpirationMillis
-
-                val idleExp =
-                    if (f.flow.idleExpirationMillis >= secondFlow.flow.idleExpirationMillis)
-                        secondFlow.flow.idleExpirationMillis
-                    else f.flow.idleExpirationMillis
-
-                val mergedFlow = WildcardFlow(wcmatch = f.flow.getMatch,
-                                              actions = actions,
-                                              hardExpirationMillis = hardExp,
-                                              idleExpirationMillis = idleExp)
+        (firstAction, secondAction) match {
+            case (SendPacket(acts1), SendPacket(acts2)) =>
+                SendPacket(acts1 ++ acts2)
+            case (AddVirtualWildcardFlow(wcf1, cb1, tags1),
+                    AddVirtualWildcardFlow(wcf2, cb2, tags2)) =>
                 //TODO(rossella) set the other fields Priority
-                val callbacks = f.flowRemovalCallbacks ++ secondFlow.flowRemovalCallbacks
-                val tags = f.tags ++ secondFlow.tags
-                val res = AddVirtualWildcardFlow(mergedFlow, callbacks, tags)
+                val res = AddVirtualWildcardFlow(
+                    wcf1.combine(wcf2), cb1 ++ cb2, tags1 ++ tags2)
                 log.debug("Forked action merged results {}", res)
                 res
-            case a =>
-                log.debug("Receive unrecognized action {}", a)
+            case _ =>
+                val clazz1 = firstAction.getClass
+                val clazz2 = secondAction.getClass
+                if (clazz1 != clazz2) {
+                    log.error("Matching actions of different types {} & {}!",
+                        clazz1, clazz2)
+                } else {
+                    log.debug("Receive unrecognized action {}", firstAction)
+                }
                 origMatch = firstOrigMatch
                 dropFlow(temporary = true)
         }
     }
 
-    /**
-     * Takes a Seq[Future[A]], evaluates them sequentially with the given
-     * function and returns the results.
-     */
-    private def execSequential[A, B](l: Seq[Future[A]], handlr: A => Future[B]):
-    Future[Seq[B]] = {
-        def recurse(list: Seq[A], results: Seq[B]): Future[Seq[B]] = {
+    /** executes sequentially the function f on the list l */
+    private def execSeq[A,B](l: Seq[A])(f: A => Future[B]): Future[Seq[B]] = {
+        // cannot be made tail-recursive because of future chaining
+        def recurse(list: Seq[A], res: ListBuffer[B]): Future[Seq[B]] =
             list match {
-                case Nil => Promise.successful(results)
-                case head::tail => handlr(head) flatMap ( res =>
-                    recurse(tail, results :+ res)
-                )
+                case Nil => Promise.successful(res.toList)
+                case h::t => f(h) flatMap { act => recurse(t, res += act) }
             }
-        }
-        Future.sequence(l) flatMap ( elements => { recurse(elements, Nil) } )
+        recurse(l, ListBuffer[B]())
     }
 
-    private def handleActionFuture(actionF: Future[Action]): Future[SimulationResult] = {
+    private def handleAction(action: Action): Future[SimulationResult] = {
+        log.info("Received action: {}", action)
+        action match {
 
+            case DoFlowAction(action) =>
+                action match {
+                    case b: FlowActionPopVLAN =>
+                        pktContext.unfreeze()
+                        val flow = WildcardFlow(
+                            wcmatch = origMatch,
+                            actions = List(b))
+                        val vlanId = pktContext.wcmatch.getVlanIds.get(0)
+                        pktContext.wcmatch.removeVlanId(vlanId)
+                        origMatch = pktContext.wcmatch.clone()
+                        pktContext.freeze()
+                        AddVirtualWildcardFlow(flow,
+                            pktContext.getFlowRemovedCallbacks,
+                            pktContext.getFlowTags)
+                    case _ => NoOp
+                }
+
+            case ForkAction(acts) =>
+                val results = execSeq(acts) {
+                    (act: Coordinator.Action) => {
+                        // Our handler for each action consists on evaluating
+                        // the Coordinator action and pairing it with the
+                        // original WMatch at that point in time
+                        // Will fail if run in parallel because of side-effects
+                        handleAction(act) map {
+                            simRes => {
+                                val firstOrigMatch = origMatch.clone()
+                                origMatch = pktContext.wcmatch.clone()
+                                pktContext.unfreeze()
+                                (simRes, firstOrigMatch)
+                            }
+                        }
+                    }
+                }
+
+                // When ready, merge the results of the simulations. The
+                // resulting pair (SimulationResult, WildcardMatch) contains
+                // the merge action resulting from the other partial ones
+                results.map (results => results.reduceLeft(
+                    (a, b) => (mergeSimulationResults(a._1, b._1, a._2), b._2)
+                )).map( r => r._1)
+
+            case ToPortSetAction(portSetID) =>
+                pktContext.traceMessage(portSetID, "Flooded to port set")
+                emit(portSetID, isPortSet = true, null)
+
+            case ToPortAction(outPortID) =>
+                pktContext.traceMessage(outPortID, "Forwarded to port")
+                packetEgressesPort(outPortID)
+
+            case ConsumedAction =>
+                pktContext.traceMessage(null, "Consumed")
+                pktContext.freeze()
+                pktContext.getFlowRemovedCallbacks foreach { _.call() }
+                NoOp
+
+            case ErrorDropAction =>
+                pktContext.traceMessage(null, "Encountered error")
+                pktContext.freeze()
+                cookie match {
+                    case None => // Do nothing.
+                        pktContext.getFlowRemovedCallbacks foreach { _.call() }
+                        NoOp
+                    case Some(_) =>
+                        // Drop the flow temporarily
+                        dropFlow(temporary = true)
+                }
+
+            case DropAction =>
+                pktContext.traceMessage(null, "Dropping flow")
+                pktContext.freeze()
+                log.debug("Device returned DropAction for {}", origMatch)
+                cookie match {
+                    case None => // Do nothing.
+                        pktContext.getFlowRemovedCallbacks foreach { _.call() }
+                        NoOp
+                    case Some(_) =>
+                        dropFlow(pktContext.isConnTracked(), withTags = true)
+                }
+
+            case NotIPv4Action =>
+                pktContext.traceMessage(null, "Unsupported protocol")
+                pktContext.freeze()
+                log.debug("Device returned NotIPv4Action for {}", origMatch)
+                cookie match {
+                    case None => // Do nothing.
+                        pktContext.getFlowRemovedCallbacks foreach { _.call() }
+                        NoOp
+                    case Some(_) =>
+                        val notIPv4Match =
+                            (new WildcardMatch()
+                                .setInputPortUUID(origMatch.getInputPortUUID)
+                                .setEthernetSource(origMatch.getEthernetSource)
+                                .setEthernetDestination(
+                                    origMatch.getEthernetDestination)
+                                .setEtherType(origMatch.getEtherType))
+                        AddVirtualWildcardFlow(
+                            WildcardFlow(wcmatch = notIPv4Match),
+                            pktContext.getFlowRemovedCallbacks,
+                            pktContext.getFlowTags)
+                        // TODO(pino): Connection-tracking blob?
+                }
+
+
+            case _ =>
+                pktContext.traceMessage(null,
+                                        "ERROR Unexpected action returned")
+                log.error("Device returned unexpected action!")
+                dropFlow(temporary = true)
+        } // end action match
+    }
+
+    private def handleActionFuture(actionF: Future[Action]) =
         actionF recover {
             case e =>
                 log.error(e, "Error instead of Action - {}", e)
                 ErrorDropAction
-        } flatMap { case action =>
-            log.info("Received action: {}", action)
-            action match {
-
-                case a: DoFlowAction[_] =>
-                    a.action match {
-                        case b: FlowActionPopVLAN =>
-                            pktContext.unfreeze()
-                            val flow = WildcardFlow(
-                                wcmatch = origMatch,
-                                actions = List(a.action))
-                            val vlanId = pktContext.wcmatch.getVlanIds.get(0)
-                            pktContext.wcmatch.removeVlanId(vlanId)
-                            origMatch = pktContext.wcmatch.clone()
-                            pktContext.freeze()
-                            AddVirtualWildcardFlow(flow,
-                                pktContext.getFlowRemovedCallbacks,
-                                pktContext.getFlowTags)
-                        case b => NoOp
-                    }
-
-                case f: ForkAction =>
-                    val results = execSequential(f.actions,
-                      (act: Coordinator.Action) => {
-                          // Our handler for each action consists on evaluating
-                          // the Coordinator action and pairing it with the
-                          // original WMatch at that point in time
-                          handleActionFuture(Promise.successful(act)) flatMap {
-                              simRes => {
-                                  val firstOrigMatch = origMatch.clone()
-                                  origMatch = pktContext.wcmatch.clone()
-                                  pktContext.unfreeze()
-                                  Promise.successful(simRes, firstOrigMatch)
-                              }
-                          }
-                      })
-                    // When ready, merge the results of the simulations. The
-                    // resulting pair (SimulationResult, WildcardMatch) contains
-                    // the merge action resulting from the other partial ones
-                    results.map (results => results.reduceLeft(
-                        (a, b) => (mergeSimulationResults(a._1, b._1, a._2), b._2)
-                    )).map( r => r._1)
-
-                case ToPortSetAction(portSetID) =>
-                    pktContext.traceMessage(portSetID, "Flooded to port set")
-                    emit(portSetID, isPortSet = true, null)
-
-                case ToPortAction(outPortID) =>
-                    pktContext.traceMessage(outPortID, "Forwarded to port")
-                    packetEgressesPort(outPortID)
-
-                case ConsumedAction =>
-                    pktContext.traceMessage(null, "Consumed")
-                    pktContext.freeze()
-                    pktContext.getFlowRemovedCallbacks foreach {
-                        cb => cb.call()
-                    }
-                    NoOp
-
-                case ErrorDropAction =>
-                    pktContext.traceMessage(null, "Encountered error")
-                    pktContext.freeze()
-                    cookie match {
-                        case None => // Do nothing.
-                            pktContext.getFlowRemovedCallbacks foreach {
-                                cb => cb.call()
-                            }
-                            NoOp
-                        case Some(_) =>
-                            // Drop the flow temporarily
-                            dropFlow(temporary = true)
-                    }
-
-                case DropAction =>
-                    pktContext.traceMessage(null, "Dropping flow")
-                    pktContext.freeze()
-                    log.debug("Device returned DropAction for {}",
-                        origMatch)
-                    cookie match {
-                        case None => // Do nothing.
-                            pktContext.getFlowRemovedCallbacks foreach {
-                                cb => cb.call()
-                            }
-                            NoOp
-                        case Some(_) =>
-                            var temporary = false
-                            temporary = pktContext.isConnTracked()
-                            dropFlow(temporary, withTags = true)
-                    }
-
-                case NotIPv4Action =>
-                    pktContext.traceMessage(null, "Unsupported protocol")
-                    log.debug("Device returned NotIPv4Action for {}",
-                        origMatch)
-                    pktContext.freeze()
-                    cookie match {
-                        case None => // Do nothing.
-                            pktContext.getFlowRemovedCallbacks foreach {
-                                cb => cb.call()
-                            }
-                            NoOp
-                        case Some(_) =>
-                            val notIPv4Match =
-                                (new WildcardMatch()
-                                    .setInputPortUUID(origMatch.getInputPortUUID)
-                                    .setEthernetSource(origMatch.getEthernetSource)
-                                    .setEthernetDestination(
-                                        origMatch.getEthernetDestination)
-                                    .setEtherType(origMatch.getEtherType))
-                            AddVirtualWildcardFlow(
-                                    WildcardFlow(wcmatch = notIPv4Match),
-                                    pktContext.getFlowRemovedCallbacks,
-                                    pktContext.getFlowTags)
-                            // TODO(pino): Connection-tracking blob?
-                    }
-
-
-                case _ =>
-                    pktContext.traceMessage(null,
-                                            "ERROR Unexpected action returned")
-                    log.error("Device returned unexpected action!")
-                    dropFlow(temporary = true)
-            } // end action match
-        }
-    }
+        } flatMap { handleAction(_) }
 
     private def packetIngressesPort(portID: UUID, getPortGroups: Boolean):
             Future[SimulationResult] = {
@@ -774,8 +742,8 @@ class Coordinator(var origMatch: WildcardMatch,
     }
 
     private def actionsFromMatchDiff(orig: WildcardMatch, modif: WildcardMatch)
-    : mutable.ListBuffer[FlowAction[_]] = {
-        val actions = mutable.ListBuffer[FlowAction[_]]()
+    : ListBuffer[FlowAction[_]] = {
+        val actions = ListBuffer[FlowAction[_]]()
         modif.doNotTrackSeenFields()
         orig.doNotTrackSeenFields()
         if (!orig.getEthernetSource.equals(modif.getEthernetSource) ||

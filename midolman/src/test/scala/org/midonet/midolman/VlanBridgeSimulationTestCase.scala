@@ -3,23 +3,24 @@
 */
 package org.midonet.midolman
 
+import java.nio.ByteBuffer
+import java.util.UUID
 
-import org.midonet.cluster.data.{Entity, Bridge}
-import org.midonet.cluster.data.ports._
-import org.midonet.packets._
+import akka.testkit.TestProbe
 import org.junit.Test
+import org.junit.runner.RunWith
 import org.slf4j.LoggerFactory
+
+import org.midonet.cluster.data.host.Host
+import org.midonet.cluster.data.ports._
+import org.midonet.cluster.data.{Entity, Bridge}
+import org.midonet.midolman.FlowController.{WildcardFlowRemoved, WildcardFlowAdded}
 import org.midonet.midolman.PacketWorkflow.PacketIn
+import org.midonet.odp.flows.{FlowActionPopVLAN, FlowActionPushVLAN, FlowActionOutput}
+import org.midonet.packets._
 import topology.VirtualTopologyActor.{BridgeRequest, PortRequest}
 import topology.{VirtualTopologyActor, LocalPortActive}
 import util.SimulationHelper
-import akka.testkit.TestProbe
-import java.nio.ByteBuffer
-import java.util.UUID
-import org.midonet.odp.flows.{FlowActionPopVLAN, FlowActionPushVLAN, FlowActionOutput}
-import scala.Some
-import org.midonet.midolman.FlowController.{WildcardFlowRemoved, WildcardFlowAdded}
-import org.midonet.cluster.data.host.Host
 
 trait VlanBridgeSimulationTestCase
     extends SimulationHelper
@@ -622,4 +623,3 @@ trait VlanBridgeSimulationTestCase
      */
 
 }
-
