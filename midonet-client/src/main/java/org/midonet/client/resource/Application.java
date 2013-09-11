@@ -441,6 +441,17 @@ public class Application extends ResourceBase<Application, DtoApplication> {
     }
 
     /**
+     * Gets the HostVersion object.
+     *
+     * @return SystemState
+     */
+    public ResourceCollection<HostVersion> getHostVersions() {
+        return getChildResources(principalDto.getHostVersions(), null,
+                                 VendorMediaType.APPLICATION_HOST_VERSION_JSON,
+                                 HostVersion.class, DtoHostVersion.class);
+    }
+
+    /**
      * Returns TunnelZone object
      *
      * @param id ID of tunnel zone

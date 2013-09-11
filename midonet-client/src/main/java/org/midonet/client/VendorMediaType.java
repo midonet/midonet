@@ -185,4 +185,6 @@ public class VendorMediaType {
             "application/vnd.org.midonet.WriteVersion-v1+json";
     public static final String APPLICATION_SYSTEM_STATE_JSON =
             "application/vnd.org.midonet.SystemState-v1+json";
+    public static final String APPLICATION_HOST_VERSION_JSON =
+            "application/vnd.org.midonet.HostVersion-v1+json";
 }

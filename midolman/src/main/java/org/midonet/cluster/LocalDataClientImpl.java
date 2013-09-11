@@ -28,6 +28,7 @@ import org.midonet.cluster.data.ChainName;
 import org.midonet.cluster.data.Converter;
 import org.midonet.cluster.data.Bridge;
 import org.midonet.cluster.data.BridgeName;
+import org.midonet.cluster.data.HostVersion;
 import org.midonet.cluster.data.Port;
 import org.midonet.cluster.data.PortGroup;
 import org.midonet.cluster.data.PortGroupName;
@@ -905,23 +906,23 @@ public class LocalDataClientImpl implements DataClient {
         throws StateAccessException {
 
         return CollectionFunctors.map(
-            zonesZkManager.getZoneMemberships(uuid, null),
-            new Functor<UUID, TunnelZone.HostConfig<?, ?>>() {
-                @Override
-                public TunnelZone.HostConfig<?, ?> apply(UUID arg0) {
-                    try {
-                        return zonesZkManager.getZoneMembership(uuid, arg0,
-                                                                null);
-                    } catch (StateAccessException e) {
-                        //
-                        return null;
-                    } catch (SerializationException e) {
-                        return null;
-                    }
+                zonesZkManager.getZoneMemberships(uuid, null),
+                new Functor<UUID, TunnelZone.HostConfig<?, ?>>() {
+                    @Override
+                    public TunnelZone.HostConfig<?, ?> apply(UUID arg0) {
+                        try {
+                            return zonesZkManager.getZoneMembership(uuid, arg0,
+                                    null);
+                        } catch (StateAccessException e) {
+                            //
+                            return null;
+                        } catch (SerializationException e) {
+                            return null;
+                        }
 
-                }
-            },
-            new HashSet<TunnelZone.HostConfig<?, ?>>()
+                    }
+                },
+                new HashSet<TunnelZone.HostConfig<?, ?>>()
         );
     }
 
@@ -1015,14 +1016,14 @@ public class LocalDataClientImpl implements DataClient {
     public void dhcpSubnetsCreate(@Nonnull UUID bridgeId, @Nonnull Subnet subnet)
             throws StateAccessException, SerializationException {
         dhcpZkManager.createSubnet(bridgeId,
-                                   Converter.toDhcpSubnetConfig(subnet));
+                Converter.toDhcpSubnetConfig(subnet));
     }
 
     @Override
     public void dhcpSubnetsUpdate(@Nonnull UUID bridgeId, @Nonnull Subnet subnet)
             throws StateAccessException, SerializationException {
         dhcpZkManager.updateSubnet(bridgeId,
-                                   Converter.toDhcpSubnetConfig(subnet));
+                Converter.toDhcpSubnetConfig(subnet));
     }
 
     @Override
@@ -1123,14 +1124,14 @@ public class LocalDataClientImpl implements DataClient {
     public void dhcpSubnet6Create(@Nonnull UUID bridgeId, @Nonnull Subnet6 subnet)
             throws StateAccessException, SerializationException {
         dhcpV6ZkManager.createSubnet6(bridgeId,
-                                   Converter.toDhcpSubnet6Config(subnet));
+                Converter.toDhcpSubnet6Config(subnet));
     }
 
     @Override
     public void dhcpSubnet6Update(@Nonnull UUID bridgeId, @Nonnull Subnet6 subnet)
             throws StateAccessException, SerializationException {
         dhcpV6ZkManager.updateSubnet6(bridgeId,
-                                   Converter.toDhcpSubnet6Config(subnet));
+                Converter.toDhcpSubnet6Config(subnet));
     }
 
     @Override
@@ -1795,7 +1796,7 @@ public class LocalDataClientImpl implements DataClient {
                                        @Nonnull String localPortName)
             throws StateAccessException, SerializationException {
         hostZkManager.addVirtualPortMapping(
-            hostId, new HostDirectory.VirtualPortMapping(portId, localPortName));
+                hostId, new HostDirectory.VirtualPortMapping(portId, localPortName));
     }
 
     @Override
@@ -2294,5 +2295,28 @@ public class LocalDataClientImpl implements DataClient {
                         SystemState.State.UPGRADE.toString()))) {
             systemDataProvider.deleteSystemUpgradeState();
         }
+    }
+
+    /**
+     * Get the Host Version info
+     *
+     * @return A list containing HostVersion objects, each of which
+     *   contains version information about a specific host.
+     * @throws StateAccessException
+     */
+    public List<HostVersion> hostVersionsGet()
+            throws StateAccessException {
+        List<HostVersion> hostVersionList = new ArrayList();
+        List<String> versions = systemDataProvider.getVersionsInDeployment();
+        for (String version : versions) {
+            List<String> hosts = systemDataProvider.getHostsWithVersion(version);
+            for (String host : hosts) {
+                HostVersion hostVersion = new HostVersion();
+                hostVersion.setHostId(UUID.fromString(host));
+                hostVersion.setVersion(version);
+                hostVersionList.add(hostVersion);
+            }
+        }
+        return hostVersionList;
     }
 }

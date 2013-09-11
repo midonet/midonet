@@ -25,6 +25,7 @@ public class DtoApplication {
     private URI writeVersion;
     private URI systemState;
     private URI tenants;
+    private URI hostVersions;
     private String adRouteTemplate;
     private String bgpTemplate;
     private String bridgeTemplate;
@@ -167,6 +168,14 @@ public class DtoApplication {
 
     public void setSystemState(URI systemState) {
         this.systemState = systemState;
+    }
+
+    public URI getHostVersions() {
+        return this.hostVersions;
+    }
+
+    public void setHostVersions(URI hostVersions) {
+        this.hostVersions = hostVersions;
     }
 
     public String getAdRouteTemplate() {

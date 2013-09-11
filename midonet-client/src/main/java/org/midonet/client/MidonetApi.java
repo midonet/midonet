@@ -324,6 +324,14 @@ public class MidonetApi {
     }
 
     /**
+     * Returns List of Host Versions
+     */
+    public ResourceCollection<HostVersion> getHostVersions() {
+        ensureApplication();
+        return application.getHostVersions();
+    }
+
+    /**
      * Returns TunnelZone object
      *
      * @param id ID of tunnel zone

@@ -373,4 +373,15 @@ public class Application extends UriResource {
             return null;
         }
     }
+
+    /**
+     * @return URI host versions URI
+     */
+    public URI getHostVersions() {
+        if (getBaseUri() != null) {
+            return ResourceUriBuilder.getHostVersions(getBaseUri());
+        } else {
+            return null;
+        }
+    }
 }

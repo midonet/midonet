@@ -630,4 +630,13 @@ public interface DataClient {
      */
     public void systemStateUpdate(SystemState systemState)
         throws StateAccessException;
+
+    /**
+     * Get the version info for all the hosts.
+     *
+     * @return A list of items containing the host version info
+     * @throws StateAccessException
+     */
+    public List<HostVersion> hostVersionsGet()
+            throws StateAccessException;
 }
