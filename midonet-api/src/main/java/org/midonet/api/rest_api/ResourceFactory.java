@@ -15,6 +15,7 @@ import org.midonet.api.dhcp.rest_api.DhcpHostsResource;
 import org.midonet.api.dhcp.rest_api.DhcpV6HostsResource;
 import org.midonet.api.filter.rest_api.ChainResource;
 import org.midonet.api.monitoring.rest_api.MonitoringResource;
+import org.midonet.api.system_data.rest_api.HostVersionResource;
 import org.midonet.api.tracing.rest_api.TraceConditionResource;
 import org.midonet.api.tracing.rest_api.TraceResource;
 import org.midonet.api.system_data.rest_api.SystemStateResource;
@@ -113,4 +114,6 @@ public interface ResourceFactory {
     WriteVersionResource getWriteVersionResource();
 
     SystemStateResource getSystemStateResource();
+
+    HostVersionResource getHostVersionResource();
 }

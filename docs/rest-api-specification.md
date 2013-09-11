@@ -40,6 +40,7 @@
   * [System State](#systemstate)
   * [Write Version](#writeversion)
   * [Token](#token)
+  * [Host Version](#hostverion)
 * [Resource Collection](#resourcecollection)
 * [Authentication/Authorization](#auth)
 * [List of Acronyms](#acronyms)
@@ -3316,6 +3317,45 @@ in the body or the header of a login request.
         <td></td>
         <td></td>
         <td>The expiration date for the authentication token</td>
+    </tr>
+</table>
+
+<a name="hostversion"></a>
+### Host Version [application/vnd.org.midonet.HostVersion-v1+json]
+
+    GET     /host_version
+
+The Host Version specifies version information for each host running
+in the Midonet deployment.
+
+<table>
+    <tr>
+        <th>Field Name</th>
+        <th>Type</th>
+        <th>POST/PUT</th>
+        <th>Required</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>version</td>
+        <td>string</td>
+        <td></td>
+        <td>yes</td>
+        <td>the version of Midolman agent running on the host.</td>
+    </tr>
+    <tr>
+        <td>hostId</td>
+        <td>string</td>
+        <td></td>
+        <td>yes</td>
+        <td>The the UUID of the host that the Midolman agent is running on.</td>
+    </tr>
+    <tr>
+        <td>host</td>
+        <td>string</td>
+        <td></td>
+        <td>yes</td>
+        <td>The URI of the host that the Midolman agent is running on.</td>
     </tr>
 </table>
 

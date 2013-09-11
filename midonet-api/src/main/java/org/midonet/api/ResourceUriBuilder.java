@@ -51,6 +51,7 @@ public class ResourceUriBuilder {
     public static final String TRACE = "/trace";
     public static final String SYSTEM_STATE = "/system_state";
     public static final String WRITE_VERSION = "/write_version";
+    public static final String VERSIONS = "/versions";
     public static final String VLAN_ID = "/{vlanId}";
     public static final String MAC_ADDR = "/{macAddress}";
     public static final String PORT_ID = "/{portId}";
@@ -701,5 +702,15 @@ public class ResourceUriBuilder {
      */
     public static URI getSystemState(URI baseUri) {
         return UriBuilder.fromUri(getRoot(baseUri)).path(SYSTEM_STATE).build();
+    }
+
+    /**
+     * Generate the Host Versions URI
+     *
+     * @param baseUri Base Service URI
+     * @return System State URI
+     */
+    public static URI getHostVersions(URI baseUri) {
+        return UriBuilder.fromUri(getRoot(baseUri)).path(VERSIONS).build();
     }
 }

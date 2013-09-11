@@ -4,13 +4,17 @@
 package org.midonet.midolman.state;
 
 import com.google.inject.Inject;
+import org.apache.avro.generic.GenericData;
 import org.apache.zookeeper.CreateMode;
 import org.midonet.midolman.version.guice.VerCheck;
 import org.midonet.midolman.SystemDataProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
 
 /**
  * This class is the zookeeper data access class for system data info.
@@ -95,5 +99,25 @@ public class ZkSystemDataProvider implements SystemDataProvider {
     public boolean isBeforeWriteVersion(String version)
             throws StateAccessException {
         return (comparator.compare(version, this.getWriteVersion()) < 0);
+    }
+
+    public List<String> getVersionsInDeployment()
+            throws StateAccessException {
+        List<String> versionList = new ArrayList<String>();
+        Set<String> versionSet = zk.getChildren(paths.getVersionDirPath());
+        for (String version : versionSet) {
+            versionList.add(version);
+        }
+        return versionList;
+    }
+
+    public List<String> getHostsWithVersion(String version)
+            throws StateAccessException {
+        List<String> hosts = new ArrayList<String>();
+        Set<String> hostSet = zk.getChildren(paths.getVersionPath(version));
+        for (String host : hostSet) {
+            hosts.add(host);
+        }
+        return hosts;
     }
 }
