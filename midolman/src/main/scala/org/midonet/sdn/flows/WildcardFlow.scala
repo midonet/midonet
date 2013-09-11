@@ -46,6 +46,21 @@ abstract class WildcardFlow {
     def getHardExpirationMillis = hardExpirationMillis
     def getIdleExpirationMillis = idleExpirationMillis
 
+    def combine(that: WildcardFlow): WildcardFlow = {
+        val hardExp =
+            if (this.hardExpirationMillis >= that.hardExpirationMillis)
+                that.hardExpirationMillis
+            else this.hardExpirationMillis
+        val idleExp =
+            if (this.idleExpirationMillis >= that.idleExpirationMillis)
+                that.idleExpirationMillis
+            else this.idleExpirationMillis
+        WildcardFlow(wcmatch = this.getMatch,
+                     actions = this.actions ++ that.actions,
+                     hardExpirationMillis = hardExp,
+                     idleExpirationMillis = idleExp)
+    }
+
     override def toString: String = {
         "WildcardFlow{" +
             "actions=" + actions +

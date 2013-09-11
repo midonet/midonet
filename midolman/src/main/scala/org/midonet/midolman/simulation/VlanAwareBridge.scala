@@ -48,8 +48,9 @@ class VlanAwareBridge(val id: UUID,
 
         pktCtx.addFlowTag(FlowTagger.invalidateFlowsByDevice(id))
 
-        if (trunkPorts.contains(pktCtx.getInPortId)) processFromTrunk
-        else processFromVirtualNw
+        val res = if (trunkPorts.contains(pktCtx.getInPortId)) processFromTrunk
+            else processFromVirtualNw
+        Promise.successful(res)
     }
 
     /**
@@ -59,18 +60,17 @@ class VlanAwareBridge(val id: UUID,
      * The process will just push the associated VLAN id and output from the
      * corresponding trunk.
      */
-    def processFromVirtualNw(implicit pktCtx: PacketContext): Future[Action] = {
+    private def processFromVirtualNw(implicit pktCtx: PacketContext): Action = {
         val vlanId: JShort = vlanPortMap.getVlan(pktCtx.getInPortId)
-        vlanId match {
-            case _: JShort =>
-                log.debug("Frame from logical port, add vlan id to match {} ",
-                          vlanId)
-                pktCtx.wcmatch.addVlanId(vlanId)
-                Promise.successful(ToPortSetAction(id))
-            case _ =>
-                log.debug("Frame from port {} without vlan id, DROP",
-                          pktCtx.getInPortId)
-                Promise.successful(DropAction)
+        if (vlanId == null) {
+            log.debug(
+                "Frame from port {} without vlan id, DROP", pktCtx.getInPortId)
+            DropAction
+        } else {
+            log.debug(
+                "Frame from logical port, add vlan id to match {} ", vlanId)
+            pktCtx.wcmatch.addVlanId(vlanId)
+            ToPortSetAction(id)
         }
     }
 
@@ -84,27 +84,24 @@ class VlanAwareBridge(val id: UUID,
      * port with it, if so strip the VLAN tag and send the frame over there.
      * Otherwise, drop.
      */
-    def processFromTrunk(implicit pktCtx: PacketContext): Future[Action] = {
-
+    private def processFromTrunk(implicit pktCtx: PacketContext): Action =
         if (MAC.fromString("01:80:c2:00:00:00").equals(
                 pktCtx.getFrame.getDestinationMACAddress)) {
             log.debug("BPDU, send to all trunks")
-            Promise.successful(ToPortSetAction(id))
+            ToPortSetAction(id)
         } else {
+            pktCtx.setOutputPort(null)
             val vlanId = pktCtx.getFrame.getVlanIDs.get(0)
             val outPortId: UUID = vlanPortMap.getPort(vlanId)
-            pktCtx.setOutputPort(null)
-            outPortId match {
-                case p: UUID =>
-                    log.debug("Vlan Id {} maps to port {}, remove and send",
-                              vlanId, outPortId)
-                    pktCtx.wcmatch.removeVlanId(vlanId)
-                    Promise.successful(ToPortAction(outPortId))
-                case _ =>
-                    log.debug("Frame with unknown Vlan Id, discard")
-                    Promise.successful(DropAction)
+            if (outPortId == null) {
+                log.debug("Frame with unknown Vlan Id, discard")
+                DropAction
+            } else {
+                log.debug("Vlan Id {} maps to port {}, remove and send",
+                          vlanId, outPortId)
+                pktCtx.wcmatch.removeVlanId(vlanId)
+                ToPortAction(outPortId)
             }
         }
-    }
 
 }

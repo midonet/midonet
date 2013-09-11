@@ -53,22 +53,22 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
                 case _ =>
                     DropAction
             }
-        case badType =>
-            log.warning("Non-ARP packet with ethertype ARP: {}", badType)(null)
+        case _ =>
+            log.warning("Non-ARP packet with ethertype ARP: {}", pkt)(null)
             DropAction
     }
 
     override protected def handleL2Broadcast(inPort: RouterPort[_])
                                             (implicit pktContext: PacketContext,
                                              ec: ExecutionContext,
-                                             actorSystem: ActorSystem) = {
+                                             actorSystem: ActorSystem): Action = {
 
         // Broadcast packet:  Handle if ARP, drop otherwise.
         val payload = pktContext.getFrame.getPayload
         if (pktContext.wcmatch.getEtherType == ARP.ETHERTYPE)
-            Promise.successful(processArp(payload, inPort))(ec)
+            processArp(payload, inPort)
         else
-            Promise.successful(DropAction)(ec)
+            DropAction
     }
 
     override def handleNeighbouring(inPort: RouterPort[_])
@@ -298,27 +298,28 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
                               actorSystem: ActorSystem,
                               pktContext: PacketContext): Future[MAC] = {
         if (outPort == null)
-            return Promise.successful(null)(ec)
-        var peerMacFuture: Future[MAC] = null
-        outPort match {
-            case interior: InteriorRouterPort =>
-                if (interior.peerID == null) {
-                    log.warning("Packet sent to dangling logical port {}",
-                        rt.nextHopPort)
-                    return Promise.successful(null)(ec)
-                }
-                peerMacFuture = getPeerMac(interior, expiry)
-            case _ => /* Fall through to ARP'ing below. */
-                peerMacFuture = Promise.successful(null)(ec)
+            return Promise.successful(null)
+
+        if (outPort.isInstanceOf[InteriorRouterPort]
+                && outPort.asInstanceOf[InteriorRouterPort].peerID == null) {
+            log.warning("Packet sent to dangling logical port {}", rt.nextHopPort)
+            return Promise.successful(null)
         }
 
-        val nextHopInt: Int = rt.nextHopGateway
-        val nextHopIP: IPv4Addr = if (nextHopInt == 0 || nextHopInt == -1)
-                                    ipDest // last hop
-                                  else IPv4Addr.fromInt(nextHopInt)
-        peerMacFuture flatMap {
-            case null => getMacForIP(outPort, nextHopIP, expiry)
-            case mac => Promise.successful(mac)
+        (outPort match {
+            case interior: InteriorRouterPort =>
+                getPeerMac(interior, expiry)
+            case _ => /* Fall through to ARP'ing below. */
+                Promise.successful(null)
+        }) flatMap {
+            case null =>
+                val nextHopInt = rt.nextHopGateway
+                val nextHopIP =
+                    if (nextHopInt == 0 || nextHopInt == -1) ipDest // last hop
+                    else IPv4Addr(nextHopInt)
+                getMacForIP(outPort, nextHopIP, expiry)
+            case mac =>
+                Promise.successful(mac)
         }
     }
 
