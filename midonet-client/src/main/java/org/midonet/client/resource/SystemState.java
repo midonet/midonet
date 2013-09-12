@@ -32,9 +32,18 @@ public class SystemState extends ResourceBase<SystemState, DtoSystemState> {
         return this;
     }
 
+    public String getAvailability() {
+        return principalDto.getAvailability();
+    }
+
+    public SystemState setAvailability(String availability) {
+        principalDto.setAvailability(availability);
+        return this;
+    }
+
     @Override
     public String toString() {
-        return String.format("SystemState{state=%s}",
-                principalDto.getState());
+        return String.format("SystemState{state=%s, availability=%s}",
+                principalDto.getState(), principalDto.getAvailability());
     }
 }

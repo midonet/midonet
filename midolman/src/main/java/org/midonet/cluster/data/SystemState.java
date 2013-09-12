@@ -22,6 +22,21 @@ public class SystemState {
         }
     }
 
+    public enum Availability {
+        READWRITE("READWRITE"),
+        READONLY("READONLY");
+
+        private final String text;
+        private Availability(String stateText) {
+            this.text = stateText;
+        }
+
+        @Override
+        public String toString() {
+            return this.text;
+        }
+    }
+
     Data data;
 
     public SystemState() {
@@ -54,7 +69,17 @@ public class SystemState {
         return getData().state;
     }
 
+    public SystemState setAvailability(String availability) {
+        getData().availability = availability;
+        return self();
+    }
+
+    public String getAvailability() {
+        return getData().availability;
+    }
+
     public static class Data {
         public String state;
+        public String availability;
     }
 }

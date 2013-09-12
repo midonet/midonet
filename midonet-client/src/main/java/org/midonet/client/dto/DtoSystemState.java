@@ -12,6 +12,7 @@ import java.net.URI;
 @XmlRootElement
 public class DtoSystemState {
     private String state;
+    private String availability;
     private URI uri;
 
     public String getState() {
@@ -20,6 +21,14 @@ public class DtoSystemState {
 
     public void setState(String state) {
         this.state = state;
+    }
+
+    public void setAvailability(String availability) {
+        this.availability = availability;
+    }
+
+    public String getAvailability() {
+        return this.availability;
     }
 
     public URI getUri() {
@@ -47,6 +56,10 @@ public class DtoSystemState {
         }
 
         if (!Objects.equal(this.uri, otherSystemState.getUri())) {
+            return false;
+        }
+
+        if (!Objects.equal(this.availability, otherSystemState.getAvailability())) {
             return false;
         }
 

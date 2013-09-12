@@ -289,6 +289,14 @@ public class ZkPathManager {
         return buildSystemStatePath().append("/UPGRADE").toString();
     }
 
+    /**
+     * Get system-state path.
+     *
+     * @return /system_state/API_RESTRICTED
+     */
+    public String getConfigReadOnlyPath() {
+        return buildSystemStatePath().append("/CONFIG_READ_ONLY").toString();
+    }
 
     /**
      * Get ZK router path.

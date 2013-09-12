@@ -3230,8 +3230,8 @@ condition contains the following fields:
 
 System State specifies parameters for the various states the deployment
 might be in. You may modify the system state to make limited changes
-to the behavior of midonet. For example, changing the "upgrade" state to
-true will cause the spawning of new midolman agents to abort.
+to the behavior of midonet. For example, changing the "state" field to
+"UPGRADE" will cause the spawning of new midolman agents to abort.
 
 <table>
     <tr>
@@ -3242,17 +3242,30 @@ true will cause the spawning of new midolman agents to abort.
         <th>Description</th>
     </tr>
     <tr>
-        <td>upgrade</td>
-        <td>boolean</td>
+        <td>state</td>
+        <td>String</td>
         <td>PUT</td>
         <td>yes</td>
-        <td>setting the upgrade field to "true" will put the midolman into
+        <td>Setting the state field to "UPGRADE" will put the midolman into
         'upgrade mode', which will cause all new midolman agents starting
         up in the deployment to abort the start up process. This is used
         during deployment wide upgrades to prevent unexpected startups of
         any midolman agent that might have the wrong version. This state can
-        be reversed by setting the upgrade field to "false". The deployment is
-        not in upgrade state by default.</td>
+        be reversed by setting the upgrade field to "ACTIVE". The deployment
+        is not in upgrade state by default.</td>
+    </tr>
+    <tr>
+        <td>availability</td>
+        <td>String</td>
+        <td>PUT</td>
+        <td>yes</td>
+        <td>Setting the availability to "READONLY" will cause most API
+        requests to be rejected. The exceptions are only administrative
+        APIs that don't affect the topology: system_state and write_version.
+        This is meant to let the operator stop REST API requests while
+        performing maintenance or upgrades. Setting the availability to
+        "READWRITE" (the default value) allows both GETs and PUT/POST
+        API requests.</td>
     </tr>
 </table>
 

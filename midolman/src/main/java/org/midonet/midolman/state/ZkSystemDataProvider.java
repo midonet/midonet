@@ -4,8 +4,9 @@
 package org.midonet.midolman.state;
 
 import com.google.inject.Inject;
-import org.apache.avro.generic.GenericData;
 import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
+import org.midonet.cluster.data.SystemState;
 import org.midonet.midolman.version.guice.VerCheck;
 import org.midonet.midolman.SystemDataProvider;
 import org.slf4j.Logger;
@@ -43,17 +44,6 @@ public class ZkSystemDataProvider implements SystemDataProvider {
     }
 
     @Override
-    public void createSystemUpgradeState()
-        throws StateAccessException {
-        zk.add(paths.getSystemStateUpgradePath(), null, CreateMode.PERSISTENT);
-    }
-
-    @Override
-    public void deleteSystemUpgradeState() throws StateAccessException {
-        zk.delete(paths.getSystemStateUpgradePath());
-    }
-
-    @Override
     public boolean writeVersionExists() throws StateAccessException {
         String writeVersionPath = paths.getWriteVersionPath();
         if (zk.exists(writeVersionPath)) {
@@ -67,6 +57,47 @@ public class ZkSystemDataProvider implements SystemDataProvider {
     public void setWriteVersion(String version) throws StateAccessException {
         String writeVersionPath = paths.getWriteVersionPath();
         zk.update(writeVersionPath, version.getBytes());
+    }
+
+    @Override
+    public void setOperationState(String state) throws StateAccessException {
+        if (state.equals(SystemState.State.UPGRADE.toString())) {
+            try {
+                zk.add(paths.getSystemStateUpgradePath(), null, CreateMode.PERSISTENT);
+            } catch (StatePathExistsException e) {
+                // Do nothing. We won't treat this as an error.
+            }
+        } else if (state.equals(SystemState.State.ACTIVE.toString())) {
+            try {
+                zk.delete(paths.getSystemStateUpgradePath());
+            } catch (NoStatePathException e) {
+                // Do nothing. We won't treat this as an error.
+            }
+        }
+    }
+
+    @Override
+    public void setConfigState(String state) throws StateAccessException {
+        if (state.equals(SystemState.Availability.READONLY.toString())) {
+            try {
+                zk.add(paths.getConfigReadOnlyPath(), null, CreateMode.PERSISTENT);
+            } catch (StatePathExistsException e) {
+                // Do nothing. We won't treat this as an error.
+            }
+        } else if (state.equals((SystemState.Availability.READWRITE.toString()))) {
+            try {
+                zk.delete(paths.getConfigReadOnlyPath());
+            } catch (NoStatePathException e) {
+                // Do nothing. We won't treat this as an error.
+            }
+        }
+    }
+
+    @Override
+    public boolean configReadOnly()
+        throws StateAccessException {
+        String configReadOnlyPath = paths.getConfigReadOnlyPath();
+        return zk.exists(configReadOnlyPath);
     }
 
     /**

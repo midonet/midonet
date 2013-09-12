@@ -81,10 +81,15 @@ public class ZkManager {
             throws StateAccessException {
         try {
             return this.zk.add(relativePath, data, mode);
+        } catch (NodeExistsException e) {
+            throw new StatePathExistsException(
+                    "path does not exist: "
+                            + relativePath + ": " + e.getMessage(), e);
         } catch (KeeperException e) {
             throw new StateAccessException(
-                    "ZooKeeper error occurred while checking if path exists: "
-                            + relativePath + ": " + e.getMessage(), e);
+                    "ZooKeeper thread interrupted while checking if path " +
+                            "exists: " + relativePath +
+                            ": " + e.getMessage(), e);
         } catch (InterruptedException e) {
             throw new StateAccessException(
                     "ZooKeeper thread interrupted while checking if path " +
