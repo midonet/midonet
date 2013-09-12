@@ -11,7 +11,7 @@ import akka.actor.{ActorContext, ActorSystem}
 import org.midonet.cluster.client.RouterPort
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.logging.{LoggerFactory, SimulationAwareBusLogging}
-import org.midonet.midolman.rules.RuleResult.{Action => RuleAction}
+import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.topology.RouterConfig
 import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 import org.midonet.midolman.topology.VirtualTopologyActor.expiringAsk
@@ -84,17 +84,20 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
         val preRoutingResult = Chain.apply(inFilter, pktContext,
                 pktContext.wcmatch, id, false)
 
-        if (preRoutingResult.action == RuleAction.DROP) {
-            Some(DropAction)
-        } else if (preRoutingResult.action == RuleAction.REJECT) {
-            sendIcmpUnreachableProhibError(inPort, pktContext.wcmatch,
-                pktContext.getFrame)
-            Some(DropAction)
-        } else if (preRoutingResult.action != RuleAction.ACCEPT) {
-            log.error("Pre-routing for {} returned an action which was {}, " +
-                "not ACCEPT, DROP, or REJECT.", id, preRoutingResult.action)
-            Some(ErrorDropAction)
+        preRoutingResult.action match {
+            case RuleResult.Action.ACCEPT => // pass through
+            case RuleResult.Action.DROP =>
+                return Some(DropAction)
+            case RuleResult.Action.REJECT =>
+                sendIcmpUnreachableProhibError(inPort, pktContext.wcmatch,
+                    pktContext.getFrame)
+                return Some(DropAction)
+            case other =>
+                log.error("Pre-routing for {} returned an action which was {}, " +
+                    "not ACCEPT, DROP, or REJECT.", id, preRoutingResult.action)
+                return Some(ErrorDropAction)
         }
+
         if (preRoutingResult.pmatch ne pktContext.wcmatch) {
             log.error("Pre-routing for {} returned a different match obj.", id)
             Some(ErrorDropAction)
@@ -237,20 +240,22 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
         val pFrame = pktContext.getFrame
 
         pktContext.setOutputPort(outPort.id)
-        val postRoutingResult = Chain.apply(outFilter, pktContext, pMatch,
-                                            id, false)
+        val postRoutingResult =
+            Chain.apply(outFilter, pktContext, pMatch, id, false)
 
-        if (postRoutingResult.action == RuleAction.DROP) {
-            log.debug("PostRouting DROP rule")
-            return Promise.successful(DropAction)
-        } else if (postRoutingResult.action == RuleAction.REJECT) {
-            log.debug("PostRouting REJECT rule")
-            sendIcmpUnreachableProhibError(inPort, pMatch, pFrame)
-            return Promise.successful(DropAction)
-        } else if (postRoutingResult.action != RuleAction.ACCEPT) {
-            log.error("Post-routing for {} returned an action which was {}, " +
-                "not ACCEPT, DROP, or REJECT.", id, postRoutingResult.action)
-            return Promise.successful(ErrorDropAction)
+        postRoutingResult.action match {
+            case RuleResult.Action.ACCEPT => // pass through
+            case RuleResult.Action.DROP =>
+                log.debug("PostRouting DROP rule")
+                return Promise.successful(DropAction)
+            case RuleResult.Action.REJECT =>
+                log.debug("PostRouting REJECT rule")
+                sendIcmpUnreachableProhibError(inPort, pMatch, pFrame)
+                return Promise.successful(DropAction)
+            case other =>
+                log.error("Post-routing for {} returned {} which was not " +
+                    "ACCEPT, DROP or REJECT.", id, other)
+                return Promise.successful(ErrorDropAction)
         }
 
         if (postRoutingResult.pmatch ne pMatch) {
