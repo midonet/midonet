@@ -46,9 +46,13 @@ fail_if_final_release() {
     echo $1 | grep -- '-' >/dev/null || exit 1
 }
 
+# Params: submodule version isFinal
+# if isFinal == true, will force that all pom files are updated to the correct
+# version. You can run ./release prepare to alter all the poms.
 check_git_submodule_version() {
     submod=$1
     ver=$2
+    isFinal=$3
 
     echo "Checking git tag for $submod"
 
@@ -57,7 +61,9 @@ check_git_submodule_version() {
     gitmodver=`git describe`
     if [ "$gitmodver" != "$ver" ] ; then
         echo "Tag mismatch in $submod: found=[$gitmodver] expected=[$ver]"
-        fail_if_final_release $ver
+        if [ "$isFinal" == true ] ; then
+            fail_if_final_release $ver
+        fi
     fi
     popd > /dev/null
 }
@@ -159,23 +165,34 @@ collect_midonet_rpms() {
     done
 }
 
+# Params: pkgVer isFinal
 check_git_tags() {
     pkgver=$1
+    isFinal=$2
     echo "Checking tag version numbers in git submodules"
     for submod in $git_submodules ; do
-        check_git_submodule_version $submod $pkgver
+        check_git_submodule_version $submod $pkgver $isFinal
     done
 }
 
+# Params: isFinal
 do_package_deb() {
     echo "Building for debian"
     git_setup
 
-    echo "Reading version number from git"
-    pkgver=`git describe`
+    pkgver=$1
+    isFinal=false
+    if [ "$pkgver" == "" ]
+    then
+    	echo "Reading version number from git"
+    	pkgver=`git describe`
+        isFinal=true
+    else
+        echo "Enforcing non-final version number $pkgver"
+    fi
 
-    echo "Package version: $pkgver"
-    check_git_tags $pkgver
+    echo "Package version: $pkgver, is final: $isFinal"
+    check_git_tags $pkgver $isFinal
 
     # drop the leading 'v' used in the git tags
     pkgver=`echo $pkgver | sed -e s/^v//`
@@ -204,14 +221,16 @@ do_package_deb() {
 }
 
 do_package_rhel() {
+    isFinal=$1
+
     echo "Building for RHEL"
     git_setup
 
     echo "Reading version number from git"
     pkgver=`git describe`
 
-    echo "Package version: $pkgver"
-    check_git_tags $pkgver
+    echo "Package version: $pkgver, isFinal? $isFinal"
+    check_git_tags $pkgver $isFinal
 
     # drop the leading 'v' used in the git tags
     pkgver=`echo $pkgver | sed -e s/^v//`
@@ -269,12 +288,13 @@ do_prepare() {
 
 
 COMMAND="$1"
+VERSION="$2"
 shift
 
 set -e
 case $COMMAND in
-    deb) do_package_deb ;;
-    rhel) do_package_rhel ;;
+    deb) do_package_deb $VERSION ;;
+    rhel) do_package_rhel $VERSION ;;
     prepare) do_prepare $@ ;;
     *) usage ;;
 esac
