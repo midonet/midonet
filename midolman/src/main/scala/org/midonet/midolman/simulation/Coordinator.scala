@@ -23,7 +23,7 @@ import org.midonet.midolman.datapath.FlowActionOutputToVrnPort
 import org.midonet.midolman.datapath.FlowActionOutputToVrnPortSet
 import org.midonet.midolman.logging.LoggerFactory
 import org.midonet.midolman.rules.Condition
-import org.midonet.midolman.rules.RuleResult.{Action => RuleAction}
+import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.topology.VirtualTopologyActor.BridgeRequest
 import org.midonet.midolman.topology.VirtualTopologyActor.ChainRequest
 import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
@@ -587,18 +587,17 @@ class Coordinator(var origMatch: WildcardMatch,
                     pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(filterID))
                     pktContext.addFlowTag(
                         FlowTagger.invalidateFlowsByDeviceFilter(port.id, filterID))
-
                     val result = Chain.apply(chain, pktContext,
                         pktContext.wcmatch, port.id, true)
-                    if (result.action == RuleAction.ACCEPT) {
-                        thunk(port)
-                    } else if (result.action == RuleAction.DROP ||
-                        result.action == RuleAction.REJECT) {
-                        dropFlow(temporary = false, withTags = true)
-                    } else {
-                        log.error("Port filter {} returned {}, not ACCEPT, " +
-                            "DROP, or REJECT.", filterID, result.action)
-                        dropFlow(temporary = true)
+                    result.action match {
+                        case RuleResult.Action.ACCEPT =>
+                            thunk(port)
+                        case RuleResult.Action.DROP | RuleResult.Action.REJECT =>
+                            dropFlow(temporary = false, withTags = true)
+                        case other =>
+                            log.error("Port filter {} returned {} which was " +
+                                "not ACCEPT, DROP or REJECT.", filterID, other)
+                            dropFlow(temporary = true)
                     }
                 case _ =>
                     log.error("VirtualTopologyActor didn't return a chain!")
