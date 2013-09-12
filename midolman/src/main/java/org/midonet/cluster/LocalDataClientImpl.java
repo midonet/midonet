@@ -2273,8 +2273,12 @@ public class LocalDataClientImpl implements DataClient {
             throws StateAccessException {
         SystemState systemState = new SystemState();
         boolean upgrade = systemDataProvider.systemUpgradeStateExists();
+        boolean readonly = systemDataProvider.configReadOnly();
         systemState.setState(upgrade ? SystemState.State.UPGRADE.toString()
                                      : SystemState.State.ACTIVE.toString());
+        systemState.setAvailability(
+                readonly ? SystemState.Availability.READONLY.toString()
+                : SystemState.Availability.READWRITE.toString());
         return systemState;
     }
 
@@ -2286,15 +2290,9 @@ public class LocalDataClientImpl implements DataClient {
      */
     public void systemStateUpdate(SystemState systemState)
             throws StateAccessException {
-        if (!systemDataProvider.systemUpgradeStateExists() &&
-                (systemState.getState().equalsIgnoreCase(
-                        SystemState.State.UPGRADE.toString()))) {
-            systemDataProvider.createSystemUpgradeState();
-        } else if (systemDataProvider.systemUpgradeStateExists() &&
-                !(systemState.getState().equalsIgnoreCase(
-                        SystemState.State.UPGRADE.toString()))) {
-            systemDataProvider.deleteSystemUpgradeState();
-        }
+
+        systemDataProvider.setOperationState(systemState.getState());
+        systemDataProvider.setConfigState(systemState.getAvailability());
     }
 
     /**

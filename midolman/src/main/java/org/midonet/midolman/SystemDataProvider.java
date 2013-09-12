@@ -8,7 +8,7 @@ import org.midonet.midolman.state.StateAccessException;
 import java.util.List;
 
 /**
- * This interface defines methods to provide data version information.
+ * This interface defines methods to provide system data information.
  */
 public interface SystemDataProvider {
 
@@ -24,10 +24,14 @@ public interface SystemDataProvider {
     public boolean systemUpgradeStateExists()
             throws StateAccessException;
 
-    public void createSystemUpgradeState()
+    public void setOperationState(String state)
             throws StateAccessException;
 
-    public void deleteSystemUpgradeState() throws StateAccessException;
+    public void setConfigState(String state)
+            throws StateAccessException;
+
+    public boolean configReadOnly()
+            throws StateAccessException;
 
     public boolean isBeforeWriteVersion(String version)
             throws StateAccessException;
