@@ -121,10 +121,6 @@ object DatapathController extends Referenceable {
      */
     case class DatapathReady(datapath: Datapath, state: DatapathState)
 
-    sealed trait DpPortOperation
-    case object Create extends DpPortOperation
-    case object Delete extends DpPortOperation
-
     /**
      * Message to ask a port operation inside the datapath. The operation can
      * either be a create or delete request according to the return value of
@@ -137,17 +133,20 @@ object DatapathController extends Referenceable {
         type TypedPort <: Port[_ <: PortOptions, TypedPort]
         val port: TypedPort
         val tag: Option[AnyRef]
-        val op: DpPortOperation // only used by tests
-        def successReply = DpPortSuccess(this)
+        def update(p: TypedPort): DpPortRequest
+        def successReply(createdPort: Port[_,_]) =
+            DpPortSuccess(update(createdPort.asInstanceOf[TypedPort]))
         def errorReply(timeout: Boolean, error: NetlinkException) =
             DpPortError(this, timeout, error)
     }
 
-    sealed trait DpPortCreate extends DpPortRequest { val op = Create }
-    sealed trait DpPortDelete extends DpPortRequest { val op = Delete }
+    sealed trait DpPortCreate extends DpPortRequest
+    sealed trait DpPortDelete extends DpPortRequest
 
     sealed trait DpPortReply { val request: DpPortRequest }
+
     case class DpPortSuccess(request: DpPortRequest) extends DpPortReply
+
     case class DpPortError(
         request: DpPortRequest, timeout: Boolean, error: NetlinkException
     ) extends DpPortReply
@@ -156,28 +155,40 @@ object DatapathController extends Referenceable {
     trait InternalDpPortHolder { type TypedPort = InternalPort }
 
     case class CreateDpPortInternal(port: InternalPort, tag: Option[AnyRef])
-        extends DpPortCreate with InternalDpPortHolder
+            extends DpPortCreate with InternalDpPortHolder {
+        override def update(p: InternalPort) = CreateDpPortInternal(p, this.tag)
+    }
 
     case class DeleteDpPortInternal(port: InternalPort, tag: Option[AnyRef])
-        extends DpPortDelete with InternalDpPortHolder
+            extends DpPortDelete with InternalDpPortHolder {
+        override def update(p: InternalPort) = DeleteDpPortInternal(p, this.tag)
+    }
 
 
     trait NetDevDpPortHolder { type TypedPort = NetDevPort }
 
     case class CreatePortNetdev(port: NetDevPort, tag: Option[AnyRef])
-        extends DpPortCreate with NetDevDpPortHolder
+            extends DpPortCreate with NetDevDpPortHolder {
+        override def update(p: NetDevPort) = CreatePortNetdev(p, this.tag)
+    }
 
     case class DeletePortNetdev(port: NetDevPort, tag: Option[AnyRef])
-        extends DpPortDelete with NetDevDpPortHolder
+            extends DpPortDelete with NetDevDpPortHolder {
+        override def update(p: NetDevPort) = DeletePortNetdev(p, this.tag)
+    }
 
 
     trait GreDpPortHolder { type TypedPort = GreTunnelPort }
 
     case class CreateTunnelGre(port: GreTunnelPort, tag: Option[AnyRef])
-        extends DpPortCreate with GreDpPortHolder
+            extends DpPortCreate with GreDpPortHolder {
+        override def update(p: GreTunnelPort) = CreateTunnelGre(p, this.tag)
+    }
 
     case class DeleteTunnelGre(port: GreTunnelPort, tag: Option[AnyRef])
-        extends DpPortDelete with GreDpPortHolder
+            extends DpPortDelete with GreDpPortHolder {
+        override def update(p: GreTunnelPort) = DeleteTunnelGre(p, this.tag)
+    }
 
     /**
      * This message requests that the DatapathController keep a temporary
@@ -674,11 +685,10 @@ class DatapathController() extends Actor with ActorLogging with
                         FlowTagger.invalidateDPPort(port.getPortNo.shortValue()))
                     if (active)
                         installTunnelKeyFlow(port, exterior)
-
                 case _ =>
                     log.warning("local port {} activated, but it's not an " +
                         "ExteriorPort: I don't know what to do with it: {}", port)
-        }
+            }
 
     def handlePortOperationReply(opReply: DpPortReply) {
         log.debug("Port operation reply: {}", opReply)
@@ -712,7 +722,7 @@ class DatapathController() extends Actor with ActorLogging with
             case DpPortError(_: DpPortDelete, _, _) =>
                 log.warning("Failed DpPortDelete {}", opReply)
 
-            case DpPortError(req, timeout, ex) =>
+            case DpPortError(_, _, _) =>
                 log.warning("not handling DpPortError reply {}", opReply)
 
             case _ =>
@@ -737,7 +747,7 @@ class DatapathController() extends Actor with ActorLogging with
         datapathConnection.portsCreate(datapath, port,
             new ErrorHandlingCallback[Port[_, _]] {
                 def onSuccess(data: Port[_, _]) {
-                    caller ! request.successReply
+                    caller ! request.successReply(data)
                 }
 
                 def handleError(ex: NetlinkException, timeout: Boolean) {
@@ -755,7 +765,7 @@ class DatapathController() extends Actor with ActorLogging with
         datapathConnection.portsDelete(port, datapath,
             new ErrorHandlingCallback[Port[_, _]] {
                 def onSuccess(data: Port[_, _]) {
-                    caller ! request.successReply
+                    caller ! request.successReply(data)
                 }
 
                 def handleError(ex: NetlinkException, timeout: Boolean) {
