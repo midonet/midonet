@@ -762,14 +762,15 @@ class Coordinator(var origMatch: WildcardMatch,
                         FlowKeys.ipv4(srcIP,
                             modif.getNetworkDestinationIP.asInstanceOf[IPv4Addr],
                             modif.getNetworkProtocol)
-                        //.setFrag(?)
+                        .setFrag(modif.getIpFragmentType
+                                      .ordinal().asInstanceOf[Byte])
                         .setTos(modif.getNetworkTypeOfService)
                         .setTtl(modif.getNetworkTTL)
                     case srcIP: IPv6Addr =>
                         FlowKeys.ipv6(srcIP,
                             modif.getNetworkDestinationIP.asInstanceOf[IPv6Addr],
                             modif.getNetworkProtocol)
-                        //.setFrag(?)
+                        .setFrag(modif.getIpFragmentType)
                         .setHLimit(modif.getNetworkTTL)
                 }
             ))
