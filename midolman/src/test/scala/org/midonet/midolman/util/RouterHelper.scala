@@ -29,6 +29,8 @@ trait RouterHelper extends SimulationHelper {
                                  icmpType: Char, icmpCode: Char,
                                  pkt: Ethernet){
         pkt.getEtherType should be === IPv4.ETHERTYPE
+        pkt.getSourceMACAddress should be === fromMac
+        pkt.getDestinationMACAddress should be === toMac
         val ipPkt = pkt.getPayload.asInstanceOf[IPv4]
         ipPkt.getProtocol should be === ICMP.PROTOCOL_NUMBER
         ipPkt.getDestinationAddress should be === toIp.addr
