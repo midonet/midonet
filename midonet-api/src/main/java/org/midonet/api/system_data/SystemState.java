@@ -13,6 +13,7 @@ import org.midonet.api.UriResource;
 public class SystemState extends UriResource {
 
     private String state;
+    private String availability;
 
     public SystemState() {
         super();
@@ -21,11 +22,13 @@ public class SystemState extends UriResource {
     public SystemState(org.midonet.cluster.data.SystemState systemState) {
         super();
         this.state = systemState.getState();
+        this.availability = systemState.getAvailability();
     }
 
     public org.midonet.cluster.data.SystemState toData() {
         return new org.midonet.cluster.data.SystemState()
-                .setState(this.state);
+                .setState(this.state)
+                .setAvailability(this.availability);
     }
 
     public String getState() {
@@ -34,6 +37,14 @@ public class SystemState extends UriResource {
 
     public void setState(String state) {
         this.state = state;
+    }
+
+    public String getAvailability() {
+        return availability;
+    }
+
+    public void setAvailability(String availability) {
+        this.availability = availability;
     }
 
     /**
