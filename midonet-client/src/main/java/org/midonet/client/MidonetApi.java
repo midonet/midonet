@@ -324,6 +324,16 @@ public class MidonetApi {
     }
 
     /**
+     * Returns SystemState object
+     *
+     * @return SystemState
+     */
+    public SystemState getSystemState() {
+        ensureApplication();
+        return application.getSystemState();
+    }
+
+    /**
      * Returns List of Host Versions
      */
     public ResourceCollection<HostVersion> getHostVersions() {
