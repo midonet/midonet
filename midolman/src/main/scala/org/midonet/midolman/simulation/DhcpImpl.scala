@@ -84,38 +84,40 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
                 // TODO(pino): make this asynchronous?
                 val host = dataClient.dhcpHostsGet(
                     port.deviceID, sub.getSubnetAddr, sourceMac.toString)
-                log.debug("Found DHCP static assignment for mac {} => {}",
-                    sourceMac, host)
-                serverAddr = sub.getServerAddr
-                // TODO(pino): the server MAC should be in configuration.
-                serverMac = MAC.fromString("02:a8:9c:de:39:27")
-                routerAddr = sub.getDefaultGateway
-                yiaddr = host.getIp.clone.setMaskLength(
-                    sub.getSubnetAddr.getMaskLength)
-                if (sub.getDnsServerAddrs != null)
-                    dnsServerAddrs = sub.getDnsServerAddrs
-                opt121Routes = sub.getOpt121Routes
-                interfaceMTU = sub.getInterfaceMTU
-                if (interfaceMTU == 0) {
-                    var interfaceMTUFuture : Future[Short] = null
-                    interfaceMTUFuture = calculateInterfaceMTU
-                    return (interfaceMTUFuture flatMap {
-                        case mtu =>
-                            if (mtu == 0) {
-                                log.error("Fail to calculate interface MTU");
-                                Promise.successful(false)
-                            } else {
-                                log.debug("Future returned, mtu is {}", mtu);
-                                interfaceMTU = mtu
-                                makeDhcpReply
-                            }
-                    })
-                } else {
-                    return makeDhcpReply
+                if (host != null) {
+                    log.debug("Found DHCP static assignment for mac {} => {}",
+                        sourceMac, host)
+                    serverAddr = sub.getServerAddr
+                    // TODO(pino): the server MAC should be in configuration.
+                    serverMac = MAC.fromString("02:a8:9c:de:39:27")
+                    routerAddr = sub.getDefaultGateway
+                    yiaddr = host.getIp.clone.setMaskLength(
+                        sub.getSubnetAddr.getMaskLength)
+                    if (sub.getDnsServerAddrs != null)
+                        dnsServerAddrs = sub.getDnsServerAddrs
+                    opt121Routes = sub.getOpt121Routes
+                    interfaceMTU = sub.getInterfaceMTU
+                    if (interfaceMTU == 0) {
+                        var interfaceMTUFuture : Future[Short] = null
+                        interfaceMTUFuture = calculateInterfaceMTU
+                        return (interfaceMTUFuture flatMap {
+                            case mtu =>
+                                if (mtu == 0) {
+                                    log.error("Fail to calculate interface MTU")
+                                    Promise.successful(false)
+                                } else {
+                                    log.debug("Future returned, mtu is {}", mtu)
+                                    interfaceMTU = mtu
+                                    makeDhcpReply
+                                }
+                        })
+                    } else {
+                        return makeDhcpReply
+                    }
                 }
             } catch {
                 case e: StateAccessException => //do nothing; try another subnet
-                  log.debug("Exception: {}", e)
+                    log.debug("Exception: {}", e)
             }
         }
         // Couldn't find a static DHCP host assignment for this mac.
