@@ -20,6 +20,7 @@ public interface KeystoneConfig extends AuthConfig {
     public static final String SERVICE_PROTOCOL_KEY = "service_protocol";
     public static final String SERVICE_HOST_kEY = "service_host";
     public static final String SERVICE_PORT_KEY = "service_port";
+    public static final String TENANT_NAME = "tenant_name";
 
     @ConfigString(key = ADMIN_TOKEN, defaultValue = "")
     public String getAdminToken();
@@ -32,5 +33,8 @@ public interface KeystoneConfig extends AuthConfig {
 
     @ConfigInt(key = SERVICE_PORT_KEY, defaultValue = 35357)
     public int getServicePort();
+
+    @ConfigString(key = TENANT_NAME, defaultValue = "admin")
+    public String getAdminName();
 
 }
