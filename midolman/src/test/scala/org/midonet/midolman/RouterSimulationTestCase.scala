@@ -755,15 +755,25 @@ class RouterSimulationTestCase extends MidolmanTestCase with
                 false should be (true)
         }
     }
-/*
-    @Ignore def testFilterBadSrcForPort() {
+
+    def testDropsVlanTraffic() {
+        val onPort = 12
+        val eth = new Ethernet()
+                      .setEtherType(Ethernet.VLAN_TAGGED_FRAME)
+                      .setDestinationMACAddress(portNumToMac(onPort))
+                      .setVlanID(10)
+                      .setSourceMACAddress(MAC.fromString("01:02:03:04:05:06"))
+                      .setPad(true)
+        triggerPacketIn(portNumToName(onPort), eth)
+        expectPacketOnPort(portNumToId(onPort))
+        val flow = expectFlowAddedMessage()
+        flow.getMatch.getEthernetDestination should equal(portNumToMac(onPort))
+        flow.getMatch.getEthernetSource should equal(MAC.fromString("01:02:03:04:05:06"))
+        flow.getMatch.getVlanIds.size() should equal(1)
+        flow.getMatch.getVlanIds.get(0) should equal(10)
+        // A flow with no actions drops matching packets
+        flow.actions.size should equal(0)
+
     }
 
-    @Ignore def testFilterBadDestination() {
-    }
-
-    @Ignore def testDnat() {
-    }
-
-    */
 }
