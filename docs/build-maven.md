@@ -29,7 +29,6 @@ parent-children level:
     $ find ./ -iname pom.xml
     ./netlink/pom.xml
     ./packets/pom.xml
-    ./midonet-functional-tests/pom.xml
     ./midonet-api/pom.xml
     ./midonet-client/pom.xml
     ./pom.xml
@@ -277,25 +276,6 @@ to external libraries and jar files. You can ask for reports with commands
 output. Be warned that $ mvn dependency:analyze has some false negatives
 where it can diagnose jars as not used although they are required by the code
 to correctly execute.
-
-### functional tests
-
-Tests in the midonet-functional-tests submodules are by default off. To run them
-you need to activate the mvn profile "func-tests" with the command line option
--Pfunc-tests. You will also need a linux environment with the openvswitch
-datapath kernel module installed (version 1.9+).
-
-`$ mvn test` compiles all subprojects and run all tests except those in the
-midonet-functional-tests subproject.
-
-`$ mvn test -Pfunc-tests` compiles all subprojects and runs all tests.
-
-`$ mvn test -Pfunc-tests -pl midonet-functional-tests` compiles and runs tests
-only in midonet-functional-tests. If you have not compiled the other modules
-already this will fail.
-
-`$ mvn test -Pfunc-tests -Dtest=FuncTestFoo` compiles all subprojects and runs a
-single functional test.
 
 
 ## Pom files internals

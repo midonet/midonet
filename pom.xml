@@ -23,7 +23,6 @@
         <module>midolman</module>
         <module>midonet-client</module>
         <module>midonet-api</module>
-        <module>midonet-functional-tests</module>
     </modules>
 
     <properties>
