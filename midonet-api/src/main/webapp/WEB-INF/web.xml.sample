@@ -84,6 +84,13 @@
     <param-name>keystone-admin_token</param-name>
     <param-value>999888777666</param-value>
   </context-param>
+  <!-- This tenant name is used to get the scoped token from Keystone, and
+       should be the tenant name of the user that owns the token sent in the
+       request -->
+  <context-param>
+    <param-name>keystone-tenant_name</param-name>
+    <param-value>admin</param-value>
+  </context-param>
 
   <!-- CloudStack auth configuration -->
   <context-param>
