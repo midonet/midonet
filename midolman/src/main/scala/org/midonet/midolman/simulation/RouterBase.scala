@@ -268,9 +268,6 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
             return Promise.successful(DropAction)
         }
 
-        // Set HWSrc
-        pMatch.setEthernetSource(outPort.portMac)
-
         // Set HWDst
         val macFuture = getNextHopMac(outPort, rt,
                               pMatch.getNetworkDestinationIP.asInstanceOf[IP],
@@ -288,6 +285,7 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
                 ErrorDropAction
             case nextHopMac =>
                 log.debug("routing packet to {}", nextHopMac)
+                pMatch.setEthernetSource(outPort.portMac)
                 pMatch.setEthernetDestination(nextHopMac)
                 new ToPortAction(rt.nextHopPort)
         }
