@@ -152,8 +152,14 @@ public class KeystoneService implements AuthService {
 
         // For Keystone, since we need a scoped token, project is required.
         String project = request.getHeader(HEADER_X_AUTH_PROJECT);
+
         if (StringUtil.isNullOrEmpty(project)) {
-            throw new InvalidCredentialsException("Project missing");
+            // the project was not specified in the request, so we need
+            // to try and obtain it from the config.
+            project = this.config.getAdminName();
+            if (StringUtil.isNullOrEmpty(project)) {
+                throw new InvalidCredentialsException("Project missing");
+            }
         }
 
         // Construct the credentials
