@@ -10,9 +10,8 @@ import akka.actor.{ActorContext, ActorSystem}
 
 import org.midonet.cluster.client.RouterPort
 import org.midonet.midolman.layer3.Route
-import org.midonet.midolman.logging.{LoggerFactory, SimulationAwareBusLogging}
+import org.midonet.midolman.logging.LoggerFactory
 import org.midonet.midolman.rules.RuleResult
-import org.midonet.midolman.topology.RouterConfig
 import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 import org.midonet.midolman.topology.VirtualTopologyActor.expiringAsk
 import org.midonet.midolman.topology.{FlowTagger, RoutingTableWrapper, TagManager, RouterConfig}
@@ -44,7 +43,8 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
     protected def unsupportedPacketAction: Action
 
     /**
-     * Process the packet and
+     * Process the packet. Will validate first the ethertype and ensure that
+     * traffic is not vlan-tagged.
      *
      * @param pktContext The context for the simulation of this packet's
      *                   traversal of the virtual network. Use the context to
@@ -61,7 +61,14 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
                                   actorSystem: ActorSystem): Future[Action] = {
         implicit val packetContext = pktContext
 
+        if (!pktContext.wcmatch.getVlanIds.isEmpty) {
+            log.info("Dropping VLAN tagged traffic")
+            return Promise.successful(DropAction)
+        }
+
         if (!validEthertypes.contains(pktContext.wcmatch.getEtherType)) {
+            log.info("Dropping unsupported EtherType {}",
+                      pktContext.wcmatch.getEtherType)
             return Promise.successful(unsupportedPacketAction)
         }
 
