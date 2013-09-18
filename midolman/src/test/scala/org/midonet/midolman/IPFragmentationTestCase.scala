@@ -167,14 +167,13 @@ class IPFragmentationTestCase extends MidolmanTestCase with VMsBehindRouterFixtu
         setupL4TouchingChain()
         val packet = makePacket(IPFragmentType.Later)
         triggerPacketIn(vmPortNames(sendingVm), packet)
-        fishForRequestOfType[AddWildcardFlow](flowProbe())
         fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
         packetsEventsProbe.expectNoMsg()
         packet.setSourceMACAddress(MAC.fromString("02:02:03:03:04:04"))
         packet.setDestinationMACAddress(MAC.fromString("02:02:06:06:08:08"))
         triggerPacketIn(vmPortNames(sendingVm), packet)
         packetsEventsProbe.expectNoMsg()
-        wflowAddedProbe.expectNoMsg()
+        fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
         wflowRemovedProbe.expectNoMsg()
     }
 
@@ -227,13 +226,22 @@ class IPFragmentationTestCase extends MidolmanTestCase with VMsBehindRouterFixtu
         triggerPacketIn(vmPortNames(sendingVm), packet)
         expectPacketOut(vmPortNumbers(sendingVm))
 
+        requestOfType[WildcardFlowAdded](wflowAddedProbe)
+
         packet = makePacket(IPFragmentType.Later)
         triggerPacketIn(vmPortNames(sendingVm), packet)
+        requestOfType[WildcardFlowAdded](wflowAddedProbe)
 
         packet = makePacket(IPFragmentType.None)
         triggerPacketIn(vmPortNames(sendingVm), packet)
         val pktOut = expectPacketOut(vmPortNumbers(receivingVm))
         pktOut should be === packet
+        requestOfType[WildcardFlowAdded](wflowAddedProbe)
+
+        clusterDataClient().portsDelete(vmPorts(sendingVm).getId)
+        requestOfType[WildcardFlowRemoved](wflowRemovedProbe)
+        requestOfType[WildcardFlowRemoved](wflowRemovedProbe)
+        requestOfType[WildcardFlowRemoved](wflowRemovedProbe)
     }
 
 }
