@@ -40,7 +40,7 @@
   * [System State](#systemstate)
   * [Write Version](#writeversion)
   * [Token](#token)
-  * [Host Version](#hostverion)
+  * [Host Version](#hostversion)
 * [Resource Collection](#resourcecollection)
 * [Authentication/Authorization](#auth)
 * [List of Acronyms](#acronyms)
@@ -3336,7 +3336,7 @@ in the body or the header of a login request.
 <a name="hostversion"></a>
 ### Host Version [application/vnd.org.midonet.HostVersion-v1+json]
 
-    GET     /host_version
+    GET     /versions
 
 The Host Version specifies version information for each host running
 in the Midonet deployment.
