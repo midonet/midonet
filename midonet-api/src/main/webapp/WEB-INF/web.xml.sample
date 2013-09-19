@@ -21,7 +21,7 @@
   </context-param>
   <context-param>
     <param-name>cors-access_control_allow_headers</param-name>
-    <param-value>Origin, X-Auth-Token, Content-Type, Accept</param-value>
+    <param-value>Origin, X-Auth-Token, Content-Type, Accept, Authorization</param-value>
   </context-param>
   <context-param>
     <param-name>cors-access_control_allow_methods</param-name>
