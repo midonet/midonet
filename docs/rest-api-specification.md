@@ -3403,9 +3403,11 @@ base URI:
 where <i>Zm9vOmJhcg==</i> is the base64 encoded value of 'foo:bar'.
 
 If the API sever is configured to use OpenStack Keystone as its authentication
-service, you must also send the 'tenant ID' in the header:
+service, then the tenant name given in the web.xml file will be used in the
+request sent to the keystone authentication service. However, you can override
+this tenant name by specifying it in the request header.
 
-    X-Auth-Project: example_tenant
+    X-Auth-Project: example_tenant_name
 
 The server returns 401 Unauthorized if the authentication fails, and 200 if
 succeeds.  When the login succeeds, the server sets 'Set-Cookie' header with
