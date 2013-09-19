@@ -334,6 +334,16 @@ public class MidonetApi {
     }
 
     /**
+     * Returns WriteVersion object
+     *
+     * @return WriteVersion
+     */
+    public WriteVersion getWriteVersion() {
+        ensureApplication();
+        return application.getWriteVersion();
+    }
+
+    /**
      * Returns List of Host Versions
      */
     public ResourceCollection<HostVersion> getHostVersions() {
