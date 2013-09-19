@@ -279,10 +279,9 @@ class Coordinator(var origMatch: WildcardMatch,
                     }
                 case IPFragmentType.Later =>
                     log.info("Dropping non-first fragment at simulation layer")
-                    val wMatch = new WildcardMatch()
-                                     .setIpFragmentType(IPFragmentType.Later)
-                    val wFlow = WildcardFlow(wcmatch = wMatch)
-                    AddVirtualWildcardFlow(wFlow, Set.empty, Set.empty)
+                    AddVirtualWildcardFlow(WildcardFlow(wcmatch = origMatch),
+                                           pktContext.getFlowRemovedCallbacks,
+                                           pktContext.getFlowTags)
             }
     }
 
