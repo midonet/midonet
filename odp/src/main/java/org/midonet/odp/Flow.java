@@ -11,6 +11,7 @@ import javax.annotation.Nullable;
 import org.midonet.odp.flows.FlowAction;
 import org.midonet.odp.flows.FlowKey;
 import org.midonet.odp.flows.FlowStats;
+import org.midonet.packets.TCP;
 
 /**
  * An abstraction over the OpenVSwitch kernel datapath flow object.
@@ -127,6 +128,14 @@ public class Flow {
             '}';
     }
 
+    private String formatTCPFlags() {
+        StringBuilder buf = new StringBuilder();
+        for (TCP.Flag f : TCP.Flag.allOf(tcpFlags.intValue())) {
+            buf.append(f).append(" | ");
+        }
+        return buf.substring(0, buf.length() - 3);
+    }
+
     public List<String> toPrettyStrings() {
         List<String> desc = new ArrayList<>();
         List<FlowKey<?>> matchKeys = match.getKeys();
@@ -145,7 +154,7 @@ public class Flow {
         if (stats != null)
             desc.add("stats: " + stats);
         if (tcpFlags != null)
-            desc.add("tcpFlags: " + tcpFlags);
+            desc.add("tcpFlags: " + formatTCPFlags());
         if (lastUsedTime != null)
             desc.add("lastUsedTime: " + lastUsedTime);
         return  desc;
