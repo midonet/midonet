@@ -5,12 +5,9 @@ package org.midonet.api.host;
 
 import java.util.UUID;
 
-import org.midonet.api.host.validation.IsUniqueGreTunnelZoneName;
-
 /**
  * Class representing GRE Tunnel zone.
  */
-@IsUniqueGreTunnelZoneName
 public class GreTunnelZone extends TunnelZone {
 
     /**

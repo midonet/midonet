@@ -5,12 +5,9 @@ package org.midonet.api.host;
 
 import java.util.UUID;
 
-import org.midonet.api.host.validation.IsUniqueCapwapTunnelZoneName;
-
 /**
  * Class representing Capwap Tunnel zone.
  */
-@IsUniqueCapwapTunnelZoneName
 public class CapwapTunnelZone extends TunnelZone {
 
     /**

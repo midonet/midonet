@@ -3,6 +3,7 @@
  */
 package org.midonet.api.host;
 
+import org.midonet.api.host.validation.UniqueTunnelZoneName;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.UriResource;
 import org.codehaus.jackson.annotate.JsonSubTypes;
@@ -39,6 +40,7 @@ public abstract class TunnelZone extends UriResource {
 
     @NotNull
     @Size(min = MIN_TUNNEL_ZONE_NAME_LEN, max = MAX_TUNNEL_ZONE_NAME_LEN)
+    @UniqueTunnelZoneName
     private String name;
 
     /**
