@@ -1,3 +1,6 @@
 [submodule "python-midonetclient"]
 	path = python-midonetclient
 	url = https://github.com/midokura/python-midonetclient.git
+[submodule "midonet-docs"]
+	path = midonet-docs
+	url = git@github.com:midokura/midonet-docs.git
