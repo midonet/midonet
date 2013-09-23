@@ -595,7 +595,7 @@ class DatapathController() extends Actor with ActorLogging with
                 interfaces: JList[InterfaceDescription]) =>
             getLocalInterfaceTunnelInfo(caller, interfaces)
 
-        case m => log.error("Unhandled message {}", m)
+        case m => log.warning("Unhandled message {}", m)
     }
 
     def checkPortUpdates() {
@@ -734,6 +734,7 @@ class DatapathController() extends Actor with ActorLogging with
         opReply match {
             case DpPortSuccess(req) =>
                 context.system.eventStream.publish(req)
+            case _ => // ignore, but explicitly to avoid warning
         }
 
     }
