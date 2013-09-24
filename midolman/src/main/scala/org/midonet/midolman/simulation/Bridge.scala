@@ -418,9 +418,10 @@ class Bridge(val id: UUID, val tunnelKey: Long,
                         packetContext.setOutputPort(port)
                     case ToPortSetAction(portSet) =>
                         packetContext.setOutputPort(portSet)
+                    case a =>
+                        log.warning("Unexpected forked action {}", a)
                 }
-            case a =>
-                log.error("Unhandled Coordinator.ForwardAction {}", a)
+            case a => log.warning("Unhandled Coordinator.Action {}", a)
         }
 
         val postBridgeResult = Chain.apply(
@@ -434,8 +435,8 @@ class Bridge(val id: UUID, val tunnelKey: Long,
                 log.debug("Dropping the packet due to egress filter.")
                 DropAction
             case other =>
-                log.error("Post-bridging for {} returned {} which was not " +
-                          "ACCEPT, DROP, or REJECT.", id, other)
+                log.warning("Post-bridging for {} returned {} which was not " +
+                            "ACCEPT, DROP, or REJECT.", id, other)
                 // TODO(pino): decrement the mac-port reference count?
                 // TODO(pino): remove the flow tag?
                 ErrorDropAction
