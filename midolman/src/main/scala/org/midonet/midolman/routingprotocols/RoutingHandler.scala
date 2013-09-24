@@ -583,6 +583,9 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                 zookeeperActive = true
                 disable()
 
+            case m =>
+                log.warning("Unexpected message {}", m)
+
         }
     }
 
