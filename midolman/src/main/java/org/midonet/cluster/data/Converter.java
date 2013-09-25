@@ -3,38 +3,41 @@
  */
 package org.midonet.cluster.data;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.UUID;
 
 import org.midonet.cluster.Client;
 import org.midonet.cluster.data.Entity.TaggableEntity;
-import org.midonet.cluster.data.ports.LogicalVlanBridgePort;
-import org.midonet.cluster.data.ports.TrunkPort;
-import org.midonet.midolman.host.state.HostDirectory;
-import org.midonet.midolman.state.PortConfig;
-import org.midonet.midolman.state.PortDirectory;
-import org.midonet.midolman.state.PortDirectory.BridgePortConfig;
-import org.midonet.midolman.state.PortDirectory.LogicalVlanBridgePortConfig;
-import org.midonet.midolman.state.PortDirectory.RouterPortConfig;
-import org.midonet.midolman.state.zkManagers.AdRouteZkManager.AdRouteConfig;
-import org.midonet.midolman.state.zkManagers.BridgeDhcpZkManager;
-import org.midonet.midolman.state.zkManagers.BridgeDhcpV6ZkManager;
-import org.midonet.midolman.state.zkManagers.BridgeZkManager.BridgeConfig;
-import org.midonet.midolman.state.zkManagers.ChainZkManager.ChainConfig;
-import org.midonet.midolman.state.zkManagers.PortGroupZkManager.PortGroupConfig;
-import org.midonet.midolman.state.zkManagers.RouterZkManager.RouterConfig;
-import org.midonet.midolman.state.zkManagers.TaggableConfig;
-import org.midonet.midolman.state.zkManagers.VlanAwareBridgeZkManager;
 import org.midonet.cluster.data.dhcp.Opt121;
 import org.midonet.cluster.data.dhcp.Subnet;
 import org.midonet.cluster.data.dhcp.Subnet6;
 import org.midonet.cluster.data.dhcp.V6Host;
-import org.midonet.cluster.data.host.*;
+import org.midonet.cluster.data.host.Command;
+import org.midonet.cluster.data.host.ErrorLogItem;
+import org.midonet.cluster.data.host.Host;
+import org.midonet.cluster.data.host.Interface;
+import org.midonet.cluster.data.host.VirtualPortMapping;
 import org.midonet.cluster.data.ports.BridgePort;
 import org.midonet.cluster.data.ports.RouterPort;
 import org.midonet.cluster.data.rules.ForwardNatRule;
 import org.midonet.cluster.data.rules.JumpRule;
 import org.midonet.cluster.data.rules.LiteralRule;
 import org.midonet.cluster.data.rules.ReverseNatRule;
+import org.midonet.midolman.host.state.HostDirectory;
+import org.midonet.midolman.state.PortConfig;
+import org.midonet.midolman.state.PortDirectory.BridgePortConfig;
+import org.midonet.midolman.state.PortDirectory.RouterPortConfig;
+import org.midonet.midolman.state.zkManagers.AdRouteZkManager.AdRouteConfig;
+import org.midonet.midolman.state.zkManagers.BridgeDhcpV6ZkManager;
+import org.midonet.midolman.state.zkManagers.BridgeDhcpZkManager;
+import org.midonet.midolman.state.zkManagers.BridgeZkManager.BridgeConfig;
+import org.midonet.midolman.state.zkManagers.ChainZkManager.ChainConfig;
+import org.midonet.midolman.state.zkManagers.PortGroupZkManager.PortGroupConfig;
+import org.midonet.midolman.state.zkManagers.RouterZkManager.RouterConfig;
+import org.midonet.midolman.state.zkManagers.TaggableConfig;
 import org.midonet.packets.Net;
 
 
@@ -60,30 +63,6 @@ public class Converter {
                 .setPrefixLength(adRouteConfig.prefixLength);
 
     }
-
-    public static VlanAwareBridgeZkManager.VlanBridgeConfig
-        toVlanBridgeConfig(VlanAwareBridge bridge) {
-        VlanAwareBridgeZkManager.VlanBridgeConfig bridgeConfig =
-                new VlanAwareBridgeZkManager.VlanBridgeConfig();
-
-        bridgeConfig.setName(bridge.getName());
-        bridgeConfig.setTunnelKey(bridge.getTunnelKey());
-        bridgeConfig.setProperties(
-            new HashMap<String, String>(bridge.getProperties()));
-        return bridgeConfig;
-    }
-
-    public static VlanAwareBridge
-    fromVLANBridgeConfig(VlanAwareBridgeZkManager.VlanBridgeConfig bridge) {
-        if (bridge == null)
-            return null;
-
-        return new VlanAwareBridge()
-            .setName(bridge.getName())
-            .setTunnelKey(bridge.getTunnelKey())
-            .setProperties(bridge.getProperties());
-    }
-
 
     public static BridgeConfig toBridgeConfig(Bridge bridge) {
         BridgeConfig bridgeConfig = new BridgeConfig();
@@ -168,7 +147,6 @@ public class Converter {
                     typedPortConfig.setV1ApiType("InteriorBridgePort");
                 }
             }
-
             portConfig = typedPortConfig;
         }
 

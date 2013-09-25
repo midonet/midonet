@@ -14,7 +14,6 @@ import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
-import org.midonet.midolman.layer3.Route;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.AbstractZkManager;
@@ -26,7 +25,6 @@ import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.StatePathExistsException;
 import org.midonet.midolman.state.VlanPathExistsException;
 import org.midonet.midolman.state.ZkManager;
-import org.midonet.midolman.state.zkManagers.TunnelZkManager.TunnelKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -181,27 +179,6 @@ public class PortZkManager extends AbstractZkManager {
         return ops;
     }
 
-    private List<Op> prepareVlanBridgePortCreate(UUID id,
-        PortDirectory.VlanBridgePortConfig config) throws StateAccessException,
-            SerializationException {
-
-        List<Op> ops = new ArrayList<Op>();
-
-        ops.add(Op.create(paths.getPortPath(id),
-                serializer.serialize(config),
-                Ids.OPEN_ACL_UNSAFE,
-                CreateMode.PERSISTENT));
-
-        ops.addAll(filterZkManager.prepareCreate(id));
-
-        // If port groups are specified, need to update the membership.
-        if (config.portGroupIDs != null) {
-            addToPortGroupsOps(ops, id, config.portGroupIDs);
-        }
-
-        return ops;
-    }
-
     public List<Op> prepareCreate(UUID id,
             PortDirectory.BridgePortConfig config)
             throws StateAccessException, SerializationException {
@@ -242,43 +219,6 @@ public class PortZkManager extends AbstractZkManager {
         return ops;
     }
 
-    public List<Op> prepareCreate(UUID id,
-                                  PortDirectory.LogicalVlanBridgePortConfig config)
-            throws StateAccessException, SerializationException {
-
-        // Add common bridge port create operations
-        List<Op> ops = prepareVlanBridgePortCreate(id, config);
-
-        // Add logical bridge port specific operations.
-        ops.add(Op.create(
-            paths.getVlanBridgeLogicalPortPath(config.device_id, id),
-            null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-
-        return ops;
-    }
-
-    public List<Op> prepareCreate(UUID id,
-                                  PortDirectory.TrunkVlanBridgePortConfig config)
-            throws StateAccessException, SerializationException {
-
-        // Create a new GRE key. Hide this from outside.
-        int tunnelKeyId = tunnelZkManager.createTunnelKeyId();
-        config.tunnelKey = tunnelKeyId;
-
-        // Add common bridge port create operations
-        List<Op> ops = prepareVlanBridgePortCreate(id, config);
-
-        // Add materialized bridge port specific operations.
-        ops.add(Op.create(paths.getVlanBridgePortPath(config.device_id, id),
-                          null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-
-        // Update TunnelKey to reference the port.
-        TunnelKey tunnelKey = new TunnelKey(id);
-        ops.addAll(tunnelZkManager.prepareTunnelUpdate(tunnelKeyId, tunnelKey));
-
-        return ops;
-    }
-
     public List<Op> prepareCreate(UUID id, PortConfig config)
             throws StateAccessException, SerializationException {
         if (config instanceof PortDirectory.RouterPortConfig) {
@@ -287,12 +227,6 @@ public class PortZkManager extends AbstractZkManager {
         } else if (config instanceof PortDirectory.BridgePortConfig) {
             return prepareCreate(id,
                     (PortDirectory.BridgePortConfig) config);
-        } else if (config instanceof PortDirectory.TrunkVlanBridgePortConfig) {
-            return prepareCreate(id,
-                    (PortDirectory.TrunkVlanBridgePortConfig) config);
-        } else if (config instanceof PortDirectory.LogicalVlanBridgePortConfig) {
-            return prepareCreate(id,
-                    (PortDirectory.LogicalVlanBridgePortConfig) config);
         } else {
             throw new IllegalArgumentException("Unknown port type found " +
                                  ((config != null) ? config.getClass() : null));
@@ -443,7 +377,7 @@ public class PortZkManager extends AbstractZkManager {
         oldConfig.properties = config.properties;
 
         ops.add(Op.setData(paths.getPortPath(id),
-            serializer.serialize(oldConfig), -1));
+                           serializer.serialize(oldConfig), -1));
 
         return ops;
     }
@@ -481,15 +415,6 @@ public class PortZkManager extends AbstractZkManager {
             deleteFromPortGroupsOps(ops, id, config.portGroupIDs);
         }
 
-        return ops;
-    }
-
-    private List<Op> prepareVlanBridgePortDelete(UUID id,
-        PortDirectory.VlanBridgePortConfig config) throws StateAccessException {
-        // Common operations for deleting logical and trunk  vlan bridge ports
-        List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.delete(paths.getPortPath(id), -1));
-        ops.addAll(filterZkManager.prepareDelete(id));
         return ops;
     }
 
@@ -587,47 +512,6 @@ public class PortZkManager extends AbstractZkManager {
         return ops;
     }
 
-    public List<Op> prepareDelete(UUID id,
-        PortDirectory.TrunkVlanBridgePortConfig config)
-        throws StateAccessException {
-
-        List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.delete(paths.getVlanBridgeTrunkPortPath(config.device_id,
-                                                           id), -1));
-
-        // Remove the reference from the port interface mapping
-        if(config.getHostId() != null) {
-            String path = paths.getHostVrnPortMappingPath(
-                config.getHostId(), id);
-            ops.add(Op.delete(path, -1));
-        }
-
-        ops.addAll(prepareVlanBridgePortDelete(id, config));
-
-        // Delete the GRE key
-        ops.addAll(tunnelZkManager.prepareTunnelDelete(config.tunnelKey));
-
-        return ops;
-    }
-
-    public List<Op> prepareDelete(UUID id,
-                          PortDirectory.LogicalVlanBridgePortConfig config)
-            throws StateAccessException, SerializationException {
-
-        List<Op> ops = new ArrayList<Op>();
-
-        // Get logical bridge's specific operations
-        if (config.peerId() != null) {
-            ops.addAll(prepareUnlink(id));
-        }
-
-        ops.add(Op.delete(
-            paths.getVlanBridgeLogicalPortPath(config.device_id, id), -1));
-        ops.addAll(prepareVlanBridgePortDelete(id, config));
-
-        return ops;
-    }
-
     public List<Op> prepareDelete(UUID id) throws StateAccessException,
             SerializationException {
         List<Op> ops = new ArrayList<Op>();
@@ -647,12 +531,6 @@ public class PortZkManager extends AbstractZkManager {
         } else if (config instanceof PortDirectory.BridgePortConfig) {
             return prepareDelete(id,
                     (PortDirectory.BridgePortConfig) config);
-        } else if (config instanceof PortDirectory.LogicalVlanBridgePortConfig) {
-            return prepareDelete(id,
-                         (PortDirectory.LogicalVlanBridgePortConfig) config);
-        } else if (config instanceof PortDirectory.TrunkVlanBridgePortConfig) {
-            return prepareDelete(id,
-                         (PortDirectory.TrunkVlanBridgePortConfig) config);
         } else {
             throw new IllegalArgumentException("Unknown port type found.");
         }

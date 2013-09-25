@@ -29,8 +29,6 @@ public class MessageProperty {
             "{midokura.javarx.IsUniquePortGroupName.message}";
     public static final String IS_UNIQUE_ROUTER_NAME =
             "{midokura.javarx.IsUniqueRouterName.message}";
-    public static final String IS_UNIQUE_VLAN_BRIDGE_NAME =
-        "{midokura.javarx.IsUniqueVlanBridgeName.message}";
     public static final String MAC_PORT_ON_BRIDGE =
             "{midokura.javarx.MacPortOnBridge.message}";
     public static final String MAC_URI_FORMAT =

@@ -16,7 +16,8 @@ import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.junit.Before;
 import org.junit.Test;
-
+import org.midonet.cluster.data.Route;
+import org.midonet.cluster.data.Router;
 import org.midonet.midolman.Setup;
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.config.ZookeeperConfig;
@@ -35,12 +36,9 @@ import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.zkManagers.RouteZkManager;
 import org.midonet.midolman.state.zkManagers.RouterZkManager;
 import org.midonet.midolman.version.guice.VersionModule;
-import org.midonet.cluster.data.Route;
-import org.midonet.cluster.data.Router;
 import org.midonet.cluster.data.ports.RouterPort;
 import org.midonet.packets.MAC;
 import org.midonet.packets.Net;
-
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;

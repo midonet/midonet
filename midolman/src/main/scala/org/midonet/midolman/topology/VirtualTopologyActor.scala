@@ -6,12 +6,9 @@ package org.midonet.midolman.topology
 import collection.JavaConverters._
 import collection.immutable
 import collection.mutable
-import compat.Platform
 import java.util.UUID
-import java.util.concurrent.TimeoutException
 
 import akka.actor._
-import akka.dispatch.{Promise, Future, ExecutionContext}
 import akka.pattern.ask
 import akka.util.duration._
 import com.google.inject.Inject
@@ -22,9 +19,11 @@ import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.rules.Condition
-import org.midonet.midolman.simulation.VlanAwareBridge
 import org.midonet.midolman.simulation.{Bridge, Chain, Router}
 import org.midonet.midolman.{DeduplicationActor, FlowController, Referenceable}
+import akka.dispatch.{Promise, Future, ExecutionContext}
+import compat.Platform
+import java.util.concurrent.TimeoutException
 
 object VirtualTopologyActor extends Referenceable {
     override val Name: String = "VirtualTopologyActor"
@@ -44,10 +43,6 @@ object VirtualTopologyActor extends Referenceable {
 
     case class BridgeRequest(id: UUID, update: Boolean) extends DeviceRequest
 
-    case class VlanBridgeRequest(id: UUID, update: Boolean) extends DeviceRequest
-
-    case class PortSetHolderRequest(id: UUID, update: Boolean) extends DeviceRequest
-
     case class RouterRequest(id: UUID, update: Boolean) extends DeviceRequest
 
     case class ChainRequest(id: UUID, update: Boolean) extends DeviceRequest
@@ -55,8 +50,6 @@ object VirtualTopologyActor extends Referenceable {
     case class ConditionListRequest(id: UUID, update: Boolean) extends DeviceRequest
 
     sealed trait Unsubscribe
-
-    case class VlanBridgeUnsubscribe(id: UUID) extends Unsubscribe
 
     case class BridgeUnsubscribe(id: UUID) extends Unsubscribe
 
@@ -69,7 +62,6 @@ object VirtualTopologyActor extends Referenceable {
     case class RouterUnsubscribe(id: UUID) extends Unsubscribe
 
     case class Everything(idToBridge: immutable.Map[UUID, Bridge],
-                          idToVlanBridge: immutable.Map[UUID, VlanAwareBridge],
                           idToChain: immutable.Map[UUID, Chain],
                           idToPort: immutable.Map[UUID, Port[_]],
                           idToRouter: immutable.Map[UUID, Router],
@@ -106,16 +98,11 @@ object VirtualTopologyActor extends Referenceable {
 
         // Try using the cache
         (request match {
-            case r: VlanBridgeRequest => e.idToVlanBridge
             case r: BridgeRequest => e.idToBridge
             case r: ChainRequest => e.idToChain
             case r: ConditionListRequest => e.idToConditionList
             case r: PortRequest => e.idToPort
             case r: RouterRequest => e.idToRouter
-            case r: PortSetHolderRequest =>
-                if (e.idToBridge.contains(request.id)) e.idToBridge
-                else if (e.idToVlanBridge.contains(request.id)) e.idToVlanBridge
-                else new immutable.HashMap[UUID, Any]
         }).get(request.id).map {
             Promise.successful(_) // return what's in the cache
         }.getOrElse(requestFuture(timeLeft)) // ask for device
@@ -127,7 +114,6 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
     import VirtualTopologyActor._
 
     private var idToBridge = immutable.Map[UUID, Bridge]()
-    private var idToVlanBridge = immutable.Map[UUID, VlanAwareBridge]()
     private var idToChain = immutable.Map[UUID, Chain]()
     private var idToPort = immutable.Map[UUID, Port[_]]()
     private var idToRouter = immutable.Map[UUID, Router]()
@@ -200,8 +186,8 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
             }
         }
         idToUnansweredClients(id).clear()
-        everything = Everything(idToBridge, idToVlanBridge, idToChain,
-                                idToPort, idToRouter, idToTraceConditions)
+        everything = Everything(idToBridge, idToChain, idToPort, idToRouter, 
+                                idToTraceConditions)
     }
 
     private def unsubscribe(id: UUID, actor: ActorRef): Unit = {
@@ -213,34 +199,13 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
         remove(idToSubscribers.get(id))
     }
 
-    private def serveBridgeRequest(id: UUID, update: Boolean) {
-        log.debug("Bridge {} requested with update={}", id, update)
-        manageDevice(id, (x: UUID) =>
-                          new BridgeManager(x, clusterClient, config))
-        deviceRequested(id, idToBridge, update)
-    }
-
-    private def serveVlanBridgeRequest(id: UUID, update: Boolean) {
-        log.debug("VlanBridge {} requested with update={}", id, update)
-        manageDevice(id, (x: UUID) =>
-                          new VlanAwareBridgeManager(x, clusterClient, config))
-        deviceRequested(id, idToVlanBridge, update)
-    }
-
     def receive = {
 
-        case PortSetHolderRequest(id, update) =>
-            if (idToBridge.contains(id)) {
-                log.debug("PortSetHolderRequest for ye olde bridge")
-                serveBridgeRequest(id, update)
-            } else if (idToVlanBridge.contains(id)) {
-                log.debug("PortSetHolderRequest for vlan-bridge")
-                serveVlanBridgeRequest(id, update)
-            } else {
-                log.warning("PortSetHolderRequest with unknown device {}", id)
-            }
-        case VlanBridgeRequest(id, update) => serveVlanBridgeRequest(id, update)
-        case BridgeRequest(id, update) => serveBridgeRequest(id, update)
+        case BridgeRequest(id, update) =>
+            log.debug("Bridge {} requested with update={}", id, update)
+            manageDevice(id, (x: UUID) => new BridgeManager(x, clusterClient,
+                                                            config))
+            deviceRequested(id, idToBridge, update)
         case ConditionListRequest(id, update) =>
             log.debug("ConditionList {} requested with update={}", id, update)
             manageDevice(id, (x: UUID) =>
@@ -260,14 +225,9 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
                 (x: UUID) => new RouterManager(x, clusterClient, config))
             deviceRequested(id, idToRouter, update)
         case BridgeUnsubscribe(id) => unsubscribe(id, sender)
-        case VlanBridgeUnsubscribe(id) => unsubscribe(id, sender)
         case ChainUnsubscribe(id) => unsubscribe(id, sender)
         case PortUnsubscribe(id) => unsubscribe(id, sender)
         case RouterUnsubscribe(id) => unsubscribe(id, sender)
-        case vlanBridge: VlanAwareBridge =>
-            log.debug("Received a Vlan Bridge for {}", vlanBridge.id)
-            idToVlanBridge = idToVlanBridge.+((vlanBridge.id, vlanBridge))
-            updated(vlanBridge.id, vlanBridge)
         case bridge: Bridge =>
             log.debug("Received a Bridge for {}", bridge.id)
             idToBridge = idToBridge.+((bridge.id, bridge))
