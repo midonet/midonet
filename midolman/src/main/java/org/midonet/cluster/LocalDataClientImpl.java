@@ -21,73 +21,8 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import org.apache.zookeeper.Op;
-import org.midonet.cluster.data.AdRoute;
-import org.midonet.cluster.data.BGP;
-import org.midonet.cluster.data.Chain;
-import org.midonet.cluster.data.ChainName;
-import org.midonet.cluster.data.Converter;
-import org.midonet.cluster.data.Bridge;
-import org.midonet.cluster.data.BridgeName;
-import org.midonet.cluster.data.HostVersion;
-import org.midonet.cluster.data.Port;
-import org.midonet.cluster.data.PortGroup;
-import org.midonet.cluster.data.PortGroupName;
-import org.midonet.cluster.data.Route;
-import org.midonet.cluster.data.Router;
-import org.midonet.cluster.data.RouterName;
-import org.midonet.cluster.data.Rule;
-import org.midonet.cluster.data.SystemState;
-import org.midonet.cluster.data.TunnelZone;
-import org.midonet.cluster.data.TraceCondition;
-import org.midonet.cluster.data.VlanBridgeName;
-import org.midonet.cluster.data.VlanAwareBridge;
-import org.midonet.cluster.data.WriteVersion;
-import org.midonet.cluster.data.ports.VlanMacPort;
-import org.midonet.midolman.SystemDataProvider;
-import org.midonet.midolman.rules.RuleList;
-import org.midonet.midolman.state.DirectoryCallback;
-import org.midonet.midolman.state.Ip4ToMacReplicatedMap;
-import org.midonet.midolman.state.MacPortMap;
-import org.midonet.midolman.state.PathBuilder;
-import org.midonet.midolman.state.PortConfig;
-import org.midonet.midolman.state.PortConfigCache;
-import org.midonet.midolman.state.PortDirectory;
-import org.midonet.midolman.state.RuleIndexOutOfBoundsException;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.ZkManager;
-import org.midonet.midolman.state.zkManagers.AdRouteZkManager;
-import org.midonet.midolman.state.zkManagers.BgpZkManager;
-import org.midonet.midolman.state.zkManagers.BridgeDhcpV6ZkManager;
-import org.midonet.midolman.state.zkManagers.BridgeDhcpZkManager;
-import org.midonet.midolman.state.zkManagers.BridgeZkManager;
-import org.midonet.midolman.state.zkManagers.ChainZkManager;
-import org.midonet.midolman.state.zkManagers.PortGroupZkManager;
-import org.midonet.midolman.state.zkManagers.PortSetZkManager;
-import org.midonet.midolman.state.zkManagers.PortZkManager;
-import org.midonet.midolman.state.zkManagers.RouteZkManager;
-import org.midonet.midolman.state.zkManagers.RouterZkManager;
-import org.midonet.midolman.state.zkManagers.RuleZkManager;
-import org.midonet.midolman.state.zkManagers.TaggableConfig;
-import org.midonet.midolman.state.zkManagers.TaggableConfigZkManager;
-import org.midonet.midolman.state.zkManagers.TenantZkManager;
-import org.midonet.midolman.state.zkManagers.TraceConditionZkManager;
-import org.midonet.midolman.state.zkManagers.TunnelZoneZkManager;
-import org.midonet.midolman.state.zkManagers.VlanAwareBridgeZkManager;
-import org.midonet.packets.IPv4Addr;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import org.midonet.cache.Cache;
-import static org.midonet.midolman.guice.CacheModule.TRACE_MESSAGES;
-import static org.midonet.midolman.guice.CacheModule.TRACE_INDEX;
-import org.midonet.midolman.guice.zookeeper.ZKConnectionProvider;
-import org.midonet.midolman.host.commands.HostCommandGenerator;
-import org.midonet.midolman.host.state.HostDirectory;
-import org.midonet.midolman.host.state.HostZkManager;
-import org.midonet.midolman.monitoring.store.Store;
-import org.midonet.midolman.rules.Condition;
-import org.midonet.midolman.serialization.Serializer;
-import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.cluster.data.*;
 import org.midonet.cluster.data.Entity.TaggableEntity;
 import org.midonet.cluster.data.dhcp.Subnet;
 import org.midonet.cluster.data.dhcp.Subnet6;
@@ -97,14 +32,31 @@ import org.midonet.cluster.data.host.Host;
 import org.midonet.cluster.data.host.Interface;
 import org.midonet.cluster.data.host.VirtualPortMapping;
 import org.midonet.cluster.data.ports.BridgePort;
-import org.midonet.cluster.data.ports.RouterPort;
-import org.midonet.packets.IntIPv4;
+import org.midonet.cluster.data.ports.VlanMacPort;
+import org.midonet.midolman.SystemDataProvider;
+import org.midonet.midolman.guice.zookeeper.ZKConnectionProvider;
+import org.midonet.midolman.host.commands.HostCommandGenerator;
+import org.midonet.midolman.host.state.HostDirectory;
+import org.midonet.midolman.host.state.HostZkManager;
+import org.midonet.midolman.monitoring.store.Store;
+import org.midonet.midolman.rules.Condition;
+import org.midonet.midolman.rules.RuleList;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.serialization.Serializer;
+import org.midonet.midolman.state.*;
+import org.midonet.midolman.state.zkManagers.*;
+import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv6Subnet;
+import org.midonet.packets.IntIPv4;
 import org.midonet.packets.MAC;
 import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.functors.Callback2;
 import org.midonet.util.functors.CollectionFunctors;
 import org.midonet.util.functors.Functor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import static org.midonet.midolman.guice.CacheModule.TRACE_INDEX;
+import static org.midonet.midolman.guice.CacheModule.TRACE_MESSAGES;
 
 @SuppressWarnings("unused")
 public class LocalDataClientImpl implements DataClient {
@@ -161,9 +113,6 @@ public class LocalDataClientImpl implements DataClient {
     private PortSetZkManager portSetZkManager;
 
     @Inject
-    private VlanAwareBridgeZkManager vlanBridgeZkManager;
-
-    @Inject
     private TraceConditionZkManager traceConditionZkManager;
 
     @Inject
@@ -177,9 +126,6 @@ public class LocalDataClientImpl implements DataClient {
 
     @Inject
     private ClusterBridgeManager bridgeManager;
-
-    @Inject
-    private ClusterVlanBridgeManager vlanBridgeManager;
 
     @Inject
     private Serializer serializer;
@@ -276,27 +222,6 @@ public class LocalDataClientImpl implements DataClient {
             bgps.add(bgpGet(bgpId));
         }
         return bgps;
-    }
-
-    @Override
-    public @CheckForNull VlanAwareBridge vlanBridgesGetByName(String tenantId,
-                                                              String name)
-            throws StateAccessException, SerializationException {
-        log.debug("Entered: tenantId={}, name={}", tenantId, name);
-
-        VlanAwareBridge bridge = null;
-        String path = pathBuilder.getTenantVlanBridgeNamePath(tenantId, name);
-
-        if (zkManager.exists(path)) {
-            byte[] data = zkManager.get(path);
-            VlanBridgeName.Data nameData =
-                    serializer.deserialize(data,
-                            VlanBridgeName.Data.class);
-            bridge = vlanBridgesGet(nameData.id);
-        }
-
-        log.debug("Exiting: vlan-bridge={}", bridge);
-        return bridge;
     }
 
     @Override
@@ -448,131 +373,6 @@ public class LocalDataClientImpl implements DataClient {
             throws StateAccessException {
         Ip4ToMacReplicatedMap.deleteEntry(
             bridgeZkManager.getIP4MacMapDirectory(bridgeId), ip4, mac);
-    }
-
-    @Override
-    public UUID vlanBridgesCreate(@Nonnull VlanAwareBridge bridge)
-            throws StateAccessException, SerializationException {
-
-        log.debug("vlanBridgesCreate entered: vlan-bridge={}", bridge);
-        if (bridge.getId() == null) {
-            bridge.setId(UUID.randomUUID());
-        }
-
-        VlanAwareBridgeZkManager.VlanBridgeConfig config =
-            Converter.toVlanBridgeConfig(bridge);
-
-        List<Op> ops = vlanBridgeZkManager
-                       .prepareVlanBridgeCreate(bridge.getId(), config);
-
-        // Create the top level directories for
-        String tenantId = bridge.getProperty(
-                                 VlanAwareBridge.Property.tenant_id);
-        ops.addAll(tenantZkManager.prepareCreate(tenantId));
-
-        // Create the bridge names directory if it does not exist
-        String bridgeNamesPath = pathBuilder
-            .getTenantVlanBridgeNamesPath(tenantId);
-        if (!zkManager.exists(bridgeNamesPath)) {
-            ops.add(zkManager
-                    .getPersistentCreateOp(bridgeNamesPath, null));
-        }
-
-        // Index the name
-        String bridgeNamePath = pathBuilder
-            .getTenantVlanBridgeNamePath(tenantId, config.getName());
-        byte[] data = serializer
-            .serialize((new VlanBridgeName(bridge)).getData());
-        ops.add(zkManager.getPersistentCreateOp(bridgeNamePath, data));
-
-        zkManager.multi(ops);
-
-        log.debug("VlanBridgeZkDaoImpl.create exiting: vlan-bridge={}", bridge);
-        return bridge.getId();
-    }
-
-    @Override
-    public List<VlanAwareBridge> vlanBridgesFindByTenant(String tenantId)
-            throws StateAccessException, SerializationException {
-        List<VlanAwareBridge> bridges = new ArrayList<VlanAwareBridge>();
-
-        String path = pathBuilder.getTenantVlanBridgeNamesPath(tenantId);
-        if (zkManager.exists(path)) {
-            Set<String> bridgeNames = zkManager.getChildren(path);
-            for (String name : bridgeNames) {
-                VlanAwareBridge bridge = vlanBridgesGetByName(tenantId, name);
-                if (bridge != null) {
-                    bridges.add(bridge);
-                }
-            }
-        }
-        return bridges;
-    }
-
-    @Override
-    public VlanAwareBridge vlanBridgesGet(UUID id)
-            throws StateAccessException, SerializationException {
-
-        VlanAwareBridge bridge = null;
-        if (vlanBridgeZkManager.exists(id)) {
-            bridge = Converter.fromVLANBridgeConfig(vlanBridgeZkManager.get(id));
-            bridge.setId(id);
-        }
-
-        return bridge;
-    }
-
-    @Override
-    public void vlanBridgesUpdate(@Nonnull VlanAwareBridge bridge)
-            throws StateAccessException, SerializationException {
-        List<Op> ops = new ArrayList<Op>();
-
-        // Get the original data
-        VlanAwareBridge oldBridge = vlanBridgesGet(bridge.getId());
-
-        VlanAwareBridgeZkManager.VlanBridgeConfig config =
-            Converter.toVlanBridgeConfig(bridge);
-
-        // Update the config
-        Op op = vlanBridgeZkManager.prepareUpdate(bridge.getId(), config);
-        if (op != null) {
-            ops.add(op);
-        }
-
-        // Update index if the name changed
-        String oldName = oldBridge.getData().name;
-        String newName = config.getName();
-        if (oldName == null ? newName != null : !oldName.equals(newName)) {
-            String tenantId = oldBridge
-                              .getProperty(VlanAwareBridge.Property.tenant_id);
-
-            String path = pathBuilder.getTenantVlanBridgeNamePath(tenantId, oldName);
-            ops.add(zkManager.getDeleteOp(path));
-
-            path = pathBuilder.getTenantVlanBridgeNamePath(tenantId, newName);
-            byte[] data = serializer.serialize(
-                    new VlanBridgeName(bridge).getData());
-            ops.add(zkManager.getPersistentCreateOp(path, data));
-        }
-
-        if (ops.size() > 0) {
-            zkManager.multi(ops);
-        }
-    }
-
-    @Override
-    public void vlanBridgesDelete(UUID id)
-            throws StateAccessException, SerializationException {
-        VlanAwareBridge bridge = vlanBridgesGet(id);
-        if (bridge == null) {
-            return;
-        }
-        List<Op> ops = vlanBridgeZkManager.prepareVlanBridgeDelete(id);
-        String path = pathBuilder.getTenantVlanBridgeNamePath(
-            bridge.getProperty(VlanAwareBridge.Property.tenant_id),
-            bridge.getData().name);
-        ops.add(zkManager.getDeleteOp(path));
-        zkManager.multi(ops);
     }
 
     @Override
@@ -1445,32 +1245,6 @@ public class LocalDataClientImpl implements DataClient {
     public void portsDelete(UUID id)
             throws StateAccessException, SerializationException {
         portZkManager.delete(id);
-    }
-
-    @Override
-    public List<Port<?, ?>> trunkPortsFindByVlanBridge(UUID bridgeId)
-            throws StateAccessException, SerializationException {
-
-        Set<UUID> ids = portZkManager.getVlanBridgeTrunkPortIDs(bridgeId);
-        List<Port<?, ?>> ports = new ArrayList<Port<?, ?>>();
-        for (UUID id : ids) {
-            ports.add(portsGet(id));
-        }
-
-        return ports;
-    }
-
-    @Override
-    public List<Port<?, ?>> interiorPortsFindByVlanBridge(UUID bridgeId)
-            throws StateAccessException, SerializationException {
-
-        Set<UUID> ids = portZkManager.getVlanBridgeLogicalPortIDs(bridgeId);
-        List<Port<?, ?>> ports = new ArrayList<Port<?, ?>>();
-        for (UUID id : ids) {
-            ports.add(portsGet(id));
-        }
-
-        return ports;
     }
 
     @Override

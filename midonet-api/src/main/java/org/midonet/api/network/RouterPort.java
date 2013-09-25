@@ -4,16 +4,16 @@
  */
 package org.midonet.api.network;
 
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.packets.MAC;
-import org.midonet.util.StringUtil;
-
+import java.net.URI;
+import java.util.UUID;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
-import java.net.URI;
-import java.util.UUID;
+
+import org.midonet.api.ResourceUriBuilder;
+import org.midonet.packets.MAC;
+import org.midonet.util.StringUtil;
 
 /**
  * Data transfer class for router port.

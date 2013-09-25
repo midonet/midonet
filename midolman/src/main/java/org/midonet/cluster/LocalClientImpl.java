@@ -11,24 +11,7 @@ import java.util.UUID;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import org.midonet.cluster.client.VlanAwareBridgeBuilder;
-import org.midonet.midolman.state.*;
 import org.apache.zookeeper.KeeperException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import org.midonet.cluster.data.TunnelZone;
-import org.midonet.cluster.data.zones.CapwapTunnelZone;
-import org.midonet.cluster.data.zones.CapwapTunnelZoneHost;
-import org.midonet.cluster.data.zones.GreTunnelZone;
-import org.midonet.cluster.data.zones.GreTunnelZoneHost;
-import org.midonet.midolman.guice.zookeeper.ZKConnectionProvider;
-import org.midonet.midolman.host.state.HostDirectory;
-import org.midonet.midolman.host.state.HostZkManager;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.zkManagers.PortSetZkManager;
-import org.midonet.midolman.state.zkManagers.TunnelZoneZkManager;
-import org.midonet.midolman.topology.TraceConditionsManager;
 import org.midonet.cluster.client.BGPListBuilder;
 import org.midonet.cluster.client.BridgeBuilder;
 import org.midonet.cluster.client.ChainBuilder;
@@ -38,10 +21,28 @@ import org.midonet.cluster.client.PortSetBuilder;
 import org.midonet.cluster.client.RouterBuilder;
 import org.midonet.cluster.client.TraceConditionsBuilder;
 import org.midonet.cluster.client.TunnelZones;
+import org.midonet.cluster.data.TunnelZone;
+import org.midonet.cluster.data.zones.CapwapTunnelZone;
+import org.midonet.cluster.data.zones.CapwapTunnelZoneHost;
+import org.midonet.cluster.data.zones.GreTunnelZone;
+import org.midonet.cluster.data.zones.GreTunnelZoneHost;
+import org.midonet.midolman.guice.zookeeper.ZKConnectionProvider;
+import org.midonet.midolman.host.state.HostDirectory;
+import org.midonet.midolman.host.state.HostZkManager;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.Directory;
+import org.midonet.midolman.state.DirectoryCallback;
+import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.state.ZkConnectionAwareWatcher;
+import org.midonet.midolman.state.ZkDirectory;
+import org.midonet.midolman.state.zkManagers.PortSetZkManager;
+import org.midonet.midolman.state.zkManagers.TunnelZoneZkManager;
+import org.midonet.midolman.topology.TraceConditionsManager;
 import org.midonet.util.eventloop.Reactor;
-
-import static org.midonet.cluster.client.TunnelZones.GreBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import static org.midonet.cluster.client.TunnelZones.CapwapBuilder;
+import static org.midonet.cluster.client.TunnelZones.GreBuilder;
 
 
 /**
@@ -81,9 +82,6 @@ public class LocalClientImpl implements Client {
     ClusterBridgeManager bridgeManager;
 
     @Inject
-    ClusterVlanBridgeManager vlanBridgeManager;
-
-    @Inject
     ClusterPortsManager portsManager;
 
     @Inject
@@ -101,13 +99,6 @@ public class LocalClientImpl implements Client {
     public void getBridge(UUID bridgeID, BridgeBuilder builder) {
         bridgeManager.registerNewBuilder(bridgeID, builder);
         log.debug("getBridge {}", bridgeID);
-    }
-
-    @Override
-    public void getVlanAwareBridge(UUID bridgeID,
-                                   VlanAwareBridgeBuilder builder) {
-        vlanBridgeManager.registerNewBuilder(bridgeID, builder);
-        log.debug("getVlanAwareBridge {}", bridgeID);
     }
 
     @Override

@@ -4,6 +4,14 @@
  */
 package org.midonet.api.rest_api;
 
+import javax.annotation.security.PermitAll;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
+
 import com.google.inject.Inject;
 import com.google.inject.servlet.RequestScoped;
 import org.midonet.api.Application;
@@ -17,23 +25,19 @@ import org.midonet.api.filter.rest_api.RuleResource;
 import org.midonet.api.host.rest_api.HostResource;
 import org.midonet.api.host.rest_api.TunnelZoneResource;
 import org.midonet.api.monitoring.rest_api.MonitoringResource;
-import org.midonet.api.network.rest_api.*;
+import org.midonet.api.network.rest_api.BridgeResource;
+import org.midonet.api.network.rest_api.PortGroupResource;
+import org.midonet.api.network.rest_api.PortResource;
+import org.midonet.api.network.rest_api.RouteResource;
+import org.midonet.api.network.rest_api.RouterResource;
 import org.midonet.api.system_data.rest_api.HostVersionResource;
-import org.midonet.api.system_data.rest_api.WriteVersionResource;
 import org.midonet.api.system_data.rest_api.SystemStateResource;
+import org.midonet.api.system_data.rest_api.WriteVersionResource;
 import org.midonet.api.tracing.rest_api.TraceConditionResource;
 import org.midonet.api.tracing.rest_api.TraceResource;
 import org.midonet.api.version.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.annotation.security.PermitAll;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
 
 /**
  * The top application resource class.
