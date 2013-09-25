@@ -969,7 +969,6 @@ contains the following fields:
     </tr>
 </table>
 
-
 <a name="bridgemactable"></a>
 ### MacPort
 
@@ -1137,7 +1136,7 @@ contains the following fields:
     </tr>
 </table>
 
-<a name="dhcp"/>
+<a name="dhcp"></a>
 ### DHCP Subnet [application/vnd.org.midonet.DhcpSubnet+json]
 
     GET     /bridges/:bridgeId/dhcp
@@ -1216,7 +1215,7 @@ contains the following fields:
     </tr>
 </table>
 
-<a name="port"/>
+<a name="port"></a>
 ### Port [application/vnd.org.midonet.Port-v1+json]
 
     GET     /ports/:portId
@@ -1409,7 +1408,7 @@ bridge is the equivalent port type on a virtual bridge.
         <td>Short</td>
         <td>POST</td>
         <td>No</td>
-        <td>The vlan-id assigned to this port. On a given bridge, each vlan-id
+        <td>The VLAN ID assigned to this port. On a given bridge, each VLAN ID
             can be present at most in one interior port.</td>
     </tr>
 </table>
@@ -1427,9 +1426,9 @@ between:
 - A router port and a bridge port
 - A router port and a bridge
 - A bridge port and a bridge port
-- Two Bridges, as long as just one of the two peers has a vlan-id
-  assigned. The Bridge owning this port will act as a Vlan-Aware Bridge,
-  PUSH'ing and POP'ing vlan-ids as frames traverse this port.
+- Two Bridges, as long as just one of the two peers has a VLAN ID
+  assigned. The Bridge owning this port will act as a VLAN-Aware Bridge,
+  PUSH'ing and POP'ing VLAN IDs as frames traverse this port.
 
 It contains the following fields:
 
@@ -1574,7 +1573,8 @@ contains the following fields:
         <td>Int</td>
         <td>POST</td>
         <td>Yes</td>
-        <td>The priority weight of the route. Lower weights take precedence over higher weights.</td>
+        <td>The priority weight of the route. Lower weights take precedence over
+            higher weights.</td>
     </tr>
     <tr>
         <td>nextHopPort
@@ -1604,6 +1604,11 @@ contains the following fields:
     POST    /port_groups
     PUT     /port_groups/:portGroupId
     DELETE  /port_groups/:portGroupId
+
+Port group is a group of ports. Port groups are owned by tenants. A port could
+belong to multiple port groups as long as they belong to the same tenant. A
+port group can be specified in the chain rule to filter the traffic coming from
+all the ports belonging to that the specified group.
 
 <table>
     <tr>
@@ -1964,7 +1969,7 @@ It contains the following fields:
         <td>Bool</td>
         <td>POST</td>
         <td>No</td>
-        <td>Invert the destination tcp/udp port range predicate. Match packets
+        <td>Invert the destination TCP/UDP port range predicate. Match packets
          whose dest port is NOT in the range.</td>
     </tr>
     <tr>
@@ -1972,7 +1977,7 @@ It contains the following fields:
         <td>Bool</td>
         <td>POST</td>
         <td>No</td>
-        <td>Invert the source tcp/udp port range predicate. Match packets whose
+        <td>Invert the source TCP/UDP port range predicate. Match packets whose
          source port is NOT in the range.</td>
     </tr>
     <tr>
@@ -1996,7 +2001,18 @@ It contains the following fields:
         <td>POST</td>
         <td>No</td>
         <td>The list of nat targets. Each nat target should be an JSON object
-         like {"addressFrom": "1.2.3.4", "addressTo": "5.6.7.8",
+            that contains the following fields:
+<ul>
+<li>addressFrom: The first IP address in the range of IP addresses used as NAT
+targets. </li>
+<li>addressTo: The last IP address in the range of IP addresses used as NAT
+targets.</li>
+<li>portFrom: The first port number in the range of port numbers used as NAT
+targets.</li>
+<li>portTo: The last port number in the range of port numbers used as NAT
+targets.</li>
+</ul>
+         For an example: {"addressFrom": "1.2.3.4", "addressTo": "5.6.7.8",
          "portFrom": "22", "portTo": "80"}.  This field is required if the
          type is dnat or snat.</td>
     </tr>
@@ -2056,7 +2072,9 @@ It contains the following fields:
         <td>UUID</td>
         <td>POST</td>
         <td>No</td>
-        <td></td>
+        <td>ID of the port group that you want to filter traffic from.
+            If matched, the filter action is applied to any packet coming
+            from ports belonging to the specified port group.</td>
     </tr>
     <tr>
         <td>position</td>
@@ -2225,7 +2243,8 @@ contains the following fields:
         <td>UUID</td>
         <td/>
         <td/>
-        <td>ID of the BGP that the route belongs to.</td>
+        <td>ID of the BGP configuration that this route advertisement is
+            configured for.</td>
     </tr>
     <tr>
         <td>bgp</td>
@@ -2297,7 +2316,8 @@ contains the following fields:
         <td>bool</td>
         <td/>
         <td/>
-        <td>If the node-agent running on the host is connected to ZK.</td>
+        <td>Return true if the node-agent running on the host is connected to
+            ZK.</td>
     </tr>
     <tr>
         <td>addresses</td>
@@ -2607,7 +2627,8 @@ and
 * `"application/vnd.org.midonet.GreTunnelZoneHost-v1+json"`
 * `"application/vnd.org.midonet.IpsecTunnelZoneHost-v1+json"`
 
-Represents a host's membership in a tunnel zone:
+Hosts in the same tunnel zone share the same tunnel configurations, and
+they are allowed to create tunnels among themselves.
 
 <table>
     <tr>
@@ -3197,7 +3218,7 @@ condition contains the following fields:
         <td>POST</td>
         <td>No</td>
         <td>A JSON representation of the Range object representing the
-        tcp/udp source port range to match, like {"start":80,"end":400}.
+        TCP/UDP source port range to match, like {"start":80,"end":400}.
         When creating an ICMP condition, this field should be set to the ICMP
         type value. The absence of a Range will be interpreted as "any"</td>
     </tr>
@@ -3207,7 +3228,7 @@ condition contains the following fields:
         <td>POST</td>
         <td>No</td>
         <td>A JSON representation of the Range object representing the
-        tcp/udp source port range to match, like {"start":80,"end":400}.
+        TCP/UDP source port range to match, like {"start":80,"end":400}.
         When creating an ICMP condition, this field should be set to the ICMP
         code value. A null value in this field will be intepreted as
         "any"</td>
