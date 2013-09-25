@@ -13,9 +13,9 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cache.Cache
-import org.midonet.midolman.FlowController.{WildcardFlowRemoved, WildcardFlowAdded}
+import org.midonet.midolman.FlowController._
 import org.midonet.midolman.PacketWorkflow.PacketIn
-import org.midonet.midolman.rules.Condition
+import rules.{RuleResult, Rule, Condition}
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.cluster.data.{Bridge => ClusterBridge}
 import org.midonet.cluster.data.ports.BridgePort
@@ -24,20 +24,27 @@ import org.midonet.odp.flows.FlowActions
 import org.midonet.odp.flows.{FlowActionOutput, FlowActionSetKey, FlowKeyTunnel}
 import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
-import org.midonet.midolman.util.MockCache
+import topology.LocalPortActive
+import util.{SimulationHelper, MockCache}
 import com.google.inject.Key
 
 import java.lang.{Short => JShort}
 import org.midonet.midolman.topology.LocalPortActive
 import scala.Some
+import org.midonet.midolman.PacketWorkflow.PacketIn
+import java.util.UUID
+import scala.Some
 import org.midonet.midolman.FlowController.WildcardFlowAdded
 import org.midonet.midolman.PacketWorkflow.PacketIn
 import org.midonet.midolman.FlowController.WildcardFlowRemoved
+import org.slf4j.LoggerFactory
 
 
 @RunWith(classOf[JUnitRunner])
 class BridgeSimulationTestCase extends MidolmanTestCase
-        with VirtualConfigurationBuilders {
+        with VirtualConfigurationBuilders with SimulationHelper {
+
+    val log = LoggerFactory.getLogger(classOf[BridgeSimulationTestCase])
     private var port1OnHost1: BridgePort = null
     private var port2OnHost1: BridgePort = null
     private var port3OnHost1: BridgePort = null
@@ -222,6 +229,74 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         verifyMacLearned("02:11:22:33:44:10", "port1")
     }
 
+    @Test
+    def testInboundChainsNotAppliedToVlanTraffic() {
+        // setup chains that drop all UDP traffic both at pre and post
+        val udpCond = new Condition()
+        udpCond.nwProto = Byte.box(UDP.PROTOCOL_NUMBER)
+
+        val preChain = newInboundChainOnBridge("brFilter-in", bridge)
+        newLiteralRuleOnChain(preChain, 1,udpCond, RuleResult.Action.DROP)
+        fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
+
+        checkTrafficWithDropChains()
+    }
+
+    def testOutboundChainsNotAppliedToVlanTraffic() {
+
+        // setup chains that drop all UDP traffic both at pre and post
+        val udpCond = new Condition()
+        udpCond.nwProto = Byte.box(UDP.PROTOCOL_NUMBER)
+
+        val postChain = newOutboundChainOnBridge("brFilter-out", bridge)
+        newLiteralRuleOnChain(postChain, 1, udpCond, RuleResult.Action.DROP)
+        fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
+
+        checkTrafficWithDropChains()
+    }
+
+    /**
+     * Use after setting chains that drop UDP traffic on a bridge. The method
+     * will send traffic through the bridge and expect it dropped (by matching
+     * on the chains) if it is vlan-tagged, but not dropped otherwise.
+     */
+    private def checkTrafficWithDropChains() {
+
+        val inputPort = "port1"
+        val ethPkt = Packets.udp(
+            MAC.fromString("0a:fe:88:70:44:55"),
+            MAC.fromString("ff:ff:ff:ff:ff:ff"),
+            IPv4Addr.fromString("10.10.10.10"),
+            IPv4Addr.fromString("10.11.11.11"),
+            10, 12, "Test UDP packet".getBytes)
+        ethPkt.setVlanIDs(networkVlans)
+
+        log.info("Testing traffic with vlans: {}", networkVlans)
+        if (networkVlans.isEmpty) {
+            // non-vlan traffic should apply the rules, match, be dropped
+            val addFlowMsg = injectOnePacket(ethPkt, inputPort, true)
+            val flowActs = addFlowMsg.f.getActions
+            flowActs.size should be (0)
+        } else {
+            // vlan traffic should NOT match on the rules, so it'll pass
+            val addFlowMsg = injectOnePacket(ethPkt, inputPort, false)
+            val flowActs = addFlowMsg.f.getActions
+            flowActs should have size(6)
+
+            val (outputs, tunnelKeys) = parseTunnelActions(flowActs)
+
+            outputs should have size(4)
+            outputs.contains(FlowActions.output(greTunnelId)) should be (true)
+            outputs.contains(FlowActions.output(portId4)) should be (true)
+            outputs.contains(FlowActions.output(portId5)) should be (true)
+
+            tunnelKeys should have size(2)
+            tunnelKeys.find(bridgeTunnelTo2) should not be None
+            tunnelKeys.find(bridgeTunnelTo3) should not be None
+        }
+    }
+
+    @Test
     def testBcastPktBridgeSim() {
         val inputPort = "port1"
         val ethPkt = Packets.udp(
@@ -249,6 +324,7 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         //verifyMacLearned("0a:fe:88:70:44:55", inputPort)
     }
 
+    @Test
     def testBcastArpBridgeSim() {
         val inputPort = "port1"
         val ethPkt = Packets.arpRequest(
@@ -274,6 +350,7 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         //verifyMacLearned("0a:fe:88:90:22:33", inputPort)
     }
 
+    @Test
     def testMcastDstBridgeSim () {
         val inputPort = "port1"
         val ethPkt = Packets.udp(
@@ -298,6 +375,7 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         tunnelKeys.find(bridgeTunnelTo3) should not be None
     }
 
+    @Test
     def testMcastSrcBridgeSim () {
         val inputPort = "port1"
         val ethPkt = Packets.udp(
@@ -312,6 +390,7 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         flowActs should have size(0)
     }
 
+    @Test
     def testMacMigrationBridgeSim () {
         var inputPort = "port1"
         var ethPkt = Packets.udp(

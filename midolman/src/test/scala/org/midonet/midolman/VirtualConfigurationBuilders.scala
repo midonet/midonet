@@ -45,6 +45,13 @@ trait VirtualConfigurationBuilders {
         chain
     }
 
+    def newOutboundChainOnBridge(name: String, bridge: ClusterBridge): Chain = {
+        val chain = createChain(name, None)
+        bridge.setOutboundFilter(chain.getId)
+        clusterDataClient().bridgesUpdate(bridge)
+        chain
+    }
+
     def newInboundChainOnRouter(name: String, router: ClusterRouter): Chain = {
         val chain = createChain(name, None)
         router.setInboundFilter(chain.getId)

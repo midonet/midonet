@@ -44,6 +44,9 @@ import org.midonet.util.functors.Callback1
   * after POP'ing it. For frames coming from that port, the vlan-id will
   * be PUSH'd into the frame.
   *
+  * Note that Bridges will *NOT* apply pre- or post- chains on vlan tagged
+  * traffic (see MN-590)
+  *
   * @param id
   * @param tunnelKey
   * @param vlanMacTableMap
@@ -114,31 +117,36 @@ class Bridge(val id: UUID, val tunnelKey: Long,
         // Tag the flow with this Bridge ID
         packetContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(id))
 
-        // Call ingress (pre-bridging) chain
-        // InputPort is already set.
-        packetContext.setOutputPort(null)
-        val preBridgeResult = Chain.apply(inFilter, packetContext,
-                                          packetContext.wcmatch, id, false)
-        log.debug("The ingress chain returned {}", preBridgeResult)
+        if (areChainsApplicable()) {
 
-        preBridgeResult.action match {
-            case RuleResult.Action.ACCEPT => // pass through
-            case RuleResult.Action.DROP | RuleResult.Action.REJECT =>
-                val srcDlAddress = packetContext.wcmatch.getEthernetSource
-                updateFlowCount(srcDlAddress, packetContext)
-                // No point in tagging by dst-MAC+Port because the outPort was
-                // not used in deciding to drop the flow.
-                return Promise.successful(DropAction)
-            case other =>
-                log.error("Pre-bridging for {} returned {} which was not " +
-                          "ACCEPT, DROP or REJECT.", id, other)
+            // Call ingress (pre-bridging) chain. InputPort is already set.
+            packetContext.setOutputPort(null)
+            val preBridgeResult = Chain.apply(inFilter, packetContext,
+                packetContext.wcmatch, id, false)
+            log.debug("The ingress chain returned {}", preBridgeResult)
+
+            preBridgeResult.action match {
+                case RuleResult.Action.ACCEPT => // pass through
+                case RuleResult.Action.DROP | RuleResult.Action.REJECT =>
+                    val srcDlAddress = packetContext.wcmatch.getEthernetSource
+                    updateFlowCount(srcDlAddress, packetContext)
+                    // No point in tagging by dst-MAC+Port because the outPort was
+                    // not used in deciding to drop the flow.
+                    return Promise.successful(DropAction)
+                case other =>
+                    log.error("Pre-bridging for {} returned {} which was not " +
+                              "ACCEPT, DROP or REJECT.", id, other)
+                    return Promise.successful(ErrorDropAction)
+            }
+
+            if (preBridgeResult.pmatch ne packetContext.wcmatch) {
+                log.error("Pre-bridging for {} returned a different match" +
+                          "object", id)
                 return Promise.successful(ErrorDropAction)
-        }
+            }
 
-        if (preBridgeResult.pmatch ne packetContext.wcmatch) {
-            log.error("Pre-bridging for {} returned a different match object",
-                      id)
-            return Promise.successful(ErrorDropAction)
+        } else {
+            log.info("Ignoring pre/post chains on vlan tagged traffic")
         }
 
         // Learn the entry
@@ -151,12 +159,21 @@ class Bridge(val id: UUID, val tunnelKey: Long,
              else if (Ethernet.isMcast(dstDlAddress)) handleL2Multicast()
              else handleL2Unicast() // including ARP replies
 
-        action map doPostBridging(packetContext)
+        if (areChainsApplicable()) action map doPostBridging(packetContext)
+        else action
     }
 
     private def isArpBroadcast()(implicit pktCtx: PacketContext) = {
         Ethernet.isBroadcast(pktCtx.wcmatch.getEthernetDestination) &&
                              pktCtx.wcmatch.getEtherType == ARP.ETHERTYPE
+    }
+
+    /**
+     * Tells if chains should be executed for the current frames. So far, all
+     * will be, except those with a VLAN tag.
+     */
+    private def areChainsApplicable()(implicit pktCtx: PacketContext) = {
+        pktCtx.wcmatch.getVlanIds.isEmpty
     }
 
     /**
@@ -232,7 +249,7 @@ class Bridge(val id: UUID, val tunnelKey: Long,
             ToPortAction(toPort)
         }
 
-        val vlanInFrame: Option[JShort]= pktCtx.getFrame.getVlanIDs match {
+        val vlanInFrame: Option[JShort] = pktCtx.getFrame.getVlanIDs match {
             case l: java.util.List[JShort] if !l.isEmpty => Some(l.get(0))
             case _ => None
         }
