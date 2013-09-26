@@ -22,7 +22,7 @@ class BgpdProcess(routingHandler: ActorRef, vtyPortNumber: Int,
         log.debug("Starting bgpd process. Vty: {}", vtyPortNumber)
 
         val bgpdCmdLine = "ip netns exec " + networkNamespace +
-            config.pathToBGPD + "/bgpd" +
+            " " + config.pathToBGPD + "/bgpd" +
             " --vty_port " + vtyPortNumber +
             //" --vty_addr 127.0.0.1" +
             " --config_file " + config.pathToBGPDConfig + "/bgpd.conf" +
