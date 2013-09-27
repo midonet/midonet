@@ -820,12 +820,6 @@ public class TestPort {
             dtoResource.postAndVerifyBadRequest(b1p2.getLink(),
                 APPLICATION_PORT_LINK_JSON, link);
 
-            // Cannot delete linked ports
-            dtoResource.deleteAndVerifyBadRequest(r1p1.getUri(),
-                APPLICATION_PORT_V2_JSON);
-            dtoResource.deleteAndVerifyBadRequest(b1p1.getUri(),
-                APPLICATION_PORT_V2_JSON);
-
             // Unlink
             dtoResource.deleteAndVerifyStatus(r1p1.getLink(),
                 APPLICATION_PORT_LINK_JSON,
