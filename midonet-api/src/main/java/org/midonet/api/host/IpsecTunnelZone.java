@@ -5,12 +5,9 @@ package org.midonet.api.host;
 
 import java.util.UUID;
 
-import org.midonet.api.host.validation.IsUniqueIpsecTunnelZoneName;
-
 /**
  * Class representing IPSEC Tunnel zone.
  */
-@IsUniqueIpsecTunnelZoneName
 public class IpsecTunnelZone extends TunnelZone {
 
     /**
