@@ -14,9 +14,9 @@ public class MessageProperty {
     public static final String BRIDGE_EXISTS =
             "{midokura.javarx.BridgeExists.message}";
     public static final String BRIDGE_HAS_MAC_PORT =
-            "{midokuar.javarx.BridgeHasMacPort.message}";
+            "{midokura.javarx.BridgeHasMacPort.message}";
     public static final String BRIDGE_HAS_VLAN =
-            "{midokuar.javarx.BridgeHasVlan.message}";
+            "{midokura.javarx.BridgeHasVlan.message}";
     public static final String HOST_ID_IS_INVALID =
             "{midokura.javarx.HostIdIsInvalid.message}";
     public static final String HOST_INTERFACE_IS_USED =
@@ -45,8 +45,8 @@ public class MessageProperty {
             "{midokura.javarx.RouteNextHopPortValid.message}";
     public static final String TUNNEL_ZONE_ID_IS_INVALID =
             "{midokura.javarx.TunnelZoneIdIsInvalid.message}";
-    public static final String IS_UNIQUE_TUNNEL_ZONE_NAME_TYPE =
-        "{midokura.javarx.TunnelZoneNameTypeExists.message}";
+    public static final String UNIQUE_TUNNEL_ZONE_NAME_TYPE =
+        "{midokura.javarx.TunnelZoneNameExists.message}";
     public static final String TUNNEL_ZONE_MEMBER_EXISTS =
             "{midokura.javarx.TunnelZoneMemberExists.message}";
     public static final String VLAN_ID_MATCHES_PORT_VLAN_ID =
