@@ -258,10 +258,7 @@ public abstract class Port extends UriResource {
     /**
      * An unplugged port can become interior or exterior
      * depending on what it is attached to later.
-     *
-     * AssertTrue: Must be unplugged to be deleted.
      */
-    @AssertTrue(groups = PortDeleteGroup.class)
     @XmlTransient
     public boolean isUnplugged() {
         return !isInterior() && !isExterior();

@@ -10,6 +10,7 @@
 * [Response Headers](#responseheaders)
 * [HTTP Status Codes](#statuscodes)
 * [URI Templates](#uritemplates)
+* [Methods](#methods)
 * [Resource Models](#resourcemodels)
   * [Application](#application)
   * [Application - v1, Deprecated](#application-v1)
@@ -271,6 +272,28 @@ what they should be replaced with.
         <td>Unique identifier of resource.</td>
     </tr>
 </table>
+
+<a name="methods"></a>
+### Methods
+
+#### POST
+
+Used to create a new resource.  The 'Location' header field in the response
+contains the URI of the newly created resource.
+
+#### PUT
+
+Used to update an existing resource.
+
+#### GET
+
+Used to retrieve one more more resources.  It could either return a single
+object or a collection of objects in the response.
+
+#### DELETE
+
+In MidoNet API, DELETE operation means cascade delete unless noted otherwise.
+When a resource is deleted, all of its child resources are also deleted.
 
 <a name="resourcemodels"></a>
 ## Resource Models
