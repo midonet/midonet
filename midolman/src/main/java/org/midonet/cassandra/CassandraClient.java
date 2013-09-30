@@ -105,12 +105,14 @@ public class CassandraClient {
             config.setRetryDownedHostsDelayInSeconds(5);
             config.setCassandraThriftSocketTimeout(5000);
             // This controls the time that requests will wait for a connection
-            // to be restored when hector has lost the link to Cassandra. Since
-            // we should be setting reconnection processes elsewhere (e.g.:
-            // in handleHectorException, we really want to keep this short so
-            // the simulation locks for a very short time and frees up the
-            // akka thread.
-            config.setMaxWaitTimeWhenExhausted(1000);
+            // to be restored when hector has no clients available in a given
+            // host's pool. This may happen for example if we're getting
+            // timeouts to a host - this would close the clients, but not
+            // remove them from the pool so Hector will block trying to fetch
+            // a healthy client from the pool. We want to keep this short
+            // so that we return from the request, and trigger a failure that
+            // makes Hector mark the host as down.
+            config.setMaxWaitTimeWhenExhausted(1200);
             config.setExhaustedPolicy(ExhaustedPolicy.WHEN_EXHAUSTED_FAIL);
 
             cluster = HFactory.getOrCreateCluster(clusterName, config);
@@ -183,16 +185,13 @@ public class CassandraClient {
     }
 
     private synchronized void handleHectorException(HectorException ex) {
-        // see MN-668
-        boolean shouldReconnect = (ex instanceof HUnavailableException) ||
-                                  (ex instanceof HPoolExhaustedException);
         // FIXME - guillermo, this ugly hack works around the fact that hector
         // cannot recover from an 'All host pools marked down' error and neither
-        // does it offer an exAll ception subclass or error code to signal that case.
-        shouldReconnect |= ex.getMessage()
-                             .equalsIgnoreCase("All host pools marked down");
-        if (shouldReconnect && this.conn != null) {
-            scheduleReconnect();
+        // does it offer an exception subclass or error code to signal that case.
+        if (ex.getMessage().contains("All host pools marked down.")) {
+            if (this.conn != null) {
+                scheduleReconnect();
+            }
         }
     }
 
