@@ -1,0 +1,92 @@
+#!/bin/bash
+
+# Copyright 2013 Midokura KK
+
+
+# The first existing directory is used for JAVA_HOME if needed.
+JVM_SEARCH_DIRS="/usr/lib/jvm/java-7-openjdk-amd64 /usr/lib/jvm/java-7-openjdk \
+                 /usr/lib/jvm/java-7-sun"
+
+# If JAVA_HOME has not been set, try to determine it.
+if [ -z "$JAVA_HOME" ]; then
+    # If java is in PATH, use a JAVA_HOME that corresponds to that. This is
+    # both consistent with how the upstream startup script works, and how
+    # Debian works (read: the use of alternatives to set a system JVM).
+    if [ -n "`which java`" ]; then
+        java=`which java`
+        # Dereference symlink(s)
+        while true; do
+            if [ -h "$java" ]; then
+                java=`readlink "$java"`
+                continue
+            fi
+            break
+        done
+        JAVA_HOME="`dirname $java`/../"
+    # No JAVA_HOME set and no java found in PATH, search for a JVM.
+    else
+        for jdir in $JVM_SEARCH_DIRS; do
+            if [ -x "$jdir/bin/java" ]; then
+                JAVA_HOME="$jdir"
+                break
+            fi
+        done
+    fi
+fi
+JAVA="$JAVA_HOME/bin/java"
+
+calculate_heap_sizes()
+{
+    case "`uname`" in
+        Linux)
+            system_memory_in_mb=`free -m | awk '/Mem:/ {print $2}'`
+            system_cpu_cores=`egrep -c 'processor([[:space:]]+):.*' /proc/cpuinfo`
+            break
+        ;;
+        FreeBSD)
+            system_memory_in_bytes=`sysctl hw.physmem | awk '{print $2}'`
+            system_memory_in_mb=$((system_memory_in_bytes / 1024 / 1024))
+            system_cpu_cores=`sysctl hw.ncpu | awk '{print $2}'`
+            break
+        ;;
+        *)
+            # assume reasonable defaults for e.g. a modern desktop or
+            # cheap server
+            system_memory_in_mb="2048"
+            system_cpu_cores="2"
+        ;;
+    esac
+    max_heap_size_in_mb=$((system_memory_in_mb / 2))
+    MAX_HEAP_SIZE="${max_heap_size_in_mb}M"
+
+    # Young gen: min(max_sensible_per_modern_cpu_core * num_cores, 1/4 * heap size)
+    max_sensible_yg_per_core_in_mb="100"
+    max_sensible_yg_in_mb=$((max_sensible_yg_per_core_in_mb * system_cpu_cores))
+
+    desired_yg_in_mb=$((max_heap_size_in_mb / 4))
+
+    if [ "$desired_yg_in_mb" -gt "$max_sensible_yg_in_mb" ]
+    then
+        HEAP_NEWSIZE="${max_sensible_yg_in_mb}M"
+    else
+        HEAP_NEWSIZE="${desired_yg_in_mb}M"
+    fi
+}
+
+MIDO_HOME=/usr/share/midolman
+
+if [ ! -d "$MIDO_HOME" ]; then
+   echo "ERROR: $MIDO_HOME does not exist"
+   exit 1
+fi
+
+JAVA_LIBRARY_PATH=-Djava.library.path=/lib:/usr/lib
+MIDO_BOOTSTRAP_JAR=$MIDO_HOME/midonet-jdk-bootstrap.jar
+MIDO_DEP_CLASS_PATH=`echo $MIDO_HOME/dep/* | sed 's/ /:/g'`
+MIDO_JAR=$MIDO_HOME/midolman.jar
+if [ ! -e "$MIDO_JAR" ]; then
+   echo "ERROR: $MIDO_JAR does not exist"
+   exit 1
+fi
+
+$JAVA -Dlogback.configurationFile=file:/etc/midolman/logback-dpctl.xml $JAVA_LIBRARY_PATH -Xbootclasspath/p:$MIDO_BOOTSTRAP_JAR -cp $MIDO_DEP_CLASS_PATH:$MIDO_JAR org.midonet.midolman.tools.MmCtl $*
