@@ -705,7 +705,7 @@ traverse the URIs to discover all the available services.
 ### Router [application/vnd.org.midonet.Router-v1+json]
 
     GET     /routers
-    GET     /tenants/:tenantId/routers
+    GET     /routers?tenant_id=:tenantId
     GET     /routers/:routerId
     POST    /routers
     PUT     /routers/:routerId
@@ -841,7 +841,7 @@ contains the following fields:
 ### Bridge [application/vnd.org.midonet.Bridge-v1+json]
 
     GET     /bridges
-    GET     /tenants/:tenantId/bridges
+    GET     /bridges?tenant_id=:tenantId
     GET     /bridges/:bridgeId
     POST    /bridges
     PUT     /bridges/:bridgeId
@@ -1598,7 +1598,7 @@ contains the following fields:
 ### Port Group [application/vnd.org.midonet.PortGroup-v1+json]
 
     GET     /port_groups
-    GET     /tenants/:tenantId/port_groups
+    GET     /port_groups?tenant_id=:tenantId
     GET     /ports/:portId/port_groups
     GET     /port_groups/:portGroupId
     POST    /port_groups
@@ -1736,7 +1736,7 @@ PortGroupPort represents membership of ports in port groups.
 ### Chain [application/vnd.org.midonet.Chain-v1+json]
 
     GET     /chains
-    GET     /tenants/:tenantId/chains
+    GET     /chains?tenant_id=:tenantId
     GET     /chains/:chainId
     POST    /chains
     DELETE  /chains/:chainId
