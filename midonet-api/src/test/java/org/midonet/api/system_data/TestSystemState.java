@@ -8,6 +8,7 @@ import java.net.URI;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 import com.sun.jersey.test.framework.JerseyTest;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -15,6 +16,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 import org.midonet.api.VendorMediaType;
 import org.midonet.api.rest_api.FuncTest;
+import org.midonet.api.zookeeper.StaticMockDirectory;
 import org.midonet.client.MidonetApi;
 import org.midonet.client.resource.Router;
 import org.midonet.cluster.data.SystemState;
@@ -38,6 +40,11 @@ public class TestSystemState extends JerseyTest {
         URI baseUri = resource().getURI();
         api = new MidonetApi(baseUri.toString());
         api.enableLogging();
+    }
+
+    @After
+    public void resetDirectory() throws Exception {
+        StaticMockDirectory.clearDirectoryInstance();
     }
 
     @Test

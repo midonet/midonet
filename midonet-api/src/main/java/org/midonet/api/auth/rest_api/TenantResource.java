@@ -95,59 +95,6 @@ public class TenantResource extends AbstractResource {
     }
 
     /**
-     * Bridge resource locator for tenants.
-     *
-     * @param id
-     *            Tenant ID from the request.
-     * @returns TenantBridgeResource object to handle sub-resource requests.
-     */
-    @Path("/{id}" + ResourceUriBuilder.BRIDGES)
-    public BridgeResource.TenantBridgeResource getBridgeResource(
-            @PathParam("id") String id) {
-        return factory.getTenantBridgeResource(id);
-    }
-
-    /**
-     * Chain resource locator for tenants.
-     *
-     * @param id
-     *            Tenant ID from the request.
-     * @returns TenantChainResource object to handle sub-resource requests.
-     */
-    @Path("/{id}" + ResourceUriBuilder.CHAINS)
-    public ChainResource.TenantChainResource getChainResource(
-            @PathParam("id") String id) {
-        return factory.getTenantChainResource(id);
-    }
-
-    /**
-     * Port group resource locator for tenants.
-     *
-     * @param id
-     *            Tenant ID from the request.
-     * @returns TenantPortGroupResource object to handle sub-resource requests.
-     */
-    @Path("/{id}" + ResourceUriBuilder.PORT_GROUPS)
-    public PortGroupResource.TenantPortGroupResource getPortGroupResource(
-            @PathParam("id") String id) {
-        return factory.getTenantPortGroupResource(id);
-    }
-
-    /**
-     * Router resource locator for tenants.
-     *
-     * @param id
-     *            Tenant ID from the request.
-     * @returns TenantRouterResource object to handle sub-resource requests.
-     */
-    @Path("/{id}" + ResourceUriBuilder.ROUTERS)
-    public RouterResource.TenantRouterResource getRouterResource(
-            @PathParam("id") String id) {
-        return factory.getTenantRouterResource(id);
-    }
-
-
-    /**
      * Handler to get a {@link Tenant] object
      * @return Tenant object
      * @throws AuthException

@@ -53,24 +53,31 @@ public class TestTenant extends JerseyTest {
         topology = builder.build();
     }
 
-    private static DtoTenant getExpectedTenant(URI tenantsUri, String id) {
+    private static DtoTenant getExpectedTenant(URI baseUri, URI tenantsUri,
+                                               String id) {
         String uri = tenantsUri.toString() + "/" + id;
         DtoTenant t = new DtoTenant(id, id);
         t.setUri(UriBuilder.fromUri(uri).build());
-        t.setRouters(UriBuilder.fromUri(uri + "/routers").build());
-        t.setBridges(UriBuilder.fromUri(uri + "/bridges").build());
-        t.setChains(UriBuilder.fromUri(uri + "/chains").build());
-        t.setPortGroups(UriBuilder.fromUri(uri + "/port_groups").build());
+        t.setRouters(UriBuilder.fromUri(baseUri + "routers?tenant_id=" + id)
+                .build());
+        t.setBridges(UriBuilder.fromUri(baseUri + "bridges?tenant_id=" + id)
+                .build());
+        t.setChains(UriBuilder.fromUri(baseUri + "chains?tenant_id=" + id)
+                .build());
+        t.setPortGroups(UriBuilder.fromUri(baseUri + "port_groups?tenant_id="
+                + id).build());
         return t;
     }
 
-    private static List<DtoTenant> getExpectedTenants(URI tenantsUri,
+    private static List<DtoTenant> getExpectedTenants(URI baseUri,
+                                                      URI tenantsUri,
                                                       int startTenantId,
                                                       int endTenantId) {
         List<DtoTenant> tenants = new ArrayList<DtoTenant>();
 
         for (int i = startTenantId; i <= endTenantId; i++) {
-            DtoTenant t = getExpectedTenant(tenantsUri, Integer.toString(i));
+            DtoTenant t = getExpectedTenant(baseUri, tenantsUri,
+                    Integer.toString(i));
             tenants.add(t);
         }
 
@@ -91,7 +98,8 @@ public class TestTenant extends JerseyTest {
 
         // Get the expected list of DtoTenant objects
         DtoApplication app = topology.getApplication();
-        List<DtoTenant> expected = getExpectedTenants(app.getTenants(), 0, 9);
+        List<DtoTenant> expected = getExpectedTenants(app.getUri(),
+                app.getTenants(), 0, 9);
 
         // Get the actual DtoTenant objects
         String actualRaw = dtoResource.getAndVerifyOk(app.getTenants(),
@@ -110,7 +118,8 @@ public class TestTenant extends JerseyTest {
         for (DtoTenant t : actual) {
 
             // Construct the expected object
-            DtoTenant expectedTenant = getExpectedTenant(app.getTenants(),
+            DtoTenant expectedTenant = getExpectedTenant(app.getUri(),
+                    app.getTenants(),
                     t.getId());
 
             // Get the actual object

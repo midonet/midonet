@@ -720,60 +720,6 @@ public class BridgeResource extends AbstractResource {
             ResourceUriBuilder.ip4MacPairToMac(IP4MacPairString));
     }
 
-    /**
-     * Sub-resource class for tenant's bridges.
-     */
-    @RequestScoped
-    public static class TenantBridgeResource extends AbstractResource {
-
-        private final String tenantId;
-        private final DataClient dataClient;
-
-        @Inject
-        public TenantBridgeResource(RestApiConfig config,
-                                    UriInfo uriInfo,
-                                    SecurityContext context,
-                                    DataClient dataClient,
-                                    @Assisted String tenantId) {
-            super(config, uriInfo, context);
-            this.tenantId = tenantId;
-            this.dataClient = dataClient;
-        }
-
-        /**
-         * Handler to list tenant bridges.
-         *
-         * @throws StateAccessException
-         *             Data access error.
-         * @return A list of Bridge objects.
-         */
-        @GET
-        @PermitAll
-        @Produces({ VendorMediaType.APPLICATION_BRIDGE_COLLECTION_JSON,
-                MediaType.APPLICATION_JSON })
-        public List<Bridge> list() throws StateAccessException,
-                SerializationException {
-
-            if (!Authorizer.isAdminOrOwner(context, tenantId)) {
-                throw new ForbiddenHttpException(
-                        "Not authorized to view bridges of this request.");
-            }
-
-            List<org.midonet.cluster.data.Bridge> dataBridges =
-                    dataClient.bridgesFindByTenant(tenantId);
-            List<Bridge> bridges = new ArrayList<Bridge>();
-            if (dataBridges != null) {
-                for (org.midonet.cluster.data.Bridge dataBridge :
-                        dataBridges) {
-                    Bridge bridge = new Bridge(dataBridge);
-                    bridge.setBaseUri(getBaseUri());
-                    bridges.add(bridge);
-                }
-            }
-            return bridges;
-	}
-    }
-
     private void assertBridgeExists(UUID id) throws StateAccessException {
         if (!dataClient.bridgeExists(id))
             throw new NotFoundHttpException(

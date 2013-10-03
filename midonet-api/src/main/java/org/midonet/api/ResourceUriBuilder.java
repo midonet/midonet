@@ -55,6 +55,7 @@ public class ResourceUriBuilder {
     public static final String MAC_ADDR = "/{macAddress}";
     public static final String PORT_ID = "/{portId}";
     public static final String PORT_ID_NO_SLASH = "{portId}";
+    public static final String TENANT_ID_PARAM = "tenant_id";
 
 
     private ResourceUriBuilder() {
@@ -77,23 +78,23 @@ public class ResourceUriBuilder {
     }
 
     public static URI getTenantRouters(URI baseUri, String tenantId) {
-        return UriBuilder.fromUri(getTenant(baseUri, tenantId)).path(ROUTERS)
-                .build();
+        return UriBuilder.fromUri(getRouters(baseUri)).queryParam(
+                TENANT_ID_PARAM, tenantId).build();
     }
 
     public static URI getTenantBridges(URI baseUri, String tenantId) {
-        return UriBuilder.fromUri(getTenant(baseUri, tenantId)).path(BRIDGES)
-                .build();
+        return UriBuilder.fromUri(getBridges(baseUri)).queryParam(
+                TENANT_ID_PARAM, tenantId).build();
     }
 
     public static URI getTenantChains(URI baseUri, String tenantId) {
-        return UriBuilder.fromUri(getTenant(baseUri, tenantId)).path(CHAINS)
-                .build();
+        return UriBuilder.fromUri(getChains(baseUri)).queryParam(
+                TENANT_ID_PARAM, tenantId).build();
     }
 
     public static URI getTenantPortGroups(URI baseUri, String tenantId) {
-        return UriBuilder.fromUri(getTenant(baseUri, tenantId))
-                .path(PORT_GROUPS).build();
+        return UriBuilder.fromUri(getPortGroups(baseUri)).queryParam(
+                TENANT_ID_PARAM, tenantId).build();
     }
 
     public static URI getRouters(URI baseUri) {
