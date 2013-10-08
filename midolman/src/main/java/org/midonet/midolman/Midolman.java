@@ -38,17 +38,32 @@ import sun.misc.SignalHandler;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
+import java.nio.file.Paths;
 import java.util.Properties;
 
 public class Midolman {
 
     static final Logger log = LoggerFactory.getLogger(Midolman.class);
 
+    static final int MIDOLMAN_ERROR_CODE_MISSING_CONFIG_FILE = 1;
+
     private Injector injector;
 
     private MonitoringAgent monitoringAgent;
 
     private Midolman() {
+    }
+
+    /**
+     * Exits by calling System.exits() with status code,
+     * MIDOLMAN_ERROR_CODE_MISSING_CONFIG_FILE.
+     *
+     * @param configFilePath A path for the Midolman config file.
+     */
+    static void exitsMissingConfigFile(String configFilePath) {
+        log.error("Midolman config file missing: " + configFilePath);
+        log.error("Midolman exiting.");
+        System.exit(MIDOLMAN_ERROR_CODE_MISSING_CONFIG_FILE);
     }
 
     private void run(String[] args) throws Exception {
@@ -97,6 +112,10 @@ public class Midolman {
         redirectStdOutAndErrIfRequested(cl);
 
         String configFilePath = cl.getOptionValue('c', "./conf/midolman.conf");
+        if (!java.nio.file.Files.isReadable(Paths.get(configFilePath))) {
+            // The config file is missing. Exits Midolman.
+            Midolman.exitsMissingConfigFile(configFilePath);
+        }
 
         injector = Guice.createInjector(
             new ZookeeperConnectionModule(),
