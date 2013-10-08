@@ -4,21 +4,20 @@
 package org.midonet.midolman
 
 import java.util.concurrent.TimeUnit
-import akka.util.Duration
 
+import akka.util.Duration
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
+import org.midonet.cluster.data.zones.GreTunnelZoneHost
 import org.midonet.midolman.FlowController.{AddWildcardFlow, WildcardFlowAdded}
 import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
 import org.midonet.midolman.datapath.FlowActionOutputToVrnPort
 import org.midonet.midolman.topology.LocalPortActive
-import org.midonet.cluster.data.zones.GreTunnelZoneHost
 import org.midonet.odp.flows.FlowActions
 import org.midonet.odp.flows.{FlowActionOutput, FlowActionSetKey, FlowKeyTunnel}
 import org.midonet.packets.IPv4Addr
 import org.midonet.sdn.flows.{WildcardMatch, WildcardFlow}
-
 
 @RunWith(classOf[JUnitRunner])
 class InstallWildcardFlowForRemotePortTestCase extends MidolmanTestCase
@@ -50,19 +49,13 @@ class InstallWildcardFlowForRemotePortTestCase extends MidolmanTestCase
         clusterDataClient().tunnelZonesAddMembership(
             tunnelZone.getId, new GreTunnelZoneHost(host2.getId).setIp(dstIp.toIntIPv4))
 
-        val flowEventsProbe = newProbe()
-        actors().eventStream.subscribe(flowEventsProbe.ref,
-                                       classOf[WildcardFlowAdded])
-
-        val portEventsProbe = newProbe()
-        actors().eventStream.subscribe(portEventsProbe.ref,
-                                       classOf[LocalPortActive])
-
         initializeDatapath() should not be (null)
 
-        flowProbe().expectMsgType[
-            DatapathController.DatapathReady].datapath should not be (null)
-        portEventsProbe.expectMsgClass(classOf[LocalPortActive])
+        val datapath =
+            flowProbe().expectMsgType[DatapathController.DatapathReady].datapath
+        datapath should not be null
+
+        portsProbe.expectMsgClass(classOf[LocalPortActive])
 
         val inputPortNo = getPortNumber("port1")
 
@@ -71,7 +64,7 @@ class InstallWildcardFlowForRemotePortTestCase extends MidolmanTestCase
             actions = List(new FlowActionOutputToVrnPort(portOnHost2.getId)))
 
         fishForRequestOfType[AddWildcardFlow](flowProbe())
-        drainProbe(wflowAddedProbe)
+        drainProbes()
 
         dpProbe().testActor.tell(
             AddVirtualWildcardFlow(wildcardFlow, Set.empty, Set.empty))

@@ -36,9 +36,7 @@ class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers with
     var bridge: Bridge = null
     var portOnHost1: BridgePort = null
 
-    var portChangedProbe: TestProbe = null
     var portActiveProbe: TestProbe = null
-    var tunnelChangeProbe: TestProbe = null
 
     override protected def fillConfig(config: HierarchicalConfiguration): HierarchicalConfiguration = {
         config.setProperty("host-host_uuid", myselfId.toString)
@@ -68,12 +66,9 @@ class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers with
         clusterDataClient()
             .tunnelZonesAddMembership(greZone.getId, herGreConfig)
 
-        portChangedProbe = newProbe()
         portActiveProbe = newProbe()
 
         // listen to the DatapathController.DpPortCreate
-        actors().eventStream.subscribe(
-            portChangedProbe.ref, classOf[DpPortCreate])
         actors().eventStream.subscribe(
             portActiveProbe.ref, classOf[LocalPortActive])
 
@@ -96,14 +91,14 @@ class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers with
 
         // assert that the gre tunnel port was created
         var portChangedEvent =
-            portChangedProbe.expectMsgClass(classOf[DpPortCreate])
+            datapathEventsProbe.expectMsgClass(classOf[DpPortCreate])
 
         portChangedEvent.port.getName should be("tngre-mm")
         portChangedEvent.port.isInstanceOf[GreTunnelPort] should be(true)
 
         // assert that the port event was fired properly
         portChangedEvent =
-            portChangedProbe.expectMsgClass(classOf[DpPortCreate])
+            datapathEventsProbe.expectMsgClass(classOf[DpPortCreate])
 
         portChangedEvent.port.getName should be("port1")
         portChangedEvent.port.isInstanceOf[NetDevPort] should be(true)
