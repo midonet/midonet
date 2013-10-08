@@ -4,37 +4,40 @@
 
 package org.midonet.midolman
 
-import collection.{Set => ROSet}
-import collection.immutable.HashMap
-import collection.mutable
+import java.util.UUID
+import java.util.concurrent.TimeUnit
+import scala.collection.immutable.HashMap
+import scala.collection.mutable
+import scala.collection.{Set => ROSet}
 
 import akka.testkit.TestProbe
 import akka.util.Duration
-import java.util.UUID
-import java.util.concurrent.TimeUnit
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
+import org.midonet.cluster.data.Router
+import org.midonet.cluster.data.host.Host
+import org.midonet.cluster.data.ports.RouterPort
 import org.midonet.midolman.DeduplicationActor.DiscardPacket
-import org.midonet.midolman.FlowController.{AddWildcardFlow, RemoveWildcardFlow,
-    WildcardFlowAdded, WildcardFlowRemoved, InvalidateFlowsByTag}
+import org.midonet.midolman.FlowController.AddWildcardFlow
+import org.midonet.midolman.FlowController.InvalidateFlowsByTag
+import org.midonet.midolman.FlowController.RemoveWildcardFlow
+import org.midonet.midolman.FlowController.WildcardFlowAdded
+import org.midonet.midolman.FlowController.WildcardFlowRemoved
 import org.midonet.midolman.layer3.Route._
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.topology.RouterManager.RouterInvTrieTagCountModified
 import org.midonet.midolman.util.{RouterHelper, TestHelpers}
-import org.midonet.cluster.data.host.Host
-import org.midonet.cluster.data.ports.RouterPort
-import org.midonet.cluster.data.Router
-import org.midonet.odp.{FlowMatch, Flow, Datapath}
 import org.midonet.odp.flows.{FlowKeyTunnelID, FlowAction, FlowActions}
+import org.midonet.odp.{FlowMatch, Flow, Datapath}
 import org.midonet.packets._
 import org.midonet.sdn.flows.{WildcardMatch, WildcardFlow}
 
 
 @RunWith(classOf[JUnitRunner])
-class RouterFlowInvalidationTest extends MidolmanTestCase with VirtualConfigurationBuilders
-                       with RouterHelper{
+class RouterFlowInvalidationTestCase extends MidolmanTestCase
+        with VirtualConfigurationBuilders with RouterHelper{
 
     var eventProbe: TestProbe = null
     var tagEventProbe: TestProbe = null
@@ -265,15 +268,13 @@ class RouterFlowInvalidationTest extends MidolmanTestCase with VirtualConfigurat
             NextHop.PORT, outPort.getId, new IPv4Addr(NO_GATEWAY).toString,
             2)
 
-        wflowRemovedProbe.fishForMessage(Duration(3, TimeUnit.SECONDS),
-            "WildcardFlowRemoved")(TestHelpers.getMatchFlowRemovedPacketPartialFunction)
-
-        wflowRemovedProbe.fishForMessage(Duration(3, TimeUnit.SECONDS),
-            "WildcardFlowRemoved")(TestHelpers.getMatchFlowRemovedPacketPartialFunction)
+        ackWCRemoved()
+        ackWCRemoved()
 
         wflowRemovedProbe.expectNoMsg(Duration(3, TimeUnit.SECONDS))
 
     }
+
     // Same scenario of the previous test.
     // We add a route to 11.11.0.0/16 reachable from outPort, we create 2 flows
     // from ipSource to 11.1.1.2

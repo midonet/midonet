@@ -4,31 +4,29 @@
 
 package org.midonet.midolman
 
-import scala.Predef._
 import java.util.concurrent.TimeUnit
+import scala.Predef._
 
 import akka.testkit.TestProbe
 import akka.util.Duration
-
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.FlowController._
 import org.midonet.midolman.PacketWorkflow.PacketIn
+import org.midonet.midolman.topology.VirtualTopologyActor.BridgeRequest
+import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
+import org.midonet.midolman.topology.{LocalPortActive, VirtualTopologyActor}
 import org.midonet.midolman.util.TestHelpers
 import org.midonet.odp._
 import org.midonet.packets.{IPv4Addr, MAC, Packets}
 import org.midonet.sdn.flows.WildcardFlow
-import org.midonet.midolman.topology.{LocalPortActive, VirtualTopologyActor}
-import org.midonet.midolman.topology.VirtualTopologyActor.{BridgeRequest, PortRequest}
-
 
 @RunWith(classOf[JUnitRunner])
-class FlowsExpirationTest extends MidolmanTestCase
+class FlowsExpirationTestCase extends MidolmanTestCase
        with VirtualConfigurationBuilders {
 
-    var eventProbe: TestProbe = null
     var datapath: Datapath = null
 
     var timeOutFlow: Long = 500
@@ -65,8 +63,6 @@ class FlowsExpirationTest extends MidolmanTestCase
 
     override def beforeTest() {
         val myHost = newHost("myself", hostId())
-        eventProbe = newProbe()
-        actors().eventStream.subscribe(eventProbe.ref, classOf[FlowUpdateCompleted])
 
         val bridge = newBridge("bridge")
 
@@ -95,7 +91,6 @@ class FlowsExpirationTest extends MidolmanTestCase
         requestOfType[LocalPortActive](portsProbe)
         requestOfType[LocalPortActive](portsProbe)
 
-        drainProbe(eventProbe)
         drainProbes()
     }
 
@@ -156,8 +151,8 @@ class FlowsExpirationTest extends MidolmanTestCase
         dpConn().flowsGet(datapath, pktInMsg.dpMatch).get should not be (null)
 
         // wait to get a FlowRemoved message that will be triggered by invalidation
-        wflowRemovedProbe.fishForMessage(Duration(timeOutFlow, TimeUnit.SECONDS),
-            "WildcardFlowRemoved")(TestHelpers.getMatchFlowRemovedPacketPartialFunction)
+
+        ackWCRemoved(Duration(timeOutFlow, TimeUnit.SECONDS))
 
         val timeDeleted: Long = System.currentTimeMillis()
 
@@ -200,10 +195,10 @@ class FlowsExpirationTest extends MidolmanTestCase
         // the lastUsedTime
         setFlowLastUsedTimeToNow(flow.getMatch)
 
-        eventProbe.expectMsgClass(classOf[FlowUpdateCompleted])
+        flowUpdateProbe.expectMsgClass(classOf[FlowUpdateCompleted])
         // wait for FlowRemoval notification
-        wflowRemovedProbe.fishForMessage(Duration(timeOutFlow, TimeUnit.SECONDS),
-            "WildcardFlowRemoved")(TestHelpers.getMatchFlowRemovedPacketPartialFunction)
+        ackWCRemoved(Duration(timeOutFlow, TimeUnit.SECONDS))
+
         val timeDeleted: Long = System.currentTimeMillis()
 
         dpConn().flowsGet(datapath, flow.getMatch).get() should be (null)
@@ -235,8 +230,8 @@ class FlowsExpirationTest extends MidolmanTestCase
         dilatedSleep(delayAsynchAddRemoveInDatapath)
         dpConn().flowsGet(datapath, flow.getMatch).get should not be (null)
 
-        wflowRemovedProbe.fishForMessage(Duration(timeOutFlow, TimeUnit.SECONDS),
-            "WildcardFlowRemoved")(TestHelpers.getMatchFlowRemovedPacketPartialFunction)
+        ackWCRemoved(Duration(timeOutFlow, TimeUnit.SECONDS))
+
         val timeDeleted: Long = System.currentTimeMillis()
 
         dpConn().flowsGet(datapath, flow.getMatch).get() should be (null)
@@ -276,10 +271,10 @@ class FlowsExpirationTest extends MidolmanTestCase
         setFlowLastUsedTimeToNow(flow.getMatch)
         // expect that the FlowController requests an update for this flow
         // because (timeLived > timeout/2) and that the update will be received
-        eventProbe.expectMsgClass(classOf[FlowUpdateCompleted])
+        flowUpdateProbe.expectMsgClass(classOf[FlowUpdateCompleted])
         // wait for flow expiration
-        wflowRemovedProbe.fishForMessage(Duration(timeOutFlow, TimeUnit.SECONDS),
-            "WildcardFlowRemoved")(TestHelpers.getMatchFlowRemovedPacketPartialFunction)
+        ackWCRemoved(Duration(timeOutFlow, TimeUnit.SECONDS))
+
         val timeDeleted = System.currentTimeMillis()
 
         dpConn().flowsGet(datapath, pktInMsg.dpMatch).get() should be (null)

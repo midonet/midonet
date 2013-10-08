@@ -60,11 +60,7 @@ trait VMsBehindRouterFixture extends MidolmanTestCase with SimulationHelper with
     var router: ClusterRouter = null
     var host: Host = null
 
-    var packetsEventsProbe: TestProbe = null
-
     override def beforeTest() {
-        packetsEventsProbe = newProbe()
-        actors().eventStream.subscribe(packetsEventsProbe.ref, classOf[PacketsExecute])
 
         host = newHost("myself", hostId())
         host should not be null
@@ -117,7 +113,7 @@ trait VMsBehindRouterFixture extends MidolmanTestCase with SimulationHelper with
     }
 
     def expectPacketOut(port: Int, numPorts: Seq[Int] = List(1)): Ethernet = {
-        val pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
+        val pktOut = getPacketOut
         log.debug("Packet execute: {}", pktOut)
 
         val outPorts = getOutPacketPorts(pktOut)

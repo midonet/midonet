@@ -71,8 +71,6 @@ class DhcpTestCase extends MidolmanTestCase with
 
     var intfMtu = 0
 
-    private var packetsEventsProbe: TestProbe = null
-
     private def getIp: String = {
         val cmd = ( "/sbin/ifconfig"
                     + "| grep -w inet | grep -vw 127.0.0.1"
@@ -130,9 +128,6 @@ class DhcpTestCase extends MidolmanTestCase with
     }
 
     override def beforeTest() {
-        packetsEventsProbe = newProbe()
-        actors().eventStream.subscribe(packetsEventsProbe.ref, classOf[PacketsExecute])
-
         initDevices()
 
         val ipString = getIp
@@ -324,7 +319,6 @@ class DhcpTestCase extends MidolmanTestCase with
         var returnPkt = fishForRequestOfType[EmitGeneratedPacket](dedupProbe()).eth
         extractDhcpReply(returnPkt)
             .getServerIPAddress should be === routerIp2.toIntIPv4.addressAsInt()
-        drainProbe(dedupProbe())
         drainProbes()
 
         injectDhcpDiscover(vm2PortName, vm2Mac)
@@ -332,7 +326,6 @@ class DhcpTestCase extends MidolmanTestCase with
         returnPkt = fishForRequestOfType[EmitGeneratedPacket](dedupProbe()).eth
         extractDhcpReply(returnPkt)
             .getServerIPAddress should be === routerIp3.toIntIPv4.addressAsInt()
-        drainProbe(dedupProbe())
         drainProbes()
     }
 

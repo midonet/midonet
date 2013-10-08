@@ -4,14 +4,15 @@
 package org.midonet.midolman
 
 import akka.testkit.TestProbe
-import collection.JavaConversions._
-import collection.mutable
+import scala.collection.JavaConversions._
+import scala.collection.mutable.{ListBuffer, HashMap}
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
 
-import org.midonet.midolman.DeduplicationActor.{EmitGeneratedPacket, DiscardPacket}
+import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
+import org.midonet.midolman.DeduplicationActor.DiscardPacket
 import org.midonet.midolman.guice.actors.OutgoingMessage
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
@@ -51,12 +52,7 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
     val rtrPort1Name = "RouterPort1"
     var rtrPort1Num = 0
 
-    private var packetsEventsProbe: TestProbe = null
-
     override def beforeTest() {
-        packetsEventsProbe = newProbe()
-        actors().eventStream.subscribe(packetsEventsProbe.ref, classOf[PacketsExecute])
-
         val host = newHost("myself", hostId())
         host should not be null
 
@@ -139,17 +135,8 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
         drainProbes()
     }
 
-    private def checkPacket(p: Packet): Packet = {
-        p should not be null
-        p.getPacket should not be null
-        p
-    }
-
-    private def getPacketOut(portNum: Int): Packet =
-        checkPacket((expect[PacketsExecute] on packetsEventsProbe).packet)
-
     private def expectPacketOut(portNum : Int): Ethernet = {
-        val pktOut = getPacketOut(portNum)
+        val pktOut = getPacketOut
         log.debug("Packet execute: {}", pktOut)
 
         val flowActs = pktOut.getActions
@@ -163,24 +150,13 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
         pktOut.getPacket
     }
 
-    private def expectRoutedPacketOut(portNum : Int): Ethernet = {
-        val pktOut = getPacketOut(portNum)
-        log.debug("Packet Broadcast: {}", pktOut)
-
-        val flowActs = pktOut.getActions
-        flowActs.size should equal (3)
-        flowActs.contains(FlowActions.output(portNum)) should be (true)
-
-        pktOut.getPacket
-    }
-
     private def injectDhcpDiscover(portName: String, srcMac : MAC) {
         val dhcpDiscover = new DHCP()
         dhcpDiscover.setOpCode(0x01)
         dhcpDiscover.setHardwareType(0x01)
         dhcpDiscover.setHardwareAddressLength(6)
         dhcpDiscover.setClientHardwareAddress(srcMac)
-        var options = mutable.ListBuffer[DHCPOption]()
+        var options = ListBuffer[DHCPOption]()
         options.add(new DHCPOption(DHCPOption.Code.DHCP_TYPE.value,
                            DHCPOption.Code.DHCP_TYPE.length,
                            Array[Byte](DHCPOption.MsgType.DISCOVER.value)))
@@ -207,7 +183,7 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
         dhcpReq.setHardwareAddressLength(6)
         dhcpReq.setClientHardwareAddress(srcMac)
         dhcpReq.setServerIPAddress(dhcpServerIp)
-        var options = mutable.ListBuffer[DHCPOption]()
+        var options = ListBuffer[DHCPOption]()
         options.add(new DHCPOption(DHCPOption.Code.DHCP_TYPE.value,
                            DHCPOption.Code.DHCP_TYPE.length,
                            Array[Byte](DHCPOption.MsgType.REQUEST.value)))
@@ -250,7 +226,7 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
         val dhcpPkt = udpPkt.getPayload.asInstanceOf[DHCP]
         dhcpClientIp = dhcpPkt.getYourIPAddress
         dhcpServerIp = dhcpPkt.getServerIPAddress
-        val replyOptions = mutable.HashMap[Byte, DHCPOption]()
+        val replyOptions = HashMap[Byte, DHCPOption]()
         for (opt <- dhcpPkt.getOptions) {
             val code = opt.getCode
             replyOptions.put(code, opt)
@@ -270,11 +246,10 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
      * Sends an ICMP request and expects an ICMP reply back, it'll take care
      * of possible race conditions that might result in an intermediate ARP
      */
-    def doIcmpExchange(fromPort: String, srcMac: MAC, srcIp: IPv4Addr,
+    private def doIcmpExchange(fromPort: String, srcMac: MAC, srcIp: IPv4Addr,
                        dstMac: MAC, dstIp: IPv4Addr) {
 
-        drainProbe(packetInProbe)
-        drainProbe(dedupProbe())
+        drainProbes()
 
         injectIcmpEchoReq(fromPort, srcMac, srcIp, dstMac, dstIp)
         expectPacketIn()

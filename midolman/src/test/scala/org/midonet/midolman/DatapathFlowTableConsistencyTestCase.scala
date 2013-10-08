@@ -4,18 +4,19 @@
 package org.midonet.midolman
 
 import scala.collection.JavaConversions._
+
+import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
 
+import org.midonet.midolman.FlowController.WildcardFlowAdded
+import org.midonet.midolman.topology.BridgeManager
 import org.midonet.midolman.util.SimulationHelper
-import org.midonet.odp.protos.MockOvsDatapathConnection
 import org.midonet.odp.FlowMatch
 import org.midonet.odp.flows.{FlowKeyICMPEcho, FlowKeyTCP, FlowKeyICMP}
+import org.midonet.odp.protos.MockOvsDatapathConnection
 import org.midonet.sdn.flows.FlowManager
-import topology.BridgeManager
-import org.midonet.midolman.FlowController.WildcardFlowAdded
-import org.apache.commons.configuration.HierarchicalConfiguration
 
 @RunWith(classOf[JUnitRunner])
 class DatapathFlowTableConsistencyTestCase extends MidolmanTestCase
@@ -70,7 +71,7 @@ class DatapathFlowTableConsistencyTestCase extends MidolmanTestCase
         findMatch[FlowKeyICMPEcho] should be (None)
         findMatch[FlowKeyICMP] should be (None)
 
-        drainProbe(dedupProbe())
+        drainProbes()
         // resend packet and check that the flow was not re-added
         expectPacketAllowed(0, 1, icmpBetweenPorts)
         fishForRequestOfType[DeduplicationActor.ApplyFlow](dedupProbe())
@@ -114,7 +115,7 @@ class DatapathFlowTableConsistencyTestCase extends MidolmanTestCase
         pktMatch.foreach{datapath.flowsTable.remove(_)}
         findMatch[FlowKeyTCP] should be (None)
 
-        drainProbe(flowProbe())
+        drainProbes()
         // resend packet and check that the flow is re-added
         expectPacketAllowed(vmPortNumbers(0), vmPortNumbers(1),
             tcpBetweenPorts(_:Int, _:Int, 9009, 80))

@@ -87,16 +87,23 @@ trait SimulationHelper extends MidolmanTestCase {
         eth
     }
 
-    def actionsToOutputPorts(actions: JList[FlowAction[_]]): Set[Short] =
+    def getPacketOut: Packet =
+        checkPacket((expect[PacketsExecute] on packetsEventsProbe).packet)
+
+    def checkPacket(p: Packet): Packet = {
+        p should not be null
+        p.getPacket should not be null
+        p
+    }
+
+    def getOutPacketPorts(packet: Packet): Set[Short] =
+        actionsToOutputPorts(checkPacket(packet).getActions)
+
+    def actionsToOutputPorts(actions: JList[FlowAction[_]]): Set[Short] = {
+        actions should not be null
         actions.withFilter( _.isInstanceOf[FlowActionOutput] )
             .map{ _.asInstanceOf[FlowActionOutput].getPortNumber.toShort }
             .toSet
-
-    def getOutPacketPorts(packet: Packet): Set[Short] = {
-        packet should not be null
-        packet.getPacket should not be null
-        packet.getActions should not be null
-        actionsToOutputPorts(packet.getActions)
     }
 
     def injectArpRequest(portName: String, srcIp: Int, srcMac: MAC, dstIp: Int) {
@@ -279,34 +286,24 @@ trait SimulationHelper extends MidolmanTestCase {
         icmp
     }
 
-    def expectRoutedPacketOut(portNum : Int,
-                              packetEventsProbe: TestProbe): Ethernet = {
-        val pktOut = requestOfType[PacketsExecute](packetEventsProbe).packet
-        pktOut should not be null
-        pktOut.getPacket should not be null
+    def expectRoutedPacketOut(portNum : Int): Ethernet = {
+        val pktOut = getPacketOut
         val flowActs = pktOut.getActions
         flowActs.size should equal (3)
         flowActs.contains(FlowActions.output(portNum)) should be (true)
         pktOut.getPacket
     }
 
-    def expectPacketOut(portNums : Seq[Int],
-                        packetEventsProbe: TestProbe): Ethernet = {
-        expectPacketOut(portNums, packetEventsProbe, List(), List())
-    }
-
     /**
-     * Expects a packet on all the given ports, listening on the given events
-     * probe. The vlan ids provided in the vlanIdsPush and vlanIdsPop params
-     * will be used to compare against the actions. Since the packets won't
-     * have the actions applied, we will check here if the packet's actions
-     * contain those for pushing or popping those vlans.
+     * Expects a packet on all the given ports, listening on MidolmanTestCase
+     * events probe. The vlan ids provided in the vlanIdsPush and vlanIdsPop
+     * params will be used to compare against the actions. Since the packets
+     * won't have the actions applied, we will check here if the packet's
+     * actions contain those for pushing or popping those vlans.
      */
-    def expectPacketOut(portNums : Seq[Int],
-                        packetEventsProbe: TestProbe,
-                        vlanIdsPush: List[Short],
-                        vlanIdsPop: List[Short]): Ethernet = {
-        val pktOut = requestOfType[PacketsExecute](packetEventsProbe).packet
+    def expectPacketOutWithVlanIds(portNums : Seq[Int],
+            vlanIdsPush: List[Short], vlanIdsPop: List[Short]): Ethernet = {
+        val pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
         pktOut should not be null
         pktOut.getPacket should not be null
         pktOut.getActions.size should be === (portNums.size +
