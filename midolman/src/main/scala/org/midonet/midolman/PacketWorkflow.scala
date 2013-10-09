@@ -2,49 +2,51 @@
 
 package org.midonet.midolman
 
-import annotation.tailrec
-import scala.collection.JavaConverters._
+import java.lang.{Integer => JInteger}
+import java.util.UUID
+import java.util.concurrent.TimeUnit
+import scala.annotation.tailrec
 import scala.collection.JavaConversions._
-import scala.collection.{immutable, mutable}
+import scala.collection.JavaConverters._
+import scala.collection.immutable
+import scala.collection.mutable
 import scala.collection.{Set => ROSet}
 import scala.compat.Platform
+
 import akka.actor._
 import akka.dispatch.{ExecutionContext, Promise, Future}
 import akka.event.{Logging, LoggingAdapter}
 import akka.pattern.ask
 import akka.util.Timeout
-import java.lang.{Integer => JInteger}
-import java.util.UUID
-import java.util.concurrent.TimeUnit
-
 import com.yammer.metrics.core.Clock
 
 import org.midonet.cache.Cache
+import org.midonet.cluster.{DataClient, client}
 import org.midonet.midolman.DeduplicationActor._
-import org.midonet.midolman.FlowController.FlowAdded
 import org.midonet.midolman.FlowController.AddWildcardFlow
-import org.midonet.midolman.datapath.{FlowActionOutputToVrnPortSet,
-    ErrorHandlingCallback}
+import org.midonet.midolman.FlowController.FlowAdded
+import org.midonet.midolman.datapath.ErrorHandlingCallback
+import org.midonet.midolman.datapath.FlowActionOutputToVrnPortSet
 import org.midonet.midolman.rules.Condition
 import org.midonet.midolman.simulation.{DhcpImpl, Coordinator}
+import org.midonet.midolman.topology.FlowTagger
+import org.midonet.midolman.topology.VirtualToPhysicalMapper
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.
     PortSetForTunnelKeyRequest
+import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 import org.midonet.midolman.topology.rcu.PortSet
-import org.midonet.midolman.topology.{
-    FlowTagger, VirtualTopologyActor, VirtualToPhysicalMapper}
-import org.midonet.cluster.{DataClient, client}
-import org.midonet.netlink.{Callback => NetlinkCallback}
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode
-import org.midonet.packets._
+import org.midonet.netlink.{Callback => NetlinkCallback}
+import org.midonet.odp.Packet.Reason.FlowActionUserspace
 import org.midonet.odp._
 import org.midonet.odp.flows.{FlowKey, FlowKeyUDP, FlowAction}
 import org.midonet.odp.protos.OvsDatapathConnection
-import org.midonet.odp.Packet.Reason.FlowActionUserspace
+import org.midonet.packets._
+import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 import org.midonet.util.functors.Callback0
 import org.midonet.util.throttling.ThrottlingGuard
-import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 
 object PacketWorkflow {
     case class PacketIn(wMatch: WildcardMatch,
@@ -101,10 +103,6 @@ class PacketWorkflow(
     val cookie = cookieOrEgressPort match {
         case Left(c) => Some(c)
         case Right(_) => None
-    }
-    val egressPort = cookieOrEgressPort match {
-        case Right(e) => Some(e)
-        case Left(_) => None
     }
 
     implicit val requestReplyTimeout = new Timeout(5, TimeUnit.SECONDS)
@@ -436,7 +434,9 @@ class PacketWorkflow(
             case Left(haveCookie) =>
                 simulatePacketIn()
             case Right(haveEgress) =>
-                simulateGeneratedPacket()
+                // simulate generated packet
+                val wcMatch = WildcardMatch.fromEthernetPacket(packet.getPacket)
+                prepareCoordinator(wcMatch).simulate()
         }) recover {
             case ex =>
                 log.error(ex, "Simulation failed: {}", ex)
@@ -456,19 +456,6 @@ class PacketWorkflow(
                 log.debug("Simulation phase returned: ErrorDrop")
                 addTranslatedFlowForActions(Nil, expiration = 5000)
         }
-
-    private def simulateGeneratedPacket(): Future[SimulationResult] = {
-        // FIXME (guillermo) - The launching of the coordinator is missing
-        // the parentCookie params.  They will need to be given to the
-        // PacketWorkflow object.
-        val eth = packet.getPacket
-        val coordinator = new Coordinator(
-            WildcardMatch.fromEthernetPacket(eth),
-            eth, None, egressPort, Platform.currentTime + timeout,
-            connectionCache, traceMessageCache, traceIndexCache, None,
-            traceConditions)
-        coordinator.simulate()
-    }
 
     private def simulatePacketIn(): Future[SimulationResult] = {
         log.debug("Pass packet to simulation layer {}", cookieStr)
@@ -494,12 +481,7 @@ class PacketWorkflow(
                     case true =>
                         Promise.successful(NoOp)
                     case false =>
-                        val coordinator: Coordinator = new Coordinator(
-                            wMatch, packet.getPacket, cookie, None,
-                            Platform.currentTime + timeout, connectionCache,
-                            traceMessageCache, traceIndexCache, None,
-                            traceConditions)
-                        coordinator.simulate()
+                        prepareCoordinator(wMatch).simulate()
                 }
 
             case None =>
@@ -569,5 +551,18 @@ class PacketWorkflow(
                 log.debug("Translated actions to {} for {}", actions, cookieStr)
                 executePacket(actions)
         }
+    }
+
+    def prepareCoordinator(wcMatch: WildcardMatch): Coordinator = {
+        // FIXME (guillermo) - The launching of the coordinator is missing
+        // the parentCookie params.  They will need to be given to the
+        // PacketWorkflow object.
+        val egressPort = cookieOrEgressPort match {
+            case Right(e) => Some(e)
+            case Left(_) => None
+        }
+        new Coordinator(wcMatch, packet.getPacket, cookie, egressPort,
+            Platform.currentTime + timeout, connectionCache, traceMessageCache,
+            traceIndexCache, None, traceConditions)
     }
 }

@@ -2,13 +2,13 @@
 
 package org.midonet.midolman.simulation
 
-// Read-only view.  Note this is distinct from immutable.Set in that it
-// might be changed by another (mutable) view.
-import collection.{Set => ROSet, mutable}
-
-import akka.actor.ActorSystem
 import java.text.SimpleDateFormat
 import java.util.{Date, Set => JSet, UUID}
+// Read-only view.  Note this is distinct from immutable.Set in that it
+// might be changed by another (mutable) view.
+import scala.collection.{Set => ROSet, mutable}
+
+import akka.actor.ActorSystem
 
 import org.midonet.cache.Cache
 import org.midonet.cluster.client.Port
