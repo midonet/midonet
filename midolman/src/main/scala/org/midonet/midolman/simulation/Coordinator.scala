@@ -2,12 +2,12 @@
 
 package org.midonet.midolman.simulation
 
-import collection.JavaConversions._
-import collection.mutable.ListBuffer
-import collection.{immutable, mutable}
 import java.lang.{Short => JShort}
 import java.util.UUID
-import scala.Some
+import scala.collection.JavaConversions._
+import scala.collection.immutable
+import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
 
 import akka.actor.{ActorContext, ActorSystem}
 import akka.dispatch.{ExecutionContext, Future, Promise}
@@ -15,26 +15,18 @@ import akka.dispatch.{ExecutionContext, Future, Promise}
 import org.midonet.cache.Cache
 import org.midonet.cluster.client._
 import org.midonet.midolman.DeduplicationActor
+import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.datapath.FlowActionOutputToVrnPort
 import org.midonet.midolman.datapath.FlowActionOutputToVrnPortSet
 import org.midonet.midolman.logging.LoggerFactory
+import org.midonet.midolman.rules.Condition
 import org.midonet.midolman.rules.RuleResult
-import org.midonet.midolman.rules.RuleResult.{Action => RuleAction}
 import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.midolman.topology._
-import org.midonet.midolman.topology.VirtualTopologyActor.RouterRequest
-import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
-import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
-import org.midonet.midolman.topology.VirtualTopologyActor.BridgeRequest
-import org.midonet.midolman.topology.VirtualTopologyActor.ChainRequest
-import org.midonet.midolman.PacketWorkflow.NoOp
-import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
-import org.midonet.midolman.PacketWorkflow.SendPacket
 import org.midonet.odp.flows._
 import org.midonet.packets.{Ethernet, ICMP, IPv4, IPv4Addr, IPv6Addr, TCP, UDP}
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
-import org.midonet.midolman.rules.Condition
 
 
 object Coordinator {
@@ -85,6 +77,15 @@ object Coordinator {
                    (implicit ec: ExecutionContext,
                     actorSystem: ActorSystem): Future[Action]
     }
+
+    /*
+     * Compares two objects, which may be null, to determine if they should
+     * cause flow actions.
+     * The catch here is that if `modif` is null, the verdict is true regardless
+     * because we don't create actions that set values to null.
+     */
+    def matchObjectsSame(orig: Any, modif: Any) = modif == null || orig == modif
+
 }
 
 /**
@@ -120,6 +121,7 @@ class Coordinator(var origMatch: WildcardMatch,
                  (implicit val ec: ExecutionContext,
                   val actorSystem: ActorSystem,
                   val actorContext: ActorContext) {
+
     import Coordinator._
 
     val log = LoggerFactory.getSimulationAwareLog(this.getClass)(actorSystem.eventStream)
@@ -718,21 +720,6 @@ class Coordinator(var origMatch: WildcardMatch,
         connectionCache.set(key, "r")
     }
 
-    /*
-     * Compares two objects, which may be null, to determine if they should
-     * cause flow actions.
-     * The catch here is that if `modif` is null, the verdict is true regardless
-     * because we don't create actions that set values to null.
-     */
-    private def matchObjectsSame(orig: Any, modif: Any): Boolean = {
-        if (orig == null)
-            modif == null
-        else if (modif != null)
-            orig.equals(modif)
-        else
-            true
-    }
-
     private def actionsFromMatchDiff(orig: WildcardMatch, modif: WildcardMatch)
     : ListBuffer[FlowAction[_]] = {
         val actions = ListBuffer[FlowAction[_]]()
@@ -836,4 +823,4 @@ class Coordinator(var origMatch: WildcardMatch,
         orig.doTrackSeenFields()
         actions
     }
-} // end Coordinator class
+}
