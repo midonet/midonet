@@ -168,12 +168,13 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
     private var cookieId = 0
 
     // data structures to handle the duplicate packets.
-    private val dpMatchToCookie = HashMap[FlowMatch, Int]()
-    private val cookieToPendedPackets: MultiMap[Int, Packet] =
+    protected val cookieToDpMatch = HashMap[Int, FlowMatch]()
+    protected val dpMatchToCookie = HashMap[FlowMatch, Int]()
+    protected val cookieToPendedPackets: MultiMap[Int, Packet] =
         new HashMap[Int, mutable.Set[Packet]] with MultiMap[Int, Packet]
 
-    private val cookieTimeToLiveMillis  = 30000L
-    private val cookieExpirationCheckIntervalMillis  = 5000L
+    protected val cookieTimeToLiveMillis  = 30000L
+    protected val cookieExpirationCheckIntervalMillis  = 5000L
 
     private val cookieExpirations: PriorityQueue[(FlowMatch, Long)] =
         new PriorityQueue[(FlowMatch, Long)]()(
@@ -223,18 +224,19 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
 
         case ApplyFlow(actions, cookieOpt) => cookieOpt foreach { cookie =>
             cookieToPendedPackets.remove(cookie) foreach { pendedPackets =>
-                val packet = pendedPackets.last
-                dpMatchToCookie.remove(packet.getMatch)
+                cookieToDpMatch.remove(cookie) foreach {
+                    dpMatch => dpMatchToCookie.remove(dpMatch)
+                }
 
                 // Send all pended packets with the same action list (unless
                 // the action list is empty, which is equivalent to dropping)
                 if (actions.length > 0) {
-                    for (unpendedPacket <- pendedPackets.tail) {
-                        executePacket(cookie, packet, actions)
+                    for (unpendedPacket <- pendedPackets) {
+                        executePacket(cookie, unpendedPacket, actions)
                         metrics.pendedPackets.dec()
                     }
                 } else {
-                    metrics.packetsProcessed.mark(pendedPackets.tail.size)
+                    metrics.packetsProcessed.mark(pendedPackets.size)
                 }
             }
 
@@ -248,12 +250,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
         case EmitGeneratedPacket(egressPort, ethernet, parentCookie) =>
             val packet = new Packet().setPacket(ethernet)
             val packetId = scala.util.Random.nextLong()
-            val packetWorkflow =
-                new PacketWorkflow(datapathConnection, dpState,
-                    datapath, clusterDataClient, connectionCache,
-                    traceMessageCache, traceIndexCache, packet,
-                    Right(egressPort), throttler, metrics, traceConditions)
-
+            val packetWorkflow = workflow(packet, Right(egressPort))
             log.debug("Created new PacketWorkflow handler for emiting packet.")
             packetWorkflow.start()
 
@@ -269,10 +266,19 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
                     case Some(cookie) =>
                         log.warning("Expiring cookie:{}", cookie)
                         cookieToPendedPackets.remove(cookie)
+                        cookieToDpMatch.remove(cookie)
                     case None =>
                 }
             }
         }
+    }
+
+    protected def workflow(packet: Packet,
+            cookieOrEgressPort: Either[Int, UUID]): PacketHandler = {
+        new PacketWorkflow(datapathConnection, dpState,
+            datapath, clusterDataClient, connectionCache,
+            traceMessageCache, traceIndexCache, packet,
+            cookieOrEgressPort, throttler, metrics, traceConditions)
     }
 
     private def handlePacket(packet: Packet) {
@@ -286,13 +292,10 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
                     cookie, packet.getMatch)
 
                 dpMatchToCookie.put(packet.getMatch, cookie)
+                cookieToDpMatch.put(cookie, packet.getMatch)
                 scheduleCookieExpiration(packet.getMatch)
-                cookieToPendedPackets.addBinding(cookie, packet)
-                val packetWorkflow = new PacketWorkflow(
-                    datapathConnection, dpState, datapath,
-                    clusterDataClient, connectionCache, traceMessageCache,
-                    traceIndexCache, packet, Left(cookie), throttler,
-                    metrics, traceConditions)
+                cookieToPendedPackets.put(cookie, mutable.Set.empty)
+                val packetWorkflow = workflow(packet, Left(cookie))
 
                 log.debug("Created new PacketWorkflow for cookie " + cookie)
                 packetWorkflow.start()
