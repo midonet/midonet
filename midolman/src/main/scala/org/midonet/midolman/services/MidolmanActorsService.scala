@@ -84,7 +84,7 @@ abstract class MidolmanActorsService extends AbstractService {
         }
    }
 
-    protected def propsFor(actorClass: Class[_ <: Actor]) =
+    def propsFor(actorClass: Class[_ <: Actor]) =
         new Props(new GuiceActorFactory(injector, actorClass))
 
     protected def stopActor(actorRef: ActorRef) = {
