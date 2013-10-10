@@ -56,12 +56,7 @@ class FloatingIpTestCase extends VirtualConfigurationBuilders with RouterHelper 
 
     val floatingIP = IPv4Addr.fromString("10.0.173.5")
 
-    private var packetsEventsProbe: TestProbe = null
-
     override def beforeTest() {
-        packetsEventsProbe = newProbe()
-        actors().eventStream.subscribe(packetsEventsProbe.ref,
-                                       classOf[PacketsExecute])
 
         val host = newHost("myself", hostId())
         host should not be null

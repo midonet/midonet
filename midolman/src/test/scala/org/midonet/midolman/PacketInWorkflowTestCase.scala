@@ -7,6 +7,7 @@ import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
+import org.midonet.midolman.DatapathController.DatapathReady
 import org.midonet.midolman.PacketWorkflow.PacketIn
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.util.TestHelpers
@@ -35,13 +36,12 @@ class PacketInWorkflowTestCase extends MidolmanTestCase {
 
         materializePort(vifPort, host, "port")
 
-        val portEventsProbe = newProbe()
-        actors().eventStream.subscribe(portEventsProbe.ref, classOf[LocalPortActive])
-
         initializeDatapath() should not be (null)
 
-        requestOfType[DatapathController.DatapathReady](flowProbe()).datapath should not be (null)
-        portEventsProbe.expectMsgClass(classOf[LocalPortActive])
+        val datapath = requestOfType[DatapathReady](flowProbe()).datapath
+        datapath should not be null
+
+        portsProbe.expectMsgClass(classOf[LocalPortActive])
 
         val portNo = getPortNumber("port")
         triggerPacketIn("port", TestHelpers.createUdpPacket(
