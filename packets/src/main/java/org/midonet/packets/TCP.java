@@ -5,9 +5,45 @@
 package org.midonet.packets;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class TCP extends BasePacket implements Transport {
+
+    public enum Flag {
+
+        Fin(0, "FIN"),
+        Syn(1, "SYN"),
+        Rst(2, "RST"),
+        Psh(3, "PSH"),
+        Ack(4, "ACK"),
+        Urg(5, "URG"),
+        Ece(6, "ECE"),
+        Cwr(7, "CWR");
+
+        public final int position;
+        public final int bit;
+        public final String name;
+
+        Flag(int position, String name) {
+            this.position = position;
+            this.bit = 1 << position;
+            this.name = name;
+        }
+
+        @Override public String toString() { return this.name; }
+
+        public static List<Flag> allOf(int b) {
+            List<Flag> flags = new ArrayList<>();
+            for (Flag f : Flag.values()) {
+                if ((f.bit & b) != 0) { flags.add(f);}
+            }
+            return flags;
+        }
+
+    }
+
     public static final byte PROTOCOL_NUMBER = 6;
 
     public static final int MIN_HEADER_LEN = 20;
