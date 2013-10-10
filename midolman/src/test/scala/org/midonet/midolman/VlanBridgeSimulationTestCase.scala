@@ -3,30 +3,34 @@
 */
 package org.midonet.midolman
 
-
-import org.midonet.cluster.data.{Entity, Bridge}
-import org.midonet.cluster.data.ports.{RouterPort, BridgePort}
-import org.midonet.packets._
-import org.junit.{Ignore, Test}
-import org.slf4j.LoggerFactory
-import org.midonet.midolman.PacketWorkflow.PacketIn
-import topology.VirtualTopologyActor.{BridgeRequest, PortRequest}
-import topology.{VirtualTopologyActor, LocalPortActive}
-import util.SimulationHelper
-import akka.testkit.TestProbe
 import java.nio.ByteBuffer
 import java.util.UUID
-import org.midonet.odp.flows.{FlowActionPopVLAN, FlowActionPushVLAN, FlowActionOutput}
-import scala.Some
-import org.midonet.midolman.FlowController.{WildcardFlowRemoved, WildcardFlowAdded}
-import org.midonet.cluster.data.host.Host
+
+import akka.testkit.TestProbe
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.runner.RunWith
+import org.junit.{Ignore, Test}
 import org.scalatest.junit.JUnitRunner
+import org.slf4j.LoggerFactory
+
+import org.midonet.cluster.data.host.Host
+import org.midonet.cluster.data.ports.{RouterPort, BridgePort}
+import org.midonet.cluster.data.{Entity, Bridge}
+import org.midonet.midolman.FlowController.WildcardFlowAdded
+import org.midonet.midolman.FlowController.WildcardFlowRemoved
+import org.midonet.midolman.PacketWorkflow.PacketIn
+import org.midonet.midolman.topology.VirtualTopologyActor.BridgeRequest
+import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
+import org.midonet.midolman.topology.{VirtualTopologyActor, LocalPortActive}
+import org.midonet.midolman.util.SimulationHelper
+import org.midonet.odp.flows.FlowActionOutput
+import org.midonet.odp.flows.FlowActionPopVLAN
+import org.midonet.odp.flows.FlowActionPushVLAN
+import org.midonet.packets._
 
 @RunWith(classOf[JUnitRunner])
 class VlanBridgeSimulationTestCase extends SimulationHelper
-    with VirtualConfigurationBuilders {
+        with VirtualConfigurationBuilders {
 
     val log = LoggerFactory.getLogger(this.getClass)
 
@@ -67,8 +71,6 @@ class VlanBridgeSimulationTestCase extends SimulationHelper
 
     var host: Host = null
 
-    var packetEventsProbe: TestProbe = null
-
     override protected def fillConfig(config: HierarchicalConfiguration) = {
         config.setProperty("datapath.max_flow_count", "10")
         super.fillConfig(config)
@@ -81,7 +83,6 @@ class VlanBridgeSimulationTestCase extends SimulationHelper
         // TODO (galo) replace this sleep with appropriate probing
         Thread.sleep(2000)
         drainProbes()
-        drainProbe(packetEventsProbe)
     }
 
     def getPortName (portNo: UUID): String = {
@@ -152,8 +153,8 @@ class VlanBridgeSimulationTestCase extends SimulationHelper
         val addFlowMsg = injectOnePacket(inEth, fromPort, expectFlowAdded)
         if (expectFlowAdded)
             addFlowMsg.get.f should not be null
-        val ethRcv = expectPacketOut(toPortNos, packetEventsProbe,
-            vlanIdsToPush, vlanIdsToPop)
+        val ethRcv =
+            expectPacketOutWithVlanIds(toPortNos, vlanIdsToPush, vlanIdsToPop)
 
         log.debug("SENT: {}", inEth)
         log.debug("GOT: {}", ethRcv)
@@ -179,7 +180,7 @@ class VlanBridgeSimulationTestCase extends SimulationHelper
         ethVlan.setVlanID(vlanId)
         val inEth = if (vlanOnInject) ethVlan else ethRaw
         injectOnePacket(inEth, fromPort, expectFlowAdded = false)
-        packetEventsProbe.expectNoMsg()
+        packetsEventsProbe.expectNoMsg()
         val wFlowAdded = wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
         wFlowAdded.f.getMatch.getEthernetSource should be (fromMac)
         wFlowAdded.f.getMatch.getEthernetDestination should be (toMac)
@@ -209,7 +210,7 @@ class VlanBridgeSimulationTestCase extends SimulationHelper
 
     def expectBroadCast(materializedPort: Short,trunk1: Short,
                         trunk2: Short, vlanId: Short) {
-        val msg = packetEventsProbe.expectMsgClass(classOf[PacketsExecute])
+        val msg = packetsEventsProbe.expectMsgClass(classOf[PacketsExecute])
         var trunkPorts = List[Short](trunk1, trunk2)
 
         msg.packet.getActions.size should be === 4
@@ -299,7 +300,7 @@ class VlanBridgeSimulationTestCase extends SimulationHelper
         eth.deserialize(ByteBuffer.wrap(eth.serialize()))
         eth.setVlanID(500)
         injectOnePacket(eth, trunk1Id)
-        val msg = packetEventsProbe.expectMsgClass(classOf[PacketsExecute])
+        val msg = packetsEventsProbe.expectMsgClass(classOf[PacketsExecute])
         msg.packet.getActions.size() should be === 1
         msg.packet.getActions.get(0) match {
             case act: FlowActionOutput =>
@@ -328,8 +329,8 @@ class VlanBridgeSimulationTestCase extends SimulationHelper
 
         drainProbes()
 
-        packetEventsProbe = newProbe()
-        actors().eventStream.subscribe(packetEventsProbe.ref, classOf[PacketsExecute])
+        //packetsEventsProbe = newProbe()
+        //actors().eventStream.subscribe(packetsEventsProbe.ref, classOf[PacketsExecute])
 
         // Request ports for the first time so that we trigger associated
         // flow invalidations now and they don't impact expects during the tests
@@ -344,8 +345,6 @@ class VlanBridgeSimulationTestCase extends SimulationHelper
         ask(vta, BridgeRequest(br2.getId, update = false))
 
         drainProbes()
-        drainProbe(packetEventsProbe)
-
     }
 
     /**
@@ -369,7 +368,7 @@ class VlanBridgeSimulationTestCase extends SimulationHelper
             getPortNumber("trunkPort2").toShort, vlanId2)
 
         // no other packet should be transmitted
-        packetEventsProbe.expectNoMsg()
+        packetsEventsProbe.expectNoMsg()
 
         log.info("ARP reply from trunk to VM 2_1")
         val arpRepEth = ARP.makeArpReply(trunkMac, vm2_1Mac,
@@ -378,12 +377,12 @@ class VlanBridgeSimulationTestCase extends SimulationHelper
         arpRepEth.setVlanID(vlanId2)
         triggerPacketIn("trunkPort1", arpRepEth)
 
-        val inEth = expectPacketOut(List(getPortNumber("vm2_1Port")),
-            packetEventsProbe, List(), List(vlanId2))
+        val inEth = expectPacketOutWithVlanIds(
+            List(getPortNumber("vm2_1Port")), List(), List(vlanId2))
         inEth.getEtherType should be === ARP.ETHERTYPE
 
         // Again, no other packets should've been transmitted
-        packetEventsProbe.expectNoMsg()
+        packetsEventsProbe.expectNoMsg()
     }
 
     /**
@@ -401,15 +400,14 @@ class VlanBridgeSimulationTestCase extends SimulationHelper
                            getPortNumber("vm2_1Port"),
                            getPortNumber("vm2_2Port"))
 
-        var inEth = expectPacketOut(toPorts, packetEventsProbe,
-                                    List(), List(vlanId2))
+        var inEth = expectPacketOutWithVlanIds(toPorts, List(), List(vlanId2))
         inEth.getEtherType should be === ARP.ETHERTYPE
         inEth.getPayload.asInstanceOf[ARP].getOpCode should be === ARP.OP_REQUEST
         inEth.getSourceMACAddress should be === trunkMac
         inEth.getDestinationMACAddress should be === MAC.fromString("ff:ff:ff:ff:ff:ff")
 
         // no other packet should be transmitted
-        packetEventsProbe.expectNoMsg()
+        packetsEventsProbe.expectNoMsg()
 
         log.info("ARP reply from VM to trunk")
         val arpRepEth = ARP.makeArpReply(vm2_1Mac, trunkMac,
@@ -418,14 +416,13 @@ class VlanBridgeSimulationTestCase extends SimulationHelper
         triggerPacketIn("vm2_1Port", arpRepEth)
 
         toPorts = List(getPortNumber("trunkPort1"))
-        inEth = expectPacketOut(toPorts, packetEventsProbe, List(vlanId2),
-                                List())
+        inEth = expectPacketOutWithVlanIds(toPorts, List(vlanId2), List())
         inEth.getEtherType should be === ARP.ETHERTYPE
         inEth.getSourceMACAddress should be === vm2_1Mac
         inEth.getDestinationMACAddress should be === trunkMac
 
         // Again, no other packets should've been transmitted
-        packetEventsProbe.expectNoMsg()
+        packetsEventsProbe.expectNoMsg()
 
     }
 

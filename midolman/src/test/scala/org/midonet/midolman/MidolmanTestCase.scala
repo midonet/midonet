@@ -13,59 +13,62 @@ import java.util.concurrent.locks.ReentrantLock
 
 import akka.actor._
 import akka.dispatch.{Await, Future}
+import akka.event.EventStream
 import akka.testkit._
 import akka.util.{Duration, Timeout}
 import akka.util.duration._
 import akka.pattern.ask
-
 import com.google.inject._
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.scalatest._
-import org.scalatest.matchers.{BePropertyMatcher, BePropertyMatchResult,
-        ShouldMatchers}
+import org.scalatest.matchers.BePropertyMatcher
+import org.scalatest.matchers.BePropertyMatchResult
+import org.scalatest.matchers.ShouldMatchers
 import org.slf4j.{Logger, LoggerFactory}
 
+import org.midonet.cluster.data.host.Host
+import org.midonet.cluster.data.{Port => VPort}
+import org.midonet.cluster.services.MidostoreSetupService
+import org.midonet.cluster.{Client, DataClient}
+import org.midonet.midolman.DatapathController.DpPortCreate
+import org.midonet.midolman.DatapathController.InitializationComplete
+import org.midonet.midolman.DatapathController.Initialize
+import org.midonet.midolman.DeduplicationActor.DiscardPacket
+import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
+import org.midonet.midolman.FlowController.FlowUpdateCompleted
+import org.midonet.midolman.FlowController.WildcardFlowAdded
+import org.midonet.midolman.FlowController.WildcardFlowRemoved
+import org.midonet.midolman.PacketWorkflow.PacketIn
 import org.midonet.midolman.guice._
-import org.midonet.midolman.guice.actors.{OutgoingMessage,
-                                          TestableMidolmanActorsModule}
+import org.midonet.midolman.guice.actors.OutgoingMessage
+import org.midonet.midolman.guice.actors.TestableMidolmanActorsModule
 import org.midonet.midolman.guice.cluster.ClusterClientModule
 import org.midonet.midolman.guice.config.MockConfigProviderModule
 import org.midonet.midolman.guice.datapath.MockDatapathModule
 import org.midonet.midolman.guice.reactor.MockReactorModule
+import org.midonet.midolman.guice.serialization.SerializationModule
 import org.midonet.midolman.guice.zookeeper.MockZookeeperConnectionModule
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.layer4.NatMappingFactory
 import org.midonet.midolman.monitoring.{MonitoringActor, MonitoringAgent}
-import org.midonet.midolman.services.{HostIdProviderService,
-        MidolmanActorsService, MidolmanService}
-import org.midonet.midolman.topology.{LocalPortActive, VirtualTopologyActor,
-        VirtualToPhysicalMapper}
-import org.midonet.cluster.{Client, DataClient}
-import org.midonet.cluster.services.MidostoreSetupService
+import org.midonet.midolman.services.HostIdProviderService
+import org.midonet.midolman.services.MidolmanActorsService
+import org.midonet.midolman.services.MidolmanService
+import org.midonet.midolman.topology.LocalPortActive
+import org.midonet.midolman.topology.VirtualToPhysicalMapper
+import org.midonet.midolman.topology.VirtualTopologyActor
+import org.midonet.midolman.util.TestHelpers
+import org.midonet.midolman.version.guice.VersionModule
 import org.midonet.odp._
 import org.midonet.odp.flows.FlowAction
-import org.midonet.odp.flows.{FlowActionOutput, FlowActionSetKey, FlowKeyTunnel}
 import org.midonet.odp.flows.FlowKeyInPort
-import org.midonet.odp.protos.OvsDatapathConnection
+import org.midonet.odp.flows.{FlowActionOutput, FlowActionSetKey, FlowKeyTunnel}
 import org.midonet.odp.protos.MockOvsDatapathConnection
 import org.midonet.odp.protos.MockOvsDatapathConnection.FlowListener
+import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.packets.Ethernet
 import org.midonet.util.functors.callbacks.AbstractCallback
-import org.midonet.cluster.data.{Port => VPort}
-import org.midonet.cluster.data.host.Host
-import org.midonet.midolman.version.guice.VersionModule
-import org.midonet.midolman.guice.serialization.SerializationModule
-import org.midonet.midolman.topology.LocalPortActive
-import org.midonet.midolman.FlowController.WildcardFlowAdded
-import org.midonet.midolman.guice.actors.OutgoingMessage
-import org.midonet.midolman.DatapathController.Initialize
-import org.midonet.midolman.DatapathController.InitializationComplete
-import org.midonet.midolman.PacketWorkflow.PacketIn
-import org.midonet.midolman.FlowController.WildcardFlowRemoved
-import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
-import org.midonet.midolman.DeduplicationActor.DiscardPacket
-import org.midonet.midolman.util.TestHelpers
 
 
 object MidolmanTestCaseLock {
@@ -84,13 +87,18 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
     var injector: Injector = null
     var mAgent: MonitoringAgent = null
     var interfaceScanner: MockInterfaceScanner = null
-    var sProbe: TestProbe = null
 
+    // actor probes
+
+    var datapathEventsProbe: TestProbe = null
+    var sProbe: TestProbe = null
     var packetInProbe: TestProbe = null
+    var packetsEventsProbe: TestProbe = null
     var wflowAddedProbe: TestProbe = null
     var wflowRemovedProbe: TestProbe = null
     var portsProbe: TestProbe = null
     var discardPacketProbe: TestProbe = null
+    var flowUpdateProbe: TestProbe = null
 
     val timeout = Duration(3, TimeUnit.SECONDS)
     implicit val askTimeout = Timeout(3 second)
@@ -135,10 +143,28 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
         injector.getInstance(classOf[HostIdProviderService]).getHostId
     }
 
+    private def registerProbe[T](p: TestProbe, k: Class[T], s: EventStream) =
+        s.subscribe(p.ref, k)
+
     protected def makeEventProbe[T](klass: Class[T]): TestProbe = {
-        val probe = newProbe()
-        actors().eventStream.subscribe(probe.ref, klass)
+        val probe = new TestProbe(actors)
+        registerProbe(probe, klass, actors().eventStream)
         probe
+    }
+
+    private def prepareAllProbes() {
+        sProbe = new TestProbe(actors)
+        for (klass <- List(classOf[PacketIn], classOf[EmitGeneratedPacket])) {
+            registerProbe(sProbe, klass, actors().eventStream)
+        }
+        datapathEventsProbe = makeEventProbe(classOf[DpPortCreate])
+        packetInProbe = makeEventProbe(classOf[PacketIn])
+        packetsEventsProbe = makeEventProbe(classOf[PacketsExecute])
+        wflowAddedProbe = makeEventProbe(classOf[WildcardFlowAdded])
+        wflowRemovedProbe = makeEventProbe(classOf[WildcardFlowRemoved])
+        portsProbe = makeEventProbe(classOf[LocalPortActive])
+        discardPacketProbe = makeEventProbe(classOf[DiscardPacket])
+        flowUpdateProbe = makeEventProbe(classOf[FlowUpdateCompleted])
     }
 
     before {
@@ -171,20 +197,12 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
                     }
                 })
 
-            sProbe = newProbe()
-            actors().eventStream.subscribe(sProbe.ref, classOf[PacketIn])
-            actors().eventStream.subscribe(sProbe.ref,
-                classOf[EmitGeneratedPacket])
-
             // Make sure that each test method runs alone
             MidolmanTestCaseLock.sequential.lock()
             log.info("Acquired test lock")
             actors().settings.DebugEventStream
-            packetInProbe = makeEventProbe(classOf[PacketIn])
-            wflowAddedProbe = makeEventProbe(classOf[WildcardFlowAdded])
-            wflowRemovedProbe = makeEventProbe(classOf[WildcardFlowRemoved])
-            portsProbe = makeEventProbe(classOf[LocalPortActive])
-            discardPacketProbe = makeEventProbe(classOf[DiscardPacket])
+
+            prepareAllProbes()
 
             beforeTest()
         } catch {
@@ -370,9 +388,6 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
         probeByName(VirtualTopologyActor.Name)
     }
 
-    // TODO(pino): clean-up. Leave it for now to minimize test-code changes.
-    protected def simProbe() = sProbe
-
     protected def fishForRequestOfType[T](
             testKit: TestKit, _timeout: Duration = timeout)(
             implicit m: Manifest[T]): T = {
@@ -448,21 +463,18 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
     }
 
     protected def drainProbe(testKit: TestKit) {
-        while (testKit.msgAvailable)
-            testKit.receiveOne(testKit.remaining)
+        while (testKit.msgAvailable) testKit.receiveOne(0.seconds)
     }
 
+    def allProbes() = List(vtaProbe(), sProbe, flowProbe(), vtpProbe(),
+            dpProbe(), dedupProbe(), discardPacketProbe, wflowAddedProbe,
+            wflowRemovedProbe, packetInProbe, packetsEventsProbe,
+            flowUpdateProbe, datapathEventsProbe)
+            //flowUpdateProbe, datapathEventsProbe, portsProbe)
+
     protected def drainProbes() {
-        drainProbe(vtaProbe())
-        drainProbe(simProbe())
-        drainProbe(flowProbe())
-        drainProbe(vtpProbe())
-        drainProbe(dpProbe())
-        drainProbe(dedupProbe())
-        drainProbe(discardPacketProbe)
-        drainProbe(wflowAddedProbe)
-        drainProbe(wflowRemovedProbe)
-        drainProbe(packetInProbe)
+        for (p <- allProbes()) { drainProbe(p) }
+        for (p <- allProbes()) { p.receiveOne(50.milliseconds) }
     }
 
     def greTunnelId = dpController().underlyingActor.dpState.tunnelGre
@@ -488,15 +500,17 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
             tunnelInfo.getTunnelID() == key
         }
 
-    def ackWCAdded(
-            isLike: PartialFunction[Any,Boolean] = TestHelpers.matchWCAdded,
-            until: Duration = timeout) =
-        wflowAddedProbe.fishForMessage(until, "WildcardFlowAdded")(isLike)
+    def ackWCAdded(until: Duration = timeout) =
+        wflowAddedProbe.fishForMessage(until, "WildcardFlowAdded") {
+            case WildcardFlowAdded(_) => true
+            case _ => false
+        }.asInstanceOf[WildcardFlowAdded].f
 
-    def ackWCRemoved(
-            isLike: PartialFunction[Any,Boolean] = TestHelpers.matchWCRemoved,
-            until: Duration = timeout) =
-        wflowRemovedProbe.fishForMessage(until, "WildcardFlowRemoved")(isLike)
+    def ackWCRemoved(until: Duration = timeout) =
+        wflowRemovedProbe.fishForMessage(until, "WildcardFlowRemoved") {
+            case WildcardFlowRemoved(_) => true
+            case _ => false
+        }.asInstanceOf[WildcardFlowRemoved].f
 
     def expectPacketIn() = expect[PacketIn].on(packetInProbe)
 

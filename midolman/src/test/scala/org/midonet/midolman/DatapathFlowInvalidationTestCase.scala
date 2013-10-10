@@ -42,7 +42,6 @@ class DatapathFlowInvalidationTestCase extends MidolmanTestCase with VirtualConf
 with RouterHelper{
 
     var tagEventProbe: TestProbe = null
-    var datapathEventsProbe: TestProbe = null
 
     var datapath: Datapath = null
 
@@ -82,8 +81,6 @@ with RouterHelper{
     }
 
     override def beforeTest() {
-        datapathEventsProbe = newProbe()
-
         drainProbes()
 
         host1 = newHost("myself", hostId())
@@ -91,10 +88,6 @@ with RouterHelper{
         host3 = newHost("host3")
         clusterRouter = newRouter("router")
         clusterRouter should not be null
-
-        actors().eventStream.subscribe(
-            datapathEventsProbe.ref,classOf[DpPortCreate])
-
 
         initializeDatapath() should not be (null)
 
@@ -138,7 +131,7 @@ with RouterHelper{
             2)
 
         // we trigger the learning of macToReach
-        drainProbe(flowProbe())
+        drainProbes()
         feedArpCache(outPortName,
             IPv4Addr(ipToReach).addr,
             MAC.fromString(macToReach),
@@ -150,7 +143,6 @@ with RouterHelper{
         triggerPacketIn(inPortName, TestHelpers.createUdpPacket(macSource, ipSource,
             macInPort, ipToReach))
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
-
 
         deletePort(inPort, host1)
 
@@ -170,7 +162,7 @@ with RouterHelper{
             2)
 
         // we trigger the learning of macToReach
-        drainProbe(flowProbe())
+        drainProbes()
         feedArpCache(outPortName,
             IPv4Addr(ipToReach).addr,
             MAC.fromString(macToReach),
@@ -195,9 +187,6 @@ with RouterHelper{
 
     def testTunnelPortAddedAndRemoved() {
 
-        drainProbe(datapathEventsProbe)
-        drainProbe(wflowRemovedProbe)
-        drainProbe(wflowAddedProbe)
         drainProbes()
         tunnelZone = greTunnelZone("default")
         host2 = newHost("host2")

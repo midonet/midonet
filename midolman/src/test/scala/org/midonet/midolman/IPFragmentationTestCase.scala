@@ -26,8 +26,9 @@ import java.util.concurrent.TimeUnit
 
 
 @RunWith(classOf[JUnitRunner])
-class IPFragmentationTestCase extends MidolmanTestCase with VMsBehindRouterFixture
-        with SimulationHelper {
+class IPFragmentationTestCase extends MidolmanTestCase
+        with SimulationHelper with VMsBehindRouterFixture {
+
     private final val log = LoggerFactory.getLogger(classOf[IPFragmentationTestCase])
 
     val sendingVm = 1
@@ -43,8 +44,6 @@ class IPFragmentationTestCase extends MidolmanTestCase with VMsBehindRouterFixtu
         }
 
         drainProbes()
-        drainProbe(wflowAddedProbe)
-        drainProbe(wflowRemovedProbe)
     }
 
     /**
@@ -136,8 +135,7 @@ class IPFragmentationTestCase extends MidolmanTestCase with VMsBehindRouterFixtu
     def testFirstFragmentTouchingL4Fields() {
         setupL4TouchingChain()
         firstFragmentBatch()
-        fishForRequestOfType[WildcardFlowRemoved](wflowRemovedProbe,
-            Duration.parse("10 seconds"))
+        ackWCRemoved(10.seconds)
         firstFragmentBatch()
     }
 

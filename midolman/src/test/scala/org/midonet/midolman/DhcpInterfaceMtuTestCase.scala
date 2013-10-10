@@ -47,11 +47,7 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase with
     var vmPortNumber = 0
     var intfMtu = 0
 
-    private var packetsEventsProbe: TestProbe = null
-
     override def beforeTest() {
-        packetsEventsProbe = newProbe()
-        actors().eventStream.subscribe(packetsEventsProbe.ref, classOf[PacketsExecute])
 
         val host = newHost("myself", hostId())
         host should not be null

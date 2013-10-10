@@ -31,19 +31,17 @@ class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture
         // add rule that drops everything return flows
         newLiteralRuleOnChain(brInChain, 1, new Condition(), RuleResult.Action.DROP)
         expectPacketDropped(0, 3, icmpBetweenPorts)
-        requestOfType[WildcardFlowAdded](wflowAddedProbe)
+        ackWCAdded()
         drainProbes()
 
         // add rule that accepts everything
         newLiteralRuleOnChain(brInChain, 1, new Condition(), RuleResult.Action.ACCEPT)
         fishForRequestOfType[WildcardFlowRemoved](wflowRemovedProbe)
         drainProbes()
-        drainProbe(packetsEventsProbe)
 
         expectPacketAllowed(0, 3, icmpBetweenPorts)
         fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
         drainProbes()
-        drainProbe(packetsEventsProbe)
 
         // add a rule that drops the packets from 0 to 3 in the jump chain
         val cond1 = new Condition()
@@ -167,7 +165,6 @@ class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture
             fishForRequestOfType[WildcardFlowRemoved](wflowRemovedProbe)
         }
         flowController().underlyingActor.flowManager.getNumWildcardFlows should be === vmPorts.size
-        drainProbe(packetsEventsProbe)
         drainProbe(wflowAddedProbe)
         drainProbe(wflowRemovedProbe)
 

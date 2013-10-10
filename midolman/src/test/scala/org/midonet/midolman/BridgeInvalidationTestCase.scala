@@ -4,32 +4,36 @@
 
 package org.midonet.midolman
 
-import collection.JavaConversions._
-import collection.immutable.HashMap
-import collection.mutable
 import java.util.UUID
+import scala.collection.JavaConversions._
+import scala.collection.immutable.HashMap
+import scala.collection.mutable
 
 import org.apache.commons.configuration.HierarchicalConfiguration
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
-import org.midonet.midolman.FlowController.{RemoveWildcardFlow,
-    WildcardFlowRemoved, WildcardFlowAdded}
-import org.midonet.midolman.PacketWorkflow.PacketIn
-import topology.BridgeManager.CheckExpiredMacPorts
-import topology.{VirtualTopologyActor, FlowTagger, LocalPortActive}
-import util.{SimulationHelper, TestHelpers}
 import org.midonet.cluster.data.Bridge
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
+import org.midonet.midolman.FlowController.RemoveWildcardFlow
+import org.midonet.midolman.FlowController.WildcardFlowAdded
+import org.midonet.midolman.FlowController.WildcardFlowRemoved
+import org.midonet.midolman.PacketWorkflow.PacketIn
+import org.midonet.midolman.topology.BridgeManager.CheckExpiredMacPorts
+import org.midonet.midolman.topology.FlowTagger
+import org.midonet.midolman.topology.LocalPortActive
+import org.midonet.midolman.topology.VirtualTopologyActor
+import org.midonet.midolman.topology.VirtualTopologyActor.BridgeRequest
+import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
+import org.midonet.midolman.topology.VirtualTopologyActor.RouterRequest
+import org.midonet.midolman.util.{SimulationHelper, TestHelpers}
 import org.midonet.odp.Datapath
 import org.midonet.odp.flows.{FlowAction, FlowActions}
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
 import org.midonet.packets.{IPv4Subnet, IPv4Addr, MAC}
-import org.midonet.midolman.topology.VirtualTopologyActor.{PortRequest,
-    RouterRequest, BridgeRequest}
 
 @RunWith(classOf[JUnitRunner])
-class BridgeInvalidationTest extends MidolmanTestCase
+class BridgeInvalidationTestCase extends MidolmanTestCase
         with VirtualConfigurationBuilders with SimulationHelper {
 
     var datapath: Datapath = null
@@ -164,26 +168,27 @@ class BridgeInvalidationTest extends MidolmanTestCase
 
     def testLearnMAC2() {
 
-        val dpFlowProbe = newProbe()
-        actors().eventStream.subscribe(dpFlowProbe.ref, classOf[FlowAdded])
-        actors().eventStream.subscribe(dpFlowProbe.ref, classOf[FlowRemoved])
+        val dpFlowAddedProbe = newProbe()
+        actors().eventStream.subscribe(dpFlowAddedProbe.ref, classOf[FlowAdded])
+
+        val dpFlowRemovedProbe = newProbe()
+        actors().eventStream.subscribe(dpFlowRemovedProbe.ref, classOf[FlowRemoved])
 
         // Inject a packet from 1 to 2.
         val udp = TestHelpers.createUdpPacket(macVm1, ipVm1, macVm2, ipVm2)
         triggerPacketIn(port1Name, udp)
         val pktIn1 = packetInProbe.expectMsgClass(classOf[PacketIn])
         pktIn1.wMatch.getInputPort should be (getPortNumber(port1Name).toShort)
-        // expect one wild flow to be added
-        var add = wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
 
-        val outports = actionsToOutputPorts(add.f.getActions)
+        // expect one wild flow to be added
+        val add1 = ackWCAdded()
+        val outports = actionsToOutputPorts(add1.actions)
         outports should have size (2)
         outports should contain (getPortNumber(port2Name).toShort)
         outports should contain (getPortNumber(port3Name).toShort)
 
         // one dp flow should also have been added and one packet forwarded
-        dpFlowProbe.expectMsgClass(classOf[FlowAdded])
-        mockDpConn().flowsTable.size() should be(1)
+        dpFlowAddedProbe.expectMsgClass(classOf[FlowAdded])
         mockDpConn().flowsTable.keySet() should contain (pktIn1.dpMatch)
         mockDpConn().packetsSent.length should be (1)
         mockDpConn().packetsSent.get(0).getMatch should be (pktIn1.dpMatch)
@@ -194,7 +199,8 @@ class BridgeInvalidationTest extends MidolmanTestCase
         wflowAddedProbe.expectNoMsg()
         mockDpConn().packetsSent.length should be (2)
         mockDpConn().packetsSent.get(1).getMatch() should be (pktIn1.dpMatch)
-        drainProbe(dpFlowProbe)
+
+        drainProbes()
 
         // let's make the bridge learn vmMac2. The first wild and dp flows
         // should be removed. One new wild and dp flow should be added.
@@ -203,49 +209,44 @@ class BridgeInvalidationTest extends MidolmanTestCase
         val pktIn2 = packetInProbe.expectMsgClass(classOf[PacketIn])
         pktIn2.wMatch.getInputPort should be (getPortNumber(port2Name).toShort)
 
-        val rem = wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
-        // First check that the wild removal matches the first add.
-        rem.f.actions should be === (add.f.actions)
-        // Now check that the new wild flow is correct. Forward to port1 only.
-        add = wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
+        // expect one wc flow removed and check it matches the first wc added
+        val rem = ackWCRemoved()
+        rem.actions should be === (add1.actions)
 
-        val outports2 = actionsToOutputPorts(add.f.getActions)
+        // the corresponding dp flow should have been removed too
+        dpFlowRemovedProbe.expectMsgClass(classOf[FlowRemoved])
+
+        // Now check that the new wild flow is correct. Forward to port1 only.
+        val add2 = ackWCAdded()
+        val outports2 = actionsToOutputPorts(add2.getActions)
         outports2 should have size (1)
         outports2 should contain (getPortNumber(port1Name).toShort)
 
-        // A new dp flow should be added for the packet to vmMac1, and the old
-        // flow should be removed.
-        val msgs = dpFlowProbe.expectMsgAllClassOf[Any](
-            timeout,
-            classOf[FlowAdded], classOf[FlowRemoved])
-        msgs should have size (2)
-        mockDpConn().flowsTable.size() should be(1)
+        // the matching dp flow should be installed
+        dpFlowAddedProbe.expectMsgClass(classOf[FlowAdded])
+
         mockDpConn().flowsTable.keySet() should not contain (pktIn1.dpMatch)
         mockDpConn().flowsTable.keySet() should contain (pktIn2.dpMatch)
         mockDpConn().packetsSent.length should be (3)
         mockDpConn().packetsSent.get(2).getMatch should be (pktIn2.dpMatch)
 
+        drainProbes()
+
         // Resend the first packet. It's now forwarded only to port2.
-        drainProbe(dpFlowProbe)
         triggerPacketIn(port1Name, udp)
+
         // expect one wild flow to be added
-
-        add = wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
-
-        val outports3 = actionsToOutputPorts(add.f.getActions)
+        val add3 = ackWCAdded()
+        val outports3 = actionsToOutputPorts(add3.getActions)
         outports3 should have size (1)
         outports3 should contain (getPortNumber(port2Name).toShort)
 
         // one dp flow should also have been added
-        dpFlowProbe.expectMsgClass(classOf[FlowAdded])
-        mockDpConn().flowsTable.size() should be(2)
+        dpFlowAddedProbe.expectMsgClass(classOf[FlowAdded])
         mockDpConn().flowsTable.keySet() should contain (pktIn1.dpMatch)
         mockDpConn().packetsSent.length should be (4)
         mockDpConn().packetsSent.get(3).getMatch should be (pktIn1.dpMatch)
 
-        wflowAddedProbe.expectNoMsg()
-        wflowRemovedProbe.expectNoMsg()
-        dpFlowProbe.expectNoMsg()
     }
 
     def testFlowCountZeroForgetMac() {
@@ -366,7 +367,7 @@ class BridgeInvalidationTest extends MidolmanTestCase
         // guillermo: wait for all invalidations, the alternative to sleep()
         // is have 4 waitForMsg[InvalidateFlowByTag].in a row. That'd be
         // equally ugly and it'd more sensitive to code changes.
-        drainProbe(flowProbe())
+        drainProbes()
 
         triggerPacketIn(port1Name, TestHelpers.createUdpPacket(macVm1, ipVm1,
             routerMac.toString, routerIp.getAddress.toString))
