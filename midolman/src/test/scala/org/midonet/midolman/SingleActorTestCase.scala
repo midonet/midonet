@@ -36,7 +36,9 @@ import org.midonet.midolman.guice.serialization.SerializationModule
 import org.midonet.midolman.host.scanner.InterfaceScanner
 
 
-class SingleActorTestCase extends Suite with BeforeAndAfter with ShouldMatchers {
+class SingleActorTestCase extends Suite with FeatureSpec with BeforeAndAfter with
+                                  ShouldMatchers with OneInstancePerTest with
+                                  GivenWhenThen {
 
     case class PacketsExecute(packet: Packet)
     case class FlowAdded(flow: Flow)
@@ -64,13 +66,19 @@ class SingleActorTestCase extends Suite with BeforeAndAfter with ShouldMatchers 
         config
     }
 
-    protected def mockDpConn(): MockOvsDatapathConnection = {
+    protected def mockDpConn: MockOvsDatapathConnection = {
         injector.getInstance(classOf[OvsDatapathConnection])
             .asInstanceOf[MockOvsDatapathConnection]
     }
 
-    protected def actorFor[T <: Actor](actorClass: Class[T]): TestActorRef[T] =
-        TestActorRef(actorsService.propsFor(actorClass))
+    private def injectedInstance[T <: Actor](f: () => T): T = {
+        val instance = f()
+        injector.injectMembers(instance)
+        instance
+    }
+
+    protected def actorFor[T <: Actor](f: () => T): TestActorRef[T] =
+        TestActorRef[T](Props(() => injectedInstance(f)))(actorSystem)
 
     before {
         try {
@@ -82,14 +90,14 @@ class SingleActorTestCase extends Suite with BeforeAndAfter with ShouldMatchers 
             injector.getInstance(classOf[MidostoreSetupService]).startAndWait()
             injector.getInstance(classOf[MidolmanService]).startAndWait()
 
-            mockDpConn().packetsExecuteSubscribe(
+            mockDpConn.packetsExecuteSubscribe(
                 new AbstractCallback[Packet, Exception] {
                     override def onSuccess(pkt: Packet) {
                         actorSystem.eventStream.publish(PacketsExecute(pkt))
                     }
                 })
 
-            mockDpConn().flowsSubscribe(
+            mockDpConn.flowsSubscribe(
                 new FlowListener {
                     def flowCreated(flow: Flow) {
                         actorSystem.eventStream.publish(FlowAdded(flow))

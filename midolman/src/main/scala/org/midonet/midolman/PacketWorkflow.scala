@@ -48,6 +48,10 @@ import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 import org.midonet.util.functors.Callback0
 import org.midonet.util.throttling.ThrottlingGuard
 
+trait PacketHandler {
+    def start(): Future[Boolean]
+}
+
 object PacketWorkflow {
     case class PacketIn(wMatch: WildcardMatch,
                         eth: Ethernet,
@@ -90,7 +94,7 @@ class PacketWorkflow(
        (implicit val executor: ExecutionContext,
         implicit val system: ActorSystem,
         implicit val context: ActorContext)
-    extends FlowTranslator with UserspaceFlowActionTranslator {
+    extends FlowTranslator with UserspaceFlowActionTranslator with PacketHandler {
 
     import PacketWorkflow._
 
@@ -111,7 +115,7 @@ class PacketWorkflow(
     val cookieStr: String = "[cookie:" + cookie.getOrElse("No Cookie") + "]"
     val lastInvalidation = FlowController.lastInvalidationEvent
 
-    def start(): Future[Boolean] = {
+    override def start(): Future[Boolean] = {
         // pipelinePath will track which code-path this packet took, so latency
         // can be tracked accordingly at the end of the workflow.
         // there are three PipelinePaths, all case objects:
@@ -530,7 +534,7 @@ class PacketWorkflow(
         } getOrElse { Promise.successful(false) }
     }
 
-    def sendPacket(origActions: List[FlowAction[_]]): Future[Boolean] = {
+    private def sendPacket(origActions: List[FlowAction[_]]): Future[Boolean] = {
         log.debug("Sending packet {} {} with action list {}",
                   cookieStr, packet, origActions)
         // Empty action list drops the packet. No need to send to DP.
