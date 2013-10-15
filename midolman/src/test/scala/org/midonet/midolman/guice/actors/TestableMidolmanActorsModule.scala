@@ -16,7 +16,7 @@ import akka.util.{Duration, Timeout}
 import akka.dispatch.Await
 
 import org.midonet.midolman.guice.MidolmanActorsModule
-import org.midonet.midolman.services.MidolmanActorsService
+import org.midonet.midolman.services.{MidolmanActorsServiceImpl, MidolmanActorsService}
 import org.midonet.midolman.SupervisorActor
 
 /**
@@ -35,9 +35,9 @@ class TestableMidolmanActorsModule(probes: mutable.Map[String, TestKit],
             .toInstance(new TestableMidolmanActorsService())
     }
 
-    class TestableMidolmanActorsService extends MidolmanActorsService {
-        protected override def makeActorRef(actorProps: Props, actorName: String): ActorRef = {
-            implicit val system = actorSystem
+    class TestableMidolmanActorsService extends MidolmanActorsServiceImpl {
+        protected override def startActor(actorProps: Props, actorName: String): ActorRef = {
+            implicit val s = system
 
             val testKit = new ProbingTestKit(system, actorName)
 
