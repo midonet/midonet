@@ -63,13 +63,16 @@ public class TryCatchReactor implements Reactor {
         };
     }
 
+    private static String shutdownErrMsg =
+        "Could not submit task {} for execution: underlying executor service " +
+        "has been stopped.";
 
     @Override
     public Future<?> submit(final Runnable runnable) {
         if(!executor.isShutdown() && !executor.isTerminated()) {
             return executor.submit(wrapRunnable(runnable));
         } else {
-            log.error("Couldn't execute task {}, executor has stopped", runnable);
+            log.warn(shutdownErrMsg, runnable);
             return null;
         }
     }
@@ -80,7 +83,7 @@ public class TryCatchReactor implements Reactor {
         if(!executor.isShutdown() && !executor.isTerminated()) {
             return executor.schedule(wrapRunnable(runnable), delay, unit);
         } else {
-            log.error("Couldn't execute task {}, executor has stopped", runnable);
+            log.warn(shutdownErrMsg, runnable);
             return null;
         }
     }
@@ -90,7 +93,7 @@ public class TryCatchReactor implements Reactor {
         if(!executor.isShutdown() && !executor.isTerminated()) {
             return executor.submit(wrapCallable(work));
         } else {
-            log.error("Couldn't execute task {}, executor has stopped", work);
+            log.warn(shutdownErrMsg, work);
             return null;
         }
     }
@@ -101,7 +104,7 @@ public class TryCatchReactor implements Reactor {
         if(!executor.isShutdown() && !executor.isTerminated()) {
             return executor.schedule(wrapCallable(work), delay, unit);
         } else {
-            log.error("Couldn't execute task {}, executor has stopped", work);
+            log.warn(shutdownErrMsg, work);
             return null;
         }
     }
