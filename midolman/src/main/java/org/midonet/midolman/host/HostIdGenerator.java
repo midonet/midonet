@@ -177,6 +177,22 @@ public class HostIdGenerator {
         return myUUID;
     }
 
+
+    /**
+     * Get the ID from the local properties file.  It throws an IOException
+     * if the ID is not found in the file
+     *
+     * @param localPropertiesFilePath
+     * @return
+     * @throws IOException        There is no entry in the file
+     */
+    public static UUID getIdFromPropertiesFile(
+            String localPropertiesFilePath) throws IOException {
+        Properties properties = new Properties();
+        properties.load(new FileInputStream(localPropertiesFilePath));
+        return UUID.fromString(properties.getProperty(uuidPropertyName));
+    }
+
     /**
      * Generate a unique id
      *
