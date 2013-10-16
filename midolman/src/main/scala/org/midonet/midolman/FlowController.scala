@@ -246,6 +246,7 @@ class FlowController extends Actor with ActorLogWithoutPath {
             }
 
         case AddWildcardFlow(wildFlow, flowOption, callbacks, tags, lastInval) =>
+            context.system.eventStream.publish(AddWildcardFlow(wildFlow,flowOption,callbacks,tags,lastInval))
             if (FlowController.isTagSetStillValid(lastInval, tags)) {
                 wildFlowPool.take.orElse {
                     flowManager.evictOneFlow()
