@@ -35,13 +35,11 @@ class PacketInWorkflowTestCase extends MidolmanTestCase {
 
         materializePort(vifPort, host, "port")
 
-        val portEventsProbe = newProbe()
-        actors().eventStream.subscribe(portEventsProbe.ref, classOf[LocalPortActive])
-
         initializeDatapath() should not be (null)
 
         requestOfType[DatapathController.DatapathReady](flowProbe()).datapath should not be (null)
-        portEventsProbe.expectMsgClass(classOf[LocalPortActive])
+
+        portsProbe.expectMsgClass(classOf[LocalPortActive])
 
         val portNo = getPortNumber("port")
         triggerPacketIn("port", TestHelpers.createUdpPacket(

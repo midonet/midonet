@@ -62,7 +62,7 @@ class VlanAwareSimulationWithBridgeTest extends MidolmanTestCase
         eth.deserialize(ByteBuffer.wrap(eth.serialize()))
         eth.setVlanID(500)
         injectOnePacket(eth, trunk1Id)
-        val msg = packetEventsProbe.expectMsgClass(classOf[PacketsExecute])
+        val msg = packetsEventsProbe.expectMsgClass(classOf[PacketsExecute])
         msg.packet.getActions.size() should be === 1
         msg.packet.getActions.get(0) match {
             case act: FlowActionOutput =>
