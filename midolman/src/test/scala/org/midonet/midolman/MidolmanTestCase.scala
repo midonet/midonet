@@ -35,6 +35,7 @@ import org.midonet.midolman.DatapathController.InitializationComplete
 import org.midonet.midolman.DatapathController.Initialize
 import org.midonet.midolman.DeduplicationActor.DiscardPacket
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
+import org.midonet.midolman.FlowController.AddWildcardFlow
 import org.midonet.midolman.FlowController.FlowUpdateCompleted
 import org.midonet.midolman.FlowController.WildcardFlowAdded
 import org.midonet.midolman.FlowController.WildcardFlowRemoved
@@ -95,6 +96,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
     var packetInProbe: TestProbe = null
     var packetsEventsProbe: TestProbe = null
     var wflowAddedProbe: TestProbe = null
+    var wflowAddReqProbe: TestProbe = null
     var wflowRemovedProbe: TestProbe = null
     var portsProbe: TestProbe = null
     var discardPacketProbe: TestProbe = null
@@ -161,6 +163,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
         packetInProbe = makeEventProbe(classOf[PacketIn])
         packetsEventsProbe = makeEventProbe(classOf[PacketsExecute])
         wflowAddedProbe = makeEventProbe(classOf[WildcardFlowAdded])
+        wflowAddReqProbe = makeEventProbe(classOf[AddWildcardFlow])
         wflowRemovedProbe = makeEventProbe(classOf[WildcardFlowRemoved])
         portsProbe = makeEventProbe(classOf[LocalPortActive])
         discardPacketProbe = makeEventProbe(classOf[DiscardPacket])
@@ -469,7 +472,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
     def allProbes() = List(vtaProbe(), sProbe, flowProbe(), vtpProbe(),
             dpProbe(), dedupProbe(), discardPacketProbe, wflowAddedProbe,
             wflowRemovedProbe, packetInProbe, packetsEventsProbe,
-            flowUpdateProbe, datapathEventsProbe)
+            flowUpdateProbe, datapathEventsProbe, wflowAddReqProbe)
             //flowUpdateProbe, datapathEventsProbe, portsProbe)
 
     protected def drainProbes() {
@@ -501,10 +504,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
         }
 
     def ackWCAdded(until: Duration = timeout) =
-        wflowAddedProbe.fishForMessage(until, "WildcardFlowAdded") {
-            case WildcardFlowAdded(_) => true
-            case _ => false
-        }.asInstanceOf[WildcardFlowAdded].f
+        expect[AddWildcardFlow].on(wflowAddReqProbe).wildFlow
 
     def ackWCRemoved(until: Duration = timeout) =
         wflowRemovedProbe.fishForMessage(until, "WildcardFlowRemoved") {

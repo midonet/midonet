@@ -14,18 +14,16 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
 
+import org.midonet.cluster.data.Rule
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
-import org.midonet.midolman.FlowController.AddWildcardFlow
-import org.midonet.midolman.FlowController.WildcardFlowAdded
 import org.midonet.midolman.FlowController.WildcardFlowRemoved
-import org.midonet.midolman.topology.VirtualTopologyActor.ChainRequest
+import org.midonet.midolman.rules.{RuleResult, Condition}
 import org.midonet.midolman.simulation.Chain
+import org.midonet.midolman.topology.LocalPortActive
+import org.midonet.midolman.topology.VirtualTopologyActor.ChainRequest
 import org.midonet.midolman.util.SimulationHelper
 import org.midonet.odp.flows.IPFragmentType
 import org.midonet.packets._
-import org.midonet.midolman.rules.{RuleResult, Condition}
-import org.midonet.midolman.topology.LocalPortActive
-import org.midonet.cluster.data.Rule
 
 @Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
@@ -150,14 +148,12 @@ class IPFragmentationTestCase extends MidolmanTestCase
         triggerPacketIn(vmPortNames(sendingVm), first)
         var pktOut = expectPacketOut(vmPortNumbers(receivingVm))
         pktOut should be === first
-        fishForRequestOfType[AddWildcardFlow](flowProbe())
-        fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
+        ackWCAdded()
         val later = makePacket(IPFragmentType.Later)
         triggerPacketIn(vmPortNames(sendingVm), later)
         pktOut = expectPacketOut(vmPortNumbers(receivingVm))
         pktOut should be === later
-        fishForRequestOfType[AddWildcardFlow](flowProbe())
-        fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
+        ackWCAdded()
     }
 
     /**
@@ -168,13 +164,13 @@ class IPFragmentationTestCase extends MidolmanTestCase
         setupL4TouchingChain()
         val packet = makePacket(IPFragmentType.Later)
         triggerPacketIn(vmPortNames(sendingVm), packet)
-        fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
+        ackWCAdded()
         packetsEventsProbe.expectNoMsg()
         packet.setSourceMACAddress(MAC.fromString("02:02:03:03:04:04"))
         packet.setDestinationMACAddress(MAC.fromString("02:02:06:06:08:08"))
         triggerPacketIn(vmPortNames(sendingVm), packet)
         packetsEventsProbe.expectNoMsg()
-        fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
+        ackWCAdded()
         wflowRemovedProbe.expectNoMsg()
     }
 
@@ -185,8 +181,7 @@ class IPFragmentationTestCase extends MidolmanTestCase
     def testLaterFragmentNotTouchingL4Fields() {
         val packet = makePacket(IPFragmentType.Later)
         triggerPacketIn(vmPortNames(sendingVm), packet)
-        fishForRequestOfType[AddWildcardFlow](flowProbe())
-        fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
+        ackWCAdded()
         val pktOut = expectPacketOut(vmPortNumbers(receivingVm))
         pktOut should be === packet
     }
@@ -200,15 +195,13 @@ class IPFragmentationTestCase extends MidolmanTestCase
         triggerPacketIn(vmPortNames(sendingVm), packet)
         var pktOut = expectPacketOut(vmPortNumbers(receivingVm))
         pktOut should be === packet
-        fishForRequestOfType[AddWildcardFlow](flowProbe())
-        fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
+        ackWCAdded()
 
         packet = makePacket(IPFragmentType.Later)
         triggerPacketIn(vmPortNames(sendingVm), packet)
         pktOut = expectPacketOut(vmPortNumbers(receivingVm))
         pktOut should be === packet
-        fishForRequestOfType[AddWildcardFlow](flowProbe())
-        fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
+        ackWCAdded()
 
         packet = makePacket(IPFragmentType.None)
         triggerPacketIn(vmPortNames(sendingVm), packet)
@@ -226,18 +219,17 @@ class IPFragmentationTestCase extends MidolmanTestCase
         var packet = makePacket(IPFragmentType.First)
         triggerPacketIn(vmPortNames(sendingVm), packet)
         expectPacketOut(vmPortNumbers(sendingVm))
-
-        requestOfType[WildcardFlowAdded](wflowAddedProbe)
+        ackWCAdded()
 
         packet = makePacket(IPFragmentType.Later)
         triggerPacketIn(vmPortNames(sendingVm), packet)
-        requestOfType[WildcardFlowAdded](wflowAddedProbe)
+        ackWCAdded()
 
         packet = makePacket(IPFragmentType.None)
         triggerPacketIn(vmPortNames(sendingVm), packet)
         val pktOut = expectPacketOut(vmPortNumbers(receivingVm))
         pktOut should be === packet
-        requestOfType[WildcardFlowAdded](wflowAddedProbe)
+        ackWCAdded()
 
         clusterDataClient().portsDelete(vmPorts(sendingVm).getId)
         requestOfType[WildcardFlowRemoved](wflowRemovedProbe)
