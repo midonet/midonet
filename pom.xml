@@ -599,18 +599,20 @@
 
     <reporting>
         <plugins>
-            <!-- to generate cobertura reports, run $ mvn cobertura:cobertura
-                    from a clean mvn project. You can target subprojects as
-                    usual with the -pl option. To make it working you should
-                    first turn off the zinc server with $ zinc -shutdown.
-                    You can look at the output in direclty in your browser by
-                    loading at subproject/site/cobertura/index.html -->
+            <!-- to generate cobertura reports, run $ mvn clean site. You can
+                    target subprojects asusual with the -pl option. To make it
+                    working you should first turn off the zinc server with
+                    $ zinc -shutdown. The output can be seen in your browser by
+                    loading ${subproject}/site/cobertura/index.html -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>cobertura-maven-plugin</artifactId>
                 <version>2.6</version>
                 <configuration>
-                    <formats><format>html</format></formats>
+                    <formats>
+                        <format>html</format>   <!-- for humans -->
+                        <format>xml</format>    <!-- for jenkins -->
+                    </formats>
                 </configuration>
             </plugin>
 
