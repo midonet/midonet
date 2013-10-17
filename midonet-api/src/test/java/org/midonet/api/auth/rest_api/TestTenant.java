@@ -11,6 +11,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.JavaType;
 import org.junit.Before;
 import org.junit.Test;
+
 import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.Topology;
@@ -86,7 +87,6 @@ public class TestTenant extends JerseyTest {
 
     @Before
     public void setUp() {
-
         WebResource resource = resource();
         dtoResource = new DtoWebResource(resource);
 
@@ -111,8 +111,8 @@ public class TestTenant extends JerseyTest {
                 actualRaw, type);
 
         // Compare the actual and expected
-        assertThat(actual, hasSize(expected.size()));
         assertThat(actual, containsInAnyOrder(expected.toArray()));
+        assertThat(expected, containsInAnyOrder(actual.toArray()));
 
         // Test that the URI for 'tenant' is correct in each item
         for (DtoTenant t : actual) {
