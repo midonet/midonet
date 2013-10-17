@@ -254,18 +254,20 @@ work) and bad (messes up compilation when switching branches) at the same time.
 
 ### code coverage reports
 
-Cobertura allows to run tests while doing a coverage analysis of tests. It is
-currently not bound to any standard phase of the build system and you have to
-run it explicitly with
+Cobertura allows to run tests while doing a coverage analysis of the code. It is
+currently not bound to any standard phase of the build system and to generate
+reports you have to run
 
-`$ mvn cobertura:cobertura`
+`$ mvn clean site`
 
-It is known to conflict with zinc, so if it requires compiling some files,
-you should turn off zinc first. The output results can be found at
-subproject/target/site/cobertura/ in html format.
+This command will generate a maven html "site" including the reports of
+different plugins. The only reports we are interested into are the cobertura
+reports which can be found at subproject/target/site/cobertura/ in html format.
+Note that to generate the reports cobertura will need to run the unit tests, but
+it is not necessary to explicitly add "test" in the mvn command.
 
-(NOTE: as of 2013/08/18 cobertura does not complete successfully with every
-subproject in MidoNet.)
+Cobertura is known to conflict with zinc, and generating test coverage reports
+will certainly require to turn off zinc first.
 
 ### dependency analysis
 
