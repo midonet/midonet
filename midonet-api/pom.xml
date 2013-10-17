@@ -16,26 +16,9 @@
     <name>MidoNet REST API server</name>
     <packaging>jar</packaging>
 
-    <properties>
-        <!-- by overwriting this property, the maven compiler will now find java
-         source code files and compile them instead of the sbt compiler -->
-        <javasource>npe_if_this_is_an_empty_string</javasource>
-    </properties>
-
     <build>
 
         <plugins>
-            <!-- only declare the default maven compiler and don't use sbt -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <skip>false</skip>
-                    <source>1.7</source>
-                    <target>1.7</target>
-                </configuration>
-            </plugin>
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
