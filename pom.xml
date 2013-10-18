@@ -121,6 +121,7 @@
                     </dependency>
                 </dependencies>
                 <configuration>
+                    <argLine>${javalib} ${splitVerif} ${bootstrap}</argLine>
                     <failIfNoTests>false</failIfNoTests>
                     <parallel>false</parallel>
                     <printSummary>false</printSummary>
