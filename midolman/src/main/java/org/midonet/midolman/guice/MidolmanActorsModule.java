@@ -25,7 +25,6 @@ import org.midonet.midolman.monitoring.MonitoringActor;
 import org.midonet.midolman.routingprotocols.RoutingManagerActor;
 import org.midonet.midolman.services.HostIdProviderService;
 import org.midonet.midolman.services.MidolmanActorsService;
-import org.midonet.midolman.services.MidolmanActorsServiceImpl;
 import org.midonet.midolman.topology.*;
 import org.midonet.odp.protos.OvsDatapathConnection;
 import org.midonet.util.throttling.ThrottlingGuard;
@@ -96,7 +95,7 @@ public class MidolmanActorsModule extends PrivateModule {
     }
 
     protected void bindMidolmanActorsService() {
-        bind(MidolmanActorsService.class).to(MidolmanActorsServiceImpl.class).in(Singleton.class);
+        bind(MidolmanActorsService.class).in(Singleton.class);
     }
 
     @Provides @Exposed
