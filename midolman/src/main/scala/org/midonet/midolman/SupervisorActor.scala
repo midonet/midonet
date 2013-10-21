@@ -5,7 +5,8 @@ package org.midonet.midolman
 
 import akka.actor.{Props, SupervisorStrategy, Actor, ActorLogging}
 import com.google.inject.Inject
-import logging.ActorLogWithoutPath
+
+import org.midonet.midolman.logging.ActorLogWithoutPath
 
 /**
  * This actor is responsible for the supervision strategy of all the

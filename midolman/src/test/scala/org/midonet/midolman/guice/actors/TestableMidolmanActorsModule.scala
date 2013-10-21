@@ -3,20 +3,22 @@
 */
 package org.midonet.midolman.guice.actors
 
-import scala.Some
-import collection.mutable
+import scala.collection.mutable
 import java.util.concurrent.LinkedBlockingDeque
 
-import akka.testkit.{TestActor, TestActorRef, TestKit}
 import akka.actor._
-import akka.testkit.TestActor.{AutoPilot, Message}
+import akka.dispatch.Await
 import akka.event.Logging
 import akka.pattern.ask
+import akka.testkit.TestActor
+import akka.testkit.TestActor.{AutoPilot, Message}
+import akka.testkit.TestActorRef
+import akka.testkit.TestKit
 import akka.util.{Duration, Timeout}
-import akka.dispatch.Await
 
 import org.midonet.midolman.guice.MidolmanActorsModule
-import org.midonet.midolman.services.{MidolmanActorsServiceImpl, MidolmanActorsService}
+import org.midonet.midolman.services.MidolmanActorsServiceImpl
+import org.midonet.midolman.services.MidolmanActorsService
 import org.midonet.midolman.SupervisorActor
 
 /**
@@ -35,7 +37,7 @@ class TestableMidolmanActorsModule(probes: mutable.Map[String, TestKit],
             .toInstance(new TestableMidolmanActorsService())
     }
 
-    class TestableMidolmanActorsService extends MidolmanActorsServiceImpl {
+    class TestableMidolmanActorsService extends MidolmanActorsService {
         protected override def startActor(actorProps: Props, actorName: String): ActorRef = {
             implicit val s = system
 

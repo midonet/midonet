@@ -28,10 +28,12 @@ class MidolmanActorsServiceImpl extends MidolmanActorsService {
 
     private val log = LoggerFactory.getLogger(classOf[MidolmanActorsServiceImpl])
 
+/*
     @Inject
     override val injector: Injector = null
     @Inject
     val config: MidolmanConfig = null
+*/
 
     override protected def actorSpecs = {
         val specs = List(
