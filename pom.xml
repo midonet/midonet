@@ -392,7 +392,7 @@
             <artifactId>jersey-json</artifactId>
             <version>1.10</version>
             <exclusions>
-                <exclusion>
+                <exclusion> <!-- conflicts with cassandra-all -->
                     <groupId>com.sun.xml.bind</groupId>
                     <artifactId>jaxb-impl</artifactId>
                 </exclusion>
