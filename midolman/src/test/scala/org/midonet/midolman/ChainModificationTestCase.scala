@@ -4,6 +4,8 @@
 package org.midonet.midolman
 
 import java.util.UUID
+
+import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
@@ -15,6 +17,7 @@ import org.midonet.packets._
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.util.Range
 
+@Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
 class ChainModificationTestCase extends MidolmanTestCase with VMsBehindRouterFixture
         with SimulationHelper {

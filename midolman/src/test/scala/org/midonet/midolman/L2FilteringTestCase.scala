@@ -4,17 +4,20 @@
 package org.midonet.midolman
 
 import akka.util.duration._
+import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
 
-import org.midonet.midolman.FlowController.{InvalidateFlowsByTag,
-    WildcardFlowRemoved, WildcardFlowAdded}
+import org.midonet.midolman.FlowController.InvalidateFlowsByTag
+import org.midonet.midolman.FlowController.WildcardFlowRemoved
+import org.midonet.midolman.FlowController.WildcardFlowAdded
 import org.midonet.midolman.topology.FlowTagger
-import rules.{RuleResult, Condition}
+import org.midonet.midolman.rules.{RuleResult, Condition}
 import org.midonet.packets._
-import util.SimulationHelper
+import org.midonet.midolman.util.SimulationHelper
 
+@Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
 class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture
         with SimulationHelper {

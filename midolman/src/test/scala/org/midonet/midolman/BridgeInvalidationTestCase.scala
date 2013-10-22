@@ -10,6 +10,7 @@ import scala.collection.immutable.HashMap
 import scala.collection.mutable
 
 import org.apache.commons.configuration.HierarchicalConfiguration
+import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -32,6 +33,7 @@ import org.midonet.odp.Datapath
 import org.midonet.odp.flows.{FlowAction, FlowActions}
 import org.midonet.packets.{IPv4Subnet, IPv4Addr, MAC}
 
+@Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
 class BridgeInvalidationTestCase extends MidolmanTestCase
         with VirtualConfigurationBuilders with SimulationHelper {

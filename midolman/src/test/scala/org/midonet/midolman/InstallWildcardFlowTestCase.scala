@@ -3,6 +3,7 @@
 */
 package org.midonet.midolman
 
+import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -15,6 +16,7 @@ import org.midonet.cluster.data.host.Host
 import org.midonet.odp.flows.FlowActions
 import org.midonet.sdn.flows.{WildcardMatch, WildcardFlow}
 
+@Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
 class InstallWildcardFlowTestCase extends MidolmanTestCase {
 

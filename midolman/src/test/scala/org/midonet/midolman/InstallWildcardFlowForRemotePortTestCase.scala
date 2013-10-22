@@ -6,6 +6,7 @@ package org.midonet.midolman
 import java.util.concurrent.TimeUnit
 
 import akka.util.Duration
+import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -19,6 +20,7 @@ import org.midonet.odp.flows.{FlowActionOutput, FlowActionSetKey, FlowKeyTunnel}
 import org.midonet.packets.IPv4Addr
 import org.midonet.sdn.flows.{WildcardMatch, WildcardFlow}
 
+@Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
 class InstallWildcardFlowForRemotePortTestCase extends MidolmanTestCase
     with VirtualConfigurationBuilders {

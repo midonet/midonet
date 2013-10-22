@@ -1,23 +1,27 @@
 /*
  * Copyright 2012 Midokura Europe SARL
  */
-
 package org.midonet.midolman
 
 import akka.testkit.TestProbe
-import guice.actors.OutgoingMessage
+import org.junit.experimental.categories.Category
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.{Router => ClusterRouter}
 import org.midonet.cluster.data.host.Host
+import org.midonet.cluster.data.{Router => ClusterRouter}
+import org.midonet.midolman.DeduplicationActor.DiscardPacket
+import org.midonet.midolman.guice.actors.OutgoingMessage
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.rules.{NatTarget, RuleResult, Condition}
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.HostRequest
 import org.midonet.midolman.util.RouterHelper
-import org.midonet.midolman.DeduplicationActor.DiscardPacket
 import org.midonet.packets._
 import org.midonet.util.Range
 
+@Category(Array(classOf[SimulationTests]))
+@RunWith(classOf[JUnitRunner])
 class DnatPlusSnatTestCase extends MidolmanTestCase
         with VirtualConfigurationBuilders with RouterHelper {
 
@@ -136,7 +140,7 @@ class DnatPlusSnatTestCase extends MidolmanTestCase
         var pktOut = requestOfType[PacketsExecute](packetEventsProbe).packet
         var outPorts = getOutPacketPorts(pktOut)
         outPorts should have size(1)
-        outPorts should contain (2.toShort)
+        outPorts should contain (3.toShort)
         var eth = applyOutPacketActions(pktOut)
         eth.getSourceMACAddress should be(serverGwMac)
         eth.getDestinationMACAddress should (
@@ -160,7 +164,7 @@ class DnatPlusSnatTestCase extends MidolmanTestCase
             serverGwMac, serverGw, snatPort)
         pktOut = requestOfType[PacketsExecute](packetEventsProbe).packet
         outPorts = getOutPacketPorts(pktOut)
-        outPorts should (have size(1) and contain (1.toShort))
+        outPorts should (have size(1) and contain (2.toShort))
         eth = applyOutPacketActions(pktOut)
         eth.getSourceMACAddress should be(clientGwMac)
         eth.getDestinationMACAddress should be(client1Mac)

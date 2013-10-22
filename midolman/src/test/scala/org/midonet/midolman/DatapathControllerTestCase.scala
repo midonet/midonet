@@ -3,23 +3,24 @@
 */
 package org.midonet.midolman
 
-import akka.testkit.TestProbe
-import collection.mutable
+import scala.collection.mutable
 
+import akka.testkit.TestProbe
+import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.matchers.ShouldMatchers
 
-import org.midonet.midolman.topology.rcu.{Host => RCUHost}
+import org.midonet.cluster.data.host.Host
+import org.midonet.cluster.data.{Bridge => ClusterBridge}
+import org.midonet.cluster.data.{Ports => ClusterPorts}
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.topology.VirtualToPhysicalMapper._
-import org.midonet.cluster.data.{Bridge => ClusterBridge,
-    Ports => ClusterPorts}
-import org.midonet.cluster.data.host.Host
-import org.midonet.odp.{Datapath, Ports}
+import org.midonet.midolman.topology.rcu.{Host => RCUHost}
 import org.midonet.odp.ports.NetDevPort
+import org.midonet.odp.{Datapath, Ports}
 
-
+@Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
 class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
 

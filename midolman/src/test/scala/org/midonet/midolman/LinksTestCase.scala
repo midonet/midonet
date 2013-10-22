@@ -4,6 +4,7 @@
 package org.midonet.midolman
 
 import akka.testkit.TestProbe
+import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
@@ -25,6 +26,7 @@ import org.midonet.midolman.util.RouterHelper
 import org.midonet.odp.flows.FlowActionOutput
 import org.midonet.packets._
 
+@Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
 class LinksTestCase extends MidolmanTestCase
                     with VirtualConfigurationBuilders

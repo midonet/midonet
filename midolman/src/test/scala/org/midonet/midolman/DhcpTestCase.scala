@@ -4,33 +4,35 @@
 package org.midonet.midolman
 
 import scala.collection.JavaConversions._
+import scala.collection.mutable
 import scala.sys.process._
 import java.nio.ByteBuffer
 
-import collection.mutable
 import akka.testkit.TestProbe
+import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
 
-import org.midonet.midolman.topology.VirtualToPhysicalMapper._
-import org.midonet.midolman.guice.actors.OutgoingMessage
-import org.midonet.cluster.data.zones._
-import layer3.Route
-import layer3.Route.NextHop
-import topology.LocalPortActive
-import util.SimulationHelper
-import util.RouterHelper
-import org.midonet.packets._
 import org.midonet.cluster.data.dhcp.Opt121
 import org.midonet.cluster.data.dhcp.Subnet
-import org.midonet.cluster.data.ports.BridgePort
-import host.interfaces.InterfaceDescription
-import org.midonet.midolman.PacketWorkflow.PacketIn
-import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
-import org.midonet.cluster.data.{Bridge, Router}
 import org.midonet.cluster.data.host.Host
+import org.midonet.cluster.data.ports.BridgePort
+import org.midonet.cluster.data.zones._
+import org.midonet.cluster.data.{Bridge, Router}
+import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
+import org.midonet.midolman.PacketWorkflow.PacketIn
+import org.midonet.midolman.guice.actors.OutgoingMessage
+import org.midonet.midolman.host.interfaces.InterfaceDescription
+import org.midonet.midolman.layer3.Route
+import org.midonet.midolman.layer3.Route.NextHop
+import org.midonet.midolman.topology.LocalPortActive
+import org.midonet.midolman.topology.VirtualToPhysicalMapper._
+import org.midonet.midolman.util.RouterHelper
+import org.midonet.midolman.util.SimulationHelper
+import org.midonet.packets._
 
+@Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
 class DhcpTestCase extends MidolmanTestCase with
           VirtualConfigurationBuilders with SimulationHelper with RouterHelper {

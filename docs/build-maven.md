@@ -210,6 +210,25 @@ If you know exactly which projects should be recompiled the third solution is
 to specify them directly on the command line with for example
 `$ mvn package -pl projA,projB -DskipTests`
 
+### Running tests by groups
+
+Junit integration in maven-surefire allows to group tests together by test
+classes and/or test methods and run them selectively with maven from the
+command line.
+
+To tag a class or a method, add the import
+"org.junit.experimental.categories.Category" in your file and add the
+annotations `@Category(ClassName.class)` for java and
+`@Category(Array(classOf[ClassName]))` for scala to your class or method, where
+ClassName is an existing class or interface in package scope or in the imports.
+All test methods inside a Category tagged class becomes tagged. The group of all
+tests associated to ClassName can then be run exclusively by setting surefire
+"<configuration>" section with "<groups>path.to.ClassName</groups>" or excluded
+from tests by setting "<excludedGroups>path.to.ClassName</excludedGroups>".
+
+At the moment (2013/10/23), only one group of tests is defined:
+org.midonet.midolman.SimulationTests. It is included in the tests by default.
+
 
 ## Misc
 
@@ -267,6 +286,12 @@ it is not necessary to explicitly add "test" in the mvn command.
 
 Cobertura is known to conflict with zinc, and generating test coverage reports
 will certainly require to turn off zinc first.
+
+It is possible to include or exclude tests from the coverage analysis by
+activating test group profiles. At the moment (2013/10/23), functional tests of
+simulation using actors can be skipped with the profile "withoutSim":
+
+`$ mvn clean site -PwithoutSim`
 
 ### dependency analysis
 
