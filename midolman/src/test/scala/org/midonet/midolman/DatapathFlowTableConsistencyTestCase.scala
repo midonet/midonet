@@ -6,6 +6,7 @@ package org.midonet.midolman
 import scala.collection.JavaConversions._
 
 import org.apache.commons.configuration.HierarchicalConfiguration
+import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
@@ -18,6 +19,7 @@ import org.midonet.odp.flows.{FlowKeyICMPEcho, FlowKeyTCP, FlowKeyICMP}
 import org.midonet.odp.protos.MockOvsDatapathConnection
 import org.midonet.sdn.flows.FlowManager
 
+@Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
 class DatapathFlowTableConsistencyTestCase extends MidolmanTestCase
         with VMsBehindRouterFixture

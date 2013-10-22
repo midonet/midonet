@@ -8,6 +8,7 @@ import java.util.UUID
 
 import akka.testkit.TestProbe
 import org.apache.commons.configuration.HierarchicalConfiguration
+import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
 import org.junit.{Ignore, Test}
 import org.scalatest.junit.JUnitRunner
@@ -28,6 +29,7 @@ import org.midonet.odp.flows.FlowActionPopVLAN
 import org.midonet.odp.flows.FlowActionPushVLAN
 import org.midonet.packets._
 
+@Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
 class VlanBridgeSimulationTestCase extends SimulationHelper
         with VirtualConfigurationBuilders {
@@ -659,4 +661,3 @@ class VlanBridgeSimulationTestCase extends SimulationHelper
     }
 
 }
-

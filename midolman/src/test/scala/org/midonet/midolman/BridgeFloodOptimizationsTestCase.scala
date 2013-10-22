@@ -4,20 +4,22 @@
 package org.midonet.midolman
 
 import scala.collection.JavaConversions._
+
+import akka.testkit.TestProbe
 import org.apache.commons.configuration.HierarchicalConfiguration
+import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.{Bridge => ClusterBridge}
-import org.midonet.packets._
-import akka.testkit.TestProbe
-import org.midonet.cluster.data.ports.BridgePort
-import org.midonet.midolman.topology.LocalPortActive
-import scala.Some
-import org.midonet.midolman.FlowController.WildcardFlowAdded
-import org.midonet.midolman.util.SimulationHelper
 import org.midonet.cluster.data.Bridge
+import org.midonet.cluster.data.ports.BridgePort
+import org.midonet.cluster.data.{Bridge => ClusterBridge}
+import org.midonet.midolman.FlowController.WildcardFlowAdded
+import org.midonet.midolman.topology.LocalPortActive
+import org.midonet.midolman.util.SimulationHelper
+import org.midonet.packets._
 
+@Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
 class BridgeFloodOptimizationsTestCase extends MidolmanTestCase
         with VirtualConfigurationBuilders with SimulationHelper {

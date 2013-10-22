@@ -3,28 +3,31 @@
 */
 package org.midonet.midolman
 
-import akka.util.{Timeout, Duration}
-import akka.pattern.ask
+import java.util.concurrent.TimeUnit
 
+import akka.dispatch.Await
+import akka.pattern.ask
+import akka.util.duration._
+import akka.util.{Timeout, Duration}
+import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
 
-import akka.util.duration._
-import akka.dispatch.Await
-
-import org.midonet.midolman.FlowController.{InvalidateFlowsByTag, AddWildcardFlow, WildcardFlowAdded, WildcardFlowRemoved}
+import org.midonet.midolman.FlowController.InvalidateFlowsByTag
+import org.midonet.midolman.FlowController.AddWildcardFlow
+import org.midonet.midolman.FlowController.WildcardFlowAdded
+import org.midonet.midolman.FlowController.WildcardFlowRemoved
 import org.midonet.midolman.topology.VirtualTopologyActor.ChainRequest
 import org.midonet.midolman.simulation.Chain
 import org.midonet.midolman.util.SimulationHelper
 import org.midonet.odp.flows.IPFragmentType
 import org.midonet.packets._
-import rules.{RuleResult, Condition}
-import topology.LocalPortActive
+import org.midonet.midolman.rules.{RuleResult, Condition}
+import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.cluster.data.Rule
-import java.util.concurrent.TimeUnit
 
-
+@Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
 class IPFragmentationTestCase extends MidolmanTestCase
         with SimulationHelper with VMsBehindRouterFixture {

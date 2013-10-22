@@ -1,7 +1,6 @@
 /*
  * Copyright 2012 Midokura Pte. Ltd.
  */
-
 package org.midonet.midolman
 
 import java.util.UUID
@@ -13,6 +12,7 @@ import scala.collection.{Set => ROSet}
 import akka.testkit.TestProbe
 import akka.util.Duration
 import org.apache.commons.configuration.HierarchicalConfiguration
+import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -34,7 +34,7 @@ import org.midonet.odp.{FlowMatch, Flow, Datapath}
 import org.midonet.packets._
 import org.midonet.sdn.flows.{WildcardMatch, WildcardFlow}
 
-
+@Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
 class RouterFlowInvalidationTestCase extends MidolmanTestCase
         with VirtualConfigurationBuilders with RouterHelper{

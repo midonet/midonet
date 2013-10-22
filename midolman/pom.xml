@@ -16,9 +16,25 @@
     <name>Midolman Java daemon</name>
     <packaging>jar</packaging>
 
+    <properties>
+        <!-- once old simulation unit tests are phased out,
+             this should be the default value
+        <groups.simulation>org.midonet.midolman.SimulationTests</groups.simulation>
+        -->
+        <!-- (does nothing, but needs to point to existing class) -->
+        <groups.simulation>org.midonet.midolman.Midolman</groups.simulation>
+    </properties>
+
     <build>
 
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <excludedGroups>${groups.simulation}</excludedGroups>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>rpm-maven-plugin</artifactId>
@@ -485,6 +501,24 @@
                     </plugin>
                 </plugins>
             </build>
+        </profile>
+
+        <profile>
+            <!-- activate to run functional tests on simulation with actors -->
+            <id>withSim</id>
+            <properties>
+                <!-- overriding value needs to point to an existing class -->
+                <groups.simulation>org.midonet.midolman.Midolman</groups.simulation>
+            </properties>
+        </profile>
+
+        <profile>
+            <!-- activate to skip functional tests on simulation with actors.
+                 to remove once old simulation unit tests are phased out -->
+            <id>withoutSim</id>
+            <properties>
+                <groups.simulation>org.midonet.midolman.SimulationTests</groups.simulation>
+            </properties>
         </profile>
 
     </profiles>

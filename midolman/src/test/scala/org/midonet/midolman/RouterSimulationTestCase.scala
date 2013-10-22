@@ -3,42 +3,46 @@
 */
 package org.midonet.midolman
 
-import rules.{RuleResult, NatTarget, Condition}
+import java.util.UUID
+import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.compat.Platform
-import java.util.UUID
 
 import akka.dispatch.Await
-import akka.util.duration._
+import akka.testkit.TestProbe
 import akka.util.Timeout
-
+import akka.util.duration._
 import org.apache.commons.configuration.HierarchicalConfiguration
+import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
+import org.scalatest.Ignore
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
 
+import org.midonet.cluster.data.host.Host
+import org.midonet.cluster.data.ports.RouterPort
+import org.midonet.cluster.data.{Ports, Router => ClusterRouter}
+import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
+import org.midonet.midolman.DeduplicationActor.DiscardPacket
 import org.midonet.midolman.FlowController._
-import org.midonet.midolman.DeduplicationActor.{EmitGeneratedPacket, DiscardPacket}
 import org.midonet.midolman.PacketWorkflow.PacketIn
 import org.midonet.midolman.guice.actors.OutgoingMessage
 import org.midonet.midolman.layer3.Route.{NextHop, NO_GATEWAY}
+import org.midonet.midolman.rules.{RuleResult, NatTarget, Condition}
+import org.midonet.midolman.simulation.{ArpTableImpl, LoadBalancer}
 import org.midonet.midolman.state.ArpCacheEntry
 import org.midonet.midolman.state.ReplicatedMap.Watcher
+import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.HostRequest
-import org.midonet.cluster.data.{Ports, Router => ClusterRouter}
-import org.midonet.cluster.data.ports.RouterPort
-import org.midonet.cluster.data.host.Host
+import org.midonet.midolman.util.RouterHelper
+import org.midonet.odp.flows.FlowActionOutput
+import org.midonet.odp.flows.FlowActionSetKey
+import org.midonet.odp.flows.FlowKeyEthernet
+import org.midonet.odp.flows.FlowKeyIPv4
 import org.midonet.packets._
-import org.midonet.odp.flows.{FlowActionSetKey, FlowActionOutput,
-                               FlowKeyEthernet, FlowKeyIPv4}
 import org.midonet.sdn.flows.WildcardMatch
-import simulation.{ArpTableImpl, LoadBalancer}
-import topology.LocalPortActive
-import util.RouterHelper
-import akka.testkit.TestProbe
-import annotation.tailrec
-import org.scalatest.Ignore
 
+@Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
 class RouterSimulationTestCase extends MidolmanTestCase with
         VirtualConfigurationBuilders with RouterHelper {

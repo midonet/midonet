@@ -3,37 +3,36 @@
 */
 package org.midonet.midolman
 
-
 import scala.collection.immutable
 import scala.util.control.Breaks._
 
 import akka.util.Duration
 import java.util.concurrent.TimeUnit
+import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
 
-import org.midonet.midolman.datapath.FlowActionOutputToVrnPortSet
-import org.midonet.midolman.rules.{Condition, RuleResult}
-import org.midonet.midolman.topology.{FlowTagger, LocalPortActive}
-import org.midonet.cluster.data.{Port, Bridge}
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.zones.{GreTunnelZone, GreTunnelZoneHost}
-import org.midonet.packets._
-import org.midonet.odp.FlowMatch
-import org.midonet.odp.Packet
-import org.midonet.odp.flows._
-import org.midonet.odp.flows.FlowKeys.{ethernet, inPort, tunnel}
-import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
-import org.midonet.midolman.topology.LocalPortActive
-import scala.Some
-import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
-import org.midonet.midolman.FlowController.WildcardFlowAdded
-import org.midonet.midolman.FlowController.WildcardFlowRemoved
+import org.midonet.cluster.data.{Port, Bridge}
 import org.midonet.midolman.DeduplicationActor.HandlePackets
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
+import org.midonet.midolman.FlowController.WildcardFlowAdded
+import org.midonet.midolman.FlowController.WildcardFlowRemoved
+import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
+import org.midonet.midolman.datapath.FlowActionOutputToVrnPortSet
+import org.midonet.midolman.rules.{Condition, RuleResult}
+import org.midonet.midolman.topology.LocalPortActive
+import org.midonet.midolman.topology.{FlowTagger, LocalPortActive}
+import org.midonet.odp.FlowMatch
+import org.midonet.odp.Packet
+import org.midonet.odp.flows.FlowKeys.{ethernet, inPort, tunnel}
+import org.midonet.odp.flows._
+import org.midonet.packets._
+import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 
-
+@Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
 class FlowManagementForPortSetTestCase extends MidolmanTestCase
         with VirtualConfigurationBuilders {

@@ -4,22 +4,24 @@
 package org.midonet.midolman
 
 import scala.collection.JavaConversions._
+import java.util.UUID
+
 import akka.pattern.Patterns
 import akka.dispatch.Await
 import akka.util.Duration
-import java.util.UUID
-
+import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.matchers.ShouldMatchers
 
-import org.midonet.cluster.data.{Ports, Bridge => ClusterBridge}
 import org.midonet.cluster.data.host.Host
+import org.midonet.cluster.data.{Ports, Bridge => ClusterBridge}
 import org.midonet.midolman.DatapathController.DpPortCreate
-import org.midonet.midolman.topology.rcu.PortSet
-import topology.LocalPortActive
+import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.PortSetRequest
+import org.midonet.midolman.topology.rcu.PortSet
 
+@Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
 class PortSetManagementTestCase extends MidolmanTestCase with ShouldMatchers {
 

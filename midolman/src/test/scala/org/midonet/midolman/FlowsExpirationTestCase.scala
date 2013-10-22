@@ -10,6 +10,7 @@ import scala.Predef._
 import akka.testkit.TestProbe
 import akka.util.Duration
 import org.apache.commons.configuration.HierarchicalConfiguration
+import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -23,6 +24,7 @@ import org.midonet.odp._
 import org.midonet.packets.{IPv4Addr, MAC, Packets}
 import org.midonet.sdn.flows.WildcardFlow
 
+@Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
 class FlowsExpirationTestCase extends MidolmanTestCase
        with VirtualConfigurationBuilders {

@@ -7,6 +7,7 @@ import akka.testkit.TestProbe
 import scala.collection.JavaConversions._
 import scala.collection.mutable.{ListBuffer, HashMap}
 
+import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
@@ -26,7 +27,7 @@ import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput, FlowActions}
 import org.midonet.packets._
 
-
+@Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
 class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
     private final val log = LoggerFactory.getLogger(classOf[PingTestCase])
