@@ -12,14 +12,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import javax.annotation.Nonnull;
-import static java.lang.String.format;
 
+import javax.annotation.Nonnull;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.remote.RemoteHost;
 import org.midonet.tools.timed.Timed;
 import static org.midonet.util.process.ProcessOutputDrainer.DrainTarget;
 
@@ -36,7 +34,7 @@ public class ProcessHelper {
         LoggerFactory.getLogger(ProcessHelper.class);
 
     public static RunnerConfiguration newDemonProcess(String commandLine) {
-        RunnerConfiguration configuration = _newProcess(commandLine, true);
+        RunnerConfiguration configuration = newProcess(commandLine);
 
         configuration.setDrainTarget(DrainTargets.noneTarget());
 
@@ -47,7 +45,7 @@ public class ProcessHelper {
              @Nonnull String commandLine,
              @Nonnull Logger logger,
              @Nonnull String prefix) {
-        RunnerConfiguration configuration = _newProcess(commandLine, true);
+        RunnerConfiguration configuration = newProcess(commandLine);
 
         configuration.setDrainTarget(DrainTargets.slf4jTarget(logger, prefix));
 
@@ -55,15 +53,11 @@ public class ProcessHelper {
     }
 
     public static RunnerConfiguration newLocalProcess(String commandLine) {
-        return _newProcess(commandLine, false);
+        return newProcess(commandLine);
     }
 
-    public static RunnerConfiguration newProcess(String commandLine) {
-        return _newProcess(commandLine, true);
-    }
+    public static RunnerConfiguration newProcess(final String commandLine) {
 
-    private static RunnerConfiguration _newProcess(final String commandLine,
-                                                   final boolean canBeRemote) {
         return new RunnerConfiguration() {
             DrainTarget drainTarget;
             String procCommandLine = commandLine;
@@ -110,10 +104,10 @@ public class ProcessHelper {
 
             @Override
             public int runAndWait() {
-                Process p = createProcess(true, canBeRemote);
+                Process p = createProcess(true);
 
-                String processName = getProcessName(procCommandLine,
-                                                    canBeRemote);
+                String processName = procCommandLine;
+
                 try {
                     if (p != null) {
                         p.waitFor();
@@ -128,7 +122,7 @@ public class ProcessHelper {
                     }
                 } catch (InterruptedException e) {
                     log.error(
-                        format("Error while launching command: \"%s\"",
+                        String.format("Error while launching command: \"%s\"",
                                processName), e);
                 }
 
@@ -136,7 +130,7 @@ public class ProcessHelper {
             }
 
             public Process run() {
-                return createProcess(false, canBeRemote);
+                return createProcess(false);
             }
 
             @Override
@@ -145,10 +139,9 @@ public class ProcessHelper {
                 return this;
             }
 
-            private Process createProcess(boolean wait,
-                                          boolean canBeExecutedRemote) {
+            private Process createProcess(boolean wait) {
                 try {
-                    Process p = launchProcess(canBeExecutedRemote);
+                    Process p = launchProcess();
                     if (drainTarget == null) {
                         drainTarget = DrainTargets.noneTarget();
                     }
@@ -172,20 +165,8 @@ public class ProcessHelper {
                 return null;
             }
 
-            private Process launchProcess(boolean canBeExecutedRemote)
-                throws IOException {
-                RemoteHost remoteHostSpec = RemoteHost.getSpecification();
+            private Process launchProcess() throws IOException {
 
-                // if the remoteHostSpec is not valid it means that remote
-                // specification was not defined or defined poorly so we revert
-                // to the standard way of running all processes as local processes.
-                // the canBeExecutedRemote is a signal that if possible this
-                // process will be executed remotely.
-                if (canBeExecutedRemote && remoteHostSpec.isValid()) {
-                    new RemoteSshProcess(remoteHostSpec,
-                                         procCommandLine,
-                                         envVars);
-                }
                 if (envVars.isEmpty()) {
                     return Runtime.getRuntime().exec(procCommandLine);
                 } else {
@@ -201,18 +182,6 @@ public class ProcessHelper {
                 }
             }
         };
-    }
-
-    private static String getProcessName(String commandLine,
-                                         boolean canBeRemote) {
-        RemoteHost remoteHostSpec = RemoteHost.getSpecification();
-
-        if (canBeRemote && remoteHostSpec.isValid())
-            return
-                String.format("[%s] on %s", commandLine,
-                              remoteHostSpec.getSafeName());
-
-        return commandLine;
     }
 
     public static void killProcess(final Process process) {
@@ -324,20 +293,15 @@ public class ProcessHelper {
     }
 
     public static ProcessResult executeLocalCommandLine(String commandLine) {
-        return _executeCommandLine(commandLine, false);
+        return executeCommandLine(commandLine);
     }
 
-    public static ProcessResult executeCommandLine(String commandLine) {
-        return _executeCommandLine(commandLine, true);
-    }
-
-    private static ProcessResult _executeCommandLine(String command,
-                                                    boolean canBeRemote) {
+    public static ProcessResult executeCommandLine(String command) {
         ProcessResult result = new ProcessResult();
         List<String> outputList = new ArrayList<String>();
         List<String> errorList = new ArrayList<String>();
 
-        RunnerConfiguration runner = _newProcess(command, canBeRemote);
+        RunnerConfiguration runner = newProcess(command);
 
         runner.setDrainTarget(DrainTargets.stringCollector(
                 outputList, errorList));
@@ -353,26 +317,6 @@ public class ProcessHelper {
                 for (String s : errorList) log.warn(s);
             }
         }
-
-        return result;
-    }
-
-    private static ProcessResult _executeCommandLine(String command,
-            boolean canBeRemote, @Nonnull Logger logger,
-            @Nonnull String prefix) {
-        ProcessResult result = new ProcessResult();
-
-        List<String> outputList = new ArrayList<String>();
-        List<String> errorList = new ArrayList<String>();
-
-        RunnerConfiguration runner = _newProcess(command, canBeRemote);
-
-        runner.setDrainTarget(DrainTargets.collectorLogger(
-                outputList, errorList, logger, prefix));
-
-        result.returnValue = runner.runAndWait();
-        result.consoleOutput = outputList;
-        result.errorOutput = errorList;
 
         return result;
     }
