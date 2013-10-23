@@ -1,31 +1,17 @@
 /*
  * Copyright 2011 Midokura KK
  */
-
 package org.midonet.midolman;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintStream;
+import java.nio.file.Paths;
+import java.util.Properties;
 
 import com.google.common.base.Service;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-
-import org.midonet.midolman.guice.CacheModule;
-import org.midonet.midolman.guice.InterfaceScannerModule;
-import org.midonet.midolman.guice.MidolmanActorsModule;
-import org.midonet.midolman.guice.MidolmanModule;
-import org.midonet.midolman.guice.MonitoringStoreModule;
-import org.midonet.midolman.guice.cluster.ClusterClientModule;
-import org.midonet.midolman.guice.config.ConfigProviderModule;
-import org.midonet.midolman.guice.datapath.DatapathModule;
-import org.midonet.midolman.guice.reactor.ReactorModule;
-import org.midonet.midolman.guice.zookeeper.ZookeeperConnectionModule;
-import org.midonet.midolman.host.guice.HostModule;
-import org.midonet.midolman.monitoring.MonitoringAgent;
-import org.midonet.midolman.guice.serialization.SerializationModule;
-import org.midonet.midolman.services.MidolmanActorsService;
-import org.midonet.midolman.services.MidolmanService;
-import org.midonet.cluster.services.MidostoreSetupService;
-import org.midonet.midolman.version.guice.VersionModule;
-import org.midonet.remote.RemoteHost;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
@@ -35,11 +21,23 @@ import org.slf4j.LoggerFactory;
 import sun.misc.Signal;
 import sun.misc.SignalHandler;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintStream;
-import java.nio.file.Paths;
-import java.util.Properties;
+import org.midonet.cluster.services.MidostoreSetupService;
+import org.midonet.midolman.guice.CacheModule;
+import org.midonet.midolman.guice.InterfaceScannerModule;
+import org.midonet.midolman.guice.MidolmanActorsModule;
+import org.midonet.midolman.guice.MidolmanModule;
+import org.midonet.midolman.guice.MonitoringStoreModule;
+import org.midonet.midolman.guice.cluster.ClusterClientModule;
+import org.midonet.midolman.guice.config.ConfigProviderModule;
+import org.midonet.midolman.guice.datapath.DatapathModule;
+import org.midonet.midolman.guice.reactor.ReactorModule;
+import org.midonet.midolman.guice.serialization.SerializationModule;
+import org.midonet.midolman.guice.zookeeper.ZookeeperConnectionModule;
+import org.midonet.midolman.host.guice.HostModule;
+import org.midonet.midolman.monitoring.MonitoringAgent;
+import org.midonet.midolman.services.MidolmanActorsService;
+import org.midonet.midolman.services.MidolmanService;
+import org.midonet.midolman.version.guice.VersionModule;
 
 public class Midolman {
 
@@ -206,8 +204,6 @@ public class Midolman {
 
     public static void main(String[] args) {
         try {
-            RemoteHost.getSpecification();
-
             new Midolman().run(args);
         } catch (Exception e) {
             log.error("main caught", e);

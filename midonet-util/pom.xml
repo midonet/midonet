@@ -72,12 +72,6 @@
             <systemPath>${java.home}/../lib/tools.jar</systemPath>
         </dependency>
 
-        <dependency> <!-- ssh lib, obsolete after retiring func-tests -->
-            <groupId>com.jcraft</groupId>
-            <artifactId>jsch</artifactId>
-            <version>0.1.45</version>
-        </dependency>
-
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
