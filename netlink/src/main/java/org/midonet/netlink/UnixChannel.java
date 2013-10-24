@@ -156,7 +156,7 @@ public abstract class UnixChannel<Address> extends AbstractSelectableChannel
                     return 0;
                 writerThread = NativeThread.current();
                 do {
-                    n = IOUtil.write(fd, buffer, -1, nd, sendLock);
+                    n = IOUtil.write(fd, buffer, -1, nd);
                 } while ((n == IOStatus.INTERRUPTED) && isOpen());
                 return IOStatus.normalize(n);
             } finally {
@@ -227,7 +227,7 @@ public abstract class UnixChannel<Address> extends AbstractSelectableChannel
                     return 0;
                 readerThread = NativeThread.current();
                 do {
-                    n = IOUtil.read(fd, dst, -1, nd, recvLock);
+                    n = IOUtil.read(fd, dst, -1, nd);
                 } while ((n == IOStatus.INTERRUPTED) && isOpen());
                 return IOStatus.normalize(n);
             } finally {
