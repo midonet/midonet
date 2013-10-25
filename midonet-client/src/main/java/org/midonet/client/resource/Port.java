@@ -32,6 +32,5 @@ public abstract class Port<T extends Port<T, U>, U extends DtoPort>
                 VendorMediaType.APPLICATION_PORTGROUP_COLLECTION_JSON,
                 PortGroup.class, DtoPortGroup.class);
     }
-
 }
 

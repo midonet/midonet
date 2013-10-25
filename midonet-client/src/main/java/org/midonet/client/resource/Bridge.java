@@ -59,6 +59,16 @@ public class Bridge extends ResourceBase<Bridge, DtoBridge> {
     }
 
     /**
+     * Get administrative state
+     *
+     * @return administrative state of the bridge.
+     */
+
+    public boolean isAdminStateUp() {
+        return principalDto.isAdminStateUp();
+    }
+
+    /**
      * Gets ID of the outbound filter id
      *
      * @return UUID of the outbound filter
@@ -85,6 +95,17 @@ public class Bridge extends ResourceBase<Bridge, DtoBridge> {
      */
     public Bridge name(String name) {
         principalDto.setName(name);
+        return this;
+    }
+
+    /**
+     * Set administrative state
+     *
+     * @param adminStateUp
+     *            administrative state of the bridge.
+     */
+    public Bridge adminStateUp(boolean adminStateUp) {
+        principalDto.setAdminStateUp(adminStateUp);
         return this;
     }
 

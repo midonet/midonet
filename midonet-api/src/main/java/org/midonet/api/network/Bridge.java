@@ -9,11 +9,13 @@ import org.midonet.api.UriResource;
 import org.midonet.api.network.validation.IsUniqueBridgeName;
 import org.midonet.api.network.Bridge.BridgeExtended;
 import org.midonet.cluster.data.Bridge.Property;
+import org.midonet.util.version.Since;
 
 import javax.validation.GroupSequence;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import javax.validation.groups.Default;
+import javax.ws.rs.DefaultValue;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.net.URI;
 import java.util.UUID;
@@ -38,6 +40,8 @@ public class Bridge extends UriResource {
     @Size(min = MIN_BRIDGE_NAME_LEN, max = MAX_BRIDGE_NAME_LEN)
     private String name;
 
+    protected boolean adminStateUp;
+
     private UUID inboundFilterId;
     private UUID outboundFilterId;
 
@@ -45,6 +49,7 @@ public class Bridge extends UriResource {
      * Constructor.
      */
     public Bridge() {
+        adminStateUp = true;
     }
 
     /**
@@ -58,7 +63,7 @@ public class Bridge extends UriResource {
      *            ID of the tenant that owns the bridge.
      */
     public Bridge(UUID id, String name, String tenantId) {
-        super();
+        this();
         this.id = id;
         this.name = name;
         this.tenantId = tenantId;
@@ -73,6 +78,7 @@ public class Bridge extends UriResource {
     public Bridge(org.midonet.cluster.data.Bridge bridgeData) {
         this(bridgeData.getId(), bridgeData.getName(),
                 bridgeData.getProperty(Property.tenant_id));
+        this.adminStateUp = bridgeData.isAdminStateUp();
         this.inboundFilterId = bridgeData.getInboundFilter();
         this.outboundFilterId = bridgeData.getOutboundFilter();
     }
@@ -103,6 +109,26 @@ public class Bridge extends UriResource {
      */
     public String getName() {
         return name;
+    }
+
+    /**
+     * Get administrative state
+     *
+     * @return administrative state of the bridge.
+     */
+
+    public boolean isAdminStateUp() {
+        return adminStateUp;
+    }
+
+    /**
+     * Set administrative state
+     *
+     * @param adminStateUp
+     *            administrative state of the bridge.
+     */
+    public void setAdminStateUp(boolean adminStateUp) {
+        this.adminStateUp = adminStateUp;
     }
 
     /**
@@ -262,6 +288,7 @@ public class Bridge extends UriResource {
         return new org.midonet.cluster.data.Bridge()
                 .setId(this.id)
                 .setName(this.name)
+                .setAdminStateUp(this.adminStateUp)
                 .setInboundFilter(this.inboundFilterId)
                 .setOutboundFilter(this.outboundFilterId)
                 .setProperty(Property.tenant_id, this.tenantId);
@@ -274,7 +301,8 @@ public class Bridge extends UriResource {
      */
     @Override
     public String toString() {
-        return "id=" + id + ", name=" + name + ", tenantId=" + tenantId;
+        return "id=" + id + ", name=" + name +
+               ", adminStateUp=" + adminStateUp + ", tenantId=" + tenantId;
     }
 
     /**

@@ -375,6 +375,7 @@ public class PortZkManager extends AbstractZkManager {
         oldConfig.inboundFilter = config.inboundFilter;
         oldConfig.outboundFilter = config.outboundFilter;
         oldConfig.properties = config.properties;
+        oldConfig.adminStateUp = config.adminStateUp;
 
         ops.add(Op.setData(paths.getPortPath(id),
                            serializer.serialize(oldConfig), -1));

@@ -14,6 +14,7 @@ import java.util.UUID;
 public class DtoBridge {
     private UUID id;
     private String name;
+    private boolean adminStateUp = true;
     private String tenantId;
     private UUID inboundFilterId;
     private UUID outboundFilterId;
@@ -44,6 +45,14 @@ public class DtoBridge {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public boolean isAdminStateUp() {
+        return adminStateUp;
+    }
+
+    public void setAdminStateUp(boolean adminStateUp) {
+        this.adminStateUp = adminStateUp;
     }
 
     public String getTenantId() {
@@ -235,6 +244,10 @@ public class DtoBridge {
         }
 
         if (!Objects.equal(this.dhcpSubnets, otherBridge.getDhcpSubnets())) {
+            return false;
+        }
+
+        if (adminStateUp != otherBridge.adminStateUp) {
             return false;
         }
 

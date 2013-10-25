@@ -324,8 +324,9 @@ public class TestRouter {
             assertEquals(1, routers.length);
             assertEquals(resRouter.getId(), routers[0].getId());
 
-            // Update the router: change name and swap filters.
+            // Update the router: change name, admin state, and swap filters.
             resRouter.setName("router1-modified");
+            resRouter.setAdminStateUp(false);
             resRouter.setInboundFilterId(chain2.getId());
             resRouter.setOutboundFilterId(chain1.getId());
             DtoRouter updatedRouter = dtoResource.putAndVerifyNoContent(
@@ -338,6 +339,8 @@ public class TestRouter {
             assertEquals(resRouter.getOutboundFilterId(),
                     updatedRouter.getOutboundFilterId());
             assertEquals(resRouter.getName(), updatedRouter.getName());
+            assertEquals(resRouter.isAdminStateUp(),
+                         updatedRouter.isAdminStateUp());
 
             // Delete the router
             dtoResource.deleteAndVerifyNoContent(resRouter.getUri(),
