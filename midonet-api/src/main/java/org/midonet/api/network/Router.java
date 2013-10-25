@@ -9,6 +9,7 @@ import org.midonet.api.UriResource;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.network.validation.IsUniqueRouterName;
 import org.midonet.cluster.data.Router.Property;
+import org.midonet.util.version.Since;
 
 import javax.validation.GroupSequence;
 import javax.validation.constraints.NotNull;
@@ -38,6 +39,8 @@ public class Router extends UriResource {
     @Size(min = MIN_ROUTER_NAME_LEN, max = MAX_ROUTER_NAME_LEN)
     private String name;
 
+    protected boolean adminStateUp;
+
     private UUID inboundFilterId;
     private UUID outboundFilterId;
 
@@ -45,6 +48,7 @@ public class Router extends UriResource {
      * Constructor.
      */
     public Router() {
+        adminStateUp = true;
     }
 
     /**
@@ -58,7 +62,7 @@ public class Router extends UriResource {
      *            ID of the tenant that owns the router.
      */
     public Router(UUID id, String name, String tenantId) {
-        super();
+        this();
         this.id = id;
         this.name = name;
         this.tenantId = tenantId;
@@ -73,6 +77,7 @@ public class Router extends UriResource {
     public Router(org.midonet.cluster.data.Router routerData) {
         this(routerData.getId(), routerData.getData().name,
                 routerData.getProperty(Property.tenant_id));
+        this.adminStateUp = routerData.getData().adminStateUp;
         this.inboundFilterId = routerData.getData().inboundFilter;
         this.outboundFilterId = routerData.getData().outboundFilter;
     }
@@ -103,6 +108,26 @@ public class Router extends UriResource {
      */
     public String getName() {
         return name;
+    }
+
+    /**
+     * Get administrative state
+     *
+     * @return administrative state of the port.
+     */
+
+    public boolean isAdminStateUp() {
+        return adminStateUp;
+    }
+
+    /**
+     * Set administrative state
+     *
+     * @param adminStateUp
+     *            administrative state of the port.
+     */
+    public void setAdminStateUp(boolean adminStateUp) {
+        this.adminStateUp = adminStateUp;
     }
 
     /**
@@ -221,6 +246,7 @@ public class Router extends UriResource {
         return new org.midonet.cluster.data.Router()
                 .setId(this.id)
                 .setName(this.name)
+                .setAdminStateUp(this.adminStateUp)
                 .setInboundFilter(this.inboundFilterId)
                 .setOutboundFilter(this.outboundFilterId)
                 .setProperty(Property.tenant_id, this.tenantId);
@@ -233,7 +259,8 @@ public class Router extends UriResource {
      */
     @Override
     public String toString() {
-        return "id=" + id + ", name=" + name + ", tenantId=" + tenantId;
+        return "id=" + id + ", name=" + name +
+               ", adminStateUp=" + adminStateUp + ", tenantId=" + tenantId;
     }
 
     /**

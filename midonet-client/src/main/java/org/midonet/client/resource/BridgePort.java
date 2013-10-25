@@ -57,6 +57,16 @@ public class BridgePort extends
     }
 
     /**
+     * Get administrative state
+     *
+     * @return administrative state of the port.
+     */
+
+    public boolean isAdminStateUp() {
+        return principalDto.isAdminStateUp();
+    }
+
+    /**
      * Gets inbound filter ID of this bridge port
      *
      * @return UUID of the inbound filter
@@ -99,6 +109,17 @@ public class BridgePort extends
      */
     public Short getVlanId() {
         return principalDto.getVlanId();
+    }
+
+    /**
+     * Set administrative state
+     *
+     * @param adminStateUp
+     *            administrative state of the port.
+     */
+    public BridgePort adminStateUp(boolean adminStateUp) {
+        principalDto.setAdminStateUp(adminStateUp);
+        return this;
     }
 
     /**

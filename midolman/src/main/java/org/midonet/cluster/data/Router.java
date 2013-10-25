@@ -40,6 +40,15 @@ public class Router extends Entity.Base<UUID, Router.Data, Router>  {
         return getData().name;
     }
 
+    public boolean isAdminStateUp() {
+        return getData().adminStateUp;
+    }
+
+    public Router setAdminStateUp(boolean adminStateUp) {
+        this.getData().adminStateUp = adminStateUp;
+        return this;
+    }
+
     public Router setInboundFilter(UUID inboundFilter) {
         getData().inboundFilter = inboundFilter;
         return self();
@@ -87,6 +96,7 @@ public class Router extends Entity.Base<UUID, Router.Data, Router>  {
         public UUID inboundFilter;
         public UUID outboundFilter;
         public Map<String, String> properties = new HashMap<String, String>();
+        public boolean adminStateUp = true;
 
         @Override
         public boolean equals(Object o) {
@@ -104,6 +114,7 @@ public class Router extends Entity.Base<UUID, Router.Data, Router>  {
                 return false;
             if (properties != null ? !properties.equals(
                 data.properties) : data.properties != null) return false;
+            if (adminStateUp != data.adminStateUp) return false;
 
             return true;
         }
@@ -111,9 +122,13 @@ public class Router extends Entity.Base<UUID, Router.Data, Router>  {
         @Override
         public int hashCode() {
             int result = name != null ? name.hashCode() : 0;
-            result = 31 * result + (inboundFilter != null ? inboundFilter.hashCode() : 0);
-            result = 31 * result + (outboundFilter != null ? outboundFilter.hashCode() : 0);
-            result = 31 * result + (properties != null ? properties.hashCode() : 0);
+            result = 31 * result +
+                    (inboundFilter != null ? inboundFilter.hashCode() : 0);
+            result = 31 * result +
+                    (outboundFilter != null ? outboundFilter.hashCode() : 0);
+            result = 31 * result +
+                    (properties != null ? properties.hashCode() : 0);
+            result = 31 * result + Boolean.valueOf(adminStateUp).hashCode();
             return result;
         }
     }

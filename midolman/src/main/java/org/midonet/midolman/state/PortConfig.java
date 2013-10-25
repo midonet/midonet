@@ -38,6 +38,7 @@ public abstract class PortConfig {
     // Default constructor for the Jackson deserialization.
     PortConfig() { super(); }
     public UUID device_id;
+    public boolean adminStateUp;
     public UUID inboundFilter;
     public UUID outboundFilter;
     public Set<UUID> portGroupIDs;
@@ -102,7 +103,8 @@ public abstract class PortConfig {
                that.interfaceName == null :
                interfaceName.equals(that.interfaceName)
             && peerId == null? that.peerId == null :
-               peerId.equals(that.peerId);
+               peerId.equals(that.peerId)
+            && adminStateUp == that.adminStateUp;
     }
 
     @Override
@@ -121,15 +123,16 @@ public abstract class PortConfig {
                  (interfaceName != null ? interfaceName.hashCode() : 0);
         result = 31 * result +
             (v1ApiType != null ? v1ApiType.hashCode() : 0);
+        result = 31 * result + Boolean.valueOf(adminStateUp).hashCode();
         return result;
     }
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder("");
-        sb.append(", hostId=").append(hostId);
-        sb.append(", interfaceName=").append(interfaceName);
-        sb.append(", peerId=").append(peerId);
-        return sb.toString();
+        return "PortConfig{ device_id=," + device_id +
+                ", hostId=" + hostId +
+                ", interfaceName=" + interfaceName +
+                ", peerId=" + peerId +
+                ", adminStateUp=" + adminStateUp + '}';
     }
 }

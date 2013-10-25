@@ -60,6 +60,16 @@ public class Router extends ResourceBase<Router, DtoRouter> {
     }
 
     /**
+     * Get administrative state
+     *
+     * @return administrative state of the router.
+     */
+
+    public boolean isAdminStateUp() {
+        return principalDto.isAdminStateUp();
+    }
+
+    /**
      * Gets ID of oubbound filter on this router.
      *
      * @return UUID of the outbound filter
@@ -85,6 +95,17 @@ public class Router extends ResourceBase<Router, DtoRouter> {
      */
     public Router name(String name) {
         principalDto.setName(name);
+        return this;
+    }
+
+    /**
+     * Set administrative state
+     *
+     * @param adminStateUp
+     *            administrative state of the router.
+     */
+    public Router adminStateUp(boolean adminStateUp) {
+        principalDto.setAdminStateUp(adminStateUp);
         return this;
     }
 
