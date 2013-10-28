@@ -36,6 +36,7 @@ public class RouterZkManager extends AbstractZkManager {
     public static class RouterConfig {
 
         public String name;
+        public boolean adminStateUp;
         public UUID inboundFilter;
         public UUID outboundFilter;
         public Map<String, String> properties = new HashMap<String, String>();
@@ -72,6 +73,8 @@ public class RouterZkManager extends AbstractZkManager {
                 return false;
             if (name != null ? !name.equals(that.name) : that.name != null)
                 return false;
+            if (adminStateUp != that.adminStateUp)
+                return false;
 
             return true;
         }
@@ -82,6 +85,7 @@ public class RouterZkManager extends AbstractZkManager {
             result = 31 * result
                     + (outboundFilter != null ? outboundFilter.hashCode() : 0);
             result = 31 * result + (name != null ? name.hashCode() : 0);
+            result = 31 * result + Boolean.valueOf(adminStateUp).hashCode();
             return result;
         }
     }
@@ -245,6 +249,14 @@ public class RouterZkManager extends AbstractZkManager {
                       new Object[] { id, name1, name2 });
             dataChanged = true;
         }
+
+        if (config.adminStateUp != oldConfig.adminStateUp) {
+            log.debug("The admin state of router {} changed from {} to {}",
+                    new Object[] { id, oldConfig.adminStateUp,
+                            config.adminStateUp });
+            dataChanged = true;
+        }
+
         if (dataChanged) {
             config.properties.clear();
             config.properties.putAll(oldConfig.properties);

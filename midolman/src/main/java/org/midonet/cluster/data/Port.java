@@ -38,6 +38,15 @@ public abstract class Port<PortData extends Port.Data,
         return getData().device_id;
     }
 
+    public Self setAdminStateUp(boolean adminStateUp) {
+        getData().adminStateUp = adminStateUp;
+        return self();
+    }
+
+    public boolean isAdminStateUp() {
+        return getData().adminStateUp;
+    }
+
     public Self setInboundFilter(UUID filterId) {
         getData().inboundFilter = filterId;
         return self();
@@ -154,6 +163,7 @@ public abstract class Port<PortData extends Port.Data,
         public UUID peer_uuid;
         public UUID hostId;
         public String interfaceName;
+        public boolean adminStateUp = true;
 
         @Override
         public boolean equals(Object o) {
@@ -182,6 +192,7 @@ public abstract class Port<PortData extends Port.Data,
             if (interfaceName != null ? !interfaceName.equals(
                     data.interfaceName) : data.interfaceName != null)
                 return false;
+            if (adminStateUp != data.adminStateUp) return false;
 
             return true;
         }
@@ -197,6 +208,7 @@ public abstract class Port<PortData extends Port.Data,
             result = 31 * result + (peer_uuid != null ? peer_uuid.hashCode() : 0);
             result = 31 * result + (hostId != null ? hostId.hashCode() : 0);
             result = 31 * result + (interfaceName != null ? interfaceName.hashCode() : 0);
+            result = 31 * result + Boolean.valueOf(adminStateUp).hashCode();
             return result;
         }
     }

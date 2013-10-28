@@ -49,6 +49,16 @@ public class RouterPort extends Port<RouterPort, DtoRouterPort> {
     }
 
     /**
+     * Get administrative state
+     *
+     * @return administrative state of the port.
+     */
+
+    public boolean isAdminStateUp() {
+        return principalDto.isAdminStateUp();
+    }
+
+    /**
      * Gets ID of inbound filter id for the router port.
      *
      * @return
@@ -127,6 +137,17 @@ public class RouterPort extends Port<RouterPort, DtoRouterPort> {
      */
     public UUID getPeerId() {
         return principalDto.getPeerId();
+    }
+
+    /**
+     * Set administrative state
+     *
+     * @param adminStateUp
+     *            administrative state of the port.
+     */
+    public RouterPort adminStateUp(boolean adminStateUp) {
+        principalDto.setAdminStateUp(adminStateUp);
+        return this;
     }
 
     /**

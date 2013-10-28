@@ -45,6 +45,12 @@ public abstract class Port extends UriResource {
     protected UUID id;
 
     /**
+     * Administrative state.
+     */
+
+    protected boolean adminStateUp;
+
+    /**
      * Device ID
      */
     protected UUID deviceId;
@@ -85,6 +91,7 @@ public abstract class Port extends UriResource {
      * Default constructor
      */
     public Port() {
+        adminStateUp = true;
     }
 
     /**
@@ -96,6 +103,7 @@ public abstract class Port extends UriResource {
      *            Device ID
      */
     public Port(UUID id, UUID deviceId) {
+        this();
         this.id = id;
         this.deviceId = deviceId;
     }
@@ -108,6 +116,7 @@ public abstract class Port extends UriResource {
     public Port(org.midonet.cluster.data.Port portData) {
         this(UUID.fromString(portData.getId().toString()),
                 portData.getDeviceId());
+        this.adminStateUp = portData.isAdminStateUp();
         this.inboundFilterId = portData.getInboundFilter();
         this.outboundFilterId = portData.getOutboundFilter();
         this.hostId = portData.getHostId();
@@ -161,6 +170,26 @@ public abstract class Port extends UriResource {
      */
     public void setDeviceId(UUID deviceId) {
         this.deviceId = deviceId;
+    }
+
+    /**
+     * Get administrative state
+     *
+     * @return administrative state of the port.
+     */
+
+    public boolean isAdminStateUp() {
+        return adminStateUp;
+    }
+
+    /**
+     * Set administrative state
+     *
+     * @param adminStateUp
+     *            administrative state of the port.
+     */
+    public void setAdminStateUp(boolean adminStateUp) {
+        this.adminStateUp = adminStateUp;
     }
 
     public UUID getInboundFilterId() {
@@ -230,6 +259,7 @@ public abstract class Port extends UriResource {
      */
     public void setConfig(org.midonet.cluster.data.Port data) {
         data.setId(this.id);
+        data.setAdminStateUp(this.adminStateUp);
         data.setDeviceId(this.deviceId);
         data.setInboundFilter(this.inboundFilterId);
         data.setOutboundFilter(this.outboundFilterId);
@@ -379,8 +409,10 @@ public abstract class Port extends UriResource {
 
     @Override
     public String toString() {
-        return "id=" + id + ", deviceId=" + deviceId + ", inboundFilterId="
-                + inboundFilterId + ", outboundFilterId=" + outboundFilterId;
+        return "id=" + id + ", deviceId=" + deviceId +
+               ", adminStateUp=" + adminStateUp +
+               ", inboundFilterId=" + inboundFilterId +
+               ", outboundFilterId=" + outboundFilterId;
     }
 
     /**
