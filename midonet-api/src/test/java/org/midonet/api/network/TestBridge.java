@@ -36,7 +36,6 @@ import org.midonet.client.dto.DtoBridge;
 import org.midonet.client.dto.DtoBridgePort;
 import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoIP4MacPair;
-import org.midonet.client.dto.DtoBridgePort;
 import org.midonet.client.dto.DtoMacPort;
 import org.midonet.client.dto.DtoPort;
 import org.midonet.client.dto.DtoRuleChain;
@@ -44,6 +43,7 @@ import org.midonet.client.dto.DtoTenant;
 
 import javax.ws.rs.core.UriBuilder;
 
+import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertNotNull;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
@@ -397,6 +397,7 @@ public class TestBridge {
 
             // Update the bridge
             resBridge.setName("bridge1-modified");
+            resBridge.setAdminStateUp(false);
             resBridge.setInboundFilterId(chain2.getId());
             resBridge.setOutboundFilterId(chain1.getId());
             DtoBridge updatedBridge = dtoResource.putAndVerifyNoContent(
@@ -404,6 +405,7 @@ public class TestBridge {
                     DtoBridge.class);
             assertNotNull(updatedBridge.getId());
             assertEquals(updatedBridge.getName(), "bridge1-modified");
+            assertFalse(updatedBridge.isAdminStateUp());
             assertEquals(resBridge.getTenantId(), updatedBridge.getTenantId());
             assertEquals(resBridge.getInboundFilterId(),
                     updatedBridge.getInboundFilterId());

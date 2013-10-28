@@ -48,6 +48,15 @@ public class Bridge extends Entity.Base<UUID, Bridge.Data, Bridge>
         return this;
     }
 
+    public boolean isAdminStateUp() {
+        return getData().adminStateUp;
+    }
+
+    public Bridge setAdminStateUp(boolean adminStateUp) {
+        getData().adminStateUp = adminStateUp;
+        return this;
+    }
+
     public UUID getInboundFilter() {
         return getData().inboundFilter;
     }
@@ -95,6 +104,7 @@ public class Bridge extends Entity.Base<UUID, Bridge.Data, Bridge>
 
     public static class Data {
         public String name;
+        public boolean adminStateUp = true;
         public int tunnelKey;
         public UUID inboundFilter;
         public UUID outboundFilter;
@@ -119,6 +129,7 @@ public class Bridge extends Entity.Base<UUID, Bridge.Data, Bridge>
                 return false;
             if (name != null ? !name.equals(that.name) : that.name != null)
                 return false;
+            if (adminStateUp != that.adminStateUp) return false;
 
             return true;
         }
@@ -130,16 +141,18 @@ public class Bridge extends Entity.Base<UUID, Bridge.Data, Bridge>
                 + (inboundFilter != null ? inboundFilter.hashCode() : 0);
             result = 31 * result
                 + (outboundFilter != null ? outboundFilter.hashCode() : 0);
-            result = 31 * result
-                + (name != null ? name.hashCode() : 0);
+            result = 31 * result + (name != null ? name.hashCode() : 0);
+            result = 31 * result + Boolean.valueOf(adminStateUp).hashCode();
             return result;
         }
 
         @Override
         public String toString() {
-            return "Bridge.Data{" + "tunnelKey=" + tunnelKey + ", inboundFilter="
-                + inboundFilter + ", outboundFilter=" + outboundFilter
-                + ", name=" + name + '}';
+            return "Bridge.Data{" + "tunnelKey=" + tunnelKey +
+                   ", inboundFilter=" + inboundFilter +
+                   ", outboundFilter=" + outboundFilter +
+                   ", name=" + name +
+                    ", adminStateUp=" + adminStateUp + '}';
         }
     }
 }

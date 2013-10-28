@@ -23,6 +23,7 @@ public abstract class DtoPort {
 
     private UUID id;
     private UUID deviceId;
+    private boolean adminStateUp = true;
     private UUID inboundFilterId;
     private UUID outboundFilterId;
     private URI inboundFilter;
@@ -49,6 +50,14 @@ public abstract class DtoPort {
     public UUID getDeviceId() {
 
         return deviceId;
+    }
+
+    public boolean isAdminStateUp() {
+        return adminStateUp;
+    }
+
+    public void setAdminStateUp(boolean adminStateUp) {
+        this.adminStateUp = adminStateUp;
     }
 
     public void setDeviceId(UUID deviceId) {
@@ -269,6 +278,10 @@ public abstract class DtoPort {
         if (hostInterfacePort != null ?
                 !hostInterfacePort.equals(that.hostInterfacePort) :
                 that.hostInterfacePort != null) {
+            return false;
+        }
+
+        if (adminStateUp != that.adminStateUp) {
             return false;
         }
 

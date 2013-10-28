@@ -14,6 +14,7 @@ import java.util.UUID;
 public class DtoRouter {
     private UUID id;
     private String name;
+    private boolean adminStateUp = true;
     private String tenantId;
     private UUID inboundFilterId;
     private UUID outboundFilterId;
@@ -38,6 +39,14 @@ public class DtoRouter {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public boolean isAdminStateUp() {
+        return adminStateUp;
+    }
+
+    public void setAdminStateUp(boolean adminStateUp) {
+        this.adminStateUp = adminStateUp;
     }
 
     public String getTenantId() {
@@ -169,6 +178,10 @@ public class DtoRouter {
         }
 
         if (!Objects.equal(this.routes, otherRouter.getRoutes())) {
+            return false;
+        }
+
+        if (adminStateUp != otherRouter.adminStateUp) {
             return false;
         }
 

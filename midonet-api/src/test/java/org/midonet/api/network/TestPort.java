@@ -48,9 +48,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 import static org.midonet.api.VendorMediaType.APPLICATION_HOST_INTERFACE_PORT_JSON;
 import static org.midonet.api.VendorMediaType.APPLICATION_PORTGROUP_COLLECTION_JSON;
 import static org.midonet.api.VendorMediaType.APPLICATION_PORTGROUP_PORT_COLLECTION_JSON;
@@ -71,6 +69,7 @@ public class TestPort {
         UUID outboundFilterId) {
         DtoRouterPort port = new DtoRouterPort();
         port.setId(id);
+        port.setAdminStateUp(true);
         port.setDeviceId(deviceId);
         port.setNetworkAddress(networkAddr);
         port.setNetworkLength(networkLen);
@@ -356,8 +355,15 @@ public class TestPort {
             short vlanId = 666;
             b1Lp1.setDeviceId(b.getId());
             b1Lp1.setVlanId(vlanId);
+            b1Lp1.setAdminStateUp(false);
             b1Lp1 = dtoResource.postAndVerifyCreated(b.getPorts(),
                 APPLICATION_PORT_V2_JSON, b1Lp1, DtoBridgePort.class);
+
+            //Change admin state up
+            b1Lp1.setAdminStateUp(true);
+            b1Lp1 = dtoResource.putAndVerifyNoContent(b1Lp1.getUri(),
+                    APPLICATION_PORT_V2_JSON, b1Lp1, DtoBridgePort.class);
+            assertTrue(b1Lp1.isAdminStateUp());
 
             //Create exterior bridge port
             DtoBridgePort b1Mp1 = new DtoBridgePort();
@@ -499,8 +505,15 @@ public class TestPort {
                 "10.0.0.0",
                 24,
                 "10.0.0.1");
+            r1Lp1.setAdminStateUp(false);
             r1Lp1 = dtoResource.postAndVerifyCreated(r.getPorts(),
                 APPLICATION_PORT_V2_JSON, r1Lp1, DtoRouterPort.class);
+
+            //Change admin state up
+            r1Lp1.setAdminStateUp(true);
+            r1Lp1 = dtoResource.putAndVerifyNoContent(r1Lp1.getUri(),
+                    APPLICATION_PORT_V2_JSON, r1Lp1, DtoRouterPort.class);
+            assertTrue(r1Lp1.isAdminStateUp());
 
             // Create a Exterior router port
             UUID vifId = UUID.randomUUID();

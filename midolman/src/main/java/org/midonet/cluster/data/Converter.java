@@ -68,6 +68,7 @@ public class Converter {
         BridgeConfig bridgeConfig = new BridgeConfig();
 
         bridgeConfig.name = bridge.getName();
+        bridgeConfig.adminStateUp = bridge.isAdminStateUp();
         bridgeConfig.inboundFilter = bridge.getInboundFilter();
         bridgeConfig.outboundFilter = bridge.getOutboundFilter();
         bridgeConfig.tunnelKey = bridge.getTunnelKey();
@@ -83,6 +84,7 @@ public class Converter {
 
         return new Bridge()
                 .setName(bridge.name)
+                .setAdminStateUp(bridge.adminStateUp)
                 .setTunnelKey(bridge.tunnelKey)
                 .setInboundFilter(bridge.inboundFilter)
                 .setOutboundFilter(bridge.outboundFilter)
@@ -135,7 +137,6 @@ public class Converter {
             BridgePortConfig typedPortConfig = new BridgePortConfig();
             typedPortConfig.setHostId(typedPort.getHostId());
             typedPortConfig.setInterfaceName(typedPort.getInterfaceName());
-            typedPortConfig.setPeerId(typedPort.getPeerId());
             typedPortConfig.setVlanId(typedPort.getVlanId());
 
             if(typedPort.getProperty(Port.Property.v1PortType) != null) {
@@ -156,7 +157,6 @@ public class Converter {
             routerPortConfig.setHostId(typedPort.getHostId());
             routerPortConfig.setInterfaceName(typedPort.getInterfaceName());
             routerPortConfig.setBgps(typedPort.getBgps());
-            routerPortConfig.setPeerId(typedPort.getPeerId());
             routerPortConfig.setHwAddr(typedPort.getHwAddr());
             routerPortConfig.setPortAddr(typedPort.getPortAddr());
             routerPortConfig.setNwAddr(typedPort.getNwAddr());
@@ -179,6 +179,8 @@ public class Converter {
             return null;
 
         portConfig.device_id = port.getDeviceId();
+        portConfig.adminStateUp = port.isAdminStateUp();
+        portConfig.peerId = port.getPeerId();
         portConfig.inboundFilter = port.getInboundFilter();
         portConfig.outboundFilter = port.getOutboundFilter();
         portConfig.tunnelKey = port.getTunnelKey();
@@ -196,7 +198,6 @@ public class Converter {
             BridgePortConfig bridgePortConfig =
                     (BridgePortConfig) portConfig;
             BridgePort bridgePort = new BridgePort();
-            bridgePort.setPeerId(bridgePortConfig.getPeerId());
             bridgePort.setVlanId(bridgePortConfig.getVlanId());
             bridgePort.setHostId(bridgePortConfig.getHostId());
             bridgePort.setInterfaceName(bridgePortConfig.getInterfaceName());
@@ -217,7 +218,6 @@ public class Converter {
                     (RouterPortConfig) portConfig;
 
             port = new RouterPort()
-                    .setPeerId(routerPortConfig.getPeerId())
                     .setNwAddr(routerPortConfig.getNwAddr())
                     .setNwLength(routerPortConfig.nwLength)
                     .setPortAddr(routerPortConfig.getPortAddr())
@@ -240,6 +240,8 @@ public class Converter {
 
         return port
                 .setDeviceId(portConfig.device_id)
+                .setAdminStateUp(portConfig.adminStateUp)
+                .setPeerId(portConfig.peerId)
                 .setTunnelKey(portConfig.tunnelKey)
                 .setInboundFilter(portConfig.inboundFilter)
                 .setOutboundFilter(portConfig.outboundFilter)
@@ -251,6 +253,7 @@ public class Converter {
         RouterConfig routerConfig = new RouterConfig();
 
         routerConfig.name = router.getName();
+        routerConfig.adminStateUp = router.isAdminStateUp();
         routerConfig.inboundFilter = router.getInboundFilter();
         routerConfig.outboundFilter = router.getOutboundFilter();
         routerConfig.properties = new HashMap<String, String>(
@@ -265,6 +268,7 @@ public class Converter {
 
         return new Router()
                 .setName(router.name)
+                .setAdminStateUp(router.adminStateUp)
                 .setInboundFilter(router.inboundFilter)
                 .setOutboundFilter(router.outboundFilter)
                 .setProperties(router.properties);
