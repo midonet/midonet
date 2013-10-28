@@ -26,7 +26,6 @@ import org.midonet.midolman.DeduplicationActor._
 import org.midonet.midolman.FlowController.AddWildcardFlow
 import org.midonet.midolman.FlowController.FlowAdded
 import org.midonet.midolman.datapath.ErrorHandlingCallback
-import org.midonet.midolman.datapath.FlowActionOutputToVrnPortSet
 import org.midonet.midolman.rules.Condition
 import org.midonet.midolman.simulation.{DhcpImpl, Coordinator}
 import org.midonet.midolman.topology.FlowTagger
@@ -44,6 +43,7 @@ import org.midonet.odp._
 import org.midonet.odp.flows.{FlowKey, FlowKeyUDP, FlowAction}
 import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.packets._
+import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPortSet
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 import org.midonet.util.functors.Callback0
 import org.midonet.util.throttling.ThrottlingGuard
@@ -389,7 +389,7 @@ class PacketWorkflow(
 
         portSetFuture.mapTo[PortSet] flatMap { portSet =>
             if (portSet != null) {
-                val action = new FlowActionOutputToVrnPortSet(portSet.id)
+                val action = FlowActionOutputToVrnPortSet(portSet.id)
                 log.debug("tun => portSet, action: {}, portSet: {}",
                     action, portSet)
                 // egress port filter simulation

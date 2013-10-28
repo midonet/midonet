@@ -5,29 +5,35 @@ package org.midonet.midolman
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.collection.{Set => ROSet}
+import java.{util => ju}
+import java.util.UUID
+
 import akka.actor.{ActorContext, ActorSystem}
 import akka.dispatch.{ExecutionContext, Promise, Future}
 import akka.event.LoggingAdapter
 import akka.pattern.ask
 import akka.util.Timeout
-import java.{util => ju}
-import java.util.UUID
 
-import org.midonet.midolman.datapath.{FlowActionOutputToVrnPort,
-        FlowActionOutputToVrnPortSet}
+import org.midonet.cluster.client.Port
 import org.midonet.midolman.rules.{ChainPacketContext, RuleResult}
 import org.midonet.midolman.simulation.{Bridge => RCUBridge, Chain}
+import org.midonet.midolman.topology.FlowTagger
+import org.midonet.midolman.topology.VirtualToPhysicalMapper
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.PortSetRequest
-import topology.VirtualTopologyActor.{BridgeRequest, ChainRequest, PortRequest}
+import org.midonet.midolman.topology.VirtualTopologyActor
+import org.midonet.midolman.topology.VirtualTopologyActor.BridgeRequest
+import org.midonet.midolman.topology.VirtualTopologyActor.ChainRequest
+import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 import org.midonet.midolman.topology.rcu.PortSet
-import org.midonet.midolman.topology.{
-        FlowTagger, VirtualTopologyActor, VirtualToPhysicalMapper}
-import org.midonet.odp.flows.{
-        FlowActionUserspace, FlowKeys, FlowActions, FlowAction}
+import org.midonet.odp.flows.FlowAction
+import org.midonet.odp.flows.FlowActionUserspace
+import org.midonet.odp.flows.FlowActions
+import org.midonet.odp.flows.FlowKeys
 import org.midonet.odp.protos.OvsDatapathConnection
+import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPort
+import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPortSet
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 import org.midonet.util.functors.Callback0
-import org.midonet.cluster.client.Port
 
 object FlowTranslator {
 
@@ -254,8 +260,8 @@ trait FlowTranslator {
             }
 
         acts.foreach( _ match {
-            case p: FlowActionOutputToVrnPort => handleVrnPort(p.portId)
-            case p: FlowActionOutputToVrnPortSet => handleVrnPort(p.portSetId)
+            case FlowActionOutputToVrnPort(id) => handleVrnPort(id)
+            case FlowActionOutputToVrnPortSet(id) => handleVrnPort(id)
             case a => newActs += a
         })
 
