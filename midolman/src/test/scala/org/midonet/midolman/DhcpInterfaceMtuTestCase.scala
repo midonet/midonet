@@ -143,16 +143,16 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase with
         tzRequest.zoneId should be === greZone.getId
 
         var opt121Obj = (new Opt121()
-                        .setGateway(routerIp2.toIntIPv4)
-                        .setRtDstSubnet(routerIp1.toNetworkAddress.toIntIPv4))
+                        .setGateway(routerIp2)
+                        .setRtDstSubnet(routerIp1))
         var opt121Routes: List[Opt121] = List(opt121Obj)
         var dnsSrvAddrs : List[IPv4Addr] = List(
           IPv4Addr("192.168.77.118"),
           IPv4Addr("192.168.77.119"),
           IPv4Addr("192.168.77.120"))
         var dhcpSubnet = (new Subnet()
-                      .setSubnetAddr(routerIp2.toNetworkAddress.toIntIPv4)
-                      .setDefaultGateway(routerIp2.toIntIPv4)
+                      .setSubnetAddr(routerIp2)
+                      .setDefaultGateway(routerIp2)
                       .setDnsServerAddrs(dnsSrvAddrs.map(_.toIntIPv4))
                       .setOpt121Routes(opt121Routes))
         addDhcpSubnet(bridge, dhcpSubnet)
@@ -162,7 +162,7 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase with
 
         val dhcpHost = (new org.midonet.cluster.data.dhcp.Host()
                        .setMAC(vmMac)
-                       .setIp(vmIP.toIntIPv4))
+                       .setIp(new IntIPv4(vmIP)))
         addDhcpHost(bridge, dhcpSubnet, dhcpHost)
 
         flowProbe().expectMsgType[DatapathController.DatapathReady].datapath should not be (null)
