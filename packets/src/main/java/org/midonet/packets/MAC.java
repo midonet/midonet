@@ -8,7 +8,7 @@ package org.midonet.packets;
 import java.util.Arrays;
 import java.util.Random;
 
-import org.midonet.util.collections.WeakObjectPool;
+import org.midonet.util.collection.WeakObjectPool;
 
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonValue;

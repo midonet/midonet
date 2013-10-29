@@ -12,9 +12,8 @@ import org.apache.commons.lang.builder.HashCodeBuilder
 
 import org.midonet.odp.FlowMatch
 import org.midonet.odp.flows.FlowAction
-import org.midonet.util.collections.WeakObjectPool
+import org.midonet.util.collection.{WeakObjectPool, ObjectPool, PooledObject}
 import org.midonet.util.functors.Callback0
-import org.midonet.util.collection.{ObjectPool, PooledObject}
 
 object WildcardFlow {
     def apply(wcmatch: WildcardMatch,

@@ -6,7 +6,7 @@ package org.midonet.odp.flows;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv6Addr;
 
-import org.midonet.util.collections.WeakObjectPool;
+import org.midonet.util.collection.WeakObjectPool;
 
 /**
  * Builder class to allow easier building of FlowKey instances.

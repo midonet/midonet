@@ -1,7 +1,7 @@
 /*
 * Copyright 2012 Midokura Europe SARL
 */
-package org.midonet.util.collections;
+package org.midonet.util.collection;
 
 import java.util.Collections;
 import java.util.HashMap;
