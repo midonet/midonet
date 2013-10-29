@@ -75,11 +75,11 @@ public class ARP extends BasePacket {
         sb.append(", spa=").append(
                 null == senderProtocolAddress
                         || senderProtocolAddress.length != 4 ? "null"
-                        : (new IntIPv4(senderProtocolAddress)).toString());
+                        : IPv4Addr.apply(senderProtocolAddress).toString());
         sb.append(", tpa=").append(
                 null == targetProtocolAddress
                         || targetProtocolAddress.length != 4 ? "null"
-                        : (new IntIPv4(targetProtocolAddress)).toString());
+                        : IPv4Addr.apply(targetProtocolAddress).toString());
         sb.append("]");
         return sb.toString();
     }
