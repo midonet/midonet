@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Test;
-import org.testng.Assert;
+import org.junit.Assert;
 
 public class TestLLDP {
 
