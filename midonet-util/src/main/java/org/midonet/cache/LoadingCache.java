@@ -8,8 +8,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.midonet.util.eventloop.Reactor;
-import org.midonet.util.collections.TypedHashMap;
-import org.midonet.util.collections.TypedMap;
+import org.midonet.util.collection.TypedHashMap;
+import org.midonet.util.collection.TypedMap;
 
 /**
  * An abstract implementation of {@link ReadCache} that delegates to its

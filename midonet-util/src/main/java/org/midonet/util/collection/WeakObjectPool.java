@@ -1,7 +1,7 @@
 /*
 * Copyright 2013 Midokura Europe SARL
 */
-package org.midonet.util.collections;
+package org.midonet.util.collection;
 
 import java.lang.ref.WeakReference;
 

@@ -6,12 +6,11 @@ package org.midonet.midolman.topology
 
 import java.util.UUID
 import java.lang.{Short => JShort}
+
 import org.midonet.packets.{IPAddr, MAC}
-import org.midonet.util.collections.WeakObjectPool
+import org.midonet.util.collection.WeakObjectPool
 
-
-object
-FlowTagger {
+object FlowTagger {
     val INSTANCE_POOL : WeakObjectPool[String] = new WeakObjectPool[String]()
 
     def invalidateFlowsByDevice(device: UUID): AnyRef = {

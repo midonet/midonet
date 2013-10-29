@@ -17,8 +17,8 @@ import org.midonet.midolman.guice.zookeeper.ZKConnectionProvider;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.DirectoryCallback;
 import org.midonet.midolman.state.ZkConnectionAwareWatcher;
-import org.midonet.util.collections.TypedHashMap;
-import org.midonet.util.collections.TypedMap;
+import org.midonet.util.collection.TypedHashMap;
+import org.midonet.util.collection.TypedMap;
 import org.midonet.util.eventloop.Reactor;
 
 abstract class ClusterManager<T> {
@@ -57,7 +57,7 @@ abstract class ClusterManager<T> {
     protected T getBuilder(UUID id){
         return builderMap.get(id);
     }
-    
+
     abstract protected void getConfig(UUID id);
 
     /* The following classes provide base implementations for callbacks/watchers
