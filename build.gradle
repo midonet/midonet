@@ -22,6 +22,7 @@ project.ext {
                "com.typesafe.akka:akka-actor:${versions.akka}"],
         akkatest: "com.typesafe.akka:akka-testkit:${versions.akka}",
 
+        jboss: "org.jboss.netty:netty:3.2.2.Final",
         guava: "com.google.guava:guava:r08",
         slf4j: "org.slf4j:slf4j-api:1.6.4",
         findbugs: "com.google.code.findbugs:jsr305:2.0.0",
@@ -164,13 +165,6 @@ subprojects {
     repositories {
         mavenCentral()
         mavenLocal()
-        maven {
-            url "http://mido-iida-1.midokura.jp:8081/artifactory/repo"
-            credentials {
-                username midoUsername
-                password midoPassword
-            }
-        }
         maven { url "http://jsch.sf.net/maven2/" }
         maven { url "http://repo.typesafe.com/typesafe/releases/" }
         maven { url "https://oss.sonatype.org/content/groups/public/" }
@@ -234,9 +228,4 @@ def reorderIdeaJdkBootstrapDependency(iml) {
 
 def checkUserConfig() {
     def fail = false
-    if (!hasProperty('midoUsername') || !hasProperty('midoPassword')) {
-        throw new GradleException(
-            "Maven artifactory credentials are not set up. Please set the 'midoUsername'\n"+
-            "and 'midoPassword' properties in your ~/.gradle/gradle.properties file.")
-    }
 }
