@@ -195,9 +195,9 @@ public class DHCPv6 extends BasePacket {
         byte[] tmpBuf = new byte[3];
         this.msgType = bb.get();
         bb.get(tmpBuf);
-        this.transactionId = (int)(((tmpBuf[0] & 0xFF) << 16)
-                                 | ((tmpBuf[1] & 0xFF) << 8)
-                                 | (tmpBuf[2] & 0xFF));
+        this.transactionId = ((tmpBuf[0] & 0xFF) << 16)
+                           | ((tmpBuf[1] & 0xFF) << 8)
+                           | (tmpBuf[2] & 0xFF);
 
         // read options
         while (bb.hasRemaining()) {

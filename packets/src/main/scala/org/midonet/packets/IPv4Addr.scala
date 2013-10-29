@@ -55,9 +55,15 @@ class IPv4Addr(val addr: Int) extends IPAddr with Ordered[IPv4Addr] {
 
 object IPv4Addr {
 
+    val r = new scala.util.Random
+
+    def random = IPv4Addr(r.nextInt)
+
     def apply(s: String): IPv4Addr = fromString(s)
 
     def apply(i: Int): IPv4Addr = fromInt(i)
+
+    def apply(bytes: Array[Byte]): IPv4Addr = fromBytes(bytes)
 
     @JsonCreator
     def fromString(s: String): IPv4Addr =
@@ -69,15 +75,7 @@ object IPv4Addr {
     def fromIntIPv4(ii: IntIPv4): IPv4Addr =
         new IPv4Addr(ii.addressAsInt)
 
-    def fromBytes(addr: Array[Byte]) = {
-        if (addr.length != 4)
-            throw new IllegalArgumentException
-
-        new IPv4Addr(((addr(0) << 24) & 0xFF000000) |
-                     ((addr(1) << 16) & 0x00FF0000) |
-                     ((addr(2) <<  8) & 0x0000FF00) |
-                     ((addr(3) <<  0) & 0x000000FF))
-    }
+    def fromBytes(addr: Array[Byte]) = IPv4Addr(bytesToInt(addr))
 
     def fromIPv4(ipv4: IPv4Addr) = ipv4
 
@@ -86,6 +84,16 @@ object IPv4Addr {
                               (addr >> 16) & 0xff,
                               (addr >> 8) & 0xff,
                               (addr >> 0) & 0xff)
+
+    def bytesToInt(addr: Array[Byte]) = {
+        if (addr.length != 4)
+            throw new IllegalArgumentException
+
+        ((addr(0) << 24) & 0xFF000000) |
+            ((addr(1) << 16) & 0x00FF0000) |
+            ((addr(2) <<  8) & 0x0000FF00) |
+            ((addr(3) <<  0) & 0x000000FF)
+    }
 
 }
 

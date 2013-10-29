@@ -2,14 +2,21 @@
 
 package org.midonet.packets
 
+import java.util.Random
+
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.Suite
 import org.scalatest.matchers.ShouldMatchers
-import java.util.Random
 
 @RunWith(classOf[JUnitRunner])
 class IPv4AddrTest extends Suite with ShouldMatchers {
+
+    val ippool = List.tabulate(10000) { _ => IPv4Addr.random }
+
+    def testGetSetByte() {
+        for (ip <- ippool) { ip should be (IPv4Addr(ip.toBytes)) }
+    }
 
     // IPs that have a negative int representation
     def testNextWithNegativeIp() {

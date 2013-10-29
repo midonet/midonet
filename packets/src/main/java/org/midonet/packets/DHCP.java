@@ -308,7 +308,7 @@ public class DHCP extends BasePacket {
                     option.getCode() == DHCPOption.Code.END.value()) {
                 optionsLength += 1;
             } else {
-                optionsLength += 2 + (int)(0xff & option.getLength());
+                optionsLength += 2 + (0xff & option.getLength());
             }
         }
         int optionsPadLength = 0;
