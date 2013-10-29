@@ -3,10 +3,11 @@
  */
 package org.midonet.cluster.data.dhcp;
 
+import java.util.List;
+
 import org.midonet.cluster.data.Entity;
 import org.midonet.packets.IntIPv4;
-
-import java.util.List;
+import org.midonet.packets.IPv4Subnet;
 
 /**
  * DHCP subnet
@@ -30,8 +31,8 @@ public class Subnet extends Entity.Base<String, Subnet.Data, Subnet> {
         return getData().subnetAddr;
     }
 
-    public Subnet setSubnetAddr(IntIPv4 subnetAddr) {
-        getData().subnetAddr = subnetAddr;
+    public Subnet setSubnetAddr(IPv4Subnet subnetAddr) {
+        getData().subnetAddr = IntIPv4.fromIPv4Subnet(subnetAddr);
         return self();
     }
 
@@ -57,8 +58,8 @@ public class Subnet extends Entity.Base<String, Subnet.Data, Subnet> {
         return getData().defaultGateway;
     }
 
-    public Subnet setDefaultGateway(IntIPv4 defaultGateway) {
-        getData().defaultGateway = defaultGateway;
+    public Subnet setDefaultGateway(IPv4Subnet defaultGateway) {
+        getData().defaultGateway = IntIPv4.fromIPv4Subnet(defaultGateway);
         return self();
     }
 

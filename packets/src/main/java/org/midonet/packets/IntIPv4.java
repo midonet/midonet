@@ -50,6 +50,10 @@ public class IntIPv4 implements Cloneable {
         this.maskLength = maskLength;
     }
 
+    public IntIPv4(IPv4Subnet subnetAddr) {
+        this(subnetAddr.getIntAddress(), subnetAddr.getPrefixLen());
+    }
+
     public IntIPv4(byte[] addr) {
         this(IPv4.toIPv4Address(addr), 32);
     }
@@ -58,6 +62,18 @@ public class IntIPv4 implements Cloneable {
 
     public int getAddress() {
         return address;
+    }
+
+    public IPv4Subnet toIPv4Subnet() {
+        return new IPv4Subnet(address, maskLength);
+    }
+
+    public static IPv4Subnet toIPv4Subnet(IntIPv4 addr) {
+        return (addr == null) ? null : addr.toIPv4Subnet();
+    }
+
+    public static IntIPv4 fromIPv4Subnet(IPv4Subnet addr) {
+        return (addr == null) ? null : new IntIPv4(addr);
     }
 
     public IntIPv4 toNetworkAddress() {

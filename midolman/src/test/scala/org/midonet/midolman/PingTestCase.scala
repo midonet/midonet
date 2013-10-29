@@ -111,13 +111,13 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
         // DHCP related setup
         // set up Option 121
         var opt121Obj = (new Opt121()
-                       .setGateway(routerIp2.toIntIPv4)
-                       .setRtDstSubnet(routerIp1.toIntIPv4.toNetworkAddress))
+                       .setGateway(routerIp2)
+                       .setRtDstSubnet(routerIp1))
         var opt121Routes: List[Opt121] = List(opt121Obj)
         // set DHCP subnet
         var dhcpSubnet = (new Subnet()
-                       .setSubnetAddr(routerIp2.toIntIPv4.toNetworkAddress)
-                       .setDefaultGateway(routerIp2.toIntIPv4)
+                       .setSubnetAddr(routerIp2)
+                       .setDefaultGateway(routerIp2)
                        .setOpt121Routes(opt121Routes))
         addDhcpSubnet(bridge, dhcpSubnet)
         // set DHCP host
@@ -129,7 +129,7 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
         }
         var dhcpHost = (new org.midonet.cluster.data.dhcp.Host()
                            .setMAC(vm2Mac)
-                           .setIp(vm2IP.toIntIPv4))
+                           .setIp(new IntIPv4(vm2IP)))
         addDhcpHost(bridge, dhcpSubnet, dhcpHost)
 
         flowProbe().expectMsgType[DatapathController.DatapathReady].datapath should not be (null)
