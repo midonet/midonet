@@ -18,7 +18,6 @@ import org.midonet.midolman.DatapathController
 import org.midonet.midolman.FlowController
 import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.datapath.FlowActionOutputToVrnPort
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.state.{ZkConnectionAwareWatcher, StateAccessException}
 import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
@@ -30,6 +29,7 @@ import org.midonet.odp.ports.NetDevPort
 import org.midonet.packets._
 import org.midonet.quagga.ZebraProtocol.RIBType
 import org.midonet.quagga._
+import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPort
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 import org.midonet.util.eventloop.SelectLoop
 import org.midonet.util.process.ProcessHelper
@@ -875,7 +875,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
         var wildcardFlow = WildcardFlow(
             wcmatch = wildcardMatch,
-            actions = List(new FlowActionOutputToVrnPort(bgpPort.id)))
+            actions = List(FlowActionOutputToVrnPort(bgpPort.id)))
 
 
         DatapathController.getRef.tell(AddVirtualWildcardFlow(
@@ -892,7 +892,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
         wildcardFlow = WildcardFlow(
             wcmatch = wildcardMatch,
-            actions = List(new FlowActionOutputToVrnPort(bgpPort.id)))
+            actions = List(FlowActionOutputToVrnPort(bgpPort.id)))
 
         DatapathController.getRef.tell(AddVirtualWildcardFlow(
             wildcardFlow, Set.empty, bgpTagSet))
@@ -936,7 +936,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
         wildcardFlow = WildcardFlow(
             wcmatch = wildcardMatch,
-            actions = List(new FlowActionOutputToVrnPort(bgpPort.id)))
+            actions = List(FlowActionOutputToVrnPort(bgpPort.id)))
 
         DatapathController.getRef.tell(AddVirtualWildcardFlow(
             wildcardFlow, Set.empty, bgpTagSet))
@@ -972,7 +972,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
         wildcardFlow = WildcardFlow(
             wcmatch = wildcardMatch,
-            actions = List(new FlowActionOutputToVrnPort(bgpPort.id)))
+            actions = List(FlowActionOutputToVrnPort(bgpPort.id)))
 
         DatapathController.getRef.tell(AddVirtualWildcardFlow(
             wildcardFlow, Set.empty, bgpTagSet))

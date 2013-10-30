@@ -24,7 +24,6 @@ import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.FlowController.WildcardFlowAdded
 import org.midonet.midolman.FlowController.WildcardFlowRemoved
 import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
-import org.midonet.midolman.datapath.FlowActionOutputToVrnPortSet
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.GreZoneChanged
@@ -35,6 +34,7 @@ import org.midonet.odp.Datapath
 import org.midonet.odp.flows.{FlowActions, FlowAction}
 import org.midonet.packets.IPv4Addr
 import org.midonet.packets.MAC
+import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPortSet
 import org.midonet.sdn.flows.{WildcardMatch, WildcardFlow}
 
 @Category(Array(classOf[SimulationTests]))

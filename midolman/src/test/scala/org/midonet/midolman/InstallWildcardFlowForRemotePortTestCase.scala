@@ -13,11 +13,11 @@ import org.scalatest.junit.JUnitRunner
 import org.midonet.cluster.data.zones.GreTunnelZoneHost
 import org.midonet.midolman.FlowController.{AddWildcardFlow, WildcardFlowAdded}
 import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
-import org.midonet.midolman.datapath.FlowActionOutputToVrnPort
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.odp.flows.FlowActions
 import org.midonet.odp.flows.{FlowActionOutput, FlowActionSetKey, FlowKeyTunnel}
 import org.midonet.packets.IPv4Addr
+import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPort
 import org.midonet.sdn.flows.{WildcardMatch, WildcardFlow}
 
 @Category(Array(classOf[SimulationTests]))

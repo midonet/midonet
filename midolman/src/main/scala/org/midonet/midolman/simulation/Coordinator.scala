@@ -17,8 +17,6 @@ import org.midonet.cluster.client._
 import org.midonet.midolman.DeduplicationActor
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.PacketWorkflow._
-import org.midonet.midolman.datapath.FlowActionOutputToVrnPort
-import org.midonet.midolman.datapath.FlowActionOutputToVrnPortSet
 import org.midonet.midolman.logging.LoggerFactory
 import org.midonet.midolman.rules.Condition
 import org.midonet.midolman.rules.RuleResult
@@ -26,6 +24,8 @@ import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.midolman.topology._
 import org.midonet.odp.flows._
 import org.midonet.packets.{Ethernet, ICMP, IPv4, IPv4Addr, IPv6Addr, TCP, UDP}
+import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPort
+import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPortSet
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 
 
@@ -654,10 +654,10 @@ class Coordinator(var origMatch: WildcardMatch,
         isPortSet match {
             case false =>
                 log.debug("Emitting packet from vport {}", outputID)
-                actions.append(new FlowActionOutputToVrnPort(outputID))
+                actions.append(FlowActionOutputToVrnPort(outputID))
             case true =>
                 log.debug("Emitting packet from port set {}", outputID)
-                actions.append(new FlowActionOutputToVrnPortSet(outputID))
+                actions.append(FlowActionOutputToVrnPortSet(outputID))
         }
 
         cookie match {
