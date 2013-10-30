@@ -112,7 +112,7 @@ what they do. Unfortunately unless you know a bit about writing pom file and
 have some trouble achieving some particular task with maven, it might be easier
 to decompose your task into two mvn commands.
 
-### project-wide commands
+### Project-wide commands
 
 - clean all build products
 
@@ -155,7 +155,7 @@ by running `$ mvn clean install -DskipTests` which will prepare jars for all
 subprojects in MidoNet for the current branch, then do your changes on the code
 and then recompile or run tests for specific submodules afterwards.
 
-### distro packages
+### Distro packages
 
 After running `$ mvn package`, debian packages for midolman and midonet-api can
 be found in midolman/target and midonet-api/target respectively.
@@ -165,7 +165,7 @@ requires to install the rpm tools with `$ apt-get install rpm`. rpm packages
 will be located in midolman/target/rpm/midolman/RPMS/amd64/ and
 midonet-api/same/path
 
-### subproject-wide commands
+### Subproject-wide commands
 
 It is possible to invoke maven on only a single subproject or group
 of subprojects. To do this you can add a "-pl subproject" argument
@@ -229,20 +229,35 @@ from tests by setting "<excludedGroups>path.to.ClassName</excludedGroups>".
 At the moment (2013/10/23), only one group of tests is defined:
 org.midonet.midolman.SimulationTests. It is included in the tests by default.
 
+### Running services from source
+
+It is possible to run both midolman and midonet-api from sources without
+installing the native distro packages. First be sure to compile your project
+so that midolman and/or midonet-api classes are in their respective target/
+directories. You also need the jar files of all the internal dependencies
+installed in your local maven repository. You can then start midolman with
+`$ mvn -pl midolman exec:exec`
+and midonet-api with
+`$ mvn -pl midonet-api jetty:run -Djetty.port=8080`
+
+The configuration files are looked up in target/classes,
+src/main/resources. Midonet-api also requires a web.xml files in
+src/main/webapp/WEB-INF/.
+
 
 ## Misc
 
 This section describes additional mvn commands and settings you might want to
 know about.
 
-### midonet-api doc generation
+### Midonet-api doc generation
 
 You can generate html docs for the midonet-api subproject with the enunciate
 plugin by activating the profil apiDoc and running the command
 `$ mvn package -PapiDoc -DskipTests`. The html files will be generated in
 midonet-api/target/docs
 
-### using zinc server for compilation
+### Using zinc server for compilation
 
 Without zinc, mvn will start a new compiler instance for every set of source
 files in src/main/ and src/test/ in every subproject and immediately terminate
@@ -270,7 +285,7 @@ problem seems to be that the scala-maven-plugin does not clean the zinc cache
 when running `$ mvn clean`, which is good (save state and save up compilation
 work) and bad (messes up compilation when switching branches) at the same time.
 
-### code coverage reports
+### Code coverage reports
 
 Cobertura allows to run tests while doing a coverage analysis of the code. It is
 currently not bound to any standard phase of the build system and to generate
