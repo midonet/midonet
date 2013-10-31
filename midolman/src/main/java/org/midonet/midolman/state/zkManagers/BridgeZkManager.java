@@ -414,6 +414,7 @@ public class BridgeZkManager extends AbstractZkManager {
 
     public short[] getVlanIds(UUID id)
             throws StateAccessException {
+        ensureBridgeHasVlanDirectory(id);
         Collection<String> children =
                 zk.getChildren(paths.getBridgeVlansPath(id));
         short[] vlanIds = new short[children.size()];
