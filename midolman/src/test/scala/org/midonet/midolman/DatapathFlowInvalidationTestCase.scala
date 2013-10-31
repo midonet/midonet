@@ -10,6 +10,7 @@ import java.util.concurrent.TimeUnit
 
 import akka.testkit.TestProbe
 import akka.util.Duration
+import akka.util.duration._
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
@@ -113,10 +114,10 @@ with RouterHelper{
 
         // this is added when the port becomes active. A flow that takes care of
         // the tunnelled packets to this port
-        wflowAddedProbe.expectMsgPF(Duration(3, TimeUnit.SECONDS),
+        wflowAddedProbe.expectMsgPF(3 seconds,
             "WildcardFlowAdded")(TestHelpers.matchActionsFlowAddedOrRemoved(
             mutable.Buffer[FlowAction[_]](FlowActions.output(mapPortNameShortNumber(inPortName)))))
-        wflowAddedProbe.expectMsgPF(Duration(3, TimeUnit.SECONDS),
+        wflowAddedProbe.expectMsgPF(3 seconds,
             "WildcardFlowAdded")(TestHelpers.matchActionsFlowAddedOrRemoved(
             mutable.Buffer[FlowAction[_]](FlowActions.output(mapPortNameShortNumber(outPortName)))))
 
@@ -179,9 +180,9 @@ with RouterHelper{
         deletePort(outPort, host1)
         wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
         wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
-        /*addRemoveFlowsProbe.fishForMessage(Duration(3, TimeUnit.SECONDS),
+        /*addRemoveFlowsProbe.fishForMessage(3 seconds,
             "WildcardFlowRemoved")(matchActionsFlowAddedOrRemoved(flowAddedMessage.f.getActions.asScala))
-        addRemoveFlowsProbe.fishForMessage(Duration(3, TimeUnit.SECONDS),
+        addRemoveFlowsProbe.fishForMessage(3 seconds,
             "WildcardFlowRemoved")(matchActionsFlowAddedOrRemoved(mutable.Buffer[FlowAction[_]]
             (FlowActions.output(mapPortNameShortNumber(outPortName)))))*/
     }
@@ -233,7 +234,7 @@ with RouterHelper{
         dpState().peerTunnelInfo(host2.getId()) should be (Some(ipPair1))
 
         // assert that a invalidateFlowByTag where tag is the route info is sent
-        flowProbe().fishForMessage(Duration(3, TimeUnit.SECONDS),
+        flowProbe().fishForMessage(3 seconds,
             "Tag")(matchATagInvalidation(FlowTagger.invalidateTunnelPort(ipPair1)))
 
         val wildcardFlow = WildcardFlow(
@@ -254,11 +255,8 @@ with RouterHelper{
             tunnelZone.getId, secondGreConfig)
 
         // assert that the old route was removed and a invalidateFlowByTag is sent
-        flowProbe().fishForMessage(Duration(3, TimeUnit.SECONDS),
+        flowProbe().fishForMessage(3 seconds,
             "Tag")(matchATagInvalidation(FlowTagger.invalidateTunnelPort(ipPair1)))
-
-        // assert that the new route is in place
-        dpState().peerTunnelInfo(host2.getId()) should be (Some(ipPair2))
 
         // assert that the flow gets deleted
         val flowRemoved = wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
@@ -267,6 +265,9 @@ with RouterHelper{
         // assert that a flow invalidation by tag is sent with new tunnel route
         flowProbe().expectMsg(new InvalidateFlowsByTag(
             FlowTagger.invalidateTunnelPort(ipPair2)))
+
+        // at that point, the tunnel route should be in place, assert it
+        dpState().peerTunnelInfo(host2.getId()) should be (Some(ipPair2))
     }
 
     def matchATagInvalidation(tagToTest: Any): PartialFunction[Any, Boolean] = {
