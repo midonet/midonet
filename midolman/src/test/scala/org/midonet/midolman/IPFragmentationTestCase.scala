@@ -60,7 +60,9 @@ class IPFragmentationTestCase extends MidolmanTestCase
         r = newLiteralRuleOnChain(chain, 1, tcpCond, RuleResult.Action.ACCEPT)
 
         // Wait until the rule change is picked up
-        Await.result(vtaProbe().testActor.ask(ChainRequest(chain.getId, update = false))(new Timeout(3, TimeUnit.SECONDS)), 3 second)
+        val chainReq = ChainRequest(chain.getId, update = false)
+        val reqFuture = vtaProbe().testActor.ask(chainReq)(new Timeout(3 seconds))
+        Await.result(reqFuture, 3 second)
         fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
     }
 
@@ -218,8 +220,8 @@ class IPFragmentationTestCase extends MidolmanTestCase
         setupL4TouchingChain()
         var packet = makePacket(IPFragmentType.First)
         triggerPacketIn(vmPortNames(sendingVm), packet)
-        expectPacketOut(vmPortNumbers(sendingVm))
         ackWCAdded()
+        expectPacketOut(vmPortNumbers(sendingVm))
 
         packet = makePacket(IPFragmentType.Later)
         triggerPacketIn(vmPortNames(sendingVm), packet)
@@ -227,9 +229,9 @@ class IPFragmentationTestCase extends MidolmanTestCase
 
         packet = makePacket(IPFragmentType.None)
         triggerPacketIn(vmPortNames(sendingVm), packet)
+        ackWCAdded()
         val pktOut = expectPacketOut(vmPortNumbers(receivingVm))
         pktOut should be === packet
-        ackWCAdded()
 
         clusterDataClient().portsDelete(vmPorts(sendingVm).getId)
         requestOfType[WildcardFlowRemoved](wflowRemovedProbe)
