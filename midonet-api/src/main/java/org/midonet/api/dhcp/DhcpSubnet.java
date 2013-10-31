@@ -4,11 +4,16 @@
 
 package org.midonet.api.dhcp;
 
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.midonet.api.RelativeUriResource;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.cluster.data.dhcp.Opt121;
 import org.midonet.cluster.data.dhcp.Subnet;
 import org.midonet.packets.IntIPv4;
+import org.midonet.packets.IPv4Subnet;
 import org.midonet.util.StringUtil;
 
 import javax.validation.constraints.Max;
@@ -16,9 +21,6 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.xml.bind.annotation.XmlRootElement;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
 
 @XmlRootElement
 public class DhcpSubnet extends RelativeUriResource {
@@ -184,8 +186,8 @@ public class DhcpSubnet extends RelativeUriResource {
         IntIPv4 srvAddr = (null == serverAddr) ? null : IntIPv4.fromString(serverAddr);
 
         return new Subnet()
-                .setDefaultGateway(gtway)
-                .setSubnetAddr(subnetAddr)
+                .setDefaultGateway(IntIPv4.toIPv4Subnet(gtway))
+                .setSubnetAddr(IntIPv4.toIPv4Subnet(subnetAddr))
                 .setOpt121Routes(routes)
                 .setServerAddr(srvAddr)
                 .setDnsServerAddrs(dnsSrvAddrs)

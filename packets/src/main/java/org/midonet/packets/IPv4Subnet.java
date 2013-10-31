@@ -30,6 +30,10 @@ public final class IPv4Subnet implements IPSubnet<IPv4Addr> {
         return address;
     }
 
+    public int getIntAddress() {
+        return address.addr();
+    }
+
     @Override
     public void setAddress(IPv4Addr address) {
         this.address = IPv4Addr.fromIPv4(address);
@@ -70,10 +74,6 @@ public final class IPv4Subnet implements IPSubnet<IPv4Addr> {
         int maskSize = 32-prefixLen;
         int mask = ~0 << maskSize;
         return (address.toInt() & mask) == (that.toInt() & mask);
-    }
-
-    public IntIPv4 toIntIPv4() {
-        return new IntIPv4(address.addr(), prefixLen);
     }
 
     public String toUnicastString() {

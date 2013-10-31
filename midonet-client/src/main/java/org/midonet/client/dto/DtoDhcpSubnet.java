@@ -162,7 +162,7 @@ public class DtoDhcpSubnet {
         return "DtoDhcpSubnet{" +
                 "defaultGateway='" + defaultGateway + '\'' +
                 ", subnetPrefix='" + subnetPrefix + '\'' +
-                ", subnetLength=" + subnetLength + '\'' + 
+                ", subnetLength=" + subnetLength + '\'' +
                 ", serverAddr='" + serverAddr + '\'' +
                 ", dnsServerAddrs='" + dnsServerAddrs + '\'' +
                 ", interfaceMTU=" + interfaceMTU +

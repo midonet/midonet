@@ -59,9 +59,11 @@ public class DhcpOption121 {
 
     public Opt121 toData() {
         return new Opt121()
-                .setGateway(IntIPv4.fromString(gatewayAddr))
-                .setRtDstSubnet(IntIPv4.fromString(destinationPrefix,
-                        destinationLength));
+            .setGateway(
+                IntIPv4.toIPv4Subnet(IntIPv4.fromString(gatewayAddr)))
+            .setRtDstSubnet(
+                IntIPv4.toIPv4Subnet(
+                    IntIPv4.fromString(destinationPrefix, destinationLength)));
     }
 
     @Override
