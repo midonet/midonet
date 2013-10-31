@@ -44,6 +44,7 @@ trait VirtualConfigurationBuilders {
         val chain = createChain(name, None)
         bridge.setInboundFilter(chain.getId)
         clusterDataClient().bridgesUpdate(bridge)
+        Thread.sleep(50)
         chain
     }
 
@@ -51,6 +52,7 @@ trait VirtualConfigurationBuilders {
         val chain = createChain(name, None)
         bridge.setOutboundFilter(chain.getId)
         clusterDataClient().bridgesUpdate(bridge)
+        Thread.sleep(50)
         chain
     }
 
@@ -58,6 +60,7 @@ trait VirtualConfigurationBuilders {
         val chain = createChain(name, None)
         router.setInboundFilter(chain.getId)
         clusterDataClient().routersUpdate(router)
+        Thread.sleep(50)
         chain
     }
 
@@ -65,6 +68,7 @@ trait VirtualConfigurationBuilders {
         val chain = createChain(name, None)
         router.setOutboundFilter(chain.getId)
         clusterDataClient().routersUpdate(router)
+        Thread.sleep(50)
         chain
     }
 
@@ -75,6 +79,7 @@ trait VirtualConfigurationBuilders {
         else
             chain.setId(UUID.randomUUID)
         clusterDataClient().chainsCreate(chain)
+        Thread.sleep(50)
         chain
     }
 
@@ -84,6 +89,7 @@ trait VirtualConfigurationBuilders {
         val chain = createChain(name, Some(id))
         port.setOutboundFilter(id)
         clusterDataClient().portsUpdate(port)
+        Thread.sleep(50)
         chain
     }
 
@@ -94,6 +100,7 @@ trait VirtualConfigurationBuilders {
         clusterDataClient().chainsCreate(chain)
         port.setInboundFilter(id)
         clusterDataClient().portsUpdate(port)
+        Thread.sleep(50)
         chain
     }
 
@@ -110,6 +117,7 @@ trait VirtualConfigurationBuilders {
         val rule = new LiteralRule(condition, action).
                         setChainId(chain.getId).setPosition(pos)
         val id = clusterDataClient().rulesCreate(rule)
+        Thread.sleep(50)
         clusterDataClient().rulesGet(id).asInstanceOf[LiteralRule]
     }
 
@@ -121,6 +129,7 @@ trait VirtualConfigurationBuilders {
         val rule = new ForwardNatRule(condition, action, jTargets, isDnat).
                         setChainId(chain.getId).setPosition(pos)
         val id = clusterDataClient().rulesCreate(rule)
+        Thread.sleep(50)
         clusterDataClient().rulesGet(id).asInstanceOf[ForwardNatRule]
     }
 
@@ -129,12 +138,14 @@ trait VirtualConfigurationBuilders {
         val rule = new ReverseNatRule(condition, action, isDnat).
             setChainId(chain.getId).setPosition(pos)
         val id = clusterDataClient().rulesCreate(rule)
+        Thread.sleep(50)
         clusterDataClient().rulesGet(id).asInstanceOf[ReverseNatRule]
     }
 
     def removeRuleFromBridge(bridge: ClusterBridge) {
         bridge.setInboundFilter(null)
         clusterDataClient().bridgesUpdate(bridge)
+        Thread.sleep(50)
     }
 
     def newJumpRuleOnChain(chain: Chain, pos: Int, condition: Condition,
@@ -142,6 +153,7 @@ trait VirtualConfigurationBuilders {
         val rule = new JumpRule(condition).
             setChainId(chain.getId).setPosition(pos).setJumpToChainId(jumpToChainID)
         val id = clusterDataClient().rulesCreate(rule)
+        Thread.sleep(50)
         clusterDataClient().rulesGet(id).asInstanceOf[JumpRule]
     }
     def deleteRule(id: UUID) {
@@ -151,12 +163,14 @@ trait VirtualConfigurationBuilders {
     def greTunnelZone(name: String): GreTunnelZone = {
         val tunnelZone = new GreTunnelZone().setName("default")
         clusterDataClient().tunnelZonesCreate(tunnelZone)
+        Thread.sleep(50)
         tunnelZone
     }
 
     def newBridge(bridge: ClusterBridge): ClusterBridge = {
-        clusterDataClient().bridgesGet(
-            clusterDataClient().bridgesCreate(bridge))
+        val id = clusterDataClient().bridgesCreate(bridge)
+        Thread.sleep(50)
+        clusterDataClient().bridgesGet(id)
     }
 
     def newBridge(name: String): ClusterBridge =
@@ -164,6 +178,7 @@ trait VirtualConfigurationBuilders {
 
     def newBridgePort(bridge: ClusterBridge): BridgePort = {
         val uuid = clusterDataClient().portsCreate(Ports.bridgePort(bridge))
+        Thread.sleep(50)
         // do a portsGet because some fields are set during the creating and are
         // not copied in the port object we pass, eg. TunnelKey
         clusterDataClient().portsGet(uuid).asInstanceOf[BridgePort]
@@ -174,6 +189,7 @@ trait VirtualConfigurationBuilders {
         val jVlanId: java.lang.Short = if(vlanId.isDefined) vlanId.get else null
         val uuid = clusterDataClient()
                    .portsCreate(Ports.bridgePort(bridge, jVlanId))
+        Thread.sleep(50)
         clusterDataClient().portsGet(uuid).asInstanceOf[BridgePort]
     }
 
@@ -182,7 +198,9 @@ trait VirtualConfigurationBuilders {
     }
 
     def newRouter(router: ClusterRouter): ClusterRouter = {
-        clusterDataClient().routersGet(clusterDataClient().routersCreate(router))
+        val id = clusterDataClient().routersCreate(router)
+        Thread.sleep(50)
+        clusterDataClient().routersGet(id)
     }
 
     def newRouter(name: String): ClusterRouter =
@@ -196,6 +214,7 @@ trait VirtualConfigurationBuilders {
                         .setNwLength(nwLen)
                         .setHwAddr(mac)
         val uuid = clusterDataClient().portsCreate(port)
+        Thread.sleep(50)
         clusterDataClient().portsGet(uuid).asInstanceOf[RouterPort]
     }
 
@@ -207,6 +226,7 @@ trait VirtualConfigurationBuilders {
                         .setNwLength(nwLen)
                         .setHwAddr(mac)
         val uuid = clusterDataClient().portsCreate(port)
+        Thread.sleep(50)
         clusterDataClient().portsGet(uuid).asInstanceOf[RouterPort]
     }
 
@@ -214,7 +234,7 @@ trait VirtualConfigurationBuilders {
                  srcNw: String, srcNwLen: Int, dstNw: String, dstNwLen: Int,
                  nextHop: NextHop, nextHopPort: UUID, nextHopGateway: String,
                  weight: Int): UUID = {
-        clusterDataClient().routesCreate(new Route()
+        val uuid = clusterDataClient().routesCreate(new Route()
             .setRouterId(router.getId)
             .setSrcNetworkAddr(srcNw)
             .setSrcNetworkLength(srcNwLen)
@@ -224,6 +244,8 @@ trait VirtualConfigurationBuilders {
             .setNextHopPort(nextHopPort)
             .setNextHopGateway(nextHopGateway)
             .setWeight(weight))
+        Thread.sleep(50)
+        uuid
     }
 
     def deleteRoute(routeId: UUID) {
