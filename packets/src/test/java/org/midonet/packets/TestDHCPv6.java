@@ -124,9 +124,9 @@ public class TestDHCPv6 {
             DHCPv6Option.IANA optIANA = new DHCPv6Option.IANA();
             optIANA.setCode((short) 0x0003);
             optIANA.setLength((short) 0x000C);
-            optIANA.setIAID((int) 0x5D9E880D);
-            optIANA.setT1((int) 0x00000E10);
-            optIANA.setT2((int) 0x00001518);
+            optIANA.setIAID(0x5D9E880D);
+            optIANA.setT1(0x00000E10);
+            optIANA.setT2(0x00001518);
 
             ArrayList<DHCPv6OptPacket> options = new ArrayList<DHCPv6OptPacket>();
             options.add(optClId);
