@@ -3,10 +3,11 @@
  */
 package org.midonet.cluster.data.dhcp;
 
+import java.util.UUID;
+
 import org.midonet.cluster.data.Entity;
 import org.midonet.packets.IntIPv4;
-
-import java.util.UUID;
+import org.midonet.packets.IPv4Subnet;
 
 /**
  * DHCP option 121
@@ -20,8 +21,8 @@ public class Opt121 {
         return gateway;
     }
 
-    public Opt121 setGateway(IntIPv4 gateway) {
-        this.gateway = gateway;
+    public Opt121 setGateway(IPv4Subnet gateway) {
+        this.gateway = IntIPv4.fromIPv4Subnet(gateway);
         return this;
     }
 
@@ -29,8 +30,8 @@ public class Opt121 {
         return rtDstSubnet;
     }
 
-    public Opt121 setRtDstSubnet(IntIPv4 rtDstSubnet) {
-        this.rtDstSubnet = rtDstSubnet;
+    public Opt121 setRtDstSubnet(IPv4Subnet rtDstSubnet) {
+        this.rtDstSubnet = IntIPv4.fromIPv4Subnet(rtDstSubnet);
         return this;
     }
 

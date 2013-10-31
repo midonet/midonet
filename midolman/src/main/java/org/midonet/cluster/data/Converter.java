@@ -39,6 +39,7 @@ import org.midonet.midolman.state.zkManagers.PortGroupZkManager.PortGroupConfig;
 import org.midonet.midolman.state.zkManagers.RouterZkManager.RouterConfig;
 import org.midonet.midolman.state.zkManagers.TaggableConfig;
 import org.midonet.packets.Net;
+import org.midonet.packets.IntIPv4;
 
 
 /**
@@ -462,12 +463,14 @@ public class Converter {
         }
 
         return new Subnet()
-                .setDefaultGateway(subnetConfig.getDefaultGateway())
+                .setDefaultGateway(
+                    IntIPv4.toIPv4Subnet(subnetConfig.getDefaultGateway()))
                 .setOpt121Routes(opt121s)
                 .setServerAddr(subnetConfig.getServerAddr())
                 .setDnsServerAddrs(subnetConfig.getDnsServerAddrs())
                 .setInterfaceMTU(subnetConfig.getInterfaceMTU())
-                .setSubnetAddr(subnetConfig.getSubnetAddr());
+                .setSubnetAddr(
+                    IntIPv4.toIPv4Subnet(subnetConfig.getSubnetAddr()));
     }
 
     public static BridgeDhcpZkManager.Opt121 toDhcpOpt121Config(
@@ -479,8 +482,8 @@ public class Converter {
     public static Opt121 fromDhcpOpt121Config(BridgeDhcpZkManager.Opt121
                                               opt121Config) {
         return new Opt121()
-                .setGateway(opt121Config.getGateway())
-                .setRtDstSubnet(opt121Config.getRtDstSubnet());
+                .setGateway(IntIPv4.toIPv4Subnet(opt121Config.getGateway()))
+                .setRtDstSubnet(IntIPv4.toIPv4Subnet(opt121Config.getRtDstSubnet()));
     }
 
     public static BridgeDhcpV6ZkManager.Host toDhcpV6HostConfig(

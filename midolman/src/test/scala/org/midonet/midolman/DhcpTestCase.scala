@@ -187,31 +187,31 @@ class DhcpTestCase extends MidolmanTestCase with
 
         // First subnet is routerIp2's
         var opt121Obj = (new Opt121()
-                        .setGateway(routerIp2.toIntIPv4)
+                        .setGateway(routerIp2)
                         // TODO (galo) after talking with Abel we suspect that
                         // this below should be routerIp1, not 2. It may be
                         // irrelevant for the test, but we should confirm
-                        .setRtDstSubnet(routerIp1.toNetworkAddress.toIntIPv4))
+                        .setRtDstSubnet(routerIp1))
         var opt121Routes: List[Opt121] = List(opt121Obj)
         val dnsSrvAddrs : List[IPv4Addr] = List(
                                           IPv4Addr.fromString("192.168.77.118"),
                                           IPv4Addr.fromString("192.168.77.119"),
                                           IPv4Addr.fromString("192.168.77.120"))
         val dhcpSubnet1 = (new Subnet()
-                      .setSubnetAddr(routerIp2.toNetworkAddress.toIntIPv4)
-                      .setDefaultGateway(routerIp2.toIntIPv4)
+                      .setSubnetAddr(routerIp2)
+                      .setDefaultGateway(routerIp2)
                       .setDnsServerAddrs(dnsSrvAddrs.map(_.toIntIPv4))
                       .setOpt121Routes(opt121Routes))
         addDhcpSubnet(bridge, dhcpSubnet1)
 
         // Second subnet is routerIp2's
         opt121Obj = (new Opt121()
-            .setGateway(routerIp3.toIntIPv4)
-            .setRtDstSubnet(routerIp3.toNetworkAddress.toIntIPv4))
+            .setGateway(routerIp3)
+            .setRtDstSubnet(routerIp3))
         opt121Routes = List(opt121Obj)
         val dhcpSubnet2 = (new Subnet()
-            .setSubnetAddr(routerIp3.toNetworkAddress.toIntIPv4)
-            .setDefaultGateway(routerIp3.toIntIPv4)
+            .setSubnetAddr(routerIp3)
+            .setDefaultGateway(routerIp3)
             .setDnsServerAddrs(dnsSrvAddrs.map(_.toIntIPv4))
             .setOpt121Routes(opt121Routes))
         addDhcpSubnet(bridge, dhcpSubnet2)
@@ -226,12 +226,12 @@ class DhcpTestCase extends MidolmanTestCase with
         log.debug("Creating DHCP Host")
         val dhcpHost1 = (new org.midonet.cluster.data.dhcp.Host()
                        .setMAC(vm1Mac)
-                       .setIp(vm1IP.toIntIPv4))
+                       .setIp(new IntIPv4(vm1IP)))
         addDhcpHost(bridge, dhcpSubnet1, dhcpHost1)
 
         val dhcpHost2 = (new org.midonet.cluster.data.dhcp.Host()
             .setMAC(vm2Mac)
-            .setIp(vm2IP.toIntIPv4))
+            .setIp(new IntIPv4(vm2IP)))
         addDhcpHost(bridge, dhcpSubnet2, dhcpHost2)
 
         flowProbe().expectMsgType[DatapathController.DatapathReady]
@@ -320,14 +320,14 @@ class DhcpTestCase extends MidolmanTestCase with
         requestOfType[PacketIn](packetInProbe)
         var returnPkt = fishForRequestOfType[EmitGeneratedPacket](dedupProbe()).eth
         extractDhcpReply(returnPkt)
-            .getServerIPAddress should be === routerIp2.toIntIPv4.addressAsInt()
+            .getServerIPAddress should be === routerIp2.getIntAddress
         drainProbes()
 
         injectDhcpDiscover(vm2PortName, vm2Mac)
         requestOfType[PacketIn](packetInProbe)
         returnPkt = fishForRequestOfType[EmitGeneratedPacket](dedupProbe()).eth
         extractDhcpReply(returnPkt)
-            .getServerIPAddress should be === routerIp3.toIntIPv4.addressAsInt()
+            .getServerIPAddress should be === routerIp3.getIntAddress
         drainProbes()
     }
 
