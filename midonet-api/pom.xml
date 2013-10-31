@@ -127,6 +127,16 @@
                                 </source>
                             </sources>
                         </mapping>
+                        <mapping>
+                            <directory>/usr/share/midonet-api/WEB-INF</directory>
+                            <configuration>true</configuration>
+                            <directoryIncluded>false</directoryIncluded>
+                            <sources>
+                                <source>
+                                    <location>${project.basedir}/src/main/webapp/WEB-INF/web.xml</location>
+                                </source>
+                            </sources>
+                        </mapping>
                     </mappings>
                 </configuration>
             </plugin>
