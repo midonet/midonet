@@ -4,36 +4,46 @@
 package org.midonet.midolman
 
 import scala.collection.JavaConverters._
-import akka.testkit.TestActorRef
-import akka.dispatch.Promise
+
 import java.util.UUID
+
+import akka.dispatch.Promise
+
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
+import org.scalatest._
 import org.scalatest.concurrent.Eventually._
+import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.time.Millis
 import org.scalatest.time.Span
 
-import org.midonet.midolman.topology.{TraceConditionsManager, VirtualTopologyActor}
-import org.midonet.midolman.topology.VirtualTopologyActor.ConditionListRequest
-import org.midonet.odp.{FlowMatches, Packet, Datapath}
-import org.midonet.packets.util.PacketBuilder._
-import org.midonet.packets.Ethernet
-import org.midonet.packets.util.EthBuilder
 import org.midonet.midolman.DeduplicationActor.ApplyFlow
+import org.midonet.midolman.topology.VirtualTopologyActor.ConditionListRequest
+import org.midonet.midolman.topology.{TraceConditionsManager, VirtualTopologyActor}
+import org.midonet.odp.{FlowMatches, Packet, Datapath}
 import org.midonet.odp.flows.FlowActionOutput
-
+import org.midonet.packets.Ethernet
+import org.midonet.packets.util.PacketBuilder._
+import org.midonet.packets.util.EthBuilder
+import org.midonet.midolman.services.MessageAccumulator
 
 @RunWith(classOf[JUnitRunner])
-class DeduplicationActorTestCase extends SingleActorTestCase {
-
-    var dda: TestActorRef[TestableDDA] = null
+class DeduplicationActorTestCase extends Suite with FeatureSpec
+                                 with ShouldMatchers with GivenWhenThen
+                                 with BeforeAndAfter with MockMidolmanActors
+                                 with OneInstancePerTest
+                                 with MidolmanServices {
     var datapath: Datapath = null
     var packetsSeen = List[(Packet, Either[Int, UUID])]()
+    var testableDda: TestableDDA = _
+
+    override def registerActors = List(
+        DeduplicationActor -> (() => new TestableDDA))
 
     override def beforeTest() {
-        dda = actorFor(() => new TestableDDA())
         datapath = mockDpConn.datapathsCreate("midonet").get()
-        dda.tell(DatapathController.DatapathReady(datapath, null))
+        testableDda = DeduplicationActor.as[TestableDDA]
+        DeduplicationActor ! DatapathController.DatapathReady(datapath, null)
     }
 
     def makeFrame(variation: Short) =
@@ -62,14 +72,12 @@ class DeduplicationActorTestCase extends SingleActorTestCase {
     feature("DeduplicationActor initializes correctly") {
         scenario("requests the condition list to the VTA") {
             when("the DDA boots")
-            val vtaOpt = actorsService.actor(VirtualTopologyActor.Name)
-            vtaOpt should not be None
+            testableDda should not be null
 
             then("the VTA must receive a ConditionListRequest")
-            vtaOpt foreach { vta =>
-                vta.getAndClear should be ===
-                    List(ConditionListRequest(TraceConditionsManager.uuid, update = true))
-            }
+            VirtualTopologyActor.messages should be ===
+                    List(ConditionListRequest(TraceConditionsManager.uuid,
+                                              update = true))
         }
     }
 
@@ -79,13 +87,13 @@ class DeduplicationActorTestCase extends SingleActorTestCase {
             val pkts = List(makePacket(1), makePacket(1), makePacket(1), makePacket(1))
 
             when("they are fed to the DDA")
-            dda.tell(DeduplicationActor.HandlePackets(pkts.toArray))
+            DeduplicationActor ! DeduplicationActor.HandlePackets(pkts.toArray)
 
             then("the DDA should execute exactly one workflow")
             packetsSeen.length should be === 1
 
             then("and exactly one packet should be pended")
-            dda.underlyingActor.pendedPackets(1) should be === Some(Set(pkts.head))
+            testableDda.pendedPackets(1) should be === Some(Set(pkts.head))
         }
 
         scenario("expires pended packets after a time interval") {
@@ -96,16 +104,16 @@ class DeduplicationActorTestCase extends SingleActorTestCase {
             val pkts = List(makePacket(1), makeUniquePacket(1), makeUniquePacket(1))
 
             when("they are fed to the DDA")
-            dda.tell(DeduplicationActor.HandlePackets(pkts.toArray))
+            DeduplicationActor ! DeduplicationActor.HandlePackets(pkts.toArray)
 
             then("two packets should be pended")
-            dda.underlyingActor.pendedPackets(1) should not be None
-            dda.underlyingActor.pendedPackets(1).get.size should be === 2
+            testableDda.pendedPackets(1) should not be None
+            testableDda.pendedPackets(1).get.size should be === 2
 
             when("their cookie expires")
             then("they should be unpended automatically")
             eventually {
-                dda.underlyingActor.pendedPackets(1) should be === None
+                testableDda.pendedPackets(1) should be === None
             }
             and("not executed")
             mockDpConn.packetsSent.size should be === 0
@@ -116,17 +124,17 @@ class DeduplicationActorTestCase extends SingleActorTestCase {
             val pkts = List(makePacket(1), makeUniquePacket(1), makeUniquePacket(1))
 
             when("they are fed to the DDA")
-            dda.tell(DeduplicationActor.HandlePackets(pkts.toArray))
+            DeduplicationActor ! DeduplicationActor.HandlePackets(pkts.toArray)
 
             then("some packets should be pended")
-            dda.underlyingActor.pendedPackets(1) should not be None
+            testableDda.pendedPackets(1) should not be None
 
             when("the dda is told to apply the flow with empty actions")
-            dda.tell(ApplyFlow(Nil, Some(1)))
+            DeduplicationActor ! ApplyFlow(Nil, Some(1))
 
             then("the packets should be dropped")
             mockDpConn.packetsSent.size should be === 0
-            dda.underlyingActor.pendedPackets(1) should be === None
+            testableDda.pendedPackets(1) should be === None
         }
 
         scenario("emits packets when ApplyFlow contains actions") {
@@ -134,13 +142,15 @@ class DeduplicationActorTestCase extends SingleActorTestCase {
             val pkts = List(makePacket(1), makeUniquePacket(1), makeUniquePacket(1))
 
             when("they are fed to the DDA")
-            dda.tell(DeduplicationActor.HandlePackets(pkts.toArray))
+            DeduplicationActor ! DeduplicationActor.HandlePackets(pkts.toArray)
 
             then("some packets should be pended")
-            dda.underlyingActor.pendedPackets(1) should not be None
+            testableDda.pendedPackets(1) should not be None
 
             when("the dda is told to apply the flow with an output action")
-            dda.tell(ApplyFlow(List(new FlowActionOutput().setPortNumber(1)), Some(1)))
+            DeduplicationActor ! ApplyFlow(List(new FlowActionOutput()
+                                                .setPortNumber(1)),
+                                           Some(1))
 
             then("the packets should be sent to the datapath")
             val actual = mockDpConn.packetsSent.asScala.toList.sortBy { _.## }
@@ -148,7 +158,7 @@ class DeduplicationActorTestCase extends SingleActorTestCase {
             actual should be === expected
 
             and("no pended packets should remain")
-            dda.underlyingActor.pendedPackets(1) should be === None
+            testableDda.pendedPackets(1) should be === None
         }
 
         scenario("simulates sequences of packets from the datapath") {
@@ -156,19 +166,19 @@ class DeduplicationActorTestCase extends SingleActorTestCase {
             val pkts = List(makePacket(1), makePacket(2), makePacket(3), makePacket(2))
 
             when("they are fed to the DDA")
-            dda.tell(DeduplicationActor.HandlePackets(pkts.toArray))
+            DeduplicationActor ! DeduplicationActor.HandlePackets(pkts.toArray)
 
             then("3 packet workflows should be executed")
             val expected = pkts.distinct zip cookieList(1 to 3)
             packetsSeen should be === expected
 
             and("one packet should be pended")
-            dda.underlyingActor.pendedPackets(1) should not be None
-            dda.underlyingActor.pendedPackets(1).get should be ('empty)
-            dda.underlyingActor.pendedPackets(2) should not be None
-            dda.underlyingActor.pendedPackets(2).get should have size (1)
-            dda.underlyingActor.pendedPackets(3) should not be None
-            dda.underlyingActor.pendedPackets(3).get should be ('empty)
+            testableDda.pendedPackets(1) should not be None
+            testableDda.pendedPackets(1).get should be ('empty)
+            testableDda.pendedPackets(2) should not be None
+            testableDda.pendedPackets(2).get should have size 1
+            testableDda.pendedPackets(3) should not be None
+            testableDda.pendedPackets(3).get should be ('empty)
         }
 
         scenario("simulates packets received through the datapath hook") {
@@ -188,7 +198,7 @@ class DeduplicationActorTestCase extends SingleActorTestCase {
             val frame: Ethernet = makeFrame(1)
 
             when("the DDA is told to emit it")
-            dda.tell(DeduplicationActor.EmitGeneratedPacket(id, frame, None))
+            DeduplicationActor ! DeduplicationActor.EmitGeneratedPacket(id, frame, None)
 
             then("a work flow should be executed")
             packetsSeen map {
@@ -206,7 +216,7 @@ class DeduplicationActorTestCase extends SingleActorTestCase {
         }
     }
 
-    class TestableDDA extends DeduplicationActor {
+    class TestableDDA extends DeduplicationActor with MessageAccumulator {
         protected override val cookieTimeToLiveMillis = 300L
         protected override val cookieExpirationCheckIntervalMillis = 100L
 

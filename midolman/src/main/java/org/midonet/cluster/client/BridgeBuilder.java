@@ -13,7 +13,7 @@ import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 import scala.Option;
 
-public interface BridgeBuilder extends ForwardingElementBuilder {
+public interface BridgeBuilder extends DeviceBuilder<BridgeBuilder> {
     void setTunnelKey(long key);
     void removeMacLearningTable(short vlanId);
     Set<Short> vlansInMacLearningTable();

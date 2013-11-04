@@ -1,5 +1,5 @@
 /*
- * Copyright 3012 Midokura Europe SARL
+ * Copyright 2013 Midokura Europe SARL
  */
 package org.midonet.midolman.simulation
 
@@ -17,13 +17,15 @@ import org.midonet.midolman.topology.VirtualTopologyActor.expiringAsk
 import org.midonet.midolman.topology.{FlowTagger, RoutingTableWrapper, TagManager, RouterConfig}
 import org.midonet.packets.{MAC, Unsigned, Ethernet, IPAddr}
 import org.midonet.sdn.flows.WildcardMatch
+import org.midonet.midolman.simulation.Icmp._
 
 /**
  * Defines the base Router device that is meant to be extended with specific
  * implementations for IPv4 and IPv6 that deal with version specific details
  * such as ARP vs. NDP.
  */
-abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
+abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext,
+                                                   icmpErrors: IcmpErrorSender[IP])
     extends Coordinator.Device {
 
     import Coordinator._
@@ -36,7 +38,8 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
     val routerMgrTagger: TagManager
 
     val validEthertypes: Set[Short]
-    val log = LoggerFactory.getSimulationAwareLog(this.getClass)(context.system.eventStream)
+    implicit val log = LoggerFactory.getSimulationAwareLog(
+        this.getClass)(context.system.eventStream)
 
     val loadBalancer = new LoadBalancer(rTable)
 
@@ -74,10 +77,17 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
 
         getRouterPort(pktContext.getInPortId, pktContext.getExpiry) flatMap {
             case null => log.debug("Router - in port {} was null",
-                pktContext.getInPortId())
+                                    pktContext.getInPortId())
                 Promise.successful(DropAction)
-            case inPort =>
-                preRouting(inPort)
+            case inPort if !cfg.adminStateUp =>
+                log.debug("Router {} state is down, DROP", id)
+
+                icmpErrors.sendUnreachableProhibitedIcmp(
+                    inPort,
+                    pktContext.wcmatch,
+                    pktContext.getFrame)
+                Promise.successful(DropAction)
+            case inPort => preRouting(inPort)
         }
     }
 
@@ -96,7 +106,8 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
             case RuleResult.Action.DROP =>
                 return Some(DropAction)
             case RuleResult.Action.REJECT =>
-                sendIcmpUnreachableProhibError(inPort, pktContext.wcmatch,
+                icmpErrors.sendUnreachableProhibitedIcmp(inPort,
+                    pktContext.wcmatch,
                     pktContext.getFrame)
                 return Some(DropAction)
             case other =>
@@ -158,7 +169,7 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
         if (pMatch.getNetworkTTL != null) {
             val ttl = Unsigned.unsign(pMatch.getNetworkTTL)
             if (ttl <= 1) {
-                sendIcmpTimeExceededError(inPort, pMatch, pFrame)
+                icmpErrors.sendTimeExceededIcmp(inPort, pMatch, pFrame)
                 return Promise.successful(DropAction)
             } else {
                 pMatch.setNetworkTTL((ttl - 1).toByte)
@@ -179,7 +190,7 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
             // No route to network
             log.debug("Route lookup: No route to network (dst:{}), {}",
                 dstIP, rTable.rTable)
-            sendIcmpUnreachableNetError(inPort, pMatch, pFrame)
+            icmpErrors.sendUnreachableNetIcmp(inPort, pMatch, pFrame)
             return Promise.successful(DropAction)
         }
 
@@ -202,7 +213,7 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
                 Promise.successful(DropAction)
 
             case Route.NextHop.REJECT =>
-                sendIcmpUnreachableProhibError(inPort, pMatch, pFrame)
+                icmpErrors.sendUnreachableProhibitedIcmp(inPort, pMatch, pFrame)
                 log.debug("Dropping packet, REJECT route (dst:{})",
                     pMatch.getNetworkDestinationIP)
                 Promise.successful(DropAction)
@@ -257,7 +268,7 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
                 return Promise.successful(DropAction)
             case RuleResult.Action.REJECT =>
                 log.debug("PostRouting REJECT rule")
-                sendIcmpUnreachableProhibError(inPort, pMatch, pFrame)
+                icmpErrors.sendUnreachableProhibitedIcmp(inPort, pMatch, pFrame)
                 return Promise.successful(DropAction)
             case other =>
                 log.error("Post-routing for {} returned {} which was not " +
@@ -284,10 +295,10 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
             case null =>
                 if (rt.nextHopGateway == 0 || rt.nextHopGateway == -1) {
                     log.debug("icmp host unreachable, host mac unknown")
-                    sendIcmpUnreachableHostError(inPort, pMatch, pFrame)
+                    icmpErrors.sendUnreachableHostIcmp(inPort, pMatch, pFrame)
                 } else {
                     log.debug("icmp net unreachable, gw mac unknown")
-                    sendIcmpUnreachableNetError(inPort, pMatch, pFrame)
+                    icmpErrors.sendUnreachableNetIcmp(inPort, pMatch, pFrame)
                 }
                 ErrorDropAction
             case nextHopMac =>
@@ -325,49 +336,6 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
                                          pktContext: PacketContext): Future[MAC]
 
     /**
-     * Will be called whenever an ICMP unreachable is needed for the given
-     * IP version.
-     */
-    protected def sendIcmpUnreachableProhibError(inPort: RouterPort,
-                                                          wMatch: WildcardMatch,
-                                                          frame: Ethernet)
-                                                (implicit ec: ExecutionContext,
-                                                 actorSystem: ActorSystem,
-                                                 originalPktContex: PacketContext)
-
-    /**
-     * Will be called whenever an ICMP Unreachable network is needed for the
-     * given IP version.
-     */
-    protected def sendIcmpUnreachableNetError(inPort: RouterPort,
-                                                       wMatch: WildcardMatch,
-                                                       frame: Ethernet)
-                                             (implicit ec: ExecutionContext,
-                                              actorSystem: ActorSystem,
-                                              originalPktContex: PacketContext)
-
-    /**
-     * Will be called whenever an ICMP Unreachable host is needed for the
-     * given IP version.
-     */
-    protected def sendIcmpUnreachableHostError(inPort: RouterPort,
-                                                        wMatch: WildcardMatch,
-                                                        frame: Ethernet)
-                                              (implicit ec: ExecutionContext,
-                                               actorSystem: ActorSystem,
-                                               originalPktContex: PacketContext)
-    /**
-     * Will be called whenever an ICMP Time Exceeded is needed for the given
-     * IP version.
-     */
-    protected def sendIcmpTimeExceededError(inPort: RouterPort,
-                                                     wMatch: WildcardMatch,
-                                                     frame: Ethernet)
-                                           (implicit ec: ExecutionContext,
-                                            actorSystem: ActorSystem,
-                                            originalPktContex: PacketContext)
-
-    /**
      * Will be called to construct an ICMP echo reply for an ICMP echo reply
      * contained in the given packet.
      */
@@ -397,6 +365,4 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
                                   actorSystem: ActorSystem): Option[Action]
 
     protected def isIcmpEchoRequest(mmatch: WildcardMatch): Boolean
-
 }
-

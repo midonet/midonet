@@ -5,7 +5,7 @@ package org.midonet.cluster.client;
 
 import org.midonet.midolman.layer3.Route;
 
-public interface RouterBuilder extends ForwardingElementBuilder {
+public interface RouterBuilder extends DeviceBuilder<RouterBuilder> {
     void setArpCache(ArpCache table);
     void addRoute(Route rt);
     void removeRoute(Route rt);

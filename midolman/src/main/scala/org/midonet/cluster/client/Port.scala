@@ -7,11 +7,12 @@ package org.midonet.cluster.client
 import collection.JavaConversions._
 import java.util.UUID
 
-import org.midonet.packets.{IPv4Addr, IPAddr, IPSubnet, MAC}
+import org.midonet.packets.{IPv4Addr, IPSubnet, MAC}
 
 trait Port[T] {
     var id: UUID = null
     var deviceID: UUID = null
+    var adminStateUp: Boolean = true
     var inFilterID: UUID = null
     var outFilterID: UUID = null
     var properties: Map[String, String] = null  //move (What's this mean?)
@@ -21,16 +22,15 @@ trait Port[T] {
     var interfaceName: String = null
     var peerID: UUID = null
 
-    def isExterior: Boolean = {
-        (this.hostID != null && this.interfaceName != null)
-    }
+    def isExterior: Boolean = this.hostID != null && this.interfaceName != null
 
-    def isInterior: Boolean = {
-        (this.peerID != null)
-    }
+    def isInterior: Boolean = this.peerID != null
 
-    def isPlugged: Boolean = {
-        (this.isInterior || this.isExterior)
+    def isPlugged: Boolean = this.isInterior || this.isExterior
+
+    def setAdminStateUp(adminStateUp: Boolean): T = {
+        this.adminStateUp = adminStateUp
+        self
     }
 
     def setPeerID(id: UUID): T = {

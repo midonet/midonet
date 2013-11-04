@@ -124,6 +124,7 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
         }
 
         log.debug("Populating builder for bridge {}", id);
+        builder.setAdminStateUp(config.adminStateUp);
         builder.setInFilter(config.inboundFilter)
                .setOutFilter(config.outboundFilter);
         builder.setTunnelKey(config.tunnelKey);

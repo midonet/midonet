@@ -18,6 +18,7 @@ import org.midonet.midolman.topology.builders.RouterBuilderImpl
 import org.midonet.packets.{IPAddr, IPv4Addr, MAC}
 import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.util.functors.Callback0
+import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 
 
 class RoutingTableWrapper[IP <: IPAddr](val rTable: RoutingTableIfc[IP]) {
@@ -45,7 +46,8 @@ object RouterManager {
     case class RouterInvTrieTagCountModified(dstIp: IPAddr, count: Int)
 }
 
-case class RouterConfig(inboundFilter: UUID = null,
+case class RouterConfig(adminStateUp: Boolean = true,
+                        inboundFilter: UUID = null,
                         outboundFilter: UUID = null)
 
 /**
@@ -72,10 +74,10 @@ trait TagManager {
 class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
         extends DeviceManager(id) {
     private var cfg: RouterConfig = null
+    private var changed = false
     private var rTable: RoutingTableWrapper[IPv4Addr]= null
     private var arpCache: ArpCache = null
     private var arpTable: ArpTable = null
-    private var filterChanged = false
     // This trie is to store the tag that represent the ip destination to be
     // able to do flow invalidation properly when a route is added or deleted
     private val dstIpTagTrie: InvalidationTrie = new InvalidationTrie()
@@ -85,6 +87,11 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
 
     override def chainsUpdated() {
         makeNewRouter()
+        if (changed) {
+            VirtualTopologyActor.getRef() !
+                InvalidateFlowsByTag(FlowTagger.invalidateFlowsByDevice(id))
+            changed = false
+        }
     }
 
     private def makeNewRouter() {
@@ -100,16 +107,17 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
         } else {
             log.debug("The chains aren't ready yet. ")
         }
-
-        if (filterChanged) {
-            VirtualTopologyActor.getRef() ! FlowController.InvalidateFlowsByTag(
-                FlowTagger.invalidateFlowsByDevice(id))
-        }
-        filterChanged = false
     }
 
     override def preStart() {
         client.getRouter(id, new RouterBuilderImpl(id, self))
+    }
+
+    override def isAdminStateUp = {
+        cfg match {
+            case null => false
+            case _ => cfg.adminStateUp
+        }
     }
 
     override def getInFilterID = {
@@ -135,11 +143,12 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
         case TriggerUpdate(newCfg, newArpCache, newRoutingTable) =>
             log.debug("TriggerUpdate with {} {} {}",
                 Array(newCfg, newArpCache, newRoutingTable))
-            if (newCfg != cfg && cfg != null) {
-                // the cfg of this router changed, invalidate all the flows
-                filterChanged = true
-            }
+
+            if (newCfg != cfg && cfg != null)
+                changed = true
+
             cfg = newCfg
+
             if (arpCache == null && newArpCache != null) {
                 arpCache = newArpCache
                 arpTable = new ArpTableImpl(arpCache, config,
@@ -149,6 +158,7 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
                 throw new RuntimeException("Trying to re-set the arp cache")
             }
             rTable = newRoutingTable
+
             configUpdated()
 
         case InvalidateFlows(addedRoutes, deletedRoutes) =>

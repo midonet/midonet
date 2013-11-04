@@ -5,14 +5,11 @@
 package org.midonet.midolman.topology.builders
 
 import java.util.UUID
-import org.midonet.cluster.client.{ArpCache, SourceNatResource, RouterBuilder}
-import akka.actor.{ActorRef, ActorContext}
-import org.midonet.midolman.layer3.{IPv4RoutingTable, RoutingTable, Route}
+import org.midonet.cluster.client.{ArpCache, RouterBuilder}
+import akka.actor.ActorRef
+import org.midonet.midolman.layer3.{IPv4RoutingTable, Route}
 import org.midonet.midolman.topology.RouterManager.{InvalidateFlows, TriggerUpdate}
-import collection.immutable
-import collection.mutable
-import org.midonet.midolman.topology.{RoutingTableWrapper, RouterManager, RouterConfig}
-import org.midonet.midolman.FlowController.InvalidateFlowsByTag
+import org.midonet.midolman.topology.{RoutingTableWrapper, RouterConfig}
 
 class RouterBuilderImpl(val id: UUID, val routerManager: ActorRef)
     extends RouterBuilder {
@@ -40,9 +37,10 @@ class RouterBuilderImpl(val id: UUID, val routerManager: ActorRef)
         routesToRemove.add(rt)
     }
 
-    def setSourceNatResource(resource: SourceNatResource) {}
-
-    def setID(id: UUID) = null
+    def setAdminStateUp(adminStateUp: Boolean) = {
+        cfg = cfg.copy(adminStateUp = adminStateUp)
+        this
+    }
 
     def setInFilter(filterID: UUID) = {
         cfg = cfg.copy(inboundFilter = filterID)
@@ -71,5 +69,4 @@ class RouterBuilderImpl(val id: UUID, val routerManager: ActorRef)
     }
 
     def start() = null
-
 }

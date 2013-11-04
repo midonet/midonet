@@ -388,35 +388,26 @@ class PacketWorkflow(
             PortSetForTunnelKeyRequest(wMatch.getTunnelID)
 
         portSetFuture.mapTo[PortSet] flatMap { portSet =>
-            if (portSet != null) {
-                val action = FlowActionOutputToVrnPortSet(portSet.id)
-                log.debug("tun => portSet, action: {}, portSet: {}",
-                    action, portSet)
-                // egress port filter simulation
-                val localPortFutures =
-                    portSet.localPorts.toSeq map {
-                        portID => ask(VirtualTopologyActor.getRef(),
-                            PortRequest(portID, update = false))
-                            .mapTo[client.Port[_]]
-                    }
-                Future.sequence(localPortFutures) flatMap { localPorts =>
-                    // Take the outgoing filter for each port
-                    // and apply it, checking for Action.ACCEPT.
-                    val tags = mutable.Set[Any]()
-                    applyOutboundFilters(localPorts, portSet.id, wMatch, Some(tags),
-                        { portIDs =>
-                            addTranslatedFlowForActions(
-                                towardsLocalDpPorts(List(action), portSet.id,
-                                    portsForLocalPorts(portIDs), tags),
-                                tags)
-                        })
-                } recoverWith { case e =>
-                    log.error("Error getting configurations of local ports "+
-                              "of PortSet {}", portSet)
-                    Promise.failed[Boolean](e)
-                }
-            } else {
-                Promise.failed[Boolean](new Exception())(system.dispatcher)
+            if (portSet == null) {
+                return Promise.failed[Boolean](new Exception)(system.dispatcher)
+            }
+
+            val action = FlowActionOutputToVrnPortSet(portSet.id)
+            log.debug("tun => portSet, action: {}, portSet: {}",
+                action, portSet)
+            // egress port filter simulation
+
+            withLocalPorts(portSet.id, portSet.localPorts) { localPorts =>
+                // Take the outgoing filter for each port
+                // and apply it, checking for Action.ACCEPT.
+                val tags = mutable.Set[Any]()
+                applyOutboundFilters(localPorts, portSet.id, wMatch, Some(tags),
+                { portIDs =>
+                    addTranslatedFlowForActions(
+                        towardsLocalDpPorts(List(action), portSet.id,
+                            portsForLocalPorts(portIDs), tags),
+                        tags)
+                })
             }
         } recoverWith {
             case e =>

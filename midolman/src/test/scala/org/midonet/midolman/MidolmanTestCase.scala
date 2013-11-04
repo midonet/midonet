@@ -77,7 +77,8 @@ object MidolmanTestCaseLock {
 }
 
 trait MidolmanTestCase extends Suite with BeforeAndAfter
-        with OneInstancePerTest with ShouldMatchers with Dilation {
+        with OneInstancePerTest with ShouldMatchers with Dilation
+        with MidolmanServices {
 
     case class PacketsExecute(packet: Packet)
     case class FlowAdded(flow: Flow)
@@ -113,24 +114,8 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
         config
     }
 
-    def mockDpConn(): MockOvsDatapathConnection = {
-        dpConn().asInstanceOf[MockOvsDatapathConnection]
-    }
-
-    protected def dpConn(): OvsDatapathConnection = {
-        injector.getInstance(classOf[OvsDatapathConnection])
-    }
-
     protected def actors(): ActorSystem = {
         injector.getInstance(classOf[MidolmanActorsService]).system
-    }
-
-    protected def clusterClient(): Client = {
-        injector.getInstance(classOf[Client])
-    }
-
-    protected def clusterDataClient(): DataClient = {
-        injector.getInstance(classOf[DataClient])
     }
 
     protected def natMappingFactory(): NatMappingFactory = {
@@ -139,10 +124,6 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
 
     protected def newProbe(): TestProbe = {
         new TestProbe(actors())
-    }
-
-    protected def hostId(): UUID = {
-        injector.getInstance(classOf[HostIdProviderService]).getHostId
     }
 
     private def registerProbe[T](p: TestProbe, k: Class[T], s: EventStream) =

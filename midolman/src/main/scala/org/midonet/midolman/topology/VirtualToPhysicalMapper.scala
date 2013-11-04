@@ -628,7 +628,8 @@ class VirtualToPhysicalMapper
      *
      * Used for both normal bridges and vlan-aware bridges.
      */
-    private case class _DevicePortStatus(port: Port[_], device: Device,
+    private case class _DevicePortStatus(port: Port[_],
+                                         device: Device,
                                          active: Boolean)
 
     private case class _ResumePortActivation(portId: UUID)

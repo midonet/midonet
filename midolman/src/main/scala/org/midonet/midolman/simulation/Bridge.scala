@@ -65,7 +65,9 @@ import org.midonet.util.functors.Callback1
   * @param ipToMac
   * @param actorSystem
   */
-class Bridge(val id: UUID, val tunnelKey: Long,
+class Bridge(val id: UUID,
+             val adminStateUp: Boolean,
+             val tunnelKey: Long,
              val vlanMacTableMap: ROMap[JShort, MacLearningTable],
              val ip4MacMap: IpMacMap[IPv4Addr],
              val flowCount: MacFlowCount, val inFilter: Chain,
@@ -101,6 +103,9 @@ class Bridge(val id: UUID, val tunnelKey: Long,
         // Some basic sanity checks
         if (Ethernet.isMcast(packetContext.wcmatch.getEthernetSource)) {
             log.info("Packet has multi/broadcast source, DROP")
+            Promise.successful(DropAction)
+        } else if (!adminStateUp) {
+            log.debug("Bridge {} is down, DROP", id)
             Promise.successful(DropAction)
         } else
             normalProcess(packetContext)

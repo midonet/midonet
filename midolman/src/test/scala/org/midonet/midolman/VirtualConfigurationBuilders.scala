@@ -5,13 +5,11 @@ package org.midonet.midolman
 
 import java.util.UUID
 import java.util.{HashSet => JSet}
+
 import scala.collection.JavaConversions._
 
 import org.midonet.cluster.DataClient
-import org.midonet.cluster.data.Chain
-import org.midonet.cluster.data.Port
-import org.midonet.cluster.data.Ports
-import org.midonet.cluster.data.Route
+import org.midonet.cluster.data.{Bridge => ClusterBridge, Router => ClusterRouter, _}
 import org.midonet.cluster.data.dhcp.Subnet
 import org.midonet.cluster.data.dhcp.Subnet6
 import org.midonet.cluster.data.host.Host
@@ -19,13 +17,14 @@ import org.midonet.cluster.data.ports.{RouterPort, BridgePort}
 import org.midonet.cluster.data.rules.{ForwardNatRule, ReverseNatRule}
 import org.midonet.cluster.data.rules.{JumpRule, LiteralRule}
 import org.midonet.cluster.data.zones.GreTunnelZone
-import org.midonet.cluster.data.{Bridge => ClusterBridge}
-import org.midonet.cluster.data.{Router => ClusterRouter}
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.rules.Condition
 import org.midonet.midolman.rules.NatTarget
 import org.midonet.midolman.rules.RuleResult.Action
 import org.midonet.packets.MAC
+import org.midonet.midolman.state.DirectoryCallback
+import org.midonet.midolman.state.DirectoryCallback.Result
+import org.apache.zookeeper.KeeperException
 
 trait VirtualConfigurationBuilders {
 
@@ -249,7 +248,7 @@ trait VirtualConfigurationBuilders {
     }
 
     def deleteRoute(routeId: UUID) {
-        clusterDataClient().routesDelete(routeId);
+        clusterDataClient().routesDelete(routeId)
     }
 
     def addDhcpSubnet(bridge : ClusterBridge,
@@ -274,7 +273,26 @@ trait VirtualConfigurationBuilders {
                                               subnet.getPrefix, host)
     }
 
-    def linkPorts(portId: UUID, peerPortId: UUID) {
-        clusterDataClient().portsLink(portId, peerPortId)
+    def linkPorts(port: Port[_, _], peerPort: Port[_, _]) {
+        clusterDataClient().portsLink(port.getId, peerPort.getId)
+    }
+
+    def materializePort(port: Port[_, _], hostId: UUID, portName: String) {
+        clusterDataClient().hostsAddVrnPortMappingAndReturnPort(hostId,
+            port.getId, portName)
+
+        clusterDataClient().portsSetLocalAndActive(port.getId, true)
+
+        if (port.isInstanceOf[BridgePort]) {
+            clusterDataClient().portSetsAsyncAddHost(port.getDeviceId, hostId,
+                new DirectoryCallback.Add {
+                    override def onSuccess(result: Result[String]) {
+                    }
+                    override def onTimeout() {
+                    }
+                    override def onError(e: KeeperException) {
+                    }
+                })
+        }
     }
 }

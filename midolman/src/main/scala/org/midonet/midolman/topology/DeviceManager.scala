@@ -11,8 +11,8 @@ import org.midonet.midolman.topology.VirtualTopologyActor.{ChainRequest,
 import org.midonet.midolman.logging.ActorLogWithoutPath
 
 abstract class DeviceManager(val id: UUID) extends Actor with ActorLogWithoutPath {
-    var inFilter: Chain = null;
-    var outFilter: Chain = null;
+    var inFilter: Chain = null
+    var outFilter: Chain = null
 
     def configUpdated(): Unit = {
         // Unsubscribe from old inFilter if changed.
@@ -72,6 +72,8 @@ abstract class DeviceManager(val id: UUID) extends Actor with ActorLogWithoutPat
     def chainsReady = !waitingForInFilter && !waitingForOutFilter
 
     def chainsUpdated()
+
+    def isAdminStateUp: Boolean
 
     def getInFilterID: UUID
 
