@@ -547,7 +547,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         val peerPort = newRouterPort(peerRouter, peerMac, peerIp.toString,
                                      nwAddr, nwLen)
         peerPort should not be null
-        linkPorts(port.getId(), peerPort.getId())
+        linkPorts(port, peerPort)
 
         log.info("Feeding ARP cache for the uplink")
         feedArpCache("uplinkPort",

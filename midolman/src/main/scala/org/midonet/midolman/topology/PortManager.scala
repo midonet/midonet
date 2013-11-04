@@ -17,12 +17,20 @@ object PortManager{
 
 class PortManager(id: UUID, val clusterClient: Client)
     extends DeviceManager(id) {
-    var port: Port[_] = null
+
+    private var port: Port[_] = null
+    private var changed = false
 
     override def chainsUpdated() {
         log.info("chains updated, new port {}", port)
         // TODO(ross) better cloning this port before passing it
-        context.actorFor("..").tell(port)
+        VirtualTopologyActor.getRef() ! port
+
+        if (changed) {
+            VirtualTopologyActor.getRef() !
+                InvalidateFlowsByTag(FlowTagger.invalidateFlowsByDevice(port.id))
+            changed = false
+        }
     }
 
     override def preStart() {
@@ -30,26 +38,31 @@ class PortManager(id: UUID, val clusterClient: Client)
         clusterClient.getPort(id, new PortBuilderImpl(self))
     }
 
+    override def isAdminStateUp = {
+        port match {
+            case null => false
+            case _ => port.adminStateUp
+        }
+    }
+
     override def getInFilterID = {
         port match {
-            case null => null;
+            case null => null
             case _ => port.inFilterID
         }
     }
 
     override def getOutFilterID = {
         port match {
-            case null => null;
+            case null => null
             case _ => port.outFilterID
         }
     }
 
     override def receive = super.receive orElse {
         case TriggerUpdate(p: Port[_]) =>
+            changed = port != null
             port = p
             configUpdated()
-            context.actorFor("..") !
-                InvalidateFlowsByTag(FlowTagger.invalidateFlowsByDevice(p.id))
-
     }
 }

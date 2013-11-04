@@ -145,7 +145,9 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
     private def manageDevice(id: UUID, ctr: UUID => Actor): Unit = {
         if (!managed(id)) {
             log.info("Build a manager for device {}", id)
-            context.actorOf(Props(ctr(id)), name = id.toString)
+
+            val props = Props(ctr(id)).withDispatcher(context.dispatcher.id)
+            context.actorOf(props)
             managed.add(id)
             idToUnansweredClients.put(id, mutable.Set[ActorRef]())
             idToSubscribers.put(id, mutable.Set[ActorRef]())

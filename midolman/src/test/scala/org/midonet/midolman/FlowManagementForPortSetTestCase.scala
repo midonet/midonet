@@ -392,7 +392,6 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
         // Expect various invalidation messages, not necessarily in order
         // to prevent races
         var expected = immutable.Set(
-            FlowTagger.invalidateFlowsByDevice(port2OnHost1.getId),
             FlowTagger.invalidateDPPort(numPort2OnHost1),
             FlowTagger.invalidateByTunnelKey(port2OnHost1.getTunnelKey),
             FlowTagger.invalidateBroadcastFlows(bridge.getId, bridge.getId)

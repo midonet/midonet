@@ -3,71 +3,76 @@
 */
 package org.midonet.midolman.services
 
-import akka.actor.{Props, Actor}
-import akka.testkit.TestActorRef
 import com.google.inject.Inject
 import com.google.inject.Injector
 
-import org.midonet.midolman.DatapathController
-import org.midonet.midolman.DeduplicationActor
-import org.midonet.midolman.FlowController
-import org.midonet.midolman.NetlinkCallbackDispatcher
-import org.midonet.midolman.routingprotocols.RoutingManagerActor
-import org.midonet.midolman.topology.VirtualToPhysicalMapper
-import org.midonet.midolman.topology.VirtualTopologyActor
+import scala.collection.immutable.Queue
+import scala.collection.mutable
 
-class MessageAccumulator extends Actor {
-    private var msgs = List[Any]()
+import akka.actor.{Props, Actor}
+import akka.testkit.TestActorRef
 
-    override def receive = {
-        case msg => msgs ::= msg
-    }
+import org.midonet.midolman._
 
-    def get = msgs
-
-    def getAndClear = {
-        val ret = msgs
-        msgs = Nil
-        ret
-    }
+class EmptyActor extends Actor {
+    def receive: PartialFunction[Any, Unit] = Actor.emptyBehavior
 }
 
+trait MessageAccumulator extends Actor {
+    var messages = List[Any]()
+
+    def getAndClear() = {
+        val ret = messages
+        messages = List[Any]()
+        ret
+    }
+
+    abstract override def receive = {
+        case msg =>
+            messages = messages :+ msg
+            if (super.receive.isDefinedAt(msg))
+                super.receive.apply(msg)
+    }
+}
 /**
  * An actors service where all well-known actors are MessageAccumulator instances
  */
-class MockMidolmanActorsService extends MidolmanActorsService {
+sealed class MockMidolmanActorsService extends MidolmanActorsService {
+
     @Inject
     override val injector: Injector = null
+    private[this] var props: Map[String, Props] = null
+    private[this] val actors =
+        mutable.Map[String, TestActorRef[MessageAccumulator]]()
 
-    implicit def actorSystem = system
+    def actor(actor: Referenceable): TestActorRef[MessageAccumulator] =
+        actors.get(actor.Name).get
 
-    private var actorRefs = Map[String, TestActorRef[MessageAccumulator]]()
+    def register(actors: List[(Referenceable, () => MessageAccumulator)]) {
+        props = (actors map {
+            case (ref, f) => (ref.Name,Props(() => injectedActor(f)))
+        }).toMap
+    }
 
-    def actor(name: String) =
-        actorRefs.get(name) map { case ref => ref.underlyingActor }
+    private def injectedActor(f: => () => Actor) = {
+        val instance = f()
+        injector.injectMembers(instance)
+        instance
+    }
 
-    private def mockProps = new Props(() => new MessageAccumulator())
-
-    override protected def actorSpecs = List(
-        (mockProps, VirtualTopologyActor.Name),
-        (mockProps, VirtualToPhysicalMapper.Name),
-        (mockProps, DatapathController.Name),
-        (mockProps, FlowController.Name),
-        (mockProps, RoutingManagerActor.Name),
-        (mockProps, DeduplicationActor.Name),
-        (mockProps, NetlinkCallbackDispatcher.Name))
-
-    override protected def startActor(actorProps: Props, actorName: String) = {
+    override protected def startActor(actorProps: Props, name: String) = {
         supervisorActor map {
             supervisor =>
-                val testRef = TestActorRef[MessageAccumulator](actorProps, supervisor, actorName)
-                actorRefs += (actorName -> testRef)
+                val p = props.getOrElse(name, Props(() => new EmptyActor
+                                                       with MessageAccumulator))
+                val testRef = TestActorRef[MessageAccumulator](p, supervisor,
+                                                               name)(system)
+                actors += (name -> testRef)
                 testRef
         } getOrElse {
             throw new IllegalArgumentException("No supervisor actor")
         }
     }
 
-    override def initProcessing() {}
-
+    override def initProcessing() { }
 }

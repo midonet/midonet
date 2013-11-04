@@ -51,20 +51,21 @@ public class ClusterPortsManager extends ClusterManager<PortBuilder> {
         if (config == null)
             return;
 
-        Port<?> port = null;
+        Port port;
 
         if (config instanceof PortDirectory.BridgePortConfig) {
             port = new BridgePort();
         } else {
-            RouterPort p = new RouterPort();
             PortDirectory.RouterPortConfig cfg =
                     (PortDirectory.RouterPortConfig) config;
-            p.setPortAddr(new IPv4Subnet(
-                    IPv4Addr.fromString(cfg.getPortAddr()), cfg.nwLength));
-            p.setPortMac(cfg.getHwAddr());
-            port = p;
+            port = new RouterPort()
+                .setPortAddr(new IPv4Subnet(
+                    IPv4Addr.fromString(cfg.getPortAddr()), cfg.nwLength))
+                .setPortMac(cfg.getHwAddr());
         }
 
+        port.setTunnelKey(config.tunnelKey);
+        port.setAdminStateUp(config.adminStateUp);
         port.setDeviceID(config.device_id);
         port.setInFilter(config.inboundFilter);
         port.setOutFilter(config.outboundFilter);
@@ -76,7 +77,6 @@ public class ClusterPortsManager extends ClusterManager<PortBuilder> {
         if (config.portGroupIDs != null) {
             port.setPortGroups(config.portGroupIDs);
         }
-        port.setTunnelKey(config.tunnelKey);
 
         PortBuilder builder = getBuilder(id);
         if (builder != null) {

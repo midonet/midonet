@@ -20,11 +20,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.midonet.cluster.client.ArpCache;
 import org.midonet.cluster.client.BridgeBuilder;
-import org.midonet.cluster.client.ForwardingElementBuilder;
 import org.midonet.cluster.client.IpMacMap;
 import org.midonet.cluster.client.MacLearningTable;
 import org.midonet.cluster.client.RouterBuilder;
-import org.midonet.cluster.client.SourceNatResource;
 import org.midonet.cluster.client.VlanPortMap;
 import org.midonet.midolman.Setup;
 import org.midonet.midolman.config.MidolmanConfig;
@@ -283,6 +281,11 @@ public class LocalClientImplTest {
         }
 
         @Override
+        public BridgeBuilder setAdminStateUp(boolean adminStateUp) {
+            return this;
+        }
+
+        @Override
         public void setTunnelKey(long key) {
         }
 
@@ -321,21 +324,12 @@ public class LocalClientImplTest {
         }
 
         @Override
-        public void setSourceNatResource(SourceNatResource resource) {
-        }
-
-        @Override
-        public ForwardingElementBuilder setID(UUID id) {
+        public BridgeBuilder setInFilter(UUID filterID) {
             return this;
         }
 
         @Override
-        public ForwardingElementBuilder setInFilter(UUID filterID) {
-            return this;
-        }
-
-        @Override
-        public ForwardingElementBuilder setOutFilter(UUID filterID) {
+        public BridgeBuilder setOutFilter(UUID filterID) {
             return this;
         }
 
@@ -383,23 +377,18 @@ public class LocalClientImplTest {
         }
 
         @Override
-        public void setSourceNatResource(SourceNatResource resource) {
-            // TODO Auto-generated method stub
+        public RouterBuilder setAdminStateUp(boolean adminStateUp) {
+            return this;
 
         }
 
         @Override
-        public ForwardingElementBuilder setID(UUID id) {
+        public RouterBuilder setInFilter(UUID filterID) {
             return this;
         }
 
         @Override
-        public ForwardingElementBuilder setInFilter(UUID filterID) {
-            return this;
-        }
-
-        @Override
-        public ForwardingElementBuilder setOutFilter(UUID filterID) {
+        public RouterBuilder setOutFilter(UUID filterID) {
             return this;
         }
 

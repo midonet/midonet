@@ -2,11 +2,9 @@
 
 package org.midonet.midolman.simulation
 
-import java.lang.{Short => JShort}
 import java.util.UUID
 import scala.collection.JavaConversions._
 import scala.collection.immutable
-import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
 import akka.actor.{ActorContext, ActorSystem}
@@ -27,7 +25,7 @@ import org.midonet.packets.{Ethernet, ICMP, IPv4, IPv4Addr, IPv6Addr, TCP, UDP}
 import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPort
 import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPortSet
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
-
+import org.midonet.midolman.simulation.Icmp.IPv4Icmp._
 
 object Coordinator {
 
@@ -124,7 +122,8 @@ class Coordinator(var origMatch: WildcardMatch,
 
     import Coordinator._
 
-    val log = LoggerFactory.getSimulationAwareLog(this.getClass)(actorSystem.eventStream)
+    implicit val log = LoggerFactory.getSimulationAwareLog(
+        this.getClass)(actorSystem.eventStream)
     private val TEMPORARY_DROP_MILLIS = 5 * 1000
     private val IDLE_EXPIRATION_MILLIS = 60 * 1000
     private val RETURN_FLOW_EXPIRATION_MILLIS = 60 * 1000
@@ -132,7 +131,7 @@ class Coordinator(var origMatch: WildcardMatch,
 
     // Used to detect loops: devices simulated (with duplicates).
     private var numDevicesSimulated = 0
-    private val devicesSimulated = mutable.Map[UUID, Int]()
+    //private val devicesSimulated = mutable.Map[UUID, Int]()
     implicit private val pktContext = new PacketContext(cookie, origEthernetPkt,
          expiry, connectionCache, traceMessageCache, traceIndexCache,
          generatedPacketEgressPort.isDefined, parentCookie, origMatch)
@@ -148,7 +147,7 @@ class Coordinator(var origMatch: WildcardMatch,
             if (condition.matches(pktContext, origMatch, false))
                 return true
         }
-        return false
+        false
     }
 
     private def dropFlow(temporary: Boolean, withTags: Boolean = false):
@@ -329,21 +328,18 @@ class Coordinator(var origMatch: WildcardMatch,
     }
 
 
-    private def packetIngressesDevice(port: Port[_]): Future[SimulationResult] = {
-        var deviceFuture: Future[Any] = null
-        port match {
+    private def packetIngressesDevice(port: Port[_]):
+    Future[SimulationResult] =
+        (port match {
             case _: BridgePort =>
-                deviceFuture = expiringAsk(
-                    BridgeRequest(port.deviceID, update = false), expiry)
+                expiringAsk(BridgeRequest(port.deviceID, update = false), expiry)
             case _: RouterPort =>
-                deviceFuture = expiringAsk(
-                    RouterRequest(port.deviceID, update = false), expiry)
+                expiringAsk(RouterRequest(port.deviceID, update = false), expiry)
             case _ =>
                 log.error("Port {} belongs to device {} which is neither a " +
                           "bridge, vlan-bridge, or router!", port, port.deviceID)
                 return dropFlow(temporary = true)
-        }
-        deviceFuture map {Option(_)} recoverWith {
+        }) map {Option(_)} recoverWith {
             case ex =>
                 log.warning("Failed to get device: {} -- {}", port.deviceID, ex)
                 Promise.successful(None)
@@ -351,22 +347,18 @@ class Coordinator(var origMatch: WildcardMatch,
             case None =>
                 pktContext.traceMessage(port.deviceID, "Couldn't get device")
                 dropFlow(temporary = true)
-            case Some(deviceReply) =>
-                if (!deviceReply.isInstanceOf[Device]) {
-                    log.error("VirtualTopologyManager didn't return a device!")
-                    pktContext.traceMessage(port.deviceID, "ERROR Not a device")
-                    dropFlow(temporary = true)
-                } else {
-                    numDevicesSimulated += 1
-                    devicesSimulated.put(port.deviceID, numDevicesSimulated)
-                    log.debug("Simulating packet with match {}, device {}",
-                        pktContext.wcmatch, port.deviceID)
-                    pktContext.traceMessage(port.deviceID, "Entering device")
-                    handleActionFuture(deviceReply.asInstanceOf[Device].process(
-                        pktContext))
-                }
+            case Some(deviceReply: Device) =>
+                numDevicesSimulated += 1
+                //devicesSimulated.put(port.deviceID, numDevicesSimulated)
+                log.debug("Simulating packet with match {}, device {}",
+                    pktContext.wcmatch, port.deviceID)
+                pktContext.traceMessage(port.deviceID, "Entering device")
+                handleActionFuture(deviceReply.process(pktContext))
+            case Some(_) =>
+                log.error("VirtualTopologyManager didn't return a device!")
+                pktContext.traceMessage(port.deviceID, "ERROR Not a device")
+                dropFlow(temporary = true)
         }
-    }
 
     private def mergeSimulationResults(firstAction: SimulationResult,
                                        secondAction: SimulationResult,
@@ -529,8 +521,8 @@ class Coordinator(var origMatch: WildcardMatch,
                 ErrorDropAction
         } flatMap { handleAction(_) }
 
-    private def packetIngressesPort(portID: UUID, getPortGroups: Boolean):
-            Future[SimulationResult] = {
+    private def packetIngressesPort(portID: UUID, getPortGroups: Boolean)
+    : Future[SimulationResult] = {
 
         // Avoid loops - simulate at most X devices.
         if (numDevicesSimulated >= MAX_DEVICES_TRAVERSED) {
@@ -538,30 +530,22 @@ class Coordinator(var origMatch: WildcardMatch,
         }
 
         // Get the RCU port object and start simulation.
-        val portFuture = expiringAsk(PortRequest(portID, update = false), expiry)
-        portFuture map {Option(_)} recoverWith {
-            case ex =>
-                log.warning("Failed to get port: {} - {}", portID, ex)
-                Promise.successful(None)
-        } flatMap {
-            case None =>
+        fetchPort(portID) flatMap {
+            case null =>
                 dropFlow(temporary = true)
-            case Some(p) => p match {
-                case port: Port[_] =>
-                    if (getPortGroups && port.isExterior) {
-                        pktContext.setPortGroups(port.portGroups)
-                    }
+            case p if !p.adminStateUp =>
+                processAdminStateDown(p, isIngress = true)
+            case p =>
+                if (getPortGroups && p.isExterior) {
+                    pktContext.setPortGroups(p.portGroups)
+                }
 
-                    pktContext.setInputPort(port)
-                    val future = applyPortFilter(port, port.inFilterID,
-                        packetIngressesDevice _)
-                    // add tag for flow invalidation
-                    pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(portID))
-                    future
-                case _ =>
-                    log.error("VirtualTopologyManager didn't return a port!")
-                    dropFlow(temporary = true)
-            }
+                pktContext.setInputPort(p)
+                val future = applyPortFilter(p, p.inFilterID,
+                                             packetIngressesDevice)
+                // add tag for flow invalidation
+                pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(portID))
+                future
         }
     }
 
@@ -609,33 +593,25 @@ class Coordinator(var origMatch: WildcardMatch,
      * @param portID
      */
     private def packetEgressesPort(portID: UUID): Future[SimulationResult] = {
-        val portFuture =  expiringAsk(PortRequest(portID, update = false), expiry)
-        portFuture map {Option(_)} recoverWith {
-            case ex =>
-                log.warning("Failed to get port: {} - {}", portID, ex)
-                Promise.successful(None)
-        } flatMap {
-            case None =>
+        fetchPort(portID) flatMap {
+            case null =>
                 dropFlow(temporary = true)
-            case Some(reply) => reply match {
-                case port: Port[_] =>
-                    // add tag for flow invalidation
-                    pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(portID))
-                    pktContext.setOutputPort(port.id)
-                    applyPortFilter(port, port.outFilterID, {
-                        case port: Port[_] if port.isExterior =>
-                            emit(portID, isPortSet = false, port)
-                        case port: Port[_] if port.isInterior =>
-                            packetIngressesPort(port.peerID,
-                                getPortGroups = false)
-                        case _ =>
-                            log.warning("Port {} is unplugged", port)
-                            dropFlow(temporary = true)
-                    })
-                case _ =>
-                    log.error("VirtualTopologyManager didn't return a port!")
-                    dropFlow(temporary = true)
-            }
+            case port if !port.adminStateUp =>
+                processAdminStateDown(port, isIngress = false)
+            case port =>
+                // add tag for flow invalidation
+                pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(portID))
+                pktContext.setOutputPort(port.id)
+                applyPortFilter(port, port.outFilterID, {
+                    case port: Port[_] if port.isExterior =>
+                        emit(portID, isPortSet = false, port)
+                    case port: Port[_] if port.isInterior =>
+                        packetIngressesPort(port.peerID,
+                            getPortGroups = false)
+                    case _ =>
+                        log.warning("Port {} is unplugged", port)
+                        dropFlow(temporary = true)
+                })
         }
     }
 
@@ -705,6 +681,36 @@ class Coordinator(var origMatch: WildcardMatch,
                                        pktContext.getFlowTags)
         }
     }
+
+    private[this] def processAdminStateDown(port: Port[_],
+                                            isIngress: Boolean) = {
+        port match {
+            case p: RouterPort if isIngress =>
+                sendUnreachableProhibitedIcmp(p,
+                    pktContext.wcmatch, pktContext.getFrame)
+            case p: RouterPort if pktContext.getInPortId != null =>
+                fetchPort(pktContext.getInPortId) map {
+                    case p: RouterPort =>
+                        sendUnreachableProhibitedIcmp(p,
+                            pktContext.wcmatch, pktContext.getFrame)
+                    case _ =>
+                }
+            case _ =>
+        }
+
+        dropFlow(temporary = false)
+    }
+
+    private[this] def fetchPort(portId: UUID): Future[Port[_]] =
+        expiringAsk(PortRequest(portId, update = false), expiry)
+        .mapTo[Port[_]] recover {
+            case ex: ClassCastException =>
+                log.error("VirtualTopologyManager didn't return a port!")
+                null
+            case ex =>
+                log.warning("Failed to get port: {} - {}", portId, ex)
+                null
+        }
 
     private def installConnectionCacheEntry(outPortID: UUID,
                                             flowMatch: WildcardMatch,

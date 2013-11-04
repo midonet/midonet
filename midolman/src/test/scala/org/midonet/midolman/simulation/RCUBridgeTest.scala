@@ -67,8 +67,8 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
         val macLearningTables = Map[JShort, MacLearningTable]()
         macLearningTables.put(data.Bridge.UNTAGGED_VLAN_ID, macPortMap)
 
-        bridge = new Bridge(bridgeID, 0, macLearningTables, ip4MacMap, flowCount,
-                            inFilter, outFilter, vlanBridgePortId,
+        bridge = new Bridge(bridgeID, true, 0, macLearningTables, ip4MacMap,
+                            flowCount, inFilter, outFilter, vlanBridgePortId,
                             flowRemovedCallbackGen, rtrMacToLogicalPortId,
                             rtrIpToMac, vlanToPort)
     }

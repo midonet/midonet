@@ -2,13 +2,12 @@
 
 package org.midonet.midolman
 
-import scala.collection.mutable
+import scala.collection.{Set => ROSet, IterableView, mutable}
 import scala.collection.mutable.ListBuffer
-import scala.collection.{Set => ROSet}
 import java.{util => ju}
 import java.util.UUID
 
-import akka.actor.{ActorContext, ActorSystem}
+import akka.actor.{Actor, ActorContext, ActorSystem}
 import akka.dispatch.{ExecutionContext, Promise, Future}
 import akka.event.LoggingAdapter
 import akka.pattern.ask
@@ -353,33 +352,38 @@ trait FlowTranslator {
                                                                 deviceId)
             }
 
-            val localPortFutures = outPorts.toSeq map {
-                portID => VirtualTopologyActor.expiringAsk(
-                    PortRequest(portID, update = false))(ec, system)
-                    .mapTo[Port[_]].recoverWith {
-                        case e =>
-                            log.error(e, "VTA didn't provide port {}",
-                                      portID)
-                            Promise.failed(e)
-                    }
-            }
-
-            val futSeq = Future.sequence(localPortFutures)
-                                        (Seq.canBuildFrom[Port[_]], ec)
-            futSeq recoverWith {
-                case ex => log.error(ex, "Error with local ports {}", ex)
-                Promise.failed(ex)
-            } flatMap { localPorts =>
+            withLocalPorts(portSet, outPorts) { localPorts =>
                 applyOutboundFilters(localPorts, portSet, wMatch, dpTags,
-                    { portIDs =>
-                        val t = toPortSet(actions, portSet,
-                                          portsForLocalPorts(portIDs),
-                                          Some(tunnelKey), set.hosts.toSeq,
-                                          dpTags.orNull)
-                        Promise.successful(Some(t))
-                    })(ec, system)
-           }
+                { portIDs =>
+                    val t = toPortSet(actions, portSet,
+                        portsForLocalPorts(portIDs),
+                        Some(tunnelKey), set.hosts.toSeq,
+                        dpTags.orNull)
+                    Promise.successful(Some(t))
+                })(ec, system)
+            }
         }} // closing the 2 flatmaps
+    }
+
+    protected def withLocalPorts[A](portSet: UUID, portIds: Set[UUID])
+                                   (f: Seq[Port[_]] => Future[A])
+                                   (implicit ec: ExecutionContext,
+                                           system: ActorSystem): Future[A] = {
+        val fs = portIds map { portID =>
+            VirtualTopologyActor.expiringAsk(
+                PortRequest(portID, update = false))(ec, system)
+           .mapTo[Port[_]] recover {
+                case e =>
+                    log.error(e, "VTA didn't provide port {}",
+                        portID)
+                    throw e
+           }
+        }
+
+        Future.sequence(fs) flatMap { localPorts =>
+            val upLocalPorts = localPorts filter { _.adminStateUp }
+            f(upLocalPorts.toSeq)
+        }
     }
 
     private def expandPortAction(actions: Seq[FlowAction[_]],

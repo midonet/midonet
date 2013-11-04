@@ -5,8 +5,11 @@ package org.midonet.midolman.guice.zookeeper;
 
 import javax.inject.Singleton;
 
+import com.google.inject.name.Names;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.MockDirectory;
+import org.midonet.util.eventloop.Reactor;
+import org.midonet.util.eventloop.CallingThreadReactor;
 
 public class MockZookeeperConnectionModule  extends ZookeeperConnectionModule {
 
@@ -35,5 +38,13 @@ public class MockZookeeperConnectionModule  extends ZookeeperConnectionModule {
             bind(Directory.class)
                 .toInstance(directory);
         }
+    }
+
+    @Override
+    protected void bindReactor() {
+        bind(Reactor.class).annotatedWith(
+                Names.named(ZKConnectionProvider.DIRECTORY_REACTOR_TAG))
+                .to(CallingThreadReactor.class)
+                .asEagerSingleton();
     }
 }

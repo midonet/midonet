@@ -44,6 +44,11 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
     private var vlanBridgePeerPortId: Option[UUID] = None
     private var vlanPortMap: VlanPortMap = null
 
+    def setAdminStateUp(adminStateUp: Boolean) = {
+        cfg = cfg.copy(adminStateUp = adminStateUp)
+        this
+    }
+
     def setTunnelKey(key: Long) {
         cfg = cfg.copy(tunnelKey = key.toInt)
     }
@@ -58,10 +63,7 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
 
     def setMacLearningTable(vlanId: Short, table: MacLearningTable) {
         vlanMacTableMap.put(vlanId, table)
-        vlanMacTableMap.get(vlanId) match {
-            case Some(x) => x.notify(new MacTableNotifyCallBack(vlanId))
-            case _ =>
-        }
+        table.notify(new MacTableNotifyCallBack(vlanId))
     }
 
     override def setIp4MacMap(m: IpMacMap[IPv4Addr]) {
@@ -70,10 +72,6 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
             // TODO(pino): set the notification callback on this map?
         }
     }
-
-    def setSourceNatResource(resource: SourceNatResource) {}
-
-    def setID(id: UUID) = null //useless TODO(ross): delete it
 
     def setInFilter(filterID: UUID) = {
         cfg = cfg.copy(inboundFilter = filterID)

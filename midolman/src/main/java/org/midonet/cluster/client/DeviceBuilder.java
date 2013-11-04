@@ -7,7 +7,7 @@ import java.util.UUID;
 public interface DeviceBuilder<ConcreteDeviceBulder>
     extends Builder<ConcreteDeviceBulder> {
 
-    ConcreteDeviceBulder setID(UUID id);
+    ConcreteDeviceBulder setAdminStateUp(boolean adminStateUp);
 
     ConcreteDeviceBulder setInFilter(UUID filterID);
 
