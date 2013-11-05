@@ -4,10 +4,12 @@
 package org.midonet.midolman.topology
 
 import java.util.UUID
+import java.util.concurrent.TimeoutException
 import scala.collection.immutable.{Set => ROSet}
 import scala.collection.{immutable, mutable}
 
 import akka.actor._
+import akka.dispatch.{ Future, Promise}
 import akka.util.Timeout
 import akka.util.duration._
 import com.google.inject.Inject
@@ -121,7 +123,7 @@ trait DeviceHandler {
 class DeviceHandlersManager[T <: AnyRef](handler: DeviceHandler) {
 
     val devices = mutable.Map[UUID, T]()
-    
+
     private[this] val deviceHandlers = mutable.Set[UUID]()
     private[this] val deviceSubscribers = mutable.Map[UUID, mutable.Set[ActorRef]]()
     private[this] val deviceOneShotSubscribers = mutable.Map[UUID, mutable.Set[ActorRef]]()
@@ -136,13 +138,13 @@ class DeviceHandlersManager[T <: AnyRef](handler: DeviceHandler) {
     }
 
     def addSubscriber(deviceId: UUID, subscriber: ActorRef, updates: Boolean) {
-        if (updates) 
+        if (updates)
             deviceSubscribers.getOrElseUpdate(deviceId, mutable.Set()) += subscriber
 
         devices.get(deviceId) match {
             case Some(device) => subscriber ! device
             case None =>
-                if (!updates) 
+                if (!updates)
                     deviceOneShotSubscribers.getOrElseUpdate(deviceId, mutable.Set()) += subscriber
         }
 
@@ -160,9 +162,9 @@ class DeviceHandlersManager[T <: AnyRef](handler: DeviceHandler) {
 
     def notifySubscribers(deviceId: UUID, message: AnyRef) {
         ensureHandler(deviceId)
-    
+
         doNotifySubscribers(deviceSubscribers, deviceId, message)
-    
+
         doNotifySubscribers(deviceOneShotSubscribers, deviceId, message)
         deviceOneShotSubscribers.remove(deviceId)
     }
@@ -292,6 +294,25 @@ class VirtualToPhysicalMapper
     implicit val requestReplyTimeout = new Timeout(1 second)
     implicit val executor = context.dispatcher
 
+    /** map of queues of LocalPortActive msgs to process later, preserving
+     *  arrival order. */
+    var portActiveFifo = Map[UUID,Vector[LocalPortActive]]()
+
+    private def freezePortActivation(vport: UUID): Unit = {
+        portActiveFifo = portActiveFifo + (vport -> Vector[LocalPortActive]())
+    }
+
+    private def deferPortActiveMsg(msg: LocalPortActive): Unit = {
+        for (msgs <- portActiveFifo.get(msg.portID)) {
+            portActiveFifo = portActiveFifo + (msg.portID -> (msgs :+ msg))
+        }
+    }
+
+    private def resumePortActivation(vport: UUID): Unit = {
+        for (msgs <- portActiveFifo.get(vport); m <- msgs) { self ! m }
+        portActiveFifo = portActiveFifo - vport
+    }
+
     @scala.throws(classOf[Exception])
     def onReceive(message: Any) {
         message match {
@@ -340,43 +361,33 @@ class VirtualToPhysicalMapper
                                                                zoneChanged)
                 }
 
+            case LocalPortActive(vportID, active)
+                if (portActiveFifo.contains(vportID)) =>
+                log.debug("Defering {}", message)
+                deferPortActiveMsg(message.asInstanceOf[LocalPortActive])
+
             case LocalPortActive(vportID, active) =>
-                log.debug("Received a LocalPortActive {} for {}",
-                    active, vportID)
+                log.debug("Received {}", message)
+                freezePortActivation(vportID)
                 notifyLocalPortActive(vportID, active)
 
                 // We need to track whether the vport belongs to a PortSet.
-                // Fetch the port configuration first. Make the timeout long
-                // enough that it has a chance to retry.
-                val f1 = VirtualTopologyActor.expiringAsk(
-                    PortRequest(vportID, update = false)).mapTo[Port[_]]
-                f1 onComplete {
-                    case Left(ex) =>
-                        log.error(ex, "Failed to get config for port that " +
-                            "became {}: {}", if (active) "active"
-                            else "inactive", vportID)
-                    case Right(port) => port match {
-                        case _: BridgePort =>
-                            log.debug("LocalPortActive - it's a bridge port")
-                            // Get the bridge config. Make the timeout long
-                            // enough that it has a chance to retry.
-                            val f2 = VirtualTopologyActor.expiringAsk(
-                                BridgeRequest(port.deviceID, update = false))
-                                .mapTo[Bridge]
-                            f2 onComplete {
-                                case Left(ex) =>
-                                    log.error(ex, "Failed to get bridge " +
-                                        "config for bridge port that became " +
-                                        "{}: {}", if (active) "active"
-                                        else "inactive", vportID)
-                                case Right(br) =>
-                                    self ! _DevicePortStatus(port, br, active)
-                            }
-                        case _ =>  // not a bridge port
-                            system.eventStream.publish(
-                                           LocalPortActive(vportID, active))
-                    }
+                // Fetch the port configuration and see if it s in a bridge.
+                getPortConfig(vportID) map {
+                    case Some((port, br)) => // bridge port
+                        self ! _DevicePortStatus(port, br, active)
+                    case None => // not a bridge port
+                        context.system.eventStream.publish(
+                            LocalPortActive(vportID, active))
+                } onComplete {
+                    case _ =>
+                        // scheduling processing of defered LocalPortActive
+                        // msgs for this vport uuid.
+                        self ! _ResumePortActivation(vportID)
                 }
+
+            case _ResumePortActivation(vportID) =>
+                resumePortActivation(vportID)
 
             case _DevicePortStatus(port, device, active) =>
                 val (deviceId: UUID, tunnelKey: Long) = device match {
@@ -467,6 +478,31 @@ class VirtualToPhysicalMapper
         }
     }
 
+    /** Requests a port config from the VirtualTopologyActor and returns it
+     *  as a tuple, or None if the port is not a BridgePort. The request is
+     *  processed asynchronously inside a Future. If the future timeouts
+     *  the request reschedules itself 3 times before failing. */
+    private def getPortConfig(vport: UUID, retries: Int = 3)
+            : Future[Option[(Port[_], Device)]] =
+        VirtualTopologyActor.expiringAsk(
+            PortRequest(vport, update=false)
+        ).flatMap[Option[(Port[_], Device)]] {
+            case brPort: BridgePort =>
+                val req = BridgeRequest(brPort.deviceID, update=false)
+                VirtualTopologyActor.expiringAsk(req).mapTo[Bridge]
+                    .map { br => Some((brPort, br)) }
+            case _ => // not a bridgePort, sending back None
+                Promise.successful(None)
+        } recoverWith {
+            case _ : TimeoutException if retries > 0 =>
+                log.warning("VirtualTopologyActor request timeout " +
+                    "for config of port {} -> retrying", vport)
+                getPortConfig(vport, retries - 1)
+            case ex =>
+                log.error("Could not get config for port {}: {}", vport, ex)
+                Promise.failed(ex)
+        }
+
     private def applyZoneChangeOp(zoneChanged: ZoneChanged[_]) : ZoneMembers[_] = {
         val id = zoneChanged.zone
         val oldZone = tunnelZones.devices.get(id)
@@ -556,6 +592,8 @@ class VirtualToPhysicalMapper
      */
     private case class _DevicePortStatus(port: Port[_], device: Device,
                                          active: Boolean)
+
+    private case class _ResumePortActivation(portId: UUID)
 
     private case class _PortSetOpResult(
             subscribe: Boolean, psetID: UUID,
