@@ -3,12 +3,12 @@
  */
 package org.midonet.midolman.topology
 
-import collection.JavaConverters._
-import collection.immutable
-import collection.mutable
-import compat.Platform
 import java.util.UUID
 import java.util.concurrent.TimeoutException
+import scala.collection.JavaConverters._
+import scala.collection.immutable
+import scala.collection.mutable
+import scala.compat.Platform
 
 import akka.actor._
 import akka.dispatch.{Promise, Future, ExecutionContext}
