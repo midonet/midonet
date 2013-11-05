@@ -3,7 +3,6 @@
  */
 package org.midonet.midolman
 
-import akka.testkit.TestProbe
 import scala.collection.JavaConversions._
 import scala.collection.mutable.{ListBuffer, HashMap}
 
@@ -12,20 +11,20 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
 
-import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
-import org.midonet.midolman.DeduplicationActor.DiscardPacket
-import org.midonet.midolman.guice.actors.OutgoingMessage
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
-import org.midonet.midolman.topology.LocalPortActive
-import org.midonet.midolman.topology.VirtualToPhysicalMapper.HostRequest
 import org.midonet.midolman.util.RouterHelper
 import org.midonet.cluster.data.dhcp.Opt121
 import org.midonet.cluster.data.dhcp.Subnet
-import org.midonet.odp.Packet
 import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
-import org.midonet.odp.flows.{FlowAction, FlowActionOutput, FlowActions}
+import org.midonet.odp.flows.{FlowAction, FlowActionOutput}
 import org.midonet.packets._
+import org.midonet.midolman.topology.LocalPortActive
+import scala.Some
+import org.midonet.midolman.guice.actors.OutgoingMessage
+import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
+import org.midonet.midolman.DeduplicationActor.DiscardPacket
+import org.midonet.midolman.topology.VirtualToPhysicalMapper.HostRequest
 
 @Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
@@ -42,7 +41,7 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
     val vm1Mac = MAC.fromString("02:23:24:25:26:27")
     val vm1Ip = new IPv4Subnet("192.168.111.2", 24)
     // DHCP client
-    val vm2IP = new IPv4Subnet("192.168.222.2", 24)
+    val vm2Ip = new IPv4Subnet("192.168.222.2", 24)
     val vm2Mac = MAC.fromString("02:DD:AA:DD:AA:03")
     var brPort2 : BridgePort = null
     val vm2PortName = "VM2"
@@ -129,7 +128,7 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
         }
         var dhcpHost = (new org.midonet.cluster.data.dhcp.Host()
                            .setMAC(vm2Mac)
-                           .setIp(new IntIPv4(vm2IP)))
+                           .setIp(new IntIPv4(vm2Ip)))
         addDhcpHost(bridge, dhcpSubnet, dhcpHost)
 
         flowProbe().expectMsgType[DatapathController.DatapathReady].datapath should not be (null)
@@ -298,25 +297,25 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
         expectEmitDhcpReply(DHCPOption.MsgType.ACK.value)
         expectPacketOut(vm2PortNumber)
 
-        val vm2IpInt = vm2IP.getAddress.addr
+        val vm2IpInt = vm2Ip.getAddress.addr
         dhcpClientIp should be === vm2IpInt
 
-        feedArpCache(vm2PortName, vm2IP.getAddress.addr, vm2Mac,
+        feedArpCache(vm2PortName, vm2Ip.getAddress.addr, vm2Mac,
                      routerIp2.getAddress.addr, routerMac2)
         expectPacketIn()
         fishForRequestOfType[DiscardPacket](discardPacketProbe)
         drainProbes()
 
         log.info("Ping Router port 2")
-        doIcmpExchange(vm2PortName, vm2Mac, vm2IP.getAddress,
+        doIcmpExchange(vm2PortName, vm2Mac, vm2Ip.getAddress,
             routerMac2, routerIp2.getAddress)
 
         log.info("Ping Router port 1")
-        doIcmpExchange(vm2PortName, vm2Mac, vm2IP.getAddress,
+        doIcmpExchange(vm2PortName, vm2Mac, vm2Ip.getAddress,
             routerMac2, routerIp1.getAddress)
 
         log.info("Ping VM1, not expecting any reply")
-        injectIcmpEchoReq(vm2PortName, vm2Mac, vm2IP.getAddress,
+        injectIcmpEchoReq(vm2PortName, vm2Mac, vm2Ip.getAddress,
             routerMac2, vm1Ip.getAddress)
         expectPacketIn()
         // This generated packet is an ARP request, the ICMP echo will not be
@@ -327,7 +326,7 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
 
         log.info("Send Ping reply on behalf of VM1")
         injectIcmpEchoReply(rtrPort1Name, vm1Mac, vm1Ip.getAddress, 16, 32,
-                            routerMac1, vm2IP.getAddress)
+                            routerMac1, vm2Ip.getAddress)
         expectPacketIn()
 
         log.info("Expecting packet out on VM2 port")
@@ -336,9 +335,76 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
         ipPak should not be null
         ipPak.getProtocol should be (ICMP.PROTOCOL_NUMBER)
         ipPak.getSourceAddress should be (vm1Ip.getAddress.addr)
-        ipPak.getDestinationAddress should be (vm2IP.getAddress.addr)
+        ipPak.getDestinationAddress should be (vm2Ip.getAddress.addr)
         val icmpPak= ipPak.getPayload.asInstanceOf[ICMP]
         icmpPak should not be null
         icmpPak.getType should be (ICMP.TYPE_ECHO_REPLY)
+    }
+
+    private def makeIcmpReqs(srcMac: MAC, srcIp: IPv4Addr,
+                             dstMac: MAC, dstIp: IPv4Addr,
+                             icmpId: Short, howMany: Short,
+                             icmps: List[Ethernet] = List()): List[Ethernet] = {
+
+        if (howMany == 0)
+            return icmps
+
+        val echo = new ICMP()
+        echo.setEchoRequest(icmpId, howMany, "My ICMP".getBytes)
+
+        val eth: Ethernet = new Ethernet()
+        eth.setSourceMACAddress(srcMac)
+        eth.setDestinationMACAddress(dstMac)
+        eth.setEtherType(IPv4.ETHERTYPE)
+        eth.setPayload(new IPv4().setSourceAddress(srcIp.addr)
+                                 .setDestinationAddress(dstIp.addr)
+                                 .setProtocol(ICMP.PROTOCOL_NUMBER)
+                                 .setPayload(echo))
+
+        makeIcmpReqs(srcMac, srcIp, dstMac, dstIp, icmpId,
+                     (howMany - 1).toShort, eth :: icmps)
+    }
+    /*
+     * Sends a few pings all at once to make sure that the DDA picks them up
+     * and and processes them correctly without overwriting the seqs as per
+     * MN-273.
+     */
+    def testFlood() {
+
+        def icmp_quench(eth: Ethernet) = {
+            val i = eth.getPayload.asInstanceOf[IPv4].getPayload.asInstanceOf[ICMP]
+            (i.getIdentifier, i.getSequenceNum)
+        }
+
+        // Let's feed the ARP cache to make sure there are no unexpected ARPs
+        feedArpCache(vm2PortName, vm2Ip.getAddress.addr, vm2Mac,
+                     routerIp2.getAddress.addr, routerMac2)
+        expectPacketIn()
+        fishForRequestOfType[DiscardPacket](discardPacketProbe)
+        drainProbes()
+
+        // Deliver 10 ICMPs at once to the DDA in the same batch, 9 should be
+        // pended
+        val icmpId: Short = 85.toShort
+        val howMany: Short = 20
+        triggerPacketsIn(rtrPort1Name,
+                         makeIcmpReqs(vm1Mac, vm1Ip.getAddress, routerMac1,
+                                      vm2Ip.getAddress, icmpId, howMany))
+
+        // We should have a WF added for the FIRST packet
+        ackWCAdded().getMatch.getIcmpIdentifier should be === icmpId
+
+        // This gives time to the DDA to send the pended packets
+        drainProbes()
+
+        // Verify what all were sent, note that the ARPs do not get emitted
+        mockDpConn().packetsSent should have size howMany
+        val seqs = mockDpConn().packetsSent.map ( p => {
+            icmp_quench(p.getPacket) match {
+                case (`icmpId`, seq: Short) => seq
+                case _ => -1
+            }
+        }).filter(x => x > 0)
+        seqs.sorted should be === (1 to howMany)
     }
 }

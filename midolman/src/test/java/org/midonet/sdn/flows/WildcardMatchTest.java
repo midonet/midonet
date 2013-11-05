@@ -108,17 +108,6 @@ public class WildcardMatchTest {
     }
 
     @Test
-    public void testSetIcmpSeq() {
-        WildcardMatch wmatch = new WildcardMatch();
-        Short icmpSeq = 0x53;
-        wmatch.setIcmpSeq(icmpSeq);
-        Assert.assertEquals(icmpSeq, wmatch.getIcmpSeq());
-        assertThat(wmatch.getUsedFields(), hasSize(1));
-        assertThat(wmatch.getUsedFields(),
-                   contains(WildcardMatch.Field.IcmpSeq));
-    }
-
-    @Test
     public void testSetTpDest() {
         WildcardMatch wmatch = new WildcardMatch();
         int tpDest = 0x11ee;
