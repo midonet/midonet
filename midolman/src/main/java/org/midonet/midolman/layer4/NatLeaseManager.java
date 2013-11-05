@@ -515,7 +515,7 @@ public class NatLeaseManager implements NatMapping {
                                       Set<NatTarget> nats) {
         int oldTpSrc = oldTpSrc_ & USHORT;
         int tpDst = tpDst_ & USHORT;
-        int numTries = MAX_PORT_ALLOC_ATTEMPTS;
+        int numTries = 0;
         for (NatTarget tg : nats) {
             IPAddrRange nwRange = IPAddrRangeBuilder.range(tg.nwStart, tg.nwEnd);
             while (nwRange.hasNext()) {
