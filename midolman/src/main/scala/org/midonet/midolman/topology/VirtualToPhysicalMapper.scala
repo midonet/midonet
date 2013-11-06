@@ -3,33 +3,31 @@
 */
 package org.midonet.midolman.topology
 
-import scala.collection.{immutable, mutable}
-import scala.collection.immutable.{Set => ROSet}
-
 import java.util.UUID
+import scala.collection.immutable.{Set => ROSet}
+import scala.collection.{immutable, mutable}
 
 import akka.actor._
-import akka.util.duration._
 import akka.util.Timeout
-
+import akka.util.duration._
 import com.google.inject.Inject
+import org.apache.zookeeper.KeeperException
 
-import org.midonet.midolman.{FlowController, Referenceable}
-import org.midonet.midolman.services.{HostIdProviderService,
-                                       MidolmanActorsService}
-import org.midonet.midolman.topology.rcu.Host
-import org.midonet.cluster.{Client, DataClient}
 import org.midonet.cluster.client.{BridgePort, Port}
 import org.midonet.cluster.data.TunnelZone
 import org.midonet.cluster.data.zones._
-import org.midonet.midolman.topology.VirtualTopologyActor.{BridgeRequest, PortRequest}
-import org.midonet.midolman.simulation.Coordinator.Device
-import org.midonet.midolman.simulation.Bridge
+import org.midonet.cluster.{Client, DataClient}
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
-import org.midonet.midolman.state.{ZkConnectionAwareWatcher, DirectoryCallback}
-import org.midonet.midolman.state.DirectoryCallback.Result
-import org.apache.zookeeper.KeeperException
 import org.midonet.midolman.logging.ActorLogWithoutPath
+import org.midonet.midolman.services.HostIdProviderService
+import org.midonet.midolman.services.MidolmanActorsService
+import org.midonet.midolman.simulation.Bridge
+import org.midonet.midolman.simulation.Coordinator.Device
+import org.midonet.midolman.state.DirectoryCallback.Result
+import org.midonet.midolman.state.{ZkConnectionAwareWatcher, DirectoryCallback}
+import org.midonet.midolman.topology.VirtualTopologyActor
+import org.midonet.midolman.topology.rcu.Host
+import org.midonet.midolman.{FlowController, Referenceable}
 
 
 object HostConfigOperation extends Enumeration {
@@ -183,6 +181,68 @@ class DeviceHandlersManager[T <: AnyRef](handler: DeviceHandler) {
     }
 }
 
+trait DataClientLink {
+
+    def subscribeCallback(psetID: UUID): DirectoryCallback.Add
+
+    def unsubscribeCallback(psetID: UUID): DirectoryCallback.Void
+
+    @Inject
+    val clusterDataClient : DataClient = null
+
+    @Inject
+    val hostIdProvider : HostIdProviderService = null
+
+    def notifyLocalPortActive(vportID: UUID, active: Boolean) {
+        clusterDataClient.portsSetLocalAndActive(vportID, active)
+    }
+
+    def subscribePortSet(psetID: UUID) {
+        clusterDataClient.portSetsAsyncAddHost(
+            psetID, hostIdProvider.getHostId, subscribeCallback(psetID))
+    }
+
+    def unsubscribePortSet(psetID: UUID) {
+        clusterDataClient.portSetsAsyncDelHost(
+            psetID, hostIdProvider.getHostId, unsubscribeCallback(psetID))
+    }
+
+}
+
+trait ZkConnectionWatcherLink {
+
+    @Inject
+    val connectionWatcher : ZkConnectionAwareWatcher = null
+
+    def notifyError(err: Option[KeeperException], id: UUID, retry: Runnable) {
+        err match {
+            case None => // Timeout
+                connectionWatcher.handleTimeout(retry)
+            case Some(e) => // Error
+                // TODO(pino): handle errors not due to disconnect
+                connectionWatcher.handleError(
+                    "Add/del host in PortSet " + id, retry, e);
+        }
+    }
+
+}
+
+trait DeviceManagement {
+
+    @Inject
+    val clusterClient : Client = null
+
+    def makeHostManager(actor: ActorRef) =
+        new HostManager(clusterClient, actor)
+
+    def makePortSetManager(actor: ActorRef) =
+        new PortSetManager(clusterClient, actor)
+
+    def makeTunnelZoneManager(actor: ActorRef) =
+        new TunnelZoneManager(clusterClient, actor)
+
+}
+
 /**
  * The Virtual-Physical Mapping is a component that interacts with Midonet
  * state management cluster and is responsible for those pieces of state that
@@ -201,37 +261,24 @@ class DeviceHandlersManager[T <: AnyRef](handler: DeviceHandler) {
  * </li>
  * </ul>
  */
-class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogWithoutPath {
+class VirtualToPhysicalMapper
+        extends UntypedActorWithStash with ActorLogWithoutPath
+        with DataClientLink with ZkConnectionWatcherLink with DeviceManagement {
 
     import VirtualToPhysicalMapper._
+    import VirtualTopologyActor.BridgeRequest
+    import VirtualTopologyActor.PortRequest
     import context.system
 
-    @Inject
-    override val supervisorStrategy: SupervisorStrategy = null
+    private lazy val hosts =
+        new DeviceHandlersManager[Host](makeHostManager(self))
 
-    @Inject
-    val clusterClient: Client = null
+    private lazy val portSets =
+        new DeviceHandlersManager[rcu.PortSet](makePortSetManager(self))
 
-    @Inject
-    val clusterDataClient: DataClient = null
+    private lazy val tunnelZones =
+        new DeviceHandlersManager[ZoneMembers[_]](makeTunnelZoneManager(self))
 
-    @Inject
-    val actorsService: MidolmanActorsService = null
-
-    @Inject
-    val hostIdProvider: HostIdProviderService = null
-
-    @Inject
-    val connectionWatcher: ZkConnectionAwareWatcher = null
-
-    private lazy val hosts = new DeviceHandlersManager[Host](
-        new HostManager(clusterClient, self))
-
-    private lazy val portSets = new DeviceHandlersManager[rcu.PortSet](
-        new PortSetManager(clusterClient, self))
-
-    private lazy val tunnelZones = new DeviceHandlersManager[ZoneMembers[_]](
-        new TunnelZoneManager(clusterClient, self))
 
     // Map a PortSet ID to the vports in the set that are local to this host.
     private val psetIdToLocalVports = mutable.Map[UUID, mutable.Set[UUID]]()
@@ -296,7 +343,7 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogWithout
             case LocalPortActive(vportID, active) =>
                 log.debug("Received a LocalPortActive {} for {}",
                     active, vportID)
-                clusterDataClient.portsSetLocalAndActive(vportID, active)
+                notifyLocalPortActive(vportID, active)
 
                 // We need to track whether the vport belongs to a PortSet.
                 // Fetch the port configuration first. Make the timeout long
@@ -326,7 +373,7 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogWithout
                                     self ! _DevicePortStatus(port, br, active)
                             }
                         case _ =>  // not a bridge port
-                            context.system.eventStream.publish(
+                            system.eventStream.publish(
                                            LocalPortActive(vportID, active))
                     }
                 }
@@ -405,15 +452,7 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogWithout
                             self ! _RetryPortSetOp(subscribe, psetID)
                         }
                     }
-                    errorOp match {
-                        case None => // Timeout
-                            connectionWatcher.handleTimeout(retry)
-                        case Some(e) => // Error
-                            // TODO(pino): handle errors not due to disconnect
-                            connectionWatcher.handleError(
-                                "Add/del host in PortSet " + psetID,
-                                retry, e);
-                    }
+                    notifyError(errorOp, psetID, retry)
                 }
 
             case _RetryPortSetOp(subscribe, psetID) =>
@@ -458,41 +497,31 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogWithout
         }
     }
 
-    private def subscribePortSet(psetID: UUID): Unit = {
-        clusterDataClient.portSetsAsyncAddHost(
-            psetID, hostIdProvider.getHostId,
-            new DirectoryCallback.Add {
-                override def onSuccess(result: Result[String]) {
-                    self ! _PortSetOpResult(true, psetID, true, None)
-                }
-                override def onTimeout() {
-                    self ! _PortSetOpResult(true, psetID, false, None)
-                }
-                override def onError(e: KeeperException) {
-                    self ! _PortSetOpResult(true, psetID, false, Some(e))
-                }
+    def subscribeCallback(psetID: UUID): DirectoryCallback.Add =
+        new DirectoryCallback.Add {
+            override def onSuccess(result: Result[String]) {
+                self ! _PortSetOpResult(true, psetID, true, None)
             }
-        )
-    }
+            override def onTimeout() {
+                self ! _PortSetOpResult(true, psetID, false, None)
+            }
+            override def onError(e: KeeperException) {
+                self ! _PortSetOpResult(true, psetID, false, Some(e))
+            }
+        }
 
-    private def unsubscribePortSet(psetID: UUID): Unit = {
-        clusterDataClient.portSetsAsyncDelHost(
-            psetID, hostIdProvider.getHostId,
-            new DirectoryCallback.Void {
-                override def onSuccess(
-                    result: DirectoryCallback.Result[java.lang.Void]): Unit
-                = {
-                    self ! _PortSetOpResult(false, psetID, true, None)
-                }
-                override def onTimeout() {
-                    self ! _PortSetOpResult(false, psetID, false, None)
-                }
-                override def onError(e: KeeperException) {
-                    self ! _PortSetOpResult(false, psetID, false, Some(e))
-                }
+    def unsubscribeCallback(psetID: UUID): DirectoryCallback.Void =
+        new DirectoryCallback.Void {
+            override def onSuccess(result: Result[java.lang.Void]) {
+                self ! _PortSetOpResult(false, psetID, true, None)
             }
-        )
-    }
+            override def onTimeout() {
+                self ! _PortSetOpResult(false, psetID, false, None)
+            }
+            override def onError(e: KeeperException) {
+                self ! _PortSetOpResult(false, psetID, false, Some(e))
+            }
+        }
 
     private def portSetUpdate(portSetId: UUID) {
         val hosts: Set[UUID] = psetIdToHosts.get(portSetId) match {
@@ -533,5 +562,4 @@ class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogWithout
             success: Boolean, error: Option[KeeperException])
 
     private case class _RetryPortSetOp(subscribe: Boolean, psetID: UUID)
-
 }
