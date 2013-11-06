@@ -120,24 +120,6 @@ trait DeviceHandler {
     def handle(deviceId: UUID)
 }
 
-/**
- * The Virtual-Physical Mapping is a component that interacts with Midonet
- * state management cluster and is responsible for those pieces of state that
- * map physical world entities to virtual world entities.
- *
- * In particular, the VPM can be used to:
- * <ul>
- * <li>determine what virtual port UUIDs should be mapped to what interfaces
- * (by interface name) on a given physical host. </li>
- * <li> determine what physical hosts are subscribed to a given PortSet. </li>
- * <li> determine what local virtual ports are part of a PortSet.</li>
- * <li> determine all the virtual ports that are part of a PortSet.</li>
- * <li> determine whether a virtual port is reachable and at what physical host
- * (a virtual port is reachable if the responsible host has mapped the vport ID
- * to its corresponding local interface and the interface is ready to receive).
- * </li>
- * </ul>
- */
 class DeviceHandlersManager[T <: AnyRef](handler: DeviceHandler) {
 
     val devices = mutable.Map[UUID, T]()
@@ -201,6 +183,24 @@ class DeviceHandlersManager[T <: AnyRef](handler: DeviceHandler) {
     }
 }
 
+/**
+ * The Virtual-Physical Mapping is a component that interacts with Midonet
+ * state management cluster and is responsible for those pieces of state that
+ * map physical world entities to virtual world entities.
+ *
+ * In particular, the VPM can be used to:
+ * <ul>
+ * <li>determine what virtual port UUIDs should be mapped to what interfaces
+ * (by interface name) on a given physical host. </li>
+ * <li> determine what physical hosts are subscribed to a given PortSet. </li>
+ * <li> determine what local virtual ports are part of a PortSet.</li>
+ * <li> determine all the virtual ports that are part of a PortSet.</li>
+ * <li> determine whether a virtual port is reachable and at what physical host
+ * (a virtual port is reachable if the responsible host has mapped the vport ID
+ * to its corresponding local interface and the interface is ready to receive).
+ * </li>
+ * </ul>
+ */
 class VirtualToPhysicalMapper extends UntypedActorWithStash with ActorLogWithoutPath {
 
     import VirtualToPhysicalMapper._
