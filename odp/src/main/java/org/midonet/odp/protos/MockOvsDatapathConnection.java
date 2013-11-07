@@ -94,6 +94,13 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
         notificationHandler.endBatch();
     }
 
+    public void triggerPacketsIn(@Nonnull List<Packet> packets) {
+        for (Packet p : packets) {
+            notificationHandler.submit(p);
+        }
+        notificationHandler.endBatch();
+    }
+
     @Override
     protected void _doDatapathsEnumerate(@Nonnull Callback<Set<Datapath>> callback, long timeoutMillis) {
         callback.onSuccess(datapaths);
