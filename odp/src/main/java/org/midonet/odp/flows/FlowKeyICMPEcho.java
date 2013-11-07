@@ -16,7 +16,6 @@ public class FlowKeyICMPEcho extends FlowKeyICMP
                              implements FlowKey.UserSpaceOnly {
 
     private short icmp_id;
-    private short icmp_seq;
 
     @Override
     public boolean equals(Object o) {
@@ -27,7 +26,6 @@ public class FlowKeyICMPEcho extends FlowKeyICMP
         if (icmp_code != that.icmp_code) return false;
         if (icmp_type != that.icmp_type) return false;
         if (icmp_id != that.icmp_id) return false;
-        if (icmp_seq != that.icmp_seq) return false;
         return true;
     }
 
@@ -36,15 +34,13 @@ public class FlowKeyICMPEcho extends FlowKeyICMP
         int result = (int) icmp_type;
         result = 33 * result + (int) icmp_code;
         result = 33 * result + (int) icmp_id;
-        result = 33 * result + (int) icmp_seq;
         return result;
     }
 
     @Override
     public String toString() {
         return String.format("FlowKeyICMPEcho{icmp_type=0x%X, icmp_code=%d, " +
-                             "icmp_id=%d, icmp_seq=%d}", icmp_type, icmp_code,
-                             icmp_id, icmp_seq);
+                             "icmp_id=%d}", icmp_type, icmp_code, icmp_id);
     }
 
     public FlowKeyICMPEcho setIdentifier(short identifier) {
@@ -54,15 +50,6 @@ public class FlowKeyICMPEcho extends FlowKeyICMP
 
     public short getIdentifier() {
         return icmp_id;
-    }
-
-    public FlowKeyICMPEcho setSeq(short seq) {
-        this.icmp_seq = seq;
-        return this;
-    }
-
-    public short getSeq() {
-        return icmp_seq;
     }
 
     @Override

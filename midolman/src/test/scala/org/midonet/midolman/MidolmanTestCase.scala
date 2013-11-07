@@ -329,8 +329,22 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
         triggerPacketIn(dpPkt)
     }
 
+    protected def triggerPacketsIn(portName: String, ethPkts: List[Ethernet]) {
+        val pkts = ethPkts map { ethPkt =>
+            val flowMatch = FlowMatches.fromEthernetPacket(ethPkt)
+                .addKey(new FlowKeyInPort().setInPort(getPortNumber(portName)))
+            new Packet().setMatch(flowMatch).setPacket(ethPkt)
+        }
+        triggerPacketsIn(pkts)
+    }
+
     protected def triggerPacketIn(packet: Packet) {
         dpConn().asInstanceOf[MockOvsDatapathConnection].triggerPacketIn(packet)
+    }
+
+    protected def triggerPacketsIn(packets: List[Packet]) {
+        dpConn().asInstanceOf[MockOvsDatapathConnection]
+                .triggerPacketsIn(packets)
     }
 
     protected def setFlowLastUsedTimeToNow(flow: FlowMatch) {
