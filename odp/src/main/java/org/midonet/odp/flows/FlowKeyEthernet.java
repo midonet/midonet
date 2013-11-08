@@ -5,7 +5,7 @@ package org.midonet.odp.flows;
 
 import java.util.Arrays;
 
-import org.midonet.packets.Net;
+import org.midonet.packets.MAC;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.BaseBuilder;
 
@@ -82,8 +82,10 @@ public class FlowKeyEthernet implements FlowKey<FlowKeyEthernet> {
     @Override
     public String toString() {
         return "FlowKeyEthernet{" +
-            "eth_src=" + Net.convertByteMacToString(eth_src) +
-            ", eth_dst=" + Net.convertByteMacToString(eth_dst) +
+            "eth_src=" +
+                (eth_src == null ? "null" : MAC.bytesToString(eth_src)) +
+            ", eth_dst=" +
+                (eth_dst == null ? "null" : MAC.bytesToString(eth_dst)) +
             '}';
     }
 }

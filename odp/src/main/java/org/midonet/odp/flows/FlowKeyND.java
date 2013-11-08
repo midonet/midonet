@@ -6,6 +6,7 @@ package org.midonet.odp.flows;
 import java.nio.ByteOrder;
 import java.util.Arrays;
 
+import org.midonet.packets.MAC;
 import org.midonet.packets.Net;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.BaseBuilder;
@@ -99,9 +100,13 @@ public class FlowKeyND implements FlowKey<FlowKeyND> {
     @Override
     public String toString() {
         return "FlowKeyND{" +
-            "nd_target=" + Net.convertIPv6BytesToString(nd_target) +
-            ", nd_sll=" + Net.convertByteMacToString(nd_sll) +
-            ", nd_tll=" + Net.convertByteMacToString(nd_tll) +
+            "nd_target=" +
+                (nd_target == null ?
+                    "null" : Net.convertIPv6BytesToString(nd_target)) +
+            ", nd_sll=" +
+                (nd_sll == null ? "null" : MAC.bytesToString(nd_sll)) +
+            ", nd_tll=" +
+                (nd_tll == null ? "null" : MAC.bytesToString(nd_tll)) +
             '}';
     }
 }
