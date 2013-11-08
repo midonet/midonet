@@ -6,6 +6,7 @@ package org.midonet.odp.flows;
 import java.nio.ByteOrder;
 import java.util.Arrays;
 
+import org.midonet.packets.MAC;
 import org.midonet.packets.Net;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.BaseBuilder;
@@ -129,8 +130,10 @@ public class FlowKeyARP implements FlowKey<FlowKeyARP> {
             "arp_sip=" + Net.convertIntAddressToString(arp_sip) +
             ", arp_tip=" + Net.convertIntAddressToString(arp_tip) +
             ", arp_op=" + arp_op +
-            ", arp_sha=" + Net.convertByteMacToString(arp_sha) +
-            ", arp_tha=" + Net.convertByteMacToString(arp_tha) +
+            ", arp_sha=" +
+                (arp_sha == null ? "null" : MAC.bytesToString(arp_sha)) +
+            ", arp_tha=" +
+                (arp_tha == null ? "null" : MAC.bytesToString(arp_tha)) +
             '}';
     }
 }

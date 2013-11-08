@@ -19,22 +19,35 @@ class TestMac extends Suite with ShouldMatchers {
     def testConversions {
         val mask = 0xffffffffffffL
         for (m <- macpool; s = m.toString; ary = m.getAddress) {
+
+            // long <-> string
             val longFromString = MAC.stringToLong(s)
             (longFromString | mask) should be (mask)
             s should be (MAC.longToString(longFromString))
-            ary should be (MAC.longToBytes(MAC.bytesToLong(ary)))
+
+            // long <-> byte[]
+            val longFromBytes = MAC.bytesToLong(ary)
+            (longFromBytes | mask) should be (mask)
+            ary should be (MAC.longToBytes(longFromBytes))
+
+            // byte[] <-> string
+            s should be (MAC.bytesToString(ary))
+            ary should be (MAC.stringToBytes(s))
         }
     }
 
     def testConversionsException {
+        //byte[] -> long / string
         List[Array[Byte]](
             null,
             Array[Byte](1,2,3,4,5),
             Array[Byte](1,2,3,4,5,6,7)
         ).foreach { array =>
             intercept[IllegalArgumentException] { MAC.bytesToLong(array) }
+            intercept[IllegalArgumentException] { MAC.bytesToString(array) }
         }
 
+        // string -> long / byte[]
         List[String](
             null,
             "eewofihewiofh",
@@ -44,6 +57,7 @@ class TestMac extends Suite with ShouldMatchers {
             "01:23:45:21324:67:89"
         ).foreach { str =>
             intercept[IllegalArgumentException] { MAC.stringToLong(str) }
+            intercept[IllegalArgumentException] { MAC.stringToBytes(str) }
         }
     }
 
@@ -55,6 +69,7 @@ class TestMac extends Suite with ShouldMatchers {
             ("01:00:03:04:05:06", "01:0:3:04:5:6")
         ).foreach{ case (s1,s2) =>
             MAC.stringToLong(s1) should be (MAC.stringToLong(s2))
+            MAC.stringToBytes(s1) should be (MAC.stringToBytes(s2))
         }
     }
 
