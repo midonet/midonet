@@ -13,6 +13,7 @@ import org.midonet.api.dhcp.rest_api.BridgeDhcpV6Resource;
 import org.midonet.api.dhcp.rest_api.DhcpHostsResource;
 import org.midonet.api.dhcp.rest_api.DhcpV6HostsResource;
 import org.midonet.api.filter.rest_api.ChainResource;
+import org.midonet.api.filter.rest_api.IpAddrGroupResource;
 import org.midonet.api.filter.rest_api.RuleResource;
 import org.midonet.api.host.rest_api.HostCommandResource;
 import org.midonet.api.host.rest_api.HostInterfacePortResource;
@@ -52,6 +53,14 @@ public interface ResourceFactory {
     ChainResource getChainResource();
 
     PortGroupResource getPortGroupResource();
+
+    IpAddrGroupResource getIpAddrGroupResource();
+
+    IpAddrGroupResource.IpAddrGroupAddrResource getIpAddrGroupAddrResource(
+            UUID id);
+
+    IpAddrGroupResource.IpAddrGroupAddrVersionResource
+        getIpAddrGroupAddrVersionResource(UUID id, int version);
 
     RuleResource getRuleResource();
 

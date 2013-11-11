@@ -132,6 +132,17 @@ public class Application extends UriResource {
     }
 
     /**
+     * @return the IP addr groups URI
+     */
+    public URI getIpAddrGroups() {
+        if (getBaseUri() != null) {
+            return ResourceUriBuilder.getIpAddrGroups(getBaseUri());
+        } else {
+            return null;
+        }
+    }
+
+    /**
      * @return the routers URI
      */
     public URI getRouters() {
@@ -214,6 +225,17 @@ public class Application extends UriResource {
     public String getPortGroupTemplate() {
         if (getBaseUri() != null) {
             return ResourceUriBuilder.getPortGroupTemplate(getBaseUri());
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * @return the ip addr group URI template
+     */
+    public String getIpAddrGroupTemplate() {
+        if (getBaseUri() != null) {
+            return ResourceUriBuilder.getIpAddrGroupTemplate(getBaseUri());
         } else {
             return null;
         }

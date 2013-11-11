@@ -35,11 +35,14 @@ import org.midonet.midolman.state.zkManagers.BridgeDhcpV6ZkManager;
 import org.midonet.midolman.state.zkManagers.BridgeDhcpZkManager;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager.BridgeConfig;
 import org.midonet.midolman.state.zkManagers.ChainZkManager.ChainConfig;
+import org.midonet.midolman.state.zkManagers.IpAddrGroupZkManager
+        .IpAddrGroupConfig;
 import org.midonet.midolman.state.zkManagers.PortGroupZkManager.PortGroupConfig;
 import org.midonet.midolman.state.zkManagers.RouterZkManager.RouterConfig;
 import org.midonet.midolman.state.zkManagers.TaggableConfig;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IntIPv4;
+import org.midonet.packets.Net;
 
 
 /**
@@ -128,6 +131,26 @@ public class Converter {
         return new PortGroup()
                 .setName(portGroup.name)
                 .setProperties(portGroup.properties);
+    }
+
+    public static IpAddrGroupConfig toIpAddrGroupConfig(IpAddrGroup group) {
+        IpAddrGroupConfig config = new IpAddrGroupConfig();
+
+        config.name = group.getData().name;
+        config.id = group.getId();
+        config.properties = new HashMap<String, String>(
+                group.getData().properties);
+
+        return config;
+    }
+
+    public static IpAddrGroup fromIpAddrGroupConfig(IpAddrGroupConfig group) {
+        if (group == null)
+            return null;
+
+        return new IpAddrGroup()
+                .setName(group.name)
+                .setProperties(group.properties);
     }
 
     public static PortConfig toPortConfig(Port port) {

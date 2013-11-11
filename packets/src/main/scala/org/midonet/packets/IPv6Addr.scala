@@ -109,6 +109,7 @@ object IPv6Addr {
         val unsplit = if (s.charAt(0) == '[' && s.charAt(s.length - 1) == ']')
                           s.substring(1, s.length - 1)
                       else s
+
         val pieces = unsplit.split(":")
         val ip = if (pieces.size == 8)
                         new IPv6Addr((parseLong(pieces(0), 16) << 48) |

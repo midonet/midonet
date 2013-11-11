@@ -21,7 +21,7 @@ import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.rules.Condition
 import org.midonet.midolman.rules.NatTarget
 import org.midonet.midolman.rules.RuleResult.Action
-import org.midonet.packets.MAC
+import org.midonet.packets.{TCP, MAC}
 import org.midonet.midolman.state.DirectoryCallback
 import org.midonet.midolman.state.DirectoryCallback.Result
 import org.apache.zookeeper.KeeperException
@@ -71,7 +71,7 @@ trait VirtualConfigurationBuilders {
         chain
     }
 
-    def createChain(name: String, id: Option[UUID]): Chain = {
+    def createChain(name: String, id: Option[UUID] = None): Chain = {
         val chain = new Chain().setName(name)
         if (id.isDefined)
             chain.setId(id.get)
@@ -120,6 +120,25 @@ trait VirtualConfigurationBuilders {
         clusterDataClient().rulesGet(id).asInstanceOf[LiteralRule]
     }
 
+    /**
+     * Convenience method for creating a rule that accepts or drops TCP
+     * packets addressed to a specific port.
+     */
+    def newTcpDstRuleOnChain(chain: Chain, pos: Int,
+                          dstPort: Int, action: Action): LiteralRule = {
+        val condition = newCondition(nwProto = Some(TCP.PROTOCOL_NUMBER),
+                                     tpDst = Some(dstPort))
+        newLiteralRuleOnChain(chain, pos, condition, action)
+    }
+
+    def newIpAddrGroupRuleOnChain(chain: Chain, pos: Int, action: Action,
+                                  ipAddrGroupIdDst: Option[UUID],
+                                  ipAddrGroupIdSrc: Option[UUID]) {
+        val condition = newCondition(ipAddrGroupIdDst = ipAddrGroupIdDst,
+                                     ipAddrGroupIdSrc = ipAddrGroupIdSrc)
+        newLiteralRuleOnChain(chain, pos, condition, action)
+    }
+
     def newForwardNatRuleOnChain(chain: Chain, pos: Int, condition: Condition,
                                  action: Action, targets: Set[NatTarget],
                                  isDnat: Boolean) : ForwardNatRule = {
@@ -157,6 +176,27 @@ trait VirtualConfigurationBuilders {
     }
     def deleteRule(id: UUID) {
         clusterDataClient().rulesDelete(id)
+    }
+
+    def createIpAddrGroup(): IpAddrGroup = createIpAddrGroup(UUID.randomUUID())
+
+    def createIpAddrGroup(id: UUID): IpAddrGroup = {
+        val ipAddrGroup = new IpAddrGroup(id, new IpAddrGroup.Data())
+        clusterDataClient().ipAddrGroupsCreate(ipAddrGroup)
+        Thread.sleep(50)
+        ipAddrGroup
+    }
+
+    def addIpAddrToIpAddrGroup(id: UUID, addr: String): Unit = {
+        clusterDataClient().ipAddrGroupAddAddr(id, addr)
+    }
+
+    def removeIpAddrFromIpAddrGroup(id: UUID, addr: String): Unit = {
+        clusterDataClient().ipAddrGroupRemoveAddr(id, addr)
+    }
+
+    def deleteIpAddrGroup(id: UUID) = {
+        clusterDataClient().ipAddrGroupsDelete(id)
     }
 
     def greTunnelZone(name: String): GreTunnelZone = {
@@ -294,5 +334,39 @@ trait VirtualConfigurationBuilders {
                     }
                 })
         }
+    }
+
+    def newCondition(nwProto: Option[Byte] = None,
+                     tpDst: Option[Int] = None, tpSrc: Option[Int] = None,
+                     ipAddrGroupIdDst: Option[UUID] = None,
+                     ipAddrGroupIdSrc: Option[UUID] = None): Condition = {
+        val c = new Condition()
+        if (ipAddrGroupIdDst.isDefined)
+            c.ipAddrGroupIdDst = ipAddrGroupIdDst.get
+        if (ipAddrGroupIdSrc.isDefined)
+            c.ipAddrGroupIdSrc = ipAddrGroupIdSrc.get
+        if (nwProto.isDefined)
+            c.nwProto = Byte.box(nwProto.get)
+        if (tpDst.isDefined)
+            c.tpDst = new org.midonet.util.Range(Int.box(tpDst.get))
+        if (tpSrc.isDefined)
+            c.tpSrc = new org.midonet.util.Range(Int.box(tpSrc.get))
+        c
+    }
+
+    def newIPAddrGroup(id: Option[UUID]): UUID = {
+        val ipAddrGroup = id match {
+            case None => new IpAddrGroup()
+            case Some(id) => new IpAddrGroup(id)
+        }
+        clusterDataClient().ipAddrGroupsCreate(ipAddrGroup)
+    }
+
+    def addAddrToIpAddrGroup(id: UUID, addr: String) {
+        clusterDataClient().ipAddrGroupAddAddr(id, addr)
+    }
+
+    def removeAddrFromIpAddrGroup(id: UUID, addr: String) {
+        clusterDataClient().ipAddrGroupRemoveAddr(id, addr)
     }
 }

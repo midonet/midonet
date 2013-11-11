@@ -150,6 +150,19 @@ public class RuleZkManager extends AbstractZkManager {
                     Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         }
 
+        // Add a reference entry to the IP address group(s) if specified.
+        UUID ipAddrGroupDstId = ruleConfig.getCondition().ipAddrGroupIdDst;
+        if (ipAddrGroupDstId != null)
+            ops.add(Op.create(
+                    paths.getIpAddrGroupRulePath(ipAddrGroupDstId, id), null,
+                    Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+
+        UUID ipAddrGroupSrcId = ruleConfig.getCondition().ipAddrGroupIdSrc;
+        if (ipAddrGroupSrcId != null)
+            ops.add(Op.create(
+                    paths.getIpAddrGroupRulePath(ipAddrGroupSrcId, id), null,
+                    Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+
         return ops;
     }
 
@@ -174,11 +187,24 @@ public class RuleZkManager extends AbstractZkManager {
         log.debug("Preparing to delete: " + rulePath);
         ops.add(Op.delete(rulePath, -1));
 
-        // Remove the reference to port group
+        // Remove the reference from the port group
         UUID portGroupId = rule.getCondition().portGroup;
         if (portGroupId != null) {
             ops.add(Op.delete(
                     paths.getPortGroupRulePath(portGroupId, id), -1));
+        }
+
+        // Remove the reference(s) from the IP address group(s).
+        UUID ipAddrGroupIdDst = rule.getCondition().ipAddrGroupIdDst;
+        if (ipAddrGroupIdDst != null) {
+            ops.add(Op.delete(
+                    paths.getIpAddrGroupRulePath(ipAddrGroupIdDst, id), -1));
+        }
+
+        UUID ipAddrGroupIdSrc = rule.getCondition().ipAddrGroupIdSrc;
+        if (ipAddrGroupIdSrc != null) {
+            ops.add(Op.delete(
+                    paths.getIpAddrGroupRulePath(ipAddrGroupIdSrc, id), -1));
         }
 
         return ops;

@@ -8,7 +8,6 @@ import java.util.UUID
 import org.midonet.cluster.Client
 import org.midonet.midolman.topology.PortManager.TriggerUpdate
 import org.midonet.cluster.client.Port
-import org.midonet.midolman.FlowController
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 
 object PortManager{

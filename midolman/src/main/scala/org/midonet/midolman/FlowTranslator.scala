@@ -58,6 +58,13 @@ object FlowTranslator {
                 case Some(tset) => tset += tag
             }
         }
+
+        override def toString: String =
+            mutable.StringBuilder.newBuilder
+                .append("EgressPortSetChainPacketContext[")
+                .append("outPortId=").append(outPortId)
+                .append(", tags=").append(tags)
+                .append("]").toString()
     }
 }
 
