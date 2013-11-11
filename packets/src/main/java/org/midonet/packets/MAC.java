@@ -13,6 +13,14 @@ import org.midonet.util.collection.WeakObjectPool;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonValue;
 
+/** Class reprensentation of a mac address.
+ *
+ *  Conversion functions taking or returning long values assume the following
+ *  encoding rules:
+ *      1) the highest two bytes of the long value are ignored or set to 0;
+ *      2) the ordering of bytes in the long from MSB to LSB follows the mac
+ *          address representation as a string reading from left to right.
+ */
 public class MAC implements Cloneable {
     private static WeakObjectPool<MAC> INSTANCE_POOL = new WeakObjectPool<MAC>();
 
@@ -82,5 +90,66 @@ public class MAC implements Cloneable {
                ((address[2]&0xff) << 16) |
                ((address[3]&0xff) << 8) |
                ((address[4] ^ address[5])&0xff);
+    }
+
+    private static IllegalArgumentException illegalMacString(String str) {
+        return new IllegalArgumentException(
+            "Mac address string must be 6 words of 1 or 2 hex digits " +
+                "joined with 5 ':' but was " + str);
+    }
+
+    public static long stringToLong(String str)
+            throws IllegalArgumentException {
+        if (str == null)
+            throw illegalMacString(str);
+        String[] macBytes = str.split(":");
+        if (macBytes.length != 6)
+            throw illegalMacString(str);
+        long addr = 0;
+        try {
+            for (String s : macBytes) {
+                if (s.length() > 2)
+                    throw illegalMacString(str);
+                addr = (addr << 8) + Integer.parseInt(s, 16);
+            }
+        } catch(NumberFormatException ex) {
+            throw illegalMacString(str);
+        }
+        return addr;
+    }
+
+    public static String longToString(long addr) {
+        return String.format(
+            "%02x:%02x:%02x:%02x:%02x:%02x",
+            (addr & 0xff0000000000L) >> 40,
+            (addr & 0x00ff00000000L) >> 32,
+            (addr & 0x0000ff000000L) >> 24,
+            (addr & 0x000000ff0000L) >> 16,
+            (addr & 0x00000000ff00L) >> 8,
+            (addr & 0x0000000000ffL)
+        );
+    }
+
+    private static IllegalArgumentException illegalMacBytes =
+        new IllegalArgumentException(
+            "byte array representing a MAC address must have length 6 exactly");
+
+    public static long bytesToLong(byte[] bytesAddr)
+            throws IllegalArgumentException {
+        if (bytesAddr == null || bytesAddr.length != 6) throw illegalMacBytes;
+        long addr = 0;
+        for (int i = 0; i < 6; i++) {
+            addr = (addr << 8) + (bytesAddr[i] & 0xffL);
+        }
+        return addr;
+    }
+
+    public static byte[] longToBytes(long addr) {
+        byte[] bytesAddr = new byte[6];
+        for (int i = 5; i >= 0; i--) {
+            bytesAddr[i] = (byte)(addr & 0xffL);
+            addr = addr >> 8;
+        }
+        return bytesAddr;
     }
 }

@@ -306,21 +306,6 @@ public class Ethernet extends BasePacket {
         return address;
     }
 
-    /**
-     * Accepts a MAC address and returns the corresponding long, where the
-     * MAC bytes are set on the lower order bytes of the long.
-     * @param macAddress
-     * @return a long containing the mac address bytes
-     */
-    public static long toLong(byte[] macAddress) {
-        long mac = 0;
-        for (int i = 0; i < 6; i++) {
-          long t = (macAddress[i] & 0xffL) << ((5-i)*8);
-          mac |= t;
-        }
-        return mac;
-    }
-
     public boolean isMcast() {
         return isMcast(destinationMACAddress);
     }
