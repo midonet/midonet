@@ -10,7 +10,7 @@ import java.util.UUID;
 
 import org.midonet.cluster.data.BGP;
 import org.midonet.midolman.layer3.Route;
-import org.midonet.packets.IPv4;
+import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 import org.midonet.packets.Net;
 
@@ -147,9 +147,9 @@ public class PortDirectory {
         @Override
         public String toString() {
             StringBuilder sb = new StringBuilder("RouterPort [");
-            sb.append("nwAddr=").append(IPv4.fromIPv4Address(nwAddr));
+            sb.append("nwAddr=").append(IPv4Addr.intToString(nwAddr));
             sb.append(", nwLength=").append(nwLength);
-            sb.append(", portAddr=").append(IPv4.fromIPv4Address(portAddr));
+            sb.append(", portAddr=").append(IPv4Addr.intToString(portAddr));
             sb.append(", bgps={");
             if (null != bgps) {
                 for (BGP b : bgps)

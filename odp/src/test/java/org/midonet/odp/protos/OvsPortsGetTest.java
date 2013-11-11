@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
+import org.midonet.packets.IPv4Addr;
 import org.midonet.odp.Datapath;
 import org.midonet.odp.Port;
 import org.midonet.odp.Ports;
@@ -110,8 +111,8 @@ public class OvsPortsGetTest extends AbstractNetlinkProtocolTest {
 
         tunGrePort.setStats(new Port.Stats());
         tunGrePort.setOptions(
-            Ports
-                .newPortOptions(tunGrePort, ipFromString("192.168.100.1"))
+            Ports.newPortOptions(
+                tunGrePort, IPv4Addr.stringToInt("192.168.100.1"))
         );
 
         return tunGrePort;

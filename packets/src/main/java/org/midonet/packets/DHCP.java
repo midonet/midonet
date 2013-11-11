@@ -66,10 +66,10 @@ public class DHCP extends BasePacket {
         sb.append(", xid=").append(transactionId);
         sb.append(", seconds=").append(seconds);
         sb.append(", flags=").append(flags);
-        sb.append(", ciaddr=").append(IPv4.fromIPv4Address(clientIPAddress));
-        sb.append(", yiaddr=").append(IPv4.fromIPv4Address(yourIPAddress));
-        sb.append(", siaddr=").append(IPv4.fromIPv4Address(serverIPAddress));
-        sb.append(", giaddr=").append(IPv4.fromIPv4Address(gatewayIPAddress));
+        sb.append(", ciaddr=").append(IPv4Addr.intToString(clientIPAddress));
+        sb.append(", yiaddr=").append(IPv4Addr.intToString(yourIPAddress));
+        sb.append(", siaddr=").append(IPv4Addr.intToString(serverIPAddress));
+        sb.append(", giaddr=").append(IPv4Addr.intToString(gatewayIPAddress));
         sb.append("]");
         return sb.toString();
     }

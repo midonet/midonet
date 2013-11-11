@@ -357,7 +357,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         fishForRequestOfType[EmitGeneratedPacket](dedupProbe())
 
         feedArpCache("uplinkPort",
-            IPv4.toIPv4Address(uplinkGatewayAddr), mac,
+            IPv4Addr.stringToInt(uplinkGatewayAddr), mac,
             IPv4Addr.fromString(uplinkPortAddr).addr,
             uplinkMacAddr)
         fishForRequestOfType[DiscardPacket](discardPacketProbe)
@@ -428,8 +428,8 @@ class RouterSimulationTestCase extends MidolmanTestCase with
             setProtocolAddressLength(4:Byte).
             setOpCode(ARP.OP_REQUEST).
             setSenderHardwareAddress(hisMac).
-            setSenderProtocolAddress(IPv4.toIPv4AddressBytes(hisIp.toInt)).
-            setTargetProtocolAddress(IPv4.toIPv4AddressBytes(myIp.toInt)).
+            setSenderProtocolAddress(IPv4Addr.intToBytes(hisIp.toInt)).
+            setTargetProtocolAddress(IPv4Addr.intToBytes(myIp.toInt)).
             setTargetHardwareAddress(if (isUnicast) myMac else bcastMac))
         triggerPacketIn("uplinkPort", eth)
         requestOfType[PacketIn](packetInProbe)

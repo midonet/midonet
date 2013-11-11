@@ -3,7 +3,7 @@
  */
 package org.midonet.packets.util
 
-import org.midonet.packets.{MAC, IPv4, IntIPv4}
+import org.midonet.packets.{MAC, IPv4, IntIPv4, IPv4Addr}
 
 object AddressConversions {
     implicit def stringToIp(addr: String): IntIPv4 = IntIPv4.fromString(addr)
@@ -15,10 +15,10 @@ object AddressConversions {
     implicit def ipToString(addr: IntIPv4): String = addr.toUnicastString
 
     implicit def ipToBytes(addr: IntIPv4): Array[Byte] =
-        IPv4.toIPv4AddressBytes(addr.addressAsInt)
+        IPv4Addr.intToBytes(addr.addressAsInt)
 
     implicit def bytesToIp(addr: Array[Byte]): IntIPv4 =
-        new IntIPv4(IPv4.toIPv4Address(addr))
+        new IntIPv4(IPv4Addr.bytesToInt(addr))
 
     implicit def bytesToInt(addr: Array[Byte]): Int = ipToInt(bytesToIp(addr))
 
