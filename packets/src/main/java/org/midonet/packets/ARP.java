@@ -67,11 +67,11 @@ public class ARP extends BasePacket {
         sb.append(", hwType=").append(hardwareType);
         sb.append(", protoType=").append(protocolType);
         sb.append(", sha=").append(
-                null == senderHardwareAddress ? "null" : Net
-                        .convertByteMacToString(senderHardwareAddress));
+                null == senderHardwareAddress ?
+                        "null" : MAC.bytesToString(senderHardwareAddress));
         sb.append(", tha=").append(
-                null == targetHardwareAddress ? "null" : Net
-                        .convertByteMacToString(targetHardwareAddress));
+                null == targetHardwareAddress ?
+                        "null" : MAC.bytesToString(targetHardwareAddress));
         sb.append(", spa=").append(
                 null == senderProtocolAddress
                         || senderProtocolAddress.length != 4 ? "null"

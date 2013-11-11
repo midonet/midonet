@@ -78,11 +78,11 @@ public class Ethernet extends BasePacket {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("Ethernet [dlSrc=");
-        sb.append(null == sourceMACAddress ? "null" :
-                        Net.convertByteMacToString(sourceMACAddress));
+        sb.append(null == sourceMACAddress ?
+                        "null" : MAC.bytesToString(sourceMACAddress));
         sb.append(", dlDst=").append(
-                null == destinationMACAddress ? "null" :
-                        Net.convertByteMacToString(destinationMACAddress));
+                null == destinationMACAddress ?
+                        "null" : MAC.bytesToString(destinationMACAddress));
         sb.append(", vlanId=").append(vlanIDs);
         sb.append(", etherType=0x");
         sb.append(Integer.toHexString(unsign(etherType))).append(", payload=");
@@ -275,35 +275,6 @@ public class Ethernet extends BasePacket {
         }
         this.payload.setParent(this);
         return this;
-    }
-
-    /**
-     * Accepts a MAC address of the form 00:aa:11:bb:22:cc, case does not
-     * matter, and returns a corresponding byte[].
-     * @param macAddress
-     * @return
-     */
-    static byte[] toMACAddress(String macAddress) {
-        final String errorMsg = "Specified MAC Address must contain 12 " +
-                "hex digits separated pairwise by :'s.";
-        String[] macBytes = macAddress.split(":");
-        if (macBytes.length != 6)
-            throw new IllegalArgumentException(errorMsg);
-
-        byte[] address = new byte[6];
-        for (int i = 0; i < 6; ++i) {
-            String thisByte = macBytes[i].toUpperCase();
-            if (thisByte.length() != 2)
-                throw new IllegalArgumentException(errorMsg);
-
-            int high = HEXES.indexOf(thisByte.charAt(0));
-            int low = HEXES.indexOf(thisByte.charAt(1));
-            if (high < 0 || low < 0)
-                throw new IllegalArgumentException(errorMsg);
-            address[i] = (byte) ((high << 4) | low);
-        }
-
-        return address;
     }
 
     public boolean isMcast() {

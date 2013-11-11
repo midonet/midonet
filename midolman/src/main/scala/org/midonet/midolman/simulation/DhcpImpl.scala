@@ -179,7 +179,7 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
         }
         log.debug("handleDhcpRequest: on port {} bootrequest with chaddr {} "
             + "and ciaddr {}",
-            Array(inPortId, Net.convertByteMacToString(chaddr),
+            Array(inPortId, MAC.bytesToString(chaddr),
                   IPv4.fromIPv4Address(request.getClientIPAddress)))
 
         // Extract all the options and put them in a map

@@ -47,7 +47,7 @@ public class MAC implements Cloneable {
 
     @JsonCreator
     public static MAC fromString(String str) {
-        return new MAC(Ethernet.toMACAddress(str)).intern();
+        return new MAC(MAC.stringToBytes(str)).intern();
     }
 
     public static MAC fromAddress(byte[] rhs) {
@@ -72,7 +72,7 @@ public class MAC implements Cloneable {
     @JsonValue
     @Override
     public String toString() {
-        return Net.convertByteMacToString(address);
+        return MAC.bytesToString(address);
     }
 
     @Override
@@ -110,7 +110,29 @@ public class MAC implements Cloneable {
             for (String s : macBytes) {
                 if (s.length() > 2)
                     throw illegalMacString(str);
-                addr = (addr << 8) + Integer.parseInt(s, 16);
+                addr = (addr << 8) + (0xFFL & Integer.parseInt(s, 16));
+            }
+        } catch(NumberFormatException ex) {
+            throw illegalMacString(str);
+        }
+        return addr;
+    }
+
+    public static byte[] stringToBytes(String str)
+            throws IllegalArgumentException {
+        if (str == null)
+            throw illegalMacString(str);
+        String[] macBytes = str.split(":");
+        if (macBytes.length != 6)
+            throw illegalMacString(str);
+
+        byte[] addr = new byte[6];
+        try {
+            for (int i = 0; i < 6; i++) {
+                String s = macBytes[i];
+                if (s.length() > 2)
+                    throw illegalMacString(str);
+                addr[i] = (byte) Integer.parseInt(s, 16);
             }
         } catch(NumberFormatException ex) {
             throw illegalMacString(str);
@@ -130,20 +152,6 @@ public class MAC implements Cloneable {
         );
     }
 
-    private static IllegalArgumentException illegalMacBytes =
-        new IllegalArgumentException(
-            "byte array representing a MAC address must have length 6 exactly");
-
-    public static long bytesToLong(byte[] bytesAddr)
-            throws IllegalArgumentException {
-        if (bytesAddr == null || bytesAddr.length != 6) throw illegalMacBytes;
-        long addr = 0;
-        for (int i = 0; i < 6; i++) {
-            addr = (addr << 8) + (bytesAddr[i] & 0xffL);
-        }
-        return addr;
-    }
-
     public static byte[] longToBytes(long addr) {
         byte[] bytesAddr = new byte[6];
         for (int i = 5; i >= 0; i--) {
@@ -151,5 +159,35 @@ public class MAC implements Cloneable {
             addr = addr >> 8;
         }
         return bytesAddr;
+    }
+
+    private static IllegalArgumentException illegalMacBytes =
+        new IllegalArgumentException(
+            "byte array representing a MAC address must have length 6 exactly");
+
+    public static long bytesToLong(byte[] bytesAddr)
+            throws IllegalArgumentException {
+        if (bytesAddr == null || bytesAddr.length != 6)
+             throw illegalMacBytes;
+        long addr = 0;
+        for (int i = 0; i < 6; i++) {
+            addr = (addr << 8) + (bytesAddr[i] & 0xffL);
+        }
+        return addr;
+    }
+
+    public static String bytesToString(byte[] address)
+            throws IllegalArgumentException {
+        if (address == null || address.length != 6)
+            throw illegalMacBytes;
+        return String.format(
+            "%02x:%02x:%02x:%02x:%02x:%02x",
+            address[0],
+            address[1],
+            address[2],
+            address[3],
+            address[4],
+            address[5]
+        );
     }
 }
