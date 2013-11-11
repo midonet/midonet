@@ -156,15 +156,6 @@ public abstract class AbstractNetlinkProtocolTest {
 
     }
 
-    protected int ipFromString(String ip) {
-        try {
-            byte []address = Inet4Address.getByName(ip).getAddress();
-            return ByteBuffer.wrap(address).asIntBuffer().get();
-        } catch (UnknownHostException e) {
-            return 0;
-        }
-    }
-
     protected void initializeConnection(Future<Boolean> initialization, int messages) throws Exception {
 
         while (messages-- > 0) {

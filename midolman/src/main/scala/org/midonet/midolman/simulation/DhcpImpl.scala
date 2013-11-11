@@ -45,7 +45,7 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
     private var interfaceMTU : Short = 0
 
     // utility function for reduced verbosity
-    private def addrToBytes (ip: IntIPv4) = IPv4.toIPv4AddressBytes(ip.getAddress)
+    private def addrToBytes (ip: IntIPv4) = IPv4Addr.intToBytes(ip.getAddress)
 
     def handleDHCP : Future[Boolean] = {
         // These fields are decided based on the port configuration.
@@ -180,7 +180,7 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
         log.debug("handleDhcpRequest: on port {} bootrequest with chaddr {} "
             + "and ciaddr {}",
             Array(inPortId, MAC.bytesToString(chaddr),
-                  IPv4.fromIPv4Address(request.getClientIPAddress)))
+                  IPv4Addr.intToString(request.getClientIPAddress)))
 
         // Extract all the options and put them in a map
         val reqOptions = mutable.HashMap[Byte, DHCPOption]()
@@ -254,11 +254,11 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
                         // TODO(pino): return Promise.successful(false)?
                     case Some(opt) =>
                         // The server id should correspond to this port's address.
-                        val theirServId = IPv4.toIPv4Address(opt.getData)
+                        val theirServId = IPv4Addr.bytesToInt(opt.getData)
                         if (serverAddr.addressAsInt != theirServId) {
                             log.warning("handleDhcpRequest dropping dhcp REQUEST - client "
                                 + "chose server {} not us {}",
-                                IPv4.fromIPv4Address(theirServId), serverAddr)
+                                IPv4Addr.intToString(theirServId), serverAddr)
                         }
                 }
                 // The request must contain a requested IP address option.
@@ -270,7 +270,7 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
                         //    "DHCP message with no requested-IP option."))
                     case Some(opt) =>
                         // The requested ip must correspond to the yiaddr in our offer.
-                        val reqIp = IPv4.toIPv4Address(opt.getData)
+                        val reqIp = IPv4Addr.bytesToInt(opt.getData)
                         // TODO(pino): must keep state and remember the offered ip based
                         // on the chaddr or the client id option.
                         if (yiaddr.addressAsInt != reqIp) {
@@ -301,7 +301,7 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
         // TODO(pino): do we need to include the DNS option?
         options.add(new DHCPOption(DHCPOption.Code.MASK.value,
                                    DHCPOption.Code.MASK.length,
-                                   IPv4.toIPv4AddressBytes(
+                                   IPv4Addr.intToBytes(
                                        ~0 << (32 - yiaddr.getMaskLength))))
 
         // Generate the broadcast address... this is nwAddr with 1's in the
@@ -309,13 +309,13 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
         val mask = ~0 >>> yiaddr.getMaskLength
         val bcast = mask | yiaddr.getAddress
         log.debug("handleDhcpRequest setting bcast addr option to {}",
-            IPv4.fromIPv4Address(bcast))
+            IPv4Addr.intToString(bcast))
         options.add(new DHCPOption(DHCPOption.Code.BCAST_ADDR.value,
                                    DHCPOption.Code.BCAST_ADDR.length,
-                                   IPv4.toIPv4AddressBytes(bcast)))
+                                   IPv4Addr.intToBytes(bcast)))
         options.add(new DHCPOption(DHCPOption.Code.IP_LEASE_TIME.value,
                                    DHCPOption.Code.IP_LEASE_TIME.length,
-                                   IPv4.toIPv4AddressBytes((1 day).toSeconds.toInt)))
+                                   IPv4Addr.intToBytes((1 day).toSeconds.toInt)))
         options.add(new DHCPOption(DHCPOption.Code.INTERFACE_MTU.value,
                                    DHCPOption.Code.INTERFACE_MTU.length,
                                    Array[Byte]((interfaceMTU/256).toByte,

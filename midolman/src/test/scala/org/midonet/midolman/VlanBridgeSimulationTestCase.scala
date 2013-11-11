@@ -197,9 +197,9 @@ class VlanBridgeSimulationTestCase extends SimulationHelper
         arp.setProtocolAddressLength(4)
         arp.setOpCode(ARP.OP_REQUEST)
         arp.setSenderHardwareAddress(srcMac)
-        arp.setSenderProtocolAddress(IPv4.toIPv4AddressBytes(srcIp))
+        arp.setSenderProtocolAddress(IPv4Addr.intToBytes(srcIp))
         arp.setTargetHardwareAddress(MAC.fromString("ff:ff:ff:ff:ff:ff"))
-        arp.setTargetProtocolAddress(IPv4.toIPv4AddressBytes(dstIp))
+        arp.setTargetProtocolAddress(IPv4Addr.intToBytes(dstIp))
         val eth = new Ethernet()
         eth.setPayload(arp)
         eth.setSourceMACAddress(trunkMac)
@@ -374,8 +374,8 @@ class VlanBridgeSimulationTestCase extends SimulationHelper
 
         log.info("ARP reply from trunk to VM 2_1")
         val arpRepEth = ARP.makeArpReply(trunkMac, vm2_1Mac,
-            IPv4.toIPv4AddressBytes(trunkIp.toInt),
-            IPv4.toIPv4AddressBytes(vm2_1Ip.toInt))
+            IPv4Addr.intToBytes(trunkIp.toInt),
+            IPv4Addr.intToBytes(vm2_1Ip.toInt))
         arpRepEth.setVlanID(vlanId2)
         triggerPacketIn("trunkPort1", arpRepEth)
 
@@ -413,8 +413,8 @@ class VlanBridgeSimulationTestCase extends SimulationHelper
 
         log.info("ARP reply from VM to trunk")
         val arpRepEth = ARP.makeArpReply(vm2_1Mac, trunkMac,
-                                         IPv4.toIPv4AddressBytes(vm2_1Ip.toInt),
-                                         IPv4.toIPv4AddressBytes(trunkIp.toInt))
+                                         IPv4Addr.intToBytes(vm2_1Ip.toInt),
+                                         IPv4Addr.intToBytes(trunkIp.toInt))
         triggerPacketIn("vm2_1Port", arpRepEth)
 
         toPorts = List(getPortNumber("trunkPort1"))
