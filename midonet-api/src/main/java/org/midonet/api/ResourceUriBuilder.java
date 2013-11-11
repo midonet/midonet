@@ -13,7 +13,9 @@ import org.midonet.packets.MAC;
 import org.midonet.packets.IPv6Subnet;
 
 import javax.ws.rs.core.UriBuilder;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.util.UUID;
 
 public class ResourceUriBuilder {
@@ -32,6 +34,8 @@ public class ResourceUriBuilder {
     public static final String PORTS = "/ports";           // exterior ports
     public static final String PEER_PORTS = "/peer_ports"; // interior ports
     public static final String PORT_GROUPS = "/port_groups";
+    public static final String IP_ADDR_GROUPS = "/ip_addr_groups";
+    public static final String IP_ADDRS = "/ip_addrs";
     public static final String CHAINS = "/chains";
     public static final String RULES = "/rules";
     public static final String ROUTES = "/routes";
@@ -95,6 +99,12 @@ public class ResourceUriBuilder {
     public static URI getTenantPortGroups(URI baseUri, String tenantId) {
         return UriBuilder.fromUri(getPortGroups(baseUri)).queryParam(
                 TENANT_ID_PARAM, tenantId).build();
+    }
+
+
+    public static URI getTenantIpAddrGroups(URI baseUri, String tenantId) {
+        return UriBuilder.fromUri(getTenant(baseUri, tenantId))
+                .path(IP_ADDR_GROUPS).build();
     }
 
     public static URI getRouters(URI baseUri) {
@@ -401,6 +411,11 @@ public class ResourceUriBuilder {
         return UriBuilder.fromUri(getRoot(baseUri)).path(PORT_GROUPS).build();
     }
 
+    public static URI getIpAddrGroups(URI baseUri) {
+        return UriBuilder.fromUri(getRoot(baseUri)).path(
+                IP_ADDR_GROUPS).build();
+    }
+
     public static URI getPortPortGroups(URI baseUri, UUID portId) {
         return UriBuilder.fromUri(getPort(baseUri, portId)).path(
                 PORT_GROUPS).build();
@@ -411,9 +426,28 @@ public class ResourceUriBuilder {
                 .build();
     }
 
+    public static URI getIpAddrGroup(URI baseUri, UUID id) {
+        return UriBuilder.fromUri(getIpAddrGroups(baseUri)).path(id.toString())
+                .build();
+    }
+
+    public static URI getIpAddrGroupVersionAddr(URI baseUri, UUID id,
+                                                int version, String addr)
+            throws UnsupportedEncodingException {
+        return UriBuilder.fromUri(getIpAddrGroup(baseUri, id)).path(
+                VERSIONS).path("/").path(String.valueOf(version)).path(
+                IP_ADDRS).path("/").path(URLEncoder.encode(
+                addr, "UTF-8")).build();
+    }
+
     public static URI getPortGroupPorts(URI baseUri, UUID id) {
         return UriBuilder.fromUri(getPortGroup(baseUri, id))
                 .path(PORTS).build();
+    }
+
+    public static URI getIpAddrGroupAddrs(URI baseUri, UUID id) {
+        return UriBuilder.fromUri(getIpAddrGroup(baseUri, id))
+                .path(IP_ADDRS).build();
     }
 
     public static URI getPortGroupPort(URI baseUri, UUID id, UUID portId) {
@@ -527,6 +561,16 @@ public class ResourceUriBuilder {
      */
     public static String getPortGroupTemplate(URI baseUri) {
         return buildIdTemplateUri(getPortGroups(baseUri));
+    }
+
+    /**
+     * Generate a IP address group URI template
+     *
+     * @param baseUri Base URI
+     * @return IP address group template URI
+     */
+    public static String getIpAddrGroupTemplate(URI baseUri) {
+        return buildIdTemplateUri(getIpAddrGroups(baseUri));
     }
 
     /**

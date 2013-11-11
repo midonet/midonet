@@ -25,5 +25,6 @@ trait VirtualTopologyHelper {
         case b: Bridge => BridgeRequest(b.getId, update = true)
         case r: Router => RouterRequest(r.getId, update = true)
         case c: Chain => ChainRequest(c.getId, update = true)
+        case i: IpAddrGroup => IPAddrGroupRequest(i.getId, update = true)
     }
 }

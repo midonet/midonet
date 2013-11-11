@@ -128,10 +128,11 @@ public abstract class Rule {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder("Rule[");
         sb.append("condition=").append(condition);
         sb.append(", action=").append(action);
         sb.append(", chainId=").append(chainId);
+        sb.append("]");
         return sb.toString();
     }
 }

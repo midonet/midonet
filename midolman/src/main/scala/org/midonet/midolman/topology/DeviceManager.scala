@@ -6,8 +6,7 @@ package org.midonet.midolman.topology
 import java.util.UUID
 import akka.actor.Actor
 import org.midonet.midolman.simulation.Chain
-import org.midonet.midolman.topology.VirtualTopologyActor.{ChainRequest,
-                                                            ChainUnsubscribe}
+import org.midonet.midolman.topology.VirtualTopologyActor.{Unsubscribe, ChainRequest}
 import org.midonet.midolman.logging.ActorLogWithoutPath
 
 abstract class DeviceManager(val id: UUID) extends Actor with ActorLogWithoutPath {
@@ -19,12 +18,12 @@ abstract class DeviceManager(val id: UUID) extends Actor with ActorLogWithoutPat
     def configUpdated(): Unit = {
         // Unsubscribe from old inFilter if changed.
         if (null != inFilter && !inFilter.id.equals(getInFilterID)) {
-            VirtualTopologyActor ! ChainUnsubscribe(inFilter.id)
+            VirtualTopologyActor ! Unsubscribe(inFilter.id)
             inFilter = null
         }
         // Unsubscribe from old outFilter if changed.
         if (null != outFilter && !outFilter.id.equals(getOutFilterID)) {
-            VirtualTopologyActor ! ChainUnsubscribe(outFilter.id)
+            VirtualTopologyActor ! Unsubscribe(outFilter.id)
             outFilter = null
         }
 
@@ -49,13 +48,13 @@ abstract class DeviceManager(val id: UUID) extends Actor with ActorLogWithoutPat
 
     protected def updateChain(chain: Chain): Unit = {
         if (chain.id.equals(getInFilterID)) {
-            log.debug("Received ingress filter {}", chain.id)
+            log.debug("Received ingress filter {} for device {}", chain.id, id)
             inFilter = chain
             // Send a Port update if we're not waiting for the outFilter
             if (!waitingForOutFilter)
                 chainsUpdated()
         } else if (chain.id.equals(getOutFilterID)) {
-            log.debug("Received egress filter {}", chain.id)
+            log.debug("Received egress filter {} for device {}", chain.id, id)
             outFilter = chain
             // Send a Port update if we're not waiting for the inFilter
             if (!waitingForInFilter)

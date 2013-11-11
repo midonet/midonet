@@ -43,6 +43,11 @@ public abstract class Condition extends UriResource {
     private boolean invOutPorts;
     private UUID portGroup;
     private boolean invPortGroup;
+    private UUID ipAddrGroupSrc;
+    private boolean invIpAddrGroupSrc;
+    private UUID ipAddrGroupDst;
+    private boolean invIpAddrGroupDst;
+
     @Min(0x0600)
     @Max(0xFFFF)
     private Integer dlType;
@@ -134,6 +139,38 @@ public abstract class Condition extends UriResource {
 
     public void setPortGroup(UUID portGroup) {
         this.portGroup = portGroup;
+    }
+
+    public UUID getIpAddrGroupSrc() {
+        return ipAddrGroupSrc;
+    }
+
+    public void setIpAddrGroupSrc(UUID ipAddrGroupSrc) {
+        this.ipAddrGroupSrc = ipAddrGroupSrc;
+    }
+
+    public boolean isInvIpAddrGroupSrc() {
+        return invIpAddrGroupSrc;
+    }
+
+    public void setInvIpAddrGroupSrc(boolean invIpAddrGroupSrc) {
+        this.invIpAddrGroupSrc = invIpAddrGroupSrc;
+    }
+
+    public UUID getIpAddrGroupDst() {
+        return ipAddrGroupDst;
+    }
+
+    public void setIpAddrGroupDst(UUID ipAddrGroupDst) {
+        this.ipAddrGroupDst = ipAddrGroupDst;
+    }
+
+    public boolean isInvIpAddrGroupDst() {
+        return invIpAddrGroupDst;
+    }
+
+    public void setInvIpAddrGroupDst(boolean invIpAddrGroupDst) {
+        this.invIpAddrGroupDst = invIpAddrGroupDst;
     }
 
     /**
@@ -506,6 +543,10 @@ public abstract class Condition extends UriResource {
         c.tpSrcInv = this.isInvTpSrc();
         c.portGroup = this.portGroup;
         c.invPortGroup = this.invPortGroup;
+        c.ipAddrGroupIdDst = this.ipAddrGroupDst;
+        c.invIpAddrGroupIdDst = this.invIpAddrGroupDst;
+        c.ipAddrGroupIdSrc = this.ipAddrGroupSrc;
+        c.invIpAddrGroupIdSrc = this.invIpAddrGroupSrc;
         return c;
     }
 
@@ -514,6 +555,8 @@ public abstract class Condition extends UriResource {
         this.setInvInPorts(c.inPortInv);
         this.setInvOutPorts(c.outPortInv);
         this.setInvPortGroup(c.invPortGroup);
+        this.setInvIpAddrGroupDst(c.invIpAddrGroupIdDst);
+        this.setInvIpAddrGroupSrc(c.invIpAddrGroupIdSrc);
         this.setInvDlType(c.invDlType);
         this.setInvDlSrc(c.invDlSrc);
         this.setInvDlDst(c.invDlDst);
@@ -533,6 +576,8 @@ public abstract class Condition extends UriResource {
             this.setOutPorts(c.outPortIds.toArray(new UUID[c.outPortIds.size()]));
         }
         this.setPortGroup(c.portGroup);
+        this.setIpAddrGroupDst(c.ipAddrGroupIdDst);
+        this.setIpAddrGroupSrc(c.ipAddrGroupIdSrc);
         this.setDlType(c.dlType);
         if (null != c.dlSrc)
             this.setDlSrc(c.dlSrc.toString());

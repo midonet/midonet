@@ -183,4 +183,14 @@ public class VendorMediaType {
             "application/vnd.org.midonet.SystemState-v1+json";
     public static final String APPLICATION_HOST_VERSION_JSON =
             "application/vnd.org.midonet.HostVersion-v1+json";
+
+    public static final String APPLICATION_IP_ADDR_GROUP_JSON =
+            "application/vnd.org.midonet.IpAddrGroup-v1+json";
+    public static final String APPLICATION_IP_ADDR_GROUP_COLLECTION_JSON =
+            "application/vnd.org.midonet.collection.IpAddrGroup-v1+json";
+
+    public static final String APPLICATION_IP_ADDR_GROUP_ADDR_JSON =
+            "application/vnd.org.midonet.IpAddrGroupAddr-v1+json";
+    public static final String APPLICATION_IP_ADDR_GROUP_ADDR_COLLECTION_JSON =
+            "application/vnd.org.midonet.collection.IpAddrGroupAddr-v1+json";
 }

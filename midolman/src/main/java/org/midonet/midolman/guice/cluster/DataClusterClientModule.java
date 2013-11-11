@@ -18,6 +18,7 @@ import org.midonet.cluster.ClusterBgpManager;
 import org.midonet.cluster.ClusterBridgeManager;
 import org.midonet.cluster.ClusterChainManager;
 import org.midonet.cluster.ClusterConditionManager;
+import org.midonet.cluster.ClusterIPAddrGroupManager;
 import org.midonet.cluster.ClusterPortsManager;
 import org.midonet.cluster.ClusterRouterManager;
 import org.midonet.cluster.DataClient;
@@ -27,6 +28,7 @@ import org.midonet.midolman.config.ZookeeperConfig;
 import org.midonet.midolman.guice.zookeeper.ZKConnectionProvider;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.monitoring.store.Store;
+import org.midonet.midolman.rules.Condition;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.Directory;
@@ -78,16 +80,19 @@ public class DataClusterClientModule extends PrivateModule {
                 .in(Singleton.class);
 
         bind(ClusterBgpManager.class)
-            .in(Singleton.class);
+                .in(Singleton.class);
 
         bind(ClusterChainManager.class)
-            .in(Singleton.class);
+                .in(Singleton.class);
 
         bind(ClusterConditionManager.class)
-            .in(Singleton.class);
+                .in(Singleton.class);
+
+        bind(ClusterIPAddrGroupManager.class)
+                .in(Singleton.class);
 
         bind(ClusterPortsManager.class)
-                    .in(Singleton.class);
+                .in(Singleton.class);
 
         bind(PortConfigCache.class)
                 .toProvider(PortConfigCacheProvider.class)
@@ -129,6 +134,7 @@ public class DataClusterClientModule extends PrivateModule {
         managers.add(PortSetZkManager.class);
         managers.add(TaggableConfigZkManager.class);
         managers.add(TraceConditionZkManager.class);
+        managers.add(IpAddrGroupZkManager.class);
 
         for (Class<? extends AbstractZkManager> managerClass : managers) {
             //noinspection unchecked

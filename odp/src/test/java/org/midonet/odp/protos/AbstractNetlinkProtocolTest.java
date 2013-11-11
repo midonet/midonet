@@ -60,22 +60,27 @@ public abstract class AbstractNetlinkProtocolTest {
         PowerMockito.when(channel.getLocalAddress())
                     .thenReturn(local);
 
+        // Answer that copies the next response from responses into the
+        // invocation's first argument (a ByteBuffer).
         Answer<Object> playbackResponseAnswer = new Answer<Object>() {
             int position = 0;
 
             @Override
             public Object answer(InvocationOnMock invocation)
                 throws Throwable {
-                ByteBuffer result = ((ByteBuffer) invocation.getArguments()[0]);
+                ByteBuffer result = (ByteBuffer)invocation.getArguments()[0];
                 result.put(responses[position]);
                 position++;
                 return result.position();
             }
         };
 
+        // Successive calls to read() will get the values in resposes in order.
         PowerMockito.when(channel.read(Matchers.<ByteBuffer>any()))
                     .then(playbackResponseAnswer);
 
+        // Calls to write will add values (as ValueFuture<ByteBuffer>) to
+        // listWrites.
         PowerMockito.when(channel.write(Matchers.<ByteBuffer>any())).then(
             new Answer<Object>() {
 

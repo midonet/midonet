@@ -14,7 +14,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
@@ -29,15 +28,11 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.midonet.cache.Cache;
+import org.midonet.midolman.simulation.IPAddrGroup;
 import org.midonet.midolman.vrn.ForwardInfo;
-import org.midonet.packets.IPv4;
-import org.midonet.packets.IPv4Addr;
-import org.midonet.packets.IPv4Subnet;
-import org.midonet.packets.Transport;
+import org.midonet.packets.*;
 import org.midonet.sdn.flows.WildcardMatch;
 import org.midonet.util.Range;
-import org.midonet.util.functors.Callback1;
-
 
 public class TestCondition {
 
@@ -55,17 +50,20 @@ public class TestCondition {
         objectMapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
     }
 
+    private final IPAddr dstIpAddr = new IPv4Addr(0x0a000b22);
+    private final IPAddr srcIpAddr = new IPv4Addr(0x0a001406);
+
     @Before
     public void setUp() {
         pktMatch = new WildcardMatch();
         pktMatch.setInputPort((short) 5);
-        pktMatch.setDataLayerSource("02:11:33:00:11:01");
-        pktMatch.setDataLayerDestination("02:11:aa:ee:22:05");
-        pktMatch.setDataLayerType(IPv4.ETHERTYPE);
-        pktMatch.setNetworkSource(IPv4Addr.fromInt(0x0a001406));
-        pktMatch.setNetworkDestination(IPv4Addr.fromInt(0x0a000b22));
+        pktMatch.setEthernetSource("02:11:33:00:11:01");
+        pktMatch.setEthernetDestination("02:11:aa:ee:22:05");
+        pktMatch.setEtherType(IPv4.ETHERTYPE);
+        pktMatch.setNetworkSource(srcIpAddr);
+        pktMatch.setNetworkDestination(dstIpAddr);
         pktMatch.setNetworkProtocol((byte) 6);
-        pktMatch.setNetworkTypeOfService((byte) 34);
+        pktMatch.setNetworkTOS((byte) 34);
         pktMatch.setTransportSource(4321);
         pktMatch.setTransportDestination(1234);
         rand = new Random();
@@ -78,9 +76,8 @@ public class TestCondition {
     @Test
     public void testConjunctionInv() {
         Condition cond = new Condition();
-        UUID inPort = new UUID(rand.nextLong(), rand.nextLong());
         // This condition should match all packets.
-        fwdInfo.inPortId = inPort;
+        fwdInfo.inPortId = new UUID(rand.nextLong(), rand.nextLong());
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
         cond.conjunctionInv = true;
         Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
@@ -146,8 +143,7 @@ public class TestCondition {
     @Test
     public void testNwTos() {
         Condition cond = new Condition();
-        UUID inPort = new UUID(rand.nextLong(), rand.nextLong());
-        fwdInfo.inPortId = inPort;
+        fwdInfo.inPortId = new UUID(rand.nextLong(), rand.nextLong());
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
         cond.nwTos = 5;
         Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
@@ -401,13 +397,94 @@ public class TestCondition {
     }
 
     @Test
+    public void testIpAddrGroup() {
+        // Should match with empty condition.
+        Condition cond = new Condition();
+        Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
+
+        // Should fail to match with empty IPAddrGroup for source or dest.
+        IPAddrGroup ipAddrGroupEmpty = IPAddrGroup.fromAddrs(
+                UUID.randomUUID(), new IPAddr[]{});
+        cond.ipAddrGroupDst = ipAddrGroupEmpty;
+        Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
+
+        cond = new Condition();
+        cond.ipAddrGroupSrc = ipAddrGroupEmpty;
+        Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
+
+        // Should match with inverted empty IPAddrGroup for source or dest.
+        cond = new Condition();
+        cond.ipAddrGroupDst = ipAddrGroupEmpty;
+        cond.invIpAddrGroupIdDst = true;
+        Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
+
+        cond = new Condition();
+        cond.ipAddrGroupSrc = ipAddrGroupEmpty;
+        cond.invIpAddrGroupIdSrc = true;
+        Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
+
+        // Should match with dest set containing dest address.
+        IPAddrGroup ipAddrGroupDst = IPAddrGroup.fromAddrs(UUID.randomUUID(),
+                new IPAddr[]{dstIpAddr, new IPv4Addr(0x12345678)});
+        cond = new Condition();
+        cond.ipAddrGroupDst = ipAddrGroupDst;
+        Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
+
+        // And not when inverted.
+        cond.invIpAddrGroupIdDst = true;
+        Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
+
+        // Should not match when source set contains dest, not source, address.
+        cond = new Condition();
+        cond.ipAddrGroupSrc = ipAddrGroupDst;
+        Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
+        cond.invIpAddrGroupIdSrc = true;
+        Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
+
+        // The above with source and dest inverted.
+        IPAddrGroup ipAddrGroupSrc = IPAddrGroup.fromAddrs(UUID.randomUUID(),
+                new IPAddr[]{srcIpAddr, new IPv4Addr(0x87654321)});
+        cond = new Condition();
+        cond.ipAddrGroupSrc = ipAddrGroupSrc;
+        Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
+        cond.invIpAddrGroupIdSrc = true;
+        Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
+
+        cond = new Condition();
+        cond.ipAddrGroupDst = ipAddrGroupSrc;
+        Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
+        cond.invIpAddrGroupIdDst = true;
+        Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
+
+        // Should not match when source matches and dest doesn't, or vice-versa.
+        cond = new Condition();
+        cond.ipAddrGroupDst = ipAddrGroupDst;
+        cond.ipAddrGroupSrc = ipAddrGroupDst;
+        Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
+        cond.invIpAddrGroupIdSrc = true;
+        Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
+
+        cond = new Condition();
+        cond.ipAddrGroupDst = ipAddrGroupSrc;
+        cond.ipAddrGroupSrc = ipAddrGroupSrc;
+        Assert.assertFalse(cond.matches(fwdInfo, pktMatch, false));
+        cond.invIpAddrGroupIdDst = true;
+        Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
+
+        // Should match when both match.
+        cond = new Condition();
+        cond.ipAddrGroupDst = ipAddrGroupDst;
+        cond.ipAddrGroupSrc = ipAddrGroupSrc;
+    }
+
+    @Test
     public void testIpv6() {
         Condition cond = new Condition();
         cond.dlType = 0x86DD;
         fwdInfo.inPortId = UUID.randomUUID();
 
         WildcardMatch pktMatch6 = new WildcardMatch();
-        pktMatch6.setDataLayerType((short)0x86DD);
+        pktMatch6.setEtherType((short)0x86DD);
 
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch6, false));
     }
@@ -447,9 +524,6 @@ public class TestCondition {
         public String get(String key) { return storedValue; }
         public Map<String, String> dump(int maxEntries) {return null;}
         public void delete(String key) {}
-        public void getAsync(String key, Callback1<String> cb) {
-            throw new UnsupportedOperationException();
-        }
         public String getAndTouch(String key) { return storedValue; }
         public int getExpirationSeconds() { return 0; }
         public void setStoredValue(String value) { storedValue = value; }

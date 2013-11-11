@@ -383,6 +383,108 @@ public interface DataClient {
     List<Port<?, ?>> portsFindByPortGroup(UUID portGroupId)
             throws StateAccessException, SerializationException;
 
+    /**
+     * Gets the definition of an IP address group.
+     *
+     * @param id ID of IP address group to get.
+     *
+     * @return IP address group. Never null.
+     *
+     * @throws org.midonet.midolman.state.NoStatePathException
+     *      If no IP address group with the specified ID exists
+     */
+    @CheckForNull IpAddrGroup ipAddrGroupsGet(UUID id)
+            throws StateAccessException, SerializationException;
+
+    /**
+     * Deletes an IP address group.
+     *
+     * @param id ID of IP address group to delete.
+     *
+     * @throws org.midonet.midolman.state.NoStatePathException
+     *      If no IP address group with the specified ID exists
+     */
+    void ipAddrGroupsDelete(UUID id)
+            throws StateAccessException, SerializationException;
+
+    /**
+     * Creates an IP address group.
+     *
+     * @param ipAddrGroup
+     *      IP address group information. If the id field is initialized,
+     *      that will be the ID of the newly created address group. Otherwise,
+     *      a random UUID will be assigned.
+     *
+     * @return ID of the newly created IP address group.
+     *
+     * @throws org.midonet.midolman.state.StatePathExistsException
+     *      If an IP address group with the specified ID already exists.
+     */
+    UUID ipAddrGroupsCreate(@Nonnull IpAddrGroup ipAddrGroup)
+            throws StateAccessException, SerializationException;
+
+    /**
+     * Returns true if an IP Address group with the specified ID exists.
+     */
+    boolean ipAddrGroupsExists(UUID id) throws StateAccessException;
+
+    /**
+     * Get a list of all IP Address Groups.
+     *
+     * @return List of IPAddrGroup. May be empty, but never null.
+     */
+    List<IpAddrGroup> ipAddrGroupsGetAll() throws StateAccessException,
+            SerializationException;
+
+    /**
+     * Adds an IP address to an IP address group. Idempotent.
+     *
+     * @param id IP address group's ID.
+     * @param addr IP address. May be IPv4 or IPv6.
+     */
+    void ipAddrGroupAddAddr(@Nonnull UUID id, @Nonnull String addr)
+            throws StateAccessException, SerializationException;
+
+    /**
+     * Removes an IP address from an IP address group. Idempotent.
+     *
+     * @param id IP address group's ID
+     * @param addr IP address. May be IPv4 or IPv6. No canonicalization
+     *             is performed, so only an address with an identical
+     *             string representation will be removed.
+     */
+    void ipAddrGroupRemoveAddr(UUID id, String addr)
+            throws StateAccessException, SerializationException;
+
+    /**
+     * Checks an IP address group for the specified address.
+     *
+     * @param id IP address group's ID
+     * @param addr IP address. May be IPv4 or IPv6. No canonicalization
+     *             is performed, so only an address with an identical
+     *             string representation will be found.
+     *
+     * @return True if the address is a member of the specified group.
+     *
+     * @throws org.midonet.midolman.state.NoStatePathException
+     *      If no IP address group with the specified ID exists.
+     */
+    boolean ipAddrGroupHasAddr(UUID id, String addr)
+            throws StateAccessException;
+
+    /**
+     * Gets all IP addresses in an IP address group.
+     *
+     * @param id IP address group ID.
+     *
+     * @return Set of all IP addresses in the specified IP address group.
+     *         May be null, but never empty.
+     *
+     * @throws org.midonet.midolman.state.NoStatePathException
+     *      If no IP address group with the specified ID exists.
+     */
+    Set<String> getAddrsByIpAddrGroup(UUID id)
+            throws StateAccessException, SerializationException;
 
     /* Port group related methods */
     @CheckForNull PortGroup portGroupsGet(UUID id)

@@ -283,6 +283,11 @@ public class WildcardMatch implements Cloneable {
     }
 
     @Nonnull
+    public WildcardMatch setEthernetSource(@Nonnull String addr) {
+        return setEthernetSource(MAC.fromString(addr));
+    }
+
+    @Nonnull
     public WildcardMatch setEthernetSource(@Nonnull MAC addr) {
         usedFields.add(Field.EthernetSource);
         this.ethernetSource = addr;
@@ -319,6 +324,11 @@ public class WildcardMatch implements Cloneable {
     public byte[] getDataLayerSource() {
         fieldSeen(Field.EthernetSource);
         return ethernetSource.getAddress();
+    }
+
+    @Nonnull
+    public WildcardMatch setEthernetDestination(@Nonnull String addr) {
+        return setEthernetDestination(MAC.fromString(addr));
     }
 
     @Nonnull
@@ -837,9 +847,10 @@ public class WildcardMatch implements Cloneable {
 
     @Override
     public String toString() {
-        StringBuilder str = new StringBuilder();
-        for (Field f: getUsedFields()) {
-            str.append(f.toString() + " : ");
+        StringBuilder str = new StringBuilder("WildcardMatch[");
+        Set<Field> usedFields = getUsedFields();
+        for (Field f: usedFields) {
+            str.append(f.toString() + "=");
             switch (f) {
                 case EtherType:
                     str.append(etherType);
@@ -905,8 +916,14 @@ public class WildcardMatch implements Cloneable {
                     str.append(vlanIds);
                     break;
             }
-            str.append(";");
+            str.append(", ");
         }
+
+        // Trim trailing ", "
+        if (!usedFields.isEmpty())
+            str.setLength(str.length() - 2);
+
+        str.append("]");
         return str.toString();
     }
 
