@@ -114,10 +114,21 @@ public class Application extends ResourceBase<Application, DtoApplication> {
     public ResourceCollection<PortGroup> getPortGroups(
             MultivaluedMap<String,String> queryParams) {
         return getChildResources(principalDto.getPortGroups(),
-                                 queryParams,
-                                 VendorMediaType
-                                     .APPLICATION_PORTGROUP_COLLECTION_JSON,
-                                 PortGroup.class, DtoPortGroup.class);
+                queryParams,
+                VendorMediaType.APPLICATION_PORTGROUP_COLLECTION_JSON,
+                PortGroup.class, DtoPortGroup.class);
+    }
+
+    /**
+     * Gets IP address groups.
+     *
+     * @return collection of IP address groups
+     */
+    public ResourceCollection<IpAddrGroup> getIpAddrGroups(
+            MultivaluedMap<String, String> queryParams) {
+        return getChildResources(principalDto.getIpAddrGroups(), queryParams,
+                VendorMediaType.APPLICATION_IP_ADDR_GROUP_COLLECTION_JSON,
+                IpAddrGroup.class, DtoIpAddrGroup.class);
     }
 
     /**
@@ -183,7 +194,17 @@ public class Application extends ResourceBase<Application, DtoApplication> {
      */
     public PortGroup addPortGroup() {
         return new PortGroup(resource, principalDto.getPortGroups(),
-                             new DtoPortGroup());
+                new DtoPortGroup());
+    }
+
+    /**
+     * Adds an IP address group.
+     *
+     * @return new PortGroup() resource.
+     */
+    public IpAddrGroup addIpAddrGroup() {
+        return new IpAddrGroup(resource,
+                principalDto.getIpAddrGroups(), new DtoIpAddrGroup());
     }
 
     /**
@@ -303,6 +324,21 @@ public class Application extends ResourceBase<Application, DtoApplication> {
         DtoPortGroup portGroup = resource.get(uri, null, DtoPortGroup.class,
                 VendorMediaType.APPLICATION_PORTGROUP_JSON);
         return new PortGroup(resource, null, portGroup);
+    }
+
+    /**
+     * Returns IpAddrGroup object
+     *
+     * @param id ID of IP address group
+     * @return IPAddrgroup
+     */
+    public IpAddrGroup getIpAddrGroup(UUID id) {
+        URI uri = createUriFromTemplate(
+                principalDto.getIpAddrGroupTemplate(), ID_TOKEN, id);
+        DtoIpAddrGroup IpAddrGroup = resource.get(
+                uri, null, DtoIpAddrGroup.class,
+                VendorMediaType.APPLICATION_IP_ADDR_GROUP_JSON);
+        return new IpAddrGroup(resource, null, IpAddrGroup);
     }
 
     /**

@@ -21,6 +21,7 @@ import org.midonet.api.auth.rest_api.TenantResource;
 import org.midonet.api.bgp.rest_api.AdRouteResource;
 import org.midonet.api.bgp.rest_api.BgpResource;
 import org.midonet.api.filter.rest_api.ChainResource;
+import org.midonet.api.filter.rest_api.IpAddrGroupResource;
 import org.midonet.api.filter.rest_api.RuleResource;
 import org.midonet.api.host.rest_api.HostResource;
 import org.midonet.api.host.rest_api.TunnelZoneResource;
@@ -128,6 +129,11 @@ public class ApplicationResource extends AbstractResource {
     @Path(ResourceUriBuilder.PORT_GROUPS)
     public PortGroupResource getPortGroupResource() {
         return factory.getPortGroupResource();
+    }
+
+    @Path(ResourceUriBuilder.IP_ADDR_GROUPS)
+    public IpAddrGroupResource getIpAddrGroupResource() {
+        return factory.getIpAddrGroupResource();
     }
 
     /**

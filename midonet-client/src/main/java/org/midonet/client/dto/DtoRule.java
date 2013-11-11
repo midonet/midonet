@@ -35,6 +35,10 @@ public class DtoRule {
     private boolean invOutPorts;
     private UUID portGroup;
     private boolean invPortGroup;
+    private UUID ipAddrGroupSrc;
+    private boolean invIpAddrGroupSrc;
+    private UUID ipAddrGroupDst;
+    private boolean invIpAddrGroupDst;
     private Integer dlType = null;
     private boolean invDlType = false;
     private String dlSrc = null;
@@ -157,6 +161,38 @@ public class DtoRule {
 
     public void setPortGroup(UUID portGroup) {
         this.portGroup = portGroup;
+    }
+
+    public UUID getIpAddrGroupSrc() {
+        return ipAddrGroupSrc;
+    }
+
+    public void setIpAddrGroupSrc(UUID ipAddrGroupSrc) {
+        this.ipAddrGroupSrc = ipAddrGroupSrc;
+    }
+
+    public boolean isInvIpAddrGroupSrc() {
+        return invIpAddrGroupSrc;
+    }
+
+    public void setInvIpAddrGroupSrc(boolean invIpAddrGroupSrc) {
+        this.invIpAddrGroupSrc = invIpAddrGroupSrc;
+    }
+
+    public UUID getIpAddrGroupDst() {
+        return ipAddrGroupDst;
+    }
+
+    public void setIpAddrGroupDst(UUID ipAddrGroupDst) {
+        this.ipAddrGroupDst = ipAddrGroupDst;
+    }
+
+    public boolean isInvIpAddrGroupDst() {
+        return invIpAddrGroupDst;
+    }
+
+    public void setInvIpAddrGroupDst(boolean invIpAddrGroupDst) {
+        this.invIpAddrGroupDst = invIpAddrGroupDst;
     }
 
     public String getDlDst() {

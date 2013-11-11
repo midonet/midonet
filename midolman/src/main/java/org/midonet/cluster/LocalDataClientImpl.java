@@ -22,8 +22,27 @@ import javax.inject.Named;
 
 import org.apache.zookeeper.Op;
 import org.midonet.cache.Cache;
-import org.midonet.cluster.data.*;
+import org.midonet.cluster.data.AdRoute;
+import org.midonet.cluster.data.BGP;
+import org.midonet.cluster.data.Bridge;
+import org.midonet.cluster.data.BridgeName;
+import org.midonet.cluster.data.Chain;
+import org.midonet.cluster.data.ChainName;
+import org.midonet.cluster.data.Converter;
 import org.midonet.cluster.data.Entity.TaggableEntity;
+import org.midonet.cluster.data.HostVersion;
+import org.midonet.cluster.data.IpAddrGroup;
+import org.midonet.cluster.data.Port;
+import org.midonet.cluster.data.PortGroup;
+import org.midonet.cluster.data.PortGroupName;
+import org.midonet.cluster.data.Route;
+import org.midonet.cluster.data.Router;
+import org.midonet.cluster.data.RouterName;
+import org.midonet.cluster.data.Rule;
+import org.midonet.cluster.data.SystemState;
+import org.midonet.cluster.data.TraceCondition;
+import org.midonet.cluster.data.TunnelZone;
+import org.midonet.cluster.data.WriteVersion;
 import org.midonet.cluster.data.dhcp.Subnet;
 import org.midonet.cluster.data.dhcp.Subnet6;
 import org.midonet.cluster.data.dhcp.V6Host;
@@ -43,11 +62,20 @@ import org.midonet.midolman.rules.Condition;
 import org.midonet.midolman.rules.RuleList;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
-import org.midonet.midolman.state.*;
+import org.midonet.midolman.state.DirectoryCallback;
+import org.midonet.midolman.state.Ip4ToMacReplicatedMap;
+import org.midonet.midolman.state.MacPortMap;
+import org.midonet.midolman.state.PathBuilder;
+import org.midonet.midolman.state.PortConfig;
+import org.midonet.midolman.state.PortConfigCache;
+import org.midonet.midolman.state.PortDirectory;
+import org.midonet.midolman.state.RuleIndexOutOfBoundsException;
+import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.state.zkManagers.*;
+import org.midonet.packets.IntIPv4;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv6Subnet;
-import org.midonet.packets.IntIPv4;
 import org.midonet.packets.MAC;
 import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.functors.Callback2;
@@ -55,6 +83,7 @@ import org.midonet.util.functors.CollectionFunctors;
 import org.midonet.util.functors.Functor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import static org.midonet.midolman.guice.CacheModule.TRACE_INDEX;
 import static org.midonet.midolman.guice.CacheModule.TRACE_MESSAGES;
 
@@ -135,6 +164,9 @@ public class LocalDataClientImpl implements DataClient {
 
     @Inject
     private SystemDataProvider systemDataProvider;
+
+    @Inject
+    private IpAddrGroupZkManager ipAddrGroupZkManager;
 
     @Inject
     @Named(ZKConnectionProvider.DIRECTORY_REACTOR_TAG)
@@ -1367,19 +1399,84 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
+    public IpAddrGroup ipAddrGroupsGet(UUID id)
+            throws StateAccessException, SerializationException {
+        IpAddrGroup g = Converter.fromIpAddrGroupConfig(
+                ipAddrGroupZkManager.get(id));
+        g.setId(id);
+        return g;
+    }
+
+    @Override
+    public void ipAddrGroupsDelete(UUID id)
+            throws StateAccessException, SerializationException {
+        ipAddrGroupZkManager.delete(id);
+    }
+
+    @Override
+    public UUID ipAddrGroupsCreate(@Nonnull IpAddrGroup ipAddrGroup)
+            throws StateAccessException, SerializationException {
+        return ipAddrGroupZkManager.create(
+                Converter.toIpAddrGroupConfig(ipAddrGroup));
+    }
+
+    @Override
+    public boolean ipAddrGroupsExists(UUID id) throws StateAccessException {
+        return ipAddrGroupZkManager.exists(id);
+    }
+
+    @Override
+    public List<IpAddrGroup> ipAddrGroupsGetAll()
+            throws StateAccessException, SerializationException {
+        Set<UUID> ids = ipAddrGroupZkManager.getAllIds();
+
+        List<IpAddrGroup> groups = new ArrayList<IpAddrGroup>();
+        for (UUID id : ids) {
+            IpAddrGroupZkManager.IpAddrGroupConfig config =
+                    ipAddrGroupZkManager.get(id);
+            IpAddrGroup group = Converter.fromIpAddrGroupConfig(config);
+            group.setId(id);
+            groups.add(group);
+        }
+        return groups;
+    }
+
+    @Override
+    public boolean ipAddrGroupHasAddr(UUID id, String addr)
+            throws StateAccessException {
+        return ipAddrGroupZkManager.isMember(id, addr);
+    }
+
+    @Override
+    public void ipAddrGroupAddAddr(@Nonnull UUID id, @Nonnull String addr)
+            throws StateAccessException, SerializationException {
+        ipAddrGroupZkManager.addAddr(id, addr);
+    }
+
+    @Override
+    public void ipAddrGroupRemoveAddr(UUID id, String addr)
+            throws StateAccessException, SerializationException {
+        ipAddrGroupZkManager.removeAddr(id, addr);
+    }
+
+    @Override
+    public Set<String> getAddrsByIpAddrGroup(UUID id)
+            throws StateAccessException, SerializationException {
+        return ipAddrGroupZkManager.getAddrs(id);
+    }
+
+    @Override
     public PortGroup portGroupsGetByName(String tenantId, String name)
             throws StateAccessException, SerializationException {
         log.debug("Entered: tenantId={}, name={}", tenantId, name);
 
         PortGroup portGroup = null;
-        String path = pathBuilder.getTenantPortGroupNamePath(tenantId, name)
-                .toString();
+        String path = pathBuilder.getTenantPortGroupNamePath(tenantId, name);
 
         if (zkManager.exists(path)) {
             byte[] data = zkManager.get(path);
             PortGroupName.Data portGroupNameData =
-                    serializer.deserialize(data,
-                            PortGroupName.Data.class);
+                    serializer.deserialize(data, PortGroupName.Data.class);
             portGroup = portGroupsGet(portGroupNameData.id);
         }
 
@@ -1757,8 +1854,7 @@ public class LocalDataClientImpl implements DataClient {
         // Index the name
         String routerNamePath = pathBuilder.getTenantRouterNamePath(tenantId,
                 routerConfig.name);
-        byte[] data = serializer.serialize(
-                (new RouterName(router)).getData());
+        byte[] data = serializer.serialize((new RouterName(router)).getData());
         ops.add(zkManager.getPersistentCreateOp(routerNamePath, data));
 
         zkManager.multi(ops);
@@ -1878,8 +1974,8 @@ public class LocalDataClientImpl implements DataClient {
 
     @Override
     public UUID rulesCreate(@Nonnull Rule<?, ?> rule)
-            throws StateAccessException, RuleIndexOutOfBoundsException,
-            SerializationException {
+            throws StateAccessException, SerializationException,
+            RuleIndexOutOfBoundsException {
         return ruleZkManager.create(Converter.toRuleConfig(rule),
                 rule.getPosition());
     }

@@ -3,7 +3,7 @@
 package org.midonet.midolman.simulation;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -14,6 +14,7 @@ import akka.event.LoggingBus;
 import com.google.inject.Inject;
 import scala.Option;
 import scala.Some;
+import scala.collection.Iterator;
 import scala.collection.Map;
 
 import org.midonet.sdn.flows.WildcardMatch;
@@ -21,6 +22,7 @@ import org.midonet.midolman.layer4.NatMappingFactory;
 import org.midonet.midolman.logging.LoggerFactory;
 import org.midonet.midolman.logging.SimulationAwareBusLogging;
 import org.midonet.midolman.rules.ChainPacketContext;
+import org.midonet.midolman.rules.JumpRule;
 import org.midonet.midolman.rules.Rule;
 import org.midonet.midolman.rules.RuleResult;
 import org.midonet.midolman.topology.FlowTagger;
@@ -61,10 +63,7 @@ public class Chain {
 
     public Chain getJumpTarget(UUID to) {
         Option<Chain> match = jumpTargets.get(to);
-        if (match.isDefined())
-            return ((Some<Chain>) match).get();
-        else
-            return null;
+        return match.isDefined() ? match.get() : null;
     }
 
     private SimulationAwareBusLogging getLog() {
@@ -106,6 +105,12 @@ public class Chain {
         // chains may have been traversed by some other device's filters.
         Set<UUID> traversedChains = new HashSet<UUID>();
         traversedChains.add(currentChain.id);
+
+        if (currentChain.getLog().isDebugEnabled()) {
+            currentChain.getLog().debug(
+                    "Testing {} against Chain: \n{}",
+                    pktMatch, currentChain.asTree(4), fwdInfo);
+        }
 
         RuleResult res = new RuleResult(RuleResult.Action.CONTINUE, null,
                 pktMatch);
@@ -181,5 +186,43 @@ public class Chain {
             this.rules = rules;
             this.position = position;
         }
+    }
+
+    public String toString() {
+        return "Chain[id=" + id + "]";
+    }
+
+    /**
+     * Generates a tree representation of the chain, including its rules and
+     * jump targets.
+     *
+     * @param indent Number of spaces to indent.
+     */
+    public String asTree(int indent) {
+        char[] indentBuf = new char[indent];
+        Arrays.fill(indentBuf, ' ');
+        StringBuilder bld = new StringBuilder();
+        bld.append(indentBuf);
+        bld.append(String.format("Chain[Name=%s, ID=%s]:\n", name, id));
+
+        // Print rules.
+        for (Rule rule : rules) {
+            bld.append(indentBuf).append("    ");
+            bld.append(rule).append('\n');
+            if (rule instanceof JumpRule) {
+                JumpRule jr = (JumpRule)rule;
+                Chain jumpTarget = jumpTargets.get(jr.jumpToChainID).get();
+                bld.append(jumpTarget.asTree(indent + 8));
+            }
+        }
+
+        return bld.toString();
+    }
+
+    /**
+     * For unit testing.
+     */
+    public List<Rule> getRules() {
+        return rules;
     }
 }

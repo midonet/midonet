@@ -7,6 +7,7 @@ package org.midonet.midolman.rules;
 import java.util.Set;
 import java.util.UUID;
 
+import org.midonet.midolman.simulation.IPAddrGroup;
 import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPSubnet;
 import org.midonet.packets.MAC;
@@ -24,20 +25,26 @@ public class Condition {
     public boolean outPortInv;
     public UUID portGroup;
     public boolean invPortGroup;
-    public Integer dlType;
+    public UUID ipAddrGroupIdSrc;
+    public transient IPAddrGroup ipAddrGroupSrc;
+    public boolean invIpAddrGroupIdSrc;
+    public UUID ipAddrGroupIdDst;
+    public transient IPAddrGroup ipAddrGroupDst;
+    public boolean invIpAddrGroupIdDst;
+    public Integer dlType; // Ethernet frame type.
     public boolean invDlType;
-    public MAC dlSrc;
+    public MAC dlSrc; // Source MAC address.
     public boolean invDlSrc;
-    public MAC dlDst;
+    public MAC dlDst; // Destination MAC address.
     public boolean invDlDst;
     public Byte nwTos;
     public boolean nwTosInv;
     public Byte nwProto;
     public boolean nwProtoInv;
-    public IPSubnet nwSrcIp;
-    public IPSubnet nwDstIp;
-    public Range<Integer> tpSrc;
-    public Range<Integer> tpDst;
+    public IPSubnet nwSrcIp; // Source IP address.
+    public IPSubnet nwDstIp; // Destination IP address.
+    public Range<Integer> tpSrc; // Source TCP port.
+    public Range<Integer> tpDst; // Destination TCP port.
     public boolean nwSrcInv;
     public boolean nwDstInv;
     public boolean tpSrcInv;
@@ -48,9 +55,6 @@ public class Condition {
 
     public boolean matches(ChainPacketContext fwdInfo, WildcardMatch pktMatch,
                            boolean isPortFilter) {
-        UUID inPortId = isPortFilter ? null : fwdInfo.inPortId();
-        UUID outPortId = isPortFilter ? null : fwdInfo.outPortId();
-        Set<UUID> senderGroups = fwdInfo.portGroups();
         /*
          * Given a packet P and a subCondition x, 'xInv x(P)' is true
          * iff either:
@@ -64,40 +68,47 @@ public class Condition {
          * of 'conjunctionInv'.  If the conjunction evaluates to true, then
          * we return 'NOT conjunctionInv'.
          */
-        boolean cond = true;
         if (matchForwardFlow && !fwdInfo.isForwardFlow())
-            cond = false;
-        else if (matchReturnFlow && fwdInfo.isForwardFlow())
-            cond = false;
-        else if (null != portGroup) {
-            boolean innerCond = senderGroups != null &&
-                                senderGroups.contains(portGroup);
-            innerCond = invPortGroup? !innerCond : innerCond;
-            if (!innerCond)
-                cond = false;
-        }
-        if (!cond)
+            return conjunctionInv;
+        if (matchReturnFlow && fwdInfo.isForwardFlow())
             return conjunctionInv;
 
+        UUID inPortId = isPortFilter ? null : fwdInfo.inPortId();
+        UUID outPortId = isPortFilter ? null : fwdInfo.outPortId();
         IPAddr pmSrcIP = pktMatch.getNetworkSourceIP();
         IPAddr pmDstIP = pktMatch.getNetworkDestinationIP();
-        if (!matchPort(this.inPortIds, inPortId, this.inPortInv)
-            || !matchPort(this.outPortIds, outPortId, this.outPortInv)
-            || !matchField(dlType, pktMatch.getEtherType() != null ?
-            Unsigned.unsign(pktMatch.getEtherType()) : null, invDlType)
-            || !matchField(dlSrc, pktMatch.getEthernetSource(), invDlSrc)
-            || !matchField(dlDst, pktMatch.getEthernetDestination(), invDlDst)
-            || !matchField(nwTos, pktMatch.getNetworkTOS(), nwTosInv)
-            || !matchField(nwProto, pktMatch.getNetworkProtocolObject(), nwProtoInv)
-            || !matchIP(nwSrcIp, pmSrcIP, nwSrcInv)
-            || !matchIP(nwDstIp, pmDstIP, nwDstInv)
-            || !matchRange(tpSrc,
-                           pktMatch.getTransportSourceObject(), tpSrcInv)
-            || !matchRange(tpDst,
-                           pktMatch.getTransportDestinationObject(), tpDstInv)
-            )
-            cond = false;
-        return conjunctionInv? !cond : cond;
+        if (!matchPortGroup(fwdInfo.portGroups(), portGroup, invPortGroup))
+            return conjunctionInv;
+        if (!matchPort(this.inPortIds, inPortId, this.inPortInv))
+            return conjunctionInv;
+        if (!matchPort(this.outPortIds, outPortId, this.outPortInv))
+            return conjunctionInv;
+        if (!matchField(dlType, pktMatch.getEtherType() != null ?
+                Unsigned.unsign(pktMatch.getEtherType()) : null, invDlType))
+            return conjunctionInv;
+        if (!matchField(dlSrc, pktMatch.getEthernetSource(), invDlSrc))
+            return conjunctionInv;
+        if (!matchField(dlDst, pktMatch.getEthernetDestination(), invDlDst))
+            return conjunctionInv;
+        if (!matchField(nwTos, pktMatch.getNetworkTOS(), nwTosInv))
+            return conjunctionInv;
+        if (!matchField(
+                nwProto, pktMatch.getNetworkProtocolObject(), nwProtoInv))
+            return conjunctionInv;
+        if (!matchIP(nwSrcIp, pmSrcIP, nwSrcInv))
+            return conjunctionInv;
+        if (!matchIP(nwDstIp, pmDstIP, nwDstInv))
+            return conjunctionInv;
+        if (!matchRange(tpSrc, pktMatch.getTransportSourceObject(), tpSrcInv))
+            return conjunctionInv;
+        if (!matchRange(
+                tpDst, pktMatch.getTransportDestinationObject(), tpDstInv))
+            return conjunctionInv;
+        if (!matchIpToGroup(ipAddrGroupSrc, pmSrcIP, invIpAddrGroupIdSrc))
+            return conjunctionInv;
+        if (!matchIpToGroup(ipAddrGroupDst, pmDstIP, invIpAddrGroupIdDst))
+            return conjunctionInv;
+        return !conjunctionInv;
     }
 
     private boolean matchPort(Set<UUID> condPorts, UUID port, boolean negate) {
@@ -119,26 +130,47 @@ public class Condition {
         // Packet is considered to match if the condField is not specified.
         if (condField == null)
             return true;
-        boolean cond = condField.equals(pktField);
-        return negate? !cond : cond;
+        return negate ^ condField.equals(pktField);
     }
 
     private boolean matchIP(IPSubnet condSubnet, IPAddr pktIp, boolean negate) {
         // Packet is considered to match if the condField is not specified.
         if (condSubnet == null)
             return true;
-        boolean cond = false;
-        if (pktIp != null && condSubnet.containsAddress(pktIp))
-            cond = true;
-        return negate? !cond : cond;
+        boolean matches = (pktIp != null && condSubnet.containsAddress(pktIp));
+        return negate ^ matches;
+    }
+
+    private boolean matchIpToGroup(
+            IPAddrGroup ipAddrGroup, IPAddr ipAddr, boolean negate) {
+        if (ipAddrGroup == null)
+            return true;
+        return negate ^ ipAddrGroup.contains(ipAddr);
+    }
+
+    // This works a bit differently from how one might expect. The packet
+    // comes in with a set of port groups to which the port through which
+    // it ingressed belongs. The condition has a single port group. This
+    // matches if that port group is in the packet's list of port groups,
+    // which indicates that the packet ingressed through a port in the
+    // condition's port group.
+    private boolean matchPortGroup(
+            Set<UUID> pktGroups, UUID condGroup, boolean negate) {
+        if (portGroup == null)
+            return true;
+
+        boolean matches = (pktGroups != null && pktGroups.contains(condGroup));
+        return negate ^ matches;
     }
 
     private <E extends Comparable<E>> boolean matchRange(Range<E> range, E pktField, boolean negate) {
         // Packet is considered to match if the condField is not specified.
         boolean matches = (range == null || null == pktField) ||
                           range.isInside(pktField);
-        return negate ? !matches : matches;
+        return negate ^ matches;
     }
+
+
 
     @Override
     public String toString() {
@@ -171,6 +203,18 @@ public class Condition {
             sb.append("portGroup=").append(portGroup).append(", ");
             if (invPortGroup)
                 sb.append("invPortGroup=true, ");
+        }
+        if (ipAddrGroupIdDst != null) {
+            sb.append("ipAddrGroupIdDst=").append(ipAddrGroupIdDst).append(
+                    ", ");
+            if (invIpAddrGroupIdDst)
+                sb.append("invIpAddrGroupIdDst=true, ");
+        }
+        if (ipAddrGroupIdSrc != null) {
+            sb.append("ipAddrGroupIdSrc=").append(ipAddrGroupIdSrc).append(
+                    ", ");
+            if (invIpAddrGroupIdSrc)
+                sb.append("invIpAddrGroupIdSrc=true, ");
         }
         if (null != dlType) {
             sb.append("dlType=").append(dlType.intValue()).append(", ");
@@ -234,6 +278,8 @@ public class Condition {
         if (invDlSrc != condition.invDlSrc) return false;
         if (invDlType != condition.invDlType) return false;
         if (invPortGroup != condition.invPortGroup) return false;
+        if (invIpAddrGroupIdDst != condition.invIpAddrGroupIdDst) return false;
+        if (invIpAddrGroupIdSrc != condition.invIpAddrGroupIdSrc) return false;
         if (matchForwardFlow != condition.matchForwardFlow) return false;
         if (matchReturnFlow != condition.matchReturnFlow) return false;
         if (nwDstInv != condition.nwDstInv) return false;
@@ -263,6 +309,14 @@ public class Condition {
             return false;
         if (portGroup != null ? !portGroup.equals(condition.portGroup) : condition.portGroup != null)
             return false;
+        if (ipAddrGroupIdDst != null ? !ipAddrGroupIdDst.equals(
+                condition.ipAddrGroupIdDst)
+                : condition.ipAddrGroupIdDst != null)
+            return false;
+        if (ipAddrGroupIdSrc != null ? !ipAddrGroupIdSrc.equals(
+                condition.ipAddrGroupIdSrc)
+                : condition.ipAddrGroupIdSrc != null)
+            return false;
         if (tpDst != null ? !tpDst.equals(condition.tpDst) : condition.tpDst != null)
             return false;
         if (tpSrc != null ? !tpSrc.equals(condition.tpSrc) : condition.tpSrc != null)
@@ -282,6 +336,12 @@ public class Condition {
         result = 31 * result + (outPortInv ? 1 : 0);
         result = 31 * result + (portGroup != null ? portGroup.hashCode() : 0);
         result = 31 * result + (invPortGroup ? 1 : 0);
+        result = 31 * result + (ipAddrGroupIdDst != null
+                ? ipAddrGroupIdDst.hashCode() : 0);
+        result = 31 * result + (invIpAddrGroupIdDst ? 1 : 0);
+        result = 31 * result + (ipAddrGroupIdSrc != null
+                ? ipAddrGroupIdSrc.hashCode() : 0);
+        result = 31 * result + (invIpAddrGroupIdSrc ? 1 : 0);
         result = 31 * result + (dlType != null ? dlType.hashCode() : 0);
         result = 31 * result + (invDlType ? 1 : 0);
         result = 31 * result + (dlSrc != null ? dlSrc.hashCode() : 0);

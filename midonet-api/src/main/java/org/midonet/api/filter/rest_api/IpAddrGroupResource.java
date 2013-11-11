@@ -1,0 +1,339 @@
+/*
+ * Copyright (c) 2013 Midokura Europe SARL, All Rights Reserved.
+ */
+package org.midonet.api.filter.rest_api;
+
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.servlet.RequestScoped;
+import org.midonet.api.ResourceUriBuilder;
+import org.midonet.api.VendorMediaType;
+import org.midonet.api.auth.AuthRole;
+import org.midonet.api.filter.IpAddrGroup;
+import org.midonet.api.filter.IpAddrGroupAddr;
+import org.midonet.api.filter.Ipv4AddrGroupAddr;
+import org.midonet.api.filter.Ipv6AddrGroupAddr;
+import org.midonet.api.rest_api.*;
+import org.midonet.api.validation.MessageProperty;
+import org.midonet.cluster.DataClient;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.NoStatePathException;
+import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.state.StatePathExistsException;
+import org.midonet.packets.IPAddr$;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validator;
+import javax.ws.rs.*;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
+/**
+ * Root resource class for IP addr groups.
+ */
+@RequestScoped
+public class IpAddrGroupResource extends AbstractResource {
+
+    private final static Logger log = LoggerFactory
+            .getLogger(IpAddrGroupResource.class);
+
+    private final Validator validator;
+    private final DataClient dataClient;
+    private final ResourceFactory factory;
+
+    @Inject
+    public IpAddrGroupResource(RestApiConfig config, UriInfo uriInfo,
+                               SecurityContext context,
+                               Validator validator, DataClient dataClient,
+                               ResourceFactory factory) {
+        super(config, uriInfo, context);
+        this.validator = validator;
+        this.dataClient = dataClient;
+        this.factory = factory;
+    }
+
+    /**
+     * Handler to deleting an IP addr group.
+     *
+     * @param id
+     *            IpAddrGroup ID from the request.
+     * @throws org.midonet.midolman.state.StateAccessException
+     *             Data access error.
+     */
+    @DELETE
+    @RolesAllowed({ AuthRole.ADMIN })
+    @Path("{id}")
+    public void delete(@PathParam("id") UUID id)
+            throws StateAccessException, SerializationException {
+
+        try {
+            dataClient.ipAddrGroupsDelete(id);
+        } catch (NoStatePathException ex) {
+            // Delete is idempotent, but logging due to the fact that this
+            // code isn't well-tested.
+            log.warn("Caught NoStatePathException. Most likely due to user " +
+                     "attempting to delete an IPAddrGroup that already " +
+                     "exists, which is fine, but logging exception anyway " +
+                     "just in case it has another cause.", ex);
+        }
+    }
+
+    /**
+     * Handler to getting an IP addr group.
+     *
+     * @param id
+     *            IpAddrGroup ID from the request.
+     * @throws org.midonet.midolman.state.StateAccessException
+     *             Data access error.
+     * @return A IpAddrGroup object.
+     */
+    @GET
+    @PermitAll
+    @Path("{id}")
+    @Produces({ VendorMediaType.APPLICATION_IP_ADDR_GROUP_JSON })
+    public IpAddrGroup get(@PathParam("id") UUID id)
+            throws StateAccessException, SerializationException {
+
+        org.midonet.cluster.data.IpAddrGroup data = null;
+
+        try {
+            data = dataClient.ipAddrGroupsGet(id);
+        } catch (NoStatePathException ex) {
+            throw new NotFoundHttpException(
+                    "The requested resource was not found.");
+        }
+
+        // Convert to the REST API DTO
+        IpAddrGroup group = new IpAddrGroup(data);
+        group.setBaseUri(getBaseUri());
+
+        return group;
+    }
+
+    /**
+     * Handler for creating an IP addr group.
+     *
+     * @param group
+     *            IpAddrGroup object.
+     * @throws org.midonet.midolman.state.StateAccessException
+     *             Data access error.
+     * @return Response object with 201 status code set if successful.
+     */
+    @POST
+    @RolesAllowed({ AuthRole.ADMIN })
+    @Consumes({ VendorMediaType.APPLICATION_IP_ADDR_GROUP_JSON })
+    public Response create(IpAddrGroup group)
+            throws StateAccessException, SerializationException {
+
+        Set<ConstraintViolation<IpAddrGroup>> violations = validator
+                .validate(group,
+                        IpAddrGroup.IpAddrGroupCreateGroupSequence.class);
+        if (!violations.isEmpty()) {
+            throw new BadRequestHttpException(violations);
+        }
+
+        try {
+            UUID id = dataClient.ipAddrGroupsCreate(group.toData());
+            return Response.created(
+                    ResourceUriBuilder.getIpAddrGroup(getBaseUri(), id))
+                    .build();
+        } catch (StatePathExistsException ex) {
+            throw new BadRequestHttpException(MessageProperty.getMessage(
+                    MessageProperty.IP_ADDR_GROUP_ID_EXISTS, group.getId()));
+        }
+    }
+
+    /**
+     * Handler to getting a collection of IpAddrGroup.
+     *
+     * @throws org.midonet.midolman.state.StateAccessException
+     *             Data access error.
+     * @return A list of IpAddrGroup objects.
+     */
+    @GET
+    @PermitAll
+    @Produces({ VendorMediaType.APPLICATION_IP_ADDR_GROUP_COLLECTION_JSON })
+    public List<IpAddrGroup> list()
+            throws StateAccessException, SerializationException {
+
+        List<org.midonet.cluster.data.IpAddrGroup> list =
+                dataClient.ipAddrGroupsGetAll();
+
+        List<IpAddrGroup> groups = new ArrayList<IpAddrGroup>();
+        for (org.midonet.cluster.data.IpAddrGroup data : list) {
+            IpAddrGroup group = new IpAddrGroup(data);
+            group.setBaseUri(getBaseUri());
+            groups.add(group);
+        }
+        return groups;
+    }
+
+    /**
+     * IP addr group addr resource locator
+     *
+     * @param id
+     *            IP addr group ID from the request.
+     * @return IpAddrGroupAddrResource object to handle sub-resource requests.
+     */
+    @Path("/{id}" + ResourceUriBuilder.IP_ADDRS)
+    public IpAddrGroupAddrResource getIpAddrGroupAddrResource(
+            @PathParam("id") UUID id) {
+        return factory.getIpAddrGroupAddrResource(id);
+    }
+
+    /**
+     * IP addr group addr resource locator that includes version
+     *
+     * @param id
+     *            IP addr group ID from the request.
+     * @param version
+     *            Version of the IP address
+     * @return IpAddrGroupAddrVersionResource object to handle sub-resource
+     *          requests.
+     */
+    @Path("/{id}" + ResourceUriBuilder.VERSIONS + "/{version}"
+            + ResourceUriBuilder.IP_ADDRS)
+    public IpAddrGroupAddrVersionResource getIpAddrGroupAddrVersionResource(
+            @PathParam("id") UUID id, @PathParam("version") int version) {
+        if (version != 4 && version != 6) {
+            throw new BadRequestHttpException("Invalid IP version: " + version);
+        }
+        return factory.getIpAddrGroupAddrVersionResource(id, version);
+    }
+
+    /**
+     * Sub-resource class for IP addr group addresses
+     */
+    @RequestScoped
+    public static class IpAddrGroupAddrResource extends AbstractResource {
+
+        protected final UUID id;
+        protected final DataClient dataClient;
+
+        @Inject
+        public IpAddrGroupAddrResource(RestApiConfig config,
+                                       UriInfo uriInfo,
+                                       SecurityContext context,
+                                       DataClient dataClient,
+                                       @Assisted UUID ipAddrGroupId) {
+            super(config, uriInfo, context);
+            this.id = ipAddrGroupId;
+            this.dataClient = dataClient;
+        }
+
+        @GET
+        @PermitAll
+        @Produces(
+                VendorMediaType.APPLICATION_IP_ADDR_GROUP_ADDR_COLLECTION_JSON)
+        public List<IpAddrGroupAddr> list()
+                throws SerializationException, StateAccessException {
+
+            List<IpAddrGroupAddr> addrs = new ArrayList<IpAddrGroupAddr>();
+            Set<String> addrSet;
+            try {
+                addrSet = dataClient.getAddrsByIpAddrGroup(id);
+            } catch (NoStatePathException ex) {
+                throw new NotFoundHttpException(
+                        "IP address group does not exist: " + id);
+            }
+
+            for (String addr : addrSet) {
+                IpAddrGroupAddr a = addr.contains(":") ?
+                        new Ipv4AddrGroupAddr(id, addr) : new Ipv6AddrGroupAddr(id, addr);
+                a.setBaseUri(getBaseUri());
+                addrs.add(a);
+            }
+
+            return addrs;
+        }
+
+        @POST
+        @RolesAllowed({ AuthRole.ADMIN })
+        @Consumes({ VendorMediaType.APPLICATION_IP_ADDR_GROUP_ADDR_JSON })
+        public Response create(IpAddrGroupAddr addr)
+                throws StateAccessException, SerializationException {
+
+            if (addr.getVersion() != 4 && addr.getVersion() != 6) {
+                throw new BadRequestHttpException(
+                        "Invalid IP version: " + addr.getVersion());
+            }
+
+            addr.setIpAddrGroupId(id);
+            try {
+                dataClient.ipAddrGroupAddAddr(id, addr.getAddr());
+            } catch (NoStatePathException ex) {
+                throw new NotFoundHttpException(
+                        "IP address group does not exist: " + id);
+            } catch (IllegalArgumentException ex) {
+                throw new BadRequestHttpException(ex.getMessage());
+            }
+
+            addr.setBaseUri(getBaseUri());
+            return Response.created(addr.getUri()).build();
+        }
+    }
+
+    /**
+     * Sub-resource class for IP addr group addresses with version
+     */
+    @RequestScoped
+    public static class IpAddrGroupAddrVersionResource
+            extends IpAddrGroupAddrResource {
+
+        private final int version;
+
+        @Inject
+        public IpAddrGroupAddrVersionResource(RestApiConfig config,
+                                              UriInfo uriInfo,
+                                              SecurityContext context,
+                                              DataClient dataClient,
+                                              @Assisted UUID ipAddrGroupId,
+                                              @Assisted int version) {
+            super(config, uriInfo, context, dataClient, ipAddrGroupId);
+            this.version = version;
+        }
+
+        @GET
+        @PermitAll
+        @Path("{addr}")
+        @Produces({ VendorMediaType.APPLICATION_IP_ADDR_GROUP_ADDR_JSON })
+        public IpAddrGroupAddr get(@PathParam("addr") String addr)
+                throws StateAccessException, SerializationException {
+
+            if (!dataClient.ipAddrGroupsExists(id)) {
+                throw new NotFoundHttpException(
+                        "IP address group does not exist: " + id);
+            }
+
+            if (!dataClient.ipAddrGroupHasAddr(id, addr)) {
+                throw new NotFoundHttpException(
+                        "The IP address group does not contain the " +
+                        "specified address: " + addr);
+            }
+
+            String canonicalized = IPAddr$.MODULE$.canonicalize(addr);
+            IpAddrGroupAddr ipAddrGroupAddr = addr.contains(":") ?
+                    new Ipv4AddrGroupAddr(id, canonicalized) :
+                    new Ipv6AddrGroupAddr(id, canonicalized);
+            ipAddrGroupAddr.setBaseUri(getBaseUri());
+            return ipAddrGroupAddr;
+        }
+
+        @DELETE
+        @RolesAllowed({ AuthRole.ADMIN })
+        @Path("{addr}")
+        public void delete(@PathParam("addr") String addr)
+                throws StateAccessException, SerializationException {
+            dataClient.ipAddrGroupRemoveAddr(id, addr);
+        }
+    }
+}

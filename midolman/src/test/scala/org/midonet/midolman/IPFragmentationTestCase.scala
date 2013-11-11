@@ -54,10 +54,7 @@ class IPFragmentationTestCase extends MidolmanTestCase
         val chain = newInboundChainOnBridge("brInFilter", bridge)
         println("Chainid: " + chain.getId)
         var r: Rule[_,_] = null
-        val tcpCond = new Condition()
-        tcpCond.nwProto = Byte.box(TCP.PROTOCOL_NUMBER)
-        tcpCond.tpDst = new org.midonet.util.Range(Integer.valueOf(80))
-        r = newLiteralRuleOnChain(chain, 1, tcpCond, RuleResult.Action.ACCEPT)
+        r = newTcpDstRuleOnChain(chain, 1, 80, RuleResult.Action.ACCEPT)
 
         // Wait until the rule change is picked up
         val chainReq = ChainRequest(chain.getId)

@@ -76,6 +76,7 @@ public class PortZkManager extends AbstractZkManager {
     public <T extends PortConfig> T get(UUID id, Class<T> clazz,
             Runnable watcher) throws StateAccessException,
             SerializationException {
+        log.debug("Get PortConfig: " + id);
         byte[] data = zk.get(paths.getPortPath(id), watcher);
         return serializer.deserialize(data, clazz);
     }

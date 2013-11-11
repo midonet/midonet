@@ -3,15 +3,14 @@
  */
 package org.midonet.midolman.topology
 
-import scala.collection.mutable
-import compat.Platform
-
 import java.util.concurrent.TimeoutException
 import java.util.UUID
 
+import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 import scala.reflect._
+import scala.Some
 import scala.util.Failure
 
 import akka.actor._
@@ -20,13 +19,15 @@ import akka.pattern.ask
 
 import com.google.inject.Inject
 
+import compat.Platform
+
 import org.midonet.cluster.Client
 import org.midonet.cluster.client.Port
-import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.logging.{SimulationAwareBusLogging, ActorLogWithoutPath}
-import org.midonet.midolman.simulation.{PacketContext, Bridge, Chain, Router}
+import org.midonet.midolman.simulation._
 import org.midonet.midolman.{DeduplicationActor, FlowController, Referenceable}
+import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.topology.rcu.TraceConditions
 import org.midonet.util.concurrent._
 
@@ -41,27 +42,38 @@ object VirtualTopologyActor extends Referenceable {
     sealed trait DeviceRequest[D] {
         val id: UUID
         val update: Boolean
+        protected[VirtualTopologyActor] val managerName: String
         protected[VirtualTopologyActor] val tag: ClassTag[D]
+
+        override def toString =
+            s"${getClass.getSimpleName}[id=$id, update=$update]"
+
         protected[VirtualTopologyActor]
-        def createManager(client: Client, config: MidolmanConfig): Actor
+        def managerFactory(client: Client, config: MidolmanConfig): () => Actor
     }
 
     case class PortRequest(id: UUID, update: Boolean = false)
-        extends DeviceRequest[Port[_]] {
+            extends DeviceRequest[Port[_]] {
         protected[VirtualTopologyActor] val tag = classTag[Port[_]]
 
         protected[VirtualTopologyActor]
-        def createManager(client: Client, config: MidolmanConfig) =
-            new PortManager(id, client)
+        override val managerName = "PortManager-" + id
+
+        protected[VirtualTopologyActor]
+        override def managerFactory(client: Client, config: MidolmanConfig) =
+            () => new PortManager(id, client)
     }
 
     case class BridgeRequest(id: UUID, update: Boolean = false)
-        extends DeviceRequest[Bridge] {
+            extends DeviceRequest[Bridge] {
         protected[VirtualTopologyActor] val tag = classTag[Bridge]
 
         protected[VirtualTopologyActor]
-        def createManager(client: Client, config: MidolmanConfig) =
-            new BridgeManager(id, client, config)
+        override val managerName = "BridgeManager-" + id
+
+        protected[VirtualTopologyActor]
+        override def managerFactory(client: Client, config: MidolmanConfig) =
+            () => new BridgeManager(id, client, config)
     }
 
     case class RouterRequest(id: UUID, update: Boolean = false)
@@ -69,8 +81,11 @@ object VirtualTopologyActor extends Referenceable {
         protected[VirtualTopologyActor] val tag = classTag[Router]
 
         protected[VirtualTopologyActor]
-        def createManager(client: Client, config: MidolmanConfig) =
-            new RouterManager(id, client, config)
+        override val managerName = "RouterManager-" + id
+
+        protected[VirtualTopologyActor]
+        def managerFactory(client: Client, config: MidolmanConfig) =
+            () => new RouterManager(id, client, config)
     }
 
     case class ChainRequest(id: UUID, update: Boolean = false)
@@ -78,8 +93,23 @@ object VirtualTopologyActor extends Referenceable {
         protected[VirtualTopologyActor]  val tag = classTag[Chain]
 
         protected[VirtualTopologyActor]
-        def createManager(client: Client, config: MidolmanConfig) =
-            new ChainManager(id, client)
+        override val managerName = "ChainManager-" + id
+
+        protected[VirtualTopologyActor]
+        def managerFactory(client: Client, config: MidolmanConfig) =
+            () => new ChainManager(id, client)
+    }
+
+    case class IPAddrGroupRequest(id: UUID, update: Boolean = false)
+            extends DeviceRequest[IPAddrGroup] {
+        protected[VirtualTopologyActor] val tag = classTag[IPAddrGroup]
+
+        protected[VirtualTopologyActor]
+        override val managerName = "IPAddrGroupManager-" + id
+
+        protected[VirtualTopologyActor]
+        def managerFactory(client: Client, config: MidolmanConfig) =
+            () => new IPAddrGroupManager(id, client)
     }
 
     case class ConditionListRequest(id: UUID, update: Boolean = false)
@@ -87,23 +117,14 @@ object VirtualTopologyActor extends Referenceable {
         protected[VirtualTopologyActor] val tag = classTag[TraceConditions]
 
         protected[VirtualTopologyActor]
-        def createManager(client: Client, config: MidolmanConfig) =
-            new TraceConditionsManager(id, client)
+        override val managerName = "ConditionListManager-" + id
+
+        protected[VirtualTopologyActor]
+        def managerFactory(client: Client, config: MidolmanConfig) =
+            () => new TraceConditionsManager(id, client)
     }
 
-    sealed trait Unsubscribe {
-        val id: UUID
-    }
-
-    case class BridgeUnsubscribe(id: UUID) extends Unsubscribe
-
-    case class ChainUnsubscribe(id: UUID) extends Unsubscribe
-
-    case class ConditionListUnsubscribe(id: UUID) extends Unsubscribe
-
-    case class PortUnsubscribe(id: UUID) extends Unsubscribe
-
-    case class RouterUnsubscribe(id: UUID) extends Unsubscribe
+    case class Unsubscribe(id: UUID)
 
     // This variable should only be updated by the singleton
     // VirtualTopologyInstance. Also, we strongly recommend not accessing
@@ -215,28 +236,33 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
         everything = Map[UUID, Any]()
     }
 
-    private def manageDevice(id: UUID, actor: => Actor): Unit = {
-        if (!managed(id)) {
-            log.info("Build a manager for device {}", id)
+    private def manageDevice(r: DeviceRequest[_]): Unit = {
+        if (managed(r.id))
+            return
 
-            context.actorOf(Props(actor).withDispatcher(context.props.dispatcher))
-            managed.add(id)
-            idToUnansweredClients.put(id, mutable.Set[ActorRef]())
-            idToSubscribers.put(id, mutable.Set[ActorRef]())
-        }
+        log.info("Build a manager for {}", r)
+
+        val mgrFactory = r.managerFactory(clusterClient, config)
+        val props = Props(mgrFactory).withDispatcher(context.props.dispatcher)
+        context.actorOf(props, r.managerName)
+
+        managed.add(r.id)
+        idToUnansweredClients.put(r.id, mutable.Set[ActorRef]())
+        idToSubscribers.put(r.id, mutable.Set[ActorRef]())
     }
 
     private def deviceRequested(req: DeviceRequest[_]) {
         everything.get(req.id) match {
             case Some(dev) => sender ! dev
             case None =>
-                log.debug("Adding requester to unanswered clients")
+                log.debug("Adding requester {} to unanswered clients for {}",
+                          sender, req)
                 idToUnansweredClients(req.id).add(sender)
         }
 
         if (req.update) {
             log.debug("Adding requester {} to subscribed clients for {}",
-                      sender, req.id)
+                      sender, req)
             idToSubscribers(req.id).add(sender)
         }
     }
@@ -254,8 +280,8 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
         for (client <- idToUnansweredClients(id)) {
             // Avoid notifying the subscribed clients twice.
             if (!idToSubscribers(id).contains(client)) {
-                log.debug("Send unanswered client the device update for {}",
-                    device)
+                log.debug("Send unanswered client {} the device update for {}",
+                          client, device)
                 client ! device
             }
         }
@@ -274,9 +300,8 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
 
     def receive = {
         case r: DeviceRequest[_] =>
-            log.debug("Received {} for {} with update={}",
-                r.getClass.getSimpleName, r.id, r.update)
-            manageDevice(r.id, r.createManager(clusterClient, config))
+            log.debug("Received {}", r)
+            manageDevice(r)
             deviceRequested(r)
         case u: Unsubscribe => unsubscribe(u.id, sender)
         case bridge: Bridge =>
@@ -285,6 +310,9 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
         case chain: Chain =>
             log.debug("Received a Chain for {}", chain.id)
             updated(chain.id, chain)
+        case ipAddrGroup: IPAddrGroup =>
+            log.debug("Received an IPAddrGroup for {}", ipAddrGroup.id)
+            updated(ipAddrGroup)
         case port: Port[_] =>
             log.debug("Received a Port for {}", port.id)
             updated(port.id, port)

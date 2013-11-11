@@ -85,6 +85,7 @@ public class Setup {
         paths.add(pathMgr.getAgentPath());
         paths.add(pathMgr.getAgentPortPath());
         paths.add(pathMgr.getPortGroupsPath());
+        paths.add(pathMgr.getIpAddrGroupsPath());
         paths.add(pathMgr.getHostsPath());
         paths.add(pathMgr.getTenantsPath());
         paths.add(pathMgr.getVersionsPath());

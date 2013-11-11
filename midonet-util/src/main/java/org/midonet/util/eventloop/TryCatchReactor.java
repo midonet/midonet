@@ -16,6 +16,10 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Reactor implementation that catches, logs, and discards any exceptions thrown
+ * by scheduled or submitted work items.
+ */
 public class TryCatchReactor implements Reactor {
 
     private static final Logger log = LoggerFactory
@@ -36,6 +40,12 @@ public class TryCatchReactor implements Reactor {
         );
     }
 
+    /**
+     * Wraps the provided Runnable in another Runnable that catches, logs, and
+     * discards any exceptions thrown by run().
+     * @param runnable Runnable to wrap.
+     * @return Wrapper runnable.
+     */
     private Runnable wrapRunnable(final Runnable runnable) {
         return new Runnable() {
             @Override
@@ -49,6 +59,12 @@ public class TryCatchReactor implements Reactor {
         };
     }
 
+    /**
+     * Wraps the provided Callable in another Callable that catches, logs, and
+     * discards any exceptions thrown by call().
+     * @param callable Callable to wrap.
+     * @return Wrapper callable.
+     */
     private <V> Callable<V> wrapCallable(final Callable<V> callable) {
         return new Callable<V>() {
             @Override

@@ -47,6 +47,7 @@ abstract class ClusterManager<T> {
                     log.error("Builder for device "
                             + id.toString() + " already registered");
                 } else {
+                    log.debug("Registering new builder for device {}", id);
                     builderMap.put(id, builder);
                     getConfig(id);
                 }

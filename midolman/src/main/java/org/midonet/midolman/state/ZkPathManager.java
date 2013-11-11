@@ -1362,4 +1362,75 @@ public class ZkPathManager {
     private StringBuilder buildTunnelZoneMembershipPath(UUID zoneId, UUID hostId) {
         return buildTunnelZoneMembershipsPath(zoneId).append("/").append(hostId);
     }
+
+    /**
+     * Get ZK port groups path.
+     *
+     * @return /port_groups
+     */
+    public String getIpAddrGroupsPath() {
+        return buildIpAddrGroupsPath().toString();
+    }
+
+    private StringBuilder buildIpAddrGroupsPath() {
+        return basePath().append("/ip_addr_groups");
+    }
+
+    /**
+     * Get ZK port group path.
+     *
+     * @param id Group UUID.
+     * @return /port_groups/groupId
+     */
+    public String getIpAddrGroupPath(UUID id) {
+        return buildIpAddrGroupPath(id).toString();
+    }
+
+    private StringBuilder buildIpAddrGroupPath(UUID id) {
+        return new StringBuilder(getIpAddrGroupsPath()).append("/").append(id);
+    }
+
+    /**
+     * Get ZK port group rules path.
+     *
+     * @param id Group UUID.
+     * @return /port_groups/groupId/rules
+     */
+    public String getIpAddrGroupRulesPath(UUID id) {
+        return buildIpAddrGroupRulesPath(id).toString();
+    }
+
+    private StringBuilder buildIpAddrGroupRulesPath(UUID id) {
+        return buildIpAddrGroupPath(id).append("/rules");
+    }
+
+    /**
+     * Get ZK port group rule path.
+     *
+     * @param id Group UUID.
+     * @return /port_groups/groupId/rules/ruleId
+     */
+    public String getIpAddrGroupRulePath(UUID id, UUID ruleId) {
+        return buildIpAddrGroupRulePath(id, ruleId).toString();
+    }
+
+    private StringBuilder buildIpAddrGroupRulePath(UUID id, UUID ruleId) {
+        return buildIpAddrGroupRulesPath(id).append("/").append(ruleId);
+    }
+
+    public StringBuilder buildIpAddrGroupAddrsPath(UUID id) {
+        return buildIpAddrGroupPath(id).append("/addrs");
+    }
+
+    public String getIpAddrGroupAddrsPath(UUID id) {
+        return buildIpAddrGroupAddrsPath(id).toString();
+    }
+
+    public StringBuilder buildIpAddrGroupAddrPath(UUID id, String addr) {
+        return buildIpAddrGroupAddrsPath(id).append("/").append(addr);
+    }
+
+    public String getIpAddrGroupAddrPath(UUID id, String addr) {
+        return buildIpAddrGroupAddrPath(id, addr).toString();
+    }
 }

@@ -136,7 +136,7 @@ public class PortGroupResource extends AbstractResource {
      *            PortGroup object.
      * @throws org.midonet.midolman.state.StateAccessException
      *             Data access error.
-     * @returns Response object with 201 status code set if successful.
+     * @return Response object with 201 status code set if successful.
      */
     @POST
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })

@@ -19,6 +19,7 @@ public class DtoApplication {
     private URI metricsFilter;
     private URI metricsQuery;
     private URI portGroups;
+    private URI ipAddrGroups;
     private URI routers;
     private URI traceConditions;
     private URI traces;
@@ -35,6 +36,7 @@ public class DtoApplication {
     private String hostTemplate;
     private String portTemplate;
     private String portGroupTemplate;
+    private String ipAddrGroupTemplate;
     private String routeTemplate;
     private String routerTemplate;
     private String tunnelZoneTemplate;
@@ -112,6 +114,14 @@ public class DtoApplication {
 
     public void setPortGroups(URI portGroups) {
         this.portGroups = portGroups;
+    }
+
+    public URI getIpAddrGroups() {
+        return ipAddrGroups;
+    }
+
+    public void setIpAddrGroups(URI ipAddrGroups) {
+        this.ipAddrGroups = ipAddrGroups;
     }
 
     public URI getRouters() {
@@ -248,6 +258,14 @@ public class DtoApplication {
 
     public void setPortGroupTemplate(String portGroupTemplate) {
         this.portGroupTemplate = portGroupTemplate;
+    }
+
+    public String getIpAddrGroupTemplate() {
+        return ipAddrGroupTemplate;
+    }
+
+    public void setIpAddrGroupTemplate(String ipAddrGroupTemplate) {
+        this.ipAddrGroupTemplate = ipAddrGroupTemplate;
     }
 
     public String getRouteTemplate() {

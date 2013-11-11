@@ -52,6 +52,15 @@ object IPAddr {
             IPv4Addr.fromString(s)
     }
 
+    def canonicalize(s: String): String = {
+        try {
+            fromString(s).toString
+        } catch {
+            case e: Exception =>
+                throw new IllegalArgumentException("Not a valid IP address: " + s)
+        }
+    }
+
     def fromAddr[T <: IPAddr](ip: T): T = {
         val newIp: T = ip match {
             case ipv4: IPv4Addr => IPv4Addr.fromIPv4(ipv4).asInstanceOf[T]

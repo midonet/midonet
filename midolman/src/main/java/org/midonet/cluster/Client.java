@@ -10,6 +10,7 @@ import org.midonet.cluster.client.BGPListBuilder;
 import org.midonet.cluster.client.BridgeBuilder;
 import org.midonet.cluster.client.ChainBuilder;
 import org.midonet.cluster.client.HostBuilder;
+import org.midonet.cluster.client.IPAddrGroupBuilder;
 import org.midonet.cluster.client.PortBuilder;
 import org.midonet.cluster.client.PortSetBuilder;
 import org.midonet.cluster.client.RouterBuilder;
@@ -37,6 +38,8 @@ public interface Client {
     void getPortSet(UUID uuid, PortSetBuilder builder);
 
     void getTraceConditions(TraceConditionsBuilder builder);
+
+    void getIPAddrGroup(UUID uuid, IPAddrGroupBuilder builder);
 
     void subscribeBgp(UUID portID, BGPListBuilder builder);
 }
