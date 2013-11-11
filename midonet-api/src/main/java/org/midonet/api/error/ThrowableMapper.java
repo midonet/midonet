@@ -33,6 +33,6 @@ public class ThrowableMapper implements ExceptionMapper<Throwable> {
         log.error("Encountered uncaught exception: ", e);
         return ResponseUtils.buildErrorResponse(
                 Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),
-                "Unrecoverable server error has occurred.");
+                "An internal server error has occurred, please try again.");
     }
 }
