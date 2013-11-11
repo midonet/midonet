@@ -430,9 +430,6 @@ class DatapathController() extends Actor with ActorLogging with
             if (checkInitialization)
                 completeInitialization
 
-        case Messages.Ping(value) =>
-            sender ! Messages.Pong(value)
-
         // Log unhandled messages.
         case m =>
             log.info("Not handling {} (behaving as InitializationActor)", m)
@@ -551,9 +548,6 @@ class DatapathController() extends Actor with ActorLogging with
             handlePortOperationReply(opReply)
             if(pendingUpdateCount == 0)
                 processNextHost()
-
-        case Messages.Ping(value) =>
-            sender ! Messages.Pong(value)
 
         case PortStatsRequest(portID) =>
             dpState.getInterfaceForVport(portID) match {
