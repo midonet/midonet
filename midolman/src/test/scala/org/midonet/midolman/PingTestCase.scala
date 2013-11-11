@@ -54,12 +54,7 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
     val rtrPort1Name = "RouterPort1"
     var rtrPort1Num = 0
 
-    private var packetsEventsProbe: TestProbe = null
-
     override def beforeTest() {
-        packetsEventsProbe = newProbe()
-        actors().eventStream.subscribe(packetsEventsProbe.ref, classOf[PacketsExecute])
-
         val host = newHost("myself", hostId())
         host should not be null
 
@@ -166,7 +161,7 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
         pktOut.getPacket
     }
 
-    private def expectRoutedPacketOut(portNum : Int): Ethernet = {
+    override def expectRoutedPacketOut(portNum : Int): Ethernet = {
         val pktOut = getPacketOut(portNum)
         log.debug("Packet Broadcast: {}", pktOut)
 
@@ -273,11 +268,10 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
      * Sends an ICMP request and expects an ICMP reply back, it'll take care
      * of possible race conditions that might result in an intermediate ARP
      */
-    def doIcmpExchange(fromPort: String, srcMac: MAC, srcIp: IPv4Addr,
+    private def doIcmpExchange(fromPort: String, srcMac: MAC, srcIp: IPv4Addr,
                        dstMac: MAC, dstIp: IPv4Addr) {
 
-        drainProbe(packetInProbe)
-        drainProbe(dedupProbe())
+        drainProbes()
 
         injectIcmpEchoReq(fromPort, srcMac, srcIp, dstMac, dstIp)
         expectPacketIn()

@@ -279,9 +279,8 @@ trait SimulationHelper extends MidolmanTestCase {
         icmp
     }
 
-    def expectRoutedPacketOut(portNum : Int,
-                              packetEventsProbe: TestProbe): Ethernet = {
-        val pktOut = requestOfType[PacketsExecute](packetEventsProbe).packet
+    def expectRoutedPacketOut(portNum : Int): Ethernet = {
+        val pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
         pktOut should not be null
         pktOut.getPacket should not be null
         val flowActs = pktOut.getActions
@@ -290,9 +289,8 @@ trait SimulationHelper extends MidolmanTestCase {
         pktOut.getPacket
     }
 
-    def expectPacketOut(portNums : Seq[Int],
-                        packetEventsProbe: TestProbe): Ethernet = {
-        expectPacketOut(portNums, packetEventsProbe, List(), List())
+    def expectPacketOut(portNums : Seq[Int]): Ethernet = {
+        expectPacketOut(portNums, List(), List())
     }
 
     /**
@@ -303,10 +301,9 @@ trait SimulationHelper extends MidolmanTestCase {
      * contain those for pushing or popping those vlans.
      */
     def expectPacketOut(portNums : Seq[Int],
-                        packetEventsProbe: TestProbe,
                         vlanIdsPush: List[Short],
                         vlanIdsPop: List[Short]): Ethernet = {
-        val pktOut = requestOfType[PacketsExecute](packetEventsProbe).packet
+        val pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
         pktOut should not be null
         pktOut.getPacket should not be null
         pktOut.getActions.size should be === (portNums.size +

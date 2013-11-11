@@ -265,11 +265,8 @@ class RouterFlowInvalidationTest extends MidolmanTestCase with VirtualConfigurat
             NextHop.PORT, outPort.getId, new IPv4Addr(NO_GATEWAY).toString,
             2)
 
-        wflowRemovedProbe.fishForMessage(Duration(3, TimeUnit.SECONDS),
-            "WildcardFlowRemoved")(TestHelpers.getMatchFlowRemovedPacketPartialFunction)
-
-        wflowRemovedProbe.fishForMessage(Duration(3, TimeUnit.SECONDS),
-            "WildcardFlowRemoved")(TestHelpers.getMatchFlowRemovedPacketPartialFunction)
+        ackWCRemoved()
+        ackWCRemoved()
 
         wflowRemovedProbe.expectNoMsg(Duration(3, TimeUnit.SECONDS))
 

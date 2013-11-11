@@ -67,8 +67,6 @@ trait VlanBridgeSimulationTestCase
 
     var host: Host = null
 
-    var packetEventsProbe: TestProbe = null
-
     def hasMacLearning: Boolean
 
     def feedBridgeArpCaches() {
@@ -78,7 +76,6 @@ trait VlanBridgeSimulationTestCase
         // TODO (galo) replace this sleep with appropriate probing
         Thread.sleep(2000)
         drainProbes()
-        drainProbe(packetEventsProbe)
     }
 
     def getPortName (portNo: UUID): String = {
@@ -149,8 +146,7 @@ trait VlanBridgeSimulationTestCase
         val addFlowMsg = injectOnePacket(inEth, fromPort, expectFlowAdded)
         if (expectFlowAdded)
             addFlowMsg.get.f should not be null
-        val ethRcv = expectPacketOut(toPortNos, packetEventsProbe,
-            vlanIdsToPush, vlanIdsToPop)
+        val ethRcv = expectPacketOut(toPortNos, vlanIdsToPush, vlanIdsToPop)
 
         log.debug("SENT: {}", inEth)
         log.debug("GOT: {}", ethRcv)
@@ -176,7 +172,7 @@ trait VlanBridgeSimulationTestCase
         ethVlan.setVlanID(vlanId)
         val inEth = if (vlanOnInject) ethVlan else ethRaw
         injectOnePacket(inEth, fromPort, expectFlowAdded = false)
-        packetEventsProbe.expectNoMsg()
+        packetsEventsProbe.expectNoMsg()
         val wFlowAdded = wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
         wFlowAdded.f.getMatch.getEthernetSource should be (fromMac)
         wFlowAdded.f.getMatch.getEthernetDestination should be (toMac)
@@ -206,7 +202,7 @@ trait VlanBridgeSimulationTestCase
 
     def expectBroadCast(materializedPort: Short,trunk1: Short,
                         trunk2: Short, vlanId: Short) {
-        val msg = packetEventsProbe.expectMsgClass(classOf[PacketsExecute])
+        val msg = packetsEventsProbe.expectMsgClass(classOf[PacketsExecute])
         var trunkPorts = List[Short](trunk1, trunk2)
 
         msg.packet.getActions.size should be === 4
@@ -292,9 +288,6 @@ trait VlanBridgeSimulationTestCase
 
         drainProbes()
 
-        packetEventsProbe = newProbe()
-        actors().eventStream.subscribe(packetEventsProbe.ref, classOf[PacketsExecute])
-
         // Request ports for the first time so that we trigger associated
         // flow invalidations now and they don't impact expects during the tests
         val vta = VirtualTopologyActor.getRef(actors())
@@ -308,7 +301,6 @@ trait VlanBridgeSimulationTestCase
         ask(vta, BridgeRequest(br2.getId, update = false))
 
         drainProbes()
-        drainProbe(packetEventsProbe)
 
     }
 
@@ -333,7 +325,7 @@ trait VlanBridgeSimulationTestCase
             getPortNumber("trunkPort2").toShort, vlanId2)
 
         // no other packet should be transmitted
-        packetEventsProbe.expectNoMsg()
+        packetsEventsProbe.expectNoMsg()
 
         log.info("ARP reply from trunk to VM 2_1")
         val arpRepEth = ARP.makeArpReply(trunkMac, vm2_1Mac,
@@ -343,11 +335,11 @@ trait VlanBridgeSimulationTestCase
         triggerPacketIn("trunkPort1", arpRepEth)
 
         val inEth = expectPacketOut(List(getPortNumber("vm2_1Port")),
-            packetEventsProbe, List(), List(vlanId2))
+            List(), List(vlanId2))
         inEth.getEtherType should be === ARP.ETHERTYPE
 
         // Again, no other packets should've been transmitted
-        packetEventsProbe.expectNoMsg()
+        packetsEventsProbe.expectNoMsg()
     }
 
     /**
@@ -365,15 +357,14 @@ trait VlanBridgeSimulationTestCase
                            getPortNumber("vm2_2Port"))
         if (hasMacLearning) toPorts = getPortNumber("trunkPort2") :: toPorts
 
-        var inEth = expectPacketOut(toPorts, packetEventsProbe,
-                                    List(), List(vlanId2))
+        var inEth = expectPacketOut(toPorts, List(), List(vlanId2))
         inEth.getEtherType should be === ARP.ETHERTYPE
         inEth.getPayload.asInstanceOf[ARP].getOpCode should be === ARP.OP_REQUEST
         inEth.getSourceMACAddress should be === trunkMac
         inEth.getDestinationMACAddress should be === MAC.fromString("ff:ff:ff:ff:ff:ff")
 
         // no other packet should be transmitted
-        packetEventsProbe.expectNoMsg()
+        packetsEventsProbe.expectNoMsg()
 
         log.info("ARP reply from VM to trunk")
         val arpRepEth = ARP.makeArpReply(vm2_1Mac, trunkMac,
@@ -384,14 +375,13 @@ trait VlanBridgeSimulationTestCase
         toPorts = if (hasMacLearning) List(getPortNumber("trunkPort1"))
                   else List(getPortNumber("trunkPort1"),
                             getPortNumber("trunkPort2"))
-        inEth = expectPacketOut(toPorts, packetEventsProbe, List(vlanId2),
-                                List())
+        inEth = expectPacketOut(toPorts, List(vlanId2), List())
         inEth.getEtherType should be === ARP.ETHERTYPE
         inEth.getSourceMACAddress should be === vm2_1Mac
         inEth.getDestinationMACAddress should be === trunkMac
 
         // Again, no other packets should've been transmitted
-        packetEventsProbe.expectNoMsg()
+        packetsEventsProbe.expectNoMsg()
 
     }
 

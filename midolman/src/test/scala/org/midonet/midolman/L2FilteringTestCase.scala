@@ -8,8 +8,8 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
 
-import org.midonet.midolman.FlowController.{InvalidateFlowsByTag,
-    WildcardFlowRemoved, WildcardFlowAdded}
+import org.midonet.midolman.FlowController.InvalidateFlowsByTag
+import org.midonet.midolman.FlowController.WildcardFlowRemoved
 import org.midonet.midolman.topology.FlowTagger
 import rules.{RuleResult, Condition}
 import org.midonet.packets._
@@ -18,32 +18,32 @@ import util.SimulationHelper
 @RunWith(classOf[JUnitRunner])
 class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture
         with SimulationHelper {
+
     private final val log = LoggerFactory.getLogger(classOf[L2FilteringTestCase])
 
     def testAddAndModifyJumpChain() {
-        drainProbes()
 
+        // add rule that drops everything return flows
         log.info("creating inbound chain, assigning the chain to the bridge")
         val brInChain = newInboundChainOnBridge("brInFilter", bridge)
         // this is a chain that will be set as jump chain for brInChain
         val jumpChain = createChain("jumpRule", None)
-
-        // add rule that drops everything return flows
         newLiteralRuleOnChain(brInChain, 1, new Condition(), RuleResult.Action.DROP)
-        expectPacketDropped(0, 3, icmpBetweenPorts)
-        requestOfType[WildcardFlowAdded](wflowAddedProbe)
+
+        // send packet and except to see a drop flow
+        triggerPacketIn(vmPortNames(0), icmpBetweenPorts(0, 3))
+        expectPacketIn()
+        ackWCAdded().actions.size should be (0)
         drainProbes()
 
         // add rule that accepts everything
         newLiteralRuleOnChain(brInChain, 1, new Condition(), RuleResult.Action.ACCEPT)
-        fishForRequestOfType[WildcardFlowRemoved](wflowRemovedProbe)
+        ackWCRemoved()
         drainProbes()
-        drainProbe(packetsEventsProbe)
 
         expectPacketAllowed(0, 3, icmpBetweenPorts)
-        fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
+        ackWCAdded()
         drainProbes()
-        drainProbe(packetsEventsProbe)
 
         // add a rule that drops the packets from 0 to 3 in the jump chain
         val cond1 = new Condition()
@@ -52,28 +52,25 @@ class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture
         val jumpRule = newLiteralRuleOnChain(jumpChain, 1, cond1, RuleResult.Action.DROP)
         newJumpRuleOnChain(brInChain, 1, cond1, jumpChain.getId)
         log.info("The flow should be invalidated")
-        fishForRequestOfType[WildcardFlowRemoved](wflowRemovedProbe)
+        ackWCRemoved()
 
         log.info("sending a packet that should be dropped by jump rule")
         expectPacketDropped(0, 3, icmpBetweenPorts)
-        var flow = fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
-        flow.f.actions.size should be (0)
+        ackWCAdded().actions.size should be (0)
 
         log.info("removing a rule from the jump rule itself (inner chain)")
         deleteRule(jumpRule.getId)
-        fishForRequestOfType[WildcardFlowRemoved](wflowRemovedProbe)
+        ackWCRemoved()
         expectPacketAllowed(0, 3, icmpBetweenPorts)
-        flow = fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
-        flow.f.actions.size should (be > 0)
+        ackWCAdded().actions.size should (be > 0)
 
         log.info("adding back rule from the jump rule itself (inner chain)")
         newLiteralRuleOnChain(jumpChain, 1, cond1, RuleResult.Action.DROP)
         // expect invalidation
-        fishForRequestOfType[WildcardFlowRemoved](wflowRemovedProbe)
+        ackWCRemoved()
         // expect that packet is dropped
         expectPacketDropped(0, 3, icmpBetweenPorts)
-        flow = fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
-        flow.f.actions.size should be (0)
+        ackWCAdded().actions.size should be (0)
 
     }
 
@@ -81,20 +78,18 @@ class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture
         val chain = newOutboundChainOnPort("p1OutChain", vmPorts(0))
         val cond = new Condition()
 
-        drainProbe(wflowAddedProbe)
+        drainProbes()
 
         newLiteralRuleOnChain(chain, 1, cond, RuleResult.Action.ACCEPT)
         clusterDataClient().bridgesUpdate(bridge)
 
         expectPacketAllowed(1, 2, icmpBetweenPorts)
-        requestOfType[WildcardFlowAdded](wflowAddedProbe)
-
-        drainProbe(wflowRemovedProbe)
+        ackWCAdded()
 
         FlowController.getRef(actors()).tell(InvalidateFlowsByTag(
             FlowTagger.invalidateFlowsByDevice(chain.getId)))
 
-        requestOfType[WildcardFlowRemoved](wflowRemovedProbe)
+        ackWCRemoved()
 
     }
 
@@ -138,9 +133,9 @@ class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture
         log.info("sending icmp echoes between every pair of ports")
         for (pair <- (0 to (vmPorts.size-1)).toList.combinations(2)) {
             expectPacketAllowed(pair.head, pair.last, icmpBetweenPorts)
-            requestOfType[WildcardFlowAdded](wflowAddedProbe)
+            ackWCAdded()
             expectPacketAllowed(pair.last, pair.head, icmpBetweenPorts)
-            requestOfType[WildcardFlowAdded](wflowAddedProbe)
+            ackWCAdded()
         }
         drainProbes()
 
@@ -163,23 +158,22 @@ class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture
 
         log.info("checking that the creation of the chain invalidates all flows")
         for (pair <- (0 to (vmPorts.size-1)).toList.combinations(2)) {
-            fishForRequestOfType[WildcardFlowRemoved](wflowRemovedProbe)
-            fishForRequestOfType[WildcardFlowRemoved](wflowRemovedProbe)
+            ackWCRemoved()
+            ackWCRemoved()
         }
         flowController().underlyingActor.flowManager.getNumWildcardFlows should be === vmPorts.size
-        drainProbe(packetsEventsProbe)
         drainProbe(wflowAddedProbe)
         drainProbe(wflowRemovedProbe)
 
         log.info("sending a packet that should be dropped by rule 2")
         expectPacketDropped(0, 3, icmpBetweenPorts)
-        fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
+        ackWCAdded()
         log.info("sending a packet that should be allowed by rule 2")
         expectPacketAllowed(4, 1, icmpBetweenPorts)
-        fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
+        ackWCAdded()
         log.info("sending a packet that should be allowed by rule 2")
         expectPacketAllowed(0, 3, lldpBetweenPorts)
-        fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
+        ackWCAdded()
 
         log.info("adding a second rule: drop by mac from port4 to port1")
         val cond3 = new Condition()
@@ -188,51 +182,51 @@ class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture
         val rule3 = newLiteralRuleOnChain(brInChain, 3, cond3,
                                           RuleResult.Action.DROP)
 
-        1 to 3 foreach { _ => fishForRequestOfType[WildcardFlowRemoved](wflowRemovedProbe) }
+        1 to 3 foreach { _ => ackWCRemoved() }
         flowController().underlyingActor.flowManager.getNumWildcardFlows should be === vmPorts.size
 
         log.info("sending two packets that should be dropped by rule 3")
         expectPacketDropped(4, 1, icmpBetweenPorts)
-        fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
+        ackWCAdded()
         expectPacketDropped(4, 1, lldpBetweenPorts)
-        fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
+        ackWCAdded()
         log.info("sending a packet that should be allowed by rules 2,3")
         expectPacketAllowed(4, 3, icmpBetweenPorts)
-        fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
+        ackWCAdded()
         log.info("sending an lldp packet that should be allowed by rules 2,3")
         expectPacketAllowed(4, 3, lldpBetweenPorts)
-        fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
+        ackWCAdded()
 
         log.info("adding a third rule: drop if ether-type == LLDP")
         val cond4 = new Condition()
         cond4.dlType = Unsigned.unsign(LLDP.ETHERTYPE)
         val rule4 = newLiteralRuleOnChain(brInChain, 4, cond4,
                                           RuleResult.Action.DROP)
-        1 to 4 foreach { _ => fishForRequestOfType[WildcardFlowRemoved](wflowRemovedProbe) }
+        1 to 4 foreach { _ => ackWCRemoved() }
         flowController().underlyingActor.flowManager.getNumWildcardFlows should be === vmPorts.size
 
         log.info("sending an lldp packet that should be dropped by rule 4")
         expectPacketDropped(4, 3, lldpBetweenPorts)
-        fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
+        ackWCAdded()
         log.info("sending an icmp packet that should be allowed by rule 4")
         expectPacketAllowed(4, 3, icmpBetweenPorts)
-        fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
+        ackWCAdded()
 
         log.info("deleting rule 4")
         clusterDataClient().rulesDelete(rule4.getId)
-        fishForRequestOfType[WildcardFlowRemoved](wflowRemovedProbe)
-        fishForRequestOfType[WildcardFlowRemoved](wflowRemovedProbe)
+        ackWCRemoved()
+        ackWCRemoved()
         flowController().underlyingActor.flowManager.getNumWildcardFlows should be === vmPorts.size
 
         log.info("sending an lldp packet that should be allowed by the " +
                  "removal of rule 4")
         expectPacketAllowed(4, 3, lldpBetweenPorts)
-        requestOfType[WildcardFlowAdded](wflowAddedProbe)
+        ackWCAdded()
 
         log.info("sending one packet that should be dropped with the same " +
                  "match as the return packet that will be sent later on")
         expectPacketDropped(4, 1, udpBetweenPorts)
-        requestOfType[WildcardFlowAdded](wflowAddedProbe)
+        ackWCAdded()
 
         log.info("waiting for the return drop flows to timeout")
         // Flow expiration is checked every 10 seconds. The DROP flows should
@@ -244,11 +238,10 @@ class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture
         // seconds. We don't bother waiting for it because we're not testing
         // expiration here. The flow won't conflict with the following UDPs.
 
-        drainProbe(wflowRemovedProbe)
-        drainProbe(wflowAddedProbe)
+        drainProbes()
         log.info("sending a packet that should install a conntrack entry")
         expectPacketAllowed(1, 4, udpBetweenPorts)
-        fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
+        ackWCAdded()
 
         log.info("sending a return packet that should be accepted due to conntrack")
         expectPacketAllowed(4, 1, udpBetweenPorts)

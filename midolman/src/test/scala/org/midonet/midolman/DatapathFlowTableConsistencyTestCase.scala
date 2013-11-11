@@ -70,7 +70,7 @@ class DatapathFlowTableConsistencyTestCase extends MidolmanTestCase
         findMatch[FlowKeyICMPEcho] should be (None)
         findMatch[FlowKeyICMP] should be (None)
 
-        drainProbe(dedupProbe())
+        drainProbes()
         // resend packet and check that the flow was not re-added
         expectPacketAllowed(0, 1, icmpBetweenPorts)
         fishForRequestOfType[DeduplicationActor.ApplyFlow](dedupProbe())
@@ -114,7 +114,7 @@ class DatapathFlowTableConsistencyTestCase extends MidolmanTestCase
         pktMatch.foreach{datapath.flowsTable.remove(_)}
         findMatch[FlowKeyTCP] should be (None)
 
-        drainProbe(flowProbe())
+        drainProbes()
         // resend packet and check that the flow is re-added
         expectPacketAllowed(vmPortNumbers(0), vmPortNumbers(1),
             tcpBetweenPorts(_:Int, _:Int, 9009, 80))

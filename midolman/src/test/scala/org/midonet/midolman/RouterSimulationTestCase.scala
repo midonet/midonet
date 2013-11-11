@@ -66,8 +66,6 @@ class RouterSimulationTestCase extends MidolmanTestCase with
     private val portNumToName = mutable.Map[Int, String]()
     private val portNumToSegmentAddr = mutable.Map[Int, Int]()
 
-    private var packetsEventsProbe: TestProbe = null
-
     override protected def fillConfig(config: HierarchicalConfiguration) = {
         config.setProperty("datapath.max_flow_count", "10")
         config.setProperty("arptable.arp_retry_interval_seconds", ARP_RETRY_SECS)
@@ -146,8 +144,6 @@ class RouterSimulationTestCase extends MidolmanTestCase with
             }
         }
 
-        packetsEventsProbe = newProbe()
-        actors().eventStream.subscribe(packetsEventsProbe.ref, classOf[PacketsExecute])
         flowProbe().expectMsgType[DatapathController.DatapathReady].datapath should not be (null)
         drainProbes()
     }
@@ -444,7 +440,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         arp.getTargetHardwareAddress should be === hisMac
 
         // the arp cache should be updated without generating a request
-        drainProbe(dedupProbe())
+        drainProbes()
         val expiry = Platform.currentTime + 1000
         val arpPromise = router.arpTable.get(hisIp, port, expiry)(
             actors().dispatcher, actors(), null)
@@ -684,8 +680,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         feedArpCache("uplinkPort", hisIp.addr, hisMac, myIp.addr, myMac)
         fishForRequestOfType[DiscardPacket](discardPacketProbe)
         fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
-        drainProbe(dedupProbe())
-        drainProbe(packetInProbe)
+        drainProbes()
         val mac: MAC = Await.result(arpPromise, Timeout(1 seconds).duration)
         mac should be === hisMac
         dedupProbe().expectNoMsg(Timeout((ARP_TIMEOUT_SECS*2) seconds).duration)

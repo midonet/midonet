@@ -53,13 +53,7 @@ class LinksTestCase extends MidolmanTestCase
     var router: Router = null
     var host: Host = null
 
-    private var packetEventsProbe: TestProbe = null
-
     override def beforeTest() {
-        packetEventsProbe = newProbe()
-        actors().eventStream
-            .subscribe(packetEventsProbe.ref, classOf[PacketsExecute])
-
         host = newHost("myself", hostId())
         host should not be null
 
@@ -139,7 +133,7 @@ class LinksTestCase extends MidolmanTestCase
         injectIcmpEchoReq(rtrPort1Name, vm1Mac, vm1Ip.getAddress,
             rtrMac1, vm2Ip.getAddress)
         requestOfType[PacketIn](packetInProbe)
-        var pkt = expectRoutedPacketOut(rtrPort2Num, packetEventsProbe)
+        var pkt = expectRoutedPacketOut(rtrPort2Num)
                   .getPayload.asInstanceOf[IPv4]
         pkt.getProtocol should be === ICMP.PROTOCOL_NUMBER
         pkt.getSourceAddress should be === vm1Ip.getAddress.addr
@@ -149,7 +143,7 @@ class LinksTestCase extends MidolmanTestCase
         injectIcmpEchoReq(rtrPort2Name, vm2Mac, vm2Ip.getAddress,
             rtrMac2, vm1Ip.getAddress)
         requestOfType[PacketIn](packetInProbe)
-        pkt = expectRoutedPacketOut(rtrPort1Num, packetEventsProbe)
+        pkt = expectRoutedPacketOut(rtrPort1Num)
               .getPayload.asInstanceOf[IPv4]
         pkt.getProtocol should be === ICMP.PROTOCOL_NUMBER
         pkt.getSourceAddress should be === vm2Ip.getAddress.addr
@@ -170,12 +164,13 @@ class LinksTestCase extends MidolmanTestCase
         fishForRequestOfType[simulation.Router](vtaProbe())
         requestOfType[WildcardFlowRemoved](wflowRemovedProbe)
 
+        drainProbes()
         injectIcmpEchoReq(rtrPort1Name, vm1Mac, vm1Ip.getAddress,
             rtrMac1, vm2Ip.getAddress)
         requestOfType[PacketIn](packetInProbe)
 
         // can't use expectPacketOut because we inspect actions differently
-        val pktOut = requestOfType[PacketsExecute](packetEventsProbe).packet
+        val pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
         pktOut should not be null
         pktOut.getData should not be null
         pktOut.getActions.size should equal (1)
@@ -195,7 +190,6 @@ class LinksTestCase extends MidolmanTestCase
         icmp.getType should be (ICMP.TYPE_UNREACH)
 
         drainProbes()
-        drainProbe(vtaProbe())
 
         log.debug("Reactivate port2")
         port2Ifc.setHasLink(true)
@@ -219,7 +213,7 @@ class LinksTestCase extends MidolmanTestCase
         log.info("PING vm1 -> vm2, should pass now")
         injectIcmpEchoReq(rtrPort1Name, vm1Mac, vm1Ip.getAddress,
             rtrMac1, vm2Ip.getAddress)
-        pkt = expectRoutedPacketOut(rtrPort2Num, packetEventsProbe)
+        pkt = expectRoutedPacketOut(rtrPort2Num)
             .getPayload.asInstanceOf[IPv4]
         pkt.getSourceAddress should be === vm1Ip.getAddress.addr
         pkt.getDestinationAddress should be === vm2Ip.getAddress.addr

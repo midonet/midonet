@@ -60,12 +60,7 @@ trait VMsBehindRouterFixture extends MidolmanTestCase with SimulationHelper with
     var router: ClusterRouter = null
     var host: Host = null
 
-    var packetsEventsProbe: TestProbe = null
-
     override def beforeTest() {
-        packetsEventsProbe = newProbe()
-        actors().eventStream.subscribe(packetsEventsProbe.ref, classOf[PacketsExecute])
-
         host = newHost("myself", hostId())
         host should not be null
         router = newRouter("router")
