@@ -16,27 +16,70 @@ class TestMac extends Suite with ShouldMatchers {
 
     val macpool = List.tabulate(1000) { _ => MAC.random }
 
+    def testConversions {
+        val mask = 0xffffffffffffL
+        for (m <- macpool; s = m.toString; ary = m.getAddress) {
+            val longFromString = MAC.stringToLong(s)
+            (longFromString | mask) should be (mask)
+            s should be (MAC.longToString(longFromString))
+            ary should be (MAC.longToBytes(MAC.bytesToLong(ary)))
+        }
+    }
+
+    def testConversionsException {
+        List[Array[Byte]](
+            null,
+            Array[Byte](1,2,3,4,5),
+            Array[Byte](1,2,3,4,5,6,7)
+        ).foreach { array =>
+            intercept[IllegalArgumentException] { MAC.bytesToLong(array) }
+        }
+
+        List[String](
+            null,
+            "eewofihewiofh",
+            "ww:ww:ww:ww:ww:ww",
+            "01:23:45:ww:67:89",
+            "01:23:45::67:89",
+            "01:23:45:21324:67:89"
+        ).foreach { str =>
+            intercept[IllegalArgumentException] { MAC.stringToLong(str) }
+        }
+    }
+
+    def testStringConversionWithPadding {
+        List[(String,String)](
+            ("01:02:03:04:05:06", "01:02:03:04:05:6"),
+            ("01:02:03:04:05:06", "01:02:03:04:5:6"),
+            ("01:02:03:04:05:06", "01:2:3:04:5:6"),
+            ("01:00:03:04:05:06", "01:0:3:04:5:6")
+        ).foreach{ case (s1,s2) =>
+            MAC.stringToLong(s1) should be (MAC.stringToLong(s2))
+        }
+    }
+
+
     def testGetSetAddressIsSame {
-        for (m1 <- macpool) { m1 should be (MAC fromAddress m1.getAddress) }
+        for (m <- macpool) { m should be (MAC fromAddress m.getAddress) }
     }
 
     def testGetSetStringIsSame {
-        for (m1 <- macpool) { m1 should be (MAC fromString m1.toString) }
+        for (m <- macpool) { m should be (MAC fromString m.toString) }
     }
 
     def testCloneIsSame {
-        for (m1 <- macpool) { m1 should be (m1.clone) }
+        for (m <- macpool) { m should be (m.clone) }
     }
 
     def testEqualOther {
         val args = List[Any]("foo", 4, Set(), Nil, List(1,2))
-        for (m1 <- macpool; x <- args) { m1 should not be (x) }
+        for (m <- macpool; x <- args) { m should not be (x) }
     }
 
     def testUnitcast {
         val mask: Byte = ~0x1
-        for (m1 <- macpool) {
-            val bytes = m1.getAddress
+        for (m <- macpool) {
+            val bytes = m.getAddress
             val firstByte = bytes(0)
             bytes(0) = (firstByte & mask).toByte
             (MAC.fromAddress(bytes).unicast) should be (true)
@@ -47,7 +90,7 @@ class TestMac extends Suite with ShouldMatchers {
     def testInSets {
         val mset = macpool.toSet
         mset.size should be (macpool.size)
-        for (m1 <- macpool) { mset.contains(m1) should be (true) }
+        for (m <- macpool) { mset.contains(m) should be (true) }
     }
 
     def testInHashes {
@@ -55,7 +98,7 @@ class TestMac extends Suite with ShouldMatchers {
             (a,m) => a + (m -> m.toString)
         }
         mmap.size should be (macpool.size)
-        for (m1 <- macpool) { mmap.get(m1) should be (Some(m1.toString)) }
+        for (m <- macpool) { mmap.get(m) should be (Some(m.toString)) }
     }
 
 }
