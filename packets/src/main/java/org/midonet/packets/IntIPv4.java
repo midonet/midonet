@@ -131,12 +131,12 @@ public class IntIPv4 implements Cloneable {
     public static IntIPv4 fromString(String dottedQuad) {
         String[] parts = dottedQuad.split("_", 2);
         // Because of String.split's contract, parts.length can only be 1 or 2
-        return new IntIPv4(Net.convertStringAddressToInt(parts[0]),
+        return new IntIPv4(IPv4Addr.stringToInt(parts[0]),
                 parts.length == 1 ? 32 : Integer.parseInt(parts[1]));
     }
 
     public static IntIPv4 fromString(String dottedQuad, int length) {
-        return new IntIPv4(Net.convertStringAddressToInt(dottedQuad), length);
+        return new IntIPv4(IPv4Addr.stringToInt(dottedQuad), length);
     }
 
     public static IntIPv4 fromBytes(byte[] ipAddress) {
@@ -161,7 +161,7 @@ public class IntIPv4 implements Cloneable {
     @JsonValue
     @Override
     public String toString() {
-        String dottedQuad = Net.convertIntAddressToString(address);
+        String dottedQuad = IPv4Addr.intToString(address);
         return maskLength == 32
                 ? dottedQuad
                 :  (dottedQuad + "_" + Integer.toString(maskLength));
@@ -175,7 +175,7 @@ public class IntIPv4 implements Cloneable {
      *      A String like "10.0.0.6". The mask length is completely ignored.
      */
     public String toUnicastString() {
-        return Net.convertIntAddressToString(address);
+        return IPv4Addr.intToString(address);
     }
 
     @Override

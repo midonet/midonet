@@ -8,7 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.midonet.packets.Net;
+import org.midonet.packets.IPv4Addr;
 
 
 /**
@@ -66,10 +66,8 @@ public abstract class ForwardNatRule extends NatRule {
         for (NatTarget natTarget : natTargets) {
             org.midonet.midolman.rules.NatTarget t =
                     new org.midonet.midolman.rules.NatTarget(
-                            Net.convertStringAddressToInt(
-                                    natTarget.addressFrom),
-                            Net.convertStringAddressToInt(
-                                    natTarget.addressTo),
+                            IPv4Addr.stringToInt(natTarget.addressFrom),
+                            IPv4Addr.stringToInt(natTarget.addressTo),
                             (short) natTarget.portFrom,
                             (short) natTarget.portTo);
             targets.add(t);

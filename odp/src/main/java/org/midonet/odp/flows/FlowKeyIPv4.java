@@ -5,10 +5,9 @@ package org.midonet.odp.flows;
 
 import java.nio.ByteOrder;
 
-import org.midonet.packets.IPv4Addr;
-import org.midonet.packets.Net;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.BaseBuilder;
+import org.midonet.packets.IPv4Addr;
 
 
 public class FlowKeyIPv4 implements FlowKey<FlowKeyIPv4> {
@@ -85,8 +84,8 @@ public class FlowKeyIPv4 implements FlowKey<FlowKeyIPv4> {
     @Override
     public String toString() {
         return "FlowKeyIPv4{" +
-            "ipv4_src=" + Net.convertIntAddressToString(ipv4_src) +
-            ", ipv4_dst=" + Net.convertIntAddressToString(ipv4_dst) +
+            "ipv4_src=" + IPv4Addr.intToString(ipv4_src) +
+            ", ipv4_dst=" + IPv4Addr.intToString(ipv4_dst) +
             ", ipv4_proto=" + ipv4_proto +
             ", ipv4_tos=" + ipv4_tos +
             ", ipv4_ttl=" + ipv4_ttl +

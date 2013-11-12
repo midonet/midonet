@@ -6,9 +6,9 @@ package org.midonet.odp.ports;
 import java.nio.ByteOrder;
 import java.util.*;
 
-import org.midonet.packets.Net;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.BaseBuilder;
+import org.midonet.packets.IPv4Addr;
 
 /**
 * Abstract class that encapsulates options for a tunnel port.
@@ -272,8 +272,8 @@ public abstract class TunnelPortOptions<Options extends TunnelPortOptions<Option
     public String toString() {
         return "TunnelPortOptions{" +
             "flags=" + printFlags() +
-            ", dstIPv4=" + Net.convertIntAddressToString(dstIPv4 != null ? dstIPv4 : 0) +
-            ", srcIPv4=" + Net.convertIntAddressToString(srcIPv4 != null ? srcIPv4 : 0) +
+            ", dstIPv4=" + IPv4Addr.intToString(dstIPv4 != null ? dstIPv4 : 0) +
+            ", srcIPv4=" + IPv4Addr.intToString(srcIPv4 != null ? srcIPv4 : 0) +
             ", outKey=" + outKey +
             ", inKey=" + inKey +
             ", tos=" + tos +
