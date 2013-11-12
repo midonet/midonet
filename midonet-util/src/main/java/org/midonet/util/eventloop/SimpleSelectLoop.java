@@ -224,8 +224,7 @@ public class SimpleSelectLoop implements SelectLoop {
                             try {
                                 reg.listener.handleEvent(sk);
                             } catch (Exception e) {
-                                log.error("Callback threw an exception: {}\n",
-                                    Joiner.on("\n    ").join(e.getStackTrace()));
+                                log.error("Callback threw an exception", e);
                             }
                             // We report each ready-op once, so after
                             // dispatching the event we clear it from ops.
