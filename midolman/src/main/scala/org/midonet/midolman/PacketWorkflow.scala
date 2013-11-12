@@ -177,7 +177,12 @@ class PacketWorkflow(
                         }
                 }
             case Left(ex) =>
-                log.error(ex, "Exception while processing packet with {}")
+                log.warning("Exception while processing packet {}, {}",
+                            cookieStr, ex.getStackTraceString)
+                for (c <- cookie) {
+                    throttlingGuard.tokenOut()
+                    metrics.packetsProcessed.mark()
+                }
         }
     }
 
