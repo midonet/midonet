@@ -38,6 +38,7 @@ public class NatLeaseManager implements NatMapping {
     private static final int USHORT = 0xffff;
 
     private static final int MAX_PORT_ALLOC_ATTEMPTS = 20;
+    private static final int BLOCK_SIZE = 100;
 
     public static final String FWD_DNAT_PREFIX = "dnatfwd";
     public static final String REV_DNAT_PREFIX = "dnatrev";
@@ -399,8 +400,8 @@ public class NatLeaseManager implements NatMapping {
         // None of our leased blocks were suitable. Try leasing another block.
         // TODO: Do something smarter. See:
         // https://sites.google.com/a/midokura.jp/wiki/midonet/srcnat-block-reservations
-        int block_size = 100; // TODO: make this configurable?
-        int numExceptions = 0;
+        int block_size = BLOCK_SIZE; // TODO: make this configurable?
+        int blockReservationFailures = 0;
         for (NatTarget tg : nats) {
             int tpStart = tg.tpStart & USHORT;
             int tpEnd = tg.tpEnd & USHORT;
@@ -413,17 +414,17 @@ public class NatLeaseManager implements NatMapping {
                     reservedBlocks = filterMgr.getSnatBlocks(routerId, ip);
                 } catch (Exception e) {
                     log.error("allocateSnat got an exception listing reserved "
-                            + "blocks:", e);
+                              + "blocks", e);
                     return null;
                 }
                 // Note that Shorts in this sorted set should only be
-                // multiples of 100 because that's how we avoid
+                // multiples of BLOCK_SIZE because that's how we avoid
                 // collisions/re-leasing. A Short s represents a lease on
                 // the port range [s, s+99] inclusive.
-                // Round down tpStart to the nearest 100.
+                // Round down tpStart to the nearest BLOCK_SIZE.
                 int block = (tpStart / block_size) * block_size;
-                // Find the first lowPort + 100*x that isn't in the tail-set
-                // and is less than tpEnd
+                // Find the first lowPort + BLOCK_SIZE*x that isn't in the
+                // tail-set and is less than tpEnd
                 for (Integer lease: reservedBlocks.tailSet(block, true)) {
                     // Find the next reserved block.
                     if (lease > block) {
@@ -436,29 +437,25 @@ public class NatLeaseManager implements NatMapping {
                         // block that doesn't start at a multiple of 100
                         continue;
                     }
-                    // The normal case. The block is already leased, try
-                    // the next one.
+                    // Normal case. The block is already leased, try next one.
                     block += block_size;
                     if (block > tpEnd)
                         break;
                 }
-                if (block > tpEnd)
-                    // No free blocks for this ip. Try the next ip.
+
+                if (block > tpEnd) // No free blocks for this ip. Try next ip.
                     break;
-                try {
-                    log.debug("allocateSnat trying to reserve snat block {} "
-                            + "in ip {}", block, ip);
-                    filterMgr.addSnatReservation(routerId, ip, block);
-                } catch (Exception e) {
-                    log.debug("allocateSnat block reservation failed.");
-                    numExceptions++;
-                    if (numExceptions > 1){
-                        log.warn("allocateSnat failed twice to reserve a port "
-                                + "block in ip {}. Giving up.", ip);
+
+                if (!reserveSnatBlock(routerId, ip, block)) {
+                    blockReservationFailures++;
+                    if (blockReservationFailures > 1){
+                        log.warn("allocateSnat failed twice to reserve a " +
+                                 "port block in ip {}. Giving up.", ip);
                         return null;
                     }
-                    continue;
+                    continue; // skip to the next block
                 }
+
                 // Expand the port block.
                 NavigableSet<Integer> freePorts = ipToFreePortsMap.get(ip);
                 if (null == freePorts) {
@@ -502,6 +499,28 @@ public class NatLeaseManager implements NatMapping {
             } // End for loop over ip addresses in a nat target.
         } // End for loop over nat targets.
         return null;
+    }
+
+    /*
+     * Tries to reserve the given SNAT block, with a single retry on the same
+     * block in the event that it gets a failure. See MN-883 for motivation:
+     * if two threads reserve the same block, we don't want to get a failure
+     * on the loser since that one can reuse the reservation.
+     */
+    private boolean reserveSnatBlock(UUID routerId, IPAddr ip, int block) {
+        int attempts = 2;
+        while (attempts-- > 0) {
+            try {
+                log.debug("allocateSnat trying to reserve snat block {} in " +
+                          "ip {}", block, ip);
+                filterMgr.addSnatReservation(routerId, ip, block);
+                return true;
+            } catch (Exception e) {
+                log.warn("allocateSnat block reservation failed, retry " +
+                             "same block", e);
+            }
+        }
+        return false;
     }
 
     /**
