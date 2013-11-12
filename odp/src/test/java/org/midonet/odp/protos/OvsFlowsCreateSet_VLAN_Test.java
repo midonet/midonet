@@ -11,11 +11,11 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.packets.Net;
 import org.midonet.odp.FlowMatch;
 import org.midonet.odp.flows.FlowAction;
 import org.midonet.odp.flows.FlowActions;
 import org.midonet.odp.flows.FlowKeyEtherType;
+import org.midonet.packets.IPv4Addr;
 import static org.midonet.odp.flows.FlowKeys.arp;
 import static org.midonet.odp.flows.FlowKeys.encap;
 import static org.midonet.odp.flows.FlowKeys.etherType;
@@ -58,10 +58,8 @@ public class OvsFlowsCreateSet_VLAN_Test
                         arp(macFromString("ae:b3:77:8d:c1:48"),
                             macFromString("ae:b3:70:8d:c1:48"))
                             .setOp((short) 2)
-                            .setSip(Net.convertStringAddressToInt(
-                                "192.168.100.1"))
-                            .setTip(Net.convertStringAddressToInt(
-                                "192.168.102.1"))
+                            .setSip(IPv4Addr.stringToInt("192.168.100.1"))
+                            .setTip(IPv4Addr.stringToInt("192.168.102.1"))
                     ));
     }
 

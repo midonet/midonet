@@ -9,7 +9,7 @@ package org.midonet.midolman.layer3;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.packets.Net;
+import org.midonet.packets.IPv4Addr;
 
 
 public class MockServiceFlowController implements ServiceFlowController {
@@ -24,8 +24,8 @@ public class MockServiceFlowController implements ServiceFlowController {
         log.debug("setServiceFlows: localPortNum {} remotePortNum {}" +
                   "localAddr {} remoteAddr {} localTport {} remoteTport {}",
                   new Object[] {localPortNum, remotePortNum,
-                                Net.convertIntAddressToString(localAddr),
-                                Net.convertIntAddressToString(remoteAddr),
+                                IPv4Addr.intToString(localAddr),
+                                IPv4Addr.intToString(remoteAddr),
                                 localTport, remoteTport});
     }
 }

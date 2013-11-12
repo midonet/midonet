@@ -9,8 +9,8 @@ import java.util.UUID;
 
 import org.codehaus.jackson.annotate.JsonPropertyOrder;
 
+import org.midonet.packets.IPv4;
 import org.midonet.packets.IPv4Addr;
-import org.midonet.packets.Net;
 
 
 @JsonPropertyOrder(alphabetic=true)
@@ -62,27 +62,27 @@ public class Route implements Serializable {
     /* Custom accessors for more readable IP address representation in Jackson serialization. */
 
     public String getSrcNetworkAddr() {
-        return Net.convertIntAddressToString(this.srcNetworkAddr);
+        return IPv4Addr.intToString(this.srcNetworkAddr);
     }
 
     public void setSrcNetworkAddr(String addr) {
-        this.srcNetworkAddr = Net.convertStringAddressToInt(addr);
+        this.srcNetworkAddr = IPv4Addr.stringToInt(addr);
     }
 
     public String getDstNetworkAddr() {
-        return Net.convertIntAddressToString(this.dstNetworkAddr);
+        return IPv4Addr.intToString(this.dstNetworkAddr);
     }
 
     public void setDstNetworkAddr(String addr) {
-        this.dstNetworkAddr = Net.convertStringAddressToInt(addr);
+        this.dstNetworkAddr = IPv4Addr.stringToInt(addr);
     }
 
     public String getNextHopGateway() {
-        return Net.convertIntAddressToString(this.nextHopGateway);
+        return IPv4Addr.intToString(this.nextHopGateway);
     }
 
     public void setNextHopGateway(String addr) {
-        this.nextHopGateway = Net.convertStringAddressToInt(addr);
+        this.nextHopGateway = IPv4Addr.stringToInt(addr);
     }
 
     @Override

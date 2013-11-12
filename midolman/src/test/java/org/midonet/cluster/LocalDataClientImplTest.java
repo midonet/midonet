@@ -38,7 +38,7 @@ import org.midonet.midolman.state.zkManagers.RouterZkManager;
 import org.midonet.midolman.version.guice.VersionModule;
 import org.midonet.cluster.data.ports.RouterPort;
 import org.midonet.packets.MAC;
-import org.midonet.packets.Net;
+import org.midonet.packets.IPv4Addr;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
@@ -120,7 +120,7 @@ public class LocalDataClientImplTest {
         assertThat(rt.getNextHop(), equalTo(NextHop.LOCAL));
         assertThat(rt.getNextHopPort(), equalTo(portId));
         assertThat(rt.getNextHopGateway(), equalTo(
-            Net.convertIntAddressToString(
+            IPv4Addr.intToString(
                 org.midonet.midolman.layer3.Route.NO_GATEWAY)));
         // Now delete the port and verify that the route is deleted.
         client.portsDelete(portId);

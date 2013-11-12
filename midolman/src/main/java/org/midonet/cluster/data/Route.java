@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import org.midonet.packets.Net;
+import org.midonet.packets.IPv4Addr;
 
 public class Route extends Entity.Base<UUID, Route.Data, Route> {
 
@@ -182,7 +182,7 @@ public class Route extends Entity.Base<UUID, Route.Data, Route> {
             dstNetworkLength = 0;
             nextHop = org.midonet.midolman.layer3.Route.NextHop.REJECT;
             nextHopPort = UUID.fromString("deadcafe-dead-c0de-dead-beefdeadbeef");
-            nextHopGateway = Net.convertIntAddressToString(
+            nextHopGateway = IPv4Addr.intToString(
                 org.midonet.midolman.layer3.Route.NO_GATEWAY);
             weight = 0;
             attributes = "";

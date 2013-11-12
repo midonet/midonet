@@ -16,12 +16,12 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-import org.midonet.packets.Net;
 import org.midonet.netlink.Callback;
 import org.midonet.netlink.exceptions.NetlinkException;
 import org.midonet.odp.Datapath;
 import org.midonet.odp.Packet;
 import org.midonet.packets.Ethernet;
+import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MalformedPacketException;
 import static org.midonet.odp.flows.FlowKeyEtherType.Type;
 import static org.midonet.odp.flows.FlowKeys.arp;
@@ -97,8 +97,8 @@ public class OvsPacketInTest extends AbstractNetlinkProtocolTest {
                         arp(macFromString("3e:05:d4:73:2d:4c"),
                                 macFromString("00:00:00:00:00:00"))
                                 .setOp((byte) 1)
-                                .setSip(Net.convertStringAddressToInt("176.28.127.69"))
-                                .setTip(Net.convertStringAddressToInt("192.168.100.10"))
+                                .setSip(IPv4Addr.stringToInt("176.28.127.69"))
+                                .setTip(IPv4Addr.stringToInt("192.168.100.10"))
                 ).setReason(Packet.Reason.FlowTableMiss);
 
         return packet;

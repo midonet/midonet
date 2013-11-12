@@ -91,10 +91,8 @@ public class IPv4 extends BasePacket {
         sb.append(", offset=").append(fragmentOffset);
         sb.append(", cksum=").append(checksum);
         sb.append(", proto=").append(protocol);
-        sb.append(", nwSrc=").append(
-                Net.convertIntAddressToString(sourceAddress));
-        sb.append(", nwDst=").append(
-                Net.convertIntAddressToString(destinationAddress));
+        sb.append(", nwSrc=").append(IPv4Addr.intToString(sourceAddress));
+        sb.append(", nwDst=").append(IPv4Addr.intToString(destinationAddress));
         sb.append(", payload=").append(
                 null == payload ? "null" : payload.toString());
         sb.append("]");
