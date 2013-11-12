@@ -20,37 +20,6 @@ import java.nio.IntBuffer;
 public class Net {
 
     /**
-     * Converts InetAddress IP address to int.
-     *
-     * @param address
-     *            IP address in InetAddress.
-     * @return IP address in int.
-     */
-    public static int convertInetAddressToInt(InetAddress address) {
-        byte[] rawAddr = address.getAddress();
-        int num = 0;
-        for (byte octet : rawAddr) {
-            num <<= 8;
-            num += octet & 0xff;
-        }
-        return num;
-    }
-
-    public static InetAddress convertIntToInetAddress(int intAddress) {
-        byte[] byteAddress = {
-                (byte) (intAddress >> 24),
-                (byte) ((intAddress >> 16) & 0xff),
-                (byte) ((intAddress >> 8) & 0xff),
-                (byte) (intAddress & 0xff) };
-        try {
-            return InetAddress.getByAddress(byteAddress);
-        } catch (UnknownHostException e) {
-            throw new RuntimeException("getByAddress on a raw address threw "
-                    + "an UnknownHostException", e);
-        }
-    }
-
-    /**
      * Converts int IP address to string.
      *
      * @param address
