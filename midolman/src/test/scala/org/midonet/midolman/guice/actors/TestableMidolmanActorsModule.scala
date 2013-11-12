@@ -17,7 +17,6 @@ import akka.testkit.TestKit
 import akka.util.{Duration, Timeout}
 
 import org.midonet.midolman.guice.MidolmanActorsModule
-import org.midonet.midolman.services.MidolmanActorsServiceImpl
 import org.midonet.midolman.services.MidolmanActorsService
 import org.midonet.midolman.SupervisorActor
 
