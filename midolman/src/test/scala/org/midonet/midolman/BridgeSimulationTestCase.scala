@@ -3,41 +3,38 @@
 */
 package org.midonet.midolman
 
-import guice.CacheModule.{TRACE_INDEX, TRACE_MESSAGES}
+import java.lang.{Short => JShort}
+import java.util.UUID
 import scala.collection.JavaConversions._
 import scala.collection.immutable
 import scala.collection.mutable.{Map => MMap}
+
+import com.google.inject.Key
+import guice.CacheModule.{TRACE_INDEX, TRACE_MESSAGES}
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
+import org.slf4j.LoggerFactory
 
 import org.midonet.cache.Cache
-import org.midonet.midolman.FlowController._
-import org.midonet.midolman.PacketWorkflow.PacketIn
-import rules.{RuleResult, Rule, Condition}
-import org.midonet.midolman.topology.LocalPortActive
-import org.midonet.cluster.data.{Bridge => ClusterBridge}
 import org.midonet.cluster.data.ports.MaterializedBridgePort
 import org.midonet.cluster.data.zones.GreTunnelZoneHost
+import org.midonet.cluster.data.{Bridge => ClusterBridge}
+import org.midonet.midolman.FlowController.WildcardFlowRemoved
+import org.midonet.midolman.FlowController._
+import org.midonet.midolman.PacketWorkflow.PacketIn
+import org.midonet.midolman.PacketWorkflow.PacketIn
+import org.midonet.midolman.PacketWorkflow.PacketIn
+import org.midonet.midolman.rules.{RuleResult, Rule, Condition}
+import org.midonet.midolman.topology.LocalPortActive
+import org.midonet.midolman.topology.LocalPortActive
+import org.midonet.midolman.topology.LocalPortActive
+import org.midonet.midolman.util.{SimulationHelper, MockCache}
 import org.midonet.odp.flows.FlowActions
 import org.midonet.odp.flows.{FlowActionOutput, FlowActionSetKey, FlowKeyTunnel}
 import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
-import topology.LocalPortActive
-import util.{SimulationHelper, MockCache}
-import com.google.inject.Key
-
-import java.lang.{Short => JShort}
-import org.midonet.midolman.topology.LocalPortActive
-import scala.Some
-import org.midonet.midolman.PacketWorkflow.PacketIn
-import java.util.UUID
-import scala.Some
-import org.midonet.midolman.FlowController.WildcardFlowAdded
-import org.midonet.midolman.PacketWorkflow.PacketIn
-import org.midonet.midolman.FlowController.WildcardFlowRemoved
-import org.slf4j.LoggerFactory
 
 
 @RunWith(classOf[JUnitRunner])
@@ -104,9 +101,9 @@ class BridgeSimulationTestCase extends MidolmanTestCase
 
         flowProbe().expectMsgType[DatapathController.DatapathReady].datapath should not be (null)
 
-        wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
-        wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
-        wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
+        ackWCAdded()
+        ackWCAdded()
+        ackWCAdded()
         portsProbe.expectMsgClass(classOf[LocalPortActive])
         portsProbe.expectMsgClass(classOf[LocalPortActive])
         portsProbe.expectMsgClass(classOf[LocalPortActive])
@@ -146,9 +143,7 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         malformed << payload("00:00")
         malformed ether_type IPv4.ETHERTYPE vlans networkVlans
 
-        val addFlowMsg = injectOnePacket(malformed, inputPort, false)
-        addFlowMsg.f should not be null
-        val flowActs = addFlowMsg.f.getActions
+        val flowActs = injectOnePacket(malformed, inputPort).getActions
         flowActs should have size(6)
 
         val (outputs, tunnelKeys) = parseTunnelActions(flowActs)
@@ -190,9 +185,7 @@ class BridgeSimulationTestCase extends MidolmanTestCase
                 IPv4Addr.fromString("10.0.1.11"),
                 10, 11, "My UDP packet".getBytes)
         ethPkt.setVlanIDs(networkVlans)
-        val addFlowMsg = injectOnePacket(ethPkt, "port1", false)
-        addFlowMsg.f should not be null
-        val flowActs = addFlowMsg.f.getActions
+        val flowActs = injectOnePacket(ethPkt, "port1").getActions
         flowActs should have size(6)
 
         val (outputs, tunnelKeys) = parseTunnelActions(flowActs)
@@ -209,12 +202,15 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         idxCache.map should have size 1
         msgCache.map should have size 2
 
-        val cacheMap: MMap[String, MockCache.CacheEntry] = idxCache.map
-        val keySet = cacheMap.keySet
+        val keySet = idxCache.map.keySet
+        keySet should have size 1
+
         val uuidSet = keySet filter { _.length == 36 }
         uuidSet should have size 1
+
         val traceID = uuidSet.toArray.apply(0)
-        keySet should equal (Set(traceID))
+        keySet.toArray.apply(0) should be (traceID)
+
         idxCache.map.get(traceID).value should equal ("2")
 
         val value1 = msgCache.map.get(traceID + ":1").value
@@ -269,15 +265,13 @@ class BridgeSimulationTestCase extends MidolmanTestCase
             10, 12, "Test UDP packet".getBytes)
         ethPkt.setVlanIDs(networkVlans)
 
+        val flowActs = injectOnePacket(ethPkt, inputPort).getActions
+
         if (networkVlans.isEmpty) {
             // non-vlan traffic should apply the rules, match, be dropped
-            val addFlowMsg = injectOnePacket(ethPkt, inputPort, true)
-            val flowActs = addFlowMsg.f.getActions
             flowActs.size should be (0)
         } else {
             // vlan traffic should NOT match on the rules, so it'll pass
-            val addFlowMsg = injectOnePacket(ethPkt, inputPort, false)
-            val flowActs = addFlowMsg.f.getActions
             flowActs should have size(6)
 
             val (outputs, tunnelKeys) = parseTunnelActions(flowActs)
@@ -303,8 +297,7 @@ class BridgeSimulationTestCase extends MidolmanTestCase
                 IPv4Addr.fromString("10.11.11.11"),
                 10, 12, "Test UDP packet".getBytes)
         ethPkt.setVlanIDs(networkVlans)
-        val addFlowMsg = injectOnePacket(ethPkt, inputPort, false)
-        val flowActs = addFlowMsg.f.getActions
+        val flowActs = injectOnePacket(ethPkt, inputPort).getActions
         flowActs should have size(6)
 
         val (outputs, tunnelKeys) = parseTunnelActions(flowActs)
@@ -329,8 +322,7 @@ class BridgeSimulationTestCase extends MidolmanTestCase
                 IPv4Addr.fromString("10.10.10.11"),
                 IPv4Addr.fromString("10.11.11.10"))
         ethPkt.setVlanIDs(networkVlans)
-        val addFlowMsg = injectOnePacket(ethPkt, inputPort, false)
-        val flowActs = addFlowMsg.f.getActions
+        val flowActs = injectOnePacket(ethPkt, inputPort).getActions
         flowActs should have size(6)
 
         val (outputs, tunnelKeys) = parseTunnelActions(flowActs)
@@ -356,8 +348,7 @@ class BridgeSimulationTestCase extends MidolmanTestCase
                 IPv4Addr.fromString("10.10.10.11"),
                 IPv4Addr.fromString("10.11.11.10"), 10, 12, "Test UDP Packet".getBytes)
         ethPkt.setVlanIDs(networkVlans)
-        val addFlowMsg = injectOnePacket(ethPkt, inputPort, false)
-        val flowActs = addFlowMsg.f.getActions
+        val flowActs = injectOnePacket(ethPkt, inputPort).getActions
         flowActs should have size(6)
 
         val (outputs, tunnelKeys) = parseTunnelActions(flowActs)
@@ -382,8 +373,7 @@ class BridgeSimulationTestCase extends MidolmanTestCase
                 IPv4Addr.fromString("10.11.11.12"),
                 10, 12, "Test UDP packet".getBytes)
         ethPkt.setVlanIDs(networkVlans)
-        val addFlowMsg = injectOnePacket(ethPkt, inputPort, true)
-        val flowActs = addFlowMsg.f.getActions
+        val flowActs = injectOnePacket(ethPkt, inputPort).getActions
         flowActs should have size(0)
     }
 
@@ -397,9 +387,7 @@ class BridgeSimulationTestCase extends MidolmanTestCase
                 IPv4Addr.fromString("10.0.1.11"),
                 10, 11, "My UDP packet".getBytes)
         ethPkt.setVlanIDs(networkVlans)
-        var addFlowMsg = injectOnePacket(ethPkt, inputPort, true)
-        addFlowMsg.f should not be null
-        var flowActs = addFlowMsg.f.getActions
+        var flowActs = injectOnePacket(ethPkt, inputPort).getActions
         flowActs should have size(6)
 
         val (outputs, tunnelKeys) = parseTunnelActions(flowActs)
@@ -426,9 +414,7 @@ class BridgeSimulationTestCase extends MidolmanTestCase
                      IPv4Addr.fromString("10.0.1.11"),
                      10, 11, "My UDP packet".getBytes)
         ethPkt.setVlanIDs(networkVlans)
-        addFlowMsg = injectOnePacket(ethPkt, inputPort, true)
-        addFlowMsg.f should not be null
-        flowActs = addFlowMsg.f.getActions
+        flowActs = injectOnePacket(ethPkt, inputPort).getActions
         flowActs should have size(1)
 
         val (outputs2, tunnelKeys2) = parseTunnelActions(flowActs)
@@ -441,26 +427,25 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         verifyMacLearned("02:13:66:77:88:99", "port5")
     }
 
-    private def injectOnePacket (ethPkt : Ethernet, ingressPortName : String,
-                                 isDropExpected: Boolean) : WildcardFlowAdded = {
+    private def injectOnePacket (ethPkt : Ethernet, port: String) = {
+        drainProbes()
+        triggerPacketIn(port, ethPkt)
+        verifyPacketIn(packetInProbe.expectMsgClass(classOf[PacketIn]), port)
+        ackWCAdded()
+    }
 
-        triggerPacketIn(ingressPortName, ethPkt)
-
-        val pktInMsg = packetInProbe.expectMsgClass(classOf[PacketIn])
-        val ingressPort = getMaterializedPort(ingressPortName)
-
+    private def verifyPacketIn(pktInMsg: PacketIn, port: String) {
         pktInMsg should not be null
         pktInMsg.eth should not be null
         pktInMsg.wMatch should not be null
+
         // We're racing with DatapathController here. DC's job is to remove
         // the inputPortUUID field and set the corresponding inputPort (short).
-        if (pktInMsg.wMatch.getInputPortUUID != null)
-            pktInMsg.wMatch.getInputPortUUID should be(ingressPort.getId)
+        val portUUID = pktInMsg.wMatch.getInputPortUUID
+        if (portUUID != null)
+            portUUID should be(getMaterializedPort(port).getId)
         else
-            pktInMsg.wMatch.getInputPort should
-                be(getPortNumber(ingressPortName))
-
-        wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
+            pktInMsg.wMatch.getInputPort should be (getPortNumber(port))
     }
 
     private def getMaterializedPort (portName : String) : MaterializedBridgePort = {
@@ -483,9 +468,8 @@ class BridgeSimulationTestCase extends MidolmanTestCase
                 IPv4Addr.fromString("10.11.11.11"),
                 10, 12, "Test UDP packet".getBytes)
         ethPkt.setVlanIDs(networkVlans)
-        val addFlowMsg = injectOnePacket(ethPkt, "port4", isDropExpected = false)
         val expectedPort = getMaterializedPort(expectedPortName)
-        val flowActs = addFlowMsg.f.getActions
+        val flowActs = injectOnePacket(ethPkt, "port4").getActions
         flowActs should have size(1)
         vifToLocalPortNumber(expectedPort.getId) match {
             case Some(portNo : Short) =>
