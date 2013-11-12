@@ -114,9 +114,9 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
     private final val BGP_VTY_BRIDGE_NAME: String =
         "mbgp%d_br".format(bgpIdx)
     private final val BGP_VTY_LOCAL_IP: String =
-        IPv4Addr.intToIpStr(BGP_IP_INT_PREFIX + 1 + 4 * bgpIdx)
+        IPv4Addr.intToString(BGP_IP_INT_PREFIX + 1 + 4 * bgpIdx)
     private final val BGP_VTY_MIRROR_IP: String =
-        IPv4Addr.intToIpStr(BGP_IP_INT_PREFIX + 2 + 4 * bgpIdx)
+        IPv4Addr.intToString(BGP_IP_INT_PREFIX + 2 + 4 * bgpIdx)
     private final val BGP_VTY_MASK_LEN: Int = 30
     private final val BGP_NETWORK_NAMESPACE: String =
         "mbgp%d_ns".format(bgpIdx)

@@ -14,8 +14,25 @@ class IPv4AddrTest extends Suite with ShouldMatchers {
 
     val ippool = List.tabulate(10000) { _ => IPv4Addr.random }
 
-    def testGetSetByte() {
-        for (ip <- ippool) { ip should be (IPv4Addr(ip.toBytes)) }
+    def testFactory() {
+        for (ip <- ippool) {
+            ip should be (IPv4Addr(ip.toBytes))
+            ip should be (IPv4Addr(ip.toString))
+            ip should be (IPv4Addr(ip.addr))
+        }
+    }
+
+    def testConversions() {
+        for (ip <- ippool; intIp = ip.addr; strIp = ip.toString) {
+            intIp should be (IPv4Addr.bytesToInt(IPv4Addr.intToBytes(intIp)))
+            intIp should be (IPv4Addr.stringToInt(IPv4Addr.intToString(intIp)))
+            strIp should be (IPv4Addr.bytesToString(IPv4Addr.stringToBytes(strIp)))
+        }
+    }
+
+    def testConversionException() {
+
+
     }
 
     // IPs that have a negative int representation
