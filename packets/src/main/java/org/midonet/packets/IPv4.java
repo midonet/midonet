@@ -286,7 +286,7 @@ public class IPv4 extends BasePacket {
      * @param sourceAddress the sourceAddress to set
      */
     public IPv4 setSourceAddress(String sourceAddress) {
-        this.sourceAddress = IPv4.toIPv4Address(sourceAddress);
+        this.sourceAddress = IPv4Addr.stringToInt(sourceAddress);
         return this;
     }
 
@@ -318,7 +318,7 @@ public class IPv4 extends BasePacket {
      * @param destinationAddress the destinationAddress to set
      */
     public IPv4 setDestinationAddress(String destinationAddress) {
-        this.destinationAddress = IPv4.toIPv4Address(destinationAddress);
+        this.destinationAddress = IPv4Addr.stringToInt(destinationAddress);
         return this;
     }
 
@@ -521,114 +521,6 @@ public class IPv4 extends BasePacket {
             bb.get(this.options);
         }
 
-    }
-
-    /**
-     * Accepts an IPv4 address of the form xxx.xxx.xxx.xxx, ie 192.168.0.1 and
-     * returns the corresponding 32 bit integer.
-     * @param ipAddress
-     * @return
-     */
-    public static int toIPv4Address(String ipAddress) {
-        String[] octets = ipAddress.split("\\.");
-        if (octets.length != 4)
-            throw new IllegalArgumentException("Specified IPv4 address must" +
-                "contain 4 sets of numerical digits separated by periods");
-
-        int result = 0;
-        for (int i = 0; i < 4; ++i) {
-            result |= Integer.valueOf(octets[i]) << ((3-i)*8);
-        }
-        return result;
-    }
-
-    /**
-     * Accepts an IPv4 address in a byte array and returns the corresponding
-     * 32-bit integer value.
-     * @param ipAddress
-     * @return
-     */
-    public static int toIPv4Address(byte[] ipAddress) {
-        int ip = 0;
-        for (int i = 0; i < 4; i++) {
-          int t = (ipAddress[i] & 0xff) << ((3-i)*8);
-          ip |= t;
-        }
-        return ip;
-    }
-
-    /**
-     * Accepts an IPv4 address and returns the correspondent bytes.
-     *
-     * @param ipAddress
-     * @return
-     */
-    public static byte[] toIPv4AddressBytes(int ipAddress) {
-        byte[] bytes = new byte[4];
-        for (int i = 0; i < 4; i++) {
-            bytes[i] = (byte) ((ipAddress >>> (3-i)*8) & 0xff);
-        }
-        return bytes;
-    }
-
-
-    /**
-     * Accepts an IPv4 address and returns of string of the form xxx.xxx.xxx.xxx
-     * ie 192.168.0.1
-     *
-     * @param ipAddress
-     * @return
-     */
-    public static String fromIPv4Address(int ipAddress) {
-        StringBuffer sb = new StringBuffer();
-        int result = 0;
-        for (int i = 0; i < 4; ++i) {
-            result = (ipAddress >> ((3-i)*8)) & 0xff;
-            sb.append(Integer.valueOf(result).toString());
-            if (i != 3)
-                sb.append(".");
-        }
-        return sb.toString();
-    }
-
-    /**
-     * Accepts a collection of IPv4 addresses as integers and returns a single
-     * String useful in toString method's containing collections of IP
-     * addresses.
-     *
-     * @param ipAddresses collection
-     * @return
-     */
-    public static String fromIPv4AddressCollection(Collection<Integer> ipAddresses) {
-        if (ipAddresses == null)
-            return "null";
-        StringBuffer sb = new StringBuffer();
-        sb.append("[");
-        for (Integer ip : ipAddresses) {
-            sb.append(fromIPv4Address(ip));
-            sb.append(",");
-        }
-        sb.replace(sb.length()-1, sb.length(), "]");
-        return sb.toString();
-    }
-
-    /**
-     * Accepts an IPv4 address of the form xxx.xxx.xxx.xxx, ie 192.168.0.1 and
-     * returns the corresponding byte array
-     * @param ipAddress
-     * @return
-     */
-    public static byte[] toIPv4AddressBytes(String ipAddress) {
-        String[] octets = ipAddress.split("\\.");
-        if (octets.length != 4)
-            throw new IllegalArgumentException("Specified IPv4 address must" +
-                "contain 4 sets of numerical digits separated by periods");
-
-        byte[] result = new byte[4];
-        for (int i = 0; i < 4; ++i) {
-            result[i] = Integer.valueOf(octets[i]).byteValue();
-        }
-        return result;
     }
 
     /* (non-Javadoc)

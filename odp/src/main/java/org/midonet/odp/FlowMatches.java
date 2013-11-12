@@ -56,9 +56,9 @@ public class FlowMatches {
                         arpPkt.getSenderHardwareAddress().getAddress(),
                         arpPkt.getTargetHardwareAddress().getAddress())
                         .setOp(arpPkt.getOpCode())
-                        .setSip(IPv4.toIPv4Address(
+                        .setSip(IPv4Addr.bytesToInt(
                             arpPkt.getSenderProtocolAddress()))
-                        .setTip(IPv4.toIPv4Address(
+                        .setTip(IPv4Addr.bytesToInt(
                             arpPkt.getTargetProtocolAddress()))
                 );
                 break;

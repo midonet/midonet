@@ -35,8 +35,8 @@ public class Packets {
         arp.setProtocolAddressLength((byte)0x04);
         arp.setOpCode(ARP.OP_REQUEST);
         arp.setSenderHardwareAddress(dlSrc);
-        arp.setSenderProtocolAddress(IPv4.toIPv4AddressBytes(nwSrc.addr()));
-        arp.setTargetProtocolAddress(IPv4.toIPv4AddressBytes(targetAddr.addr()));
+        arp.setSenderProtocolAddress(IPv4Addr.intToBytes(nwSrc.addr()));
+        arp.setTargetProtocolAddress(IPv4Addr.intToBytes(targetAddr.addr()));
         arp.setTargetHardwareAddress(MAC.fromString("ff:ff:ff:ff:ff:ff"));
         Ethernet eth = new Ethernet();
         eth.setDestinationMACAddress(MAC.fromString("ff:ff:ff:ff:ff:ff"));

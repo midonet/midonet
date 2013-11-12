@@ -217,10 +217,8 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
         arp.setOpCode(ARP.OP_REQUEST)
         arp.setSenderHardwareAddress(srcMac)
         arp.setTargetHardwareAddress(MAC.fromString("00:00:00:00:00:00"))
-        arp.setSenderProtocolAddress(
-            IPv4.toIPv4AddressBytes(srcIP.toInt))
-        arp.setTargetProtocolAddress(
-            IPv4.toIPv4AddressBytes(dstIP.toInt))
+        arp.setSenderProtocolAddress(IPv4Addr.intToBytes(srcIP.toInt))
+        arp.setTargetProtocolAddress(IPv4Addr.intToBytes(dstIP.toInt))
         val pkt: Ethernet = new Ethernet
         pkt.setPayload(arp)
         pkt.setSourceMACAddress(srcMac)
