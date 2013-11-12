@@ -123,20 +123,6 @@ class PacketsTest extends Suite with ShouldMatchers {
         verifyEquality(packets, (buf) => new ICMP().deserialize(buf).setPayload(null))
     }
 
-    def testIPv4Conversions() {
-        val strAddr = "192.168.120.231"
-        val intAddr: Int = IPv4.toIPv4Address(strAddr)
-        val bytesAddr: Array[Byte] = IPv4.toIPv4AddressBytes(strAddr)
-        val bytesAddr2: Array[Byte] = IPv4.toIPv4AddressBytes(intAddr)
-        val intAddr2: Int = IPv4.toIPv4Address(bytesAddr)
-
-        strAddr should be === IPv4.fromIPv4Address(intAddr)
-        strAddr should be === IPv4.fromIPv4Address(intAddr2)
-
-        intAddr should be === IPv4.toIPv4Address(bytesAddr)
-        intAddr should be === IPv4.toIPv4Address(bytesAddr2)
-    }
-
     def testIPv4Subnet() {
         val bytes = Array[Byte](0x0a, 0x0f, 0x0f, 0x21)
         val subnet = new IPv4Subnet(0x0a0f0f21, 24)

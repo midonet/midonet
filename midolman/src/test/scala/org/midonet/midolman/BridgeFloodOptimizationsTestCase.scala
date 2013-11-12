@@ -108,8 +108,8 @@ class BridgeFloodOptimizationsTestCase extends MidolmanTestCase
         // The bridge should generate the ARP reply and emit to port2.
         var pktOut = packetEventsProbe.expectMsgClass(classOf[PacketsExecute])
         pktOut.packet.getData should be (ARP.makeArpReply(
-            mac1, mac2, IPv4.toIPv4AddressBytes(ip1.addr),
-            IPv4.toIPv4AddressBytes(ip2.addr)).serialize())
+            mac1, mac2, IPv4Addr.intToBytes(ip1.addr),
+            IPv4Addr.intToBytes(ip2.addr)).serialize())
         var outports = actionsToOutputPorts(pktOut.packet.getActions)
         outports should have size (1)
         outports should (contain (portId2))

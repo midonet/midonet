@@ -21,6 +21,7 @@ import org.midonet.odp.Ports;
 import org.midonet.odp.ports.GreTunnelPort;
 import org.midonet.odp.ports.InternalPort;
 import org.midonet.odp.ports.NetDevPort;
+import org.midonet.packets.IPv4Addr;
 
 public class OvsPortsCreateAndEnumerateTest extends AbstractNetlinkProtocolTest {
 
@@ -79,7 +80,8 @@ public class OvsPortsCreateAndEnumerateTest extends AbstractNetlinkProtocolTest 
         log.info("Creating an gre tunnel port.");
         GreTunnelPort tunGrePort = Ports.newGreTunnelPort("tunGrePort");
         tunGrePort.setOptions(
-            Ports.newPortOptions(tunGrePort, ipFromString("192.168.100.1")));
+            Ports.newPortOptions(
+                tunGrePort, IPv4Addr.stringToInt("192.168.100.1")));
         futPort = connection.portsCreate(datapath, tunGrePort);
         exchangeMessage(); // 10th byte msg
         expectedPort = expectedGreTunnelPort();
@@ -125,7 +127,8 @@ public class OvsPortsCreateAndEnumerateTest extends AbstractNetlinkProtocolTest 
 
         // this is necessary to match the hardcoded byte msg from netlink
         tunGrePort.setOptions(
-            Ports.newPortOptions(tunGrePort, ipFromString("192.168.100.1")));
+            Ports.newPortOptions(
+                tunGrePort, IPv4Addr.stringToInt("192.168.100.1")));
 
         return tunGrePort;
     }

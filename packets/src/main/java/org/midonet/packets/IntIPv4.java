@@ -55,7 +55,7 @@ public class IntIPv4 implements Cloneable {
     }
 
     public IntIPv4(byte[] addr) {
-        this(IPv4.toIPv4Address(addr), 32);
+        this(IPv4Addr.bytesToInt(addr), 32);
     }
 
     public IntIPv4 clone() { return new IntIPv4(address, maskLength); }
