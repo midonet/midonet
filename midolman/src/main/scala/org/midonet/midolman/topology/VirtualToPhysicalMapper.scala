@@ -128,6 +128,37 @@ class DeviceHandlersManager[T <: AnyRef](handler: DeviceHandler) {
     private[this] val deviceSubscribers = mutable.Map[UUID, mutable.Set[ActorRef]]()
     private[this] val deviceOneShotSubscribers = mutable.Map[UUID, mutable.Set[ActorRef]]()
 
+    def registerOneShotSubscriber(deviceId: UUID, client: ActorRef) {
+        deviceOneShotSubscribers
+            .getOrElseUpdate(deviceId, mutable.Set()) += client
+    }
+
+    def registerRegularSubscriber(deviceId: UUID, client: ActorRef) {
+        deviceSubscribers
+            .getOrElseUpdate(deviceId, mutable.Set()) += client
+    }
+
+    def registerSubscriber(deviceId: UUID, client: ActorRef, updates: Boolean) {
+        (if (updates) registerRegularSubscriber _
+            else registerOneShotSubscriber _).apply(deviceId, client)
+    }
+
+    /** gets update status of a subscriber for a device.
+     *  If registered with update=true, returns Some(true).
+     *  If registered as one-shot with update=false, returns Some(false).
+     *  Else if not a subscriber, returns None. */
+    def subscriberStatus(deviceId: UUID, subscriber: ActorRef) = {
+        val regular = deviceSubscribers
+                        .get(deviceId).map{ _.contains(subscriber) }
+        val oneShot = deviceOneShotSubscribers
+                        .get(deviceId).map{ ! _.contains(subscriber) }
+        (regular, oneShot) match {
+            case (Some(true), _) => regular
+            case (_, Some(false)) => oneShot
+            case _ => None
+        }
+    }
+
     def removeSubscriber(deviceId: UUID, subscriber: ActorRef) {
         deviceSubscribers.get(deviceId) foreach {
             subscribers => subscribers.remove(subscriber)
@@ -138,15 +169,24 @@ class DeviceHandlersManager[T <: AnyRef](handler: DeviceHandler) {
     }
 
     def addSubscriber(deviceId: UUID, subscriber: ActorRef, updates: Boolean) {
-        if (updates)
-            deviceSubscribers.getOrElseUpdate(deviceId, mutable.Set()) += subscriber
-
-        devices.get(deviceId) match {
-            case Some(device) => subscriber ! device
-            case None =>
-                if (!updates)
-                    deviceOneShotSubscribers.getOrElseUpdate(deviceId, mutable.Set()) += subscriber
-        }
+        (subscriberStatus(deviceId, subscriber), updates, devices.get(deviceId))
+            match {
+                case (None, _, None) =>
+                    // new subcriber,  nothing to send -> add it
+                    registerSubscriber(deviceId, subscriber, updates)
+                case (None, false, Some(msg)) =>
+                    // new subscriber, no update -> send msg
+                    subscriber ! msg
+                case (None, true, Some(msg)) =>
+                    // new subscriber, with updates -> add it and send msg
+                    registerSubscriber(deviceId, subscriber, updates)
+                    subscriber ! msg
+                case (Some(now), _, _) if now != updates =>
+                    // subscriber status changed, updating internal state
+                    removeSubscriber(deviceId, subscriber)
+                    registerSubscriber(deviceId, subscriber, updates)
+                case _ => // do nothing
+            }
 
         ensureHandler(deviceId)
     }
@@ -163,9 +203,12 @@ class DeviceHandlersManager[T <: AnyRef](handler: DeviceHandler) {
     def notifySubscribers(deviceId: UUID, message: AnyRef) {
         ensureHandler(deviceId)
 
-        doNotifySubscribers(deviceSubscribers, deviceId, message)
+        for {
+            source <- List(deviceSubscribers, deviceOneShotSubscribers)
+            clients <- source.get(deviceId)
+            actor <- clients
+        } { actor ! message}
 
-        doNotifySubscribers(deviceOneShotSubscribers, deviceId, message)
         deviceOneShotSubscribers.remove(deviceId)
     }
 
@@ -175,11 +218,6 @@ class DeviceHandlersManager[T <: AnyRef](handler: DeviceHandler) {
             handler.handle(deviceId)
             deviceHandlers.add(deviceId)
         }
-    }
-
-    @inline
-    private[this] def doNotifySubscribers(ss: mutable.Map[UUID, mutable.Set[ActorRef]], deviceId: UUID, message: AnyRef) {
-        for (subscribers <- ss.get(deviceId); actor <- subscribers) { actor ! message }
     }
 }
 
