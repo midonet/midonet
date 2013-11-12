@@ -98,7 +98,13 @@ public class FlowMatches {
                         if (!(ipPkt.getPayload() instanceof ICMP))
                             break;
                         ICMP icmpPkt = ICMP.class.cast(ipPkt.getPayload());
-                        payloadKeys.add(makeIcmpFlowKey(icmpPkt));
+                        FlowKey<?> icmpUserspace =
+                            (FlowKey<?>)makeIcmpFlowKey(icmpPkt);
+                        if (icmpUserspace == null)
+                            payloadKeys.add(icmp(icmpPkt.getType(),
+                                                 icmpPkt.getCode()));
+                        else
+                            payloadKeys.add(icmpUserspace);
                     default:
                         break;
                 }
@@ -153,7 +159,7 @@ public class FlowMatches {
         return match;
     }
 
-    private static FlowKey<?> makeIcmpFlowKey(ICMP icmp) {
+    private static FlowKey.UserSpaceOnly makeIcmpFlowKey(ICMP icmp) {
         switch (icmp.getType()) {
             case ICMP.TYPE_ECHO_REPLY:
             case ICMP.TYPE_ECHO_REQUEST:
@@ -161,14 +167,16 @@ public class FlowMatches {
                                 icmp.getCode(),
                                 icmp.getIdentifier(),
                                 icmp.getSequenceNum());
-            case ICMP.TYPE_UNREACH:
-            case ICMP.TYPE_TIME_EXCEEDED:
             case ICMP.TYPE_PARAMETER_PROBLEM:
+            case ICMP.TYPE_REDIRECT:
+            case ICMP.TYPE_SOURCE_QUENCH:
+            case ICMP.TYPE_TIME_EXCEEDED:
+            case ICMP.TYPE_UNREACH:
                 return icmpError(icmp.getType(),
                                  icmp.getCode(),
                                  icmp.getData());
             default:
-                return icmp(icmp.getType(), icmp.getCode());
+                return null;
         }
     }
 
@@ -178,7 +186,9 @@ public class FlowMatches {
                 ICMP icmpPkt = ICMP.class.cast(
                         IPv4.class.cast(ethPkt.getPayload()).
                                 getPayload());
-                replaceKey(match, (FlowKey.UserSpaceOnly) makeIcmpFlowKey(icmpPkt));
+                FlowKey.UserSpaceOnly icmpUserSpace = makeIcmpFlowKey(icmpPkt);
+                if (icmpUserSpace != null)
+                    replaceKey(match, icmpUserSpace);
                 return;
             }
         }
