@@ -18,7 +18,8 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.tools.timed.Timed;
+import org.midonet.util.Timed;
+
 import static org.midonet.util.process.ProcessOutputDrainer.DrainTarget;
 
 /**
