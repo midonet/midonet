@@ -39,6 +39,7 @@ public class ICMP extends BasePacket {
     public static final char TYPE_ECHO_REQUEST = 8;
     public static final char TYPE_SOURCE_QUENCH = 4;
     public static final char TYPE_REDIRECT = 5;
+    public static final char TYPE_ROUTER_SOLICITATION= 10;
     public static final char TYPE_PARAMETER_PROBLEM = 12;
 
     /**
@@ -48,11 +49,11 @@ public class ICMP extends BasePacket {
 
     // Types
 
-    char type;
-    char code;
-    short checksum;
-    int quench;
-    byte[] data;
+    private char type;
+    private char code;
+    private short checksum;
+    private int quench;
+    private byte[] data;
 
     @Override
     public String toString() {
@@ -67,8 +68,8 @@ public class ICMP extends BasePacket {
 
     public boolean isError() {
         return TYPE_UNREACH == type || TYPE_SOURCE_QUENCH == type ||
-                TYPE_REDIRECT == type || TYPE_TIME_EXCEEDED == type ||
-                TYPE_PARAMETER_PROBLEM == type;
+               TYPE_REDIRECT == type || TYPE_TIME_EXCEEDED == type ||
+               TYPE_PARAMETER_PROBLEM == type;
     }
 
     public char getType() {
@@ -100,10 +101,10 @@ public class ICMP extends BasePacket {
             this.data = Arrays.copyOf(data, length);
     }
 
-    public void setError(char type, char code, byte[] data) {
+    public void setType(char type, char code, byte[] data) {
         this.type = type;
         this.code = code;
-        this.data = Arrays.copyOf(data, data.length);
+        this.data = (data == null) ? null : Arrays.copyOf(data, data.length);
     }
 
     public void setUnreachable(UNREACH_CODE unreachCode, IPv4 ipPkt) {

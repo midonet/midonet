@@ -8,9 +8,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.midonet.odp.flows.FlowKey;
 import org.midonet.odp.flows.FlowKeyARP;
+import org.midonet.odp.flows.FlowKeyEtherType;
+import org.midonet.odp.flows.FlowKeyEthernet;
 import org.midonet.odp.flows.FlowKeyICMP;
 import org.midonet.odp.flows.FlowKeyICMPEcho;
 import org.midonet.odp.flows.FlowKeyICMPError;
+import org.midonet.odp.flows.FlowKeyIPv4;
 import org.midonet.odp.flows.FlowKeyTCP;
 import org.midonet.packets.Ethernet;
 import org.midonet.packets.ICMP;
@@ -158,6 +161,35 @@ public class FlowMatchTest {
         eth.setEtherType(IPv4.ETHERTYPE);
         eth.setPayload(ipv4);
         return eth;
+    }
+
+    /*
+     * Guarantee that those keys that don't generate the enriched FlowKeyICMPs
+     * with user only fields still work. See MN-900.
+     */
+    @Test
+    public void testNonUserspaceOnlyIcmps() {
+        MAC srcMac = MAC.fromString("aa:bb:cc:dd:ee:ff");
+        MAC dstMac = MAC.fromString("ff:ee:dd:cc:bb:aa");
+        IPv4Addr srcIp = IPv4Addr.fromString("10.0.0.1");
+        IPv4Addr dstIp = IPv4Addr.fromString("10.0.0.2");
+        IPv4 ipv4 = new IPv4();
+        ipv4.setSourceAddress(srcIp);
+        ipv4.setDestinationAddress(dstIp);
+        ipv4.setProtocol(ICMP.PROTOCOL_NUMBER);
+        ICMP icmp = new ICMP();
+        icmp.setType(ICMP.TYPE_ROUTER_SOLICITATION, ICMP.CODE_NONE, null);
+        Ethernet eth = makeFrame(srcMac, dstMac, srcIp, dstIp, icmp);
+        FlowMatch match = FlowMatches.fromEthernetPacket(eth);
+        assertEquals(4, match.getKeys().size());
+        assertTrue(match.getKeys().get(0) instanceof FlowKeyEthernet);
+        assertTrue(match.getKeys().get(1) instanceof FlowKeyEtherType);
+        assertTrue(match.getKeys().get(2) instanceof FlowKeyIPv4);
+        assertTrue(match.getKeys().get(3) instanceof FlowKeyICMP);
+        FlowKeyICMP fkIcmp = (FlowKeyICMP)match.getKeys().get(3).getValue();
+        fkIcmp.getCode();
+        assertEquals(fkIcmp.getType(), ICMP.TYPE_ROUTER_SOLICITATION);
+        assertEquals(fkIcmp.getCode(), ICMP.CODE_NONE);
     }
 
 }
