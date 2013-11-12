@@ -3,9 +3,9 @@
 */
 package org.midonet.midolman.monitoring
 
-import collection.JavaConversions._
-import collection.{mutable, immutable}
 import java.util._
+import scala.collection.JavaConversions._
+import scala.collection.{mutable, immutable}
 
 import com.yammer.metrics.Metrics
 import com.yammer.metrics.core.Metric
@@ -18,12 +18,11 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.testng.annotations.Test
 
+import org.midonet.cluster.data.host.Host
+import org.midonet.cluster.data.{Bridge => ClusterBridge, Ports => ClusterPorts}
 import org.midonet.midolman._
 import org.midonet.midolman.monitoring.store.{MockStore, Store}
-import org.midonet.cluster.data.host.Host
-import org.midonet.cluster.data.{Bridge => ClusterBridge,
-    Ports => ClusterPorts}
-import org.midonet.tools.timed.Timed
+import org.midonet.util.Timed
 import org.midonet.util.Waiters.waitFor
 import org.midonet.util.functors.Callback0
 

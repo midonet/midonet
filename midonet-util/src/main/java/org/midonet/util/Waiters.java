@@ -1,13 +1,9 @@
 package org.midonet.util;
 
-import org.midonet.tools.timed.Timed;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.concurrent.TimeUnit;
 
-import static org.midonet.tools.timed.Timed.newTimedExecution;
-import static java.lang.String.format;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
@@ -31,7 +27,7 @@ public class Waiters {
             throws Exception {
         long start = System.currentTimeMillis();
         Timed.ExecutionResult<T> executionResult =
-                newTimedExecution()
+                Timed.newTimedExecution()
                         .until(total)
                         .waiting(between)
                         .execute(assertion);
@@ -47,12 +43,10 @@ public class Waiters {
 
     public static void sleepBecause(String condition, long seconds)
             throws InterruptedException {
-        log.debug(
-                format("Sleeping %d seconds because: \"%s\"", seconds, condition));
+        log.debug(String.format("Sleeping %d seconds because: \"%s\"", seconds, condition));
 
         TimeUnit.SECONDS.sleep(seconds);
 
-        log.debug(
-                format("Sleeping done: \"%s\"", condition));
+        log.debug(String.format("Sleeping done: \"%s\"", condition));
     }
 }
