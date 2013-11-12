@@ -83,6 +83,9 @@ public abstract class ReplicatedMap<K, V> {
                     new HashSet<Notification<K,V>>();
             Map<K,MapValue> newMap = new HashMap<K,MapValue>();
             synchronized(ReplicatedMap.this) {
+                if (!running) {
+                    return;
+                }
                 // Build newMap from curPaths, using only the highest versioned
                 // entry for each key.
                 for (String path : curPaths) {
@@ -149,7 +152,7 @@ public abstract class ReplicatedMap<K, V> {
     }
 
     private Directory dir;
-    private boolean running;
+    private volatile boolean running;
     private Map<K, MapValue> localMap;
     private Set<Integer> ownedVersions;
     private Set<Watcher<K, V>> watchers;
