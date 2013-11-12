@@ -1387,7 +1387,7 @@ class DatapathStateManager(val controller: VirtualPortManager.Controller)(
 
     /** helper for route string formating. */
     private def routeStr(route: (Int,Int)): (String,String) =
-        (IPv4Addr.intToIpStr(route._1), IPv4Addr.intToIpStr(route._2))
+        (IPv4Addr.intToString(route._1), IPv4Addr.intToString(route._2))
 
     /** add route info about peer for given zone and retrieve ip for this host
      *  and for this zone from dpState.
