@@ -12,7 +12,7 @@ import org.scalatest.matchers.ShouldMatchers
 @RunWith(classOf[JUnitRunner])
 class IPv4AddrTest extends Suite with ShouldMatchers {
 
-    val ippool = List.tabulate(10000) { _ => IPv4Addr.random }
+    val ippool = List.tabulate(1000) { _ => IPv4Addr.random }
 
     def testFactory() {
         for (ip <- ippool) {
@@ -31,7 +31,28 @@ class IPv4AddrTest extends Suite with ShouldMatchers {
     }
 
     def testConversionException() {
+        //byte[] -> int / string
+        List[Array[Byte]](
+            null,
+            Array[Byte](1,2,3,4,5),
+            Array[Byte](1,2,3)
+        ).foreach { array =>
+            intercept[IllegalArgumentException] { IPv4Addr.bytesToInt(array) }
+            intercept[IllegalArgumentException] { IPv4Addr.bytesToString(array) }
+        }
 
+        // string -> int / byte[]
+        List[String](
+            null,
+            "eewofihewiofh",
+            "ww:ww:ww:ww:ww:ww",
+            "234.234.10",
+            "12.235.34.34.45",
+            "10.10.2.23456"
+        ).foreach { str =>
+            intercept[IllegalArgumentException] { IPv4Addr.stringToInt(str) }
+            intercept[IllegalArgumentException] { IPv4Addr.stringToBytes(str) }
+        }
 
     }
 

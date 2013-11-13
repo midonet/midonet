@@ -122,14 +122,12 @@ object IPv4Addr {
         if (bytes.length != 4)
             throw illegalIPv4String(s)
         val addrBytes = new Array[Byte](4)
-        var index = 0
         try {
-            bytes.foreach { byteStr =>
-                val byteVal = byteStr.toInt
+            for (index <- 0 to 3) {
+                val byteVal = bytes(index).toInt
                 if ((byteVal | 0xff) != 0xff)
                     throw illegalIPv4String(s)
                 addrBytes(index) = byteVal.toByte
-                index += 1
             }
         } catch {
             case _: NumberFormatException => throw illegalIPv4String(s)
