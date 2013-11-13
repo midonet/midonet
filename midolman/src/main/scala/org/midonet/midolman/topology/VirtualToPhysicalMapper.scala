@@ -27,7 +27,6 @@ import org.midonet.midolman.simulation.Bridge
 import org.midonet.midolman.simulation.Coordinator.Device
 import org.midonet.midolman.state.DirectoryCallback.Result
 import org.midonet.midolman.state.{ZkConnectionAwareWatcher, DirectoryCallback}
-import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.rcu.Host
 import org.midonet.midolman.{FlowController, Referenceable}
 
@@ -301,14 +300,23 @@ trait DeviceManagement {
  * </li>
  * </ul>
  */
-class VirtualToPhysicalMapper
-        extends UntypedActorWithStash with ActorLogWithoutPath
-        with DataClientLink with ZkConnectionWatcherLink with DeviceManagement {
+abstract class VirtualToPhysicalMapperBase
+        extends Actor with ActorLogWithoutPath {
 
     import VirtualToPhysicalMapper._
     import VirtualTopologyActor.BridgeRequest
     import VirtualTopologyActor.PortRequest
     import context.system
+
+    def notifyLocalPortActive(vportID: UUID, active: Boolean) : Unit
+    def subscribePortSet(psetID: UUID) : Unit
+    def unsubscribePortSet(psetID: UUID) : Unit
+
+    def makeHostManager(actor: ActorRef) : DeviceHandler
+    def makePortSetManager(actor: ActorRef) : DeviceHandler
+    def makeTunnelZoneManager(actor: ActorRef) : DeviceHandler
+
+    def notifyError(err: Option[KeeperException], id: UUID, retry: Runnable) : Unit
 
     private lazy val hosts =
         new DeviceHandlersManager[Host](makeHostManager(self))
@@ -351,169 +359,166 @@ class VirtualToPhysicalMapper
         portActiveFifo = portActiveFifo - vport
     }
 
-    @scala.throws(classOf[Exception])
-    def onReceive(message: Any) {
-        message match {
-            case PortSetRequest(portSetId, updates) =>
-                portSets.addSubscriber(portSetId, sender, updates)
+    def receive = {
+        case PortSetRequest(portSetId, updates) =>
+            portSets.addSubscriber(portSetId, sender, updates)
 
-            case PortSetForTunnelKeyRequest(key) =>
-                tunnelKeyToPortSet.get(key) match {
-                    case Some(portSetId) =>
-                        portSets.addSubscriber(portSetId, sender, updates = false)
-                    case None =>
-                        sender ! null
-                }
+        case PortSetForTunnelKeyRequest(key) =>
+            tunnelKeyToPortSet.get(key) match {
+                case Some(portSetId) =>
+                    portSets.addSubscriber(portSetId, sender, updates = false)
+                case None =>
+                    sender ! null
+            }
 
-            case portSet: rcu.PortSet =>
-                psetIdToHosts += portSet.id -> portSet.hosts
-                portSetUpdate(portSet.id)
+        case portSet: rcu.PortSet =>
+            psetIdToHosts += portSet.id -> portSet.hosts
+            portSetUpdate(portSet.id)
 
-            case HostRequest(hostId) =>
-                hosts.addSubscriber(hostId, sender, updates = true)
+        case HostRequest(hostId) =>
+            hosts.addSubscriber(hostId, sender, updates = true)
 
-            case host: Host =>
-                hosts.updateAndNotifySubscribers(host.id, host)
+        case host: Host =>
+            hosts.updateAndNotifySubscribers(host.id, host)
 
-            case TunnelZoneRequest(zoneId) =>
-                tunnelZones.addSubscriber(zoneId, sender, updates = true)
+        case TunnelZoneRequest(zoneId) =>
+            tunnelZones.addSubscriber(zoneId, sender, updates = true)
 
-            case TunnelZoneUnsubscribe(zoneId) =>
-                tunnelZones.removeSubscriber(zoneId, sender)
+        case TunnelZoneUnsubscribe(zoneId) =>
+            tunnelZones.removeSubscriber(zoneId, sender)
 
-            case zoneChanged: ZoneChanged[_] =>
-                /* If this is the first time we get a ZoneChanged for this
-                 * tunnel zone we will send a complete list of members to our
-                 * observers. From the second time on we will just send diffs
-                 * and forward a ZoneChanged message to the observers so that
-                 * they can update the list of members they stored. */
-                val zoneMembers = applyZoneChangeOp(zoneChanged)
+        case zoneChanged: ZoneChanged[_] =>
+            /* If this is the first time we get a ZoneChanged for this
+             * tunnel zone we will send a complete list of members to our
+             * observers. From the second time on we will just send diffs
+             * and forward a ZoneChanged message to the observers so that
+             * they can update the list of members they stored. */
+            val zoneMembers = applyZoneChangeOp(zoneChanged)
 
-                tunnelZones.devices.get(zoneChanged.zone) match {
-                    case None =>
-                        tunnelZones.updateAndNotifySubscribers(zoneChanged.zone,
-                                                               zoneMembers)
-                    case _ =>
-                        tunnelZones.updateAndNotifySubscribers(zoneChanged.zone,
-                                                               zoneMembers,
-                                                               zoneChanged)
-                }
+            tunnelZones.devices.get(zoneChanged.zone) match {
+                case None =>
+                    tunnelZones.updateAndNotifySubscribers(zoneChanged.zone,
+                                                           zoneMembers)
+                case _ =>
+                    tunnelZones.updateAndNotifySubscribers(zoneChanged.zone,
+                                                           zoneMembers,
+                                                           zoneChanged)
+            }
 
-            case LocalPortActive(vportID, active)
-                if (portActiveFifo.contains(vportID)) =>
+        case message @ LocalPortActive(vportID, active)
+            if (portActiveFifo.contains(vportID)) =>
                 log.debug("Defering {}", message)
                 deferPortActiveMsg(message.asInstanceOf[LocalPortActive])
 
-            case LocalPortActive(vportID, active) =>
-                log.debug("Received {}", message)
-                freezePortActivation(vportID)
-                notifyLocalPortActive(vportID, active)
+        case message @ LocalPortActive(vportID, active) =>
+            log.debug("Received {}", message)
+            freezePortActivation(vportID)
+            notifyLocalPortActive(vportID, active)
 
-                // We need to track whether the vport belongs to a PortSet.
-                // Fetch the port configuration and see if it s in a bridge.
-                getPortConfig(vportID) map {
-                    case Some((port, br)) => // bridge port
-                        self ! _DevicePortStatus(port, br, active)
-                    case None => // not a bridge port
-                        context.system.eventStream.publish(
-                            LocalPortActive(vportID, active))
-                } onComplete {
-                    case _ =>
-                        // scheduling processing of defered LocalPortActive
-                        // msgs for this vport uuid.
-                        self ! _ResumePortActivation(vportID)
-                }
+            // We need to track whether the vport belongs to a PortSet.
+            // Fetch the port configuration and see if it s in a bridge.
+            getPortConfig(vportID) map {
+                case Some((port, br)) => // bridge port
+                    self ! _DevicePortStatus(port, br, active)
+                case None => // not a bridge port
+                    context.system.eventStream.publish(
+                        LocalPortActive(vportID, active))
+            } onComplete {
+                case _ =>
+                    // scheduling processing of defered LocalPortActive
+                    // msgs for this vport uuid.
+                    self ! _ResumePortActivation(vportID)
+            }
 
-            case _ResumePortActivation(vportID) =>
-                resumePortActivation(vportID)
+        case _ResumePortActivation(vportID) =>
+            resumePortActivation(vportID)
 
-            case _DevicePortStatus(port, device, active) =>
-                val (deviceId: UUID, tunnelKey: Long) = device match {
-                    case b: Bridge => (b.id, b.tunnelKey)
-                    case b => log.warning("Unexpected device: {}", b)
-                              (null, null)
-                }
-                assert(port.deviceID == deviceId)
-                log.debug("Port {} in PortSet {} became {}.", port.id,
-                          deviceId, if (active) "active" else "inactive")
-                var modPortSet = false
-                psetIdToLocalVports.get(deviceId) match {
-                    case Some(ports) =>
-                        if (active)
-                            ports.add(port.id)
-                        else if (ports.size == 1) {
-                            // This is the last local port in the PortSet. We
-                            // remove our host from the PortSet's host list.
-                            if (!inFlightPortSetMods.contains(deviceId)) {
-                                unsubscribePortSet(deviceId)
-                                inFlightPortSetMods.put(deviceId, port.id)
-                                modPortSet = true
-                            }
-                            tunnelKeyToPortSet.remove(tunnelKey)
-                            psetIdToLocalVports.remove(deviceId)
-                        } else {
-                            ports.remove(port.id)
-                        }
-                    case None =>
-                        // This case is only possible if the port became
-                        // active.
-                        assert(active)
-                        // This is the first local port in the PortSet. We
-                        // add our host to the PortSet's host list in ZK.
+        case _DevicePortStatus(port, device, active) =>
+            val (deviceId: UUID, tunnelKey: Long) = device match {
+                case b: Bridge => (b.id, b.tunnelKey)
+                case b => log.warning("Unexpected device: {}", b)
+                          (null, null)
+            }
+            assert(port.deviceID == deviceId)
+            log.debug("Port {} in PortSet {} became {}.", port.id,
+                      deviceId, if (active) "active" else "inactive")
+            var modPortSet = false
+            psetIdToLocalVports.get(deviceId) match {
+                case Some(ports) =>
+                    if (active)
+                        ports.add(port.id)
+                    else if (ports.size == 1) {
+                        // This is the last local port in the PortSet. We
+                        // remove our host from the PortSet's host list.
                         if (!inFlightPortSetMods.contains(deviceId)) {
-                            subscribePortSet(deviceId)
+                            unsubscribePortSet(deviceId)
                             inFlightPortSetMods.put(deviceId, port.id)
                             modPortSet = true
                         }
-                        psetIdToLocalVports.put(
-                            port.deviceID, mutable.Set(port.id))
-                        tunnelKeyToPortSet.put(tunnelKey, deviceId)
-                }
-                if (!modPortSet)
-                    context.system.eventStream.publish(
-                        LocalPortActive(port.id, active))
-
-                portSetUpdate(deviceId)
-
-            case _PortSetOpResult(subscribe, psetID, success, errorOp) =>
-                log.debug("PortSet operation results: operation {}, " +
-                    "set ID {}, outcome {}, timeoutOrError {}",
-                    if (subscribe) "subscribe" else "unsubscribe",
-                    psetID, if (success) "success" else "failure",
-                    if (success) "None"
-                    else if (errorOp.isDefined) errorOp
-                    else "Timeout")
-                if(success) {
-                    // Is the last op still in sync with our internals?
-                    if (subscribe != psetIdToLocalVports.contains(psetID)) {
-                        if (subscribe)
-                            unsubscribePortSet(psetID)
-                        else
-                            subscribePortSet(psetID)
+                        tunnelKeyToPortSet.remove(tunnelKey)
+                        psetIdToLocalVports.remove(deviceId)
                     } else {
-                        val vportID = inFlightPortSetMods.remove(psetID).get
-                        context.system.eventStream.publish(
-                            LocalPortActive(vportID, subscribe))
+                        ports.remove(port.id)
                     }
-                } else { // operation failed
-                    val retry = new Runnable {
-                        override def run {
-                            self ! _RetryPortSetOp(subscribe, psetID)
-                        }
+                case None =>
+                    // This case is only possible if the port became
+                    // active.
+                    assert(active)
+                    // This is the first local port in the PortSet. We
+                    // add our host to the PortSet's host list in ZK.
+                    if (!inFlightPortSetMods.contains(deviceId)) {
+                        subscribePortSet(deviceId)
+                        inFlightPortSetMods.put(deviceId, port.id)
+                        modPortSet = true
                     }
-                    notifyError(errorOp, psetID, retry)
+                    psetIdToLocalVports.put(
+                        port.deviceID, mutable.Set(port.id))
+                    tunnelKeyToPortSet.put(tunnelKey, deviceId)
+            }
+            if (!modPortSet)
+                context.system.eventStream.publish(
+                    LocalPortActive(port.id, active))
+
+            portSetUpdate(deviceId)
+
+        case _PortSetOpResult(subscribe, psetID, success, errorOp) =>
+            log.debug("PortSet operation results: operation {}, " +
+                "set ID {}, outcome {}, timeoutOrError {}",
+                if (subscribe) "subscribe" else "unsubscribe",
+                psetID, if (success) "success" else "failure",
+                if (success) "None"
+                else if (errorOp.isDefined) errorOp
+                else "Timeout")
+            if(success) {
+                // Is the last op still in sync with our internals?
+                if (subscribe != psetIdToLocalVports.contains(psetID)) {
+                    if (subscribe)
+                        unsubscribePortSet(psetID)
+                    else
+                        subscribePortSet(psetID)
+                } else {
+                    val vportID = inFlightPortSetMods.remove(psetID).get
+                    context.system.eventStream.publish(
+                        LocalPortActive(vportID, subscribe))
                 }
+            } else { // operation failed
+                val retry = new Runnable {
+                    override def run {
+                        self ! _RetryPortSetOp(subscribe, psetID)
+                    }
+                }
+                notifyError(errorOp, psetID, retry)
+            }
 
-            case _RetryPortSetOp(subscribe, psetID) =>
-                if (subscribe)
-                    subscribePortSet(psetID)
-                else
-                    unsubscribePortSet(psetID)
+        case _RetryPortSetOp(subscribe, psetID) =>
+            if (subscribe)
+                subscribePortSet(psetID)
+            else
+                unsubscribePortSet(psetID)
 
-            case value =>
-                log.error("Unknown message: " + value)
+        case value =>
+            log.warning("Unknown message: " + value)
 
-        }
     }
 
     /** Requests a port config from the VirtualTopologyActor and returns it
@@ -640,3 +645,7 @@ class VirtualToPhysicalMapper
 
     private case class _RetryPortSetOp(subscribe: Boolean, psetID: UUID)
 }
+
+class VirtualToPhysicalMapper
+    extends VirtualToPhysicalMapperBase
+    with DataClientLink with ZkConnectionWatcherLink with DeviceManagement
