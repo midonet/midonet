@@ -4,7 +4,6 @@
 package org.midonet.midolman
 
 import java.lang.{Short => JShort}
-import java.util.UUID
 import scala.collection.JavaConversions._
 
 import com.google.inject.Key
@@ -26,7 +25,7 @@ import org.midonet.midolman.rules.{RuleResult, Rule, Condition}
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.util.{SimulationHelper, MockCache}
 import org.midonet.odp.flows.FlowActions
-import org.midonet.odp.flows.{FlowActionOutput, FlowActionSetKey, FlowKeyTunnel}
+import org.midonet.odp.flows.{FlowActionOutput, FlowKeyTunnel}
 import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
 

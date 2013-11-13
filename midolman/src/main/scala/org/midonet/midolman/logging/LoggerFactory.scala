@@ -27,12 +27,12 @@ class SimulationAwareBusLogging(val bus: LoggingBus, val logClass: Class[_]) {
 
     def formatSimCookie(implicit pktContext: ChainPacketContext): String = {
         if (pktContext != null) {
-            if (pktContext.getFlowCookie != null) {
-                return "Sim #:" + pktContext.getFlowCookie.toString
+            if (pktContext.flowCookie != None) {
+                return "Sim #:" + pktContext.flowCookie.get
             }
             // is it a generated packet?
-            if (pktContext.getParentCookie != null) {
-                return "[GenPkt from Sim # " + pktContext.getParentCookie.toString
+            if (pktContext.parentCookie != None) {
+                return "[GenPkt from Sim # " + pktContext.parentCookie.get
             }
         }
         ""

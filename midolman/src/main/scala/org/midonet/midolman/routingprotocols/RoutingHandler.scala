@@ -585,7 +585,6 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
             case m =>
                 log.warning("Unexpected message {}", m)
-
         }
     }
 

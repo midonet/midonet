@@ -41,18 +41,18 @@ object FlowTranslator {
      * on the ingress port or connection tracking at the egress controller).
      * @param outportID UUID for the output port
      */
-    class EgressPortSetChainPacketContext(outportID: UUID, val tags: Option[mutable.Set[Any]])
-            extends ChainPacketContext {
+    class EgressPortSetChainPacketContext(override val outPortId: UUID,
+            val tags: Option[mutable.Set[Any]]) extends ChainPacketContext {
 
-        override def getInPortId = null
-        override def getOutPortId = outportID
-        override def getPortGroups = new ju.HashSet[UUID]()
+        override val inPortId = null
+        override val portGroups = new ju.HashSet[UUID]()
+        override val isConnTracked = false
+        override val isForwardFlow = true
+        override val flowCookie = None
+        override val parentCookie = None
+
         override def addTraversedElementID(id: UUID) { }
-        override def isConnTracked = false
-        override def isForwardFlow = true
-        override def getFlowCookie = null
         override def addFlowRemovedCallback(cb: Callback0) {}
-        override def getParentCookie = null
 
         override def addFlowTag(tag: Any) {
             tags match {

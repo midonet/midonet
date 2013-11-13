@@ -74,9 +74,9 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext,
             return Promise.successful(unsupportedPacketAction)
         }
 
-        getRouterPort(pktContext.getInPortId, pktContext.getExpiry) flatMap {
-            case null => log.debug("Router - in port {} was null",
-                                    pktContext.getInPortId())
+        getRouterPort(pktContext.inPortId, pktContext.expiry) flatMap {
+            case null =>
+                log.debug("Router - in port {} was null", pktContext.inPortId)
                 Promise.successful(DropAction)
             case inPort if !cfg.adminStateUp =>
                 log.debug("Router {} state is down, DROP", id)
@@ -84,7 +84,7 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext,
                 icmpErrors.sendUnreachableProhibitedIcmp(
                     inPort,
                     pktContext.wcmatch,
-                    pktContext.getFrame)
+                    pktContext.frame)
                 Promise.successful(DropAction)
             case inPort => preRouting(inPort)
         }
@@ -96,7 +96,7 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext,
                                   actorSystem: ActorSystem): Option[Action] = {
 
         // Apply the pre-routing (ingress) chain
-        pktContext.setOutputPort(null) // input port should be set already
+        pktContext.outPortId = null // input port should be set already
         val preRoutingResult = Chain.apply(inFilter, pktContext,
                 pktContext.wcmatch, id, false)
 
@@ -107,7 +107,7 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext,
             case RuleResult.Action.REJECT =>
                 icmpErrors.sendUnreachableProhibitedIcmp(inPort,
                     pktContext.wcmatch,
-                    pktContext.getFrame)
+                    pktContext.frame)
                 return Some(DropAction)
             case other =>
                 log.error("Pre-routing for {} returned an action which was {}, " +
@@ -161,7 +161,7 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext,
                                  actorSystem: ActorSystem): Future[Action] = {
 
         val pMatch = pktContext.wcmatch
-        val pFrame = pktContext.getFrame
+        val pFrame = pktContext.frame
 
         /* TODO(D-release): Have WildcardMatch take a DecTTLBy instead,
          * so that there need only be one sim. run for different TTLs.  */
@@ -200,7 +200,7 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext,
             case Route.NextHop.LOCAL =>
                 if (isIcmpEchoRequest(pMatch)) {
                     log.debug("got ICMP echo")
-                    sendIcmpEchoReply(pMatch, pFrame, pktContext.getExpiry)
+                    sendIcmpEchoReply(pMatch, pFrame, pktContext.expiry)
                     Promise.successful(ConsumedAction)
                 } else {
                     Promise.successful(DropAction)
@@ -224,7 +224,7 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext,
                     // TODO(pino): should we remove this route?
                     Promise.successful(DropAction)
                 } else {
-                    getRouterPort(rt.nextHopPort, pktContext.getExpiry) flatMap {
+                    getRouterPort(rt.nextHopPort, pktContext.expiry) flatMap {
                         case null =>
                             Promise.successful(ErrorDropAction)
                         case outPort =>
@@ -254,9 +254,9 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext,
         implicit val packetContext = pktContext
 
         val pMatch = pktContext.wcmatch
-        val pFrame = pktContext.getFrame
+        val pFrame = pktContext.frame
 
-        pktContext.setOutputPort(outPort.id)
+        pktContext.outPortId = outPort.id
         val postRoutingResult =
             Chain.apply(outFilter, pktContext, pMatch, id, false)
 
@@ -288,7 +288,7 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext,
         // Set HWDst
         val macFuture = getNextHopMac(outPort, rt,
                               pMatch.getNetworkDestinationIP.asInstanceOf[IP],
-                              pktContext.getExpiry)
+                              pktContext.expiry)
 
         macFuture map {
             case null =>

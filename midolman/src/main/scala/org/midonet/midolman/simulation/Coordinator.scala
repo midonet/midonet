@@ -446,7 +446,7 @@ class Coordinator(var origMatch: WildcardMatch,
                         pktContext.getFlowRemovedCallbacks foreach { _.call() }
                         NoOp
                     case Some(_) =>
-                        dropFlow(pktContext.isConnTracked(), withTags = true)
+                        dropFlow(pktContext.isConnTracked, withTags = true)
                 }
 
             case NotIPv4Action =>
@@ -494,10 +494,10 @@ class Coordinator(var origMatch: WildcardMatch,
                 processAdminStateDown(p, isIngress = true)
             case p =>
                 if (getPortGroups && p.isExterior) {
-                    pktContext.setPortGroups(p.portGroups)
+                    pktContext.portGroups = p.portGroups
                 }
 
-                pktContext.setInputPort(p)
+                pktContext.inPortId = p
                 val future = applyPortFilter(p, p.inFilterID,
                                              packetIngressesDevice)
                 // add tag for flow invalidation
@@ -543,7 +543,7 @@ class Coordinator(var origMatch: WildcardMatch,
             case port =>
                 // add tag for flow invalidation
                 pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(portID))
-                pktContext.setOutputPort(port.id)
+                pktContext.outPortId = port.id
                 applyPortFilter(port, port.outFilterID, {
                     case port: Port[_] if port.isExterior =>
                         emit(portID, isPortSet = false, port)
@@ -628,13 +628,13 @@ class Coordinator(var origMatch: WildcardMatch,
         port match {
             case p: RouterPort if isIngress =>
                 sendUnreachableProhibitedIcmp(p,
-                    pktContext.wcmatch, pktContext.getFrame)
-            case p: RouterPort if pktContext.getInPortId != null =>
-                expiringAsk(PortRequest(pktContext.getInPortId),
+                    pktContext.wcmatch, pktContext.frame)
+            case p: RouterPort if pktContext.inPortId != null =>
+                expiringAsk(PortRequest(pktContext.inPortId),
                     log, expiry) map {
                         case p: RouterPort =>
                             sendUnreachableProhibitedIcmp(p,
-                                pktContext.wcmatch, pktContext.getFrame)
+                                pktContext.wcmatch, pktContext.frame)
                         case _ =>
                     }
             case _ =>
