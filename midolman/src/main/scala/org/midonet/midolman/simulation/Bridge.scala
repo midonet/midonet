@@ -17,7 +17,6 @@ import org.midonet.midolman.DeduplicationActor
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.logging.LoggerFactory
 import org.midonet.midolman.rules.RuleResult
-import org.midonet.midolman.simulation.Coordinator
 import org.midonet.midolman.topology.FlowTagger
 import org.midonet.midolman.topology.MacFlowCount
 import org.midonet.midolman.topology.RemoveFlowCallbackGenerator
@@ -115,7 +114,7 @@ class Bridge(val id: UUID, val tunnelKey: Long,
 
         implicit val pktContext = packetContext
 
-        log.debug("Processing frame: {}", pktContext.getFrame)
+        log.debug("Processing frame: {}", pktContext.frame)
 
         // Tag the flow with this Bridge ID
         packetContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(id))
@@ -123,7 +122,7 @@ class Bridge(val id: UUID, val tunnelKey: Long,
         if (areChainsApplicable()) {
 
             // Call ingress (pre-bridging) chain. InputPort is already set.
-            packetContext.setOutputPort(null)
+            packetContext.outPortId = null
             val preBridgeResult = Chain.apply(inFilter, packetContext,
                 packetContext.wcmatch, id, false)
             log.debug("The ingress chain returned {}", preBridgeResult)
@@ -208,7 +207,7 @@ class Bridge(val id: UUID, val tunnelKey: Long,
                                 vlanId, portId))
                         packetContext.addFlowTag(
                             FlowTagger.invalidateFlowsByPort(id, dlSrc,
-                                vlanId, packetContext.getInPortId))
+                                vlanId, packetContext.inPortId))
                         Promise.successful(unicastAction(portId))
                     case None =>
                         log.debug("Dst MAC {}, VLAN ID {} is not learned:" +
@@ -245,14 +244,14 @@ class Bridge(val id: UUID, val tunnelKey: Long,
     private def unicastAction(toPort: UUID)(implicit pktCtx: PacketContext):
         Coordinator.Action = {
 
-        val inPortVlan = vlanToPort.getVlan(pktCtx.getInPortId)
+        val inPortVlan = vlanToPort.getVlan(pktCtx.inPortId)
         if (inPortVlan != null) {
             log.debug("InPort has vlan {}, PUSH & fwd to trunks", inPortVlan)
             pktCtx.wcmatch.addVlanId(inPortVlan)
             ToPortAction(toPort)
         }
 
-        val vlanInFrame: Option[JShort] = pktCtx.getFrame.getVlanIDs match {
+        val vlanInFrame: Option[JShort] = pktCtx.frame.getVlanIDs match {
             case l: java.util.List[JShort] if !l.isEmpty => Some(l.get(0))
             case _ => None
         }
@@ -294,14 +293,14 @@ class Bridge(val id: UUID, val tunnelKey: Long,
     private def multicastAction()(implicit pktCtx: PacketContext):
             Future[Coordinator.Action] =
         vlanPortId match {
-            case Some(vPId) if (!pktCtx.getInPortId.equals(vPId)) =>
+            case Some(vPId) if (!pktCtx.inPortId.equals(vPId)) =>
                 // This VUB is connected to a VAB: send there too
                 log.debug("Add vlan-aware bridge to port set")
                 Promise.successful(
                     ForkAction(List(ToPortSetAction(id), ToPortAction(vPId))))
             case None if (!vlanToPort.isEmpty) =>
                 log.debug("Vlan-aware ToPortSet")
-                getPort(pktCtx.getInPortId, pktCtx.getExpiry)
+                getPort(pktCtx.inPortId, pktCtx.expiry)
                     .map { multicastVlanAware(_)(pktCtx) }
             case _ =>
                 // normal bridge
@@ -319,7 +318,7 @@ class Bridge(val id: UUID, val tunnelKey: Long,
         bp match {
             case p: ExteriorBridgePort =>
                 // multicast from trunk, goes only to designated log. port
-                val vlanIds = pktCtx.getFrame.getVlanIDs
+                val vlanIds = pktCtx.frame.getVlanIDs
                 val vlanId = if (vlanIds.isEmpty) null else vlanIds.get(0)
                 vlanToPort.getPort(vlanId) match {
                     case null =>
@@ -335,7 +334,7 @@ class Bridge(val id: UUID, val tunnelKey: Long,
                         )
                 }
             case p: InteriorBridgePort =>
-                vlanToPort.getVlan(pktCtx.getInPortId) match {
+                vlanToPort.getVlan(pktCtx.inPortId) match {
                     case vlanId: JShort =>
                         log.debug("Frame from log. br. port: PUSH {}", vlanId)
                         pktCtx.wcmatch.addVlanId(vlanId)
@@ -392,8 +391,8 @@ class Bridge(val id: UUID, val tunnelKey: Long,
                 case m: MAC =>
                     log.debug("Known MAC, {} reply to the ARP req.", mac)
                     processArpRequest(
-                        pktContext.getFrame.getPayload.asInstanceOf[ARP], m,
-                        pktContext.getInPortId)
+                        pktContext.frame.getPayload.asInstanceOf[ARP], m,
+                        pktContext.inPortId)
                     Promise.successful(ConsumedAction)
             }
         }
@@ -425,19 +424,20 @@ class Bridge(val id: UUID, val tunnelKey: Long,
         act match {
             case ToPortAction(port) =>
                 log.debug("To port: {}", port)
-                packetContext.setOutputPort(port)
+                packetContext.outPortId = port
             case ToPortSetAction(portSet) =>
                 log.debug("To port set: {}", portSet)
-                packetContext.setOutputPort(portSet)
+                packetContext.outPortId = portSet
             case ForkAction(acts) =>
                 log.debug("Fork, to port and port set")
                 // TODO (galo) check that we only want to apply to the first
                 // action
                 acts.head match {
                     case ToPortAction(port) =>
-                        packetContext.setOutputPort(port)
+                        packetContext.outPortId = port
                     case ToPortSetAction(portSet) =>
-                        packetContext.setOutputPort(portSet)
+                        packetContext.outPortId = portSet
+                    case _ =>
                 }
             case a =>
                 log.error("Unhandled Coordinator.ForwardAction {}", a)
@@ -472,7 +472,7 @@ class Bridge(val id: UUID, val tunnelKey: Long,
       */
     private def srcVlanTagOption(packetContext: PacketContext) = {
         val inPortVlan = Option.apply(
-            vlanToPort.getVlan(packetContext.getInPortId))
+            vlanToPort.getVlan(packetContext.inPortId))
 
         def getVlanFromFlowMatch = packetContext.wcmatch.getVlanIds match {
             case l: java.util.List[JShort] if !l.isEmpty => Some(l.get(0))
@@ -516,7 +516,7 @@ class Bridge(val id: UUID, val tunnelKey: Long,
         implicit val pktContext = packetContext
         if (!macToLogicalPortId.contains(srcDlAddress)) {
             val vlanId = short2Short(srcVlanTag(packetContext))
-            val inPortId = packetContext.getInPortId
+            val inPortId = packetContext.inPortId
             log.debug("Increasing ref. count for MAC {}, VLAN {} on port {}",
                       srcDlAddress, vlanId, inPortId)
             flowCount.increment(srcDlAddress, vlanId, inPortId)
@@ -583,7 +583,7 @@ class Bridge(val id: UUID, val tunnelKey: Long,
         DeduplicationActor.getRef(actorSystem) ! EmitGeneratedPacket(
             inPortId, eth,
             if (originalPktContex != null)
-                Option(originalPktContex.getFlowCookie)
+                originalPktContex.flowCookie
             else None)
     }
 }

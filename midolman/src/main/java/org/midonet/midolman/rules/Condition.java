@@ -48,9 +48,9 @@ public class Condition {
 
     public boolean matches(ChainPacketContext fwdInfo, WildcardMatch pktMatch,
                            boolean isPortFilter) {
-        UUID inPortId = isPortFilter ? null : fwdInfo.getInPortId();
-        UUID outPortId = isPortFilter ? null : fwdInfo.getOutPortId();
-        Set<UUID> senderGroups = fwdInfo.getPortGroups();
+        UUID inPortId = isPortFilter ? null : fwdInfo.inPortId();
+        UUID outPortId = isPortFilter ? null : fwdInfo.outPortId();
+        Set<UUID> senderGroups = fwdInfo.portGroups();
         /*
          * Given a packet P and a subCondition x, 'xInv x(P)' is true
          * iff either:

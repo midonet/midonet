@@ -22,6 +22,7 @@ project.ext {
                "com.typesafe.akka:akka-actor:${versions.akka}"],
         akkatest: "com.typesafe.akka:akka-testkit:${versions.akka}",
 
+        jboss: "org.jboss.netty:netty:3.2.2.Final",
         guava: "com.google.guava:guava:r08",
         slf4j: "org.slf4j:slf4j-api:1.6.4",
         findbugs: "com.google.code.findbugs:jsr305:2.0.0",

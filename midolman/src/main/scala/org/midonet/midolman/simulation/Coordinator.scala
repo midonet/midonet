@@ -487,7 +487,7 @@ class Coordinator(var origMatch: WildcardMatch,
                         pktContext.getFlowRemovedCallbacks foreach { _.call() }
                         NoOp
                     case Some(_) =>
-                        dropFlow(pktContext.isConnTracked(), withTags = true)
+                        dropFlow(pktContext.isConnTracked, withTags = true)
                 }
 
             case NotIPv4Action =>
@@ -548,13 +548,13 @@ class Coordinator(var origMatch: WildcardMatch,
                 dropFlow(temporary = true)
             case Some(p) => p match {
                 case port: Port[_] =>
-                    if (getPortGroups &&
-                        port.isInstanceOf[ExteriorPort[_]]) {
-                        pktContext.setPortGroups(
-                            port.asInstanceOf[ExteriorPort[_]].portGroups)
+                    port match {
+                        case ext: ExteriorPort[_] if getPortGroups =>
+                            pktContext.portGroups = ext.portGroups
+                        case _ =>
                     }
 
-                    pktContext.setInputPort(port)
+                    pktContext.inPortId = port
                     val future = applyPortFilter(port, port.inFilterID,
                         packetIngressesDevice _)
                     // add tag for flow invalidation
@@ -623,7 +623,7 @@ class Coordinator(var origMatch: WildcardMatch,
                 case port: Port[_] =>
                     // add tag for flow invalidation
                     pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(portID))
-                    pktContext.setOutputPort(port.id)
+                    pktContext.outPortId = port.id
                     applyPortFilter(port, port.outFilterID, {
                         case _: ExteriorPort[_] =>
                             emit(portID, isPortSet = false, port)

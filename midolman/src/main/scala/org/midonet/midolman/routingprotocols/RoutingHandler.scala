@@ -584,6 +584,7 @@ class RoutingHandler(var rport: ExteriorRouterPort, val bgpIdx: Int,
                 zookeeperActive = true
                 disable()
 
+            case _ =>
         }
     }
 

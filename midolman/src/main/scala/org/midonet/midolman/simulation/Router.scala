@@ -63,7 +63,7 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
                                              actorSystem: ActorSystem): Action = {
 
         // Broadcast packet:  Handle if ARP, drop otherwise.
-        val payload = pktContext.getFrame.getPayload
+        val payload = pktContext.frame.getPayload
         if (pktContext.wcmatch.getEtherType == ARP.ETHERTYPE)
             processArp(payload, inPort)
         else
@@ -76,7 +76,7 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
                                     actorSystem: ActorSystem): Option[Action] = {
         if (pktContext.wcmatch.getEtherType == ARP.ETHERTYPE) {
             // Non-broadcast ARP.  Handle reply, drop rest.
-            val payload = pktContext.getFrame.getPayload
+            val payload = pktContext.frame.getPayload
             Some(processArp(payload, inPort))
         } else
             None
@@ -125,7 +125,7 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
     private def processArpRequest(pkt: ARP, inPort: RouterPort[_])
                                  (implicit ec: ExecutionContext,
                                            actorSystem: ActorSystem,
-                                           originalPktContex: PacketContext) {
+                                           origPktContext: PacketContext) {
 
         if (pkt.getProtocolType != ARP.PROTO_TYPE_IP)
             return
@@ -166,7 +166,7 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
             pkt.getTargetProtocolAddress, pkt.getSenderProtocolAddress);
         DeduplicationActor.getRef(actorSystem) ! EmitGeneratedPacket(
             inPort.id, eth,
-            if (originalPktContex != null) Option(originalPktContex.getFlowCookie) else None)
+            if (origPktContext != null) origPktContext.flowCookie else None)
     }
 
     private def processArpReply(pkt: ARP, port: RouterPort[_])
@@ -396,9 +396,9 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
                     // Apply post-routing (egress) chain.
                     val egrMatch = WildcardMatch.fromEthernetPacket(eth)
                     val egrPktContext =
-                        new PacketContext(null, eth, 0, null, null, null,
+                        new PacketContext(None, eth, 0, null, null, null,
                                           true, None, egrMatch)
-                    egrPktContext.setOutputPort(outPort.id)
+                    egrPktContext.outPortId = outPort.id
                     val postRoutingResult = Chain.apply(outFilter,
                                        egrPktContext, egrMatch, id, false)
                     _applyPostActions(eth, postRoutingResult)
@@ -406,7 +406,7 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
                     postRoutingResult.action match {
                         case RuleResult.Action.ACCEPT =>
                             val cookie = if (packetContext == null) None
-                                else Option[Int](packetContext.getFlowCookie)
+                                else packetContext.flowCookie
                             DeduplicationActor.getRef(actorSystem) !
                                 EmitGeneratedPacket(rt.nextHopPort, eth, cookie)
                         case RuleResult.Action.DROP =>
@@ -583,6 +583,6 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
         // TODO(pino): check with Guillermo about match's vs. device's inPort.
             //ingressMatch.getInputPortUUID, eth)
             inPort.id, eth,
-            if (pktContext != null) Option(pktContext.getFlowCookie) else None)
+            if (pktContext != null) pktContext.flowCookie else None)
     }
 }

@@ -42,7 +42,6 @@ import org.midonet.midolman.FlowController.WildcardFlowRemoved
 import org.midonet.midolman.PacketWorkflow.PacketIn
 import org.midonet.midolman.guice._
 import org.midonet.midolman.guice.actors.OutgoingMessage
-import org.midonet.midolman.guice.actors.OutgoingMessage
 import org.midonet.midolman.guice.actors.TestableMidolmanActorsModule
 import org.midonet.midolman.guice.cluster.ClusterClientModule
 import org.midonet.midolman.guice.config.MockConfigProviderModule
@@ -58,10 +57,8 @@ import org.midonet.midolman.services.HostIdProviderService
 import org.midonet.midolman.services.MidolmanActorsService
 import org.midonet.midolman.services.MidolmanService
 import org.midonet.midolman.topology.LocalPortActive
-import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.topology.VirtualToPhysicalMapper
 import org.midonet.midolman.topology.VirtualTopologyActor
-import org.midonet.midolman.util.TestHelpers
 import org.midonet.midolman.version.guice.VersionModule
 import org.midonet.odp._
 import org.midonet.odp.flows.FlowAction

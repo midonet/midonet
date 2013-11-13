@@ -1,4 +1,6 @@
-// Copyright 2012 Midokura Inc.
+/*
+ * Copyright 2012 Midokura Pte. Ltd.
+ */
 
 package org.midonet.midolman.vrn;
 
@@ -8,6 +10,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import scala.Int;
 
 import org.midonet.cache.Cache;
 import org.midonet.midolman.rules.ChainPacketContext;
@@ -19,6 +22,7 @@ import org.midonet.packets.TCP;
 import org.midonet.packets.UDP;
 import org.midonet.sdn.flows.WildcardMatch;
 import org.midonet.util.functors.Callback0;
+import scala.Option;
 
 
 /* VRNController creates and partially populate an instance of
@@ -27,16 +31,15 @@ import org.midonet.util.functors.Callback0;
  * decisions:  the next action for the packet, the egress port,
  * the packet at egress (i.e. after possible modifications).
  */
-public class MockPacketContext implements ChainPacketContext {
+public class ForwardInfo implements ChainPacketContext {
 
     // These fields are filled by the caller of ForwardingElement.process():
     public UUID inPortId;
     public Ethernet pktIn;
     public WildcardMatch flowMatch; // (original) match of any eventual flows
     public WildcardMatch matchIn; // the match as it enters the ForwardingElement
-    public Set<UUID> portGroups = new HashSet<UUID>();
+    public Set<UUID> _portGroups = new HashSet<UUID>();
     public boolean internallyGenerated = false;
-    public Integer flowCookie = null;
     public Integer generatedPacketCookie;
 
     public enum Action {
@@ -45,6 +48,11 @@ public class MockPacketContext implements ChainPacketContext {
         FORWARD,
         CONSUMED,
         PAUSED,
+    }
+
+    @Override
+    public Option<Object> flowCookie() {
+        return Option.apply(null);
     }
 
     // These fields are filled by ForwardingElement.process():
@@ -59,7 +67,7 @@ public class MockPacketContext implements ChainPacketContext {
     // Used for coarse invalidation. If any element in this set changes
     // there's a chance the flow is no longer correct. Elements can be
     // Routers, Bridges, Ports and Chains.
-    private Set<UUID> traversedElementIDs = new HashSet<UUID>();
+    private Set<Object> flowTags = new HashSet<Object>();
     public int depth = 0;  // depth in the VRN simulation
 
     // Used for connection tracking.
@@ -67,10 +75,8 @@ public class MockPacketContext implements ChainPacketContext {
     private boolean forwardFlow;
     private Cache connectionCache;
     private UUID ingressFE;
-    private Set<Object> tags = new HashSet<Object>();
 
-    public MockPacketContext(boolean internallyGenerated, Cache c,
-                             UUID ingressFE) {
+    public ForwardInfo(boolean internallyGenerated, Cache c, UUID ingressFE) {
         connectionCache = c;
         this.ingressFE = ingressFE;
         this.internallyGenerated = internallyGenerated;
@@ -144,11 +150,6 @@ public class MockPacketContext implements ChainPacketContext {
         return forwardFlow;
     }
 
-    @Override
-    public Integer getFlowCookie() {
-        return flowCookie;
-    }
-
     public static String connectionKey(IPAddr ip1, int port1, IPAddr ip2,
                                        int port2, short proto, UUID fe) {
         return new StringBuilder(ip1.toString())
@@ -160,8 +161,8 @@ public class MockPacketContext implements ChainPacketContext {
     }
 
     @Override
-    public Set<UUID> getPortGroups() {
-        return portGroups;
+    public Set<UUID> portGroups() {
+        return _portGroups;
     }
 
     public void addTraversedFE(UUID deviceId) {
@@ -190,18 +191,14 @@ public class MockPacketContext implements ChainPacketContext {
     }
 
     public void addTraversedElementID(UUID id) {
-        traversedElementIDs.add(id);
-    }
-
-    public Set<UUID> getTraversedElementIDs() {
-        return traversedElementIDs;
+        flowTags.add(id);
     }
 
     public boolean isGeneratedPacket() {
         return internallyGenerated;
     }
 
-    public UUID getInPortId() {
+    public UUID inPortId() {
         return inPortId;
     }
 
@@ -226,7 +223,7 @@ public class MockPacketContext implements ChainPacketContext {
     }
 
     @Override
-    public UUID getOutPortId() {
+    public UUID outPortId() {
         return outPortId;
     }
 
@@ -240,14 +237,17 @@ public class MockPacketContext implements ChainPacketContext {
 
     @Override
     public void addFlowTag(Object tag) {
-        tags.add(tag);
+        flowTags.add(tag);
     }
 
     @Override
-    public void addFlowRemovedCallback(Callback0 cb) {}
+    public void addFlowRemovedCallback(Callback0 cb) {
+        // XXX(guillermo) do nothing, this class is unused outside of tests
+        // and going away. Right?
+    }
 
     @Override
-    public Integer getParentCookie() {
-        return generatedPacketCookie;
+    public Option<Object> parentCookie() {
+        return Option.apply((Object) generatedPacketCookie);
     }
 }

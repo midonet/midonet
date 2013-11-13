@@ -19,6 +19,6 @@ sourceSets {
 }
 
 dependencies {
-    compile libraries.scala, libraries.jackson_core
+    compile libraries.scala, libraries.jackson_core, libraries.jboss
     testCompile libraries.scalatest
 }

@@ -733,6 +733,7 @@ class DatapathController() extends Actor with ActorLogging with
         opReply match {
             case DpPortSuccess(req) =>
                 context.system.eventStream.publish(req)
+            case _ =>
         }
 
     }

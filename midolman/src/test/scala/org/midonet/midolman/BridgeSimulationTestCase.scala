@@ -4,10 +4,8 @@
 package org.midonet.midolman
 
 import java.lang.{Short => JShort}
-import java.util.UUID
 import scala.collection.JavaConversions._
 import scala.collection.immutable
-import scala.collection.mutable.{Map => MMap}
 
 import com.google.inject.Key
 import guice.CacheModule.{TRACE_INDEX, TRACE_MESSAGES}
@@ -15,24 +13,18 @@ import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-import org.slf4j.LoggerFactory
 
 import org.midonet.cache.Cache
 import org.midonet.cluster.data.ports.MaterializedBridgePort
 import org.midonet.cluster.data.zones.GreTunnelZoneHost
 import org.midonet.cluster.data.{Bridge => ClusterBridge}
-import org.midonet.midolman.FlowController.WildcardFlowRemoved
 import org.midonet.midolman.FlowController._
 import org.midonet.midolman.PacketWorkflow.PacketIn
-import org.midonet.midolman.PacketWorkflow.PacketIn
-import org.midonet.midolman.PacketWorkflow.PacketIn
-import org.midonet.midolman.rules.{RuleResult, Rule, Condition}
+import org.midonet.midolman.rules.{RuleResult, Condition}
 import org.midonet.midolman.topology.LocalPortActive
-import org.midonet.midolman.topology.LocalPortActive
-import org.midonet.midolman.topology.LocalPortActive
-import org.midonet.midolman.util.{SimulationHelper, MockCache}
+import org.midonet.midolman.util.MockCache
 import org.midonet.odp.flows.FlowActions
-import org.midonet.odp.flows.{FlowActionOutput, FlowActionSetKey, FlowKeyTunnel}
+import org.midonet.odp.flows.{FlowActionOutput, FlowKeyTunnel}
 import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
 
