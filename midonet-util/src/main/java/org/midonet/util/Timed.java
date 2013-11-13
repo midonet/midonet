@@ -1,4 +1,4 @@
-package org.midonet.tools.timed;
+package org.midonet.util;
 
 /**
  * This class allows one to wait for a task to get completed. It allows to
