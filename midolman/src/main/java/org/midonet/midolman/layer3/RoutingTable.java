@@ -14,7 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.packets.IPAddr;
-import org.midonet.packets.Net;
+import org.midonet.packets.IPv4Addr;
 
 /**
  * TODO (galo, ipv6) - this class is IPv4 specific, should eventually be
@@ -28,8 +28,8 @@ class RoutingTable extends RoutesTrie {
     Iterable<Route> lookup(int src, int dst) {
         log.debug("lookup: src {} dst {} in table with {} routes",
                 new Object[] {
-                    Net.convertIntAddressToString(src),
-                    Net.convertIntAddressToString(dst),
+                    IPv4Addr.intToString(src),
+                    IPv4Addr.intToString(dst),
                     numRoutes} );
 
         List<Route> ret = new Vector<Route>();
@@ -57,8 +57,8 @@ class RoutingTable extends RoutesTrie {
         log.debug("lookup: return {} for src {} dst {}",
                 new Object[] {
                 ret,
-                Net.convertIntAddressToString(src),
-                Net.convertIntAddressToString(dst)});
+                IPv4Addr.intToString(src),
+                IPv4Addr.intToString(dst)});
 
         return ret;
     }

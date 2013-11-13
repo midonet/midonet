@@ -13,12 +13,12 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-import org.midonet.packets.Net;
-import org.midonet.packets.MAC;
 import org.midonet.odp.Datapath;
 import org.midonet.odp.Flow;
 import org.midonet.odp.FlowMatch;
 import org.midonet.odp.flows.FlowKeyEtherType;
+import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.MAC;
 import static org.midonet.odp.flows.FlowKeys.arp;
 import static org.midonet.odp.flows.FlowKeys.encap;
 import static org.midonet.odp.flows.FlowKeys.etherType;
@@ -82,10 +82,8 @@ public class OvsFlowsFlushTest extends AbstractNetlinkProtocolTest {
                         arp(MAC.fromString("ae:b3:77:8d:c1:48").getAddress(),
                             MAC.fromString("ae:b3:70:8d:c1:48").getAddress())
                             .setOp((short) 2)
-                            .setSip(Net.convertStringAddressToInt(
-                                "192.168.100.1"))
-                            .setTip(Net.convertStringAddressToInt(
-                                "192.168.102.1"))
+                            .setSip(IPv4Addr.stringToInt("192.168.100.1"))
+                            .setTip(IPv4Addr.stringToInt("192.168.102.1"))
                     ));
     }
 

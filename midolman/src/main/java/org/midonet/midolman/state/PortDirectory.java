@@ -12,7 +12,7 @@ import org.midonet.cluster.data.BGP;
 import org.midonet.midolman.layer3.Route;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
-import org.midonet.packets.Net;
+import org.midonet.packets.IPv4Addr;
 
 // These representations are being deprecated in favor of classes defined in
 // cluster client.
@@ -119,19 +119,19 @@ public class PortDirectory {
         // Custom accessors for Jackson serialization
 
         public String getNwAddr() {
-            return Net.convertIntAddressToString(this.nwAddr);
+            return IPv4Addr.intToString(this.nwAddr);
         }
 
         public void setNwAddr(String addr) {
-            this.nwAddr = Net.convertStringAddressToInt(addr);
+            this.nwAddr = IPv4Addr.stringToInt(addr);
         }
 
         public String getPortAddr() {
-            return Net.convertIntAddressToString(this.portAddr);
+            return IPv4Addr.intToString(this.portAddr);
         }
 
         public void setPortAddr(String addr) {
-            this.portAddr = Net.convertStringAddressToInt(addr);
+            this.portAddr = IPv4Addr.stringToInt(addr);
         }
 
         public MAC getHwAddr() { return hwAddr; }

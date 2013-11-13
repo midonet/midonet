@@ -38,7 +38,7 @@ import org.midonet.midolman.state.zkManagers.ChainZkManager.ChainConfig;
 import org.midonet.midolman.state.zkManagers.PortGroupZkManager.PortGroupConfig;
 import org.midonet.midolman.state.zkManagers.RouterZkManager.RouterConfig;
 import org.midonet.midolman.state.zkManagers.TaggableConfig;
-import org.midonet.packets.Net;
+import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IntIPv4;
 
 
@@ -280,14 +280,12 @@ public class Converter {
 
         int gateway = route.getNextHopGateway() == null ?
                 org.midonet.midolman.layer3.Route.NO_GATEWAY :
-                Net.convertStringAddressToInt(route.getNextHopGateway());
+                IPv4Addr.stringToInt(route.getNextHopGateway());
         org.midonet.midolman.layer3.Route routeConfig =
                 new org.midonet.midolman.layer3.Route(
-                        Net.convertStringAddressToInt(
-                                route.getSrcNetworkAddr()),
+                        IPv4Addr.stringToInt(route.getSrcNetworkAddr()),
                         route.getSrcNetworkLength(),
-                        Net.convertStringAddressToInt(
-                                route.getDstNetworkAddr()),
+                        IPv4Addr.stringToInt(route.getDstNetworkAddr()),
                         route.getDstNetworkLength(),
                         route.getNextHop(),
                         route.getNextHopPort(),
