@@ -136,7 +136,7 @@ object Icmp {
                 // TODO(pino): check with Guillermo about match's vs. device's inPort.
                 //ingressMatch.getInputPortUUID, eth)
                 inPort.id, eth,
-                if (pktContext != null) Option(pktContext.getFlowCookie) else None)
+                if (pktContext != null) pktContext.flowCookie else None)
         }
 
         private def buildError(icmpType: Char, icmpCode: Any,

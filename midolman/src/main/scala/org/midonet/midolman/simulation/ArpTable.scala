@@ -264,7 +264,7 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
             log.debug("generateArpRequest: sending {}", arp)
             DeduplicationActor.getRef(actorSystem) !
                 EmitGeneratedPacket(port.id, arp,
-                      if (pktContext != null) Option(pktContext.getFlowCookie) else None)
+                      if (pktContext != null) pktContext.flowCookie else None)
             // we don't retry for stale entries.
             if (cacheEntry.macAddr == null) {
                 waitForArpEntry(ip, now + ARP_RETRY_MILLIS).future onComplete {

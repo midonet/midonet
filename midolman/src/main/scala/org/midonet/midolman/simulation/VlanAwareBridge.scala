@@ -43,12 +43,12 @@ class VlanAwareBridge(val id: UUID,
 
         implicit val packetContext: PacketContext = pktCtx
 
-        log.debug("Vlan bridge, process frame {} ", pktCtx.getFrame)
+        log.debug("Vlan bridge, process frame {} ", pktCtx.frame)
         log.debug("Current vlan-id port mapping: {}", vlanPortMap)
 
         pktCtx.addFlowTag(FlowTagger.invalidateFlowsByDevice(id))
 
-        val res = if (trunkPorts.contains(pktCtx.getInPortId)) processFromTrunk
+        val res = if (trunkPorts.contains(pktCtx.inPortId)) processFromTrunk
             else processFromVirtualNw
         Promise.successful(res)
     }
@@ -61,10 +61,10 @@ class VlanAwareBridge(val id: UUID,
      * corresponding trunk.
      */
     private def processFromVirtualNw(implicit pktCtx: PacketContext): Action = {
-        val vlanId: JShort = vlanPortMap.getVlan(pktCtx.getInPortId)
+        val vlanId: JShort = vlanPortMap.getVlan(pktCtx.inPortId)
         if (vlanId == null) {
             log.debug(
-                "Frame from port {} without vlan id, DROP", pktCtx.getInPortId)
+                "Frame from port {} without vlan id, DROP", pktCtx.inPortId)
             DropAction
         } else {
             log.debug(
@@ -86,12 +86,12 @@ class VlanAwareBridge(val id: UUID,
      */
     private def processFromTrunk(implicit pktCtx: PacketContext): Action =
         if (MAC.fromString("01:80:c2:00:00:00").equals(
-                pktCtx.getFrame.getDestinationMACAddress)) {
+                pktCtx.frame.getDestinationMACAddress)) {
             log.debug("BPDU, send to all trunks")
             ToPortSetAction(id)
         } else {
-            pktCtx.setOutputPort(null)
-            val vlanId = pktCtx.getFrame.getVlanIDs.get(0)
+            pktCtx.outPortId = null
+            val vlanId = pktCtx.frame.getVlanIDs.get(0)
             val outPortId: UUID = vlanPortMap.getPort(vlanId)
             if (outPortId == null) {
                 log.debug("Frame with unknown Vlan Id, discard")

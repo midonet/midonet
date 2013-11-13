@@ -37,7 +37,8 @@ import org.midonet.util.functors.Callback0
  * a singleton-per-simulation token.  Investigate whether that'd be better.
  */
 /* TODO(Diyari release): Move inPortID & outPortID out of PacketContext. */
-class PacketContext(val flowCookie: Option[Int], val frame: Ethernet,
+class PacketContext(override val flowCookie: Option[Int],
+                    val frame: Ethernet,
                     val expiry: Long, val connectionCache: Cache,
                     val traceMessageCache: Cache, val traceIndexCache: Cache,
                     val isGenerated: Boolean, val parentCookie: Option[Int],
@@ -58,41 +59,30 @@ class PacketContext(val flowCookie: Option[Int], val frame: Ethernet,
     // been written by the forward packet. PacketContext needs to now
     // the ingress device to do this lookup in isForwardFlow()
     private var ingressFE: UUID = null
-    private var portGroups: JSet[UUID] = null
-    private var connectionTracked = false
+
+    var portGroups: JSet[UUID] = null
     private var forwardFlow = false
-    private var inPortID: UUID = null
-    private var outPortID: UUID = null
-    private var traceID: UUID = null
-    private var traceStep = 0
-    private var isTraced = false
+    private var connectionTracked = false
+    override def isConnTracked: Boolean = connectionTracked
 
-    val wcmatch: WildcardMatch = origMatch.clone
-
-    def isFrozen = frozen
-
-    def getFrame: Ethernet = frame
-
-    def getExpiry: Long = expiry
-
-    def setPortGroups(groups: JSet[UUID]): PacketContext = {
-        portGroups = groups
-        this
-    }
-
-    def setInputPort(port: Port[_]): PacketContext = {
-        inPortID = if (port == null) null else port.id
+    private var _inPortId: UUID = null
+    override def inPortId: UUID = _inPortId
+    def inPortId_=(port: Port[_]) {
+        _inPortId = if (port == null) null else port.id
         // ingressFE is set only once, so it always points to the
         // first device that saw this packet, null for generated packets.
         if (port != null && ingressFE == null && !isGenerated)
             ingressFE = port.deviceID
-        this
+
     }
 
-    def setOutputPort(id: UUID): PacketContext = {
-        outPortID = id
-        this
-    }
+    var outPortId: UUID = null
+    val wcmatch: WildcardMatch = origMatch.clone
+    def isFrozen = frozen
+
+    private var traceID: UUID = null
+    private var traceStep = 0
+    private var isTraced = false
 
     // This set stores the callback to call when this flow is removed.
     private val flowRemovedCallbacks = mutable.Set[Callback0]()
@@ -164,21 +154,7 @@ class PacketContext(val flowCookie: Option[Int], val frame: Ethernet,
     }
 
     /* Packet context methods used by Chains. */
-    override def getInPortId: UUID = inPortID
-    override def getOutPortId: UUID = outPortID
-    override def getPortGroups: JSet[UUID] = portGroups
     override def addTraversedElementID(id: UUID) { /* XXX */ }
-    override def getFlowCookie: java.lang.Integer = {
-        if (flowCookie == null)
-            null
-        else {
-            flowCookie match {
-                case Some(number) => number
-                case None => null
-            }
-        }
-    }
-    override def isConnTracked: Boolean = connectionTracked
 
     override def isForwardFlow: Boolean = {
 
@@ -220,17 +196,6 @@ class PacketContext(val flowCookie: Option[Int], val frame: Ethernet,
         forwardFlow = (value != "r")
         log.debug("isForwardFlow conntrack lookup - key:{},value:{}", key, value)
         forwardFlow
-    }
-
-    def getParentCookie: java.lang.Integer = {
-        if (parentCookie == null)
-            null
-        else {
-            parentCookie match {
-                case Some(cookie) => cookie
-                case None => null
-            }
-        }
     }
 }
 

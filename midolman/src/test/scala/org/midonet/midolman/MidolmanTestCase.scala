@@ -59,7 +59,6 @@ import org.midonet.midolman.services.MidolmanService
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.topology.VirtualToPhysicalMapper
 import org.midonet.midolman.topology.VirtualTopologyActor
-import org.midonet.midolman.util.TestHelpers
 import org.midonet.midolman.version.guice.VersionModule
 import org.midonet.odp._
 import org.midonet.odp.flows.FlowAction

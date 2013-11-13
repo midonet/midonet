@@ -28,7 +28,7 @@ public class ZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
     private ScheduledFuture<?> disconnectHandle;
     private ZkConnection conn = null;
     private long sessionId = 0;
-    private List<Runnable> reconnectCallbacks  = new LinkedList<Runnable>();
+    private List<Runnable> reconnectCallbacks = new LinkedList<Runnable>();
     private List<Runnable> disconnectCallbacks = new LinkedList<Runnable>();
 
     @Inject
