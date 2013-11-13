@@ -20,48 +20,6 @@ import java.nio.IntBuffer;
 public class Net {
 
     /**
-     * Converts int IP address to string.
-     *
-     * @param address
-     *            IP address in int.
-     * @return IP address in String.
-     */
-    public static String convertIntAddressToString(int address) {
-        return ((address >> 24) & 0xFF) + "." +
-               ((address >> 16) & 0xFF) + "." +
-               ((address >> 8) & 0xFF) + "." +
-               (address & 0xFF);
-    }
-
-    /**
-     * Converts string IP address to int.
-     *
-     * @param address
-     *            IP address in string.
-     * @return IP address in int.
-     */
-    public static int convertStringAddressToInt(String address) {
-        String[] addrArray = address.split("\\.");
-        int num = 0;
-        if (addrArray.length != 4)
-            throw new IllegalArgumentException(address + " is not a legal " +
-                "IPv4 address: it is not composed of 4 sets of numerical " +
-                "digits separated by periods");
-        for (int i = 0; i < addrArray.length; i++) {
-            int addr = Integer.parseInt(addrArray[i]);
-            if (addr < 0 || addr > 255) {
-                throw new IllegalArgumentException(
-                    address + " is not a legal IPv4 address: it " +
-                        "contains a number outside the range [0, 255]");
-            }
-            // Shift one octet to the left.
-            num <<= 8;
-            num += addr & 0xff;
-        }
-        return num;
-    }
-
-    /**
      * Converts int array ipv4 to String
      *
      * @param ipv6 ipv6 address as int array

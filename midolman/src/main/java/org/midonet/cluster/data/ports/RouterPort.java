@@ -10,7 +10,7 @@ import java.util.UUID;
 import org.midonet.cluster.data.BGP;
 import org.midonet.cluster.data.Port;
 import org.midonet.packets.MAC;
-import org.midonet.packets.Net;
+import org.midonet.packets.IPv4Addr;
 
 import javax.annotation.Nonnull;
 
@@ -54,11 +54,11 @@ public class RouterPort
     }
 
     public String getNwAddr() {
-        return Net.convertIntAddressToString(getData().nwAddr);
+        return IPv4Addr.intToString(getData().nwAddr);
     }
 
     public RouterPort setNwAddr(String nwAddr) {
-        getData().nwAddr = Net.convertStringAddressToInt(nwAddr);
+        getData().nwAddr = IPv4Addr.stringToInt(nwAddr);
         return this;
     }
 
@@ -72,11 +72,11 @@ public class RouterPort
     }
 
     public String getPortAddr() {
-        return Net.convertIntAddressToString(getData().portAddr);
+        return IPv4Addr.intToString(getData().portAddr);
     }
 
     public RouterPort setPortAddr(String portAddr) {
-        getData().portAddr = Net.convertStringAddressToInt(portAddr);
+        getData().portAddr = IPv4Addr.stringToInt(portAddr);
         return this;
     }
 

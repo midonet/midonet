@@ -21,7 +21,7 @@ import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.validation.AllowedValue;
 import org.midonet.api.network.Route.RouteExtended;
 import org.midonet.api.network.validation.NextHopPortValid;
-import org.midonet.packets.Net;
+import org.midonet.packets.IPv4Addr;
 import org.midonet.util.StringUtil;
 
 
@@ -83,7 +83,7 @@ public class Route extends UriResource {
         this.id = data.getId();
         this.dstNetworkAddr = data.getDstNetworkAddr();
         this.dstNetworkLength = data.getDstNetworkLength();
-        if (Net.convertStringAddressToInt(data.getNextHopGateway()) !=
+        if (IPv4Addr.stringToInt(data.getNextHopGateway()) !=
                 org.midonet.midolman.layer3.Route.NO_GATEWAY) {
             this.nextHopGateway = data.getNextHopGateway();
         }
@@ -309,8 +309,7 @@ public class Route extends UriResource {
             nextHop = NextHop.BLACKHOLE;
         } else {
             if (this.getNextHopGateway() != null) {
-                gateway = Net.convertStringAddressToInt(this
-                        .getNextHopGateway());
+                gateway = IPv4Addr.stringToInt(this.getNextHopGateway());
             }
             nextHop = NextHop.PORT;
         }

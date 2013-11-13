@@ -8,7 +8,7 @@ import java.nio.ByteOrder;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.BaseBuilder;
 import org.midonet.odp.OpenVSwitch;
-import org.midonet.packets.Net;
+import org.midonet.packets.IPv4Addr;
 
 public class FlowKeyTunnel implements FlowKey<FlowKeyTunnel> {
 
@@ -246,10 +246,10 @@ public class FlowKeyTunnel implements FlowKey<FlowKeyTunnel> {
             retString = retString + "tun_id=" + tun_id.longValue() + ", ";
         if (ipv4_src != null)
             retString = retString + "ipv4_src="
-                      + Net.convertIntAddressToString(ipv4_src) + ", ";
+                      + IPv4Addr.intToString(ipv4_src) + ", ";
         if (ipv4_dst != null)
             retString = retString + "ipv4_dst="
-                      + Net.convertIntAddressToString(ipv4_dst) + ", ";
+                      + IPv4Addr.intToString(ipv4_dst) + ", ";
         if (tun_flags != null)
             retString = retString + "tun_flag=" + tun_flags.shortValue() + ", ";
         if (ipv4_tos != null)
