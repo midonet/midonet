@@ -6,7 +6,7 @@
 
 package org.midonet.midolman.topology
 
-import java.util.UUID;
+import java.util.UUID
 
 import akka.actor.ActorSystem
 import akka.testkit.ImplicitSender
