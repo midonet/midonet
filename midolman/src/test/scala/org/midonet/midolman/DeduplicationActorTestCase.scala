@@ -18,6 +18,7 @@ import org.scalatest.time.Millis
 import org.scalatest.time.Span
 
 import org.midonet.midolman.DeduplicationActor.ApplyFlow
+import org.midonet.midolman.PacketWorkflow.Simulation
 import org.midonet.midolman.topology.VirtualTopologyActor.ConditionListRequest
 import org.midonet.midolman.topology.{TraceConditionsManager, VirtualTopologyActor}
 import org.midonet.odp.{FlowMatches, Packet, Datapath}
@@ -26,6 +27,7 @@ import org.midonet.packets.Ethernet
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.packets.util.EthBuilder
 import org.midonet.midolman.services.MessageAccumulator
+
 
 @RunWith(classOf[JUnitRunner])
 class DeduplicationActorTestCase extends Suite with FeatureSpec
@@ -210,9 +212,19 @@ class DeduplicationActorTestCase extends Suite with FeatureSpec
     class MockPacketHandler(val packet: Packet,
             val cookieOrEgressPort: Either[Int, UUID]) extends PacketHandler {
 
+        override val cookieStr = "mock-cookie" + cookieOrEgressPort.toString
+        override val cookie = cookieOrEgressPort match {
+            case Left(cookie) => Some(cookie)
+            case Right(_) => None
+        }
+        override val egressPort = cookieOrEgressPort match {
+            case Left(_) => None
+            case Right(port) => Some(port)
+        }
+
         override def start() = {
             packetsSeen = packetsSeen :+ (packet, cookieOrEgressPort)
-            Promise.successful(true)
+            Promise.successful(Simulation)
         }
     }
 
