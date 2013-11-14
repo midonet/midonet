@@ -235,7 +235,9 @@ class DeduplicationActorTestCase extends Suite with FeatureSpec
         def pendedPackets(cookie: Int): Option[collection.Set[Packet]] =
             cookieToPendedPackets.get(cookie)
 
-        override def workflow(packet: Packet, cookieOrEgressPort: Either[Int, UUID]) =
+        override def workflow(packet: Packet,
+                              cookieOrEgressPort: Either[Int, UUID],
+                              parentCookie: Option[Int]) =
             new MockPacketHandler(packet, cookieOrEgressPort)
     }
 }

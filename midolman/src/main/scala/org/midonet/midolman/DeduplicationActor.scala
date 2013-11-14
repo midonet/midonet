@@ -292,13 +292,13 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
         }
     }
 
-    protected def workflow(packet: Packet,
-            cookieOrEgressPort: Either[Int, UUID]): PacketHandler = {
+    protected def workflow(packet: Packet, cookieOrEgressPort: Either[Int, UUID],
+                           parentCookie: Option[Int] = None): PacketHandler = {
         log.debug("Creating new PacketWorkflow for {}", cookieOrEgressPort)
         new PacketWorkflow(datapathConnection, dpState,
             datapath, clusterDataClient, connectionCache,
             traceMessageCache, traceIndexCache, packet,
-            cookieOrEgressPort, traceConditions)
+            cookieOrEgressPort, parentCookie, traceConditions)
     }
 
     protected def startWorkflow(pw: PacketHandler): Future[PipelinePath] = {

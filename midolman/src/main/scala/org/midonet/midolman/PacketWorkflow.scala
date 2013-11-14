@@ -91,6 +91,7 @@ class PacketWorkflow(
         traceIndexCache: Cache,
         override val packet: Packet,
         override val cookieOrEgressPort: Either[Int, UUID],
+        val parentCookie: Option[Int],
         private val traceConditions: immutable.Seq[Condition])
        (implicit val executor: ExecutionContext,
         implicit val system: ActorSystem,
@@ -118,7 +119,11 @@ class PacketWorkflow(
     implicit val requestReplyTimeout = new Timeout(5, TimeUnit.SECONDS)
 
     val log: LoggingAdapter = Logging.getLogger(system, this.getClass)
-    override val cookieStr: String = "[cookie:" + cookie.getOrElse("No Cookie") + "]"
+
+    override val cookieStr: String =
+        (if (cookie != None) "[cookie:" else "[genPkt:") +
+        cookie.getOrElse(parentCookie.getOrElse("No Cookie")) +
+        "]"
     val lastInvalidation = FlowController.lastInvalidationEvent
 
     override def start(): Future[PipelinePath] = {
