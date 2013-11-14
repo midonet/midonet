@@ -17,8 +17,6 @@ import java.lang.{Integer => JInteger}
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
-import com.yammer.metrics.core.Clock
-
 import org.midonet.cache.Cache
 import org.midonet.midolman.DeduplicationActor._
 import org.midonet.midolman.FlowController.FlowAdded
@@ -43,11 +41,17 @@ import org.midonet.odp.flows.{FlowKey, FlowKeyUDP, FlowAction}
 import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.odp.Packet.Reason.FlowActionUserspace
 import org.midonet.util.functors.Callback0
-import org.midonet.util.throttling.ThrottlingGuard
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
+import org.midonet.midolman.PacketWorkflow.PipelinePath
 
 trait PacketHandler {
-    def start(): Future[Boolean]
+    def start(): Future[PipelinePath]
+
+    val packet: Packet
+    val cookieOrEgressPort: Either[Int, UUID]
+    val cookie: Option[Int]
+    val egressPort: Option[UUID]
+    val cookieStr: String
 }
 
 object PacketWorkflow {
@@ -69,11 +73,11 @@ object PacketWorkflow {
                                       flowRemovalCallbacks: ROSet[Callback0],
                                       tags: ROSet[Any]) extends SimulationResult
 
-    private trait PipelinePath
+    trait PipelinePath
 
-    private case object WildcardTableHit extends PipelinePath
-    private case object PacketToPortSet extends PipelinePath
-    private case object Simulation extends PipelinePath
+    case object WildcardTableHit extends PipelinePath
+    case object PacketToPortSet extends PipelinePath
+    case object Simulation extends PipelinePath
 }
 
 class PacketWorkflow(
@@ -84,10 +88,8 @@ class PacketWorkflow(
         connectionCache: Cache,
         traceMessageCache: Cache,
         traceIndexCache: Cache,
-        packet: Packet,
-        cookieOrEgressPort: Either[Int, UUID],
-        throttlingGuard: ThrottlingGuard,
-        metrics: PacketPipelineMetrics,
+        override val packet: Packet,
+        override val cookieOrEgressPort: Either[Int, UUID],
         private val traceConditions: immutable.Seq[Condition])
        (implicit val executor: ExecutionContext,
         implicit val system: ActorSystem,
@@ -102,11 +104,11 @@ class PacketWorkflow(
 
     val ERROR_CONDITION_HARD_EXPIRATION = 10000
 
-    val cookie = cookieOrEgressPort match {
+    override val cookie = cookieOrEgressPort match {
         case Left(c) => Some(c)
         case Right(_) => None
     }
-    val egressPort = cookieOrEgressPort match {
+    override val egressPort = cookieOrEgressPort match {
         case Right(e) => Some(e)
         case Left(_) => None
     }
@@ -114,77 +116,40 @@ class PacketWorkflow(
     implicit val requestReplyTimeout = new Timeout(5, TimeUnit.SECONDS)
 
     val log: LoggingAdapter = Logging.getLogger(system, this.getClass)
-    val cookieStr: String = "[cookie:" + cookie.getOrElse("No Cookie") + "]"
+    override val cookieStr: String = "[cookie:" + cookie.getOrElse("No Cookie") + "]"
     val lastInvalidation = FlowController.lastInvalidationEvent
 
-    override def start(): Future[Boolean] = {
-        // pipelinePath will track which code-path this packet took, so latency
-        // can be tracked accordingly at the end of the workflow.
-        // there are three PipelinePaths, all case objects:
-        // Simulation, PacketToPortSet and WildcardTableHit 
-        var pipelinePath: Option[PipelinePath] = None
-
+    override def start(): Future[PipelinePath] = {
         log.debug("Initiating processing of packet {}", cookieStr)
-        val workflowFuture = cookie match {
+        cookie match {
             case Some(cook) if (packet.getReason == FlowActionUserspace) =>
                 log.debug("Simulating packet addressed to userspace {}",
                     cookieStr)
-                pipelinePath = Some(Simulation)
                 doSimulation()
 
             case Some(cook) =>
                 FlowController.queryWildcardFlowTable(packet.getMatch) match {
                     case Some(wildFlow) =>
                         log.debug("Packet {} matched a wildcard flow", cookieStr)
-                        pipelinePath = Some(WildcardTableHit)
                         handleWildcardTableMatch(wildFlow, cook)
                     case None =>
                         val wildMatch = WildcardMatch.fromFlowMatch(packet.getMatch)
-                        Option(wildMatch.getTunnelID) match {
-                            case Some(tunnelId) =>
-                                log.debug("Packet {} addressed to a port set", cookieStr)
-                                pipelinePath = Some(PacketToPortSet)
-                                handlePacketToPortSet(cook)
-                            case None =>
-                                /* QUESTION: do we need another de-duplication
-                                 *  stage here to avoid e.g. two micro-flows that
-                                 *  differ only in TTL from going to the simulation
-                                 *  stage? */
-                                log.debug("Simulating packet {}", cookieStr)
-                                pipelinePath = Some(Simulation)
-                                doSimulation()
+                        if (wildMatch.getTunnelID != null) {
+                            log.debug("Packet {} addressed to a port set", cookieStr)
+                            handlePacketToPortSet(cook, wildMatch) map { _ => PacketToPortSet }
+                        } else {
+                            /* QUESTION: do we need another de-duplication
+                             *  stage here to avoid e.g. two micro-flows that
+                             *  differ only in TTL from going to the simulation
+                             *  stage? */
+                            log.debug("Simulating packet {}", cookieStr)
+                            doSimulation()
                         }
                 }
 
             case None =>
                 log.debug("Simulating generated packet")
-                pipelinePath = Some(Simulation)
                 doSimulation()
-        }
-
-        workflowFuture onComplete {
-            case Right(bool) =>
-                log.debug("Packet with {} processed.", cookieStr)
-                cookie match {
-                    case None =>
-                    case Some(c) =>
-                        throttlingGuard.tokenOut()
-                        val latency = (Clock.defaultClock().tick() - packet.getStartTimeNanos).toInt
-                        metrics.packetsProcessed.mark()
-                        pipelinePath match {
-                            case Some(WildcardTableHit) => metrics.wildcardTableHit(latency)
-                            case Some(PacketToPortSet) => metrics.packetToPortSet(latency)
-                            case Some(Simulation) => metrics.packetSimulated(latency)
-                            case _ =>
-                        }
-                }
-            case Left(ex) =>
-                log.warning("Exception while processing packet {}, {}",
-                            cookieStr, ex.getStackTraceString)
-                for (c <- cookie) {
-                    throttlingGuard.tokenOut()
-                    metrics.packetsProcessed.mark()
-                }
         }
     }
 
@@ -352,7 +317,7 @@ class PacketWorkflow(
         }
     }
 
-    private def handleWildcardTableMatch(wildFlow: WildcardFlow, cookie: Int): Future[Boolean] = {
+    private def handleWildcardTableMatch(wildFlow: WildcardFlow, cookie: Int): Future[PipelinePath] = {
 
         val dpFlow = new Flow().setActions(wildFlow.getActions).setMatch(packet.getMatch)
 
@@ -366,8 +331,8 @@ class PacketWorkflow(
                 flowAddedCallback(cookie, flowPromise, dpFlow))
         }
         val execPromise = executePacket(wildFlow.getActions)
-        val futures = Future.sequence(List(flowPromise, execPromise))
-        futures map { _ => true } fallbackTo { Promise.successful(false) }
+
+        Future.sequence(List(flowPromise, execPromise)) map { _ => WildcardTableHit }
     }
 
 
@@ -376,7 +341,7 @@ class PacketWorkflow(
      * routed here. Map the tunnel key to a port set (through the
      * VirtualToPhysicalMapper).
      */
-    private def handlePacketToPortSet(cookie: Int): Future[Boolean] = {
+    private def handlePacketToPortSet(cookie: Int, wMatch: WildcardMatch): Future[PipelinePath] = {
 
         log.debug("Packet {} came from a tunnel port", cookieStr)
         // We currently only handle packets ingressing on tunnel ports if they
@@ -384,11 +349,10 @@ class PacketWorkflow(
         // port then the pre-installed flow rules should have matched the
         // packet. So we really only handle cases where the tunnel key exists
         // and corresponds to a port set.
-        val wMatch = WildcardMatch.fromFlowMatch(packet.getMatch)
+
         if (wMatch.getTunnelID == null) {
-            log.error("SCREAM: dropping a flow from tunnel port {} because " +
-                " it has no tunnel key.", wMatch.getInputPortNumber)
-            return addTranslatedFlowForActions(Nil)
+            return Promise.failed[PipelinePath](
+                        new IllegalArgumentException("Missing tunnel key"))(system.dispatcher)
         }
 
         val portSetFuture = VirtualToPhysicalMapper.getRef() ?
@@ -423,7 +387,7 @@ class PacketWorkflow(
                     Promise.failed[Boolean](e)
                 }
             } else {
-                Promise.failed[Boolean](new Exception())(system.dispatcher)
+                Promise.failed[Boolean](new Exception("null PortSet"))(system.dispatcher)
             }
         } recoverWith {
             case e =>
@@ -437,10 +401,12 @@ class PacketWorkflow(
                 addTranslatedFlow(wildFlow,
                     Set(FlowTagger.invalidateByTunnelKey(wMatch.getTunnelID)),
                     Set.empty)
+        } map {
+            _ => WildcardTableHit
         }
     }
 
-    private def doSimulation(): Future[Boolean] =
+    private def doSimulation(): Future[PipelinePath] =
         (cookieOrEgressPort match {
             case Left(haveCookie) =>
                 simulatePacketIn()
@@ -464,6 +430,8 @@ class PacketWorkflow(
             case ErrorDrop =>
                 log.debug("Simulation phase returned: ErrorDrop")
                 addTranslatedFlowForActions(Nil, expiration = 5000)
+        } map {
+            _ => Simulation
         }
 
     private def simulateGeneratedPacket(): Future[SimulationResult] = {
