@@ -2,10 +2,13 @@
 
 package org.midonet.midolman
 
+import akka.util.Duration
+import akka.dispatch.Future
 import akka.actor._
 import akka.event.LoggingReceive
 import collection.{immutable, mutable}
 import scala.collection.JavaConverters._
+import scala.compat.Platform
 import mutable.PriorityQueue
 import collection.mutable.{HashMap, MultiMap}
 import java.util.UUID
@@ -14,6 +17,7 @@ import javax.annotation.Nullable
 import javax.inject.Inject
 
 import com.yammer.metrics.core.{Gauge, MetricsRegistry, Clock}
+import org.slf4j.LoggerFactory
 
 import org.midonet.cache.Cache
 import org.midonet.cluster.DataClient
@@ -36,9 +40,8 @@ import org.midonet.odp.{FlowMatches, Datapath, FlowMatch, Packet}
 import org.midonet.odp.flows.FlowAction
 import org.midonet.packets.Ethernet
 import org.midonet.util.throttling.ThrottlingGuard
-import scala.compat.Platform
-import akka.util.Duration
 import org.midonet.util.BatchCollector
+import org.midonet.midolman.PacketWorkflow.{PipelinePath, WildcardTableHit, PacketToPortSet, Simulation}
 
 
 object DeduplicationActor extends Referenceable {
@@ -173,7 +176,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
     protected val cookieToPendedPackets: MultiMap[Int, Packet] =
         new HashMap[Int, mutable.Set[Packet]] with MultiMap[Int, Packet]
 
-    protected val cookieTimeToLiveMillis  = 30000L
+    protected val cookieTimeToLiveMillis  = 10000L
     protected val cookieExpirationCheckIntervalMillis  = 5000L
 
     private val cookieExpirations: PriorityQueue[(FlowMatch, Long)] =
@@ -224,6 +227,19 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
 
         case ApplyFlow(actions, cookieOpt) => cookieOpt foreach { cookie =>
             cookieToPendedPackets.remove(cookie) foreach { pendedPackets =>
+                // NOTE: tokens are claimed at the netlink layer when
+                //       a packet is sent up to the DDA.
+                //
+                // they are released using cookieToPendedPackets as a marker,
+                // thus in these situations:
+                //
+                //  - ApplyFlow is received for a cookie present in
+                //    cookieToPendedPackets
+                //  - A cookie expires and is removed from cookieToPendedPackets
+                //  - A packet is pended, meaning that cookieToPendedPackets
+                //    is already populated for this flowMatch
+                throttler.tokenOut()
+
                 cookieToDpMatch.remove(cookie) foreach {
                     dpMatch => dpMatchToCookie.remove(dpMatch)
                 }
@@ -250,9 +266,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
         case EmitGeneratedPacket(egressPort, ethernet, parentCookie) =>
             val packet = new Packet().setPacket(ethernet)
             val packetId = scala.util.Random.nextLong()
-            val packetWorkflow = workflow(packet, Right(egressPort))
-            log.debug("Created new PacketWorkflow handler for emiting packet.")
-            packetWorkflow.start()
+            startWorkflow(workflow(packet, Right(egressPort)))
 
         case newTraceConditions: immutable.Seq[Condition] =>
             log.debug("traceConditions updated to {}", newTraceConditions)
@@ -265,7 +279,12 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
                 dpMatchToCookie.remove(flowMatch) match {
                     case Some(cookie) =>
                         log.warning("Expiring cookie:{}", cookie)
-                        cookieToPendedPackets.remove(cookie)
+                        cookieToPendedPackets.remove(cookie) foreach {
+                            // See comment in ApplyFlow to understand the rules
+                            // we follow to release tokens from the throttling
+                            // guard
+                            _ => throttler.tokenOut()
+                        }
                         cookieToDpMatch.remove(cookie)
                     case None =>
                 }
@@ -275,10 +294,37 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
 
     protected def workflow(packet: Packet,
             cookieOrEgressPort: Either[Int, UUID]): PacketHandler = {
+        log.debug("Creating new PacketWorkflow for {}", cookieOrEgressPort)
         new PacketWorkflow(datapathConnection, dpState,
             datapath, clusterDataClient, connectionCache,
             traceMessageCache, traceIndexCache, packet,
-            cookieOrEgressPort, throttler, metrics, traceConditions)
+            cookieOrEgressPort, traceConditions)
+    }
+
+    protected def startWorkflow(pw: PacketHandler): Future[PipelinePath] = {
+        val resultFuture = pw.start()
+
+        resultFuture onComplete {
+            case Right(path) =>
+                log.debug("Packet with {} processed.", pw.cookieStr)
+                pw.cookie match {
+                    case None => // do nothing
+                    case Some(c) =>
+                        val latency = (Clock.defaultClock().tick() -
+                                      pw.packet.getStartTimeNanos).toInt
+                        metrics.packetsProcessed.mark()
+                        path match {
+                            case WildcardTableHit => metrics.wildcardTableHit(latency)
+                            case PacketToPortSet => metrics.packetToPortSet(latency)
+                            case Simulation => metrics.packetSimulated(latency)
+                            case _ =>
+                        }
+                }
+            case Left(ex) =>
+                log.warning("Exception while processing packet {} - {}, {}",
+                    pw.cookieStr, ex.getMessage, ex.getStackTraceString)
+                pw.cookie foreach { _ => metrics.packetsProcessed.mark() }
+        }
     }
 
     private def handlePacket(packet: Packet) {
@@ -295,10 +341,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
                 cookieToDpMatch.put(cookie, packet.getMatch)
                 scheduleCookieExpiration(packet.getMatch)
                 cookieToPendedPackets.put(cookie, mutable.Set.empty)
-                val packetWorkflow = workflow(packet, Left(cookie))
-
-                log.debug("Created new PacketWorkflow for cookie " + cookie)
-                packetWorkflow.start()
+                startWorkflow(workflow(packet, Left(cookie)))
 
             case Some(cookie) =>
                 // Simulation in progress. Just pend the packet.
@@ -349,9 +392,11 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
                      val BATCH_SIZE = 16
                      var packets = new Array[Packet](BATCH_SIZE)
                      var cursor = 0
+                     val log = LoggerFactory.getLogger("PacketInHook")
 
                      override def endBatch() {
                          if (cursor > 0) {
+                             log.trace("batch of {} packets", cursor)
                              self ! HandlePackets(packets)
                              packets = new Array[Packet](BATCH_SIZE)
                              cursor = 0
@@ -359,6 +404,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
                      }
 
                      override def submit(data: Packet) {
+                         log.trace("accumulating packet: {}", data.getMatch)
                          val eth = data.getPacket
                          FlowMatches.addUserspaceKeys(eth, data.getMatch)
                          data.setStartTimeNanos(Clock.defaultClock().tick())
