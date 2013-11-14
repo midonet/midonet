@@ -4,7 +4,8 @@
 package org.midonet.midolman.topology.rcu
 
 import java.util.UUID
-import collection.immutable
+import scala.collection.immutable
+
 import org.midonet.cluster.data.TunnelZone
 
 case class Host(id: UUID, datapath: String,
