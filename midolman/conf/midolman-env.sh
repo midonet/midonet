@@ -150,4 +150,6 @@ if [ "x$JMXDISABLE" = "x" ] ; then
     JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.port=$JMX_PORT"
     JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.ssl=false"
     JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.authenticate=false"
+    HOSTNAME=`hostname`
+    JVM_OPTS="$JVM_OPTS -Djava.rmi.server.hostname=$HOSTNAME"
 fi
