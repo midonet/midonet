@@ -213,20 +213,15 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
     private def getPeerMac(rtrPort: RouterPort, expiry: Long)
                           (implicit ec: ExecutionContext,
                            actorSystem: ActorSystem,
-                           pktContext: PacketContext): Future[MAC] = {
-        val peerPortFuture = expiringAsk(
-                PortRequest(rtrPort.peerID, false), expiry).mapTo[Port[_]]
-        peerPortFuture map {
-            case null =>
-                log.error("getPeerMac: cannot get port {}", rtrPort.peerID)
-                null
+                           pktContext: PacketContext): Future[MAC] =
+        expiringAsk(PortRequest(rtrPort.peerID), log,
+                expiry) map {
             case rp: RouterPort =>
                 rp.portMac
             case nrp =>
                 log.debug("getPeerMac asked for MAC of non-router port {}", nrp)
                 null
-        }
-    }
+        } recover { case _ => null }
 
     private def getMacForIP(port: RouterPort, nextHopIP: IPv4Addr,
                             expiry: Long)

@@ -4,12 +4,10 @@
 package org.midonet.midolman
 
 import scala.collection.JavaConverters._
-import scala.collection.{Set => ROSet, Map => ROMap}
-import scala.collection.mutable.{ConcurrentMap => ConcMap}
+import scala.collection.{Set => ROSet}
 import scala.collection.mutable
-import java.lang.{Boolean => JBoolean, Integer => JInteger, Short => JShort}
-import java.util.{Collection, Collections, List => JList, Set => JSet, UUID}
-import java.util.concurrent.{ConcurrentHashMap => ConcHashMap, TimeUnit}
+import java.lang.{Boolean => JBoolean, Integer => JInteger}
+import java.util.{Collection, List => JList, Set => JSet, UUID}
 import java.nio.ByteBuffer
 
 import akka.actor._
@@ -662,24 +660,20 @@ class DatapathController() extends Actor with ActorLogging with
     private def installTunnelKeyFlow(
             port: Port[_, _], vifId: UUID, active: Boolean): Unit =
         VirtualTopologyActor
-            .expiringAsk(PortRequest(vifId, update = false))
-            .mapTo[client.Port[_]]
-            .onComplete {
-            case Right(p) =>
-                if (!p.isInterior) {
-                    // trigger invalidation. This is done regardless of
-                    // whether we are activating or deactivating:
-                    //
-                    //   + The case for invalidating on deactivation is
-                    //     obvious.
-                    //   + On activation we invalidate flows for this dp port
-                    //     number in case it has been reused by the dp: we
-                    //     want to start with a clean state.
-                    FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
-                        FlowTagger.invalidateDPPort(port.getPortNo.shortValue()))
-                    if (active)
-                        installTunnelKeyFlow(port, p)
-                }
+            .expiringAsk(PortRequest(vifId), log) onSuccess {
+            case p if !p.isInterior =>
+                // trigger invalidation. This is done regardless of
+                // whether we are activating or deactivating:
+                //
+                //   + The case for invalidating on deactivation is
+                //     obvious.
+                //   + On activation we invalidate flows for this dp port
+                //     number in case it has been reused by the dp: we
+                //     want to start with a clean state.
+                FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
+                    FlowTagger.invalidateDPPort(port.getPortNo.shortValue()))
+                if (active)
+                    installTunnelKeyFlow(port, p)
             case _ =>
                 log.warning("local port {} activated, but it's not an " +
                     "ExteriorPort: I don't know what to do with it: {}", port)

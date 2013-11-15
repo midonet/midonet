@@ -233,8 +233,7 @@ class AdminStateTest extends Suite
 
             given("an exterior bridge port that is flooded")
 
-            val f = ask(VirtualTopologyActor,
-                        BridgeRequest(bridge.getId, update = false))
+            val f = ask(VirtualTopologyActor, BridgeRequest(bridge.getId))
             Await.result(f, Duration.Inf)
                  .asInstanceOf[Bridge]
                  .vlanMacTableMap(ClusterBridge.UNTAGGED_VLAN_ID)

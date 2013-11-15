@@ -22,7 +22,6 @@ import org.midonet.cluster.{Client, DataClient}
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.services.HostIdProviderService
-import org.midonet.midolman.services.MidolmanActorsService
 import org.midonet.midolman.simulation.Bridge
 import org.midonet.midolman.simulation.Coordinator.Device
 import org.midonet.midolman.state.DirectoryCallback.Result
@@ -304,8 +303,7 @@ abstract class VirtualToPhysicalMapperBase
         extends Actor with ActorLogWithoutPath {
 
     import VirtualToPhysicalMapper._
-    import VirtualTopologyActor.BridgeRequest
-    import VirtualTopologyActor.PortRequest
+    import VirtualTopologyActor._
     import context.system
 
     def notifyLocalPortActive(vportID: UUID, active: Boolean) : Unit
@@ -527,13 +525,10 @@ abstract class VirtualToPhysicalMapperBase
      *  the request reschedules itself 3 times before failing. */
     private def getPortConfig(vport: UUID, retries: Int = 3)
             : Future[Option[(Port[_], Device)]] =
-        VirtualTopologyActor.expiringAsk(
-            PortRequest(vport, update=false)
-        ).flatMap[Option[(Port[_], Device)]] {
+        expiringAsk(PortRequest(vport), log) flatMap {
             case brPort: BridgePort =>
-                val req = BridgeRequest(brPort.deviceID, update=false)
-                VirtualTopologyActor.expiringAsk(req).mapTo[Bridge]
-                    .map { br => Some((brPort, br)) }
+                val req = BridgeRequest(brPort.deviceID)
+                expiringAsk(req, log) map { br => Some((brPort, br)) }
             case _ => // not a bridgePort, sending back None
                 Promise.successful(None)
         } recoverWith {
@@ -542,7 +537,6 @@ abstract class VirtualToPhysicalMapperBase
                     "for config of port {} -> retrying", vport)
                 getPortConfig(vport, retries - 1)
             case ex =>
-                log.error("Could not get config for port {}: {}", vport, ex)
                 Promise.failed(ex)
         }
 

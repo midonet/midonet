@@ -12,8 +12,7 @@ import org.midonet.cluster.client.RouterPort
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.logging.LoggerFactory
 import org.midonet.midolman.rules.RuleResult
-import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
-import org.midonet.midolman.topology.VirtualTopologyActor.expiringAsk
+import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.midolman.topology.{FlowTagger, RoutingTableWrapper, TagManager, RouterConfig}
 import org.midonet.packets.{MAC, Unsigned, Ethernet, IPAddr}
 import org.midonet.sdn.flows.WildcardMatch
@@ -314,7 +313,7 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext,
                                      (implicit actorSystem: ActorSystem,
                                       pktContext: PacketContext):
                                      Future[RouterPort] =
-        expiringAsk(PortRequest(portID, update = false), expiry)
+        expiringAsk(PortRequest(portID), log, expiry)
             .mapTo[RouterPort]
 
     // Auxiliary, IP version specific abstract methods.

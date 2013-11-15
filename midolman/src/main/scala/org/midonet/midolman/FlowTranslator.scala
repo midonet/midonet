@@ -2,12 +2,12 @@
 
 package org.midonet.midolman
 
-import scala.collection.{Set => ROSet, IterableView, mutable}
+import scala.collection.{Set => ROSet, mutable}
 import scala.collection.mutable.ListBuffer
 import java.{util => ju}
 import java.util.UUID
 
-import akka.actor.{Actor, ActorContext, ActorSystem}
+import akka.actor.{ActorContext, ActorSystem}
 import akka.dispatch.{ExecutionContext, Promise, Future}
 import akka.event.LoggingAdapter
 import akka.pattern.ask
@@ -15,14 +15,11 @@ import akka.util.Timeout
 
 import org.midonet.cluster.client.Port
 import org.midonet.midolman.rules.{ChainPacketContext, RuleResult}
-import org.midonet.midolman.simulation.{Bridge => RCUBridge, Chain}
+import org.midonet.midolman.simulation.Chain
 import org.midonet.midolman.topology.FlowTagger
 import org.midonet.midolman.topology.VirtualToPhysicalMapper
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.PortSetRequest
-import org.midonet.midolman.topology.VirtualTopologyActor
-import org.midonet.midolman.topology.VirtualTopologyActor.BridgeRequest
-import org.midonet.midolman.topology.VirtualTopologyActor.ChainRequest
-import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
+import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.midolman.topology.rcu.PortSet
 import org.midonet.odp.flows.FlowAction
 import org.midonet.odp.flows.FlowActionUserspace
@@ -161,8 +158,7 @@ trait FlowTranslator {
             if (port.outFilterID == null)
                 Promise.successful(null)(ec)
             else
-                ask(VirtualTopologyActor.getRef,
-                    ChainRequest(port.outFilterID, update = false)).mapTo[Chain]
+                expiringAsk(ChainRequest(port.outFilterID))
 
         // Apply the chains.
         Future.sequence(localPorts map { portToChain })
@@ -258,11 +254,11 @@ trait FlowTranslator {
                 translatablePort = null // we only translate the first ones.
             }
 
-        acts.foreach( _ match {
+        acts.foreach {
             case FlowActionOutputToVrnPort(id) => handleVrnPort(id)
             case FlowActionOutputToVrnPortSet(id) => handleVrnPort(id)
             case a => newActs += a
-        })
+        }
 
         newActs.toList
     }
@@ -316,19 +312,11 @@ trait FlowTranslator {
         val portSetFuture = ask(
             VirtualToPhysicalMapper.getRef(),
             PortSetRequest(portSet, update = false))
-            .mapTo[PortSet] recoverWith {
-                case e =>
+            .mapTo[PortSet] andThen { case Left(e) =>
                 log.error(e, "VTPM didn't provide portSet {} {}", portSet, e)
-                Promise.failed(e)
         }
 
-        val deviceFuture = VirtualTopologyActor
-            .expiringAsk(BridgeRequest(portSet, update = false))
-            .mapTo[RCUBridge].recoverWith {
-            case e =>
-                log.error(e, "VTA didn't provide Bridge {} {}", portSet, e)
-                Promise.failed(e)
-        }
+        val deviceFuture = expiringAsk(BridgeRequest(portSet), log)
 
         portSetFuture flatMap { set => deviceFuture flatMap { br =>
             val deviceId = br.id
@@ -368,16 +356,9 @@ trait FlowTranslator {
     protected def withLocalPorts[A](portSet: UUID, portIds: Set[UUID])
                                    (f: Seq[Port[_]] => Future[A])
                                    (implicit ec: ExecutionContext,
-                                           system: ActorSystem): Future[A] = {
+                                             system: ActorSystem): Future[A] = {
         val fs = portIds map { portID =>
-            VirtualTopologyActor.expiringAsk(
-                PortRequest(portID, update = false))(ec, system)
-           .mapTo[Port[_]] recover {
-                case e =>
-                    log.error(e, "VTA didn't provide port {}",
-                        portID)
-                    throw e
-           }
+            expiringAsk(PortRequest(portID), log)
         }
 
         Future.sequence(fs) flatMap { localPorts =>
@@ -396,10 +377,6 @@ trait FlowTranslator {
 
         val tags = dpTags.orNull
 
-        def askVTA(): Future[Port[_]] = VirtualTopologyActor
-            .expiringAsk(PortRequest(port, update = false))(ec,system)
-            .mapTo[Port[_]]
-
         /* does the DPC has a local Dp Port for this UUID ? */
         dpState.getDpPortNumberForVport(port) map { portNum =>
             /* then we translate to that local Dp Port*/
@@ -408,7 +385,7 @@ trait FlowTranslator {
                 towardsLocalDpPorts(actions, port, localPort, tags))
         } getOrElse {
             /* otherwise we translate to a remote port */
-            askVTA map {
+            expiringAsk(PortRequest(port), log) map {
                 case p: Port[_] if p.isExterior =>
                     towardsRemoteHosts(
                         actions, port, p.tunnelKey, p.hostID, tags)

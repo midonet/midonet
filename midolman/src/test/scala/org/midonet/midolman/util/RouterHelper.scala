@@ -7,9 +7,8 @@ package org.midonet.midolman.util
 import java.util.UUID
 
 import org.midonet.packets._
-import org.midonet.cluster.client.RouterPort
+import org.midonet.cluster.client.{Port, RouterPort}
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
-import org.midonet.midolman.topology.VirtualTopologyActor.{RouterRequest, PortRequest}
 import org.midonet.midolman.simulation.{Router => SimRouter}
 import org.midonet.midolman.FlowController.AddWildcardFlow
 import org.midonet.midolman.topology.VirtualTopologyActor
@@ -63,18 +62,18 @@ trait RouterHelper extends SimulationHelper {
     def fetchRouterAndPort(portName: String,
                            portId: UUID) : (SimRouter, RouterPort) = {
         // Simulate a dummy packet so the system creates the Router RCU object
-        val eth = (new Ethernet()).setEtherType(IPv6_ETHERTYPE).
+        val eth = new Ethernet().setEtherType(IPv6_ETHERTYPE).
             setDestinationMACAddress(MAC.fromString("de:de:de:de:de:de")).
             setSourceMACAddress(MAC.fromString("01:02:03:04:05:06")).
             setPad(true)
         triggerPacketIn(portName, eth)
         fishForRequestOfType[AddWildcardFlow](flowProbe())
 
-        val port = VirtualTopologyActor.everything.idToPort(portId)
-             .asInstanceOf[RouterPort]
-        val router = VirtualTopologyActor.everything.idToRouter(port.deviceID)
+        val port = VirtualTopologyActor.everything(portId)
+                        .asInstanceOf[RouterPort]
+        val router = VirtualTopologyActor.everything(port.deviceID)
+                        .asInstanceOf[SimRouter]
         drainProbes()
         (router, port)
     }
-
 }
