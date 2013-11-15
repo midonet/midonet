@@ -337,14 +337,14 @@ class VlanBridgeSimulationTestCase extends SimulationHelper
         // Request ports for the first time so that we trigger associated
         // flow invalidations now and they don't impact expects during the tests
         val vta = VirtualTopologyActor.getRef(actors())
-        ask(vta, PortRequest(trunk1Id, update = false))
-        ask(vta, PortRequest(trunk2Id, update = false))
-        ask(vta, PortRequest(intVlanPort1Id, update = false))
-        ask(vta, PortRequest(intVlanPort2Id, update = false))
-        ask(vta, PortRequest(br1IntPort.getId, update = false))
-        ask(vta, PortRequest(br2IntPort.getId, update = false))
-        ask(vta, BridgeRequest(br1.getId, update = false))
-        ask(vta, BridgeRequest(br2.getId, update = false))
+        ask(vta, PortRequest(trunk1Id))
+        ask(vta, PortRequest(trunk2Id))
+        ask(vta, PortRequest(intVlanPort1Id))
+        ask(vta, PortRequest(intVlanPort2Id))
+        ask(vta, PortRequest(br1IntPort.getId))
+        ask(vta, PortRequest(br2IntPort.getId))
+        ask(vta, BridgeRequest(br1.getId))
+        ask(vta, BridgeRequest(br2.getId))
 
         drainProbes()
     }

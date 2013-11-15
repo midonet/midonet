@@ -21,7 +21,7 @@ import akka.util.Timeout
 import com.yammer.metrics.core.Clock
 
 import org.midonet.cache.Cache
-import org.midonet.cluster.{DataClient, client}
+import org.midonet.cluster.DataClient
 import org.midonet.midolman.DeduplicationActor._
 import org.midonet.midolman.FlowController.AddWildcardFlow
 import org.midonet.midolman.FlowController.FlowAdded
@@ -32,8 +32,6 @@ import org.midonet.midolman.topology.FlowTagger
 import org.midonet.midolman.topology.VirtualToPhysicalMapper
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.
     PortSetForTunnelKeyRequest
-import org.midonet.midolman.topology.VirtualTopologyActor
-import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 import org.midonet.midolman.topology.rcu.PortSet
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode
@@ -436,11 +434,7 @@ class PacketWorkflow(
                 // simulate generated packet
                 val wcMatch = WildcardMatch.fromEthernetPacket(packet.getPacket)
                 prepareCoordinator(wcMatch).simulate()
-        }) recover {
-            case ex =>
-                log.error(ex, "Simulation failed: {}", ex)
-                ErrorDrop
-        } flatMap {
+        }) flatMap {
             case AddVirtualWildcardFlow(flow, callbacks, tags) =>
                 log.debug("Simulation phase returned: AddVirtualWildcardFlow")
                 addVirtualWildcardFlow(flow, callbacks, tags)
@@ -505,9 +499,8 @@ class PacketWorkflow(
         }
 
         def payloadAs[T](pkt: IPacket)(implicit manifest: Manifest[T]): Option[T] = {
-            val clazz = manifest.erasure.asInstanceOf[Class[T]]
             val payload = pkt.getPayload
-            if (clazz == payload.getClass)
+            if (manifest.erasure == payload.getClass)
                 Some(payload.asInstanceOf[T])
             else
                 None
@@ -517,16 +510,15 @@ class PacketWorkflow(
             return Promise.successful(false)
 
         val eth = packet.getPacket
-        payloadAs[IPv4](eth) flatMap {
-            payloadAs[UDP](_) flatMap {
-                payloadAs[DHCP](_) flatMap {
-                    case dhcp if dhcp.getOpCode == DHCP.OPCODE_REQUEST =>
-                        Some(new DhcpImpl(dataClient, inPortId, dhcp,
-                             eth.getSourceMACAddress, cookie).handleDHCP)
-                    case _ => None
-                }
-            }
-        } getOrElse { Promise.successful(false) }
+        (for {
+            ip4 <- payloadAs[IPv4](eth)
+            udp <- payloadAs[UDP](ip4)
+            dhcp <- payloadAs[DHCP](udp)
+            if dhcp.getOpCode == DHCP.OPCODE_REQUEST
+        } yield {
+            new DhcpImpl(dataClient, inPortId, dhcp, eth.getSourceMACAddress,
+                cookie).handleDHCP
+        }) getOrElse { Promise.successful(false) }
     }
 
     private def sendPacket(origActions: List[FlowAction[_]]): Future[Boolean] = {

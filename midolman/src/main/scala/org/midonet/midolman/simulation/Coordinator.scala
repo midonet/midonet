@@ -25,6 +25,7 @@ import org.midonet.packets.{Ethernet, ICMP, IPv4, IPv4Addr, IPv6Addr, TCP, UDP}
 import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPort
 import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPortSet
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
+import org.midonet.util.concurrent.FutureEx
 import org.midonet.midolman.simulation.Icmp.IPv4Icmp._
 
 object Coordinator {
@@ -131,7 +132,6 @@ class Coordinator(var origMatch: WildcardMatch,
 
     // Used to detect loops: devices simulated (with duplicates).
     private var numDevicesSimulated = 0
-    //private val devicesSimulated = mutable.Map[UUID, Int]()
     implicit private val pktContext = new PacketContext(cookie, origEthernetPkt,
          expiry, connectionCache, traceMessageCache, traceIndexCache,
          generatedPacketEgressPort.isDefined, parentCookie, origMatch)
@@ -150,8 +150,8 @@ class Coordinator(var origMatch: WildcardMatch,
         false
     }
 
-    private def dropFlow(temporary: Boolean, withTags: Boolean = false):
-            SimulationResult = {
+    private def dropFlow(temporary: Boolean, withTags: Boolean = false)
+    : SimulationResult = {
         // If the packet is from the datapath, install a temporary Drop flow.
         // Note: a flow with no actions drops matching packets.
         pktContext.freeze()
@@ -170,7 +170,7 @@ class Coordinator(var origMatch: WildcardMatch,
                         if (withTags) pktContext.getFlowTags else Set.empty)
 
             case None => // Internally-generated packet. Do nothing.
-                pktContext.getFlowRemovedCallbacks foreach { cb => cb.call() }
+                pktContext.getFlowRemovedCallbacks foreach { _.call() }
                 NoOp
         }
     }
@@ -201,11 +201,13 @@ class Coordinator(var origMatch: WildcardMatch,
      * When the future returned by this method completes all the actions
      * resulting from the simulation (install flow and/or execute packet)
      * have been completed.
+     *
+     * The resulting future is never in a failed state.
      */
     def simulate(): Future[SimulationResult] = {
         log.debug("Simulate a packet {}", origEthernetPkt)
 
-        generatedPacketEgressPort match {
+        val simf: Future[SimulationResult] = generatedPacketEgressPort match {
             case None => // This is a packet from the datapath
                 origMatch.getInputPortUUID match {
                     case null =>
@@ -226,10 +228,10 @@ class Coordinator(var origMatch: WildcardMatch,
                                 case IPFragmentType.None => simRes
                                 case _ =>
                                     log.debug("Handling fragmented packet")
-                                    simRes.recover {
-                                        case e => ErrorDrop
-                                    } flatMap {
+                                    simRes flatMap {
                                         sr => handleFragmentation(inPortId, sr)
+                                    } recover { case _ =>
+                                        ErrorDrop
                                     }
                             }
                             case _ => simRes
@@ -249,6 +251,9 @@ class Coordinator(var origMatch: WildcardMatch,
                         dropFlow(temporary = true)
                 }
         }
+        simf recover { case _ =>
+            dropFlow(temporary = true)
+        }
     }
 
     /**
@@ -260,8 +265,6 @@ class Coordinator(var origMatch: WildcardMatch,
     private def handleFragmentation(inPort: UUID,
                                     simRes: Future[SimulationResult])
     : Future[SimulationResult] = simRes map {
-
-        case ErrorDrop => ErrorDrop
         case sr if pktContext.wcmatch.highestLayerSeen() < 4 =>
             log.debug("Fragmented packet, L4 fields untouched: execute")
             sr
@@ -327,42 +330,25 @@ class Coordinator(var origMatch: WildcardMatch,
         DeduplicationActor.getRef() ! EmitGeneratedPacket(inPort, eth, cookie)
     }
 
-
-    private def packetIngressesDevice(port: Port[_]):
-    Future[SimulationResult] =
+    private def packetIngressesDevice(port: Port[_])
+    : Future[SimulationResult] =
         (port match {
-            case _: BridgePort =>
-                expiringAsk(BridgeRequest(port.deviceID, update = false), expiry)
-            case _: RouterPort =>
-                expiringAsk(RouterRequest(port.deviceID, update = false), expiry)
-            case _ =>
-                log.error("Port {} belongs to device {} which is neither a " +
-                          "bridge, vlan-bridge, or router!", port, port.deviceID)
-                return dropFlow(temporary = true)
-        }) map {Option(_)} recoverWith {
-            case ex =>
-                log.warning("Failed to get device: {} -- {}", port.deviceID, ex)
-                Promise.successful(None)
-        } flatMap {
-            case None =>
-                pktContext.traceMessage(port.deviceID, "Couldn't get device")
-                dropFlow(temporary = true)
-            case Some(deviceReply: Device) =>
-                numDevicesSimulated += 1
-                //devicesSimulated.put(port.deviceID, numDevicesSimulated)
-                log.debug("Simulating packet with match {}, device {}",
-                    pktContext.wcmatch, port.deviceID)
-                pktContext.traceMessage(port.deviceID, "Entering device")
-                handleActionFuture(deviceReply.process(pktContext))
-            case Some(_) =>
-                log.error("VirtualTopologyManager didn't return a device!")
-                pktContext.traceMessage(port.deviceID, "ERROR Not a device")
-                dropFlow(temporary = true)
+            case _: BridgePort => expiringAsk(
+                BridgeRequest(port.deviceID), log, expiry)
+            case _: RouterPort => expiringAsk(
+                RouterRequest(port.deviceID), log, expiry)
+        }) flatMap { case deviceReply =>
+            numDevicesSimulated += 1
+            log.debug("Simulating packet with match {}, device {}",
+                pktContext.wcmatch, port.deviceID)
+            pktContext.traceMessage(port.deviceID, "Entering device")
+            deviceReply.process(pktContext) flatMap { handleAction }
         }
 
     private def mergeSimulationResults(firstAction: SimulationResult,
                                        secondAction: SimulationResult,
-                                       firstOrigMatch: WildcardMatch) : SimulationResult = {
+                                       firstOrigMatch: WildcardMatch)
+    : SimulationResult = {
         (firstAction, secondAction) match {
             case (SendPacket(acts1), SendPacket(acts2)) =>
                 SendPacket(acts1 ++ acts2)
@@ -387,17 +373,6 @@ class Coordinator(var origMatch: WildcardMatch,
         }
     }
 
-    /** executes sequentially the function f on the list l */
-    private def execSeq[A,B](l: Seq[A])(f: A => Future[B]): Future[Seq[B]] = {
-        // cannot be made tail-recursive because of future chaining
-        def recurse(list: Seq[A], res: ListBuffer[B]): Future[Seq[B]] =
-            list match {
-                case Nil => Promise.successful(res.toList)
-                case h::t => f(h) flatMap { act => recurse(t, res += act) }
-            }
-        recurse(l, ListBuffer[B]())
-    }
-
     private def handleAction(action: Action): Future[SimulationResult] = {
         log.info("Received action: {}", action)
         action match {
@@ -420,7 +395,7 @@ class Coordinator(var origMatch: WildcardMatch,
                 }
 
             case ForkAction(acts) =>
-                val results = execSeq(acts) {
+                val results = FutureEx.sequence(acts) {
                     (act: Coordinator.Action) => {
                         // Our handler for each action consists on evaluating
                         // the Coordinator action and pairing it with the
@@ -460,15 +435,7 @@ class Coordinator(var origMatch: WildcardMatch,
 
             case ErrorDropAction =>
                 pktContext.traceMessage(null, "Encountered error")
-                pktContext.freeze()
-                cookie match {
-                    case None => // Do nothing.
-                        pktContext.getFlowRemovedCallbacks foreach { _.call() }
-                        NoOp
-                    case Some(_) =>
-                        // Drop the flow temporarily
-                        dropFlow(temporary = true)
-                }
+                dropFlow(temporary = true)
 
             case DropAction =>
                 pktContext.traceMessage(null, "Dropping flow")
@@ -514,25 +481,15 @@ class Coordinator(var origMatch: WildcardMatch,
         } // end action match
     }
 
-    private def handleActionFuture(actionF: Future[Action]) =
-        actionF recover {
-            case e =>
-                log.error(e, "Error instead of Action - {}", e)
-                ErrorDropAction
-        } flatMap { handleAction(_) }
-
     private def packetIngressesPort(portID: UUID, getPortGroups: Boolean)
     : Future[SimulationResult] = {
-
         // Avoid loops - simulate at most X devices.
         if (numDevicesSimulated >= MAX_DEVICES_TRAVERSED) {
             return dropFlow(temporary = true)
         }
 
         // Get the RCU port object and start simulation.
-        fetchPort(portID) flatMap {
-            case null =>
-                dropFlow(temporary = true)
+        expiringAsk(PortRequest(portID), log) flatMap {
             case p if !p.adminStateUp =>
                 processAdminStateDown(p, isIngress = true)
             case p =>
@@ -554,34 +511,21 @@ class Coordinator(var origMatch: WildcardMatch,
                         Future[SimulationResult] = {
         if (filterID == null)
             return thunk(port)
-        val chainFuture = expiringAsk(ChainRequest(filterID, update = false), expiry)
-        chainFuture map {Option(_)} recoverWith {
-            case ex =>
-                log.warning("Failed to get chain: {} - {}", filterID, ex)
-                Promise.successful(None)
-        } flatMap {
-            case None =>
-                dropFlow(temporary = true)
-            case Some(c) => c match {
-                case chain: Chain =>
-                    // add ChainID for flow invalidation
-                    pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(filterID))
-                    pktContext.addFlowTag(
-                        FlowTagger.invalidateFlowsByDeviceFilter(port.id, filterID))
-                    val result = Chain.apply(chain, pktContext,
-                        pktContext.wcmatch, port.id, true)
-                    result.action match {
-                        case RuleResult.Action.ACCEPT =>
-                            thunk(port)
-                        case RuleResult.Action.DROP | RuleResult.Action.REJECT =>
-                            dropFlow(temporary = false, withTags = true)
-                        case other =>
-                            log.error("Port filter {} returned {} which was " +
-                                "not ACCEPT, DROP or REJECT.", filterID, other)
-                            dropFlow(temporary = true)
-                    }
-                case _ =>
-                    log.error("VirtualTopologyActor didn't return a chain!")
+        expiringAsk(ChainRequest(filterID), log, expiry) flatMap { chain =>
+            // add ChainID for flow invalidation
+            pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(filterID))
+            pktContext.addFlowTag(
+                FlowTagger.invalidateFlowsByDeviceFilter(port.id, filterID))
+            val result = Chain.apply(chain, pktContext,
+                pktContext.wcmatch, port.id, true)
+            result.action match {
+                case RuleResult.Action.ACCEPT =>
+                    thunk(port)
+                case RuleResult.Action.DROP | RuleResult.Action.REJECT =>
+                    dropFlow(temporary = false, withTags = true)
+                case other =>
+                    log.error("Port filter {} returned {} which was " +
+                            "not ACCEPT, DROP or REJECT.", filterID, other)
                     dropFlow(temporary = true)
             }
         }
@@ -592,10 +536,8 @@ class Coordinator(var origMatch: WildcardMatch,
      * for output-ing to PortSets.
      * @param portID
      */
-    private def packetEgressesPort(portID: UUID): Future[SimulationResult] = {
-        fetchPort(portID) flatMap {
-            case null =>
-                dropFlow(temporary = true)
+    private def packetEgressesPort(portID: UUID): Future[SimulationResult] =
+        expiringAsk(PortRequest(portID), log) flatMap {
             case port if !port.adminStateUp =>
                 processAdminStateDown(port, isIngress = false)
             case port =>
@@ -613,7 +555,6 @@ class Coordinator(var origMatch: WildcardMatch,
                         dropFlow(temporary = true)
                 })
         }
-    }
 
     /**
      * Complete the simulation by emitting the packet from the specified
@@ -682,35 +623,25 @@ class Coordinator(var origMatch: WildcardMatch,
         }
     }
 
-    private[this] def processAdminStateDown(port: Port[_],
-                                            isIngress: Boolean) = {
+    private[this] def processAdminStateDown(port: Port[_], isIngress: Boolean)
+    : SimulationResult = {
         port match {
             case p: RouterPort if isIngress =>
                 sendUnreachableProhibitedIcmp(p,
                     pktContext.wcmatch, pktContext.getFrame)
             case p: RouterPort if pktContext.getInPortId != null =>
-                fetchPort(pktContext.getInPortId) map {
-                    case p: RouterPort =>
-                        sendUnreachableProhibitedIcmp(p,
-                            pktContext.wcmatch, pktContext.getFrame)
-                    case _ =>
-                }
+                expiringAsk(PortRequest(pktContext.getInPortId),
+                    log, expiry) map {
+                        case p: RouterPort =>
+                            sendUnreachableProhibitedIcmp(p,
+                                pktContext.wcmatch, pktContext.getFrame)
+                        case _ =>
+                    }
             case _ =>
         }
 
         dropFlow(temporary = false)
     }
-
-    private[this] def fetchPort(portId: UUID): Future[Port[_]] =
-        expiringAsk(PortRequest(portId, update = false), expiry)
-        .mapTo[Port[_]] recover {
-            case ex: ClassCastException =>
-                log.error("VirtualTopologyManager didn't return a port!")
-                null
-            case ex =>
-                log.warning("Failed to get port: {} - {}", portId, ex)
-                null
-        }
 
     private def installConnectionCacheEntry(outPortID: UUID,
                                             flowMatch: WildcardMatch,

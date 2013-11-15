@@ -4,52 +4,95 @@
 package org.midonet.midolman.topology
 
 import collection.JavaConverters._
-import collection.immutable
 import collection.mutable
+import compat.Platform
+
+import java.util.concurrent.TimeoutException
 import java.util.UUID
 
 import akka.actor._
+import akka.dispatch.{Promise, Future}
+import akka.event.LoggingAdapter
 import akka.pattern.ask
 import akka.util.duration._
+
 import com.google.inject.Inject
 
 import org.midonet.cluster.Client
 import org.midonet.cluster.client.Port
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.logging.ActorLogWithoutPath
+import org.midonet.midolman.logging.{SimulationAwareBusLogging, ActorLogWithoutPath}
 import org.midonet.midolman.rules.Condition
-import org.midonet.midolman.simulation.{Bridge, Chain, Router}
+import org.midonet.midolman.simulation.{PacketContext, Bridge, Chain, Router}
 import org.midonet.midolman.{DeduplicationActor, FlowController, Referenceable}
-import akka.dispatch.{Promise, Future, ExecutionContext}
-import compat.Platform
-import java.util.concurrent.TimeoutException
 
 object VirtualTopologyActor extends Referenceable {
     override val Name: String = "VirtualTopologyActor"
+
+    type ConditionList = Seq[Condition]
 
     /*
      * VirtualTopologyActor's clients use these messages to request the most
      * recent state of a device and, optionally, notifications when the state
      * changes.
      */
-    sealed trait DeviceRequest {
-        def id: UUID
-        def update: Boolean
+    sealed trait DeviceRequest[D] {
+        val id: UUID
+        val update: Boolean
+        protected[VirtualTopologyActor] val devManifest: Manifest[D]
+        protected[VirtualTopologyActor]
+        def createManager(client: Client, config: MidolmanConfig): Actor
     }
 
+    case class PortRequest(id: UUID, update: Boolean = false)
+        extends DeviceRequest[Port[_]] {
+        protected[VirtualTopologyActor] val devManifest = manifest[Port[_]]
 
-    case class PortRequest(id: UUID, update: Boolean) extends DeviceRequest
+        protected[VirtualTopologyActor]
+        def createManager(client: Client, config: MidolmanConfig) =
+            new PortManager(id, client)
+    }
 
-    case class BridgeRequest(id: UUID, update: Boolean) extends DeviceRequest
+    case class BridgeRequest(id: UUID, update: Boolean = false)
+        extends DeviceRequest[Bridge] {
+        protected[VirtualTopologyActor] val devManifest = manifest[Bridge]
 
-    case class RouterRequest(id: UUID, update: Boolean) extends DeviceRequest
+        protected[VirtualTopologyActor]
+        def createManager(client: Client, config: MidolmanConfig) =
+            new BridgeManager(id, client, config)
+    }
 
-    case class ChainRequest(id: UUID, update: Boolean) extends DeviceRequest
+    case class RouterRequest(id: UUID, update: Boolean = false)
+        extends DeviceRequest[Router] {
+        protected[VirtualTopologyActor] val devManifest = manifest[Router]
 
-    case class ConditionListRequest(id: UUID, update: Boolean) extends DeviceRequest
+        protected[VirtualTopologyActor]
+        def createManager(client: Client, config: MidolmanConfig) =
+            new RouterManager(id, client, config)
+    }
 
-    sealed trait Unsubscribe
+    case class ChainRequest(id: UUID, update: Boolean = false)
+        extends DeviceRequest[Chain] {
+        protected[VirtualTopologyActor]  val devManifest = manifest[Chain]
+
+        protected[VirtualTopologyActor]
+        def createManager(client: Client, config: MidolmanConfig) =
+            new ChainManager(id, client)
+    }
+
+    case class ConditionListRequest(id: UUID, update: Boolean = false)
+        extends DeviceRequest[ConditionList] {
+        protected[VirtualTopologyActor] val devManifest = manifest[ConditionList]
+
+        protected[VirtualTopologyActor]
+        def createManager(client: Client, config: MidolmanConfig) =
+            new TraceConditionsManager(id, client)
+    }
+
+    sealed trait Unsubscribe {
+        val id: UUID
+    }
 
     case class BridgeUnsubscribe(id: UUID) extends Unsubscribe
 
@@ -61,31 +104,49 @@ object VirtualTopologyActor extends Referenceable {
 
     case class RouterUnsubscribe(id: UUID) extends Unsubscribe
 
-    case class Everything(idToBridge: immutable.Map[UUID, Bridge],
-                          idToChain: immutable.Map[UUID, Chain],
-                          idToPort: immutable.Map[UUID, Port[_]],
-                          idToRouter: immutable.Map[UUID, Router],
-                          idToConditionList:
-                              immutable.Map[UUID, immutable.Seq[Condition]])
-
     // This variable should only be updated by the singleton
     // VirtualTopologyInstance. Also, we strongly recommend not accessing
     // it directly. Call VirtualTopologyActor.expiringAsk instead - it
     // first checks the contents of the volatile and only if the requested
     // device is not found, does it perform an 'ask' on the VTA instance.
     @volatile
-    var everything: Everything = null
+    var everything: Map[UUID, Any] = _
 
     // WARNING!! This code is meant to be called from outside the actor.
     // it should only access the volatile variable 'everything'
-    def expiringAsk(request: DeviceRequest, expiry: Long = 0L)
-                   (implicit ec: ExecutionContext,
-                    system: ActorSystem): Future[Any] = {
+    def expiringAsk[D](request: DeviceRequest[D])
+                      (implicit system: ActorSystem) =
+        doExpiringAsk(request, 0L, null, null)(null, system)
 
-        def requestFuture(timeleft: Long): Future[Any] =
-            VirtualTopologyActor
-                .getRef(system).ask(request)(timeleft milliseconds)
+    def expiringAsk[D](request: DeviceRequest[D], expiry: Long)
+                      (implicit system: ActorSystem) =
+        doExpiringAsk(request, expiry, null, null)(null, system)
 
+    def expiringAsk[D](request: DeviceRequest[D],
+                       log: LoggingAdapter)
+                      (implicit system: ActorSystem) =
+        doExpiringAsk(request, 0L, log, null)(null, system)
+
+    def expiringAsk[D](request: DeviceRequest[D],
+                       log: LoggingAdapter,
+                       expiry: Long)
+                      (implicit system: ActorSystem) =
+        doExpiringAsk(request, expiry, log, null)(null, system)
+
+    def expiringAsk[D](request: DeviceRequest[D],
+                       simLog: SimulationAwareBusLogging,
+                       expiry: Long = 0L)
+                      (implicit system: ActorSystem,
+                                pktContext: PacketContext) =
+        doExpiringAsk(request, expiry, null, simLog)(pktContext, system)
+
+    private[this] def doExpiringAsk[D](request: DeviceRequest[D],
+                                       expiry: Long = 0L,
+                                       log: LoggingAdapter,
+                                       simLog: SimulationAwareBusLogging)
+                                      (implicit pktContext: PacketContext,
+                                                system: ActorSystem)
+    : Future[D] = {
         val timeLeft =
             if (expiry == 0L) 3000L else expiry - Platform.currentTime
 
@@ -94,33 +155,43 @@ object VirtualTopologyActor extends Referenceable {
 
         val e = everything
         if (null == e || request.update)
-            return requestFuture(timeLeft)
+            return requestFuture(request, timeLeft, log, simLog)
 
         // Try using the cache
-        (request match {
-            case r: BridgeRequest => e.idToBridge
-            case r: ChainRequest => e.idToChain
-            case r: ConditionListRequest => e.idToConditionList
-            case r: PortRequest => e.idToPort
-            case r: RouterRequest => e.idToRouter
-        }).get(request.id).map {
-            Promise.successful(_) // return what's in the cache
-        }.getOrElse(requestFuture(timeLeft)) // ask for device
-
+        e.get(request.id) match {
+            case Some(d) => Promise.successful(d.asInstanceOf[D])
+            case None => requestFuture(request, timeLeft, log, simLog)
+        }
     }
+
+    private[this] def requestFuture[D](request: DeviceRequest[D],
+                                       timeLeft: Long,
+                                       log: LoggingAdapter,
+                                       simLog: SimulationAwareBusLogging)
+                                      (implicit pktContext: PacketContext,
+                                                system: ActorSystem) =
+        VirtualTopologyActor.getRef(system)
+            .ask(request)(timeLeft milliseconds)
+            .mapTo[D](request.devManifest) andThen {
+                case Left(ex: ClassCastException) =>
+                    if (log != null)
+                        log.error("VirtualTopologyManager didn't return a {}!",
+                                   manifest.erasure.getSimpleName)
+                    else if (simLog != null)
+                        simLog.error("VirtualTopologyManager didn't return a {}!",
+                                     manifest.erasure.getSimpleName)
+                case Left(ex) =>
+                    if (log != null)
+                        log.warning("Failed to get {}: {} - {}",
+                                manifest.erasure.getSimpleName, request.id, ex)
+                    else if (simLog != null)
+                        simLog.warning("Failed to get {}: {} - {}",
+                                manifest.erasure.getSimpleName, request.id, ex)
+            }
 }
 
 class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
     import VirtualTopologyActor._
-
-    private var idToBridge = immutable.Map[UUID, Bridge]()
-    private var idToChain = immutable.Map[UUID, Chain]()
-    private var idToPort = immutable.Map[UUID, Port[_]]()
-    private var idToRouter = immutable.Map[UUID, Router]()
-    private var traceConditions = immutable.Seq[Condition]()
-    private var idToTraceConditions =
-                        immutable.Map[UUID, immutable.Seq[Condition]](
-                            TraceConditionsManager.uuid -> traceConditions)
 
     // TODO(pino): unload devices with no subscribers that haven't been used
     // TODO:       in a while.
@@ -139,14 +210,14 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
 
     override def preStart() {
         super.preStart()
-        everything = null
+        everything = Map[UUID, Any]()
     }
 
-    private def manageDevice(id: UUID, ctr: UUID => Actor): Unit = {
+    private def manageDevice(id: UUID, actor: => Actor): Unit = {
         if (!managed(id)) {
             log.info("Build a manager for device {}", id)
 
-            val props = Props(ctr(id)).withDispatcher(context.dispatcher.id)
+            val props = Props(actor).withDispatcher(context.dispatcher.id)
             context.actorOf(props)
             managed.add(id)
             idToUnansweredClients.put(id, mutable.Set[ActorRef]())
@@ -154,23 +225,23 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
         }
     }
 
-    private def deviceRequested(id: UUID,
-                                idToDevice: immutable.Map[UUID, Any],
-                                update: Boolean) {
-        if (idToDevice.contains(id)) {
-            val dev = idToDevice(id)
-            if (dev == null)
-                log.warning("request for device with id {} returned null", id)
-            sender.tell(dev)
-        } else {
-            log.debug("Adding requester to unanswered clients")
-            idToUnansweredClients(id).add(sender)
+    private def deviceRequested(req: DeviceRequest[_]) {
+        everything.get(req.id) match {
+            case Some(dev) => sender.tell(dev)
+            case None =>
+                log.debug("Adding requester to unanswered clients")
+                idToUnansweredClients(req.id).add(sender)
         }
-        if (update) {
+
+        if (req.update) {
             log.debug("Adding requester {} to subscribed clients for {}",
-                      sender, id)
-            idToSubscribers(id).add(sender)
+                      sender, req.id)
+            idToSubscribers(req.id).add(sender)
         }
+    }
+
+    private def updated[D <: {val id: UUID}](device: D) {
+        updated(device.id, device)
     }
 
     private def updated(id: UUID, device: Any) {
@@ -188,8 +259,7 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
             }
         }
         idToUnansweredClients(id).clear()
-        everything = Everything(idToBridge, idToChain, idToPort, idToRouter, 
-                                idToTraceConditions)
+        everything = everything.updated(id, device)
     }
 
     private def unsubscribe(id: UUID, actor: ActorRef): Unit = {
@@ -202,55 +272,27 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
     }
 
     def receive = {
-
-        case BridgeRequest(id, update) =>
-            log.debug("Bridge {} requested with update={}", id, update)
-            manageDevice(id, (x: UUID) => new BridgeManager(x, clusterClient,
-                                                            config))
-            deviceRequested(id, idToBridge, update)
-        case ConditionListRequest(id, update) =>
-            log.debug("ConditionList {} requested with update={}", id, update)
-            manageDevice(id, (x: UUID) =>
-                                 new TraceConditionsManager(x, clusterClient))
-            deviceRequested(id, idToTraceConditions, update)
-        case ChainRequest(id, update) =>
-            log.debug("Chain {} requested with update={}", id, update)
-            manageDevice(id, (x: UUID) => new ChainManager(x, clusterClient))
-            deviceRequested(id, idToChain, update)
-        case PortRequest(id, update) =>
-            log.debug("Port {} requested with update={}", id, update)
-            manageDevice(id, (x: UUID) => new PortManager(x, clusterClient))
-            deviceRequested(id, idToPort, update)
-        case RouterRequest(id, update) =>
-            log.debug("Router {} requested with update={}", id, update)
-            manageDevice(id,
-                (x: UUID) => new RouterManager(x, clusterClient, config))
-            deviceRequested(id, idToRouter, update)
-        case BridgeUnsubscribe(id) => unsubscribe(id, sender)
-        case ChainUnsubscribe(id) => unsubscribe(id, sender)
-        case PortUnsubscribe(id) => unsubscribe(id, sender)
-        case RouterUnsubscribe(id) => unsubscribe(id, sender)
+        case r: DeviceRequest[_] =>
+            log.debug("{} {} requested with update={}",
+                r.devManifest.erasure.getSimpleName, r.id, r.update)
+            manageDevice(r.id, r.createManager(clusterClient, config))
+            deviceRequested(r)
+        case u: Unsubscribe => unsubscribe(u.id, sender)
         case bridge: Bridge =>
             log.debug("Received a Bridge for {}", bridge.id)
-            idToBridge = idToBridge.+((bridge.id, bridge))
-            updated(bridge.id, bridge)
+            updated(bridge)
         case chain: Chain =>
             log.debug("Received a Chain for {}", chain.id)
-            idToChain = idToChain.+((chain.id, chain))
             updated(chain.id, chain)
         case port: Port[_] =>
             log.debug("Received a Port for {}", port.id)
-            idToPort = idToPort.+((port.id, port))
-            updated(port.id, port)
+            updated(port)
         case router: Router =>
             log.debug("Received a Router for {}", router.id)
-            idToRouter = idToRouter.+((router.id, router))
-            updated(router.id, router)
+            updated(router)
         case TraceConditionsManager.TriggerUpdate(conditions) =>
             log.debug("TraceConditions updated to {}", conditions)
-            traceConditions = conditions.asScala.toList
-            idToTraceConditions = immutable.Map[UUID, immutable.Seq[Condition]](
-                TraceConditionsManager.uuid -> traceConditions)
+            val traceConditions = conditions.asScala.toSeq
             updated(TraceConditionsManager.uuid, traceConditions)
             // We know the DDA should always get an update to the trace
             // conditions.  For some reason the ChainRequest(update=true)

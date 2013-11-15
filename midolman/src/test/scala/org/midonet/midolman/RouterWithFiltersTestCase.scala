@@ -36,7 +36,7 @@ class RouterWithFiltersTestCase extends VMsBehindRouterFixture
         newLiteralRuleOnChain(chain, 1, forwardCond, RuleResult.Action.ACCEPT)
         clusterDataClient().routersUpdate(router)
 
-        val resp = vtaProbe().testActor ? ChainRequest(chain.getId, update = false)
+        val resp = vtaProbe().testActor ? ChainRequest(chain.getId)
         Await.result(resp, 3 second)
 
         feedArpCache(vmPortNames(1),

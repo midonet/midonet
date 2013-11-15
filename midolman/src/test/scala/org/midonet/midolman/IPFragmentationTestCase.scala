@@ -60,7 +60,7 @@ class IPFragmentationTestCase extends MidolmanTestCase
         r = newLiteralRuleOnChain(chain, 1, tcpCond, RuleResult.Action.ACCEPT)
 
         // Wait until the rule change is picked up
-        val chainReq = ChainRequest(chain.getId, update = false)
+        val chainReq = ChainRequest(chain.getId)
         val reqFuture = vtaProbe().testActor.ask(chainReq)(new Timeout(3 seconds))
         Await.result(reqFuture, 3 second)
         fishForRequestOfType[InvalidateFlowsByTag](flowProbe())

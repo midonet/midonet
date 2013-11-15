@@ -81,7 +81,7 @@ class Bridge(val id: UUID,
 
     import Coordinator._
 
-    var log = LoggerFactory.getSimulationAwareLog(this.getClass)(actorSystem.eventStream)
+    val log = LoggerFactory.getSimulationAwareLog(this.getClass)(actorSystem.eventStream)
 
     /*
      * Avoid generating ToPortXActions directly in the processing methods
@@ -255,7 +255,7 @@ class Bridge(val id: UUID,
         }
 
         val vlanInFrame: Option[JShort] = pktCtx.getFrame.getVlanIDs match {
-            case l: java.util.List[JShort] if !l.isEmpty => Some(l.get(0))
+            case l: java.util.List[_] if !l.isEmpty => Some(l.get(0))
             case _ => None
         }
 
@@ -356,7 +356,7 @@ class Bridge(val id: UUID,
     private def getPort(portId: UUID, expiry: Long)(
             implicit actorSystem: ActorSystem,
             pktCtx: PacketContext): Future[BridgePort] =
-        expiringAsk(PortRequest(portId, update = false), expiry)
+        expiringAsk(PortRequest(portId), log, expiry)
             .mapTo[BridgePort]
 
     /**
@@ -478,7 +478,7 @@ class Bridge(val id: UUID,
             vlanToPort.getVlan(packetContext.getInPortId))
 
         def getVlanFromFlowMatch = packetContext.wcmatch.getVlanIds match {
-            case l: java.util.List[JShort] if !l.isEmpty => Some(l.get(0))
+            case l: java.util.List[_] if !l.isEmpty => Some(l.get(0))
             case _ => None
         }
 

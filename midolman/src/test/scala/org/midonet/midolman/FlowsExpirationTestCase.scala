@@ -86,9 +86,9 @@ class FlowsExpirationTestCase extends MidolmanTestCase
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
 
         val vta = VirtualTopologyActor.getRef(actors())
-        ask(vta, PortRequest(port1.getId, false))
-        ask(vta, PortRequest(port2.getId, false))
-        ask(vta, BridgeRequest(bridge.getId, false))
+        ask(vta, PortRequest(port1.getId))
+        ask(vta, PortRequest(port2.getId))
+        ask(vta, BridgeRequest(bridge.getId))
 
         requestOfType[LocalPortActive](portsProbe)
         requestOfType[LocalPortActive](portsProbe)

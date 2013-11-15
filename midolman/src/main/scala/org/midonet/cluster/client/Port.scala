@@ -9,7 +9,7 @@ import java.util.UUID
 
 import org.midonet.packets.{IPv4Addr, IPSubnet, MAC}
 
-trait Port[T] {
+sealed trait Port[T] {
     var id: UUID = null
     var deviceID: UUID = null
     var adminStateUp: Boolean = true
