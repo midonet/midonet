@@ -21,6 +21,7 @@ import org.midonet.packets.Ethernet
 import org.midonet.packets.util.EthBuilder
 import org.midonet.midolman.DeduplicationActor.ApplyFlow
 import org.midonet.odp.flows.FlowActionOutput
+import org.midonet.midolman.PacketWorkflow.Simulation
 
 
 @RunWith(classOf[JUnitRunner])
@@ -200,9 +201,19 @@ class DeduplicationActorTestCase extends SingleActorTestCase {
     class MockPacketHandler(val packet: Packet,
             val cookieOrEgressPort: Either[Int, UUID]) extends PacketHandler {
 
+        override val cookieStr = "mock-cookie" + cookieOrEgressPort.toString
+        override val cookie = cookieOrEgressPort match {
+            case Left(cookie) => Some(cookie)
+            case Right(_) => None
+        }
+        override val egressPort = cookieOrEgressPort match {
+            case Left(_) => None
+            case Right(port) => Some(port)
+        }
+
         override def start() = {
             packetsSeen = packetsSeen :+ (packet, cookieOrEgressPort)
-            Promise.successful(true)
+            Promise.successful(Simulation)
         }
     }
 
