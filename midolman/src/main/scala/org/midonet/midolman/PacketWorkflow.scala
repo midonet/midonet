@@ -403,13 +403,13 @@ class PacketWorkflow(
                 // Take the outgoing filter for each port
                 // and apply it, checking for Action.ACCEPT.
                 val tags = mutable.Set[Any]()
-                applyOutboundFilters(localPorts, portSet.id, wMatch, Some(tags),
+                applyOutboundFilters(localPorts, portSet.id, wMatch, Some(tags))
                 { portIDs =>
                     addTranslatedFlowForActions(
                         towardsLocalDpPorts(List(action), portSet.id,
                             portsForLocalPorts(portIDs), tags),
                         tags)
-                })
+                }
             }
         } recoverWith {
             case e =>
@@ -525,7 +525,7 @@ class PacketWorkflow(
         log.debug("Sending packet {} {} with action list {}",
                   cookieStr, packet, origActions)
         // Empty action list drops the packet. No need to send to DP.
-        if (null == origActions || origActions.size == 0)
+        if (null == origActions || origActions.isEmpty)
             return Promise.successful(true)
 
         val wildMatch = WildcardMatch.fromEthernetPacket(packet.getPacket)
