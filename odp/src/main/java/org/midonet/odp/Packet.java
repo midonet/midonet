@@ -165,4 +165,8 @@ public class Packet {
             ", reason=" + reason +
             '}';
     }
+
+    public static Packet fromEthernet(Ethernet eth) {
+        return new Packet().setPacket(eth);
+    }
 }
