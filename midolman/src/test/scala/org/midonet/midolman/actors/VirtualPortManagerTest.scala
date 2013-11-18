@@ -1,137 +1,136 @@
 /*
  * Copyright 2012 Midokura Europe SARL
  */
-
 package org.midonet.midolman
 
-import collection.JavaConversions.asJavaCollection
 import java.util.UUID
+import scala.collection.JavaConversions.asJavaCollection
 
 import akka.event.LoggingAdapter
 import org.junit.runner.RunWith
-import org.scalatest.BeforeAndAfter
-import org.scalatest.Suite
+import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.matchers.ShouldMatchers
-import org.scalatest.mock.EasyMockSugar
-
-import host.interfaces.InterfaceDescription
-import org.easymock.EasyMock._
 
 import org.midonet.midolman.VirtualPortManager.Controller
-import org.midonet.odp.ports.NetDevPort
+import org.midonet.midolman.host.interfaces.InterfaceDescription
+import org.midonet.odp._
+import org.midonet.odp.ports._
 
-//@RunWith(classOf[JUnitRunner])
-class VirtualPortManagerTest extends Suite
-        with BeforeAndAfter with ShouldMatchers with EasyMockSugar {
+@RunWith(classOf[JUnitRunner])
+class VirtualPortManagerTest extends Suite with FeatureSpec with ShouldMatchers {
 
-    var vportMgr: VirtualPortManager = _
-    var mockController: Controller = _
-    var vport1: UUID = _
-    var itf: InterfaceDescription = _
-    var itfList: List[InterfaceDescription] = _
-    var dpPort: NetDevPort = _
+    import VirtualPortManager.Controller
+
+    class MockController extends Controller {
+        var vportStatus = List[(NetDevPort, UUID, Boolean)]()
+        var addDp = List[String]()
+        var removeDp = List[NetDevPort]()
+        def setVportStatus(port: Port[_, _], vportId: UUID, isActive: Boolean) {
+            vportStatus =
+                (port.asInstanceOf[NetDevPort], vportId, isActive) ::vportStatus
+        }
+        def addToDatapath(interfaceName: String) {
+            addDp = interfaceName ::addDp
+        }
+        def removeFromDatapath(port: Port[_, _]) {
+            removeDp = port.asInstanceOf[NetDevPort] ::removeDp
+        }
+        def checkBlank() {
+            vportStatus.isEmpty should be(true)
+            addDp.isEmpty should be(true)
+            removeDp.isEmpty should be(true)
+        }
+    }
+
+    def getVPM() = {
+        val controller = new MockController
+        (new VirtualPortManager(controller), controller)
+    }
+
+    val ids = for (_ <- 1 to 3) yield UUID.randomUUID
+    val itfs = List("eth0", "eth1", "eth2")
+    val itfsInfo = itfs.map{ new InterfaceDescription(_) }
+    val portNo = List(1,2,3)
+    val dpPorts = itfs.zip(portNo).map {
+        case (itf, no) => new NetDevPort(itf).setPortNo(no)
+    }
+
+    val bindings = (itfs, dpPorts zip portNo, ids zip itfsInfo).zipped.toList
 
     implicit val log = SoloLogger(classOf[VirtualPortManagerTest])
 
-    before {
-        mockController = mock[Controller]
-        vportMgr = new VirtualPortManager(mockController)
-        vport1 = UUID.randomUUID()
-        itf = new InterfaceDescription("eth0")
-        itfList = List(itf)
-        dpPort = new NetDevPort("eth0")
+    feature("smoke test") {
+        scenario("does nothing when created") {
+            val (vpm, controller) = getVPM()
+            controller.checkBlank()
+        }
     }
 
-    def testDoesNothingOnCreate() {
-        replay(mockController)
-        verify(mockController)
-    }
+    feature("Notifying the VPM about a successfull dpport add request") {
 
-    def testRequestsDpPortAdd() {
-        replay(mockController)
+        val (itf, (dpport, portno), (id, _)) = bindings(0)
 
-        vportMgr.updateInterfaces(itfList)
-        verify(mockController)
+        def mappingCheck(vpm: VirtualPortManager) {
+            vpm.dpPortsInProgress.contains(itf) should be(false)
+            vpm.interfaceToDpPort.get(itf) should be(Some(dpport))
+            vpm.dpPortNumToInterface.get(portno) should be(Some(itf))
+        }
 
-        reset(mockController)
-        mockController.addToDatapath("eth0")
-        replay(mockController)
+        scenario("no bindings registered, the DPC did not added it itself") {
+            val (vpm, controller) = getVPM()
+            vpm.dpPortsInProgress = vpm.dpPortsInProgress + itf
 
-        vportMgr.updateVPortInterfaceBindings(Map(vport1 -> "eth0"))
-        verify(mockController)
-    }
+            mappingCheck(vpm.datapathPortAdded(dpport))
 
-    def testReportsVportActiveOnInterfaceUp() {
-        testRequestsDpPortAdd()
+            controller.checkBlank()
+        }
 
-        // Adding port when itf is DOWN should not result in any calls to
-        // Controller.
-        vportMgr.datapathPortAdded(dpPort)
+        scenario("no bindings registered, the DPC added it itself") {
+            val (vpm, controller) = getVPM()
+            vpm.dpPortsInProgress = vpm.dpPortsInProgress + itf
+            vpm.dpPortsWeAdded = vpm.dpPortsWeAdded + itf
 
-        // The controller is notified when the interface status goes UP.
-        reset(mockController)
-        mockController.setVportStatus(dpPort, vport1, true)
-        replay(mockController)
+            val newVpm = vpm.datapathPortAdded(dpport)
 
-        itf.setHasLink(true)
-        itf.setUp(true)
-        vportMgr.updateInterfaces(itfList)
-        verify(mockController)
-    }
+            // check mapping
+            newVpm.dpPortsInProgress.contains(itf) should be(true)
+            newVpm.dpPortsWeAdded.contains(itf) should be(false)
+            newVpm.interfaceToDpPort.get(itf) should be(Some(dpport))
+            newVpm.dpPortNumToInterface.get(portno) should be(Some(itf))
 
-    def testReportsVportActiveOnDpPortAdded() {
-        testRequestsDpPortAdd()
+            // no binding, so the dpPort should be request to be removed
+            controller.removeDp.headOption should be(Some(dpport))
+            controller.addDp.headOption should be(None)
+        }
 
-        // Set the itf to UP. The datapath hasn't been added,
-        // so the vport isn't UP yet.
-        itf.setHasLink(true)
-        itf.setUp(true)
-        vportMgr.updateInterfaces(itfList)
+        scenario("bindings present, dpport was active") {
+            val (vpm, controller) = getVPM()
 
-        // Now when the vportMgr learns that the dp port has been added
-        // it notifies that the vport is UP.
-        reset(mockController)
-        mockController.setVportStatus(dpPort, vport1, true)
-        replay(mockController)
-        vportMgr.datapathPortAdded(dpPort)
-        verify(mockController)
-    }
+            // prepare the vpm state
+            vpm.dpPortsInProgress = vpm.dpPortsInProgress + itf
+            vpm.interfaceToVport = vpm.interfaceToVport + (itf, id)
+            vpm.interfaceToStatus = vpm.interfaceToStatus + (itf -> true)
 
-    def testReportsVportInactiveOnStatusDown() {
-        testReportsVportActiveOnInterfaceUp()
+            mappingCheck(vpm.datapathPortAdded(dpport))
 
-        reset(mockController)
-        mockController.setVportStatus(dpPort, vport1, false)
-        replay(mockController)
+            // change of status notification
+            controller.removeDp.headOption should be(None)
+            controller.addDp.headOption should be(None)
+            controller.vportStatus.headOption should be(Some((dpport, id, true)))
+        }
 
-        itf.setUp(false)
-        vportMgr.updateInterfaces(itfList)
-        verify(mockController)
-    }
+        scenario("bindings present, dpport was inactive") {
+            val (vpm, controller) = getVPM()
 
-    def testUnexpectedDpPortRemoval() {
-        testReportsVportActiveOnInterfaceUp()
+            // prepare the vpm state
+            vpm.dpPortsInProgress = vpm.dpPortsInProgress + itf
+            vpm.interfaceToVport = vpm.interfaceToVport + (itf, id)
+            vpm.interfaceToStatus = vpm.interfaceToStatus + (itf -> false)
 
-        // If the dpPort is suddenly removed, the vportMgr should declare the
-        // vportId to be inactive. Since the binding still exists,
-        // it should also request that the dpPort be re-added.
-        reset(mockController)
-        mockController.setVportStatus(dpPort, vport1, false)
-        mockController.addToDatapath("eth0")
-        replay(mockController)
-        vportMgr.datapathPortRemoved("eth0")
-        verify(mockController)
-    }
+            mappingCheck(vpm.datapathPortAdded(dpport))
 
-    def testRequestsDpPortRemoval() {
-        testReportsVportActiveOnInterfaceUp()
-
-        reset(mockController)
-        mockController.removeFromDatapath(dpPort)
-        mockController.setVportStatus(dpPort, vport1, false)
-        replay(mockController)
-
-        vportMgr.updateVPortInterfaceBindings(Map())
+            controller.checkBlank()
+        }
     }
 }

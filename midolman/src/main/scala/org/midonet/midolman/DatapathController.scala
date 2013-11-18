@@ -187,21 +187,6 @@ object DatapathController extends Referenceable {
         override def update(p: GreTunnelPort) = DeleteTunnelGre(p, this.tag)
     }
 
-    /**
-     * This message requests that the DatapathController keep a temporary
-     * binding of a virtual port (port in the virtual topology) to a local
-     * datapath port. This may be used e.g. by the VPNManager to create
-     * VPN ports - VPN ports are not associated with VMs and therefore not
-     * in any host's Interface-VPort mappings.
-     *
-     * The binding will be removed when the datapath port is deleted.
-     *
-     * @param vportID the virtual port we want to bind to this internal port
-     * @param port the internal port we want to bind to
-     */
-    case class BindToInternalPort(vportID: UUID, port: InternalPort)
-    case class BindToNetDevPort(vportID: UUID, port: NetDevPort)
-
    /**
     * This message encapsulates a given port stats to the monitoring agent.
     * @param stats
@@ -222,13 +207,13 @@ object DatapathController extends Referenceable {
      * TODO this version is constantly checking for changes. It should react to
      * 'netlink' notifications instead.
      */
-    case class CheckForPortUpdates(datapathName: String)
+    case class _CheckForPortUpdates(datapathName: String)
 
     /**
      * This message is sent when the separate thread has succesfully retrieved
      * all information about the interfaces.
      */
-    case class InterfacesUpdate(interfaces: JList[InterfaceDescription])
+    case class _InterfacesUpdate(interfaces: JList[InterfaceDescription])
 
     /**
      * This message is sent when the DHCP handler needs to get information
@@ -236,14 +221,14 @@ object DatapathController extends Referenceable {
      * { interface description , list of {tunnel type} } where the
      * interface description contains various information (including MTU)
      */
-    case class LocalTunnelInterfaceInfo()
+    case object LocalTunnelInterfaceInfo
 
     /**
      * This message is sent when the LocalTunnelInterfaceInfo handler
      * completes the interface scan and pass the result as well as
      * original sender info
      */
-    private case class LocalInterfaceTunnelInfoFinal(caller : ActorRef,
+    private case class _LocalTunnelInterfaceInfoFinal(caller : ActorRef,
                                              interfaces: JList[InterfaceDescription])
 
 }
@@ -452,7 +437,7 @@ class DatapathController() extends Actor with ActorLogging with
             // schedule port requests.
             log.info("Starting to schedule the port link status updates.")
             portWatcher = system.scheduler.schedule(1 second, 2 seconds,
-                self, CheckForPortUpdates(datapath.getName))
+                self, _CheckForPortUpdates(datapath.getName))
         }
         initializer ! InitializationComplete
         log.info("Process the host's zones and vport bindings. {}", host)
@@ -573,17 +558,17 @@ class DatapathController() extends Actor with ActorLogging with
                     log.debug("Port was not found {}", portID)
             }
 
-        case CheckForPortUpdates(datapathName: String) =>
+        case _CheckForPortUpdates(datapathName: String) =>
             checkPortUpdates()
 
-        case InterfacesUpdate(interfaces: JList[InterfaceDescription]) =>
+        case _InterfacesUpdate(interfaces: JList[InterfaceDescription]) =>
             log.debug("Updating interfaces to {}", interfaces)
             dpState.updateInterfaces(interfaces)
 
-        case LocalTunnelInterfaceInfo() =>
+        case LocalTunnelInterfaceInfo =>
             getLocalInterfaceTunnelPhaseOne(sender)
 
-        case LocalInterfaceTunnelInfoFinal(caller : ActorRef,
+        case _LocalTunnelInterfaceInfoFinal(caller : ActorRef,
                 interfaces: JList[InterfaceDescription]) =>
             getLocalInterfaceTunnelInfo(caller, interfaces)
 
@@ -602,7 +587,7 @@ class DatapathController() extends Actor with ActorLogging with
             }
 
             def onSuccess(data: JList[InterfaceDescription]) {
-                self ! InterfacesUpdate(data)
+                self ! _InterfacesUpdate(data)
             }
         })
     }
@@ -786,7 +771,7 @@ class DatapathController() extends Actor with ActorLogging with
                 }
 
                 def onSuccess(data: JList[InterfaceDescription]) {
-                    self ! LocalInterfaceTunnelInfoFinal(caller, data)
+                    self ! _LocalTunnelInterfaceInfoFinal(caller, data)
                 }
             })
         }
