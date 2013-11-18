@@ -3,11 +3,12 @@
 */
 package org.midonet.midolman
 
-import scala.collection.JavaConverters._
-
 import java.util.UUID
+import scala.collection.JavaConverters._
+import scala.collection.immutable
 
 import akka.dispatch.Promise
+import akka.util.duration._
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -19,14 +20,16 @@ import org.scalatest.time.Span
 
 import org.midonet.midolman.DeduplicationActor.ApplyFlow
 import org.midonet.midolman.PacketWorkflow.Simulation
-import org.midonet.midolman.topology.VirtualTopologyActor.ConditionListRequest
-import org.midonet.midolman.topology.{TraceConditionsManager, VirtualTopologyActor}
-import org.midonet.odp.{FlowMatches, Packet, Datapath}
-import org.midonet.odp.flows.FlowActionOutput
-import org.midonet.packets.Ethernet
-import org.midonet.packets.util.PacketBuilder._
-import org.midonet.packets.util.EthBuilder
 import org.midonet.midolman.services.MessageAccumulator
+import org.midonet.midolman.topology.TraceConditionsManager
+import org.midonet.midolman.topology.VirtualTopologyActor
+import org.midonet.midolman.topology.VirtualTopologyActor.ConditionListRequest
+import org.midonet.midolman.topology.rcu.TraceConditions
+import org.midonet.odp.flows.FlowActionOutput
+import org.midonet.odp.{FlowMatches, Packet, Datapath}
+import org.midonet.packets.Ethernet
+import org.midonet.packets.util.EthBuilder
+import org.midonet.packets.util.PacketBuilder._
 
 
 @RunWith(classOf[JUnitRunner])
@@ -35,6 +38,7 @@ class DeduplicationActorTestCase extends Suite with FeatureSpec
                                  with BeforeAndAfter with MockMidolmanActors
                                  with OneInstancePerTest
                                  with MidolmanServices {
+
     var datapath: Datapath = null
     var packetsSeen = List[(Packet, Either[Int, UUID])]()
     var testableDda: TestableDDA = _
@@ -80,6 +84,12 @@ class DeduplicationActorTestCase extends Suite with FeatureSpec
             VirtualTopologyActor.messages should be ===
                     List(ConditionListRequest(TraceConditionsManager.uuid,
                                               update = true))
+
+            then("the Deduplication should be able to handle the VTA answer")
+            DeduplicationActor ! TraceConditions(immutable.Seq())
+            eventually {
+                testableDda.traceConditions = immutable.Seq()
+            }
         }
     }
 
@@ -230,7 +240,7 @@ class DeduplicationActorTestCase extends Suite with FeatureSpec
 
     class TestableDDA extends DeduplicationActor with MessageAccumulator {
         protected override val cookieTimeToLiveMillis = 300L
-        protected override val cookieExpirationCheckIntervalMillis = 100L
+        protected override val cookieExpirationCheckInterval = 100 millis
 
         def pendedPackets(cookie: Int): Option[collection.Set[Packet]] =
             cookieToPendedPackets.get(cookie)

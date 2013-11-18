@@ -2,49 +2,48 @@
 
 package org.midonet.midolman
 
-import akka.util.Duration
-import akka.dispatch.{Promise, Future}
-import akka.actor._
-import akka.event.LoggingReceive
-import collection.{immutable, mutable}
-import scala.collection.JavaConverters._
-import scala.compat.Platform
-import mutable.PriorityQueue
-import collection.mutable.{HashMap, MultiMap}
 import java.util.UUID
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.{TimeoutException, TimeUnit}
+import scala.collection.JavaConverters._
+import scala.collection.mutable.{HashMap, MultiMap, PriorityQueue}
+import scala.collection.{immutable, mutable}
+import scala.compat.Platform
+
+import akka.actor._
+import akka.dispatch.Future
+import akka.event.LoggingReceive
+import akka.util.Duration
+import akka.util.duration._
+import com.yammer.metrics.core.{Gauge, MetricsRegistry, Clock}
 import javax.annotation.Nullable
 import javax.inject.Inject
-
-import com.yammer.metrics.core.{Gauge, MetricsRegistry, Clock}
 import org.slf4j.LoggerFactory
 
 import org.midonet.cache.Cache
 import org.midonet.cluster.DataClient
 import org.midonet.midolman.datapath.ErrorHandlingCallback
+import org.midonet.midolman.guice.CacheModule.NAT_CACHE
+import org.midonet.midolman.guice.CacheModule.TRACE_INDEX
+import org.midonet.midolman.guice.CacheModule.TRACE_MESSAGES
 import org.midonet.midolman.guice.datapath.DatapathModule.SIMULATION_THROTTLING_GUARD
-import org.midonet.midolman.guice.CacheModule.{NAT_CACHE, TRACE_MESSAGES,
-                                               TRACE_INDEX}
 import org.midonet.midolman.logging.ActorLogWithoutPath
-import org.midonet.midolman.monitoring.metrics.PacketPipelineMeter
-import org.midonet.midolman.monitoring.metrics.PacketPipelineHistogram
-import org.midonet.midolman.monitoring.metrics.PacketPipelineGauge
-import org.midonet.midolman.monitoring.metrics.PacketPipelineCounter
 import org.midonet.midolman.monitoring.metrics.PacketPipelineAccumulatedTime
+import org.midonet.midolman.monitoring.metrics.PacketPipelineCounter
+import org.midonet.midolman.monitoring.metrics.PacketPipelineGauge
+import org.midonet.midolman.monitoring.metrics.PacketPipelineHistogram
+import org.midonet.midolman.monitoring.metrics.PacketPipelineMeter
 import org.midonet.midolman.rules.Condition
 import org.midonet.midolman.topology.TraceConditionsManager
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.netlink.exceptions.NetlinkException
+import org.midonet.odp.flows.FlowAction
 import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.odp.{FlowMatches, Datapath, FlowMatch, Packet}
-import org.midonet.odp.flows.FlowAction
 import org.midonet.packets.Ethernet
-import org.midonet.util.collection.RingBuffer
-import org.midonet.util.throttling.ThrottlingGuard
-import org.midonet.util.BatchCollector
-import org.midonet.midolman.PacketWorkflow.{PipelinePath, WildcardTableHit, PacketToPortSet, Simulation}
 import org.midonet.midolman.topology.rcu.TraceConditions
-
+import org.midonet.util.BatchCollector
+import org.midonet.util.throttling.ThrottlingGuard
 
 object DeduplicationActor extends Referenceable {
     override val Name = "DeduplicationActor"
@@ -64,6 +63,7 @@ object DeduplicationActor extends Referenceable {
 
     case object _ExpireCookies
 
+    case object _GetConditionListFromVta
 
     class PacketPipelineMetrics(val registry: MetricsRegistry,
                                 val throttler: ThrottlingGuard) {
@@ -147,7 +147,10 @@ object DeduplicationActor extends Referenceable {
 class DeduplicationActor extends Actor with ActorLogWithoutPath with
         UserspaceFlowActionTranslator with SuspendedPacketQueue {
 
+    import DatapathController.DatapathReady
     import DeduplicationActor._
+    import PacketWorkflow._
+    import VirtualTopologyActor.ConditionListRequest
 
     @Inject var datapathConnection: OvsDatapathConnection = null
     @Inject var clusterDataClient: DataClient = null
@@ -178,7 +181,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
         new HashMap[Int, mutable.Set[Packet]] with MultiMap[Int, Packet]
 
     protected val cookieTimeToLiveMillis  = 10000L
-    protected val cookieExpirationCheckIntervalMillis  = 5000L
+    protected val cookieExpirationCheckInterval = 5000 millis
 
     private val cookieExpirations: PriorityQueue[(FlowMatch, Long)] =
         new PriorityQueue[(FlowMatch, Long)]()(
@@ -186,32 +189,24 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
 
     var metrics: PacketPipelineMetrics = null
 
-    private sealed class GetConditionListFromVta { }
-
     override def preStart() {
         super.preStart()
         metrics = new PacketPipelineMetrics(metricsRegistry, throttler)
         // Defer this until actor start-up finishes, so that the VTA
         // will have an actor (ie, self) in 'sender' to send replies to.
-        self ! new GetConditionListFromVta
+        self ! _GetConditionListFromVta
     }
 
     override def receive = super.receive orElse LoggingReceive {
-        case _: GetConditionListFromVta =>
-            val vta = VirtualTopologyActor.getRef()
-            log.debug("Subscribing to VTA {} for ConditionListRequests.", vta)
-            vta.tell(VirtualTopologyActor.ConditionListRequest(
-                         TraceConditionsManager.uuid, true))
 
-        case DatapathController.DatapathReady(dp, state) =>
+        case DatapathReady(dp, state) =>
             if (null == datapath) {
                 datapath = dp
                 dpState = state
                 installPacketInHook()
                 log.info("Datapath hook installed")
-                val expInterval = Duration(cookieExpirationCheckIntervalMillis,
-                                           TimeUnit.MILLISECONDS)
-                context.system.scheduler.schedule(expInterval, expInterval,
+                val expInterval = cookieExpirationCheckInterval
+                system.scheduler.schedule(expInterval, expInterval,
                                                   self, _ExpireCookies)
              }
 
@@ -247,7 +242,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
 
                 // Send all pended packets with the same action list (unless
                 // the action list is empty, which is equivalent to dropping)
-                if (actions.length > 0) {
+                if (actions.nonEmpty) {
                     for (unpendedPacket <- pendedPackets) {
                         executePacket(cookie, unpendedPacket, actions)
                         metrics.pendedPackets.dec()
@@ -257,17 +252,16 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
                 }
             }
 
-            if (actions.length == 0) {
-                context.system.eventStream.publish(DiscardPacket(cookie))
+            if (actions.isEmpty) {
+                system.eventStream.publish(DiscardPacket(cookie))
             }
         }
 
         // This creates a new PacketWorkflow and
         // executes the simulation method directly.
         case EmitGeneratedPacket(egressPort, ethernet, parentCookie) =>
-            val packet = new Packet().setPacket(ethernet)
-            val packetId = scala.util.Random.nextLong()
-            startWorkflow(workflow(packet, Right(egressPort)))
+            startWorkflow(
+                workflow(Packet.fromEthernet(ethernet), Right(egressPort)))
 
         case TraceConditions(newTraceConditions) =>
             log.debug("traceConditions updated to {}", newTraceConditions)
@@ -275,7 +269,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
 
         case DeduplicationActor._ExpireCookies => {
             val now = Platform.currentTime
-            while (cookieExpirations.size > 0 && cookieExpirations.head._2 < now) {
+            while (cookieExpirations.nonEmpty && cookieExpirations.head._2 < now) {
                 val (flowMatch, _) = cookieExpirations.dequeue()
                 dpMatchToCookie.remove(flowMatch) match {
                     case Some(cookie) =>
@@ -287,10 +281,14 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
                             _ => throttler.tokenOut()
                         }
                         cookieToDpMatch.remove(cookie)
-                    case None =>
+                    case _ => // do nothing
                 }
             }
         }
+
+        case DeduplicationActor._GetConditionListFromVta =>
+            VirtualTopologyActor.getRef() !
+                ConditionListRequest(TraceConditionsManager.uuid, true)
     }
 
     protected def workflow(packet: Packet, cookieOrEgressPort: Either[Int, UUID],
@@ -309,17 +307,20 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
             case Right(path) =>
                 log.debug("Packet with {} processed.", pw.cookieStr)
                 pw.cookie match {
-                    case None => // do nothing
                     case Some(c) =>
                         val latency = (Clock.defaultClock().tick() -
                                       pw.packet.getStartTimeNanos).toInt
                         metrics.packetsProcessed.mark()
                         path match {
-                            case WildcardTableHit => metrics.wildcardTableHit(latency)
-                            case PacketToPortSet => metrics.packetToPortSet(latency)
-                            case Simulation => metrics.packetSimulated(latency)
+                            case WildcardTableHit =>
+                                metrics.wildcardTableHit(latency)
+                            case PacketToPortSet =>
+                                metrics.packetToPortSet(latency)
+                            case Simulation =>
+                                metrics.packetSimulated(latency)
                             case _ =>
                         }
+                    case _ => // do nothing
                 }
             case Left(ex) =>
                 log.warning("Exception while processing packet {} - {}, {}",
@@ -329,20 +330,19 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
     }
 
     private def handlePacket(packet: Packet) {
-        log.debug("Handling packet with match {}", packet.getMatch)
-        dpMatchToCookie.get(packet.getMatch) match {
+        val wcMatch = packet.getMatch
+        log.debug("Handling packet with match {}", wcMatch)
+        dpMatchToCookie.get(wcMatch) match {
             case None =>
-                // If there is no match on the match, create a new cookie
-                // and a new PacketWorkflow to handle the packet
-                val cookie = nextCookieId
-                log.debug("make new cookie #{} for new match: {}",
-                    cookie, packet.getMatch)
-
-                dpMatchToCookie.put(packet.getMatch, cookie)
-                cookieToDpMatch.put(cookie, packet.getMatch)
-                scheduleCookieExpiration(packet.getMatch)
-                cookieToPendedPackets.put(cookie, mutable.Set.empty)
-                startWorkflow(workflow(packet, Left(cookie)))
+                // If there is no entry for the wildcard match, create a new
+                // cookie and a new PacketWorkflow to handle the packet
+                val newCookie = nextCookieId
+                log.debug("new cookie #{} for new match {}", newCookie, wcMatch)
+                dpMatchToCookie.put(wcMatch, newCookie)
+                cookieToDpMatch.put(newCookie, wcMatch)
+                scheduleCookieExpiration(wcMatch)
+                cookieToPendedPackets.put(newCookie, mutable.Set.empty)
+                startWorkflow(workflow(packet, Left(newCookie)))
 
             case Some(cookie) =>
                 // Simulation in progress. Just pend the packet.
@@ -355,7 +355,8 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
     }
 
     private def scheduleCookieExpiration(flowMatch: FlowMatch) {
-        cookieExpirations += ((flowMatch, Platform.currentTime + cookieTimeToLiveMillis))
+        cookieExpirations +=
+            ((flowMatch, Platform.currentTime + cookieTimeToLiveMillis))
     }
 
     private def executePacket(cookie: Int,
@@ -365,9 +366,8 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
         if (packet.getMatch.isUserSpaceOnly)
             applyActionsAfterUserspaceMatch(packet)
 
-        if (packet.getActions.size > 0) {
-            log.debug("Sending pended packet {} for cookie {}",
-                packet, cookie)
+        if (!packet.getActions.isEmpty) {
+            log.debug("Sending pended packet {} for cookie {}", packet, cookie)
 
             datapathConnection.packetsExecute(datapath, packet,
                 new ErrorHandlingCallback[java.lang.Boolean] {
@@ -376,10 +376,10 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
                     }
 
                     def handleError(ex: NetlinkException, timeout: Boolean) {
-                        log.error(ex,
-                            "Failed to send a packet {} due to {}",
-                            packet,
-                            if (timeout) "timeout" else "error")
+                        if (timeout)
+                            log.error("Failed to send {}: timeout", packet)
+                        else
+                            log.error(ex, "Failed to send {}", packet)
                         metrics.packetsProcessed.mark()
                     }
                 })
@@ -389,31 +389,31 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
     private def installPacketInHook() = {
          log.info("Installing packet in handler in the DDA")
          datapathConnection.datapathsSetNotificationHandler(datapath,
-                 new BatchCollector[Packet] {
-                     val BATCH_SIZE = 16
-                     var packets = new Array[Packet](BATCH_SIZE)
-                     var cursor = 0
-                     val log = LoggerFactory.getLogger("PacketInHook")
+             new BatchCollector[Packet] {
+                 val BATCH_SIZE = 16
+                 var packets = new Array[Packet](BATCH_SIZE)
+                 var cursor = 0
+                 val log = LoggerFactory.getLogger("PacketInHook")
 
-                     override def endBatch() {
-                         if (cursor > 0) {
-                             log.trace("batch of {} packets", cursor)
-                             self ! HandlePackets(packets)
-                             packets = new Array[Packet](BATCH_SIZE)
-                             cursor = 0
-                         }
+                 override def endBatch() {
+                     if (cursor > 0) {
+                         log.trace("batch of {} packets", cursor)
+                         self ! HandlePackets(packets)
+                         packets = new Array[Packet](BATCH_SIZE)
+                         cursor = 0
                      }
+                 }
 
-                     override def submit(data: Packet) {
-                         log.trace("accumulating packet: {}", data.getMatch)
-                         val eth = data.getPacket
-                         FlowMatches.addUserspaceKeys(eth, data.getMatch)
-                         data.setStartTimeNanos(Clock.defaultClock().tick())
-                         packets(cursor) = data
-                         cursor += 1
-                         if (cursor == BATCH_SIZE)
-                             endBatch()
-                     }
+                 override def submit(data: Packet) {
+                     log.trace("accumulating packet: {}", data.getMatch)
+                     val eth = data.getPacket
+                     FlowMatches.addUserspaceKeys(eth, data.getMatch)
+                     data.setStartTimeNanos(Clock.defaultClock().tick())
+                     packets(cursor) = data
+                     cursor += 1
+                     if (cursor == BATCH_SIZE)
+                         endBatch()
+                 }
          }).get()
     }
 
