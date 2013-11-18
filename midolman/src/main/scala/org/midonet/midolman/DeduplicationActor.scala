@@ -34,6 +34,7 @@ import org.midonet.midolman.monitoring.metrics.PacketPipelineGauge
 import org.midonet.midolman.monitoring.metrics.PacketPipelineHistogram
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMeter
 import org.midonet.midolman.rules.Condition
+import org.midonet.midolman.simulation.Coordinator
 import org.midonet.midolman.topology.TraceConditionsManager
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.netlink.exceptions.NetlinkException
@@ -182,6 +183,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
 
     protected val cookieTimeToLiveMillis  = 10000L
     protected val cookieExpirationCheckInterval = 5000 millis
+    protected val packetSimulatorExpiry = 5000L //config.getArpTimeoutSeconds * 1000
 
     private val cookieExpirations: PriorityQueue[(FlowMatch, Long)] =
         new PriorityQueue[(FlowMatch, Long)]()(
@@ -291,19 +293,27 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
                 ConditionListRequest(TraceConditionsManager.uuid, true)
     }
 
-    protected def workflow(packet: Packet, cookieOrEgressPort: Either[Int, UUID],
+    protected def workflow(packet: Packet,
+                           cookieOrEgressPort: Either[Int, UUID],
                            parentCookie: Option[Int] = None): PacketHandler = {
         log.debug("Creating new PacketWorkflow for {}", cookieOrEgressPort)
-        new PacketWorkflow(datapathConnection, dpState,
-            datapath, clusterDataClient, connectionCache,
-            traceMessageCache, traceIndexCache, packet,
-            cookieOrEgressPort, parentCookie, traceConditions)
+        val (cookie, egressPort) = cookieOrEgressPort match {
+            case Left(c) => (Some(c), None)
+            case Right(id) => (None, Some(id))
+        }
+        PacketWorkflow(datapathConnection, dpState, datapath,
+                clusterDataClient, packet, cookieOrEgressPort, parentCookie)
+        {
+            wcMatch =>
+                val expiry = Platform.currentTime + packetSimulatorExpiry
+                new Coordinator(wcMatch, packet.getPacket, cookie, egressPort,
+                    expiry, connectionCache, traceMessageCache, traceIndexCache,
+                    parentCookie, traceConditions).simulate()
+        }
     }
 
-    protected def startWorkflow(pw: PacketHandler): Future[PipelinePath] = {
-        val resultFuture = pw.start()
-
-        resultFuture onComplete {
+    protected def startWorkflow(pw: PacketHandler): Future[PipelinePath] =
+        pw.start() onComplete {
             case Right(path) =>
                 log.debug("Packet with {} processed.", pw.cookieStr)
                 pw.cookie match {
@@ -327,7 +337,6 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
                     pw.cookieStr, ex.getMessage, ex.getStackTraceString)
                 pw.cookie foreach { _ => metrics.packetsProcessed.mark() }
         }
-    }
 
     private def handlePacket(packet: Packet) {
         val wcMatch = packet.getMatch
