@@ -129,7 +129,7 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
     private def calculateInterfaceMTU: Future[Option[Short]] = {
         log.info("Calculate Interface MTU")
         implicit val timeout = new Timeout(3, TimeUnit.SECONDS)
-        (datapathController ? LocalTunnelInterfaceInfo())
+        (datapathController ? LocalTunnelInterfaceInfo)
             .mapTo[mutable.MultiMap[InterfaceDescription, TunnelZone.Type]]
             .map { interfaceTunnelList => minMtu(interfaceTunnelList) }
         }
