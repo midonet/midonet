@@ -3,7 +3,7 @@
 package org.midonet.midolman
 
 import akka.util.Duration
-import akka.dispatch.Future
+import akka.dispatch.{Promise, Future}
 import akka.actor._
 import akka.event.LoggingReceive
 import collection.{immutable, mutable}
@@ -12,7 +12,7 @@ import scala.compat.Platform
 import mutable.PriorityQueue
 import collection.mutable.{HashMap, MultiMap}
 import java.util.UUID
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.{TimeoutException, TimeUnit}
 import javax.annotation.Nullable
 import javax.inject.Inject
 
@@ -39,6 +39,7 @@ import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.odp.{FlowMatches, Datapath, FlowMatch, Packet}
 import org.midonet.odp.flows.FlowAction
 import org.midonet.packets.Ethernet
+import org.midonet.util.collection.RingBuffer
 import org.midonet.util.throttling.ThrottlingGuard
 import org.midonet.util.BatchCollector
 import org.midonet.midolman.PacketWorkflow.{PipelinePath, WildcardTableHit, PacketToPortSet, Simulation}
@@ -142,9 +143,8 @@ object DeduplicationActor extends Referenceable {
     }
 }
 
-
 class DeduplicationActor extends Actor with ActorLogWithoutPath with
-        UserspaceFlowActionTranslator {
+        UserspaceFlowActionTranslator with SuspendedPacketQueue {
 
     import DeduplicationActor._
 
@@ -195,7 +195,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
         self ! new GetConditionListFromVta
     }
 
-    def receive = LoggingReceive {
+    override def receive = super.receive orElse LoggingReceive {
         case _: GetConditionListFromVta =>
             val vta = VirtualTopologyActor.getRef()
             log.debug("Subscribing to VTA {} for ConditionListRequests.", vta)
@@ -272,7 +272,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
             log.debug("traceConditions updated to {}", newTraceConditions)
             traceConditions = newTraceConditions
 
-        case _ExpireCookies => {
+        case DeduplicationActor._ExpireCookies => {
             val now = Platform.currentTime
             while (cookieExpirations.size > 0 && cookieExpirations.head._2 < now) {
                 val (flowMatch, _) = cookieExpirations.dequeue()
