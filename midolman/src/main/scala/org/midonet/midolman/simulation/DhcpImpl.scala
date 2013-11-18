@@ -10,7 +10,6 @@ import collection.{immutable, mutable}
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import akka.actor.ActorSystem
-import akka.pattern.ask
 import scala.concurrent.duration._
 import akka.util.Timeout
 
@@ -32,7 +31,6 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
                  (implicit val ec: ExecutionContext,
                            val system: ActorSystem) {
     private val log = akka.event.Logging(system, this.getClass)
-    private val datapathController = DatapathController.getRef()
 
     private var serverAddr: IntIPv4 = null
     private var serverMac: MAC = null
@@ -127,7 +125,7 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
     private def calculateInterfaceMTU: Future[Option[Short]] = {
         log.info("Calculate Interface MTU")
         implicit val timeout = new Timeout(3, TimeUnit.SECONDS)
-        (datapathController ? LocalTunnelInterfaceInfo)
+        (DatapathController ? LocalTunnelInterfaceInfo)
             .mapTo[mutable.MultiMap[InterfaceDescription, TunnelZone.Type]]
             .map { interfaceTunnelList => minMtu(interfaceTunnelList) }
         }
@@ -391,7 +389,7 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
                   inPortId)
 
         // Emit our DHCP reply packet
-        DeduplicationActor.getRef() ! EmitGeneratedPacket(
+        DeduplicationActor ! EmitGeneratedPacket(
             inPortId, eth, cookie)
 
         // Tell the FlowController not to track the packet anymore.

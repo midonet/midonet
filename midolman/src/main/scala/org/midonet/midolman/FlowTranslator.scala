@@ -297,12 +297,11 @@ trait FlowTranslator {
                      inPortUUID: Option[UUID], dpTags: Option[mutable.Set[Any]],
                      wMatch: WildcardMatch): Future[Seq[FlowAction[_]]] = {
 
-        val portSetFuture = ask(
-            VirtualToPhysicalMapper.getRef(),
-            PortSetRequest(portSet, update = false))
-            .mapTo[PortSet] andThen { case Failure(e) =>
-                log.error(e, "VTPM did not provide portSet {} {}",
-                          portSet, cookieStr)
+        val portSetFuture = (VirtualToPhysicalMapper ?
+                PortSetRequest(portSet, update = false))
+                .mapTo[PortSet] andThen { case Failure(e) =>
+                    log.error(e, "VTPM did not provide portSet {} {}",
+                portSet, cookieStr)
         }
 
         val deviceFuture = expiringAsk(BridgeRequest(portSet), log)

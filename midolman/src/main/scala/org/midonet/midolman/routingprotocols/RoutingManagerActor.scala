@@ -75,8 +75,7 @@ class RoutingManagerActor extends Actor with ActorLogWithoutPath {
             if (!activePorts.contains(portID)) {
                 activePorts.add(portID)
                 // Request the port configuration
-                VirtualTopologyActor.getRef() !
-                    PortRequest(portID)
+                VirtualTopologyActor ! PortRequest(portID)
             }
             portHandlers.get(portID) match {
                 case None =>
