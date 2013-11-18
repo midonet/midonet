@@ -13,6 +13,7 @@ import java.util.concurrent.{TimeUnit, TimeoutException}
 import org.midonet.cluster.client.{ArpCache, RouterPort}
 import org.midonet.midolman.DeduplicationActor
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
+import org.midonet.midolman.SuspendedPacketQueue.SuspendOnPromise
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.logging.LoggerFactory
 import org.midonet.midolman.state.ArpCacheEntry
@@ -172,13 +173,14 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
         // macPromise may complete with a Left(TimeoutException). Use
         // fallbackTo so that exceptions don't escape the ArpTable class.
         entryFuture flatMap {
-            case entry: ArpCacheEntry =>
-                if (entry != null && entry.macAddr != null && entry.expiry >= Platform.currentTime) {
-                    removeArpWaiter(ip, macPromise)
-                    Promise.successful(entry.macAddr)
-                } else
-                    macPromise.future
+            case entry: ArpCacheEntry if entry != null &&
+                                         entry.macAddr != null &&
+                                         entry.expiry >= Platform.currentTime =>
+                removeArpWaiter(ip, macPromise)
+                Promise.successful(entry.macAddr)
             case _ =>
+                DeduplicationActor.getRef() !
+                    SuspendOnPromise(pktContext.flowCookie, macPromise)
                 macPromise.future
         } fallbackTo { Promise.successful(null) }
     }

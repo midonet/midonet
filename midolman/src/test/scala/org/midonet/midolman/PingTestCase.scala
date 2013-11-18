@@ -320,7 +320,7 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
         expectPacketIn()
         // This generated packet is an ARP request, the ICMP echo will not be
         // delivered because this ARP will go unanswered
-        expect[EmitGeneratedPacket] on dedupProbe()
+        fishForRequestOfType[EmitGeneratedPacket](dedupProbe())
         expectPacketOut(rtrPort1Num)
         drainProbes()
 
