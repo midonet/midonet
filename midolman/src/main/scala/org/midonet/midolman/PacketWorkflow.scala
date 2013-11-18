@@ -100,7 +100,7 @@ class PacketWorkflow(
 
 
     // TODO marc get config from parent actors.
-    def timeout = 5000 //config.getArpTimeoutSeconds * 1000
+    val timeout = 5000 //config.getArpTimeoutSeconds * 1000
 
     val ERROR_CONDITION_HARD_EXPIRATION = 10000
 
@@ -119,7 +119,7 @@ class PacketWorkflow(
         // pipelinePath will track which code-path this packet took, so latency
         // can be tracked accordingly at the end of the workflow.
         // there are three PipelinePaths, all case objects:
-        // Simulation, PacketToPortSet and WildcardTableHit 
+        // Simulation, PacketToPortSet and WildcardTableHit
         var pipelinePath: Option[PipelinePath] = None
 
         log.debug("Initiating processing of packet {}", cookieStr)
@@ -135,14 +135,14 @@ class PacketWorkflow(
                     case Some(wildFlow) =>
                         log.debug("Packet {} matched a wildcard flow", cookieStr)
                         pipelinePath = Some(WildcardTableHit)
-                        handleWildcardTableMatch(wildFlow, cook)
+                        handleWildcardTableMatch(wildFlow)
                     case None =>
                         val wildMatch = WildcardMatch.fromFlowMatch(packet.getMatch)
                         Option(wildMatch.getTunnelID) match {
                             case Some(tunnelId) =>
                                 log.debug("Packet {} addressed to a port set", cookieStr)
                                 pipelinePath = Some(PacketToPortSet)
-                                handlePacketToPortSet(cook)
+                                handlePacketToPortSet()
                             case None =>
                                 /* QUESTION: do we need another de-duplication
                                  *  stage here to avoid e.g. two micro-flows that
@@ -192,8 +192,7 @@ class PacketWorkflow(
         def onError(ex: NetlinkException) {}
     }
 
-    private def flowAddedCallback(cookie: Int,
-                                  promise: Promise[Boolean],
+    private def flowAddedCallback(promise: Promise[Boolean],
                                   flow: Flow,
                                   newWildFlow: Option[WildcardFlow] = None,
                                   tags: ROSet[Any] = Set.empty,
@@ -209,14 +208,14 @@ class PacketWorkflow(
                             AddWildcardFlow(wf, Some(dpFlow),
                                 removalCallbacks, tags, lastInvalidation)
                 }
-                DeduplicationActor.getRef() ! ApplyFlow(dpFlow.getActions, Some(cookie))
+                DeduplicationActor.getRef() ! ApplyFlow(dpFlow.getActions, cookie)
                 promise.success(true)
             }
 
             def onTimeout() {
                 log.warning("Flow creation for {} timed out, deleting", cookieStr)
                 datapathConnection.flowsDelete(datapath, flow, noOpCallback)
-                DeduplicationActor.getRef() ! ApplyFlow(flow.getActions, Some(cookie))
+                DeduplicationActor.getRef() ! ApplyFlow(flow.getActions, cookie)
                 promise.success(true)
             }
 
@@ -224,7 +223,7 @@ class PacketWorkflow(
                 if (ex.getErrorCodeEnum == ErrorCode.EEXIST) {
                     log.info("File exists while adding flow for {}", cookieStr)
                     DeduplicationActor.getRef() !
-                        ApplyFlow(flow.getActions, Some(cookie))
+                        ApplyFlow(flow.getActions, cookie)
                     runCallbacks(removalCallbacks.toArray)
                     promise.success(true)
                 } else {
@@ -236,7 +235,7 @@ class PacketWorkflow(
                     log.error("Error {} while adding flow for {}. " +
                               "Dropping packets. The flow was {}",
                               ex, cookieStr, flow)
-                    DeduplicationActor.getRef() ! ApplyFlow(Seq.empty, Some(cookie))
+                    DeduplicationActor.getRef() ! ApplyFlow(Seq.empty, cookie)
                     promise.failure(ex)
                 }
             }
@@ -282,7 +281,7 @@ class PacketWorkflow(
                                         setMatch(packet.getMatch)
                 log.debug("Adding wildcard flow {} for {}", wildFlow, cookieStr)
                 datapathConnection.flowsCreate(datapath, dpFlow,
-                    flowAddedCallback(cook, flowPromise, dpFlow,
+                    flowAddedCallback(flowPromise, dpFlow,
                                       Some(wildFlow), tags, removalCallbacks))
 
             case None if (valid) =>
@@ -350,18 +349,18 @@ class PacketWorkflow(
         }
     }
 
-    private def handleWildcardTableMatch(wildFlow: WildcardFlow, cookie: Int): Future[Boolean] = {
+    private def handleWildcardTableMatch(wildFlow: WildcardFlow): Future[Boolean] = {
 
         val dpFlow = new Flow().setActions(wildFlow.getActions).setMatch(packet.getMatch)
 
         val flowPromise = Promise[Boolean]()(system.dispatcher)
         if (packet.getMatch.isUserSpaceOnly) {
             log.debug("Won't add flow with userspace match {}", packet.getMatch)
-            DeduplicationActor.getRef() ! ApplyFlow(dpFlow.getActions, Some(cookie))
+            DeduplicationActor.getRef() ! ApplyFlow(dpFlow.getActions, cookie)
             flowPromise.success(true)
         } else {
             datapathConnection.flowsCreate(datapath, dpFlow,
-                flowAddedCallback(cookie, flowPromise, dpFlow))
+                flowAddedCallback(flowPromise, dpFlow))
         }
         val execPromise = executePacket(wildFlow.getActions)
         val futures = Future.sequence(List(flowPromise, execPromise))
@@ -374,7 +373,7 @@ class PacketWorkflow(
      * routed here. Map the tunnel key to a port set (through the
      * VirtualToPhysicalMapper).
      */
-    private def handlePacketToPortSet(cookie: Int): Future[Boolean] = {
+    private def handlePacketToPortSet(): Future[Boolean] = {
 
         log.debug("Packet {} came from a tunnel port", cookieStr)
         // We currently only handle packets ingressing on tunnel ports if they
