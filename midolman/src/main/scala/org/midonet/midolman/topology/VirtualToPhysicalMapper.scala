@@ -612,7 +612,7 @@ abstract class VirtualToPhysicalMapperBase
         // Invalidate the flows that were going to this port set so that their
         // output datapath ports can be recomputed. This is true regardless
         // of whether the remote hosts or the local vports in the set changed.
-        FlowController.getRef() ! InvalidateFlowsByTag(
+        FlowController ! InvalidateFlowsByTag(
             // the portSet id is the same as the bridge id
             FlowTagger.invalidateBroadcastFlows(portSetId, portSetId)
         )

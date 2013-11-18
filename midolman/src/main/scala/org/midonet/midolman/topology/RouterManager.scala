@@ -90,7 +90,7 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
     override def chainsUpdated() {
         makeNewRouter()
         if (changed) {
-            VirtualTopologyActor.getRef() !
+            VirtualTopologyActor !
                 InvalidateFlowsByTag(FlowTagger.invalidateFlowsByDevice(id))
             changed = false
         }
@@ -103,7 +103,7 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
             // bypass the probes and make it harder to fish for these messages
             // Should this need to be decoupled from the VTA, the parent
             // actor reference should be passed in the constructor
-            VirtualTopologyActor.getRef() !
+            VirtualTopologyActor !
                 new Router(id, cfg, rTable, inFilter, outFilter,
                            new TagManagerImpl, arpTable)
         } else {
@@ -137,7 +137,7 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
     }
 
     private def invalidateFlowsByIp(ip: IPv4Addr) {
-        FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
+        FlowController ! FlowController.InvalidateFlowsByTag(
             FlowTagger.invalidateByIp(id, ip))
     }
 
@@ -165,7 +165,7 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
 
         case InvalidateFlows(addedRoutes, deletedRoutes) =>
             for (route <- deletedRoutes) {
-                FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
+                FlowController ! FlowController.InvalidateFlowsByTag(
                     FlowTagger.invalidateByRoute(id, route.hashCode())
                 )
             }
@@ -177,7 +177,7 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
                           ipToInvalidate)
 
                 val it = ipToInvalidate.iterator()
-                it.foreach(ip => FlowController.getRef() !
+                it.foreach(ip => FlowController !
                     FlowController.InvalidateFlowsByTag(
                         FlowTagger.invalidateByIp(id, ip)))
                 }

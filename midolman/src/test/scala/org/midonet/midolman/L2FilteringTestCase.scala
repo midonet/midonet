@@ -86,7 +86,7 @@ class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         expectPacketAllowed(1, 2, icmpBetweenPorts)
         ackWCAdded()
 
-        FlowController.getRef() ! InvalidateFlowsByTag(
+        FlowController ! InvalidateFlowsByTag(
             FlowTagger.invalidateFlowsByDevice(chain.getId))
 
         ackWCRemoved()
