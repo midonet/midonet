@@ -9,7 +9,7 @@ import java.util.UUID
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 
-import akka.actor.{ActorRef, Props, UntypedActorWithStash}
+import akka.actor.{ActorRef, UntypedActorWithStash}
 
 import org.midonet.cluster.client.{Port, RouterPort, BGPListBuilder}
 import org.midonet.cluster.data.{Route, AdRoute, BGP}
@@ -478,11 +478,10 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                         stash()
                     case Started =>
                         adRoutes.remove(rt)
-                        val bgp = bgps.get(rt.getBgpId)
-                        bgp match {
-                            case b: BGP => val as = b.getLocalAS
-                            bgpVty.deleteNetwork(as, rt.getNwPrefix.getHostAddress, rt.getPrefixLength)
-                            case _ =>
+                        bgps.get(rt.getBgpId) foreach { b =>
+                            bgpVty.deleteNetwork(b.getLocalAS,
+                                                 rt.getNwPrefix.getHostAddress,
+                                                 rt.getPrefixLength)
                         }
                     case Stopping =>
                         //TODO(abel) do we need to stash the message when stopping?
