@@ -11,23 +11,19 @@ import scala.util.Random
 
 import akka.actor.ActorRef
 import akka.actor.ActorSystem
-import akka.actor.Props
 import akka.testkit.ImplicitSender
 import akka.testkit.TestActorRef
 import akka.testkit.TestKit
-import akka.util.duration._
+import scala.concurrent.duration._
 import org.apache.zookeeper.KeeperException
 import org.junit.runner.RunWith
-import org.scalatest.BeforeAndAfter
-import org.scalatest.Suite
+import org.scalatest.{OneInstancePerTest, BeforeAndAfter, Matchers, Suite}
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.matchers.ShouldMatchers
 
 import org.midonet.cluster.data.TunnelZone
 import org.midonet.cluster.data.zones.GreTunnelZoneHost
 import org.midonet.cluster.data.zones.IpsecTunnelZoneHost
 import org.midonet.midolman.topology.rcu.Host
-import org.midonet.midolman.topology.rcu.PortSet
 
 object TestVTPMActor {
 
@@ -64,8 +60,8 @@ object TestVTPMActor {
 @RunWith(classOf[JUnitRunner])
 class VirtualToPhysicalMapperTest
         extends TestKit(ActorSystem("VirtualToPhysicalMapperTest"))
-        with ImplicitSender with Suite with ShouldMatchers with BeforeAndAfter
-        with DeviceHandler {
+        with ImplicitSender with Suite with Matchers with BeforeAndAfter
+        with OneInstancePerTest with DeviceHandler {
 
     import TestVTPMActor._
     import VirtualToPhysicalMapper._

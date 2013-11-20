@@ -26,8 +26,8 @@ import scala.Some
 import org.midonet.midolman.guice.actors.OutgoingMessage
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.HostRequest
 
-trait VMsBehindRouterFixture extends MidolmanTestCase with SimulationHelper with
-        VirtualConfigurationBuilders {
+trait VMsBehindRouterFixture extends SimulationHelper with
+        VirtualConfigurationBuilders { self: MidolmanTestCase =>
     private final val log =
         LoggerFactory.getLogger(classOf[VMsBehindRouterFixture])
 
@@ -221,9 +221,9 @@ trait VMsBehindRouterFixture extends MidolmanTestCase with SimulationHelper with
         val eth = packetGenerator(portIndexA, portIndexB)
         triggerPacketIn(vmPortNames(portIndexA), eth)
         val outpkt = expectPacketOutVmToVm(vmPortNameToPortNumber(vmPortNames(portIndexB)))
-        outpkt should be === eth
-        outpkt.getPayload should be === eth.getPayload
-        outpkt.getPayload.getPayload should be === eth.getPayload.getPayload
+        outpkt should be (eth)
+        outpkt.getPayload should be (eth.getPayload)
+        outpkt.getPayload.getPayload should be (eth.getPayload.getPayload)
         log.info("Packet received on {} forwarded to {}",
                  vmPortNames(portIndexA), vmPortNames(portIndexB))
     }

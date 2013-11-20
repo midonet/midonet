@@ -6,7 +6,7 @@ package org.midonet.midolman
 import scala.collection.immutable
 import scala.util.control.Breaks._
 
-import akka.util.Duration
+import scala.concurrent.duration.Duration
 import java.util.concurrent.TimeUnit
 import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
@@ -22,7 +22,6 @@ import org.midonet.midolman.FlowController.WildcardFlowAdded
 import org.midonet.midolman.FlowController.WildcardFlowRemoved
 import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
 import org.midonet.midolman.rules.{Condition, RuleResult}
-import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.topology.{FlowTagger, LocalPortActive}
 import org.midonet.odp.FlowMatch
 import org.midonet.odp.Packet
@@ -125,8 +124,8 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
                                           .setEthernetSource(srcMAC),
             actions = List(new FlowActionOutputToVrnPortSet(bridge.getId)))
 
-        dpProbe().testActor.tell(
-            AddVirtualWildcardFlow(wildcardFlow, Set.empty, Set.empty))
+        dpProbe().testActor !
+            AddVirtualWildcardFlow(wildcardFlow, Set.empty, Set.empty)
 
         val addFlowMsg = fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
 
@@ -218,7 +217,7 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
         eth.setPayload(new IPv4().setPayload(new Data("Payload".getBytes)))
 
         val packet = new Packet().setMatch(dpMatch).setPacket(eth)
-        dedupProbe().testActor.tell(HandlePackets(Array(packet)))
+        dedupProbe().testActor ! HandlePackets(Array(packet))
 
         val addFlowMsg = fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
 
@@ -268,8 +267,8 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
             wcmatch = new WildcardMatch().setInputPortUUID(port1OnHost1.getId),
             actions = List(new FlowActionOutputToVrnPortSet(bridge.getId)))
 
-        dpProbe().testActor.tell(
-            AddVirtualWildcardFlow(wildcardFlow, Set.empty, Set.empty))
+        dpProbe().testActor !
+            AddVirtualWildcardFlow(wildcardFlow, Set.empty, Set.empty)
 
         val flowToInvalidate = requestOfType[WildcardFlowAdded](wflowAddedProbe)
         // delete one host from the portSet
@@ -317,8 +316,8 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
             wcmatch = new WildcardMatch().setInputPortUUID(port1OnHost1.getId),
             actions = List(new FlowActionOutputToVrnPortSet(bridge.getId)))
 
-        dpProbe().testActor.tell(
-            AddVirtualWildcardFlow(wildcardFlow, Set.empty, Set.empty))
+        dpProbe().testActor !
+            AddVirtualWildcardFlow(wildcardFlow, Set.empty, Set.empty)
 
         val flowToInvalidate =
             fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
@@ -367,8 +366,8 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
             wcmatch = new WildcardMatch().setInputPortUUID(port1OnHost1.getId),
             actions = List(new FlowActionOutputToVrnPortSet(bridge.getId)))
 
-        dpProbe().testActor.tell(
-            AddVirtualWildcardFlow(wildcardFlow, Set.empty, Set.empty))
+        dpProbe().testActor !
+            AddVirtualWildcardFlow(wildcardFlow, Set.empty, Set.empty)
 
         val flowToInvalidate =
             fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
@@ -441,8 +440,8 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
             wcmatch = new WildcardMatch().setInputPortUUID(port1OnHost1.getId),
             actions = List(new FlowActionOutputToVrnPortSet(bridge.getId)))
 
-        dpProbe().testActor.tell(
-            AddVirtualWildcardFlow(wildcardFlow, Set.empty, Set.empty))
+        dpProbe().testActor !
+            AddVirtualWildcardFlow(wildcardFlow, Set.empty, Set.empty)
 
         fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
         // delete the port. The dp controller will invalidate all the flow whose

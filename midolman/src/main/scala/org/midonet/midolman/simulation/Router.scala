@@ -4,17 +4,16 @@
 package org.midonet.midolman.simulation
 
 import akka.actor.{ActorContext, ActorSystem}
-import akka.dispatch.{ExecutionContext, Future, Promise}
+import scala.concurrent.{ExecutionContext, Future}
 import java.util.UUID
 
-import org.midonet.cluster.client.{Port, RouterPort}
+import org.midonet.cluster.client.Port
 import org.midonet.midolman.DeduplicationActor
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.Coordinator._
 import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.midolman.topology._
-import org.midonet.packets.ICMP.{EXCEEDED_CODE, UNREACH_CODE}
 import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.packets._
 import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
@@ -130,7 +129,8 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
     }
 
     private def processArpReply(pkt: ARP, port: RouterPort)
-                               (implicit actorSystem: ActorSystem,
+                               (implicit ec: ExecutionContext,
+                                         actorSystem: ActorSystem,
                                          pktContext: PacketContext) {
 
         // Verify the reply:  It's addressed to our MAC & IP, and is about
@@ -232,9 +232,9 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
                 log.warning("getMacForIP: cannot get MAC for {} - address not" +
                             "in network segment of port {} ({})",
                             nextHopIP, port.id, extAddr)
-                Promise.successful(null)
+                Future.successful(null)
             case _ =>
-                Promise.failed(new IllegalArgumentException)
+                Future.failed(new IllegalArgumentException)
         }
     }
 
@@ -244,19 +244,19 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
                               actorSystem: ActorSystem,
                               pktContext: PacketContext): Future[MAC] = {
         if (outPort == null)
-            return Promise.successful(null)
+            return Future.successful(null)
 
         if (outPort.isInterior
                 && outPort.peerID == null) {
             log.warning("Packet sent to dangling logical port {}", rt.nextHopPort)
-            return Promise.successful(null)
+            return Future.successful(null)
         }
 
         (outPort match {
             case p: Port[_] if p.isInterior =>
                 getPeerMac(p, expiry)
             case _ => /* Fall through to ARP'ing below. */
-                Promise.successful(null)
+                Future.successful(null)
         }) flatMap {
             case null =>
                 val nextHopInt = rt.nextHopGateway
@@ -265,7 +265,7 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
                     else IPv4Addr(nextHopInt)
                 getMacForIP(outPort, nextHopIP, expiry)
             case mac =>
-                Promise.successful(mac)
+                Future.successful(mac)
         }
     }
 
@@ -354,7 +354,7 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
                         case RuleResult.Action.ACCEPT =>
                             val cookie = if (packetContext == null) None
                                 else packetContext.flowCookie
-                            DeduplicationActor.getRef(actorSystem) !
+                            DeduplicationActor.getRef() !
                                 EmitGeneratedPacket(rt.nextHopPort, eth, cookie)
                         case RuleResult.Action.DROP =>
                         case RuleResult.Action.REJECT =>

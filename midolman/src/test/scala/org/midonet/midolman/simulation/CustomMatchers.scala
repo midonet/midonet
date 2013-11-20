@@ -9,7 +9,7 @@ import org.midonet.midolman.PacketWorkflow.{SendPacket, AddVirtualWildcardFlow, 
 import org.midonet.packets.{IPv4, Ethernet}
 import org.midonet.sdn.flows.WildcardFlow
 import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPortSet
-import org.midonet.odp.flows.{FlowKeyIPv4, FlowKeyEthernet, FlowActionSetKey}
+import org.midonet.odp.flows.{FlowAction, FlowKeyIPv4, FlowKeyEthernet, FlowActionSetKey}
 
 trait CustomMatchers {
 
@@ -45,22 +45,24 @@ trait CustomMatchers {
             } , "a matching flow")
 
         def flowMatchesPacket(flow: WildcardFlow, pkt: Ethernet): Boolean = {
-            flow.actions.collect {
+            val f: PartialFunction[{type A <: FlowAction[A]}, Boolean] = {
                 case f: FlowActionSetKey => f.getFlowKey match {
                     case k: FlowKeyEthernet =>
                         util.Arrays.equals(
-                                k.getDst,
-                                pkt.getDestinationMACAddress.getAddress) &&
-                        util.Arrays.equals(
-                                k.getSrc,
-                                pkt.getSourceMACAddress.getAddress)
+                            k.getDst,
+                            pkt.getDestinationMACAddress.getAddress) &&
+                                util.Arrays.equals(
+                                    k.getSrc,
+                                    pkt.getSourceMACAddress.getAddress)
                     case k: FlowKeyIPv4 if pkt.getPayload.isInstanceOf[IPv4] =>
                         val ipPkt = pkt.getPayload.asInstanceOf[IPv4]
                         k.getDst == ipPkt.getDestinationAddress &&
-                        k.getSrc == ipPkt.getSourceAddress
+                                k.getSrc == ipPkt.getSourceAddress
                     case _ => false
                 }
-            }.size == 2
+            }
+            flow.actions.collect(f.asInstanceOf[PartialFunction[FlowAction[_],
+                    Boolean]]).size == 2
         }
     }
 }

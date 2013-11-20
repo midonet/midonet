@@ -4,10 +4,9 @@
 
 package org.midonet.quagga
 
-import org.scalatest.{FunSuite, BeforeAndAfter}
+import org.scalatest.{Matchers, FunSuite, BeforeAndAfter}
 import java.io._
 import org.scalatest.concurrent.Eventually
-import org.scalatest.matchers.ShouldMatchers
 
 class MockVtyConnection(addr: String, port: Int, password: String, keepAliveTime: Int,
                            holdTime: Int, connectRetryTime: Int)
@@ -31,7 +30,7 @@ class MockVtyConnection(addr: String, port: Int, password: String, keepAliveTime
 class VtyConnectionTest extends FunSuite
     with BeforeAndAfter
     with Eventually
-    with ShouldMatchers {
+    with Matchers {
 
     var vty: MockVtyConnection = _
 

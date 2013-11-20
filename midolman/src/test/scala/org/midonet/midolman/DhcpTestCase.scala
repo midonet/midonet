@@ -103,7 +103,7 @@ class DhcpTestCase extends MidolmanTestCase with
         port should not be null
         materializePort(port, host, "RouterPort1")
         val portEvent = requestOfType[LocalPortActive](portsProbe)
-        portEvent.active should be === true
+        portEvent.active should be (true)
         portEvent.portID should be (port.getId)
         port
     }
@@ -183,7 +183,7 @@ class DhcpTestCase extends MidolmanTestCase with
         brPort3 should not be null
 
         val tzRequest = fishForRequestOfType[TunnelZoneRequest](vtpProbe())
-        tzRequest.zoneId should be === greZone.getId
+        tzRequest.zoneId should be (greZone.getId)
 
         // First subnet is routerIp2's
         var opt121Obj = (new Opt121()
@@ -266,12 +266,12 @@ class DhcpTestCase extends MidolmanTestCase with
     }
 
     private def extractDhcpReply(ethPkt : Ethernet) = {
-        ethPkt.getEtherType should be === IPv4.ETHERTYPE
+        ethPkt.getEtherType should be (IPv4.ETHERTYPE)
         val ipPkt = ethPkt.getPayload.asInstanceOf[IPv4]
-        ipPkt.getProtocol should be === UDP.PROTOCOL_NUMBER
+        ipPkt.getProtocol should be (UDP.PROTOCOL_NUMBER)
         val udpPkt = ipPkt.getPayload.asInstanceOf[UDP]
-        udpPkt.getSourcePort should be === 67
-        udpPkt.getDestinationPort should be === 68
+        udpPkt.getSourcePort should be (67)
+        udpPkt.getDestinationPort should be (68)
         udpPkt.getPayload.asInstanceOf[DHCP]
     }
 
@@ -320,14 +320,14 @@ class DhcpTestCase extends MidolmanTestCase with
         requestOfType[PacketIn](packetInProbe)
         var returnPkt = fishForRequestOfType[EmitGeneratedPacket](dedupProbe()).eth
         extractDhcpReply(returnPkt)
-            .getServerIPAddress should be === routerIp2.getIntAddress
+            .getServerIPAddress should be (routerIp2.getIntAddress)
         drainProbes()
 
         injectDhcpDiscover(vm2PortName, vm2Mac)
         requestOfType[PacketIn](packetInProbe)
         returnPkt = fishForRequestOfType[EmitGeneratedPacket](dedupProbe()).eth
         extractDhcpReply(returnPkt)
-            .getServerIPAddress should be === routerIp3.getIntAddress
+            .getServerIPAddress should be (routerIp3.getIntAddress)
         drainProbes()
     }
 

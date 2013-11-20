@@ -140,7 +140,7 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase with
         brPort2 should not be null
 
         val tzRequest = fishForRequestOfType[TunnelZoneRequest](vtpProbe())
-        tzRequest.zoneId should be === greZone.getId
+        tzRequest.zoneId should be (greZone.getId)
 
         var opt121Obj = (new Opt121()
                         .setGateway(routerIp2)
@@ -178,8 +178,8 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase with
         pktOut.getActions.size should equal (1)
 
         pktOut.getActions.toList map { action =>
-            action.getKey should be === FlowAction.FlowActionAttr.OUTPUT
-            action.getValue.getClass() should be === classOf[FlowActionOutput]
+            action.getKey should be (FlowAction.FlowActionAttr.OUTPUT)
+            action.getValue.getClass() should be (classOf[FlowActionOutput])
             action.getValue.asInstanceOf[FlowActionOutput].getPortNumber
         } should contain (portNum)
 
@@ -214,12 +214,12 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase with
 
     // broaden to allow us to check other fields in the DHCP reply options
     private def extractInterfaceMtuDhcpReply(ethPkt : Ethernet) : Short = {
-        ethPkt.getEtherType should be === IPv4.ETHERTYPE
+        ethPkt.getEtherType should be (IPv4.ETHERTYPE)
         val ipPkt = ethPkt.getPayload.asInstanceOf[IPv4]
-        ipPkt.getProtocol should be === UDP.PROTOCOL_NUMBER
+        ipPkt.getProtocol should be (UDP.PROTOCOL_NUMBER)
         val udpPkt = ipPkt.getPayload.asInstanceOf[UDP]
-        udpPkt.getSourcePort() should be === 67
-        udpPkt.getDestinationPort() should be === 68
+        udpPkt.getSourcePort() should be (67)
+        udpPkt.getDestinationPort() should be (68)
         val dhcpPkt = udpPkt.getPayload.asInstanceOf[DHCP]
         val replyOptions = mutable.HashMap[Byte, DHCPOption]()
         val replyCodes = mutable.Set[Byte]()

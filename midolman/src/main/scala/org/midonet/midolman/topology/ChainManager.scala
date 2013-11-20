@@ -3,7 +3,7 @@
  */
 package org.midonet.midolman.topology
 
-import akka.actor.{ActorRef, Actor}
+import akka.actor.{ActorSystem, ActorRef, Actor}
 import collection.JavaConversions._
 import collection.mutable
 import java.util.UUID
@@ -43,7 +43,7 @@ class ChainManager(val id: UUID, val clusterClient: Client) extends Actor
             idToRefCount.put(chainId, idToRefCount(chainId) + 1)
         } else {
             // Subscribe to this new chain
-            context.actorFor("..").tell(ChainRequest(chainId, true), self)
+            VirtualTopologyActor.getRef() ! ChainRequest(chainId, update = true)
             idToRefCount.put(chainId, 1)
             waitingForChains += 1
         }
@@ -55,7 +55,7 @@ class ChainManager(val id: UUID, val clusterClient: Client) extends Actor
             if (refCount > 1)
                 idToRefCount.put(chainId, refCount - 1)
             else {
-                context.actorFor("..").tell(ChainUnsubscribe(chainId), self)
+                VirtualTopologyActor.getRef() ! ChainUnsubscribe(chainId)
                 idToRefCount.remove(chainId)
                 idToChain.remove(chainId) match {
                     case None => waitingForChains -= 1
@@ -106,8 +106,9 @@ class ChainManager(val id: UUID, val clusterClient: Client) extends Actor
     }
 
     private def publishUpdate(chain: Chain) {
-        context.actorFor("..") ! chain
-        context.actorFor("..") ! InvalidateFlowsByTag(FlowTagger.invalidateFlowsByDevice(id))
+        VirtualTopologyActor.getRef() ! chain
+        VirtualTopologyActor.getRef() !
+                InvalidateFlowsByTag(FlowTagger.invalidateFlowsByDevice(id))
     }
 
     private def chainUpdate(chain: Chain): Unit = {
@@ -135,7 +136,7 @@ class ChainManager(val id: UUID, val clusterClient: Client) extends Actor
 
 class ChainBuilderImpl(val chainMgr: ActorRef) extends ChainBuilder {
     def setRules(rules: util.List[Rule]) {
-        chainMgr.tell(TriggerUpdate(rules))
+        chainMgr ! TriggerUpdate(rules)
     }
 
     def setRules(ruleOrder: util.List[UUID], rules: util.Map[UUID, Rule]) {

@@ -6,13 +6,15 @@ package org.midonet.midolman.services
 import com.google.inject.Inject
 import com.google.inject.Injector
 
-import scala.collection.immutable.Queue
 import scala.collection.mutable
 
-import akka.actor.{Props, Actor}
+import akka.actor.{ActorIdentity, Identify, Props, Actor}
+import akka.pattern.ask
 import akka.testkit.TestActorRef
 
 import org.midonet.midolman._
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
 
 class EmptyActor extends Actor {
     def receive: PartialFunction[Any, Unit] = Actor.emptyBehavior
@@ -46,11 +48,13 @@ sealed class MockMidolmanActorsService extends MidolmanActorsService {
         mutable.Map[String, TestActorRef[MessageAccumulator]]()
 
     def actor(actor: Referenceable): TestActorRef[MessageAccumulator] =
-        actors.get(actor.Name).get
+        actors.get(actor.Name) getOrElse {
+            throw new IllegalArgumentException(s"No actor named ${actor.Name}")
+        }
 
     def register(actors: List[(Referenceable, () => MessageAccumulator)]) {
         props = (actors map {
-            case (ref, f) => (ref.Name,Props(() => injectedActor(f)))
+            case (ref, f) => (ref.Name, Props(injectedActor(f)))
         }).toMap
     }
 
@@ -61,17 +65,17 @@ sealed class MockMidolmanActorsService extends MidolmanActorsService {
     }
 
     override protected def startActor(actorProps: Props, name: String) = {
-        supervisorActor map {
-            supervisor =>
-                val p = props.getOrElse(name, Props(() => new EmptyActor
-                                                       with MessageAccumulator))
-                val testRef = TestActorRef[MessageAccumulator](p, supervisor,
-                                                               name)(system)
-                actors += (name -> testRef)
-                testRef
-        } getOrElse {
-            throw new IllegalArgumentException("No supervisor actor")
-        }
+        val p = props.getOrElse(name, Props(new EmptyActor
+                                            with MessageAccumulator))
+        // Because actors are started asynchronously, creating a TestActorRef
+        // may fail because the supervisorActor may not have started yet. See
+        // TestActorRef.scala#L35 for details (version 2.2.3).
+        val supervisor = Await.result(supervisorActor ? Identify(null),
+                                      Duration.Inf)
+                              .asInstanceOf[ActorIdentity].ref.get
+        val testRef = TestActorRef[MessageAccumulator](p, supervisor, name)
+        actors += (name -> testRef)
+        testRef
     }
 
     override def initProcessing() { }

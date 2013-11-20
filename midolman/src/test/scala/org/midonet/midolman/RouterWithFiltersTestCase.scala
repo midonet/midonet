@@ -5,26 +5,26 @@ package org.midonet.midolman
 
 import java.util.concurrent.TimeUnit
 
-import akka.dispatch.Await
+import scala.concurrent.Await
+import scala.concurrent.duration._
+import akka.util.Timeout
 import akka.pattern.ask
-import akka.util.duration._
-import akka.util.{Timeout, Duration}
 import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.matchers.ShouldMatchers
 
 import org.midonet.midolman.DeduplicationActor.DiscardPacket
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.rules.{Condition, RuleResult}
 import org.midonet.midolman.topology.VirtualTopologyActor.ChainRequest
 import org.midonet.midolman.util.RouterHelper
-import org.midonet.packets.{Ethernet, ICMP}
+import org.midonet.packets.ICMP
 import org.midonet.packets.util.PacketBuilder._
 
 @Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
-class RouterWithFiltersTestCase extends VMsBehindRouterFixture
+class RouterWithFiltersTestCase extends MidolmanTestCase
+                                with VMsBehindRouterFixture
                                 with RouterHelper {
 
     private[this] implicit val timeout = new Timeout(3, TimeUnit.SECONDS)
@@ -53,7 +53,7 @@ class RouterWithFiltersTestCase extends VMsBehindRouterFixture
                    icmp.echo.request
 
         triggerPacketIn(vmPortNames(1), pckt)
-        expectPacketOnPort(vmPorts(1).getId())
+        expectPacketOnPort(vmPorts(1).getId)
         requestOfType[DiscardPacket](discardPacketProbe)
         expectEmitIcmp(routerMac, routerIp.getAddress, vmMacs(1), vmIps(1),
                        ICMP.TYPE_ECHO_REPLY, ICMP.CODE_NONE)

@@ -3,19 +3,20 @@
  */
 package org.midonet.midolman.monitoring
 
-import scala.collection.mutable
 import java.util.UUID
+import java.util.concurrent.TimeUnit
 
-import akka.actor.{ActorLogging, Cancellable, Actor}
-import akka.event.Logging
-import akka.util.FiniteDuration
+import scala.collection.mutable
+import scala.concurrent.duration._
+
+import akka.actor.{Cancellable, Actor}
+
 import com.google.inject.Inject
 
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.logging.ActorLogWithoutPath
-import org.midonet.midolman.monitoring.config.MonitoringConfiguration
 import org.midonet.midolman.monitoring.metrics.vrn.VifMetrics
-import org.midonet.midolman.topology.{LocalPortActive, VirtualToPhysicalMapper}
+import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.{Referenceable, DatapathController}
 import org.midonet.odp.Port
 
@@ -37,7 +38,6 @@ class MonitoringActor extends Actor with ActorLogWithoutPath {
 
     import DatapathController._
     import MonitoringActor._
-    import VirtualToPhysicalMapper._
     import context._
 
     @Inject
@@ -69,9 +69,8 @@ class MonitoringActor extends Actor with ActorLogWithoutPath {
                 vifMetrics.enableVirtualPortMetrics(portID)
 
                 val task = system.scheduler.schedule(
-                    new FiniteDuration(0, "milliseconds"),
-                    new FiniteDuration(configuration.getPortStatsRequestTime,
-                        "milliseconds"),
+                    0 millis,
+                    configuration.getPortStatsRequestTime millis,
                     DatapathController.getRef(),
                     DpPortStatsRequest(portID))
 

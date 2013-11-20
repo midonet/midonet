@@ -3,7 +3,8 @@
 */
 package org.midonet.midolman
 
-import akka.dispatch.{Future, Await}
+import scala.concurrent.{Future, Await}
+import scala.concurrent.ExecutionContext.Implicits.global
 import akka.pattern.ask
 import akka.util.Timeout
 

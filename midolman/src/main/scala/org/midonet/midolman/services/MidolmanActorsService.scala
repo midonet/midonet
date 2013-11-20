@@ -3,21 +3,17 @@
 */
 package org.midonet.midolman.services
 
-import java.util.concurrent.TimeUnit
+import scala.concurrent.{Await, Future}
+import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.reflect.ClassTag
 
-import akka.actor.Actor
-import akka.actor.ActorRef
-import akka.actor.ActorSystem
-import akka.actor.Props
-import akka.actor.UntypedActorFactory
-import akka.dispatch.{Await, Future}
-import akka.pattern.Patterns
-import akka.util.Duration
-import akka.util.duration._
+import akka.actor.{Actor, ActorRef, ActorSystem, Props}
+import akka.pattern.{gracefulStop, ask}
 import akka.util.Timeout
+
 import com.google.common.util.concurrent.AbstractService
-import com.google.inject.Inject
-import com.google.inject.Injector
+import com.google.inject.{Inject, Injector}
 import com.typesafe.config.ConfigFactory
 import org.slf4j.LoggerFactory
 
@@ -32,12 +28,6 @@ import org.midonet.midolman.routingprotocols.RoutingManagerActor
 import org.midonet.midolman.topology.VirtualToPhysicalMapper
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.monitoring.MonitoringActor
-
-class GuiceActorFactory
-        (val injector: Injector, actorClass: Class[_ <: Actor]) extends UntypedActorFactory {
-
-    override def create(): Actor = injector.getInstance(actorClass)
-}
 
 /*
  * A base trait for a simple guice service that starts an actor system,
@@ -55,7 +45,8 @@ class MidolmanActorsService extends AbstractService {
     val config: MidolmanConfig = null
 
     private var _system: ActorSystem = null
-    def system: ActorSystem = _system
+    implicit def system: ActorSystem = _system
+    implicit protected val tout = new Timeout(3 seconds)
 
     protected def actorSpecs = {
         val specs = List(
@@ -74,69 +65,65 @@ class MidolmanActorsService extends AbstractService {
             specs
     }
 
-    protected var supervisorActor: Option[ActorRef] = None
+    protected var supervisorActor: ActorRef = _
     private var childrenActors: List[ActorRef] = Nil
 
-
     protected override def doStart() {
-        log.info("Booting up actors service")
+        try {
+            log.info("Booting up actors service")
 
-        log.debug("Creating actors system.")
-        _system = ActorSystem.create("MidolmanActors",
-            ConfigFactory.load().getConfig("midolman"))
+            log.debug("Creating actors system.")
+            _system = ActorSystem.create("MidolmanActors",
+                ConfigFactory.load().getConfig("midolman"))
 
-        supervisorActor = startTopActor(
-                            propsFor(classOf[SupervisorActor]),
-                            SupervisorActor.Name)
+            supervisorActor = startTopActor(
+                                propsFor(classOf[SupervisorActor]),
+                                SupervisorActor.Name)
 
-        childrenActors = for ((props, name) <- actorSpecs)
-            yield startActor(props, name)
+            childrenActors = for ((props, name) <- actorSpecs)
+                yield startActor(props, name)
 
-        notifyStarted()
-        log.info("Actors system started")
+            notifyStarted()
+            log.info("Actors system started")
+        } catch {
+            case e: Throwable =>
+                log.error("Exception", e)
+                notifyFailed(e)
+        }
     }
 
     protected override def doStop() {
         try {
             val stopFutures = childrenActors map { child => stopActor(child) }
-            implicit val s = system
-            Await.result(Future.sequence(stopFutures), 150.millis)
-            supervisorActor foreach { stopActor }
+            Await.result(Future.sequence(stopFutures), 150 millis)
+            stopActor(supervisorActor)
             log.debug("Stopping the actor system")
             system.shutdown()
             notifyStopped()
         } catch {
-            case e =>
+            case e: Throwable =>
                 log.error("Exception", e)
                 notifyFailed(e)
         }
-   }
+    }
 
-    def propsFor(actorClass: Class[_ <: Actor]) =
-        new Props(new GuiceActorFactory(injector, actorClass))
+    def propsFor[T <: Actor: ClassTag](actorClass: Class[T]) =
+        Props { injector.getInstance(actorClass) }
 
     protected def stopActor(actorRef: ActorRef) = {
         log.debug("Stopping actor: {}", actorRef.toString())
-        Patterns.gracefulStop(actorRef, 100.millis, system)
+        gracefulStop(actorRef, 100.millis)
     }
 
     private def startTopActor(actorProps: Props, actorName: String) = {
         log.debug("Starting actor {}", actorName)
-        Some(system.actorOf(actorProps, actorName))
+        system.actorOf(actorProps, actorName)
     }
 
     protected def startActor(actorProps: Props, actorName: String): ActorRef = {
-        val tout = new Timeout(3.seconds)
-        supervisorActor map {
-            supervisor =>
-                log.debug("Starting actor {}", actorName)
-                Patterns.ask(supervisor,
-                             new StartChild(actorProps, actorName), tout) } map {
-            actorRefFuture =>
-                Await.result(actorRefFuture.mapTo[ActorRef], tout.duration)
-        } getOrElse {
-            throw new IllegalArgumentException("No supervisor actor.")
-        }
+        log.debug("Starting actor {}", actorName)
+        Await.result(ask(supervisorActor, new StartChild(actorProps, actorName)),
+                     tout.duration).asInstanceOf[ActorRef]
     }
 
     def initProcessing() {

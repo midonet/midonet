@@ -10,13 +10,9 @@ import java.util.UUID
 import scala.util.Random
 
 import akka.actor.ActorContext
-import akka.event.Logging
-import akka.event.LoggingAdapter
 import org.junit.runner.RunWith
-import org.scalatest.BeforeAndAfter
-import org.scalatest.Suite
+import org.scalatest.{BeforeAndAfter, Matchers, Suite}
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.matchers.ShouldMatchers
 
 import org.midonet.odp.Port
 import org.midonet.odp.ports.GreTunnelPort
@@ -24,8 +20,7 @@ import org.midonet.midolman.topology.rcu.Host
 import org.midonet.midolman.topology.FlowTagger
 
 @RunWith(classOf[JUnitRunner])
-class DatapathStateManagerTest
-        extends Suite with ShouldMatchers with BeforeAndAfter {
+class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
 
     type MaybePort = Option[Port[_,_]]
 

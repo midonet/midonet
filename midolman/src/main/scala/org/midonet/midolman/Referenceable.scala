@@ -16,7 +16,7 @@ trait Referenceable {
         system.actorFor(path)
     }
 
-    def Name: String
+    val Name: String
 
     protected def Prefix: String = "/user/%s" format supervisorName
 

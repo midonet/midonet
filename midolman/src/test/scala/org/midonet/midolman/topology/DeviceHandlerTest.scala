@@ -11,16 +11,14 @@ import java.util.UUID
 import akka.actor.ActorSystem
 import akka.testkit.ImplicitSender
 import akka.testkit.TestKit
-import akka.util.duration._
+import scala.concurrent.duration._
 import org.junit.runner.RunWith
-import org.scalatest.BeforeAndAfter
-import org.scalatest.Suite
+import org.scalatest.{Matchers, BeforeAndAfter, Suite}
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.matchers.ShouldMatchers
 
 @RunWith(classOf[JUnitRunner])
 class DeviceHandlerTest extends TestKit(ActorSystem("DeviceHandlerTests"))
-        with ImplicitSender with Suite with ShouldMatchers with BeforeAndAfter
+        with ImplicitSender with Suite with Matchers with BeforeAndAfter
         with DeviceHandler {
 
     // the testkit actor is reused between test, therefore we need to drain

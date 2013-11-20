@@ -25,7 +25,8 @@ import org.midonet.packets._
 
 @Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
-class FloatingIpTestCase extends VirtualConfigurationBuilders with RouterHelper {
+class FloatingIpTestCase extends MidolmanTestCase
+                         with VirtualConfigurationBuilders with RouterHelper {
     private final val log = LoggerFactory.getLogger(classOf[FloatingIpTestCase])
 
     // Router port one connecting to host VM1
@@ -181,8 +182,8 @@ class FloatingIpTestCase extends VirtualConfigurationBuilders with RouterHelper 
         log.debug("Packet out: {}", pktOut)
         var ipPak = eth.getPayload.asInstanceOf[IPv4]
         ipPak should not be null
-        ipPak.getSourceIPAddress should be === vm2Ip
-        ipPak.getDestinationIPAddress should be === vm1Ip
+        ipPak.getSourceIPAddress should be (vm2Ip)
+        ipPak.getDestinationIPAddress should be (vm1Ip)
 
         log.info(
             "Replying with tcp packet floatingIP -> VM2, should be SNAT'ed")

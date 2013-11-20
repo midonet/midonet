@@ -9,9 +9,9 @@ import scala.collection.immutable.{Set => ROSet}
 import scala.collection.{immutable, mutable}
 
 import akka.actor._
-import akka.dispatch.{ Future, Promise}
+import scala.concurrent.{ Future, Promise}
 import akka.util.Timeout
-import akka.util.duration._
+import scala.concurrent.duration._
 import com.google.inject.Inject
 import org.apache.zookeeper.KeeperException
 
@@ -557,14 +557,14 @@ abstract class VirtualToPhysicalMapperBase
                 val req = BridgeRequest(brPort.deviceID)
                 expiringAsk(req, log) map { br => Some((brPort, br)) }
             case _ => // not a bridgePort, sending back None
-                Promise.successful(None)
+                Future.successful(None)
         } recoverWith {
             case _ : TimeoutException if retries > 0 =>
                 log.warning("VirtualTopologyActor request timeout " +
                     "for config of port {} -> retrying", vport)
                 getPortConfig(vport, retries - 1)
             case ex =>
-                Promise.failed(ex)
+                Future.failed(ex)
         }
 
     def subscribeCallback(psetID: UUID): DirectoryCallback.Add =

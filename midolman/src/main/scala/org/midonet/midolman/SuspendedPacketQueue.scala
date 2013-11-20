@@ -2,15 +2,20 @@
 
 package org.midonet.midolman
 
-import scala.annotation.tailrec
-import akka.util.Duration
-import akka.dispatch.Promise
-import akka.actor._
 import java.util.concurrent.{TimeoutException, TimeUnit}
+
+import scala.annotation.tailrec
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Promise
+import scala.concurrent.duration.Duration
+
+import akka.actor._
+
 
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.util.collection.RingBuffer
 import org.midonet.util.throttling.ThrottlingGuard
+
 
 object SuspendedPacketQueue {
     case object _CleanCompletedPromises
@@ -31,7 +36,7 @@ trait SuspendedPacketQueue extends Actor with ActorLogWithoutPath {
     private def expire(cookie: Option[Int], promise: Promise[_]) {
         if (! promise.isCompleted) {
             log.debug("expiring suspended simulation")
-            promise.tryComplete(Left(new TimeoutException("suspended simulation timed out")))
+            promise tryFailure new TimeoutException("suspended simulation timed out")
         }
     }
 
@@ -50,7 +55,8 @@ trait SuspendedPacketQueue extends Actor with ActorLogWithoutPath {
     override def preStart() {
         super.preStart()
         val interval = Duration(1000, TimeUnit.MILLISECONDS)
-        context.system.scheduler.schedule(interval, interval, self, _CleanCompletedPromises)
+        context.system.scheduler.schedule(interval, interval, self,
+            _CleanCompletedPromises)
     }
 
     override def receive = {
@@ -62,7 +68,7 @@ trait SuspendedPacketQueue extends Actor with ActorLogWithoutPath {
             val th = throttler
             cookie foreach { c =>
                 th.tokenOut()
-                promise.onComplete { _ => th.tokenIn() }
+                promise.future.onComplete { _ => th.tokenIn() }
             }
             ring.put((cookie, promise))
 

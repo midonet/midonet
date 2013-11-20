@@ -36,7 +36,7 @@ class TraceConditionsManager(val id: UUID, val clusterClient: Client)
 
     override def receive = {
         case TriggerUpdate(conditions) =>
-                val vta = context.actorFor("..")
+                val vta = VirtualTopologyActor.getRef()
                 log.debug("Got update to conditions [{}], sending to VTA {}.",
                           conditions, vta)
                 vta ! TraceConditions(conditions.asScala.toList)

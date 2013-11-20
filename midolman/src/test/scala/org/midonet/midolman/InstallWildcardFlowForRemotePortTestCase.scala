@@ -5,7 +5,7 @@ package org.midonet.midolman
 
 import java.util.concurrent.TimeUnit
 
-import akka.util.Duration
+import scala.concurrent.duration.Duration
 import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -15,7 +15,6 @@ import org.midonet.midolman.FlowController.{AddWildcardFlow, WildcardFlowAdded}
 import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.odp.flows.FlowActions
-import org.midonet.odp.flows.{FlowActionOutput, FlowActionSetKey, FlowKeyTunnel}
 import org.midonet.packets.IPv4Addr
 import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPort
 import org.midonet.sdn.flows.{WildcardMatch, WildcardFlow}
@@ -68,8 +67,8 @@ class InstallWildcardFlowForRemotePortTestCase extends MidolmanTestCase
         fishForRequestOfType[AddWildcardFlow](flowProbe())
         drainProbes()
 
-        dpProbe().testActor.tell(
-            AddVirtualWildcardFlow(wildcardFlow, Set.empty, Set.empty))
+        dpProbe().testActor !
+            AddVirtualWildcardFlow(wildcardFlow, Set.empty, Set.empty)
 
         val addFlowMsg = fishForRequestOfType[WildcardFlowAdded](
             wflowAddedProbe, Duration(3, TimeUnit.SECONDS))

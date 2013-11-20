@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit
 import scala.Predef._
 
 import akka.testkit.TestProbe
-import akka.util.Duration
+import scala.concurrent.duration
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
@@ -23,6 +23,7 @@ import org.midonet.midolman.util.TestHelpers
 import org.midonet.odp._
 import org.midonet.packets.{IPv4Addr, MAC, Packets}
 import org.midonet.sdn.flows.WildcardFlow
+import scala.concurrent.duration.Duration
 
 @Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
@@ -79,16 +80,16 @@ class FlowsExpirationTestCase extends MidolmanTestCase
         flowProbe().expectMsgType[DatapathController.DatapathReady].datapath should not be (null)
 
         // Now disable sending messages to the DatapathController
-        dpProbe().testActor.tell("stop")
+        dpProbe().testActor ! "stop"
         dpProbe().expectMsg("stop")
 
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
 
         val vta = VirtualTopologyActor.getRef(actors())
-        ask(vta, PortRequest(port1.getId))
-        ask(vta, PortRequest(port2.getId))
-        ask(vta, BridgeRequest(bridge.getId))
+        askAndAwait(vta, PortRequest(port1.getId))
+        askAndAwait(vta, PortRequest(port2.getId))
+        askAndAwait(vta, BridgeRequest(bridge.getId))
 
         requestOfType[LocalPortActive](portsProbe)
         requestOfType[LocalPortActive](portsProbe)
@@ -114,8 +115,8 @@ class FlowsExpirationTestCase extends MidolmanTestCase
                 newMatch,
                 hardExpirationMillis = getDilatedTime(timeOutFlow).toInt)
 
-        flowProbe().testActor.tell(
-            AddWildcardFlow(newWildFlow, Some(flow), Set.empty, Set.empty))
+        flowProbe().testActor !
+            AddWildcardFlow(newWildFlow, Some(flow), Set.empty, Set.empty)
 
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
 
@@ -181,8 +182,8 @@ class FlowsExpirationTestCase extends MidolmanTestCase
         val newWildFlow = WildcardFlow(addedFlow.wcmatch,
                 idleExpirationMillis = getDilatedTime(timeOutFlow).toInt)
 
-        flowProbe().testActor.tell(
-            AddWildcardFlow(newWildFlow, Some(flow), Set.empty, Set.empty))
+        flowProbe().testActor !
+            AddWildcardFlow(newWildFlow, Some(flow), Set.empty, Set.empty)
 
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
         val timeAdded: Long = System.currentTimeMillis()
@@ -223,8 +224,8 @@ class FlowsExpirationTestCase extends MidolmanTestCase
         val newWildFlow = WildcardFlow(addedFlow.wcmatch,
                 hardExpirationMillis = getDilatedTime(timeOutFlow).toInt)
 
-        flowProbe().testActor.tell(
-            AddWildcardFlow(newWildFlow, Some(flow), Set.empty, Set.empty))
+        flowProbe().testActor !
+            AddWildcardFlow(newWildFlow, Some(flow), Set.empty, Set.empty)
 
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
         val timeAdded: Long = System.currentTimeMillis()
@@ -261,8 +262,8 @@ class FlowsExpirationTestCase extends MidolmanTestCase
         val newWildFlow = WildcardFlow(addedFlow.wcmatch,
                 idleExpirationMillis = getDilatedTime(timeOutFlow).toInt)
 
-        flowProbe().testActor.tell(
-            AddWildcardFlow(newWildFlow, Some(flow), Set.empty, Set.empty))
+        flowProbe().testActor !
+            AddWildcardFlow(newWildFlow, Some(flow), Set.empty, Set.empty)
 
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
         val timeAdded = System.currentTimeMillis()

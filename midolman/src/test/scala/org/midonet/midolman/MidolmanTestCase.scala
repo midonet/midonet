@@ -3,6 +3,8 @@
 */
 package org.midonet.midolman
 
+import language.implicitConversions
+
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.compat.Platform
@@ -12,27 +14,22 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 
 import akka.actor._
-import akka.dispatch.{Await, Future}
+import scala.concurrent.{ExecutionContext, Await, Future}
 import akka.event.EventStream
 import akka.testkit._
-import akka.util.{Duration, Timeout}
-import akka.util.duration._
 import akka.pattern.ask
+import akka.util.Timeout
+import scala.concurrent.duration._
 import com.google.inject._
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.scalatest._
-import org.scalatest.matchers.BePropertyMatcher
-import org.scalatest.matchers.BePropertyMatchResult
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.matchers.{BePropertyMatcher, BePropertyMatchResult}
 import org.slf4j.{Logger, LoggerFactory}
 
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.{Port => VPort}
 import org.midonet.cluster.services.MidostoreSetupService
-import org.midonet.cluster.{Client, DataClient}
-import org.midonet.midolman.DatapathController.DpPortCreate
-import org.midonet.midolman.DatapathController.InitializationComplete
-import org.midonet.midolman.DatapathController.Initialize
+import org.midonet.midolman.DatapathController.{InitializationComplete, DpPortCreate, Initialize}
 import org.midonet.midolman.DeduplicationActor.DiscardPacket
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.FlowController.AddWildcardFlow
@@ -66,17 +63,15 @@ import org.midonet.odp.flows.FlowKeyInPort
 import org.midonet.odp.flows.{FlowActionOutput, FlowActionSetKey, FlowKeyTunnel}
 import org.midonet.odp.protos.MockOvsDatapathConnection
 import org.midonet.odp.protos.MockOvsDatapathConnection.FlowListener
-import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.packets.Ethernet
 import org.midonet.util.functors.callbacks.AbstractCallback
-
 
 object MidolmanTestCaseLock {
     val sequential: ReentrantLock = new ReentrantLock()
 }
 
 trait MidolmanTestCase extends Suite with BeforeAndAfter
-        with OneInstancePerTest with ShouldMatchers with Dilation
+        with OneInstancePerTest with Matchers with Dilation
         with MidolmanServices {
 
     case class PacketsExecute(packet: Packet)
@@ -102,8 +97,8 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
     var discardPacketProbe: TestProbe = null
     var flowUpdateProbe: TestProbe = null
 
-    val timeout = Duration(3, TimeUnit.SECONDS)
-    implicit val askTimeout = Timeout(3 second)
+    implicit val askTimeout = Timeout(3 seconds)
+    val timeout: FiniteDuration = askTimeout.duration
 
     protected def fillConfig(config: HierarchicalConfiguration)
             : HierarchicalConfiguration = {
@@ -113,9 +108,12 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
         config
     }
 
-    protected def actors(): ActorSystem = {
+    override protected def actors(): ActorSystem = {
         injector.getInstance(classOf[MidolmanActorsService]).system
     }
+
+    implicit protected def system: ActorSystem = actors()
+    implicit protected def executor: ExecutionContext = actors().dispatcher
 
     protected def natMappingFactory(): NatMappingFactory = {
         injector.getInstance(classOf[NatMappingFactory])
@@ -253,8 +251,8 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
         )
     }
 
-    protected def ask[T](actor: ActorRef, msg: Object): T = {
-        val promise = akka.pattern.ask(actor, msg).asInstanceOf[Future[T]]
+    protected def askAndAwait[T](actor: ActorRef, msg: Object): T = {
+        val promise = ask(actor, msg).asInstanceOf[Future[T]]
         Await.result(promise, timeout)
     }
 
@@ -389,7 +387,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
             testKit: TestKit, _timeout: Duration = timeout)(
             implicit m: Manifest[T]): T = {
 
-        val clazz = m.erasure.asInstanceOf[Class[T]]
+        val clazz = m.runtimeClass.asInstanceOf[Class[T]]
         val msg = testKit.fishForMessage(_timeout) {
             case o if (o.getClass == clazz) => true
             case _ => false
@@ -404,7 +402,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
             testKit: TestKit, _timeout: Duration = timeout)(
             implicit m: Manifest[T]): T = {
         val deadline = Platform.currentTime + _timeout.toMillis
-        val clazz = manifest.erasure.asInstanceOf[Class[T]]
+        val clazz = manifest.runtimeClass.asInstanceOf[Class[T]]
         @tailrec
         def fish: T = {
             val timeLeft = deadline - Platform.currentTime
@@ -424,7 +422,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
 
     protected def requestOfType[T](testKit: TestKit)
                                   (implicit m: Manifest[T]): T = {
-        testKit.expectMsgClass(m.erasure.asInstanceOf[Class[T]])
+        testKit.expectMsgClass(m.runtimeClass.asInstanceOf[Class[T]])
     }
 
     trait OnProbe[T] { def on(probe: TestKit): T }
@@ -432,12 +430,12 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
     def expect[T](implicit m: Manifest[T]): OnProbe[T] =
         new OnProbe[T] {
             override def on(probe: TestKit): T =
-                probe.expectMsgClass(m.erasure.asInstanceOf[Class[T]])
+                probe.expectMsgClass(m.runtimeClass.asInstanceOf[Class[T]])
         }
 
     protected def replyOfType[T](testKit: TestKit)
                                 (implicit manifest: Manifest[T]): T = {
-        val clazz = manifest.erasure.asInstanceOf[Class[T]]
+        val clazz = manifest.runtimeClass.asInstanceOf[Class[T]]
         val m = testKit.expectMsgClass(classOf[OutgoingMessage]).m
         assert(clazz.isInstance(m),
                "Reply should have been of type %s but was %s" format
@@ -451,7 +449,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
     }
 
     def anInstanceOf[T](implicit manifest: Manifest[T]) = {
-        val clazz = manifest.erasure.asInstanceOf[Class[T]]
+        val clazz = manifest.runtimeClass.asInstanceOf[Class[T]]
         new BePropertyMatcher[AnyRef] {
             def apply(left: AnyRef) =
                 BePropertyMatchResult(clazz.isAssignableFrom(left.getClass),
@@ -507,7 +505,6 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
         }.asInstanceOf[WildcardFlowRemoved].f
 
     def expectPacketIn() = expect[PacketIn].on(packetInProbe)
-
 }
 
 trait Dilation {
@@ -525,5 +522,4 @@ trait Dilation {
     def getDilatedTime(time: Long): Long = {
         getDilationTime * time
     }
-
 }

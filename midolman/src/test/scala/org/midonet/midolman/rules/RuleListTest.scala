@@ -4,15 +4,14 @@ package org.midonet.midolman.rules
 
 import java.util.UUID
 import org.junit.runner.RunWith
-import org.scalatest.Suite
+import org.scalatest.{Matchers, Suite}
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.matchers.ShouldMatchers
 import org.slf4j.LoggerFactory
 import collection.JavaConversions._
 import org.midonet.midolman.version.serialization.JsonVersionZkSerializer
 
 @RunWith(classOf[JUnitRunner])
-class RuleListTest extends Suite with ShouldMatchers {
+class RuleListTest extends Suite with Matchers {
 
     val log =
         LoggerFactory.getLogger(classOf[RuleListTest])

@@ -62,11 +62,6 @@
             <artifactId>jsr305</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-actor</artifactId>
-        </dependency>
-
         <dependency> <!-- needed by jmx session helper -->
             <groupId>com.sun</groupId>
             <artifactId>tools</artifactId>
@@ -92,7 +87,7 @@
 
         <dependency>
             <groupId>org.scalatest</groupId>
-            <artifactId>scalatest_${versions.scala.library}</artifactId>
+            <artifactId>scalatest_2.10</artifactId>
             <scope>test</scope>
         </dependency>
 

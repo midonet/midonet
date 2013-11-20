@@ -3,18 +3,17 @@
 package org.midonet.midolman.simulation
 
 import akka.actor.ActorSystem
-import akka.dispatch.Await
+import scala.concurrent.Await
 import akka.event.Logging
-import akka.util.duration._
+import scala.concurrent.duration._
 import collection.mutable.{Map, Queue}
 import compat.Platform
 import java.lang.{Long => JLong, Short => JShort}
 import java.util.UUID
 
 import org.junit.runner.RunWith
-import org.scalatest.{BeforeAndAfterAll, Suite}
+import org.scalatest.{Matchers, BeforeAndAfterAll, Suite}
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.matchers.ShouldMatchers
 
 import org.midonet.midolman.topology._
 import org.midonet.cluster.client.{RouterPort, IpMacMap, MacLearningTable}
@@ -26,7 +25,7 @@ import org.midonet.cluster.VlanPortMapImpl
 
 
 @RunWith(classOf[JUnitRunner])
-class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
+class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
     implicit val system = ActorSystem.create("RCUBridgeTest")
     implicit val code = "Sim #: " + scala.util.Random.nextInt().toString
     implicit val ec = system.dispatcher
@@ -108,7 +107,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
         //context.setInputPort(rtr1port)
         val future = bridge.process(context)
 
-        ingressMatch should be === origMatch
+        ingressMatch should be (origMatch)
 
         val result = Await.result(future, 1 second)
         result match {
@@ -136,7 +135,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
         context.inPortId = new RouterPort().setID(rtr2port)
         val future = bridge.process(context)
 
-        ingressMatch should be === origMatch
+        ingressMatch should be (origMatch)
 
         val result = Await.result(future, 1 second)
         result match {
@@ -158,7 +157,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
                                         null, null, true, None, ingressMatch)
         val future = bridge.process(context)
 
-        ingressMatch should be === origMatch
+        ingressMatch should be (origMatch)
 
         val result = Await.result(future, 1 second)
         result match {
@@ -188,7 +187,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
                                         null, null, true, None, ingressMatch)
         val future = bridge.process(context)
 
-        ingressMatch should be === origMatch
+        ingressMatch should be (origMatch)
 
         val result = Await.result(future, 1 second)
         result match {
@@ -208,7 +207,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
                                         null, null, true, None, ingressMatch)
         val future = bridge.process(context)
 
-        ingressMatch should be === origMatch
+        ingressMatch should be (origMatch)
 
         val result = Await.result(future, 1 second)
         assert(result == Coordinator.DropAction)

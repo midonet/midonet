@@ -6,16 +6,17 @@ package org.midonet.midolman.simulation
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
+import scala.concurrent.{ExecutionContext, Await}
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
+
 import akka.actor._
 import akka.pattern.ask
-import akka.dispatch.{ExecutionContext, Await}
-import akka.util.{Timeout, Duration}
-import akka.util.duration._
+import akka.util.Timeout
 
 import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.matchers.ShouldMatchers
 
 import org.midonet.midolman._
 import org.midonet.cluster.data.{Router => ClusterRouter, Bridge => ClusterBridge, Entity, Port}
@@ -39,9 +40,8 @@ import org.midonet.packets.ICMP.UNREACH_CODE
 import org.midonet.sdn.flows.WildcardMatch
 
 @RunWith(classOf[JUnitRunner])
-class AdminStateTest extends Suite
-                     with FeatureSpec
-                     with ShouldMatchers
+class AdminStateTest extends FeatureSpec
+                     with Matchers
                      with GivenWhenThen
                      with CustomMatchers
                      with MockMidolmanActors
@@ -59,8 +59,8 @@ class AdminStateTest extends Suite
                                           with MessageAccumulator))
 
     /*
-     * The topology for this test consists of one bridge and one router,
-     * each with two ports, one interior and another exterior.
+     * The topology for this test consists of one bridge And one router,
+     * each with two ports, one interior And another exterior.
      */
 
     val ipBridgeSide = new IPv4Subnet("10.0.0.64", 24)
@@ -148,76 +148,76 @@ class AdminStateTest extends Suite
 
     feature("Devices with administrative state down don't process packets") {
         scenario("a down bridge drops packets silently") {
-            given("a down bridge")
+            Given("a down bridge")
 
             bridge.setAdminStateUp(false)
             clusterDataClient().bridgesUpdate(bridge)
 
-            when("a packet is sent to that bridge")
+            When("a packet is sent to that bridge")
 
             val flow = sendPacket (fromBridgeSide)
 
-            then("a drop flow should be installed")
+            Then("a drop flow should be installed")
 
             flow should be (dropped)
         }
 
         scenario("a down interior bridge port drops egressing packets") {
-            given("a down bridge port")
+            Given("a down bridge port")
 
             interiorBridgePort.setAdminStateUp(false)
             clusterDataClient().portsUpdate(interiorBridgePort)
 
-            when("a packet is egressing that port")
+            When("a packet is egressing that port")
 
             val flow = sendPacket (fromBridgeSide)
 
-            then("a drop flow should be installed")
+            Then("a drop flow should be installed")
 
             flow should be (dropped)
         }
 
         scenario("a down interior bridge port drops ingressing packets") {
-            given("a down bridge port")
+            Given("a down bridge port")
 
             interiorBridgePort.setAdminStateUp(false)
             clusterDataClient().portsUpdate(interiorBridgePort)
 
-            when("a packet is ingressing that port")
+            When("a packet is ingressing that port")
 
             val flow = sendPacket (fromRouterSide)
 
-            then("a drop flow should be installed")
+            Then("a drop flow should be installed")
 
             flow should be (dropped)
         }
 
         scenario("a down exterior bridge port drops egressing packets") {
-            given("a down bridge port")
+            Given("a down bridge port")
 
             exteriorBridgePort.setAdminStateUp(false)
             clusterDataClient().portsUpdate(exteriorBridgePort)
 
-            when("a packet is egressing that port")
+            When("a packet is egressing that port")
 
             val flow = sendPacket (fromRouterSide)
 
-            then("a drop flow should be installed")
+            Then("a drop flow should be installed")
 
             flow should be (dropped)
         }
 
         scenario("a down exterior bridge port drops ingressing packets") {
-            given("a down bridge port")
+            Given("a down bridge port")
 
             exteriorBridgePort.setAdminStateUp(false)
             clusterDataClient().portsUpdate(exteriorBridgePort)
 
-            when("a packet is ingressing that port")
+            When("a packet is ingressing that port")
 
             val flow = sendPacket (fromBridgeSide)
 
-            then("a drop flow should be installed")
+            Then("a drop flow should be installed")
 
             flow should be (dropped)
         }
@@ -231,7 +231,7 @@ class AdminStateTest extends Suite
                      .asInstanceOf[Seq[Any]]
             }
 
-            given("an exterior bridge port that is flooded")
+            Given("an exterior bridge port that is flooded")
 
             val f = ask(VirtualTopologyActor, BridgeRequest(bridge.getId))
             Await.result(f, Duration.Inf)
@@ -245,12 +245,12 @@ class AdminStateTest extends Suite
             var tacts = translateActions(simRes)
             tacts should contain (FlowActions.output(1).asInstanceOf[Any])
 
-            when("the port is set to down")
+            When("the port is set to down")
 
             exteriorBridgePort.setAdminStateUp(false)
             clusterDataClient().portsUpdate(exteriorBridgePort)
 
-            then("the port should not be flooded")
+            Then("the port should not be flooded")
 
             simRes = sendPacket (fromRouterSide)
             simRes should be (toPortSet(bridge.getId))
@@ -260,20 +260,20 @@ class AdminStateTest extends Suite
         }
 
         scenario("a down router sends an ICMP prohibited error") {
-            given("a down router")
+            Given("a down router")
 
             router.setAdminStateUp(false)
             clusterDataClient().routersUpdate(router)
 
-            when("a packet is sent to that router")
+            When("a packet is sent to that router")
 
             val flow = sendPacket (fromBridgeSide)
 
-            then("a drop flow should be installed")
+            Then("a drop flow should be installed")
 
             flow should be (dropped)
 
-            and("an ICMP prohibited error should be emitted from the " +
+            And("an ICMP prohibited error should be emitted from the " +
                 "ingressing port")
 
             assertExpectedIcmpProhibitPacket(interiorRouterPort)
@@ -281,20 +281,20 @@ class AdminStateTest extends Suite
 
         scenario("a down interior router port egressing packets sends an ICMP" +
                  "prohibited error from the ingressing port") {
-            given("a down router port")
+            Given("a down router port")
 
             interiorRouterPort.setAdminStateUp(false)
             clusterDataClient().portsUpdate(interiorRouterPort)
 
-            when("a packet is egressing that port")
+            When("a packet is egressing that port")
 
             val flow = sendPacket (fromRouterSide)
 
-            then("a drop flow should be installed")
+            Then("a drop flow should be installed")
 
             flow should be (dropped)
 
-            and("an ICMP prohibited error should be emitted from the " +
+            And("an ICMP prohibited error should be emitted from the " +
                     "ingressing port")
 
             assertExpectedIcmpProhibitPacket(exteriorRouterPort)
@@ -302,40 +302,40 @@ class AdminStateTest extends Suite
 
         scenario("a down interior router port ingressing packets sends an " +
                  "ICMP prohibited error") {
-            given("a down router port")
+            Given("a down router port")
 
             interiorRouterPort.setAdminStateUp(false)
             clusterDataClient().portsUpdate(interiorRouterPort)
 
-            when("a packet is ingressing that port")
+            When("a packet is ingressing that port")
 
             val flow = sendPacket (fromBridgeSide)
 
-            then("a drop flow should be installed")
+            Then("a drop flow should be installed")
 
             flow should be (dropped)
 
-            and("an ICMP prohibited error should be emitted from the port")
+            And("an ICMP prohibited error should be emitted from the port")
 
             assertExpectedIcmpProhibitPacket(interiorRouterPort)
         }
 
         scenario("a down exterior router port egressing packets sends an " +
                  "ICMP prohibited error from the ingressing port") {
-            given("a down router port")
+            Given("a down router port")
 
             exteriorRouterPort.setAdminStateUp(false)
             clusterDataClient().portsUpdate(exteriorRouterPort)
 
-            when("a packet is egressing that port")
+            When("a packet is egressing that port")
 
             val flow = sendPacket (fromBridgeSide)
 
-            then("a drop flow should be installed")
+            Then("a drop flow should be installed")
 
             flow should be (dropped)
 
-            and("an ICMP prohibited error should be emitted from the " +
+            And("an ICMP prohibited error should be emitted from the " +
                 "ingressing port")
 
             assertExpectedIcmpProhibitPacket(interiorRouterPort)
@@ -343,20 +343,20 @@ class AdminStateTest extends Suite
 
         scenario("a down exterior router port ingressing packets sends an " +
                  "ICMP prohibited error") {
-            given("a down router port")
+            Given("a down router port")
 
             exteriorRouterPort.setAdminStateUp(false)
             clusterDataClient().portsUpdate(exteriorRouterPort)
 
-            when("a packet is ingressing that port")
+            When("a packet is ingressing that port")
 
             val flow = sendPacket (fromRouterSide)
 
-            then("a drop flow should be installed")
+            Then("a drop flow should be installed")
 
             flow should be (dropped)
 
-            and("an ICMP prohibited error should be emitted from the port")
+            And("an ICMP prohibited error should be emitted from the port")
 
             assertExpectedIcmpProhibitPacket(exteriorRouterPort)
         }
@@ -374,7 +374,7 @@ class AdminStateTest extends Suite
                                            with FlowTranslator {
 
         implicit val executor: ExecutionContext = context.dispatcher
-        implicit val system: ActorSystem = context.system
+        implicit override val system: ActorSystem = context.system
 
         protected val datapathConnection: OvsDatapathConnection = null
         implicit protected val requestReplyTimeout =
@@ -395,15 +395,15 @@ class AdminStateTest extends Suite
         }
 
         def receive = {
-            case actions: Seq[FlowAction[_]] =>
+            case actions: Seq[_] =>
                 val s = sender
-                translateActions(actions, None, None, null) map {
-                    s ! _
-                }
+                translateActions(actions.asInstanceOf[Seq[FlowAction[_]]],
+                    None, None, null) map { s ! _}
         }
     }
 
     private[this] def assertExpectedIcmpProhibitPacket(routerPort: RouterPort) {
+        DeduplicationActor.messages should not be (empty)
         val msg = DeduplicationActor.messages.head.asInstanceOf[EmitGeneratedPacket]
         msg should not be null
 
@@ -424,61 +424,59 @@ class AdminStateTest extends Suite
     feature("Setting the administrative state of a device should " +
             "invalidate all its flows") {
         scenario("the admin state of a bridge is set to down") {
-            given("a bridge")
+            Given("a bridge")
 
-            when("setting its state to down")
+            When("setting its state to down")
 
             bridge.setAdminStateUp(false)
             clusterDataClient().bridgesUpdate(bridge)
 
-            then("corresponding flows should be invalidated")
+            Then("corresponding flows should be invalidated")
 
             assertFlowTagsInvalidated(bridge)
         }
 
         scenario("the admin state of a bridge port is set to down") {
-            given("interior and exterior bridge ports")
+            Given("interior and exterior bridge ports")
 
-            when("setting their state to down")
+            When("setting their state to down")
 
             interiorBridgePort.setAdminStateUp(false)
             exteriorBridgePort.setAdminStateUp(false)
             clusterDataClient().portsUpdate(interiorBridgePort)
             clusterDataClient().portsUpdate(exteriorBridgePort)
 
-            then("corresponding flows should be invalidated")
+            Then("corresponding flows should be invalidated")
 
-            assertFlowTagsInvalidated(interiorBridgePort)
-            assertFlowTagsInvalidated(exteriorBridgePort)
+            assertFlowTagsInvalidated(interiorBridgePort, exteriorBridgePort)
         }
 
         scenario("the admin state of a router is set to down") {
-            given("a router")
+            Given("a router")
 
-            when("setting its state to down")
+            When("setting its state to down")
 
             router.setAdminStateUp(false)
             clusterDataClient().routersUpdate(router)
 
-            then("corresponding flows should be invalidated")
+            Then("corresponding flows should be invalidated")
 
             assertFlowTagsInvalidated(router)
         }
 
         scenario("the admin state of a router port is set to down") {
-            given("interior and exterior router ports")
+            Given("interior And exterior router ports")
 
-            when("setting their state to down")
+            When("setting their state to down")
 
             interiorRouterPort.setAdminStateUp(false)
             exteriorRouterPort.setAdminStateUp(false)
             clusterDataClient().portsUpdate(interiorRouterPort)
             clusterDataClient().portsUpdate(exteriorRouterPort)
 
-            then("corresponding flows should be invalidated")
+            Then("corresponding flows should be invalidated")
 
-            assertFlowTagsInvalidated(interiorRouterPort)
-            assertFlowTagsInvalidated(exteriorRouterPort)
+            assertFlowTagsInvalidated(interiorRouterPort, exteriorRouterPort)
         }
     }
 
@@ -490,8 +488,7 @@ class AdminStateTest extends Suite
         val invalidations = VirtualTopologyActor.messages
                 .filter(_.isInstanceOf[FlowController.InvalidateFlowsByTag])
 
-        // TODO: use contain allOf when ScalaTest gets updated
-        tags foreach { t: Any => invalidations should contain (t) }
+        invalidations should contain theSameElementsAs tags
     }
 
     private[this] def sendPacket(t: (Port[_,_], Ethernet)): SimulationResult =

@@ -6,13 +6,15 @@ package org.midonet.midolman.guice;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
+import scala.concurrent.duration.Duration;
+
 import akka.actor.ActorInitializationException;
 import akka.actor.ActorKilledException;
 import akka.actor.OneForOneStrategy;
 import akka.actor.SupervisorStrategy;
 import akka.actor.SupervisorStrategy.Directive;
 import akka.japi.Function;
-import akka.util.Duration;
+
 import com.google.inject.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +40,6 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static akka.actor.SupervisorStrategy.resume;
 import static akka.actor.SupervisorStrategy.stop;
 import static akka.actor.SupervisorStrategy.escalate;
-
 
 /**
  * This Guice module will bind an instance of {@link MidolmanActorsService} so

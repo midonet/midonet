@@ -10,7 +10,7 @@ import scala.collection.mutable
 import scala.collection.{Set => ROSet}
 
 import akka.testkit.TestProbe
-import akka.util.Duration
+import scala.concurrent.duration
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
@@ -33,11 +33,12 @@ import org.midonet.odp.flows.{FlowKeyTunnelID, FlowAction, FlowActions}
 import org.midonet.odp.{FlowMatch, Flow, Datapath}
 import org.midonet.packets._
 import org.midonet.sdn.flows.{WildcardMatch, WildcardFlow}
+import scala.concurrent.duration.Duration
 
 @Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
-class RouterFlowInvalidationTestCase extends MidolmanTestCase
-        with VirtualConfigurationBuilders with RouterHelper{
+class RouterFlowInvalidationTestCase extends MidolmanTestCase with RouterHelper
+        with VirtualConfigurationBuilders {
 
     var eventProbe: TestProbe = null
     var tagEventProbe: TestProbe = null
