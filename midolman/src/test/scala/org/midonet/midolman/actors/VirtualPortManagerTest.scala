@@ -256,4 +256,151 @@ class VirtualPortManagerTest extends Suite with FeatureSpec with ShouldMatchers 
         }
     }
 
+    feature("Notifying the VPM about a new vport binding") {
+
+        val (itf, (dpport, portno), (id, _)) = bindings(0)
+
+        def addStatus(vpm: VirtualPortManager, status: Boolean) {
+            vpm.interfaceToStatus = vpm.interfaceToStatus + (itf -> status)
+        }
+
+        def addMapping(vpm: VirtualPortManager) {
+            vpm.interfaceToDpPort = vpm.interfaceToDpPort + (itf -> dpport)
+            vpm.dpPortNumToInterface = vpm.dpPortNumToInterface + (portno -> itf)
+        }
+
+        scenario("binding added, no interface status") {
+            val (vpm, controller) = getVPM()
+
+            val newVpm = vpm.updateVPortInterfaceBindings(Map(id -> itf))
+            newVpm.interfaceToVport.get(itf) should be(Some(id))
+
+            controller.checkBlank()
+        }
+
+        scenario("binding added, interface status present, no dpport") {
+            val (vpm, controller) = getVPM()
+            addStatus(vpm, true)
+
+            val newVpm = vpm.updateVPortInterfaceBindings(Map(id -> itf))
+            newVpm.interfaceToVport.get(itf) should be(Some(id))
+            newVpm.dpPortsWeAdded.contains(itf) should be(true)
+            newVpm.dpPortsInProgress.contains(itf) should be(true)
+
+            controller.addDp.headOption should be(Some(itf))
+            controller.vportStatus.headOption should be(None)
+        }
+
+        scenario("binding added, interface status present, dpport present") {
+            val (vpm, controller) = getVPM()
+            addStatus(vpm, true)
+            addMapping(vpm)
+
+            val newVpm = vpm.updateVPortInterfaceBindings(Map(id -> itf))
+            newVpm.interfaceToVport.get(itf) should be(Some(id))
+            newVpm.dpPortsWeAdded.contains(itf) should be(false)
+            newVpm.dpPortsInProgress.contains(itf) should be(false)
+
+            controller.addDp.headOption should be(None)
+            controller.vportStatus.headOption should be(Some((dpport, id, true)))
+        }
+    }
+
+    feature("Notifying the VPM about a vport binding removal") {
+
+        val (itf, (dpport, portno), (id, _)) = bindings(0)
+
+        def addStatus(vpm: VirtualPortManager, status: Boolean) {
+            vpm.interfaceToStatus = vpm.interfaceToStatus + (itf -> status)
+        }
+
+        def addMapping(vpm: VirtualPortManager) {
+            vpm.interfaceToDpPort = vpm.interfaceToDpPort + (itf -> dpport)
+            vpm.dpPortNumToInterface = vpm.dpPortNumToInterface + (portno -> itf)
+        }
+
+        def addBinding(vpm: VirtualPortManager) {
+            vpm.interfaceToVport = vpm.interfaceToVport + (itf, id)
+        }
+
+        scenario("noops") {
+            val (vpm, controller) = getVPM()
+
+            val newVpm = vpm.updateVPortInterfaceBindings(Map())
+            newVpm.interfaceToVport.get(itf) should be(None)
+
+            controller.checkBlank()
+        }
+
+        scenario("binding removed, no mapping, was not in progress") {
+            val (vpm, controller) = getVPM()
+            addBinding(vpm)
+
+            val newVpm = vpm.updateVPortInterfaceBindings(Map())
+            newVpm.interfaceToVport.get(itf) should be(None)
+            newVpm.dpPortsInProgress.contains(itf) should be(false)
+
+            controller.checkBlank()
+        }
+
+        scenario("binding removed, no mapping, was in progress") {
+            val (vpm, controller) = getVPM()
+            addBinding(vpm)
+            vpm.dpPortsInProgress = vpm.dpPortsInProgress + itf
+
+            val newVpm = vpm.updateVPortInterfaceBindings(Map())
+            newVpm.interfaceToVport.get(itf) should be(None)
+            newVpm.dpPortsInProgress.contains(itf) should be(false)
+
+            controller.checkBlank()
+        }
+
+        scenario("binding removed, mapping, status inactive") {
+            val (vpm, controller) = getVPM()
+            addBinding(vpm)
+            addMapping(vpm)
+            vpm.dpPortsWeAdded = vpm.dpPortsWeAdded + itf
+
+            val newVpm = vpm.updateVPortInterfaceBindings(Map())
+            newVpm.interfaceToVport.get(itf) should be(None)
+            newVpm.dpPortsInProgress.contains(itf) should be(true)
+            newVpm.dpPortsWeAdded.contains(itf) should be(false)
+
+            controller.removeDp.headOption should be(Some(dpport))
+            controller.vportStatus.headOption should be(None)
+        }
+
+        scenario("binding removed, mapping, status active, dpc request") {
+            val (vpm, controller) = getVPM()
+            addBinding(vpm)
+            addMapping(vpm)
+            addStatus(vpm, true)
+            vpm.dpPortsWeAdded = vpm.dpPortsWeAdded + itf
+
+            val newVpm = vpm.updateVPortInterfaceBindings(Map())
+            newVpm.interfaceToVport.get(itf) should be(None)
+            newVpm.dpPortsInProgress.contains(itf) should be(true)
+            newVpm.dpPortsWeAdded.contains(itf) should be(false)
+
+            controller.removeDp.headOption should be(Some(dpport))
+            controller.vportStatus.headOption should be(Some((dpport, id, false)))
+        }
+
+        scenario("binding removed, mapping, status active, request in progress") {
+            val (vpm, controller) = getVPM()
+            addBinding(vpm)
+            addMapping(vpm)
+            addStatus(vpm, true)
+            vpm.dpPortsWeAdded = vpm.dpPortsWeAdded + itf
+            vpm.dpPortsInProgress = vpm.dpPortsInProgress + itf
+
+            val newVpm = vpm.updateVPortInterfaceBindings(Map())
+            newVpm.interfaceToVport.get(itf) should be(None)
+            newVpm.dpPortsInProgress.contains(itf) should be(true)
+            newVpm.dpPortsWeAdded.contains(itf) should be(true)
+
+            controller.removeDp.headOption should be(None)
+            controller.vportStatus.headOption should be(Some((dpport, id, false)))
+        }
+    }
 }

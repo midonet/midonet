@@ -1196,8 +1196,9 @@ class VirtualPortManager(
                     case Some(port) =>
                         requestDpPortRemove(port)
                         // If the port was up, the vport just became inactive.
-                        if (interfaceToStatus(ifname))
+                        if(interfaceToStatus.get(ifname).getOrElse(false)) {
                             controller.setVportStatus(port, vport, false)
+                        }
                 }
             }
         }
