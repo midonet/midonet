@@ -3,7 +3,7 @@
  */
 package org.midonet.midolman.simulation
 
-import akka.dispatch.ExecutionContext
+import scala.concurrent.ExecutionContext
 import akka.actor.ActorSystem
 
 import org.midonet.cluster.client.RouterPort

@@ -6,13 +6,12 @@ import java.util.{HashSet => JSet}
 import java.util.UUID
 
 import org.junit.runner.RunWith
-import org.scalatest.Suite
+import org.scalatest.{Matchers, Suite}
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.matchers.ShouldMatchers
 import org.midonet.packets.{IPv6Addr, IPAddr, IPv4Addr}
 
 @RunWith(classOf[JUnitRunner])
-class ForwardNatRuleTest extends Suite with ShouldMatchers {
+class ForwardNatRuleTest extends Suite with Matchers {
 
     def testFloatingIpDetectionIPv4() {
         testFloatingIpDetection(new IPv4Addr(0x01020304),
@@ -32,12 +31,12 @@ class ForwardNatRuleTest extends Suite with ShouldMatchers {
                                UUID.randomUUID(), 0, true, targets)
         }
 
-        new NatTarget(a1, a1, 0, 0).isFloatingIp should be === true
-        new NatTarget(a1, a2, 0, 0).isFloatingIp should be === false
-        new NatTarget(a1, a1, 10, 0).isFloatingIp should be === false
-        new NatTarget(a1, a1, 0, 65535).isFloatingIp should be === false
-        new NatTarget(a1, a1, 80, 80).isFloatingIp should be === false
-        new NatTarget(a1, a1, 1024, 10000).isFloatingIp should be === false
+        new NatTarget(a1, a1, 0, 0).isFloatingIp should be (true)
+        new NatTarget(a1, a2, 0, 0).isFloatingIp should be (false)
+        new NatTarget(a1, a1, 10, 0).isFloatingIp should be (false)
+        new NatTarget(a1, a1, 0, 65535).isFloatingIp should be (false)
+        new NatTarget(a1, a1, 80, 80).isFloatingIp should be (false)
+        new NatTarget(a1, a1, 1024, 10000).isFloatingIp should be (false)
     }
 
 }

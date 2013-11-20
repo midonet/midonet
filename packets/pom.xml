@@ -34,7 +34,7 @@
 
         <dependency>
             <groupId>org.scalatest</groupId>
-            <artifactId>scalatest_${versions.scala.library}</artifactId>
+            <artifactId>scalatest_2.10</artifactId>
         </dependency>
 
     </dependencies>

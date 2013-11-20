@@ -3,7 +3,7 @@
  */
 package org.midonet.midolman
 
-import akka.actor.{Props, SupervisorStrategy, Actor, ActorLogging}
+import akka.actor.{Props, SupervisorStrategy, Actor}
 import com.google.inject.Inject
 
 import org.midonet.midolman.logging.ActorLogWithoutPath

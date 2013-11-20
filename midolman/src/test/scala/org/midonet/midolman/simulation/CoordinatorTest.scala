@@ -7,14 +7,11 @@
 package org.midonet.midolman.simulation
 
 import org.junit.runner.RunWith
-import org.scalatest.BeforeAndAfter
-import org.scalatest.Suite
+import org.scalatest.{BeforeAndAfter, Matchers, Suite}
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.matchers.ShouldMatchers
 
 @RunWith(classOf[JUnitRunner])
-class CoordinatorTest
-        extends Suite with BeforeAndAfter with ShouldMatchers {
+class CoordinatorTest extends Suite with BeforeAndAfter with Matchers {
 
     before { }
 

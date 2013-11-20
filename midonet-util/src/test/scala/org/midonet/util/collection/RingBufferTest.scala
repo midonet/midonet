@@ -5,12 +5,11 @@
 package org.midonet.util.collection
 
 import org.junit.runner.RunWith
-import org.scalatest.{FeatureSpec, BeforeAndAfterEach}
+import org.scalatest.{FeatureSpec, BeforeAndAfterEach, Matchers}
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.matchers.ShouldMatchers
 
 @RunWith(classOf[JUnitRunner])
-class RingBufferTest extends FeatureSpec with BeforeAndAfterEach with ShouldMatchers {
+class RingBufferTest extends FeatureSpec with BeforeAndAfterEach with Matchers {
 
     val CAPACITY = 8
     var ring: RingBuffer[String] = null
@@ -45,7 +44,7 @@ class RingBufferTest extends FeatureSpec with BeforeAndAfterEach with ShouldMatc
             ring.put(value.toString)
         }
         ring.peek should be (Some("1"))
-        ring.isFull should be === true
+        ring.isFull should be (true)
         intercept[IllegalArgumentException] { ring.put("overflow") }
     }
 
@@ -58,8 +57,8 @@ class RingBufferTest extends FeatureSpec with BeforeAndAfterEach with ShouldMatc
         }
         ring.peek should be (None)
         ring.take() should be (None)
-        ring.isEmpty should be === true
-        ring.isFull should be === false
+        ring.isEmpty should be (true)
+        ring.isFull should be (false)
     }
 
     feature("RingBuffer stores values") {
@@ -103,5 +102,4 @@ class RingBufferTest extends FeatureSpec with BeforeAndAfterEach with ShouldMatc
             readAll()
         }
     }
-
 }

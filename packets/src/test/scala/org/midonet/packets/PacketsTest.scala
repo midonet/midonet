@@ -7,15 +7,14 @@ package org.midonet.packets
 import scala.collection.mutable
 
 import org.junit.runner.RunWith
-import org.scalatest.Suite
+import org.scalatest.{Matchers, Suite}
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.matchers.ShouldMatchers
 
 import org.midonet.packets.util.PacketBuilder._
 import java.nio.ByteBuffer
 
 @RunWith(classOf[JUnitRunner])
-class PacketsTest extends Suite with ShouldMatchers {
+class PacketsTest extends Suite with Matchers {
     private def shouldBeDifferent(a: IPacket, b: IPacket) {
         a should not be(b)
         java.util.Arrays.equals(a.serialize, b.serialize) should be(false)
@@ -24,8 +23,8 @@ class PacketsTest extends Suite with ShouldMatchers {
     private def checkSerialization(a: IPacket, deserializer: Array[Byte] => IPacket) {
         val b: IPacket = deserializer(a.serialize)
 
-        a.## should be === b.##
-        a should be === b
+        a.## should be (b.##)
+        a should be (b)
         java.util.Arrays.equals(a.serialize, b.serialize) should be(true)
     }
 
@@ -48,7 +47,7 @@ class PacketsTest extends Suite with ShouldMatchers {
         verifyEquality(packets, (buf) => new Ethernet().deserialize(buf).setPayload(null))
         verifyHashes(packets)
 
-        (eth.with_pad addr "02:02:02:01:01:01" -> eth_bcast).serialize.size should be === 60
+        (eth.with_pad addr "02:02:02:01:01:01" -> eth_bcast).serialize.size should be (60)
     }
 
     def testIPv4() {
@@ -130,14 +129,14 @@ class PacketsTest extends Suite with ShouldMatchers {
         val bcast = IPv4Addr(0x0a0f0fff)
         val host = new IPv4Subnet(0x0a0f0f21, 32)
 
-        subnet.getAddress should be === host.getAddress
-        subnet.containsAddress(IPv4Addr(0x0a0f0f21)) should be === true
-        subnet.containsAddress(IPv4Addr(0x0a0f0d21)) should be === false
-        host.getAddress should be === IPv4Addr.fromBytes(bytes)
-        subnet.toNetworkAddress should be === net
-        subnet.toBroadcastAddress should be === bcast
-        subnet.getAddress should be === host.getAddress
-        subnet should be === new IPv4Subnet(IPv4Addr.fromBytes(bytes), 24)
+        subnet.getAddress should be (host.getAddress)
+        subnet.containsAddress(IPv4Addr(0x0a0f0f21)) should be (true)
+        subnet.containsAddress(IPv4Addr(0x0a0f0d21)) should be (false)
+        host.getAddress should be (IPv4Addr.fromBytes(bytes))
+        subnet.toNetworkAddress should be (net)
+        subnet.toBroadcastAddress should be (bcast)
+        subnet.getAddress should be (host.getAddress)
+        subnet should be (new IPv4Subnet(IPv4Addr.fromBytes(bytes), 24))
 
         subnet.## should not be equal(host.##)
     }

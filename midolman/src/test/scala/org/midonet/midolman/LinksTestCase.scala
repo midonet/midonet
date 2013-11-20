@@ -138,18 +138,18 @@ class LinksTestCase extends MidolmanTestCase
         requestOfType[PacketIn](packetInProbe)
         var pkt =
             expectRoutedPacketOut(rtrPort2Num).getPayload.asInstanceOf[IPv4]
-        pkt.getProtocol should be === ICMP.PROTOCOL_NUMBER
-        pkt.getSourceAddress should be === vm1Ip.getAddress.addr
-        pkt.getDestinationAddress should be === vm2Ip.getAddress.addr
+        pkt.getProtocol should be (ICMP.PROTOCOL_NUMBER)
+        pkt.getSourceAddress should be (vm1Ip.getAddress.addr)
+        pkt.getDestinationAddress should be (vm2Ip.getAddress.addr)
 
         log.debug("PING vm1 -> vm2")
         injectIcmpEchoReq(rtrPort2Name, vm2Mac, vm2Ip.getAddress,
             rtrMac2, vm1Ip.getAddress)
         requestOfType[PacketIn](packetInProbe)
         pkt = expectRoutedPacketOut(rtrPort1Num).getPayload.asInstanceOf[IPv4]
-        pkt.getProtocol should be === ICMP.PROTOCOL_NUMBER
-        pkt.getSourceAddress should be === vm2Ip.getAddress.addr
-        pkt.getDestinationAddress should be === vm1Ip.getAddress.addr
+        pkt.getProtocol should be (ICMP.PROTOCOL_NUMBER)
+        pkt.getSourceAddress should be (vm2Ip.getAddress.addr)
+        pkt.getDestinationAddress should be (vm1Ip.getAddress.addr)
 
         log.debug("Deactivate rtrPort2");
         val port2Ifc = new InterfaceDescription(rtrPort2Name)
@@ -177,15 +177,15 @@ class LinksTestCase extends MidolmanTestCase
         pktOut.getData should not be null
         pktOut.getActions.size should equal (1)
         val action = pktOut.getActions.get(0)
-        action.getValue .getClass should be === classOf[FlowActionOutput]
+        action.getValue .getClass should be (classOf[FlowActionOutput])
         action.getValue.asInstanceOf[FlowActionOutput]
-            .getPortNumber should be === (rtrPort1Num)
+            .getPortNumber should be (rtrPort1Num)
 
         pkt = Ethernet.deserialize(pktOut.getData).getPayload.asInstanceOf[IPv4]
 
-        pkt.getProtocol should be === ICMP.PROTOCOL_NUMBER
-        pkt.getSourceAddress should be === rtrIp1.getAddress.addr
-        pkt.getDestinationAddress should be === vm1Ip.getAddress.addr
+        pkt.getProtocol should be (ICMP.PROTOCOL_NUMBER)
+        pkt.getSourceAddress should be (rtrIp1.getAddress.addr)
+        pkt.getDestinationAddress should be (vm1Ip.getAddress.addr)
 
         val icmp = pkt.getPayload.asInstanceOf[ICMP]
         icmp should not be null
@@ -216,8 +216,8 @@ class LinksTestCase extends MidolmanTestCase
         injectIcmpEchoReq(rtrPort1Name, vm1Mac, vm1Ip.getAddress,
             rtrMac1, vm2Ip.getAddress)
         pkt = expectRoutedPacketOut(rtrPort2Num).getPayload.asInstanceOf[IPv4]
-        pkt.getSourceAddress should be === vm1Ip.getAddress.addr
-        pkt.getDestinationAddress should be === vm2Ip.getAddress.addr
+        pkt.getSourceAddress should be (vm1Ip.getAddress.addr)
+        pkt.getDestinationAddress should be (vm2Ip.getAddress.addr)
 
     }
 

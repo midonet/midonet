@@ -8,7 +8,7 @@ import scala.collection.immutable
 import scala.collection.mutable.ListBuffer
 
 import akka.actor.{ActorContext, ActorSystem}
-import akka.dispatch.{ExecutionContext, Future, Promise}
+import scala.concurrent.{ExecutionContext, Future, Promise}
 
 import org.midonet.cache.Cache
 import org.midonet.cluster.client._
@@ -105,7 +105,7 @@ object Coordinator {
  * @param parentCookie TODO
  * @param traceConditions Seq of Conditions which will trigger tracing.
  * @param ec
- * @param actorSystem
+ * @param actorContext
  */
 class Coordinator(var origMatch: WildcardMatch,
                   val origEthernetPkt: Ethernet,
@@ -118,8 +118,8 @@ class Coordinator(var origMatch: WildcardMatch,
                   val parentCookie: Option[Int],
                   val traceConditions: immutable.Seq[Condition])
                  (implicit val ec: ExecutionContext,
-                  val actorSystem: ActorSystem,
-                  val actorContext: ActorContext) {
+                           val actorSystem: ActorSystem,
+                           val actorContext: ActorContext) {
 
     import Coordinator._
 
@@ -138,7 +138,7 @@ class Coordinator(var origMatch: WildcardMatch,
     pktContext.setTraced(matchTraceConditions())
 
     implicit def simulationActionToSuccessfulFuture(
-        a: SimulationResult): Future[SimulationResult] = Promise.successful(a)
+        a: SimulationResult): Future[SimulationResult] = Future.successful(a)
 
     private def matchTraceConditions(): Boolean = {
         log.debug("Checking packet {} against conditions {}",
@@ -287,6 +287,9 @@ class Coordinator(var origMatch: WildcardMatch,
                     AddVirtualWildcardFlow(WildcardFlow(wcmatch = origMatch),
                                            pktContext.getFlowRemovedCallbacks,
                                            pktContext.getFlowTags)
+                case IPFragmentType.None =>
+                    throw new IllegalStateException(
+                        "handleFragmentation called for an unfragmented packet")
             }
     }
 

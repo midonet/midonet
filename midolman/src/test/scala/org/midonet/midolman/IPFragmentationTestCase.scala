@@ -3,12 +3,12 @@
 */
 package org.midonet.midolman
 
-import java.util.concurrent.TimeUnit
+import language.implicitConversions
 
-import akka.dispatch.Await
+import scala.concurrent.Await
 import akka.pattern.ask
-import akka.util.duration._
-import akka.util.{Timeout, Duration}
+import scala.concurrent.duration._
+import akka.util.Timeout
 import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -113,15 +113,15 @@ class IPFragmentationTestCase extends MidolmanTestCase
 
         val pktOut = expectPacketOut(vmPortNumbers(sendingVm))
         pktOut.getEtherType should be(IPv4.ETHERTYPE)
-        pktOut.getPayload.getClass should be === classOf[IPv4]
-        pktOut.getDestinationMACAddress should be === vmMacs(sendingVm)
-        pktOut.getSourceMACAddress should be === vmMacs(receivingVm)
+        pktOut.getPayload.getClass should be (classOf[IPv4])
+        pktOut.getDestinationMACAddress should be (vmMacs(sendingVm))
+        pktOut.getSourceMACAddress should be (vmMacs(receivingVm))
 
         val ip = pktOut.getPayload.asInstanceOf[IPv4]
         ip.getSourceAddress should be(vmIps(receivingVm).addr)
         ip.getDestinationAddress should be(vmIps(sendingVm).addr)
         ip.getProtocol should be(ICMP.PROTOCOL_NUMBER)
-        ip.getPayload.getClass should be === classOf[ICMP]
+        ip.getPayload.getClass should be (classOf[ICMP])
 
         val icmp = ip.getPayload.asInstanceOf[ICMP]
         icmp.getType should be(ICMP.TYPE_UNREACH)
@@ -149,12 +149,12 @@ class IPFragmentationTestCase extends MidolmanTestCase
         val first = makePacket(IPFragmentType.First)
         triggerPacketIn(vmPortNames(sendingVm), first)
         var pktOut = expectPacketOut(vmPortNumbers(receivingVm))
-        pktOut should be === first
+        pktOut should be (first)
         ackWCAdded()
         val later = makePacket(IPFragmentType.Later)
         triggerPacketIn(vmPortNames(sendingVm), later)
         pktOut = expectPacketOut(vmPortNumbers(receivingVm))
-        pktOut should be === later
+        pktOut should be (later)
         ackWCAdded()
     }
 
@@ -185,7 +185,7 @@ class IPFragmentationTestCase extends MidolmanTestCase
         triggerPacketIn(vmPortNames(sendingVm), packet)
         ackWCAdded()
         val pktOut = expectPacketOut(vmPortNumbers(receivingVm))
-        pktOut should be === packet
+        pktOut should be (packet)
     }
 
     /**
@@ -196,19 +196,19 @@ class IPFragmentationTestCase extends MidolmanTestCase
         var packet = makePacket(IPFragmentType.First)
         triggerPacketIn(vmPortNames(sendingVm), packet)
         var pktOut = expectPacketOut(vmPortNumbers(receivingVm))
-        pktOut should be === packet
+        pktOut should be (packet)
         ackWCAdded()
 
         packet = makePacket(IPFragmentType.Later)
         triggerPacketIn(vmPortNames(sendingVm), packet)
         pktOut = expectPacketOut(vmPortNumbers(receivingVm))
-        pktOut should be === packet
+        pktOut should be (packet)
         ackWCAdded()
 
         packet = makePacket(IPFragmentType.None)
         triggerPacketIn(vmPortNames(sendingVm), packet)
         pktOut = expectPacketOut(vmPortNumbers(receivingVm))
-        pktOut should be === packet
+        pktOut should be (packet)
     }
 
     /**
@@ -231,7 +231,7 @@ class IPFragmentationTestCase extends MidolmanTestCase
         triggerPacketIn(vmPortNames(sendingVm), packet)
         ackWCAdded()
         val pktOut = expectPacketOut(vmPortNumbers(receivingVm))
-        pktOut should be === packet
+        pktOut should be (packet)
 
         clusterDataClient().portsDelete(vmPorts(sendingVm).getId)
         requestOfType[WildcardFlowRemoved](wflowRemovedProbe)

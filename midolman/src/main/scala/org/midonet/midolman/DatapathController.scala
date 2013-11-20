@@ -6,16 +6,17 @@ package org.midonet.midolman
 import scala.collection.JavaConverters._
 import scala.collection.{Set => ROSet}
 import scala.collection.mutable
+import scala.concurrent.duration._
+
 import java.lang.{Boolean => JBoolean, Integer => JInteger}
-import java.util.{Collection => JCollection, List => JList, Set => JSet, UUID}
 import java.net.InetAddress
 import java.nio.ByteBuffer
+import java.util.{Collection => JCollection, List => JList, Set => JSet, UUID}
 
 import akka.actor._
-import akka.dispatch.ExecutionContext
 import akka.event.LoggingAdapter
 import akka.util.Timeout
-import akka.util.duration._
+
 import com.google.inject.Inject
 
 import org.midonet.cluster.client
@@ -276,21 +277,18 @@ object DatapathController extends Referenceable {
  * are passed on to the FlowController.
  */
 class DatapathController extends Actor with ActorLogging with FlowTranslator {
-
     import DatapathController._
     import FlowController.AddWildcardFlow
     import PacketWorkflow.AddVirtualWildcardFlow
     import VirtualPortManager.Controller
     import VirtualToPhysicalMapper._
     import VirtualTopologyActor.PortRequest
-    import context._
 
-    implicit val executor: ExecutionContext = this.context.dispatcher
-    implicit val system = this.context.system
     implicit val logger: LoggingAdapter = log
 
     override implicit val requestReplyTimeout: Timeout = new Timeout(1 second)
     override val cookieStr: String = ""
+    override implicit protected val executor = context.dispatcher
 
     @Inject
     val datapathConnection: OvsDatapathConnection = null
@@ -352,7 +350,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
         })
     }
 
-    protected def receive = null
+    def receive = null
 
     val DatapathInitializationActor: Receive = {
 
@@ -360,7 +358,8 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
         case Initialize =>
             initializer = sender
             log.info("Initialize from: " + sender)
-            VirtualToPhysicalMapper.getRef() ! HostRequest(hostService.getHostId)
+            VirtualToPhysicalMapper.getRef() !
+                HostRequest(hostService.getHostId)
 
         case h: Host =>
             // If we already had the host info, process this after init.
@@ -427,7 +426,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
      */
     private def completeInitialization() {
         log.info("Initialization complete. Starting to act as a controller.")
-        become(DatapathControllerActor orElse {
+        context.become(DatapathControllerActor orElse {
             case m =>
                 log.warning("Unhandled message {}", m)
         })
@@ -485,7 +484,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
         // When initialization is completed we will revert back to this Actor
         // loop for general message response
         case Initialize =>
-            become(DatapathInitializationActor)
+            context.become(DatapathInitializationActor)
             // In case there were some scheduled port update checks, cancel them.
             if (portWatcher != null) {
                 portWatcher.cancel()
@@ -703,7 +702,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
         /** used in tests only */
         opReply match {
             case DpPortSuccess(req) =>
-                context.system.eventStream.publish(req)
+                system.eventStream.publish(req)
             case _ => // ignore, but explicitly to avoid warning
         }
 
@@ -849,7 +848,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
 
             def handleError(ex: NetlinkException, timeout: Boolean) {
                 log.error(ex, "Datapath creation failure {}", timeout)
-                context.system.scheduler.scheduleOnce(100 millis, retryTask)
+                system.scheduler.scheduleOnce(100 millis, retryTask)
             }
         }
 
@@ -861,7 +860,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
             def handleError(ex: NetlinkException, timeout: Boolean) {
                 if (timeout) {
                     log.error("Timeout while getting the datapath", timeout)
-                    context.system.scheduler.scheduleOnce(100 millis, retryTask)
+                    system.scheduler.scheduleOnce(100 millis, retryTask)
                 } else if (ex != null) {
                     val errorCode: ErrorCode = ex.getErrorCodeEnum
 
@@ -892,7 +891,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
                 // WARN: this is ugly. Normally we should configure the message error handling
                 // inside the router
                 def handleError(ex: NetlinkException, timeout: Boolean) {
-                    context.system.scheduler.scheduleOnce(100 millis, new Runnable {
+                    system.scheduler.scheduleOnce(100 millis, new Runnable {
                         def run() {
                             queryDatapathPorts(datapath)
                         }

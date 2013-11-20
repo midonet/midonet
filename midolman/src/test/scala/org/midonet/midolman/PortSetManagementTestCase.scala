@@ -6,13 +6,14 @@ package org.midonet.midolman
 import scala.collection.JavaConversions._
 import java.util.UUID
 
+import scala.concurrent.Await
+
 import akka.pattern.Patterns
-import akka.dispatch.Await
-import akka.util.Duration
+
 import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.Matchers
 
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.{Ports, Bridge => ClusterBridge}
@@ -20,10 +21,11 @@ import org.midonet.midolman.DatapathController.DpPortCreate
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.PortSetRequest
 import org.midonet.midolman.topology.rcu.PortSet
+import scala.concurrent.duration.Duration
 
 @Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
-class PortSetManagementTestCase extends MidolmanTestCase with ShouldMatchers {
+class PortSetManagementTestCase extends MidolmanTestCase with Matchers {
 
     def testPortSetRegistrationDeregistration() {
 
@@ -68,7 +70,7 @@ class PortSetManagementTestCase extends MidolmanTestCase with ShouldMatchers {
     private def fetchRcuPortSet(id: UUID) : PortSet = {
         val psFuture = Patterns.ask(
             virtualToPhysicalMapper(), new PortSetRequest(id, false), 3000)
-        Await.result(psFuture.mapTo[PortSet], Duration.parse("3 seconds"))
+        Await.result(psFuture.mapTo[PortSet], Duration("3 seconds"))
     }
 
     def testMultiplePortSetRegistrationDeregistration() {

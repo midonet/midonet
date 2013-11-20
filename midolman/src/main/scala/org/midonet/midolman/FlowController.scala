@@ -2,18 +2,20 @@
 
 package org.midonet.midolman
 
-import scala.annotation.tailrec
-import akka.actor._
-import akka.util.duration._
-import akka.util.Duration
-import akka.event.LoggingReceive
-import collection.JavaConversions._
-import collection.{Set => ROSet, mutable}
-import collection.mutable.{HashMap, MultiMap}
-import java.util.concurrent.{ConcurrentHashMap => ConcHashMap,
-                             TimeUnit}
+import java.util.concurrent.{ConcurrentHashMap => ConcHashMap, TimeUnit}
 import java.util.{Set => JSet, Map => JMap}
 import javax.inject.Inject
+
+import scala.annotation.tailrec
+import scala.collection.JavaConversions._
+import scala.collection.{Set => ROSet, mutable}
+import scala.collection.mutable.{HashMap, MultiMap}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.duration._
+import scala.concurrent.duration.Duration
+
+import akka.actor._
+import akka.event.LoggingReceive
 
 import com.yammer.metrics.core.{Gauge, MetricsRegistry}
 
@@ -180,7 +182,7 @@ object FlowController extends Referenceable {
 
     def runCallbacks(callbacks: Iterable[Callback0]) {
         val iter = callbacks.iterator
-        while (iter.hasNext()) {
+        while (iter.hasNext) {
             iter.next().call()
         }
     }
@@ -210,11 +212,13 @@ class FlowController extends Actor with ActorLogWithoutPath {
         new HashMap[Any, mutable.Set[ManagedWildcardFlow]]
             with MultiMap[Any, ManagedWildcardFlow]
 
-    var flowExpirationCheckInterval: Duration = null
+    var flowExpirationCheckInterval: FiniteDuration = null
 
     private var wildFlowPool: ObjectPool[ManagedWildcardFlow] = null
 
     var metrics: FlowTablesMetrics = null
+
+    private[this] implicit def executor: ExecutionContext = context.dispatcher
 
     override def preStart() {
         super.preStart()
@@ -247,7 +251,7 @@ class FlowController extends Actor with ActorLogWithoutPath {
                 datapath = dp
                 // schedule next check for flow expiration after 20 ms and then after
                 // every flowExpirationCheckInterval ms
-                context.system.scheduler.schedule(Duration(20, TimeUnit.MILLISECONDS),
+                context.system.scheduler.schedule(20 millis,
                     flowExpirationCheckInterval,
                     self,
                     CheckFlowExpiration())

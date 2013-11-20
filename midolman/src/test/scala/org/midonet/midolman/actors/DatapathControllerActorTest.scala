@@ -8,18 +8,13 @@ package org.midonet.midolman
 
 import java.util.UUID
 
-import akka.actor.ActorRef
 import akka.actor.ActorSystem
-import akka.actor.Props
 import akka.testkit.ImplicitSender
 import akka.testkit.TestActorRef
 import akka.testkit.TestKit
-import akka.util.duration._
-import org.apache.zookeeper.KeeperException
 import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.matchers.ShouldMatchers
 
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.topology.HostConfigOperation
@@ -28,16 +23,17 @@ import org.midonet.midolman.topology.rcu.Host
 import org.midonet.odp.ports._
 
 @RunWith(classOf[JUnitRunner])
-class DatapathControllerActorTest
-        extends TestKit(ActorSystem("DPCActorTest")) with ImplicitSender
-        with Suite with FeatureSpec with ShouldMatchers with BeforeAndAfter {
+class DatapathControllerActorTest extends TestKit(ActorSystem("DPCActorTest"))
+                                  with ImplicitSender with Suite
+                                  with FeatureSpecLike with Matchers
+                                   {
 
     import DatapathController._
     import PacketWorkflow.AddVirtualWildcardFlow
     import VirtualToPhysicalMapper.GreZoneChanged
     import VirtualToPhysicalMapper.GreZoneMembers
 
-    def getDPC() = TestActorRef[DatapathController]("TestDPCActor")
+    val dpc = TestActorRef[DatapathController]("TestDPCActor")
 
     val emptyJList = new java.util.ArrayList[InterfaceDescription]()
 
@@ -75,7 +71,7 @@ class DatapathControllerActorTest
         List[AnyRef](_SetLocalDatapathPorts(null, Set(dpPortGre,dpPortInt)))
 
     feature("Datapath Initialization Actor receive messages") {
-        val initReceive = getDPC().underlyingActor.DatapathInitializationActor
+        val initReceive = dpc.underlyingActor.DatapathInitializationActor
 
         for (m <- initMessages) {
             scenario(" should accept message " + m) {
@@ -95,7 +91,7 @@ class DatapathControllerActorTest
     }
 
     feature("Datapath Controller Actor receive messages") {
-        val normalReceive = getDPC().underlyingActor.DatapathControllerActor
+        val normalReceive = dpc.underlyingActor.DatapathControllerActor
         for (m <- allMessages) {
             scenario(" should accept message " + m) {
                 normalReceive.isDefinedAt(m) should be(true)
@@ -106,5 +102,4 @@ class DatapathControllerActorTest
             normalReceive.isDefinedAt("foo") should be(false)
         }
     }
-
 }

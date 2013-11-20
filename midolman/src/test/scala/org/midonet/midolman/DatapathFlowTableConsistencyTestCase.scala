@@ -4,15 +4,14 @@
 package org.midonet.midolman
 
 import scala.collection.JavaConversions._
+import scala.reflect.ClassTag
 
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-import org.slf4j.LoggerFactory
 
 import org.midonet.midolman.FlowController.WildcardFlowAdded
-import org.midonet.midolman.topology.BridgeManager
 import org.midonet.midolman.util.SimulationHelper
 import org.midonet.odp.FlowMatch
 import org.midonet.odp.flows.{FlowKeyICMPEcho, FlowKeyTCP, FlowKeyICMP}
@@ -54,11 +53,10 @@ class DatapathFlowTableConsistencyTestCase extends MidolmanTestCase
         findMatch[FlowKeyTCP] should be (None)
     }
 
-    private def findMatch[T](implicit m: Manifest[T]) : Option[FlowMatch] = {
-        val klass = manifest.erasure.asInstanceOf[Class[T]]
+    private def findMatch[T](implicit m: ClassTag[T]) : Option[FlowMatch] = {
         for (flowMatch <- datapath.flowsTable.keySet()) {
            for (flowKey <- flowMatch.getKeys) {
-               if (klass.isInstance(flowKey)) {
+               if (m.runtimeClass.isInstance(flowKey)) {
                    return Option(flowMatch)
                }
            }

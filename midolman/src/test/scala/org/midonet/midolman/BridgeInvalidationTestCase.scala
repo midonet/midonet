@@ -7,7 +7,6 @@ package org.midonet.midolman
 import java.util.UUID
 import scala.collection.JavaConversions._
 import scala.collection.immutable.HashMap
-import scala.collection.mutable
 
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.experimental.categories.Category
@@ -27,13 +26,13 @@ import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 import org.midonet.midolman.topology.VirtualTopologyActor.RouterRequest
 import org.midonet.midolman.util.{SimulationHelper, TestHelpers}
 import org.midonet.odp.Datapath
-import org.midonet.odp.flows.{FlowAction, FlowActions}
 import org.midonet.packets.{IPv4Subnet, IPv4Addr, MAC}
 
 @Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
 class BridgeInvalidationTestCase extends MidolmanTestCase
-        with VirtualConfigurationBuilders with SimulationHelper {
+                                 with SimulationHelper
+                                 with VirtualConfigurationBuilders {
 
     var datapath: Datapath = null
 
@@ -220,7 +219,7 @@ class BridgeInvalidationTestCase extends MidolmanTestCase
 
         // expect one wc flow removed and check it matches the first wc added
         val rem = ackWCRemoved()
-        rem.actions should be === (add1.actions)
+        rem.actions should be ((add1.actions))
 
         // the corresponding dp flow should have been removed too
         dpFlowRemProbe.expectMsgClass(classOf[FlowRemoved])
@@ -368,10 +367,10 @@ class BridgeInvalidationTestCase extends MidolmanTestCase
 
     def testUnicastDeleteLogicalPort() {
         val vta = VirtualTopologyActor.getRef(actors())
-        ask(vta, BridgeRequest(brPort1.getDeviceId))
-        ask(vta, RouterRequest(rtrPort.getDeviceId))
-        ask(vta, PortRequest(rtrPort.getId))
-        ask(vta, PortRequest(brPort1.getId))
+        askAndAwait(vta, BridgeRequest(brPort1.getDeviceId))
+        askAndAwait(vta, RouterRequest(rtrPort.getDeviceId))
+        askAndAwait(vta, PortRequest(rtrPort.getId))
+        askAndAwait(vta, PortRequest(brPort1.getId))
 
         clusterDataClient().portsLink(rtrPort.getId, brPort1.getId)
         dilatedSleep(1000)

@@ -101,9 +101,9 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
             // bypass the probes and make it harder to fish for these messages
             // Should this need to be decoupled from the VTA, the parent
             // actor reference should be passed in the constructor
-            VirtualTopologyActor.getRef().tell(
+            VirtualTopologyActor.getRef() !
                 new Router(id, cfg, rTable, inFilter, outFilter,
-                           new TagManagerImpl, arpTable))
+                           new TagManagerImpl, arpTable)
         } else {
             log.debug("The chains aren't ready yet. ")
         }

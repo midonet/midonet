@@ -9,11 +9,15 @@ import compat.Platform
 import java.util.concurrent.TimeoutException
 import java.util.UUID
 
+import scala.concurrent.Future
+import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.reflect._
+import scala.util.Failure
+
 import akka.actor._
-import akka.dispatch.{Promise, Future}
 import akka.event.LoggingAdapter
 import akka.pattern.ask
-import akka.util.duration._
 
 import com.google.inject.Inject
 
@@ -37,14 +41,14 @@ object VirtualTopologyActor extends Referenceable {
     sealed trait DeviceRequest[D] {
         val id: UUID
         val update: Boolean
-        protected[VirtualTopologyActor] val devManifest: Manifest[D]
+        protected[VirtualTopologyActor] val tag: ClassTag[D]
         protected[VirtualTopologyActor]
         def createManager(client: Client, config: MidolmanConfig): Actor
     }
 
     case class PortRequest(id: UUID, update: Boolean = false)
         extends DeviceRequest[Port[_]] {
-        protected[VirtualTopologyActor] val devManifest = manifest[Port[_]]
+        protected[VirtualTopologyActor] val tag = classTag[Port[_]]
 
         protected[VirtualTopologyActor]
         def createManager(client: Client, config: MidolmanConfig) =
@@ -53,7 +57,7 @@ object VirtualTopologyActor extends Referenceable {
 
     case class BridgeRequest(id: UUID, update: Boolean = false)
         extends DeviceRequest[Bridge] {
-        protected[VirtualTopologyActor] val devManifest = manifest[Bridge]
+        protected[VirtualTopologyActor] val tag = classTag[Bridge]
 
         protected[VirtualTopologyActor]
         def createManager(client: Client, config: MidolmanConfig) =
@@ -62,7 +66,7 @@ object VirtualTopologyActor extends Referenceable {
 
     case class RouterRequest(id: UUID, update: Boolean = false)
         extends DeviceRequest[Router] {
-        protected[VirtualTopologyActor] val devManifest = manifest[Router]
+        protected[VirtualTopologyActor] val tag = classTag[Router]
 
         protected[VirtualTopologyActor]
         def createManager(client: Client, config: MidolmanConfig) =
@@ -71,7 +75,7 @@ object VirtualTopologyActor extends Referenceable {
 
     case class ChainRequest(id: UUID, update: Boolean = false)
         extends DeviceRequest[Chain] {
-        protected[VirtualTopologyActor]  val devManifest = manifest[Chain]
+        protected[VirtualTopologyActor]  val tag = classTag[Chain]
 
         protected[VirtualTopologyActor]
         def createManager(client: Client, config: MidolmanConfig) =
@@ -80,7 +84,7 @@ object VirtualTopologyActor extends Referenceable {
 
     case class ConditionListRequest(id: UUID, update: Boolean = false)
         extends DeviceRequest[TraceConditions] {
-        protected[VirtualTopologyActor] val devManifest = manifest[TraceConditions]
+        protected[VirtualTopologyActor] val tag = classTag[TraceConditions]
 
         protected[VirtualTopologyActor]
         def createManager(client: Client, config: MidolmanConfig) =
@@ -148,7 +152,7 @@ object VirtualTopologyActor extends Referenceable {
             if (expiry == 0L) 3000L else expiry - Platform.currentTime
 
         if (timeLeft <= 0)
-            return Promise.failed(new TimeoutException)
+            return Future.failed(new TimeoutException)
 
         val e = everything
         if (null == e || request.update)
@@ -156,7 +160,7 @@ object VirtualTopologyActor extends Referenceable {
 
         // Try using the cache
         e.get(request.id) match {
-            case Some(d) => Promise.successful(d.asInstanceOf[D])
+            case Some(d) => Future.successful(d.asInstanceOf[D])
             case None => requestFuture(request, timeLeft, log, simLog)
         }
     }
@@ -169,21 +173,21 @@ object VirtualTopologyActor extends Referenceable {
                                                 system: ActorSystem) =
         VirtualTopologyActor.getRef(system)
             .ask(request)(timeLeft milliseconds)
-            .mapTo[D](request.devManifest) andThen {
-                case Left(ex: ClassCastException) =>
+            .mapTo[D](request.tag) andThen {
+                case Failure(ex: ClassCastException) =>
                     if (log != null)
                         log.error("VirtualTopologyManager didn't return a {}!",
-                                   manifest.erasure.getSimpleName)
+                            request.tag.runtimeClass.getSimpleName)
                     else if (simLog != null)
                         simLog.error("VirtualTopologyManager didn't return a {}!",
-                                     manifest.erasure.getSimpleName)
-                case Left(ex) =>
+                            request.tag.runtimeClass.getSimpleName)
+                case Failure(ex) =>
                     if (log != null)
                         log.warning("Failed to get {}: {} - {}",
-                                manifest.erasure.getSimpleName, request.id, ex)
+                            request.tag.runtimeClass.getSimpleName, request.id, ex)
                     else if (simLog != null)
                         simLog.warning("Failed to get {}: {} - {}",
-                                manifest.erasure.getSimpleName, request.id, ex)
+                            request.tag.runtimeClass.getSimpleName, request.id, ex)
             }
 }
 
@@ -214,8 +218,7 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
         if (!managed(id)) {
             log.info("Build a manager for device {}", id)
 
-            val props = Props(actor).withDispatcher(context.dispatcher.id)
-            context.actorOf(props)
+            context.actorOf(Props(actor).withDispatcher(context.props.dispatcher))
             managed.add(id)
             idToUnansweredClients.put(id, mutable.Set[ActorRef]())
             idToSubscribers.put(id, mutable.Set[ActorRef]())
@@ -224,7 +227,7 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
 
     private def deviceRequested(req: DeviceRequest[_]) {
         everything.get(req.id) match {
-            case Some(dev) => sender.tell(dev)
+            case Some(dev) => sender ! dev
             case None =>
                 log.debug("Adding requester to unanswered clients")
                 idToUnansweredClients(req.id).add(sender)
@@ -270,8 +273,8 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
 
     def receive = {
         case r: DeviceRequest[_] =>
-            log.debug("{} {} requested with update={}",
-                r.devManifest.erasure.getSimpleName, r.id, r.update)
+            log.debug("Received {} for {} with update={}",
+                r.getClass.getSimpleName, r.id, r.update)
             manageDevice(r.id, r.createManager(clusterClient, config))
             deviceRequested(r)
         case u: Unsubscribe => unsubscribe(u.id, sender)
@@ -283,7 +286,7 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
             updated(chain.id, chain)
         case port: Port[_] =>
             log.debug("Received a Port for {}", port.id)
-            updated(port)
+            updated(port.id, port)
         case router: Router =>
             log.debug("Received a Router for {}", router.id)
             updated(router)
@@ -293,7 +296,7 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
             // We know the DDA should always get an update to the trace
             // conditions.  For some reason the ChainRequest(update=true)
             // message from the DDA doesn't get the sender properly set.
-            DeduplicationActor.getRef().tell(conditions)
+            DeduplicationActor.getRef() ! conditions
         case invalidation: InvalidateFlowsByTag =>
             FlowController.getRef() ! invalidation
     }

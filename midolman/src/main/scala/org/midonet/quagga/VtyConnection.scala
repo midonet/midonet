@@ -17,9 +17,9 @@ import java.net.{UnknownHostException, Socket}
 
 import org.slf4j.LoggerFactory
 import org.midonet.packets.IPAddr
-import akka.dispatch.{ExecutionContext, Await, Future}
+import scala.concurrent.{ExecutionContext, Await, Future}
 import java.util.concurrent.Executors
-import akka.util.Duration
+import scala.concurrent.duration.Duration
 
 /**
  * Static methods and constants for VtyConnection.

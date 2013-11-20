@@ -3,7 +3,7 @@
 */
 package org.midonet.midolman
 
-import akka.util.duration._
+import scala.concurrent.duration._
 import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -14,12 +14,10 @@ import org.midonet.midolman.FlowController.WildcardFlowRemoved
 import org.midonet.midolman.topology.FlowTagger
 import org.midonet.midolman.rules.{RuleResult, Condition}
 import org.midonet.packets._
-import org.midonet.midolman.util.SimulationHelper
 
 @Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
-class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture
-        with SimulationHelper {
+class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
 
     private final val log = LoggerFactory.getLogger(classOf[L2FilteringTestCase])
 
@@ -88,8 +86,8 @@ class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture
         expectPacketAllowed(1, 2, icmpBetweenPorts)
         ackWCAdded()
 
-        FlowController.getRef(actors()).tell(InvalidateFlowsByTag(
-            FlowTagger.invalidateFlowsByDevice(chain.getId)))
+        FlowController.getRef(actors()) ! InvalidateFlowsByTag(
+            FlowTagger.invalidateFlowsByDevice(chain.getId))
 
         ackWCRemoved()
 
@@ -124,7 +122,7 @@ class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture
     }
 
     def test() {
-        flowController().underlyingActor.flowManager.getNumWildcardFlows should be === vmPorts.size
+        flowController().underlyingActor.flowManager.getNumWildcardFlows should be (vmPorts.size)
 
         log.info("populating the mac learning table with an arp request from each port")
         (vmPortNames, vmMacs, vmIps).zipped foreach {
@@ -163,7 +161,7 @@ class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture
             ackWCRemoved()
             ackWCRemoved()
         }
-        flowController().underlyingActor.flowManager.getNumWildcardFlows should be === vmPorts.size
+        flowController().underlyingActor.flowManager.getNumWildcardFlows should be (vmPorts.size)
         drainProbe(wflowAddedProbe)
         drainProbe(wflowRemovedProbe)
 
@@ -185,7 +183,7 @@ class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture
                                           RuleResult.Action.DROP)
 
         1 to 3 foreach { _ => ackWCRemoved() }
-        flowController().underlyingActor.flowManager.getNumWildcardFlows should be === vmPorts.size
+        flowController().underlyingActor.flowManager.getNumWildcardFlows should be (vmPorts.size)
 
         log.info("sending two packets that should be dropped by rule 3")
         expectPacketDropped(4, 1, icmpBetweenPorts)
@@ -205,7 +203,7 @@ class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture
         val rule4 = newLiteralRuleOnChain(brInChain, 4, cond4,
                                           RuleResult.Action.DROP)
         1 to 4 foreach { _ => ackWCRemoved() }
-        flowController().underlyingActor.flowManager.getNumWildcardFlows should be === vmPorts.size
+        flowController().underlyingActor.flowManager.getNumWildcardFlows should be (vmPorts.size)
 
         log.info("sending an lldp packet that should be dropped by rule 4")
         expectPacketDropped(4, 3, lldpBetweenPorts)
@@ -218,7 +216,7 @@ class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture
         clusterDataClient().rulesDelete(rule4.getId)
         ackWCRemoved()
         ackWCRemoved()
-        flowController().underlyingActor.flowManager.getNumWildcardFlows should be === vmPorts.size
+        flowController().underlyingActor.flowManager.getNumWildcardFlows should be (vmPorts.size)
 
         log.info("sending an lldp packet that should be allowed by the " +
                  "removal of rule 4")

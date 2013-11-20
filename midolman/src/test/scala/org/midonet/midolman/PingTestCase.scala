@@ -28,7 +28,8 @@ import org.midonet.midolman.topology.VirtualToPhysicalMapper.HostRequest
 
 @Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
-class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
+class PingTestCase extends MidolmanTestCase
+                   with VirtualConfigurationBuilders with RouterHelper {
     private final val log = LoggerFactory.getLogger(classOf[PingTestCase])
 
     // Router port one connecting to host VM1
@@ -143,8 +144,8 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
         flowActs.size should be (1)
 
         val act = flowActs(0)
-        act.getKey should be === FlowAction.FlowActionAttr.OUTPUT
-        act.getValue.getClass() should be === classOf[FlowActionOutput]
+        act.getKey should be (FlowAction.FlowActionAttr.OUTPUT)
+        act.getValue.getClass() should be (classOf[FlowActionOutput])
         act.getValue.asInstanceOf[FlowActionOutput].getPortNumber should be (portNum)
 
         pktOut.getPacket
@@ -217,12 +218,12 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
 
     private def expectEmitDhcpReply(expectedMsgType : Byte) = {
         val returnPkt = fishForRequestOfType[EmitGeneratedPacket](dedupProbe()).eth
-        returnPkt.getEtherType should be === IPv4.ETHERTYPE
+        returnPkt.getEtherType should be (IPv4.ETHERTYPE)
         val ipPkt = returnPkt.getPayload.asInstanceOf[IPv4]
-        ipPkt.getProtocol should be === UDP.PROTOCOL_NUMBER
+        ipPkt.getProtocol should be (UDP.PROTOCOL_NUMBER)
         val udpPkt = ipPkt.getPayload.asInstanceOf[UDP]
-        udpPkt.getSourcePort() should be === 67
-        udpPkt.getDestinationPort() should be === 68
+        udpPkt.getSourcePort() should be (67)
+        udpPkt.getDestinationPort() should be (68)
         val dhcpPkt = udpPkt.getPayload.asInstanceOf[DHCP]
         dhcpClientIp = dhcpPkt.getYourIPAddress
         dhcpServerIp = dhcpPkt.getServerIPAddress
@@ -236,7 +237,7 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
                         fail("DHCP option type value invalid length")
                     }
                     val msgType = opt.getData()(0)
-                    msgType should be === expectedMsgType
+                    msgType should be (expectedMsgType)
                 case _ => // Do nothing
             }
         }
@@ -298,7 +299,7 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
         expectPacketOut(vm2PortNumber)
 
         val vm2IpInt = vm2Ip.getAddress.addr
-        dhcpClientIp should be === vm2IpInt
+        dhcpClientIp should be (vm2IpInt)
 
         feedArpCache(vm2PortName, vm2Ip.getAddress.addr, vm2Mac,
                      routerIp2.getAddress.addr, routerMac2)
@@ -392,7 +393,7 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
                                       vm2Ip.getAddress, icmpId, howMany))
 
         // We should have a WF added for the FIRST packet
-        ackWCAdded().getMatch.getIcmpIdentifier should be === icmpId
+        ackWCAdded().getMatch.getIcmpIdentifier should be (icmpId)
 
         // This gives time to the DDA to send the pended packets
         drainProbes()
@@ -405,6 +406,6 @@ class PingTestCase extends VirtualConfigurationBuilders with RouterHelper {
                 case _ => -1
             }
         }).filter(x => x > 0)
-        seqs.sorted should be === (1 to howMany)
+        seqs.sorted should be (1 to howMany)
     }
 }

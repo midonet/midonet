@@ -4,12 +4,12 @@
 package org.midonet.midolman.topology
 
 import collection.{Map => ROMap, mutable}
-import collection.JavaConversions._
 import compat.Platform
 
+import scala.concurrent.duration.Duration
 import akka.event.LoggingAdapter
-import akka.util.Duration
 
+import java.lang.{Short => JShort}
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
@@ -21,9 +21,7 @@ import org.midonet.cluster.client._
 import org.midonet.packets.{IPv4Addr, IPAddr, MAC}
 import org.midonet.util.functors.Callback0
 import org.midonet.midolman.config.MidolmanConfig
-import java.lang.{Short => JShort}
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
-
 
 /* The MacFlowCount is called from the Coordinators' actors and dispatches
  * to the BridgeManager's actor to get/modify the flow counts.  */
@@ -212,6 +210,7 @@ class BridgeManager(id: UUID, val clusterClient: Client,
         clusterClient.getBridge(id, new BridgeBuilderImpl(id,
             FlowController.getRef(), self))
         // Schedule the recurring cleanup of expired mac-port associations.
+        implicit val executor = context.dispatcher
         context.system.scheduler.schedule(
             Duration(macPortExpiration, TimeUnit.MILLISECONDS),
             Duration(2000, TimeUnit.MILLISECONDS), self, CheckExpiredMacPorts())

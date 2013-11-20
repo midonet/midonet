@@ -3,13 +3,14 @@
 */
 package org.midonet.midolman
 
-import scala.collection.mutable
 import java.util.UUID
+
+import akka.testkit.TestProbe
 
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.Matchers
 
 import org.midonet.midolman.DatapathController.DpPortCreate
 import org.midonet.midolman.topology.VirtualToPhysicalMapper._
@@ -20,12 +21,10 @@ import org.midonet.odp.ports.{NetDevPort, GreTunnelPort}
 import org.midonet.packets.{IPv4Addr, IntIPv4}
 import org.midonet.cluster.data.Bridge
 import org.midonet.cluster.data.host.Host
-import akka.testkit.TestProbe
 import org.midonet.cluster.data.ports.BridgePort
 
-
 @RunWith(classOf[JUnitRunner])
-class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers with VirtualConfigurationBuilders {
+class TunnelManagementTestCase extends MidolmanTestCase with Matchers with VirtualConfigurationBuilders {
 
     val myselfId = UUID.randomUUID()
     var greZone: GreTunnelZone = null
@@ -119,7 +118,7 @@ class TunnelManagementTestCase extends MidolmanTestCase with ShouldMatchers with
 
         val tzRequest = fishForRequestOfType[TunnelZoneRequest](vtpProbe())
         // assert that the VTP got a TunnelZoneRequest message for the proper zone
-        tzRequest.zoneId should be === greZone.getId
+        tzRequest.zoneId should be (greZone.getId)
 
         fishForReplyOfType[GreZoneMembers](vtpProbe())
         fishForReplyOfType[GreZoneChanged](vtpProbe())

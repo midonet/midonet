@@ -7,8 +7,10 @@ import scala.collection.mutable.ListBuffer
 import java.{util => ju}
 import java.util.UUID
 
-import akka.actor.{ActorContext, ActorSystem}
-import akka.dispatch.{ExecutionContext, Promise, Future}
+import scala.util.Failure
+import scala.concurrent.{ExecutionContext, Future}
+
+import akka.actor.ActorContext
 import akka.event.LoggingAdapter
 import akka.pattern.ask
 import akka.util.Timeout
@@ -30,6 +32,7 @@ import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPort
 import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPortSet
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 import org.midonet.util.functors.Callback0
+import org.midonet.util.concurrent._
 
 object FlowTranslator {
 
@@ -39,7 +42,7 @@ object FlowTranslator {
      * Dummy ChainPacketContext used in egress port set chains.
      * All that is available is the Output Port ID (there's no information
      * on the ingress port or connection tracking at the egress controller).
-     * @param outportID UUID for the output port
+     * @param outPortId UUID for the output port
      */
     class EgressPortSetChainPacketContext(override val outPortId: UUID,
             val tags: Option[mutable.Set[Any]]) extends ChainPacketContext {
@@ -66,14 +69,13 @@ object FlowTranslator {
 trait FlowTranslator {
     import FlowTranslator._
 
-    implicit val executor: ExecutionContext
-    implicit val system: ActorSystem
-
     protected val datapathConnection: OvsDatapathConnection
     protected val dpState: DatapathState
 
     implicit protected val requestReplyTimeout: Timeout
     implicit protected val context: ActorContext
+    implicit protected val executor: ExecutionContext
+    implicit protected val system = context.system
 
     val log: LoggingAdapter
     val cookieStr: String
@@ -157,15 +159,15 @@ trait FlowTranslator {
 
         def portToChain(port: Port[_]): Future[Chain] =
             if (port.outFilterID == null)
-                Promise.successful(null)
+                Future.successful(null)
             else
                 expiringAsk(ChainRequest(port.outFilterID))
 
         // Apply the chains.
         Future.sequence(localPorts map { portToChain })
             .map{ chainsToPortsId }
-            .onFailure {
-                case ex =>
+            .andThen {
+                case Failure(ex) =>
                     log.error(ex, "Error getting chains for PortSet {} {}",
                               portSetID, cookieStr)
             }
@@ -276,20 +278,18 @@ trait FlowTranslator {
                         wMatch)
                 case u: FlowActionUserspace =>
                     u.setUplinkPid(datapathConnection.getChannel.getLocalAddress.getPid)
-                    Promise.successful(Seq(u))
+                    Future.successful(Seq(u))
                 case a =>
-                    Promise.successful(Seq[FlowAction[_]](a))
+                    Future.successful(Seq[FlowAction[_]](a))
             }
 
-        Future.sequence(actionsFutures) onFailure {
-            case ex =>
-                log.error(ex, "failed to expand virtual actions {}", cookieStr)
-        } map { seq =>
-            val filteredResults = seq.flatMap{x => x}.toList
+        Future.sequence(actionsFutures) map { seq =>
+            val filteredResults = seq.flatten
             log.debug("Translated actions to {} {}", filteredResults, cookieStr)
             filteredResults
+        } andThen { case Failure(ex) =>
+            log.error(ex, "failed to expand virtual actions {}", cookieStr)
         }
-
     }
 
     // expandPortSetAction, name shortened to avoid an ENAMETOOLONG on ecryptfs
@@ -301,7 +301,7 @@ trait FlowTranslator {
         val portSetFuture = ask(
             VirtualToPhysicalMapper.getRef(),
             PortSetRequest(portSet, update = false))
-            .mapTo[PortSet] andThen { case Left(e) =>
+            .mapTo[PortSet] andThen { case Failure(e) =>
                 log.error(e, "VTPM did not provide portSet {} {}",
                           portSet, cookieStr)
         }
@@ -362,7 +362,7 @@ trait FlowTranslator {
         dpState.getDpPortNumberForVport(port) map { portNum =>
             /* then we translate to that local Dp Port*/
             val localPort = List(portNum.shortValue())
-            Promise.successful(
+            Future.successful(
                 towardsLocalDpPorts(actions, port, localPort, tags))
         } getOrElse {
             /* otherwise we translate to a remote port */

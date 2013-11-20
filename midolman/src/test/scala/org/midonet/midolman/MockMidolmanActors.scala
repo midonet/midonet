@@ -7,7 +7,8 @@ import scala.collection.JavaConversions._
 
 import java.util.UUID
 
-import akka.actor.ActorSystem
+import akka.actor.{Actor, ActorSystem}
+import akka.testkit.TestActorRef
 
 import com.google.inject._
 import org.apache.commons.configuration.HierarchicalConfiguration
@@ -24,7 +25,6 @@ import org.midonet.midolman.guice.{MidolmanActorsModule, MockCacheModule, MockMo
 import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.services._
 import org.midonet.midolman.version.guice.VersionModule
-import akka.testkit.TestActorRef
 
 trait MockMidolmanActors extends BeforeAndAfter {
     this: Suite =>

@@ -8,7 +8,7 @@ import java.util.UUID
 import scala.collection.{Map => ROMap}
 
 import akka.actor.ActorSystem
-import akka.dispatch.{ExecutionContext, Future, Promise}
+import scala.concurrent.{ExecutionContext, Future, Promise}
 
 import org.midonet.cluster.client._
 import org.midonet.cluster.data
@@ -91,7 +91,7 @@ class Bridge(val id: UUID,
      */
     override def process(packetContext: PacketContext)
                         (implicit ec: ExecutionContext,
-                         actorSystem: ActorSystem)
+                                  actorSystem: ActorSystem)
             : Future[Coordinator.Action] = {
         implicit val pktContext = packetContext
 
@@ -102,10 +102,10 @@ class Bridge(val id: UUID,
         // Some basic sanity checks
         if (Ethernet.isMcast(packetContext.wcmatch.getEthernetSource)) {
             log.info("Packet has multi/broadcast source, DROP")
-            Promise.successful(DropAction)
+            Future.successful(DropAction)
         } else if (!adminStateUp) {
             log.debug("Bridge {} is down, DROP", id)
-            Promise.successful(DropAction)
+            Future.successful(DropAction)
         } else
             normalProcess(packetContext)
     }
@@ -136,17 +136,17 @@ class Bridge(val id: UUID,
                     updateFlowCount(srcDlAddress, packetContext)
                     // No point in tagging by dst-MAC+Port because the outPort was
                     // not used in deciding to drop the flow.
-                    return Promise.successful(DropAction)
+                    return Future.successful(DropAction)
                 case other =>
                     log.error("Pre-bridging for {} returned {} which was not " +
                               "ACCEPT, DROP or REJECT.", id, other)
-                    return Promise.successful(ErrorDropAction)
+                    return Future.successful(ErrorDropAction)
             }
 
             if (preBridgeResult.pmatch ne packetContext.wcmatch) {
                 log.error("Pre-bridging for {} returned a different match" +
                           "object", id)
-                return Promise.successful(ErrorDropAction)
+                return Future.successful(ErrorDropAction)
             }
 
         } else {
@@ -194,7 +194,7 @@ class Bridge(val id: UUID,
                 log.debug("Packet intended for interior port.")
                 packetContext.addFlowTag(
                     FlowTagger.invalidateFlowsByLogicalPort(id, logicalPort))
-                Promise.successful(unicastAction(logicalPort))
+                Future.successful(unicastAction(logicalPort))
             case None => // not a logical port, is the dstMac learned?
                 val vlanId = srcVlanTag(packetContext)
                 val port = getPortOfMac(dlDst, vlanId, packetContext.expiry, ec)
@@ -210,7 +210,7 @@ class Bridge(val id: UUID,
                         packetContext.addFlowTag(
                             FlowTagger.invalidateFlowsByPort(id, dlSrc,
                                 vlanId, packetContext.inPortId))
-                        Promise.successful(unicastAction(portId))
+                        Future.successful(unicastAction(portId))
                     case None =>
                         log.debug("Dst MAC {}, VLAN ID {} is not learned:" +
                             " Flood", dlDst, vlanId)
@@ -292,13 +292,14 @@ class Bridge(val id: UUID,
       *   - If the frame comes from an interior port, POP the vlan id if the
       *     port has one assigned, and send to the PortSet.
       */
-    private def multicastAction()(implicit pktCtx: PacketContext):
-            Future[Coordinator.Action] =
+    private def multicastAction()(implicit pktCtx: PacketContext,
+                                           executor: ExecutionContext)
+    :Future[Coordinator.Action] =
         vlanPortId match {
             case Some(vPId) if (!pktCtx.inPortId.equals(vPId)) =>
                 // This VUB is connected to a VAB: send there too
                 log.debug("Add vlan-aware bridge to port set")
-                Promise.successful(
+                Future.successful(
                     ForkAction(List(ToPortSetAction(id), ToPortAction(vPId))))
             case None if (!vlanToPort.isEmpty) =>
                 log.debug("Vlan-aware ToPortSet")
@@ -307,7 +308,7 @@ class Bridge(val id: UUID,
             case _ =>
                 // normal bridge
                 log.debug("Normal ToPortSet")
-                Promise.successful(ToPortSetAction(id))
+                Future.successful(ToPortSetAction(id))
         }
 
     /**
@@ -370,7 +371,7 @@ class Bridge(val id: UUID,
             // Forward broadcast ARPs to their devices if we know how.
             log.debug("The packet is intended for an interior port.")
             val portID = macToLogicalPortId.get(ipToMac.get(nwDst).get).get
-            Promise.successful(unicastAction(portID)) // TODO (galo) read comments inside
+            Future.successful(unicastAction(portID)) // TODO (galo) read comments inside
         } else {
             // If it's an ARP request, can we answer from the Bridge's IpMacMap?
             var mac: Future[MAC]= null
@@ -379,7 +380,7 @@ class Bridge(val id: UUID,
                     mac = getMacOfIp(pMatch.getNetworkDestinationIP
                                      .asInstanceOf[IPv4Addr],
                         pktContext.expiry, ec)
-                case _ => Promise.successful[MAC](null)
+                case _ => Future.successful[MAC](null)
             }
             // TODO(pino): tag the flow with the destination
             // TODO: mac, so we can deal with changes in the mac.
@@ -395,7 +396,7 @@ class Bridge(val id: UUID,
                     processArpRequest(
                         pktContext.frame.getPayload.asInstanceOf[ARP], m,
                         pktContext.inPortId)
-                    Promise.successful(ConsumedAction)
+                    Future.successful(ConsumedAction)
             }
         }
     }
@@ -547,13 +548,13 @@ class Bridge(val id: UUID,
 
         vlanMacTableMap.get(vlanId) match {
             case Some(macPortMap: MacLearningTable) =>
-                val rv = Promise[Option[UUID]]()(ec)
+                val rv = Promise[Option[UUID]]()
                 val getCallback = new Callback1[UUID] {
                     def call(port: UUID) { rv.success(Option.apply(port)) }
                 }
                 macPortMap.get(mac, getCallback, expiry)
-                rv
-            case _ => Promise.successful(None)(ec)
+                rv.future
+            case _ => Future.successful(None)
         }
     }
 
@@ -563,14 +564,14 @@ class Bridge(val id: UUID,
       */
     private def getMacOfIp(ip: IPv4Addr, expiry: Long, ec: ExecutionContext) = {
         ip4MacMap match {
-            case null => Promise.successful[MAC](null)
+            case null => Future.successful[MAC](null)
             case map =>
-                val rv = Promise[MAC]()(ec)
+                val rv = Promise[MAC]()
                 val getCallback = new Callback1[MAC] {
                     def call(mac: MAC) { rv.success(mac) }
                 }
                 map.get(ip, getCallback, expiry)
-                rv
+                rv.future
         }
     }
 

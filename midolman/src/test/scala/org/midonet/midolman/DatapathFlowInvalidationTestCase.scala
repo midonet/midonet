@@ -6,11 +6,9 @@ package org.midonet.midolman
 import scala.collection.mutable
 import scala.collection.immutable.HashMap
 import java.util.UUID
-import java.util.concurrent.TimeUnit
 
 import akka.testkit.TestProbe
-import akka.util.Duration
-import akka.util.duration._
+import scala.concurrent.duration._
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
@@ -241,8 +239,8 @@ with RouterHelper{
             wcmatch = new WildcardMatch().setInputPortUUID(port1OnHost1.getId),
             actions = List(new FlowActionOutputToVrnPortSet(bridge.getId)))
 
-        dpProbe().testActor.tell(AddVirtualWildcardFlow(
-            wildcardFlow, Set.empty, Set.empty))
+        dpProbe().testActor ! AddVirtualWildcardFlow(
+            wildcardFlow, Set.empty, Set.empty)
 
         val flowToInvalidate = wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
 

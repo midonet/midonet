@@ -8,19 +8,19 @@ project.ext {
 
     jdkBootstrap = "${rootDir}/midonet-jdk-bootstrap/build/classes/main:${System.properties['java.home']}/lib/rt.jar"
     ideaJdkBootstrap = "-Xbootclasspath/p:${rootDir}/idea/out/midonet-jdk-bootstrap"
-    scalaLangLevel = 'Scala 2.9'
+    scalaLangLevel = 'Scala 2.10.3'
 
-    versions = [akka: "2.0.3", guice: "3.0", hamcrest: "1.3", jackson: "1.9.3",
+    versions = [akka: "2.2.3", guice: "3.0", hamcrest: "1.3", jackson: "1.9.3",
                 java: "1.7",   jersey: "1.10" ]
 
     libraries = [
         sun_tools: project.files("${System.properties['java.home']}/../lib/tools.jar"),
 
-        scala: "org.scala-lang:scala-library:2.9.2",
-        scalatest: "org.scalatest:scalatest_2.9.2:2.0.M4",
-        akka: ["com.typesafe.akka:akka-slf4j:${versions.akka}",
-               "com.typesafe.akka:akka-actor:${versions.akka}"],
-        akkatest: "com.typesafe.akka:akka-testkit:${versions.akka}",
+        scala: "org.scala-lang:scala-library:2.10.3",
+        scalatest: "org.scalatest:scalatest_2.10:2.0",
+        akka: ["com.typesafe.akka:akka-slf4j_2.10:${versions.akka}",
+               "com.typesafe.akka:akka-actor_2.10:${versions.akka}"],
+        akkatest: "com.typesafe.akka:akka-testkit_2.10:${versions.akka}",
 
         jboss: "org.jboss.netty:netty:3.2.2.Final",
         guava: "com.google.guava:guava:r08",

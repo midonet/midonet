@@ -18,8 +18,7 @@ import org.midonet.odp._
 import org.midonet.odp.ports._
 
 @RunWith(classOf[JUnitRunner])
-class VirtualPortManagerTest
-    extends Suite with FeatureSpec with ShouldMatchers {
+class VirtualPortManagerTest extends FeatureSpec with Matchers {
 
   import VirtualPortManager.Controller
 

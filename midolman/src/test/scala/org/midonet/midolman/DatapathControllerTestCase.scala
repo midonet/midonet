@@ -8,8 +8,8 @@ import scala.collection.mutable
 import akka.testkit.TestProbe
 import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
+import org.scalatest.Matchers
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.matchers.ShouldMatchers
 
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.{Bridge => ClusterBridge}
@@ -22,7 +22,7 @@ import org.midonet.odp.{Datapath, Ports}
 
 @Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
-class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
+class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
 
   import scala.collection.JavaConversions._
   import DatapathController._
@@ -194,7 +194,7 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
 
     initializeDatapath() should not be (null)
 
-    var opReply = ask[DpPortReply](
+    var opReply = askAndAwait[DpPortReply](
         dpController(), DpPortCreateNetdev(Ports.newNetDevPort("netdev"), None))
 
     opReply should not be (null)
@@ -213,7 +213,7 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
     ports should contain key ("netdev")
 
     val nextRequest = DpPortDeleteNetdev(netdevPort, None)
-    opReply = ask[DpPortReply](dpController(), nextRequest)
+    opReply = askAndAwait[DpPortReply](dpController(), nextRequest)
     opReply should not be (null)
 
     ports = datapathPorts(datapaths.head)

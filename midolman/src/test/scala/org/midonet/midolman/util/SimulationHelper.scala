@@ -20,7 +20,7 @@ import org.midonet.packets._
 import org.midonet.packets.util.AddressConversions._
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 
-trait SimulationHelper extends MidolmanTestCase {
+trait SimulationHelper { this: MidolmanTestCase =>
 
     private final val log = LoggerFactory.getLogger(classOf[SimulationHelper])
 
@@ -78,7 +78,7 @@ trait SimulationHelper extends MidolmanTestCase {
                     log.debug("FlowKeyIcmpError related actions are userspace" +
                         "only so they should have been applied already in" +
                         "FlowController.applyActionsAfterUserspaceMatch")
-                    icmp.getData should be === key.getIcmpData
+                    icmp.getData should be (key.getIcmpData)
                 case unmatched =>
                     log.warn("Won't translate {}", unmatched)
             }
@@ -183,7 +183,7 @@ trait SimulationHelper extends MidolmanTestCase {
         pktInMsg should not be null
         pktInMsg.eth should not be null
         pktInMsg.wMatch should not be null
-        pktInMsg.wMatch.getInputPortUUID should be === port
+        pktInMsg.wMatch.getInputPortUUID should be (port)
         pktInMsg
     }
 
@@ -202,23 +202,23 @@ trait SimulationHelper extends MidolmanTestCase {
     }
 
     def expectMatchForIPv4Packet(pkt: Ethernet, wmatch: WildcardMatch) {
-        wmatch.getEthernetDestination should be === pkt.getDestinationMACAddress
-        wmatch.getEthernetSource should be === pkt.getSourceMACAddress
-        wmatch.getEtherType should be === pkt.getEtherType
+        wmatch.getEthernetDestination should be (pkt.getDestinationMACAddress)
+        wmatch.getEthernetSource should be (pkt.getSourceMACAddress)
+        wmatch.getEtherType should be (pkt.getEtherType)
         val ipPkt = pkt.getPayload.asInstanceOf[IPv4]
-        wmatch.getNetworkDestinationIP should be === ipPkt.getDestinationIPAddress
-        wmatch.getNetworkSourceIP should be === ipPkt.getSourceIPAddress
-        wmatch.getNetworkProtocol should be === ipPkt.getProtocol
+        wmatch.getNetworkDestinationIP should be (ipPkt.getDestinationIPAddress)
+        wmatch.getNetworkSourceIP should be (ipPkt.getSourceIPAddress)
+        wmatch.getNetworkProtocol should be (ipPkt.getProtocol)
 
         ipPkt.getProtocol match {
             case UDP.PROTOCOL_NUMBER =>
                 val udpPkt = ipPkt.getPayload.asInstanceOf[UDP]
-                wmatch.getTransportDestination should be === udpPkt.getDestinationPort
-                wmatch.getTransportSource should be === udpPkt.getSourcePort
+                wmatch.getTransportDestination should be (udpPkt.getDestinationPort)
+                wmatch.getTransportSource should be (udpPkt.getSourcePort)
             case TCP.PROTOCOL_NUMBER =>
                 val tcpPkt = ipPkt.getPayload.asInstanceOf[TCP]
-                wmatch.getTransportDestination should be === tcpPkt.getDestinationPort
-                wmatch.getTransportSource should be === tcpPkt.getSourcePort
+                wmatch.getTransportDestination should be (tcpPkt.getDestinationPort)
+                wmatch.getTransportSource should be (tcpPkt.getSourcePort)
             case _ =>
         }
     }
@@ -283,7 +283,6 @@ trait SimulationHelper extends MidolmanTestCase {
         eth.setPayload(ip)
 
         triggerPacketIn(portName, eth)
-        icmp
     }
 
     def expectRoutedPacketOut(portNum : Int): Ethernet = {
@@ -306,15 +305,14 @@ trait SimulationHelper extends MidolmanTestCase {
         val pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
         pktOut should not be null
         pktOut.getPacket should not be null
-        pktOut.getActions.size should be === (portNums.size +
-                                             vlanIdsPush.size + vlanIdsPop.size)
+        pktOut.getActions.size should be (portNums.size +
+                                            vlanIdsPush.size + vlanIdsPop.size)
 
         // Check that we're outputting on the right ports
         portNums.foreach( portNum =>
             pktOut.getActions.filter {
-                x => x.isInstanceOf[FlowActionOutput]}.toList map
-                { action =>
-                    action.getKey should be === FlowAction.FlowActionAttr.OUTPUT
+                x => x.isInstanceOf[FlowActionOutput]}.toList map { action =>
+                    action.getKey should be (FlowAction.FlowActionAttr.OUTPUT)
                     action.getValue.asInstanceOf[FlowActionOutput].getPortNumber
                 } should contain (portNum)
         )
@@ -323,9 +321,8 @@ trait SimulationHelper extends MidolmanTestCase {
         // that were expected
         vlanIdsPush.foreach( vlanId =>
             pktOut.getActions.filter {
-                x => x.isInstanceOf[FlowActionPushVLAN]}.toList map
-                { action =>
-                    action.getKey should be === FlowAction.FlowActionAttr.PUSH_VLAN
+                x => x.isInstanceOf[FlowActionPushVLAN]}.toList map { action =>
+                    action.getKey should be (FlowAction.FlowActionAttr.PUSH_VLAN)
                     // The VlanId is just 12 bits in that field
                     (action.getValue.asInstanceOf[FlowActionPushVLAN]
                         .getTagControlIdentifier & 0x0fff).toShort
@@ -335,7 +332,7 @@ trait SimulationHelper extends MidolmanTestCase {
         // Pop actions don't have the vlan id, but check that we have the right
         // number at least (this could be improved by verifying the actual
         // ids in the frame)
-        vlanIdsPop.size should be === (pktOut.getActions
+        vlanIdsPop.size should be (pktOut.getActions
             .count( _.isInstanceOf[FlowActionPopVLAN]))
 
         pktOut.getPacket

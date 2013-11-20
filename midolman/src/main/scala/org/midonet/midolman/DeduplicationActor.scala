@@ -3,18 +3,17 @@
 package org.midonet.midolman
 
 import java.util.UUID
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.{TimeoutException, TimeUnit}
 import scala.collection.JavaConverters._
 import scala.collection.mutable.{HashMap, MultiMap, PriorityQueue}
 import scala.collection.{immutable, mutable}
 import scala.compat.Platform
+import scala.concurrent.Future
+import scala.concurrent.duration._
+import scala.util.{Failure, Success}
 
 import akka.actor._
-import akka.dispatch.Future
 import akka.event.LoggingReceive
-import akka.util.Duration
-import akka.util.duration._
+
 import com.yammer.metrics.core.{MetricsRegistry, Clock}
 import javax.annotation.Nullable
 import javax.inject.Inject
@@ -209,7 +208,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
 
         case DeduplicationActor._GetConditionListFromVta =>
             VirtualTopologyActor.getRef() !
-                ConditionListRequest(TraceConditionsManager.uuid, true)
+                ConditionListRequest(TraceConditionsManager.uuid, update = true)
     }
 
     protected def workflow(packet: Packet,
@@ -232,8 +231,8 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
     }
 
     protected def startWorkflow(pw: PacketHandler): Future[PipelinePath] =
-        pw.start() onComplete {
-            case Right(path) =>
+        pw.start() andThen {
+            case Success(path) =>
                 log.debug("Packet with {} processed.", pw.cookieStr)
                 pw.cookie match {
                     case Some(c) =>
@@ -251,7 +250,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
                         }
                     case _ => // do nothing
                 }
-            case Left(ex) =>
+            case Failure(ex) =>
                 log.warning("Exception while processing packet {} - {}, {}",
                     pw.cookieStr, ex.getMessage, ex.getStackTraceString)
                 pw.cookie foreach { _ => metrics.packetsProcessed.mark() }

@@ -9,7 +9,7 @@ import java.util.UUID
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 
-import akka.actor.{ActorRef, UntypedActorWithStash}
+import akka.actor.{ActorSystem, ActorRef, UntypedActorWithStash}
 
 import org.midonet.cluster.client.{Port, RouterPort, BGPListBuilder}
 import org.midonet.cluster.data.{Route, AdRoute, BGP}
@@ -354,8 +354,8 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                         bgpVty.deletePeer(bgp.getLocalAS,
                                           IPv4Addr.fromIntIPv4(bgp.getPeerAddr))
                         // Remove all the flows for this BGP link
-                        FlowController.getRef().tell(
-                            FlowController.InvalidateFlowsByTag(FlowTagger.invalidateByBgp(bgpID)))
+                        FlowController.getRef() !
+                            FlowController.InvalidateFlowsByTag(FlowTagger.invalidateByBgp(bgpID))
 
                         // If this is the last BGP for ths port, tear everything down.
                         if (bgps.size == 0) {
@@ -620,8 +620,8 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                 log.info("Disabling BGP link: {}", bgps.head._1)
                 phase = Disabling
 
-                FlowController.getRef().tell(
-                    FlowController.InvalidateFlowsByTag(FlowTagger.invalidateByBgp(bgps.head._1)))
+                FlowController.getRef() !
+                    FlowController.InvalidateFlowsByTag(FlowTagger.invalidateByBgp(bgps.head._1))
                 stopBGP()
 
                 // NOTE(guillermo) the dataClient's write operations (such as
@@ -876,8 +876,8 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             actions = List(FlowActionOutputToVrnPort(bgpPort.id)))
 
 
-        DatapathController.getRef.tell(AddVirtualWildcardFlow(
-            wildcardFlow, Set.empty, bgpTagSet))
+        DatapathController.getRef ! AddVirtualWildcardFlow(
+            wildcardFlow, Set.empty, bgpTagSet)
 
         // TCP4:179-> bgpd->link
         wildcardMatch = new WildcardMatch()
@@ -892,8 +892,8 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             wcmatch = wildcardMatch,
             actions = List(FlowActionOutputToVrnPort(bgpPort.id)))
 
-        DatapathController.getRef.tell(AddVirtualWildcardFlow(
-            wildcardFlow, Set.empty, bgpTagSet))
+        DatapathController.getRef ! AddVirtualWildcardFlow(
+            wildcardFlow, Set.empty, bgpTagSet)
 
         // TCP4:->179 link->bgpd
         wildcardMatch = new WildcardMatch()
@@ -908,8 +908,8 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             wcmatch = wildcardMatch,
             actions = List(FlowActions.output(localPortNum)))
 
-        DatapathController.getRef.tell(AddVirtualWildcardFlow(
-            wildcardFlow, Set.empty, bgpTagSet))
+        DatapathController.getRef ! AddVirtualWildcardFlow(
+            wildcardFlow, Set.empty, bgpTagSet)
 
         // TCP4:179-> link->bgpd
         wildcardMatch = new WildcardMatch()
@@ -924,8 +924,8 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             wcmatch = wildcardMatch,
             actions = List(FlowActions.output(localPortNum)))
 
-        DatapathController.getRef.tell(AddVirtualWildcardFlow(
-            wildcardFlow, Set.empty, bgpTagSet))
+        DatapathController.getRef ! AddVirtualWildcardFlow(
+            wildcardFlow, Set.empty, bgpTagSet)
 
         // ARP bgpd->link
         wildcardMatch = new WildcardMatch()
@@ -936,8 +936,8 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             wcmatch = wildcardMatch,
             actions = List(FlowActionOutputToVrnPort(bgpPort.id)))
 
-        DatapathController.getRef.tell(AddVirtualWildcardFlow(
-            wildcardFlow, Set.empty, bgpTagSet))
+        DatapathController.getRef ! AddVirtualWildcardFlow(
+            wildcardFlow, Set.empty, bgpTagSet)
 
         // ARP link->bgpd, link->midolman
         // Both MM and bgpd need to know the peer's MAC address, so we install
@@ -957,8 +957,8 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             actions = List(FlowActions.output(localPortNum),
                             new FlowActionUserspace)) // Netlink Pid filled by datapath controller
 
-        DatapathController.getRef.tell(AddVirtualWildcardFlow(
-            wildcardFlow, Set.empty, bgpTagSet))
+        DatapathController.getRef ! AddVirtualWildcardFlow(
+            wildcardFlow, Set.empty, bgpTagSet)
 
         // ICMP4 bgpd->link
         wildcardMatch = new WildcardMatch()
@@ -972,8 +972,8 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             wcmatch = wildcardMatch,
             actions = List(FlowActionOutputToVrnPort(bgpPort.id)))
 
-        DatapathController.getRef.tell(AddVirtualWildcardFlow(
-            wildcardFlow, Set.empty, bgpTagSet))
+        DatapathController.getRef ! AddVirtualWildcardFlow(
+            wildcardFlow, Set.empty, bgpTagSet)
 
         // ICMP4 link->bgpd
         wildcardMatch = new WildcardMatch()
@@ -987,8 +987,8 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             wcmatch = wildcardMatch,
             actions = List(FlowActions.output(localPortNum)))
 
-        DatapathController.getRef.tell(AddVirtualWildcardFlow(
-            wildcardFlow, Set.empty, bgpTagSet))
+        DatapathController.getRef ! AddVirtualWildcardFlow(
+            wildcardFlow, Set.empty, bgpTagSet)
 
         log.debug("setBGPFlows - end")
     }

@@ -6,11 +6,10 @@ import java.util.Random
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.Suite
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.{Matchers, Suite}
 
 @RunWith(classOf[JUnitRunner])
-class IPv4AddrTest extends Suite with ShouldMatchers {
+class IPv4AddrTest extends Suite with Matchers {
 
     val ippool = List.tabulate(1000) { _ => IPv4Addr.random }
 
@@ -61,23 +60,23 @@ class IPv4AddrTest extends Suite with ShouldMatchers {
         var ip = IPv4Addr.fromString("192.168.1.1")
         val iIp = ip.addr
         ip = ip.next
-        ip.toString should be === "192.168.1.2"
-        ip.toInt should be === iIp + 1
+        ip.toString should be ("192.168.1.2")
+        ip.toInt should be (iIp + 1)
 
         Predef.intWrapper(1).to(255).foreach(_ => ip = ip.next)
-        ip.toString() should be === "192.168.2.1"
+        ip.toString() should be ("192.168.2.1")
     }
 
     def testNext() {
         var ip = IPv4Addr.fromString("10.1.23.1")
         ip = ip.next
-        ip.toString() should be === "10.1.23.2"
+        ip.toString() should be ("10.1.23.2")
 
         Predef.intWrapper(1).to(255).foreach(_ => ip = ip.next)
-        ip.toString() should be === "10.1.24.1"
+        ip.toString() should be ("10.1.24.1")
 
         ip = IPv4Addr.fromString("10.1.255.255")
-        ip.next.toString() should be === "10.2.0.0"
+        ip.next.toString() should be ("10.2.0.0")
     }
 
     def testCompare() {
@@ -86,10 +85,10 @@ class IPv4AddrTest extends Suite with ShouldMatchers {
         val ip2 = IPv4Addr.fromString("192.168.1.2")
         val ip3 = IPv4Addr.fromString("10.3.1.2")
 
-        ip1.compare(ip2) should be === -1
-        ip1.compare(ip1) should be === 0
-        ip1.compare(ip11) should be === 0
-        ip3.compare(ip1) should be === 1
+        ip1.compare(ip2) should be (-1)
+        ip1.compare(ip1) should be (0)
+        ip1.compare(ip11) should be (0)
+        ip3.compare(ip1) should be (1)
 
     }
 
@@ -111,11 +110,11 @@ class IPv4AddrTest extends Suite with ShouldMatchers {
         } while (r2.equals(ip3) || r2.equals(ip4))
 
 
-        r1.compare(ip1) should be === 1
-        r1.compare(ip2) should be === -1
+        r1.compare(ip1) should be (1)
+        r1.compare(ip2) should be (-1)
 
-        r2.compare(ip3) should be === 1
-        r2.compare(ip4) should be === -1
+        r2.compare(ip3) should be (1)
+        r2.compare(ip4) should be (-1)
 
     }
 

@@ -9,10 +9,10 @@ import java.util.concurrent.TimeUnit
 import collection.JavaConversions._
 import collection.{immutable, mutable}
 
-import akka.dispatch.{ExecutionContext, Future, Promise}
-import akka.actor.{ActorContext, ActorSystem}
+import scala.concurrent.{ExecutionContext, Future, Promise}
+import akka.actor.{ActorSystem, ActorContext}
 import akka.pattern.ask
-import akka.util.duration._
+import scala.concurrent.duration._
 import akka.util.Timeout
 
 import org.midonet.cluster.DataClient
@@ -31,10 +31,10 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
                   val request: DHCP, val sourceMac: MAC,
                   val cookie: Option[Int])
                  (implicit val ec: ExecutionContext,
-                  val actorSystem: ActorSystem,
-                  val actorContext: ActorContext) {
-    private val log = akka.event.Logging(actorSystem, this.getClass)
-    private val datapathController = DatapathController.getRef(actorSystem)
+                           val actorSystem: ActorSystem,
+                           val context: ActorContext) {
+    private val log = akka.event.Logging(context.system, this.getClass)
+    private val datapathController = DatapathController.getRef(context.system)
 
     private var serverAddr: IntIPv4 = null
     private var serverMac: MAC = null
@@ -61,12 +61,12 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
             case p: RouterPort if p.isExterior =>
                 // We still don't handle DHCP on router ports.
                 log.debug("Don't handle DHCP arriving on a router port.")
-                Promise.successful(false)
+                Future.successful(false)
             case _ =>
                 // We don't handle this, but don't throw an error.
                 log.error("Don't expect to be invoked for DHCP packets " +
                           "arriving anywhere but bridge/router exterior ports")
-                Promise.successful(false)
+                Future.successful(false)
         } recover { case _ => false }
     }
 
@@ -105,7 +105,7 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
 
                 (sub.getInterfaceMTU match {
                     case 0 => calculateInterfaceMTU
-                    case s: Short => Promise.successful(Some(s))
+                    case s: Short => Future.successful(Some(s))
                 }) flatMap {
                     case Some(mtu: Short) =>
                         interfaceMTU = mtu
@@ -114,11 +114,11 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
                     case _ =>
                         interfaceMTU = 0
                         log.warning("Fail to calculate interface MTU")
-                        Promise.successful(false)
+                        Future.successful(false)
                 }
             case _ =>
                 log.debug("No static DHCP assignment for MAC {}", sourceMac)
-                Promise.successful(false)
+                Future.successful(false)
         }
     }
 
@@ -169,12 +169,12 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
         if (null == chaddr) {
             log.warning("handleDhcpRequest dropping bootrequest with null" +
                         " chaddr")
-            return Promise.successful(false)
+            return Future.successful(false)
         }
         if (chaddr.length != 6) {
             log.warning("handleDhcpRequest dropping bootrequest with chaddr " +
                         "with length {} greater than 6.", chaddr.length)
-            return Promise.successful(false)
+            return Future.successful(false)
         }
         log.debug("handleDhcpRequest: on port {} bootrequest with chaddr {} "
             + "and ciaddr {}",
@@ -190,21 +190,21 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
             log.debug("handleDhcpRequest found option {}:{}", code,
                 DHCPOption.codeToName.get(code))
             code match {
-                case v if (v == DHCPOption.Code.DHCP_TYPE.value) =>
+                case v if v == DHCPOption.Code.DHCP_TYPE.value =>
                     if (opt.getLength != 1) {
                         log.warning("handleDhcpRequest dropping bootrequest - "
                             + "dhcp msg type option has bad length or data.")
-                        return Promise.failed(
+                        return Future.failed(
                             new Exception("DHCP request with bad dhcp type."))
                     }
                     val msgType = opt.getData()(0)
                     log.debug("handleDhcpRequest dhcp msg type {}:{}",
                         msgType, DHCPOption.msgTypeToName.get(msgType))
-                case v if (v == DHCPOption.Code.PRM_REQ_LIST.value) =>
+                case v if v == DHCPOption.Code.PRM_REQ_LIST.value =>
                     if (opt.getLength <= 0) {
                         log.warning("handleDhcpRequest dropping bootrequest - "
                             + "param request list has bad length")
-                        return Promise.failed(
+                        return Future.failed(
                             new Exception("DHCP request with bad param list"))
                     }
                     opt.getData foreach { c =>
@@ -221,19 +221,19 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
         if (typeOpt == None) {
             log.warning("handleDhcpRequest dropping bootrequest - no dhcp" +
                         "msg type found.")
-            return Promise.failed(
+            return Future.failed(
                     new Exception("DHCP request with missing dhcp type."))
         }
 
         typeOpt.get.getData()(0) match {
-            case v if (v == DHCPOption.MsgType.DISCOVER.value) =>
+            case v if v == DHCPOption.MsgType.DISCOVER.value =>
                 log.debug("Received a Discover message.")
                 // Reply with a dchp OFFER.
                 options.add(new DHCPOption(
                     DHCPOption.Code.DHCP_TYPE.value,
                     DHCPOption.Code.DHCP_TYPE.length,
                     Array[Byte](DHCPOption.MsgType.OFFER.value)))
-            case v if (v == DHCPOption.MsgType.REQUEST.value) =>
+            case v if v == DHCPOption.MsgType.REQUEST.value =>
                 log.debug("Received a Request message.")
                 // Reply with a dchp ACK.
                 options.add(new DHCPOption(
@@ -250,7 +250,7 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
                     case None =>
                         log.debug("handleDhcpRequest - no " +
                             "server id option found.")
-                        // TODO(pino): return Promise.successful(false)?
+                        // TODO(pino): return Future.successful(false)?
                     case Some(opt) =>
                         // The server id should correspond to this port's address.
                         val theirServId = IPv4Addr.bytesToInt(opt.getData)
@@ -277,7 +277,7 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
                                 "- the requested ip {} is not the offered " +
                                 "yiaddr {}", reqIp, yiaddr)
                             // TODO(pino): send a dhcp NAK reply.
-                            return Promise.successful(true)
+                            return Future.successful(true)
                         }
                 }
             case msgType =>
@@ -393,10 +393,10 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
                   inPortId)
 
         // Emit our DHCP reply packet
-        DeduplicationActor.getRef(actorSystem) ! EmitGeneratedPacket(
+        DeduplicationActor.getRef() ! EmitGeneratedPacket(
             inPortId, eth, cookie)
 
         // Tell the FlowController not to track the packet anymore.
-        Promise.successful(true)
+        Future.successful(true)
     }
 }

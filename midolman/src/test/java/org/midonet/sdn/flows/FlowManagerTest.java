@@ -401,7 +401,7 @@ public class FlowManagerTest {
     }
 
     private List<FlowAction<?>>actionsAsJava(WildcardFlow wflow) {
-        return new JavaConversions.SeqWrapper<FlowAction<?>>(wflow.actions());
+        return JavaConversions.asJavaList(wflow.actions());
     }
 
     // Implementation of the FlowManagerHelper for this test

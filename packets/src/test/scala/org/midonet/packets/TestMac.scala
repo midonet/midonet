@@ -4,15 +4,14 @@
  *                                                                            *
  ******************************************************************************/
 
-package org.midonet.packets;
+package org.midonet.packets
 
 import org.junit.runner.RunWith
-import org.scalatest.Suite
+import org.scalatest.{Matchers, Suite}
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.matchers.ShouldMatchers
 
 @RunWith(classOf[JUnitRunner])
-class TestMac extends Suite with ShouldMatchers {
+class TestMac extends Suite with Matchers {
 
     val macpool = List.tabulate(1000) { _ => MAC.random }
 

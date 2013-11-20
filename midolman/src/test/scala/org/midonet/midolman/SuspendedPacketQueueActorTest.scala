@@ -1,11 +1,10 @@
 package org.midonet.midolman
 
-import java.util.concurrent.TimeoutException
+import scala.concurrent._
+import scala.concurrent.ExecutionContext.Implicits.global
 
-import akka.dispatch.Promise
 import org.junit.runner.RunWith
 import org.scalatest._
-import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.concurrent.Eventually._
 import org.slf4j.LoggerFactory
@@ -15,8 +14,8 @@ import org.midonet.util.throttling.ThrottlingGuard
 import org.midonet.midolman.services.MessageAccumulator
 
 @RunWith(classOf[JUnitRunner])
-class SuspendedPacketQueueActorTest extends Suite with FeatureSpec
-                                    with ShouldMatchers with GivenWhenThen
+class SuspendedPacketQueueActorTest extends FeatureSpec
+                                    with Matchers with GivenWhenThen
                                     with BeforeAndAfter with MockMidolmanActors
                                     with OneInstancePerTest with MidolmanServices {
 
@@ -33,33 +32,33 @@ class SuspendedPacketQueueActorTest extends Suite with FeatureSpec
         throttler = spq.throttler
         while (throttler.numTokens() > 0)
             throttler.tokenOut()
-        throttler.numTokens() should be === 0
+        throttler.numTokens() should be (0)
     }
 
     feature("SuspendedPacketQueueActor manages tokens correctly") {
-        scenario("a promise is suspended and released when complete") {
+        scenario("a promise is suspended And released when complete") {
             val cookie = Option(9)
-            val promise = Promise[Int]()(actorSystem.dispatcher)
+            val p = promise[Int]()
 
             throttler.tokenIn()
-            throttler.numTokens() should be === 1
-            when("the message with an incomplete promise is sent")
-            DeduplicationActor ! SuspendOnPromise(cookie, promise)
+            throttler.numTokens() should be (1)
+            When("the message with an incomplete promise is sent")
+            DeduplicationActor ! SuspendOnPromise(cookie, p)
             eventually {
-                throttler.numTokens() should be === 0
+                throttler.numTokens() should be (0)
             }
-            and("the ring should contain the promise")
-            spq.peekRing should be === Some((cookie, promise))
-            then("the promise succeeds")
-            promise.success(1)
-            and("the actor should release the token")
+            And("the ring should contain the promise")
+            spq.peekRing should be (Some((cookie, p)))
+            Then("the promise succeeds")
+            p success 1
+            And("the actor should release the token")
             eventually {
-                throttler.numTokens() should be === 1
+                throttler.numTokens() should be (1)
             }
             DeduplicationActor ! _CleanCompletedPromises
-            and("the ring should be empty")
+            And("the ring should be empty")
             eventually {
-                spq.isRingEmpty should be === true
+                spq.isRingEmpty should be (true)
             }
         }
     }
@@ -67,33 +66,33 @@ class SuspendedPacketQueueActorTest extends Suite with FeatureSpec
     feature("Too many suspended promises generate timeouts") {
         scenario("lots of promises are suspended") {
 
-            throttler.numTokens() should be === 0
+            throttler.numTokens() should be (0)
 
             var promises = List[Promise[Int]]()
             for (c <- 1 to simSlots-1) {
-                val promise = Promise[Int]()(actorSystem.dispatcher)
-                promises = promise :: promises
+                val p = promise[Int]()
+                promises = p :: promises
                 throttler.tokenIn()
-                throttler.numTokens() should be === 1
-                DeduplicationActor ! SuspendOnPromise(Some(c), promise)
+                throttler.numTokens() should be (1)
+                DeduplicationActor ! SuspendOnPromise(Some(c), p)
                 eventually {
-                    throttler.numTokens() should be === 0
+                    throttler.numTokens() should be (0)
                 }
             }
             var failure: Throwable = null
-            promises.last.onFailure { case e => failure = e }
-            when ("a new promise is suspended")
-            val promise = Promise[Int]()(actorSystem.dispatcher)
+            promises.last.future.onFailure { case e: Throwable => failure = e }
+            When ("a new promise is suspended")
+            val p = promise[Int]()
             throttler.tokenIn()
-            throttler.numTokens() should be === 1
-            DeduplicationActor ! SuspendOnPromise(Some(simSlots), promise)
+            throttler.numTokens() should be (1)
+            DeduplicationActor ! SuspendOnPromise(Some(simSlots), p)
             eventually {
                 failure should not be null
-                failure.getClass should be === classOf[TimeoutException]
+                failure.getClass should be (classOf[TimeoutException])
             }
-            promises.last.isCompleted should be === true
-            and ("the failed exception will have recovered a token")
-            throttler.numTokens() should be === 1
+            promises.last.isCompleted should be (true)
+            And ("the failed exception will have recovered a token")
+            throttler.numTokens() should be (1)
 
         }
     }

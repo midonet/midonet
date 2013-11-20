@@ -1,22 +1,23 @@
 /*
  * Copyright 2012 Midokura Europe SARL
  */
+import java.util.UUID
+import java.lang.{Short => JShort}
 
+import collection.mutable
 
 import akka.actor.ActorSystem
 import akka.event.Logging
-import collection.mutable
+
+import org.scalatest.{FunSuite, Matchers}
+
 import org.midonet.cluster.client.MacLearningTable
 import org.midonet.cluster.data.Bridge
 import org.midonet.midolman.topology.MacLearningManager
 import org.midonet.packets.MAC
 import org.midonet.util.functors.{Callback3, Callback1}
-import java.util.UUID
-import java.lang.{Short => JShort}
-import org.scalatest.matchers.ShouldMatchers
-import org.scalatest.FunSuite
 
-class TestMacLearningManager  extends FunSuite with ShouldMatchers {
+class TestMacLearningManager  extends FunSuite with Matchers {
     implicit val system = ActorSystem.create("TestMacLearningManager")
     val log = Logging(system, getClass)
     val mac1 = MAC.fromString("02:bb:aa:dd:dd:ee")

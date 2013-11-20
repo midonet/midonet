@@ -32,7 +32,7 @@
         <mido.rpm.release>0.0.${maven.build.timestamp}</mido.rpm.release>
 
         <versions.java>1.7</versions.java>
-        <versions.scala.library>2.9.2</versions.scala.library>
+        <versions.scala.library>2.10.3</versions.scala.library>
         <bootstrap>-Xbootclasspath/p:${project.basedir}/../midonet-jdk-bootstrap/target/classes:${project.basedir}/../midonet-jdk-bootstrap/target/midonet-jdk-bootstrap-${project.version}.jar</bootstrap>
         <javalib>-Djava.library.path=/lib:/usr/lib</javalib>
         <splitVerif>-XX:-UseSplitVerifier</splitVerif>
@@ -79,7 +79,7 @@
                 use it instead of starting a new sbt process. -->
                 <groupId>net.alchim31.maven</groupId>
                 <artifactId>scala-maven-plugin</artifactId>
-                <version>3.1.5</version>
+                <version>3.1.6</version>
                 <configuration>
                     <recompileMode>incremental</recompileMode>
                     <useZincServer>true</useZincServer>
@@ -87,6 +87,7 @@
                         <arg>-deprecation</arg>
                         <arg>-unchecked</arg>
                         <arg>-dependencyfile</arg>
+                        <arg>-feature</arg>
                         <arg>${project.build.directory}/.scala_dependencies</arg>
                     </args>
                     <source>${versions.java}</source>
@@ -236,28 +237,28 @@
 
         <dependency>
             <groupId>org.scalatest</groupId>
-            <artifactId>scalatest_${versions.scala.library}</artifactId>
-            <version>2.0.M4</version>
+            <artifactId>scalatest_2.10</artifactId>
+            <version>2.0</version>
             <scope>test</scope>
         </dependency>
 
         <!-- akka framework -->
         <dependency>
             <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-actor</artifactId>
-            <version>2.0.3</version>
+            <artifactId>akka-actor_2.10</artifactId>
+            <version>2.2.3</version>
         </dependency>
 
         <dependency>
             <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-slf4j</artifactId>
-            <version>2.0.3</version>
+            <artifactId>akka-slf4j_2.10</artifactId>
+            <version>2.2.3</version>
         </dependency>
 
         <dependency>
             <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-testkit</artifactId>
-            <version>2.0.3</version>
+            <artifactId>akka-testkit_2.10</artifactId>
+            <version>2.2.3</version>
             <scope>test</scope>
         </dependency>
 
