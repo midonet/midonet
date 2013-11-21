@@ -91,6 +91,12 @@
             <scope>test</scope>
         </dependency>
 
+        <dependency>
+            <groupId>org.scalatest</groupId>
+            <artifactId>scalatest_${versions.scala.library}</artifactId>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
 </project>
