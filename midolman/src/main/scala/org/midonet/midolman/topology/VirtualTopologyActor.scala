@@ -3,8 +3,7 @@
  */
 package org.midonet.midolman.topology
 
-import collection.JavaConverters._
-import collection.mutable
+import scala.collection.mutable
 import compat.Platform
 
 import java.util.concurrent.TimeoutException
@@ -23,14 +22,12 @@ import org.midonet.cluster.client.Port
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.logging.{SimulationAwareBusLogging, ActorLogWithoutPath}
-import org.midonet.midolman.rules.Condition
 import org.midonet.midolman.simulation.{PacketContext, Bridge, Chain, Router}
 import org.midonet.midolman.{DeduplicationActor, FlowController, Referenceable}
+import org.midonet.midolman.topology.rcu.TraceConditions
 
 object VirtualTopologyActor extends Referenceable {
     override val Name: String = "VirtualTopologyActor"
-
-    type ConditionList = Seq[Condition]
 
     /*
      * VirtualTopologyActor's clients use these messages to request the most
@@ -82,8 +79,8 @@ object VirtualTopologyActor extends Referenceable {
     }
 
     case class ConditionListRequest(id: UUID, update: Boolean = false)
-        extends DeviceRequest[ConditionList] {
-        protected[VirtualTopologyActor] val devManifest = manifest[ConditionList]
+        extends DeviceRequest[TraceConditions] {
+        protected[VirtualTopologyActor] val devManifest = manifest[TraceConditions]
 
         protected[VirtualTopologyActor]
         def createManager(client: Client, config: MidolmanConfig) =
@@ -290,14 +287,13 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
         case router: Router =>
             log.debug("Received a Router for {}", router.id)
             updated(router)
-        case TraceConditionsManager.TriggerUpdate(conditions) =>
+        case TraceConditions(conditions) =>
             log.debug("TraceConditions updated to {}", conditions)
-            val traceConditions = conditions.asScala.toSeq
-            updated(TraceConditionsManager.uuid, traceConditions)
+            updated(TraceConditionsManager.uuid, conditions)
             // We know the DDA should always get an update to the trace
             // conditions.  For some reason the ChainRequest(update=true)
             // message from the DDA doesn't get the sender properly set.
-            DeduplicationActor.getRef().tell(traceConditions)
+            DeduplicationActor.getRef().tell(conditions)
         case invalidation: InvalidateFlowsByTag =>
             FlowController.getRef() ! invalidation
     }
