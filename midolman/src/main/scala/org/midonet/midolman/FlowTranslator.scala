@@ -66,6 +66,9 @@ object FlowTranslator {
 trait FlowTranslator {
     import FlowTranslator._
 
+    implicit val executor: ExecutionContext
+    implicit val system: ActorSystem
+
     protected val datapathConnection: OvsDatapathConnection
     protected val dpState: DatapathState
 
@@ -74,8 +77,7 @@ trait FlowTranslator {
     val log: LoggingAdapter
 
     protected def translateVirtualWildcardFlow(
-            flow: WildcardFlow, tags: ROSet[Any] = Set.empty)
-            (implicit ec: ExecutionContext, system: ActorSystem):
+            flow: WildcardFlow, tags: ROSet[Any] = Set.empty):
                 Future[(WildcardFlow, ROSet[Any])] = {
 
         val flowMatch = flow.getMatch
@@ -132,9 +134,7 @@ trait FlowTranslator {
                                           portSetID: UUID,
                                           pktMatch: WildcardMatch,
                                           tags: Option[mutable.Set[Any]])
-                                         (thunk: Seq[UUID] => Future[A])
-                                         (implicit ec: ExecutionContext,
-                                          system: ActorSystem): Future[A] = {
+                                         (thunk: Seq[UUID] => Future[A]): Future[A] = {
 
         def chainMatch(port: Port[_], chain: Chain): Boolean = {
             val fwdInfo = new EgressPortSetChainPacketContext(port.id, tags)
@@ -166,7 +166,7 @@ trait FlowTranslator {
             .flatMap{ thunk }
             .recoverWith { case ex =>
                 log.error("Error getting chains for PortSet {}", portSetID)
-                Promise.failed(ex)(system.dispatcher)
+                Promise.failed(ex)
             }
     }
 
@@ -184,8 +184,7 @@ trait FlowTranslator {
      */
     private def translateFlowActions(acts: Seq[FlowAction[_]], port: UUID,
             localPorts: Seq[Short], tunnelKey: Option[Long],
-            peerHostIds: Set[UUID], dpTags: mutable.Set[Any])(
-            implicit ec: ExecutionContext, system: ActorSystem): Seq[FlowAction[_]] = {
+            peerHostIds: Set[UUID], dpTags: mutable.Set[Any]): Seq[FlowAction[_]] = {
 
         log.debug("Translating output actions for vport (or set) {}," +
             " having tunnel key {}, and corresponding to local dp " +
@@ -269,9 +268,7 @@ trait FlowTranslator {
     protected def translateActions(actions: Seq[FlowAction[_]],
                                    inPortUUID: Option[UUID],
                                    dpTags: Option[mutable.Set[Any]],
-                                   wMatch: WildcardMatch)
-                                  (implicit ec: ExecutionContext,
-                                   system: ActorSystem): Future[Seq[FlowAction[_]]] = {
+                                   wMatch: WildcardMatch): Future[Seq[FlowAction[_]]] = {
 
         val actionsFutures: Seq[Future[Seq[FlowAction[_]]]] =
             actions map {
@@ -305,9 +302,7 @@ trait FlowTranslator {
     // from a triply nested anonfun.
     private def epsa(actions: Seq[FlowAction[_]], portSet: UUID,
                      inPortUUID: Option[UUID], dpTags: Option[mutable.Set[Any]],
-                     wMatch: WildcardMatch)
-                    (implicit ec: ExecutionContext, system: ActorSystem):
-            Future[Option[Seq[FlowAction[_]]]] = {
+                     wMatch: WildcardMatch): Future[Option[Seq[FlowAction[_]]]] = {
 
         val portSetFuture = ask(
             VirtualToPhysicalMapper.getRef(),
@@ -354,9 +349,7 @@ trait FlowTranslator {
     }
 
     protected def withLocalPorts[A](portSet: UUID, portIds: Set[UUID])
-                                   (f: Seq[Port[_]] => Future[A])
-                                   (implicit ec: ExecutionContext,
-                                             system: ActorSystem): Future[A] = {
+                                   (f: Seq[Port[_]] => Future[A]): Future[A] = {
         val fs = portIds.map { portID =>
             expiringAsk(PortRequest(portID), log)
         }(breakOut(Seq.canBuildFrom))
@@ -371,9 +364,7 @@ trait FlowTranslator {
                                  port: UUID,
                                  inPortUUID: Option[UUID],
                                  dpTags: Option[mutable.Set[Any]],
-                                 wMatch: WildcardMatch)
-                                (implicit ec: ExecutionContext,
-                                 system: ActorSystem): Future[Seq[FlowAction[_]]] = {
+                                 wMatch: WildcardMatch): Future[Seq[FlowAction[_]]] = {
 
         val tags = dpTags.orNull
 
@@ -398,20 +389,17 @@ trait FlowTranslator {
 
     /** forwards to translateToDpPorts for a set of local ports. */
     def towardsLocalDpPorts(acts: Seq[FlowAction[_]], port: UUID,
-        localPorts: Seq[Short], dpTags: mutable.Set[Any])
-    (implicit ec: ExecutionContext, system: ActorSystem): Seq[FlowAction[_]] =
+        localPorts: Seq[Short], dpTags: mutable.Set[Any]) =
         translateFlowActions(acts, port, localPorts, None, Set.empty, dpTags)
 
     /** forwards to translateToDpPorts for a set of remote ports. */
     def towardsRemoteHosts(acts: Seq[FlowAction[_]], port: UUID,
-        key: Long, peerHostId: UUID, dpTags: mutable.Set[Any])
-    (implicit ec: ExecutionContext, system: ActorSystem): Seq[FlowAction[_]] =
+        key: Long, peerHostId: UUID, dpTags: mutable.Set[Any]) =
         translateFlowActions(acts, port, Nil, Some(key), Set(peerHostId), dpTags)
 
     /** forwards to translateToDpPorts for a port set. */
     def toPortSet(acts: Seq[FlowAction[_]], port: UUID, localPorts: Seq[Short],
-        key: Option[Long], peerHostIds: Set[UUID], dpTags: mutable.Set[Any])
-    (implicit ec: ExecutionContext, system: ActorSystem): Seq[FlowAction[_]] =
+        key: Option[Long], peerHostIds: Set[UUID], dpTags: mutable.Set[Any]) =
         translateFlowActions(acts, port, localPorts, key, peerHostIds, dpTags)
 
 }

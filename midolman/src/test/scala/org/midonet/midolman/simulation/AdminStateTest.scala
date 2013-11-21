@@ -372,6 +372,10 @@ class AdminStateTest extends Suite
 
     class MockFlowTranslator extends Actor with ActorLogging
                                            with FlowTranslator {
+
+        implicit val executor: ExecutionContext = context.dispatcher
+        implicit val system: ActorSystem = context.system
+
         protected val datapathConnection: OvsDatapathConnection = null
         implicit protected val requestReplyTimeout =
             new Timeout(5, TimeUnit.SECONDS)
