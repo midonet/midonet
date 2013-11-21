@@ -43,6 +43,7 @@ import org.midonet.util.collection.RingBuffer
 import org.midonet.util.throttling.ThrottlingGuard
 import org.midonet.util.BatchCollector
 import org.midonet.midolman.PacketWorkflow.{PipelinePath, WildcardTableHit, PacketToPortSet, Simulation}
+import org.midonet.midolman.topology.rcu.TraceConditions
 
 
 object DeduplicationActor extends Referenceable {
@@ -268,7 +269,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
             val packetId = scala.util.Random.nextLong()
             startWorkflow(workflow(packet, Right(egressPort)))
 
-        case newTraceConditions: immutable.Seq[Condition] =>
+        case TraceConditions(newTraceConditions) =>
             log.debug("traceConditions updated to {}", newTraceConditions)
             traceConditions = newTraceConditions
 

@@ -4,6 +4,7 @@
 package org.midonet.midolman
 
 import java.lang.{Short => JShort}
+import scala.collection.immutable
 import scala.collection.JavaConversions._
 
 import com.google.inject.Key
@@ -23,6 +24,7 @@ import org.midonet.midolman.PacketWorkflow.PacketIn
 import org.midonet.midolman.guice.CacheModule.{TRACE_INDEX, TRACE_MESSAGES}
 import org.midonet.midolman.rules.{RuleResult, Rule, Condition}
 import org.midonet.midolman.topology.LocalPortActive
+import org.midonet.midolman.topology.rcu.TraceConditions
 import org.midonet.midolman.util.{SimulationHelper, MockCache}
 import org.midonet.odp.flows.FlowActions
 import org.midonet.odp.flows.{FlowActionOutput, FlowKeyTunnel}
@@ -160,7 +162,7 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         val srcMac = MAC.fromString("02:11:22:33:44:10")
         val condition = new Condition
         condition.dlSrc = srcMac
-        val conditionList = Seq[Condition](condition)
+        val conditionList = TraceConditions(immutable.Seq(condition))
         // FIXME(jlm): racy
         deduplicationActor() ! conditionList
 
