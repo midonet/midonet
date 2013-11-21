@@ -29,27 +29,48 @@ import org.midonet.midolman.state.{ZkConnectionAwareWatcher, DirectoryCallback}
 import org.midonet.midolman.topology.rcu.Host
 import org.midonet.midolman.{FlowController, Referenceable}
 
-
 object HostConfigOperation extends Enumeration {
     val Added, Deleted = Value
 }
 
-sealed trait ZoneChanged[HostConfig <: TunnelZone.HostConfig[HostConfig, _]] {
+sealed trait ZoneChanged[H] {
     val zone: UUID
-    val hostConfig: HostConfig
+    val zoneType: TunnelZone.Type
+    val hostConfig: H
     val op: HostConfigOperation.Value
 }
 
-sealed trait ZoneMembers[HostConfig <: TunnelZone.HostConfig[HostConfig, _]] {
+sealed trait ZoneMembers[H] {
     val zone: UUID
-    val members: ROSet[HostConfig]
+    val zoneType: TunnelZone.Type
+    val members: ROSet[H]
 
-    protected def changeMembers(change: ZoneChanged[HostConfig]): ROSet[HostConfig] = {
-        change.op match {
-            case HostConfigOperation.Added => members + change.hostConfig
-            case HostConfigOperation.Deleted => members - change.hostConfig
+    def change[G](change: ZoneChanged[G]): ZoneMembers[H]
+
+    protected def memberOp[G](change: ZoneChanged[G]): ROSet[H] =
+        if (this.zoneType == change.zoneType)
+            change.op match {
+                case HostConfigOperation.Added =>
+                    members + change.hostConfig.asInstanceOf[H]
+                case HostConfigOperation.Deleted =>
+                    members - change.hostConfig.asInstanceOf[H]
+            }
+        else
+            members
+}
+
+object ZoneMembers {
+
+    import VirtualToPhysicalMapper._
+
+    def apply(id: UUID, tzType: TunnelZone.Type): ZoneMembers[_] =
+        tzType match {
+            case TunnelZone.Type.Gre => GreZoneMembers(id, Set())
+            case TunnelZone.Type.Ipsec => IpsecZoneMembers(id, Set())
+            case TunnelZone.Type.Capwap => CapwapZoneMembers(id, Set())
+            case _ => GreZoneMembers(id, Set())
         }
-    }
+
 }
 
 /**
@@ -80,38 +101,42 @@ object VirtualToPhysicalMapper extends Referenceable {
 
     case class GreZoneChanged(zone: UUID, hostConfig: GreTunnelZoneHost,
                               op: HostConfigOperation.Value)
-        extends ZoneChanged[GreTunnelZoneHost]
+            extends ZoneChanged[GreTunnelZoneHost] {
+        val zoneType = TunnelZone.Type.Gre
+    }
 
     case class IpsecZoneChanged(zone: UUID, hostConfig: IpsecTunnelZoneHost,
                               op: HostConfigOperation.Value)
-        extends ZoneChanged[IpsecTunnelZoneHost]
+            extends ZoneChanged[IpsecTunnelZoneHost] {
+        val zoneType = TunnelZone.Type.Ipsec
+    }
 
     case class CapwapZoneChanged(zone: UUID, hostConfig: CapwapTunnelZoneHost,
                               op: HostConfigOperation.Value)
-        extends ZoneChanged[CapwapTunnelZoneHost]
+            extends ZoneChanged[CapwapTunnelZoneHost] {
+        val zoneType = TunnelZone.Type.Capwap
+    }
 
     case class GreZoneMembers(zone: UUID, members: ROSet[GreTunnelZoneHost])
-        extends ZoneMembers[GreTunnelZoneHost] {
-
-        def change(change: GreZoneChanged): GreZoneMembers =
-            copy(members = changeMembers(change))
+            extends ZoneMembers[GreTunnelZoneHost] {
+        val zoneType = TunnelZone.Type.Gre
+        def change[G](change: ZoneChanged[G]) = copy(members=memberOp(change))
     }
 
     case class CapwapZoneMembers(zone: UUID, members: ROSet[CapwapTunnelZoneHost])
-        extends ZoneMembers[CapwapTunnelZoneHost] {
-
-        def change(change: CapwapZoneChanged): CapwapZoneMembers =
-            copy(members = changeMembers(change))
+            extends ZoneMembers[CapwapTunnelZoneHost] {
+        val zoneType = TunnelZone.Type.Capwap
+        def change[G](change: ZoneChanged[G]) = copy(members=memberOp(change))
     }
 
     case class IpsecZoneMembers(zone: UUID, members: ROSet[IpsecTunnelZoneHost])
-        extends ZoneMembers[IpsecTunnelZoneHost] {
-
-        def change(change: IpsecZoneChanged): IpsecZoneMembers =
-            copy(members = changeMembers(change))
+            extends ZoneMembers[IpsecTunnelZoneHost] {
+        val zoneType = TunnelZone.Type.Ipsec
+        def change[G](change: ZoneChanged[G]) = copy(members=memberOp(change))
     }
 
     case class PortSetForTunnelKeyRequest(tunnelKey: Long)
+
 }
 
 trait DeviceHandler {
@@ -391,17 +416,19 @@ abstract class VirtualToPhysicalMapperBase
              * observers. From the second time on we will just send diffs
              * and forward a ZoneChanged message to the observers so that
              * they can update the list of members they stored. */
-            val zoneMembers = applyZoneChangeOp(zoneChanged)
 
-            tunnelZones.devices.get(zoneChanged.zone) match {
-                case None =>
-                    tunnelZones.updateAndNotifySubscribers(zoneChanged.zone,
-                                                           zoneMembers)
-                case _ =>
-                    tunnelZones.updateAndNotifySubscribers(zoneChanged.zone,
-                                                           zoneMembers,
-                                                           zoneChanged)
-            }
+            val zoneId = zoneChanged.zone
+            val zoneType = zoneChanged.zoneType
+
+            val oldZone = tunnelZones.devices.get(zoneId)
+                            .getOrElse(ZoneMembers(zoneId, zoneType))
+            val newMembers = oldZone.change(zoneChanged)
+
+            if (tunnelZones.devices.get(zoneId).isEmpty)
+                tunnelZones.updateAndNotifySubscribers(zoneId, newMembers)
+            else
+                tunnelZones.updateAndNotifySubscribers(zoneId, newMembers,
+                                                       zoneChanged)
 
         case message @ LocalPortActive(vportID, active)
             if (portActiveFifo.contains(vportID)) =>
@@ -539,36 +566,6 @@ abstract class VirtualToPhysicalMapperBase
             case ex =>
                 Promise.failed(ex)
         }
-
-    private def applyZoneChangeOp(zoneChanged: ZoneChanged[_]) : ZoneMembers[_] = {
-        val id = zoneChanged.zone
-        val oldZone = tunnelZones.devices.get(id)
-        zoneChanged match {
-            case greChange: GreZoneChanged =>
-                oldZone.getOrElse(GreZoneMembers(id, Set())) match {
-                    case members: GreZoneMembers => members.change(greChange)
-                    case _ => throw new IllegalArgumentException(
-                        "TunnelZoneHost vs ZoneMembers zone type mismatch")
-                }
-
-            case capwapChange: CapwapZoneChanged =>
-                oldZone.getOrElse(CapwapZoneMembers(id, Set())) match {
-                    case members: CapwapZoneMembers => members.change(capwapChange)
-                    case _ => throw new IllegalArgumentException(
-                        "TunnelZoneHost vs ZoneMembers zone type mismatch")
-                }
-
-            case ipsecChange: IpsecZoneChanged =>
-                oldZone.getOrElse(IpsecZoneMembers(id, Set())) match {
-                    case members: IpsecZoneMembers => members.change(ipsecChange)
-                    case _ => throw new IllegalArgumentException(
-                        "TunnelZoneHost vs ZoneMembers zone type mismatch")
-                }
-
-            case _ => // Should never happen
-                throw new IllegalArgumentException()
-        }
-    }
 
     def subscribeCallback(psetID: UUID): DirectoryCallback.Add =
         new DirectoryCallback.Add {
