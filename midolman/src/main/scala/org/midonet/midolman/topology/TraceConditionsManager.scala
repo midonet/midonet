@@ -2,17 +2,19 @@
 
 package org.midonet.midolman.topology
 
-import akka.actor.{ActorRef, Actor}
-import java.util.{List, UUID}
+import scala.collection.JavaConverters._
+import akka.actor.Actor
+import java.util.{List => JList, UUID}
 
 import org.midonet.cluster.Client
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.rules.Condition
 import org.midonet.midolman.topology.builders.TraceConditionsBuilderImpl
+import org.midonet.midolman.topology.rcu.TraceConditions
 
 
 object TraceConditionsManager {
-    case class TriggerUpdate(conditions: List[Condition])
+    case class TriggerUpdate(conditions: JList[Condition])
     val uuid = UUID.fromString("11111111-2222-3333-4444-555555555555")
     def getUuid = uuid
 }
@@ -37,6 +39,6 @@ class TraceConditionsManager(val id: UUID, val clusterClient: Client)
                 val vta = context.actorFor("..")
                 log.debug("Got update to conditions [{}], sending to VTA {}.",
                           conditions, vta)
-                vta ! TriggerUpdate(conditions)
+                vta ! TraceConditions(conditions.asScala.toList)
     }
 }
