@@ -283,7 +283,7 @@ class Coordinator(var origMatch: WildcardMatch,
                             dropFlow(temporary = false)
                     }
                 case IPFragmentType.Later =>
-                    log.info("Dropping non-first fragment at simulation layer")
+                    log.debug("Dropping non-first fragment at simulation layer")
                     AddVirtualWildcardFlow(WildcardFlow(wcmatch = origMatch),
                                            pktContext.getFlowRemovedCallbacks,
                                            pktContext.getFlowTags)
@@ -374,7 +374,7 @@ class Coordinator(var origMatch: WildcardMatch,
     }
 
     private def handleAction(action: Action): Future[SimulationResult] = {
-        log.info("Received action: {}", action)
+        log.debug("Received action: {}", action)
         action match {
 
             case DoFlowAction(action) =>
