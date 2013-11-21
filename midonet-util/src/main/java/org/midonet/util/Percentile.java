@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
  *         P^2 Algorithm from Raj Jain
  * 
  */
-public class Percentile implements Sampler, Cloneable, Serializable {
+public class Percentile implements Cloneable, Serializable {
     private static final long serialVersionUID = -4591386581109141524L;
     private static Logger logger_ = LoggerFactory.getLogger(Percentile.class);
 
