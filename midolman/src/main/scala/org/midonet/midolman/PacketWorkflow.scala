@@ -372,16 +372,17 @@ class PacketWorkflow(
                     action, portSet)
                 // egress port filter simulation
 
-                withLocalPorts(portSet.id, portSet.localPorts) { localPorts =>
+                activePorts(portSet.localPorts) flatMap { localPorts =>
                     // Take the outgoing filter for each port
                     // and apply it, checking for Action.ACCEPT.
                     val tags = mutable.Set[Any]()
-                    applyOutboundFilters(localPorts, portSet.id, wMatch, Some(tags))
-                    { portIDs =>
-                        addTranslatedFlowForActions(
-                            towardsLocalDpPorts(List(action), portSet.id,
-                                portsForLocalPorts(portIDs), tags),
-                            tags)
+                    applyOutboundFilters(
+                        localPorts, portSet.id, wMatch, Some(tags)
+                    ) flatMap {
+                        portIDs =>
+                            addTranslatedFlowForActions(
+                                towardsLocalDpPorts(List(action), portSet.id,
+                                    portsForLocalPorts(portIDs), tags), tags)
                     }
                 }
         } recoverWith {

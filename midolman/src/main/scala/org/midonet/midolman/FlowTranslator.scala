@@ -134,8 +134,7 @@ trait FlowTranslator {
                                           portSetID: UUID,
                                           pktMatch: WildcardMatch,
                                           tags: Option[mutable.Set[Any]])
-                                         (thunk: Seq[UUID] => Future[A]): Future[A] = {
-
+    : Future[Seq[UUID]] = {
         def chainMatch(port: Port[_], chain: Chain): Boolean = {
             val fwdInfo = new EgressPortSetChainPacketContext(port.id, tags)
             Chain.apply(chain, fwdInfo, pktMatch, port.id, true).action match {
@@ -163,10 +162,9 @@ trait FlowTranslator {
         // Apply the chains.
         Future.sequence(localPorts map { portToChain })
             .map{ chainsToPortsId }
-            .flatMap{ thunk }
-            .recoverWith { case ex =>
-                log.error("Error getting chains for PortSet {}", portSetID)
-                Promise.failed(ex)
+            .onFailure {
+                case ex =>
+                    log.error("Error getting chains for PortSet {}", portSetID)
             }
     }
 
@@ -275,7 +273,6 @@ trait FlowTranslator {
                 case s: FlowActionOutputToVrnPortSet =>
                     // expandPortSetAction
                     epsa(Seq(s), s.portSetId, inPortUUID, dpTags, wMatch)
-                    .map{ _.getOrElse(Nil) }
                 case p: FlowActionOutputToVrnPort =>
                     expandPortAction(Seq(p), p.portId, inPortUUID, dpTags,
                         wMatch)
@@ -302,7 +299,7 @@ trait FlowTranslator {
     // from a triply nested anonfun.
     private def epsa(actions: Seq[FlowAction[_]], portSet: UUID,
                      inPortUUID: Option[UUID], dpTags: Option[mutable.Set[Any]],
-                     wMatch: WildcardMatch): Future[Option[Seq[FlowAction[_]]]] = {
+                     wMatch: WildcardMatch): Future[Seq[FlowAction[_]]] = {
 
         val portSetFuture = ask(
             VirtualToPhysicalMapper.getRef(),
@@ -335,29 +332,24 @@ trait FlowTranslator {
                                                                 deviceId)
             }
 
-            withLocalPorts(portSet, outPorts) { localPorts =>
-                applyOutboundFilters(localPorts, portSet, wMatch, dpTags)
-                { portIDs =>
-                    val t = toPortSet(actions, portSet,
-                        portsForLocalPorts(portIDs),
-                        Some(tunnelKey), set.hosts,
-                        dpTags.orNull)
-                    Promise.successful(Some(t))
-                }
+            activePorts(outPorts) flatMap {
+                localPorts =>
+                    applyOutboundFilters(localPorts, portSet, wMatch, dpTags)
+            } map {
+                portIDs =>
+                    toPortSet(actions, portSet, portsForLocalPorts(portIDs),
+                        Some(tunnelKey), set.hosts, dpTags.orNull)
             }
+
         }} // closing the 2 flatmaps
     }
 
-    protected def withLocalPorts[A](portSet: UUID, portIds: Set[UUID])
-                                   (f: Seq[Port[_]] => Future[A]): Future[A] = {
+    protected def activePorts(portIds: Set[UUID]): Future[Seq[Port[_]]] = {
         val fs = portIds.map { portID =>
             expiringAsk(PortRequest(portID), log)
         }(breakOut(Seq.canBuildFrom))
 
-        Future.sequence(fs) flatMap { localPorts =>
-            val upLocalPorts = localPorts filter { _.adminStateUp }
-            f(upLocalPorts)
-        }
+        Future.sequence(fs) map { ps => ps filter { p => p.adminStateUp } }
     }
 
     private def expandPortAction(actions: Seq[FlowAction[_]],
