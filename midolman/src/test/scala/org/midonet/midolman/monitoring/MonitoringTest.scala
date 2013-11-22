@@ -29,6 +29,8 @@ import org.midonet.util.functors.Callback0
 
 class MonitoringTest extends MidolmanTestCase {
 
+  import DatapathController.DpPortStats
+
   private final val log: Logger = LoggerFactory.getLogger(classOf[MonitoringTest])
 
   var monitoringAgent: MonitoringAgent = null
@@ -79,7 +81,7 @@ class MonitoringTest extends MidolmanTestCase {
     materializePort(port, host, "tapDevice")
 
     // make sure the monitoring agent receives data for the expected port.
-    probeByName(MonitoringActor.Name).expectMsgType[DatapathController.PortStats].portID.toString should be (port.getId.toString)
+    probeByName(MonitoringActor.Name).expectMsgType[DpPortStats].portID.toString should be (port.getId.toString)
 
 
     waitFor("Wait for the MidoReporter to write to Cassandra.",10000, 500,  new Timed.Execution[Boolean]{
