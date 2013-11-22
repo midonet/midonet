@@ -206,13 +206,13 @@ object DatapathController extends Referenceable {
     * This message encapsulates a given port stats to the monitoring agent.
     * @param stats
     */
-    case class PortStats(portID: UUID, stats: Port.Stats)
+    case class DpPortStats(portID: UUID, stats: Port.Stats)
 
     /**
      * This message requests stats for a given port.
      * @param portID
      */
-    case class PortStatsRequest(portID: UUID)
+    case class DpPortStatsRequest(portID: UUID)
 
     /**
      * This message is sent every 2 seconds to check that the kernel contains
@@ -547,14 +547,14 @@ class DatapathController() extends Actor with ActorLogging with
             if(pendingUpdateCount == 0)
                 processNextHost()
 
-        case PortStatsRequest(portID) =>
+        case DpPortStatsRequest(portID) =>
             dpState.getInterfaceForVport(portID) match {
                 case Some(portName) =>
                     datapathConnection.portsGet(portName, datapath,
                         new Callback[Port[_,_]]{
                             def onSuccess(data: Port[_, _]) {
                                 MonitoringActor.getRef() !
-                                        PortStats(portID, data.getStats)
+                                        DpPortStats(portID, data.getStats)
                             }
 
                             def onTimeout() {
@@ -1429,7 +1429,7 @@ class DatapathStateManager(val controller: VirtualPortManager.Controller)(
     def removePeersForZone(zone: UUID): Seq[Any] =
         _peersRoutes.keys.toSeq.flatMap{ removePeer(_, zone) }
 
-    /** used internally by the Datapath Controller to answer PortStatsRequest */
+    /** used internally by the Datapath Controller to answer DpPortStatsRequest */
     def getInterfaceForVport(vportId: UUID): Option[String] =
         _vportMgr.interfaceToVport.inverse.get(vportId)
 
