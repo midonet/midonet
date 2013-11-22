@@ -3,19 +3,20 @@
  */
 package org.midonet.midolman.monitoring
 
+import scala.collection.mutable
+import java.util.UUID
+
 import akka.actor.{ActorLogging, Cancellable, Actor}
 import akka.event.Logging
-import com.google.inject.Inject
-import org.midonet.midolman.topology.{LocalPortActive, VirtualToPhysicalMapper}
-import org.midonet.midolman.monitoring.config.MonitoringConfiguration
-import collection.mutable
-import java.util.UUID
 import akka.util.FiniteDuration
-import metrics.vrn.VifMetrics
-import org.midonet.midolman.{Referenceable, DatapathController}
-import org.midonet.midolman.logging.ActorLogWithoutPath
+import com.google.inject.Inject
+
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.monitoring.MonitoringActor.MetricsUpdated
+import org.midonet.midolman.logging.ActorLogWithoutPath
+import org.midonet.midolman.monitoring.config.MonitoringConfiguration
+import org.midonet.midolman.monitoring.metrics.vrn.VifMetrics
+import org.midonet.midolman.topology.{LocalPortActive, VirtualToPhysicalMapper}
+import org.midonet.midolman.{Referenceable, DatapathController}
 import org.midonet.odp.Port
 
 /**
@@ -30,12 +31,12 @@ import org.midonet.odp.Port
 object MonitoringActor extends Referenceable {
     override val Name = "MonitoringActor"
     case class MetricsUpdated(portID: UUID, portStatistics: Port.Stats)
-
 }
 
 class MonitoringActor extends Actor with ActorLogWithoutPath {
 
     import DatapathController._
+    import MonitoringActor._
     import VirtualToPhysicalMapper._
     import context._
 
@@ -72,7 +73,7 @@ class MonitoringActor extends Actor with ActorLogWithoutPath {
                     new FiniteDuration(configuration.getPortStatsRequestTime,
                         "milliseconds"),
                     DatapathController.getRef(),
-                    PortStatsRequest(portID))
+                    DpPortStatsRequest(portID))
 
                 // add this port to the local map.
                 portsMap.put(portID, task)
@@ -87,9 +88,9 @@ class MonitoringActor extends Actor with ActorLogWithoutPath {
             vifMetrics.disableVirtualPortMetrics(portID)
 
 
-        case PortStats(portID, stats) =>
+        case DpPortStats(portID, stats) =>
             vifMetrics.updateStats(portID, stats)
-            context.system.eventStream.publish(new MetricsUpdated(portID, stats))
+            context.system.eventStream.publish(MetricsUpdated(portID, stats))
 
         case _ => log.info("RECEIVED UNKNOWN MESSAGE")
     }
