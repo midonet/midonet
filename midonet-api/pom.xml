@@ -133,7 +133,11 @@
                             <directoryIncluded>false</directoryIncluded>
                             <sources>
                                 <source>
-                                    <location>${project.basedir}/src/main/webapp/WEB-INF/web.xml</location>
+                                    <location>${project.basedir}/src/main/webapp/WEB-INF/web.xml.sample</location>
+                                </source>
+                                <source>
+                                    <location>${project.basedir}/src/main/webapp/WEB-INF/web.xml.sample</location>
+                                    <destination>web.xml</destination>
                                 </source>
                             </sources>
                         </mapping>
