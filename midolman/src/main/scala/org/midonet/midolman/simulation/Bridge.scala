@@ -54,12 +54,11 @@ import org.midonet.util.functors.Callback1
   * @param flowCount
   * @param inFilter
   * @param outFilter
-  * @param vlanPortId this field is the id of the interior port of a peer
-  *                   VlanAwareBridge or Bridge connected to this device.
-  *                   This means that this Bridge is considered to be on VLAN X,
-  *                   Note that a vlan-unaware bridge can only be connected to a
-  *                   single vlan-aware device (thus having only a single
-  *                   optional value)
+  * @param vlanPortId this field is the id of the interior port of a peer Bridge
+  *                    connected to this device. This means that this Bridge is
+  *                    considered to be on VLAN X, Note that a vlan-unaware
+  *                    bridge can only be connected to a single vlan-aware device
+  *                    (thus having only a single optional value)
   * @param flowRemovedCallbackGen
   * @param macToLogicalPortId
   * @param ipToMac
