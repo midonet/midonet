@@ -57,97 +57,144 @@ public abstract class ReplicatedMap<K, V> {
     }
 
     private class DirectoryWatcher implements Runnable {
-        public void run() {
-            if (!running) {
-                return;
-            }
-            Set<String> curPaths = null;
+
+        /**
+         * Retrieve all the children of the watched directory, handling
+         * failures.
+         * @return the set of paths, or null if a failure happened
+         */
+        Set<String> getCurPaths() {
+            Set<String> paths = null;
             try {
-                // XXX TODO(pino, rossella): make this asynchronous.
-                curPaths = dir.getChildren("/", this);
+                // TODO(pino, rossella): make this asynchronous.
+                paths = dir.getChildren("/", this);
             } catch (KeeperException e) {
                 log.warn("DirectoryWatcher.run {}", e);
-                if (connectionWatcher != null) {
-                    connectionWatcher.handleError("ReplicatedMap", this, e);
-                    return;
-                } else {
+                if (connectionWatcher == null) {
                     throw new RuntimeException(e);
                 }
+                connectionWatcher.handleError("ReplicatedMap", this, e);
             } catch (InterruptedException e) {
                 log.error("DirectoryWatcher.run {}", e);
                 Thread.currentThread().interrupt();
-                return;
             }
-            List<Path> cleanupPaths = new LinkedList<Path>();
-            Set<Notification<K,V>> notifications =
-                    new HashSet<Notification<K,V>>();
-            Map<K,MapValue> newMap = new HashMap<K,MapValue>();
-            synchronized(ReplicatedMap.this) {
-                if (!running) {
-                    return;
-                }
-                // Build newMap from curPaths, using only the highest versioned
-                // entry for each key.
-                for (String path : curPaths) {
-                    Path p = decodePath(path);
-                    MapValue mv = newMap.get(p.key);
-                    if (mv == null)
-                        newMap.put(p.key, new MapValue(p.value, p.version));
-                    else if (mv.version < p.version) {
-                        // The one currently in newMap needs to be replaced.
-                        // Also clean it up if it belongs to this ZK client.
-                        newMap.put(p.key, new MapValue(p.value, p.version));
-                        if (ownedVersions.contains(mv.version)) {
-                            p.value = mv.value;
-                            p.version = mv.version;
-                            cleanupPaths.add(p);
-                        }
-                    } else if (mv.version > p.version &&
-                               ownedVersions.contains(p.version)) {
-                        // The one currently in newMap is newer and the other
-                        // one belongs to this ZK client. Clean it up.
+            return paths;
+        }
+
+        /**
+         * Takes the curPaths set and populates the given newMap with them,
+         * using only the highest versioned entry for each key, and adding to
+         * cleanupPaths all that need to be purged.
+         */
+        void populateNewMap(final Map<K, MapValue> newMap,
+                            final Set<String> curPaths,
+                            final List<Path> cleanupPaths) {
+            for (String path : curPaths) {
+                Path p = decodePath(path);
+                MapValue mv = newMap.get(p.key);
+                if (mv == null)
+                    newMap.put(p.key, new MapValue(p.value, p.version));
+                else if (mv.version < p.version) {
+                    // The one currently in newMap needs to be replaced.
+                    // Also clean it up if it belongs to this ZK client.
+                    newMap.put(p.key, new MapValue(p.value, p.version));
+                    if (ownedVersions.contains(mv.version)) {
+                        p.value = mv.value;
+                        p.version = mv.version;
                         cleanupPaths.add(p);
                     }
+                } else if (mv.version > p.version &&
+                    ownedVersions.contains(p.version)) {
+                    // The one currently in newMap is newer and the other
+                    // one belongs to this ZK client. Clean it up.
+                    cleanupPaths.add(p);
                 }
-                Set<K> oldKeys = new HashSet<K>(localMap.keySet());
-                oldKeys.removeAll(newMap.keySet());
-                for (K deletedKey : oldKeys) {
-                    MapValue mv = localMap.get(deletedKey);
-                    notifications.add(new Notification<K,V>(
-                                                deletedKey, mv.value, null));
-                }
-                for (Map.Entry<K, MapValue> entry : newMap.entrySet()) {
-                    K key = entry.getKey();
-                    V value = entry.getValue().value;
-                    MapValue mv = localMap.get(key);
-                    if (mv == null) {
-                        notifications.add(new Notification<K,V>(
-                                            key, null, value));
-                    } else if (mv.version != entry.getValue().version) {
-                        // We compare versions because the 'value' members
-                        // might not implement .equals accurately.
-                        notifications.add(new Notification<K,V>(
-                                            key, mv.value, value));
-                    } // else mv == entry:  No notification.
-                }
-                localMap = newMap;
             }
+        }
 
-            for (Notification<K,V> notice : notifications)
-                notifyWatchers(notice.key, notice.oldValue, notice.newValue);
-            // Now clean up any of my paths that have been obsoleted.
-            for (Path path : cleanupPaths)
+        /**
+         * Cleans all paths in the given List. If a ZK exception occurs in the
+         * process it will abort the cleanup. InterruptedExceptions will
+         * stop the running thread.
+         *
+         * @param paths to clean up
+         */
+        void cleanup(final List<Path> paths) {
+            for (Path path : paths) {
                 try {
                     dir.delete(encodePath(path.key, path.value, path.version));
                     ownedVersions.remove(path.version);
                 } catch (KeeperException e) {
                     log.error("DirectoryWatcher.run", e);
-                    // XXX(guillermo) connectionWatcher.handleError()?
+                    // TODO (guillermo) connectionWatcher.handleError()?
                     throw new RuntimeException(e);
                 } catch (InterruptedException e) {
                     log.error("DirectoryWatcher.run", e);
                     Thread.currentThread().interrupt();
                 }
+            }
+        }
+
+        /**
+         * Compiles notifications to be sent after the newMap has been compiled.
+         *
+         * @param notifications where to accumulate the notifications
+         * @param newMap the new map generated from the last set of paths
+         */
+        void collectNotifications(final Set<Notification<K, V>> notifications,
+                                  final Map<K, MapValue> newMap) {
+
+            Set<K> oldKeys = new HashSet<>(localMap.keySet());
+            oldKeys.removeAll(newMap.keySet());
+            for (K deletedKey : oldKeys) {
+                MapValue mv = localMap.get(deletedKey);
+                notifications.add(new Notification<>(
+                    deletedKey, mv.value, null));
+            }
+
+            for (Map.Entry<K, MapValue> entry : newMap.entrySet()) {
+                K key = entry.getKey();
+                V value = entry.getValue().value;
+                MapValue mv = localMap.get(key);
+                if (mv == null) {
+                    notifications.add(new Notification<>(
+                        key, null, value));
+                } else if (mv.version != entry.getValue().version) {
+                    // We compare versions because the 'value' members
+                    // might not implement .equals accurately.
+                    notifications.add(new Notification<>(
+                        key, mv.value, value));
+                } // else mv == entry:  No notification.
+            }
+
+        }
+
+        public void run() {
+            if (!running) {
+                return;
+            }
+            Set<String> curPaths = getCurPaths();
+            if (curPaths == null)
+                return;
+
+            List<Path> cleanupPaths = new LinkedList<>();
+            Set<Notification<K,V>> notifications = new HashSet<>();
+
+            synchronized(ReplicatedMap.this) {
+                if (!running) {
+                    return;
+                }
+                Map<K,MapValue> newMap = new HashMap<>();
+                populateNewMap(newMap, curPaths, cleanupPaths);
+                collectNotifications(notifications, newMap);
+                localMap = newMap;
+            }
+
+            for (Notification<K,V> notice : notifications) {
+                notifyWatchers(notice.key, notice.oldValue, notice.newValue);
+            }
+
+            cleanup(cleanupPaths);
         }
     }
 
@@ -161,9 +208,9 @@ public abstract class ReplicatedMap<K, V> {
     public ReplicatedMap(Directory dir) {
         this.dir = dir;
         this.running = false;
-        this.localMap = new HashMap<K, MapValue>();
-        this.ownedVersions = new HashSet<Integer>();
-        this.watchers = new HashSet<Watcher<K, V>>();
+        this.localMap = new HashMap<>();
+        this.ownedVersions = new HashSet<>();
+        this.watchers = new HashSet<>();
         this.myWatcher = new DirectoryWatcher();
     }
 
@@ -189,9 +236,7 @@ public abstract class ReplicatedMap<K, V> {
 
     public synchronized V get(K key) {
         MapValue mv = localMap.get(key);
-        if (null == mv)
-            return null;
-        return mv.value;
+        return (null == mv) ? null : mv.value;
     }
 
     public synchronized boolean containsKey(K key) {
@@ -206,7 +251,7 @@ public abstract class ReplicatedMap<K, V> {
      * @return
      */
     public synchronized Map<K, V> getMap() {
-        Map<K, V> result = new HashMap<K, V>();
+        Map<K, V> result = new HashMap<>();
         for (Map.Entry<K, MapValue> entry : localMap.entrySet())
             result.put(entry.getKey(), entry.getValue().value);
         return result;
@@ -216,14 +261,15 @@ public abstract class ReplicatedMap<K, V> {
      * Synchronized method to retrieve the list of keys associated with the
      * given <pre>value</pre> in the local map.
      *
-     * @param value
+     * @param value the value whose keys want to be found
      * @return the list of keys. Empty if none.
      */
     public synchronized List<K> getByValue(V value) {
-        ArrayList<K> keyList = new ArrayList<K>();
-        for (Map.Entry<K, MapValue> entry : localMap.entrySet())
+        List<K> keyList = new ArrayList<>();
+        for (Map.Entry<K, MapValue> entry : localMap.entrySet()) {
             if (entry.getValue().value.equals(value))
                 keyList.add(entry.getKey());
+        }
         return keyList;
     }
 
@@ -260,9 +306,6 @@ public abstract class ReplicatedMap<K, V> {
      *
      * Our notifies for this change are called from the update notification to
      * the DirectoryWatcher after ZK has accepted it.
-     *
-     * @param key
-     * @param value
      */
     public void put(final K key, final V value) {
         dir.asyncAdd(encodePath(key, value), null,
@@ -280,9 +323,7 @@ public abstract class ReplicatedMap<K, V> {
      */
     public synchronized boolean isKeyOwner(K key) {
         MapValue mv = localMap.get(key);
-        if (null == mv)
-            return false;
-        return ownedVersions.contains(mv.version);
+        return null != mv && ownedVersions.contains(mv.version);
     }
 
     /**
@@ -342,11 +383,13 @@ public abstract class ReplicatedMap<K, V> {
      * @throws KeeperException
      * @throws InterruptedException
      */
-    public V removeIfOwner(K key) throws KeeperException, InterruptedException {
+    public V removeIfOwner(final K key)
+        throws KeeperException, InterruptedException {
         return removeIfOwnerAndValue(key, null);
     }
 
-    private void notifyWatchers(K key, V oldValue, V newValue) {
+    private void notifyWatchers(final K key, final V oldValue,
+                                final V newValue) {
         for (Watcher<K, V> watcher : watchers) {
             watcher.processChange(key, oldValue, newValue);
         }
@@ -427,9 +470,6 @@ public abstract class ReplicatedMap<K, V> {
      * Note that the encoding key may not contain ','.
      *
      * TODO: document that limitation (where?)
-     *
-     * @param key
-     * @return
      */
     protected abstract String encodeKey(K key);
 
