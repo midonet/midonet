@@ -1105,7 +1105,7 @@ class VirtualPortManager(
                     }
                 case Some(wasUp) =>
                     // The NetlinkInterfaceSensor sets the endpoint for all the
-                    // ports of the dp to DATAPATH. It the endpoint is not DATAPATH
+                    // ports of the dp to DATAPATH. If the endpoint is not DATAPATH
                     // it means that this is a dangling tap. We need to recreate
                     // the dp port. Use case: add tap, bind it to a vport, remove
                     // the tap. The dp port gets destroyed.
