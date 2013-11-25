@@ -11,7 +11,6 @@ import scala.collection.JavaConverters._
 import scala.collection.immutable
 import scala.collection.mutable
 import scala.collection.{Set => ROSet}
-import scala.compat.Platform
 
 import akka.actor._
 import akka.dispatch.{ExecutionContext, Promise, Future}
@@ -19,19 +18,15 @@ import akka.event.{Logging, LoggingAdapter}
 import akka.pattern.ask
 import akka.util.Timeout
 
-import org.midonet.cache.Cache
 import org.midonet.cluster.DataClient
-import org.midonet.midolman.DeduplicationActor._
-import org.midonet.midolman.FlowController.AddWildcardFlow
-import org.midonet.midolman.FlowController.FlowAdded
 import org.midonet.midolman.PacketWorkflow.PipelinePath
+import org.midonet.midolman.DeduplicationActor.PacketPipelineMetrics
 import org.midonet.midolman.datapath.ErrorHandlingCallback
 import org.midonet.midolman.rules.Condition
-import org.midonet.midolman.simulation.{DhcpImpl, Coordinator}
+import org.midonet.midolman.simulation.{Coordinator, DhcpImpl}
 import org.midonet.midolman.topology.FlowTagger
 import org.midonet.midolman.topology.VirtualToPhysicalMapper
-import org.midonet.midolman.topology.VirtualToPhysicalMapper.
-    PortSetForTunnelKeyRequest
+import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.rcu.PortSet
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode
@@ -79,30 +74,46 @@ object PacketWorkflow {
     case object WildcardTableHit extends PipelinePath
     case object PacketToPortSet extends PipelinePath
     case object Simulation extends PipelinePath
+
+    def apply(dpCon: OvsDatapathConnection,
+              dpState: DatapathState,
+              dp: Datapath,
+              dataClient: DataClient,
+              packet: Packet,
+              cookieOrEgressPort: Either[Int, UUID],
+              parentCookie: Option[Int])(
+              runSim: WildcardMatch => Future[SimulationResult])(
+              implicit executor: ExecutionContext,
+              system: ActorSystem,
+              context: ActorContext) =
+        new PacketWorkflow(dpCon, dpState, dp, dataClient, packet,
+                cookieOrEgressPort, parentCookie) {
+            def runSimulation(wcMatch: WildcardMatch) = runSim(wcMatch)
+        }
+
 }
 
-class PacketWorkflow(
+abstract class PacketWorkflow(
         protected val datapathConnection: OvsDatapathConnection,
         protected val dpState: DatapathState,
-        datapath: Datapath,
-        dataClient: DataClient,
-        connectionCache: Cache,
-        traceMessageCache: Cache,
-        traceIndexCache: Cache,
-        override val packet: Packet,
-        override val cookieOrEgressPort: Either[Int, UUID],
-        val parentCookie: Option[Int],
-        private val traceConditions: immutable.Seq[Condition])
+        val datapath: Datapath,
+        val dataClient: DataClient,
+        val packet: Packet,
+        val cookieOrEgressPort: Either[Int, UUID],
+        val parentCookie: Option[Int])
        (implicit val executor: ExecutionContext,
         implicit val system: ActorSystem,
         implicit val context: ActorContext)
     extends FlowTranslator with UserspaceFlowActionTranslator with PacketHandler {
 
     import PacketWorkflow._
+    import DeduplicationActor._
+    import FlowController.AddWildcardFlow
+    import FlowController.FlowAdded
+    import VirtualToPhysicalMapper.PortSetForTunnelKeyRequest
+    import VirtualTopologyActor.PortRequest
 
-
-    // TODO marc get config from parent actors.
-    val timeout = 5000 //config.getArpTimeoutSeconds * 1000
+    def runSimulation(wcMatch: WildcardMatch): Future[SimulationResult]
 
     val ERROR_CONDITION_HARD_EXPIRATION = 10000
 
@@ -409,7 +420,7 @@ class PacketWorkflow(
             case Right(haveEgress) =>
                 // simulate generated packet
                 val wcMatch = WildcardMatch.fromEthernetPacket(packet.getPacket)
-                prepareCoordinator(wcMatch).simulate()
+                runSimulation(wcMatch)
         }) flatMap {
             case AddVirtualWildcardFlow(flow, callbacks, tags) =>
                 log.debug("Simulation phase returned: AddVirtualWildcardFlow")
@@ -452,7 +463,7 @@ class PacketWorkflow(
                     case true =>
                         Promise.successful(NoOp)
                     case false =>
-                        prepareCoordinator(wMatch).simulate()
+                        runSimulation(wMatch)
                 }
 
             case None =>
@@ -522,12 +533,4 @@ class PacketWorkflow(
         }
     }
 
-    def prepareCoordinator(wcMatch: WildcardMatch): Coordinator = {
-        // FIXME (guillermo) - The launching of the coordinator is missing
-        // the parentCookie params.  They will need to be given to the
-        // PacketWorkflow object.
-        new Coordinator(wcMatch, packet.getPacket, cookie, egressPort,
-            Platform.currentTime + timeout, connectionCache, traceMessageCache,
-            traceIndexCache, None, traceConditions)
-    }
 }
