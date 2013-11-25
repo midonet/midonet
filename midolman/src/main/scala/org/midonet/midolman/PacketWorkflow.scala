@@ -142,7 +142,7 @@ abstract class PacketWorkflow(
         cookie match {
             case Some(cook) if (packet.getReason == FlowActionUserspace) =>
                 log.debug("Simulating packet addressed to userspace {}", cookieStr)
-                doSimulation()
+                doCookieSimulation()
 
             case Some(cook) =>
                 FlowController.queryWildcardFlowTable(packet.getMatch) match {
@@ -160,13 +160,13 @@ abstract class PacketWorkflow(
                              *  differ only in TTL from going to the simulation
                              *  stage? */
                             log.debug("Simulating packet {}", cookieStr)
-                            doSimulation()
+                            doCookieSimulation()
                         }
                 }
 
             case None =>
                 log.debug("Simulating generated packet")
-                doSimulation()
+                doEgressPortSimulation()
         }
     }
 
@@ -413,15 +413,16 @@ abstract class PacketWorkflow(
         }
     }
 
-    private def doSimulation(): Future[PipelinePath] =
-        (cookieOrEgressPort match {
-            case Left(haveCookie) =>
-                simulatePacketIn()
-            case Right(haveEgress) =>
-                // simulate generated packet
-                val wcMatch = WildcardMatch.fromEthernetPacket(packet.getPacket)
-                runSimulation(wcMatch)
-        }) flatMap {
+    private def doCookieSimulation() =
+        simulatePacketIn() flatMap processSimulationResult
+
+    private def doEgressPortSimulation() = {
+        val wcMatch = WildcardMatch.fromEthernetPacket(packet.getPacket)
+        runSimulation(wcMatch) flatMap processSimulationResult
+    }
+
+    private def processSimulationResult(result: SimulationResult) =
+        (result match {
             case AddVirtualWildcardFlow(flow, callbacks, tags) =>
                 log.debug("Simulation phase returned: AddVirtualWildcardFlow")
                 addVirtualWildcardFlow(flow, callbacks, tags)
@@ -435,7 +436,7 @@ abstract class PacketWorkflow(
             case ErrorDrop =>
                 log.debug("Simulation phase returned: ErrorDrop")
                 addTranslatedFlowForActions(Nil, expiration = 5000)
-        } map {
+        }) map {
             _ => Simulation
         }
 
