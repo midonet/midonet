@@ -43,7 +43,9 @@ class SuspendedPacketQueueActorTest extends SingleActorTestCase {
             then("the promise succeeds")
             promise.success(1)
             and("the actor should release the token")
-            throttler.numTokens() should be === 1
+            eventually {
+                throttler.numTokens() should be === 1
+            }
             spq ! _CleanCompletedPromises
             and("the ring should be empty")
             eventually {
