@@ -450,15 +450,12 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         IPv4Addr.fromBytes(arp.getTargetProtocolAddress) should be === hisIp
         arp.getTargetHardwareAddress should be === hisMac
 
-        // the arp cache should be updated without generating a request
-        drainProbe(dedupProbe())
         val expiry = Platform.currentTime + 1000
         val arpPromise = router.arpTable.get(hisIp, port, expiry)(
             actors().dispatcher, actors(), dummyPacketContext)
         val t = Timeout(1 second)
         val arpResult = Await.result(arpPromise, t.duration)
         arpResult should be === hisMac
-        dedupProbe().expectNoMsg(Timeout(2 seconds).duration)
     }
 
     def testIcmpEchoNearPort() {
