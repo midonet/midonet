@@ -22,14 +22,11 @@ import org.midonet.cluster.client
 import org.midonet.cluster.data.TunnelZone
 import org.midonet.cluster.data.TunnelZone.{HostConfig => TZHostConfig}
 import org.midonet.cluster.data.zones.GreTunnelZoneHost
-import org.midonet.midolman.FlowController.AddWildcardFlow
-import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
 import org.midonet.midolman.datapath._
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.monitoring.MonitoringActor
 import org.midonet.midolman.services.HostIdProviderService
-import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 import org.midonet.midolman.topology._
 import org.midonet.midolman.topology.rcu.Host
 import org.midonet.netlink.Callback
@@ -232,6 +229,7 @@ object DatapathController extends Referenceable {
     case class _LocalTunnelInterfaceInfoFinal(caller : ActorRef,
                                         interfaces: JList[InterfaceDescription])
 
+    case class _SetLocalDatapathPorts(datapath: Datapath, ports: Set[Port[_, _]])
 }
 
 
@@ -277,12 +275,14 @@ object DatapathController extends Referenceable {
  * may receive requests from the FVE to invalidate specific wildcard flows; these
  * are passed on to the FlowController.
  */
-class DatapathController() extends Actor with ActorLogging with
-                                              FlowTranslator {
+class DatapathController extends Actor with ActorLogging with FlowTranslator {
 
     import DatapathController._
-    import VirtualToPhysicalMapper._
+    import FlowController.AddWildcardFlow
+    import PacketWorkflow.AddVirtualWildcardFlow
     import VirtualPortManager.Controller
+    import VirtualToPhysicalMapper._
+    import VirtualTopologyActor.PortRequest
     import context._
 
     implicit val executor: ExecutionContext = this.context.dispatcher
@@ -345,7 +345,10 @@ class DatapathController() extends Actor with ActorLogging with
 
     override def preStart() {
         super.preStart()
-        context.become(DatapathInitializationActor)
+        context become (DatapathInitializationActor orElse {
+            case m =>
+                log.info("Not handling {} (behaving as InitializationActor)", m)
+        })
     }
 
     protected def receive = null
@@ -412,9 +415,6 @@ class DatapathController() extends Actor with ActorLogging with
             handlePortOperationReply(opReply)
             if (checkInitialization)
                 completeInitialization()
-
-        case m =>
-            log.info("Not handling {} (behaving as InitializationActor)", m)
     }
 
     /** checks if the DPC can switch to regular Receive loop */
@@ -426,7 +426,10 @@ class DatapathController() extends Actor with ActorLogging with
      */
     private def completeInitialization() {
         log.info("Initialization complete. Starting to act as a controller.")
-        become(DatapathControllerActor)
+        become(DatapathControllerActor orElse {
+            case m =>
+                log.warning("Unhandled message {}", m)
+        })
         FlowController.getRef() ! DatapathReady(datapath, dpState)
         DeduplicationActor.getRef() ! DatapathReady(datapath, dpState)
         for ((zoneId, zone) <- host.zones) {
@@ -569,8 +572,6 @@ class DatapathController() extends Actor with ActorLogging with
 
         case _LocalTunnelInterfaceInfoFinal(caller, interfaces) =>
             localTunnelInterfaceInfoPhaseTwo(caller, interfaces)
-
-        case m => log.warning("Unhandled message {}", m)
     }
 
     def checkPortUpdates() {
@@ -901,8 +902,6 @@ class DatapathController() extends Actor with ActorLogging with
             }
         )
     }
-
-    private case class _SetLocalDatapathPorts(datapath: Datapath, ports: Set[Port[_, _]])
 }
 
 object VirtualPortManager {
