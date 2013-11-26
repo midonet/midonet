@@ -152,40 +152,40 @@ object DatapathController extends Referenceable {
 
     trait InternalDpPortHolder { type TypedPort = InternalPort }
 
-    case class CreateDpPortInternal(port: InternalPort, tag: Option[AnyRef])
+    case class DpPortCreateInternal(port: InternalPort, tag: Option[AnyRef])
             extends DpPortCreate with InternalDpPortHolder {
-        override def update(p: InternalPort) = CreateDpPortInternal(p, this.tag)
+        override def update(p: InternalPort) = DpPortCreateInternal(p, this.tag)
     }
 
-    case class DeleteDpPortInternal(port: InternalPort, tag: Option[AnyRef])
+    case class DpPortDeleteInternal(port: InternalPort, tag: Option[AnyRef])
             extends DpPortDelete with InternalDpPortHolder {
-        override def update(p: InternalPort) = DeleteDpPortInternal(p, this.tag)
+        override def update(p: InternalPort) = DpPortDeleteInternal(p, this.tag)
     }
 
 
     trait NetDevDpPortHolder { type TypedPort = NetDevPort }
 
-    case class CreatePortNetdev(port: NetDevPort, tag: Option[AnyRef])
+    case class DpPortCreateNetdev(port: NetDevPort, tag: Option[AnyRef])
             extends DpPortCreate with NetDevDpPortHolder {
-        override def update(p: NetDevPort) = CreatePortNetdev(p, this.tag)
+        override def update(p: NetDevPort) = DpPortCreateNetdev(p, this.tag)
     }
 
-    case class DeletePortNetdev(port: NetDevPort, tag: Option[AnyRef])
+    case class DpPortDeleteNetdev(port: NetDevPort, tag: Option[AnyRef])
             extends DpPortDelete with NetDevDpPortHolder {
-        override def update(p: NetDevPort) = DeletePortNetdev(p, this.tag)
+        override def update(p: NetDevPort) = DpPortDeleteNetdev(p, this.tag)
     }
 
 
     trait GreDpPortHolder { type TypedPort = GreTunnelPort }
 
-    case class CreateTunnelGre(port: GreTunnelPort, tag: Option[AnyRef])
+    case class DpPortCreateGreTunnel(port: GreTunnelPort, tag: Option[AnyRef])
             extends DpPortCreate with GreDpPortHolder {
-        override def update(p: GreTunnelPort) = CreateTunnelGre(p, this.tag)
+        override def update(p: GreTunnelPort) = DpPortCreateGreTunnel(p, this.tag)
     }
 
-    case class DeleteTunnelGre(port: GreTunnelPort, tag: Option[AnyRef])
+    case class DpPortDeleteGreTunnel(port: GreTunnelPort, tag: Option[AnyRef])
             extends DpPortDelete with GreDpPortHolder {
-        override def update(p: GreTunnelPort) = DeleteTunnelGre(p, this.tag)
+        override def update(p: GreTunnelPort) = DpPortDeleteGreTunnel(p, this.tag)
     }
 
    /**
@@ -229,7 +229,7 @@ object DatapathController extends Referenceable {
      * completes the interface scan and pass the result as well as
      * original sender info
      */
-    private case class _LocalTunnelInterfaceInfoFinal(caller : ActorRef,
+    case class _LocalTunnelInterfaceInfoFinal(caller : ActorRef,
                                         interfaces: JList[InterfaceDescription])
 
 }
@@ -307,13 +307,13 @@ class DatapathController() extends Actor with ActorLogging with
             override def addToDatapath(itfName: String): Unit = {
                 log.debug("VportManager requested add port {}", itfName)
                 val port = Ports.newNetDevPort(itfName)
-                createDatapathPort(self, CreatePortNetdev(port, None))
+                createDatapathPort(self, DpPortCreateNetdev(port, None))
             }
 
             override def removeFromDatapath(port: Port[_, _]): Unit = {
                 log.debug("VportManager requested remove port {}", port.getName)
                 val netdevPort = port.asInstanceOf[NetDevPort]
-                deleteDatapathPort(self, DeletePortNetdev(netdevPort, None))
+                deleteDatapathPort(self, DpPortDeleteNetdev(netdevPort, None))
             }
 
             override def setVportStatus(port: Port[_, _], vportId: UUID,
@@ -378,9 +378,9 @@ class DatapathController() extends Actor with ActorLogging with
                 //TODO: check we can safely recycle existing ports (MN-128)
                 // not the case for port created by the BGP actor !
                 case p: GreTunnelPort =>
-                    deleteDatapathPort(self, DeleteTunnelGre(p, None))
+                    deleteDatapathPort(self, DpPortDeleteGreTunnel(p, None))
                 case p: NetDevPort =>
-                    deleteDatapathPort(self, DeletePortNetdev(p, None))
+                    deleteDatapathPort(self, DpPortDeleteNetdev(p, None))
                 case p =>
                     log.debug("Keeping port {} found during initialization", p)
                     dpState.dpPortAdded(p)
@@ -391,7 +391,7 @@ class DatapathController() extends Actor with ActorLogging with
             log.debug("Initial creation of GRE tunnel port")
 
             createDatapathPort(
-                self, CreateTunnelGre(GreTunnelPort.make("tngre-mm"), null))
+                self, DpPortCreateGreTunnel(GreTunnelPort.make("tngre-mm"), null))
 
             if (checkInitialization)
                 completeInitialization()
@@ -666,21 +666,21 @@ class DatapathController() extends Actor with ActorLogging with
 
         opReply match {
 
-            case DpPortSuccess(CreateTunnelGre(p, _)) =>
+            case DpPortSuccess(DpPortCreateGreTunnel(p, _)) =>
                 dpState.tunnelGre = Some(p)
 
-            case DpPortError(req @ CreateTunnelGre(p, tags), _, _) =>
+            case DpPortError(req @ DpPortCreateGreTunnel(p, tags), _, _) =>
                 log.warning(
                     "GRE port creation failed: {} => scheduling retry", opReply)
                 system.scheduler.scheduleOnce(5 second, self, req)
 
-            case DpPortSuccess(CreatePortNetdev(p, _)) =>
+            case DpPortSuccess(DpPortCreateNetdev(p, _)) =>
                 dpState.dpPortAdded(p)
 
-            case DpPortSuccess(DeletePortNetdev(p, _)) =>
+            case DpPortSuccess(DpPortDeleteNetdev(p, _)) =>
                 dpState.dpPortRemoved(p)
 
-            case DpPortError(CreatePortNetdev(p, tag), false, ex) =>
+            case DpPortError(DpPortCreateNetdev(p, tag), false, ex) =>
                 if (ex != null) {
                     log.warning("port {} creation failed: OVS returned {}",
                         p, ex.getErrorCodeEnum)

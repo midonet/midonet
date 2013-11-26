@@ -195,7 +195,7 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
     initializeDatapath() should not be (null)
 
     var opReply = ask[DpPortReply](
-        dpController(), CreatePortNetdev(Ports.newNetDevPort("netdev"), None))
+        dpController(), DpPortCreateNetdev(Ports.newNetDevPort("netdev"), None))
 
     opReply should not be (null)
     val netdevPort: NetDevPort = opReply.request.port.asInstanceOf[NetDevPort]
@@ -212,7 +212,7 @@ class DatapathControllerTestCase extends MidolmanTestCase with ShouldMatchers {
     ports should contain key ("test")
     ports should contain key ("netdev")
 
-    val nextRequest = DeletePortNetdev(netdevPort, None)
+    val nextRequest = DpPortDeleteNetdev(netdevPort, None)
     opReply = ask[DpPortReply](dpController(), nextRequest)
     opReply should not be (null)
 

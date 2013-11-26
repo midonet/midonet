@@ -301,6 +301,10 @@
                     <instrumentation>
                     <excludes>
                         <exclude>**/DatapathController$DpPort*</exclude>
+                        <exclude>**/DatapathController$Init*</exclude>
+                        <exclude>**/DatapathController$Datapath*</exclude>
+                        <exclude>**/DatapathController$_*</exclude>
+                        <exclude>**/DatapathController$LocalTunnel*</exclude>
                     </excludes>
                     </instrumentation>
                 </configuration>
