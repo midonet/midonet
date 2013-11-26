@@ -372,7 +372,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                         stash()
                 }
 
-            case DpPortSuccess(CreatePortNetdev(netdevPort, _)) =>
+            case DpPortSuccess(DpPortCreateNetdev(netdevPort, _)) =>
                 log.debug("PortNetdevOpReply - create, for port {}", rport.id)
                 phase match {
                     case Starting =>
@@ -382,7 +382,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                             "Starting - we're now in {}", phase)
                 }
 
-            case DpPortError(CreatePortNetdev(port, _), timeout, ex) =>
+            case DpPortError(DpPortCreateNetdev(port, _), timeout, ex) =>
                 // Do nothing
                 log.debug("Netdev port {} creation request failed: " +
                     "timeout={}, error={}", port, timeout, ex)
@@ -731,7 +731,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
         // Add port to datapath
         DatapathController.getRef() !
-            CreatePortNetdev(Ports.newNetDevPort(BGP_NETDEV_PORT_NAME), null)
+            DpPortCreateNetdev(Ports.newNetDevPort(BGP_NETDEV_PORT_NAME), null)
 
         /* VTY interface configuration */
 
@@ -795,7 +795,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
         // Delete port from datapath
         DatapathController.getRef() !
-            DeletePortNetdev(Ports.newNetDevPort(BGP_NETDEV_PORT_NAME), null)
+            DpPortDeleteNetdev(Ports.newNetDevPort(BGP_NETDEV_PORT_NAME), null)
 
         log.debug("announcing BGPD_STATUS inactive")
         context.system.eventStream.publish(BGPD_STATUS(rport.id, false))
