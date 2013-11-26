@@ -19,23 +19,7 @@ import org.midonet.cluster.data.zones.{CapwapTunnelZoneHost,
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.{CapwapZoneChanged,
                                                                GreZoneChanged}
 import org.midonet.packets.IPv4
-
-// TODO(guillermo) - this is a candidate for relocation into a util package
-trait MapperToFirstCall {
-
-    val map = mutable.Map[Class[_], AnyRef]()
-
-    def mapOnce[T <: AnyRef](typeObject: Class[T])(call: => T): T = {
-        map.get(typeObject) match {
-            case Some(instance) =>
-                instance.asInstanceOf[T]
-            case None =>
-                val instance = call
-                map.put(typeObject, instance)
-                instance
-        }
-    }
-}
+import org.midonet.util.collection.MapperToFirstCall
 
 class TunnelZoneManager(clusterClient: Client,
                         actor: ActorRef) extends DeviceHandler {
