@@ -134,7 +134,6 @@
                 <artifactId>rpm-maven-plugin</artifactId>
                 <configuration>
                     <requires>
-                        <require>kmod-openvswitch &gt;= 1.9</require>
                         <require>java7</require>
                         <require>quagga &gt;= 0.99.21</require>
                         <require>bridge-utils</require>
