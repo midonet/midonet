@@ -380,6 +380,8 @@ class AdminStateTest extends Suite
         implicit protected val requestReplyTimeout =
             new Timeout(5, TimeUnit.SECONDS)
 
+        val cookieStr: String = ""
+
         protected val dpState: DatapathState = new DatapathState {
             def host: rcu.Host = null
             def peerTunnelInfo(peer: UUID): Option[(Int, Int)] = null
