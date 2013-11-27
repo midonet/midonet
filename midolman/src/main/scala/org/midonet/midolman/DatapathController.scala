@@ -290,6 +290,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
     implicit val logger: LoggingAdapter = log
 
     override implicit val requestReplyTimeout: Timeout = new Timeout(1 second)
+    override val cookieStr: String = ""
 
     @Inject
     val datapathConnection: OvsDatapathConnection = null

@@ -74,7 +74,9 @@ trait FlowTranslator {
 
     implicit protected val requestReplyTimeout: Timeout
     implicit protected val context: ActorContext
+
     val log: LoggingAdapter
+    val cookieStr: String
 
     protected def translateVirtualWildcardFlow(
             flow: WildcardFlow, tags: ROSet[Any] = Set.empty):
@@ -109,8 +111,8 @@ trait FlowTranslator {
                 idleExpirationMillis = flow.idleExpirationMillis)
         } recover {
             case ex =>
-                log.error(
-                    "Translation of {} failed because {}-> DROP", actions, ex)
+                log.error(ex, "Translation of {} failed, falling back " +
+                          "on drop WilcardFlow {}", actions, cookieStr)
                 WildcardFlow(
                     wcmatch = flow.wcmatch,
                     priority = flow.priority,
@@ -124,7 +126,7 @@ trait FlowTranslator {
             dpState.getDpPortNumberForVport(portNo) match {
                 case Some(value) => Some(value.shortValue())
                 case None =>
-                    log.warning("Port number {} not found", portNo)
+                    log.warning("Port number {} not found {}", portNo, cookieStr)
                     None
             }
         }
@@ -144,7 +146,7 @@ trait FlowTranslator {
                     false
                 case other =>
                     log.error("Applying chain {} produced {} which was not " +
-                        "ACCEPT, DROP, or REJECT", chain.id, other)
+                        "ACCEPT, DROP, or REJECT {}", chain.id, other, cookieStr)
                     false
             }
         }
@@ -164,7 +166,8 @@ trait FlowTranslator {
             .map{ chainsToPortsId }
             .onFailure {
                 case ex =>
-                    log.error("Error getting chains for PortSet {}", portSetID)
+                    log.error(ex, "Error getting chains for PortSet {} {}",
+                              portSetID, cookieStr)
             }
     }
 
@@ -183,11 +186,6 @@ trait FlowTranslator {
     private def translateFlowActions(acts: Seq[FlowAction[_]], port: UUID,
             localPorts: Seq[Short], tunnelKey: Option[Long],
             peerHostIds: Set[UUID], dpTags: mutable.Set[Any]): Seq[FlowAction[_]] = {
-
-        log.debug("Translating output actions for vport (or set) {}," +
-            " having tunnel key {}, and corresponding to local dp " +
-            "ports {}, and peer host IDs {}",
-            port, tunnelKey, localPorts, peerHostIds)
 
         // TODO(pino): when we detect the flow won't have output actions,
         // set the flow to expire soon so that we can retry.
@@ -283,13 +281,12 @@ trait FlowTranslator {
                     Promise.successful(Seq[FlowAction[_]](a))
             }
 
-        Future.sequence(actionsFutures) recoverWith {
-            case e =>
-                log.error(e, "Error with action futures {}", e)
-                Promise.failed(e)
+        Future.sequence(actionsFutures) onFailure {
+            case ex =>
+                log.error(ex, "failed to expand virtual actions {}", cookieStr)
         } map { seq =>
             val filteredResults = seq.flatMap{x => x}.toList
-            log.debug("Results of translated actions {}", filteredResults)
+            log.debug("Translated actions to {} {}", filteredResults, cookieStr)
             filteredResults
         }
 
@@ -305,7 +302,8 @@ trait FlowTranslator {
             VirtualToPhysicalMapper.getRef(),
             PortSetRequest(portSet, update = false))
             .mapTo[PortSet] andThen { case Left(e) =>
-                log.error(e, "VTPM didn't provide portSet {} {}", portSet, e)
+                log.error(e, "VTPM did not provide portSet {} {}",
+                          portSet, cookieStr)
         }
 
         val deviceFuture = expiringAsk(BridgeRequest(portSet), log)
@@ -313,16 +311,16 @@ trait FlowTranslator {
         portSetFuture flatMap { set => deviceFuture flatMap { br =>
             val deviceId = br.id
             val tunnelKey = br.tunnelKey
+
+            log.debug("Flooding on bridge {} to {} from inPort: {} {}",
+                      deviceId, set, inPortUUID, cookieStr)
+
             // Don't include the input port in the expanded port set.
             var outPorts = set.localPorts
-            log.debug("hosts {}", set.hosts)
             inPortUUID match {
                 case Some(p) => outPorts -= p
                 case None =>
             }
-            log.debug("Flooding on bridge {}. inPort: {},  local ports: {}," +
-                      "remote hosts having ports on it: {}",
-                      deviceId, inPortUUID, set.localPorts, set.hosts)
             // add tag for flow invalidation because if the packet comes
             // from a tunnel it won't be tagged
             dpTags match {
@@ -373,7 +371,7 @@ trait FlowTranslator {
                     towardsRemoteHosts(
                         actions, port, p.tunnelKey, p.hostID, tags)
                 case _ =>
-                    log.warning("Port should be exterior.")
+                    log.warning("Port {} was not exterior {}", port, cookieStr)
                     Nil
             }
         }
@@ -381,17 +379,30 @@ trait FlowTranslator {
 
     /** forwards to translateToDpPorts for a set of local ports. */
     def towardsLocalDpPorts(acts: Seq[FlowAction[_]], port: UUID,
-        localPorts: Seq[Short], dpTags: mutable.Set[Any]) =
+            localPorts: Seq[Short], dpTags: mutable.Set[Any]) = {
+        log.debug("Translating output actions for vport {} " +
+                  "towards local dp ports {}", port, localPorts)
         translateFlowActions(acts, port, localPorts, None, Set.empty, dpTags)
+    }
 
     /** forwards to translateToDpPorts for a set of remote ports. */
     def towardsRemoteHosts(acts: Seq[FlowAction[_]], port: UUID,
-        key: Long, peerHostId: UUID, dpTags: mutable.Set[Any]) =
-        translateFlowActions(acts, port, Nil, Some(key), Set(peerHostId), dpTags)
+            tunnelKey: Long, peerHostId: UUID, dpTags: mutable.Set[Any]) = {
+        log.debug("Translating output actions for vport {}, towards remote " +
+                  "hosts {} with tunnel key {}", port, peerHostId, tunnelKey)
+        translateFlowActions(
+            acts, port, Nil, Some(tunnelKey), Set(peerHostId), dpTags)
+    }
 
     /** forwards to translateToDpPorts for a port set. */
-    def toPortSet(acts: Seq[FlowAction[_]], port: UUID, localPorts: Seq[Short],
-        key: Option[Long], peerHostIds: Set[UUID], dpTags: mutable.Set[Any]) =
-        translateFlowActions(acts, port, localPorts, key, peerHostIds, dpTags)
+    def toPortSet(acts: Seq[FlowAction[_]], port: UUID,
+                  localPorts: Seq[Short], tunnelKey: Option[Long],
+                  peerHostIds: Set[UUID], dpTags: mutable.Set[Any]) = {
+        log.debug("Translating output actions for port set {}, towards " +
+                  "local dp ports {} and remote hosts {} with tunnel key {}",
+                  port, localPorts, peerHostIds, tunnelKey)
+        translateFlowActions(
+            acts, port, localPorts, tunnelKey, peerHostIds, dpTags)
+    }
 
 }
