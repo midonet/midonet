@@ -884,7 +884,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
      * ONLY USE THIS DURING INITIALIZATION.
      */
     private def queryDatapathPorts(datapath: Datapath) {
-        log.info("Enumerating ports for datapath: " + datapath)
+        log.debug("Enumerating ports for datapath: " + datapath)
         datapathConnection.portsEnumerate(datapath,
             new ErrorHandlingCallback[JSet[Port[_, _]]] {
                 def onSuccess(ports: JSet[Port[_, _]]) {

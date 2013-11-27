@@ -362,7 +362,7 @@ class FlowController extends Actor with ActorLogWithoutPath {
             }
         }
 
-        log.info("removeWildcardFlow - Removing flow {}", wildFlow)
+        log.debug("removeWildcardFlow - Removing flow {}", wildFlow)
         if (flowManager.remove(wildFlow)) {
             log.debug("removeWildcardFlow - cleaning tags and executing {} " +
                       "callbacks", wildFlow.callbacks.size)
