@@ -149,12 +149,13 @@ abstract class PacketWorkflow(
         def onError(ex: NetlinkException) {}
     }
 
-    private def flowAddedCallback(promise: Promise[Boolean],
-                                  flow: Flow,
-                                  newWildFlow: Option[WildcardFlow] = None,
-                                  tags: ROSet[Any] = Set.empty,
-                                  removalCallbacks: ROSet[Callback0] = Set.empty) =
-        new NetlinkCallback[Flow] {
+    private def flowAddedCallback(flow: Flow,
+                                  newWildFlow: Option[WildcardFlow],
+                                  tags: ROSet[Any],
+                                  removalCallbacks: ROSet[Callback0])
+    : (Future[Boolean], NetlinkCallback[Flow]) = {
+        val promise = Promise[Boolean]()
+        val callback = new NetlinkCallback[Flow] {
             def onSuccess(dpFlow: Flow) {
                 log.debug("Successfully created flow for {}", cookieStr)
                 newWildFlow match {
@@ -196,6 +197,21 @@ abstract class PacketWorkflow(
                     promise.failure(ex)
                 }
             }
+        }
+        (promise.future, callback)
+    }
+
+    private def createFlow(wildFlow: WildcardFlow,
+                           newWildFlow: Option[WildcardFlow] = None,
+                           tags: ROSet[Any] = Set.empty,
+                           removalCallbacks: ROSet[Callback0] = Set.empty)
+    : Future[Boolean] = {
+        val dpFlow = new Flow().setActions(wildFlow.getActions)
+                               .setMatch(packet.getMatch)
+        val (future, callback) =
+            flowAddedCallback(dpFlow, newWildFlow, tags, removalCallbacks)
+        datapathConnection.flowsCreate(datapath, dpFlow, callback)
+        future
     }
 
     private def addTranslatedFlow(wildFlow: WildcardFlow,
@@ -204,17 +220,16 @@ abstract class PacketWorkflow(
                                   expiration: Long = 3000,
                                   priority: Short = 0): Future[Boolean] = {
 
-        val flowPromise = Promise[Boolean]()(system.dispatcher)
         val valid = FlowController.isTagSetStillValid(lastInvalidation, tags)
 
-        cookie match {
+        val flowFuture = cookie match {
             case Some(cook) if (!valid) =>
                 log.debug("Skipping creation of obsolete flow for cookie {} {}",
                           cookie, wildFlow.getMatch)
                 DeduplicationActor.getRef() !
                     ApplyFlow(wildFlow.getActions,cookie)
                 runCallbacks(removalCallbacks)
-                flowPromise.success(true)
+                Promise.successful(true)
 
             case Some(cook) if (valid && packet.getMatch.isUserSpaceOnly) =>
                 log.debug("Adding wildcard flow, for userspace only match")
@@ -223,32 +238,31 @@ abstract class PacketWorkflow(
                                     tags, lastInvalidation)
 
                 DeduplicationActor.getRef() ! ApplyFlow(wildFlow.getActions, cookie)
-                flowPromise.success(true)
+                Promise.successful(true)
 
             case Some(cook) if (valid && !packet.getMatch.isUserSpaceOnly) =>
-                val dpFlow = new Flow().setActions(wildFlow.getActions).
-                                        setMatch(packet.getMatch)
                 log.debug("Adding wildcard flow {} for {}", wildFlow, cookieStr)
-                datapathConnection.flowsCreate(datapath, dpFlow,
-                    flowAddedCallback(flowPromise, dpFlow,
-                                      Some(wildFlow), tags, removalCallbacks))
+                createFlow(wildFlow, Some(wildFlow), tags, removalCallbacks)
 
             case None if (valid) =>
                 log.debug("Adding wildcard flow only for {}: {}", cookieStr, wildFlow)
                 FlowController.getRef() !
                     AddWildcardFlow(wildFlow, None, removalCallbacks,
                                     tags, lastInvalidation)
-                flowPromise.success(true)
+                Promise.successful(true)
 
             case _ =>
                 log.debug("Skipping creation of obsolete flow: {}", wildFlow.getMatch)
                 runCallbacks(removalCallbacks)
-                flowPromise.success(true)
+                Promise.successful(true)
         }
 
-        Future.sequence(List(flowPromise, executePacket(wildFlow.getActions)))
-            .map { _ => true }
-            .recover { case _ => false }
+        val execFuture = executePacket(wildFlow.getActions)
+
+        flowFuture.flatMap { _ => execFuture }
+                  .map { _ => true }
+                  .recover { case _ => false }
+
     }
 
     private def addTranslatedFlowForActions(actions: Seq[FlowAction[_]],
@@ -311,20 +325,18 @@ abstract class PacketWorkflow(
     private def handleWildcardTableMatch(wildFlow: WildcardFlow): Future[PipelinePath] = {
         log.debug("Packet {} matched a wildcard flow", cookieStr)
 
-        val dpFlow = new Flow().setActions(wildFlow.getActions).setMatch(packet.getMatch)
-
-        val flowPromise = Promise[Boolean]()
-        if (packet.getMatch.isUserSpaceOnly) {
+        val flowFuture = if (packet.getMatch.isUserSpaceOnly) {
             log.debug("Won't add flow with userspace match {}", packet.getMatch)
-            DeduplicationActor.getRef() ! ApplyFlow(dpFlow.getActions, cookie)
-            flowPromise.success(true)
+            DeduplicationActor.getRef() ! ApplyFlow(wildFlow.getActions, cookie)
+            Promise.successful(true)
         } else {
-            datapathConnection.flowsCreate(datapath, dpFlow,
-                flowAddedCallback(flowPromise, dpFlow))
+            createFlow(wildFlow)
         }
-        val execPromise = executePacket(wildFlow.getActions)
 
-        Future.sequence(List(flowPromise, execPromise)) map { _ => WildcardTableHit }
+        val execFuture = executePacket(wildFlow.getActions)
+
+        flowFuture.flatMap { _ => execFuture }
+                  .map{ _ => WildcardTableHit }
     }
 
     private def handleWildcardTableMiss(): Future[PipelinePath] = {
@@ -340,7 +352,6 @@ abstract class PacketWorkflow(
             simulatePacketIn() flatMap processSimulationResult
         }
     }
-
 
     /** The packet arrived on a tunnel but didn't match in the WFT. It's either
      * addressed (by the tunnel key) to a local PortSet or it was mistakenly
