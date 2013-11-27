@@ -5,7 +5,6 @@ package org.midonet.midolman
 import java.lang.{Integer => JInteger}
 import java.util.UUID
 import java.util.concurrent.TimeUnit
-import scala.annotation.tailrec
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import scala.collection.immutable
@@ -208,7 +207,7 @@ abstract class PacketWorkflow(
                     log.info("File exists while adding flow for {}", cookieStr)
                     DeduplicationActor.getRef() !
                         ApplyFlow(flow.getActions, cookie)
-                    runCallbacks(removalCallbacks.toArray)
+                    runCallbacks(removalCallbacks)
                     promise.success(true)
                 } else {
                     // NOTE(pino) - it'd be more correct to execute the
@@ -223,14 +222,6 @@ abstract class PacketWorkflow(
                     promise.failure(ex)
                 }
             }
-    }
-
-    @tailrec
-    private def runCallbacks(callbacks: Array[Callback0], i: Int = 0) {
-        if (callbacks != null && callbacks.length > i) {
-            callbacks(i).call()
-            runCallbacks(callbacks, i+1)
-        }
     }
 
     private def addTranslatedFlow(wildFlow: WildcardFlow,
@@ -248,7 +239,7 @@ abstract class PacketWorkflow(
                           cookie, wildFlow.getMatch)
                 DeduplicationActor.getRef() !
                     ApplyFlow(wildFlow.getActions,cookie)
-                runCallbacks(removalCallbacks.toArray)
+                runCallbacks(removalCallbacks)
                 flowPromise.success(true)
 
             case Some(cook) if (valid && packet.getMatch.isUserSpaceOnly) =>
@@ -277,7 +268,7 @@ abstract class PacketWorkflow(
 
             case _ =>
                 log.debug("Skipping creation of obsolete flow: {}", wildFlow.getMatch)
-                runCallbacks(removalCallbacks.toArray)
+                runCallbacks(removalCallbacks)
                 flowPromise.success(true)
         }
 
@@ -531,6 +522,13 @@ abstract class PacketWorkflow(
             case actions =>
                 log.debug("Translated actions to {} for {}", actions, cookieStr)
                 executePacket(actions)
+        }
+    }
+
+    private def runCallbacks(callbacks: Iterable[Callback0]) {
+        val iterator = callbacks.iterator
+        while (iterator.hasNext) {
+            iterator.next.call()
         }
     }
 
