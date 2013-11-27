@@ -30,7 +30,6 @@ import org.midonet.midolman.topology.rcu.PortSet
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode
 import org.midonet.netlink.{Callback => NetlinkCallback}
-import org.midonet.odp.Packet.Reason.FlowActionUserspace
 import org.midonet.odp._
 import org.midonet.odp.flows.{FlowKey, FlowKeyUDP, FlowAction}
 import org.midonet.odp.protos.OvsDatapathConnection
@@ -139,33 +138,8 @@ abstract class PacketWorkflow(
     override def start(): Future[PipelinePath] = {
         log.debug("Initiating processing of packet {}", cookieStr)
         cookie match {
-            case Some(cook) if (packet.getReason == FlowActionUserspace) =>
-                log.debug("Simulating packet addressed to userspace {}", cookieStr)
-                doCookieSimulation()
-
-            case Some(cook) =>
-                FlowController.queryWildcardFlowTable(packet.getMatch) match {
-                    case Some(wildFlow) =>
-                        log.debug("Packet {} matched a wildcard flow", cookieStr)
-                        handleWildcardTableMatch(wildFlow)
-                    case None =>
-                        val wildMatch = WildcardMatch.fromFlowMatch(packet.getMatch)
-                        if (wildMatch.getTunnelID != null) {
-                            log.debug("Packet {} addressed to a port set", cookieStr)
-                            handlePacketToPortSet(wildMatch) map { _ => PacketToPortSet }
-                        } else {
-                            /* QUESTION: do we need another de-duplication
-                             *  stage here to avoid e.g. two micro-flows that
-                             *  differ only in TTL from going to the simulation
-                             *  stage? */
-                            log.debug("Simulating packet {}", cookieStr)
-                            doCookieSimulation()
-                        }
-                }
-
-            case None =>
-                log.debug("Simulating generated packet")
-                doEgressPortSimulation()
+            case Some(_) => handlePacketWithCookie()
+            case None => doEgressPortSimulation()
         }
     }
 
@@ -324,11 +298,22 @@ abstract class PacketWorkflow(
         }
     }
 
+    private def handlePacketWithCookie(): Future[PipelinePath] =
+        if (packet.getReason == Packet.Reason.FlowActionUserspace) {
+            simulatePacketIn() flatMap processSimulationResult
+        } else {
+            FlowController.queryWildcardFlowTable(packet.getMatch) match {
+                case Some(wildflow) => handleWildcardTableMatch(wildflow)
+                case None => handleWildcardTableMiss()
+            }
+        }
+
     private def handleWildcardTableMatch(wildFlow: WildcardFlow): Future[PipelinePath] = {
+        log.debug("Packet {} matched a wildcard flow", cookieStr)
 
         val dpFlow = new Flow().setActions(wildFlow.getActions).setMatch(packet.getMatch)
 
-        val flowPromise = Promise[Boolean]()(system.dispatcher)
+        val flowPromise = Promise[Boolean]()
         if (packet.getMatch.isUserSpaceOnly) {
             log.debug("Won't add flow with userspace match {}", packet.getMatch)
             DeduplicationActor.getRef() ! ApplyFlow(dpFlow.getActions, cookie)
@@ -340,6 +325,20 @@ abstract class PacketWorkflow(
         val execPromise = executePacket(wildFlow.getActions)
 
         Future.sequence(List(flowPromise, execPromise)) map { _ => WildcardTableHit }
+    }
+
+    private def handleWildcardTableMiss(): Future[PipelinePath] = {
+        val wildMatch = WildcardMatch.fromFlowMatch(packet.getMatch)
+        if (wildMatch.getTunnelID != null) {
+            log.debug("Packet {} addressed to a port set", cookieStr)
+            handlePacketToPortSet(wildMatch)
+        } else {
+            /* QUESTION: do we need another de-duplication
+             *  stage here to avoid e.g. two micro-flows that
+             *  differ only in TTL from going to the simulation
+             *  stage? */
+            simulatePacketIn() flatMap processSimulationResult
+        }
     }
 
 
@@ -400,14 +399,12 @@ abstract class PacketWorkflow(
                     Set(FlowTagger.invalidateByTunnelKey(wMatch.getTunnelID)),
                     Set.empty)
         } map {
-            _ => WildcardTableHit
+            _ => PacketToPortSet
         }
     }
 
-    private def doCookieSimulation() =
-        simulatePacketIn() flatMap processSimulationResult
-
     private def doEgressPortSimulation() = {
+        log.debug("Simulating generated packet")
         val wcMatch = WildcardMatch.fromEthernetPacket(packet.getPacket)
         runSimulation(wcMatch) flatMap processSimulationResult
     }
@@ -430,6 +427,7 @@ abstract class PacketWorkflow(
     }
 
     private def simulatePacketIn(): Future[SimulationResult] = {
+        log.debug("Simulating packet {}: {}", cookieStr, packet.getReason)
 
         val wMatch = WildcardMatch.fromFlowMatch(packet.getMatch)
         val inPortNo = wMatch.getInputPortNumber
