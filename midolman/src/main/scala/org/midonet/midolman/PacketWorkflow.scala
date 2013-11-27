@@ -206,6 +206,7 @@ abstract class PacketWorkflow(
                            tags: ROSet[Any] = Set.empty,
                            removalCallbacks: ROSet[Callback0] = Set.empty)
     : Future[Boolean] = {
+        log.debug("Creating flow {} for {}", wildFlow, cookieStr)
         val dpFlow = new Flow().setActions(wildFlow.getActions)
                                .setMatch(packet.getMatch)
         val (future, callback) =
@@ -215,47 +216,15 @@ abstract class PacketWorkflow(
     }
 
     private def addTranslatedFlow(wildFlow: WildcardFlow,
-                                  tags: ROSet[Any] = Set.empty,
-                                  removalCallbacks: ROSet[Callback0] = Set.empty,
-                                  expiration: Long = 3000,
-                                  priority: Short = 0): Future[Boolean] = {
+                                  tags: ROSet[Any],
+                                  removalCallbacks: ROSet[Callback0])
+    : Future[Boolean] = {
 
-        val valid = FlowController.isTagSetStillValid(lastInvalidation, tags)
-
-        val flowFuture = cookie match {
-            case Some(cook) if (!valid) =>
-                log.debug("Skipping creation of obsolete flow for cookie {} {}",
-                          cookie, wildFlow.getMatch)
-                DeduplicationActor.getRef() !
-                    ApplyFlow(wildFlow.getActions,cookie)
-                runCallbacks(removalCallbacks)
-                Promise.successful(true)
-
-            case Some(cook) if (valid && packet.getMatch.isUserSpaceOnly) =>
-                log.debug("Adding wildcard flow, for userspace only match")
-                FlowController.getRef() !
-                    AddWildcardFlow(wildFlow, None, removalCallbacks,
-                                    tags, lastInvalidation)
-
-                DeduplicationActor.getRef() ! ApplyFlow(wildFlow.getActions, cookie)
-                Promise.successful(true)
-
-            case Some(cook) if (valid && !packet.getMatch.isUserSpaceOnly) =>
-                log.debug("Adding wildcard flow {} for {}", wildFlow, cookieStr)
-                createFlow(wildFlow, Some(wildFlow), tags, removalCallbacks)
-
-            case None if (valid) =>
-                log.debug("Adding wildcard flow only for {}: {}", cookieStr, wildFlow)
-                FlowController.getRef() !
-                    AddWildcardFlow(wildFlow, None, removalCallbacks,
-                                    tags, lastInvalidation)
-                Promise.successful(true)
-
-            case _ =>
-                log.debug("Skipping creation of obsolete flow: {}", wildFlow.getMatch)
-                runCallbacks(removalCallbacks)
-                Promise.successful(true)
-        }
+        val flowFuture =
+            if (FlowController.isTagSetStillValid(lastInvalidation, tags))
+                handleValidFlow(wildFlow, tags, removalCallbacks)
+            else
+                handleObsoleteFlow(wildFlow, removalCallbacks)
 
         val execFuture = executePacket(wildFlow.getActions)
 
@@ -264,6 +233,42 @@ abstract class PacketWorkflow(
                   .recover { case _ => false }
 
     }
+
+    private def handleObsoleteFlow(wildFlow: WildcardFlow,
+                           removalCallbacks: ROSet[Callback0]) = {
+        log.debug("Skipping creation of obsolete flow {} for {}",
+                  cookieStr, wildFlow.getMatch)
+        if (cookie.isDefined)
+            DeduplicationActor.getRef() ! ApplyFlow(wildFlow.getActions, cookie)
+        runCallbacks(removalCallbacks)
+        Promise.successful(true)
+    }
+
+    private def handleValidFlow(wildFlow: WildcardFlow,
+                                tags: ROSet[Any],
+                                removalCallbacks: ROSet[Callback0]) =
+        cookie match {
+            case Some(_) if packet.getMatch.isUserSpaceOnly =>
+                log.debug("Adding wildcard flow {} for userspace only match",
+                          wildFlow)
+                FlowController.getRef() !
+                    AddWildcardFlow(wildFlow, None, removalCallbacks,
+                                    tags, lastInvalidation)
+                DeduplicationActor.getRef() !
+                    ApplyFlow(wildFlow.getActions, cookie)
+                Promise.successful(true)
+
+            case Some(_) if !packet.getMatch.isUserSpaceOnly =>
+                createFlow(wildFlow, Some(wildFlow), tags, removalCallbacks)
+
+            case None =>
+                log.debug("Only adding wildcard flow {} for {}",
+                          wildFlow, cookieStr)
+                FlowController.getRef() !
+                    AddWildcardFlow(wildFlow, None, removalCallbacks,
+                                    tags, lastInvalidation)
+                Promise.successful(true)
+        }
 
     private def addTranslatedFlowForActions(actions: Seq[FlowAction[_]],
                                             tags: ROSet[Any] = Set.empty,
@@ -277,7 +282,7 @@ abstract class PacketWorkflow(
             actions =  actions.toList,
             priority = priority)
 
-        addTranslatedFlow(wildFlow, tags, removalCallbacks, expiration, priority)
+        addTranslatedFlow(wildFlow, tags, removalCallbacks)
     }
 
     private def executePacket(actions: Seq[FlowAction[_]]): Future[Boolean] = {
