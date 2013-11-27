@@ -73,7 +73,10 @@ calculate_heap_sizes()
     fi
 }
 
-MIDO_HOME=/usr/share/midolman
+# If MIDO_HOME has not been set, set it.
+if [ -z "$MIDO_HOME" ]; then
+   MIDO_HOME=/usr/share/midolman
+fi
 
 if [ ! -d "$MIDO_HOME" ]; then
    echo "ERROR: $MIDO_HOME does not exist"
