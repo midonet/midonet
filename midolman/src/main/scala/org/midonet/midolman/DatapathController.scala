@@ -7,7 +7,8 @@ import scala.collection.JavaConverters._
 import scala.collection.{Set => ROSet}
 import scala.collection.mutable
 import java.lang.{Boolean => JBoolean, Integer => JInteger}
-import java.util.{Collection, List => JList, Set => JSet, UUID}
+import java.util.{Collection => JCollection, List => JList, Set => JSet, UUID}
+import java.net.InetAddress
 import java.nio.ByteBuffer
 
 import akka.actor._
@@ -34,10 +35,10 @@ import org.midonet.midolman.topology.rcu.Host
 import org.midonet.netlink.Callback
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode
+import org.midonet.odp.{PortOptions, Port, Ports, Datapath}
 import org.midonet.odp.flows.{FlowActions, FlowAction}
 import org.midonet.odp.ports._
 import org.midonet.odp.protos.OvsDatapathConnection
-import org.midonet.odp.{Flow => KernelFlow, _}
 import org.midonet.packets.IPv4Addr
 import org.midonet.sdn.flows.WildcardFlow
 import org.midonet.sdn.flows.WildcardMatch
@@ -189,13 +190,13 @@ object DatapathController extends Referenceable {
 
    /**
     * This message encapsulates a given port stats to the monitoring agent.
-    * @param stats
+    * @param stats port stats
     */
     case class DpPortStats(portID: UUID, stats: Port.Stats)
 
     /**
      * This message requests stats for a given port.
-     * @param portID
+     * @param portID port id
      */
     case class DpPortStatsRequest(portID: UUID)
 
@@ -229,7 +230,7 @@ object DatapathController extends Referenceable {
      * original sender info
      */
     private case class _LocalTunnelInterfaceInfoFinal(caller : ActorRef,
-                                             interfaces: JList[InterfaceDescription])
+                                        interfaces: JList[InterfaceDescription])
 
 }
 
@@ -317,8 +318,9 @@ class DatapathController() extends Actor with ActorLogging with
 
             override def setVportStatus(port: Port[_, _], vportId: UUID,
                                         isActive: Boolean): Unit = {
-                log.debug("Port {}/{}/{} became {}", port.getPortNo,
-                    port.getName, vportId, if (isActive) "active" else "inactive")
+                log.debug("Port {}/{}/{} became {}",
+                          port.getPortNo, port.getName, vportId,
+                          if (isActive) "active" else "inactive")
                 installTunnelKeyFlow(port, vportId, isActive)
                 VirtualToPhysicalMapper.getRef() !
                     LocalPortActive(vportId, isActive)
@@ -372,18 +374,16 @@ class DatapathController() extends Actor with ActorLogging with
 
         case _SetLocalDatapathPorts(datapathObj, ports) =>
             this.datapath = datapathObj
-            ports.foreach { _ match {
-                    //TODO: check we can safely recycle existing ports (MN-128)
-                    // not the case for port created by the BGP actor !
-                    case p: GreTunnelPort =>
-                        deleteDatapathPort(self, DeleteTunnelGre(p, None))
-                    case p: NetDevPort =>
-                        deleteDatapathPort(self, DeletePortNetdev(p, None))
-                    case p =>
-                        log.debug("Keeping port {} found during " +
-                            "initialization", p)
-                        dpState.dpPortAdded(p)
-                }
+            ports.foreach {
+                //TODO: check we can safely recycle existing ports (MN-128)
+                // not the case for port created by the BGP actor !
+                case p: GreTunnelPort =>
+                    deleteDatapathPort(self, DeleteTunnelGre(p, None))
+                case p: NetDevPort =>
+                    deleteDatapathPort(self, DeletePortNetdev(p, None))
+                case p =>
+                    log.debug("Keeping port {} found during initialization", p)
+                    dpState.dpPortAdded(p)
             }
             log.debug("Finished processing datapath's existing ports. " +
                 "Pending updates {}", pendingUpdateCount)
@@ -394,26 +394,25 @@ class DatapathController() extends Actor with ActorLogging with
                 self, CreateTunnelGre(GreTunnelPort.make("tngre-mm"), null))
 
             if (checkInitialization)
-                completeInitialization
+                completeInitialization()
 
 
         // Handle personal create/delete/reply port message
-        case req: DpPortCreate if (sender == self) =>
+        case req: DpPortCreate if sender == self =>
             log.debug("Received {} message from myself", req)
             createDatapathPort(self, req)
 
-        case req: DpPortDelete if (sender == self) =>
+        case req: DpPortDelete if sender == self =>
             log.debug("Received {} message from myself", req)
             deleteDatapathPort(self, req)
 
-        case opReply: DpPortReply if (sender == self) =>
+        case opReply: DpPortReply if sender == self =>
             pendingUpdateCount -= 1
             log.debug("Pending update(s) {}", pendingUpdateCount)
             handlePortOperationReply(opReply)
             if (checkInitialization)
-                completeInitialization
+                completeInitialization()
 
-        // Log unhandled messages.
         case m =>
             log.info("Not handling {} (behaving as InitializationActor)", m)
     }
@@ -561,16 +560,15 @@ class DatapathController() extends Actor with ActorLogging with
         case _CheckForPortUpdates(datapathName: String) =>
             checkPortUpdates()
 
-        case _InterfacesUpdate(interfaces: JList[InterfaceDescription]) =>
+        case _InterfacesUpdate(interfaces) =>
             log.debug("Updating interfaces to {}", interfaces)
             dpState.updateInterfaces(interfaces)
 
         case LocalTunnelInterfaceInfo =>
-            getLocalInterfaceTunnelPhaseOne(sender)
+            localTunnelInterfaceInfoPhaseOne(sender)
 
-        case _LocalTunnelInterfaceInfoFinal(caller : ActorRef,
-                interfaces: JList[InterfaceDescription]) =>
-            getLocalInterfaceTunnelInfo(caller, interfaces)
+        case _LocalTunnelInterfaceInfoFinal(caller, interfaces) =>
+            localTunnelInterfaceInfoPhaseTwo(caller, interfaces)
 
         case m => log.warning("Unhandled message {}", m)
     }
@@ -603,8 +601,8 @@ class DatapathController() extends Actor with ActorLogging with
         val peerUUID = config.getId
 
         op match {
-            case HostConfigOperation.Added => processAddPeer
-            case HostConfigOperation.Deleted => processDelPeer
+            case HostConfigOperation.Added => processAddPeer()
+            case HostConfigOperation.Deleted => processDelPeer()
         }
 
         def processTags(tags: TraversableOnce[Any]): Unit = tags.foreach {
@@ -620,7 +618,7 @@ class DatapathController() extends Actor with ActorLogging with
                     val ipPair = (srcIp, config.getIp.addressAsInt)
                     processTags(dpState.addPeer(peerUUID, zone, ipPair))
                 case None =>
-                    log.info("could not find this host Ip for zone {}", zone)
+                    log.info("Could not find this host's ip for zone {}", zone)
             }
 
     }
@@ -644,8 +642,7 @@ class DatapathController() extends Actor with ActorLogging with
 
     private def installTunnelKeyFlow(
             port: Port[_, _], vifId: UUID, active: Boolean): Unit =
-        VirtualTopologyActor
-            .expiringAsk(PortRequest(vifId), log) onSuccess {
+        VirtualTopologyActor.expiringAsk(PortRequest(vifId), log) onSuccess {
             case p if !p.isInterior =>
                 // trigger invalidation. This is done regardless of
                 // whether we are activating or deactivating:
@@ -713,13 +710,11 @@ class DatapathController() extends Actor with ActorLogging with
     }
 
     def createDatapathPort(caller: ActorRef, request: DpPortCreate) {
-        val (port, tag) = (request.port, request.tag)
-
         if (caller == self)
             pendingUpdateCount += 1
-        log.info("creating port: {} (by request of: {})", port, caller)
+        log.info("creating port: {} (by request of: {})", request.port, caller)
 
-        datapathConnection.portsCreate(datapath, port,
+        datapathConnection.portsCreate(datapath, request.port,
             new ErrorHandlingCallback[Port[_, _]] {
                 def onSuccess(data: Port[_, _]) {
                     caller ! request.successReply(data)
@@ -732,12 +727,11 @@ class DatapathController() extends Actor with ActorLogging with
     }
 
     def deleteDatapathPort(caller: ActorRef, request: DpPortDelete) {
-        val (port, tag) = (request.port, request.tag)
         if (caller == self)
             pendingUpdateCount += 1
-        log.info("deleting port: {} (by request of: {})", port, caller)
+        log.info("deleting port: {} (by request of: {})", request.port, caller)
 
-        datapathConnection.portsDelete(port, datapath,
+        datapathConnection.portsDelete(request.port, datapath,
             new ErrorHandlingCallback[Port[_, _]] {
                 def onSuccess(data: Port[_, _]) {
                     caller ! request.successReply(data)
@@ -746,28 +740,29 @@ class DatapathController() extends Actor with ActorLogging with
                 def handleError(ex: NetlinkException, timeout: Boolean) {
                     // check if the port has already been removed, if that's the
                     // case we can consider that the delete operation succeeded
-                    if (ex.getErrorCodeEnum == NetlinkException.ErrorCode.ENOENT) {
-                        caller ! request.errorReply(false, null)
+                    if (ex.getErrorCodeEnum ==
+                        NetlinkException.ErrorCode.ENOENT) {
+                        caller ! request.errorReply(timeout = false, null)
                     } else {
-                        caller ! request.errorReply(false, ex)
+                        caller ! request.errorReply(timeout = false, ex)
                     }
                 }
         })
     }
 
-    private def getLocalInterfaceTunnelPhaseOne(caller: ActorRef) {
-        if (recentInterfacesScanned.isEmpty == false) {
+    private def localTunnelInterfaceInfoPhaseOne(caller: ActorRef) {
+        if (!recentInterfacesScanned.isEmpty) {
             log.debug("Interface Scanning took place and cache is hot")
-            getLocalInterfaceTunnelInfo(caller, recentInterfacesScanned)
+            localTunnelInterfaceInfoPhaseTwo(caller, recentInterfacesScanned)
         } else {
-            log.debug("Interface Scanning has not taken place, trigger interface scan")
+            log.debug("Interface Scanning has not taken place, trigger scan")
             interfaceScanner.scanInterfaces(new Callback[JList[InterfaceDescription]] {
                 def onError(e: NetlinkException) {
-                    log.error("Error while retrieving the interface status:" + e.getMessage)
+                    log.error("Error while retrieving interface status {}", e)
                 }
 
                 def onTimeout() {
-                    log.error("Timeout while retrieving the interface status.")
+                    log.error("Timeout while retrieving interface status")
                 }
 
                 def onSuccess(data: JList[InterfaceDescription]) {
@@ -782,50 +777,47 @@ class DatapathController() extends Actor with ActorLogging with
      * which is too long for ecryptfs, so alias it to "gliti" to save some
      * room.
      */
-    private val getLocalInterfaceTunnelInfo:
-        (ActorRef, JList[InterfaceDescription]) => Unit = gliti _
+    private val localTunnelInterfaceInfoPhaseTwo:
+        (ActorRef, JList[InterfaceDescription]) => Unit = gliti
 
     private def gliti(caller: ActorRef,
                       interfaces: JList[InterfaceDescription]) {
         // First we would populate the data structure with tunnel info
         // on all local interfaces
-        var addrTunnelMapping: mutable.MultiMap[Int, TunnelZone.Type] =
-            new mutable.HashMap[Int, mutable.Set[TunnelZone.Type]] with
-                mutable.MultiMap[Int, TunnelZone.Type]
+        val addrTunnelMapping: mutable.MultiMap[Int, TunnelZone.Type] =
+            new mutable.HashMap[Int, mutable.Set[TunnelZone.Type]]
+                with mutable.MultiMap[Int, TunnelZone.Type]
         // This next variable is the structure for return message
-        var retInterfaceTunnelMap: mutable.MultiMap[InterfaceDescription, TunnelZone.Type] =
-            new mutable.HashMap[InterfaceDescription, mutable.Set[TunnelZone.Type]] with
-                mutable.MultiMap[InterfaceDescription, TunnelZone.Type]
-        for ((zoneId, zoneConfig) <- host.zones) {
-            if (zoneConfig.isInstanceOf[GreTunnelZoneHost]) {
+        val retInterfaceTunnelMap: mutable.MultiMap[InterfaceDescription,TunnelZone.Type] =
+            new mutable.HashMap[InterfaceDescription,
+                mutable.Set[TunnelZone.Type]]
+                with mutable.MultiMap[InterfaceDescription, TunnelZone.Type]
+
+        def toInt(addr: InetAddress) = ByteBuffer.wrap(addr.getAddress).getInt
+
+        host.zones.foreach {
+            case (_: UUID, zoneConfig: GreTunnelZoneHost) =>
                 addrTunnelMapping.addBinding(zoneConfig.getIp.addressAsInt,
                                              TunnelZone.Type.Gre)
-            }
         }
 
-        if (addrTunnelMapping.isEmpty == false) {
-            var ipAddr : Int = 0
+        if (!addrTunnelMapping.isEmpty) {
             log.debug("Host has some tunnel zone(s) configured")
-            for (interface <- interfaces.asScala) {
-                for (inetAddress <- interface.getInetAddresses().asScala) {
-                    // IPv6 alert: this assumes only IPv4
-                    if (inetAddress.getAddress().length == 4) {
-                        ipAddr = ByteBuffer.wrap(inetAddress.getAddress()).getInt
-                        addrTunnelMapping.get(ipAddr) foreach { tunnelTypes =>
-                            for (tunnelType <- tunnelTypes) {
-                                retInterfaceTunnelMap.addBinding(interface, tunnelType)
-                            }
-                        }
-                    }
-                }
+            for (
+                interface <- interfaces.asScala;
+                inetAddress <- interface.getInetAddresses.asScala;
+                tunnelTypes <- addrTunnelMapping.get(toInt(inetAddress));
+                tunnelType <- tunnelTypes
+                if inetAddress.getAddress.length == 4
+            ) {
+                retInterfaceTunnelMap.addBinding(interface, tunnelType)
             }
         }
         caller ! retInterfaceTunnelMap
     }
 
-    /**
+    /*
      * ONLY USE THIS DURING INITIALIZATION.
-     * @param wantedDatapath
      */
     private def readDatapathInformation(wantedDatapath: String) {
         def handleExistingDP(dp: Datapath) {
@@ -886,9 +878,8 @@ class DatapathController() extends Actor with ActorLogging with
         datapathConnection.datapathsGet(wantedDatapath, dpGetCallback)
     }
 
-    /**
+    /*
      * ONLY USE THIS DURING INITIALIZATION.
-     * @param datapath
      */
     private def queryDatapathPorts(datapath: Datapath) {
         log.info("Enumerating ports for datapath: " + datapath)
@@ -1068,88 +1059,86 @@ class VirtualPortManager(
     private def notifyPortRemoval(port: Port[_, _]) {
         if (port.getPortNo != 0 && dpPortsWeAdded.contains(port.getName) &&
             !dpPortsInProgress.contains(port.getName)) {
-             dpPortsWeAdded -= (port.getName)
+             dpPortsWeAdded -= port.getName
              _datapathPortRemoved(port.getName)
         }
     }
 
-    def updateInterfaces(interfaces : Collection[InterfaceDescription]) =
+    def updateInterfaces(interfaces : JCollection[InterfaceDescription]) =
         copy._updateInterfaces(interfaces)
 
-    private def _updateInterfaces(interfaces : Collection[InterfaceDescription]) = {
-        log.debug("updateInterfaces {}", interfaces)
+    private def _newInterface(itf: InterfaceDescription, isUp: Boolean) {
+        interfaceToStatus += ((itf.getName, isUp))
+
+        // Is there a vport binding for this interface?
+        if (!interfaceToVport.contains(itf.getName))
+            return
+
+        interfaceToDpPort.get(itf.getName) match {
+            case None => // Request that it be added to the datapath.
+                requestDpPortAdd(itf.getName)
+            case Some(port) if isUp => // The virtual port is now active.
+                val vPort = interfaceToVport.get(itf.getName).getOrElse(null)
+                controller.setVportStatus(port, vPort, isActive = true)
+            case _ =>
+        }
+    }
+
+    private def _updateInterface(itf: InterfaceDescription,
+                                 isUp: Boolean, wasUp: Boolean) {
+        // The NetlinkInterfaceSensor sets the endpoint for all the
+        // ports of the dp to DATAPATH. If the endpoint is not DATAPATH
+        // it means that this is a dangling tap. We need to recreate
+        // the dp port. Use case: add tap, bind it to a vport, remove
+        // the tap. The dp port gets destroyed.
+        if (itf.getEndpoint != InterfaceDescription.Endpoint.UNKNOWN &&
+            itf.getEndpoint != InterfaceDescription.Endpoint.DATAPATH &&
+            interfaceToDpPort.contains(itf.getName) && isUp) {
+            requestDpPortAdd(itf.getName)
+            log.debug("Recreating port {} because was removed and the dp" +
+                      " didn't request the removal", itf.getName)
+        } else {
+            interfaceToStatus += ((itf.getName, isUp))
+            if (isUp != wasUp) {
+                for (
+                    vportId <- interfaceToVport.get(itf.getName);
+                    dpPort <- interfaceToDpPort.get(itf.getName)
+                ) {
+                    controller.setVportStatus(dpPort, vportId, isUp)
+                }
+            }
+        }
+    }
+
+    private def _updateInterfaces(itfs: JCollection[InterfaceDescription]) = {
+        log.debug("updateInterfaces {}", itfs)
         val currentInterfaces = mutable.Set[String]()
 
-        for (itf <- interfaces.asScala) {
+        itfs.asScala foreach { itf =>
             currentInterfaces.add(itf.getName)
             val isUp = itf.hasLink && itf.isUp
-
             interfaceToStatus.get(itf.getName) match {
-                case None =>
-                    // This is a new interface
-                    interfaceToStatus += ((itf.getName, isUp))
-                    // Is there a vport binding for this interface?
-                    if (interfaceToVport.contains(itf.getName)) {
-                        interfaceToDpPort.get(itf.getName) match {
-                            case None =>
-                                // Request that it be added to the datapath.
-                                requestDpPortAdd(itf.getName)
-                            case Some(port) =>
-                                // If the interface is up, then the virtual
-                                // port is now active.
-                                if (isUp)
-                                    controller.setVportStatus(port,
-                                        interfaceToVport.get(itf.getName).getOrElse(null),
-                                        true)
-                        }
-                    }
-                case Some(wasUp) =>
-                    // The NetlinkInterfaceSensor sets the endpoint for all the
-                    // ports of the dp to DATAPATH. If the endpoint is not DATAPATH
-                    // it means that this is a dangling tap. We need to recreate
-                    // the dp port. Use case: add tap, bind it to a vport, remove
-                    // the tap. The dp port gets destroyed.
-                    if (itf.getEndpoint != InterfaceDescription.Endpoint.UNKNOWN &&
-                        itf.getEndpoint != InterfaceDescription.Endpoint.DATAPATH &&
-                        interfaceToDpPort.contains(itf.getName) && isUp) {
-                        requestDpPortAdd(itf.getName)
-                        log.debug("Recreating port {} because was removed and the dp" +
-                            " didn't request the removal", itf.getName)
-                    } else {
-                        interfaceToStatus += ((itf.getName, isUp))
-                        if (isUp != wasUp) {
-                            interfaceToVport.get(itf.getName) foreach { vportId =>
-                                val dpPort = interfaceToDpPort.get(itf.getName)
-                                if (dpPort.isDefined)
-                                    controller.setVportStatus(dpPort.get,
-                                                              vportId, isUp)
-                            }
-                        }
-                    }
+                case None => _newInterface(itf, isUp)
+                case Some(wasUp) => _updateInterface(itf, isUp, wasUp)
             }
         }
 
         // Now deal with any interface that has been deleted.
         val deletedInterfaces = interfaceToStatus -- currentInterfaces
-        deletedInterfaces.keys.foreach {
-            name =>
-                interfaceToStatus -= name
-                // we don't have to remove the binding, the interface was deleted
-                // but the binding is still valid
-                interfaceToVport.get(name) foreach { vportId =>
-                    val dpPort = interfaceToDpPort.get(name)
-                    if (dpPort.isDefined)
-                        controller.setVportStatus(
-                            dpPort.get, vportId, false)
+        deletedInterfaces.keys.foreach { name =>
+            interfaceToStatus -= name
+            // we don't have to remove the binding, the interface was deleted
+            // but the binding is still valid
+            interfaceToVport.get(name) foreach { vportId =>
+                interfaceToDpPort.get(name) foreach { dpPort =>
+                    controller.setVportStatus(dpPort, vportId, isActive = false)
                 }
-                interfaceToDpPort.get(name) match {
-                    case None => // do nothing
-                    case Some(port) =>
-                        // if the interface is not present the port
-                        // has already been removed, we just need to
-                        // notify the dp
-                        notifyPortRemoval(port)
-                }
+            }
+            interfaceToDpPort.get(name) foreach { port =>
+                // if the interface is not present the port has already been
+                // removed, we just need to notify the dp
+                notifyPortRemoval(port)
+            }
         }
         this
     }
@@ -1157,56 +1146,68 @@ class VirtualPortManager(
     def updateVPortInterfaceBindings(vportToInterface: Map[UUID, String]) =
         copy._updateVPortInterfaceBindings(vportToInterface)
 
+    // Aux method for _updateVPortInterfaceBindings
+    private def _newInterfaceVportBinding(vportId: UUID, itfName: String) {
+        if (interfaceToVport.contains(itfName))
+            return
+
+        interfaceToVport += (itfName, vportId)
+        // This is a new binding. Does the interface exist?
+        if (!interfaceToStatus.contains(itfName))
+            return
+
+        // Has the interface been added to the datapath?
+        interfaceToDpPort.get(itfName) match {
+            case Some(dpPort) if interfaceToStatus(itfName) =>
+                // The vport is active if the interface is up.
+                controller.setVportStatus(dpPort, vportId, isActive = true)
+            case None =>
+                requestDpPortAdd(itfName)
+            case _ =>
+        }
+    }
+
+    // Aux method for _udpateVPortInterfaceBindings
+    private def _deletedInterfaceVportBinding(vport: UUID, ifname: String) {
+        interfaceToVport -= ifname
+        // This binding was removed. Was there a datapath port for it?
+        interfaceToDpPort.get(ifname) match {
+            case None =>
+                /* no port were added, it could still be marked as in progress
+                   so we untrack it as such if it was */
+                dpPortsInProgress -= ifname
+            case Some(port) =>
+                requestDpPortRemove(port)
+                if (interfaceToStatus.get(ifname).getOrElse(false)) {
+                    // If the port was up, the vport just became inactive.
+                    controller.setVportStatus(port, vport, isActive = false)
+                }
+        }
+    }
+
     // We do not support remapping a vportId to a different
     // interface or vice versa. We assume each vportId and
     // interface will occur in at most one binding.
-    private def _updateVPortInterfaceBindings(
-            vportToInterface: Map[UUID, String]) = {
+    private def _updateVPortInterfaceBindings(vportToInterface: Map[UUID, String]) = {
+
         log.debug("updateVPortInterfaceBindings {}", vportToInterface)
+
         // First, deal with new bindings.
-        vportToInterface.foreach {
-            case (vportId: UUID, itfName: String) =>
-                if (!interfaceToVport.contains(itfName)) {
-                    interfaceToVport += (itfName, vportId)
-                    // This is a new binding. Does the interface exist?
-                    if (interfaceToStatus.contains(itfName)) {
-                        // Has the interface been added to the datapath?
-                        interfaceToDpPort.get(itfName) match {
-                            case None =>
-                                requestDpPortAdd(itfName)
-                            case Some(dpPort) =>
-                                // The vport is active if the interface is up.
-                                if (interfaceToStatus(itfName))
-                                    controller.setVportStatus(dpPort, vportId, true)
-                        }
-                    }
-                }
+        for ((vportId: UUID, itfName: String) <- vportToInterface) {
+            _newInterfaceVportBinding(vportId, itfName)
         }
+
         // Now, deal with deleted bindings.
-        for ((ifname, vport) <- interfaceToVport) {
-            if (!vportToInterface.contains(vport)) {
-                interfaceToVport -= ifname
-                // This binding was removed. Was there a datapath port for it?
-                interfaceToDpPort.get(ifname) match {
-                    case None =>
-                        /* if no port were added, it could still be marked as
-                         * in progress => we untrack it as such if it was */
-                        if (dpPortsInProgress.contains(ifname))
-                            dpPortsInProgress -= ifname
-                    case Some(port) =>
-                        requestDpPortRemove(port)
-                        // If the port was up, the vport just became inactive.
-                        if(interfaceToStatus.get(ifname).getOrElse(false)) {
-                            controller.setVportStatus(port, vport, false)
-                        }
-                }
-            }
+        for (
+            (ifname: String, vport: UUID) <- interfaceToVport
+            if !vportToInterface.contains(vport)
+        ) {
+            _deletedInterfaceVportBinding(vport, ifname)
         }
         this
     }
 
-    def datapathPortForget(port: Port[_,_]) =
-        copy._datapathPortForget(port)
+    def datapathPortForget(port: Port[_,_]) = copy._datapathPortForget(port)
 
     private def _datapathPortForget(port: Port[_, _]) = {
         dpPortsInProgress -= port.getName
@@ -1237,7 +1238,7 @@ class VirtualPortManager(
                     case None => // Do nothing. Don't know the status.
                     case Some(false) => // Do nothing. The interface is down.
                     case Some(true) =>
-                        controller.setVportStatus(port, vportId, true)
+                        controller.setVportStatus(port, vportId, isActive=true)
                 }
         }
         this
@@ -1254,28 +1255,23 @@ class VirtualPortManager(
 
         interfaceToDpPort.get(itfName) match {
             case None =>
-                // TODO(pino): error. We didn't know about this port at all.
+                log.warning("Unknown DP port removed, interface: {}", itfName)
             case Some(port) =>
                 interfaceToDpPort -= itfName
                 dpPortNumToInterface -= port.getPortNo
 
                 // Is there a binding for this interface name?
-                interfaceToVport.get(itfName) match {
-                    case None => // Do nothing. No binding.
-                    case Some(vportId) =>
-                        // If we didn't request this removal, and the interface
-                        // is up, then notify that the vport is now down.
-                        // Also, if the interface exists,
-                        // request that the dpPort be re-added.
-                        interfaceToStatus.get(itfName) match {
-                            case None => // Do nothing. Status not known.
-                            case Some(isUp) =>
-                                requestDpPortAdd(itfName)
-                                if(isUp && !requestedByMe)
-                                    controller.setVportStatus(port, vportId, false)
-                        }
+                for (
+                    vportId <- interfaceToVport.get(itfName);
+                    isUp <- interfaceToStatus.get(itfName)
+                ) {
+                    // If we didn't request this removal, and the interface is
+                    // up, then notify that the vport is now down. Also, if the
+                    // interface exists, request that the dpPort be re-added.
+                    requestDpPortAdd(itfName)
+                    if (isUp && !requestedByMe)
+                        controller.setVportStatus(port, vportId, isActive=false)
                 }
-
         }
         this
     }
@@ -1304,7 +1300,7 @@ class DatapathStateManager(val controller: VirtualPortManager.Controller)(
     override def version = _version
 
     /** used internally by the DPC on InterfaceUpdate msg.*/
-    def updateInterfaces(itfs: Collection[InterfaceDescription]) =
+    def updateInterfaces(itfs: JCollection[InterfaceDescription]) =
         versionUp { _vportMgr = _vportMgr.updateInterfaces(itfs) }
 
     /** used internally by the DPC when processing host info.*/
@@ -1373,7 +1369,7 @@ class DatapathStateManager(val controller: VirtualPortManager.Controller)(
      *  and for this zone from dpState.
      *  @param  peer  remote host UUID
      *  @param  zone  zone UUID the underlay route to add is associated to.
-     *  @param  dstIp the underlay ip of the remote host
+     *  @param  ipPair the underlay ip of the remote host
      *  @return possible tags to send to the FlowController for invalidation
      */
     def addPeer(peer: UUID, zone: UUID, ipPair: (Int, Int)): Seq[Any] =
@@ -1387,9 +1383,8 @@ class DatapathStateManager(val controller: VirtualPortManager.Controller)(
             _peersRoutes += ( peer -> ( routes + (zone -> ipPair) ) )
             val tags = FlowTagger.invalidateTunnelPort(ipPair) :: Nil
 
-            oldRouteTag
-                .map{ FlowTagger.invalidateTunnelPort(_) :: tags }
-                .getOrElse(tags)
+            oldRouteTag.map{ FlowTagger.invalidateTunnelPort(_) :: tags }
+                       .getOrElse(tags)
         }
 
     /** delete a tunnel route info about peer for given zone.
@@ -1409,7 +1404,7 @@ class DatapathStateManager(val controller: VirtualPortManager.Controller)(
         }
 
     /** delete all tunnel routes associated with a given zone
-     *  @param  peer  remote host UUID
+     *  @param  zone zone uuid
      *  @return sequence of tags to send to the FlowController for invalidation
      */
     def removePeersForZone(zone: UUID): Seq[Any] =
@@ -1428,9 +1423,8 @@ class DatapathStateManager(val controller: VirtualPortManager.Controller)(
         }
 
     override def getVportForDpPortNumber(portNum: JInteger): Option[UUID] =
-        _vportMgr
-            .dpPortNumToInterface.get(portNum)
-            .flatMap { _vportMgr.interfaceToVport.get(_) }
+        _vportMgr.dpPortNumToInterface.get(portNum)
+                 .flatMap { _vportMgr.interfaceToVport.get }
 
     override def getDpPortName(num: JInteger): Option[String] =
         _vportMgr.dpPortNumToInterface.get(num)
