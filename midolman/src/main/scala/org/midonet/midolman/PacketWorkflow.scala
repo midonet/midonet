@@ -18,8 +18,6 @@ import akka.pattern.ask
 import akka.util.Timeout
 
 import org.midonet.cluster.DataClient
-import org.midonet.midolman.PacketWorkflow.PipelinePath
-import org.midonet.midolman.DeduplicationActor.PacketPipelineMetrics
 import org.midonet.midolman.datapath.ErrorHandlingCallback
 import org.midonet.midolman.rules.Condition
 import org.midonet.midolman.simulation.{Coordinator, DhcpImpl}
@@ -39,6 +37,9 @@ import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 import org.midonet.util.functors.Callback0
 
 trait PacketHandler {
+
+    import PacketWorkflow.PipelinePath
+
     def start(): Future[PipelinePath]
 
     val packet: Packet
