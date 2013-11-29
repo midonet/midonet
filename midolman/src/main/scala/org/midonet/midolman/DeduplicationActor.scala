@@ -15,7 +15,7 @@ import akka.dispatch.Future
 import akka.event.LoggingReceive
 import akka.util.Duration
 import akka.util.duration._
-import com.yammer.metrics.core.{Gauge, MetricsRegistry, Clock}
+import com.yammer.metrics.core.{MetricsRegistry, Clock}
 import javax.annotation.Nullable
 import javax.inject.Inject
 import org.slf4j.LoggerFactory
@@ -28,11 +28,7 @@ import org.midonet.midolman.guice.CacheModule.TRACE_INDEX
 import org.midonet.midolman.guice.CacheModule.TRACE_MESSAGES
 import org.midonet.midolman.guice.datapath.DatapathModule.SIMULATION_THROTTLING_GUARD
 import org.midonet.midolman.logging.ActorLogWithoutPath
-import org.midonet.midolman.monitoring.metrics.PacketPipelineAccumulatedTime
-import org.midonet.midolman.monitoring.metrics.PacketPipelineCounter
-import org.midonet.midolman.monitoring.metrics.PacketPipelineGauge
-import org.midonet.midolman.monitoring.metrics.PacketPipelineHistogram
-import org.midonet.midolman.monitoring.metrics.PacketPipelineMeter
+import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.rules.Condition
 import org.midonet.midolman.simulation.Coordinator
 import org.midonet.midolman.topology.TraceConditionsManager
@@ -66,83 +62,6 @@ object DeduplicationActor extends Referenceable {
 
     case object _GetConditionListFromVta
 
-    class PacketPipelineMetrics(val registry: MetricsRegistry,
-                                val throttler: ThrottlingGuard) {
-        val pendedPackets = registry.newCounter(
-            classOf[PacketPipelineGauge], "currentPendedPackets")
-
-        val wildcardTableHits = registry.newMeter(
-            classOf[PacketPipelineMeter],
-            "wildcardTableHits", "packets",
-            TimeUnit.SECONDS)
-
-        val packetsToPortSet = registry.newMeter(
-            classOf[PacketPipelineMeter],
-            "packetsToPortSet", "packets",
-            TimeUnit.SECONDS)
-
-        val packetsSimulated = registry.newMeter(
-            classOf[PacketPipelineMeter],
-            "packetsSimulated", "packets",
-            TimeUnit.SECONDS)
-
-        val packetsProcessed = registry.newMeter(
-            classOf[PacketPipelineMeter],
-            "packetsProcessed", "packets",
-            TimeUnit.SECONDS)
-
-        // FIXME(guillermo) - make this a meter - the throttler needs to expose a callback
-        val packetsDropped = registry.newGauge(
-            classOf[PacketPipelineCounter],
-            "packetsDropped",
-            new Gauge[Long]{
-                override def value = throttler.numDroppedTokens()
-            })
-
-        val liveSimulations = registry.newGauge(
-            classOf[PacketPipelineGauge],
-            "liveSimulations",
-            new Gauge[Long]{
-                override def value = throttler.numTokens()
-            })
-
-        val wildcardTableHitLatency = registry.newHistogram(
-            classOf[PacketPipelineHistogram], "wildcardTableHitLatency")
-
-        val packetToPortSetLatency = registry.newHistogram(
-            classOf[PacketPipelineHistogram], "packetToPortSetLatency")
-
-        val simulationLatency = registry.newHistogram(
-            classOf[PacketPipelineHistogram], "simulationLatency")
-
-        val wildcardTableHitAccumulatedTime = registry.newCounter(
-            classOf[PacketPipelineAccumulatedTime], "wildcardTableHitAccumulatedTime")
-
-        val packetToPortSetAccumulatedTime = registry.newCounter(
-            classOf[PacketPipelineAccumulatedTime], "packetToPortSetAccumulatedTime")
-
-        val simulationAccumulatedTime = registry.newCounter(
-            classOf[PacketPipelineAccumulatedTime], "simulationAccumulatedTime")
-
-
-        def wildcardTableHit(latency: Int) {
-            wildcardTableHits.mark()
-            wildcardTableHitLatency.update(latency)
-            wildcardTableHitAccumulatedTime.inc(latency)
-        }
-
-        def packetToPortSet(latency: Int) {
-            packetsToPortSet.mark()
-            packetToPortSetLatency.update(latency)
-            packetToPortSetAccumulatedTime.inc(latency)
-        }
-
-        def packetSimulated(latency: Int) {
-            packetsSimulated.mark()
-            simulationLatency.update(latency)
-            simulationAccumulatedTime.inc(latency)
-        }
-    }
 }
 
 class DeduplicationActor extends Actor with ActorLogWithoutPath with
