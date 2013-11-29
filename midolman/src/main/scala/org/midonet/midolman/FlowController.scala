@@ -177,6 +177,14 @@ object FlowController extends Referenceable {
     }
 
     def lastInvalidationEvent = invalidationHistory.youngest
+
+    def runCallbacks(callbacks: Iterable[Callback0]) {
+        val iter = callbacks.iterator
+        while (iter.hasNext()) {
+            iter.next().call()
+        }
+    }
+
 }
 
 
@@ -272,15 +280,8 @@ class FlowController extends Actor with ActorLogWithoutPath {
                           wildFlow.getMatch, tags)
                 flowOption match {
                     case Some(flow) =>
-                        @tailrec
-                        def runCallbacks(callbacks: Array[Callback0], i: Int = 0) {
-                            if (callbacks != null && callbacks.length > i) {
-                                callbacks(i).call()
-                                runCallbacks(callbacks, i+1)
-                            }
-                        }
                         flowManagerHelper.removeFlow(flow)
-                        runCallbacks(callbacks.toArray)
+                        runCallbacks(callbacks)
                     case None =>
                 }
             }
@@ -360,13 +361,6 @@ class FlowController extends Actor with ActorLogWithoutPath {
                 tagsCleanup(tags, i+1)
             }
         }
-        @tailrec
-        def runCallbacks(callbacks: Array[Callback0], i: Int = 0) {
-            if (callbacks != null && callbacks.length > i) {
-                callbacks(i).call()
-                runCallbacks(callbacks, i+1)
-            }
-        }
 
         log.info("removeWildcardFlow - Removing flow {}", wildFlow)
         if (flowManager.remove(wildFlow)) {
@@ -374,7 +368,8 @@ class FlowController extends Actor with ActorLogWithoutPath {
                       "callbacks", wildFlow.callbacks.size)
             tagsCleanup(wildFlow.tags)
             wildFlow.unref() // tags ref
-            runCallbacks(wildFlow.callbacks)
+            if (wildFlow.callbacks != null)
+                runCallbacks(wildFlow.callbacks)
             context.system.eventStream.publish(WildcardFlowRemoved(wildFlow.immutable))
             wildFlow.unref() // FlowController's ref
         }
