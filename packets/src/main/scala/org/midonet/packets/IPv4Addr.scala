@@ -103,11 +103,13 @@ object IPv4Addr {
             throw illegalIPv4String(s)
         var addr = 0
         try {
-            bytes.foreach { byteStr =>
-                val byteVal = byteStr.toInt
+            var index = 0
+            while (index < 4) {
+                val byteVal = bytes(index).toInt
                 if ((byteVal | 0xff) != 0xff)
                     throw illegalIPv4String(s)
                 addr = (addr << 8) + byteVal
+                index += 1
             }
         } catch {
             case _: NumberFormatException => throw illegalIPv4String(s)
@@ -123,11 +125,13 @@ object IPv4Addr {
             throw illegalIPv4String(s)
         val addrBytes = new Array[Byte](4)
         try {
-            for (index <- 0 to 3) {
+            var index = 0
+            while (index < 4) {
                 val byteVal = bytes(index).toInt
                 if ((byteVal | 0xff) != 0xff)
                     throw illegalIPv4String(s)
                 addrBytes(index) = byteVal.toByte
+                index += 1
             }
         } catch {
             case _: NumberFormatException => throw illegalIPv4String(s)
