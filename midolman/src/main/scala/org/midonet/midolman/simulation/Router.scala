@@ -41,16 +41,15 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
                            actorSystem: ActorSystem,
                            originalPktContext: PacketContext): Action = pkt match {
 
-        case arp: ARP =>
-            arp.getOpCode match {
-                case ARP.OP_REQUEST =>
-                    processArpRequest(arp, inPort)
-                    ConsumedAction
-                case ARP.OP_REPLY =>
-                    processArpReply(arp, inPort)
-                    ConsumedAction
-                case _ =>
-                    DropAction
+        case arp: ARP => arp.getOpCode match {
+            case ARP.OP_REQUEST =>
+                processArpRequest(arp, inPort)
+                ConsumedAction
+            case ARP.OP_REPLY =>
+                processArpReply(arp, inPort)
+                ConsumedAction
+            case _ =>
+                DropAction
             }
         case _ =>
             log.warning("Non-ARP packet with ethertype ARP: {}", pkt)(null)
@@ -60,7 +59,8 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
     override protected def handleL2Broadcast(inPort: RouterPort)
                                             (implicit pktContext: PacketContext,
                                              ec: ExecutionContext,
-                                             actorSystem: ActorSystem): Action = {
+                                             actorSystem: ActorSystem)
+    : Action = {
 
         // Broadcast packet:  Handle if ARP, drop otherwise.
         val payload = pktContext.frame.getPayload
@@ -73,7 +73,8 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
     override def handleNeighbouring(inPort: RouterPort)
                                    (implicit ec: ExecutionContext,
                                     pktContext: PacketContext,
-                                    actorSystem: ActorSystem): Option[Action] = {
+                                    actorSystem: ActorSystem)
+    : Option[Action] = {
         if (pktContext.wcmatch.getEtherType == ARP.ETHERTYPE) {
             // Non-broadcast ARP.  Handle reply, drop rest.
             val payload = pktContext.frame.getPayload
@@ -121,9 +122,8 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
             Array[Object](spa, tpa, inPort.portMac))
 
         // Construct the reply, reversing src/dst fields from the request.
-        val eth = ARP.makeArpReply(
-            inPort.portMac, sha,
-            pkt.getTargetProtocolAddress, pkt.getSenderProtocolAddress);
+        val eth = ARP.makeArpReply(inPort.portMac, sha,
+            pkt.getTargetProtocolAddress, pkt.getSenderProtocolAddress)
         DeduplicationActor.getRef(actorSystem) ! EmitGeneratedPacket(
             inPort.id, eth,
             if (origPktContext != null) origPktContext.flowCookie else None)
@@ -132,15 +132,6 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
     private def processArpReply(pkt: ARP, port: RouterPort)
                                (implicit actorSystem: ActorSystem,
                                          pktContext: PacketContext) {
-
-        def isGratuitous(tha: MAC, tpa: IPv4Addr,
-                         sha: MAC, spa: IPv4Addr): Boolean = {
-            (tpa == spa && tha == sha)
-        }
-
-        def isAddressedToThis(tha: MAC, tpa: IPv4Addr): Boolean = {
-            (port.portAddr.getAddress.equals(tpa) && tha == port.portMac)
-        }
 
         // Verify the reply:  It's addressed to our MAC & IP, and is about
         // the MAC for an IPv4 address.
@@ -155,10 +146,13 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
         val tha: MAC = pkt.getTargetHardwareAddress
         val spa = IPv4Addr.fromBytes(pkt.getSenderProtocolAddress)
         val sha: MAC = pkt.getSenderHardwareAddress
+        val isGratuitous = tpa == spa && tha == sha
+        val isAddressedToThis = port.portAddr.getAddress.equals(tpa) &&
+                                tha == port.portMac
 
-        if (isGratuitous(tha, tpa, sha, spa)) {
+        if (isGratuitous) {
             log.debug("Router {} got a gratuitous ARP reply from {}", id, spa)
-        } else if (!isAddressedToThis(tha, tpa)) {
+        } else if (!isAddressedToThis) {
             // The ARP is not gratuitous, so it should be intended for us.
             log.debug("Router {} ignoring ARP reply on port {} because tpa or "+
                       "tha doesn't match.", id, port.id)
@@ -171,7 +165,7 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
         // existing cache entry and make noise if so?
         if (!port.portAddr.containsAddress(spa)) {
             log.debug("Ignoring ARP reply from address {} not in the ingress " +
-                "port network {}", spa, port.portAddr)
+                      "port network {}", spa, port.portAddr)
             return
         }
 
@@ -213,11 +207,10 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
     private def getPeerMac(rtrPort: RouterPort, expiry: Long)
                           (implicit ec: ExecutionContext,
                            actorSystem: ActorSystem,
-                           pktContext: PacketContext): Future[MAC] =
-        expiringAsk(PortRequest(rtrPort.peerID), log,
-                expiry) map {
-            case rp: RouterPort =>
-                rp.portMac
+                           pktContext: PacketContext)
+    : Future[MAC] =
+        expiringAsk(PortRequest(rtrPort.peerID), log, expiry) map {
+            case rp: RouterPort => rp.portMac
             case nrp =>
                 log.debug("getPeerMac asked for MAC of non-router port {}", nrp)
                 null
@@ -229,21 +222,20 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
                             actorSystem: ActorSystem,
                             pktContext: PacketContext): Future[MAC] = {
 
-        if (!port.isInterior) {
-          port.nwSubnet match {
-            case extAddr: IPv4Subnet =>
-              if (!extAddr.containsAddress(nextHopIP)) {
-                log.warning("getMacForIP: cannot get MAC for {} - "+
-                  "address not in network segment of port {} ({})",
-                  nextHopIP, port.id, extAddr)
-                return Promise.successful(null)(ec)
-              }
-            case _ =>
-              return Promise.failed(new IllegalArgumentException)
-          }
-        }
+        if (port.isInterior)
+            return arpTable.get(nextHopIP, port, expiry)
 
-        arpTable.get(nextHopIP, port, expiry)
+        port.nwSubnet match {
+            case extAddr: IPv4Subnet if extAddr.containsAddress(nextHopIP) =>
+                arpTable.get(nextHopIP, port, expiry)
+            case extAddr: IPv4Subnet =>
+                log.warning("getMacForIP: cannot get MAC for {} - address not" +
+                            "in network segment of port {} ({})",
+                            nextHopIP, port.id, extAddr)
+                Promise.successful(null)
+            case _ =>
+                Promise.failed(new IllegalArgumentException)
+        }
     }
 
     override protected def getNextHopMac(outPort: RouterPort, rt: Route,
@@ -373,9 +365,9 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
             }
         }
 
-        val ipMatch = (new WildcardMatch()).
-                setNetworkDestination(packet.getDestinationIPAddress).
-                setNetworkSource(packet.getSourceIPAddress)
+        val ipMatch = new WildcardMatch()
+                      .setNetworkDestination(packet.getDestinationIPAddress)
+                      .setNetworkSource(packet.getSourceIPAddress)
         val rt: Route = loadBalancer.lookup(ipMatch)
         if (rt == null || rt.nextHop != Route.NextHop.PORT)
             return
