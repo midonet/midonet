@@ -8,6 +8,7 @@ import java.nio.channels.Pipe;
 import java.nio.channels.ScatteringByteChannel;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.After;
 import org.junit.Before;
@@ -19,7 +20,11 @@ import static org.junit.Assert.assertTrue;
 
 
 public class TestSelectLoop {
-    static class BooleanBox { volatile boolean value; }
+
+    static class BooleanBox {
+        volatile boolean value;
+        public BooleanBox(Boolean initial) { this.value = initial; }
+    }
 
     private final static Logger log =
                         LoggerFactory.getLogger(TestSelectLoop.class);
@@ -48,10 +53,8 @@ public class TestSelectLoop {
             message = ByteBuffer.allocate(8);
             message.putLong(0x0F00BA44DEADBEEFL);
             message.rewind();
-            reactorThrew = new BooleanBox();
-            reactorThrew.value = false;
-            reactorFinished = new BooleanBox();
-            reactorFinished.value = false;
+            reactorThrew = new BooleanBox(false);
+            reactorFinished = new BooleanBox(false);
             log.info("Eventloop set-up complete.");
         } catch (Throwable e) {
             log.error("Aiee, exception setting up eventloop: ", e);
@@ -69,6 +72,47 @@ public class TestSelectLoop {
         pipe1.source().close();
         pipe2.sink().close();
         pipe2.source().close();
+    }
+
+    private void waitOnValue(AtomicInteger counter, int target, int retry)
+            throws InterruptedException {
+        while (retry >= 0) {
+            if (counter.get() == target)
+                return;
+            Thread.sleep(20);
+            retry -= 1;
+        }
+        assertTrue(false);
+    }
+
+    abstract class Handler implements Runnable, SelectListener {
+        final BooleanBox somethingBroke;
+        final AtomicInteger eventCounter;
+
+        protected SelectionKey key;
+
+        public Handler(AtomicInteger eventCounter, BooleanBox notifier) {
+            this.somethingBroke = notifier;
+            this.eventCounter = eventCounter;
+        }
+
+        abstract public void action() throws Exception;
+
+        public void run() {
+            try {
+                while(!eventCounter.compareAndSet(0,1)) {
+                    Thread.sleep(30);
+                }
+                action();
+            } catch (Exception e) {
+                somethingBroke.value = true;
+            }
+        }
+
+        public void handleEvent(SelectionKey key) {
+            this.key = key;
+            run();
+        }
     }
 
     private Thread startReactorThread() {
@@ -90,8 +134,7 @@ public class TestSelectLoop {
     @Test
     public void testRegisterDuringSelect()
                 throws InterruptedException, IOException {
-        final BooleanBox noExceptions = new BooleanBox();
-        noExceptions.value = false;
+        final BooleanBox noExceptions = new BooleanBox(false);
         Thread registerThread = new Thread(
             new Runnable() {
                 SelectListener listener =
@@ -127,34 +170,23 @@ public class TestSelectLoop {
     @Test
     public void testEventDuringEvent()
                 throws IOException, InterruptedException {
-        final BooleanBox event1HasRun = new BooleanBox();
-        final BooleanBox event2HasRun = new BooleanBox();
-        final BooleanBox somethingBroke = new BooleanBox();
-        event1HasRun.value = false;
-        event2HasRun.value = false;
-        somethingBroke.value = false;
 
-        class SelectResponder implements SelectListener {
-            BooleanBox hasRun;
-            public SelectResponder(BooleanBox hasRun) {
-                this.hasRun = hasRun;
+        final AtomicInteger eventCounter = new AtomicInteger(0);
+        final BooleanBox somethingBroke = new BooleanBox(false);
+
+        class SelectResponder extends Handler {
+            public SelectResponder(AtomicInteger counter, BooleanBox notifier) {
+                super(counter, notifier);
             }
-
-            public void handleEvent(SelectionKey key) {
-                try {
-                    hasRun.value = true;
-                    ScatteringByteChannel channel =
-                                (ScatteringByteChannel) key.channel();
-                    channel.read(ByteBuffer.allocate(8));
-                    Thread.sleep(30);
-                } catch (Exception e) {
-                    somethingBroke.value = true;
-                }
+            @Override public void action() throws Exception {
+                ScatteringByteChannel channel =
+                            (ScatteringByteChannel) key.channel();
+                channel.read(ByteBuffer.allocate(8));
             }
         }
 
-        SelectListener listener1 = new SelectResponder(event1HasRun);
-        SelectListener listener2 = new SelectResponder(event2HasRun);
+        SelectListener listener1 = new SelectResponder(eventCounter, somethingBroke);
+        SelectListener listener2 = new SelectResponder(eventCounter, somethingBroke);
 
         pipe1.sink().write(message);
         message.rewind();
@@ -163,11 +195,17 @@ public class TestSelectLoop {
         loop.register(channel2, SelectionKey.OP_READ, listener2);
 
         startReactorThread();
-        Thread.sleep(30);
-        assertTrue(event1HasRun.value ^ event2HasRun.value);
-        Thread.sleep(60);
-        assertTrue(event1HasRun.value && event2HasRun.value);
+
+        waitOnValue(eventCounter, 1, 10);
+
+        assertTrue(eventCounter.get() == 1);
+        int reset = eventCounter.decrementAndGet();
+        assertTrue(reset == 0);
+
+        waitOnValue(eventCounter, 1, 10);
+        assertTrue(eventCounter.get() == 1);
         assertFalse(reactorFinished.value);
+
         loop.shutdown();
         reactor.shutDownNow();
         Thread.sleep(30);
@@ -178,30 +216,20 @@ public class TestSelectLoop {
 
     @Test
     public void testSubmitDuringSubmit() throws InterruptedException {
-        final BooleanBox submit1HasRun = new BooleanBox();
-        final BooleanBox submit2HasRun = new BooleanBox();
-        final BooleanBox somethingBroke = new BooleanBox();
-        submit1HasRun.value = false;
-        submit2HasRun.value = false;
-        somethingBroke.value = false;
 
-        class Submission implements Runnable {
-            BooleanBox hasRun;
-            public Submission(BooleanBox hasRun) {
-                this.hasRun = hasRun;
-            }
+        final AtomicInteger eventCounter = new AtomicInteger(0);
+        final BooleanBox somethingBroke = new BooleanBox(false);
 
-            public void run() {
-                try {
-                    hasRun.value = true;
-                    Thread.sleep(60);
-                } catch (Exception e) {
-                    somethingBroke.value = true;
-                }
+        class Submission extends Handler {
+            public Submission(AtomicInteger counter, BooleanBox notifier) {
+                super(counter, notifier);
             }
+            @Override public void action() throws Exception { }
         }
-        Submission submission1 = new Submission(submit1HasRun);
-        Submission submission2 = new Submission(submit2HasRun);
+
+
+        Submission submission1 = new Submission(eventCounter, somethingBroke);
+        Submission submission2 = new Submission(eventCounter, somethingBroke);
         reactor.submit(submission1);
         reactor.submit(submission2);
 
@@ -211,9 +239,13 @@ public class TestSelectLoop {
         //assertFalse(submit1HasRun.value);
         //assertFalse(submit2HasRun.value);
 
-        Thread.sleep(30);
-        assertTrue(submit1HasRun.value ^ submit2HasRun.value);
-        Thread.sleep(60);
-        assertTrue(submit1HasRun.value && submit2HasRun.value);
+        waitOnValue(eventCounter, 1, 10);
+
+        assertTrue(eventCounter.get() == 1);
+        eventCounter.decrementAndGet();
+        assertTrue(eventCounter.get() == 0);
+
+        waitOnValue(eventCounter, 1, 10);
+        assertTrue(eventCounter.get() == 1);
     }
 }
