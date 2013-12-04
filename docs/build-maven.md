@@ -299,6 +299,15 @@ problem seems to be that the scala-maven-plugin does not clean the zinc cache
 when running `$ mvn clean`, which is good (save state and save up compilation
 work) and bad (messes up compilation when switching branches) at the same time.
 
+### Scalastyle check
+
+To run a style analysis of the scala code, you can use the command
+
+$ mvn scalastyle:check -pl subproject
+
+Scalastyle will use the xml config file found at the route of midonet to
+analysis the scala source code in main/ and test/.
+
 ### Code coverage reports
 
 Cobertura allows to run tests while doing a coverage analysis of the code. It is
