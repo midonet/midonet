@@ -309,6 +309,10 @@
                         <exclude>**/DeduplicationActor$ApplyFlow*</exclude>
                         <exclude>**/DeduplicationActor$*Packet*</exclude>
                         <exclude>**/DeduplicationActor$_*</exclude>
+
+                        <exclude>**/PacketWorkflow$PacketIn*</exclude>
+                        <exclude>**/PacketWorkflow$SendPacket*</exclude>
+                        <exclude>**/PacketWorkflow$AddVirtual*</exclude>
                     </excludes>
                     </instrumentation>
                 </configuration>
