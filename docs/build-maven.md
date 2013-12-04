@@ -250,6 +250,20 @@ src/main/webapp/WEB-INF/.
 This section describes additional mvn commands and settings you might want to
 know about.
 
+### Scala console
+
+You can start the scala repl with midonet classes and dependencies on the
+classpath with
+
+`$ mvn scala:console -pl subproject`
+
+If you do not precise a -pl subproject option, the repl will be started and
+started again for every subproject starting from the jdk-bootstrap.
+
+Because of a bug in scala 2.9 repl and JLine, after exiting the console started
+by maven, the terminal will be left in a half-broken state, not displaying any
+input. To restore your terminal, enter "reset" and hit return.
+
 ### Midonet-api doc generation
 
 You can generate html docs for the midonet-api subproject with the enunciate
@@ -308,7 +322,7 @@ simulation using actors can be skipped with the profile "withoutSim":
 
 `$ mvn clean site -PwithoutSim`
 
-### dependency analysis
+### Dependency analysis
 
 mvn dependency plugin can run analysis to show your direct and hidden exposures
 to external libraries and jar files. You can ask for reports with commands
