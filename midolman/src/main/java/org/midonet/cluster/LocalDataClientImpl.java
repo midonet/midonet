@@ -50,6 +50,9 @@ import org.midonet.cluster.data.host.Command;
 import org.midonet.cluster.data.host.Host;
 import org.midonet.cluster.data.host.Interface;
 import org.midonet.cluster.data.host.VirtualPortMapping;
+import org.midonet.cluster.data.l4lb.HealthMonitor;
+import org.midonet.cluster.data.l4lb.PoolMember;
+import org.midonet.cluster.data.l4lb.Pool;
 import org.midonet.cluster.data.ports.BridgePort;
 import org.midonet.cluster.data.ports.VlanMacPort;
 import org.midonet.midolman.SystemDataProvider;
@@ -134,6 +137,15 @@ public class LocalDataClientImpl implements DataClient {
 
     @Inject
     private HostZkManager hostZkManager;
+
+    @Inject
+    private HealthMonitorZkManager healthMonitorZkManager;
+
+    @Inject
+    private PoolMemberZkManager poolMemberZkManager;
+
+    @Inject
+    private PoolZkManager poolZkManager;
 
     @Inject
     private TunnelZoneZkManager zonesZkManager;
@@ -1672,6 +1684,194 @@ public class LocalDataClientImpl implements DataClient {
         hostZkManager.addVirtualPortMapping(
                 hostId, new HostDirectory.VirtualPortMapping(portId, localPortName));
     }
+
+    /* health monitors related methods */
+
+    @CheckForNull public boolean healthMonitorExists(UUID id)
+            throws StateAccessException {
+        return healthMonitorZkManager.exists(id);
+    }
+
+    @CheckForNull public HealthMonitor healthMonitorGet(UUID id)
+            throws StateAccessException, SerializationException {
+        HealthMonitor healthMonitor = null;
+        if (healthMonitorZkManager.exists(id)) {
+            healthMonitor = Converter.fromHealthMonitorConfig(
+                    healthMonitorZkManager.get(id));
+            healthMonitor.setId(id);
+        }
+
+        return healthMonitor;
+    }
+
+    public void healthMonitorDelete(UUID id)
+            throws StateAccessException, SerializationException {
+        healthMonitorZkManager.delete(id);
+    }
+
+    public UUID healthMonitorCreate(@Nonnull HealthMonitor healthMonitor)
+            throws StateAccessException, SerializationException {
+        if (healthMonitor.getId() == null) {
+            healthMonitor.setId(UUID.randomUUID());
+        }
+
+        HealthMonitorZkManager.HealthMonitorConfig healthMonitorConfig =
+                Converter.toHealthMonitorConfig(healthMonitor);
+        healthMonitorZkManager.create(healthMonitorConfig,
+                                      healthMonitor.getId());
+
+        return healthMonitor.getId();
+    }
+
+    public void healthMonitorUpdate(@Nonnull HealthMonitor healthMonitor)
+            throws StateAccessException, SerializationException {
+        HealthMonitorZkManager.HealthMonitorConfig healthMonitorConfig
+                = Converter.toHealthMonitorConfig(healthMonitor);
+        healthMonitorZkManager.update(healthMonitor.getId(),
+                                      healthMonitorConfig);
+    }
+
+    public List<HealthMonitor> healthMonitorsGetAll()
+            throws StateAccessException, SerializationException {
+        List<HealthMonitor> healthMonitors = new ArrayList<HealthMonitor>();
+
+        String path = pathBuilder.getHealthMonitorsPath();
+        if (zkManager.exists(path)) {
+            Set<String> healthMonitorIds = zkManager.getChildren(path);
+            for (String id : healthMonitorIds) {
+                HealthMonitor healthMonitor
+                        = healthMonitorGet(UUID.fromString(id));
+                if (healthMonitor != null) {
+                    healthMonitors.add(healthMonitor);
+                }
+            }
+        }
+
+        return healthMonitors;
+    }
+
+    /* pool member related methods */
+
+    @CheckForNull public boolean poolMemberExists(UUID id)
+            throws StateAccessException {
+        return poolMemberZkManager.exists(id);
+    }
+
+    @CheckForNull public PoolMember poolMemberGet(UUID id)
+            throws StateAccessException, SerializationException {
+        PoolMember poolMember = null;
+        if (poolMemberZkManager.exists(id)) {
+            poolMember = Converter.fromPoolMemberConfig(poolMemberZkManager.get(id));
+            poolMember.setId(id);
+        }
+
+        return poolMember;
+    }
+
+    public void poolMemberDelete(UUID id)
+            throws StateAccessException, SerializationException {
+        poolMemberZkManager.delete(id);
+    }
+
+    public UUID poolMemberCreate(@Nonnull PoolMember poolMember)
+            throws StateAccessException, SerializationException {
+        if (poolMember.getId() == null) {
+            poolMember.setId(UUID.randomUUID());
+        }
+
+        PoolMemberZkManager.PoolMemberConfig poolMemberConfig
+                = Converter.toPoolMemberConfig(poolMember);
+        poolMemberZkManager.create(poolMemberConfig, poolMember.getId());
+
+        return poolMember.getId();
+    }
+
+    public void poolMemberUpdate(@Nonnull PoolMember poolMember)
+            throws StateAccessException, SerializationException {
+        PoolMemberZkManager.PoolMemberConfig poolMemberConfig
+                = Converter.toPoolMemberConfig(poolMember);
+        poolMemberZkManager.update(poolMember.getId(), poolMemberConfig);
+    }
+
+    public List<PoolMember> poolMembersGetAll() throws StateAccessException,
+            SerializationException {
+        List<PoolMember> poolMembers = new ArrayList<PoolMember>();
+
+        String path = pathBuilder.getPoolMembersPath();
+        if (zkManager.exists(path)) {
+            Set<String> poolMemberIds = zkManager.getChildren(path);
+            for (String id : poolMemberIds) {
+                PoolMember poolMember = poolMemberGet(UUID.fromString(id));
+                if (poolMember != null) {
+                    poolMembers.add(poolMember);
+                }
+            }
+        }
+
+        return poolMembers;
+    }
+
+
+    /* pool related methods */
+
+    @CheckForNull public boolean poolExists(UUID id)
+            throws StateAccessException {
+        return poolZkManager.exists(id);
+    }
+
+    @CheckForNull public Pool poolGet(UUID id)
+            throws StateAccessException, SerializationException {
+        Pool pool = null;
+        if (poolZkManager.exists(id)) {
+            pool = Converter.fromPoolConfig(poolZkManager.get(id));
+            pool.setId(id);
+        }
+
+        return pool;
+    }
+
+    public void poolDelete(UUID id)
+            throws StateAccessException, SerializationException {
+        poolZkManager.delete(id);
+    }
+
+    public UUID poolCreate(@Nonnull Pool pool)
+            throws StateAccessException, SerializationException {
+        if (pool.getId() == null) {
+            pool.setId(UUID.randomUUID());
+        }
+
+        PoolZkManager.PoolConfig poolConfig = Converter.toPoolConfig(pool);
+        poolZkManager.create(poolConfig, pool.getId());
+
+        return pool.getId();
+    }
+
+    public void poolUpdate(@Nonnull Pool pool)
+            throws StateAccessException, SerializationException {
+        PoolZkManager.PoolConfig poolConfig
+                = Converter.toPoolConfig(pool);
+        poolZkManager.update(pool.getId(), poolConfig);
+    }
+
+    public List<Pool> poolsGetAll() throws StateAccessException,
+            SerializationException {
+        List<Pool> pools = new ArrayList<Pool>();
+
+        String path = pathBuilder.getPoolsPath();
+        if (zkManager.exists(path)) {
+            Set<String> poolIds = zkManager.getChildren(path);
+            for (String id : poolIds) {
+                Pool pool = poolGet(UUID.fromString(id));
+                if (pool != null) {
+                    pools.add(pool);
+                }
+            }
+        }
+
+        return pools;
+    }
+
 
     /**
      * Does the same thing as @hostsAddVrnPortMapping(),

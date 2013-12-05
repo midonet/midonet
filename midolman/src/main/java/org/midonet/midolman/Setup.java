@@ -20,7 +20,6 @@ import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.HierarchicalINIConfiguration;
-import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,6 +90,9 @@ public class Setup {
         paths.add(pathMgr.getVersionsPath());
         paths.add(pathMgr.getSystemStatePath());
         paths.add(pathMgr.getTraceConditionsPath());
+        paths.add(pathMgr.getHealthMonitorsPath());
+        paths.add(pathMgr.getPoolMembersPath());
+        paths.add(pathMgr.getPoolsPath());
         return paths;
     }
 

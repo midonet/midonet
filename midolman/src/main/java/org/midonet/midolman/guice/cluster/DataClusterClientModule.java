@@ -135,6 +135,9 @@ public class DataClusterClientModule extends PrivateModule {
         managers.add(TaggableConfigZkManager.class);
         managers.add(TraceConditionZkManager.class);
         managers.add(IpAddrGroupZkManager.class);
+        managers.add(HealthMonitorZkManager.class);
+        managers.add(PoolMemberZkManager.class);
+        managers.add(PoolZkManager.class);
 
         for (Class<? extends AbstractZkManager> managerClass : managers) {
             //noinspection unchecked
