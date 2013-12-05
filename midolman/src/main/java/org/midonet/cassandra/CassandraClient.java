@@ -26,8 +26,6 @@ import me.prettyprint.hector.api.ddl.ColumnFamilyDefinition;
 import me.prettyprint.hector.api.ddl.ComparatorType;
 import me.prettyprint.hector.api.ddl.KeyspaceDefinition;
 import me.prettyprint.hector.api.exceptions.HInvalidRequestException;
-import me.prettyprint.hector.api.exceptions.HPoolExhaustedException;
-import me.prettyprint.hector.api.exceptions.HUnavailableException;
 import me.prettyprint.hector.api.exceptions.HectorException;
 import me.prettyprint.hector.api.factory.HFactory;
 import me.prettyprint.hector.api.mutation.Mutator;
@@ -37,10 +35,9 @@ import me.prettyprint.hector.api.query.QueryResult;
 import me.prettyprint.hector.api.query.RangeSlicesQuery;
 import me.prettyprint.hector.api.query.SliceQuery;
 import org.apache.cassandra.locator.SimpleStrategy;
+import org.midonet.util.eventloop.Reactor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import org.midonet.util.eventloop.Reactor;
 
 public class CassandraClient {
 
@@ -65,19 +62,21 @@ public class CassandraClient {
     private final String keyspaceName;
     private final String columnFamily;
     private final int replicationFactor;
+    private final int thriftSocketTimeout;
     private final int expirationSecs;
-    // Hector requires setRange to be done on a slice query with an actual
-    // maximum value (setRange is required in a slice query)
-    private final int maxColumnsPerFetch = 1000;
-    private final int maxRowsPerFetch = 1000;
+    private final boolean hostTimeoutTracker;
+    private final int hostTimeoutCounter;
+    private final int hostTimeoutWindow;
     private final Reactor reactor;
 
     private static StringSerializer ss = StringSerializer.get();
 
-    public CassandraClient(String servers, int maxActiveConns, String clusterName,
-                           String keyspaceName, String columnFamily,
-                           int replicationFactor, int expirationSecs,
-                           Reactor reactor) {
+    public CassandraClient(String servers, int maxActiveConns,
+                           String clusterName, String keyspaceName,
+                           String columnFamily, int replicationFactor,
+                           int expirationSecs, int thriftSocketTimeout,
+                           boolean hostTimeoutTracker, int hostTimeoutCounter,
+                           int hostTimeoutWindow, Reactor reactor) {
         this.servers = servers;
         this.maxActiveConns = maxActiveConns;
         this.clusterName = clusterName;
@@ -85,6 +84,10 @@ public class CassandraClient {
         this.columnFamily = columnFamily;
         this.replicationFactor = replicationFactor;
         this.expirationSecs = expirationSecs;
+        this.thriftSocketTimeout = thriftSocketTimeout;
+        this.hostTimeoutTracker = hostTimeoutTracker;
+        this.hostTimeoutCounter = hostTimeoutCounter;
+        this.hostTimeoutWindow = hostTimeoutWindow;
         this.reactor = reactor;
     }
 
@@ -103,7 +106,7 @@ public class CassandraClient {
             config.setUseSocketKeepalive(true);
             config.setRetryDownedHosts(true);
             config.setRetryDownedHostsDelayInSeconds(5);
-            config.setCassandraThriftSocketTimeout(5000);
+            config.setCassandraThriftSocketTimeout(thriftSocketTimeout);
             // This controls the time that requests will wait for a connection
             // to be restored when hector has no clients available in a given
             // host's pool. This may happen for example if we're getting
@@ -111,9 +114,16 @@ public class CassandraClient {
             // remove them from the pool so Hector will block trying to fetch
             // a healthy client from the pool. We want to keep this short
             // so that we return from the request, and trigger a failure that
-            // makes Hector mark the host as down.
-            config.setMaxWaitTimeWhenExhausted(1200);
+            // makes Hector mark the host as down. Should be unnecessary
+            // given the ExhaustedPolicy below, but just to be safe.
+            config.setMaxWaitTimeWhenExhausted(1000);
             config.setExhaustedPolicy(ExhaustedPolicy.WHEN_EXHAUSTED_FAIL);
+            // These determine how many timeouts are allowed in a given host
+            // within the given window (in ms) before the node gets suspended
+            // and becomes non eligible for future operations.
+            config.setUseHostTimeoutTracker(hostTimeoutTracker);
+            config.setHostTimeoutCounter(hostTimeoutCounter);
+            config.setHostTimeoutWindow(hostTimeoutWindow);
 
             cluster = HFactory.getOrCreateCluster(clusterName, config);
             // Using FAIL_FAST because if Hector blocks the operations too
@@ -422,11 +432,13 @@ public class CassandraClient {
              * in this column family; though Hector mandates that
              * there has to be an actual maximum value in a slice query
              */
+            int maxColumnsPerFetch = 1000;
             sliceQuery.setRange(startRange, endRange, false,
-                    (maxResultItems==0)?maxColumnsPerFetch:maxResultItems);
+                    (maxResultItems==0)? maxColumnsPerFetch :maxResultItems);
             sliceQuery.setKeys("", "");
+            int maxRowsPerFetch = 1000;
             sliceQuery.setRowCount((maxRowCount==0)?
-                                    maxRowsPerFetch:maxRowCount);
+                                       maxRowsPerFetch :maxRowCount);
 
             QueryResult<OrderedRows<String, String, String>> result =
                                         sliceQuery.execute();
