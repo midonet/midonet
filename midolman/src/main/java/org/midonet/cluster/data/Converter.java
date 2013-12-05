@@ -20,6 +20,9 @@ import org.midonet.cluster.data.host.ErrorLogItem;
 import org.midonet.cluster.data.host.Host;
 import org.midonet.cluster.data.host.Interface;
 import org.midonet.cluster.data.host.VirtualPortMapping;
+import org.midonet.cluster.data.l4lb.HealthMonitor;
+import org.midonet.cluster.data.l4lb.PoolMember;
+import org.midonet.cluster.data.l4lb.Pool;
 import org.midonet.cluster.data.ports.BridgePort;
 import org.midonet.cluster.data.ports.RouterPort;
 import org.midonet.cluster.data.rules.ForwardNatRule;
@@ -37,6 +40,9 @@ import org.midonet.midolman.state.zkManagers.BridgeZkManager.BridgeConfig;
 import org.midonet.midolman.state.zkManagers.ChainZkManager.ChainConfig;
 import org.midonet.midolman.state.zkManagers.IpAddrGroupZkManager
         .IpAddrGroupConfig;
+import org.midonet.midolman.state.zkManagers.HealthMonitorZkManager.HealthMonitorConfig;
+import org.midonet.midolman.state.zkManagers.PoolMemberZkManager.PoolMemberConfig;
+import org.midonet.midolman.state.zkManagers.PoolZkManager.PoolConfig;
 import org.midonet.midolman.state.zkManagers.PortGroupZkManager.PortGroupConfig;
 import org.midonet.midolman.state.zkManagers.RouterZkManager.RouterConfig;
 import org.midonet.midolman.state.zkManagers.TaggableConfig;
@@ -151,6 +157,69 @@ public class Converter {
         return new IpAddrGroup()
                 .setName(group.name)
                 .setProperties(group.properties);
+    }
+
+    public static HealthMonitorConfig toHealthMonitorConfig(
+            HealthMonitor healthMonitor) {
+        HealthMonitorConfig healthMonitorConfig = new HealthMonitorConfig();
+        healthMonitorConfig.type = healthMonitor.getType();
+        healthMonitorConfig.delay = healthMonitor.getDelay();
+        healthMonitorConfig.adminStateUp = healthMonitor.getAdminStateUp();
+        healthMonitorConfig.maxRetries = healthMonitor.getMaxRetries();
+        healthMonitorConfig.timeout = healthMonitor.getTimeout();
+        return healthMonitorConfig;
+    }
+
+    public static HealthMonitor fromHealthMonitorConfig(
+            HealthMonitorConfig healthMonitorConfig) {
+        return new HealthMonitor()
+                .setAdminStateUp(healthMonitorConfig.adminStateUp)
+                .setDelay(healthMonitorConfig.delay)
+                .setMaxRetries(healthMonitorConfig.maxRetries)
+                .setTimeout(healthMonitorConfig.timeout)
+                .setType(healthMonitorConfig.type);
+    }
+
+    public static PoolMemberConfig toPoolMemberConfig(PoolMember poolMember) {
+        PoolMemberConfig poolMemberConfig = new PoolMemberConfig();
+        poolMemberConfig.poolId = poolMember.getPoolId();
+        poolMemberConfig.address = poolMember.getAddress();
+        poolMemberConfig.protocolPort = poolMember.getProtocolPort();
+        poolMemberConfig.weight = poolMember.getWeight();
+        poolMemberConfig.adminStateUp = poolMember.getAdminStateUp();
+        poolMemberConfig.status = poolMember.getStatus();
+        return poolMemberConfig;
+    }
+
+    public static PoolMember fromPoolMemberConfig(PoolMemberConfig poolMemberConfig) {
+        return new PoolMember().setPoolId(poolMemberConfig.poolId)
+                           .setAddress(poolMemberConfig.address)
+                           .setProtocolPort(poolMemberConfig.protocolPort)
+                           .setWeight(poolMemberConfig.weight)
+                           .setAdminStateUp(poolMemberConfig.adminStateUp)
+                           .setStatus(poolMemberConfig.status);
+    }
+
+    public static PoolConfig toPoolConfig(Pool pool) {
+        PoolConfig poolConfig = new PoolConfig();
+        poolConfig.name = pool.getName();
+        poolConfig.description = pool.getDescription();
+        poolConfig.subnetId = pool.getSubnetId();
+        poolConfig.protocol = pool.getProtocol();
+        poolConfig.lbMethod = pool.getLbMethod();
+        poolConfig.adminStateUp = pool.getAdminStateUp();
+        poolConfig.status = pool.getStatus();
+        return poolConfig;
+    }
+
+    public static Pool fromPoolConfig(PoolConfig poolConfig) {
+        return new Pool().setName(poolConfig.name)
+                         .setDescription(poolConfig.description)
+                         .setSubnetId(poolConfig.subnetId)
+                         .setProtocol(poolConfig.protocol)
+                         .setLbMethod(poolConfig.lbMethod)
+                         .setAdminStateUp(poolConfig.adminStateUp)
+                         .setStatus(poolConfig.status);
     }
 
     public static PortConfig toPortConfig(Port port) {
