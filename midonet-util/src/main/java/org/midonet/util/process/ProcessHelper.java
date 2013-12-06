@@ -117,8 +117,14 @@ public class ProcessHelper {
                         IOUtils.closeQuietly(p.getErrorStream());
                         IOUtils.closeQuietly(p.getOutputStream());
 
-                        log.debug("Process \"{}\" exited with code: {}",
-                                  processName, p.exitValue());
+                        if (p.exitValue() == 0) {
+                            log.trace("Process \"{}\" exited with code: {}",
+                                    processName, p.exitValue());
+
+                        } else {
+                            log.debug("Process \"{}\" exited with non zero code: {}",
+                                    processName, p.exitValue());
+                        }
                         return p.exitValue();
                     }
                 } catch (InterruptedException e) {
