@@ -565,7 +565,6 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
             checkPortUpdates()
 
         case _InterfacesUpdate(interfaces) =>
-            log.debug("Updating interfaces to {}", interfaces)
             dpState.updateInterfaces(interfaces)
 
         case LocalTunnelInterfaceInfo =>
@@ -576,7 +575,6 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
     }
 
     def checkPortUpdates() {
-        log.debug("Scanning interfaces for status changes.")
         interfaceScanner.scanInterfaces(new Callback[JList[InterfaceDescription]] {
             def onError(e: NetlinkException) {
                 log.error("Error while retrieving the interface status:" + e.getMessage)
@@ -1068,6 +1066,7 @@ class VirtualPortManager(
         copy._updateInterfaces(interfaces)
 
     private def _newInterface(itf: InterfaceDescription, isUp: Boolean) {
+        log.info("New interface found: {}", itf)
         interfaceToStatus += ((itf.getName, isUp))
 
         // Is there a vport binding for this interface?
@@ -1098,8 +1097,9 @@ class VirtualPortManager(
             log.debug("Recreating port {} because was removed and the dp" +
                       " didn't request the removal", itf.getName)
         } else {
-            interfaceToStatus += ((itf.getName, isUp))
             if (isUp != wasUp) {
+                interfaceToStatus += ((itf.getName, isUp))
+                log.info("Updating interface={} isUp status to {}", itf, isUp)
                 for (
                     vportId <- interfaceToVport.get(itf.getName);
                     dpPort <- interfaceToDpPort.get(itf.getName)
@@ -1111,7 +1111,6 @@ class VirtualPortManager(
     }
 
     private def _updateInterfaces(itfs: JCollection[InterfaceDescription]) = {
-        log.debug("updateInterfaces {}", itfs)
         val currentInterfaces = mutable.Set[String]()
 
         itfs.asScala foreach { itf =>
@@ -1126,6 +1125,7 @@ class VirtualPortManager(
         // Now deal with any interface that has been deleted.
         val deletedInterfaces = interfaceToStatus -- currentInterfaces
         deletedInterfaces.keys.foreach { name =>
+            log.info("Deleting interface name={}", name)
             interfaceToStatus -= name
             // we don't have to remove the binding, the interface was deleted
             // but the binding is still valid
