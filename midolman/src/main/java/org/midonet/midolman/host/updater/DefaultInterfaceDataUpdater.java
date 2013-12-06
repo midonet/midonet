@@ -32,7 +32,7 @@ public class DefaultInterfaceDataUpdater implements InterfaceDataUpdater {
     public synchronized void updateInterfacesData(UUID hostID, Metadata host,
             List<InterfaceDescription> descriptions) {
 
-        log.debug("Start uploading the interface data ({} entries).",
+        log.trace("Start uploading the interface data ({} entries).",
                   descriptions.size());
 
         Map<String, Interface> currentInterfacesByName =
@@ -82,7 +82,7 @@ public class DefaultInterfaceDataUpdater implements InterfaceDataUpdater {
                 }
             }
 
-            log.debug("Input: " + curMapByName);
+            log.trace("Input: " + curMapByName);
             if (updatedInterfaces.size() > 0) {
                 log.info("Updated: " + updatedInterfaces);
             }
