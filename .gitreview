@@ -1,0 +1,4 @@
+[gerrit]
+host=reviews.midonet.org
+port=29418
+project=midonet.git
