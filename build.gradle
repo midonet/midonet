@@ -53,8 +53,7 @@ project.ext {
                           "org.testng:testng:6.5.2",
                           "org.powermock:powermock-module-junit4:1.4.11",
                           "org.powermock:powermock-api-mockito:1.4.11",
-                          "org.mockito:mockito-all:1.9.0",
-                          "org.easymock:easymock:3.0"],
+                          "org.mockito:mockito-all:1.9.0"],
 
         hamcrest: "org.hamcrest:hamcrest-all:${versions.hamcrest}",
         hamcrest_core: "org.hamcrest:hamcrest-core:${versions.hamcrest}",
