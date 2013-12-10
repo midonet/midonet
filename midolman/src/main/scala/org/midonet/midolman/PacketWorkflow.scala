@@ -33,6 +33,7 @@ import org.midonet.packets._
 import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPortSet
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 import org.midonet.util.functors.Callback0
+import org.midonet.util.concurrent._
 
 trait PacketHandler {
 
@@ -221,10 +222,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
                 handleObsoleteFlow(wildFlow, removalCallbacks)
 
         val execFuture = executePacket(wildFlow.getActions)
-
-        flowFuture.flatMap { _ => execFuture }
-                  .map { _ => true }
-                  .recover { case _ => false }
+        flowFuture flatMap { _ => execFuture } continue { _.isSuccess }
     }
 
     private def handleObsoleteFlow(wildFlow: WildcardFlow,
