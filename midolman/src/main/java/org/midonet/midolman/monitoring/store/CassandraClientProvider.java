@@ -36,6 +36,10 @@ public class CassandraClientProvider implements Provider<CassandraClient> {
                 config.getMonitoringCassandraColumnFamily(),
                 config.getCassandraReplicationFactor(),
                 config.getMonitoringCassandraExpirationTimeout(),
+                config.getCassandraThriftSocketTimeout(),
+                config.getCassandraHostTimeoutTracker(),
+                config.getCassandraHostTimeoutCounter(),
+                config.getCassandraHostTimeoutWindow(),
                 reactor
         );
     }

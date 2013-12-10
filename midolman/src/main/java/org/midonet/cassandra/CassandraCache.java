@@ -24,11 +24,16 @@ public class CassandraCache implements Cache {
     public CassandraCache(String servers, int maxActiveConns,
                           String clusterName, String keyspaceName,
                           String columnFamily, int replicationFactor,
-                          int expirationSecs, Reactor reactor)
+                          int expirationSecs, int thriftSocketTimeout,
+                          boolean hostTimeoutTracker, int hostTimeoutCounter,
+                          int hostTimeoutWindow, Reactor reactor)
             throws HectorException {
         client = new CassandraClient(servers, maxActiveConns, clusterName,
                                      keyspaceName, columnFamily,
-                                     replicationFactor, expirationSecs, reactor);
+                                     replicationFactor, expirationSecs,
+                                     thriftSocketTimeout, hostTimeoutTracker,
+                                     hostTimeoutCounter, hostTimeoutWindow,
+                                     reactor);
         client.connect();
     }
 
