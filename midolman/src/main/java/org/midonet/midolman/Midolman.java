@@ -66,14 +66,6 @@ public class Midolman {
         log.info("build.user: {}", properties.get("git.build.user.name"));
         log.info("-------------------------------------");
 
-        log.info("Added SIGTERM handling for cleanup");
-        Signal.handle(new Signal("TERM"), new SignalHandler() {
-            @Override
-            public void handle(Signal sig) {
-                doServicesCleanup();
-            }
-        });
-
         log.info("Adding shutdownHook");
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
