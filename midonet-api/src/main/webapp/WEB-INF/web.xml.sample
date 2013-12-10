@@ -119,6 +119,7 @@
   </context-param>
   <context-param>
     <param-name>zookeeper-zookeeper_hosts</param-name>
+    <!-- comma separated list of Zookeeper nodes(host:port) -->
     <param-value>127.0.0.1:2181</param-value>
   </context-param>
   <context-param>
@@ -134,7 +135,8 @@
   <!-- The following parameters should match the ones in midolman.conf -->
   <context-param>
     <param-name>cassandra-servers</param-name>
-    <param-value>localhost:9160,localhost:10619</param-value>
+    <!-- comma separated list of Cassandra nodes(host:port) -->
+    <param-value>localhost:9160</param-value>
   </context-param>
   <context-param>
     <param-name>cassandra-cluster</param-name>
