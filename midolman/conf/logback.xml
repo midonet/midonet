@@ -24,6 +24,7 @@
     <logger name="org.apache.zookeeper" level="INFO" />
     <logger name="org.apache.cassandra" level="INFO" />
     <logger name="me.prettyprint.cassandra" level="INFO" />
+    <logger name="org.midonet.midolman.NetlinkCallbackDispatcher" level="INFO" />
 
     <root level="info">
         <appender-ref ref="STDOUT" />
