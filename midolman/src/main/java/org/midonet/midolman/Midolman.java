@@ -18,8 +18,6 @@ import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Options;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.misc.Signal;
-import sun.misc.SignalHandler;
 
 import org.midonet.cluster.services.MidostoreSetupService;
 import org.midonet.midolman.guice.CacheModule;
@@ -78,14 +76,6 @@ public class Midolman {
         log.info("build.time: {}", properties.get("git.build.time"));
         log.info("build.user: {}", properties.get("git.build.user.name"));
         log.info("-------------------------------------");
-
-        log.info("Added SIGTERM handling for cleanup");
-        Signal.handle(new Signal("TERM"), new SignalHandler() {
-            @Override
-            public void handle(Signal sig) {
-                doServicesCleanup();
-            }
-        });
 
         log.info("Adding shutdownHook");
         Runtime.getRuntime().addShutdownHook(new Thread() {
