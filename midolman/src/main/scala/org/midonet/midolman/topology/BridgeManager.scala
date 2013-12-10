@@ -134,7 +134,12 @@ class MacLearningManager(log: LoggingAdapter, expirationMillis: Long) {
     }
 
     def doDeletions(currentTime: Long): Unit = {
-        log.debug("Size deleting {}", vlanMacPortsToRemove.size)
+        if (vlanMacPortsToRemove.isEmpty){
+            return
+        }
+
+        log.debug("Found vlanMacPortsToRemove={}, currentTime={}",
+                  vlanMacPortsToRemove, currentTime)
 
         val expiredEntries = vlanMacPortsToRemove.takeWhile
             {case (_, expireTime: Long) => expireTime <= currentTime}.toSeq
