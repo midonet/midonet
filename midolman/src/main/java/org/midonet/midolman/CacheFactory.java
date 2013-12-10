@@ -43,10 +43,18 @@ public class CacheFactory {
                 String keyspace = config.getCassandraMidonetKeyspace();
                 int maxConns = config.getCassandraMaxActiveConnections();
                 int replicationFactor = config.getCassandraReplicationFactor();
+                int thriftSocketTimeout = config.getCassandraThriftSocketTimeout();
+                boolean hostTimeoutTracker = config.getCassandraHostTimeoutTracker();
+                int hostTimeoutCounter = config.getCassandraHostTimeoutCounter();
+                int hostTimeoutWindow = config.getCassandraHostTimeoutWindow();
 
                 cache = new CassandraCache(servers, maxConns, cluster, keyspace,
                                            columnName, replicationFactor,
-                                           cacheExpirationSeconds, reactor);
+                                           cacheExpirationSeconds,
+                                           thriftSocketTimeout,
+                                           hostTimeoutTracker,
+                                           hostTimeoutWindow,
+                                           hostTimeoutCounter, reactor);
             }
         } catch (Exception e) {
             throw new CacheException("error while creating cache", e);

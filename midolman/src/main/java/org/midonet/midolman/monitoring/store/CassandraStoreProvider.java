@@ -33,6 +33,10 @@ public class CassandraStoreProvider implements Provider<CassandraStore> {
             config.getMonitoringCassandraColumnFamily(),
             config.getCassandraReplicationFactor(),
             config.getMonitoringCassandraExpirationTimeout(),
+            config.getCassandraThriftSocketTimeout(),
+            config.getCassandraHostTimeoutTracker(),
+            config.getCassandraHostTimeoutCounter(),
+            config.getCassandraHostTimeoutWindow(),
             reactor);
         return new CassandraStore(client);
     }
