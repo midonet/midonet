@@ -18,6 +18,7 @@ import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.logging.LoggerFactory
 import org.midonet.midolman.rules.Condition
 import org.midonet.midolman.rules.RuleResult
+import org.midonet.midolman.simulation.Icmp.IPv4Icmp._
 import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.midolman.topology._
 import org.midonet.odp.flows._
@@ -25,8 +26,7 @@ import org.midonet.packets.{Ethernet, ICMP, IPv4, IPv4Addr, IPv6Addr, TCP, UDP}
 import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPort
 import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPortSet
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
-import org.midonet.util.concurrent.FutureEx
-import org.midonet.midolman.simulation.Icmp.IPv4Icmp._
+import org.midonet.util.concurrent._
 
 object Coordinator {
 
@@ -398,7 +398,7 @@ class Coordinator(var origMatch: WildcardMatch,
                 }
 
             case ForkAction(acts) =>
-                val results = FutureEx.sequence(acts) {
+                val results = Future.sequentially(acts) {
                     (act: Coordinator.Action) => {
                         // Our handler for each action consists on evaluating
                         // the Coordinator action and pairing it with the

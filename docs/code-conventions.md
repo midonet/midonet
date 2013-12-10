@@ -13,3 +13,23 @@ The mandatory header of every source file must be written as:
     /*
      * Copyright (c) 2013 Midokura Europe SARL, All Rights Reserved.
      */
+
+### Future continuations
+
+In the fast path, when scheduling a continuation on a future using any of the
+combinator methods (`flatMap`, `map`, `recover`, et al), strongly consider
+using the CallingThreadExecutionContext (see details in the source file). Do
+this either by importing it into the current scope or by explicitly passing it
+to the combinator:
+
+    implicit val ex = ExecutionContext.callingThread
+
+    // Both continuations will execute in the context of the thread completing
+    // the first future
+    f map { /* ... */ } recover { /* ... */ }
+
+or
+
+    // The second continuation is executed in the context of the thread
+    // completing the first continuation
+    f map { /* ... */ }.recover { /* ... */ }(ExecutionContext.callingThread)
