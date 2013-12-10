@@ -9,7 +9,7 @@ import compat.Platform
 import java.util.concurrent.TimeoutException
 import java.util.UUID
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.reflect._
@@ -29,6 +29,7 @@ import org.midonet.midolman.logging.{SimulationAwareBusLogging, ActorLogWithoutP
 import org.midonet.midolman.simulation.{PacketContext, Bridge, Chain, Router}
 import org.midonet.midolman.{DeduplicationActor, FlowController, Referenceable}
 import org.midonet.midolman.topology.rcu.TraceConditions
+import org.midonet.util.concurrent._
 
 object VirtualTopologyActor extends Referenceable {
     override val Name: String = "VirtualTopologyActor"
@@ -173,7 +174,7 @@ object VirtualTopologyActor extends Referenceable {
                                                 system: ActorSystem) =
         VirtualTopologyActor.getRef(system)
             .ask(request)(timeLeft milliseconds)
-            .mapTo[D](request.tag) andThen {
+            .mapTo[D](request.tag).andThen {
                 case Failure(ex: ClassCastException) =>
                     if (log != null)
                         log.error("VirtualTopologyManager didn't return a {}!",
@@ -188,7 +189,7 @@ object VirtualTopologyActor extends Referenceable {
                     else if (simLog != null)
                         simLog.warning("Failed to get {}: {} - {}",
                             request.tag.runtimeClass.getSimpleName, request.id, ex)
-            }
+            }(ExecutionContext.callingThread)
 }
 
 class VirtualTopologyActor extends Actor with ActorLogWithoutPath {

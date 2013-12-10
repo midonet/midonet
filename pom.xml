@@ -86,8 +86,8 @@
                     <args>
                         <arg>-deprecation</arg>
                         <arg>-unchecked</arg>
+                        <arg>-language:_</arg>
                         <arg>-dependencyfile</arg>
-                        <arg>-feature</arg>
                         <arg>${project.build.directory}/.scala_dependencies</arg>
                     </args>
                     <source>${versions.java}</source>

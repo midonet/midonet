@@ -136,6 +136,9 @@ allprojects {
         tasks.withType(ScalaCompile) {
             scalaCompileOptions.fork = true
             scalaCompileOptions.useAnt = false
+            scalaCompileOptions.deprecation = true
+            scalaCompileOptions.unchecked = true
+            scalaCompileOptions.additionalParameters = ["-language:_"]
         }
         idea.module.iml.withXml { p -> addScalaLangLevelToIdea(p) }
     }
