@@ -395,7 +395,7 @@ public class PortZkManager extends AbstractZkManager {
 
         List<UUID> routeIds = routeZkManager.listPortRoutes(id, null);
         for (UUID routeId : routeIds) {
-            ops.addAll(routeZkManager.prepareRouteDelete(routeId));
+            ops.addAll(routeZkManager.prepareUnlinkedPortRouteDelete(routeId));
         }
         String portRoutesPath = paths.getPortRoutesPath(id);
         log.debug("Preparing to delete: " + portRoutesPath);
