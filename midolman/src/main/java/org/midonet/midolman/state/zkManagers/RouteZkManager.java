@@ -257,8 +257,8 @@ public class RouteZkManager extends AbstractZkManager {
      * @throws StateAccessException
      *             Serialization or data access error occurred.
      */
-    public List<Op> prepareRouteDelete(UUID id) throws StateAccessException,
-            SerializationException {
+    public List<Op> prepareRouteDelete(UUID id)
+            throws StateAccessException, SerializationException {
         List<Op> ops = new ArrayList<Op>();
         String routePath = paths.getRoutePath(id);
         log.debug("Preparing to delete: " + routePath);
@@ -268,6 +268,27 @@ public class RouteZkManager extends AbstractZkManager {
             log.debug("Preparing to delete: " + path);
             ops.add(Op.delete(path, -1));
         }
+        return ops;
+    }
+
+    /**
+     * Constructs a list of operations to perform in a route deletion,
+     * with the assumption that this is an unlinked port route.
+     *
+     * @param id Route ID
+     * @return A list of Op objects representing the operations to perform.
+     * @throws StateAccessException
+     *             Serialization or data access error occurred.
+     */
+    public List<Op> prepareUnlinkedPortRouteDelete(UUID id)
+            throws StateAccessException, SerializationException {
+        List<Op> ops = new ArrayList<Op>();
+        Route config = get(id);
+        String routePath = paths.getRoutePath(id);
+        String portRoutePath
+                    = paths.getPortRoutePath(config.nextHopPort, id);
+        ops.add(Op.delete(routePath, -1));
+        ops.add(Op.delete(portRoutePath, -1));
         return ops;
     }
 

@@ -92,30 +92,6 @@ public class RouterResource extends AbstractResource {
                     "Not authorized to delete this router.");
         }
 
-        // Get the router's ports. Make sure that:
-        // - the exterior ports are not bound to host interfaces.
-        // - the interior ports are not linked to other devices.
-        List<Port<?, ?>> ports = dataClient.portsFindByRouter(id);
-        for (Port port : ports) {
-            if (port.getPeerId() != null) {
-                throw new WebApplicationException(
-                  ResponseUtils.buildErrorResponse(
-                    Response.Status.CONFLICT.getStatusCode(),
-                      "Interior port " + port.getId() + " must be " +
-                        "unlinked before the router can be deleted."));
-            }
-            if (port.getInterfaceName() != null) {
-              throw new WebApplicationException(
-                ResponseUtils.buildErrorResponse(
-                  Response.Status.CONFLICT.getStatusCode(),
-                    "Exterior port " + port.getId() +
-                       " must be unbound from interface " +
-                       port.getInterfaceName() +
-                       " on host " + port.getHostId() +
-                       " before the router can be deleted."));
-            }
-        }
-
         dataClient.routersDelete(id);
     }
 
