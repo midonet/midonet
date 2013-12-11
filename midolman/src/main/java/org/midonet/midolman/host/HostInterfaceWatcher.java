@@ -3,16 +3,16 @@
  */
 package org.midonet.midolman.host;
 
+import java.util.UUID;
+import java.util.concurrent.locks.LockSupport;
+
 import com.google.inject.Inject;
 import org.midonet.midolman.host.config.HostConfig;
-import org.midonet.midolman.host.interfaces.InterfaceDescription;
 import org.midonet.midolman.host.scanner.InterfaceScanner;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.updater.InterfaceDataUpdater;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.UUID;
 
 /**
  * Main interface scanning loop. Internally it uses an {@link InterfaceScanner}
@@ -36,28 +36,26 @@ public class HostInterfaceWatcher implements Runnable {
     @Inject
     HostConfig configuration;
 
-    boolean isRunning;
+    volatile boolean isRunning;
 
     @Override
     public void run() {
         isRunning = true;
 
-        if(hostId == null){
+        if(hostId == null) {
             log.error("HostID is null, HostInterfaceWatcher will now exit!");
             return;
         }
 
         while (isRunning) {
-
             interfaceDataUpdater.updateInterfacesData(
                 hostId, hostMetadata, interfaceScanner.scanInterfaces());
 
-            try {
-                Thread.sleep(configuration.getWaitTimeBetweenHostScans());
-            } catch (InterruptedException e) {
-                log.debug("Got interrupted. Stopping watcher loop");
-                break;
-            }
+            long deadline = System.currentTimeMillis() +
+                            configuration.getWaitTimeBetweenHostScans();
+            do {
+                LockSupport.parkUntil(deadline);
+            } while (System.currentTimeMillis() < deadline);
         }
         log.info("Midolman host watcher thread stopped.");
     }
