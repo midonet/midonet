@@ -419,12 +419,6 @@ public class TestRouter {
                 dtoResource.postAndVerifyCreated(resHost.getPorts(),
                     APPLICATION_HOST_INTERFACE_PORT_JSON, hostBinding,
                     DtoHostInterfacePort.class);
-            // Deleting the router is not allowed because of the binding.
-            ClientResponse resp = dtoResource.deleteAndVerifyStatus(
-                resRouter.getUri(), APPLICATION_JSON, CONFLICT.getStatusCode());
-            // Unbind the port. Deleting the router now succeeds.
-            dtoResource.deleteAndVerifyNoContent(resPortBinding.getUri(),
-                APPLICATION_JSON);
             dtoResource.deleteAndVerifyNoContent(
                 resRouter.getUri(), APPLICATION_ROUTER_JSON);
         }
@@ -461,12 +455,6 @@ public class TestRouter {
             bPort.setPeerId(resPort.getId());
             dtoResource.postAndVerifyStatus(bPort.getLink(),
                 APPLICATION_PORT_LINK_JSON, bPort, CREATED.getStatusCode());
-            // Deleting the router is not allowed.
-            dtoResource.deleteAndVerifyStatus(
-                resRouter.getUri(), APPLICATION_JSON, CONFLICT.getStatusCode());
-            // Unlink the bridge and router. Now the router delete succeeds.
-            dtoResource.deleteAndVerifyStatus(bPort.getLink(),
-                APPLICATION_JSON, NO_CONTENT.getStatusCode());
             dtoResource.deleteAndVerifyNoContent(
                 resRouter.getUri(), APPLICATION_ROUTER_JSON);
         }
