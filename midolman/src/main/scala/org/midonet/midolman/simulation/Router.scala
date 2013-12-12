@@ -1,9 +1,9 @@
 /*
- * Copyright 2012 Midokura Europe SARL
+ * Copyright (c) 2013 Midokura Europe SARL, All Rights Reserved.
  */
 package org.midonet.midolman.simulation
 
-import akka.actor.{ActorContext, ActorSystem}
+import akka.actor.ActorSystem
 import scala.concurrent.{ExecutionContext, Future}
 import java.util.UUID
 
@@ -28,7 +28,8 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
              override val rTable: RoutingTableWrapper[IPv4Addr],
              override val inFilter: Chain, override val outFilter: Chain,
              override val routerMgrTagger: TagManager,
-             val arpTable: ArpTable) (implicit context: ActorContext)
+             val arpTable: ArpTable)
+            (implicit system: ActorSystem)
       extends RouterBase[IPv4Addr] {
 
     override val validEthertypes: Set[Short]= Set(IPv4.ETHERTYPE, ARP.ETHERTYPE)
@@ -37,28 +38,26 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
 
     private def processArp(pkt: IPacket, inPort: RouterPort)
                           (implicit ec: ExecutionContext,
-                           actorSystem: ActorSystem,
-                           originalPktContext: PacketContext): Action = pkt match {
-
-        case arp: ARP => arp.getOpCode match {
-            case ARP.OP_REQUEST =>
-                processArpRequest(arp, inPort)
-                ConsumedAction
-            case ARP.OP_REPLY =>
-                processArpReply(arp, inPort)
-                ConsumedAction
+                                    originalPktContext: PacketContext): Action =
+        pkt match {
+            case arp: ARP => arp.getOpCode match {
+                case ARP.OP_REQUEST =>
+                    processArpRequest(arp, inPort)
+                    ConsumedAction
+                case ARP.OP_REPLY =>
+                    processArpReply(arp, inPort)
+                    ConsumedAction
+                case _ =>
+                    DropAction
+                }
             case _ =>
+                log.warning("Non-ARP packet with ethertype ARP: {}", pkt)(null)
                 DropAction
-            }
-        case _ =>
-            log.warning("Non-ARP packet with ethertype ARP: {}", pkt)(null)
-            DropAction
-    }
+        }
 
     override protected def handleL2Broadcast(inPort: RouterPort)
-                                            (implicit pktContext: PacketContext,
-                                             ec: ExecutionContext,
-                                             actorSystem: ActorSystem)
+                                            (implicit ec: ExecutionContext,
+                                                      pktContext: PacketContext)
     : Action = {
 
         // Broadcast packet:  Handle if ARP, drop otherwise.
@@ -71,8 +70,7 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
 
     override def handleNeighbouring(inPort: RouterPort)
                                    (implicit ec: ExecutionContext,
-                                    pktContext: PacketContext,
-                                    actorSystem: ActorSystem)
+                                             pktContext: PacketContext)
     : Option[Action] = {
         if (pktContext.wcmatch.getEtherType == ARP.ETHERTYPE) {
             // Non-broadcast ARP.  Handle reply, drop rest.
@@ -84,9 +82,7 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
 
     private def processArpRequest(pkt: ARP, inPort: RouterPort)
                                  (implicit ec: ExecutionContext,
-                                           actorSystem: ActorSystem,
                                            origPktContext: PacketContext) {
-
         if (pkt.getProtocolType != ARP.PROTO_TYPE_IP)
             return
 
@@ -123,14 +119,13 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
         // Construct the reply, reversing src/dst fields from the request.
         val eth = ARP.makeArpReply(inPort.portMac, sha,
             pkt.getTargetProtocolAddress, pkt.getSenderProtocolAddress)
-        DeduplicationActor.getRef(actorSystem) ! EmitGeneratedPacket(
+        DeduplicationActor.getRef() ! EmitGeneratedPacket(
             inPort.id, eth,
             if (origPktContext != null) origPktContext.flowCookie else None)
     }
 
     private def processArpReply(pkt: ARP, port: RouterPort)
                                (implicit ec: ExecutionContext,
-                                         actorSystem: ActorSystem,
                                          pktContext: PacketContext) {
 
         // Verify the reply:  It's addressed to our MAC & IP, and is about
@@ -180,8 +175,8 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
 
     override protected def sendIcmpEchoReply(ingressMatch: WildcardMatch,
                                              packet: Ethernet, expiry: Long)
-                    (implicit ec: ExecutionContext, actorSystem: ActorSystem,
-                              packetContext: PacketContext) {
+                                   (implicit ec: ExecutionContext,
+                                             packetContext: PacketContext) {
         val echo = packet.getPayload match {
             case ip: IPv4 => ip.getPayload match {
                                 case icmp: ICMP => icmp
@@ -206,8 +201,7 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
 
     private def getPeerMac(rtrPort: RouterPort, expiry: Long)
                           (implicit ec: ExecutionContext,
-                           actorSystem: ActorSystem,
-                           pktContext: PacketContext)
+                                    pktContext: PacketContext)
     : Future[MAC] =
         expiringAsk(PortRequest(rtrPort.peerID), log, expiry) map {
             case rp: RouterPort => rp.portMac
@@ -219,8 +213,7 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
     private def getMacForIP(port: RouterPort, nextHopIP: IPv4Addr,
                             expiry: Long)
                            (implicit ec: ExecutionContext,
-                            actorSystem: ActorSystem,
-                            pktContext: PacketContext): Future[MAC] = {
+                                     pktContext: PacketContext): Future[MAC] = {
 
         if (port.isInterior)
             return arpTable.get(nextHopIP, port, expiry)
@@ -240,9 +233,9 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
 
     override protected def getNextHopMac(outPort: RouterPort, rt: Route,
                                          ipDest: IPv4Addr, expiry: Long)
-                             (implicit ec: ExecutionContext,
-                              actorSystem: ActorSystem,
-                              pktContext: PacketContext): Future[MAC] = {
+                                        (implicit ec: ExecutionContext,
+                                                  pktContext: PacketContext)
+    : Future[MAC] = {
         if (outPort == null)
             return Future.successful(null)
 
@@ -291,8 +284,8 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
      *        packet for simulation if successful.
      */
     def sendIPPacket(packet: IPv4, expiry: Long)
-                    (implicit ec: ExecutionContext, actorSystem: ActorSystem,
-                     packetContext: PacketContext) {
+                    (implicit ec: ExecutionContext,
+                              packetContext: PacketContext) {
 
         /**
          * Applies some post-chain transformations that might be necessary on

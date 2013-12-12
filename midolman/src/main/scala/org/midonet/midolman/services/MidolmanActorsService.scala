@@ -1,11 +1,10 @@
 /*
-* Copyright 2013 Midokura Europe SARL
-*/
+ * Copyright (c) 2013 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.midolman.services
 
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{ExecutionContext, Await, Future}
 import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.reflect.ClassTag
 
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
@@ -46,6 +45,7 @@ class MidolmanActorsService extends AbstractService {
 
     private var _system: ActorSystem = null
     implicit def system: ActorSystem = _system
+    implicit def ex: ExecutionContext = _system.dispatcher
     implicit protected val tout = new Timeout(3 seconds)
 
     protected def actorSpecs = {
@@ -128,6 +128,6 @@ class MidolmanActorsService extends AbstractService {
 
     def initProcessing() {
         log.debug("Sending Initialization message to datapath controller.")
-        DatapathController.getRef(system) ! DatapathController.initializeMsg
+        DatapathController.getRef() ! DatapathController.initializeMsg
     }
 }

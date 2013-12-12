@@ -1,6 +1,6 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2013 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.midolman
 
 import scala.collection.JavaConverters._
@@ -288,7 +288,8 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
 
     override implicit val requestReplyTimeout: Timeout = new Timeout(1 second)
     override val cookieStr: String = ""
-    override implicit protected val executor = context.dispatcher
+
+    override protected implicit val system = context.system
 
     @Inject
     val datapathConnection: OvsDatapathConnection = null
@@ -1281,8 +1282,7 @@ class VirtualPortManager(
  *  the DatapathController. It also exposes the DatapathController managed
  *  data to clients for WilcardFlow translation. */
 class DatapathStateManager(val controller: VirtualPortManager.Controller)(
-        implicit val context: ActorContext,
-        implicit val log: LoggingAdapter) extends DatapathState {
+                  implicit val log: LoggingAdapter) extends DatapathState {
 
     @scala.volatile private var _vportMgr = new VirtualPortManager(controller)
     @scala.volatile private var _version: Long = 0

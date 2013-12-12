@@ -5,7 +5,6 @@ package org.midonet.midolman
 import java.util.concurrent.{TimeoutException, TimeUnit}
 
 import scala.annotation.tailrec
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Promise
 import scala.concurrent.duration.Duration
 
@@ -24,6 +23,7 @@ object SuspendedPacketQueue {
 
 trait SuspendedPacketQueue extends Actor with ActorLogWithoutPath {
     import SuspendedPacketQueue._
+    import context.dispatcher
 
     // not a val because, when overriding in a test, the val will not get its
     // proper value in time for the array below creation

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 Midokura Europe SARL
+ * Copyright (c) 2013 Midokura Europe SARL, All Rights Reserved.
  */
 package org.midonet.midolman.topology
 
@@ -11,6 +11,8 @@ import org.midonet.midolman.topology.VirtualTopologyActor.{ChainRequest,
 import org.midonet.midolman.logging.ActorLogWithoutPath
 
 abstract class DeviceManager(val id: UUID) extends Actor with ActorLogWithoutPath {
+    import context.system
+
     var inFilter: Chain = null
     var outFilter: Chain = null
 

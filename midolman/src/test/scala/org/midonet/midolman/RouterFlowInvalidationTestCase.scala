@@ -10,7 +10,6 @@ import scala.collection.mutable
 import scala.collection.{Set => ROSet}
 
 import akka.testkit.TestProbe
-import scala.concurrent.duration
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
@@ -131,7 +130,7 @@ class RouterFlowInvalidationTestCase extends MidolmanTestCase with RouterHelper
     def testFlowInFlightInvalidation() {
         val datapath = flowController().underlyingActor.datapath
         val dpconn = flowController().underlyingActor.datapathConnection
-        val fc = FlowController.getRef(actors())
+        val fc = FlowController.getRef()
         val dpFlowProbe = newProbe()
         actors().eventStream.subscribe(dpFlowProbe.ref, classOf[FlowAdded])
         actors().eventStream.subscribe(dpFlowProbe.ref, classOf[FlowRemoved])
