@@ -103,7 +103,7 @@ class Bridge(val id: UUID, val tunnelKey: Long,
         // Some basic sanity checks
         if (Ethernet.isMcast(packetContext.wcmatch.getEthernetSource)) {
             log.info("Packet has multi/broadcast source, DROP")
-            Promise.successful(DropAction)
+            Promise.successful(DropAction())
         } else
             normalProcess(packetContext)
     }
@@ -134,7 +134,7 @@ class Bridge(val id: UUID, val tunnelKey: Long,
                     updateFlowCount(srcDlAddress, packetContext)
                     // No point in tagging by dst-MAC+Port because the outPort was
                     // not used in deciding to drop the flow.
-                    return Promise.successful(DropAction)
+                    return Promise.successful(DropAction())
                 case other =>
                     log.error("Pre-bridging for {} returned {} which was not " +
                               "ACCEPT, DROP or REJECT.", id, other)
@@ -262,7 +262,7 @@ class Bridge(val id: UUID, val tunnelKey: Long,
             case vlanId if vlanInFrame == None =>
                 log.warning("Out port has vlan {}, but frame did not" +
                     "have any, DROP", vlanId)
-                DropAction
+                DropAction()
             case vlanId if vlanInFrame.get == vlanId =>
                 log.debug("OutPort has vlan {}, POP & forward", vlanId)
                 pktCtx.wcmatch.removeVlanId(vlanId)
@@ -270,7 +270,7 @@ class Bridge(val id: UUID, val tunnelKey: Long,
             case vlanId =>
                 log.warning("OutPort has vlan {} but frame has {}, " +
                             "DROP", vlanInFrame.get)
-                DropAction
+                DropAction()
         }
     }
 
@@ -452,7 +452,7 @@ class Bridge(val id: UUID, val tunnelKey: Long,
                 act
             case RuleResult.Action.DROP | RuleResult.Action.REJECT =>
                 log.debug("Dropping the packet due to egress filter.")
-                DropAction
+                DropAction()
             case other =>
                 log.error("Post-bridging for {} returned {} which was not " +
                           "ACCEPT, DROP, or REJECT.", id, other)

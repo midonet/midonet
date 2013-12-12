@@ -44,7 +44,7 @@ object Coordinator {
     // because of an error, not because the virtual topology justifies it.
     // The resulting Drop rule may be temporary to allow retrying.
     case object ErrorDropAction extends Action
-    case object DropAction extends Action
+    case class DropAction(temporary: Boolean = false) extends Action
 
     // NotIPv4Action implies a DROP flow. However, it differs from DropAction
     // in that the installed flow match can have all fields >L2 wildcarded.
@@ -478,7 +478,7 @@ class Coordinator(var origMatch: WildcardMatch,
                         dropFlow(temporary = true)
                 }
 
-            case DropAction =>
+            case DropAction(temporary) =>
                 pktContext.traceMessage(null, "Dropping flow")
                 pktContext.freeze()
                 log.debug("Device returned DropAction for {}", origMatch)
@@ -487,7 +487,7 @@ class Coordinator(var origMatch: WildcardMatch,
                         pktContext.getFlowRemovedCallbacks foreach { _.call() }
                         NoOp
                     case Some(_) =>
-                        dropFlow(pktContext.isConnTracked, withTags = true)
+                        dropFlow(temporary || pktContext.isConnTracked, withTags = !temporary)
                 }
 
             case NotIPv4Action =>

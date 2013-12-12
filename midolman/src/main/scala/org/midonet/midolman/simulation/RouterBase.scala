@@ -63,7 +63,7 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
 
         if (!pktContext.wcmatch.getVlanIds.isEmpty) {
             log.info("Dropping VLAN tagged traffic")
-            return Promise.successful(DropAction)
+            return Promise.successful(DropAction())
         }
 
         if (!validEthertypes.contains(pktContext.wcmatch.getEtherType)) {
@@ -75,7 +75,7 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
         getRouterPort(pktContext.inPortId, pktContext.expiry) flatMap {
             case null =>
                 log.debug("Router - in port {} was null", pktContext.inPortId)
-                Promise.successful(DropAction)
+                Promise.successful(DropAction())
             case inPort =>
                 preRouting(inPort)
         }
@@ -94,11 +94,11 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
         preRoutingResult.action match {
             case RuleResult.Action.ACCEPT => // pass through
             case RuleResult.Action.DROP =>
-                return Some(DropAction)
+                return Some(DropAction())
             case RuleResult.Action.REJECT =>
                 sendIcmpUnreachableProhibError(inPort, pktContext.wcmatch,
                     pktContext.frame)
-                return Some(DropAction)
+                return Some(DropAction())
             case other =>
                 log.error("Pre-routing for {} returned an action which was {}, " +
                     "not ACCEPT, DROP, or REJECT.", id, preRoutingResult.action)
@@ -127,7 +127,7 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
         if (hwDst != inPort.portMac) { // Not addressed to us, log.warn and drop
             log.warning("{} neither broadcast nor inPort's MAC ({})", hwDst,
                 inPort.portMac)
-            return Promise.successful(DropAction)
+            return Promise.successful(DropAction())
         }
 
         pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(id))
@@ -147,92 +147,132 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
 
     private def routing(inPort: RouterPort[_])
                        (implicit ec: ExecutionContext,
-                                 pktContext: PacketContext,
+                                 context: PacketContext,
                                  actorSystem: ActorSystem): Future[Action] = {
 
-        val pMatch = pktContext.wcmatch
-        val pFrame = pktContext.frame
+        val frame = context.frame
+        val wcmatch = context.wcmatch
+        val dstIP = context.wcmatch.getNetworkDestinationIP
 
-        /* TODO(D-release): Have WildcardMatch take a DecTTLBy instead,
-         * so that there need only be one sim. run for different TTLs.  */
-        if (pMatch.getNetworkTTL != null) {
-            val ttl = Unsigned.unsign(pMatch.getNetworkTTL)
-            if (ttl <= 1) {
-                sendIcmpTimeExceededError(inPort, pMatch, pFrame)
-                return Promise.successful(DropAction)
-            } else {
-                pMatch.setNetworkTTL((ttl - 1).toByte)
+        def applyTimeToLive: Option[Action] = {
+            /* TODO(guillermo, pino): Have WildcardMatch take a DecTTLBy instead,
+             * so that there need only be one sim. run for different TTLs.  */
+            if (wcmatch.getNetworkTTL != null) {
+                val ttl = Unsigned.unsign(wcmatch.getNetworkTTL)
+                if (ttl <= 1) {
+                    sendIcmpTimeExceededError(inPort, wcmatch, frame)
+                    return Some(DropAction())
+                } else {
+                    context.wcmatch.setNetworkTTL((ttl - 1).toByte)
+                    return None
+                }
             }
+
+            None
         }
 
-        // tag using the destination IP
-        val dstIP = pMatch.getNetworkDestinationIP
-        pktContext.addFlowTag(FlowTagger.invalidateByIp(id, dstIP))
-        // pass tag to the RouterManager so it'll be able to invalidate the flow
-        routerMgrTagger.addTag(dstIP)
-        // register the tag removal callback
-        pktContext.addFlowRemovedCallback(routerMgrTagger
-                                          .getFlowRemovalCallback(dstIP))
+        def applyRoutingTable: (Route, Action) = {
+            val rt: Route = loadBalancer.lookup(wcmatch)
 
-        val rt: Route = loadBalancer.lookup(pMatch)
-        if (rt == null) {
-            // No route to network
-            log.debug("Route lookup: No route to network (dst:{}), {}",
-                dstIP, rTable.rTable)
-            sendIcmpUnreachableNetError(inPort, pMatch, pFrame)
-            return Promise.successful(DropAction)
-        }
+            if (rt == null) {
+                // No route to network
+                log.debug("Route lookup: No route to network (dst:{}), {}",
+                    dstIP, rTable.rTable)
+                sendIcmpUnreachableNetError(inPort, wcmatch, frame)
+                return (rt, DropAction())
+            }
 
-        // tag using this route
-        pktContext.addFlowTag(FlowTagger.invalidateByRoute(id, rt.hashCode()))
-
-        rt.nextHop match {
-            case Route.NextHop.LOCAL =>
-                if (isIcmpEchoRequest(pMatch)) {
-                    log.debug("got ICMP echo")
-                    sendIcmpEchoReply(pMatch, pFrame, pktContext.expiry)
-                    Promise.successful(ConsumedAction)
-                } else {
-                    Promise.successful(DropAction)
-                }
-
-            case Route.NextHop.BLACKHOLE =>
-                log.debug("Dropping packet, BLACKHOLE route (dst:{})",
-                    pMatch.getNetworkDestinationIP)
-                Promise.successful(DropAction)
-
-            case Route.NextHop.REJECT =>
-                sendIcmpUnreachableProhibError(inPort, pMatch, pFrame)
-                log.debug("Dropping packet, REJECT route (dst:{})",
-                    pMatch.getNetworkDestinationIP)
-                Promise.successful(DropAction)
-
-            case Route.NextHop.PORT =>
-                if (rt.nextHopPort == null) {
-                    log.error("Routing table lookup for {} forwarded to port " +
-                        "null.", dstIP)
-                    // TODO(pino): should we remove this route?
-                    Promise.successful(DropAction)
-                } else {
-                    getRouterPort(rt.nextHopPort, pktContext.expiry) flatMap {
-                        case null =>
-                            Promise.successful(ErrorDropAction)
-                        case outPort =>
-                            postRouting(inPort, outPort, rt, pktContext)
+            val action = rt.nextHop match {
+                case Route.NextHop.LOCAL =>
+                    if (isIcmpEchoRequest(wcmatch)) {
+                        log.debug("got ICMP echo")
+                        sendIcmpEchoReply(wcmatch, frame, context.expiry)
+                        ConsumedAction
+                    } else {
+                        DropAction(temporary = true)
                     }
-                }
+
+                case Route.NextHop.BLACKHOLE =>
+                    log.debug("Dropping packet, BLACKHOLE route (dst:{})",
+                        wcmatch.getNetworkDestinationIP)
+                    DropAction(temporary = true)
+
+                case Route.NextHop.REJECT =>
+                    sendIcmpUnreachableProhibError(inPort, wcmatch, frame)
+                    log.debug("Dropping packet, REJECT route (dst:{})",
+                        wcmatch.getNetworkDestinationIP)
+                    DropAction()
+
+                case Route.NextHop.PORT =>
+                    if (rt.nextHopPort == null) {
+                        log.error("Routing table lookup for {} forwarded to port " +
+                            "null.", dstIP)
+                        // TODO(pino): should we remove this route?
+                        DropAction()
+                    } else {
+                        ToPortAction(rt.nextHopPort)
+                    }
+
+                case _ =>
+                    log.error("Routing table lookup for {} returned invalid " +
+                        "nextHop of {}", dstIP, rt.nextHop)
+                    // rt.nextHop is invalid. The only way the simulation result
+                    // would change is if there are other matching routes that are
+                    // 'sane'. If such routes were created, this flow will be
+                    // invalidated. Thus, we can return DropAction and not
+                    // ErrorDropAction
+                    DropAction()
+            }
+
+            (rt, action)
+        }
+
+        def applyTagsForRoute(routeResult: (Route, Action)) = routeResult match {
+            case (route, DropAction(true)) =>
+                routeResult
+            //case (route, ConsumedAction) =>
+            //    routeResult
+            case (route, action) =>
+                /* We don't want to tag a temporary flow (e.g. created by a
+                 * BLACKHOLE route), and we do that to avoid excessive interaction
+                 * with the RouterManager, who needs to keep track of every
+                 * IP address the router gives to it.
+                 */
+
+                // tag using this route
+                if (route != null)
+                    context.addFlowTag(FlowTagger.invalidateByRoute(id, route.hashCode()))
+
+                // tag using the destination IP
+                context.addFlowTag(FlowTagger.invalidateByIp(id, dstIP))
+                // pass tag to the RouterManager so it'll be able to invalidate the flow
+                routerMgrTagger.addTag(dstIP)
+                // register the tag removal callback
+                context.addFlowRemovedCallback(
+                    routerMgrTagger.getFlowRemovalCallback(dstIP))
+                routeResult
 
             case _ =>
-                log.error("Routing table lookup for {} returned invalid " +
-                    "nextHop of {}", dstIP, rt.nextHop)
-                // rt.nextHop is invalid. The only way the simulation result
-                // would change is if there are other matching routes that are
-                // 'sane'. If such routes were created, this flow will be
-                // invalidated. Thus, we can return DropAction and not
-                // ErrorDropAction
-                Promise.successful(DropAction)
+                routeResult
         }
 
+        (applyTimeToLive match {
+            case Some(action) =>
+                (null, action)
+            case None =>
+                applyTagsForRoute(applyRoutingTable)
+        }) match {
+            case (rt, ToPortAction(outPortId)) =>
+                getRouterPort(outPortId, context.expiry) flatMap {
+                    case null =>
+                        Promise.successful(ErrorDropAction)
+                    case outPort =>
+                        postRouting(inPort, outPort, rt, context)
+                }
+
+            case (rt, action) =>
+                Promise.successful(action)
+        }
     }
 
     // POST ROUTING
@@ -254,11 +294,11 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
             case RuleResult.Action.ACCEPT => // pass through
             case RuleResult.Action.DROP =>
                 log.debug("PostRouting DROP rule")
-                return Promise.successful(DropAction)
+                return Promise.successful(DropAction())
             case RuleResult.Action.REJECT =>
                 log.debug("PostRouting REJECT rule")
                 sendIcmpUnreachableProhibError(inPort, pMatch, pFrame)
-                return Promise.successful(DropAction)
+                return Promise.successful(DropAction())
             case other =>
                 log.error("Post-routing for {} returned {} which was not " +
                     "ACCEPT, DROP or REJECT.", id, other)
@@ -272,7 +312,7 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext)
 
         if (pMatch.getNetworkDestinationIP == outPort.portAddr.getAddress) {
             log.error("Got a packet addressed to a port without a LOCAL route")
-            return Promise.successful(DropAction)
+            return Promise.successful(DropAction())
         }
 
         // Set HWDst

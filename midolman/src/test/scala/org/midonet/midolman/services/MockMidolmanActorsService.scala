@@ -7,6 +7,7 @@ import akka.actor.{Props, Actor}
 import akka.testkit.TestActorRef
 import com.google.inject.Inject
 import com.google.inject.Injector
+import scala.collection.{breakOut => asType}
 
 import org.midonet.midolman.DatapathController
 import org.midonet.midolman.DeduplicationActor
@@ -35,7 +36,9 @@ class MessageAccumulator extends Actor {
 /**
  * An actors service where all well-known actors are MessageAccumulator instances
  */
-class MockMidolmanActorsService extends MidolmanActorsService {
+class MockMidolmanActorsService(givenActorSpecs: Map[String, Props] = Map.empty)
+        extends MidolmanActorsService {
+
     @Inject
     override val injector: Injector = null
 
@@ -48,14 +51,16 @@ class MockMidolmanActorsService extends MidolmanActorsService {
 
     private def mockProps = new Props(() => new MessageAccumulator())
 
-    override protected def actorSpecs = List(
-        (mockProps, VirtualTopologyActor.Name),
-        (mockProps, VirtualToPhysicalMapper.Name),
-        (mockProps, DatapathController.Name),
-        (mockProps, FlowController.Name),
-        (mockProps, RoutingManagerActor.Name),
-        (mockProps, DeduplicationActor.Name),
-        (mockProps, NetlinkCallbackDispatcher.Name))
+    private def defaultActorSpecs = Map(VirtualTopologyActor.Name -> mockProps,
+                                        VirtualToPhysicalMapper.Name -> mockProps,
+                                        DatapathController.Name -> mockProps,
+                                        FlowController.Name -> mockProps,
+                                        RoutingManagerActor.Name -> mockProps,
+                                        DeduplicationActor.Name -> mockProps,
+                                        NetlinkCallbackDispatcher.Name -> mockProps)
+
+
+    override protected def actorSpecs = (defaultActorSpecs ++ givenActorSpecs).map( _.swap )(asType(List.canBuildFrom))
 
     override protected def startActor(actorProps: Props, actorName: String) = {
         supervisorActor map {

@@ -65,7 +65,7 @@ class VlanAwareBridge(val id: UUID,
         if (vlanId == null) {
             log.debug(
                 "Frame from port {} without vlan id, DROP", pktCtx.inPortId)
-            DropAction
+            DropAction()
         } else {
             log.debug(
                 "Frame from logical port, add vlan id to match {} ", vlanId)
@@ -95,7 +95,7 @@ class VlanAwareBridge(val id: UUID,
             val outPortId: UUID = vlanPortMap.getPort(vlanId)
             if (outPortId == null) {
                 log.debug("Frame with unknown Vlan Id, discard")
-                DropAction
+                DropAction()
             } else {
                 log.debug("Vlan Id {} maps to port {}, remove and send",
                           vlanId, outPortId)

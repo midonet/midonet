@@ -8,6 +8,7 @@ import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 import akka.actor._
+import akka.dispatch.{Await, Future}
 import akka.testkit._
 import akka.util.{Duration, Timeout}
 import akka.util.duration._
@@ -71,10 +72,15 @@ class SingleActorTestCase extends Suite with FeatureSpec with BeforeAndAfter wit
             .asInstanceOf[MockOvsDatapathConnection]
     }
 
-    private def injectedInstance[T <: Actor](f: () => T): T = {
+    protected def injectedInstance[T <: Actor](f: () => T): T = {
         val instance = f()
         injector.injectMembers(instance)
         instance
+    }
+
+    protected def ask[T](actor: ActorRef, msg: Object): T = {
+        val promise = akka.pattern.ask(actor, msg).asInstanceOf[Future[T]]
+        Await.result(promise, timeout)
     }
 
     protected def actorFor[T <: Actor](f: () => T): TestActorRef[T] =
@@ -162,10 +168,12 @@ class SingleActorTestCase extends Suite with FeatureSpec with BeforeAndAfter wit
         )
     }
 
+    def actorSpecs: Map[String, Props] = Map.empty
+
     class MockMidolmanActorsModule() extends MidolmanActorsModule {
         protected override def bindMidolmanActorsService() {
             bind(classOf[MidolmanActorsService])
-                .toInstance(new MockMidolmanActorsService())
+                .toInstance(new MockMidolmanActorsService(actorSpecs))
         }
     }
 }

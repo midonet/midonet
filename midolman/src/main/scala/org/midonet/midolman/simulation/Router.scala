@@ -50,11 +50,11 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
                     processArpReply(arp, inPort)
                     ConsumedAction
                 case _ =>
-                    DropAction
+                    DropAction()
             }
         case _ =>
             log.warning("Non-ARP packet with ethertype ARP: {}", pkt)(null)
-            DropAction
+            DropAction()
     }
 
     override protected def handleL2Broadcast(inPort: RouterPort[_])
@@ -67,7 +67,7 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
         if (pktContext.wcmatch.getEtherType == ARP.ETHERTYPE)
             processArp(payload, inPort)
         else
-            DropAction
+            DropAction()
     }
 
     override def handleNeighbouring(inPort: RouterPort[_])
