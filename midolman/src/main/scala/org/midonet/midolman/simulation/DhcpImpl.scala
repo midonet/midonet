@@ -1,7 +1,6 @@
 /*
- * Copyright 2012 Midokura Europe SARL
+ * Copyright (c) 2013 Midokura Europe SARL, All Rights Reserved.
  */
-
 package org.midonet.midolman.simulation
 
 import java.util.UUID
@@ -10,7 +9,7 @@ import collection.JavaConversions._
 import collection.{immutable, mutable}
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
-import akka.actor.{ActorSystem, ActorContext}
+import akka.actor.ActorSystem
 import akka.pattern.ask
 import scala.concurrent.duration._
 import akka.util.Timeout
@@ -31,10 +30,9 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
                   val request: DHCP, val sourceMac: MAC,
                   val cookie: Option[Int])
                  (implicit val ec: ExecutionContext,
-                           val actorSystem: ActorSystem,
-                           val context: ActorContext) {
-    private val log = akka.event.Logging(context.system, this.getClass)
-    private val datapathController = DatapathController.getRef(context.system)
+                           val system: ActorSystem) {
+    private val log = akka.event.Logging(system, this.getClass)
+    private val datapathController = DatapathController.getRef()
 
     private var serverAddr: IntIPv4 = null
     private var serverMac: MAC = null

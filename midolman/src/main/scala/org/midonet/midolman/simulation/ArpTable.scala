@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 Midokura Europe SARL
+ * Copyright (c) 2013 Midokura Europe SARL, All Rights Reserved.
  */
 package org.midonet.midolman.simulation
 
@@ -11,7 +11,7 @@ import scala.concurrent._
 import scala.concurrent.duration.Duration
 import scala.util.Success
 
-import akka.actor.{ActorContext, ActorSystem}
+import akka.actor.ActorSystem
 
 import org.midonet.cluster.client.{ArpCache, RouterPort}
 import org.midonet.midolman.DeduplicationActor
@@ -27,10 +27,9 @@ import org.midonet.util.functors.{Callback2, Callback1}
  * processes and schedules ARPs. */
 trait ArpTable {
     def get(ip: IPv4Addr, port: RouterPort, expiry: Long)
-           (implicit ec: ExecutionContext, actorSystem: ActorSystem,
-            pktContext: PacketContext): Future[MAC]
-    def set(ip: IPv4Addr, mac: MAC) (implicit ec: ExecutionContext,
-                                              actorSystem: ActorSystem)
+           (implicit ec: ExecutionContext,
+                     pktContext: PacketContext): Future[MAC]
+    def set(ip: IPv4Addr, mac: MAC)(implicit ec: ExecutionContext)
     def start()
     def stop()
 }
@@ -52,9 +51,9 @@ trait SynchronizedMultiMap[A, B] extends mutable.MultiMap[A, B] with
 
 class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
                    val observer: (IPv4Addr, MAC) => Unit)
-                  (implicit context: ActorContext) extends ArpTable {
+                  (implicit system: ActorSystem) extends ArpTable {
     private val log =
-        LoggerFactory.getActorSystemThreadLog(this.getClass)(context.system.eventStream)
+        LoggerFactory.getActorSystemThreadLog(this.getClass)(system.eventStream)
     private val ARP_RETRY_MILLIS = cfg.getArpRetryIntervalSeconds * 1000
     private val ARP_TIMEOUT_MILLIS = cfg.getArpTimeoutSeconds * 1000
     private val ARP_STALE_MILLIS = cfg.getArpStaleSeconds * 1000
@@ -97,25 +96,23 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
      * @param expiry
      * @param onExpire If the promise is expired, onExpire will be executed
      *                 with the promise as an argument.
-     * @param actorSystem
      * @tparam T
      * @return
      */
     private def promiseOnExpire[T](promise: Promise[T], expiry: Long,
                                    onExpire: (Promise[T]) => Unit)
-                                  (implicit actorSystem: ActorSystem,
-                                            ec: ExecutionContext): Promise[T] = {
+                                  (implicit ec: ExecutionContext): Promise[T] = {
         val now = Platform.currentTime
         if (now >= expiry) {
             if (promise tryFailure new TimeoutException()) {
-                actorSystem.dispatcher.execute(new Runnable {
-                    def run = onExpire(promise)
+                system.dispatcher.execute(new Runnable {
+                    def run() = onExpire(promise)
                 })
             }
             return promise
         }
         val when = Duration.create(expiry - now, TimeUnit.MILLISECONDS)
-        val exp = actorSystem.scheduler.scheduleOnce(when) {
+        val exp = system.scheduler.scheduleOnce(when) {
             if (promise tryFailure new TimeoutException())
                 onExpire(promise)
         }
@@ -141,8 +138,7 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
     }
 
     def waitForArpEntry(ip: IPv4Addr, expiry: Long)
-                       (implicit ec: ExecutionContext,
-                        actorSystem: ActorSystem) : Promise[MAC] = {
+                       (implicit ec: ExecutionContext) : Promise[MAC] = {
         val p = promise[MAC]()
         arpWaiters.addBinding(ip, p)
         promiseOnExpire[MAC](p, expiry, p => removeArpWaiter(ip, p))
@@ -150,8 +146,7 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
 
     def get(ip: IPv4Addr, port: RouterPort, expiry: Long)
            (implicit ec: ExecutionContext,
-            actorSystem: ActorSystem,
-            pktContext: PacketContext): Future[MAC] = {
+                     pktContext: PacketContext): Future[MAC] = {
         log.debug("Resolving MAC for {}", ip)
         /*
          * We must invoke waitForArpEntry() before requesting the ArpCacheEntry.
@@ -189,8 +184,7 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
         } fallbackTo { Future.successful(null) }
     }
 
-    def set(ip: IPv4Addr, mac: MAC) (implicit ec: ExecutionContext,
-                                              actorSystem: ActorSystem) {
+    def set(ip: IPv4Addr, mac: MAC) (implicit ec: ExecutionContext) {
         arpWaiters.remove(ip) match {
             case Some(waiters) => waiters map { _ success mac}
             case None =>
@@ -210,7 +204,7 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
                 arpCache.add(ip, entry)
                 val when = Duration.create(ARP_EXPIRATION_MILLIS,
                     TimeUnit.MILLISECONDS)
-                actorSystem.scheduler.scheduleOnce(when){ expireCacheEntry(ip) }
+                system.scheduler.scheduleOnce(when){ expireCacheEntry(ip) }
         }
     }
 
@@ -249,7 +243,6 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
     private def arpForAddress(ip: IPv4Addr, entry: ArpCacheEntry,
                               port: RouterPort)
                              (implicit ec: ExecutionContext,
-                              actorSystem: ActorSystem,
                               pktContext: PacketContext) {
         def retryLoopBottomHalf(cacheEntry: ArpCacheEntry, arp: Ethernet,
                                 previous: Long) {
@@ -269,7 +262,7 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
             cacheEntry.lastArp = now
             arpCache.add(ip, cacheEntry)
             log.debug("generateArpRequest: sending {}", arp)
-            DeduplicationActor.getRef(actorSystem) !
+            DeduplicationActor.getRef() !
                     EmitGeneratedPacket(port.id, arp,
                         if (pktContext != null) pktContext.flowCookie else None)
             // we don't retry for stale entries.
@@ -314,7 +307,7 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
                                          now + ARP_RETRY_MILLIS, now)
             val when = Duration.create(ARP_TIMEOUT_MILLIS,
                                        TimeUnit.MILLISECONDS)
-            actorSystem.scheduler.scheduleOnce(when){ expireCacheEntry(ip) }
+            system.scheduler.scheduleOnce(when){ expireCacheEntry(ip) }
         } else {
             // XXX race: when this key is re-added to the map someone else
             // may have written to it.

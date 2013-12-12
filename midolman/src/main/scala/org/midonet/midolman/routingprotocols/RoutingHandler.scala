@@ -1,7 +1,6 @@
 /*
- * Copyright 2012 Midokura Europe SARL
+ * Copyright (c) 2013 Midokura Europe SARL, All Rights Reserved.
  */
-
 package org.midonet.midolman.routingprotocols
 
 import java.io.File
@@ -102,6 +101,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
     import RoutingHandler._
     import DatapathController._
+    import context.system
 
     private final val BGP_NETDEV_PORT_NAME: String =
         "mbgp%d".format(bgpIdx)

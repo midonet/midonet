@@ -1,5 +1,6 @@
-// Copyright 2013 Midokura Inc.
-
+/*
+ * Copyright (c) 2013 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.midolman
 
 import scala.collection.{Set => ROSet, mutable, breakOut}
@@ -8,9 +9,9 @@ import java.{util => ju}
 import java.util.UUID
 
 import scala.util.Failure
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
-import akka.actor.ActorContext
+import akka.actor.ActorSystem
 import akka.event.LoggingAdapter
 import akka.pattern.ask
 import akka.util.Timeout
@@ -32,7 +33,6 @@ import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPort
 import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPortSet
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 import org.midonet.util.functors.Callback0
-import org.midonet.util.concurrent._
 
 object FlowTranslator {
 
@@ -73,9 +73,8 @@ trait FlowTranslator {
     protected val dpState: DatapathState
 
     implicit protected val requestReplyTimeout: Timeout
-    implicit protected val context: ActorContext
-    implicit protected val executor: ExecutionContext
-    implicit protected val system = context.system
+    implicit protected def system: ActorSystem
+    implicit protected def executor = system.dispatcher
 
     val log: LoggingAdapter
     val cookieStr: String

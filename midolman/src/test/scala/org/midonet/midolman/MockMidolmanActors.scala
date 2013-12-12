@@ -3,11 +3,12 @@
 */
 package org.midonet.midolman
 
-import scala.collection.JavaConversions._
-
 import java.util.UUID
 
-import akka.actor.{Actor, ActorSystem}
+import scala.collection.JavaConversions._
+import scala.concurrent.ExecutionContext
+
+import akka.actor.ActorSystem
 import akka.testkit.TestActorRef
 
 import com.google.inject._
@@ -25,6 +26,7 @@ import org.midonet.midolman.guice.{MidolmanActorsModule, MockCacheModule, MockMo
 import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.services._
 import org.midonet.midolman.version.guice.VersionModule
+import org.midonet.util.concurrent._
 
 trait MockMidolmanActors extends BeforeAndAfter {
     this: Suite =>
@@ -33,6 +35,7 @@ trait MockMidolmanActors extends BeforeAndAfter {
 
     private[this] val actorsService = new MockMidolmanActorsService
     implicit def actorSystem: ActorSystem = actorsService.system
+    implicit def executionContext: ExecutionContext = ExecutionContext.callingThread
 
     // These methods can be overridden by each class mixing MockMidolmanActors
     // to add custom operations before each test and after each tests

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 Midokura Europe SARL
+ * Copyright (c) 2013 Midokura Europe SARL, All Rights Reserved.
  */
 package org.midonet.midolman.topology
 
@@ -159,7 +159,7 @@ class MacLearningManager(log: LoggingAdapter, expirationMillis: Long) {
 class BridgeManager(id: UUID, val clusterClient: Client,
                     val config: MidolmanConfig) extends DeviceManager(id) {
     import BridgeManager._
-    implicit val system = context.system
+    import context.system
 
     private var cfg: BridgeConfig = null
     private var changed = false

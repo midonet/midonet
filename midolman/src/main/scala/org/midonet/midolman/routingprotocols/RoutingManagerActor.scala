@@ -1,7 +1,6 @@
 /*
- * Copyright 2012 Midokura Pte. Ltd.
+ * Copyright (c) 2013 Midokura Europe SARL, All Rights Reserved.
  */
-
 package org.midonet.midolman.routingprotocols
 
 import collection.mutable
@@ -27,6 +26,7 @@ object RoutingManagerActor extends Referenceable {
 }
 
 class RoutingManagerActor extends Actor with ActorLogWithoutPath {
+    import context.system
 
     @Inject
     override val supervisorStrategy: SupervisorStrategy = null

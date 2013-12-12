@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 Midokura Europe SARL
+ * Copyright (c) 2013 Midokura Europe SARL, All Rights Reserved.
  */
 package org.midonet.midolman.topology
 
@@ -73,6 +73,8 @@ trait TagManager {
  */
 class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
         extends DeviceManager(id) {
+    import context.system
+
     private var cfg: RouterConfig = null
     private var changed = false
     private var rTable: RoutingTableWrapper[IPv4Addr]= null
