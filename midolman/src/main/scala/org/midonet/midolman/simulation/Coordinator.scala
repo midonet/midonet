@@ -555,11 +555,10 @@ class Coordinator(var origMatch: WildcardMatch,
                     }
 
                     pktContext.inPortId = port
-                    val future = applyPortFilter(port, port.inFilterID,
-                        packetIngressesDevice _)
+
                     // add tag for flow invalidation
                     pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(portID))
-                    future
+                    applyPortFilter(port, port.inFilterID, packetIngressesDevice _)
                 case _ =>
                     log.error("VirtualTopologyManager didn't return a port!")
                     dropFlow(temporary = true)
