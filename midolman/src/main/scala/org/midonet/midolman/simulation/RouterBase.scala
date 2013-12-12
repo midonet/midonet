@@ -81,7 +81,8 @@ abstract class RouterBase[IP <: IPAddr]()
                 icmpErrors.sendUnreachableProhibitedIcmp(
                     inPort, pktContext.wcmatch, pktContext.frame)
                 Future.successful(DropAction)
-            case inPort => preRouting(inPort)
+            case inPort =>
+                preRouting(inPort)
         }
     }
 
@@ -142,84 +143,127 @@ abstract class RouterBase[IP <: IPAddr]()
             }
     }
 
-    private def routing(inPort: RouterPort) (implicit ec: ExecutionContext,
-                                                      pktContext: PacketContext)
-    : Future[Action] = {
+    private def routing(inPort: RouterPort)(implicit ec: ExecutionContext,
+            context: PacketContext): Future[Action] = {
 
-        val pMatch = pktContext.wcmatch
-        val pFrame = pktContext.frame
+        val frame = context.frame
+        val wcmatch = context.wcmatch
+        val dstIP = context.wcmatch.getNetworkDestinationIP
 
-        // TODO: Have WildcardMatch take a DecTTLBy instead,
-        // so that there need only be one sim. run for different TTLs.
-        if (pMatch.getNetworkTTL != null) {
-            val ttl = Unsigned.unsign(pMatch.getNetworkTTL)
-            if (ttl <= 1) {
-                icmpErrors.sendTimeExceededIcmp(inPort, pMatch, pFrame)
-                return Future.successful(DropAction)
+        def applyTimeToLive: Option[Action] = {
+            /* TODO(guillermo, pino): Have WildcardMatch take a DecTTLBy instead,
+             * so that there need only be one sim. run for different TTLs.  */
+            if (wcmatch.getNetworkTTL != null) {
+                val ttl = Unsigned.unsign(wcmatch.getNetworkTTL)
+                if (ttl <= 1) {
+                    icmpErrors.sendTimeExceededIcmp(inPort, wcmatch, frame)
+                    return Some(DropAction)
+                } else {
+                    context.wcmatch.setNetworkTTL((ttl - 1).toByte)
+                    return None
+                }
             }
-            pMatch.setNetworkTTL((ttl - 1).toByte)
+
+            None
         }
 
-        val dstIP = pMatch.getNetworkDestinationIP
-        pktContext.addFlowTag(FlowTagger.invalidateByIp(id, dstIP))
-        routerMgrTagger.addTag(dstIP) // so it can invalidate the flow
-        pktContext.addFlowRemovedCallback(routerMgrTagger
-                                          .getFlowRemovalCallback(dstIP))
+        def applyRoutingTable: (Route, Action) = {
+            val rt: Route = loadBalancer.lookup(wcmatch)
 
-        val rt = loadBalancer.lookup(pMatch)
-        if (rt == null) {
-            // No route to network
-            log.debug("Route lookup: No route to network (dst:{}), {}",
-                      dstIP, rTable.rTable)
-            icmpErrors.sendUnreachableNetIcmp(inPort, pMatch, pFrame)
-            return Future.successful(DropAction)
+            if (rt == null) {
+                // No route to network
+                log.debug("Route lookup: No route to network (dst:{}), {}",
+                    dstIP, rTable.rTable)
+                icmpErrors.sendUnreachableNetIcmp(inPort, wcmatch, frame)
+                return (rt, DropAction)
+            }
+
+            val action = rt.nextHop match {
+                case Route.NextHop.LOCAL if isIcmpEchoRequest(wcmatch) =>
+                    log.debug("got ICMP echo")
+                    sendIcmpEchoReply(wcmatch, frame, context.expiry)
+                    ConsumedAction
+
+                case Route.NextHop.LOCAL =>
+                    TemporaryDropAction
+
+                case Route.NextHop.BLACKHOLE =>
+                    log.debug("Dropping packet, BLACKHOLE route (dst:{})",
+                        wcmatch.getNetworkDestinationIP)
+                    TemporaryDropAction
+
+                case Route.NextHop.REJECT =>
+                    icmpErrors.sendUnreachableProhibitedIcmp(inPort, wcmatch, frame)
+                    log.debug("Dropping packet, REJECT route (dst:{})",
+                        wcmatch.getNetworkDestinationIP)
+                    DropAction
+
+                case Route.NextHop.PORT if rt.nextHopPort == null =>
+                    log.error("Routing table lookup for {} forwarded to port " +
+                              "null.", dstIP)
+                    // TODO(pino): should we remove this route?
+                    DropAction
+
+                case Route.NextHop.PORT =>
+                    ToPortAction(rt.nextHopPort)
+
+                case _ =>
+                    log.error("Routing table lookup for {} returned invalid " +
+                        "nextHop of {}", dstIP, rt.nextHop)
+                    // rt.nextHop is invalid. The only way the simulation result
+                    // would change is if there are other matching routes that are
+                    // 'sane'. If such routes were created, this flow will be
+                    // invalidated. Thus, we can return DropAction and not
+                    // ErrorDropAction
+                    DropAction
+            }
+
+            (rt, action)
         }
 
-        // tag using this route
-        pktContext.addFlowTag(FlowTagger.invalidateByRoute(id, rt.hashCode()))
+        def applyTagsForRoute(routeResult: (Route, Action)) = routeResult match {
+            case (route, TemporaryDropAction) => routeResult
+            case (route, ConsumedAction) => routeResult
+            case (route, ErrorDropAction) => routeResult
 
-        rt.nextHop match {
-            case Route.NextHop.LOCAL if isIcmpEchoRequest(pMatch) =>
-                log.debug("got ICMP echo")
-                sendIcmpEchoReply(pMatch, pFrame, pktContext.expiry)
-                Future.successful(ConsumedAction)
+            case (route, action) =>
+                /* We don't want to tag a temporary flow (e.g. created by a
+                 * BLACKHOLE route), and we do that to avoid excessive interaction
+                 * with the RouterManager, who needs to keep track of every
+                 * IP address the router gives to it.
+                 */
 
-            case Route.NextHop.LOCAL =>
-                Future.successful(DropAction)
+                // tag using this route
+                if (route != null)
+                    context.addFlowTag(FlowTagger.invalidateByRoute(id, route.hashCode()))
 
-            case Route.NextHop.BLACKHOLE =>
-                log.debug("Dropping packet, BLACKHOLE route (dst:{})",
-                          pMatch.getNetworkDestinationIP)
-                Future.successful(DropAction)
+                // tag using the destination IP
+                context.addFlowTag(FlowTagger.invalidateByIp(id, dstIP))
+                // pass tag to the RouterManager so it'll be able to invalidate the flow
+                routerMgrTagger.addTag(dstIP)
+                // register the tag removal callback
+                context.addFlowRemovedCallback(
+                    routerMgrTagger.getFlowRemovalCallback(dstIP))
+                routeResult
+        }
 
-            case Route.NextHop.REJECT =>
-                icmpErrors.sendUnreachableProhibitedIcmp(inPort, pMatch, pFrame)
-                log.debug("Dropping packet, REJECT route (dst:{})",
-                    pMatch.getNetworkDestinationIP)
-                Future.successful(DropAction)
-
-            case Route.NextHop.PORT if rt.nextHopPort == null =>
-                log.error("Routing table lookup for {} forwarded to port " +
-                    "null.", dstIP)
-                // TODO(pino): should we remove this route?
-                Future.successful(DropAction)
-            case Route.NextHop.PORT =>
-                getRouterPort(rt.nextHopPort, pktContext.expiry) flatMap {
-                    case null => Future.successful(ErrorDropAction)
-                    case outPort => postRouting(inPort, outPort, rt, pktContext)
+        (applyTimeToLive match {
+            case Some(action) =>
+                (null, action)
+            case None =>
+                applyTagsForRoute(applyRoutingTable)
+        }) match {
+            case (rt, ToPortAction(outPortId)) =>
+                getRouterPort(outPortId, context.expiry) flatMap {
+                    case null =>
+                        Future.successful(ErrorDropAction)
+                    case outPort =>
+                        postRouting(inPort, outPort, rt, context)
                 }
 
-            case _ =>
-                log.error("Routing table lookup for {} returned invalid " +
-                          "nextHop of {}", dstIP, rt.nextHop)
-                // rt.nextHop is invalid. The only way the simulation result
-                // would change is if there are other matching routes that are
-                // 'sane'. If such routes were created, this flow will be
-                // invalidated. Thus, we can return DropAction and not
-                // ErrorDropAction
-                Future.successful(DropAction)
+            case (rt, action) =>
+                Future.successful(action)
         }
-
     }
 
     // POST ROUTING
