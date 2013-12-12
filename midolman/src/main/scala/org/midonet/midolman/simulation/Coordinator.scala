@@ -501,11 +501,10 @@ class Coordinator(var origMatch: WildcardMatch,
                 }
 
                 pktContext.inPortId = p
-                val future = applyPortFilter(p, p.inFilterID,
-                                             packetIngressesDevice)
+
                 // add tag for flow invalidation
                 pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(portID))
-                future
+                applyPortFilter(p, p.inFilterID, packetIngressesDevice)
         }
     }
 
