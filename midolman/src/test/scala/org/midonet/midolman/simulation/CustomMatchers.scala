@@ -32,7 +32,7 @@ trait CustomMatchers {
                 }).exists({
                     case FlowActionOutputToVrnPortSet(id) => id == portSetId
                     case _ => false
-                }), "a port set action")
+                }), s"a port set action to $portSetId")
     }
 
     def flowMatching(pkt: Ethernet) = new BePropertyMatcher[SimulationResult] {
@@ -42,10 +42,10 @@ trait CustomMatchers {
                     flowMatchesPacket(flow, pkt)
                 case _ =>
                     false
-            } , "a matching flow")
+            } , s"a flow matching $pkt")
 
         def flowMatchesPacket(flow: WildcardFlow, pkt: Ethernet): Boolean = {
-            val f: PartialFunction[{type A <: FlowAction[A]}, Boolean] = {
+            val f: PartialFunction[({type A <: FlowAction[A]})#A, Boolean] = {
                 case f: FlowActionSetKey => f.getFlowKey match {
                     case k: FlowKeyEthernet =>
                         util.Arrays.equals(
@@ -61,8 +61,9 @@ trait CustomMatchers {
                     case _ => false
                 }
             }
-            flow.actions.collect(f.asInstanceOf[PartialFunction[FlowAction[_],
-                    Boolean]]).size == 2
+            flow.actions
+                .collect(f.asInstanceOf[PartialFunction[FlowAction[_], Boolean]])
+                .size == 2
         }
     }
 }

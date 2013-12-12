@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Midokura Europe SARL
+ * Copyright (c) 2013 Midokura Europe SARL, All Rights Reserved.
  */
 package org.midonet.midolman.simulation
 
@@ -132,7 +132,7 @@ object Icmp {
             eth.setSourceMACAddress(inPort.portMac)
             eth.setDestinationMACAddress(ingressMatch.getEthernetSource)
 
-            DeduplicationActor.getRef(actorSystem) ! EmitGeneratedPacket(
+            DeduplicationActor.getRef() ! EmitGeneratedPacket(
                 // TODO(pino): check with Guillermo about match's vs. device's inPort.
                 //ingressMatch.getInputPortUUID, eth)
                 inPort.id, eth,
@@ -140,7 +140,8 @@ object Icmp {
         }
 
         private def buildError(icmpType: Char, icmpCode: Any,
-                                   forMatch: WildcardMatch, forPacket: Ethernet) : ICMP = {
+                               forMatch: WildcardMatch, forPacket: Ethernet)
+        : ICMP = {
             // TODO(pino, guillermo, jlm): original or modified trigger pkt?
             val pktHere = forPacket //forMatch.apply(forPacket)
             var ipPkt: IPv4 = null

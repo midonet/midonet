@@ -366,7 +366,7 @@ class BridgeInvalidationTestCase extends MidolmanTestCase
     }
 
     def testUnicastDeleteLogicalPort() {
-        val vta = VirtualTopologyActor.getRef(actors())
+        val vta = VirtualTopologyActor.getRef()
         askAndAwait(vta, BridgeRequest(brPort1.getDeviceId))
         askAndAwait(vta, RouterRequest(rtrPort.getDeviceId))
         askAndAwait(vta, PortRequest(rtrPort.getId))

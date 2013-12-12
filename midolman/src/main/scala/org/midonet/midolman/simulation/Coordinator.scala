@@ -1,5 +1,6 @@
-// Copyright 2012 Midokura Inc.
-
+/*
+ * Copyright (c) 2013 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.midolman.simulation
 
 import java.util.UUID
@@ -7,8 +8,8 @@ import scala.collection.JavaConversions._
 import scala.collection.immutable
 import scala.collection.mutable.ListBuffer
 
-import akka.actor.{ActorContext, ActorSystem}
-import scala.concurrent.{ExecutionContext, Future, Promise}
+import akka.actor.ActorSystem
+import scala.concurrent.{ExecutionContext, Future}
 
 import org.midonet.cache.Cache
 import org.midonet.cluster.client._
@@ -73,8 +74,7 @@ object Coordinator {
          * after handling this packet (e.g. drop it, consume it, forward it).
          */
         def process(pktContext: PacketContext)
-                   (implicit ec: ExecutionContext,
-                    actorSystem: ActorSystem): Future[Action]
+                   (implicit ec: ExecutionContext): Future[Action]
     }
 
     /*
@@ -105,7 +105,6 @@ object Coordinator {
  * @param parentCookie TODO
  * @param traceConditions Seq of Conditions which will trigger tracing.
  * @param ec
- * @param actorContext
  */
 class Coordinator(var origMatch: WildcardMatch,
                   val origEthernetPkt: Ethernet,
@@ -118,8 +117,7 @@ class Coordinator(var origMatch: WildcardMatch,
                   val parentCookie: Option[Int],
                   val traceConditions: immutable.Seq[Condition])
                  (implicit val ec: ExecutionContext,
-                           val actorSystem: ActorSystem,
-                           val actorContext: ActorContext) {
+                           val actorSystem: ActorSystem) {
 
     import Coordinator._
 
@@ -462,12 +460,12 @@ class Coordinator(var origMatch: WildcardMatch,
                         NoOp
                     case Some(_) =>
                         val notIPv4Match =
-                            (new WildcardMatch()
+                            new WildcardMatch()
                                 .setInputPortUUID(origMatch.getInputPortUUID)
                                 .setEthernetSource(origMatch.getEthernetSource)
                                 .setEthernetDestination(
                                     origMatch.getEthernetDestination)
-                                .setEtherType(origMatch.getEtherType))
+                                .setEtherType(origMatch.getEtherType)
                         AddVirtualWildcardFlow(
                             WildcardFlow(wcmatch = notIPv4Match),
                             pktContext.getFlowRemovedCallbacks,

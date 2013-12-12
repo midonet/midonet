@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 Midokura Europe SARL
+ * Copyright (c) 2013 Midokura Europe SARL, All Rights Reserved.
  */
 package org.midonet.midolman.simulation
 
@@ -90,9 +90,8 @@ class Bridge(val id: UUID,
      * multicast actions, these will take care of the vlan-id details for you.
      */
     override def process(packetContext: PacketContext)
-                        (implicit ec: ExecutionContext,
-                                  actorSystem: ActorSystem)
-            : Future[Coordinator.Action] = {
+                        (implicit ec: ExecutionContext)
+    : Future[Coordinator.Action] = {
         implicit val pktContext = packetContext
 
         log.debug("Bridge {} process method called.", id)
@@ -583,7 +582,7 @@ class Bridge(val id: UUID,
         val eth = ARP.makeArpReply(mac, arpReq.getSenderHardwareAddress,
                                    arpReq.getTargetProtocolAddress,
                                    arpReq.getSenderProtocolAddress)
-        DeduplicationActor.getRef(actorSystem) ! EmitGeneratedPacket(
+        DeduplicationActor.getRef() ! EmitGeneratedPacket(
             inPortId, eth,
             if (originalPktContex != null)
                 originalPktContex.flowCookie

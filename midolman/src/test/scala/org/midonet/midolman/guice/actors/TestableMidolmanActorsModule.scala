@@ -96,7 +96,7 @@ class TestableMidolmanActorsModule(probes: mutable.Map[String, TestKit],
 
         override val testActor: ActorRef = {
             implicit val tout = new Timeout(3 seconds)
-            val actorFuture = SupervisorActor.getRef(_system) ?
+            val actorFuture = SupervisorActor.getRef() ?
                 SupervisorActor.StartChild(Props[ProbingTestActor](makeInstance()), actorName)
             Await.result(actorFuture.mapTo[ActorRef], tout.duration)
         }

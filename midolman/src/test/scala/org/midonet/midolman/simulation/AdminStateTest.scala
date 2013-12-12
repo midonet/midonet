@@ -6,8 +6,7 @@ package org.midonet.midolman.simulation
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
-import scala.concurrent.{ExecutionContext, Await}
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Await
 import scala.concurrent.duration._
 
 import akka.actor._
@@ -50,7 +49,7 @@ class AdminStateTest extends FeatureSpec
                      with VirtualTopologyHelper
                      with OneInstancePerTest {
 
-    implicit val askTimeout: Timeout = 3 minutes
+    implicit val askTimeout: Timeout = 1 second
 
     override def registerActors = List(
         VirtualTopologyActor -> (() => new VirtualTopologyActor
@@ -280,7 +279,7 @@ class AdminStateTest extends FeatureSpec
         }
 
         scenario("a down interior router port egressing packets sends an ICMP" +
-                 "prohibited error from the ingressing port") {
+                 " prohibited error from the ingressing port") {
             Given("a down router port")
 
             interiorRouterPort.setAdminStateUp(false)
@@ -370,13 +369,10 @@ class AdminStateTest extends FeatureSpec
         }
     }
 
-    class MockFlowTranslator extends Actor with ActorLogging
-                                           with FlowTranslator {
-
-        implicit val executor: ExecutionContext = context.dispatcher
-        implicit override val system: ActorSystem = context.system
+    class MockFlowTranslator extends Actor with ActorLogging with FlowTranslator {
 
         protected val datapathConnection: OvsDatapathConnection = null
+        protected implicit val system = context.system
         implicit protected val requestReplyTimeout =
             new Timeout(5, TimeUnit.SECONDS)
 
@@ -398,12 +394,12 @@ class AdminStateTest extends FeatureSpec
             case actions: Seq[_] =>
                 val s = sender
                 translateActions(actions.asInstanceOf[Seq[FlowAction[_]]],
-                    None, None, null) map { s ! _}
+                    None, None, null).map { s ! _ }(executionContext)
         }
     }
 
     private[this] def assertExpectedIcmpProhibitPacket(routerPort: RouterPort) {
-        DeduplicationActor.messages should not be (empty)
+        DeduplicationActor.messages should not be empty
         val msg = DeduplicationActor.messages.head.asInstanceOf[EmitGeneratedPacket]
         msg should not be null
 
@@ -502,9 +498,7 @@ class AdminStateTest extends FeatureSpec
             new MockCache(),
             new MockCache(),
             None,
-            Nil)(implicitly[ExecutionContext],
-                 implicitly[ActorSystem],
-                 null)
+            Nil)
             .simulate(), Duration.Inf)
 
     private[this] def makeWMatch(port: Port[_,_], pkt: Ethernet) =

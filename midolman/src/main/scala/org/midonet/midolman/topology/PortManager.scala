@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 Midokura Europe SARL
+ * Copyright (c) 2013 Midokura Europe SARL, All Rights Reserved.
  */
 package org.midonet.midolman.topology
 
@@ -17,6 +17,7 @@ object PortManager{
 
 class PortManager(id: UUID, val clusterClient: Client)
     extends DeviceManager(id) {
+    import context.system
 
     private var port: Port[_] = null
     private var changed = false

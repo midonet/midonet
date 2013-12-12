@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 Midokura Europe SARL
+ * Copyright (c) 2013 Midokura Europe SARL, All Rights Reserved.
  */
 package org.midonet.midolman.topology
 
@@ -11,7 +11,6 @@ import java.util.UUID
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.reflect._
 import scala.util.Failure
 
@@ -172,7 +171,7 @@ object VirtualTopologyActor extends Referenceable {
                                        simLog: SimulationAwareBusLogging)
                                       (implicit pktContext: PacketContext,
                                                 system: ActorSystem) =
-        VirtualTopologyActor.getRef(system)
+        VirtualTopologyActor.getRef()
             .ask(request)(timeLeft milliseconds)
             .mapTo[D](request.tag).andThen {
                 case Failure(ex: ClassCastException) =>
@@ -194,6 +193,7 @@ object VirtualTopologyActor extends Referenceable {
 
 class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
     import VirtualTopologyActor._
+    import context.system
 
     // TODO(pino): unload devices with no subscribers that haven't been used
     // TODO:       in a while.

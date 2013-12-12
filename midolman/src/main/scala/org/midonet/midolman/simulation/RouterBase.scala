@@ -1,12 +1,12 @@
 /*
- * Copyright 2013 Midokura Europe SARL
+ * Copyright (c) 2013 Midokura Europe SARL, All Rights Reserved.
  */
 package org.midonet.midolman.simulation
 
 import java.util.UUID
 
 import scala.concurrent.{Future, ExecutionContext}
-import akka.actor.{ActorContext, ActorSystem}
+import akka.actor.ActorSystem
 
 import org.midonet.cluster.client.RouterPort
 import org.midonet.midolman.layer3.Route
@@ -23,8 +23,9 @@ import org.midonet.midolman.simulation.Icmp._
  * implementations for IPv4 and IPv6 that deal with version specific details
  * such as ARP vs. NDP.
  */
-abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext,
-                                                   icmpErrors: IcmpErrorSender[IP])
+abstract class RouterBase[IP <: IPAddr]()
+                                       (implicit system: ActorSystem,
+                                                 icmpErrors: IcmpErrorSender[IP])
     extends Coordinator.Device {
 
     import Coordinator._
@@ -38,7 +39,7 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext,
 
     val validEthertypes: Set[Short]
     implicit val log = LoggerFactory.getSimulationAwareLog(
-        this.getClass)(context.system.eventStream)
+        this.getClass)(system.eventStream)
 
     val loadBalancer = new LoadBalancer(rTable)
 
@@ -53,14 +54,11 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext,
      *                   subscribe for notifications on the removal of any
      *                   resulting flows, or to tag any resulting flows for
      *                   indexing.
-     * @param ec         (implicit)
-     * @param actorSystem (implicit)
      * @return An instance of Action that reflects what the device would do
      *         after handling this packet (e.g. drop it, consume it, forward it)
      */
     override def process(pktContext: PacketContext)
-                        (implicit ec: ExecutionContext,
-                                  actorSystem: ActorSystem): Future[Action] = {
+                        (implicit ec: ExecutionContext): Future[Action] = {
         implicit val packetContext = pktContext
 
         if (!pktContext.wcmatch.getVlanIds.isEmpty) {
@@ -89,9 +87,8 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext,
 
     private def applyIngressChain(inPort: RouterPort)
                                  (implicit ec: ExecutionContext,
-                                  pktContext: PacketContext,
-                                  actorSystem: ActorSystem): Option[Action] = {
-
+                                           pktContext: PacketContext)
+    : Option[Action] = {
         // Apply the pre-routing (ingress) chain
         pktContext.outPortId = null // input port should be set already
         val preRoutingResult = Chain.apply(inFilter, pktContext,
@@ -121,9 +118,8 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext,
 
 
     private def preRouting(inPort: RouterPort)
-                          (implicit pktContext: PacketContext,
-                                    ec: ExecutionContext,
-                                    actorSystem: ActorSystem)
+                          (implicit ec: ExecutionContext,
+                                    pktContext: PacketContext)
     : Future[Action] = {
 
         val hwDst = pktContext.wcmatch.getEthernetDestination
@@ -147,8 +143,7 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext,
     }
 
     private def routing(inPort: RouterPort) (implicit ec: ExecutionContext,
-                                                      pktContext: PacketContext,
-                                                      actorSystem: ActorSystem)
+                                                      pktContext: PacketContext)
     : Future[Action] = {
 
         val pMatch = pktContext.wcmatch
@@ -230,8 +225,7 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext,
     // POST ROUTING
     private def postRouting(inPort: RouterPort, outPort: RouterPort,
                             rt: Route, pktContext: PacketContext)
-                           (implicit ec: ExecutionContext,
-                                     actorSystem: ActorSystem)
+                           (implicit ec: ExecutionContext)
     : Future[Action] = {
 
         implicit val packetContext = pktContext
@@ -289,8 +283,7 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext,
     }
 
     final protected def getRouterPort(portID: UUID, expiry: Long)
-                                     (implicit actorSystem: ActorSystem,
-                                      pktContext: PacketContext)
+                                     (implicit pktContext: PacketContext)
     : Future[RouterPort] = {
         expiringAsk(PortRequest(portID), log, expiry).mapTo[RouterPort]
     }
@@ -310,7 +303,6 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext,
     protected def getNextHopMac(outPort: RouterPort, rt: Route,
                                          ipDest: IP, expiry: Long)
                                         (implicit ec: ExecutionContext,
-                                         actorSystem: ActorSystem,
                                          pktContext: PacketContext): Future[MAC]
 
     /**
@@ -320,17 +312,15 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext,
     protected def sendIcmpEchoReply(ingressMatch: WildcardMatch,
                                     packet: Ethernet, expiry: Long)
                                    (implicit ec: ExecutionContext,
-                                    actorSystem: ActorSystem,
-                                    packetContext: PacketContext)
+                                             packetContext: PacketContext)
 
     /**
      * Will be called from the pre-routing process immediately after receiving
      * the frame, if Ethernet.isBroadcast(hwDst).
      */
     protected def handleL2Broadcast(inPort: RouterPort)
-                                   (implicit pktContext: PacketContext,
-                                    ec: ExecutionContext,
-                                    actorSystem: ActorSystem): Action
+                                   (implicit ec: ExecutionContext,
+                                             pktContext: PacketContext): Action
 
     /**
      * This method will be executed after basic L2 processing is done,
@@ -339,8 +329,7 @@ abstract class RouterBase[IP <: IPAddr]()(implicit context: ActorContext,
      */
     protected def handleNeighbouring(inPort: RouterPort)
                                     (implicit ec: ExecutionContext,
-                                     pktContext: PacketContext,
-                                     actorSystem: ActorSystem): Option[Action]
+                                     pktContext: PacketContext): Option[Action]
 
     protected def isIcmpEchoRequest(mmatch: WildcardMatch): Boolean
 }

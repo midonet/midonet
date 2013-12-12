@@ -1,7 +1,6 @@
 package org.midonet.midolman
 
 import scala.concurrent._
-import scala.concurrent.ExecutionContext.Implicits.global
 
 import org.junit.runner.RunWith
 import org.scalatest._

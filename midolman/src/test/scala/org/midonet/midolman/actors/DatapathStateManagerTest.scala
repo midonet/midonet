@@ -1,15 +1,11 @@
-/******************************************************************************
- *                                                                            *
- *      Copyright (c) 2013 Midokura Europe SARL, All Rights Reserved.         *
- *                                                                            *
- ******************************************************************************/
-
+/*
+ * Copyright (c) 2013 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.midolman
 
 import java.util.UUID
 import scala.util.Random
 
-import akka.actor.ActorContext
 import org.junit.runner.RunWith
 import org.scalatest.{BeforeAndAfter, Matchers, Suite}
 import org.scalatest.junit.JUnitRunner
@@ -35,8 +31,6 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
     log.isInfoEnabled = false
     log.isDebugEnabled = false
 
-    implicit val context: ActorContext = null
-
     var controller = new VirtualPortManager.Controller {
         override def addToDatapath(itfName: String) = { }
         override def removeFromDatapath(port: Port[_,_]) = { }
@@ -48,7 +42,7 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
     var stateMgr: DatapathStateManager = null
 
     before {
-        stateMgr = new DatapathStateManager(controller)(null, log)
+        stateMgr = new DatapathStateManager(controller)(log)
         stateMgr.version should be (0)
         stateMgr.tunnelGre should be (None)
         stateMgr.host should be (null)

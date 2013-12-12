@@ -1,18 +1,13 @@
 /*
- * Copyright 2012 Midokura Pte. Ltd.
+ * Copyright (c) 2013 Midokura Europe SARL, All Rights Reserved.
  */
-
 package org.midonet.midolman
 
-import akka.actor.{ActorSystem, ActorRef, ActorContext}
+import akka.actor.{ActorSystem, ActorRef}
 
 trait Referenceable {
 
-    def getRef()(implicit context: ActorContext): ActorRef = {
-        context.actorFor(path)
-    }
-
-    def getRef(system: ActorSystem): ActorRef = {
+    def getRef()(implicit system: ActorSystem): ActorRef = {
         system.actorFor(path)
     }
 

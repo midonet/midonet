@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 Midokura Europe SARL
+ * Copyright (c) 2013 Midokura Europe SARL, All Rights Reserved.
  */
 package org.midonet.midolman.topology
 
@@ -26,6 +26,7 @@ object ChainManager {
 class ChainManager(val id: UUID, val clusterClient: Client) extends Actor
         with ActorLogWithoutPath {
     import ChainManager._
+    import context.system
 
     override def preStart() {
         clusterClient.getChain(id, new ChainBuilderImpl(self))

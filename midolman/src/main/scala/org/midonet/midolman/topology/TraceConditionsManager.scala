@@ -1,5 +1,6 @@
-// Copyright 2013 Midokura Inc.
-
+/*
+ * Copyright (c) 2013 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.midolman.topology
 
 import scala.collection.JavaConverters._
@@ -12,7 +13,6 @@ import org.midonet.midolman.rules.Condition
 import org.midonet.midolman.topology.builders.TraceConditionsBuilderImpl
 import org.midonet.midolman.topology.rcu.TraceConditions
 
-
 object TraceConditionsManager {
     case class TriggerUpdate(conditions: JList[Condition])
     val uuid = UUID.fromString("11111111-2222-3333-4444-555555555555")
@@ -22,6 +22,7 @@ object TraceConditionsManager {
 class TraceConditionsManager(val id: UUID, val clusterClient: Client)
         extends Actor with ActorLogWithoutPath {
     import TraceConditionsManager._
+    import context.system
 
     override def preStart() {
         log.debug("Bringing up TraceConditionsManager with client {}",

@@ -4,7 +4,6 @@
 package org.midonet.midolman
 
 import scala.concurrent.{Future, Await}
-import scala.concurrent.ExecutionContext.Implicits.global
 import akka.pattern.ask
 import akka.util.Timeout
 

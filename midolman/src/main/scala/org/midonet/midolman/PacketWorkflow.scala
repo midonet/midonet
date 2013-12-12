@@ -1,5 +1,6 @@
-// Copyright 2013 Midokura Inc.
-
+/*
+ * Copyright (c) 2013 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.midolman
 
 import java.lang.{Integer => JInteger}
@@ -79,15 +80,13 @@ object PacketWorkflow {
               dataClient: DataClient,
               packet: Packet,
               cookieOrEgressPort: Either[Int, UUID],
-              parentCookie: Option[Int])(
-                     runSim: WildcardMatch => Future[SimulationResult])(
-                     implicit executor: ExecutionContext,
-                              context: ActorContext) =
+              parentCookie: Option[Int])
+             (runSim: WildcardMatch => Future[SimulationResult])
+             (implicit system: ActorSystem) =
         new PacketWorkflow(dpCon, dpState, dp, dataClient, packet,
             cookieOrEgressPort, parentCookie) {
             def runSimulation(wcMatch: WildcardMatch) = runSim(wcMatch)
         }
-
 }
 
 abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConnection,
@@ -97,8 +96,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
                               val packet: Packet,
                               val cookieOrEgressPort: Either[Int, UUID],
                               val parentCookie: Option[Int])
-                             (implicit val executor: ExecutionContext,
-                                       val context: ActorContext)
+                             (implicit val system: ActorSystem)
         extends FlowTranslator with UserspaceFlowActionTranslator with PacketHandler {
 
     import PacketWorkflow._
@@ -123,7 +121,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
 
     implicit val requestReplyTimeout = new Timeout(5, TimeUnit.SECONDS)
 
-    val log: LoggingAdapter = Logging.getLogger(context.system, this.getClass)
+    val log: LoggingAdapter = Logging.getLogger(system, this.getClass)
 
     override val cookieStr: String =
         (if (cookie != None) "[cookie:" else "[genPkt:") +
@@ -447,7 +445,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
             case Some(vportId) =>
                 wMatch.setInputPortUUID(vportId)
 
-                context.system.eventStream.publish(
+                system.eventStream.publish(
                     PacketIn(wMatch.clone(), packet.getPacket, packet.getMatch,
                         packet.getReason, cookie getOrElse 0))
 
