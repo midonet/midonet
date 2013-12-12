@@ -3,6 +3,13 @@
  */
 package org.midonet.midolman.util
 
+import akka.pattern.ask
+import akka.actor.ActorRef
+import akka.util.Timeout
+import java.util.concurrent.TimeUnit
+import scala.concurrent.{Await, Future}
+import scala.concurrent.duration._
+
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.FlowController.WildcardFlowAdded
 import org.midonet.midolman.FlowController.WildcardFlowRemoved
@@ -50,4 +57,10 @@ object TestHelpers {
             IPv4Addr.fromString(srcIp),
             IPv4Addr.fromString(dstIp),
             10, 11, "My UDP packet".getBytes)
+
+    def askAndAwait[T](actor: ActorRef, msg: Object, timeoutMillis: Long = 3000L): T = {
+        val promise = ask(actor, msg)(
+            new Timeout(timeoutMillis, TimeUnit.MILLISECONDS)).asInstanceOf[Future[T]]
+        Await.result(promise, Duration(timeoutMillis, TimeUnit.MILLISECONDS))
+    }
 }
