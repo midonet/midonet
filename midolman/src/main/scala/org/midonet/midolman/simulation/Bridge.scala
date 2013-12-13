@@ -374,13 +374,13 @@ class Bridge(val id: UUID,
             Future.successful(unicastAction(portID)) // TODO (galo) read comments inside
         } else {
             // If it's an ARP request, can we answer from the Bridge's IpMacMap?
-            var mac: Future[MAC]= null
-            pMatch.getNetworkProtocol match {
+            val mac = pMatch.getNetworkProtocol match {
                 case ARP.OP_REQUEST =>
-                    mac = getMacOfIp(pMatch.getNetworkDestinationIP
-                                     .asInstanceOf[IPv4Addr],
-                        pktContext.expiry, ec)
-                case _ => Future.successful[MAC](null)
+                    val dstIp =
+                        pMatch.getNetworkDestinationIP.asInstanceOf[IPv4Addr]
+                    getMacOfIp(dstIp, pktContext.expiry, ec)
+                case _ =>
+                    Future.successful[MAC](null)
             }
             // TODO(pino): tag the flow with the destination
             // TODO: mac, so we can deal with changes in the mac.
