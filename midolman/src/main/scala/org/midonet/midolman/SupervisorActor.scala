@@ -33,11 +33,10 @@ class SupervisorActor extends Actor with ActorLogWithoutPath {
     def receive = {
         case SupervisorActor.StartChild(props, name) =>
             sender ! (try {
-                    context.actorOf(props, name)
-                } catch {
-                    case e: Exception => e
-                })
-
+                        context.actorOf(props, name)
+                      } catch {
+                         case t: Throwable => akka.actor.Status.Failure(t)
+                      })
         case _ => log.info("RECEIVED UNKNOWN MESSAGE")
     }
 }
