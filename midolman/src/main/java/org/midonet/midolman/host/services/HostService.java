@@ -9,6 +9,7 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.locks.LockSupport;
 
 import com.google.common.util.concurrent.AbstractService;
 import com.google.inject.Inject;
@@ -94,8 +95,10 @@ public class HostService extends AbstractService
             interfaceWatcher.stop();
 
             // wait for the thread to finish running
-            if (watcherThread != null )
+            if (watcherThread != null ) {
+                LockSupport.unpark(watcherThread);
                 watcherThread.join();
+            }
 
             // disconnect from zookeeper.
             // this will cause the ephemeral nodes to disappear.
