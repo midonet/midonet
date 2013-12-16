@@ -20,7 +20,6 @@ import org.midonet.api.auth.AuthRole;
 import org.midonet.api.auth.Authorizer;
 import org.midonet.api.bgp.auth.BgpAuthorizer;
 import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.cluster.DataClient;
 import org.slf4j.Logger;
@@ -72,7 +71,7 @@ public class AdRouteResource extends AbstractResource {
     @Path("{id}")
     public void delete(@PathParam("id") UUID id)
             throws StateAccessException,
-            InvalidStateOperationException, SerializationException {
+            SerializationException {
 
         org.midonet.cluster.data.AdRoute adRouteData =
                 dataClient.adRoutesGet(id);
@@ -161,7 +160,7 @@ public class AdRouteResource extends AbstractResource {
                 MediaType.APPLICATION_JSON })
         public Response create(AdRoute adRoute)
                 throws StateAccessException,
-                InvalidStateOperationException, SerializationException {
+                SerializationException {
 
             adRoute.setBgpId(bgpId);
 

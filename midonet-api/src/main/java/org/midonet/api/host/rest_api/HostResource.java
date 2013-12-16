@@ -16,7 +16,6 @@ import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.cluster.DataClient;
 import org.slf4j.Logger;
@@ -116,7 +115,7 @@ public class HostResource extends AbstractResource {
     @RolesAllowed({AuthRole.ADMIN})
     @Path("{id}")
     public Response delete(@PathParam("id") UUID id)
-            throws StateAccessException, InvalidStateOperationException {
+            throws StateAccessException {
 
         try {
             dataClient.hostsDelete(id);

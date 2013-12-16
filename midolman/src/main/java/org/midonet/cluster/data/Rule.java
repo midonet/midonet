@@ -16,6 +16,26 @@ public abstract class Rule
                 extends Rule<RuleData, Self>>
         extends Entity.Base<UUID, RuleData, Self> {
 
+    public static class RuleIndexOutOfBoundsException extends Exception {
+        private static final long serialVersionUID = 1L;
+
+        /**
+         * Default constructor
+         */
+        public RuleIndexOutOfBoundsException() {
+            super();
+        }
+
+        public RuleIndexOutOfBoundsException(String message) {
+            super(message);
+        }
+
+        public RuleIndexOutOfBoundsException(String message, Throwable cause) {
+            super(message, cause);
+        }
+
+    }
+
     public enum Property {
     }
 
