@@ -20,6 +20,7 @@
         <module>packets</module>
         <module>netlink</module>
         <module>odp</module>
+        <module>cluster</module>
         <module>midolman</module>
         <module>midonet-client</module>
         <module>midonet-api</module>
@@ -234,6 +235,12 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>odp</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>cluster</artifactId>
             <version>${project.version}</version>
         </dependency>
 
