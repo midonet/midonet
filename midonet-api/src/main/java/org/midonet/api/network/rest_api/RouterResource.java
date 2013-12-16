@@ -20,7 +20,6 @@ import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.Port;
 import org.midonet.cluster.data.ports.RouterPort;
 import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,7 +77,6 @@ public class RouterResource extends AbstractResource {
     @Path("{id}")
     public void delete(@PathParam("id") UUID id)
             throws StateAccessException,
-            InvalidStateOperationException,
             SerializationException {
 
         org.midonet.cluster.data.Router routerData =
@@ -185,7 +183,6 @@ public class RouterResource extends AbstractResource {
             MediaType.APPLICATION_JSON })
     public void update(@PathParam("id") UUID id, Router router)
             throws StateAccessException,
-            InvalidStateOperationException,
             SerializationException {
 
         router.setId(id);
@@ -219,7 +216,6 @@ public class RouterResource extends AbstractResource {
             MediaType.APPLICATION_JSON })
     public Response create(Router router)
             throws StateAccessException,
-            InvalidStateOperationException,
             SerializationException {
 
         Set<ConstraintViolation<Router>> violations = validator.validate(

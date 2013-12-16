@@ -19,7 +19,6 @@ import org.midonet.api.network.auth.PortGroupAuthorizer;
 import org.midonet.api.rest_api.*;
 import org.midonet.cluster.DataClient;
 import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,8 +76,7 @@ public class PortGroupResource extends AbstractResource {
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Path("{id}")
     public void delete(@PathParam("id") UUID id)
-            throws StateAccessException,
-            InvalidStateOperationException, SerializationException {
+            throws StateAccessException, SerializationException {
 
         org.midonet.cluster.data.PortGroup portGroupData =
                 dataClient.portGroupsGet(id);
@@ -143,8 +141,7 @@ public class PortGroupResource extends AbstractResource {
     @Consumes({ VendorMediaType.APPLICATION_PORTGROUP_JSON,
                    MediaType.APPLICATION_JSON })
     public Response create(PortGroup group)
-            throws StateAccessException,
-            InvalidStateOperationException, SerializationException {
+            throws StateAccessException, SerializationException {
 
         Set<ConstraintViolation<PortGroup>> violations = validator
                 .validate(group, PortGroup.PortGroupCreateGroupSequence.class);

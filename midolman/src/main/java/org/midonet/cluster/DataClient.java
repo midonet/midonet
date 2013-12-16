@@ -11,12 +11,6 @@ import java.util.UUID;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
-import org.midonet.cluster.data.ports.VlanMacPort;
-import org.midonet.cluster.data.ports.BridgePort;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.DirectoryCallback;
-import org.midonet.midolman.state.RuleIndexOutOfBoundsException;
-import org.midonet.midolman.state.StateAccessException;
 import org.midonet.cluster.data.*;
 import org.midonet.cluster.data.Entity.TaggableEntity;
 import org.midonet.cluster.data.dhcp.Subnet;
@@ -26,11 +20,17 @@ import org.midonet.cluster.data.host.Command;
 import org.midonet.cluster.data.host.Host;
 import org.midonet.cluster.data.host.Interface;
 import org.midonet.cluster.data.host.VirtualPortMapping;
+import org.midonet.cluster.data.ports.BridgePort;
+import org.midonet.cluster.data.ports.VlanMacPort;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.DirectoryCallback;
+import org.midonet.midolman.state.StateAccessException;
 import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.IPv6Subnet;
 import org.midonet.packets.IntIPv4;
 import org.midonet.packets.MAC;
-import org.midonet.packets.IPv6Subnet;
 import org.midonet.util.functors.Callback2;
+import static org.midonet.cluster.data.Rule.RuleIndexOutOfBoundsException;
 
 public interface DataClient {
 
