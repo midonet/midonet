@@ -274,8 +274,12 @@ public class WildcardMatch implements Cloneable {
     }
 
     @Nullable
-    public Long getTunnelID() {
-        return usedFields.contains(Field.TunnelID) ? tunnelID : null;
+    public long getTunnelID() {
+        return tunnelID;
+    }
+
+    public boolean isFromTunnel() {
+      return usedFields.contains(Field.TunnelID);
     }
 
     @Nonnull
