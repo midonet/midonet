@@ -313,6 +313,11 @@
                         <exclude>**/PacketWorkflow$PacketIn*</exclude>
                         <exclude>**/PacketWorkflow$SendPacket*</exclude>
                         <exclude>**/PacketWorkflow$AddVirtual*</exclude>
+
+                        <exclude>**/Coordinator$ToPort*</exclude>
+                        <exclude>**/Coordinator$DoFlowAction*</exclude>
+                        <exclude>**/Coordinator$ForkAction*</exclude>
+                        <exclude>**/VirtualActions$*</exclude>
                     </excludes>
                     </instrumentation>
                 </configuration>
