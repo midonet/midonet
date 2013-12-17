@@ -67,6 +67,14 @@ public class PortDirectory {
         }
     }
 
+    // NOTE(tfukushima): Jackson only supports one-to-one mappings between
+    //   type names and `JsonSubType`s. So we have to create duplicated
+    //   classes with the different names.
+    //
+    //   See `org.midonet.midolman.state.PortConfig` for details.
+    final public static class InteriorBridgePortConfig extends BridgePortConfig {}
+    final public static class ExteriorBridgePortConfig extends BridgePortConfig {}
+
     public static class RouterPortConfig extends PortConfig {
         // TODO(pino): use IntIPv4 for Babuza!
         public int nwAddr;
@@ -192,4 +200,11 @@ public class PortDirectory {
         }
     }
 
+    // NOTE(tfukushima): Jackson only supports one-to-one mappings between
+    //   type names and `JsonSubType`s. So we have to create duplicated
+    //   classes with the different names.
+    //
+    //   See `org.midonet.midolman.state.PortConfig` for details.
+    final public static class InteriorRouterPortConfig extends RouterPortConfig {}
+    final public static class ExteriorRouterPortConfig extends RouterPortConfig {}
 }
