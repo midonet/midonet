@@ -39,6 +39,7 @@ logback.xml
 /.gradle
 /*/target/
 /*/build/
+/midodeps/
 /midolman/src/main/resources/git.properties
 /midonet-functional-tests/src/main/resources/git.properties
 /midonet-client/dependency-reduced-pom.xml
