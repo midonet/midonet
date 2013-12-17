@@ -322,8 +322,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
                           port.getPortNo, port.getName, vportId,
                           if (isActive) "active" else "inactive")
                 installTunnelKeyFlow(port, vportId, isActive)
-                VirtualToPhysicalMapper.getRef() !
-                    LocalPortActive(vportId, isActive)
+                VirtualToPhysicalMapper ! LocalPortActive(vportId, isActive)
             }
         }
     )
@@ -359,8 +358,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
         case Initialize =>
             initializer = sender
             log.info("Initialize from: " + sender)
-            VirtualToPhysicalMapper.getRef() !
-                HostRequest(hostService.getHostId)
+            VirtualToPhysicalMapper ! HostRequest(hostService.getHostId)
 
         case h: Host =>
             // If we already had the host info, process this after init.
@@ -431,10 +429,10 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
             case m =>
                 log.warning("Unhandled message {}", m)
         })
-        FlowController.getRef() ! DatapathReady(datapath, dpState)
-        DeduplicationActor.getRef() ! DatapathReady(datapath, dpState)
+        FlowController ! DatapathReady(datapath, dpState)
+        DeduplicationActor ! DatapathReady(datapath, dpState)
         for ((zoneId, zone) <- host.zones) {
-            VirtualToPhysicalMapper.getRef() ! TunnelZoneRequest(zoneId)
+            VirtualToPhysicalMapper ! TunnelZoneRequest(zoneId)
         }
         if (portWatcherEnabled) {
             // schedule port requests.
@@ -466,15 +464,15 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
             newZones: Map[UUID, TZHostConfig[_, _]]) {
         val dropped = oldZones.keySet.diff(newZones.keySet)
         for (zone <- dropped) {
-            VirtualToPhysicalMapper.getRef() ! TunnelZoneUnsubscribe(zone)
+            VirtualToPhysicalMapper ! TunnelZoneUnsubscribe(zone)
             for (tag <- dpState.removePeersForZone(zone)) {
-                FlowController.getRef() ! FlowController.InvalidateFlowsByTag(tag)
+                FlowController ! FlowController.InvalidateFlowsByTag(tag)
             }
         }
 
         val added = newZones.keySet.diff(oldZones.keySet)
         for (zone <- added) {
-            VirtualToPhysicalMapper.getRef() ! TunnelZoneRequest(zone)
+            VirtualToPhysicalMapper ! TunnelZoneRequest(zone)
         }
     }
 
@@ -497,7 +495,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
             translateVirtualWildcardFlow(flow, tags) onSuccess {
                 case (finalFlow, finalTags) =>
                     log.debug("flow translated, installing: {}", finalFlow)
-                    FlowController.getRef() !
+                    FlowController !
                         AddWildcardFlow(finalFlow, None, callbacks, finalTags)
             }
 
@@ -541,7 +539,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
                     datapathConnection.portsGet(portName, datapath,
                         new Callback[Port[_,_]]{
                             def onSuccess(data: Port[_, _]) {
-                                MonitoringActor.getRef() !
+                                MonitoringActor !
                                         DpPortStats(portID, data.getStats)
                             }
 
@@ -606,7 +604,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
         }
 
         def processTags(tags: TraversableOnce[Any]): Unit = tags.foreach {
-            FlowController.getRef() ! FlowController.InvalidateFlowsByTag(_)
+            FlowController ! FlowController.InvalidateFlowsByTag(_)
         }
 
         def processDelPeer(): Unit =
@@ -625,7 +623,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
 
     private def installTunnelKeyFlow(
             port: Port[_, _], exterior: client.Port[_]): Unit = {
-        val fc = FlowController.getRef()
+        val fc = FlowController
         // packets for the port may have arrived before the
         // port came up and made us install temporary drop flows.
         // Invalidate them before adding the new flow
@@ -652,7 +650,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
                 //   + On activation we invalidate flows for this dp port
                 //     number in case it has been reused by the dp: we
                 //     want to start with a clean state.
-                FlowController.getRef() ! FlowController.InvalidateFlowsByTag(
+                FlowController ! FlowController.InvalidateFlowsByTag(
                     FlowTagger.invalidateDPPort(port.getPortNo.shortValue()))
                 if (active)
                     installTunnelKeyFlow(port, p)

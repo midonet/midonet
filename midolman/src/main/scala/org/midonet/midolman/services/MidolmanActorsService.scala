@@ -128,6 +128,6 @@ class MidolmanActorsService extends AbstractService {
 
     def initProcessing() {
         log.debug("Sending Initialization message to datapath controller.")
-        DatapathController.getRef() ! DatapathController.initializeMsg
+        DatapathController ! DatapathController.initializeMsg
     }
 }

@@ -71,7 +71,7 @@ class MonitoringActor extends Actor with ActorLogWithoutPath {
                 val task = system.scheduler.schedule(
                     0 millis,
                     configuration.getPortStatsRequestTime millis,
-                    DatapathController.getRef(),
+                    DatapathController,
                     DpPortStatsRequest(portID))
 
                 // add this port to the local map.

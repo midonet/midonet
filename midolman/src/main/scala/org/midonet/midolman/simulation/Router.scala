@@ -119,7 +119,7 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
         // Construct the reply, reversing src/dst fields from the request.
         val eth = ARP.makeArpReply(inPort.portMac, sha,
             pkt.getTargetProtocolAddress, pkt.getSenderProtocolAddress)
-        DeduplicationActor.getRef() ! EmitGeneratedPacket(
+        DeduplicationActor ! EmitGeneratedPacket(
             inPort.id, eth,
             if (origPktContext != null) origPktContext.flowCookie else None)
     }
@@ -347,7 +347,7 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
                         case RuleResult.Action.ACCEPT =>
                             val cookie = if (packetContext == null) None
                                 else packetContext.flowCookie
-                            DeduplicationActor.getRef() !
+                            DeduplicationActor !
                                 EmitGeneratedPacket(rt.nextHopPort, eth, cookie)
                         case RuleResult.Action.DROP =>
                         case RuleResult.Action.REJECT =>

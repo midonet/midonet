@@ -328,7 +328,7 @@ class Coordinator(var origMatch: WildcardMatch,
         eth.setSourceMACAddress(origEthernetPkt.getDestinationMACAddress)
         eth.setDestinationMACAddress(origEthernetPkt.getSourceMACAddress)
 
-        DeduplicationActor.getRef() ! EmitGeneratedPacket(inPort, eth, cookie)
+        DeduplicationActor ! EmitGeneratedPacket(inPort, eth, cookie)
     }
 
     private def packetIngressesDevice(port: Port[_])

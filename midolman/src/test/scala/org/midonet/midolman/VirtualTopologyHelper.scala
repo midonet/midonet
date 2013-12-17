@@ -4,7 +4,6 @@
 package org.midonet.midolman
 
 import scala.concurrent.{Future, Await}
-import akka.pattern.ask
 import akka.util.Timeout
 
 import org.midonet.cluster.data._
@@ -17,7 +16,7 @@ trait VirtualTopologyHelper {
     def preloadTopology(entities: Entity.Base[_,_,_]*)
                        (implicit timeout: Timeout)=
         Await.result(Future.sequence(entities map buildRequest map
-                                     { ask(VirtualTopologyActor, _) }),
+                                     { VirtualTopologyActor ? _ }),
                      timeout.duration)
 
     @inline

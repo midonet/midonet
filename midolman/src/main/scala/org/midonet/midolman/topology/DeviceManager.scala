@@ -4,7 +4,7 @@
 package org.midonet.midolman.topology
 
 import java.util.UUID
-import akka.actor.{ActorSystem, Actor}
+import akka.actor.Actor
 import org.midonet.midolman.simulation.Chain
 import org.midonet.midolman.topology.VirtualTopologyActor.{ChainRequest,
                                                             ChainUnsubscribe}
@@ -19,12 +19,12 @@ abstract class DeviceManager(val id: UUID) extends Actor with ActorLogWithoutPat
     def configUpdated(): Unit = {
         // Unsubscribe from old inFilter if changed.
         if (null != inFilter && !inFilter.id.equals(getInFilterID)) {
-            VirtualTopologyActor.getRef() ! ChainUnsubscribe(inFilter.id)
+            VirtualTopologyActor ! ChainUnsubscribe(inFilter.id)
             inFilter = null
         }
         // Unsubscribe from old outFilter if changed.
         if (null != outFilter && !outFilter.id.equals(getOutFilterID)) {
-            VirtualTopologyActor.getRef() ! ChainUnsubscribe(outFilter.id)
+            VirtualTopologyActor ! ChainUnsubscribe(outFilter.id)
             outFilter = null
         }
 
@@ -32,13 +32,13 @@ abstract class DeviceManager(val id: UUID) extends Actor with ActorLogWithoutPat
         // Do we need to subscribe to new filters?
         if (waitingForInFilter) {
             log.debug("subscribing to ingress chain {}", getInFilterID)
-            VirtualTopologyActor.getRef() !
+            VirtualTopologyActor !
                     ChainRequest(getInFilterID, update = true)
             waitingForChains = true
         }
         if (waitingForOutFilter) {
             log.debug("subscribing to egress chain {}", getOutFilterID)
-            VirtualTopologyActor.getRef() !
+            VirtualTopologyActor !
                 ChainRequest(getOutFilterID, update = true)
             waitingForChains = true
         }

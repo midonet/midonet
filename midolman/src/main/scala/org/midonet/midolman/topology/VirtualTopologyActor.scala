@@ -171,7 +171,7 @@ object VirtualTopologyActor extends Referenceable {
                                        simLog: SimulationAwareBusLogging)
                                       (implicit pktContext: PacketContext,
                                                 system: ActorSystem) =
-        VirtualTopologyActor.getRef()
+        VirtualTopologyActor
             .ask(request)(timeLeft milliseconds)
             .mapTo[D](request.tag).andThen {
                 case Failure(ex: ClassCastException) =>
@@ -297,8 +297,8 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
             // We know the DDA should always get an update to the trace
             // conditions.  For some reason the ChainRequest(update=true)
             // message from the DDA doesn't get the sender properly set.
-            DeduplicationActor.getRef() ! conditions
+            DeduplicationActor ! conditions
         case invalidation: InvalidateFlowsByTag =>
-            FlowController.getRef() ! invalidation
+            FlowController ! invalidation
     }
 }

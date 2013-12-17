@@ -207,7 +207,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
         }
 
         case DeduplicationActor._GetConditionListFromVta =>
-            VirtualTopologyActor.getRef() !
+            VirtualTopologyActor !
                 ConditionListRequest(TraceConditionsManager.uuid, update = true)
     }
 

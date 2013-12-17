@@ -178,7 +178,7 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
                 removeArpWaiter(ip, macPromise)
                 Future.successful(entry.macAddr)
             case _ =>
-                DeduplicationActor.getRef() !
+                DeduplicationActor !
                         SuspendOnPromise(pktContext.flowCookie, macPromise)
                 macPromise.future
         } fallbackTo { Future.successful(null) }
@@ -262,7 +262,7 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
             cacheEntry.lastArp = now
             arpCache.add(ip, cacheEntry)
             log.debug("generateArpRequest: sending {}", arp)
-            DeduplicationActor.getRef() !
+            DeduplicationActor !
                     EmitGeneratedPacket(port.id, arp,
                         if (pktContext != null) pktContext.flowCookie else None)
             // we don't retry for stale entries.
