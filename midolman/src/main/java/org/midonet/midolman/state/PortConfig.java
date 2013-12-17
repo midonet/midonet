@@ -11,7 +11,11 @@ import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonSubTypes;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
 import org.midonet.midolman.state.PortDirectory.BridgePortConfig;
+import org.midonet.midolman.state.PortDirectory.InteriorBridgePortConfig;
+import org.midonet.midolman.state.PortDirectory.ExteriorBridgePortConfig;
 import org.midonet.midolman.state.PortDirectory.RouterPortConfig;
+import org.midonet.midolman.state.PortDirectory.InteriorRouterPortConfig;
+import org.midonet.midolman.state.PortDirectory.ExteriorRouterPortConfig;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY,
     property = "type")
@@ -20,13 +24,13 @@ import org.midonet.midolman.state.PortDirectory.RouterPortConfig;
         name = "BridgePort"),
     @JsonSubTypes.Type(value = RouterPortConfig.class,
         name = "RouterPort"),
-    @JsonSubTypes.Type(value = BridgePortConfig.class,
+    @JsonSubTypes.Type(value = ExteriorBridgePortConfig.class,
         name = "ExteriorBridgePort"),
-    @JsonSubTypes.Type(value = RouterPortConfig.class,
+    @JsonSubTypes.Type(value = ExteriorRouterPortConfig.class,
         name = "ExteriorRouterPort"),
-    @JsonSubTypes.Type(value = BridgePortConfig.class,
+    @JsonSubTypes.Type(value = InteriorBridgePortConfig.class,
         name = "InteriorBridgePort"),
-    @JsonSubTypes.Type(value = RouterPortConfig.class,
+    @JsonSubTypes.Type(value = InteriorRouterPortConfig.class,
         name = "InteriorRouterPort")
 })
 public abstract class PortConfig {
