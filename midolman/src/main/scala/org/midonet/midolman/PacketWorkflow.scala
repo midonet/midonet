@@ -15,7 +15,6 @@ import scala.reflect.ClassTag
 
 import akka.actor._
 import akka.event.{Logging, LoggingAdapter}
-import akka.pattern.ask
 import akka.util.Timeout
 
 import org.midonet.cluster.DataClient
@@ -154,27 +153,27 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
                 log.debug("Successfully created flow for {}", cookieStr)
                 newWildFlow match {
                     case None =>
-                        FlowController.getRef() ! FlowAdded(dpFlow)
+                        FlowController ! FlowAdded(dpFlow)
                     case Some(wf) =>
-                        FlowController.getRef() !
+                        FlowController !
                                 AddWildcardFlow(wf, Some(dpFlow),
                                     removalCallbacks, tags, lastInvalidation)
                 }
-                DeduplicationActor.getRef() ! ApplyFlow(dpFlow.getActions, cookie)
+                DeduplicationActor ! ApplyFlow(dpFlow.getActions, cookie)
                 flowPromise success true
             }
 
             def onTimeout() {
                 log.warning("Flow creation for {} timed out, deleting", cookieStr)
                 datapathConnection.flowsDelete(datapath, flow, noOpCallback)
-                DeduplicationActor.getRef() ! ApplyFlow(flow.getActions, cookie)
+                DeduplicationActor ! ApplyFlow(flow.getActions, cookie)
                 flowPromise success true
             }
 
             def onError(ex: NetlinkException) {
                 if (ex.getErrorCodeEnum == ErrorCode.EEXIST) {
                     log.info("File exists while adding flow for {}", cookieStr)
-                    DeduplicationActor.getRef() !
+                    DeduplicationActor !
                             ApplyFlow(flow.getActions, cookie)
                     runCallbacks(removalCallbacks)
                     flowPromise success true
@@ -187,7 +186,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
                     log.error("Error {} while adding flow for {}. " +
                               "Dropping packets. The flow was {}",
                               ex, cookieStr, flow)
-                    DeduplicationActor.getRef() ! ApplyFlow(Seq.empty, cookie)
+                    DeduplicationActor ! ApplyFlow(Seq.empty, cookie)
                     flowPromise failure ex
                 }
             }
@@ -228,7 +227,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
         log.debug("Skipping creation of obsolete flow {} for {}",
                   cookieStr, wildFlow.getMatch)
         if (cookie.isDefined)
-            DeduplicationActor.getRef() ! ApplyFlow(wildFlow.getActions, cookie)
+            DeduplicationActor ! ApplyFlow(wildFlow.getActions, cookie)
         runCallbacks(removalCallbacks)
         Future.successful(true)
     }
@@ -240,10 +239,10 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
             case Some(_) if packet.getMatch.isUserSpaceOnly =>
                 log.debug("Adding wildcard flow {} for userspace only match",
                           wildFlow)
-                FlowController.getRef() !
+                FlowController !
                     AddWildcardFlow(wildFlow, None, removalCallbacks,
                                     tags, lastInvalidation)
-                DeduplicationActor.getRef() !
+                DeduplicationActor !
                     ApplyFlow(wildFlow.getActions, cookie)
                 Future.successful(true)
 
@@ -253,7 +252,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
             case None =>
                 log.debug("Only adding wildcard flow {} for {}",
                           wildFlow, cookieStr)
-                FlowController.getRef() !
+                FlowController !
                     AddWildcardFlow(wildFlow, None, removalCallbacks,
                                     tags, lastInvalidation)
                 Future.successful(true)
@@ -320,7 +319,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
 
         val flowFuture = if (packet.getMatch.isUserSpaceOnly) {
             log.debug("Won't add flow with userspace match {}", packet.getMatch)
-            DeduplicationActor.getRef() ! ApplyFlow(wildFlow.getActions, cookie)
+            DeduplicationActor ! ApplyFlow(wildFlow.getActions, cookie)
             Future.successful(true)
         } else {
             createFlow(wildFlow)
@@ -363,7 +362,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
             return Future.failed(new IllegalArgumentException("Missing tunnel key"))
         }
 
-        val portSetFuture = VirtualToPhysicalMapper.getRef() ?
+        val portSetFuture = VirtualToPhysicalMapper ?
                 PortSetForTunnelKeyRequest(wMatch.getTunnelID)
 
         portSetFuture.mapTo[PortSet] flatMap {
@@ -419,7 +418,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
             case SendPacket(actions) =>
                 sendPacket(actions)
             case NoOp =>
-                DeduplicationActor.getRef() ! ApplyFlow(Nil, cookie)
+                DeduplicationActor ! ApplyFlow(Nil, cookie)
                 Future.successful(true)
             case ErrorDrop =>
                 addTranslatedFlowForActions(Nil, expiration = 5000)

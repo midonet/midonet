@@ -132,7 +132,7 @@ object Icmp {
             eth.setSourceMACAddress(inPort.portMac)
             eth.setDestinationMACAddress(ingressMatch.getEthernetSource)
 
-            DeduplicationActor.getRef() ! EmitGeneratedPacket(
+            DeduplicationActor ! EmitGeneratedPacket(
                 // TODO(pino): check with Guillermo about match's vs. device's inPort.
                 //ingressMatch.getInputPortUUID, eth)
                 inPort.id, eth,

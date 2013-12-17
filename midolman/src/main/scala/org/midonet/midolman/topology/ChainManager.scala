@@ -44,7 +44,7 @@ class ChainManager(val id: UUID, val clusterClient: Client) extends Actor
             idToRefCount.put(chainId, idToRefCount(chainId) + 1)
         } else {
             // Subscribe to this new chain
-            VirtualTopologyActor.getRef() ! ChainRequest(chainId, update = true)
+            VirtualTopologyActor ! ChainRequest(chainId, update = true)
             idToRefCount.put(chainId, 1)
             waitingForChains += 1
         }
@@ -56,7 +56,7 @@ class ChainManager(val id: UUID, val clusterClient: Client) extends Actor
             if (refCount > 1)
                 idToRefCount.put(chainId, refCount - 1)
             else {
-                VirtualTopologyActor.getRef() ! ChainUnsubscribe(chainId)
+                VirtualTopologyActor ! ChainUnsubscribe(chainId)
                 idToRefCount.remove(chainId)
                 idToChain.remove(chainId) match {
                     case None => waitingForChains -= 1
@@ -107,8 +107,8 @@ class ChainManager(val id: UUID, val clusterClient: Client) extends Actor
     }
 
     private def publishUpdate(chain: Chain) {
-        VirtualTopologyActor.getRef() ! chain
-        VirtualTopologyActor.getRef() !
+        VirtualTopologyActor ! chain
+        VirtualTopologyActor !
                 InvalidateFlowsByTag(FlowTagger.invalidateFlowsByDevice(id))
     }
 

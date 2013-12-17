@@ -25,10 +25,10 @@ class PortManager(id: UUID, val clusterClient: Client)
     override def chainsUpdated() {
         log.info("chains updated, new port {}", port)
         // TODO(ross) better cloning this port before passing it
-        VirtualTopologyActor.getRef() ! port
+        VirtualTopologyActor ! port
 
         if (changed) {
-            VirtualTopologyActor.getRef() !
+            VirtualTopologyActor !
                 InvalidateFlowsByTag(FlowTagger.invalidateFlowsByDevice(port.id))
             changed = false
         }

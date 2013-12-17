@@ -88,9 +88,9 @@ class RouterFlowInvalidationTestCase extends MidolmanTestCase with RouterHelper
 
         actors().eventStream.subscribe(eventProbe.ref, classOf[LocalPortActive])
         actors().eventStream.subscribe(tagEventProbe.ref, classOf[RouterInvTrieTagCountModified])
-        initializeDatapath() should not be (null)
+        initializeDatapath() should not be null
 
-        flowProbe().expectMsgType[DatapathController.DatapathReady].datapath should not be (null)
+        flowProbe().expectMsgType[DatapathController.DatapathReady].datapath should not be null
 
         inPort = newRouterPort(clusterRouter, MAC.fromString(macInPort),
             ipInPort, ipInPort, 32)
@@ -130,7 +130,6 @@ class RouterFlowInvalidationTestCase extends MidolmanTestCase with RouterHelper
     def testFlowInFlightInvalidation() {
         val datapath = flowController().underlyingActor.datapath
         val dpconn = flowController().underlyingActor.datapathConnection
-        val fc = FlowController.getRef()
         val dpFlowProbe = newProbe()
         actors().eventStream.subscribe(dpFlowProbe.ref, classOf[FlowAdded])
         actors().eventStream.subscribe(dpFlowProbe.ref, classOf[FlowRemoved])
@@ -143,25 +142,25 @@ class RouterFlowInvalidationTestCase extends MidolmanTestCase with RouterHelper
 
         dpconn.flowsCreate(datapath, dpflow)
         dpFlowProbe.expectMsgClass(classOf[FlowAdded])
-        fc ! AddWildcardFlow(wflow, Some(dpflow), ROSet.empty, tags)
+        FlowController ! AddWildcardFlow(wflow, Some(dpflow), ROSet.empty, tags)
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
 
         val lastInval = FlowController.lastInvalidationEvent
-        for (i <- 1 to 20) { fc ! InvalidateFlowsByTag("a second tag") }
-        fc ! InvalidateFlowsByTag(tag)
-        for (i <- 1 to 20) { fc ! InvalidateFlowsByTag("a third tag") }
+        for (i <- 1 to 20) { FlowController ! InvalidateFlowsByTag("a second tag") }
+        FlowController ! InvalidateFlowsByTag(tag)
+        for (i <- 1 to 20) { FlowController ! InvalidateFlowsByTag("a third tag") }
         wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
         dpFlowProbe.expectMsgClass(classOf[FlowRemoved])
 
         dpconn.flowsCreate(datapath, dpflow)
         dpFlowProbe.expectMsgClass(classOf[FlowAdded])
-        fc ! AddWildcardFlow(wflow, Some(dpflow), ROSet.empty, tags, lastInval)
+        FlowController ! AddWildcardFlow(wflow, Some(dpflow), ROSet.empty, tags, lastInval)
         dpFlowProbe.expectMsgClass(classOf[FlowRemoved])
         wflowAddedProbe.expectNoMsg()
 
         dpconn.flowsCreate(datapath, dpflow)
         dpFlowProbe.expectMsgClass(classOf[FlowAdded])
-        fc ! AddWildcardFlow(wflow, Some(dpflow), ROSet.empty, tags)
+        FlowController ! AddWildcardFlow(wflow, Some(dpflow), ROSet.empty, tags)
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
     }
 

@@ -582,7 +582,7 @@ class Bridge(val id: UUID,
         val eth = ARP.makeArpReply(mac, arpReq.getSenderHardwareAddress,
                                    arpReq.getTargetProtocolAddress,
                                    arpReq.getSenderProtocolAddress)
-        DeduplicationActor.getRef() ! EmitGeneratedPacket(
+        DeduplicationActor ! EmitGeneratedPacket(
             inPortId, eth,
             if (originalPktContex != null)
                 originalPktContex.flowCookie

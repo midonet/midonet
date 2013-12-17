@@ -181,7 +181,7 @@ class BridgeManager(id: UUID, val clusterClient: Client,
 
     override def chainsUpdated() {
         log.info("chains updated")
-        VirtualTopologyActor.getRef() !
+        VirtualTopologyActor !
             new Bridge(id, isAdminStateUp, getTunnelKey,
                 learningMgr.vlanMacTableMap,
                 if (config.getMidolmanBridgeArpEnabled) ip4MacMap
@@ -191,7 +191,7 @@ class BridgeManager(id: UUID, val clusterClient: Client,
                 macToLogicalPortId, rtrIpToMac, vlanToPort)
 
         if (changed) {
-            VirtualTopologyActor.getRef() !
+            VirtualTopologyActor !
                 InvalidateFlowsByTag(FlowTagger.invalidateFlowsByDevice(id))
             changed = false
         }
@@ -213,7 +213,7 @@ class BridgeManager(id: UUID, val clusterClient: Client,
 
     override def preStart() {
         clusterClient.getBridge(id, new BridgeBuilderImpl(id,
-            FlowController.getRef(), self))
+            FlowController, self))
         // Schedule the recurring cleanup of expired mac-port associations.
         implicit val executor = context.dispatcher
         context.system.scheduler.schedule(
