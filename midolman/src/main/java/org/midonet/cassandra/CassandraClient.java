@@ -116,12 +116,10 @@ public class CassandraClient {
             config.setExhaustedPolicy(ExhaustedPolicy.WHEN_EXHAUSTED_FAIL);
 
             cluster = HFactory.getOrCreateCluster(clusterName, config);
-            // Using FAIL_FAST because if Hector blocks the operations too
-            // long, midolman gets disconnected from OVS and crashes.
             keyspace = HFactory.createKeyspace(
                     keyspaceName, cluster,
                     HFactory.createDefaultConsistencyLevelPolicy(),
-                    FailoverPolicy.FAIL_FAST);
+                    FailoverPolicy.ON_FAIL_TRY_ALL_AVAILABLE);
 
             log.debug("Check column family {} exists in keyspace {}",
                     columnFamily, keyspace);
