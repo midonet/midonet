@@ -21,7 +21,6 @@ import org.midonet.api.network.auth.RouterAuthorizer;
 import org.midonet.api.rest_api.BadRequestHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.cluster.DataClient;
 import org.slf4j.Logger;
@@ -78,7 +77,6 @@ public class RouteResource extends AbstractResource {
     @Path("{id}")
     public void delete(@PathParam("id") UUID id)
             throws StateAccessException,
-            InvalidStateOperationException,
             SerializationException {
 
         org.midonet.cluster.data.Route routeData =
@@ -172,7 +170,6 @@ public class RouteResource extends AbstractResource {
                 MediaType.APPLICATION_JSON })
         public Response create(Route route)
                 throws StateAccessException,
-                InvalidStateOperationException,
                 SerializationException {
 
             route.setRouterId(routerId);
