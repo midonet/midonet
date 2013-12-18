@@ -204,6 +204,11 @@
 
         <dependency>
             <groupId>${project.groupId}</groupId>
+            <artifactId>cluster</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>${project.groupId}</groupId>
             <artifactId>midolman</artifactId>
             <exclusions>
                 <exclusion>
