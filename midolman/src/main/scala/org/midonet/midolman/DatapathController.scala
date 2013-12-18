@@ -34,7 +34,7 @@ import org.midonet.netlink.Callback
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode
 import org.midonet.odp.{PortOptions, Port, Ports, Datapath}
-import org.midonet.odp.flows.{FlowActions, FlowAction}
+import org.midonet.odp.flows.{FlowActions, FlowAction, FlowActionOutput}
 import org.midonet.odp.ports._
 import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.packets.IPv4Addr
@@ -61,6 +61,8 @@ trait UnderlayResolver {
     /** reference to the datapath GRE tunnel port.
      *  None if port is not available. */
     def tunnelGre: Option[Port[_,_]]
+
+    def greOutputAction: Option[FlowActionOutput]
 
 }
 
@@ -665,7 +667,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
         opReply match {
 
             case DpPortSuccess(DpPortCreateGreTunnel(p, _)) =>
-                dpState.tunnelGre = Some(p)
+                dpState.setTunnelGre(Some(p))
 
             case DpPortError(req @ DpPortCreateGreTunnel(p, tags), _, _) =>
                 log.warning(
@@ -1326,13 +1328,14 @@ class DatapathStateManager(val controller: VirtualPortManager.Controller)(
     def dpPortForget(port: Port[_,_]) =
         versionUp { _vportMgr = _vportMgr.datapathPortForget(port) }
 
-    var _tunnelGre: Option[Port[_,_]] = None
+    var tunnelGre: Option[Port[_,_]] = None
 
-    override def tunnelGre = _tunnelGre
+    var greOutputAction: Option[FlowActionOutput] = None
 
     /** updates the DPC reference to the tunnel port bound in the datapath */
-    def tunnelGre_=(p: Option[Port[_,_]]) = versionUp {
-        _tunnelGre = p
+    def setTunnelGre(p: Option[Port[_,_]]) = versionUp {
+        tunnelGre = p
+        greOutputAction = tunnelGre.map{ _.toOutputAction }
         log.info("gre tunnel port was assigned to {}", p)
     }
 

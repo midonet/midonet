@@ -59,14 +59,16 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
 
     def testTunnelSet {
         List[MaybePort](
-            Some(null),
+            Option(null),
+            Some(GreTunnelPort.make("gre").setPortNo(0)),
             None,
-            Some(GreTunnelPort.make("foo")),
+            Some(GreTunnelPort.make("foo").setPortNo(1)),
             None,
-            Some(GreTunnelPort.make("bar"))
+            Some(GreTunnelPort.make("bar").setPortNo(2))
         ).foreach { tun => checkVUp {
-                stateMgr.tunnelGre = tun
+                stateMgr.setTunnelGre(tun)
                 stateMgr.tunnelGre should be (tun)
+                stateMgr.greOutputAction should be (tun.map{ _.toOutputAction })
             }
         }
     }
