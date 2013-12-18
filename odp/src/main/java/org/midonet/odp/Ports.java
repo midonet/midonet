@@ -5,13 +5,7 @@ package org.midonet.odp;
 
 import javax.annotation.Nonnull;
 
-import org.midonet.odp.ports.GreTunnelPort;
-import org.midonet.odp.ports.GreTunnelPortOptions;
-import org.midonet.odp.ports.InternalPort;
-import org.midonet.odp.ports.InternalPortOptions;
-import org.midonet.odp.ports.NetDevPort;
-import org.midonet.odp.ports.NetDevPortOptions;
-import org.midonet.odp.ports.TunnelPortOptions;
+import org.midonet.odp.ports.*;
 
 /**
  * Helper class that acts as a factory to port types.
@@ -25,6 +19,13 @@ public class Ports {
         return port.getOptions()
                    .setDestinationIPv4(destination)
                    .setFlags(flags);
+    }
+
+    public static VxLanTunnelPortOptions newPortOptions(VxLanTunnelPort port,
+                                                        short dstPort) {
+        port.setOptions(new VxLanTunnelPortOptions());
+        return port.getOptions()
+                .setDestinationPort(dstPort);
     }
 
     public static InternalPortOptions newPortOptions(InternalPort port) {
@@ -49,6 +50,10 @@ public class Ports {
         return new GreTunnelPort(name);
     }
 
+    public static VxLanTunnelPort newVxLanTunnelPort(@Nonnull String name) {
+        return new VxLanTunnelPort(name);
+    }
+
     public static Port<?,?> newPortByType(Port.Type type, String name) {
         if (type == null || name == null)
             return null;
@@ -64,6 +69,8 @@ public class Ports {
                 return new GreTunnelPort(name);
             case Gre64:
                 return new GreTunnelPort(name);
+            case VXLan:
+                return new VxLanTunnelPort(name);
             default:
                 return null;
         }
@@ -89,6 +96,9 @@ public class Ports {
 
             case OpenVSwitch.Port.Type.Gre64:
                 return new GreTunnelPort(name);
+
+            case OpenVSwitch.Port.Type.VXLan:
+                return new VxLanTunnelPort(name);
 
             default:
                 return null;
