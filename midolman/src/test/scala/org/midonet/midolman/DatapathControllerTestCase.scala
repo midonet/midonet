@@ -34,6 +34,11 @@ class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
           classOf[LocalPortActive])
   }
 
+  def checkGreTunnel() {
+    dpState.tunnelGre should not be (None)
+    dpState.greOutputAction should not be (None)
+  }
+
   def testDatapathEmptyDefault() {
 
     val host = new Host(hostId()).setName("myself")
@@ -54,6 +59,7 @@ class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
     ports should have size 2
     ports should contain key ("tngre-mm")
     ports should contain key ("midonet")
+    checkGreTunnel()
   }
 
   def testDatapathAddMappingAfter() {
@@ -90,6 +96,7 @@ class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
     ports should contain key ("midonet")
     ports should contain key ("tapDevice")
     ports should contain key ("tngre-mm")
+    checkGreTunnel()
   }
 
   def testDatapathEmpty() {
@@ -112,6 +119,7 @@ class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
     ports should have size 2
     ports should contain key ("tngre-mm")
     ports should contain key ("test")
+    checkGreTunnel()
   }
 
   def testDatapathEmptyOnePort() {
@@ -145,6 +153,7 @@ class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
     ports should contain key ("tngre-mm")
     ports should contain key ("test")
     ports should contain key ("port1")
+    checkGreTunnel()
   }
 
   def testDatapathExistingMore() {
@@ -183,6 +192,7 @@ class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
     ports should contain key ("tngre-mm")
     ports should contain key ("test")
     ports should contain key ("port1")
+    checkGreTunnel()
   }
 
   def testDatapathBasicOperations() {
@@ -211,6 +221,7 @@ class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
     ports should contain key ("tngre-mm")
     ports should contain key ("test")
     ports should contain key ("netdev")
+    checkGreTunnel()
 
     val nextRequest = DpPortDeleteNetdev(netdevPort, None)
     opReply = askAndAwait[DpPortReply](dpController(), nextRequest)
@@ -220,6 +231,7 @@ class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
     ports should have size 2
     ports should contain key ("tngre-mm")
     ports should contain key ("test")
+    checkGreTunnel()
   }
 
   def testInternalControllerState() {
@@ -243,8 +255,7 @@ class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
     ports should contain key ("port1")
     val port1DpId = ports("port1").getPortNo
 
-    dpController().underlyingActor.dpState
-        .getDpPortNumberForVport(port1.getId) should be (Some(port1DpId))
+    dpState().getDpPortNumberForVport(port1.getId) should be (Some(port1DpId))
 
     requestOfType[HostRequest](vtpProbe())
     val rcuHost = replyOfType[RCUHost](vtpProbe())
@@ -269,10 +280,8 @@ class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
     newPorts should contain key ("port2")
     val port2DpId = newPorts("port2").getPortNo
 
-    dpController().underlyingActor.dpState
-      .getDpPortNumberForVport(port1.getId) should equal(Some(port1DpId))
-    dpController().underlyingActor.dpState
-      .getDpPortNumberForVport(port2.getId) should equal(Some(port2DpId))
+    dpState().getDpPortNumberForVport(port1.getId) should equal(Some(port1DpId))
+    dpState().getDpPortNumberForVport(port2.getId) should equal(Some(port2DpId))
   }
 
 }

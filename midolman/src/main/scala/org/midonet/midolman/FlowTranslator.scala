@@ -3,13 +3,11 @@
  */
 package org.midonet.midolman
 
-import scala.collection.{Set => ROSet, mutable, breakOut}
-import scala.collection.mutable.ListBuffer
-import java.{util => ju}
 import java.util.UUID
-
+import scala.collection.mutable.ListBuffer
+import scala.collection.{Set => ROSet, mutable, breakOut}
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Failure
-import scala.concurrent.Future
 
 import akka.actor.ActorSystem
 import akka.event.LoggingAdapter
@@ -21,16 +19,14 @@ import org.midonet.midolman.rules.{ChainPacketContext, RuleResult}
 import org.midonet.midolman.simulation.Chain
 import org.midonet.midolman.topology.FlowTagger
 import org.midonet.midolman.topology.VirtualToPhysicalMapper
-import org.midonet.midolman.topology.VirtualToPhysicalMapper.PortSetRequest
-import org.midonet.midolman.topology.VirtualTopologyActor._
+import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.rcu.PortSet
 import org.midonet.odp.flows.FlowAction
 import org.midonet.odp.flows.FlowActionUserspace
 import org.midonet.odp.flows.FlowActions
 import org.midonet.odp.flows.FlowKeys
 import org.midonet.odp.protos.OvsDatapathConnection
-import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPort
-import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPortSet
+import org.midonet.sdn.flows.VirtualActions
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 import org.midonet.util.functors.Callback0
 
@@ -48,7 +44,7 @@ object FlowTranslator {
             val tags: Option[mutable.Set[Any]]) extends ChainPacketContext {
 
         override val inPortId = null
-        override val portGroups = new ju.HashSet[UUID]()
+        override val portGroups = new java.util.HashSet[UUID]()
         override val isConnTracked = false
         override val isForwardFlow = true
         override val flowCookie = None
@@ -67,7 +63,11 @@ object FlowTranslator {
 }
 
 trait FlowTranslator {
+
     import FlowTranslator._
+    import VirtualToPhysicalMapper.PortSetRequest
+    import VirtualTopologyActor._
+    import VirtualActions._
 
     protected val datapathConnection: OvsDatapathConnection
     protected val dpState: DatapathState
@@ -201,10 +201,6 @@ trait FlowTranslator {
                 (FlowActions.output(id), FlowTagger.invalidateDPPort(id))
             }.unzip
 
-        // Helper functions for remote port translation
-        def tunnelOutput(): Option[FlowAction[_]] =
-            dpState.tunnelGre.map{ p => FlowActions.output(p.getPortNo.shortValue) }
-
         // Prepare an ODP object which can set the flow tunnel info
         def flowTunnelKey(key: Long, route: (Int, Int)) =
             FlowActions.setKey(FlowKeys.tunnel(key, route._1, route._2))
@@ -225,7 +221,7 @@ trait FlowTranslator {
 
         // Calls the tunneling actions generation if gre tunnel port exists
         def tunnelActions(key: Long): Option[TaggedActions] =
-            tunnelOutput map { tunnelSettings(key, _) }
+            dpState.greOutputAction.map { tunnelSettings(key, _) }
 
         // Translate a flow to peer hosts via tunnel key.
         def translateFlowToPeers: TaggedActions =
