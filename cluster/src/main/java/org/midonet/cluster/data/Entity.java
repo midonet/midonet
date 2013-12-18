@@ -1,9 +1,7 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.cluster.data;
-
-import javax.annotation.Nonnull;
 
 /**
  * // TODO: mtoader ! Please explain yourself.
@@ -22,7 +20,7 @@ public interface Entity<Id, Data, Self extends Entity<Id, Data, Self>> {
         Id id;
         Data data;
 
-        protected Base(Id id, @Nonnull Data data) {
+        protected Base(Id id, Data data) {
             this.id = id;
             this.data = data;
         }
@@ -60,6 +58,6 @@ public interface Entity<Id, Data, Self extends Entity<Id, Data, Self>> {
         }
     }
 
-    public static interface TaggableEntity {
-    }
+    public static interface TaggableEntity { }
+
 }
