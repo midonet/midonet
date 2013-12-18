@@ -427,9 +427,8 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         if (port.getType() != null)
             builder.addAttr(PortFamily.Attr.PORT_TYPE, port.getType().attrId);
 
-// Options only relevant for tunnel type VXLan and LISP, which we don't support
-//        if (port.getOptions() != null)
-//            builder.addAttr(PortFamily.Attr.OPTIONS, port.getOptions());
+        if (port.getOptions() != null)
+            builder.addAttr(PortFamily.Attr.OPTIONS, port.getOptions());
 
 //        if (port.getStats() != null)
 //            builder.addAttr(PortFamily.Attr.STATS, port.getStats());
