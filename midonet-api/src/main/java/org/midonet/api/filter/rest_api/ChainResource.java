@@ -19,7 +19,6 @@ import org.midonet.api.filter.rest_api.RuleResource.ChainRuleResource;
 import org.midonet.api.rest_api.*;
 import org.midonet.cluster.DataClient;
 import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,9 +75,7 @@ public class ChainResource extends AbstractResource {
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Path("{id}")
     public void delete(@PathParam("id") UUID id)
-            throws StateAccessException,
-            InvalidStateOperationException,
-            SerializationException {
+            throws StateAccessException, SerializationException {
 
         org.midonet.cluster.data.Chain chainData =
                 dataClient.chainsGet(id);
@@ -157,9 +154,7 @@ public class ChainResource extends AbstractResource {
     @Consumes({ VendorMediaType.APPLICATION_CHAIN_JSON,
             MediaType.APPLICATION_JSON })
     public Response create(Chain chain)
-            throws StateAccessException,
-            InvalidStateOperationException,
-            SerializationException {
+            throws StateAccessException, SerializationException {
 
         Set<ConstraintViolation<Chain>> violations = validator.validate(
                 chain, Chain.ChainGroupSequence.class);

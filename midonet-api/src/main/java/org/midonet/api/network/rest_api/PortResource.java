@@ -54,7 +54,6 @@ import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.cluster.DataClient;
 import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.VlanPathExistsException;
 import org.slf4j.Logger;
@@ -98,9 +97,7 @@ public class PortResource extends AbstractResource {
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Path("{id}")
     public void delete(@PathParam("id") UUID id)
-            throws StateAccessException,
-            InvalidStateOperationException,
-            SerializationException {
+            throws StateAccessException, SerializationException {
 
         // Get the port and validate that this can be deleted
         org.midonet.cluster.data.Port portData = dataClient.portsGet(id);
@@ -204,9 +201,7 @@ public class PortResource extends AbstractResource {
             VendorMediaType.APPLICATION_PORT_V2_JSON,
             MediaType.APPLICATION_JSON })
     public void update(@PathParam("id") UUID id, Port port)
-            throws StateAccessException,
-            InvalidStateOperationException,
-            SerializationException {
+            throws StateAccessException, SerializationException {
 
         port.setId(id);
 
@@ -380,9 +375,7 @@ public class PortResource extends AbstractResource {
         @Consumes({ VendorMediaType.APPLICATION_PORT_JSON,
                 MediaType.APPLICATION_JSON })
         public Response createV1(BridgePort port)
-                throws StateAccessException,
-                InvalidStateOperationException,
-                SerializationException {
+                throws StateAccessException, SerializationException {
 
             // Make sure that BridgePort type is not accepted
             if (port.getType().equals(PortType.BRIDGE)) {
@@ -405,9 +398,7 @@ public class PortResource extends AbstractResource {
         @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
         @Consumes({ VendorMediaType.APPLICATION_PORT_V2_JSON })
         public Response create(BridgePort port)
-                throws StateAccessException,
-                InvalidStateOperationException,
-                SerializationException {
+                throws StateAccessException, SerializationException {
 
             // Make sure that the only type accepted is BridgePort
             if (!port.getType().equals(PortType.BRIDGE)) {
@@ -640,9 +631,7 @@ public class PortResource extends AbstractResource {
         @Consumes({ VendorMediaType.APPLICATION_PORT_JSON,
                 MediaType.APPLICATION_JSON })
         public Response createV1(RouterPort port)
-                throws StateAccessException,
-                InvalidStateOperationException,
-                SerializationException {
+                throws StateAccessException, SerializationException {
 
             // Make sure that BridgePort type is not accepted
             if (port.getType().equals(PortType.ROUTER)) {
@@ -665,9 +654,7 @@ public class PortResource extends AbstractResource {
         @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
         @Consumes({ VendorMediaType.APPLICATION_PORT_V2_JSON })
         public Response create(RouterPort port)
-                throws StateAccessException,
-                InvalidStateOperationException,
-                SerializationException {
+                throws StateAccessException, SerializationException {
 
             // Make sure that the only type accepted is RouterPort
             if (!port.getType().equals(PortType.ROUTER)) {

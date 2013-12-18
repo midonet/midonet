@@ -22,7 +22,6 @@ import org.midonet.api.bgp.rest_api.AdRouteResource.BgpAdRouteResource;
 import org.midonet.api.network.auth.PortAuthorizer;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.BGP;
@@ -76,7 +75,6 @@ public class BgpResource extends AbstractResource {
     @Path("{id}")
     public void delete(@PathParam("id") UUID id)
             throws StateAccessException,
-            InvalidStateOperationException,
             SerializationException {
 
         BGP bgpData = dataClient.bgpGet(id);
@@ -107,7 +105,6 @@ public class BgpResource extends AbstractResource {
     @Produces({ VendorMediaType.APPLICATION_BGP_JSON,
             MediaType.APPLICATION_JSON })
     public Bgp get(@PathParam("id") UUID id) throws StateAccessException,
-            InvalidStateOperationException,
             SerializationException {
         if (!authorizer.authorize(context, AuthAction.READ, id)) {
             throw new ForbiddenHttpException(
@@ -178,7 +175,6 @@ public class BgpResource extends AbstractResource {
                 MediaType.APPLICATION_JSON })
         public Response create(Bgp bgp)
                 throws StateAccessException,
-                InvalidStateOperationException,
                 SerializationException {
 
             bgp.setPortId(portId);
@@ -206,7 +202,6 @@ public class BgpResource extends AbstractResource {
         @Produces({ VendorMediaType.APPLICATION_BGP_COLLECTION_JSON,
                 MediaType.APPLICATION_JSON })
         public List<Bgp> list() throws StateAccessException,
-                InvalidStateOperationException,
                 SerializationException {
 
             if (!authorizer.authorize(context, AuthAction.READ, portId)) {

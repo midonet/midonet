@@ -11,17 +11,6 @@ import java.util.Map;
 import java.util.AbstractMap;
 import java.util.UUID;
 
-import org.midonet.midolman.rules.RuleList;
-import org.midonet.midolman.serialization.Serializer;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.AbstractZkManager;
-import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.DirectoryCallback;
-import org.midonet.midolman.state.DirectoryCallbackFactory;
-import org.midonet.midolman.state.RuleIndexOutOfBoundsException;
-import org.midonet.midolman.state.PathBuilder;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.ZkManager;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
@@ -29,8 +18,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.midolman.rules.Rule;
+import org.midonet.midolman.rules.RuleList;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.serialization.Serializer;
+import org.midonet.midolman.state.AbstractZkManager;
+import org.midonet.midolman.state.Directory;
+import org.midonet.midolman.state.DirectoryCallback;
+import org.midonet.midolman.state.DirectoryCallbackFactory;
+import org.midonet.midolman.state.PathBuilder;
+import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.state.ZkManager;
 import org.midonet.util.functors.CollectionFunctors;
 import org.midonet.util.functors.Functor;
+import static org.midonet.cluster.data.Rule.RuleIndexOutOfBoundsException;
 
 /**
  * This class was created to handle multiple ops feature in Zookeeper.

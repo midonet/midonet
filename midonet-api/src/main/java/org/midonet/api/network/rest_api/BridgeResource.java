@@ -27,7 +27,6 @@ import org.midonet.api.validation.MessageProperty;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.ports.VlanMacPort;
 import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.StatePathExistsException;
@@ -93,7 +92,7 @@ public class BridgeResource extends AbstractResource {
     @Path("{id}")
     public void delete(@PathParam("id") UUID id)
             throws StateAccessException,
-            InvalidStateOperationException, SerializationException {
+            SerializationException {
 
         org.midonet.cluster.data.Bridge bridgeData =
                 dataClient.bridgesGet(id);
@@ -211,7 +210,7 @@ public class BridgeResource extends AbstractResource {
             MediaType.APPLICATION_JSON })
     public void update(@PathParam("id") UUID id, Bridge bridge)
             throws StateAccessException,
-            InvalidStateOperationException, SerializationException {
+            SerializationException {
 
         bridge.setId(id);
 
@@ -243,8 +242,7 @@ public class BridgeResource extends AbstractResource {
     @Consumes({ VendorMediaType.APPLICATION_BRIDGE_JSON,
             MediaType.APPLICATION_JSON })
     public Response create(Bridge bridge)
-            throws StateAccessException, InvalidStateOperationException,
-                    SerializationException{
+            throws StateAccessException, SerializationException{
 
         Set<ConstraintViolation<Bridge>> violations = validator.validate(
                 bridge, BridgeCreateGroupSequence.class);

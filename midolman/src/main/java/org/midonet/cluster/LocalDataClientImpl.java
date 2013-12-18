@@ -55,6 +55,7 @@ import org.midonet.util.functors.CollectionFunctors;
 import org.midonet.util.functors.Functor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import static org.midonet.cluster.data.Rule.RuleIndexOutOfBoundsException;
 import static org.midonet.midolman.guice.CacheModule.TRACE_INDEX;
 import static org.midonet.midolman.guice.CacheModule.TRACE_MESSAGES;
 
