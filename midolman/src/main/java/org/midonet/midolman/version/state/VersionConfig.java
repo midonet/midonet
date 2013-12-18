@@ -3,12 +3,16 @@
  */
 package org.midonet.midolman.version.state;
 
+import org.codehaus.jackson.annotate.JsonProperty;
+
 /**
  * The outer layer of the ZK data that holds its metadata.
  */
 public class VersionConfig <T> {
 
+    @JsonProperty("data")
     private T data;
+    @JsonProperty("version")
     private String version;
 
     public VersionConfig() {
