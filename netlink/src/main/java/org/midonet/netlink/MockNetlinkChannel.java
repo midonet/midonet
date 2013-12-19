@@ -27,4 +27,9 @@ class MockNetlinkChannel extends NetlinkChannel {
     protected void implConfigureBlocking(boolean block) throws IOException {
     }
 
+    @Override
+    public Netlink.Address getLocalAddress() {
+        return new Netlink.Address(0);
+    }
+
 }

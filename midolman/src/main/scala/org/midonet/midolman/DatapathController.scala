@@ -90,6 +90,9 @@ trait DatapathState extends VirtualPortsResolver with UnderlayResolver {
     // controller to the flow controller.
     def version: Long
 
+    // provide the netlink pid of the current datapath connection
+    def uplinkPid: Int
+
 }
 
 object DatapathController extends Referenceable {
@@ -350,6 +353,11 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
             case m =>
                 log.info("Not handling {} (behaving as InitializationActor)", m)
         })
+        if (datapathConnection != null)
+          dpState.uplinkPid =
+            datapathConnection.getChannel.getLocalAddress.getPid
+        else
+          log.warning("preStart(): OvsDatapathConnection not yet initialized.")
     }
 
     def receive = null
@@ -1429,4 +1437,5 @@ class DatapathStateManager(val controller: VirtualPortManager.Controller)(
     override def getDpPortName(num: JInteger): Option[String] =
         _vportMgr.dpPortNumToInterface.get(num)
 
+    var uplinkPid: Int = 0
 }
