@@ -15,8 +15,9 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.Bridge
 import org.midonet.cluster.data.host.Host
-import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
+import org.midonet.cluster.data.ports._
 import org.midonet.midolman.FlowController.RemoveWildcardFlow
+import org.midonet.midolman.simulation.{Router => RCURouter}
 import org.midonet.midolman.topology.BridgeManager.CheckExpiredMacPorts
 import org.midonet.midolman.topology.FlowTagger
 import org.midonet.midolman.topology.LocalPortActive
@@ -26,7 +27,8 @@ import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 import org.midonet.midolman.topology.VirtualTopologyActor.RouterRequest
 import org.midonet.midolman.util.{SimulationHelper, TestHelpers}
 import org.midonet.odp.Datapath
-import org.midonet.packets.{IPv4Subnet, IPv4Addr, MAC}
+import org.midonet.packets._
+import org.midonet.midolman.layer3.Route.NextHop
 
 @Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
@@ -38,14 +40,17 @@ class BridgeInvalidationTestCase extends MidolmanTestCase
 
     val ipVm1 = "10.10.0.1"
     val ipVm2 = "11.11.0.10"
-    // this is the network reachable from outPort
-    val networkToReach = "11.11.0.0"
-    val networkToReachLength = 16
-    val ipSource = "20.20.0.20"
     val macVm1 = "02:11:22:33:44:10"
     val macVm2 = "02:11:22:33:46:10"
 
-    val macSource = "02:11:22:33:44:11"
+    val macUplink = "02:11:22:44:55:aa"
+    val ipUplink = "192.168.1.254"
+    var uplinkNetAddress = "192.168.1.0"
+    var uplinkNetmask = 24
+    var uplinkPortMac = "02:11:22:44:55:bb"
+    var uplinkPortAddress = "192.168.1.1"
+    var uplinkPort: RouterPort = null
+    var upLinkRoute: UUID = null
 
     var routeId: UUID = null
     val port1Name = "port1"
@@ -53,7 +58,7 @@ class BridgeInvalidationTestCase extends MidolmanTestCase
     val port3Name = "port3"
 
     val routerMac = MAC.fromString("02:11:22:33:46:13")
-    val routerIp = new IPv4Subnet("11.11.11.1", 32)
+    val routerIp = new IPv4Subnet("11.11.11.1", 24)
 
     var bridge: Bridge = null
     var host: Host = null
@@ -116,12 +121,25 @@ class BridgeInvalidationTestCase extends MidolmanTestCase
         mapPortNameShortNumber += port3Name -> 3
         requestOfType[LocalPortActive](portsProbe)
 
+        uplinkPort = newRouterPort(router, MAC.fromString(uplinkPortMac),
+            uplinkPortAddress, uplinkNetAddress, uplinkNetmask)
+        materializePort(uplinkPort, host, "uplinkPort")
+
+        upLinkRoute = newRoute(router, "0.0.0.0", 0, "0.0.0.0", 0,
+            NextHop.PORT, uplinkPort.getId, ipUplink, 1)
+        upLinkRoute should not be null
+
+        val vta = VirtualTopologyActor.getRef()
+        val simRouter: RCURouter = askAndAwait(vta, RouterRequest(router.getId, false))
+        simRouter.arpTable.set(IPv4Addr(ipUplink), MAC.fromString(macUplink))
+
         // this is added when the port becomes active. A flow that takes care of
         // the tunnelled packets to this port
         // wait for these WC events and take them out of the probe
         ackWCAdded() // port 1
         ackWCAdded() // port 2
         ackWCAdded() // port 3
+        ackWCAdded() // port 4
 
         drainProbes()
     }
@@ -133,11 +151,22 @@ class BridgeInvalidationTestCase extends MidolmanTestCase
     def udp1toRouter() = TestHelpers.createUdpPacket(
             macVm1, ipVm1, routerMac.toString, routerIp.getAddress.toString)
 
+    def udp2toUplink(): Ethernet = {
+        import org.midonet.packets.util.PacketBuilder._
+
+        { eth addr macVm2 -> routerMac } <<
+            { ip4 addr ipVm2 --> ipUplink } <<
+                { udp src 2020 dst 53 } <<
+                    payload("A DNS Packet")
+    }
+
     def triggerUdp1to2() { triggerPacketIn(port1Name, udp1to2()) }
 
     def triggerUdp2to1() { triggerPacketIn(port2Name, udp2to1()) }
 
     def triggerUdp1toRouter() { triggerPacketIn(port1Name, udp1toRouter()) }
+
+    def triggerUdp2toUplink() { triggerPacketIn(port2Name, udp2toUplink()) }
 
     def testLearnMAC() {
         // this packet should be flooded
@@ -378,7 +407,7 @@ class BridgeInvalidationTestCase extends MidolmanTestCase
         // equally ugly and it'd more sensitive to code changes.
         drainProbes()
 
-        triggerUdp1toRouter()
+        triggerUdp2toUplink()
         ackWCAdded()
 
         clusterDataClient().portsUnlink(brPort1.getId)
