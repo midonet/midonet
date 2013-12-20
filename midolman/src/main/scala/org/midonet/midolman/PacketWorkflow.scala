@@ -306,11 +306,15 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
 
     private def handlePacketWithCookie(): Future[PipelinePath] =
         if (packet.getReason == Packet.Reason.FlowActionUserspace) {
-            simulatePacketIn() flatMap processSimulationResult
+            val wcMatch = WildcardMatch.fromFlowMatch(packet.getMatch)
+            simulatePacketIn(wcMatch) flatMap processSimulationResult
         } else {
             FlowController.queryWildcardFlowTable(packet.getMatch) match {
-                case Some(wildflow) => handleWildcardTableMatch(wildflow)
-                case None => handleWildcardTableMiss()
+                case Some(wildflow) =>
+                  handleWildcardTableMatch(wildflow)
+                case None =>
+                  val wcMatch = WildcardMatch.fromFlowMatch(packet.getMatch)
+                  handleWildcardTableMiss(wcMatch)
             }
         }
 
@@ -331,17 +335,16 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
                   .map{ _ => WildcardTableHit }
     }
 
-    private def handleWildcardTableMiss(): Future[PipelinePath] = {
-        val wildMatch = WildcardMatch.fromFlowMatch(packet.getMatch)
-        if (wildMatch.getTunnelID != null) {
-            log.debug("Packet {} addressed to a port set", cookieStr)
-            handlePacketToPortSet(wildMatch)
+    private def handleWildcardTableMiss(wcMatch: WildcardMatch)
+    : Future[PipelinePath] = {
+        if (wcMatch.isFromTunnel) {
+            handlePacketToPortSet(wcMatch)
         } else {
             /* QUESTION: do we need another de-duplication
              *  stage here to avoid e.g. two micro-flows that
              *  differ only in TTL from going to the simulation
              *  stage? */
-            simulatePacketIn() flatMap processSimulationResult
+            simulatePacketIn(wcMatch) flatMap processSimulationResult
         }
     }
 
@@ -351,16 +354,12 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
       * VirtualToPhysicalMapper).
       */
     private def handlePacketToPortSet(wMatch: WildcardMatch): Future[PipelinePath] = {
-        log.debug("Packet {} came from a tunnel port", cookieStr)
+        log.debug("Packet {} from a tunnel port towards a port set", cookieStr)
         // We currently only handle packets ingressing on tunnel ports if they
         // have a tunnel key. If the tunnel key corresponds to a local virtual
         // port then the pre-installed flow rules should have matched the
         // packet. So we really only handle cases where the tunnel key exists
         // and corresponds to a port set.
-
-        if (wMatch.getTunnelID == null) {
-            return Future.failed(new IllegalArgumentException("Missing tunnel key"))
-        }
 
         val portSetFuture = VirtualToPhysicalMapper ?
                 PortSetForTunnelKeyRequest(wMatch.getTunnelID)
@@ -427,10 +426,10 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
         }
     }
 
-    private def simulatePacketIn(): Future[SimulationResult] = {
+    private def simulatePacketIn(wMatch: WildcardMatch)
+    : Future[SimulationResult] = {
         log.debug("Simulating packet {}: {}", cookieStr, packet.getReason)
 
-        val wMatch = WildcardMatch.fromFlowMatch(packet.getMatch)
         val inPortNo = wMatch.getInputPortNumber
         if (inPortNo == null) {
             log.error(
@@ -528,4 +527,5 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
             iterator.next().call()
         }
     }
+
 }
