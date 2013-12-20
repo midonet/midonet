@@ -25,7 +25,6 @@ import org.midonet.odp.flows.FlowAction
 import org.midonet.odp.flows.FlowActionUserspace
 import org.midonet.odp.flows.FlowActions
 import org.midonet.odp.flows.FlowKeys
-import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.sdn.flows.VirtualActions
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 import org.midonet.util.functors.Callback0
@@ -69,7 +68,6 @@ trait FlowTranslator {
     import VirtualTopologyActor._
     import VirtualActions._
 
-    protected val datapathConnection: OvsDatapathConnection
     protected val dpState: DatapathState
 
     implicit protected val requestReplyTimeout: Timeout
@@ -272,7 +270,7 @@ trait FlowTranslator {
                     expandPortAction(Seq(p), p.portId, inPortUUID, dpTags,
                         wMatch)
                 case u: FlowActionUserspace =>
-                    u.setUplinkPid(datapathConnection.getChannel.getLocalAddress.getPid)
+                    u.setUplinkPid(dpState.uplinkPid)
                     Future.successful(Seq(u))
                 case a =>
                     Future.successful(Seq[FlowAction[_]](a))
