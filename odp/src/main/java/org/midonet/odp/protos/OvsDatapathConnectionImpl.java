@@ -418,20 +418,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                 .addValue(datapathIndex)
                 .addAttr(PortFamily.Attr.UPCALL_PID, localPid);
 
-        if (port.getName() != null)
-            builder.addAttr(PortFamily.Attr.NAME, port.getName());
-
-        if (port.getPortNo() != null)
-            builder.addAttr(PortFamily.Attr.PORT_NO, port.getPortNo());
-
-        if (port.getType() != null)
-            builder.addAttr(PortFamily.Attr.PORT_TYPE, port.getType().attrId);
-
-        if (port.getOptions() != null)
-            builder.addAttr(PortFamily.Attr.OPTIONS, port.getOptions());
-
-//        if (port.getStats() != null)
-//            builder.addAttr(PortFamily.Attr.STATS, port.getStats());
+        port.serializeInto(builder);
 
         NetlinkMessage message = builder.build();
 
@@ -529,30 +516,13 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             return;
         }
 
-// Options only relevant for tunnel type VXLan and LISP, which we don't support
-//        if (Port.Type.Tunnels.contains(port.getType()) &&
-//                port.getOptions() == null) {
-//            callback.onError(
-//                new OvsDatapathInvalidParametersException(
-//                    "A tunnel port needs to have its options set"));
-//            return;
-//        }
-
         int localPid = getChannel().getLocalAddress().getPid();
 
         Builder builder = newMessage()
             .addValue(datapath.getIndex())
-            .addAttr(PortFamily.Attr.PORT_TYPE, port.getType().attrId)
-            .addAttr(PortFamily.Attr.NAME, port.getName())
             .addAttr(PortFamily.Attr.UPCALL_PID, localPid);
 
-        if (port.getPortNo() != null)
-            builder.addAttr(PortFamily.Attr.PORT_NO, port.getPortNo());
-
-// Options only relevant for tunnel type VXLan and LISP, which we don't support
-//        if (port.getOptions() != null) {
-//            builder.addAttr(PortFamily.Attr.OPTIONS, port.getOptions());
-//        }
+        port.serializeInto(builder);
 
         NetlinkMessage message = builder.build();
 
