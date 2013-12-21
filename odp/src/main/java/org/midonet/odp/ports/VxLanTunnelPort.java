@@ -5,7 +5,9 @@ package org.midonet.odp.ports;
 
 import javax.annotation.Nonnull;
 
+import org.midonet.netlink.messages.Builder;
 import org.midonet.odp.Port;
+import org.midonet.odp.family.PortFamily;
 
 /**
  * Description of a VxLAN tunnel datapath port.
@@ -24,6 +26,12 @@ public class VxLanTunnelPort extends Port<VxLanTunnelPortOptions, VxLanTunnelPor
     @Override
     public VxLanTunnelPortOptions newOptions() {
         return new VxLanTunnelPortOptions();
+    }
+
+    @Override
+    public void serializeInto(Builder builder) {
+        super.serializeInto(builder);
+        builder.addAttr(PortFamily.Attr.OPTIONS, getOptions());
     }
 
     /** returns a new VxLanTunnelPort instance with default options */

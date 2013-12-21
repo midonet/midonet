@@ -9,8 +9,9 @@ import javax.annotation.Nonnull;
 
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.BaseBuilder;
+import org.midonet.netlink.messages.Builder;
 import org.midonet.netlink.messages.BuilderAware;
-
+import org.midonet.odp.family.PortFamily;
 import org.midonet.odp.flows.FlowActionOutput;
 import org.midonet.odp.flows.FlowActions;
 
@@ -105,6 +106,13 @@ public abstract class Port<Opts extends PortOptions, Self extends Port<Opts, Sel
 
     public FlowActionOutput toOutputAction() {
       return FlowActions.output(this.portNo.shortValue());
+    }
+
+    public void serializeInto(Builder builder) {
+        builder.addAttr(PortFamily.Attr.NAME, getName());
+        builder.addAttr(PortFamily.Attr.PORT_TYPE, getType().attrId);
+        if (getPortNo() != null)
+            builder.addAttr(PortFamily.Attr.PORT_NO, getPortNo());
     }
 
     @Override
