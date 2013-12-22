@@ -33,8 +33,8 @@ public class OvsDatapathsGetTest extends AbstractNetlinkProtocolTest {
 
         Future<Datapath> future;
 
-        Datapath datapath = new Datapath(99, "test");
-        datapath.setStats(datapath.new Stats().setHits(218).setMisses(153));
+        Datapath.Stats stats = new Datapath.Stats().setHits(218).setMisses(153);
+        Datapath datapath = new Datapath(99, "test", stats);
 
         future = connection.datapathsGet("test");
         exchangeMessage();

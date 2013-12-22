@@ -119,10 +119,7 @@ public class OvsPortsGetTest extends AbstractNetlinkProtocolTest {
     }
 
     private Datapath expectedDatapath() {
-        Datapath datapath = new Datapath(115, "test-ports");
-        datapath.setStats(datapath.new Stats());
-
-        return datapath;
+        return new Datapath(115, "test-ports");
     }
 
     private static byte[] replaceByte(byte[] arr, int i, byte b) {

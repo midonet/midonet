@@ -3,18 +3,33 @@
 */
 package org.midonet.odp;
 
+import java.nio.ByteBuffer;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import com.google.common.base.Function;
+
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.BaseBuilder;
 import org.midonet.netlink.messages.BuilderAware;
+import org.midonet.odp.family.DatapathFamily;
 
 /**
- * Datapath abstraction.
+ * Java representation of an OpenVSwitch Datapath object.
  */
 public class Datapath {
 
     public Datapath(int index, String name) {
         this.name = name;
         this.index = index;
+        this.stats = new Stats();
+    }
+
+    public Datapath(int index, String name, Stats stats) {
+        this.name = name;
+        this.index = index;
+        this.stats = stats;
     }
 
     Integer index;
@@ -45,7 +60,42 @@ public class Datapath {
         this.stats = stats;
     }
 
-    public class Stats implements BuilderAware {
+    public static Datapath buildFrom(NetlinkMessage msg) {
+        Integer index = msg.getInt();
+        String name = msg.getAttrValueString(DatapathFamily.Attr.NAME);
+        Stats stats = Stats.buildFrom(msg);
+        return new Datapath(index, name, stats);
+    }
+
+    /** Static stateless deserializer which builds a single Datapath instance.
+     *  Only consumes the head ByteBuffer in the given input List. */
+    public static final Function<List<ByteBuffer>,Datapath> deserializer =
+        new Function<List<ByteBuffer>, Datapath>() {
+            @Override
+            public Datapath apply(List<ByteBuffer> input) {
+                if (input == null || input.size() == 0 || input.get(0) == null)
+                    return null;
+                return buildFrom(new NetlinkMessage(input.get(0)));
+            }
+        };
+
+    /** Static stateless deserializer which builds a set of Datapath instances.
+     *  Consumes all ByteBuffers in the given input List. */
+    public static final Function<List<ByteBuffer>,Set<Datapath>> setDeserializer =
+        new Function<List<ByteBuffer>, Set<Datapath>>() {
+            @Override
+            public Set<Datapath> apply(List<ByteBuffer> input) {
+                Set<Datapath> datapaths = new HashSet<Datapath>();
+                if (input == null)
+                    return datapaths;
+                for (ByteBuffer buffer : input) {
+                    datapaths.add(buildFrom(new NetlinkMessage(buffer)));
+                }
+                return datapaths;
+            }
+        };
+
+    public static class Stats implements BuilderAware {
         long hits;
         long misses;
         long lost;
@@ -140,6 +190,10 @@ public class Datapath {
                 ", lost=" + lost +
                 ", flows=" + flows +
                 '}';
+        }
+
+        public static Stats buildFrom(NetlinkMessage msg) {
+            return msg.getAttrValue(DatapathFamily.Attr.STATS, new Stats());
         }
     }
 

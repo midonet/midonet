@@ -105,10 +105,8 @@ public class OvsPacketInTest extends AbstractNetlinkProtocolTest {
     }
 
     private Datapath expectedDatapath() {
-        Datapath datapath = new Datapath(135, "bibi");
-        datapath.setStats(datapath.new Stats().setMisses(5350).setLost(5135));
-
-        return datapath;
+        Datapath.Stats stats = new Datapath.Stats().setMisses(5350).setLost(5135);
+        return new Datapath(135, "bibi", stats);
     }
 
     final byte[][] responses = {
