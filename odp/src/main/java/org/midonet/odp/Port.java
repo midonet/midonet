@@ -3,9 +3,14 @@
 */
 package org.midonet.odp;
 
-import java.util.Arrays;
+import java.nio.ByteBuffer;
 import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import javax.annotation.Nonnull;
+
+import com.google.common.base.Function;
 
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.BaseBuilder;
@@ -16,7 +21,7 @@ import org.midonet.odp.flows.FlowActionOutput;
 import org.midonet.odp.flows.FlowActions;
 
 /**
- * Abstract port abstraction.
+ * Base Datapath Port class.
  */
 public abstract class Port<Opts extends PortOptions, Self extends Port<Opts, Self>> {
 
@@ -158,6 +163,57 @@ public abstract class Port<Opts extends PortOptions, Self extends Port<Opts, Sel
             '}';
     }
 
+    /** Factory method which builds DpPort instances from NetlinkMessages.
+     *  Consumes the underlying ByteBuffer.*/
+    public static Port<?, ?> buildFrom(NetlinkMessage msg) {
+        int actualDpIndex = msg.getInt(); // read the datapath id
+
+        String name = msg.getAttrValueString(PortFamily.Attr.NAME);
+        Integer type = msg.getAttrValueInt(PortFamily.Attr.PORT_TYPE);
+        if (type == null || name == null)
+            return null;
+
+        Port port = Ports.newPortByTypeId(type, name);
+
+        if (port != null) {
+          port.setPortNo(msg.getAttrValueInt(PortFamily.Attr.PORT_NO));
+          port.setStats(Stats.buildFrom(msg));
+          port.setOptions(
+              msg.getAttrValue(PortFamily.Attr.OPTIONS, port.newOptions()));
+        }
+
+        return port;
+    }
+
+    /** Stateless static deserializer function which builds single ports once
+     *  at a time. Consumes the head ByteBuffer of the input List.*/
+    public static final Function<List<ByteBuffer>, Port<?,?>> deserializer =
+        new Function<List<ByteBuffer>, Port<?,?>>() {
+            @Override
+            public Port<?,?> apply(List<ByteBuffer> input) {
+                if (input == null || input.size() == 0 || input.get(0) == null)
+                    return null;
+                return Port.buildFrom(new NetlinkMessage(input.get(0)));
+            }
+        };
+
+    /** Stateless static deserializer function which builds sets of ports.
+     *  Consumes all ByteBuffer in the input List.*/
+    public static final Function<List<ByteBuffer>, Set<Port<?,?>>> setDeserializer =
+        new Function<List<ByteBuffer>, Set<Port<?,?>>>() {
+            @Override
+            public Set<Port<?,?>> apply(List<ByteBuffer> input) {
+                Set<Port<?,?>> ports = new HashSet<Port<?,?>>();
+                if (input == null)
+                    return ports;
+                for (ByteBuffer buffer : input) {
+                    ports.add(Port.buildFrom(new NetlinkMessage(buffer)));
+                }
+                ports.remove(null);
+                return ports;
+            }
+        };
+
     public static class Stats implements BuilderAware {
         long rxPackets, txPackets;
         long rxBytes, txBytes;
@@ -247,6 +303,10 @@ public abstract class Port<Opts extends PortOptions, Self extends Port<Opts, Sel
                 ", rxDropped=" + rxDropped +
                 ", txDropped=" + txDropped +
                 '}';
+        }
+
+        public static Stats buildFrom(NetlinkMessage msg) {
+            return msg.getAttrValue(PortFamily.Attr.STATS, new Stats());
         }
     }
 }
