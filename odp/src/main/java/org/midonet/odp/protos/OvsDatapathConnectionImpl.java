@@ -303,18 +303,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         reqBuilder
             .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
             .withPayload(message.getBuffer())
-            .withCallback(
-                callback,
-                new Function<List<ByteBuffer>, Port<?, ?>>() {
-                    @Override
-                    public Port<?, ?> apply(@Nullable List<ByteBuffer> input) {
-                        if (input == null || input.size() == 0 ||
-                            input.get(0) == null)
-                            return null;
-
-                        return deserializePort(input.get(0), datapathIndex);
-                    }
-                })
+            .withCallback(callback, Port.deserializer)
             .withTimeout(timeoutMillis)
             .send();
     }
@@ -335,18 +324,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         reqBuilder
             .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
             .withPayload(builder.build().getBuffer())
-            .withCallback(
-                callback,
-                new Function<List<ByteBuffer>, Port<?, ?>>() {
-                    @Override
-                    public Port<?, ?> apply(@Nullable List<ByteBuffer> input) {
-                        if (input == null || input.size() == 0 ||
-                            input.get(0) == null)
-                            return null;
-
-                        return deserializePort(input.get(0), datapathIndex);
-                    }
-                })
+            .withCallback(callback, Port.deserializer)
             .withTimeout(timeoutMillis)
             .send();
     }
@@ -385,18 +363,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         reqBuilder
             .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
             .withPayload(message.getBuffer())
-            .withCallback(
-                callback,
-                new Function<List<ByteBuffer>, Port<?, ?>>() {
-                    @Override
-                    public Port<?, ?> apply(@Nullable List<ByteBuffer> input) {
-                        if (input == null || input.size() == 0 ||
-                            input.get(0) == null)
-                            return null;
-
-                        return deserializePort(input.get(0), datapathIndex);
-                    }
-                })
+            .withCallback(callback, Port.deserializer)
             .withTimeout(timeoutMillis)
             .send();
     }
@@ -421,30 +388,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             .withFlags(Flag.NLM_F_DUMP, Flag.NLM_F_ECHO,
                     Flag.NLM_F_REQUEST, Flag.NLM_F_ACK)
             .withPayload(message.getBuffer())
-            .withCallback(
-                callback,
-                new Function<List<ByteBuffer>, Set<Port<?, ?>>>() {
-                    @Override
-                    public Set<Port<?, ?>> apply(@Nullable List<ByteBuffer> input) {
-                        if (input == null) {
-                            return Collections.emptySet();
-                        }
-
-                        Set<Port<?, ?>> ports = new HashSet<Port<?, ?>>();
-
-                        for (ByteBuffer buffer : input) {
-                            Port<?, ?> port =
-                                deserializePort(buffer, datapath.getIndex());
-
-                            if (port == null)
-                                continue;
-
-                            ports.add(port);
-                        }
-
-                        return ports;
-                    }
-                })
+            .withCallback(callback, Port.setDeserializer)
             .withTimeout(timeoutMillis)
             .send();
 
@@ -489,19 +433,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         reqBuilder
             .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
             .withPayload(message.getBuffer())
-            .withCallback(callback,
-                          new Function<List<ByteBuffer>, Port<?, ?>>() {
-                              @Override
-                              public Port<?, ?> apply(@Nullable List<ByteBuffer> input) {
-                                  if (input == null || input.size() == 0 || input
-                                      .get(
-                                          0) == null)
-                                      return null;
-
-                                  return deserializePort(input.get(0),
-                                                         datapath.getIndex());
-                              }
-                          })
+            .withCallback(callback, Port.deserializer)
             .withTimeout(timeoutMillis)
             .send();
 
@@ -947,33 +879,6 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         return flow;
     }
 
-    private Port<?, ?> deserializePort(ByteBuffer buffer, int dpIndex) {
-
-        NetlinkMessage m = new NetlinkMessage(buffer);
-
-        // read the datapath id;
-        int actualDpIndex = m.getInt();
-        if (dpIndex != 0 && actualDpIndex != dpIndex)
-            return null;
-
-        String name = m.getAttrValueString(PortFamily.Attr.NAME);
-        Integer type = m.getAttrValueInt(PortFamily.Attr.PORT_TYPE);
-
-        if (type == null || name == null)
-            return null;
-
-        Port port = Ports.newPortByTypeId(type, name);
-
-        if (port == null) return port; // unknown port type requested;
-
-        //noinspection unchecked
-        port.setPortNo(m.getAttrValueInt(PortFamily.Attr.PORT_NO));
-        port.setStats(m.getAttrValue(PortFamily.Attr.STATS, new Port.Stats()));
-        port.setOptions(
-            m.getAttrValue(PortFamily.Attr.OPTIONS, port.newOptions()));
-
-        return port;
-    }
 
     private Packet deserializePacket(ByteBuffer buffer) {
         Packet packet = new Packet();
