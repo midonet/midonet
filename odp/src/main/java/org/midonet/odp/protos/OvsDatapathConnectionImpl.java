@@ -185,28 +185,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO,
                        Flag.NLM_F_DUMP)
             .withPayload(message.getBuffer())
-            .withCallback(
-                callback,
-                new Function<List<ByteBuffer>, Set<Datapath>>() {
-                    @Override
-                    public Set<Datapath> apply(@Nullable List<ByteBuffer> input) {
-                        if (input == null) {
-                            return Collections.emptySet();
-                        }
-
-                        Set<Datapath> datapaths = new HashSet<Datapath>();
-
-                        for (ByteBuffer buffer : input) {
-                            Datapath datapath = deserializeDatapath(buffer);
-
-                            if (datapath != null)
-                                datapaths.add(datapath);
-                        }
-
-                        return datapaths;
-                    }
-                }
-            )
+            .withCallback(callback, Datapath.setDeserializer)
             .withTimeout(timeoutMillis)
             .send();
 
@@ -235,19 +214,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         reqBuilder
             .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
             .withPayload(message.getBuffer())
-            .withCallback(
-                callback,
-                new Function<List<ByteBuffer>, Datapath>() {
-                    @Override
-                    public Datapath apply(@Nullable List<ByteBuffer> input) {
-                        if (input == null || input.size() == 0 ||
-                            input.get(0) == null) {
-                            return null;
-                        }
-
-                        return deserializeDatapath(input.get(0));
-                    }
-                })
+            .withCallback(callback, Datapath.deserializer)
             .withTimeout(timeoutMillis)
             .send();
 
@@ -283,18 +250,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         reqBuilder
             .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
             .withPayload(message.getBuffer())
-            .withCallback(
-                callback,
-                new Function<List<ByteBuffer>, Datapath>() {
-                    @Override
-                    public Datapath apply(@Nullable List<ByteBuffer> input) {
-                        if (input == null || input.size() == 0 ||
-                            input.get(0) == null)
-                            return null;
-
-                        return deserializeDatapath(input.get(0));
-                    }
-                })
+            .withCallback(callback, Datapath.deserializer)
             .withTimeout(timeoutMillis)
             .send();
     }
@@ -581,18 +537,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         reqBuilder
             .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
             .withPayload(message.getBuffer())
-            .withCallback(
-                callback,
-                new Function<List<ByteBuffer>, Datapath>() {
-                    @Override
-                    public Datapath apply(@Nullable List<ByteBuffer> input) {
-                        if (input == null || input.size() == 0 ||
-                            input.get(0) == null)
-                            return null;
-
-                        return deserializeDatapath(input.get(0));
-                    }
-                })
+            .withCallback(callback, Datapath.deserializer)
             .withTimeout(defReplyTimeout)
             .send();
     }
@@ -1049,22 +994,6 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                 msg.getAttrValueLong(PacketFamily.AttrKey.USERDATA));
 
         return packet.getPacket() != null ? packet : null;
-    }
-
-
-    protected Datapath deserializeDatapath(ByteBuffer buffer) {
-
-        NetlinkMessage msg = new NetlinkMessage(buffer);
-
-        Datapath datapath = new Datapath(
-            msg.getInt(),
-            msg.getAttrValueString(DatapathFamily.Attr.NAME)
-        );
-
-        datapath.setStats(
-            msg.getAttrValue(DatapathFamily.Attr.STATS, datapath.new Stats()));
-
-        return datapath;
     }
 
     private enum State {

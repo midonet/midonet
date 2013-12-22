@@ -41,7 +41,6 @@ public class OvsDatapathsDeleteTest extends AbstractNetlinkProtocolTest {
         exchangeMessage();
 
         Datapath datapath = new Datapath(107, "test2");
-        datapath.setStats(datapath.new Stats());
 
         assertThat("We got the proper response", future.get(), is(datapath));
     }

@@ -74,10 +74,7 @@ public class OvsPortsSetTest extends AbstractNetlinkProtocolTest {
     }
 
     private Datapath expectedDatapath() {
-        Datapath datapath = new Datapath(115, "test-ports");
-        datapath.setStats(datapath.new Stats());
-
-        return datapath;
+        return new Datapath(115, "test-ports");
     }
 
     final byte[][] responses = {
