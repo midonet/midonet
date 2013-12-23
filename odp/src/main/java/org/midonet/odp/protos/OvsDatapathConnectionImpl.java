@@ -4,8 +4,6 @@
 package org.midonet.odp.protos;
 
 import java.nio.ByteBuffer;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Future;
@@ -15,7 +13,6 @@ import static java.lang.String.format;
 
 import com.google.common.base.Function;
 import com.google.common.util.concurrent.ValueFuture;
-import org.midonet.util.BatchCollector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,7 +28,6 @@ import org.midonet.odp.FlowMatch;
 import org.midonet.odp.OpenVSwitch;
 import org.midonet.odp.Packet;
 import org.midonet.odp.Port;
-import org.midonet.odp.Ports;
 import org.midonet.odp.family.DatapathFamily;
 import org.midonet.odp.family.FlowFamily;
 import org.midonet.odp.family.PacketFamily;
@@ -39,6 +35,7 @@ import org.midonet.odp.family.PortFamily;
 import org.midonet.odp.flows.FlowAction;
 import org.midonet.odp.flows.FlowKey;
 import org.midonet.odp.flows.FlowStats;
+import org.midonet.util.BatchCollector;
 import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.functors.Callbacks;
 import org.midonet.util.functors.ComposingCallback;
@@ -502,22 +499,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             .withFlags(Flag.NLM_F_DUMP, Flag.NLM_F_ECHO,
                     Flag.NLM_F_REQUEST, Flag.NLM_F_ACK)
             .withPayload(message.getBuffer())
-            .withCallback(
-                callback,
-                new Function<List<ByteBuffer>, Set<Flow>>() {
-                    @Override
-                    public Set<Flow> apply(@Nullable List<ByteBuffer> input) {
-                        if (input == null)
-                            return Collections.emptySet();
-
-                        Set<Flow> flows = new HashSet<Flow>();
-                        for (ByteBuffer buffer : input) {
-                            flows.add(deserializeFlow(buffer, datapathId));
-                        }
-
-                        return flows;
-                    }
-                })
+            .withCallback(callback, Flow.setDeserializer)
             .withTimeout(timeoutMillis)
             .send();
     }
@@ -560,19 +542,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         reqBuilder
             .withFlags(Flag.NLM_F_CREATE, Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
             .withPayload(message.getBuffer())
-            .withCallback(
-                callback,
-                new Function<List<ByteBuffer>, Flow>() {
-                    @Override
-                    public Flow apply(@Nullable List<ByteBuffer> input) {
-                        if (input == null || input.size() == 0 ||
-                            input.get(0) == null)
-                            return null;
-
-                        return deserializeFlow(input.get(0), datapathId);
-                    }
-                }
-            )
+            .withCallback(callback, Flow.deserializer)
             .withTimeout(timeoutMillis)
             .send();
     }
@@ -617,18 +587,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         reqBuilder
             .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
             .withPayload(message.getBuffer())
-            .withCallback(
-                callback,
-                new Function<List<ByteBuffer>, Flow>() {
-                    @Override
-                    public Flow apply(@Nullable List<ByteBuffer> input) {
-                        if (input == null || input.size() == 0 ||
-                            input.get(0) == null)
-                            return null;
-
-                        return deserializeFlow(input.get(0), datapathId);
-                    }
-                })
+            .withCallback(callback, Flow.deserializer)
             .withTimeout(timeoutMillis)
             .send();
     }
@@ -702,19 +661,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         reqBuilder
             .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
             .withPayload(builder.build().getBuffer())
-            .withCallback(
-                callback,
-                new Function<List<ByteBuffer>, Flow>() {
-                    @Override
-                    public Flow apply(@Nullable List<ByteBuffer> input) {
-                        if (input == null || input.size() == 0 ||
-                            input.get(0) == null)
-                            return null;
-
-                        return deserializeFlow(input.get(0), datapathId);
-                    }
-                }
-            )
+            .withCallback(callback, Flow.deserializer)
             .withTimeout(timeoutMillis)
             .send();
     }
@@ -767,19 +714,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         reqBuilder
             .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
             .withPayload(builder.build().getBuffer())
-            .withCallback(
-                callback,
-                new Function<List<ByteBuffer>, Flow>() {
-                    @Override
-                    public Flow apply(@Nullable List<ByteBuffer> input) {
-                        if (input == null || input.size() == 0 ||
-                            input.get(0) == null)
-                            return null;
-
-                        return deserializeFlow(input.get(0), datapathId);
-                    }
-                }
-            )
+            .withCallback(callback, Flow.deserializer)
             .withTimeout(timeoutMillis)
             .send();
     }
@@ -856,29 +791,6 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             .withTimeout(timeoutMillis)
             .send();
     }
-
-    private Flow deserializeFlow(ByteBuffer buffer, int datapathId) {
-        NetlinkMessage msg = new NetlinkMessage(buffer);
-
-        int actualDpIndex = msg.getInt();
-        if (datapathId != 0 && actualDpIndex != datapathId)
-            return null;
-
-        Flow flow = new Flow();
-        flow.setStats(msg.getAttrValue(AttrKey.STATS, new FlowStats()));
-        flow.setTcpFlags(msg.getAttrValueByte(AttrKey.TCP_FLAGS));
-        flow.setLastUsedTime(msg.getAttrValueLong(AttrKey.USED));
-        flow.setActions(msg.getAttrValue(AttrKey.ACTIONS, FlowAction.Builder));
-
-        List<FlowKey<?>> flowKeys =
-            msg.getAttrValue(AttrKey.KEY, FlowKey.Builder);
-        if (flowKeys != null) {
-            flow.setMatch(new FlowMatch().setKeys(flowKeys));
-        }
-
-        return flow;
-    }
-
 
     private Packet deserializePacket(ByteBuffer buffer) {
         Packet packet = new Packet();
