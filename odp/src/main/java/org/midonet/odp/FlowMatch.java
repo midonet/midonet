@@ -7,9 +7,10 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nonnull;
 
+import org.midonet.netlink.NetlinkMessage;
 import org.midonet.odp.flows.FlowKey;
-import org.midonet.odp.flows.FlowKeys;
 import org.midonet.odp.flows.FlowKeyICMPEcho;
+import org.midonet.odp.flows.FlowKeys;
 
 /**
  * An ovs datapath flow match object. Contains an ordered list of
@@ -117,6 +118,10 @@ public class FlowMatch {
      */
     public void setUserSpaceOnly(boolean isUserSpaceOnly) {
        userSpaceOnly = isUserSpaceOnly;
+    }
+
+    public static FlowMatch buildFrom(NetlinkMessage msg) {
+        return new FlowMatch(FlowKeys.buildFrom(msg));
     }
 
 }

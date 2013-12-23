@@ -6,6 +6,7 @@ package org.midonet.odp.flows;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.BaseBuilder;
 import org.midonet.netlink.messages.BuilderAware;
+import org.midonet.odp.family.FlowFamily;
 
 public class FlowStats implements BuilderAware {
 
@@ -76,5 +77,9 @@ public class FlowStats implements BuilderAware {
             "n_packets=" + n_packets +
             ", n_bytes=" + n_bytes +
             '}';
+    }
+
+    public static FlowStats buildFrom(NetlinkMessage msg) {
+        return msg.getAttrValue(FlowFamily.AttrKey.STATS, new FlowStats());
     }
 }
