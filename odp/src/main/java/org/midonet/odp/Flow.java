@@ -3,12 +3,20 @@
 */
 package org.midonet.odp;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import com.google.common.base.Function;
+
+import org.midonet.netlink.NetlinkMessage;
+import org.midonet.odp.family.FlowFamily;
 import org.midonet.odp.flows.FlowAction;
+import org.midonet.odp.flows.FlowActions;
 import org.midonet.odp.flows.FlowKey;
 import org.midonet.odp.flows.FlowStats;
 import org.midonet.packets.TCP;
@@ -87,6 +95,45 @@ public class Flow {
         match.addKey(key);
         return this;
     }
+
+    public static Flow buildFrom(NetlinkMessage msg) {
+        int actualDpIndex = msg.getInt(); // read datapath index;
+        Flow flow = new Flow();
+        flow.setStats(FlowStats.buildFrom(msg));
+        flow.setTcpFlags(msg.getAttrValueByte(FlowFamily.AttrKey.TCP_FLAGS));
+        flow.setLastUsedTime(msg.getAttrValueLong(FlowFamily.AttrKey.USED));
+        flow.setActions(FlowActions.buildFrom(msg));
+        flow.setMatch(FlowMatch.buildFrom(msg));
+        return flow;
+    }
+
+    /** Static stateless deserializer which builds one Flow instance. Only
+     *  consumes the head ByteBuffer in the given input List. */
+    public static final Function<List<ByteBuffer>, Flow> deserializer =
+        new Function<List<ByteBuffer>, Flow>() {
+            @Override
+            public Flow apply(List<ByteBuffer> input) {
+                if (input == null || input.size() == 0 || input.get(0) == null)
+                    return null;
+                return Flow.buildFrom(new NetlinkMessage(input.get(0)));
+            }
+        };
+
+    /** Static stateless deserializer which builds a set of Flow instance.
+     *  Consumes all the ByteBuffers contained in the given input List. */
+    public static final Function<List<ByteBuffer>, Set<Flow>> setDeserializer =
+        new Function<List<ByteBuffer>, Set<Flow>>() {
+            @Override
+            public Set<Flow> apply(List<ByteBuffer> input) {
+                Set<Flow> flows = new HashSet<>();
+                if (input != null) {
+                  for (ByteBuffer buffer : input) {
+                      flows.add(Flow.buildFrom(new NetlinkMessage(buffer)));
+                  }
+                }
+                return flows;
+            }
+        };
 
     @Override
     public boolean equals(Object o) {

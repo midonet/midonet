@@ -3,9 +3,12 @@
 */
 package org.midonet.odp.flows;
 
+import java.util.List;
+
+import org.midonet.netlink.NetlinkMessage;
+import org.midonet.odp.family.FlowFamily;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv6Addr;
-
 import org.midonet.util.collection.WeakObjectPool;
 
 /**
@@ -142,5 +145,9 @@ public class FlowKeys {
                 .setIpv4SrcAddr(Ipv4SrcAddr)
                 .setIpv4DstAddr(ipv4DstAddr))
                 .setTtl((byte) 127);  // A maximum number.
+    }
+
+    public static List<FlowKey<?>> buildFrom(NetlinkMessage msg) {
+        return msg.getAttrValue(FlowFamily.AttrKey.KEY, FlowKey.Builder);
     }
 }
