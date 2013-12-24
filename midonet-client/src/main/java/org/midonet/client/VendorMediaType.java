@@ -26,8 +26,12 @@ public class VendorMediaType {
             "application/vnd.org.midonet.collection.Tenant-v1+json";
     public static final String APPLICATION_ROUTER_JSON =
             "application/vnd.org.midonet.Router-v1+json";
+    public static final String APPLICATION_ROUTER_JSON_V2 =
+            "application/vnd.org.midonet.Router-v2+json";
     public static final String APPLICATION_ROUTER_COLLECTION_JSON =
             "application/vnd.org.midonet.collection.Router-v1+json";
+    public static final String APPLICATION_ROUTER_COLLECTION_JSON_V2 =
+            "application/vnd.org.midonet.collection.Router-v2+json";
     public static final String APPLICATION_BRIDGE_JSON =
             "application/vnd.org.midonet.Bridge-v1+json";
     public static final String APPLICATION_BRIDGE_COLLECTION_JSON =

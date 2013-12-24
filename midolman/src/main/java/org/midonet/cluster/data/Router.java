@@ -67,6 +67,15 @@ public class Router extends Entity.Base<UUID, Router.Data, Router>  {
         return getData().outboundFilter;
     }
 
+    public Router setLoadBalancer(UUID loadBalancer) {
+        getData().loadBalancer = loadBalancer;
+        return self();
+    }
+
+    public UUID getLoadBalancer() {
+        return getData().loadBalancer;
+    }
+
     public Router setProperty(Property key, String value) {
         getData().properties.put(key.name(), value);
         return self();
@@ -95,6 +104,7 @@ public class Router extends Entity.Base<UUID, Router.Data, Router>  {
         public String name;
         public UUID inboundFilter;
         public UUID outboundFilter;
+        public UUID loadBalancer;
         public Map<String, String> properties = new HashMap<String, String>();
         public boolean adminStateUp = true;
 
@@ -112,6 +122,9 @@ public class Router extends Entity.Base<UUID, Router.Data, Router>  {
             if (outboundFilter != null ? !outboundFilter.equals(
                 data.outboundFilter) : data.outboundFilter != null)
                 return false;
+            if (loadBalancer != null ? !loadBalancer.equals(
+                    data.loadBalancer) : data.loadBalancer != null)
+                return false;
             if (properties != null ? !properties.equals(
                 data.properties) : data.properties != null) return false;
             if (adminStateUp != data.adminStateUp) return false;
@@ -126,6 +139,8 @@ public class Router extends Entity.Base<UUID, Router.Data, Router>  {
                     (inboundFilter != null ? inboundFilter.hashCode() : 0);
             result = 31 * result +
                     (outboundFilter != null ? outboundFilter.hashCode() : 0);
+            result = 31 * result +
+                    (loadBalancer != null ? loadBalancer.hashCode() : 0);
             result = 31 * result +
                     (properties != null ? properties.hashCode() : 0);
             result = 31 * result + Boolean.valueOf(adminStateUp).hashCode();

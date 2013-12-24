@@ -12,7 +12,7 @@ import org.midonet.cluster.client.ArpCache
 import org.midonet.midolman.FlowController
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.layer3.{RoutingTableIfc, InvalidationTrie, Route}
-import org.midonet.midolman.simulation.{ArpTable, ArpTableImpl, Router}
+import org.midonet.midolman.simulation.{LoadBalancer, ArpTable, ArpTableImpl, Router}
 import org.midonet.midolman.topology.RouterManager._
 import org.midonet.midolman.topology.builders.RouterBuilderImpl
 import org.midonet.packets.{IPAddr, IPv4Addr, MAC}
@@ -48,7 +48,8 @@ object RouterManager {
 
 case class RouterConfig(adminStateUp: Boolean = true,
                         inboundFilter: UUID = null,
-                        outboundFilter: UUID = null)
+                        outboundFilter: UUID = null,
+                        loadBalancer: UUID = null)
 
 /**
  * Provided to the Router for operations on Tags.
@@ -80,6 +81,7 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
     private var rTable: RoutingTableWrapper[IPv4Addr]= null
     private var arpCache: ArpCache = null
     private var arpTable: ArpTable = null
+    private var loadBalancer: LoadBalancer = null
     // This trie is to store the tag that represent the ip destination to be
     // able to do flow invalidation properly when a route is added or deleted
     private val dstIpTagTrie: InvalidationTrie = new InvalidationTrie()
@@ -105,7 +107,7 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
             // actor reference should be passed in the constructor
             VirtualTopologyActor !
                 new Router(id, cfg, rTable, inFilter, outFilter,
-                           new TagManagerImpl, arpTable)
+                  loadBalancer, new TagManagerImpl, arpTable)
         } else {
             log.debug("The chains aren't ready yet. ")
         }

@@ -16,8 +16,9 @@ import static org.midonet.client.VendorMediaType.APPLICATION_JSON_V2;
 import static org.midonet.client.VendorMediaType.APPLICATION_PORTGROUP_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_PORT_LINK_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_PORT_V2_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_ROUTER_JSON;
+import static org.midonet.client.VendorMediaType.APPLICATION_ROUTER_JSON_V2;
 import static org.midonet.client.VendorMediaType.APPLICATION_TENANT_COLLECTION_JSON;
+import static org.midonet.client.VendorMediaType.APPLICATION_LOAD_BALANCER_JSON;
 
 
 /**
@@ -62,11 +63,13 @@ public class Topology {
         private final Map<String, DtoBridgePort> bridgePorts;
         private final Map<String, DtoPortGroup> portGroups;
         private final Map<String, DtoTraceCondition> traceConditions;
+        private final Map<String, DtoLoadBalancer> loadBalancers;
 
         private final Map<String, String> tagToInChains;
         private final Map<String, String> tagToOutChains;
         private final Map<String, String> tagToRouters;
         private final Map<String, String> tagToBridges;
+        private final Map<String, String> tagToLoadBalancers;
         private final Map<String, String> links;
 
         public Builder(DtoWebResource resource) {
@@ -83,12 +86,14 @@ public class Topology {
             this.bridgePorts = new HashMap<String, DtoBridgePort>();
             this.portGroups = new HashMap<String, DtoPortGroup>();
             this.traceConditions = new HashMap<String, DtoTraceCondition>();
+            this.loadBalancers = new HashMap<String, DtoLoadBalancer>();
 
             this.links = new HashMap<String, String>();
             this.tagToInChains = new HashMap<String, String>();
             this.tagToOutChains = new HashMap<String, String>();
             this.tagToRouters = new HashMap<String, String>();
             this.tagToBridges = new HashMap<String, String>();
+            this.tagToLoadBalancers = new HashMap<String, String>();
 
             this.appMediaType = appMediaType;
         }
@@ -136,6 +141,11 @@ public class Topology {
             return this;
         }
 
+        public Builder create(String tag, DtoLoadBalancer obj) {
+            this.loadBalancers.put(tag, obj);
+            return this;
+        }
+
         public Builder link(String portTag1, String portTag2) {
 
             if (!this.routerPorts.containsKey(portTag1)
@@ -164,6 +174,11 @@ public class Topology {
             return this;
         }
 
+        public Builder setLoadBalancer(String tag, String loadBalancerTag) {
+            this.tagToLoadBalancers.put(tag, loadBalancerTag);
+            return this;
+        }
+
         private DtoPort findPort(String tag) {
             if (bridgePorts.containsKey(tag)) {
                 return bridgePorts.get(tag);
@@ -184,12 +199,27 @@ public class Topology {
                 entry.setValue(obj);
             }
 
+            // Create loadBalancers
+            for (Map.Entry<String, DtoLoadBalancer> entry : loadBalancers.entrySet()) {
+                DtoLoadBalancer obj = entry.getValue();
+                obj = resource.postAndVerifyCreated(app.getLoadBalancers(),
+                        APPLICATION_LOAD_BALANCER_JSON, obj, DtoLoadBalancer.class);
+                entry.setValue(obj);
+            }
+
             for (Map.Entry<String, DtoRouter> entry : routers.entrySet()) {
 
                 DtoRouter obj = entry.getValue();
 
+                // Set the loadBalancer, if any
+                String tag = tagToLoadBalancers.get(entry.getKey());
+                if (tag != null) {
+                    DtoLoadBalancer lb = loadBalancers.get(tag);
+                    obj.setLoadBalancerId(lb.getId());
+                }
+
                 // Set the inbound chain ID
-                String tag = tagToInChains.get(entry.getKey());
+                tag = tagToInChains.get(entry.getKey());
                 if (tag != null) {
                     DtoRuleChain c = chains.get(tag);
                     obj.setInboundFilterId(c.getId());
@@ -203,7 +233,7 @@ public class Topology {
                 }
 
                 obj = resource.postAndVerifyCreated(app.getRouters(),
-                    APPLICATION_ROUTER_JSON, obj, DtoRouter.class);
+                    APPLICATION_ROUTER_JSON_V2, obj, DtoRouter.class);
                 entry.setValue(obj);
             }
 
@@ -372,5 +402,9 @@ public class Topology {
 
     public DtoTraceCondition getTraceCondition(String tag) {
         return this.builder.traceConditions.get(tag);
+    }
+
+    public DtoLoadBalancer getLoadBalancer(String tag) {
+        return this.builder.loadBalancers.get(tag);
     }
 }

@@ -121,7 +121,8 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
 
         builder.setAdminStateUp(config.adminStateUp)
                .setInFilter(config.inboundFilter)
-               .setOutFilter(config.outboundFilter);
+               .setOutFilter(config.outboundFilter)
+               .setLoadBalancer(config.loadBalancer);
 
         if (!isUpdate) {
             builder.setArpCache(new ArpCacheImpl(arpTable));
