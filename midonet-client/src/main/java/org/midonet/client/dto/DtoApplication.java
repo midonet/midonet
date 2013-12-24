@@ -28,6 +28,7 @@ public class DtoApplication {
     private URI tenants;
     private URI hostVersions;
     private URI healthMonitors;
+    private URI loadBalancers;
     private URI pools;
     private URI poolMembers;
     private String adRouteTemplate;
@@ -47,6 +48,7 @@ public class DtoApplication {
     private String traceTemplate;
     private String tenantTemplate;
     private String healthMonitorTemplate;
+    private String loadBalancerTemplate;
     private String poolTemplate;
     private String poolMemberTemplate;
 
@@ -202,6 +204,10 @@ public class DtoApplication {
         this.healthMonitors = healthMonitors;
     }
 
+    public URI getLoadBalancers() { return this.loadBalancers; }
+
+    public void setLoadBalancers(URI loadBalancers) { this.loadBalancers = loadBalancers; }
+
     public URI getPools() {
         return this.pools;
     }
@@ -352,6 +358,12 @@ public class DtoApplication {
 
     public void setHealthMonitorTemplate(String healthMonitorTemplate) {
         this.healthMonitorTemplate = healthMonitorTemplate;
+    }
+
+    public String getLoadBalancerTemplate() { return loadBalancerTemplate; }
+
+    public void setLoadBalancerTemplate(String loadBalancerTemplate) {
+        this.loadBalancerTemplate = loadBalancerTemplate;
     }
 
     public String getPoolTemplate() {

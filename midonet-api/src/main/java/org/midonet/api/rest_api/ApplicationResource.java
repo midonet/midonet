@@ -26,6 +26,7 @@ import org.midonet.api.filter.rest_api.RuleResource;
 import org.midonet.api.host.rest_api.HostResource;
 import org.midonet.api.host.rest_api.TunnelZoneResource;
 import org.midonet.api.l4lb.rest_api.HealthMonitorResource;
+import org.midonet.api.l4lb.rest_api.LoadBalancerResource;
 import org.midonet.api.l4lb.rest_api.PoolMemberResource;
 import org.midonet.api.l4lb.rest_api.PoolResource;
 import org.midonet.api.monitoring.rest_api.MonitoringResource;
@@ -258,6 +259,17 @@ public class ApplicationResource extends AbstractResource {
     @Path(ResourceUriBuilder.HEALTH_MONITORS)
     public HealthMonitorResource getHealthMonitorResource() {
         return factory.getHealthMonitorResource();
+    }
+
+    /**
+     * Load Balancer resource locator
+     *
+     * @return LoadBalancerResource object to handle changes to load
+     * balancers.
+     */
+    @Path(ResourceUriBuilder.LOAD_BALANCERS)
+    public LoadBalancerResource getLoadBalancerResource() {
+        return factory.getLoadBalancerResource();
     }
 
     /**

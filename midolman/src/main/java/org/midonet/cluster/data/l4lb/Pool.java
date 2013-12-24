@@ -108,7 +108,7 @@ public class Pool extends Entity.Base<UUID, Pool.Data, Pool>{
         private UUID healthMonitorId;
         private String protocol;
         private String lbMethod;
-        private boolean adminStateUp;
+        private boolean adminStateUp = true;
         private String status;
 
         @Override

@@ -1434,6 +1434,22 @@ public class ZkPathManager {
         return buildIpAddrGroupAddrPath(id, addr).toString();
     }
 
+    private StringBuilder buildLoadBalancersPath() {
+        return basePath().append("/load_balancers");
+    }
+
+    public String getLoadBalancersPath() {
+        return buildLoadBalancersPath().toString();
+    }
+
+    private StringBuilder buildLoadBalancerPath(UUID loadBalancerId){
+        return buildLoadBalancersPath().append("/").append(loadBalancerId);
+    }
+
+    public String getLoadBalancerPath(UUID loadBalancerId) {
+        return buildLoadBalancerPath(loadBalancerId).toString();
+    }
+
     private StringBuilder buildHealthMonitorsPath() {
         return basePath().append("/health_monitors");
     }

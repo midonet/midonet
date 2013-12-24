@@ -16,7 +16,7 @@ public class DtoPool {
     private UUID healthMonitorId;
     private String protocol;
     private String lbMethod;
-    private boolean adminStateUp;
+    private boolean adminStateUp = true;
     private String status;
 
     public UUID getId() {

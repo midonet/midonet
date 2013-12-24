@@ -196,6 +196,8 @@ public class VendorMediaType {
     // L4LB
     public static final String APPLICATION_HEALTH_MONITOR_JSON =
             "application/vnd.org.midonet.HealthMonitor-v1+json";
+    public static final String APPLICATION_LOAD_BALANCER_JSON =
+            "application/vnd.org.midonet.LoadBalancer-v1+json";
     public static final String APPLICATION_POOL_MEMBER_JSON =
             "application/vnd.org.midonet.PoolMember-v1+json";
     public static final String APPLICATION_POOL_JSON =

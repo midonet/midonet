@@ -41,6 +41,8 @@ public class MessageProperty {
             "{midokura.javarx.PortGroupIdIsInvalid.message}";
     public static final String PORTS_LINKABLE =
             "{midokura.javarx.PortsLinkable.message}";
+    public static final String RESOURCE_CONFLICTED =
+            "{midokura.javarx.ResourceNotFound.message}";
     public static final String RESOURCE_NOT_FOUND =
             "{midokura.javarx.ResourceNotFound.message}";
     public static final String ROUTE_NEXT_HOP_PORT_NOT_NULL =

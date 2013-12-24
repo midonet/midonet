@@ -90,7 +90,7 @@ public class HealthMonitor
         private int delay;
         private int timeout;
         private int maxRetries;
-        private boolean adminStateUp;
+        private boolean adminStateUp = true;
 
         @Override
         public boolean equals(Object o) {

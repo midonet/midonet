@@ -19,7 +19,7 @@ public class PoolMember extends UriResource {
     private String address;
     private int protocolPort;
     private int weight;
-    private boolean adminStateUp;
+    private boolean adminStateUp = true;
     private String status;
     private URI pool;
 
