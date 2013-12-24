@@ -262,9 +262,15 @@ public class TestRouter {
             chain2.setName("chain2");
             chain2.setTenantId("tenant1-id");
 
+            // Prepare a loadBalancer
+            DtoLoadBalancer loadBalancer1 = new DtoLoadBalancer();
+            DtoLoadBalancer loadBalancer2 = new DtoLoadBalancer();
+
             topology = new Topology.Builder(dtoResource)
                     .create("chain1", chain1)
-                    .create("chain2", chain2).build();
+                    .create("chain2", chain2)
+                    .create("loadBalancer1", loadBalancer1)
+                    .create("loadBalancer2", loadBalancer2).build();
         }
 
         @After
@@ -273,10 +279,17 @@ public class TestRouter {
         }
 
         private DtoRouter createRouter(
-                String name, String tenant, boolean withChains) {
+                String name, String tenant, boolean withChains,
+                boolean withLoadBalancer, int routerVersion) {
             DtoApplication app = topology.getApplication();
             DtoRuleChain chain1 = topology.getChain("chain1");
             DtoRuleChain chain2 = topology.getChain("chain2");
+            DtoLoadBalancer loadBalancer1 = topology.getLoadBalancer("loadBalancer1");
+
+            String routerMediaType = APPLICATION_ROUTER_JSON;
+            if(routerVersion == 2){
+                routerMediaType = APPLICATION_ROUTER_JSON_V2;
+            }
 
             DtoRouter router = new DtoRouter();
             router.setName(name);
@@ -286,8 +299,12 @@ public class TestRouter {
                 router.setOutboundFilterId(chain2.getId());
             }
 
+            if(withLoadBalancer) {
+                router.setLoadBalancerId(loadBalancer1.getId());
+            }
+
             DtoRouter resRouter = dtoResource.postAndVerifyCreated(
-                app.getRouters(), APPLICATION_ROUTER_JSON, router,
+                app.getRouters(), routerMediaType, router,
                 DtoRouter.class);
             assertNotNull(resRouter.getId());
             assertNotNull(resRouter.getUri());
@@ -303,7 +320,7 @@ public class TestRouter {
         }
 
         @Test
-        public void testCrud() throws Exception {
+        public void testCrudv1() throws Exception {
             DtoApplication app = topology.getApplication();
             DtoRuleChain chain1 = topology.getChain("chain1");
             DtoRuleChain chain2 = topology.getChain("chain2");
@@ -315,7 +332,8 @@ public class TestRouter {
             assertEquals(0, routers.length);
 
             // Add a router
-            DtoRouter resRouter = createRouter("router1", "tenant1-id", true);
+            DtoRouter resRouter = createRouter("router1", "tenant1-id",
+                    true, false, 1);
 
             // List the routers
             routers = dtoResource.getAndVerifyOk(app.getRouters(),
@@ -323,6 +341,7 @@ public class TestRouter {
                     APPLICATION_ROUTER_COLLECTION_JSON, DtoRouter[].class);
             assertEquals(1, routers.length);
             assertEquals(resRouter.getId(), routers[0].getId());
+            assertEquals(resRouter.getLoadBalancerId(), routers[0].getLoadBalancerId());
 
             // Update the router: change name, admin state, and swap filters.
             resRouter.setName("router1-modified");
@@ -358,9 +377,72 @@ public class TestRouter {
         }
 
         @Test
+        public void testCrudv2() throws Exception {
+            DtoApplication app = topology.getApplication();
+            DtoRuleChain chain1 = topology.getChain("chain1");
+            DtoRuleChain chain2 = topology.getChain("chain2");
+            DtoLoadBalancer loadBalancer1 = topology.getLoadBalancer("loadBalancer1");
+            DtoLoadBalancer loadBalancer2 = topology.getLoadBalancer("loadBalancer2");
+
+            assertNotNull(app.getRouters());
+            DtoRouter[] routers = dtoResource.getAndVerifyOk(app.getRouters(),
+                    getTenantQueryParams("tenant1-id"),
+                    APPLICATION_ROUTER_COLLECTION_JSON_V2, DtoRouter[].class);
+            assertEquals(0, routers.length);
+
+            // Add a router with a loadbalancer
+            DtoRouter resRouter = createRouter("router1", "tenant1-id",
+                    true, true, 2);
+
+            // List the routers
+            routers = dtoResource.getAndVerifyOk(app.getRouters(),
+                    getTenantQueryParams("tenant1-id"),
+                    APPLICATION_ROUTER_COLLECTION_JSON_V2, DtoRouter[].class);
+            assertEquals(1, routers.length);
+            assertEquals(resRouter.getId(), routers[0].getId());
+            assertEquals(resRouter.getLoadBalancerId(), routers[0].getLoadBalancerId());
+
+            // Update the router: change name, admin state, and swap filters.
+            resRouter.setName("router1-modified");
+            resRouter.setAdminStateUp(false);
+            resRouter.setInboundFilterId(chain2.getId());
+            resRouter.setOutboundFilterId(chain1.getId());
+            resRouter.setLoadBalancerId(loadBalancer2.getId());
+            DtoRouter updatedRouter = dtoResource.putAndVerifyNoContent(
+                    resRouter.getUri(), APPLICATION_ROUTER_JSON_V2, resRouter,
+                    DtoRouter.class);
+            assertNotNull(updatedRouter.getId());
+            assertEquals(resRouter.getTenantId(), updatedRouter.getTenantId());
+            assertEquals(resRouter.getInboundFilterId(),
+                    updatedRouter.getInboundFilterId());
+            assertEquals(resRouter.getOutboundFilterId(),
+                    updatedRouter.getOutboundFilterId());
+            assertEquals(resRouter.getLoadBalancerId(),
+                    updatedRouter.getLoadBalancerId());
+            assertEquals(resRouter.getName(), updatedRouter.getName());
+            assertEquals(resRouter.isAdminStateUp(),
+                    updatedRouter.isAdminStateUp());
+
+            // Delete the router
+            dtoResource.deleteAndVerifyNoContent(resRouter.getUri(),
+                    APPLICATION_ROUTER_JSON_V2);
+
+            // Verify that it's gone
+            dtoResource.getAndVerifyNotFound(resRouter.getUri(),
+                    APPLICATION_ROUTER_JSON_V2);
+
+            // List should return an empty array
+            routers = dtoResource.getAndVerifyOk(app.getRouters(),
+                    getTenantQueryParams("tenant1-id"),
+                    APPLICATION_ROUTER_COLLECTION_JSON_V2, DtoRouter[].class);
+            assertEquals(0, routers.length);
+        }
+
+        @Test
         public void testRouterDeleteWithArpEntries() throws Exception {
             // Add a router
-            DtoRouter resRouter = createRouter("router1", "tenant1-id", false);
+            DtoRouter resRouter = createRouter("router1", "tenant1-id",
+                    false, false, 2);
             // Add an ARP entry in this router's ARP cache.
             RouterZkManager routerMgr
                     = injector.getInstance(RouterZkManager.class);
@@ -370,26 +452,28 @@ public class TestRouter {
                 new ArpCacheEntry(MAC.fromString("02:00:dd:ee:ee:55"),
                     1000, 1000, 3000));
             dtoResource.deleteAndVerifyNoContent(
-                resRouter.getUri(), APPLICATION_ROUTER_JSON);
+                resRouter.getUri(), APPLICATION_ROUTER_JSON_V2);
         }
 
         @Test
         public void testRouterDeleteWithSnatBlockLeases() throws Exception {
             // Add a router
-            DtoRouter resRouter = createRouter("router1", "tenant1-id", false);
+            DtoRouter resRouter = createRouter("router1", "tenant1-id",
+                    false, false, 2);
             // Reserve a SNAT block in this router.
             FiltersZkManager filtersMgr
                     = injector.getInstance(FiltersZkManager.class);
             filtersMgr.addSnatReservation(resRouter.getId(),
                                  new IPv4Addr(0x0a000001), 100);
             dtoResource.deleteAndVerifyNoContent(
-                resRouter.getUri(), APPLICATION_ROUTER_JSON);
+                resRouter.getUri(), APPLICATION_ROUTER_JSON_V2);
         }
 
         @Test
         public void testRouterDeleteWithBoundExteriorPort() throws Exception {
             // Add a router
-            DtoRouter resRouter = createRouter("router1", "tenant1-id", false);
+            DtoRouter resRouter = createRouter("router1", "tenant1-id",
+                    false, false, 2);
             // Add an exterior port.
             DtoRouterPort port = new DtoRouterPort();
             port.setNetworkAddress("10.0.0.0");
@@ -420,13 +504,14 @@ public class TestRouter {
                     APPLICATION_HOST_INTERFACE_PORT_JSON, hostBinding,
                     DtoHostInterfacePort.class);
             dtoResource.deleteAndVerifyNoContent(
-                resRouter.getUri(), APPLICATION_ROUTER_JSON);
+                resRouter.getUri(), APPLICATION_ROUTER_JSON_V2);
         }
 
         @Test
         public void testRouterDeleteWithLinkedInteriorPort() throws Exception {
             // Add a router
-            DtoRouter resRouter = createRouter("router1", "tenant1-id", false);
+            DtoRouter resRouter = createRouter("router1", "tenant1-id",
+                    false, false, 2);
             // Add an interior router port.
             DtoRouterPort port = new DtoRouterPort();
             port.setNetworkAddress("10.0.0.0");
@@ -456,7 +541,7 @@ public class TestRouter {
             dtoResource.postAndVerifyStatus(bPort.getLink(),
                 APPLICATION_PORT_LINK_JSON, bPort, CREATED.getStatusCode());
             dtoResource.deleteAndVerifyNoContent(
-                resRouter.getUri(), APPLICATION_ROUTER_JSON);
+                resRouter.getUri(), APPLICATION_ROUTER_JSON_V2);
         }
 
     }
@@ -540,7 +625,7 @@ public class TestRouter {
         public void testBadInputCreate() {
             DtoApplication app = topology.getApplication();
             DtoError error = dtoResource.postAndVerifyBadRequest(
-                    app.getRouters(), APPLICATION_ROUTER_JSON, router);
+                    app.getRouters(), APPLICATION_ROUTER_JSON_V2, router);
             List<Map<String, String>> violations = error.getViolations();
             assertEquals(1, violations.size());
             assertEquals(property, violations.get(0).get("property"));
@@ -634,7 +719,7 @@ public class TestRouter {
             DtoRouter router = topology.getRouter("router1");
 
             DtoError error = dtoResource.putAndVerifyBadRequest(
-                    router.getUri(), APPLICATION_ROUTER_JSON, testRouter);
+                    router.getUri(), APPLICATION_ROUTER_JSON_V2, testRouter);
             List<Map<String, String>> violations = error.getViolations();
             assertEquals(1, violations.size());
             assertEquals(property, violations.get(0).get("property"));

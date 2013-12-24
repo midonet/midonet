@@ -18,7 +18,6 @@ import org.midonet.api.network.auth.RouterAuthorizer;
 import org.midonet.api.rest_api.*;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.Port;
-import org.midonet.cluster.data.ports.RouterPort;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.slf4j.Logger;
@@ -106,6 +105,7 @@ public class RouterResource extends AbstractResource {
     @PermitAll
     @Path("{id}")
     @Produces({ VendorMediaType.APPLICATION_ROUTER_JSON,
+            VendorMediaType.APPLICATION_ROUTER_JSON_V2,
             MediaType.APPLICATION_JSON })
     public Router get(@PathParam("id") UUID id)
             throws StateAccessException, SerializationException {
@@ -180,6 +180,7 @@ public class RouterResource extends AbstractResource {
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Path("{id}")
     @Consumes({ VendorMediaType.APPLICATION_ROUTER_JSON,
+            VendorMediaType.APPLICATION_ROUTER_JSON_V2,
             MediaType.APPLICATION_JSON })
     public void update(@PathParam("id") UUID id, Router router)
             throws StateAccessException,
@@ -213,6 +214,7 @@ public class RouterResource extends AbstractResource {
     @POST
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Consumes({ VendorMediaType.APPLICATION_ROUTER_JSON,
+            VendorMediaType.APPLICATION_ROUTER_JSON_V2,
             MediaType.APPLICATION_JSON })
     public Response create(Router router)
             throws StateAccessException,
@@ -245,6 +247,7 @@ public class RouterResource extends AbstractResource {
     @GET
     @RolesAllowed({ AuthRole.ADMIN })
     @Produces({ VendorMediaType.APPLICATION_ROUTER_COLLECTION_JSON,
+            VendorMediaType.APPLICATION_ROUTER_COLLECTION_JSON_V2,
             MediaType.APPLICATION_JSON })
     public List<Router> list(@QueryParam("tenant_id") String tenantId)
             throws StateAccessException, SerializationException {

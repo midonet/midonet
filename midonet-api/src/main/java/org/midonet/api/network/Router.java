@@ -44,6 +44,9 @@ public class Router extends UriResource {
     private UUID inboundFilterId;
     private UUID outboundFilterId;
 
+    @Since("2")
+    private UUID loadBalancerId;
+
     /**
      * Constructor.
      */
@@ -80,6 +83,7 @@ public class Router extends UriResource {
         this.adminStateUp = routerData.getData().adminStateUp;
         this.inboundFilterId = routerData.getData().inboundFilter;
         this.outboundFilterId = routerData.getData().outboundFilter;
+        this.loadBalancerId = routerData.getData().loadBalancer;
     }
 
     /**
@@ -191,6 +195,22 @@ public class Router extends UriResource {
         }
     }
 
+    public UUID getLoadBalancerId() {
+        return loadBalancerId;
+    }
+
+    public void setLoadBalancerId(UUID loadBalancerId) {
+        this.loadBalancerId = loadBalancerId;
+    }
+
+    public URI getLoadBalancer() {
+        if (getBaseUri() != null && loadBalancerId != null) {
+            return ResourceUriBuilder.getLoadBalancer(getBaseUri(), loadBalancerId);
+        } else {
+            return null;
+        }
+    }
+
     /**
      * @return the ports URI.
      */
@@ -249,6 +269,7 @@ public class Router extends UriResource {
                 .setAdminStateUp(this.adminStateUp)
                 .setInboundFilter(this.inboundFilterId)
                 .setOutboundFilter(this.outboundFilterId)
+                .setLoadBalancer(this.loadBalancerId)
                 .setProperty(Property.tenant_id, this.tenantId);
     }
 
