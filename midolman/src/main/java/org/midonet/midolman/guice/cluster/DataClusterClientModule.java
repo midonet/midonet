@@ -136,6 +136,7 @@ public class DataClusterClientModule extends PrivateModule {
         managers.add(TraceConditionZkManager.class);
         managers.add(IpAddrGroupZkManager.class);
         managers.add(HealthMonitorZkManager.class);
+        managers.add(LoadBalancerZkManager.class);
         managers.add(PoolMemberZkManager.class);
         managers.add(PoolZkManager.class);
 

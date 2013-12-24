@@ -56,6 +56,7 @@ public class ResourceUriBuilder {
     public static final String WRITE_VERSION = "/write_version";
     public static final String VERSIONS = "/versions";
     public static final String HEALTH_MONITORS = "/health_monitors";
+    public static final String LOAD_BALANCERS = "/load_balancers";
     public static final String POOL_MEMBERS = "/pool_members";
     public static final String POOLS = "/pools";
     public static final String VLAN_ID = "/{vlanId}";
@@ -744,6 +745,20 @@ public class ResourceUriBuilder {
 
     public static String getHealthMonitorTemplate(URI baseUri) {
         return buildIdTemplateUri(getHealthMonitors(baseUri));
+    }
+
+    public static URI getLoadBalancers(URI baseUri) {
+        return UriBuilder.fromUri(getRoot(baseUri))
+                .path(LOAD_BALANCERS).build();
+    }
+
+    public static String getLoadBalancerTemplate(URI baseUri) {
+        return buildIdTemplateUri(getLoadBalancers(baseUri));
+    }
+
+    public static URI getLoadBalancer(URI baseUri, UUID loadBalancerId) {
+        return UriBuilder.fromUri(getLoadBalancers(baseUri))
+                .path(loadBalancerId.toString()).build();
     }
 
     public static URI getPoolMembers(URI baseUri) {

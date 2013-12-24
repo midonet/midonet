@@ -21,6 +21,7 @@ import org.midonet.cluster.data.host.Host;
 import org.midonet.cluster.data.host.Interface;
 import org.midonet.cluster.data.host.VirtualPortMapping;
 import org.midonet.cluster.data.l4lb.HealthMonitor;
+import org.midonet.cluster.data.l4lb.LoadBalancer;
 import org.midonet.cluster.data.l4lb.PoolMember;
 import org.midonet.cluster.data.l4lb.Pool;
 import org.midonet.cluster.data.ports.BridgePort;
@@ -41,6 +42,7 @@ import org.midonet.midolman.state.zkManagers.ChainZkManager.ChainConfig;
 import org.midonet.midolman.state.zkManagers.IpAddrGroupZkManager
         .IpAddrGroupConfig;
 import org.midonet.midolman.state.zkManagers.HealthMonitorZkManager.HealthMonitorConfig;
+import org.midonet.midolman.state.zkManagers.LoadBalancerZkManager.LoadBalancerConfig;
 import org.midonet.midolman.state.zkManagers.PoolMemberZkManager.PoolMemberConfig;
 import org.midonet.midolman.state.zkManagers.PoolZkManager.PoolConfig;
 import org.midonet.midolman.state.zkManagers.PortGroupZkManager.PortGroupConfig;
@@ -157,6 +159,19 @@ public class Converter {
         return new IpAddrGroup()
                 .setName(group.name)
                 .setProperties(group.properties);
+    }
+
+    public static LoadBalancerConfig toLoadBalancerConfig(
+            LoadBalancer loadBalancer) {
+        LoadBalancerConfig loadBalancerConfig = new LoadBalancerConfig();
+        loadBalancerConfig.adminStateUp = loadBalancer.getAdminStateUp();
+        return loadBalancerConfig;
+    }
+
+    public static LoadBalancer fromLoadBalancerConfig(
+            LoadBalancerConfig loadBalancerConfig) {
+        return new LoadBalancer()
+                .setAdminStateUp(loadBalancerConfig.adminStateUp);
     }
 
     public static HealthMonitorConfig toHealthMonitorConfig(

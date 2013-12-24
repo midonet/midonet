@@ -91,6 +91,17 @@ public class Application extends UriResource {
     }
 
     /**
+     * @return the loadbalancers URI
+     */
+    public URI getLoadBalancers() {
+        if (getBaseUri() != null) {
+            return ResourceUriBuilder.getLoadBalancers(getBaseUri());
+        } else {
+            return null;
+        }
+    }
+
+    /**
      * @return the health monitors URI
      */
     public URI getHealthMonitors() {
@@ -229,6 +240,17 @@ public class Application extends UriResource {
     public String getHealthMonitorTemplate() {
         if (getBaseUri() != null) {
             return ResourceUriBuilder.getHealthMonitorTemplate(getBaseUri());
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * @return the loadbalancer URI template
+     */
+    public String getLoadBalancerTemplate() {
+        if (getBaseUri() != null) {
+            return ResourceUriBuilder.getLoadBalancerTemplate(getBaseUri());
         } else {
             return null;
         }

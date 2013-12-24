@@ -21,6 +21,7 @@ import org.midonet.cluster.data.host.Host;
 import org.midonet.cluster.data.host.Interface;
 import org.midonet.cluster.data.host.VirtualPortMapping;
 import org.midonet.cluster.data.l4lb.HealthMonitor;
+import org.midonet.cluster.data.l4lb.LoadBalancer;
 import org.midonet.cluster.data.l4lb.PoolMember;
 import org.midonet.cluster.data.l4lb.Pool;
 import org.midonet.cluster.data.ports.BridgePort;
@@ -276,6 +277,25 @@ public interface DataClient {
         throws StateAccessException;
 
     UUID hostsCreate(@Nonnull UUID id, @Nonnull Host host)
+            throws StateAccessException, SerializationException;
+
+    /* load balancers related methods */
+    @CheckForNull boolean loadBalancerExists(UUID id)
+            throws StateAccessException;
+
+    @CheckForNull LoadBalancer loadBalancerGet(UUID id)
+        throws StateAccessException, SerializationException;
+
+    void loadBalancerDelete(UUID id)
+        throws StateAccessException, SerializationException;
+
+    UUID loadBalancerCreate(@Nonnull LoadBalancer loadBalancer)
+        throws StateAccessException, SerializationException;
+
+    void loadBalancerUpdate(@Nonnull LoadBalancer loadBalancer)
+        throws StateAccessException, SerializationException;
+
+    List<LoadBalancer> loadBalancersGetAll()
             throws StateAccessException, SerializationException;
 
     /* health monitors related methods */

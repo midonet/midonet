@@ -51,6 +51,7 @@ import org.midonet.cluster.data.host.Host;
 import org.midonet.cluster.data.host.Interface;
 import org.midonet.cluster.data.host.VirtualPortMapping;
 import org.midonet.cluster.data.l4lb.HealthMonitor;
+import org.midonet.cluster.data.l4lb.LoadBalancer;
 import org.midonet.cluster.data.l4lb.PoolMember;
 import org.midonet.cluster.data.l4lb.Pool;
 import org.midonet.cluster.data.ports.BridgePort;
@@ -137,6 +138,9 @@ public class LocalDataClientImpl implements DataClient {
 
     @Inject
     private HostZkManager hostZkManager;
+
+    @Inject
+    private LoadBalancerZkManager loadBalancerZkManager;
 
     @Inject
     private HealthMonitorZkManager healthMonitorZkManager;
@@ -1683,6 +1687,75 @@ public class LocalDataClientImpl implements DataClient {
             throws StateAccessException, SerializationException {
         hostZkManager.addVirtualPortMapping(
                 hostId, new HostDirectory.VirtualPortMapping(portId, localPortName));
+    }
+
+    /* load balancer related methods */
+    @CheckForNull public boolean loadBalancerExists(UUID id)
+        throws StateAccessException {
+        return loadBalancerZkManager.exists(id);
+    }
+
+    @CheckForNull public LoadBalancer loadBalancerGet(UUID id)
+        throws StateAccessException, SerializationException {
+        LoadBalancer loadBalancer = null;
+        if (loadBalancerZkManager.exists(id)) {
+            loadBalancer = Converter.fromLoadBalancerConfig(
+                    loadBalancerZkManager.get(id));
+            loadBalancer.setId(id);
+        }
+
+        return loadBalancer;
+    }
+
+    @Override
+    public void loadBalancerDelete(UUID id)
+            throws StateAccessException, SerializationException {
+        loadBalancerZkManager.delete(id);
+
+    }
+
+    @Override
+    public UUID loadBalancerCreate(@Nonnull LoadBalancer loadBalancer)
+            throws StateAccessException, SerializationException {
+        if (loadBalancer.getId() == null) {
+            loadBalancer.setId(UUID.randomUUID());
+        }
+
+        LoadBalancerZkManager.LoadBalancerConfig loadBalancerConfig =
+                Converter.toLoadBalancerConfig(loadBalancer);
+        loadBalancerZkManager.create(loadBalancer.getId(),
+                loadBalancerConfig);
+
+        return loadBalancer.getId();
+    }
+
+    @Override
+    public void loadBalancerUpdate(@Nonnull LoadBalancer loadBalancer)
+            throws StateAccessException, SerializationException {
+        LoadBalancerZkManager.LoadBalancerConfig loadBalancerConfig =
+                Converter.toLoadBalancerConfig(loadBalancer);
+        loadBalancerZkManager.update(loadBalancer.getId(),
+                loadBalancerConfig);
+    }
+
+    @Override
+    public List<LoadBalancer> loadBalancersGetAll()
+            throws StateAccessException, SerializationException {
+        List<LoadBalancer> loadBalancers = new ArrayList<LoadBalancer>();
+
+        String path = pathBuilder.getLoadBalancersPath();
+        if (zkManager.exists(path)) {
+            Set<String> loadBalancerIds = zkManager.getChildren(path);
+            for (String id: loadBalancerIds) {
+                LoadBalancer loadBalancer =
+                        loadBalancerGet(UUID.fromString(id));
+                if (loadBalancer != null) {
+                    loadBalancers.add(loadBalancer);
+                }
+            }
+        }
+
+        return loadBalancers;
     }
 
     /* health monitors related methods */

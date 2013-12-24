@@ -20,7 +20,7 @@ public class HealthMonitor extends UriResource {
     private int delay;
     private int timeout;
     private int maxRetries;
-    private boolean adminStateUp;
+    private boolean adminStateUp = true;
 
     public UUID getId() {
         return id;
