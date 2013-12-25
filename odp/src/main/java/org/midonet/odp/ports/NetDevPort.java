@@ -16,9 +16,4 @@ public class NetDevPort extends Port<NetDevPortOptions, NetDevPort> {
         super(name, Type.NetDev);
     }
 
-    @Override
-    protected NetDevPort self() {
-        return this;
-    }
-
 }

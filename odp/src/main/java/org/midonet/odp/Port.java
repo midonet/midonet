@@ -50,56 +50,49 @@ public abstract class Port<Opts extends PortOptions, Self extends Port<Opts, Sel
             EnumSet.of(Gre, VXLan, Lisp, Gre101, Gre64);
     }
 
-    protected abstract Self self();
-
     Integer portNo;
     Type type;
     String name;
-    protected Opts options;
+    protected PortOptions options;
     Stats stats;
 
     public Integer getPortNo() {
         return portNo;
     }
 
-    public Self setPortNo(Integer portNo) {
+    public void setPortNo(Integer portNo) {
         this.portNo = portNo;
-        return self();
     }
 
     public Type getType() {
         return type;
     }
 
-    public Self setType(Type type) {
+    public void setType(Type type) {
         this.type = type;
-        return self();
     }
 
     public String getName() {
         return name;
     }
 
-    public Self setName(String name) {
+    public void setName(String name) {
         this.name = name;
-        return self();
     }
 
     public boolean supportOptions() {
         return false;
     }
 
-    public Self setOptionsFrom(NetlinkMessage msg) {
-        return self();
+    public void setOptionsFrom(NetlinkMessage msg) {
     }
 
     public Stats getStats() {
         return stats;
     }
 
-    public Self setStats(Stats stats) {
+    public void setStats(Stats stats) {
         this.stats = stats;
-        return self();
     }
 
     public FlowActionOutput toOutputAction() {

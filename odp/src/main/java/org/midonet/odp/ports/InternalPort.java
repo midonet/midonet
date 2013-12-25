@@ -16,9 +16,4 @@ public class InternalPort extends Port<InternalPortOptions, InternalPort> {
         super(name, Type.Internal);
     }
 
-    @Override
-    protected InternalPort self() {
-        return this;
-    }
-
 }
