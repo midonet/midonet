@@ -10,7 +10,7 @@ import java.util.Map;
 
 import org.midonet.midolman.host.state.HostDirectory.Interface.Type;
 import org.midonet.cluster.data.Entity;
-import org.midonet.odp.Port;
+import org.midonet.odp.DpPort;
 
 
 /**
@@ -98,11 +98,11 @@ public class Interface extends Entity.Base<String, Interface.Data, Interface> {
         return self();
     }
 
-    public Port.Type getPortType() {
+    public DpPort.Type getPortType() {
         return getData().portType;
     }
 
-    public Interface setPortType(Port.Type portType) {
+    public Interface setPortType(DpPort.Type portType) {
         getData().portType = portType;
         return self();
     }
@@ -115,7 +115,7 @@ public class Interface extends Entity.Base<String, Interface.Data, Interface> {
         byte[] mac;
         int status;
         int mtu;
-        Port.Type portType;
+        DpPort.Type portType;
         InetAddress[] addresses;
 
         @Override

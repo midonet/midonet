@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.midonet.packets.MAC;
-import org.midonet.odp.Port;
+import org.midonet.odp.DpPort;
 import org.midonet.odp.PortOptions;
 
 
@@ -35,7 +35,7 @@ public class InterfaceDescription {
     protected boolean hasLink;
     protected int mtu;
     protected Endpoint endpoint;
-    protected Port.Type portType;
+    protected DpPort.Type portType;
     //protected ... other
     protected Map<String, String> properties;
 
@@ -129,11 +129,11 @@ public class InterfaceDescription {
         this.endpoint = endpoint;
     }
 
-    public Port.Type getPortType() {
+    public DpPort.Type getPortType() {
         return portType;
     }
 
-    public void setPortType(Port.Type portType) {
+    public void setPortType(DpPort.Type portType) {
         this.portType = portType;
     }
 

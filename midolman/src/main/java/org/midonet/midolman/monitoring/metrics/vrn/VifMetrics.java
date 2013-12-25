@@ -13,7 +13,7 @@ import com.yammer.metrics.core.MetricName;
 
 import org.midonet.midolman.logging.LoggerFactory;
 import org.midonet.midolman.monitoring.MidoReporter;
-import org.midonet.odp.Port;
+import org.midonet.odp.DpPort;
 
 /**
  * Class that can add/delete Counters for different virtual ports on demand.
@@ -44,7 +44,7 @@ public class VifMetrics  {
     }
 
 
-    public void updateStats(UUID portID, Port.Stats portStatistics) {
+    public void updateStats(UUID portID, DpPort.Stats portStatistics) {
         if (portStatistics == null) {
             log.error("We got an empty statistics reply");
             return;

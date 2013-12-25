@@ -1,7 +1,6 @@
-
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.odp.protos;
 
 import java.util.ArrayList;
@@ -26,8 +25,7 @@ import org.midonet.odp.Datapath;
 import org.midonet.odp.Flow;
 import org.midonet.odp.FlowMatch;
 import org.midonet.odp.Packet;
-import org.midonet.odp.Port;
-import org.midonet.odp.Ports;
+import org.midonet.odp.DpPort;
 import org.midonet.odp.ports.InternalPort;
 import org.midonet.util.BatchCollector;
 import org.midonet.util.eventloop.Reactor;
@@ -43,8 +41,8 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
 
     Set<Datapath> datapaths = new HashSet<Datapath>();
 
-    Map<Datapath, Set<Port<?, ?>>> datapathPorts
-        = new HashMap<Datapath, Set<Port<?, ?>>>();
+    Map<Datapath, Set<DpPort>> datapathPorts
+        = new HashMap<Datapath, Set<DpPort>>();
 
     Map<Datapath, AtomicInteger> portsIndexes
         = new HashMap<Datapath, AtomicInteger>();
@@ -114,16 +112,16 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
     private Datapath newDatapath(String name) {
         Datapath datapath = new Datapath(datapathIds.incrementAndGet(), name);
         datapaths.add(datapath);
-        datapathPorts.put(datapath, new HashSet<Port<?, ?>>());
+        datapathPorts.put(datapath, new HashSet<DpPort>());
         datapathPorts.get(datapath).add(makeDatapathPort(datapath));
         portsIndexes.put(datapath, new AtomicInteger(0));
         return datapath;
     }
 
     protected InternalPort makeDatapathPort(Datapath datapath) {
-        InternalPort port = Ports.newInternalPort(datapath.getName());
+        InternalPort port = new InternalPort(datapath.getName());
         port.setPortNo(0);
-        port.setStats(new Port.Stats());
+        port.setStats(new DpPort.Stats());
 
         return port;
     }
@@ -172,8 +170,8 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
     }
 
     @Override
-    protected void _doPortsCreate(@Nonnull Datapath datapath, @Nonnull Port<?, ?> port,
-                                  @Nonnull Callback<Port<?, ?>> callback,
+    protected void _doPortsCreate(@Nonnull Datapath datapath, @Nonnull DpPort port,
+                                  @Nonnull Callback<DpPort> callback,
                                   long timeoutMillis) {
         if ( ! datapaths.contains(datapath) ) {
             fireDeviceNotFound(callback);
@@ -185,8 +183,8 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
         callback.onSuccess(port);
     }
 
-    private Port<?, ?> fixupPort(Datapath datapath, Port<?, ?> port) {
-        port.setStats(new Port.Stats());
+    private DpPort fixupPort(Datapath datapath, DpPort port) {
+        port.setStats(new DpPort.Stats());
         port.setPortNo(portsIndexes.get(datapath).incrementAndGet());
         return port;
     }
@@ -195,15 +193,15 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
     @Override
     protected void _doPortsGet(@Nullable String name, @Nullable Integer portId,
                                @Nullable Datapath datapath,
-                               @Nonnull Callback<Port<?, ?>> callback, long timeoutMillis) {
-        Set<Port<?, ?>> ports = datapathPorts.get(datapath);
+                               @Nonnull Callback<DpPort> callback, long timeoutMillis) {
+        Set<DpPort> ports = datapathPorts.get(datapath);
 
         if (ports == null) {
             fireDeviceNotFound(callback);
             return;
         }
 
-        for (Port<?, ?> port : ports) {
+        for (DpPort port : ports) {
             if (portId != null && port.getPortNo().equals(portId)) {
                 callback.onSuccess(port);
                 return;
@@ -219,16 +217,16 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
     }
 
     @Override
-    protected void _doPortsDelete(@Nonnull Port<?, ?> port, @Nullable Datapath datapath,
-                                  @Nonnull Callback<Port<?, ?>> callback, long timeoutMillis) {
-        Set<Port<?, ?>> myPorts = datapathPorts.get(datapath);
+    protected void _doPortsDelete(@Nonnull DpPort port, @Nullable Datapath datapath,
+                                  @Nonnull Callback<DpPort> callback, long timeoutMillis) {
+        Set<DpPort> myPorts = datapathPorts.get(datapath);
 
         if (myPorts == null) {
             fireDeviceNotFound(callback);
             return;
         }
 
-        for (Port<?, ?> myPort : myPorts) {
+        for (DpPort myPort : myPorts) {
             if (port.getPortNo() != null && myPort.getPortNo().equals(port.getPortNo())) {
                 myPorts.remove(myPort);
                 callback.onSuccess(myPort);
@@ -246,13 +244,13 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
     }
 
     @Override
-    protected void _doPortsSet(@Nonnull Port<?, ?> port, @Nullable Datapath datapath, @Nonnull Callback<Port<?, ?>> callback, long timeoutMillis) {
+    protected void _doPortsSet(@Nonnull DpPort port, @Nullable Datapath datapath, @Nonnull Callback<DpPort> callback, long timeoutMillis) {
         // no op
     }
 
     @Override
-    protected void _doPortsEnumerate(@Nonnull Datapath datapath, @Nonnull Callback<Set<Port<?, ?>>> callback, long timeoutMillis) {
-        Set<Port<?, ?>> myPorts = datapathPorts.get(datapath);
+    protected void _doPortsEnumerate(@Nonnull Datapath datapath, @Nonnull Callback<Set<DpPort>> callback, long timeoutMillis) {
+        Set<DpPort> myPorts = datapathPorts.get(datapath);
 
         if (myPorts == null) {
             fireDeviceNotFound(callback);

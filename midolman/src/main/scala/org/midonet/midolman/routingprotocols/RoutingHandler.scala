@@ -21,7 +21,6 @@ import org.midonet.midolman.state.{ZkConnectionAwareWatcher, StateAccessExceptio
 import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 import org.midonet.midolman.topology.{FlowTagger, VirtualTopologyActor}
 import org.midonet.netlink.AfUnix
-import org.midonet.odp.Ports
 import org.midonet.odp.flows.FlowActions.{output, userspace}
 import org.midonet.odp.ports.NetDevPort
 import org.midonet.packets._
@@ -730,7 +729,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
         // Add port to datapath
         DatapathController !
-            DpPortCreateNetdev(Ports.newNetDevPort(BGP_NETDEV_PORT_NAME), null)
+            DpPortCreateNetdev(new NetDevPort(BGP_NETDEV_PORT_NAME), null)
 
         /* VTY interface configuration */
 
@@ -794,7 +793,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
         // Delete port from datapath
         DatapathController !
-            DpPortDeleteNetdev(Ports.newNetDevPort(BGP_NETDEV_PORT_NAME), null)
+            DpPortDeleteNetdev(new NetDevPort(BGP_NETDEV_PORT_NAME), null)
 
         log.debug("announcing BGPD_STATUS inactive")
         context.system.eventStream.publish(BGPD_STATUS(rport.id, false))
