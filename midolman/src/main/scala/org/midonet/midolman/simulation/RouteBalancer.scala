@@ -9,7 +9,11 @@ import org.midonet.midolman.topology.RoutingTableWrapper
 import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.packets.IPAddr
 
-class LoadBalancer[IP <: IPAddr](val rTable: RoutingTableWrapper[IP]) {
+/**
+ * Handles lookups on the routing table. If multiple routes match, chooses
+ * one in a pseudo-random way, to provide basic balancing.
+ */
+class RouteBalancer[IP <: IPAddr](val rTable: RoutingTableWrapper[IP]) {
     val lookups: AtomicLong = new AtomicLong()
 
     def lookup(mmatch: WildcardMatch): Route = {

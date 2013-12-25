@@ -6,7 +6,6 @@ package org.midonet.midolman.state.zkManagers;
 
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
-import org.midonet.midolman.simulation.LoadBalancer;
 import org.midonet.midolman.state.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
