@@ -12,32 +12,6 @@ import org.midonet.odp.ports.*;
  */
 public class Ports {
 
-    public static GreTunnelPortOptions newPortOptions(GreTunnelPort port,
-                                                       int destination,
-                                                       TunnelPortOptions.Flag... flags) {
-        port.setOptions(new GreTunnelPortOptions());
-        return port.getOptions()
-                   .setDestinationIPv4(destination)
-                   .setFlags(flags);
-    }
-
-    public static VxLanTunnelPortOptions newPortOptions(VxLanTunnelPort port,
-                                                        short dstPort) {
-        port.setOptions(new VxLanTunnelPortOptions());
-        return port.getOptions()
-                .setDestinationPort(dstPort);
-    }
-
-    public static InternalPortOptions newPortOptions(InternalPort port) {
-        port.setOptions(new InternalPortOptions());
-        return port.getOptions();
-    }
-
-    public static NetDevPortOptions newPortOptions(NetDevPort port) {
-        port.setOptions(new NetDevPortOptions());
-        return port.getOptions();
-    }
-
     public static InternalPort newInternalPort(@Nonnull String name) {
         return new InternalPort(name);
     }
