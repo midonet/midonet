@@ -43,7 +43,7 @@ abstract class RouterBase[IP <: IPAddr]()
     implicit val log = LoggerFactory.getSimulationAwareLog(
         this.getClass)(system.eventStream)
 
-    val loadBalancer = new LoadBalancer(rTable)
+    val routeBalancer = new RouteBalancer(rTable)
 
     protected def unsupportedPacketAction: Action
 
@@ -169,7 +169,7 @@ abstract class RouterBase[IP <: IPAddr]()
         }
 
         def applyRoutingTable: (Route, Action) = {
-            val rt: Route = loadBalancer.lookup(wcmatch)
+            val rt: Route = routeBalancer.lookup(wcmatch)
 
             if (rt == null) {
                 // No route to network
