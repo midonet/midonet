@@ -16,11 +16,6 @@ public class GreTunnelPort extends Port<GreTunnelPortOptions, GreTunnelPort> {
         super(name, Type.Gre);
     }
 
-    @Override
-    protected GreTunnelPort self() {
-        return this;
-    }
-
     /** returns a new GreTunnelPort instance with empty options */
     public static GreTunnelPort make(String name) {
         return new GreTunnelPort(name);
