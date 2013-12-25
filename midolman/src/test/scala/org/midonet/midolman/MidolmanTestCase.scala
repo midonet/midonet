@@ -271,12 +271,12 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
       return updatedPort;
     }
 
-    def datapathPorts(datapath: Datapath): mutable.Map[String, Port[_, _]] = {
+    def datapathPorts(datapath: Datapath): mutable.Map[String, DpPort] = {
 
-        val ports: mutable.Set[Port[_, _]] =
+        val ports: mutable.Set[DpPort] =
             dpConn().portsEnumerate(datapath).get()
 
-        val portsByName = mutable.Map[String, Port[_, _]]()
+        val portsByName = mutable.Map[String, DpPort]()
         for (port <- ports) {
             portsByName.put(port.getName, port)
         }

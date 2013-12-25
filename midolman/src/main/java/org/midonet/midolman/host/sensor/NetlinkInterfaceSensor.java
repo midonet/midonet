@@ -14,7 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.midolman.host.interfaces.InterfaceDescription;
-import org.midonet.odp.Port;
+import org.midonet.odp.DpPort;
 import org.midonet.odp.protos.OvsDatapathConnection;
 
 
@@ -46,7 +46,7 @@ public class NetlinkInterfaceSensor implements InterfaceSensor {
 
                 try {
 
-                    Port<?, ?> port = getDatapathPort( desc.getName() );
+                    DpPort port = getDatapathPort( desc.getName() );
 
                     /* set port type, endpoint to DATAPAH, type to VIRT */
                     desc.setPortType(port.getType());
@@ -90,7 +90,7 @@ public class NetlinkInterfaceSensor implements InterfaceSensor {
      * state of the list of InterfaceDescription
      * @see NetlinkInterfaceSensor#updateInterfaceData
      */
-    protected Port getDatapathPort(String portName)
+    protected DpPort getDatapathPort(String portName)
         throws ExecutionException, TimeoutException, InterruptedException {
             return datapathConnection
                 .portsGet(portName, null)  /* return Future<Port> */

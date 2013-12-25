@@ -1,20 +1,20 @@
 /*
-* Copyright (c) 2013 Midokura Europe SARL, All Rights Reserved.
-*/
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.odp.ports;
 
 import javax.annotation.Nonnull;
 
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.Builder;
-import org.midonet.odp.Port;
+import org.midonet.odp.DpPort;
 import org.midonet.odp.PortOptions;
 import org.midonet.odp.family.PortFamily;
 
 /**
  * Description of a VxLAN tunnel datapath port.
  */
-public class VxLanTunnelPort extends Port<VxLanTunnelPortOptions, VxLanTunnelPort> {
+public class VxLanTunnelPort extends DpPort {
 
     public VxLanTunnelPort(@Nonnull String name) {
         super(name, Type.VXLan);

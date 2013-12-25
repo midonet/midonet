@@ -15,11 +15,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 import org.midonet.packets.IPv4Addr;
 import org.midonet.odp.Datapath;
-import org.midonet.odp.Port;
-import org.midonet.odp.Ports;
-import org.midonet.odp.ports.GreTunnelPort;
-import org.midonet.odp.ports.InternalPort;
-import org.midonet.odp.ports.NetDevPort;
+import org.midonet.odp.DpPort;
+import org.midonet.odp.ports.*;
 
 public class OvsPortsGetTest extends AbstractNetlinkProtocolTest {
 
@@ -55,11 +52,11 @@ public class OvsPortsGetTest extends AbstractNetlinkProtocolTest {
     }
 
     private void assertGetOps(int portNo, String portName,
-                              Datapath datapath, Port expectedPort)
+                              Datapath datapath, DpPort expectedPort)
         throws Exception, InterruptedException {
 
         log.info("Get the port by id: {}.", portName);
-        Future<Port<?, ?>> portFuture = connection.portsGet(portNo, datapath);
+        Future<DpPort> portFuture = connection.portsGet(portNo, datapath);
         exchangeMessage();
 
         assertThat("We should have gotten back the expected port",
@@ -73,31 +70,31 @@ public class OvsPortsGetTest extends AbstractNetlinkProtocolTest {
                    portFuture.get(), is(expectedPort));
     }
 
-    private Port expectedLocalPort() {
-        InternalPort port = Ports.newInternalPort("test-ports");
+    private DpPort expectedLocalPort() {
+        InternalPort port = new InternalPort("test-ports");
         port.setPortNo(0);
-        port.setStats(new Port.Stats());
+        port.setStats(new DpPort.Stats());
         return port;
     }
 
-    private Port expectedInternalPort() {
-        InternalPort port = Ports.newInternalPort("internalPort");
+    private DpPort expectedInternalPort() {
+        InternalPort port = new InternalPort("internalPort");
         port.setPortNo(1);
-        port.setStats(new Port.Stats());
+        port.setStats(new DpPort.Stats());
         return port;
     }
 
-    private Port<?, ?> expectedNetdevPort() {
-        NetDevPort port = Ports.newNetDevPort("netdevPort");
+    private DpPort expectedNetdevPort() {
+        NetDevPort port = new NetDevPort("netdevPort");
         port.setPortNo(2);
-        port.setStats(new Port.Stats());
+        port.setStats(new DpPort.Stats());
         return port;
     }
 
-    private Port expectedGrePort() {
-        GreTunnelPort tunGrePort = Ports.newGreTunnelPort("grePort");
+    private DpPort expectedGrePort() {
+        GreTunnelPort tunGrePort = new GreTunnelPort("grePort");
         tunGrePort.setPortNo(4);
-        tunGrePort.setStats(new Port.Stats());
+        tunGrePort.setStats(new DpPort.Stats());
         return tunGrePort;
     }
 

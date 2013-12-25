@@ -26,7 +26,7 @@ import org.midonet.odp.Flow;
 import org.midonet.odp.FlowMatch;
 import org.midonet.odp.OpenVSwitch;
 import org.midonet.odp.Packet;
-import org.midonet.odp.Port;
+import org.midonet.odp.DpPort;
 import org.midonet.odp.family.DatapathFamily;
 import org.midonet.odp.family.FlowFamily;
 import org.midonet.odp.family.PacketFamily;
@@ -104,28 +104,28 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                                                       final long timeoutMillis) {
         this.notificationHandler = notificationHandler;
 
-        _doPortsEnumerate(datapath, new Callback<Set<Port<?, ?>>>() {
+        _doPortsEnumerate(datapath, new Callback<Set<DpPort>>() {
             @Override
-            public void onSuccess(final Set<Port<?, ?>> data) {
+            public void onSuccess(final Set<DpPort> data) {
                 if (data == null || data.isEmpty()) {
                     installCallback.onSuccess(true);
                     return;
                 }
 
-                ComposingCallback<Port<?, ?>, NetlinkException> portsSetCallback =
+                ComposingCallback<DpPort, NetlinkException> portsSetCallback =
                     Callbacks.composeTo(
                         Callbacks.transform(
                             installCallback,
-                            new Functor<MultiResult<Port<?, ?>>, Boolean>() {
+                            new Functor<MultiResult<DpPort>, Boolean>() {
                                 @Override
-                                public Boolean apply(MultiResult<Port<?, ?>> arg0) {
+                                public Boolean apply(MultiResult<DpPort> arg0) {
                                     return true;
                                 }
                             }));
 
-                for (Port<?, ?> port : data) {
+                for (DpPort port : data) {
                     @SuppressWarnings("unchecked")
-                    Callback<Port<?, ?>> callback =
+                    Callback<DpPort> callback =
                         portsSetCallback.createCallback(
                             format("SET upcall_id on port: {}", port.getName()),
                             Callback.class
@@ -245,7 +245,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
     protected void _doPortsGet(final @Nullable String name,
                                final @Nullable Integer portId,
                                final @Nullable Datapath datapath,
-                               final @Nonnull Callback<Port<?, ?>> callback,
+                               final @Nonnull Callback<DpPort> callback,
                                final long timeoutMillis) {
         if (!validateState(callback))
             return;
@@ -283,19 +283,19 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         RequestBuilder<PortFamily.Cmd,
                        PortFamily,
-                       Port<?,?>> reqBuilder =
+                       DpPort> reqBuilder =
                            newRequest(portFamily, PortFamily.Cmd.GET);
         reqBuilder
             .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
             .withPayload(message.getBuffer())
-            .withCallback(callback, Port.deserializer)
+            .withCallback(callback, DpPort.deserializer)
             .withTimeout(timeoutMillis)
             .send();
     }
 
     @Override
-    protected void _doPortsDelete(@Nonnull Port<?, ?> port, @Nullable Datapath datapath,
-                                  @Nonnull Callback<Port<?, ?>> callback, long timeoutMillis) {
+    protected void _doPortsDelete(@Nonnull DpPort port, @Nullable Datapath datapath,
+                                  @Nonnull Callback<DpPort> callback, long timeoutMillis) {
 
         final int datapathIndex = datapath == null ? 0 : datapath.getIndex();
         Builder builder = newMessage();
@@ -304,20 +304,20 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         RequestBuilder<PortFamily.Cmd,
                        PortFamily,
-                       Port<?,?>> reqBuilder =
+                       DpPort> reqBuilder =
                            newRequest(portFamily, PortFamily.Cmd.DEL);
         reqBuilder
             .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
             .withPayload(builder.build().getBuffer())
-            .withCallback(callback, Port.deserializer)
+            .withCallback(callback, DpPort.deserializer)
             .withTimeout(timeoutMillis)
             .send();
     }
 
     @Override
-    protected void _doPortsSet(@Nonnull final Port<?, ?> port,
+    protected void _doPortsSet(@Nonnull final DpPort port,
                                @Nullable final Datapath datapath,
-                               @Nonnull final Callback<Port<?, ?>> callback,
+                               @Nonnull final Callback<DpPort> callback,
                                final long timeoutMillis) {
         if (!validateState(callback))
             return;
@@ -343,12 +343,12 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         RequestBuilder<PortFamily.Cmd,
                        PortFamily,
-                       Port<?,?>> reqBuilder =
+                       DpPort> reqBuilder =
                            newRequest(portFamily, PortFamily.Cmd.SET);
         reqBuilder
             .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
             .withPayload(message.getBuffer())
-            .withCallback(callback, Port.deserializer)
+            .withCallback(callback, DpPort.deserializer)
             .withTimeout(timeoutMillis)
             .send();
     }
@@ -356,7 +356,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
     @Override
     protected void _doPortsEnumerate(@Nonnull final Datapath datapath,
-                                     @Nonnull Callback<Set<Port<?, ?>>> callback,
+                                     @Nonnull Callback<Set<DpPort>> callback,
                                      long timeoutMillis) {
         if (!validateState(callback))
             return;
@@ -367,13 +367,13 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         RequestBuilder<PortFamily.Cmd,
                        PortFamily,
-                       Set<Port<?,?>>> reqBuilder =
+                       Set<DpPort>> reqBuilder =
                            newRequest(portFamily, PortFamily.Cmd.GET);
         reqBuilder
             .withFlags(Flag.NLM_F_DUMP, Flag.NLM_F_ECHO,
                     Flag.NLM_F_REQUEST, Flag.NLM_F_ACK)
             .withPayload(message.getBuffer())
-            .withCallback(callback, Port.setDeserializer)
+            .withCallback(callback, DpPort.setDeserializer)
             .withTimeout(timeoutMillis)
             .send();
 
@@ -381,8 +381,8 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
     @Override
     protected void _doPortsCreate(@Nonnull final Datapath datapath,
-                                  @Nonnull Port<?, ?> port,
-                                  @Nonnull Callback<Port<?, ?>> callback,
+                                  @Nonnull DpPort port,
+                                  @Nonnull Callback<DpPort> callback,
                                   long timeoutMillis) {
         if (!validateState(callback))
             return;
@@ -413,12 +413,12 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         RequestBuilder<PortFamily.Cmd,
                        PortFamily,
-                       Port<?,?>> reqBuilder =
+                       DpPort> reqBuilder =
                            newRequest(portFamily, PortFamily.Cmd.NEW);
         reqBuilder
             .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
             .withPayload(message.getBuffer())
-            .withCallback(callback, Port.deserializer)
+            .withCallback(callback, DpPort.deserializer)
             .withTimeout(timeoutMillis)
             .send();
 

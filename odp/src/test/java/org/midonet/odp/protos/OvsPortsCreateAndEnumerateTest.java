@@ -16,11 +16,8 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 import org.midonet.odp.Datapath;
-import org.midonet.odp.Port;
-import org.midonet.odp.Ports;
-import org.midonet.odp.ports.GreTunnelPort;
-import org.midonet.odp.ports.InternalPort;
-import org.midonet.odp.ports.NetDevPort;
+import org.midonet.odp.DpPort;
+import org.midonet.odp.ports.*;
 import org.midonet.packets.IPv4Addr;
 
 public class OvsPortsCreateAndEnumerateTest extends AbstractNetlinkProtocolTest {
@@ -47,15 +44,15 @@ public class OvsPortsCreateAndEnumerateTest extends AbstractNetlinkProtocolTest 
         assertThat(
             "Datapath was parsed correctly", datapath, is(expectedDatapath()));
 
-        Port expectedPort;
-        Port readPort;
-        Future<Port<?,?>> futPort;
-        Set<Port<?,?>> expectedPorts = new HashSet<Port<?,?>>();
+        DpPort expectedPort;
+        DpPort readPort;
+        Future<DpPort> futPort;
+        Set<DpPort> expectedPorts = new HashSet<>();
 
 
         log.info("Creating an internal port.");
-        futPort = connection.portsCreate(datapath,
-            Ports.newInternalPort("internalPort"));
+        futPort =
+            connection.portsCreate(datapath, new InternalPort("internalPort"));
         exchangeMessage(); // 8th byte msg
         expectedPort = expectedInternalPort();
         readPort = futPort.get();
@@ -65,9 +62,9 @@ public class OvsPortsCreateAndEnumerateTest extends AbstractNetlinkProtocolTest 
 
 
         log.info("Creating an netdev port.");
-        Future<Port<?, ?>> netdevPort =
+        Future<DpPort> netdevPort =
         futPort =
-            connection.portsCreate(datapath, Ports.newNetDevPort("netdevPort"));
+            connection.portsCreate(datapath, new NetDevPort("netdevPort"));
         exchangeMessage(); // 9th byte msg
 
         expectedPort = expectedNetdevPort();
@@ -78,7 +75,7 @@ public class OvsPortsCreateAndEnumerateTest extends AbstractNetlinkProtocolTest 
 
 
         log.info("Creating an gre tunnel port.");
-        GreTunnelPort tunGrePort = Ports.newGreTunnelPort("tunGrePort");
+        GreTunnelPort tunGrePort = new GreTunnelPort("tunGrePort");
         futPort = connection.portsCreate(datapath, tunGrePort);
         exchangeMessage(); // 10th byte msg
         expectedPort = expectedGreTunnelPort();
@@ -88,34 +85,34 @@ public class OvsPortsCreateAndEnumerateTest extends AbstractNetlinkProtocolTest 
         expectedPorts.add(readPort);
 
 
-        Future<Set<Port<?, ?>>> portsFutures =
+        Future<Set<DpPort>> portsFutures =
             connection.portsEnumerate(datapath);
         exchangeMessage(2); // 11th and 12th byte msg (same NL request id)
 
-        for (Port<?, ?> port : expectedPorts) {
+        for (DpPort port : expectedPorts) {
             assertThat("The ports list contains all expected ports",
                        portsFutures.get(), hasItem(port));
         }
     }
 
-    private Port<?,?> expectedInternalPort() {
-        InternalPort port = Ports.newInternalPort("internalPort");
+    private DpPort expectedInternalPort() {
+        InternalPort port = new InternalPort("internalPort");
         port.setPortNo(1);
-        port.setStats(new Port.Stats());
+        port.setStats(new DpPort.Stats());
         return port;
     }
 
-    private Port<?,?> expectedNetdevPort() {
-        NetDevPort port = Ports.newNetDevPort("netdevPort");
+    private DpPort expectedNetdevPort() {
+        NetDevPort port = new NetDevPort("netdevPort");
         port.setPortNo(2);
-        port.setStats(new Port.Stats());
+        port.setStats(new DpPort.Stats());
         return port;
     }
 
-    private Port<?,?> expectedGreTunnelPort() {
-        GreTunnelPort tunGrePort = Ports.newGreTunnelPort("grePort");
+    private DpPort expectedGreTunnelPort() {
+        GreTunnelPort tunGrePort = new GreTunnelPort("grePort");
         tunGrePort.setPortNo(4);
-        tunGrePort.setStats(new Port.Stats());
+        tunGrePort.setStats(new DpPort.Stats());
         return tunGrePort;
     }
 

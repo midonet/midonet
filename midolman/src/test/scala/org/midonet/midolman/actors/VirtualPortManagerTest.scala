@@ -26,14 +26,14 @@ class VirtualPortManagerTest extends FeatureSpec with Matchers {
     var vportStatus = List[(NetDevPort, UUID, Boolean)]()
     var addDp = List[String]()
     var removeDp = List[NetDevPort]()
-    def setVportStatus(port: Port[_, _], vportId: UUID, isActive: Boolean) {
+    def setVportStatus(port: DpPort, vportId: UUID, isActive: Boolean) {
       vportStatus =
         (port.asInstanceOf[NetDevPort], vportId, isActive) ::vportStatus
     }
     def addToDatapath(interfaceName: String) {
       addDp = interfaceName ::addDp
     }
-    def removeFromDatapath(port: Port[_, _]) {
+    def removeFromDatapath(port: DpPort) {
       removeDp = port.asInstanceOf[NetDevPort] ::removeDp
     }
     def checkBlank() {

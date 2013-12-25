@@ -1,6 +1,6 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.mmdpctl.commands.callables;
 
 import java.util.Set;
@@ -8,7 +8,7 @@ import java.util.concurrent.Callable;
 
 import org.midonet.mmdpctl.commands.results.GetDatapathResult;
 import org.midonet.odp.Datapath;
-import org.midonet.odp.Port;
+import org.midonet.odp.DpPort;
 import org.midonet.odp.protos.OvsDatapathConnection;
 
 
@@ -27,7 +27,7 @@ public class GetDatapathCallable implements Callable<GetDatapathResult> {
         try {
             Datapath datapath = connection.datapathsGet(datapathName).get();
             // get the datapath ports:
-            Set<Port<?, ?>> ports = connection.portsEnumerate(datapath).get();
+            Set<DpPort> ports = connection.portsEnumerate(datapath).get();
             return new GetDatapathResult(datapath, ports);
         } catch (Exception e) {
             throw new Exception("Could not find datapath: " + datapathName);

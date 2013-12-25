@@ -10,7 +10,7 @@ import org.junit.runner.RunWith
 import org.scalatest.{BeforeAndAfter, Matchers, Suite}
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.odp.Port
+import org.midonet.odp.DpPort
 import org.midonet.odp.ports.GreTunnelPort
 import org.midonet.midolman.topology.rcu.Host
 import org.midonet.midolman.topology.FlowTagger
@@ -18,7 +18,7 @@ import org.midonet.midolman.topology.FlowTagger
 @RunWith(classOf[JUnitRunner])
 class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
 
-    type MaybePort = Option[Port[_,_]]
+    type MaybePort = Option[DpPort]
 
     val r = new Random
     val peers = List.tabulate(100){ _ => UUID.randomUUID }.toSet.toList
@@ -33,9 +33,9 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
 
     var controller = new VirtualPortManager.Controller {
         override def addToDatapath(itfName: String) = { }
-        override def removeFromDatapath(port: Port[_,_]) = { }
+        override def removeFromDatapath(port: DpPort) = { }
         override def setVportStatus(
-            port: Port[_,_], vportId: UUID, isActive: Boolean) = { }
+            port: DpPort, vportId: UUID, isActive: Boolean) = { }
     }
 
     /* class reference tests work with */
