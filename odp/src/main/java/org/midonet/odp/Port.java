@@ -30,8 +30,6 @@ public abstract class Port<Opts extends PortOptions, Self extends Port<Opts, Sel
         this.type = type;
     }
 
-    public abstract Opts newOptions();
-
     public enum Type {
 
         NetDev(OpenVSwitch.Port.Type.Netdev),
@@ -57,7 +55,7 @@ public abstract class Port<Opts extends PortOptions, Self extends Port<Opts, Sel
     Integer portNo;
     Type type;
     String name;
-    Opts options;
+    protected Opts options;
     Stats stats;
 
     public Integer getPortNo() {
@@ -87,17 +85,12 @@ public abstract class Port<Opts extends PortOptions, Self extends Port<Opts, Sel
         return self();
     }
 
-    public Self setOptions(Opts options) {
-        this.options = options;
+    public boolean supportOptions() {
+        return false;
+    }
+
+    public Self setOptionsFrom(NetlinkMessage msg) {
         return self();
-    }
-
-    public Self setOptions() {
-        return setOptions(newOptions());
-    }
-
-    public Opts getOptions() {
-        return options;
     }
 
     public Stats getStats() {
@@ -176,10 +169,10 @@ public abstract class Port<Opts extends PortOptions, Self extends Port<Opts, Sel
         Port port = Ports.newPortByTypeId(type, name);
 
         if (port != null) {
-          port.setPortNo(msg.getAttrValueInt(PortFamily.Attr.PORT_NO));
-          port.setStats(Stats.buildFrom(msg));
-          port.setOptions(
-              msg.getAttrValue(PortFamily.Attr.OPTIONS, port.newOptions()));
+            port.setPortNo(msg.getAttrValueInt(PortFamily.Attr.PORT_NO));
+            port.setStats(Stats.buildFrom(msg));
+            if (port.supportOptions())
+                port.setOptionsFrom(msg);
         }
 
         return port;
