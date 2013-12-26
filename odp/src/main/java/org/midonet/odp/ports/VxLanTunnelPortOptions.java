@@ -1,15 +1,16 @@
 /*
-* Copyright (c) 2013 Midokura Europe SARL, All Rights Reserved.
-*/
+ * Copyright (c) 2013 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.odp.ports;
-
-import org.midonet.netlink.NetlinkMessage;
-import org.midonet.netlink.messages.BaseBuilder;
-import org.midonet.odp.OpenVSwitch;
 
 import java.nio.ByteOrder;
 
-public class VxLanTunnelPortOptions extends AbstractPortOptions {
+import org.midonet.netlink.NetlinkMessage;
+import org.midonet.netlink.messages.BaseBuilder;
+import org.midonet.netlink.messages.BuilderAware;
+import org.midonet.odp.OpenVSwitch;
+
+public class VxLanTunnelPortOptions implements BuilderAware {
     public static short VXLAN_DEFAULT_DST_PORT = 4789;
 
     short dstPort = VXLAN_DEFAULT_DST_PORT;

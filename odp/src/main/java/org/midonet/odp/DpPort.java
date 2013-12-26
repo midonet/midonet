@@ -52,11 +52,10 @@ public abstract class DpPort {
             EnumSet.of(Gre, VXLan, Lisp, Gre101, Gre64);
     }
 
-    Integer portNo;
-    Type type;
-    String name;
-    protected PortOptions options;
-    Stats stats;
+    protected Integer portNo;
+    protected Type type;
+    protected String name;
+    protected Stats stats;
 
     public Integer getPortNo() {
         return portNo;
@@ -82,13 +81,6 @@ public abstract class DpPort {
         this.name = name;
     }
 
-    public boolean supportOptions() {
-        return false;
-    }
-
-    public void setOptionsFrom(NetlinkMessage msg) {
-    }
-
     public Stats getStats() {
         return stats;
     }
@@ -108,6 +100,11 @@ public abstract class DpPort {
             builder.addAttr(PortFamily.Attr.PORT_NO, getPortNo());
     }
 
+    protected void deserializeFrom(NetlinkMessage msg) {
+        this.portNo = msg.getAttrValueInt(PortFamily.Attr.PORT_NO);
+        this.stats = Stats.buildFrom(msg);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -116,16 +113,14 @@ public abstract class DpPort {
         @SuppressWarnings("unchecked") // safe cast
         DpPort port = (DpPort) o;
 
-        if (name != null ? !name.equals(port.name) : port.name != null)
+        if (type != port.type)
             return false;
-        if (options != null ? !options.equals(
-            port.options) : port.options != null)
+        if (name != null ? !name.equals(port.name) : port.name != null)
             return false;
         if (portNo != null ? !portNo.equals(port.portNo) : port.portNo != null)
             return false;
         if (stats != null ? !stats.equals(port.stats) : port.stats != null)
             return false;
-        if (type != port.type) return false;
 
         return true;
     }
@@ -135,7 +130,6 @@ public abstract class DpPort {
         int result = portNo != null ? portNo.hashCode() : 0;
         result = 31 * result + (type != null ? type.hashCode() : 0);
         result = 31 * result + (name != null ? name.hashCode() : 0);
-        result = 31 * result + (options != null ? options.hashCode() : 0);
         result = 31 * result + (stats != null ? stats.hashCode() : 0);
         return result;
     }
@@ -146,7 +140,6 @@ public abstract class DpPort {
             "portNo=" + portNo +
             ", type=" + type +
             ", name='" + name + '\'' +
-            ", options=" + options +
             ", stats=" + stats +
             '}';
     }
@@ -163,12 +156,8 @@ public abstract class DpPort {
 
         DpPort port = newPortByTypeId(type, name);
 
-        if (port != null) {
-            port.setPortNo(msg.getAttrValueInt(PortFamily.Attr.PORT_NO));
-            port.setStats(Stats.buildFrom(msg));
-            if (port.supportOptions())
-                port.setOptionsFrom(msg);
-        }
+        if (port != null)
+            port.deserializeFrom(msg);
 
         return port;
     }
