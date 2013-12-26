@@ -24,6 +24,7 @@ import org.midonet.cluster.data.l4lb.HealthMonitor;
 import org.midonet.cluster.data.l4lb.LoadBalancer;
 import org.midonet.cluster.data.l4lb.PoolMember;
 import org.midonet.cluster.data.l4lb.Pool;
+import org.midonet.cluster.data.l4lb.VIP;
 import org.midonet.cluster.data.ports.BridgePort;
 import org.midonet.cluster.data.ports.RouterPort;
 import org.midonet.cluster.data.rules.ForwardNatRule;
@@ -48,6 +49,7 @@ import org.midonet.midolman.state.zkManagers.PoolZkManager.PoolConfig;
 import org.midonet.midolman.state.zkManagers.PortGroupZkManager.PortGroupConfig;
 import org.midonet.midolman.state.zkManagers.RouterZkManager.RouterConfig;
 import org.midonet.midolman.state.zkManagers.TaggableConfig;
+import org.midonet.midolman.state.zkManagers.VipZkManager.VipConfig;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IntIPv4;
 import org.midonet.packets.Net;
@@ -235,6 +237,27 @@ public class Converter {
                          .setLbMethod(poolConfig.lbMethod)
                          .setAdminStateUp(poolConfig.adminStateUp)
                          .setStatus(poolConfig.status);
+    }
+
+    public static VipConfig toVipConfig(VIP vip) {
+        VipConfig vipConfig = new VipConfig();
+        vipConfig.loadBalancerId = vip.getLoadBalancerId();
+        vipConfig.poolId = vip.getPoolId();
+        vipConfig.address = vip.getAddress();
+        vipConfig.protocolPort = vip.getProtocolPort();
+        vipConfig.sessionPersistence = vip.getSessionPersistence();
+        vipConfig.adminStateUp = vip.getAdminStateUp();
+
+        return vipConfig;
+    }
+
+    public static VIP fromVipConfig(VipConfig vipConfig) {
+        return new VIP().setLoadBalancerId(vipConfig.loadBalancerId)
+                .setPoolId(vipConfig.poolId)
+                .setAddress(vipConfig.address)
+                .setProtocolPort(vipConfig.protocolPort)
+                .setSessionPersistence(vipConfig.sessionPersistence)
+                .setAdminStateUp(vipConfig.adminStateUp);
     }
 
     public static PortConfig toPortConfig(Port port) {

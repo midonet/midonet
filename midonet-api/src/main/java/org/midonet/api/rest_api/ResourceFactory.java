@@ -25,6 +25,7 @@ import org.midonet.api.l4lb.rest_api.HealthMonitorResource;
 import org.midonet.api.l4lb.rest_api.LoadBalancerResource;
 import org.midonet.api.l4lb.rest_api.PoolMemberResource;
 import org.midonet.api.l4lb.rest_api.PoolResource;
+import org.midonet.api.l4lb.rest_api.VipResource;
 import org.midonet.api.monitoring.rest_api.MonitoringResource;
 import org.midonet.api.network.rest_api.BridgeResource;
 import org.midonet.api.network.rest_api.PortGroupResource;
@@ -132,4 +133,6 @@ public interface ResourceFactory {
     PoolMemberResource getPoolMemberResource();
 
     PoolResource getPoolResource();
+
+    VipResource getVipResource();
 }

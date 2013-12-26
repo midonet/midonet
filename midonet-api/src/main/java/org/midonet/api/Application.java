@@ -135,6 +135,17 @@ public class Application extends UriResource {
     }
 
     /**
+     * @return the VIP URI
+     */
+    public URI getVips() {
+        if (getBaseUri() != null) {
+            return ResourceUriBuilder.getVips(getBaseUri());
+        } else {
+            return null;
+        }
+    }
+
+    /**
      * @return the chains URI
      */
     public URI getChains() {
@@ -273,6 +284,17 @@ public class Application extends UriResource {
     public String getPoolTemplate() {
         if (getBaseUri() != null) {
             return ResourceUriBuilder.getPoolTemplate(getBaseUri());
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * @return the VIP URI template
+     */
+    public String getVipTemplate() {
+        if (getBaseUri() != null) {
+            return ResourceUriBuilder.getVipTemplate(getBaseUri());
         } else {
             return null;
         }

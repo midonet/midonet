@@ -54,6 +54,7 @@ import org.midonet.cluster.data.l4lb.HealthMonitor;
 import org.midonet.cluster.data.l4lb.LoadBalancer;
 import org.midonet.cluster.data.l4lb.PoolMember;
 import org.midonet.cluster.data.l4lb.Pool;
+import org.midonet.cluster.data.l4lb.VIP;
 import org.midonet.cluster.data.ports.BridgePort;
 import org.midonet.cluster.data.ports.VlanMacPort;
 import org.midonet.midolman.SystemDataProvider;
@@ -150,6 +151,9 @@ public class LocalDataClientImpl implements DataClient {
 
     @Inject
     private PoolZkManager poolZkManager;
+
+    @Inject
+    private VipZkManager vipZkManager;
 
     @Inject
     private TunnelZoneZkManager zonesZkManager;
@@ -472,7 +476,7 @@ public class LocalDataClientImpl implements DataClient {
         Bridge oldBridge = bridgesGet(bridge.getId());
 
         BridgeZkManager.BridgeConfig bridgeConfig = Converter.toBridgeConfig(
-            bridge);
+                bridge);
 
         // Update the config
         Op op = bridgeZkManager.prepareUpdate(bridge.getId(), bridgeConfig);
@@ -811,7 +815,7 @@ public class LocalDataClientImpl implements DataClient {
                 if (config instanceof PortDirectory.RouterPortConfig) {
                     UUID deviceId = config.device_id;
                     routerManager.updateRoutesBecauseLocalPortChangedStatus(
-                        deviceId, portID, active);
+                            deviceId, portID, active);
                 }
             }
         });
@@ -924,8 +928,7 @@ public class LocalDataClientImpl implements DataClient {
             UUID bridgeId, IntIPv4 subnet,
             org.midonet.cluster.data.dhcp.Host host)
             throws StateAccessException, SerializationException {
-        dhcpZkManager.updateHost(bridgeId, subnet,
-                                 Converter.toDhcpHostConfig(host));
+        dhcpZkManager.updateHost(bridgeId, subnet, Converter.toDhcpHostConfig(host));
     }
 
     @Override
@@ -1030,7 +1033,7 @@ public class LocalDataClientImpl implements DataClient {
             UUID bridgeId, IPv6Subnet prefix, V6Host host)
             throws StateAccessException, SerializationException {
         dhcpV6ZkManager.updateHost(bridgeId, prefix,
-                                 Converter.toDhcpV6HostConfig(host));
+                Converter.toDhcpV6HostConfig(host));
     }
 
     @Override
@@ -1943,6 +1946,66 @@ public class LocalDataClientImpl implements DataClient {
         }
 
         return pools;
+    }
+
+    @Override
+    @CheckForNull
+    public boolean vipExists(UUID id) throws StateAccessException {
+        return vipZkManager.exists(id);
+    }
+
+    @Override
+    @CheckForNull
+    public VIP vipGet(UUID id)
+            throws StateAccessException, SerializationException {
+        VIP vip = null;
+        if (vipZkManager.exists(id)) {
+            vip = Converter.fromVipConfig(vipZkManager.get(id));
+        }
+        return vip;
+    }
+
+    @Override
+    public void vipDelete(UUID id)
+            throws StateAccessException, SerializationException {
+        vipZkManager.delete(id);
+    }
+
+    @Override
+    public UUID vipCreate(@Nonnull VIP vip)
+            throws StateAccessException, SerializationException {
+        if (vip.getId() == null) {
+            vip.setId(UUID.randomUUID());
+        }
+        VipZkManager.VipConfig vipConfig = Converter.toVipConfig(vip);
+        vipZkManager.create(vipConfig, vip.getId());
+        return vip.getId();
+    }
+
+    @Override
+    public void vipUpdate(@Nonnull VIP vip)
+            throws StateAccessException, SerializationException {
+        VipZkManager.VipConfig vipConfig = Converter.toVipConfig(vip);
+        vipZkManager.update(vip.getId(), vipConfig);
+    }
+
+    @Override
+    public List<VIP> vipGetAll()
+            throws StateAccessException, SerializationException {
+        List<VIP> vips = new ArrayList<VIP>();
+
+        String path = pathBuilder.getVipsPath();
+        if (zkManager.exists(path)) {
+            Set<String> vipIds = zkManager.getChildren(path);
+            for (String id: vipIds) {
+                VIP vip = vipGet(UUID.fromString(id));
+                if (vip != null) {
+                    vips.add(vip);
+                }
+            }
+        }
+
+        return vips;
     }
 
 

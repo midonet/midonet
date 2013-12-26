@@ -1514,4 +1514,21 @@ public class ZkPathManager {
     public String getPoolMemberPath(UUID poolId, UUID memberId) {
         return buildPoolMemberPath(poolId, memberId).toString();
     }
+
+    private StringBuilder buildVipsPath() {
+        return basePath().append("/vips");
+    }
+
+    public String getVipsPath()  {
+        return buildVipsPath().toString();
+    }
+
+    private StringBuilder buildVipPath(UUID vipId) {
+        return buildVipsPath()
+                .append("/").append(vipId.toString());
+    }
+
+    public String getVipPath(UUID vipId) {
+        return buildVipPath(vipId).toString();
+    }
 }

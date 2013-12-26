@@ -202,6 +202,8 @@ public class VendorMediaType {
             "application/vnd.org.midonet.PoolMember-v1+json";
     public static final String APPLICATION_POOL_JSON =
             "application/vnd.org.midonet.Pool-v1+json";
+    public static final String APPLICATION_VIP_JSON =
+            "application/vnd.org.midonet.VIP-v1+json";
 
     // Token Information
     public static final String APPLICATION_TOKEN_JSON =
