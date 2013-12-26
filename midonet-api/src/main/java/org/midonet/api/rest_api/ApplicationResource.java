@@ -29,6 +29,7 @@ import org.midonet.api.l4lb.rest_api.HealthMonitorResource;
 import org.midonet.api.l4lb.rest_api.LoadBalancerResource;
 import org.midonet.api.l4lb.rest_api.PoolMemberResource;
 import org.midonet.api.l4lb.rest_api.PoolResource;
+import org.midonet.api.l4lb.rest_api.VipResource;
 import org.midonet.api.monitoring.rest_api.MonitoringResource;
 import org.midonet.api.network.rest_api.BridgeResource;
 import org.midonet.api.network.rest_api.PortGroupResource;
@@ -292,6 +293,16 @@ public class ApplicationResource extends AbstractResource {
     @Path(ResourceUriBuilder.POOLS)
     public PoolResource getPoolResource() {
         return factory.getPoolResource();
+    }
+
+    /**
+     * VIP resource locator
+     *
+     * @return VipResource object to handle changes to VIPs.
+     */
+    @Path(ResourceUriBuilder.VIPS)
+    public VipResource getVipResource() {
+        return factory.getVipResource();
     }
 
     /**

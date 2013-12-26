@@ -31,6 +31,7 @@ public class DtoApplication {
     private URI loadBalancers;
     private URI pools;
     private URI poolMembers;
+    private URI vips;
     private String adRouteTemplate;
     private String bgpTemplate;
     private String bridgeTemplate;
@@ -51,6 +52,7 @@ public class DtoApplication {
     private String loadBalancerTemplate;
     private String poolTemplate;
     private String poolMemberTemplate;
+    private String vipTemplate;
 
     public String getVersion() {
         return version;
@@ -224,6 +226,14 @@ public class DtoApplication {
         this.poolMembers = poolMembers;
     }
 
+    public URI getVips() {
+        return this.vips;
+    }
+
+    public void setVips(URI vips) {
+        this.vips = vips;
+    }
+
     public String getAdRouteTemplate() {
         return adRouteTemplate;
     }
@@ -380,5 +390,13 @@ public class DtoApplication {
 
     public void setPoolMemberTemplate(String poolMemberTemplate) {
         this.poolMemberTemplate = poolMemberTemplate;
+    }
+
+    public String getVipTemplate() {
+        return vipTemplate;
+    }
+
+    public void setVipTemplate(String vipTemplate) {
+        this.vipTemplate = vipTemplate;
     }
 }

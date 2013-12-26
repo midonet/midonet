@@ -24,6 +24,7 @@ import org.midonet.cluster.data.l4lb.HealthMonitor;
 import org.midonet.cluster.data.l4lb.LoadBalancer;
 import org.midonet.cluster.data.l4lb.PoolMember;
 import org.midonet.cluster.data.l4lb.Pool;
+import org.midonet.cluster.data.l4lb.VIP;
 import org.midonet.cluster.data.ports.BridgePort;
 import org.midonet.cluster.data.ports.VlanMacPort;
 import org.midonet.midolman.serialization.SerializationException;
@@ -354,6 +355,25 @@ public interface DataClient {
 
     List<Pool> poolsGetAll() throws StateAccessException,
             SerializationException;
+
+    /* VIP related methods */
+    @CheckForNull boolean vipExists(UUID id)
+        throws StateAccessException;
+
+    @CheckForNull VIP vipGet(UUID id)
+        throws StateAccessException, SerializationException;
+
+    void vipDelete(UUID id)
+        throws StateAccessException, SerializationException;
+
+    UUID vipCreate(@Nonnull VIP vip)
+        throws StateAccessException, SerializationException;
+
+    void vipUpdate(@Nonnull VIP vip)
+        throws StateAccessException, SerializationException;
+
+    List<VIP> vipGetAll()
+        throws StateAccessException, SerializationException;
 
     /* hosts related methods */
     @CheckForNull Host hostsGet(UUID hostId)
