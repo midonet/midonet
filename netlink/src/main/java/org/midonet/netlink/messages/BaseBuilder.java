@@ -1,6 +1,6 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.netlink.messages;
 
 import java.nio.ByteBuffer;
@@ -31,13 +31,8 @@ public abstract class BaseBuilder<Builder extends BaseBuilder<Builder, Result>, 
 
     public Builder addAttr(NetlinkMessage.AttrKey<Byte> attr, byte value) {
         NetlinkMessage.setAttrHeader(buffer, attr.getId(), 8);
-        addValue(value);
-
-        // Pad for 4-byte alignment
-        byte padding = 0;
-        addValue(padding);
-        addValue(padding);
-        addValue(padding);
+        buffer.put(value);
+        addPaddingForByte(buffer);  // Pad for 4-byte alignment
         return self();
     }
 
@@ -48,59 +43,46 @@ public abstract class BaseBuilder<Builder extends BaseBuilder<Builder, Result>, 
      * offset and byte read calculations), and therefore isn't needed to be
      * reflected on netlink header's "length" field
      * Strictly for Netlink protocol, whether the length field accounts for
-     * padding or not does not affect its message parsing; unfortunately for
-     * some OVS attributes, the parsing code does a length check expecting
-     * the length to be without the padding bytes - so use addAttrNoPad for
-     * those attributes
-     * The length field "5" here corresponds to Netlink header length (4 bytes)
-     * + the length of a byte of data (1 byte)
+     * padding or not does not affect its message parsing;
+     *
+     * unfortunately for some OVS attributes, the parsing code does a length
+     * check expecting the length to be without the padding bytes. For these
+     * special 1 or 2 bytes attributes you can use addAttrNoPad() for writing
+     * an attribute header indicating no padding.
      */
     public Builder addAttrNoPad(NetlinkMessage.AttrKey<Byte> attr, byte value) {
+        // write the header len field assuming no padding
         NetlinkMessage.setAttrHeader(buffer, attr.getId(), 5);
-        addValue(value);
-
-        // Pad for 4-byte alignment
-        byte padding = 0;
-        addValue(padding);
-        addValue(padding);
-        addValue(padding);
+        buffer.put(value);
+        addPaddingForByte(buffer);  // Pad for 4-byte alignment
         return self();
     }
 
     public Builder addAttr(NetlinkMessage.AttrKey<Short> attr, short value) {
         NetlinkMessage.setAttrHeader(buffer, attr.getId(), 8);
-        addValue(value);
-
-        // Pad for 4-byte alignment
-        short padding = 0;
-        addValue(padding);
+        buffer.putShort(value);
+        addPaddingForShort(buffer); // Pad for 4-byte alignment
         return self();
     }
 
-    /*
-     * The number "6" below corresponds to length of Netlink header (4 bytes)
-     * plus the length of a short (2 bytes)
-     */
     public Builder addAttrNoPad(NetlinkMessage.AttrKey<Short> attr,
                                 short value) {
+        // write the header len field assuming no padding
         NetlinkMessage.setAttrHeader(buffer, attr.getId(), 6);
-        addValue(value);
-
-        // Pad for 4-byte alignment
-        short padding = 0;
-        addValue(padding);
+        buffer.putShort(value);
+        addPaddingForShort(buffer); // Pad for 4-byte alignment
         return self();
     }
 
     public Builder addAttr(NetlinkMessage.AttrKey<Integer> attr, int value) {
         NetlinkMessage.setAttrHeader(buffer, attr.getId(), 8);
-        addValue(value);
+        buffer.putInt(value);
         return self();
     }
 
     public Builder addAttr(NetlinkMessage.AttrKey<Long> attr, long value) {
         NetlinkMessage.setAttrHeader(buffer, attr.getId(), 12);
-        addValue(value);
+        buffer.putLong(value);
         return self();
     }
 
@@ -108,10 +90,8 @@ public abstract class BaseBuilder<Builder extends BaseBuilder<Builder, Result>, 
                            ByteOrder order) {
         NetlinkMessage.setAttrHeader(buffer, attr.getId(), 8);
         addValue(value, order);
-
-        // Pad for 4-byte alignment
         short padding = 0;
-        addValue(padding);
+        addValue(padding); // Pad for 4-byte alignment
         return self();
     }
 
@@ -139,7 +119,7 @@ public abstract class BaseBuilder<Builder extends BaseBuilder<Builder, Result>, 
         int start = buffer.position();
 
         // put a nl_attr header (with zero length)
-        NetlinkMessage.setAttrHeader(buffer, attr.getId(), 0);
+        NetlinkMessage.setAttrHeader(buffer, attr.getId(), 4);
 
         value.serialize(self());
 
@@ -219,8 +199,20 @@ public abstract class BaseBuilder<Builder extends BaseBuilder<Builder, Result>, 
     }
 
     public Builder addAttr(NetlinkMessage.AttrKey<?> attr) {
-        NetlinkMessage.setAttrHeader(buffer, attr.getId(), 4);
+        NetlinkMessage.setAttrHeader(buffer, attr.getId(), 0);
         return self();
+    }
+
+    static void addPaddingForByte(ByteBuffer buffer) {
+        byte padding = 0;
+        buffer.put(padding);
+        buffer.put(padding);
+        buffer.put(padding);
+    }
+
+    static void addPaddingForShort(ByteBuffer buffer) {
+        short padding = 0;
+        buffer.putShort(padding);
     }
 
     public BuilderNested<Builder> addAttrNested(NetlinkMessage.AttrKey<?> attr) {
