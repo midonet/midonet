@@ -3,12 +3,7 @@
  */
 package org.midonet.midolman.simulation
 
-import scala.concurrent.ExecutionContext
-import akka.actor.ActorSystem
-
 import org.midonet.cluster.client.RouterPort
-import org.midonet.midolman.DeduplicationActor
-import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.logging.SimulationAwareBusLogging
 import org.midonet.packets._
 import org.midonet.packets.ICMP.{EXCEEDED_CODE, UNREACH_CODE}
@@ -25,98 +20,88 @@ object Icmp {
          * @param packet
          *            The original packet that started the simulation
          */
-        protected def send(inPort: RouterPort,
-                           ingressMatch: WildcardMatch,
-                           packet: Ethernet, icmpType: Char, icmpCode: Any)
-                           (implicit ec: ExecutionContext,
-                                     actorSystem: ActorSystem,
-                                     pktContext: PacketContext,
-                                     log: SimulationAwareBusLogging)
+        protected def icmpAnswer(inPort: RouterPort,
+                                 ingressMatch: WildcardMatch,
+                                 packet: Ethernet,
+                                 icmpType: Char,
+                                 icmpCode: Any)
+                                (implicit pktContext: PacketContext,
+                                          log: SimulationAwareBusLogging): Option[Ethernet]
 
         /**
          * Will be called whenever an ICMP unreachable is needed for the given
          * IP version.
          */
-        def sendUnreachableProhibitedIcmp(inPort: RouterPort,
-                                          wMatch: WildcardMatch,
-                                          frame: Ethernet)
-                                         (implicit ec: ExecutionContext,
-                                           actorSystem: ActorSystem,
-                                           originalPktContex: PacketContext,
-                                           log: SimulationAwareBusLogging) {
-            send(inPort, wMatch, frame, ICMP.TYPE_UNREACH,
+        def unreachableProhibitedIcmp(inPort: RouterPort,
+                                      wMatch: WildcardMatch,
+                                      frame: Ethernet)
+                                     (implicit originalPktContex: PacketContext,
+                                               log: SimulationAwareBusLogging) =
+            icmpAnswer(inPort, wMatch, frame, ICMP.TYPE_UNREACH,
                  UNREACH_CODE.UNREACH_FILTER_PROHIB)
-        }
 
         /**
          * Will be called whenever an ICMP Unreachable network is needed for the
          * given IP version.
          */
-        def sendUnreachableNetIcmp(inPort: RouterPort,
-                                   wMatch: WildcardMatch,
-                                   frame: Ethernet)
-                                  (implicit ec: ExecutionContext,
-                                            actorSystem: ActorSystem,
-                                            originalPktContex: PacketContext,
-                                            log: SimulationAwareBusLogging) {
-            send(inPort, wMatch, frame, ICMP.TYPE_UNREACH,
+        def unreachableNetIcmp(inPort: RouterPort,
+                               wMatch: WildcardMatch,
+                               frame: Ethernet)
+                              (implicit originalPktContex: PacketContext,
+                                        log: SimulationAwareBusLogging) =
+            icmpAnswer(inPort, wMatch, frame, ICMP.TYPE_UNREACH,
                  UNREACH_CODE.UNREACH_NET)
-        }
 
         /**
          * Will be called whenever an ICMP Unreachable host is needed for the
          * given IP version.
          */
-        def sendUnreachableHostIcmp(inPort: RouterPort,
-                                    wMatch: WildcardMatch,
-                                    frame: Ethernet)
-                                   (implicit ec: ExecutionContext,
-                                             actorSystem: ActorSystem,
-                                             originalPktContex: PacketContext,
-                                             log: SimulationAwareBusLogging) {
-            send(inPort, wMatch, frame, ICMP.TYPE_UNREACH,
+        def unreachableHostIcmp(inPort: RouterPort,
+                                wMatch: WildcardMatch,
+                                frame: Ethernet)
+                               (implicit originalPktContex: PacketContext,
+                                         log: SimulationAwareBusLogging) =
+            icmpAnswer(inPort, wMatch, frame, ICMP.TYPE_UNREACH,
                  UNREACH_CODE.UNREACH_HOST)
-        }
+
         /**
          * Will be called whenever an ICMP Time Exceeded is needed for the given
          * IP version.
          */
-        def sendTimeExceededIcmp(inPort: RouterPort,
-                                 wMatch: WildcardMatch,
-                                 frame: Ethernet)
-                                (implicit ec: ExecutionContext,
-                                          actorSystem: ActorSystem,
-                                          originalPktContex: PacketContext,
-                                          log: SimulationAwareBusLogging) {
-            send(inPort, wMatch, frame, ICMP.TYPE_TIME_EXCEEDED,
+        def timeExceededIcmp(inPort: RouterPort,
+                             wMatch: WildcardMatch,
+                             frame: Ethernet)
+                            (implicit originalPktContex: PacketContext,
+                                      log: SimulationAwareBusLogging) =
+            icmpAnswer(inPort, wMatch, frame, ICMP.TYPE_TIME_EXCEEDED,
                  EXCEEDED_CODE.EXCEEDED_TTL)
-        }
     }
 
     implicit object IPv4Icmp extends IcmpErrorSender[IPv4Addr] {
 
-        override def send(inPort: RouterPort,
-                          ingressMatch: WildcardMatch,
-                          packet: Ethernet, icmpType: Char, icmpCode: Any)
-                         (implicit ec: ExecutionContext,
-                                   actorSystem: ActorSystem,
-                                   pktContext: PacketContext,
-                                   log: SimulationAwareBusLogging) {
+        override def icmpAnswer(inPort: RouterPort,
+                                ingressMatch: WildcardMatch,
+                                packet: Ethernet,
+                                icmpType: Char,
+                                icmpCode: Any)
+                               (implicit pktContext: PacketContext,
+                                         log: SimulationAwareBusLogging)
+        : Option[Ethernet] = {
             log.debug("Prepare an ICMP in response to {}", packet)
             // Check whether the original packet is allowed to trigger ICMP.
             if (inPort == null) {
                 log.debug("Don't send ICMP since inPort is null.")
-                return
+                return None
             }
             if (!canSend(packet, inPort)) {
                 log.debug("ICMP not allowed for this packet.")
-                return
+                return None
             }
             // Build the ICMP packet from inside-out: ICMP, IPv4, Ethernet headers.
             log.debug("Generating ICMP error {}:{}", icmpType, icmpCode)
             val icmp = buildError(icmpType, icmpCode, ingressMatch, packet)
             if (icmp == null)
-                return
+                return None
 
             val ip = new IPv4()
             ip.setPayload(icmp)
@@ -132,11 +117,9 @@ object Icmp {
             eth.setSourceMACAddress(inPort.portMac)
             eth.setDestinationMACAddress(ingressMatch.getEthernetSource)
 
-            DeduplicationActor ! EmitGeneratedPacket(
-                // TODO(pino): check with Guillermo about match's vs. device's inPort.
-                //ingressMatch.getInputPortUUID, eth)
-                inPort.id, eth,
-                if (pktContext != null) pktContext.flowCookie else None)
+            // TODO(pino): check with Guillermo about match's vs.
+            // device's inPort. ingressMatch.getInputPortUUID, eth)
+            Some(eth)
         }
 
         private def buildError(icmpType: Char, icmpCode: Any,

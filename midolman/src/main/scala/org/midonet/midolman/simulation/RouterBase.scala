@@ -8,6 +8,8 @@ import java.util.UUID
 import scala.concurrent.{Future, ExecutionContext}
 import akka.actor.ActorSystem
 
+import org.midonet.midolman.DeduplicationActor
+import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.cluster.client.RouterPort
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.logging.LoggerFactory
@@ -78,8 +80,8 @@ abstract class RouterBase[IP <: IPAddr]()
                 Future.successful(DropAction)
             case inPort if !cfg.adminStateUp =>
                 log.debug("Router {} state is down, DROP", id)
-                icmpErrors.sendUnreachableProhibitedIcmp(
-                    inPort, pktContext.wcmatch, pktContext.frame)
+                sendAnswer(inPort.id, icmpErrors.unreachableProhibitedIcmp(
+                    inPort, pktContext.wcmatch, pktContext.frame))
                 Future.successful(DropAction)
             case inPort =>
                 preRouting(inPort)
@@ -100,8 +102,8 @@ abstract class RouterBase[IP <: IPAddr]()
             case RuleResult.Action.DROP =>
                 return Some(DropAction)
             case RuleResult.Action.REJECT =>
-                icmpErrors.sendUnreachableProhibitedIcmp(inPort,
-                    pktContext.wcmatch, pktContext.frame)
+                sendAnswer(inPort.id, icmpErrors.unreachableProhibitedIcmp(
+                    inPort, pktContext.wcmatch, pktContext.frame))
                 return Some(DropAction)
             case other =>
                 log.error("Pre-routing for {} returned an action which was {}, " +
@@ -156,7 +158,8 @@ abstract class RouterBase[IP <: IPAddr]()
             if (wcmatch.getNetworkTTL != null) {
                 val ttl = Unsigned.unsign(wcmatch.getNetworkTTL)
                 if (ttl <= 1) {
-                    icmpErrors.sendTimeExceededIcmp(inPort, wcmatch, frame)
+                    sendAnswer(inPort.id, icmpErrors.timeExceededIcmp(
+                        inPort, wcmatch, frame))
                     return Some(DropAction)
                 } else {
                     context.wcmatch.setNetworkTTL((ttl - 1).toByte)
@@ -174,7 +177,8 @@ abstract class RouterBase[IP <: IPAddr]()
                 // No route to network
                 log.debug("Route lookup: No route to network (dst:{}), {}",
                     dstIP, rTable.rTable)
-                icmpErrors.sendUnreachableNetIcmp(inPort, wcmatch, frame)
+                sendAnswer(inPort.id, icmpErrors.unreachableNetIcmp(
+                    inPort, wcmatch, frame))
                 return (rt, DropAction)
             }
 
@@ -193,7 +197,8 @@ abstract class RouterBase[IP <: IPAddr]()
                     TemporaryDropAction
 
                 case Route.NextHop.REJECT =>
-                    icmpErrors.sendUnreachableProhibitedIcmp(inPort, wcmatch, frame)
+                    sendAnswer(inPort.id, icmpErrors.unreachableProhibitedIcmp(
+                        inPort, wcmatch, frame))
                     log.debug("Dropping packet, REJECT route (dst:{})",
                         wcmatch.getNetworkDestinationIP)
                     DropAction
@@ -288,7 +293,8 @@ abstract class RouterBase[IP <: IPAddr]()
                 return Future.successful(DropAction)
             case RuleResult.Action.REJECT =>
                 log.debug("PostRouting REJECT rule")
-                icmpErrors.sendUnreachableProhibitedIcmp(inPort, pMatch, pFrame)
+                sendAnswer(inPort.id, icmpErrors.unreachableProhibitedIcmp(
+                    inPort, pMatch, pFrame))
                 return Future.successful(DropAction)
             case other =>
                 log.error("Post-routing for {} returned {} which was not " +
@@ -311,11 +317,13 @@ abstract class RouterBase[IP <: IPAddr]()
                       pktContext.expiry) map {
             case null if rt.nextHopGateway == 0 || rt.nextHopGateway == -1 =>
                 log.debug("icmp host unreachable, host mac unknown")
-                icmpErrors.sendUnreachableHostIcmp(inPort, pMatch, pFrame)
+                sendAnswer(inPort.id, icmpErrors.unreachableHostIcmp(
+                    inPort, pMatch, pFrame))
                 ErrorDropAction
             case null =>
                 log.debug("icmp net unreachable, gw mac unknown")
-                icmpErrors.sendUnreachableNetIcmp(inPort, pMatch, pFrame)
+                sendAnswer(inPort.id, icmpErrors.unreachableNetIcmp(
+                    inPort, pMatch, pFrame))
                 ErrorDropAction
             case nextHopMac =>
                 log.debug("routing packet to {}", nextHopMac)
@@ -324,6 +332,13 @@ abstract class RouterBase[IP <: IPAddr]()
                 new ToPortAction(rt.nextHopPort)
         }
 
+    }
+
+    def sendAnswer(portId: UUID, eth: Option[Ethernet])
+                      (implicit pktContext: PacketContext) {
+        if (eth.nonEmpty)
+            DeduplicationActor !
+                EmitGeneratedPacket(portId, eth.get, pktContext.flowCookie)
     }
 
     final protected def getRouterPort(portID: UUID, expiry: Long)
