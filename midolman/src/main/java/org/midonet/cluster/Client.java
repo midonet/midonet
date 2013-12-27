@@ -15,6 +15,7 @@ import org.midonet.cluster.client.PortBuilder;
 import org.midonet.cluster.client.PortSetBuilder;
 import org.midonet.cluster.client.RouterBuilder;
 import org.midonet.cluster.client.TraceConditionsBuilder;
+import org.midonet.cluster.client.LoadBalancerBuilder;
 import org.midonet.cluster.client.TunnelZones;
 
 public interface Client {
@@ -40,6 +41,8 @@ public interface Client {
     void getTraceConditions(TraceConditionsBuilder builder);
 
     void getIPAddrGroup(UUID uuid, IPAddrGroupBuilder builder);
+
+    void getLoadBalancer(UUID uuid, LoadBalancerBuilder builder);
 
     void subscribeBgp(UUID portID, BGPListBuilder builder);
 }

@@ -1,6 +1,7 @@
-package org.midonet.cluster.client;/*
- * Copyright 2012 Midokura Europe SARL
+/*
+ * Copyright (c) 2014 Midokura Europe SARL, All Rights Reserved.
  */
+package org.midonet.cluster.client;
 
 import java.util.List;
 import java.util.Map;

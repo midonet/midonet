@@ -2224,7 +2224,8 @@ public class LocalDataClientImpl implements DataClient {
             return;
 
         List<Op> ops = new ArrayList<>();
-        if (newConfig.loadBalancerId != oldConfig.loadBalancerId) {
+        if (oldConfig.loadBalancerId == null ? newConfig.loadBalancerId != null :
+                !oldConfig.loadBalancerId.equals(newConfig.loadBalancerId)) {
             if (oldConfig.loadBalancerId != null) {
                 ops.addAll(
                         loadBalancerZkManager.prepareRemoveVip(
@@ -2237,7 +2238,8 @@ public class LocalDataClientImpl implements DataClient {
             }
         }
 
-        if (newConfig.poolId != oldConfig.poolId) {
+        if (oldConfig.poolId == null ? newConfig.poolId != null :
+                !oldConfig.poolId.equals(newConfig.poolId)) {
             if (oldConfig.poolId != null) {
                 ops.addAll(poolZkManager.prepareRemoveVip(oldConfig.poolId, id));
             }
