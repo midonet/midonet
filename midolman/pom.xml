@@ -278,6 +278,28 @@
             </plugin>
 
             <plugin>
+                <!-- this copies the version tagged midonet-jdk-bootstrap and
+                     midolman jars into midolman/target removing the version tag
+                     so that mm-*ctl scripts work out-of-the-box with artifacts
+                     built from source inside the vagrant vm environment. -->
+                <artifactId>maven-antrun-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <configuration>
+                            <tasks>
+                                <copy file="${project.build.directory}/${project.build.finalName}.jar"
+                                      tofile="${project.build.directory}/midolman.jar"/>
+                                <copy file="${bootstrap.location}/"
+                                      tofile="${project.build.directory}/midonet-jdk-bootstrap.jar"/>
+                            </tasks>
+                        </configuration>
+                        <goals><goal>run</goal></goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>cobertura-maven-plugin</artifactId>
                 <version>2.6</version>

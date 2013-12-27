@@ -34,7 +34,8 @@
 
         <versions.java>1.7</versions.java>
         <versions.scala.library>2.10.3</versions.scala.library>
-        <bootstrap>-Xbootclasspath/p:${project.basedir}/../midonet-jdk-bootstrap/target/classes:${project.basedir}/../midonet-jdk-bootstrap/target/midonet-jdk-bootstrap-${project.version}.jar</bootstrap>
+        <bootstrap.location>../midonet-jdk-bootstrap/target/midonet-jdk-bootstrap-${project.version}.jar</bootstrap.location>
+        <bootstrap>-Xbootclasspath/p:${project.basedir}/../midonet-jdk-bootstrap/target/classes:${project.basedir}/${bootstrap.location}</bootstrap>
         <javalib>-Djava.library.path=/lib:/usr/lib</javalib>
         <splitVerif>-XX:-UseSplitVerifier</splitVerif>
     </properties>
