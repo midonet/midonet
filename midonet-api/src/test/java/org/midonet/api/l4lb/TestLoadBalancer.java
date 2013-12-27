@@ -34,7 +34,7 @@ public class TestLoadBalancer {
 
         private DtoWebResource dtoWebResource;
         private Topology topology;
-        private URI LOAD_BALANCERS_URI;
+        private URI topLevelLoadBalancersUri;
 
         public TestLoadBalancerCrud() {
             super(FuncTest.appDesc);
@@ -48,8 +48,8 @@ public class TestLoadBalancer {
             DtoApplication app = topology.getApplication();
 
             // URIs to use for operations
-            LOAD_BALANCERS_URI = app.getLoadBalancers();
-            assertNotNull(LOAD_BALANCERS_URI);
+            topLevelLoadBalancersUri = app.getLoadBalancers();
+            assertNotNull(topLevelLoadBalancersUri);
         }
 
         @After
@@ -58,12 +58,10 @@ public class TestLoadBalancer {
         }
 
         private void verifyNumberOfLoadBalancers(int num) {
-            ClientResponse response = resource().uri(LOAD_BALANCERS_URI)
-                    .type(VendorMediaType.APPLICATION_LOAD_BALANCER_JSON)
-                    .get(ClientResponse.class);
-            DtoLoadBalancer[] loadBalancers =
-                    response.getEntity(DtoLoadBalancer[].class);
-            assertEquals(OK.getStatusCode(), response.getStatus());
+            DtoLoadBalancer[] loadBalancers = dtoWebResource.getAndVerifyOk(
+                    topLevelLoadBalancersUri,
+                    VendorMediaType.APPLICATION_LOAD_BALANCER_JSON,
+                    DtoLoadBalancer[].class);
             assertEquals(num, loadBalancers.length);
         }
 
@@ -86,7 +84,7 @@ public class TestLoadBalancer {
             // POST
             DtoLoadBalancer loadBalancer = getStockLoadBalancer();
             ClientResponse response1 = dtoWebResource.postAndVerifyStatus(
-                    LOAD_BALANCERS_URI,
+                    topLevelLoadBalancersUri,
                     VendorMediaType.APPLICATION_LOAD_BALANCER_JSON,
                     loadBalancer,
                     CREATED.getStatusCode());
@@ -96,7 +94,7 @@ public class TestLoadBalancer {
             // POST another one
             DtoLoadBalancer loadBalancer2 = getStockLoadBalancer();
             ClientResponse response2 = dtoWebResource.postAndVerifyStatus(
-                    LOAD_BALANCERS_URI,
+                    topLevelLoadBalancersUri,
                     VendorMediaType.APPLICATION_LOAD_BALANCER_JSON,
                     loadBalancer2,
                     CREATED.getStatusCode());
@@ -106,7 +104,7 @@ public class TestLoadBalancer {
             // POST with the same ID as the existing resource and get 409
             // CONFLICT.
             dtoWebResource.postAndVerifyStatus(
-                    LOAD_BALANCERS_URI,
+                    topLevelLoadBalancersUri,
                     VendorMediaType.APPLICATION_LOAD_BALANCER_JSON,
                     loadBalancer2,
                     CONFLICT.getStatusCode());

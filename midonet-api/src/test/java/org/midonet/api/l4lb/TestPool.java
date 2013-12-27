@@ -32,9 +32,9 @@ public class TestPool {
 
     public static class TestPoolCrud extends JerseyTest {
 
-        private DtoWebResource dtoResource;
+        private DtoWebResource dtoWebResource;
         private Topology topology;
-        private URI poolsUri;
+        private URI topLevelPoolsUri;
 
         public TestPoolCrud() {
             super(FuncTest.appDesc);
@@ -44,13 +44,13 @@ public class TestPool {
         public void setUp() {
 
             WebResource resource = resource();
-            dtoResource = new DtoWebResource(resource);
-            topology = new Topology.Builder(dtoResource).build();
+            dtoWebResource = new DtoWebResource(resource);
+            topology = new Topology.Builder(dtoWebResource).build();
             DtoApplication app = topology.getApplication();
 
             // URIs to use for operations
-            poolsUri = app.getPools();
-            assertNotNull(poolsUri);
+            topLevelPoolsUri = app.getPools();
+            assertNotNull(topLevelPoolsUri);
         }
 
         @After
@@ -59,11 +59,10 @@ public class TestPool {
         }
 
         private void verifyNumberOfPools(int num) {
-            ClientResponse response = resource().uri(poolsUri)
-                    .type(VendorMediaType.APPLICATION_POOL_JSON)
-                    .get(ClientResponse.class);
-            DtoPool[] pools = response.getEntity(DtoPool[].class);
-            assertEquals(200, response.getStatus());
+            DtoPool[] pools = dtoWebResource.getAndVerifyOk(
+                    topLevelPoolsUri,
+                    VendorMediaType.APPLICATION_POOL_JSON,
+                    DtoPool[].class);
             assertEquals(num, pools.length);
         }
 
@@ -76,7 +75,7 @@ public class TestPool {
         }
 
         private URI postPool(DtoPool pool) {
-            ClientResponse response = resource().uri(poolsUri)
+            ClientResponse response = resource().uri(topLevelPoolsUri)
                     .type(VendorMediaType.APPLICATION_POOL_JSON)
                     .post(ClientResponse.class, pool);
             assertEquals(201, response.getStatus());
