@@ -637,20 +637,25 @@ class Coordinator(var origMatch: WildcardMatch,
     : SimulationResult = {
         port match {
             case p: RouterPort if isIngress =>
-                sendUnreachableProhibitedIcmp(p,
-                    pktContext.wcmatch, pktContext.frame)
+                sendIcmpProhibited(p)
             case p: RouterPort if pktContext.inPortId != null =>
-                expiringAsk(PortRequest(pktContext.inPortId),
-                    log, expiry) map {
-                        case p: RouterPort =>
-                            sendUnreachableProhibitedIcmp(p,
-                                pktContext.wcmatch, pktContext.frame)
-                        case _ =>
-                    }
+                expiringAsk(PortRequest(pktContext.inPortId), log, expiry) map {
+                    case p: RouterPort =>
+                        sendIcmpProhibited(p)
+                    case _ =>
+                }
             case _ =>
         }
 
         dropFlow(temporary = false)
+    }
+
+    private def sendIcmpProhibited(port: RouterPort) {
+        val ethOpt = unreachableProhibitedIcmp(port, pktContext.wcmatch,
+                                               pktContext.frame)
+        if (ethOpt.nonEmpty)
+            DeduplicationActor !
+                EmitGeneratedPacket(port.id, ethOpt.get, pktContext.flowCookie)
     }
 
     private def installConnectionCacheEntry(outPortID: UUID,
