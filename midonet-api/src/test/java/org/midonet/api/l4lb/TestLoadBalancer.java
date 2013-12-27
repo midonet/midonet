@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Midokura Europe SARL, All Rights Reserved.
+ * Copyright (c) 2014 Midokura Europe SARL, All Rights Reserved.
  */
 
 package org.midonet.api.l4lb;
@@ -130,9 +130,9 @@ public class TestLoadBalancer {
 
             // PUT with the different parameters
             newLoadBalancer2.setAdminStateUp(
-                    !newLoadBalancer2.getAdminStateUp());
-            assertEquals(newLoadBalancer2.getAdminStateUp(),
-                    !!newLoadBalancer2.getAdminStateUp());
+                    !newLoadBalancer2.isAdminStateUp());
+            assertEquals(newLoadBalancer2.isAdminStateUp(),
+                    !!newLoadBalancer2.isAdminStateUp());
             DtoLoadBalancer updatedLoadBalancer2 =
                     dtoWebResource.putAndVerifyNoContent(
                             loadBalancerUri2,

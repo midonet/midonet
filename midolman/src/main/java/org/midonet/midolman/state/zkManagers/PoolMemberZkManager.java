@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import com.google.common.base.Objects;
 import org.apache.zookeeper.ZooDefs;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.serialization.SerializationException;
@@ -65,21 +66,12 @@ public class PoolMemberZkManager extends AbstractZkManager {
 
             PoolMemberConfig that = (PoolMemberConfig) o;
 
-            if (poolId != null ? !poolId.equals(that.poolId)
-                    : that.poolId != null)
-                return false;
-            if (address != null ? !address.equals(that.address)
-                    : that.address != null)
-                return false;
-            if (protocolPort != that.protocolPort)
-                return false;
-            if (weight != that.weight)
-                return false;
-            if (adminStateUp != that.adminStateUp)
-                return false;
-            if (status != null ? !status.equals(that.status)
-                    : that.status != null)
-                return false;
+            if (!Objects.equal(poolId, that.poolId)) return false;
+            if (!Objects.equal(address, that.address)) return false;
+            if (protocolPort != that.protocolPort) return false;
+            if (weight != that.weight) return false;
+            if (adminStateUp != that.adminStateUp) return false;
+            if (!Objects.equal(status, that.status)) return false;
 
             return true;
         }

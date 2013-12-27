@@ -8,6 +8,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 import java.net.URI;
 import java.util.UUID;
 
+import com.google.common.base.Objects;
+
 @XmlRootElement
 public class DtoPoolMember {
     private UUID id;
@@ -88,27 +90,24 @@ public class DtoPoolMember {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        DtoPoolMember dtoPoolMember = (DtoPoolMember) o;
+        DtoPoolMember that = (DtoPoolMember) o;
 
-        if (adminStateUp != dtoPoolMember.adminStateUp) return false;
-        if (protocolPort != dtoPoolMember.protocolPort) return false;
-        if (weight != dtoPoolMember.weight) return false;
-        if (address != null ?
-                !address.equals(dtoPoolMember.address)
-                : dtoPoolMember.address != null) return false;
-        if (pool != null ? !pool.equals(dtoPoolMember.pool)
-                : dtoPoolMember.pool != null) return false;
-        if (poolId != null ? !poolId.equals(dtoPoolMember.poolId)
-                : dtoPoolMember.poolId != null) return false;
-        if (status != null ? !status.equals(dtoPoolMember.status)
-                : dtoPoolMember.status != null) return false;
+        if (!Objects.equal(id, that.getId())) return false;
+        if (!Objects.equal(poolId, that.getPoolId())) return false;
+        if (!Objects.equal(address, that.getAddress())) return false;
+        if (protocolPort != that.getProtocolPort()) return false;
+        if (weight != that.getWeight()) return false;
+        if (adminStateUp != that.isAdminStateUp()) return false;
+        if (!Objects.equal(status, that.getStatus())) return false;
+        if (!Objects.equal(pool, that.getPoolId())) return false;
 
         return true;
     }
 
     @Override
     public int hashCode() {
-        int result = poolId != null ? poolId.hashCode() : 0;
+        int result = id != null ? id.hashCode() : 0;
+        result = 31 * result + (poolId != null ? poolId.hashCode() : 0);
         result = 31 * result + (address != null ? address.hashCode() : 0);
         result = 31 * result + protocolPort;
         result = 31 * result + weight;

@@ -3,11 +3,9 @@
  */
 package org.midonet.midolman.state.zkManagers;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
-import org.apache.zookeeper.ZooDefs;
+import com.google.common.base.Objects;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.AbstractZkManager;
@@ -15,8 +13,6 @@ import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.Op;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,20 +59,12 @@ public class HealthMonitorZkManager extends AbstractZkManager {
 
             HealthMonitorConfig that = (HealthMonitorConfig) o;
 
-            if (type != null ? !type.equals(that.type)
-                    : that.type != null)
-                return false;
-            if (poolId != null ?poolId.equals(that.poolId)
-                    : that.poolId != null)
-                return false;
-            if (delay != that.delay)
-                return false;
-            if (timeout != that.timeout)
-                return false;
-            if (maxRetries != that.maxRetries)
-                return false;
-            if (adminStateUp != that.adminStateUp)
-                return false;
+            if (!Objects.equal(type, that.type)) return false;
+            if (!Objects.equal(poolId, that.poolId)) return false;
+            if (delay != that.delay) return false;
+            if (timeout != that.timeout) return false;
+            if (maxRetries != that.maxRetries) return false;
+            if (adminStateUp != that.adminStateUp) return false;
 
             return true;
         }
