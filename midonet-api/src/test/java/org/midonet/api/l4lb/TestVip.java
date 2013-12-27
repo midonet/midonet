@@ -71,11 +71,9 @@ public class TestVip {
         }
 
         private void verifyNumberOfVips(int num) {
-            ClientResponse response = resource().uri(VIPS_URI)
-                    .type(VendorMediaType.APPLICATION_VIP_JSON)
-                    .get(ClientResponse.class);
-            DtoVip[] vips = response.getEntity(DtoVip[].class);
-            assertEquals(OK.getStatusCode(), response.getStatus());
+            DtoVip[] vips = dtoWebResource.getAndVerifyOk(VIPS_URI,
+                    VendorMediaType.APPLICATION_VIP_JSON,
+                    DtoVip[].class);
             assertEquals(num, vips.length);
         }
 

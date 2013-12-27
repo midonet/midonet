@@ -31,9 +31,9 @@ public class TestPoolMember {
 
     public static class TestPoolMemberCrud extends JerseyTest {
 
-        private DtoWebResource dtoResource;
+        private DtoWebResource dtoWebResource;
         private Topology topology;
-        private URI poolMembersUri;
+        private URI topLevelPoolMembersUri;
 
         public TestPoolMemberCrud() {
             super(FuncTest.appDesc);
@@ -43,13 +43,13 @@ public class TestPoolMember {
         public void setUp() {
 
             WebResource resource = resource();
-            dtoResource = new DtoWebResource(resource);
-            topology = new Topology.Builder(dtoResource).build();
+            dtoWebResource = new DtoWebResource(resource);
+            topology = new Topology.Builder(dtoWebResource).build();
             DtoApplication app = topology.getApplication();
 
             // URIs to use for operations
-            poolMembersUri = app.getPoolMembers();
-            assertNotNull(poolMembersUri);
+            topLevelPoolMembersUri = app.getPoolMembers();
+            assertNotNull(topLevelPoolMembersUri);
         }
 
         @After
@@ -58,11 +58,10 @@ public class TestPoolMember {
         }
 
         private void verifyNumberOfPoolMembers(int num) {
-            ClientResponse response = resource().uri(poolMembersUri)
-                    .type(VendorMediaType.APPLICATION_POOL_MEMBER_JSON)
-                    .get(ClientResponse.class);
-            DtoPoolMember[] poolMembers = response.getEntity(DtoPoolMember[].class);
-            assertEquals(200, response.getStatus());
+            DtoPoolMember[] poolMembers = dtoWebResource.getAndVerifyOk(
+                    topLevelPoolMembersUri,
+                    VendorMediaType.APPLICATION_POOL_MEMBER_JSON,
+                    DtoPoolMember[].class);
             assertEquals(num, poolMembers.length);
         }
 
@@ -75,7 +74,7 @@ public class TestPoolMember {
         }
 
         private URI postPoolMember(DtoPoolMember poolMember) {
-            ClientResponse response = resource().uri(poolMembersUri)
+            ClientResponse response = resource().uri(topLevelPoolMembersUri)
                     .type(VendorMediaType.APPLICATION_POOL_MEMBER_JSON)
                     .post(ClientResponse.class, poolMember);
             assertEquals(201, response.getStatus());
