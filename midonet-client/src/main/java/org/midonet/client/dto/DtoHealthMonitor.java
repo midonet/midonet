@@ -7,6 +7,8 @@ package org.midonet.client.dto;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.UUID;
 
+import com.google.common.base.Objects;
+
 @XmlRootElement
 public class DtoHealthMonitor {
     private UUID id;
@@ -80,19 +82,21 @@ public class DtoHealthMonitor {
 
         DtoHealthMonitor that = (DtoHealthMonitor) o;
 
-        if (adminStateUp != that.adminStateUp) return false;
-        if (delay != that.delay) return false;
-        if (maxRetries != that.maxRetries) return false;
-        if (timeout != that.timeout) return false;
-        if (poolId != null ? !poolId.equals(that.poolId) : that.poolId != null) return false;
-        if (type != null ? !type.equals(that.type) : that.type != null) return false;
+        if (!Objects.equal(id, that.getId())) return false;
+        if (!Objects.equal(type, that.getType())) return false;
+        if (!Objects.equal(poolId, that.getPoolId())) return false;
+        if (delay != that.getDelay()) return false;
+        if (timeout != that.getTimeout()) return false;
+        if (maxRetries != that.getMaxRetries()) return false;
+        if (adminStateUp != that.isAdminStateUp()) return false;
 
         return true;
     }
 
     @Override
     public int hashCode() {
-        int result = type != null ? type.hashCode() : 0;
+        int result = id != null ? id.hashCode() : 0;
+        result = 31 * result + type != null ? type.hashCode() : 0;
         result = 31 * result + (poolId != null ? poolId.hashCode() : 0);
         result = 31 * result + delay;
         result = 31 * result + timeout;

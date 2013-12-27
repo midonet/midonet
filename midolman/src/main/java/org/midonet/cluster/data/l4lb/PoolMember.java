@@ -3,6 +3,7 @@
  */
 package org.midonet.cluster.data.l4lb;
 
+import com.google.common.base.Objects;
 import org.midonet.cluster.data.Entity;
 
 import java.net.URI;
@@ -109,17 +110,13 @@ public class PoolMember extends Entity.Base<UUID, PoolMember.Data, PoolMember>{
 
             Data data = (Data) o;
 
-            if (adminStateUp != data.adminStateUp) return false;
+            if (!Objects.equal(poolId, data.poolId)) return false;
+            if (!Objects.equal(address, data.address)) return false;
             if (protocolPort != data.protocolPort) return false;
             if (weight != data.weight) return false;
-            if (address != null ? !address.equals(data.address)
-                    : data.address != null) return false;
-            if (pool != null ? !pool.equals(data.pool)
-                    : data.pool != null) return false;
-            if (poolId != null ? !poolId.equals(data.poolId)
-                    : data.poolId != null) return false;
-            if (status != null ? !status.equals(data.status)
-                    : data.status != null) return false;
+            if (adminStateUp != data.adminStateUp) return false;
+            if (!Objects.equal(status, data.status)) return false;
+            if (!Objects.equal(pool, data.pool)) return false;
 
             return true;
         }

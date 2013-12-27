@@ -1,9 +1,10 @@
 /*
- * Copyright 2013 Midokura PTE LTD.
+ * Copyright (c) 2014 Midokura Europe SARL, All Rights Reserved.
  */
 package org.midonet.api.l4lb;
 
 import java.net.URI;
+import java.util.UUID;
 
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
@@ -91,6 +92,10 @@ public class TestPool {
 
         private DtoPool getStockPool() {
             DtoPool pool = new DtoPool();
+            // NOTE(tfukushima): Populating UUID of the pool because the API
+            //   can create the resource with the specified UUID, which is
+            //   very useful for the identical checks.
+            pool.setId(UUID.randomUUID());
             pool.setAdminStateUp(true);
             pool.setDescription("a big ol pool");
             pool.setName("BIGPOOL");
