@@ -12,13 +12,19 @@ import com.google.common.base.Objects;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
-
-import org.midonet.midolman.serialization.Serializer;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.midolman.serialization.Serializer;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.AbstractZkManager;
+import org.midonet.midolman.state.Directory;
+import org.midonet.midolman.state.DirectoryCallback;
+import org.midonet.midolman.state.DirectoryCallbackFactory;
+import org.midonet.midolman.state.PathBuilder;
+import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.state.ZkManager;
+import org.midonet.util.functors.Functor;
 
 import static java.util.Arrays.asList;
 
@@ -143,5 +149,30 @@ public class VipZkManager extends AbstractZkManager {
 
         config.loadBalancerId = loadBalancerId;
         return prepareUpdate(id, config);
+    }
+
+    public void getVipAsync(final UUID vipId,
+                            DirectoryCallback<VipConfig> vipCallback,
+                            Directory.TypedWatcher watcher) {
+
+        String vipPath = paths.getVipPath(vipId);
+
+        zk.asyncGet(
+                vipPath,
+                DirectoryCallbackFactory.transform(
+                        vipCallback,
+                        new Functor<byte[], VipConfig>() {
+                            @Override
+                            public VipConfig apply(byte[] arg0) {
+                                try {
+                                    return serializer.deserialize(arg0,
+                                            VipConfig.class);
+                                } catch (SerializationException e) {
+                                    log.warn("Could not deserialize VIP data");
+                                }
+                                return null;
+                            }
+                        }),
+                watcher);
     }
 }

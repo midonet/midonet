@@ -111,6 +111,18 @@ object VirtualTopologyActor extends Referenceable {
             () => new IPAddrGroupManager(id, client)
     }
 
+    case class LoadBalancerRequest(id: UUID, update: Boolean = false)
+        extends DeviceRequest[LoadBalancer] {
+        protected[VirtualTopologyActor] val tag = classTag[LoadBalancer]
+
+        protected[VirtualTopologyActor]
+        override val managerName = "LoadBalancerManager-" + id
+
+        protected[VirtualTopologyActor]
+        def managerFactory(client: Client, config: MidolmanConfig) =
+            () => new LoadBalancerManager(id, client)
+    }
+
     case class ConditionListRequest(id: UUID, update: Boolean = false)
         extends DeviceRequest[TraceConditions] {
         protected[VirtualTopologyActor] val tag = classTag[TraceConditions]
@@ -312,6 +324,9 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
         case ipAddrGroup: IPAddrGroup =>
             log.debug("Received an IPAddrGroup for {}", ipAddrGroup.id)
             updated(ipAddrGroup)
+        case loadBalancer: LoadBalancer =>
+            log.debug("Received a LoadBalancer for {}", loadBalancer.id)
+            updated(loadBalancer)
         case port: Port =>
             log.debug("Received a Port for {}", port.id)
             updated(port.id, port)

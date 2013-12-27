@@ -1,15 +1,18 @@
 /*
  * Copyright (c) 2014 Midokura Europe SARL, All Rights Reserved.
  */
+
 package org.midonet.midolman.simulation
 
 import java.util.UUID
 import akka.event.LoggingBus
+import org.midonet.cluster.data.l4lb.PoolMember
 
 /**
- * LoadBalancer.
+ * Pool.
  *
  * Placeholder class.
  */
-class LoadBalancer(val id: UUID, val adminStateUp: Boolean,
-                    val vips: Set[VIP], val loggingBus: LoggingBus)
+class Pool (val id: UUID, val poolMembers: Set[PoolMember],
+            val loggingBus: LoggingBus) {
+}

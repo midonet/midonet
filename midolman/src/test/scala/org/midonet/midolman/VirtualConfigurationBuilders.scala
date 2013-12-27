@@ -25,6 +25,7 @@ import org.midonet.packets.{IPv4Subnet, TCP, MAC}
 import org.midonet.midolman.state.DirectoryCallback
 import org.midonet.midolman.state.DirectoryCallback.Result
 import org.apache.zookeeper.KeeperException
+import org.midonet.cluster.data.l4lb.{VIP, LoadBalancer}
 
 trait VirtualConfigurationBuilders {
 
@@ -374,4 +375,44 @@ trait VirtualConfigurationBuilders {
     def removeAddrFromIpAddrGroup(id: UUID, addr: String) {
         clusterDataClient().ipAddrGroupRemoveAddr(id, addr)
     }
+
+    // L4LB
+    def createLoadBalancer(id: Option[UUID] = None): LoadBalancer = {
+        val loadBalancer = new LoadBalancer()
+        loadBalancer.setAdminStateUp(true)
+        if (id.isDefined)
+            loadBalancer.setId(id.get)
+        else
+            loadBalancer.setId(UUID.randomUUID)
+        clusterDataClient().loadBalancerCreate(loadBalancer)
+        Thread.sleep(50)
+        loadBalancer
+    }
+
+    def setLoadBalancerDown(loadBalancer: LoadBalancer) {
+        loadBalancer.setAdminStateUp(false)
+        clusterDataClient().loadBalancerUpdate(loadBalancer)
+    }
+
+    def createVipOnLoadBalancer(loadBalancer: LoadBalancer): VIP = {
+        val vip = new VIP()
+        vip.setId(UUID.randomUUID)
+        vip.setAddress("10.10.10.10")
+        vip.setAdminStateUp(true)
+        vip.setLoadBalancerId(loadBalancer.getId)
+        clusterDataClient().vipCreate(vip)
+        Thread.sleep(50)
+        vip
+    }
+
+    def removeVipFromLoadBalancer(vip: VIP, loadBalancer: LoadBalancer) {
+        vip.setLoadBalancerId(null)
+        clusterDataClient().vipUpdate(vip)
+    }
+
+    def setVipAdminStateUp(vip: VIP, adminStateUp: Boolean) {
+        vip.setAdminStateUp(adminStateUp)
+        clusterDataClient().vipUpdate(vip)
+    }
+
 }
