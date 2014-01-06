@@ -345,17 +345,11 @@ public class ZkManager {
         try {
             return this.zk.multi(ops);
         } catch (NodeExistsException e) {
-            throw new StatePathExistsException(getMultiErrorMessage(
-                    "ZooKeeper error occurred while " + "executing multi ops.",
-                    ops, e), e);
+            throw new StatePathExistsException(getMultiErrorMessage(ops, e), e);
         } catch (NoNodeException e) {
-            throw new NoStatePathException(getMultiErrorMessage(
-                    "ZooKeeper error occurred while " + "executing multi ops.",
-                    ops, e), e);
+            throw new NoStatePathException(getMultiErrorMessage(ops, e), e);
         } catch (KeeperException e) {
-            throw new StateAccessException(getMultiErrorMessage(
-                    "ZooKeeper error occurred while " + "executing multi ops.",
-                    ops, e), e);
+            throw new StateAccessException(getMultiErrorMessage(ops, e), e);
         } catch (InterruptedException e) {
             throw new StateAccessException(
                     "ZooKeeper thread interrupted while executing multi ops.",
@@ -363,12 +357,14 @@ public class ZkManager {
         }
     }
 
-    private String getMultiErrorMessage(String message, List<Op> ops,
-                                        KeeperException ex) {
-        message += ex.getMessage();
+    private String getMultiErrorMessage(List<Op> ops, KeeperException ex) {
+        StringBuilder messageBuilder = new StringBuilder(
+                "ZooKeeper error occurred while executing multi ops: ");
+        messageBuilder.append(ex.getMessage());
+
         List<OpResult> results = ex.getResults();
         if (results == null) {
-            return message;
+            return messageBuilder.toString();
         }
 
         for (int i = 0, resultsSize = results.size(); i < resultsSize; i++) {
@@ -380,14 +376,15 @@ public class ZkManager {
                         (OpResult.ErrorResult) result;
 
                 if (errorResult.getErr() != 0) {
-                    message += "\r\n\t\t" + operation.getPath()
-                            + " failed with error code: "
-                            + errorResult.getErr();
+                    messageBuilder.append("\r\n\t\t")
+                                  .append(operation.getPath())
+                                  .append(" failed with error code: ")
+                                  .append(errorResult.getErr());
                 }
             }
         }
 
-        return message;
+        return messageBuilder.toString();
     }
 
     public void update(String path, byte[] data) throws StateAccessException {

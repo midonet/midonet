@@ -52,7 +52,7 @@ public class PoolMemberResource extends AbstractResource {
 
     @GET
     @RolesAllowed({ AuthRole.ADMIN })
-    @Produces({ VendorMediaType.APPLICATION_POOL_MEMBER_JSON,
+    @Produces({ VendorMediaType.APPLICATION_POOL_MEMBER_COLLECTION_JSON,
             MediaType.APPLICATION_JSON })
     public List<PoolMember> list()
             throws StateAccessException, SerializationException {
@@ -83,8 +83,8 @@ public class PoolMemberResource extends AbstractResource {
         org.midonet.cluster.data.l4lb.PoolMember PoolMemberData =
                 dataClient.poolMemberGet(id);
         if (PoolMemberData == null) {
-            throw new NotFoundHttpException(
-                    getMessage(MessageProperty.RESOURCE_NOT_FOUND));
+            throw new NotFoundHttpException(getMessage(
+                    MessageProperty.RESOURCE_NOT_FOUND, "pool member", id));
         }
 
         // Convert to the REST API DTO

@@ -9,11 +9,14 @@ import com.google.inject.servlet.RequestScoped;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.VendorMediaType;
 import org.midonet.api.auth.AuthRole;
+import org.midonet.api.l4lb.PoolMember;
+import org.midonet.api.l4lb.VIP;
 import org.midonet.api.rest_api.*;
 import org.midonet.api.l4lb.Pool;
 import org.midonet.api.validation.MessageProperty;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.InvalidStateOperationException;
+import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.cluster.DataClient;
 import org.midonet.midolman.state.StatePathExistsException;
@@ -83,8 +86,8 @@ public class PoolResource extends AbstractResource {
         org.midonet.cluster.data.l4lb.Pool poolData =
                 dataClient.poolGet(id);
         if (poolData == null) {
-            throw new NotFoundHttpException(
-                    getMessage(MessageProperty.RESOURCE_NOT_FOUND));
+            throw new NotFoundHttpException(getMessage(
+                    MessageProperty.RESOURCE_NOT_FOUND, "pool", id));
         }
 
         // Convert to the REST API DTO
@@ -123,7 +126,8 @@ public class PoolResource extends AbstractResource {
                     ResourceUriBuilder.getPool(getBaseUri(), id))
                     .build();
         } catch (StatePathExistsException ex) {
-            throw new StateAccessException();
+            throw new BadRequestHttpException(getMessage(
+                    MessageProperty.RESOURCE_EXISTS, "pool", pool.getId()));
         }
     }
 
@@ -139,5 +143,67 @@ public class PoolResource extends AbstractResource {
         pool.setId(id);
 
         dataClient.poolUpdate(pool.toData());
+    }
+
+    @GET
+    @PermitAll
+    @Path("{id}" + ResourceUriBuilder.POOL_MEMBERS)
+    @Produces({VendorMediaType.APPLICATION_POOL_MEMBER_COLLECTION_JSON,
+            MediaType.APPLICATION_JSON})
+    public List<PoolMember> listMembers(@PathParam("id") UUID id)
+            throws StateAccessException, SerializationException {
+
+        // TODO: Authorization.
+
+        List<org.midonet.cluster.data.l4lb.PoolMember> dataMembers = null;
+        try {
+            dataMembers = dataClient.poolGetMembers(id);
+        } catch (NoStatePathException ex) {
+            if (ex.getPath().matches(".*pools.*pool_members")) {
+                throw new NotFoundHttpException(getMessage(
+                        MessageProperty.RESOURCE_NOT_FOUND, "pool", id));
+            }
+            throw ex;
+        }
+
+        List<PoolMember> members = new ArrayList<>(dataMembers.size());
+        for (org.midonet.cluster.data.l4lb.PoolMember dataMember : dataMembers) {
+            PoolMember member = new PoolMember(dataMember);
+            member.setBaseUri(getBaseUri());
+            members.add(member);
+        }
+
+        return members;
+    }
+
+    @GET
+    @PermitAll
+    @Path("{id}" + ResourceUriBuilder.VIPS)
+    @Produces({VendorMediaType.APPLICATION_VIP_COLLECTION_JSON,
+            MediaType.APPLICATION_JSON})
+    public List<VIP> listVips(@PathParam("id") UUID id)
+            throws StateAccessException, SerializationException {
+
+        // TODO: Authorization
+
+        List<org.midonet.cluster.data.l4lb.VIP> dataVips = null;
+        try {
+            dataVips = dataClient.poolGetVips(id);
+        } catch (NoStatePathException ex) {
+            if (ex.getPath().matches(".*pools.*pool_members")) {
+                throw new NotFoundHttpException(getMessage(
+                        MessageProperty.RESOURCE_NOT_FOUND, "pool", id));
+            }
+            throw ex;
+        }
+
+        List<VIP> vips = new ArrayList<>(dataVips.size());
+        for (org.midonet.cluster.data.l4lb.VIP dataVip : dataVips) {
+            VIP vip = new VIP(dataVip);
+            vip.setBaseUri(getBaseUri());
+            vips.add(vip);
+        }
+
+        return vips;
     }
 }

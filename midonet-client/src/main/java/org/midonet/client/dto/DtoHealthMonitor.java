@@ -20,6 +20,7 @@ public class DtoHealthMonitor {
     private boolean adminStateUp = true;
     private String status;
     private URI uri;
+    private URI pools;
 
     public UUID getId() {
         return id;
@@ -83,6 +84,14 @@ public class DtoHealthMonitor {
 
     public void setUri(URI uri) {
         this.uri = uri;
+    }
+
+    public URI getPools() {
+        return pools;
+    }
+
+    public void setPools(URI pools) {
+        this.pools = pools;
     }
 
     @Override

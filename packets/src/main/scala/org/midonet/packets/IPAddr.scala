@@ -41,7 +41,7 @@ trait IPAddr {
 
 object IPAddr {
     implicit def ipAddrToOrdered[T <: IPAddr](ip: T): Ordered[T] = ip match {
-        case i: Ordered[T] => i
+        case i: Ordered[_] => ip.asInstanceOf[Ordered[T]]
         case _ => throw new IllegalArgumentException()
     }
 

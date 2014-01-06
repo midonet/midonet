@@ -11,20 +11,24 @@ import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.VendorMediaType;
 import org.midonet.api.auth.AuthRole;
 import org.midonet.api.l4lb.LoadBalancer;
+import org.midonet.api.l4lb.VIP;
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.BadRequestHttpException;
 import org.midonet.api.rest_api.ConflictHttpException;
+import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.validation.MessageProperty;
 import org.midonet.cluster.DataClient;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.InvalidStateOperationException;
+import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.StatePathExistsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -101,8 +105,8 @@ public class LoadBalancerResource extends AbstractResource {
         org.midonet.cluster.data.l4lb.LoadBalancer loadBalancerData =
                 dataClient.loadBalancerGet(id);
         if (loadBalancerData == null) {
-            throw new NotFoundException(
-                    getMessage(MessageProperty.RESOURCE_NOT_FOUND));
+            throw new NotFoundHttpException(getMessage(
+                    MessageProperty.RESOURCE_NOT_FOUND, "load balancer", id));
         }
 
         LoadBalancer loadBalancer = new LoadBalancer(loadBalancerData);
@@ -165,8 +169,9 @@ public class LoadBalancerResource extends AbstractResource {
                     ResourceUriBuilder.getLoadBalancer(getBaseUri(), id))
                     .build();
         } catch (StatePathExistsException ex) {
-            throw new ConflictHttpException(
-                    getMessage(MessageProperty.RESOURCE_CONFLICTED));
+            throw new ConflictHttpException(getMessage(
+                    MessageProperty.RESOURCE_EXISTS,
+                    "load balancer", loadBalancer.getId()));
         }
     }
 
@@ -197,4 +202,34 @@ public class LoadBalancerResource extends AbstractResource {
         }
     }
 
+    @GET
+    @PermitAll
+    @Path("{id}" + ResourceUriBuilder.VIPS)
+    @Produces({VendorMediaType.APPLICATION_VIP_COLLECTION_JSON,
+            MediaType.APPLICATION_JSON})
+    public List<VIP> listVips(@PathParam("id") UUID id)
+            throws StateAccessException, SerializationException {
+
+        // TODO: Authorization.
+
+        List<org.midonet.cluster.data.l4lb.VIP> dataVips = null;
+        try {
+            dataVips = dataClient.loadBalancerGetVips(id);
+        } catch (NoStatePathException ex) {
+            if (ex.getPath().matches(".*load_balancers.*vips")) {
+                throw new NotFoundHttpException(getMessage(
+                        MessageProperty.RESOURCE_NOT_FOUND, "load balancer", id));
+            }
+            throw ex;
+        }
+
+        List<VIP> vips = new ArrayList<>(dataVips.size());
+        for (org.midonet.cluster.data.l4lb.VIP dataVip : dataVips) {
+            VIP vip = new VIP(dataVip);
+            vip.setBaseUri(getBaseUri());
+            vips.add(vip);
+        }
+
+        return vips;
+    }
 }

@@ -3,53 +3,32 @@
  */
 package org.midonet.api.l4lb;
 
-import java.net.URI;
-import java.util.UUID;
-
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.test.framework.JerseyTest;
 import junit.framework.Assert;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
-import org.midonet.api.VendorMediaType;
-import org.midonet.api.rest_api.DtoWebResource;
-import org.midonet.api.rest_api.FuncTest;
-import org.midonet.api.rest_api.Topology;
 import org.midonet.api.zookeeper.StaticMockDirectory;
 import org.midonet.client.dto.*;
 
-import static junit.framework.Assert.assertNotNull;
+import java.net.URI;
+import java.util.Arrays;
+import java.util.List;
+
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(Enclosed.class)
 public class TestPoolMember {
 
 
-    public static class TestPoolMemberCrud extends JerseyTest {
-
-        private DtoWebResource dtoWebResource;
-        private Topology topology;
-        private URI topLevelPoolMembersUri;
-
-        public TestPoolMemberCrud() {
-            super(FuncTest.appDesc);
-        }
+    public static class TestPoolMemberCrud extends L4LBTestBase {
 
         @Before
         public void setUp() {
-
-            WebResource resource = resource();
-            dtoWebResource = new DtoWebResource(resource);
-            topology = new Topology.Builder(dtoWebResource).build();
-            DtoApplication app = topology.getApplication();
-
-            // URIs to use for operations
-            topLevelPoolMembersUri = app.getPoolMembers();
-            assertNotNull(topLevelPoolMembersUri);
+            super.setUp();
         }
 
         @After
@@ -58,48 +37,18 @@ public class TestPoolMember {
         }
 
         private void verifyNumberOfPoolMembers(int num) {
-            DtoPoolMember[] poolMembers = dtoWebResource.getAndVerifyOk(
-                    topLevelPoolMembersUri,
-                    VendorMediaType.APPLICATION_POOL_MEMBER_JSON,
-                    DtoPoolMember[].class);
+            DtoPoolMember[] poolMembers = getPoolMembers(topLevelPoolMembersUri);
             assertEquals(num, poolMembers.length);
         }
 
-        private DtoPoolMember getPoolMember(URI poolMemberUri) {
-            ClientResponse response = resource().uri(poolMemberUri)
-                    .type(VendorMediaType.APPLICATION_POOL_MEMBER_JSON)
-                    .get(ClientResponse.class);
-            assertEquals(200, response.getStatus());
-            return response.getEntity(DtoPoolMember.class);
-        }
+        private void checkBackrefs(URI poolUri, DtoPoolMember... expectedMembers) {
+            DtoPool pool = getPool(poolUri);
+            DtoPoolMember[] actualMembers = getPoolMembers(pool.getPoolMembers());
+            assertEquals(expectedMembers.length, actualMembers.length);
 
-        private URI postPoolMember(DtoPoolMember poolMember) {
-            ClientResponse response = resource().uri(topLevelPoolMembersUri)
-                    .type(VendorMediaType.APPLICATION_POOL_MEMBER_JSON)
-                    .post(ClientResponse.class, poolMember);
-            assertEquals(201, response.getStatus());
-            return response.getLocation();
-        }
-
-        private void deletePoolMember(URI poolMemberUri) {
-            ClientResponse response = resource().uri(poolMemberUri)
-                    .type(VendorMediaType.APPLICATION_POOL_MEMBER_JSON)
-                    .delete(ClientResponse.class);
-            assertEquals(204, response.getStatus());
-        }
-
-        private DtoPoolMember getStockPoolMember() {
-            DtoPoolMember poolMember = new DtoPoolMember();
-            // NOTE(tfukushima): Populating UUID of the pool member because
-            //   the API can create the resource with the specified UUID,
-            //   which is very useful for the identical checks.
-            poolMember.setId(UUID.randomUUID());
-            poolMember.setAddress("10.0.0.1");
-            poolMember.setProtocolPort(80);
-            poolMember.setStatus("UP");
-            poolMember.setWeight(100);
-            poolMember.setAdminStateUp(true);
-            return poolMember;
+            List<DtoPoolMember> actualList = Arrays.asList(actualMembers);
+            for (DtoPoolMember expectedMember : expectedMembers)
+                assertTrue(actualList.contains(expectedMember));
         }
 
         @Test
@@ -109,27 +58,98 @@ public class TestPoolMember {
             verifyNumberOfPoolMembers(0);
 
             // Post
-            DtoPoolMember poolMember = getStockPoolMember();
-            URI newPoolMemberUri = postPoolMember(poolMember);
+            DtoPoolMember poolMember = createStockPoolMember();
             verifyNumberOfPoolMembers(1);
 
             // Post another
-            DtoPoolMember poolMember2 = getStockPoolMember();
-            URI newPoolMemberUri2 = postPoolMember(poolMember2);
+            DtoPoolMember poolMember2 = createStockPoolMember();
             verifyNumberOfPoolMembers(2);
 
             // Get and check
-            DtoPoolMember newPoolMember = getPoolMember(newPoolMemberUri);
+            DtoPoolMember newPoolMember = getPoolMember(poolMember.getUri());
             Assert.assertEquals(poolMember, newPoolMember);
-            newPoolMember = getPoolMember(newPoolMemberUri2);
-            Assert.assertEquals(newPoolMember, poolMember2);
+            newPoolMember = getPoolMember(poolMember2.getUri());
+            Assert.assertEquals(poolMember2, newPoolMember);
 
             // Delete
-            deletePoolMember(newPoolMemberUri);
+            deletePoolMember(poolMember.getUri());
             verifyNumberOfPoolMembers(1);
-            deletePoolMember(newPoolMemberUri2);
+            deletePoolMember(poolMember2.getUri());
             verifyNumberOfPoolMembers(0);
         }
 
+        @Test
+        public void assertCreateAddsReferences() {
+            DtoPool pool = createStockPool();
+            checkBackrefs(pool.getUri()); // No members.
+
+            DtoPoolMember member1 = createStockPoolMember(pool.getId());
+            assertEquals(pool.getUri(), member1.getPool());
+            checkBackrefs(pool.getUri(), member1);
+
+            DtoPoolMember member2 = createStockPoolMember(pool.getId());
+            assertEquals(pool.getUri(), member2.getPool());
+            checkBackrefs(pool.getUri(), member1, member2);
+        }
+
+        @Test
+        public void assertUpdateUpdatesReferences() {
+            DtoPool pool1 = createStockPool();
+            DtoPool pool2 = createStockPool();
+
+            DtoPoolMember member1 = createStockPoolMember(pool1.getId());
+            DtoPoolMember member2 = createStockPoolMember(pool1.getId());
+            checkBackrefs(pool1.getUri(), member1, member2);
+
+            // Switch member2 to pool2.
+            member2.setPoolId(pool2.getId());
+            member2 = updatePoolMember(member2);
+            assertEquals(pool2.getUri(), member2.getPool());
+            checkBackrefs(pool1.getUri(), member1);
+            checkBackrefs(pool2.getUri(), member2);
+
+            // Switch member1 to pool2.
+            member1.setPoolId(pool2.getId());
+            member1 = updatePoolMember(member1);
+            assertEquals(pool2.getUri(), member1.getPool());
+            checkBackrefs(pool1.getUri()); // No members
+            checkBackrefs(pool2.getUri(), member1, member2);
+        }
+
+        @Test
+        public void testDeletePoolMemberRemovesReferencesFromPool() {
+            DtoPool pool = createStockPool();
+            DtoPoolMember member1 = createStockPoolMember(pool.getId());
+            DtoPoolMember member2 = createStockPoolMember(pool.getId());
+            checkBackrefs(pool.getUri(), member1, member2);
+
+            deletePoolMember(member1.getUri());
+            checkBackrefs(pool.getUri(), member2);
+
+            deletePoolMember(member2.getUri());
+            checkBackrefs(pool.getUri()); // No members.
+        }
+
+        @Test
+        public void testDeletePoolRemovesReferencesFromPoolMembers() {
+            DtoPool pool = createStockPool();
+            DtoPoolMember member1 = createStockPoolMember(pool.getId());
+            assertEquals(pool.getId(), member1.getPoolId());
+            assertEquals(pool.getUri(), member1.getPool());
+
+            DtoPoolMember member2 = createStockPoolMember(pool.getId());
+            assertEquals(pool.getId(), member2.getPoolId());
+            assertEquals(pool.getUri(), member2.getPool());
+
+            deletePool(pool.getUri());
+
+            member1 = getPoolMember(member1.getUri());
+            assertNull(member1.getPoolId());
+            assertNull(member1.getPool());
+
+            member2 = getPoolMember(member2.getUri());
+            assertNull(member2.getPoolId());
+            assertNull(member2.getPool());
+        }
     }
 }

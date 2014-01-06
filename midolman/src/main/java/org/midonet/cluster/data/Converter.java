@@ -213,18 +213,18 @@ public class Converter {
 
     public static PoolMember fromPoolMemberConfig(PoolMemberConfig poolMemberConfig) {
         return new PoolMember().setPoolId(poolMemberConfig.poolId)
-                           .setAddress(poolMemberConfig.address)
-                           .setProtocolPort(poolMemberConfig.protocolPort)
-                           .setWeight(poolMemberConfig.weight)
-                           .setAdminStateUp(poolMemberConfig.adminStateUp)
-                           .setStatus(poolMemberConfig.status);
+                               .setAddress(poolMemberConfig.address)
+                               .setProtocolPort(poolMemberConfig.protocolPort)
+                               .setWeight(poolMemberConfig.weight)
+                               .setAdminStateUp(poolMemberConfig.adminStateUp)
+                               .setStatus(poolMemberConfig.status);
     }
 
     public static PoolConfig toPoolConfig(Pool pool) {
         PoolConfig poolConfig = new PoolConfig();
         poolConfig.name = pool.getName();
         poolConfig.description = pool.getDescription();
-        poolConfig.subnetId = pool.getSubnetId();
+        poolConfig.healthMonitorId = pool.getHealthMonitorId();
         poolConfig.protocol = pool.getProtocol();
         poolConfig.lbMethod = pool.getLbMethod();
         poolConfig.adminStateUp = pool.getAdminStateUp();
@@ -235,7 +235,7 @@ public class Converter {
     public static Pool fromPoolConfig(PoolConfig poolConfig) {
         return new Pool().setName(poolConfig.name)
                          .setDescription(poolConfig.description)
-                         .setSubnetId(poolConfig.subnetId)
+                         .setHealthMonitorId(poolConfig.healthMonitorId)
                          .setProtocol(poolConfig.protocol)
                          .setLbMethod(poolConfig.lbMethod)
                          .setAdminStateUp(poolConfig.adminStateUp)
@@ -256,11 +256,11 @@ public class Converter {
 
     public static VIP fromVipConfig(VipConfig vipConfig) {
         return new VIP().setLoadBalancerId(vipConfig.loadBalancerId)
-                .setPoolId(vipConfig.poolId)
-                .setAddress(vipConfig.address)
-                .setProtocolPort(vipConfig.protocolPort)
-                .setSessionPersistence(vipConfig.sessionPersistence)
-                .setAdminStateUp(vipConfig.adminStateUp);
+                        .setPoolId(vipConfig.poolId)
+                        .setAddress(vipConfig.address)
+                        .setProtocolPort(vipConfig.protocolPort)
+                        .setSessionPersistence(vipConfig.sessionPersistence)
+                        .setAdminStateUp(vipConfig.adminStateUp);
     }
 
     public static PortConfig toPortConfig(Port port) {

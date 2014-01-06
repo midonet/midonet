@@ -28,6 +28,7 @@ import org.junit.runners.Parameterized.Parameters;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.FuncTest;
+import org.midonet.api.rest_api.RestApiTest;
 import org.midonet.api.rest_api.Topology;
 import org.midonet.api.validation.MessageProperty;
 import org.midonet.api.zookeeper.StaticMockDirectory;
@@ -178,7 +179,7 @@ public class TestBridge {
         }
     }
 
-    public static class TestBridgeCrud extends JerseyTest {
+    public static class TestBridgeCrud extends RestApiTest {
 
         private DtoWebResource dtoResource;
         private Topology topology;
@@ -640,7 +641,7 @@ public class TestBridge {
             DtoError error = getMacPortWithNotFoundError(
                     fakeBridgeUri, null, mac0, bridge1ip0.getId());
             assertErrorMatches(error,
-                    MessageProperty.BRIDGE_EXISTS, fakeBridgeId);
+                    MessageProperty.RESOURCE_NOT_FOUND, "bridge", fakeBridgeId);
 
             // Try to get a mapping from a VLAN that the bridge doesn't have.
             error = getMacPortWithNotFoundError(
@@ -657,8 +658,7 @@ public class TestBridge {
             // Try to get a mapping from the wrong bridge.
             error = getMacPortWithNotFoundError(
                     bridge1.getUri(), null, mac2, bridge2ip0.getId());
-            assertErrorMatches(error,
-                    MessageProperty.RESOURCE_NOT_FOUND);
+            assertErrorMatches(error, MessageProperty.BRIDGE_HAS_MAC_PORT);
 
             // Now get each mapping successfully.
             getMacPort(bridge1.getUri(), null, mac0, bridge1ip0.getId());
@@ -696,8 +696,8 @@ public class TestBridge {
                             bridge1.getUri().resolve(".."), fakeBridgeId);
             DtoError error = deleteMacPortWithNotFoundError(
                     fakeBridgeUri, null, mac0, bridge1ip1.getId());
-            assertErrorMatches(
-                    error, MessageProperty.BRIDGE_EXISTS, fakeBridgeId);
+            assertErrorMatches(error, MessageProperty.RESOURCE_NOT_FOUND,
+                               "bridge", fakeBridgeId);
 
             // Attempt to delete a mapping for a VLAN that doesn't exist
             // on this bridge.
@@ -707,7 +707,7 @@ public class TestBridge {
                     error, MessageProperty.BRIDGE_HAS_VLAN, 2);
 
             // Attempt to delete a mapping that only exists for the bridge's
-            // other VLAN. This shouldn't error, because delet is idempotent,
+            // other VLAN. This shouldn't error, because delete is idempotent,
             // but it also should not delete anything.
             deleteMacPort(bridge1, (short)1, mac0, bridge1ip0.getId());
             deleteMacPort(bridge1, null, mac1, bridge1ip1.getId());
@@ -974,14 +974,5 @@ public class TestBridge {
             assertEquals(1, violations.size());
             assertEquals(property, violations.get(0).get("property"));
         }
-    }
-
-    static void assertErrorMatches(DtoError actual,
-                                   String expectedTemplate, Object... args) {
-        String expectedMsg = MessageProperty.getMessage(expectedTemplate, args);
-        String actualMsg = (actual.getViolations().isEmpty()) ?
-                actual.getMessage() :
-                actual.getViolations().get(0).get("message");
-        assertEquals(expectedMsg, actualMsg);
     }
 }

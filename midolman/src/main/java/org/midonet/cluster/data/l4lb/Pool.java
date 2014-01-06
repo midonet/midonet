@@ -48,15 +48,6 @@ public class Pool extends Entity.Base<UUID, Pool.Data, Pool>{
         return getData().description;
     }
 
-    public Pool setSubnetId(UUID subnetId) {
-        getData().subnetId = subnetId;
-        return self();
-    }
-
-    public UUID getSubnetId() {
-        return getData().subnetId;
-    }
-
     public Pool setHealthMonitorId(UUID healthMonitorId) {
         getData().healthMonitorId = healthMonitorId;
         return self();
@@ -105,7 +96,6 @@ public class Pool extends Entity.Base<UUID, Pool.Data, Pool>{
     public static class Data {
         private String name;
         private String description;
-        private UUID subnetId;
         private UUID healthMonitorId;
         private String protocol;
         private String lbMethod;
@@ -121,13 +111,11 @@ public class Pool extends Entity.Base<UUID, Pool.Data, Pool>{
 
             if (!Objects.equal(name, data.name)) return false;
             if (!Objects.equal(description, data.description)) return false;
-            if (!Objects.equal(subnetId, data.subnetId)) return false;
             if (!Objects.equal(healthMonitorId, data.healthMonitorId)) return false;
-            if (!Objects.equal(lbMethod, data.lbMethod)) return false;
             if (!Objects.equal(protocol, data.protocol)) return false;
+            if (!Objects.equal(lbMethod, data.lbMethod)) return false;
             if (adminStateUp != data.adminStateUp) return false;
             if (!Objects.equal(status, data.status)) return false;
-
             return true;
         }
 
@@ -136,8 +124,6 @@ public class Pool extends Entity.Base<UUID, Pool.Data, Pool>{
             int result = name != null ? name.hashCode() : 0;
             result = 31 * result
                     + (description != null ? description.hashCode() : 0);
-            result = 31 * result
-                    + (subnetId != null ? subnetId.hashCode() : 0);
             result = 31 * result
                     + (healthMonitorId != null ?
                        healthMonitorId.hashCode() : 0);

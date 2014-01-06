@@ -17,7 +17,6 @@ public class Pool extends UriResource {
     private UUID id;
     private String name;
     private String description;
-    private UUID subnetId;
     private UUID healthMonitorId;
     private String protocol;
     private String lbMethod;
@@ -46,14 +45,6 @@ public class Pool extends UriResource {
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public UUID getSubnetId() {
-        return subnetId;
-    }
-
-    public void setSubnetId(UUID subnetId) {
-        this.subnetId = subnetId;
     }
 
     public UUID getHealthMonitorId() {
@@ -104,7 +95,6 @@ public class Pool extends UriResource {
         super();
         this.name = pool.getName();
         this.description = pool.getDescription();
-        this.subnetId = pool.getSubnetId();
         this.healthMonitorId = pool.getHealthMonitorId();
         this.protocol = pool.getProtocol();
         this.lbMethod = pool.getLbMethod();
@@ -118,7 +108,6 @@ public class Pool extends UriResource {
                 .setId(this.id)
                 .setName(this.name)
                 .setDescription(this.description)
-                .setSubnetId(this.subnetId)
                 .setHealthMonitorId(this.healthMonitorId)
                 .setProtocol(this.protocol)
                 .setLbMethod(this.lbMethod)
@@ -136,5 +125,20 @@ public class Pool extends UriResource {
         } else {
             return null;
         }
+    }
+
+    public URI getHealthMonitor() {
+        return (getBaseUri() == null || healthMonitorId == null) ? null :
+                ResourceUriBuilder.getHealthMonitor(getBaseUri(), healthMonitorId);
+    }
+
+    public URI getVips() {
+        return (getBaseUri() == null || id == null) ? null :
+                ResourceUriBuilder.getPoolVips(getBaseUri(), id);
+    }
+
+    public URI getPoolMembers() {
+        return (getBaseUri() == null || id == null) ? null :
+                ResourceUriBuilder.getPoolPoolMembers(getBaseUri(), id);
     }
 }

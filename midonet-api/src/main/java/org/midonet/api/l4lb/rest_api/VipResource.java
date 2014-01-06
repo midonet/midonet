@@ -6,6 +6,7 @@ package org.midonet.api.l4lb.rest_api;
 
 import com.google.inject.Inject;
 import com.google.inject.servlet.RequestScoped;
+import org.apache.zookeeper.KeeperException.NoNodeException;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.VendorMediaType;
 import org.midonet.api.auth.AuthRole;
@@ -15,6 +16,7 @@ import org.midonet.api.validation.MessageProperty;
 import org.midonet.cluster.DataClient;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.InvalidStateOperationException;
+import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.StatePathExistsException;
 import org.slf4j.Logger;
@@ -100,8 +102,8 @@ public class VipResource extends AbstractResource {
         org.midonet.cluster.data.l4lb.VIP vipData = dataClient.vipGet(id);
 
         if (vipData == null) {
-            throw new NotFoundHttpException(
-                    getMessage(MessageProperty.RESOURCE_NOT_FOUND));
+            throw new NotFoundHttpException(getMessage(
+                    MessageProperty.RESOURCE_NOT_FOUND, "VIP", id));
         }
         VIP vip = new VIP(vipData);
         vip.setBaseUri(getBaseUri());
@@ -157,8 +159,21 @@ public class VipResource extends AbstractResource {
             return Response.created(
                     ResourceUriBuilder.getVip(getBaseUri(), id)).build();
         } catch (StatePathExistsException ex) {
-            throw new ConflictHttpException(
-                    getMessage(MessageProperty.RESOURCE_CONFLICTED));
+            throw new ConflictHttpException(getMessage(
+                    MessageProperty.RESOURCE_EXISTS,
+                    "VIP", vip.getId()));
+        } catch (NoStatePathException ex) {
+            if (ex.getPath().matches(".*load_balancers.*vips"))
+                throw new NotFoundHttpException(getMessage(
+                        MessageProperty.RESOURCE_NOT_FOUND,
+                        "load balancer", vip.getLoadBalancerId()));
+            if (ex.getPath().matches(".*pools.*vips"))
+                throw new NotFoundHttpException(getMessage(
+                        MessageProperty.RESOURCE_NOT_FOUND,
+                        "pool", vip.getPoolId()));
+
+            log.error("Unexpected exception", ex);
+            throw new RuntimeException();
         }
     }
 

@@ -4,8 +4,11 @@
 
 package org.midonet.client.dto;
 
+import javax.ws.rs.core.UriBuilder;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.net.URI;
+import java.net.URL;
+import java.util.UUID;
 
 @XmlRootElement
 public class DtoApplication {
@@ -202,16 +205,28 @@ public class DtoApplication {
         return this.healthMonitors;
     }
 
+    public URI getHealthMonitor(UUID id) {
+        return UriBuilder.fromPath(getHealthMonitorTemplate()).build(id);
+    }
+
     public void setHealthMonitors(URI healthMonitors) {
         this.healthMonitors = healthMonitors;
     }
 
     public URI getLoadBalancers() { return this.loadBalancers; }
 
+    public URI getLoadBalancer(UUID id) {
+        return UriBuilder.fromPath(getLoadBalancerTemplate()).build(id);
+    }
+
     public void setLoadBalancers(URI loadBalancers) { this.loadBalancers = loadBalancers; }
 
     public URI getPools() {
         return this.pools;
+    }
+
+    public URI getPool(UUID id) {
+        return UriBuilder.fromPath(getPoolTemplate()).build(id);
     }
 
     public void setPools(URI pools) {
@@ -222,12 +237,20 @@ public class DtoApplication {
         return this.poolMembers;
     }
 
+    public URI getPoolMember(UUID id) {
+        return UriBuilder.fromPath(getPoolTemplate()).build(id);
+    }
+
     public void setPoolMembers(URI poolMembers) {
         this.poolMembers = poolMembers;
     }
 
     public URI getVips() {
         return this.vips;
+    }
+
+    public URI getVip(UUID id) {
+        return UriBuilder.fromPath(getVipTemplate()).build(id);
     }
 
     public void setVips(URI vips) {

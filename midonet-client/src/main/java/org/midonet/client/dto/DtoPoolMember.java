@@ -13,6 +13,7 @@ import com.google.common.base.Objects;
 @XmlRootElement
 public class DtoPoolMember {
     private UUID id;
+    private URI uri;
     private UUID poolId;
     private String address;
     private int protocolPort;
@@ -27,6 +28,14 @@ public class DtoPoolMember {
 
     public void setId(UUID id) {
         this.id = id;
+    }
+
+    public URI getUri() {
+        return uri;
+    }
+
+    public void setUri(URI uri) {
+        this.uri = uri;
     }
 
     public UUID getPoolId() {
@@ -99,7 +108,7 @@ public class DtoPoolMember {
         if (weight != that.getWeight()) return false;
         if (adminStateUp != that.isAdminStateUp()) return false;
         if (!Objects.equal(status, that.getStatus())) return false;
-        if (!Objects.equal(pool, that.getPoolId())) return false;
+        if (!Objects.equal(pool, that.getPool())) return false;
 
         return true;
     }

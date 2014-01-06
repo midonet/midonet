@@ -21,7 +21,6 @@ public class PoolMember extends UriResource {
     private int weight;
     private boolean adminStateUp = true;
     private String status;
-    private URI pool;
 
     public UUID getId() {
         return id;
@@ -79,14 +78,6 @@ public class PoolMember extends UriResource {
         this.status = status;
     }
 
-    public URI getPool() {
-        return pool;
-    }
-
-    public void setPool(URI pool) {
-        this.pool = pool;
-    }
-
     public PoolMember() {
         super();
     }
@@ -99,7 +90,6 @@ public class PoolMember extends UriResource {
         this.weight = poolMember.getWeight();
         this.adminStateUp = poolMember.getAdminStateUp();
         this.status = poolMember.getStatus();
-        this.pool = poolMember.getPool();
         this.id = poolMember.getId();
     }
 
@@ -111,7 +101,6 @@ public class PoolMember extends UriResource {
                 .setWeight(this.weight)
                 .setAdminStateUp(this.adminStateUp)
                 .setStatus(this.status)
-                .setPool(this.pool)
                 .setId(this.id);
     }
 
@@ -125,5 +114,10 @@ public class PoolMember extends UriResource {
         } else {
             return null;
         }
+    }
+
+    public URI getPool() {
+        return (getBaseUri() == null || poolId == null) ? null :
+                ResourceUriBuilder.getPool(getBaseUri(), poolId);
     }
 }

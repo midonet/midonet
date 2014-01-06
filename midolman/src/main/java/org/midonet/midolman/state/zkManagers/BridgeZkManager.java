@@ -436,14 +436,13 @@ public class BridgeZkManager extends AbstractZkManager {
         for (String child : children) {
             try {
                 // Don't change this to vlanIds[i++] = ..., because i will get
-                // incremented even when parseShort() throws an exception. Yes,
-                // I tested it. No, it doesn't make sense.
+                // incremented even when parseShort() throws an exception.
                 vlanIds[i] = Short.parseShort(child);
                 i++;
             } catch (NumberFormatException ex) {
                 // Log a warning and ignore it.
-                log.warn("Ignoring invalid VLAN ID '{}' for bridge {}. VLAN " +
-                         "table in Zookeeper is corrupt.", child, id);
+                log.error("Ignoring invalid VLAN ID '{}' for bridge {}. VLAN " +
+                          "table in Zookeeper is corrupt.", child, id);
             }
         }
 

@@ -1,0 +1,321 @@
+/*
+ * Copyright (c) 2013 Midokura Europe SARL, All Rights Reserved.
+ */
+package org.midonet.api.l4lb;
+
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.test.framework.JerseyTest;
+import org.midonet.api.VendorMediaType;
+import org.midonet.api.rest_api.DtoWebResource;
+import org.midonet.api.rest_api.FuncTest;
+import org.midonet.api.rest_api.Topology;
+import org.midonet.client.dto.DtoApplication;
+import org.midonet.client.dto.DtoHealthMonitor;
+import org.midonet.client.dto.DtoLoadBalancer;
+import org.midonet.client.dto.DtoPool;
+import org.midonet.client.dto.DtoPoolMember;
+import org.midonet.client.dto.DtoRouter;
+import org.midonet.client.dto.DtoVip;
+
+import java.net.URI;
+import java.util.Random;
+import java.util.UUID;
+
+import static org.junit.Assert.assertEquals;
+import static org.midonet.api.VendorMediaType.APPLICATION_HEALTH_MONITOR_JSON;
+import static org.midonet.api.VendorMediaType.APPLICATION_LOAD_BALANCER_JSON;
+import static org.midonet.api.VendorMediaType.APPLICATION_POOL_JSON;
+import static org.midonet.api.VendorMediaType.APPLICATION_ROUTER_JSON;
+import static org.midonet.api.VendorMediaType.APPLICATION_ROUTER_JSON_V2;
+
+public class L4LBTestBase extends JerseyTest {
+
+    protected DtoWebResource dtoWebResource;
+    protected Topology topology;
+    protected DtoApplication app;
+
+    protected URI topLevelRoutersUri;
+    protected URI topLevelLoadBalancersUri;
+    protected URI topLevelHealthMonitorsUri;
+    protected URI topLevelVipsUri;
+    protected URI topLevelPoolsUri;
+    protected URI topLevelPoolMembersUri;
+
+    public L4LBTestBase() {
+        super(FuncTest.appDesc);
+    }
+
+    public void setUp() {
+        dtoWebResource = new DtoWebResource(resource());
+        topology = new Topology.Builder(dtoWebResource).build();
+        app = topology.getApplication();
+
+        topLevelRoutersUri = app.getRouters();
+        topLevelLoadBalancersUri = app.getLoadBalancers();
+        topLevelHealthMonitorsUri = app.getHealthMonitors();
+        topLevelVipsUri = app.getVips();
+        topLevelPoolsUri = app.getPools();
+        topLevelPoolMembersUri = app.getPoolMembers();
+    }
+
+    protected DtoRouter getRouterV2(URI uri) {
+        return dtoWebResource.getAndVerifyOk(
+                uri, APPLICATION_ROUTER_JSON, DtoRouter.class);
+    }
+
+    protected DtoRouter postRouter(DtoRouter router) {
+        return dtoWebResource.postAndVerifyCreated(topLevelRoutersUri,
+                APPLICATION_ROUTER_JSON, router, DtoRouter.class);
+    }
+
+    protected DtoRouter updateRouterV2(DtoRouter router) {
+        return dtoWebResource.putAndVerifyNoContent(router.getUri(),
+                APPLICATION_ROUTER_JSON_V2, router, DtoRouter.class);
+    }
+
+    protected DtoRouter getStockRouter() {
+        DtoRouter router = new DtoRouter();
+        router.setId(UUID.randomUUID());
+        router.setName("lb_test_router" + new Random().nextInt());
+        router.setTenantId("dummy_tenant");
+        return router;
+    }
+
+    protected DtoRouter createStockRouter() {
+        return postRouter(getStockRouter());
+    }
+
+    protected DtoLoadBalancer getLoadBalancer(URI loadBalancerUri) {
+        return dtoWebResource.getAndVerifyOk(loadBalancerUri,
+                APPLICATION_LOAD_BALANCER_JSON, DtoLoadBalancer.class);
+    }
+
+    protected DtoLoadBalancer postLoadBalancer(DtoLoadBalancer loadBalancer) {
+        return dtoWebResource.postAndVerifyCreated(topLevelLoadBalancersUri,
+                VendorMediaType.APPLICATION_LOAD_BALANCER_JSON,
+                loadBalancer, DtoLoadBalancer.class);
+    }
+
+    protected DtoLoadBalancer updateLoadBalancer(
+            DtoLoadBalancer loadBalancer) {
+        return dtoWebResource.putAndVerifyNoContent(loadBalancer.getUri(),
+                VendorMediaType.APPLICATION_LOAD_BALANCER_JSON,
+                loadBalancer, DtoLoadBalancer.class);
+    }
+
+    protected void deleteLoadBalancer(URI uri) {
+        dtoWebResource.deleteAndVerifyNoContent(
+                uri, APPLICATION_LOAD_BALANCER_JSON);
+    }
+
+    protected DtoLoadBalancer getStockLoadBalancer() {
+        DtoLoadBalancer loadBalancer = new DtoLoadBalancer();
+        // NOTE(tfukushima): Populating UUID of the load balancer because
+        //   the API can create the resource with the specified UUID,
+        //   which is very useful for the identical checks.
+        loadBalancer.setId(UUID.randomUUID());
+        loadBalancer.setAdminStateUp(true);
+        return loadBalancer;
+    }
+
+    protected DtoLoadBalancer createStockLoadBalancer() {
+        return postLoadBalancer(getStockLoadBalancer());
+    }
+
+    protected DtoHealthMonitor getHealthMonitor(URI healthMonitorUri) {
+        return dtoWebResource.getAndVerifyOk(
+                healthMonitorUri,
+                APPLICATION_HEALTH_MONITOR_JSON,
+                DtoHealthMonitor.class);
+    }
+
+    protected DtoHealthMonitor postHealthMonitor(DtoHealthMonitor healthMonitor) {
+        return dtoWebResource.postAndVerifyCreated(topLevelHealthMonitorsUri,
+                VendorMediaType.APPLICATION_HEALTH_MONITOR_JSON,
+                healthMonitor, DtoHealthMonitor.class);
+    }
+
+    protected DtoHealthMonitor updateHealthMonitor(
+            DtoHealthMonitor healthMonitor) {
+        return dtoWebResource.putAndVerifyNoContent(healthMonitor.getUri(),
+                VendorMediaType.APPLICATION_HEALTH_MONITOR_JSON,
+                healthMonitor,
+                DtoHealthMonitor.class);
+    }
+
+    protected void deleteHealthMonitor(URI healthMonitorUri) {
+        dtoWebResource.deleteAndVerifyNoContent(healthMonitorUri,
+                APPLICATION_HEALTH_MONITOR_JSON);
+    }
+
+    protected DtoHealthMonitor getStockHealthMonitor() {
+        DtoHealthMonitor healthMonitor = new DtoHealthMonitor();
+        // NOTE(tfukushima): Populating UUID of the healthe monitor because
+        //   the API can create the resource with the specified UUID,
+        //   which is very useful for the identical checks.
+        healthMonitor.setId(UUID.randomUUID());
+        healthMonitor.setType("TCP");
+        healthMonitor.setDelay(5);
+        healthMonitor.setTimeout(10);
+        healthMonitor.setMaxRetries(10);
+        healthMonitor.setAdminStateUp(true);
+        healthMonitor.setStatus("ACTIVE");
+        return healthMonitor;
+    }
+
+    protected DtoHealthMonitor createStockHealthMonitor() {
+        return postHealthMonitor(getStockHealthMonitor());
+    }
+
+    protected DtoVip getVip(URI vipUri) {
+        return dtoWebResource.getAndVerifyOk(
+                vipUri, VendorMediaType.APPLICATION_VIP_JSON, DtoVip.class);
+    }
+
+    protected DtoVip postVip(DtoVip vip) {
+        return dtoWebResource.postAndVerifyCreated(topLevelVipsUri,
+                VendorMediaType.APPLICATION_VIP_JSON, vip, DtoVip.class);
+    }
+
+    protected DtoVip updateVip(DtoVip vip) {
+        return dtoWebResource.putAndVerifyNoContent(vip.getUri(),
+                VendorMediaType.APPLICATION_VIP_JSON, vip, DtoVip.class);
+    }
+
+    protected void deleteVip(URI vipUri) {
+        dtoWebResource.deleteAndVerifyNoContent(
+                vipUri, VendorMediaType.APPLICATION_VIP_JSON);
+    }
+
+    protected DtoVip getStockVip(UUID loadBalancerId, UUID poolId) {
+        DtoVip vip = new DtoVip();
+        // NOTE(tfukushima): Populating UUID of the load balancer because
+        //   the API can create the resource with the specified UUID,
+        //   which is very useful for the identical checks.
+        vip.setId(UUID.randomUUID());
+        vip.setLoadBalancerId(loadBalancerId);
+        vip.setPoolId(poolId);
+        vip.setAddress("192.168.100.1");
+        vip.setProtocolPort(80);
+        vip.setSessionPersistence(VIP.VIP_SOURCE_IP);
+        vip.setAdminStateUp(true);
+
+        return vip;
+    }
+
+    protected DtoVip getStockVip() {
+        DtoLoadBalancer loadBalancer = createStockLoadBalancer();
+        DtoPool pool = createStockPool();
+        return getStockVip(loadBalancer.getId(), pool.getId());
+    }
+
+    protected DtoVip createStockVip() {
+        return postVip(getStockVip());
+    }
+
+    protected DtoVip createStockVip(UUID loadBalancerId, UUID vipId) {
+        return postVip(getStockVip(loadBalancerId, vipId));
+    }
+
+    protected DtoPool getPool(URI poolUri) {
+        ClientResponse response = resource().uri(poolUri)
+                .type(VendorMediaType.APPLICATION_POOL_JSON)
+                .get(ClientResponse.class);
+        assertEquals(200, response.getStatus());
+        return response.getEntity(DtoPool.class);
+    }
+
+    protected DtoPool postPool(DtoPool pool) {
+        return dtoWebResource.postAndVerifyCreated(topLevelPoolsUri,
+                VendorMediaType.APPLICATION_POOL_JSON, pool, DtoPool.class);
+    }
+
+    protected DtoPool updatePool(DtoPool pool) {
+        return dtoWebResource.putAndVerifyNoContent(pool.getUri(),
+                VendorMediaType.APPLICATION_POOL_JSON,
+                pool, DtoPool.class);
+    }
+
+    protected void deletePool(URI poolUri) {
+        ClientResponse response = resource().uri(poolUri)
+                .type(APPLICATION_POOL_JSON)
+                .delete(ClientResponse.class);
+        assertEquals(204, response.getStatus());
+    }
+
+    protected DtoPool getStockPool() {
+        DtoPool pool = new DtoPool();
+        // NOTE(tfukushima): Populating UUID of the pool because the API
+        //   can create the resource with the specified UUID, which is
+        //   very useful for the identical checks.
+        pool.setId(UUID.randomUUID());
+        pool.setAdminStateUp(true);
+        pool.setDescription("a big ol pool");
+        pool.setName("BIGPOOL");
+        pool.setProtocol("TCP");
+        return pool;
+    }
+
+    protected DtoPool createStockPool() {
+        return postPool(getStockPool());
+    }
+
+    protected DtoPool createStockPool(UUID healthMonitorId) {
+        DtoPool pool = getStockPool();
+        pool.setHealthMonitorId(healthMonitorId);
+        return postPool(pool);
+    }
+
+    protected DtoPoolMember getPoolMember(URI uri) {
+        return dtoWebResource.getAndVerifyOk(uri,
+                VendorMediaType.APPLICATION_POOL_MEMBER_JSON,
+                DtoPoolMember.class);
+    }
+
+    protected DtoPoolMember[] getPoolMembers(URI uri) {
+        return dtoWebResource.getAndVerifyOk(uri,
+                VendorMediaType.APPLICATION_POOL_MEMBER_COLLECTION_JSON,
+                DtoPoolMember[].class);
+    }
+
+    protected DtoPoolMember postPoolMember(DtoPoolMember poolMember) {
+        return dtoWebResource.postAndVerifyCreated(topLevelPoolMembersUri,
+                VendorMediaType.APPLICATION_POOL_MEMBER_JSON,
+                poolMember, DtoPoolMember.class);
+    }
+
+    protected DtoPoolMember updatePoolMember(DtoPoolMember poolMember) {
+        return dtoWebResource.putAndVerifyNoContent(poolMember.getUri(),
+                VendorMediaType.APPLICATION_POOL_MEMBER_JSON,
+                poolMember, DtoPoolMember.class);
+    }
+
+    protected void deletePoolMember(URI poolMemberUri) {
+        dtoWebResource.deleteAndVerifyNoContent(
+                poolMemberUri, VendorMediaType.APPLICATION_POOL_MEMBER_JSON);
+    }
+
+    protected DtoPoolMember getStockPoolMember() {
+        DtoPoolMember poolMember = new DtoPoolMember();
+        // NOTE(tfukushima): Populating UUID of the pool member because
+        //   the API can create the resource with the specified UUID,
+        //   which is very useful for the identical checks.
+        poolMember.setId(UUID.randomUUID());
+        poolMember.setAddress("10.0.0.1");
+        poolMember.setProtocolPort(80);
+        poolMember.setStatus("UP");
+        poolMember.setWeight(100);
+        poolMember.setAdminStateUp(true);
+        return poolMember;
+    }
+
+    protected DtoPoolMember createStockPoolMember() {
+        return postPoolMember(getStockPoolMember());
+    }
+
+    protected DtoPoolMember createStockPoolMember(UUID poolId) {
+        DtoPoolMember poolMember = getStockPoolMember();
+        poolMember.setPoolId(poolId);
+        return postPoolMember(poolMember);
+    }
+}
