@@ -8,19 +8,21 @@ import java.util.List;
 import java.util.UUID;
 
 import com.google.common.base.Objects;
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs;
-import org.midonet.midolman.serialization.Serializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.Op;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import static java.util.Arrays.asList;
 
 /**
  * Class to manage the PoolMember ZooKeeper data.
@@ -87,48 +89,22 @@ public class PoolMemberZkManager extends AbstractZkManager {
         this(new ZkManager(dir), new PathBuilder(basePath), serializer);
     }
 
-    public void update(UUID id, PoolMemberConfig config)
-            throws StateAccessException, SerializationException {
-        PoolMemberConfig oldConfig = get(id);
-        if (!config.equals(oldConfig))
-            zk.update(paths.getRouterPath(id), serializer.serialize(config));
+    public List<Op> prepareUpdate(UUID id, PoolMemberConfig config)
+            throws SerializationException {
+        return asList(Op.setData(
+                paths.getPoolMemberPath(id), serializer.serialize(config), -1));
     }
 
-    public void create(PoolMemberConfig config, UUID memberId)
-            throws StateAccessException, SerializationException {
-        List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.create(paths.getPoolMemberPath(memberId),
-                          serializer.serialize(config),
-                          ZooDefs.Ids.OPEN_ACL_UNSAFE,
-                          CreateMode.PERSISTENT));
-
-        if (config.poolId != null) {
-            ops.add(Op.create(paths.getPoolMemberPath(config.poolId, memberId),
-                              null,
-                              ZooDefs.Ids.OPEN_ACL_UNSAFE,
-                              CreateMode.PERSISTENT));
-        }
-        zk.multi(ops);
+    public List<Op> prepareCreate(UUID id, PoolMemberConfig config)
+            throws SerializationException {
+        return asList(Op.create(
+                paths.getPoolMemberPath(id), serializer.serialize(config),
+                ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
     }
 
-    public void clearPoolMemberPoolId(UUID poolMemberId)
-            throws StateAccessException, SerializationException{
-        PoolMemberConfig config = get(poolMemberId);
-        config.poolId = null;
-        update(poolMemberId, config);
-    }
-
-    public void delete(UUID id) throws SerializationException,
+    public List<Op> prepareDelete(UUID id) throws SerializationException,
             StateAccessException {
-        List<Op> ops = new ArrayList<Op>();
-        PoolMemberConfig config = get(id);
-
-        if (config.poolId != null) {
-            ops.add(Op.delete(paths.getPoolMemberPath(config.poolId, id), -1));
-        }
-
-        ops.add(Op.delete(paths.getPoolMemberPath(id), -1));
-        zk.multi(ops);
+        return asList(Op.delete(paths.getPoolMemberPath(id), -1));
     }
 
     public boolean exists(UUID id) throws StateAccessException {
@@ -145,4 +121,15 @@ public class PoolMemberZkManager extends AbstractZkManager {
         byte[] data = zk.get(paths.getPoolMemberPath(id), watcher);
         return serializer.deserialize(data, PoolMemberConfig.class);
     }
+
+    public List<Op> prepareSetPoolId(UUID id, UUID poolId)
+            throws SerializationException, StateAccessException {
+        PoolMemberConfig config = get(id);
+        if (config.poolId == poolId)
+            return new ArrayList<Op>(0);
+
+        config.poolId = poolId;
+        return prepareUpdate(id, config);
+    }
+
 }

@@ -4,11 +4,7 @@
 package org.midonet.api.l4lb;
 
 import java.net.URI;
-import java.util.UUID;
 
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.test.framework.JerseyTest;
 import junit.framework.Assert;
 import org.junit.After;
 import org.junit.Before;
@@ -16,41 +12,22 @@ import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 import org.midonet.api.VendorMediaType;
-import org.midonet.api.rest_api.DtoWebResource;
-import org.midonet.api.rest_api.FuncTest;
-import org.midonet.api.rest_api.Topology;
 import org.midonet.api.zookeeper.StaticMockDirectory;
 import org.midonet.client.dto.*;
 
-import static junit.framework.Assert.assertNotNull;
 import static org.junit.Assert.assertEquals;
-import static org.midonet.api.VendorMediaType.APPLICATION_POOL_JSON;
+import static org.junit.Assert.assertNull;
+import static org.midonet.api.VendorMediaType.APPLICATION_POOL_COLLECTION_JSON;
 
 @RunWith(Enclosed.class)
 public class TestPool {
 
 
-    public static class TestPoolCrud extends JerseyTest {
-
-        private DtoWebResource dtoWebResource;
-        private Topology topology;
-        private URI topLevelPoolsUri;
-
-        public TestPoolCrud() {
-            super(FuncTest.appDesc);
-        }
+    public static class TestPoolCrud extends L4LBTestBase {
 
         @Before
         public void setUp() {
-
-            WebResource resource = resource();
-            dtoWebResource = new DtoWebResource(resource);
-            topology = new Topology.Builder(dtoWebResource).build();
-            DtoApplication app = topology.getApplication();
-
-            // URIs to use for operations
-            topLevelPoolsUri = app.getPools();
-            assertNotNull(topLevelPoolsUri);
+            super.setUp();
         }
 
         @After
@@ -66,40 +43,18 @@ public class TestPool {
             assertEquals(num, pools.length);
         }
 
-        private DtoPool getPool(URI poolUri) {
-            ClientResponse response = resource().uri(poolUri)
-                    .type(VendorMediaType.APPLICATION_POOL_JSON)
-                    .get(ClientResponse.class);
-            assertEquals(200, response.getStatus());
-            return response.getEntity(DtoPool.class);
-        }
-
-        private URI postPool(DtoPool pool) {
-            ClientResponse response = resource().uri(topLevelPoolsUri)
-                    .type(VendorMediaType.APPLICATION_POOL_JSON)
-                    .post(ClientResponse.class, pool);
-            assertEquals(201, response.getStatus());
-            return response.getLocation();
-        }
-
-        private void deletePool(URI poolUri) {
-            ClientResponse response = resource().uri(poolUri)
-                    .type(APPLICATION_POOL_JSON)
-                    .delete(ClientResponse.class);
-            assertEquals(204, response.getStatus());
-        }
-
-        private DtoPool getStockPool() {
-            DtoPool pool = new DtoPool();
-            // NOTE(tfukushima): Populating UUID of the pool because the API
-            //   can create the resource with the specified UUID, which is
-            //   very useful for the identical checks.
-            pool.setId(UUID.randomUUID());
-            pool.setAdminStateUp(true);
-            pool.setDescription("a big ol pool");
-            pool.setName("BIGPOOL");
-            pool.setProtocol("TCP");
-            return pool;
+        private void checkBackref(URI healthMonitorUri, DtoPool expectedPool) {
+            // Check health monitor backreference.
+            DtoHealthMonitor hm = getHealthMonitor(healthMonitorUri);
+            DtoPool[] hmPools = dtoWebResource.getAndVerifyOk(hm.getPools(),
+                    APPLICATION_POOL_COLLECTION_JSON,
+                    DtoPool[].class);
+            if (expectedPool == null) {
+                assertEquals(0, hmPools.length);
+            } else {
+                assertEquals(1, hmPools.length);
+                assertEquals(expectedPool, hmPools[0]);
+            }
         }
 
         @Test
@@ -109,27 +64,66 @@ public class TestPool {
             verifyNumberOfPools(0);
 
             // Post
-            DtoPool pool = getStockPool();
-            URI newPoolUri = postPool(pool);
+            DtoPool pool = createStockPool();
             verifyNumberOfPools(1);
 
             // Post another
-            DtoPool pool2 = getStockPool();
-            URI newPoolUri2 = postPool(pool2);
+            DtoPool pool2 = createStockPool();
             verifyNumberOfPools(2);
 
             // Get and check
-            DtoPool newPool = getPool(newPoolUri);
+            DtoPool newPool = getPool(pool.getUri());
             Assert.assertEquals(pool, newPool);
-            newPool = getPool(newPoolUri2);
+            newPool = getPool(pool2.getUri());
             Assert.assertEquals(newPool, pool2);
 
             // Delete
-            deletePool(newPoolUri);
+            deletePool(pool.getUri());
             verifyNumberOfPools(1);
-            deletePool(newPoolUri2);
+            deletePool(pool2.getUri());
             verifyNumberOfPools(0);
         }
 
+        @Test
+        public void testCreateIntializesReferences() {
+            DtoHealthMonitor healthMonitor = createStockHealthMonitor();
+            DtoPool pool = createStockPool(healthMonitor.getId());
+
+            assertEquals(healthMonitor.getUri(), pool.getHealthMonitor());
+            checkBackref(healthMonitor.getUri(), pool);
+        }
+
+        @Test
+        public void testUpdateUpdatesReferences() {
+            DtoHealthMonitor healthMonitor1 = createStockHealthMonitor();
+            DtoHealthMonitor healthMonitor2 = createStockHealthMonitor();
+
+            DtoPool pool = createStockPool(healthMonitor1.getId());
+            assertEquals(healthMonitor1.getUri(), pool.getHealthMonitor());
+            checkBackref(healthMonitor1.getUri(), pool);
+
+            // Switch reference to healthMonitor2.
+            pool.setHealthMonitorId(healthMonitor2.getId());
+            pool = updatePool(pool);
+
+            // healthMonitor1 should no longer reference pool.
+            checkBackref(healthMonitor1.getUri(), null);
+
+            // healthMonitor2 should.
+            checkBackref(healthMonitor2.getUri(), pool);
+
+            // Pool's healthMonitor URI should be updated, too.
+            assertEquals(healthMonitor2.getUri(), pool.getHealthMonitor());
+        }
+
+        @Test
+        public void testDeleteClearsBackref() {
+            DtoHealthMonitor healthMonitor = createStockHealthMonitor();
+            DtoPool pool = createStockPool(healthMonitor.getId());
+            checkBackref(healthMonitor.getUri(), pool);
+
+            deletePool(pool.getUri());
+            checkBackref(healthMonitor.getUri(), null);
+        }
     }
 }

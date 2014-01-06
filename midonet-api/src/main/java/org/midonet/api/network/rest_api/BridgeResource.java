@@ -133,8 +133,8 @@ public class BridgeResource extends AbstractResource {
         org.midonet.cluster.data.Bridge bridgeData =
                 dataClient.bridgesGet(id);
         if (bridgeData == null) {
-            throw new NotFoundHttpException(
-                    getMessage(MessageProperty.RESOURCE_NOT_FOUND));
+            throw new NotFoundHttpException(getMessage(
+                    MessageProperty.RESOURCE_NOT_FOUND, "bridge", id));
         }
 
         // Convert to the REST API DTO
@@ -515,7 +515,7 @@ public class BridgeResource extends AbstractResource {
         MAC mac = validateMacAddress(macAddress);
         if (!dataClient.bridgeHasMacPort(id, vlanId, mac, portId)) {
             throw new NotFoundHttpException(
-                    getMessage(MessageProperty.RESOURCE_NOT_FOUND));
+                    getMessage(MessageProperty.BRIDGE_HAS_MAC_PORT));
         }
 
         MacPort mp = new MacPort(mac.toString(), portId);
@@ -685,7 +685,7 @@ public class BridgeResource extends AbstractResource {
         MAC mac = ResourceUriBuilder.ip4MacPairToMac(IP4MacPairString);
         if (!dataClient.bridgeHasIP4MacPair(id, ip, mac)) {
             throw new NotFoundHttpException(
-                    getMessage(MessageProperty.RESOURCE_NOT_FOUND));
+                    getMessage(MessageProperty.ARP_ENTRY_NOT_FOUND));
         } else {
             IP4MacPair mp = new IP4MacPair(ip.toString(), mac.toString());
             mp.setParentUri(ResourceUriBuilder.getBridge(getBaseUri(), id));
@@ -720,8 +720,8 @@ public class BridgeResource extends AbstractResource {
 
     private void assertBridgeExists(UUID id) throws StateAccessException {
         if (!dataClient.bridgeExists(id))
-            throw new NotFoundHttpException(
-                    getMessage(MessageProperty.BRIDGE_EXISTS, id));
+            throw new NotFoundHttpException(getMessage(
+                    MessageProperty.RESOURCE_NOT_FOUND, "bridge", id));
     }
 
     private void assertBridgeHasVlan(UUID id, short vlanId)

@@ -48,11 +48,11 @@ public class VIP extends UriResource {
         this.id = id;
     }
 
-    public UUID getLoadBlancerId() {
+    public UUID getLoadBalancerId() {
         return loadBalancerId;
     }
 
-    public void setLoadBlancerId(UUID loadBlancerId) {
+    public void setLoadBalancerId(UUID loadBlancerId) {
         this.loadBalancerId = loadBlancerId;
     }
 
@@ -128,5 +128,15 @@ public class VIP extends UriResource {
         } else {
             return null;
         }
+    }
+
+    public URI getLoadBalancer() {
+        return (getBaseUri() == null || loadBalancerId == null) ? null :
+                ResourceUriBuilder.getLoadBalancer(getBaseUri(), loadBalancerId);
+    }
+
+    public URI getPool() {
+        return (getBaseUri() == null || poolId == null) ? null :
+                ResourceUriBuilder.getPool(getBaseUri(), poolId);
     }
 }

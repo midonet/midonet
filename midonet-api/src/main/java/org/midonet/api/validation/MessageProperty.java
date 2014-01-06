@@ -7,12 +7,13 @@ import java.util.ResourceBundle;
 
 public class MessageProperty {
 
+    // Definitions for these strings are in ValidationMessages.properties
     public static final String ALLOWED_VALUES =
             "{midokura.javarx.AllowedValue.message}";
+    public static final String ARP_ENTRY_NOT_FOUND=
+            "{midokura.javarx.ArpEntryNotFound.message}";
     public static final String BGP_NOT_UNIQUE =
-            "{midokura.javarx.IsUniqueBgpInPort.message}";
-    public static final String BRIDGE_EXISTS =
-            "{midokura.javarx.BridgeExists.message}";
+            "{midokura.javarx.BgpNotUnique.message}";
     public static final String BRIDGE_HAS_MAC_PORT =
             "{midokura.javarx.BridgeHasMacPort.message}";
     public static final String BRIDGE_HAS_VLAN =
@@ -41,12 +42,12 @@ public class MessageProperty {
             "{midokura.javarx.PortGroupIdIsInvalid.message}";
     public static final String PORTS_LINKABLE =
             "{midokura.javarx.PortsLinkable.message}";
-    public static final String RESOURCE_CONFLICTED =
-            "{midokura.javarx.ResourceNotFound.message}";
+    public static final String RESOURCE_EXISTS =
+            "{midokura.javarx.ResourceExists.message}";
     public static final String RESOURCE_NOT_FOUND =
             "{midokura.javarx.ResourceNotFound.message}";
     public static final String ROUTER_ID_IS_INVALID_IN_LB =
-            "{midokrua.javarx.RouterIdIsInvalidInLoadBalancer.message}";
+            "{midokura.javarx.RouterIdIsInvalidInLoadBalancer.message}";
     public static final String ROUTE_NEXT_HOP_PORT_NOT_NULL =
             "{midokura.javarx.RouteNextHopPortValid.message}";
     public static final String ROUTER_ID_IS_INVALID =

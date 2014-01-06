@@ -130,4 +130,9 @@ public class HealthMonitor extends UriResource {
             return null;
         }
     }
+
+    public URI getPools() {
+        return (getBaseUri() == null || id == null) ? null :
+                ResourceUriBuilder.getHealthMonitorPools(getBaseUri(), id);
+    }
 }

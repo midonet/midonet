@@ -4,23 +4,30 @@
  */
 package org.midonet.midolman.state;
 
+import org.apache.zookeeper.KeeperException.NoNodeException;
+
 public class NoStatePathException extends StateAccessException {
 
     private static final long serialVersionUID = 1L;
 
-    /**
-     * Default constructor
-     */
-    public NoStatePathException() {
-        super();
-    }
+    // Path to node whose nonexistence caused the exception.
+    private String path;
 
-    public NoStatePathException(String message) {
+    public NoStatePathException(String message, String path) {
         super(message);
+        this.path = path;
     }
 
-    public NoStatePathException(String message, Throwable cause) {
+    public NoStatePathException(String message, NoNodeException cause) {
         super(message, cause);
+        path = cause.getPath();
+    }
+
+    /**
+     * Returns the path whose nonexistence caused the exception.
+     */
+    public String getPath() {
+        return path;
     }
 
 }

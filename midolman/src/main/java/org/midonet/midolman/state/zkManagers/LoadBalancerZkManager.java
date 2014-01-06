@@ -4,7 +4,17 @@
 
 package org.midonet.midolman.state.zkManagers;
 
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
 import com.google.common.base.Objects;
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.Op;
+import org.apache.zookeeper.ZooDefs.Ids;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
@@ -14,10 +24,8 @@ import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static java.util.Arrays.asList;
 
-import java.util.UUID;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -94,9 +102,16 @@ public class LoadBalancerZkManager extends AbstractZkManager {
     public void create(UUID id, LoadBalancerConfig config)
             throws StateAccessException, SerializationException,
             InvalidStateOperationException {
+
         UUID loadBalancerId = checkNotNull(id, "The load balancer ID is null");
-        zk.addPersistent(paths.getLoadBalancerPath(loadBalancerId),
-                serializer.serialize(config));
+
+        zk.multi(asList(
+                Op.create(paths.getLoadBalancerPath(loadBalancerId),
+                        serializer.serialize(config),
+                        Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT),
+                Op.create(paths.getLoadBalancerVipsPath(loadBalancerId),
+                        serializer.serialize(config),
+                        Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT)));
     }
 
     public void update(UUID id , LoadBalancerConfig config)
@@ -114,9 +129,26 @@ public class LoadBalancerZkManager extends AbstractZkManager {
         }
     }
 
-    public void delete(UUID id) throws SerializationException,
-            StateAccessException {
-        zk.delete(paths.getLoadBalancerPath(id));
+    public List<Op> prepareDelete(UUID id)
+            throws SerializationException, StateAccessException {
+        return asList(
+                Op.delete(paths.getLoadBalancerVipsPath(id), -1),
+                Op.delete(paths.getLoadBalancerPath(id), -1));
+    }
+
+    public List<Op> prepareAddVip(UUID id, UUID vipId)
+            throws SerializationException, StateAccessException {
+        return asList(Op.create(
+                paths.getLoadBalancerVipPath(id, vipId), null,
+                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+    }
+    
+    public Set<UUID> getVipIds(UUID id) throws StateAccessException {
+        return getChildUuids(paths.getLoadBalancerVipsPath(id));
+    }
+
+    public List<Op> prepareRemoveVip(UUID id, UUID vipId) {
+        return asList(Op.delete(paths.getLoadBalancerVipPath(id, vipId), -1));
     }
 
 }

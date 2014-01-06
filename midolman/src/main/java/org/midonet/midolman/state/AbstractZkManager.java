@@ -10,6 +10,8 @@ import org.midonet.util.functors.Functor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 
@@ -52,5 +54,22 @@ public abstract class AbstractZkManager {
         this.zk = zk;
         this.paths = paths;
         this.serializer = serializer;
+    }
+
+    protected Set<UUID> getChildUuids(String path)
+            throws StateAccessException {
+        Set<String> idStrs = zk.getChildren(path, null);
+        Set<UUID> ids = new HashSet<>(idStrs.size());
+        for (String idStr : idStrs) {
+            try {
+                ids.add(UUID.fromString(idStr));
+            } catch (IllegalArgumentException ex) {
+                // Nothing we can do but log an error and move on.
+                log.error("'{}' at path '{}' is not a valid UUID. Zookeeper" +
+                          "data may be corrupted.",
+                          new Object[]{idStr, path, ex});
+            }
+        }
+        return ids;
     }
 }

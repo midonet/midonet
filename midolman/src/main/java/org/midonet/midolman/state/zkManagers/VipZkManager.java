@@ -4,14 +4,23 @@
 
 package org.midonet.midolman.state.zkManagers;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
 import com.google.common.base.Objects;
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.Op;
+import org.apache.zookeeper.ZooDefs.Ids;
+
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.UUID;
+
+import static java.util.Arrays.asList;
 
 /**
  * Class to manage the VIP ZooKeeper data.
@@ -84,15 +93,21 @@ public class VipZkManager extends AbstractZkManager {
         this(new ZkManager(dir), new PathBuilder(basePath), serializer);
     }
 
-    public void create(VipConfig config, UUID vipId)
-            throws StateAccessException, SerializationException {
-        zk.addPersistent(paths.getVipPath(vipId),
-                serializer.serialize(config));
+    public List<Op> prepareCreate(UUID id, VipConfig config)
+            throws SerializationException {
+        return asList(Op.create(
+                paths.getVipPath(id), serializer.serialize(config),
+                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
     }
 
-    public void delete(UUID id)
-            throws SerializationException, StateAccessException {
-        zk.delete(paths.getVipPath(id));
+    public List<Op> prepareUpdate(UUID id, VipConfig config)
+            throws SerializationException {
+        return asList(Op.setData(
+                paths.getVipPath(id), serializer.serialize(config), -1));
+    }
+
+    public List<Op> prepareDelete(UUID id) {
+        return asList(Op.delete(paths.getVipPath(id), -1));
     }
 
     public boolean exists(UUID id) throws StateAccessException {
@@ -110,11 +125,23 @@ public class VipZkManager extends AbstractZkManager {
         return serializer.deserialize(data, VipConfig.class);
     }
 
-    public void update(UUID id, VipConfig config)
-        throws StateAccessException, SerializationException {
-        VipConfig oldConfig = get(id);
-        if (!oldConfig.equals(config)) {
-            zk.update(paths.getVipPath(id), serializer.serialize(config));
-        }
+    public List<Op> prepareSetPoolId(UUID id, UUID poolId)
+            throws SerializationException, StateAccessException {
+        VipConfig config = get(id);
+        if (config.poolId == poolId)
+            return new ArrayList<Op>(0);
+
+        config.poolId = poolId;
+        return prepareUpdate(id, config);
+    }
+
+    public List<Op> prepareSetLoadBalancerId(UUID id, UUID loadBalancerId)
+            throws SerializationException, StateAccessException {
+        VipConfig config = get(id);
+        if (config.loadBalancerId == loadBalancerId)
+            return new ArrayList<Op>(0);
+
+        config.loadBalancerId = loadBalancerId;
+        return prepareUpdate(id, config);
     }
 }

@@ -79,4 +79,9 @@ public class LoadBalancer extends UriResource {
             return null;
         }
     }
+
+    public URI getVips() {
+        return (getBaseUri() == null || id == null) ? null :
+                ResourceUriBuilder.getLoadBalancerVips(getBaseUri(), id);
+    }
 }

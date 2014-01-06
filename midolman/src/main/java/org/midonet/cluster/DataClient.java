@@ -300,7 +300,10 @@ public interface DataClient {
             InvalidStateOperationException;
 
     List<LoadBalancer> loadBalancersGetAll()
-            throws StateAccessException, SerializationException;
+        throws StateAccessException, SerializationException;
+
+    List<VIP> loadBalancerGetVips(UUID id)
+        throws StateAccessException, SerializationException;
 
     /* health monitors related methods */
     boolean healthMonitorExists(UUID id)
@@ -320,6 +323,9 @@ public interface DataClient {
 
     List<HealthMonitor> healthMonitorsGetAll() throws StateAccessException,
             SerializationException;
+
+    List<Pool> healthMonitorGetPools(UUID id)
+            throws StateAccessException, SerializationException;
 
     /* pool member related methods */
     boolean poolMemberExists(UUID id)
@@ -358,6 +364,12 @@ public interface DataClient {
 
     List<Pool> poolsGetAll() throws StateAccessException,
             SerializationException;
+
+    List<PoolMember> poolGetMembers(UUID id)
+            throws StateAccessException, SerializationException;
+
+    List<VIP> poolGetVips(UUID id)
+            throws StateAccessException, SerializationException;
 
     /* VIP related methods */
     boolean vipExists(UUID id)

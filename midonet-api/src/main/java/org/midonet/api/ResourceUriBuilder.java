@@ -748,6 +748,11 @@ public class ResourceUriBuilder {
         return buildIdTemplateUri(getHealthMonitors(baseUri));
     }
 
+    public static URI getHealthMonitorPools(URI baseUri, UUID healthMonitorId) {
+        return UriBuilder.fromUri(getHealthMonitors(baseUri))
+                .path(healthMonitorId.toString()).path(POOLS).build();
+    }
+
     public static URI getLoadBalancers(URI baseUri) {
         return UriBuilder.fromUri(getRoot(baseUri))
                 .path(LOAD_BALANCERS).build();
@@ -760,6 +765,11 @@ public class ResourceUriBuilder {
     public static URI getLoadBalancer(URI baseUri, UUID loadBalancerId) {
         return UriBuilder.fromUri(getLoadBalancers(baseUri))
                 .path(loadBalancerId.toString()).build();
+    }
+
+    public static URI getLoadBalancerVips(URI baseUri, UUID id) {
+        return UriBuilder.fromUri(getLoadBalancers(baseUri))
+                .path(id.toString()).path(VIPS).build();
     }
 
     public static URI getPoolMembers(URI baseUri) {
@@ -785,7 +795,23 @@ public class ResourceUriBuilder {
     }
 
     public static String getPoolTemplate(URI baseUri) {
-        return buildIdTemplateUri(getPoolMembers(baseUri));
+        return buildIdTemplateUri(getPools(baseUri));
+    }
+
+    public static URI getPoolPoolMembers(URI baseUri, UUID poolId) {
+        return UriBuilder
+                .fromUri(getPools(baseUri))
+                .path(poolId.toString())
+                .path(POOL_MEMBERS)
+                .build();
+    }
+
+    public static URI getPoolVips(URI baseUri, UUID poolId) {
+        return UriBuilder
+                .fromUri(getPools(baseUri))
+                .path(poolId.toString())
+                .path(VIPS)
+                .build();
     }
 
     public static URI getVips(URI baseUri) {

@@ -7,13 +7,17 @@ package org.midonet.client.dto;
 import com.google.common.base.Objects;
 
 import javax.xml.bind.annotation.XmlRootElement;
+import java.net.URI;
 import java.util.UUID;
 
 @XmlRootElement
 public class DtoVip {
     private UUID id;
+    private URI uri;
     private UUID loadBalancerId;
+    private URI loadBalancer;
     private UUID poolId;
+    private URI pool;
     private String address;
     private int protocolPort;
     private String sessionPersistence;
@@ -27,6 +31,14 @@ public class DtoVip {
         this.id = id;
     }
 
+    public URI getUri() {
+        return uri;
+    }
+
+    public void setUri(URI uri) {
+        this.uri = uri;
+    }
+
     public UUID getLoadBalancerId() {
         return loadBalancerId;
     }
@@ -35,12 +47,28 @@ public class DtoVip {
         this.loadBalancerId = loadBalancerId;
     }
 
+    public URI getLoadBalancer() {
+        return loadBalancer;
+    }
+
+    public void setLoadBalancer(URI loadBalancer) {
+        this.loadBalancer = loadBalancer;
+    }
+
     public UUID getPoolId() {
         return poolId;
     }
 
     public void setPoolId(UUID poolId) {
         this.poolId = poolId;
+    }
+
+    public URI getPool() {
+        return pool;
+    }
+
+    public void setPool(URI pool) {
+        this.pool = pool;
     }
 
     public String getAddress() {

@@ -1450,8 +1450,28 @@ public class ZkPathManager {
         return buildLoadBalancerPath(loadBalancerId).toString();
     }
 
+    private StringBuilder buildLoadBalancerVipsPath(UUID loadBalancerId){
+        return buildLoadBalancerPath(loadBalancerId).append("/vips");
+    }
+
+    public String getLoadBalancerVipsPath(UUID loadBalancerId) {
+        return buildLoadBalancerVipsPath(loadBalancerId).toString();
+    }
+
+    private StringBuilder buildLoadBalancerVipPath(UUID id, UUID vipId) {
+        return buildLoadBalancerVipsPath(id).append("/").append(vipId);
+    }
+
+    public String getLoadBalancerVipPath(UUID id, UUID vipId) {
+        return buildLoadBalancerVipPath(id, vipId).toString();
+    }
+
     private StringBuilder buildHealthMonitorsPath() {
         return basePath().append("/health_monitors");
+    }
+
+    public String getHealthMonitorsPath() {
+        return buildHealthMonitorsPath().toString();
     }
 
     private StringBuilder buildHealthMonitorPath(UUID healthMonitorId) {
@@ -1462,8 +1482,20 @@ public class ZkPathManager {
         return buildHealthMonitorPath(healthMonitorId).toString();
     }
 
-    public String getHealthMonitorsPath() {
-        return buildHealthMonitorsPath().toString();
+    private StringBuilder buildHealthMonitorPoolsPath(UUID healthMonitorId) {
+        return buildHealthMonitorPath(healthMonitorId).append("/pools");
+    }
+
+    public String getHealthMonitorPoolsPath(UUID healthMonitorId) {
+        return buildHealthMonitorPoolsPath(healthMonitorId).toString();
+    }
+
+    private StringBuilder buildHealthMonitorPoolPath(UUID id, UUID poolId) {
+        return buildHealthMonitorPoolsPath(id).append("/").append(poolId);
+    }
+
+    public String getHealthMonitorPoolPath(UUID id, UUID poolId) {
+        return buildHealthMonitorPoolPath(id, poolId).toString();
     }
 
     private StringBuilder buildPoolMembersPath() {
@@ -1486,12 +1518,8 @@ public class ZkPathManager {
         return basePath().append("/pools");
     }
 
-    private StringBuilder buildPoolMembersPath(UUID poolId) {
-        return buildPoolPath(poolId).append("/pool_members");
-    }
-
-    public String getPoolMembersPath(UUID poolId) {
-        return buildPoolMembersPath(poolId).toString();
+    public String getPoolsPath() {
+        return buildPoolsPath().toString();
     }
 
     private StringBuilder buildPoolPath(UUID poolId) {
@@ -1502,8 +1530,12 @@ public class ZkPathManager {
         return buildPoolPath(poolId).toString();
     }
 
-    public String getPoolsPath() {
-        return buildPoolsPath().toString();
+    private StringBuilder buildPoolMembersPath(UUID poolId) {
+        return buildPoolPath(poolId).append("/pool_members");
+    }
+
+    public String getPoolMembersPath(UUID poolId) {
+        return buildPoolMembersPath(poolId).toString();
     }
 
     private StringBuilder buildPoolMemberPath(UUID poolId, UUID poolMemberId) {
@@ -1513,6 +1545,22 @@ public class ZkPathManager {
 
     public String getPoolMemberPath(UUID poolId, UUID memberId) {
         return buildPoolMemberPath(poolId, memberId).toString();
+    }
+
+    public StringBuilder buildPoolVipsPath(UUID poolId) {
+        return buildPoolPath(poolId).append("/vips");
+    }
+
+    public String getPoolVipsPath(UUID poolId) {
+        return buildPoolVipsPath(poolId).toString();
+    }
+
+    public StringBuilder buildPoolVipPath(UUID poolId, UUID vipId) {
+        return buildPoolVipsPath(poolId).append("/").append(vipId);
+    }
+
+    public String getPoolVipPath(UUID poolId, UUID vipId) {
+        return buildPoolVipPath(poolId, vipId).toString();
     }
 
     private StringBuilder buildVipsPath() {

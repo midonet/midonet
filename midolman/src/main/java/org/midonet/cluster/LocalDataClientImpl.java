@@ -78,6 +78,8 @@ import org.midonet.midolman.state.PortDirectory;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.state.zkManagers.*;
+import org.midonet.midolman.state.zkManagers.HealthMonitorZkManager.HealthMonitorConfig;
+import org.midonet.midolman.state.zkManagers.PoolMemberZkManager.PoolMemberConfig;
 import org.midonet.packets.IntIPv4;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv6Subnet;
@@ -1555,6 +1557,7 @@ public class LocalDataClientImpl implements DataClient {
                 portGroups.size());
         return portGroups;
     }
+
     @Override
     public boolean portGroupsIsPortMember(@Nonnull UUID id,
                                           @Nonnull UUID portId)
@@ -1645,7 +1648,8 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public @CheckForNull PortGroup portGroupsGet(UUID id)
+    @CheckForNull
+    public PortGroup portGroupsGet(UUID id)
             throws StateAccessException, SerializationException {
         log.debug("Entered: id={}", id);
 
@@ -1694,12 +1698,15 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     /* load balancer related methods */
-    @CheckForNull public boolean loadBalancerExists(UUID id)
+    @Override
+    public boolean loadBalancerExists(UUID id)
         throws StateAccessException {
         return loadBalancerZkManager.exists(id);
     }
 
-    @CheckForNull public LoadBalancer loadBalancerGet(UUID id)
+    @Override
+    @CheckForNull
+    public LoadBalancer loadBalancerGet(UUID id)
         throws StateAccessException, SerializationException {
         LoadBalancer loadBalancer = null;
         if (loadBalancerZkManager.exists(id)) {
@@ -1714,8 +1721,16 @@ public class LocalDataClientImpl implements DataClient {
     @Override
     public void loadBalancerDelete(UUID id)
             throws StateAccessException, SerializationException {
-        loadBalancerZkManager.delete(id);
+        List<Op> ops = new ArrayList<>();
 
+        Set<UUID> vipIds = loadBalancerZkManager.getVipIds(id);
+        for (UUID vipId : vipIds) {
+            ops.addAll(loadBalancerZkManager.prepareRemoveVip(id, vipId));
+            ops.addAll(vipZkManager.prepareSetLoadBalancerId(vipId, null));
+        }
+
+        ops.addAll(loadBalancerZkManager.prepareDelete(id));
+        zkManager.multi(ops);
     }
 
     @Override
@@ -1764,14 +1779,30 @@ public class LocalDataClientImpl implements DataClient {
         return loadBalancers;
     }
 
+    @Override
+    public List<VIP> loadBalancerGetVips(UUID id)
+            throws StateAccessException, SerializationException {
+        Set<UUID> vipIds = loadBalancerZkManager.getVipIds(id);
+        List<VIP> vips = new ArrayList<>(vipIds.size());
+        for (UUID vipId : vipIds) {
+            VIP vip = Converter.fromVipConfig(vipZkManager.get(vipId));
+            vip.setId(vipId);
+            vips.add(vip);
+        }
+        return vips;
+    }
+
     /* health monitors related methods */
 
-    @CheckForNull public boolean healthMonitorExists(UUID id)
+    @Override
+    public boolean healthMonitorExists(UUID id)
             throws StateAccessException {
         return healthMonitorZkManager.exists(id);
     }
 
-    @CheckForNull public HealthMonitor healthMonitorGet(UUID id)
+    @Override
+    @CheckForNull
+    public HealthMonitor healthMonitorGet(UUID id)
             throws StateAccessException, SerializationException {
         HealthMonitor healthMonitor = null;
         if (healthMonitorZkManager.exists(id)) {
@@ -1783,33 +1814,54 @@ public class LocalDataClientImpl implements DataClient {
         return healthMonitor;
     }
 
+    @Override
     public void healthMonitorDelete(UUID id)
             throws StateAccessException, SerializationException {
-        healthMonitorZkManager.delete(id);
+        List<Op> ops = new ArrayList<Op>();
+
+        Set<UUID> poolIds = healthMonitorZkManager.getPoolIds(id);
+        for (UUID poolId : poolIds) {
+            ops.addAll(poolZkManager.prepareSetHealthMonitorId(poolId, null));
+            ops.addAll(healthMonitorZkManager.prepareRemovePool(id, poolId));
+        }
+
+        ops.addAll(healthMonitorZkManager.prepareDelete(id));
+        zkManager.multi(ops);
     }
 
+    @Override
     public UUID healthMonitorCreate(@Nonnull HealthMonitor healthMonitor)
             throws StateAccessException, SerializationException {
         if (healthMonitor.getId() == null) {
             healthMonitor.setId(UUID.randomUUID());
         }
 
-        HealthMonitorZkManager.HealthMonitorConfig healthMonitorConfig =
+        HealthMonitorConfig config =
                 Converter.toHealthMonitorConfig(healthMonitor);
-        healthMonitorZkManager.create(healthMonitorConfig,
-                                      healthMonitor.getId());
+
+        zkManager.multi(
+                healthMonitorZkManager.prepareCreate(
+                        healthMonitor.getId(), config));
 
         return healthMonitor.getId();
     }
 
+    @Override
     public void healthMonitorUpdate(@Nonnull HealthMonitor healthMonitor)
             throws StateAccessException, SerializationException {
-        HealthMonitorZkManager.HealthMonitorConfig healthMonitorConfig
-                = Converter.toHealthMonitorConfig(healthMonitor);
-        healthMonitorZkManager.update(healthMonitor.getId(),
-                                      healthMonitorConfig);
+        HealthMonitorConfig newConfig =
+                Converter.toHealthMonitorConfig(healthMonitor);
+        HealthMonitorConfig oldConfig =
+                healthMonitorZkManager.get(healthMonitor.getId());
+        if (newConfig.equals(oldConfig))
+            return;
+
+        zkManager.multi(
+                healthMonitorZkManager.prepareUpdate(
+                        healthMonitor.getId(), newConfig));
     }
 
+    @Override
     public List<HealthMonitor> healthMonitorsGetAll()
             throws StateAccessException, SerializationException {
         List<HealthMonitor> healthMonitors = new ArrayList<HealthMonitor>();
@@ -1829,14 +1881,31 @@ public class LocalDataClientImpl implements DataClient {
         return healthMonitors;
     }
 
+    @Override
+    public List<Pool> healthMonitorGetPools(@Nonnull UUID id)
+            throws StateAccessException, SerializationException {
+        Set<UUID> poolIds = healthMonitorZkManager.getPoolIds(id);
+        List<Pool> pools = new ArrayList<>(poolIds.size());
+        for (UUID poolId : poolIds) {
+            Pool pool = Converter.fromPoolConfig(poolZkManager.get(poolId));
+            pool.setId(poolId);
+            pools.add(pool);
+        }
+        return pools;
+    }
+
     /* pool member related methods */
 
-    @CheckForNull public boolean poolMemberExists(UUID id)
+    @Override
+    @CheckForNull
+    public boolean poolMemberExists(UUID id)
             throws StateAccessException {
         return poolMemberZkManager.exists(id);
     }
 
-    @CheckForNull public PoolMember poolMemberGet(UUID id)
+    @Override
+    @CheckForNull
+    public PoolMember poolMemberGet(UUID id)
             throws StateAccessException, SerializationException {
         PoolMember poolMember = null;
         if (poolMemberZkManager.exists(id)) {
@@ -1847,31 +1916,64 @@ public class LocalDataClientImpl implements DataClient {
         return poolMember;
     }
 
+    @Override
     public void poolMemberDelete(UUID id)
             throws StateAccessException, SerializationException {
-        poolMemberZkManager.delete(id);
-    }
+        List<Op> ops = new ArrayList<Op>();
 
-    public UUID poolMemberCreate(@Nonnull PoolMember poolMember)
-            throws StateAccessException, SerializationException {
-        if (poolMember.getId() == null) {
-            poolMember.setId(UUID.randomUUID());
+        PoolMemberConfig config = poolMemberZkManager.get(id);
+        if (config.poolId != null) {
+            ops.addAll(poolZkManager.prepareRemoveMember(config.poolId, id));
         }
 
-        PoolMemberZkManager.PoolMemberConfig poolMemberConfig
-                = Converter.toPoolMemberConfig(poolMember);
-        poolMemberZkManager.create(poolMemberConfig, poolMember.getId());
-
-        return poolMember.getId();
+        ops.addAll(poolMemberZkManager.prepareDelete(id));
+        zkManager.multi(ops);
     }
 
+    @Override
+    public UUID poolMemberCreate(@Nonnull PoolMember poolMember)
+            throws StateAccessException, SerializationException {
+        if (poolMember.getId() == null)
+            poolMember.setId(UUID.randomUUID());
+        UUID id = poolMember.getId();
+
+        PoolMemberConfig config = Converter.toPoolMemberConfig(poolMember);
+
+        List<Op> ops = new ArrayList<Op>();
+        ops.addAll(poolMemberZkManager.prepareCreate(id, config));
+
+        if (config.poolId != null) {
+            ops.addAll(poolZkManager.prepareAddMember(config.poolId, id));
+        }
+
+        zkManager.multi(ops);
+        return id;
+    }
+
+    @Override
     public void poolMemberUpdate(@Nonnull PoolMember poolMember)
             throws StateAccessException, SerializationException {
-        PoolMemberZkManager.PoolMemberConfig poolMemberConfig
-                = Converter.toPoolMemberConfig(poolMember);
-        poolMemberZkManager.update(poolMember.getId(), poolMemberConfig);
+        UUID id = poolMember.getId();
+        PoolMemberConfig newConfig = Converter.toPoolMemberConfig(poolMember);
+        PoolMemberConfig oldConfig = poolMemberZkManager.get(id);
+        if (newConfig.equals(oldConfig))
+            return;
+
+        List<Op> ops = new ArrayList<Op>();
+        if (newConfig.poolId != oldConfig.poolId) {
+            if (oldConfig.poolId != null) {
+                ops.addAll(poolZkManager.prepareRemoveMember(oldConfig.poolId, id));
+            }
+            if (newConfig.poolId != null) {
+                ops.addAll(poolZkManager.prepareAddMember(newConfig.poolId, id));
+            }
+        }
+
+        ops.addAll(poolMemberZkManager.prepareUpdate(id, newConfig));
+        zkManager.multi(ops);
     }
 
+    @Override
     public List<PoolMember> poolMembersGetAll() throws StateAccessException,
             SerializationException {
         List<PoolMember> poolMembers = new ArrayList<PoolMember>();
@@ -1893,12 +1995,16 @@ public class LocalDataClientImpl implements DataClient {
 
     /* pool related methods */
 
-    @CheckForNull public boolean poolExists(UUID id)
+    @Override
+    @CheckForNull
+    public boolean poolExists(UUID id)
             throws StateAccessException {
         return poolZkManager.exists(id);
     }
 
-    @CheckForNull public Pool poolGet(UUID id)
+    @Override
+    @CheckForNull
+    public Pool poolGet(UUID id)
             throws StateAccessException, SerializationException {
         Pool pool = null;
         if (poolZkManager.exists(id)) {
@@ -1909,30 +2015,96 @@ public class LocalDataClientImpl implements DataClient {
         return pool;
     }
 
+    @Override
     public void poolDelete(UUID id)
             throws StateAccessException, SerializationException {
-        poolZkManager.delete(id);
+        List<Op> ops = new ArrayList<>();
+
+        Set<UUID> memberIds = poolZkManager.getMemberIds(id);
+        for (UUID memberId : memberIds) {
+            ops.addAll(poolZkManager.prepareRemoveMember(id, memberId));
+            ops.addAll(poolMemberZkManager.prepareSetPoolId(memberId, null));
+        }
+
+        PoolZkManager.PoolConfig config = poolZkManager.get(id);
+        if (config.healthMonitorId != null) {
+            ops.addAll(
+                    healthMonitorZkManager.prepareRemovePool(
+                            config.healthMonitorId, id));
+        }
+
+        if (config.vipId != null) {
+            ops.addAll(vipZkManager.prepareSetPoolId(config.vipId, null));
+        }
+
+        ops.addAll(poolZkManager.prepareDelete(id));
+        zkManager.multi(ops);
     }
 
+    @Override
     public UUID poolCreate(@Nonnull Pool pool)
             throws StateAccessException, SerializationException {
         if (pool.getId() == null) {
             pool.setId(UUID.randomUUID());
         }
+        UUID id = pool.getId();
 
-        PoolZkManager.PoolConfig poolConfig = Converter.toPoolConfig(pool);
-        poolZkManager.create(poolConfig, pool.getId());
+        PoolZkManager.PoolConfig config = Converter.toPoolConfig(pool);
 
-        return pool.getId();
+        List<Op> ops = new ArrayList<>();
+        ops.addAll(poolZkManager.prepareCreate(id, config));
+
+        if (config.healthMonitorId != null) {
+            ops.addAll(
+                    healthMonitorZkManager.prepareAddPool(
+                            config.healthMonitorId, id));
+        }
+
+        if (config.vipId != null) {
+            ops.addAll(vipZkManager.prepareSetPoolId(config.vipId, id));
+        }
+
+        zkManager.multi(ops);
+        return id;
     }
 
+    @Override
     public void poolUpdate(@Nonnull Pool pool)
             throws StateAccessException, SerializationException {
-        PoolZkManager.PoolConfig poolConfig
-                = Converter.toPoolConfig(pool);
-        poolZkManager.update(pool.getId(), poolConfig);
+        UUID id = pool.getId();
+        PoolZkManager.PoolConfig newConfig = Converter.toPoolConfig(pool);
+        PoolZkManager.PoolConfig oldConfig = poolZkManager.get(id);
+        if (newConfig.equals(oldConfig))
+            return;
+
+        List<Op> ops = new ArrayList<>();
+        if (newConfig.healthMonitorId != oldConfig.healthMonitorId) {
+            if (oldConfig.healthMonitorId != null) {
+                ops.addAll(
+                        healthMonitorZkManager.prepareRemovePool(
+                                oldConfig.healthMonitorId, id));
+            }
+            if (newConfig.healthMonitorId != null) {
+                ops.addAll(
+                        healthMonitorZkManager.prepareAddPool(
+                                newConfig.healthMonitorId, id));
+            }
+        }
+
+        if (newConfig.vipId != oldConfig.vipId) {
+            if (oldConfig.vipId != null) {
+                ops.addAll(vipZkManager.prepareSetPoolId(oldConfig.vipId, null));
+            }
+            if (newConfig.vipId != null) {
+                ops.addAll(vipZkManager.prepareSetPoolId(newConfig.vipId, id));
+            }
+        }
+
+        ops.addAll(poolZkManager.prepareUpdate(id, newConfig));
+        zkManager.multi(ops);
     }
 
+    @Override
     public List<Pool> poolsGetAll() throws StateAccessException,
             SerializationException {
         List<Pool> pools = new ArrayList<Pool>();
@@ -1949,6 +2121,33 @@ public class LocalDataClientImpl implements DataClient {
         }
 
         return pools;
+    }
+
+    @Override
+    public List<PoolMember> poolGetMembers(@Nonnull UUID id)
+            throws StateAccessException, SerializationException {
+        Set<UUID> memberIds = poolZkManager.getMemberIds(id);
+        List<PoolMember> members = new ArrayList<>(memberIds.size());
+        for (UUID memberId : memberIds) {
+            PoolMember member = Converter.fromPoolMemberConfig(
+                    poolMemberZkManager.get(memberId));
+            member.setId(memberId);
+            members.add(member);
+        }
+        return members;
+    }
+
+    @Override
+    public List<VIP> poolGetVips(@Nonnull UUID id)
+            throws StateAccessException, SerializationException {
+        Set<UUID> vipIds = poolZkManager.getVipIds(id);
+        List<VIP> vips = new ArrayList<>(vipIds.size());
+        for (UUID vipId : vipIds) {
+            VIP vip = Converter.fromVipConfig(vipZkManager.get(vipId));
+            vip.setId(vipId);
+            vips.add(vip);
+        }
+        return vips;
     }
 
     @Override
@@ -1972,7 +2171,21 @@ public class LocalDataClientImpl implements DataClient {
     @Override
     public void vipDelete(UUID id)
             throws StateAccessException, SerializationException {
-        vipZkManager.delete(id);
+        List<Op> ops = new ArrayList<>();
+        VipZkManager.VipConfig config = vipZkManager.get(id);
+
+        if (config.loadBalancerId != null) {
+            ops.addAll(
+                    loadBalancerZkManager.prepareRemoveVip(
+                            config.loadBalancerId, id));
+        }
+
+        if (config.poolId != null) {
+            ops.addAll(poolZkManager.prepareRemoveVip(config.poolId, id));
+        }
+
+        ops.addAll(vipZkManager.prepareDelete(id));
+        zkManager.multi(ops);
     }
 
     @Override
@@ -1981,16 +2194,60 @@ public class LocalDataClientImpl implements DataClient {
         if (vip.getId() == null) {
             vip.setId(UUID.randomUUID());
         }
-        VipZkManager.VipConfig vipConfig = Converter.toVipConfig(vip);
-        vipZkManager.create(vipConfig, vip.getId());
-        return vip.getId();
+        UUID id = vip.getId();
+
+        List<Op> ops = new ArrayList<>();
+        VipZkManager.VipConfig config = Converter.toVipConfig(vip);
+        ops.addAll(vipZkManager.prepareCreate(id, config));
+
+        if (config.loadBalancerId != null) {
+            ops.addAll(
+                    loadBalancerZkManager.prepareAddVip(
+                            config.loadBalancerId, id));
+        }
+
+        if (config.poolId != null) {
+            ops.addAll(poolZkManager.prepareAddVip(config.poolId, id));
+        }
+
+        zkManager.multi(ops);
+        return id;
     }
 
     @Override
     public void vipUpdate(@Nonnull VIP vip)
             throws StateAccessException, SerializationException {
-        VipZkManager.VipConfig vipConfig = Converter.toVipConfig(vip);
-        vipZkManager.update(vip.getId(), vipConfig);
+        UUID id = vip.getId();
+        VipZkManager.VipConfig newConfig = Converter.toVipConfig(vip);
+        VipZkManager.VipConfig oldConfig = vipZkManager.get(id);
+        if (newConfig.equals(oldConfig))
+            return;
+
+        List<Op> ops = new ArrayList<>();
+        if (newConfig.loadBalancerId != oldConfig.loadBalancerId) {
+            if (oldConfig.loadBalancerId != null) {
+                ops.addAll(
+                        loadBalancerZkManager.prepareRemoveVip(
+                                oldConfig.loadBalancerId, id));
+            }
+            if (newConfig.loadBalancerId != null) {
+                ops.addAll(
+                        loadBalancerZkManager.prepareAddVip(
+                                newConfig.loadBalancerId, id));
+            }
+        }
+
+        if (newConfig.poolId != oldConfig.poolId) {
+            if (oldConfig.poolId != null) {
+                ops.addAll(poolZkManager.prepareRemoveVip(oldConfig.poolId, id));
+            }
+            if (newConfig.poolId != null) {
+                ops.addAll(poolZkManager.prepareAddVip(newConfig.poolId, id));
+            }
+        }
+
+        ops.addAll(vipZkManager.prepareUpdate(id, newConfig));
+        zkManager.multi(ops);
     }
 
     @Override

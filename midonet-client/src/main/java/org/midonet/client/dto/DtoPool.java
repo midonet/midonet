@@ -5,6 +5,7 @@
 package org.midonet.client.dto;
 
 import javax.xml.bind.annotation.XmlRootElement;
+import java.net.URI;
 import java.util.UUID;
 
 import com.google.common.base.Objects;
@@ -12,10 +13,13 @@ import com.google.common.base.Objects;
 @XmlRootElement
 public class DtoPool {
     private UUID id;
+    private URI uri;
     private String name;
     private String description;
-    private UUID subnetId;
     private UUID healthMonitorId;
+    private URI healthMonitor;
+    private URI vips;
+    private URI poolMembers;
     private String protocol;
     private String lbMethod;
     private boolean adminStateUp = true;
@@ -27,6 +31,14 @@ public class DtoPool {
 
     public void setId(UUID id) {
         this.id = id;
+    }
+
+    public URI getUri() {
+        return uri;
+    }
+
+    public void setUri(URI uri) {
+        this.uri = uri;
     }
 
     public String getName() {
@@ -45,20 +57,36 @@ public class DtoPool {
         this.description = description;
     }
 
-    public UUID getSubnetId() {
-        return subnetId;
-    }
-
-    public void setSubnetId(UUID subnetId) {
-        this.subnetId = subnetId;
-    }
-
     public UUID getHealthMonitorId() {
         return healthMonitorId;
     }
 
     public void setHealthMonitorId(UUID healthMonitorId) {
         this.healthMonitorId = healthMonitorId;
+    }
+
+    public URI getHealthMonitor() {
+        return healthMonitor;
+    }
+
+    public void setHealthMonitor(URI healthMonitor) {
+        this.healthMonitor = healthMonitor;
+    }
+
+    public URI getVips() {
+        return vips;
+    }
+
+    public void setVips(URI vips) {
+        this.vips = vips;
+    }
+
+    public URI getPoolMembers() {
+        return poolMembers;
+    }
+
+    public void setPoolMembers(URI poolMembers) {
+        this.poolMembers = poolMembers;
     }
 
     public String getProtocol() {
@@ -103,7 +131,6 @@ public class DtoPool {
         if (!Objects.equal(id, that.getId())) return false;
         if (!Objects.equal(name, that.getName())) return false;
         if (!Objects.equal(description, that.getDescription())) return false;
-        if (!Objects.equal(subnetId, that.getSubnetId())) return false;
         if (!Objects.equal(healthMonitorId,
                 that.getHealthMonitorId())) return false;
         if (!Objects.equal(protocol, that.getProtocol())) return false;
@@ -120,7 +147,6 @@ public class DtoPool {
         result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result
                 + (description != null ? description.hashCode() : 0);
-        result = 31 * result + (subnetId != null ? subnetId.hashCode() : 0);
         result = 31 * result
                 + (healthMonitorId != null ? healthMonitorId.hashCode() : 0);
         result = 31 * result + (protocol != null ? protocol.hashCode() : 0);
