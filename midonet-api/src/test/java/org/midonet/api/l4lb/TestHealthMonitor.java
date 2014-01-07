@@ -22,13 +22,13 @@ import org.midonet.api.rest_api.Topology;
 import org.midonet.api.zookeeper.StaticMockDirectory;
 import org.midonet.client.dto.*;
 
+import static javax.ws.rs.core.Response.Status.*;
 import static junit.framework.Assert.assertNotNull;
 import static org.junit.Assert.assertEquals;
 import static org.midonet.api.VendorMediaType.APPLICATION_HEALTH_MONITOR_JSON;
 
 @RunWith(Enclosed.class)
 public class TestHealthMonitor {
-
 
     public static class TestHealthMonitorCrud extends JerseyTest {
 
@@ -67,26 +67,33 @@ public class TestHealthMonitor {
         }
 
         private DtoHealthMonitor getHealthMonitor(URI healthMonitorUri) {
-            ClientResponse response = resource().uri(healthMonitorUri)
-                    .type(VendorMediaType.APPLICATION_HEALTH_MONITOR_JSON)
-                    .get(ClientResponse.class);
-            assertEquals(200, response.getStatus());
-            return response.getEntity(DtoHealthMonitor.class);
-        }
+            return dtoWebResource.getAndVerifyOk(
+                    healthMonitorUri,
+                    VendorMediaType.APPLICATION_HEALTH_MONITOR_JSON,
+                    DtoHealthMonitor.class);
+            }
 
         private URI postHealthMonitor(DtoHealthMonitor healthMonitor) {
-            ClientResponse response = resource().uri(topLevelHealthMonitorsUri)
-                    .type(VendorMediaType.APPLICATION_HEALTH_MONITOR_JSON)
-                    .post(ClientResponse.class, healthMonitor);
-            assertEquals(201, response.getStatus());
+            ClientResponse response = dtoWebResource.postAndVerifyStatus(
+                    topLevelHealthMonitorsUri,
+                    VendorMediaType.APPLICATION_HEALTH_MONITOR_JSON,
+                    healthMonitor,
+                    CREATED.getStatusCode());
+
             return response.getLocation();
         }
 
+        private DtoHealthMonitor updateHealthMonitor(
+                DtoHealthMonitor healthMonitor) {
+            return dtoWebResource.putAndVerifyNoContent(healthMonitor.getUri(),
+                    VendorMediaType.APPLICATION_HEALTH_MONITOR_JSON,
+                    healthMonitor,
+                    DtoHealthMonitor.class);
+        }
+
         private void deleteHealthMonitor(URI healthMonitorUri) {
-            ClientResponse response = resource().uri(healthMonitorUri)
-                    .type(APPLICATION_HEALTH_MONITOR_JSON)
-                    .delete(ClientResponse.class);
-            assertEquals(204, response.getStatus());
+            dtoWebResource.deleteAndVerifyNoContent(healthMonitorUri,
+                    APPLICATION_HEALTH_MONITOR_JSON);
         }
 
         private DtoHealthMonitor getStockHealthMonitor() {
@@ -95,37 +102,54 @@ public class TestHealthMonitor {
             //   the API can create the resource with the specified UUID,
             //   which is very useful for the identical checks.
             healthMonitor.setId(UUID.randomUUID());
-            healthMonitor.setAdminStateUp(true);
-            healthMonitor.setDelay(5);
-            healthMonitor.setMaxRetries(10);
             healthMonitor.setType("TCP");
+            healthMonitor.setDelay(5);
             healthMonitor.setTimeout(10);
+            healthMonitor.setMaxRetries(10);
+            healthMonitor.setAdminStateUp(true);
+            healthMonitor.setStatus("ACTIVE");
             return healthMonitor;
         }
 
         @Test
-        public void testCrud() throws Exception {
+        synchronized public void testCrud() throws Exception {
             int counter = 0;
 
             // HealthMonitors should be empty
             verifyNumberOfHealthMonitors(counter);
 
-            // Post
+            // POST
             DtoHealthMonitor healthMonitor = getStockHealthMonitor();
             URI healthMonitorUri = postHealthMonitor(healthMonitor);
             verifyNumberOfHealthMonitors(++counter);
 
-            // Post another
+            // POST another one
             DtoHealthMonitor healthMonitor2 = getStockHealthMonitor();
             URI healthMonitorUri2 = postHealthMonitor(healthMonitor2);
             verifyNumberOfHealthMonitors(++counter);
 
-            // Get and check
-            DtoHealthMonitor newHealthMonitor
-                    = getHealthMonitor(healthMonitorUri);
-            Assert.assertEquals(healthMonitor, newHealthMonitor);
-            newHealthMonitor = getHealthMonitor(healthMonitorUri2);
-            Assert.assertEquals(newHealthMonitor, healthMonitor2);
+            // POST with the same ID as the existing resource and get 409
+            // CONFLICT.
+            dtoWebResource.postAndVerifyStatus(topLevelHealthMonitorsUri,
+                    VendorMediaType.APPLICATION_HEALTH_MONITOR_JSON,
+                    healthMonitor2,
+                    CONFLICT.getStatusCode());
+            verifyNumberOfHealthMonitors(counter);
+
+            // Get and check if it is the same as what we POSTed.
+            DtoHealthMonitor newHealthMonitor = getHealthMonitor(healthMonitorUri);
+            // assertPropertiesEqual(newHealthMonitor, healthMonitor);
+            Assert.assertEquals(newHealthMonitor, healthMonitor);
+
+            DtoHealthMonitor newHealthMonitor2 = getHealthMonitor(healthMonitorUri2);
+            // assertPropertiesEqual(newHealthMonitor2, healthMonitor2);
+            Assert.assertEquals(newHealthMonitor2, healthMonitor2);
+
+            // PUT with the different property value
+            newHealthMonitor.setAdminStateUp(false);
+            DtoHealthMonitor updatedHealthMonitor = updateHealthMonitor(newHealthMonitor);
+            Assert.assertEquals(updatedHealthMonitor, newHealthMonitor);
+            Assert.assertNotSame(updatedHealthMonitor, healthMonitor);
 
             // Delete
             deleteHealthMonitor(healthMonitorUri);

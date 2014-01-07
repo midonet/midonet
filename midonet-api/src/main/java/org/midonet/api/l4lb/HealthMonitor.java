@@ -6,6 +6,8 @@ package org.midonet.api.l4lb;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.UriResource;
 
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.net.URI;
 import java.util.UUID;
@@ -14,13 +16,25 @@ import java.util.UUID;
 @XmlRootElement
 public class HealthMonitor extends UriResource {
 
+    public final String TYPE_PATTERN = "TCP";
+    public final String STATUS_PATTERN = "ACTIVE|DOWN|" +
+            "PENDING_CREATE|PENDING_UPDATE|PENDING_DELETE|" +
+            "INACTIVE|ERROR";
+
     private UUID id;
+    @Pattern(regexp = TYPE_PATTERN,
+             message = "is not in the pattern (" + TYPE_PATTERN + ")")
     private String type;
-    private UUID poolId;
+    @NotNull
     private int delay;
+    @NotNull
     private int timeout;
+    @NotNull
     private int maxRetries;
     private boolean adminStateUp = true;
+    @Pattern(regexp = STATUS_PATTERN,
+             message = "is not in the pattern (" + STATUS_PATTERN + ")")
+    private String status;
 
     public UUID getId() {
         return id;
@@ -29,20 +43,13 @@ public class HealthMonitor extends UriResource {
     public void setId(UUID id) {
         this.id = id;
     }
+
     public String getType() {
         return type;
     }
 
     public void setType(String type) {
         this.type = type;
-    }
-
-    public void setPoolId(UUID poolId) {
-        this.poolId = poolId;
-    }
-
-    public UUID getPoolId() {
-        return poolId;
     }
 
     public int getDelay() {
@@ -65,16 +72,24 @@ public class HealthMonitor extends UriResource {
         return maxRetries;
     }
 
-    public void setMaxRetries(int max_retries) {
-        this.maxRetries = max_retries;
+    public void setMaxRetries(int maxRetries) {
+        this.maxRetries = maxRetries;
     }
 
-    public boolean getAdminStateUp() {
+    public boolean isAdminStateUp() {
         return adminStateUp;
     }
 
-    public void setAdminStateUp(boolean admin_state_up) {
-        this.adminStateUp = admin_state_up;
+    public void setAdminStateUp(boolean adminStateUp) {
+        this.adminStateUp = adminStateUp;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public HealthMonitor() {
@@ -84,24 +99,24 @@ public class HealthMonitor extends UriResource {
     public HealthMonitor(
             org.midonet.cluster.data.l4lb.HealthMonitor healthMonitor) {
         super();
+        this.id = healthMonitor.getId();
         this.type = healthMonitor.getType();
-        this.poolId = healthMonitor.getPoolId();
         this.delay = healthMonitor.getDelay();
         this.timeout = healthMonitor.getTimeout();
-        this.adminStateUp = healthMonitor.getAdminStateUp();
         this.maxRetries = healthMonitor.getMaxRetries();
-        this.id = healthMonitor.getId();
+        this.adminStateUp = healthMonitor.isAdminStateUp();
+        this.status = healthMonitor.getStatus();
     }
 
     public org.midonet.cluster.data.l4lb.HealthMonitor toData() {
         return new org.midonet.cluster.data.l4lb.HealthMonitor()
                 .setId(this.id)
                 .setType(this.type)
-                .setPoolId(this.poolId)
                 .setDelay(this.delay)
                 .setTimeout(this.timeout)
                 .setMaxRetries(this.maxRetries)
-                .setAdminStateUp(this.adminStateUp);
+                .setAdminStateUp(this.adminStateUp)
+                .setStatus(this.status);
     }
 
     /**

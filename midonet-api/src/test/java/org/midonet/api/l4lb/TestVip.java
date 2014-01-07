@@ -91,11 +91,12 @@ public class TestVip {
             //   the API can create the resource with the specified UUID,
             //   which is very useful for the identity checks.
             healthMonitor.setId(UUID.randomUUID());
+            healthMonitor.setType("TCP");
             healthMonitor.setDelay(5);
             healthMonitor.setTimeout(10);
             healthMonitor.setMaxRetries(10);
             healthMonitor.setAdminStateUp(true);
-            healthMonitor.setType("TCP");
+            healthMonitor.setStatus("ACTIVE");
 
             return healthMonitor;
         }
