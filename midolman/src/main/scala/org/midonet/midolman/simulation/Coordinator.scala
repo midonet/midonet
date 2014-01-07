@@ -177,7 +177,7 @@ class Coordinator(var origMatch: WildcardMatch,
                         if (withTags) pktContext.getFlowTags else Set.empty)
 
             case None => // Internally-generated packet. Do nothing.
-                pktContext.getFlowRemovedCallbacks foreach { _.call() }
+                pktContext.runFlowRemovedCallbacks()
                 NoOp
         }
     }
@@ -440,7 +440,7 @@ class Coordinator(var origMatch: WildcardMatch,
             case ConsumedAction =>
                 pktContext.traceMessage(null, "Consumed")
                 pktContext.freeze()
-                pktContext.getFlowRemovedCallbacks foreach { _.call() }
+                pktContext.runFlowRemovedCallbacks()
                 NoOp
 
             case ErrorDropAction =>
@@ -453,7 +453,7 @@ class Coordinator(var origMatch: WildcardMatch,
                 log.debug("Device returned DropAction for {}", origMatch)
                 cookie match {
                     case None => // Do nothing.
-                        pktContext.getFlowRemovedCallbacks foreach { _.call() }
+                        pktContext.runFlowRemovedCallbacks()
                         NoOp
                     case Some(_) =>
                         dropFlow(act.temporary || pktContext.isConnTracked,
@@ -466,7 +466,7 @@ class Coordinator(var origMatch: WildcardMatch,
                 log.debug("Device returned NotIPv4Action for {}", origMatch)
                 cookie match {
                     case None => // Do nothing.
-                        pktContext.getFlowRemovedCallbacks foreach { _.call() }
+                        pktContext.runFlowRemovedCallbacks()
                         NoOp
                     case Some(_) =>
                         val notIPv4Match =
@@ -591,7 +591,7 @@ class Coordinator(var origMatch: WildcardMatch,
             case None =>
                 log.debug("No cookie. SendPacket with actions {}", actions)
                 pktContext.freeze()
-                pktContext.getFlowRemovedCallbacks foreach { cb => cb.call() }
+                pktContext.runFlowRemovedCallbacks()
                 SendPacket(actions.toList)
             case Some(_) =>
                 log.debug("Cookie {}; Add a flow with actions {}",
