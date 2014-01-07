@@ -1961,6 +1961,7 @@ public class LocalDataClientImpl implements DataClient {
         VIP vip = null;
         if (vipZkManager.exists(id)) {
             vip = Converter.fromVipConfig(vipZkManager.get(id));
+            vip.setId(id);
         }
         return vip;
     }
