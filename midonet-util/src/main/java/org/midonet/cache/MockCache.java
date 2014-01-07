@@ -2,16 +2,14 @@
  * Copyright 2011 Midokura KK
  */
 
-package org.midonet.midolman.util;
+package org.midonet.cache;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.midonet.cache.Cache;
 import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.functors.Callback1;
-
 
 public class MockCache implements Cache {
 
