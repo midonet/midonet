@@ -72,7 +72,7 @@ trait CustomMatchers {
                     s"{${expectedTags.toList}}")
 
         def flowMatchesPacket(flow: WildcardFlow, pkt: Ethernet): Boolean =
-            flow.actions.collect {
+            flow.actions.count {
                 case f: FlowActionSetKey => f.getFlowKey match {
                     case k: FlowKeyEthernet =>
                         util.Arrays.equals(
@@ -87,6 +87,7 @@ trait CustomMatchers {
                         k.getSrc == ipPkt.getSourceAddress
                     case _ => false
                 }
-            }.size == 2
+                case _ => false
+            } == 2
     }
 }
