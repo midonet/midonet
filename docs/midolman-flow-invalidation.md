@@ -234,6 +234,26 @@ When a packet is filtered through a Chain, the Chain will add its ID to the tags
 
 If a chain get modified all the flows tagged by its ID need to be invalidated
 
+#### LoadBalancer
+
+LoadBalancer will tag all packets which traverse it.
+
+These flows will be invalidated in the following cases:
+* LoadBalancer configuration changes
+* VIPs or VIP configurations change
+
+#### Pool
+
+Pool will tag all packets which traverse it.
+
+These flows will be invalidated in the following cases:
+* Pool configuration changes
+* Pool Members or Pool Member configurations change
+
+*NOTE:* When a PoolMember is set to admin state down, or removed, existing
+connections should be allowed to continue, although no new traffic will
+be directed to that PoolMember.
+
 #### Summary
 
 ##### Tagging by DatapathController

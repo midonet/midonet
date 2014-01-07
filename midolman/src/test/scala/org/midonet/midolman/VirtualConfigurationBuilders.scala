@@ -8,7 +8,7 @@ import java.util.{HashSet => JSet}
 
 import scala.collection.JavaConversions._
 
-import org.midonet.cluster.DataClient
+import org.midonet.cluster.{ClusterLoadBalancerManager, DataClient}
 import org.midonet.cluster.data.{Bridge => ClusterBridge, Router => ClusterRouter, _}
 import org.midonet.cluster.data.dhcp.Subnet
 import org.midonet.cluster.data.dhcp.Subnet6
@@ -393,15 +393,26 @@ trait VirtualConfigurationBuilders {
         loadBalancer
     }
 
+    def setLoadBalancerOnRouter(loadBalancer: LoadBalancer, router: ClusterRouter): Unit = {
+        router.setLoadBalancer(loadBalancer.getId)
+        clusterDataClient().routersUpdate(router)
+    }
+
     def setLoadBalancerDown(loadBalancer: LoadBalancer) {
         loadBalancer.setAdminStateUp(false)
         clusterDataClient().loadBalancerUpdate(loadBalancer)
     }
 
     def createVipOnLoadBalancer(loadBalancer: LoadBalancer): VIP = {
+        createVipOnLoadBalancer(loadBalancer, "10.10.10.10", 10)
+    }
+
+    def createVipOnLoadBalancer(loadBalancer: LoadBalancer,
+                                address: String, port: Int): VIP = {
         val vip = new VIP()
         vip.setId(UUID.randomUUID)
-        vip.setAddress("10.10.10.10")
+        vip.setAddress(address)
+        vip.setProtocolPort(port)
         vip.setAdminStateUp(true)
         vip.setLoadBalancerId(loadBalancer.getId)
         clusterDataClient().vipCreate(vip)
@@ -437,10 +448,17 @@ trait VirtualConfigurationBuilders {
     }
 
     def createPoolMember(pool: Pool): PoolMember = {
+        createPoolMember(pool, "10.10.10.10", 10)
+    }
+
+    def createPoolMember(pool: Pool, address: String, port: Int)
+    : PoolMember = {
         val poolMember = new PoolMember()
         poolMember.setId(UUID.randomUUID)
         poolMember.setAdminStateUp(true)
-        poolMember.setAddress("10.10.10.10")
+        poolMember.setStatus("UP")
+        poolMember.setAddress(address)
+        poolMember.setProtocolPort(port)
         poolMember.setPoolId(pool.getId)
         clusterDataClient().poolMemberCreate(poolMember)
         Thread.sleep(50)

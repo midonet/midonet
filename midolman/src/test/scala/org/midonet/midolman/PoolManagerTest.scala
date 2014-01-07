@@ -50,7 +50,10 @@ with VirtualConfigurationBuilders {
             val p2 = expectMsgType[Pool]
             p2.id shouldEqual pool.getId
             p2.poolMembers.size shouldBe 2
-            p2.poolMembers.map(v => v.id) shouldEqual poolMemberIds
+            p2.poolMembers.map(v => v.id).toSet shouldEqual poolMemberIds
+
+            And("the VTA should receive a flow invalidation")
+            vta.getAndClear().contains(flowInvalidationMsg(p2.id)) shouldBe true
         }
 
         scenario("Receive update when a PoolMember is added") {
@@ -74,7 +77,10 @@ with VirtualConfigurationBuilders {
             val p3 = expectMsgType[Pool]
             p3.id shouldEqual pool.getId
             p3.poolMembers.size shouldBe 2
-            p3.poolMembers.map(v => v.id) shouldEqual Set(firstPoolMember.getId, secondPoolMember.getId)
+            p3.poolMembers.map(v => v.id).toSet shouldEqual Set(firstPoolMember.getId, secondPoolMember.getId)
+
+            And("the VTA should receive a flow invalidation")
+            vta.getAndClear().contains(flowInvalidationMsg(p2.id)) shouldBe true
         }
 
         scenario("Receive update when a PoolMember is removed") {
@@ -98,6 +104,9 @@ with VirtualConfigurationBuilders {
             val p2 = expectMsgType[Pool]
             p2.id shouldEqual pool.getId
             p2.poolMembers.size shouldBe 0
+
+            And("the VTA should receive a flow invalidation")
+            vta.getAndClear().contains(flowInvalidationMsg(p2.id)) shouldBe true
         }
 
         scenario("Receive update when a PoolMember is changed") {
@@ -126,6 +135,9 @@ with VirtualConfigurationBuilders {
             p2.poolMembers.size shouldBe 1
             val pm2 = p2.poolMembers.toSeq(0)
             pm2.adminStateUp shouldBe false
+
+            And("the VTA should receive a flow invalidation")
+            vta.getAndClear().contains(flowInvalidationMsg(p2.id)) shouldBe true
         }
 
     }

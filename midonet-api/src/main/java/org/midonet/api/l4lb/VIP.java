@@ -4,22 +4,21 @@
 
 package org.midonet.api.l4lb;
 
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.UriResource;
-import org.midonet.util.StringUtil;
-
+import java.net.URI;
+import java.util.UUID;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.xml.bind.annotation.XmlRootElement;
-import java.net.URI;
-import java.util.UUID;
+
+import org.midonet.api.ResourceUriBuilder;
+import org.midonet.api.UriResource;
+import org.midonet.util.StringUtil;
+import static org.midonet.cluster.data.l4lb.VIP.VIP_SOURCE_IP;
 
 @XmlRootElement
 public class VIP extends UriResource {
-
-    public final static String VIP_SOURCE_IP = "SOURCE_IP";
 
     private UUID id;
     private UUID loadBalancerId;

@@ -36,7 +36,7 @@ public class Chain {
     private String name;
 
     @Inject
-    private static NatMappingFactory natMappingFactory;
+    static NatMappingFactory natMappingFactory;
 
     public Chain(UUID id_, List<Rule> rules_, Map<UUID, Chain> jumpTargets_,
                  String name_, LoggingBus loggingBus) {
