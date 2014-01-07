@@ -4,33 +4,28 @@
 package org.midonet.midolman.simulation
 
 import java.util.UUID
-import java.util.concurrent.TimeUnit
-import collection.JavaConversions._
-import collection.{immutable, mutable}
-
-import scala.concurrent.{ExecutionContext, Future, Promise}
-import akka.actor.ActorSystem
+import scala.collection.JavaConversions._
+import scala.collection.mutable
 import scala.concurrent.duration._
-import akka.util.Timeout
+
+import akka.event.LoggingAdapter
 
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.client._
-import org.midonet.midolman.{DeduplicationActor, DatapathController}
-import org.midonet.midolman.host.interfaces.InterfaceDescription
-import org.midonet.midolman.topology.VirtualTopologyActor.{expiringAsk, PortRequest}
-import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
-import org.midonet.packets._
-import org.midonet.midolman.DatapathController.LocalTunnelInterfaceInfo
 import org.midonet.cluster.data.dhcp.{Subnet, Host, Opt121}
-import org.midonet.cluster.data.TunnelZone
-import org.midonet.cluster.data.zones.{GreTunnelZone, CapwapTunnelZone, IpsecTunnelZone}
+import org.midonet.packets._
 
-class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
-                  val request: DHCP, val sourceMac: MAC,
-                  val cookie: Option[Int])
-                 (implicit val ec: ExecutionContext,
-                           val system: ActorSystem) {
-    private val log = akka.event.Logging(system, this.getClass)
+object DhcpImpl {
+
+    def apply(dataClient: DataClient, inPort: Port[_], request: DHCP,
+              sourceMac: MAC, mtu: Option[Short], log: LoggingAdapter) =
+        new DhcpImpl(dataClient, request, sourceMac, mtu, log).handleDHCP(inPort)
+
+}
+
+class DhcpImpl(val dataClient: DataClient,
+               val request: DHCP, val sourceMac: MAC,
+               val mtu: Option[Short], val log: LoggingAdapter) {
 
     private var serverAddr: IntIPv4 = null
     private var serverMac: MAC = null
@@ -43,30 +38,29 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
     // utility function for reduced verbosity
     private def addrToBytes (ip: IntIPv4) = IPv4Addr.intToBytes(ip.getAddress)
 
-    def handleDHCP : Future[Boolean] = {
+    def handleDHCP(port: Port[_]) : Option[Ethernet] = {
         // These fields are decided based on the port configuration.
         // DHCP is handled differently for bridge and router ports.
 
         log.debug("Got a DHCP request")
         // Get the RCU port object and start simulation.
-        expiringAsk(PortRequest(inPortId), log)
-        .flatMap {
+        port match {
             case p: BridgePort if p.isExterior =>
                 log.debug("Handle DHCP request arriving on bridge port.")
                 dhcpFromBridgePort(p)
             case p: RouterPort if p.isExterior =>
                 // We still don't handle DHCP on router ports.
                 log.debug("Don't handle DHCP arriving on a router port.")
-                Future.successful(false)
+                None
             case _ =>
                 // We don't handle this, but don't throw an error.
                 log.error("Don't expect to be invoked for DHCP packets " +
                           "arriving anywhere but bridge/router exterior ports")
-                Future.successful(false)
-        } recover { case _ => false }
+                None
+        }
     }
 
-    private def dhcpFromBridgePort(port: BridgePort): Future[Boolean] = {
+    private def dhcpFromBridgePort(port: BridgePort): Option[Ethernet] = {
         // TODO(pino): use an async API
         val subnets = dataClient.dhcpSubnetsGetByBridge(port.deviceID)
 
@@ -100,81 +94,40 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
                 opt121Routes = sub.getOpt121Routes
 
                 (sub.getInterfaceMTU match {
-                    case 0 => calculateInterfaceMTU
-                    case s: Short => Future.successful(Some(s))
-                }) flatMap {
-                    case Some(mtu: Short) =>
+                    case 0 => mtu
+                    case s: Short => Some(s)
+                }) match {
+                    case Some(mtu) =>
                         interfaceMTU = mtu
                         log.debug("DHCP reply for MAC {}", sourceMac)
-                        makeDhcpReply
+                        makeDhcpReply(port)
                     case _ =>
                         interfaceMTU = 0
                         log.warning("Fail to calculate interface MTU")
-                        Future.successful(false)
+                        None
                 }
             case _ =>
                 log.debug("No static DHCP assignment for MAC {}", sourceMac)
-                Future.successful(false)
+                None
         }
     }
 
-    /**
-      * Gives the min MTU based on the LocalTunnelInterfaceInfo, or None if no
-      * ifc descriptions found.
-      */
-    private def calculateInterfaceMTU: Future[Option[Short]] = {
-        log.info("Calculate Interface MTU")
-        implicit val timeout = new Timeout(3, TimeUnit.SECONDS)
-        (DatapathController ? LocalTunnelInterfaceInfo)
-            .mapTo[mutable.MultiMap[InterfaceDescription, TunnelZone.Type]]
-            .map { interfaceTunnelList => minMtu(interfaceTunnelList) }
-        }
-
-    // TODO: this belongs in TunnelZone
-    private val tzTypeOverheads = immutable.Map(
-        TunnelZone.Type.Gre -> GreTunnelZone.TUNNEL_OVERHEAD,
-        TunnelZone.Type.Capwap -> CapwapTunnelZone.TUNNEL_OVERHEAD,
-        TunnelZone.Type.Ipsec -> IpsecTunnelZone.TUNNEL_OVERHEAD)
-
-    /**
-     * Choose the min MTU based on all the given interface descriptions, if
-     * there are no interfaces or there is no way of figuring out, will
-     * return 1500 as default value.
-     */
-    private def minMtu(ifcTunnelList: mutable.MultiMap[InterfaceDescription,
-                                                       TunnelZone.Type]) = {
-        var minMtu: Short = 0
-        ifcTunnelList foreach {
-            case (interfaceDesc, tunnelTypeList) =>
-                tunnelTypeList foreach { tunnelType => {
-                    val overhead = tzTypeOverheads(tunnelType)
-                    val intfMtu = interfaceDesc.getMtu.toShort
-                    val tunnelMtu = (intfMtu - overhead).toShort
-                    minMtu = if (minMtu == 0) tunnelMtu
-                             else minMtu.min(tunnelMtu)
-                 }}
-            case _ => // unexpected
-        }
-        Some(if (minMtu == 0) 1500.toShort else minMtu)
-    }
-
-
-    private def makeDhcpReply: Future[Boolean] = {
+    private def makeDhcpReply(port: BridgePort): Option[Ethernet] = {
 
         val chaddr = request.getClientHardwareAddress
         if (null == chaddr) {
             log.warning("handleDhcpRequest dropping bootrequest with null" +
                         " chaddr")
-            return Future.successful(false)
+            return None
         }
         if (chaddr.length != 6) {
             log.warning("handleDhcpRequest dropping bootrequest with chaddr " +
                         "with length {} greater than 6.", chaddr.length)
-            return Future.successful(false)
+            return None
         }
         log.debug("handleDhcpRequest: on port {} bootrequest with chaddr {} "
             + "and ciaddr {}",
-            Array(inPortId, MAC.bytesToString(chaddr),
+            Array(port.id, MAC.bytesToString(chaddr),
                   IPv4Addr.intToString(request.getClientIPAddress)))
 
         // Extract all the options and put them in a map
@@ -190,8 +143,8 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
                     if (opt.getLength != 1) {
                         log.warning("handleDhcpRequest dropping bootrequest - "
                             + "dhcp msg type option has bad length or data.")
-                        return Future.failed(
-                            new Exception("DHCP request with bad dhcp type."))
+                        throw new IllegalArgumentException(
+                            "DHCP request with bad dhcp type.")
                     }
                     val msgType = opt.getData()(0)
                     log.debug("handleDhcpRequest dhcp msg type {}:{}",
@@ -200,8 +153,8 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
                     if (opt.getLength <= 0) {
                         log.warning("handleDhcpRequest dropping bootrequest - "
                             + "param request list has bad length")
-                        return Future.failed(
-                            new Exception("DHCP request with bad param list"))
+                        throw new IllegalArgumentException(
+                            "DHCP request with bad param list")
                     }
                     opt.getData foreach { c =>
                         requestedCodes.add(c)
@@ -217,8 +170,8 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
         if (typeOpt == None) {
             log.warning("handleDhcpRequest dropping bootrequest - no dhcp" +
                         "msg type found.")
-            return Future.failed(
-                    new Exception("DHCP request with missing dhcp type."))
+            throw new IllegalArgumentException(
+                "DHCP request with missing dhcp type.")
         }
 
         typeOpt.get.getData()(0) match {
@@ -273,15 +226,15 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
                                 "- the requested ip {} is not the offered " +
                                 "yiaddr {}", reqIp, yiaddr)
                             // TODO(pino): send a dhcp NAK reply.
-                            return Future.successful(true)
+                            return None
                         }
                 }
             case msgType =>
                 log.warning("handleDhcpRequest dropping bootrequest - we " +
                             "don't handle msg type {}:{}", msgType,
                             DHCPOption.msgTypeToName.get(msgType))
-                Promise.failed(new Exception("DHCP request with missing" +
-                                             " dhcp type."))
+                throw new IllegalArgumentException(
+                    "DHCP request with missing dhcp type.")
         }
 
         val reply = new DHCP
@@ -385,14 +338,6 @@ class DhcpImpl(val dataClient: DataClient, val inPortId: UUID,
         eth.setSourceMACAddress(serverMac)
         eth.setDestinationMACAddress(sourceMac)
 
-        log.debug("handleDhcpRequest: sending DHCP reply {} to port {}", eth,
-                  inPortId)
-
-        // Emit our DHCP reply packet
-        DeduplicationActor ! EmitGeneratedPacket(
-            inPortId, eth, cookie)
-
-        // Tell the FlowController not to track the packet anymore.
-        Future.successful(true)
+        return Some(eth)
     }
 }
