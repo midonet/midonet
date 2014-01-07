@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
+import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -30,6 +31,7 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.midonet.api.validation.MessageProperty.getMessage;
@@ -41,6 +43,7 @@ public class HealthMonitorResource extends AbstractResource {
     private final static Logger log = LoggerFactory
             .getLogger(HealthMonitorResource.class);
 
+    private final Validator validator;
     private final DataClient dataClient;
 
     @Inject
@@ -49,6 +52,7 @@ public class HealthMonitorResource extends AbstractResource {
                           Validator validator, DataClient dataClient,
                           ResourceFactory factory) {
         super(config, uriInfo, context);
+        this.validator = validator;
         this.dataClient = dataClient;
     }
 
@@ -118,15 +122,20 @@ public class HealthMonitorResource extends AbstractResource {
             MediaType.APPLICATION_JSON })
     public Response create(HealthMonitor healthMonitor)
             throws StateAccessException, InvalidStateOperationException,
-            SerializationException{
-
+            SerializationException, ConflictHttpException {
         try {
+            Set<ConstraintViolation<HealthMonitor>> violations =
+                    validator.validate(healthMonitor);
+            if (!violations.isEmpty()) {
+                throw new BadRequestHttpException(violations);
+            }
             UUID id = dataClient.healthMonitorCreate(healthMonitor.toData());
             return Response.created(
                     ResourceUriBuilder.getHealthMonitor(getBaseUri(), id))
                     .build();
         } catch (StatePathExistsException ex) {
-            throw new StateAccessException();
+            throw new ConflictHttpException(
+                    getMessage(MessageProperty.RESOURCE_CONFLICTED));
         }
     }
 

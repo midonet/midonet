@@ -40,15 +40,6 @@ public class HealthMonitor
         return getData().type;
     }
 
-    public HealthMonitor setPoolId(UUID poolId) {
-        getData().poolId = poolId;
-        return self();
-    }
-
-    public UUID getPoolId() {
-        return getData().poolId;
-    }
-
     public HealthMonitor setDelay(int delay) {
         getData().delay = delay;
         return self();
@@ -81,17 +72,26 @@ public class HealthMonitor
         return self();
     }
 
-    public boolean getAdminStateUp() {
+    public boolean isAdminStateUp() {
         return getData().adminStateUp;
+    }
+
+    public HealthMonitor setStatus(String status) {
+        getData().status = status;
+        return self();
+    }
+
+    public String getStatus() {
+        return getData().status;
     }
 
     public static class Data {
         private String type;
-        private UUID poolId;
         private int delay;
         private int timeout;
         private int maxRetries;
         private boolean adminStateUp = true;
+        private String status;
 
         @Override
         public boolean equals(Object o) {
@@ -101,11 +101,11 @@ public class HealthMonitor
             Data data = (Data) o;
 
             if (!Objects.equal(type, data.type)) return false;
-            if (!Objects.equal(poolId, data.poolId)) return false;
             if (delay != data.delay) return false;
             if (timeout != data.timeout) return false;
             if (maxRetries != data.maxRetries) return false;
             if (adminStateUp != data.adminStateUp) return false;
+            if (!Objects.equal(status, data.status)) return false;
 
             return true;
         }
@@ -113,11 +113,11 @@ public class HealthMonitor
         @Override
         public int hashCode() {
             int result = type != null ? type.hashCode() : 0;
-            result = 31 * result + (poolId != null ? poolId.hashCode() : 0);
             result = 31 * result + delay;
             result = 31 * result + timeout;
             result = 31 * result + maxRetries;
             result = 31 * result + (adminStateUp ? 1 : 0);
+            result = 31 * result + (status != null ? status.hashCode() : 0);
             return result;
         }
     }
