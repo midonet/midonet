@@ -640,6 +640,8 @@ public interface DataClient {
 
 
     /* Routers related methods */
+    boolean routerExists(UUID id) throws StateAccessException;
+
     @CheckForNull Router routersGet(UUID id)
             throws StateAccessException, SerializationException;
 

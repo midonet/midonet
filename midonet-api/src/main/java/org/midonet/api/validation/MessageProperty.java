@@ -47,6 +47,8 @@ public class MessageProperty {
             "{midokura.javarx.ResourceNotFound.message}";
     public static final String ROUTE_NEXT_HOP_PORT_NOT_NULL =
             "{midokura.javarx.RouteNextHopPortValid.message}";
+    public static final String ROUTER_ID_IS_INVALID =
+            "{midokura.javarx.RouterIdIsInvalid.message}";
     public static final String TUNNEL_ZONE_ID_IS_INVALID =
             "{midokura.javarx.TunnelZoneIdIsInvalid.message}";
     public static final String UNIQUE_TUNNEL_ZONE_NAME_TYPE =

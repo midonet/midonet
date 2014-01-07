@@ -165,13 +165,15 @@ public class Converter {
     public static LoadBalancerConfig toLoadBalancerConfig(
             LoadBalancer loadBalancer) {
         LoadBalancerConfig loadBalancerConfig = new LoadBalancerConfig();
-        loadBalancerConfig.adminStateUp = loadBalancer.getAdminStateUp();
+        loadBalancerConfig.routerId = loadBalancer.getRouterId();
+        loadBalancerConfig.adminStateUp = loadBalancer.isAdminStateUp();
         return loadBalancerConfig;
     }
 
     public static LoadBalancer fromLoadBalancerConfig(
             LoadBalancerConfig loadBalancerConfig) {
         return new LoadBalancer()
+                .setRouterId(loadBalancerConfig.routerId)
                 .setAdminStateUp(loadBalancerConfig.adminStateUp);
     }
 
