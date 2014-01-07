@@ -101,6 +101,13 @@ class PacketContext(override val flowCookie: Option[Int],
         flowRemovedCallbacks
     }
 
+    def runFlowRemovedCallbacks() = {
+        val iterator = getFlowRemovedCallbacks.iterator
+        while (iterator.hasNext) {
+            iterator.next().call()
+        }
+    }
+
     // This Set stores the tags by which the flow may be indexed.
     // The index can be used to remove flows associated with the given tag.
     private val flowTags = mutable.Set[Any]()
