@@ -2115,6 +2115,11 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
+    public boolean routerExists(UUID id) throws StateAccessException {
+        return routerZkManager.exists(id);
+    }
+
+    @Override
     public List<Router> routersGetAll() throws StateAccessException,
             SerializationException {
         log.debug("routersGetAll entered");
@@ -2209,20 +2214,14 @@ public class LocalDataClientImpl implements DataClient {
     @Override
     public void routersUpdate(@Nonnull Router router) throws
             StateAccessException, SerializationException {
-        List<Op> ops = new ArrayList<Op>();
-
         // Get the original data
         Router oldRouter = routersGet(router.getId());
-
         RouterZkManager.RouterConfig routerConfig = Converter.toRouterConfig(
             router);
-
+        List<Op> ops = new ArrayList<Op>();
 
         // Update the config
-        Op op = routerZkManager.prepareUpdate(router.getId(), routerConfig);
-        if (op != null) {
-            ops.add(op);
-        }
+        ops.addAll(routerZkManager.prepareUpdate(router.getId(), routerConfig));
 
         // Update index if the name changed
         String oldName = oldRouter.getData().name;

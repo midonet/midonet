@@ -4,6 +4,7 @@
 
 package org.midonet.midolman.state.zkManagers;
 
+import com.google.common.base.Objects;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.*;
@@ -21,13 +22,15 @@ public class LoadBalancerZkManager extends AbstractZkManager {
             .getLogger(LoadBalancerZkManager.class);
 
     public static class LoadBalancerConfig {
+        public UUID routerId;
         public boolean adminStateUp;
 
         public LoadBalancerConfig() {
             super();
         }
 
-        public LoadBalancerConfig(boolean adminStateUp) {
+        public LoadBalancerConfig(UUID routerId, boolean adminStateUp) {
+            this.routerId = routerId;
             this.adminStateUp = adminStateUp;
         }
 
@@ -40,10 +43,17 @@ public class LoadBalancerZkManager extends AbstractZkManager {
 
             LoadBalancerConfig that = (LoadBalancerConfig) o;
 
+            if (Objects.equal(routerId, that.routerId))
+                return false;
             if (adminStateUp != that.adminStateUp)
                 return false;
 
             return true;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(routerId, adminStateUp);
         }
     }
 

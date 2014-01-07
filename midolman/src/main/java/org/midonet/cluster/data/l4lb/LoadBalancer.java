@@ -37,11 +37,21 @@ public class LoadBalancer
         return self();
     }
 
-    public boolean getAdminStateUp() {
+    public boolean isAdminStateUp() {
         return getData().adminStateUp;
     }
 
+    public LoadBalancer setRouterId(UUID routerId) {
+        getData().routerId = routerId;
+        return self();
+    }
+
+    public UUID getRouterId() {
+        return getData().routerId;
+    }
+
     public static class Data {
+        private UUID routerId;
         private boolean adminStateUp = true;
 
         @Override

@@ -145,7 +145,7 @@ public class LocalClientImplTest {
                                     new RouterZkManager.RouterConfig("test1",
                                                                      UUID.randomUUID(),
                                                                      UUID.randomUUID(),
-                                                                     UUID.randomUUID()));
+                                                                     null));
         Thread.sleep(2000);
         assertThat("Router update was notified",
                    routerBuilder.getBuildCallsCount(), equalTo(2));

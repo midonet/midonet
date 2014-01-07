@@ -14,6 +14,7 @@ import java.util.UUID;
 @XmlRootElement
 public class LoadBalancer extends UriResource {
     private UUID id;
+    private UUID routerId;
     private boolean adminStateUp = true;
 
     public UUID getId() {
@@ -24,7 +25,15 @@ public class LoadBalancer extends UriResource {
         this.id = id;
     }
 
-    public boolean getAdminStateUp() {
+    public UUID getRouterId() {
+        return routerId;
+    }
+
+    public void setRouterId(UUID routerId) {
+        this.routerId = routerId;
+    }
+
+    public boolean isAdminStateUp() {
         return adminStateUp;
     }
 
@@ -39,13 +48,15 @@ public class LoadBalancer extends UriResource {
     public LoadBalancer(
             org.midonet.cluster.data.l4lb.LoadBalancer loadBalancer) {
         super();
-        this.adminStateUp = loadBalancer.getAdminStateUp();
+        this.adminStateUp = loadBalancer.isAdminStateUp();
+        this.routerId = loadBalancer.getRouterId();
         this.id = loadBalancer.getId();
     }
 
     public org.midonet.cluster.data.l4lb.LoadBalancer toData() {
         return new org.midonet.cluster.data.l4lb.LoadBalancer()
                 .setId(this.id)
+                .setRouterId(this.routerId)
                 .setAdminStateUp(this.adminStateUp);
     }
 
@@ -56,6 +67,14 @@ public class LoadBalancer extends UriResource {
     public URI getUri() {
         if (getBaseUri() != null && id != null) {
             return ResourceUriBuilder.getLoadBalancer(getBaseUri(), id);
+        } else {
+            return null;
+        }
+    }
+
+    public URI getRouter() {
+        if (getBaseUri() != null && routerId != null) {
+            return ResourceUriBuilder.getRouter(getBaseUri(), routerId);
         } else {
             return null;
         }

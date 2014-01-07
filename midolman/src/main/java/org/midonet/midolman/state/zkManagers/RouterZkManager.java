@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import com.google.common.base.Objects;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.AbstractZkManager;
@@ -24,6 +25,7 @@ import org.apache.zookeeper.ZooDefs.Ids;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Class to manage the router ZooKeeper data.
@@ -103,6 +105,26 @@ public class RouterZkManager extends AbstractZkManager {
     RouteZkManager routeZkManager;
     FiltersZkManager filterZkManager;
     PortZkManager portZkManager;
+    LoadBalancerZkManager loadBalancerZkManager;
+
+    // TODO(tfukushima): `routerId` can be null. We should replace its type
+    //   with `Optional<UUID>` but we depend on Guava r08 and `Optional` was
+    //   introduced in Release 13. So we need to update Guava.
+    private List<Op> buildLoadBalancerAssociation(UUID routerId,
+                                                  RouterConfig config)
+            throws StateAccessException, SerializationException {
+        UUID loadBalancerId = checkNotNull(
+                config.loadBalancer, "The load balancer ID is null.");
+        List<Op> ops = new ArrayList<>();
+
+        LoadBalancerZkManager.LoadBalancerConfig loadBalancerConfig =
+                loadBalancerZkManager.get(loadBalancerId);
+        loadBalancerConfig.routerId = routerId;
+        ops.add(Op.setData(paths.getLoadBalancerPath(config.loadBalancer),
+                serializer.serialize(loadBalancerConfig), -1));
+
+        return ops;
+    }
 
     /**
      * Initializes a RouterZkManager object with a ZooKeeper client and the root
@@ -121,6 +143,7 @@ public class RouterZkManager extends AbstractZkManager {
         routeZkManager = new RouteZkManager(zk, paths, serializer);
         filterZkManager = new FiltersZkManager(zk, paths, serializer);
         portZkManager = new PortZkManager(zk, paths, serializer);
+        loadBalancerZkManager = new LoadBalancerZkManager(zk, paths, serializer);
     }
 
     public RouterZkManager(Directory dir, String basePath,
@@ -155,6 +178,10 @@ public class RouterZkManager extends AbstractZkManager {
         ops.add(Op.create(paths.getRouterArpTablePath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         ops.addAll(filterZkManager.prepareCreate(id));
+
+        if (config.loadBalancer != null) {
+            ops.addAll(buildLoadBalancerAssociation(id, config));
+        }
         return ops;
     }
 
@@ -204,6 +231,11 @@ public class RouterZkManager extends AbstractZkManager {
         log.debug("Preparing to delete: " + arpTablePath);
         ops.add(Op.delete(arpTablePath, -1));
 
+        RouterConfig config = get(id);
+        if (config.loadBalancer != null) {
+            ops.addAll(buildLoadBalancerAssociation(null, config));
+        }
+
         String routerPath = paths.getRouterPath(id);
         log.debug("Preparing to delete: " + routerPath);
         ops.add(Op.delete(routerPath, -1));
@@ -213,12 +245,8 @@ public class RouterZkManager extends AbstractZkManager {
 
     public void update(UUID id, RouterConfig cfg) throws StateAccessException,
             SerializationException {
-        Op op = prepareUpdate(id, cfg);
-        if (null != op) {
-            List<Op> ops = new ArrayList<Op>();
-            ops.add(op);
-            zk.multi(ops);
-        }
+        List<Op> ops = prepareUpdate(id, cfg);
+        zk.multi(ops);
     }
 
     /**
@@ -233,8 +261,9 @@ public class RouterZkManager extends AbstractZkManager {
      * @throws SerializationException
      *             if the RouterConfig could not be serialized.
      */
-    public Op prepareUpdate(UUID id, RouterConfig config)
+    public List<Op> prepareUpdate(UUID id, RouterConfig config)
             throws StateAccessException, SerializationException {
+        List<Op> ops = new ArrayList<Op>();
         RouterConfig oldConfig = get(id);
         // Have the inbound or outbound filter changed?
         boolean dataChanged = false;
@@ -282,10 +311,14 @@ public class RouterZkManager extends AbstractZkManager {
         if (dataChanged) {
             config.properties.clear();
             config.properties.putAll(oldConfig.properties);
-            return Op.setData(paths.getRouterPath(id),
-                    serializer.serialize(config), -1);
+            if (config.loadBalancer != null && !Objects.equal(
+                    config.loadBalancer, oldConfig.loadBalancer)) {
+                ops.addAll(buildLoadBalancerAssociation(id, config));
+            }
+            ops.add(Op.setData(paths.getRouterPath(id),
+                    serializer.serialize(config), -1));
         }
-        return null;
+        return ops;
     }
 
     /**

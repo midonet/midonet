@@ -19,6 +19,7 @@ import org.midonet.api.rest_api.Topology;
 import org.midonet.api.zookeeper.StaticMockDirectory;
 import org.midonet.client.dto.DtoApplication;
 import org.midonet.client.dto.DtoLoadBalancer;
+import org.midonet.client.dto.DtoRouter;
 
 import java.net.URI;
 import java.util.UUID;
@@ -35,6 +36,7 @@ public class TestLoadBalancer {
         private DtoWebResource dtoWebResource;
         private Topology topology;
         private URI topLevelLoadBalancersUri;
+        private URI topLevelRoutersUri;
 
         public TestLoadBalancerCrud() {
             super(FuncTest.appDesc);
@@ -49,6 +51,8 @@ public class TestLoadBalancer {
 
             // URIs to use for operations
             topLevelLoadBalancersUri = app.getLoadBalancers();
+            assertNotNull(topLevelLoadBalancersUri);
+            topLevelRoutersUri = app.getRouters();
             assertNotNull(topLevelLoadBalancersUri);
         }
 
@@ -75,8 +79,17 @@ public class TestLoadBalancer {
             return loadBalancer;
         }
 
+        private DtoRouter getStockRouter() {
+            DtoRouter router = new DtoRouter();
+            router.setId(UUID.randomUUID());
+            router.setName("lb_test_router");
+            router.setTenantId("dummy_tenant");
+
+            return router;
+        }
+
         @Test
-        public void testCrud() throws Exception {
+        synchronized public void testCrud() throws Exception {
             int counter = 0;
             // LoadBalancers should be empty
             verifyNumberOfLoadBalancers(counter);
@@ -138,6 +151,35 @@ public class TestLoadBalancer {
                             newLoadBalancer2, DtoLoadBalancer.class);
             assertEquals(updatedLoadBalancer2, newLoadBalancer2);
 
+            // Check if the loadbalancer can be assigned to the router
+            DtoLoadBalancer assignedLoadBalancer = getStockLoadBalancer();
+            DtoRouter router = dtoWebResource.postAndVerifyCreated(
+                    topLevelRoutersUri,
+                    VendorMediaType.APPLICATION_ROUTER_JSON,
+                    getStockRouter(),
+                    DtoRouter.class);
+            assignedLoadBalancer.setRouterId(router.getId());
+            ClientResponse assignedLoadBalancerResponse =
+                    dtoWebResource.postAndVerifyStatus(
+                            topLevelLoadBalancersUri,
+                            VendorMediaType.APPLICATION_LOAD_BALANCER_JSON,
+                            assignedLoadBalancer,
+                            CREATED.getStatusCode());
+            URI assingedLoadBalancerUri =
+                    assignedLoadBalancerResponse.getLocation();
+            assignedLoadBalancer = dtoWebResource.getAndVerifyOk(
+                    assingedLoadBalancerUri,
+                    VendorMediaType.APPLICATION_LOAD_BALANCER_JSON,
+                    DtoLoadBalancer.class);
+            assertEquals(assignedLoadBalancer.getRouterId(), router.getId());
+            // The contrary should hold as well.
+            router = dtoWebResource.getAndVerifyOk(
+                    router.getUri(),
+                    VendorMediaType.APPLICATION_ROUTER_JSON,
+                    DtoRouter.class);
+            assertEquals(router.getId(), assignedLoadBalancer.getRouterId());
+            verifyNumberOfLoadBalancers(++counter);
+
             // DELETE all created load balancers.
             // FIXME(tfukushima): Replace the following `deleteAndVerifyStatus`
             //   with `deleteAndVerifyNoContent` when the bug is fixed.
@@ -146,6 +188,10 @@ public class TestLoadBalancer {
                     NO_CONTENT.getStatusCode());
             verifyNumberOfLoadBalancers(--counter);
             dtoWebResource.deleteAndVerifyStatus(loadBalancerUri2,
+                    VendorMediaType.APPLICATION_LOAD_BALANCER_JSON,
+                    NO_CONTENT.getStatusCode());
+            verifyNumberOfLoadBalancers(--counter);
+            dtoWebResource.deleteAndVerifyStatus(assingedLoadBalancerUri,
                     VendorMediaType.APPLICATION_LOAD_BALANCER_JSON,
                     NO_CONTENT.getStatusCode());
             verifyNumberOfLoadBalancers(--counter);
