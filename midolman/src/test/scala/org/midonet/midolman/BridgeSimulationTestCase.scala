@@ -16,6 +16,7 @@ import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
 
 import org.midonet.cache.Cache
+import org.midonet.cache.MockCache
 import org.midonet.cluster.data.ports.BridgePort
 import org.midonet.cluster.data.zones.GreTunnelZoneHost
 import org.midonet.cluster.data.{Bridge => ClusterBridge}
@@ -25,7 +26,7 @@ import org.midonet.midolman.guice.CacheModule.{TRACE_INDEX, TRACE_MESSAGES}
 import org.midonet.midolman.rules.{RuleResult, Rule, Condition}
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.topology.rcu.TraceConditions
-import org.midonet.midolman.util.{SimulationHelper, MockCache}
+import org.midonet.midolman.util.SimulationHelper
 import org.midonet.odp.flows.FlowActions
 import org.midonet.odp.flows.{FlowActionOutput, FlowKeyTunnel}
 import org.midonet.packets._

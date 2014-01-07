@@ -4,8 +4,6 @@
 
 package org.midonet.midolman.monitoring.store;
 
-import org.midonet.cassandra.CassandraClient;
-
 import java.util.List;
 import java.util.Map;
 

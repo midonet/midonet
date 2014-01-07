@@ -7,8 +7,7 @@ import com.google.inject.Key;
 import com.google.inject.Singleton;
 
 import org.midonet.cache.Cache;
-import org.midonet.midolman.util.MockCache;
-
+import org.midonet.cache.MockCache;
 
 public class MockCacheModule extends CacheModule {
 

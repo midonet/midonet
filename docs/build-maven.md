@@ -146,6 +146,11 @@ defines debian packages, it will also creates these packages.
 
 `$ mvn package -DskipTests`: same as above minus running the tests.
 
+`$ mvn package -DskipTests -PfatJar`: same as above plus the creation of "fat
+jars" including all external jar dependencies. These jars are convenient for
+integration testing and invoking main() methods directly from the command line.
+At the moment, only the midolman and cluster subproject defines such jars.
+
 `$ mvn install -DskipTests`: same as package, but in addition copies the jars
 and packages to your local $HOME/.m2/repository directory.
 

@@ -17,25 +17,25 @@ import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.midolman._
-import org.midonet.cluster.data.{Router => ClusterRouter, Bridge => ClusterBridge, Entity, Port}
+import org.midonet.cache.MockCache
 import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
+import org.midonet.cluster.data.{Router => ClusterRouter, Bridge => ClusterBridge, Entity, Port}
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
-import org.midonet.midolman.layer3.Route
-import org.midonet.midolman.PacketWorkflow.SimulationResult
 import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
+import org.midonet.midolman.PacketWorkflow.SimulationResult
+import org.midonet.midolman._
+import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.services.MessageAccumulator
-import org.midonet.midolman.topology.{VirtualToPhysicalMapper, rcu, FlowTagger, VirtualTopologyActor}
-import org.midonet.midolman.topology.rcu.PortSet
-import org.midonet.midolman.topology.VirtualTopologyActor.BridgeRequest
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.PortSetRequest
-import org.midonet.midolman.util.MockCache
-import org.midonet.odp.protos.OvsDatapathConnection
+import org.midonet.midolman.topology.VirtualTopologyActor.BridgeRequest
+import org.midonet.midolman.topology.rcu.PortSet
+import org.midonet.midolman.topology.{VirtualToPhysicalMapper, rcu, FlowTagger, VirtualTopologyActor}
 import org.midonet.odp
 import org.midonet.odp.flows.{FlowActions, FlowAction}
-import org.midonet.packets.util.PacketBuilder._
-import org.midonet.packets._
+import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.packets.ICMP.UNREACH_CODE
+import org.midonet.packets._
+import org.midonet.packets.util.PacketBuilder._
 import org.midonet.sdn.flows.WildcardMatch
 
 @RunWith(classOf[JUnitRunner])

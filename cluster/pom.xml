@@ -16,7 +16,23 @@
     <name>Midonet cluster library</name>
     <packaging>jar</packaging>
 
-    <dependencies>
-    </dependencies>
+    <profiles>
+        <profile>
+            <id>fatJar</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-assembly-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <phase>prepare-package</phase>
+                                <goals><goal>single</goal></goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
 </project>
