@@ -7,8 +7,6 @@ import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -146,29 +144,8 @@ public class TestVip {
             return vip;
         }
 
-        private static void assertPropertiesEqual(DtoVip thisVip, DtoVip thatVip) {
-            assertThat("The load_balancer_ids should be the same",
-                    thisVip.getLoadBalancerId(),
-                    equalTo(thatVip.getLoadBalancerId()));
-            assertThat("The pool_ids should be the same",
-                    thisVip.getPoolId(),
-                    equalTo(thatVip.getPoolId()));
-            assertThat("The addresses should be the same",
-                    thisVip.getAddress(),
-                    equalTo(thatVip.getAddress()));
-            assertThat("The protocol_ports should be the same",
-                    thisVip.getProtocolPort(),
-                    equalTo(thatVip.getProtocolPort()));
-            assertThat("The session_persistences should be the same",
-                    thisVip.getSessionPersistence(),
-                    equalTo(thatVip.getSessionPersistence()));
-            assertThat("The admin_state_ups should be the same",
-                    thisVip.isAdminStateUp(),
-                    equalTo(thatVip.isAdminStateUp()));
-        }
-
         @Test
-        public void testCrud() throws Exception {
+        synchronized public void testCrud() throws Exception {
             int counter = 0;
             // VIPs should be empty
             verifyNumberOfVips(counter);
@@ -217,13 +194,13 @@ public class TestVip {
                     VendorMediaType.APPLICATION_VIP_JSON, DtoVip.class);
             // It checks the id as well but they're identical because POST
             // accepts populated id and create the VIP with the id.
-            assertPropertiesEqual(vip, newVip);
+            assertEquals(newVip, vip);
 
             DtoVip newVip2 = dtoWebResource.getAndVerifyOk(vip2Uri,
                     VendorMediaType.APPLICATION_VIP_JSON, DtoVip.class);
             // It checks the id as well but they're identical because POST
             // accepts populated id and create the VIP with the id.
-            assertPropertiesEqual(vip2, newVip2);
+            assertEquals(newVip2, vip2);
 
             // PUT with the different parameters
             newVip2.setAdminStateUp(!newVip2.isAdminStateUp());
@@ -232,7 +209,7 @@ public class TestVip {
             DtoVip updatedVip2 = dtoWebResource.putAndVerifyNoContent(
                     vip2Uri, VendorMediaType.APPLICATION_VIP_JSON,
                     newVip2, DtoVip.class);
-            assertPropertiesEqual(updatedVip2, newVip2);
+            assertEquals(updatedVip2, newVip2);
 
             // DELETE all created VIPs.
             // FIXME(tfukushima): Replace the following `deleteAndVerifyStatus`
