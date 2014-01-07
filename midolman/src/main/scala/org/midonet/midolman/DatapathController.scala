@@ -3,26 +3,25 @@
  */
 package org.midonet.midolman
 
-import scala.collection.JavaConverters._
-import scala.collection.{Set => ROSet}
-import scala.collection.mutable
-import scala.concurrent.duration._
-
 import java.lang.{Boolean => JBoolean, Integer => JInteger}
 import java.net.InetAddress
 import java.nio.ByteBuffer
 import java.util.{Collection => JCollection, List => JList, Set => JSet, UUID}
+import scala.collection.JavaConverters._
+import scala.collection.mutable
+import scala.collection.{Set => ROSet}
+import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.duration._
 
 import akka.actor._
 import akka.event.LoggingAdapter
 import akka.util.Timeout
-
 import com.google.inject.Inject
 
 import org.midonet.cluster.client
 import org.midonet.cluster.data.TunnelZone
 import org.midonet.cluster.data.TunnelZone.{HostConfig => TZHostConfig}
-import org.midonet.cluster.data.zones.GreTunnelZoneHost
+import org.midonet.cluster.data.zones._
 import org.midonet.midolman.datapath._
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.host.scanner.InterfaceScanner
@@ -236,6 +235,43 @@ object DatapathController extends Referenceable {
                                         interfaces: JList[InterfaceDescription])
 
     case class _SetLocalDatapathPorts(datapath: Datapath, ports: Set[Port[_, _]])
+
+    def calculateMinMtu()(implicit sys: ActorSystem, ec: ExecutionContext)
+    : Future[Option[Short]] = {
+        implicit val timeout =  new Timeout(3 second)
+        (DatapathController ? LocalTunnelInterfaceInfo)
+            .mapTo[mutable.MultiMap[InterfaceDescription, TunnelZone.Type]]
+            .map { minMtu(_) }
+    }
+
+    /**
+     * Choose the min MTU based on all the given interface descriptions, if
+     * there are no interfaces or there is no way of figuring out, will
+     * return 1500 as default value.
+     */
+    private def minMtu(ifcTunnelList: mutable.MultiMap[InterfaceDescription,
+                                                       TunnelZone.Type]) = {
+        var minMtu: Short = 0
+        ifcTunnelList foreach {
+            case (interfaceDesc, tunnelTypeList) =>
+                tunnelTypeList foreach { tunnelType => {
+                    val overhead = tzTypeOverheads(tunnelType)
+                    val intfMtu = interfaceDesc.getMtu.toShort
+                    val tunnelMtu = (intfMtu - overhead).toShort
+                    minMtu = if (minMtu == 0) tunnelMtu
+                             else minMtu.min(tunnelMtu)
+                 }}
+            case _ => // unexpected
+        }
+        Some(if (minMtu == 0) 1500.toShort else minMtu)
+    }
+
+    // TODO: this belongs in TunnelZone
+    private val tzTypeOverheads = Map(
+        TunnelZone.Type.Gre -> GreTunnelZone.TUNNEL_OVERHEAD,
+        TunnelZone.Type.Capwap -> CapwapTunnelZone.TUNNEL_OVERHEAD,
+        TunnelZone.Type.Ipsec -> IpsecTunnelZone.TUNNEL_OVERHEAD)
+
 }
 
 

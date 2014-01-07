@@ -17,23 +17,25 @@ import akka.actor._
 import akka.event.{Logging, LoggingAdapter}
 import akka.util.Timeout
 
+import org.midonet.cluster.client.Port
 import org.midonet.cluster.DataClient
 import org.midonet.midolman.datapath.ErrorHandlingCallback
 import org.midonet.midolman.simulation.DhcpImpl
 import org.midonet.midolman.topology.FlowTagger
 import org.midonet.midolman.topology.VirtualToPhysicalMapper
+import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.rcu.PortSet
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode
 import org.midonet.netlink.{Callback => NetlinkCallback}
-import org.midonet.odp._
+import org.midonet.odp.{Packet, Datapath, Flow, FlowMatch, FlowMatches}
 import org.midonet.odp.flows.{FlowKey, FlowKeyUDP, FlowAction}
 import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.packets._
 import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPortSet
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
-import org.midonet.util.functors.Callback0
 import org.midonet.util.concurrent._
+import org.midonet.util.functors.Callback0
 
 trait PacketHandler {
 
@@ -103,6 +105,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
     import FlowController.AddWildcardFlow
     import FlowController.FlowAdded
     import VirtualToPhysicalMapper.PortSetForTunnelKeyRequest
+    import VirtualTopologyActor.PortRequest
 
     def runSimulation(wcMatch: WildcardMatch): Future[SimulationResult]
 
@@ -486,16 +489,38 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
         if (packet.getMatch.getKeys.filter(isUdpDhcpFlowKey).isEmpty)
             return Future.successful(false)
 
-        val eth = packet.getPacket
         (for {
-            ip4 <- payloadAs[IPv4](eth)
+            ip4 <- payloadAs[IPv4](packet.getPacket)
             udp <- payloadAs[UDP](ip4)
             dhcp <- payloadAs[DHCP](udp)
             if dhcp.getOpCode == DHCP.OPCODE_REQUEST
         } yield {
-            new DhcpImpl(dataClient, inPortId, dhcp, eth.getSourceMACAddress,
-                cookie).handleDHCP
+            processDhcpFuture(inPortId, dhcp)
         }) getOrElse { Future.successful(false) }
+    }
+
+    private def processDhcpFuture(inPortId: UUID, dhcp: DHCP): Future[Boolean] =
+        VirtualTopologyActor.expiringAsk(PortRequest(inPortId), log).flatMap{
+            port =>
+                DatapathController.calculateMinMtu.map {
+                    mtu =>
+                        processDhcp(port, dhcp, mtu)
+                }
+        }
+
+    private def processDhcp(inPort: Port[_], dhcp: DHCP, mtu: Option[Short]) = {
+        val srcMac = packet.getPacket.getSourceMACAddress
+        val dhcpLogger = Logging.getLogger(system, classOf[DhcpImpl])
+        DhcpImpl(dataClient, inPort, dhcp, srcMac, mtu, dhcpLogger) match {
+            case Some(dhcpReply) =>
+                log.debug(
+                    "sending DHCP reply {} to port {}", dhcpReply, inPort.id)
+                DeduplicationActor !
+                    EmitGeneratedPacket(inPort.id, dhcpReply, cookie)
+                true
+            case None =>
+                false
+        }
     }
 
     private def sendPacket(actions: List[FlowAction[_]]): Future[Boolean] = {
