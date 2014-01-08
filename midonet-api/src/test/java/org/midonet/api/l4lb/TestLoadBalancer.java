@@ -22,11 +22,13 @@ import org.midonet.client.dto.DtoLoadBalancer;
 import org.midonet.client.dto.DtoRouter;
 
 import java.net.URI;
+import java.util.Random;
 import java.util.UUID;
 
 import static javax.ws.rs.core.Response.Status.*;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertNull;
 
 @RunWith(Enclosed.class)
 public class TestLoadBalancer {
@@ -82,7 +84,7 @@ public class TestLoadBalancer {
         private DtoRouter getStockRouter() {
             DtoRouter router = new DtoRouter();
             router.setId(UUID.randomUUID());
-            router.setName("lb_test_router");
+            router.setName("lb_test_router" + new Random().nextInt());
             router.setTenantId("dummy_tenant");
 
             return router;
@@ -102,7 +104,8 @@ public class TestLoadBalancer {
                     loadBalancer,
                     CREATED.getStatusCode());
             URI loadBalancerUri = response1.getLocation();
-            verifyNumberOfLoadBalancers(++counter);
+            counter++;
+            verifyNumberOfLoadBalancers(counter);
 
             // POST another one
             DtoLoadBalancer loadBalancer2 = getStockLoadBalancer();
@@ -112,7 +115,8 @@ public class TestLoadBalancer {
                     loadBalancer2,
                     CREATED.getStatusCode());
             URI loadBalancerUri2 = response2.getLocation();
-            verifyNumberOfLoadBalancers(++counter);
+            counter++;
+            verifyNumberOfLoadBalancers(counter);
 
             // POST with the same ID as the existing resource and get 409
             // CONFLICT.
@@ -131,7 +135,7 @@ public class TestLoadBalancer {
             // It checks the id as well but they're identical because POST
             // accepts popoulated id and create the load balancer with the id.
             assertEquals(loadBalancer, newLoadBalancer);
-            DtoLoadBalancer newLoadBalancer2  =  dtoWebResource.getAndVerifyOk(
+            DtoLoadBalancer newLoadBalancer2 = dtoWebResource.getAndVerifyOk(
                     loadBalancerUri2,
                     VendorMediaType.APPLICATION_LOAD_BALANCER_JSON,
                     DtoLoadBalancer.class);
@@ -158,27 +162,36 @@ public class TestLoadBalancer {
                     VendorMediaType.APPLICATION_ROUTER_JSON,
                     getStockRouter(),
                     DtoRouter.class);
-            assignedLoadBalancer.setRouterId(router.getId());
-            ClientResponse assignedLoadBalancerResponse =
-                    dtoWebResource.postAndVerifyStatus(
-                            topLevelLoadBalancersUri,
-                            VendorMediaType.APPLICATION_LOAD_BALANCER_JSON,
-                            assignedLoadBalancer,
-                            CREATED.getStatusCode());
-            URI assingedLoadBalancerUri =
-                    assignedLoadBalancerResponse.getLocation();
+            assignedLoadBalancer = dtoWebResource.postAndVerifyCreated(
+                    topLevelLoadBalancersUri,
+                    VendorMediaType.APPLICATION_LOAD_BALANCER_JSON,
+                    assignedLoadBalancer, DtoLoadBalancer.class);
+            router.setLoadBalancerId(assignedLoadBalancer.getId());
+            // We need to use v2 for the load balancer assignments.
+            router = dtoWebResource.putAndVerifyNoContent(router.getUri(),
+                    VendorMediaType.APPLICATION_ROUTER_JSON_V2,
+                    router,
+                    DtoRouter.class);
             assignedLoadBalancer = dtoWebResource.getAndVerifyOk(
-                    assingedLoadBalancerUri,
+                    assignedLoadBalancer.getUri(),
                     VendorMediaType.APPLICATION_LOAD_BALANCER_JSON,
                     DtoLoadBalancer.class);
             assertEquals(assignedLoadBalancer.getRouterId(), router.getId());
-            // The contrary should hold as well.
-            router = dtoWebResource.getAndVerifyOk(
-                    router.getUri(),
-                    VendorMediaType.APPLICATION_ROUTER_JSON,
-                    DtoRouter.class);
             assertEquals(router.getId(), assignedLoadBalancer.getRouterId());
-            verifyNumberOfLoadBalancers(++counter);
+            counter++;
+            verifyNumberOfLoadBalancers(counter);
+
+            // The load balancers can't assign themselves to the different
+            // router
+            DtoRouter anotherRouter = dtoWebResource.postAndVerifyCreated(
+                    topLevelRoutersUri,
+                    VendorMediaType.APPLICATION_ROUTER_JSON,
+                    getStockRouter(),
+                    DtoRouter.class);
+            assignedLoadBalancer.setRouterId(anotherRouter.getId());
+            dtoWebResource.putAndVerifyBadRequest(assignedLoadBalancer.getUri(),
+                    VendorMediaType.APPLICATION_LOAD_BALANCER_JSON,
+                    assignedLoadBalancer);
 
             // DELETE all created load balancers.
             // FIXME(tfukushima): Replace the following `deleteAndVerifyStatus`
@@ -186,15 +199,24 @@ public class TestLoadBalancer {
             dtoWebResource.deleteAndVerifyStatus(loadBalancerUri,
                     VendorMediaType.APPLICATION_LOAD_BALANCER_JSON,
                     NO_CONTENT.getStatusCode());
-            verifyNumberOfLoadBalancers(--counter);
+            counter--;
+            verifyNumberOfLoadBalancers(counter);
             dtoWebResource.deleteAndVerifyStatus(loadBalancerUri2,
                     VendorMediaType.APPLICATION_LOAD_BALANCER_JSON,
                     NO_CONTENT.getStatusCode());
-            verifyNumberOfLoadBalancers(--counter);
-            dtoWebResource.deleteAndVerifyStatus(assingedLoadBalancerUri,
+            counter--;
+            verifyNumberOfLoadBalancers(counter);
+            dtoWebResource.deleteAndVerifyStatus(assignedLoadBalancer.getUri(),
                     VendorMediaType.APPLICATION_LOAD_BALANCER_JSON,
                     NO_CONTENT.getStatusCode());
-            verifyNumberOfLoadBalancers(--counter);
+            counter--;
+            verifyNumberOfLoadBalancers(counter);
+
+            anotherRouter = dtoWebResource.getAndVerifyOk(
+                    anotherRouter.getUri(),
+                    VendorMediaType.APPLICATION_ROUTER_JSON_V2,
+                    DtoRouter.class);
+            assertNull(anotherRouter.getLoadBalancer());
         }
     }
 }

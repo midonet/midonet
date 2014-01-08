@@ -22,13 +22,14 @@ import org.midonet.cluster.data.host.Interface;
 import org.midonet.cluster.data.host.VirtualPortMapping;
 import org.midonet.cluster.data.l4lb.HealthMonitor;
 import org.midonet.cluster.data.l4lb.LoadBalancer;
-import org.midonet.cluster.data.l4lb.PoolMember;
 import org.midonet.cluster.data.l4lb.Pool;
+import org.midonet.cluster.data.l4lb.PoolMember;
 import org.midonet.cluster.data.l4lb.VIP;
 import org.midonet.cluster.data.ports.BridgePort;
 import org.midonet.cluster.data.ports.VlanMacPort;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.DirectoryCallback;
+import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv6Subnet;
@@ -291,10 +292,12 @@ public interface DataClient {
         throws StateAccessException, SerializationException;
 
     UUID loadBalancerCreate(@Nonnull LoadBalancer loadBalancer)
-        throws StateAccessException, SerializationException;
+            throws StateAccessException, SerializationException,
+            InvalidStateOperationException;
 
     void loadBalancerUpdate(@Nonnull LoadBalancer loadBalancer)
-        throws StateAccessException, SerializationException;
+            throws StateAccessException, SerializationException,
+            InvalidStateOperationException;
 
     List<LoadBalancer> loadBalancersGetAll()
             throws StateAccessException, SerializationException;

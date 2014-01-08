@@ -68,6 +68,7 @@ import org.midonet.midolman.rules.RuleList;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.DirectoryCallback;
+import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.Ip4ToMacReplicatedMap;
 import org.midonet.midolman.state.MacPortMap;
 import org.midonet.midolman.state.PathBuilder;
@@ -1719,7 +1720,8 @@ public class LocalDataClientImpl implements DataClient {
 
     @Override
     public UUID loadBalancerCreate(@Nonnull LoadBalancer loadBalancer)
-            throws StateAccessException, SerializationException {
+            throws StateAccessException, SerializationException,
+            InvalidStateOperationException {
         if (loadBalancer.getId() == null) {
             loadBalancer.setId(UUID.randomUUID());
         }
@@ -1734,7 +1736,8 @@ public class LocalDataClientImpl implements DataClient {
 
     @Override
     public void loadBalancerUpdate(@Nonnull LoadBalancer loadBalancer)
-            throws StateAccessException, SerializationException {
+            throws StateAccessException, SerializationException,
+            InvalidStateOperationException {
         LoadBalancerZkManager.LoadBalancerConfig loadBalancerConfig =
                 Converter.toLoadBalancerConfig(loadBalancer);
         loadBalancerZkManager.update(loadBalancer.getId(),

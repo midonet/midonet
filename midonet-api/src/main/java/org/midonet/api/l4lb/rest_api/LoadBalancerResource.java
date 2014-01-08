@@ -12,6 +12,7 @@ import org.midonet.api.VendorMediaType;
 import org.midonet.api.auth.AuthRole;
 import org.midonet.api.l4lb.LoadBalancer;
 import org.midonet.api.rest_api.AbstractResource;
+import org.midonet.api.rest_api.BadRequestHttpException;
 import org.midonet.api.rest_api.ConflictHttpException;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
@@ -150,6 +151,14 @@ public class LoadBalancerResource extends AbstractResource {
     public Response create(LoadBalancer loadBalancer)
             throws StateAccessException, InvalidStateOperationException,
             SerializationException, ConflictHttpException {
+
+        // Router ID can be modified only indirectly, by modifying the
+        // router to set its load balancer ID.
+        if (loadBalancer.getRouterId() != null) {
+            throw new BadRequestHttpException(
+                getMessage(MessageProperty.ROUTER_ID_IS_INVALID_IN_LB));
+        }
+
         try {
             UUID id = dataClient.loadBalancerCreate(loadBalancer.toData());
             return Response.created(
@@ -179,7 +188,13 @@ public class LoadBalancerResource extends AbstractResource {
             throws StateAccessException, InvalidStateOperationException,
             SerializationException {
         loadBalancer.setId(id);
-        dataClient.loadBalancerUpdate(loadBalancer.toData());
+        try {
+            dataClient.loadBalancerUpdate(loadBalancer.toData());
+        } catch (InvalidStateOperationException ex) {
+            throw new BadRequestHttpException(
+                    getMessage(MessageProperty.ROUTER_ID_IS_INVALID_IN_LB));
+
+        }
     }
 
 }
