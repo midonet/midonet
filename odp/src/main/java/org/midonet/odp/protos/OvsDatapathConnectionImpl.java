@@ -1,6 +1,6 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.odp.protos;
 
 import java.nio.ByteBuffer;
@@ -173,17 +173,13 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         NetlinkMessage message = newMessage().addValue(0).build();
 
-        RequestBuilder<DatapathFamily.Cmd,
-                       DatapathFamily,
-                       Set<Datapath>> reqBuilder =
-                           newRequest(datapathFamily, DatapathFamily.Cmd.GET);
-        reqBuilder
-            .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO,
-                       Flag.NLM_F_DUMP)
-            .withPayload(message.getBuffer())
-            .withCallback(callback, Datapath.setDeserializer)
-            .withTimeout(timeoutMillis)
-            .send();
+        sendNetlinkMessage(
+            datapathFamily.contextGet,
+            Flag.or(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO, Flag.NLM_F_DUMP),
+            message.getBuffer(),
+            callback,
+            Datapath.setDeserializer,
+            timeoutMillis);
 
     }
 
@@ -203,16 +199,13 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                 .addAttr(DatapathFamily.Attr.NAME, name)
                 .build();
 
-        RequestBuilder<DatapathFamily.Cmd,
-                       DatapathFamily,
-                       Datapath> reqBuilder =
-                           newRequest(datapathFamily, DatapathFamily.Cmd.NEW);
-        reqBuilder
-            .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
-            .withPayload(message.getBuffer())
-            .withCallback(callback, Datapath.deserializer)
-            .withTimeout(timeoutMillis)
-            .send();
+        sendNetlinkMessage(
+            datapathFamily.contextNew,
+            Flag.or(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO),
+            message.getBuffer(),
+            callback,
+            Datapath.deserializer,
+            timeoutMillis);
 
     }
 
@@ -239,18 +232,14 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         NetlinkMessage message = builder.build();
 
-        RequestBuilder<DatapathFamily.Cmd,
-                       DatapathFamily,
-                       Datapath> reqBuilder =
-                           newRequest(datapathFamily, DatapathFamily.Cmd.DEL);
-        reqBuilder
-            .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
-            .withPayload(message.getBuffer())
-            .withCallback(callback, Datapath.deserializer)
-            .withTimeout(timeoutMillis)
-            .send();
+        sendNetlinkMessage(
+            datapathFamily.contextDel,
+            Flag.or(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO),
+            message.getBuffer(),
+            callback,
+            Datapath.deserializer,
+            timeoutMillis);
     }
-
 
     @Override
     protected void _doPortsGet(final @Nullable String name,
