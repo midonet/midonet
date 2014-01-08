@@ -45,6 +45,8 @@ public class MessageProperty {
             "{midokura.javarx.ResourceNotFound.message}";
     public static final String RESOURCE_NOT_FOUND =
             "{midokura.javarx.ResourceNotFound.message}";
+    public static final String ROUTER_ID_IS_INVALID_IN_LB =
+            "{midokrua.javarx.RouterIdIsInvalidInLoadBalancer.message}";
     public static final String ROUTE_NEXT_HOP_PORT_NOT_NULL =
             "{midokura.javarx.RouteNextHopPortValid.message}";
     public static final String ROUTER_ID_IS_INVALID =
@@ -52,7 +54,7 @@ public class MessageProperty {
     public static final String TUNNEL_ZONE_ID_IS_INVALID =
             "{midokura.javarx.TunnelZoneIdIsInvalid.message}";
     public static final String UNIQUE_TUNNEL_ZONE_NAME_TYPE =
-        "{midokura.javarx.TunnelZoneNameExists.message}";
+            "{midokura.javarx.TunnelZoneNameExists.message}";
     public static final String TUNNEL_ZONE_MEMBER_EXISTS =
             "{midokura.javarx.TunnelZoneMemberExists.message}";
     public static final String VLAN_ID_MATCHES_PORT_VLAN_ID =

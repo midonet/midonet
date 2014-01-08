@@ -7,11 +7,19 @@ package org.midonet.midolman.state.zkManagers;
 import com.google.common.base.Objects;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
-import org.midonet.midolman.state.*;
+import org.midonet.midolman.state.AbstractZkManager;
+import org.midonet.midolman.state.Directory;
+import org.midonet.midolman.state.InvalidStateOperationException;
+import org.midonet.midolman.state.PathBuilder;
+import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.state.ZkManager;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.UUID;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Class to manage the LoadBalancer ZooKeeper data.
@@ -84,15 +92,23 @@ public class LoadBalancerZkManager extends AbstractZkManager {
     }
 
     public void create(UUID id, LoadBalancerConfig config)
-            throws  StateAccessException, SerializationException {
-        zk.addPersistent(paths.getLoadBalancerPath(id),
+            throws StateAccessException, SerializationException,
+            InvalidStateOperationException {
+        UUID loadBalancerId = checkNotNull(id, "The load balancer ID is null");
+        zk.addPersistent(paths.getLoadBalancerPath(loadBalancerId),
                 serializer.serialize(config));
     }
 
     public void update(UUID id , LoadBalancerConfig config)
-            throws StateAccessException, SerializationException {
+            throws StateAccessException, SerializationException,
+            InvalidStateOperationException {
         LoadBalancerConfig oldConfig = get(id);
-        if (!oldConfig.equals(config)) {
+        // If `routerId` is modified, it throws the exception. The
+        // load balancers should be assigned only from the router side.
+        if (!Objects.equal(oldConfig.routerId, config.routerId)) {
+            throw new InvalidStateOperationException("The router ID cannot " +
+                    "be modified from the load balancer side.");
+        } else if (!oldConfig.equals(config)) {
             zk.update(paths.getLoadBalancerPath(id),
                     serializer.serialize(config));
         }
