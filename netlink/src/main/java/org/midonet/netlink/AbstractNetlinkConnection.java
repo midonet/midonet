@@ -186,6 +186,14 @@ public abstract class AbstractNetlinkConnection {
         }
     }
 
+    public static Function<List<ByteBuffer>, Boolean> alwaysTrueTranslator =
+        new Function<List<ByteBuffer>, Boolean>() {
+            @Override
+            public Boolean apply(List<ByteBuffer> input) {
+                return Boolean.TRUE;
+            }
+        };
+
     private <T> void sendNetLinkMessage(short cmdFamily, byte cmd, short flags,
                                     byte version, ByteBuffer payload,
                                     Callback<T> callback,

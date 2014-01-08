@@ -11,7 +11,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import static java.lang.String.format;
 
-import com.google.common.base.Function;
 import com.google.common.util.concurrent.ValueFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -620,14 +619,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         reqBuilder
             .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ACK)
             .withPayload(message.getBuffer())
-            .withCallback(
-                callback,
-                new Function<List<ByteBuffer>, Boolean>() {
-                    @Override
-                    public Boolean apply(@Nullable List<ByteBuffer> input) {
-                        return Boolean.TRUE;
-                    }
-                })
+            .withCallback(callback, alwaysTrueTranslator)
             .withTimeout(timeoutMillis)
             .send();
     }
@@ -779,15 +771,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         reqBuilder
             .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO, Flag.NLM_F_ACK)
             .withPayload(message.getBuffer())
-            .withCallback(
-                callback,
-                new Function<List<ByteBuffer>, Boolean>() {
-                    @Override
-                    public Boolean apply(@Nullable List<ByteBuffer> input) {
-                        return true;
-                    }
-                }
-            )
+            .withCallback(callback, alwaysTrueTranslator)
             .withTimeout(timeoutMillis)
             .send();
     }
