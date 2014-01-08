@@ -2,38 +2,40 @@
 
 package org.midonet.midolman
 
-import java.util.concurrent.{ConcurrentHashMap => ConcHashMap, TimeUnit}
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.{ConcurrentHashMap => ConcHashMap}
 import java.util.{Set => JSet, Map => JMap}
 import javax.inject.Inject
-
 import scala.annotation.tailrec
 import scala.collection.JavaConversions._
-import scala.collection.{Set => ROSet, mutable}
 import scala.collection.mutable.{HashMap, MultiMap}
+import scala.collection.{Set => ROSet, mutable}
 import scala.concurrent.ExecutionContext
-import scala.concurrent.duration._
 import scala.concurrent.duration.Duration
+import scala.concurrent.duration._
 
 import akka.actor._
 import akka.event.LoggingReceive
-
 import com.yammer.metrics.core.{Gauge, MetricsRegistry}
 
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.ErrorHandlingCallback
 import org.midonet.midolman.flows.WildcardTablesProvider
 import org.midonet.midolman.logging.ActorLogWithoutPath
-import org.midonet.midolman.monitoring.metrics.FlowTablesMeter
 import org.midonet.midolman.monitoring.metrics.FlowTablesGauge
-import org.midonet.netlink.{Callback => NetlinkCallback}
+import org.midonet.midolman.monitoring.metrics.FlowTablesMeter
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode
-import org.midonet.odp.{Datapath, Flow, FlowMatch}
+import org.midonet.netlink.{Callback => NetlinkCallback}
 import org.midonet.odp.protos.OvsDatapathConnection
-import org.midonet.util.functors.{Callback0, Callback1}
-import org.midonet.sdn.flows.{FlowManagerHelper, ManagedWildcardFlow,
-                              WildcardMatch, FlowManager, WildcardFlow}
+import org.midonet.odp.{Datapath, Flow, FlowMatch}
+import org.midonet.sdn.flows.FlowManager
+import org.midonet.sdn.flows.FlowManagerHelper
+import org.midonet.sdn.flows.ManagedWildcardFlow
+import org.midonet.sdn.flows.WildcardFlow
+import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.util.collection.{ArrayObjectPool, ObjectPool}
+import org.midonet.util.functors.{Callback0, Callback1}
 
 // TODO(guillermo) - move to a scala util pkg in midonet-util
 sealed trait EventSearchResult
@@ -93,19 +95,31 @@ object FlowController extends Referenceable {
                                tags: ROSet[Any],
                                lastInvalidation: Long = 0)
 
-    case class FlowAdded(flow: Flow)
-
     case class RemoveWildcardFlow(wMatch: WildcardMatch)
-
-    case class InvalidateFlowsByTag(tag: Any)
-
-    case class CheckFlowExpiration()
 
     case class WildcardFlowAdded(f: WildcardFlow)
 
     case class WildcardFlowRemoved(f: WildcardFlow)
 
-    case class FlowUpdateCompleted(flow: Flow)
+    case class InvalidateFlowsByTag(tag: Any)
+
+    case class FlowAdded(flow: Flow)
+
+    case class FlowUpdateCompleted(flow: Flow) // used in test only
+
+    object Internal {
+
+      case object CheckFlowExpiration
+
+      case class FlowRemoved(flow: Flow)
+
+      case class FlowMissing(flowMatch: FlowMatch, flowCallback: Callback1[Flow])
+
+      case class GetFlowSucceeded(flow: Flow, flowCallback: Callback1[Flow])
+
+      case class GetFlowFailed(flowCallback: Callback1[Flow])
+
+    }
 
     val MIN_WILDCARD_FLOW_CAPACITY = 4096
 
@@ -193,6 +207,8 @@ object FlowController extends Referenceable {
 class FlowController extends Actor with ActorLogWithoutPath {
 
     import FlowController._
+    import FlowController.Internal._
+    import DatapathController.DatapathReady
 
     var datapath: Datapath = null
 
@@ -246,7 +262,7 @@ class FlowController extends Actor with ActorLogWithoutPath {
     }
 
     def receive = LoggingReceive {
-        case DatapathController.DatapathReady(dp, dpState) =>
+        case DatapathReady(dp, dpState) =>
             if (null == datapath) {
                 datapath = dp
                 // schedule next check for flow expiration after 20 ms and then after
@@ -254,7 +270,7 @@ class FlowController extends Actor with ActorLogWithoutPath {
                 context.system.scheduler.schedule(20 millis,
                     flowExpirationCheckInterval,
                     self,
-                    CheckFlowExpiration())
+                    CheckFlowExpiration)
             }
 
         case AddWildcardFlow(wildFlow, flowOption, callbacks, tags, lastInval) =>
@@ -319,18 +335,18 @@ class FlowController extends Actor with ActorLogWithoutPath {
             }
             metrics.currentDpFlows = flowManager.getNumDpFlows
 
-        case CheckFlowExpiration() =>
+        case CheckFlowExpiration =>
             flowManager.checkFlowsExpiration()
             metrics.currentDpFlows = flowManager.getNumDpFlows
 
-        case getFlowSucceded(flow, callback) =>
+        case GetFlowSucceeded(flow, callback) =>
             log.debug("DP confirmed that flow was updated: {}", flow)
-            context.system.eventStream.publish(new FlowUpdateCompleted(flow))
+            context.system.eventStream.publish(FlowUpdateCompleted(flow))
             callback.call(flow)
 
-        case getFlowOnError(callback) => callback.call(null)
+        case GetFlowFailed(callback) => callback.call(null)
 
-        case flowMissing(flowMatch, callback) =>
+        case FlowMissing(flowMatch, callback) =>
             callback.call(null)
             Option(flowManager.getActionsForDpFlow(flowMatch)).foreach {
                 case actions =>
@@ -345,17 +361,12 @@ class FlowController extends Actor with ActorLogWithoutPath {
             }
             metrics.currentDpFlows = flowManager.getNumDpFlows
 
-        case flowRemoved(flow) =>
+        case FlowRemoved(flow) =>
             log.debug("DP confirmed that flow was removed: {}", flow)
             flowManager.removeFlowCompleted(flow)
             metrics.currentDpFlows = flowManager.getNumDpFlows
 
     }
-
-    case class flowMissing(flowMatch: FlowMatch, flowCallback: Callback1[Flow])
-    case class getFlowSucceded(flow: Flow, flowCallback: Callback1[Flow])
-    case class getFlowOnError(flowCallback: Callback1[Flow])
-    case class flowRemoved(flow: Flow)
 
     private def removeWildcardFlow(wildFlow: ManagedWildcardFlow) {
         @tailrec
@@ -448,7 +459,7 @@ class FlowController extends Actor with ActorLogWithoutPath {
 
             if (flow.getMatch.isUserSpaceOnly) {
                 // the DP doesn't need to remove userspace-only flows
-                self ! flowRemoved(flow)
+                self ! FlowRemoved(flow)
                 return
             }
 
@@ -482,7 +493,7 @@ class FlowController extends Actor with ActorLogWithoutPath {
                     }
 
                     def onSuccess(data: Flow) {
-                        self ! flowRemoved(data)
+                        self ! FlowRemoved(data)
                     }
                 })
         }
@@ -503,21 +514,21 @@ class FlowController extends Actor with ActorLogWithoutPath {
 
                     def handleError(ex: NetlinkException, timeout: Boolean) {
                         if (ex != null && ex.getErrorCodeEnum == ErrorCode.ENOENT) {
-                            self ! flowMissing(flowMatch, flowCallback)
+                            self ! FlowMissing(flowMatch, flowCallback)
                         } else {
                             log.error("Got an exception {} or timeout {} when " +
                                 "trying to flowsGet() for flow match {}",
                                 ex, timeout, flowMatch)
-                            self ! getFlowOnError(flowCallback)
+                            self ! GetFlowFailed(flowCallback)
                         }
                     }
 
                     def onSuccess(data: Flow) {
                         self ! (if (data != null) {
-                            getFlowSucceded(data, flowCallback)
+                            GetFlowSucceeded(data, flowCallback)
                         } else {
                             log.warning("Unexpected getFlow() result: success, but a null flow")
-                            flowMissing(flowMatch, flowCallback)
+                            FlowMissing(flowMatch, flowCallback)
                         })
                     }
                 })

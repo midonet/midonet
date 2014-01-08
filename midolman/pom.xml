@@ -300,6 +300,13 @@
                 <configuration>
                     <instrumentation>
                     <excludes>
+                        <exclude>**/FlowController$Wildcard*</exclude>
+                        <exclude>**/FlowController$Add*</exclude>
+                        <exclude>**/FlowController$Remove*</exclude>
+                        <exclude>**/FlowController$Invalidate*</exclude>
+                        <exclude>**/FlowController$FlowAdded*</exclude>
+                        <exclude>**/FlowController$Internal$*</exclude>
+
                         <exclude>**/DatapathController$DpPort*</exclude>
                         <exclude>**/DatapathController$Init*</exclude>
                         <exclude>**/DatapathController$Datapath*</exclude>
