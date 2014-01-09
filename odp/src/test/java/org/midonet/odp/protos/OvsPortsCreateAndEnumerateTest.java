@@ -79,9 +79,6 @@ public class OvsPortsCreateAndEnumerateTest extends AbstractNetlinkProtocolTest 
 
         log.info("Creating an gre tunnel port.");
         GreTunnelPort tunGrePort = Ports.newGreTunnelPort("tunGrePort");
-        tunGrePort.setOptions(
-            Ports.newPortOptions(
-                tunGrePort, IPv4Addr.stringToInt("192.168.100.1")));
         futPort = connection.portsCreate(datapath, tunGrePort);
         exchangeMessage(); // 10th byte msg
         expectedPort = expectedGreTunnelPort();
@@ -105,7 +102,6 @@ public class OvsPortsCreateAndEnumerateTest extends AbstractNetlinkProtocolTest 
         InternalPort port = Ports.newInternalPort("internalPort").setPortNo(1);
 
         port.setStats(new Port.Stats());
-        port.setOptions(port.newOptions());
 
         return port;
     }
@@ -114,7 +110,6 @@ public class OvsPortsCreateAndEnumerateTest extends AbstractNetlinkProtocolTest 
         NetDevPort port = Ports.newNetDevPort("netdevPort").setPortNo(2);
 
         port.setStats(new Port.Stats());
-        port.setOptions(port.newOptions());
 
         return port;
     }
@@ -126,9 +121,6 @@ public class OvsPortsCreateAndEnumerateTest extends AbstractNetlinkProtocolTest 
         tunGrePort.setStats(new Port.Stats());
 
         // this is necessary to match the hardcoded byte msg from netlink
-        tunGrePort.setOptions(
-            Ports.newPortOptions(
-                tunGrePort, IPv4Addr.stringToInt("192.168.100.1")));
 
         return tunGrePort;
     }

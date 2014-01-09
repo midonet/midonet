@@ -77,7 +77,6 @@ public class OvsPortsGetTest extends AbstractNetlinkProtocolTest {
         InternalPort port = Ports.newInternalPort("test-ports").setPortNo(0);
 
         port.setStats(new Port.Stats());
-        port.setOptions(port.newOptions());
 
         return port;
     }
@@ -88,7 +87,6 @@ public class OvsPortsGetTest extends AbstractNetlinkProtocolTest {
                  .setPortNo(1);
 
         port.setStats(new Port.Stats());
-        port.setOptions(port.newOptions());
 
         return port;
     }
@@ -99,7 +97,6 @@ public class OvsPortsGetTest extends AbstractNetlinkProtocolTest {
                  .setPortNo(2);
 
         port.setStats(new Port.Stats());
-        port.setOptions(Ports.newPortOptions(port));
 
         return port;
     }
@@ -110,10 +107,6 @@ public class OvsPortsGetTest extends AbstractNetlinkProtocolTest {
                  .setPortNo(4);
 
         tunGrePort.setStats(new Port.Stats());
-        tunGrePort.setOptions(
-            Ports.newPortOptions(
-                tunGrePort, IPv4Addr.stringToInt("192.168.100.1"))
-        );
 
         return tunGrePort;
     }
