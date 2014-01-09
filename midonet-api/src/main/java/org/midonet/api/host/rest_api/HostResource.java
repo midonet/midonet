@@ -117,11 +117,22 @@ public class HostResource extends AbstractResource {
     public Response delete(@PathParam("id") UUID id)
             throws StateAccessException {
 
-        try {
-            dataClient.hostsDelete(id);
-        } catch (StateAccessException e) {
-            throw new ForbiddenHttpException();
+        if (dataClient.hostsIsAlive(id)) {
+            throw new ForbiddenHttpException("Midolman Agent is still"
+                    + " active on this host. You must remove all port "
+                    + "bindings on this host and shutdown midolman before"
+                    + " deleting this host.");
         }
+
+        if (dataClient.hostsHasPortBindings(id)) {
+            throw new ForbiddenHttpException("Port bindings still"
+                    + " exist on this host. You must remove all port "
+                    + "bindings on this host and shutdown midolman before"
+                    + " deleting this host.");
+        }
+
+        dataClient.hostsDelete(id);
+
         return Response.noContent().build();
 
     }

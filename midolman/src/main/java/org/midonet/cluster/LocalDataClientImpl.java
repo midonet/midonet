@@ -1094,6 +1094,12 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
+    public boolean hostsHasPortBindings(UUID hostId)
+            throws StateAccessException {
+        return hostZkManager.hasPortBindings(hostId);
+    }
+
+    @Override
     public List<Host> hostsGetAll()
             throws StateAccessException, SerializationException {
         Collection<UUID> ids = hostZkManager.getHostIds();
