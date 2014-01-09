@@ -244,6 +244,8 @@
                     <arguments>
                         <argument>java</argument>
                         <argument>${javalib}</argument>
+                        <argument>-Xdebug</argument>
+                        <argument>-Xrunjdwp:transport=dt_socket,address=4000,server=y,suspend=n</argument>
                         <argument>${bootstrap}</argument>
                         <argument>-cp</argument>
                         <classpath />
