@@ -17,11 +17,6 @@ public class InternalPort extends Port<InternalPortOptions, InternalPort> {
     }
 
     @Override
-    public InternalPortOptions newOptions() {
-        return new InternalPortOptions();
-    }
-
-    @Override
     protected InternalPort self() {
         return this;
     }

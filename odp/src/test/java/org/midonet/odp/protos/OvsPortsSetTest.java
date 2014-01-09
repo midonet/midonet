@@ -68,7 +68,6 @@ public class OvsPortsSetTest extends AbstractNetlinkProtocolTest {
         InternalPort port = Ports.newInternalPort("internalPort").setPortNo(1);
 
         port.setStats(new Port.Stats());
-        port.setOptions(port.newOptions());
 
         return port;
     }
