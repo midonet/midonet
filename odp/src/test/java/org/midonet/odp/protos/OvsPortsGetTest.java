@@ -74,40 +74,30 @@ public class OvsPortsGetTest extends AbstractNetlinkProtocolTest {
     }
 
     private Port expectedLocalPort() {
-        InternalPort port = Ports.newInternalPort("test-ports").setPortNo(0);
-
+        InternalPort port = Ports.newInternalPort("test-ports");
+        port.setPortNo(0);
         port.setStats(new Port.Stats());
-
         return port;
     }
 
     private Port expectedInternalPort() {
-        InternalPort port =
-            Ports.newInternalPort("internalPort")
-                 .setPortNo(1);
-
+        InternalPort port = Ports.newInternalPort("internalPort");
+        port.setPortNo(1);
         port.setStats(new Port.Stats());
-
         return port;
     }
 
     private Port<?, ?> expectedNetdevPort() {
-        NetDevPort port =
-            Ports.newNetDevPort("netdevPort")
-                 .setPortNo(2);
-
+        NetDevPort port = Ports.newNetDevPort("netdevPort");
+        port.setPortNo(2);
         port.setStats(new Port.Stats());
-
         return port;
     }
 
     private Port expectedGrePort() {
-        GreTunnelPort tunGrePort =
-            Ports.newGreTunnelPort("grePort")
-                 .setPortNo(4);
-
+        GreTunnelPort tunGrePort = Ports.newGreTunnelPort("grePort");
+        tunGrePort.setPortNo(4);
         tunGrePort.setStats(new Port.Stats());
-
         return tunGrePort;
     }
 

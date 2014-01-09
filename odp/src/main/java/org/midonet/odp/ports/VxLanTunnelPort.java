@@ -26,11 +26,6 @@ public class VxLanTunnelPort extends Port<VxLanTunnelPortOptions, VxLanTunnelPor
     }
 
     @Override
-    protected VxLanTunnelPort self() {
-        return this;
-    }
-
-    @Override
     public void serializeInto(Builder builder) {
         super.serializeInto(builder);
         builder.addAttr(PortFamily.Attr.OPTIONS, options);
@@ -42,12 +37,9 @@ public class VxLanTunnelPort extends Port<VxLanTunnelPortOptions, VxLanTunnelPor
     }
 
     @Override
-    public VxLanTunnelPort setOptionsFrom(NetlinkMessage msg) {
+    public void setOptionsFrom(NetlinkMessage msg) {
         VxLanTunnelPortOptions newOpts = new VxLanTunnelPortOptions();
-        this.options =
-            (VxLanTunnelPortOptions)
-                msg.getAttrValue(PortFamily.Attr.OPTIONS, newOpts);
-        return self();
+        this.options = msg.getAttrValue(PortFamily.Attr.OPTIONS, newOpts);
     }
 
     /** returns a new VxLanTunnelPort instance with default options */

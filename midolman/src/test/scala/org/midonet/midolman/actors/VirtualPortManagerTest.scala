@@ -53,7 +53,10 @@ class VirtualPortManagerTest extends FeatureSpec with Matchers {
   val itfsInfo = itfs.map{ new InterfaceDescription(_) }
   val portNo = List[java.lang.Integer](1,2,3)
   val dpPorts = itfs.zip(portNo).map {
-    case (itf, no) => new NetDevPort(itf).setPortNo(no)
+    case (itf, no) =>
+      val dpport = new NetDevPort(itf)
+      dpport.setPortNo(no)
+      dpport
   }
 
   val bindings = (itfs, dpPorts zip portNo, ids zip itfsInfo).zipped.toList

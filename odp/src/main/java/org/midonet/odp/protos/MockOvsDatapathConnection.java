@@ -121,10 +121,8 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
     }
 
     protected InternalPort makeDatapathPort(Datapath datapath) {
-        InternalPort port =
-            Ports.newInternalPort(datapath.getName())
-                 .setPortNo(0);
-
+        InternalPort port = Ports.newInternalPort(datapath.getName());
+        port.setPortNo(0);
         port.setStats(new Port.Stats());
 
         return port;
@@ -188,9 +186,8 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
     }
 
     private Port<?, ?> fixupPort(Datapath datapath, Port<?, ?> port) {
-        port.setStats(new Port.Stats())
-            .setPortNo(portsIndexes.get(datapath).incrementAndGet());
-
+        port.setStats(new Port.Stats());
+        port.setPortNo(portsIndexes.get(datapath).incrementAndGet());
         return port;
     }
 
