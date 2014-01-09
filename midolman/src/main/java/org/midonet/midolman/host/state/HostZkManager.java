@@ -188,6 +188,13 @@ public class HostZkManager extends AbstractZkManager {
         return zk.exists(paths.getHostPath(id));
     }
 
+    public boolean hasPortBindings(UUID id) throws StateAccessException {
+        Set<String> portChildren =
+            zk.getChildren(paths.getHostVrnPortMappingsPath(id));
+
+        return !portChildren.isEmpty();
+    }
+
     public void deleteHost(UUID id) throws StateAccessException {
         String hostEntryPath = paths.getHostPath(id);
 
@@ -208,9 +215,16 @@ public class HostZkManager extends AbstractZkManager {
             delMulti.add(zk.getDeleteOp(paths.getHostInterfacesPath(id)));
         }
 
+        if (zk.exists(paths.getHostVrnPortMappingsPath(id))) {
+            delMulti.add(zk.getDeleteOp(paths.getHostVrnPortMappingsPath(id)));
+        }
+
+        if (zk.exists(paths.getHostVrnDatapathMappingPath(id))) {
+            delMulti.add(zk.getDeleteOp(paths.getHostVrnDatapathMappingPath(id)));
+        }
+
         if (zk.exists(paths.getHostVrnMappingsPath(id))) {
-            delMulti.addAll(zk.getRecursiveDeleteOps(
-                    paths.getHostVrnMappingsPath(id)));
+            delMulti.add(zk.getDeleteOp(paths.getHostVrnMappingsPath(id)));
         }
 
         Set<UUID> tunnelZones = getTunnelZoneIds(id, null);
