@@ -306,6 +306,8 @@ public interface DataClient {
 
     boolean hostsIsAlive(UUID hostId) throws StateAccessException;
 
+    boolean hostsHasPortBindings(UUID hostId) throws StateAccessException;
+
     List<Host> hostsGetAll()
             throws StateAccessException, SerializationException;
 

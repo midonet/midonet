@@ -34,6 +34,8 @@ import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.api.VendorMediaType;
 import org.midonet.api.rest_api.FuncTest;
+import org.midonet.api.rest_api.Topology;
+import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.zookeeper.StaticMockDirectory;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.PathBuilder;
@@ -42,6 +44,9 @@ import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.ZkPathManager;
 import org.midonet.client.MidonetApi;
 import org.midonet.client.dto.DtoHost;
+import org.midonet.client.dto.DtoBridge;
+import org.midonet.client.dto.DtoPort;
+import org.midonet.client.dto.DtoBridgePort;
 import org.midonet.client.dto.DtoInterface;
 import org.midonet.client.exception.HttpForbiddenException;
 import org.midonet.client.resource.*;
@@ -51,6 +56,8 @@ import org.midonet.packets.MAC;
 
 import static org.midonet.api.VendorMediaType.APPLICATION_HOST_COLLECTION_JSON;
 import static org.midonet.api.VendorMediaType.APPLICATION_HOST_JSON;
+import static org.midonet.api.VendorMediaType.APPLICATION_BRIDGE_JSON;
+import static org.midonet.api.VendorMediaType.APPLICATION_PORT_JSON;
 import static org.midonet.api.VendorMediaType.APPLICATION_INTERFACE_COLLECTION_JSON;
 
 public class TestHost extends JerseyTest {
@@ -59,6 +66,8 @@ public class TestHost extends JerseyTest {
 
     private HostZkManager hostManager;
     private ZkPathManager pathManager;
+    private DtoWebResource dtoResource;
+    private Topology topology;
     private Directory dir;
     private MidonetApi api;
     private static Injector injector;
@@ -107,9 +116,27 @@ public class TestHost extends JerseyTest {
         }
     }
 
+    private DtoBridge addBridge(String bridgeName) {
+        DtoBridge bridge = new DtoBridge();
+        bridge.setName(bridgeName);
+        bridge.setTenantId("tenant1");
+        bridge = dtoResource.postAndVerifyCreated(
+            topology.getApplication().getBridges(),
+            APPLICATION_BRIDGE_JSON, bridge, DtoBridge.class);
+        return bridge;
+    }
+
+    private DtoBridgePort addPort(DtoBridge bridge) {
+        DtoBridgePort port = new DtoBridgePort();
+        port = dtoResource.postAndVerifyCreated(bridge.getPorts(),
+            APPLICATION_PORT_JSON, port, DtoBridgePort.class);
+        return port;
+    }
+
     // This one also tests Create with given tenant ID string
     @Before
     public void before() throws KeeperException, InterruptedException {
+        dtoResource = new DtoWebResource(resource());
         injector = Guice.createInjector(
                 new VersionModule(),
                 new SerializationModule(),
@@ -118,6 +145,7 @@ public class TestHost extends JerseyTest {
         resource().type(VendorMediaType.APPLICATION_JSON)
             .get(ClientResponse.class);
 
+        topology = new Topology.Builder(dtoResource).build();
         hostManager = injector.getInstance(HostZkManager.class);
         URI baseUri = resource().getURI();
         api = new MidonetApi(baseUri.toString());
@@ -186,6 +214,41 @@ public class TestHost extends JerseyTest {
                    hosts.get(0).getId(), equalTo(hostId));
         assertThat("The host should be reported as alive",
                    hosts.get(0).isAlive(), equalTo(true));
+    }
+
+    @Test
+    public void testDeadHostWithPortMapping() throws Exception {
+        UUID hostId = UUID.randomUUID();
+
+        HostDirectory.Metadata metadata = new HostDirectory.Metadata();
+        metadata.setName("testDeadhost");
+        hostManager.createHost(hostId, metadata);
+        // Don't make this host alive. We are testing deleting while dead.
+
+        DtoBridge bridge = addBridge("testBridge");
+        DtoPort port = addPort(bridge);
+        hostManager.addVirtualPortMapping(hostId,
+                new HostDirectory.VirtualPortMapping(port.getId(), "BLAH"));
+
+        ResourceCollection<Host> hosts = api.getHosts();
+        Host deadHost = hosts.get(0);
+        boolean caught403 = false;
+        try {
+            deadHost.delete();
+        } catch (HttpForbiddenException ex) {
+            caught403 = true;
+        }
+        assertThat("Deletion of host got 403", caught403, is(true));
+        assertThat("Host was not removed from zk",
+                   dir.has(pathManager.getHostPath(hostId)),
+                   equalTo(true));
+
+        hostManager.delVirtualPortMapping(hostId, port.getId());
+        deadHost.delete();
+
+        assertThat("Host was removed from zk",
+                   dir.has(pathManager.getHostPath(hostId)),
+                   equalTo(false));
     }
 
     @Test
