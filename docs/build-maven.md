@@ -345,6 +345,12 @@ output. Be warned that $ mvn dependency:analyze has some false negatives
 where it can diagnose jars as not used although they are required by the code
 to correctly execute.
 
+### Remote debugging
+
+The Midolman pom.xml file gives arguments to the Maven exec plugin (which
+launches Midolman) to enable remote debugging on port 4000. This can be
+disabled, or the port changed, by modifying the exec-maven-plugin configuration
+in the pom file.
 
 ## Pom files internals
 
