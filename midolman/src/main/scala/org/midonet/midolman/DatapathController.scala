@@ -33,7 +33,8 @@ import org.midonet.netlink.Callback
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode
 import org.midonet.odp.{PortOptions, Port, Ports, Datapath}
-import org.midonet.odp.flows.{FlowActions, FlowAction, FlowActionOutput}
+import org.midonet.odp.flows.{FlowAction, FlowActionOutput}
+import org.midonet.odp.flows.FlowActions.output
 import org.midonet.odp.ports._
 import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.packets.IPv4Addr
@@ -241,7 +242,7 @@ object DatapathController extends Referenceable {
         implicit val timeout =  new Timeout(3 second)
         (DatapathController ? LocalTunnelInterfaceInfo)
             .mapTo[mutable.MultiMap[InterfaceDescription, TunnelZone.Type]]
-            .map { minMtu(_) }
+            .map { minMtu }
     }
 
     /**
@@ -677,7 +678,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
             FlowTagger.invalidateByTunnelKey(exterior.tunnelKey))
 
         val wMatch = new WildcardMatch().setTunnelID(exterior.tunnelKey)
-        val actions = List[FlowAction[_]](FlowActions.output(port.getPortNo.shortValue))
+        val actions = List[FlowAction[_]](output(port.getPortNo.shortValue))
         val tags = Set[Any](FlowTagger.invalidateDPPort(port.getPortNo.shortValue()))
         fc ! AddWildcardFlow(WildcardFlow(wcmatch = wMatch, actions = actions),
                              None, ROSet.empty, tags)

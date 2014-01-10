@@ -1,6 +1,6 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.odp.flows;
 
 import java.util.List;
@@ -14,9 +14,17 @@ public class FlowActionSample implements FlowAction<FlowActionSample> {
     /**
      * u32 port number.
      */
-    int probability;
-    List<? extends FlowAction<?>> actions;
+    private int probability;
 
+    private List<? extends FlowAction<?>> actions;
+
+    // This is used for deserialization purposes only.
+    FlowActionSample() { }
+
+    FlowActionSample(int probability, List<? extends FlowAction<?>> actions) {
+        this.probability = probability;
+        this.actions = actions;
+    }
 
     @Override
     public void serialize(BaseBuilder<?,?> builder) {
@@ -53,15 +61,15 @@ public class FlowActionSample implements FlowAction<FlowActionSample> {
             attrNest(OpenVSwitch.FlowAction.SampleAttr.Actions);
 
         private Attr(int id, boolean nested) {
-            super(id);
+            super(id, nested);
         }
 
         static <T> Attr<T> attr(int id) {
-            return new Attr<T>(id, false);
+            return new Attr<>(id, false);
         }
 
         static <T> Attr<T> attrNest(int id) {
-            return new Attr<T>(id, true);
+            return new Attr<>(id, true);
         }
     }
 
@@ -79,18 +87,8 @@ public class FlowActionSample implements FlowAction<FlowActionSample> {
         return probability;
     }
 
-    public FlowActionSample setProbability(int probability) {
-        this.probability = probability;
-        return this;
-    }
-
     public List<? extends FlowAction<?>> getActions() {
         return actions;
-    }
-
-    public FlowActionSample setActions(List<? extends FlowAction<?>> actions) {
-        this.actions = actions;
-        return this;
     }
 
     @Override

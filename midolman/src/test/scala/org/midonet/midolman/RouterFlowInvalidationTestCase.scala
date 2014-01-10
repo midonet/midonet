@@ -28,7 +28,9 @@ import org.midonet.midolman.layer3.Route._
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.topology.RouterManager.RouterInvTrieTagCountModified
 import org.midonet.midolman.util.{RouterHelper, TestHelpers}
-import org.midonet.odp.flows.{FlowKeyTunnelID, FlowAction, FlowActions}
+import org.midonet.odp.flows.FlowAction
+import org.midonet.odp.flows.FlowActions.output
+import org.midonet.odp.flows.FlowKeys.tunnelID
 import org.midonet.odp.{FlowMatch, Flow, Datapath}
 import org.midonet.packets._
 import org.midonet.sdn.flows.{WildcardMatch, WildcardFlow}
@@ -111,10 +113,10 @@ class RouterFlowInvalidationTestCase extends MidolmanTestCase with RouterHelper
         // the tunnelled packets to this port
         wflowAddedProbe.expectMsgPF(Duration(3, TimeUnit.SECONDS),
             "WildcardFlowAdded")(TestHelpers.matchActionsFlowAddedOrRemoved(
-            mutable.Buffer[FlowAction[_]](FlowActions.output(mapPortNameShortNumber(inPortName)))))
+            mutable.Buffer[FlowAction[_]](output(mapPortNameShortNumber(inPortName)))))
         wflowAddedProbe.expectMsgPF(Duration(3, TimeUnit.SECONDS),
             "WildcardFlowAdded")(TestHelpers.matchActionsFlowAddedOrRemoved(
-            mutable.Buffer[FlowAction[_]](FlowActions.output(mapPortNameShortNumber(outPortName)))))
+            mutable.Buffer[FlowAction[_]](output(mapPortNameShortNumber(outPortName)))))
 
     }
 
@@ -136,7 +138,7 @@ class RouterFlowInvalidationTestCase extends MidolmanTestCase with RouterHelper
 
         val wflow = WildcardFlow(wcmatch = new WildcardMatch().setTunnelID(7001))
         val dpflow = new Flow().setMatch(
-                new FlowMatch().addKey(new FlowKeyTunnelID().setTunnelID(7001)))
+                new FlowMatch().addKey(tunnelID(7001)))
         val tag = "tun_id:7001"
         val tags = ROSet[Any](tag)
 

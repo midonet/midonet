@@ -1,6 +1,6 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.odp.flows;
 
 import org.midonet.packets.IPv4;
@@ -39,12 +39,5 @@ public enum IPFragmentType {
             return First;
         else
             return None;
-    }
-
-    public static byte toByte(IPFragmentType fragmentType) {
-        if ( fragmentType == null )
-            return 0;
-
-        return fragmentType.value;
     }
 }

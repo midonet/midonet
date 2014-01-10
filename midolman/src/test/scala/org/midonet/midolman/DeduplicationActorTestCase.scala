@@ -23,12 +23,11 @@ import org.midonet.midolman.topology.TraceConditionsManager
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.VirtualTopologyActor.ConditionListRequest
 import org.midonet.midolman.topology.rcu.TraceConditions
-import org.midonet.odp.flows.FlowActionOutput
 import org.midonet.odp.{FlowMatches, Packet, Datapath}
+import org.midonet.odp.flows.FlowActions.output
 import org.midonet.packets.Ethernet
 import org.midonet.packets.util.EthBuilder
 import org.midonet.packets.util.PacketBuilder._
-
 
 @RunWith(classOf[JUnitRunner])
 class DeduplicationActorTestCase extends FeatureSpec
@@ -158,9 +157,7 @@ class DeduplicationActorTestCase extends FeatureSpec
             testableDda.pendedPackets(1) should not be None
 
             When("the dda is told to apply the flow with an output action")
-            DeduplicationActor ! ApplyFlow(List(new FlowActionOutput()
-                                                .setPortNumber(1)),
-                                           Some(1))
+            DeduplicationActor ! ApplyFlow(List(output(1)), Some(1))
 
             Then("the packets should be sent to the datapath")
             val actual = mockDpConn.packetsSent.asScala.toList.sortBy { _.## }

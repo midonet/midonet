@@ -9,38 +9,38 @@ import java.util.Arrays;
 public class ICMP extends BasePacket {
     public static final byte PROTOCOL_NUMBER = 1;
 
-    public static final char CODE_NONE = 0;
+    public static final byte CODE_NONE = 0;
 
-    public static final char TYPE_UNREACH = 3;
+    public static final byte TYPE_UNREACH = 3;
     public static enum UNREACH_CODE {
-        UNREACH_NET((char)0),
-        UNREACH_HOST((char)1),
-        UNREACH_PROTOCOL((char)2),
-        UNREACH_PORT((char)3),
-        UNREACH_FRAG_NEEDED((char)4),
-        UNREACH_SOURCE_ROUTE((char)5),
-        UNREACH_FILTER_PROHIB((char)13);
+        UNREACH_NET(0),
+        UNREACH_HOST(1),
+        UNREACH_PROTOCOL(2),
+        UNREACH_PORT(3),
+        UNREACH_FRAG_NEEDED(4),
+        UNREACH_SOURCE_ROUTE(5),
+        UNREACH_FILTER_PROHIB(13);
 
-        private final char value;
-        private UNREACH_CODE(char value) { this.value = value; }
-        public char toChar() { return value; }
+        private final byte value;
+        private UNREACH_CODE(int value) { this.value = (byte)value; }
+        public byte toByte() { return value; }
     }
 
-    public static final char TYPE_TIME_EXCEEDED = 11;
+    public static final byte TYPE_TIME_EXCEEDED = 11;
     public static enum EXCEEDED_CODE {
-        EXCEEDED_TTL((char)0), EXCEEDED_REASSEMBLY((char)1);
+        EXCEEDED_TTL(0), EXCEEDED_REASSEMBLY(1);
 
-        private final char value;
-        private EXCEEDED_CODE(char value) { this.value = value; }
-        public char toChar() { return value; }
+        private final byte value;
+        private EXCEEDED_CODE(int value) { this.value = (byte)value; }
+        public byte toByte() { return value; }
     }
 
-    public static final char TYPE_ECHO_REPLY = 0;
-    public static final char TYPE_ECHO_REQUEST = 8;
-    public static final char TYPE_SOURCE_QUENCH = 4;
-    public static final char TYPE_REDIRECT = 5;
-    public static final char TYPE_ROUTER_SOLICITATION= 10;
-    public static final char TYPE_PARAMETER_PROBLEM = 12;
+    public static final byte TYPE_ECHO_REPLY = 0;
+    public static final byte TYPE_ECHO_REQUEST = 8;
+    public static final byte TYPE_SOURCE_QUENCH = 4;
+    public static final byte TYPE_REDIRECT = 5;
+    public static final byte TYPE_ROUTER_SOLICITATION= 10;
+    public static final byte TYPE_PARAMETER_PROBLEM = 12;
 
     /**
      * ICMP header length as a number of octets.
@@ -49,8 +49,8 @@ public class ICMP extends BasePacket {
 
     // Types
 
-    private char type;
-    private char code;
+    private byte type;
+    private byte code;
     private short checksum;
     private int quench;
     private byte[] data;
@@ -72,11 +72,11 @@ public class ICMP extends BasePacket {
                TYPE_PARAMETER_PROBLEM == type;
     }
 
-    public char getType() {
+    public byte getType() {
         return type;
     }
 
-    public char getCode() {
+    public byte getCode() {
         return code;
     }
 
@@ -101,7 +101,7 @@ public class ICMP extends BasePacket {
             this.data = Arrays.copyOf(data, length);
     }
 
-    public void setType(char type, char code, byte[] data) {
+    public void setType(byte type, byte code, byte[] data) {
         this.type = type;
         this.code = code;
         this.data = (data == null) ? null : Arrays.copyOf(data, data.length);
@@ -209,8 +209,8 @@ public class ICMP extends BasePacket {
                     + bb.remaining());
         }
 
-        type = (char) bb.get();
-        code = (char) bb.get();
+        type = bb.get();
+        code = bb.get();
         checksum = bb.getShort();
         quench = bb.getInt();
         if (bb.hasRemaining()) {

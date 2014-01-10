@@ -1,6 +1,6 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.odp.flows;
 
 import org.midonet.netlink.NetlinkMessage;
@@ -11,10 +11,18 @@ import org.midonet.odp.family.FlowFamily;
 public class FlowStats implements BuilderAware {
 
     /** Number of matched packets. */
-    /*__u64*/ long n_packets;
+    /*__u64*/ private long n_packets;
 
     /** Number of matched bytes. */
-    /*__u64*/ long n_bytes;
+    /*__u64*/ private long n_bytes;
+
+    // This is used for deserialization purposes only.
+    FlowStats() { }
+
+    public FlowStats(long numPackets, long numBytes) {
+        n_packets = numPackets;
+        n_bytes = numBytes;
+    }
 
     @Override
     public void serialize(BaseBuilder<?,?> builder) {
@@ -37,18 +45,8 @@ public class FlowStats implements BuilderAware {
         return n_packets;
     }
 
-    public FlowStats setNoPackets(long nPackets) {
-        this.n_packets = nPackets;
-        return this;
-    }
-
     public long getNoBytes() {
         return n_packets;
-    }
-
-    public FlowStats setNoBytes(long noBytes) {
-        this.n_bytes = noBytes;
-        return this;
     }
 
     @Override
