@@ -11,7 +11,7 @@ eventually converge to a state where all of the conventions are followed.
 The mandatory header of every source file must be written as:
 
     /*
-     * Copyright (c) 2013 Midokura Europe SARL, All Rights Reserved.
+     * Copyright (c) {yyyy} Midokura Europe SARL, All Rights Reserved.
      */
 
 ### Future continuations

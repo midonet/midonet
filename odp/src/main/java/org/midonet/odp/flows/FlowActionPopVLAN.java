@@ -1,12 +1,14 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.odp.flows;
 
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.BaseBuilder;
 
 public class FlowActionPopVLAN implements FlowAction<FlowActionPopVLAN> {
+
+    FlowActionPopVLAN() { }
 
     @Override
     public void serialize(BaseBuilder<?,?> builder) {

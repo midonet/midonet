@@ -6,12 +6,11 @@ package org.midonet.midolman
 import java.util.UUID
 import scala.collection.mutable.ListBuffer
 import scala.collection.{Set => ROSet, mutable, breakOut}
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 import scala.util.Failure
 
 import akka.actor.ActorSystem
 import akka.event.LoggingAdapter
-import akka.pattern.ask
 import akka.util.Timeout
 
 import org.midonet.cluster.client.Port
@@ -21,10 +20,8 @@ import org.midonet.midolman.topology.FlowTagger
 import org.midonet.midolman.topology.VirtualToPhysicalMapper
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.rcu.PortSet
-import org.midonet.odp.flows.FlowAction
-import org.midonet.odp.flows.FlowActionUserspace
-import org.midonet.odp.flows.FlowActions
-import org.midonet.odp.flows.FlowKeys
+import org.midonet.odp.flows._
+import org.midonet.odp.flows.FlowActions.{output, setKey}
 import org.midonet.sdn.flows.VirtualActions
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 import org.midonet.util.functors.Callback0
@@ -202,13 +199,12 @@ trait FlowTranslator {
 
         // Translate a flow to local ports.
         def translateFlowToLocalPorts: TaggedActions =
-            localPorts.map { id =>
-                (FlowActions.output(id), FlowTagger.invalidateDPPort(id))
+            localPorts.map { id => (output(id), FlowTagger.invalidateDPPort(id))
             }.unzip
 
         // Prepare an ODP object which can set the flow tunnel info
         def flowTunnelKey(key: Long, route: (Int, Int)) =
-            FlowActions.setKey(FlowKeys.tunnel(key, route._1, route._2))
+            setKey(FlowKeys.tunnel(key, route._1, route._2))
 
         // Generate a list of tunneling actions and tags for given tunnel key
         def tunnelSettings(key: Long, output: FlowAction[_]): TaggedActions = {
@@ -277,7 +273,7 @@ trait FlowTranslator {
                     expandPortAction(Seq(p), p.portId, inPortUUID, dpTags,
                         wMatch)
                 case u: FlowActionUserspace =>
-                    u.setUplinkPid(dpState.uplinkPid)
+                    output(dpState.uplinkPid)
                     Future.successful(Seq(u))
                 case a =>
                     Future.successful(Seq[FlowAction[_]](a))

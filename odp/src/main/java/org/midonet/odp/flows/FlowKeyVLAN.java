@@ -1,30 +1,37 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.odp.flows;
 
 import java.nio.ByteOrder;
 
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.BaseBuilder;
+import org.midonet.packets.VLAN;
 
 public class FlowKeyVLAN implements FlowKey<FlowKeyVLAN> {
 
     /* be16 */
     //short pcp; // Priority Code Point 3 bits
     //short dei; // Drop Elegible Indicator 1 bit
-    short vlan; // 12 bit
+    private short vlan; // 12 bit
+
+    // This is used for deserialization purposes only.
+    FlowKeyVLAN() { }
+
+    FlowKeyVLAN(short vlanTCI) {
+        vlan = vlanTCI;
+    }
 
     @Override
     public void serialize(BaseBuilder<?,?> builder) {
-        builder.addValue((short)(vlan | 0x1000), ByteOrder.BIG_ENDIAN);
+        builder.addValue(VLAN.setDEI(vlan), ByteOrder.BIG_ENDIAN);
     }
 
     @Override
     public boolean deserialize(NetlinkMessage message) {
         try {
-            short tci = message.getShort(ByteOrder.BIG_ENDIAN);
-            vlan = (short)(tci & 0x0fff);
+            vlan = VLAN.unsetDEI(message.getShort(ByteOrder.BIG_ENDIAN));
             return true;
         } catch (Exception e) {
             return false;
@@ -45,11 +52,6 @@ public class FlowKeyVLAN implements FlowKey<FlowKeyVLAN> {
         return vlan;
     }
 
-    public FlowKeyVLAN setVLAN(short vlan) {
-        this.vlan = vlan;
-        return this;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -64,13 +66,11 @@ public class FlowKeyVLAN implements FlowKey<FlowKeyVLAN> {
 
     @Override
     public int hashCode() {
-        return (int) vlan;
+        return vlan;
     }
 
     @Override
     public String toString() {
-        return "FlowKeyVLAN{" +
-            "vlan=" + vlan +
-            '}';
+        return "FlowKeyVLAN{vlan=" + vlan + '}';
     }
 }

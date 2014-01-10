@@ -1,6 +1,6 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.odp.flows;
 
 import java.nio.ByteOrder;
@@ -10,7 +10,14 @@ import org.midonet.netlink.messages.BaseBuilder;
 
 public class FlowKeyTunnelID implements FlowKey<FlowKeyTunnelID> {
 
-    /* be64 */  long tunnelID;
+    /* be64 */ private long tunnelID;
+
+    // This is used for deserialization purposes only.
+    FlowKeyTunnelID() { }
+
+    FlowKeyTunnelID(long tunnelID) {
+        this.tunnelID = tunnelID;
+    }
 
     @Override
     public void serialize(BaseBuilder<?,?> builder) {
@@ -39,11 +46,6 @@ public class FlowKeyTunnelID implements FlowKey<FlowKeyTunnelID> {
 
     public long getTunnelID() {
         return tunnelID;
-    }
-
-    public FlowKeyTunnelID setTunnelID(long tunnelID) {
-        this.tunnelID = tunnelID;
-        return this;
     }
 
     @Override

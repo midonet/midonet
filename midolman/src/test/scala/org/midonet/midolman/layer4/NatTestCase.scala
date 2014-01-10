@@ -415,7 +415,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
 
         val icmp = ip.getPayload.asInstanceOf[ICMP]
         icmp.getType should be(ICMP.TYPE_UNREACH)
-        icmp.getCode should be(ICMP.UNREACH_CODE.UNREACH_FRAG_NEEDED.toChar)
+        icmp.getCode should be(ICMP.UNREACH_CODE.UNREACH_FRAG_NEEDED.toByte)
 
     }
 
@@ -521,7 +521,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         val icmp = ipv4.getPayload.asInstanceOf[ICMP]
         icmp should not be null
         icmp.getType should be (ICMP.TYPE_UNREACH)
-        icmp.getCode should be (ICMP.UNREACH_CODE.UNREACH_HOST.toChar)
+        icmp.getCode should be (ICMP.UNREACH_CODE.UNREACH_HOST.toByte)
 
         // Now we need to look inside the ICMP data that not only should
         // bring the data contained in the original packet that this ICMP is

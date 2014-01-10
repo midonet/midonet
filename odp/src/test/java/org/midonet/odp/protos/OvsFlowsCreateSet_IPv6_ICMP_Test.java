@@ -8,28 +8,22 @@ import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import org.midonet.packets.IPv6Addr;
-import org.midonet.packets.Net;
 import org.midonet.odp.FlowMatch;
 import org.midonet.odp.flows.FlowAction;
 import org.midonet.odp.flows.FlowKeyEtherType;
 import org.midonet.odp.flows.IpProtocol;
+import org.midonet.packets.IPv6Addr;
+
 import static org.midonet.odp.flows.FlowActions.output;
 import static org.midonet.odp.flows.FlowActions.sample;
-import static org.midonet.odp.flows.FlowKeys.etherType;
 import static org.midonet.odp.flows.FlowKeys.ethernet;
-import static org.midonet.odp.flows.FlowKeys.icmpv6;
+import static org.midonet.odp.flows.FlowKeys.etherType;
 import static org.midonet.odp.flows.FlowKeys.inPort;
 import static org.midonet.odp.flows.FlowKeys.ipv6;
+import static org.midonet.odp.flows.FlowKeys.icmpv6;
 
 public class OvsFlowsCreateSet_IPv6_ICMP_Test
     extends OvsFlowsCreateSetMatchTest {
-
-    private static final Logger log = LoggerFactory
-        .getLogger(OvsFlowsCreateSet_IPv6_ICMP_Test.class);
 
     @Before
     public void setUp() throws Exception {
@@ -59,9 +53,9 @@ public class OvsFlowsCreateSet_IPv6_ICMP_Test
 
     @Override
     protected List<FlowAction<?>> flowActions() {
-        return
-            Arrays.<FlowAction<?>>asList(
-                sample(715827882, Arrays.<FlowAction<?>>asList(output(2))));
+        return Arrays.<FlowAction<?>>asList(
+                sample(715827882,
+                        Arrays.<FlowAction<?>>asList(output(2))));
     }
 
     @Test
