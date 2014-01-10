@@ -3,10 +3,12 @@
 */
 package org.midonet.odp.protos;
 
+import java.util.Arrays;
 import java.util.concurrent.Future;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.midonet.odp.flows.FlowKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -71,20 +73,17 @@ public class OvsFlowsFlushTest extends AbstractNetlinkProtocolTest {
         return new FlowMatch()
             .addKey(inPort(0))
             .addKey(ethernet(MAC.fromString("ae:b3:77:8c:a1:48").getAddress(),
-                             MAC.fromString("33:33:00:00:00:16").getAddress()))
+                    MAC.fromString("33:33:00:00:00:16").getAddress()))
             .addKey(etherType(FlowKeyEtherType.Type.ETH_P_8021Q))
-            .addKey(vlan(0x0101))
+            .addKey(vlan((short) 0x0101))
             .addKey(
-                encap()
-                    .addKey(
-                        etherType(FlowKeyEtherType.Type.ETH_P_ARP))
-                    .addKey(
-                        arp(MAC.fromString("ae:b3:77:8d:c1:48").getAddress(),
-                            MAC.fromString("ae:b3:70:8d:c1:48").getAddress())
-                            .setOp((short) 2)
-                            .setSip(IPv4Addr.stringToInt("192.168.100.1"))
-                            .setTip(IPv4Addr.stringToInt("192.168.102.1"))
-                    ));
+                encap(Arrays.<FlowKey<?>>asList(
+                    etherType(FlowKeyEtherType.Type.ETH_P_ARP),
+                    arp(MAC.fromString("ae:b3:77:8d:c1:48").getAddress(),
+                        MAC.fromString("ae:b3:70:8d:c1:48").getAddress(),
+                        (short) 2,
+                        IPv4Addr.stringToInt("192.168.100.1"),
+                        IPv4Addr.stringToInt("192.168.102.1")))));
     }
 
     final byte[][] responses = {

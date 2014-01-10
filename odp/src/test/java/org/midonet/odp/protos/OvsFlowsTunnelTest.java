@@ -21,6 +21,9 @@ import org.midonet.packets.MAC;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.midonet.odp.flows.FlowKeys.*;
+import static org.midonet.odp.flows.FlowActions.setKey;
+
 /*
  * Note: This test depends on OVS kmod version >= 1.9.0
  */
@@ -31,7 +34,7 @@ public class OvsFlowsTunnelTest {
         .getLogger(OvsFlowsTunnelTest.class);
 
     private OvsDatapathConnection connection;
-    private final String datapathName = "fttest";
+    private static final String datapathName = "fttest";
 
     @Before
     public void setUp() {
@@ -61,26 +64,17 @@ public class OvsFlowsTunnelTest {
         IPv4Subnet tunnelDstIp = new IPv4Subnet("10.11.12.14", 24);
         MAC srcMac = MAC.fromString("aa:33:44:55:66:77");
         MAC dstMac = MAC.fromString("aa:22:44:66:88:bb");
-        FlowKeyEthernet ethernetKey = new FlowKeyEthernet()
-                                        .setSrc(srcMac.getAddress())
-                                        .setDst(dstMac.getAddress());
-        FlowKeyEtherType etherTypeKey = new FlowKeyEtherType()
-                                .setEtherType((short)0x0800);
-        FlowKeyIPv4 ipv4Key = new FlowKeyIPv4()
-                                .setSrc(srcIp.getAddress())
-                                .setDst(dstIp.getAddress());
+        FlowKeyEthernet ethernetKey = ethernet(srcMac.getAddress(),
+                                               dstMac.getAddress());
+        FlowKeyEtherType etherTypeKey = etherType((short) 0x0800);
+        FlowKeyIPv4 ipv4Key = ipv4(srcIp.getAddress(), dstIp.getAddress(),
+                IpProtocol.TCP);
         FlowMatch matchKey = new FlowMatch().addKey(ethernetKey)
                          .addKey(etherTypeKey)
                          .addKey(ipv4Key);
-        FlowKeyTunnel ipv4TunnelKey = new FlowKeyTunnel()
-                .setTunnelID(10)
-                .setIpv4SrcAddr(tunnelSrcIp.getAddress().addr())
-                .setIpv4DstAddr(tunnelDstIp.getAddress().addr())
-                .setTunnelFlags((short)0)
-                .setTos((byte)3)
-                .setTtl((byte)100);
-        FlowActionSetKey setKeyAction = new FlowActionSetKey()
-                                        .setFlowKey(ipv4TunnelKey);
+        FlowKeyTunnel ipv4TunnelKey = tunnel(10, tunnelSrcIp.getAddress().addr(),
+                                                 tunnelDstIp.getAddress().addr());
+        FlowActionSetKey setKeyAction = setKey(ipv4TunnelKey);
         Flow downloadFlow = new Flow()
              .setMatch(matchKey)
              .setActions(Arrays.<FlowAction<?>>asList(setKeyAction));
@@ -107,6 +101,10 @@ public class OvsFlowsTunnelTest {
         try {
             Future<Datapath> deleteDatapath =
                 connection.datapathsDelete(datapathName);
+
+            if (deleteDatapath.get() == null) {
+                log.error("Datapath delete failed");
+            }
         } catch (Exception e) {
             log.error("Error deleting datapth " + e.getMessage());
         }

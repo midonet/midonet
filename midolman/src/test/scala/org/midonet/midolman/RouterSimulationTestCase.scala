@@ -291,7 +291,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
 
         expectEmitIcmp(uplinkMacAddr, IPv4Addr.fromString(uplinkPortAddr),
                         fromMac, fromIp, ICMP.TYPE_UNREACH,
-                        ICMP.UNREACH_CODE.UNREACH_FILTER_PROHIB.toChar)
+                        ICMP.UNREACH_CODE.UNREACH_FILTER_PROHIB.toByte)
     }
 
     def testForwardBetweenDownlinks() {
@@ -346,7 +346,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         flow.actions.size should equal(0)
         expectEmitIcmp(portNumToMac(onPort), myAddressOnPort(onPort),
             fromMac, makeAddressInSegment(onPort), ICMP.TYPE_UNREACH,
-            ICMP.UNREACH_CODE.UNREACH_NET.toChar)
+            ICMP.UNREACH_CODE.UNREACH_NET.toByte)
     }
 
     def testArpRequestFulfilledLocally() {
@@ -619,7 +619,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         requestOfType[PacketIn](packetInProbe)
         expectEmitIcmp(portNumToMac(onPort), myAddressOnPort(onPort),
             fromMac, makeAddressInSegment(onPort),
-            ICMP.TYPE_UNREACH, ICMP.UNREACH_CODE.UNREACH_NET.toChar)
+            ICMP.TYPE_UNREACH, ICMP.UNREACH_CODE.UNREACH_NET.toByte)
         val flow = expectFlowAddedMessage()
         expectMatchForIPv4Packet(eth, flow.getMatch)
         // A flow with no actions drops matching packets
@@ -662,7 +662,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         flow.actions.size should equal(0)
         expectEmitIcmp(portNumToMac(onPort), myAddressOnPort(onPort),
             fromMac, makeAddressInSegment(onPort), ICMP.TYPE_UNREACH,
-            ICMP.UNREACH_CODE.UNREACH_NET.toChar)
+            ICMP.UNREACH_CODE.UNREACH_NET.toByte)
     }
 
     def testArpRequestTimeout() {

@@ -1,6 +1,6 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.odp.flows;
 
 import java.nio.ByteOrder;
@@ -10,8 +10,23 @@ import org.midonet.netlink.messages.BaseBuilder;
 import org.midonet.packets.Unsigned;
 
 public class FlowKeyUDP implements FlowKey<FlowKeyUDP> {
-    /*__be16*/ int udp_src;
-    /*__be16*/ int udp_dst;
+    /*__be16*/ private int udp_src;
+    /*__be16*/ private int udp_dst;
+
+    // This is used for deserialization purposes only.
+    FlowKeyUDP() { }
+
+    FlowKeyUDP(int source, int destination) {
+        ensureTcpPortInRange(source);
+        ensureTcpPortInRange(destination);
+        udp_src = source;
+        udp_dst = destination;
+    }
+
+    private static void ensureTcpPortInRange(int port) {
+        if (port < 0 || port > 0xffff)
+            throw new IllegalArgumentException("TCP port out of range");
+    }
 
     @Override
     public void serialize(BaseBuilder<?,?> builder) {
@@ -44,22 +59,8 @@ public class FlowKeyUDP implements FlowKey<FlowKeyUDP> {
         return udp_src;
     }
 
-    public FlowKeyUDP setUdpSrc(int udpSrc) {
-        if (udpSrc < 0 || udpSrc > 0xffff)
-            throw new IllegalArgumentException("UDP port out of range");
-        this.udp_src = udpSrc;
-        return this;
-    }
-
     public int getUdpDst() {
         return udp_dst;
-    }
-
-    public FlowKeyUDP setUdpDst(int udpDst) {
-        if (udpDst < 0 || udpDst > 0xffff)
-            throw new IllegalArgumentException("UDP port out of range");
-        this.udp_dst = udpDst;
-        return this;
     }
 
     @Override

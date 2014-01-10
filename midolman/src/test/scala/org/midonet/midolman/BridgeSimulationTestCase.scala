@@ -22,12 +22,12 @@ import org.midonet.cluster.data.{Bridge => ClusterBridge}
 import org.midonet.midolman.FlowController._
 import org.midonet.midolman.PacketWorkflow.PacketIn
 import org.midonet.midolman.guice.CacheModule.{TRACE_INDEX, TRACE_MESSAGES}
-import org.midonet.midolman.rules.{RuleResult, Rule, Condition}
+import org.midonet.midolman.rules.{RuleResult, Condition}
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.topology.rcu.TraceConditions
-import org.midonet.midolman.util.{SimulationHelper, MockCache}
-import org.midonet.odp.flows.FlowActions
+import org.midonet.midolman.util.{MockCache, SimulationHelper}
 import org.midonet.odp.flows.{FlowActionOutput, FlowKeyTunnel}
+import org.midonet.odp.flows.FlowActions.output
 import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
 
@@ -148,9 +148,9 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         val (outputs, tunnelKeys) = parseTunnelActions(flowActs)
 
         outputs should have size(4)
-        outputs.contains(FlowActions.output(greTunnelId)) should be (true)
-        outputs.contains(FlowActions.output(portId4)) should be (true)
-        outputs.contains(FlowActions.output(portId5)) should be (true)
+        outputs.contains(output(greTunnelId)) should be (true)
+        outputs.contains(output(portId4)) should be (true)
+        outputs.contains(output(portId5)) should be (true)
 
         tunnelKeys should have size(2)
         tunnelKeys.find(bridgeTunnelTo2) should not be None
@@ -190,9 +190,9 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         val (outputs, tunnelKeys) = parseTunnelActions(flowActs)
 
         outputs should have size(4)
-        outputs.contains(FlowActions.output(greTunnelId)) should be (true)
-        outputs.contains(FlowActions.output(portId4)) should be (true)
-        outputs.contains(FlowActions.output(portId5)) should be (true)
+        outputs.contains(output(greTunnelId)) should be (true)
+        outputs.contains(output(portId4)) should be (true)
+        outputs.contains(output(portId5)) should be (true)
 
         tunnelKeys should have size(2)
         tunnelKeys.find(bridgeTunnelTo2) should not be None
@@ -277,9 +277,9 @@ class BridgeSimulationTestCase extends MidolmanTestCase
             val (outputs, tunnelKeys) = parseTunnelActions(flowActs)
 
             outputs should have size(4)
-            outputs.contains(FlowActions.output(greTunnelId)) should be (true)
-            outputs.contains(FlowActions.output(portId4)) should be (true)
-            outputs.contains(FlowActions.output(portId5)) should be (true)
+            outputs.contains(output(greTunnelId)) should be (true)
+            outputs.contains(output(portId4)) should be (true)
+            outputs.contains(output(portId5)) should be (true)
 
             tunnelKeys should have size(2)
             tunnelKeys.find(bridgeTunnelTo2) should not be None
@@ -303,9 +303,9 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         val (outputs, tunnelKeys) = parseTunnelActions(flowActs)
 
         outputs should have size(4)
-        outputs.contains(FlowActions.output(greTunnelId)) should be (true)
-        outputs.contains(FlowActions.output(portId4)) should be (true)
-        outputs.contains(FlowActions.output(portId5)) should be (true)
+        outputs.contains(output(greTunnelId)) should be (true)
+        outputs.contains(output(portId4)) should be (true)
+        outputs.contains(output(portId5)) should be (true)
 
         tunnelKeys should have size(2)
         tunnelKeys.find(bridgeTunnelTo2) should not be None
@@ -328,9 +328,9 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         val (outputs, tunnelKeys) = parseTunnelActions(flowActs)
 
         outputs should have size(4)
-        outputs.contains(FlowActions.output(greTunnelId)) should be (true)
-        outputs.contains(FlowActions.output(portId4)) should be (true)
-        outputs.contains(FlowActions.output(portId5)) should be (true)
+        outputs.contains(output(greTunnelId)) should be (true)
+        outputs.contains(output(portId4)) should be (true)
+        outputs.contains(output(portId5)) should be (true)
 
         tunnelKeys should have size(2)
         tunnelKeys.find(bridgeTunnelTo2) should not be None
@@ -354,9 +354,9 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         val (outputs, tunnelKeys) = parseTunnelActions(flowActs)
 
         outputs should have size(4)
-        outputs.contains(FlowActions.output(greTunnelId)) should be (true)
-        outputs.contains(FlowActions.output(portId4)) should be (true)
-        outputs.contains(FlowActions.output(portId5)) should be (true)
+        outputs.contains(output(greTunnelId)) should be (true)
+        outputs.contains(output(portId4)) should be (true)
+        outputs.contains(output(portId5)) should be (true)
 
         tunnelKeys should have size(2)
         tunnelKeys.find(bridgeTunnelTo2) should not be None
@@ -392,9 +392,9 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         val (outputs, tunnelKeys) = parseTunnelActions(flowActs)
 
         outputs should have size(4)
-        outputs.contains(FlowActions.output(greTunnelId)) should be (true)
-        outputs.contains(FlowActions.output(portId4)) should be (true)
-        outputs.contains(FlowActions.output(portId5)) should be (true)
+        outputs.contains(output(greTunnelId)) should be (true)
+        outputs.contains(output(portId4)) should be (true)
+        outputs.contains(output(portId5)) should be (true)
 
         tunnelKeys should have size(2)
         tunnelKeys.find(bridgeTunnelTo2) should not be None
@@ -418,7 +418,7 @@ class BridgeSimulationTestCase extends MidolmanTestCase
 
         val (outputs2, tunnelKeys2) = parseTunnelActions(flowActs)
         outputs2 should have size 1
-        outputs2.contains(FlowActions.output(portId4)) should be (true)
+        outputs2.contains(output(portId4)) should be (true)
         tunnelKeys2 should have size 0
 
         requestOfType[WildcardFlowRemoved](wflowRemovedProbe)

@@ -1,6 +1,6 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.odp.flows;
 
 import java.nio.ByteOrder;
@@ -41,7 +41,14 @@ public class FlowKeyEtherType implements FlowKey<FlowKeyEtherType> {
         Type(int value) { this.value = value; }
     }
 
-    /* be16 */ short etherType;
+    /* be16 */ private short etherType;
+
+    // This is used for deserialization purposes only.
+    FlowKeyEtherType() { }
+
+    FlowKeyEtherType(short etherType) {
+        this.etherType = etherType;
+    }
 
     @Override
     public void serialize(BaseBuilder<?,?> builder) {
@@ -72,11 +79,6 @@ public class FlowKeyEtherType implements FlowKey<FlowKeyEtherType> {
         return etherType;
     }
 
-    public FlowKeyEtherType setEtherType(short etherType) {
-        this.etherType = etherType;
-        return this;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -91,7 +93,7 @@ public class FlowKeyEtherType implements FlowKey<FlowKeyEtherType> {
 
     @Override
     public int hashCode() {
-        return (int) etherType;
+        return etherType;
     }
 
     @Override

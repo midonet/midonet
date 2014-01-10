@@ -30,9 +30,10 @@ import org.midonet.midolman.topology.rcu.PortSet
 import org.midonet.midolman.topology.VirtualTopologyActor.BridgeRequest
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.PortSetRequest
 import org.midonet.midolman.util.MockCache
-import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.odp
-import org.midonet.odp.flows.{FlowActions, FlowAction}
+import org.midonet.odp.flows.FlowAction
+import org.midonet.odp.flows.FlowActions.output
+import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.packets._
 import org.midonet.packets.ICMP.UNREACH_CODE
@@ -242,7 +243,7 @@ class AdminStateTest extends FeatureSpec
 
             simRes should be (toPortSet(bridge.getId))
             var tacts = translateActions(simRes)
-            tacts should contain (FlowActions.output(1).asInstanceOf[Any])
+            tacts should contain (output(1).asInstanceOf[Any])
 
             When("the port is set to down")
 
@@ -255,7 +256,7 @@ class AdminStateTest extends FeatureSpec
             simRes should be (toPortSet(bridge.getId))
 
             tacts = translateActions(simRes)
-            tacts should not (contain (FlowActions.output(1).asInstanceOf[Any]))
+            tacts should not (contain (output(1).asInstanceOf[Any]))
         }
 
         scenario("a down router sends an ICMP prohibited error") {
@@ -415,7 +416,7 @@ class AdminStateTest extends FeatureSpec
         icmpPkt should not be null
 
         icmpPkt.getType should be (ICMP.TYPE_UNREACH)
-        icmpPkt.getCode should be (UNREACH_CODE.UNREACH_FILTER_PROHIB.toChar)
+        icmpPkt.getCode should be (UNREACH_CODE.UNREACH_FILTER_PROHIB.toByte)
     }
 
     feature("Setting the administrative state of a device should " +

@@ -3,20 +3,19 @@
 */
 package org.midonet.odp.protos;
 
-import java.util.Arrays;
-import java.util.List;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.midonet.odp.FlowMatch;
 import org.midonet.odp.flows.FlowAction;
-import org.midonet.odp.flows.FlowActions;
+import org.midonet.odp.flows.FlowKey;
 import org.midonet.odp.flows.FlowKeyEtherType;
-import static org.midonet.odp.flows.FlowKeys.encap;
-import static org.midonet.odp.flows.FlowKeys.etherType;
-import static org.midonet.odp.flows.FlowKeys.ethernet;
-import static org.midonet.odp.flows.FlowKeys.inPort;
-import static org.midonet.odp.flows.FlowKeys.vlan;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import static org.midonet.odp.flows.FlowActions.output;
+import static org.midonet.odp.flows.FlowKeys.*;
 
 public class OvsFlowsCreateSet_VLAN_Truncated_Test
     extends OvsFlowsCreateSetMatchTest {
@@ -39,15 +38,15 @@ public class OvsFlowsCreateSet_VLAN_Truncated_Test
         return new FlowMatch()
             .addKey(inPort(0))
             .addKey(ethernet(macFromString("ae:b3:77:8c:a1:48"),
-                             macFromString("33:33:00:00:00:16")))
+                    macFromString("33:33:00:00:00:16")))
             .addKey(etherType(FlowKeyEtherType.Type.ETH_P_8021Q))
-            .addKey(vlan(0x0101))
-            .addKey(encap());
+            .addKey(vlan((short) 0x0101))
+            .addKey(encap(Collections.<FlowKey<?>>emptyList()));
     }
 
     @Override
     protected List<FlowAction<?>> flowActions() {
-        return Arrays.<FlowAction<?>>asList(FlowActions.output(513));
+        return Arrays.<FlowAction<?>>asList(output(513));
     }
 
     @Test

@@ -12,7 +12,8 @@ import org.midonet.netlink.messages.BaseBuilder;
 import org.midonet.netlink.messages.BuilderAware;
 
 import org.midonet.odp.flows.FlowActionOutput;
-import org.midonet.odp.flows.FlowActions;
+
+import static org.midonet.odp.flows.FlowActions.output;
 
 /**
  * Abstract port abstraction.
@@ -104,7 +105,7 @@ public abstract class Port<Opts extends PortOptions, Self extends Port<Opts, Sel
     }
 
     public FlowActionOutput toOutputAction() {
-      return FlowActions.output(this.portNo.shortValue());
+      return output(this.portNo.shortValue());
     }
 
     @Override

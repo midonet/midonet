@@ -23,6 +23,7 @@ import org.midonet.midolman.simulation.Icmp.IPv4Icmp._
 import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.midolman.topology._
 import org.midonet.odp.flows._
+import org.midonet.odp.flows.FlowActions.{setKey, popVLAN}
 import org.midonet.packets.{Ethernet, ICMP, IPv4, IPv4Addr, IPv6Addr, TCP, UDP}
 import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPort
 import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPortSet
@@ -674,7 +675,7 @@ class Coordinator(var origMatch: WildcardMatch,
         orig.doNotTrackSeenFields()
         if (!orig.getEthernetSource.equals(modif.getEthernetSource) ||
             !orig.getEthernetDestination.equals(modif.getEthernetDestination)) {
-            actions.append(FlowActions.setKey(FlowKeys.ethernet(
+            actions.append(setKey(FlowKeys.ethernet(
                 modif.getDataLayerSource, modif.getDataLayerDestination)))
         }
         if (!matchObjectsSame(orig.getNetworkSourceIP,
@@ -683,22 +684,21 @@ class Coordinator(var origMatch: WildcardMatch,
                               modif.getNetworkDestinationIP) ||
             !matchObjectsSame(orig.getNetworkTTL,
                               modif.getNetworkTTL)) {
-            actions.append(FlowActions.setKey(
+            actions.append(setKey(
                 modif.getNetworkSourceIP match {
                     case srcIP: IPv4Addr =>
                         FlowKeys.ipv4(srcIP,
                             modif.getNetworkDestinationIP.asInstanceOf[IPv4Addr],
-                            modif.getNetworkProtocol)
-                        .setFrag(modif.getIpFragmentType
-                                      .ordinal().asInstanceOf[Byte])
-                        .setTos(modif.getNetworkTypeOfService)
-                        .setTtl(modif.getNetworkTTL)
+                            modif.getNetworkProtocol,
+                            modif.getNetworkTypeOfService,
+                            modif.getNetworkTTL,
+                            modif.getIpFragmentType)
                     case srcIP: IPv6Addr =>
                         FlowKeys.ipv6(srcIP,
                             modif.getNetworkDestinationIP.asInstanceOf[IPv6Addr],
-                            modif.getNetworkProtocol)
-                        .setFrag(modif.getIpFragmentType)
-                        .setHLimit(modif.getNetworkTTL)
+                            modif.getNetworkProtocol,
+                            modif.getNetworkTTL,
+                            modif.getIpFragmentType)
                 }
             ))
         }
@@ -710,23 +710,15 @@ class Coordinator(var origMatch: WildcardMatch,
                       vlansToRemove, vlansToAdd)
 
             for (vlan <- vlansToRemove) {
-                actions.append(new FlowActionPopVLAN)
+                actions.append(popVLAN())
             }
+
             var count = vlansToAdd.size
             for (vlan <- vlansToAdd) {
                 count -= 1
-                val action: FlowActionPushVLAN = new FlowActionPushVLAN()
-                // check if this is the last VLAN to push
-                if (count == 0) {
-                    action.setTagProtocolIdentifier(Ethernet.VLAN_TAGGED_FRAME)
-                } else {
-                    action.setTagControlIdentifier(Ethernet.PROVIDER_BRIDGING_TAG)
-                }
-
-                // vlan tag is the last 12 bits of this short, since we don't
-                // care about the first 4 we just set it directly
-                action.setTagControlIdentifier((vlan | 0x1000).toShort)
-                actions.append(action)
+                val protocol = if (count == 0) Ethernet.VLAN_TAGGED_FRAME
+                               else Ethernet.PROVIDER_BRIDGING_TAG
+                actions.append(FlowActions.pushVLAN(vlan, protocol))
             }
         }
 
@@ -737,30 +729,28 @@ class Coordinator(var origMatch: WildcardMatch,
             if (icmpType == ICMP.TYPE_PARAMETER_PROBLEM ||
                 icmpType == ICMP.TYPE_UNREACH ||
                 icmpType == ICMP.TYPE_TIME_EXCEEDED) {
-                val actSetKey = FlowActions.setKey(null)
-                actions.append(actSetKey)
-                actSetKey.setFlowKey(FlowKeys.icmpError(
-                    modif.getTransportSource,
-                    modif.getTransportDestination,
+
+                actions.append(setKey(FlowKeys.icmpError(
+                    modif.getTransportSource.asInstanceOf[Byte],
+                    modif.getTransportDestination.asInstanceOf[Byte],
                     modif.getIcmpData
-                ))
+                )))
             }
         }
         if (!matchObjectsSame(orig.getTransportSourceObject,
                               modif.getTransportSourceObject) ||
             !matchObjectsSame(orig.getTransportDestinationObject,
                               modif.getTransportDestinationObject)) {
-            val actSetKey = FlowActions.setKey(null)
-            actions.append(actSetKey)
+
             modif.getNetworkProtocol match {
                 case TCP.PROTOCOL_NUMBER =>
-                    actSetKey.setFlowKey(FlowKeys.tcp(
+                    actions.append(setKey(FlowKeys.tcp(
                         modif.getTransportSource,
-                        modif.getTransportDestination))
+                        modif.getTransportDestination)))
                 case UDP.PROTOCOL_NUMBER =>
-                    actSetKey.setFlowKey(FlowKeys.udp(
+                    actions.append(setKey(FlowKeys.udp(
                         modif.getTransportSource,
-                        modif.getTransportDestination))
+                        modif.getTransportDestination)))
                 case ICMP.PROTOCOL_NUMBER =>
                     // this case would only happen if icmp id in ECHO req/reply
                     // were translated, which is not the case, so leave alone
