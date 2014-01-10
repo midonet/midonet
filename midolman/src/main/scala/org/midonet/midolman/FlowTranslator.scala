@@ -9,6 +9,7 @@ import akka.actor.{ActorContext, ActorSystem}
 import akka.dispatch.{ExecutionContext, Promise, Future}
 import akka.event.LoggingAdapter
 import akka.pattern.ask
+import akka.event.LoggingAdapter
 import akka.util.Timeout
 import java.{util => ju}
 import java.util.UUID
@@ -28,6 +29,7 @@ import org.midonet.cluster.client
 import org.midonet.cluster.client.ExteriorPort
 import org.midonet.odp.flows.{
         FlowActionUserspace, FlowKeys, FlowActions, FlowAction}
+import org.midonet.odp.flows.FlowActions.{output, setKey}
 import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 import org.midonet.util.functors.Callback0
@@ -202,9 +204,9 @@ trait FlowTranslator {
                         "be dropped because we cannot make Output actions.")
 
         // Translate a flow to local ports.
-        def translateFlowToLocalPorts(): TaggedActions =
-            localPorts.map { id =>
-                (FlowActions.output(id), FlowTagger.invalidateDPPort(id))
+        def translateFlowToLocalPorts: TaggedActions =
+            localPorts.map { 
+              id => (output(id), FlowTagger.invalidateDPPort(id))
             }.unzip
 
         // Helper functions for remote port translation
@@ -213,7 +215,7 @@ trait FlowTranslator {
 
         // Prepare an ODP object which can set the flow tunnel info
         def flowTunnelKey(key: Long, route: (Int, Int)) =
-            FlowActions.setKey(FlowKeys.tunnel(key, route._1, route._2))
+            setKey(FlowKeys.tunnel(key, route._1, route._2))
 
         // Generate a list of tunneling actions and tags for given tunnel key
         def tunnelSettings(key: Long, output: FlowAction[_]): TaggedActions = {
@@ -285,7 +287,7 @@ trait FlowTranslator {
                     expandPortAction(Seq(p), p.portId, inPortUUID, dpTags,
                         wMatch)(ec, system)
                 case u: FlowActionUserspace =>
-                    u.setUplinkPid(datapathConnection.getChannel.getLocalAddress.getPid)
+                    output(datapathConnection.getChannel.getLocalAddress.getPid)
                     Promise.successful(Seq(u))(ec)
                 case a =>
                     Promise.successful(Seq[FlowAction[_]](a))(ec)

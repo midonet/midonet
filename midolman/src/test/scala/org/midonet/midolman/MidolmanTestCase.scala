@@ -62,7 +62,7 @@ import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.version.guice.VersionModule
 import org.midonet.odp._
 import org.midonet.odp.flows.FlowAction
-import org.midonet.odp.flows.FlowKeyInPort
+import org.midonet.odp.flows.FlowKeys.inPort
 import org.midonet.odp.flows.{FlowActionOutput, FlowActionSetKey, FlowKeyTunnel}
 import org.midonet.odp.protos.MockOvsDatapathConnection
 import org.midonet.odp.protos.MockOvsDatapathConnection.FlowListener
@@ -319,7 +319,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
 
     protected def triggerPacketIn(portName: String, ethPkt: Ethernet) {
         val flowMatch = FlowMatches.fromEthernetPacket(ethPkt)
-            .addKey(new FlowKeyInPort().setInPort(getPortNumber(portName)))
+            .addKey(inPort(getPortNumber(portName)))
         val dpPkt = new Packet()
             .setMatch(flowMatch)
             .setPacket(ethPkt)
@@ -329,7 +329,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
     protected def triggerPacketsIn(portName: String, ethPkts: List[Ethernet]) {
         val pkts = ethPkts map { ethPkt =>
             val flowMatch = FlowMatches.fromEthernetPacket(ethPkt)
-                .addKey(new FlowKeyInPort().setInPort(getPortNumber(portName)))
+                .addKey(inPort(getPortNumber(portName)))
             new Packet().setMatch(flowMatch).setPacket(ethPkt)
         }
         triggerPacketsIn(pkts)
@@ -503,7 +503,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
 
         val tunnelKeys: Seq[FlowKeyTunnel] = acts
             .withFilter { _.isInstanceOf[FlowActionSetKey] }
-            .map { _.asInstanceOf[FlowActionSetKey].getFlowKey.asInstanceOf[FlowKeyTunnel] }
+            .map { _.asInstanceOf[FlowActionSetKey].getFlowKey().asInstanceOf[FlowKeyTunnel] }
 
         (outputs, tunnelKeys)
     }

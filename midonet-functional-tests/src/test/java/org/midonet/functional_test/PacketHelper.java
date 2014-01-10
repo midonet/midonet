@@ -585,7 +585,7 @@ public class PacketHelper {
         ICMP icmp = ICMP.class.cast(ip.getPayload());
         assertTrue(icmp.isError());
         assertEquals(ICMP.TYPE_UNREACH, icmp.getType());
-        assertEquals(code.toChar(), icmp.getCode());
+        assertEquals(code.toByte(), icmp.getCode());
         byte[] data = icmp.getData();
         byte[] expected = Arrays.copyOfRange(triggerPkt, 14,
                                              14 + data.length);

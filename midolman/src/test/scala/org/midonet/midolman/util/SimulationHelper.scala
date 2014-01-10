@@ -8,7 +8,6 @@ import scala.collection.JavaConversions._
 import java.util.UUID
 import java.util.{List => JList}
 
-import akka.testkit.TestProbe
 import org.slf4j.LoggerFactory
 
 import org.midonet.midolman.FlowController.WildcardFlowAdded
@@ -16,6 +15,7 @@ import org.midonet.midolman.MidolmanTestCase
 import org.midonet.midolman.PacketWorkflow.PacketIn
 import org.midonet.odp.Packet
 import org.midonet.odp.flows._
+import org.midonet.odp.flows.FlowActions.output
 import org.midonet.packets._
 import org.midonet.packets.util.AddressConversions._
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
@@ -285,7 +285,7 @@ trait SimulationHelper extends MidolmanTestCase {
         pktOut.getPacket should not be null
         val flowActs = pktOut.getActions
         flowActs.size should equal (3)
-        flowActs.contains(FlowActions.output(portNum)) should be (true)
+        flowActs.contains(output(portNum)) should be (true)
         pktOut.getPacket
     }
 

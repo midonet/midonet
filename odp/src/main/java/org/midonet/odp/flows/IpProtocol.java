@@ -1,6 +1,6 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.odp.flows;
 
 /**
@@ -12,6 +12,6 @@ public enum IpProtocol {
     UDP(17),
     ICMPV6(58);
 
-    byte value;
+    public byte value;
     IpProtocol(int value) { this.value = (byte)value; }
 }

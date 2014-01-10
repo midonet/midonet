@@ -1,6 +1,6 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.odp.flows;
 
 import java.util.Arrays;
@@ -11,8 +11,16 @@ import org.midonet.netlink.messages.BaseBuilder;
 
 public class FlowKeyEthernet implements FlowKey<FlowKeyEthernet> {
 
-    /*__u8*/ byte[] eth_src = new byte[6]; // always 6 bytes long
-    /*__u8*/ byte[] eth_dst = new byte[6]; // always 6 bytes long
+    /*__u8*/ private byte[] eth_src = new byte[6]; // always 6 bytes long
+    /*__u8*/ private byte[] eth_dst = new byte[6]; // always 6 bytes long
+
+    // This is used for deserialization purposes only.
+    FlowKeyEthernet() { }
+
+    FlowKeyEthernet(byte[] src, byte[] dst) {
+        eth_src = src;
+        eth_dst = dst;
+    }
 
     @Override
     public void serialize(BaseBuilder builder) {
@@ -45,18 +53,8 @@ public class FlowKeyEthernet implements FlowKey<FlowKeyEthernet> {
         return eth_src;
     }
 
-    public FlowKeyEthernet setSrc(byte[] src) {
-        this.eth_src = src;
-        return this;
-    }
-
     public byte[] getDst() {
         return eth_dst;
-    }
-
-    public FlowKeyEthernet setDst(byte[] dst) {
-        this.eth_dst = dst;
-        return this;
     }
 
     @Override

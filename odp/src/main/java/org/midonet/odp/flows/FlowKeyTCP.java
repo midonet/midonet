@@ -1,6 +1,6 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.odp.flows;
 
 import java.nio.ByteOrder;
@@ -10,8 +10,23 @@ import org.midonet.netlink.messages.BaseBuilder;
 import org.midonet.packets.Unsigned;
 
 public class FlowKeyTCP implements FlowKey<FlowKeyTCP> {
-    /*__be16*/ int tcp_src;
-    /*__be16*/ int tcp_dst;
+    /*__be16*/ private int tcp_src;
+    /*__be16*/ private int tcp_dst;
+
+    // This is used for deserialization purposes only.
+    FlowKeyTCP() { }
+
+    FlowKeyTCP(int source, int destination) {
+        ensureTcpPortInRange(source);
+        ensureTcpPortInRange(destination);
+        tcp_src = source;
+        tcp_dst = destination;
+    }
+
+    private static void ensureTcpPortInRange(int port) {
+        if (port < 0 || port > 0xffff)
+            throw new IllegalArgumentException("TCP port out of range");
+    }
 
     @Override
     public void serialize(BaseBuilder builder) {
@@ -40,27 +55,12 @@ public class FlowKeyTCP implements FlowKey<FlowKeyTCP> {
         return this;
     }
 
-
     public int getSrc() {
         return tcp_src;
     }
 
-    public FlowKeyTCP setSrc(int src) {
-        if (src < 0 || src > 0xffff)
-            throw new IllegalArgumentException("TCP port out of range");
-        this.tcp_src = src;
-        return this;
-    }
-
     public int getDst() {
         return tcp_dst;
-    }
-
-    public FlowKeyTCP setDst(int dst) {
-        if (dst < 0 || dst > 0xffff)
-            throw new IllegalArgumentException("TCP port out of range");
-        this.tcp_dst = dst;
-        return this;
     }
 
     @Override

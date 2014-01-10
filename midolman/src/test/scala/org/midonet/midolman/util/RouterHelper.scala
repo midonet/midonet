@@ -18,7 +18,7 @@ trait RouterHelper extends SimulationHelper {
 
     def expectEmitIcmp(fromMac: MAC, fromIp: IPv4Addr,
                                toMac: MAC, toIp: IPv4Addr,
-                               icmpType: Char, icmpCode: Char) {
+                               icmpType: Byte, icmpCode: Byte) {
         val pkt = fishForRequestOfType[EmitGeneratedPacket](dedupProbe()).eth
         assertExpectedIcmpPacket(fromMac, fromIp, toMac, toIp, icmpType,
             icmpCode, pkt)
@@ -26,7 +26,7 @@ trait RouterHelper extends SimulationHelper {
 
     def assertExpectedIcmpPacket(fromMac: MAC, fromIp: IPv4Addr,
                                  toMac: MAC, toIp: IPv4Addr,
-                                 icmpType: Char, icmpCode: Char,
+                                 icmpType: Byte, icmpCode: Byte,
                                  pkt: Ethernet){
         pkt.getEtherType should be === IPv4.ETHERTYPE
         pkt.getSourceMACAddress should be === fromMac

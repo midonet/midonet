@@ -3,36 +3,27 @@
 */
 package org.midonet.odp.protos;
 
+import org.junit.Before;
+import org.junit.Test;
+import org.midonet.odp.Datapath;
+import org.midonet.odp.Flow;
+import org.midonet.odp.FlowMatch;
+import org.midonet.odp.flows.FlowKey;
+import org.midonet.odp.flows.FlowKeyEtherType;
+import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.MAC;
+
+import java.util.Arrays;
 import java.util.Set;
 import java.util.concurrent.Future;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
-
-import org.midonet.packets.MAC;
-import org.midonet.packets.Net;
-import org.midonet.odp.Datapath;
-import org.midonet.odp.Flow;
-import org.midonet.odp.FlowMatch;
-import org.midonet.odp.flows.FlowKeyEtherType;
-import static org.midonet.odp.flows.FlowKeys.arp;
-import static org.midonet.odp.flows.FlowKeys.encap;
-import static org.midonet.odp.flows.FlowKeys.etherType;
-import static org.midonet.odp.flows.FlowKeys.ethernet;
-import static org.midonet.odp.flows.FlowKeys.inPort;
-import static org.midonet.odp.flows.FlowKeys.vlan;
-
+import static org.midonet.odp.flows.FlowKeys.*;
 
 public class OvsFlowsDeleteTest extends AbstractNetlinkProtocolTest {
-
-    private static final Logger log = LoggerFactory
-        .getLogger(OvsFlowsDeleteTest.class);
 
     @Before
     public void setUp() throws Exception {
@@ -86,22 +77,17 @@ public class OvsFlowsDeleteTest extends AbstractNetlinkProtocolTest {
         return new FlowMatch()
             .addKey(inPort(0))
             .addKey(ethernet(MAC.fromString("ae:b3:77:8c:a1:48").getAddress(),
-                             MAC.fromString("33:33:00:00:00:16").getAddress()))
+                    MAC.fromString("33:33:00:00:00:16").getAddress()))
             .addKey(etherType(FlowKeyEtherType.Type.ETH_P_8021Q))
-            .addKey(vlan(0x0101))
+            .addKey(vlan((short) 0x0101))
             .addKey(
-                encap()
-                    .addKey(
-                        etherType(FlowKeyEtherType.Type.ETH_P_ARP))
-                    .addKey(
-                        arp(MAC.fromString("ae:b3:77:8d:c1:48").getAddress(),
-                            MAC.fromString("ae:b3:70:8d:c1:48").getAddress())
-                            .setOp((short) 2)
-                            .setSip(Net.convertStringAddressToInt(
-                                "192.168.100.1"))
-                            .setTip(Net.convertStringAddressToInt(
-                                "192.168.102.1"))
-                    ));
+                encap(Arrays.<FlowKey<?>>asList(
+                    etherType(FlowKeyEtherType.Type.ETH_P_ARP),
+                    arp(MAC.fromString("ae:b3:77:8d:c1:48").getAddress(),
+                            MAC.fromString("ae:b3:70:8d:c1:48").getAddress(),
+                            (short) 2,
+                            IPv4Addr.fromString("192.168.100.1").toInt(),
+                            IPv4Addr.fromString("192.168.102.1").toInt()))));
     }
 
     final byte[][] responses = {

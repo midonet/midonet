@@ -22,10 +22,9 @@ import org.midonet.midolman.topology.MacFlowCount
 import org.midonet.midolman.topology.RemoveFlowCallbackGenerator
 import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 import org.midonet.midolman.topology.VirtualTopologyActor._
-import org.midonet.odp.flows.FlowActionPopVLAN
+import org.midonet.odp.flows.FlowActions.popVLAN
 import org.midonet.packets._
 import org.midonet.util.functors.Callback1
-
 
 /**
   * A bridge.
@@ -329,7 +328,7 @@ class Bridge(val id: UUID, val tunnelKey: Long,
                             "trunks, POP, send to port {}", vlanId, vlanPort)
                         ForkAction(List(
                             ToPortSetAction(id),
-                            DoFlowAction(new FlowActionPopVLAN),
+                            DoFlowAction(popVLAN()),
                             ToPortAction(vlanPort))
                         )
                 }

@@ -1,6 +1,6 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.odp.flows;
 
 import java.util.Arrays;
@@ -16,8 +16,12 @@ import java.util.Arrays;
  */
 public class FlowKeyICMPError extends FlowKeyICMP
                               implements FlowKey.UserSpaceOnly {
-
     private byte[] icmp_data = null;
+
+    FlowKeyICMPError(byte type, byte code, byte[] data) {
+        super(type, code);
+        icmp_data = data;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -25,17 +29,15 @@ public class FlowKeyICMPError extends FlowKeyICMP
         if (o == null || getClass() != o.getClass()) return false;
 
         FlowKeyICMPError that = (FlowKeyICMPError) o;
-        if (icmp_code != that.icmp_code) return false;
-        if (icmp_type != that.icmp_type) return false;
+        if (!super.equals(that)) return false;
         if (!Arrays.equals(icmp_data, that.icmp_data)) return false;
         return true;
     }
 
     @Override
     public int hashCode() {
-        int result = (int) icmp_type;
-        result = 35 * result + (int) icmp_code;
-        result = 35 * result + icmp_data.hashCode();
+        int result = super.hashCode();
+        result = 35 * result + Arrays.hashCode(icmp_data);
         return result;
     }
 
@@ -44,11 +46,6 @@ public class FlowKeyICMPError extends FlowKeyICMP
         return String.format(
             "FlowKeyICMPError{icmp_type=0x%X, icmp_code=%d, icmp_data=%s}",
                              icmp_type, icmp_code, Arrays.toString(icmp_data));
-    }
-
-    public FlowKeyICMPError setIcmpData(byte[] icmp_data) {
-        this.icmp_data = Arrays.copyOf(icmp_data, icmp_data.length);
-        return this;
     }
 
     public byte[] getIcmpData() {
@@ -61,6 +58,4 @@ public class FlowKeyICMPError extends FlowKeyICMP
     public boolean isChildOf(FlowKey<?> key) {
         return key instanceof FlowKeyICMP;
     }
-
 }
-

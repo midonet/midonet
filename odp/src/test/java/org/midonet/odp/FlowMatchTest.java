@@ -1,46 +1,47 @@
 package org.midonet.odp;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
 import org.midonet.odp.flows.FlowKey;
-import org.midonet.odp.flows.FlowKeyARP;
 import org.midonet.odp.flows.FlowKeyEtherType;
 import org.midonet.odp.flows.FlowKeyEthernet;
 import org.midonet.odp.flows.FlowKeyICMP;
-import org.midonet.odp.flows.FlowKeyICMPEcho;
-import org.midonet.odp.flows.FlowKeyICMPError;
 import org.midonet.odp.flows.FlowKeyIPv4;
-import org.midonet.odp.flows.FlowKeyTCP;
 import org.midonet.packets.Ethernet;
 import org.midonet.packets.ICMP;
-import org.midonet.packets.IPacket;
 import org.midonet.packets.IPv4;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
-import org.testng.Assert;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
+import static org.midonet.odp.flows.FlowKeys.arp;
+import static org.midonet.odp.flows.FlowKeys.tcp;
+import static org.midonet.odp.flows.FlowKeys.icmp;
+import static org.midonet.odp.flows.FlowKeys.icmpEcho;
+import static org.midonet.odp.flows.FlowKeys.icmpError;
 
 public class FlowMatchTest {
 
-    private List<FlowKey<?>> supported = new ArrayList<FlowKey<?>>();
-    private List<FlowKey<?>> unsupported = new ArrayList<FlowKey<?>>();
-    private List<FlowKey<?>> tmp = new ArrayList<FlowKey<?>>();
+    private List<FlowKey<?>> supported = new ArrayList<>();
+    private List<FlowKey<?>> unsupported = new ArrayList<>();
+    private List<FlowKey<?>> tmp = new ArrayList<>();
 
     @SuppressWarnings("unchecked")
     @Before
     public void setUp() {
-        supported.add(new FlowKeyICMP());
-        supported.add(new FlowKeyARP());
-        supported.add(new FlowKeyTCP());
-        unsupported.add(new FlowKeyICMPEcho());
-        unsupported.add(new FlowKeyICMPError());
+        supported.add(icmp(ICMP.TYPE_ECHO_REQUEST, ICMP.CODE_NONE));
+        supported.add(arp(null, null, (short) 0, 0, 0));
+        supported.add(tcp(0, 0));
+        unsupported.add(icmpEcho(ICMP.TYPE_ECHO_REQUEST, ICMP.CODE_NONE, (short)0));
+        unsupported.add(icmpError(ICMP.TYPE_ECHO_REQUEST, ICMP.CODE_NONE, null));
     }
 
     @After
@@ -85,7 +86,7 @@ public class FlowMatchTest {
         assertTrue(m.isUserSpaceOnly());
         assertEquals(supported.size() + 1, m.getKeys().size());
 
-        tmp = new ArrayList<FlowKey<?>>();
+        tmp = new ArrayList<>();
         tmp.addAll(supported);
         tmp.addAll(unsupported);
         m = new FlowMatch(tmp);
@@ -115,14 +116,10 @@ public class FlowMatchTest {
         FlowMatch m2 = new FlowMatch();
         FlowMatch m3 = new FlowMatch();
         FlowMatch m4 = new FlowMatch();
-        m1.addKey(makeFlowKeyICMP((byte)ICMP.TYPE_ECHO_REQUEST,
-                                  (byte)ICMP.CODE_NONE));
-        m2.addKey(makeFlowKeyICMP((byte)ICMP.TYPE_ECHO_REQUEST,
-                                  (byte)ICMP.CODE_NONE));
-        m3.addKey(makeFlowKeyICMP((byte)ICMP.TYPE_ECHO_REQUEST,
-                                  (byte)ICMP.CODE_NONE));
-        m4.addKey(makeFlowKeyICMP((byte)ICMP.TYPE_ECHO_REQUEST,
-                                  (byte)ICMP.CODE_NONE));
+        m1.addKey(icmp(ICMP.TYPE_ECHO_REQUEST, ICMP.CODE_NONE));
+        m2.addKey(icmp(ICMP.TYPE_ECHO_REQUEST, ICMP.CODE_NONE));
+        m3.addKey(icmp(ICMP.TYPE_ECHO_REQUEST, ICMP.CODE_NONE));
+        m4.addKey(icmp(ICMP.TYPE_ECHO_REQUEST, ICMP.CODE_NONE));
 
         assertEquals(m1, m2);
         assertNotSame(m1, m3);
@@ -138,13 +135,6 @@ public class FlowMatchTest {
         assertNotSame(m1, m3);
         assertNotSame(m1, m4);
 
-    }
-
-    private FlowKeyICMP makeFlowKeyICMP(byte type, byte code) {
-        FlowKeyICMP k= new FlowKeyICMP();
-        k.setType(type);
-        k.setCode(code);
-        return k;
     }
 
     private Ethernet makeFrame(MAC srcMac, MAC dstMac,

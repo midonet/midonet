@@ -33,7 +33,8 @@ import org.midonet.midolman.topology.VirtualToPhysicalMapper.GreZoneMembers
 import org.midonet.midolman.topology.{FlowTagger, LocalPortActive}
 import org.midonet.midolman.util.{TestHelpers, RouterHelper}
 import org.midonet.odp.Datapath
-import org.midonet.odp.flows.{FlowActions, FlowAction}
+import org.midonet.odp.flows.FlowAction
+import org.midonet.odp.flows.FlowActions.output
 import org.midonet.packets.IPv4Addr
 import org.midonet.packets.MAC
 import org.midonet.sdn.flows.{WildcardMatch, WildcardFlow}
@@ -114,10 +115,10 @@ with RouterHelper{
         // the tunnelled packets to this port
         wflowAddedProbe.expectMsgPF(3 seconds,
             "WildcardFlowAdded")(TestHelpers.matchActionsFlowAddedOrRemoved(
-            mutable.Buffer[FlowAction[_]](FlowActions.output(mapPortNameShortNumber(inPortName)))))
+            mutable.Buffer[FlowAction[_]](output(mapPortNameShortNumber(inPortName)))))
         wflowAddedProbe.expectMsgPF(3 seconds,
             "WildcardFlowAdded")(TestHelpers.matchActionsFlowAddedOrRemoved(
-            mutable.Buffer[FlowAction[_]](FlowActions.output(mapPortNameShortNumber(outPortName)))))
+            mutable.Buffer[FlowAction[_]](output(mapPortNameShortNumber(outPortName)))))
 
     }
 
@@ -183,7 +184,7 @@ with RouterHelper{
             "WildcardFlowRemoved")(matchActionsFlowAddedOrRemoved(flowAddedMessage.f.getActions.asScala))
         addRemoveFlowsProbe.fishForMessage(3 seconds,
             "WildcardFlowRemoved")(matchActionsFlowAddedOrRemoved(mutable.Buffer[FlowAction[_]]
-            (FlowActions.output(mapPortNameShortNumber(outPortName)))))*/
+            (output(mapPortNameShortNumber(outPortName)))))*/
     }
 
 

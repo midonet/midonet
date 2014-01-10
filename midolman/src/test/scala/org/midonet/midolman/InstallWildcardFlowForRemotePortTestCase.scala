@@ -18,6 +18,7 @@ import org.midonet.odp.flows.FlowActions
 import org.midonet.odp.flows.{FlowActionOutput, FlowActionSetKey, FlowKeyTunnel}
 import org.midonet.packets.IPv4Addr
 import org.midonet.sdn.flows.{WildcardMatch, WildcardFlow}
+import org.midonet.odp.flows.FlowActions.output
 
 
 @RunWith(classOf[JUnitRunner])
@@ -84,7 +85,7 @@ class InstallWildcardFlowForRemotePortTestCase extends MidolmanTestCase
         val (outputs, tunnelKeys) = parseTunnelActions(flowActs)
 
         outputs should have size(1)
-        outputs should contain(FlowActions.output(greTunnelId))
+        outputs should contain(output(greTunnelId))
 
         tunnelKeys should have size(1)
         tunnelKeys.find(tunnelIsLike(srcIp.toInt, dstIp.toInt, portOnHost2.getTunnelKey)) should not be None

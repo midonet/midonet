@@ -1,14 +1,22 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.odp.flows;
 
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.BaseBuilder;
 
 public class FlowKeyICMP implements FlowKey<FlowKeyICMP> {
-    /*__u8*/ byte icmp_type;
-    /*__u8*/ byte icmp_code;
+    /*__u8*/ protected byte icmp_type;
+    /*__u8*/ protected byte icmp_code;
+
+    // This is used for deserialization purposes only.
+    FlowKeyICMP() { }
+
+    FlowKeyICMP(byte type, byte code) {
+        icmp_type = type;
+        icmp_code = code;
+    }
 
     @Override
     public void serialize(BaseBuilder builder) {
@@ -52,8 +60,8 @@ public class FlowKeyICMP implements FlowKey<FlowKeyICMP> {
 
     @Override
     public int hashCode() {
-        int result = (int) icmp_type;
-        result = 31 * result + (int) icmp_code;
+        int result = icmp_type;
+        result = 31 * result + icmp_code;
         return result;
     }
 
@@ -67,17 +75,7 @@ public class FlowKeyICMP implements FlowKey<FlowKeyICMP> {
         return icmp_type;
     }
 
-    public FlowKeyICMP setType(byte type) {
-        this.icmp_type = type;
-        return this;
-    }
-
     public byte getCode() {
         return icmp_code;
-    }
-
-    public FlowKeyICMP setCode(byte code) {
-        this.icmp_code = code;
-        return this;
     }
 }

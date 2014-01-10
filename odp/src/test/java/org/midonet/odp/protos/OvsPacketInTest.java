@@ -3,19 +3,10 @@
 */
 package org.midonet.odp.protos;
 
-import java.util.concurrent.Future;
-
 import org.junit.Before;
 import org.junit.Test;
+import org.midonet.packets.IPv4Addr;
 import org.midonet.util.BatchCollector;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import static org.hamcrest.CoreMatchers.allOf;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
-
 import org.midonet.packets.Net;
 import org.midonet.netlink.Callback;
 import org.midonet.netlink.exceptions.NetlinkException;
@@ -23,12 +14,16 @@ import org.midonet.odp.Datapath;
 import org.midonet.odp.Packet;
 import org.midonet.packets.Ethernet;
 import org.midonet.packets.MalformedPacketException;
-import static org.midonet.odp.flows.FlowKeyEtherType.Type;
-import static org.midonet.odp.flows.FlowKeys.arp;
-import static org.midonet.odp.flows.FlowKeys.etherType;
-import static org.midonet.odp.flows.FlowKeys.ethernet;
-import static org.midonet.odp.flows.FlowKeys.inPort;
+import org.midonet.util.BatchCollector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.Future;
+
+import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.midonet.odp.flows.FlowKeyEtherType.Type;
+import static org.midonet.odp.flows.FlowKeys.*;
 
 public class OvsPacketInTest extends AbstractNetlinkProtocolTest {
 
@@ -95,10 +90,10 @@ public class OvsPacketInTest extends AbstractNetlinkProtocolTest {
                 .addKey(etherType(Type.ETH_P_ARP))
                 .addKey(
                         arp(macFromString("3e:05:d4:73:2d:4c"),
-                                macFromString("00:00:00:00:00:00"))
-                                .setOp((byte) 1)
-                                .setSip(Net.convertStringAddressToInt("176.28.127.69"))
-                                .setTip(Net.convertStringAddressToInt("192.168.100.10"))
+                            macFromString("00:00:00:00:00:00"),
+                            (byte) 1,
+                            IPv4Addr.fromString("176.28.127.69").toInt(),
+                            IPv4Addr.fromString("192.168.100.10").toInt())
                 ).setReason(Packet.Reason.FlowTableMiss);
 
         return packet;

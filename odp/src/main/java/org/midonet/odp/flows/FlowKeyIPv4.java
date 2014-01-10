@@ -1,6 +1,6 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.odp.flows;
 
 import java.nio.ByteOrder;
@@ -10,14 +10,26 @@ import org.midonet.packets.Net;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.BaseBuilder;
 
-
 public class FlowKeyIPv4 implements FlowKey<FlowKeyIPv4> {
-    /*__be32*/ int ipv4_src;
-    /*__be32*/ int ipv4_dst;
-    /*__u8*/ byte ipv4_proto;
-    /*__u8*/ byte ipv4_tos;
-    /*__u8*/ byte ipv4_ttl;
-    /*__u8*/ byte ipv4_frag;    /* One of OVS_FRAG_TYPE_*. */
+    /*__be32*/ private int ipv4_src;
+    /*__be32*/ private int ipv4_dst;
+    /*__u8*/ private byte ipv4_proto;
+    /*__u8*/ private byte ipv4_tos;
+    /*__u8*/ private byte ipv4_ttl;
+    /*__u8*/ private byte ipv4_frag;    /* One of OVS_FRAG_TYPE_*. */
+
+    // This is used for deserialization purposes only.
+    FlowKeyIPv4() { }
+
+    FlowKeyIPv4(int src, int dst, byte protocol, byte typeOfService,
+                byte ttl, byte fragmentType) {
+        this.ipv4_src = src;
+        this.ipv4_dst = dst;
+        this.ipv4_proto = protocol;
+        this.ipv4_tos = typeOfService;
+        this.ipv4_ttl = ttl;
+        this.ipv4_frag = fragmentType;
+    }
 
     @Override
     public void serialize(BaseBuilder builder) {
@@ -98,64 +110,24 @@ public class FlowKeyIPv4 implements FlowKey<FlowKeyIPv4> {
         return ipv4_src;
     }
 
-    public FlowKeyIPv4 setSrc(int src) {
-        this.ipv4_src = src;
-        return this;
-    }
-
-    public FlowKeyIPv4 setSrc(IPv4Addr src) {
-        this.ipv4_src = src.toInt();
-        return this;
-    }
-
     public int getDst() {
         return ipv4_dst;
-    }
-
-    public FlowKeyIPv4 setDst(int dst) {
-        this.ipv4_dst = dst;
-        return this;
-    }
-
-    public FlowKeyIPv4 setDst(IPv4Addr dst) {
-        this.ipv4_dst = dst.toInt();
-        return this;
     }
 
     public byte getProto() {
         return ipv4_proto;
     }
 
-    public FlowKeyIPv4 setProto(byte proto) {
-        this.ipv4_proto = proto;
-        return this;
-    }
-
     public byte getTos() {
         return ipv4_tos;
-    }
-
-    public FlowKeyIPv4 setTos(byte tos) {
-        this.ipv4_tos = tos;
-        return this;
     }
 
     public byte getTtl() {
         return ipv4_ttl;
     }
 
-    public FlowKeyIPv4 setTtl(byte ttl) {
-        this.ipv4_ttl = ttl;
-        return this;
-    }
-
     public byte getFrag() {
         return ipv4_frag;
-    }
-
-    public FlowKeyIPv4 setFrag(byte frag) {
-        this.ipv4_frag = frag;
-        return this;
     }
 }
 

@@ -24,6 +24,7 @@ import org.midonet.odp.FlowMatch
 import org.midonet.odp.Packet
 import org.midonet.odp.flows._
 import org.midonet.odp.flows.FlowKeys.{ethernet, inPort, tunnel}
+import org.midonet.odp.flows.FlowActions.output
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 import org.midonet.midolman.topology.LocalPortActive
 import scala.Some
@@ -145,11 +146,11 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
 
         outputs should have size(3)
         outputs.contains(
-            FlowActions.output(tunnelId)) should be (true)
+            output(tunnelId)) should be (true)
         outputs.contains(
-            FlowActions.output(localPortNumber3)) should be (true)
+            output(localPortNumber3)) should be (true)
         outputs.contains(
-            FlowActions.output(localPortNumber2)) should not be (true)
+            output(localPortNumber2)) should not be (true)
 
         tunInf should have size(2)
         tunInf.find(tunnelIsLike(
@@ -233,11 +234,11 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
         flowActs should not be (null)
         flowActs should have size (2)
         flowActs.contains(
-            FlowActions.output(localPortNumber1)) should be (true)
+            output(localPortNumber1)) should be (true)
         flowActs.contains(
-            FlowActions.output(localPortNumber2)) should not be (true)
+            output(localPortNumber2)) should not be (true)
         flowActs.contains(
-            FlowActions.output(localPortNumber3)) should be (true)
+            output(localPortNumber3)) should be (true)
     }
 
     def testInvalidationHostRemovedFromPortSet() {

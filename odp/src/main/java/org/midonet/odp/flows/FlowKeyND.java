@@ -1,6 +1,6 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.odp.flows;
 
 import java.nio.ByteOrder;
@@ -15,9 +15,16 @@ import org.midonet.netlink.messages.BaseBuilder;
 * Neighbour Discovery key
 */
 public class FlowKeyND implements FlowKey<FlowKeyND> {
-    /*__u32*/ int[] nd_target = new int[4]; // always 4 int long
-    /*__u8*/ byte[] nd_sll = new byte[6];   // always 6 bytes long
-    /*__u8*/ byte[] nd_tll = new byte[6];   // always 6 bytes long
+    /*__u32*/ private int[] nd_target; // always 4 int long
+    /*__u8*/ private byte[] nd_sll = new byte[6];   // always 6 bytes long
+    /*__u8*/ private byte[] nd_tll = new byte[6];   // always 6 bytes long
+
+    // This is used for deserialization purposes only.
+    FlowKeyND() { }
+
+    FlowKeyND(int[] target) {
+        nd_target = target;
+    }
 
     @Override
     public void serialize(BaseBuilder builder) {
@@ -29,6 +36,7 @@ public class FlowKeyND implements FlowKey<FlowKeyND> {
     @Override
     public boolean deserialize(NetlinkMessage message) {
         try {
+            nd_target = new int[4];
             message.getInts(nd_target, ByteOrder.BIG_ENDIAN);
             message.getBytes(nd_sll);
             message.getBytes(nd_tll);
@@ -51,28 +59,12 @@ public class FlowKeyND implements FlowKey<FlowKeyND> {
     public int[] getTarget() {
         return nd_target;
     }
-
-    public FlowKeyND setTarget(int[] target) {
-        this.nd_target = target;
-        return this;
-    }
-
     public byte[] getSourceLinkLayer() {
         return nd_sll;
     }
 
-    public FlowKeyND setSourceLinkLayer(byte[] sll) {
-        this.nd_sll = sll;
-        return this;
-    }
-
     public byte[] getTargetLinkLayer() {
         return nd_tll;
-    }
-
-    public FlowKeyND setTargetLinkLayer(byte[] tll) {
-        this.nd_tll = tll;
-        return this;
     }
 
     @Override
@@ -91,9 +83,9 @@ public class FlowKeyND implements FlowKey<FlowKeyND> {
 
     @Override
     public int hashCode() {
-        int result = nd_target != null ? Arrays.hashCode(nd_target) : 0;
-        result = 31 * result + (nd_sll != null ? Arrays.hashCode(nd_sll) : 0);
-        result = 31 * result + (nd_tll != null ? Arrays.hashCode(nd_tll) : 0);
+        int result = Arrays.hashCode(nd_target);
+        result = 31 * result + Arrays.hashCode(nd_sll);
+        result = 31 * result + Arrays.hashCode(nd_tll);
         return result;
     }
 

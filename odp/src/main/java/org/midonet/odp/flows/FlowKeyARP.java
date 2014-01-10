@@ -1,6 +1,6 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.odp.flows;
 
 import java.nio.ByteOrder;
@@ -13,11 +13,23 @@ import org.midonet.netlink.messages.BaseBuilder;
 
 public class FlowKeyARP implements FlowKey<FlowKeyARP> {
 
-    /*__be32*/ int arp_sip;
-    /*__be32*/ int arp_tip;
-    /*__be16*/ short arp_op;
-    /*__u8*/ byte[] arp_sha = new byte[6]; // 6 bytes long
-    /*__u8*/ byte[] arp_tha = new byte[6]; // 6 bytes long
+    /*__be32*/ private int arp_sip;
+    /*__be32*/ private int arp_tip;
+    /*__be16*/ private short arp_op;
+    /*__u8*/ private byte[] arp_sha = new byte[6]; // 6 bytes long
+    /*__u8*/ private byte[] arp_tha = new byte[6]; // 6 bytes long
+
+    // This is used for deserialization purposes only.
+    FlowKeyARP() { }
+
+    FlowKeyARP(byte[] sourceAddress, byte[] targetAddress, short opcode,
+               int sourceIp, int targetIp) {
+        arp_sha = sourceAddress;
+        arp_tha = targetAddress;
+        arp_op = opcode;
+        arp_sip = sourceIp;
+        arp_tip = targetIp;
+    }
 
     @Override
     public void serialize(BaseBuilder builder) {
@@ -57,45 +69,20 @@ public class FlowKeyARP implements FlowKey<FlowKeyARP> {
         return arp_tha;
     }
 
-    public FlowKeyARP setTargetAddress(byte[] tha) {
-        this.arp_tha = tha;
-        return this;
-    }
-
     public byte[] getSha() {
         return arp_sha;
-    }
-
-    public FlowKeyARP setSourceAddress(byte[] sha) {
-        this.arp_sha = sha;
-        return this;
     }
 
     public short getOp() {
         return arp_op;
     }
 
-    public FlowKeyARP setOp(short op) {
-        this.arp_op = op;
-        return this;
-    }
-
     public int getTip() {
         return arp_tip;
     }
 
-    public FlowKeyARP setTip(int tip) {
-        this.arp_tip = tip;
-        return this;
-    }
-
     public int getSip() {
         return arp_sip;
-    }
-
-    public FlowKeyARP setSip(int sip) {
-        this.arp_sip = sip;
-        return this;
     }
 
     @Override

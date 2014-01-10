@@ -1,6 +1,6 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.odp.flows;
 
 import org.midonet.netlink.NetlinkMessage;
@@ -10,8 +10,16 @@ import org.midonet.netlink.messages.BaseBuilder;
 import static org.midonet.packets.Unsigned.unsign;
 
 public class FlowKeyICMPv6 implements FlowKey<FlowKeyICMPv6> {
-    /*__u8*/ byte icmpv6_type;
-    /*__u8*/ byte icmpv6_code;
+    /*__u8*/ private byte icmpv6_type;
+    /*__u8*/ private byte icmpv6_code;
+
+    // This is used for deserialization purposes only.
+    FlowKeyICMPv6() { }
+
+    FlowKeyICMPv6(byte type, byte code) {
+        this.icmpv6_type = type;
+        this.icmpv6_code = code;
+    }
 
     @Override
     public void serialize(BaseBuilder builder) {
@@ -44,18 +52,8 @@ public class FlowKeyICMPv6 implements FlowKey<FlowKeyICMPv6> {
         return icmpv6_type;
     }
 
-    public FlowKeyICMPv6 setType(byte type) {
-        this.icmpv6_type = type;
-        return this;
-    }
-
     public byte getCode() {
         return icmpv6_code;
-    }
-
-    public FlowKeyICMPv6 setCode(byte code) {
-        this.icmpv6_code = code;
-        return this;
     }
 
     @Override
