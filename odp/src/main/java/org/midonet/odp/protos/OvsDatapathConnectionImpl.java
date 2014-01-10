@@ -107,7 +107,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         _doPortsEnumerate(datapath, new Callback<Set<Port<?, ?>>>() {
             @Override
             public void onSuccess(final Set<Port<?, ?>> data) {
-                if (data == null || data.size() == 0) {
+                if (data == null || data.isEmpty()) {
                     installCallback.onSuccess(true);
                     return;
                 }
@@ -678,7 +678,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         FlowMatch flowMatch = flow.getMatch();
 
-        if (flowMatch == null || flowMatch.getKeys().size() == 0) {
+        if (flowMatch == null || flowMatch.getKeys().isEmpty()) {
             callback.onError(
                 new OvsDatapathInvalidParametersException(
                     "The flow should have a FlowMatch object set up (with non empty key set)."
@@ -693,7 +693,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             .addAttrs(flowMatch.getKeys())
             .build();
 
-        if (flow.getActions().size() > 0) {
+        if (!flow.getActions().isEmpty()) {
             builder.addAttrNested(AttrKey.ACTIONS)
                    .addAttrs(flow.getActions())
                    .build();
@@ -730,7 +730,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         FlowMatch flowMatch = packet.getMatch();
 
-        if (flowMatch.getKeys().size() == 0) {
+        if (flowMatch.getKeys().isEmpty()) {
             callback.onError(
                 new OvsDatapathInvalidParametersException(
                     "The packet should have a FlowMatch object set up (with non empty key set)."
@@ -739,7 +739,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             return;
         }
 
-        if (packet.getActions() == null || packet.getActions().size() == 0) {
+        if (packet.getActions() == null || packet.getActions().isEmpty()) {
             callback.onError(
                 new OvsDatapathInvalidParametersException(
                     "The packet should have an action set up."
