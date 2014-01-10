@@ -1,6 +1,6 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.odp.flows;
 
 import java.nio.ByteBuffer;
@@ -12,7 +12,16 @@ import org.midonet.netlink.messages.BaseBuilder;
 
 public class FlowKeyEncap implements FlowKey<FlowKeyEncap> {
 
-    List<FlowKey<?>> keys = new ArrayList<FlowKey<?>>();
+    private final List<FlowKey<?>> keys;
+
+    // This is used for deserialization purposes only.
+    FlowKeyEncap() {
+        keys = new ArrayList<>();
+    }
+
+    FlowKeyEncap(List<FlowKey<?>> keys) {
+        this.keys = keys;
+    }
 
     @Override
     public NetlinkMessage.AttrKey<FlowKeyEncap> getKey() {
@@ -73,17 +82,7 @@ public class FlowKeyEncap implements FlowKey<FlowKeyEncap> {
             '}';
     }
 
-    public List<FlowKey<?>> getKeys() {
+    public Iterable<FlowKey<?>> getKeys() {
         return keys;
-    }
-
-    public FlowKeyEncap setKeys(List<FlowKey<?>> keys) {
-        this.keys = keys;
-        return this;
-    }
-
-    public FlowKeyEncap addKey(FlowKey<?> key) {
-        keys.add(key);
-        return this;
     }
 }

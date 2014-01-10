@@ -1,6 +1,6 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.odp.flows;
 
 import java.nio.ByteOrder;
@@ -10,7 +10,14 @@ import org.midonet.netlink.messages.BaseBuilder;
 
 public class FlowKeyPriority implements FlowKey<FlowKeyPriority> {
 
-    /*__be32*/ int priority;
+    /*__be32*/ private int priority;
+
+    // This is used for deserialization purposes only.
+    FlowKeyPriority() { }
+
+    FlowKeyPriority(int priority) {
+        this.priority = priority;
+    }
 
     @Override
     public void serialize(BaseBuilder<?,?> builder) {
@@ -39,11 +46,6 @@ public class FlowKeyPriority implements FlowKey<FlowKeyPriority> {
 
     public int getPriority() {
         return priority;
-    }
-
-    public FlowKeyPriority setPriority(int priority) {
-        this.priority = priority;
-        return this;
     }
 
     @Override

@@ -1,6 +1,6 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.odp.flows;
 
 import java.nio.ByteBuffer;
@@ -11,6 +11,13 @@ import org.midonet.netlink.messages.BaseBuilder;
 public class FlowActionSetKey implements FlowAction<FlowActionSetKey> {
 
     FlowKey<?> flowKey;
+
+    // This is used for deserialization purposes only.
+    FlowActionSetKey() { }
+
+    FlowActionSetKey(FlowKey<?> flowKey) {
+        this.flowKey = flowKey;
+    }
 
     @Override
     public void serialize(BaseBuilder<?,?> builder) {
@@ -47,11 +54,6 @@ public class FlowActionSetKey implements FlowAction<FlowActionSetKey> {
 
     public FlowKey<?> getFlowKey() {
         return flowKey;
-    }
-
-    public FlowActionSetKey setFlowKey(FlowKey<?> flowKey) {
-        this.flowKey = flowKey;
-        return this;
     }
 
     @Override

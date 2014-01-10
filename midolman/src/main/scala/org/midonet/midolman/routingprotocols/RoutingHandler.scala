@@ -22,7 +22,7 @@ import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 import org.midonet.midolman.topology.{FlowTagger, VirtualTopologyActor}
 import org.midonet.netlink.AfUnix
 import org.midonet.odp.Ports
-import org.midonet.odp.flows.{FlowActionUserspace, FlowActions}
+import org.midonet.odp.flows.FlowActions.{output, userspace}
 import org.midonet.odp.ports.NetDevPort
 import org.midonet.packets._
 import org.midonet.quagga.ZebraProtocol.RIBType
@@ -904,7 +904,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
         wildcardFlow = WildcardFlow(
             wcmatch = wildcardMatch,
-            actions = List(FlowActions.output(localPortNum)))
+            actions = List(output(localPortNum)))
 
         DatapathController ! AddVirtualWildcardFlow(
             wildcardFlow, Set.empty, bgpTagSet)
@@ -920,7 +920,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
         wildcardFlow = WildcardFlow(
             wcmatch = wildcardMatch,
-            actions = List(FlowActions.output(localPortNum)))
+            actions = List(output(localPortNum)))
 
         DatapathController ! AddVirtualWildcardFlow(
             wildcardFlow, Set.empty, bgpTagSet)
@@ -952,8 +952,8 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
         wildcardFlow = WildcardFlow(
             wcmatch = wildcardMatch,
-            actions = List(FlowActions.output(localPortNum),
-                            new FlowActionUserspace)) // Netlink Pid filled by datapath controller
+            actions = List(output(localPortNum),
+                           userspace())) // Netlink Pid filled by datapath controller
 
         DatapathController ! AddVirtualWildcardFlow(
             wildcardFlow, Set.empty, bgpTagSet)
@@ -983,7 +983,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
         wildcardFlow = WildcardFlow(
             wcmatch = wildcardMatch,
-            actions = List(FlowActions.output(localPortNum)))
+            actions = List(output(localPortNum)))
 
         DatapathController ! AddVirtualWildcardFlow(
             wildcardFlow, Set.empty, bgpTagSet)

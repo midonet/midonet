@@ -122,7 +122,7 @@ class IPFragmentationTestCase extends MidolmanTestCase
 
         val icmp = ip.getPayload.asInstanceOf[ICMP]
         icmp.getType should be(ICMP.TYPE_UNREACH)
-        icmp.getCode should be(ICMP.UNREACH_CODE.UNREACH_FRAG_NEEDED.toChar)
+        icmp.getCode should be(ICMP.UNREACH_CODE.UNREACH_FRAG_NEEDED.toByte)
 
         triggerPacketIn(vmPortNames(sendingVm), packet)
         packetsEventsProbe.expectNoMsg()

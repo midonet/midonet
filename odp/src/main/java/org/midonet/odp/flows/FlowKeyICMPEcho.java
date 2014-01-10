@@ -1,6 +1,6 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.odp.flows;
 
 /**
@@ -14,8 +14,12 @@ package org.midonet.odp.flows;
  */
 public class FlowKeyICMPEcho extends FlowKeyICMP
                              implements FlowKey.UserSpaceOnly {
-
     private short icmp_id;
+
+    FlowKeyICMPEcho(byte type, byte code, short icmpId) {
+        super(type, code);
+        icmp_id = icmpId;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -23,17 +27,16 @@ public class FlowKeyICMPEcho extends FlowKeyICMP
         if (o == null || getClass() != o.getClass()) return false;
 
         FlowKeyICMPEcho that = (FlowKeyICMPEcho) o;
-        if (icmp_code != that.icmp_code) return false;
-        if (icmp_type != that.icmp_type) return false;
+        if (!super.equals(that)) return false;
         if (icmp_id != that.icmp_id) return false;
+
         return true;
     }
 
     @Override
     public int hashCode() {
-        int result = (int) icmp_type;
-        result = 33 * result + (int) icmp_code;
-        result = 33 * result + (int) icmp_id;
+        int result = super.hashCode();
+        result = 33 * result + icmp_id;
         return result;
     }
 
@@ -41,11 +44,6 @@ public class FlowKeyICMPEcho extends FlowKeyICMP
     public String toString() {
         return String.format("FlowKeyICMPEcho{icmp_type=0x%X, icmp_code=%d, " +
                              "icmp_id=%d}", icmp_type, icmp_code, icmp_id);
-    }
-
-    public FlowKeyICMPEcho setIdentifier(short identifier) {
-        this.icmp_id = identifier;
-        return this;
     }
 
     public short getIdentifier() {
@@ -56,6 +54,5 @@ public class FlowKeyICMPEcho extends FlowKeyICMP
     public boolean isChildOf(FlowKey<?> key) {
         return key instanceof FlowKeyICMP;
     }
-
 }
 

@@ -1,29 +1,63 @@
 /*
-* Copyright 2013 Midokura
-*/
+ * Copyright (c) 2013 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.odp.flows;
-
-import java.nio.ByteOrder;
 
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.BaseBuilder;
 import org.midonet.odp.OpenVSwitch;
 import org.midonet.packets.IPv4Addr;
 
+import java.nio.ByteOrder;
+
 public class FlowKeyTunnel implements FlowKey<FlowKeyTunnel> {
 
     // maintaining the names of field to be the same as ovs_key_ipv4_tunnel
     // see datapath/flow.h from OVS source
-    /* be64 */  Long tun_id;
-    /* be32 */  Integer ipv4_src;
-    /* be32 */  Integer ipv4_dst;
-    /* u16 */   Short tun_flags;
-    /* u8 */    Byte ipv4_tos;
-    /* u8 */    Byte ipv4_ttl;
+    /* be64 */  private long tun_id;
+    /* be32 */  private int ipv4_src;
+    /* be32 */  private int ipv4_dst;
+    /* u16 */   private short tun_flags;
+    /* u8 */    private byte ipv4_tos;
+    /* u8 */    private byte ipv4_ttl;
     // same size as the tun_flags
-    public static final short OVS_TNL_F_DONT_FRAGMENT = (short) (1 << 0);
-    public static final short OVS_TNL_F_CSUM = (short) (1 << 1);
-    public static final short OVS_TNL_F_KEY = (short) (1 << 2);
+    public static final short OVS_TNL_F_DONT_FRAGMENT = 1 << 0;
+    public static final short OVS_TNL_F_CSUM = 1 << 1;
+    public static final short OVS_TNL_F_KEY = 1 << 2;
+
+    private byte usedFields;
+
+    private static final byte TUN_ID_MASK   = 1 << 0;
+    private static final byte IPV4_SRC_MASK = 1 << 1;
+    private static final byte IPV4_DST_MASK = 1 << 2;
+    private static final byte IPV4_TOS_MASK = 1 << 3;
+    private static final byte IPV4_TTL_MASK = 1 << 4;
+
+    // This is used for deserialization purposes only.
+    FlowKeyTunnel() { }
+
+    // OVS kernel module requires the TTL field to be set. Here we set it to
+    // the maximum possible value. We leave TOS and flags not set. We may
+    // set the tunnel key flag, but it's not a required field. DONT FRAGMENT
+    // and CHECKSUM are for the outer header. We leave those alone for now
+    // as well. CHECKSUM defaults to zero in OVS kernel module. GRE header
+    // checksum is not checked in gre_rcv, and it is also not required for
+    // GRE packets.
+
+    FlowKeyTunnel(long tunnelId, int ipv4SrcAddr, int ipv4DstAddr) {
+        this(tunnelId, ipv4SrcAddr, ipv4DstAddr, (byte)-1);
+    }
+
+    FlowKeyTunnel(long tunnelId, int ipv4SrcAddr, int ipv4DstAddr, byte ttl) {
+        if (ttl == 0)
+            throw new IllegalArgumentException("The TTL of a FlowKeyTunnel must not be zero");
+
+        tun_id = tunnelId;
+        ipv4_src = ipv4SrcAddr;
+        ipv4_dst = ipv4DstAddr;
+        ipv4_ttl = ttl;
+        usedFields = TUN_ID_MASK | IPV4_SRC_MASK | IPV4_DST_MASK | IPV4_TTL_MASK;
+    }
 
     @Override
     public NetlinkMessage.AttrKey<FlowKeyTunnel> getKey() {
@@ -71,68 +105,78 @@ public class FlowKeyTunnel implements FlowKey<FlowKeyTunnel> {
         }
 
         static <T> FlowKeyTunnelAttr<T> attr(int id) {
-            return new FlowKeyTunnelAttr<T>(id);
+            return new FlowKeyTunnelAttr<>(id);
         }
     }
 
     @Override
     public void serialize(BaseBuilder<?,?> builder) {
-
-        if (tun_id != null) {
+        if ((usedFields & TUN_ID_MASK) != 0)
             builder.addAttr(FlowKeyTunnelAttr.ID, tun_id, ByteOrder.BIG_ENDIAN);
-        }
 
-        if (ipv4_src != null) {
-            builder.addAttr(
-                FlowKeyTunnelAttr.IPV4_SRC, ipv4_src, ByteOrder.BIG_ENDIAN);
-        }
+        if ((usedFields & IPV4_SRC_MASK) != 0)
+            builder.addAttr(FlowKeyTunnelAttr.IPV4_SRC, ipv4_src, ByteOrder.BIG_ENDIAN);
 
         /*
          * For flow-based tunneling, ipv4_dst has to be set, otherwise
          * the NL message will result in EINVAL
          */
-        if (ipv4_dst != null) {
-            builder.addAttr(
-                FlowKeyTunnelAttr.IPV4_DST, ipv4_dst, ByteOrder.BIG_ENDIAN);
-        }
-        if (ipv4_tos != null) {
+        if ((usedFields & IPV4_DST_MASK) != 0)
+            builder.addAttr(FlowKeyTunnelAttr.IPV4_DST, ipv4_dst, ByteOrder.BIG_ENDIAN);
+
+        if ((usedFields & IPV4_TOS_MASK) != 0)
             builder.addAttrNoPad(FlowKeyTunnelAttr.TOS, ipv4_tos);
-        }
 
         /*
          * For flow-based tunneling, ipv4_ttl of zero would also result
          * in OVS kmod replying with error EINVAL
          */
-        if (ipv4_ttl != null) {
+        if ((usedFields & IPV4_TTL_MASK) != 0)
             builder.addAttrNoPad(FlowKeyTunnelAttr.TTL, ipv4_ttl);
-        }
-        if (tun_flags != null) {
-            if ((tun_flags.shortValue() & OVS_TNL_F_DONT_FRAGMENT) ==
-                    OVS_TNL_F_DONT_FRAGMENT)
-                builder.addAttr(FlowKeyTunnelAttr.DONT_FRAGMENT);
-            if ((tun_flags.shortValue() & OVS_TNL_F_CSUM) == OVS_TNL_F_CSUM)
-                builder.addAttr(FlowKeyTunnelAttr.CSUM);
-        }
+
+        if ((tun_flags & OVS_TNL_F_DONT_FRAGMENT) == OVS_TNL_F_DONT_FRAGMENT)
+            builder.addAttr(FlowKeyTunnelAttr.DONT_FRAGMENT);
+        if ((tun_flags & OVS_TNL_F_CSUM) == OVS_TNL_F_CSUM)
+            builder.addAttr(FlowKeyTunnelAttr.CSUM);
     }
 
     @Override
     public boolean deserialize(NetlinkMessage message) {
         try {
+            Long tun_id = message.getAttrValueLong(
+                    FlowKeyTunnelAttr.ID, ByteOrder.BIG_ENDIAN);
+            if (tun_id != null) {
+                this.tun_id = tun_id;
+                usedFields |= TUN_ID_MASK;
+            }
 
-            tun_id = message.getAttrValueLong(
-                FlowKeyTunnelAttr.ID, ByteOrder.BIG_ENDIAN);
+            Integer ipv4_src = message.getAttrValueInt(
+                    FlowKeyTunnelAttr.IPV4_SRC, ByteOrder.BIG_ENDIAN);
+            if (ipv4_src != null) {
+                this.ipv4_src = ipv4_src;
+                usedFields |= IPV4_SRC_MASK;
+            }
 
-            ipv4_src = message.getAttrValueInt(
-                FlowKeyTunnelAttr.IPV4_SRC, ByteOrder.BIG_ENDIAN);
-
-            ipv4_dst = message.getAttrValueInt(
+            Integer ipv4_dst = message.getAttrValueInt(
                 FlowKeyTunnelAttr.IPV4_DST, ByteOrder.BIG_ENDIAN);
+            if (ipv4_dst != null) {
+                this.ipv4_dst = ipv4_dst;
+                usedFields |= IPV4_DST_MASK;
+            }
 
-            ipv4_tos = message.getAttrValueByte(
+            Byte ipv4_tos = message.getAttrValueByte(
                 FlowKeyTunnelAttr.TOS);
+            if (ipv4_tos != null) {
+                this.ipv4_tos = ipv4_tos;
+                usedFields |= IPV4_TOS_MASK;
+            }
 
-            ipv4_ttl = message.getAttrValueByte(
+            Byte ipv4_ttl = message.getAttrValueByte(
                 FlowKeyTunnelAttr.TTL);
+            if (ipv4_ttl != null) {
+                this.ipv4_ttl = ipv4_ttl;
+                usedFields |= IPV4_TTL_MASK;
+            }
 
             if (message.getAttrValueNone(
                     FlowKeyTunnelAttr.DONT_FRAGMENT) != null ) {
@@ -153,54 +197,24 @@ public class FlowKeyTunnel implements FlowKey<FlowKeyTunnel> {
         return tun_id;
     }
 
-    public FlowKeyTunnel setTunnelID(long tunnelID) {
-        this.tun_id = new Long(tunnelID);
-        return this;
-    }
-
     public int getIpv4SrcAddr() {
         return ipv4_src;
-    }
-
-    public FlowKeyTunnel setIpv4SrcAddr(int ipv4SrcAddr) {
-        this.ipv4_src = new Integer(ipv4SrcAddr);
-        return this;
     }
 
     public int getIpv4DstAddr() {
         return ipv4_dst;
     }
 
-    public FlowKeyTunnel setIpv4DstAddr(int ipv4DstAddr) {
-        this.ipv4_dst = new Integer(ipv4DstAddr);
-        return this;
-    }
-
     public short getTunnelFlags() {
         return tun_flags;
-    }
-
-    public FlowKeyTunnel setTunnelFlags(short tunnelFlags) {
-        this.tun_flags = new Short(tunnelFlags);
-        return this;
     }
 
     public byte getTos() {
         return ipv4_tos;
     }
 
-    public FlowKeyTunnel setTos(byte tos) {
-        this.ipv4_tos = new Byte(tos);
-        return this;
-    }
-
     public byte getTtl() {
         return ipv4_ttl;
-    }
-
-    public FlowKeyTunnel setTtl(byte ttl) {
-        this.ipv4_ttl= new Byte(ttl);
-        return this;
     }
 
     @Override
@@ -222,41 +236,24 @@ public class FlowKeyTunnel implements FlowKey<FlowKeyTunnel> {
 
     @Override
     public int hashCode() {
-        int result = 0;
-
-        if (tun_id != null)
-            result = (int) (tun_id.longValue() ^ (tun_id.longValue() >>> 32));
-        if (ipv4_src != null)
-            result = 31 * result + ipv4_src.intValue();
-        if (ipv4_dst != null)
-            result = 31 * result + ipv4_dst.intValue();
-        if (tun_flags != null)
-            result = 31 * result + tun_flags.intValue();
-        if (ipv4_tos != null)
-            result = 31 * result + ipv4_tos.intValue();
-        if (ipv4_ttl != null)
-            result = 31 * result + ipv4_ttl.intValue();
+        int result = (int)tun_id;
+        result = 31 * result + ipv4_src;
+        result = 31 * result + ipv4_dst;
+        result = 31 * result + tun_flags;
+        result = 31 * result + ipv4_tos;
+        result = 31 * result + ipv4_ttl;
         return result;
     }
 
     @Override
     public String toString() {
-        String retString = "FlowKeyTunnel{";
-        if (tun_id != null)
-            retString = retString + "tun_id=" + tun_id.longValue() + ", ";
-        if (ipv4_src != null)
-            retString = retString + "ipv4_src="
-                      + IPv4Addr.intToString(ipv4_src) + ", ";
-        if (ipv4_dst != null)
-            retString = retString + "ipv4_dst="
-                      + IPv4Addr.intToString(ipv4_dst) + ", ";
-        if (tun_flags != null)
-            retString = retString + "tun_flag=" + tun_flags.shortValue() + ", ";
-        if (ipv4_tos != null)
-            retString = retString + "ipv4_tos=" + ipv4_tos.byteValue() + ", ";
-        if (ipv4_ttl != null)
-            retString = retString + "ipv4_ttl=" + ipv4_ttl.byteValue();
-        retString = retString + '}';
-        return retString;
+        return "FlowKeyTunnel{"
+            + "tun_id=" + tun_id + ", "
+            + "ipv4_src=" + IPv4Addr.intToString(ipv4_src) + ", "
+            + "ipv4_dst=" + IPv4Addr.intToString(ipv4_dst) + ", "
+            + "tun_flag=" + tun_flags + ", "
+            + "ipv4_tos=" + ipv4_tos + ", "
+            + "ipv4_ttl=" + ipv4_ttl
+            + '}';
     }
 }

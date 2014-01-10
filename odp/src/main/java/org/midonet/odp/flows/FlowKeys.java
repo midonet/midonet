@@ -1,6 +1,6 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.odp.flows;
 
 import java.util.List;
@@ -33,118 +33,103 @@ public class FlowKeys {
     }
 
     public static FlowKeyInPort inPort(int portNumber) {
-        return intern(new FlowKeyInPort().setInPort(portNumber));
+        return intern(new FlowKeyInPort(portNumber));
     }
 
     public static FlowKeyEthernet ethernet(byte[] src, byte[] dst) {
-        return intern(new FlowKeyEthernet().setSrc(src).setDst(dst));
+        return intern(new FlowKeyEthernet(src, dst));
     }
 
-    public static FlowKeyEtherType etherType(int value) {
-        return intern(new FlowKeyEtherType().setEtherType((short) value));
+    public static FlowKeyEtherType etherType(short value) {
+        return intern(new FlowKeyEtherType(value));
     }
 
     public static FlowKeyEtherType etherType(FlowKeyEtherType.Type type) {
-        return etherType(type.value);
+        return etherType((short)type.value);
     }
 
     public static FlowKeyIPv4 ipv4(IPv4Addr src, IPv4Addr dst,
                                    IpProtocol protocol) {
-        return ipv4(src, dst, protocol.value);
+        return ipv4(src, dst, protocol.value, (byte)0, (byte)0, IPFragmentType.None);
     }
 
-    public static FlowKeyIPv4 ipv4(IPv4Addr src, IPv4Addr dst, int proto) {
-        return
-            intern(new FlowKeyIPv4()
-                    .setSrc(src)
-                    .setDst(dst)
-                    .setProto((byte) proto));
-    }
-
-    public static FlowKeyIPv6 ipv6(IPv6Addr src, IPv6Addr dst, int proto) {
-        return intern(new FlowKeyIPv6().setSrc(src)
-                                .setDst(dst)
-                                .setProto((byte) proto));
+    public static FlowKeyIPv4 ipv4(IPv4Addr src, IPv4Addr dst, byte protocol,
+                                   byte typeOfService, byte ttl,
+                                   IPFragmentType fragmentType) {
+        return intern(new FlowKeyIPv4(src.toInt(), dst.toInt(), protocol,
+                                      typeOfService, ttl, fragmentType.value));
     }
 
     public static FlowKeyIPv6 ipv6(IPv6Addr src, IPv6Addr dst,
                                    IpProtocol protocol) {
-        return ipv6(src, dst, protocol.value);
+        return ipv6(src, dst, protocol.value, (byte)0, IPFragmentType.None);
     }
 
-    public static FlowKeyICMP icmp(int type, int code) {
-        return intern(new FlowKeyICMP()
-                .setType((byte) type)
-                .setCode((byte) code));
+    public static FlowKeyIPv6 ipv6(IPv6Addr src, IPv6Addr dst,
+                                   byte protocol) {
+        return ipv6(src, dst, protocol, (byte)0, IPFragmentType.None);
     }
 
-    public static FlowKeyICMPEcho icmpEcho(int type, int code,
-                                           short id, short seq) {
-        FlowKeyICMPEcho key = new FlowKeyICMPEcho();
-        key.setType((byte) type).setCode((byte) code);
-        return intern(key.setIdentifier(id));
+    public static FlowKeyIPv6 ipv6(IPv6Addr src, IPv6Addr dst, byte protocol,
+                                   byte hlimit, IPFragmentType fragmentType) {
+        return intern(new FlowKeyIPv6(src, dst, protocol,
+                                      hlimit, fragmentType.value));
     }
 
-    public static FlowKeyICMPError icmpError(int type, int code, byte[] data) {
-        FlowKeyICMPError key = new FlowKeyICMPError();
-        key.setType((byte) type).setCode((byte) code);
-        return intern(key.setIcmpData(data));
+    public static FlowKeyICMP icmp(byte type, byte code) {
+        return intern(new FlowKeyICMP(type, code));
+    }
+
+    public static FlowKeyICMPEcho icmpEcho(byte type, byte code, short id) {
+        return intern(new FlowKeyICMPEcho(type, code, id));
+    }
+
+    public static FlowKeyICMPError icmpError(byte type, byte code, byte[] data) {
+        return intern(new FlowKeyICMPError(type, code, data));
     }
 
     public static FlowKeyICMPv6 icmpv6(int type, int code) {
-        return intern(new FlowKeyICMPv6()
-                .setType((byte) type)
-                .setCode((byte) code));
+        return intern(new FlowKeyICMPv6((byte) type, (byte) code));
     }
 
     public static FlowKeyUDP udp(int src, int dst) {
-        return intern(new FlowKeyUDP().setUdpSrc(src).setUdpDst(dst));
+        return intern(new FlowKeyUDP(src, dst));
     }
 
-    public static FlowKeyARP arp(byte[] sourceAddress, byte[] targetAddress) {
+    public static FlowKeyARP arp(byte[] sourceAddress, byte[] targetAddress,
+                                 short opcode, int sourceIp, int targetIp) {
         return
-            intern(new FlowKeyARP()
-                .setSourceAddress(sourceAddress)
-                .setTargetAddress(targetAddress));
+            intern(new FlowKeyARP(sourceAddress, targetAddress, opcode,
+                                  sourceIp, targetIp));
     }
 
     public static FlowKeyTCP tcp(int src, int dst) {
-        return intern(new FlowKeyTCP().setSrc(src).setDst(dst));
+        return intern(new FlowKeyTCP(src, dst));
     }
 
     public static FlowKeyND neighborDiscovery(int[] target) {
-        return intern(new FlowKeyND().setTarget(target));
+        return intern(new FlowKeyND(target));
     }
 
     public static FlowKeyTunnelID tunnelID(long tunnelId) {
-        return intern(new FlowKeyTunnelID().setTunnelID(tunnelId));
+        return intern(new FlowKeyTunnelID(tunnelId));
     }
 
     public static FlowKeyPriority priority(int priority) {
-        return intern(new FlowKeyPriority().setPriority(priority));
+        return intern(new FlowKeyPriority(priority));
     }
 
-    public static FlowKeyVLAN vlan(int vlan) {
-        return intern(new FlowKeyVLAN().setVLAN((short)vlan));
+    public static FlowKeyVLAN vlan(short vlan) {
+        return intern(new FlowKeyVLAN(vlan));
     }
 
-    public static FlowKeyEncap encap() {
-        return intern(new FlowKeyEncap());
+    public static FlowKeyEncap encap(List<FlowKey<?>> keys) {
+        return intern(new FlowKeyEncap(keys));
     }
 
     public static FlowKeyTunnel tunnel(long tunnelId, int Ipv4SrcAddr,
             int ipv4DstAddr) {
-        // OVS kernel module requires the TTL field to be set. Here we set it to
-        // the maximum possible value. We leave TOS and flags not set. We may
-        // set the tunnel key flag, but it's not a required field. DONT FRAGMENT
-        // and CHECKSUM are for the outer header. We leave those alone for now
-        // as well. CHECKSUM defaults to zero in OVS kernel module. GRE header
-        // checksum is not checked in gre_rcv, and it is also not required for
-        // GRE packets.
-        return intern(new FlowKeyTunnel().setTunnelID(tunnelId)
-                .setIpv4SrcAddr(Ipv4SrcAddr)
-                .setIpv4DstAddr(ipv4DstAddr))
-                .setTtl((byte) 127);  // A maximum number.
+        return intern(new FlowKeyTunnel(tunnelId, Ipv4SrcAddr, ipv4DstAddr));
     }
 
     public static List<FlowKey<?>> buildFrom(NetlinkMessage msg) {

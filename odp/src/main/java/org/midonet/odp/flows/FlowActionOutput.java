@@ -1,6 +1,6 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2013 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.odp.flows;
 
 import org.midonet.netlink.NetlinkMessage;
@@ -9,7 +9,14 @@ import org.midonet.netlink.messages.BaseBuilder;
 public class FlowActionOutput implements FlowAction<FlowActionOutput> {
 
     /** u32 port number. */
-    int portNumber;
+    private int portNumber;
+
+    // This is used for deserialization purposes only.
+    FlowActionOutput() { }
+
+    FlowActionOutput(int portNumber) {
+        this.portNumber = portNumber;
+    }
 
     @Override
     public void serialize(BaseBuilder<?,?> builder) {
@@ -40,11 +47,6 @@ public class FlowActionOutput implements FlowAction<FlowActionOutput> {
         return portNumber;
     }
 
-    public FlowActionOutput setPortNumber(int portNumber) {
-        this.portNumber = portNumber;
-        return this;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -52,9 +54,7 @@ public class FlowActionOutput implements FlowAction<FlowActionOutput> {
 
         FlowActionOutput that = (FlowActionOutput) o;
 
-        if (portNumber != that.portNumber) return false;
-
-        return true;
+        return portNumber == that.portNumber;
     }
 
     @Override
