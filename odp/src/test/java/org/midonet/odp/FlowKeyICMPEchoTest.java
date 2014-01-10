@@ -5,6 +5,8 @@ import org.midonet.odp.flows.FlowKeyICMPEcho;
 import org.midonet.packets.ICMP;
 import org.testng.Assert;
 
+import static org.midonet.odp.flows.FlowKeys.icmpEcho;
+
 public class FlowKeyICMPEchoTest {
 
     private static final byte ICMP_ECHO_REQ = (byte)ICMP.TYPE_ECHO_REQUEST;
@@ -13,21 +15,9 @@ public class FlowKeyICMPEchoTest {
 
     @Test
     public void testEquals() {
-        FlowKeyICMPEcho k1 = new FlowKeyICMPEcho();
-        FlowKeyICMPEcho k2 = new FlowKeyICMPEcho();
-        FlowKeyICMPEcho k3 = new FlowKeyICMPEcho();
-
-        k1.setType(ICMP_ECHO_REQ);
-        k2.setType(ICMP_ECHO_REQ);
-        k3.setType(ICMP_ECHO_REPLY);
-
-        k1.setCode(CODE_NONE);
-        k2.setCode(CODE_NONE);
-        k3.setCode(CODE_NONE);
-
-        k1.setIdentifier((short)9507);
-        k2.setIdentifier((short)9507);
-        k3.setIdentifier((short)9508);
+        FlowKeyICMPEcho k1 = icmpEcho(ICMP_ECHO_REQ, CODE_NONE, (short)9507);
+        FlowKeyICMPEcho k2 = icmpEcho(ICMP_ECHO_REQ, CODE_NONE, (short)9507);
+        FlowKeyICMPEcho k3 = icmpEcho(ICMP_ECHO_REPLY, CODE_NONE, (short)9508);
 
         Assert.assertEquals(k1, k2);
         Assert.assertEquals(k1.hashCode(), k2.hashCode());

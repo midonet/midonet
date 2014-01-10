@@ -1,6 +1,6 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.odp.flows;
 
 import org.midonet.netlink.NetlinkMessage;
@@ -9,8 +9,20 @@ import org.midonet.odp.OpenVSwitch;
 
 public class FlowActionUserspace implements FlowAction<FlowActionUserspace> {
 
-    int uplinkPid;
-    Long userData;
+    private int uplinkPid;
+    private Long userData;
+
+    // This is used for deserialization purposes only.
+    FlowActionUserspace() { }
+
+    FlowActionUserspace(int uplinkPid) {
+        this.uplinkPid = uplinkPid;
+    }
+
+    FlowActionUserspace(int uplinkPid, long userData) {
+        this.uplinkPid = uplinkPid;
+        this.userData = userData;
+    }
 
     @Override
     public void serialize(BaseBuilder<?,?> builder) {
@@ -93,17 +105,7 @@ public class FlowActionUserspace implements FlowAction<FlowActionUserspace> {
         return uplinkPid;
     }
 
-    public FlowActionUserspace setUplinkPid(int uplinkPid) {
-        this.uplinkPid = uplinkPid;
-        return this;
-    }
-
     public Long getUserData() {
         return userData;
-    }
-
-    public FlowActionUserspace setUserData(Long userData) {
-        this.userData = userData;
-        return this;
     }
 }

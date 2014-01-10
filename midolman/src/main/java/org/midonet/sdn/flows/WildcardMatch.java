@@ -1047,7 +1047,7 @@ public class WildcardMatch implements Cloneable {
         return fromFlowMatch(FlowMatches.fromEthernetPacket(ethPkt));
     }
 
-    private void processMatchKeys(List<FlowKey<?>> flowKeys) {
+    private void processMatchKeys(Iterable<FlowKey<?>> flowKeys) {
         for (FlowKey<?> flowKey : flowKeys) {
             switch (flowKey.getKey().getId()) {
 

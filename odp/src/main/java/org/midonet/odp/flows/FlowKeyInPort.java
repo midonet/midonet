@@ -1,6 +1,6 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.odp.flows;
 
 import org.midonet.netlink.NetlinkMessage;
@@ -8,7 +8,14 @@ import org.midonet.netlink.messages.BaseBuilder;
 
 public class FlowKeyInPort implements FlowKey<FlowKeyInPort> {
 
-    /*__be32*/ int portNo;
+    /*__be32*/ private int portNo;
+
+    // This is used for deserialization purposes only.
+    FlowKeyInPort() { }
+
+    FlowKeyInPort(int portNo) {
+        this.portNo = portNo;
+    }
 
     @Override
     public void serialize(BaseBuilder<?,?> builder) {
@@ -32,11 +39,6 @@ public class FlowKeyInPort implements FlowKey<FlowKeyInPort> {
 
     @Override
     public FlowKeyInPort getValue() {
-        return this;
-    }
-
-    public FlowKeyInPort setInPort(int portNumber) {
-        this.portNo = portNumber;
         return this;
     }
 

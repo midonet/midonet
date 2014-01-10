@@ -18,7 +18,8 @@ import org.midonet.netlink.messages.Builder;
 import org.midonet.netlink.messages.BuilderAware;
 import org.midonet.odp.family.PortFamily;
 import org.midonet.odp.flows.FlowActionOutput;
-import org.midonet.odp.flows.FlowActions;
+
+import static org.midonet.odp.flows.FlowActions.output;
 
 /**
  * Base Datapath Port class.
@@ -96,7 +97,7 @@ public abstract class Port<Opts extends PortOptions, Self extends Port<Opts, Sel
     }
 
     public FlowActionOutput toOutputAction() {
-      return FlowActions.output(this.portNo.shortValue());
+      return output(this.portNo.shortValue());
     }
 
     public void serializeInto(Builder builder) {

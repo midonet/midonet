@@ -1,20 +1,34 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.odp.flows;
 
 import java.nio.ByteOrder;
 
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.BaseBuilder;
+import org.midonet.packets.VLAN;
 
 public class FlowActionPushVLAN implements FlowAction<FlowActionPushVLAN> {
 
     /** 802.1Q TPID. */
-    /*__be16*/ short vlan_tpid;
+    /*__be16*/ private short vlan_tpid;
 
     /** 802.1Q TCI (VLAN ID and priority). */
-    /*__be16*/ short vlan_tci;
+    /*__be16*/ private short vlan_tci;
+
+    // This is used for deserialization purposes only.
+    FlowActionPushVLAN() { }
+
+    FlowActionPushVLAN(short tagControlIdentifier) {
+        this(tagControlIdentifier,
+             (short) FlowKeyEtherType.Type.ETH_P_8021Q.value);
+    }
+
+    FlowActionPushVLAN(short tagControlIdentifier, short tagProtocolId) {
+        vlan_tci = VLAN.setDEI(tagControlIdentifier);
+        vlan_tpid = tagProtocolId;
+    }
 
     @Override
     public void serialize(BaseBuilder<?,?> builder) {
@@ -33,7 +47,6 @@ public class FlowActionPushVLAN implements FlowAction<FlowActionPushVLAN> {
         }
     }
 
-
     @Override
     public NetlinkMessage.AttrKey<FlowActionPushVLAN> getKey() {
         return FlowActionAttr.PUSH_VLAN;
@@ -48,18 +61,8 @@ public class FlowActionPushVLAN implements FlowAction<FlowActionPushVLAN> {
         return vlan_tpid;
     }
 
-    public FlowActionPushVLAN setTagProtocolIdentifier(short tagProtocolIdentifier) {
-        this.vlan_tpid = tagProtocolIdentifier;
-        return this;
-    }
-
     public short getTagControlIdentifier() {
         return vlan_tci;
-    }
-
-    public FlowActionPushVLAN setTagControlIdentifier(short tagControlIdentifier) {
-        this.vlan_tci = tagControlIdentifier;
-        return this;
     }
 
     @Override

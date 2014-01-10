@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 Midokura Pte. Ltd.
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
  */
 package org.midonet.odp;
 
@@ -51,16 +51,12 @@ public class FlowMatches {
                 if (!(ethPkt.getPayload() instanceof ARP))
                     break;
                 ARP arpPkt = ARP.class.cast(ethPkt.getPayload());
-                payloadKeys.add(
-                    arp(
+                payloadKeys.add(arp(
                         arpPkt.getSenderHardwareAddress().getAddress(),
-                        arpPkt.getTargetHardwareAddress().getAddress())
-                        .setOp(arpPkt.getOpCode())
-                        .setSip(IPv4Addr.bytesToInt(
-                            arpPkt.getSenderProtocolAddress()))
-                        .setTip(IPv4Addr.bytesToInt(
-                            arpPkt.getTargetProtocolAddress()))
-                );
+                        arpPkt.getTargetHardwareAddress().getAddress(),
+                        arpPkt.getOpCode(),
+                        IPv4Addr.bytesToInt(arpPkt.getSenderProtocolAddress()),
+                        IPv4Addr.bytesToInt(arpPkt.getTargetProtocolAddress())));
                 break;
 
             case IPv4.ETHERTYPE:
@@ -73,9 +69,10 @@ public class FlowMatches {
                 payloadKeys.add(
                     ipv4(ipPkt.getSourceIPAddress(),
                          ipPkt.getDestinationIPAddress(),
-                         ipPkt.getProtocol())
-                        .setTtl(ipPkt.getTtl())
-                        .setFrag(IPFragmentType.toByte(fragmentType))
+                         ipPkt.getProtocol(),
+                         (byte) 0, /* type of service */
+                         ipPkt.getTtl(),
+                         fragmentType)
                 );
                 switch (ipPkt.getProtocol()) {
                     case TCP.PROTOCOL_NUMBER:
@@ -152,7 +149,7 @@ public class FlowMatches {
                                   Ethernet.VLAN_TAGGED_FRAME));
                 match.addKey(vlan(vlanID));
             }
-            match.addKey(encap().setKeys(payloadKeys));
+            match.addKey(encap(payloadKeys));
         } else {
             match.addKeys(payloadKeys);
         }
@@ -165,8 +162,7 @@ public class FlowMatches {
             case ICMP.TYPE_ECHO_REQUEST:
                 return icmpEcho(icmp.getType(),
                                 icmp.getCode(),
-                                icmp.getIdentifier(),
-                                icmp.getSequenceNum());
+                                icmp.getIdentifier());
             case ICMP.TYPE_PARAMETER_PROBLEM:
             case ICMP.TYPE_REDIRECT:
             case ICMP.TYPE_SOURCE_QUENCH:
