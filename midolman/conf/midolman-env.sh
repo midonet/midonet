@@ -106,6 +106,7 @@ JVM_OPTS="$JVM_OPTS -Xms${MAX_HEAP_SIZE}"
 JVM_OPTS="$JVM_OPTS -Xmx${MAX_HEAP_SIZE}"
 JVM_OPTS="$JVM_OPTS -Xmn${HEAP_NEWSIZE}"
 JVM_OPTS="$JVM_OPTS -XX:+HeapDumpOnOutOfMemoryError" 
+JVM_OPTS="$JVM_OPTS -XX:OnOutOfMemoryError=\"kill -3 %p\""
 
 # GC tuning options
 JVM_OPTS="$JVM_OPTS -XX:+UseParNewGC" 
