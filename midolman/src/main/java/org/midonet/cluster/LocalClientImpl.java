@@ -20,6 +20,7 @@ import org.midonet.cluster.client.IPAddrGroupBuilder;
 import org.midonet.cluster.client.PortBuilder;
 import org.midonet.cluster.client.PortSetBuilder;
 import org.midonet.cluster.client.RouterBuilder;
+import org.midonet.cluster.client.HealthMonitorBuilder;
 import org.midonet.cluster.client.TraceConditionsBuilder;
 import org.midonet.cluster.client.LoadBalancerBuilder;
 import org.midonet.cluster.client.PoolBuilder;
@@ -80,6 +81,9 @@ public class LocalClientImpl implements Client {
 
     @Inject
     ClusterPoolManager poolManager;
+
+    @Inject
+    ClusterHealthMonitorManager healthMonitorManager;
 
     @Inject
     TunnelZoneZkManager tunnelZoneZkManager;
@@ -148,6 +152,13 @@ public class LocalClientImpl implements Client {
     public void getPool(UUID poolID, PoolBuilder builder) {
         log.debug("getPool");
         poolManager.registerNewBuilder(poolID, builder);
+    }
+
+    @Override
+    public void getHealthMonitor(UUID healthMonitorId,
+                                 HealthMonitorBuilder builder) {
+        log.debug("getHealthMonitor {}", healthMonitorId);
+        healthMonitorManager.registerNewBuilder(healthMonitorId, builder);
     }
 
     @Override
