@@ -21,7 +21,7 @@ import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.rules.Condition
 import org.midonet.midolman.rules.NatTarget
 import org.midonet.midolman.rules.RuleResult.Action
-import org.midonet.packets.{TCP, MAC}
+import org.midonet.packets.{IPv4Subnet, TCP, MAC}
 import org.midonet.midolman.state.DirectoryCallback
 import org.midonet.midolman.state.DirectoryCallback.Result
 import org.apache.zookeeper.KeeperException
@@ -255,6 +255,11 @@ trait VirtualConfigurationBuilders {
         val uuid = clusterDataClient().portsCreate(port)
         Thread.sleep(50)
         clusterDataClient().portsGet(uuid).asInstanceOf[RouterPort]
+    }
+
+    def newRouterPort(router: ClusterRouter, mac: MAC, portAddr: IPv4Subnet): RouterPort = {
+        newRouterPort(router, mac, portAddr.toUnicastString,
+            portAddr.toNetworkAddress.toString, portAddr.getPrefixLen)
     }
 
     def newInteriorRouterPort(router: ClusterRouter, mac: MAC, portAddr: String,
