@@ -9,7 +9,7 @@
     <groupId>org.midonet</groupId>
     <artifactId>midonet</artifactId>
     <packaging>pom</packaging>
-    <version>1.2.1-rc2</version>
+    <version>1.2.1-rc3</version>
     <name>Midonet aggregator project</name>
 
     <modules>
