@@ -135,10 +135,10 @@ trait FlowTranslator {
         }
     }
 
-    protected def applyOutboundFilters[A](localPorts: Seq[Port[_]],
-                                          portSetID: UUID,
-                                          pktMatch: WildcardMatch,
-                                          tags: Option[mutable.Set[Any]])
+    protected def applyOutboundFilters(localPorts: Seq[Port[_]],
+                                       portSetID: UUID,
+                                       pktMatch: WildcardMatch,
+                                       tags: Option[mutable.Set[Any]])
     : Future[Seq[UUID]] = {
         def chainMatch(port: Port[_], chain: Chain): Boolean = {
             val fwdInfo = new EgressPortSetChainPacketContext(port.id, tags)
@@ -166,7 +166,7 @@ trait FlowTranslator {
 
         // Apply the chains.
         Future.sequence(localPorts map { portToChain })
-            .map{ chainsToPortsId }
+            .map { chainsToPortsId }
             .andThen {
                 case Failure(ex) =>
                     log.error(ex, "Error getting chains for PortSet {} {}",
