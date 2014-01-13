@@ -200,6 +200,9 @@ class Bridge(val id: UUID,
                 val port = getPortOfMac(dlDst, vlanId, packetContext.expiry, ec)
                 // Tag the flow with the (dst-port, dst-mac) pair so we can
                 // invalidate the flow if the MAC migrates.
+                packetContext.addFlowTag(
+                    FlowTagger.invalidateFlowsByPort(
+                        id, dlSrc, vlanId, packetContext.inPortId))
                 port flatMap {
                     case Some(portId: UUID) =>
                         log.debug("Dst MAC {}, VLAN ID {} on port {}: Forward",
@@ -207,9 +210,6 @@ class Bridge(val id: UUID,
                         packetContext.addFlowTag(
                             FlowTagger.invalidateFlowsByPort(id, dlDst,
                                 vlanId, portId))
-                        packetContext.addFlowTag(
-                            FlowTagger.invalidateFlowsByPort(id, dlSrc,
-                                vlanId, packetContext.inPortId))
                         Future.successful(unicastAction(portId))
                     case None =>
                         log.debug("Dst MAC {}, VLAN ID {} is not learned:" +
