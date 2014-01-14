@@ -1,0 +1,31 @@
+Package: openvswitch-datapath-dkms
+Pin: release n=saucy
+Pin-Priority: 1000
+
+Package: openvswitch-datapath-dkms
+Pin: release n=precise
+Pin-Priority: 10
+
+Package: zookeeper
+Pin: release n=raring
+Pin-Priority: 1000
+
+Package: zookeeper
+Pin: release n=precise
+Pin-Priority: 10
+
+Package: zookeeperd
+Pin: release n=raring
+Pin-Priority: 1000
+
+Package: zookeeperd
+Pin: release n=precise
+Pin-Priority: 10
+
+Package: libzookeeper-java
+Pin: release n=raring
+Pin-Priority: 1000
+
+Package: libzookeeper-java
+Pin: release n=precise
+Pin-Priority: 10
