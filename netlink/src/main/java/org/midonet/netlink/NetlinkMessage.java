@@ -1,6 +1,6 @@
 /*
-* Copyright 2012 Midokura KK
-*/
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.netlink;
 
 import java.nio.ByteBuffer;
@@ -383,9 +383,16 @@ public class NetlinkMessage {
         }.parse(this);
     }
 
+    /** Write onto a ByteBuffer a netlink attribute header.
+     *  @param buffer the ByteBuffer the header is written onto.
+     *  @param id the short id associated with the value type (nla_type).
+     *  @param len a logical 2B short indicating the length in bytes of the
+     *             attribute value written after the header. 4 bytes are added
+     *             to it to account for the additional header size and conform
+     *             to nla_len semantics. */
     public static void setAttrHeader(ByteBuffer buffer, short id, int len) {
-        buffer.putShort((short) len);   // nla_len
-        buffer.putShort(id);            // nla_type
+        buffer.putShort((short)len);
+        buffer.putShort(id);
     }
 
     public static int addAttribute(ByteBuffer buf, short id, String value) {
