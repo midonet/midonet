@@ -56,7 +56,7 @@ public class OvsFlowsCreateSet_IPv4_UDP_Test
 
     @Override
     protected List<FlowAction<?>> flowActions() {
-        return Arrays.<FlowAction<?>>asList(setKey(FlowKeys.tunnelID(83453l)));
+        return Arrays.<FlowAction<?>>asList(setKey(FlowKeys.inPort(9)));
     }
 
     @Test
@@ -473,9 +473,9 @@ public class OvsFlowsCreateSet_IPv4_UDP_Test
             (byte)0x11, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x08, (byte)0x00,
             (byte)0x0A, (byte)0x00, (byte)0x1F, (byte)0xA0, (byte)0x02, (byte)0x00,
             (byte)0x14, (byte)0x00, (byte)0x02, (byte)0x00, (byte)0x10, (byte)0x00,
-            (byte)0x03, (byte)0x80, (byte)0x0C, (byte)0x00, (byte)0x3F, (byte)0x00,
-            (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x01,
-            (byte)0x45, (byte)0xFD
+            (byte)0x03, (byte)0x80, (byte)0x0C, (byte)0x00, (byte)0x03, (byte)0x00,
+            (byte)0x09, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+            (byte)0x00, (byte)0x00
         },
     };
 }

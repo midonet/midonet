@@ -30,7 +30,7 @@ import org.midonet.midolman.topology.RouterManager.RouterInvTrieTagCountModified
 import org.midonet.midolman.util.{RouterHelper, TestHelpers}
 import org.midonet.odp.flows.FlowAction
 import org.midonet.odp.flows.FlowActions.output
-import org.midonet.odp.flows.FlowKeys.tunnelID
+import org.midonet.odp.flows.FlowKeys
 import org.midonet.odp.{FlowMatch, Flow, Datapath}
 import org.midonet.packets._
 import org.midonet.sdn.flows.{WildcardMatch, WildcardFlow}
@@ -138,7 +138,7 @@ class RouterFlowInvalidationTestCase extends MidolmanTestCase with RouterHelper
 
         val wflow = WildcardFlow(wcmatch = new WildcardMatch().setTunnelID(7001))
         val dpflow = new Flow().setMatch(
-                new FlowMatch().addKey(tunnelID(7001)))
+            new FlowMatch().addKey(FlowKeys.tunnel(7001, 100, 200)))
         val tag = "tun_id:7001"
         val tags = ROSet[Any](tag)
 

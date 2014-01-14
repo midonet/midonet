@@ -24,7 +24,6 @@ public class FlowKeys {
             flowKey instanceof FlowKeyEtherType ||
             flowKey instanceof FlowKeyND ||
             flowKey instanceof FlowKeyVLAN ||
-            flowKey instanceof FlowKeyTunnelID ||
             flowKey instanceof FlowKeyARP ||
             flowKey instanceof FlowKeyTunnel)
             return (T) FLOW_KEYS_POOL.sharedRef(flowKey);
@@ -109,10 +108,6 @@ public class FlowKeys {
 
     public static FlowKeyND neighborDiscovery(int[] target) {
         return intern(new FlowKeyND(target));
-    }
-
-    public static FlowKeyTunnelID tunnelID(long tunnelId) {
-        return intern(new FlowKeyTunnelID(tunnelId));
     }
 
     public static FlowKeyPriority priority(int priority) {
