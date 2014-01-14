@@ -104,10 +104,6 @@ public interface FlowKey<Key extends FlowKey<Key>>
         public static final FlowKeyAttr<FlowKeyTunnel> TUNNEL =
             attrNest(OpenVSwitch.FlowKey.Attr.Tunnel);
 
-        /** be64 tunnel ID */
-        public static final FlowKeyAttr<FlowKeyTunnelID> TUN_ID =
-            attr(OpenVSwitch.FlowKey.Attr.TunnelId);
-
         public FlowKeyAttr(int id) {
             super(id);
         }
@@ -175,9 +171,6 @@ public interface FlowKey<Key extends FlowKey<Key>>
 
                     case OpenVSwitch.FlowKey.Attr.Tunnel:
                         return new FlowKeyTunnel();
-
-                    case OpenVSwitch.FlowKey.Attr.TunnelId:
-                        return new FlowKeyTunnelID();
 
                     default: return null;
                 }

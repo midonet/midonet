@@ -47,9 +47,6 @@ public class FlowKeyInterningTest {
                     "fe80::acb3:77ff:fe8c:a148"));
         }},
         new Callable<FlowKey<?>>() { public FlowKey<?> call() throws Exception {
-            return FlowKeys.tunnelID(7001);
-        }},
-        new Callable<FlowKey<?>>() { public FlowKey<?> call() throws Exception {
             return FlowKeys.vlan((short) 0x0101);
         }},
         new Callable<FlowKey<?>>() { public FlowKey<?> call() throws Exception {
