@@ -316,8 +316,7 @@
                         <exclude>**/DatapathController$DpPort*</exclude>
                         <exclude>**/DatapathController$Init*</exclude>
                         <exclude>**/DatapathController$Datapath*</exclude>
-                        <exclude>**/DatapathController$LocalTunnel*</exclude>
-                        <exclude>**/DatapathController$_*</exclude>
+                        <exclude>**/DatapathController$Internal$*</exclude>
 
                         <exclude>**/DeduplicationActor$ApplyFlow*</exclude>
                         <exclude>**/DeduplicationActor$*Packet*</exclude>

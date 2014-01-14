@@ -29,6 +29,7 @@ class DatapathControllerActorTest extends TestKit(ActorSystem("DPCActorTest"))
                                    {
 
     import DatapathController._
+    import DatapathController.Internal._
     import PacketWorkflow.AddVirtualWildcardFlow
     import VirtualToPhysicalMapper.GreZoneChanged
     import VirtualToPhysicalMapper.GreZoneMembers
@@ -46,15 +47,15 @@ class DatapathControllerActorTest extends TestKit(ActorSystem("DPCActorTest"))
         DpPortDeleteNetdev(dpPortDev, None)
     )
 
-    val portReplies = portRequests.map{ DpPortSuccess(_) } ++
+    val portReplies = portRequests.map{ req => DpPortSuccess(req, req.port) } ++
                         portRequests.map{ DpPortError(_, true, null)}
 
     val miscMessages = List[AnyRef](
         DpPortStatsRequest(UUID.randomUUID),
-        _CheckForPortUpdates("midonet"),
-        _LocalTunnelInterfaceInfoFinal(self, emptyJList),
+        CheckForPortUpdates("midonet"),
+        LocalTunnelInterfaceInfoFinal(self, emptyJList),
         LocalTunnelInterfaceInfo,
-        _InterfacesUpdate(emptyJList),
+        InterfacesUpdate(emptyJList),
         GreZoneChanged(UUID.randomUUID, null, HostConfigOperation.Added),
         GreZoneMembers(UUID.randomUUID, Set()),
         AddVirtualWildcardFlow(null, Set(), Set())
@@ -68,7 +69,7 @@ class DatapathControllerActorTest extends TestKit(ActorSystem("DPCActorTest"))
     val allMessages = commonMessages ++ portRequests ++ portReplies ++ miscMessages
 
     val initMessages = commonMessages ++
-        List[AnyRef](_SetLocalDatapathPorts(null, Set(dpPortGre,dpPortInt)))
+        List[AnyRef](SetLocalDatapathPorts(null, Set(dpPortGre,dpPortInt)))
 
     feature("Datapath Initialization Actor receive messages") {
         val initReceive = dpc.underlyingActor.DatapathInitializationActor
