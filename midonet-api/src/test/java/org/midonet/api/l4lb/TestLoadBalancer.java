@@ -36,7 +36,7 @@ public class TestLoadBalancer {
         private void verifyNumberOfLoadBalancers(int num) {
             DtoLoadBalancer[] loadBalancers = dtoWebResource.getAndVerifyOk(
                     topLevelLoadBalancersUri,
-                    VendorMediaType.APPLICATION_LOAD_BALANCER_JSON,
+                    VendorMediaType.APPLICATION_LOAD_BALANCER_COLLECTION_JSON,
                     DtoLoadBalancer[].class);
             assertEquals(num, loadBalancers.length);
         }

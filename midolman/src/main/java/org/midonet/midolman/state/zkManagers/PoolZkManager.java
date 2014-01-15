@@ -43,7 +43,6 @@ public class PoolZkManager extends AbstractZkManager {
         public String name;
         public String description;
         public UUID healthMonitorId;
-        public UUID vipId;
         public String protocol;
         public String lbMethod;
         public boolean adminStateUp;
@@ -79,7 +78,6 @@ public class PoolZkManager extends AbstractZkManager {
             if (!Objects.equal(name, that.name)) return false;
             if (!Objects.equal(description, that.description)) return false;
             if (!Objects.equal(healthMonitorId, that.healthMonitorId)) return false;
-            if (!Objects.equal(vipId, that.vipId)) return false;
             if (!Objects.equal(protocol, that.protocol)) return false;
             if (!Objects.equal(lbMethod, that.lbMethod)) return false;
             if (adminStateUp != that.adminStateUp) return false;
@@ -92,11 +90,6 @@ public class PoolZkManager extends AbstractZkManager {
     public PoolZkManager(ZkManager zk, PathBuilder paths,
                            Serializer serializer) {
         super(zk, paths, serializer);
-    }
-
-    public PoolZkManager(Directory dir, String basePath,
-                           Serializer serializer) {
-        this(new ZkManager(dir), new PathBuilder(basePath), serializer);
     }
 
     public List<Op> prepareUpdate(UUID id, PoolConfig config)

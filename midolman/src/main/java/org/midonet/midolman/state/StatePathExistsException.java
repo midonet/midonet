@@ -1,34 +1,25 @@
 /*
- * Copyright 2011 Midokura KK
- * Copyright 2012 Midokura PTE LTD.
+ * Copyright (c) 2011 Midokura Europe SARL, All Rights Reserved.
  */
 package org.midonet.midolman.state;
 
 import org.apache.zookeeper.KeeperException.NodeExistsException;
 
-public class StatePathExistsException extends StateAccessException {
+public class StatePathExistsException extends StatePathExceptionBase {
     private static final long serialVersionUID = 1L;
 
-    // Path to node whose existence caused the exception.
-    private String path;
+    public StatePathExistsException(String message, String basePath,
+                                    NodeExistsException cause) {
+        super(message, cause.getPath(), basePath, cause);
+    }
 
     /**
-     * Default constructor
+     * Provided for TunnelZoneZkManager(), which generates a
+     * StatePathExistsException without an underlying KeeperException.
+     * If you use this constructor, getNodeInfo() will blow up.
      */
-    public StatePathExistsException(String message, String path) {
+    @Deprecated
+    public StatePathExistsException(String message) {
         super(message);
-        this.path = path;
-    }
-
-    public StatePathExistsException(String message, NodeExistsException cause) {
-        super(message, cause);
-        path = cause.getPath();
-    }
-
-    /**
-     * Returns path to node whose existence caused the exception.
-     */
-    public String getPath() {
-        return path;
     }
 }

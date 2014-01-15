@@ -14,6 +14,7 @@ import org.midonet.api.rest_api.*;
 import org.midonet.api.validation.MessageProperty;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.InvalidStateOperationException;
+import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.cluster.DataClient;
 import org.midonet.midolman.state.StatePathExistsException;
@@ -73,7 +74,7 @@ public class PoolMemberResource extends AbstractResource {
     }
 
     @GET
-    @PermitAll
+    @RolesAllowed({ AuthRole.ADMIN })
     @Path("{id}")
     @Produces({ VendorMediaType.APPLICATION_POOL_MEMBER_JSON,
             MediaType.APPLICATION_JSON })
@@ -101,12 +102,11 @@ public class PoolMemberResource extends AbstractResource {
             throws StateAccessException,
             InvalidStateOperationException, SerializationException {
 
-        org.midonet.cluster.data.l4lb.PoolMember PoolMemberData =
-                dataClient.poolMemberGet(id);
-        if (PoolMemberData == null) {
-            return;
+        try {
+            dataClient.poolMemberDelete(id);
+        } catch (NoStatePathException ex) {
+            // Delete is idempotent, so do nothing.
         }
-        dataClient.poolMemberDelete(id);
     }
 
     @POST
@@ -122,8 +122,10 @@ public class PoolMemberResource extends AbstractResource {
             return Response.created(
                     ResourceUriBuilder.getPoolMember(getBaseUri(), id))
                     .build();
+        } catch (NoStatePathException ex) {
+            throw new NotFoundHttpException(ex);
         } catch (StatePathExistsException ex) {
-            throw new StateAccessException();
+            throw new ConflictHttpException(ex);
         }
     }
 
@@ -137,7 +139,10 @@ public class PoolMemberResource extends AbstractResource {
             InvalidStateOperationException, SerializationException {
 
         poolMember.setId(id);
-
-        dataClient.poolMemberUpdate(poolMember.toData());
+        try {
+            dataClient.poolMemberUpdate(poolMember.toData());
+        } catch (NoStatePathException ex) {
+            throw new NotFoundHttpException(ex);
+        }
     }
 }

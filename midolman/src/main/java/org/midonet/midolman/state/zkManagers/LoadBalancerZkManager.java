@@ -91,12 +91,6 @@ public class LoadBalancerZkManager extends AbstractZkManager {
         super(zk, paths, serializer);
     }
 
-    public LoadBalancerZkManager(Directory dir, String basePath,
-                                 Serializer serializer) {
-        this(new ZkManager(dir), new PathBuilder(basePath),
-                serializer);
-    }
-
     public boolean exists(UUID id) throws StateAccessException {
         return zk.exists(paths.getLoadBalancerPath(id));
     }

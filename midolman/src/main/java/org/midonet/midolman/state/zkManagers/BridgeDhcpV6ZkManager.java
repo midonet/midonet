@@ -113,11 +113,6 @@ public class BridgeDhcpV6ZkManager extends AbstractZkManager {
         super(zk, paths, serializer);
     }
 
-    public BridgeDhcpV6ZkManager(Directory dir, String basePath,
-                                 Serializer serializer) {
-        this(new ZkManager(dir), new PathBuilder(basePath), serializer);
-    }
-
     public void createSubnet6(UUID bridgeId, Subnet6 subnet)
             throws StateAccessException, SerializationException {
         List<Op> ops = new ArrayList<Op>();

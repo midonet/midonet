@@ -59,11 +59,6 @@ public class TunnelZkManager extends AbstractZkManager {
         super(zk, paths, serializer);
     }
 
-    public TunnelZkManager(Directory dir, String basePath,
-                           Serializer serializer) {
-        this(new ZkManager(dir), new PathBuilder(basePath), serializer);
-    }
-
     private int extractTunnelKeyFromPath(String path) {
         int idx = path.lastIndexOf('/');
         return Integer.parseInt(path.substring(idx + 1));

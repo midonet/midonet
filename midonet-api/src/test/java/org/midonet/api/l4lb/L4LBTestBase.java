@@ -4,10 +4,9 @@
 package org.midonet.api.l4lb;
 
 import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.test.framework.JerseyTest;
-import org.midonet.api.VendorMediaType;
 import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.FuncTest;
+import org.midonet.api.rest_api.RestApiTestBase;
 import org.midonet.api.rest_api.Topology;
 import org.midonet.client.dto.DtoApplication;
 import org.midonet.client.dto.DtoHealthMonitor;
@@ -22,13 +21,9 @@ import java.util.Random;
 import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
-import static org.midonet.api.VendorMediaType.APPLICATION_HEALTH_MONITOR_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_LOAD_BALANCER_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_POOL_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_ROUTER_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_ROUTER_JSON_V2;
+import static org.midonet.api.VendorMediaType.*;
 
-public class L4LBTestBase extends JerseyTest {
+public class L4LBTestBase extends RestApiTestBase {
 
     protected DtoWebResource dtoWebResource;
     protected Topology topology;
@@ -92,14 +87,14 @@ public class L4LBTestBase extends JerseyTest {
 
     protected DtoLoadBalancer postLoadBalancer(DtoLoadBalancer loadBalancer) {
         return dtoWebResource.postAndVerifyCreated(topLevelLoadBalancersUri,
-                VendorMediaType.APPLICATION_LOAD_BALANCER_JSON,
+                APPLICATION_LOAD_BALANCER_JSON,
                 loadBalancer, DtoLoadBalancer.class);
     }
 
     protected DtoLoadBalancer updateLoadBalancer(
             DtoLoadBalancer loadBalancer) {
         return dtoWebResource.putAndVerifyNoContent(loadBalancer.getUri(),
-                VendorMediaType.APPLICATION_LOAD_BALANCER_JSON,
+                APPLICATION_LOAD_BALANCER_JSON,
                 loadBalancer, DtoLoadBalancer.class);
     }
 
@@ -131,14 +126,14 @@ public class L4LBTestBase extends JerseyTest {
 
     protected DtoHealthMonitor postHealthMonitor(DtoHealthMonitor healthMonitor) {
         return dtoWebResource.postAndVerifyCreated(topLevelHealthMonitorsUri,
-                VendorMediaType.APPLICATION_HEALTH_MONITOR_JSON,
+                APPLICATION_HEALTH_MONITOR_JSON,
                 healthMonitor, DtoHealthMonitor.class);
     }
 
     protected DtoHealthMonitor updateHealthMonitor(
             DtoHealthMonitor healthMonitor) {
         return dtoWebResource.putAndVerifyNoContent(healthMonitor.getUri(),
-                VendorMediaType.APPLICATION_HEALTH_MONITOR_JSON,
+                APPLICATION_HEALTH_MONITOR_JSON,
                 healthMonitor,
                 DtoHealthMonitor.class);
     }
@@ -169,22 +164,27 @@ public class L4LBTestBase extends JerseyTest {
 
     protected DtoVip getVip(URI vipUri) {
         return dtoWebResource.getAndVerifyOk(
-                vipUri, VendorMediaType.APPLICATION_VIP_JSON, DtoVip.class);
+                vipUri, APPLICATION_VIP_JSON, DtoVip.class);
+    }
+
+    protected DtoVip[] getVips(URI vipsUri) {
+        return dtoWebResource.getAndVerifyOk(
+                vipsUri, APPLICATION_VIP_COLLECTION_JSON, DtoVip[].class);
     }
 
     protected DtoVip postVip(DtoVip vip) {
         return dtoWebResource.postAndVerifyCreated(topLevelVipsUri,
-                VendorMediaType.APPLICATION_VIP_JSON, vip, DtoVip.class);
+                APPLICATION_VIP_JSON, vip, DtoVip.class);
     }
 
     protected DtoVip updateVip(DtoVip vip) {
         return dtoWebResource.putAndVerifyNoContent(vip.getUri(),
-                VendorMediaType.APPLICATION_VIP_JSON, vip, DtoVip.class);
+                APPLICATION_VIP_JSON, vip, DtoVip.class);
     }
 
     protected void deleteVip(URI vipUri) {
         dtoWebResource.deleteAndVerifyNoContent(
-                vipUri, VendorMediaType.APPLICATION_VIP_JSON);
+                vipUri, APPLICATION_VIP_JSON);
     }
 
     protected DtoVip getStockVip(UUID loadBalancerId, UUID poolId) {
@@ -213,13 +213,13 @@ public class L4LBTestBase extends JerseyTest {
         return postVip(getStockVip());
     }
 
-    protected DtoVip createStockVip(UUID loadBalancerId, UUID vipId) {
-        return postVip(getStockVip(loadBalancerId, vipId));
+    protected DtoVip createStockVip(UUID loadBalancerId, UUID poolId) {
+        return postVip(getStockVip(loadBalancerId, poolId));
     }
 
     protected DtoPool getPool(URI poolUri) {
         ClientResponse response = resource().uri(poolUri)
-                .type(VendorMediaType.APPLICATION_POOL_JSON)
+                .type(APPLICATION_POOL_JSON)
                 .get(ClientResponse.class);
         assertEquals(200, response.getStatus());
         return response.getEntity(DtoPool.class);
@@ -227,12 +227,12 @@ public class L4LBTestBase extends JerseyTest {
 
     protected DtoPool postPool(DtoPool pool) {
         return dtoWebResource.postAndVerifyCreated(topLevelPoolsUri,
-                VendorMediaType.APPLICATION_POOL_JSON, pool, DtoPool.class);
+                APPLICATION_POOL_JSON, pool, DtoPool.class);
     }
 
     protected DtoPool updatePool(DtoPool pool) {
         return dtoWebResource.putAndVerifyNoContent(pool.getUri(),
-                VendorMediaType.APPLICATION_POOL_JSON,
+                APPLICATION_POOL_JSON,
                 pool, DtoPool.class);
     }
 
@@ -268,31 +268,31 @@ public class L4LBTestBase extends JerseyTest {
 
     protected DtoPoolMember getPoolMember(URI uri) {
         return dtoWebResource.getAndVerifyOk(uri,
-                VendorMediaType.APPLICATION_POOL_MEMBER_JSON,
+                APPLICATION_POOL_MEMBER_JSON,
                 DtoPoolMember.class);
     }
 
     protected DtoPoolMember[] getPoolMembers(URI uri) {
         return dtoWebResource.getAndVerifyOk(uri,
-                VendorMediaType.APPLICATION_POOL_MEMBER_COLLECTION_JSON,
+                APPLICATION_POOL_MEMBER_COLLECTION_JSON,
                 DtoPoolMember[].class);
     }
 
     protected DtoPoolMember postPoolMember(DtoPoolMember poolMember) {
         return dtoWebResource.postAndVerifyCreated(topLevelPoolMembersUri,
-                VendorMediaType.APPLICATION_POOL_MEMBER_JSON,
+                APPLICATION_POOL_MEMBER_JSON,
                 poolMember, DtoPoolMember.class);
     }
 
     protected DtoPoolMember updatePoolMember(DtoPoolMember poolMember) {
         return dtoWebResource.putAndVerifyNoContent(poolMember.getUri(),
-                VendorMediaType.APPLICATION_POOL_MEMBER_JSON,
+                APPLICATION_POOL_MEMBER_JSON,
                 poolMember, DtoPoolMember.class);
     }
 
     protected void deletePoolMember(URI poolMemberUri) {
         dtoWebResource.deleteAndVerifyNoContent(
-                poolMemberUri, VendorMediaType.APPLICATION_POOL_MEMBER_JSON);
+                poolMemberUri, APPLICATION_POOL_MEMBER_JSON);
     }
 
     protected DtoPoolMember getStockPoolMember() {
