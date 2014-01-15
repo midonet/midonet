@@ -386,6 +386,4 @@ public class ZkDirectory implements Directory {
         log.info("Closing the Zookeeper connection.");
         zk.close();
     }
-
-
 }

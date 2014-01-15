@@ -84,11 +84,6 @@ public class HealthMonitorZkManager extends AbstractZkManager {
         super(zk, paths, serializer);
     }
 
-    public HealthMonitorZkManager(Directory dir, String basePath,
-                           Serializer serializer) {
-        this(new ZkManager(dir), new PathBuilder(basePath), serializer);
-    }
-
     public List<Op> prepareCreate(UUID id, HealthMonitorConfig config)
             throws SerializationException {
         return asList(
@@ -129,19 +124,7 @@ public class HealthMonitorZkManager extends AbstractZkManager {
 
     public Set<UUID> getPoolIds(UUID id)
             throws StateAccessException, SerializationException {
-        Set<String> poolIdStrs =
-                zk.getChildren(paths.getHealthMonitorPoolsPath(id), null);
-        Set<UUID> poolIds = new HashSet<UUID>(poolIdStrs.size());
-        for (String poolIdStr : poolIdStrs) {
-            try {
-                poolIds.add(UUID.fromString(poolIdStr));
-            } catch (IllegalArgumentException ex) {
-                // Nothing we can do but log an error and move on.
-                log.error("Pool ID '{}' is not a valid UUID. Zookeeper" +
-                          "data may be corrupted: {}", poolIdStr, ex);
-            }
-        }
-        return poolIds;
+        return getChildUuids(paths.getHealthMonitorPoolsPath(id));
     }
 
     public List<Op> prepareAddPool(UUID id, UUID poolId) {

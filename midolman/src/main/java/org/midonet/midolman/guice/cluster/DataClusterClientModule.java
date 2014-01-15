@@ -163,9 +163,12 @@ public class DataClusterClientModule extends PrivateModule {
         @Inject
         Directory directory;
 
+        @Inject
+        ZookeeperConfig config;
+
         @Override
         public ZkManager get() {
-            return new ZkManager(directory);
+            return new ZkManager(directory, config);
         }
     }
 

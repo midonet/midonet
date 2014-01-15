@@ -62,11 +62,6 @@ public class AdRouteZkManager extends AbstractZkManager {
         super(zk, paths, serializer);
     }
 
-    public AdRouteZkManager(Directory dir, String basePath,
-                            Serializer serializer) {
-        this(new ZkManager(dir), new PathBuilder(basePath), serializer);
-    }
-
     public List<Op> prepareAdRouteCreate(UUID id, AdRouteConfig config)
             throws StateAccessException, SerializationException {
 

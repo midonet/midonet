@@ -28,10 +28,6 @@ public class TaggableConfigZkManager extends AbstractZkManager {
         super(zk, paths, serializer);
     }
 
-    public TaggableConfigZkManager(Directory zk, String basePath, Serializer serializer) {
-        this(new ZkManager(zk), new PathBuilder(basePath), serializer);
-    }
-
     // This ideally should need only TaggableConfig, which should retain the ID
     // of the corresponding resource.
     // TODO(tomohiko) Refactor BridgeConfig, etc to keep the ID, and remove the

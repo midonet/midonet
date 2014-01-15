@@ -40,11 +40,6 @@ public class TenantZkManager extends AbstractZkManager {
         super(zk, paths, serializer);
     }
 
-    public TenantZkManager(Directory dir, String basePath,
-                           Serializer serializer) {
-        this(new ZkManager(dir), new PathBuilder(basePath), serializer);
-    }
-
     public List<Op> prepareCreate(String tenantId) throws StateAccessException {
 
         List<Op> ops = new ArrayList<Op>();

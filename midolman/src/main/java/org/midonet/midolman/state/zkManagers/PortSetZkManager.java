@@ -47,11 +47,6 @@ public class PortSetZkManager extends AbstractZkManager {
         super(zk, paths, serializer);
     }
 
-    public PortSetZkManager(Directory dir, String basePath,
-                            Serializer serializer) {
-        this(new ZkManager(dir), new PathBuilder(basePath), serializer);
-    }
-
     public void getPortSetAsync(UUID portSetId,
                                 final DirectoryCallback<Set<UUID>>
                                         portSetContentsCallback,

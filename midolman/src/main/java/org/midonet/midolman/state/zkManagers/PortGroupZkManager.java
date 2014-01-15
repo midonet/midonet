@@ -61,11 +61,6 @@ public class PortGroupZkManager extends AbstractZkManager {
         ruleDao = new RuleZkManager(zk, paths, serializer);
     }
 
-    public PortGroupZkManager(Directory dir, String basePath,
-                          Serializer serializer) {
-        this(new ZkManager(dir), new PathBuilder(basePath), serializer);
-    }
-
     /**
      * Constructs a list of ZooKeeper update operations to perform when adding a
      * new port group.

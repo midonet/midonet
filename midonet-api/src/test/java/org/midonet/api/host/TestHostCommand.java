@@ -94,7 +94,7 @@ public class TestHostCommand extends JerseyTest {
 
         @Provides @Singleton
         public ZkManager provideZkManager(Directory directory) {
-            return new ZkManager(directory);
+            return new ZkManager(directory, basePath);
         }
 
         @Provides @Singleton

@@ -94,11 +94,6 @@ public class VipZkManager extends AbstractZkManager {
         super(zk, paths, serializer);
     }
 
-    public VipZkManager(Directory dir, String basePath,
-                        Serializer serializer) {
-        this(new ZkManager(dir), new PathBuilder(basePath), serializer);
-    }
-
     public List<Op> prepareCreate(UUID id, VipConfig config)
             throws SerializationException {
         return asList(Op.create(
