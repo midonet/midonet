@@ -7,6 +7,7 @@ import java.nio.ByteOrder;
 
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.BaseBuilder;
+import org.midonet.packets.TCP;
 import org.midonet.packets.Unsigned;
 
 public class FlowKeyTCP implements FlowKey<FlowKeyTCP> {
@@ -17,15 +18,10 @@ public class FlowKeyTCP implements FlowKey<FlowKeyTCP> {
     FlowKeyTCP() { }
 
     FlowKeyTCP(int source, int destination) {
-        ensureTcpPortInRange(source);
-        ensureTcpPortInRange(destination);
+        TCP.ensurePortInRange(source);
+        TCP.ensurePortInRange(destination);
         tcp_src = source;
         tcp_dst = destination;
-    }
-
-    private static void ensureTcpPortInRange(int port) {
-        if (port < 0 || port > 0xffff)
-            throw new IllegalArgumentException("TCP port out of range");
     }
 
     @Override

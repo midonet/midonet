@@ -539,10 +539,7 @@ public class WildcardMatch implements Cloneable {
 
     @Nonnull
     public WildcardMatch setTransportSource(int transportSource) {
-        if (transportSource < 0 || transportSource > 65535)
-            throw new IllegalArgumentException(
-                    "Transport source port out of range");
-
+        TCP.ensurePortInRange(transportSource);
         usedFields.add(Field.TransportSource);
         this.transportSource = transportSource;
         return this;
@@ -569,10 +566,7 @@ public class WildcardMatch implements Cloneable {
 
     @Nonnull
     public WildcardMatch setTransportDestination(int transportDestination) {
-        if (transportDestination < 0 || transportDestination > 65535)
-            throw new IllegalArgumentException(
-                    "Transport destination port out of range");
-
+        TCP.ensurePortInRange(transportDestination);
         usedFields.add(Field.TransportDestination);
         this.transportDestination = transportDestination;
         return this;

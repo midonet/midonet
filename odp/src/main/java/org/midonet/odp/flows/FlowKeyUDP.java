@@ -7,6 +7,7 @@ import java.nio.ByteOrder;
 
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.BaseBuilder;
+import org.midonet.packets.TCP;
 import org.midonet.packets.Unsigned;
 
 public class FlowKeyUDP implements FlowKey<FlowKeyUDP> {
@@ -17,15 +18,10 @@ public class FlowKeyUDP implements FlowKey<FlowKeyUDP> {
     FlowKeyUDP() { }
 
     FlowKeyUDP(int source, int destination) {
-        ensureTcpPortInRange(source);
-        ensureTcpPortInRange(destination);
+        TCP.ensurePortInRange(source);
+        TCP.ensurePortInRange(destination);
         udp_src = source;
         udp_dst = destination;
-    }
-
-    private static void ensureTcpPortInRange(int port) {
-        if (port < 0 || port > 0xffff)
-            throw new IllegalArgumentException("TCP port out of range");
     }
 
     @Override
