@@ -17,7 +17,9 @@ class FutureOps[T](val f: Future[T]) extends AnyVal {
     def continueWith[S](cont: Future[T] => S)
                        (implicit executor: ExecutionContext): Future[S] = {
         val p = promise[S]()
-        f onComplete { _ => p complete Try(cont(f)) }
+        f.onComplete { _ =>
+            p complete Try(cont(f))
+        }(CallingThreadExecutionContext)
         p.future
     }
 
@@ -30,7 +32,9 @@ class FutureOps[T](val f: Future[T]) extends AnyVal {
     def continue[S](cont: Try[T] => S)
                    (implicit executor: ExecutionContext): Future[S] = {
         val p = promise[S]()
-        f onComplete { x => p complete Try(cont(x)) }
+        f.onComplete { x =>
+            p complete Try(cont(x))
+        }(CallingThreadExecutionContext)
         p.future
     }
 }
