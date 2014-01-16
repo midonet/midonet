@@ -233,17 +233,13 @@ public class TCP extends BasePacket implements Transport {
 
     @Override
     public void setSourcePort(int sourcePort) {
-        if (sourcePort < 0 || sourcePort > 65535)
-            throw new IllegalArgumentException("TCP port out of range");
-
+        ensurePortInRange(sourcePort);
         this.sourcePort = sourcePort;
     }
 
     @Override
     public void setDestinationPort(int destinationPort) {
-        if (destinationPort < 0 || destinationPort > 65535)
-            throw new IllegalArgumentException("TCP port out of range");
-
+        ensurePortInRange(destinationPort);
         this.destinationPort = destinationPort;
     }
 
@@ -279,6 +275,11 @@ public class TCP extends BasePacket implements Transport {
             throw new MalformedPacketException("Cannot read tpSrc, corrupted data");
         }
         return srcPort;
+    }
+
+    public static void ensurePortInRange(int port) {
+        if (port < Transport.MIN_PORT_NO || port > Transport.MAX_PORT_NO)
+            throw new IllegalArgumentException("transport port out of range");
     }
 
 }

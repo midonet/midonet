@@ -83,9 +83,7 @@ public class UDP extends BasePacket implements Transport {
      */
     @Override
     public void setSourcePort(int sourcePort) {
-        if (sourcePort < 0 || sourcePort > 65535)
-            throw new IllegalArgumentException("UDP port out of range");
-
+        TCP.ensurePortInRange(sourcePort);
         this.sourcePort = sourcePort;
     }
 
@@ -102,9 +100,7 @@ public class UDP extends BasePacket implements Transport {
      */
     @Override
     public void setDestinationPort(int destinationPort) {
-        if (destinationPort < 0 || destinationPort > 65535)
-            throw new IllegalArgumentException("UDP port out of range");
-
+        TCP.ensurePortInRange(destinationPort);
         this.destinationPort = destinationPort;
     }
 
