@@ -291,7 +291,6 @@ public interface OpenVSwitch {
             int Tunnel_N    = (1 << 15) | Tunnel;
             int IPv4Tunnel  = 17;
             int MPLS        = 62;
-            int TunnelId    = 63;        /* until openvswitch 1.9 */
         }
 
         //enum ovs_tunnel_key_attr {
