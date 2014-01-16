@@ -275,15 +275,17 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
     }
 
     private def executePacket(actions: Seq[FlowAction[_]]): Future[Boolean] = {
+        if (actions == null || actions.isEmpty) {
+            log.debug("Dropping packet {}", cookieStr)
+            return Future.successful(true)
+        }
+
         log.debug("Executing packet {}", cookieStr)
+
         packet.setActions(actions.asJava)
         if (packet.getMatch.isUserSpaceOnly) {
             log.debug("Applying userspace actions to packet {}", cookieStr)
             applyActionsAfterUserspaceMatch(packet)
-        }
-
-        if (actions == null || actions.isEmpty) {
-            return Future.successful(true)
         }
 
         val pktPromise = promise[Boolean]()
@@ -515,12 +517,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
             case ex =>
                 log.warning("failed to translate actions: {}", ex)
                 Nil
-        } flatMap {
-            case Nil =>
-                Future.successful(true)
-            case translatedActions =>
-                executePacket(translatedActions)
-        }
+        } flatMap executePacket
     }
 
     private def runCallbacks(callbacks: Iterable[Callback0]) {

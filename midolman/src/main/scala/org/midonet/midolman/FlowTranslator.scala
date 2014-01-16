@@ -4,10 +4,11 @@
 package org.midonet.midolman
 
 import java.util.UUID
+
 import scala.collection.mutable.ListBuffer
 import scala.collection.{Set => ROSet, mutable, breakOut}
 import scala.concurrent.Future
-import scala.util.Failure
+import scala.util.{Success, Failure}
 
 import akka.actor.ActorSystem
 import akka.pattern.ask
@@ -21,12 +22,12 @@ import org.midonet.midolman.topology.FlowTagger
 import org.midonet.midolman.topology.VirtualToPhysicalMapper
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.rcu.PortSet
-import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.odp.flows._
-import org.midonet.odp.flows.FlowActions.{output, setKey}
+import org.midonet.odp.flows.FlowActions.{setKey, output, userspace}
 import org.midonet.sdn.flows.VirtualActions
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 import org.midonet.util.functors.Callback0
+import org.midonet.util.concurrent.{CallingThreadExecutionContext, toFutureOps}
 
 object FlowTranslator {
 
@@ -74,7 +75,6 @@ trait FlowTranslator {
     import VirtualTopologyActor._
     import VirtualActions._
 
-    protected val datapathConnection: OvsDatapathConnection
     protected val dpState: DatapathState
 
     implicit protected val requestReplyTimeout: Timeout
@@ -84,9 +84,9 @@ trait FlowTranslator {
     val log: LoggingAdapter
     val cookieStr: String
 
-    protected def translateVirtualWildcardFlow(
-            flow: WildcardFlow, tags: ROSet[Any] = Set.empty):
-                Future[(WildcardFlow, ROSet[Any])] = {
+    protected def translateVirtualWildcardFlow(flow: WildcardFlow,
+                                               tags: ROSet[Any] = Set.empty)
+    : Future[(WildcardFlow, ROSet[Any])] = {
 
         val flowMatch = flow.getMatch
         val inPortId = flowMatch.getInputPortUUID
@@ -104,27 +104,24 @@ trait FlowTranslator {
             case None =>
         }
 
-        val actions = Option(flow.getActions) getOrElse Seq.empty
-
-        val translatedFuture = translateActions(
-                actions, Option(inPortId), Option(dpTags), flow.getMatch)
-
-        translatedFuture map { translated =>
-            WildcardFlow(wcmatch = flow.wcmatch,
-                actions = translated.toList,
-                priority = flow.priority,
-                hardExpirationMillis = flow.hardExpirationMillis,
-                idleExpirationMillis = flow.idleExpirationMillis)
-        } recover {
-            case ex =>
+        translateActions(
+            flow.getActions, Option(inPortId), Option(dpTags), flow.getMatch
+        ).continue {
+            case Success(translated) =>
+                (WildcardFlow(wcmatch = flow.wcmatch,
+                              actions = translated.toList,
+                              priority = flow.priority,
+                              hardExpirationMillis = flow.hardExpirationMillis,
+                              idleExpirationMillis = flow.idleExpirationMillis),
+                 dpTags)
+            case Failure(ex) =>
                 log.error(ex, "Translation of {} failed, falling back " +
-                          "on drop WilcardFlow {}", actions, cookieStr)
-                WildcardFlow(
-                    wcmatch = flow.wcmatch,
-                    priority = flow.priority,
-                    hardExpirationMillis = 5000)
-        } map { (_, dpTags) }
-
+                          "on drop WilcardFlow {}", flow.getActions, cookieStr)
+                (WildcardFlow(wcmatch = flow.wcmatch,
+                              priority = flow.priority,
+                              hardExpirationMillis = 5000),
+                 dpTags)
+        }(CallingThreadExecutionContext)
     }
 
     protected def portsForLocalPorts(localVrnPorts: Seq[UUID]): Seq[Short] = {
@@ -169,12 +166,12 @@ trait FlowTranslator {
 
         // Apply the chains.
         Future.sequence(localPorts map { portToChain })
-            .map{ chainsToPortsId }
+            .map { chainsToPortsId }(CallingThreadExecutionContext)
             .andThen {
                 case Failure(ex) =>
                     log.error(ex, "Error getting chains for PortSet {} {}",
                               portSetID, cookieStr)
-            }
+            }(CallingThreadExecutionContext)
     }
 
     /**
@@ -273,11 +270,9 @@ trait FlowTranslator {
                     // expandPortSetAction
                     epsa(Seq(s), s.portSetId, inPortUUID, dpTags, wMatch)
                 case p: FlowActionOutputToVrnPort =>
-                    expandPortAction(Seq(p), p.portId, inPortUUID, dpTags,
-                        wMatch)
+                    expandPortAction(Seq(p), p.portId, inPortUUID, dpTags, wMatch)
                 case u: FlowActionUserspace =>
-                    output(datapathConnection.getChannel.getLocalAddress.getPid)
-                    Future.successful(Seq(u))
+                    Future.successful(Seq(userspace(dpState.uplinkPid)))
                 case a =>
                     Future.successful(Seq[FlowAction[_]](a))
             }

@@ -390,6 +390,7 @@ class AdminStateTest extends FeatureSpec
             def getVportForDpPortNumber(portNum: Integer): Option[UUID] = null
             def getDpPortName(num: Integer): Option[String] = null
             def version: Long = 0L
+            def uplinkPid: Int = 0
         }
 
         def receive = {
