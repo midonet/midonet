@@ -5,6 +5,7 @@ package org.midonet.packets;
 
 public interface Transport {
 
+    int MIN_PORT_NO = 0;
     int MAX_PORT_NO = 65535;
 
     int getSourcePort();
