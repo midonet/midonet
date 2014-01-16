@@ -1,10 +1,11 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.odp.family;
 
 import org.midonet.netlink.Netlink;
 import org.midonet.netlink.NetlinkMessage;
+import org.midonet.netlink.NetlinkRequestContext;
 import org.midonet.odp.Datapath;
 import org.midonet.odp.OpenVSwitch;
 
@@ -58,7 +59,28 @@ public class DatapathFamily extends
         }
     }
 
+    public final NetlinkRequestContext contextNew;
+    public final NetlinkRequestContext contextDel;
+    public final NetlinkRequestContext contextGet;
+    public final NetlinkRequestContext contextSet;
+
     public DatapathFamily(int familyId) {
         super(familyId, VERSION);
+        contextNew = new DatapathContext(familyId, OpenVSwitch.Datapath.Cmd.New);
+        contextDel = new DatapathContext(familyId, OpenVSwitch.Datapath.Cmd.Del);
+        contextGet = new DatapathContext(familyId, OpenVSwitch.Datapath.Cmd.Get);
+        contextSet = new DatapathContext(familyId, OpenVSwitch.Datapath.Cmd.Set);
+    }
+
+    private static class DatapathContext implements NetlinkRequestContext {
+        final short commandFamily;
+        final byte command;
+        public DatapathContext(int familyId, int command) {
+            this.commandFamily = (short) familyId;
+            this.command = (byte) command;
+        }
+        public short commandFamily() { return commandFamily; }
+        public byte version() { return (byte) OpenVSwitch.Datapath.version; }
+        public byte command() { return command; }
     }
 }

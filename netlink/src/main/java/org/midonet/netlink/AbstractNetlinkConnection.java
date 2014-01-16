@@ -1,6 +1,6 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.netlink;
 
 import java.io.IOException;
@@ -193,6 +193,23 @@ public abstract class AbstractNetlinkConnection {
                 return Boolean.TRUE;
             }
         };
+
+    protected <T> void sendNetlinkMessage(NetlinkRequestContext ctx,
+                                          short flags,
+                                          ByteBuffer payload,
+                                          Callback<T> callback,
+                                          Function<List<ByteBuffer>, T> translator,
+                                          long timeoutMillis) {
+        sendNetLinkMessage(
+            ctx.commandFamily(),
+            ctx.command(),
+            flags,
+            ctx.version(),
+            payload,
+            callback,
+            translator,
+            timeoutMillis);
+    }
 
     private <T> void sendNetLinkMessage(short cmdFamily, byte cmd, short flags,
                                     byte version, ByteBuffer payload,
