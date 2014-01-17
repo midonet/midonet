@@ -29,7 +29,7 @@ import org.midonet.cluster.client
 import org.midonet.cluster.client.ExteriorPort
 import org.midonet.odp.flows.{
         FlowActionUserspace, FlowKeys, FlowActions, FlowAction}
-import org.midonet.odp.flows.FlowActions.{output, setKey}
+import org.midonet.odp.flows.FlowActions.{output, setKey, userspace}
 import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 import org.midonet.util.functors.Callback0
@@ -287,8 +287,9 @@ trait FlowTranslator {
                     expandPortAction(Seq(p), p.portId, inPortUUID, dpTags,
                         wMatch)(ec, system)
                 case u: FlowActionUserspace =>
-                    output(datapathConnection.getChannel.getLocalAddress.getPid)
-                    Promise.successful(Seq(u))(ec)
+                    val uspace = userspace(datapathConnection
+                                           .getChannel.getLocalAddress.getPid)
+                    Promise.successful(Seq(uspace))(ec)
                 case a =>
                     Promise.successful(Seq[FlowAction[_]](a))(ec)
             }
