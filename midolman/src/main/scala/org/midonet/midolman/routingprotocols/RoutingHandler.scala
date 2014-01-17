@@ -23,6 +23,7 @@ import org.midonet.midolman.topology.{FlowTagger, VirtualTopologyActor}
 import org.midonet.netlink.AfUnix
 import org.midonet.odp.flows.FlowActions.{output, userspace}
 import org.midonet.odp.ports.NetDevPort
+import org.midonet.odp.DpPort
 import org.midonet.packets._
 import org.midonet.quagga.ZebraProtocol.RIBType
 import org.midonet.quagga._
@@ -370,7 +371,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                         stash()
                 }
 
-            case DpPortSuccess(DpPortCreateNetdev(netdevPort, _)) =>
+            case DpPortSuccess(DpPortCreateNetdev(_, _), netdevPort) =>
                 log.debug("PortNetdevOpReply - create, for port {}", rport.id)
                 phase match {
                     case Starting =>
@@ -803,7 +804,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         log.debug("stopBGP - end")
     }
 
-    private def netdevPortReady(newPort: NetDevPort) {
+    private def netdevPortReady(newPort: DpPort) {
         log.debug("begin")
 
         // The internal port is ready. Set up the flows
