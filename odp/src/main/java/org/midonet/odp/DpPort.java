@@ -1,6 +1,6 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.odp;
 
 import java.nio.ByteBuffer;
@@ -18,15 +18,16 @@ import org.midonet.netlink.messages.Builder;
 import org.midonet.netlink.messages.BuilderAware;
 import org.midonet.odp.family.PortFamily;
 import org.midonet.odp.flows.FlowActionOutput;
+import org.midonet.odp.ports.*;
 
 import static org.midonet.odp.flows.FlowActions.output;
 
 /**
  * Base Datapath Port class.
  */
-public abstract class Port<Opts extends PortOptions, Self extends Port<Opts, Self>> {
+public abstract class DpPort {
 
-    protected Port(@Nonnull String name, @Nonnull Type type) {
+    protected DpPort(@Nonnull String name, @Nonnull Type type) {
         this.name = name;
         this.type = type;
     }
@@ -113,7 +114,7 @@ public abstract class Port<Opts extends PortOptions, Self extends Port<Opts, Sel
         if (o == null || getClass() != o.getClass()) return false;
 
         @SuppressWarnings("unchecked") // safe cast
-        Port<?,?> port = (Port) o;
+        DpPort port = (DpPort) o;
 
         if (name != null ? !name.equals(port.name) : port.name != null)
             return false;
@@ -141,7 +142,7 @@ public abstract class Port<Opts extends PortOptions, Self extends Port<Opts, Sel
 
     @Override
     public String toString() {
-        return "Port{" +
+        return "DpPort{" +
             "portNo=" + portNo +
             ", type=" + type +
             ", name='" + name + '\'' +
@@ -152,7 +153,7 @@ public abstract class Port<Opts extends PortOptions, Self extends Port<Opts, Sel
 
     /** Factory method which builds DpPort instances from NetlinkMessages.
      *  Consumes the underlying ByteBuffer.*/
-    public static Port<?, ?> buildFrom(NetlinkMessage msg) {
+    public static DpPort buildFrom(NetlinkMessage msg) {
         int actualDpIndex = msg.getInt(); // read the datapath id
 
         String name = msg.getAttrValueString(PortFamily.Attr.NAME);
@@ -160,7 +161,7 @@ public abstract class Port<Opts extends PortOptions, Self extends Port<Opts, Sel
         if (type == null || name == null)
             return null;
 
-        Port port = Ports.newPortByTypeId(type, name);
+        DpPort port = newPortByTypeId(type, name);
 
         if (port != null) {
             port.setPortNo(msg.getAttrValueInt(PortFamily.Attr.PORT_NO));
@@ -174,39 +175,64 @@ public abstract class Port<Opts extends PortOptions, Self extends Port<Opts, Sel
 
     /** Stateless static deserializer function which builds single ports once
      *  at a time. Consumes the head ByteBuffer of the input List.*/
-    public static final Function<List<ByteBuffer>, Port<?,?>> deserializer =
-        new Function<List<ByteBuffer>, Port<?,?>>() {
+    public static final Function<List<ByteBuffer>, DpPort> deserializer =
+        new Function<List<ByteBuffer>, DpPort>() {
             @Override
-            public Port<?,?> apply(List<ByteBuffer> input) {
+            public DpPort apply(List<ByteBuffer> input) {
                 if (input == null || input.size() == 0 || input.get(0) == null)
                     return null;
-                return Port.buildFrom(new NetlinkMessage(input.get(0)));
+                return DpPort.buildFrom(new NetlinkMessage(input.get(0)));
             }
         };
 
     /** Stateless static deserializer function which builds sets of ports.
      *  Consumes all ByteBuffer in the input List.*/
-    public static final Function<List<ByteBuffer>, Set<Port<?,?>>> setDeserializer =
-        new Function<List<ByteBuffer>, Set<Port<?,?>>>() {
+    public static final Function<List<ByteBuffer>, Set<DpPort>> setDeserializer =
+        new Function<List<ByteBuffer>, Set<DpPort>>() {
             @Override
-            public Set<Port<?,?>> apply(List<ByteBuffer> input) {
-                Set<Port<?,?>> ports = new HashSet<Port<?,?>>();
+            public Set<DpPort> apply(List<ByteBuffer> input) {
+                Set<DpPort> ports = new HashSet<>();
                 if (input == null)
                     return ports;
                 for (ByteBuffer buffer : input) {
-                    ports.add(Port.buildFrom(new NetlinkMessage(buffer)));
+                    ports.add(DpPort.buildFrom(new NetlinkMessage(buffer)));
                 }
                 ports.remove(null);
                 return ports;
             }
         };
 
+    private static DpPort newPortByTypeId(Integer type, String name) {
+        switch (type) {
+
+            case OpenVSwitch.Port.Type.Netdev:
+                return new NetDevPort(name);
+
+            case OpenVSwitch.Port.Type.Internal:
+                return new InternalPort(name);
+
+            case OpenVSwitch.Port.Type.Gre:
+                return new GreTunnelPort(name);
+
+            case OpenVSwitch.Port.Type.GreOld:
+                return new GreTunnelPort(name);
+
+            case OpenVSwitch.Port.Type.Gre64:
+                return new GreTunnelPort(name);
+
+            case OpenVSwitch.Port.Type.VXLan:
+                return new VxLanTunnelPort(name);
+
+            default:
+                return null;
+        }
+    }
+
     public static class Stats implements BuilderAware {
         long rxPackets, txPackets;
         long rxBytes, txBytes;
         long rxErrors, txErrors;
         long rxDropped, txDropped;
-
 
         public long getRxPackets() {return rxPackets;}
         public long getTxPackets() {return txPackets;}

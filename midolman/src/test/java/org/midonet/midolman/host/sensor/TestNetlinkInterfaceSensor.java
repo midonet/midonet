@@ -9,7 +9,7 @@ import java.util.List;
 import org.junit.Test;
 
 import org.midonet.midolman.host.interfaces.InterfaceDescription;
-import org.midonet.odp.Port;
+import org.midonet.odp.DpPort;
 import org.midonet.odp.ports.InternalPort;
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -35,7 +35,7 @@ public class TestNetlinkInterfaceSensor {
         netlinkInterfaceSensor = new NetlinkInterfaceSensor() {
 
             @Override
-            protected Port getDatapathPort(String portName) {
+            protected DpPort getDatapathPort(String portName) {
                 return new InternalPort(portName);
             }
 
@@ -60,9 +60,9 @@ public class TestNetlinkInterfaceSensor {
 
         // Check the port type
         assertThat(updatedInterfaces.get(0).getPortType(),
-                equalTo(Port.Type.Internal));
+                equalTo(DpPort.Type.Internal));
         assertThat(updatedInterfaces.get(1).getPortType(),
-                equalTo(Port.Type.Internal));
+                equalTo(DpPort.Type.Internal));
 
     }
 }

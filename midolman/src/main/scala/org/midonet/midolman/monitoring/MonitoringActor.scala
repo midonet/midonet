@@ -18,7 +18,7 @@ import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.monitoring.metrics.vrn.VifMetrics
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.{Referenceable, DatapathController}
-import org.midonet.odp.Port
+import org.midonet.odp.DpPort
 
 /**
  * This actor periodically sends requests to the DatapathController to get stats for the ports.
@@ -31,7 +31,7 @@ import org.midonet.odp.Port
 
 object MonitoringActor extends Referenceable {
     override val Name = "MonitoringActor"
-    case class MetricsUpdated(portID: UUID, portStatistics: Port.Stats)
+    case class MetricsUpdated(portID: UUID, portStatistics: DpPort.Stats)
 }
 
 class MonitoringActor extends Actor with ActorLogWithoutPath {

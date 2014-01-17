@@ -32,11 +32,11 @@ import org.midonet.midolman.topology.rcu.Host
 import org.midonet.netlink.Callback
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode
-import org.midonet.odp.{PortOptions, Port, Ports, Datapath}
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput}
 import org.midonet.odp.flows.FlowActions.output
 import org.midonet.odp.ports._
 import org.midonet.odp.protos.OvsDatapathConnection
+import org.midonet.odp.{PortOptions, DpPort, Datapath}
 import org.midonet.packets.IPv4Addr
 import org.midonet.sdn.flows.WildcardFlow
 import org.midonet.sdn.flows.WildcardMatch
@@ -60,7 +60,7 @@ trait UnderlayResolver {
 
     /** reference to the datapath GRE tunnel port.
      *  None if port is not available. */
-    def tunnelGre: Option[Port[_,_]]
+    def tunnelGre: Option[DpPort]
 
     def greOutputAction: Option[FlowActionOutput]
 
@@ -72,7 +72,7 @@ trait VirtualPortsResolver {
     def getDpPortNumberForVport(vportId: UUID): Option[JInteger]
 
     /** Returns bounded datapath port or None if port not found */
-    def getDpPortForInterface(itfName: String): Option[Port[_, _]]
+    def getDpPortForInterface(itfName: String): Option[DpPort]
 
     /** Returns vport UUID of bounded datapath port, or None if not found */
     def getVportForDpPortNumber(portNum: JInteger): Option[UUID]
@@ -131,11 +131,11 @@ object DatapathController extends Referenceable {
      * DpPortError indicating some kind of error occured.
      */
     sealed trait DpPortRequest {
-        type TypedPort <: Port[_ <: PortOptions, TypedPort]
+        type TypedPort <: DpPort
         val port: TypedPort
         val tag: Option[AnyRef]
         def update(p: TypedPort): DpPortRequest
-        def successReply(createdPort: Port[_,_]) =
+        def successReply(createdPort: DpPort) =
             DpPortSuccess(update(createdPort.asInstanceOf[TypedPort]))
         def errorReply(timeout: Boolean, error: NetlinkException) =
             DpPortError(this, timeout, error)
@@ -195,7 +195,7 @@ object DatapathController extends Referenceable {
     * This message encapsulates a given port stats to the monitoring agent.
     * @param stats port stats
     */
-    case class DpPortStats(portID: UUID, stats: Port.Stats)
+    case class DpPortStats(portID: UUID, stats: DpPort.Stats)
 
     /**
      * This message requests stats for a given port.
@@ -235,8 +235,6 @@ object DatapathController extends Referenceable {
     case class _LocalTunnelInterfaceInfoFinal(caller : ActorRef,
                                         interfaces: JList[InterfaceDescription])
 
-    case class _SetLocalDatapathPorts(datapath: Datapath, ports: Set[Port[_, _]])
-
     def calculateMinMtu()(implicit sys: ActorSystem, ec: ExecutionContext)
     : Future[Option[Short]] = {
         implicit val timeout =  new Timeout(3 second)
@@ -273,6 +271,7 @@ object DatapathController extends Referenceable {
         TunnelZone.Type.Capwap -> CapwapTunnelZone.TUNNEL_OVERHEAD,
         TunnelZone.Type.Ipsec -> IpsecTunnelZone.TUNNEL_OVERHEAD)
 
+    case class _SetLocalDatapathPorts(datapath: Datapath, ports: Set[DpPort])
 }
 
 
@@ -348,17 +347,17 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
         new Controller {
             override def addToDatapath(itfName: String): Unit = {
                 log.debug("VportManager requested add port {}", itfName)
-                val port = Ports.newNetDevPort(itfName)
+                val port = new NetDevPort(itfName)
                 createDatapathPort(self, DpPortCreateNetdev(port, None))
             }
 
-            override def removeFromDatapath(port: Port[_, _]): Unit = {
+            override def removeFromDatapath(port: DpPort): Unit = {
                 log.debug("VportManager requested remove port {}", port.getName)
                 val netdevPort = port.asInstanceOf[NetDevPort]
                 deleteDatapathPort(self, DpPortDeleteNetdev(netdevPort, None))
             }
 
-            override def setVportStatus(port: Port[_, _], vportId: UUID,
+            override def setVportStatus(port: DpPort, vportId: UUID,
                                         isActive: Boolean): Unit = {
                 log.debug("Port {}/{}/{} became {}",
                           port.getPortNo, port.getName, vportId,
@@ -584,8 +583,8 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
             dpState.getInterfaceForVport(portID) match {
                 case Some(portName) =>
                     datapathConnection.portsGet(portName, datapath,
-                        new Callback[Port[_,_]]{
-                            def onSuccess(data: Port[_, _]) {
+                        new Callback[DpPort]{
+                            def onSuccess(data: DpPort) {
                                 MonitoringActor !
                                         DpPortStats(portID, data.getStats)
                             }
@@ -668,8 +667,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
 
     }
 
-    private def installTunnelKeyFlow(
-            port: Port[_, _], exterior: client.Port[_]): Unit = {
+    private def installTunnelKeyFlow(port: DpPort, exterior: client.Port[_]) {
         val fc = FlowController
         // packets for the port may have arrived before the
         // port came up and made us install temporary drop flows.
@@ -677,16 +675,17 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
         fc ! FlowController.InvalidateFlowsByTag(
             FlowTagger.invalidateByTunnelKey(exterior.tunnelKey))
 
+        val portNo = port.getPortNo.shortValue
         val wMatch = new WildcardMatch().setTunnelID(exterior.tunnelKey)
-        val actions = List[FlowAction[_]](output(port.getPortNo.shortValue))
-        val tags = Set[Any](FlowTagger.invalidateDPPort(port.getPortNo.shortValue()))
+        val actions = List[FlowAction[_]](output(portNo))
+        val tags = Set[Any](FlowTagger.invalidateDPPort(portNo))
         fc ! AddWildcardFlow(WildcardFlow(wcmatch = wMatch, actions = actions),
                              None, ROSet.empty, tags)
         log.debug("Added flow for tunnelkey {}", exterior.tunnelKey)
     }
 
     private def installTunnelKeyFlow(
-            port: Port[_, _], vifId: UUID, active: Boolean): Unit =
+            port: DpPort, vifId: UUID, active: Boolean): Unit =
         VirtualTopologyActor.expiringAsk(PortRequest(vifId), log) onSuccess {
             case p if !p.isInterior =>
                 // trigger invalidation. This is done regardless of
@@ -760,8 +759,8 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
         log.info("creating port: {} (by request of: {})", request.port, caller)
 
         datapathConnection.portsCreate(datapath, request.port,
-            new ErrorHandlingCallback[Port[_, _]] {
-                def onSuccess(data: Port[_, _]) {
+            new ErrorHandlingCallback[DpPort] {
+                def onSuccess(data: DpPort) {
                     caller ! request.successReply(data)
                 }
 
@@ -777,8 +776,8 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
         log.info("deleting port: {} (by request of: {})", request.port, caller)
 
         datapathConnection.portsDelete(request.port, datapath,
-            new ErrorHandlingCallback[Port[_, _]] {
-                def onSuccess(data: Port[_, _]) {
+            new ErrorHandlingCallback[DpPort] {
+                def onSuccess(data: DpPort) {
                     caller ! request.successReply(data)
                 }
 
@@ -929,8 +928,8 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
     private def queryDatapathPorts(datapath: Datapath) {
         log.debug("Enumerating ports for datapath: " + datapath)
         datapathConnection.portsEnumerate(datapath,
-            new ErrorHandlingCallback[JSet[Port[_, _]]] {
-                def onSuccess(ports: JSet[Port[_, _]]) {
+            new ErrorHandlingCallback[JSet[DpPort]] {
+                def onSuccess(ports: JSet[DpPort]) {
                     self ! _SetLocalDatapathPorts(datapath, ports.asScala.toSet)
                 }
 
@@ -950,10 +949,10 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
 
 object VirtualPortManager {
     trait Controller {
-        def setVportStatus(port: Port[_, _], vportId: UUID,
+        def setVportStatus(port: DpPort, vportId: UUID,
                            isActive: Boolean): Unit
         def addToDatapath(interfaceName: String): Unit
-        def removeFromDatapath(port: Port[_, _]): Unit
+        def removeFromDatapath(port: DpPort): Unit
 
     }
 }
@@ -991,7 +990,7 @@ class VirtualPortManager(
         // corresponding port numbers.
         // The datapath's non-tunnel ports, regardless of their
         // status (up/down)
-        var interfaceToDpPort: Map[String, Port[_,_]] = Map[String, Port[_,_]](),
+        var interfaceToDpPort: Map[String, DpPort] = Map[String, DpPort](),
         var dpPortNumToInterface: Map[JInteger, String] = Map[JInteger, String](),
         // Bi-directional map for interface-vport bindings.
         var interfaceToVport: Bimap[String,UUID] = new Bimap[String, UUID](),
@@ -1085,7 +1084,7 @@ class VirtualPortManager(
         }
     }
 
-    private def requestDpPortRemove(port: Port[_, _]) {
+    private def requestDpPortRemove(port: DpPort) {
         log.debug("requestDpPortRemove {}", port)
         // Only request the port removal if:
         // - it's not port zero.
@@ -1099,7 +1098,7 @@ class VirtualPortManager(
         }
     }
 
-    private def notifyPortRemoval(port: Port[_, _]) {
+    private def notifyPortRemoval(port: DpPort) {
         if (port.getPortNo != 0 && dpPortsWeAdded.contains(port.getName) &&
             !dpPortsInProgress.contains(port.getName)) {
              dpPortsWeAdded -= port.getName
@@ -1252,19 +1251,19 @@ class VirtualPortManager(
         this
     }
 
-    def datapathPortForget(port: Port[_,_]) = copy._datapathPortForget(port)
+    def datapathPortForget(port: DpPort) = copy._datapathPortForget(port)
 
-    private def _datapathPortForget(port: Port[_, _]) = {
+    private def _datapathPortForget(port: DpPort) = {
         dpPortsInProgress -= port.getName
         dpPortsWeAdded -= port.getName
         interfaceToStatus -= port.getName
         this
     }
 
-    def datapathPortAdded(port: Port[_, _]) =
+    def datapathPortAdded(port: DpPort) =
         copy._datapathPortAdded(port)
 
-    private def _datapathPortAdded(port: Port[_, _]) = {
+    private def _datapathPortAdded(port: DpPort) = {
         log.debug("datapathPortAdded {}", port)
         // First clear the in-progress operation
         dpPortsInProgress -= port.getName
@@ -1355,14 +1354,14 @@ class DatapathStateManager(val controller: VirtualPortManager.Controller)(
      *  non-tunnel port creation operation.
      *  @param  port port which was successfully created
      */
-    def dpPortAdded(port: Port[_,_]) =
+    def dpPortAdded(port: DpPort) =
         versionUp { _vportMgr = _vportMgr.datapathPortAdded(port) }
 
     /** to be called by the DatapathController in reaction to a successful
      *  non-tunnel port deletion operation.
      *  @param  port port which was successfully deleted
      */
-    def dpPortRemoved(port: Port[_,_]) =
+    def dpPortRemoved(port: DpPort) =
         versionUp { _vportMgr = _vportMgr.datapathPortRemoved(port.getName) }
 
     /** to be called by the DatapathController in reaction to a failed
@@ -1370,15 +1369,15 @@ class DatapathStateManager(val controller: VirtualPortManager.Controller)(
      *  reschedule a try.
      *  @param  port port which could not be created.
      */
-    def dpPortForget(port: Port[_,_]) =
+    def dpPortForget(port: DpPort) =
         versionUp { _vportMgr = _vportMgr.datapathPortForget(port) }
 
-    var tunnelGre: Option[Port[_,_]] = None
+    var tunnelGre: Option[DpPort] = None
 
     var greOutputAction: Option[FlowActionOutput] = None
 
     /** updates the DPC reference to the tunnel port bound in the datapath */
-    def setTunnelGre(p: Option[Port[_,_]]) = versionUp {
+    def setTunnelGre(p: Option[DpPort]) = versionUp {
         tunnelGre = p
         greOutputAction = tunnelGre.map{ _.toOutputAction }
         log.info("gre tunnel port was assigned to {}", p)
@@ -1459,7 +1458,7 @@ class DatapathStateManager(val controller: VirtualPortManager.Controller)(
     def getInterfaceForVport(vportId: UUID): Option[String] =
         _vportMgr.interfaceToVport.inverse.get(vportId)
 
-    override def getDpPortForInterface(itfName: String): Option[Port[_,_]] =
+    override def getDpPortForInterface(itfName: String): Option[DpPort] =
         _vportMgr.interfaceToDpPort.get(itfName)
 
     override def getDpPortNumberForVport(vportId: UUID): Option[JInteger] =

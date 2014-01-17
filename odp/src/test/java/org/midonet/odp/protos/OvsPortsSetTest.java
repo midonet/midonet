@@ -13,8 +13,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 import org.midonet.odp.Datapath;
-import org.midonet.odp.Port;
-import org.midonet.odp.Ports;
+import org.midonet.odp.DpPort;
 import org.midonet.odp.ports.InternalPort;
 
 
@@ -45,8 +44,8 @@ public class OvsPortsSetTest extends AbstractNetlinkProtocolTest {
         assertThat("Datapath was parsed correctly",
                    datapath, is(expectedDatapath()));
 
-        Port expectedPort = expectedInternalPort();
-        Future<Port<?, ?>> portFuture;
+        DpPort expectedPort = expectedInternalPort();
+        Future<DpPort> portFuture;
 
         log.info("Get the internal port by name.");
         portFuture = connection.portsGet("internalPort", null);
@@ -64,10 +63,10 @@ public class OvsPortsSetTest extends AbstractNetlinkProtocolTest {
                    portFuture.get(), is(expectedPort));
     }
 
-    private Port<?,?> expectedInternalPort() {
-        InternalPort port = Ports.newInternalPort("internalPort");
+    private DpPort expectedInternalPort() {
+        InternalPort port = new InternalPort("internalPort");
         port.setPortNo(1);
-        port.setStats(new Port.Stats());
+        port.setStats(new DpPort.Stats());
         return port;
     }
 

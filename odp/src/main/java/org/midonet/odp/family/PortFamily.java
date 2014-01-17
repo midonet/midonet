@@ -1,11 +1,11 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.odp.family;
 
 import org.midonet.netlink.Netlink;
 import org.midonet.netlink.NetlinkMessage;
-import org.midonet.odp.Port;
+import org.midonet.odp.DpPort;
 import org.midonet.odp.PortOptions;
 import org.midonet.odp.OpenVSwitch;
 
@@ -63,7 +63,7 @@ public class PortFamily extends
             attr(OpenVSwitch.Port.Attr.UpcallPID);
 
         /* struct ovs_vport_stats */
-        public static final Attr<Port.Stats> STATS =
+        public static final Attr<DpPort.Stats> STATS =
             attr(OpenVSwitch.Port.Attr.Stats);
 
 
