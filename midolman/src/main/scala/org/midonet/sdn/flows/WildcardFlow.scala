@@ -17,10 +17,10 @@ import org.midonet.util.functors.Callback0
 
 object WildcardFlow {
     def apply(wcmatch: WildcardMatch,
-                     actions: List[FlowAction[_]] = Nil,
-                     hardExpirationMillis: Int = 0,
-                     idleExpirationMillis: Int = 0,
-                     priority: Short = 0) =
+              actions: List[FlowAction[_]] = Nil,
+              hardExpirationMillis: Int = 0,
+              idleExpirationMillis: Int = 0,
+              priority: Short = 0) =
         new WildcardFlowImpl(wcmatch, actions, hardExpirationMillis,
                          idleExpirationMillis, priority)
 
