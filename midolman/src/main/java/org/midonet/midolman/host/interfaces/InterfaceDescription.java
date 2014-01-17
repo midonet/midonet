@@ -11,7 +11,6 @@ import java.util.Map;
 
 import org.midonet.packets.MAC;
 import org.midonet.odp.DpPort;
-import org.midonet.odp.PortOptions;
 
 
 /**
