@@ -101,9 +101,6 @@ class Bridge(val id: UUID,
         if (Ethernet.isMcast(packetContext.wcmatch.getEthernetSource)) {
             log.info("Packet has multi/broadcast source, DROP")
             Future.successful(DropAction)
-        } else if (!adminStateUp) {
-            log.debug("Bridge {} is down, DROP", id)
-            Future.successful(DropAction)
         } else
             normalProcess(packetContext)
     }
@@ -114,10 +111,15 @@ class Bridge(val id: UUID,
 
         implicit val pktContext = packetContext
 
-        log.debug("Processing frame: {}", pktContext.frame)
-
         // Tag the flow with this Bridge ID
         packetContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(id))
+
+        if (!adminStateUp) {
+            log.debug("Bridge {} is down, DROP", id)
+            return Future.successful(DropAction)
+        }
+
+        log.debug("Processing frame: {}", pktContext.frame)
 
         if (areChainsApplicable()) {
 

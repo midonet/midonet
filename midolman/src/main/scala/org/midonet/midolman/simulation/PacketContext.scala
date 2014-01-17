@@ -50,9 +50,14 @@ class PacketContext(override val flowCookie: Option[Int],
     private val log =
         LoggerFactory.getActorSystemThreadLog(this.getClass)(actorSystem.eventStream)
     // PacketContext starts unfrozen, in which mode it can have callbacks
-    // and tags added.  Freezing it switches it from write-only to
-    // read-only.
-    private var frozen = false
+    // and tags added. Freezing it switches it from write-only to read-only.
+    // This variable must be marked as volatile because it is sometimes accessed
+    // outside of the lock. Since loads can be reordered, and because the
+    // instructions inside the lock in the other methods can also be reordered
+    // with respect to each other, there may be interleavings leading to data
+    // races. We create a happens-before relationship between a write to frozen
+    // and a read from frozen, thus avoiding potential races.
+    @volatile private var frozen = false
     // ingressFE is used for connection tracking. conntrack keys use the
     // forward flow's egress device id. For return packets, symmetrically,
     // the ingress device is used to lookup the conntrack key that would have
@@ -93,6 +98,7 @@ class PacketContext(override val flowCookie: Option[Int],
         else
             flowRemovedCallbacks.add(cb)
     }
+
     def getFlowRemovedCallbacks: ROSet[Callback0] = {
         if (!frozen)
             throw new IllegalArgumentException(
@@ -118,6 +124,7 @@ class PacketContext(override val flowCookie: Option[Int],
         else
             flowTags.add(tag)
     }
+
     def getFlowTags: ROSet[Any] = {
         if (!frozen)
             throw new IllegalArgumentException(

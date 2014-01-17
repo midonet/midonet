@@ -75,13 +75,11 @@ abstract class RouterBase[IP <: IPAddr]()
         }
 
         getRouterPort(pktContext.inPortId, pktContext.expiry) flatMap {
-            case null =>
-                log.debug("Router - in port {} was null", pktContext.inPortId)
-                Future.successful(DropAction)
             case inPort if !cfg.adminStateUp =>
                 log.debug("Router {} state is down, DROP", id)
                 sendAnswer(inPort.id, icmpErrors.unreachableProhibitedIcmp(
                     inPort, pktContext.wcmatch, pktContext.frame))
+                pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(id))
                 Future.successful(DropAction)
             case inPort =>
                 preRouting(inPort)
@@ -260,12 +258,8 @@ abstract class RouterBase[IP <: IPAddr]()
         }) match {
             case (rt, ToPortAction(outPortId)) =>
                 getRouterPort(outPortId, context.expiry) flatMap {
-                    case null =>
-                        Future.successful(ErrorDropAction)
-                    case outPort =>
-                        postRouting(inPort, outPort, rt, context)
+                    case outPort => postRouting(inPort, outPort, rt, context)
                 }
-
             case (rt, action) =>
                 Future.successful(action)
         }
