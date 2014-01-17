@@ -6,7 +6,7 @@ package org.midonet.odp.family;
 import org.midonet.netlink.Netlink;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.odp.DpPort;
-import org.midonet.odp.PortOptions;
+import org.midonet.odp.ports.VxLanTunnelPortOptions;
 import org.midonet.odp.OpenVSwitch;
 
 /**
@@ -55,7 +55,7 @@ public class PortFamily extends
             attr(OpenVSwitch.Port.Attr.Name);
 
         /* nested attributes, varies by vport type */
-        public static final Attr<PortOptions> OPTIONS =
+        public static final Attr<VxLanTunnelPortOptions> VXLANOPTIONS =
             attrNested(OpenVSwitch.Port.Attr.Options);
 
         /* u32 Netlink PID to receive upcalls */
