@@ -131,14 +131,8 @@ object DatapathController extends Referenceable {
      * DpPortError indicating some kind of error occured.
      */
     sealed trait DpPortRequest {
-        type TypedPort <: DpPort
-        val port: TypedPort
+        val port: DpPort
         val tag: Option[AnyRef]
-        def update(p: TypedPort): DpPortRequest
-        def successReply(createdPort: DpPort) =
-            DpPortSuccess(update(createdPort.asInstanceOf[TypedPort]))
-        def errorReply(timeout: Boolean, error: NetlinkException) =
-            DpPortError(this, timeout, error)
     }
 
     sealed trait DpPortCreate extends DpPortRequest
@@ -146,50 +140,30 @@ object DatapathController extends Referenceable {
 
     sealed trait DpPortReply { val request: DpPortRequest }
 
-    case class DpPortSuccess(request: DpPortRequest) extends DpPortReply
+    case class DpPortSuccess(request: DpPortRequest, createdPort: DpPort)
+        extends DpPortReply
 
     case class DpPortError(
         request: DpPortRequest, timeout: Boolean, error: NetlinkException
     ) extends DpPortReply
 
-
-    trait InternalDpPortHolder { type TypedPort = InternalPort }
-
     case class DpPortCreateInternal(port: InternalPort, tag: Option[AnyRef])
-            extends DpPortCreate with InternalDpPortHolder {
-        override def update(p: InternalPort) = DpPortCreateInternal(p, this.tag)
-    }
+            extends DpPortCreate
 
     case class DpPortDeleteInternal(port: InternalPort, tag: Option[AnyRef])
-            extends DpPortDelete with InternalDpPortHolder {
-        override def update(p: InternalPort) = DpPortDeleteInternal(p, this.tag)
-    }
-
-
-    trait NetDevDpPortHolder { type TypedPort = NetDevPort }
+            extends DpPortDelete
 
     case class DpPortCreateNetdev(port: NetDevPort, tag: Option[AnyRef])
-            extends DpPortCreate with NetDevDpPortHolder {
-        override def update(p: NetDevPort) = DpPortCreateNetdev(p, this.tag)
-    }
+            extends DpPortCreate
 
     case class DpPortDeleteNetdev(port: NetDevPort, tag: Option[AnyRef])
-            extends DpPortDelete with NetDevDpPortHolder {
-        override def update(p: NetDevPort) = DpPortDeleteNetdev(p, this.tag)
-    }
-
-
-    trait GreDpPortHolder { type TypedPort = GreTunnelPort }
+            extends DpPortDelete
 
     case class DpPortCreateGreTunnel(port: GreTunnelPort, tag: Option[AnyRef])
-            extends DpPortCreate with GreDpPortHolder {
-        override def update(p: GreTunnelPort) = DpPortCreateGreTunnel(p, this.tag)
-    }
+            extends DpPortCreate
 
     case class DpPortDeleteGreTunnel(port: GreTunnelPort, tag: Option[AnyRef])
-            extends DpPortDelete with GreDpPortHolder {
-        override def update(p: GreTunnelPort) = DpPortDeleteGreTunnel(p, this.tag)
-    }
+            extends DpPortDelete
 
    /**
     * This message encapsulates a given port stats to the monitoring agent.
@@ -203,42 +177,47 @@ object DatapathController extends Referenceable {
      */
     case class DpPortStatsRequest(portID: UUID)
 
-    /**
-     * This message is sent every 2 seconds to check that the kernel contains
-     * exactly the same ports/interfaces as the system. In case that somebody
-     * uses a command line tool (for example) to bring down an interface, the
-     * system will react to it.
-     * TODO this version is constantly checking for changes. It should react to
-     * 'netlink' notifications instead.
-     */
-    case class _CheckForPortUpdates(datapathName: String)
+    object Internal {
 
-    /**
-     * This message is sent when the separate thread has succesfully retrieved
-     * all information about the interfaces.
-     */
-    case class _InterfacesUpdate(interfaces: JList[InterfaceDescription])
+        /**
+         * This message is sent every 2 seconds to check that the kernel
+         * contains exactly the same ports/interfaces as the system. In case
+         * that somebody uses a command line tool (for example) to bring down
+         * an interface, the system will react to it.
+         * TODO this version is constantly checking for changes. It should react
+         * to 'netlink' notifications instead.
+         */
+        case class CheckForPortUpdates(datapathName: String)
 
-    /**
-     * This message is sent when the DHCP handler needs to get information
-     * on local interfaces that are used for tunnels, what it returns is
-     * { interface description , list of {tunnel type} } where the
-     * interface description contains various information (including MTU)
-     */
-    case object LocalTunnelInterfaceInfo
+        /**
+         * This message is sent when the separate thread has succesfully
+         * retrieved all information about the interfaces.
+         */
+        case class InterfacesUpdate(interfaces: JList[InterfaceDescription])
 
-    /**
-     * This message is sent when the LocalTunnelInterfaceInfo handler
-     * completes the interface scan and pass the result as well as
-     * original sender info
-     */
-    case class _LocalTunnelInterfaceInfoFinal(caller : ActorRef,
-                                        interfaces: JList[InterfaceDescription])
+        /**
+         * This message is sent when the DHCP handler needs to get information
+         * on local interfaces that are used for tunnels, what it returns is
+         * { interface description , list of {tunnel type} } where the
+         * interface description contains various information (including MTU)
+         */
+        case object LocalTunnelInterfaceInfo
+
+        /**
+         * This message is sent when the LocalTunnelInterfaceInfo handler
+         * completes the interface scan and pass the result as well as
+         * original sender info
+         */
+        case class LocalTunnelInterfaceInfoFinal(caller : ActorRef,
+                                            interfaces: JList[InterfaceDescription])
+
+        case class SetLocalDatapathPorts(datapath: Datapath, ports: Set[DpPort])
+    }
 
     def calculateMinMtu()(implicit sys: ActorSystem, ec: ExecutionContext)
     : Future[Option[Short]] = {
         implicit val timeout =  new Timeout(3 second)
-        (DatapathController ? LocalTunnelInterfaceInfo)
+        (DatapathController ? Internal.LocalTunnelInterfaceInfo)
             .mapTo[mutable.MultiMap[InterfaceDescription, TunnelZone.Type]]
             .map { minMtu }
     }
@@ -270,8 +249,6 @@ object DatapathController extends Referenceable {
         TunnelZone.Type.Gre -> GreTunnelZone.TUNNEL_OVERHEAD,
         TunnelZone.Type.Capwap -> CapwapTunnelZone.TUNNEL_OVERHEAD,
         TunnelZone.Type.Ipsec -> IpsecTunnelZone.TUNNEL_OVERHEAD)
-
-    case class _SetLocalDatapathPorts(datapath: Datapath, ports: Set[DpPort])
 }
 
 
@@ -318,7 +295,9 @@ object DatapathController extends Referenceable {
  * are passed on to the FlowController.
  */
 class DatapathController extends Actor with ActorLogging with FlowTranslator {
+
     import DatapathController._
+    import DatapathController.Internal._
     import FlowController.AddWildcardFlow
     import PacketWorkflow.AddVirtualWildcardFlow
     import VirtualPortManager.Controller
@@ -420,7 +399,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
                     this.nextHost = h
             }
 
-        case _SetLocalDatapathPorts(datapathObj, ports) =>
+        case SetLocalDatapathPorts(datapathObj, ports) =>
             this.datapath = datapathObj
             ports.foreach {
                 //TODO: check we can safely recycle existing ports (MN-128)
@@ -484,7 +463,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
             // schedule port requests.
             log.info("Starting to schedule the port link status updates.")
             portWatcher = system.scheduler.schedule(1 second, 2 seconds,
-                self, _CheckForPortUpdates(datapath.getName))
+                self, CheckForPortUpdates(datapath.getName))
         }
         initializer ! InitializationComplete
         log.info("Process the host's zones and vport bindings. {}", host)
@@ -605,16 +584,16 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
                     log.debug("Port was not found {}", portID)
             }
 
-        case _CheckForPortUpdates(datapathName: String) =>
+        case CheckForPortUpdates(datapathName: String) =>
             checkPortUpdates()
 
-        case _InterfacesUpdate(interfaces) =>
+        case InterfacesUpdate(interfaces) =>
             dpState.updateInterfaces(interfaces)
 
         case LocalTunnelInterfaceInfo =>
             localTunnelInterfaceInfoPhaseOne(sender)
 
-        case _LocalTunnelInterfaceInfoFinal(caller, interfaces) =>
+        case LocalTunnelInterfaceInfoFinal(caller, interfaces) =>
             localTunnelInterfaceInfoPhaseTwo(caller, interfaces)
     }
 
@@ -629,7 +608,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
             }
 
             def onSuccess(data: JList[InterfaceDescription]) {
-                self ! _InterfacesUpdate(data)
+                self ! InterfacesUpdate(data)
             }
         })
     }
@@ -710,19 +689,19 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
 
         opReply match {
 
-            case DpPortSuccess(DpPortCreateGreTunnel(p, _)) =>
-                dpState.setTunnelGre(Some(p))
+            case DpPortSuccess(DpPortCreateGreTunnel(_, _), newPort) =>
+                dpState.setTunnelGre(Some(newPort))
 
             case DpPortError(req @ DpPortCreateGreTunnel(p, tags), _, _) =>
                 log.warning(
                     "GRE port creation failed: {} => scheduling retry", opReply)
                 system.scheduler.scheduleOnce(5 second, self, req)
 
-            case DpPortSuccess(DpPortCreateNetdev(p, _)) =>
-                dpState.dpPortAdded(p)
+            case DpPortSuccess(DpPortCreateNetdev(_, _), newPort) =>
+                dpState.dpPortAdded(newPort)
 
-            case DpPortSuccess(DpPortDeleteNetdev(p, _)) =>
-                dpState.dpPortRemoved(p)
+            case DpPortSuccess(DpPortDeleteNetdev(_, _), newPort) =>
+                dpState.dpPortRemoved(newPort)
 
             case DpPortError(DpPortCreateNetdev(p, tag), false, ex) =>
                 if (ex != null) {
@@ -746,7 +725,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
 
         /** used in tests only */
         opReply match {
-            case DpPortSuccess(req) =>
+            case DpPortSuccess(req, _) =>
                 system.eventStream.publish(req)
             case _ => // ignore, but explicitly to avoid warning
         }
@@ -761,11 +740,11 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
         datapathConnection.portsCreate(datapath, request.port,
             new ErrorHandlingCallback[DpPort] {
                 def onSuccess(data: DpPort) {
-                    caller ! request.successReply(data)
+                    caller ! DpPortSuccess(request, data)
                 }
 
                 def handleError(ex: NetlinkException, timeout: Boolean) {
-                    caller ! request.errorReply(timeout, ex)
+                    caller ! DpPortError(request, timeout, ex)
                 }
             })
     }
@@ -778,7 +757,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
         datapathConnection.portsDelete(request.port, datapath,
             new ErrorHandlingCallback[DpPort] {
                 def onSuccess(data: DpPort) {
-                    caller ! request.successReply(data)
+                    caller ! DpPortSuccess(request, data)
                 }
 
                 def handleError(ex: NetlinkException, timeout: Boolean) {
@@ -786,9 +765,9 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
                     // case we can consider that the delete operation succeeded
                     if (ex.getErrorCodeEnum ==
                         NetlinkException.ErrorCode.ENOENT) {
-                        caller ! request.errorReply(timeout = false, null)
+                        caller ! DpPortError(request, false, null)
                     } else {
-                        caller ! request.errorReply(timeout = false, ex)
+                        caller ! DpPortError(request, false, ex)
                     }
                 }
         })
@@ -810,7 +789,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
                 }
 
                 def onSuccess(data: JList[InterfaceDescription]) {
-                    self ! _LocalTunnelInterfaceInfoFinal(caller, data)
+                    self ! LocalTunnelInterfaceInfoFinal(caller, data)
                 }
             })
         }
@@ -930,7 +909,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
         datapathConnection.portsEnumerate(datapath,
             new ErrorHandlingCallback[JSet[DpPort]] {
                 def onSuccess(ports: JSet[DpPort]) {
-                    self ! _SetLocalDatapathPorts(datapath, ports.asScala.toSet)
+                    self ! SetLocalDatapathPorts(datapath, ports.asScala.toSet)
                 }
 
                 // WARN: this is ugly. Normally we should configure the message error handling
