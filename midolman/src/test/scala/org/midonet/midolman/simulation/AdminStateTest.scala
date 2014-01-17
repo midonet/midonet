@@ -5,14 +5,12 @@ package org.midonet.midolman.simulation
 
 import java.util.UUID
 import java.util.concurrent.TimeUnit
-
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
 import akka.actor._
 import akka.pattern.ask
 import akka.util.Timeout
-
 import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
@@ -30,8 +28,8 @@ import org.midonet.midolman.topology.VirtualToPhysicalMapper.PortSetRequest
 import org.midonet.midolman.topology.VirtualTopologyActor.BridgeRequest
 import org.midonet.midolman.topology.rcu.PortSet
 import org.midonet.midolman.topology.{VirtualToPhysicalMapper, rcu, FlowTagger, VirtualTopologyActor}
-import org.midonet.odp
-import org.midonet.odp.flows.FlowAction
+import org.midonet.odp.DpPort
+import org.midonet.odp.flows.{FlowAction, FlowActionOutput}
 import org.midonet.odp.flows.FlowActions.output
 import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.packets.ICMP.UNREACH_CODE
@@ -382,11 +380,11 @@ class AdminStateTest extends FeatureSpec
         protected val dpState: DatapathState = new DatapathState {
             def host: rcu.Host = null
             def peerTunnelInfo(peer: UUID): Option[(Int, Int)] = null
-            def tunnelGre: Option[odp.Port[_, _]] = None
-            def greOutputAction: Option[odp.flows.FlowActionOutput] = None
+            def tunnelGre: Option[DpPort] = None
+            def greOutputAction: Option[FlowActionOutput] = None
             def getDpPortNumberForVport(vportId: UUID): Option[Integer] =
                 Some(1)
-            def getDpPortForInterface(itfName: String): Option[odp.Port[_, _]] = null
+            def getDpPortForInterface(itfName: String): Option[DpPort] = null
             def getVportForDpPortNumber(portNum: Integer): Option[UUID] = null
             def getDpPortName(num: Integer): Option[String] = null
             def version: Long = 0L

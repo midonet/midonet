@@ -18,7 +18,7 @@ import java.util.UUID;
 import org.codehaus.jackson.annotate.JsonIgnore;
 
 import org.midonet.midolman.host.commands.executors.CommandProperty;
-import org.midonet.odp.Port;
+import org.midonet.odp.DpPort;
 
 
 /**
@@ -233,7 +233,7 @@ public class HostDirectory {
         byte[] mac;
         int status;
         int mtu;
-        Port.Type portType;
+        DpPort.Type portType;
         InetAddress[] addresses;
         Map<String, String> properties = new HashMap<String, String>();
 
@@ -305,11 +305,11 @@ public class HostDirectory {
             return false;
         }
 
-        public Port.Type getPortType() {
+        public DpPort.Type getPortType() {
             return portType;
         }
 
-        public void setPortType(Port.Type portType) {
+        public void setPortType(DpPort.Type portType) {
             this.portType = portType;
         }
 

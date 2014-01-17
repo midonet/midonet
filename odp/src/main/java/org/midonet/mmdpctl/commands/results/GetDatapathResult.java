@@ -1,6 +1,6 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.mmdpctl.commands.results;
 
 import java.util.ArrayList;
@@ -9,28 +9,28 @@ import java.util.Comparator;
 import java.util.Set;
 
 import org.midonet.odp.Datapath;
-import org.midonet.odp.Port;
+import org.midonet.odp.DpPort;
 
 public class GetDatapathResult implements Result {
 
     Datapath datapath;
-    Set<Port<?,?>> ports;
+    Set<DpPort> ports;
 
-    public GetDatapathResult(Datapath datapath, Set<Port<?,?>> ports) {
+    public GetDatapathResult(Datapath datapath, Set<DpPort> ports) {
         this.datapath = datapath;
         this.ports = ports;
     }
 
-    public String assembleString(Port<?,?> p) {
+    public String assembleString(DpPort p) {
         return "Port #" + p.getPortNo() + " \"" + p.getName() + "\"  "
             + p.getType().toString() +  "  " + p.getStats().toString();
     }
 
-    public ArrayList<Port<?,?>> sortPorts() {
-        ArrayList<Port<?,?>> toPrint = new ArrayList<>(ports);
+    public ArrayList<DpPort> sortPorts() {
+        ArrayList<DpPort> toPrint = new ArrayList<>(ports);
 
-        Collections.sort(toPrint, new Comparator<Port<?,?>>() {
-            @Override public int compare(Port<?,?> o1, Port<?,?> o2) {
+        Collections.sort(toPrint, new Comparator<DpPort>() {
+            @Override public int compare(DpPort o1, DpPort o2) {
                 return o1.getPortNo().compareTo(o2.getPortNo());
             }
         });
@@ -49,7 +49,7 @@ public class GetDatapathResult implements Result {
         System.out.println("  Lost  :"+stats.getLost());
         System.out.println("  Misses:" +stats.getMisses());
         if (ports != null && (!ports.isEmpty())) {
-            for (Port<?,?> port: sortPorts()) {
+            for (DpPort port: sortPorts()) {
                 System.out.println(assembleString(port));
             }
         } else {

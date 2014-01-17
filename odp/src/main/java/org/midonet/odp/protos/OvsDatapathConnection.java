@@ -1,6 +1,6 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.odp.protos;
 
 import java.util.Set;
@@ -23,8 +23,7 @@ import org.midonet.odp.Datapath;
 import org.midonet.odp.Flow;
 import org.midonet.odp.FlowMatch;
 import org.midonet.odp.Packet;
-import org.midonet.odp.Port;
-import org.midonet.odp.Ports;
+import org.midonet.odp.DpPort;
 import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.throttling.NoOpThrottlingGuard;
 import org.midonet.util.throttling.NoOpThrottlingGuardFactory;
@@ -285,9 +284,9 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
      * @param datapath the datapath owning the port.
      * @return a future
      */
-    public Future<Port<?, ?>> portsGet(final @Nonnull String portName,
-                                       final @Nullable Datapath datapath) {
-        ValueFuture<Port<?, ?>> future = ValueFuture.create();
+    public Future<DpPort> portsGet(final @Nonnull String portName,
+                                   final @Nullable Datapath datapath) {
+        ValueFuture<DpPort> future = ValueFuture.create();
         portsGet(portName, datapath, wrapFuture(future), DEF_REPLY_TIMEOUT);
         return future;
     }
@@ -301,7 +300,7 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
      */
     public void portsGet(final @Nonnull String portName,
                          final @Nullable Datapath datapath,
-                         final @Nonnull Callback<Port<?, ?>> callback) {
+                         final @Nonnull Callback<DpPort> callback) {
         portsGet(portName, datapath, callback, DEF_REPLY_TIMEOUT);
     }
 
@@ -315,7 +314,7 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
      */
     public void portsGet(final @Nonnull String portName,
                          final @Nullable Datapath datapath,
-                         final @Nonnull Callback<Port<?, ?>> callback,
+                         final @Nonnull Callback<DpPort> callback,
                          final long timeoutMillis) {
         _doPortsGet(portName, null, datapath, callback, timeoutMillis);
     }
@@ -327,9 +326,9 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
      * @param datapath the datapath which holds the port
      * @return a future
      */
-    public Future<Port<?, ?>> portsGet(final int portId,
-                                       @Nonnull final Datapath datapath) {
-        ValueFuture<Port<?, ?>> future = ValueFuture.create();
+    public Future<DpPort> portsGet(final int portId,
+                                   @Nonnull final Datapath datapath) {
+        ValueFuture<DpPort> future = ValueFuture.create();
         portsGet(portId, datapath, wrapFuture(future), DEF_REPLY_TIMEOUT);
         return future;
     }
@@ -343,7 +342,7 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
      */
     public void portsGet(final int portId,
                          final @Nonnull Datapath datapath,
-                         final @Nonnull Callback<Port<?, ?>> callback) {
+                         final @Nonnull Callback<DpPort> callback) {
         portsGet(portId, datapath, callback, DEF_REPLY_TIMEOUT);
     }
 
@@ -357,7 +356,7 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
      */
     public void portsGet(final int portId,
                          final @Nonnull Datapath datapath,
-                         final @Nonnull Callback<Port<?, ?>> callback,
+                         final @Nonnull Callback<DpPort> callback,
                          final long timeoutMillis) {
         _doPortsGet(null, portId, datapath, callback, timeoutMillis);
     }
@@ -365,7 +364,7 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
     protected abstract void _doPortsGet(final @Nullable String name,
                                         final @Nullable Integer portId,
                                         final @Nullable Datapath datapath,
-                                        final @Nonnull Callback<Port<?, ?>> callback,
+                                        final @Nonnull Callback<DpPort> callback,
                                         final long timeoutMillis);
 
     /**
@@ -375,9 +374,9 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
      * @param datapath the datapath owning the port.
      * @return a future
      */
-    public Future<Port<?, ?>> portsDelete(final @Nonnull Port<?, ?> port,
-                                          final @Nullable Datapath datapath) {
-        ValueFuture<Port<?, ?>> future = ValueFuture.create();
+    public Future<DpPort> portsDelete(final @Nonnull DpPort port,
+                                      final @Nullable Datapath datapath) {
+        ValueFuture<DpPort> future = ValueFuture.create();
         portsDelete(port, datapath, wrapFuture(future), DEF_REPLY_TIMEOUT);
         return future;
     }
@@ -389,9 +388,9 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
      * @param datapath the datapath that this port should be located on.
      * @param callback the callback that will be provided the operation result.
      */
-    public void portsDelete(final @Nonnull Port<?, ?> port,
+    public void portsDelete(final @Nonnull DpPort port,
                             final @Nullable Datapath datapath,
-                            final @Nonnull Callback<Port<?, ?>> callback) {
+                            final @Nonnull Callback<DpPort> callback) {
         portsDelete(port, datapath, callback, DEF_REPLY_TIMEOUT);
     }
 
@@ -403,16 +402,16 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
      * @param callback      the callback that will be provided the operation result.
      * @param timeoutMillis the timeout we are prepared to wait for completion.
      */
-    public void portsDelete(final @Nonnull Port<?, ?> port,
+    public void portsDelete(final @Nonnull DpPort port,
                             final @Nullable Datapath datapath,
-                            final @Nonnull Callback<Port<?, ?>> callback,
+                            final @Nonnull Callback<DpPort> callback,
                             final long timeoutMillis) {
         _doPortsDelete(port, datapath, callback, timeoutMillis);
     }
 
-    protected abstract void _doPortsDelete(final @Nonnull Port<?, ?> port,
+    protected abstract void _doPortsDelete(final @Nonnull DpPort port,
                                            final @Nullable Datapath datapath,
-                                           final @Nonnull Callback<Port<?, ?>> callback,
+                                           final @Nonnull Callback<DpPort> callback,
                                            final long timeoutMillis);
 
     /**
@@ -422,9 +421,9 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
      * @param datapath the datapath which holds the port
      * @return a future holding the updated port information.
      */
-    public Future<Port<?, ?>> portsSet(final @Nonnull Port<?, ?> port,
-                                       final @Nullable Datapath datapath) {
-        ValueFuture<Port<?, ?>> future = ValueFuture.create();
+    public Future<DpPort> portsSet(final @Nonnull DpPort port,
+                                   final @Nullable Datapath datapath) {
+        ValueFuture<DpPort> future = ValueFuture.create();
         portsSet(port, datapath, wrapFuture(future), DEF_REPLY_TIMEOUT);
         return future;
     }
@@ -436,9 +435,9 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
      * @param datapath the datapath that this port should be located on.
      * @param callback the callback that will be called with the result.
      */
-    public void portsSet(final @Nonnull Port<?, ?> port,
+    public void portsSet(final @Nonnull DpPort port,
                          final @Nullable Datapath datapath,
-                         final @Nonnull Callback<Port<?, ?>> callback) {
+                         final @Nonnull Callback<DpPort> callback) {
         portsSet(port, datapath, callback, DEF_REPLY_TIMEOUT);
     }
 
@@ -450,16 +449,16 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
      * @param callback      the callback that will be called with the result.
      * @param timeoutMillis the timeout we are willing to wait for a result.
      */
-    public void portsSet(final @Nonnull Port<?, ?> port,
+    public void portsSet(final @Nonnull DpPort port,
                          final @Nullable Datapath datapath,
-                         final @Nonnull Callback<Port<?, ?>> callback,
+                         final @Nonnull Callback<DpPort> callback,
                          final long timeoutMillis) {
         _doPortsSet(port, datapath, callback, timeoutMillis);
     }
 
-    protected abstract void _doPortsSet(@Nonnull final Port<?, ?> port,
+    protected abstract void _doPortsSet(@Nonnull final DpPort port,
                                         @Nullable final Datapath datapath,
-                                        @Nonnull final Callback<Port<?, ?>> callback,
+                                        @Nonnull final Callback<DpPort> callback,
                                         final long timeoutMillis);
 
     /**
@@ -469,8 +468,8 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
      * @return A future that holds the set of ports visible on the path
      * @see Future
      */
-    public Future<Set<Port<?, ?>>> portsEnumerate(@Nonnull Datapath datapath) {
-        ValueFuture<Set<Port<?, ?>>> valueFuture = ValueFuture.create();
+    public Future<Set<DpPort>> portsEnumerate(@Nonnull Datapath datapath) {
+        ValueFuture<Set<DpPort>> valueFuture = ValueFuture.create();
         portsEnumerate(datapath, wrapFuture(valueFuture));
         return valueFuture;
     }
@@ -483,7 +482,7 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
      * @see Callback
      */
     public void portsEnumerate(@Nonnull Datapath datapath,
-                               @Nonnull Callback<Set<Port<?, ?>>> callback) {
+                               @Nonnull Callback<Set<DpPort>> callback) {
         portsEnumerate(datapath, callback, DEF_REPLY_TIMEOUT);
     }
 
@@ -496,13 +495,13 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
      * @see Callback
      */
     public void portsEnumerate(@Nonnull Datapath datapath,
-                               @Nonnull Callback<Set<Port<?, ?>>> callback,
+                               @Nonnull Callback<Set<DpPort>> callback,
                                final long timeoutMillis) {
         _doPortsEnumerate(datapath, callback, timeoutMillis);
     }
 
     protected abstract void _doPortsEnumerate(@Nonnull Datapath datapath,
-                                              @Nonnull Callback<Set<Port<?, ?>>> callback,
+                                              @Nonnull Callback<Set<DpPort>> callback,
                                               long timeoutMillis);
 
     /**
@@ -512,11 +511,10 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
      * @param port     the specification of the port we want to create.
      * @return A future that holds the newly create port.
      * @see Future
-     * @see Ports
      */
-    public Future<Port<?, ?>> portsCreate(@Nonnull Datapath datapath,
-                                          @Nonnull Port<?, ?> port) {
-        ValueFuture<Port<?, ?>> valueFuture = ValueFuture.create();
+    public Future<DpPort> portsCreate(@Nonnull Datapath datapath,
+                                      @Nonnull DpPort port) {
+        ValueFuture<DpPort> valueFuture = ValueFuture.create();
         portsCreate(datapath, port, wrapFuture(valueFuture));
         return valueFuture;
     }
@@ -528,10 +526,9 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
      * @param port     the specification of the port we want to create.
      * @param callback the callback that will be notified by the reply.
      * @see Future
-     * @see Ports
      */
-    public void portsCreate(@Nonnull Datapath datapath, @Nonnull Port<?, ?> port,
-                            @Nonnull Callback<Port<?, ?>> callback) {
+    public void portsCreate(@Nonnull Datapath datapath, @Nonnull DpPort port,
+                            @Nonnull Callback<DpPort> callback) {
         portsCreate(datapath, port, callback, DEF_REPLY_TIMEOUT);
     }
 
@@ -543,17 +540,16 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
      * @param callback      the callback that will be notified by the reply.
      * @param timeoutMillis the timeout we are prepared to wait for the reply.
      * @see Future
-     * @see Ports
      */
-    public void portsCreate(@Nonnull Datapath datapath, @Nonnull Port<?, ?> port,
-                            @Nonnull Callback<Port<?, ?>> callback, long timeoutMillis) {
+    public void portsCreate(@Nonnull Datapath datapath, @Nonnull DpPort port,
+                            @Nonnull Callback<DpPort> callback, long timeoutMillis) {
 
         _doPortsCreate(datapath, port, callback, timeoutMillis);
     }
 
     protected abstract void _doPortsCreate(@Nonnull Datapath datapath,
-                                           @Nonnull Port<?, ?> port,
-                                           @Nonnull Callback<Port<?, ?>> callback,
+                                           @Nonnull DpPort port,
+                                           @Nonnull Callback<DpPort> callback,
                                            long timeoutMillis);
 
     /**

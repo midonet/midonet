@@ -17,8 +17,8 @@ import org.midonet.cluster.data.{Ports => ClusterPorts}
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.topology.VirtualToPhysicalMapper._
 import org.midonet.midolman.topology.rcu.{Host => RCUHost}
+import org.midonet.odp.Datapath
 import org.midonet.odp.ports.NetDevPort
-import org.midonet.odp.{Datapath, Ports}
 
 @Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
@@ -171,8 +171,8 @@ class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
     materializePort(port, host, "port1")
 
     val dp = dpConn().datapathsCreate("test").get()
-    dpConn().portsCreate(dp, Ports.newNetDevPort("port2")).get()
-    dpConn().portsCreate(dp, Ports.newNetDevPort("port3")).get()
+    dpConn().portsCreate(dp, new NetDevPort("port2")).get()
+    dpConn().portsCreate(dp, new NetDevPort("port3")).get()
 
     dpConn().datapathsEnumerate().get() should have size 1
     dpConn().portsEnumerate(dp).get() should have size 3
@@ -205,7 +205,7 @@ class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
     initializeDatapath() should not be (null)
 
     var opReply = askAndAwait[DpPortReply](
-        dpController(), DpPortCreateNetdev(Ports.newNetDevPort("netdev"), None))
+        dpController(), DpPortCreateNetdev(new NetDevPort("netdev"), None))
 
     opReply should not be (null)
     val netdevPort: NetDevPort = opReply.request.port.asInstanceOf[NetDevPort]
