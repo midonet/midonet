@@ -322,7 +322,7 @@ trait FlowTranslator {
                                                                 deviceId)
             }
 
-            activePorts(outPorts) flatMap {
+            activePorts(outPorts, dpTags.orNull) flatMap {
                 localPorts =>
                     applyOutboundFilters(localPorts, portSet, wMatch, dpTags)
             } map {
@@ -334,12 +334,18 @@ trait FlowTranslator {
         }} // closing the 2 flatmaps
     }
 
-    protected def activePorts(portIds: Set[UUID]): Future[Seq[Port[_]]] = {
+    protected def activePorts(portIds: Set[UUID],
+                              dpTags: mutable.Set[Any])
+    : Future[Seq[Port[_]]] = {
         val fs = portIds.map { portID =>
             expiringAsk(PortRequest(portID), log)
         }(breakOut(Seq.canBuildFrom))
 
-        Future.sequence(fs) map { ps => ps filter { p => p.adminStateUp } }
+        Future.sequence(fs).map { _ filter { p =>
+            if (dpTags != null)
+                dpTags += FlowTagger.invalidateFlowsByDevice(p.id)
+            p.adminStateUp
+        }}(CallingThreadExecutionContext)
     }
 
     private def expandPortAction(actions: Seq[FlowAction[_]],
