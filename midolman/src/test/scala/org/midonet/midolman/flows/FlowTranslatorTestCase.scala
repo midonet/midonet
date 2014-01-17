@@ -21,7 +21,7 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.{DatapathState, FlowTranslator}
 import org.midonet.midolman.{VirtualTopologyHelper, MockMidolmanActors}
-import org.midonet.odp.Port
+import org.midonet.odp.DpPort
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput}
 import org.midonet.odp.flows.FlowActions.userspace
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
@@ -100,10 +100,10 @@ class FlowTranslatorTestCase extends FeatureSpec
         var uplinkPid: Int = 0
 
         def peerTunnelInfo(peer: UUID): Option[(Int, Int)] = None
-        def tunnelGre: Option[Port[_, _]] = None
+        def tunnelGre: Option[DpPort] = None
         def greOutputAction: Option[FlowActionOutput] = None
         def getDpPortNumberForVport(vportId: UUID): Option[Integer] = None
-        def getDpPortForInterface(itfName: String): Option[Port[_, _]] = None
+        def getDpPortForInterface(itfName: String): Option[DpPort] = None
         def getVportForDpPortNumber(portNum: Integer): Option[UUID] = None
         def getDpPortName(num: Integer): Option[String] = None
     }
