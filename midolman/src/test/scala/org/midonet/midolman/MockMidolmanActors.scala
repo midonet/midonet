@@ -38,7 +38,7 @@ trait MockMidolmanActors extends BeforeAndAfter {
     implicit def executionContext: ExecutionContext = ExecutionContext.callingThread
 
     // These methods can be overridden by each class mixing MockMidolmanActors
-    // to add custom operations before each test and after each tests
+    // to add custom operations before or after each test
     protected def registerActors: List[(Referenceable, () => MessageAccumulator)] = List()
     protected def beforeTest() { }
     protected def afterTest() { }

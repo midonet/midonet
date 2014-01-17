@@ -368,7 +368,6 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
             return
 
         getRouterPort(rt.nextHopPort, expiry) onSuccess {
-            case null => log.error("Failed to get port to emit local packet")
             case outPort => _sendIPPacket(outPort, rt)
         }
     }

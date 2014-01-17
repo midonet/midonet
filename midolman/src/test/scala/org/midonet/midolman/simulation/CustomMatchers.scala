@@ -13,36 +13,44 @@ import org.midonet.odp.flows.{FlowAction, FlowKeyIPv4, FlowKeyEthernet, FlowActi
 
 trait CustomMatchers {
 
-    val dropped = new BePropertyMatcher[SimulationResult] {
+    def dropped(expectedTags: Any*) = new BePropertyMatcher[SimulationResult] {
         def apply(simRes: SimulationResult) =
             BePropertyMatchResult(simRes match {
-                case AddVirtualWildcardFlow(flow, _, _) =>
-                    flow.actions.isEmpty
+                case AddVirtualWildcardFlow(flow, _, tags) =>
+                    flow.actions.isEmpty &&
+                    (expectedTags forall tags.contains)
                 case _ =>
                     false
-            }, "a drop flow")
+            }, s"a drop flow containing tags {${expectedTags.toSet}")
     }
 
-    def toPortSet(portSetId: UUID) = new BePropertyMatcher[SimulationResult] {
-        def apply(simRes: SimulationResult) =
-            BePropertyMatchResult((simRes match {
-                    case AddVirtualWildcardFlow(flow, _, _) => flow.actions
-                    case SendPacket(actions) => actions
-                    case _ => Nil
-                }).exists({
-                    case FlowActionOutputToVrnPortSet(id) => id == portSetId
-                    case _ => false
-                }), s"a port set action to $portSetId")
+    def toPortSet(portSetId: UUID, expectedTags: Any*) =
+        new BePropertyMatcher[SimulationResult] {
+            def apply(simRes: SimulationResult) =
+                BePropertyMatchResult((simRes match {
+                        case AddVirtualWildcardFlow(flow, _, tags) =>
+                            if (expectedTags forall tags.contains)
+                                flow.actions
+                            else Nil
+                        case SendPacket(actions) => actions
+                        case _ => Nil
+                    }).exists({
+                        case FlowActionOutputToVrnPortSet(id) => id == portSetId
+                        case _ => false
+                    }), s"a port set action to $portSetId with tags " +
+                        s"{${expectedTags.toSet}")
     }
 
-    def flowMatching(pkt: Ethernet) = new BePropertyMatcher[SimulationResult] {
-        def apply(simRes: SimulationResult) =
-            BePropertyMatchResult(simRes match {
-                case AddVirtualWildcardFlow(flow, _ , _) =>
-                    flowMatchesPacket(flow, pkt)
-                case _ =>
-                    false
-            } , s"a flow matching $pkt")
+    def flowMatching(pkt: Ethernet, expectedTags: Any*) =
+        new BePropertyMatcher[SimulationResult] {
+            def apply(simRes: SimulationResult) =
+                BePropertyMatchResult(simRes match {
+                    case AddVirtualWildcardFlow(flow, _ , tags) =>
+                        flowMatchesPacket(flow, pkt) &&
+                        (expectedTags forall tags.contains)
+                    case _ =>
+                        false
+                } , s"a flow matching $pkt")
 
         def flowMatchesPacket(flow: WildcardFlow, pkt: Ethernet): Boolean = {
             val f: PartialFunction[({type A <: FlowAction[A]})#A, Boolean] = {
