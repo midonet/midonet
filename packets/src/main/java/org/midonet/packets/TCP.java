@@ -278,8 +278,12 @@ public class TCP extends BasePacket implements Transport {
     }
 
     public static void ensurePortInRange(int port) {
-        if (port < Transport.MIN_PORT_NO || port > Transport.MAX_PORT_NO)
+        if (!isPortInRange(port))
             throw new IllegalArgumentException("transport port out of range");
+    }
+
+    public static boolean isPortInRange(int port) {
+        return Transport.MIN_PORT_NO <= port && port <= Transport.MAX_PORT_NO;
     }
 
 }

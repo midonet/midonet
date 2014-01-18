@@ -399,7 +399,9 @@ class AdminStateTest extends FeatureSpec
             def host: rcu.Host = null
             def peerTunnelInfo(peer: UUID): Option[(Int, Int)] = null
             def tunnelGre: Option[DpPort] = None
+            def tunnelVxLan: Option[DpPort] = None
             def greOutputAction: Option[FlowActionOutput] = None
+            def vxLanOutputAction: Option[FlowActionOutput] = None
             def getDpPortNumberForVport(vportId: UUID): Option[Integer] =
                 Some(1)
             def getDpPortForInterface(itfName: String): Option[DpPort] = null

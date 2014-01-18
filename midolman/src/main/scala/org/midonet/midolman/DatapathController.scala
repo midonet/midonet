@@ -22,6 +22,7 @@ import org.midonet.cluster.client
 import org.midonet.cluster.data.TunnelZone
 import org.midonet.cluster.data.TunnelZone.{HostConfig => TZHostConfig}
 import org.midonet.cluster.data.zones._
+import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath._
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.host.scanner.InterfaceScanner
@@ -38,6 +39,7 @@ import org.midonet.odp.ports._
 import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.odp.{DpPort, Datapath}
 import org.midonet.packets.IPv4Addr
+import org.midonet.packets.TCP
 import org.midonet.sdn.flows.WildcardFlow
 import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.util.collection.Bimap
@@ -64,6 +66,11 @@ trait UnderlayResolver {
 
     def greOutputAction: Option[FlowActionOutput]
 
+    /** reference to the datapath VxLan tunnel port.
+     *  None if port is not available. */
+    def tunnelVxLan: Option[DpPort]
+
+    def vxLanOutputAction: Option[FlowActionOutput]
 }
 
 trait VirtualPortsResolver {
@@ -163,6 +170,12 @@ object DatapathController extends Referenceable {
             extends DpPortCreate
 
     case class DpPortDeleteGreTunnel(port: GreTunnelPort, tag: Option[AnyRef])
+            extends DpPortDelete
+
+    case class DpPortCreateVxLanTunnel(port: VxLanTunnelPort, tag: Option[AnyRef])
+            extends DpPortCreate
+
+    case class DpPortDeleteVxLanTunnel(port: VxLanTunnelPort, tag: Option[AnyRef])
             extends DpPortDelete
 
    /**
@@ -320,6 +333,9 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
     @Inject
     val interfaceScanner: InterfaceScanner = null
 
+    @Inject
+    var midolmanConfig: MidolmanConfig = null
+
     var datapath: Datapath = null
 
     val dpState = new DatapathStateManager(
@@ -406,6 +422,8 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
                 // not the case for port created by the BGP actor !
                 case p: GreTunnelPort =>
                     deleteDatapathPort(self, DpPortDeleteGreTunnel(p, None))
+                case p: VxLanTunnelPort =>
+                    deleteDatapathPort(self, DpPortDeleteVxLanTunnel(p, None))
                 case p: NetDevPort =>
                     deleteDatapathPort(self, DpPortDeleteNetdev(p, None))
                 case p =>
@@ -417,8 +435,15 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
 
             log.debug("Initial creation of GRE tunnel port")
 
-            createDatapathPort(
-                self, DpPortCreateGreTunnel(GreTunnelPort.make("tngre-mm"), null))
+            val grePort = GreTunnelPort.make("tngre-mm")
+            createDatapathPort(self, DpPortCreateGreTunnel(grePort, None))
+
+            val vxlanUdpPort = midolmanConfig.getVxLanUdpPort();
+            if (TCP.isPortInRange(vxlanUdpPort)) {
+                val vxLanPort = VxLanTunnelPort.make("tnvxlan-mm", vxlanUdpPort)
+                createDatapathPort(
+                    self, DpPortCreateVxLanTunnel(vxLanPort, None))
+            }
 
             if (checkInitialization)
                 completeInitialization()
@@ -695,6 +720,14 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
             case DpPortError(req @ DpPortCreateGreTunnel(p, tags), _, _) =>
                 log.warning(
                     "GRE port creation failed: {} => scheduling retry", opReply)
+                system.scheduler.scheduleOnce(5 second, self, req)
+
+            case DpPortSuccess(DpPortCreateVxLanTunnel(_, _), newPort) =>
+                dpState.setTunnelVxLan(Some(newPort))
+
+            case DpPortError(req @ DpPortCreateVxLanTunnel(p, tags), _, _) =>
+                log.warning(
+                    "VxLan port creation failed: {} => scheduling retry", opReply)
                 system.scheduler.scheduleOnce(5 second, self, req)
 
             case DpPortSuccess(DpPortCreateNetdev(_, _), newPort) =>
@@ -1355,11 +1388,22 @@ class DatapathStateManager(val controller: VirtualPortManager.Controller)(
 
     var greOutputAction: Option[FlowActionOutput] = None
 
-    /** updates the DPC reference to the tunnel port bound in the datapath */
+    /** set the DPC reference to the gre tunnel port bound in the datapath */
     def setTunnelGre(p: Option[DpPort]) = versionUp {
         tunnelGre = p
         greOutputAction = tunnelGre.map{ _.toOutputAction }
         log.info("gre tunnel port was assigned to {}", p)
+    }
+
+    var tunnelVxLan: Option[DpPort] = None
+
+    var vxLanOutputAction: Option[FlowActionOutput] = None
+
+    /** set the DPC reference to the vxlan tunnel port bound in the datapath */
+    def setTunnelVxLan(p: Option[DpPort]) = versionUp {
+        tunnelVxLan = p
+        vxLanOutputAction = tunnelVxLan.map{ _.toOutputAction }
+        log.info("vxlan tunnel port was assigned to {}", p)
     }
 
     /** reference to the current host information. Used to query this host ip

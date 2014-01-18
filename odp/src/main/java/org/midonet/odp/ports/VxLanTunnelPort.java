@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
+ * Copyright (c) 2013 Midokura Europe SARL, All Rights Reserved.
  */
 package org.midonet.odp.ports;
 
@@ -15,7 +15,7 @@ import org.midonet.odp.family.PortFamily;
  */
 public class VxLanTunnelPort extends DpPort {
 
-    VxLanTunnelPortOptions options;
+    private VxLanTunnelPortOptions options;
 
     public VxLanTunnelPort(@Nonnull String name) {
         super(name, Type.VXLan);
@@ -26,10 +26,24 @@ public class VxLanTunnelPort extends DpPort {
         this.options = opts;
     }
 
+    /** Serializes this VxLanTunnelPort object into a ByteBuffer. If the
+     *  'options' instance variable is null and not serialized into the
+     *  ByteBuffer, the datapath will return EINVAL to port_create requests. */
     @Override
     public void serializeInto(Builder builder) {
         super.serializeInto(builder);
-        builder.addAttr(PortFamily.Attr.VXLANOPTIONS, options);
+        if (options != null) {
+            // OVS_VPORT_ATTR_OPTIONS is a nested netlink attribute. Here we
+            // write its netlink header manually. The len field of the header is
+            // equal to 2b + 2b for the header part + 8b for the attribute part.
+            // The attribute is a single port field (u16) which we write with
+            // padding (4b), and whose own header takes 4b. Note that the header
+            // of the port attribute has its len field written without padding
+            // (see VxLanTunnelPortOptions#serialize().
+            builder.addValue((short)12);
+            builder.addValue(PortFamily.Attr.VXLANOPTIONS.getId());
+            options.serialize(builder);
+        }
     }
 
     @Override
@@ -70,9 +84,13 @@ public class VxLanTunnelPort extends DpPort {
             '}';
     }
 
-    /** returns a new VxLanTunnelPort instance with default options */
+    /** returns a new VxLanTunnelPort instance with default udp port value */
     public static VxLanTunnelPort make(String name) {
         return new VxLanTunnelPort(name, new VxLanTunnelPortOptions());
     }
 
+    /** returns a new VxLanTunnelPort instance with given udp port value */
+    public static VxLanTunnelPort make(String name, int port) {
+        return new VxLanTunnelPort(name, new VxLanTunnelPortOptions(port));
+    }
 }

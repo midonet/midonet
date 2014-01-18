@@ -37,8 +37,7 @@ public abstract class DpPort {
         NetDev(OpenVSwitch.Port.Type.Netdev),
         Internal(OpenVSwitch.Port.Type.Internal),
         Gre(OpenVSwitch.Port.Type.Gre),
-        VXLan(OpenVSwitch.Port.Type.VXLan),     // not yet supported
-        Gre101(OpenVSwitch.Port.Type.GreOld),   // ovs 1.9 gre compatibility
+        VXLan(OpenVSwitch.Port.Type.VXLan),
         Gre64(OpenVSwitch.Port.Type.Gre64),
         Lisp(OpenVSwitch.Port.Type.Lisp);       // not yet supported
 
@@ -47,9 +46,6 @@ public abstract class DpPort {
         Type(int attr) {
             this.attrId = attr;
         }
-
-        public static EnumSet<Type> Tunnels =
-            EnumSet.of(Gre, VXLan, Lisp, Gre101, Gre64);
     }
 
     protected Integer portNo;
@@ -201,9 +197,6 @@ public abstract class DpPort {
                 return new InternalPort(name);
 
             case OpenVSwitch.Port.Type.Gre:
-                return new GreTunnelPort(name);
-
-            case OpenVSwitch.Port.Type.GreOld:
                 return new GreTunnelPort(name);
 
             case OpenVSwitch.Port.Type.Gre64:

@@ -32,4 +32,7 @@ public interface DatapathConfig {
      */
     @ConfigInt(key = "max_wildcard_flow_count", defaultValue = 10000)
     public int getDatapathMaxWildcardFlowCount();
+
+    @ConfigInt(key = "vxlan_udp_port", defaultValue = -1)
+    public int getVxLanUdpPort();
 }

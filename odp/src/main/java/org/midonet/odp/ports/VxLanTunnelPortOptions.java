@@ -3,25 +3,30 @@
  */
 package org.midonet.odp.ports;
 
-import java.nio.ByteOrder;
-
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.BaseBuilder;
 import org.midonet.netlink.messages.BuilderAware;
 import org.midonet.odp.OpenVSwitch;
+import org.midonet.packets.TCP;
 
 public class VxLanTunnelPortOptions implements BuilderAware {
     public static short VXLAN_DEFAULT_DST_PORT = 4789;
 
-    short dstPort = VXLAN_DEFAULT_DST_PORT;
+    private short dstPort = VXLAN_DEFAULT_DST_PORT;
 
-    public VxLanTunnelPortOptions setDestinationPort(short dstPort) {
-        this.dstPort = dstPort;
-        return this;
+    public VxLanTunnelPortOptions() { }
+
+    public VxLanTunnelPortOptions(int dstPort) {
+        setDestinationPort(dstPort);
     }
 
     public short getDestinationPort() {
         return this.dstPort;
+    }
+
+    private void setDestinationPort(int dstPort) {
+        TCP.ensurePortInRange(dstPort);
+        this.dstPort = (short) dstPort;
     }
 
     static class Attr<T> extends NetlinkMessage.AttrKey<T> {
@@ -40,14 +45,16 @@ public class VxLanTunnelPortOptions implements BuilderAware {
 
     @Override
     public void serialize(BaseBuilder<?,?> builder) {
-        builder.addAttr(Attr.OVS_TUNNEL_ATTR_DST_PORT, dstPort, ByteOrder.BIG_ENDIAN);
+        // The datapath code checks for a u16 attribute written without padding,
+        // therefore the len field of the header should indicate 6b.
+        builder.addAttrNoPad(Attr.OVS_TUNNEL_ATTR_DST_PORT, dstPort);
     }
 
     @Override
     public boolean deserialize(NetlinkMessage message) {
         try {
-            dstPort = message.getAttrValueShort(Attr.OVS_TUNNEL_ATTR_DST_PORT,
-                    ByteOrder.BIG_ENDIAN);
+            int port = message.getAttrValueShort(Attr.OVS_TUNNEL_ATTR_DST_PORT);
+            setDestinationPort(port);
         } catch (Exception e) {
             return false;
         }

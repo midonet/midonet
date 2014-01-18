@@ -4,30 +4,27 @@
 package org.midonet.midolman.flows
 
 import java.util.UUID
-
-import scala.collection.{Set => ROSet}
 import scala.collection.immutable.List
+import scala.collection.{Set => ROSet}
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
 import akka.actor.ActorSystem
 import akka.event.{NoLogging, LoggingAdapter}
 import akka.util.Timeout
-
 import org.junit.runner.RunWith
-
-import org.scalatest.{GivenWhenThen, Matchers, FeatureSpec}
 import org.scalatest.junit.JUnitRunner
+import org.scalatest.{GivenWhenThen, Matchers, FeatureSpec}
 
+import org.midonet.midolman.services.MessageAccumulator
+import org.midonet.midolman.topology.VirtualTopologyActor
+import org.midonet.midolman.topology.rcu.Host
 import org.midonet.midolman.{DatapathState, FlowTranslator}
 import org.midonet.midolman.{VirtualTopologyHelper, MockMidolmanActors}
 import org.midonet.odp.DpPort
-import org.midonet.odp.flows.{FlowAction, FlowActionOutput}
 import org.midonet.odp.flows.FlowActions.userspace
+import org.midonet.odp.flows.{FlowAction, FlowActionOutput}
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
-import org.midonet.midolman.topology.VirtualTopologyActor
-import org.midonet.midolman.services.MessageAccumulator
-import org.midonet.midolman.topology.rcu.Host
 
 @RunWith(classOf[JUnitRunner])
 class FlowTranslatorTestCase extends FeatureSpec
@@ -101,7 +98,9 @@ class FlowTranslatorTestCase extends FeatureSpec
 
         def peerTunnelInfo(peer: UUID): Option[(Int, Int)] = None
         def tunnelGre: Option[DpPort] = None
+        def tunnelVxLan: Option[DpPort] = None
         def greOutputAction: Option[FlowActionOutput] = None
+        def vxLanOutputAction: Option[FlowActionOutput] = None
         def getDpPortNumberForVport(vportId: UUID): Option[Integer] = None
         def getDpPortForInterface(itfName: String): Option[DpPort] = None
         def getVportForDpPortNumber(portNum: Integer): Option[UUID] = None
