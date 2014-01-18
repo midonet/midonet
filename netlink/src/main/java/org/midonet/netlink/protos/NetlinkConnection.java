@@ -38,8 +38,6 @@ public class NetlinkConnection extends AbstractNetlinkConnection {
     private static final Logger log = LoggerFactory
         .getLogger(NetlinkConnection.class);
 
-    final static CtrlFamily ctrlFamily = new CtrlFamily();
-
     public NetlinkConnection(NetlinkChannel channel, Reactor reactor,
                              ThrottlingGuardFactory pendingWritesThrottlerFactory,
                              ThrottlingGuard upcallThrottler,
@@ -70,13 +68,8 @@ public class NetlinkConnection extends AbstractNetlinkConnection {
                 .addAttr(CtrlFamily.AttrKey.FAMILY_NAME, familyName)
                 .build();
 
-        RequestBuilder<CtrlFamily.Cmd, CtrlFamily, Short> reqBuilder =
-            newRequest(ctrlFamily, CtrlFamily.Cmd.GETFAMILY);
-
-        reqBuilder
-            .withFlags(Flag.NLM_F_REQUEST)
-            .withPayload(message.getBuffer())
-            .withCallback(callback, new Function<List<ByteBuffer>, Short>() {
+        Function<List<ByteBuffer>, Short> familyIdDeserializer =
+            new Function<List<ByteBuffer>, Short>() {
                 @Override
                 public Short apply(@Nullable List<ByteBuffer> input) {
                     if (input == null || input.size() == 0 || input.get(0) == null)
@@ -86,9 +79,15 @@ public class NetlinkConnection extends AbstractNetlinkConnection {
                     // read result from res
                     return message.getAttrValueShort(CtrlFamily.AttrKey.FAMILY_ID);
                 }
-            })
-            .withTimeout(timeoutMillis)
-            .send();
+            };
+
+        sendNetlinkMessage(
+            CtrlFamily.Context.GetFamily,
+            Flag.or(Flag.NLM_F_REQUEST),
+            message.getBuffer(),
+            callback,
+            familyIdDeserializer,
+            timeoutMillis);
     }
 
     public void getMulticastGroup(final String familyName,
@@ -107,13 +106,8 @@ public class NetlinkConnection extends AbstractNetlinkConnection {
                 .addAttr(CtrlFamily.AttrKey.FAMILY_NAME, familyName)
                 .build();
 
-        RequestBuilder<CtrlFamily.Cmd, CtrlFamily, Integer> reqBuilder =
-                newRequest(ctrlFamily, CtrlFamily.Cmd.GETFAMILY);
-
-        reqBuilder
-            .withFlags(Flag.NLM_F_REQUEST)
-            .withPayload(message.getBuffer())
-            .withCallback(callback, new Function<List<ByteBuffer>, Integer>() {
+        Function<List<ByteBuffer>, Integer> mcastGrpDeserializer =
+            new Function<List<ByteBuffer>, Integer>() {
                 @Override
                 public Integer apply(@Nullable List<ByteBuffer> input) {
                     if (input == null)
@@ -135,9 +129,15 @@ public class NetlinkConnection extends AbstractNetlinkConnection {
 
                     return null;
                 }
-            })
-            .withTimeout(timeoutMillis)
-            .send();
+            };
+
+        sendNetlinkMessage(
+            CtrlFamily.Context.GetFamily,
+            Flag.or(Flag.NLM_F_REQUEST),
+            message.getBuffer(),
+            callback,
+            mcastGrpDeserializer,
+            timeoutMillis);
     }
 
 }
