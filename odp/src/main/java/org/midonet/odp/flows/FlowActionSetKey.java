@@ -10,12 +10,12 @@ import org.midonet.netlink.messages.BaseBuilder;
 
 public class FlowActionSetKey implements FlowAction {
 
-    FlowKey<?> flowKey;
+    FlowKey flowKey;
 
     // This is used for deserialization purposes only.
     FlowActionSetKey() { }
 
-    FlowActionSetKey(FlowKey<?> flowKey) {
+    FlowActionSetKey(FlowKey flowKey) {
         this.flowKey = flowKey;
     }
 
@@ -52,7 +52,7 @@ public class FlowActionSetKey implements FlowAction {
         return this;
     }
 
-    public FlowKey<?> getFlowKey() {
+    public FlowKey getFlowKey() {
         return flowKey;
     }
 

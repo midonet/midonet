@@ -9,7 +9,7 @@ import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.BaseBuilder;
 import org.midonet.packets.VLAN;
 
-public class FlowKeyVLAN implements FlowKey<FlowKeyVLAN> {
+public class FlowKeyVLAN implements FlowKey {
 
     /* be16 */
     //short pcp; // Priority Code Point 3 bits

@@ -43,7 +43,7 @@ public class FlowFamily extends
     public static class AttrKey<T> extends NetlinkMessage.AttrKey<T> {
 
         /* Sequence of OVS_KEY_ATTR_* attributes. */
-        public static final AttrKey<List<FlowKey<?>>> KEY =
+        public static final AttrKey<List<FlowKey>> KEY =
             attrNested(OpenVSwitch.Flow.Attr.Key);
 
         /* Nested OVS_ACTION_ATTR_* attributes. */

@@ -7,8 +7,7 @@ import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.BuilderAware;
 import org.midonet.odp.OpenVSwitch;
 
-public interface FlowKey<Key extends FlowKey<Key>>
-        extends BuilderAware, NetlinkMessage.Attr<Key> {
+public interface FlowKey extends BuilderAware, NetlinkMessage.Attr<FlowKey> {
 
     /**
      * Should be used by those keys that are only supported in user space.
@@ -17,7 +16,7 @@ public interface FlowKey<Key extends FlowKey<Key>>
      * to the datapath, and will also need to have all UserSpace-related actions
      * applied before being sent to the DP.
      */
-    interface UserSpaceOnly {
+    interface UserSpaceOnly extends FlowKey {
 
         /**
          * Tells if the UserSpaceOnly key extends <pre>key</pre> with further
@@ -37,11 +36,11 @@ public interface FlowKey<Key extends FlowKey<Key>>
          * @param key
          * @return
          */
-        public boolean isChildOf(FlowKey<?> key);
+        public boolean isChildOf(FlowKey key);
 
     }
 
-    public static class FlowKeyAttr<T extends FlowKey<T>>
+    public static class FlowKeyAttr<T extends FlowKey>
             extends NetlinkMessage.AttrKey<T> {
 
         /** Nested set of encapsulated attributes. */
@@ -112,17 +111,17 @@ public interface FlowKey<Key extends FlowKey<Key>>
             super(id, nested);
         }
 
-        static <T extends FlowKey<T>> FlowKeyAttr<T> attrNest(int id) {
+        static <T extends FlowKey> FlowKeyAttr<T> attrNest(int id) {
             return new FlowKeyAttr<T>(id, true);
         }
 
-        static <T extends FlowKey<T>> FlowKeyAttr<T> attr(int id) {
+        static <T extends FlowKey> FlowKeyAttr<T> attr(int id) {
             return new FlowKeyAttr<T>(id, false);
         }
     }
 
-    static NetlinkMessage.CustomBuilder<FlowKey<?>> Builder =
-        new NetlinkMessage.CustomBuilder<FlowKey<?>>() {
+    static NetlinkMessage.CustomBuilder<FlowKey> Builder =
+        new NetlinkMessage.CustomBuilder<FlowKey>() {
             @Override
             public FlowKey newInstance(short type) {
                 switch (type) {

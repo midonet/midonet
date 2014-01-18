@@ -51,7 +51,7 @@ public class PacketFamily extends
         /**
          * Nested OVS_KEY_ATTR_* attributes.
          */
-        public static final AttrKey<List<FlowKey<?>>> KEY =
+        public static final AttrKey<List<FlowKey>> KEY =
             attr(OpenVSwitch.Packet.Attr.Key);
 
         /**

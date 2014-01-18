@@ -6,7 +6,7 @@ package org.midonet.odp.flows;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.BaseBuilder;
 
-public class FlowKeyInPort implements FlowKey<FlowKeyInPort> {
+public class FlowKeyInPort implements FlowKey {
 
     /*__be32*/ private int portNo;
 

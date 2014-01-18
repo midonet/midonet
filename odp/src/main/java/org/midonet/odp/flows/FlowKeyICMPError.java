@@ -55,7 +55,7 @@ public class FlowKeyICMPError extends FlowKeyICMP
     }
 
     @Override
-    public boolean isChildOf(FlowKey<?> key) {
+    public boolean isChildOf(FlowKey key) {
         return key instanceof FlowKeyICMP;
     }
 }

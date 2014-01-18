@@ -22,7 +22,7 @@ import org.midonet.odp.flows.FlowKeys;
 public class FlowMatch {
 
     private boolean userSpaceOnly = false;
-    private List<FlowKey<?>> keys = new ArrayList<FlowKey<?>>();
+    private List<FlowKey> keys = new ArrayList<>();
 
     public FlowMatch() {
         keys = null;
@@ -34,13 +34,13 @@ public class FlowMatch {
      *
      * @param keys
      */
-    public FlowMatch(@Nonnull List<FlowKey<?>> keys) {
+    public FlowMatch(@Nonnull List<FlowKey> keys) {
         this.setKeys(keys);
     }
 
-    public FlowMatch addKey(FlowKey<?> key) {
+    public FlowMatch addKey(FlowKey key) {
         if (keys == null) {
-            keys = new ArrayList<FlowKey<?>>();
+            keys = new ArrayList<>();
         }
         keys.add(FlowKeys.intern(key));
         userSpaceOnly |= (key instanceof FlowKey.UserSpaceOnly);
@@ -48,23 +48,24 @@ public class FlowMatch {
     }
 
     @Nonnull
-    public List<FlowKey<?>> getKeys() {
+    public List<FlowKey> getKeys() {
         return keys;
     }
 
-    public FlowMatch setKeys(@Nonnull List<FlowKey<?>> keys) {
+    public FlowMatch setKeys(@Nonnull List<FlowKey> keys) {
         this.userSpaceOnly = false;
-        this.keys = keys.isEmpty() ? keys : new ArrayList<FlowKey<?>>(keys.size());
-        for (FlowKey<?> key: keys) {
+        this.keys = (keys != null && keys.isEmpty()) ?
+                        keys : new ArrayList<FlowKey>(keys.size());
+        for (FlowKey key: keys) {
             userSpaceOnly |= (key instanceof FlowKey.UserSpaceOnly);
             this.keys.add(FlowKeys.intern(key));
         }
         return this;
     }
 
-    public FlowMatch addKeys(@Nonnull List<FlowKey<?>> keys) {
+    public FlowMatch addKeys(@Nonnull List<FlowKey> keys) {
         this.userSpaceOnly = false;
-        for (FlowKey<?> key: keys) {
+        for (FlowKey key: keys) {
             userSpaceOnly |= (key instanceof FlowKey.UserSpaceOnly);
             this.keys.add(FlowKeys.intern(key));
         }

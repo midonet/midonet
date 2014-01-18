@@ -81,7 +81,7 @@ public class OvsFlowsDeleteTest extends AbstractNetlinkProtocolTest {
             .addKey(etherType(FlowKeyEtherType.Type.ETH_P_8021Q))
             .addKey(vlan((short) 0x0101))
             .addKey(
-                encap(Arrays.<FlowKey<?>>asList(
+                encap(Arrays.<FlowKey>asList(
                     etherType(FlowKeyEtherType.Type.ETH_P_ARP),
                     arp(MAC.fromString("ae:b3:77:8d:c1:48").getAddress(),
                             MAC.fromString("ae:b3:70:8d:c1:48").getAddress(),

@@ -475,7 +475,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
     }
 
     private def handleDHCP(inPortId: UUID): Future[Boolean] = {
-        def isUdpDhcpFlowKey(k: FlowKey[_]): Boolean = k match {
+        def isUdpDhcpFlowKey(k: FlowKey): Boolean = k match {
             case udp: FlowKeyUDP => (udp.getUdpSrc == 68) && (udp.getUdpDst == 67)
             case _ => false
         }

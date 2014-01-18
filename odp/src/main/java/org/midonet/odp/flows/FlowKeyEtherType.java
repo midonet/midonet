@@ -8,7 +8,7 @@ import java.nio.ByteOrder;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.BaseBuilder;
 
-public class FlowKeyEtherType implements FlowKey<FlowKeyEtherType> {
+public class FlowKeyEtherType implements FlowKey {
 
     public enum Type {
         /**

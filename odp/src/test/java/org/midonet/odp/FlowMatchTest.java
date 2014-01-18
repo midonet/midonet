@@ -30,9 +30,9 @@ import static org.midonet.odp.flows.FlowKeys.icmpError;
 
 public class FlowMatchTest {
 
-    private List<FlowKey<?>> supported = new ArrayList<>();
-    private List<FlowKey<?>> unsupported = new ArrayList<>();
-    private List<FlowKey<?>> tmp = new ArrayList<>();
+    private List<FlowKey> supported = new ArrayList<>();
+    private List<FlowKey> unsupported = new ArrayList<>();
+    private List<FlowKey> tmp = new ArrayList<>();
 
     @SuppressWarnings("unchecked")
     @Before
@@ -55,7 +55,7 @@ public class FlowMatchTest {
     public void testAddKey() {
         FlowMatch m = new FlowMatch();
         assertFalse(m.isUserSpaceOnly());
-        for (FlowKey<?> key : supported) {
+        for (FlowKey key : supported) {
             m.addKey(key);
         }
         assertFalse(m.isUserSpaceOnly());
