@@ -12,6 +12,7 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.odp.DpPort
 import org.midonet.odp.ports.GreTunnelPort
+import org.midonet.odp.ports.VxLanTunnelPort
 import org.midonet.midolman.topology.rcu.Host
 import org.midonet.midolman.topology.FlowTagger
 
@@ -45,6 +46,9 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
         stateMgr = new DatapathStateManager(controller)(log)
         stateMgr.version should be (0)
         stateMgr.tunnelGre should be (None)
+        stateMgr.tunnelVxLan should be (None)
+        stateMgr.greOutputAction should be (None)
+        stateMgr.vxLanOutputAction should be (None)
         stateMgr.host should be (null)
         for (p <- peers) { stateMgr.peerTunnelInfo(p) should be (None) }
     }
@@ -58,22 +62,28 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
     }
 
     def testTunnelSet {
-        def makeGre(name: String, portNo: Int) = {
-            val gre = GreTunnelPort.make(name)
-            gre.setPortNo(portNo)
-            gre
+        def outputOf(port: DpPort) = port.toOutputAction
+        def makePort(factory: (String) => DpPort): ((String, Int)) => DpPort = {
+            case (name, portNo) =>
+                val dpPort = factory(name)
+                dpPort.setPortNo(portNo)
+                dpPort
+            }
+        val args = List(("gre", 0),("foo", 1),("bar", 2))
+        args.map(makePort(GreTunnelPort.make)).map(Some.apply)
+            .foreach {
+                tun => checkVUp {
+                    stateMgr.setTunnelGre(tun)
+                    stateMgr.tunnelGre should be (tun)
+                    stateMgr.greOutputAction should be(tun map outputOf)
+            }
         }
-        List[MaybePort](
-            Option(null),
-            Some(makeGre("gre", 0)),
-            None,
-            Some(makeGre("foo", 1)),
-            None,
-            Some(makeGre("bar", 2))
-        ).foreach { tun => checkVUp {
-                stateMgr.setTunnelGre(tun)
-                stateMgr.tunnelGre should be (tun)
-                stateMgr.greOutputAction should be (tun.map{ _.toOutputAction })
+        args.map(makePort(VxLanTunnelPort.make)).map(Some.apply)
+            .foreach {
+                tun => checkVUp {
+                    stateMgr.setTunnelVxLan(tun)
+                    stateMgr.tunnelVxLan should be (tun)
+                    stateMgr.vxLanOutputAction should be(tun map outputOf)
             }
         }
     }

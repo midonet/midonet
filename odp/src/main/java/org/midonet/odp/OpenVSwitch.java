@@ -1,9 +1,6 @@
-/******************************************************************************
- *                                                                            *
- *      Copyright (c) 2013 Midokura Europe SARL, All Rights Reserved.         *
- *                                                                            *
- ******************************************************************************/
-
+/*
+ * Copyright (c) 2013 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.odp;
 
 /** This public interface contains integer constants defined in the openvswitch header.
@@ -154,9 +151,6 @@ public interface OpenVSwitch {
             int Internal    = 2;
             int Gre         = 3;
             int VXLan       = 4;
-            int Patch       = 100;       /* old patch tunnel, until ovs 1.9 */
-            int GreOld      = 101;       /* old gre tunnel port, until ovs 1.9 */
-            int Capwap      = 102;       /* old capwap tunnel, until ovs 1.9 */
             int Gre64       = 104;
             int Lisp        = 105;
         }
@@ -187,7 +181,7 @@ public interface OpenVSwitch {
         //	__OVS_TUNNEL_ATTR_MAX
         //};
         public interface VPortTunnelOptions {
-            int DstPort     = 1;
+            int DstPort     = 1;                  // u16
         }
 
     }
