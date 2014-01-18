@@ -7,10 +7,10 @@ import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.BuilderAware;
 import org.midonet.odp.OpenVSwitch;
 
-public interface FlowAction<Action extends FlowAction<Action>>
-        extends BuilderAware, NetlinkMessage.Attr<Action> {
+public interface FlowAction
+        extends BuilderAware, NetlinkMessage.Attr<FlowAction> {
 
-    public static class FlowActionAttr<Action extends FlowAction<Action>>
+    public static class FlowActionAttr<Action extends FlowAction>
             extends NetlinkMessage.AttrKey<Action> {
 
         /** u32 port number. */
@@ -41,17 +41,17 @@ public interface FlowAction<Action extends FlowAction<Action>>
             super(id, nested);
         }
 
-        static <T extends FlowAction<T>> FlowActionAttr<T> attr(int id) {
+        static <T extends FlowAction> FlowActionAttr<T> attr(int id) {
             return new FlowActionAttr<T>(id, false);
         }
 
-        static <T extends FlowAction<T>> FlowActionAttr<T> attrNest(int id) {
+        static <T extends FlowAction> FlowActionAttr<T> attrNest(int id) {
             return new FlowActionAttr<T>(id, true);
         }
     }
 
-    static NetlinkMessage.CustomBuilder<FlowAction<?>> Builder =
-        new NetlinkMessage.CustomBuilder<FlowAction<?>>() {
+    static NetlinkMessage.CustomBuilder<FlowAction> Builder =
+        new NetlinkMessage.CustomBuilder<FlowAction>() {
             @Override
             public FlowAction newInstance(short type) {
                 switch (type) {

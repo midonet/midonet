@@ -47,8 +47,8 @@ public class OvsFlowsCreateSet_IPv6_UDP_Test
     }
 
     @Override
-    protected List<FlowAction<?>> flowActions() {
-        return Arrays.<FlowAction<?>>asList(output(513));
+    protected List<FlowAction> flowActions() {
+        return Arrays.<FlowAction>asList(output(513));
     }
 
     @Test

@@ -51,8 +51,8 @@ public class OvsFlowsCreateSet_ARP_Test extends OvsFlowsCreateSetMatchTest {
     }
 
     @Override
-    protected List<FlowAction<?>> flowActions() {
-        return Arrays.<FlowAction<?>>asList(output(3));
+    protected List<FlowAction> flowActions() {
+        return Arrays.<FlowAction>asList(output(3));
     }
 
     @Test

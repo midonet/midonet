@@ -47,7 +47,7 @@ public class FlowFamily extends
             attrNested(OpenVSwitch.Flow.Attr.Key);
 
         /* Nested OVS_ACTION_ATTR_* attributes. */
-        public static final AttrKey<List<FlowAction<?>>> ACTIONS =
+        public static final AttrKey<List<FlowAction>> ACTIONS =
             attrNested(OpenVSwitch.Flow.Attr.Actions);
 
         /* struct ovs_flow_stats. */

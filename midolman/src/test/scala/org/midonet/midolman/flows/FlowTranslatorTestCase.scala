@@ -64,12 +64,12 @@ class FlowTranslatorTestCase extends FeatureSpec
         }
     }
 
-    private[this] def translate(actions: FlowAction[_]*)
+    private[this] def translate(actions: FlowAction*)
                                (prepareCtx: TranslationContext => Unit)
     : (WildcardFlow, ROSet[Any]) =
         translate(actions.toList)(prepareCtx)
 
-    private[this] def translate(actions: List[FlowAction[_]])
+    private[this] def translate(actions: List[FlowAction])
                                (prepareCtx: TranslationContext => Unit)
     : (WildcardFlow, ROSet[Any]) = {
         val testDpState = new TestDatapathState
@@ -85,7 +85,7 @@ class FlowTranslatorTestCase extends FeatureSpec
             val cookieStr = ""
             val dpState = testDpState
 
-            def translate(actions: List[FlowAction[_]]) = {
+            def translate(actions: List[FlowAction]) = {
                 val wcflow = WildcardFlow(wcmatch, actions = actions)
                 translateVirtualWildcardFlow(wcflow, null)
             }

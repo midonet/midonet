@@ -17,7 +17,7 @@ import org.midonet.util.functors.Callback0
 
 object WildcardFlow {
     def apply(wcmatch: WildcardMatch,
-              actions: List[FlowAction[_]] = Nil,
+              actions: List[FlowAction] = Nil,
               hardExpirationMillis: Int = 0,
               idleExpirationMillis: Int = 0,
               priority: Short = 0) =
@@ -25,7 +25,7 @@ object WildcardFlow {
                          idleExpirationMillis, priority)
 
     class WildcardFlowImpl(override val wcmatch: WildcardMatch,
-                           override val actions: List[FlowAction[_]] = Nil,
+                           override val actions: List[FlowAction] = Nil,
                            override val hardExpirationMillis: Int = 0,
                            override val idleExpirationMillis: Int = 0,
                            override val priority: Short = 0) extends WildcardFlow {
@@ -34,7 +34,7 @@ object WildcardFlow {
 
 abstract class WildcardFlow {
     def wcmatch: WildcardMatch
-    def actions: List[FlowAction[_]]
+    def actions: List[FlowAction]
     def hardExpirationMillis: Int
     def idleExpirationMillis: Int
     def priority: Short
@@ -112,15 +112,15 @@ object WildcardFlowFactory {
     def create(wcmatch: WildcardMatch): WildcardFlow =
         WildcardFlow(wcmatch)
 
-    def create(wcmatch: WildcardMatch, actions: ju.List[FlowAction[_]]) =
+    def create(wcmatch: WildcardMatch, actions: ju.List[FlowAction]) =
         WildcardFlow(wcmatch, actions.asScala.toList)
 
-    def createIdleExpiration(wcmatch: WildcardMatch, actions: ju.List[FlowAction[_]],
+    def createIdleExpiration(wcmatch: WildcardMatch, actions: ju.List[FlowAction],
                              idleExpirationMillis: Int) =
         WildcardFlow(wcmatch, actions.asScala.toList,
             idleExpirationMillis = idleExpirationMillis)
 
-    def createHardExpiration(wcmatch: WildcardMatch, actions: ju.List[FlowAction[_]],
+    def createHardExpiration(wcmatch: WildcardMatch, actions: ju.List[FlowAction],
                              hardExpirationMillis: Int) =
         WildcardFlow(wcmatch, actions.asScala.toList,
             hardExpirationMillis = hardExpirationMillis)
@@ -133,7 +133,7 @@ object WildcardFlowFactory {
 }
 
 object ManagedWildcardFlow {
-    private val actionsPool = new WeakObjectPool[List[FlowAction[_]]]()
+    private val actionsPool = new WeakObjectPool[List[FlowAction]]()
 
     def create(wildFlow: WildcardFlow) = new ManagedWildcardFlow(null).reset(wildFlow)
 }
@@ -145,7 +145,7 @@ class ManagedWildcardFlow(override val pool: ObjectPool[ManagedWildcardFlow])
     override def self = this
 
     private[this] val _wcmatch: WildcardMatch = new WildcardMatch()
-    private[this] var _actions: List[FlowAction[_]] = Nil
+    private[this] var _actions: List[FlowAction] = Nil
     private[this] var _hardExpirationMillis: Int = 0
     private[this] var _idleExpirationMillis: Int = 0
     private[this] var _priority: Short = 0

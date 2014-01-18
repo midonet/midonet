@@ -113,10 +113,10 @@ class RouterFlowInvalidationTestCase extends MidolmanTestCase with RouterHelper
         // the tunnelled packets to this port
         wflowAddedProbe.expectMsgPF(Duration(3, TimeUnit.SECONDS),
             "WildcardFlowAdded")(TestHelpers.matchActionsFlowAddedOrRemoved(
-            mutable.Buffer[FlowAction[_]](output(mapPortNameShortNumber(inPortName)))))
+            mutable.Buffer[FlowAction](output(mapPortNameShortNumber(inPortName)))))
         wflowAddedProbe.expectMsgPF(Duration(3, TimeUnit.SECONDS),
             "WildcardFlowAdded")(TestHelpers.matchActionsFlowAddedOrRemoved(
-            mutable.Buffer[FlowAction[_]](output(mapPortNameShortNumber(outPortName)))))
+            mutable.Buffer[FlowAction](output(mapPortNameShortNumber(outPortName)))))
 
     }
 

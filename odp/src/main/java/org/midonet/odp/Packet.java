@@ -35,7 +35,7 @@ public class Packet {
     }
 
     @Nonnull FlowMatch match = new FlowMatch();
-    List<FlowAction<?>> actions;
+    List<FlowAction> actions;
     Long userData;
     Reason reason;
     Ethernet eth;
@@ -79,24 +79,24 @@ public class Packet {
         return this;
     }
 
-    public List<FlowAction<?>> getActions() {
+    public List<FlowAction> getActions() {
         return actions;
     }
 
-    public Packet setActions(List<FlowAction<?>> actions) {
+    public Packet setActions(List<FlowAction> actions) {
         this.actions = actions;
         return this;
     }
 
-    public Packet addAction(FlowAction<?> action) {
+    public Packet addAction(FlowAction action) {
         if (this.actions == null)
-            this.actions = new ArrayList<FlowAction<?>>();
+            this.actions = new ArrayList<>();
 
         this.actions.add(action);
         return this;
     }
 
-    public Packet removeAction(FlowAction<?> action) {
+    public Packet removeAction(FlowAction action) {
         if (this.actions != null) {
             if (this.actions.contains(action)) {
                 this.actions.remove(action);

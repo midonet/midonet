@@ -30,7 +30,7 @@ import org.midonet.util.concurrent.{CallingThreadExecutionContext, toFutureOps}
 
 object FlowTranslator {
 
-    type TaggedActions = (Seq[FlowAction[_]], Seq[Any])
+    type TaggedActions = (Seq[FlowAction], Seq[Any])
 
     /**
      * Dummy ChainPacketContext used in egress port set chains.
@@ -185,9 +185,9 @@ trait FlowTranslator {
      * If a non-null set of data path tags are given, this updates it with
      * corresponding flow invalidation tags.
      */
-    private def translateFlowActions(acts: Seq[FlowAction[_]], port: UUID,
+    private def translateFlowActions(acts: Seq[FlowAction], port: UUID,
             localPorts: Seq[Short], tunnelKey: Option[Long],
-            peerHostIds: Set[UUID], dpTags: mutable.Set[Any]): Seq[FlowAction[_]] = {
+            peerHostIds: Set[UUID], dpTags: mutable.Set[Any]): Seq[FlowAction] = {
 
         // TODO(pino): when we detect the flow won't have output actions,
         // set the flow to expire soon so that we can retry.
@@ -206,8 +206,8 @@ trait FlowTranslator {
             setKey(FlowKeys.tunnel(key, route._1, route._2))
 
         // Generate a list of tunneling actions and tags for given tunnel key
-        def tunnelSettings(key: Long, output: FlowAction[_]): TaggedActions = {
-            val actions = ListBuffer[FlowAction[_]]()
+        def tunnelSettings(key: Long, output: FlowAction): TaggedActions = {
+            val actions = ListBuffer[FlowAction]()
             val tags = ListBuffer[Any]()
             for (peer <- peerHostIds; route <- dpState.peerTunnelInfo(peer)) {
                 tags += FlowTagger.invalidateTunnelPort(route)
@@ -227,7 +227,7 @@ trait FlowTranslator {
         def translateFlowToPeers: TaggedActions =
             tunnelKey flatMap { tunnelActions } getOrElse { (Nil,Nil) }
 
-        val newActs = ListBuffer[FlowAction[_]]()
+        val newActs = ListBuffer[FlowAction]()
         var translatablePort = port
 
         // side-effect function which updates the buffers for actions and tags
@@ -258,12 +258,12 @@ trait FlowTranslator {
     /** translates a Seq of FlowActions expressed in virtual references into a
      *  Seq of FlowActions expressed in physical references. Returns the
      *  results as an akka Future. */
-    protected def translateActions(actions: Seq[FlowAction[_]],
+    protected def translateActions(actions: Seq[FlowAction],
                                    inPortUUID: Option[UUID],
                                    dpTags: Option[mutable.Set[Any]],
-                                   wMatch: WildcardMatch): Future[Seq[FlowAction[_]]] = {
+                                   wMatch: WildcardMatch): Future[Seq[FlowAction]] = {
 
-        val actionsFutures: Seq[Future[Seq[FlowAction[_]]]] =
+        val actionsFutures: Seq[Future[Seq[FlowAction]]] =
             actions map {
                 case s: FlowActionOutputToVrnPortSet =>
                     // expandPortSetAction
@@ -273,7 +273,7 @@ trait FlowTranslator {
                 case u: FlowActionUserspace =>
                     Future.successful(Seq(userspace(dpState.uplinkPid)))
                 case a =>
-                    Future.successful(Seq[FlowAction[_]](a))
+                    Future.successful(Seq[FlowAction](a))
             }
 
         Future.sequence(actionsFutures) map { seq =>
@@ -287,9 +287,9 @@ trait FlowTranslator {
 
     // expandPortSetAction, name shortened to avoid an ENAMETOOLONG on ecryptfs
     // from a triply nested anonfun.
-    private def epsa(actions: Seq[FlowAction[_]], portSet: UUID,
+    private def epsa(actions: Seq[FlowAction], portSet: UUID,
                      inPortUUID: Option[UUID], dpTags: Option[mutable.Set[Any]],
-                     wMatch: WildcardMatch): Future[Seq[FlowAction[_]]] = {
+                     wMatch: WildcardMatch): Future[Seq[FlowAction]] = {
 
         val portSetFuture = (VirtualToPhysicalMapper ?
                 PortSetRequest(portSet, update = false))
@@ -348,11 +348,11 @@ trait FlowTranslator {
         }}(CallingThreadExecutionContext)
     }
 
-    private def expandPortAction(actions: Seq[FlowAction[_]],
+    private def expandPortAction(actions: Seq[FlowAction],
                                  port: UUID,
                                  inPortUUID: Option[UUID],
                                  dpTags: Option[mutable.Set[Any]],
-                                 wMatch: WildcardMatch): Future[Seq[FlowAction[_]]] = {
+                                 wMatch: WildcardMatch): Future[Seq[FlowAction]] = {
 
         val tags = dpTags.orNull
 
@@ -376,7 +376,7 @@ trait FlowTranslator {
     }
 
     /** forwards to translateToDpPorts for a set of local ports. */
-    def towardsLocalDpPorts(acts: Seq[FlowAction[_]], port: UUID,
+    def towardsLocalDpPorts(acts: Seq[FlowAction], port: UUID,
             localPorts: Seq[Short], dpTags: mutable.Set[Any]) = {
         log.debug("Translating output actions for vport {} " +
                   "towards local dp ports {}", port, localPorts)
@@ -384,7 +384,7 @@ trait FlowTranslator {
     }
 
     /** forwards to translateToDpPorts for a set of remote ports. */
-    def towardsRemoteHosts(acts: Seq[FlowAction[_]], port: UUID,
+    def towardsRemoteHosts(acts: Seq[FlowAction], port: UUID,
             tunnelKey: Long, peerHostId: UUID, dpTags: mutable.Set[Any]) = {
         log.debug("Translating output actions for vport {}, towards remote " +
                   "hosts {} with tunnel key {}", port, peerHostId, tunnelKey)
@@ -393,7 +393,7 @@ trait FlowTranslator {
     }
 
     /** forwards to translateToDpPorts for a port set. */
-    def toPortSet(acts: Seq[FlowAction[_]], port: UUID,
+    def toPortSet(acts: Seq[FlowAction], port: UUID,
                   localPorts: Seq[Short], tunnelKey: Option[Long],
                   peerHostIds: Set[UUID], dpTags: mutable.Set[Any]) = {
         log.debug("Translating output actions for port set {}, towards " +

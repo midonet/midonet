@@ -475,7 +475,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
     def greTunnelId = dpController().underlyingActor.dpState.tunnelGre
         .getOrElse(null).getPortNo.shortValue
 
-    def parseTunnelActions(acts: Seq[FlowAction[_]]):
+    def parseTunnelActions(acts: Seq[FlowAction]):
             (Seq[FlowActionOutput], Seq[FlowKeyTunnel]) = {
         val outputs: Seq[FlowActionOutput] = acts
             .withFilter { _.isInstanceOf[FlowActionOutput] }

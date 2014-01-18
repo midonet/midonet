@@ -54,7 +54,7 @@ trait CustomMatchers {
                     s"{${expectedTags.toList}}")
 
         def flowMatchesPacket(flow: WildcardFlow, pkt: Ethernet): Boolean = {
-            val f: PartialFunction[({type A <: FlowAction[A]})#A, Boolean] = {
+            val f: PartialFunction[FlowAction, Boolean] = {
                 case f: FlowActionSetKey => f.getFlowKey match {
                     case k: FlowKeyEthernet =>
                         util.Arrays.equals(
@@ -70,9 +70,7 @@ trait CustomMatchers {
                     case _ => false
                 }
             }
-            flow.actions
-                .collect(f.asInstanceOf[PartialFunction[FlowAction[_], Boolean]])
-                .size == 2
+            flow.actions.collect(f).size == 2
         }
     }
 }

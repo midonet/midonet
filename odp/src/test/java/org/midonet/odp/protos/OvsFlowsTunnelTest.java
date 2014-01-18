@@ -77,7 +77,7 @@ public class OvsFlowsTunnelTest {
         FlowActionSetKey setKeyAction = setKey(ipv4TunnelKey);
         Flow downloadFlow = new Flow()
              .setMatch(matchKey)
-             .setActions(Arrays.<FlowAction<?>>asList(setKeyAction));
+             .setActions(Arrays.<FlowAction>asList(setKeyAction));
         Future<Flow> flowFuture =
             connection.flowsCreate(datapath, downloadFlow);
 

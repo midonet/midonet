@@ -99,7 +99,7 @@ trait SimulationHelper { this: MidolmanTestCase =>
     def getOutPacketPorts(packet: Packet): Set[Short] =
         actionsToOutputPorts(checkPacket(packet).getActions)
 
-    def actionsToOutputPorts(actions: JList[FlowAction[_]]): Set[Short] = {
+    def actionsToOutputPorts(actions: JList[FlowAction]): Set[Short] = {
         actions should not be null
         actions.withFilter( _.isInstanceOf[FlowActionOutput] )
             .map{ _.asInstanceOf[FlowActionOutput].getPortNumber.toShort }
