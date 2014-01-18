@@ -3,7 +3,6 @@
  */
 package org.midonet.odp.family;
 
-import org.midonet.netlink.Netlink;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.odp.Datapath;
 import org.midonet.odp.OpenVSwitch;
@@ -11,32 +10,11 @@ import org.midonet.odp.OpenVSwitch;
 /**
  * Abstraction for the NETLINK OvsDatapath family of commands and attributes.
  */
-public class DatapathFamily extends
-        Netlink.CommandFamily<DatapathFamily.Cmd,
-            DatapathFamily.Attr<DatapathFamily>> {
+public class DatapathFamily {
 
     public static final byte VERSION = OpenVSwitch.Datapath.version;
     public static final String NAME = OpenVSwitch.Datapath.Family;
     public static final String MC_GROUP = OpenVSwitch.Datapath.MCGroup;
-
-    public enum Cmd implements Netlink.ByteConstant {
-
-        NEW(OpenVSwitch.Datapath.Cmd.New),
-        DEL(OpenVSwitch.Datapath.Cmd.Del),
-        GET(OpenVSwitch.Datapath.Cmd.Get),
-        SET(OpenVSwitch.Datapath.Cmd.Set);
-
-        byte value;
-
-        private Cmd(int value) {
-            this.value = (byte)value;
-        }
-
-        @Override
-        public byte getValue() {
-            return value;
-        }
-    }
 
     public static class Attr<T> extends NetlinkMessage.AttrKey<T> {
 
@@ -64,7 +42,6 @@ public class DatapathFamily extends
     public final OvsBaseContext contextSet;
 
     public DatapathFamily(int familyId) {
-        super(familyId, VERSION);
         contextNew = new DatapathContext(familyId, OpenVSwitch.Datapath.Cmd.New);
         contextDel = new DatapathContext(familyId, OpenVSwitch.Datapath.Cmd.Del);
         contextGet = new DatapathContext(familyId, OpenVSwitch.Datapath.Cmd.Get);

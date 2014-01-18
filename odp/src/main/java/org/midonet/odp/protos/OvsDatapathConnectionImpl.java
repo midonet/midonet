@@ -69,9 +69,9 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                                       List<ByteBuffer> buffers) {
 
         if (pid == 0 &&
-            packetFamily.getFamilyId() == type &&
-            (PacketFamily.Cmd.MISS.getValue() == cmd ||
-                PacketFamily.Cmd.ACTION.getValue() == cmd)) {
+            packetFamily.familyId == type &&
+            (packetFamily.contextMiss.command() == cmd ||
+                packetFamily.contextAction.command() == cmd)) {
             if (notificationHandler != null) {
                 Packet packet = null;
 
@@ -84,7 +84,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                     return;
                 }
 
-                if (PacketFamily.Cmd.ACTION.getValue() == cmd) {
+                if (packetFamily.contextAction.command() == cmd) {
                     packet.setReason(Packet.Reason.FlowActionUserspace);
                 } else {
                     packet.setReason(Packet.Reason.FlowTableMiss);
