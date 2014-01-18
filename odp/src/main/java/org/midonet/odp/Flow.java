@@ -87,7 +87,7 @@ public class Flow {
         return this;
     }
 
-    public Flow addKey(FlowKey<?> key) {
+    public Flow addKey(FlowKey key) {
         if  (match == null) {
             match = new FlowMatch();
         }
@@ -185,12 +185,12 @@ public class Flow {
 
     public List<String> toPrettyStrings() {
         List<String> desc = new ArrayList<>();
-        List<FlowKey<?>> matchKeys = match.getKeys();
+        List<FlowKey> matchKeys = match.getKeys();
         if (matchKeys.isEmpty())
             desc.add("match keys: empty");
         else {
             desc.add("match keys:");
-            for (FlowKey<?> key: matchKeys) desc.add("  " + key.toString());
+            for (FlowKey key: matchKeys) desc.add("  " + key.toString());
         }
         if (actions.isEmpty())
             desc.add("actions: empty");

@@ -1026,7 +1026,7 @@ public class WildcardMatch implements Cloneable {
 
     public static WildcardMatch fromFlowMatch(FlowMatch match) {
         WildcardMatch wildcardMatch = new WildcardMatch();
-        List<FlowKey<?>> flowKeys = match.getKeys();
+        List<FlowKey> flowKeys = match.getKeys();
         wildcardMatch.processMatchKeys(flowKeys);
 
         if(wildcardMatch.getEtherType() == null){
@@ -1041,8 +1041,8 @@ public class WildcardMatch implements Cloneable {
         return fromFlowMatch(FlowMatches.fromEthernetPacket(ethPkt));
     }
 
-    private void processMatchKeys(Iterable<FlowKey<?>> flowKeys) {
-        for (FlowKey<?> flowKey : flowKeys) {
+    private void processMatchKeys(Iterable<FlowKey> flowKeys) {
+        for (FlowKey flowKey : flowKeys) {
             switch (flowKey.getKey().getId()) {
 
                 case OpenVSwitch.FlowKey.Attr.Encap:
@@ -1156,8 +1156,8 @@ public class WildcardMatch implements Cloneable {
         }
     }
 
-    private static <Key extends FlowKey<Key>>
-                   Key as(FlowKey<?> flowKey, Class<Key> type) {
+    private static <Key extends FlowKey>
+                   Key as(FlowKey flowKey, Class<Key> type) {
         return type.cast(flowKey.getValue());
     }
 

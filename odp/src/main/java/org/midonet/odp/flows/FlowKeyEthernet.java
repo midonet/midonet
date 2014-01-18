@@ -9,7 +9,7 @@ import org.midonet.packets.MAC;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.BaseBuilder;
 
-public class FlowKeyEthernet implements FlowKey<FlowKeyEthernet> {
+public class FlowKeyEthernet implements FlowKey {
 
     /*__u8*/ private byte[] eth_src = new byte[6]; // always 6 bytes long
     /*__u8*/ private byte[] eth_dst = new byte[6]; // always 6 bytes long

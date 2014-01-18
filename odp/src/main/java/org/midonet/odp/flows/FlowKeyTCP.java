@@ -10,7 +10,7 @@ import org.midonet.netlink.messages.BaseBuilder;
 import org.midonet.packets.TCP;
 import org.midonet.packets.Unsigned;
 
-public class FlowKeyTCP implements FlowKey<FlowKeyTCP> {
+public class FlowKeyTCP implements FlowKey {
     /*__be16*/ private int tcp_src;
     /*__be16*/ private int tcp_dst;
 

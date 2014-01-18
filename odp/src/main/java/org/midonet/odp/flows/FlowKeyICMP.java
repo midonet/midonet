@@ -6,7 +6,7 @@ package org.midonet.odp.flows;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.BaseBuilder;
 
-public class FlowKeyICMP implements FlowKey<FlowKeyICMP> {
+public class FlowKeyICMP implements FlowKey {
     /*__u8*/ protected byte icmp_type;
     /*__u8*/ protected byte icmp_code;
 

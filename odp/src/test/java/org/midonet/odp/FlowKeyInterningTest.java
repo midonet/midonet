@@ -24,32 +24,32 @@ import java.util.concurrent.*;
 
 public class FlowKeyInterningTest {
 
-    private static List<Callable<FlowKey<?>>> flowKeys = Arrays.asList(
-        new Callable<FlowKey<?>>() { public FlowKey<?> call() throws Exception {
+    private static List<Callable<FlowKey>> flowKeys = Arrays.asList(
+        new Callable<FlowKey>() { public FlowKey call() throws Exception {
             return FlowKeys.inPort(0);
         }},
-        new Callable<FlowKey<?>>() { public FlowKey<?> call() throws Exception {
+        new Callable<FlowKey>() { public FlowKey call() throws Exception {
             return FlowKeys.ethernet(MAC.fromString("ae:b3:77:8c:a1:48").getAddress(),
                     MAC.fromString("33:33:00:00:00:16").getAddress());
         }},
-        new Callable<FlowKey<?>>() { public FlowKey<?> call() throws Exception {
+        new Callable<FlowKey>() { public FlowKey call() throws Exception {
             return FlowKeys.etherType(FlowKeyEtherType.Type.ETH_P_IP);
         }},
-        new Callable<FlowKey<?>>() { public FlowKey<?> call() throws Exception {
+        new Callable<FlowKey>() { public FlowKey call() throws Exception {
             return FlowKeys.arp(MAC.fromString("ae:b3:77:8d:c1:48").getAddress(),
                     MAC.fromString("ae:b3:70:8d:c1:48").getAddress(),
                     ARP.OP_REPLY,
                     IPv4Addr.stringToInt("192.168.100.1"),
                     IPv4Addr.stringToInt("192.168.102.1"));
         }},
-        new Callable<FlowKey<?>>() { public FlowKey<?> call() throws Exception {
+        new Callable<FlowKey>() { public FlowKey call() throws Exception {
             return FlowKeys.neighborDiscovery(Net.ipv6FromString(
                     "fe80::acb3:77ff:fe8c:a148"));
         }},
-        new Callable<FlowKey<?>>() { public FlowKey<?> call() throws Exception {
+        new Callable<FlowKey>() { public FlowKey call() throws Exception {
             return FlowKeys.vlan((short) 0x0101);
         }},
-        new Callable<FlowKey<?>>() { public FlowKey<?> call() throws Exception {
+        new Callable<FlowKey>() { public FlowKey call() throws Exception {
             return FlowKeys.tunnel(10L, 100, 200);
         }}
     );
@@ -70,12 +70,12 @@ public class FlowKeyInterningTest {
 
     @Test
     public void testInterningOfFlowKeys() throws Exception {
-        final ReferenceQueue<FlowKey<?>> rq = new ReferenceQueue<>();
+        final ReferenceQueue<FlowKey> rq = new ReferenceQueue<>();
         final Phaser p = new Phaser(flowKeys.size());
-        final List<WeakReference<FlowKey<?>>> wrs = new ArrayList<>(flowKeys.size());
+        final List<WeakReference<FlowKey>> wrs = new ArrayList<>(flowKeys.size());
 
-        for (Callable<FlowKey<?>> c : flowKeys) {
-            final Callable<FlowKey<?>> fk = c;
+        for (Callable<FlowKey> c : flowKeys) {
+            final Callable<FlowKey> fk = c;
             testSlaves.execute(new Runnable() {
                 @Override
                 public void run() {
@@ -87,25 +87,25 @@ public class FlowKeyInterningTest {
 
         p.awaitAdvance(0);
 
-        for (WeakReference<FlowKey<?>> wr : wrs) {
+        for (WeakReference<FlowKey> wr : wrs) {
             verifyWeakInterning(wr);
         }
     }
 
-    private WeakReference<FlowKey<?>> verifyInterning(Callable<FlowKey<?>> c,
-                                                      ReferenceQueue<FlowKey<?>> rq) {
+    private WeakReference<FlowKey> verifyInterning(Callable<FlowKey> c,
+                                                   ReferenceQueue<FlowKey> rq) {
         try {
-            FlowKey<?> original = c.call();
+            FlowKey original = c.call();
             for (int i = 0; i < 10; ++i) {
                 Assert.assertSame(original, c.call());
             }
-            return new WeakReference<FlowKey<?>>(original, rq);
+            return new WeakReference<FlowKey>(original, rq);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    private void verifyWeakInterning(WeakReference<FlowKey<?>> wr) {
+    private void verifyWeakInterning(WeakReference<FlowKey> wr) {
         for (int i = 0; i < 5; ++i) {
             if (wr.isEnqueued()) {
                 return;

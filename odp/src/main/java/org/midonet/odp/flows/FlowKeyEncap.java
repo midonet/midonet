@@ -10,16 +10,16 @@ import java.util.List;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.BaseBuilder;
 
-public class FlowKeyEncap implements FlowKey<FlowKeyEncap> {
+public class FlowKeyEncap implements FlowKey {
 
-    private final List<FlowKey<?>> keys;
+    private final List<FlowKey> keys;
 
     // This is used for deserialization purposes only.
     FlowKeyEncap() {
         keys = new ArrayList<>();
     }
 
-    FlowKeyEncap(List<FlowKey<?>> keys) {
+    FlowKeyEncap(List<FlowKey> keys) {
         this.keys = keys;
     }
 
@@ -82,7 +82,7 @@ public class FlowKeyEncap implements FlowKey<FlowKeyEncap> {
             '}';
     }
 
-    public Iterable<FlowKey<?>> getKeys() {
+    public Iterable<FlowKey> getKeys() {
         return keys;
     }
 }

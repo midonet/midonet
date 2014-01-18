@@ -8,7 +8,7 @@ import java.nio.ByteOrder;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.BaseBuilder;
 
-public class FlowKeyPriority implements FlowKey<FlowKeyPriority> {
+public class FlowKeyPriority implements FlowKey {
 
     /*__be32*/ private int priority;
 

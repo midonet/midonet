@@ -29,7 +29,7 @@ public class FlowActions {
         return new FlowActionUserspace(uplinkPid, userData);
     }
 
-    public static FlowActionSetKey setKey(FlowKey<?> flowKey) {
+    public static FlowActionSetKey setKey(FlowKey flowKey) {
         return new FlowActionSetKey(flowKey);
     }
 

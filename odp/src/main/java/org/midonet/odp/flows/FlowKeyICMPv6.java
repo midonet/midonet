@@ -9,7 +9,7 @@ import org.midonet.netlink.messages.BaseBuilder;
 
 import static org.midonet.packets.Unsigned.unsign;
 
-public class FlowKeyICMPv6 implements FlowKey<FlowKeyICMPv6> {
+public class FlowKeyICMPv6 implements FlowKey {
     /*__u8*/ private byte icmpv6_type;
     /*__u8*/ private byte icmpv6_code;
 

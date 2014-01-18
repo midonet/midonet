@@ -44,7 +44,7 @@ public class FlowMatches {
                     ethPkt.getDestinationMACAddress().getAddress()))
             .addKey(etherType(ethPkt.getEtherType()));
 
-        List<FlowKey<?>> payloadKeys = new ArrayList<FlowKey<?>>();
+        List<FlowKey> payloadKeys = new ArrayList<>();
 
         switch (ethPkt.getEtherType()) {
             case ARP.ETHERTYPE:
@@ -95,8 +95,7 @@ public class FlowMatches {
                         if (!(ipPkt.getPayload() instanceof ICMP))
                             break;
                         ICMP icmpPkt = ICMP.class.cast(ipPkt.getPayload());
-                        FlowKey<?> icmpUserspace =
-                            (FlowKey<?>)makeIcmpFlowKey(icmpPkt);
+                        FlowKey icmpUserspace = makeIcmpFlowKey(icmpPkt);
                         if (icmpUserspace == null)
                             payloadKeys.add(icmp(icmpPkt.getType(),
                                                  icmpPkt.getCode()));
@@ -177,7 +176,7 @@ public class FlowMatches {
     }
 
     public static void addUserspaceKeys (Ethernet ethPkt, FlowMatch match) {
-        for (FlowKey<?> key: match.getKeys()) {
+        for (FlowKey key: match.getKeys()) {
             if (key instanceof FlowKeyICMP) {
                 ICMP icmpPkt = ICMP.class.cast(
                         IPv4.class.cast(ethPkt.getPayload()).
@@ -201,16 +200,16 @@ public class FlowMatches {
      * @param key
      */
     private static void replaceKey(FlowMatch match, FlowKey.UserSpaceOnly key) {
-        List<FlowKey<?>> keys = match.getKeys();
+        List<FlowKey> keys = match.getKeys();
         int nKeys = keys.size();
         for (int i = 0; i < nKeys; i++) {
-            FlowKey<?> oldKey = keys.get(i);
+            FlowKey oldKey = keys.get(i);
             if (key.isChildOf(oldKey)) {
                 // that cast is ugly, but hardly other way without refactoring
                 // the FlowKey hierarchy to accommodate UserSpaceOnly.
                 log.debug("Replacing key in FlowMatch: old {} new {}",
                           oldKey, key);
-                keys.set(i, (FlowKey<?>)key);
+                keys.set(i, (FlowKey)key);
                 match.setUserSpaceOnly(true);
                 return;
             }

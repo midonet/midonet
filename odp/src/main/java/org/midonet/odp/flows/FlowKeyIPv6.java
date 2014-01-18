@@ -11,7 +11,7 @@ import org.midonet.packets.Net;
 import java.nio.ByteOrder;
 import java.util.Arrays;
 
-public class FlowKeyIPv6 implements FlowKey<FlowKeyIPv6> {
+public class FlowKeyIPv6 implements FlowKey {
 
     /*__be32*/ private int[] ipv6_src = new int[4];
     /*__be32*/ private int[] ipv6_dst = new int[4];

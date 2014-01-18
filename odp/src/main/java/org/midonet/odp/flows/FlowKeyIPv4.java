@@ -9,7 +9,7 @@ import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.BaseBuilder;
 import org.midonet.packets.IPv4Addr;
 
-public class FlowKeyIPv4 implements FlowKey<FlowKeyIPv4> {
+public class FlowKeyIPv4 implements FlowKey {
     /*__be32*/ private int ipv4_src;
     /*__be32*/ private int ipv4_dst;
     /*__u8*/ private byte ipv4_proto;

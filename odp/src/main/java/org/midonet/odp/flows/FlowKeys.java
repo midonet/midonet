@@ -15,10 +15,10 @@ import org.midonet.util.collection.WeakObjectPool;
  * Builder class to allow easier building of FlowKey instances.
  */
 public class FlowKeys {
-    private static WeakObjectPool<FlowKey<?>> FLOW_KEYS_POOL =
-        new WeakObjectPool<FlowKey<?>>();
+    private static WeakObjectPool<FlowKey> FLOW_KEYS_POOL =
+        new WeakObjectPool<>();
 
-    public static <T extends FlowKey<?>> T intern(T flowKey) {
+    public static <T extends FlowKey> T intern(T flowKey) {
         if (flowKey instanceof FlowKeyInPort ||
             flowKey instanceof FlowKeyEthernet ||
             flowKey instanceof FlowKeyEtherType ||
@@ -118,7 +118,7 @@ public class FlowKeys {
         return intern(new FlowKeyVLAN(vlan));
     }
 
-    public static FlowKeyEncap encap(List<FlowKey<?>> keys) {
+    public static FlowKeyEncap encap(List<FlowKey> keys) {
         return intern(new FlowKeyEncap(keys));
     }
 
@@ -127,7 +127,7 @@ public class FlowKeys {
         return intern(new FlowKeyTunnel(tunnelId, Ipv4SrcAddr, ipv4DstAddr));
     }
 
-    public static List<FlowKey<?>> buildFrom(NetlinkMessage msg) {
+    public static List<FlowKey> buildFrom(NetlinkMessage msg) {
         return msg.getAttrValue(FlowFamily.AttrKey.KEY, FlowKey.Builder);
     }
 }

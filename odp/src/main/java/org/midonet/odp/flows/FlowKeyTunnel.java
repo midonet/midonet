@@ -10,7 +10,7 @@ import org.midonet.packets.IPv4Addr;
 
 import java.nio.ByteOrder;
 
-public class FlowKeyTunnel implements FlowKey<FlowKeyTunnel> {
+public class FlowKeyTunnel implements FlowKey {
 
     // maintaining the names of field to be the same as ovs_key_ipv4_tunnel
     // see datapath/flow.h from OVS source
