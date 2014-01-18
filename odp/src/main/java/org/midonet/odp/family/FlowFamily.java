@@ -1,6 +1,6 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.odp.family;
 
 import java.util.List;
@@ -84,7 +84,24 @@ public class FlowFamily extends
         }
     }
 
+    public final OvsBaseContext contextNew;
+    public final OvsBaseContext contextDel;
+    public final OvsBaseContext contextGet;
+    public final OvsBaseContext contextSet;
+
     public FlowFamily(int familyId) {
         super(familyId, VERSION);
+        contextNew = new FlowContext(familyId, OpenVSwitch.Flow.Cmd.New);
+        contextDel = new FlowContext(familyId, OpenVSwitch.Flow.Cmd.Del);
+        contextGet = new FlowContext(familyId, OpenVSwitch.Flow.Cmd.Get);
+        contextSet = new FlowContext(familyId, OpenVSwitch.Flow.Cmd.Set);
+    }
+
+    private static class FlowContext extends OvsBaseContext {
+        public FlowContext(int familyId, int command) {
+            super(familyId, command);
+        }
+        @Override
+        public byte version() { return (byte) OpenVSwitch.Flow.version; }
     }
 }

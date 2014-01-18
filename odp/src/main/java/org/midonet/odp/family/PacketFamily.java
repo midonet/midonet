@@ -1,6 +1,6 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.odp.family;
 
 import java.util.List;
@@ -75,7 +75,23 @@ public class PacketFamily extends
         }
     }
 
+    public final OvsBaseContext contextMiss;
+    public final OvsBaseContext contextExec;
+    public final OvsBaseContext contextAction;
+
     public PacketFamily(int familyId) {
         super(familyId, VERSION);
+        contextMiss = new PacketContext(familyId, OpenVSwitch.Packet.Cmd.Miss);
+        contextExec = new PacketContext(familyId, OpenVSwitch.Packet.Cmd.Exec);
+        contextAction =
+            new PacketContext(familyId, OpenVSwitch.Packet.Cmd.Action);
+    }
+
+    private static class PacketContext extends OvsBaseContext {
+        public PacketContext(int familyId, int command) {
+            super(familyId, command);
+        }
+        @Override
+        public byte version() { return (byte) OpenVSwitch.Packet.version; }
     }
 }

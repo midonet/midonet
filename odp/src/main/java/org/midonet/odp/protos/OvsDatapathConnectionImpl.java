@@ -459,17 +459,14 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             .addValue(datapathId)
             .build();
 
-        RequestBuilder<FlowFamily.Cmd,
-                       FlowFamily,
-                       Set<Flow>> reqBuilder =
-                           newRequest(flowFamily, FlowFamily.Cmd.GET);
-        reqBuilder
-            .withFlags(Flag.NLM_F_DUMP, Flag.NLM_F_ECHO,
-                    Flag.NLM_F_REQUEST, Flag.NLM_F_ACK)
-            .withPayload(message.getBuffer())
-            .withCallback(callback, Flow.setDeserializer)
-            .withTimeout(timeoutMillis)
-            .send();
+        sendNetlinkMessage(
+            flowFamily.contextGet,
+            Flag.or(Flag.NLM_F_ACK, Flag.NLM_F_REQUEST,
+                    Flag.NLM_F_ECHO, Flag.NLM_F_DUMP),
+            message.getBuffer(),
+            callback,
+            Flow.setDeserializer,
+            timeoutMillis);
     }
 
     @Override
@@ -503,16 +500,13 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         NetlinkMessage message = builder.build();
 
-        RequestBuilder<FlowFamily.Cmd,
-                       FlowFamily,
-                       Flow> reqBuilder =
-                           newRequest(flowFamily, FlowFamily.Cmd.NEW);
-        reqBuilder
-            .withFlags(Flag.NLM_F_CREATE, Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
-            .withPayload(message.getBuffer())
-            .withCallback(callback, Flow.deserializer)
-            .withTimeout(timeoutMillis)
-            .send();
+        sendNetlinkMessage(
+            flowFamily.contextNew,
+            Flag.or(Flag.NLM_F_CREATE, Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO),
+            message.getBuffer(),
+            callback,
+            Flow.deserializer,
+            timeoutMillis);
     }
 
     @Override
@@ -548,16 +542,13 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                 .build()
             .build();
 
-        RequestBuilder<FlowFamily.Cmd,
-                       FlowFamily,
-                       Flow> reqBuilder =
-                           newRequest(flowFamily, FlowFamily.Cmd.DEL);
-        reqBuilder
-            .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
-            .withPayload(message.getBuffer())
-            .withCallback(callback, Flow.deserializer)
-            .withTimeout(timeoutMillis)
-            .send();
+        sendNetlinkMessage(
+            flowFamily.contextDel,
+            Flag.or(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO),
+            message.getBuffer(),
+            callback,
+            Flow.deserializer,
+            timeoutMillis);
     }
 
 
@@ -581,16 +572,13 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             .addValue(datapathId)
             .build();
 
-        RequestBuilder<FlowFamily.Cmd,
-                       FlowFamily,
-                       Boolean> reqBuilder =
-                           newRequest(flowFamily, FlowFamily.Cmd.DEL);
-        reqBuilder
-            .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ACK)
-            .withPayload(message.getBuffer())
-            .withCallback(callback, alwaysTrueTranslator)
-            .withTimeout(timeoutMillis)
-            .send();
+        sendNetlinkMessage(
+            flowFamily.contextDel,
+            Flag.or(Flag.NLM_F_REQUEST, Flag.NLM_F_ACK),
+            message.getBuffer(),
+            callback,
+            alwaysTrueTranslator,
+            timeoutMillis);
     }
 
     @Override
@@ -615,16 +603,13 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             .addAttrs(match.getKeys())
             .build();
 
-        RequestBuilder<FlowFamily.Cmd,
-                       FlowFamily,
-                       Flow> reqBuilder =
-                           newRequest(flowFamily, FlowFamily.Cmd.GET);
-        reqBuilder
-            .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
-            .withPayload(builder.build().getBuffer())
-            .withCallback(callback, Flow.deserializer)
-            .withTimeout(timeoutMillis)
-            .send();
+        sendNetlinkMessage(
+            flowFamily.contextGet,
+            Flag.or(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO),
+            builder.build().getBuffer(),
+            callback,
+            Flow.deserializer,
+            timeoutMillis);
     }
 
     @Override
@@ -668,16 +653,13 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                    .build();
         }
 
-        RequestBuilder<FlowFamily.Cmd,
-                       FlowFamily,
-                       Flow> reqBuilder =
-                           newRequest(flowFamily, FlowFamily.Cmd.SET);
-        reqBuilder
-            .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
-            .withPayload(builder.build().getBuffer())
-            .withCallback(callback, Flow.deserializer)
-            .withTimeout(timeoutMillis)
-            .send();
+        sendNetlinkMessage(
+            flowFamily.contextSet,
+            Flag.or(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO),
+            builder.build().getBuffer(),
+            callback,
+            Flow.deserializer,
+            timeoutMillis);
     }
 
     @Override
@@ -733,16 +715,13 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             .addAttr(PacketFamily.AttrKey.PACKET, packet.getPacket())
             .build();
 
-        RequestBuilder<PacketFamily.Cmd,
-                      PacketFamily,
-                      Boolean> reqBuilder =
-                          newRequest(packetFamily, PacketFamily.Cmd.EXECUTE);
-        reqBuilder
-            .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO, Flag.NLM_F_ACK)
-            .withPayload(message.getBuffer())
-            .withCallback(callback, alwaysTrueTranslator)
-            .withTimeout(timeoutMillis)
-            .send();
+        sendNetlinkMessage(
+            packetFamily.contextExec,
+            Flag.or(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO, Flag.NLM_F_ACK),
+            message.getBuffer(),
+            callback,
+            alwaysTrueTranslator,
+            timeoutMillis);
     }
 
     private Packet deserializePacket(ByteBuffer buffer) {
