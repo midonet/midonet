@@ -23,7 +23,10 @@ After this initial vm setup, you can log into the vm with `$ vagrant ssh`, you
 can stop the vm with `$ vagrant suspend`, and bring it back with `$ vagrant up`.
 
 Inside the vm, you can go to /midonet to access the project and run maven
-commands from there as usual.
+commands from there as usual. You can run midolman normally using the maven
+exec:exec goal or run the midonet-api server with the jerry:run goal. Port
+forwarding is set by default with ports 4000 (midolman remote debugging) and
+8080 (midonet-api). See docs/build-maven.md for details.
 
 The vm settings are changed in `Vagrantfile` (cpu, memory, ...).
 
