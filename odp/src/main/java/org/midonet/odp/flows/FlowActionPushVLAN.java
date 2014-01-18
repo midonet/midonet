@@ -9,7 +9,7 @@ import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.BaseBuilder;
 import org.midonet.packets.VLAN;
 
-public class FlowActionPushVLAN implements FlowAction<FlowActionPushVLAN> {
+public class FlowActionPushVLAN implements FlowAction {
 
     /** 802.1Q TPID. */
     /*__be16*/ private short vlan_tpid;

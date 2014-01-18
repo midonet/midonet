@@ -6,7 +6,7 @@ package org.midonet.odp.flows;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.BaseBuilder;
 
-public class FlowActionOutput implements FlowAction<FlowActionOutput> {
+public class FlowActionOutput implements FlowAction {
 
     /** u32 port number. */
     private int portNumber;

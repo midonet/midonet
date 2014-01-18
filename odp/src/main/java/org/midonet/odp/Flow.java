@@ -27,7 +27,7 @@ import org.midonet.packets.TCP;
 public class Flow {
 
     FlowMatch match;
-    List<FlowAction<?>> actions = new ArrayList<FlowAction<?>>();
+    List<FlowAction> actions = new ArrayList<>();
     FlowStats stats;
     Byte tcpFlags;
     Long lastUsedTime;
@@ -46,11 +46,11 @@ public class Flow {
     }
 
     @Nonnull
-    public List<FlowAction<?>> getActions() {
+    public List<FlowAction> getActions() {
         return actions;
     }
 
-    public Flow setActions(List<FlowAction<?>> actions) {
+    public Flow setActions(List<FlowAction> actions) {
         this.actions = actions;
         return this;
     }
@@ -82,7 +82,7 @@ public class Flow {
         return this;
     }
 
-    public Flow addAction(FlowAction<?> action) {
+    public Flow addAction(FlowAction action) {
         actions.add(action);
         return this;
     }
@@ -196,7 +196,7 @@ public class Flow {
             desc.add("actions: empty");
         else {
             desc.add("actions: ");
-            for (FlowAction<?> act: actions) desc.add("  " + act.toString());
+            for (FlowAction act: actions) desc.add("  " + act.toString());
         }
         if (stats != null)
             desc.add("stats: " + stats);

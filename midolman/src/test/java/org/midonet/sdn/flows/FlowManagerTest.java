@@ -400,7 +400,7 @@ public class FlowManagerTest {
         assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(5));
     }
 
-    private List<FlowAction<?>>actionsAsJava(WildcardFlow wflow) {
+    private List<FlowAction>actionsAsJava(WildcardFlow wflow) {
         return JavaConversions.asJavaList(wflow.actions());
     }
 

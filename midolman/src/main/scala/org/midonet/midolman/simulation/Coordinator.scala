@@ -62,7 +62,7 @@ object Coordinator {
     sealed trait ForwardAction extends Action
     case class ToPortAction(outPort: UUID) extends ForwardAction
     case class ToPortSetAction(portSetID: UUID) extends ForwardAction
-    case class DoFlowAction[A <: FlowAction[A]](action: A) extends Action
+    case class DoFlowAction(action: FlowAction) extends Action
 
     // This action is used when one simulation has to return N forward actions
     // A good example is when a bridge that has a vlan id set receives a
@@ -678,8 +678,8 @@ class Coordinator(var origMatch: WildcardMatch,
     }
 
     private def actionsFromMatchDiff(orig: WildcardMatch, modif: WildcardMatch)
-    : ListBuffer[FlowAction[_]] = {
-        val actions = ListBuffer[FlowAction[_]]()
+    : ListBuffer[FlowAction] = {
+        val actions = ListBuffer[FlowAction]()
         modif.doNotTrackSeenFields()
         orig.doNotTrackSeenFields()
         if (!orig.getEthernetSource.equals(modif.getEthernetSource) ||

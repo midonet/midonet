@@ -115,10 +115,10 @@ with RouterHelper{
         // the tunnelled packets to this port
         wflowAddedProbe.expectMsgPF(3 seconds,
             "WildcardFlowAdded")(TestHelpers.matchActionsFlowAddedOrRemoved(
-            mutable.Buffer[FlowAction[_]](output(mapPortNameShortNumber(inPortName)))))
+            mutable.Buffer[FlowAction](output(mapPortNameShortNumber(inPortName)))))
         wflowAddedProbe.expectMsgPF(3 seconds,
             "WildcardFlowAdded")(TestHelpers.matchActionsFlowAddedOrRemoved(
-            mutable.Buffer[FlowAction[_]](output(mapPortNameShortNumber(outPortName)))))
+            mutable.Buffer[FlowAction](output(mapPortNameShortNumber(outPortName)))))
 
     }
 
@@ -182,7 +182,7 @@ with RouterHelper{
         /*addRemoveFlowsProbe.fishForMessage(3 seconds,
             "WildcardFlowRemoved")(matchActionsFlowAddedOrRemoved(flowAddedMessage.f.getActions.asScala))
         addRemoveFlowsProbe.fishForMessage(3 seconds,
-            "WildcardFlowRemoved")(matchActionsFlowAddedOrRemoved(mutable.Buffer[FlowAction[_]]
+            "WildcardFlowRemoved")(matchActionsFlowAddedOrRemoved(mutable.Buffer[FlowAction]
             (output(mapPortNameShortNumber(outPortName)))))*/
     }
 

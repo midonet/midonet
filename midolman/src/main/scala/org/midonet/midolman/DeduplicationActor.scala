@@ -47,7 +47,7 @@ object DeduplicationActor extends Referenceable {
     // Messages
     case class HandlePackets(packet: Array[Packet])
 
-    case class ApplyFlow(actions: Seq[FlowAction[_]], cookie: Option[Int])
+    case class ApplyFlow(actions: Seq[FlowAction], cookie: Option[Int])
 
     case class DiscardPacket(cookie: Int)
 
@@ -288,7 +288,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
 
     private def executePacket(cookie: Int,
                               packet: Packet,
-                              actions: Seq[FlowAction[_]]) {
+                              actions: Seq[FlowAction]) {
         packet.setActions(actions.asJava)
         if (packet.getMatch.isUserSpaceOnly)
             applyActionsAfterUserspaceMatch(packet)

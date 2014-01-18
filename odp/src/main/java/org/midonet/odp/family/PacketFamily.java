@@ -57,7 +57,7 @@ public class PacketFamily extends
         /**
          * Nested OVS_ACTION_ATTR_* attributes.
          */
-        public static final AttrKey<List<FlowAction<?>>> ACTIONS =
+        public static final AttrKey<List<FlowAction>> ACTIONS =
             attr(OpenVSwitch.Packet.Attr.Actions);
 
         /**

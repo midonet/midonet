@@ -42,7 +42,7 @@ public class NetlinkMessage {
 
     public interface Attr<T> {
 
-        public AttrKey<T> getKey();
+        public AttrKey<? extends T> getKey();
 
         public T getValue();
     }

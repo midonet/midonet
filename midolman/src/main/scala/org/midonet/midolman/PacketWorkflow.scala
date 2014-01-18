@@ -63,7 +63,7 @@ object PacketWorkflow {
 
     case object ErrorDrop extends SimulationResult
 
-    case class SendPacket(actions: List[FlowAction[_]]) extends SimulationResult
+    case class SendPacket(actions: List[FlowAction]) extends SimulationResult
 
     case class AddVirtualWildcardFlow(flow: WildcardFlow,
                                       flowRemovalCallbacks: ROSet[Callback0],
@@ -261,7 +261,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
                 Future.successful(true)
         }
 
-    private def addTranslatedFlowForActions(actions: Seq[FlowAction[_]],
+    private def addTranslatedFlowForActions(actions: Seq[FlowAction],
                                             tags: ROSet[Any] = Set.empty,
                                             removalCallbacks: ROSet[Callback0] = Set.empty,
                                             expiration: Int = 3000,
@@ -276,7 +276,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
         addTranslatedFlow(wildFlow, tags, removalCallbacks)
     }
 
-    private def executePacket(actions: Seq[FlowAction[_]]): Future[Boolean] = {
+    private def executePacket(actions: Seq[FlowAction]): Future[Boolean] = {
         if (actions == null || actions.isEmpty) {
             log.debug("Dropping packet {}", cookieStr)
             return Future.successful(true)
@@ -525,7 +525,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
         }
     }
 
-    private def sendPacket(actions: List[FlowAction[_]]): Future[Boolean] = {
+    private def sendPacket(actions: List[FlowAction]): Future[Boolean] = {
 
         if (null == actions || actions.isEmpty) {
             log.debug("Dropping {} {} without actions", cookieStr, packet)

@@ -8,7 +8,7 @@ import java.nio.ByteBuffer;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.BaseBuilder;
 
-public class FlowActionSetKey implements FlowAction<FlowActionSetKey> {
+public class FlowActionSetKey implements FlowAction {
 
     FlowKey<?> flowKey;
 

@@ -47,11 +47,11 @@ public class FlowActions {
     }
 
     public static FlowActionSample sample(int probability,
-                                          List<FlowAction<?>> actions) {
+                                          List<FlowAction> actions) {
         return new FlowActionSample(probability, actions);
     }
 
-    public static List<FlowAction<?>> buildFrom(NetlinkMessage msg) {
+    public static List<FlowAction> buildFrom(NetlinkMessage msg) {
         return msg.getAttrValue(FlowFamily.AttrKey.ACTIONS, FlowAction.Builder);
     }
 }

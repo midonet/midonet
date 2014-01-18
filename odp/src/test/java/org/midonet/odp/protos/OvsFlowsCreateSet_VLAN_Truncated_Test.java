@@ -45,8 +45,8 @@ public class OvsFlowsCreateSet_VLAN_Truncated_Test
     }
 
     @Override
-    protected List<FlowAction<?>> flowActions() {
-        return Arrays.<FlowAction<?>>asList(output(513));
+    protected List<FlowAction> flowActions() {
+        return Arrays.<FlowAction>asList(output(513));
     }
 
     @Test

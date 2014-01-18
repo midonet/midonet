@@ -55,9 +55,9 @@ public class OvsFlowsCreateSet_IPv4_ICMP_Test
     }
 
     @Override
-    protected List<FlowAction<?>> flowActions() {
+    protected List<FlowAction> flowActions() {
         int pid = connection.getChannel().getLocalAddress().getPid();
-        return Arrays.<FlowAction<?>>asList(FlowActions.userspace(pid, 234l));
+        return Arrays.<FlowAction>asList(FlowActions.userspace(pid, 234l));
     }
 
     @Test

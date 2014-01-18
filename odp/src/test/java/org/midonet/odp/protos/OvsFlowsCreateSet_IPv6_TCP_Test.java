@@ -47,8 +47,8 @@ public class OvsFlowsCreateSet_IPv6_TCP_Test
     }
 
     @Override
-    protected List<FlowAction<?>> flowActions() {
-        return Arrays.<FlowAction<?>>asList(pushVLAN((short)513));
+    protected List<FlowAction> flowActions() {
+        return Arrays.<FlowAction>asList(pushVLAN((short)513));
     }
 
     @Test

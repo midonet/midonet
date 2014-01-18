@@ -656,7 +656,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
 
         val portNo = port.getPortNo.shortValue
         val wMatch = new WildcardMatch().setTunnelID(exterior.tunnelKey)
-        val actions = List[FlowAction[_]](output(portNo))
+        val actions = List[FlowAction](output(portNo))
         val tags = Set[Any](FlowTagger.invalidateDPPort(portNo))
         fc ! AddWildcardFlow(WildcardFlow(wcmatch = wMatch, actions = actions),
                              None, ROSet.empty, tags)

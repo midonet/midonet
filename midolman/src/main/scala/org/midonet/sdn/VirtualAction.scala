@@ -1,9 +1,6 @@
-/******************************************************************************
- *                                                                            *
- *      Copyright (c) 2013 Midokura Europe SARL, All Rights Reserved.         *
- *                                                                            *
- ******************************************************************************/
-
+/*
+ * Copyright (c) 2013 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.sdn.flows;
 
 import java.util.UUID
@@ -20,16 +17,15 @@ object VirtualActions {
 
     /** output action to a set of virtual ports with uuid portSetId */
     case class FlowActionOutputToVrnPortSet(portSetId:UUID)
-            extends FakeFlowAction[FlowActionOutputToVrnPortSet]
+            extends VirtualFlowAction
 
     /** output action to a single virtual ports with uuid portId */
     case class FlowActionOutputToVrnPort(portId: UUID)
-            extends FakeFlowAction[FlowActionOutputToVrnPort]
+            extends VirtualFlowAction
 
-    /** impedance matching trait to fit VirtualAction instances into
-     *  collections of FlowAction[_] instances. */
-    trait FakeFlowAction[A <: FlowAction[A]] extends FlowAction[A] {
-        this: A =>
+    /** impedance matching trait to make Virtual Action subclasses of FlowAction
+     *  and make them fit into collections of FlowAction. */
+    trait VirtualFlowAction extends FlowAction {
         def getKey = null
         def getValue = this
         def serialize(builder: BaseBuilder[_,_]) {}

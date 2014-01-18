@@ -20,14 +20,14 @@ import org.midonet.packets._
 /** Contains helper methods to be used by a test case */
 object TestHelpers {
 
-    def partialMatch(acts: Seq[FlowAction[_]], targ: Seq[FlowAction[_]]) =
+    def partialMatch(acts: Seq[FlowAction], targ: Seq[FlowAction]) =
         targ.forall(acts.contains(_))
 
-    def totalMatch(acts: Seq[FlowAction[_]], targ: Seq[FlowAction[_]]) =
+    def totalMatch(acts: Seq[FlowAction], targ: Seq[FlowAction]) =
         acts.size == targ.size && partialMatch(acts, targ)
 
     def matchActionsFlowAddedOrRemoved(
-            flowActions: Seq[FlowAction[_]]): PartialFunction[Any, Boolean] = {
+            flowActions: Seq[FlowAction]): PartialFunction[Any, Boolean] = {
         case msg: WildcardFlowAdded =>
             totalMatch(msg.f.getActions, flowActions)
         case msg: WildcardFlowRemoved =>
@@ -36,7 +36,7 @@ object TestHelpers {
     }
 
     def partialMatchActionsFlowAddedOrRemoved(
-            flowActions: Seq[FlowAction[_]]): PartialFunction[Any, Boolean] = {
+            flowActions: Seq[FlowAction]): PartialFunction[Any, Boolean] = {
         case msg: WildcardFlowAdded =>
             partialMatch(msg.f.getActions, flowActions)
         case msg: WildcardFlowRemoved =>

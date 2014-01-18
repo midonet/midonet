@@ -7,7 +7,7 @@ import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.BaseBuilder;
 import org.midonet.odp.OpenVSwitch;
 
-public class FlowActionUserspace implements FlowAction<FlowActionUserspace> {
+public class FlowActionUserspace implements FlowAction {
 
     private int uplinkPid;
     private Long userData;

@@ -9,19 +9,19 @@ import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.BaseBuilder;
 import org.midonet.odp.OpenVSwitch;
 
-public class FlowActionSample implements FlowAction<FlowActionSample> {
+public class FlowActionSample implements FlowAction {
 
     /**
      * u32 port number.
      */
     private int probability;
 
-    private List<? extends FlowAction<?>> actions;
+    private List<FlowAction> actions;
 
     // This is used for deserialization purposes only.
     FlowActionSample() { }
 
-    FlowActionSample(int probability, List<? extends FlowAction<?>> actions) {
+    FlowActionSample(int probability, List<FlowAction> actions) {
         this.probability = probability;
         this.actions = actions;
     }
@@ -57,7 +57,7 @@ public class FlowActionSample implements FlowAction<FlowActionSample> {
         /**
          * Nested OVS_ACTION_ATTR_*.
          */
-        public static final Attr<List<FlowAction<?>>> ACTIONS =
+        public static final Attr<List<FlowAction>> ACTIONS =
             attrNest(OpenVSwitch.FlowAction.SampleAttr.Actions);
 
         private Attr(int id, boolean nested) {
@@ -87,7 +87,7 @@ public class FlowActionSample implements FlowAction<FlowActionSample> {
         return probability;
     }
 
-    public List<? extends FlowAction<?>> getActions() {
+    public List<FlowAction> getActions() {
         return actions;
     }
 

@@ -6,7 +6,7 @@ package org.midonet.odp.flows;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.BaseBuilder;
 
-public class FlowActionPopVLAN implements FlowAction<FlowActionPopVLAN> {
+public class FlowActionPopVLAN implements FlowAction {
 
     FlowActionPopVLAN() { }
 

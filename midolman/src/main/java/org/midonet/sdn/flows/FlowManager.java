@@ -312,7 +312,7 @@ public class FlowManager {
      * @param flowMatch
      * @return
      */
-    public List<FlowAction<?>> getActionsForDpFlow(FlowMatch flowMatch) {
+    public List<FlowAction> getActionsForDpFlow(FlowMatch flowMatch) {
         FlowMetadata data = dpFlowTable.get(flowMatch);
         return (data != null) ? data.actions : null;
     }
@@ -479,10 +479,10 @@ public class FlowManager {
     }
 
     class FlowMetadata {
-        public List<FlowAction<?>> actions;
+        public List<FlowAction> actions;
         public final long creationTime;
 
-        public FlowMetadata(List<FlowAction<?>> actions) {
+        public FlowMetadata(List<FlowAction> actions) {
             this.actions = actions;
             this.creationTime = System.currentTimeMillis();
         }
