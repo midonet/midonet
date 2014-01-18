@@ -166,6 +166,38 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
     }
 
     @Override
+    protected void _doDatapathsGet(Integer datapathId, String name,
+                                   @Nonnull Callback<Datapath> callback,
+                                   long timeoutMillis) {
+        if (!validateState(callback))
+            return;
+
+        if (datapathId == null && name == null) {
+            callback.onError(new OvsDatapathInvalidParametersException(
+                "Either a datapath ID or a datapath name should be provided"));
+            return;
+        }
+
+        Builder builder = newMessage();
+
+        builder.addValue(datapathId != null ? datapathId : 0);
+
+        if (name != null) {
+            builder.addAttr(DatapathFamily.Attr.NAME, name);
+        }
+
+        NetlinkMessage message = builder.build();
+
+        sendNetlinkMessage(
+            datapathFamily.contextGet,
+            Flag.or(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO),
+            message.getBuffer(),
+            callback,
+            Datapath.deserializer,
+            timeoutMillis);
+    }
+
+    @Override
     protected void _doDatapathsEnumerate(@Nonnull Callback<Set<Datapath>> callback,
                                          long timeoutMillis) {
         if (!validateState(callback))
@@ -281,16 +313,13 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         NetlinkMessage message = builder.build();
 
-        RequestBuilder<PortFamily.Cmd,
-                       PortFamily,
-                       DpPort> reqBuilder =
-                           newRequest(portFamily, PortFamily.Cmd.GET);
-        reqBuilder
-            .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
-            .withPayload(message.getBuffer())
-            .withCallback(callback, DpPort.deserializer)
-            .withTimeout(timeoutMillis)
-            .send();
+        sendNetlinkMessage(
+            portFamily.contextGet,
+            Flag.or(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO),
+            message.getBuffer(),
+            callback,
+            DpPort.deserializer,
+            timeoutMillis);
     }
 
     @Override
@@ -302,16 +331,13 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         builder.addValue(datapathIndex);
         builder.addAttr(PortFamily.Attr.PORT_NO, port.getPortNo());
 
-        RequestBuilder<PortFamily.Cmd,
-                       PortFamily,
-                       DpPort> reqBuilder =
-                           newRequest(portFamily, PortFamily.Cmd.DEL);
-        reqBuilder
-            .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
-            .withPayload(builder.build().getBuffer())
-            .withCallback(callback, DpPort.deserializer)
-            .withTimeout(timeoutMillis)
-            .send();
+        sendNetlinkMessage(
+            portFamily.contextDel,
+            Flag.or(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO),
+            builder.build().getBuffer(),
+            callback,
+            DpPort.deserializer,
+            timeoutMillis);
     }
 
     @Override
@@ -341,16 +367,13 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         NetlinkMessage message = builder.build();
 
-        RequestBuilder<PortFamily.Cmd,
-                       PortFamily,
-                       DpPort> reqBuilder =
-                           newRequest(portFamily, PortFamily.Cmd.SET);
-        reqBuilder
-            .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
-            .withPayload(message.getBuffer())
-            .withCallback(callback, DpPort.deserializer)
-            .withTimeout(timeoutMillis)
-            .send();
+        sendNetlinkMessage(
+            portFamily.contextSet,
+            Flag.or(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO),
+            message.getBuffer(),
+            callback,
+            DpPort.deserializer,
+            timeoutMillis);
     }
 
 
@@ -365,18 +388,14 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             .addValue(datapath.getIndex())
             .build();
 
-        RequestBuilder<PortFamily.Cmd,
-                       PortFamily,
-                       Set<DpPort>> reqBuilder =
-                           newRequest(portFamily, PortFamily.Cmd.GET);
-        reqBuilder
-            .withFlags(Flag.NLM_F_DUMP, Flag.NLM_F_ECHO,
-                    Flag.NLM_F_REQUEST, Flag.NLM_F_ACK)
-            .withPayload(message.getBuffer())
-            .withCallback(callback, DpPort.setDeserializer)
-            .withTimeout(timeoutMillis)
-            .send();
-
+        sendNetlinkMessage(
+            portFamily.contextGet,
+            Flag.or(Flag.NLM_F_DUMP, Flag.NLM_F_ACK,
+                    Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO),
+            message.getBuffer(),
+            callback,
+            DpPort.setDeserializer,
+            timeoutMillis);
     }
 
     @Override
@@ -411,52 +430,13 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         NetlinkMessage message = builder.build();
 
-        RequestBuilder<PortFamily.Cmd,
-                       PortFamily,
-                       DpPort> reqBuilder =
-                           newRequest(portFamily, PortFamily.Cmd.NEW);
-        reqBuilder
-            .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
-            .withPayload(message.getBuffer())
-            .withCallback(callback, DpPort.deserializer)
-            .withTimeout(timeoutMillis)
-            .send();
-
-    }
-
-    @Override
-    protected void _doDatapathsGet(Integer datapathId, String name,
-                                   @Nonnull Callback<Datapath> callback,
-                                   long defReplyTimeout) {
-        if (!validateState(callback))
-            return;
-
-        if (datapathId == null && name == null) {
-            callback.onError(new OvsDatapathInvalidParametersException(
-                "Either a datapath ID or a datapath name should be provided"));
-            return;
-        }
-
-        Builder builder = newMessage();
-
-        builder.addValue(datapathId != null ? datapathId : 0);
-
-        if (name != null) {
-            builder.addAttr(DatapathFamily.Attr.NAME, name);
-        }
-
-        NetlinkMessage message = builder.build();
-
-        RequestBuilder<DatapathFamily.Cmd,
-                       DatapathFamily,
-                       Datapath> reqBuilder =
-                           newRequest(datapathFamily, DatapathFamily.Cmd.GET);
-        reqBuilder
-            .withFlags(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO)
-            .withPayload(message.getBuffer())
-            .withCallback(callback, Datapath.deserializer)
-            .withTimeout(defReplyTimeout)
-            .send();
+        sendNetlinkMessage(
+            portFamily.contextNew,
+            Flag.or(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO),
+            message.getBuffer(),
+            callback,
+            DpPort.deserializer,
+            timeoutMillis);
     }
 
     @Override

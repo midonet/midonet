@@ -80,7 +80,24 @@ public class PortFamily extends
         }
     }
 
+    public final OvsBaseContext contextNew;
+    public final OvsBaseContext contextDel;
+    public final OvsBaseContext contextGet;
+    public final OvsBaseContext contextSet;
+
     public PortFamily(int familyId) {
         super(familyId, VERSION);
+        contextNew = new PortContext(familyId, OpenVSwitch.Port.Cmd.New);
+        contextDel = new PortContext(familyId, OpenVSwitch.Port.Cmd.Del);
+        contextGet = new PortContext(familyId, OpenVSwitch.Port.Cmd.Get);
+        contextSet = new PortContext(familyId, OpenVSwitch.Port.Cmd.Set);
+    }
+
+    private static class PortContext extends OvsBaseContext {
+        public PortContext(int familyId, int command) {
+            super(familyId, command);
+        }
+        @Override
+        public byte version() { return (byte) OpenVSwitch.Port.version; }
     }
 }
