@@ -22,12 +22,12 @@ import org.midonet.client.dto.DtoBridge;
 import org.midonet.client.dto.DtoDhcpHost;
 import org.midonet.client.dto.DtoDhcpOption121;
 import org.midonet.client.dto.DtoDhcpSubnet;
-import static org.midonet.api.VendorMediaType.APPLICATION_BRIDGE_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_DHCP_HOST_COLLECTION_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_DHCP_HOST_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_DHCP_SUBNET_COLLECTION_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_DHCP_SUBNET_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_JSON;
+import static org.midonet.client.VendorMediaType.APPLICATION_BRIDGE_JSON;
+import static org.midonet.client.VendorMediaType.APPLICATION_DHCP_HOST_COLLECTION_JSON;
+import static org.midonet.client.VendorMediaType.APPLICATION_DHCP_HOST_JSON;
+import static org.midonet.client.VendorMediaType.APPLICATION_DHCP_SUBNET_COLLECTION_JSON;
+import static org.midonet.client.VendorMediaType.APPLICATION_DHCP_SUBNET_JSON;
+import static org.midonet.client.VendorMediaType.APPLICATION_JSON_V2;
 
 public class TestDHCP extends JerseyTest {
 
@@ -41,7 +41,7 @@ public class TestDHCP extends JerseyTest {
     public void before() {
         ClientResponse response;
 
-        DtoApplication app = resource().path("").accept(APPLICATION_JSON)
+        DtoApplication app = resource().path("").accept(APPLICATION_JSON_V2)
                 .get(DtoApplication.class);
 
         bridge = new DtoBridge();

@@ -339,8 +339,9 @@ public class MidonetApi {
             DtoApplication dtoApplication = resource
                 .get("",
                      DtoApplication.class,
-                     VendorMediaType.APPLICATION_JSON);
-            application = new Application(resource, dtoApplication);
+                     VendorMediaType.APPLICATION_JSON_V3);
+            application = new Application(resource, dtoApplication,
+                    VendorMediaType.APPLICATION_JSON_V3);
         }
     }
 }

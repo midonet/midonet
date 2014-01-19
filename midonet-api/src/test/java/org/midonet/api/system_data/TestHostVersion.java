@@ -19,13 +19,13 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
-import org.midonet.api.VendorMediaType;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.serialization.SerializationModule;
 import org.midonet.api.zookeeper.StaticMockDirectory;
 import org.midonet.client.MidonetApi;
 import org.midonet.client.resource.HostVersion;
 import org.midonet.client.resource.ResourceCollection;
+import org.midonet.client.VendorMediaType;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.Directory;
@@ -90,7 +90,7 @@ public class TestHostVersion extends JerseyTest {
                 new VersionModule(),
                 new SerializationModule(),
                 new TestModule(ZK_ROOT_MIDOLMAN));
-        resource().type(VendorMediaType.APPLICATION_JSON)
+        resource().accept(VendorMediaType.APPLICATION_JSON_V2)
                 .get(ClientResponse.class);
         hostManager = injector.getInstance(HostZkManager.class);
         URI baseUri = resource().getURI();
