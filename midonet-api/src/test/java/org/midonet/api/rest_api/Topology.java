@@ -7,16 +7,17 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.ws.rs.core.Response;
 
+import org.midonet.client.VendorMediaType;
 import org.midonet.client.dto.*;
-import static org.midonet.api.VendorMediaType.APPLICATION_BRIDGE_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_CHAIN_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_CONDITION_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_PORTGROUP_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_PORT_LINK_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_PORT_V2_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_ROUTER_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_TENANT_COLLECTION_JSON;
+import static org.midonet.client.VendorMediaType.APPLICATION_BRIDGE_JSON;
+import static org.midonet.client.VendorMediaType.APPLICATION_CHAIN_JSON;
+import static org.midonet.client.VendorMediaType.APPLICATION_CONDITION_JSON;
+import static org.midonet.client.VendorMediaType.APPLICATION_JSON_V2;
+import static org.midonet.client.VendorMediaType.APPLICATION_PORTGROUP_JSON;
+import static org.midonet.client.VendorMediaType.APPLICATION_PORT_LINK_JSON;
+import static org.midonet.client.VendorMediaType.APPLICATION_PORT_V2_JSON;
+import static org.midonet.client.VendorMediaType.APPLICATION_ROUTER_JSON;
+import static org.midonet.client.VendorMediaType.APPLICATION_TENANT_COLLECTION_JSON;
 
 
 /**
@@ -52,6 +53,7 @@ public class Topology {
         private final DtoWebResource resource;
 
         private DtoApplication app;
+        private final String appMediaType;
         private final Map<String, DtoTenant> tenants;
         private final Map<String, DtoRouter> routers;
         private final Map<String, DtoBridge> bridges;
@@ -68,6 +70,10 @@ public class Topology {
         private final Map<String, String> links;
 
         public Builder(DtoWebResource resource) {
+            this(resource, VendorMediaType.APPLICATION_JSON_V2);
+        }
+
+        public Builder(DtoWebResource resource, String appMediaType) {
             this.resource = resource;
             this.tenants = new HashMap<String, DtoTenant>();
             this.routers = new HashMap<String, DtoRouter>();
@@ -83,6 +89,8 @@ public class Topology {
             this.tagToOutChains = new HashMap<String, String>();
             this.tagToRouters = new HashMap<String, String>();
             this.tagToBridges = new HashMap<String, String>();
+
+            this.appMediaType = appMediaType;
         }
 
         public DtoWebResource getResource() {
@@ -166,8 +174,8 @@ public class Topology {
 
         public Topology build() {
 
-            this.app = resource.getWebResource().path("/")
-                .type(APPLICATION_JSON).get(DtoApplication.class);
+            this.app = resource.getWebResource().path("/").accept(
+                    appMediaType).get(DtoApplication.class);
 
             for (Map.Entry<String, DtoRuleChain> entry : chains.entrySet()) {
                 DtoRuleChain obj = entry.getValue();

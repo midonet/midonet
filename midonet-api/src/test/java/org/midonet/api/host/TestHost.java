@@ -32,7 +32,6 @@ import static org.hamcrest.Matchers.nullValue;
 import org.midonet.api.serialization.SerializationModule;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
-import org.midonet.api.VendorMediaType;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.Topology;
 import org.midonet.api.rest_api.DtoWebResource;
@@ -51,14 +50,15 @@ import org.midonet.client.dto.DtoInterface;
 import org.midonet.client.exception.HttpForbiddenException;
 import org.midonet.client.resource.*;
 import org.midonet.client.resource.Host;
+import org.midonet.client.VendorMediaType;
 import org.midonet.midolman.version.guice.VersionModule;
 import org.midonet.packets.MAC;
 
-import static org.midonet.api.VendorMediaType.APPLICATION_HOST_COLLECTION_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_HOST_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_BRIDGE_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_PORT_V2_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_INTERFACE_COLLECTION_JSON;
+import static org.midonet.client.VendorMediaType.APPLICATION_HOST_COLLECTION_JSON;
+import static org.midonet.client.VendorMediaType.APPLICATION_HOST_JSON;
+import static org.midonet.client.VendorMediaType.APPLICATION_BRIDGE_JSON;
+import static org.midonet.client.VendorMediaType.APPLICATION_PORT_V2_JSON;
+import static org.midonet.client.VendorMediaType.APPLICATION_INTERFACE_COLLECTION_JSON;
 
 public class TestHost extends JerseyTest {
 
@@ -142,8 +142,9 @@ public class TestHost extends JerseyTest {
                 new SerializationModule(),
                 new TestModule(ZK_ROOT_MIDOLMAN));
         dir = injector.getInstance(Directory.class);
-        resource().type(VendorMediaType.APPLICATION_JSON)
-            .get(ClientResponse.class);
+        resource().type(VendorMediaType.APPLICATION_JSON_V2)
+                .accept(VendorMediaType.APPLICATION_JSON_V2)
+                .get(ClientResponse.class);
 
         topology = new Topology.Builder(dtoResource).build();
         hostManager = injector.getInstance(HostZkManager.class);

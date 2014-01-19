@@ -51,16 +51,7 @@ import static org.hamcrest.Matchers.arrayWithSize;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
-import static org.midonet.client.VendorMediaType.APPLICATION_BRIDGE_COLLECTION_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_BRIDGE_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_IP4_MAC_COLLECTION_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_IP4_MAC_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_MAC_PORT_COLLECTION_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_MAC_PORT_COLLECTION_JSON_V2;
-import static org.midonet.client.VendorMediaType.APPLICATION_MAC_PORT_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_MAC_PORT_JSON_V2;
-import static org.midonet.client.VendorMediaType.APPLICATION_PORT_V2_JSON;
+import static org.midonet.client.VendorMediaType.*;
 import static org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID;
 
 @RunWith(Enclosed.class)
@@ -279,7 +270,7 @@ public class TestBridge {
             return dtoResource.deleteAndVerifyNotFound(
                     ResourceUriBuilder.getMacPort(
                             bridgeUri, vlanId, macAddr, portId),
-                    APPLICATION_JSON);
+                    APPLICATION_JSON_V2);
         }
 
         private DtoMacPort getMacPort(URI bridgeUri, Short vlanId,
