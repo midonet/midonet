@@ -279,7 +279,7 @@ public class WildcardMatch implements Cloneable {
     }
 
     public boolean isFromTunnel() {
-      return usedFields.contains(Field.TunnelID);
+        return usedFields.contains(Field.TunnelID);
     }
 
     @Nonnull

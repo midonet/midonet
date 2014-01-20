@@ -369,10 +369,10 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
                 log.info("Not handling {} (behaving as InitializationActor)", m)
         })
         if (datapathConnection != null)
-          dpState.uplinkPid =
-            datapathConnection.getChannel.getLocalAddress.getPid
+            dpState.uplinkPid =
+                datapathConnection.getChannel.getLocalAddress.getPid
         else
-          log.warning("preStart(): OvsDatapathConnection not yet initialized.")
+            log.warning("preStart(): OvsDatapathConnection not yet initialized.")
     }
 
     def receive = null

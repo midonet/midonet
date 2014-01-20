@@ -89,12 +89,12 @@ class RouterSimulationTestCase extends MidolmanTestCase with
         requestOfType[OutgoingMessage](vtpProbe())
 
         // Create one port that works as an uplink for the router.
-        uplinkPort = newRouterPort(clusterRouter,
-          uplinkMacAddr,
-            uplinkPortAddr, uplinkNwAddr, uplinkNwLen)
+        uplinkPort = newRouterPort(clusterRouter, uplinkMacAddr, uplinkPortAddr,
+                                   uplinkNwAddr, uplinkNwLen)
         uplinkPort should not be null
-        uplinkPort = materializePort(uplinkPort, host,
-          "uplinkPort").asInstanceOf[RouterPort]
+        uplinkPort =
+            materializePort(uplinkPort, host,"uplinkPort")
+                .asInstanceOf[RouterPort]
         var portEvent = requestOfType[LocalPortActive](portsProbe)
         portEvent.active should be(true)
         portEvent.portID should be(uplinkPort.getId)

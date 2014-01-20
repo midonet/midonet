@@ -48,7 +48,7 @@ class PacketContext(override val flowCookie: Option[Int],
     import PacketContext._
 
     private val log =
-          LoggerFactory.getActorSystemThreadLog(this.getClass)(actorSystem.eventStream)
+        LoggerFactory.getActorSystemThreadLog(this.getClass)(actorSystem.eventStream)
     // PacketContext starts unfrozen, in which mode it can have callbacks
     // and tags added.  Freezing it switches it from write-only to
     // read-only.
