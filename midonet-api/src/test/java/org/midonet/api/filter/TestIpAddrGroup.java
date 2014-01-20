@@ -11,17 +11,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.VendorMediaType;
 import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.Topology;
 import org.midonet.api.zookeeper.StaticMockDirectory;
 import org.midonet.client.dto.*;
-import org.midonet.util.StringUtil;
 
 import java.net.URI;
-import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -51,7 +47,8 @@ public class TestIpAddrGroup {
             chain.setName("Chain1");
             chain.setTenantId("tenant1-id");
 
-            topology = new Topology.Builder(dtoResource)
+            topology = new Topology.Builder(
+                    dtoResource, APPLICATION_JSON_V3)
                     .create("chain1", chain).build();
 
             app = topology.getApplication();
@@ -95,7 +92,7 @@ public class TestIpAddrGroup {
             // Remove the addresses
             for (DtoIpAddrGroupAddr addr : addrs) {
                 dtoResource.deleteAndVerifyNoContent(addr.getUri(),
-                        VendorMediaType.APPLICATION_IP_ADDR_GROUP_ADDR_JSON);
+                        APPLICATION_IP_ADDR_GROUP_ADDR_JSON);
             }
 
             // Now there should be no address

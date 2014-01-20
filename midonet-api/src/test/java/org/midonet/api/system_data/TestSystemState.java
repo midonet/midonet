@@ -14,11 +14,11 @@ import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 
-import org.midonet.api.VendorMediaType;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.zookeeper.StaticMockDirectory;
 import org.midonet.client.MidonetApi;
 import org.midonet.client.resource.Router;
+import org.midonet.client.VendorMediaType;
 import org.midonet.cluster.data.SystemState;
 import org.midonet.midolman.state.StateAccessException;
 
@@ -35,7 +35,7 @@ public class TestSystemState extends JerseyTest {
     @Before
     public void setUp() {
 
-        resource().type(VendorMediaType.APPLICATION_JSON)
+        resource().accept(VendorMediaType.APPLICATION_JSON_V2)
                 .get(ClientResponse.class);
         URI baseUri = resource().getURI();
         api = new MidonetApi(baseUri.toString());

@@ -19,10 +19,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import static org.midonet.api.VendorMediaType.APPLICATION_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_HOST_COLLECTION_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_HOST_INTERFACE_PORT_JSON;
+import static org.midonet.client.VendorMediaType.APPLICATION_JSON_V2;
+import static org.midonet.client.VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON;
+import static org.midonet.client.VendorMediaType.APPLICATION_HOST_COLLECTION_JSON;
+import static org.midonet.client.VendorMediaType.APPLICATION_HOST_INTERFACE_PORT_JSON;
 
 /**
  * Class to assist creating a network topology in unit tests. An example usage:
@@ -117,7 +117,7 @@ public class HostTopology {
 
 
             this.app = resource.getWebResource().path("/")
-                    .type(APPLICATION_JSON).get(DtoApplication.class);
+                    .type(APPLICATION_JSON_V2).get(DtoApplication.class);
 
             if (hosts.size() > 0) {
                 for (Map.Entry<UUID, DtoHost> entry : hosts.entrySet()) {

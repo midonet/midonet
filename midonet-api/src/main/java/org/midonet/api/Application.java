@@ -4,6 +4,8 @@
  */
 package org.midonet.api;
 
+import org.midonet.util.version.Since;
+
 import javax.xml.bind.annotation.XmlRootElement;
 import java.net.URI;
 
@@ -57,6 +59,7 @@ public class Application extends UriResource {
     /**
      * @return the tenants URI
      */
+    @Since("2")
     public URI getTenants() {
         if (getBaseUri() != null) {
             return ResourceUriBuilder.getTenants(getBaseUri());
@@ -134,6 +137,7 @@ public class Application extends UriResource {
     /**
      * @return the IP addr groups URI
      */
+    @Since("3")
     public URI getIpAddrGroups() {
         if (getBaseUri() != null) {
             return ResourceUriBuilder.getIpAddrGroups(getBaseUri());
@@ -233,6 +237,7 @@ public class Application extends UriResource {
     /**
      * @return the ip addr group URI template
      */
+    @Since("3")
     public String getIpAddrGroupTemplate() {
         if (getBaseUri() != null) {
             return ResourceUriBuilder.getIpAddrGroupTemplate(getBaseUri());
@@ -276,6 +281,7 @@ public class Application extends UriResource {
     /**
      * @return the tenant URI template
      */
+    @Since("2")
     public String getTenantTemplate() {
         if (getBaseUri() != null) {
             return ResourceUriBuilder.getTenantTemplate(getBaseUri());

@@ -26,7 +26,7 @@ import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.*;
 
-import static org.midonet.api.VendorMediaType.*;
+import static org.midonet.client.VendorMediaType.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
@@ -54,7 +54,7 @@ public class TestRoute {
         @Before
         public void before() {
 
-            DtoApplication app = resource().path("").accept(APPLICATION_JSON)
+            DtoApplication app = resource().path("").accept(APPLICATION_JSON_V2)
                     .get(DtoApplication.class);
 
             // Create a router.
