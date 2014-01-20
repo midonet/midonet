@@ -30,7 +30,7 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
              override val routerMgrTagger: TagManager,
              val arpTable: ArpTable)
             (implicit system: ActorSystem)
-      extends RouterBase[IPv4Addr] {
+        extends RouterBase[IPv4Addr] {
 
     override val validEthertypes: Set[Short]= Set(IPv4.ETHERTYPE, ARP.ETHERTYPE)
 

@@ -378,7 +378,7 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
         while(flowProbe().msgAvailable)
             flowProbe().receiveOne(Duration(10, TimeUnit.MILLISECONDS))
         val port2OnHost1 =
-          materializePort(port2OnHost1_unMaterialized, host1, "port1b")
+            materializePort(port2OnHost1_unMaterialized, host1, "port1b")
         //port2OnHost1 = getPort()
         portsProbe.expectMsgClass(classOf[LocalPortActive])
         var numPort2OnHost1: Short = 0
