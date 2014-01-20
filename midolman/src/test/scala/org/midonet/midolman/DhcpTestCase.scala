@@ -35,7 +35,7 @@ import org.midonet.packets._
 @Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
 class DhcpTestCase extends MidolmanTestCase with
-          VirtualConfigurationBuilders with SimulationHelper with RouterHelper {
+        VirtualConfigurationBuilders with SimulationHelper with RouterHelper {
 
     private final val log = LoggerFactory.getLogger(classOf[DhcpTestCase])
 

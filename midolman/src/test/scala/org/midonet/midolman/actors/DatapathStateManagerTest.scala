@@ -59,9 +59,9 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
 
     def testTunnelSet {
         def makeGre(name: String, portNo: Int) = {
-          val gre = GreTunnelPort.make(name)
-          gre.setPortNo(portNo)
-          gre
+            val gre = GreTunnelPort.make(name)
+            gre.setPortNo(portNo)
+            gre
         }
         List[MaybePort](
             Option(null),

@@ -109,15 +109,15 @@ object FlowController extends Referenceable {
 
     object Internal {
 
-      case object CheckFlowExpiration
+        case object CheckFlowExpiration
 
-      case class FlowRemoved(flow: Flow)
+        case class FlowRemoved(flow: Flow)
 
-      case class FlowMissing(flowMatch: FlowMatch, flowCallback: Callback1[Flow])
+        case class FlowMissing(flowMatch: FlowMatch, flowCallback: Callback1[Flow])
 
-      case class GetFlowSucceeded(flow: Flow, flowCallback: Callback1[Flow])
+        case class GetFlowSucceeded(flow: Flow, flowCallback: Callback1[Flow])
 
-      case class GetFlowFailed(flowCallback: Callback1[Flow])
+        case class GetFlowFailed(flowCallback: Callback1[Flow])
 
     }
 

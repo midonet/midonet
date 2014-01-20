@@ -259,8 +259,8 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
     def materializePort(port: VPort[_, _],
                         host: Host, name: String): VPort[_,_] = {
         val updatedPort =
-          clusterDataClient().
-            hostsAddVrnPortMappingAndReturnPort(host.getId, port.getId, name);
+            clusterDataClient()
+                .hostsAddVrnPortMappingAndReturnPort(host.getId, port.getId, name)
 
         if (host.getId == hostId()) {
             val itf = new InterfaceDescription(name)
@@ -268,7 +268,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
             itf.setUp(true)
             interfaceScanner.addInterface(itf)
         }
-      return updatedPort;
+        return updatedPort;
     }
 
     def datapathPorts(datapath: Datapath): mutable.Map[String, DpPort] = {

@@ -34,7 +34,7 @@ import org.midonet.packets._
 @Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
 class DhcpInterfaceMtuTestCase extends MidolmanTestCase with
-          VirtualConfigurationBuilders with SimulationHelper with RouterHelper {
+        VirtualConfigurationBuilders with SimulationHelper with RouterHelper {
 
     private final val log = LoggerFactory.getLogger(classOf[DhcpInterfaceMtuTestCase])
 
@@ -147,9 +147,9 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase with
                         .setRtDstSubnet(routerIp1))
         var opt121Routes: List[Opt121] = List(opt121Obj)
         var dnsSrvAddrs : List[IPv4Addr] = List(
-          IPv4Addr("192.168.77.118"),
-          IPv4Addr("192.168.77.119"),
-          IPv4Addr("192.168.77.120"))
+            IPv4Addr("192.168.77.118"),
+            IPv4Addr("192.168.77.119"),
+            IPv4Addr("192.168.77.120"))
         var dhcpSubnet = (new Subnet()
                       .setSubnetAddr(routerIp2)
                       .setDefaultGateway(routerIp2)
