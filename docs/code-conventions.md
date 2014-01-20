@@ -6,6 +6,14 @@ A convention is a weak rule pertaining to style, structure or content of every
 source file, for which there can be sensible exceptions. The codebase should
 eventually converge to a state where all of the conventions are followed.
 
+### Indentation
+
+Indentation for all Java / Scala code is 4 spaces.
+
+IDEs such as IntelliJ will default to 2 spaces for Java code as per the
+[Scala Style Guide](http://docs.scala-lang.org/style/indentation.html), so
+make sure to update your preferences to 4 spaces.
+
 ### Source files header
 
 The mandatory header of every source file must be written as:
