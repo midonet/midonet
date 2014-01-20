@@ -17,7 +17,7 @@ import org.midonet.midolman.simulation
 import org.midonet.packets.IPv4Addr
 
 object PoolManager {
-  case class TriggerUpdate(poolMembers: Set[PoolMember])
+    case class TriggerUpdate(poolMembers: Set[PoolMember])
 }
 
 class PoolManager(val id: UUID, val clusterClient: Client) extends Actor
