@@ -20,13 +20,13 @@ import org.junit.Test;
 
 import org.midonet.cassandra.CassandraClient;
 import org.midonet.midolman.monitoring.store.CassandraStore;
-import org.midonet.api.VendorMediaType;
 import org.midonet.api.zookeeper.StaticMockDirectory;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.client.dto.DtoMetric;
 import org.midonet.client.dto.DtoMetricQuery;
 import org.midonet.client.dto.DtoMetricQueryResponse;
 import org.midonet.client.dto.DtoMetricTarget;
+import org.midonet.client.VendorMediaType;
 
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -53,7 +53,7 @@ public class TestMonitoring extends JerseyTest {
 
     @Before
     public void before() throws KeeperException {
-        resource().type(VendorMediaType.APPLICATION_JSON)
+        resource().accept(VendorMediaType.APPLICATION_JSON_V2)
                 .get(ClientResponse.class);
 
         // Needs to be set up everytime because the keyspace and columnfamily

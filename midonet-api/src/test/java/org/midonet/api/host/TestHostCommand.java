@@ -25,7 +25,6 @@ import org.midonet.api.serialization.SerializationModule;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.VendorMediaType;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.zookeeper.StaticMockDirectory;
 import org.midonet.midolman.serialization.SerializationException;
@@ -38,6 +37,7 @@ import org.midonet.client.dto.DtoApplication;
 import org.midonet.client.dto.DtoHost;
 import org.midonet.client.dto.DtoHostCommand;
 import org.midonet.client.dto.DtoInterface;
+import org.midonet.client.VendorMediaType;
 import org.midonet.midolman.version.guice.VersionModule;
 import org.midonet.packets.MAC;
 
@@ -112,7 +112,7 @@ public class TestHostCommand extends JerseyTest {
             InterruptedException,
             SerializationException {
         DtoApplication application = resource()
-            .type(VendorMediaType.APPLICATION_JSON)
+            .accept(VendorMediaType.APPLICATION_JSON_V2)
             .get(DtoApplication.class);
 
 
