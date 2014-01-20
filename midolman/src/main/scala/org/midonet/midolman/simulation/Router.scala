@@ -33,7 +33,7 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
             (implicit system: ActorSystem)
         extends RouterBase[IPv4Addr] {
 
-    override val validEthertypes: Set[Short]= Set(IPv4.ETHERTYPE, ARP.ETHERTYPE)
+    override val validEthertypes: Set[Short] = Set(IPv4.ETHERTYPE, ARP.ETHERTYPE)
 
     override def unsupportedPacketAction = NotIPv4Action
 
