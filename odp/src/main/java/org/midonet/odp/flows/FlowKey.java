@@ -4,6 +4,7 @@
 package org.midonet.odp.flows;
 
 import org.midonet.netlink.NetlinkMessage;
+import org.midonet.netlink.NetlinkMessage.AttrKey;
 import org.midonet.netlink.messages.BuilderAware;
 import org.midonet.odp.OpenVSwitch;
 
@@ -40,84 +41,68 @@ public interface FlowKey extends BuilderAware, NetlinkMessage.Attr<FlowKey> {
 
     }
 
-    public static class FlowKeyAttr<T extends FlowKey>
-            extends NetlinkMessage.AttrKey<T> {
+    public interface FlowKeyAttr {
 
         /** Nested set of encapsulated attributes. */
-        public static final FlowKeyAttr<FlowKeyEncap> ENCAP =
-            attr(OpenVSwitch.FlowKey.Attr.Encap);
+        AttrKey<FlowKeyEncap> ENCAP =
+            AttrKey.attr(OpenVSwitch.FlowKey.Attr.Encap);
 
         /** u32 skb->priority */
-        public static final FlowKeyAttr<FlowKeyPriority> PRIORITY =
-            attr(OpenVSwitch.FlowKey.Attr.Priority);
+        AttrKey<FlowKeyPriority> PRIORITY =
+            AttrKey.attr(OpenVSwitch.FlowKey.Attr.Priority);
 
         /** u32 OVS dp port number */
-        public static final FlowKeyAttr<FlowKeyInPort> IN_PORT =
-            attr(OpenVSwitch.FlowKey.Attr.InPort);
+        AttrKey<FlowKeyInPort> IN_PORT =
+            AttrKey.attr(OpenVSwitch.FlowKey.Attr.InPort);
 
         /** struct ovs_key_ethernet */
-        public static final FlowKeyAttr<FlowKeyEthernet> ETHERNET =
-            attr(OpenVSwitch.FlowKey.Attr.Ethernet);
+        AttrKey<FlowKeyEthernet> ETHERNET =
+            AttrKey.attr(OpenVSwitch.FlowKey.Attr.Ethernet);
 
         /** be16 VLAN TCI */
-        public static final FlowKeyAttr<FlowKeyVLAN> VLAN =
-            attr(OpenVSwitch.FlowKey.Attr.VLan);
+        AttrKey<FlowKeyVLAN> VLAN =
+            AttrKey.attr(OpenVSwitch.FlowKey.Attr.VLan);
 
         /** be16 Ethernet type */
-        public static final FlowKeyAttr<FlowKeyEtherType> ETHERTYPE =
-            attr(OpenVSwitch.FlowKey.Attr.Ethertype);
+        AttrKey<FlowKeyEtherType> ETHERTYPE =
+            AttrKey.attr(OpenVSwitch.FlowKey.Attr.Ethertype);
 
         /** struct ovs_key_ipv4 */
-        public static final FlowKeyAttr<FlowKeyIPv4> IPv4 =
-            attr(OpenVSwitch.FlowKey.Attr.IPv4);
+        AttrKey<FlowKeyIPv4> IPv4 =
+            AttrKey.attr(OpenVSwitch.FlowKey.Attr.IPv4);
 
         /** struct ovs_key_ipv6 */
-        public static final FlowKeyAttr<FlowKeyIPv6> IPv6 =
-            attr(OpenVSwitch.FlowKey.Attr.IPv6);
+        AttrKey<FlowKeyIPv6> IPv6 =
+            AttrKey.attr(OpenVSwitch.FlowKey.Attr.IPv6);
 
         /** struct ovs_key_tcp */
-        public static final FlowKeyAttr<FlowKeyTCP> TCP =
-            attr(OpenVSwitch.FlowKey.Attr.TCP);
+        AttrKey<FlowKeyTCP> TCP =
+            AttrKey.attr(OpenVSwitch.FlowKey.Attr.TCP);
 
         /** struct ovs_key_udp */
-        public static final FlowKeyAttr<FlowKeyUDP> UDP =
-            attr(OpenVSwitch.FlowKey.Attr.UDP);
+        AttrKey<FlowKeyUDP> UDP =
+            AttrKey.attr(OpenVSwitch.FlowKey.Attr.UDP);
 
         /** struct ovs_key_icmp */
-        public static final FlowKeyAttr<FlowKeyICMP> ICMP =
-            attr(OpenVSwitch.FlowKey.Attr.ICMP);
+        AttrKey<FlowKeyICMP> ICMP =
+            AttrKey.attr(OpenVSwitch.FlowKey.Attr.ICMP);
 
         /** struct ovs_key_icmpv6 */
-        public static final FlowKeyAttr<FlowKeyICMPv6> ICMPv6 =
-            attr(OpenVSwitch.FlowKey.Attr.ICMPv6);
+        AttrKey<FlowKeyICMPv6> ICMPv6 =
+            AttrKey.attr(OpenVSwitch.FlowKey.Attr.ICMPv6);
 
         /** struct ovs_key_arp */
-        public static final FlowKeyAttr<FlowKeyARP> ARP =
-            attr(OpenVSwitch.FlowKey.Attr.ARP);
+        AttrKey<FlowKeyARP> ARP =
+            AttrKey.attr(OpenVSwitch.FlowKey.Attr.ARP);
 
         /** struct ovs_key_nd */
-        public static final FlowKeyAttr<FlowKeyND> ND =
-            attr(OpenVSwitch.FlowKey.Attr.ND);
+        AttrKey<FlowKeyND> ND =
+            AttrKey.attr(OpenVSwitch.FlowKey.Attr.ND);
 
         /** struct ovs_key_ipv4_tunnel */
-        public static final FlowKeyAttr<FlowKeyTunnel> TUNNEL =
-            attrNest(OpenVSwitch.FlowKey.Attr.Tunnel);
+        AttrKey<FlowKeyTunnel> TUNNEL =
+            AttrKey.attrNested(OpenVSwitch.FlowKey.Attr.Tunnel);
 
-        public FlowKeyAttr(int id) {
-            super(id);
-        }
-
-        public FlowKeyAttr(int id, boolean nested) {
-            super(id, nested);
-        }
-
-        static <T extends FlowKey> FlowKeyAttr<T> attrNest(int id) {
-            return new FlowKeyAttr<T>(id, true);
-        }
-
-        static <T extends FlowKey> FlowKeyAttr<T> attr(int id) {
-            return new FlowKeyAttr<T>(id, false);
-        }
     }
 
     static NetlinkMessage.CustomBuilder<FlowKey> Builder =

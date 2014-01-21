@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Midokura Europe SARL, All Rights Reserved.
+ * Copyright (c) 2014 Midokura Europe SARL, All Rights Reserved.
  */
 package org.midonet.netlink
 
@@ -81,7 +81,7 @@ class NetlinkMessageTest extends Suite with Matchers {
         def makeData(len: Int) = {
             val bytes = new Array[Byte](len)
             (0 until len) foreach { i => bytes(i) = i.toByte}
-            bytes zip bytes.map{ new NetlinkMessage.AttrKey[JByte](_) }
+            bytes zip bytes.map{ NetlinkMessage.AttrKey.attr[JByte](_) }
         }
         def bufferChecker(buf: ByteBuffer): ByteConsumer = {
             case (value, attr) =>
@@ -106,7 +106,7 @@ class NetlinkMessageTest extends Suite with Matchers {
         def makeData(len: Int) = {
             val shorts = new Array[Short](len)
             (0 until len) foreach { i => shorts(i) = i.toShort}
-            shorts zip shorts.map{ new NetlinkMessage.AttrKey[JShort](_) }
+            shorts zip shorts.map{  NetlinkMessage.AttrKey.attr[JShort](_) }
         }
         def bufferChecker(buf: ByteBuffer): ShortConsumer = {
             case (value, attr) =>
@@ -131,7 +131,7 @@ class NetlinkMessageTest extends Suite with Matchers {
         def makeData(len: Int) = {
             val ints = new Array[Int](len)
             (0 until len) foreach { i => ints(i) = i}
-            ints zip ints.map{ new NetlinkMessage.AttrKey[JInteger](_) }
+            ints zip ints.map{ NetlinkMessage.AttrKey.attr[JInteger](_) }
         }
         def bufferChecker(buf: ByteBuffer): IntConsumer = {
             case (value, attr) =>
@@ -149,7 +149,7 @@ class NetlinkMessageTest extends Suite with Matchers {
             val longs = new Array[Long](len)
             (0 until len) foreach { l => longs(l) = l}
             longs zip longs.map {
-                case l => new NetlinkMessage.AttrKey[JLong](l.toInt)
+                case l => NetlinkMessage.AttrKey.attr[JLong](l.toInt)
             }
         }
         def bufferChecker(buf: ByteBuffer): LongConsumer = {

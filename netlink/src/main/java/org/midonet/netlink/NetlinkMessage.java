@@ -21,22 +21,24 @@ import org.midonet.packets.MalformedPacketException;
  * a message.
  */
 public class NetlinkMessage {
-    public static class AttrKey<Type> {
+    public static final class AttrKey<Type> {
 
-        short id;
+        public final short id;
 
-        public AttrKey(int id) {
-            this(id, false);
-        }
-
-        public AttrKey(int id, boolean nested) {
-            this.id = nested
-                        ? (short) (id | NetlinkMessage.NLA_F_NESTED)
-                        : (short) id;
+        private AttrKey(int id) {
+            this.id = (short) id;
         }
 
         public short getId() {
             return id;
+        }
+
+        public static <T> AttrKey<T> attr(int id) {
+            return new AttrKey<T>(id);
+        }
+
+        public static <T> AttrKey<T> attrNested(int id) {
+            return new AttrKey<T>(id | NetlinkMessage.NLA_F_NESTED);
         }
     }
 

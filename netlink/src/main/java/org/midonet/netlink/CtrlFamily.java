@@ -31,26 +31,19 @@ public final class CtrlFamily {
         public byte version() { return VERSION; }
     }
 
-    public static class AttrKey<T> extends NetlinkMessage.AttrKey<T> {
+    public interface AttrKey {
 
-        public static final AttrKey<Short> FAMILY_ID = attr(1);
-        public static final AttrKey<String> FAMILY_NAME = attr(2);
-        public static final AttrKey<String> FAMILY_VERSION = attr(3);
-        public static final AttrKey<String> HDRSIZE = attr(4);
-        public static final AttrKey<String> MAXATTR = attr(5);
-        public static final AttrKey<String> OPS = attr(6);
-        public static final AttrKey<NetlinkMessage> MCAST_GROUPS = attr(7);
+        NetlinkMessage.AttrKey<Short> FAMILY_ID = NetlinkMessage.AttrKey.attr(1);
+        NetlinkMessage.AttrKey<String> FAMILY_NAME = NetlinkMessage.AttrKey.attr(2);
+        NetlinkMessage.AttrKey<String> FAMILY_VERSION = NetlinkMessage.AttrKey.attr(3);
+        NetlinkMessage.AttrKey<String> HDRSIZE = NetlinkMessage.AttrKey.attr(4);
+        NetlinkMessage.AttrKey<String> MAXATTR = NetlinkMessage.AttrKey.attr(5);
+        NetlinkMessage.AttrKey<String> OPS = NetlinkMessage.AttrKey.attr(6);
+        NetlinkMessage.AttrKey<NetlinkMessage> MCAST_GROUPS = NetlinkMessage.AttrKey.attr(7);
 
-        public static final AttrKey<String> MCAST_GRP_NAME = attr(1);
-        public static final AttrKey<Integer> MCAST_GRP_ID = attr(2);
+        NetlinkMessage.AttrKey<String> MCAST_GRP_NAME = NetlinkMessage.AttrKey.attr(1);
+        NetlinkMessage.AttrKey<Integer> MCAST_GRP_ID = NetlinkMessage.AttrKey.attr(2);
 
-        private AttrKey(int id) {
-            super(id);
-        }
-
-        static <T> AttrKey<T> attr(int id) {
-            return new AttrKey<T>(id);
-        }
     }
 
     private CtrlFamily() { }

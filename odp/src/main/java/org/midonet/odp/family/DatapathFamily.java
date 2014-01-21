@@ -16,24 +16,16 @@ public class DatapathFamily {
     public static final String NAME = OpenVSwitch.Datapath.Family;
     public static final String MC_GROUP = OpenVSwitch.Datapath.MCGroup;
 
-    public static class Attr<T> extends NetlinkMessage.AttrKey<T> {
+    public interface Attr {
 
-        public static final Attr<String> NAME =
-            attr(OpenVSwitch.Datapath.Attr.Name);
+        NetlinkMessage.AttrKey<String> NAME =
+            NetlinkMessage.AttrKey.attr(OpenVSwitch.Datapath.Attr.Name);
 
-        public static final Attr<Integer> UPCALL_PID =
-            attr(OpenVSwitch.Datapath.Attr.UpcallPID);
+        NetlinkMessage.AttrKey<Integer> UPCALL_PID =
+            NetlinkMessage.AttrKey.attr(OpenVSwitch.Datapath.Attr.UpcallPID);
 
-        public static final Attr<Datapath.Stats> STATS =
-            attr(OpenVSwitch.Datapath.Attr.Stat);
-
-        public Attr(int id) {
-            super(id);
-        }
-
-        static <T> Attr<T> attr(int id) {
-            return new Attr<T>(id);
-        }
+        NetlinkMessage.AttrKey<Datapath.Stats> STATS =
+            NetlinkMessage.AttrKey.attr(OpenVSwitch.Datapath.Attr.Stat);
     }
 
     public final OvsBaseContext contextNew;
