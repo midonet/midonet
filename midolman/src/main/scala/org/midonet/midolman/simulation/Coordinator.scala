@@ -232,22 +232,11 @@ class Coordinator(var origMatch: WildcardMatch,
                     case inPortId: UUID =>
                         val simRes = packetIngressesPort(inPortId,
                                                          getPortGroups = true)
-                        origMatch.getEtherType.shortValue() match {
-                            case IPv4.ETHERTYPE => origMatch.getIpFragmentType
-                            match {
-                                case IPFragmentType.None => simRes
-                                case _ =>
-                                    log.debug("Handling fragmented packet")
-                                    simRes flatMap {
-                                        sr => handleFragmentation(inPortId, sr)
-                                    } recover { case _ =>
-                                        ErrorDrop
-                                    }
-                            }
-                            case _ => simRes
-                        }
+                        if (origMatch.getIpFragmentType == IPFragmentType.None)
+                            simRes
+                        else
+                            simRes map handleFragmentation(inPortId)
                 }
-
             case Some(egressID) =>
                 origMatch.getInputPortUUID match {
                     case null => packetEgressesPort(egressID)
@@ -272,9 +261,8 @@ class Coordinator(var origMatch: WildcardMatch,
      * through. Otherwise it'll reply with a Frag. Needed for the first fragment
      * and drop subsequent ones.
      */
-    private def handleFragmentation(inPort: UUID,
-                                    simRes: Future[SimulationResult])
-    : Future[SimulationResult] = simRes map {
+    private def handleFragmentation(inPort: UUID)
+                                   (simRes: SimulationResult) = simRes match {
         case sr if pktContext.wcmatch.highestLayerSeen() < 4 =>
             log.debug("Fragmented packet, L4 fields untouched: execute")
             sr
@@ -284,19 +272,23 @@ class Coordinator(var origMatch: WildcardMatch,
                 case IPFragmentType.First =>
                     origMatch.getEtherType.shortValue match {
                         case IPv4.ETHERTYPE =>
+                            /* We don't support fragmentation. So, assuming some
+                             * device in the middle fragmented the packet, we
+                             * send a Fragmentation Needed ICMP with that device's
+                             * MTU so that the sender can adjust itself and the
+                             * device will stop fragmenting subsequent packets.
+                             */
                             log.debug("Reply with frag needed and DROP")
                             sendIpv4FragNeeded(inPort)
                             dropFlow(temporary = true, withTags = false)
                         case ethertype =>
                             log.info("Dropping fragmented packet of " +
                                      "unsupported ethertype={}", ethertype)
-                            dropFlow(temporary = false, withTags = false)
+                            dropFlow(temporary = true, withTags = false)
                     }
                 case IPFragmentType.Later =>
                     log.debug("Dropping non-first fragment at simulation layer")
-                    AddVirtualWildcardFlow(WildcardFlow(wcmatch = origMatch),
-                                           pktContext.getFlowRemovedCallbacks,
-                                           pktContext.getFlowTags)
+                    dropFlow(temporary = false, withTags = true)
                 case IPFragmentType.None =>
                     throw new IllegalStateException(
                         "handleFragmentation called for an unfragmented packet")

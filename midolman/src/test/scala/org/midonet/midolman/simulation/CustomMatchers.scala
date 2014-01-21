@@ -5,11 +5,14 @@ import java.util.UUID
 
 import org.scalatest.matchers.{BePropertyMatchResult, BePropertyMatcher}
 
-import org.midonet.midolman.PacketWorkflow.{SendPacket, AddVirtualWildcardFlow, SimulationResult}
+import org.midonet.midolman.PacketWorkflow.{SendPacket, AddVirtualWildcardFlow,
+                                            SimulationResult}
 import org.midonet.packets.{IPv4, Ethernet}
 import org.midonet.sdn.flows.WildcardFlow
-import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPortSet
-import org.midonet.odp.flows.{FlowAction, FlowKeyIPv4, FlowKeyEthernet, FlowActionSetKey}
+import org.midonet.sdn.flows.VirtualActions.{FlowActionOutputToVrnPort,
+                                             FlowActionOutputToVrnPortSet}
+import org.midonet.odp.flows.{FlowAction, FlowKeyIPv4, FlowKeyEthernet,
+                              FlowActionSetKey}
 
 trait CustomMatchers {
 
@@ -22,6 +25,21 @@ trait CustomMatchers {
                 case _ =>
                     false
             }, s"a drop flow containing tags {${expectedTags.toList}")
+    }
+
+    def toPort(portId: UUID)(expectedTags: Any*) = new BePropertyMatcher[SimulationResult] {
+        def apply(simRes: SimulationResult) =
+            BePropertyMatchResult((simRes match {
+                case AddVirtualWildcardFlow(flow, _, tags) =>
+                    if (expectedTags forall tags.contains)
+                        flow.actions
+                    else Nil
+                case SendPacket(actions) => actions
+                case _ => Nil
+            }).exists({
+                case FlowActionOutputToVrnPort(id) => id == portId
+                case _ => false
+            }), s"a port action to $portId")
     }
 
     def toPortSet(portSetId: UUID, expectedTags: Any*) =
@@ -53,24 +71,22 @@ trait CustomMatchers {
                 } , s"a flow matching $pkt containing tags " +
                     s"{${expectedTags.toList}}")
 
-        def flowMatchesPacket(flow: WildcardFlow, pkt: Ethernet): Boolean = {
-            val f: PartialFunction[FlowAction, Boolean] = {
+        def flowMatchesPacket(flow: WildcardFlow, pkt: Ethernet): Boolean =
+            flow.actions.collect {
                 case f: FlowActionSetKey => f.getFlowKey match {
                     case k: FlowKeyEthernet =>
                         util.Arrays.equals(
                             k.getDst,
                             pkt.getDestinationMACAddress.getAddress) &&
-                                util.Arrays.equals(
-                                    k.getSrc,
-                                    pkt.getSourceMACAddress.getAddress)
+                        util.Arrays.equals(
+                            k.getSrc,
+                            pkt.getSourceMACAddress.getAddress)
                     case k: FlowKeyIPv4 if pkt.getPayload.isInstanceOf[IPv4] =>
                         val ipPkt = pkt.getPayload.asInstanceOf[IPv4]
                         k.getDst == ipPkt.getDestinationAddress &&
-                                k.getSrc == ipPkt.getSourceAddress
+                        k.getSrc == ipPkt.getSourceAddress
                     case _ => false
                 }
-            }
-            flow.actions.collect(f).size == 2
-        }
+            }.size == 2
     }
 }
