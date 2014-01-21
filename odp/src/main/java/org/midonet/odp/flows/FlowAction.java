@@ -10,44 +10,31 @@ import org.midonet.odp.OpenVSwitch;
 public interface FlowAction
         extends BuilderAware, NetlinkMessage.Attr<FlowAction> {
 
-    public static class FlowActionAttr<Action extends FlowAction>
-            extends NetlinkMessage.AttrKey<Action> {
+    public interface FlowActionAttr {
 
         /** u32 port number. */
-        public static final FlowActionAttr<FlowActionOutput> OUTPUT =
-            attr(OpenVSwitch.FlowAction.Attr.Output);
+        NetlinkMessage.AttrKey<FlowActionOutput> OUTPUT =
+            NetlinkMessage.AttrKey.attr(OpenVSwitch.FlowAction.Attr.Output);
 
         /** Nested OVS_USERSPACE_ATTR_*. */
-        public static final FlowActionAttr<FlowActionUserspace> USERSPACE =
-            attrNest(OpenVSwitch.FlowAction.Attr.Userspace);
+        NetlinkMessage.AttrKey<FlowActionUserspace> USERSPACE =
+            NetlinkMessage.AttrKey.attrNested(OpenVSwitch.FlowAction.Attr.Userspace);
 
         /** One nested OVS_KEY_ATTR_*. */
-        public static final FlowActionAttr<FlowActionSetKey> SET =
-            attrNest(OpenVSwitch.FlowAction.Attr.Set);
+        NetlinkMessage.AttrKey<FlowActionSetKey> SET =
+            NetlinkMessage.AttrKey.attrNested(OpenVSwitch.FlowAction.Attr.Set);
 
         /** struct ovs_action_push_vlan. */
-        public static final FlowActionAttr<FlowActionPushVLAN> PUSH_VLAN =
-            attr(OpenVSwitch.FlowAction.Attr.PushVLan);
+        NetlinkMessage.AttrKey<FlowActionPushVLAN> PUSH_VLAN =
+            NetlinkMessage.AttrKey.attr(OpenVSwitch.FlowAction.Attr.PushVLan);
 
         /** No argument. */
-        public static final FlowActionAttr<FlowActionPopVLAN> POP_VLAN =
-            attr(OpenVSwitch.FlowAction.Attr.PopVLan);
+        NetlinkMessage.AttrKey<FlowActionPopVLAN> POP_VLAN =
+            NetlinkMessage.AttrKey.attr(OpenVSwitch.FlowAction.Attr.PopVLan);
 
         /** Nested OVS_SAMPLE_ATTR_*. */
-        public static final FlowActionAttr<FlowActionSample> SAMPLE =
-            attrNest(OpenVSwitch.FlowAction.Attr.Sample);
-
-        public FlowActionAttr(int id, boolean nested) {
-            super(id, nested);
-        }
-
-        static <T extends FlowAction> FlowActionAttr<T> attr(int id) {
-            return new FlowActionAttr<T>(id, false);
-        }
-
-        static <T extends FlowAction> FlowActionAttr<T> attrNest(int id) {
-            return new FlowActionAttr<T>(id, true);
-        }
+        NetlinkMessage.AttrKey<FlowActionSample> SAMPLE =
+            NetlinkMessage.AttrKey.attrNested(OpenVSwitch.FlowAction.Attr.Sample);
     }
 
     static NetlinkMessage.CustomBuilder<FlowAction> Builder =

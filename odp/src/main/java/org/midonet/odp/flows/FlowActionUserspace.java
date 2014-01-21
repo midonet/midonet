@@ -4,10 +4,19 @@
 package org.midonet.odp.flows;
 
 import org.midonet.netlink.NetlinkMessage;
+import org.midonet.netlink.NetlinkMessage.AttrKey;
 import org.midonet.netlink.messages.Builder;
 import org.midonet.odp.OpenVSwitch;
 
 public class FlowActionUserspace implements FlowAction {
+
+    /* u32 Netlink PID to receive upcalls. */
+    public static final AttrKey<Integer> OVS_USERSPACE_ATTR_PID =
+        AttrKey.attr(OpenVSwitch.FlowAction.UserspaceAttr.PID);
+
+    /* u64 optional user-specified cookie. */
+    public static final AttrKey<Long> OVS_USERSPACE_ATTR_USERDATA =
+        AttrKey.attr(OpenVSwitch.FlowAction.UserspaceAttr.Userdata);
 
     private int uplinkPid;
     private Long userData;
@@ -26,17 +35,17 @@ public class FlowActionUserspace implements FlowAction {
 
     @Override
     public void serialize(Builder builder) {
-        builder.addAttr(Attr.OVS_USERSPACE_ATTR_PID, uplinkPid);
+        builder.addAttr(OVS_USERSPACE_ATTR_PID, uplinkPid);
         if (userData != null) {
-            builder.addAttr(Attr.OVS_USERSPACE_ATTR_USERDATA, userData);
+            builder.addAttr(OVS_USERSPACE_ATTR_USERDATA, userData);
         }
     }
 
     @Override
     public boolean deserialize(NetlinkMessage message) {
         try {
-            uplinkPid = message.getAttrValueInt(Attr.OVS_USERSPACE_ATTR_PID);
-            userData = message.getAttrValueLong(Attr.OVS_USERSPACE_ATTR_USERDATA);
+            uplinkPid = message.getAttrValueInt(OVS_USERSPACE_ATTR_PID);
+            userData = message.getAttrValueLong(OVS_USERSPACE_ATTR_USERDATA);
             return true;
         } catch (Exception e) {
             return false;
@@ -51,25 +60,6 @@ public class FlowActionUserspace implements FlowAction {
     @Override
     public FlowActionUserspace getValue() {
         return this;
-    }
-
-    public static class Attr<T> extends NetlinkMessage.AttrKey<T> {
-
-        /* u32 Netlink PID to receive upcalls. */
-        public static final Attr<Integer> OVS_USERSPACE_ATTR_PID
-            = attr(OpenVSwitch.FlowAction.UserspaceAttr.PID);
-
-        /* u64 optional user-specified cookie. */
-        public static final Attr<Long> OVS_USERSPACE_ATTR_USERDATA
-            = attr(OpenVSwitch.FlowAction.UserspaceAttr.Userdata);
-
-        public Attr(int id) {
-            super(id);
-        }
-
-        static <T> Attr<T> attr(int id) {
-            return new Attr<T>(id);
-        }
     }
 
     @Override

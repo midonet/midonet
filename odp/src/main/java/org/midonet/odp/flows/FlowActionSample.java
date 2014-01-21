@@ -6,10 +6,17 @@ package org.midonet.odp.flows;
 import java.util.List;
 
 import org.midonet.netlink.NetlinkMessage;
+import org.midonet.netlink.NetlinkMessage.AttrKey;
 import org.midonet.netlink.messages.Builder;
 import org.midonet.odp.OpenVSwitch;
 
 public class FlowActionSample implements FlowAction {
+
+    private static final AttrKey<Integer> PROBABILITY =
+        AttrKey.attr(OpenVSwitch.FlowAction.SampleAttr.Probability);
+
+    private static final AttrKey<List<FlowAction>> ACTIONS =
+        AttrKey.attrNested(OpenVSwitch.FlowAction.SampleAttr.Actions);
 
     /**
      * u32 port number.
@@ -28,45 +35,18 @@ public class FlowActionSample implements FlowAction {
 
     @Override
     public void serialize(Builder builder) {
-        builder.addAttr(Attr.PROBABILITY, probability);
-        builder.addAttrs(Attr.ACTIONS, actions);
+        builder.addAttr(PROBABILITY, probability);
+        builder.addAttrs(ACTIONS, actions);
     }
 
     @Override
     public boolean deserialize(NetlinkMessage message) {
         try {
-            probability = message.getAttrValueInt(Attr.PROBABILITY);
-            actions = message.getAttrValue(Attr.ACTIONS, FlowAction.Builder);
+            probability = message.getAttrValueInt(PROBABILITY);
+            actions = message.getAttrValue(ACTIONS, FlowAction.Builder);
             return true;
         } catch (Exception e) {
             return false;
-        }
-    }
-
-    public static class Attr<T> extends NetlinkMessage.AttrKey<T> {
-
-        /**
-         * u32 port number.
-         */
-        public static final Attr<Integer> PROBABILITY =
-            attr(OpenVSwitch.FlowAction.SampleAttr.Probability);
-
-        /**
-         * Nested OVS_ACTION_ATTR_*.
-         */
-        public static final Attr<List<FlowAction>> ACTIONS =
-            attrNest(OpenVSwitch.FlowAction.SampleAttr.Actions);
-
-        private Attr(int id, boolean nested) {
-            super(id, nested);
-        }
-
-        static <T> Attr<T> attr(int id) {
-            return new Attr<>(id, false);
-        }
-
-        static <T> Attr<T> attrNest(int id) {
-            return new Attr<>(id, true);
         }
     }
 
