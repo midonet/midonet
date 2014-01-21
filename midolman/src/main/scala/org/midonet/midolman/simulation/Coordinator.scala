@@ -40,13 +40,15 @@ object Coordinator {
     case object ErrorDropAction extends Action
 
     sealed trait AbstractDropAction extends Action {
+        val temporary: Boolean
+    }
+
+    case object DropAction extends AbstractDropAction {
         val temporary = false
     }
 
-    case object DropAction extends AbstractDropAction
-
     case object TemporaryDropAction extends AbstractDropAction {
-        override val temporary = true
+        val temporary = true
     }
 
     // NotIPv4Action implies a DROP flow. However, it differs from DropAction
@@ -158,7 +160,7 @@ class Coordinator(var origMatch: WildcardMatch,
         false
     }
 
-    private def dropFlow(temporary: Boolean, withTags: Boolean = false)
+    private def dropFlow(temporary: Boolean, withTags: Boolean)
     : SimulationResult = {
         // If the packet is from the datapath, install a temporary Drop flow.
         // Note: a flow with no actions drops matching packets.
@@ -225,7 +227,7 @@ class Coordinator(var origMatch: WildcardMatch,
                             "port NOR ingressed a virtual device's exterior " +
                             "port. Match: %s; Packet: %s".format(
                                 origMatch.toString, origEthernetPkt.toString))
-                        dropFlow(temporary = true)
+                        dropFlow(temporary = true, withTags = false)
 
                     case inPortId: UUID =>
                         val simRes = packetIngressesPort(inPortId,
@@ -256,11 +258,11 @@ class Coordinator(var origMatch: WildcardMatch,
                             "port AND ingressed a virtual device's exterior " +
                             "port. Match: %s; Packet: %s".format(
                                 origMatch.toString, origEthernetPkt.toString))
-                        dropFlow(temporary = true)
+                        dropFlow(temporary = true, withTags = false)
                 }
         }
         simf recover { case _ =>
-            dropFlow(temporary = true)
+            dropFlow(temporary = true, withTags = false)
         }
     }
 
@@ -284,11 +286,11 @@ class Coordinator(var origMatch: WildcardMatch,
                         case IPv4.ETHERTYPE =>
                             log.debug("Reply with frag needed and DROP")
                             sendIpv4FragNeeded(inPort)
-                            dropFlow(temporary = true)
+                            dropFlow(temporary = true, withTags = false)
                         case ethertype =>
                             log.info("Dropping fragmented packet of " +
                                      "unsupported ethertype={}", ethertype)
-                            dropFlow(temporary = false)
+                            dropFlow(temporary = false, withTags = false)
                     }
                 case IPFragmentType.Later =>
                     log.debug("Dropping non-first fragment at simulation layer")
@@ -380,7 +382,7 @@ class Coordinator(var origMatch: WildcardMatch,
                     log.debug("Receive unrecognized action {}", firstAction)
                 }
                 origMatch = firstOrigMatch
-                dropFlow(temporary = true)
+                dropFlow(temporary = true, withTags = false)
         }
     }
 
@@ -446,7 +448,7 @@ class Coordinator(var origMatch: WildcardMatch,
 
             case ErrorDropAction =>
                 pktContext.traceMessage(null, "Encountered error")
-                dropFlow(temporary = true)
+                dropFlow(temporary = true, withTags = false)
 
             case act: AbstractDropAction =>
                 pktContext.traceMessage(null, "Dropping flow")
@@ -489,7 +491,7 @@ class Coordinator(var origMatch: WildcardMatch,
                 pktContext.traceMessage(null,
                                         "ERROR Unexpected action returned")
                 log.error("Device returned unexpected action!")
-                dropFlow(temporary = true)
+                dropFlow(temporary = true, withTags = false)
         } // end action match
     }
 
@@ -497,8 +499,11 @@ class Coordinator(var origMatch: WildcardMatch,
     : Future[SimulationResult] = {
         // Avoid loops - simulate at most X devices.
         if (numDevicesSimulated >= MAX_DEVICES_TRAVERSED) {
-            return dropFlow(temporary = true)
+            return dropFlow(temporary = true, withTags = false)
         }
+
+        // add tag for flow invalidation
+        pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(portID))
 
         // Get the RCU port object and start simulation.
         expiringAsk(PortRequest(portID), log) flatMap {
@@ -510,9 +515,6 @@ class Coordinator(var origMatch: WildcardMatch,
                 }
 
                 pktContext.inPortId = p
-
-                // add tag for flow invalidation
-                pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(portID))
                 applyPortFilter(p, p.inFilterID, packetIngressesDevice)
         }
     }
@@ -537,7 +539,7 @@ class Coordinator(var origMatch: WildcardMatch,
                 case other =>
                     log.error("Port filter {} returned {} which was " +
                             "not ACCEPT, DROP or REJECT.", filterID, other)
-                    dropFlow(temporary = true)
+                    dropFlow(temporary = true, withTags = false)
             }
         }
     }
@@ -547,13 +549,14 @@ class Coordinator(var origMatch: WildcardMatch,
      * for output-ing to PortSets.
      * @param portID
      */
-    private def packetEgressesPort(portID: UUID): Future[SimulationResult] =
+    private def packetEgressesPort(portID: UUID): Future[SimulationResult] = {
+        // add tag for flow invalidation
+        pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(portID))
+
         expiringAsk(PortRequest(portID), log) flatMap {
             case port if !port.adminStateUp =>
                 processAdminStateDown(port, isIngress = false)
             case port =>
-                // add tag for flow invalidation
-                pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(portID))
                 pktContext.outPortId = port.id
                 applyPortFilter(port, port.outFilterID, {
                     case port: Port[_] if port.isExterior =>
@@ -563,9 +566,10 @@ class Coordinator(var origMatch: WildcardMatch,
                             getPortGroups = false)
                     case _ =>
                         log.warning("Port {} is unplugged", port)
-                        dropFlow(temporary = true)
+                        dropFlow(temporary = true, withTags = false)
                 })
         }
+    }
 
     /**
      * Complete the simulation by emitting the packet from the specified
@@ -651,7 +655,7 @@ class Coordinator(var origMatch: WildcardMatch,
             case _ =>
         }
 
-        dropFlow(temporary = false)
+        dropFlow(temporary = false, withTags = true)
     }
 
     private def installConnectionCacheEntry(outPortID: UUID,

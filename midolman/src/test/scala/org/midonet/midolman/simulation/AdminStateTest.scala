@@ -6,11 +6,14 @@ package org.midonet.midolman.simulation
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
+import scala.collection.mutable
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
 import akka.actor._
+import akka.actor.Actor.emptyBehavior
 import akka.pattern.ask
+import akka.testkit.TestActorRef
 import akka.util.Timeout
 
 import org.junit.runner.RunWith
@@ -39,6 +42,7 @@ import org.midonet.packets._
 import org.midonet.packets.ICMP.UNREACH_CODE
 import org.midonet.sdn.flows.WildcardMatch
 
+
 @RunWith(classOf[JUnitRunner])
 class AdminStateTest extends FeatureSpec
                      with Matchers
@@ -59,8 +63,8 @@ class AdminStateTest extends FeatureSpec
                                           with MessageAccumulator))
 
     /*
-     * The topology for this test consists of one bridge And one router,
-     * each with two ports, one interior And another exterior.
+     * The topology for this test consists of one bridge and one router,
+     * each with two ports, one interior and another exterior.
      */
 
     val ipBridgeSide = new IPv4Subnet("10.0.0.64", 24)
@@ -159,7 +163,9 @@ class AdminStateTest extends FeatureSpec
 
             Then("a drop flow should be installed")
 
-            flow should be (dropped)
+            flow should be (dropped {
+                FlowTagger.invalidateFlowsByDevice(bridge.getId)
+            })
         }
 
         scenario("a down interior bridge port drops egressing packets") {
@@ -174,7 +180,9 @@ class AdminStateTest extends FeatureSpec
 
             Then("a drop flow should be installed")
 
-            flow should be (dropped)
+            flow should be (dropped {
+                FlowTagger.invalidateFlowsByDevice(interiorBridgePort.getId)
+            })
         }
 
         scenario("a down interior bridge port drops ingressing packets") {
@@ -189,7 +197,9 @@ class AdminStateTest extends FeatureSpec
 
             Then("a drop flow should be installed")
 
-            flow should be (dropped)
+            flow should be (dropped {
+                FlowTagger.invalidateFlowsByDevice(interiorBridgePort.getId)
+            })
         }
 
         scenario("a down exterior bridge port drops egressing packets") {
@@ -204,7 +214,9 @@ class AdminStateTest extends FeatureSpec
 
             Then("a drop flow should be installed")
 
-            flow should be (dropped)
+            flow should be (dropped {
+                FlowTagger.invalidateFlowsByDevice(exteriorBridgePort.getId)
+            })
         }
 
         scenario("a down exterior bridge port drops ingressing packets") {
@@ -219,17 +231,13 @@ class AdminStateTest extends FeatureSpec
 
             Then("a drop flow should be installed")
 
-            flow should be (dropped)
+            flow should be (dropped {
+                FlowTagger.invalidateFlowsByDevice(exteriorBridgePort.getId)
+            })
         }
 
         scenario("a down exterior bridge port drops broadcast packets") {
-            val ft = actorSystem.actorOf(Props(new MockFlowTranslator))
-            def translateActions(simRes: SimulationResult) = {
-                val actions = simRes.asInstanceOf[AddVirtualWildcardFlow]
-                                    .flow.actions
-                Await.result(ask(ft, actions), Duration.Inf)
-                     .asInstanceOf[Seq[Any]]
-            }
+            val ft = TestActorRef(new MockFlowTranslator()).underlyingActor
 
             Given("an exterior bridge port that is flooded")
 
@@ -240,10 +248,8 @@ class AdminStateTest extends FeatureSpec
                  .remove(macBridgeSide, exteriorBridgePort.getId)
 
             var simRes = sendPacket (fromRouterSide)
-
             simRes should be (toPortSet(bridge.getId))
-            var tacts = translateActions(simRes)
-            tacts should contain (output(1).asInstanceOf[Any])
+            ft.translate(simRes)._1 should contain (output(1).asInstanceOf[Any])
 
             When("the port is set to down")
 
@@ -254,9 +260,10 @@ class AdminStateTest extends FeatureSpec
 
             simRes = sendPacket (fromRouterSide)
             simRes should be (toPortSet(bridge.getId))
-
-            tacts = translateActions(simRes)
+            val (tacts, dpTags) = ft.translate(simRes)
             tacts should not (contain (output(1).asInstanceOf[Any]))
+            dpTags should contain(
+                FlowTagger.invalidateFlowsByDevice(exteriorBridgePort.getId))
         }
 
         scenario("a down router sends an ICMP prohibited error") {
@@ -271,7 +278,9 @@ class AdminStateTest extends FeatureSpec
 
             Then("a drop flow should be installed")
 
-            flow should be (dropped)
+            flow should be (dropped {
+                FlowTagger.invalidateFlowsByDevice(router.getId)
+            })
 
             And("an ICMP prohibited error should be emitted from the " +
                 "ingressing port")
@@ -292,7 +301,9 @@ class AdminStateTest extends FeatureSpec
 
             Then("a drop flow should be installed")
 
-            flow should be (dropped)
+            flow should be (dropped {
+                FlowTagger.invalidateFlowsByDevice(interiorRouterPort.getId)
+            })
 
             And("an ICMP prohibited error should be emitted from the " +
                     "ingressing port")
@@ -313,7 +324,9 @@ class AdminStateTest extends FeatureSpec
 
             Then("a drop flow should be installed")
 
-            flow should be (dropped)
+            flow should be (dropped {
+                FlowTagger.invalidateFlowsByDevice(interiorRouterPort.getId)
+            })
 
             And("an ICMP prohibited error should be emitted from the port")
 
@@ -333,7 +346,9 @@ class AdminStateTest extends FeatureSpec
 
             Then("a drop flow should be installed")
 
-            flow should be (dropped)
+            flow should be (dropped {
+                FlowTagger.invalidateFlowsByDevice(exteriorRouterPort.getId)
+            })
 
             And("an ICMP prohibited error should be emitted from the " +
                 "ingressing port")
@@ -354,7 +369,9 @@ class AdminStateTest extends FeatureSpec
 
             Then("a drop flow should be installed")
 
-            flow should be (dropped)
+            flow should be (dropped {
+                FlowTagger.invalidateFlowsByDevice(exteriorRouterPort.getId)
+            })
 
             And("an ICMP prohibited error should be emitted from the port")
 
@@ -393,12 +410,15 @@ class AdminStateTest extends FeatureSpec
             def uplinkPid: Int = 0
         }
 
-        def receive = {
-            case actions: Seq[_] =>
-                val s = sender
-                translateActions(actions.asInstanceOf[Seq[FlowAction[_]]],
-                    None, None, null).map { s ! _ }(executionContext)
+        def translate(simRes: SimulationResult) = {
+            val actions = simRes.asInstanceOf[AddVirtualWildcardFlow]
+                                .flow.actions
+            val tags = mutable.Set[Any]()
+            (Await.result(translateActions(actions, None, Some(tags), null),
+                3 seconds), tags)
         }
+
+        def receive = emptyBehavior
     }
 
     private[this] def assertExpectedIcmpProhibitPacket(routerPort: RouterPort) {
@@ -423,7 +443,7 @@ class AdminStateTest extends FeatureSpec
     feature("Setting the administrative state of a device should " +
             "invalidate all its flows") {
         scenario("the admin state of a bridge is set to down") {
-            Given("a bridge")
+            Given("a bridge with its state set to up")
 
             When("setting its state to down")
 
@@ -435,8 +455,24 @@ class AdminStateTest extends FeatureSpec
             assertFlowTagsInvalidated(bridge)
         }
 
+        scenario("the admin state of a bridge is set to up") {
+            Given("a bridge with its state set to down")
+            bridge.setAdminStateUp(false)
+            clusterDataClient().bridgesUpdate(bridge)
+            VirtualTopologyActor.getAndClear()
+
+            When("setting its state to down")
+
+            bridge.setAdminStateUp(true)
+            clusterDataClient().bridgesUpdate(bridge)
+
+            Then("corresponding flows should be invalidated")
+
+            assertFlowTagsInvalidated(bridge)
+        }
+
         scenario("the admin state of a bridge port is set to down") {
-            Given("interior and exterior bridge ports")
+            Given("interior and exterior bridge ports with state set to up")
 
             When("setting their state to down")
 
@@ -450,8 +486,28 @@ class AdminStateTest extends FeatureSpec
             assertFlowTagsInvalidated(interiorBridgePort, exteriorBridgePort)
         }
 
+        scenario("the admin state of a bridge port is set to up") {
+            Given("interior and exterior bridge ports with their state set to down")
+            interiorBridgePort.setAdminStateUp(false)
+            exteriorBridgePort.setAdminStateUp(false)
+            clusterDataClient().portsUpdate(interiorBridgePort)
+            clusterDataClient().portsUpdate(exteriorBridgePort)
+            VirtualTopologyActor.getAndClear()
+
+            When("setting their state to up")
+
+            interiorBridgePort.setAdminStateUp(true)
+            exteriorBridgePort.setAdminStateUp(true)
+            clusterDataClient().portsUpdate(interiorBridgePort)
+            clusterDataClient().portsUpdate(exteriorBridgePort)
+
+            Then("corresponding flows should be invalidated")
+
+            assertFlowTagsInvalidated(interiorBridgePort, exteriorBridgePort)
+        }
+
         scenario("the admin state of a router is set to down") {
-            Given("a router")
+            Given("a router with its state set to up")
 
             When("setting its state to down")
 
@@ -463,13 +519,49 @@ class AdminStateTest extends FeatureSpec
             assertFlowTagsInvalidated(router)
         }
 
+        scenario("the admin state of a router is set to up") {
+            Given("a router with its state set to down")
+            router.setAdminStateUp(false)
+            clusterDataClient().routersUpdate(router)
+            VirtualTopologyActor.getAndClear()
+
+            When("setting its state to up")
+
+            router.setAdminStateUp(true)
+            clusterDataClient().routersUpdate(router)
+
+            Then("corresponding flows should be invalidated")
+
+            assertFlowTagsInvalidated(router)
+        }
+
         scenario("the admin state of a router port is set to down") {
-            Given("interior And exterior router ports")
+            Given("interior and exterior router ports with their state set to up")
 
             When("setting their state to down")
 
             interiorRouterPort.setAdminStateUp(false)
             exteriorRouterPort.setAdminStateUp(false)
+            clusterDataClient().portsUpdate(interiorRouterPort)
+            clusterDataClient().portsUpdate(exteriorRouterPort)
+
+            Then("corresponding flows should be invalidated")
+
+            assertFlowTagsInvalidated(interiorRouterPort, exteriorRouterPort)
+        }
+
+        scenario("the admin state of a router port is set to up") {
+            Given("interior and exterior router ports with their state set to down")
+            interiorRouterPort.setAdminStateUp(false)
+            exteriorRouterPort.setAdminStateUp(false)
+            clusterDataClient().portsUpdate(interiorRouterPort)
+            clusterDataClient().portsUpdate(exteriorRouterPort)
+            VirtualTopologyActor.getAndClear()
+
+            When("setting their state to up")
+
+            interiorRouterPort.setAdminStateUp(true)
+            exteriorRouterPort.setAdminStateUp(true)
             clusterDataClient().portsUpdate(interiorRouterPort)
             clusterDataClient().portsUpdate(exteriorRouterPort)
 
