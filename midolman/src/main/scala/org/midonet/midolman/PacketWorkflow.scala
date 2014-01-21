@@ -378,10 +378,10 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
                     action, portSet)
                 // egress port filter simulation
 
-                activePorts(portSet.localPorts) flatMap { localPorts =>
+                val tags = mutable.Set[Any]()
+                activePorts(portSet.localPorts, tags) flatMap { localPorts =>
                     // Take the outgoing filter for each port
                     // and apply it, checking for Action.ACCEPT.
-                    val tags = mutable.Set[Any]()
                     applyOutboundFilters(
                         localPorts, portSet.id, wMatch, Some(tags)
                     ) flatMap {
