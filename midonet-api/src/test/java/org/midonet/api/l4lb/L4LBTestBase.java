@@ -197,8 +197,6 @@ public class L4LBTestBase extends RestApiTestBase {
         vip.setPoolId(poolId);
         vip.setAddress("192.168.100.1");
         vip.setProtocolPort(80);
-        vip.setSessionPersistence(VIP.VIP_SOURCE_IP);
-        vip.setAdminStateUp(true);
 
         return vip;
     }
