@@ -134,7 +134,7 @@ class AdminStateTest extends FeatureSpec
 
         sendPacket (fromBridgeSide) should be (flowMatching (bridgeSidePkt))
         sendPacket (fromRouterSide) should be (flowMatching (routerSidePkt))
-        DeduplicationActor.messages should be ('empty)
+        DeduplicationActor.messages should be (empty)
 
         VirtualTopologyActor.getAndClear()
     }

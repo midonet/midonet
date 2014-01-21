@@ -106,7 +106,7 @@ public class WildcardMatch implements Cloneable {
     private byte networkProtocol = 0;
     private byte networkTTL = 0;
     private byte networkTOS = 0;
-    private IPFragmentType ipFragmentType;
+    private IPFragmentType ipFragmentType = IPFragmentType.None;
     private int transportSource = 0;
     private int transportDestination = 0;
 
