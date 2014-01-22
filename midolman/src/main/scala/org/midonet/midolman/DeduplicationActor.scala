@@ -13,7 +13,6 @@ import scala.util.{Failure, Success}
 
 import akka.actor._
 import akka.event.LoggingReceive
-
 import com.yammer.metrics.core.{MetricsRegistry, Clock}
 import javax.annotation.Nullable
 import javax.inject.Inject
@@ -32,12 +31,12 @@ import org.midonet.midolman.rules.Condition
 import org.midonet.midolman.simulation.Coordinator
 import org.midonet.midolman.topology.TraceConditionsManager
 import org.midonet.midolman.topology.VirtualTopologyActor
+import org.midonet.midolman.topology.rcu.TraceConditions
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp.flows.FlowAction
 import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.odp.{FlowMatches, Datapath, FlowMatch, Packet}
 import org.midonet.packets.Ethernet
-import org.midonet.midolman.topology.rcu.TraceConditions
 import org.midonet.util.BatchCollector
 import org.midonet.util.throttling.ThrottlingGuard
 
@@ -63,8 +62,8 @@ object DeduplicationActor extends Referenceable {
 
 }
 
-class DeduplicationActor extends Actor with ActorLogWithoutPath with
-        UserspaceFlowActionTranslator with SuspendedPacketQueue {
+class DeduplicationActor extends Actor with ActorLogWithoutPath
+        with SuspendedPacketQueue {
 
     import DatapathController.DatapathReady
     import DeduplicationActor._
@@ -291,7 +290,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath with
                               actions: Seq[FlowAction]) {
         packet.setActions(actions.asJava)
         if (packet.getMatch.isUserSpaceOnly)
-            applyActionsAfterUserspaceMatch(packet)
+            UserspaceFlowActionTranslator.translate(packet)
 
         if (!packet.getActions.isEmpty) {
             log.debug("Sending pended packet {} for cookie {}", packet, cookie)
