@@ -13,6 +13,9 @@ import org.midonet.util.collection.WeakObjectPool
 object FlowTagger {
     val INSTANCE_POOL : WeakObjectPool[String] = new WeakObjectPool[String]()
 
+    /**
+     * Invalidate flows that were created after traversing through a device
+     */
     def invalidateFlowsByDevice(device: UUID): AnyRef = {
         val tag = "device:" + device.toString
         INSTANCE_POOL.sharedRef(tag)
@@ -23,6 +26,10 @@ object FlowTagger {
         INSTANCE_POOL.sharedRef(tag)
     }
 
+    /**
+     * Used to invalidate all the flows on "vlanId" addressed to the unknown
+     * "mac", which were thus flooded to the bridge's portset.
+     */
     def invalidateFloodedFlowsByDstMac(bridgeId: UUID, mac: MAC,
                                        vlanId: JShort): AnyRef = {
         val tag = "br_flood_mac:" + bridgeId.toString + ":" + mac.toString +
@@ -35,6 +42,10 @@ object FlowTagger {
         INSTANCE_POOL.sharedRef(tag)
     }
 
+    /**
+     * Used to invalidate all the flows on "vlan" addressed to "mac" that were
+     * sent to "port" in the given bridge.
+     */
     def invalidateFlowsByPort(bridgeId: UUID, mac: MAC, vlanId: JShort,
                               port: UUID): AnyRef = {
         val tag = "br_fwd_mac:" + bridgeId.toString + ":" + mac.toString + ":" +
