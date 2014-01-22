@@ -13,7 +13,6 @@ import javax.annotation.Nonnull;
 import com.google.common.base.Function;
 
 import org.midonet.netlink.NetlinkMessage;
-import org.midonet.netlink.messages.BaseBuilder;
 import org.midonet.netlink.messages.Builder;
 import org.midonet.netlink.messages.BuilderAware;
 import org.midonet.odp.family.PortFamily;
@@ -226,7 +225,7 @@ public abstract class DpPort {
         public long getTxDropped() {return txDropped;}
 
         @Override
-        public void serialize(BaseBuilder<?,?> builder) {
+        public void serialize(Builder builder) {
             builder.addValue(rxPackets);
             builder.addValue(txPackets);
             builder.addValue(rxBytes);

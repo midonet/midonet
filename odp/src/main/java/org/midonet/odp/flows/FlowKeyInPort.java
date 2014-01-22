@@ -4,7 +4,7 @@
 package org.midonet.odp.flows;
 
 import org.midonet.netlink.NetlinkMessage;
-import org.midonet.netlink.messages.BaseBuilder;
+import org.midonet.netlink.messages.Builder;
 
 public class FlowKeyInPort implements FlowKey {
 
@@ -18,7 +18,7 @@ public class FlowKeyInPort implements FlowKey {
     }
 
     @Override
-    public void serialize(BaseBuilder<?,?> builder) {
+    public void serialize(Builder builder) {
         builder.addValue(portNo);
     }
 

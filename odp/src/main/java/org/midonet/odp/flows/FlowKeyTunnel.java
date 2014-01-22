@@ -4,7 +4,7 @@
 package org.midonet.odp.flows;
 
 import org.midonet.netlink.NetlinkMessage;
-import org.midonet.netlink.messages.BaseBuilder;
+import org.midonet.netlink.messages.Builder;
 import org.midonet.odp.OpenVSwitch;
 import org.midonet.packets.IPv4Addr;
 
@@ -110,7 +110,7 @@ public class FlowKeyTunnel implements FlowKey {
     }
 
     @Override
-    public void serialize(BaseBuilder<?,?> builder) {
+    public void serialize(Builder builder) {
         if ((usedFields & TUN_ID_MASK) != 0)
             builder.addAttr(FlowKeyTunnelAttr.ID, tun_id, ByteOrder.BIG_ENDIAN);
 

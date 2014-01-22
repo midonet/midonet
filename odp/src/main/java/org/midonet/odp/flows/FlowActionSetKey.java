@@ -6,7 +6,7 @@ package org.midonet.odp.flows;
 import java.nio.ByteBuffer;
 
 import org.midonet.netlink.NetlinkMessage;
-import org.midonet.netlink.messages.BaseBuilder;
+import org.midonet.netlink.messages.Builder;
 
 public class FlowActionSetKey implements FlowAction {
 
@@ -20,7 +20,7 @@ public class FlowActionSetKey implements FlowAction {
     }
 
     @Override
-    public void serialize(BaseBuilder<?,?> builder) {
+    public void serialize(Builder builder) {
         builder.addAttr(flowKey.getKey(), flowKey);
     }
 

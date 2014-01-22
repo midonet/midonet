@@ -6,7 +6,7 @@ package org.midonet.sdn.flows;
 import java.util.UUID
 
 import org.midonet.netlink.NetlinkMessage
-import org.midonet.netlink.messages.BaseBuilder
+import org.midonet.netlink.messages.Builder
 import org.midonet.odp.flows.FlowAction
 
 /** This objects holds various classes reprensenting "virtual" flow actions
@@ -28,7 +28,7 @@ object VirtualActions {
     trait VirtualFlowAction extends FlowAction {
         def getKey = null
         def getValue = this
-        def serialize(builder: BaseBuilder[_,_]) {}
+        def serialize(builder: Builder) {}
         def deserialize(message: NetlinkMessage) = false
     }
 }

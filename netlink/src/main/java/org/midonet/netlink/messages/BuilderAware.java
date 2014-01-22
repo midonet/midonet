@@ -10,7 +10,7 @@ import org.midonet.netlink.NetlinkMessage;
 */
 public interface BuilderAware {
 
-    public void serialize(BaseBuilder<?, ?> builder);
+    public void serialize(Builder builder);
 
     public boolean deserialize(NetlinkMessage message);
 }

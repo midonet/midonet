@@ -4,7 +4,7 @@
 package org.midonet.odp.flows;
 
 import org.midonet.netlink.NetlinkMessage;
-import org.midonet.netlink.messages.BaseBuilder;
+import org.midonet.netlink.messages.Builder;
 
 public class FlowKeyICMP implements FlowKey {
     /*__u8*/ protected byte icmp_type;
@@ -19,7 +19,7 @@ public class FlowKeyICMP implements FlowKey {
     }
 
     @Override
-    public void serialize(BaseBuilder<?,?> builder) {
+    public void serialize(Builder builder) {
         builder.addValue(icmp_type);
         builder.addValue(icmp_code);
     }

@@ -6,7 +6,7 @@ package org.midonet.odp.flows;
 import java.nio.ByteOrder;
 
 import org.midonet.netlink.NetlinkMessage;
-import org.midonet.netlink.messages.BaseBuilder;
+import org.midonet.netlink.messages.Builder;
 import org.midonet.packets.TCP;
 import org.midonet.packets.Unsigned;
 
@@ -25,7 +25,7 @@ public class FlowKeyTCP implements FlowKey {
     }
 
     @Override
-    public void serialize(BaseBuilder<?,?> builder) {
+    public void serialize(Builder builder) {
         builder.addValue((short)tcp_src, ByteOrder.BIG_ENDIAN);
         builder.addValue((short)tcp_dst, ByteOrder.BIG_ENDIAN);
     }

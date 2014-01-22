@@ -7,7 +7,7 @@ import java.util.Arrays;
 
 import org.midonet.packets.MAC;
 import org.midonet.netlink.NetlinkMessage;
-import org.midonet.netlink.messages.BaseBuilder;
+import org.midonet.netlink.messages.Builder;
 
 public class FlowKeyEthernet implements FlowKey {
 
@@ -23,7 +23,7 @@ public class FlowKeyEthernet implements FlowKey {
     }
 
     @Override
-    public void serialize(BaseBuilder<?,?> builder) {
+    public void serialize(Builder builder) {
         builder.addValue(eth_src);
         builder.addValue(eth_dst);
     }

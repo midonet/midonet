@@ -11,7 +11,7 @@ import java.util.Set;
 import com.google.common.base.Function;
 
 import org.midonet.netlink.NetlinkMessage;
-import org.midonet.netlink.messages.BaseBuilder;
+import org.midonet.netlink.messages.Builder;
 import org.midonet.netlink.messages.BuilderAware;
 import org.midonet.odp.family.DatapathFamily;
 
@@ -138,7 +138,7 @@ public class Datapath {
         }
 
         @Override
-        public void serialize(BaseBuilder<?,?> builder) {
+        public void serialize(Builder builder) {
             builder.addValue(hits);
             builder.addValue(misses);
             builder.addValue(lost);

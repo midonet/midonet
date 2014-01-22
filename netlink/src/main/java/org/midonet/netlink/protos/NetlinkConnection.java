@@ -21,6 +21,7 @@ import org.midonet.netlink.Callback;
 import org.midonet.netlink.CtrlFamily;
 import org.midonet.netlink.NetlinkChannel;
 import org.midonet.netlink.NetlinkMessage;
+import org.midonet.netlink.messages.Builder;
 import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.throttling.ThrottlingGuard;
 import org.midonet.util.throttling.ThrottlingGuardFactory;
@@ -63,10 +64,9 @@ public class NetlinkConnection extends AbstractNetlinkConnection {
     public void getFamilyId(@Nonnull String familyName,
                             @Nonnull Callback<Short> callback, long timeoutMillis) {
 
-        NetlinkMessage message =
-            newMessage()
-                .addAttr(CtrlFamily.AttrKey.FAMILY_NAME, familyName)
-                .build();
+        Builder builder = newMessage();
+        builder.addAttr(CtrlFamily.AttrKey.FAMILY_NAME, familyName);
+        NetlinkMessage message = builder.build();
 
         Function<List<ByteBuffer>, Short> familyIdDeserializer =
             new Function<List<ByteBuffer>, Short>() {
@@ -101,10 +101,9 @@ public class NetlinkConnection extends AbstractNetlinkConnection {
                                   Callback<Integer> callback,
                                   long timeoutMillis) {
 
-        NetlinkMessage message =
-            newMessage()
-                .addAttr(CtrlFamily.AttrKey.FAMILY_NAME, familyName)
-                .build();
+        Builder builder = newMessage();
+        builder.addAttr(CtrlFamily.AttrKey.FAMILY_NAME, familyName);
+        NetlinkMessage message = builder.build();
 
         Function<List<ByteBuffer>, Integer> mcastGrpDeserializer =
             new Function<List<ByteBuffer>, Integer>() {
