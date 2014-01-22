@@ -35,6 +35,13 @@ would apply the FlowActionPopVLAN *before* the frame get's sent from the
 PortSet (to the trunks). Which is incorrect. This must happen only
 *after* the ToPortSetAction is processed.
 
+Note that during loops it's likely that frames may bounce back from the
+physical switch into Midolman, causing conflicting mac-port mappings.
+As a consequence of this, frames ingressing from one port may be
+forwarded back to the same port after mac-learning. Midolman will detect
+this case and create a temporary drop, giving time for the network to
+stabilize the mac on a given port.
+
 ## Coordinator changes
 
 Supporting multicast from VUB's connected to a VAB required an
