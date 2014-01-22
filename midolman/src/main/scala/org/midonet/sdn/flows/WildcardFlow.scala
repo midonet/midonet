@@ -44,6 +44,8 @@ abstract class WildcardFlow {
     def getHardExpirationMillis = hardExpirationMillis
     def getIdleExpirationMillis = idleExpirationMillis
 
+    def onlyUserspaceMatch = wcmatch.wereIcmpFieldsSeen
+
     def combine(that: WildcardFlow): WildcardFlow = {
         var hardExp = this.hardExpirationMillis.min(that.hardExpirationMillis)
         var idleExp = this.idleExpirationMillis.min(that.idleExpirationMillis)

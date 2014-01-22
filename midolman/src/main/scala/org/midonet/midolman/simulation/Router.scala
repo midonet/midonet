@@ -173,30 +173,28 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
             (mmatch.getTransportDestination & 0xff) == ICMP.CODE_NONE
     }
 
+    /** This will send an icmp reply to the given packet. When the packet
+     *  is an icmp, it will copy the icmp id field, but this will not be
+     *  registered in the WidlcardMatch input argument as a 'seen' field. */
     override protected def sendIcmpEchoReply(ingressMatch: WildcardMatch,
                                              packet: Ethernet, expiry: Long)
                                    (implicit ec: ExecutionContext,
                                              packetContext: PacketContext) {
         val echo = packet.getPayload match {
-            case ip: IPv4 => ip.getPayload match {
-                                case icmp: ICMP => icmp
-                                case _ => null
-                             }
+            case ip: IPv4 =>
+                ip.getPayload match {
+                    case icmp: ICMP => icmp
+                    case _ => null
+                }
             case _ => null
         }
 
         if (echo == null)
             return
 
-        val reply = new ICMP()
-        reply.setEchoReply(echo.getIdentifier, echo.getSequenceNum, echo.getData)
-        val ip = new IPv4()
-        ip.setProtocol(ICMP.PROTOCOL_NUMBER)
-        ip.setDestinationAddress(ingressMatch.getNetworkSourceIP.asInstanceOf[IPv4Addr])
-        ip.setSourceAddress(ingressMatch.getNetworkDestinationIP.asInstanceOf[IPv4Addr])
-        ip.setPayload(reply)
-
-        sendIPPacket(ip, expiry)
+        val src = ingressMatch.getNetworkSourceIP.asInstanceOf[IPv4Addr]
+        val dst = ingressMatch.getNetworkDestinationIP.asInstanceOf[IPv4Addr]
+        sendIPPacket(echo.makeReply(src, dst), expiry)
     }
 
     private def getPeerMac(rtrPort: RouterPort, expiry: Long)
