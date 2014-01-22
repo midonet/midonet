@@ -17,7 +17,8 @@ import org.scalatest.junit.JUnitRunner
 import org.scalatest.matchers.ShouldMatchers
 
 import org.midonet.midolman.topology._
-import org.midonet.cluster.client.{ExteriorRouterPort, IpMacMap, MacLearningTable}
+import org.midonet.cluster.client.{ExteriorBridgePort, ExteriorRouterPort,
+                                   IpMacMap, MacLearningTable}
 import org.midonet.cluster.data
 import org.midonet.packets._
 import org.midonet.util.functors.{Callback0, Callback1, Callback3}
@@ -38,6 +39,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
     val learnedMac = MAC.fromString("00:1e:a4:46:ed:3a")
     val learnedPort = UUID.randomUUID
 
+    val brPort = new ExteriorBridgePort()
 
     private val macPortMap = new MockMacLearningTable(Map(
                                         learnedMac -> learnedPort))
@@ -71,6 +73,11 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
                             inFilter, outFilter, vlanBridgePortId,
                             flowRemovedCallbackGen, rtrMacToLogicalPortId,
                             rtrIpToMac, vlanToPort)
+
+        brPort.id = UUID.randomUUID()
+        brPort.setHostID(UUID.randomUUID())
+        brPort.setInterfaceName("eth0")
+        brPort.setDeviceID(bridge.id)
     }
 
 
@@ -105,7 +112,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with ShouldMatchers {
         val context = new PacketContext(None, null,
                                         Platform.currentTime + 10000, null,
                                         null, null, true, None, ingressMatch)
-        //context.setInputPort(rtr1port)
+        context.inPortId = brPort
         val future = bridge.process(context)
 
         ingressMatch should be === origMatch

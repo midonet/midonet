@@ -326,23 +326,37 @@ class BridgeInvalidationTest extends MidolmanTestCase
         ackWCAdded()
 
         // let's make the bridge learn vmMac2
-        triggerUdp2to1
+        triggerUdp2to1()
 
         // this is the flooded flow that has been invalidated
         ackWCRemoved()
 
-        // this is the flow from 2 to 1
-        ackWCAdded()
+        // this is the flow from 2 to 1, a drop because the packet tries
+        // to return to the same port it ingressed from
+        var wc = ackWCAdded()
+        wc.getHardExpirationMillis should be (5000)
+        wc.getIdleExpirationMillis should be (0)
+        wc.actions should have size 0
 
         // let's create another flow from 1 to 2
         triggerPacketIn(port2Name, udp1to2())
-        ackWCAdded()
+        wc = ackWCAdded()
+        wc.getHardExpirationMillis should be (5000)
+        wc.getIdleExpirationMillis should be (0)
+        wc.actions should have size 0 // ditto
 
-        // vm2 migrate to port 3
         triggerPacketIn(port3Name, udp2to1())
 
-        // this will trigger the invalidation of flows tagged bridgeId + MAC + oldPort
-        ackWCRemoved()
+        // this will trigger the invalidation of flows tagged bridgeId + MAC +
+        // oldPort however packet 2 and 3 are send to port2 as noted above
+        // Temp DROPs are not affected by invalidation, So instead of
+        // fishing for the wc removed msg, we're just checking that the
+        // MacTableNotifyCallback is issuing the right invalidate msg
+        val tag = FlowTagger.invalidateFlowsByPort(bridge.getId,
+                    MAC.fromString(macVm2), Bridge.UNTAGGED_VLAN_ID,
+                    port2.getId)
+        flowProbe().fishForMessage(timeout,
+            "InvalidateFlowsByTag")(TestHelpers.matchFlowTag(tag))
     }
 
     def testUnicastAddLogicalPort() {

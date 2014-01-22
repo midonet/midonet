@@ -46,14 +46,13 @@ abstract class WildcardFlow {
     def getIdleExpirationMillis = idleExpirationMillis
 
     def combine(that: WildcardFlow): WildcardFlow = {
-        val hardExp =
-            if (this.hardExpirationMillis >= that.hardExpirationMillis)
-                that.hardExpirationMillis
-            else this.hardExpirationMillis
-        val idleExp =
-            if (this.idleExpirationMillis >= that.idleExpirationMillis)
-                that.idleExpirationMillis
-            else this.idleExpirationMillis
+        var hardExp = this.hardExpirationMillis.min(that.hardExpirationMillis)
+        var idleExp = this.idleExpirationMillis.min(that.idleExpirationMillis)
+        if (hardExp == 0) // try to get a positive value
+            hardExp = this.hardExpirationMillis + that.hardExpirationMillis
+        if (idleExp == 0) // try to get a positive value
+            idleExp = this.idleExpirationMillis + that.idleExpirationMillis
+
         WildcardFlow(wcmatch = this.getMatch,
                      actions = this.actions ++ that.actions,
                      hardExpirationMillis = hardExp,

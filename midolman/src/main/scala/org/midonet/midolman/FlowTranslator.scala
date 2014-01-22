@@ -336,10 +336,10 @@ trait FlowTranslator {
 
                 val (deviceId: UUID, tunnelKey: Long) = br match {
                     case b: RCUBridge =>
-                        log.debug("Portset on a bridge")
+                        log.debug("Portset on a bridge {}", b.id)
                         (b.id, b.tunnelKey)
                     case b: VlanAwareBridge =>
-                        log.debug("Portset on a vlan-bridge")
+                        log.debug("Portset on a vlan-bridge {}", b.id)
                         (b.id, b.tunnelKey)
                     case b =>
                         log.warning("Portset: unexpected device {}", b)
