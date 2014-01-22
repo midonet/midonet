@@ -4,7 +4,7 @@
 package org.midonet.odp.flows;
 
 import org.midonet.netlink.NetlinkMessage;
-import org.midonet.netlink.messages.BaseBuilder;
+import org.midonet.netlink.messages.Builder;
 import org.midonet.odp.OpenVSwitch;
 
 public class FlowActionUserspace implements FlowAction {
@@ -25,7 +25,7 @@ public class FlowActionUserspace implements FlowAction {
     }
 
     @Override
-    public void serialize(BaseBuilder<?,?> builder) {
+    public void serialize(Builder builder) {
         builder.addAttr(Attr.OVS_USERSPACE_ATTR_PID, uplinkPid);
         if (userData != null) {
             builder.addAttr(Attr.OVS_USERSPACE_ATTR_USERDATA, userData);

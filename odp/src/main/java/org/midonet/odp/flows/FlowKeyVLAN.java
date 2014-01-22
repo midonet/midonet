@@ -6,7 +6,7 @@ package org.midonet.odp.flows;
 import java.nio.ByteOrder;
 
 import org.midonet.netlink.NetlinkMessage;
-import org.midonet.netlink.messages.BaseBuilder;
+import org.midonet.netlink.messages.Builder;
 import org.midonet.packets.VLAN;
 
 public class FlowKeyVLAN implements FlowKey {
@@ -24,7 +24,7 @@ public class FlowKeyVLAN implements FlowKey {
     }
 
     @Override
-    public void serialize(BaseBuilder<?,?> builder) {
+    public void serialize(Builder builder) {
         builder.addValue(VLAN.setDEI(vlan), ByteOrder.BIG_ENDIAN);
     }
 

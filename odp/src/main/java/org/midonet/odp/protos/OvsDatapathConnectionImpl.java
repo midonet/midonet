@@ -203,7 +203,9 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         if (!validateState(callback))
             return;
 
-        NetlinkMessage message = newMessage().addValue(0).build();
+        Builder builder = newMessage();
+        builder.addValue(0);
+        NetlinkMessage message = builder.build();
 
         sendNetlinkMessage(
             datapathFamily.contextGet,
@@ -224,12 +226,11 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         int localPid = getChannel().getLocalAddress().getPid();
 
-        NetlinkMessage message =
-            newMessage()
-                .addValue(0)
-                .addAttr(DatapathFamily.Attr.UPCALL_PID, localPid)
-                .addAttr(DatapathFamily.Attr.NAME, name)
-                .build();
+        Builder builder = newMessage();
+        builder.addValue(0);
+        builder.addAttr(DatapathFamily.Attr.UPCALL_PID, localPid);
+        builder.addAttr(DatapathFamily.Attr.NAME, name);
+        NetlinkMessage message = builder.build();
 
         sendNetlinkMessage(
             datapathFamily.contextNew,
@@ -358,10 +359,9 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             return;
         }
 
-        Builder builder =
-            newMessage()
-                .addValue(datapathIndex)
-                .addAttr(PortFamily.Attr.UPCALL_PID, localPid);
+        Builder builder = newMessage();
+        builder.addValue(datapathIndex);
+        builder.addAttr(PortFamily.Attr.UPCALL_PID, localPid);
 
         port.serializeInto(builder);
 
@@ -384,9 +384,9 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         if (!validateState(callback))
             return;
 
-        NetlinkMessage message = newMessage()
-            .addValue(datapath.getIndex())
-            .build();
+        Builder builder = newMessage();
+        builder.addValue(datapath.getIndex());
+        NetlinkMessage message = builder.build();
 
         sendNetlinkMessage(
             portFamily.contextGet,
@@ -422,9 +422,9 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         int localPid = getChannel().getLocalAddress().getPid();
 
-        Builder builder = newMessage()
-            .addValue(datapath.getIndex())
-            .addAttr(PortFamily.Attr.UPCALL_PID, localPid);
+        Builder builder = newMessage();
+        builder.addValue(datapath.getIndex());
+        builder.addAttr(PortFamily.Attr.UPCALL_PID, localPid);
 
         port.serializeInto(builder);
 
@@ -455,9 +455,9 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             return;
         }
 
-        NetlinkMessage message = newMessage()
-            .addValue(datapathId)
-            .build();
+        Builder builder = newMessage();
+        builder.addValue(datapathId);
+        NetlinkMessage message = builder.build();
 
         sendNetlinkMessage(
             flowFamily.contextGet,
@@ -486,17 +486,13 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             return;
         }
 
-        Builder builder = newMessage()
-            .addValue(datapathId)
-            .addAttrNested(AttrKey.ACTIONS)
-            .addAttrs(flow.getActions())
-            .build();
+        Builder builder = newMessage();
+        builder.addValue(datapathId);
+        builder.addAttrs(AttrKey.ACTIONS, flow.getActions());
 
         FlowMatch match = flow.getMatch();
         if (match != null)
-            builder.addAttrNested(AttrKey.KEY)
-                   .addAttrs(match.getKeys())
-                   .build();
+            builder.addAttrs(AttrKey.KEY, match.getKeys());
 
         NetlinkMessage message = builder.build();
 
@@ -535,12 +531,11 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             return;
         }
 
-        NetlinkMessage message = newMessage()
-            .addValue(datapathId)
-            .addAttrNested(AttrKey.KEY)
-                .addAttrs(match.getKeys())
-                .build()
-            .build();
+        Builder builder = newMessage();
+        builder.addValue(datapathId);
+        builder.addAttrs(AttrKey.KEY, match.getKeys());
+
+        NetlinkMessage message = builder.build();
 
         sendNetlinkMessage(
             flowFamily.contextDel,
@@ -568,9 +563,9 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             return;
         }
 
-        NetlinkMessage message = newMessage()
-            .addValue(datapathId)
-            .build();
+        Builder builder = newMessage();
+        builder.addValue(datapathId);
+        NetlinkMessage message = builder.build();
 
         sendNetlinkMessage(
             flowFamily.contextDel,
@@ -597,11 +592,9 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             return;
         }
 
-        Builder builder = newMessage()
-            .addValue(datapathId)
-            .addAttrNested(AttrKey.KEY)
-            .addAttrs(match.getKeys())
-            .build();
+        Builder builder = newMessage();
+        builder.addValue(datapathId);
+        builder.addAttrs(AttrKey.KEY, match.getKeys());
 
         sendNetlinkMessage(
             flowFamily.contextGet,
@@ -641,17 +634,12 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             return;
         }
 
-        Builder builder = newMessage()
-            .addValue(datapathId)
-            .addAttrNested(AttrKey.KEY)
-            .addAttrs(flowMatch.getKeys())
-            .build();
+        Builder builder = newMessage();
+        builder.addValue(datapathId);
+        builder.addAttrs(AttrKey.KEY, flowMatch.getKeys());
 
-        if (!flow.getActions().isEmpty()) {
-            builder.addAttrNested(AttrKey.ACTIONS)
-                   .addAttrs(flow.getActions())
-                   .build();
-        }
+        if (!flow.getActions().isEmpty())
+            builder.addAttrs(AttrKey.ACTIONS, flow.getActions());
 
         sendNetlinkMessage(
             flowFamily.contextSet,
@@ -699,21 +687,18 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             return;
         }
 
-        NetlinkMessage message = newMessage()
-            .addValue(datapathId)
-            .addAttrNested(PacketFamily.AttrKey.KEY)
-                .addAttrs(flowMatch.getKeys())
-                .build()
-            .addAttrNested(PacketFamily.AttrKey.ACTIONS)
-                .addAttrs(packet.getActions())
-                .build()
-            // TODO(pino): find out why ovs_packet_cmd_execute throws an
-            // EINVAL if we put the PACKET attribute right after the
-            // datapathId. I examined the ByteBuffers constructed with that
-            // ordering of attributes and compared it to this one, and found
-            // only the expected difference.
-            .addAttr(PacketFamily.AttrKey.PACKET, packet.getPacket())
-            .build();
+        Builder builder = newMessage();
+        builder.addValue(datapathId);
+        builder.addAttrs(PacketFamily.AttrKey.KEY, flowMatch.getKeys());
+        builder.addAttrs(PacketFamily.AttrKey.ACTIONS, packet.getActions());
+        // TODO(pino): find out why ovs_packet_cmd_execute throws an
+        // EINVAL if we put the PACKET attribute right after the
+        // datapathId. I examined the ByteBuffers constructed with that
+        // ordering of attributes and compared it to this one, and found
+        // only the expected difference.
+        builder.addAttr(PacketFamily.AttrKey.PACKET, packet.getPacket());
+
+        NetlinkMessage message = builder.build();
 
         sendNetlinkMessage(
             packetFamily.contextExec,

@@ -6,7 +6,7 @@ package org.midonet.odp.flows;
 import java.nio.ByteOrder;
 
 import org.midonet.netlink.NetlinkMessage;
-import org.midonet.netlink.messages.BaseBuilder;
+import org.midonet.netlink.messages.Builder;
 import org.midonet.packets.IPv4Addr;
 
 public class FlowKeyIPv4 implements FlowKey {
@@ -31,13 +31,13 @@ public class FlowKeyIPv4 implements FlowKey {
     }
 
     @Override
-    public void serialize(BaseBuilder<?,?> builder) {
-        builder.addValue(ipv4_src, ByteOrder.BIG_ENDIAN)
-               .addValue(ipv4_dst, ByteOrder.BIG_ENDIAN)
-               .addValue(ipv4_proto)
-               .addValue(ipv4_tos)
-               .addValue(ipv4_ttl)
-               .addValue(ipv4_frag);
+    public void serialize(Builder builder) {
+        builder.addValue(ipv4_src, ByteOrder.BIG_ENDIAN);
+        builder.addValue(ipv4_dst, ByteOrder.BIG_ENDIAN);
+        builder.addValue(ipv4_proto);
+        builder.addValue(ipv4_tos);
+        builder.addValue(ipv4_ttl);
+        builder.addValue(ipv4_frag);
     }
 
     @Override

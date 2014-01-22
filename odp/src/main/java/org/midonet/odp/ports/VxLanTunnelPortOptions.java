@@ -4,7 +4,7 @@
 package org.midonet.odp.ports;
 
 import org.midonet.netlink.NetlinkMessage;
-import org.midonet.netlink.messages.BaseBuilder;
+import org.midonet.netlink.messages.Builder;
 import org.midonet.netlink.messages.BuilderAware;
 import org.midonet.odp.OpenVSwitch;
 import org.midonet.packets.TCP;
@@ -44,7 +44,7 @@ public class VxLanTunnelPortOptions implements BuilderAware {
     }
 
     @Override
-    public void serialize(BaseBuilder<?,?> builder) {
+    public void serialize(Builder builder) {
         // The datapath code checks for a u16 attribute written without padding,
         // therefore the len field of the header should indicate 6b.
         builder.addAttrNoPad(Attr.OVS_TUNNEL_ATTR_DST_PORT, dstPort);

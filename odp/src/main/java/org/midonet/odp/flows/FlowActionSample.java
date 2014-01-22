@@ -6,7 +6,7 @@ package org.midonet.odp.flows;
 import java.util.List;
 
 import org.midonet.netlink.NetlinkMessage;
-import org.midonet.netlink.messages.BaseBuilder;
+import org.midonet.netlink.messages.Builder;
 import org.midonet.odp.OpenVSwitch;
 
 public class FlowActionSample implements FlowAction {
@@ -27,12 +27,9 @@ public class FlowActionSample implements FlowAction {
     }
 
     @Override
-    public void serialize(BaseBuilder<?,?> builder) {
-        builder
-            .addAttr(Attr.PROBABILITY, probability)
-            .addAttrNested(Attr.ACTIONS)
-            .addAttrs(actions)
-            .build();
+    public void serialize(Builder builder) {
+        builder.addAttr(Attr.PROBABILITY, probability);
+        builder.addAttrs(Attr.ACTIONS, actions);
     }
 
     @Override

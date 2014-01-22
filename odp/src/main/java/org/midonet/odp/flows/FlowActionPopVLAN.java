@@ -4,14 +4,14 @@
 package org.midonet.odp.flows;
 
 import org.midonet.netlink.NetlinkMessage;
-import org.midonet.netlink.messages.BaseBuilder;
+import org.midonet.netlink.messages.Builder;
 
 public class FlowActionPopVLAN implements FlowAction {
 
     FlowActionPopVLAN() { }
 
     @Override
-    public void serialize(BaseBuilder<?,?> builder) {
+    public void serialize(Builder builder) {
     }
 
     @Override

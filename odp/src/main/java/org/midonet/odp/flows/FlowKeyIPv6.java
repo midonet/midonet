@@ -4,7 +4,7 @@
 package org.midonet.odp.flows;
 
 import org.midonet.netlink.NetlinkMessage;
-import org.midonet.netlink.messages.BaseBuilder;
+import org.midonet.netlink.messages.Builder;
 import org.midonet.packets.IPv6Addr;
 import org.midonet.packets.Net;
 
@@ -52,14 +52,14 @@ public class FlowKeyIPv6 implements FlowKey {
     }
 
     @Override
-    public void serialize(BaseBuilder<?,?> builder) {
-        builder.addValue(ipv6_src, ByteOrder.BIG_ENDIAN)
-               .addValue(ipv6_dst, ByteOrder.BIG_ENDIAN)
-               .addValue(ipv6_label, ByteOrder.BIG_ENDIAN)
-               .addValue(ipv6_proto)
-               .addValue(ipv6_tclass)
-               .addValue(ipv6_hlimit)
-               .addValue(ipv6_frag);
+    public void serialize(Builder builder) {
+        builder.addValue(ipv6_src, ByteOrder.BIG_ENDIAN);
+        builder.addValue(ipv6_dst, ByteOrder.BIG_ENDIAN);
+        builder.addValue(ipv6_label, ByteOrder.BIG_ENDIAN);
+        builder.addValue(ipv6_proto);
+        builder.addValue(ipv6_tclass);
+        builder.addValue(ipv6_hlimit);
+        builder.addValue(ipv6_frag);
     }
 
     @Override

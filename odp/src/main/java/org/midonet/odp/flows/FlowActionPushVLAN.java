@@ -6,7 +6,7 @@ package org.midonet.odp.flows;
 import java.nio.ByteOrder;
 
 import org.midonet.netlink.NetlinkMessage;
-import org.midonet.netlink.messages.BaseBuilder;
+import org.midonet.netlink.messages.Builder;
 import org.midonet.packets.VLAN;
 
 public class FlowActionPushVLAN implements FlowAction {
@@ -31,7 +31,7 @@ public class FlowActionPushVLAN implements FlowAction {
     }
 
     @Override
-    public void serialize(BaseBuilder<?,?> builder) {
+    public void serialize(Builder builder) {
         builder.addValue(vlan_tpid, ByteOrder.BIG_ENDIAN);
         builder.addValue(vlan_tci, ByteOrder.BIG_ENDIAN);
     }

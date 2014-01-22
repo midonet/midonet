@@ -7,7 +7,7 @@ import java.nio.ByteOrder;
 import java.util.Arrays;
 
 import org.midonet.netlink.NetlinkMessage;
-import org.midonet.netlink.messages.BaseBuilder;
+import org.midonet.netlink.messages.Builder;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 
@@ -32,13 +32,13 @@ public class FlowKeyARP implements FlowKey {
     }
 
     @Override
-    public void serialize(BaseBuilder<?,?> builder) {
-        builder.addValue(arp_sip, ByteOrder.BIG_ENDIAN)
-               .addValue(arp_tip, ByteOrder.BIG_ENDIAN)
-               .addValue(arp_op, ByteOrder.BIG_ENDIAN)
-               .addValue(arp_sha)
-               .addValue(arp_tha)
-               .addValue((short)0); // padding
+    public void serialize(Builder builder) {
+        builder.addValue(arp_sip, ByteOrder.BIG_ENDIAN);
+        builder.addValue(arp_tip, ByteOrder.BIG_ENDIAN);
+        builder.addValue(arp_op, ByteOrder.BIG_ENDIAN);
+        builder.addValue(arp_sha);
+        builder.addValue(arp_tha);
+        builder.addValue((short)0); // padding
     }
 
     @Override

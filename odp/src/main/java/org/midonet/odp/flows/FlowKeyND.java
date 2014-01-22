@@ -9,7 +9,7 @@ import java.util.Arrays;
 import org.midonet.packets.MAC;
 import org.midonet.packets.Net;
 import org.midonet.netlink.NetlinkMessage;
-import org.midonet.netlink.messages.BaseBuilder;
+import org.midonet.netlink.messages.Builder;
 
 /**
 * Neighbour Discovery key
@@ -27,7 +27,7 @@ public class FlowKeyND implements FlowKey {
     }
 
     @Override
-    public void serialize(BaseBuilder<?,?> builder) {
+    public void serialize(Builder builder) {
         builder.addValue(nd_target, ByteOrder.BIG_ENDIAN);
         builder.addValue(nd_sll);
         builder.addValue(nd_tll);
