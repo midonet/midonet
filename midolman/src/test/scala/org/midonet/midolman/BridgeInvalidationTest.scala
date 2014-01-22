@@ -13,9 +13,8 @@ import org.midonet.cluster.data.{Bridge => ClusterBridge, Router => ClusterRoute
 import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.services.{HostIdProviderService, MessageAccumulator}
-import org.midonet.midolman.simulation.Bridge
-import org.midonet.midolman.simulation.Coordinator.{ToPortSetAction, ToPortAction}
-import org.midonet.midolman.simulation.CustomMatchers
+import org.midonet.midolman.simulation.{Bridge, CustomMatchers}
+import org.midonet.midolman.simulation.Coordinator.{TemporaryDropAction, ToPortSetAction, ToPortAction}
 import org.midonet.midolman.topology.{FlowTagger, VirtualTopologyActor}
 import org.midonet.packets.{IPv4Subnet, MAC}
 import org.apache.commons.configuration.HierarchicalConfiguration
@@ -208,6 +207,22 @@ class BridgeInvalidationTest extends FeatureSpec
 
             action should be (ToPortAction(otherPort.getId))
             pktContext.getFlowTags should be (expectedTags)
+        }
+
+        scenario("Packet whose dst mac resolves to the inPort is dropped") {
+
+            When("A bridge learns a MAC address")
+            val bridge: Bridge = fetchDevice(clusterBridge)
+            val macTable = bridge.vlanMacTableMap(0.toShort)
+            macTable.add(MAC.fromString(rightMac), leftPort.getId)
+
+            Then("A flow invalidation for the flooded case should be produced")
+            FlowController.getAndClear() should be (
+                List(InvalidateFlowsByTag(rightMacFloodInvalidation)))
+
+            And("If a packet with the same dst mac comes from that port")
+            val (_, action) = simulateDevice(bridge, leftToRightFrame, leftPort.getId)
+            action should be (TemporaryDropAction)
         }
     }
 
