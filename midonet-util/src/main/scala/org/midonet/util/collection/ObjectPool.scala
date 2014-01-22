@@ -1,10 +1,8 @@
 /*
- * Copyright 2013 Midokura Europe SARL
+ * Copyright (c) 2013 Midokura Europe SARL, All Rights Reserved.
  */
 
 package org.midonet.util.collection
-
-import java.util.concurrent.atomic.AtomicInteger
 
 trait ObjectPool[T] {
     def take: Option[T]
@@ -17,7 +15,7 @@ trait ObjectPool[T] {
 }
 
 trait PooledObject {
-    private val refCount = new AtomicInteger(0)
+    private[this] var refCount = 0
 
     type PooledType
 
@@ -27,17 +25,21 @@ trait PooledObject {
 
     def clear()
 
-    def ref() { refCount.incrementAndGet() }
+    def ref() { refCount += 1 }
 
-    def unref(): Unit = refCount.decrementAndGet() match {
-        case 0 =>
-            if (pool != null)
-                pool.offer(self)
-            clear()
-        case neg if (neg < 0) =>
-            refCount.set(0)
-            throw new IllegalArgumentException("Cannot set ref count below 0")
-        case _ =>
+    def unref() {
+        refCount -= 1
+
+        refCount match {
+            case 0 =>
+                if (pool != null)
+                    pool.offer(self)
+                clear()
+            case neg if neg < 0 =>
+                refCount = 0
+                throw new IllegalArgumentException("Cannot set ref count below 0")
+            case _ =>
+        }
     }
 }
 
