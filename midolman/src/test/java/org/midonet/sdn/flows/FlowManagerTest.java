@@ -1,13 +1,15 @@
 /*
- * Copyright 2012 Midokura Pte. Ltd.
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
  */
 
 package org.midonet.sdn.flows;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 
 import akka.actor.ActorSystem;
@@ -114,7 +116,8 @@ public class FlowManagerTest {
         assertThat("Flow was not deleted",
                    flowManagerHelper.flowsMap.get(flowMatch),
                    nullValue());
-
+        assertThat("Flow was not deleted from ManagedWildcardFlow",
+                   !wflow.dpFlows().contains(flowMatch));
     }
 
     @Test
@@ -160,7 +163,8 @@ public class FlowManagerTest {
         assertThat("Flow was not deleted",
                    flowManagerHelper.flowsMap.get(flowMatch),
                    nullValue());
-
+        assertThat("Flow was not deleted from ManagedWildcardFlow",
+                   !wflow.dpFlows().contains(flowMatch));
     }
 
 
@@ -225,6 +229,9 @@ public class FlowManagerTest {
                               .get(wflow.getMatch()),
                    equalTo(wflow));
 
+        assertThat("Flow was deleted from ManagedWildcardFlow",
+                   wflow.dpFlows().contains(flowMatch));
+
         Thread.sleep(timeOut);
 
         flowManager.checkFlowsExpiration();
@@ -237,14 +244,13 @@ public class FlowManagerTest {
         assertThat("Flow was not deleted",
                    flowManagerHelper.flowsMap.get(flowMatch),
                    nullValue());
-        assertThat("Flow was not deleted",
-                   flowManagerHelper.flowsMap.get(flowMatch),
-                   nullValue());
 
         assertThat("Wildcard flow wasn't deleted",
                    flowManager.getWildcardTables().size(),
                    equalTo(0));
 
+        assertThat("Flow was not deleted from ManagedWildcardFlow",
+                   !wflow.dpFlows().contains(flowMatch));
     }
 
     @Test
@@ -295,6 +301,8 @@ public class FlowManagerTest {
                                    wflow.getMatch().getUsedFields())
                               .get(wflow.getMatch()),
                    equalTo(wflow));
+        assertThat("Flow was deleted from ManagedWildcardFlow",
+                   wflow.dpFlows().contains(flowMatch));
 
         Thread.sleep(timeOut);
         updateFlowLock.lock();
@@ -311,12 +319,17 @@ public class FlowManagerTest {
         assertThat("Wildcard flow wasn't deleted",
                    flowManager.getWildcardTables().size(),
                    equalTo(0));
+
+        assertThat("Flow was not deleted from ManagedWildcardFlow",
+                   !wflow.dpFlows().contains(flowMatch));
     }
 
     @Test
     public void testFreeSpaceDpTable(){
         int maxAcceptedDpFlows = (int) (maxDpFlowSize - dpFlowRemoveBatchSize);
         // fill the table with a number of flow > maxAcceptedDpFlows
+        FlowMatch firstFlowMatch = null;
+        ManagedWildcardFlow firstWcFlow = null;
         for (int i=0; i<=maxAcceptedDpFlows; i++) {
             FlowMatch flowMatch =
                 new FlowMatch().addKey(FlowKeys.tunnel(i+1, 100, 200));
@@ -331,13 +344,25 @@ public class FlowManagerTest {
             flowManager.add(managedFlow);
             flowManager.add(flow, managedFlow);
             flowManagerHelper.addFlow(flow);
+
+            if (i == 0) {
+                firstFlowMatch = flowMatch;
+                firstWcFlow = managedFlow;
+            }
         }
+
         flowManager.checkFlowsExpiration();
 
         assertThat("DpFlowTable, a flow hasn't been removed",
                    flowManager.getDpFlowTable().size(),
                    equalTo(maxAcceptedDpFlows));
 
+        assertThat("First flow was not deleted",
+                   flowManagerHelper.flowsMap.get(firstFlowMatch),
+                   nullValue());
+
+        assertThat("Flow was not deleted from ManagedWildcardFlow",
+                   !firstWcFlow.dpFlows().contains(firstFlowMatch));
     }
 
     @Test
@@ -408,6 +433,7 @@ public class FlowManagerTest {
     class FlowManagerHelperImpl implements FlowManagerHelper {
 
         public Map<FlowMatch, Flow> flowsMap = new HashMap<FlowMatch, Flow>();
+        public Queue<Flow> toRemove;
 
         public void addFlow(Flow flow) {
             flow.setLastUsedTime(System.currentTimeMillis());
@@ -418,15 +444,27 @@ public class FlowManagerTest {
             flowsMap.get(match).setLastUsedTime(System.currentTimeMillis());
         }
 
-        @Override
-        public void removeFlow(Flow flow) {
+        private void doRemoveFlow(Flow flow) {
             flowsMap.remove(flow.getMatch());
             flowManager.removeFlowCompleted(flow);
         }
 
         @Override
+        public void removeFlow(Flow flow) {
+            if (toRemove != null)
+                toRemove.add(flow);
+            else
+                doRemoveFlow(flow);
+        }
+
+        @Override
         public void removeWildcardFlow(ManagedWildcardFlow flow) {
+            toRemove = new LinkedList<>();
             flowManager.remove(flow);
+            for (Flow f : toRemove) {
+                doRemoveFlow(f);
+            }
+            toRemove = null;
         }
 
         @Override
