@@ -18,7 +18,7 @@ import org.midonet.odp.flows.FlowStats;
 public class Flow {
 
     FlowMatch match;
-    List<FlowAction<?>> actions = new ArrayList<FlowAction<?>>();
+    List<FlowAction<?>> actions = new ArrayList<>();
     FlowStats stats;
     Byte tcpFlags;
     Long lastUsedTime;

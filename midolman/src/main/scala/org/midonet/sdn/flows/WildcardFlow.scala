@@ -1,7 +1,6 @@
 /*
- * Copyright 2013 Midokura Europe SARL
+ * Copyright (c) 2013 Midokura Europe SARL, All Rights Reserved.
  */
-
 package org.midonet.sdn.flows
 
 import scala.collection.immutable.List
