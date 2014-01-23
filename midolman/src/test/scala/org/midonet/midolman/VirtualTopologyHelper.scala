@@ -18,11 +18,13 @@ import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.packets.Ethernet
 import org.midonet.midolman.simulation.{Coordinator, PacketContext}
 import org.midonet.sdn.flows.WildcardMatch
+import org.midonet.cache.MockCache
 
 trait VirtualTopologyHelper {
     this: MockMidolmanActors =>
 
     private implicit val timeout: Timeout = 3 seconds
+    private val natCache = new MockCache()
 
     def fetchDevice[T](device: Entity.Base[_,_,_]) =
         Await.result(
@@ -36,10 +38,10 @@ trait VirtualTopologyHelper {
 
     def packetContextFor(frame: Ethernet, inPort: UUID): PacketContext = {
         val context = new PacketContext(Some(1), frame, Platform.currentTime + 3000,
-            null, null, null, false, None,
+            natCache, null, null, false, None,
             WildcardMatch.fromEthernetPacket(frame))
         context.inPortId = Await.result(
-            ask(VirtualTopologyActor, PortRequest(inPort, false)).mapTo[SimPort[_]],
+            ask(VirtualTopologyActor, PortRequest(inPort, false)).mapTo[SimPort],
             timeout.duration)
         context
     }

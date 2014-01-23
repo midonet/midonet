@@ -597,7 +597,7 @@ class Coordinator(var origMatch: WildcardMatch,
                 // TODO(guillermo,pino) don't assume that portset id == bridge id
                 if (pktContext.isConnTracked && pktContext.isForwardFlow) {
                     // Write the packet's data to the connectionCache.
-                    installConnectionCacheEntry(outputID, pktContext.wcmatch,
+                    pktContext.installConnectionCacheEntry(
                             if (isPortSet) outputID else port.deviceID)
                 }
 
@@ -653,20 +653,6 @@ class Coordinator(var origMatch: WildcardMatch,
         if (ethOpt.nonEmpty)
             DeduplicationActor !
                 EmitGeneratedPacket(port.id, ethOpt.get, pktContext.flowCookie)
-    }
-
-    private def installConnectionCacheEntry(outPortID: UUID,
-                                            flowMatch: WildcardMatch,
-                                            deviceID: UUID) {
-        val key = PacketContext.connectionKey(
-                        flowMatch.getNetworkDestinationIP(),
-                        flowMatch.getTransportDestination(),
-                        flowMatch.getNetworkSourceIP(),
-                        flowMatch.getTransportSource(),
-                        flowMatch.getNetworkProtocol(),
-                        deviceID)
-        log.debug("Installing conntrack entry: key:{}", key)
-        connectionCache.set(key, "r")
     }
 
     private def actionsFromMatchDiff(orig: WildcardMatch, modif: WildcardMatch)
