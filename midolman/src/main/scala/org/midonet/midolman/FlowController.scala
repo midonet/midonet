@@ -1,4 +1,6 @@
-// Copyright 2012 Midokura Inc.
+/*
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
+ */
 
 package org.midonet.midolman
 
@@ -365,7 +367,6 @@ class FlowController extends Actor with ActorLogWithoutPath {
             log.debug("DP confirmed that flow was removed: {}", flow)
             flowManager.removeFlowCompleted(flow)
             metrics.currentDpFlows = flowManager.getNumDpFlows
-
     }
 
     private def removeWildcardFlow(wildFlow: ManagedWildcardFlow) {
