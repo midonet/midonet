@@ -14,7 +14,7 @@ import org.midonet.cache.Cache
 import org.midonet.cluster.client.Port
 import org.midonet.midolman.logging.LoggerFactory
 import org.midonet.midolman.rules.ChainPacketContext
-import org.midonet.packets.{Ethernet, IPv4, IPAddr, TCP, UDP}
+import org.midonet.packets._
 import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.util.functors.Callback0
 
@@ -170,7 +170,8 @@ class PacketContext(override val flowCookie: Option[Int],
         // tracked, and always treated as forward flows.
         if (wcmatch.getDataLayerType() != IPv4.ETHERTYPE ||
                 (wcmatch.getNetworkProtocol() != TCP.PROTOCOL_NUMBER &&
-                 wcmatch.getNetworkProtocol() != UDP.PROTOCOL_NUMBER))
+                 wcmatch.getNetworkProtocol() != UDP.PROTOCOL_NUMBER &&
+                 wcmatch.getNetworkProtocol() != ICMP.PROTOCOL_NUMBER))
             return true
 
         // Generated packets have ingressFE == null. We will treat all generated
@@ -192,11 +193,11 @@ class PacketContext(override val flowCookie: Option[Int],
             return forwardFlow
 
         connectionTracked = true
-        val key = connectionKey(origMatch.getNetworkSourceIP(),
-                                origMatch.getTransportSource(),
-                                origMatch.getNetworkDestinationIP(),
-                                origMatch.getTransportDestination(),
-                                origMatch.getNetworkProtocol(), ingressFE)
+        val key = connectionKey(origMatch.getNetworkSourceIP,
+                                icmpIdOrTransportSrc(origMatch),
+                                origMatch.getNetworkDestinationIP,
+                                icmpIdOrTransportDst(origMatch),
+                                origMatch.getNetworkProtocol, ingressFE)
         // TODO(jlm): Finish org.midonet.cassandra.AsyncCassandraCache
         //            and use it instead.
         val value = connectionCache.get(key)
@@ -204,6 +205,29 @@ class PacketContext(override val flowCookie: Option[Int],
         log.debug("isForwardFlow conntrack lookup - key:{},value:{}", key, value)
         forwardFlow
     }
+
+    def installConnectionCacheEntry(deviceId: UUID) {
+        val key = connectionKey(wcmatch.getNetworkDestinationIP,
+                                icmpIdOrTransportDst(wcmatch),
+                                wcmatch.getNetworkSourceIP,
+                                icmpIdOrTransportSrc(wcmatch),
+                                wcmatch.getNetworkProtocol, deviceId)
+        log.debug("Installing conntrack entry: key:{}", key)
+        connectionCache.set(key, "r")
+    }
+
+    private def icmpIdOrTransportSrc(wm: WildcardMatch) =
+        if (wm.getNetworkProtocol == ICMP.PROTOCOL_NUMBER && wm.getIcmpIdentifier != null)
+            wm.getIcmpIdentifier.toInt
+        else
+            wm.getTransportSource
+
+    private def icmpIdOrTransportDst(wm: WildcardMatch) =
+        if (wm.getNetworkProtocol == ICMP.PROTOCOL_NUMBER && wm.getIcmpIdentifier != null)
+            wm.getIcmpIdentifier.toInt
+        else
+            wm.getTransportDestination
+
 }
 
 object PacketContext {
@@ -212,7 +236,7 @@ object PacketContext {
         new StringBuilder(ip1.toString).append('|').append(port1).append('|')
                 .append(ip2.toString).append('|')
                 .append(port2).append('|').append(proto).append('|')
-                .append(deviceID.toString()).toString()
+                .append(deviceID.toString).toString()
     }
 }
 
