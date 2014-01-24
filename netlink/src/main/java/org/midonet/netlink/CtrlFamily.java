@@ -1,34 +1,34 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.netlink;
-
 
 /**
  * Abstraction for the NETLINK CTRL family of commands and attributes.
  */
-public class CtrlFamily
-    extends Netlink.CommandFamily<CtrlFamily.Cmd, CtrlFamily.AttrKey> {
+public final class CtrlFamily {
 
     public static final int FAMILY_ID = 0x10;
     public static final int VERSION = 1;
 
-    public enum Cmd implements Netlink.ByteConstant {
-        UNSPEC(0),
-        NEWFAMILY(1), DELFAMILY(2), GETFAMILY(3),
-        NEWOPS(4), DELOPS(5), GETOPS(6),
-        NEWMCAST_GRP(7), DELMCAST_GRP(8), GETMCAST_GRP(9),;
+    public enum Context implements NetlinkRequestContext {
+        Unspec(0),
+        NewFamily(1),
+        DelFamily(2),
+        GetFamily(3),
+        NewOps(4),
+        DelOps(5),
+        GetOps(6),
+        NewMCastGrp(7),
+        DelMCastGrp(8),
+        GetMCastGrp(9);
 
-        byte value;
+        final byte command;
 
-        Cmd(int value) {
-            this.value = (byte) value;
-        }
-
-        @Override
-        public byte getValue() {
-            return value;
-        }
+        Context(int command) { this.command = (byte) command; }
+        public short commandFamily() { return FAMILY_ID; }
+        public byte command() { return command; }
+        public byte version() { return VERSION; }
     }
 
     public static class AttrKey<T> extends NetlinkMessage.AttrKey<T> {
@@ -53,7 +53,5 @@ public class CtrlFamily
         }
     }
 
-    public CtrlFamily() {
-        super(FAMILY_ID, VERSION);
-    }
+    private CtrlFamily() { }
 }
