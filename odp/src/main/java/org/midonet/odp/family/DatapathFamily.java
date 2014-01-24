@@ -5,7 +5,6 @@ package org.midonet.odp.family;
 
 import org.midonet.netlink.Netlink;
 import org.midonet.netlink.NetlinkMessage;
-import org.midonet.netlink.NetlinkRequestContext;
 import org.midonet.odp.Datapath;
 import org.midonet.odp.OpenVSwitch;
 
@@ -59,10 +58,10 @@ public class DatapathFamily extends
         }
     }
 
-    public final NetlinkRequestContext contextNew;
-    public final NetlinkRequestContext contextDel;
-    public final NetlinkRequestContext contextGet;
-    public final NetlinkRequestContext contextSet;
+    public final OvsBaseContext contextNew;
+    public final OvsBaseContext contextDel;
+    public final OvsBaseContext contextGet;
+    public final OvsBaseContext contextSet;
 
     public DatapathFamily(int familyId) {
         super(familyId, VERSION);
@@ -72,15 +71,11 @@ public class DatapathFamily extends
         contextSet = new DatapathContext(familyId, OpenVSwitch.Datapath.Cmd.Set);
     }
 
-    private static class DatapathContext implements NetlinkRequestContext {
-        final short commandFamily;
-        final byte command;
+    private static class DatapathContext extends OvsBaseContext {
         public DatapathContext(int familyId, int command) {
-            this.commandFamily = (short) familyId;
-            this.command = (byte) command;
+            super(familyId, command);
         }
-        public short commandFamily() { return commandFamily; }
+        @Override
         public byte version() { return (byte) OpenVSwitch.Datapath.version; }
-        public byte command() { return command; }
     }
 }
