@@ -9,18 +9,19 @@ import java.util.UUID
 
 import org.midonet.packets.{IPv4Addr, IPSubnet, MAC}
 
-sealed trait Port[T] {
-    var id: UUID = null
-    var deviceID: UUID = null
+sealed trait Port {
+    var id: UUID = _
+    var deviceID: UUID = _
     var adminStateUp: Boolean = true
-    var inFilterID: UUID = null
-    var outFilterID: UUID = null
-    var properties: Map[String, String] = null  //move (What's this mean?)
+    var inFilterID: UUID = _
+    var outFilterID: UUID = _
+    var properties: Map[String, String] = _//move (What's this mean?)
     var tunnelKey: Long = _
-    var portGroups: Set[UUID] = null
-    var hostID: UUID = null
-    var interfaceName: String = null
-    var peerID: UUID = null
+    var portGroups: Set[UUID] = _
+    var hostID: UUID = _
+    var interfaceName: String = _
+    var peerID: UUID = _
+    var vlanId: Short = _
 
     def isExterior: Boolean = this.hostID != null && this.interfaceName != null
 
@@ -28,94 +29,95 @@ sealed trait Port[T] {
 
     def isPlugged: Boolean = this.isInterior || this.isExterior
 
-    def setAdminStateUp(adminStateUp: Boolean): T = {
+    def setAdminStateUp(adminStateUp: Boolean): this.type = {
         this.adminStateUp = adminStateUp
-        self
+        this
     }
 
-    def setPeerID(id: UUID): T = {
-        this.peerID = id; self
+    def setPeerID(id: UUID): this.type = {
+        this.peerID = id
+        this
     }
 
-    def setTunnelKey(key: Long): T = {
-        this.tunnelKey = key; self
+    def setTunnelKey(key: Long): this.type = {
+        this.tunnelKey = key
+        this
     }
 
-    def setPortGroups(groups: Set[UUID]): T = {
-        portGroups = groups; self
+    def setPortGroups(groups: Set[UUID]): this.type = {
+        portGroups = groups
+        this
     }
 
-    def setPortGroups(groups: java.util.Set[UUID]): T = {
+    def setPortGroups(groups: java.util.Set[UUID]): this.type = {
         portGroups = Set(groups.toSeq:_*)
-        self
+        this
     }
 
-    def setHostID(id: UUID): T = {
-        this.hostID = id; self
+    def setHostID(id: UUID): this.type = {
+        this.hostID = id
+        this
     }
 
-    def setInterfaceName(name: String): T = {
-        this.interfaceName = name; self
+    def setInterfaceName(name: String): this.type = {
+        this.interfaceName = name
+        this
     }
 
-    var vlanId: Short = _
-    def setVlanId(id: Short): T = {
-        this.vlanId = id;
-        self
+
+    def setVlanId(id: Short): this.type = {
+        this.vlanId = id
+        this
     }
 
-    def self: T = {
-        this.asInstanceOf[T]
-    }
-
-    def setID(id: UUID): T = {
+    def setID(id: UUID): this.type = {
         this.id = id
-        self
+        this
     }
 
-    def setDeviceID(id: UUID): T = {
+    def setDeviceID(id: UUID): this.type  = {
         this.deviceID = id
-        self
+        this
     }
 
-    def setInFilter(chain: UUID): T = {
+    def setInFilter(chain: UUID): this.type  = {
         this.inFilterID = chain
-        self
+        this
     }
 
-    def setOutFilter(chain: UUID): T = {
+    def setOutFilter(chain: UUID): this.type  = {
         this.outFilterID = chain
-        self
+        this
     }
 
-    def setProperties(props: Map[String, String]): T = {
-        properties = props; self
+    def setProperties(props: Map[String, String]): this.type = {
+        properties = props
+        this
     }
 
-    def setProperties(props: java.util.Map[String, String]): T = {
+    def setProperties(props: java.util.Map[String, String]): this.type  = {
         properties = Map(props.toSeq:_*)
-        self
+        this
     }
 }
 
-class BridgePort
-    extends Port[BridgePort] {
+class BridgePort extends Port {
 }
 
-class RouterPort extends Port[RouterPort] {
+class RouterPort extends Port {
     var portAddr: IPSubnet[IPv4Addr] = null
     var portMac: MAC = null
 
     def nwSubnet = portAddr
 
-    def setPortAddr(addr: IPSubnet[IPv4Addr]): RouterPort = {
+    def setPortAddr(addr: IPSubnet[IPv4Addr]): this.type = {
         this.portAddr = addr
-        self
+        this
     }
 
-    def setPortMac(mac: MAC): RouterPort = {
+    def setPortMac(mac: MAC): this.type = {
         this.portMac = mac
-        self
+        this
     }
 
 }

@@ -11,9 +11,9 @@ import org.midonet.midolman.topology.PortManager
 
 class PortBuilderImpl(val portActor: ActorRef) extends PortBuilder {
 
-    private var port: Port[_] = null
+    private var port: Port = null
 
-    def setPort(p: Port[_]) {
+    def setPort(p: Port) {
         port = p
     }
 

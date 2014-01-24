@@ -52,8 +52,8 @@ object VirtualTopologyActor extends Referenceable {
     }
 
     case class PortRequest(id: UUID, update: Boolean = false)
-            extends DeviceRequest[Port[_]] {
-        protected[VirtualTopologyActor] val tag = classTag[Port[_]]
+            extends DeviceRequest[Port] {
+        protected[VirtualTopologyActor] val tag = classTag[Port]
 
         protected[VirtualTopologyActor]
         override val managerName = "PortManager-" + id
@@ -312,7 +312,7 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
         case ipAddrGroup: IPAddrGroup =>
             log.debug("Received an IPAddrGroup for {}", ipAddrGroup.id)
             updated(ipAddrGroup)
-        case port: Port[_] =>
+        case port: Port =>
             log.debug("Received a Port for {}", port.id)
             updated(port.id, port)
         case router: Router =>

@@ -72,7 +72,7 @@ class PacketContext(override val flowCookie: Option[Int],
 
     private var _inPortId: UUID = null
     override def inPortId: UUID = _inPortId
-    def inPortId_=(port: Port[_]) {
+    def inPortId_=(port: Port) {
         _inPortId = if (port == null) null else port.id
         // ingressFE is set only once, so it always points to the
         // first device that saw this packet, null for generated packets.

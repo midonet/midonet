@@ -510,7 +510,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
                 }
         }
 
-    private def processDhcp(inPort: Port[_], dhcp: DHCP, mtu: Option[Short]) = {
+    private def processDhcp(inPort: Port, dhcp: DHCP, mtu: Option[Short]) = {
         val srcMac = packet.getPacket.getSourceMACAddress
         val dhcpLogger = Logging.getLogger(system, classOf[DhcpImpl])
         DhcpImpl(dataClient, inPort, dhcp, srcMac, mtu, dhcpLogger) match {

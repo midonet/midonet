@@ -11,14 +11,14 @@ import org.midonet.cluster.client.Port
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 
 object PortManager{
-    case class TriggerUpdate(port: Port[_])
+    case class TriggerUpdate(port: Port)
 }
 
 class PortManager(id: UUID, val clusterClient: Client)
     extends DeviceManager(id) {
     import context.system
 
-    private var port: Port[_] = null
+    private var port: Port = null
     private var changed = false
 
     override def chainsUpdated() {
@@ -60,7 +60,7 @@ class PortManager(id: UUID, val clusterClient: Client)
     }
 
     override def receive = super.receive orElse {
-        case TriggerUpdate(p: Port[_]) =>
+        case TriggerUpdate(p: Port) =>
             changed = port != null
             port = p
             configUpdated()

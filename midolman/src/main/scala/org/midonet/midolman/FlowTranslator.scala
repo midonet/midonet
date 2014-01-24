@@ -134,12 +134,12 @@ trait FlowTranslator {
         }
     }
 
-    protected def applyOutboundFilters(localPorts: Seq[Port[_]],
+    protected def applyOutboundFilters(localPorts: Seq[Port],
                                        portSetID: UUID,
                                        pktMatch: WildcardMatch,
                                        tags: Option[mutable.Set[Any]])
     : Future[Seq[UUID]] = {
-        def chainMatch(port: Port[_], chain: Chain): Boolean = {
+        def chainMatch(port: Port, chain: Chain): Boolean = {
             val fwdInfo = new EgressPortSetChainPacketContext(port.id, tags)
             Chain.apply(chain, fwdInfo, pktMatch, port.id, true).action match {
                 case RuleResult.Action.ACCEPT =>
@@ -157,7 +157,7 @@ trait FlowTranslator {
             for { (p, c) <- localPorts zip chains if chainMatch(p, c) }
                 yield p.id
 
-        def portToChain(port: Port[_]): Future[Chain] =
+        def portToChain(port: Port): Future[Chain] =
             if (port.outFilterID == null)
                 Future.successful(null)
             else
@@ -336,7 +336,7 @@ trait FlowTranslator {
 
     protected def activePorts(portIds: Set[UUID],
                               dpTags: mutable.Set[Any])
-    : Future[Seq[Port[_]]] = {
+    : Future[Seq[Port]] = {
         val fs = portIds.map { portID =>
             expiringAsk(PortRequest(portID), log)
         }(breakOut(Seq.canBuildFrom))
@@ -365,7 +365,7 @@ trait FlowTranslator {
         } getOrElse {
             /* otherwise we translate to a remote port */
             expiringAsk(PortRequest(port), log) map {
-                case p: Port[_] if p.isExterior =>
+                case p: Port if p.isExterior =>
                     towardsRemoteHosts(
                         actions, port, p.tunnelKey, p.hostID, tags)
                 case _ =>

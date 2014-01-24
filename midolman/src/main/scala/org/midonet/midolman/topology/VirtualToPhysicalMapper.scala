@@ -551,7 +551,7 @@ abstract class VirtualToPhysicalMapperBase
      *  processed asynchronously inside a Future. If the future timeouts
      *  the request reschedules itself 3 times before failing. */
     private def getPortConfig(vport: UUID, retries: Int = 3)
-            : Future[Option[(Port[_], Device)]] =
+            : Future[Option[(Port, Device)]] =
         expiringAsk(PortRequest(vport), log) flatMap {
             case brPort: BridgePort =>
                 val req = BridgeRequest(brPort.deviceID)
@@ -624,7 +624,7 @@ abstract class VirtualToPhysicalMapperBase
      *
      * Used for both normal bridges and vlan-aware bridges.
      */
-    private case class _DevicePortStatus(port: Port[_],
+    private case class _DevicePortStatus(port: Port,
                                          device: Device,
                                          active: Boolean)
 

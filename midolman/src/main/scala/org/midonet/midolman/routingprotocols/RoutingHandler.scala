@@ -277,7 +277,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                 }
                 if (store)
                     rport = port
-            case port: Port[_] =>
+            case port: Port =>
                 log.error("Cannot run BGP on anything but an exterior " +
                     "virtual router port. We got {}", port)
 
