@@ -1,12 +1,14 @@
-// Copyright 2012 Midokura Inc.
+/*
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
+ */
 
 package org.midonet.packets
 
-/**
- * Common abstraction for any version of an IP address.
- */
 import java.util.{NoSuchElementException, Random}
 
+/**
+ * Common abstraction for IPv4 and IPv6 addresses
+ */
 trait IPAddr {
     type T <: IPAddr
     def toString: String
@@ -22,13 +24,6 @@ trait IPAddr {
     def subnet(len: Int): IPSubnet[T]
 
     /**
-     * Provides a new copy of the IP address.
-     *
-     * @return
-     */
-    def copy: T
-
-    /**
      * Get the next ip to the current one
      *
      * ®return
@@ -37,59 +32,41 @@ trait IPAddr {
 
     def randomTo(limit: T, rand: Random): T
 
+    /** Returns an inclusive range of IPAddr as a Java Iterable, up to
+     *  the given argument, or starting from it (order does not matter). */
+    def range(that: T): java.lang.Iterable[T]
+
 }
 
 object IPAddr {
-    implicit def ipAddrToOrdered[T <: IPAddr](ip: T): Ordered[T] = ip match {
-        case i: Ordered[_] => ip.asInstanceOf[Ordered[T]]
-        case _ => throw new IllegalArgumentException()
-    }
+    def fromString(s: String): IPAddr =
+        if (s.contains(":")) IPv6Addr.fromString(s) else IPv4Addr.fromString(s)
 
-    def fromString(s: String): IPAddr = {
-        if (s.contains(":"))
-            IPv6Addr.fromString(s)
-        else
-            IPv4Addr.fromString(s)
-    }
+    def canonicalize(s: String): String = fromString(s).toString
 
-    def canonicalize(s: String): String = {
-        try {
-            fromString(s).toString
-        } catch {
-            case e: Exception =>
-                throw new IllegalArgumentException("Not a valid IP address: " + s)
+    /** Helper function to create ranges of IPAddr as java Iterable. The range
+     *  is inclusive of both arguments. */
+    def range[T <: IPAddr](from: T, to: T) = {
+        new java.lang.Iterable[T]() {
+            override def iterator() =
+                new java.util.Iterator[T]() {
+                    var currentAddr = from
+                    var isDone = false
+                    override def hasNext() = !isDone
+                    override def next() = {
+                        val ip = currentAddr
+                        if (isDone)
+                            throw new java.util.NoSuchElementException
+                        if (currentAddr == to)
+                            isDone = true
+                        else
+                            currentAddr = currentAddr.next.asInstanceOf[T]
+                        ip
+                    }
+                    override def remove() {
+                        throw new UnsupportedOperationException;
+                    }
+                }
         }
     }
-
-    def fromAddr[T <: IPAddr](ip: T): T = {
-        val newIp: T = ip match {
-            case ipv4: IPv4Addr => IPv4Addr.fromIPv4(ipv4).asInstanceOf[T]
-            case ipv6: IPv6Addr => IPv6Addr.fromIPv6(ipv6).asInstanceOf[T]
-        }
-        newIp
-    }
-}
-
-class IPAddrRange[T <: IPAddr](start: T, end: T)
-                 (implicit o: T => Ordered[T]) extends Iterator[IPAddr] {
-
-    private var index: T = IPAddr.fromAddr(start)
-
-    override def hasNext: Boolean = index <= end
-    override def next(): T = {
-        if (!hasNext)
-            throw new NoSuchElementException
-        val curr = index
-        index = index.next.asInstanceOf[T]
-        curr
-    }
-
-}
-
-/**
- * For usage from java, since IPAddrRange requires an implicit param.
- */
-object IPAddrRangeBuilder {
-    def range[T <: IPAddr](ip1: T, ip2: T): IPAddrRange[T] =
-        new IPAddrRange(ip1, ip2)
 }

@@ -1,4 +1,6 @@
-// Copyright 2013 Midokura Inc.
+/*
+ * Copyright (c) 2013 Midokura Europe SARL, All Rights Reserved.
+ */
 
 package org.midonet.packets
 
@@ -14,9 +16,6 @@ import org.codehaus.jackson.annotate.JsonCreator;
  */
 class IPv4Addr(val addr: Int) extends IPAddr with Ordered[IPv4Addr] {
     type T = IPv4Addr
-
-    // Required for Jackson deserialization
-    def this() = this(0)
 
     override def toUrlString = toString()
 
@@ -38,7 +37,6 @@ class IPv4Addr(val addr: Int) extends IPAddr with Ordered[IPv4Addr] {
 
     override def hashCode() = addr
     override def subnet(len: Int = 32): IPv4Subnet = new IPv4Subnet(this, len)
-    override def copy: IPv4Addr = new IPv4Addr(this.addr)
     override def randomTo(limit: IPv4Addr, rand: Random): IPv4Addr = {
         if (this > limit)
             throw new IllegalArgumentException("Limit is lower than this ip")
@@ -51,11 +49,14 @@ class IPv4Addr(val addr: Int) extends IPAddr with Ordered[IPv4Addr] {
     def toInt = addr
     override def toBytes: Array[Byte] = IPv4Addr.intToBytes(addr)
 
+    override def range(that: IPv4Addr) =
+        if (that < this) IPAddr.range(that, this) else IPAddr.range(this, that)
+
 }
 
 object IPv4Addr {
 
-    val r = new scala.util.Random
+    val r = new Random
 
     def random = IPv4Addr(r.nextInt)
 

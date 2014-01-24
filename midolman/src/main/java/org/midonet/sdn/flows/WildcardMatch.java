@@ -968,12 +968,11 @@ public class WildcardMatch implements Cloneable {
                         break;
 
                     case NetworkDestination:
-                        newClone.networkDestination =
-                            (IPAddr)networkDestination.copy();
+                        newClone.networkDestination = networkDestination;
                         break;
 
                     case NetworkSource:
-                        newClone.networkSource = (IPAddr)networkSource.copy();
+                        newClone.networkSource = networkSource;
                         break;
 
                     case NetworkProtocol:

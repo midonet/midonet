@@ -22,8 +22,6 @@ import org.midonet.midolman.state.zkManagers.FiltersZkManager;
 import org.midonet.packets.ICMP;
 import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPAddr$;
-import org.midonet.packets.IPAddrRange;
-import org.midonet.packets.IPAddrRangeBuilder;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv6Addr;
 import org.midonet.util.eventloop.Reactor;
@@ -365,9 +363,7 @@ public class NatLeaseManager implements NatMapping {
         for (NatTarget tg : nats) {
             int tpStart = tg.tpStart & USHORT;
             int tpEnd = tg.tpEnd & USHORT;
-            IPAddrRange nwRange = IPAddrRangeBuilder.range(tg.nwStart, tg.nwEnd);
-            while (nwRange.hasNext()) {
-                IPAddr ip = (IPAddr)nwRange.next();
+            for (IPAddr ip: tg.nwStart.range(tg.nwEnd)) {
                 NavigableSet<Integer> freePorts = ipToFreePortsMap.get(ip);
                 if (null == freePorts)
                     continue;
@@ -405,10 +401,7 @@ public class NatLeaseManager implements NatMapping {
         for (NatTarget tg : nats) {
             int tpStart = tg.tpStart & USHORT;
             int tpEnd = tg.tpEnd & USHORT;
-            IPAddrRange nwRange = IPAddrRangeBuilder.range(tg.nwStart, tg.nwEnd);
-            IPAddr ip = null;
-            while (nwRange.hasNext()) {
-                ip = (IPAddr)nwRange.next();
+            for (IPAddr ip: tg.nwStart.range(tg.nwEnd)) {
                 NavigableSet<Integer> reservedBlocks;
                 try {
                     reservedBlocks = filterMgr.getSnatBlocks(routerId, ip);
@@ -536,9 +529,7 @@ public class NatLeaseManager implements NatMapping {
         int tpDst = tpDst_ & USHORT;
         int numTries = 0;
         for (NatTarget tg : nats) {
-            IPAddrRange nwRange = IPAddrRangeBuilder.range(tg.nwStart, tg.nwEnd);
-            while (nwRange.hasNext()) {
-                IPAddr ip = (IPAddr)nwRange.next();
+            for (IPAddr ip: tg.nwStart.range(tg.nwEnd)) {
                 NwTpPair reservation = makeSnatReservation(ICMP.PROTOCOL_NUMBER,
                               oldNwSrc, oldTpSrc, ip, oldTpSrc, nwDst, tpDst);
                 if (reservation != null)

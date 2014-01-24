@@ -1,4 +1,6 @@
-// Copyright 2012 Midokura Inc.
+/*
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
+ */
 
 // TODO(jlm): Replace this with a wrapper around
 //  http://code.google.com/p/java-ipv6/ ?
@@ -6,28 +8,19 @@
 package org.midonet.packets
 
 import java.lang.Long.parseLong
-import java.util.Random
 import java.nio.ByteBuffer
+import java.util.Random
+
 import org.codehaus.jackson.annotate.JsonValue;
 import org.codehaus.jackson.annotate.JsonCreator;
 
 /**
  * An IPv6 address.
- *
- * TODO (galo): We can't make this immutable thanks to Jackson, who seems to be
- * unable (or unwilling) to use the constructor and needs an empty one, it must
- * be possible to instruct him correctly. I suspect this class will give trouble
- * as soon as we start serializing deserializing it because it does not provide
- * setters - I had this problem with IPv4Addr and that's there the addr is a
- * var. But we'll see when the time comes.
  */
 class IPv6Addr(val upperWord: Long, val lowerWord: Long) extends IPAddr
                                                          with Ordered[IPv6Addr]{
 
     type T = IPv6Addr
-
-    // Required for Jackson deserialization
-    def this() = this(0, 0)
 
     @JsonValue
     override def toString = {
@@ -61,7 +54,6 @@ class IPv6Addr(val upperWord: Long, val lowerWord: Long) extends IPAddr
     }
 
     override def subnet(len: Int = 128): IPv6Subnet = new IPv6Subnet(this, len)
-    override def copy: IPv6Addr = new IPv6Addr(this.upperWord, this.lowerWord)
 
     override def next: IPv6Addr = {
         val nextLower = lowerWord + 1
@@ -98,9 +90,21 @@ class IPv6Addr(val upperWord: Long, val lowerWord: Long) extends IPAddr
         bb.putLong(lowerWord)
         bb.array()
     }
+
+    override def range(that: IPv6Addr) =
+        if (that < this) IPAddr.range(that, this) else IPAddr.range(this, that)
+
 }
 
 object IPv6Addr {
+
+    val r = new Random
+
+    def random = IPv6Addr(r.nextLong, r.nextLong)
+
+    def apply(s: String) = fromString(s)
+
+    def apply(upper: Long, lower: Long) = fromLong(upper, lower)
 
     // TODO: Support ":: (abbreviated)" notation
     // TODO: Verify each piece is valid 1-4 digit hex.
