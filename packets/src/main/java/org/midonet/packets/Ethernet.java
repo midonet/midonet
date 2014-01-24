@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import static org.midonet.packets.Unsigned.unsign;
 
@@ -351,5 +352,32 @@ public class Ethernet extends BasePacket {
         if (!Arrays.equals(sourceMACAddress, other.sourceMACAddress))
             return false;
         return true;
+    }
+
+    private static final Random r = new Random();
+
+    /** generate a random ARP packet with its Ethernet frame.*/
+    public static Ethernet random() {
+        Ethernet eth = new Ethernet();
+        eth.destinationMACAddress = new byte[6];
+        eth.sourceMACAddress = new byte[6];
+        eth.priorityCode = (byte) 1;
+        eth.etherType = (short) 0x0800;
+        ARP arp = new ARP();
+        arp.setHardwareType(ARP.HW_TYPE_ETHERNET);
+        arp.setProtocolType(ARP.PROTO_TYPE_IP);
+        arp.setHardwareAddressLength((byte)6);
+        arp.setProtocolAddressLength((byte)4);
+        arp.setOpCode(ARP.OP_REQUEST);
+        arp.setSenderHardwareAddress(new MAC(eth.sourceMACAddress));
+        arp.setTargetHardwareAddress(new MAC(eth.destinationMACAddress));
+        arp.setSenderProtocolAddress(new byte[4]);
+        arp.setTargetProtocolAddress(new byte[4]);
+        eth.setPayload(arp);
+        r.nextBytes(eth.destinationMACAddress);
+        r.nextBytes(eth.sourceMACAddress);
+        r.nextBytes(arp.getSenderProtocolAddress());
+        r.nextBytes(arp.getTargetProtocolAddress());
+        return eth;
     }
 }
