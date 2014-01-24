@@ -5,5 +5,5 @@
 package org.midonet.cluster.client;
 
 public interface PortBuilder extends Builder<PortBuilder> {
-    void setPort(Port<?> p);
+    void setPort(Port p);
 }

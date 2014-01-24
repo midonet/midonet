@@ -246,7 +246,7 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
         }
 
         (outPort match {
-            case p: Port[_] if p.isInterior =>
+            case p: Port if p.isInterior =>
                 getPeerMac(p, expiry)
             case _ => /* Fall through to ARP'ing below. */
                 Future.successful(null)

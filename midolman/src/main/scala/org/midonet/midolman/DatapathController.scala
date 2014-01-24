@@ -671,7 +671,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
 
     }
 
-    private def installTunnelKeyFlow(port: DpPort, exterior: client.Port[_]) {
+    private def installTunnelKeyFlow(port: DpPort, exterior: client.Port) {
         val fc = FlowController
         // packets for the port may have arrived before the
         // port came up and made us install temporary drop flows.

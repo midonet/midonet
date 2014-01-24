@@ -335,7 +335,7 @@ class Coordinator(var origMatch: WildcardMatch,
         DeduplicationActor ! EmitGeneratedPacket(inPort, eth, cookie)
     }
 
-    private def packetIngressesDevice(port: Port[_])
+    private def packetIngressesDevice(port: Port)
     : Future[SimulationResult] =
         (port match {
             case _: BridgePort => expiringAsk(
@@ -511,8 +511,8 @@ class Coordinator(var origMatch: WildcardMatch,
         }
     }
 
-    def applyPortFilter(port: Port[_], filterID: UUID,
-                        thunk: (Port[_]) => Future[SimulationResult]):
+    def applyPortFilter(port: Port, filterID: UUID,
+                        thunk: (Port) => Future[SimulationResult]):
                         Future[SimulationResult] = {
         if (filterID == null)
             return thunk(port)
@@ -551,9 +551,9 @@ class Coordinator(var origMatch: WildcardMatch,
             case port =>
                 pktContext.outPortId = port.id
                 applyPortFilter(port, port.outFilterID, {
-                    case port: Port[_] if port.isExterior =>
+                    case port: Port if port.isExterior =>
                         emit(portID, isPortSet = false, port)
-                    case port: Port[_] if port.isInterior =>
+                    case port: Port if port.isInterior =>
                         packetIngressesPort(port.peerID,
                             getPortGroups = false)
                     case _ =>
@@ -572,7 +572,7 @@ class Coordinator(var origMatch: WildcardMatch,
      * @param isPortSet Whether the packet is output to a port set.
      * @param port The port output to; unused if outputting to a port set.
      */
-    private def emit(outputID: UUID, isPortSet: Boolean, port: Port[_]):
+    private def emit(outputID: UUID, isPortSet: Boolean, port: Port):
             SimulationResult = {
         val actions = actionsFromMatchDiff(origMatch, pktContext.wcmatch)
         isPortSet match {
@@ -630,7 +630,7 @@ class Coordinator(var origMatch: WildcardMatch,
         }
     }
 
-    private[this] def processAdminStateDown(port: Port[_], isIngress: Boolean)
+    private[this] def processAdminStateDown(port: Port, isIngress: Boolean)
     : SimulationResult = {
         port match {
             case p: RouterPort if isIngress =>

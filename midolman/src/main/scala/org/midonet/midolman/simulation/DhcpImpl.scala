@@ -17,7 +17,7 @@ import org.midonet.packets._
 
 object DhcpImpl {
 
-    def apply(dataClient: DataClient, inPort: Port[_], request: DHCP,
+    def apply(dataClient: DataClient, inPort: Port, request: DHCP,
               sourceMac: MAC, mtu: Option[Short], log: LoggingAdapter) =
         new DhcpImpl(dataClient, request, sourceMac, mtu, log).handleDHCP(inPort)
 
@@ -38,7 +38,7 @@ class DhcpImpl(val dataClient: DataClient,
     // utility function for reduced verbosity
     private def addrToBytes (ip: IntIPv4) = IPv4Addr.intToBytes(ip.getAddress)
 
-    def handleDHCP(port: Port[_]) : Option[Ethernet] = {
+    def handleDHCP(port: Port) : Option[Ethernet] = {
         // These fields are decided based on the port configuration.
         // DHCP is handled differently for bridge and router ports.
 
