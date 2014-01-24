@@ -47,7 +47,7 @@ public class ForwardNatRule extends NatRule {
             NatTarget tg = targets.iterator().next();
             if (tg.nwStart.equals(tg.nwEnd) && 0 == tg.tpStart && 0 == tg.tpEnd) {
                 floatingIp = true;
-                floatingIpAddr = IPAddr$.MODULE$.fromAddr(tg.nwStart);
+                floatingIpAddr = tg.nwStart;
             }
         }
 

@@ -12,6 +12,8 @@ import org.junit.Test
 @RunWith(classOf[JUnitRunner])
 class IPv6AddrTest extends Suite with ShouldMatchers {
 
+    val ippool = List.tabulate(1000) { _ => IPv6Addr.random }
+
     def testNext() {
         var ip = IPv6Addr.fromString("f00f:4004:2003:2002:3ddd:6666:4934:1")
         ip.next.toString() should be === "f00f:4004:2003:2002:3ddd:6666:4934:2"
@@ -21,14 +23,22 @@ class IPv6AddrTest extends Suite with ShouldMatchers {
     }
 
     def testNextOverflows() {
-        var ip = IPv6Addr.fromString("f00f:4004:2003:2002:ffff:ffff:ffff:ffff")
-        ip.next.toString() should be === "f00f:4004:2003:2003:0:0:0:0"
+        val ip1 = IPv6Addr.fromString("f00f:4004:2003:2002:ffff:ffff:ffff:ffff")
+        ip1.lowerWord should be(-1)
 
-        ip = IPv6Addr.fromString("f00f:4004:2003:2002:7fff:ffff:ffff:ffff")
-        ip.next.toString() should be === "f00f:4004:2003:2002:8000:0:0:0"
+        ip1.next.toString() should be === "f00f:4004:2003:2003:0:0:0:0"
+        ip1.next.lowerWord should be(0)
 
-        ip = IPv6Addr.fromString("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff")
-        ip.next.toString() should be === "0:0:0:0:0:0:0:0"
+        val ip2 = IPv6Addr.fromString("f00f:4004:2003:2002:7fff:ffff:ffff:ffff")
+        ip2.next.toString() should be === "f00f:4004:2003:2002:8000:0:0:0"
+
+        val ip3 = IPv6Addr.fromString("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff")
+        ip3.upperWord should be(-1)
+        ip3.lowerWord should be(-1)
+
+        ip3.next.toString() should be === "0:0:0:0:0:0:0:0"
+        ip3.next.upperWord should be(0)
+        ip3.next.lowerWord should be(0)
     }
 
     def testRandomToWithPositiveLowerWord() {
@@ -40,7 +50,11 @@ class IPv6AddrTest extends Suite with ShouldMatchers {
 
         val b = start.randomTo(end, new FakeRandom(0x1f))
         b.toString() should be === "f00f:4004:2003:2002:0:0:1:15"
+    }
 
+    def testCompare() {
+
+        for (ip <- ippool) { ip.next should be > ip }
     }
 
     /**
@@ -82,6 +96,17 @@ class IPv6AddrTest extends Suite with ShouldMatchers {
 
     class FakeRandom(val forceNextLong: Long) extends Random {
         override def nextLong() = forceNextLong
+    }
+
+    def testRange() {
+        import scala.collection.JavaConversions.iterableAsScalaIterable
+        val ip1 = new IPv6Addr(1234L, 5678L)
+        val ip2 = ip1.next
+        val ip11 = new IPv6Addr(1234L, 5678L + 10L)
+        (ip1 range ip1).toSeq should have size(1)
+        (ip1 range ip2).toSeq should have size(2)
+        (ip1 range ip11).toSeq should have size(11)
+        (ip1 range ip11).toSeq should be((ip11 range ip1).toSeq)
     }
 
 }

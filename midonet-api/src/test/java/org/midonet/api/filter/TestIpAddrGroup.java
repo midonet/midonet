@@ -16,6 +16,7 @@ import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.Topology;
 import org.midonet.api.zookeeper.StaticMockDirectory;
 import org.midonet.client.dto.*;
+import org.midonet.packets.IPv4Addr$;
 
 import java.net.URI;
 
@@ -140,12 +141,16 @@ public class TestIpAddrGroup {
 
         @Test
         public void testInvalidIpAddr() {
+            String ipString = "10.0.2";
             DtoIpAddrGroup group = createIPAddrGroup("group1");
             DtoIpAddrGroupAddr ipAddr =
-                    new DtoIpv4AddrGroupAddr(group.getId(), "10.0.2");
+                    new DtoIpv4AddrGroupAddr(group.getId(), ipString);
             DtoError error = dtoResource.postAndVerifyBadRequest(
                     group.getAddrs(), APPLICATION_IP_ADDR_GROUP_ADDR_JSON, ipAddr);
-            assertEquals("Not a valid IP address: 10.0.2", error.getMessage());
+
+            String expectedErrorMessage =
+                IPv4Addr$.MODULE$.illegalIPv4String(ipString).getMessage();
+            assertEquals(expectedErrorMessage, error.getMessage());
         }
 
         @Test

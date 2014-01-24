@@ -77,6 +77,8 @@ class IPv4AddrTest extends Suite with Matchers {
 
         ip = IPv4Addr.fromString("10.1.255.255")
         ip.next.toString() should be ("10.2.0.0")
+
+        IPv4Addr(Integer.MAX_VALUE).next should be(IPv4Addr(Integer.MIN_VALUE))
     }
 
     def testCompare() {
@@ -90,6 +92,7 @@ class IPv4AddrTest extends Suite with Matchers {
         ip1.compare(ip11) should be (0)
         ip3.compare(ip1) should be (1)
 
+        for (ip <- ippool) { ip.next should be > ip }
     }
 
     def testRandomInRange() {
@@ -116,6 +119,24 @@ class IPv4AddrTest extends Suite with Matchers {
         r2.compare(ip3) should be (1)
         r2.compare(ip4) should be (-1)
 
+    }
+
+    def testRange() {
+        import scala.collection.JavaConversions.iterableAsScalaIterable
+        val ip1 = IPv4Addr(123456)
+        val ip2 = IPv4Addr(ip1.addr + 1)
+        val ip11 = IPv4Addr(ip1.addr + 10)
+        (ip1 range ip1).toSeq should have size(1)
+        (ip1 range ip2).toSeq should have size(2)
+        (ip1 range ip11).toSeq should have size(11)
+        (ip1 range ip11).toSeq should be((ip11 range ip1).toSeq)
+
+        val iter = (ip1 range ip2).iterator
+        intercept[UnsupportedOperationException] { iter.remove }
+        iter.next
+        iter.next
+        iter.hasNext shouldEqual false
+        intercept[java.util.NoSuchElementException] { iter.next }
     }
 
 }

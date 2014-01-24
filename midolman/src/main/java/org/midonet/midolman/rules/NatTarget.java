@@ -19,8 +19,8 @@ public class NatTarget {
     public int tpEnd;
 
     public NatTarget(IPAddr nwStart, IPAddr nwEnd, int tpStart, int tpEnd) {
-        this.nwStart = (IPAddr)nwStart.copy();
-        this.nwEnd = (IPAddr)nwEnd.copy();
+        this.nwStart = nwStart;
+        this.nwEnd = nwEnd;
         this.tpStart = tpStart;
         this.tpEnd = tpEnd;
     }
