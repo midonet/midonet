@@ -3,7 +3,6 @@
  */
 package org.midonet.odp.family;
 
-import org.midonet.netlink.Netlink;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.odp.DpPort;
 import org.midonet.odp.ports.VxLanTunnelPortOptions;
@@ -12,33 +11,13 @@ import org.midonet.odp.OpenVSwitch;
 /**
  * Abstraction for the NETLINK OvsVPort family of commands and attributes.
  */
-public class PortFamily extends
-        Netlink.CommandFamily<PortFamily.Cmd, PortFamily.Attr<PortFamily>>{
+public class PortFamily {
 
     public static final byte VERSION = OpenVSwitch.Port.version;
     public static final String NAME = OpenVSwitch.Port.Family;
     public static final String MC_GROUP = OpenVSwitch.Port.MCGroup;
 
     public static final int FALLBACK_MC_GROUP = OpenVSwitch.Port.fallbackMCGroup;
-
-    public enum Cmd implements Netlink.ByteConstant {
-
-        NEW(OpenVSwitch.Port.Cmd.New),
-        DEL(OpenVSwitch.Port.Cmd.Del),
-        GET(OpenVSwitch.Port.Cmd.Get),
-        SET(OpenVSwitch.Port.Cmd.Set);
-
-        byte value;
-
-        private Cmd(int value) {
-            this.value = (byte)value;
-        }
-
-        @Override
-        public byte getValue() {
-            return value;
-        }
-    }
 
     public static class Attr<T> extends NetlinkMessage.AttrKey<T> {
 
@@ -86,7 +65,6 @@ public class PortFamily extends
     public final OvsBaseContext contextSet;
 
     public PortFamily(int familyId) {
-        super(familyId, VERSION);
         contextNew = new PortContext(familyId, OpenVSwitch.Port.Cmd.New);
         contextDel = new PortContext(familyId, OpenVSwitch.Port.Cmd.Del);
         contextGet = new PortContext(familyId, OpenVSwitch.Port.Cmd.Get);

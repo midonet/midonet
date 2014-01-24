@@ -5,8 +5,8 @@ package org.midonet.odp.family;
 
 import java.util.List;
 
-import org.midonet.netlink.Netlink;
 import org.midonet.netlink.NetlinkMessage;
+import org.midonet.netlink.NetlinkRequestContext;
 import org.midonet.odp.OpenVSwitch;
 import org.midonet.odp.flows.FlowAction;
 import org.midonet.odp.flows.FlowKey;
@@ -15,30 +15,10 @@ import org.midonet.packets.Ethernet;
 /**
  *
  */
-public class PacketFamily extends
-        Netlink.CommandFamily<PacketFamily.Cmd,
-            PacketFamily.AttrKey<PacketFamily>> {
+public class PacketFamily {
 
     public static final String NAME = OpenVSwitch.Packet.Family;
     public static final byte VERSION = OpenVSwitch.Packet.version;
-
-    public enum Cmd implements Netlink.ByteConstant {
-
-        MISS(OpenVSwitch.Packet.Cmd.Miss),
-        ACTION(OpenVSwitch.Packet.Cmd.Action),
-        EXECUTE(OpenVSwitch.Packet.Cmd.Exec);
-
-        byte value;
-
-        private Cmd(int value) {
-            this.value = (byte) value;
-        }
-
-        @Override
-        public byte getValue() {
-            return value;
-        }
-    }
 
     public static class AttrKey<T> extends NetlinkMessage.AttrKey<T> {
 
@@ -75,12 +55,14 @@ public class PacketFamily extends
         }
     }
 
-    public final OvsBaseContext contextMiss;
-    public final OvsBaseContext contextExec;
-    public final OvsBaseContext contextAction;
+    public final short familyId;
+
+    public final NetlinkRequestContext contextMiss;
+    public final NetlinkRequestContext contextExec;
+    public final NetlinkRequestContext contextAction;
 
     public PacketFamily(int familyId) {
-        super(familyId, VERSION);
+        this.familyId = (short) familyId;
         contextMiss = new PacketContext(familyId, OpenVSwitch.Packet.Cmd.Miss);
         contextExec = new PacketContext(familyId, OpenVSwitch.Packet.Cmd.Exec);
         contextAction =

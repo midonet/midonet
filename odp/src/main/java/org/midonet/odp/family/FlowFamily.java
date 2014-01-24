@@ -15,30 +15,10 @@ import org.midonet.odp.OpenVSwitch;
 /**
  * // TODO: mtoader ! Please explain yourself.
  */
-public class FlowFamily extends
-        Netlink.CommandFamily<FlowFamily.Cmd, FlowFamily.AttrKey<FlowFamily>> {
+public class FlowFamily {
 
     public static final byte VERSION = OpenVSwitch.Flow.version;
     public static final String NAME = OpenVSwitch.Flow.Family;
-
-    public enum Cmd implements Netlink.ByteConstant {
-
-        NEW(OpenVSwitch.Flow.Cmd.New),
-        DEL(OpenVSwitch.Flow.Cmd.Del),
-        GET(OpenVSwitch.Flow.Cmd.Get),
-        SET(OpenVSwitch.Flow.Cmd.Set);
-
-        byte value;
-
-        private Cmd(int value) {
-            this.value = (byte)value;
-        }
-
-        @Override
-        public byte getValue() {
-            return value;
-        }
-    }
 
     public static class AttrKey<T> extends NetlinkMessage.AttrKey<T> {
 
@@ -90,7 +70,6 @@ public class FlowFamily extends
     public final OvsBaseContext contextSet;
 
     public FlowFamily(int familyId) {
-        super(familyId, VERSION);
         contextNew = new FlowContext(familyId, OpenVSwitch.Flow.Cmd.New);
         contextDel = new FlowContext(familyId, OpenVSwitch.Flow.Cmd.Del);
         contextGet = new FlowContext(familyId, OpenVSwitch.Flow.Cmd.Get);

@@ -131,61 +131,6 @@ public abstract class AbstractNetlinkConnection {
         return writeQueue;
     }
 
-    public class RequestBuilder<
-        Cmd extends Enum<Cmd> & Netlink.ByteConstant,
-        Family extends Netlink.CommandFamily<Cmd, ?>,
-        T> {
-
-        private Family cmdFamily;
-        private Cmd cmd;
-        private Flag[] flags;
-        private ByteBuffer payload;
-        private Callback<T> callback;
-        private Function<List<ByteBuffer>, T> translationFunction;
-        private long timeoutMillis;
-
-        private RequestBuilder(Family cmdFamily, Cmd cmd) {
-            this.cmdFamily = cmdFamily;
-            this.cmd = cmd;
-        }
-
-        public RequestBuilder<Cmd, Family, T> withFlags(Flag... flags) {
-            this.flags = flags;
-
-            return this;
-        }
-
-        public RequestBuilder<Cmd, Family, T> withPayload(ByteBuffer payload) {
-            this.payload = payload;
-            return this;
-        }
-
-        /** Register a callback to run when a netlink request completes.
-         *
-         * NOTE: The buffers passed to the translating function given
-         * to the callback will be reused after invocation, the caller
-         * is not entitled to keeping a reference to them.
-         */
-        public RequestBuilder<Cmd, Family, T> withCallback(
-                final Callback<T> callback,
-                final Function<List<ByteBuffer>, T> translationFunction) {
-            this.callback = callback;
-            this.translationFunction = translationFunction;
-            return this;
-        }
-
-        public RequestBuilder<Cmd, Family, T> withTimeout(long timeoutMillis) {
-            this.timeoutMillis = timeoutMillis;
-            return this;
-        }
-
-        public void send() {
-            sendNetLinkMessage(cmdFamily.getFamilyId(), cmd.getValue(),
-                               Flag.or(flags), cmdFamily.getVersion(),
-                               payload, callback, translationFunction, timeoutMillis);
-        }
-    }
-
     public static Function<List<ByteBuffer>, Boolean> alwaysTrueTranslator =
         new Function<List<ByteBuffer>, Boolean>() {
             @Override
@@ -199,26 +144,14 @@ public abstract class AbstractNetlinkConnection {
                                           ByteBuffer payload,
                                           Callback<T> callback,
                                           Function<List<ByteBuffer>, T> translator,
-                                          long timeoutMillis) {
-        sendNetLinkMessage(
-            ctx.commandFamily(),
-            ctx.command(),
-            flags,
-            ctx.version(),
-            payload,
-            callback,
-            translator,
-            timeoutMillis);
-    }
+                                          final long timeoutMillis) {
+        final short cmdFamily = ctx.commandFamily();
+        final byte cmd = ctx.command();
+        final byte version = ctx.version();
 
-    private <T> void sendNetLinkMessage(short cmdFamily, byte cmd, short flags,
-                                    byte version, ByteBuffer payload,
-                                    Callback<T> callback,
-                                    Function<List<ByteBuffer>, T> translationFunction,
-                                    final long timeoutMillis) {
         final int seq = sequenceGenerator.getAndIncrement();
 
-        int totalSize = payload.limit();
+        final int totalSize = payload.limit();
 
         final ByteBuffer headerBuf = payload.duplicate();
         headerBuf.rewind();
@@ -229,8 +162,7 @@ public abstract class AbstractNetlinkConnection {
         headerBuf.putInt(0, totalSize);
 
         final NetlinkRequest<T> netlinkRequest =
-                new NetlinkRequest<>(cmdFamily, cmd, callback,
-                                     translationFunction, payload);
+            new NetlinkRequest<>(cmdFamily, cmd, callback, translator, payload);
 
         // send the request
         netlinkRequest.timeoutHandler = new Callable<Object>() {
@@ -265,14 +197,6 @@ public abstract class AbstractNetlinkConnection {
                     NetlinkException.ERROR_SENDING_REQUEST,
                     "Too many pending netlink requests")).run();
         }
-    }
-
-    protected <
-        Cmd extends Enum<Cmd> & Netlink.ByteConstant,
-        Family extends Netlink.CommandFamily<Cmd, ?>,
-        T>
-    RequestBuilder<Cmd, Family, T> newRequest(Family commandFamily, Cmd cmd) {
-        return new RequestBuilder<Cmd, Family, T>(commandFamily, cmd);
     }
 
     public void handleWriteEvent(final SelectionKey key) throws IOException {

@@ -159,33 +159,4 @@ public abstract class Netlink {
         }
     }
 
-    public static class CommandFamily<
-        Cmd extends Enum<Cmd> & ByteConstant,
-        AttrKey extends NetlinkMessage.AttrKey>
-    {
-        private short familyId;
-        private byte version;
-
-        public CommandFamily(int familyId, int version) {
-            this.version = (byte)version;
-            this.familyId = (short) familyId;
-        }
-
-        public short getFamilyId() {
-            return familyId;
-        }
-
-        public byte getVersion() {
-            return version;
-        }
-    }
-
-    public interface ByteConstant {
-        byte getValue();
-    }
-
-    public interface ShortConstant {
-        short getValue();
-    }
-
 }
