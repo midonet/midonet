@@ -86,7 +86,7 @@ class BlackholeRouteFlowTrackingTest extends FeatureSpec
         newRoute(clusterRouter, "0.0.0.0", 0, rightNet, netmask, NextHop.PORT,
                  rightPort.getId, new IPv4Addr(Route.NO_GATEWAY).toString, 1)
 
-        simRouter = askAndAwait(VirtualTopologyActor, RouterRequest(clusterRouter.getId, false))
+        simRouter = fetchDevice(clusterRouter)
         simRouter should not be null
         simRouter.arpTable.set(IPv4Addr(leftOtherIp), MAC.fromString(leftOtherMac))
         simRouter.arpTable.set(IPv4Addr(rightOtherIp), MAC.fromString(rightOtherMac))
@@ -120,22 +120,10 @@ class BlackholeRouteFlowTrackingTest extends FeatureSpec
         payload(UUID.randomUUID().toString)
     }
 
-    def packetContextFor(frame: Ethernet, inPort: UUID): PacketContext = {
-        val context = new PacketContext(Some(1), frame, Platform.currentTime + 3000,
-                                        null, null, null, false, None,
-                                        WildcardMatch.fromEthernetPacket(frame))
-        context.inPortId = askAndAwait(VirtualTopologyActor, PortRequest(inPort, false))
-        context
-    }
-
-    def refreshRouter: Router = askAndAwait(VirtualTopologyActor, RouterRequest(clusterRouter.getId, false))
-
     feature("RouterManager tracks permanent flows but not temporary ones") {
         scenario("blackhole route") {
             When("a packet hits a blackhole route")
-            val actionF = simRouter.process(
-                packetContextFor(frameThatWillBeDropped, leftPort.getId))
-            val action = Await.result(actionF, 3 seconds)
+            val (pktContext, action) = simulateDevice(simRouter, frameThatWillBeDropped, leftPort.getId)
             action should be === TemporaryDropAction
 
             And("the routing table changes")
@@ -143,7 +131,7 @@ class BlackholeRouteFlowTrackingTest extends FeatureSpec
             newRoute(clusterRouter, "0.0.0.0", 0, blackholedDestination, 32,
                 NextHop.BLACKHOLE, null, null, 1)
 
-            eventually { refreshRouter should not be simRouter }
+            eventually { fetchDevice[Router](clusterRouter) should not be simRouter }
 
             Then("no invalidations are sent to the FlowController")
             FlowController.getAndClear() should be ('empty)
@@ -161,7 +149,7 @@ class BlackholeRouteFlowTrackingTest extends FeatureSpec
             newRoute(clusterRouter, "0.0.0.0", 0, rightOtherIp, 32,
                 NextHop.REJECT, null, null, 1)
 
-            eventually { refreshRouter should not be simRouter }
+            eventually { fetchDevice[Router](clusterRouter) should not be simRouter }
 
             Then("an invalidation by destination IP is sent to the FlowController")
             val tag = FlowTagger.invalidateByIp(clusterRouter.getId, IPv4Addr(rightOtherIp))
