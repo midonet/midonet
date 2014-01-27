@@ -30,7 +30,7 @@ install -d -o $USER -g $GROUP /var/log/$NAME $DATADIR
 usermod -G quagga $USER
 
 # make a symlink for the package
-MIDOLMAN_JAR=`rpm -q --filesbypkg $NAME | sed -e 's/^midolman\s\+//' | grep midolman-\[^/\]*\.jar`
+MIDOLMAN_JAR=`rpm -q --filesbypkg $NAME | sed -e 's/^midolman\s\+//' | grep midolman-\[^/\]*\.jar | tail -1`
 MIDOLMAN_JAR_DIR=`dirname $MIDOLMAN_JAR`
 if [ ! -d "$MIDOLMAN_JAR_DIR" ] ; then
     echo "did not find jar installation dir" >&2
@@ -42,7 +42,7 @@ if [ ! -f "$MIDOLMAN_JAR" ] ; then
 fi
 
 ln -sf $MIDOLMAN_JAR "$MIDOLMAN_JAR_DIR/midolman.jar"
-BOOT_JAR=`rpm -q --filesbypkg $NAME | sed -e 's/^midolman\s\+//' | grep midonet-jdk-bootstrap-\[^/\]*\.jar`
+BOOT_JAR=`rpm -q --filesbypkg $NAME | sed -e 's/^midolman\s\+//' | grep midonet-jdk-bootstrap-\[^/\]*\.jar | tail -1`
 if [ ! -f "$BOOT_JAR" ] ; then
     echo "did not find midonet-jdk-bootstrap.jar" >&2
     exit 1
