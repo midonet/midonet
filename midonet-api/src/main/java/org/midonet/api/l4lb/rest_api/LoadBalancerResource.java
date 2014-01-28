@@ -28,7 +28,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
@@ -46,6 +53,7 @@ public class LoadBalancerResource extends AbstractResource {
             .getLogger(LoadBalancerResource.class);
 
     private final DataClient dataClient;
+    private final ResourceFactory factory;
 
     @Inject
     public LoadBalancerResource(RestApiConfig config, UriInfo uriInfo,
@@ -53,6 +61,7 @@ public class LoadBalancerResource extends AbstractResource {
                                 ResourceFactory factory) {
         super(config, uriInfo, context);
         this.dataClient = dataClient;
+        this.factory = factory;
     }
 
     /**
@@ -199,26 +208,42 @@ public class LoadBalancerResource extends AbstractResource {
         }
     }
 
+    /**
+     * Delegate the request handlings of the pools to the sub resource.
+     *
+     * @param id The UUID of the load balancer which has the associated pools.
+     * @return PoolResource.LoadBalancerPoolResource instance.
+     */
+    @Path("{id}" + ResourceUriBuilder.POOLS)
+    public PoolResource.LoadBalancerPoolResource getPoolResource(
+            @PathParam("id") UUID id) {
+        return factory.getLoadBalancerPoolResource(id);
+    }
+
+    /**
+     * Handler to GETting a list of VIPs
+     *
+     * @return The list of the VIPs.
+     * @throws StateAccessException
+     * @throws SerializationException
+     */
     @GET
     @RolesAllowed({ AuthRole.ADMIN })
+    @Produces({ VendorMediaType.APPLICATION_VIP_COLLECTION_JSON,
+            MediaType.APPLICATION_JSON })
     @Path("{id}" + ResourceUriBuilder.VIPS)
-    @Produces({VendorMediaType.APPLICATION_VIP_COLLECTION_JSON,
-            MediaType.APPLICATION_JSON})
-    public List<VIP> listVips(@PathParam("id") UUID id)
+    public List<VIP> listVips(@PathParam("id") UUID loadBalancerId)
             throws StateAccessException, SerializationException {
+        List<org.midonet.cluster.data.l4lb.VIP> vipsData;
 
-        List<org.midonet.cluster.data.l4lb.VIP> dataVips = null;
-        try {
-            dataVips = dataClient.loadBalancerGetVips(id);
-        } catch (NoStatePathException ex) {
-            throw new NotFoundHttpException(ex);
-        }
-
-        List<VIP> vips = new ArrayList<>(dataVips.size());
-        for (org.midonet.cluster.data.l4lb.VIP dataVip : dataVips) {
-            VIP vip = new VIP(dataVip);
-            vip.setBaseUri(getBaseUri());
-            vips.add(vip);
+        vipsData = dataClient.loadBalancerGetVips(loadBalancerId);
+        List<VIP> vips = new ArrayList<VIP>();
+        if (vipsData != null) {
+            for (org.midonet.cluster.data.l4lb.VIP vipData: vipsData) {
+                VIP vip = new VIP(vipData);
+                vip.setBaseUri(getBaseUri());
+                vips.add(vip);
+            }
         }
 
         return vips;

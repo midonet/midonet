@@ -19,11 +19,11 @@ import org.midonet.client.dto.*;
 import static javax.ws.rs.core.Response.Status.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.midonet.api.VendorMediaType.APPLICATION_POOL_MEMBER_COLLECTION_JSON;
 import static org.midonet.api.validation.MessageProperty.RESOURCE_EXISTS;
 import static org.midonet.api.validation.MessageProperty.RESOURCE_NOT_FOUND;
 import static org.midonet.api.VendorMediaType.APPLICATION_POOL_COLLECTION_JSON;
 import static org.midonet.api.VendorMediaType.APPLICATION_POOL_JSON;
+import static org.midonet.api.VendorMediaType.APPLICATION_POOL_MEMBER_COLLECTION_JSON;
 import static org.midonet.api.VendorMediaType.APPLICATION_VIP_COLLECTION_JSON;
 import static org.midonet.api.VendorMediaType.APPLICATION_VIP_JSON;
 
@@ -86,11 +86,12 @@ public class TestPool {
             verifyNumberOfPools(0);
 
             // Post
-            DtoPool pool = createStockPool();
+            DtoLoadBalancer loadBalancer = createStockLoadBalancer();
+            DtoPool pool = createStockPool(loadBalancer.getId());
             verifyNumberOfPools(1);
 
             // Post another
-            DtoPool pool2 = createStockPool();
+            DtoPool pool2 = createStockPool(loadBalancer.getId());
             verifyNumberOfPools(2);
 
             // Get and check
@@ -108,9 +109,11 @@ public class TestPool {
 
         @Test
         public void testCreateIntializesReferences() {
+            DtoLoadBalancer loadBalancer = createStockLoadBalancer();
+            DtoPool pool = getStockPool(loadBalancer.getId());
             DtoHealthMonitor healthMonitor = createStockHealthMonitor();
-            DtoPool pool = createStockPool(healthMonitor.getId());
-
+            pool.setHealthMonitorId(healthMonitor.getId());
+            pool = postPool(pool);
             assertEquals(healthMonitor.getUri(), pool.getHealthMonitor());
             checkHealthMonitorBackref(healthMonitor.getUri(), pool);
         }
@@ -118,7 +121,8 @@ public class TestPool {
         @Test
         public void testUpdateUpdatesReferences() {
             // Start with no health monitor.
-            DtoPool pool = createStockPool(null);
+            DtoLoadBalancer loadBalancer = createStockLoadBalancer();
+            DtoPool pool = createStockPool(loadBalancer.getId());
             assertNull(pool.getHealthMonitor());
 
             // Add a health monitor.
@@ -153,34 +157,43 @@ public class TestPool {
 
         @Test
         public void testDeleteClearsBackrefs() {
+            DtoLoadBalancer loadBalancer = createStockLoadBalancer();
+            DtoPool pool = getStockPool(loadBalancer.getId());
             DtoHealthMonitor healthMonitor = createStockHealthMonitor();
-            DtoPool pool = createStockPool(healthMonitor.getId());
+            pool.setHealthMonitorId(healthMonitor.getId());
+            pool = postPool(pool);
             checkHealthMonitorBackref(healthMonitor.getUri(), pool);
 
             // Add some VIPs.
-            DtoVip vip = createStockVip(null, pool.getId());
-            DtoVip vip2 = createStockVip(null, pool.getId());
+            DtoVip vip = createStockVip(pool.getId());
+            DtoVip vip2 = createStockVip(pool.getId());
             checkVipBackrefs(pool, vip.getUri(), vip2.getUri());
 
             deletePool(pool.getUri());
             checkHealthMonitorBackref(healthMonitor.getUri(), null);
-            checkVipBackrefs(null, vip.getUri(), vip2.getUri());
+            // Strongly associated resources are deleted by cascading.
+            dtoWebResource.getAndVerifyNotFound(vip.getUri(),
+                    VendorMediaType.APPLICATION_VIP_JSON);
+            dtoWebResource.getAndVerifyNotFound(vip2.getUri(),
+                    VendorMediaType.APPLICATION_VIP_JSON);
         }
 
         @Test
-        public void testCreateWithRandomHealthMonitorId() {
-            DtoPool pool = getStockPool();
+        public void testCreateWithBadHealthMonitorId() {
+            DtoLoadBalancer loadBalancer = createStockLoadBalancer();
+            DtoPool pool = getStockPool(loadBalancer.getId());
             pool.setHealthMonitorId(UUID.randomUUID());
             DtoError error = dtoWebResource.postAndVerifyError(
                     topLevelPoolsUri, APPLICATION_POOL_JSON, pool, NOT_FOUND);
             assertErrorMatches(error, RESOURCE_NOT_FOUND,
-                               "health monitor", pool.getHealthMonitorId());
+                    "health monitor", pool.getHealthMonitorId());
         }
 
         @Test
         public void testCreateWithDuplicatePoolId() {
-            DtoPool pool1 = createStockPool();
-            DtoPool pool2 = getStockPool();
+            DtoLoadBalancer loadBalancer = createStockLoadBalancer();
+            DtoPool pool1 = createStockPool(loadBalancer.getId());
+            DtoPool pool2 = getStockPool(loadBalancer.getId());
             pool2.setId(pool1.getId());
             DtoError error = dtoWebResource.postAndVerifyError(
                     topLevelPoolsUri, APPLICATION_POOL_JSON, pool2, CONFLICT);
@@ -203,8 +216,9 @@ public class TestPool {
         }
 
         @Test
-        public void testUpdateWithRandomPoolId() throws Exception {
-            DtoPool pool = createStockPool();
+        public void testUpdateWithBadPoolId() throws Exception {
+            DtoLoadBalancer loadBalancer = createStockLoadBalancer();
+            DtoPool pool = createStockPool(loadBalancer.getId());
             pool.setId(UUID.randomUUID());
             pool.setUri(addIdToUri(topLevelPoolsUri, pool.getId()));
             DtoError error = dtoWebResource.putAndVerifyError(pool.getUri(),
@@ -213,31 +227,33 @@ public class TestPool {
         }
 
         @Test
-        public void testUpdateWithRandomHealthMonitorId() {
-            DtoPool pool = createStockPool();
+        public void testUpdateWithBadHealthMonitorId() {
+            DtoLoadBalancer loadBalancer = createStockLoadBalancer();
+            DtoPool pool = createStockPool(loadBalancer.getId());
             pool.setHealthMonitorId(UUID.randomUUID());
             DtoError error = dtoWebResource.putAndVerifyError(pool.getUri(),
                     APPLICATION_POOL_JSON, pool, NOT_FOUND);
             assertErrorMatches(error, RESOURCE_NOT_FOUND,
-                               "health monitor", pool.getHealthMonitorId());
+                    "health monitor", pool.getHealthMonitorId());
         }
 
         @Test
         public void testListVips() {
             // Should start out empty.
-            DtoPool pool = createStockPool();
+            DtoLoadBalancer loadBalancer = createStockLoadBalancer();
+            DtoPool pool = createStockPool(loadBalancer.getId());
             DtoVip[] vips = getVips(pool.getVips());
             assertEquals(0, vips.length);
 
             // Add one VIP.
-            DtoVip vip1 = createStockVip(null, pool.getId());
+            DtoVip vip1 = createStockVip(pool.getId());
             vips = getVips(pool.getVips());
             assertEquals(1, vips.length);
             assertEquals(vip1, vips[0]);
 
             // Try to add a second VIP without a reference to the pool and
             // fail with 400 Bad Request. `poolId` can't be null.
-            DtoVip vip2 = getStockVip(null, null);
+            DtoVip vip2 = getStockVip(null);
             dtoWebResource.postAndVerifyBadRequest(topLevelVipsUri,
                     APPLICATION_VIP_JSON,
                     vip2);
@@ -246,7 +262,7 @@ public class TestPool {
             assertEquals(vip1, vips[0]);
 
             // Create a new VIP linking it to the pool.
-            vip2 = createStockVip(null, pool.getId());
+            vip2 = createStockVip(pool.getId());
             vips = getVips(pool.getVips());
             assertEquals(2, vips.length);
 

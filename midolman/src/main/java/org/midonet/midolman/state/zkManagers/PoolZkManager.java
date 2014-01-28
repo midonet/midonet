@@ -4,7 +4,6 @@
 package org.midonet.midolman.state.zkManagers;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -13,20 +12,16 @@ import com.google.common.base.Objects;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.DirectoryCallback;
-import org.midonet.midolman.state.DirectoryCallbackFactory;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
-import org.midonet.util.functors.CollectionFunctors;
-import org.midonet.util.functors.Functor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static java.util.Arrays.asList;
 
@@ -55,12 +50,16 @@ public class PoolZkManager extends AbstractZkManager {
 
         public PoolConfig(String name,
                           String description,
+                          UUID loadBalancerId,
+                          UUID healthMonitorId,
                           String protocol,
                           String lbMethod,
                           boolean adminStateUp,
                           String status) {
             this.name = name;
             this.description = description;
+            this.loadBalancerId = loadBalancerId;
+            this.healthMonitorId = healthMonitorId;
             this.protocol = protocol;
             this.adminStateUp = adminStateUp;
             this.lbMethod = lbMethod;
@@ -76,15 +75,14 @@ public class PoolZkManager extends AbstractZkManager {
 
             PoolConfig that = (PoolConfig) o;
 
-            if (!Objects.equal(name, that.name)) return false;
-            if (!Objects.equal(description, that.description)) return false;
-            if (!Objects.equal(healthMonitorId, that.healthMonitorId)) return false;
-            if (!Objects.equal(protocol, that.protocol)) return false;
-            if (!Objects.equal(lbMethod, that.lbMethod)) return false;
-            if (adminStateUp != that.adminStateUp) return false;
-            if (!Objects.equal(status, that.status)) return false;
-
-            return true;
+            return Objects.equal(name, that.name) &&
+                    Objects.equal(description, that.description) &&
+                    Objects.equal(loadBalancerId, that.loadBalancerId) &&
+                    Objects.equal(healthMonitorId, that.healthMonitorId) &&
+                    Objects.equal(protocol, that.protocol) &&
+                    Objects.equal(lbMethod, that.lbMethod) &&
+                    (adminStateUp == that.adminStateUp) &&
+                    Objects.equal(status, that.status);
         }
     }
 

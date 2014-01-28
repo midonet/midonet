@@ -17,6 +17,7 @@ public class DtoLoadBalancer {
     private boolean adminStateUp = true;
     private URI uri;
     private URI router;
+    private URI pools;
     private URI vips;
 
     public UUID getId() {
@@ -57,6 +58,14 @@ public class DtoLoadBalancer {
 
     public void setRouter(URI router) {
         this.router = router;
+    }
+
+    public URI getPools() {
+        return pools;
+    }
+
+    public void setPools(URI pools) {
+        this.pools = pools;
     }
 
     public URI getVips() {

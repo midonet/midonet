@@ -8,24 +8,28 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
-import org.midonet.api.validation.MessageProperty;
 import org.midonet.api.zookeeper.StaticMockDirectory;
-import org.midonet.client.dto.*;
+import org.midonet.client.dto.DtoError;
+import org.midonet.client.dto.DtoLoadBalancer;
+import org.midonet.client.dto.DtoPool;
+import org.midonet.client.dto.DtoVip;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URI;
+import java.util.Map;
 import java.util.UUID;
 
-import static javax.ws.rs.core.Response.Status.*;
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.CONFLICT;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertNull;
-import static org.midonet.cluster.data.l4lb.VIP.VIP_SOURCE_IP;
-import static org.midonet.api.validation.MessageProperty.RESOURCE_EXISTS;
-import static org.midonet.api.validation.MessageProperty.RESOURCE_NOT_FOUND;
+import static junit.framework.Assert.assertNotSame;
 import static org.midonet.api.VendorMediaType.APPLICATION_VIP_COLLECTION_JSON;
 import static org.midonet.api.VendorMediaType.APPLICATION_VIP_JSON;
+import static org.midonet.api.validation.MessageProperty.RESOURCE_EXISTS;
+import static org.midonet.api.validation.MessageProperty.RESOURCE_NOT_FOUND;
+import static org.midonet.cluster.data.l4lb.VIP.VIP_SOURCE_IP;
 
 @RunWith(Enclosed.class)
 public class TestVip {
@@ -98,12 +102,16 @@ public class TestVip {
             // VIPs should be empty
             verifyNumberOfVips(counter);
 
+            DtoLoadBalancer lb = createStockLoadBalancer();
+            DtoPool pool1 = createStockPool(lb.getId());
+            DtoPool pool2 = createStockPool(lb.getId());
+
             // POST
-            DtoVip vip = createStockVip();
+            DtoVip vip = createStockVip(pool1.getId());
             verifyNumberOfVips(++counter);
 
             // POST another one
-            DtoVip vip2 = createStockVip();
+            DtoVip vip2 = createStockVip(pool2.getId());
             verifyNumberOfVips(++counter);
 
             // POST with the same ID as the existing resource and get 409
@@ -153,8 +161,9 @@ public class TestVip {
         @Test
         public void testCreateInitializesReferences() {
             DtoLoadBalancer loadBalancer = createStockLoadBalancer();
-            DtoPool pool = createStockPool();
-            DtoVip vip = createStockVip(loadBalancer.getId(), pool.getId());
+            DtoPool pool = getStockPool(loadBalancer.getId());
+            pool = postPool(pool);
+            DtoVip vip = createStockVip(pool.getId());
 
             checkBackrefs(vip.getLoadBalancer(), vip.getPool(), vip);
             assertEquals(loadBalancer.getUri(), vip.getLoadBalancer());
@@ -163,27 +172,18 @@ public class TestVip {
 
         @Test
         public void testUpdateUpdatesReferences() {
-            // Create a VIP associated with a pool.
-            DtoPool pool = createStockPool();
-            DtoVip vip = createStockVip(null, pool.getId());
-            assertNull(vip.getLoadBalancer());
-
-            // Add references to loadBalancer1 and pool1.
+            // Create a VIP with loadBalancer1 and pool1.
             DtoLoadBalancer loadBalancer1 = createStockLoadBalancer();
-            vip.setLoadBalancerId(loadBalancer1.getId());
-            DtoPool pool1 = createStockPool();
-            vip.setPoolId(pool1.getId());
-            vip = updateVip(vip);
-
-            // VIP should reference loadBalancer1 and pool1, and vice-versa.
+            DtoPool pool1 = createStockPool(loadBalancer1.getId());
+            DtoVip vip = createStockVip(pool1.getId());
+            // VIP should refer loadBalancer1 and pool1, and vice-versa.
             assertEquals(loadBalancer1.getUri(), vip.getLoadBalancer());
             assertEquals(pool1.getUri(), vip.getPool());
             checkBackrefs(loadBalancer1.getUri(), pool1.getUri(), vip);
 
             // Switch references to loadBalancer2 and pool2.
             DtoLoadBalancer loadBalancer2 = createStockLoadBalancer();
-            vip.setLoadBalancerId(loadBalancer2.getId());
-            DtoPool pool2 = createStockPool();
+            DtoPool pool2 = createStockPool(loadBalancer2.getId());
             vip.setPoolId(pool2.getId());
 
             // References between vip and loadBalancer1 and pool1
@@ -195,20 +195,17 @@ public class TestVip {
             checkBackrefs(loadBalancer1.getUri(), pool1.getUri(), null);
             checkBackrefs(loadBalancer2.getUri(), pool2.getUri(), vip);
 
-            // Clear references.
-            vip.setLoadBalancerId(null);
-            vip = updateVip(vip);
+            deleteVip(vip.getUri());
 
-            // References between vip and loadBalancer1 are gone, but references
-            // between vip and pool2 still remain.
-            assertNull(vip.getLoadBalancer());
-            checkBackrefs(loadBalancer2.getUri(), null, null);
-            checkBackrefs(null, pool2.getUri(), vip);
+            // LoadBalancer2 and pool2 should no longer reference vip.
+            checkBackrefs(loadBalancer2.getUri(), pool2.getUri(), null);
         }
 
         @Test
         public void testDeleteClearsBackrefs() {
-            DtoVip vip = createStockVip();
+            DtoLoadBalancer lb = createStockLoadBalancer();
+            DtoPool pool = createStockPool(lb.getId());
+            DtoVip vip = createStockVip(pool.getId());
             checkBackrefs(vip.getLoadBalancer(), vip.getPool(), vip);
 
             deleteVip(vip.getUri());
@@ -216,51 +213,58 @@ public class TestVip {
         }
 
         @Test
-        public void testCreateWithoutLoadBalancer() {
-            DtoPool pool = createStockPool();
-            DtoVip vip = createStockVip(null, pool.getId());
-            checkBackrefs(null, pool.getUri(), vip);
-        }
-
-
-        @Test
-        public void testCreateWithBadLoadBalancerId() {
-            DtoPool pool = createStockPool();
-            DtoVip vip = getStockVip(UUID.randomUUID(), pool.getId());
-            postVipAndVerifyNotFoundError(
-                    vip, "load balancer", vip.getLoadBalancerId());
+        public void testCreateWithNullPoolId() {
+            DtoVip vip = getStockVip(null);
+            DtoError error = dtoWebResource.postAndVerifyError(
+                    topLevelVipsUri, APPLICATION_VIP_JSON,
+                    vip, BAD_REQUEST);
+            assertEquals(error.getViolations().size(), 1);
+            Map<String, String> map = error.getViolations().get(0);
+            assertEquals(map.get("property"), "poolId");
+            assertEquals(map.get("message"), "may not be null");
         }
 
         @Test
         public void testCreateWithBadPoolId() {
             DtoLoadBalancer lb = createStockLoadBalancer();
-            DtoVip vip = getStockVip(lb.getId(), UUID.randomUUID());
+            DtoVip vip = getStockVip(UUID.randomUUID());
             postVipAndVerifyNotFoundError(
                     vip, "pool", vip.getPoolId());
         }
 
         @Test
         public void testUpdateWithBadVipId() throws Exception {
-            DtoVip vip = createStockVip();
+            DtoLoadBalancer loadBalancer = createStockLoadBalancer();
+            DtoPool pool = createStockPool(loadBalancer.getId());
+            DtoVip vip = getStockVip(pool.getId());
             vip.setId(UUID.randomUUID());
             vip.setUri(addIdToUri(topLevelVipsUri, vip.getId()));
-            putVipAndVerifyNotFoundError(vip, "VIP", vip.getId());
-        }
-
-        @Test
-        public void testUpdateWithBadLoadBalancerId() {
-            DtoVip vip = createStockVip();
-            vip.setLoadBalancerId(UUID.randomUUID());
-            putVipAndVerifyNotFoundError(
-                    vip, "load balancer", vip.getLoadBalancerId());
+            putVipAndVerifyNotFoundError(vip, "vip", vip.getId());
         }
 
         @Test
         public void testUpdateWithBadPoolId() {
-            DtoVip vip = createStockVip();
+            DtoLoadBalancer loadBalancer = createStockLoadBalancer();
+            DtoPool pool = createStockPool(loadBalancer.getId());
+            DtoVip vip = createStockVip(pool.getId());
             vip.setPoolId(UUID.randomUUID());
-            putVipAndVerifyNotFoundError(
+            postVipAndVerifyNotFoundError(
                     vip, "pool", vip.getPoolId());
+        }
+
+        @Test
+        public void testLoadBalancerIdIsIgnored() {
+            DtoLoadBalancer loadBalancer = createStockLoadBalancer();
+            DtoPool pool = createStockPool(loadBalancer.getId());
+            DtoVip vip = createStockVip(pool.getId());
+            assertEquals(loadBalancer.getId(), vip.getLoadBalancerId());
+
+            UUID fakeUuid = UUID.randomUUID();
+            vip.setLoadBalancerId(fakeUuid);
+            vip = updateVip(vip);
+            assertNotSame(fakeUuid, vip.getLoadBalancerId());
+            assertEquals(pool.getLoadBalancerId(), vip.getLoadBalancerId());
+            assertEquals(loadBalancer.getId(), vip.getLoadBalancerId());
         }
     }
 }

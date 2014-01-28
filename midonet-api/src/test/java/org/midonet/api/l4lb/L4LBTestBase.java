@@ -3,6 +3,10 @@
  */
 package org.midonet.api.l4lb;
 
+import java.net.URI;
+import java.util.Random;
+import java.util.UUID;
+
 import com.sun.jersey.api.client.ClientResponse;
 import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.FuncTest;
@@ -15,14 +19,10 @@ import org.midonet.client.dto.DtoPool;
 import org.midonet.client.dto.DtoPoolMember;
 import org.midonet.client.dto.DtoRouter;
 import org.midonet.client.dto.DtoVip;
-import static org.midonet.cluster.data.l4lb.VIP.VIP_SOURCE_IP;
-
-import java.net.URI;
-import java.util.Random;
-import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
 import static org.midonet.api.VendorMediaType.*;
+import static org.midonet.cluster.data.l4lb.VIP.VIP_SOURCE_IP;
 
 public class L4LBTestBase extends RestApiTestBase {
 
@@ -188,13 +188,12 @@ public class L4LBTestBase extends RestApiTestBase {
                 vipUri, APPLICATION_VIP_JSON);
     }
 
-    protected DtoVip getStockVip(UUID loadBalancerId, UUID poolId) {
+    protected DtoVip getStockVip(UUID poolId) {
         DtoVip vip = new DtoVip();
         // NOTE(tfukushima): Populating UUID of the load balancer because
         //   the API can create the resource with the specified UUID,
         //   which is very useful for the identical checks.
         vip.setId(UUID.randomUUID());
-        vip.setLoadBalancerId(loadBalancerId);
         vip.setPoolId(poolId);
         vip.setAddress("192.168.100.1");
         vip.setProtocolPort(80);
@@ -204,18 +203,13 @@ public class L4LBTestBase extends RestApiTestBase {
         return vip;
     }
 
-    protected DtoVip getStockVip() {
-        DtoLoadBalancer loadBalancer = createStockLoadBalancer();
-        DtoPool pool = createStockPool();
-        return getStockVip(loadBalancer.getId(), pool.getId());
+    protected DtoVip createStockVip(UUID poolId) {
+        return postVip(getStockVip((poolId)));
     }
 
-    protected DtoVip createStockVip() {
-        return postVip(getStockVip());
-    }
-
-    protected DtoVip createStockVip(UUID loadBalancerId, UUID poolId) {
-        return postVip(getStockVip(loadBalancerId, poolId));
+    protected DtoPool[] getPools(URI poolsUri) {
+        return dtoWebResource.getAndVerifyOk(
+                poolsUri, APPLICATION_POOL_COLLECTION_JSON, DtoPool[].class);
     }
 
     protected DtoPool getPool(URI poolUri) {
@@ -244,12 +238,13 @@ public class L4LBTestBase extends RestApiTestBase {
         assertEquals(204, response.getStatus());
     }
 
-    protected DtoPool getStockPool() {
+    protected DtoPool getStockPool(UUID loadBalancerId) {
         DtoPool pool = new DtoPool();
         // NOTE(tfukushima): Populating UUID of the pool because the API
         //   can create the resource with the specified UUID, which is
         //   very useful for the identical checks.
         pool.setId(UUID.randomUUID());
+        pool.setLoadBalancerId(loadBalancerId);
         pool.setAdminStateUp(true);
         pool.setDescription("a big ol pool");
         pool.setName("BIGPOOL");
@@ -257,13 +252,8 @@ public class L4LBTestBase extends RestApiTestBase {
         return pool;
     }
 
-    protected DtoPool createStockPool() {
-        return postPool(getStockPool());
-    }
-
-    protected DtoPool createStockPool(UUID healthMonitorId) {
-        DtoPool pool = getStockPool();
-        pool.setHealthMonitorId(healthMonitorId);
+    protected DtoPool createStockPool(UUID loadBalancerId) {
+        DtoPool pool = getStockPool(loadBalancerId);
         return postPool(pool);
     }
 

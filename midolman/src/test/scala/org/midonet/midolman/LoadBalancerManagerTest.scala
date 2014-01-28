@@ -43,7 +43,8 @@ with VirtualConfigurationBuilders {
         scenario("Load loadBalancer with two VIPs") {
             Given("a loadBalancer with two VIPs")
             val loadBalancer = createLoadBalancer()
-            val vips = (0 until 2).map(_ => createVipOnLoadBalancer(loadBalancer))
+            val pool = createPool(loadBalancer)
+            val vips = (0 until 2).map(n => createVip(pool))
             val vipIds = vips.map(v => v.getId).toSet
             vips.size shouldBe 2
 
@@ -63,7 +64,8 @@ with VirtualConfigurationBuilders {
         scenario("Receive update when a VIP is added") {
             Given("a loadBalancer with one VIP")
             val loadBalancer = createLoadBalancer()
-            val firstVip = createVipOnLoadBalancer(loadBalancer)
+            val pool = createPool(loadBalancer)
+            val firstVip = createVip(pool)
 
             When("the VTA receives a subscription request for it")
             vta.self ! LoadBalancerRequest(loadBalancer.getId, update = true)
@@ -75,7 +77,7 @@ with VirtualConfigurationBuilders {
             vta.getAndClear()
 
             And("a new VIP is added")
-            createVipOnLoadBalancer(loadBalancer)
+            createVip(pool)
 
             Then("the VTA should send an update")
             val lb2 = expectMsgType[LoadBalancer]
@@ -89,7 +91,8 @@ with VirtualConfigurationBuilders {
         scenario("Receive update when a VIP is removed") {
             Given("a loadBalancer with one VIP")
             val loadBalancer = createLoadBalancer()
-            val firstVip = createVipOnLoadBalancer(loadBalancer)
+            val pool = createPool(loadBalancer)
+            val firstVip = createVip(pool)
 
             When("the VTA receives a subscription request for it")
             vta.self ! LoadBalancerRequest(loadBalancer.getId, update = true)
@@ -101,7 +104,7 @@ with VirtualConfigurationBuilders {
             vta.getAndClear()
 
             And("the existing VIP is removed")
-            removeVipFromLoadBalancer(firstVip, loadBalancer)
+            deleteVip(firstVip)
 
             Then("the VTA should send an update")
             val lb2 = expectMsgType[LoadBalancer]
@@ -115,7 +118,8 @@ with VirtualConfigurationBuilders {
         scenario("Receive update when a VIP is changed") {
             Given("a loadBalancer with one VIP")
             val loadBalancer = createLoadBalancer()
-            val firstVip = createVipOnLoadBalancer(loadBalancer)
+            val pool = createPool(loadBalancer)
+            val firstVip = createVip(pool)
 
             When("the VTA receives a subscription request for it")
             vta.self ! LoadBalancerRequest(loadBalancer.getId, update = true)
@@ -141,7 +145,8 @@ with VirtualConfigurationBuilders {
         scenario("Receive update when loadbalancer is changed") {
             Given("a loadBalancer with one VIP")
             val loadBalancer = createLoadBalancer()
-            val firstVip = createVipOnLoadBalancer(loadBalancer)
+            val pool = createPool(loadBalancer)
+            val firstVip = createVip(pool)
 
             When("the VTA receives a subscription request for it")
             vta.self ! LoadBalancerRequest(loadBalancer.getId, update = true)
@@ -170,13 +175,10 @@ with VirtualConfigurationBuilders {
 
     feature("Loadbalancer logic requests Pool when needed") {
         scenario("Pool requested when VIP traffic flows through loadBalancer") {
-            Given("a loadBalancer with one VIP")
+            Given("a loadBalancer with a pool")
             val loadBalancer = createLoadBalancer()
-            val firstVip = createVipOnLoadBalancer(loadBalancer)
-
-            And("the VIP has an associated Pool")
-            val firstPool = createPool()
-            setVipPool(firstVip, firstPool)
+            val pool = createPool(loadBalancer)
+            val firstVip = createVip(pool)
 
             When("the VTA receives a subscription request for it")
             vta.self ! LoadBalancerRequest(loadBalancer.getId, update = true)
@@ -206,14 +208,14 @@ with VirtualConfigurationBuilders {
             val vtaMessages = vta.getAndClear()
             vtaMessages.size shouldBe 3
 
-            vtaMessages.contains(poolReqMsg(firstPool.getId)) shouldBe true
+            vtaMessages.contains(poolReqMsg(pool.getId)) shouldBe true
 
             And("the VTA should receive the pool itself")
             val poolMessages = vtaMessages.filter(m => m.isInstanceOf[Pool])
             poolMessages.size shouldBe 1
 
             And("the VTA should receive a flow invalidation for the pool")
-            vtaMessages.contains(flowInvalidationMsg(firstPool.getId)) shouldBe true
+            vtaMessages.contains(flowInvalidationMsg(pool.getId)) shouldBe true
         }
     }
 

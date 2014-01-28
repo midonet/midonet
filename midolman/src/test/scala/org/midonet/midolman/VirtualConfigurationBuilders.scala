@@ -381,13 +381,10 @@ trait VirtualConfigurationBuilders {
     }
 
     // L4LB
-    def createLoadBalancer(id: Option[UUID] = None): LoadBalancer = {
+    def createLoadBalancer(id: UUID = UUID.randomUUID): LoadBalancer = {
         val loadBalancer = new LoadBalancer()
         loadBalancer.setAdminStateUp(true)
-        if (id.isDefined)
-            loadBalancer.setId(id.get)
-        else
-            loadBalancer.setId(UUID.randomUUID)
+        loadBalancer.setId(id)
         clusterDataClient().loadBalancerCreate(loadBalancer)
         Thread.sleep(50)
         loadBalancer
@@ -403,22 +400,27 @@ trait VirtualConfigurationBuilders {
         clusterDataClient().loadBalancerUpdate(loadBalancer)
     }
 
-    def createVipOnLoadBalancer(loadBalancer: LoadBalancer): VIP = {
-        createVipOnLoadBalancer(loadBalancer, "10.10.10.10", 10)
-    }
+    def createVip(pool: Pool): VIP = createVip(pool, "10.10.10.10", 10)
 
-    def createVipOnLoadBalancer(loadBalancer: LoadBalancer,
-                                address: String, port: Int): VIP = {
+    def createVip(pool: Pool, address: String, port: Int): VIP = {
         val vip = new VIP()
         vip.setId(UUID.randomUUID)
         vip.setAddress(address)
+        vip.setPoolId(pool.getId)
+        // Set the load balancer ID manually. This should be done automatically
+        // when we go through the REST API.
+        vip.setLoadBalancerId(pool.getLoadBalancerId)
         vip.setProtocolPort(port)
         vip.setAdminStateUp(true)
-        vip.setLoadBalancerId(loadBalancer.getId)
         clusterDataClient().vipCreate(vip)
         Thread.sleep(50)
-        vip
+        // Getting the created VIP to see the actual model stored in
+        // ZooKeeper because `loadBalancerId` would be populated though
+        // the associated pool.
+        clusterDataClient().vipGet(vip.getId)
     }
+
+    def deleteVip(vip: VIP): Unit = clusterDataClient().vipDelete(vip.getId)
 
     def removeVipFromLoadBalancer(vip: VIP, loadBalancer: LoadBalancer) {
         vip.setLoadBalancerId(null)
@@ -445,16 +447,16 @@ trait VirtualConfigurationBuilders {
         clusterDataClient().vipUpdate(vip)
     }
 
-    def createPool(id: Option[UUID] = None,
+    def createPool(loadBalancer: LoadBalancer,
+                   id: UUID = UUID.randomUUID,
                    adminStateUp: Boolean = true,
                    lbMethod: String = "ROUND_ROBIN"): Pool = {
         val pool = new Pool()
+        pool.setLoadBalancerId(loadBalancer.getId)
         pool.setAdminStateUp(adminStateUp)
         pool.setLbMethod(lbMethod)
-        if (id.isDefined)
-            pool.setId(id.get)
-        else
-            pool.setId(UUID.randomUUID)
+        pool.setLoadBalancerId(loadBalancer.getId)
+        pool.setId(id)
         clusterDataClient().poolCreate(pool)
         Thread.sleep(50)
         pool
@@ -500,8 +502,8 @@ trait VirtualConfigurationBuilders {
         clusterDataClient().poolMemberUpdate(poolMember)
     }
 
-    def removePoolMemberFromPool(poolMember: PoolMember) =
-        updatePoolMember(poolMember, poolId = Some(null))
+    def deletePoolMember(poolMember: PoolMember): Unit =
+        clusterDataClient().poolMemberDelete(poolMember.getId)
 
     def setPoolMemberAdminStateUp(poolMember: PoolMember,
                                   adminStateUp: Boolean) =

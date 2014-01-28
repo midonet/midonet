@@ -38,7 +38,8 @@ with VirtualConfigurationBuilders {
     feature("PoolManager handles pool's PoolMembers") {
         scenario("Load pool with two PoolMembers") {
             Given("a pool with two PoolMembers")
-            val pool = createPool()
+            val loadBalancer = createLoadBalancer()
+            val pool = createPool(loadBalancer)
             val poolMembers = (0 until 2).map(_ => createPoolMember(pool))
             val poolMemberIds = poolMembers.map(v => v.getId).toSet
             poolMembers.size shouldBe 2
@@ -58,7 +59,8 @@ with VirtualConfigurationBuilders {
 
         scenario("Receive update when a PoolMember is added") {
             Given("a pool with one PoolMember")
-            val pool = createPool()
+            val loadBalancer = createLoadBalancer()
+            val pool = createPool(loadBalancer)
             val firstPoolMember = createPoolMember(pool)
 
             When("the VTA receives a subscription request for the pool")
@@ -85,7 +87,8 @@ with VirtualConfigurationBuilders {
 
         scenario("Receive update when a PoolMember is removed") {
             Given("a pool with one PoolMember")
-            val pool = createPool()
+            val loadBalancer = createLoadBalancer()
+            val pool = createPool(loadBalancer)
             val firstPoolMember = createPoolMember(pool)
 
             When("the VTA receives a subscription request for it")
@@ -98,7 +101,7 @@ with VirtualConfigurationBuilders {
             vta.getAndClear()
 
             And("the existing PoolMember is removed")
-            removePoolMemberFromPool(firstPoolMember)
+            deletePoolMember(firstPoolMember)
 
             Then("the VTA should send an update")
             val p2 = expectMsgType[Pool]
@@ -111,7 +114,8 @@ with VirtualConfigurationBuilders {
 
         scenario("Receive update when a PoolMember is changed") {
             Given("a pool with one PoolMember")
-            val pool = createPool()
+            val loadBalancer = createLoadBalancer()
+            val pool = createPool(loadBalancer)
             val firstPoolMember = createPoolMember(pool)
             firstPoolMember.getAdminStateUp shouldBe true
 
@@ -141,7 +145,8 @@ with VirtualConfigurationBuilders {
     feature("PoolManager handles pool's adminStateUp property") {
         scenario("Create a pool with adminStateUp = true") {
             Given("A pool created with adminStateUp = true")
-            val pool = createPool(adminStateUp = true)
+            val loadBalancer = createLoadBalancer()
+            val pool = createPool(loadBalancer)
 
             When("the VTA receives a request for it")
             vta.self ! PoolRequest(pool.getId)
@@ -153,7 +158,8 @@ with VirtualConfigurationBuilders {
 
         scenario("Create a pool with adminStateUp = false") {
             Given("a pool created with adminStateUp = false")
-            val pool = createPool(adminStateUp = false)
+            val loadBalancer = createLoadBalancer()
+            val pool = createPool(loadBalancer, adminStateUp = false)
 
             When("the VTA receives a request for it")
             vta.self ! PoolRequest(pool.getId)
@@ -165,7 +171,8 @@ with VirtualConfigurationBuilders {
 
         scenario("Update pool's adminStateUp property") {
             Given("a pool created with adminStateUp = false")
-            val pool = createPool(adminStateUp = false)
+            val loadBalancer = createLoadBalancer()
+            val pool = createPool(loadBalancer, adminStateUp = false)
             vta.self ! PoolRequest(pool.getId, update = true)
             val simPool1 = expectMsgType[Pool]
             simPool1.adminStateUp shouldBe false
@@ -196,7 +203,8 @@ with VirtualConfigurationBuilders {
     feature("PoolManager handles pool's lbMethod property") {
         scenario("Create a pool with lbMethod = 'ROUND_ROBIN'") {
             Given("A pool created with lbMethod = 'ROUND_ROBIN'")
-            val pool = createPool(lbMethod = "ROUND_ROBIN")
+            val loadBalancer = createLoadBalancer()
+            val pool = createPool(loadBalancer, lbMethod = "ROUND_ROBIN")
 
             When("the VTA receives a request for it")
             vta.self ! PoolRequest(pool.getId)
@@ -208,7 +216,8 @@ with VirtualConfigurationBuilders {
 
         scenario("Update pool's lbMethod property") {
             Given("a pool created with lbMethod = 'ROUND_ROBIN'")
-            val pool = createPool(lbMethod = "ROUND_ROBIN")
+            val loadBalancer = createLoadBalancer()
+            val pool = createPool(loadBalancer, lbMethod = "ROUND_ROBIN")
             vta.self ! PoolRequest(pool.getId, update = true)
             val simPool1 = expectMsgType[Pool]
             simPool1.lbMethod shouldBe "ROUND_ROBIN"

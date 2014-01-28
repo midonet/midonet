@@ -80,6 +80,11 @@ public class LoadBalancer extends UriResource {
         }
     }
 
+    public URI getPools() {
+        return (getBaseUri() == null || id == null) ? null :
+                ResourceUriBuilder.getLoadBalancerPools(getBaseUri(), id);
+    }
+
     public URI getVips() {
         return (getBaseUri() == null || id == null) ? null :
                 ResourceUriBuilder.getLoadBalancerVips(getBaseUri(), id);

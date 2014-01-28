@@ -5,10 +5,12 @@
 package org.midonet.api.l4lb.rest_api;
 
 import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.VendorMediaType;
 import org.midonet.api.auth.AuthRole;
+import org.midonet.api.l4lb.LoadBalancer;
 import org.midonet.api.l4lb.PoolMember;
 import org.midonet.api.l4lb.VIP;
 import org.midonet.api.rest_api.*;
@@ -47,8 +49,8 @@ public class PoolResource extends AbstractResource {
 
     @Inject
     public PoolResource(RestApiConfig config, UriInfo uriInfo,
-                          SecurityContext context,
-                          DataClient dataClient) {
+                        SecurityContext context,
+                        DataClient dataClient) {
         super(config, uriInfo, context);
         this.dataClient = dataClient;
     }
@@ -116,9 +118,7 @@ public class PoolResource extends AbstractResource {
     @Consumes({ VendorMediaType.APPLICATION_POOL_JSON,
             MediaType.APPLICATION_JSON })
     public Response create(Pool pool)
-            throws StateAccessException, InvalidStateOperationException,
-            SerializationException{
-
+            throws StateAccessException, SerializationException {
         try {
             UUID id = dataClient.poolCreate(pool.toData());
             return Response.created(
@@ -195,5 +195,64 @@ public class PoolResource extends AbstractResource {
         }
 
         return vips;
+    }
+
+    /**
+     * Sub-resource class for load balancer's pools.
+     */
+    @RequestScoped
+    public static class LoadBalancerPoolResource extends AbstractResource {
+        private final UUID loadBalancerId;
+        private final DataClient dataClient;
+
+        @Inject
+        public LoadBalancerPoolResource(RestApiConfig config, UriInfo uriInfo,
+                                        SecurityContext context,
+                                        DataClient dataClient,
+                                        @Assisted UUID id) {
+            super(config, uriInfo, context);
+            this.dataClient = dataClient;
+            this.loadBalancerId = id;
+        }
+
+        @GET
+        @RolesAllowed({ AuthRole.ADMIN })
+        @Produces({ VendorMediaType.APPLICATION_POOL_COLLECTION_JSON,
+                MediaType.APPLICATION_JSON })
+        public List<Pool> list()
+                throws StateAccessException, SerializationException {
+
+            List<org.midonet.cluster.data.l4lb.Pool> dataPools = null;
+
+            dataPools = dataClient.loadBalancerGetPools(loadBalancerId);
+            List<Pool> pools = new ArrayList<Pool>();
+            if (dataPools != null) {
+                for (org.midonet.cluster.data.l4lb.Pool dataPool : dataPools) {
+                    Pool pool = new Pool(dataPool);
+                    pool.setBaseUri(getBaseUri());
+                    pools.add(pool);
+                }
+            }
+            return pools;
+        }
+
+        @POST
+        @RolesAllowed({ AuthRole.ADMIN })
+        @Consumes({ VendorMediaType.APPLICATION_POOL_JSON,
+                MediaType.APPLICATION_JSON})
+        public Response create(Pool pool)
+                throws StateAccessException, SerializationException {
+            pool.setLoadBalancerId(loadBalancerId);
+            try {
+                UUID id = dataClient.poolCreate(pool.toData());
+                return Response.created(
+                        ResourceUriBuilder.getPool(getBaseUri(), id))
+                        .build();
+            } catch (StatePathExistsException ex) {
+                throw new ConflictHttpException(ex);
+            } catch (NoStatePathException ex) {
+                throw new NotFoundHttpException(ex);
+            }
+        }
     }
 }

@@ -4,7 +4,6 @@
 
 package org.midonet.midolman.state.zkManagers;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -13,26 +12,20 @@ import com.google.common.base.Objects;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.DirectoryCallback;
-import org.midonet.midolman.state.DirectoryCallbackFactory;
 import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
-import org.midonet.util.functors.CollectionFunctors;
-import org.midonet.util.functors.Functor;
-
-import static java.util.Arrays.asList;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Arrays.asList;
 
 /**
  * Class to manage the LoadBalancer ZooKeeper data.
@@ -116,8 +109,9 @@ public class LoadBalancerZkManager extends AbstractZkManager {
                 Op.create(paths.getLoadBalancerPath(loadBalancerId),
                         serializer.serialize(config),
                         Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT),
-                Op.create(paths.getLoadBalancerVipsPath(loadBalancerId),
-                        null,
+                Op.create(paths.getLoadBalancerPoolsPath(id), null,
+                        Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT),
+                Op.create(paths.getLoadBalancerVipsPath(id), null,
                         Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT)));
     }
 
@@ -140,7 +134,15 @@ public class LoadBalancerZkManager extends AbstractZkManager {
             throws SerializationException, StateAccessException {
         return asList(
                 Op.delete(paths.getLoadBalancerVipsPath(id), -1),
+                Op.delete(paths.getLoadBalancerPoolsPath(id), -1),
                 Op.delete(paths.getLoadBalancerPath(id), -1));
+    }
+
+    public List<Op> prepareAddPool(UUID id, UUID poolId)
+            throws SerializationException, StateAccessException {
+        return asList(Op.create(
+                paths.getLoadBalancerPoolPath(id, poolId), null,
+                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
     }
 
     public List<Op> prepareAddVip(UUID id, UUID vipId)
@@ -150,8 +152,16 @@ public class LoadBalancerZkManager extends AbstractZkManager {
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
     }
 
+    public Set<UUID> getPoolIds(UUID id) throws StateAccessException {
+        return getChildUuids(paths.getLoadBalancerPoolsPath(id));
+    }
+
     public Set<UUID> getVipIds(UUID id) throws StateAccessException {
         return getChildUuids(paths.getLoadBalancerVipsPath(id));
+    }
+
+    public List<Op> prepareRemovePool(UUID id, UUID poolId) {
+        return asList(Op.delete(paths.getLoadBalancerPoolPath(id, poolId), -1));
     }
 
     public List<Op> prepareRemoveVip(UUID id, UUID vipId) {
