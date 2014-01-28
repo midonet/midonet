@@ -98,7 +98,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
                               val cookieOrEgressPort: Either[Int, UUID],
                               val parentCookie: Option[Int])
                              (implicit val system: ActorSystem)
-        extends FlowTranslator with UserspaceFlowActionTranslator with PacketHandler {
+        extends FlowTranslator with PacketHandler {
 
     import PacketWorkflow._
     import DeduplicationActor._
@@ -287,7 +287,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
         packet.setActions(actions.asJava)
         if (packet.getMatch.isUserSpaceOnly) {
             log.debug("Applying userspace actions to packet {}", cookieStr)
-            applyActionsAfterUserspaceMatch(packet)
+            UserspaceFlowActionTranslator.translate(packet)
         }
 
         val pktPromise = promise[Boolean]()
