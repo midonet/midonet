@@ -1,15 +1,17 @@
-// Copyright 2013 Midokura Inc.
-
+/*
+ * Copyright (c) 2013 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.midolman
 
-import scala.collection.JavaConversions._
-
-import org.midonet.odp._
-import org.midonet.odp.flows.{FlowActionSetKey, FlowKeyICMPError, FlowKeyICMPEcho}
+import org.midonet.odp.Packet
+import org.midonet.odp.flows.FlowAction
+import org.midonet.odp.flows.FlowActionSetKey
+import org.midonet.odp.flows.FlowKeyICMPError
+import org.midonet.odp.flows.FlowKeyICMPEcho
 import org.midonet.packets.{ICMP, IPv4, Ethernet}
 
+object UserspaceFlowActionTranslator {
 
-trait UserspaceFlowActionTranslator {
     /**
      * This method applies actions related to UserSpaceKeys to a Packet. Cases
      * supported should be the ones that match on keys that implement
@@ -25,43 +27,40 @@ trait UserspaceFlowActionTranslator {
      * @return A newly allocated packet with the fields in the match applied
      * @throws MalformedPacketException
      */
-    def applyActionsAfterUserspaceMatch(packet: Packet) {
-        def mangleIcmp(data: Array[Byte]): Option[Ethernet] = {
-            // This is very limited but we don't really need more
-            val eth = packet.getPacket
-            eth.getPayload match {
-                case ipv4: IPv4 =>
-                    ipv4.getPayload match {
-                        case icmp: ICMP =>
-                            icmp.setData(data)
-                            ipv4.setPayload(icmp)
-                            eth.setPayload(ipv4)
-                            Some(eth)
+    def translate(packet: Packet) {
+        val newActions = new java.util.ArrayList[FlowAction]()
+        val iter = packet.getActions.iterator()
+        while (iter.hasNext()) {
+            iter.next() match {
+                case a: FlowActionSetKey =>
+                    a.getFlowKey match {
+                        case k: FlowKeyICMPError =>
+                            mangleIcmp(packet.getPacket, k.getIcmpData)
+                        case k: FlowKeyICMPEcho =>
                         case _ =>
-                            None
+                            newActions.add(a)
                     }
-                case _ =>
-                    None
+                case a =>
+                    newActions.add(a)
             }
         }
+        packet.setActions(newActions)
+    }
 
-        val newActions = packet.getActions filter {_ match {
-            case a: FlowActionSetKey => a.getFlowKey match {
-                case k: FlowKeyICMPError =>
-                    mangleIcmp(k.getIcmpData) match {
-                        case Some(eth) => packet.setPacket(eth)
-                        case None =>
-                    }
-                    false
-                case k: FlowKeyICMPEcho =>
-                    false
-                case _ =>
-                    true
+    // This is very limited but we don't really need more
+    // This method takes a Ethernet packet and modifies it if it carries an
+    // icmp payload
+    private def mangleIcmp(eth: Ethernet, data: Array[Byte]) {
+        eth.getPayload match {
+            case ipv4: IPv4 =>
+                ipv4.getPayload match {
+                    case icmp: ICMP =>
+                        icmp.setData(data)
+                        ipv4.setPayload(icmp)
+                        eth.setPayload(ipv4)
+                    case _ =>
                 }
             case _ =>
-                true
-        }}
-
-        packet.setActions(newActions)
+        }
     }
 }
