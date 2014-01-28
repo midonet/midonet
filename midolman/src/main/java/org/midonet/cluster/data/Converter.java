@@ -224,6 +224,7 @@ public class Converter {
         PoolConfig poolConfig = new PoolConfig();
         poolConfig.name = pool.getName();
         poolConfig.description = pool.getDescription();
+        poolConfig.loadBalancerId = pool.getLoadBalancerId();
         poolConfig.healthMonitorId = pool.getHealthMonitorId();
         poolConfig.protocol = pool.getProtocol();
         poolConfig.lbMethod = pool.getLbMethod();
@@ -235,6 +236,7 @@ public class Converter {
     public static Pool fromPoolConfig(PoolConfig poolConfig) {
         return new Pool().setName(poolConfig.name)
                          .setDescription(poolConfig.description)
+                         .setLoadBalancerId(poolConfig.loadBalancerId)
                          .setHealthMonitorId(poolConfig.healthMonitorId)
                          .setProtocol(poolConfig.protocol)
                          .setLbMethod(poolConfig.lbMethod)

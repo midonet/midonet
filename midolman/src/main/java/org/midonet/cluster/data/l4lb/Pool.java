@@ -48,6 +48,15 @@ public class Pool extends Entity.Base<UUID, Pool.Data, Pool>{
         return getData().description;
     }
 
+    public Pool setLoadBalancerId(UUID loadBalancerId) {
+        getData().loadBalancerId = loadBalancerId;
+        return self();
+    }
+
+    public UUID getLoadBalancerId() {
+        return getData().loadBalancerId;
+    }
+
     public Pool setHealthMonitorId(UUID healthMonitorId) {
         getData().healthMonitorId = healthMonitorId;
         return self();
@@ -96,6 +105,7 @@ public class Pool extends Entity.Base<UUID, Pool.Data, Pool>{
     public static class Data {
         private String name;
         private String description;
+        private UUID loadBalancerId;
         private UUID healthMonitorId;
         private String protocol;
         private String lbMethod;
@@ -111,6 +121,7 @@ public class Pool extends Entity.Base<UUID, Pool.Data, Pool>{
 
             if (!Objects.equal(name, data.name)) return false;
             if (!Objects.equal(description, data.description)) return false;
+            if (!Objects.equal(loadBalancerId, data.loadBalancerId)) return false;
             if (!Objects.equal(healthMonitorId, data.healthMonitorId)) return false;
             if (!Objects.equal(protocol, data.protocol)) return false;
             if (!Objects.equal(lbMethod, data.lbMethod)) return false;
@@ -124,6 +135,8 @@ public class Pool extends Entity.Base<UUID, Pool.Data, Pool>{
             int result = name != null ? name.hashCode() : 0;
             result = 31 * result
                     + (description != null ? description.hashCode() : 0);
+            result = 31 * result
+                    + (loadBalancerId != null ? loadBalancerId.hashCode() : 0);
             result = 31 * result
                     + (healthMonitorId != null ?
                        healthMonitorId.hashCode() : 0);

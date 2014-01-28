@@ -42,6 +42,7 @@ public class PoolZkManager extends AbstractZkManager {
 
         public String name;
         public String description;
+        public UUID loadBalancerId;
         public UUID healthMonitorId;
         public String protocol;
         public String lbMethod;
