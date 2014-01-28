@@ -163,10 +163,10 @@ public class TestVip {
 
         @Test
         public void testUpdateUpdatesReferences() {
-            // Create a VIP without load balancer or pool.
-            DtoVip vip = createStockVip(null, null);
+            // Create a VIP associated with a pool.
+            DtoPool pool = createStockPool();
+            DtoVip vip = createStockVip(null, pool.getId());
             assertNull(vip.getLoadBalancer());
-            assertNull(vip.getPool());
 
             // Add references to loadBalancer1 and pool1.
             DtoLoadBalancer loadBalancer1 = createStockLoadBalancer();
@@ -197,13 +197,13 @@ public class TestVip {
 
             // Clear references.
             vip.setLoadBalancerId(null);
-            vip.setPoolId(null);
             vip = updateVip(vip);
 
-            // All references gone.
+            // References between vip and loadBalancer1 are gone, but references
+            // between vip and pool2 still remain.
             assertNull(vip.getLoadBalancer());
-            assertNull(vip.getPool());
-            checkBackrefs(loadBalancer2.getUri(), pool2.getUri(), null);
+            checkBackrefs(loadBalancer2.getUri(), null, null);
+            checkBackrefs(null, pool2.getUri(), vip);
         }
 
         @Test
@@ -222,12 +222,6 @@ public class TestVip {
             checkBackrefs(null, pool.getUri(), vip);
         }
 
-        @Test
-        public void testCreateWithoutPool() {
-            DtoLoadBalancer loadBalancer = createStockLoadBalancer();
-            DtoVip vip = createStockVip(loadBalancer.getId(), null);
-            checkBackrefs(loadBalancer.getUri(), null, vip);
-        }
 
         @Test
         public void testCreateWithBadLoadBalancerId() {
