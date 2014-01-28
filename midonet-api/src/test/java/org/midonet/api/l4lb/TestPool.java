@@ -25,6 +25,7 @@ import static org.midonet.api.validation.MessageProperty.RESOURCE_NOT_FOUND;
 import static org.midonet.api.VendorMediaType.APPLICATION_POOL_COLLECTION_JSON;
 import static org.midonet.api.VendorMediaType.APPLICATION_POOL_JSON;
 import static org.midonet.api.VendorMediaType.APPLICATION_VIP_COLLECTION_JSON;
+import static org.midonet.api.VendorMediaType.APPLICATION_VIP_JSON;
 
 @RunWith(Enclosed.class)
 public class TestPool {
@@ -234,15 +235,18 @@ public class TestPool {
             assertEquals(1, vips.length);
             assertEquals(vip1, vips[0]);
 
-            // Add a second VIP without a reference to the pool.
-            DtoVip vip2 = createStockVip(null, null);
+            // Try to add a second VIP without a reference to the pool and
+            // fail with 400 Bad Request. `poolId` can't be null.
+            DtoVip vip2 = getStockVip(null, null);
+            dtoWebResource.postAndVerifyBadRequest(topLevelVipsUri,
+                    APPLICATION_VIP_JSON,
+                    vip2);
             vips = getVips(pool.getVips());
             assertEquals(1, vips.length);
             assertEquals(vip1, vips[0]);
 
-            // Link the vip2 to the pool.
-            vip2.setPoolId(pool.getId());
-            vip2 = updateVip(vip2);
+            // Create a new VIP linking it to the pool.
+            vip2 = createStockVip(null, pool.getId());
             vips = getVips(pool.getVips());
             assertEquals(2, vips.length);
 

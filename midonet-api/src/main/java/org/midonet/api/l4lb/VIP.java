@@ -22,6 +22,7 @@ public class VIP extends UriResource {
 
     private UUID id;
     private UUID loadBalancerId;
+    @NotNull
     private UUID poolId;
     @Pattern(regexp = StringUtil.IP_ADDRESS_REGEX_PATTERN,
              message = "is an invalid IP format")
