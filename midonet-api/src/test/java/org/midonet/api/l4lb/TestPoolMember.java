@@ -9,6 +9,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
+import org.midonet.api.VendorMediaType;
 import org.midonet.api.validation.MessageProperty;
 import org.midonet.api.zookeeper.StaticMockDirectory;
 import org.midonet.client.dto.*;
@@ -89,7 +90,8 @@ public class TestPoolMember {
 
         @Test
         public void assertCreateAddsReferences() {
-            DtoPool pool = createStockPool();
+            DtoLoadBalancer loadBalancer = createStockLoadBalancer();
+            DtoPool pool = createStockPool(loadBalancer.getId());
             checkBackrefs(pool.getUri()); // No members.
 
             DtoPoolMember member1 = createStockPoolMember(pool.getId());
@@ -103,8 +105,9 @@ public class TestPoolMember {
 
         @Test
         public void assertUpdateUpdatesReferences() {
-            DtoPool pool1 = createStockPool();
-            DtoPool pool2 = createStockPool();
+            DtoLoadBalancer loadBalancer = createStockLoadBalancer();
+            DtoPool pool1 = createStockPool(loadBalancer.getId());
+            DtoPool pool2 = createStockPool(loadBalancer.getId());
 
             DtoPoolMember member1 = createStockPoolMember(pool1.getId());
             DtoPoolMember member2 = createStockPoolMember(pool1.getId());
@@ -127,7 +130,8 @@ public class TestPoolMember {
 
         @Test
         public void testDeletePoolMemberRemovesReferencesFromPool() {
-            DtoPool pool = createStockPool();
+            DtoLoadBalancer loadBalancer = createStockLoadBalancer();
+            DtoPool pool = createStockPool(loadBalancer.getId());
             DtoPoolMember member1 = createStockPoolMember(pool.getId());
             DtoPoolMember member2 = createStockPoolMember(pool.getId());
             checkBackrefs(pool.getUri(), member1, member2);
@@ -141,7 +145,8 @@ public class TestPoolMember {
 
         @Test
         public void testDeletePoolRemovesReferencesFromPoolMembers() {
-            DtoPool pool = createStockPool();
+            DtoLoadBalancer loadBalancer = createStockLoadBalancer();
+            DtoPool pool = createStockPool(loadBalancer.getId());
             DtoPoolMember member1 = createStockPoolMember(pool.getId());
             assertEquals(pool.getId(), member1.getPoolId());
             assertEquals(pool.getUri(), member1.getPool());
@@ -151,14 +156,11 @@ public class TestPoolMember {
             assertEquals(pool.getUri(), member2.getPool());
 
             deletePool(pool.getUri());
-
-            member1 = getPoolMember(member1.getUri());
-            assertNull(member1.getPoolId());
-            assertNull(member1.getPool());
-
-            member2 = getPoolMember(member2.getUri());
-            assertNull(member2.getPoolId());
-            assertNull(member2.getPool());
+            // Strongly associated resources are deleted by cascading.
+            dtoWebResource.getAndVerifyNotFound(member1.getUri(),
+                    VendorMediaType.APPLICATION_POOL_MEMBER_JSON);
+            dtoWebResource.getAndVerifyNotFound(member2.getUri(),
+                    VendorMediaType.APPLICATION_POOL_MEMBER_JSON);
         }
 
         @Test

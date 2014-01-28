@@ -302,6 +302,9 @@ public interface DataClient {
     List<LoadBalancer> loadBalancersGetAll()
         throws StateAccessException, SerializationException;
 
+    List<Pool> loadBalancerGetPools(UUID id)
+        throws StateAccessException, SerializationException;
+
     List<VIP> loadBalancerGetVips(UUID id)
         throws StateAccessException, SerializationException;
 

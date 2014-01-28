@@ -10,9 +10,12 @@ import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 import org.midonet.api.VendorMediaType;
+import org.midonet.api.rest_api.Status;
 import org.midonet.api.zookeeper.StaticMockDirectory;
 import org.midonet.client.dto.DtoLoadBalancer;
+import org.midonet.client.dto.DtoPool;
 import org.midonet.client.dto.DtoRouter;
+import org.midonet.client.dto.DtoVip;
 
 import static javax.ws.rs.core.Response.Status.*;
 import static junit.framework.Assert.assertEquals;
@@ -44,6 +47,8 @@ public class TestLoadBalancer {
         @Test
         synchronized public void testCrud() throws Exception {
             int counter = 0;
+            int poolCounter = 0;
+            int vipCounter = 0;
             // LoadBalancers should be empty
             verifyNumberOfLoadBalancers(counter);
 
@@ -99,6 +104,54 @@ public class TestLoadBalancer {
             dtoWebResource.putAndVerifyBadRequest(assignedLoadBalancer.getUri(),
                     VendorMediaType.APPLICATION_LOAD_BALANCER_JSON,
                     assignedLoadBalancer);
+
+            // POST a pool though the load balancer's `/pools` URI.
+            DtoPool[] pools = getPools(loadBalancer.getPools());
+            assertEquals(poolCounter, pools.length);
+            DtoPool pool = getStockPool(loadBalancer.getId());
+            pool = dtoWebResource.postAndVerifyCreated(loadBalancer.getPools(),
+                    VendorMediaType.APPLICATION_POOL_JSON,
+                    pool,
+                    DtoPool.class);
+            pools = getPools(loadBalancer.getPools());
+            poolCounter++;
+            assertEquals(poolCounter, pools.length);
+
+            // POST a VIP though the load balancer's `/vips` URI.
+            DtoVip[] vips = getVips(loadBalancer.getVips());
+            assertEquals(vipCounter, vips.length);
+            // We can't add the VIP through the load balancer.
+            DtoVip vip = getStockVip(pool.getId());
+            dtoWebResource.postAndVerifyStatus(loadBalancer.getVips(),
+                    VendorMediaType.APPLICATION_VIP_JSON, vip,
+                    Status.METHOD_NOT_ALLOWED.getStatusCode());
+            vips = getVips(loadBalancer.getVips());
+            assertEquals(vipCounter, vips.length);
+
+            // Add a VIP, which would be deleted by the cascading.
+            vip = postVip(getStockVip(pool.getId()));
+            vipCounter++;
+            vips = getVips(loadBalancer.getVips());
+            assertEquals(vipCounter, vips.length);
+            vip = getVip(vip.getUri());
+            assertEquals(vip.getLoadBalancerId(), loadBalancer.getId());
+
+            // Update the pool associating it with another load balancer and
+            // see if it is moved appropriately.
+            pool.setLoadBalancerId(loadBalancer2.getId());
+            pool = updatePool(pool);
+            DtoPool[] newPools = getPools(loadBalancer2.getPools());
+            // The number of the pools doesn't change.
+            assertEquals(poolCounter, newPools.length);
+            vip = getVip(vip.getUri());
+            assertEquals(vip.getLoadBalancerId(), loadBalancer2.getId());
+            pools = getPools(loadBalancer.getPools());
+            assertEquals(0, pools.length);
+            vips = getVips(loadBalancer2.getVips());
+            // The number of the VIPs doesn't change.
+            assertEquals(vipCounter, vips.length);
+            DtoVip[] oldVips = getVips(loadBalancer.getVips());
+            assertEquals(0, oldVips.length);
 
             // DELETE all created load balancers.
             deleteLoadBalancer(loadBalancer.getUri());

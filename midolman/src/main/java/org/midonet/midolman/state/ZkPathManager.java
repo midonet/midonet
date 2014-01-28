@@ -10,8 +10,8 @@ import java.util.UUID;
 import org.midonet.cluster.data.Bridge;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager.BridgeConfig;
 import org.midonet.midolman.state.zkManagers.TaggableConfig;
-import org.midonet.packets.IPv6Subnet;
 import org.midonet.packets.IPAddr;
+import org.midonet.packets.IPv6Subnet;
 import org.midonet.packets.IntIPv4;
 import org.midonet.packets.MAC;
 
@@ -1497,12 +1497,28 @@ public class ZkPathManager {
         return buildLoadBalancerPath(loadBalancerId).toString();
     }
 
+    private StringBuilder buildLoadBalancerPoolsPath(UUID loadBalancerId) {
+        return buildLoadBalancerPath(loadBalancerId).append("/pools");
+    }
+
+    public String getLoadBalancerPoolsPath(UUID loadBalancerId) {
+        return buildLoadBalancerPoolsPath(loadBalancerId).toString();
+    }
+
     private StringBuilder buildLoadBalancerVipsPath(UUID loadBalancerId){
         return buildLoadBalancerPath(loadBalancerId).append("/vips");
     }
 
     public String getLoadBalancerVipsPath(UUID loadBalancerId) {
         return buildLoadBalancerVipsPath(loadBalancerId).toString();
+    }
+
+    private StringBuilder buildLoadBalancerPoolPath(UUID id, UUID poolId) {
+        return buildLoadBalancerPoolsPath(id).append("/").append(poolId);
+    }
+
+    public String getLoadBalancerPoolPath(UUID id, UUID poolId) {
+        return buildLoadBalancerPoolPath(id, poolId).toString();
     }
 
     private StringBuilder buildLoadBalancerVipPath(UUID id, UUID vipId) {

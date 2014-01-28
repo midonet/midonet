@@ -161,8 +161,8 @@ with OneInstancePerTest {
         loadBalancer = createLoadBalancer()
         setLoadBalancerOnRouter(loadBalancer, router)
         loadBalancer.setRouterId(router.getId)
-        vip = createVipOnLoadBalancer(loadBalancer, vipIp.toUnicastString, vipPort)
-        val pool = createPool()
+        val pool = createPool(loadBalancer)
+        vip = createVip(pool, vipIp.toUnicastString, vipPort)
         setVipPool(vip, pool)
         poolMembers = (0 until numBackends) map {
             n => createPoolMember(pool, ipsBackendSide(n).toUnicastString,

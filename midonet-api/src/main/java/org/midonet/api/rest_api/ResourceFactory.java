@@ -130,6 +130,8 @@ public interface ResourceFactory {
 
     LoadBalancerResource getLoadBalancerResource();
 
+    PoolResource.LoadBalancerPoolResource getLoadBalancerPoolResource(UUID id);
+
     PoolMemberResource getPoolMemberResource();
 
     PoolResource getPoolResource();

@@ -767,6 +767,11 @@ public class ResourceUriBuilder {
                 .path(loadBalancerId.toString()).build();
     }
 
+   public static URI getLoadBalancerPools(URI baseUri, UUID id) {
+       return UriBuilder.fromUri(getLoadBalancers(baseUri))
+               .path(id.toString()).path(POOLS).build();
+   }
+
     public static URI getLoadBalancerVips(URI baseUri, UUID id) {
         return UriBuilder.fromUri(getLoadBalancers(baseUri))
                 .path(id.toString()).path(VIPS).build();

@@ -12,12 +12,15 @@ import org.junit.runner.RunWith;
 import org.midonet.api.VendorMediaType;
 import org.midonet.api.validation.MessageProperty;
 import org.midonet.api.zookeeper.StaticMockDirectory;
-import org.midonet.client.dto.*;
+import org.midonet.client.dto.DtoError;
+import org.midonet.client.dto.DtoHealthMonitor;
+import org.midonet.client.dto.DtoLoadBalancer;
+import org.midonet.client.dto.DtoPool;
 
-import java.net.URI;
 import java.util.UUID;
 
-import static javax.ws.rs.core.Response.Status.*;
+import static javax.ws.rs.core.Response.Status.CONFLICT;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static junit.framework.Assert.assertNull;
 import static org.junit.Assert.assertEquals;
 import static org.midonet.api.VendorMediaType.APPLICATION_HEALTH_MONITOR_COLLECTION_JSON;
@@ -92,9 +95,14 @@ public class TestHealthMonitor {
 
         @Test
         public void testDeleteClearsReferencesFromPools() {
+            DtoLoadBalancer loadBalancer = createStockLoadBalancer();
             DtoHealthMonitor hm = createStockHealthMonitor();
-            DtoPool pool1 = createStockPool(hm.getId());
-            DtoPool pool2 = createStockPool(hm.getId());
+            DtoPool pool1 = getStockPool(loadBalancer.getId());
+            pool1.setHealthMonitorId(hm.getId());
+            pool1 = postPool(pool1);
+            DtoPool pool2 = getStockPool(loadBalancer.getId());
+            pool2.setHealthMonitorId(hm.getId());
+            pool2 = postPool(pool2);
 
             assertEquals(hm.getUri(), pool1.getHealthMonitor());
             assertEquals(hm.getUri(), pool2.getHealthMonitor());
