@@ -64,15 +64,20 @@ class DatapathFlowTableConsistencyTestCase extends MidolmanTestCase
         None
     }
 
-    // flows will be installed for ICMP echo req/reply that do not go through
-    // Nat rules and that do not need to be processed exclusively in userspace.
-    def testMultipleICMPPacketInWithoutNat() {
+    def testMultipleICMPPacketIn() {
+        // flow will not be installed for ICMP echo req/reply
+        // required to process them in userspace to support PING through NAT
         expectPacketAllowed(0, 1, icmpBetweenPorts)
-        requestOfType[WildcardFlowAdded](wflowAddedProbe)
-        findMatch[FlowKeyICMPEcho] should not be (None)
-        findMatch[FlowKeyICMP] should not be (None)
+        findMatch[FlowKeyICMPEcho] should be (None)
+        findMatch[FlowKeyICMP] should be (None)
 
         drainProbes()
+        // resend packet and check that the flow was not re-added
+        expectPacketAllowed(0, 1, icmpBetweenPorts)
+        fishForRequestOfType[DeduplicationActor.ApplyFlow](dedupProbe())
+
+        findMatch[FlowKeyICMPEcho] should be (None)
+        findMatch[FlowKeyICMP] should be (None)
     }
 
     def testFlowGetMiss() {

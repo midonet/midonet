@@ -237,7 +237,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
                                 tags: ROSet[Any],
                                 removalCallbacks: ROSet[Callback0]) =
         cookie match {
-            case Some(_) if wildFlow.onlyUserspaceMatch =>
+            case Some(_) if packet.getMatch.isUserSpaceOnly =>
                 log.debug("Adding wildcard flow {} for userspace only match",
                           wildFlow)
                 FlowController.getRef() !
@@ -247,7 +247,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
                     ApplyFlow(wildFlow.getActions, cookie)
                 Future.successful(true)
 
-            case Some(_) =>
+            case Some(_) if !packet.getMatch.isUserSpaceOnly =>
                 createFlow(wildFlow, Some(wildFlow), tags, removalCallbacks)
 
             case None =>
@@ -320,7 +320,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
     private def handleWildcardTableMatch(wildFlow: WildcardFlow): Future[PipelinePath] = {
         log.debug("Packet {} matched a wildcard flow", cookieStr)
 
-        val flowFuture = if (wildFlow.onlyUserspaceMatch) {
+        val flowFuture = if (packet.getMatch.isUserSpaceOnly) {
             log.debug("Won't add flow with userspace match {}", packet.getMatch)
             DeduplicationActor.getRef() ! ApplyFlow(wildFlow.getActions, cookie)
             Future.successful(true)

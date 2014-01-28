@@ -176,24 +176,6 @@ public class ICMP extends BasePacket {
     }
 
     /**
-     * Makes an ICMP echo reply to this ICMP packet, wrapped by an Ip packet.
-     * @param src the Ip address from which the echo packet came.
-     * @param dst the Ip address to where the echo packet went.
-     * @return an IP packet from dst Ip to src Ip carrying an icmp echo reply
-     * payload.
-     */
-    public IPv4 makeReply(IPv4Addr src, IPv4Addr dst) {
-        ICMP reply = new ICMP();
-        reply.setEchoReply(getIdentifier(), getSequenceNum(), getData());
-        IPv4 ip = new IPv4();
-        ip.setProtocol(PROTOCOL_NUMBER);
-        ip.setDestinationAddress(src); // we reply to src from dst
-        ip.setSourceAddress(dst);
-        ip.setPayload(reply);
-        return ip;
-    }
-
-    /**
      * Serializes the packet. Will compute and set the checksum if it's set to
      * 0 (zero) at the time serialize is called.
      */

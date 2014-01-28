@@ -99,14 +99,12 @@ public class WildcardMatchTest {
     @Test
     public void testSetIcmpIdentifier() {
         WildcardMatch wmatch = new WildcardMatch();
-        Assert.assertFalse(wmatch.wereIcmpFieldsSeen());
         Short icmpId = 0x25;
         wmatch.setIcmpIdentifier(icmpId);
         Assert.assertEquals(icmpId, wmatch.getIcmpIdentifier());
         assertThat(wmatch.getUsedFields(), hasSize(1));
         assertThat(wmatch.getUsedFields(),
                    contains(WildcardMatch.Field.IcmpId));
-        Assert.assertTrue(wmatch.wereIcmpFieldsSeen());
     }
 
     @Test

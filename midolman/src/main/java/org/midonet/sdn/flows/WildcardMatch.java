@@ -158,11 +158,6 @@ public class WildcardMatch implements Cloneable {
         return layer;
     }
 
-    public boolean wereIcmpFieldsSeen() {
-        return seenFields.contains(Field.IcmpData)
-            || seenFields.contains(Field.IcmpId);
-    }
-
     /**
      * Resets the contents of this WildcardMatch setting them to the values
      * in <pre>that</pre>. The list of used fields will be cleared and all
