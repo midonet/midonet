@@ -151,13 +151,11 @@ class Coordinator(var origMatch: WildcardMatch,
         a: SimulationResult): Future[SimulationResult] = Future.successful(a)
 
     private def matchTraceConditions(): Boolean = {
-        log.debug("Checking packet {} against conditions {}",
-                  pktContext, traceConditions);
-        for (condition <- traceConditions) {
-            if (condition.matches(pktContext, origMatch, false))
-                return true
-        }
-        false
+        val anyConditionMatching =
+            traceConditions exists { _.matches(pktContext, origMatch, false) }
+        log.debug("Checking packet {} against tracing conditions {}: {}",
+                  pktContext, traceConditions, anyConditionMatching);
+        anyConditionMatching
     }
 
     private def dropFlow(temporary: Boolean, withTags: Boolean)

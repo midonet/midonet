@@ -409,7 +409,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
     }
 
     private def doEgressPortSimulation() = {
-        log.debug("Simulating generated packet")
+        log.debug("Handling generated packet")
         val wcMatch = WildcardMatch.fromEthernetPacket(packet.getPacket)
         runSimulation(wcMatch) flatMap processSimulationResult
     }
@@ -433,8 +433,6 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
 
     private def simulatePacketIn(wMatch: WildcardMatch)
     : Future[SimulationResult] = {
-        log.debug("Simulating packet {}: {}", cookieStr, packet.getReason)
-
         val inPortNo = wMatch.getInputPortNumber
         if (inPortNo == null) {
             log.error(
@@ -443,7 +441,8 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
         }
 
         val port: JInteger = Unsigned.unsign(inPortNo)
-        log.debug("PacketIn on port #{}", port)
+        log.debug("Handling packet {} on port #{}: {}",
+                  cookieStr, port, packet.getReason)
         dpState.getVportForDpPortNumber(port) match {
             case Some(vportId) =>
                 wMatch.setInputPortUUID(vportId)
