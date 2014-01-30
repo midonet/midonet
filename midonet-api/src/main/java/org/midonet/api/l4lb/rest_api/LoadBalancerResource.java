@@ -58,7 +58,7 @@ public class LoadBalancerResource extends AbstractResource {
     /**
      * Handler to GETting a list of load balancers
      *
-     * @return List of the load blanacers.
+     * @return List of the load balancers.
      * @throws StateAccessException
      * @throws SerializationException
      */
