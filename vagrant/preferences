@@ -6,6 +6,16 @@ Package: openvswitch-datapath-dkms
 Pin: release n=precise
 Pin-Priority: 10
 
+
+Package: quagga
+Pin: release n=raring
+Pin-Priority: 1000
+
+Package: quagga
+Pin: release n=precise
+Pin-Priority: 10
+
+
 Package: zookeeper
 Pin: release n=raring
 Pin-Priority: 1000

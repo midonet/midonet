@@ -15,6 +15,9 @@ Vagrant.configure(API_VERSION) do |config|
     vb.name = vmname
     vb.customize ["modifyvm", :id, "--cpus", "2"]
     vb.customize ["modifyvm", :id, "--memory", "2048"]
+
+    # according to your host settings, you may have to turn on this dns option
+    vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
   end
 
   # port forwarding
@@ -24,8 +27,15 @@ Vagrant.configure(API_VERSION) do |config|
   # host folder sharing
   config.vm.synced_folder "~/.m2",              "/home/vagrant/.m2"
   config.vm.synced_folder "../",                "/midonet"
+
+  # If you need to install midolman packages inside the vm, these two lines have
+  # to be commented out, otherwise apt-get will complain about existing files.
   config.vm.synced_folder "../midolman/conf",   "/etc/midolman"
   config.vm.synced_folder "../midolman/target", "/usr/share/midolman"
+
+  # Uncomment and edit the path if you want to run the perf tests inside the vm.
+  # The host path is supposed to point to a clone of the qa repository
+  # config.vm.synced_folder "../../qa", "/home/vagrant/qa"
 
   config.vm.provision :shell do |s| s.path = 'vagrant_init.sh' end
 

@@ -4,7 +4,8 @@ Vagrant made, Ubuntu 12.04 based, and featuring:
 - building artifacts from source and running unit tests
 - running midolman and mm-* utilities from built artifacts
 - openvswitch 1.10 kernel module
-- zookeeper service
+- zookeeper, cassandra, tomcat7 services
+- all necessary dependencies for running performance tests
 
 ### Prerequisites
 
@@ -29,6 +30,10 @@ forwarding is set by default with ports 4000 (midolman remote debugging) and
 8080 (midonet-api). See docs/build-maven.md for details.
 
 The vm settings are changed in `Vagrantfile` (cpu, memory, ...).
+
+It is possible to run the perftest inside the vm. For this the folder mapping
+settings between host an guest has to be changed in Vagrantfile. Follow the
+indications there. It is also recommended to increase the vm memory settings.
 
 ### SSH forwarding
 
@@ -68,3 +73,9 @@ settings in the vm.
 Some java based apps are installed from downloaded binaries rather than using
 the package system (maven, zinc). This simplify java 7 settings. The dl urls are
 found at the top of `vagrant_init.sh`.
+
+### Known issues
+
+Accordting to your platform and host settings, the vm may have trouble to do
+name resolution. In this case, you should turn on the dns resolver option in
+Vagrantfile.
