@@ -133,25 +133,7 @@ public class PoolMemberZkManager extends AbstractZkManager {
     public void getPoolMemberAsync(final UUID poolMemberId,
                             DirectoryCallback<PoolMemberConfig> poolMemberCallback,
                             Directory.TypedWatcher watcher) {
-
-        String poolMemberPath = paths.getPoolMemberPath(poolMemberId);
-
-        zk.asyncGet(
-                poolMemberPath,
-                DirectoryCallbackFactory.transform(
-                        poolMemberCallback,
-                        new Functor<byte[], PoolMemberConfig>() {
-                            @Override
-                            public PoolMemberConfig apply(byte[] arg0) {
-                                try {
-                                    return serializer.deserialize(arg0,
-                                            PoolMemberConfig.class);
-                                } catch (SerializationException e) {
-                                    log.warn("Could not deserialize PoolMember data");
-                                }
-                                return null;
-                            }
-                        }),
-                watcher);
+        getAsync(paths.getPoolMemberPath(poolMemberId),
+                 PoolMemberConfig.class, poolMemberCallback, watcher);
     }
 }

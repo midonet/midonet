@@ -139,7 +139,94 @@ with VirtualConfigurationBuilders {
             And("the VTA should receive a flow invalidation")
             vta.getAndClear().contains(flowInvalidationMsg(p2.id)) shouldBe true
         }
+    }
 
+    feature("PoolManager handles pool's adminStateUp property") {
+        scenario("Create a pool with adminStateUp = true") {
+            Given("A pool created with adminStateUp = true")
+            val pool = createPool(adminStateUp = true)
+
+            When("the VTA receives a request for it")
+            vta.self ! PoolRequest(pool.getId)
+
+            Then("it should return the pool with adminStateUp = true")
+            val vtaPool = expectMsgType[Pool]
+            vtaPool.adminStateUp shouldBe true
+        }
+
+        scenario("Create a pool with adminStateUp = false") {
+            Given("a pool created with adminStateUp = false")
+            val pool = createPool(adminStateUp = false)
+
+            When("the VTA receives a request for it")
+            vta.self ! PoolRequest(pool.getId)
+
+            Then("it should return the pool with adminStateUp = true")
+            val vtaPool = expectMsgType[Pool]
+            vtaPool.adminStateUp shouldBe false
+        }
+
+        scenario("Update pool's adminStateUp property") {
+            Given("a pool created with adminStateUp = false")
+            val pool = createPool(adminStateUp = false)
+            vta.self ! PoolRequest(pool.getId, update = true)
+            val simPool1 = expectMsgType[Pool]
+            simPool1.adminStateUp shouldBe false
+            vta.getAndClear()
+
+            When("the pool's adminStateUp property is set to true")
+            setPoolAdminStateUp(pool, true)
+
+            Then("the VTA should receive a flow invalidation message")
+            vta.getAndClear().contains(flowInvalidationMsg(pool.getId))
+
+            And("send an updated Pool")
+            val simPool2 = expectMsgType[Pool]
+            simPool2.adminStateUp shouldBe true
+
+            When("the pool's adminStateUp property is set back to false")
+            setPoolAdminStateUp(pool, false)
+
+            Then("the VTA should receive a flow invalidation message")
+            vta.getAndClear().contains(flowInvalidationMsg(pool.getId))
+
+            And("send an updated Pool")
+            val simPool3 = expectMsgType[Pool]
+            simPool3.adminStateUp shouldBe false
+        }
+    }
+
+    feature("PoolManager handles pool's lbMethod property") {
+        scenario("Create a pool with lbMethod = 'ROUND_ROBIN'") {
+            Given("A pool created with lbMethod = 'ROUND_ROBIN'")
+            val pool = createPool(lbMethod = "ROUND_ROBIN")
+
+            When("the VTA receives a request for it")
+            vta.self ! PoolRequest(pool.getId)
+
+            Then("it should return the pool with lbMethod = 'ROUND_ROBIN'")
+            val vtaPool = expectMsgType[Pool]
+            vtaPool.lbMethod shouldBe "ROUND_ROBIN"
+        }
+
+        scenario("Update pool's lbMethod property") {
+            Given("a pool created with lbMethod = 'ROUND_ROBIN'")
+            val pool = createPool(lbMethod = "ROUND_ROBIN")
+            vta.self ! PoolRequest(pool.getId, update = true)
+            val simPool1 = expectMsgType[Pool]
+            simPool1.lbMethod shouldBe "ROUND_ROBIN"
+            vta.getAndClear()
+
+            When("the pool's lbMethod property is set to a different value")
+            setPoolLbMethod(pool, "ANGULAR_ALBATROSS")
+
+            Then("the VTA should receive a flow invalidation message")
+            vta.getAndClear().contains(flowInvalidationMsg(pool.getId))
+
+            And("send an updated Pool")
+            val simPool2 = expectMsgType[Pool]
+            simPool2.lbMethod shouldBe "ANGULAR_ALBATROSS"
+        }
     }
 
     def flowInvalidationMsg(id: UUID) =

@@ -1,6 +1,5 @@
 /*
- * Copyright 2011 Midokura KK
- * Copyright 2012 Midokura Europe SARL
+ * Copyright (c) 2011 Midokura Europe SARL, All Rights Reserved.
  */
 package org.midonet.midolman.state.zkManagers;
 
@@ -412,19 +411,7 @@ public class RouteZkManager extends AbstractZkManager {
                                     final DirectoryCallback<Set<UUID>> listPortRoutesCallback,
                                     Directory.TypedWatcher watcher){
 
-        zk.asyncGetChildren(
-            paths.getPortRoutesPath(portId),
-            DirectoryCallbackFactory.transform(
-                listPortRoutesCallback,
-                new Functor<Set<String>,Set<UUID>>() {
-                    @Override
-                    public Set<UUID> apply(Set<String> arg0) {
-                        return CollectionFunctors.map(
-                            arg0, strToUUIDMapper, new HashSet<UUID>());
-                    }
-                }
-            ), watcher);
-
+        getUUIDSetAsync(paths.getPortRoutesPath(portId), listPortRoutesCallback, watcher);
     }
 
     /**

@@ -1,11 +1,11 @@
 /*
- * Copyright 2012 Midokura KK
- * Copyright 2012 Midokura PTE LTD.
- * Copyright 2013 Midokura PTE LTD.
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
  */
 package org.midonet.midolman.state;
 
+import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
+import org.midonet.util.functors.CollectionFunctors;
 import org.midonet.util.functors.Functor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,18 +26,6 @@ public abstract class AbstractZkManager {
     protected final ZkManager zk;
     protected final PathBuilder paths;
     protected final Serializer serializer;
-
-    protected static final Functor<String, UUID> strToUUIDMapper =
-            new Functor<String, UUID>() {
-                @Override
-                public UUID apply(String arg0) {
-                    try {
-                        return UUID.fromString(arg0);
-                    } catch (IllegalArgumentException ex) {
-                        return null;
-                    }
-                }
-            };
 
     /**
      * Constructor.
@@ -71,5 +59,37 @@ public abstract class AbstractZkManager {
             }
         }
         return ids;
+    }
+
+    protected <T> void getAsync(String path, final Class<T> clazz,
+                                DirectoryCallback<T> callback,
+                                Directory.TypedWatcher watcher) {
+        zk.asyncGet(
+                path,
+                DirectoryCallbackFactory.transform(
+                        callback,
+                        new Functor<byte[], T>() {
+                            @Override
+                            public T apply(byte[] arg0) {
+                                try {
+                                    return serializer.deserialize(arg0, clazz);
+                                } catch (SerializationException e) {
+                                    log.warn("Could not deserialize " +
+                                             clazz.getSimpleName() + " data");
+                                    return null;
+                                }
+                            }
+                        }),
+                watcher);
+    }
+
+    protected void getUUIDSetAsync(String path,
+                                   DirectoryCallback<Set<UUID>> callback,
+                                   Directory.TypedWatcher watcher) {
+        zk.asyncGetChildren(
+                path,
+                DirectoryCallbackFactory.transform(
+                        callback, CollectionFunctors.strSetToUUIDSet),
+                watcher);
     }
 }

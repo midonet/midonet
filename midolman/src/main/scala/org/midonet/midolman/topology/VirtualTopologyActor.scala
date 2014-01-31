@@ -349,5 +349,7 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
         case invalidation: InvalidateFlowsByTag =>
             log.debug("Invalidating flows for tag {}", invalidation.tag)
             FlowController ! invalidation
+        case unexpected =>
+            log.error("Received unexpected message: {}", unexpected)
     }
 }

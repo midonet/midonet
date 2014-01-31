@@ -1,6 +1,6 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.midolman.state.zkManagers;
 
 import java.util.HashSet;
@@ -51,20 +51,8 @@ public class PortSetZkManager extends AbstractZkManager {
                                 final DirectoryCallback<Set<UUID>>
                                         portSetContentsCallback,
                                 Directory.TypedWatcher watcher) {
-        String portSetPath = paths.getPortSetPath(portSetId);
-
-        zk.asyncGetChildren(
-            portSetPath,
-            DirectoryCallbackFactory.transform(
-                portSetContentsCallback,
-                new Functor<Set<String>, Set<UUID>>() {
-                    @Override
-                    public Set<UUID> apply(Set<String> arg0) {
-                        return CollectionFunctors.map(
-                            arg0, strToUUIDMapper, new HashSet<UUID>());
-                    }
-                }
-            ), watcher);
+        getUUIDSetAsync(paths.getPortSetPath(portSetId),
+                        portSetContentsCallback, watcher);
     }
 
     public void addMemberAsync(UUID portSetId, UUID memberId,

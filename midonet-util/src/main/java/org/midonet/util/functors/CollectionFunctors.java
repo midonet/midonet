@@ -1,9 +1,12 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.util.functors;
 
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * // TODO: Explain yourself.
@@ -28,4 +31,13 @@ public class CollectionFunctors {
 
         return target;
     }
+
+    public static final Functor<Set<String>, Set<UUID>> strSetToUUIDSet =
+            new Functor<Set<String>, Set<UUID>>() {
+                @Override
+                public Set<UUID> apply(Set<String> arg0) {
+                    return CollectionFunctors.map(
+                            arg0, Functors.strToUUID, new HashSet<UUID>());
+                }
+            };
 }

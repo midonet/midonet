@@ -8,11 +8,6 @@ import java.util.UUID
 
 import org.midonet.packets.IPv4Addr
 
-/**
- * Vip.
- *
- * Placeholder class.
- */
 class VIP (val id: UUID, val adminStateUp: Boolean, val poolId: UUID,
            val address: IPv4Addr, val protocolPort:Int,
            val sessionPersistence: String) {

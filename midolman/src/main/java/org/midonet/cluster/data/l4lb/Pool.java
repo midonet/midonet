@@ -80,7 +80,7 @@ public class Pool extends Entity.Base<UUID, Pool.Data, Pool>{
         return self();
     }
 
-    public boolean getAdminStateUp() {
+    public boolean isAdminStateUp() {
         return getData().adminStateUp;
     }
 
