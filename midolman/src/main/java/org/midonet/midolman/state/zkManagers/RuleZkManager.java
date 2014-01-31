@@ -1,6 +1,5 @@
 /*
- * Copyright 2011 Midokura KK
- * Copyright 2012 Midokura PTE LTD.
+ * Copyright (c) 2011 Midokura Europe SARL, All Rights Reserved.
  */
 package org.midonet.midolman.state.zkManagers;
 
@@ -265,24 +264,8 @@ public class RuleZkManager extends AbstractZkManager {
             DirectoryCallback<Rule> ruleCallback,
             Directory.TypedWatcher watcher) {
 
-        String path = paths.getRulePath(ruleId);
-
-        zk.asyncGet(
-            path,
-            DirectoryCallbackFactory.transform(
-                ruleCallback,
-                new Functor<byte[], Rule>() {
-                    @Override
-                    public Rule apply(byte[] arg0) {
-                        try {
-                            return serializer.deserialize(arg0, Rule.class);
-                        } catch (SerializationException e) {
-                            log.warn("Could not deserialize Rule data");
-                        }
-                        return null;
-                    }
-                }),
-            watcher);
+        getAsync(paths.getRulePath(ruleId),
+                 Rule.class, ruleCallback, watcher);
     }
 
     public void getRuleIdListAsync(

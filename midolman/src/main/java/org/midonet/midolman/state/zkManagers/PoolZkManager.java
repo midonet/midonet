@@ -132,6 +132,13 @@ public class PoolZkManager extends AbstractZkManager {
         return serializer.deserialize(data, PoolConfig.class);
     }
 
+    public void getPoolAsync(UUID poolId,
+                             DirectoryCallback<PoolConfig> poolCallback,
+                             Directory.TypedWatcher watcher) {
+        getAsync(paths.getPoolPath(poolId),
+                 PoolConfig.class, poolCallback, watcher);
+    }
+
     public Set<UUID> getMemberIds(UUID id) throws StateAccessException {
         return getChildUuids(paths.getPoolMembersPath(id));
     }
@@ -174,19 +181,7 @@ public class PoolZkManager extends AbstractZkManager {
                                   final DirectoryCallback<Set<UUID>>
                                           poolMemberContentsCallback,
                                   Directory.TypedWatcher watcher) {
-        String poolMemberListPath = paths.getPoolMembersPath(poolId);
-
-        zk.asyncGetChildren(
-                poolMemberListPath,
-                DirectoryCallbackFactory.transform(
-                        poolMemberContentsCallback,
-                        new Functor<Set<String>, Set<UUID>>() {
-                            @Override
-                            public Set<UUID> apply(Set<String> arg0) {
-                                return CollectionFunctors.map(
-                                        arg0, strToUUIDMapper, new HashSet<UUID>());
-                            }
-                        }
-                ), watcher);
+        getUUIDSetAsync(paths.getPoolMembersPath(poolId),
+                        poolMemberContentsCallback, watcher);
     }
 }

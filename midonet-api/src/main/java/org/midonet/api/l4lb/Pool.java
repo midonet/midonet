@@ -98,7 +98,7 @@ public class Pool extends UriResource {
         this.healthMonitorId = pool.getHealthMonitorId();
         this.protocol = pool.getProtocol();
         this.lbMethod = pool.getLbMethod();
-        this.adminStateUp = pool.getAdminStateUp();
+        this.adminStateUp = pool.isAdminStateUp();
         this.status = pool.getStatus();
         this.id = pool.getId();
     }
