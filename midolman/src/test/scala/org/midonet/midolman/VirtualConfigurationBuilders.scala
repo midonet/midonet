@@ -25,7 +25,7 @@ import org.midonet.packets.{IPv4Subnet, TCP, MAC}
 import org.midonet.midolman.state.DirectoryCallback
 import org.midonet.midolman.state.DirectoryCallback.Result
 import org.apache.zookeeper.KeeperException
-import org.midonet.cluster.data.l4lb.{VIP, LoadBalancer}
+import org.midonet.cluster.data.l4lb.{PoolMember, Pool, VIP, LoadBalancer}
 
 trait VirtualConfigurationBuilders {
 
@@ -410,9 +410,49 @@ trait VirtualConfigurationBuilders {
         clusterDataClient().vipUpdate(vip)
     }
 
+    def setVipPool(vip: VIP, pool: Pool) {
+        vip.setPoolId(pool.getId)
+        clusterDataClient().vipUpdate(vip)
+    }
+
     def setVipAdminStateUp(vip: VIP, adminStateUp: Boolean) {
         vip.setAdminStateUp(adminStateUp)
         clusterDataClient().vipUpdate(vip)
+    }
+
+    def createPool(id: Option[UUID] = None): Pool = {
+        val pool = new Pool()
+        pool.setAdminStateUp(true)
+        if (id.isDefined)
+            pool.setId(id.get)
+        else
+            pool.setId(UUID.randomUUID)
+        clusterDataClient().poolCreate(pool)
+        Thread.sleep(50)
+        pool
+    }
+
+    def createPoolMember(pool: Pool): PoolMember = {
+        val poolMember = new PoolMember()
+        poolMember.setId(UUID.randomUUID)
+        poolMember.setAdminStateUp(true)
+        poolMember.setAddress("10.10.10.10")
+        poolMember.setPoolId(pool.getId)
+        clusterDataClient().poolMemberCreate(poolMember)
+        Thread.sleep(50)
+        poolMember
+    }
+
+    def removePoolMemberFromPool(poolMember: PoolMember,
+                                 pool: Pool) {
+        poolMember.setPoolId(null)
+        clusterDataClient().poolMemberUpdate(poolMember)
+    }
+
+    def setPoolMemberAdminStateUp(poolMember: PoolMember,
+                                  adminStateUp: Boolean) {
+        poolMember.setAdminStateUp(adminStateUp)
+        clusterDataClient().poolMemberUpdate(poolMember)
     }
 
 }

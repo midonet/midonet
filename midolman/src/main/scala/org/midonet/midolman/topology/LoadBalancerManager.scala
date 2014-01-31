@@ -16,7 +16,6 @@ import org.midonet.midolman.simulation
 import org.midonet.midolman.simulation.LoadBalancer
 import org.midonet.midolman.state.zkManagers.LoadBalancerZkManager.LoadBalancerConfig
 
-
 object LoadBalancerManager {
     case class TriggerUpdate(cfg: LoadBalancerConfig, vips: Set[VIP])
 }

@@ -22,6 +22,7 @@ import org.midonet.cluster.ClusterIPAddrGroupManager;
 import org.midonet.cluster.ClusterPortsManager;
 import org.midonet.cluster.ClusterRouterManager;
 import org.midonet.cluster.ClusterLoadBalancerManager;
+import org.midonet.cluster.ClusterPoolManager;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.LocalDataClientImpl;
 import org.midonet.cluster.services.MidostoreSetupService;
@@ -93,6 +94,9 @@ public class DataClusterClientModule extends PrivateModule {
                 .in(Singleton.class);
 
         bind(ClusterLoadBalancerManager.class)
+                .in(Singleton.class);
+
+        bind(ClusterPoolManager.class)
                 .in(Singleton.class);
 
         bind(ClusterPortsManager.class)

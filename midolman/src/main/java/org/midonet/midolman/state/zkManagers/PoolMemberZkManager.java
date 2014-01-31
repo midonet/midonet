@@ -18,9 +18,12 @@ import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.Directory;
+import org.midonet.midolman.state.DirectoryCallbackFactory;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
+import org.midonet.midolman.state.DirectoryCallback;
+import org.midonet.util.functors.Functor;
 
 import static java.util.Arrays.asList;
 
@@ -132,4 +135,28 @@ public class PoolMemberZkManager extends AbstractZkManager {
         return prepareUpdate(id, config);
     }
 
+    public void getPoolMemberAsync(final UUID poolMemberId,
+                            DirectoryCallback<PoolMemberConfig> poolMemberCallback,
+                            Directory.TypedWatcher watcher) {
+
+        String poolMemberPath = paths.getPoolMemberPath(poolMemberId);
+
+        zk.asyncGet(
+                poolMemberPath,
+                DirectoryCallbackFactory.transform(
+                        poolMemberCallback,
+                        new Functor<byte[], PoolMemberConfig>() {
+                            @Override
+                            public PoolMemberConfig apply(byte[] arg0) {
+                                try {
+                                    return serializer.deserialize(arg0,
+                                            PoolMemberConfig.class);
+                                } catch (SerializationException e) {
+                                    log.warn("Could not deserialize PoolMember data");
+                                }
+                                return null;
+                            }
+                        }),
+                watcher);
+    }
 }

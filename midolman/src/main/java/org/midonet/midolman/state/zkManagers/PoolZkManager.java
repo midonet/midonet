@@ -4,6 +4,7 @@
 package org.midonet.midolman.state.zkManagers;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -19,9 +20,13 @@ import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.Directory;
+import org.midonet.midolman.state.DirectoryCallback;
+import org.midonet.midolman.state.DirectoryCallbackFactory;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
+import org.midonet.util.functors.CollectionFunctors;
+import org.midonet.util.functors.Functor;
 
 import static java.util.Arrays.asList;
 
@@ -170,5 +175,25 @@ public class PoolZkManager extends AbstractZkManager {
 
     public List<Op> prepareRemoveMember(UUID id, UUID memberId) {
         return asList(Op.delete(paths.getPoolMemberPath(id, memberId), -1));
+    }
+
+    public void getPoolMemberIdListAsync(UUID poolId,
+                                  final DirectoryCallback<Set<UUID>>
+                                          poolMemberContentsCallback,
+                                  Directory.TypedWatcher watcher) {
+        String poolMemberListPath = paths.getPoolMembersPath(poolId);
+
+        zk.asyncGetChildren(
+                poolMemberListPath,
+                DirectoryCallbackFactory.transform(
+                        poolMemberContentsCallback,
+                        new Functor<Set<String>, Set<UUID>>() {
+                            @Override
+                            public Set<UUID> apply(Set<String> arg0) {
+                                return CollectionFunctors.map(
+                                        arg0, strToUUIDMapper, new HashSet<UUID>());
+                            }
+                        }
+                ), watcher);
     }
 }
