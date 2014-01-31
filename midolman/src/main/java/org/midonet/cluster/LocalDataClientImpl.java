@@ -1960,7 +1960,8 @@ public class LocalDataClientImpl implements DataClient {
             return;
 
         List<Op> ops = new ArrayList<Op>();
-        if (newConfig.poolId != oldConfig.poolId) {
+        if (oldConfig.poolId == null ? newConfig.poolId != null :
+                !oldConfig.poolId.equals(newConfig.poolId)) {
             if (oldConfig.poolId != null) {
                 ops.addAll(poolZkManager.prepareRemoveMember(oldConfig.poolId, id));
             }
@@ -2078,7 +2079,8 @@ public class LocalDataClientImpl implements DataClient {
             return;
 
         List<Op> ops = new ArrayList<>();
-        if (newConfig.healthMonitorId != oldConfig.healthMonitorId) {
+        if (oldConfig.healthMonitorId == null ? newConfig.healthMonitorId != null :
+                !oldConfig.healthMonitorId.equals(newConfig.healthMonitorId)) {
             if (oldConfig.healthMonitorId != null) {
                 ops.addAll(
                         healthMonitorZkManager.prepareRemovePool(
@@ -2091,7 +2093,8 @@ public class LocalDataClientImpl implements DataClient {
             }
         }
 
-        if (newConfig.vipId != oldConfig.vipId) {
+        if (oldConfig.vipId == null ? newConfig.vipId != null :
+                !oldConfig.vipId.equals(newConfig.vipId)) {
             if (oldConfig.vipId != null) {
                 ops.addAll(vipZkManager.prepareSetPoolId(oldConfig.vipId, null));
             }

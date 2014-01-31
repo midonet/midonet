@@ -6,7 +6,6 @@ package org.midonet.midolman.simulation
 
 import java.util.UUID
 import akka.event.LoggingBus
-import org.midonet.cluster.data.l4lb.PoolMember
 
 /**
  * Pool.

@@ -22,6 +22,7 @@ import org.midonet.cluster.client.PortSetBuilder;
 import org.midonet.cluster.client.RouterBuilder;
 import org.midonet.cluster.client.TraceConditionsBuilder;
 import org.midonet.cluster.client.LoadBalancerBuilder;
+import org.midonet.cluster.client.PoolBuilder;
 import org.midonet.cluster.client.TunnelZones;
 import org.midonet.cluster.data.TunnelZone;
 import org.midonet.cluster.data.zones.CapwapTunnelZone;
@@ -76,6 +77,9 @@ public class LocalClientImpl implements Client {
 
     @Inject
     ClusterLoadBalancerManager loadBalancerManager;
+
+    @Inject
+    ClusterPoolManager poolManager;
 
     @Inject
     TunnelZoneZkManager tunnelZoneZkManager;
@@ -138,6 +142,12 @@ public class LocalClientImpl implements Client {
     public void getLoadBalancer(UUID loadBalancerID, LoadBalancerBuilder builder) {
         log.debug("getLoadBalancer");
         loadBalancerManager.registerNewBuilder(loadBalancerID, builder);
+    }
+
+    @Override
+    public void getPool(UUID poolID, PoolBuilder builder) {
+        log.debug("getPool");
+        poolManager.registerNewBuilder(poolID, builder);
     }
 
     @Override

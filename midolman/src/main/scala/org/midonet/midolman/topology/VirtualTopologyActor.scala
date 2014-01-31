@@ -123,6 +123,18 @@ object VirtualTopologyActor extends Referenceable {
             () => new LoadBalancerManager(id, client)
     }
 
+    case class PoolRequest(id: UUID, update: Boolean = false)
+        extends DeviceRequest[Pool] {
+        protected[VirtualTopologyActor] val tag = classTag[Pool]
+
+        protected[VirtualTopologyActor]
+        override val managerName = "PoolManager-" + id
+
+        protected[VirtualTopologyActor]
+        def managerFactory(client: Client, config: MidolmanConfig) =
+            () => new PoolManager(id, client)
+    }
+
     case class ConditionListRequest(id: UUID, update: Boolean = false)
         extends DeviceRequest[TraceConditions] {
         protected[VirtualTopologyActor] val tag = classTag[TraceConditions]
@@ -327,6 +339,9 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
         case loadBalancer: LoadBalancer =>
             log.debug("Received a LoadBalancer for {}", loadBalancer.id)
             updated(loadBalancer)
+        case pool: Pool =>
+            log.debug("Received a Pool for {}", pool.id)
+            updated(pool)
         case port: Port =>
             log.debug("Received a Port for {}", port.id)
             updated(port.id, port)

@@ -50,6 +50,10 @@ public class LoadBalancerZkManager extends AbstractZkManager {
             super();
         }
 
+        public LoadBalancerConfig(boolean adminStateUp) {
+            this.adminStateUp = adminStateUp;
+        }
+
         public LoadBalancerConfig(UUID routerId, boolean adminStateUp) {
             this.routerId = routerId;
             this.adminStateUp = adminStateUp;
@@ -151,7 +155,7 @@ public class LoadBalancerZkManager extends AbstractZkManager {
                 paths.getLoadBalancerVipPath(id, vipId), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
     }
-    
+
     public Set<UUID> getVipIds(UUID id) throws StateAccessException {
         return getChildUuids(paths.getLoadBalancerVipsPath(id));
     }
