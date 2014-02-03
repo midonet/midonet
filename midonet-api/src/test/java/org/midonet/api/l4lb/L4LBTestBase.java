@@ -4,7 +4,10 @@
 package org.midonet.api.l4lb;
 
 import java.net.URI;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Random;
+import java.util.Set;
 import java.util.UUID;
 
 import com.sun.jersey.api.client.ClientResponse;
@@ -308,5 +311,20 @@ public class L4LBTestBase extends RestApiTestBase {
         DtoPoolMember poolMember = getStockPoolMember();
         poolMember.setPoolId(poolId);
         return postPoolMember(poolMember);
+    }
+
+    /**
+     * Asserts that the two specified arrays have the same members,
+     * but ignores order.
+     *
+     * @param expected An expected array.
+     * @param actual An actual array to be asserted.
+     * @param <T> A type of elements in the arrays.
+     */
+    protected <T> void assertArrayMembersEqual(T[] expected, T[] actual) {
+        assertEquals(expected.length, actual.length);
+        Set<T> expectedSet = new HashSet<>(Arrays.asList(expected));
+        Set<T> actualSet = new HashSet<>(Arrays.asList(actual));
+        assertEquals(expectedSet, actualSet);
     }
 }

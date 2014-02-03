@@ -292,5 +292,41 @@ public class TestPool {
                     uri, APPLICATION_POOL_MEMBER_COLLECTION_JSON);
             assertErrorMatches(error, RESOURCE_NOT_FOUND, "pool", id);
         }
+
+        @Test
+        synchronized public void testPoolsOfLoadBalancer() {
+            int poolsCounter = 0;
+            // Create two Pools in advance.
+            DtoLoadBalancer loadBalancer = createStockLoadBalancer();
+            DtoPool pool1 = createStockPool(loadBalancer.getId());
+            poolsCounter++;
+            assertEquals(loadBalancer.getId(), pool1.getLoadBalancerId());
+
+            DtoPool pool2 = createStockPool(loadBalancer.getId());
+            poolsCounter++;
+            assertEquals(loadBalancer.getId(), pool2.getLoadBalancerId());
+
+            DtoPool[] pools = getPools(loadBalancer.getPools());
+            assertEquals(poolsCounter, pools.length);
+
+            // POST another one to the URI of the load balancer without the
+            // explicit load balancer ID.
+            DtoPool pool3 = getStockPool(loadBalancer.getId());
+            pool3  = dtoWebResource.postAndVerifyCreated(loadBalancer.getPools(),
+                    APPLICATION_POOL_JSON, pool3, DtoPool.class);
+            poolsCounter++;
+            assertEquals(loadBalancer.getId(), pool3.getLoadBalancerId());
+
+            // Traverse the pools associated withe the load balancer
+            pools = getPools(loadBalancer.getPools());
+            assertEquals(poolsCounter, pools.length);
+            for (DtoPool originalPool : pools) {
+                DtoPool retrievedPool = dtoWebResource.getAndVerifyOk(
+                        originalPool.getUri(),
+                        APPLICATION_POOL_JSON, DtoPool.class);
+                assertEquals(originalPool, retrievedPool);
+
+            }
+        }
     }
 }
