@@ -4,32 +4,44 @@
 
 package org.midonet.api.l4lb.rest_api;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import javax.annotation.security.RolesAllowed;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
+
 import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.VendorMediaType;
 import org.midonet.api.auth.AuthRole;
 import org.midonet.api.l4lb.PoolMember;
-import org.midonet.api.rest_api.*;
+import org.midonet.api.rest_api.AbstractResource;
+import org.midonet.api.rest_api.BadRequestHttpException;
+import org.midonet.api.rest_api.ConflictHttpException;
+import org.midonet.api.rest_api.NotFoundHttpException;
+import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.validation.MessageProperty;
+import org.midonet.cluster.DataClient;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
-import org.midonet.cluster.DataClient;
 import org.midonet.midolman.state.StatePathExistsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.annotation.security.RolesAllowed;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
 
 import static org.midonet.api.validation.MessageProperty.getMessage;
 import static org.midonet.api.validation.MessageProperty.POOL_MEMBER_WEIGHT_NEGATIVE;
@@ -157,6 +169,73 @@ public class PoolMemberResource extends AbstractResource {
             dataClient.poolMemberUpdate(poolMember.toData());
         } catch (NoStatePathException ex) {
             throw badReqOrNotFoundException(ex, id);
+        }
+    }
+
+    /**
+     * Sub-resource class for load pool's pool members.
+     */
+    @RequestScoped
+    public static class PoolPoolMemberResource extends AbstractResource {
+        private final UUID poolId;
+        private final DataClient dataClient;
+
+        @Inject
+        public PoolPoolMemberResource(RestApiConfig config, UriInfo uriInfo,
+                                      SecurityContext context,
+                                      DataClient dataClient,
+                                      @Assisted UUID id) {
+            super(config, uriInfo, context);
+            this.dataClient = dataClient;
+            this.poolId = id;
+        }
+
+        @GET
+        @RolesAllowed({ AuthRole.ADMIN })
+        @Produces({ VendorMediaType.APPLICATION_POOL_MEMBER_COLLECTION_JSON,
+                MediaType.APPLICATION_JSON })
+        public List<PoolMember> list()
+                throws StateAccessException, SerializationException {
+
+            List<org.midonet.cluster.data.l4lb.PoolMember> dataPoolMembers =
+                    null;
+
+            try {
+                dataPoolMembers = dataClient.poolGetMembers(poolId);
+            } catch (NoStatePathException ex) {
+                throw new NotFoundHttpException(ex);
+            }
+            List<PoolMember> poolMembers = new ArrayList<PoolMember>();
+            if (dataPoolMembers != null) {
+                for (org.midonet.cluster.data.l4lb.PoolMember dataPoolMember :
+                        dataPoolMembers) {
+                    PoolMember poolMember = new PoolMember(dataPoolMember);
+                    poolMember.setBaseUri(getBaseUri());
+                    poolMembers.add(poolMember);
+                }
+            }
+            return poolMembers;
+        }
+
+        @POST
+        @RolesAllowed({ AuthRole.ADMIN })
+        @Consumes({ VendorMediaType.APPLICATION_POOL_MEMBER_JSON,
+                MediaType.APPLICATION_JSON})
+        public Response create(PoolMember poolMember)
+                throws StateAccessException,
+                InvalidStateOperationException, SerializationException {
+            poolMember.setPoolId(poolId);
+            try {
+                UUID id = dataClient.poolMemberCreate(poolMember.toData());
+                return Response.created(
+                        ResourceUriBuilder.getPoolMember(getBaseUri(), id))
+                        .build();
+            } catch (StatePathExistsException ex) {
+                throw new ConflictHttpException(getMessage(
+                        MessageProperty.RESOURCE_EXISTS, "pool member"));
+            } catch (NoStatePathException ex) {
+                throw new NotFoundHttpException(ex);
+            }
         }
     }
 }

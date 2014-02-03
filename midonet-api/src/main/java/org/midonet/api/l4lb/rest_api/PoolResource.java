@@ -4,38 +4,48 @@
 
 package org.midonet.api.l4lb.rest_api;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import javax.annotation.security.RolesAllowed;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
+
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.VendorMediaType;
 import org.midonet.api.auth.AuthRole;
-import org.midonet.api.l4lb.PoolMember;
-import org.midonet.api.l4lb.VIP;
-import org.midonet.api.rest_api.*;
 import org.midonet.api.l4lb.Pool;
+import org.midonet.api.rest_api.AbstractResource;
+import org.midonet.api.rest_api.BadRequestHttpException;
+import org.midonet.api.rest_api.ConflictHttpException;
+import org.midonet.api.rest_api.NotFoundHttpException;
+import org.midonet.api.rest_api.ResourceFactory;
+import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.validation.MessageProperty;
+import org.midonet.cluster.DataClient;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
-import org.midonet.cluster.DataClient;
 import org.midonet.midolman.state.StatePathExistsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.security.RolesAllowed;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
-import static org.midonet.api.validation.MessageProperty.getMessage;
 import static org.midonet.api.validation.MessageProperty.RESOURCE_EXISTS;
+import static org.midonet.api.validation.MessageProperty.getMessage;
 
 @RequestScoped
 public class PoolResource extends AbstractResource {
@@ -44,13 +54,16 @@ public class PoolResource extends AbstractResource {
             .getLogger(PoolResource.class);
 
     private final DataClient dataClient;
+    private final ResourceFactory factory;
 
     @Inject
     public PoolResource(RestApiConfig config, UriInfo uriInfo,
                         SecurityContext context,
-                        DataClient dataClient) {
+                        DataClient dataClient,
+                        ResourceFactory factory) {
         super(config, uriInfo, context);
         this.dataClient = dataClient;
+        this.factory = factory;
     }
 
     @GET
@@ -146,54 +159,28 @@ public class PoolResource extends AbstractResource {
         }
     }
 
-    @GET
-    @RolesAllowed({ AuthRole.ADMIN })
+    /**
+     * Delegate the request handlings of the pool members to the sub resource.
+     *
+     * @param id The UUID of the pool which has the associated pool members.
+     * @return PoolMemberResource.PoolPoolMemberResource instance.
+     */
     @Path("{id}" + ResourceUriBuilder.POOL_MEMBERS)
-    @Produces({VendorMediaType.APPLICATION_POOL_MEMBER_COLLECTION_JSON,
-            MediaType.APPLICATION_JSON})
-    public List<PoolMember> listMembers(@PathParam("id") UUID id)
-            throws StateAccessException, SerializationException {
-
-        List<org.midonet.cluster.data.l4lb.PoolMember> dataMembers = null;
-        try {
-            dataMembers = dataClient.poolGetMembers(id);
-        } catch (NoStatePathException ex) {
-            throw new NotFoundHttpException(ex);
-        }
-
-        List<PoolMember> members = new ArrayList<>(dataMembers.size());
-        for (org.midonet.cluster.data.l4lb.PoolMember dataMember : dataMembers) {
-            PoolMember member = new PoolMember(dataMember);
-            member.setBaseUri(getBaseUri());
-            members.add(member);
-        }
-
-        return members;
+    public PoolMemberResource.PoolPoolMemberResource getPoolMemberResource(
+            @PathParam("id") UUID id) {
+        return factory.getPoolPoolMemberResource(id);
     }
 
-    @GET
-    @RolesAllowed({ AuthRole.ADMIN })
+    /**
+     * Delegate the request handlings of the VIPs to the sub resource.
+     *
+     * @param id The UUID of the pool which has the associated VIPs.
+     * @return PoolMemberResource.PoolPoolMemberResource instance.
+     */
     @Path("{id}" + ResourceUriBuilder.VIPS)
-    @Produces({VendorMediaType.APPLICATION_VIP_COLLECTION_JSON,
-            MediaType.APPLICATION_JSON})
-    public List<VIP> listVips(@PathParam("id") UUID id)
-            throws StateAccessException, SerializationException {
-
-        List<org.midonet.cluster.data.l4lb.VIP> dataVips = null;
-        try {
-            dataVips = dataClient.poolGetVips(id);
-        } catch (NoStatePathException ex) {
-            throw new NotFoundHttpException(ex);
-        }
-
-        List<VIP> vips = new ArrayList<>(dataVips.size());
-        for (org.midonet.cluster.data.l4lb.VIP dataVip : dataVips) {
-            VIP vip = new VIP(dataVip);
-            vip.setBaseUri(getBaseUri());
-            vips.add(vip);
-        }
-
-        return vips;
+    public VipResource.PoolVipResource getVipResource(
+            @PathParam("id") UUID id) {
+        return factory.getPoolVipResource(id);
     }
 
     /**

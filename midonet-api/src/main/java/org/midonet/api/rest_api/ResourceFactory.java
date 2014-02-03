@@ -21,6 +21,7 @@ import org.midonet.api.host.rest_api.HostResource;
 import org.midonet.api.host.rest_api.InterfaceResource;
 import org.midonet.api.host.rest_api.TunnelZoneHostResource;
 import org.midonet.api.host.rest_api.TunnelZoneResource;
+import org.midonet.api.l4lb.PoolMember;
 import org.midonet.api.l4lb.rest_api.HealthMonitorResource;
 import org.midonet.api.l4lb.rest_api.LoadBalancerResource;
 import org.midonet.api.l4lb.rest_api.PoolMemberResource;
@@ -134,7 +135,12 @@ public interface ResourceFactory {
 
     PoolMemberResource getPoolMemberResource();
 
+    PoolMemberResource.PoolPoolMemberResource
+        getPoolPoolMemberResource(UUID id);
+
     PoolResource getPoolResource();
 
     VipResource getVipResource();
+
+    VipResource.PoolVipResource getPoolVipResource(UUID id);
 }
