@@ -1,0 +1,652 @@
+#!/bin/bash -x
+#
+# This file contains the basic framework for the performance tests into
+# which various topologies can be plugged.
+#
+# To use:
+# - Write a separate file implementing the required functions
+# - Exec ./perftests.sh <test_name>
+# 
+# Where test_name should be the file containing the topologies
+#
+# The methods expected in the given file are:
+# - setup_topology:
+#   Responsible to create the virtual topology such that it can offer
+#   two ports, ids set on globals $LEFTPORT and $RIGHTPORT, binding them
+#   to $TOPOLOGY_SOURCE_BINDING and $TOPOLOGY_DEST_BINDING,
+#   respectively.
+# - tear_down_topology:
+#   Responsible to tear down the topology. It should destroy any virtual
+#   entities created in setup_topology, as well as the interfaces bound
+#   to $LEFTPORT and $RIGHTPORT.
+
+
+#######################################################################
+# External configuration variables
+#######################################################################
+
+# Maximum rate (packets/sec) to try when looking form MM's max throughput
+#THROUGHPUT_SCAN_MAX_RATE=9000
+THROUGHPUT_SCAN_MAX_RATE=1500
+
+# Number of port scans (50k ports each) to perform during the long-running test
+#LONG_RUNNING_SCAN_ITERATIONS=300
+LONG_RUNNING_SCAN_ITERATIONS=1
+# Rate (packets/sec) at which to perform the scans in the long-running test
+#THROUGHPUT_SCAN_MAX_RATE=2000
+THROUGHPUT_SCAN_MAX_RATE=500
+
+# Configuration for the rrd-based charts produced with the test report
+# Graph width in pixels
+GRAPH_WIDTH=1400
+# Graph height in pixels
+GRAPH_HEIGHT=500
+# Upper limit on throughput graph (to tame spikes)
+GRAPH_THROUGHPUT_UPPER_LIMIT=7500
+
+#######################################################################
+# Globals to be provided by the topology
+#######################################################################
+
+TOPOLOGY_SOURCE_HOST=
+TOPOLOGY_DEST_HOST=
+TOPOLOGY_SOURCE_NET=
+TOPOLOGY_DEST_NET=
+
+
+#######################################################################
+# Private globals
+#######################################################################
+
+# TODO - these scripts should be installed via a debian package and install
+#        their config in /etc
+CONFDIR=/home/midokura/code/qa/perf
+
+BASEDIR=/var/lib/midonet-perftests
+TMPDIR=/tmp/midonet-perftests
+LOGFILE=$TMPDIR/perftests.log
+TMP_RRDDIR=/tmp/midonet-perftests/target
+
+HOST=
+GITREV=
+ABBREV_GITREV=
+MIDOLMAN_PID=
+
+TSTAMP=
+TEST_ID=
+
+RRD_DIR=
+GRAPH_DIR=
+HEAP_DUMP_PATH=
+REPORT_DIR=
+
+MIDONET_SRC_DIR=/home/midokura/code/midonet
+
+GRAPH_START=
+GRAPH_END=
+GRAPH_OPTS=
+
+TOPOLOGY_SOURCE_NETNS="left"
+TOPOLOGY_DEST_NETNS="right"
+TOPOLOGY_SOURCE_BINDING=leftdp
+TOPOLOGY_DEST_BINDING=rightdp
+
+HOST_ID=
+LEFTPORT=
+RIGHTPORT=
+
+# Use these options to get the results uploaded somewhere
+UPLOAD_USER=
+UPLOAD_HOST=
+UPLOAD_DESTDIR=
+UPLOAD_KEY=
+
+
+#######################################################################
+# Utility functions
+#######################################################################
+
+err_exit() {
+    msg=$1
+    echo ""
+    echo "FATAL: $msg"
+    echo ""
+    echo "Tests aborted"
+    do_cleanup
+    exit 1
+}
+
+test_phase() {
+    msg=$1
+    echo ""
+    echo "TEST PHASE: $msg"
+    echo ""
+}
+
+#######################################################################
+# Top level functions to control test lifecycle and execution
+#######################################################################
+
+reset_logs() {
+    rm -f /var/log/midolman/midolman.log
+    rm -f /var/log/jmxtrans/jmxtrans.log
+}
+
+do_cleanup() {
+    test_phase "Cleaning up"
+    stop_jmxtrans
+    destroy_scenario
+    stop_midolman
+}
+
+source_config() {
+    if [ -f $CONFDIR/profiles.d/$HOST/perftests.conf ] ; then
+        . $CONFDIR/profiles.d/$HOST/perftests.conf
+    elif [ -f $CONFDIR/profiles.d/default/perftests.conf ] ; then
+        . $CONFDIR/profiles.d/default/perftests.conf
+    fi
+}
+
+assert_dependencies() {
+    which midonet-cli || err_exit "midonet-cli not installed"
+    which nmap || err_exit "nmap not installed"
+    which rrdtool || err_exit "rrdtool not installed"
+    test -d $CONFDIR || err_exit "directory $CONFDIR not found"
+    test -d $MIDONET_SRC_DIR || err_exit "directory $MIDONET_SRC_DIR not found"
+    test -f $HOME/.midonetrc || err_exit ".midonetrc not found in $HOME"
+    test -f $UPLOAD_KEY || err_exit "upload ssh key not found at $UPLOAD_KEY"
+}
+
+run_tests() {
+    assert_dependencies
+    umask 0022
+    mkdir -p $TMPDIR
+    start_logging
+    gather_build_info
+    do_cleanup
+    stop_jmxtrans
+    source_config
+    reset_logs
+
+    pushd $MIDONET_SRC_DIR
+    install_midonet_api
+    install_midolman
+    popd
+
+    create_scenario
+    setup_jmxtrans
+    warm_up
+    test_throughput
+    long_running_tests
+    stop_jmxtrans
+    midolman_heapdump
+    do_cleanup
+    make_graphs
+    make_report
+    upload_report $TEST_ID
+}
+
+start_logging() {
+    logpipe=$TMPDIR/$$.logpipe.tmp
+    trap "rm -f $logpipe" EXIT
+    mknod $logpipe p
+    tee <$logpipe $LOGFILE &
+    exec 1>&-
+    exec 1>$logpipe
+    exec 2>&1
+}
+
+gather_build_info() {
+    pushd $MIDONET_SRC_DIR
+    HOST=`hostname`
+    GITREV=`git log -1 --pretty=format:%H`
+    [ $? -eq 0 ] || err_exit "running git log"
+    ABBREV_GITREV=`git log -1 --pretty=format:%h`
+    [ $? -eq 0 ] || err_exit "running git log"
+    popd
+
+    TSTAMP=`date +%Y%m%d-%H%M%S`
+    TEST_ID="$HOST-$TSTAMP-$ABBREV_GITREV"
+    mkdir -p $BASEDIR
+    REPORT_DIR="$BASEDIR/$TEST_ID"
+    RRD_DIR="$REPORT_DIR/rrd"
+    GRAPH_DIR="$REPORT_DIR/graphs"
+    HEAP_DUMP_PATH="$REPORT_DIR/midolman.hprof"
+    mkdir -p $RRD_DIR
+    mkdir -p $GRAPH_DIR
+    mkdir -p $REPORT_DIR
+}
+
+#######################################################################
+# Package installation and services setup
+#######################################################################
+
+install_config_file() {
+    if [ -z "$1" ] || [ -z "$2" ] ; then
+        err_exit "Usage: install_config_file srcfile destpath"
+    fi
+    src=$1
+    destdir=$2
+
+    if [ -f $CONFDIR/profiles.d/$HOST/$src ] ; then
+        echo "installing file: $HOST/$src to $destdir"
+        cp $CONFDIR/profiles.d/$HOST/$src $destdir
+    elif [ -f $CONFDIR/profiles.d/default/$src ] ; then
+        echo "installing file: default/$src to $destdir"
+        cp $CONFDIR/profiles.d/default/$src $destdir
+    fi
+}
+
+stop_midolman() {
+    dpkg -s midolman > /dev/null 2>&1 || return 1
+    status midolman | grep stop/waiting >/dev/null || stop midolman
+    status midolman | grep stop/waiting >/dev/null || err_exit "stopping midolman"
+}
+
+find_deb() {
+    debdir=$1
+    test -d $debdir || err_exit "could not find directory: $debdir"
+    deb=`ls -t $debdir/*.deb 2>/dev/null | head -1`
+    if [ -z "$deb" ] ; then
+        err_exit "could not find deb file in: $debdir"
+    fi
+    echo $deb
+}
+
+install_midonet_api() {
+    test_phase "Installing MidoNet API"
+    deb=`find_deb midonet-api/target`
+    test -f "$deb" || err_exit "deb file not found at: $deb"
+
+    /etc/init.d/tomcat7 stop
+    dpkg --purge midonet-api
+    dpkg -i $deb || err_exit "installing $deb"
+    /etc/init.d/tomcat7 start || err_exit "starting midonet-api"
+    sleep 30
+    /etc/init.d/tomcat7 status | grep "is running" >/dev/null
+    [ $? -eq 0 ] || err_exit "check that tomcat is running"
+}
+
+install_midolman() {
+    test_phase "Installing Midolman"
+    mm_deb=`find_deb midolman/target`
+    test -f "$mm_deb" || err_exit "deb file not found at: $mm_deb"
+
+    test -f $mm_deb || err_exit "$mm_deb"
+    stop_midolman
+    dpkg --purge midolman
+    dpkg -i $mm_deb || err_exit "installing $mm_deb"
+
+    install_config_file midolman/logback.xml /etc/midolman/
+    install_config_file midolman/midolman-akka.conf /etc/midolman/
+    install_config_file midolman/midolman.conf /etc/midolman/
+    install_config_file midolman/midolman-env.sh /etc/midolman/
+
+    start midolman || err_exit "starting midolman"
+    sleep 30
+    output=`status midolman | grep start/running`
+    [ $? -eq 0 ] || err_exit "check that midolman is running"
+    MIDOLMAN_PID=`echo $output | sed -e 's/.*process //'`
+    [ $? -eq 0 ] || err_exit "fetching midolman's pid"
+}
+
+midolman_heapdump() {
+    test_phase "Dumping Midolman's Heap"
+    jmap -dump:live,format=b,file=$HEAP_DUMP_PATH $MIDOLMAN_PID
+    bzip2 $HEAP_DUMP_PATH
+}
+
+stop_jmxtrans() {
+    test_phase "Stopping jmxtrans"
+    /etc/init.d/jmxtrans stop || err_exit "stopping jmxtrans"
+}
+
+setup_jmxtrans() {
+    test_phase "Setting up jmxtrans"
+    install_config_file jmxtrans/default /etc/default/jmxtrans
+    mkdir -p $TMP_RRDDIR
+    chown jmxtrans $TMP_RRDDIR
+    /etc/init.d/jmxtrans start || err_exit "starting jmxtrans"
+    GRAPH_START=`date +%s`
+}
+
+#######################################################################
+# Actual tests
+#######################################################################
+
+warm_up() {
+    test_phase "Warming up midolman"
+    # 100 pkts/sec, 10ms between probes, 6000 ports, 10 scans
+    # it should take close to 10 minutes
+    i=0
+    while [ $i -lt 10 ] ; do
+        let i=i+1
+        port_scan 100 10 6000 $TOPOLOGY_SOURCE_NETNS $TOPOLOGY_DEST_HOST
+    done
+    sleep 90
+}
+
+test_throughput() {
+    test_phase "Find max throughput in 65k port scans"
+    rate=1000
+    while [ $rate -le $THROUGHPUT_SCAN_MAX_RATE ] ; do
+        port_scan $rate 1 65000 $TOPOLOGY_SOURCE_NETNS $TOPOLOGY_DEST_HOST
+        let rate=rate+500
+        sleep 10
+    done
+}
+
+long_running_tests() {
+    rate=$LONG_RUNNING_SCAN_RATE
+    iterations=$LONG_RUNNING_SCAN_ITERATIONS
+    test_phase "Long running tests: $iterations 50k port-scans at $rate ports/sec"
+    i=0
+    while [ $i -lt $iterations ] ; do
+        let i=i+1
+        port_scan $rate 1 50000 $TOPOLOGY_SOURCE_NETNS $TOPOLOGY_DEST_HOST
+    done
+}
+
+port_scan() {
+    if [ -z $1 ] ; then
+        err_exit "Usage: port_scan RATE DELAY NUM_PORTS NAMESPACE DESTINATION"
+    fi
+    if [ -z $2 ] ; then
+        err_exit "Usage: port_scan RATE DELAY NUM_PORTS NAMESPACE DESTINATION"
+    fi
+    if [ -z $3 ] ; then
+        err_exit "Usage: port_scan RATE DELAY NUM_PORTS NAMESPACE DESTINATION"
+    fi
+    if [ -z $4 ] ; then
+        err_exit "Usage: port_scan RATE DELAY NUM_PORTS NAMESPACE DESTINATION"
+    fi
+    if [ -z $5 ] ; then
+        err_exit "Usage: port_scan RATE DELAY NUM_PORTS NAMESPACE DESTINATION"
+    fi
+
+    srcport=$RANDOM
+    rate=$1
+    delay="$2ms"
+    numports="$3"
+    ns="$4"
+    host="$5"
+    opts="--max-scan-delay $delay --min-rate $rate --max-rate $rate --send-ip -Pn -v -r -n"
+
+    echo "--------------------------------------"
+    echo "Doing a $numports port scan on $host"
+    echo "    src port: $srcport"
+    echo "    port range: 1-$numports"
+    echo "    rate: $rate packets/second"
+    echo "    max delay: $delay"
+    echo "--------------------------------------"
+
+    ip netns exec $ns nmap $host $opts -p "1-$numports" -g $srcport || err_exit "port scan"
+}
+
+#######################################################################
+# RRD Graph generation
+#######################################################################
+
+make_graphs() {
+    test_phase "Generating graphs"
+
+    mv $TMP_RRDDIR/*.rrd $RRD_DIR/
+    test -f "$RRD_DIR/cpu.rrd" || err_exit "rrd files not found in $RRD_DIR"
+    GRAPH_END=`rrdtool last $RRD_DIR/cpu.rrd`
+    GRAPH_OPTS="--width=$GRAPH_WIDTH --height=$GRAPH_HEIGHT --start=$GRAPH_START --end=$GRAPH_END --border 0 --slope-mode"
+
+    memory_graph     || err_exit "create memory graph"
+    cpu_graph        || err_exit "create cpu graph"
+    latency_graph    || err_exit "create latency graph"
+    throughput_graph || err_exit "create throughput graph"
+    flows_graph wildflows Wildcard Valued647ba33d4c544 || \
+        err_exit "create wildflows graph"
+    flows_graph dpflows Datapath Valueeb5c5dcf0e47ed || \
+        err_exit "create dpflows graph"
+}
+
+memory_graph() {
+    rrdtool graph "$GRAPH_DIR/mem.png" \
+        -t 'Midolman JVM Heap Memory Pools' \
+        $GRAPH_OPTS -l 0 -b 1024 \
+        "DEF:oldCommitted=$RRD_DIR/mem-cms.rrd:Usagefaf69c0b2860af:AVERAGE" \
+        "DEF:oldUsed=$RRD_DIR/mem-cms.rrd:Usageb99c299c69dff0:AVERAGE" \
+        "DEF:edenCommitted=$RRD_DIR/mem-eden.rrd:Usagefaf69c0b2860af:MAX" \
+        "DEF:edenUsed=$RRD_DIR/mem-eden.rrd:Usageb99c299c69dff0:AVERAGE" \
+        "DEF:survivorCommitted=$RRD_DIR/mem-survivor.rrd:Usagefaf69c0b2860af:MAX" \
+        "DEF:survivorUsed=$RRD_DIR/mem-survivor.rrd:Usageb99c299c69dff0:AVERAGE" \
+        'CDEF:oldFree=oldCommitted,oldUsed,-' \
+        'CDEF:survivorFree=survivorCommitted,survivorUsed,-' \
+        'AREA:oldUsed#CCCC00:Old Gen Used\n:STACK' \
+        'AREA:oldFree#44cc44:Old Gen\n:STACK' \
+        'AREA:survivorUsed#ff6600:Survivor Used\n:STACK' \
+        'AREA:survivorFree#66aaee:Survivor\n:STACK' \
+        'LINE2:edenCommitted#222222:Eden'
+}
+
+cpu_graph() {
+    rrdtool graph "$GRAPH_DIR/cpu.png" \
+        -t 'Midolman CPU Usage - 30 second running average (Percent)' \
+        $GRAPH_OPTS -l 0 \
+        "DEF:cpuLoadAvg=$RRD_DIR/cpu.rrd:ProcessCpuLoad97bb3:AVERAGE" \
+        "DEF:cpuLoadMax=$RRD_DIR/cpu.rrd:ProcessCpuLoad97bb3:MAX" \
+        "DEF:cpuTimeAvg=$RRD_DIR/cpu.rrd:ProcessCpuTime8e081:AVERAGE" \
+        "DEF:cpuTimeMax=$RRD_DIR/cpu.rrd:ProcessCpuTime8e081:MAX" \
+        'CDEF:cpuLoadAvgPct=cpuLoadAvg,100,*' \
+        'CDEF:cpuLoadMaxPct=cpuLoadMax,100,*' \
+        'CDEF:cpuLoadAvgPctTrend=cpuLoadAvgPct,30,TREND' \
+        'CDEF:cpuLoadMaxPctTrend=cpuLoadMaxPct,30,TREND' \
+        'AREA:cpuLoadAvgPct#555555:Avg CPU Load\n' \
+        'LINE2:cpuLoadMaxPct#FF6622:Max CPU Load'
+}
+
+latency_graph() {
+    rrdtool graph "$GRAPH_DIR/latency.png" \
+        -t 'Midolman Simulation Latency (microsecs)' \
+        $GRAPH_OPTS --units=si -u 1000000 --rigid -o \
+        "DEF:simulations=$RRD_DIR/sim-meter.rrd:Count667cf906787399:AVERAGE" \
+        "DEF:timeNanos=$RRD_DIR/sim-times.rrd:Count1656b5784b9c22:AVERAGE" \
+        "DEF:98Nanos=$RRD_DIR/sim-latencies.rrd:98thPercentilef3450:AVERAGE" \
+        "DEF:medianNanos=$RRD_DIR/sim-latencies.rrd:50thPercentilecb1f8:AVERAGE" \
+        "DEF:75Nanos=$RRD_DIR/sim-latencies.rrd:75thPercentile04fec:AVERAGE" \
+        "DEF:95Nanos=$RRD_DIR/sim-latencies.rrd:95thPercentile655dd:AVERAGE" \
+        "DEF:99Nanos=$RRD_DIR/sim-latencies.rrd:99thPercentile41498:AVERAGE" \
+        "DEF:999Nanos=$RRD_DIR/sim-latencies.rrd:999thPercentile8576:AVERAGE" \
+        'CDEF:1secLatencyNanos=timeNanos,simulations,/' \
+        'CDEF:1secLatencyMicro=1secLatencyNanos,1000,/' \
+        'CDEF:999Micro=999Nanos,1000,/' \
+        'CDEF:99Micro=99Nanos,1000,/' \
+        'CDEF:98Micro=98Nanos,1000,/' \
+        'CDEF:95Micro=95Nanos,1000,/' \
+        'CDEF:75Micro=75Nanos,1000,/' \
+        'CDEF:medianMicro=medianNanos,1000,/' \
+        'AREA:99Micro#cc0000:Overall 99th pct\:\t' \
+        'GPRINT:99Micro:LAST:%2.0lf microsecs\n' \
+        'AREA:98Micro#dd6622:Overall 98th pct\:\t' \
+        'GPRINT:98Micro:LAST:%2.0lf microsecs\n' \
+        'AREA:95Micro#dd9922:Overall 95th pct\:\t' \
+        'GPRINT:95Micro:LAST:%2.0lf microsecs\n' \
+        'AREA:75Micro#ddcc22:Overall 75th pct\:\t' \
+        'GPRINT:75Micro:LAST:%2.0lf microsecs\n' \
+        'AREA:medianMicro#66dd66:Overall median\:\t' \
+        'GPRINT:medianMicro:LAST:%2.0lf microsecs\n' \
+        'LINE1:1secLatencyMicro#000000:1 second average'
+}
+
+throughput_graph() {
+    rrdtool graph "$GRAPH_DIR/throughput.png" \
+        -t 'Midolman throughput (packets/sec)' \
+        $GRAPH_OPTS --upper-limit=$GRAPH_THROUGHPUT_UPPER_LIMIT --rigid --units=si \
+        "DEF:processed=$RRD_DIR/packet-meter.rrd:Count667cf906787399:AVERAGE" \
+        "DEF:dropped=$RRD_DIR/pipeline-drops.rrd:Value896c037a32087c:MAX" \
+        "VDEF:maxthroughput=processed,MAXIMUM" \
+        'LINE2:processed#66cc66:Packets processed\n' \
+        'HRULE:maxthroughput#88ee88:Peak throughput: ' \
+        'GPRINT:maxthroughput: %2.0lf pps\n' \
+        'LINE2:dropped#cc6666:Packets dropped'
+}
+
+flows_graph() {
+    type=$1
+    name=$2
+    gaugecol=$3
+    rrdtool graph "$GRAPH_DIR/$type.png" \
+        -t "Midolman $name Flow Table" \
+        $GRAPH_OPTS --units=si \
+        --right-axis '0.1:0' \
+        --right-axis-label 'Flows/sec' \
+        --vertical-label 'Flows' \
+        "DEF:current=$RRD_DIR/$type.rrd:$gaugecol:AVERAGE" \
+        "DEF:rate=$RRD_DIR/$type-meter.rrd:Count667cf906787399:MAX" \
+        'CDEF:rate10=rate,10,*' \
+        'AREA:current#555555:Active flows\n' \
+        'LINE2:rate10#ff6622:Creation rate\n'
+}
+
+make_report() {
+    test_phase "Creating test report"
+    . /etc/midolman/midolman-env.sh
+    while true ; do
+        echo "git rev: $GITREV"
+        echo "date: `date`"
+        echo "test-id: $TEST_ID"
+        echo "hostname: $HOST"
+        echo "jvm max heap size: $MAX_HEAP_SIZE"
+        echo "jvm heap new-size: $HEAP_NEWSIZE"
+        echo "jvm opts: $JVM_OPTS"
+        echo ""
+        echo ""
+        echo "Memory"
+        echo "------"
+        free -m
+        echo ""
+        echo ""
+        echo "CPUs"
+        echo "----"
+        cat /proc/cpuinfo
+        break
+    done > "$REPORT_DIR/report.txt"
+
+    while true ; do
+        echo "gitrev,host,start,end,heap,heap_new"
+        echo "$GITREV,$HOST,$GRAPH_START,$GRAPH_END,$MAX_HEAP_SIZE,$HEAP_NEWSIZE"
+        break
+    done > "$REPORT_DIR/testspec.csv"
+
+    mv $LOGFILE $REPORT_DIR/perftests.log
+    mkdir -p $REPORT_DIR/mm-conf
+    cp /etc/midolman/midolman.conf $REPORT_DIR/mm-conf/
+    cp /etc/midolman/midolman-env.sh $REPORT_DIR/mm-conf/
+    cp /etc/midolman/midolman-akka.conf $REPORT_DIR/mm-conf/
+    cp /var/log/midolman/midolman.log $REPORT_DIR/
+    chmod -R go+r $REPORT_DIR
+}
+
+upload_report() {
+    if [ -z $1 ] ; then
+        err_exit "Usage: upload_report TEST_ID"
+    fi
+    test_id=$1
+    test -d $BASEDIR/$test_id || \
+        err_exit "could not find directory: $BASEDIR/$test_id"
+
+    pushd $BASEDIR >/dev/null
+    tar cjf $TMPDIR/$test_id.tar.bz2 $test_id || err_exit "creating results archive"
+    popd >/dev/null
+    touch $TMPDIR/$test_id.tar.bz2.perftest
+
+    scp -i $UPLOAD_KEY $TMPDIR/$test_id.tar.bz2 \
+        $UPLOAD_USER@$UPLOAD_HOST:$UPLOAD_DESTDIR || err_exit "uploading report"
+    scp -i $UPLOAD_KEY $TMPDIR/$test_id.tar.bz2.perftest \
+        $UPLOAD_USER@$UPLOAD_HOST:$UPLOAD_DESTDIR || err_exit "uploading report"
+
+    rm -f $TMPDIR/$test_id.tar.bz2
+    rm -f $TMPDIR/$test_id.tar.bz2.perftest
+    rm -rf $BASEDIR/$test_id/
+}
+
+
+########################################################################
+# Utility functions
+########################################################################
+
+add_ns() {
+    if [ -z $1 ] ; then
+        err_exit "Usage: add_ns NAME ADDRESS"
+    fi
+    if [ -z $2 ] ; then
+        err_exit "Usage: add_ns NAME ADDRESS"
+    fi
+    ns="$1"
+    dpif="${ns}dp"
+    nsif="${ns}ns"
+    addr="$2"
+
+    echo "-------------------------------------------------------------"
+    echo "Creating network namespace -$ns- with address -$addr-"
+    echo "-------------------------------------------------------------"
+
+    ip netns add $ns || return 1
+    ip link add name $dpif type veth peer name $nsif || return 1
+    ip link set $dpif up || return 1
+    ip link set $nsif netns $ns || return 1
+    ip netns exec $ns ip link set $nsif up || return 1
+    ip netns exec $ns ip address add $addr dev $nsif || return 1
+    ip netns exec $ns ifconfig lo up || return 1
+}
+
+cleanup_ns() {
+    if [ -z $1 ] ; then
+        err_exit "Usage: cleanup_ns NAME"
+    fi
+    ns="$1"
+    dpif="${ns}dp"
+    nsif="${ns}ns"
+
+    ip netns list | grep "^$ns$" >/dev/null
+    if [ $? -eq 0 ] ; then
+        return 0
+    fi
+
+    ip netns exec $ns ip link set lo down
+    ip netns exec $ns ip link set $nsif down
+    ip link delete $dpif
+    ip netns delete $ns
+}
+
+#######################################################################
+# Test scenario setup and tear down functions
+#######################################################################
+
+create_scenario() {
+    test_phase "Creating test scenario"
+    add_ns $TOPOLOGY_SOURCE_NETNS $TOPOLOGY_SOURCE_NET
+    add_ns $TOPOLOGY_DEST_NETNS $TOPOLOGY_DEST_NET
+    setup_topology
+}
+
+destroy_scenario() {
+    test_phase "Destroying test scenario"
+    tear_down_topology
+    cleanup_ns $TOPOLOGY_DEST_NETNS
+    cleanup_ns $TOPOLOGY_SOURCE_NETNS
+}
+
+########################################################################
+# Script body
+########################################################################
+
+if [ -z $1 ] ; then
+    err_exit "Usage: perftests.sh scenario"
+    exit 1
+fi
+
+if [ ! -f "$1" ] ; then
+    err_exit "Topology file ($1) does not exist"
+    exit 1
+fi
+
+echo "Sourcing topology description from $1"
+source $1
+echo "Executing tests.."
+run_tests

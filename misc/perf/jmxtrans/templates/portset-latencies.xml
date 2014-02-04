@@ -1,0 +1,38 @@
+<rrd_def>
+     <path>${database}</path>
+     <!-- not mandatory
+     <start>1000123456</start> -->
+     <!-- not mandatory -->
+     <step>1</step>
+     <!-- at least one datasource must be supplied -->
+<datasource><!-- name=packetToPortSetLatency,type=PacketPipelineHistogram:Count:Count --><name>Count667cf906787399</name><type>COUNTER</type><heartbeat>400</heartbeat><min>U</min><max>U</max></datasource>
+<datasource><!-- name=packetToPortSetLatency,type=PacketPipelineHistogram:Max:Max --><name>Max3c9f309e2c2ceec7</name><type>GAUGE</type><heartbeat>400</heartbeat><min>U</min><max>U</max></datasource>
+<datasource><!-- name=packetToPortSetLatency,type=PacketPipelineHistogram:Min:Min --><name>Min22d32fde7ca6e23a</name><type>GAUGE</type><heartbeat>400</heartbeat><min>U</min><max>U</max></datasource>
+<datasource><!-- name=packetToPortSetLatency,type=PacketPipelineHistogram:Mean:Mean --><name>Mean2b75ac7392a4eb3</name><type>GAUGE</type><heartbeat>400</heartbeat><min>U</min><max>U</max></datasource>
+<datasource><!-- name=packetToPortSetLatency,type=PacketPipelineHistogram:StdDev:StdDev --><name>StdDeve35fa1af6d3c0</name><type>GAUGE</type><heartbeat>400</heartbeat><min>U</min><max>U</max></datasource>
+<datasource><!-- name=packetToPortSetLatency,type=PacketPipelineHistogram:50thPercentile:50thPercentile --><name>50thPercentilecb1f8</name><type>GAUGE</type><heartbeat>400</heartbeat><min>U</min><max>U</max></datasource>
+<datasource><!-- name=packetToPortSetLatency,type=PacketPipelineHistogram:75thPercentile:75thPercentile --><name>75thPercentile04fec</name><type>GAUGE</type><heartbeat>400</heartbeat><min>U</min><max>U</max></datasource>
+<datasource><!-- name=packetToPortSetLatency,type=PacketPipelineHistogram:95thPercentile:95thPercentile --><name>95thPercentile655dd</name><type>GAUGE</type><heartbeat>400</heartbeat><min>U</min><max>U</max></datasource>
+<datasource><!-- name=packetToPortSetLatency,type=PacketPipelineHistogram:98thPercentile:98thPercentile --><name>98thPercentilef3450</name><type>GAUGE</type><heartbeat>400</heartbeat><min>U</min><max>U</max></datasource>
+<datasource><!-- name=packetToPortSetLatency,type=PacketPipelineHistogram:99thPercentile:99thPercentile --><name>99thPercentile41498</name><type>GAUGE</type><heartbeat>400</heartbeat><min>U</min><max>U</max></datasource>
+<datasource><!-- name=packetToPortSetLatency,type=PacketPipelineHistogram:999thPercentile:999thPercentile --><name>999thPercentile8576</name><type>GAUGE</type><heartbeat>400</heartbeat><min>U</min><max>U</max></datasource>
+     <!-- at least one archive must be supplied -->
+     <archive>
+         <cf>AVERAGE</cf>
+         <xff>0.1</xff>
+         <steps>1</steps>
+         <rows>14400</rows>
+     </archive>
+     <archive>
+         <cf>MIN</cf>
+         <xff>0.1</xff>
+         <steps>1</steps>
+         <rows>14400</rows>
+     </archive>
+     <archive>
+         <cf>MAX</cf>
+         <xff>0.1</xff>
+         <steps>1</steps>
+         <rows>14400</rows>
+     </archive>
+ </rrd_def>
