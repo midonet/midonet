@@ -636,16 +636,26 @@ destroy_scenario() {
 ########################################################################
 
 if [ -z $1 ] ; then
-    err_exit "Usage: perftests.sh scenario"
+    echo "Usage: perftests.sh scenario" >&2
     exit 1
 fi
 
-if [ ! -f "$1" ] ; then
+if [ `id -u` != '0' ] ; then
+    echo "$0: may only be run as root" >&2
+    exit 1
+fi
+
+pushd `dirname $0`
+
+topology=topologies.d/$1
+if [ ! -f "$topology" ] ; then
     err_exit "Topology file ($1) does not exist"
     exit 1
 fi
 
-echo "Sourcing topology description from $1"
-source $1
+echo "Sourcing topology description from $topology"
+source $topology
 echo "Executing tests.."
 run_tests
+
+popd
