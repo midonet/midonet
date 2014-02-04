@@ -1433,4 +1433,85 @@ public class ZkPathManager {
     public String getIpAddrGroupAddrPath(UUID id, String addr) {
         return buildIpAddrGroupAddrPath(id, addr).toString();
     }
+
+    private StringBuilder buildLoadBalancersPath() {
+        return basePath().append("/load_balancers");
+    }
+
+    public String getLoadBalancersPath() {
+        return buildLoadBalancersPath().toString();
+    }
+
+    private StringBuilder buildLoadBalancerPath(UUID loadBalancerId){
+        return buildLoadBalancersPath().append("/").append(loadBalancerId);
+    }
+
+    public String getLoadBalancerPath(UUID loadBalancerId) {
+        return buildLoadBalancerPath(loadBalancerId).toString();
+    }
+
+    private StringBuilder buildHealthMonitorsPath() {
+        return basePath().append("/health_monitors");
+    }
+
+    private StringBuilder buildHealthMonitorPath(UUID healthMonitorId) {
+        return buildHealthMonitorsPath().append("/").append(healthMonitorId);
+    }
+
+    public String getHealthMonitorPath(UUID healthMonitorId) {
+        return buildHealthMonitorPath(healthMonitorId).toString();
+    }
+
+    public String getHealthMonitorsPath() {
+        return buildHealthMonitorsPath().toString();
+    }
+
+    private StringBuilder buildPoolMembersPath() {
+        return basePath().append("/pool_members");
+    }
+
+    private StringBuilder buildPoolMemberPath(UUID poolMemberId) {
+        return buildPoolMembersPath().append("/").append(poolMemberId);
+    }
+
+    public String getPoolMemberPath(UUID poolMemberId) {
+        return buildPoolMemberPath(poolMemberId).toString();
+    }
+
+    public String getPoolMembersPath() {
+        return buildPoolMembersPath().toString();
+    }
+
+    private StringBuilder buildPoolsPath() {
+        return basePath().append("/pools");
+    }
+
+    private StringBuilder buildPoolMembersPath(UUID poolId) {
+        return buildPoolPath(poolId).append("/pool_members");
+    }
+
+    public String getPoolMembersPath(UUID poolId) {
+        return buildPoolMembersPath(poolId).toString();
+    }
+
+    private StringBuilder buildPoolPath(UUID poolId) {
+        return buildPoolsPath().append("/").append(poolId);
+    }
+
+    public String getPoolPath(UUID poolId) {
+        return buildPoolPath(poolId).toString();
+    }
+
+    public String getPoolsPath() {
+        return buildPoolsPath().toString();
+    }
+
+    private StringBuilder buildPoolMemberPath(UUID poolId, UUID poolMemberId) {
+        return buildPoolMembersPath(poolId)
+                .append("/").append(poolMemberId.toString());
+    }
+
+    public String getPoolMemberPath(UUID poolId, UUID memberId) {
+        return buildPoolMemberPath(poolId, memberId).toString();
+    }
 }

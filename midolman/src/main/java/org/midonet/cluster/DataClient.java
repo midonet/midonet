@@ -20,6 +20,10 @@ import org.midonet.cluster.data.host.Command;
 import org.midonet.cluster.data.host.Host;
 import org.midonet.cluster.data.host.Interface;
 import org.midonet.cluster.data.host.VirtualPortMapping;
+import org.midonet.cluster.data.l4lb.HealthMonitor;
+import org.midonet.cluster.data.l4lb.LoadBalancer;
+import org.midonet.cluster.data.l4lb.PoolMember;
+import org.midonet.cluster.data.l4lb.Pool;
 import org.midonet.cluster.data.ports.BridgePort;
 import org.midonet.cluster.data.ports.VlanMacPort;
 import org.midonet.midolman.serialization.SerializationException;
@@ -274,6 +278,82 @@ public interface DataClient {
 
     UUID hostsCreate(@Nonnull UUID id, @Nonnull Host host)
             throws StateAccessException, SerializationException;
+
+    /* load balancers related methods */
+    @CheckForNull boolean loadBalancerExists(UUID id)
+            throws StateAccessException;
+
+    @CheckForNull LoadBalancer loadBalancerGet(UUID id)
+        throws StateAccessException, SerializationException;
+
+    void loadBalancerDelete(UUID id)
+        throws StateAccessException, SerializationException;
+
+    UUID loadBalancerCreate(@Nonnull LoadBalancer loadBalancer)
+        throws StateAccessException, SerializationException;
+
+    void loadBalancerUpdate(@Nonnull LoadBalancer loadBalancer)
+        throws StateAccessException, SerializationException;
+
+    List<LoadBalancer> loadBalancersGetAll()
+            throws StateAccessException, SerializationException;
+
+    /* health monitors related methods */
+    @CheckForNull boolean healthMonitorExists(UUID id)
+            throws StateAccessException;
+
+    @CheckForNull HealthMonitor healthMonitorGet(UUID id)
+            throws StateAccessException, SerializationException;
+
+    void healthMonitorDelete(UUID id)
+            throws StateAccessException, SerializationException;
+
+    UUID healthMonitorCreate(@Nonnull HealthMonitor healthMonitor)
+            throws StateAccessException, SerializationException;
+
+    void healthMonitorUpdate(@Nonnull HealthMonitor healthMonitor)
+            throws StateAccessException, SerializationException;
+
+    List<HealthMonitor> healthMonitorsGetAll() throws StateAccessException,
+            SerializationException;
+
+    /* pool member related methods */
+    @CheckForNull boolean poolMemberExists(UUID id)
+            throws StateAccessException;
+
+    @CheckForNull PoolMember poolMemberGet(UUID id)
+            throws StateAccessException, SerializationException;
+
+    void poolMemberDelete(UUID id)
+            throws StateAccessException, SerializationException;
+
+    UUID poolMemberCreate(@Nonnull PoolMember poolMember)
+            throws StateAccessException, SerializationException;
+
+    void poolMemberUpdate(@Nonnull PoolMember poolMember)
+            throws StateAccessException, SerializationException;
+
+    List<PoolMember> poolMembersGetAll() throws StateAccessException,
+            SerializationException;
+
+    /* pool related methods */
+    @CheckForNull boolean poolExists(UUID id)
+            throws StateAccessException;
+
+    @CheckForNull Pool poolGet(UUID id)
+            throws StateAccessException, SerializationException;
+
+    void poolDelete(UUID id)
+            throws StateAccessException, SerializationException;
+
+    UUID poolCreate(@Nonnull Pool pool)
+            throws StateAccessException, SerializationException;
+
+    void poolUpdate(@Nonnull Pool pool)
+            throws StateAccessException, SerializationException;
+
+    List<Pool> poolsGetAll() throws StateAccessException,
+            SerializationException;
 
     /* hosts related methods */
     @CheckForNull Host hostsGet(UUID hostId)

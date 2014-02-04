@@ -55,6 +55,10 @@ public class ResourceUriBuilder {
     public static final String SYSTEM_STATE = "/system_state";
     public static final String WRITE_VERSION = "/write_version";
     public static final String VERSIONS = "/versions";
+    public static final String HEALTH_MONITORS = "/health_monitors";
+    public static final String LOAD_BALANCERS = "/load_balancers";
+    public static final String POOL_MEMBERS = "/pool_members";
+    public static final String POOLS = "/pools";
     public static final String VLAN_ID = "/{vlanId}";
     public static final String MAC_ADDR = "/{macAddress}";
     public static final String PORT_ID = "/{portId}";
@@ -727,5 +731,59 @@ public class ResourceUriBuilder {
      */
     public static URI getHostVersions(URI baseUri) {
         return UriBuilder.fromUri(getRoot(baseUri)).path(VERSIONS).build();
+    }
+
+    public static URI getHealthMonitors(URI baseUri) {
+        return UriBuilder.fromUri(getRoot(baseUri))
+                .path(HEALTH_MONITORS).build();
+    }
+
+    public static URI getHealthMonitor(URI baseUri, UUID healthMonitorId) {
+        return UriBuilder.fromUri(getHealthMonitors(baseUri))
+                .path(healthMonitorId.toString()).build();
+    }
+
+    public static String getHealthMonitorTemplate(URI baseUri) {
+        return buildIdTemplateUri(getHealthMonitors(baseUri));
+    }
+
+    public static URI getLoadBalancers(URI baseUri) {
+        return UriBuilder.fromUri(getRoot(baseUri))
+                .path(LOAD_BALANCERS).build();
+    }
+
+    public static String getLoadBalancerTemplate(URI baseUri) {
+        return buildIdTemplateUri(getLoadBalancers(baseUri));
+    }
+
+    public static URI getLoadBalancer(URI baseUri, UUID loadBalancerId) {
+        return UriBuilder.fromUri(getLoadBalancers(baseUri))
+                .path(loadBalancerId.toString()).build();
+    }
+
+    public static URI getPoolMembers(URI baseUri) {
+        return UriBuilder.fromUri(getRoot(baseUri)).path(POOL_MEMBERS).build();
+    }
+
+    public static URI getPoolMember(URI baseUri, UUID poolMemberId) {
+        return UriBuilder.fromUri(getPoolMembers(baseUri))
+                .path(poolMemberId.toString()).build();
+    }
+
+    public static String getPoolMemberTemplate(URI baseUri) {
+        return buildIdTemplateUri(getPoolMembers(baseUri));
+    }
+
+    public static URI getPools(URI baseUri) {
+        return UriBuilder.fromUri(getRoot(baseUri)).path(POOLS).build();
+    }
+
+    public static URI getPool(URI baseUri, UUID poolId) {
+        return UriBuilder.fromUri(getPools(baseUri))
+                .path(poolId.toString()).build();
+    }
+
+    public static String getPoolTemplate(URI baseUri) {
+        return buildIdTemplateUri(getPoolMembers(baseUri));
     }
 }

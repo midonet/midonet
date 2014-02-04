@@ -25,6 +25,10 @@ import org.midonet.api.filter.rest_api.IpAddrGroupResource;
 import org.midonet.api.filter.rest_api.RuleResource;
 import org.midonet.api.host.rest_api.HostResource;
 import org.midonet.api.host.rest_api.TunnelZoneResource;
+import org.midonet.api.l4lb.rest_api.HealthMonitorResource;
+import org.midonet.api.l4lb.rest_api.LoadBalancerResource;
+import org.midonet.api.l4lb.rest_api.PoolMemberResource;
+import org.midonet.api.l4lb.rest_api.PoolResource;
 import org.midonet.api.monitoring.rest_api.MonitoringResource;
 import org.midonet.api.network.rest_api.BridgeResource;
 import org.midonet.api.network.rest_api.PortGroupResource;
@@ -244,6 +248,50 @@ public class ApplicationResource extends AbstractResource {
     @Path(ResourceUriBuilder.SYSTEM_STATE)
     public SystemStateResource getSystemStateResource() {
         return factory.getSystemStateResource();
+    }
+
+    /**
+     * Health Monitor resource locator
+     *
+     * @return HealthMonitorResource object to handle changes to
+     * health monitors.
+     */
+    @Path(ResourceUriBuilder.HEALTH_MONITORS)
+    public HealthMonitorResource getHealthMonitorResource() {
+        return factory.getHealthMonitorResource();
+    }
+
+    /**
+     * Load Balancer resource locator
+     *
+     * @return LoadBalancerResource object to handle changes to load
+     * balancers.
+     */
+    @Path(ResourceUriBuilder.LOAD_BALANCERS)
+    public LoadBalancerResource getLoadBalancerResource() {
+        return factory.getLoadBalancerResource();
+    }
+
+    /**
+     * PoolMember resource locator
+     *
+     * @return PoolMemberResource object to handle changes to
+     * pool members.
+     */
+    @Path(ResourceUriBuilder.POOL_MEMBERS)
+    public PoolMemberResource getPoolMemberResource() {
+        return factory.getPoolMemberResource();
+    }
+
+    /**
+     * pool resource locator
+     *
+     * @return PoolResource object to handle changes to
+     * pools.
+     */
+    @Path(ResourceUriBuilder.POOLS)
+    public PoolResource getPoolResource() {
+        return factory.getPoolResource();
     }
 
     /**

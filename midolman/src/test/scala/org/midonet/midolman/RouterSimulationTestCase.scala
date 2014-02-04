@@ -27,7 +27,7 @@ import org.midonet.midolman.PacketWorkflow.PacketIn
 import org.midonet.midolman.guice.actors.OutgoingMessage
 import org.midonet.midolman.layer3.Route.{NextHop, NO_GATEWAY}
 import org.midonet.midolman.rules.{RuleResult, NatTarget, Condition}
-import org.midonet.midolman.simulation.{ArpTableImpl, LoadBalancer, PacketContext}
+import org.midonet.midolman.simulation.{ArpTableImpl, RouteBalancer, PacketContext}
 import org.midonet.midolman.state.ArpCacheEntry
 import org.midonet.midolman.state.ReplicatedMap.Watcher
 import org.midonet.midolman.topology.LocalPortActive
@@ -175,7 +175,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
                      NextHop.PORT, uplinkPort.getId, gw, 1)
         }
         val (router, port) = fetchRouterAndPort("uplinkPort", uplinkPort.getId)
-        val lb = new LoadBalancer(router.rTable)
+        val rb = new RouteBalancer(router.rTable)
 
         val wmatch = new WildcardMatch().
             setNetworkSource(IPv4Addr.fromString(uplinkPortAddr)).
@@ -183,7 +183,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with
 
         @tailrec
         def matchAllResults(resultPool: List[String]) {
-            val rt = lb.lookup(wmatch)
+            val rt = rb.lookup(wmatch)
             rt should not be null
             val gw = rt.getNextHopGateway
             gw should not be null

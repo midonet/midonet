@@ -91,6 +91,50 @@ public class Application extends UriResource {
     }
 
     /**
+     * @return the loadbalancers URI
+     */
+    public URI getLoadBalancers() {
+        if (getBaseUri() != null) {
+            return ResourceUriBuilder.getLoadBalancers(getBaseUri());
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * @return the health monitors URI
+     */
+    public URI getHealthMonitors() {
+        if (getBaseUri() != null) {
+            return ResourceUriBuilder.getHealthMonitors(getBaseUri());
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * @return the pool members URI
+     */
+    public URI getPoolMembers() {
+        if (getBaseUri() != null) {
+            return ResourceUriBuilder.getPoolMembers(getBaseUri());
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * @return the pools URI
+     */
+    public URI getPools() {
+        if (getBaseUri() != null) {
+            return ResourceUriBuilder.getPools(getBaseUri());
+        } else {
+            return null;
+        }
+    }
+
+    /**
      * @return the chains URI
      */
     public URI getChains() {
@@ -185,6 +229,50 @@ public class Application extends UriResource {
     public String getBridgeTemplate() {
         if (getBaseUri() != null) {
             return ResourceUriBuilder.getBridgeTemplate(getBaseUri());
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * @return the health monitor URI template
+     */
+    public String getHealthMonitorTemplate() {
+        if (getBaseUri() != null) {
+            return ResourceUriBuilder.getHealthMonitorTemplate(getBaseUri());
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * @return the loadbalancer URI template
+     */
+    public String getLoadBalancerTemplate() {
+        if (getBaseUri() != null) {
+            return ResourceUriBuilder.getLoadBalancerTemplate(getBaseUri());
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * @return the pool member URI template
+     */
+    public String getPoolMemberTemplate() {
+        if (getBaseUri() != null) {
+            return ResourceUriBuilder.getPoolMemberTemplate(getBaseUri());
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * @return the pool URI template
+     */
+    public String getPoolTemplate() {
+        if (getBaseUri() != null) {
+            return ResourceUriBuilder.getPoolTemplate(getBaseUri());
         } else {
             return null;
         }
