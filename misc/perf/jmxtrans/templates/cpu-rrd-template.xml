@@ -1,0 +1,31 @@
+<rrd_def>
+     <path>${database}</path>
+     <!-- not mandatory
+     <start>1000123456</start> -->
+     <!-- not mandatory -->
+     <step>1</step>
+     <!-- at least one datasource must be supplied -->
+<datasource><!-- type=OperatingSystem:ProcessCpuLoad:ProcessCpuLoad --><name>ProcessCpuLoad97bb3</name><type>GAUGE</type><heartbeat>400</heartbeat><min>U</min><max>U</max></datasource>
+<datasource><!-- type=OperatingSystem:ProcessCpuTime:ProcessCpuTime --><name>ProcessCpuTime8e081</name><type>DERIVE</type><heartbeat>400</heartbeat><min>U</min><max>U</max></datasource>
+     <!-- at least one archive must be supplied -->
+     <archive>
+         <cf>AVERAGE</cf>
+         <xff>0.5</xff>
+         <steps>1</steps>
+         <rows>14400</rows>
+     </archive>
+     <archive>
+         <cf>MIN</cf>
+         <xff>0.5</xff>
+         <steps>1</steps>
+         <rows>14400</rows>
+     </archive>
+     <archive>
+         <cf>MAX</cf>
+         <xff>0.5</xff>
+         <steps>1</steps>
+         <rows>14400</rows>
+     </archive>
+ </rrd_def>
+
+
