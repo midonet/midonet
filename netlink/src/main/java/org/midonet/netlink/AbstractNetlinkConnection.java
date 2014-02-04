@@ -52,7 +52,7 @@ public abstract class AbstractNetlinkConnection {
     protected ThrottlingGuard upcallThrottler;
 
     private Map<Integer, NetlinkRequest>
-        pendingRequests = new ConcurrentHashMap<Integer, NetlinkRequest>();
+        pendingRequests = new ConcurrentHashMap<>();
 
     // Mostly for testing purposes, this flag tells the netlink connection that
     // writes should be done on the channel directly, instead of waiting
@@ -109,10 +109,6 @@ public abstract class AbstractNetlinkConnection {
 
     public void setCallbackDispatcher(BatchCollector<Runnable> dispatcher) {
         this.dispatcher = dispatcher;
-    }
-
-    public boolean bypassSendQueue() {
-        return bypassSendQueue;
     }
 
     public void bypassSendQueue(final boolean bypass) {
@@ -185,7 +181,7 @@ public abstract class AbstractNetlinkConnection {
         log.trace("Sending message for id {}", seq);
         pendingRequests.put(seq, netlinkRequest);
         if (writeQueue.offer(netlinkRequest)) {
-            if (bypassSendQueue())
+            if (bypassSendQueue)
                 processWriteToChannel();
             pendingWritesThrottler.tokenIn();
             getReactor().schedule(netlinkRequest.timeoutHandler,
@@ -299,11 +295,6 @@ public abstract class AbstractNetlinkConnection {
                          "not found.", seq);
             }
 
-            List<ByteBuffer> buffers =
-                request == null
-                    ? new ArrayList<ByteBuffer>()
-                    : request.inBuffers;
-
             Netlink.MessageType messageType =
                 Netlink.MessageType.findById(type);
 
@@ -352,6 +343,10 @@ public abstract class AbstractNetlinkConnection {
 
                     ByteBuffer payload = reply.slice();
                     payload.order(ByteOrder.nativeOrder());
+
+                    List<ByteBuffer> buffers = (request == null)
+                                                ? new ArrayList<ByteBuffer>(1)
+                                                : request.inBuffers;
 
                     if (buffers != null) {
                         if (Flag.isSet(flags, Flag.NLM_F_MULTI))
