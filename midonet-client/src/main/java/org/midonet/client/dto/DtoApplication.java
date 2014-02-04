@@ -27,6 +27,10 @@ public class DtoApplication {
     private URI systemState;
     private URI tenants;
     private URI hostVersions;
+    private URI healthMonitors;
+    private URI loadBalancers;
+    private URI pools;
+    private URI poolMembers;
     private String adRouteTemplate;
     private String bgpTemplate;
     private String bridgeTemplate;
@@ -43,6 +47,10 @@ public class DtoApplication {
     private String traceConditionTemplate;
     private String traceTemplate;
     private String tenantTemplate;
+    private String healthMonitorTemplate;
+    private String loadBalancerTemplate;
+    private String poolTemplate;
+    private String poolMemberTemplate;
 
     public String getVersion() {
         return version;
@@ -188,6 +196,34 @@ public class DtoApplication {
         this.hostVersions = hostVersions;
     }
 
+    public URI getHealthMonitors() {
+        return this.healthMonitors;
+    }
+
+    public void setHealthMonitors(URI healthMonitors) {
+        this.healthMonitors = healthMonitors;
+    }
+
+    public URI getLoadBalancers() { return this.loadBalancers; }
+
+    public void setLoadBalancers(URI loadBalancers) { this.loadBalancers = loadBalancers; }
+
+    public URI getPools() {
+        return this.pools;
+    }
+
+    public void setPools(URI pools) {
+        this.pools = pools;
+    }
+
+    public URI getPoolMembers() {
+        return this.poolMembers;
+    }
+
+    public void setPoolMembers(URI poolMembers) {
+        this.poolMembers = poolMembers;
+    }
+
     public String getAdRouteTemplate() {
         return adRouteTemplate;
     }
@@ -314,5 +350,35 @@ public class DtoApplication {
 
     public void setTenantTemplate(String tenantTemplate) {
         this.tenantTemplate = tenantTemplate;
+    }
+
+    public String getHealthMonitorTemplate() {
+        return healthMonitorTemplate;
+    }
+
+    public void setHealthMonitorTemplate(String healthMonitorTemplate) {
+        this.healthMonitorTemplate = healthMonitorTemplate;
+    }
+
+    public String getLoadBalancerTemplate() { return loadBalancerTemplate; }
+
+    public void setLoadBalancerTemplate(String loadBalancerTemplate) {
+        this.loadBalancerTemplate = loadBalancerTemplate;
+    }
+
+    public String getPoolTemplate() {
+        return poolTemplate;
+    }
+
+    public void setPoolTemplate(String poolTemplate) {
+        this.poolTemplate = poolTemplate;
+    }
+
+    public String getPoolMemberTemplate() {
+        return poolMemberTemplate;
+    }
+
+    public void setPoolMemberTemplate(String poolMemberTemplate) {
+        this.poolMemberTemplate = poolMemberTemplate;
     }
 }

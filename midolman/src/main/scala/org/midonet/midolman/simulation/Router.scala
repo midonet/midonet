@@ -361,7 +361,7 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
         val ipMatch = new WildcardMatch()
                       .setNetworkDestination(packet.getDestinationIPAddress)
                       .setNetworkSource(packet.getSourceIPAddress)
-        val rt: Route = loadBalancer.lookup(ipMatch)
+        val rt: Route = routeBalancer.lookup(ipMatch)
         if (rt == null || rt.nextHop != Route.NextHop.PORT)
             return
         if (rt.nextHopPort == null)

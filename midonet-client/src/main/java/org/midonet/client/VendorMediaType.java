@@ -196,4 +196,15 @@ public class VendorMediaType {
             "application/vnd.org.midonet.IpAddrGroupAddr-v1+json";
     public static final String APPLICATION_IP_ADDR_GROUP_ADDR_COLLECTION_JSON =
             "application/vnd.org.midonet.collection.IpAddrGroupAddr-v1+json";
+
+    // L4LB
+    public static final String APPLICATION_HEALTH_MONITOR_JSON =
+            "application/vnd.org.midonet.HealthMonitor-v1+json";
+    public static final String APPLICATION_LOAD_BALANCER_JSON =
+            "application/vnd.org.midonet.LoadBalancer-v1+json";
+    public static final String APPLICATION_POOL_MEMBER_JSON =
+            "application/vnd.org.midonet.PoolMember-v1+json";
+    public static final String APPLICATION_POOL_JSON =
+            "application/vnd.org.midonet.Pool-v1+json";
+
 }
