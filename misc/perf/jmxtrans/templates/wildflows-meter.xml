@@ -1,0 +1,32 @@
+<rrd_def>
+     <path>${database}</path>
+     <!-- not mandatory
+     <start>1000123456</start> -->
+     <!-- not mandatory -->
+     <step>1</step>
+     <!-- at least one datasource must be supplied -->
+<datasource><!-- name=wildcardFlowsCreated,type=FlowTablesMeter:Count:Count --><name>Count667cf906787399</name><type>COUNTER</type><heartbeat>400</heartbeat><min>U</min><max>U</max></datasource>
+<datasource><!-- name=wildcardFlowsCreated,type=FlowTablesMeter:FifteenMinuteRate:FifteenMinuteRate --><name>FMR404260390a475d0c</name><type>GAUGE</type><heartbeat>400</heartbeat><min>U</min><max>U</max></datasource>
+<datasource><!-- name=wildcardFlowsCreated,type=FlowTablesMeter:FiveMinuteRate:FiveMinuteRate --><name>FiveMinuteRatee0cf3</name><type>GAUGE</type><heartbeat>400</heartbeat><min>U</min><max>U</max></datasource>
+<datasource><!-- name=wildcardFlowsCreated,type=FlowTablesMeter:OneMinuteRate:OneMinuteRate --><name>OneMinuteRatea03726</name><type>GAUGE</type><heartbeat>400</heartbeat><min>U</min><max>U</max></datasource>
+<datasource><!-- name=wildcardFlowsCreated,type=FlowTablesMeter:MeanRate:MeanRate --><name>MeanRate4efbe51a3fe</name><type>GAUGE</type><heartbeat>400</heartbeat><min>U</min><max>U</max></datasource>
+     <!-- at least one archive must be supplied -->
+     <archive>
+         <cf>AVERAGE</cf>
+         <xff>0.5</xff>
+         <steps>1</steps>
+         <rows>14400</rows>
+     </archive>
+     <archive>
+         <cf>MIN</cf>
+         <xff>0.5</xff>
+         <steps>1</steps>
+         <rows>14400</rows>
+     </archive>
+     <archive>
+         <cf>MAX</cf>
+         <xff>0.5</xff>
+         <steps>1</steps>
+         <rows>14400</rows>
+     </archive>
+ </rrd_def>

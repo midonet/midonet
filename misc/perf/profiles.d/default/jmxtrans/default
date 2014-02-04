@@ -1,0 +1,9 @@
+# default file for package jmxtrans
+export LOG_DIR="/var/log/jmxtrans"
+export SECONDS_BETWEEN_RUNS=1
+export JSON_DIR="/home/midokura/code/qa/perf/jmxtrans/json"
+export HEAP_SIZE=256
+export NEW_SIZE=32
+export CPU_CORES=2
+export NEW_RATIO=8
+export LOG_LEVEL=error
