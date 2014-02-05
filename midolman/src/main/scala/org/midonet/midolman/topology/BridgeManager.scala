@@ -13,15 +13,15 @@ import java.lang.{Short => JShort}
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
-import org.midonet.midolman.FlowController
-import org.midonet.midolman.simulation.Bridge
-import org.midonet.midolman.topology.builders.BridgeBuilderImpl
 import org.midonet.cluster.Client
 import org.midonet.cluster.client._
+import org.midonet.midolman.FlowController
+import org.midonet.midolman.FlowController.InvalidateFlowsByTag
+import org.midonet.midolman.config.MidolmanConfig
+import org.midonet.midolman.simulation.Bridge
+import org.midonet.midolman.topology.builders.BridgeBuilderImpl
 import org.midonet.packets.{IPv4Addr, IPAddr, MAC}
 import org.midonet.util.functors.Callback0
-import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 
 /* The MacFlowCount is called from the Coordinators' actors and dispatches
  * to the BridgeManager's actor to get/modify the flow counts.  */
@@ -157,11 +157,11 @@ class MacLearningManager(log: LoggingAdapter, expirationMillis: Long) {
 }
 
 class BridgeManager(id: UUID, val clusterClient: Client,
-                    val config: MidolmanConfig) extends DeviceManager(id) {
+                    val config: MidolmanConfig) extends DeviceWithChains {
     import BridgeManager._
     import context.system
 
-    private var cfg: BridgeConfig = null
+    protected var cfg: BridgeConfig = null
     private var changed = false
 
     private val flowCounts = new MacFlowCountImpl
@@ -179,14 +179,14 @@ class BridgeManager(id: UUID, val clusterClient: Client,
 
     private var vlanToPort: VlanPortMap = null
 
-    override def chainsUpdated() {
-        log.info("chains updated")
+    def topologyReady(topology: Topology) {
+        log.debug("Sending a Bridge to the VTA")
         VirtualTopologyActor !
-            new Bridge(id, isAdminStateUp, getTunnelKey,
+            new Bridge(id, cfg.adminStateUp, cfg.tunnelKey,
                 learningMgr.vlanMacTableMap,
-                if (config.getMidolmanBridgeArpEnabled) ip4MacMap
-                else null,
-                flowCounts, inFilter, outFilter,
+                if (config.getMidolmanBridgeArpEnabled) ip4MacMap else null,
+                flowCounts, topology.device(cfg.inboundFilter).orNull,
+                topology.device(cfg.outboundFilter).orNull,
                 vlanBridgePeerPortId, flowRemovedCallback,
                 macToLogicalPortId, rtrIpToMac, vlanToPort)
 
@@ -194,20 +194,6 @@ class BridgeManager(id: UUID, val clusterClient: Client,
             VirtualTopologyActor !
                 InvalidateFlowsByTag(FlowTagger.invalidateFlowsByDevice(id))
             changed = false
-        }
-    }
-
-    def getTunnelKey: Long = {
-        cfg match {
-            case null => 0
-            case c => c.tunnelKey
-        }
-    }
-
-    override def isAdminStateUp: Boolean = {
-        cfg match {
-            case null => false
-            case c => c.adminStateUp
         }
     }
 
@@ -219,20 +205,6 @@ class BridgeManager(id: UUID, val clusterClient: Client,
         context.system.scheduler.schedule(
             Duration(macPortExpiration, TimeUnit.MILLISECONDS),
             Duration(2000, TimeUnit.MILLISECONDS), self, CheckExpiredMacPorts())
-    }
-
-    override def getInFilterID: UUID = {
-        cfg match {
-            case null => null
-            case _ => cfg.inboundFilter
-        }
-    }
-
-    override def getOutFilterID: UUID = {
-        cfg match {
-            case null => null
-            case _ => cfg.outboundFilter
-        }
     }
 
     private case class FlowIncrement(mac: MAC, vlanId: JShort, port: UUID)
@@ -266,7 +238,7 @@ class BridgeManager(id: UUID, val clusterClient: Client,
             vlanBridgePeerPortId = newVlanBridgePeerPortId
             vlanToPort = newVlanToPortMap
             // Notify that the update finished
-            configUpdated()
+            prefetchTopology()
     }
 
     private class MacFlowCountImpl extends MacFlowCount {

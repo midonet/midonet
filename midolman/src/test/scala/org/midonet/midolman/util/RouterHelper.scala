@@ -9,9 +9,10 @@ import java.util.UUID
 import org.midonet.packets._
 import org.midonet.cluster.client.RouterPort
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
-import org.midonet.midolman.simulation.{Router => SimRouter}
 import org.midonet.midolman.FlowController.AddWildcardFlow
+import org.midonet.midolman.simulation.{Router => SimRouter}
 import org.midonet.midolman.topology.VirtualTopologyActor
+import org.midonet.midolman.topology.VirtualTopologyActor.{RouterRequest, PortRequest}
 import org.midonet.midolman.MidolmanTestCase
 
 trait RouterHelper extends SimulationHelper { this: MidolmanTestCase =>
@@ -70,10 +71,10 @@ trait RouterHelper extends SimulationHelper { this: MidolmanTestCase =>
         triggerPacketIn(portName, eth)
         fishForRequestOfType[AddWildcardFlow](flowProbe())
 
-        val port = VirtualTopologyActor.everything(portId)
-                        .asInstanceOf[RouterPort]
-        val router = VirtualTopologyActor.everything(port.deviceID)
-                        .asInstanceOf[SimRouter]
+        val port = VirtualTopologyActor.expiringAsk(PortRequest(portId))
+                    .value.get.get.asInstanceOf[RouterPort]
+        val router = VirtualTopologyActor.expiringAsk(RouterRequest(port.deviceID))
+                    .value.get.get
         drainProbes()
         (router, port)
     }

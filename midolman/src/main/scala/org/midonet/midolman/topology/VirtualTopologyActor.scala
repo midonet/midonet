@@ -10,7 +10,6 @@ import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 import scala.reflect._
-import scala.Some
 import scala.util.Failure
 
 import akka.actor._
@@ -24,9 +23,9 @@ import org.midonet.cluster.Client
 import org.midonet.cluster.client.Port
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.logging.{SimulationAwareBusLogging, ActorLogWithoutPath}
-import org.midonet.midolman.simulation._
 import org.midonet.midolman.{DeduplicationActor, FlowController, Referenceable}
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
+import org.midonet.midolman.simulation._
 import org.midonet.midolman.topology.rcu.TraceConditions
 import org.midonet.util.concurrent._
 
@@ -41,8 +40,9 @@ object VirtualTopologyActor extends Referenceable {
     sealed trait DeviceRequest[D] {
         val id: UUID
         val update: Boolean
-        protected[VirtualTopologyActor] val managerName: String
+
         protected[VirtualTopologyActor] val tag: ClassTag[D]
+        protected[VirtualTopologyActor] val managerName: String
 
         override def toString =
             s"${getClass.getSimpleName}[id=$id, update=$update]"
@@ -89,7 +89,7 @@ object VirtualTopologyActor extends Referenceable {
 
     case class ChainRequest(id: UUID, update: Boolean = false)
         extends DeviceRequest[Chain] {
-        protected[VirtualTopologyActor]  val tag = classTag[Chain]
+        protected[VirtualTopologyActor] val tag = classTag[Chain]
 
         protected[VirtualTopologyActor]
         override val managerName = "ChainManager-" + id
@@ -149,16 +149,10 @@ object VirtualTopologyActor extends Referenceable {
 
     case class Unsubscribe(id: UUID)
 
-    // This variable should only be updated by the singleton
-    // VirtualTopologyInstance. Also, we strongly recommend not accessing
-    // it directly. Call VirtualTopologyActor.expiringAsk instead - it
-    // first checks the contents of the volatile and only if the requested
-    // device is not found, does it perform an 'ask' on the VTA instance.
-    @volatile
-    var everything: Map[UUID, Any] = _
+    @volatile private var topology = Topology()
 
     // WARNING!! This code is meant to be called from outside the actor.
-    // it should only access the volatile variable 'everything'
+    // it should only access the volatile variable 'topology'
     def expiringAsk[D](request: DeviceRequest[D])
                       (implicit system: ActorSystem) =
         doExpiringAsk(request, 0L, null, null)(null, system)
@@ -192,19 +186,17 @@ object VirtualTopologyActor extends Referenceable {
                                       (implicit pktContext: PacketContext,
                                                 system: ActorSystem)
     : Future[D] = {
-        val timeLeft =
-            if (expiry == 0L) 3000L else expiry - Platform.currentTime
-
+        val timeLeft = if (expiry == 0L) 3000L
+                       else expiry - Platform.currentTime
         if (timeLeft <= 0)
             return Future.failed(new TimeoutException)
 
-        val e = everything
-        if (null == e || request.update)
-            return requestFuture(request, timeLeft, log, simLog)
+        if (request.update)
+            throw new IllegalArgumentException("Do not use this API for " +
+                                               "subscribing to requests")
 
-        // Try using the cache
-        e.get(request.id) match {
-            case Some(d) => Future.successful(d.asInstanceOf[D])
+        topology.device[D](request.id) match {
+            case Some(dev) => Future.successful(dev)
             case None => requestFuture(request, timeLeft, log, simLog)
         }
     }
@@ -254,11 +246,6 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
     @Inject
     val config: MidolmanConfig = null
 
-    override def preStart() {
-        super.preStart()
-        everything = Map[UUID, Any]()
-    }
-
     private def manageDevice(r: DeviceRequest[_]): Unit = {
         if (managed(r.id))
             return
@@ -275,7 +262,7 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
     }
 
     private def deviceRequested(req: DeviceRequest[_]) {
-        everything.get(req.id) match {
+        topology.get(req.id) match {
             case Some(dev) => sender ! dev
             case None =>
                 log.debug("Adding requester {} to unanswered clients for {}",
@@ -290,7 +277,7 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
         }
     }
 
-    private def updated[D <: {val id: UUID}](device: D) {
+    private def updated[D <: {def id: UUID}](device: D) {
         updated(device.id, device)
     }
 
@@ -309,7 +296,7 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
             }
         }
         idToUnansweredClients(id).clear()
-        everything = everything.updated(id, device)
+        topology += id -> device
     }
 
     private def unsubscribe(id: UUID, actor: ActorRef): Unit = {
@@ -317,6 +304,8 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
             case Some(actorSet) => actorSet.remove(actor)
             case None =>
         }
+
+        log.debug("Client {} is unsubscribing from {}", actor, id)
         remove(idToUnansweredClients.get(id))
         remove(idToSubscribers.get(id))
     }
@@ -344,7 +333,7 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
             updated(pool)
         case port: Port =>
             log.debug("Received a Port for {}", port.id)
-            updated(port.id, port)
+            updated(port)
         case router: Router =>
             log.debug("Received a Router for {}", router.id)
             updated(router)
@@ -356,6 +345,7 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
             // message from the DDA doesn't get the sender properly set.
             DeduplicationActor ! traceCondition
         case invalidation: InvalidateFlowsByTag =>
+            log.debug("Invalidating flows for tag {}", invalidation.tag)
             FlowController ! invalidation
     }
 }

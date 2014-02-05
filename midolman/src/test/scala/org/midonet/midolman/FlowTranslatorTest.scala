@@ -98,7 +98,7 @@ class FlowTranslatorTest extends FeatureSpec
         val bridge = newBridge("bridge" + id)
         id += 1
         val port = newBridgePort(bridge, f(new BridgePort().setHostId(host)))
-        preloadTopology(port)
+        fetchTopology(port)
         port
     }
 
@@ -115,7 +115,7 @@ class FlowTranslatorTest extends FeatureSpec
     def newChain(port: BridgePort, action: Action): Chain = {
         val chain = newOutboundChainOnPort("chain" + id, port)
         newLiteralRuleOnChain(chain, 1, new Condition(), action)
-        preloadTopology(chain)
+        fetchTopology(chain)
         chain
     }
 
@@ -185,10 +185,6 @@ class FlowTranslatorTest extends FeatureSpec
                             FlowTagger.invalidateFlowsByDevice(port3.getId),
                             FlowTagger.invalidateFlowsByDevice(chain1.getId),
                             FlowTagger.invalidateFlowsByDevice(chain3.getId),
-                            FlowTagger.invalidateFlowsByDeviceFilter(port1.getId,
-                                                                     chain1.getId),
-                            FlowTagger.invalidateFlowsByDeviceFilter(port3.getId,
-                                                                     chain3.getId),
                             FlowTagger.invalidateDPPort(2),
                             FlowTagger.invalidateDPPort(3)))
         }

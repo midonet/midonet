@@ -150,10 +150,10 @@ trait FlowTranslator {
                 yield p.id
 
         def portToChain(port: Port): Future[Chain] =
-            if (port.outFilterID == null)
+            if (port.outboundFilter == null)
                 Future.successful(null)
             else
-                expiringAsk(ChainRequest(port.outFilterID))
+                expiringAsk(ChainRequest(port.outboundFilter))
 
         // Apply the chains.
         Future.sequence(localPorts map { portToChain })
@@ -259,7 +259,7 @@ trait FlowTranslator {
             dpState.getDpPortNumberForVport(inPortUUID.get) match {
                 case Some(portNo) =>
                     wMatch.unsetInputPortUUID() // Not used for flow matching
-                          .setInputPort(portNo.shortValue())
+                          .setInputPortNumber(portNo.shortValue())
                     if (dpTags.isDefined)
                         dpTags.get += FlowTagger.invalidateDPPort(portNo.shortValue())
                 case None =>

@@ -31,7 +31,7 @@ trait VirtualTopologyHelper {
             ask(VirtualTopologyActor, buildRequest(device)).asInstanceOf[Future[T]],
             timeout.duration)
 
-    def preloadTopology(entities: Entity.Base[_,_,_]*) =
+    def fetchTopology(entities: Entity.Base[_,_,_]*) =
         Await.result(Future.sequence(entities map buildRequest map
                                      { VirtualTopologyActor ? _ }),
                      timeout.duration)

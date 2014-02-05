@@ -13,8 +13,8 @@ sealed trait Port {
     var id: UUID = _
     var deviceID: UUID = _
     var adminStateUp: Boolean = true
-    var inFilterID: UUID = _
-    var outFilterID: UUID = _
+    var inboundFilter: UUID = _
+    var outboundFilter: UUID = _
     var properties: Map[String, String] = _//move (What's this mean?)
     var tunnelKey: Long = _
     var portGroups: Set[UUID] = _
@@ -81,12 +81,12 @@ sealed trait Port {
     }
 
     def setInFilter(chain: UUID): this.type  = {
-        this.inFilterID = chain
+        this.inboundFilter = chain
         this
     }
 
     def setOutFilter(chain: UUID): this.type  = {
-        this.outFilterID = chain
+        this.outboundFilter = chain
         this
     }
 
