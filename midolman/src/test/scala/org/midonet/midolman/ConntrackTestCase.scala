@@ -69,7 +69,7 @@ class ConntrackTestCase extends FeatureSpec
         newLiteralRuleOnChain(brChain, 2, retCond, RuleResult.Action.ACCEPT)
         newLiteralRuleOnChain(brChain, 3, new Condition(), RuleResult.Action.DROP)
 
-        preloadTopology(brChain, clusterBridge, leftPort, rightPort)
+        fetchTopology(brChain, clusterBridge, leftPort, rightPort)
 
         val bridge: Bridge = fetchDevice(clusterBridge)
         val macTable = bridge.vlanMacTableMap(0.toShort)

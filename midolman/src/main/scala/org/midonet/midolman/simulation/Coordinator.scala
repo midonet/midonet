@@ -505,7 +505,7 @@ class Coordinator(var origMatch: WildcardMatch,
                 }
 
                 pktContext.inPortId = p
-                applyPortFilter(p, p.inFilterID, packetIngressesDevice)
+                applyPortFilter(p, p.inboundFilter, packetIngressesDevice)
         }
     }
 
@@ -515,10 +515,6 @@ class Coordinator(var origMatch: WildcardMatch,
         if (filterID == null)
             return thunk(port)
         expiringAsk(ChainRequest(filterID), log, expiry) flatMap { chain =>
-            // add ChainID for flow invalidation
-            pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(filterID))
-            pktContext.addFlowTag(
-                FlowTagger.invalidateFlowsByDeviceFilter(port.id, filterID))
             val result = Chain.apply(chain, pktContext,
                 pktContext.wcmatch, port.id, true)
             result.action match {
@@ -548,7 +544,7 @@ class Coordinator(var origMatch: WildcardMatch,
                 processAdminStateDown(port, isIngress = false)
             case port =>
                 pktContext.outPortId = port.id
-                applyPortFilter(port, port.outFilterID, {
+                applyPortFilter(port, port.outboundFilter, {
                     case port: Port if port.isExterior =>
                         emit(portID, isPortSet = false, port)
                     case port: Port if port.isInterior =>

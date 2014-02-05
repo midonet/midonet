@@ -68,7 +68,7 @@ class IPFragmentationTest extends FeatureSpec
         materializePort(leftBridgePort, hostId, "port0")
         materializePort(rightBridgePort, hostId, "port1")
 
-        val topo = preloadTopology(bridge, leftBridgePort, rightBridgePort)
+        val topo = fetchTopology(bridge, leftBridgePort, rightBridgePort)
 
         topo.collect({ case b: Bridge => b.vlanMacTableMap})
                 .head(ClusterBridge.UNTAGGED_VLAN_ID)
@@ -185,7 +185,7 @@ class IPFragmentationTest extends FeatureSpec
     private[this] def setupL4TouchingChain() {
         val chain = newInboundChainOnBridge("brInFilter", bridge)
         newTcpDstRuleOnChain(chain, 1, 80, RuleResult.Action.ACCEPT)
-        preloadTopology(chain)
+        fetchTopology(chain)
     }
 
     private[this] def sendPacket(fragType: IPFragmentType,

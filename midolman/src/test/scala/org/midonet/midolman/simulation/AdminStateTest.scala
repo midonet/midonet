@@ -117,12 +117,12 @@ class AdminStateTest extends FeatureSpec
             Route.NextHop.PORT, exteriorRouterPort.getId,
             new IPv4Addr(Route.NO_GATEWAY).toString, 10)
 
-        val topo = preloadTopology(bridge,
-                                   interiorBridgePort,
-                                   exteriorRouterPort,
-                                   router,
-                                   interiorRouterPort,
-                                   exteriorRouterPort)
+        val topo = fetchTopology(bridge,
+                                 interiorBridgePort,
+                                 exteriorRouterPort,
+                                 router,
+                                 interiorRouterPort,
+                                 exteriorRouterPort)
 
         val arpTable = topo.collect({ case r: Router => r.arpTable}).head
         arpTable.set(ipBridgeSide.getAddress, macBridgeSide)

@@ -21,11 +21,6 @@ object FlowTagger {
         INSTANCE_POOL.sharedRef(tag)
     }
 
-    def invalidateFlowsByDeviceFilter(device: UUID, filter: UUID): AnyRef = {
-        val tag = "filter:" + device.toString + ":" + filter.toString
-        INSTANCE_POOL.sharedRef(tag)
-    }
-
     /**
      * Used to invalidate all the flows on "vlanId" addressed to the unknown
      * "mac", which were thus flooded to the bridge's portset.

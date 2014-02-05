@@ -76,7 +76,7 @@ class BridgeInvalidationTest extends FeatureSpec
         interiorPort = newBridgePort(clusterBridge)
         routerPort = newRouterPort(clusterRouter, MAC.fromString(routerMac), routerIp)
 
-        preloadTopology(leftPort, rightPort, otherPort, interiorPort,
+        fetchTopology(leftPort, rightPort, otherPort, interiorPort,
                         routerPort, clusterRouter, clusterBridge)
     }
 

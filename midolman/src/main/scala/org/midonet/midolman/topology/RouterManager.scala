@@ -10,6 +10,7 @@ import java.util.UUID
 import org.midonet.cluster.Client
 import org.midonet.cluster.client.ArpCache
 import org.midonet.midolman.FlowController
+import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.layer3.{RoutingTableIfc, InvalidationTrie, Route}
 import org.midonet.midolman.simulation.{LoadBalancer, ArpTable, ArpTableImpl, Router}
@@ -19,7 +20,6 @@ import org.midonet.midolman.topology.builders.RouterBuilderImpl
 import org.midonet.packets.{IPAddr, IPv4Addr, MAC}
 import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.util.functors.Callback0
-import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 
 
 class RoutingTableWrapper[IP <: IPAddr](val rTable: RoutingTableIfc[IP]) {
@@ -79,15 +79,14 @@ trait TagManager {
  * @param config
  */
 class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
-        extends DeviceManager(id) {
+        extends DeviceWithChains {
     import context.system
 
-    private var cfg: RouterConfig = null
+    protected var cfg: RouterConfig = null
     private var changed = false
     private var rTable: RoutingTableWrapper[IPv4Addr] = null
     private var arpCache: ArpCache = null
     private var arpTable: ArpTable = null
-    private var loadBalancer: LoadBalancer = null
     // This trie is to store the tag that represent the ip destination to be
     // able to do flow invalidation properly when a route is added or deleted
     private val dstIpTagTrie: InvalidationTrie = new InvalidationTrie()
@@ -95,35 +94,23 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
     private val tagToFlowCount: mutable.Map[IPAddr, Int]
                                 = new mutable.HashMap[IPAddr, Int]
 
-    // Called when the chains become ready
-    override def chainsUpdated() {
-        chainsOrLoadBalancerUpdated()
-    }
+    def topologyReady(topo: Topology) {
+        log.debug("Sending a Router to the VTA")
 
-    // Called when the loadbalancer becomes ready
-    private def loadbalancerUpdated() {
-        chainsOrLoadBalancerUpdated()
-    }
+        // Not using context.actorFor("..") because in tests it will
+        // bypass the probes and make it harder to fish for these messages
+        // Should this need to be decoupled from the VTA, the parent
+        // actor reference should be passed in the constructor
+        VirtualTopologyActor !
+            new Router(id, cfg, rTable, topo.device(cfg.inboundFilter).orNull,
+                       topo.device(cfg.outboundFilter).orNull,
+                       topo.device(cfg.loadBalancer).orNull,
+                       new TagManagerImpl, arpTable)
 
-    // Called when the loadbalancer or the chains become ready
-    private def chainsOrLoadBalancerUpdated() {
-        if (chainsReady && loadBalancerReady) {
-
-            log.debug("Sending a Router to the VTA")
-
-            // Not using context.actorFor("..") because in tests it will
-            // bypass the probes and make it harder to fish for these messages
-            // Should this need to be decoupled from the VTA, the parent
-            // actor reference should be passed in the constructor
+        if (changed) {
             VirtualTopologyActor !
-                new Router(id, cfg, rTable, inFilter, outFilter,
-                    loadBalancer, new TagManagerImpl, arpTable)
-
-            if (changed) {
-                VirtualTopologyActor !
-                    InvalidateFlowsByTag(FlowTagger.invalidateFlowsByDevice(id))
-                changed = false
-            }
+                InvalidateFlowsByTag(FlowTagger.invalidateFlowsByDevice(id))
+            changed = false
         }
     }
 
@@ -131,60 +118,15 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
         client.getRouter(id, new RouterBuilderImpl(id, self))
     }
 
-    override def isAdminStateUp = {
-        cfg match {
-            case null => false
-            case _ => cfg.adminStateUp
-        }
-    }
-
-    override def getInFilterID = {
-        cfg match {
-            case null => null
-            case _ => cfg.inboundFilter
-        }
-    }
-
-    override def getOutFilterID = {
-        cfg match {
-            case null => null
-            case _ => cfg.outboundFilter
-        }
-    }
-
-    private def getLoadBalancerID = {
-        cfg match {
-            case null => null
-            case _ => cfg.loadBalancer
-        }
-    }
-
     private def invalidateFlowsByIp(ip: IPv4Addr) {
         FlowController ! FlowController.InvalidateFlowsByTag(
             FlowTagger.invalidateByIp(id, ip))
     }
 
-    private def waitingForLoadBalancer =
-        null != getLoadBalancerID && loadBalancer == null
-
-    private def loadBalancerReady = !waitingForLoadBalancer
-
-    private def updateLoadBalancer(lb: LoadBalancer): Unit = {
-        if (loadBalancer.id == getLoadBalancerID) {
-            log.debug("Received loadbalancer {}", lb.id)
-            loadBalancer = lb
-            loadbalancerUpdated()
-        } else {
-            // Else it's a load balancer we don't care about.
-            log.debug("Received a loadbalancer we didn't expect {}", lb.id)
-            VirtualTopologyActor ! Unsubscribe(lb.id)
-        }
-    }
-
     override def receive = super.receive orElse {
         case TriggerUpdate(newCfg, newArpCache, newRoutingTable) =>
             log.debug("TriggerUpdate with {} {} {}",
-                Array(newCfg, newArpCache, newRoutingTable))
+                      newCfg, newArpCache, newRoutingTable)
 
             if (newCfg != cfg && cfg != null)
                 changed = true
@@ -201,30 +143,12 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
             }
             rTable = newRoutingTable
 
-            // Handle loadBalancer
-            // Unsubscribe from old loadBalancer if changed.
-            if (null != loadBalancer && loadBalancer.id != getLoadBalancerID) {
-                VirtualTopologyActor ! Unsubscribe(loadBalancer.id)
-                loadBalancer = null
-            }
-
-            // Do we need to subscribe to a new loadbalancer?
-            if (waitingForLoadBalancer) {
-                log.debug("Subscribing to loadbalancer {}", getLoadBalancerID)
-                VirtualTopologyActor !
-                    LoadBalancerRequest(getLoadBalancerID, update = true)
-            } else {
-                loadbalancerUpdated()
-            }
-
-            // This deals with handling chains
-            configUpdated()
+            prefetchTopology(loadBalancer(newCfg.loadBalancer))
 
         case InvalidateFlows(addedRoutes, deletedRoutes) =>
             for (route <- deletedRoutes) {
                 FlowController ! FlowController.InvalidateFlowsByTag(
-                    FlowTagger.invalidateByRoute(id, route.hashCode())
-                )
+                    FlowTagger.invalidateByRoute(id, route.hashCode()))
             }
             for (route <- addedRoutes) {
                 log.debug("Projecting added route {}", route)
@@ -275,8 +199,6 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
                 new RouterInvTrieTagCountModified(dstIp,
                     if (tagToFlowCount contains dstIp) tagToFlowCount(dstIp)
                     else 0))
-
-        case loadBalancer: LoadBalancer => updateLoadBalancer(loadBalancer)
     }
 
     def adjustMapValue[A, B](m: mutable.Map[A, B], k: A)(f: B => B) {
@@ -302,7 +224,6 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
                     self ! RemoveTag(dstIp)
                 }
             }
-
         }
     }
 

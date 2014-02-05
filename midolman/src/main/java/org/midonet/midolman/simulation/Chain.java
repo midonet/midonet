@@ -94,8 +94,6 @@ public class Chain {
         Chain currentChain = origChain;
         fwdInfo.addTraversedElementID(origChain.id);
         fwdInfo.addFlowTag(FlowTagger.invalidateFlowsByDevice(currentChain.id));
-        fwdInfo.addFlowTag(
-            FlowTagger.invalidateFlowsByDeviceFilter(ownerId, currentChain.id));
         currentChain.getLog().debug("Processing chain with name {} and ID {}",
                                     currentChain.name, currentChain.id, fwdInfo);
         Stack<ChainPosition> chainStack = new Stack<ChainPosition>();
