@@ -5,6 +5,7 @@ package org.midonet.midolman.state.zkManagers;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import org.slf4j.Logger;
@@ -19,6 +20,7 @@ import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.DirectoryCallback;
+import org.midonet.midolman.state.DirectoryCallbackFactory;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
@@ -297,4 +299,21 @@ public class PoolZkManager
         return getPoolHealthMonitorMapping(poolId, healthMonitorId, null);
     }
 
+    public void getPoolHealthMonitorMappingsAsync(
+            final DirectoryCallback<Map<UUID, UUID>> cb,
+            Directory.TypedWatcher watcher) {
+                String path = paths.getPoolHealthMonitorMappingsPath();
+                zk.asyncGetChildren(path,
+                    DirectoryCallbackFactory.transform(cb,
+                            splitStrSetToUuidUuidMap),
+                        watcher);
+    }
+
+    public void getPoolHealthMonitorConfDataAsync(
+            UUID poolId, final UUID hmId,
+            final DirectoryCallback<PoolHealthMonitorMappingConfig> cb,
+            Directory.TypedWatcher watcher) {
+        getAsync(paths.getPoolHealthMonitorMappingsPath(poolId, hmId),
+                PoolHealthMonitorMappingConfig.class, cb, watcher);
+    }
 }

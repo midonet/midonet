@@ -10,12 +10,17 @@ import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.zkManagers.BaseConfig;
 import org.midonet.midolman.state.zkManagers.ConfigGetter;
+import org.midonet.util.functors.Functor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -36,6 +41,25 @@ public abstract class AbstractZkManager<K, CFG>
 
     protected final static Logger log =
             LoggerFactory.getLogger(AbstractZkManager.class);
+
+    protected static final Functor<Set<String>, Map<UUID, UUID>>
+        splitStrSetToUuidUuidMap =
+            new Functor<Set<String>, Map<UUID, UUID>>() {
+                @Override
+                public Map<UUID, UUID> apply(Set<String> keys) {
+                    Map<UUID, UUID> map = new HashMap<UUID, UUID>(keys.size());
+                    for (String name : keys) {
+                        String[] items = name.split("_");
+                        if (items.length < 2) {
+                            throw new IllegalArgumentException(
+                                    "Invalid input, cannot split " + name);
+                        }
+                        map.put(UUID.fromString(items[0]),
+                                UUID.fromString(items[1]));
+                    }
+                    return map;
+                }
+            };
 
     /**
      * Constructor.

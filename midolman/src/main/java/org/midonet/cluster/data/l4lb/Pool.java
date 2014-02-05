@@ -10,6 +10,15 @@ import java.util.UUID;
 
 public class Pool extends Entity.Base<UUID, Pool.Data, Pool>{
 
+    /**
+     * Globally unique ID used to represent a map of health monitor and pool
+     * mappings.  The reason why we need this is because VTA and ClusterManager
+     * requires that there is a key to retrieve data.
+     */
+    public static final UUID POOL_HEALTH_MONITOR_MAP_KEY = UUID.fromString(
+                    "f7c96553-a9c6-48b7-933c-31563bf77952");
+
+
     public Pool() {
         this(null, new Data());
     }
