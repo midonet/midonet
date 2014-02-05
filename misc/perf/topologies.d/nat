@@ -1,0 +1,150 @@
+# This is a basic l3 topology with a router and two bridges
+
+TOPOLOGY_SOURCE_HOST="10.25.25.1"
+TOPOLOGY_SOURCE_NET="10.25.25.1/24"
+
+TOPOLOGY_DEST_HOST="192.168.0.1"
+TOPOLOGY_DEST_NET="192.168.0.1/24"
+
+RT_SOURCE_HOST="10.25.25.254"
+RT_DEST_HOST="192.168.0.254"
+
+SNAT_TARGET="172.0.16.1"
+
+reset() {
+    BR_A_ID=
+    BR_B_ID=
+    RT_ID=
+    LEFTPORT_A=
+    RIGHTPORT_A=
+    LEFTPORT_B=
+    RIGHTPORT_B=
+    LEFTPORT_RT=
+    RIGHTPORT_RT=
+}
+
+#######################################################################
+# Custom functions
+#######################################################################
+
+print_topology() {
+    echo "Virtual topology"
+    echo "----------------"
+    echo "    port bindings for host $HOST_ID:"
+    midonet-cli -A -e host $HOST_ID list binding
+    echo ""
+    echo "    bridge listing:"
+    midonet-cli -A -e bridge list
+    echo ""
+    echo "    router listing:"
+    midonet-cli -A -e router list
+    echo ""
+    echo "    bridge $BR_A_ID port listing:"
+    midonet-cli -A -e bridge $BR_A_ID port list
+    echo ""
+    echo "    bridge $BR_B_ID port listing:"
+    midonet-cli -A -e bridge $BR_B_ID port list
+    echo ""
+    echo "    bridge $RT_ID port listing:"
+    midonet-cli -A -e router $RT_ID port list
+}
+
+
+#######################################################################
+# Implementing functions
+#######################################################################
+
+setup_topology() {
+    test_phase "Setting up virtual topology: basic L3 with two bridges, one router bridge"
+
+    while read host ; do
+        HOST_ID=`echo $host | cut -d ' ' -f 2`
+        break
+    done < <(midonet-cli -A -e host list)
+
+    if [ -z "$HOST_ID" ] ; then
+        return 1
+    fi
+
+    echo "found host with id $HOST_ID"
+
+    echo "creating bridge A"
+    BR_A_ID=`midonet-cli -A -e bridge create name perftest-bridgeA`
+    echo "creating bridge B"
+    BR_B_ID=`midonet-cli -A -e bridge create name perftest-bridgeB`
+    echo "creating router"
+    RT_ID=`midonet-cli -A -e router create name perftest-router`
+
+    echo "creating ports in bridge A"
+    LEFTPORT_A=`midonet-cli -A -e bridge $BR_A_ID create port`
+    RIGHTPORT_A=`midonet-cli -A -e bridge $BR_A_ID create port`
+
+    echo "creating ports in bridge B"
+    LEFTPORT_B=`midonet-cli -A -e bridge $BR_B_ID create port`
+    RIGHTPORT_B=`midonet-cli -A -e bridge $BR_B_ID create port`
+
+    echo "creating ports in router"
+    LEFTPORT_RT=`midonet-cli -A -e router $RT_ID create port address $RT_SOURCE_HOST net $TOPOLOGY_SOURCE_NET`
+    RIGHTPORT_RT=`midonet-cli -A -e router $RT_ID create port address $RT_DEST_HOST net $TOPOLOGY_DEST_NET`
+
+    echo "creating bindings"
+    midonet-cli -A -e host $HOST_ID add binding \
+        interface $TOPOLOGY_SOURCE_BINDING \
+        port bridge $BR_A_ID port $LEFTPORT_A > /dev/null
+    midonet-cli -A -e host $HOST_ID add binding \
+        interface $TOPOLOGY_DEST_BINDING \
+        port bridge $BR_B_ID port $RIGHTPORT_B > /dev/null
+
+    # and bind the devices together
+    midonet-cli -A -e bridge $BR_A_ID port $RIGHTPORT_A set peer router $RT_ID port $LEFTPORT_RT
+    midonet-cli -A -e bridge $BR_A_ID port $LEFTPORT_B set peer router $RT_ID port $RIGHTPORT_RT
+
+    midonet-cli -A -e router $RT_ID route add src 0.0.0.0/0 dst $TOPOLOGY_SOURCE_NET port router $RT_ID port $LEFTPORT_RT type normal weight 100
+    midonet-cli -A -e router $RT_ID route add src 0.0.0.0/0 dst $TOPOLOGY_DEST_NET port router $RT_ID port $RIGHTPORT_RT type normal weight 100
+
+    SNAT_CHAIN=`midonet-cli -A -e chain add name perf-snat`
+    SNAT_RULE=`midonet-cli -A -e chain $SNAT_CHAIN add rule src $TOPOLOGY_SOURCE_HOST type snat target $SNAT_TARGET:1024-65535 action accept`
+    midonet-cli -A -e router $RT_ID set outfilter chain $SNAT_CHAIN
+
+    REV_SNAT_CHAIN=`midonet-cli -A -e chain add name perf-rev-snat`
+    REV_SNAT_RULE=`midonet-cli -A -e chain $REV_SNAT_CHAIN add rule pos 1 type rev_snat action continue`:w
+    midonet-cli -A -e router $RT_ID set infilter chain $REV_SNAT_CHAIN
+
+    echo "source port in bridge A $LEFTPORT_A"
+    echo "-> right port in bridge A: $RIGHTPORT_A"
+    echo "-> left port in router: $LEFTPORT_RT"
+    echo "-> right port in router: $RIGHTPORT_RT"
+    echo "-> left port in bridge B: $LEFTPORT_B"
+    echo "destination port $RIGHTPORT_B"
+    echo "bridge A: $BR_A_ID"
+    echo "bridge B: $BR_B_ID"
+    echo "router: $RT_ID"
+    echo "host: $HOST_ID"
+
+    ip netns exec $TOPOLOGY_SOURCE_NETNS ip route add default via $RT_SOURCE_HOST
+    ip netns exec $TOPOLOGY_DEST_NETNS ip route add default via $RT_DEST_HOST
+
+    print_topology
+}
+
+tear_down_topology() {
+    if [ -z "$BR_A_ID" ] ; then
+        return
+    fi
+    test_phase "Tearing down virtual topology"
+    midonet-cli -A -e host $HOST_ID delete binding interface $TOPOLOGY_SOURCE_BINDING
+    midonet-cli -A -e host $HOST_ID delete binding interface $TOPOLOGY_DEST_BINDING
+    midonet-cli -A -e bridge $BR_A_ID delete port $LEFTPORT_A
+    midonet-cli -A -e bridge $BR_A_ID delete port $RIGHTPORT_A
+    midonet-cli -A -e bridge $BR_A_ID delete
+    midonet-cli -A -e bridge $BR_B_ID delete port $LEFTPORT_B
+    midonet-cli -A -e bridge $BR_B_ID delete port $RIGHTPORT_B
+    midonet-cli -A -e bridge $BR_B_ID delete
+    midonet-cli -A -e router $RT_ID delete port $LEFTPORT_RT
+    midonet-cli -A -e router $RT_ID delete port $RIGHTPORT_RT
+    midonet-cli -A -e router $RT_ID delete
+    reset
+    print_topology
+}
+
+reset()
