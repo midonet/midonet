@@ -43,6 +43,7 @@
                         <require>java7</require>
                         <require>quagga &gt;= 0.99.21</require>
                         <require>bridge-utils</require>
+                        <require>iproute</require>
                     </requires>
                     <mappings>
                         <mapping>
