@@ -11,5 +11,13 @@ import java.util.UUID
   * run the service.
   */
 class PoolMemberConfig(val id: UUID, val address: String, val port: Int) {
-    def isConfigurable = port > 0 && address != null
+    def isConfigurable = id != null && port > 0 && address != null
+
+    override def equals(other: Any) = other match {
+        case that: PoolMemberConfig =>
+            this.id == that.id &&
+            this.address == that.address &&
+            this.port == that.port
+        case _ => false
+    }
 }
