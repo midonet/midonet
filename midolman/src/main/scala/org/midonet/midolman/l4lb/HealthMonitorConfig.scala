@@ -12,4 +12,12 @@ package org.midonet.midolman.l4lb
 class HealthMonitorConfig(val delay: Int, val timeout: Int,
                           val maxRetries: Int) {
     def isConfigurable = delay > 0 && timeout > 0 && maxRetries > 0
+
+    override def equals(other: Any) = other match {
+        case that: HealthMonitorConfig =>
+            this.delay == that.delay &&
+            this.timeout == that.timeout &&
+            this.maxRetries == that.maxRetries
+        case _ => false
+    }
 }

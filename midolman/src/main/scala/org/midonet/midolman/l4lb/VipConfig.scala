@@ -11,5 +11,13 @@ import java.util.UUID
   * run the service.
   */
 class VipConfig(val id: UUID, val ip: String, val port: Int) {
-    def isConfigurable = ip != null && port > 0
+    def isConfigurable = id != null && ip != null && port > 0
+
+    override def equals(other: Any) = other match {
+        case that: VipConfig =>
+            this.id == that.id &&
+            this.ip == that.ip &&
+            this.port == that.port
+        case _ => false
+    }
 }
