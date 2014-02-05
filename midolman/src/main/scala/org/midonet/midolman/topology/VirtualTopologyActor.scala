@@ -11,17 +11,16 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 import scala.reflect._
 import scala.util.Failure
-
 import akka.actor._
 import akka.event.LoggingAdapter
-
 import com.google.inject.Inject
-
 import compat.Platform
-
 import org.midonet.cluster.Client
 import org.midonet.cluster.client.{RouterPort, BridgePort, Port}
+import org.midonet.cluster.data.l4lb.{Pool => PoolConfig}
 import org.midonet.midolman.config.MidolmanConfig
+import org.midonet.midolman.l4lb.PoolHealthMonitorMapManager
+import org.midonet.midolman.l4lb.PoolHealthMonitorMapManager._
 import org.midonet.midolman.logging.{SimulationAwareBusLogging, ActorLogWithoutPath}
 import org.midonet.midolman.{PacketsEntryPoint, FlowController, Referenceable}
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
@@ -127,6 +126,18 @@ object VirtualTopologyActor extends Referenceable {
             () => new PoolManager(id, client)
     }
 
+    case class PoolHealthMonitorMapRequest(update: Boolean=false)
+            extends DeviceRequest {
+
+        protected[VirtualTopologyActor]
+        override val managerName = "PoolHealthMonitorMapRequest"
+        override val id = PoolConfig.POOL_HEALTH_MONITOR_MAP_KEY
+
+        protected[VirtualTopologyActor]
+        def managerFactory(client: Client, config: MidolmanConfig) =
+                  () => new PoolHealthMonitorMapManager(client)
+    }
+
     case class ConditionListRequest(id: UUID, update: Boolean = false)
         extends DeviceRequest {
 
@@ -141,6 +152,11 @@ object VirtualTopologyActor extends Referenceable {
     case class Unsubscribe(id: UUID)
 
     @volatile private var topology = Topology()
+
+    // useful for testing, not much else.
+    def clearTopology(): Unit = {
+        topology = Topology()
+    }
 
     // WARNING!! This code is meant to be called from outside the actor.
     // it should only access the volatile variable 'everything'
@@ -336,6 +352,10 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
             // conditions.  For some reason the ChainRequest(update=true)
             // message from the DDA doesn't get the sender properly set.
             PacketsEntryPoint ! traceCondition
+        case PoolHealthMonitorMap(mappings) =>
+            log.info("Received PoolHealthMonitorMappings")
+            updated(PoolConfig.POOL_HEALTH_MONITOR_MAP_KEY,
+                    PoolHealthMonitorMap(mappings))
         case invalidation: InvalidateFlowsByTag =>
             log.debug("Invalidating flows for tag {}", invalidation.tag)
             FlowController ! invalidation

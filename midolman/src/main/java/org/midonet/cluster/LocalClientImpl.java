@@ -16,16 +16,18 @@ import org.apache.zookeeper.KeeperException;
 import org.midonet.cluster.client.BGPListBuilder;
 import org.midonet.cluster.client.BridgeBuilder;
 import org.midonet.cluster.client.ChainBuilder;
+import org.midonet.cluster.client.HealthMonitorBuilder;
 import org.midonet.cluster.client.HostBuilder;
 import org.midonet.cluster.client.IPAddrGroupBuilder;
 import org.midonet.cluster.client.PortBuilder;
 import org.midonet.cluster.client.PortSetBuilder;
 import org.midonet.cluster.client.RouterBuilder;
-import org.midonet.cluster.client.HealthMonitorBuilder;
 import org.midonet.cluster.client.TraceConditionsBuilder;
 import org.midonet.cluster.client.LoadBalancerBuilder;
 import org.midonet.cluster.client.PoolBuilder;
+import org.midonet.cluster.client.PoolHealthMonitorMapBuilder;
 import org.midonet.cluster.client.TunnelZones;
+import org.midonet.cluster.data.l4lb.Pool;
 import org.midonet.cluster.data.TunnelZone;
 import org.midonet.cluster.data.zones.CapwapTunnelZone;
 import org.midonet.cluster.data.zones.CapwapTunnelZoneHost;
@@ -82,6 +84,9 @@ public class LocalClientImpl implements Client {
 
     @Inject
     ClusterPoolManager poolManager;
+
+    @Inject
+    ClusterPoolHealthMonitorMapManager poolHealthMonitorMapManager;
 
     @Inject
     ClusterHealthMonitorManager healthMonitorManager;
@@ -153,6 +158,13 @@ public class LocalClientImpl implements Client {
     public void getPool(UUID poolID, PoolBuilder builder) {
         log.debug("getPool");
         poolManager.registerNewBuilder(poolID, builder);
+    }
+
+    @Override
+    public void getPoolHealthMonitorMap(PoolHealthMonitorMapBuilder builder) {
+        log.debug("getPoolHealthMonitorMap");
+        poolHealthMonitorMapManager.registerNewBuilder(
+                Pool.POOL_HEALTH_MONITOR_MAP_KEY, builder);
     }
 
     @Override

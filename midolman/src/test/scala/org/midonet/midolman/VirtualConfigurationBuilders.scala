@@ -5,6 +5,7 @@ package org.midonet.midolman
 
 import java.util.UUID
 import java.util.{HashSet => JSet}
+import scala.util.Random
 
 import scala.collection.JavaConversions._
 
@@ -25,7 +26,8 @@ import org.midonet.packets.{IPv4Subnet, TCP, MAC}
 import org.midonet.midolman.state.{PoolMemberStatus, DirectoryCallback}
 import org.midonet.midolman.state.DirectoryCallback.Result
 import org.apache.zookeeper.KeeperException
-import org.midonet.cluster.data.l4lb.{PoolMember, Pool, VIP, LoadBalancer}
+import org.midonet.cluster.data.l4lb.{PoolMember, Pool, VIP, LoadBalancer,
+                                      HealthMonitor}
 
 trait VirtualConfigurationBuilders {
 
@@ -427,6 +429,22 @@ trait VirtualConfigurationBuilders {
         clusterDataClient().vipUpdate(vip)
     }
 
+    def createRandomVip(pool: Pool): VIP = {
+        val rand = new Random();
+        val vip = new VIP()
+        vip.setId(UUID.randomUUID)
+        vip.setAddress("10.10.10." + Integer.toString(rand.nextInt(200) +1))
+        vip.setProtocolPort(rand.nextInt(1000) + 1)
+        vip.setAdminStateUp(true)
+        vip.setPoolId(pool.getId)
+        clusterDataClient().vipCreate(vip)
+        Thread.sleep(50)
+        // Getting the created VIP to see the actual model stored in
+        // ZooKeeper because `loadBalancerId` would be populated though
+        // the associated pool.
+        clusterDataClient().vipGet(vip.getId)
+    }
+
     def setVipPool(vip: VIP, pool: Pool) {
         vip.setPoolId(pool.getId)
         clusterDataClient().vipUpdate(vip)
@@ -447,12 +465,53 @@ trait VirtualConfigurationBuilders {
         clusterDataClient().vipUpdate(vip)
     }
 
+    def createHealthMonitor(id: UUID = UUID.randomUUID(),
+                           adminStateUp: Boolean = true,
+                           delay: Int = 2,
+                           maxRetries: Int = 2,
+                           timeout: Int = 2): HealthMonitor = {
+        val hm = new HealthMonitor()
+        hm.setId(id)
+        hm.setAdminStateUp(adminStateUp)
+        hm.setDelay(delay)
+        hm.setMaxRetries(maxRetries)
+        hm.setTimeout(timeout)
+        clusterDataClient().healthMonitorCreate(hm)
+        Thread.sleep(50)
+        hm
+    }
+
+    def createRandomHealthMonitor
+            (id: UUID = UUID.randomUUID()): HealthMonitor = {
+        val rand = new Random()
+        val hm = new HealthMonitor()
+        hm.setId(id)
+        hm.setAdminStateUp(true)
+        hm.setDelay(rand.nextInt(100) + 1)
+        hm.setMaxRetries(rand.nextInt(100) + 1)
+        hm.setTimeout(rand.nextInt(100) + 1)
+        clusterDataClient().healthMonitorCreate(hm)
+        Thread.sleep(50)
+        hm
+    }
+
+    def setHealthMonitorDelay(hm: HealthMonitor, delay: Int) = {
+        hm.setDelay(delay)
+        clusterDataClient().healthMonitorUpdate(hm)
+    }
+
+    def deleteHealthMonitor(hm: HealthMonitor) {
+        clusterDataClient().healthMonitorDelete(hm.getId)
+    }
+
     def createPool(loadBalancer: LoadBalancer,
                    id: UUID = UUID.randomUUID,
                    adminStateUp: Boolean = true,
-                   lbMethod: String = "ROUND_ROBIN"): Pool = {
+                   lbMethod: String = "ROUND_ROBIN",
+                   hmId: UUID = null): Pool = {
         val pool = new Pool()
         pool.setLoadBalancerId(loadBalancer.getId)
+        pool.setHealthMonitorId(hmId)
         pool.setAdminStateUp(adminStateUp)
         pool.setLbMethod(lbMethod)
         pool.setLoadBalancerId(loadBalancer.getId)
@@ -460,6 +519,11 @@ trait VirtualConfigurationBuilders {
         clusterDataClient().poolCreate(pool)
         Thread.sleep(50)
         pool
+    }
+
+    def setPoolHealthMonitor(pool: Pool, hmId: UUID) = {
+        pool.setHealthMonitorId(hmId)
+        clusterDataClient().poolUpdate(pool)
     }
 
     def setPoolAdminStateUp(pool: Pool, adminStateUp: Boolean) {
