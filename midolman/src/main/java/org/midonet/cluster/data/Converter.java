@@ -387,6 +387,7 @@ public class Converter {
         routerConfig.adminStateUp = router.isAdminStateUp();
         routerConfig.inboundFilter = router.getInboundFilter();
         routerConfig.outboundFilter = router.getOutboundFilter();
+        routerConfig.loadBalancer = router.getLoadBalancer();
         routerConfig.properties = new HashMap<String, String>(
                 router.getProperties());
 
@@ -402,6 +403,7 @@ public class Converter {
                 .setAdminStateUp(router.adminStateUp)
                 .setInboundFilter(router.inboundFilter)
                 .setOutboundFilter(router.outboundFilter)
+                .setLoadBalancer(router.loadBalancer)
                 .setProperties(router.properties);
     }
 

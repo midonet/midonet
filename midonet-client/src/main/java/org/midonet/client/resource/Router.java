@@ -19,7 +19,7 @@ public class Router extends ResourceBase<Router, DtoRouter> {
 
     public Router(WebResource resource, URI uriForCreation, DtoRouter r) {
         super(resource, uriForCreation, r,
-              VendorMediaType.APPLICATION_ROUTER_JSON);
+              VendorMediaType.APPLICATION_ROUTER_JSON_V2);
     }
 
     /**
@@ -70,12 +70,21 @@ public class Router extends ResourceBase<Router, DtoRouter> {
     }
 
     /**
-     * Gets ID of oubbound filter on this router.
+     * Gets ID of outbound filter on this router.
      *
      * @return UUID of the outbound filter
      */
     public UUID getOutboundFilterId() {
         return principalDto.getOutboundFilterId();
+    }
+
+    /**
+     * Gets ID of loadBalancer on this router.
+     *
+     * @return UUID of the loadBalancer
+     */
+    public UUID getLoadBalancerId() {
+        return principalDto.getLoadBalancerId();
     }
 
     /**
@@ -127,6 +136,11 @@ public class Router extends ResourceBase<Router, DtoRouter> {
 
     public Router inboundFilterId(UUID inboundFilterId) {
         principalDto.setInboundFilterId(inboundFilterId);
+        return this;
+    }
+
+    public Router loadBalancerId(UUID loadBalancerId) {
+        principalDto.setLoadBalancerId(loadBalancerId);
         return this;
     }
 

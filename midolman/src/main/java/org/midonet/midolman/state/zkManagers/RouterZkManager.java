@@ -39,21 +39,26 @@ public class RouterZkManager extends AbstractZkManager {
         public boolean adminStateUp;
         public UUID inboundFilter;
         public UUID outboundFilter;
+        public UUID loadBalancer;
         public Map<String, String> properties = new HashMap<String, String>();
 
         public RouterConfig() {
             super();
         }
 
-        public RouterConfig(UUID inboundFilter, UUID outboundFilter) {
+        public RouterConfig(UUID inboundFilter,
+                            UUID outboundFilter, UUID loadBalancer) {
             this.inboundFilter = inboundFilter;
             this.outboundFilter = outboundFilter;
+            this.loadBalancer = loadBalancer;
         }
 
-        public RouterConfig(String name, UUID inboundFilter, UUID outboundFilter) {
+        public RouterConfig(String name, UUID inboundFilter,
+                            UUID outboundFilter, UUID loadBalancer) {
             this.name = name;
             this.inboundFilter = inboundFilter;
             this.outboundFilter = outboundFilter;
+            this.loadBalancer = loadBalancer;
         }
 
         @Override
@@ -71,6 +76,9 @@ public class RouterZkManager extends AbstractZkManager {
             if (outboundFilter != null ? !outboundFilter
                     .equals(that.outboundFilter) : that.outboundFilter != null)
                 return false;
+            if (loadBalancer != null ? !loadBalancer
+                    .equals(that.loadBalancer) : that.loadBalancer != null)
+                return false;
             if (name != null ? !name.equals(that.name) : that.name != null)
                 return false;
             if (adminStateUp != that.adminStateUp)
@@ -84,6 +92,8 @@ public class RouterZkManager extends AbstractZkManager {
             int result = inboundFilter != null ? inboundFilter.hashCode() : 0;
             result = 31 * result
                     + (outboundFilter != null ? outboundFilter.hashCode() : 0);
+            result = 31 * result
+                    + (loadBalancer != null ? loadBalancer.hashCode() : 0);
             result = 31 * result + (name != null ? name.hashCode() : 0);
             result = 31 * result + Boolean.valueOf(adminStateUp).hashCode();
             return result;
@@ -235,6 +245,7 @@ public class RouterZkManager extends AbstractZkManager {
                     new Object[] { id, id1, id2 });
             dataChanged = true;
         }
+
         id1 = oldConfig.outboundFilter;
         id2 = config.outboundFilter;
         if (id1 == null ? id2 != null : !id1.equals(id2)) {
@@ -242,6 +253,17 @@ public class RouterZkManager extends AbstractZkManager {
                     new Object[] { id, id1, id2 });
             dataChanged = true;
         }
+
+        // Has the loadBalancer changed?
+        id1 = oldConfig.loadBalancer;
+        id2 = config.loadBalancer;
+        if (id1 == null ? id2 != null : !id1.equals(id2)) {
+            log.debug("The loadBalancer of router {} changed from {} to {}",
+                    new Object[] { id, id1, id2 });
+            dataChanged = true;
+        }
+
+        // Has the name changed?
         String name1 = oldConfig.name;
         String name2 = config.name;
         if (name1 == null ? name2 != null : !name1.equals(name2))  {
