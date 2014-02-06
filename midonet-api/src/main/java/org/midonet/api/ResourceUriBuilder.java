@@ -59,6 +59,7 @@ public class ResourceUriBuilder {
     public static final String LOAD_BALANCERS = "/load_balancers";
     public static final String POOL_MEMBERS = "/pool_members";
     public static final String POOLS = "/pools";
+    public static final String VIPS = "/vips";
     public static final String VLAN_ID = "/{vlanId}";
     public static final String MAC_ADDR = "/{macAddress}";
     public static final String PORT_ID = "/{portId}";
@@ -785,5 +786,18 @@ public class ResourceUriBuilder {
 
     public static String getPoolTemplate(URI baseUri) {
         return buildIdTemplateUri(getPoolMembers(baseUri));
+    }
+
+    public static URI getVips(URI baseUri) {
+        return UriBuilder.fromUri(getRoot(baseUri)).path(VIPS).build();
+    }
+
+    public static String getVipTemplate(URI baseUri) {
+        return buildIdTemplateUri(getVips(baseUri));
+    }
+
+    public static URI getVip(URI baseUri, UUID vipId) {
+        return UriBuilder.fromUri(getVips(baseUri))
+                .path(vipId.toString()).build();
     }
 }
