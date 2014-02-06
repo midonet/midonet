@@ -143,19 +143,6 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath
 
         case ApplyFlow(actions, cookieOpt) => cookieOpt foreach { cookie =>
             cookieToPendedPackets.remove(cookie) foreach { pendedPackets =>
-                // NOTE: tokens are claimed at the netlink layer when
-                //       a packet is sent up to the DDA.
-                //
-                // they are released using cookieToPendedPackets as a marker,
-                // thus in these situations:
-                //
-                //  - ApplyFlow is received for a cookie present in
-                //    cookieToPendedPackets
-                //  - A cookie expires and is removed from cookieToPendedPackets
-                //  - A packet is pended, meaning that cookieToPendedPackets
-                //    is already populated for this flowMatch
-                throttler.tokenOut()
-
                 cookieToDpMatch.remove(cookie) foreach {
                     dpMatch => dpMatchToCookie.remove(dpMatch)
                 }
@@ -164,10 +151,14 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath
                 // the action list is empty, which is equivalent to dropping)
                 if (actions.nonEmpty) {
                     for (unpendedPacket <- pendedPackets) {
+                        unpendedPacket.releaseToken()
                         executePacket(cookie, unpendedPacket, actions)
                         metrics.pendedPackets.dec()
                     }
                 } else {
+                    for (unpendedPacket <- pendedPackets) {
+                        unpendedPacket.releaseToken()
+                    }
                     metrics.packetsProcessed.mark(pendedPackets.size)
                 }
             }
@@ -194,12 +185,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath
                 dpMatchToCookie.remove(flowMatch) match {
                     case Some(cookie) =>
                         log.warning("Expiring cookie:{}", cookie)
-                        cookieToPendedPackets.remove(cookie) foreach {
-                            // See comment in ApplyFlow to understand the rules
-                            // we follow to release tokens from the throttling
-                            // guard
-                            _ => throttler.tokenOut()
-                        }
+                        cookieToPendedPackets.remove(cookie)
                         cookieToDpMatch.remove(cookie)
                     case _ => // do nothing
                 }
@@ -238,6 +224,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath
         pw.start() andThen {
             case Success(path) =>
                 log.debug("Packet with {} processed.", pw.cookieStr)
+                pw.packet.releaseToken()
                 pw.cookie match {
                     case Some(c) =>
                         val latency = (Clock.defaultClock().tick() -
@@ -257,6 +244,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath
             case Failure(ex) =>
                 log.warning("Exception while processing packet {} - {}, {}",
                     pw.cookieStr, ex.getMessage, ex.getStackTraceString)
+                pw.packet.releaseToken()
                 pw.cookie foreach { _ => metrics.packetsProcessed.mark() }
         }
 
@@ -279,7 +267,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath
                 // Simulation in progress. Just pend the packet.
                 log.debug("A matching packet with cookie {} is already " +
                     "being handled", cookie)
-                throttler.tokenOut()
+                packet.releaseToken()
                 cookieToPendedPackets.addBinding(cookie, packet)
                 metrics.pendedPackets.inc()
         }
