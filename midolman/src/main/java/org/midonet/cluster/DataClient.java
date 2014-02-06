@@ -66,7 +66,7 @@ public interface DataClient {
             throws StateAccessException, SerializationException;
 
     /* Bridges related methods */
-    @CheckForNull boolean bridgeExists(UUID id)
+    boolean bridgeExists(UUID id)
             throws StateAccessException;
 
     @CheckForNull Bridge bridgesGet(UUID id)
@@ -281,7 +281,7 @@ public interface DataClient {
             throws StateAccessException, SerializationException;
 
     /* load balancers related methods */
-    @CheckForNull boolean loadBalancerExists(UUID id)
+    boolean loadBalancerExists(UUID id)
             throws StateAccessException;
 
     @CheckForNull LoadBalancer loadBalancerGet(UUID id)
@@ -300,7 +300,7 @@ public interface DataClient {
             throws StateAccessException, SerializationException;
 
     /* health monitors related methods */
-    @CheckForNull boolean healthMonitorExists(UUID id)
+    boolean healthMonitorExists(UUID id)
             throws StateAccessException;
 
     @CheckForNull HealthMonitor healthMonitorGet(UUID id)
@@ -319,7 +319,7 @@ public interface DataClient {
             SerializationException;
 
     /* pool member related methods */
-    @CheckForNull boolean poolMemberExists(UUID id)
+    boolean poolMemberExists(UUID id)
             throws StateAccessException;
 
     @CheckForNull PoolMember poolMemberGet(UUID id)
@@ -338,7 +338,7 @@ public interface DataClient {
             SerializationException;
 
     /* pool related methods */
-    @CheckForNull boolean poolExists(UUID id)
+    boolean poolExists(UUID id)
             throws StateAccessException;
 
     @CheckForNull Pool poolGet(UUID id)
@@ -357,7 +357,7 @@ public interface DataClient {
             SerializationException;
 
     /* VIP related methods */
-    @CheckForNull boolean vipExists(UUID id)
+    boolean vipExists(UUID id)
         throws StateAccessException;
 
     @CheckForNull VIP vipGet(UUID id)
