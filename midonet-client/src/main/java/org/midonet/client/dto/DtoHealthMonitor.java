@@ -5,6 +5,7 @@
 package org.midonet.client.dto;
 
 import javax.xml.bind.annotation.XmlRootElement;
+import java.net.URI;
 import java.util.UUID;
 
 import com.google.common.base.Objects;
@@ -13,11 +14,12 @@ import com.google.common.base.Objects;
 public class DtoHealthMonitor {
     private UUID id;
     private String type;
-    private UUID poolId;
     private int delay;
     private int timeout;
     private int maxRetries;
     private boolean adminStateUp = true;
+    private String status;
+    private URI uri;
 
     public UUID getId() {
         return id;
@@ -33,14 +35,6 @@ public class DtoHealthMonitor {
 
     public void setType(String type) {
         this.type = type;
-    }
-
-    public UUID getPoolId() {
-        return poolId;
-    }
-
-    public void setPoolId(UUID poolId) {
-        this.poolId = poolId;
     }
 
     public int getDelay() {
@@ -75,6 +69,22 @@ public class DtoHealthMonitor {
         this.adminStateUp = adminStateUp;
     }
 
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public URI getUri() {
+        return uri;
+    }
+
+    public void setUri(URI uri) {
+        this.uri = uri;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -84,11 +94,11 @@ public class DtoHealthMonitor {
 
         if (!Objects.equal(id, that.getId())) return false;
         if (!Objects.equal(type, that.getType())) return false;
-        if (!Objects.equal(poolId, that.getPoolId())) return false;
         if (delay != that.getDelay()) return false;
         if (timeout != that.getTimeout()) return false;
         if (maxRetries != that.getMaxRetries()) return false;
         if (adminStateUp != that.isAdminStateUp()) return false;
+        if (!Objects.equal(status, that.getStatus())) return false;
 
         return true;
     }
@@ -97,11 +107,12 @@ public class DtoHealthMonitor {
     public int hashCode() {
         int result = id != null ? id.hashCode() : 0;
         result = 31 * result + type != null ? type.hashCode() : 0;
-        result = 31 * result + (poolId != null ? poolId.hashCode() : 0);
         result = 31 * result + delay;
         result = 31 * result + timeout;
         result = 31 * result + maxRetries;
         result = 31 * result + (adminStateUp ? 1 : 0);
+        result = 31 * result + (status != null ? status.hashCode() : 0);
+
         return result;
     }
 }

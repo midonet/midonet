@@ -130,10 +130,6 @@ public class PoolZkManager extends AbstractZkManager {
                         paths.getPoolMemberPath(
                                 poolId, UUID.fromString(poolMember)), -1));
         }
-        PoolConfig config = get(poolId);
-        if (config.healthMonitorId != null) {
-            healthMonitorZkManager.clearPoolId(config.healthMonitorId);
-        }
         ops.add(Op.delete(paths.getPoolMembersPath(poolId), -1));
         ops.add(Op.delete(paths.getPoolPath(poolId), -1));
         zk.multi(ops);

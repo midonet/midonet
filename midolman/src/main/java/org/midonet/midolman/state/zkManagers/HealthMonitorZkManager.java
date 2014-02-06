@@ -28,11 +28,11 @@ public class HealthMonitorZkManager extends AbstractZkManager {
     public static class HealthMonitorConfig {
 
         public String type;
-        public UUID poolId;
         public int delay;
         public int timeout;
         public int maxRetries;
         public boolean adminStateUp;
+        public String status;
 
         public HealthMonitorConfig() {
             super();
@@ -42,12 +42,14 @@ public class HealthMonitorZkManager extends AbstractZkManager {
                                    int delay,
                                    int timeout,
                                    int maxRetries,
-                                   boolean adminStateUp) {
+                                   boolean adminStateUp,
+                                   String status) {
             this.type = type;
             this.delay = delay;
             this.timeout = timeout;
             this.maxRetries = maxRetries;
             this.adminStateUp = adminStateUp;
+            this.status = status;
         }
 
         @Override
@@ -60,17 +62,15 @@ public class HealthMonitorZkManager extends AbstractZkManager {
             HealthMonitorConfig that = (HealthMonitorConfig) o;
 
             if (!Objects.equal(type, that.type)) return false;
-            if (!Objects.equal(poolId, that.poolId)) return false;
             if (delay != that.delay) return false;
             if (timeout != that.timeout) return false;
             if (maxRetries != that.maxRetries) return false;
             if (adminStateUp != that.adminStateUp) return false;
+            if (!Objects.equal(status, that.status)) return false;
 
             return true;
         }
     }
-
-    PoolZkManager poolZkManager;
 
     public HealthMonitorZkManager(ZkManager zk, PathBuilder paths,
                            Serializer serializer) {
@@ -85,8 +85,8 @@ public class HealthMonitorZkManager extends AbstractZkManager {
     public void update(UUID id, HealthMonitorConfig config)
             throws StateAccessException, SerializationException {
         HealthMonitorConfig oldConfig = get(id);
-        if (oldConfig.equals(config)) {
-            zk.update(paths.getRouterPath(id), serializer.serialize(config));
+        if (!oldConfig.equals(config)) {
+            zk.update(paths.getHealthMonitorPath(id), serializer.serialize(config));
         }
     }
 
@@ -98,11 +98,6 @@ public class HealthMonitorZkManager extends AbstractZkManager {
 
     public void delete(UUID id) throws SerializationException,
             StateAccessException {
-        HealthMonitorConfig config = get(id);
-        if (config.poolId != null) {
-            poolZkManager.clearHealthMonitorId(config.poolId);
-        }
-
         zk.delete(paths.getHealthMonitorPath(id));
     }
 
@@ -119,12 +114,5 @@ public class HealthMonitorZkManager extends AbstractZkManager {
             throws StateAccessException, SerializationException {
         byte[] data = zk.get(paths.getHealthMonitorPath(id), watcher);
         return serializer.deserialize(data, HealthMonitorConfig.class);
-    }
-
-    public void clearPoolId(UUID healthMonitorId)
-            throws StateAccessException, SerializationException {
-        HealthMonitorConfig config = get(healthMonitorId);
-        config.poolId = null;
-        update(healthMonitorId, config);
     }
 }
