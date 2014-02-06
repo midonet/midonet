@@ -52,7 +52,6 @@ import org.midonet.midolman.state.zkManagers.TaggableConfig;
 import org.midonet.midolman.state.zkManagers.VipZkManager.VipConfig;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IntIPv4;
-import org.midonet.packets.Net;
 
 
 /**
@@ -181,9 +180,10 @@ public class Converter {
         HealthMonitorConfig healthMonitorConfig = new HealthMonitorConfig();
         healthMonitorConfig.type = healthMonitor.getType();
         healthMonitorConfig.delay = healthMonitor.getDelay();
-        healthMonitorConfig.adminStateUp = healthMonitor.getAdminStateUp();
+        healthMonitorConfig.adminStateUp = healthMonitor.isAdminStateUp();
         healthMonitorConfig.maxRetries = healthMonitor.getMaxRetries();
         healthMonitorConfig.timeout = healthMonitor.getTimeout();
+        healthMonitorConfig.status = healthMonitor.getStatus();
         return healthMonitorConfig;
     }
 
@@ -194,7 +194,8 @@ public class Converter {
                 .setDelay(healthMonitorConfig.delay)
                 .setMaxRetries(healthMonitorConfig.maxRetries)
                 .setTimeout(healthMonitorConfig.timeout)
-                .setType(healthMonitorConfig.type);
+                .setType(healthMonitorConfig.type)
+                .setStatus(healthMonitorConfig.status);
     }
 
     public static PoolMemberConfig toPoolMemberConfig(PoolMember poolMember) {
