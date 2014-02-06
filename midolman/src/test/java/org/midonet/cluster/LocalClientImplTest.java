@@ -144,6 +144,7 @@ public class LocalClientImplTest {
         getRouterZkManager().update(routerId,
                                     new RouterZkManager.RouterConfig("test1",
                                                                      UUID.randomUUID(),
+                                                                     UUID.randomUUID(),
                                                                      UUID.randomUUID()));
         Thread.sleep(2000);
         assertThat("Router update was notified",
@@ -352,6 +353,7 @@ public class LocalClientImplTest {
     class TestRouterBuilder implements RouterBuilder {
         int buildCallsCount = 0;
         ArpCache arpCache;
+        UUID loadBalancerId;
 
         public void addNewArpEntry(IPv4Addr ipAddr, ArpCacheEntry entry) {
             arpCache.add(ipAddr, entry);
@@ -390,6 +392,11 @@ public class LocalClientImplTest {
         @Override
         public RouterBuilder setOutFilter(UUID filterID) {
             return this;
+        }
+
+        @Override
+        public void setLoadBalancer(UUID loadBalancerID) {
+            loadBalancerId = loadBalancerId;
         }
 
         @Override

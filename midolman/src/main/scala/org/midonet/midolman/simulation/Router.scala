@@ -27,6 +27,7 @@ import org.midonet.cluster.client.RouterPort
 class Router(override val id: UUID, override val cfg: RouterConfig,
              override val rTable: RoutingTableWrapper[IPv4Addr],
              override val inFilter: Chain, override val outFilter: Chain,
+             override val loadBalancer: LoadBalancer,
              override val routerMgrTagger: TagManager,
              val arpTable: ArpTable)
             (implicit system: ActorSystem)

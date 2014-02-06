@@ -52,6 +52,11 @@ class RouterBuilderImpl(val id: UUID, val routerManager: ActorRef)
         this
     }
 
+    def setLoadBalancer(loadBalancerID: UUID) = {
+      cfg = cfg.copy(loadBalancer = loadBalancerID)
+      this
+    }
+
     def build() {
         // we always pass a new copy of the RoutingTable since this is accessed
         // by the RCU Router

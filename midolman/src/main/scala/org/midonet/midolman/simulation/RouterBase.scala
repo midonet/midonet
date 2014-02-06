@@ -37,6 +37,7 @@ abstract class RouterBase[IP <: IPAddr]()
     val rTable: RoutingTableWrapper[IP]
     val inFilter: Chain
     val outFilter: Chain
+    val loadBalancer: LoadBalancer
     val routerMgrTagger: TagManager
 
     val validEthertypes: Set[Short]

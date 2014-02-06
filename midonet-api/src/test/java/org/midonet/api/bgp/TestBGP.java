@@ -49,7 +49,7 @@ public class TestBGP extends JerseyTest {
         router.setName(testRouterName);
         router.setTenantId(testTenantId);
         resource = resource().path("/routers");
-        response = resource.type(VendorMediaType.APPLICATION_ROUTER_JSON).post(
+        response = resource.type(VendorMediaType.APPLICATION_ROUTER_JSON_V2).post(
                 ClientResponse.class, router);
 
         log.debug("router location: {}", response.getLocation());

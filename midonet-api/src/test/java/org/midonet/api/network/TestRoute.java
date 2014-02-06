@@ -61,13 +61,13 @@ public class TestRoute {
             router.setName(testRouterName);
             router.setTenantId("TEST-TENANT");
             resource = resource().uri(app.getRouters());
-            response = resource.type(APPLICATION_ROUTER_JSON).post(
+            response = resource.type(APPLICATION_ROUTER_JSON_V2).post(
                     ClientResponse.class, router);
 
             log.debug("router location: {}", response.getLocation());
             testRouterUri = response.getLocation();
             router = resource().uri(testRouterUri).accept(
-                    APPLICATION_ROUTER_JSON).get(DtoRouter.class);
+                    APPLICATION_ROUTER_JSON_V2).get(DtoRouter.class);
 
             // Create a Exterior router port.
             log.debug("routerPortUri: {} ", router.getPorts());

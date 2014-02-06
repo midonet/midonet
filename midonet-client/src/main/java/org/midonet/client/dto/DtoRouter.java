@@ -24,6 +24,8 @@ public class DtoRouter {
     private URI peerPorts;
     private URI ports;
     private URI routes;
+    private UUID loadBalancerId;
+    private URI loadBalancer;
 
     public UUID getId() {
         return id;
@@ -87,6 +89,22 @@ public class DtoRouter {
 
     public void setOutboundFilter(URI outboundFilter) {
         this.outboundFilter = outboundFilter;
+    }
+
+    public UUID getLoadBalancerId() {
+        return loadBalancerId;
+    }
+
+    public void setLoadBalancerId(UUID loadBalancerId) {
+        this.loadBalancerId = loadBalancerId;
+    }
+
+    public URI getLoadBalancer() {
+        return loadBalancer;
+    }
+
+    public void setLoadBalancer(URI loadBalancer) {
+        this.loadBalancer = loadBalancer;
     }
 
     public URI getUri() {
