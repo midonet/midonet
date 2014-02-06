@@ -22,7 +22,7 @@ public class DtoLoadBalancer {
         this.id = id;
     }
 
-    public boolean getAdminStateUp() {
+    public boolean isAdminStateUp() {
         return adminStateUp;
     }
 
@@ -38,14 +38,14 @@ public class DtoLoadBalancer {
         DtoLoadBalancer that = (DtoLoadBalancer) o;
 
         if (!Objects.equal(this.id, that.getId())) return false;
-        if (adminStateUp != that.adminStateUp) return false;
+        if (adminStateUp != that.isAdminStateUp()) return false;
 
         return true;
     }
 
     @Override
     public int hashCode() {
-        int result = (id != null) ? id.hashCode() : 0;
+        int result = id != null ? id.hashCode() : 0;
         result = 31 * result
                 + (adminStateUp ? 1 : 0);
         return result;

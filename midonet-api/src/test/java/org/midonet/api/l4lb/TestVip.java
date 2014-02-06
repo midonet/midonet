@@ -1,7 +1,6 @@
 /*
  * Copyright (c) 2014 Midokura Europe SARL, All Rights Reserved.
  */
-
 package org.midonet.api.l4lb;
 
 import com.sun.jersey.api.client.ClientResponse;
@@ -166,8 +165,8 @@ public class TestVip {
                     thisVip.getSessionPersistence(),
                     equalTo(thatVip.getSessionPersistence()));
             assertThat("The admin_state_ups should be the same",
-                    thisVip.getAdminStateUp(),
-                    equalTo(thatVip.getAdminStateUp()));
+                    thisVip.isAdminStateUp(),
+                    equalTo(thatVip.isAdminStateUp()));
         }
 
         @Test
@@ -229,9 +228,9 @@ public class TestVip {
             assertPropertiesEqual(vip2, newVip2);
 
             // PUT with the different parameters
-            newVip2.setAdminStateUp(!newVip2.getAdminStateUp());
-            assertEquals(newVip2.getAdminStateUp(),
-                    !!newVip2.getAdminStateUp());
+            newVip2.setAdminStateUp(!newVip2.isAdminStateUp());
+            assertEquals(newVip2.isAdminStateUp(),
+                    !!newVip2.isAdminStateUp());
             DtoVip updatedVip2 = dtoWebResource.putAndVerifyNoContent(
                     vip2Uri, VendorMediaType.APPLICATION_VIP_JSON,
                     newVip2, DtoVip.class);

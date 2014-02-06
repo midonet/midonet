@@ -3,6 +3,7 @@
  */
 package org.midonet.cluster.data.l4lb;
 
+import com.google.common.base.Objects;
 import org.midonet.cluster.data.Entity;
 
 import java.util.UUID;
@@ -118,22 +119,14 @@ public class Pool extends Entity.Base<UUID, Pool.Data, Pool>{
 
             Data data = (Data) o;
 
+            if (!Objects.equal(name, data.name)) return false;
+            if (!Objects.equal(description, data.description)) return false;
+            if (!Objects.equal(subnetId, data.subnetId)) return false;
+            if (!Objects.equal(healthMonitorId, data.healthMonitorId)) return false;
+            if (!Objects.equal(lbMethod, data.lbMethod)) return false;
+            if (!Objects.equal(protocol, data.protocol)) return false;
             if (adminStateUp != data.adminStateUp) return false;
-            if (description != null ? !description.equals(data.description)
-                    : data.description != null) return false;
-            if (healthMonitorId != null ?
-                    !healthMonitorId.equals(data.healthMonitorId) : data.healthMonitorId != null)
-                return false;
-            if (lbMethod != null ? !lbMethod.equals(data.lbMethod)
-                    : data.lbMethod != null) return false;
-            if (name != null ? !name.equals(data.name)
-                    : data.name != null) return false;
-            if (protocol != null ? !protocol.equals(data.protocol)
-                    : data.protocol != null) return false;
-            if (status != null ? !status.equals(data.status)
-                    : data.status != null) return false;
-            if (subnetId != null ? !subnetId.equals(data.subnetId)
-                    : data.subnetId != null) return false;
+            if (!Objects.equal(status, data.status)) return false;
 
             return true;
         }

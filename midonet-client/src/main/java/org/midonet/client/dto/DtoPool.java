@@ -7,6 +7,8 @@ package org.midonet.client.dto;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.UUID;
 
+import com.google.common.base.Objects;
+
 @XmlRootElement
 public class DtoPool {
     private UUID id;
@@ -96,33 +98,26 @@ public class DtoPool {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        DtoPool dtoPool = (DtoPool) o;
+        DtoPool that = (DtoPool) o;
 
-        if (adminStateUp != dtoPool.adminStateUp) return false;
-        if (description != null ?
-                !description.equals(dtoPool.description)
-                : dtoPool.description != null) return false;
-        if (healthMonitorId != null ?
-                !healthMonitorId.equals(dtoPool.healthMonitorId)
-                : dtoPool.healthMonitorId != null)
-            return false;
-        if (lbMethod != null ? !lbMethod.equals(dtoPool.lbMethod)
-                : dtoPool.lbMethod != null) return false;
-        if (name != null ? !name.equals(dtoPool.name)
-                : dtoPool.name != null) return false;
-        if (protocol != null ? !protocol.equals(dtoPool.protocol)
-                : dtoPool.protocol != null) return false;
-        if (status != null ? !status.equals(dtoPool.status)
-                : dtoPool.status != null) return false;
-        if (subnetId != null ? !subnetId.equals(dtoPool.subnetId)
-                : dtoPool.subnetId != null) return false;
+        if (!Objects.equal(id, that.getId())) return false;
+        if (!Objects.equal(name, that.getName())) return false;
+        if (!Objects.equal(description, that.getDescription())) return false;
+        if (!Objects.equal(subnetId, that.getSubnetId())) return false;
+        if (!Objects.equal(healthMonitorId,
+                that.getHealthMonitorId())) return false;
+        if (!Objects.equal(protocol, that.getProtocol())) return false;
+        if (!Objects.equal(lbMethod, that.getLbMethod())) return false;
+        if (adminStateUp != that.isAdminStateUp()) return false;
+        if (!Objects.equal(status, that.getStatus())) return false;
 
         return true;
     }
 
     @Override
     public int hashCode() {
-        int result = name != null ? name.hashCode() : 0;
+        int result = id != null ? id.hashCode() : 0;
+        result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result
                 + (description != null ? description.hashCode() : 0);
         result = 31 * result + (subnetId != null ? subnetId.hashCode() : 0);
