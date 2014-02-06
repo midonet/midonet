@@ -6,7 +6,10 @@ package org.midonet.midolman
 import java.util.UUID
 import scala.collection.JavaConverters._
 import scala.collection.immutable
+import scala.collection.mutable.ListBuffer
 import scala.concurrent.Future
+import scala.concurrent.Promise
+import scala.concurrent.promise
 import scala.concurrent.duration._
 
 import org.junit.runner.RunWith
@@ -59,10 +62,12 @@ class DeduplicationActorTestCase extends FeatureSpec
 
     implicit def ethBuilder2Packet(ethBuilder: EthBuilder): Packet = {
         val frame: Ethernet = ethBuilder
-        new Packet().
+        val p = new Packet().
             setPacket(frame).
             setMatch(FlowMatches.fromEthernetPacket(frame)).
             setReason(Packet.Reason.FlowTableMiss)
+        p.holdTokenTakenFrom(testableDda.throttler)
+        p
     }
 
     def makePacket(variation: Short): Packet = makeFrame(variation)
@@ -136,8 +141,8 @@ class DeduplicationActorTestCase extends FeatureSpec
                 And("not executed")
                 mockDpConn().packetsSent.size should be (0)
 
-                And ("three tokens should have been freed up")
-                testableDda.throttler.numTokens should be (-3)
+                And ("two tokens should have been freed up")
+                testableDda.throttler.numTokens should be (-2)
             }
         }
 
@@ -155,6 +160,7 @@ class DeduplicationActorTestCase extends FeatureSpec
             testableDda.throttler.numTokens should be (-2)
 
             When("the dda is told to apply the flow with empty actions")
+            MockPacketHandler.complete()
             DeduplicationActor ! ApplyFlow(Nil, Some(1))
 
             Then("the packets should be dropped")
@@ -180,6 +186,7 @@ class DeduplicationActorTestCase extends FeatureSpec
 
             When("the dda is told to apply the flow with an output action")
             DeduplicationActor ! ApplyFlow(List(output(1)), Some(1))
+            MockPacketHandler.complete()
 
             Then("the packets should be sent to the datapath")
             val actual = mockDpConn().packetsSent.asScala.toList.sortBy { _.## }
@@ -242,6 +249,17 @@ class DeduplicationActorTestCase extends FeatureSpec
         }
     }
 
+    object MockPacketHandler {
+        val futures: ListBuffer[Promise[PacketWorkflow.PipelinePath]] = new ListBuffer()
+
+        def complete() {
+            futures foreach {
+                f => f.success(Simulation)
+            }
+            futures.clear()
+        }
+    }
+
     class MockPacketHandler(val packet: Packet,
             val cookieOrEgressPort: Either[Int, UUID]) extends PacketHandler {
 
@@ -257,7 +275,9 @@ class DeduplicationActorTestCase extends FeatureSpec
 
         override def start() = {
             packetsSeen = packetsSeen :+ (packet, cookieOrEgressPort)
-            Future.successful(Simulation)
+            val p = promise[PacketWorkflow.PipelinePath]()
+            MockPacketHandler.futures.append(p)
+            p.future
         }
     }
 

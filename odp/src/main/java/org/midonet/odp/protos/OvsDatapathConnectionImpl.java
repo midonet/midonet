@@ -89,6 +89,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                 } else {
                     packet.setReason(Packet.Reason.FlowTableMiss);
                 }
+                packet.holdTokenTakenFrom(upcallThrottler);
 
                 notificationHandler.submit(packet);
             }

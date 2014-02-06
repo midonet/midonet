@@ -6,6 +6,7 @@ package org.midonet.odp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.Nonnull;
 
 import org.midonet.netlink.Callback;
@@ -14,6 +15,7 @@ import org.midonet.odp.flows.FlowKey;
 import org.midonet.odp.protos.OvsDatapathConnection;
 import org.midonet.packets.Ethernet;
 import org.midonet.packets.MalformedPacketException;
+import org.midonet.util.throttling.ThrottlingGuard;
 
 
 /**
@@ -39,8 +41,20 @@ public class Packet {
     Long userData;
     Reason reason;
     Ethernet eth;
+    AtomicBoolean simToken = new AtomicBoolean(false);
+    ThrottlingGuard throttler = null;
 
     long startTimeNanos = 0;
+
+    public void releaseToken() {
+        if (throttler != null && simToken.getAndSet(false))
+            throttler.tokenOut();
+    }
+
+    public void holdTokenTakenFrom(ThrottlingGuard throttler) {
+        simToken.set(true);
+        this.throttler = throttler;
+    }
 
     public long getStartTimeNanos() {
         return startTimeNanos;

@@ -35,6 +35,7 @@ import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPortSet
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 import org.midonet.util.concurrent._
 import org.midonet.util.functors.Callback0
+import java.util.concurrent.atomic.AtomicBoolean
 
 trait PacketHandler {
 
@@ -233,6 +234,8 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
             else
                 handleObsoleteFlow(wildFlow, removalCallbacks)
 
+        packet.releaseToken()
+
         val execFuture = executePacket(wildFlow.getActions)
         flowFuture flatMap { _ => execFuture } continue { _.isSuccess }
     }
@@ -260,8 +263,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
                 FlowController !
                     AddWildcardFlow(wildFlow, None, removalCallbacks,
                                     tags, lastInvalidation)
-                DeduplicationActor !
-                    ApplyFlow(wildFlow.getActions, cookie)
+                DeduplicationActor ! ApplyFlow(wildFlow.getActions, cookie)
                 Future.successful(true)
 
             case Some(_) if !packet.getMatch.isUserSpaceOnly =>
@@ -341,6 +343,8 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
 
     def handleWildcardTableMatch(wildFlow: WildcardFlow): Future[PipelinePath] = {
         log.debug("Packet {} matched a wildcard flow", cookieStr)
+
+        packet.releaseToken()
 
         val flowFuture = if (packet.getMatch.isUserSpaceOnly) {
             log.debug("Won't add flow with userspace match {}", packet.getMatch)
