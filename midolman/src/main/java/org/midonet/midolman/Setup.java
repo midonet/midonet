@@ -94,6 +94,7 @@ public class Setup {
         paths.add(pathMgr.getLoadBalancersPath());
         paths.add(pathMgr.getPoolMembersPath());
         paths.add(pathMgr.getPoolsPath());
+        paths.add(pathMgr.getVipsPath());
         return paths;
     }
 
