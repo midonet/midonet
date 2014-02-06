@@ -1,9 +1,10 @@
 /*
- * Copyright 2013 Midokura PTE LTD.
+ * Copyright (c) 2014 Midokura Europe SARL, All Rights Reserved.
  */
 package org.midonet.api.l4lb;
 
 import java.net.URI;
+import java.util.UUID;
 
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
@@ -90,6 +91,10 @@ public class TestPoolMember {
 
         private DtoPoolMember getStockPoolMember() {
             DtoPoolMember poolMember = new DtoPoolMember();
+            // NOTE(tfukushima): Populating UUID of the pool member because
+            //   the API can create the resource with the specified UUID,
+            //   which is very useful for the identical checks.
+            poolMember.setId(UUID.randomUUID());
             poolMember.setAddress("10.0.0.1");
             poolMember.setProtocolPort(80);
             poolMember.setStatus("UP");

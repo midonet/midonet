@@ -3,6 +3,7 @@
  */
 package org.midonet.cluster.data.l4lb;
 
+import com.google.common.base.Objects;
 import org.midonet.cluster.data.Entity;
 
 import java.util.UUID;
@@ -99,14 +100,12 @@ public class HealthMonitor
 
             Data data = (Data) o;
 
-            if (adminStateUp != data.adminStateUp) return false;
+            if (!Objects.equal(type, data.type)) return false;
+            if (!Objects.equal(poolId, data.poolId)) return false;
             if (delay != data.delay) return false;
-            if (maxRetries != data.maxRetries) return false;
             if (timeout != data.timeout) return false;
-            if (poolId != null ? !poolId.equals(data.poolId)
-                    : data.poolId != null) return false;
-            if (type != null ? !type.equals(data.type)
-                    : data.type != null) return false;
+            if (maxRetries != data.maxRetries) return false;
+            if (adminStateUp != data.adminStateUp) return false;
 
             return true;
         }

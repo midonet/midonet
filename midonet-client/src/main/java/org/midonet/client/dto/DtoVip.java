@@ -67,7 +67,7 @@ public class DtoVip {
         this.sessionPersistence = sessionPersistence;
     }
 
-    public boolean getAdminStateUp() {
+    public boolean isAdminStateUp() {
         return adminStateUp;
     }
 
@@ -95,7 +95,7 @@ public class DtoVip {
         if (!Objects.equal(this.sessionPersistence,
                 that.getSessionPersistence()))
             return false;
-        if (this.adminStateUp != that.getAdminStateUp())
+        if (this.adminStateUp != that.isAdminStateUp())
             return false;
 
         return true;
@@ -103,7 +103,7 @@ public class DtoVip {
 
     @Override
     public int hashCode() {
-        int result = (id != null) ? id.hashCode() : 0;
+        int result = id != null ? id.hashCode() : 0;
         result = 31 * result
                 + (loadBalancerId != null ? loadBalancerId.hashCode() : 0);
         result = 31 * result

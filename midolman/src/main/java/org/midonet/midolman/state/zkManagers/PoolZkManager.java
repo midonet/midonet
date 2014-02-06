@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import com.google.common.base.Objects;
 import org.apache.zookeeper.ZooDefs;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.serialization.SerializationException;
@@ -70,30 +71,13 @@ public class PoolZkManager extends AbstractZkManager {
 
             PoolConfig that = (PoolConfig) o;
 
-            if (name != null ? !name.equals(that.name) : that.name != null)
-                return false;
-            if (description != null ? !description.equals(that.description)
-                    : that.description != null)
-                return false;
-            if (healthMonitorId != null ?
-                    !healthMonitorId.equals(that.healthMonitorId)
-                    : that.healthMonitorId != null)
-                return false;
-            if (subnetId != null ? !subnetId.equals(that.subnetId)
-                    : that.subnetId != null)
-                return false;
-            if (protocol != null ? !protocol.equals(that.protocol)
-                    : that.protocol != null)
-                return false;
-            if (lbMethod != null ? !lbMethod.equals(that.lbMethod)
-                    : that.lbMethod != null)
-                return false;
-            if (status != null ? !status.equals(that.status)
-                    : that.status != null)
-                return false;
-            if (adminStateUp != that.adminStateUp)
-                return false;
-
+            if (!Objects.equal(name, that.name)) return false;
+            if (!Objects.equal(description, that.description)) return false;
+            if (!Objects.equal(subnetId, that.subnetId)) return false;
+            if (!Objects.equal(protocol, that.protocol)) return false;
+            if (!Objects.equal(lbMethod, that.lbMethod)) return false;
+            if (adminStateUp != that.adminStateUp) return false;
+            if (!Objects.equal(status, that.status)) return false;
 
             return true;
         }
