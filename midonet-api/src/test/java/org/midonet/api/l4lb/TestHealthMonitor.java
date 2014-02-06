@@ -32,9 +32,9 @@ public class TestHealthMonitor {
 
     public static class TestHealthMonitorCrud extends JerseyTest {
 
-        private DtoWebResource dtoResource;
+        private DtoWebResource dtoWebResource;
         private Topology topology;
-        private URI healthMonitorsUri;
+        private URI topLevelHealthMonitorsUri;
 
         public TestHealthMonitorCrud() {
             super(FuncTest.appDesc);
@@ -44,13 +44,13 @@ public class TestHealthMonitor {
         public void setUp() {
 
             WebResource resource = resource();
-            dtoResource = new DtoWebResource(resource);
-            topology = new Topology.Builder(dtoResource).build();
+            dtoWebResource = new DtoWebResource(resource);
+            topology = new Topology.Builder(dtoWebResource).build();
             DtoApplication app = topology.getApplication();
 
             // URIs to use for operations
-            healthMonitorsUri = app.getHealthMonitors();
-            assertNotNull(healthMonitorsUri);
+            topLevelHealthMonitorsUri = app.getHealthMonitors();
+            assertNotNull(topLevelHealthMonitorsUri);
         }
 
         @After
@@ -59,12 +59,10 @@ public class TestHealthMonitor {
         }
 
         private void verifyNumberOfHealthMonitors(int num) {
-            ClientResponse response = resource().uri(healthMonitorsUri)
-                    .type(VendorMediaType.APPLICATION_HEALTH_MONITOR_JSON)
-                    .get(ClientResponse.class);
-            DtoHealthMonitor[] healthMonitors
-                    = response.getEntity(DtoHealthMonitor[].class);
-            assertEquals(200, response.getStatus());
+            DtoHealthMonitor[] healthMonitors = dtoWebResource.getAndVerifyOk(
+                    topLevelHealthMonitorsUri,
+                    VendorMediaType.APPLICATION_HEALTH_MONITOR_JSON,
+                    DtoHealthMonitor[].class);
             assertEquals(num, healthMonitors.length);
         }
 
@@ -77,7 +75,7 @@ public class TestHealthMonitor {
         }
 
         private URI postHealthMonitor(DtoHealthMonitor healthMonitor) {
-            ClientResponse response = resource().uri(healthMonitorsUri)
+            ClientResponse response = resource().uri(topLevelHealthMonitorsUri)
                     .type(VendorMediaType.APPLICATION_HEALTH_MONITOR_JSON)
                     .post(ClientResponse.class, healthMonitor);
             assertEquals(201, response.getStatus());
@@ -107,19 +105,20 @@ public class TestHealthMonitor {
 
         @Test
         public void testCrud() throws Exception {
+            int counter = 0;
 
             // HealthMonitors should be empty
-            verifyNumberOfHealthMonitors(0);
+            verifyNumberOfHealthMonitors(counter);
 
             // Post
             DtoHealthMonitor healthMonitor = getStockHealthMonitor();
             URI healthMonitorUri = postHealthMonitor(healthMonitor);
-            verifyNumberOfHealthMonitors(1);
+            verifyNumberOfHealthMonitors(++counter);
 
             // Post another
             DtoHealthMonitor healthMonitor2 = getStockHealthMonitor();
             URI healthMonitorUri2 = postHealthMonitor(healthMonitor2);
-            verifyNumberOfHealthMonitors(2);
+            verifyNumberOfHealthMonitors(++counter);
 
             // Get and check
             DtoHealthMonitor newHealthMonitor
@@ -130,9 +129,9 @@ public class TestHealthMonitor {
 
             // Delete
             deleteHealthMonitor(healthMonitorUri);
-            verifyNumberOfHealthMonitors(1);
+            verifyNumberOfHealthMonitors(--counter);
             deleteHealthMonitor(healthMonitorUri2);
-            verifyNumberOfHealthMonitors(0);
+            verifyNumberOfHealthMonitors(--counter);
         }
 
     }
