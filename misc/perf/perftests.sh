@@ -58,10 +58,6 @@ TOPOLOGY_DEST_NET=
 # Private globals
 #######################################################################
 
-# TODO - these scripts should be installed via a debian package and install
-#        their config in /etc
-CONFDIR=/home/midokura/code/qa/perf
-
 BASEDIR=/var/lib/midonet-perftests
 TMPDIR=/tmp/midonet-perftests
 LOGFILE=$TMPDIR/perftests.log
@@ -80,7 +76,7 @@ GRAPH_DIR=
 HEAP_DUMP_PATH=
 REPORT_DIR=
 
-MIDONET_SRC_DIR=/home/midokura/code/midonet
+MIDONET_SRC_DIR=../..
 
 GRAPH_START=
 GRAPH_END=
@@ -134,16 +130,20 @@ reset_logs() {
 
 do_cleanup() {
     test_phase "Cleaning up"
-    stop_jmxtrans
+    stop_service jmxtrans
     destroy_scenario
     stop_midolman
+    stop_service tomcat7
+    stop_service cassandra
+    stop_service zookeeper
+    rm -rf /var/lib/zookeeper/data
 }
 
 source_config() {
-    if [ -f $CONFDIR/profiles.d/$HOST/perftests.conf ] ; then
-        . $CONFDIR/profiles.d/$HOST/perftests.conf
-    elif [ -f $CONFDIR/profiles.d/default/perftests.conf ] ; then
-        . $CONFDIR/profiles.d/default/perftests.conf
+    if [ -f profiles.d/$HOST/perftests.conf ] ; then
+        . profiles.d/$HOST/perftests.conf
+    elif [ -f profiles.d/default/perftests.conf ] ; then
+        . profiles.d/default/perftests.conf
     fi
 }
 
@@ -151,8 +151,7 @@ assert_dependencies() {
     which midonet-cli || err_exit "midonet-cli not installed"
     which nmap || err_exit "nmap not installed"
     which rrdtool || err_exit "rrdtool not installed"
-    test -d $CONFDIR || err_exit "directory $CONFDIR not found"
-    test -d $MIDONET_SRC_DIR || err_exit "directory $MIDONET_SRC_DIR not found"
+    test -f $MIDONET_SRC_DIR/midolman/pom.xml || err_exit "directory $MIDONET_SRC_DIR not a midonet code checkout"
     test -f $HOME/.midonetrc || err_exit ".midonetrc not found in $HOME"
     test -f $UPLOAD_KEY || err_exit "upload ssh key not found at $UPLOAD_KEY"
 }
@@ -165,16 +164,18 @@ run_tests() {
     gather_build_info
     do_cleanup
     stop_jmxtrans
+    start_service zookeeper
+    start_service cassandra
+    start_service tomcat7
     source_config
     reset_logs
 
-    pushd $MIDONET_SRC_DIR
     install_midonet_api
     install_midolman
-    popd
 
     create_scenario
     setup_jmxtrans
+    connectivity_check
     warm_up
     test_throughput
     long_running_tests
@@ -228,12 +229,12 @@ install_config_file() {
     src=$1
     destdir=$2
 
-    if [ -f $CONFDIR/profiles.d/$HOST/$src ] ; then
+    if [ -f profiles.d/$HOST/$src ] ; then
         echo "installing file: $HOST/$src to $destdir"
-        cp $CONFDIR/profiles.d/$HOST/$src $destdir
-    elif [ -f $CONFDIR/profiles.d/default/$src ] ; then
+        cp profiles.d/$HOST/$src $destdir
+    elif [ -f profiles.d/default/$src ] ; then
         echo "installing file: default/$src to $destdir"
-        cp $CONFDIR/profiles.d/default/$src $destdir
+        cp profiles.d/default/$src $destdir
     fi
 }
 
@@ -254,6 +255,7 @@ find_deb() {
 }
 
 install_midonet_api() {
+    pushd $MIDONET_SRC_DIR
     test_phase "Installing MidoNet API"
     deb=`find_deb midonet-api/target`
     test -f "$deb" || err_exit "deb file not found at: $deb"
@@ -261,6 +263,7 @@ install_midonet_api() {
     /etc/init.d/tomcat7 stop
     dpkg --purge midonet-api
     dpkg -i $deb || err_exit "installing $deb"
+    popd
     /etc/init.d/tomcat7 start || err_exit "starting midonet-api"
     sleep 30
     /etc/init.d/tomcat7 status | grep "is running" >/dev/null
@@ -268,6 +271,7 @@ install_midonet_api() {
 }
 
 install_midolman() {
+    pushd $MIDONET_SRC_DIR
     test_phase "Installing Midolman"
     mm_deb=`find_deb midolman/target`
     test -f "$mm_deb" || err_exit "deb file not found at: $mm_deb"
@@ -276,6 +280,7 @@ install_midolman() {
     stop_midolman
     dpkg --purge midolman
     dpkg -i $mm_deb || err_exit "installing $mm_deb"
+    popd
 
     install_config_file midolman/logback.xml /etc/midolman/
     install_config_file midolman/midolman-akka.conf /etc/midolman/
@@ -301,18 +306,44 @@ stop_jmxtrans() {
     /etc/init.d/jmxtrans stop || err_exit "stopping jmxtrans"
 }
 
+stop_service() {
+    if [ -z $1 ] ; then
+        err_exit "Usage: stop_service NAME"
+    fi
+    test_phase "Stopping $1"
+    /etc/init.d/$1 stop
+}
+
+start_service() {
+    if [ -z $1 ] ; then
+        err_exit "Usage: start_service NAME"
+    fi
+    test_phase "Starting $1"
+    /etc/init.d/$1 start || err_exit "starting $1"
+}
+
 setup_jmxtrans() {
     test_phase "Setting up jmxtrans"
     install_config_file jmxtrans/default /etc/default/jmxtrans
     mkdir -p $TMP_RRDDIR
     chown jmxtrans $TMP_RRDDIR
-    /etc/init.d/jmxtrans start || err_exit "starting jmxtrans"
+    rm -rf $TMPDIR/jmxtrans-templates
+    cp -a jmxtrans/templates $TMPDIR/jmxtrans-templates
+    rm -rf $TMPDIR/jmxtrans-json
+    cp -a jmxtrans/json $TMPDIR/jmxtrans-json
+    start_service jmxtrans
     GRAPH_START=`date +%s`
 }
 
 #######################################################################
 # Actual tests
 #######################################################################
+
+connectivity_check() {
+    test_phase "Connectivity check"
+    ip netns exec $TOPOLOGY_SOURCE_NETNS ping -c 10 $TOPOLOGY_DEST_HOST || \
+        err_exit "No connectivity between namespaces"
+}
 
 warm_up() {
     test_phase "Warming up midolman"
@@ -604,7 +635,7 @@ cleanup_ns() {
     nsif="${ns}ns"
 
     ip netns list | grep "^$ns$" >/dev/null
-    if [ $? -eq 0 ] ; then
+    if [ $? -eq 1 ] ; then
         return 0
     fi
 

@@ -9,7 +9,7 @@
       "outputWriters" : [ {
         "@class" : "com.googlecode.jmxtrans.model.output.RRDToolWriter",
         "settings" : {
-            "templateFile" : "/home/midokura/code/qa/perf/jmxtrans/templates/mem-cms.xml",
+            "templateFile" : "/tmp/midonet-perftests/jmxtrans-templates/mem-cms.xml",
             "outputFile" : "/tmp/midonet-perftests/target/mem-cms.rrd",
             "binaryPath" : "/usr/bin",
             "typeNames" : []
@@ -22,7 +22,7 @@
       "outputWriters" : [ {
         "@class" : "com.googlecode.jmxtrans.model.output.RRDToolWriter",
         "settings" : {
-            "templateFile" : "/home/midokura/code/qa/perf/jmxtrans/templates/mem-eden.xml",
+            "templateFile" : "/tmp/midonet-perftests/jmxtrans-templates/mem-eden.xml",
             "outputFile" : "/tmp/midonet-perftests/target/mem-eden.rrd",
             "binaryPath" : "/usr/bin",
             "typeNames" : []
@@ -35,7 +35,7 @@
       "outputWriters" : [ {
         "@class" : "com.googlecode.jmxtrans.model.output.RRDToolWriter",
         "settings" : {
-            "templateFile" : "/home/midokura/code/qa/perf/jmxtrans/templates/mem-survivor.xml",
+            "templateFile" : "/tmp/midonet-perftests/jmxtrans-templates/mem-survivor.xml",
             "outputFile" : "/tmp/midonet-perftests/target/mem-survivor.rrd",
             "binaryPath" : "/usr/bin",
             "typeNames" : []
@@ -48,7 +48,7 @@
       "outputWriters" : [ {
         "@class" : "com.googlecode.jmxtrans.model.output.RRDToolWriter",
         "settings" : {
-            "templateFile" : "/home/midokura/code/qa/perf/jmxtrans/templates/cpu-rrd-template.xml",
+            "templateFile" : "/tmp/midonet-perftests/jmxtrans-templates/cpu-rrd-template.xml",
             "outputFile" : "/tmp/midonet-perftests/target/cpu.rrd",
             "binaryPath" : "/usr/bin",
             "typeNames" : ["name"]
@@ -63,7 +63,7 @@
       "outputWriters" : [ {
         "@class" : "com.googlecode.jmxtrans.model.output.RRDToolWriter",
         "settings" : {
-            "templateFile" : "/home/midokura/code/qa/perf/jmxtrans/templates/sim-latencies.xml",
+            "templateFile" : "/tmp/midonet-perftests/jmxtrans-templates/sim-latencies.xml",
             "outputFile" : "/tmp/midonet-perftests/target/sim-latencies.rrd",
             "binaryPath" : "/usr/bin",
             "typeNames" : []
@@ -77,7 +77,7 @@
       "outputWriters" : [ {
         "@class" : "com.googlecode.jmxtrans.model.output.RRDToolWriter",
         "settings" : {
-            "templateFile" : "/home/midokura/code/qa/perf/jmxtrans/templates/wildtable-latencies.xml",
+            "templateFile" : "/tmp/midonet-perftests/jmxtrans-templates/wildtable-latencies.xml",
             "outputFile" : "/tmp/midonet-perftests/target/wildtable-latencies.rrd",
             "binaryPath" : "/usr/bin",
             "typeNames" : []
@@ -91,7 +91,7 @@
       "outputWriters" : [ {
         "@class" : "com.googlecode.jmxtrans.model.output.RRDToolWriter",
         "settings" : {
-            "templateFile" : "/home/midokura/code/qa/perf/jmxtrans/templates/portset-latencies.xml",
+            "templateFile" : "/tmp/midonet-perftests/jmxtrans-templates/portset-latencies.xml",
             "outputFile" : "/tmp/midonet-perftests/target/portset-latencies.rrd",
             "binaryPath" : "/usr/bin",
             "typeNames" : []
@@ -103,7 +103,7 @@
       "outputWriters" : [ {
         "@class" : "com.googlecode.jmxtrans.model.output.RRDToolWriter",
         "settings" : {
-            "templateFile" : "/home/midokura/code/qa/perf/jmxtrans/templates/packet-meter.xml",
+            "templateFile" : "/tmp/midonet-perftests/jmxtrans-templates/packet-meter.xml",
             "outputFile" : "/tmp/midonet-perftests/target/packet-meter.rrd",
             "binaryPath" : "/usr/bin",
             "typeNames" : []
@@ -115,7 +115,7 @@
       "outputWriters" : [ {
         "@class" : "com.googlecode.jmxtrans.model.output.RRDToolWriter",
         "settings" : {
-            "templateFile" : "/home/midokura/code/qa/perf/jmxtrans/templates/sim-meter.xml",
+            "templateFile" : "/tmp/midonet-perftests/jmxtrans-templates/sim-meter.xml",
             "outputFile" : "/tmp/midonet-perftests/target/sim-meter.rrd",
             "binaryPath" : "/usr/bin",
             "typeNames" : []
@@ -127,7 +127,7 @@
       "outputWriters" : [ {
         "@class" : "com.googlecode.jmxtrans.model.output.RRDToolWriter",
         "settings" : {
-            "templateFile" : "/home/midokura/code/qa/perf/jmxtrans/templates/wildtable-meter.xml",
+            "templateFile" : "/tmp/midonet-perftests/jmxtrans-templates/wildtable-meter.xml",
             "outputFile" : "/tmp/midonet-perftests/target/wildtable-meter.rrd",
             "binaryPath" : "/usr/bin",
             "typeNames" : []
@@ -139,7 +139,7 @@
       "outputWriters" : [ {
         "@class" : "com.googlecode.jmxtrans.model.output.RRDToolWriter",
         "settings" : {
-            "templateFile" : "/home/midokura/code/qa/perf/jmxtrans/templates/portset-meter.xml",
+            "templateFile" : "/tmp/midonet-perftests/jmxtrans-templates/portset-meter.xml",
             "outputFile" : "/tmp/midonet-perftests/target/portset-meter.rrd",
             "binaryPath" : "/usr/bin",
             "typeNames" : []
@@ -151,7 +151,7 @@
       "outputWriters" : [ {
         "@class" : "com.googlecode.jmxtrans.model.output.RRDToolWriter",
         "settings" : {
-            "templateFile" : "/home/midokura/code/qa/perf/jmxtrans/templates/sim-times.xml",
+            "templateFile" : "/tmp/midonet-perftests/jmxtrans-templates/sim-times.xml",
             "outputFile" : "/tmp/midonet-perftests/target/sim-times.rrd",
             "binaryPath" : "/usr/bin",
             "typeNames" : ["name"]
@@ -163,7 +163,7 @@
       "outputWriters" : [ {
         "@class" : "com.googlecode.jmxtrans.model.output.RRDToolWriter",
         "settings" : {
-            "templateFile" : "/home/midokura/code/qa/perf/jmxtrans/templates/wildtable-times.xml",
+            "templateFile" : "/tmp/midonet-perftests/jmxtrans-templates/wildtable-times.xml",
             "outputFile" : "/tmp/midonet-perftests/target/wildtable-times.rrd",
             "binaryPath" : "/usr/bin",
             "typeNames" : ["name"]
@@ -175,7 +175,7 @@
       "outputWriters" : [ {
         "@class" : "com.googlecode.jmxtrans.model.output.RRDToolWriter",
         "settings" : {
-            "templateFile" : "/home/midokura/code/qa/perf/jmxtrans/templates/portset-times.xml",
+            "templateFile" : "/tmp/midonet-perftests/jmxtrans-templates/portset-times.xml",
             "outputFile" : "/tmp/midonet-perftests/target/portset-times.rrd",
             "binaryPath" : "/usr/bin",
             "typeNames" : ["name"]
@@ -188,7 +188,7 @@
       "outputWriters" : [ {
         "@class" : "com.googlecode.jmxtrans.model.output.RRDToolWriter",
         "settings" : {
-            "templateFile" : "/home/midokura/code/qa/perf/jmxtrans/templates/pipeline-gauges.xml",
+            "templateFile" : "/tmp/midonet-perftests/jmxtrans-templates/pipeline-gauges.xml",
             "outputFile" : "/tmp/midonet-perftests/target/pipeline-gauges.rrd",
             "binaryPath" : "/usr/bin",
             "typeNames" : ["name"]
@@ -200,7 +200,7 @@
       "outputWriters" : [ {
         "@class" : "com.googlecode.jmxtrans.model.output.RRDToolWriter",
         "settings" : {
-            "templateFile" : "/home/midokura/code/qa/perf/jmxtrans/templates/pipeline-drops.xml",
+            "templateFile" : "/tmp/midonet-perftests/jmxtrans-templates/pipeline-drops.xml",
             "outputFile" : "/tmp/midonet-perftests/target/pipeline-drops.rrd",
             "binaryPath" : "/usr/bin",
             "typeNames" : []
@@ -212,7 +212,7 @@
       "outputWriters" : [ {
         "@class" : "com.googlecode.jmxtrans.model.output.RRDToolWriter",
         "settings" : {
-            "templateFile" : "/home/midokura/code/qa/perf/jmxtrans/templates/wildflows.xml",
+            "templateFile" : "/tmp/midonet-perftests/jmxtrans-templates/wildflows.xml",
             "outputFile" : "/tmp/midonet-perftests/target/wildflows.rrd",
             "binaryPath" : "/usr/bin",
             "typeNames" : ["name"]
@@ -224,7 +224,7 @@
       "outputWriters" : [ {
         "@class" : "com.googlecode.jmxtrans.model.output.RRDToolWriter",
         "settings" : {
-            "templateFile" : "/home/midokura/code/qa/perf/jmxtrans/templates/dpflows.xml",
+            "templateFile" : "/tmp/midonet-perftests/jmxtrans-templates/dpflows.xml",
             "outputFile" : "/tmp/midonet-perftests/target/dpflows.rrd",
             "binaryPath" : "/usr/bin",
             "typeNames" : ["name"]
@@ -236,7 +236,7 @@
       "outputWriters" : [ {
         "@class" : "com.googlecode.jmxtrans.model.output.RRDToolWriter",
         "settings" : {
-            "templateFile" : "/home/midokura/code/qa/perf/jmxtrans/templates/dpflows-meter.xml",
+            "templateFile" : "/tmp/midonet-perftests/jmxtrans-templates/dpflows-meter.xml",
             "outputFile" : "/tmp/midonet-perftests/target/dpflows-meter.rrd",
             "binaryPath" : "/usr/bin",
             "typeNames" : []
@@ -248,7 +248,7 @@
       "outputWriters" : [ {
         "@class" : "com.googlecode.jmxtrans.model.output.RRDToolWriter",
         "settings" : {
-            "templateFile" : "/home/midokura/code/qa/perf/jmxtrans/templates/wildflows-meter.xml",
+            "templateFile" : "/tmp/midonet-perftests/jmxtrans-templates/wildflows-meter.xml",
             "outputFile" : "/tmp/midonet-perftests/target/wildflows-meter.rrd",
             "binaryPath" : "/usr/bin",
             "typeNames" : []

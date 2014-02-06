@@ -24,15 +24,15 @@ through the following phases:
 
 * Redirect a copy of its own output to a logfile that will be collected at the
   end - `start_logging()`.
-* Check that `$MIDONET_SRC_DIR` contains a checkout of the midonet repo with
-  built debian packages. Gather build and environment information.
-  `gather_build_info()`
+* Check that the source tree contains successfully built debian packages.
+  Gather build and environment information. `gather_build_info()`
 * Stop midolman and jmxtrans, invoke the chosen scenario's cleanup method.
   `do_cleanup()`.
+* Wipe out the zookeeper data directory.
 * Source the tests configuration, based on the hostname if a file for it exists
   in the profiles.d directory, or the default one otherwise. Test configuration
   dictates the length and packet rate for the tests.
-* Install the midonet-api and midolman packages found in `$MIDONET_SRC_DIR`.
+* Install the midonet-api and midolman packages found in this source tree.
 * Add two network namespaces and invoke the chosen scenario's `setup_topology`
   method. `create_scenario()`. See below for details on how to create a new
   scenario.
@@ -50,6 +50,7 @@ through the following phases:
 * Stop jmxtrans.
 * Collect a midolman heapdump.
 * Stop midolman and tear down the scenario.
+* Wipe out the zookeeper data directory again.
 * Create the graphs and collect all data for the report.
 * Post everything to the reports server.
 
@@ -71,6 +72,8 @@ The following dependencies need to be installed:
 * Ovs kmod
 * Jmxtrans
 * RRDtool
+* Zookeeper
+* Cassandra
 
 Also,
 * Zookeeper and Cassandra are installed and running (starting/stopping them is a
@@ -83,6 +86,8 @@ Also,
 * Similarly, template file locations specified in
   qa/perf/jmxtrans/json/midolman.json need to point to corresponding template
   files under `$CONFDIR`/jmxtrans/templates.
+* Packages in this source tree have been built prior to invokation of
+  perftests.sh.
 
 ## Running a performance test
 
@@ -95,7 +100,7 @@ file present on this same directory.
 
 The following command line runs a performance test on the most basic topology:
 
-`# ./perftests.sh basic_topology`
+`# ./perftests.sh basic`
 
 Because tests run for a while, it's often useful to keep a loose eye on the
 output and to run them under hohup, screen or similar.
