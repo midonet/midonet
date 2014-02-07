@@ -173,24 +173,16 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         if (datapathId == null && name == null) {
             callback.onError(new OvsDatapathInvalidParametersException(
-                "Either a datapath ID or a datapath name should be provided"));
+                "Either a datapath id or a datapath name should be provided"));
             return;
         }
 
-        Builder builder = newMessage();
-
-        builder.addValue(datapathId != null ? datapathId : 0);
-
-        if (name != null) {
-            builder.addAttr(DatapathFamily.Attr.NAME, name);
-        }
-
-        NetlinkMessage message = builder.build();
+        int dpId = datapathId != null ? datapathId : 0;
 
         sendNetlinkMessage(
             datapathFamily.contextGet,
             Flag.or(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO),
-            message.getBuffer(),
+            Datapath.getRequest(getBuffer(), dpId, name),
             callback,
             Datapath.deserializer,
             timeoutMillis);
@@ -202,18 +194,13 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         if (!validateState(callback))
             return;
 
-        Builder builder = newMessage();
-        builder.addValue(0);
-        NetlinkMessage message = builder.build();
-
         sendNetlinkMessage(
             datapathFamily.contextGet,
             Flag.or(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO, Flag.NLM_F_DUMP),
-            message.getBuffer(),
+            Datapath.enumRequest(getBuffer()),
             callback,
             Datapath.setDeserializer,
             timeoutMillis);
-
     }
 
     @Override
@@ -225,20 +212,13 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         int localPid = getChannel().getLocalAddress().getPid();
 
-        Builder builder = newMessage();
-        builder.addValue(0);
-        builder.addAttr(DatapathFamily.Attr.UPCALL_PID, localPid);
-        builder.addAttr(DatapathFamily.Attr.NAME, name);
-        NetlinkMessage message = builder.build();
-
         sendNetlinkMessage(
             datapathFamily.contextNew,
             Flag.or(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO),
-            message.getBuffer(),
+            Datapath.createRequest(getBuffer(), localPid, name),
             callback,
             Datapath.deserializer,
             timeoutMillis);
-
     }
 
     @Override
@@ -254,20 +234,12 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             return;
         }
 
-        Builder builder = newMessage();
-
-        builder.addValue(datapathId != null ? datapathId : 0);
-
-        if (name != null) {
-            builder.addAttr(DatapathFamily.Attr.NAME, name);
-        }
-
-        NetlinkMessage message = builder.build();
+        int dpId = datapathId != null ? datapathId : 0;
 
         sendNetlinkMessage(
             datapathFamily.contextDel,
             Flag.or(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO),
-            message.getBuffer(),
+            Datapath.getRequest(getBuffer(), dpId, name),
             callback,
             Datapath.deserializer,
             timeoutMillis);
