@@ -184,8 +184,8 @@ public class ICMP extends BasePacket {
         int length = HEADER_LEN + ((data == null) ? 0 : data.length);
         byte[] bytes = new byte[length];
         ByteBuffer bb = ByteBuffer.wrap(bytes);
-        bb.put((byte)type);
-        bb.put((byte)code);
+        bb.put(type);
+        bb.put(code);
         bb.putShort(checksum);
         bb.putInt(quench);
 

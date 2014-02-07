@@ -1,42 +1,45 @@
-/* Copyright 2013 Midokura Inc. */
+/*
+ * Copyright (c) 2013 Midokura Europe SARL, All Rights Reserved.
+ */
 
 package org.midonet.packets
 
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
-import org.scalatest.Suite
-import org.scalatest.matchers.ShouldMatchers
 import java.util.Random
+
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.scalatest.Matchers
+import org.scalatest.Suite
+import org.scalatest.junit.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class IPv6AddrTest extends Suite with ShouldMatchers {
+class IPv6AddrTest extends Suite with Matchers {
 
     val ippool = List.tabulate(1000) { _ => IPv6Addr.random }
 
     def testNext() {
         var ip = IPv6Addr.fromString("f00f:4004:2003:2002:3ddd:6666:4934:1")
-        ip.next.toString() should be === "f00f:4004:2003:2002:3ddd:6666:4934:2"
+        ip.next.toString() shouldEqual "f00f:4004:2003:2002:3ddd:6666:4934:2"
 
         ip = IPv6Addr.fromString("f00f:4004:2003:2002:3ddd:6666:4934:ffff")
-        ip.next.toString() should be === "f00f:4004:2003:2002:3ddd:6666:4935:0"
+        ip.next.toString() shouldEqual "f00f:4004:2003:2002:3ddd:6666:4935:0"
     }
 
     def testNextOverflows() {
         val ip1 = IPv6Addr.fromString("f00f:4004:2003:2002:ffff:ffff:ffff:ffff")
         ip1.lowerWord should be(-1)
 
-        ip1.next.toString() should be === "f00f:4004:2003:2003:0:0:0:0"
+        ip1.next.toString() shouldEqual "f00f:4004:2003:2003:0:0:0:0"
         ip1.next.lowerWord should be(0)
 
         val ip2 = IPv6Addr.fromString("f00f:4004:2003:2002:7fff:ffff:ffff:ffff")
-        ip2.next.toString() should be === "f00f:4004:2003:2002:8000:0:0:0"
+        ip2.next.toString() shouldEqual "f00f:4004:2003:2002:8000:0:0:0"
 
         val ip3 = IPv6Addr.fromString("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff")
         ip3.upperWord should be(-1)
         ip3.lowerWord should be(-1)
 
-        ip3.next.toString() should be === "0:0:0:0:0:0:0:0"
+        ip3.next.toString() shouldEqual "0:0:0:0:0:0:0:0"
         ip3.next.upperWord should be(0)
         ip3.next.lowerWord should be(0)
     }
@@ -46,10 +49,10 @@ class IPv6AddrTest extends Suite with ShouldMatchers {
         val end = IPv6Addr.fromString("f00f:4004:2003:2002:0:0:1:ffff")
 
         val a = start.randomTo(end, new FakeRandom(1))
-        a.toString() should be === "f00f:4004:2003:2002:0:0:0:fff7"
+        a.toString() shouldEqual "f00f:4004:2003:2002:0:0:0:fff7"
 
         val b = start.randomTo(end, new FakeRandom(0x1f))
-        b.toString() should be === "f00f:4004:2003:2002:0:0:1:15"
+        b.toString() shouldEqual "f00f:4004:2003:2002:0:0:1:15"
     }
 
     def testCompare() {
@@ -70,11 +73,11 @@ class IPv6AddrTest extends Suite with ShouldMatchers {
         // If the random is larger than the end-start gap, should be normalized
         // The difference is 9, so 15%9 = +6
         val a = start.randomTo(end, new FakeRandom(0xf))
-        a.toString() should be === "f00f:4004:2003:2002:ffff:ffff:ffff:fffc"
+        a.toString() shouldEqual "f00f:4004:2003:2002:ffff:ffff:ffff:fffc"
 
         // If the random is smaller
         val b = start.randomTo(end, new FakeRandom(0x2))
-        b.toString() should be === "f00f:4004:2003:2002:ffff:ffff:ffff:fff8"
+        b.toString() shouldEqual "f00f:4004:2003:2002:ffff:ffff:ffff:fff8"
     }
 
     /**
@@ -85,13 +88,7 @@ class IPv6AddrTest extends Suite with ShouldMatchers {
     def testRandomSubnetTooBig() {
         val start = IPv6Addr.fromString("f00f:4004:2003:2002:ffff:ffff:ffff:fff6")
         val end = IPv6Addr.fromString("f00f:4004:2003:2003:ffff:ffff:ffff:fff0")
-        try {
-            start.randomTo(end, null)
-            fail("Expecting IllegalArgumentException")
-        } catch {
-            case e: IllegalArgumentException => // ok
-            case e => fail("Unexpected exception {}", e)
-        }
+        intercept[IllegalArgumentException] { start.randomTo(end, null) }
     }
 
     class FakeRandom(val forceNextLong: Long) extends Random {
