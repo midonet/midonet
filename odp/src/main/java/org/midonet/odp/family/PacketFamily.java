@@ -13,46 +13,39 @@ import org.midonet.odp.flows.FlowKey;
 import org.midonet.packets.Ethernet;
 
 /**
- *
+ * Abstraction for the NETLINK OvsPacket family of commands and attributes.
  */
 public class PacketFamily {
 
     public static final String NAME = OpenVSwitch.Packet.Family;
     public static final byte VERSION = OpenVSwitch.Packet.version;
 
-    public static class AttrKey<T> extends NetlinkMessage.AttrKey<T> {
+    public interface AttrKey {
 
         /**
          * Packet data.
          */
-        public static final AttrKey<Ethernet> PACKET =
-            attr(OpenVSwitch.Packet.Attr.Packet);
+        NetlinkMessage.AttrKey<Ethernet> PACKET =
+            NetlinkMessage.AttrKey.attr(OpenVSwitch.Packet.Attr.Packet);
 
         /**
          * Nested OVS_KEY_ATTR_* attributes.
          */
-        public static final AttrKey<List<FlowKey>> KEY =
-            attr(OpenVSwitch.Packet.Attr.Key);
+        NetlinkMessage.AttrKey<List<FlowKey>> KEY =
+            NetlinkMessage.AttrKey.attr(OpenVSwitch.Packet.Attr.Key);
 
         /**
          * Nested OVS_ACTION_ATTR_* attributes.
          */
-        public static final AttrKey<List<FlowAction>> ACTIONS =
-            attr(OpenVSwitch.Packet.Attr.Actions);
+        NetlinkMessage.AttrKey<List<FlowAction>> ACTIONS =
+            NetlinkMessage.AttrKey.attr(OpenVSwitch.Packet.Attr.Actions);
 
         /**
          * u64 OVS_ACTION_ATTR_USERSPACE arg.
          */
-        public static final AttrKey<Long> USERDATA =
-            attr(OpenVSwitch.Packet.Attr.Userdata);
+        NetlinkMessage.AttrKey<Long> USERDATA =
+            NetlinkMessage.AttrKey.attr(OpenVSwitch.Packet.Attr.Userdata);
 
-        public AttrKey(int id) {
-            super(id);
-        }
-
-        static <T> AttrKey<T> attr(int id) {
-            return new AttrKey<T>(id);
-        }
     }
 
     public final short familyId;
