@@ -986,6 +986,45 @@ public class ZkPathManager {
     }
 
     /**
+     * Get ZK chain refs path.
+     *
+     * @param chainId Chain UUID
+     * @return /chains/chainId/refs
+     */
+    public String getChainBackRefsPath(UUID chainId) {
+        return buildChainBackRefsPath(chainId).toString();
+    }
+
+    private StringBuilder buildChainBackRefsPath(UUID chainId) {
+        return buildChainPath(chainId).append("/refs");
+    }
+
+    /**
+     * Get ZK chain ref path.
+     *
+     * @param chainId Chain UUID
+     * @return /chains/chainId/refs/type:deviceId
+     */
+    public String getChainBackRefPath(UUID chainId, String deviceType,
+                                      UUID deviceId) {
+        return buildChainBackRefPath(chainId, deviceType, deviceId).toString();
+    }
+
+    private StringBuilder buildChainBackRefPath(UUID chainId, String deviceType,
+                                                UUID deviceId) {
+        return buildChainBackRefsPath(chainId)
+                .append("/" + deviceType + ":" + deviceId);
+    }
+
+    public String getTypeFromBackRef(String backRef) {
+        return backRef.split(":")[0];
+    }
+
+    public UUID getUUIDFromBackRef(String backRef) {
+        return UUID.fromString(backRef.split(":")[1]);
+    }
+
+    /**
      * Get ZK router routing table path.
      *
      * @param routerId Router UUID

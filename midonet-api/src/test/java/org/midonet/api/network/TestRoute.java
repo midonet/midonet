@@ -322,16 +322,22 @@ public class TestRoute {
             b1.setName("bridge1-name");
             b1.setTenantId("tenant1-id");
 
+            // Create a chain
+            DtoRuleChain c1 = new DtoRuleChain();
+            c1.setId(UUID.randomUUID());
+            c1.setName("chain1-name");
+            c1.setTenantId("tenant1-id");
+
             // Create a router port
             DtoRouterPort r1Lp1 = TestPort.createRouterPort(null, null,
                 "10.0.0.0", 24, "10.0.0.1");
 
             // Create a bridge port
-            UUID inboundFilterUuid = UUID.randomUUID();
             DtoBridgePort b1Lp1 = TestPort.createBridgePort(null, null,
-                inboundFilterUuid, null, null);
+                    c1.getId(), null, null);
 
             topology = new Topology.Builder(dtoResource)
+                .create("chain1", c1)
                 .create("router1", r1)
                 .create("bridge1", b1)
                 .create("router1", "router1Port1", r1Lp1)

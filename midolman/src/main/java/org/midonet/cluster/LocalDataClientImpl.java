@@ -482,10 +482,7 @@ public class LocalDataClientImpl implements DataClient {
                 bridge);
 
         // Update the config
-        Op op = bridgeZkManager.prepareUpdate(bridge.getId(), bridgeConfig);
-        if (op != null) {
-            ops.add(op);
-        }
+        ops.addAll(bridgeZkManager.prepareUpdate(bridge.getId(), bridgeConfig));
 
         // Update index if the name changed
         String oldName = oldBridge.getData().name;

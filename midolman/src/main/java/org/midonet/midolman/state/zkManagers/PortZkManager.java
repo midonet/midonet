@@ -4,11 +4,7 @@
  */
 package org.midonet.midolman.state.zkManagers;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -39,6 +35,7 @@ public class PortZkManager extends AbstractZkManager {
     private FiltersZkManager filterZkManager;
     private BgpZkManager bgpManager;
     private RouteZkManager routeZkManager;
+    private ChainZkManager chainZkManager;
 
     /**
      * Initializes a PortZkManager object with a ZooKeeper client and the root
@@ -58,6 +55,7 @@ public class PortZkManager extends AbstractZkManager {
         this.filterZkManager = new FiltersZkManager(zk, paths, serializer);
         this.bgpManager = new BgpZkManager(zk, paths, serializer);
         this.routeZkManager = new RouteZkManager(zk, paths, serializer);
+        this.chainZkManager = new ChainZkManager(zk, paths, serializer);
     }
 
     public PortZkManager(Directory zk, String basePath, Serializer serializer) {
@@ -217,16 +215,28 @@ public class PortZkManager extends AbstractZkManager {
 
     public List<Op> prepareCreate(UUID id, PortConfig config)
             throws StateAccessException, SerializationException {
+
+        List<Op> ops = new ArrayList<Op>();
+        if (config.inboundFilter != null) {
+            ops.addAll(chainZkManager.prepareChainBackRefCreate(
+                    config.inboundFilter, ResourceType.PORT, id));
+        }
+        if (config.outboundFilter != null) {
+            ops.addAll(chainZkManager.prepareChainBackRefCreate(
+                    config.outboundFilter, ResourceType.PORT, id));
+        }
         if (config instanceof PortDirectory.RouterPortConfig) {
-            return prepareCreate(id,
-                    (PortDirectory.RouterPortConfig) config);
+            ops.addAll(prepareCreate(id,
+                    (PortDirectory.RouterPortConfig) config));
         } else if (config instanceof PortDirectory.BridgePortConfig) {
-            return prepareCreate(id,
-                    (PortDirectory.BridgePortConfig) config);
+            ops.addAll(prepareCreate(id,
+                    (PortDirectory.BridgePortConfig) config));
         } else {
             throw new IllegalArgumentException("Unknown port type found " +
                                  ((config != null) ? config.getClass() : null));
         }
+
+        return ops;
     }
 
     public UUID create(PortConfig port) throws StateAccessException,
@@ -357,6 +367,24 @@ public class PortZkManager extends AbstractZkManager {
         return ops;
     }
 
+    public List<Op> prepareClearRefsToChains(UUID id, UUID chainId)
+            throws SerializationException, StateAccessException {
+        Boolean dataChanged = false;
+        PortConfig config = get(id);
+        if (config.inboundFilter.equals(chainId)) {
+            config.inboundFilter = null;
+            dataChanged = true;
+        }
+        if (config.outboundFilter.equals(chainId)) {
+            config.outboundFilter = null;
+            dataChanged = true;
+        }
+        return dataChanged ?
+                Collections.singletonList(Op.setData(paths.getPortPath(id),
+                        serializer.serialize(config), -1)) :
+                Collections.<Op>emptyList();
+    }
+
     public List<Op> prepareUpdate(UUID id, PortConfig config)
             throws StateAccessException, SerializationException {
         List<Op> ops = new ArrayList<Op>();
@@ -364,6 +392,10 @@ public class PortZkManager extends AbstractZkManager {
         // Get the old port config so that we can find differences created from
         // this update that requires other ZK directories to be updated.
         PortConfig oldConfig = get(id);
+
+        ops.addAll(chainZkManager.prepareUpdateFilterBackRef(
+                ResourceType.PORT, oldConfig.inboundFilter, config.inboundFilter,
+                oldConfig.outboundFilter, config.outboundFilter, id));
 
         // Copy over only the fields that can be updated.
         // portAddr is not among them, otherwise we would have to update the
@@ -518,19 +550,30 @@ public class PortZkManager extends AbstractZkManager {
             return ops;
         }
 
+        if (config.inboundFilter != null) {
+            ops.addAll(chainZkManager.prepareChainBackRefDelete(
+                    config.inboundFilter, ResourceType.PORT, id));
+        }
+        if (config.outboundFilter != null) {
+            ops.addAll(chainZkManager.prepareChainBackRefDelete(
+                    config.outboundFilter, ResourceType.PORT, id));
+        }
+
         // TODO: Find a way to not use instanceof here. Perhaps we should
         // create an Op collection builder class for Port that PortDirectory
         // class takes in as a member. Then we can invoke:
         // portDirectory.prepareDeleteOps();
         if (config instanceof PortDirectory.RouterPortConfig) {
-            return prepareDelete(id,
-                    (PortDirectory.RouterPortConfig) config);
+            ops.addAll(prepareDelete(id,
+                    (PortDirectory.RouterPortConfig) config));
         } else if (config instanceof PortDirectory.BridgePortConfig) {
-            return prepareDelete(id,
-                    (PortDirectory.BridgePortConfig) config);
+            ops.addAll(prepareDelete(id,
+                    (PortDirectory.BridgePortConfig) config));
         } else {
             throw new IllegalArgumentException("Unknown port type found.");
         }
+
+        return ops;
     }
 
     public Set<UUID> listPortIDs(String path, Runnable watcher)
