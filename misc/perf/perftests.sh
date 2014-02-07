@@ -148,7 +148,7 @@ source_config() {
 
 assert_dependencies() {
     which midonet-cli || err_exit "midonet-cli not installed"
-    which nmap || err_exit "nmap not installed"
+    which mz || err_exit "mz not installed"
     which rrdtool || err_exit "rrdtool not installed"
     test -f $MIDONET_SRC_DIR/midolman/pom.xml || err_exit "directory $MIDONET_SRC_DIR not a midonet code checkout"
     test -f $HOME/.midonetrc || err_exit ".midonetrc not found in $HOME"
@@ -346,12 +346,12 @@ connectivity_check() {
 
 warm_up() {
     test_phase "Warming up midolman"
-    # 100 pkts/sec, 10ms between probes, 6000 ports, 10 scans
+    # 10ms between probes, roughly equals 100 pkts/sec, 6000 ports, 10 scans
     # it should take close to 10 minutes
     i=0
     while [ $i -lt 10 ] ; do
         let i=i+1
-        port_scan 100 10 6000 $TOPOLOGY_SOURCE_NETNS $TOPOLOGY_DEST_HOST
+        port_scan 10000 6000 $TOPOLOGY_SOURCE_NETNS $TOPOLOGY_DEST_HOST
     done
     sleep 90
 }
@@ -360,7 +360,8 @@ test_throughput() {
     test_phase "Find max throughput in 65k port scans"
     rate=1000
     while [ $rate -le $THROUGHPUT_SCAN_MAX_RATE ] ; do
-        port_scan $rate 1 65000 $TOPOLOGY_SOURCE_NETNS $TOPOLOGY_DEST_HOST
+        delay=$((1000000 / rate))  # in usec
+        port_scan $delay 65000 $TOPOLOGY_SOURCE_NETNS $TOPOLOGY_DEST_HOST
         let rate=rate+500
         sleep 10
     done
@@ -373,44 +374,43 @@ long_running_tests() {
     i=0
     while [ $i -lt $iterations ] ; do
         let i=i+1
-        port_scan $rate 1 50000 $TOPOLOGY_SOURCE_NETNS $TOPOLOGY_DEST_HOST
+        delay=$((1000000 / rate))  # in usec
+        port_scan $delay 50000 $TOPOLOGY_SOURCE_NETNS $TOPOLOGY_DEST_HOST
     done
 }
 
 port_scan() {
     if [ -z $1 ] ; then
-        err_exit "Usage: port_scan RATE DELAY NUM_PORTS NAMESPACE DESTINATION"
+        err_exit "Usage: port_scan DELAY_USEC NUM_PORTS NAMESPACE DESTINATION"
     fi
     if [ -z $2 ] ; then
-        err_exit "Usage: port_scan RATE DELAY NUM_PORTS NAMESPACE DESTINATION"
+        err_exit "Usage: port_scan DELAY_USEC NUM_PORTS NAMESPACE DESTINATION"
     fi
     if [ -z $3 ] ; then
-        err_exit "Usage: port_scan RATE DELAY NUM_PORTS NAMESPACE DESTINATION"
+        err_exit "Usage: port_scan DELAY_USEC NUM_PORTS NAMESPACE DESTINATION"
     fi
     if [ -z $4 ] ; then
-        err_exit "Usage: port_scan RATE DELAY NUM_PORTS NAMESPACE DESTINATION"
-    fi
-    if [ -z $5 ] ; then
-        err_exit "Usage: port_scan RATE DELAY NUM_PORTS NAMESPACE DESTINATION"
+        err_exit "Usage: port_scan DELAY_USEC NUM_PORTS NAMESPACE DESTINATION"
     fi
 
     srcport=$RANDOM
-    rate=$1
-    delay="$2ms"
-    numports="$3"
-    ns="$4"
-    host="$5"
-    opts="--max-scan-delay $delay --min-rate $rate --max-rate $rate --send-ip -Pn -v -r -n"
+    delay=$1
+    numports="$2"
+    ns="$3"
+    host="$4"
 
     echo "--------------------------------------"
     echo "Doing a $numports port scan on $host"
     echo "    src port: $srcport"
     echo "    port range: 1-$numports"
-    echo "    rate: $rate packets/second"
+    echo "    delay: $delay usec in between packets"
     echo "    max delay: $delay"
     echo "--------------------------------------"
 
-    ip netns exec $ns nmap $host $opts -p "1-$numports" -g $srcport || err_exit "port scan"
+    # This will send UDP packets from the specified source port to the
+    # destination ports in the range [1, $numports], one per each
+    # destination.
+    ip netns exec $ns mz -c1 -d $delay -t ip -B $host -t udp "sp=$srcport,dp=1-$numports" || err_exit "port scan"
 }
 
 #######################################################################
