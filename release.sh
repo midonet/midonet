@@ -1,13 +1,10 @@
 #!/bin/bash
 
 project_name="midonet"
-git_submodules="python-midonetclient"
-build_packages="python-midonetclient"
 maven_projects="."
 
 usage() {
-    echo "Usage: $(basename $0) deb|rhel
-" >&2
+    echo "Usage: $(basename $0) deb|rhel \n" >&2
     exit 1
 }
 
@@ -44,88 +41,6 @@ version_git_to_rpm_release() {
 
 fail_if_final_release() {
     echo $1 | grep -- '-' >/dev/null || exit 1
-}
-
-# Params: submodule version isFinal
-# if isFinal == true, will force that all pom files are updated to the correct
-# version. You can run ./release prepare to alter all the poms.
-check_git_submodule_version() {
-    submod=$1
-    ver=$2
-    isFinal=$3
-
-    echo "Checking git tag for $submod"
-
-    pushd $submod > /dev/null
-
-    gitmodver=`git describe`
-    if [ "$gitmodver" != "$ver" ] ; then
-        echo "Tag mismatch in $submod: found=[$gitmodver] expected=[$ver]"
-        if [ "$isFinal" == true ] ; then
-            fail_if_final_release $ver
-        fi
-    fi
-    popd > /dev/null
-}
-
-check_rpm_pkg_version() {
-    submod=$1
-    gver=$2
-    spec="$submod/rhel/$submod.spec"
-    ver=`version_git_to_rpm_version $gver`
-    rel=`version_git_to_rpm_release $gver`
-    echo "Checking RPM package versions for tag=[$gver], should be [$ver]"
-    rpmpkgver=`cat $spec | grep ^Version | sed -e 's/^Version:\s*//'`
-    rpmpkgrel=`cat $spec | grep ^Release | sed -e 's/^Release:\s*//'`
-    if [ "$rpmpkgver" != "$ver" ] ; then
-        echo "RPM version mismatch in $submod: found=[$rpmpkgver] expected=[$ver]"
-        exit 1
-    fi
-    if [ "$rpmpkgrel" != "$rel" ] ; then
-        echo "RPM release mismatch in $submod: found=[$rpmpkgrel] expected=[$rel]"
-        fail_if_final_release $gver
-    fi
-}
-
-check_deb_pkg_version() {
-    submod=$1
-    gver=$2
-    ver=`version_git_to_deb $gver`
-    chl="$submod/debian/changelog"
-    echo "Checking debian package versions for tag=[$gver], should be [$ver]"
-    debpkgver=`dpkg-parsechangelog -l$chl -c1 | grep ^Version | cut -d ' ' -f 2`
-    if [ "$debpkgver" != "$ver" ] ; then
-        echo "Debian version mismatch in $submod: found=[$debpkgver] expected=[$ver]"
-        fail_if_final_release $gver
-    fi
-}
-
-build_rpm() {
-    submod=$1
-    destdir=$2
-    spec="$submod/rhel/$submod.spec"
-    ver=`cat $spec | grep ^Version | sed -e 's/^Version:\s*//'`
-    pushd $submod > /dev/null
-    git archive HEAD --prefix=$submod-$ver/ -o ~/rpmbuild/SOURCES/$submod-$ver.tar
-    gzip -f ~/rpmbuild/SOURCES/$submod-$ver.tar
-    rpmbuild --quiet -ba rhel/$submod.spec
-    popd > /dev/null
-    find ~/rpmbuild/RPMS/ | grep ${submod}-$ver | grep rpm$ | while read pkg ; do
-        cp $pkg $destdir
-    done
-}
-
-build_deb() {
-    submod=$1
-    destdir=$2
-
-    chl="$submod/debian/changelog"
-    debpkgver=`dpkg-parsechangelog -l$chl -c1 | grep ^Version | cut -d ' ' -f 2`
-    pushd $submod > /dev/null
-    dpkg-buildpackage -rfakeroot -b -us -uc
-    popd > /dev/null
-    mv *_${debpkgver}_*.deb $destdir
-    mv *_${debpkgver}_*.changes $destdir
 }
 
 get_pom_version() {
@@ -169,10 +84,6 @@ collect_midonet_rpms() {
 check_git_tags() {
     pkgver=$1
     isFinal=$2
-    echo "Checking tag version numbers in git submodules"
-    for submod in $git_submodules ; do
-        check_git_submodule_version $submod $pkgver $isFinal
-    done
 }
 
 # Params: isFinal
@@ -197,21 +108,12 @@ do_package_deb() {
     # drop the leading 'v' used in the git tags
     pkgver=`echo $pkgver | sed -e s/^v//`
 
-    echo "Checking version numbers in debian packages"
-    for debpkg in $build_packages ; do
-        check_deb_pkg_version $debpkg $pkgver
-    done
     echo "Checking version numbers in maven project"
     check_mvn_version . $pkgver
 
     destdir="$project_name-$pkgver-deb"
     echo "Packages will be placed in $destdir"
     mkdir $destdir
-
-    echo "Building debian packages"
-    for debpkg in $build_packages ; do
-        build_deb $debpkg $destdir
-    done
 
     echo "Building maven projects"
     build_midonet_maven
@@ -235,21 +137,12 @@ do_package_rhel() {
     # drop the leading 'v' used in the git tags
     pkgver=`echo $pkgver | sed -e s/^v//`
 
-    echo "Checking version numbers in debian packages"
-    for pkg in $build_packages ; do
-        check_rpm_pkg_version $pkg $pkgver
-    done
     echo "Checking version numbers in maven project"
     check_mvn_version . $pkgver
 
     destdir="$project_name-$pkgver-rhel"
     echo "Packages will be placed in $destdir"
     mkdir $destdir
-
-    echo "Building rpm packages"
-    for pkg in $build_packages ; do
-        build_rpm $pkg $destdir
-    done
 
     echo "Building maven projects"
     build_midonet_maven -Drpm \
@@ -272,13 +165,6 @@ do_prepare() {
     mvnV=`get_pom_version pom.xml`
     echo "Preparing files for release"
     git_setup
-    git submodule init
-    git submodule update
-    for pkg in $build_packages ; do
-        dch -v "$debV" -c $pkg/debian/changelog "$debV"
-        sed -i -e "s/^Version: .*$/Version:    $rpmV/" $pkg/rhel/$pkg.spec
-        sed -i -e "s/^Release: .*$/Release:    $rpmR/" $pkg/rhel/$pkg.spec
-    done
     find . -maxdepth 2 -name pom.xml | \
         while read pom ; do
             sed -i -e "s/$mvnV/$v/g" $pom
