@@ -20,48 +20,36 @@ public class FlowFamily {
     public static final byte VERSION = OpenVSwitch.Flow.version;
     public static final String NAME = OpenVSwitch.Flow.Family;
 
-    public static class AttrKey<T> extends NetlinkMessage.AttrKey<T> {
+    public interface AttrKey {
 
         /* Sequence of OVS_KEY_ATTR_* attributes. */
-        public static final AttrKey<List<FlowKey>> KEY =
-            attrNested(OpenVSwitch.Flow.Attr.Key);
+        NetlinkMessage.AttrKey<List<FlowKey>> KEY =
+            NetlinkMessage.AttrKey.attrNested(OpenVSwitch.Flow.Attr.Key);
 
         /* Nested OVS_ACTION_ATTR_* attributes. */
-        public static final AttrKey<List<FlowAction>> ACTIONS =
-            attrNested(OpenVSwitch.Flow.Attr.Actions);
+        NetlinkMessage.AttrKey<List<FlowAction>> ACTIONS =
+            NetlinkMessage.AttrKey.attrNested(OpenVSwitch.Flow.Attr.Actions);
 
         /* struct ovs_flow_stats. */
-        public static final AttrKey<FlowStats> STATS =
-            attr(OpenVSwitch.Flow.Attr.Stats);
+        NetlinkMessage.AttrKey<FlowStats> STATS =
+            NetlinkMessage.AttrKey.attr(OpenVSwitch.Flow.Attr.Stats);
 
         /* 8-bit OR'd TCP flags. */
-        public static final AttrKey<Byte> TCP_FLAGS =
-            attr(OpenVSwitch.Flow.Attr.TCPFlags);
+        NetlinkMessage.AttrKey<Byte> TCP_FLAGS =
+            NetlinkMessage.AttrKey.attr(OpenVSwitch.Flow.Attr.TCPFlags);
 
         /* u64 msecs last used in monotonic time. */
-        public static final AttrKey<Long> USED =
-            attr(OpenVSwitch.Flow.Attr.Used);
+        NetlinkMessage.AttrKey<Long> USED =
+            NetlinkMessage.AttrKey.attr(OpenVSwitch.Flow.Attr.Used);
 
         /* Flag to clear stats, tcp_flags, used. */
-        public static final AttrKey<Netlink.Flag> CLEAR =
-            attr(OpenVSwitch.Flow.Attr.Clear);
+        NetlinkMessage.AttrKey<Netlink.Flag> CLEAR =
+            NetlinkMessage.AttrKey.attr(OpenVSwitch.Flow.Attr.Clear);
 
         // unused attribute -> MetaFlow ??
-        //public static final AttrKey<?> MASK =
-        //    attr(OpenVSwitch.Flow.Attr.Mask);
+        //NetlinkMessage.AttrKey<?> MASK =
+        //    NetlinkMessage.AttrKey.attr(OpenVSwitch.Flow.Attr.Mask);
 
-
-        private AttrKey(int id, boolean nested) {
-            super(id, nested);
-        }
-
-        static <T> AttrKey<T> attr(int id) {
-            return new AttrKey<T>(id, false);
-        }
-
-        static <T> AttrKey<T> attrNested(int id) {
-            return new AttrKey<T>(id, true);
-        }
     }
 
     public final OvsBaseContext contextNew;

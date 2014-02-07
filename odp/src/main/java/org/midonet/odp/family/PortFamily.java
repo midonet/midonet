@@ -19,44 +19,32 @@ public class PortFamily {
 
     public static final int FALLBACK_MC_GROUP = OpenVSwitch.Port.fallbackMCGroup;
 
-    public static class Attr<T> extends NetlinkMessage.AttrKey<T> {
+    public interface Attr {
 
         /* u32 port number within datapath */
-        public static final Attr<Integer> PORT_NO =
-            attr(OpenVSwitch.Port.Attr.PortNo);
+        NetlinkMessage.AttrKey<Integer> PORT_NO =
+            NetlinkMessage.AttrKey.attr(OpenVSwitch.Port.Attr.PortNo);
 
         /* u32 OVS_VPORT_TYPE_* constant. */
-        public static final Attr<Integer> PORT_TYPE =
-            attr(OpenVSwitch.Port.Attr.Type);
+        NetlinkMessage.AttrKey<Integer> PORT_TYPE =
+            NetlinkMessage.AttrKey.attr(OpenVSwitch.Port.Attr.Type);
 
         /* string name, up to IFNAMSIZ bytes long */
-        public static final Attr<String> NAME =
-            attr(OpenVSwitch.Port.Attr.Name);
+        NetlinkMessage.AttrKey<String> NAME =
+            NetlinkMessage.AttrKey.attr(OpenVSwitch.Port.Attr.Name);
 
         /* nested attributes, varies by vport type */
-        public static final Attr<VxLanTunnelPortOptions> VXLANOPTIONS =
-            attrNested(OpenVSwitch.Port.Attr.Options);
+        NetlinkMessage.AttrKey<VxLanTunnelPortOptions> VXLANOPTIONS =
+            NetlinkMessage.AttrKey.attrNested(OpenVSwitch.Port.Attr.Options);
 
         /* u32 Netlink PID to receive upcalls */
-        public static final Attr<Integer> UPCALL_PID =
-            attr(OpenVSwitch.Port.Attr.UpcallPID);
+        NetlinkMessage.AttrKey<Integer> UPCALL_PID =
+            NetlinkMessage.AttrKey.attr(OpenVSwitch.Port.Attr.UpcallPID);
 
         /* struct ovs_vport_stats */
-        public static final Attr<DpPort.Stats> STATS =
-            attr(OpenVSwitch.Port.Attr.Stats);
+        NetlinkMessage.AttrKey<DpPort.Stats> STATS =
+            NetlinkMessage.AttrKey.attr(OpenVSwitch.Port.Attr.Stats);
 
-
-        private Attr(int id, boolean nested) {
-            super(id, nested);
-        }
-
-        static <T> Attr<T> attr(int id) {
-            return new Attr<T>(id, false);
-        }
-
-        static <T> Attr<T> attrNested(int id) {
-            return new Attr<T>(id, true);
-        }
     }
 
     public final OvsBaseContext contextNew;
