@@ -3,8 +3,6 @@
  */
 package org.midonet.odp.family;
 
-import org.midonet.netlink.NetlinkMessage;
-import org.midonet.odp.Datapath;
 import org.midonet.odp.OpenVSwitch;
 
 /**
@@ -15,18 +13,6 @@ public class DatapathFamily {
     public static final byte VERSION = OpenVSwitch.Datapath.version;
     public static final String NAME = OpenVSwitch.Datapath.Family;
     public static final String MC_GROUP = OpenVSwitch.Datapath.MCGroup;
-
-    public interface Attr {
-
-        NetlinkMessage.AttrKey<String> NAME =
-            NetlinkMessage.AttrKey.attr(OpenVSwitch.Datapath.Attr.Name);
-
-        NetlinkMessage.AttrKey<Integer> UPCALL_PID =
-            NetlinkMessage.AttrKey.attr(OpenVSwitch.Datapath.Attr.UpcallPID);
-
-        NetlinkMessage.AttrKey<Datapath.Stats> STATS =
-            NetlinkMessage.AttrKey.attr(OpenVSwitch.Datapath.Attr.Stat);
-    }
 
     public final OvsBaseContext contextNew;
     public final OvsBaseContext contextDel;
