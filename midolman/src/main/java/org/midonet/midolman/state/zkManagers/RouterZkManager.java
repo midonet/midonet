@@ -4,12 +4,7 @@
  */
 package org.midonet.midolman.state.zkManagers;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import com.google.common.base.Objects;
 import org.midonet.midolman.serialization.Serializer;
@@ -105,6 +100,7 @@ public class RouterZkManager extends AbstractZkManager {
     RouteZkManager routeZkManager;
     FiltersZkManager filterZkManager;
     PortZkManager portZkManager;
+    ChainZkManager chainZkManager;
     LoadBalancerZkManager loadBalancerZkManager;
 
     // TODO(tfukushima): `routerId` can be null. We should replace its type
@@ -144,6 +140,26 @@ public class RouterZkManager extends AbstractZkManager {
         filterZkManager = new FiltersZkManager(zk, paths, serializer);
         portZkManager = new PortZkManager(zk, paths, serializer);
         loadBalancerZkManager = new LoadBalancerZkManager(zk, paths, serializer);
+        chainZkManager = new ChainZkManager(zk, paths, serializer);
+    }
+
+    public List<Op> prepareClearRefsToChains(UUID id, UUID chainId)
+            throws SerializationException, StateAccessException {
+        Boolean dataChanged = false;
+        RouterConfig config = get(id);
+        if (config.inboundFilter.equals(chainId)) {
+            config.inboundFilter = null;
+            dataChanged = true;
+        }
+        if (config.outboundFilter.equals(chainId)) {
+            config.outboundFilter = null;
+            dataChanged = true;
+        }
+
+        return dataChanged ?
+                Collections.singletonList(Op.setData(paths.getRouterPath(id),
+                        serializer.serialize(config), -1)) :
+                Collections.<Op>emptyList();
     }
 
     /**
@@ -163,6 +179,15 @@ public class RouterZkManager extends AbstractZkManager {
                 serializer.serialize(config),
                 Ids.OPEN_ACL_UNSAFE,
                 CreateMode.PERSISTENT));
+
+        if (config.inboundFilter != null) {
+            ops.addAll(chainZkManager.prepareChainBackRefCreate(
+                    config.inboundFilter, ResourceType.ROUTER, id));
+        }
+        if (config.outboundFilter != null) {
+            ops.addAll(chainZkManager.prepareChainBackRefCreate(
+                    config.outboundFilter, ResourceType.ROUTER, id));
+        }
 
         ops.add(Op.create(paths.getRouterPortsPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
@@ -193,6 +218,16 @@ public class RouterZkManager extends AbstractZkManager {
     public List<Op> prepareRouterDelete(UUID id) throws StateAccessException,
             SerializationException {
         List<Op> ops = new ArrayList<Op>();
+
+        RouterConfig config = get(id);
+        if (config.inboundFilter != null) {
+            ops.addAll(chainZkManager.prepareChainBackRefDelete(
+                    config.inboundFilter, ResourceType.ROUTER, id));
+        }
+        if (config.outboundFilter != null) {
+            ops.addAll(chainZkManager.prepareChainBackRefDelete(
+                    config.outboundFilter, ResourceType.ROUTER, id));
+        }
 
         // Get routes delete ops.
         List<UUID> routeIds = routeZkManager.listRouterRoutes(id, null);
@@ -226,7 +261,6 @@ public class RouterZkManager extends AbstractZkManager {
         log.debug("Preparing to delete: " + arpTablePath);
         ops.add(Op.delete(arpTablePath, -1));
 
-        RouterConfig config = get(id);
         if (config.loadBalancer != null) {
             ops.addAll(buildLoadBalancerAssociation(null, config));
         }
@@ -312,6 +346,13 @@ public class RouterZkManager extends AbstractZkManager {
             }
             ops.add(Op.setData(paths.getRouterPath(id),
                     serializer.serialize(config), -1));
+        }
+
+        if (dataChanged) {
+            ops.addAll(chainZkManager.prepareUpdateFilterBackRef(
+                            ResourceType.ROUTER, oldConfig.inboundFilter,
+                            config.inboundFilter, oldConfig.outboundFilter,
+                            config.outboundFilter, id));
         }
         return ops;
     }

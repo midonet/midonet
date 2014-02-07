@@ -41,6 +41,8 @@ import org.midonet.midolman.state.ArpCacheEntry;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager;
+import org.midonet.midolman.state.zkManagers.ChainZkManager;
+import org.midonet.midolman.state.zkManagers.ChainZkManager.ChainConfig;
 import org.midonet.midolman.state.zkManagers.RouterZkManager;
 import org.midonet.midolman.version.guice.VersionModule;
 import org.midonet.packets.IPAddr;
@@ -76,6 +78,17 @@ public class LocalClientImplTest {
 
     RouterZkManager getRouterZkManager() {
         return injector.getInstance(RouterZkManager.class);
+    }
+
+    ChainZkManager getChainZkManager() {
+        return injector.getInstance(ChainZkManager.class);
+    }
+
+    private UUID getRandomChainId()
+            throws StateAccessException, SerializationException {
+        ChainConfig inChainConfig = new ChainConfig(
+                UUID.randomUUID().toString());
+        return getChainZkManager().create(inChainConfig);
     }
 
     Directory zkDir() {
@@ -119,8 +132,8 @@ public class LocalClientImplTest {
         // let's cause a bridge update
         getBridgeZkManager().update(bridgeId,
                                     new BridgeZkManager.BridgeConfig("test1",
-                                                                     UUID.randomUUID(),
-                                                                     UUID.randomUUID()));
+                                            getRandomChainId(),
+                                            getRandomChainId()));
         Thread.sleep(2000);
         assertThat("Bridge update was notified",
                    bridgeBuilder.getBuildCallsCount(), equalTo(2));
@@ -143,9 +156,9 @@ public class LocalClientImplTest {
         // let's cause a router update
         getRouterZkManager().update(routerId,
                                     new RouterZkManager.RouterConfig("test1",
-                                                                     UUID.randomUUID(),
-                                                                     UUID.randomUUID(),
-                                                                     null));
+                                            getRandomChainId(),
+                                            getRandomChainId(),
+                                            null));
         Thread.sleep(2000);
         assertThat("Router update was notified",
                    routerBuilder.getBuildCallsCount(), equalTo(2));
@@ -183,7 +196,8 @@ public class LocalClientImplTest {
         initializeZKStructure();
         Setup.ensureZkDirectoryStructureExists(zkDir(), zkRoot);
         UUID bridgeId = getBridgeZkManager().create(
-            new BridgeZkManager.BridgeConfig("test", UUID.randomUUID(), UUID.randomUUID()));
+            new BridgeZkManager.BridgeConfig("test", getRandomChainId(),
+                    getRandomChainId()));
         TestBridgeBuilder bridgeBuilder = new TestBridgeBuilder();
         client.getBridge(bridgeId, bridgeBuilder);
         Thread.sleep(2000);
