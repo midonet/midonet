@@ -180,7 +180,9 @@ public class ClientTest extends JerseyTest {
         assertThat(b2.getPorts().size(), is(1));
 
         bp1.vifId(UUID.randomUUID()).update();
-        bp2.outboundFilterId(UUID.randomUUID()).update();
+        RuleChain cr = api.addChain().tenantId("tenant-1").name("random")
+                .create();
+        bp2.outboundFilterId(cr.getId()).update();
         log.debug("bp1: {}", bp1);
         assertThat(bp1.getVifId(), notNullValue());
         log.debug("bp2: {}", bp2);

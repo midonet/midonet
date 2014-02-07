@@ -4,12 +4,7 @@
  */
 package org.midonet.midolman.state.zkManagers;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.serialization.SerializationException;
@@ -89,6 +84,7 @@ public class RouterZkManager extends AbstractZkManager {
     RouteZkManager routeZkManager;
     FiltersZkManager filterZkManager;
     PortZkManager portZkManager;
+    ChainZkManager chainZkManager;
 
     /**
      * Initializes a RouterZkManager object with a ZooKeeper client and the root
@@ -107,11 +103,31 @@ public class RouterZkManager extends AbstractZkManager {
         routeZkManager = new RouteZkManager(zk, paths, serializer);
         filterZkManager = new FiltersZkManager(zk, paths, serializer);
         portZkManager = new PortZkManager(zk, paths, serializer);
+        chainZkManager = new ChainZkManager(zk, paths, serializer);
     }
 
     public RouterZkManager(Directory dir, String basePath,
                            Serializer serializer) {
         this(new ZkManager(dir), new PathBuilder(basePath), serializer);
+    }
+
+    public List<Op> prepareClearRefsToChains(UUID id, UUID chainId)
+            throws SerializationException, StateAccessException {
+        Boolean dataChanged = false;
+        RouterConfig config = get(id);
+        if (config.inboundFilter.equals(chainId)) {
+            config.inboundFilter = null;
+            dataChanged = true;
+        }
+        if (config.outboundFilter.equals(chainId)) {
+            config.outboundFilter = null;
+            dataChanged = true;
+        }
+
+        return dataChanged ?
+                Collections.singletonList(Op.setData(paths.getRouterPath(id),
+                        serializer.serialize(config), -1)) :
+                Collections.<Op>emptyList();
     }
 
     /**
@@ -131,6 +147,15 @@ public class RouterZkManager extends AbstractZkManager {
                 serializer.serialize(config),
                 Ids.OPEN_ACL_UNSAFE,
                 CreateMode.PERSISTENT));
+
+        if (config.inboundFilter != null) {
+            ops.addAll(chainZkManager.prepareChainBackRefCreate(
+                    config.inboundFilter, ResourceType.ROUTER, id));
+        }
+        if (config.outboundFilter != null) {
+            ops.addAll(chainZkManager.prepareChainBackRefCreate(
+                    config.outboundFilter, ResourceType.ROUTER, id));
+        }
 
         ops.add(Op.create(paths.getRouterPortsPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
@@ -157,6 +182,16 @@ public class RouterZkManager extends AbstractZkManager {
     public List<Op> prepareRouterDelete(UUID id) throws StateAccessException,
             SerializationException {
         List<Op> ops = new ArrayList<Op>();
+
+        RouterConfig config = get(id);
+        if (config.inboundFilter != null) {
+            ops.addAll(chainZkManager.prepareChainBackRefDelete(
+                    config.inboundFilter, ResourceType.ROUTER, id));
+        }
+        if (config.outboundFilter != null) {
+            ops.addAll(chainZkManager.prepareChainBackRefDelete(
+                    config.outboundFilter, ResourceType.ROUTER, id));
+        }
 
         // Get routes delete ops.
         List<UUID> routeIds = routeZkManager.listRouterRoutes(id, null);
@@ -199,10 +234,9 @@ public class RouterZkManager extends AbstractZkManager {
 
     public void update(UUID id, RouterConfig cfg) throws StateAccessException,
             SerializationException {
-        Op op = prepareUpdate(id, cfg);
-        if (null != op) {
-            List<Op> ops = new ArrayList<Op>();
-            ops.add(op);
+        List<Op> ops = new ArrayList<Op>();
+        ops.addAll(prepareUpdate(id, cfg));
+        if (ops.size() > 0) {
             zk.multi(ops);
         }
     }
@@ -219,8 +253,9 @@ public class RouterZkManager extends AbstractZkManager {
      * @throws SerializationException
      *             if the RouterConfig could not be serialized.
      */
-    public Op prepareUpdate(UUID id, RouterConfig config)
+    public List<Op> prepareUpdate(UUID id, RouterConfig config)
             throws StateAccessException, SerializationException {
+        List<Op> ops = new ArrayList<Op>();
         RouterConfig oldConfig = get(id);
         // Have the inbound or outbound filter changed?
         boolean dataChanged = false;
@@ -248,10 +283,17 @@ public class RouterZkManager extends AbstractZkManager {
         if (dataChanged) {
             config.properties.clear();
             config.properties.putAll(oldConfig.properties);
-            return Op.setData(paths.getRouterPath(id),
-                    serializer.serialize(config), -1);
+            ops.add(Op.setData(paths.getRouterPath(id),
+                    serializer.serialize(config), -1));
         }
-        return null;
+
+        if (dataChanged) {
+            ops.addAll(chainZkManager.prepareUpdateFilterBackRef(
+                            ResourceType.ROUTER, oldConfig.inboundFilter,
+                            config.inboundFilter, oldConfig.outboundFilter,
+                            config.outboundFilter, id));
+        }
+        return ops;
     }
 
     /**

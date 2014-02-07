@@ -4,12 +4,7 @@
  */
 package org.midonet.midolman.state.zkManagers;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import org.midonet.midolman.rules.RuleList;
 import org.midonet.midolman.serialization.Serializer;
@@ -48,6 +43,101 @@ public class ChainZkManager extends AbstractZkManager {
 
     private final static Logger log =
         LoggerFactory.getLogger(ChainZkManager.class);
+
+    /*
+     * creates a back reference for the given type and device ID.
+     */
+    public List<Op> prepareChainBackRefCreate(UUID chainId,
+                                              ResourceType resourceType,
+                                              UUID deviceId)
+            throws StateAccessException {
+        List<Op> ops = new ArrayList<Op>();
+        String refPath = paths.getChainBackRefsPath(chainId);
+        /*
+         * This check exists for backwards compatibility. It is possible that
+         * if the deployment was upgraded and no new references were created,
+         * Then this path does not exist.
+         */
+        if (!zk.exists(refPath)) {
+            ops.add(Op.create(refPath, null,Ids.OPEN_ACL_UNSAFE,
+                    CreateMode.PERSISTENT));
+        }
+
+        String backRefPath = paths.getChainBackRefPath(chainId,
+                resourceType.toString(), deviceId);
+        /*
+         * It is possible that this path already exists: if it was added by
+         * another reference on this same object. Example: Inbound chain id
+         * has been updated to the same is as the Outbound chain id.
+         */
+        if (!zk.exists(backRefPath)) {
+            ops.add(Op.create(backRefPath, null, Ids.OPEN_ACL_UNSAFE,
+                    CreateMode.PERSISTENT));
+        }
+
+        return ops;
+    }
+
+    /*
+     * Removes a back reference for the given type and device ID.
+     */
+    public List<Op> prepareChainBackRefDelete(UUID chainId,
+                                              ResourceType resourceType,
+                                              UUID deviceId)
+            throws StateAccessException {
+        List<Op> ops = new ArrayList<Op>();
+
+        String backRefPath = paths.getChainBackRefPath(chainId,
+                resourceType.toString(), deviceId);
+        /*
+         * This check exists for backwards compatibility. It is possible that
+         * if the deployment was upgraded and no new references were created,
+         * Then this path does not exist.
+         */
+        if (zk.exists(backRefPath)) {
+            ops.add(Op.delete(backRefPath, -1));
+        }
+
+        return ops;
+    }
+
+    /*
+     * this complicated function allows us to simplify checking for
+     * backreferences later. What it does is account for the fact that on
+     * routers, bridges, and ports, the inbound filter and outbound filter may
+     *  be the same.
+     */
+    public List<Op> prepareUpdateFilterBackRef(ResourceType resourceType,
+                                               UUID oldIn, UUID newIn,
+                                               UUID oldOut, UUID newOut,
+                                               UUID deviceId)
+            throws StateAccessException {
+        List<Op> ops = new ArrayList<Op>();
+
+        Set<UUID> oldRefs = new HashSet<UUID>();
+        if (oldIn != null) oldRefs.add(oldIn);
+        if (oldOut != null) oldRefs.add(oldOut);
+
+        Set<UUID> newRefs = new HashSet<UUID>();
+        if (newIn != null) newRefs.add(newIn);
+        if (newOut != null) newRefs.add(newOut);
+
+        for (UUID newRef : newRefs) {
+            if (!oldRefs.contains(newRef)) {
+                ops.addAll(prepareChainBackRefCreate(newRef, resourceType,
+                                                     deviceId));
+            }
+        }
+
+        for (UUID oldRef: oldRefs) {
+            if (!newRefs.contains(oldRef)) {
+                ops.addAll(prepareChainBackRefDelete(oldRef, resourceType,
+                                                     deviceId));
+            }
+        }
+
+        return ops;
+    }
 
     /**
      * Constructor to set ZooKeeper and base path.
@@ -91,6 +181,8 @@ public class ChainZkManager extends AbstractZkManager {
         ops.add(Op.create(paths.getChainRulesPath(id),
                 serializer.serialize(new RuleList()),
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+        ops.add(Op.create(paths.getChainBackRefsPath(id), null,
+                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         return ops;
     }
 
@@ -106,10 +198,49 @@ public class ChainZkManager extends AbstractZkManager {
             throws StateAccessException, SerializationException {
         List<Op> ops = new ArrayList<Op>();
         RuleZkManager ruleZkManager = new RuleZkManager(zk, paths, serializer);
+        RouterZkManager routerZkManager = new RouterZkManager(zk, paths,
+                serializer);
+        BridgeZkManager bridgeZkManager = new BridgeZkManager(zk, paths,
+                serializer);
+        PortZkManager portZkManager = new PortZkManager(zk, paths, serializer);
         List<UUID> ruleIds = ruleZkManager.getRuleList(id).getRuleList();
         for (UUID ruleId : ruleIds) {
             Rule rule = ruleZkManager.get(ruleId);
             ops.addAll(ruleZkManager.prepareRuleDelete(ruleId, rule));
+        }
+
+        String chainRefsPath = paths.getChainBackRefsPath(id);
+        if (zk.exists(chainRefsPath)) {
+            Collection<String> refs = zk.getChildren(chainRefsPath);
+
+            for (String child : refs) {
+                String type = paths.getTypeFromBackRef(child);
+                UUID childId = paths.getUUIDFromBackRef(child);
+
+                if (type.equals(ResourceType.RULE.toString())) {
+                    ops.addAll(ruleZkManager.prepareRuleDelete(childId));
+                } else if (type.equals(ResourceType.ROUTER.toString())) {
+                    ops.addAll(routerZkManager.prepareClearRefsToChains(
+                            childId, id));
+                } else if (type.equals(ResourceType.BRIDGE.toString())) {
+                    ops.addAll(bridgeZkManager.prepareClearRefsToChains(
+                            childId, id));
+                } else if (type.equals(ResourceType.PORT.toString())) {
+                    ops.addAll(portZkManager.prepareClearRefsToChains(
+                            childId, id));
+                }
+
+                if (!type.equals(ResourceType.RULE.toString())) {
+                    // Skip deleting the rule back ref for rules because
+                    // it is removed as a part of the rule deletion.
+                    String backRefPath = chainRefsPath + "/" + child;
+                    log.debug("Preparing to delete: " + backRefPath);
+                    ops.add(Op.delete(backRefPath, -1));
+                }
+            }
+
+            log.debug("Preparing to delete:" + chainRefsPath);
+            ops.add(Op.delete(chainRefsPath, -1));
         }
 
         String chainRulePath = paths.getChainRulesPath(id);

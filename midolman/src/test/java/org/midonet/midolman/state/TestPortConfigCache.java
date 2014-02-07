@@ -18,6 +18,8 @@ import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.PortDirectory.MaterializedBridgePortConfig;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager;
+import org.midonet.midolman.state.zkManagers.ChainZkManager;
+import org.midonet.midolman.state.zkManagers.ChainZkManager.ChainConfig;
 import org.midonet.midolman.state.zkManagers.PortGroupZkManager;
 import org.midonet.midolman.state.zkManagers.PortZkManager;
 import org.midonet.midolman.version.guice.VersionModule;
@@ -35,6 +37,7 @@ import static org.hamcrest.core.IsNull.nullValue;
 public class TestPortConfigCache {
     private MockReactor reactor;
     private PortZkManager portMgr;
+    private ChainZkManager chainZkManager;
     private UUID bridgeID;
     private UUID portID;
     private UUID portGroupID;
@@ -83,6 +86,13 @@ public class TestPortConfigCache {
         }
 
         @Provides @Singleton
+        public ChainZkManager provideChainZkManager(ZkManager zkManager,
+                                                    PathBuilder paths,
+                                                    Serializer serializer) {
+            return new ChainZkManager(zkManager, paths, serializer);
+        }
+
+        @Provides @Singleton
         public BridgeZkManager provideBridgeZkManager(ZkManager zkManager,
                                                       PathBuilder paths,
                                                       Serializer serializer) {
@@ -114,6 +124,7 @@ public class TestPortConfigCache {
                 new SerializationModule()
         );
         portMgr = injector.getInstance(PortZkManager.class);
+        chainZkManager = injector.getInstance(ChainZkManager.class);
         portCache = injector.getInstance(PortConfigCache.class);
         BridgeZkManager bridgeMgr = injector.getInstance(BridgeZkManager.class);
         BridgeZkManager.BridgeConfig bridgeConfig =
@@ -137,7 +148,9 @@ public class TestPortConfigCache {
     public void testExistingPortID() throws StateAccessException,
             SerializationException {
         PortConfig config = new MaterializedBridgePortConfig(bridgeID);
-        config.outboundFilter = UUID.randomUUID();
+        ChainConfig chainConfig = new ChainConfig("random");
+        UUID chainId = chainZkManager.create(chainConfig);
+        config.outboundFilter = chainId;
         config.portGroupIDs = new HashSet<UUID>();
         config.portGroupIDs.add(portGroupID);
         portID = portMgr.create(config);
@@ -151,12 +164,17 @@ public class TestPortConfigCache {
                 cachedConfig, equalTo(zkConfig));
     }
 
-    private MaterializedBridgePortConfig getNewConfig(int greKey) {
+    private MaterializedBridgePortConfig getNewConfig(int greKey)
+            throws StateAccessException, SerializationException {
         MaterializedBridgePortConfig config =
                 new MaterializedBridgePortConfig(bridgeID);
+        ChainConfig inChainConfig = new ChainConfig("IN");
+        ChainConfig outChainConfig = new ChainConfig("OUT");
+        UUID inChainId = chainZkManager.create(inChainConfig);
+        UUID outChainId = chainZkManager.create(outChainConfig);
         config.tunnelKey = greKey;
-        config.inboundFilter = UUID.randomUUID();
-        config.outboundFilter = UUID.randomUUID();
+        config.inboundFilter = inChainId;
+        config.outboundFilter = outChainId;
         config.portGroupIDs = new HashSet<UUID>();
         config.portGroupIDs.add(portGroupID);
         return config;
