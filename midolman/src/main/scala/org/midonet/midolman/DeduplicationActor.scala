@@ -88,7 +88,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath
     var datapath: Datapath = null
     var dpState: DatapathState = null
 
-    implicit val dispatcher = this.context.dispatcher
+    implicit val dispatcher = this.context.system.dispatcher
     implicit val system = this.context.system
 
     private var cookieId = 0
@@ -135,11 +135,24 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath
              * to minimize garbage generation (for loops are closures, while loops
              * are not).
              */
+            val handlers: Array[Option[PacketHandler]] =
+                Array.fill(packets.length)(None)
             var i = 0
             while (i < packets.length && packets(i) != null) {
-                handlePacket(packets(i))
+                handlers(i) = handlePacket(packets(i))
                 i += 1
             }
+
+            dispatcher.execute(new Runnable(){
+                override def run() {
+                    var i = 0
+                    while (i < handlers.length) {
+                        if (handlers(i) != None)
+                            startWorkflow(handlers(i).get)
+                        i += 1
+                    }
+                }
+            })
 
         case ApplyFlow(actions, cookieOpt) => cookieOpt foreach { cookie =>
             cookieToPendedPackets.remove(cookie) foreach { pendedPackets =>
@@ -171,8 +184,12 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath
         // This creates a new PacketWorkflow and
         // executes the simulation method directly.
         case EmitGeneratedPacket(egressPort, ethernet, parentCookie) =>
-            startWorkflow(
-                workflow(Packet.fromEthernet(ethernet), Right(egressPort)))
+            dispatcher.execute(new Runnable(){
+                override def run() {
+                    startWorkflow(
+                        workflow(Packet.fromEthernet(ethernet), Right(egressPort)))
+                }
+            })
 
         case TraceConditions(newTraceConditions) =>
             log.debug("traceConditions updated to {}", newTraceConditions)
@@ -220,7 +237,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath
         }
     }
 
-    protected def startWorkflow(pw: PacketHandler): Future[PipelinePath] =
+    protected def startWorkflow(pw: PacketHandler) {
         pw.start() andThen {
             case Success(path) =>
                 log.debug("Packet with {} processed.", pw.cookieStr)
@@ -228,7 +245,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath
                 pw.cookie match {
                     case Some(c) =>
                         val latency = (Clock.defaultClock().tick() -
-                                      pw.packet.getStartTimeNanos).toInt
+                            pw.packet.getStartTimeNanos).toInt
                         metrics.packetsProcessed.mark()
                         path match {
                             case WildcardTableHit =>
@@ -247,8 +264,9 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath
                 pw.packet.releaseToken()
                 pw.cookie foreach { _ => metrics.packetsProcessed.mark() }
         }
+    }
 
-    private def handlePacket(packet: Packet) {
+    private def handlePacket(packet: Packet): Option[PacketHandler] = {
         val wcMatch = packet.getMatch
         log.debug("Handling packet with match {}", wcMatch)
         dpMatchToCookie.get(wcMatch) match {
@@ -261,7 +279,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath
                 cookieToDpMatch.put(newCookie, wcMatch)
                 scheduleCookieExpiration(wcMatch)
                 cookieToPendedPackets.put(newCookie, mutable.Set.empty)
-                startWorkflow(workflow(packet, Left(newCookie)))
+                Some(workflow(packet, Left(newCookie)))
 
             case Some(cookie) =>
                 // Simulation in progress. Just pend the packet.
@@ -270,6 +288,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath
                 packet.releaseToken()
                 cookieToPendedPackets.addBinding(cookie, packet)
                 metrics.pendedPackets.inc()
+                None
         }
     }
 

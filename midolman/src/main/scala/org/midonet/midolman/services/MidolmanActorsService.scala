@@ -56,7 +56,8 @@ class MidolmanActorsService extends AbstractService {
             (propsFor(classOf[DatapathController]),        DatapathController.Name),
             (propsFor(classOf[FlowController]),            FlowController.Name),
             (propsFor(classOf[RoutingManagerActor]),       RoutingManagerActor.Name),
-            (propsFor(classOf[DeduplicationActor]),        DeduplicationActor.Name),
+            (propsFor(classOf[DeduplicationActor]).
+                withDispatcher("actors.pinned-dispatcher"),DeduplicationActor.Name),
             (propsFor(classOf[NetlinkCallbackDispatcher]), NetlinkCallbackDispatcher.Name))
 
         if (config.getMidolmanEnableMonitoring)
