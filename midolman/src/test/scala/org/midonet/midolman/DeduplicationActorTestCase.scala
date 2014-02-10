@@ -285,6 +285,8 @@ class DeduplicationActorTestCase extends FeatureSpec
         protected override val cookieTimeToLiveMillis = 300L
         protected override val cookieExpirationCheckInterval = 100 millis
 
+        implicit override val dispatcher = this.context.dispatcher
+
         def pendedPackets(cookie: Int): Option[collection.Set[Packet]] =
             cookieToPendedPackets.get(cookie)
 

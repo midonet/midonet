@@ -228,13 +228,14 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
                                   tags: ROSet[Any],
                                   removalCallbacks: ROSet[Callback0])
     : Future[Boolean] = {
+
+        packet.releaseToken()
+
         val flowFuture =
             if (areTagsValid(tags))
                 handleValidFlow(wildFlow, tags, removalCallbacks)
             else
                 handleObsoleteFlow(wildFlow, removalCallbacks)
-
-        packet.releaseToken()
 
         val execFuture = executePacket(wildFlow.getActions)
         flowFuture flatMap { _ => execFuture } continue { _.isSuccess }

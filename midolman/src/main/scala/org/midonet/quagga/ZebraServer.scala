@@ -40,7 +40,7 @@ object ZebraServer {
              (implicit context: ActorContext): ActorRef = {
         context.actorOf(
             Props(new ZebraServer(address, handler, ifAddr, ifName, selectLoop)).
-                withDispatcher("zebra-dispatcher"),
+                withDispatcher("actors.pinned-dispatcher"),
             "zebra-server-" + ifAddr + "-" + ifName)
     }
 }
@@ -114,7 +114,7 @@ class ZebraServer(val address: AfUnix.Address, val handler: ZebraProtocolHandler
         val connName = "zebra-conn-" + ifName + "-" + requestId
         val zebraConn = context.actorOf(
             Props(new ZebraConnection(self, handler, ifAddr, ifName, requestId, channel)).
-                withDispatcher("zebra-dispatcher"), connName)
+                withDispatcher("actors.pinned-dispatcher"), connName)
 
         zebraConnections += zebraConn
         zebraConnMap(zebraConn) = channel

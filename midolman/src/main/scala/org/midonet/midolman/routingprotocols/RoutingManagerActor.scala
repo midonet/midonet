@@ -130,7 +130,7 @@ class RoutingManagerActor extends Actor with ActorLogWithoutPath {
                     context.actorOf(
                         Props(new RoutingHandler(port, bgpPortIdx, client,
                                 dataClient, config, zkConnWatcher, zebraLoop)).
-                              withDispatcher("zebra-dispatcher"),
+                              withDispatcher("actors.pinned-dispatcher"),
                         name = port.id.toString)
                 )
                 log.debug("RoutingManager - ExteriorRouterPort - " +
