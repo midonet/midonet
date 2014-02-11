@@ -84,30 +84,22 @@ trait FlowTranslator {
     val cookieStr: String
 
     protected def translateVirtualWildcardFlow(flow: WildcardFlow,
-                                               tags: ROSet[Any] = Set.empty)
+                                               tags: ROSet[Any])
     : Future[(WildcardFlow, ROSet[Any])] = {
 
-        val flowMatch = flow.getMatch
-        val inPortId = flowMatch.getInputPortUUID
+        val wcMatch = flow.getMatch
+        val inPortId = wcMatch.getInputPortUUID
 
         // tags can be null
         val dpTags = new mutable.HashSet[Any]
         if (tags != null)
             dpTags ++= tags
 
-        dpState.getDpPortNumberForVport(inPortId) match {
-            case Some(portNo) =>
-                flowMatch.setInputPortNumber(portNo.shortValue())
-                         .unsetInputPortUUID()
-                dpTags += FlowTagger.invalidateDPPort(portNo.shortValue())
-            case None =>
-        }
-
         translateActions(
-            flow.getActions, Option(inPortId), Option(dpTags), flow.getMatch
+            flow.getActions, Option(inPortId), Option(dpTags), wcMatch
         ).continue {
             case Success(translated) =>
-                (WildcardFlow(wcmatch = flow.wcmatch,
+                (WildcardFlow(wcmatch = wcMatch,
                               actions = translated.toList,
                               priority = flow.priority,
                               hardExpirationMillis = flow.hardExpirationMillis,
@@ -263,13 +255,26 @@ trait FlowTranslator {
                                    dpTags: Option[mutable.Set[Any]],
                                    wMatch: WildcardMatch): Future[Seq[FlowAction]] = {
 
+        if (inPortUUID.isDefined) {
+            dpState.getDpPortNumberForVport(inPortUUID.get) match {
+                case Some(portNo) =>
+                    wMatch.unsetInputPortUUID() // Not used for flow matching
+                          .setInputPort(portNo.shortValue())
+                    if (dpTags.isDefined)
+                        dpTags.get += FlowTagger.invalidateDPPort(portNo.shortValue())
+                case None =>
+                    // Return, as the flow is no longer valid.
+                    return Future.successful(Seq.empty)
+            }
+        }
+
         val actionsFutures: Seq[Future[Seq[FlowAction]]] =
             actions map {
                 case s: FlowActionOutputToVrnPortSet =>
                     // expandPortSetAction
                     epsa(Seq(s), s.portSetId, inPortUUID, dpTags, wMatch)
                 case p: FlowActionOutputToVrnPort =>
-                    expandPortAction(Seq(p), p.portId, inPortUUID, dpTags, wMatch)
+                    expandPortAction(Seq(p), p.portId, dpTags)
                 case u: FlowActionUserspace =>
                     Future.successful(Seq(userspace(dpState.uplinkPid)))
                 case a =>
@@ -350,9 +355,8 @@ trait FlowTranslator {
 
     private def expandPortAction(actions: Seq[FlowAction],
                                  port: UUID,
-                                 inPortUUID: Option[UUID],
-                                 dpTags: Option[mutable.Set[Any]],
-                                 wMatch: WildcardMatch): Future[Seq[FlowAction]] = {
+                                 dpTags: Option[mutable.Set[Any]])
+    : Future[Seq[FlowAction]] = {
 
         val tags = dpTags.orNull
 
@@ -376,7 +380,7 @@ trait FlowTranslator {
     }
 
     /** forwards to translateToDpPorts for a set of local ports. */
-    def towardsLocalDpPorts(acts: Seq[FlowAction], port: UUID,
+    protected def towardsLocalDpPorts(acts: Seq[FlowAction], port: UUID,
             localPorts: Seq[Short], dpTags: mutable.Set[Any]) = {
         log.debug("Translating output actions for vport {} " +
                   "towards local dp ports {}", port, localPorts)
@@ -384,7 +388,7 @@ trait FlowTranslator {
     }
 
     /** forwards to translateToDpPorts for a set of remote ports. */
-    def towardsRemoteHosts(acts: Seq[FlowAction], port: UUID,
+    private def towardsRemoteHosts(acts: Seq[FlowAction], port: UUID,
             tunnelKey: Long, peerHostId: UUID, dpTags: mutable.Set[Any]) = {
         log.debug("Translating output actions for vport {}, towards remote " +
                   "hosts {} with tunnel key {}", port, peerHostId, tunnelKey)
@@ -393,7 +397,7 @@ trait FlowTranslator {
     }
 
     /** forwards to translateToDpPorts for a port set. */
-    def toPortSet(acts: Seq[FlowAction], port: UUID,
+    private def toPortSet(acts: Seq[FlowAction], port: UUID,
                   localPorts: Seq[Short], tunnelKey: Option[Long],
                   peerHostIds: Set[UUID], dpTags: mutable.Set[Any]) = {
         log.debug("Translating output actions for port set {}, towards " +
@@ -402,5 +406,4 @@ trait FlowTranslator {
         translateFlowActions(
             acts, port, localPorts, tunnelKey, peerHostIds, dpTags)
     }
-
 }

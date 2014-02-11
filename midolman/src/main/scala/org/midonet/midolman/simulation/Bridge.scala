@@ -311,7 +311,7 @@ class Bridge(val id: UUID,
       *  right tag depending on the reason for doing the multicast. Generally,
       *  if you broadcast bc. you ignore the mac's port, you must set an
       *  invalidateFloodedFlowsByDstMac tag. For broadcast flows, you'll want to
-      *  set the invalidateBroadcastFlows tab
+      *  set the invalidateBroadcastFlows tag
       */
     private def multicastAction()(implicit pktCtx: PacketContext,
                                            executor: ExecutionContext)

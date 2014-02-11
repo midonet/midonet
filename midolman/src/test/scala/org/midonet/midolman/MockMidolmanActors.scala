@@ -48,8 +48,8 @@ trait MockMidolmanActors extends BeforeAndAfter {
     implicit def toMessageAccumulator(ref: Referenceable): MessageAccumulator =
         toActorRef(ref).underlyingActor
     implicit def toTypedActor(ref: Referenceable) = new {
-        def as[A <: MessageAccumulator] =
-            toMessageAccumulator(ref).asInstanceOf[A]
+        def as[A] =
+            toMessageAccumulator(ref).asInstanceOf[A with MessageAccumulator]
     }
 
     before {
