@@ -87,7 +87,8 @@ public class IpAddrInterfaceSensor implements InterfaceSensor {
 
         Matcher newInterfaceMatcher = START_INTERFACE.matcher(line);
         if ( newInterfaceMatcher.matches() ) {
-            String name = newInterfaceMatcher.group(1);
+            // Name may include @[iface][num] suffix for VLAN interfaces
+            String name = newInterfaceMatcher.group(1).split("@", 2)[0];
             String[] statusFlags = newInterfaceMatcher.group(2).split(",");
             String mtu = newInterfaceMatcher.group(3);
             String state = newInterfaceMatcher.group(4);
