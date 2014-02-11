@@ -35,7 +35,7 @@ public class OvsPortsSetTest extends AbstractNetlinkProtocolTest {
 
         initializeConnection(connection.initialize(), 6);
 
-        Future<Datapath> dpFuture = connection.datapathsGet("test-ports");
+        Future<Datapath> dpFuture = connection.futures.datapathsGet("test-ports");
         // multi containing the datapaths data
         exchangeMessage();
 
@@ -48,7 +48,7 @@ public class OvsPortsSetTest extends AbstractNetlinkProtocolTest {
         Future<DpPort> portFuture;
 
         log.info("Get the internal port by name.");
-        portFuture = connection.portsGet("internalPort", null);
+        portFuture = connection.futures.portsGet("internalPort", null);
         exchangeMessage();
 
         assertThat("The returned port should match what we expected",
@@ -56,7 +56,7 @@ public class OvsPortsSetTest extends AbstractNetlinkProtocolTest {
 
 
         log.info("Updating port address.");
-        portFuture = connection.portsSet(portFuture.get(), datapath);
+        portFuture = connection.futures.portsSet(portFuture.get(), datapath);
         exchangeMessage();
 
         assertThat("The returned port should match what we expected",

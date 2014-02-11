@@ -529,7 +529,7 @@ public abstract class AbstractNetlinkConnection {
     }
 
     @Nonnull
-    protected <T> Callback<T> wrapFuture(final ValueFuture<T> future) {
+    protected static <T> Callback<T> wrapFuture(final ValueFuture<T> future) {
         return new Callback<T>() {
             @Override
             public void onSuccess(T data) {

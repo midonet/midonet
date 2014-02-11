@@ -142,7 +142,7 @@ class RouterFlowInvalidationTestCase extends MidolmanTestCase with RouterHelper
         val tag = "tun_id:7001"
         val tags = ROSet[Any](tag)
 
-        dpconn.flowsCreate(datapath, dpflow)
+        dpconn.futures.flowsCreate(datapath, dpflow)
         dpFlowProbe.expectMsgClass(classOf[FlowAdded])
         FlowController ! AddWildcardFlow(wflow, Some(dpflow), ROSet.empty, tags)
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
@@ -154,13 +154,13 @@ class RouterFlowInvalidationTestCase extends MidolmanTestCase with RouterHelper
         wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
         dpFlowProbe.expectMsgClass(classOf[FlowRemoved])
 
-        dpconn.flowsCreate(datapath, dpflow)
+        dpconn.futures.flowsCreate(datapath, dpflow)
         dpFlowProbe.expectMsgClass(classOf[FlowAdded])
         FlowController ! AddWildcardFlow(wflow, Some(dpflow), ROSet.empty, tags, lastInval)
         dpFlowProbe.expectMsgClass(classOf[FlowRemoved])
         wflowAddedProbe.expectNoMsg()
 
-        dpconn.flowsCreate(datapath, dpflow)
+        dpconn.futures.flowsCreate(datapath, dpflow)
         dpFlowProbe.expectMsgClass(classOf[FlowAdded])
         FlowController ! AddWildcardFlow(wflow, Some(dpflow), ROSet.empty, tags)
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])

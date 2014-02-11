@@ -36,13 +36,13 @@ public class OvsDatapathsGetTest extends AbstractNetlinkProtocolTest {
         Datapath.Stats stats = new Datapath.Stats().setHits(218).setMisses(153);
         Datapath datapath = new Datapath(99, "test", stats);
 
-        future = connection.datapathsGet("test");
+        future = connection.futures.datapathsGet("test");
         exchangeMessage();
 
         assertThat("The data was retrieved correctly",
                    future.get(), is(datapath));
 
-        future = connection.datapathsGet(99);
+        future = connection.futures.datapathsGet(99);
         exchangeMessage();
 
         assertThat("The data was retrieved correctly",

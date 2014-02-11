@@ -22,7 +22,7 @@ public class DeleteDatapathCallable implements Callable<DeleteDatapathResult> {
     @Override
     public DeleteDatapathResult call() throws Exception {
         try {
-            connection.datapathsDelete(datapathName).get();
+            connection.futures.datapathsDelete(datapathName).get();
             return new DeleteDatapathResult();
         } catch (Exception e) {
             throw new Exception("Could not delete datapath: " + datapathName);

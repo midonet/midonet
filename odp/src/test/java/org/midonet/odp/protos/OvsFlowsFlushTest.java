@@ -47,12 +47,12 @@ public class OvsFlowsFlushTest extends AbstractNetlinkProtocolTest {
 
         initializeConnection(connection.initialize(), 6);
 
-        Future<Datapath> dpResult = connection.datapathsGet("bibi");
+        Future<Datapath> dpResult = connection.futures.datapathsGet("bibi");
         // multi containing the datapaths data
         exchangeMessage();
 
         Future<Flow> flowResult =
-            connection.flowsCreate(dpResult.get(),
+            connection.futures.flowsCreate(dpResult.get(),
                                    new Flow().setMatch(flowMatch()));
 
         // multi containing the ports data
@@ -62,7 +62,7 @@ public class OvsFlowsFlushTest extends AbstractNetlinkProtocolTest {
                    flowResult.get().getMatch(),
                    equalTo(flowMatch()));
 
-        Future<Boolean> operationResult = connection.flowsFlush(dpResult.get());
+        Future<Boolean> operationResult = connection.futures.flowsFlush(dpResult.get());
         exchangeMessage();
 
         assertThat("The flowsFlush() result should have been true",
