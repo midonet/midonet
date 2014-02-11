@@ -32,7 +32,7 @@ public class OvsFlowsCreateTest extends AbstractNetlinkProtocolTest {
 
         initializeConnection(connection.initialize(), 6);
 
-        Future<Datapath> dpFuture = connection.datapathsGet("test");
+        Future<Datapath> dpFuture = connection.futures.datapathsGet("test");
         // multi containing the datapaths data
         exchangeMessage();
 
@@ -52,7 +52,7 @@ public class OvsFlowsCreateTest extends AbstractNetlinkProtocolTest {
                 .addAction(output(1));
 
         Future<Flow> flowFuture =
-            connection.flowsCreate(dpFuture.get(), flow);
+            connection.futures.flowsCreate(dpFuture.get(), flow);
 
         // multi containing the ports data
         exchangeMessage();

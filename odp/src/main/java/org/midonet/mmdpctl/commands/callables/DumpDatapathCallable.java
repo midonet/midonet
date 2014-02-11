@@ -25,10 +25,10 @@ public class DumpDatapathCallable implements Callable<DumpDatapathResult> {
     @Override
     public DumpDatapathResult call() throws Exception {
         try {
-            Datapath datapath = connection.datapathsGet(datapathName).get();
+            Datapath datapath = connection.futures.datapathsGet(datapathName).get();
             Set<Flow> flows = null;
             if (datapath != null) {
-                flows  = connection.flowsEnumerate(datapath).get();
+                flows  = connection.futures.flowsEnumerate(datapath).get();
             } else {
                 flows = Collections.emptySet();
             }

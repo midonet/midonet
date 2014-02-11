@@ -47,7 +47,7 @@ class DeduplicationActorTestCase extends FeatureSpec
         DeduplicationActor -> (() => new TestableDDA))
 
     override def beforeTest() {
-        datapath = mockDpConn().datapathsCreate("midonet").get()
+        datapath = mockDpConn().futures.datapathsCreate("midonet").get()
         testableDda = DeduplicationActor.as[TestableDDA]
         DeduplicationActor ! DatapathController.DatapathReady(datapath, null)
     }

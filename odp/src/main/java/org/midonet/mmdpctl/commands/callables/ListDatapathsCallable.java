@@ -21,7 +21,7 @@ public class ListDatapathsCallable implements Callable<ListDatapathsResult> {
 
     @Override
     public ListDatapathsResult call() throws Exception {
-        Set<Datapath> datapaths = connection.datapathsEnumerate().get();
+        Set<Datapath> datapaths = connection.futures.datapathsEnumerate().get();
         return new ListDatapathsResult(datapaths);
     }
 }

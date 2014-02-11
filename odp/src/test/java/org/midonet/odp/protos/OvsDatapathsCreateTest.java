@@ -37,7 +37,7 @@ public class OvsDatapathsCreateTest extends AbstractNetlinkProtocolTest {
 
         initializeConnection(connection.initialize(), 6);
 
-        Future<Datapath> future = connection.datapathsCreate("test2");
+        Future<Datapath> future = connection.futures.datapathsCreate("test2");
 
         // fire the second received message
         exchangeMessage();

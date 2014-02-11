@@ -274,7 +274,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
     def datapathPorts(datapath: Datapath): mutable.Map[String, DpPort] = {
 
         val ports: mutable.Set[DpPort] =
-            dpConn().portsEnumerate(datapath).get()
+            dpConn().futures.portsEnumerate(datapath).get()
 
         val portsByName = mutable.Map[String, DpPort]()
         for (port <- ports) {

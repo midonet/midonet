@@ -34,12 +34,12 @@ public abstract class OvsFlowsCreateSetMatchTest
 
         initializeConnection(connection.initialize(), 6);
 
-        Future<Datapath> dpFuture = connection.datapathsGet("bibi");
+        Future<Datapath> dpFuture = connection.futures.datapathsGet("bibi");
         exchangeMessage();
         Datapath datapath = dpFuture.get();
 
         Future<Flow> flowFuture =
-            connection.flowsCreate(dpFuture.get(),
+            connection.futures.flowsCreate(dpFuture.get(),
                                    new Flow().setMatch(flowMatch()));
 
         exchangeMessage();
@@ -47,7 +47,7 @@ public abstract class OvsFlowsCreateSetMatchTest
                    flowFuture.get().getMatch(), equalTo(flowMatch()));
 
         Future<Flow> retrievedFlowFuture =
-            connection.flowsGet(datapath, flowMatch());
+            connection.futures.flowsGet(datapath, flowMatch());
 
         exchangeMessage(2);
         assertThat("The retrieved flow has the same Match as we wanted",
@@ -60,7 +60,7 @@ public abstract class OvsFlowsCreateSetMatchTest
                 .setActions(flowActions());
 //                userspace()
 
-        Future<Flow> flowWithActionsFuture = connection.flowsSet(datapath,
+        Future<Flow> flowWithActionsFuture = connection.futures.flowsSet(datapath,
                                                                  updatedFlow);
         exchangeMessage();
 

@@ -152,7 +152,7 @@ class TunnelManagementTestCase extends MidolmanTestCase with Matchers with Virtu
         ipShe2 should be (herSecondGreConfig.getIp.addressAsInt)
 
         // assert datapath state
-        val dp = dpConn().datapathsGet("midonet").get()
+        val dp = dpConn().futures.datapathsGet("midonet").get()
         dp should not be (null)
 
         val ports = datapathPorts(dp)

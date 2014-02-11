@@ -37,7 +37,7 @@ public class OvsDatapathsDeleteTest extends AbstractNetlinkProtocolTest {
 
         initializeConnection(connection.initialize(), 6);
 
-        Future<Datapath> future = connection.datapathsDelete("test2");
+        Future<Datapath> future = connection.futures.datapathsDelete("test2");
         exchangeMessage();
 
         Datapath datapath = new Datapath(107, "test2");
