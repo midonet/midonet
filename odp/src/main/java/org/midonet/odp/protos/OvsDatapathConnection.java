@@ -9,6 +9,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import com.google.common.util.concurrent.ValueFuture;
+import org.midonet.netlink.exceptions.NetlinkException;
 import org.midonet.util.BatchCollector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -523,6 +524,21 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
     }
 
     /**
+     * Fire-and-forget API for creating a flow.
+     *
+     * @param datapath      the name of the datapath
+     * @param flow          the flow that we want to install
+     */
+    public void flowsCreate(@Nonnull final Datapath datapath,
+                            @Nonnull final Flow flow) throws NetlinkException {
+        try {
+            _doFlowsCreate(datapath, flow, null, DEF_REPLY_TIMEOUT);
+        } catch (RuntimeException wrapper) {
+            unwrapNetlinkException(wrapper);
+        }
+    }
+
+    /**
      * Callback based api for creating a flow.
      *
      * @param datapath      the name of the datapath
@@ -539,7 +555,7 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
 
     protected abstract void _doFlowsCreate(@Nonnull final Datapath datapath,
                                            @Nonnull final Flow flow,
-                                           @Nonnull final Callback<Flow> callback,
+                                           final Callback<Flow> callback,
                                            final long timeout);
 
     /**
@@ -656,6 +672,30 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
         packetsExecute(datapath, packet, callback, DEF_REPLY_TIMEOUT);
     }
 
+    private void unwrapNetlinkException(RuntimeException ex) throws NetlinkException {
+        Throwable cause = ex.getCause();
+        if (cause instanceof NetlinkException)
+            throw (NetlinkException) cause;
+        else
+            throw ex;
+    }
+
+    /**
+     * Fire-and-forget API for executing actions on a packet
+     *
+     * @param datapath is the datapath on which we want to send the packet.
+     * @param packet   is the packet we want to send. It needs to have both
+     *                 the keys and the actions parameters set.
+     */
+    public void packetsExecute(@Nonnull final Datapath datapath,
+                               @Nonnull final Packet packet) throws NetlinkException {
+        try {
+            _doPacketsExecute(datapath, packet, null, DEF_REPLY_TIMEOUT);
+        } catch (RuntimeException wrapper) {
+            unwrapNetlinkException(wrapper);
+        }
+    }
+
     /**
      * Callback based api for executing actions on a packet
      *
@@ -676,7 +716,7 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
 
     protected abstract void _doPacketsExecute(@Nonnull final Datapath datapath,
                                               @Nonnull final Packet packet,
-                                              @Nonnull final Callback<Boolean> callback,
+                                              final Callback<Boolean> callback,
                                               long timeoutMillis);
 
 
