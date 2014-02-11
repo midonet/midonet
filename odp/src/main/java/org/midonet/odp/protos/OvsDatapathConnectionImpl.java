@@ -473,7 +473,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
     @Override
     protected void _doFlowsCreate(@Nonnull final Datapath datapath,
                                   @Nonnull final Flow flow,
-                                  @Nonnull final Callback<Flow> callback,
+                                  final Callback<Flow> callback,
                                   final long timeoutMillis) {
         if (!validateState(callback))
             return;
@@ -481,9 +481,9 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         final int datapathId = datapath.getIndex() != null ? datapath.getIndex() : 0;
 
         if (datapathId == 0) {
-            callback.onError(
-                new OvsDatapathInvalidParametersException(
-                    "The datapath to dump flows for needs a valid datapath id"));
+            NetlinkException ex = new OvsDatapathInvalidParametersException(
+                    "The datapath to dump flows for needs a valid datapath id");
+            propagateError(callback, ex);
             return;
         }
 
@@ -497,9 +497,19 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         NetlinkMessage message = builder.build();
 
+        short flags = 0;
+        if (callback != null) {
+            flags = (short) (Flag.NLM_F_CREATE.getValue() |
+                             Flag.NLM_F_REQUEST.getValue() |
+                             Flag.NLM_F_ECHO.getValue());
+        } else {
+            flags = (short) (Flag.NLM_F_CREATE.getValue() |
+                             Flag.NLM_F_REQUEST.getValue());
+        }
+
         sendNetlinkMessage(
             flowFamily.contextNew,
-            Flag.or(Flag.NLM_F_CREATE, Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO),
+            flags,
             message.getBuffer(),
             callback,
             Flow.deserializer,
@@ -540,7 +550,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         sendNetlinkMessage(
             flowFamily.contextDel,
-            Flag.or(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO),
+            (short) (Flag.NLM_F_REQUEST.getValue() | Flag.NLM_F_ECHO.getValue()),
             message.getBuffer(),
             callback,
             Flow.deserializer,
@@ -651,10 +661,17 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             timeoutMillis);
     }
 
+    private void propagateError(Callback<?> callback, NetlinkException ex) {
+        if (callback != null)
+            callback.onError(ex);
+        else
+            throw new RuntimeException(ex);
+    }
+
     @Override
     protected void _doPacketsExecute(@Nonnull Datapath datapath,
                                      @Nonnull Packet packet,
-                                     @Nonnull Callback<Boolean> callback,
+                                     Callback<Boolean> callback,
                                      long timeoutMillis) {
         if (!validateState(callback))
             return;
@@ -662,29 +679,25 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         final int datapathId = datapath.getIndex() != null ? datapath.getIndex() : 0;
 
         if (datapathId == 0) {
-            callback.onError(
-                new OvsDatapathInvalidParametersException(
-                    "The datapath to get the flow from needs a valid datapath id"));
+            NetlinkException ex = new OvsDatapathInvalidParametersException(
+                "The datapath to get the flow from needs a valid datapath id");
+            propagateError(callback, ex);
             return;
         }
 
         FlowMatch flowMatch = packet.getMatch();
 
         if (flowMatch.getKeys().isEmpty()) {
-            callback.onError(
-                new OvsDatapathInvalidParametersException(
-                    "The packet should have a FlowMatch object set up (with non empty key set)."
-                )
-            );
+            NetlinkException ex = new OvsDatapathInvalidParametersException(
+                "The packet should have a FlowMatch object set up (with non empty key set).");
+            propagateError(callback, ex);
             return;
         }
 
         if (packet.getActions() == null || packet.getActions().isEmpty()) {
-            callback.onError(
-                new OvsDatapathInvalidParametersException(
-                    "The packet should have an action set up."
-                )
-            );
+            NetlinkException ex = new OvsDatapathInvalidParametersException(
+                    "The packet should have an action set up.");
+            propagateError(callback, ex);
             return;
         }
 
@@ -701,9 +714,17 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         NetlinkMessage message = builder.build();
 
+        short flags = 0;
+        if (callback != null) {
+            flags = (short) (Flag.NLM_F_REQUEST.getValue() |
+                             Flag.NLM_F_ACK.getValue());
+        } else {
+            flags = Flag.NLM_F_REQUEST.getValue();
+        }
+
         sendNetlinkMessage(
             packetFamily.contextExec,
-            Flag.or(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO, Flag.NLM_F_ACK),
+            flags,
             message.getBuffer(),
             callback,
             alwaysTrueTranslator,
@@ -833,10 +854,10 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
     private boolean validateState(Callback<?> callback) {
         switch (state) {
             case ErrorInInitialization:
-                callback.onError(stateInitializationEx);
+                propagateError(callback, stateInitializationEx);
                 return false;
             case Initializing:
-                callback.onError(new OvsDatapathNotInitializedException());
+                propagateError(callback, new OvsDatapathNotInitializedException());
                 return false;
         }
 

@@ -274,10 +274,11 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
     }
 
     @Override
-    protected void _doFlowsCreate(@Nonnull Datapath datapath, @Nonnull Flow flow, @Nonnull Callback<Flow> callback, long timeout) {
+    protected void _doFlowsCreate(@Nonnull Datapath datapath, @Nonnull Flow flow, Callback<Flow> callback, long timeout) {
         flow.setLastUsedTime(System.currentTimeMillis());
         flowsTable.put(flow.getMatch(), flow);
-        callback.onSuccess(flow);
+        if (callback != null)
+            callback.onSuccess(flow);
         flowsCb.flowCreated(flow);
     }
 
@@ -329,9 +330,10 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
 
     @Override
     protected void _doPacketsExecute(@Nonnull Datapath datapath, @Nonnull Packet packet,
-                                     @Nonnull Callback<Boolean> callback, long timeoutMillis) {
+                                     Callback<Boolean> callback, long timeoutMillis) {
         packetsSent.add(packet);
-        callback.onSuccess(true);
+        if (callback != null)
+            callback.onSuccess(true);
         if (packetExecCb != null)
             packetExecCb.onSuccess(packet);
     }
