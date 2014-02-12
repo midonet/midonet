@@ -51,7 +51,9 @@ public class TestIpAddrInterfaceSensor {
                                 "link/ether 1a:4e:bc:c7:ea:ff brd ff:ff:ff:ff:ff:ff",
                                 "inet 192.168.122.1/24 brd 192.168.122.255 scope global virbr0",
                                 "5: xxx: <BROADCAST,MULTICAST> mtu 1500 qdisc noop state DOWN qlen 500",
-                                "link/ether 4e:07:50:07:55:8a brd ff:ff:ff:ff:ff:ff"
+                                "link/ether 4e:07:50:07:55:8a brd ff:ff:ff:ff:ff:ff",
+                                "6: eth0.1@eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP",
+                                "link/ether cd:69:7c:64:07:63 brd ff:ff:ff:ff:ff:ff"
                         );
                     }
                 };
@@ -60,7 +62,7 @@ public class TestIpAddrInterfaceSensor {
                 interfaceSensor.updateInterfaceData(new ArrayList<InterfaceDescription>());
 
         //Check that we parsed all the interfaces
-        assertThat(interfaces.size(), equalTo(4));
+        assertThat(interfaces.size(), equalTo(5));
 
         // Check first interface
         InterfaceDescription interfaceDescription = interfaces.get(0);
@@ -106,6 +108,15 @@ public class TestIpAddrInterfaceSensor {
         assertThat(interfaceDescription.isUp(), equalTo(false));
         assertThat(interfaceDescription.getMtu(), equalTo(1500));
         assertThat(interfaceDescription.getMac(), equalTo(MAC.fromString("4E:07:50:07:55:8A").getAddress()));
+        assertThat(interfaceDescription.getInetAddresses().size(), equalTo(0));
+        assertThat(interfaceDescription.getEndpoint(), equalTo(InterfaceDescription.Endpoint.UNKNOWN));
+
+        // Check fifth interface
+        interfaceDescription = interfaces.get(4);
+        assertThat(interfaceDescription.getName(), equalTo("eth0.1"));
+        assertThat(interfaceDescription.isUp(), equalTo(true));
+        assertThat(interfaceDescription.getMtu(), equalTo(1500));
+        assertThat(interfaceDescription.getMac(), equalTo(MAC.fromString("CD:69:7C:64:07:63").getAddress()));
         assertThat(interfaceDescription.getInetAddresses().size(), equalTo(0));
         assertThat(interfaceDescription.getEndpoint(), equalTo(InterfaceDescription.Endpoint.UNKNOWN));
     }
