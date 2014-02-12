@@ -171,7 +171,7 @@ public class NatLeaseManager implements NatMapping {
                   "oldTpDst {} nats {}", new Object[] { protocol,
                       nwSrc, tpSrc, oldNwDst, oldTpDst, nats });
 
-        if (nats.size() == 0)
+        if (nats.isEmpty())
             throw new IllegalArgumentException("Nat list was emtpy.");
         int natPos = rand.nextInt(nats.size());
         Iterator<NatTarget> iter = nats.iterator();

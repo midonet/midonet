@@ -138,7 +138,7 @@ public class FlowMatches {
                 break;
         }
 
-        if (ethPkt.getVlanIDs().size() > 0) {
+        if (!ethPkt.getVlanIDs().isEmpty()) {
             // process VLANS
             for (Iterator<Short> it = ethPkt.getVlanIDs().iterator();
                  it.hasNext(); ) {

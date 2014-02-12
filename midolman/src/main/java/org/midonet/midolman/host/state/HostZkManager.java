@@ -397,7 +397,7 @@ public class HostZkManager extends AbstractZkManager {
             }
         }
 
-        if (updateInterfacesOperation.size() > 0) {
+        if (!updateInterfacesOperation.isEmpty()) {
             zk.multi(updateInterfacesOperation);
         }
     }

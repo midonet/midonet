@@ -72,7 +72,7 @@ public class NetlinkConnection extends AbstractNetlinkConnection {
             new Function<List<ByteBuffer>, Short>() {
                 @Override
                 public Short apply(@Nullable List<ByteBuffer> input) {
-                    if (input == null || input.size() == 0 || input.get(0) == null)
+                    if (input == null || input.isEmpty() || input.get(0) == null)
                         return 0;
 
                     NetlinkMessage message = new NetlinkMessage(input.get(0));

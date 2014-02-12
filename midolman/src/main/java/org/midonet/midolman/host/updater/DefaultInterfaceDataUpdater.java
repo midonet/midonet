@@ -83,10 +83,10 @@ public class DefaultInterfaceDataUpdater implements InterfaceDataUpdater {
             }
 
             log.trace("Input: " + curMapByName);
-            if (updatedInterfaces.size() > 0) {
+            if (!updatedInterfaces.isEmpty()) {
                 log.info("Updated: " + updatedInterfaces);
             }
-            if (interfacesToRemove.size() > 0) {
+            if (!interfacesToRemove.isEmpty()) {
                 log.info("Removed: " + interfacesToRemove);
             }
 

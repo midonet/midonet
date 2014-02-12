@@ -39,7 +39,7 @@ public class ForwardNatRule extends NatRule {
             int position, boolean dnat, Set<NatTarget> targets) {
         super(condition, action, chainId, position, dnat);
         this.targets = targets;
-        if (null == targets || targets.size() == 0)
+        if (null == targets || targets.isEmpty())
             throw new IllegalArgumentException(
                     "A forward nat rule must have targets.");
         floatingIp = false;

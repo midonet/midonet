@@ -113,7 +113,7 @@ public class Condition {
 
     private boolean matchPort(Set<UUID> condPorts, UUID port, boolean negate) {
         // Packet is considered to match if the field is null or empty set.
-        if (condPorts == null || condPorts.size() == 0)
+        if (condPorts == null || condPorts.isEmpty())
             return true;
         boolean cond = condPorts.contains(port);
         return negate? !cond :cond;
@@ -181,7 +181,7 @@ public class Condition {
             sb.append("matchForwardFlow=true, ");
         if (matchReturnFlow)
             sb.append("matchReturnFlow=true, ");
-        if (inPortIds != null && inPortIds.size() > 0) {
+        if (inPortIds != null && !inPortIds.isEmpty()) {
             sb.append("inPortIds={");
             for (UUID id : inPortIds) {
                 sb.append(id.toString()).append(",");
@@ -190,7 +190,7 @@ public class Condition {
             if (inPortInv)
                 sb.append("inPortInv=").append(inPortInv).append(", ");
         }
-        if (outPortIds != null && outPortIds.size() > 0) {
+        if (outPortIds != null && !outPortIds.isEmpty()) {
             sb.append("outPortIds={");
             for (UUID id : outPortIds) {
                 sb.append(id.toString()).append(",");

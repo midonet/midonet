@@ -113,7 +113,7 @@ public class Flow {
         new Function<List<ByteBuffer>, Flow>() {
             @Override
             public Flow apply(List<ByteBuffer> input) {
-                if (input == null || input.size() == 0 || input.get(0) == null)
+                if (input == null || input.isEmpty() || input.get(0) == null)
                     return null;
                 return Flow.buildFrom(new NetlinkMessage(input.get(0)));
             }

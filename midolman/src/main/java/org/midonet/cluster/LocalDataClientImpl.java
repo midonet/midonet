@@ -502,7 +502,7 @@ public class LocalDataClientImpl implements DataClient {
             ops.add(zkManager.getPersistentCreateOp(path, data));
         }
 
-        if (ops.size() > 0) {
+        if (!ops.isEmpty()) {
             zkManager.multi(ops);
         }
     }
@@ -2491,7 +2491,7 @@ public class LocalDataClientImpl implements DataClient {
             ops.add(zkManager.getPersistentCreateOp(path, data));
         }
 
-        if (ops.size() > 0) {
+        if (!ops.isEmpty()) {
             zkManager.multi(ops);
         }
     }

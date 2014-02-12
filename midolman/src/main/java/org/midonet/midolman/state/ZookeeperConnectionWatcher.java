@@ -99,7 +99,7 @@ public class ZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
     }
 
     private void submitReconnectCallbacks() {
-        if (reconnectCallbacks.size() > 0) {
+        if (!reconnectCallbacks.isEmpty()) {
             List<Runnable> callbacks = this.reconnectCallbacks;
             this.reconnectCallbacks = new LinkedList<Runnable>();
             log.info("ZK connection restored, re-issuing {} requests",
@@ -110,7 +110,7 @@ public class ZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
     }
 
     private void submitDisconnectCallbacks() {
-        if (disconnectCallbacks.size() > 0) {
+        if (!disconnectCallbacks.isEmpty()) {
             List<Runnable> callbacks = this.disconnectCallbacks;
             this.disconnectCallbacks = new LinkedList<Runnable>();
             log.info("ZK connection lost, firing {} disconnect callbacks",

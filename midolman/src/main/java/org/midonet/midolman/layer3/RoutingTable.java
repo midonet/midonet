@@ -50,7 +50,7 @@ class RoutingTable extends RoutesTrie {
                         ret.add(rt);
                 }
             }
-            if (ret.size() > 0)
+            if (!ret.isEmpty())
                 break;
         }
 

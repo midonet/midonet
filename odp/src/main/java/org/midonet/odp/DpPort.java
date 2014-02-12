@@ -163,7 +163,7 @@ public abstract class DpPort {
         new Function<List<ByteBuffer>, DpPort>() {
             @Override
             public DpPort apply(List<ByteBuffer> input) {
-                if (input == null || input.size() == 0 || input.get(0) == null)
+                if (input == null || input.isEmpty() || input.get(0) == null)
                     return null;
                 return DpPort.buildFrom(new NetlinkMessage(input.get(0)));
             }
