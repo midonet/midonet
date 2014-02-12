@@ -327,7 +327,7 @@ public class ZkDirectory implements Directory {
 
     public void asyncMultiPathGet(@Nonnull final Set<String> relativePaths,
                                   final DirectoryCallback<Set<byte[]>> cb){
-        if(relativePaths.size() == 0){
+        if(relativePaths.isEmpty()){
             log.debug("Empty set of paths, is that OK?");
             cb.onSuccess(new DirectoryCallback.Result<Set<byte[]>>(
                 Collections.<byte[]>emptySet(), null));

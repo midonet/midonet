@@ -51,7 +51,7 @@ public class ZkDumper {
         String zkHost = cl.getOptionValue('h', "localhost");
 
         List<String> argList = cl.getArgList();
-        if (argList.size() == 0) {
+        if (argList.isEmpty()) {
             argList.add("/");
         }
 

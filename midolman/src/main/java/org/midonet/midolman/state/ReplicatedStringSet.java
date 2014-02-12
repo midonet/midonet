@@ -15,7 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ReplicatedStringSet {
-    
+
     private final static Logger log = LoggerFactory.getLogger(ReplicatedStringSet.class);
 
     public interface Watcher {
@@ -44,7 +44,7 @@ public class ReplicatedStringSet {
             addedStrings.removeAll(oldStrings);
             // Compute the newly deleted strings
             oldStrings.removeAll(strings);
-            if (addedStrings.size() > 0 || oldStrings.size() > 0) {
+            if (!addedStrings.isEmpty() || !oldStrings.isEmpty()) {
                 notifyWatchers(addedStrings, oldStrings);
             }
         }

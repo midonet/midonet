@@ -73,7 +73,7 @@ public class Datapath {
         new Function<List<ByteBuffer>, Datapath>() {
             @Override
             public Datapath apply(List<ByteBuffer> input) {
-                if (input == null || input.size() == 0 || input.get(0) == null)
+                if (input == null || input.isEmpty() || input.get(0) == null)
                     return null;
                 return buildFrom(new NetlinkMessage(input.get(0)));
             }

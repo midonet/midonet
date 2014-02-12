@@ -32,7 +32,8 @@ public class MacCommandExecutor extends AbstractCommandExecutor<String> {
                 executeCommandLine(format("ip link show %s", targetName)).consoleOutput;
 
             log.debug("Stdout: " + stdOut);
-            boolean wasUp = stdOut.size() > 0 && stdOut.get(0).matches(".*state UP.*");
+            boolean wasUp =
+                !stdOut.isEmpty() && stdOut.get(0).matches(".*state UP.*");
 
             if (wasUp) {
                 sudoExec(format("ip link set %s down", targetName));

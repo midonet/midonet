@@ -150,7 +150,7 @@ public class ClusterChainManager extends ClusterManager<ChainBuilder> {
 
             ruleMap.put(ruleId, rule);
 
-            if ((missingRuleIds.size() == 0)) {
+            if ((missingRuleIds.isEmpty())) {
                 getBuilder(rule.chainId).setRules(ruleIds, ruleMap);
             }
         }

@@ -140,7 +140,7 @@ public class FlowManager {
     }
 
     public boolean evictOneFlow() {
-        ManagedWildcardFlow toEvict = (hardTimeOutQueue.size() > 0) ?
+        ManagedWildcardFlow toEvict = !hardTimeOutQueue.isEmpty() ?
                 hardTimeOutQueue.poll() : idleTimeOutQueue.poll();
 
         if (toEvict != null) {
@@ -292,7 +292,7 @@ public class FlowManager {
                 // FlowManager's ref
                 wildFlow.unref();
 
-                if (wcMap.size() == 0)
+                if (wcMap.isEmpty())
                     wildcardTables.tables().remove(wildFlow.getMatch().getUsedFields());
 
                 return true;

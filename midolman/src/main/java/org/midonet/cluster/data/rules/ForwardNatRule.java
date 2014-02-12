@@ -38,7 +38,7 @@ public class ForwardNatRule
     }
 
     public ForwardNatRule setTargets(Set<NatTarget> targets) {
-        if (null == targets || targets.size() == 0)
+        if (null == targets || targets.isEmpty())
             throw new IllegalArgumentException(
                     "A forward nat rule must have targets.");
         getData().targets = targets;

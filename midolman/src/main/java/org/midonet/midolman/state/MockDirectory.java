@@ -126,7 +126,7 @@ public class MockDirectory implements Directory {
             String childPath = path + "/" + name;
             if (null == child)
                 throw new NoNodeException(childPath);
-            if (child.children.size() > 0)
+            if (!child.children.isEmpty())
                 throw new NotEmptyException(childPath);
             children.remove(name);
 
@@ -447,7 +447,7 @@ public class MockDirectory implements Directory {
     @Override
     public void asyncMultiPathGet(@Nonnull final Set<String> relativePaths,
                                   final DirectoryCallback<Set<byte[]>> cb) {
-        if(relativePaths.size() == 0){
+        if(relativePaths.isEmpty()){
             log.debug("Empty set of paths, is that OK?");
             cb.onSuccess(new DirectoryCallback.Result<Set<byte[]>>(
             Collections.<byte[]>emptySet(), null));

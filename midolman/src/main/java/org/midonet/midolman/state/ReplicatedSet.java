@@ -49,11 +49,10 @@ public abstract class ReplicatedSet<T> {
         for (String str : oldStrings) {
             deletedItems.add(decode(str));
         }
-        if (addedItems.size() > 0 || deletedItems.size() > 0
+        if (!addedItems.isEmpty() || !deletedItems.isEmpty()
                 || !firstUpdateSent) {
             notifyWatchers(addedItems, deletedItems);
-            if (!firstUpdateSent)
-                firstUpdateSent = true;
+            firstUpdateSent = true;
         }
         strings = newStrings;
     }
