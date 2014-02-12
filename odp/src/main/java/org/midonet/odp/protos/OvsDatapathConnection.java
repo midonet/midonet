@@ -48,16 +48,13 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
     public final FuturesApi futures = new FuturesApi();
 
     protected OvsDatapathConnection(NetlinkChannel channel, Reactor reactor,
-            ThrottlingGuardFactory pendingWritesThrottlingFactory,
             ThrottlingGuard upcallThrottler,
             BufferPool sendPool) throws Exception {
-        super(channel, reactor, pendingWritesThrottlingFactory,
-            upcallThrottler, sendPool);
+        super(channel, reactor, upcallThrottler, sendPool);
     }
 
     public static OvsDatapathConnection create(
             Netlink.Address address, Reactor reactor,
-            ThrottlingGuardFactory pendingWritesThrottlingFactory,
             ThrottlingGuard upcallThrottler,
             BufferPool sendPool) throws Exception {
 
@@ -74,13 +71,13 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
         }
 
         return new OvsDatapathConnectionImpl(channel, reactor,
-            pendingWritesThrottlingFactory, upcallThrottler, sendPool);
+            upcallThrottler, sendPool);
     }
 
     public static OvsDatapathConnection create(
             Netlink.Address address, Reactor reactor) throws Exception {
-        return create(address, reactor, new NoOpThrottlingGuardFactory(),
-                new NoOpThrottlingGuard(), new BufferPool(128, 512, 0x1000));
+        return create(address, reactor, new NoOpThrottlingGuard(),
+            new BufferPool(128, 512, 0x1000));
     }
 
     public static OvsDatapathConnection createMock(Reactor reactor) throws Exception {

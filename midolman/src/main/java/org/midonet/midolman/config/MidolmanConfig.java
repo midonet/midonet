@@ -64,11 +64,6 @@ public interface MidolmanConfig
     @ConfigInt(key = "idle_flow_tolerance_interval", defaultValue = 10000)
     public int getIdleFlowToleranceInterval();
 
-    @ConfigInt(key = "datapath_throttling_low_water_mark", defaultValue = 128)
-    public int getDatapathThrottlingLowWaterMark();
-
-    @ConfigInt(key = "datapath_throttling_high_water_mark", defaultValue = 256)
-    public int getDatapathThrottlingHighWaterMark();
 
     @ConfigInt(key = "simulation_throttling_low_water_mark", defaultValue = 32)
     public int getSimulationThrottlingLowWaterMark();
