@@ -3,6 +3,7 @@
  */
 package org.midonet.midolman.simulation
 
+import java.nio.ByteBuffer
 import java.util.UUID
 import scala.collection.JavaConversions._
 import scala.collection.mutable
@@ -27,16 +28,16 @@ class DhcpImpl(val dataClient: DataClient,
                val request: DHCP, val sourceMac: MAC,
                val mtu: Option[Short], val log: LoggingAdapter) {
 
-    private var serverAddr: IntIPv4 = null
+    private var serverAddr: IPv4Addr = null
     private var serverMac: MAC = null
-    private var routerAddr: IntIPv4 = null
-    private var yiaddr: IntIPv4 = null
+    private var routerAddr: IPv4Addr = null
+    private var yiaddr: IPv4Addr = null
+    private var yiAddrMaskLen: Int = 0
     private var opt121Routes: mutable.Seq[Opt121] = null
-    private var dnsServerAddrs : mutable.Seq[IntIPv4] = null
-    private var interfaceMTU : Short = 0
+    private var dnsServerAddrsBytes: List[Array[Byte]] = Nil
 
-    // utility function for reduced verbosity
-    private def addrToBytes (ip: IntIPv4) = IPv4Addr.intToBytes(ip.getAddress)
+
+    private var interfaceMTU : Short = 0
 
     def handleDHCP(port: Port) : Option[Ethernet] = {
         // These fields are decided based on the port configuration.
@@ -84,13 +85,14 @@ class DhcpImpl(val dataClient: DataClient,
 
                 // TODO(pino): the server MAC should be in configuration.
                 serverMac = MAC.fromString("02:a8:9c:de:39:27")
-                serverAddr = sub.getServerAddr
-                routerAddr = sub.getDefaultGateway
-                yiaddr = host.getIp.clone
-                yiaddr.setMaskLength(sub.getSubnetAddr.getMaskLength)
+                serverAddr = IntIPv4.toIPv4Addr(sub.getServerAddr)
+                routerAddr = IntIPv4.toIPv4Addr(sub.getDefaultGateway)
+                yiaddr = IntIPv4.toIPv4Addr(host.getIp)
+                yiAddrMaskLen = sub.getSubnetAddr.getMaskLength
 
-                if (sub.getDnsServerAddrs != null)
-                    dnsServerAddrs = sub.getDnsServerAddrs
+                dnsServerAddrsBytes =
+                    Option(sub.getDnsServerAddrs).map{ _.toList}.getOrElse(Nil)
+                        .map { case ip => IPv4Addr.intToBytes(ip.getAddress) }
                 opt121Routes = sub.getOpt121Routes
 
                 (sub.getInterfaceMTU match {
@@ -203,7 +205,7 @@ class DhcpImpl(val dataClient: DataClient,
                     case Some(opt) =>
                         // The server id should correspond to this port's address.
                         val theirServId = IPv4Addr.bytesToInt(opt.getData)
-                        if (serverAddr.addressAsInt != theirServId) {
+                        if (serverAddr.addr != theirServId) {
                             log.warning("handleDhcpRequest dropping dhcp REQUEST - client "
                                 + "chose server {} not us {}",
                                 IPv4Addr.intToString(theirServId), serverAddr)
@@ -221,7 +223,7 @@ class DhcpImpl(val dataClient: DataClient,
                         val reqIp = IPv4Addr.bytesToInt(opt.getData)
                         // TODO(pino): must keep state and remember the offered ip based
                         // on the chaddr or the client id option.
-                        if (yiaddr.addressAsInt != reqIp) {
+                        if (yiaddr.addr != reqIp) {
                             log.warning("handleDhcpRequest dropping dhcp REQUEST " +
                                 "- the requested ip {} is not the offered " +
                                 "yiaddr {}", reqIp, yiaddr)
@@ -243,19 +245,19 @@ class DhcpImpl(val dataClient: DataClient,
         reply.setHardwareAddressLength(6)
         reply.setHardwareType(ARP.HW_TYPE_ETHERNET.toByte)
         reply.setClientHardwareAddress(sourceMac)
-        reply.setServerIPAddress(serverAddr.getAddress)
-        reply.setYourIPAddress(yiaddr.getAddress)
+        reply.setServerIPAddress(serverAddr.addr)
+        reply.setYourIPAddress(yiaddr.addr)
 
         // TODO(pino): do we need to include the DNS option?
         options.add(new DHCPOption(DHCPOption.Code.MASK.value,
                                    DHCPOption.Code.MASK.length,
                                    IPv4Addr.intToBytes(
-                                       ~0 << (32 - yiaddr.getMaskLength))))
+                                       ~0 << (32 - yiAddrMaskLen))))
 
         // Generate the broadcast address... this is nwAddr with 1's in the
         // last 32-nwAddrLength bits.
-        val mask = ~0 >>> yiaddr.getMaskLength
-        val bcast = mask | yiaddr.getAddress
+        val mask = ~0 >>> yiAddrMaskLen
+        val bcast = mask | yiaddr.addr
         log.debug("handleDhcpRequest setting bcast addr option to {}",
             IPv4Addr.intToString(bcast))
         options.add(new DHCPOption(DHCPOption.Code.BCAST_ADDR.value,
@@ -271,23 +273,20 @@ class DhcpImpl(val dataClient: DataClient,
         if (routerAddr != null) {
             options.add(new DHCPOption(DHCPOption.Code.ROUTER.value,
                                        DHCPOption.Code.ROUTER.length,
-                                       addrToBytes(routerAddr)))
+                                       routerAddr.toBytes))
         }
         // in MidoNet the DHCP server is the same as the router
         options.add(new DHCPOption(
             DHCPOption.Code.SERVER_ID.value,
             DHCPOption.Code.SERVER_ID.length,
-            addrToBytes(serverAddr)))
+            serverAddr.toBytes))
 
-        if (dnsServerAddrs != null && dnsServerAddrs.length > 0) {
-            val bytes = mutable.ListBuffer[Byte]()
-            dnsServerAddrs.foreach ( dnsIp => {
-                val dnsServerBytes = addrToBytes(dnsIp)
-                bytes.appendAll(dnsServerBytes.toList)
-            })
+        if (dnsServerAddrsBytes.nonEmpty) {
+            val len = 4 * dnsServerAddrsBytes.length
+            val buffer = ByteBuffer.allocate(len)
+            dnsServerAddrsBytes.foreach{ bytes => buffer put bytes}
             options.add(new DHCPOption(DHCPOption.Code.DNS.value,
-                                       bytes.length.toByte,
-                                       bytes.toArray))
+                                       len.toByte, buffer.array))
         }
         // If there are classless static routes, add the option.
         if (null != opt121Routes && opt121Routes.length > 0) {
@@ -298,13 +297,13 @@ class DhcpImpl(val dataClient: DataClient,
                 val maskLen = rt.getRtDstSubnet.getMaskLength.toByte
                 bytes.append(maskLen)
                 // Now append the significant octets of the subnet.
-                val dstBytes = addrToBytes(rt.getRtDstSubnet)
+                val dstBytes = IPv4Addr.intToBytes(rt.getRtDstSubnet.getAddress)
                 if (maskLen > 0) bytes.append(dstBytes(0))
                 if (maskLen > 8) bytes.append(dstBytes(1))
                 if (maskLen > 16) bytes.append(dstBytes(2))
                 if (maskLen > 24) bytes.append(dstBytes(3))
                 // Now append the 4 octets of the gateway.
-                val gwBytes = addrToBytes(rt.getGateway)
+                val gwBytes = IPv4Addr.intToBytes(rt.getGateway.getAddress)
                 bytes.appendAll(gwBytes.toList)
             }
             log.debug("Adding Option 121 (classless static routes) with " +
@@ -326,7 +325,7 @@ class DhcpImpl(val dataClient: DataClient,
         udp.setPayload(reply)
 
         val ip = new IPv4
-        ip.setSourceAddress(serverAddr.getAddress)
+        ip.setSourceAddress(serverAddr.addr)
         ip.setDestinationAddress("255.255.255.255")
         ip.setProtocol(UDP.PROTOCOL_NUMBER)
         ip.setPayload(udp)
