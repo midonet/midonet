@@ -103,6 +103,10 @@ public class IntIPv4 implements Cloneable {
         return this;
     }
 
+    public IPv4Addr toIPv4Addr() {
+        return new IPv4Addr(address);
+    }
+
     public int getMaskLength() {
         return maskLength;
     }
@@ -149,6 +153,10 @@ public class IntIPv4 implements Cloneable {
             ipAddr |= (fourBytes[i] & 0xff) << ((3-i)*8);
         }
         return new IntIPv4(ipAddr, length);
+    }
+
+    public static IPv4Addr toIPv4Addr(IntIPv4 intIp) {
+        return intIp == null ? null : new IPv4Addr(intIp.getAddress());
     }
 
      /**
