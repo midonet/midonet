@@ -48,7 +48,6 @@ public abstract class AbstractNetlinkConnection {
 
     private AtomicInteger sequenceGenerator = new AtomicInteger(1);
 
-    protected ThrottlingGuard pendingWritesThrottler;
     protected ThrottlingGuard upcallThrottler;
 
     private Map<Integer, NetlinkRequest>
@@ -76,13 +75,9 @@ public abstract class AbstractNetlinkConnection {
             new SelectorInputQueue<NetlinkRequest>();
 
     public AbstractNetlinkConnection(NetlinkChannel channel, Reactor reactor,
-            ThrottlingGuardFactory pendingWritesThrottlerFactory,
-            ThrottlingGuard upcallThrottler,
-            BufferPool sendPool) {
+            ThrottlingGuard upcallThrottler, BufferPool sendPool) {
         this.channel = channel;
         this.reactor = reactor;
-        this.pendingWritesThrottler = pendingWritesThrottlerFactory.buildForCollection(
-                "NetlinkConnection", pendingRequests.keySet());
         this.upcallThrottler = upcallThrottler;
         this.requestPool = sendPool;
 
@@ -173,7 +168,6 @@ public abstract class AbstractNetlinkConnection {
                         ByteBuffer timedOutBuf = timedOutRequest.outBuffer.getAndSet(null);
                         if (timedOutBuf != null)
                             requestPool.release(timedOutBuf);
-                        pendingWritesThrottler.tokenOut();
                         timedOutRequest.expired().run();
                     }
 
@@ -188,7 +182,6 @@ public abstract class AbstractNetlinkConnection {
         if (writeQueue.offer(netlinkRequest)) {
             if (bypassSendQueue)
                 processWriteToChannel();
-            pendingWritesThrottler.tokenIn();
 
             if (callback != null) {
                 getReactor().schedule(netlinkRequest.timeoutHandler,
@@ -327,7 +320,6 @@ public abstract class AbstractNetlinkConnection {
 
                     if (request != null) {
                         pendingRequests.remove(seq);
-                        pendingWritesThrottler.tokenOut();
                         // An ACK is a NLMSG_ERROR with 0 as error code
                         if (error == 0) {
                             dispatcher.submit(request.successful(request.inBuffers));
@@ -342,7 +334,6 @@ public abstract class AbstractNetlinkConnection {
                 case NLMSG_DONE:
                     if (request != null) {
                         pendingRequests.remove(seq);
-                        pendingWritesThrottler.tokenOut();
                         dispatcher.submit(request.successful(request.inBuffers));
                     }
                     break;
@@ -370,13 +361,11 @@ public abstract class AbstractNetlinkConnection {
                     if (!Flag.isSet(flags, Flag.NLM_F_MULTI)) {
                         if (request != null) {
                             pendingRequests.remove(seq);
-                            pendingWritesThrottler.tokenOut();
                             dispatcher.submit(request.successful(request.inBuffers));
                         }
 
-                        if (seq == 0 && pendingWritesThrottler.allowed()) {
-                            if (upcallThrottler.tokenInIfAllowed())
-                                handleNotification(type, cmd, seq, pid, buffers);
+                        if (seq == 0 && upcallThrottler.tokenInIfAllowed()) {
+                            handleNotification(type, cmd, seq, pid, buffers);
                         }
                     }
             }

@@ -57,11 +57,9 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         OpenVSwitch.Port.fallbackMCGroup;
 
     public OvsDatapathConnectionImpl(NetlinkChannel channel, Reactor reactor,
-            ThrottlingGuardFactory pendingWritesThrottlerFactory,
-            ThrottlingGuard upcallThrottler,
-            BufferPool sendPool)
+            ThrottlingGuard upcallThrottler, BufferPool sendPool)
         throws Exception {
-        super(channel, reactor, pendingWritesThrottlerFactory, upcallThrottler, sendPool);
+        super(channel, reactor, upcallThrottler, sendPool);
     }
 
     @Override
