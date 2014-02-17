@@ -412,7 +412,11 @@ public class FlowManager {
             }else
                 break;
         }
-        log.debug("Number of getFlow requests in flight {}", flowRequestsInFlight);
+
+        if (flowRequestsInFlight > 0) {
+            log.debug("Number of getFlow requests in flight {}",
+                      flowRequestsInFlight);
+        }
     }
 
     private void manageDPFlowTableSpace() {
