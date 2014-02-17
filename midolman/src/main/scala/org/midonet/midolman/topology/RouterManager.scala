@@ -23,10 +23,12 @@ import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 
 
 class RoutingTableWrapper[IP <: IPAddr](val rTable: RoutingTableIfc[IP]) {
+
     import collection.JavaConversions._
+
     def lookup(wmatch: WildcardMatch): Iterable[Route] =
-        // TODO (ipv6) de facto implementation for ipv4, that explains
-        // the casts at this point.
+    // TODO (ipv6) de facto implementation for ipv4, that explains
+    // the casts at this point.
         rTable.lookup(wmatch.getNetworkSourceIP.asInstanceOf[IP],
                       wmatch.getNetworkDestinationIP.asInstanceOf[IP])
 }
@@ -36,6 +38,7 @@ object RouterManager {
 
     case class TriggerUpdate(cfg: RouterConfig, arpCache: ArpCache,
                              rTable: RoutingTableWrapper[IPv4Addr])
+
     case class InvalidateFlows(addedRoutes: ROSet[Route],
                                deletedRoutes: ROSet[Route])
 
@@ -45,6 +48,7 @@ object RouterManager {
 
     // these msg are used for testing
     case class RouterInvTrieTagCountModified(dstIp: IPAddr, count: Int)
+
 }
 
 case class RouterConfig(adminStateUp: Boolean = true,
@@ -57,6 +61,7 @@ case class RouterConfig(adminStateUp: Boolean = true,
  */
 trait TagManager {
     def addTag(dstIp: IPAddr)
+
     def getFlowRemovalCallback(dstIp: IPAddr): Callback0
 }
 
@@ -79,7 +84,7 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
 
     private var cfg: RouterConfig = null
     private var changed = false
-    private var rTable: RoutingTableWrapper[IPv4Addr]= null
+    private var rTable: RoutingTableWrapper[IPv4Addr] = null
     private var arpCache: ArpCache = null
     private var arpTable: ArpTable = null
     private var loadBalancer: LoadBalancer = null
@@ -148,10 +153,10 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
     }
 
     private def getLoadBalancerID = {
-      cfg match {
-        case null => null
-        case _ => cfg.loadBalancer
-      }
+        cfg match {
+            case null => null
+            case _ => cfg.loadBalancer
+        }
     }
 
     private def invalidateFlowsByIp(ip: IPv4Addr) {
@@ -160,7 +165,7 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
     }
 
     private def waitingForLoadBalancer =
-      null != getLoadBalancerID && loadBalancer == null
+        null != getLoadBalancerID && loadBalancer == null
 
     private def loadBalancerReady = !waitingForLoadBalancer
 
@@ -300,4 +305,5 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
 
         }
     }
+
 }

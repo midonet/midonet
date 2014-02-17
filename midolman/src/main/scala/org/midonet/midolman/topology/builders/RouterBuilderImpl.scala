@@ -53,8 +53,8 @@ class RouterBuilderImpl(val id: UUID, val routerManager: ActorRef)
     }
 
     def setLoadBalancer(loadBalancerID: UUID) = {
-      cfg = cfg.copy(loadBalancer = loadBalancerID)
-      this
+        cfg = cfg.copy(loadBalancer = loadBalancerID)
+        this
     }
 
     def build() {
@@ -63,7 +63,7 @@ class RouterBuilderImpl(val id: UUID, val routerManager: ActorRef)
         val table = new IPv4RoutingTable()
         for (rt <- routes)
             table.addRoute(rt)
-        if(routesToAdd.size > 0 || routesToRemove.size > 0){
+        if (routesToAdd.size > 0 || routesToRemove.size > 0) {
             val added = routesToAdd.clone()
             val deleted = routesToRemove.clone()
             routerManager ! InvalidateFlows(added, deleted)

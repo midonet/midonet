@@ -12,6 +12,6 @@ import akka.event.LoggingBus
  *
  * Placeholder class.
  */
-class Pool (val id: UUID, val poolMembers: Set[PoolMember],
-            val loggingBus: LoggingBus) {
+class Pool(val id: UUID, val poolMembers: Set[PoolMember],
+           val loggingBus: LoggingBus) {
 }
