@@ -64,11 +64,6 @@ public class ChainZkManager extends AbstractZkManager {
         super(zk, paths, serializer);
     }
 
-    public ChainZkManager(Directory dir, String basePath,
-                          Serializer serializer) {
-        this(new ZkManager(dir), new PathBuilder(basePath), serializer);
-    }
-
     /**
      * Constructs a list of ZooKeeper update operations to perform when adding a
      * new chain.

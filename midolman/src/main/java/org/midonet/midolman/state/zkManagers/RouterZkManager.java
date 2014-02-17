@@ -146,11 +146,6 @@ public class RouterZkManager extends AbstractZkManager {
         loadBalancerZkManager = new LoadBalancerZkManager(zk, paths, serializer);
     }
 
-    public RouterZkManager(Directory dir, String basePath,
-                           Serializer serializer) {
-        this(new ZkManager(dir), new PathBuilder(basePath), serializer);
-    }
-
     /**
      * Constructs a list of ZooKeeper update operations to perform when adding a
      * new router.

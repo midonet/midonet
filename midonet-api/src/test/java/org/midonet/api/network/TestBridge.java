@@ -28,7 +28,7 @@ import org.junit.runners.Parameterized.Parameters;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.FuncTest;
-import org.midonet.api.rest_api.RestApiTest;
+import org.midonet.api.rest_api.RestApiTestBase;
 import org.midonet.api.rest_api.Topology;
 import org.midonet.api.validation.MessageProperty;
 import org.midonet.api.zookeeper.StaticMockDirectory;
@@ -179,7 +179,7 @@ public class TestBridge {
         }
     }
 
-    public static class TestBridgeCrud extends RestApiTest {
+    public static class TestBridgeCrud extends RestApiTestBase {
 
         private DtoWebResource dtoResource;
         private Topology topology;

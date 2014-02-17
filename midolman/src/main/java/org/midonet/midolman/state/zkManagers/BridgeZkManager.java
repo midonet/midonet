@@ -128,11 +128,6 @@ public class BridgeZkManager extends AbstractZkManager {
         this.portZkManager = new PortZkManager(zk, paths, serializer);
     }
 
-    public BridgeZkManager(Directory dir, String basePath,
-                           Serializer serializer) {
-        this(new ZkManager(dir), new PathBuilder(basePath), serializer);
-    }
-
     /**
      * Constructs a list of ZooKeeper update operations to perform when adding a
      * new bridge.

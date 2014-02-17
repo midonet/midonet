@@ -4,6 +4,7 @@
 package org.midonet.api.l4lb;
 
 import java.net.URI;
+import java.util.UUID;
 
 import junit.framework.Assert;
 import org.junit.After;
@@ -15,9 +16,15 @@ import org.midonet.api.VendorMediaType;
 import org.midonet.api.zookeeper.StaticMockDirectory;
 import org.midonet.client.dto.*;
 
+import static javax.ws.rs.core.Response.Status.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.midonet.api.VendorMediaType.APPLICATION_POOL_MEMBER_COLLECTION_JSON;
+import static org.midonet.api.validation.MessageProperty.RESOURCE_EXISTS;
+import static org.midonet.api.validation.MessageProperty.RESOURCE_NOT_FOUND;
 import static org.midonet.api.VendorMediaType.APPLICATION_POOL_COLLECTION_JSON;
+import static org.midonet.api.VendorMediaType.APPLICATION_POOL_JSON;
+import static org.midonet.api.VendorMediaType.APPLICATION_VIP_COLLECTION_JSON;
 
 @RunWith(Enclosed.class)
 public class TestPool {
@@ -38,12 +45,13 @@ public class TestPool {
         private void verifyNumberOfPools(int num) {
             DtoPool[] pools = dtoWebResource.getAndVerifyOk(
                     topLevelPoolsUri,
-                    VendorMediaType.APPLICATION_POOL_JSON,
+                    VendorMediaType.APPLICATION_POOL_COLLECTION_JSON,
                     DtoPool[].class);
             assertEquals(num, pools.length);
         }
 
-        private void checkBackref(URI healthMonitorUri, DtoPool expectedPool) {
+        private void checkHealthMonitorBackref(
+                URI healthMonitorUri, DtoPool expectedPool) {
             // Check health monitor backreference.
             DtoHealthMonitor hm = getHealthMonitor(healthMonitorUri);
             DtoPool[] hmPools = dtoWebResource.getAndVerifyOk(hm.getPools(),
@@ -54,6 +62,19 @@ public class TestPool {
             } else {
                 assertEquals(1, hmPools.length);
                 assertEquals(expectedPool, hmPools[0]);
+            }
+        }
+
+        private void checkVipBackrefs(DtoPool expectedPool, URI... vipUris) {
+            for (URI vipUri : vipUris) {
+                DtoVip vip = getVip(vipUri);
+                if (expectedPool == null) {
+                    assertNull(vip.getPoolId());
+                    assertNull(vip.getPool());
+                } else {
+                    assertEquals(expectedPool.getId(), vip.getPoolId());
+                    assertEquals(expectedPool.getUri(), vip.getPool());
+                }
             }
         }
 
@@ -90,40 +111,166 @@ public class TestPool {
             DtoPool pool = createStockPool(healthMonitor.getId());
 
             assertEquals(healthMonitor.getUri(), pool.getHealthMonitor());
-            checkBackref(healthMonitor.getUri(), pool);
+            checkHealthMonitorBackref(healthMonitor.getUri(), pool);
         }
 
         @Test
         public void testUpdateUpdatesReferences() {
-            DtoHealthMonitor healthMonitor1 = createStockHealthMonitor();
-            DtoHealthMonitor healthMonitor2 = createStockHealthMonitor();
+            // Start with no health monitor.
+            DtoPool pool = createStockPool(null);
+            assertNull(pool.getHealthMonitor());
 
-            DtoPool pool = createStockPool(healthMonitor1.getId());
+            // Add a health monitor.
+            DtoHealthMonitor healthMonitor1 = createStockHealthMonitor();
+            pool.setHealthMonitorId(healthMonitor1.getId());
+            pool = updatePool(pool);
+
+            // Pool and healthMonitor1 should now reference each other.
             assertEquals(healthMonitor1.getUri(), pool.getHealthMonitor());
-            checkBackref(healthMonitor1.getUri(), pool);
+            checkHealthMonitorBackref(healthMonitor1.getUri(), pool);
 
             // Switch reference to healthMonitor2.
+            DtoHealthMonitor healthMonitor2 = createStockHealthMonitor();
             pool.setHealthMonitorId(healthMonitor2.getId());
             pool = updatePool(pool);
 
-            // healthMonitor1 should no longer reference pool.
-            checkBackref(healthMonitor1.getUri(), null);
-
-            // healthMonitor2 should.
-            checkBackref(healthMonitor2.getUri(), pool);
-
-            // Pool's healthMonitor URI should be updated, too.
+            // References between pool and healthMonitor1 should be
+            // cleared and replaced with references between pool and
+            // healthMonitor2.
             assertEquals(healthMonitor2.getUri(), pool.getHealthMonitor());
+            checkHealthMonitorBackref(healthMonitor1.getUri(), null);
+            checkHealthMonitorBackref(healthMonitor2.getUri(), pool);
+
+            // Clear references.
+            pool.setHealthMonitorId(null);
+            pool = updatePool(pool);
+
+            // All references gone.
+            assertNull(pool.getHealthMonitor());
+            checkHealthMonitorBackref(healthMonitor2.getUri(), null);
         }
 
         @Test
-        public void testDeleteClearsBackref() {
+        public void testDeleteClearsBackrefs() {
             DtoHealthMonitor healthMonitor = createStockHealthMonitor();
             DtoPool pool = createStockPool(healthMonitor.getId());
-            checkBackref(healthMonitor.getUri(), pool);
+            checkHealthMonitorBackref(healthMonitor.getUri(), pool);
+
+            // Add some VIPs.
+            DtoVip vip = createStockVip(null, pool.getId());
+            DtoVip vip2 = createStockVip(null, pool.getId());
+            checkVipBackrefs(pool, vip.getUri(), vip2.getUri());
 
             deletePool(pool.getUri());
-            checkBackref(healthMonitor.getUri(), null);
+            checkHealthMonitorBackref(healthMonitor.getUri(), null);
+            checkVipBackrefs(null, vip.getUri(), vip2.getUri());
+        }
+
+        @Test
+        public void testCreateWithRandomHealthMonitorId() {
+            DtoPool pool = getStockPool();
+            pool.setHealthMonitorId(UUID.randomUUID());
+            DtoError error = dtoWebResource.postAndVerifyError(
+                    topLevelPoolsUri, APPLICATION_POOL_JSON, pool, NOT_FOUND);
+            assertErrorMatches(error, RESOURCE_NOT_FOUND,
+                               "health monitor", pool.getHealthMonitorId());
+        }
+
+        @Test
+        public void testCreateWithDuplicatePoolId() {
+            DtoPool pool1 = createStockPool();
+            DtoPool pool2 = getStockPool();
+            pool2.setId(pool1.getId());
+            DtoError error = dtoWebResource.postAndVerifyError(
+                    topLevelPoolsUri, APPLICATION_POOL_JSON, pool2, CONFLICT);
+            assertErrorMatches(error, RESOURCE_EXISTS, "pool", pool2.getId());
+        }
+
+        @Test
+        public void testGetWithRandomPoolId() throws Exception {
+            UUID id = UUID.randomUUID();
+            URI uri = addIdToUri(topLevelPoolsUri, id);
+            DtoError error = dtoWebResource.getAndVerifyNotFound(
+                    uri, APPLICATION_POOL_JSON);
+            assertErrorMatches(error, RESOURCE_NOT_FOUND, "pool", id);
+        }
+
+        @Test
+        public void testDeleteWithRandomPoolId() throws Exception {
+            // Succeeds because delete is idempotent.
+            deletePool(addIdToUri(topLevelPoolsUri, UUID.randomUUID()));
+        }
+
+        @Test
+        public void testUpdateWithRandomPoolId() throws Exception {
+            DtoPool pool = createStockPool();
+            pool.setId(UUID.randomUUID());
+            pool.setUri(addIdToUri(topLevelPoolsUri, pool.getId()));
+            DtoError error = dtoWebResource.putAndVerifyError(pool.getUri(),
+                    APPLICATION_POOL_JSON, pool, NOT_FOUND);
+            assertErrorMatches(error, RESOURCE_NOT_FOUND, "pool", pool.getId());
+        }
+
+        @Test
+        public void testUpdateWithRandomHealthMonitorId() {
+            DtoPool pool = createStockPool();
+            pool.setHealthMonitorId(UUID.randomUUID());
+            DtoError error = dtoWebResource.putAndVerifyError(pool.getUri(),
+                    APPLICATION_POOL_JSON, pool, NOT_FOUND);
+            assertErrorMatches(error, RESOURCE_NOT_FOUND,
+                               "health monitor", pool.getHealthMonitorId());
+        }
+
+        @Test
+        public void testListVips() {
+            // Should start out empty.
+            DtoPool pool = createStockPool();
+            DtoVip[] vips = getVips(pool.getVips());
+            assertEquals(0, vips.length);
+
+            // Add one VIP.
+            DtoVip vip1 = createStockVip(null, pool.getId());
+            vips = getVips(pool.getVips());
+            assertEquals(1, vips.length);
+            assertEquals(vip1, vips[0]);
+
+            // Add a second VIP without a reference to the pool.
+            DtoVip vip2 = createStockVip(null, null);
+            vips = getVips(pool.getVips());
+            assertEquals(1, vips.length);
+            assertEquals(vip1, vips[0]);
+
+            // Link the vip2 to the pool.
+            vip2.setPoolId(pool.getId());
+            vip2 = updateVip(vip2);
+            vips = getVips(pool.getVips());
+            assertEquals(2, vips.length);
+
+            if (vip1.equals(vips[0])) {
+                assertEquals(vip2, vips[1]);
+            } else if (vip2.equals(vips[0])) {
+                assertEquals(vip1, vips[1]);
+            } else {
+                Assert.fail("Neither VIP equal to vips[0]");
+            }
+        }
+
+        @Test
+        public void testListVipsWithRandomPoolId() throws Exception {
+            UUID id = UUID.randomUUID();
+            URI uri = new URI(topLevelPoolsUri + "/" + id + "/vips");
+            DtoError error = dtoWebResource.getAndVerifyNotFound(
+                    uri, APPLICATION_VIP_COLLECTION_JSON);
+            assertErrorMatches(error, RESOURCE_NOT_FOUND, "pool", id);
+        }
+
+        @Test
+        public void testListMembersWithRandomPoolId() throws Exception {
+            UUID id = UUID.randomUUID();
+            URI uri = new URI(topLevelPoolsUri + "/" + id + "/pool_members");
+            DtoError error = dtoWebResource.getAndVerifyNotFound(
+                    uri, APPLICATION_POOL_MEMBER_COLLECTION_JSON);
+            assertErrorMatches(error, RESOURCE_NOT_FOUND, "pool", id);
         }
     }
 }

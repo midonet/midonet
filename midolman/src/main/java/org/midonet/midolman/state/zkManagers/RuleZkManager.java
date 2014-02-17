@@ -55,11 +55,6 @@ public class RuleZkManager extends AbstractZkManager {
         super(zk, paths, serializer);
     }
 
-    public RuleZkManager(Directory dir, String basePath,
-                         Serializer serializer) {
-        this(new ZkManager(dir), new PathBuilder(basePath), serializer);
-    }
-
     private List<Op> prepareInsertPositionOrdering(UUID id, Rule ruleConfig,
                                                    int position)
             throws RuleIndexOutOfBoundsException, StateAccessException,

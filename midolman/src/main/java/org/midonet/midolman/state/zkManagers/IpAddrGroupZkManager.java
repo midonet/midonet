@@ -60,11 +60,6 @@ public class IpAddrGroupZkManager extends AbstractZkManager {
         ruleDao = new RuleZkManager(zk, paths, serializer);
     }
 
-    public IpAddrGroupZkManager(Directory dir, String basePath,
-                            Serializer serializer) {
-        this(new ZkManager(dir), new PathBuilder(basePath), serializer);
-    }
-
     /**
      * Constructs a list of ZooKeeper update operations to perform when adding a
      * new IP addr group.

@@ -59,11 +59,6 @@ public class HostZkManager extends AbstractZkManager {
         this.portZkManager = new PortZkManager(zk, paths, serializer);
     }
 
-    public HostZkManager(Directory dir, String basePath,
-                         Serializer serializer) {
-        this(new ZkManager(dir), new PathBuilder(basePath), serializer);
-    }
-
     public HostDirectory.Metadata getHostMetadata(UUID id)
             throws StateAccessException, SerializationException {
         return getHostMetadata(id, null);

@@ -6,7 +6,6 @@ package org.midonet.api.l4lb.rest_api;
 
 import com.google.inject.Inject;
 import com.google.inject.servlet.RequestScoped;
-import com.sun.jersey.api.NotFoundException;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.VendorMediaType;
 import org.midonet.api.auth.AuthRole;
@@ -28,7 +27,6 @@ import org.midonet.midolman.state.StatePathExistsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -66,7 +64,7 @@ public class LoadBalancerResource extends AbstractResource {
      */
     @GET
     @RolesAllowed({ AuthRole.ADMIN })
-    @Produces({ VendorMediaType.APPLICATION_LOAD_BALANCER_JSON,
+    @Produces({ VendorMediaType.APPLICATION_LOAD_BALANCER_COLLECTION_JSON,
             MediaType.APPLICATION_JSON })
     public List<LoadBalancer> list()
             throws StateAccessException, SerializationException {
@@ -129,12 +127,12 @@ public class LoadBalancerResource extends AbstractResource {
     public void delete(@PathParam("id") UUID id)
         throws StateAccessException,
             InvalidStateOperationException, SerializationException {
-        org.midonet.cluster.data.l4lb.LoadBalancer dataLoadBalancer =
-                dataClient.loadBalancerGet(id);
-        if (dataLoadBalancer == null) {
-            return;
+
+        try {
+            dataClient.loadBalancerDelete(id);
+        } catch (NoStatePathException ex) {
+            // Delete is idempotent; do nothing.
         }
-        dataClient.loadBalancerDelete(id);
     }
 
 
@@ -169,9 +167,7 @@ public class LoadBalancerResource extends AbstractResource {
                     ResourceUriBuilder.getLoadBalancer(getBaseUri(), id))
                     .build();
         } catch (StatePathExistsException ex) {
-            throw new ConflictHttpException(getMessage(
-                    MessageProperty.RESOURCE_EXISTS,
-                    "load balancer", loadBalancer.getId()));
+            throw new ConflictHttpException(ex);
         }
     }
 
@@ -198,29 +194,24 @@ public class LoadBalancerResource extends AbstractResource {
         } catch (InvalidStateOperationException ex) {
             throw new BadRequestHttpException(
                     getMessage(MessageProperty.ROUTER_ID_IS_INVALID_IN_LB));
-
+        } catch (NoStatePathException ex) {
+            throw new NotFoundHttpException(ex);
         }
     }
 
     @GET
-    @PermitAll
+    @RolesAllowed({ AuthRole.ADMIN })
     @Path("{id}" + ResourceUriBuilder.VIPS)
     @Produces({VendorMediaType.APPLICATION_VIP_COLLECTION_JSON,
             MediaType.APPLICATION_JSON})
     public List<VIP> listVips(@PathParam("id") UUID id)
             throws StateAccessException, SerializationException {
 
-        // TODO: Authorization.
-
         List<org.midonet.cluster.data.l4lb.VIP> dataVips = null;
         try {
             dataVips = dataClient.loadBalancerGetVips(id);
         } catch (NoStatePathException ex) {
-            if (ex.getPath().matches(".*load_balancers.*vips")) {
-                throw new NotFoundHttpException(getMessage(
-                        MessageProperty.RESOURCE_NOT_FOUND, "load balancer", id));
-            }
-            throw ex;
+            throw new NotFoundHttpException(ex);
         }
 
         List<VIP> vips = new ArrayList<>(dataVips.size());

@@ -87,11 +87,6 @@ public class PoolMemberZkManager extends AbstractZkManager {
         super(zk, paths, serializer);
     }
 
-    public PoolMemberZkManager(Directory dir, String basePath,
-                               Serializer serializer) {
-        this(new ZkManager(dir), new PathBuilder(basePath), serializer);
-    }
-
     public List<Op> prepareUpdate(UUID id, PoolMemberConfig config)
             throws SerializationException {
         return asList(Op.setData(

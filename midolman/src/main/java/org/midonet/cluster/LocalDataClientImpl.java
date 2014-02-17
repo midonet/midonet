@@ -2027,15 +2027,17 @@ public class LocalDataClientImpl implements DataClient {
             ops.addAll(poolMemberZkManager.prepareSetPoolId(memberId, null));
         }
 
+        Set<UUID> vipIds = poolZkManager.getVipIds(id);
+        for (UUID vipId : vipIds) {
+            ops.addAll(poolZkManager.prepareRemoveVip(id, vipId));
+            ops.addAll(vipZkManager.prepareSetPoolId(vipId, null));
+        }
+
         PoolZkManager.PoolConfig config = poolZkManager.get(id);
         if (config.healthMonitorId != null) {
             ops.addAll(
                     healthMonitorZkManager.prepareRemovePool(
                             config.healthMonitorId, id));
-        }
-
-        if (config.vipId != null) {
-            ops.addAll(vipZkManager.prepareSetPoolId(config.vipId, null));
         }
 
         ops.addAll(poolZkManager.prepareDelete(id));
@@ -2059,10 +2061,6 @@ public class LocalDataClientImpl implements DataClient {
             ops.addAll(
                     healthMonitorZkManager.prepareAddPool(
                             config.healthMonitorId, id));
-        }
-
-        if (config.vipId != null) {
-            ops.addAll(vipZkManager.prepareSetPoolId(config.vipId, id));
         }
 
         zkManager.multi(ops);
@@ -2090,16 +2088,6 @@ public class LocalDataClientImpl implements DataClient {
                 ops.addAll(
                         healthMonitorZkManager.prepareAddPool(
                                 newConfig.healthMonitorId, id));
-            }
-        }
-
-        if (oldConfig.vipId == null ? newConfig.vipId != null :
-                !oldConfig.vipId.equals(newConfig.vipId)) {
-            if (oldConfig.vipId != null) {
-                ops.addAll(vipZkManager.prepareSetPoolId(oldConfig.vipId, null));
-            }
-            if (newConfig.vipId != null) {
-                ops.addAll(vipZkManager.prepareSetPoolId(newConfig.vipId, id));
             }
         }
 

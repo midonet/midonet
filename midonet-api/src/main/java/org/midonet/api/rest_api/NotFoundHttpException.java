@@ -1,7 +1,11 @@
 /*
- * Copyright 2012 Midokura PTE LTD.
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
  */
 package org.midonet.api.rest_api;
+
+import org.midonet.api.validation.MessageProperty;
+import org.midonet.midolman.state.NoStatePathException;
+import org.midonet.midolman.state.StatePathExceptionBase.NodeInfo;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
@@ -29,5 +33,15 @@ public class NotFoundHttpException extends WebApplicationException {
     public NotFoundHttpException(String message) {
         super(ResponseUtils.buildErrorResponse(
                 Response.Status.NOT_FOUND.getStatusCode(), message));
+    }
+
+    public NotFoundHttpException(NoStatePathException ex) {
+        this(getMessage(ex));
+    }
+
+    private static String getMessage(NoStatePathException ex) {
+        NodeInfo node = ex.getNodeInfo();
+        return MessageProperty.getMessage(MessageProperty.RESOURCE_NOT_FOUND,
+                                          node.nodeType.name, node.id);
     }
 }
