@@ -11,6 +11,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -184,7 +186,7 @@ public abstract class ReplicatedMap<K, V> {
                 if (!running) {
                     return;
                 }
-                Map<K,MapValue> newMap = new HashMap<>();
+                ConcurrentMap<K,MapValue> newMap = new ConcurrentHashMap<>();
                 populateNewMap(newMap, curPaths, cleanupPaths);
                 collectNotifications(notifications, newMap);
                 localMap = newMap;
@@ -200,7 +202,7 @@ public abstract class ReplicatedMap<K, V> {
 
     private Directory dir;
     private volatile boolean running;
-    private Map<K, MapValue> localMap;
+    private volatile ConcurrentMap<K, MapValue> localMap;
     private Set<Integer> ownedVersions;
     private Set<Watcher<K, V>> watchers;
     private DirectoryWatcher myWatcher;
@@ -208,7 +210,7 @@ public abstract class ReplicatedMap<K, V> {
     public ReplicatedMap(Directory dir) {
         this.dir = dir;
         this.running = false;
-        this.localMap = new HashMap<>();
+        this.localMap = new ConcurrentHashMap<>();
         this.ownedVersions = new HashSet<>();
         this.watchers = new HashSet<>();
         this.myWatcher = new DirectoryWatcher();
@@ -231,15 +233,17 @@ public abstract class ReplicatedMap<K, V> {
 
     public synchronized void stop() {
         this.running = false;
-        this.localMap.clear();
+        Map<K, MapValue> oldMap = localMap;
+        localMap = new ConcurrentHashMap<>();
+        oldMap.clear();
     }
 
-    public synchronized V get(K key) {
+    public V get(K key) {
         MapValue mv = localMap.get(key);
         return (null == mv) ? null : mv.value;
     }
 
-    public synchronized boolean containsKey(K key) {
+    public boolean containsKey(K key) {
         return localMap.containsKey(key);
     }
 
@@ -250,9 +254,10 @@ public abstract class ReplicatedMap<K, V> {
      *
      * @return
      */
-    public synchronized Map<K, V> getMap() {
+    public Map<K, V> getMap() {
+        Map<K, MapValue> snapshot = localMap;
         Map<K, V> result = new HashMap<>();
-        for (Map.Entry<K, MapValue> entry : localMap.entrySet())
+        for (Map.Entry<K, MapValue> entry : snapshot.entrySet())
             result.put(entry.getKey(), entry.getValue().value);
         return result;
     }
@@ -265,8 +270,9 @@ public abstract class ReplicatedMap<K, V> {
      * @return the list of keys. Empty if none.
      */
     public synchronized List<K> getByValue(V value) {
+        Map<K, MapValue> snapshot = localMap;
         List<K> keyList = new ArrayList<>();
-        for (Map.Entry<K, MapValue> entry : localMap.entrySet()) {
+        for (Map.Entry<K, MapValue> entry : snapshot.entrySet()) {
             if (entry.getValue().value.equals(value))
                 keyList.add(entry.getKey());
         }
@@ -456,9 +462,10 @@ public abstract class ReplicatedMap<K, V> {
         return result;
     }
 
-    public synchronized boolean containsValue(V address) {
-        for (Map.Entry<K, MapValue> entry : localMap.entrySet())
-            if (entry.getValue().value.equals(address))
+    public synchronized boolean containsValue(V val) {
+        Map<K, MapValue> snapshot = localMap;
+        for (Map.Entry<K, MapValue> entry : snapshot.entrySet())
+            if (entry.getValue().value.equals(val))
                 return true;
 
         return false;
