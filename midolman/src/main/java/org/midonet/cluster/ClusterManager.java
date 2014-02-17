@@ -81,12 +81,12 @@ abstract class ClusterManager<T> {
         protected abstract Runnable makeRetry();
     }
 
-    protected abstract class CallbackWithWatcher<T> extends CallableWithRetry
-            implements DirectoryCallback<T>, Directory.TypedWatcher {
+    protected abstract class CallbackWithWatcher<U> extends CallableWithRetry
+            implements DirectoryCallback<U>, Directory.TypedWatcher {
 
         // DirectoryCallback overrides
         @Override
-        public abstract void onSuccess(Result<T> data);
+        public abstract void onSuccess(Result<U> data);
 
         @Override
         public void onError(KeeperException e) {

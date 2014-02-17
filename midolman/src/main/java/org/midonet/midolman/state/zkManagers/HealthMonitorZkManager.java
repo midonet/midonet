@@ -19,6 +19,9 @@ import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
+import org.midonet.midolman.state.DirectoryCallback;
+import org.midonet.midolman.state.DirectoryCallbackFactory;
+import org.midonet.util.functors.Functor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -114,6 +117,27 @@ public class HealthMonitorZkManager extends AbstractZkManager {
     public HealthMonitorConfig get(UUID id) throws StateAccessException,
             SerializationException {
         return get(id, null);
+    }
+
+    public void getAsync(UUID id, DirectoryCallback<HealthMonitorConfig> cb,
+                         final Directory.TypedWatcher watcher) {
+        String path = paths.getHealthMonitorPath(id);
+        zk.asyncGet(path,
+                DirectoryCallbackFactory.transform(cb,
+                        new Functor<byte[], HealthMonitorConfig>() {
+                            @Override
+                            public HealthMonitorConfig apply(byte[] arg0) {
+
+                                try {
+                                    return serializer.deserialize(arg0,
+                                            HealthMonitorConfig.class);
+                                } catch (SerializationException ex) {
+                                    log.warn("Could not deserialize Health " +
+                                             "Monitor data");
+                                }
+                                return null;
+                            }
+                        }), watcher);
     }
 
     public HealthMonitorConfig get(UUID id, Runnable watcher)

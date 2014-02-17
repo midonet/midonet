@@ -18,6 +18,7 @@ import org.midonet.cluster.client.TraceConditionsBuilder;
 import org.midonet.cluster.client.LoadBalancerBuilder;
 import org.midonet.cluster.client.PoolBuilder;
 import org.midonet.cluster.client.TunnelZones;
+import org.midonet.cluster.client.HealthMonitorBuilder;
 
 public interface Client {
 
@@ -46,6 +47,8 @@ public interface Client {
     void getLoadBalancer(UUID uuid, LoadBalancerBuilder builder);
 
     void getPool(UUID uuid, PoolBuilder builder);
+
+    void getHealthMonitor(UUID uuid, HealthMonitorBuilder builder);
 
     void subscribeBgp(UUID portID, BGPListBuilder builder);
 }
