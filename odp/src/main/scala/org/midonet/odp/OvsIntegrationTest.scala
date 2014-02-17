@@ -3,7 +3,6 @@
  */
 package org.midonet.odp
 
-import scala.collection.JavaConversions.asScalaSet
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -11,81 +10,232 @@ import scala.concurrent.duration.DurationInt
 import scala.util.{Try, Success, Failure}
 
 import org.midonet.odp.protos.OvsDatapathConnection
-import org.midonet.odp.ports.NetDevPort
+import org.midonet.odp.ports._
+import org.midonet.odp.flows._
 
-object OvsIntegrationTest {
+object IntegrationTests {
 
-    val dpname1 = "ovstest-foo"
-    val dpname2 = "ovstest-bar"
+    type TestSuite = Seq[(String, Future[Any])]
 
-    val portname1 = "porttest-foo"
-    val portname2 = "porttest-bar"
-    val portname3 = "porttest-baz"
+    type Report = Seq[(String, Try[String])]
+
+    def printReport(r: Report) = r.foldLeft(true) {
+        case (status, result) => if (status) printTest(result) else false
+    }
+
+    def printTest(info: (String, Try[String])) = info match {
+        case (desc, Success(msg)) =>
+            Console println "[o] " + desc
+            true
+        case (desc, Failure(ex)) =>
+            Console println "[x] " + desc
+            ex.printStackTrace
+            false
+    }
+
+    def runSuite(ts: TestSuite): Report = toReport(ts)
+
+    def toReport(ts: TestSuite): Stream[(String,Try[String])] = ts match {
+        case Nil => Stream.empty
+        case (d,t) :: tail =>
+            val r = Try(Await.result(t, 2 seconds)) map { case _ => "passed" }
+            (d,r) #:: (if (r.isSuccess) toReport(tail) else Stream.empty)
+    }
+
+}
+
+object OvsIntegrationTest extends DatapathTest with FlowTest with PortTest {
+
+    import IntegrationTests._
+
+    val con = new OvsConnectionOps(DatapathClient.createConnection())
 
     def main(args: Array[String]) {
-        val con = new OvsConnectionOps(DatapathClient.createConnection())
+        var status = true
+        val (dpF, dps, tests) = datapathTests()
 
-        val dpFut1 = makeDp(con, dpname1)
+        status = printReport(runSuite(tests))
 
-        val portTest = dpFut1 flatMap { PortsTest.run(con, _) }
+        status &= printReport(runSuite(flowTests(dpF)))
 
-        val dpFut2 = portTest flatMap { case _ => makeDp(con,dpname2) }
+        status &= printReport(runSuite(dpPortTests(dpF)))
 
-        val enum = dpFut2 flatMap { case _ => checkDpEnums(con) { _.size == 2} }
+        status &= printReport(runSuite(dpCleanup(dps)))
 
-        val done = for {
-          e <- enum
-          dp1 <- dpFut1 flatMap delDp(con, dpname1)
-          dp2 <- dpFut2 flatMap delDp(con, dpname2)
-        } yield { true }
-
-        Await.result(done, 3 seconds)
-        System exit 0
+        System exit (if (status) 0 else 1) // necessary for closing con
     }
 
-    def checkDpEnums(con: OvsConnectionOps)
-                    (test: Set[Datapath] => Boolean) = con enumDps() map {
-        case dps: Set[Datapath] =>
-            println("listing dps")
-            assert { test(dps filter { _.getName contains "ovstest" }) }
+}
+
+trait DatapathTest {
+
+    val con: OvsConnectionOps
+
+    val dpname1 = "ovsdp-foo"
+    val dpname2 = "ovsdp-bar"
+    val dpname3 = "ovsdp-baz"
+
+    def datapathTests() = {
+        val dpF1 = con ensureDp dpname1
+        val dpF2 = dpF1 flatMap { case _ => con ensureDp dpname2 }
+        val enum = dpF2 flatMap { case _ => con enumDps() }
+        val dpGet1 = enum flatMap { case _ => con getDp dpname1 }
+
+        val dps = Seq[(String,Future[Datapath])]((dpname1,dpF1),(dpname2,dpF2))
+        val tests = Seq[(String, Future[Any])](
+            ("can create a datapath", dpF1),
+            ("can create several datapath", dpF2),
+            ("can list existing datapaths", enum),
+            ("can get a datapath", dpGet1)
+        )
+
+        (dpF1, dps, tests)
+    }
+
+    def dpCleanup(dps: Seq[(String,Future[Datapath])]) = dps match {
+        case Nil => Nil
+        case (name, dp) :: tail =>
+            val delDp = dp flatMap { case _ => con delDp name }
+            Seq[(String, Future[Any])](
+                ("can delete a datapath", delDp),
+                ("can delete all datapaths", delDps(tail))
+            )
+    }
+
+    def delDps(ports: Seq[(String,Future[Datapath])]): Future[String] =
+        ports match {
+            case Nil => Future.successful("done")
+            case (name,dpF) :: tail =>
+                for (dp <- dpF; d <- con delDp name; s <- delDps(tail)) yield s
+        }
+
+}
+
+trait FlowTest {
+
+    val con: OvsConnectionOps
+
+    def flowTests(dpF: Future[Datapath]) = {
+
+        val mac = Array[Byte](0,1,2,3,4,5)
+        val ethK = FlowKeys.ethernet(mac,mac)
+
+        def flow(fm: FlowMatch) = new Flow setMatch fm
+        def flowmatch(k: FlowKey) = (new FlowMatch) addKey(k) addKey(ethK)
+
+        def createFlow(f: Flow) = dpF flatMap { con createFlow (f, _) }
+        def delFlow(f: Flow) = dpF flatMap { con delFlow (f, _) }
+
+        val flows = (1 to 4) map(FlowKeys.inPort) map(flowmatch) map(flow)
+
+        val makeF = createFlow(flows.head)
+
+        val makesF = Future sequence (flows.tail map createFlow)
+
+        val enumF1 = for {
+            dp <- dpF
+            f <- makesF
+            fs <- con enumFlows dp
+        } yield fs
+
+        val delF = makeF flatMap delFlow
+
+        val flushF = delF flatMap { case _ => dpF flatMap { con flushFlows _} }
+
+        val enumF2 = for {
+            dp <- dpF
+            f <- flushF
+            fs <- con enumFlows dp
+        } yield {
+            if (fs.nonEmpty) throw new Exception("flows remaining")
             true
-    }
-
-    def makeDp(con: OvsConnectionOps, name: String) =
-        con ensureDp name map { case dp => println("got " + dp); dp }
-
-    def delDp(con: OvsConnectionOps, name: String): Any => Future[Datapath] =
-        { case any: Any => println("deletting dp " + name); con delDp name }
-
-    class PortsTest(val con: OvsConnectionOps, val dp: Datapath) {
-
-        import PortsTest._
-
-        def checkEnums(test: Set[DpPort] => Boolean) = con enumPorts(dp) map {
-            case ports =>
-                assert { test(netdevPorts(ports)) }
-                true
         }
 
-        def continuePort(name: String): Any => Future[DpPort] =
-            { case any: Any => con.ensureNetDevPort(portname1, dp) }
+        Seq[(String, Future[Any])](
+            ("can create a flow", makeF),
+            ("can create several flows", makesF),
+            ("can list flows", enumF1),
+            ("can delete a flow", delF),
+            ("can flush flows", enumF2)
+        )
 
     }
 
-    object PortsTest {
+}
 
-        def netdevPorts(ports: Set[DpPort]) =
-            ports filter { _.isInstanceOf[NetDevPort] }
+trait PortTest {
 
-        def run(con: OvsConnectionOps, dp: Datapath) = {
-            val portTest = new PortsTest(con, dp)
-            (portTest checkEnums { s: Set[DpPort] => s.size == 0 })
-              .map{ case _ => true}
-              //.flatMap(portTest continuePort portname1)
-              //.flatMap(portTest continuePort portname2)
-              //.flatMap(portTest continuePort portname2)
-              //.flatMap(portTest continuePort portname3)
-              //.flatMap { case x => portTest checkEnums { _.size == 3} }
+    val con: OvsConnectionOps
+
+    val portname1 = "ovstest-foo"
+    val portname2 = "ovstest-bar"
+    val portname3 = "ovstest-baz"
+
+    def dpPortTests(dpF: Future[Datapath]) = {
+
+        def createNetDev(name: String) =
+            dpF flatMap { con ensureNetDevPort(name, _) }
+
+        val ports = Seq(portname1, portname2, portname3) map createNetDev
+        val portsF = Future sequence ports
+
+        val getPort = portsF flatMap {
+            case _ =>
+                dpF flatMap { con getPort(portname1, _) }
         }
+
+        val enum = for {
+            dp <- dpF
+            netdevPorts <- portsF
+            ports <- con enumPorts dp
+        } yield {
+            if (ports.size < netdevPorts.size)
+                throw new Exception("missing ports")
+            true
+        }
+
+        tunnelTest(dpF) ++ Seq[(String, Future[Any])](
+            ("can create a netdev port", ports.head),
+            ("can create several port", portsF),
+            ("can get a netdev port", getPort),
+            ("can list existing ports", enum)
+        ) ++ portCleanup((enum flatMap { case _ => dpF}), ports)
     }
+
+    def tunnelTest(dpF: Future[Datapath]) = {
+        val makeGre =
+            dpF flatMap { con createPort(GreTunnelPort.make("gre"), _) }
+        val delGre =
+            dpF flatMap { case dp => makeGre flatMap { con delPort(_, dp) } }
+        val makeVxLan =
+            dpF flatMap { con createPort(VxLanTunnelPort.make("vxlan"), _) }
+        val delVxLan =
+            dpF flatMap { case dp => makeVxLan flatMap { con delPort(_, dp) } }
+        Seq[(String, Future[Any])](
+            ("can create a gre tunnel port", makeGre),
+            ("can delete a gre tunnel port", delGre),
+            ("can create a vxlan tunnel port", makeVxLan),
+            ("can delete a vxlan tunnel port", delVxLan)
+        )
+    }
+
+    def portCleanup(dpF: Future[Datapath], ports: Seq[Future[DpPort]]) =
+        ports match {
+            case Nil => Nil
+            case portF :: tail =>
+                Seq[(String, Future[Any])](
+                    ("can delete a port", dpF flatMap { delPort(_, portF) }),
+                    ("can delete all ports", dpF flatMap { delPorts(_, tail) })
+                )
+        }
+
+    def delPort(dp: Datapath, portF: Future[DpPort]) =
+        portF flatMap { con delPort(_, dp) }
+
+    def delPorts(dp: Datapath, ports: Seq[Future[DpPort]]): Future[String] =
+        ports match {
+            case Nil => Future.successful("done")
+            case port :: tail =>
+                delPort(dp, port) flatMap { case _ => delPorts(dp, tail) }
+        }
 }
