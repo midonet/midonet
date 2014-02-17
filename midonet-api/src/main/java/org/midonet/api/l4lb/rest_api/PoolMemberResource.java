@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import static org.midonet.api.validation.MessageProperty.POOL_MEMBER_WEIGHT_NEGATIVE;
 import static org.midonet.api.validation.MessageProperty.getMessage;
 
 
@@ -117,6 +118,12 @@ public class PoolMemberResource extends AbstractResource {
             throws StateAccessException, InvalidStateOperationException,
             SerializationException{
 
+        if (poolMember.getWeight() < 0) {
+            throw new BadRequestHttpException(getMessage(POOL_MEMBER_WEIGHT_NEGATIVE));
+        } else if (poolMember.getWeight() == 0) {
+            poolMember.setWeight(1);
+        }
+
         try {
             UUID id = dataClient.poolMemberCreate(poolMember.toData());
             return Response.created(
@@ -137,6 +144,13 @@ public class PoolMemberResource extends AbstractResource {
     public void update(@PathParam("id") UUID id, PoolMember poolMember)
             throws StateAccessException,
             InvalidStateOperationException, SerializationException {
+
+        if (poolMember.getWeight() < 0) {
+            throw new BadRequestHttpException(
+                    getMessage(POOL_MEMBER_WEIGHT_NEGATIVE));
+        } else if (poolMember.getWeight() == 0) {
+            poolMember.setWeight(1);
+        }
 
         poolMember.setId(id);
         try {
