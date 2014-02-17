@@ -78,11 +78,6 @@ public class RouteZkManager extends AbstractZkManager {
         super(zk, paths, serializer);
     }
 
-    public RouteZkManager(Directory dir, String basePath,
-                          Serializer serializer) {
-        this(new ZkManager(dir), new PathBuilder(basePath), serializer);
-    }
-
     /**
      *
      * @param id         The UUID of the route

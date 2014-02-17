@@ -45,11 +45,6 @@ public class BgpZkManager extends AbstractZkManager {
         super(zk, paths, serializer);
     }
 
-    public BgpZkManager(Directory dir, String basePath,
-                        Serializer serializer) {
-        this(new ZkManager(dir), new PathBuilder(basePath), serializer);
-    }
-
     public List<Op> prepareBgpCreate(UUID id, BGP config)
             throws StateAccessException, SerializationException {
 

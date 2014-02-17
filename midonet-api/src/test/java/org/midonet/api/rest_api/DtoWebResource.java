@@ -9,6 +9,7 @@ import com.sun.jersey.api.client.WebResource;
 
 import java.net.URI;
 import java.util.Map;
+import javax.ws.rs.core.Response.Status;
 
 import static javax.ws.rs.core.Response.Status.*;
 import static org.junit.Assert.assertEquals;
@@ -111,11 +112,16 @@ public class DtoWebResource {
         return getAndVerifyOk(resp.getLocation(), mediaType, clazz);
     }
 
+    public DtoError postAndVerifyError(
+            URI uri, String mediaType, Object object, Status status) {
+        ClientResponse resp = postAndVerifyStatus(
+                uri, mediaType, object, status.getStatusCode());
+        return resp.getEntity(DtoError.class);
+    }
+
     public DtoError postAndVerifyBadRequest(URI uri, String mediaType,
             Object object) {
-        ClientResponse resp = postAndVerifyStatus(uri, mediaType, object,
-                BAD_REQUEST.getStatusCode());
-        return resp.getEntity(DtoError.class);
+        return postAndVerifyError(uri, mediaType, object, BAD_REQUEST);
     }
 
     public <T> T putAndVerifyNoContent(URI uri, String mediaType,
@@ -126,8 +132,13 @@ public class DtoWebResource {
 
     public DtoError putAndVerifyBadRequest(URI uri, String mediaType,
             Object object) {
+        return putAndVerifyError(uri, mediaType, object, BAD_REQUEST);
+    }
+
+    public DtoError putAndVerifyError(URI uri, String mediaType,
+                                      Object object, Status status) {
         ClientResponse resp = putAndVerifyStatus(uri, mediaType, object,
-                BAD_REQUEST.getStatusCode());
+                                                 status.getStatusCode());
         return resp.getEntity(DtoError.class);
     }
 

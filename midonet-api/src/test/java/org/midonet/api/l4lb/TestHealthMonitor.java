@@ -10,8 +10,12 @@ import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 import org.midonet.api.VendorMediaType;
+import org.midonet.api.validation.MessageProperty;
 import org.midonet.api.zookeeper.StaticMockDirectory;
 import org.midonet.client.dto.*;
+
+import java.net.URI;
+import java.util.UUID;
 
 import static javax.ws.rs.core.Response.Status.*;
 import static junit.framework.Assert.assertNull;
@@ -106,5 +110,17 @@ public class TestHealthMonitor {
             assertNull(pool2.getHealthMonitor());
         }
 
+        @Test
+        public void testUpdateWithRandomHealthMonitorId() throws Exception {
+            DtoHealthMonitor hm = createStockHealthMonitor();
+            hm.setId(UUID.randomUUID());
+            hm.setUri(addIdToUri(topLevelHealthMonitorsUri, hm.getId()));
+            DtoError error = dtoWebResource.putAndVerifyError(
+                    hm.getUri(),
+                    VendorMediaType.APPLICATION_HEALTH_MONITOR_JSON,
+                    hm, NOT_FOUND);
+            assertErrorMatches(error, MessageProperty.RESOURCE_NOT_FOUND,
+                               "health monitor", hm.getId());
+        }
     }
 }

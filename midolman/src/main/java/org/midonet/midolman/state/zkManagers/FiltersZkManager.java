@@ -50,7 +50,8 @@ public class FiltersZkManager extends AbstractZkManager {
 
     public FiltersZkManager(Directory dir, String basePath,
                             Serializer serializer) {
-        this(new ZkManager(dir), new PathBuilder(basePath), serializer);
+        this(new ZkManager(dir, basePath),
+             new PathBuilder(basePath), serializer);
     }
 
     /**

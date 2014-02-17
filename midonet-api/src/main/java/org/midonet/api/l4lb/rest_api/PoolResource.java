@@ -55,7 +55,7 @@ public class PoolResource extends AbstractResource {
 
     @GET
     @RolesAllowed({ AuthRole.ADMIN })
-    @Produces({ VendorMediaType.APPLICATION_POOL_JSON,
+    @Produces({ VendorMediaType.APPLICATION_POOL_COLLECTION_JSON,
             MediaType.APPLICATION_JSON })
     public List<Pool> list()
             throws StateAccessException, SerializationException {
@@ -76,7 +76,7 @@ public class PoolResource extends AbstractResource {
     }
 
     @GET
-    @PermitAll
+    @RolesAllowed({ AuthRole.ADMIN })
     @Path("{id}")
     @Produces({ VendorMediaType.APPLICATION_POOL_JSON,
             MediaType.APPLICATION_JSON })
@@ -104,12 +104,11 @@ public class PoolResource extends AbstractResource {
             throws StateAccessException,
             InvalidStateOperationException, SerializationException {
 
-        org.midonet.cluster.data.l4lb.Pool PoolData =
-                dataClient.poolGet(id);
-        if (PoolData == null) {
-            return;
+        try {
+            dataClient.poolDelete(id);
+        } catch (NoStatePathException ex) {
+            // Delete is idempotent, so just ignore.
         }
-        dataClient.poolDelete(id);
     }
 
     @POST
@@ -126,8 +125,9 @@ public class PoolResource extends AbstractResource {
                     ResourceUriBuilder.getPool(getBaseUri(), id))
                     .build();
         } catch (StatePathExistsException ex) {
-            throw new BadRequestHttpException(getMessage(
-                    MessageProperty.RESOURCE_EXISTS, "pool", pool.getId()));
+            throw new ConflictHttpException(ex);
+        } catch (NoStatePathException ex) {
+            throw new NotFoundHttpException(ex);
         }
     }
 
@@ -137,33 +137,29 @@ public class PoolResource extends AbstractResource {
     @Consumes({ VendorMediaType.APPLICATION_POOL_JSON,
             MediaType.APPLICATION_JSON })
     public void update(@PathParam("id") UUID id, Pool pool)
-            throws StateAccessException,
-            InvalidStateOperationException, SerializationException {
+            throws StateAccessException, SerializationException {
 
         pool.setId(id);
-
-        dataClient.poolUpdate(pool.toData());
+        try {
+            dataClient.poolUpdate(pool.toData());
+        } catch (NoStatePathException ex) {
+            throw new NotFoundHttpException(ex);
+        }
     }
 
     @GET
-    @PermitAll
+    @RolesAllowed({ AuthRole.ADMIN })
     @Path("{id}" + ResourceUriBuilder.POOL_MEMBERS)
     @Produces({VendorMediaType.APPLICATION_POOL_MEMBER_COLLECTION_JSON,
             MediaType.APPLICATION_JSON})
     public List<PoolMember> listMembers(@PathParam("id") UUID id)
             throws StateAccessException, SerializationException {
 
-        // TODO: Authorization.
-
         List<org.midonet.cluster.data.l4lb.PoolMember> dataMembers = null;
         try {
             dataMembers = dataClient.poolGetMembers(id);
         } catch (NoStatePathException ex) {
-            if (ex.getPath().matches(".*pools.*pool_members")) {
-                throw new NotFoundHttpException(getMessage(
-                        MessageProperty.RESOURCE_NOT_FOUND, "pool", id));
-            }
-            throw ex;
+            throw new NotFoundHttpException(ex);
         }
 
         List<PoolMember> members = new ArrayList<>(dataMembers.size());
@@ -177,24 +173,18 @@ public class PoolResource extends AbstractResource {
     }
 
     @GET
-    @PermitAll
+    @RolesAllowed({ AuthRole.ADMIN })
     @Path("{id}" + ResourceUriBuilder.VIPS)
     @Produces({VendorMediaType.APPLICATION_VIP_COLLECTION_JSON,
             MediaType.APPLICATION_JSON})
     public List<VIP> listVips(@PathParam("id") UUID id)
             throws StateAccessException, SerializationException {
 
-        // TODO: Authorization
-
         List<org.midonet.cluster.data.l4lb.VIP> dataVips = null;
         try {
             dataVips = dataClient.poolGetVips(id);
         } catch (NoStatePathException ex) {
-            if (ex.getPath().matches(".*pools.*pool_members")) {
-                throw new NotFoundHttpException(getMessage(
-                        MessageProperty.RESOURCE_NOT_FOUND, "pool", id));
-            }
-            throw ex;
+            throw new NotFoundHttpException(ex);
         }
 
         List<VIP> vips = new ArrayList<>(dataVips.size());

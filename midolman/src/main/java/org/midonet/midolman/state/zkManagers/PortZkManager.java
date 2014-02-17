@@ -60,13 +60,8 @@ public class PortZkManager extends AbstractZkManager {
         this.routeZkManager = new RouteZkManager(zk, paths, serializer);
     }
 
-    public PortZkManager(Directory zk, PathBuilder paths,
-                         Serializer serializer) {
-        this(new ZkManager(zk), paths, serializer);
-    }
-
     public PortZkManager(Directory zk, String basePath, Serializer serializer) {
-        this(new ZkManager(zk), new PathBuilder(basePath), serializer);
+        this(new ZkManager(zk, basePath), new PathBuilder(basePath), serializer);
     }
     public <T extends PortConfig> T get(UUID id, Class<T> clazz)
             throws StateAccessException, SerializationException {

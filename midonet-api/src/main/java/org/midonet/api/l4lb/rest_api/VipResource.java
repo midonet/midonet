@@ -6,7 +6,6 @@ package org.midonet.api.l4lb.rest_api;
 
 import com.google.inject.Inject;
 import com.google.inject.servlet.RequestScoped;
-import org.apache.zookeeper.KeeperException.NoNodeException;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.VendorMediaType;
 import org.midonet.api.auth.AuthRole;
@@ -64,7 +63,7 @@ public class VipResource extends AbstractResource {
      */
     @GET
     @RolesAllowed({ AuthRole.ADMIN })
-    @Produces({ VendorMediaType.APPLICATION_VIP_JSON,
+    @Produces({ VendorMediaType.APPLICATION_VIP_COLLECTION_JSON,
             MediaType.APPLICATION_JSON })
     public List<VIP> list()
             throws StateAccessException, SerializationException {
@@ -123,14 +122,13 @@ public class VipResource extends AbstractResource {
     @RolesAllowed({ AuthRole.ADMIN })
     @Path("{id}")
     public void delete(@PathParam("id") UUID id)
-            throws StateAccessException, InvalidStateOperationException,
-            SerializationException {
-        org.midonet.cluster.data.l4lb.VIP vipData = dataClient.vipGet(id);
+            throws StateAccessException, SerializationException {
 
-        if (vipData == null) {
-            return;
+        try {
+            dataClient.vipDelete(id);
+        } catch (NoStatePathException ex) {
+            // Delete is idempotent, so just ignore.
         }
-        dataClient.vipDelete(id);
     }
 
     /**
@@ -159,21 +157,9 @@ public class VipResource extends AbstractResource {
             return Response.created(
                     ResourceUriBuilder.getVip(getBaseUri(), id)).build();
         } catch (StatePathExistsException ex) {
-            throw new ConflictHttpException(getMessage(
-                    MessageProperty.RESOURCE_EXISTS,
-                    "VIP", vip.getId()));
+            throw new ConflictHttpException(ex);
         } catch (NoStatePathException ex) {
-            if (ex.getPath().matches(".*load_balancers.*vips"))
-                throw new NotFoundHttpException(getMessage(
-                        MessageProperty.RESOURCE_NOT_FOUND,
-                        "load balancer", vip.getLoadBalancerId()));
-            if (ex.getPath().matches(".*pools.*vips"))
-                throw new NotFoundHttpException(getMessage(
-                        MessageProperty.RESOURCE_NOT_FOUND,
-                        "pool", vip.getPoolId()));
-
-            log.error("Unexpected exception", ex);
-            throw new RuntimeException();
+            throw new NotFoundHttpException(ex);
         }
     }
 
@@ -199,6 +185,11 @@ public class VipResource extends AbstractResource {
         if (!violations.isEmpty()) {
             throw new BadRequestHttpException(violations);
         }
-        dataClient.vipUpdate(vip.toData());
+
+        try {
+            dataClient.vipUpdate(vip.toData());
+        } catch (NoStatePathException ex) {
+            throw new NotFoundHttpException(ex);
+        }
     }
 }

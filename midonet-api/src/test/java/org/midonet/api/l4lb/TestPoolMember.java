@@ -9,16 +9,24 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
+import org.midonet.api.validation.MessageProperty;
 import org.midonet.api.zookeeper.StaticMockDirectory;
 import org.midonet.client.dto.*;
 
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
+import static javax.ws.rs.core.Response.Status.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+
+import static org.midonet.api.validation.MessageProperty.RESOURCE_EXISTS;
+import static org.midonet.api.validation.MessageProperty.RESOURCE_NOT_FOUND;
+import static org.midonet.api.VendorMediaType.APPLICATION_POOL_MEMBER_JSON;
+import static org.midonet.api.VendorMediaType.APPLICATION_POOL_MEMBER_COLLECTION_JSON;
 
 @RunWith(Enclosed.class)
 public class TestPoolMember {
@@ -150,6 +158,64 @@ public class TestPoolMember {
             member2 = getPoolMember(member2.getUri());
             assertNull(member2.getPoolId());
             assertNull(member2.getPool());
+        }
+
+        @Test
+        public void testCreateWithDuplicateId() {
+            DtoPoolMember member1 = createStockPoolMember();
+            DtoPoolMember member2 = getStockPoolMember();
+            member2.setId(member1.getId());
+            DtoError error = dtoWebResource.postAndVerifyError(
+                    topLevelPoolMembersUri, APPLICATION_POOL_MEMBER_JSON,
+                    member2, CONFLICT);
+            assertErrorMatches(
+                    error, RESOURCE_EXISTS, "pool member", member1.getId());
+        }
+
+        @Test
+        public void testCreateWithBadPoolId() {
+            DtoPoolMember member = getStockPoolMember();
+            member.setPoolId(UUID.randomUUID());
+            DtoError error = dtoWebResource.postAndVerifyError(
+                    topLevelPoolMembersUri, APPLICATION_POOL_MEMBER_JSON,
+                    member, NOT_FOUND);
+            assertErrorMatches(
+                    error, RESOURCE_NOT_FOUND, "pool", member.getPoolId());
+        }
+
+        @Test
+        public void testGetWithBadPoolMemberId() throws Exception {
+            UUID id = UUID.randomUUID();
+            DtoError error = dtoWebResource.getAndVerifyNotFound(
+                    addIdToUri(topLevelPoolMembersUri, id),
+                    APPLICATION_POOL_MEMBER_JSON);
+            assertErrorMatches(error, RESOURCE_NOT_FOUND, "pool member", id);
+        }
+
+        @Test
+        public void testUpdateWithBadPoolMemberId() throws Exception {
+            DtoPoolMember member = createStockPoolMember();
+            member.setId(UUID.randomUUID());
+            member.setUri(addIdToUri(topLevelPoolMembersUri, member.getId()));
+            DtoError error = dtoWebResource.putAndVerifyError(member.getUri(),
+                    APPLICATION_POOL_MEMBER_JSON, member, NOT_FOUND);
+            assertErrorMatches(error, RESOURCE_NOT_FOUND,
+                               "pool member", member.getId());
+        }
+
+        @Test
+        public void testUpdateWithBadPoolId() {
+            DtoPoolMember member = createStockPoolMember();
+            member.setPoolId(UUID.randomUUID());
+            DtoError error = dtoWebResource.putAndVerifyError(member.getUri(),
+                    APPLICATION_POOL_MEMBER_JSON, member, NOT_FOUND);
+            assertErrorMatches(error, RESOURCE_NOT_FOUND, "pool", member.getPoolId());
+        }
+
+        @Test
+        public void testDeleteWithBadPoolId() throws Exception {
+            // Succeeds because delete is idempotent.
+            deletePoolMember(addIdToUri(topLevelPoolMembersUri, UUID.randomUUID()));
         }
     }
 }

@@ -6,6 +6,7 @@
 package org.midonet.midolman.state;
 
 import com.google.inject.Inject;
+import org.midonet.midolman.config.ZookeeperConfig;
 import org.midonet.util.functors.CollectionFunctors;
 import org.midonet.util.functors.Functor;
 import org.midonet.util.functors.TreeNode;
@@ -23,9 +24,6 @@ import java.util.*;
 
 import static org.midonet.util.functors.TreeNodeFunctors.recursiveBottomUpFold;
 
-import static org.midonet.util.functors.TreeNodeFunctors.recursiveBottomUpFold;
-
-
 /**
  *  Class that provides data access methods to Zookeeper as a wrapper of
  *  Directory class.
@@ -37,6 +35,8 @@ public class ZkManager {
 
     private final Directory zk;
 
+    private final String basePath;
+
     /**
      * Constructor.
      *
@@ -44,8 +44,13 @@ public class ZkManager {
      *            Directory object.
      */
     @Inject
-    public ZkManager(Directory zk) {
+    public ZkManager(Directory zk, ZookeeperConfig config) {
+        this(zk, (config == null) ? null : config.getMidolmanRootKey());
+    }
+
+    public ZkManager(Directory zk, String basePath) {
         this.zk = zk;
+        this.basePath = basePath;
     }
 
     public void asyncGet(String relativePath, DirectoryCallback<byte[]> data,
@@ -83,18 +88,16 @@ public class ZkManager {
             return this.zk.add(relativePath, data, mode);
         } catch (NodeExistsException e) {
             throw new StatePathExistsException(
-                    "path does not exist: "
-                            + relativePath + ": " + e.getMessage(), e);
+                    "path does not exist: " + relativePath + ": " + e.getMessage(),
+                    basePath, e);
         } catch (KeeperException e) {
             throw new StateAccessException(
                     "ZooKeeper thread interrupted while checking if path " +
-                            "exists: " + relativePath +
-                            ": " + e.getMessage(), e);
+                            "exists: " + relativePath + ": " + e.getMessage(), e);
         } catch (InterruptedException e) {
             throw new StateAccessException(
                     "ZooKeeper thread interrupted while checking if path " +
-                            "exists: " + relativePath +
-                            ": " + e.getMessage(), e);
+                            "exists: " + relativePath + ": " + e.getMessage(), e);
         }
     }
 
@@ -109,7 +112,7 @@ public class ZkManager {
         } catch (NoNodeException e) {
             throw new NoStatePathException(
                     "ZooKeeper error occurred while getting the directory "
-                            + path + ": " + e.getMessage(), e);
+                            + path + ": " + e.getMessage(), basePath, e);
         } catch (KeeperException e) {
             throw new StateAccessException(
                     "ZooKeeper error occurred while getting the directory "
@@ -141,7 +144,8 @@ public class ZkManager {
             // Even safe doesn't allow adding to non-existing path.
             throw new NoStatePathException(
                     "ZooKeeper error occurred while adding a persistent node " +
-                            "to path " + path + ": " + e.getMessage(), e);
+                            "to path " + path + ": " + e.getMessage(),
+                    basePath, e);
         } catch (KeeperException e) {
             throw new StateAccessException(
                     "ZooKeeper error occurred while adding a persistent node" +
@@ -149,8 +153,7 @@ public class ZkManager {
         } catch (InterruptedException e) {
             throw new StateAccessException(
                     "ZooKeeper thread interrupted while adding a persistent " +
-                            "node to the path " + path + ": " +
-                            e.getMessage(), e);
+                            "node to the path " + path + ": " + e.getMessage(), e);
         }
     }
 
@@ -161,11 +164,13 @@ public class ZkManager {
         } catch (NodeExistsException e) {
             throw new StatePathExistsException(
                     "ZooKeeper error occurred while adding the persistent " +
-                            "node to path " + path + ": " + e.getMessage(), e);
+                            "node to path " + path + ": " + e.getMessage(),
+                    basePath, e);
         } catch (NoNodeException e) {
             throw new NoStatePathException(
                     "ZooKeeper error occurred while adding the persistent " +
-                            "node to path " + path + ": " + e.getMessage(), e);
+                            "node to path " + path + ": " + e.getMessage(),
+                    basePath, e);
         } catch (KeeperException e) {
             throw new StateAccessException(
                     "ZooKeeper error occurred while adding a persistent " +
@@ -173,8 +178,7 @@ public class ZkManager {
         } catch (InterruptedException e) {
             throw new StateAccessException(
                     "ZooKeeper thread interrupted while adding a persistent " +
-                            "node to the path " + path + ": "
-                            + e.getMessage(), e);
+                            "node to the path " + path + ": " + e.getMessage(), e);
         }
     }
 
@@ -185,11 +189,13 @@ public class ZkManager {
         } catch (NodeExistsException e) {
             throw new StatePathExistsException(
                     "ZooKeeper error occurred while adding an ephemeral " +
-                            "node to path " + path + ": " + e.getMessage(), e);
+                            "node to path " + path + ": " + e.getMessage(),
+                    basePath, e);
         } catch (NoNodeException e) {
             throw new NoStatePathException(
                     "ZooKeeper error occurred while adding an ephemeral " +
-                            "node to path " + path + ": " + e.getMessage(), e);
+                            "node to path " + path + ": " + e.getMessage(),
+                    basePath, e);
         } catch (KeeperException e) {
             throw new StateAccessException(
                     "ZooKeeper error occurred while adding an ephemeral " +
@@ -197,8 +203,7 @@ public class ZkManager {
         } catch (InterruptedException e) {
             throw new StateAccessException(
                     "ZooKeeper thread interrupted while adding an ephemeral " +
-                            "node to the path " + path + ": " +
-                            e.getMessage(), e);
+                            "node to the path " + path + ": " + e.getMessage(), e);
         }
     }
 
@@ -224,11 +229,13 @@ public class ZkManager {
         } catch (NodeExistsException e) {
             throw new StatePathExistsException(
                     "ZooKeeper error occurred while adding a sequential " +
-                            "node to path " + path + ": " + e.getMessage(), e);
+                            "node to path " + path + ": " + e.getMessage(),
+                    basePath, e);
         } catch (NoNodeException e) {
             throw new NoStatePathException(
                     "ZooKeeper error occurred while adding a sequential " +
-                            "node to path " + path + ": " + e.getMessage(), e);
+                            "node to path " + path + ": " + e.getMessage(),
+                    basePath, e);
         } catch (KeeperException e) {
             throw new StateAccessException(
                     "ZooKeeper error occurred while adding a sequential " +
@@ -236,8 +243,7 @@ public class ZkManager {
         } catch (InterruptedException e) {
             throw new StateAccessException(
                     "ZooKeeper thread interrupted while adding a sequential " +
-                            "node to the path " + path + ": " +
-                            e.getMessage(), e);
+                            "node to the path " + path + ": " + e.getMessage(), e);
         }
     }
 
@@ -247,7 +253,7 @@ public class ZkManager {
         } catch (NoNodeException e) {
             throw new NoStatePathException(
                     "ZooKeeper error occurred while deleting a node with path "
-                            + path + ": " + e.getMessage(), e);
+                            + path + ": " + e.getMessage(), basePath, e);
         } catch (KeeperException e) {
             throw new StateAccessException(
                     "ZooKeeper error occurred while deleting the path " + path
@@ -270,7 +276,7 @@ public class ZkManager {
         } catch (NoNodeException e) {
             throw new NoStatePathException(
                     "ZooKeeper error occurred while getting a node with path "
-                            + path + ": " + e.getMessage(), e);
+                            + path + ": " + e.getMessage(), basePath, e);
         } catch (KeeperException e) {
             throw new StateAccessException(
                     "ZooKeeper error occurred while getting the path " + path
@@ -289,7 +295,7 @@ public class ZkManager {
         } catch (NoNodeException e) {
             throw new NoStatePathException(
                     "ZooKeeper error occurred while getting a node with path "
-                            + path + ": " + e.getMessage(), e);
+                            + path + ": " + e.getMessage(), basePath, e);
         } catch (KeeperException e) {
             throw new StateAccessException(
                     "ZooKeeper error occurred while getting the path " + path
@@ -313,7 +319,7 @@ public class ZkManager {
         } catch (NoNodeException e) {
             throw new NoStatePathException(
                     "ZooKeeper error occurred while getting children with path "
-                            + path + ": " + e.getMessage(), e);
+                            + path + ": " + e.getMessage(), basePath, e);
         } catch (KeeperException e) {
             throw new StateAccessException(
                     "ZooKeeper error interrupted while getting the children of "
@@ -345,9 +351,11 @@ public class ZkManager {
         try {
             return this.zk.multi(ops);
         } catch (NodeExistsException e) {
-            throw new StatePathExistsException(getMultiErrorMessage(ops, e), e);
+            throw new StatePathExistsException(
+                    getMultiErrorMessage(ops, e), basePath, e);
         } catch (NoNodeException e) {
-            throw new NoStatePathException(getMultiErrorMessage(ops, e), e);
+            throw new NoStatePathException(
+                    getMultiErrorMessage(ops, e), basePath, e);
         } catch (KeeperException e) {
             throw new StateAccessException(getMultiErrorMessage(ops, e), e);
         } catch (InterruptedException e) {
@@ -394,7 +402,7 @@ public class ZkManager {
         } catch (NoNodeException e) {
             throw new NoStatePathException(
                     "ZooKeeper error occurred while updating the path " + path
-                            + ": " + e.getMessage(), e);
+                            + ": " + e.getMessage(), basePath,  e);
         } catch (KeeperException e) {
             throw new StateAccessException(
                     "ZooKeeper error occurred while updating the path " + path

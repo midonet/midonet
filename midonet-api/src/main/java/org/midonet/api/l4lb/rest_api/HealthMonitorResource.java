@@ -83,7 +83,7 @@ public class HealthMonitorResource extends AbstractResource {
     }
 
     @GET
-    @PermitAll
+    @RolesAllowed({ AuthRole.ADMIN })
     @Path("{id}")
     @Produces({ VendorMediaType.APPLICATION_HEALTH_MONITOR_JSON,
             MediaType.APPLICATION_JSON })
@@ -108,15 +108,13 @@ public class HealthMonitorResource extends AbstractResource {
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Path("{id}")
     public void delete(@PathParam("id") UUID id)
-            throws StateAccessException,
-            InvalidStateOperationException, SerializationException {
+            throws StateAccessException, SerializationException {
 
-        org.midonet.cluster.data.l4lb.HealthMonitor healthMonitorData =
-                dataClient.healthMonitorGet(id);
-        if (healthMonitorData == null) {
-            return;
+        try {
+            dataClient.healthMonitorDelete(id);
+        } catch (NoStatePathException ex) {
+            // Delete is idempotent, so just ignore.
         }
-        dataClient.healthMonitorDelete(id);
     }
 
     @POST
@@ -124,23 +122,23 @@ public class HealthMonitorResource extends AbstractResource {
     @Consumes({ VendorMediaType.APPLICATION_HEALTH_MONITOR_JSON,
             MediaType.APPLICATION_JSON })
     public Response create(HealthMonitor healthMonitor)
-            throws StateAccessException, InvalidStateOperationException,
-            SerializationException, ConflictHttpException {
+            throws StateAccessException, SerializationException {
+
+        Set<ConstraintViolation<HealthMonitor>> violations =
+                validator.validate(healthMonitor);
+        if (!violations.isEmpty()) {
+            throw new BadRequestHttpException(violations);
+        }
+
         try {
-            Set<ConstraintViolation<HealthMonitor>> violations =
-                    validator.validate(healthMonitor);
-            if (!violations.isEmpty()) {
-                throw new BadRequestHttpException(violations);
-            }
             UUID id = dataClient.healthMonitorCreate(healthMonitor.toData());
             return Response.created(
                     ResourceUriBuilder.getHealthMonitor(getBaseUri(), id))
                     .build();
         } catch (StatePathExistsException ex) {
-            throw new ConflictHttpException(getMessage(
-                    MessageProperty.RESOURCE_EXISTS, "health monitor",
-                    healthMonitor.getId()));
+            throw new ConflictHttpException(ex);
         }
+
     }
 
     @PUT
@@ -149,16 +147,19 @@ public class HealthMonitorResource extends AbstractResource {
     @Consumes({ VendorMediaType.APPLICATION_HEALTH_MONITOR_JSON,
             MediaType.APPLICATION_JSON })
     public void update(@PathParam("id") UUID id, HealthMonitor healthMonitor)
-            throws StateAccessException,
-            InvalidStateOperationException, SerializationException {
+            throws StateAccessException, SerializationException {
 
         healthMonitor.setId(id);
 
-        dataClient.healthMonitorUpdate(healthMonitor.toData());
+        try {
+            dataClient.healthMonitorUpdate(healthMonitor.toData());
+        } catch (NoStatePathException ex) {
+            throw new NotFoundHttpException(ex);
+        }
     }
 
     @GET
-    @PermitAll
+    @RolesAllowed({ AuthRole.ADMIN })
     @Path("{id}" + ResourceUriBuilder.POOLS)
     @Produces({VendorMediaType.APPLICATION_POOL_COLLECTION_JSON,
             MediaType.APPLICATION_JSON})
@@ -171,11 +172,7 @@ public class HealthMonitorResource extends AbstractResource {
         try {
             dataPools = dataClient.healthMonitorGetPools(id);
         } catch (NoStatePathException ex) {
-            if (ex.getPath().matches(".*health_monitors.*pools")) {
-                throw new NotFoundHttpException(getMessage(
-                        MessageProperty.RESOURCE_NOT_FOUND, "health monitor", id));
-            }
-            throw ex;
+            throw new NotFoundHttpException(ex);
         }
 
         List<Pool> pools = new ArrayList<>(dataPools.size());

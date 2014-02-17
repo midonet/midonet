@@ -55,11 +55,6 @@ public class TunnelZoneZkManager extends AbstractZkManager {
         super(zk, paths, serializer);
     }
 
-    public TunnelZoneZkManager(Directory dir, String basePath,
-                               Serializer serializer) {
-        this(new ZkManager(dir), new PathBuilder(basePath), serializer);
-    }
-
     public Set<UUID> getZoneIds() throws StateAccessException {
 
         String path = paths.getTunnelZonesPath();
@@ -212,7 +207,7 @@ public class TunnelZoneZkManager extends AbstractZkManager {
                 tz.getName().equalsIgnoreCase(zone.getName())) {
                 throw new StatePathExistsException(
                     "There is already a tunnel zone with the same type and" +
-                    "name, its id: " + tz.getId(), (String)null);
+                    "name, its id: " + tz.getId());
             }
         }
 
@@ -256,7 +251,7 @@ public class TunnelZoneZkManager extends AbstractZkManager {
                 zoneId, hostConfig.getId());
 
         if (zk.exists(membershipPath))
-            throw new StatePathExistsException(null, membershipPath);
+            throw new StatePathExistsException(null);
 
         ops.add(
                 zk.getPersistentCreateOp(membershipPath,

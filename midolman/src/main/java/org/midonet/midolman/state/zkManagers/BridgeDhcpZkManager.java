@@ -238,11 +238,6 @@ public class BridgeDhcpZkManager extends AbstractZkManager {
         super(zk, paths, serializer);
     }
 
-    public BridgeDhcpZkManager(Directory dir, String basePath,
-                               Serializer serializer) {
-        this(new ZkManager(dir), new PathBuilder(basePath), serializer);
-    }
-
     public void createSubnet(UUID bridgeId, Subnet subnet)
             throws StateAccessException, SerializationException {
         List<Op> ops = new ArrayList<Op>();

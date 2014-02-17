@@ -37,21 +37,21 @@ object TestBridgeZkManager {
     def finalizeTest() {
     }
 
-    @BeforeClass
-    def initializeTest() {
-        val dir = new MockDirectory();
-        val zk = new ZkManager(dir);
-        val basePath = "/midolman";
-        val pathMgr = new PathBuilder(basePath);
-        val dataProvider = new ZkSystemDataProvider(zk, pathMgr,
-            new VersionComparator());
-        val serializer = new JsonVersionZkSerializer(dataProvider,
-            new VersionComparator());
-        dir.add(pathMgr.getBasePath, null, CreateMode.PERSISTENT)
-        Setup.ensureZkDirectoryStructureExists(dir, basePath)
-        bridgeMgr = new BridgeZkManager(new ZkManager(dir),
-                                        pathMgr, serializer)
-    }
+  @BeforeClass
+  def initializeTest() {
+      val basePath = "/midolman";
+      val pathMgr = new PathBuilder(basePath);
+      val dir = new MockDirectory();
+      val zk = new ZkManager(dir, basePath);
+      val dataProvider = new ZkSystemDataProvider(zk, pathMgr,
+          new VersionComparator());
+      val serializer = new JsonVersionZkSerializer(dataProvider,
+          new VersionComparator());
+      dir.add(pathMgr.getBasePath, null, CreateMode.PERSISTENT)
+      Setup.ensureZkDirectoryStructureExists(dir, basePath)
+      bridgeMgr = new BridgeZkManager(new ZkManager(dir, basePath),
+                                      pathMgr, serializer)
+  }
 }
 
 class TestBridgeZkManager {
