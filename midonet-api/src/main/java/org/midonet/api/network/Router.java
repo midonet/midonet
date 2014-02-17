@@ -203,6 +203,7 @@ public class Router extends UriResource {
         this.loadBalancerId = loadBalancerId;
     }
 
+    @Since("2")
     public URI getLoadBalancer() {
         if (getBaseUri() != null && loadBalancerId != null) {
             return ResourceUriBuilder.getLoadBalancer(getBaseUri(), loadBalancerId);
