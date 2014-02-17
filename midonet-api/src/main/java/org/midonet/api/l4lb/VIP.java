@@ -30,7 +30,6 @@ public class VIP extends UriResource {
     @Min(0)
     @Max(65536)
     private int protocolPort;
-    @NotNull
     @Pattern.List({
         @Pattern(regexp = VIP_SOURCE_IP,
                  message = "is not SOURCE_IP")
