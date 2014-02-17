@@ -11,7 +11,9 @@ import java.util.Map;
 import java.util.AbstractMap;
 import java.util.UUID;
 
+import org.midonet.midolman.rules.JumpRule;
 import org.midonet.midolman.rules.RuleList;
+import org.midonet.midolman.rules.RuleResult;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.AbstractZkManager;
@@ -40,6 +42,7 @@ public class RuleZkManager extends AbstractZkManager {
     private final static Logger log = LoggerFactory
             .getLogger(RuleZkManager.class);
 
+    ChainZkManager chainZkManager;
     /**
      * Constructor to set ZooKeeper and base path.
      *
@@ -53,6 +56,7 @@ public class RuleZkManager extends AbstractZkManager {
     public RuleZkManager(ZkManager zk, PathBuilder paths,
                          Serializer serializer) {
         super(zk, paths, serializer);
+        chainZkManager = new ChainZkManager(zk, paths, serializer);
     }
 
     public RuleZkManager(Directory dir, String basePath,
@@ -137,6 +141,14 @@ public class RuleZkManager extends AbstractZkManager {
         String rulePath = paths.getRulePath(id);
         List<Op> ops = new ArrayList<Op>();
 
+        if (ruleConfig instanceof JumpRule) {
+            JumpRule jrule = (JumpRule)ruleConfig;
+            if (jrule.jumpToChainID != null) {
+                ops.addAll(chainZkManager.prepareChainBackRefCreate(
+                     jrule.jumpToChainID, ResourceType.RULE, id));
+            }
+        }
+
         log.debug("Preparing to create: " + rulePath);
         ops.add(Op.create(rulePath,
                 serializer.serialize(ruleConfig),
@@ -168,11 +180,20 @@ public class RuleZkManager extends AbstractZkManager {
      *            Rule ZooKeeper entry to delete.
      * @return A list of Op objects representing the operations to perform.
      */
-    public List<Op> prepareRuleDelete(UUID id, Rule rule) {
+    public List<Op> prepareRuleDelete(UUID id, Rule rule)
+        throws StateAccessException {
         List<Op> ops = new ArrayList<Op>();
         String rulePath = paths.getRulePath(id);
         log.debug("Preparing to delete: " + rulePath);
         ops.add(Op.delete(rulePath, -1));
+
+        if (rule instanceof JumpRule) {
+            JumpRule jrule = (JumpRule)rule;
+            if (jrule.jumpToChainID != null) {
+                ops.addAll(chainZkManager.prepareChainBackRefDelete(
+                    jrule.jumpToChainID, ResourceType.RULE, id));
+            }
+        }
 
         // Remove the reference to port group
         UUID portGroupId = rule.getCondition().portGroup;

@@ -19,14 +19,7 @@ import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Class to manage the bridge ZooKeeper data.
@@ -102,6 +95,7 @@ public class BridgeZkManager extends AbstractZkManager {
     private FiltersZkManager filterZkManager;
     private TunnelZkManager tunnelZkManager;
     private PortZkManager portZkManager;
+    private ChainZkManager chainZkManager;
 
     /**
      * Initializes a BridgeZkManager object with a ZooKeeper client and the root
@@ -120,6 +114,7 @@ public class BridgeZkManager extends AbstractZkManager {
         this.filterZkManager = new FiltersZkManager(zk, paths, serializer);
         this.tunnelZkManager = new TunnelZkManager(zk, paths, serializer);
         this.portZkManager = new PortZkManager(zk, paths, serializer);
+        this.chainZkManager = new ChainZkManager(zk, paths, serializer);
     }
 
     public BridgeZkManager(Directory dir, String basePath,
@@ -149,6 +144,16 @@ public class BridgeZkManager extends AbstractZkManager {
         config.tunnelKey = tunnelKeyId;
 
         List<Op> ops = new ArrayList<Op>();
+
+        if (config.inboundFilter != null) {
+            ops.addAll(chainZkManager.prepareChainBackRefCreate(
+                    config.inboundFilter, ResourceType.BRIDGE, id));
+        }
+        if (config.outboundFilter != null) {
+            ops.addAll(chainZkManager.prepareChainBackRefCreate(
+                    config.outboundFilter, ResourceType.BRIDGE, id));
+        }
+
         ops.add(Op.create(paths.getBridgePath(id),
                 serializer.serialize(config),
                 Ids.OPEN_ACL_UNSAFE,
@@ -203,11 +208,12 @@ public class BridgeZkManager extends AbstractZkManager {
      * @throws org.midonet.midolman.serialization.SerializationException
      *             if the BridgeConfig could not be serialized.
      */
-    public Op prepareUpdate(UUID id, BridgeConfig config)
+    public List<Op> prepareUpdate(UUID id, BridgeConfig config)
             throws StateAccessException, SerializationException {
         BridgeConfig oldConfig = get(id);
         // Have the name, inbound or outbound filter changed?
         boolean dataChanged = false;
+        List<Op> ops = new ArrayList<Op>();
 
         if ((oldConfig.name == null && config.name != null) ||
                 (oldConfig.name != null && config.name == null) ||
@@ -234,10 +240,19 @@ public class BridgeZkManager extends AbstractZkManager {
         if (dataChanged) {
             // Update the midolman data. Don't change the Bridge's GRE-key.
             config.tunnelKey = oldConfig.tunnelKey;
-            return Op.setData(paths.getBridgePath(id),
-                    serializer.serialize(config), -1);
+            ops.add(Op.setData(paths.getBridgePath(id),
+                    serializer.serialize(config), -1));
         }
-        return null;
+        if (dataChanged) {
+            ops.addAll(chainZkManager.prepareUpdateFilterBackRef(
+                    ResourceType.BRIDGE,
+                    oldConfig.inboundFilter,
+                    config.inboundFilter,
+                    oldConfig.outboundFilter,
+                    config.outboundFilter,
+                    id));
+        }
+        return ops;
     }
 
     public List<Op> prepareBridgeDelete(UUID id) throws StateAccessException,
@@ -255,6 +270,16 @@ public class BridgeZkManager extends AbstractZkManager {
     public List<Op> prepareBridgeDelete(UUID id, BridgeConfig config)
             throws StateAccessException, SerializationException {
         List<Op> ops = new ArrayList<Op>();
+
+        if (config.inboundFilter != null) {
+            ops.addAll(chainZkManager.prepareChainBackRefDelete(
+                    config.inboundFilter, ResourceType.BRIDGE, id));
+        }
+        if (config.outboundFilter != null) {
+            ops.addAll(chainZkManager.prepareChainBackRefDelete(
+                    config.outboundFilter, ResourceType.BRIDGE, id));
+        }
+
         // Delete the ports.
         Set<UUID> portIds = portZkManager.getBridgePortIDs(id);
         for (UUID portId : portIds) {
@@ -297,6 +322,30 @@ public class BridgeZkManager extends AbstractZkManager {
         ops.addAll(filterZkManager.prepareDelete(id));
 
         return ops;
+    }
+
+    /**
+     * removes any reference to the given chainId from the inbound/outbound
+     * filters of the bridge identified by id. Called when the chain is
+     * deleted.
+     */
+    public List<Op> prepareClearRefsToChains(UUID id, UUID chainId)
+            throws SerializationException, StateAccessException {
+        Boolean dataChanged = false;
+        BridgeConfig config = get(id);
+        if (config.inboundFilter.equals(chainId)) {
+            config.inboundFilter = null;
+            dataChanged = true;
+        }
+        if (config.outboundFilter.equals(chainId)) {
+            config.outboundFilter = null;
+            dataChanged = true;
+        }
+
+        return dataChanged ?
+                Collections.singletonList(Op.setData(paths.getBridgePath(id),
+                        serializer.serialize(config), -1)) :
+                Collections.<Op>emptyList();
     }
 
     /**
@@ -345,10 +394,8 @@ public class BridgeZkManager extends AbstractZkManager {
 
     public void update(UUID id, BridgeConfig cfg) throws StateAccessException,
             SerializationException {
-        Op op = prepareUpdate(id, cfg);
-        if (null != op) {
-            List<Op> ops = new ArrayList<Op>();
-            ops.add(op);
+        List<Op> ops = prepareUpdate(id, cfg);
+        if (ops.size() > 0) {
             zk.multi(ops);
         }
     }
