@@ -23,6 +23,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import static org.midonet.api.validation.MessageProperty.POOL_MEMBER_WEIGHT_NEGATIVE;
 import static org.midonet.api.validation.MessageProperty.RESOURCE_EXISTS;
 import static org.midonet.api.validation.MessageProperty.RESOURCE_NOT_FOUND;
 import static org.midonet.api.VendorMediaType.APPLICATION_POOL_MEMBER_JSON;
@@ -184,6 +185,16 @@ public class TestPoolMember {
         }
 
         @Test
+        public void testCreateWithNegativeWeight() {
+            DtoPoolMember member = getStockPoolMember();
+            member.setWeight(-1);
+            DtoError error = dtoWebResource.postAndVerifyError(
+                    topLevelPoolMembersUri, APPLICATION_POOL_MEMBER_JSON,
+                    member, BAD_REQUEST);
+            assertErrorMatches(error, POOL_MEMBER_WEIGHT_NEGATIVE);
+        }
+
+        @Test
         public void testGetWithBadPoolMemberId() throws Exception {
             UUID id = UUID.randomUUID();
             DtoError error = dtoWebResource.getAndVerifyNotFound(
@@ -210,6 +221,35 @@ public class TestPoolMember {
             DtoError error = dtoWebResource.putAndVerifyError(member.getUri(),
                     APPLICATION_POOL_MEMBER_JSON, member, NOT_FOUND);
             assertErrorMatches(error, RESOURCE_NOT_FOUND, "pool", member.getPoolId());
+        }
+
+        @Test
+        public void testUpdateWithNegativeWeight() {
+            DtoPoolMember member = createStockPoolMember();
+            member.setWeight(-1);
+            DtoError error = dtoWebResource.putAndVerifyError(member.getUri(),
+                    APPLICATION_POOL_MEMBER_JSON, member, BAD_REQUEST);
+            assertErrorMatches(error, POOL_MEMBER_WEIGHT_NEGATIVE);
+        }
+
+        @Test
+        public void testUpdateWeight() {
+            DtoPoolMember member = getStockPoolMember();
+            member.setWeight(0); // Should default to 1.
+            member = postPoolMember(member);
+            assertEquals(1, member.getWeight());
+
+            // Update to 5.
+            member.setWeight(5);
+            updatePoolMember(member);
+            member = getPoolMember(member.getUri());
+            assertEquals(5, member.getWeight());
+
+            // Update with the default (1).
+            member.setWeight(0);
+            updatePoolMember(member);
+            member = getPoolMember(member.getUri());
+            assertEquals(1, member.getWeight());
         }
 
         @Test
