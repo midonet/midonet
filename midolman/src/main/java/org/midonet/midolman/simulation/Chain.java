@@ -1,20 +1,18 @@
-// Copyright 2012 Midokura Inc.
-
+/*
+ * Copyright (c) 2012-2014 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.midolman.simulation;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
-import java.util.Stack;
+import java.util.Objects;
 import java.util.UUID;
 
 import akka.event.LoggingBus;
 import com.google.inject.Inject;
 import scala.Option;
-import scala.Some;
-import scala.collection.Iterator;
 import scala.collection.Map;
 
 import org.midonet.sdn.flows.WildcardMatch;
@@ -25,15 +23,17 @@ import org.midonet.midolman.rules.ChainPacketContext;
 import org.midonet.midolman.rules.JumpRule;
 import org.midonet.midolman.rules.Rule;
 import org.midonet.midolman.rules.RuleResult;
+import org.midonet.midolman.rules.RuleResult.Action;
 import org.midonet.midolman.topology.FlowTagger;
 
 public class Chain {
     private SimulationAwareBusLogging log;
 
-    public UUID id;
-    private List<Rule> rules;
-    private Map<UUID, Chain> jumpTargets;
-    private String name;
+    public final UUID id;
+    private final List<Rule> rules;
+    private final Map<UUID, Chain> jumpTargets;
+    public final String name;
+    public final Object flowInvTag;
 
     @Inject
     static NatMappingFactory natMappingFactory;
@@ -41,9 +41,10 @@ public class Chain {
     public Chain(UUID id_, List<Rule> rules_, Map<UUID, Chain> jumpTargets_,
                  String name_, LoggingBus loggingBus) {
         id = id_;
-        rules = new ArrayList<Rule>(rules_);
+        rules = new ArrayList<>(rules_);
         jumpTargets = jumpTargets_;
         name = name_;
+        flowInvTag = FlowTagger.invalidateFlowsByDevice(id);
         log = LoggerFactory.getSimulationAwareLog(this.getClass(),
                                                   loggingBus);
     }
@@ -53,12 +54,15 @@ public class Chain {
     }
 
     public boolean equals(Object other) {
-        if (!(other instanceof Chain))
+        if (this == other)
+            return true;
+        if (other == null || getClass() != other.getClass())
             return false;
         Chain that = (Chain) other;
-        return this.id.equals(that.id) && this.rules.equals(that.rules) &&
-                this.jumpTargets.equals(that.jumpTargets) &&
-                this.name.equals(that.name);
+        return Objects.equals(this.id, that.id) &&
+                Objects.equals(this.rules, that.rules) &&
+                Objects.equals(this.jumpTargets, that.jumpTargets) &&
+                Objects.equals(this.name, that.name);
     }
 
     public Chain getJumpTarget(UUID to) {
@@ -66,12 +70,67 @@ public class Chain {
         return match.isDefined() ? match.get() : null;
     }
 
-    private SimulationAwareBusLogging getLog() {
-        return log;
+    /**
+     * Recursive helper function for public static apply(). The first
+     * three parameters are the same as in that method.
+     *
+     * @param res
+     *     Results of rule processing (out only), plus packet match (in/out).
+     * @param depth
+     *     Depth of jump recursion. Guards against excessive recursion.
+     * @param traversedChains
+     *     Keeps track of chains that have been visited to prevent
+     *     infinite recursion in the event of a cycle.
+     */
+    private void apply(ChainPacketContext fwdInfo, UUID ownerId,
+                       boolean isPortFilter, RuleResult res,
+                       int depth, List<UUID> traversedChains) {
+
+        log.debug("Processing chain with name {} and ID {}", name, id, fwdInfo);
+        if (depth > 10) {
+            throw new IllegalStateException("Deep recursion when processing " +
+                                            "chain " + traversedChains.get(0));
+        }
+
+        // Remember that we've seen this chain.
+        fwdInfo.addTraversedElementID(id);
+        fwdInfo.addFlowTag(flowInvTag);
+        traversedChains.add(id);
+
+        Iterator<Rule> iter = rules.iterator();
+        res.action = Action.CONTINUE;
+        while (iter.hasNext() && res.action == Action.CONTINUE) {
+
+            Rule r = iter.next();
+            r.process(fwdInfo, res, natMappingFactory.get(ownerId), isPortFilter);
+
+            if (res.action == Action.JUMP) {
+                Chain jumpChain = getJumpTarget(res.jumpToChain);
+                if (null == jumpChain) {
+                    log.error("ignoring jump to chain {} -- not found.",
+                              res.jumpToChain, fwdInfo);
+                    res.action = Action.CONTINUE;
+                } else if (traversedChains.contains(jumpChain.id)) {
+                    log.warning("Chain.apply cannot jump from chain " +
+                                "{} to chain {} -- already visited",
+                                this, jumpChain, fwdInfo);
+                    res.action = Action.CONTINUE;
+                } else {
+                    // Apply the jump chain and return if it produces a
+                    // decisive action. If not, on to the next rule.
+                    jumpChain.apply(fwdInfo, ownerId, isPortFilter,
+                                    res, depth + 1, traversedChains);
+                    if (res.action == Action.RETURN)
+                        res.action = Action.CONTINUE;
+                }
+            }
+        }
+
+        assert res.action != Action.JUMP;
     }
 
     /**
-     * @param origChain
+     * @param chain
      *            The chain where processing starts.
      * @param fwdInfo
      *            The packet's PacketContext.
@@ -82,108 +141,43 @@ public class Chain {
      *            UUID of the element using chainId.
      * @param isPortFilter
      *            whether the chain is being processed in a port filter context
-     * @return
      */
     public static RuleResult apply(
-            Chain origChain, ChainPacketContext fwdInfo,
+            Chain chain, ChainPacketContext fwdInfo,
             WildcardMatch pktMatch, UUID ownerId, boolean isPortFilter) {
-        if (null == origChain) {
-             return new RuleResult(
-                RuleResult.Action.ACCEPT, null, pktMatch);
-        }
-        Chain currentChain = origChain;
-        fwdInfo.addTraversedElementID(origChain.id);
-        fwdInfo.addFlowTag(FlowTagger.invalidateFlowsByDevice(currentChain.id));
-        currentChain.getLog().debug("Processing chain with name {} and ID {}",
-                                    currentChain.name, currentChain.id, fwdInfo);
-        Stack<ChainPosition> chainStack = new Stack<ChainPosition>();
-        chainStack.push(new ChainPosition(currentChain.id,
-                                          currentChain.rules, 0));
-        // We can't use traversedElementIDs to detect loops because the same
-        // chains may have been traversed by some other device's filters.
-        Set<UUID> traversedChains = new HashSet<UUID>();
-        traversedChains.add(currentChain.id);
 
-        if (currentChain.getLog().isDebugEnabled()) {
-            currentChain.getLog().debug(
-                    "Testing {} against Chain: \n{}",
-                    pktMatch, currentChain.asTree(4), fwdInfo);
+        if (null == chain) {
+            return new RuleResult(Action.ACCEPT, null, pktMatch);
         }
 
-        RuleResult res = new RuleResult(RuleResult.Action.CONTINUE, null,
-                pktMatch);
-        while (!chainStack.empty()) {
-            ChainPosition cp = chainStack.pop();
-            while (cp.position < cp.rules.size()) {
-                // Reset the default action and jumpToChain. Keep the
-                // transformed match.
-                res.action = RuleResult.Action.CONTINUE;
-                res.jumpToChain = null;
-                Rule r = cp.rules.get(cp.position);
-                cp.position++;
-                r.process(fwdInfo, res, natMappingFactory.get(ownerId), isPortFilter);
-                if (res.action.equals(RuleResult.Action.ACCEPT)
-                        || res.action.equals(RuleResult.Action.DROP)
-                        || res.action.equals(RuleResult.Action.REJECT)) {
-                    return res;
-                } else if (res.action.equals(RuleResult.Action.JUMP)) {
-                    Chain nextChain = currentChain.getJumpTarget(
-                                            res.jumpToChain);
-                    if (null == nextChain) {
-                        // Let's just ignore jumps to non-existent chains.
-                        currentChain.getLog().warning(
-                            "ignoring jump to chain {} -- not found.",
-                            res.jumpToChain, fwdInfo);
-                        continue;
-                    }
-
-                    UUID nextID = nextChain.id;
-                    if (traversedChains.contains(nextID)) {
-                        // Avoid jumping to chains we've already seen.
-                        currentChain.getLog().warning(
-                            "applyChain {} cannot jump from chain " +
-                                "{} to chain {} -- already visited",
-                            new Object[]{origChain, currentChain,
-                                nextChain}, fwdInfo);
-                        continue;
-                    }
-                    // Keep track of the traversed chains to detect loops.
-                    traversedChains.add(nextID);
-                    // Remember the calling chain.
-                    chainStack.push(cp);
-                    chainStack.push(
-                        new ChainPosition(nextID, nextChain.rules, 0));
-                    break;
-                } else if (res.action.equals(RuleResult.Action.RETURN)) {
-                    // Stop processing this chain; return to the calling chain.
-                    break;
-                } else if (res.action.equals(RuleResult.Action.CONTINUE)) {
-                    // Move on to the next rule in the same chain.
-                    continue;
-                } else {
-                    currentChain.getLog().error(
-                        "Unknown action type {} in rule chain {}",
-                        res.action, cp.id, fwdInfo);
-                    // TODO: Should we throw an exception?
-                    continue;
-                }
-            }
+        if (chain.log.isDebugEnabled()) {
+            chain.log.debug("Testing {} against Chain:\n{}",
+                    pktMatch, chain.asTree(4), fwdInfo);
         }
-        // If we fall off the end of the starting chain, we ACCEPT.
-        res.action = RuleResult.Action.ACCEPT;
+
+        // Use ArrayList rather than HashSet because the list will be
+        // short enough that O(N) lookup is still cheap, and this
+        // avoids per-chain allocation.
+        //
+        // TODO: We can count how many chains can be reached from a
+        // given root chain in the constructor and then use that to
+        // determine how big a list to allocate.
+        List<UUID> traversedChains = new ArrayList<>();
+        RuleResult res = new RuleResult(Action.CONTINUE, null, pktMatch);
+        chain.apply(fwdInfo, ownerId, isPortFilter, res, 0, traversedChains);
+
+        // Accept if the chain didn't make an explicit decision.
+        if (!res.action.isDecisive())
+            res.action = Action.ACCEPT;
+
+        if (traversedChains.size() > 25) {
+            // It's unlikely that this will come up a lot, but if it does,
+            // consider using a different structure for traversedChains.
+            chain.log.warning("Traversed {} chains when applying chain {}.",
+                              traversedChains.size(), chain.id, fwdInfo);
+        }
+
         return res;
-    }
-
-    private static class ChainPosition {
-        UUID id;
-        List<Rule> rules;
-        int position;
-
-        public ChainPosition(UUID id, List<Rule> rules, int position) {
-            this.id = id;
-            this.rules = rules;
-            this.position = position;
-        }
     }
 
     public String toString() {

@@ -4,6 +4,7 @@
 
 package org.midonet.midolman.rules;
 
+import java.util.Objects;
 import java.util.UUID;
 
 import org.midonet.sdn.flows.WildcardMatch;
@@ -12,7 +13,23 @@ import org.midonet.sdn.flows.WildcardMatch;
 public class RuleResult {
 
     public enum Action {
-        ACCEPT, CONTINUE, DROP, JUMP, REJECT, RETURN;
+        ACCEPT(true),
+        CONTINUE(false),
+        DROP(true),
+        JUMP(false),
+        REJECT(true),
+        RETURN(false);
+
+        private final boolean decisive;
+
+        private Action(boolean decisive) { this.decisive = decisive; }
+
+        /**
+         * A decisive action, such as ACCEPT or REJECT, is one which
+         * determines the result of a chain application and thus allows
+         * us to skip processing of any further rules.
+         */
+        public boolean isDecisive() { return decisive; }
     }
 
     public Action action;
@@ -27,41 +44,18 @@ public class RuleResult {
 
     @Override
     public int hashCode() {
-        int hash = 1;
-        if (null != action)
-            hash = hash * 13 + action.hashCode();
-        if (null != jumpToChain)
-            hash = hash * 11 + jumpToChain.hashCode();
-        if (null != pmatch)
-            hash = hash * 17 + pmatch.hashCode();
-        return hash;
+        return Objects.hash(action, jumpToChain, pmatch);
     }
 
     @Override
     public boolean equals(Object other) {
-        if (this == other)
-            return true;
-        if (!(other instanceof RuleResult))
-            return false;
-        RuleResult res = (RuleResult) other;
-        if (action == null || res.action == null) {
-            if (action != res.action)
-                return false;
-        } else if (!action.equals(res.action)) {
-            return false;
-        }
-        if (jumpToChain == null || res.jumpToChain == null) {
-            if (jumpToChain != res.jumpToChain)
-                return false;
-        } else if (!jumpToChain.equals(res.jumpToChain)) {
-            return false;
-        }
-        if (pmatch == null || res.pmatch == null) {
-            if (pmatch != res.pmatch)
-                return false;
-        } else if (!pmatch.equals(res.pmatch)) {
-            return false;
-        }
+        if (this == other) return true;
+        if (!(other instanceof RuleResult)) return false;
+
+        RuleResult res = (RuleResult)other;
+        if (action != res.action) return false;
+        if (!Objects.equals(jumpToChain, res.jumpToChain)) return false;
+        if (!Objects.equals(pmatch, res.pmatch)) return false;
         return true;
     }
 
