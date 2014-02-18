@@ -1,0 +1,116 @@
+# This is a basic topology with a single brige
+
+TOPOLOGY_SOURCE_HOST="10.25.25.1"
+TOPOLOGY_DEST_HOST="10.25.25.2"
+TOPOLOGY_SOURCE_NET="10.25.25.1/24"
+TOPOLOGY_DEST_NET="10.25.25.2/24"
+BR_ID=
+VAB_ID=
+VLAN=666
+
+#######################################################################
+# Custom functions
+#######################################################################
+
+print_topology() {
+    echo "Virtual topology"
+    echo "----------------"
+    echo "    port bindings for host $HOST_ID:"
+    midonet-cli -A -e host $HOST_ID list binding
+    echo ""
+    echo "    bridge listing:"
+    midonet-cli -A -e bridge list
+    if [ ! -z "$BR_ID" ] ; then
+        echo ""
+        echo "    vub bridge $BR_ID port listing:"
+        midonet-cli -A -e bridge $BR_ID port list
+    fi
+    if [ ! -z "$VAB_ID" ] ; then
+        echo ""
+        echo "    vab bridge $VAB_ID port listing:"
+        midonet-cli -A -e bridge $VAB_ID port list
+    fi
+}
+
+
+#######################################################################
+# Implementing functions
+#######################################################################
+
+setup_topology() {
+    test_phase "Setting up virtual topology, basic l2gw"
+
+    while read host ; do
+        HOST_ID=`echo $host | cut -d ' ' -f 2`
+        break
+    done < <(midonet-cli -A -e host list)
+
+    if [ -z "$HOST_ID" ] ; then
+        return 1
+    fi
+
+    # First thing we do is hack the physical topology crated in perftest,
+    # the source traffic will be sent from inside a namespace, since we
+    # need VLAN tagged traffic we'll add a subinterface to the source
+    # ifc and move the TOPOLOGY_SOURCE_HOST to it
+    ip netns exec $TOPOLOGY_SOURCE_NETNS vconfig add leftns $VLAN
+    ip netns exec $TOPOLOGY_SOURCE_NETNS ip addr del $TOPOLOGY_SOURCE_NET dev leftns
+    ip netns exec $TOPOLOGY_SOURCE_NETNS ip addr add $TOPOLOGY_SOURCE_NET dev leftns.$VLAN
+    ip netns exec $TOPOLOGY_SOURCE_NETNS ip link set lo up
+    ip netns exec $TOPOLOGY_SOURCE_NETNS ip link set leftns up
+    ip netns exec $TOPOLOGY_SOURCE_NETNS ip link set leftns.$VLAN up
+
+    echo "found host with id $HOST_ID"
+
+    echo "creating vlan unaware bridge"
+    BR_ID=`midonet-cli -A -e bridge create name perftest-vub-$VLAN`
+    echo "creating vlan aware bridge"
+    VAB_ID=`midonet-cli -A -e bridge create name perftest-vab`
+    echo "creating ports in VUB"
+    LEFTPORT=`midonet-cli -A -e bridge $BR_ID create port`
+    RIGHTPORT=`midonet-cli -A -e bridge $BR_ID create port`
+
+    echo "creating vlan port and trunk in VAB"
+    VLANPORT=`midonet-cli -A -e bridge $VAB_ID create port vlan $VLAN`
+    TRUNKPORT=`midonet-cli -A -e bridge $VAB_ID create port`
+
+    echo "creating bindings"
+    midonet-cli -A -e host $HOST_ID add binding \
+        interface $TOPOLOGY_SOURCE_BINDING \
+        port bridge $VAB_ID port $TRUNKPORT > /dev/null
+    midonet-cli -A -e host $HOST_ID add binding \
+        interface $TOPOLOGY_DEST_BINDING \
+        port bridge $BR_ID port $RIGHTPORT > /dev/null
+
+    echo "binding vab's interior port to vub's"
+    midonet-cli -A -e bridge $BR_ID port $LEFTPORT set peer bridge $VAB_ID port $VLANPORT
+
+    echo "source port: $TRUNKPORT"
+    echo "dest port: $RIGHTPORT"
+    echo "interior vlan port $VLANPORT on vlan $VLAN"
+    echo "vub: $BR_ID"
+    echo "vab: $VAB_ID"
+    echo "host: $HOST_ID"
+
+    print_topology
+}
+
+tear_down_topology() {
+    if [ -z "$BR_ID" ] ; then
+        return
+    fi
+    test_phase "Tearing down virtual topology"
+    midonet-cli -A -e host $HOST_ID delete binding interface $TOPOLOGY_SOURCE_BINDING
+    midonet-cli -A -e host $HOST_ID delete binding interface $TOPOLOGY_DEST_BINDING
+    midonet-cli -A -e bridge $VAB_ID delete port $VLANPORT
+    midonet-cli -A -e bridge $VAB_ID delete port $TRUNKPORT
+    midonet-cli -A -e bridge $BR_ID delete port $LEFTPORT
+    midonet-cli -A -e bridge $BR_ID delete port $RIGHTPORT
+    midonet-cli -A -e bridge $BR_ID delete
+    midonet-cli -A -e bridge $VAB_ID delete
+    BR_ID=
+    LEFTPORT=
+    RIGHTPORT=
+    print_topology
+}
+

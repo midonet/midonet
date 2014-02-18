@@ -3,22 +3,25 @@
 # This file contains the basic framework for the performance tests into
 # which various topologies can be plugged.
 #
+# The test will send traffic from TOPOLOGY_SOURCE_NS to
+# TOPOLOGY_DEST_HOST, custom topologies may decide how to set up
+# physical and virtual topologies to configure different types of tests.
+#
 # To use:
 # - Write a separate file implementing the required functions
 # - Exec ./perftests.sh <test_name>
-# 
+#
 # Where test_name should be the file containing the topologies
 #
 # The methods expected in the given file are:
 # - setup_topology:
-#   Responsible to create the virtual topology such that it can offer
-#   two ports, ids set on globals $LEFTPORT and $RIGHTPORT, binding them
-#   to $TOPOLOGY_SOURCE_BINDING and $TOPOLOGY_DEST_BINDING,
+#   Responsible to create the virtual topology binding the ingress and
+#   egress ports to $TOPOLOGY_SOURCE_BINDING and $TOPOLOGY_DEST_BINDING,
 #   respectively.
 # - tear_down_topology:
 #   Responsible to tear down the topology. It should destroy any virtual
 #   entities created in setup_topology, as well as the interfaces bound
-#   to $LEFTPORT and $RIGHTPORT.
+#   to the local interfaces
 
 
 #######################################################################
@@ -88,8 +91,6 @@ TOPOLOGY_SOURCE_BINDING=leftdp
 TOPOLOGY_DEST_BINDING=rightdp
 
 HOST_ID=
-LEFTPORT=
-RIGHTPORT=
 
 # Use these options to get the results uploaded somewhere
 UPLOAD_USER=
@@ -148,6 +149,8 @@ source_config() {
 }
 
 assert_dependencies() {
+    which vconfig || err_exit "vconfig not installed (apt-get install vlan)"
+    which midonet-cli || err_exit "midonet-cli not installed"
     which midonet-cli || err_exit "midonet-cli not installed"
     which nmap || err_exit "nmap not installed"
     which rrdtool || err_exit "rrdtool not installed"
@@ -622,7 +625,7 @@ add_ns() {
     ip link set $dpif up || return 1
     ip link set $nsif netns $ns || return 1
     ip netns exec $ns ip link set $nsif up || return 1
-    ip netns exec $ns ip address add $addr dev $nsif || return 1
+    ip netns exec $ns ip addr add $addr dev $nsif || return 1
     ip netns exec $ns ifconfig lo up || return 1
 }
 
