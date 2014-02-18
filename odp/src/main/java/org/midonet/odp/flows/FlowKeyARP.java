@@ -11,7 +11,7 @@ import org.midonet.netlink.messages.Builder;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 
-public class FlowKeyARP implements FlowKey {
+public class FlowKeyARP implements CachedFlowKey {
 
     /*__be32*/ private int arp_sip;
     /*__be32*/ private int arp_tip;
