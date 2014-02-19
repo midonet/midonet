@@ -66,6 +66,14 @@ public class UnixDomainChannelImpl extends UnixDomainChannel implements SelChImp
     }
 
     @Override
+    public void _close() throws IOException {
+        if (cLibrary.lib.close(fdVal) < 0) {
+            throw new IOException("failed to close socket: " +
+                    cLibrary.lib.strerror(Native.getLastError()));
+        }
+    }
+
+    @Override
     protected void _executeBind(AfUnix.Address address) throws IOException {
         localAddress = address;
         cLibrary.UnixDomainSockAddress local = address.toCLibrary();

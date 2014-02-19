@@ -182,4 +182,12 @@ class NetlinkChannelImpl extends NetlinkChannel implements SelChImpl {
     public int getFDVal() {
         return fdVal;
     }
+
+    @Override
+    public void _close() throws IOException {
+        if (cLibrary.lib.close(fdVal) < 0) {
+            throw new IOException("failed to close the socket: " +
+                    cLibrary.lib.strerror(Native.getLastError()));
+        }
+    }
 }

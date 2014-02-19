@@ -281,7 +281,7 @@ public abstract class UnixChannel<Address> extends AbstractSelectableChannel
         IOUtil.configureBlocking(fd, block);
     }
 
-    protected void _kill() {
+    protected void _kill() throws IOException {
         synchronized (stateLock) {
             if (state == ST_KILLED)
                 return;
@@ -290,7 +290,7 @@ public abstract class UnixChannel<Address> extends AbstractSelectableChannel
                 return;
             }
             assert !isOpen() && !isRegistered();
-            // nd.close(fd);
+            _close();
             state = ST_KILLED;
         }
     }
@@ -353,4 +353,6 @@ public abstract class UnixChannel<Address> extends AbstractSelectableChannel
         SelectionKeyImplCaller.nioReadyOps(sk, newOps);
         return (newOps & ~oldOps) != 0;
     }
+
+    protected abstract void _close() throws IOException;
 }
