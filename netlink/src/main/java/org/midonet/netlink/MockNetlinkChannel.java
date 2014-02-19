@@ -1,19 +1,16 @@
-/******************************************************************************
- *                                                                            *
- *      Copyright (c) 2013 Midokura Europe SARL, All Rights Reserved.         *
- *                                                                            *
- ******************************************************************************/
-
+/*
+ * Copyright (c) 2013 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.netlink;
 
 import java.io.IOException;
 import java.nio.channels.spi.SelectorProvider;
 
-/** package private mocking version of NetlinkChannelImpl for NetlinkChannel. */
-class MockNetlinkChannel extends NetlinkChannel {
+/** package private mocking version of NetlinkChannel. */
+class MockNetlinkChannel extends NetlinkChannelImpl {
 
-    public MockNetlinkChannel(
-            SelectorProvider provider, Netlink.Protocol protocol) {
+    public MockNetlinkChannel(SelectorProvider provider,
+                              NetlinkProtocol protocol) {
         super(provider, protocol);
     }
 

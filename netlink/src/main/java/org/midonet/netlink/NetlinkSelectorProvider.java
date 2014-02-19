@@ -77,17 +77,17 @@ public class NetlinkSelectorProvider extends SelectorProvider {
         return underlyingSelector.openDatagramChannel(family);
     }
 
-    public NetlinkChannel openNetlinkSocketChannel(Netlink.Protocol prot) {
+    public NetlinkChannel openNetlinkSocketChannel(NetlinkProtocol prot) {
         String type = "org.midonet.netlink.NetlinkChannelImpl";
-        Class[] argTypes = {SelectorProvider.class, Netlink.Protocol.class};
+        Class[] argTypes = {SelectorProvider.class, NetlinkProtocol.class};
         Object[] args = {this, prot};
 
         return (NetlinkChannel) makeInstanceOf(type, argTypes, args);
     }
 
-    public NetlinkChannel openMockNetlinkSocketChannel(Netlink.Protocol prot) {
+    public NetlinkChannel openMockNetlinkSocketChannel(NetlinkProtocol prot) {
         String type = "org.midonet.netlink.MockNetlinkChannel";
-        Class[] argTypes = {SelectorProvider.class, Netlink.Protocol.class};
+        Class[] argTypes = {SelectorProvider.class, NetlinkProtocol.class};
         Object[] args = {this, prot};
 
         return (NetlinkChannel) makeInstanceOf(type, argTypes, args);

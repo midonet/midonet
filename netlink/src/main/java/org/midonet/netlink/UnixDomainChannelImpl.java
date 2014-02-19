@@ -19,7 +19,8 @@ import org.midonet.netlink.hacks.IOUtil;
 /**
  * Implementation of a UnixDomainChannel.
  */
-public class UnixDomainChannelImpl extends UnixDomainChannel implements SelChImpl {
+public class UnixDomainChannelImpl extends UnixDomainChannel
+        implements SelChImpl {
 
     private static final Logger log = LoggerFactory
         .getLogger(UnixDomainChannelImpl.class);

@@ -52,19 +52,6 @@ public abstract class UnixDomainChannel extends UnixChannel<AfUnix.Address>
         return this;
     }
 
-    public boolean connect(AfUnix.Address address) throws IOException {
-        return _connect(address);
-    }
-
-    public AfUnix.Address getRemoteAddress() {
-        return remoteAddress;
-    }
-
-    @Nullable
-    public AfUnix.Address getLocalAddress() {
-        return localAddress;
-    }
-
     public UnixDomainChannel accept() throws IOException {
         UnixDomainChannel newConn = null;
 

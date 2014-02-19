@@ -1,6 +1,6 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.netlink;
 
 import java.io.File;
@@ -21,16 +21,17 @@ import org.midonet.util.DataDumper;
  * exercise the upper protocol layers without the need to run them on a Linux
  * box.
  */
-public class NetlinkTracingChannelImpl extends NetlinkChannelImpl {
+public class NetlinkTracingChannel extends NetlinkChannelImpl {
 
-    private static final Logger log = LoggerFactory
-        .getLogger(NetlinkTracingChannelImpl.class);
+    private static final Logger log =
+        LoggerFactory.getLogger(NetlinkTracingChannel.class);
 
     String pid = ManagementFactory.getRuntimeMXBean().getName();
 
     File dumpFile;
 
-    public NetlinkTracingChannelImpl(SelectorProvider provider, Netlink.Protocol protocol) {
+    public NetlinkTracingChannel(SelectorProvider provider,
+                                 NetlinkProtocol protocol) {
         super(provider, protocol);
 
         try {
