@@ -179,6 +179,8 @@ object VirtualTopologyActor extends Referenceable {
                                 pktContext: PacketContext) =
         doExpiringAsk(request, expiry, null, simLog)(pktContext, system)
 
+    /* Note that the expiry is the exact expiration time, not a time left.
+     */
     private[this] def doExpiringAsk[D](request: DeviceRequest[D],
                                        expiry: Long = 0L,
                                        log: LoggingAdapter,

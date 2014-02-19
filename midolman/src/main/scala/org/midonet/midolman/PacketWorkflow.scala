@@ -3,9 +3,34 @@
  */
 package org.midonet.midolman
 
+
+import akka.actor._
+import akka.event.{Logging, LoggingAdapter}
+import akka.util.Timeout
+
 import java.lang.{Integer => JInteger}
 import java.util.UUID
 import java.util.concurrent.TimeUnit
+
+import org.midonet.cluster.DataClient
+import org.midonet.cluster.client.Port
+import org.midonet.midolman.datapath.ErrorHandlingCallback
+import org.midonet.midolman.simulation.DhcpImpl
+import org.midonet.midolman.topology.FlowTagger
+import org.midonet.midolman.topology.VirtualToPhysicalMapper
+import org.midonet.midolman.topology.VirtualTopologyActor
+import org.midonet.netlink.exceptions.NetlinkException
+import org.midonet.netlink.exceptions.NetlinkException.ErrorCode
+import org.midonet.netlink.{Callback => NetlinkCallback}
+import org.midonet.odp.flows.{FlowKey, FlowKeyUDP, FlowAction}
+import org.midonet.odp.protos.OvsDatapathConnection
+import org.midonet.odp.{Packet, Datapath, Flow, FlowMatch}
+import org.midonet.packets._
+import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPortSet
+import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
+import org.midonet.util.concurrent._
+import org.midonet.util.functors.Callback0
+
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import scala.collection.mutable
@@ -13,29 +38,6 @@ import scala.collection.{Set => ROSet}
 import scala.concurrent._
 import scala.reflect.ClassTag
 
-import akka.actor._
-import akka.event.{Logging, LoggingAdapter}
-import akka.util.Timeout
-
-import org.midonet.cluster.client.Port
-import org.midonet.cluster.DataClient
-import org.midonet.midolman.datapath.ErrorHandlingCallback
-import org.midonet.midolman.simulation.DhcpImpl
-import org.midonet.midolman.topology.FlowTagger
-import org.midonet.midolman.topology.VirtualToPhysicalMapper
-import org.midonet.midolman.topology.VirtualTopologyActor
-import org.midonet.midolman.topology.rcu.PortSet
-import org.midonet.netlink.exceptions.NetlinkException
-import org.midonet.netlink.exceptions.NetlinkException.ErrorCode
-import org.midonet.netlink.{Callback => NetlinkCallback}
-import org.midonet.odp.{Packet, Datapath, Flow, FlowMatch}
-import org.midonet.odp.flows.{FlowKey, FlowKeyUDP, FlowAction}
-import org.midonet.odp.protos.OvsDatapathConnection
-import org.midonet.packets._
-import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPortSet
-import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
-import org.midonet.util.concurrent._
-import org.midonet.util.functors.Callback0
 
 trait PacketHandler {
 
@@ -366,12 +368,10 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
         // packet. So we really only handle cases where the tunnel key exists
         // and corresponds to a port set.
 
-        val portSetFuture = VirtualToPhysicalMapper ?
-                PortSetForTunnelKeyRequest(wcMatch.getTunnelID)
+        val req = PortSetForTunnelKeyRequest(wcMatch.getTunnelID)
+        val portSetFuture = VirtualToPhysicalMapper expiringAsk req
 
-        portSetFuture.mapTo[PortSet] flatMap {
-            case null =>
-                Future.failed(new Exception("null portSet"))
+        portSetFuture flatMap {
             case portSet =>
                 val action = FlowActionOutputToVrnPortSet(portSet.id)
                 log.debug("tun => portSet, action: {}, portSet: {}",

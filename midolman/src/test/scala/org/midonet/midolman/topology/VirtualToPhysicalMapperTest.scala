@@ -93,9 +93,9 @@ class VirtualToPhysicalMapperTest
             List.tabulate(r.nextInt(max_size)) { _ => UUID.randomUUID }
                 .foldLeft(Map[UUID,String]()) { (m,id) => m + (id -> "foo")}
 
-        def getTZMap() = Map[UUID,TunnelZone.HostConfig[_,_]]()
+        def getTZMap = Map[UUID,TunnelZone.HostConfig[_,_]]()
 
-        def getHost(id: UUID) = Host(id, "midonet", getPortMap(), getTZMap())
+        def getHost(id: UUID) = Host(id, "midonet", getPortMap(), getTZMap)
 
         val hosts = List.tabulate(5) { _ => getHost(id) }
 
@@ -111,12 +111,11 @@ class VirtualToPhysicalMapperTest
 
     def testTZRequest() {
 
-        def getGreTZHost() = new GreTunnelZoneHost(UUID.randomUUID)
-        def getIpsecTZHost() = new IpsecTunnelZoneHost(UUID.randomUUID)
+        def getGreTZHost = new GreTunnelZoneHost(UUID.randomUUID)
 
-        val tzhost1 = getGreTZHost()
-        val tzhost2 = getGreTZHost()
-        val tzhost3 = getGreTZHost()
+        val tzhost1 = getGreTZHost
+        val tzhost2 = getGreTZHost
+        val tzhost3 = getGreTZHost
 
         val vtpm = getVTPM()
 
