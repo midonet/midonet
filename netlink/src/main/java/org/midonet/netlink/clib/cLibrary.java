@@ -98,5 +98,7 @@ public interface cLibrary extends Library {
 
     int getpagesize();
 
+    int close(long l);
+
     String strerror(int errno);
 }

@@ -32,4 +32,8 @@ class MockNetlinkChannel extends NetlinkChannel {
         return new Netlink.Address(0);
     }
 
+    @Override
+    public void _close() {
+    }
+
 }
