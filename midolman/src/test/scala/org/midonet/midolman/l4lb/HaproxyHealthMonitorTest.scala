@@ -1,25 +1,22 @@
 /*
  * Copyright (c) 2014 Midokura Europe SARL, All Rights Reserved.
  */
-package org.midonet.midolman
+package org.midonet.midolman.l4lb
 
 import java.nio.channels.spi.SelectorProvider
+import java.util.UUID
 
 import akka.actor.{Actor, ActorRef, Props, ActorSystem}
+import com.typesafe.config.ConfigFactory
+import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.concurrent.Eventually._
-import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.junit.JUnitRunner
-import org.junit.runner.RunWith
-import org.midonet.midolman.l4lb._
+import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.time.{Span, Seconds}
+
 import org.midonet.netlink.{AfUnix, UnixDomainChannel}
 import org.midonet.netlink.AfUnix.Address
-import com.typesafe.config.ConfigFactory
-import java.util.UUID
-import org.midonet.midolman.l4lb.HaproxyHealthMonitor.{StartMonitor,
-                                                       SockReadFailure,
-                                                       ConfigUpdate}
-import org.scalatest.time.{Span, Seconds}
 
 
 @RunWith(classOf[JUnitRunner])
@@ -28,6 +25,10 @@ class HaproxyHealthMonitorTest extends FeatureSpec
                                with GivenWhenThen
                                with BeforeAndAfter
                                with OneInstancePerTest {
+
+    import HaproxyHealthMonitor.StartMonitor
+    import HaproxyHealthMonitor.SockReadFailure
+    import HaproxyHealthMonitor.ConfigUpdate
 
     // we just need a no-op actor to act as the manager for the
     // HaproxyHealthMonitor
@@ -137,13 +138,13 @@ class HaproxyHealthMonitorTest extends FeatureSpec
      * A fake unix channel that will do nothing.
      */
     class MockUnixChannel(provider: SelectorProvider)
-        extends UnixDomainChannel(provider: SelectorProvider) {
+        extends UnixDomainChannel(provider: SelectorProvider, AfUnix.Type.SOCK_STREAM) {
 
         override def connect(address: AfUnix.Address): Boolean = true
         override def implConfigureBlocking(block: Boolean) = {}
         override def _executeConnect(address: Address) = {}
-        override def _executeBind(address: Address) = {}
-        override def _executeAccept = new MockUnixChannel(null)
+        override def executeBind(address: Address): Unit = {}
+        override def executeAccept() = new MockUnixChannel(null)
         override def closeFileDescriptor = {}
     }
 

@@ -101,6 +101,22 @@ public class NetlinkSelectorProvider extends SelectorProvider {
         return (UnixDomainChannel) makeInstanceOf(type, argTypes, args);
     }
 
+    public UnixDomainChannel openUnixDomainSocketChannel(
+            AfUnix.Address parentLocalAddress,
+            AfUnix.Address remoteAddress,
+            int childSocket) {
+        String type = "org.midonet.netlink.UnixDomainChannelImpl";
+        Class[] argTypes = {
+            SelectorProvider.class,
+            AfUnix.Address.class,
+            AfUnix.Address.class,
+            Integer.class
+        };
+        Object[] args = {this, parentLocalAddress, remoteAddress, childSocket};
+
+        return (UnixDomainChannel) makeInstanceOf(type, argTypes, args);
+    }
+
     private Object makeInstanceOf(
             String type, Class[] argTypes, Object[] args) {
         try {
