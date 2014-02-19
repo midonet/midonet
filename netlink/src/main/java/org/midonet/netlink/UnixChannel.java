@@ -11,10 +11,12 @@ import java.nio.channels.spi.AbstractSelectableChannel;
 import java.nio.channels.spi.SelectorProvider;
 import javax.annotation.Nullable;
 
+import com.sun.jna.Native;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sun.nio.ch.SelectionKeyImpl;
 
+import org.midonet.netlink.clib.cLibrary;
 import org.midonet.netlink.hacks.*;
 
 /**
@@ -272,7 +274,7 @@ public abstract class UnixChannel<Address> extends AbstractSelectableChannel
             if ((th = writerThread) != 0)
                 NativeThread.signal(th);
             if (!isRegistered())
-                _kill();
+                kill();
         }
     }
 
@@ -281,21 +283,7 @@ public abstract class UnixChannel<Address> extends AbstractSelectableChannel
         IOUtil.configureBlocking(fd, block);
     }
 
-    protected void _kill() throws IOException {
-        synchronized (stateLock) {
-            if (state == ST_KILLED)
-                return;
-            if (state == ST_UNINITIALIZED) {
-                state = ST_KILLED;
-                return;
-            }
-            assert !isOpen() && !isRegistered();
-            _close();
-            state = ST_KILLED;
-        }
-    }
-
-    protected void _translateAndSetInterestOps(int ops, SelectionKeyImpl sk) {
+    public void translateAndSetInterestOps(int ops, SelectionKeyImpl sk) {
         int newOps = 0;
 
         if ((ops & SelectionKey.OP_ACCEPT) != 0)
@@ -311,10 +299,19 @@ public abstract class UnixChannel<Address> extends AbstractSelectableChannel
     }
 
 
+    public boolean translateAndUpdateReadyOps(int ops, SelectionKeyImpl sk) {
+        int initialOps = SelectionKeyImplCaller.nioReadyOps(sk);
+        return translateReadyOps(ops, initialOps, sk);
+    }
+
+    public boolean translateAndSetReadyOps(int ops, SelectionKeyImpl sk) {
+        return translateReadyOps(ops, 0, sk);
+    }
+
     /**
      * Translates native poll event set into a ready operation set
      */
-    public boolean translateReadyOps(int ops, int initialOps,
+    private boolean translateReadyOps(int ops, int initialOps,
                                      SelectionKeyImpl sk) {
         int intOps = SelectionKeyImplCaller.nioInterestOps(sk);
         int oldOps = SelectionKeyImplCaller.nioReadyOps(sk);
@@ -354,5 +351,32 @@ public abstract class UnixChannel<Address> extends AbstractSelectableChannel
         return (newOps & ~oldOps) != 0;
     }
 
-    protected abstract void _close() throws IOException;
+    public FileDescriptor getFD() {
+        return fd;
+    }
+
+    public int getFDVal() {
+        return fdVal;
+    }
+
+    public void kill() throws IOException {
+        synchronized (stateLock) {
+            if (state == ST_KILLED)
+                return;
+            if (state == ST_UNINITIALIZED) {
+                state = ST_KILLED;
+                return;
+            }
+            assert !isOpen() && !isRegistered();
+            closeFileDescriptor();
+            state = ST_KILLED;
+        }
+    }
+
+    protected void closeFileDescriptor() throws IOException {
+        if (cLibrary.lib.close(getFDVal()) < 0) {
+            throw new IOException("failed to close the socket: " +
+                    cLibrary.lib.strerror(Native.getLastError()));
+        }
+    }
 }
