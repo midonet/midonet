@@ -69,7 +69,7 @@ public abstract class UnixChannel<Address> extends AbstractSelectableChannel
         return (SelectionKey.OP_READ | SelectionKey.OP_WRITE);
     }
 
-    protected boolean _connect(Address address) throws IOException {
+    public boolean connect(Address address) throws IOException {
         this.remoteAddress = address;
 
         synchronized (recvLock) {
@@ -357,6 +357,15 @@ public abstract class UnixChannel<Address> extends AbstractSelectableChannel
 
     public int getFDVal() {
         return fdVal;
+    }
+
+    public Address getRemoteAddress() {
+        return remoteAddress;
+    }
+
+    @Nullable
+    public Address getLocalAddress() {
+        return localAddress;
     }
 
     public void kill() throws IOException {

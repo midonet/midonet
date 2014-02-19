@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.midonet.netlink.BufferPool;
 import org.midonet.netlink.Callback;
 import org.midonet.netlink.Netlink;
+import org.midonet.netlink.NetlinkProtocol;
 import org.midonet.netlink.NetlinkChannel;
 import org.midonet.netlink.NetlinkSelectorProvider;
 import org.midonet.netlink.protos.NetlinkConnection;
@@ -61,7 +62,7 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
 
         try {
             channel = Netlink.selectorProvider()
-                .openNetlinkSocketChannel(Netlink.Protocol.NETLINK_GENERIC);
+                .openNetlinkSocketChannel(NetlinkProtocol.NETLINK_GENERIC);
 
             channel.connect(address);
         } catch (Exception e) {
@@ -82,7 +83,7 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
     public static OvsDatapathConnection createMock(Reactor reactor) throws Exception {
 
         NetlinkChannel channel = Netlink.selectorProvider()
-            .openMockNetlinkSocketChannel(Netlink.Protocol.NETLINK_GENERIC);
+            .openMockNetlinkSocketChannel(NetlinkProtocol.NETLINK_GENERIC);
 
         return new MockOvsDatapathConnection(channel, reactor);
     }
