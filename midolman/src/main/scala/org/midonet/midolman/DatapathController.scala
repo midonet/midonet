@@ -3,20 +3,16 @@
  */
 package org.midonet.midolman
 
+import akka.actor._
+import akka.event.LoggingAdapter
+import akka.util.Timeout
+
+import com.google.inject.Inject
+
 import java.lang.{Boolean => JBoolean, Integer => JInteger}
 import java.net.InetAddress
 import java.nio.ByteBuffer
 import java.util.{Collection => JCollection, List => JList, Set => JSet, UUID}
-import scala.collection.JavaConverters._
-import scala.collection.mutable
-import scala.collection.{Set => ROSet}
-import scala.concurrent.{ExecutionContext, Future}
-import scala.concurrent.duration._
-
-import akka.actor._
-import akka.event.LoggingAdapter
-import akka.util.Timeout
-import com.google.inject.Inject
 
 import org.midonet.cluster.client
 import org.midonet.cluster.data.TunnelZone
@@ -28,13 +24,14 @@ import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.monitoring.MonitoringActor
 import org.midonet.midolman.services.HostIdProviderService
+import org.midonet.midolman.topology.VirtualToPhysicalMapper.{HostRequest, TunnelZoneRequest}
 import org.midonet.midolman.topology._
 import org.midonet.midolman.topology.rcu.Host
 import org.midonet.netlink.Callback
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode
-import org.midonet.odp.flows.{FlowAction, FlowActionOutput}
 import org.midonet.odp.flows.FlowActions.output
+import org.midonet.odp.flows.{FlowAction, FlowActionOutput}
 import org.midonet.odp.ports._
 import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.odp.{DpPort, Datapath}
@@ -43,6 +40,13 @@ import org.midonet.packets.TCP
 import org.midonet.sdn.flows.WildcardFlow
 import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.util.collection.Bimap
+
+import scala.collection.JavaConverters._
+import scala.collection.mutable
+import scala.collection.{Set => ROSet}
+import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContext, Future}
+
 
 trait UnderlayResolver {
 
@@ -314,7 +318,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
     import FlowController.AddWildcardFlow
     import PacketWorkflow.AddVirtualWildcardFlow
     import VirtualPortManager.Controller
-    import VirtualToPhysicalMapper._
+    import VirtualToPhysicalMapper.TunnelZoneUnsubscribe
     import VirtualTopologyActor.PortRequest
 
     implicit val logger: LoggingAdapter = log

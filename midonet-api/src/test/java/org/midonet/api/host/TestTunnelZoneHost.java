@@ -279,13 +279,13 @@ public class TestTunnelZoneHost {
             ResourceCollection<Host> hosts = api.getHosts();
             org.midonet.client.resource.Host host = hosts.get(0);
 
-            TunnelZone greTunnelZone = api.addGreTunnelZone()
+            TunnelZone<DtoGreTunnelZone> greTunnelZone = api.addGreTunnelZone()
                                            .name("gre-tunnel-zone-1")
                                            .create();
 
-            TunnelZoneHost tzHost = greTunnelZone.addTunnelZoneHost()
-                                                 .ipAddress("1.1.1.1")
-                                                 .hostId(hostId).create();
+            greTunnelZone.addTunnelZoneHost()
+                         .ipAddress("1.1.1.1")
+                         .hostId(hostId).create();
 
             assertThat("There is one host entry under the tunnel zone.",
                        greTunnelZone.getHosts().size(), is(1));
@@ -313,7 +313,8 @@ public class TestTunnelZoneHost {
             ResourceCollection<Host> hosts = api.getHosts();
             org.midonet.client.resource.Host host = hosts.get(0);
 
-            TunnelZone capwapTunnelZone = api.addCapwapTunnelZone()
+            TunnelZone<DtoCapwapTunnelZone> capwapTunnelZone = api
+                    .addCapwapTunnelZone()
                     .name("capwap-tunnel-zone-1")
                     .create();
 
@@ -453,7 +454,7 @@ public class TestTunnelZoneHost {
             ResourceCollection<Host> hosts = api.getHosts();
             org.midonet.client.resource.Host host = hosts.get(0);
 
-            TunnelZone greTunnelZone = api.addGreTunnelZone()
+            TunnelZone<DtoGreTunnelZone> greTunnelZone = api.addGreTunnelZone()
                     .name("gre-tunnel-zone-1")
                     .create();
 

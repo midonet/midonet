@@ -15,6 +15,7 @@ import scala.concurrent.duration._
 import org.junit.runner.RunWith
 import org.scalatest.{Matchers, BeforeAndAfter, Suite}
 import org.scalatest.junit.JUnitRunner
+import scala.collection.mutable
 
 @RunWith(classOf[JUnitRunner])
 class DeviceHandlerTest extends TestKit(ActorSystem("DeviceHandlerTests"))
@@ -30,13 +31,14 @@ class DeviceHandlerTest extends TestKit(ActorSystem("DeviceHandlerTests"))
     val id = UUID.randomUUID()
     val id2 = UUID.randomUUID()
 
-    def assertNoMsg { msgAvailable should not be (true) }
+    def assertNoMsg { msgAvailable should be (false) }
 
     def handle(deviceId: UUID) { self ! HandleMsg(deviceId) }
 
     def testClientStatus() {
         // testing all transitions from/to unknown to/from known state
-        val handler = new DeviceHandlersManager[String](this)
+        val devices: mutable.Map[UUID, String] = mutable.Map()
+        val handler = new DeviceHandlersManager[String](this, devices.get, devices.put)
 
         handler.subscriberStatus(id, self) should be (None)
 
@@ -61,7 +63,8 @@ class DeviceHandlerTest extends TestKit(ActorSystem("DeviceHandlerTests"))
     }
 
     def testOneShotSubscribe() {
-        val handler = new DeviceHandlersManager[String](this)
+        val devices: mutable.Map[UUID, String] = mutable.Map()
+        val handler = new DeviceHandlersManager[String](this, devices.get, devices.put)
 
         // register self and expect handle msg
         handler.addSubscriber(id, self, false)
@@ -84,7 +87,8 @@ class DeviceHandlerTest extends TestKit(ActorSystem("DeviceHandlerTests"))
     }
 
     def testSubscribeWithUpdate() {
-        val handler = new DeviceHandlersManager[String](this)
+        val devices: mutable.Map[UUID, String] = mutable.Map()
+        val handler = new DeviceHandlersManager[String](this, devices.get, devices.put)
 
         // register self for updates and expect handle msg
         handler.addSubscriber(id, self, true)
@@ -98,7 +102,8 @@ class DeviceHandlerTest extends TestKit(ActorSystem("DeviceHandlerTests"))
     }
 
     def testUnsubscribe() {
-        val handler = new DeviceHandlersManager[String](this)
+        val devices: mutable.Map[UUID, String] = mutable.Map()
+        val handler = new DeviceHandlersManager[String](this, devices.get, devices.put)
 
         // unregister unregistered actor, nothing goes bad after that
         handler.removeSubscriber(id, self)
@@ -130,7 +135,8 @@ class DeviceHandlerTest extends TestKit(ActorSystem("DeviceHandlerTests"))
     }
 
     def testSubscribeChangeNoUpdateToUpdate() {
-        val handler = new DeviceHandlersManager[String](this)
+        val devices: mutable.Map[UUID, String] = mutable.Map()
+        val handler = new DeviceHandlersManager[String](this, devices.get, devices.put)
 
         // register self as one shot and expect handle msg
         handler.addSubscriber(id, self, false)
@@ -149,7 +155,8 @@ class DeviceHandlerTest extends TestKit(ActorSystem("DeviceHandlerTests"))
     }
 
     def testSubscribeChangeUpdateToNoUpdate() {
-        val handler = new DeviceHandlersManager[String](this)
+        val devices: mutable.Map[UUID, String] = mutable.Map()
+        val handler = new DeviceHandlersManager[String](this, devices.get, devices.put)
 
         // subscribe with update and expect handle msg
         handler.addSubscriber(id, self, true)
@@ -166,7 +173,8 @@ class DeviceHandlerTest extends TestKit(ActorSystem("DeviceHandlerTests"))
     }
 
     def testSubscribeTwiceWithDevicePresent() {
-        val handler = new DeviceHandlersManager[String](this)
+        val devices: mutable.Map[UUID, String] = mutable.Map()
+        val handler = new DeviceHandlersManager[String](this, devices.get, devices.put)
 
         // update a device, expect first handle msg
         handler.updateAndNotifySubscribers(id, "message1")
@@ -205,7 +213,8 @@ class DeviceHandlerTest extends TestKit(ActorSystem("DeviceHandlerTests"))
     }
 
     def testMultipleIdOneSubscriber() {
-        val handler = new DeviceHandlersManager[String](this)
+        val devices: mutable.Map[UUID, String] = mutable.Map()
+        val handler = new DeviceHandlersManager[String](this, devices.get, devices.put)
 
         val ids = List(id, id2)
         val msgs = List("msg_about_id1", "msg_about_id2")
@@ -234,7 +243,8 @@ class DeviceHandlerTest extends TestKit(ActorSystem("DeviceHandlerTests"))
     }
 
     def testUpdateNotify() {
-        val handler = new DeviceHandlersManager[String](this)
+        val devices: mutable.Map[UUID, String] = mutable.Map()
+        val handler = new DeviceHandlersManager[String](this, devices.get, devices.put)
 
         // update a device, expect first handle msg
         handler.updateAndNotifySubscribers(id, "message1")

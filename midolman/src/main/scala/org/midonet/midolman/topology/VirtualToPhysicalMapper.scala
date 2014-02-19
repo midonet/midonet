@@ -3,18 +3,15 @@
 */
 package org.midonet.midolman.topology
 
+import akka.actor._
+import akka.util.Timeout
+
+import com.google.inject.Inject
+
 import java.util.UUID
 import java.util.concurrent.TimeoutException
-import scala.collection.immutable.{Set => ROSet}
-import scala.collection.{immutable, mutable}
 
-import akka.actor._
-import scala.concurrent.{ Future, Promise}
-import akka.util.Timeout
-import scala.concurrent.duration._
-import com.google.inject.Inject
 import org.apache.zookeeper.KeeperException
-
 import org.midonet.cluster.client.{BridgePort, Port}
 import org.midonet.cluster.data.TunnelZone
 import org.midonet.cluster.data.zones._
@@ -26,11 +23,29 @@ import org.midonet.midolman.simulation.Bridge
 import org.midonet.midolman.simulation.Coordinator.Device
 import org.midonet.midolman.state.DirectoryCallback.Result
 import org.midonet.midolman.state.{ZkConnectionAwareWatcher, DirectoryCallback}
+import org.midonet.midolman.topology.VirtualTopologyActor.{PortRequest, BridgeRequest, expiringAsk => VTAExpiringAsk}
 import org.midonet.midolman.topology.rcu.Host
 import org.midonet.midolman.{FlowController, Referenceable}
+import org.midonet.util.concurrent._
+
+import org.slf4j.LoggerFactory
+
+import scala.collection.immutable.{Set => ROSet}
+import scala.collection.{immutable, mutable}
+import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContext, Future}
+import scala.reflect.ClassTag
+import scala.reflect.classTag
+import scala.util.Failure
+
 
 object HostConfigOperation extends Enumeration {
     val Added, Deleted = Value
+}
+
+sealed trait VTPMRequest[D] {
+    protected[topology] val tag: ClassTag[D]
+    def getCached: Option[D]
 }
 
 sealed trait ZoneChanged[H] {
@@ -89,15 +104,29 @@ object ZoneMembers {
 case class LocalPortActive(portID: UUID, active: Boolean)
 
 object VirtualToPhysicalMapper extends Referenceable {
+
+    val log = LoggerFactory.getLogger(classOf[VirtualToPhysicalMapper])
+
+    val timeout = 2000L
+
     override val Name = "VirtualToPhysicalMapper"
 
-    case class HostRequest(hostId: UUID)
+    case class PortSetForTunnelKeyRequest(tunnelKey: Long)
 
-    case class TunnelZoneRequest(zoneId: UUID)
+    case class HostRequest(hostId: UUID) extends VTPMRequest[Host] {
+        protected[topology] val tag = classTag[Host]
+        override def getCached = DeviceCaches.host(hostId)
+    }
+    case class PortSetRequest(portSetId: UUID, update: Boolean) extends VTPMRequest[rcu.PortSet] {
+        protected[topology] val tag = classTag[rcu.PortSet]
+        override def getCached = DeviceCaches.portSet(portSetId)
+    }
+    case class TunnelZoneRequest(zoneId: UUID) extends VTPMRequest[ZoneMembers[_]] {
+        protected[topology] val tag = classTag[ZoneMembers[_]]
+        override def getCached = DeviceCaches.tunnelZone(zoneId)
+    }
 
     case class TunnelZoneUnsubscribe(zoneId: UUID)
-
-    case class PortSetRequest(portSetId: UUID, update: Boolean)
 
     case class GreZoneChanged(zone: UUID, hostConfig: GreTunnelZoneHost,
                               op: HostConfigOperation.Value)
@@ -135,17 +164,107 @@ object VirtualToPhysicalMapper extends Referenceable {
         def change[G](change: ZoneChanged[G]) = copy(members=memberOp(change))
     }
 
-    case class PortSetForTunnelKeyRequest(tunnelKey: Long)
+    /**
+     * Looks for the port set id associated to that tunnel key, then does a
+     * request of that port set. If the id search misses, it'll send a msg to
+     * the VTPM actor and compose the future to provide the final port set.
+     */
+    def expiringAsk(req: PortSetForTunnelKeyRequest)
+                   (implicit system: ActorSystem): Future[rcu.PortSet] = {
+        (DeviceCaches.portSetId(req.tunnelKey) match {
+            case Some(id) => Future.successful(id)
+            case _ =>
+                log.debug("PortSet for tunnel key {} not local", req.tunnelKey)
+                VirtualToPhysicalMapper.ask(req)(timeout milliseconds)
+        }).mapTo[UUID].flatMap {
+            id: UUID => expiringAsk[rcu.PortSet](new PortSetRequest(id, update = false))
+        }(ExecutionContext.callingThread)
+    }
 
+    /**
+     * Performs a lookup in the local cache trying to find the requested device
+     * in case of a miss, it will ask the VTPM actor.
+     */
+    def expiringAsk[D](req: VTPMRequest[D])
+                      (implicit system: ActorSystem): Future[D] = {
+
+        (req.getCached match {
+            case Some(d) => Future.successful(d)
+            case None =>
+                log.debug("Device {} not cached, requesting..", req)
+                VirtualToPhysicalMapper.ask(req)(timeout milliseconds)
+        }).mapTo[D](req.tag).andThen {
+            case Failure(ex: ClassCastException) =>
+                log.error("Returning wrong type for request of {}",
+                          req.tag.runtimeClass.getSimpleName, ex)
+            case Failure(ex) =>
+                log.error("Failed to get: {}",
+                          req.tag.runtimeClass.getSimpleName, ex)
+        }(ExecutionContext.callingThread)
+    }
+
+    /**
+     * A bunch of caches that are maintained by the VTPM actor but also exposed
+     * for reads only.
+     */
+    object DeviceCaches {
+
+        @volatile private var hosts: Map[UUID, Host] = Map.empty
+        @volatile private var portSets: Map[UUID, rcu.PortSet] = Map.empty
+        @volatile private var tunnelZones: Map[UUID, ZoneMembers[_]] = Map.empty
+        @volatile private var tunnelKeyToPortSet: Map[Long, UUID] = Map.empty
+
+        def host(id: UUID) = hosts get id
+        def portSet(id: UUID) = portSets get id
+        def tunnelZone(id: UUID) = tunnelZones get id
+        def portSetId(tunnelKey: Long) = tunnelKeyToPortSet get tunnelKey
+
+        protected[topology]
+        def addPortSet(id: UUID, ps: rcu.PortSet) { portSets += id -> ps }
+
+        protected[topology]
+        def addhost(id: UUID, h: Host) { hosts += id -> h }
+
+        protected[topology]
+        def putTunnelZone(id: UUID, tz: ZoneMembers[_]) {
+            tunnelZones += id -> tz
+        }
+
+        protected[topology]
+        def clear() {
+            portSets = Map.empty
+            hosts = Map.empty
+            tunnelZones = Map.empty
+            tunnelKeyToPortSet = Map.empty
+        }
+
+        protected[topology]
+        def removeTunnelKeyToPortSet(tzKey: Long) {
+            tunnelKeyToPortSet -= tzKey
+        }
+        protected[topology]
+        def putTunnelKeyToPortSet(tzKey: Long, psId: UUID) {
+            tunnelKeyToPortSet += tzKey -> psId
+        }
+
+    }
 }
 
 trait DeviceHandler {
     def handle(deviceId: UUID)
 }
 
-class DeviceHandlersManager[T <: AnyRef](handler: DeviceHandler) {
-
-    val devices = mutable.Map[UUID, T]()
+/**
+ * A class to manage handle devices.
+ *
+ * @param handler the DeviceHandler responsible for this type of devices
+ * @param retrieve how to retrieve a local cached copy of the device
+ * @param update how to update a local cached copy of a device
+ * @tparam T
+ */
+class DeviceHandlersManager[T <: AnyRef](handler: DeviceHandler,
+                                         retrieve: UUID => Option[T],
+                                         update: (UUID, T) => Any) {
 
     private[this] val deviceHandlers = mutable.Set[UUID]()
     private[this] val deviceSubscribers = mutable.Map[UUID, mutable.Set[ActorRef]]()
@@ -163,7 +282,7 @@ class DeviceHandlersManager[T <: AnyRef](handler: DeviceHandler) {
 
     def registerSubscriber(deviceId: UUID, client: ActorRef, updates: Boolean) {
         (if (updates) registerRegularSubscriber _
-            else registerOneShotSubscriber _).apply(deviceId, client)
+         else registerOneShotSubscriber _).apply(deviceId, client)
     }
 
     /** gets update status of a subscriber for a device.
@@ -192,7 +311,7 @@ class DeviceHandlersManager[T <: AnyRef](handler: DeviceHandler) {
     }
 
     def addSubscriber(deviceId: UUID, subscriber: ActorRef, updates: Boolean) {
-        (subscriberStatus(deviceId, subscriber), updates, devices.get(deviceId))
+        (subscriberStatus(deviceId, subscriber), updates, retrieve(deviceId))
             match {
                 case (None, _, None) =>
                     // new subcriber,  nothing to send -> add it
@@ -219,7 +338,7 @@ class DeviceHandlersManager[T <: AnyRef](handler: DeviceHandler) {
     }
 
     def updateAndNotifySubscribers(deviceId: UUID, device: T, message: AnyRef) {
-        devices.put(deviceId, device)
+        update(deviceId, device)
         notifySubscribers(deviceId, message)
     }
 
@@ -281,10 +400,9 @@ trait ZkConnectionWatcherLink {
         err match {
             case None => // Timeout
                 connectionWatcher.handleTimeout(retry)
-            case Some(e) => // Error
-                // TODO(pino): handle errors not due to disconnect
-                connectionWatcher.handleError(
-                    "Add/del host in PortSet " + id, retry, e);
+            case Some(e) => // TODO(pino): handle errors not due to disconnect
+                connectionWatcher.handleError("Add/del host in PortSet " + id,
+                                              retry, e)
         }
     }
 
@@ -328,7 +446,6 @@ abstract class VirtualToPhysicalMapperBase
         extends Actor with ActorLogWithoutPath {
 
     import VirtualToPhysicalMapper._
-    import VirtualTopologyActor._
     import context.system
 
     def notifyLocalPortActive(vportID: UUID, active: Boolean) : Unit
@@ -341,14 +458,26 @@ abstract class VirtualToPhysicalMapperBase
 
     def notifyError(err: Option[KeeperException], id: UUID, retry: Runnable) : Unit
 
-    private lazy val hosts =
-        new DeviceHandlersManager[Host](makeHostManager(self))
+    private lazy val hostsMgr =
+        new DeviceHandlersManager[Host](
+            makeHostManager(self),
+            DeviceCaches.host,
+            DeviceCaches.addhost
+        )
 
-    private lazy val portSets =
-        new DeviceHandlersManager[rcu.PortSet](makePortSetManager(self))
+    private lazy val portSetMgr =
+        new DeviceHandlersManager[rcu.PortSet](
+            makePortSetManager(self),
+            DeviceCaches.portSet,
+            DeviceCaches.addPortSet
+        )
 
-    private lazy val tunnelZones =
-        new DeviceHandlersManager[ZoneMembers[_]](makeTunnelZoneManager(self))
+    private lazy val tunnelZonesMgr =
+        new DeviceHandlersManager[ZoneMembers[_]](
+            makeTunnelZoneManager(self),
+            DeviceCaches.tunnelZone,
+            DeviceCaches.putTunnelZone
+        )
 
 
     // Map a PortSet ID to the vports in the set that are local to this host.
@@ -358,14 +487,17 @@ abstract class VirtualToPhysicalMapperBase
     // Map a PortSet we're modifying to the port that triggered the change.
     private val inFlightPortSetMods = mutable.Map[UUID, UUID]()
 
-    private lazy val tunnelKeyToPortSet = mutable.Map[Long, UUID]()
-
     implicit val requestReplyTimeout = new Timeout(1 second)
     implicit val executor = context.dispatcher
 
     /** map of queues of LocalPortActive msgs to process later, preserving
      *  arrival order. */
     var portActiveFifo = Map[UUID,Vector[LocalPortActive]]()
+
+    override def preStart() {
+        super.preStart()
+        DeviceCaches.clear()
+    }
 
     private def freezePortActivation(vport: UUID): Unit = {
         portActiveFifo = portActiveFifo + (vport -> Vector[LocalPortActive]())
@@ -384,12 +516,12 @@ abstract class VirtualToPhysicalMapperBase
 
     def receive = {
         case PortSetRequest(portSetId, updates) =>
-            portSets.addSubscriber(portSetId, sender, updates)
+            portSetMgr.addSubscriber(portSetId, sender, updates)
 
         case PortSetForTunnelKeyRequest(key) =>
-            tunnelKeyToPortSet.get(key) match {
-                case Some(portSetId) =>
-                    portSets.addSubscriber(portSetId, sender, updates = false)
+            DeviceCaches.portSetId(key) match {
+                case Some(pSetId) =>
+                    portSetMgr.addSubscriber(pSetId, sender, updates = false)
                 case None =>
                     sender ! null
             }
@@ -399,16 +531,16 @@ abstract class VirtualToPhysicalMapperBase
             portSetUpdate(portSet.id)
 
         case HostRequest(hostId) =>
-            hosts.addSubscriber(hostId, sender, updates = true)
+            hostsMgr.addSubscriber(hostId, sender, updates = true)
 
         case host: Host =>
-            hosts.updateAndNotifySubscribers(host.id, host)
+            hostsMgr.updateAndNotifySubscribers(host.id, host)
 
         case TunnelZoneRequest(zoneId) =>
-            tunnelZones.addSubscriber(zoneId, sender, updates = true)
+            tunnelZonesMgr.addSubscriber(zoneId, sender, updates = true)
 
         case TunnelZoneUnsubscribe(zoneId) =>
-            tunnelZones.removeSubscriber(zoneId, sender)
+            tunnelZonesMgr.removeSubscriber(zoneId, sender)
 
         case zoneChanged: ZoneChanged[_] =>
             /* If this is the first time we get a ZoneChanged for this
@@ -417,23 +549,20 @@ abstract class VirtualToPhysicalMapperBase
              * and forward a ZoneChanged message to the observers so that
              * they can update the list of members they stored. */
 
-            val zoneId = zoneChanged.zone
+            val zId = zoneChanged.zone
             val zoneType = zoneChanged.zoneType
-
-            val oldZone = tunnelZones.devices.get(zoneId)
-                            .getOrElse(ZoneMembers(zoneId, zoneType))
+            val oldZone = DeviceCaches.tunnelZone(zId)
+                                      .getOrElse(ZoneMembers(zId, zoneType))
             val newMembers = oldZone.change(zoneChanged)
+            val msg = if (DeviceCaches.tunnelZone(zId).isEmpty) newMembers
+                      else zoneChanged
 
-            if (tunnelZones.devices.get(zoneId).isEmpty)
-                tunnelZones.updateAndNotifySubscribers(zoneId, newMembers)
-            else
-                tunnelZones.updateAndNotifySubscribers(zoneId, newMembers,
-                                                       zoneChanged)
+            tunnelZonesMgr.updateAndNotifySubscribers(zId, newMembers, msg)
 
         case message @ LocalPortActive(vportID, active)
-            if (portActiveFifo.contains(vportID)) =>
+            if portActiveFifo.contains(vportID) =>
                 log.debug("Defering {}", message)
-                deferPortActiveMsg(message.asInstanceOf[LocalPortActive])
+                deferPortActiveMsg(message)
 
         case message @ LocalPortActive(vportID, active) =>
             log.debug("Received {}", message)
@@ -469,25 +598,22 @@ abstract class VirtualToPhysicalMapperBase
                       deviceId, if (active) "active" else "inactive")
             var modPortSet = false
             psetIdToLocalVports.get(deviceId) match {
-                case Some(ports) =>
-                    if (active)
-                        ports.add(port.id)
-                    else if (ports.size == 1) {
-                        // This is the last local port in the PortSet. We
-                        // remove our host from the PortSet's host list.
-                        if (!inFlightPortSetMods.contains(deviceId)) {
-                            unsubscribePortSet(deviceId)
-                            inFlightPortSetMods.put(deviceId, port.id)
-                            modPortSet = true
-                        }
-                        tunnelKeyToPortSet.remove(tunnelKey)
-                        psetIdToLocalVports.remove(deviceId)
-                    } else {
-                        ports.remove(port.id)
+                case Some(ports) if active =>
+                    ports.add(port.id)
+                case Some(ports) if ports.size == 1 =>
+                    // This is the last local port in the PortSet. We remove our
+                    // host from the PortSet's host list.
+                    if (!inFlightPortSetMods.contains(deviceId)) {
+                        unsubscribePortSet(deviceId)
+                        inFlightPortSetMods.put(deviceId, port.id)
+                        modPortSet = true
                     }
+                    DeviceCaches.removeTunnelKeyToPortSet(tunnelKey)
+                    psetIdToLocalVports.remove(deviceId)
+                case Some(ports) if ports.size != 1 =>
+                    ports.remove(port.id)
                 case None =>
-                    // This case is only possible if the port became
-                    // active.
+                    // This case is only possible if the port became active.
                     assert(active)
                     // This is the first local port in the PortSet. We
                     // add our host to the PortSet's host list in ZK.
@@ -496,9 +622,10 @@ abstract class VirtualToPhysicalMapperBase
                         inFlightPortSetMods.put(deviceId, port.id)
                         modPortSet = true
                     }
-                    psetIdToLocalVports.put(
-                        port.deviceID, mutable.Set(port.id))
-                    tunnelKeyToPortSet.put(tunnelKey, deviceId)
+                    psetIdToLocalVports.put(port.deviceID,
+                                            mutable.Set(port.id))
+
+                    DeviceCaches.putTunnelKeyToPortSet(tunnelKey, deviceId)
             }
             if (!modPortSet)
                 context.system.eventStream.publish(
@@ -508,19 +635,17 @@ abstract class VirtualToPhysicalMapperBase
 
         case _PortSetOpResult(subscribe, psetID, success, errorOp) =>
             log.debug("PortSet operation results: operation {}, " +
-                "set ID {}, outcome {}, timeoutOrError {}",
-                if (subscribe) "subscribe" else "unsubscribe",
-                psetID, if (success) "success" else "failure",
-                if (success) "None"
-                else if (errorOp.isDefined) errorOp
-                else "Timeout")
+                      "set ID {}, outcome {}, timeoutOrError {}",
+                      if (subscribe) "subscribe" else "unsubscribe",
+                      psetID, if (success) "success" else "failure",
+                      if (success) "None"
+                      else if (errorOp.isDefined) errorOp
+                      else "Timeout")
             if(success) {
                 // Is the last op still in sync with our internals?
                 if (subscribe != psetIdToLocalVports.contains(psetID)) {
-                    if (subscribe)
-                        unsubscribePortSet(psetID)
-                    else
-                        subscribePortSet(psetID)
+                    if (subscribe) unsubscribePortSet(psetID)
+                    else subscribePortSet(psetID)
                 } else {
                     val vportID = inFlightPortSetMods.remove(psetID).get
                     context.system.eventStream.publish(
@@ -528,7 +653,7 @@ abstract class VirtualToPhysicalMapperBase
                 }
             } else { // operation failed
                 val retry = new Runnable {
-                    override def run {
+                    override def run() {
                         self ! _RetryPortSetOp(subscribe, psetID)
                     }
                 }
@@ -552,16 +677,16 @@ abstract class VirtualToPhysicalMapperBase
      *  the request reschedules itself 3 times before failing. */
     private def getPortConfig(vport: UUID, retries: Int = 3)
             : Future[Option[(Port, Device)]] =
-        expiringAsk(PortRequest(vport), log) flatMap {
+        VirtualTopologyActor.expiringAsk(PortRequest(vport), log) flatMap {
             case brPort: BridgePort =>
                 val req = BridgeRequest(brPort.deviceID)
-                expiringAsk(req, log) map { br => Some((brPort, br)) }
+                VTAExpiringAsk(req, log) map { br => Some((brPort, br)) }
             case _ => // not a bridgePort, sending back None
                 Future.successful(None)
         } recoverWith {
             case _ : TimeoutException if retries > 0 =>
-                log.warning("VirtualTopologyActor request timeout " +
-                    "for config of port {} -> retrying", vport)
+                log.warning("VTA request timeout for config of port {} -> " +
+                            "retrying", vport)
                 getPortConfig(vport, retries - 1)
             case ex =>
                 Future.failed(ex)
@@ -605,9 +730,9 @@ abstract class VirtualToPhysicalMapperBase
         }
 
         log.debug("Sending updated PortSet for {} with local ports {} and " +
-            "remote hosts {}", portSetId, localVPorts, hosts)
-        portSets.updateAndNotifySubscribers(portSetId,
-            rcu.PortSet(portSetId, hosts, localVPorts))
+                  "remote hosts {}", portSetId, localVPorts, hosts)
+        val portSet = rcu.PortSet(portSetId, hosts, localVPorts)
+        portSetMgr.updateAndNotifySubscribers(portSetId, portSet)
 
         // Invalidate the flows that were going to this port set so that their
         // output datapath ports can be recomputed. This is true regardless
