@@ -5,8 +5,6 @@
  */
 package org.midonet.midolman.state;
 
-import java.util.UUID;
-
 import org.midonet.cluster.data.Bridge;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager.BridgeConfig;
 import org.midonet.midolman.state.zkManagers.TaggableConfig;
@@ -14,6 +12,8 @@ import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPv6Subnet;
 import org.midonet.packets.IntIPv4;
 import org.midonet.packets.MAC;
+
+import java.util.UUID;
 
 /**
  * This class was created to have all state classes share the Zk path
@@ -1641,5 +1641,25 @@ public class ZkPathManager {
 
     public String getVipPath(UUID vipId) {
         return buildVipPath(vipId).toString();
+    }
+
+    public StringBuilder buildPoolHealthMonitorMappingsPath() {
+        return basePath().append("/pool_health_monitor_mappings");
+    }
+
+    public String getPoolHealthMonitorMappingsPath() {
+        return buildPoolHealthMonitorMappingsPath().toString();
+    }
+
+    public StringBuilder buildPoolHealthMonitorMappingPath(
+            UUID poolId, UUID healthMonitorId) {
+        return buildPoolHealthMonitorMappingsPath().append("/").append(
+                poolId).append("_").append(healthMonitorId);
+    }
+
+    public String getPoolHealthMonitorMappingsPath(UUID poolId,
+                                                   UUID healthMonitorId) {
+        return buildPoolHealthMonitorMappingPath(
+                poolId, healthMonitorId).toString();
     }
 }

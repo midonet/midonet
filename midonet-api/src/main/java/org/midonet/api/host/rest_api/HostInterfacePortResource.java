@@ -12,7 +12,6 @@ import org.midonet.api.host.HostInterfacePort;
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.auth.AuthRole;
-import org.midonet.api.rest_api.BadRequestHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
@@ -20,7 +19,6 @@ import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.host.VirtualPortMapping;
 
 import javax.annotation.security.RolesAllowed;
-import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -29,7 +27,6 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -39,7 +36,6 @@ import java.util.UUID;
 public class HostInterfacePortResource extends AbstractResource {
 
     private final UUID hostId;
-    private final Validator validator;
     private final DataClient dataClient;
 
     @Inject
@@ -49,8 +45,7 @@ public class HostInterfacePortResource extends AbstractResource {
                                      Validator validator,
                                      DataClient dataClient,
                                      @Assisted UUID hostId) {
-        super(config, uriInfo, context);
-        this.validator = validator;
+        super(config, uriInfo, context, validator);
         this.dataClient = dataClient;
         this.hostId = hostId;
     }
@@ -63,13 +58,7 @@ public class HostInterfacePortResource extends AbstractResource {
             throws StateAccessException, SerializationException {
 
         map.setHostId(hostId);
-
-        Set<ConstraintViolation<HostInterfacePort>> violations =
-                validator.validate(map, HostInterfacePort
-                        .HostInterfacePortCreateGroup.class);
-        if (!violations.isEmpty()) {
-            throw new BadRequestHttpException(violations);
-        }
+        validate(map, HostInterfacePort.HostInterfacePortCreateGroup.class);
 
         dataClient.hostsAddVrnPortMapping(hostId, map.getPortId(),
                 map.getInterfaceName());

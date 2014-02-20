@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import javax.annotation.security.RolesAllowed;
-import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -32,7 +31,6 @@ import org.midonet.api.host.GreTunnelZoneHost;
 import org.midonet.api.host.TunnelZoneHost;
 import org.midonet.api.host.TunnelZoneHostFactory;
 import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.BadRequestHttpException;
 import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.cluster.DataClient;
@@ -47,8 +45,6 @@ import org.midonet.midolman.state.StateAccessException;
 public class TunnelZoneHostResource extends AbstractResource {
 
     private final UUID tunnelZoneId;
-    private final UriInfo uriInfo;
-    private final Validator validator;
     private final DataClient dataClient;
 
     @Inject
@@ -57,9 +53,7 @@ public class TunnelZoneHostResource extends AbstractResource {
                                   Validator validator,
                                   DataClient dataClient,
                                   @Assisted UUID tunnelZoneId) {
-        super(config, uriInfo, context);
-        this.uriInfo = uriInfo;
-        this.validator = validator;
+        super(config, uriInfo, context, validator);
         this.dataClient = dataClient;
         this.tunnelZoneId = tunnelZoneId;
     }
@@ -68,10 +62,7 @@ public class TunnelZoneHostResource extends AbstractResource {
             throws StateAccessException, SerializationException {
         tzHost.setTunnelZoneId(tunnelZoneId);
 
-        Set<ConstraintViolation<T>> violations =validator.validate(tzHost,
-            TunnelZoneHost.TunnelZoneHostCreateGroupSequence.class);
-        if (!violations.isEmpty())
-            throw new BadRequestHttpException(violations);
+        validate(tzHost, TunnelZoneHost.TunnelZoneHostCreateGroupSequence.class);
 
         dataClient.tunnelZonesAddMembership(tunnelZoneId,
                 tzHost.toData());

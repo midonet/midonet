@@ -1,25 +1,20 @@
 /*
-<<<<<<< HEAD
- * Copyright (c) 2014 Midokura Europe SARL, All Rights Reserved.
-=======
  * Copyright (c) 2013-2014 Midokura Europe SARL, All Rights Reserved.
->>>>>>> a09f1f4... ZkManager refactoring
  */
 
 package org.midonet.midolman.state.zkManagers;
 
+import com.google.common.base.Objects;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-
-import com.google.common.base.Objects;
 import org.apache.zookeeper.Op;
 import org.midonet.midolman.state.StateAccessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.ZkManager;
@@ -62,20 +57,26 @@ public class VipZkManager
         }
 
         @Override
+        public int hashCode() {
+            return Objects.hashCode(loadBalancerId, poolId, address,
+                    protocolPort, sessionPersistence, adminStateUp);
+        }
+
+        @Override
         public boolean equals(Object o) {
             if (this == o)
                 return true;
-            if (o == null || getClass() != o.getClass())
+            if (o == null || !getClass().equals(o.getClass()))
                 return false;
 
             VipConfig that = (VipConfig) o;
 
             return Objects.equal(loadBalancerId, that.loadBalancerId) &&
-                   Objects.equal(poolId, that.poolId) &&
-                   Objects.equal(address, that.address) &&
-                   protocolPort != that.protocolPort &&
-                   Objects.equal(sessionPersistence, that.sessionPersistence) &&
-                   adminStateUp != that.adminStateUp;
+                    Objects.equal(poolId, that.poolId) &&
+                    Objects.equal(address, that.address) &&
+                    protocolPort == that.protocolPort &&
+                    Objects.equal(sessionPersistence, that.sessionPersistence) &&
+                    adminStateUp == that.adminStateUp;
         }
     }
 

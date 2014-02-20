@@ -290,12 +290,17 @@ public class L4LBTestBase extends RestApiTestBase {
     }
 
     protected DtoPoolMember getStockPoolMember() {
+        return getStockPoolMember(null);
+    }
+
+    protected DtoPoolMember getStockPoolMember(UUID poolId) {
         DtoPoolMember poolMember = new DtoPoolMember();
         // NOTE(tfukushima): Populating UUID of the pool member because
         //   the API can create the resource with the specified UUID,
         //   which is very useful for the identical checks.
         poolMember.setId(UUID.randomUUID());
         poolMember.setAddress("10.0.0.1");
+        poolMember.setPoolId(poolId);
         poolMember.setProtocolPort(80);
         poolMember.setStatus(DtoPoolMember.Status.UP);
         poolMember.setWeight(100);
@@ -303,14 +308,8 @@ public class L4LBTestBase extends RestApiTestBase {
         return poolMember;
     }
 
-    protected DtoPoolMember createStockPoolMember() {
-        return postPoolMember(getStockPoolMember());
-    }
-
     protected DtoPoolMember createStockPoolMember(UUID poolId) {
-        DtoPoolMember poolMember = getStockPoolMember();
-        poolMember.setPoolId(poolId);
-        return postPoolMember(poolMember);
+        return postPoolMember(getStockPoolMember(poolId));
     }
 
     /**

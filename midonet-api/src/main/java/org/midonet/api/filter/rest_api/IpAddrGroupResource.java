@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
-import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
@@ -46,7 +45,6 @@ public class IpAddrGroupResource extends AbstractResource {
     private final static Logger log = LoggerFactory
             .getLogger(IpAddrGroupResource.class);
 
-    private final Validator validator;
     private final DataClient dataClient;
     private final ResourceFactory factory;
 
@@ -55,8 +53,7 @@ public class IpAddrGroupResource extends AbstractResource {
                                SecurityContext context,
                                Validator validator, DataClient dataClient,
                                ResourceFactory factory) {
-        super(config, uriInfo, context);
-        this.validator = validator;
+        super(config, uriInfo, context, validator);
         this.dataClient = dataClient;
         this.factory = factory;
     }
@@ -134,12 +131,7 @@ public class IpAddrGroupResource extends AbstractResource {
     public Response create(IpAddrGroup group)
             throws StateAccessException, SerializationException {
 
-        Set<ConstraintViolation<IpAddrGroup>> violations = validator
-                .validate(group,
-                        IpAddrGroup.IpAddrGroupCreateGroupSequence.class);
-        if (!violations.isEmpty()) {
-            throw new BadRequestHttpException(violations);
-        }
+        validate(group, IpAddrGroup.IpAddrGroupCreateGroupSequence.class);
 
         try {
             UUID id = dataClient.ipAddrGroupsCreate(group.toData());

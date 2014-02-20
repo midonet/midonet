@@ -69,7 +69,6 @@ public class PortResource extends AbstractResource {
             .getLogger(PortResource.class);
 
     private final Authorizer authorizer;
-    private final Validator validator;
     private final DataClient dataClient;
     private final ResourceFactory factory;
 
@@ -78,9 +77,8 @@ public class PortResource extends AbstractResource {
                         SecurityContext context, PortAuthorizer authorizer,
                         Validator validator, DataClient dataClient,
                         ResourceFactory factory) {
-        super(config, uriInfo, context);
+        super(config, uriInfo, context, validator);
         this.authorizer = authorizer;
-        this.validator = validator;
         this.dataClient = dataClient;
         this.factory = factory;
     }
@@ -111,11 +109,7 @@ public class PortResource extends AbstractResource {
         }
 
         Port port = PortFactory.convertToApiPort(portData);
-        Set<ConstraintViolation<Port>> violations = validator.validate(port,
-                Port.PortDeleteGroupSequence.class);
-        if (!violations.isEmpty()) {
-            throw new BadRequestHttpException(violations);
-        }
+        validate(port, Port.PortDeleteGroupSequence.class);
 
         dataClient.portsDelete(id);
     }
@@ -204,11 +198,7 @@ public class PortResource extends AbstractResource {
             throws StateAccessException, SerializationException {
 
         port.setId(id);
-
-        Set<ConstraintViolation<Port>> violations = validator.validate(port);
-        if (!violations.isEmpty()) {
-            throw new BadRequestHttpException(violations);
-        }
+        validate(port);
 
         if (!authorizer.authorize(context, AuthAction.WRITE, id)) {
             throw new ForbiddenHttpException(
@@ -238,13 +228,7 @@ public class PortResource extends AbstractResource {
             SerializationException {
 
         link.setPortId(id);
-
-        Set<ConstraintViolation<Link>> violations = validator.validate(link,
-                    Link.LinkCreateGroupSequence.class);
-
-        if (!violations.isEmpty()) {
-            throw new BadRequestHttpException(violations);
-        }
+        validate(link, Link.LinkCreateGroupSequence.class);
 
         if (!authorizer.authorize(context, AuthAction.WRITE, id)
                 || !authorizer
@@ -315,7 +299,6 @@ public class PortResource extends AbstractResource {
 
         private final UUID bridgeId;
         private final Authorizer authorizer;
-        private final Validator validator;
         private final DataClient dataClient;
 
         @Inject
@@ -326,22 +309,17 @@ public class PortResource extends AbstractResource {
                                   Validator validator,
                                   DataClient dataClient,
                                   @Assisted UUID bridgeId) {
-            super(config, uriInfo, context);
+            super(config, uriInfo, context, validator);
             this.authorizer = authorizer;
-            this.validator = validator;
             this.dataClient = dataClient;
             this.bridgeId = bridgeId;
         }
 
         private Response handleCreatePort(BridgePort port)
                 throws SerializationException, StateAccessException {
-            port.setDeviceId(bridgeId);
 
-            Set<ConstraintViolation<BridgePort>> violations = validator
-                    .validate(port);
-            if (!violations.isEmpty()) {
-                throw new BadRequestHttpException(violations);
-            }
+            port.setDeviceId(bridgeId);
+            validate(port);
 
             if (!authorizer.authorize(context, AuthAction.WRITE, bridgeId)) {
                 throw new ForbiddenHttpException(
@@ -574,7 +552,6 @@ public class PortResource extends AbstractResource {
 
         private final UUID routerId;
         private final Authorizer authorizer;
-        private final Validator validator;
         private final DataClient dataClient;
 
         @Inject
@@ -585,22 +562,17 @@ public class PortResource extends AbstractResource {
                                   Validator validator,
                                   DataClient dataClient,
                                   @Assisted UUID routerId) {
-            super(config, uriInfo, context);
+            super(config, uriInfo, context, validator);
             this.authorizer = authorizer;
-            this.validator = validator;
             this.dataClient = dataClient;
             this.routerId = routerId;
         }
 
         private Response handleCreatePort(RouterPort port)
                 throws SerializationException, StateAccessException {
-            port.setDeviceId(routerId);
 
-            Set<ConstraintViolation<RouterPort>> violations = validator
-                    .validate(port);
-            if (!violations.isEmpty()) {
-                throw new BadRequestHttpException(violations);
-            }
+            port.setDeviceId(routerId);
+            validate(port);
 
             if (dataClient.routersGet(routerId) == null) {
                 throw new NotFoundHttpException(
@@ -828,7 +800,6 @@ public class PortResource extends AbstractResource {
         private final UUID portGroupId;
         private final Authorizer portGroupAuthorizer;
         private final Authorizer portAuthorizer;
-        private final Validator validator;
         private final DataClient dataClient;
 
         @Inject
@@ -839,10 +810,9 @@ public class PortResource extends AbstractResource {
                                      Validator validator,
                                      DataClient dataClient,
                                      @Assisted UUID portGroupId) {
-            super(config, uriInfo, context);
+            super(config, uriInfo, context, validator);
             this.portGroupAuthorizer = portGroupAuthorizer;
             this.portAuthorizer = portAuthorizer;
-            this.validator = validator;
             this.dataClient = dataClient;
             this.portGroupId = portGroupId;
         }
@@ -855,13 +825,7 @@ public class PortResource extends AbstractResource {
                 throws StateAccessException, SerializationException {
 
             portGroupPort.setPortGroupId(portGroupId);
-
-            Set<ConstraintViolation<PortGroupPort>> violations = validator
-                    .validate(portGroupPort,
-                            PortGroupPortCreateGroupSequence.class);
-            if (!violations.isEmpty()) {
-                throw new BadRequestHttpException(violations);
-            }
+            validate(portGroupPort, PortGroupPortCreateGroupSequence.class);
 
             if (!portGroupAuthorizer.authorize(
                     context, AuthAction.WRITE, portGroupId)) {

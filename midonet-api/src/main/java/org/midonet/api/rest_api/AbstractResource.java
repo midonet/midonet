@@ -4,13 +4,15 @@
 package org.midonet.api.rest_api;
 
 import org.midonet.midolman.state.NoStatePathException;
-import org.midonet.midolman.state.StatePathExceptionBase.NodeType;
 
+import javax.validation.ConstraintViolation;
+import javax.validation.Validator;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -21,12 +23,19 @@ public abstract class AbstractResource {
     protected final RestApiConfig config;
     protected final UriInfo uriInfo;
     protected final SecurityContext context;
+    protected final Validator validator;
 
     public AbstractResource(RestApiConfig config, UriInfo uriInfo,
                             SecurityContext context) {
+        this(config, uriInfo, context, null);
+    }
+
+    public AbstractResource(RestApiConfig config, UriInfo uriInfo,
+                            SecurityContext context, Validator validator) {
         this.config = config;
         this.uriInfo = uriInfo;
         this.context = context;
+        this.validator = validator;
     }
 
     /**
@@ -66,6 +75,14 @@ public abstract class AbstractResource {
             return new NotFoundHttpException(ex);
         } else {
             return new BadRequestHttpException(ex);
+        }
+    }
+
+    protected <T> void validate(T apiObj, Class<?>... groups) {
+        Set<ConstraintViolation<T>> violations =
+                validator.validate(apiObj, groups);
+        if (!violations.isEmpty()) {
+            throw new BadRequestHttpException(violations);
         }
     }
 }

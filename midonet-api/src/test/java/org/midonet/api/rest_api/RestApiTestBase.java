@@ -10,6 +10,7 @@ import org.midonet.client.dto.DtoError;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
@@ -27,6 +28,15 @@ public abstract class RestApiTestBase extends JerseyTest {
                 actual.getMessage() :
                 actual.getViolations().get(0).get("message");
         assertEquals(expectedMsg, actualMsg);
+    }
+
+    protected void assertErrorMatchesPropMsg(
+            DtoError actual, String expectedProperty, String expectedMessage) {
+        // May need to relax this later.
+        assertEquals(actual.getViolations().size(), 1);
+        Map<String, String> violation = actual.getViolations().get(0);
+        assertEquals(expectedProperty, violation.get("property"));
+        assertEquals(expectedMessage, violation.get("message"));
     }
 
     protected URI addIdToUri(URI base, UUID id) throws URISyntaxException {

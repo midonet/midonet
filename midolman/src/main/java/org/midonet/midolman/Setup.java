@@ -5,6 +5,20 @@
 
 package org.midonet.midolman;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.GnuParser;
+import org.apache.commons.cli.Options;
+import org.apache.commons.configuration.HierarchicalConfiguration;
+import org.apache.commons.configuration.HierarchicalINIConfiguration;
+import org.apache.zookeeper.KeeperException;
+import org.midonet.midolman.state.Directory;
+import org.midonet.midolman.state.PathBuilder;
+import org.midonet.midolman.util.Sudo;
+import org.midonet.midolman.version.DataWriteVersion;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.URI;
@@ -13,21 +27,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.GnuParser;
-import org.apache.commons.cli.Options;
-import org.apache.commons.configuration.HierarchicalConfiguration;
-import org.apache.commons.configuration.HierarchicalINIConfiguration;
-import org.apache.zookeeper.KeeperException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.PathBuilder;
-import org.midonet.midolman.util.Sudo;
-import org.midonet.midolman.version.DataWriteVersion;
 
 
 public class Setup {
@@ -92,6 +91,7 @@ public class Setup {
         paths.add(pathMgr.getTraceConditionsPath());
         paths.add(pathMgr.getHealthMonitorsPath());
         paths.add(pathMgr.getLoadBalancersPath());
+        paths.add(pathMgr.getPoolHealthMonitorMappingsPath());
         paths.add(pathMgr.getPoolMembersPath());
         paths.add(pathMgr.getPoolsPath());
         paths.add(pathMgr.getVipsPath());

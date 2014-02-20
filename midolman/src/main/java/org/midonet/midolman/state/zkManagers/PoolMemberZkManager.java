@@ -3,25 +3,21 @@
  */
 package org.midonet.midolman.state.zkManagers;
 
-import java.util.List;
-import java.util.UUID;
-
 import com.google.common.base.Objects;
-import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
-import org.apache.zookeeper.ZooDefs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
-import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.DirectoryCallback;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.PoolMemberStatus;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
+
+import java.util.List;
+import java.util.UUID;
 
 import static java.util.Arrays.asList;
 
@@ -62,22 +58,26 @@ public class PoolMemberZkManager extends
         }
 
         @Override
+        public int hashCode() {
+            return Objects.hashCode(poolId, address, protocolPort, weight,
+                    adminStateUp, status);
+        }
+
+        @Override
         public boolean equals(Object o) {
             if (this == o)
                 return true;
-            if (o == null || getClass() != o.getClass())
+            if (o == null || !getClass().equals(o.getClass()))
                 return false;
 
             PoolMemberConfig that = (PoolMemberConfig) o;
 
-            if (!Objects.equal(poolId, that.poolId)) return false;
-            if (!Objects.equal(address, that.address)) return false;
-            if (protocolPort != that.protocolPort) return false;
-            if (weight != that.weight) return false;
-            if (adminStateUp != that.adminStateUp) return false;
-            if (!Objects.equal(status, that.status)) return false;
-
-            return true;
+            return Objects.equal(poolId, that.poolId) &&
+                    Objects.equal(address, that.address) &&
+                    protocolPort == that.protocolPort &&
+                    weight == that.weight &&
+                    adminStateUp == that.adminStateUp &&
+                    Objects.equal(status, that.status);
         }
     }
 
@@ -99,14 +99,6 @@ public class PoolMemberZkManager extends
     public List<Op> prepareCreate(UUID id, PoolMemberConfig config)
             throws SerializationException {
         return asList(simpleCreateOp(id, config));
-    }
-
-    public List<Op> prepareSetPoolId(UUID id, UUID poolId)
-            throws SerializationException, StateAccessException {
-        assert poolId != null;
-        PoolMemberConfig config = get(id);
-        config.poolId = poolId;
-        return prepareUpdate(id, config);
     }
 
     public List<Op> prepareUpdate(UUID id, PoolMemberConfig config)

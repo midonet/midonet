@@ -4,103 +4,25 @@
 
 package org.midonet.cluster;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
-
-import com.google.inject.Guice;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import org.apache.commons.configuration.HierarchicalConfiguration;
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
-import org.junit.Before;
 import org.junit.Test;
 import org.midonet.cluster.data.Route;
 import org.midonet.cluster.data.Router;
-import org.midonet.midolman.Setup;
-import org.midonet.midolman.config.MidolmanConfig;
-import org.midonet.midolman.config.ZookeeperConfig;
-import org.midonet.midolman.guice.CacheModule;
-import org.midonet.midolman.guice.MockMonitoringStoreModule;
-import org.midonet.midolman.guice.cluster.DataClusterClientModule;
-import org.midonet.midolman.guice.config.MockConfigProviderModule;
-import org.midonet.midolman.guice.config.TypedConfigModule;
-import org.midonet.midolman.guice.reactor.ReactorModule;
-import org.midonet.midolman.guice.serialization.SerializationModule;
-import org.midonet.midolman.guice.zookeeper.MockZookeeperConnectionModule;
+import org.midonet.cluster.data.ports.RouterPort;
 import org.midonet.midolman.layer3.Route.NextHop;
 import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.AbstractZkManager;
-import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.zkManagers.RouteZkManager;
-import org.midonet.midolman.state.zkManagers.RouterZkManager;
-import org.midonet.midolman.version.guice.VersionModule;
-import org.midonet.cluster.data.ports.RouterPort;
-import org.midonet.packets.MAC;
 import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.MAC;
+
+import java.util.List;
+import java.util.UUID;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 
 
-public class LocalDataClientImplTest {
-
-    @Inject
-    DataClient client;
-    Injector injector = null;
-    String zkRoot = "/test/v3/midolman";
-
-
-    HierarchicalConfiguration fillConfig(HierarchicalConfiguration config) {
-        config.addNodes(ZookeeperConfig.GROUP_NAME,
-            Arrays.asList(new HierarchicalConfiguration.Node
-                ("midolman_root_key", zkRoot)));
-        return config;
-
-    }
-
-    RouteZkManager getRouteZkManager() {
-        return injector.getInstance(RouteZkManager.class);
-    }
-
-    RouterZkManager getRouterZkManager() {
-        return injector.getInstance(RouterZkManager.class);
-    }
-
-    Directory zkDir() {
-        return injector.getInstance(Directory.class);
-    }
-
-    @Before
-    public void initialize() throws InterruptedException, KeeperException {
-        HierarchicalConfiguration config = fillConfig(
-            new HierarchicalConfiguration());
-        injector = Guice.createInjector(
-            new VersionModule(),
-            new SerializationModule(),
-            new MockConfigProviderModule(config),
-            new MockZookeeperConnectionModule(),
-            new TypedConfigModule<MidolmanConfig>(MidolmanConfig.class),
-            new CacheModule(),
-            new ReactorModule(),
-            new MockMonitoringStoreModule(),
-            new DataClusterClientModule()
-        );
-        injector.injectMembers(this);
-        String[] nodes = zkRoot.split("/");
-        String path = "/";
-
-        for (String node : nodes) {
-            if (!node.isEmpty()) {
-                zkDir().add(path + node, null, CreateMode.PERSISTENT);
-                path += node;
-                path += "/";
-            }
-        }
-        Setup.ensureZkDirectoryStructureExists(zkDir(), zkRoot);
-    }
+public class LocalDataClientImplTest extends LocalDataClientImplTestBase {
 
     @Test
     public void routerPortLifecycleTest() throws StateAccessException,

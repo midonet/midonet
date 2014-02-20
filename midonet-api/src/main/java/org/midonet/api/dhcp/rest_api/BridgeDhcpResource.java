@@ -20,7 +20,6 @@ import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.auth.AuthAction;
 import org.midonet.api.auth.AuthRole;
-import org.midonet.api.rest_api.BadRequestHttpException;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.cluster.DataClient;
@@ -31,7 +30,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
-import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -41,7 +39,6 @@ import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 @RequestScoped
@@ -52,7 +49,6 @@ public class BridgeDhcpResource extends AbstractResource {
 
     private final UUID bridgeId;
     private final Authorizer authorizer;
-    private final Validator validator;
     private final DataClient dataClient;
     private final ResourceFactory factory;
 
@@ -64,9 +60,8 @@ public class BridgeDhcpResource extends AbstractResource {
                               DataClient dataClient,
                               ResourceFactory factory,
                               @Assisted UUID bridgeId) {
-        super(config, uriInfo, context);
+        super(config, uriInfo, context, validator);
         this.authorizer = authorizer;
-        this.validator = validator;
         this.dataClient = dataClient;
         this.factory = factory;
         this.bridgeId = bridgeId;
@@ -104,11 +99,7 @@ public class BridgeDhcpResource extends AbstractResource {
                     "Not authorized to configure DHCP for this bridge.");
         }
 
-        Set<ConstraintViolation<DhcpSubnet>> violations =
-            validator.validate(subnet);
-        if (!violations.isEmpty()) {
-            throw new BadRequestHttpException(violations);
-        }
+        validate(subnet);
 
         dataClient.dhcpSubnetsCreate(bridgeId, subnet.toData());
 

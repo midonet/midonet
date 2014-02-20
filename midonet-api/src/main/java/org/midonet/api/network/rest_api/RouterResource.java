@@ -5,7 +5,6 @@
 package org.midonet.api.network.rest_api;
 
 import com.google.inject.Inject;
-import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.VendorMediaType;
@@ -17,7 +16,6 @@ import org.midonet.api.network.Router;
 import org.midonet.api.network.auth.RouterAuthorizer;
 import org.midonet.api.rest_api.*;
 import org.midonet.cluster.DataClient;
-import org.midonet.cluster.data.Port;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.slf4j.Logger;
@@ -25,7 +23,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
-import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -34,7 +31,6 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -47,7 +43,6 @@ public class RouterResource extends AbstractResource {
             .getLogger(RouterResource.class);
 
     private final Authorizer authorizer;
-    private final Validator validator;
     private final DataClient dataClient;
     private final ResourceFactory factory;
 
@@ -56,9 +51,8 @@ public class RouterResource extends AbstractResource {
                           SecurityContext context, RouterAuthorizer authorizer,
                           Validator validator, DataClient dataClient,
                           ResourceFactory factory) {
-        super(config, uriInfo, context);
+        super(config, uriInfo, context, validator);
         this.authorizer = authorizer;
-        this.validator = validator;
         this.dataClient = dataClient;
         this.factory = factory;
     }
@@ -188,11 +182,7 @@ public class RouterResource extends AbstractResource {
 
         router.setId(id);
 
-        Set<ConstraintViolation<Router>> violations = validator.validate(
-                router, Router.RouterUpdateGroupSequence.class);
-        if (!violations.isEmpty()) {
-            throw new BadRequestHttpException(violations);
-        }
+        validate(router, Router.RouterUpdateGroupSequence.class);
 
         if (!authorizer.authorize(context, AuthAction.WRITE, id)) {
             throw new ForbiddenHttpException(
@@ -220,11 +210,7 @@ public class RouterResource extends AbstractResource {
             throws StateAccessException,
             SerializationException {
 
-        Set<ConstraintViolation<Router>> violations = validator.validate(
-                router, Router.RouterCreateGroupSequence.class);
-        if (!violations.isEmpty()) {
-            throw new BadRequestHttpException(violations);
-        }
+        validate(router, Router.RouterCreateGroupSequence.class);
 
         if (!Authorizer.isAdminOrOwner(context, router.getTenantId())) {
             throw new ForbiddenHttpException(

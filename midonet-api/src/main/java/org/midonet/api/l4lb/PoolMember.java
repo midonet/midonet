@@ -5,8 +5,14 @@ package org.midonet.api.l4lb;
 
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.UriResource;
+import org.midonet.api.validation.MessageProperty;
 import org.midonet.midolman.state.PoolMemberStatus;
+import org.midonet.util.StringUtil;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.net.URI;
 import java.util.UUID;
@@ -16,12 +22,22 @@ import java.util.UUID;
 public class PoolMember extends UriResource {
 
     private UUID id;
-    private UUID poolId;
-    private String address;
-    private int protocolPort;
-    private int weight;
     private boolean adminStateUp = true;
     private PoolMemberStatus status;
+
+    @NotNull
+    private UUID poolId;
+
+    @NotNull
+    @Pattern(regexp = StringUtil.IP_ADDRESS_REGEX_PATTERN,
+             message = MessageProperty.IP_ADDR_INVALID)
+    private String address;
+
+    @Min(0) @Max(65535)
+    private int protocolPort;
+
+    @Min(0)
+    private int weight;
 
     public UUID getId() {
         return id;
