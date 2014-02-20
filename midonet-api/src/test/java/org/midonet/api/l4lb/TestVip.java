@@ -52,15 +52,16 @@ public class TestVip {
             assertEquals(num, vips.length);
         }
 
-        private void postVipAndVerifyNotFoundError(DtoVip vip, Object... args) {
-            DtoError error = dtoWebResource.postAndVerifyError(topLevelVipsUri,
-                    APPLICATION_VIP_JSON, vip, NOT_FOUND);
+        private void postVipAndVerifyBadRequestError(DtoVip vip, Object... args) {
+            DtoError error = dtoWebResource.postAndVerifyBadRequest(
+                    topLevelVipsUri, APPLICATION_VIP_JSON, vip);
             assertErrorMatches(error, RESOURCE_NOT_FOUND, args);
         }
 
         private void putVipAndVerifyNotFoundError(DtoVip vip, Object... args) {
             DtoError error = dtoWebResource.putAndVerifyError(vip.getUri(),
                     APPLICATION_VIP_JSON, vip, NOT_FOUND);
+            assertErrorMatches(error, RESOURCE_NOT_FOUND, args);
         }
 
         private void checkBackrefs(
@@ -228,7 +229,7 @@ public class TestVip {
         public void testCreateWithBadPoolId() {
             DtoLoadBalancer lb = createStockLoadBalancer();
             DtoVip vip = getStockVip(UUID.randomUUID());
-            postVipAndVerifyNotFoundError(
+            postVipAndVerifyBadRequestError(
                     vip, "pool", vip.getPoolId());
         }
 
@@ -239,7 +240,7 @@ public class TestVip {
             DtoVip vip = getStockVip(pool.getId());
             vip.setId(UUID.randomUUID());
             vip.setUri(addIdToUri(topLevelVipsUri, vip.getId()));
-            putVipAndVerifyNotFoundError(vip, "vip", vip.getId());
+            putVipAndVerifyNotFoundError(vip, "VIP", vip.getId());
         }
 
         @Test
@@ -248,8 +249,9 @@ public class TestVip {
             DtoPool pool = createStockPool(loadBalancer.getId());
             DtoVip vip = createStockVip(pool.getId());
             vip.setPoolId(UUID.randomUUID());
-            postVipAndVerifyNotFoundError(
-                    vip, "pool", vip.getPoolId());
+            DtoError error = dtoWebResource.putAndVerifyBadRequest(
+                    vip.getUri(), APPLICATION_VIP_JSON, vip);
+            assertErrorMatches(error, RESOURCE_NOT_FOUND, "pool", vip.getPoolId());
         }
 
         @Test

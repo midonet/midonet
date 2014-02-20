@@ -184,7 +184,7 @@ public class TestPool {
             DtoPool pool = getStockPool(loadBalancer.getId());
             pool.setHealthMonitorId(UUID.randomUUID());
             DtoError error = dtoWebResource.postAndVerifyError(
-                    topLevelPoolsUri, APPLICATION_POOL_JSON, pool, NOT_FOUND);
+                    topLevelPoolsUri, APPLICATION_POOL_JSON, pool, BAD_REQUEST);
             assertErrorMatches(error, RESOURCE_NOT_FOUND,
                     "health monitor", pool.getHealthMonitorId());
         }
@@ -221,8 +221,8 @@ public class TestPool {
             DtoPool pool = createStockPool(loadBalancer.getId());
             pool.setId(UUID.randomUUID());
             pool.setUri(addIdToUri(topLevelPoolsUri, pool.getId()));
-            DtoError error = dtoWebResource.putAndVerifyError(pool.getUri(),
-                    APPLICATION_POOL_JSON, pool, NOT_FOUND);
+            DtoError error = dtoWebResource.putAndVerifyNotFound(
+                    pool.getUri(), APPLICATION_POOL_JSON, pool);
             assertErrorMatches(error, RESOURCE_NOT_FOUND, "pool", pool.getId());
         }
 
@@ -231,8 +231,8 @@ public class TestPool {
             DtoLoadBalancer loadBalancer = createStockLoadBalancer();
             DtoPool pool = createStockPool(loadBalancer.getId());
             pool.setHealthMonitorId(UUID.randomUUID());
-            DtoError error = dtoWebResource.putAndVerifyError(pool.getUri(),
-                    APPLICATION_POOL_JSON, pool, NOT_FOUND);
+            DtoError error = dtoWebResource.putAndVerifyBadRequest(
+                    pool.getUri(), APPLICATION_POOL_JSON, pool);
             assertErrorMatches(error, RESOURCE_NOT_FOUND,
                     "health monitor", pool.getHealthMonitorId());
         }

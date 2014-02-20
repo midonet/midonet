@@ -21,7 +21,6 @@ import org.midonet.midolman.state.StatePathExistsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -32,9 +31,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import static org.midonet.api.validation.MessageProperty.POOL_MEMBER_WEIGHT_NEGATIVE;
 import static org.midonet.api.validation.MessageProperty.getMessage;
-
+import static org.midonet.api.validation.MessageProperty.POOL_MEMBER_WEIGHT_NEGATIVE;
+import static org.midonet.api.validation.MessageProperty.RESOURCE_EXISTS;
 
 @RequestScoped
 public class PoolMemberResource extends AbstractResource {
@@ -130,9 +129,10 @@ public class PoolMemberResource extends AbstractResource {
                     ResourceUriBuilder.getPoolMember(getBaseUri(), id))
                     .build();
         } catch (NoStatePathException ex) {
-            throw new NotFoundHttpException(ex);
+            throw new BadRequestHttpException(ex);
         } catch (StatePathExistsException ex) {
-            throw new ConflictHttpException(ex);
+            throw new ConflictHttpException(getMessage(
+                    RESOURCE_EXISTS, "pool member", poolMember.getId()));
         }
     }
 
@@ -156,7 +156,7 @@ public class PoolMemberResource extends AbstractResource {
         try {
             dataClient.poolMemberUpdate(poolMember.toData());
         } catch (NoStatePathException ex) {
-            throw new NotFoundHttpException(ex);
+            throw badReqOrNotFoundException(ex, id);
         }
     }
 }

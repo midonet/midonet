@@ -10,7 +10,6 @@ import com.google.inject.servlet.RequestScoped;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.VendorMediaType;
 import org.midonet.api.auth.AuthRole;
-import org.midonet.api.l4lb.LoadBalancer;
 import org.midonet.api.l4lb.PoolMember;
 import org.midonet.api.l4lb.VIP;
 import org.midonet.api.rest_api.*;
@@ -25,7 +24,6 @@ import org.midonet.midolman.state.StatePathExistsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -37,7 +35,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.midonet.api.validation.MessageProperty.getMessage;
-
+import static org.midonet.api.validation.MessageProperty.RESOURCE_EXISTS;
 
 @RequestScoped
 public class PoolResource extends AbstractResource {
@@ -125,9 +123,10 @@ public class PoolResource extends AbstractResource {
                     ResourceUriBuilder.getPool(getBaseUri(), id))
                     .build();
         } catch (StatePathExistsException ex) {
-            throw new ConflictHttpException(ex);
+            throw new ConflictHttpException(
+                    getMessage(RESOURCE_EXISTS, "pool", pool.getId()));
         } catch (NoStatePathException ex) {
-            throw new NotFoundHttpException(ex);
+            throw new BadRequestHttpException(ex);
         }
     }
 
@@ -143,7 +142,7 @@ public class PoolResource extends AbstractResource {
         try {
             dataClient.poolUpdate(pool.toData());
         } catch (NoStatePathException ex) {
-            throw new NotFoundHttpException(ex);
+            throw badReqOrNotFoundException(ex, id);
         }
     }
 
@@ -249,9 +248,10 @@ public class PoolResource extends AbstractResource {
                         ResourceUriBuilder.getPool(getBaseUri(), id))
                         .build();
             } catch (StatePathExistsException ex) {
-                throw new ConflictHttpException(ex);
+                throw new ConflictHttpException(
+                        getMessage(RESOURCE_EXISTS, "pool", pool.getId()));
             } catch (NoStatePathException ex) {
-                throw new NotFoundHttpException(ex);
+                throw badReqOrNotFoundException(ex, loadBalancerId);
             }
         }
     }

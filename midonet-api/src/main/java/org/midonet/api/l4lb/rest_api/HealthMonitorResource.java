@@ -6,7 +6,6 @@ package org.midonet.api.l4lb.rest_api;
 
 import com.google.inject.Inject;
 import com.google.inject.servlet.RequestScoped;
-import org.ietf.jgss.MessageProp;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.VendorMediaType;
 import org.midonet.api.auth.AuthRole;
@@ -15,7 +14,6 @@ import org.midonet.api.rest_api.*;
 import org.midonet.api.l4lb.HealthMonitor;
 import org.midonet.api.validation.MessageProperty;
 import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.cluster.DataClient;
@@ -23,7 +21,6 @@ import org.midonet.midolman.state.StatePathExistsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
@@ -38,6 +35,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import static org.midonet.api.validation.MessageProperty.getMessage;
+import static org.midonet.api.validation.MessageProperty.RESOURCE_EXISTS;
 
 
 @RequestScoped
@@ -136,9 +134,9 @@ public class HealthMonitorResource extends AbstractResource {
                     ResourceUriBuilder.getHealthMonitor(getBaseUri(), id))
                     .build();
         } catch (StatePathExistsException ex) {
-            throw new ConflictHttpException(ex);
+            throw new ConflictHttpException(getMessage(
+                    RESOURCE_EXISTS, "health monitor", healthMonitor.getId()));
         }
-
     }
 
     @PUT
@@ -165,8 +163,6 @@ public class HealthMonitorResource extends AbstractResource {
             MediaType.APPLICATION_JSON})
     public List<Pool> listPools(@PathParam("id") UUID id)
             throws StateAccessException, SerializationException {
-
-        // TODO: Authorization.
 
         List<org.midonet.cluster.data.l4lb.Pool> dataPools = null;
         try {

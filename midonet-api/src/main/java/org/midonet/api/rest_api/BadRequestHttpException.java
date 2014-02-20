@@ -3,6 +3,10 @@
  */
 package org.midonet.api.rest_api;
 
+import org.midonet.api.validation.MessageProperty;
+import org.midonet.midolman.state.NoStatePathException;
+import org.midonet.midolman.state.StatePathExceptionBase;
+
 import java.util.Set;
 
 import javax.validation.ConstraintViolation;
@@ -49,5 +53,15 @@ public class BadRequestHttpException extends WebApplicationException {
 
     public <T> BadRequestHttpException(Set<ConstraintViolation<T>> violations) {
         super(ResponseUtils.buildValidationErrorResponse(violations));
+    }
+
+    public BadRequestHttpException(NoStatePathException ex) {
+        this(getMessage(ex));
+    }
+
+    private static String getMessage(NoStatePathException ex) {
+        StatePathExceptionBase.NodeInfo node = ex.getNodeInfo();
+        return MessageProperty.getMessage(MessageProperty.RESOURCE_NOT_FOUND,
+                node.nodeType.name, node.id);
     }
 }

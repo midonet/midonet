@@ -60,10 +60,13 @@ public abstract class StatePathExceptionBase extends StateAccessException {
     }
 
     // Path to node whose (non)existence caused the exception.
-    protected String path;
+    protected final String path;
 
     // Base Zookeeper path.
-    private String basePath;
+    private final String basePath;
+
+    // Cache NodeInfo when it's constructed.
+    private NodeInfo nodeInfo = null;
 
     public StatePathExceptionBase(String message, String path,
                                   String basePath, KeeperException cause) {
@@ -84,6 +87,8 @@ public abstract class StatePathExceptionBase extends StateAccessException {
     @Deprecated
     public StatePathExceptionBase(String message) {
         super(message);
+        this.path = null;
+        this.basePath = null;
     }
 
     /**
@@ -99,12 +104,18 @@ public abstract class StatePathExceptionBase extends StateAccessException {
      * Additional work may be needed to handle other cases.
      */
     public NodeInfo getNodeInfo() {
-        if (!basePath.endsWith("/"))
-            basePath = basePath + "/";
-        if (path.length() < basePath.length() || !path.startsWith(basePath))
-            throw new IllegalStateException("Path does not start with basePath.", this);
+        if (nodeInfo != null)
+            return nodeInfo;
 
-        String relativePath = path.substring(basePath.length());
+        // Make sure path starts with basePath.
+        String normalizedBasePath =
+                basePath.endsWith("/") ? basePath : basePath + "/";
+        if (path.length() < normalizedBasePath.length() ||
+                !path.startsWith(basePath))
+            throw new IllegalStateException(
+                    "Path does not start with basePath.", this);
+
+        String relativePath = path.substring(normalizedBasePath.length());
         Deque<String> steps =
                 new ArrayDeque<>(Arrays.asList(relativePath.split("/")));
 
@@ -134,7 +145,9 @@ public abstract class StatePathExceptionBase extends StateAccessException {
             throw new IllegalStateException(
                     "Unexpected continuation of path after first UUID: " + path, this);
 
-        return new NodeInfo(nodeType, id);
+        // Cache for future calls.
+        nodeInfo = new NodeInfo(nodeType, id);
+        return nodeInfo;
     }
 
     /**
