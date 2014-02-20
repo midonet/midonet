@@ -127,7 +127,6 @@ public class VipResource extends AbstractResource {
      *
      * @param id VIP ID from the request.
      * @throws StateAccessException
-     * @throws InvalidStateOperationException
      * @throws SerializationException
      */
     @DELETE
@@ -169,9 +168,10 @@ public class VipResource extends AbstractResource {
             return Response.created(
                     ResourceUriBuilder.getVip(getBaseUri(), id)).build();
         } catch (StatePathExistsException ex) {
-            throw new ConflictHttpException(ex);
+            throw new ConflictHttpException(getMessage(
+                    MessageProperty.RESOURCE_EXISTS, "VIP", vip.getId()));
         } catch (NoStatePathException ex) {
-            throw new NotFoundHttpException(ex);
+            throw new BadRequestHttpException(ex);
         }
     }
 
@@ -201,7 +201,7 @@ public class VipResource extends AbstractResource {
         try {
             dataClient.vipUpdate(vip.toData());
         } catch (NoStatePathException ex) {
-            throw new NotFoundHttpException(ex);
+            throw badReqOrNotFoundException(ex, id);
         }
     }
 }

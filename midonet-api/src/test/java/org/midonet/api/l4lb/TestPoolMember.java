@@ -181,7 +181,7 @@ public class TestPoolMember {
             member.setPoolId(UUID.randomUUID());
             DtoError error = dtoWebResource.postAndVerifyError(
                     topLevelPoolMembersUri, APPLICATION_POOL_MEMBER_JSON,
-                    member, NOT_FOUND);
+                    member, BAD_REQUEST);
             assertErrorMatches(
                     error, RESOURCE_NOT_FOUND, "pool", member.getPoolId());
         }
@@ -190,9 +190,8 @@ public class TestPoolMember {
         public void testCreateWithNegativeWeight() {
             DtoPoolMember member = getStockPoolMember();
             member.setWeight(-1);
-            DtoError error = dtoWebResource.postAndVerifyError(
-                    topLevelPoolMembersUri, APPLICATION_POOL_MEMBER_JSON,
-                    member, BAD_REQUEST);
+            DtoError error = dtoWebResource.postAndVerifyBadRequest(
+                    topLevelPoolMembersUri, APPLICATION_POOL_MEMBER_JSON, member);
             assertErrorMatches(error, POOL_MEMBER_WEIGHT_NEGATIVE);
         }
 
@@ -210,8 +209,8 @@ public class TestPoolMember {
             DtoPoolMember member = createStockPoolMember();
             member.setId(UUID.randomUUID());
             member.setUri(addIdToUri(topLevelPoolMembersUri, member.getId()));
-            DtoError error = dtoWebResource.putAndVerifyError(member.getUri(),
-                    APPLICATION_POOL_MEMBER_JSON, member, NOT_FOUND);
+            DtoError error = dtoWebResource.putAndVerifyNotFound(
+                    member.getUri(), APPLICATION_POOL_MEMBER_JSON, member);
             assertErrorMatches(error, RESOURCE_NOT_FOUND,
                                "pool member", member.getId());
         }
@@ -220,8 +219,8 @@ public class TestPoolMember {
         public void testUpdateWithBadPoolId() {
             DtoPoolMember member = createStockPoolMember();
             member.setPoolId(UUID.randomUUID());
-            DtoError error = dtoWebResource.putAndVerifyError(member.getUri(),
-                    APPLICATION_POOL_MEMBER_JSON, member, NOT_FOUND);
+            DtoError error = dtoWebResource.putAndVerifyBadRequest(
+                    member.getUri(), APPLICATION_POOL_MEMBER_JSON, member);
             assertErrorMatches(error, RESOURCE_NOT_FOUND, "pool", member.getPoolId());
         }
 
@@ -229,8 +228,8 @@ public class TestPoolMember {
         public void testUpdateWithNegativeWeight() {
             DtoPoolMember member = createStockPoolMember();
             member.setWeight(-1);
-            DtoError error = dtoWebResource.putAndVerifyError(member.getUri(),
-                    APPLICATION_POOL_MEMBER_JSON, member, BAD_REQUEST);
+            DtoError error = dtoWebResource.putAndVerifyBadRequest(
+                    member.getUri(), APPLICATION_POOL_MEMBER_JSON, member);
             assertErrorMatches(error, POOL_MEMBER_WEIGHT_NEGATIVE);
         }
 

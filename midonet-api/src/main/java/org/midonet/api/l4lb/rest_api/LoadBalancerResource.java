@@ -45,6 +45,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.midonet.api.validation.MessageProperty.getMessage;
+import static org.midonet.api.validation.MessageProperty.RESOURCE_EXISTS;
 
 @RequestScoped
 public class LoadBalancerResource extends AbstractResource {
@@ -176,7 +177,8 @@ public class LoadBalancerResource extends AbstractResource {
                     ResourceUriBuilder.getLoadBalancer(getBaseUri(), id))
                     .build();
         } catch (StatePathExistsException ex) {
-            throw new ConflictHttpException(ex);
+            throw new ConflictHttpException(getMessage(
+                    RESOURCE_EXISTS, "load balancer", loadBalancer.getId()));
         }
     }
 

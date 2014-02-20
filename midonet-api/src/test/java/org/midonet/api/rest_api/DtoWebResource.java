@@ -135,6 +135,11 @@ public class DtoWebResource {
         return putAndVerifyError(uri, mediaType, object, BAD_REQUEST);
     }
 
+    public DtoError putAndVerifyNotFound(
+            URI uri, String mediaType, Object object) {
+        return putAndVerifyError(uri, mediaType, object, NOT_FOUND);
+    }
+
     public DtoError putAndVerifyError(URI uri, String mediaType,
                                       Object object, Status status) {
         ClientResponse resp = putAndVerifyStatus(uri, mediaType, object,
