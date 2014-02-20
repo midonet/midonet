@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import javax.annotation.security.RolesAllowed;
+import javax.validation.Validator;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -57,9 +58,9 @@ public class PoolMemberResource extends AbstractResource {
 
     @Inject
     public PoolMemberResource(RestApiConfig config, UriInfo uriInfo,
-                              SecurityContext context,
+                              SecurityContext context, Validator validator,
                               DataClient dataClient) {
-        super(config, uriInfo, context);
+        super(config, uriInfo, context, validator);
         this.dataClient = dataClient;
     }
 
@@ -126,12 +127,11 @@ public class PoolMemberResource extends AbstractResource {
     @Consumes({ VendorMediaType.APPLICATION_POOL_MEMBER_JSON,
             MediaType.APPLICATION_JSON })
     public Response create(PoolMember poolMember)
-            throws StateAccessException, InvalidStateOperationException,
-            SerializationException{
+            throws StateAccessException, SerializationException {
 
-        if (poolMember.getWeight() < 0) {
-            throw new BadRequestHttpException(getMessage(POOL_MEMBER_WEIGHT_NEGATIVE));
-        } else if (poolMember.getWeight() == 0) {
+        validate(poolMember);
+
+        if (poolMember.getWeight() == 0) {
             poolMember.setWeight(1);
         }
 
@@ -157,14 +157,13 @@ public class PoolMemberResource extends AbstractResource {
             throws StateAccessException,
             InvalidStateOperationException, SerializationException {
 
-        if (poolMember.getWeight() < 0) {
-            throw new BadRequestHttpException(
-                    getMessage(POOL_MEMBER_WEIGHT_NEGATIVE));
-        } else if (poolMember.getWeight() == 0) {
+        validate(poolMember);
+
+        poolMember.setId(id);
+        if (poolMember.getWeight() == 0) {
             poolMember.setWeight(1);
         }
 
-        poolMember.setId(id);
         try {
             dataClient.poolMemberUpdate(poolMember.toData());
         } catch (NoStatePathException ex) {
@@ -197,15 +196,14 @@ public class PoolMemberResource extends AbstractResource {
         public List<PoolMember> list()
                 throws StateAccessException, SerializationException {
 
-            List<org.midonet.cluster.data.l4lb.PoolMember> dataPoolMembers =
-                    null;
-
+            List<org.midonet.cluster.data.l4lb.PoolMember> dataPoolMembers;
             try {
                 dataPoolMembers = dataClient.poolGetMembers(poolId);
             } catch (NoStatePathException ex) {
                 throw new NotFoundHttpException(ex);
             }
-            List<PoolMember> poolMembers = new ArrayList<PoolMember>();
+
+            List<PoolMember> poolMembers = new ArrayList<>();
             if (dataPoolMembers != null) {
                 for (org.midonet.cluster.data.l4lb.PoolMember dataPoolMember :
                         dataPoolMembers) {

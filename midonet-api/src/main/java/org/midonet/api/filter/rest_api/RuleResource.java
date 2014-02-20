@@ -5,11 +5,9 @@ package org.midonet.api.filter.rest_api;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
-import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -137,7 +135,6 @@ public class RuleResource extends AbstractResource {
 
         private final UUID chainId;
         private final Authorizer<UUID> authorizer;
-        private final Validator validator;
         private final DataClient dataClient;
 
         @Inject
@@ -148,10 +145,9 @@ public class RuleResource extends AbstractResource {
                                  Validator validator,
                                  DataClient dataClient,
                                  @Assisted UUID chainId) {
-            super(config, uriInfo, context);
+            super(config, uriInfo, context, validator);
             this.chainId = chainId;
             this.authorizer = authorizer;
-            this.validator = validator;
             this.dataClient = dataClient;
         }
 
@@ -177,11 +173,7 @@ public class RuleResource extends AbstractResource {
                 rule.setPosition(1);
             }
 
-            Set<ConstraintViolation<Rule>> violations = validator
-                    .validate(rule);
-            if (!violations.isEmpty()) {
-                throw new BadRequestHttpException(violations);
-            }
+            validate(rule);
 
             if (!authorizer.authorize(context, AuthAction.WRITE, chainId)) {
                 throw new ForbiddenHttpException(

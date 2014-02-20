@@ -58,21 +58,21 @@ public class LoadBalancerZkManager extends
         }
 
         @Override
+        public int hashCode() {
+            return Objects.hashCode(routerId, adminStateUp);
+        }
+
+        @Override
         public boolean equals(Object o) {
             if (this == o)
                 return true;
-            if (o == null || getClass() != o.getClass())
+            if (o == null || !getClass().equals(o.getClass()))
                 return false;
 
             LoadBalancerConfig that = (LoadBalancerConfig) o;
 
             return adminStateUp == that.adminStateUp &&
                     Objects.equal(routerId, that.routerId);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hashCode(routerId, adminStateUp);
         }
     }
 

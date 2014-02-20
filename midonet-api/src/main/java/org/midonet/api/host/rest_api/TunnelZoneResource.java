@@ -14,7 +14,6 @@ import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.auth.AuthRole;
-import org.midonet.api.rest_api.BadRequestHttpException;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.cluster.DataClient;
@@ -22,7 +21,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
-import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -31,7 +29,6 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 @RequestScoped
@@ -40,20 +37,15 @@ public class TunnelZoneResource extends AbstractResource {
     private final static Logger log = LoggerFactory
             .getLogger(TunnelZoneResource.class);
 
-    private final UriInfo uriInfo;
     private final DataClient dataClient;
-    private final Validator validator;
     private final ResourceFactory factory;
 
     @Inject
     public TunnelZoneResource(RestApiConfig config, UriInfo uriInfo,
-                              SecurityContext context,
-                              DataClient dataClient,
+                              SecurityContext context, DataClient dataClient,
                               Validator validator, ResourceFactory factory) {
-        super(config, uriInfo, context);
-        this.uriInfo = uriInfo;
+        super(config, uriInfo, context, validator);
         this.dataClient = dataClient;
-        this.validator = validator;
         this.factory = factory;
     }
 
@@ -118,11 +110,7 @@ public class TunnelZoneResource extends AbstractResource {
     public Response create(TunnelZone tunnelZone)
             throws StateAccessException, SerializationException {
 
-        Set<ConstraintViolation<TunnelZone>> violations = validator.validate(
-                tunnelZone, TunnelZone.TunnelZoneCreateGroupSequence.class);
-        if (!violations.isEmpty()) {
-            throw new BadRequestHttpException(violations);
-        }
+        validate(tunnelZone, TunnelZone.TunnelZoneCreateGroupSequence.class);
 
         UUID id = dataClient.tunnelZonesCreate(tunnelZone.toData());
         return Response.created(
@@ -140,11 +128,7 @@ public class TunnelZoneResource extends AbstractResource {
 
         tunnelZone.setId(id);
 
-        Set<ConstraintViolation<TunnelZone>> violations = validator.validate(
-                tunnelZone, TunnelZone.TunnelZoneUpdateGroupSequence.class);
-        if (!violations.isEmpty()) {
-            throw new BadRequestHttpException(violations);
-        }
+        validate(tunnelZone, TunnelZone.TunnelZoneUpdateGroupSequence.class);
 
         dataClient.tunnelZonesUpdate(tunnelZone.toData());
     }

@@ -5,7 +5,6 @@
 package org.midonet.api.filter.rest_api;
 
 import com.google.inject.Inject;
-import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.VendorMediaType;
@@ -25,7 +24,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
-import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -34,7 +32,6 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -47,7 +44,6 @@ public class ChainResource extends AbstractResource {
             .getLogger(ChainResource.class);
 
     private final Authorizer authorizer;
-    private final Validator validator;
     private final DataClient dataClient;
     private final ResourceFactory factory;
 
@@ -56,9 +52,8 @@ public class ChainResource extends AbstractResource {
                          SecurityContext context,
                          ChainAuthorizer authorizer, Validator validator,
                          DataClient dataClient, ResourceFactory factory) {
-        super(config, uriInfo, context);
+        super(config, uriInfo, context, validator);
         this.authorizer = authorizer;
-        this.validator = validator;
         this.dataClient = dataClient;
         this.factory = factory;
     }
@@ -156,11 +151,7 @@ public class ChainResource extends AbstractResource {
     public Response create(Chain chain)
             throws StateAccessException, SerializationException {
 
-        Set<ConstraintViolation<Chain>> violations = validator.validate(
-                chain, Chain.ChainGroupSequence.class);
-        if (!violations.isEmpty()) {
-            throw new BadRequestHttpException(violations);
-        }
+        validate(chain, Chain.ChainGroupSequence.class);
 
         if (!Authorizer.isAdminOrOwner(context, chain.getTenantId())) {
             throw new ForbiddenHttpException(

@@ -18,7 +18,6 @@ import org.midonet.api.auth.AuthRole;
 import org.midonet.api.auth.Authorizer;
 import org.midonet.api.network.auth.RouteAuthorizer;
 import org.midonet.api.network.auth.RouterAuthorizer;
-import org.midonet.api.rest_api.BadRequestHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
@@ -28,7 +27,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
-import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -37,7 +35,6 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -137,7 +134,6 @@ public class RouteResource extends AbstractResource {
 
         private final UUID routerId;
         private final Authorizer authorizer;
-        private final Validator validator;
         private final DataClient dataClient;
 
         @Inject
@@ -148,10 +144,9 @@ public class RouteResource extends AbstractResource {
                                    Validator validator,
                                    DataClient dataClient,
                                    @Assisted UUID routerId) {
-            super(config, uriInfo, context);
+            super(config, uriInfo, context, validator);
             this.routerId = routerId;
             this.authorizer = authorizer;
-            this.validator = validator;
             this.dataClient = dataClient;
         }
 
@@ -173,12 +168,7 @@ public class RouteResource extends AbstractResource {
                 SerializationException {
 
             route.setRouterId(routerId);
-
-            Set<ConstraintViolation<Route>> violations = validator.validate(
-                    route, Route.RouteGroupSequence.class);
-            if (!violations.isEmpty()) {
-                throw new BadRequestHttpException(violations);
-            }
+            validate(route, Route.RouteGroupSequence.class);
 
             if (!authorizer.authorize(context, AuthAction.WRITE, routerId)) {
                 throw new ForbiddenHttpException(

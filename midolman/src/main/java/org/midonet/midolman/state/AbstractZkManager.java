@@ -9,11 +9,13 @@ import org.apache.zookeeper.ZooDefs;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.zkManagers.BaseConfig;
+import org.midonet.midolman.state.zkManagers.ConfigGetter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -29,7 +31,8 @@ import java.util.UUID;
  *      resource type, e.g. BridgeZkManager.BridgeConfig. If CFG
  *      extends BaseConfig, then get() will set its id property.
  */
-public abstract class AbstractZkManager<K, CFG> extends BaseZkManager {
+public abstract class AbstractZkManager<K, CFG>
+        extends BaseZkManager implements ConfigGetter<K, CFG> {
 
     protected final static Logger log =
             LoggerFactory.getLogger(AbstractZkManager.class);
@@ -110,6 +113,23 @@ public abstract class AbstractZkManager<K, CFG> extends BaseZkManager {
         }
 
         return config;
+    }
+
+    /**
+     * Gets the configs for the specified multiple resource IDs.
+     *
+     * @param keys IDs of resources to be retrieved.
+     * @return A list of the config of requested resources
+     * @throws StateAccessException
+     * @throws SerializationException
+     */
+    public List<CFG> get(Collection<K> keys)
+            throws StateAccessException, SerializationException {
+        List<CFG> configs = new ArrayList<>(keys.size());
+        for (K key : keys) {
+            configs.add(get(key));
+        }
+        return configs;
     }
 
     /**

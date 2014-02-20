@@ -55,15 +55,13 @@ public class VipResource extends AbstractResource {
     private final static Logger log = LoggerFactory
             .getLogger(VIP.class);
 
-    private final Validator validator;
     private final DataClient dataClient;
 
     @Inject
     public VipResource(RestApiConfig config, UriInfo uriInfo,
                        SecurityContext context, Validator validator,
                        DataClient dataClient, ResourceFactory factory) {
-        super(config, uriInfo, context);
-        this.validator = validator;
+        super(config, uriInfo, context, validator);
         this.dataClient = dataClient;
     }
 
@@ -161,10 +159,7 @@ public class VipResource extends AbstractResource {
             throws StateAccessException, InvalidStateOperationException,
             SerializationException,ConflictHttpException {
         try {
-            Set<ConstraintViolation<VIP>> violations = validator.validate(vip);
-            if (!violations.isEmpty()) {
-                throw new BadRequestHttpException(violations);
-            }
+            validate(vip);
             UUID id = dataClient.vipCreate(vip.toData());
             return Response.created(
                     ResourceUriBuilder.getVip(getBaseUri(), id)).build();
@@ -194,10 +189,7 @@ public class VipResource extends AbstractResource {
             throws StateAccessException, InvalidStateOperationException,
             SerializationException {
         vip.setId(id);
-        Set<ConstraintViolation<VIP>> violations = validator.validate(vip);
-        if (!violations.isEmpty()) {
-            throw new BadRequestHttpException(violations);
-        }
+        validate(vip);
 
         try {
             dataClient.vipUpdate(vip.toData());

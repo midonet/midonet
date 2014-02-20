@@ -24,6 +24,8 @@ public class MessageProperty {
             "{midokura.javarx.HostInterfaceIsAlreadyUsed.message}";
     public static final String IP_ADDR_GROUP_ID_EXISTS =
             "{midokura.javarx.IpAddrGroupIdExists}";
+    public static final String IP_ADDR_INVALID =
+            "{midokura.javarx.IpAddrInvalid}";
     public static final String IS_UNIQUE_BRIDGE_NAME =
             "{midokura.javarx.IsUniqueBridgeName.message}";
     public static final String IS_UNIQUE_CHAIN_NAME =

@@ -4,21 +4,20 @@
 package org.midonet.midolman.state.zkManagers;
 
 import com.google.common.base.Objects;
-
-import java.util.List;
-import java.util.UUID;
-
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
-import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
+import java.util.UUID;
 
 import static java.util.Arrays.asList;
 
@@ -59,22 +58,26 @@ public class HealthMonitorZkManager extends
         }
 
         @Override
+        public int hashCode() {
+            return Objects.hashCode(type, delay, timeout, maxRetries,
+                    adminStateUp, status);
+        }
+
+        @Override
         public boolean equals(Object o) {
             if (this == o)
                 return true;
-            if (o == null || getClass() != o.getClass())
+            if (o == null || !getClass().equals(o.getClass()))
                 return false;
 
             HealthMonitorConfig that = (HealthMonitorConfig) o;
 
-            if (!Objects.equal(type, that.type)) return false;
-            if (delay != that.delay) return false;
-            if (timeout != that.timeout) return false;
-            if (maxRetries != that.maxRetries) return false;
-            if (adminStateUp != that.adminStateUp) return false;
-            if (!Objects.equal(status, that.status)) return false;
-
-            return true;
+            return Objects.equal(type, that.type) &&
+                    delay == that.delay &&
+                    timeout == that.timeout &&
+                    maxRetries == that.maxRetries &&
+                    adminStateUp == that.adminStateUp &&
+                    Objects.equal(status, that.status);
         }
     }
 
@@ -107,7 +110,7 @@ public class HealthMonitorZkManager extends
 
     public List<Op> prepareDelete(UUID id) {
         return asList(Op.delete(paths.getHealthMonitorPoolsPath(id), -1),
-                      Op.delete(paths.getHealthMonitorPath(id), -1));
+                Op.delete(paths.getHealthMonitorPath(id), -1));
     }
 
    public List<UUID> getPoolIds(UUID id)

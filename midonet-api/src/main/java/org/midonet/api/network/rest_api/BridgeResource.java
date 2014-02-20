@@ -63,7 +63,6 @@ public class BridgeResource extends AbstractResource {
             .getLogger(BridgeResource.class);
 
     private final Authorizer authorizer;
-    private final Validator validator;
     private final DataClient dataClient;
     private final ResourceFactory factory;
 
@@ -72,9 +71,8 @@ public class BridgeResource extends AbstractResource {
                           SecurityContext context, BridgeAuthorizer authorizer,
                           Validator validator, DataClient dataClient,
                           ResourceFactory factory) {
-        super(config, uriInfo, context);
+        super(config, uriInfo, context, validator);
         this.authorizer = authorizer;
-        this.validator = validator;
         this.dataClient = dataClient;
         this.factory = factory;
     }
@@ -213,12 +211,7 @@ public class BridgeResource extends AbstractResource {
             SerializationException {
 
         bridge.setId(id);
-
-        Set<ConstraintViolation<Bridge>> violations = validator.validate(
-                bridge, BridgeUpdateGroupSequence.class);
-        if (!violations.isEmpty()) {
-            throw new BadRequestHttpException(violations);
-        }
+        validate(bridge, BridgeUpdateGroupSequence.class);
 
         if (!authorizer.authorize(context, AuthAction.WRITE, id)) {
             throw new ForbiddenHttpException(
@@ -244,11 +237,7 @@ public class BridgeResource extends AbstractResource {
     public Response create(Bridge bridge)
             throws StateAccessException, SerializationException{
 
-        Set<ConstraintViolation<Bridge>> violations = validator.validate(
-                bridge, BridgeCreateGroupSequence.class);
-        if (!violations.isEmpty()) {
-            throw new BadRequestHttpException(violations);
-        }
+        validate(bridge, BridgeCreateGroupSequence.class);
 
         if (!Authorizer.isAdminOrOwner(context, bridge.getTenantId())) {
             throw new ForbiddenHttpException(
@@ -428,11 +417,7 @@ public class BridgeResource extends AbstractResource {
         // Need to set these properties for validation.
         mp.setBridgeId(id);
         mp.setVlanId(vlanId);
-        Set<ConstraintViolation<MacPort>> violations = validator.validate(
-                mp, MacPort.MacPortGroupSequence.class);
-        if (!violations.isEmpty()) {
-            throw new BadRequestHttpException(violations);
-        }
+        validate(mp, MacPort.MacPortGroupSequence.class);
 
         dataClient.bridgeAddMacPort(id, vlanId,
                 MAC.fromString(mp.getMacAddr()), mp.getPortId());
@@ -643,11 +628,7 @@ public class BridgeResource extends AbstractResource {
                 "Not authorized to add to this bridge's ARP table.");
         }
 
-        Set<ConstraintViolation<IP4MacPair>> violations = validator.validate(
-            mp, Default.class);
-        if (!violations.isEmpty()) {
-            throw new BadRequestHttpException(violations);
-        }
+        validate(mp, Default.class);
 
         dataClient.bridgeAddIp4Mac(id,
             IPv4Addr.fromString(mp.getIp()), MAC.fromString(mp.getMac()));

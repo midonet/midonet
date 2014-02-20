@@ -4,10 +4,11 @@
 package org.midonet.midolman.state.zkManagers;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Objects;
 import org.apache.zookeeper.CreateMode;
@@ -21,8 +22,10 @@ import org.midonet.midolman.state.DirectoryCallback;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.midonet.midolman.state.zkManagers.HealthMonitorZkManager.HealthMonitorConfig;
+import org.midonet.midolman.state.zkManagers.LoadBalancerZkManager.LoadBalancerConfig;
+import org.midonet.midolman.state.zkManagers.PoolMemberZkManager.PoolMemberConfig;
+import org.midonet.midolman.state.zkManagers.VipZkManager.VipConfig;
 
 import static java.util.Arrays.asList;
 
@@ -72,7 +75,7 @@ public class PoolZkManager
         public boolean equals(Object o) {
             if (this == o)
                 return true;
-            if (o == null || getClass() != o.getClass())
+            if (o == null || !getClass().equals(o.getClass()))
                 return false;
 
             PoolConfig that = (PoolConfig) o;
@@ -83,8 +86,107 @@ public class PoolZkManager
                     Objects.equal(healthMonitorId, that.healthMonitorId) &&
                     Objects.equal(protocol, that.protocol) &&
                     Objects.equal(lbMethod, that.lbMethod) &&
-                    (adminStateUp == that.adminStateUp) &&
+                    adminStateUp == that.adminStateUp &&
                     Objects.equal(status, that.status);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(name, description, loadBalancerId,
+                    healthMonitorId, protocol, lbMethod, adminStateUp, status);
+        }
+    }
+
+    public static class PoolHealthMonitorMappingConfig {
+
+        public static class LoadBalancerConfigWithId {
+            public UUID persistedId;
+            public LoadBalancerConfig config;
+
+            public LoadBalancerConfigWithId() {} // Needed for serialization.
+
+            public LoadBalancerConfigWithId(LoadBalancerConfig config) {
+                this.config = config;
+                this.persistedId = config.id;
+            }
+        }
+
+        public static class VipConfigWithId {
+            public UUID persistedId;
+            public VipConfig config;
+
+            public VipConfigWithId() {} // Needed for serialization.
+
+            public VipConfigWithId(VipConfig config) {
+                this.config = config;
+                this.persistedId = config.id;
+            }
+        }
+
+        public static class PoolMemberConfigWithId {
+            public UUID persistedId;
+            public PoolMemberConfig config;
+
+            public PoolMemberConfigWithId() {} // Needed for serialization.
+
+            public PoolMemberConfigWithId(PoolMemberConfig config) {
+                this.config = config;
+                this.persistedId = config.id;
+            }
+        }
+
+        public static class HealthMonitorConfigWithId {
+            public UUID persistedId;
+            public HealthMonitorConfig config;
+
+            public HealthMonitorConfigWithId() {} // Needed for serialization.
+
+            public HealthMonitorConfigWithId(HealthMonitorConfig config) {
+                this.config = config;
+                this.persistedId = config.id;
+            }
+        }
+
+        public LoadBalancerConfigWithId loadBalancerConfig;
+        public List<VipConfigWithId> vipConfigs;
+        public List<PoolMemberConfigWithId> poolMemberConfigs;
+        public HealthMonitorConfigWithId healthMonitorConfig;
+
+        public PoolHealthMonitorMappingConfig() {} // Needed for serialization.
+
+        public PoolHealthMonitorMappingConfig(
+                LoadBalancerConfigWithId loadBalancerConfig,
+                List<VipConfigWithId> vipConfigs,
+                List<PoolMemberConfigWithId> poolMemberConfigs,
+                HealthMonitorConfigWithId healthMonitorConfig) {
+            this.loadBalancerConfig = loadBalancerConfig;
+            this.vipConfigs = vipConfigs;
+            this.poolMemberConfigs = poolMemberConfigs;
+            this.healthMonitorConfig = healthMonitorConfig;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o)
+                return true;
+            if (o == null || !getClass().equals(o.getClass()))
+                return false;
+
+            PoolHealthMonitorMappingConfig that =
+                    (PoolHealthMonitorMappingConfig) o;
+
+            return Objects.equal(loadBalancerConfig,
+                            that.loadBalancerConfig) &&
+                    Objects.equal(vipConfigs, that.vipConfigs) &&
+                    Objects.equal(poolMemberConfigs, that.poolMemberConfigs) &&
+                    Objects.equal(healthMonitorConfig,
+                            that.healthMonitorConfig);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(loadBalancerConfig, vipConfigs,
+                    poolMemberConfigs, healthMonitorConfig);
         }
     }
 
@@ -168,4 +270,31 @@ public class PoolZkManager
         getUUIDSetAsync(paths.getPoolMembersPath(poolId),
                         poolMemberContentsCallback, watcher);
     }
+
+    public boolean existsPoolHealthMonitorMapping(UUID poolId,
+                                                  UUID healthMonitorId)
+        throws StateAccessException, SerializationException {
+        String mappingPath = paths.getPoolHealthMonitorMappingsPath(
+                poolId, healthMonitorId);
+        return zk.exists(mappingPath);
+    }
+
+    public PoolHealthMonitorMappingConfig
+        getPoolHealthMonitorMapping(UUID poolId, UUID healthMonitorId,
+                                    Runnable watcher)
+            throws StateAccessException, SerializationException {
+        String mappingPath = paths.getPoolHealthMonitorMappingsPath(
+                poolId, healthMonitorId);
+        byte[] data = zk.get(mappingPath, watcher);
+        return serializer.deserialize(
+                data, PoolHealthMonitorMappingConfig.class);
+
+    }
+
+    public PoolHealthMonitorMappingConfig
+        getPoolHealthMonitorMapping(UUID poolId, UUID healthMonitorId)
+            throws StateAccessException, SerializationException {
+        return getPoolHealthMonitorMapping(poolId, healthMonitorId, null);
+    }
+
 }

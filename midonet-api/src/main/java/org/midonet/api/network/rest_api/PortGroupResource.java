@@ -25,7 +25,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
-import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -34,7 +33,6 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -47,7 +45,6 @@ public class PortGroupResource extends AbstractResource {
             .getLogger(PortGroupResource.class);
 
     private final PortGroupAuthorizer authorizer;
-    private final Validator validator;
     private final DataClient dataClient;
     private final ResourceFactory factory;
 
@@ -57,9 +54,8 @@ public class PortGroupResource extends AbstractResource {
                              PortGroupAuthorizer authorizer,
                              Validator validator, DataClient dataClient,
                              ResourceFactory factory) {
-        super(config, uriInfo, context);
+        super(config, uriInfo, context, validator);
         this.authorizer = authorizer;
-        this.validator = validator;
         this.dataClient = dataClient;
         this.factory = factory;
     }
@@ -143,11 +139,7 @@ public class PortGroupResource extends AbstractResource {
     public Response create(PortGroup group)
             throws StateAccessException, SerializationException {
 
-        Set<ConstraintViolation<PortGroup>> violations = validator
-                .validate(group, PortGroup.PortGroupCreateGroupSequence.class);
-        if (!violations.isEmpty()) {
-            throw new BadRequestHttpException(violations);
-        }
+        validate(group, PortGroup.PortGroupCreateGroupSequence.class);
 
         if (!Authorizer.isAdminOrOwner(context, group.getTenantId())) {
             throw new ForbiddenHttpException(

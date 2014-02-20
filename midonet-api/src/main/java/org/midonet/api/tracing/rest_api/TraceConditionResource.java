@@ -48,7 +48,6 @@ public class TraceConditionResource extends AbstractResource {
             .getLogger(TraceConditionResource.class);
 
     private final DataClient dataClient;
-    private final Validator validator;
 
     @Inject
     public TraceConditionResource(RestApiConfig config, UriInfo uriInfo,
@@ -56,9 +55,8 @@ public class TraceConditionResource extends AbstractResource {
                                   DataClient dataClient,
                                   Validator validator)
     {
-        super(config, uriInfo, context);
+        super(config, uriInfo, context, validator);
         this.dataClient = dataClient;
-        this.validator = validator;
     }
 
     @GET
@@ -124,12 +122,7 @@ public class TraceConditionResource extends AbstractResource {
     public Response create(TraceCondition traceCondition)
         throws StateAccessException, SerializationException
     {
-        Set<ConstraintViolation<TraceCondition>> violations =
-            validator.validate(traceCondition);
-        if (!violations.isEmpty()) {
-            throw new BadRequestHttpException(violations);
-        }
-
+        validate(traceCondition);
         UUID id = dataClient.traceConditionCreate(traceCondition.toData());
         return Response.created(ResourceUriBuilder.
                                 getTraceCondition(getBaseUri(), id)).build();
