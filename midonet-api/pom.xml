@@ -46,8 +46,8 @@
                                 <delete file="${project.build.directory}/${project.build.finalName}/WEB-INF/classes/logback.xml" />
                                 <delete file="${project.build.directory}/${project.build.finalName}/WEB-INF/classes/logback.xml.sample" />
                                 <delete file="${project.build.directory}/${project.build.finalName}/WEB-INF/web.xml" />
-                                <delete file="${project.build.directory}/${project.build.finalName}/WEB-INF/web.xml.sample" />
-                                <copy file="src/main/webapp/WEB-INF/web.xml.sample" tofile="${project.build.directory}/${project.build.finalName}/WEB-INF/web.xml" />
+                                <delete file="${project.build.directory}/${project.build.finalName}/WEB-INF/web.xml.prod" />
+                                <copy file="src/main/webapp/WEB-INF/web.xml.prod" tofile="${project.build.directory}/${project.build.finalName}/WEB-INF/web.xml" />
                                 <copy file="conf/logback.xml.sample" tofile="${project.build.directory}/${project.build.finalName}/WEB-INF/classes/logback.xml" />
                             </tasks>
                         </configuration>
@@ -82,7 +82,10 @@
                 <artifactId>jetty-maven-plugin</artifactId>
                 <version>8.1.5.v20120716</version>
                 <configuration>
-                    <webApp><contextPath>/midonet-api</contextPath></webApp>
+                    <webApp>
+                        <contextPath>/midonet-api</contextPath>
+                        <descriptor>${project.basedir}/src/main/webapp/WEB-INF/web.xml.dev</descriptor>
+                    </webApp>
                 </configuration>
             </plugin>
 
@@ -133,10 +136,7 @@
                             <directoryIncluded>false</directoryIncluded>
                             <sources>
                                 <source>
-                                    <location>${project.basedir}/src/main/webapp/WEB-INF/web.xml.sample</location>
-                                </source>
-                                <source>
-                                    <location>${project.basedir}/src/main/webapp/WEB-INF/web.xml.sample</location>
+                                    <location>${project.basedir}/src/main/webapp/WEB-INF/web.xml.prod</location>
                                     <destination>web.xml</destination>
                                 </source>
                             </sources>
