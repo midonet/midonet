@@ -368,14 +368,20 @@ public class PortZkManager extends AbstractZkManager {
     }
 
     public List<Op> prepareClearRefsToChains(UUID id, UUID chainId)
-            throws SerializationException, StateAccessException {
-        Boolean dataChanged = false;
+            throws SerializationException, StateAccessException,
+            IllegalArgumentException {
+        if (chainId == null || id == null) {
+            throw new IllegalArgumentException(
+                    "chainId and id both must not be valid " +
+                    "resource references");
+        }
+        boolean dataChanged = false;
         PortConfig config = get(id);
-        if (config.inboundFilter.equals(chainId)) {
+        if (Objects.equals(config.inboundFilter, chainId)) {
             config.inboundFilter = null;
             dataChanged = true;
         }
-        if (config.outboundFilter.equals(chainId)) {
+        if (Objects.equals(config.outboundFilter, chainId)) {
             config.outboundFilter = null;
             dataChanged = true;
         }
