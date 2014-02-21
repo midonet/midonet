@@ -1,0 +1,175 @@
+<!DOCTYPE web-app PUBLIC
+ "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
+ "http://java.sun.com/dtd/web-app_2_3.dtd" >
+
+<web-app>
+  <display-name>MidoNet API</display-name>
+
+  <!-- REST API configuration -->
+  <!-- This value overrides the default base URI.  This is typically set if
+       you are proxying the API server and the base URI that the clients use
+       to access the API is different from the actual server base URI. -->
+  <context-param>
+    <param-name>rest_api-base_uri</param-name>
+    <param-value>http://localhost:8080/midonet-api</param-value>
+  </context-param>
+
+  <!-- CORS configuration -->
+  <context-param>
+    <param-name>cors-access_control_allow_origin</param-name>
+    <param-value>*</param-value>
+  </context-param>
+  <context-param>
+    <param-name>cors-access_control_allow_headers</param-name>
+    <param-value>Origin, X-Auth-Token, Content-Type, Accept, Authorization</param-value>
+  </context-param>
+  <context-param>
+    <param-name>cors-access_control_allow_methods</param-name>
+    <param-value>GET, POST, PUT, DELETE, OPTIONS</param-value>
+  </context-param>
+  <context-param>
+    <param-name>cors-access_control_expose_headers</param-name>
+    <param-value>Location</param-value>
+  </context-param>
+
+  <!-- Auth configuration -->
+  <context-param>
+    <param-name>auth-auth_provider</param-name>
+    <!-- Specify the class path of the auth service -->
+    <param-value>
+      org.midonet.api.auth.keystone.v2_0.KeystoneService
+    </param-value>
+  </context-param>
+  <context-param>
+    <param-name>auth-admin_role</param-name>
+    <param-value>admin</param-value>
+  </context-param>
+
+  <!-- Mock auth configuration -->
+  <context-param>
+    <param-name>mock_auth-admin_token</param-name>
+    <param-value>999888777666</param-value>
+  </context-param>
+  <context-param>
+    <param-name>mock_auth-tenant_admin_token</param-name>
+    <param-value>999888777666</param-value>
+  </context-param>
+  <context-param>
+    <param-name>mock_auth-tenant_user_token</param-name>
+    <param-value>999888777666</param-value>
+  </context-param>
+
+  <!-- Keystone configuration -->
+  <context-param>
+    <param-name>keystone-service_protocol</param-name>
+    <param-value>http</param-value>
+  </context-param>
+  <context-param>
+    <param-name>keystone-service_host</param-name>
+    <param-value>127.0.0.1</param-value>
+  </context-param>
+  <context-param>
+    <param-name>keystone-service_port</param-name>
+    <param-value>35357</param-value>
+  </context-param>
+  <context-param>
+    <param-name>keystone-admin_token</param-name>
+    <param-value>999888777666</param-value>
+  </context-param>
+  <!-- This tenant name is used to get the scoped token from Keystone, and
+       should be the tenant name of the user that owns the token sent in the
+       request -->
+  <context-param>
+    <param-name>keystone-tenant_name</param-name>
+    <param-value>admin</param-value>
+  </context-param>
+
+  <!-- CloudStack auth configuration -->
+  <context-param>
+    <param-name>cloudstack-api_base_uri</param-name>
+    <param-value>http://127.0.0.1:8080</param-value>
+  </context-param>
+  <context-param>
+    <param-name>cloudstack-api_path</param-name>
+    <param-value>/client/api?</param-value>
+  </context-param>
+  <context-param>
+    <param-name>cloudstack-api_key</param-name>
+    <param-value></param-value>
+  </context-param>
+  <context-param>
+    <param-name>cloudstack-secret_key</param-name>
+    <param-value></param-value>
+  </context-param>
+
+  <!-- Zookeeper configuration -->
+  <!-- The following parameters should match the ones in midolman.conf
+       except 'use_mock' -->
+  <context-param>
+    <param-name>zookeeper-use_mock</param-name>
+    <param-value>false</param-value>
+  </context-param>
+  <context-param>
+    <param-name>zookeeper-zookeeper_hosts</param-name>
+    <!-- comma separated list of Zookeeper nodes(host:port) -->
+    <param-value>127.0.0.1:2181</param-value>
+  </context-param>
+  <context-param>
+    <param-name>zookeeper-session_timeout</param-name>
+    <param-value>30000</param-value>
+  </context-param>
+  <context-param>
+    <param-name>zookeeper-midolman_root_key</param-name>
+    <param-value>/midonet/v1</param-value>
+  </context-param>
+
+  <!-- Cassandra configuration -->
+  <!-- The following parameters should match the ones in midolman.conf -->
+  <context-param>
+    <param-name>cassandra-servers</param-name>
+    <!-- comma separated list of Cassandra nodes(host:port) -->
+    <param-value>localhost:9160</param-value>
+  </context-param>
+  <context-param>
+    <param-name>cassandra-cluster</param-name>
+    <param-value>midonet</param-value>
+  </context-param>
+
+  <!-- Monitoring configuration -->
+  <context-param>
+    <param-name>monitoring-cassandra_keyspace</param-name>
+    <param-value>midonet_monitoring</param-value>
+  </context-param>
+  <context-param>
+    <param-name>monitoring-cassandra_column_family</param-name>
+    <param-value>monitoring_data</param-value>
+  </context-param>
+  <context-param>
+    <param-name>monitoring-cassandra_replication_factor</param-name>
+    <param-value>1</param-value>
+  </context-param>
+  <context-param>
+    <param-name>monitoring-cassandra_expiration_timeout</param-name>
+    <param-value>525600</param-value>
+  </context-param>
+
+  <!-- Servlet Listner -->
+  <listener>
+     <listener-class>
+         <!-- Use Jersey's Guice compatible context listener -->
+         org.midonet.api.servlet.JerseyGuiceServletContextListener
+     </listener-class>
+  </listener>
+
+  <!-- Servlet filter -->
+  <filter>
+     <!-- Filter to enable Guice -->
+    <filter-name>Guice Filter</filter-name>
+    <filter-class>com.google.inject.servlet.GuiceFilter</filter-class>
+  </filter>
+  <filter-mapping>
+    <filter-name>Guice Filter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+
+</web-app>
