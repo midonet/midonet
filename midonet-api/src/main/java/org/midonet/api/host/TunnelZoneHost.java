@@ -132,7 +132,11 @@ public abstract class TunnelZoneHost extends UriResource {
 
     @Override
     public String toString() {
-        return "tunnelZoneId=" + tunnelZoneId + ", hostId=" + hostId;
+        return "TunnelZoneHost{" +
+                "tunnelZoneId=" + tunnelZoneId +
+                ", hostId=" + hostId +
+                ", ipAddress='" + ipAddress + '\'' +
+                '}';
     }
 
     /**

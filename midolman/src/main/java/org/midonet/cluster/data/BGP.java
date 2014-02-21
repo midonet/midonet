@@ -113,5 +113,15 @@ public class BGP extends Entity.Base<UUID, BGP.Data, BGP>{
         public UUID portId;
         public Map<String, String> properties = new HashMap<String, String>();
 
+        @Override
+        public String toString() {
+            return "Data{" +
+                    "localAS=" + localAS +
+                    ", peerAddr=" + peerAddr +
+                    ", peerAS=" + peerAS +
+                    ", portId=" + portId +
+                    ", properties=" + properties +
+                    '}';
+        }
     }
 }

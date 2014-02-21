@@ -19,6 +19,7 @@ import org.midonet.api.bgp.auth.BgpAuthorizer;
 import org.midonet.api.bgp.rest_api.AdRouteResource.BgpAdRouteResource;
 import org.midonet.api.network.auth.PortAuthorizer;
 import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.event.topology.BgpEvent;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.cluster.DataClient;
@@ -45,6 +46,7 @@ public class BgpResource extends AbstractResource {
 
     private final static Logger log = LoggerFactory
             .getLogger(BgpResource.class);
+    private final static BgpEvent bgpEvent = new BgpEvent();
 
     private final BgpAuthorizer authorizer;
     private final DataClient dataClient;
@@ -86,6 +88,7 @@ public class BgpResource extends AbstractResource {
         }
 
         dataClient.bgpDelete(id);
+        bgpEvent.delete(id, bgpData);
     }
 
     /**
@@ -183,6 +186,7 @@ public class BgpResource extends AbstractResource {
             }
 
             UUID id = dataClient.bgpCreate(bgp.toData());
+            bgpEvent.create(id, dataClient.bgpGet(id));
             return Response.created(
                     ResourceUriBuilder.getBgp(getBaseUri(), id))
                     .build();

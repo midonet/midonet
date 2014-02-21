@@ -4,6 +4,7 @@
 package org.midonet.api.zookeeper;
 
 import com.google.inject.Inject;
+import org.midonet.event.api.NsdbEvent;
 import org.midonet.midolman.config.ZookeeperConfig;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkConnection;
@@ -22,6 +23,7 @@ public class ZookeeperConnWatcher implements ZkConnectionAwareWatcher {
 
     private final static Logger log = LoggerFactory
             .getLogger(ZookeeperConnWatcher.class);
+    private final static NsdbEvent apiNsdbEvent = new NsdbEvent();
 
     private ZkConnection conn;
     private final ZookeeperConfig config;
@@ -36,12 +38,19 @@ public class ZookeeperConnWatcher implements ZkConnectionAwareWatcher {
         log.debug("ZookeeperConnWatcher.process: Entered with event {}",
                 watchedEvent.getState());
 
+        if (watchedEvent.getState() == Event.KeeperState.SyncConnected) {
+            apiNsdbEvent.connect();
+        }else if (watchedEvent.getState() == Event.KeeperState.Disconnected) {
+            apiNsdbEvent.disconnect();
+        }
+
         // The ZK client re-connects automatically. However, after it
         // successfully reconnects, if the session had expired, we need to
         // create a new session.
-        if (watchedEvent.getState() == Watcher.Event.KeeperState.Expired
+        else if (watchedEvent.getState() == Watcher.Event.KeeperState.Expired
                 && conn != null) {
             log.info("Session expired, reconnecting to ZK with a new session");
+            apiNsdbEvent.connExpire();
             try {
                 conn.reopen();
             } catch (Exception e) {

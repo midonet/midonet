@@ -14,6 +14,7 @@ import org.midonet.api.auth.ForbiddenHttpException;
 import org.midonet.api.network.Router;
 import org.midonet.api.network.auth.RouterAuthorizer;
 import org.midonet.api.rest_api.*;
+import org.midonet.event.topology.RouterEvent;
 import org.midonet.cluster.DataClient;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
@@ -32,6 +33,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+
+
+
 /**
  * Root resource class for Virtual Router.
  */
@@ -44,6 +48,8 @@ public class RouterResource extends AbstractResource {
     private final RouterAuthorizer authorizer;
     private final DataClient dataClient;
     private final ResourceFactory factory;
+    private final RouterEvent routerEvent = new RouterEvent() ;
+
 
     @Inject
     public RouterResource(RestApiConfig config, UriInfo uriInfo,
@@ -83,6 +89,7 @@ public class RouterResource extends AbstractResource {
         }
 
         dataClient.routersDelete(id);
+        routerEvent.delete(id);
     }
 
     /**
@@ -189,6 +196,7 @@ public class RouterResource extends AbstractResource {
         }
 
         dataClient.routersUpdate(router.toData());
+        routerEvent.update(id, dataClient.routersGet(id));
     }
 
     /**
@@ -217,6 +225,9 @@ public class RouterResource extends AbstractResource {
         }
 
         UUID id = dataClient.routersCreate(router.toData());
+
+        routerEvent.create(id, dataClient.routersGet(id).toString());
+
         return Response.created(
                 ResourceUriBuilder.getRouter(getBaseUri(), id))
                 .build();

@@ -20,6 +20,7 @@ import org.midonet.api.network.IP4MacPair;
 import org.midonet.api.network.MacPort;
 import org.midonet.api.network.auth.BridgeAuthorizer;
 import org.midonet.api.rest_api.*;
+import org.midonet.event.topology.BridgeEvent;
 import org.midonet.api.validation.MessageProperty;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.ports.VlanMacPort;
@@ -49,6 +50,7 @@ import static org.midonet.api.ResourceUriBuilder.VLANS;
 import static org.midonet.api.validation.MessageProperty.getMessage;
 import static org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID;
 
+
 /**
  * Root resource class for Virtual bridges.
  */
@@ -57,6 +59,7 @@ public class BridgeResource extends AbstractResource {
 
     private final static Logger log = LoggerFactory
             .getLogger(BridgeResource.class);
+    private final BridgeEvent bridgeEvent = new BridgeEvent();
 
     private final BridgeAuthorizer authorizer;
     private final DataClient dataClient;
@@ -100,6 +103,7 @@ public class BridgeResource extends AbstractResource {
         }
 
         dataClient.bridgesDelete(id);
+        bridgeEvent.delete(id);
     }
 
     /**
@@ -215,6 +219,7 @@ public class BridgeResource extends AbstractResource {
         }
 
         dataClient.bridgesUpdate(bridge.toData());
+        bridgeEvent.update(id, dataClient.bridgesGet(id));
     }
 
     /**
@@ -242,6 +247,7 @@ public class BridgeResource extends AbstractResource {
 
         try {
             UUID id = dataClient.bridgesCreate(bridge.toData());
+            bridgeEvent.create(id, dataClient.bridgesGet(id));
             return Response.created(
                     ResourceUriBuilder.getBridge(getBaseUri(), id))
                     .build();

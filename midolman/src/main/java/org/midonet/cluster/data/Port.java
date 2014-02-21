@@ -211,5 +211,21 @@ public abstract class Port<PortData extends Port.Data,
             result = 31 * result + Boolean.valueOf(adminStateUp).hashCode();
             return result;
         }
+
+        @Override
+        public String toString() {
+            return "Data{" +
+                    "device_id=" + device_id +
+                    ", inboundFilter=" + inboundFilter +
+                    ", outboundFilter=" + outboundFilter +
+                    ", portGroupIDs=" + portGroupIDs +
+                    ", tunnelKey=" + tunnelKey +
+                    ", properties=" + properties +
+                    ", peer_uuid=" + peer_uuid +
+                    ", hostId=" + hostId +
+                    ", interfaceName='" + interfaceName + '\'' +
+                    ", adminStateUp=" + adminStateUp +
+                    '}';
+        }
     }
 }

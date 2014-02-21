@@ -19,6 +19,7 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
 import org.midonet.packets.MAC;
+import org.midonet.event.topology.RuleEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,6 +50,7 @@ public class RuleResource extends AbstractResource {
 
     private final static Logger log = LoggerFactory
             .getLogger(RuleResource.class);
+    private final static RuleEvent ruleEvent = new RuleEvent();
 
     private final RuleAuthorizer authorizer;
     private final DataClient dataClient;
@@ -89,6 +91,7 @@ public class RuleResource extends AbstractResource {
         }
 
         dataClient.rulesDelete(id);
+        ruleEvent.delete(id);
     }
 
     /**
@@ -181,6 +184,7 @@ public class RuleResource extends AbstractResource {
 
             try {
                 UUID id = dataClient.rulesCreate(rule.toData());
+                ruleEvent.create(id, dataClient.rulesGet(id));
                 return Response.created(
                         ResourceUriBuilder.getRule(getBaseUri(), id))
                         .build();
