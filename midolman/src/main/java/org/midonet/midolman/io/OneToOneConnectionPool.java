@@ -12,10 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.midolman.config.MidolmanConfig;
-import org.midonet.midolman.guice.datapath.DatapathModule.SIMULATION_THROTTLING_GUARD;
 import org.midonet.odp.protos.OvsDatapathConnection;
 import org.midonet.util.eventloop.Reactor;
-import org.midonet.util.throttling.ThrottlingGuard;
 
 
 public class OneToOneConnectionPool implements DatapathConnectionPool {
@@ -29,10 +27,6 @@ public class OneToOneConnectionPool implements DatapathConnectionPool {
     @Inject
     private Reactor reactor;
 
-    @Inject
-    @SIMULATION_THROTTLING_GUARD
-    private ThrottlingGuard throttler;
-
     private DualSelectorDatapathConnection[] conns;
 
     public OneToOneConnectionPool(String name, int numChannels) {
@@ -41,7 +35,7 @@ public class OneToOneConnectionPool implements DatapathConnectionPool {
         conns = new DualSelectorDatapathConnection[numChannels];
         for (int i=0; i<numChannels; i++) {
             conns[i] = new DualSelectorDatapathConnection(this.name + ".channel-" + i,
-                    reactor, throttler, config);
+                    reactor, config);
         }
     }
 

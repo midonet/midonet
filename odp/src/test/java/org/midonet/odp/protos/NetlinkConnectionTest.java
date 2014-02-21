@@ -23,8 +23,6 @@ import static org.hamcrest.Matchers.is;
 
 import org.midonet.netlink.exceptions.NetlinkException;
 import org.midonet.netlink.protos.NetlinkConnection;
-import org.midonet.util.throttling.NoOpThrottlingGuard;
-import org.midonet.util.throttling.NoOpThrottlingGuardFactory;
 
 
 @RunWith(PowerMockRunner.class)

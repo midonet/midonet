@@ -32,7 +32,6 @@ import org.midonet.midolman.routingprotocols.RoutingManagerActor;
 import org.midonet.midolman.services.HostIdProviderService;
 import org.midonet.midolman.services.MidolmanActorsService;
 import org.midonet.midolman.topology.*;
-import org.midonet.util.throttling.ThrottlingGuard;
 
 import static org.midonet.midolman.guice.CacheModule.NAT_CACHE;
 
@@ -72,8 +71,6 @@ public class MidolmanActorsModule extends PrivateModule {
                                DatapathModule.UPCALL_DATAPATH_CONNECTION.class));
         requireBinding(HostIdProviderService.class);
         requireBinding(HostConfig.class);
-        requireBinding(Key.get(ThrottlingGuard.class,
-                               DatapathModule.SIMULATION_THROTTLING_GUARD.class));
 
         bindMidolmanActorsService();
         expose(MidolmanActorsService.class);

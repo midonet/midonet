@@ -29,8 +29,6 @@ import org.midonet.netlink.messages.Builder;
 import org.midonet.util.BatchCollector;
 import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.io.SelectorInputQueue;
-import org.midonet.util.throttling.ThrottlingGuard;
-import org.midonet.util.throttling.ThrottlingGuardFactory;
 
 import static org.midonet.netlink.Netlink.Flag;
 
@@ -47,8 +45,6 @@ public abstract class AbstractNetlinkConnection {
     private static final int NETLINK_READ_BUFSIZE = 0x10000;
 
     private AtomicInteger sequenceGenerator = new AtomicInteger(1);
-
-    protected ThrottlingGuard upcallThrottler;
 
     private Map<Integer, NetlinkRequest>
         pendingRequests = new ConcurrentHashMap<>();
@@ -75,10 +71,9 @@ public abstract class AbstractNetlinkConnection {
             new SelectorInputQueue<NetlinkRequest>();
 
     public AbstractNetlinkConnection(NetlinkChannel channel, Reactor reactor,
-            ThrottlingGuard upcallThrottler, BufferPool sendPool) {
+                                     BufferPool sendPool) {
         this.channel = channel;
         this.reactor = reactor;
-        this.upcallThrottler = upcallThrottler;
         this.requestPool = sendPool;
 
         // default implementation runs callbacks out of the calling thread one by one
@@ -364,9 +359,8 @@ public abstract class AbstractNetlinkConnection {
                             dispatcher.submit(request.successful(request.inBuffers));
                         }
 
-                        if (seq == 0 && upcallThrottler.tokenInIfAllowed()) {
+                        if (seq == 0)
                             handleNotification(type, cmd, seq, pid, buffers);
-                        }
                     }
             }
 
