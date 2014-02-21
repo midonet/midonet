@@ -520,6 +520,31 @@ public class TestChain {
                     APPLICATION_CHAIN_JSON, getStockChain("BOTH"),
                     DtoRuleChain.class);
 
+            // Set the chains to one valid chain, and one null
+            port.setInboundFilterId(ruleChain1.getId());
+            port.setOutboundFilterId(null);
+            port = dtoResource.putAndVerifyNoContent(port.getUri(),
+                    APPLICATION_PORT_JSON, port, DtoInteriorRouterPort.class);
+
+            router.setInboundFilterId(ruleChain1.getId());
+            router.setOutboundFilterId(null);
+            router = dtoResource.putAndVerifyNoContent(router.getUri(),
+                    APPLICATION_ROUTER_JSON, router, DtoRouter.class);
+
+            bridge.setInboundFilterId(ruleChain1.getId());
+            bridge.setOutboundFilterId(null);
+            bridge = dtoResource.putAndVerifyNoContent(bridge.getUri(),
+                    APPLICATION_BRIDGE_JSON, bridge, DtoBridge.class);
+
+            // Delete to trigger the back ref delete.
+            dtoResource.deleteAndVerifyNoContent(ruleChain1.getUri(),
+                    APPLICATION_CHAIN_JSON);
+
+            // Create these chains again for more testing.
+            ruleChain1 = dtoResource.postAndVerifyCreated(app.getChains(),
+                    APPLICATION_CHAIN_JSON, getStockChain("BOTH"),
+                    DtoRuleChain.class);
+
             // Set the filters to the same ruleChain
             port.setInboundFilterId(ruleChain1.getId());
             port.setOutboundFilterId(ruleChain1.getId());
