@@ -29,7 +29,6 @@ import org.midonet.odp.DpPort;
 import org.midonet.odp.ports.InternalPort;
 import org.midonet.util.BatchCollector;
 import org.midonet.util.eventloop.Reactor;
-import org.midonet.util.throttling.NoOpThrottlingGuard;
 import static org.midonet.netlink.exceptions.NetlinkException.ErrorCode.*;
 
 
@@ -58,7 +57,7 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
 
     public MockOvsDatapathConnection(NetlinkChannel channel, Reactor reactor)
         throws Exception {
-        super(channel, reactor, new NoOpThrottlingGuard(), new BufferPool(128, 512, 0x1000));
+        super(channel, reactor, new BufferPool(128, 512, 0x1000));
     }
 
     @Override

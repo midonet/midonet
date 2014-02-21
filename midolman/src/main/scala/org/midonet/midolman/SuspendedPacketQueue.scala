@@ -10,10 +10,8 @@ import scala.concurrent.duration.Duration
 
 import akka.actor._
 
-
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.util.collection.RingBuffer
-import org.midonet.util.throttling.ThrottlingGuard
 
 
 object SuspendedPacketQueue {
@@ -28,8 +26,6 @@ trait SuspendedPacketQueue extends Actor with ActorLogWithoutPath {
     // not a val because, when overriding in a test, the val will not get its
     // proper value in time for the array below creation
     def SUSPENDED_SIM_SLOTS = 8192
-
-    def throttler: ThrottlingGuard
 
     protected val ring = new RingBuffer[(Option[Int], Promise[_])](SUSPENDED_SIM_SLOTS, null)
 
@@ -65,11 +61,6 @@ trait SuspendedPacketQueue extends Actor with ActorLogWithoutPath {
             _cleanup()
             if (ring.isFull)
                 ring.take() foreach { case (c, p) => expire(c, p) }
-            val th = throttler
-            cookie foreach { c =>
-                th.tokenOut()
-                promise.future.onComplete { _ => th.tokenIn() }
-            }
             ring.put((cookie, promise))
 
         case SuspendedPacketQueue._CleanCompletedPromises =>

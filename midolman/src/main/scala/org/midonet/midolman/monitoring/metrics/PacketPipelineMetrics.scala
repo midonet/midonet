@@ -11,10 +11,7 @@ import java.util.concurrent.TimeUnit
 import com.yammer.metrics.core.MetricsRegistry
 import com.yammer.metrics.core.Gauge
 
-import org.midonet.util.throttling.ThrottlingGuard
-
-class PacketPipelineMetrics(val registry: MetricsRegistry,
-                            val throttler: ThrottlingGuard) {
+class PacketPipelineMetrics(val registry: MetricsRegistry) {
 
     val pendedPackets = registry.newCounter(
         classOf[PacketPipelineGauge], "currentPendedPackets")
@@ -41,19 +38,18 @@ class PacketPipelineMetrics(val registry: MetricsRegistry,
 
     // FIXME(guillermo)
     //  - make this a meter
-    //  - the throttler needs to expose a callback
     val packetsDropped = registry.newGauge(
         classOf[PacketPipelineCounter],
         "packetsDropped",
         new Gauge[Long]{
-            override def value = throttler.numDroppedTokens()
+            override def value = 0
         })
 
     val liveSimulations = registry.newGauge(
         classOf[PacketPipelineGauge],
         "liveSimulations",
         new Gauge[Long]{
-            override def value = throttler.numTokens()
+            override def value = 0
         })
 
     val wildcardTableHitLatency = registry.newHistogram(

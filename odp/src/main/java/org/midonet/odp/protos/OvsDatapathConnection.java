@@ -27,10 +27,6 @@ import org.midonet.odp.FlowMatch;
 import org.midonet.odp.Packet;
 import org.midonet.odp.DpPort;
 import org.midonet.util.eventloop.Reactor;
-import org.midonet.util.throttling.NoOpThrottlingGuard;
-import org.midonet.util.throttling.NoOpThrottlingGuardFactory;
-import org.midonet.util.throttling.ThrottlingGuard;
-import org.midonet.util.throttling.ThrottlingGuardFactory;
 
 
 /**
@@ -48,14 +44,12 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
     public final FuturesApi futures = new FuturesApi();
 
     protected OvsDatapathConnection(NetlinkChannel channel, Reactor reactor,
-            ThrottlingGuard upcallThrottler,
             BufferPool sendPool) throws Exception {
-        super(channel, reactor, upcallThrottler, sendPool);
+        super(channel, reactor, sendPool);
     }
 
     public static OvsDatapathConnection create(
             Netlink.Address address, Reactor reactor,
-            ThrottlingGuard upcallThrottler,
             BufferPool sendPool) throws Exception {
 
         NetlinkChannel channel;
@@ -70,14 +64,12 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
             throw new RuntimeException(e);
         }
 
-        return new OvsDatapathConnectionImpl(channel, reactor,
-            upcallThrottler, sendPool);
+        return new OvsDatapathConnectionImpl(channel, reactor, sendPool);
     }
 
     public static OvsDatapathConnection create(
             Netlink.Address address, Reactor reactor) throws Exception {
-        return create(address, reactor, new NoOpThrottlingGuard(),
-            new BufferPool(128, 512, 0x1000));
+        return create(address, reactor, new BufferPool(128, 512, 0x1000));
     }
 
     public static OvsDatapathConnection createMock(Reactor reactor) throws Exception {
