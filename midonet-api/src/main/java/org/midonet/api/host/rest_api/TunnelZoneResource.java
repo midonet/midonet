@@ -14,6 +14,7 @@ import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.auth.AuthRole;
+import org.midonet.event.topology.TunnelZoneEvent;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.cluster.DataClient;
@@ -36,6 +37,8 @@ public class TunnelZoneResource extends AbstractResource {
 
     private final static Logger log = LoggerFactory
             .getLogger(TunnelZoneResource.class);
+    private final static TunnelZoneEvent tunnelZoneEvent =
+            new TunnelZoneEvent();
 
     private final DataClient dataClient;
     private final ResourceFactory factory;
@@ -101,6 +104,7 @@ public class TunnelZoneResource extends AbstractResource {
         }
 
         dataClient.tunnelZonesDelete(id);
+        tunnelZoneEvent.delete(id);
     }
 
     @POST
@@ -113,6 +117,7 @@ public class TunnelZoneResource extends AbstractResource {
         validate(tunnelZone, TunnelZone.TunnelZoneCreateGroupSequence.class);
 
         UUID id = dataClient.tunnelZonesCreate(tunnelZone.toData());
+        tunnelZoneEvent.create(id, dataClient.tunnelZonesGet(id));
         return Response.created(
                 ResourceUriBuilder.getTunnelZone(getBaseUri(), id))
                 .build();
@@ -131,6 +136,7 @@ public class TunnelZoneResource extends AbstractResource {
         validate(tunnelZone, TunnelZone.TunnelZoneUpdateGroupSequence.class);
 
         dataClient.tunnelZonesUpdate(tunnelZone.toData());
+        tunnelZoneEvent.update(id, dataClient.tunnelZonesGet(id));
     }
 
     @Path("/{id}" + ResourceUriBuilder.HOSTS)

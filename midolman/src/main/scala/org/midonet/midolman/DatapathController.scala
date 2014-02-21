@@ -48,6 +48,7 @@ import org.midonet.packets.TCP
 import org.midonet.sdn.flows.WildcardFlow
 import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.util.collection.Bimap
+import org.midonet.event.agent.InterfaceEvent
 
 
 trait UnderlayResolver {
@@ -1049,6 +1050,8 @@ class VirtualPortManager(
         var dpPortsInProgress: Set[String] = Set[String]()
     )(implicit val log: LoggingAdapter) {
 
+    val interfaceEvent = new InterfaceEvent
+
     private def copy = new VirtualPortManager(controller,
                                               interfaceToStatus,
                                               interfaceToDpPort,
@@ -1157,6 +1160,7 @@ class VirtualPortManager(
 
     private def _newInterface(itf: InterfaceDescription, isUp: Boolean) {
         log.info("New interface found: {} isUp: {}", itf, isUp)
+        interfaceEvent.detect(itf.toString);
         interfaceToStatus += ((itf.getName, isUp))
 
         // Is there a vport binding for this interface?
@@ -1190,6 +1194,7 @@ class VirtualPortManager(
             if (isUp != wasUp) {
                 interfaceToStatus += ((itf.getName, isUp))
                 log.info("Updating interface={} isUp status to {}", itf, isUp)
+                interfaceEvent.update(itf.toString)
                 for (
                     vportId <- interfaceToVport.get(itf.getName);
                     dpPort <- interfaceToDpPort.get(itf.getName)
@@ -1216,6 +1221,7 @@ class VirtualPortManager(
         val deletedInterfaces = interfaceToStatus -- currentInterfaces
         deletedInterfaces.keys.foreach { name =>
             log.info("Deleting interface name={}", name)
+            interfaceEvent.delete(name)
             interfaceToStatus -= name
             // we don't have to remove the binding, the interface was deleted
             // but the binding is still valid

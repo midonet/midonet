@@ -15,6 +15,7 @@ import org.midonet.api.filter.Chain;
 import org.midonet.api.filter.auth.ChainAuthorizer;
 import org.midonet.api.filter.rest_api.RuleResource.ChainRuleResource;
 import org.midonet.api.rest_api.*;
+import org.midonet.event.topology.ChainEvent;
 import org.midonet.cluster.DataClient;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
@@ -41,6 +42,7 @@ public class ChainResource extends AbstractResource {
 
     private final static Logger log = LoggerFactory
             .getLogger(ChainResource.class);
+    private final static ChainEvent chainEvent = new ChainEvent();
 
     private final ChainAuthorizer authorizer;
     private final DataClient dataClient;
@@ -83,6 +85,7 @@ public class ChainResource extends AbstractResource {
         }
 
         dataClient.chainsDelete(id);
+        chainEvent.delete(id);
     }
 
     /**
@@ -158,6 +161,7 @@ public class ChainResource extends AbstractResource {
         }
 
         UUID id = dataClient.chainsCreate(chain.toData());
+        chainEvent.create(id, dataClient.chainsGet(id));
         return Response.created(
                 ResourceUriBuilder.getChain(getBaseUri(), id))
                 .build();

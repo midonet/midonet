@@ -51,6 +51,7 @@ import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.cluster.DataClient;
+import org.midonet.event.topology.PortEvent;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.VlanPathExistsException;
@@ -65,6 +66,7 @@ public class PortResource extends AbstractResource {
 
     private final static Logger log = LoggerFactory
             .getLogger(PortResource.class);
+    private final static PortEvent portEvent = new PortEvent();
 
     private final PortAuthorizer authorizer;
     private final DataClient dataClient;
@@ -110,6 +112,7 @@ public class PortResource extends AbstractResource {
         validate(port, Port.PortDeleteGroupSequence.class);
 
         dataClient.portsDelete(id);
+        portEvent.delete(id);
     }
 
     private org.midonet.cluster.data.Port getPortData(UUID id)
@@ -204,6 +207,7 @@ public class PortResource extends AbstractResource {
         }
 
         dataClient.portsUpdate(port.toData());
+        portEvent.update(id, dataClient.portsGet(id));
     }
 
     /**
@@ -236,7 +240,11 @@ public class PortResource extends AbstractResource {
                     "Not authorized to link these ports.");
         }
 
+
         dataClient.portsLink(link.getPortId(), link.getPeerId());
+
+        org.midonet.cluster.data.Port portData = dataClient.portsGet(id);
+        portEvent.link(id, portData);
 
         return Response.created(
                 ResourceUriBuilder.getPortLink(getBaseUri(), id))
@@ -262,6 +270,9 @@ public class PortResource extends AbstractResource {
         }
 
         dataClient.portsUnlink(id);
+
+        portData = dataClient.portsGet(id);
+        portEvent.unlink(id, portData);
     }
 
     /**
@@ -330,6 +341,7 @@ public class PortResource extends AbstractResource {
 
             try {
                 UUID id = dataClient.portsCreate(port.toData());
+                portEvent.create(id, dataClient.portsGet(id));
                 return Response.created(
                         ResourceUriBuilder.getPort(getBaseUri(), id))
                         .build();
@@ -580,6 +592,7 @@ public class PortResource extends AbstractResource {
             }
 
             UUID id = dataClient.portsCreate(port.toData());
+            portEvent.create(id, dataClient.portsGet(id));
             return Response.created(
                     ResourceUriBuilder.getPort(getBaseUri(), id))
                     .build();

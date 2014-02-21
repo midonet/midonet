@@ -136,7 +136,17 @@ public class RouterPort
             result = 31 * result + (bgps != null ? bgps.hashCode() : 0);
             return result;
         }
-    }
 
+        @Override
+        public String toString() {
+            return "Data{" +
+                    "nwAddr=" + IPv4Addr.intToString(nwAddr) +
+                    ", nwLength=" + nwLength +
+                    ", portAddr=" + IPv4Addr.intToString(portAddr) +
+                    ", hwAddr=" + hwAddr +
+                    ", bgps=" + bgps +
+                    '}';
+        }
+    }
 }
 

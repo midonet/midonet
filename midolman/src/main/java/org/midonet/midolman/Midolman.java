@@ -18,6 +18,7 @@ import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Options;
 import org.midonet.midolman.guice.*;
 import org.midonet.midolman.services.DashboardService;
+import org.midonet.event.agent.ServiceEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +38,7 @@ import org.midonet.midolman.version.guice.VersionModule;
 public class Midolman {
 
     static final Logger log = LoggerFactory.getLogger(Midolman.class);
+    static private final ServiceEvent serviceEvent = new ServiceEvent();
 
     static final int MIDOLMAN_ERROR_CODE_MISSING_CONFIG_FILE = 1;
 
@@ -132,6 +134,7 @@ public class Midolman {
         log.info("{} was initialized", MidolmanActorsService.class);
 
         log.info("main finish");
+        serviceEvent.start();
     }
 
     private void doServicesCleanup() {
@@ -160,6 +163,7 @@ public class Midolman {
             log.error("Exception ", e);
         } finally {
             log.info("Exiting. BYE (signal)!");
+            serviceEvent.exit();
         }
     }
 
@@ -204,6 +208,7 @@ public class Midolman {
             new Midolman().run(args);
         } catch (Exception e) {
             log.error("main caught", e);
+            serviceEvent.exit();
             System.exit(-1);
         }
     }

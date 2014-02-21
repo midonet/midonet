@@ -21,7 +21,7 @@
         </encoder>
     </appender>
 
-    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <appender name="LOG-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${midolman.log.dir}midolman.log</file>
         <append>true</append>
         <encoder>
@@ -34,6 +34,19 @@
 
     </appender>
 
+    <appender name="EVENT-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${midolman.log.dir}midolman.event.log</file>
+        <append>true</append>
+        <encoder>
+            <pattern>%d{yyyy.MM.dd HH:mm:ss.SSS} ${HOSTNAME} %-5level %logger - %m%n%rEx </pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${midolman.log.dir}midolman.event.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+
+    </appender>
+
     <!-- Fine grained settings for specific classes -->
     <logger name="org.apache.zookeeper" level="INFO" />
     <logger name="org.apache.cassandra" level="INFO" />
@@ -41,9 +54,14 @@
     <logger name="org.midonet.midolman.NetlinkCallbackDispatcher" level="INFO" />
     <logger name="org.eclipse.jetty.util.Scanner" level="INFO" />
 
+    <!-- logs under "org.midonet.event" logger also goes to EVENT-FILE appender as well as those defined in <root> -->
+    <logger name="org.midonet.event" level="INFO">
+         <appender-ref ref="EVENT-FILE"/>
+    </logger>
+
     <root level="info">
         <appender-ref ref="STDOUT" />
-        <appender-ref ref="FILE" />
+        <appender-ref ref="LOG-FILE" />
     </root>
 
 </configuration>

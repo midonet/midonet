@@ -77,5 +77,15 @@ public class AdRoute extends Entity.Base<UUID, AdRoute.Data, AdRoute> {
         public byte prefixLength;
         public UUID bgpId;
         public Map<String, String> properties = new HashMap<String, String>();
+
+        @Override
+        public String toString() {
+            return "Data{" +
+                    "nwPrefix=" + nwPrefix +
+                    ", prefixLength=" + prefixLength +
+                    ", bgpId=" + bgpId +
+                    ", properties=" + properties +
+                    '}';
+        }
     }
 }

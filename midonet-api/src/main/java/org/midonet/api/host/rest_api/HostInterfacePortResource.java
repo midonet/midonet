@@ -13,6 +13,7 @@ import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.auth.AuthRole;
 import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.event.topology.PortEvent;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.cluster.DataClient;
@@ -35,6 +36,7 @@ import java.util.UUID;
 @RequestScoped
 public class HostInterfacePortResource extends AbstractResource {
 
+    private final static PortEvent portEvent = new PortEvent();
     private final UUID hostId;
     private final DataClient dataClient;
 
@@ -62,6 +64,7 @@ public class HostInterfacePortResource extends AbstractResource {
 
         dataClient.hostsAddVrnPortMapping(hostId, map.getPortId(),
                 map.getInterfaceName());
+        portEvent.bind(map.getPortId(), map);
 
         return Response.created(
                 ResourceUriBuilder.getHostInterfacePort(getBaseUri(),
@@ -80,6 +83,7 @@ public class HostInterfacePortResource extends AbstractResource {
         }
 
         dataClient.hostsDelVrnPortMapping(hostId, portId);
+        portEvent.unbind(portId);
     }
 
     @GET

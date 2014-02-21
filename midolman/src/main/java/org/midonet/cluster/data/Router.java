@@ -146,5 +146,17 @@ public class Router extends Entity.Base<UUID, Router.Data, Router>  {
             result = 31 * result + Boolean.valueOf(adminStateUp).hashCode();
             return result;
         }
+
+        @Override
+        public String toString() {
+            return "Router.Data{" +
+                    "name='" + name + '\'' +
+                    ", inboundFilter=" + inboundFilter +
+                    ", outboundFilter=" + outboundFilter +
+                    ", loadBalancer=" + loadBalancer +
+                    ", properties=" + properties +
+                    ", adminStateUp=" + adminStateUp +
+                    '}';
+        }
     }
 }

@@ -17,6 +17,7 @@ import org.midonet.api.auth.AuthRole;
 import org.midonet.api.network.auth.RouteAuthorizer;
 import org.midonet.api.network.auth.RouterAuthorizer;
 import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.event.topology.RouterEvent;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.cluster.DataClient;
@@ -46,6 +47,7 @@ public class RouteResource extends AbstractResource {
 
     private final static Logger log = LoggerFactory
             .getLogger(RouteResource.class);
+    private final static RouterEvent routerEvent = new RouterEvent();
 
     private final RouteAuthorizer authorizer;
     private final DataClient dataClient;
@@ -86,6 +88,7 @@ public class RouteResource extends AbstractResource {
         }
 
         dataClient.routesDelete(id);
+        routerEvent.routeDelete(routeData.getRouterId(), id);
     }
 
     /**
@@ -174,6 +177,7 @@ public class RouteResource extends AbstractResource {
             }
 
             UUID id = dataClient.routesCreate(route.toData());
+            routerEvent.routeCreate(routerId, dataClient.routesGet(id));
             return Response.created(
                     ResourceUriBuilder.getRoute(getBaseUri(), id))
                     .build();

@@ -33,6 +33,7 @@ import org.midonet.api.host.TunnelZoneHostFactory;
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.event.topology.TunnelZoneEvent;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.TunnelZone;
 import org.midonet.midolman.serialization.SerializationException;
@@ -44,6 +45,8 @@ import org.midonet.midolman.state.StateAccessException;
 @RequestScoped
 public class TunnelZoneHostResource extends AbstractResource {
 
+    private final static TunnelZoneEvent tunnelZoneEvent =
+            new TunnelZoneEvent();
     private final UUID tunnelZoneId;
     private final DataClient dataClient;
 
@@ -66,7 +69,9 @@ public class TunnelZoneHostResource extends AbstractResource {
 
         dataClient.tunnelZonesAddMembership(tunnelZoneId,
                 tzHost.toData());
-
+        tunnelZoneEvent.memberCreate(tunnelZoneId,
+                dataClient.tunnelZonesGetMembership(
+                        tunnelZoneId, tzHost.getHostId()));
         return Response.created(
                 ResourceUriBuilder.getTunnelZoneHost(getBaseUri(),
                         tunnelZoneId, tzHost.getHostId()))
@@ -203,5 +208,6 @@ public class TunnelZoneHostResource extends AbstractResource {
         }
 
         dataClient.tunnelZonesDeleteMembership(tunnelZoneId, hostId);
+        tunnelZoneEvent.memberDelete(tunnelZoneId, data);
     }
 }
