@@ -102,13 +102,11 @@ public class TunnelZoneHostResource extends AbstractResource {
 
     private List<TunnelZoneHost> listTunnelZoneHosts(
             Class<? extends TunnelZoneHost> clazz) throws StateAccessException {
-        Set<TunnelZone.HostConfig<?,
-                ?>> dataList =
+        Set<TunnelZone.HostConfig<?, ?>> dataList =
                 dataClient.tunnelZonesGetMemberships(tunnelZoneId);
-        List<TunnelZoneHost> tunnelZoneHosts =
-                new ArrayList<TunnelZoneHost>();
+        List<TunnelZoneHost> tunnelZoneHosts = new ArrayList<>();
 
-        for (TunnelZone.HostConfig data : dataList) {
+        for (TunnelZone.HostConfig<?, ?> data : dataList) {
             TunnelZoneHost tzh =
                     TunnelZoneHostFactory.createTunnelZoneHost(
                             tunnelZoneId, data);
@@ -154,7 +152,7 @@ public class TunnelZoneHostResource extends AbstractResource {
     private TunnelZoneHost getTunnelZoneHost(
             Class<? extends TunnelZoneHost> clazz,
             UUID hostId) throws StateAccessException, SerializationException {
-        TunnelZone.HostConfig data = dataClient
+        TunnelZone.HostConfig<?, ?> data = dataClient
                 .tunnelZonesGetMembership(tunnelZoneId, hostId);
         if (data == null) {
             throw new NotFoundHttpException("The resource was not found");

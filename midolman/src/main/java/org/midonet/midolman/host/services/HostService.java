@@ -176,8 +176,8 @@ public class HostService extends AbstractService
                                   HostZkManager zkManager)
             throws StateAccessException, SerializationException {
 
-        if (zkManager.hostExists(id)) {
-            if (!metadata.equals(zkManager.getHostMetadata(id))) {
+        if (zkManager.exists(id)) {
+            if (!metadata.equals(zkManager.get(id))) {
                 if (zkManager.isAlive(id))
                     return false;
                 zkManager.updateMetadata(id, metadata);

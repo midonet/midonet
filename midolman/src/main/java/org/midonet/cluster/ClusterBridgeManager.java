@@ -1,9 +1,10 @@
 /*
- * Copyright 2012 Midokura Pte. Ltd.
+ * Copyright (c) 2012-2014 Midokura Europe SARL, All Rights Reserved.
  */
 
 package org.midonet.cluster;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -151,7 +152,7 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
         Map<IPAddr, MAC> rtrIpToMac =  new HashMap<IPAddr, MAC>();
         VlanPortMapImpl vlanIdPortMap = new VlanPortMapImpl();
         UUID vlanBridgePeerPortId = null;
-        Set<UUID> logicalPortIDs;
+        Collection<UUID> logicalPortIDs;
         Set<Short> currentVlans = new HashSet<Short>();
         currentVlans.add(Bridge.UNTAGGED_VLAN_ID);
 

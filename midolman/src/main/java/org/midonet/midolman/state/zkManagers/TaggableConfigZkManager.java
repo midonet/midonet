@@ -1,5 +1,5 @@
-/**
- * Copyright 2013 Midokura KK
+/*
+ * Copyright (c) 2013-2014 Midokura Europe SARL, All Rights Reserved.
  */
 package org.midonet.midolman.state.zkManagers;
 
@@ -11,8 +11,7 @@ import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.midonet.midolman.serialization.Serializer;
-import org.midonet.midolman.state.AbstractZkManager;
-import org.midonet.midolman.state.Directory;
+import org.midonet.midolman.state.BaseZkManager;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
@@ -22,9 +21,10 @@ import org.midonet.midolman.state.ZkManager;
  *
  * @author tomohiko
  */
-public class TaggableConfigZkManager extends AbstractZkManager {
+public class TaggableConfigZkManager extends BaseZkManager {
 
-    public TaggableConfigZkManager(ZkManager zk, PathBuilder paths, Serializer serializer) {
+    public TaggableConfigZkManager(ZkManager zk, PathBuilder paths,
+                                   Serializer serializer) {
         super(zk, paths, serializer);
     }
 

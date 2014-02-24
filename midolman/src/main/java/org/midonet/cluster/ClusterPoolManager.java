@@ -55,12 +55,12 @@ public class ClusterPoolManager extends ClusterManager<PoolBuilder> {
         poolZkMgr.getPoolMemberIdListAsync(poolId, poolMemberListCB, poolMemberListCB);
 
         PoolConfigCallback poolConfigCB = new PoolConfigCallback(poolId);
-        poolZkMgr.getPoolAsync(poolId, poolConfigCB, poolConfigCB);
+        poolZkMgr.getAsync(poolId, poolConfigCB, poolConfigCB);
     }
 
     private void requestPoolMember(UUID poolMemberID) {
         PoolMemberCallback poolMemberCallback = new PoolMemberCallback(poolMemberID);
-        poolMemberZkMgr.getPoolMemberAsync(poolMemberID, poolMemberCallback, poolMemberCallback);
+        poolMemberZkMgr.getAsync(poolMemberID, poolMemberCallback, poolMemberCallback);
     }
 
     private class PoolConfigCallback extends CallbackWithWatcher<PoolConfig> {
@@ -84,7 +84,7 @@ public class ClusterPoolManager extends ClusterManager<PoolBuilder> {
 
         @Override
         public void pathDataChanged(String path) {
-            poolZkMgr.getPoolAsync(poolId, this, this);
+            poolZkMgr.getAsync(poolId, this, this);
         }
 
         @Override
@@ -92,7 +92,7 @@ public class ClusterPoolManager extends ClusterManager<PoolBuilder> {
             return new Runnable() {
                 @Override
                 public void run() {
-                    poolZkMgr.getPoolAsync(poolId,
+                    poolZkMgr.getAsync(poolId,
                             PoolConfigCallback.this, PoolConfigCallback.this);
                 }
             };
@@ -213,7 +213,7 @@ public class ClusterPoolManager extends ClusterManager<PoolBuilder> {
 
         @Override
         public void pathDataChanged(String path) {
-            poolMemberZkMgr.getPoolMemberAsync(poolMemberId, this, this);
+            poolMemberZkMgr.getAsync(poolMemberId, this, this);
         }
 
         @Override
@@ -221,7 +221,7 @@ public class ClusterPoolManager extends ClusterManager<PoolBuilder> {
             return new Runnable() {
                 @Override
                 public void run() {
-                    poolMemberZkMgr.getPoolMemberAsync(poolMemberId,
+                    poolMemberZkMgr.getAsync(poolMemberId,
                             PoolMemberCallback.this, PoolMemberCallback.this);
                 }
             };
