@@ -49,7 +49,7 @@ public class ClusterChainManager extends ClusterManager<ChainBuilder> {
 
     private void requestRule(UUID ruleID) {
         RuleCallback ruleCallback = new RuleCallback(ruleID);
-        ruleMgr.getRuleAsync(ruleID, ruleCallback, ruleCallback);
+        ruleMgr.getAsync(ruleID, ruleCallback, ruleCallback);
     }
 
     private class RuleListCallback extends CallbackWithWatcher<List<UUID>> {
@@ -157,7 +157,7 @@ public class ClusterChainManager extends ClusterManager<ChainBuilder> {
 
         @Override
         public void pathDataChanged(String path) {
-            ruleMgr.getRuleAsync(ruleId, this, this);
+            ruleMgr.getAsync(ruleId, this, this);
         }
 
         @Override
@@ -165,7 +165,7 @@ public class ClusterChainManager extends ClusterManager<ChainBuilder> {
             return new Runnable() {
                 @Override
                 public void run() {
-                    ruleMgr.getRuleAsync(ruleId,
+                    ruleMgr.getAsync(ruleId,
                         RuleCallback.this, RuleCallback.this);
                 }
             };

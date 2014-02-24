@@ -1,6 +1,5 @@
 /*
- * Copyright 2011 Midokura KK
- * Copyright 2012 Midokura PTE LTD.
+ * Copyright (c) 2011-2014 Midokura Europe SARL, All Rights Reserved.
  */
 package org.midonet.midolman.state.zkManagers;
 
@@ -27,15 +26,16 @@ import org.slf4j.LoggerFactory;
 /**
  * Class to manage the port ZooKeeper data.
  */
-public class PortZkManager extends AbstractZkManager {
+public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
 
-    private final static Logger log = LoggerFactory
-                                      .getLogger(PortZkManager.class);
+    private final static Logger log =
+            LoggerFactory.getLogger(PortZkManager.class);
+
+    private final BgpZkManager bgpManager;
+    private final ChainZkManager chainZkManager;
+    private final FiltersZkManager filterZkManager;
+    private final RouteZkManager routeZkManager;
     private final TunnelZkManager tunnelZkManager;
-    private FiltersZkManager filterZkManager;
-    private BgpZkManager bgpManager;
-    private RouteZkManager routeZkManager;
-    private ChainZkManager chainZkManager;
 
     /**
      * Initializes a PortZkManager object with a ZooKeeper client and the root
@@ -51,16 +51,27 @@ public class PortZkManager extends AbstractZkManager {
     public PortZkManager(ZkManager zk, PathBuilder paths,
                          Serializer serializer) {
         super(zk, paths, serializer);
-        tunnelZkManager = new TunnelZkManager(zk, paths, serializer);
-        this.filterZkManager = new FiltersZkManager(zk, paths, serializer);
         this.bgpManager = new BgpZkManager(zk, paths, serializer);
-        this.routeZkManager = new RouteZkManager(zk, paths, serializer);
         this.chainZkManager = new ChainZkManager(zk, paths, serializer);
+        this.filterZkManager = new FiltersZkManager(zk, paths, serializer);
+        this.routeZkManager = new RouteZkManager(zk, paths, serializer);
+        this.tunnelZkManager = new TunnelZkManager(zk, paths, serializer);
     }
 
     public PortZkManager(Directory zk, String basePath, Serializer serializer) {
         this(new ZkManager(zk, basePath), new PathBuilder(basePath), serializer);
     }
+
+    @Override
+    protected String getConfigPath(UUID id) {
+        return paths.getPortPath(id);
+    }
+
+    @Override
+    protected Class<PortConfig> getConfigClass() {
+        return PortConfig.class;
+    }
+
     public <T extends PortConfig> T get(UUID id, Class<T> clazz)
             throws StateAccessException, SerializationException {
         return get(id, clazz, null);
@@ -72,20 +83,6 @@ public class PortZkManager extends AbstractZkManager {
         log.debug("Get PortConfig: " + id);
         byte[] data = zk.get(paths.getPortPath(id), watcher);
         return serializer.deserialize(data, clazz);
-    }
-
-    public PortConfig get(UUID id, Runnable watcher)
-            throws StateAccessException, SerializationException {
-        return get(id, PortConfig.class, watcher);
-    }
-
-    public PortConfig get(UUID id) throws StateAccessException,
-            SerializationException {
-        return get(id, PortConfig.class, null);
-    }
-
-    public boolean exists(UUID id) throws StateAccessException {
-        return zk.exists(paths.getPortPath(id));
     }
 
     private void addToPortGroupsOps(List<Op> ops, UUID id,
@@ -123,10 +120,7 @@ public class PortZkManager extends AbstractZkManager {
         int tunnelKeyId = tunnelZkManager.createTunnelKeyId();
         config.tunnelKey = tunnelKeyId;
 
-        ops.add(Op.create(paths.getPortPath(id),
-                serializer.serialize(config),
-                Ids.OPEN_ACL_UNSAFE,
-                CreateMode.PERSISTENT));
+        ops.add(simpleCreateOp(id, config));
         ops.add(Op.create(paths.getRouterPortPath(config.device_id, id),
                 null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         ops.add(Op.create(paths.getPortRoutesPath(id), null,
@@ -582,14 +576,9 @@ public class PortZkManager extends AbstractZkManager {
         return ops;
     }
 
-    public Set<UUID> listPortIDs(String path, Runnable watcher)
+    public List<UUID> listPortIDs(String path, Runnable watcher)
             throws StateAccessException {
-        Set<UUID> result = new HashSet<UUID>();
-        Set<String> portIds = zk.getChildren(path, watcher);
-        for (String portId : portIds) {
-            result.add(UUID.fromString(portId));
-        }
-        return result;
+        return getUuidList(path, watcher);
     }
 
     /**
@@ -603,12 +592,12 @@ public class PortZkManager extends AbstractZkManager {
      * @return A list of router port IDs.
      * @throws StateAccessException
      */
-    public Set<UUID> getRouterPortIDs(UUID routerId, Runnable watcher)
+    public List<UUID> getRouterPortIDs(UUID routerId, Runnable watcher)
             throws StateAccessException {
         return listPortIDs(paths.getRouterPortsPath(routerId), watcher);
     }
 
-    public Set<UUID> getRouterPortIDs(UUID routerId)
+    public List<UUID> getRouterPortIDs(UUID routerId)
             throws StateAccessException {
         return getRouterPortIDs(routerId, null);
     }
@@ -624,12 +613,12 @@ public class PortZkManager extends AbstractZkManager {
      * @return A list of bridge port IDs.
      * @throws StateAccessException
      */
-    public Set<UUID> getBridgePortIDs(UUID bridgeId, Runnable watcher)
+    public List<UUID> getBridgePortIDs(UUID bridgeId, Runnable watcher)
             throws StateAccessException {
         return listPortIDs(paths.getBridgePortsPath(bridgeId), watcher);
     }
 
-    public Set<UUID> getBridgePortIDs(UUID bridgeId)
+    public List<UUID> getBridgePortIDs(UUID bridgeId)
             throws StateAccessException {
         return getBridgePortIDs(bridgeId, null);
     }
@@ -641,12 +630,12 @@ public class PortZkManager extends AbstractZkManager {
      * @return
      * @throws StateAccessException
      */
-    public Set<UUID> getVlanBridgeTrunkPortIDs(UUID bridgeId, Runnable watcher)
+    public List<UUID> getVlanBridgeTrunkPortIDs(UUID bridgeId, Runnable watcher)
         throws StateAccessException {
         return listPortIDs(paths.getVlanBridgeTrunkPortsPath(bridgeId), watcher);
     }
 
-    public Set<UUID> getVlanBridgeTrunkPortIDs(UUID bridgeId)
+    public List<UUID> getVlanBridgeTrunkPortIDs(UUID bridgeId)
         throws StateAccessException {
         return getVlanBridgeTrunkPortIDs(bridgeId, null);
     }
@@ -662,13 +651,13 @@ public class PortZkManager extends AbstractZkManager {
      * @throws StateAccessException
      *             If a data error occurs while accessing ZK.
      */
-    public Set<UUID> getBridgeLogicalPortIDs(UUID bridgeId, Runnable watcher)
+    public List<UUID> getBridgeLogicalPortIDs(UUID bridgeId, Runnable watcher)
             throws StateAccessException {
         return listPortIDs(paths.getBridgeLogicalPortsPath(bridgeId),
                 watcher);
     }
 
-    public Set<UUID> getBridgeLogicalPortIDs(UUID bridgeId)
+    public List<UUID> getBridgeLogicalPortIDs(UUID bridgeId)
             throws StateAccessException {
         return getBridgeLogicalPortIDs(bridgeId, null);
     }
@@ -681,13 +670,13 @@ public class PortZkManager extends AbstractZkManager {
      * @return
      * @throws StateAccessException
      */
-    public Set<UUID> getVlanBridgeLogicalPortIDs(UUID bridgeId, Runnable watcher)
+    public List<UUID> getVlanBridgeLogicalPortIDs(UUID bridgeId, Runnable watcher)
         throws StateAccessException {
         return listPortIDs(paths.getVlanBridgeLogicalPortsPath(bridgeId),
                            watcher);
     }
 
-    public Set<UUID> getVlanBridgeLogicalPortIDs(UUID bridgeId)
+    public List<UUID> getVlanBridgeLogicalPortIDs(UUID bridgeId)
         throws StateAccessException {
         return getVlanBridgeLogicalPortIDs(bridgeId, null);
     }

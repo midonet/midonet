@@ -1,12 +1,14 @@
 /*
- * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
+ * Copyright (c) 2012-2014 Midokura Europe SARL, All Rights Reserved.
  */
 package org.midonet.midolman.state;
 
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.Op;
+import org.apache.zookeeper.ZooDefs;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
-import org.midonet.util.functors.CollectionFunctors;
-import org.midonet.util.functors.Functor;
+import org.midonet.midolman.state.zkManagers.BaseConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,18 +16,23 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-
 /**
- *  Abstract class for the Zookeeper manager classes
+ *  Extends BaseZkManager with common key-value operations needed by
+ *  the various ZkManager classes.
+ *
+ *  @param <K>
+ *      The key used to parameterize the Zookeeper path of the
+ *      deriving class's primary resource type. Usually UUID.
+ *
+ *  @param <CFG>
+ *      The Zookeeper storage type of the deriving class's primary
+ *      resource type, e.g. BridgeZkManager.BridgeConfig. If CFG
+ *      extends BaseConfig, then get() will set its id property.
  */
-public abstract class AbstractZkManager {
+public abstract class AbstractZkManager<K, CFG> extends BaseZkManager {
 
     protected final static Logger log =
             LoggerFactory.getLogger(AbstractZkManager.class);
-
-    protected final ZkManager zk;
-    protected final PathBuilder paths;
-    protected final Serializer serializer;
 
     /**
      * Constructor.
@@ -38,98 +45,82 @@ public abstract class AbstractZkManager {
      *         ZK data serialization class
      */
     public AbstractZkManager(ZkManager zk, PathBuilder paths,
-                             Serializer serializer) {
-        this.zk = zk;
-        this.paths = paths;
-        this.serializer = serializer;
+                         Serializer serializer) {
+        super(zk, paths, serializer);
     }
 
-    public static Integer getSequenceNumberFromPath(String nodeName) {
-        if (nodeName.length() < ZkManager.ZK_SEQ_NUM_LEN) {
-            throw new IllegalArgumentException(
-                    "Invalid input, cannot parse " + nodeName);
-        }
-        String seqNum = nodeName.substring(
-                nodeName.length() - ZkManager.ZK_SEQ_NUM_LEN);
-        try {
-            return Integer.parseInt(seqNum);
-        } catch(NumberFormatException nfe) {
-            throw new IllegalArgumentException(
-                    "Could not parse a sequence number from node : " +
-                    nodeName);
-        }
-    }
-
-    /*
-     * Returns the path from sequenceNumberPaths which has the greatest
-     * sequence number which is less than seqNum, or null if
-     * sequenceNumberPaths contains no such path.
+    /**
+     * Hook for derived classes to indicate the path where a CONFIG
+     * with the specified key is stored.
      */
-    protected static String getNextLowerSequenceNumberPath(
-            Set<String> sequenceNumberPaths, Integer seqNum) {
-        Integer nextLowest = Integer.MIN_VALUE;
-        String nextLowestPath = null;
-        for (String seqNumPath : sequenceNumberPaths) {
-            Integer pathSeqNum = getSequenceNumberFromPath(seqNumPath);
-            if (pathSeqNum < seqNum && pathSeqNum > nextLowest) {
-                nextLowest = pathSeqNum;
-                nextLowestPath = seqNumPath;
-            }
-        }
+    protected abstract String getConfigPath(K key);
 
-        if (nextLowest.equals(Integer.MIN_VALUE)) {
+    /**
+     * Hook for derived classes to provide the CONFIG class's class
+     * object for deserialization.
+     */
+    protected abstract Class<CFG> getConfigClass();
+
+    /**
+     * Creates an operation for storing the specified CONFIG with the
+     * specified KEY. Does not create or otherwise affect any other
+     * nodes.
+     */
+    protected Op simpleCreateOp(K key, CFG config)
+            throws SerializationException {
+        return Op.create(getConfigPath(key), serializer.serialize(config),
+                ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    }
+
+    /**
+     * Creates an operation for updating the node for the specified
+     * specified KEY with the data of the specified CONFIG. Does
+     * not create, update, or otherwise affect any other nodes.
+     */
+    protected Op simpleUpdateOp(K key, CFG config)
+            throws SerializationException {
+        return Op.setData(getConfigPath(key), serializer.serialize(config), -1);
+    }
+
+    public boolean exists(K key) throws StateAccessException {
+        return zk.exists(getConfigPath(key));
+    }
+
+    /**
+     * Gets the config for the specified resource ID.
+     */
+    public CFG get(K key)
+            throws StateAccessException, SerializationException {
+        return get(key, null);
+    }
+
+    /**
+     * Gets the config for the specified resource ID and sets a watcher.
+     */
+    public CFG get(K key, Runnable watcher)
+            throws StateAccessException, SerializationException {
+
+        byte[] data = zk.get(getConfigPath(key), watcher);
+        if (data == null)
             return null;
-        } else {
-            return nextLowestPath;
+
+        CFG config = serializer.deserialize(data, getConfigClass());
+        if (config instanceof BaseConfig && key instanceof UUID) {
+            ((BaseConfig)config).id = (UUID)key;
         }
+
+        return config;
     }
 
-    protected Set<UUID> getChildUuids(String path)
-            throws StateAccessException {
-        Set<String> idStrs = zk.getChildren(path, null);
-        Set<UUID> ids = new HashSet<>(idStrs.size());
-        for (String idStr : idStrs) {
-            try {
-                ids.add(UUID.fromString(idStr));
-            } catch (IllegalArgumentException ex) {
-                // Nothing we can do but log an error and move on.
-                log.error("'{}' at path '{}' is not a valid UUID. Zookeeper" +
-                          "data may be corrupted.",
-                          new Object[]{idStr, path, ex});
-            }
-        }
-        return ids;
-    }
-
-    protected <T> void getAsync(String path, final Class<T> clazz,
-                                DirectoryCallback<T> callback,
-                                Directory.TypedWatcher watcher) {
-        zk.asyncGet(
-                path,
-                DirectoryCallbackFactory.transform(
-                        callback,
-                        new Functor<byte[], T>() {
-                            @Override
-                            public T apply(byte[] arg0) {
-                                try {
-                                    return serializer.deserialize(arg0, clazz);
-                                } catch (SerializationException e) {
-                                    log.warn("Could not deserialize " +
-                                             clazz.getSimpleName() + " data");
-                                    return null;
-                                }
-                            }
-                        }),
-                watcher);
-    }
-
-    protected void getUUIDSetAsync(String path,
-                                   DirectoryCallback<Set<UUID>> callback,
-                                   Directory.TypedWatcher watcher) {
-        zk.asyncGetChildren(
-                path,
-                DirectoryCallbackFactory.transform(
-                        callback, CollectionFunctors.strSetToUUIDSet),
-                watcher);
+    /**
+     * Gets the config for the specified resource ID asynchronously.
+     *
+     * @param callback Receives the config when available.
+     * @param watcher Optional watcher to be notified of a future update.
+     */
+    public void getAsync(final K key,
+                         DirectoryCallback<CFG> callback,
+                         Directory.TypedWatcher watcher) {
+        getAsync(getConfigPath(key), getConfigClass(), callback, watcher);
     }
 }

@@ -184,9 +184,9 @@ public class HostServiceTest {
     }
 
     private void assertHostState() throws Exception {
-        assertThat(hostZkManager.hostExists(hostId), is(true));
+        assertThat(hostZkManager.exists(hostId), is(true));
         assertThat(hostZkManager.isAlive(hostId), is(true));
-        assertThat(hostZkManager.getHostMetadata(hostId).getName(), is(hostName));
+        assertThat(hostZkManager.get(hostId).getName(), is(hostName));
         assertThat(zkManager.exists(versionPath), is(true));
     }
 

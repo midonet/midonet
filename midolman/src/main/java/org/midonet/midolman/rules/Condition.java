@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.midonet.midolman.simulation.IPAddrGroup;
+import org.midonet.midolman.state.zkManagers.BaseConfig;
 import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPSubnet;
 import org.midonet.packets.MAC;
@@ -15,7 +16,7 @@ import org.midonet.packets.Unsigned;
 import org.midonet.sdn.flows.WildcardMatch;
 import org.midonet.util.Range;
 
-public class Condition {
+public class Condition extends BaseConfig {
     public boolean conjunctionInv;
     public boolean matchForwardFlow;
     public boolean matchReturnFlow;

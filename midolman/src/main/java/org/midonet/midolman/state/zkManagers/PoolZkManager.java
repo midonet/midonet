@@ -3,6 +3,7 @@
  */
 package org.midonet.midolman.state.zkManagers;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -28,12 +29,13 @@ import static java.util.Arrays.asList;
 /**
  * Class to manage the pool ZooKeeper data.
  */
-public class PoolZkManager extends AbstractZkManager {
+public class PoolZkManager
+        extends AbstractZkManager<UUID, PoolZkManager.PoolConfig> {
 
     private final static Logger log = LoggerFactory
             .getLogger(PoolZkManager.class);
 
-    public static class PoolConfig {
+    public static class PoolConfig extends BaseConfig {
 
         public String name;
         public String description;
@@ -91,22 +93,27 @@ public class PoolZkManager extends AbstractZkManager {
         super(zk, paths, serializer);
     }
 
-    public List<Op> prepareUpdate(UUID id, PoolConfig config)
-            throws SerializationException {
-        return asList(Op.setData(
-                paths.getPoolPath(id), serializer.serialize(config), -1));
+    @Override
+    protected String getConfigPath(UUID id) {
+        return paths.getPoolPath(id);
+    }
+
+    @Override
+    protected Class<PoolConfig> getConfigClass() {
+        return PoolConfig.class;
     }
 
     public List<Op> prepareCreate(UUID id, PoolConfig config)
             throws SerializationException {
         return asList(
-                Op.create(paths.getPoolPath(id),
-                        serializer.serialize(config),
-                        Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT),
-                Op.create(paths.getPoolMembersPath(id), null,
-                        Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT),
-                Op.create(paths.getPoolVipsPath(id), null,
-                        Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+                simpleCreateOp(id, config),
+                zk.getPersistentCreateOp(paths.getPoolMembersPath(id), null),
+                zk.getPersistentCreateOp(paths.getPoolVipsPath(id), null));
+    }
+
+    public List<Op> prepareUpdate(UUID id, PoolConfig config)
+            throws SerializationException {
+        return asList(simpleUpdateOp(id, config));
     }
 
     public List<Op> prepareDelete(UUID id) {
@@ -116,41 +123,19 @@ public class PoolZkManager extends AbstractZkManager {
                 Op.delete(paths.getPoolPath(id), -1));
     }
 
-    public boolean exists(UUID id) throws StateAccessException {
-        return zk.exists(paths.getPoolPath(id));
+    public List<UUID> getMemberIds(UUID id) throws StateAccessException {
+        return getUuidList(paths.getPoolMembersPath(id));
     }
 
-    public PoolConfig get(UUID id) throws StateAccessException,
-            SerializationException {
-        return get(id, null);
-    }
-
-    public PoolConfig get(UUID id, Runnable watcher)
-            throws StateAccessException, SerializationException {
-        byte[] data = zk.get(paths.getPoolPath(id), watcher);
-        return serializer.deserialize(data, PoolConfig.class);
-    }
-
-    public void getPoolAsync(UUID poolId,
-                             DirectoryCallback<PoolConfig> poolCallback,
-                             Directory.TypedWatcher watcher) {
-        getAsync(paths.getPoolPath(poolId),
-                 PoolConfig.class, poolCallback, watcher);
-    }
-
-    public Set<UUID> getMemberIds(UUID id) throws StateAccessException {
-        return getChildUuids(paths.getPoolMembersPath(id));
-    }
-
-    public Set<UUID> getVipIds(UUID id) throws StateAccessException {
-        return getChildUuids(paths.getPoolVipsPath(id));
+    public List<UUID> getVipIds(UUID id) throws StateAccessException {
+        return getUuidList(paths.getPoolVipsPath(id));
     }
 
     public List<Op> prepareSetHealthMonitorId(UUID id, UUID healthMonitorId)
             throws StateAccessException, SerializationException {
         PoolConfig config = get(id);
-        if (config.healthMonitorId == healthMonitorId)
-            return Collections.EMPTY_LIST;
+        if (Objects.equal(config.healthMonitorId, healthMonitorId))
+            return new ArrayList<>(0);
 
         config.healthMonitorId = healthMonitorId;
         return prepareUpdate(id, config);

@@ -1,8 +1,9 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2012-2014 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.cluster;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -429,7 +430,7 @@ public class LocalClientImpl implements Client {
             final HostBuilder builder, final boolean isUpdate)
             throws StateAccessException, SerializationException {
         try {
-            HostDirectory.Metadata metadata = hostManager.getHostMetadata(hostId,
+            HostDirectory.Metadata metadata = hostManager.get(hostId,
                     new Directory.DefaultPersistentWatcher(connectionWatcher) {
                         @Override
                         public void pathDataChanged(String path) {
@@ -456,7 +457,7 @@ public class LocalClientImpl implements Client {
                         public void pathDeleted(String path) {
                             //builder.deleted();
                         }
-                });
+                    });
 
             if (isUpdate)
                 builder.build();
@@ -631,7 +632,7 @@ public class LocalClientImpl implements Client {
     private void retrieveTunnelZoneConfigs(final UUID hostId,
                                            final Set<UUID> oldZones,
                                            final HostBuilder builder) {
-        Set<UUID> newZones = null;
+        Collection<UUID> newZones = null;
 
         try {
             newZones =

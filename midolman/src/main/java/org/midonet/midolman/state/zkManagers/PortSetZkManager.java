@@ -3,7 +3,6 @@
  */
 package org.midonet.midolman.state.zkManagers;
 
-import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -14,18 +13,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.midolman.serialization.Serializer;
-import org.midonet.midolman.state.AbstractZkManager;
+import org.midonet.midolman.state.BaseZkManager;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.DirectoryCallback;
-import org.midonet.midolman.state.DirectoryCallbackFactory;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
-import org.midonet.util.functors.CollectionFunctors;
-import org.midonet.util.functors.Functor;
 
-
-public class PortSetZkManager extends AbstractZkManager {
+public class PortSetZkManager extends BaseZkManager {
 
     private static final Logger log = LoggerFactory
         .getLogger(PortSetZkManager.class);
@@ -52,7 +47,12 @@ public class PortSetZkManager extends AbstractZkManager {
                                         portSetContentsCallback,
                                 Directory.TypedWatcher watcher) {
         getUUIDSetAsync(paths.getPortSetPath(portSetId),
-                        portSetContentsCallback, watcher);
+                portSetContentsCallback, watcher);
+    }
+
+    public Set<UUID> getPortSet(UUID portSetId, Directory.TypedWatcher watcher)
+            throws StateAccessException {
+        return getUuidSet(paths.getPortSetPath(portSetId));
     }
 
     public void addMemberAsync(UUID portSetId, UUID memberId,
@@ -83,18 +83,6 @@ public class PortSetZkManager extends AbstractZkManager {
         String portSetPath =
             paths.getPortSetEntryPath(portSetId, memberID);
         zk.delete(portSetPath);
-    }
-
-    public Set<UUID> getPortSet(UUID portSetId, Directory.TypedWatcher watcher)
-        throws StateAccessException {
-
-        try {
-            ValueFuture<Set<UUID>> valueFuture = ValueFuture.create();
-            getPortSetAsync(portSetId, makeCallback(valueFuture), watcher);
-            return valueFuture.get();
-        } catch (Exception e) {
-            throw new StateAccessException(e);
-        }
     }
 
     private <T> DirectoryCallback<T> makeCallback(final ValueFuture<T> valueFuture) {

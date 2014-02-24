@@ -1,12 +1,13 @@
 /*
- * Copyright 2011 Midokura KK
- * Copyright 2012 Midokura PTE LTD.
+ * Copyright (c) 2011-2014 Midokura Europe SARL, All Rights Reserved.
  */
 package org.midonet.midolman.state.zkManagers;
 
 import java.util.*;
 
 import com.google.common.base.Objects;
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.ZooDefs;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.AbstractZkManager;
@@ -14,9 +15,7 @@ import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
-import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
-import org.apache.zookeeper.ZooDefs.Ids;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,12 +24,13 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Class to manage the router ZooKeeper data.
  */
-public class RouterZkManager extends AbstractZkManager {
+public class RouterZkManager
+        extends AbstractZkManager<UUID, RouterZkManager.RouterConfig> {
 
     private final static Logger log = LoggerFactory
             .getLogger(RouterZkManager.class);
 
-    public static class RouterConfig {
+    public static class RouterConfig extends BaseConfig {
 
         public String name;
         public boolean adminStateUp;
@@ -67,16 +67,13 @@ public class RouterZkManager extends AbstractZkManager {
 
             RouterConfig that = (RouterConfig) o;
 
-            if (inboundFilter != null ? !inboundFilter
-                    .equals(that.inboundFilter) : that.inboundFilter != null)
+            if (!Objects.equal(inboundFilter, that.inboundFilter))
                 return false;
-            if (outboundFilter != null ? !outboundFilter
-                    .equals(that.outboundFilter) : that.outboundFilter != null)
+            if (!Objects.equal(outboundFilter, that.outboundFilter))
                 return false;
-            if (loadBalancer != null ? !loadBalancer
-                    .equals(that.loadBalancer) : that.loadBalancer != null)
+            if (!Objects.equal(loadBalancer, that.loadBalancer))
                 return false;
-            if (name != null ? !name.equals(that.name) : that.name != null)
+            if (!Objects.equal(name, that.name))
                 return false;
             if (adminStateUp != that.adminStateUp)
                 return false;
@@ -86,14 +83,8 @@ public class RouterZkManager extends AbstractZkManager {
 
         @Override
         public int hashCode() {
-            int result = inboundFilter != null ? inboundFilter.hashCode() : 0;
-            result = 31 * result
-                    + (outboundFilter != null ? outboundFilter.hashCode() : 0);
-            result = 31 * result
-                    + (loadBalancer != null ? loadBalancer.hashCode() : 0);
-            result = 31 * result + (name != null ? name.hashCode() : 0);
-            result = 31 * result + Boolean.valueOf(adminStateUp).hashCode();
-            return result;
+            return Objects.hashCode(inboundFilter, outboundFilter, loadBalancer,
+                                    name, Boolean.valueOf(adminStateUp));
         }
     }
 
@@ -168,6 +159,16 @@ public class RouterZkManager extends AbstractZkManager {
                 Collections.<Op>emptyList();
     }
 
+    @Override
+    protected String getConfigPath(UUID id) {
+        return paths.getRouterPath(id);
+    }
+
+    @Override
+    protected Class<RouterConfig> getConfigClass() {
+        return RouterConfig.class;
+    }
+
     /**
      * Constructs a list of ZooKeeper update operations to perform when adding a
      * new router.
@@ -180,11 +181,8 @@ public class RouterZkManager extends AbstractZkManager {
      */
     public List<Op> prepareRouterCreate(UUID id, RouterConfig config)
             throws StateAccessException, SerializationException {
-        List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.create(paths.getRouterPath(id),
-                serializer.serialize(config),
-                Ids.OPEN_ACL_UNSAFE,
-                CreateMode.PERSISTENT));
+        List<Op> ops = new ArrayList<>();
+        ops.add(simpleCreateOp(id, config));
 
         if (config.inboundFilter != null) {
             ops.addAll(chainZkManager.prepareChainBackRefCreate(
@@ -195,19 +193,18 @@ public class RouterZkManager extends AbstractZkManager {
                     config.outboundFilter, ResourceType.ROUTER, id));
         }
 
-        ops.add(Op.create(paths.getRouterPortsPath(id), null,
-                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-        ops.add(Op.create(paths.getRouterRoutesPath(id), null,
-                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-        ops.add(Op.create(paths.getRouterRoutingTablePath(id), null,
-                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-        ops.add(Op.create(paths.getRouterArpTablePath(id), null,
-                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+        ops.addAll(zk.getPersistentCreateOps(
+                paths.getRouterPortsPath(id),
+                paths.getRouterRoutesPath(id),
+                paths.getRouterRoutingTablePath(id),
+                paths.getRouterArpTablePath(id)));
+
         ops.addAll(filterZkManager.prepareCreate(id));
 
         if (config.loadBalancer != null) {
             ops.addAll(buildLoadBalancerAssociation(id, config));
         }
+
         return ops;
     }
 
@@ -245,7 +242,7 @@ public class RouterZkManager extends AbstractZkManager {
         ops.add(Op.delete(routesPath, -1));
 
         // Get ports delete ops
-        Set<UUID> portIds = portZkManager.getRouterPortIDs(id);
+        Collection<UUID> portIds = portZkManager.getRouterPortIDs(id);
         for (UUID portId : portIds) {
             ops.addAll(portZkManager.prepareDelete(portId));
         }
@@ -388,50 +385,6 @@ public class RouterZkManager extends AbstractZkManager {
     public void delete(UUID id) throws SerializationException,
             StateAccessException {
         zk.multi(prepareRouterDelete(id));
-    }
-
-    /**
-     * Checks whether a router with the given ID exists.
-     *
-     * @param id
-     *            Router ID to check
-     * @return True if exists
-     * @throws StateAccessException
-     */
-    public boolean exists(UUID id) throws StateAccessException {
-        return zk.exists(paths.getRouterPath(id));
-    }
-
-    /**
-     * Gets a RouterConfig object with the given ID.
-     *
-     * @param id
-     *            The ID of the router.
-     * @return RouterConfig object
-     * @throws StateAccessException
-     *             if deserialization of the Router's config failed, or if no
-     *             Router with that ID could be found.
-     */
-    public RouterConfig get(UUID id) throws StateAccessException,
-            SerializationException {
-        return get(id, null);
-    }
-
-    /**
-     * Gets a ZooKeeper node entry key-value pair of a router with the given ID
-     * and sets a watcher for changes to the router's configuration.
-     *
-     * @param id
-     *            The ID of the router.
-     * @return RouterConfig object
-     * @throws StateAccessException
-     *             if deserialization of the Router's config failed, or if no
-     *             Router with that ID could be found.
-     */
-    public RouterConfig get(UUID id, Runnable watcher)
-            throws StateAccessException, SerializationException {
-        byte[] data = zk.get(paths.getRouterPath(id), watcher);
-        return serializer.deserialize(data, RouterConfig.class);
     }
 
     public Directory getRoutingTableDirectory(UUID routerId)

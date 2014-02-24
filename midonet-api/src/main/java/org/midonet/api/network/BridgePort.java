@@ -7,6 +7,7 @@ package org.midonet.api.network;
 import java.net.URI;
 import java.util.UUID;
 
+import com.google.common.base.Objects;
 import org.midonet.api.ResourceUriBuilder;
 
 /**
@@ -103,14 +104,14 @@ public class BridgePort extends Port {
         }
 
         // IDs must not be the same
-        if (id == otherPort.getId()) {
+        if (Objects.equal(id, otherPort.getId())) {
             return false;
         }
 
         // If both are bridge ports allowed as long as only one has VLAN ID
         if (otherPort instanceof BridgePort) {
             Short myVlanId = getVlanId();
-            Short herVlanId = ((BridgePort) otherPort).getVlanId();
+            Short herVlanId = otherPort.getVlanId();
             if ((myVlanId == null && herVlanId == null) ||
                     (myVlanId != null && herVlanId != null)) {
                 return false;

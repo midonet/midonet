@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Midokura Europe SARL, All Rights Reserved.
+ * Copyright (c) 2011-2014 Midokura Europe SARL, All Rights Reserved.
  */
 package org.midonet.midolman.state.zkManagers;
 
@@ -28,12 +28,13 @@ import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.util.functors.Functor;
+
 import static org.midonet.cluster.data.Rule.RuleIndexOutOfBoundsException;
 
 /**
  * This class was created to handle multiple ops feature in Zookeeper.
  */
-public class RuleZkManager extends AbstractZkManager {
+public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
 
     private final static Logger log = LoggerFactory
             .getLogger(RuleZkManager.class);
@@ -55,6 +56,16 @@ public class RuleZkManager extends AbstractZkManager {
         chainZkManager = new ChainZkManager(zk, paths, serializer);
     }
 
+    @Override
+    protected String getConfigPath(UUID id) {
+        return paths.getRulePath(id);
+    }
+
+    @Override
+    protected Class<Rule> getConfigClass() {
+        return Rule.class;
+    }
+
     private List<Op> prepareInsertPositionOrdering(UUID id, Rule ruleConfig,
                                                    int position)
             throws RuleIndexOutOfBoundsException, StateAccessException,
@@ -65,7 +76,7 @@ public class RuleZkManager extends AbstractZkManager {
                     + position);
         }
 
-        List<Op> ops = new ArrayList<Op>();
+        List<Op> ops = new ArrayList<>();
 
         // Add this one
         ops.addAll(prepareRuleCreate(id, ruleConfig));
@@ -95,7 +106,7 @@ public class RuleZkManager extends AbstractZkManager {
 
     private List<Op> prepareDeletePositionOrdering(UUID id, Rule ruleConfig)
             throws StateAccessException, SerializationException {
-        List<Op> ops = new ArrayList<Op>();
+        List<Op> ops = new ArrayList<>();
         // Delete this rule
         ops.addAll(prepareRuleDelete(id, ruleConfig));
 
@@ -130,7 +141,7 @@ public class RuleZkManager extends AbstractZkManager {
     private List<Op> prepareRuleCreate(UUID id, Rule ruleConfig)
             throws StateAccessException, SerializationException {
         String rulePath = paths.getRulePath(id);
-        List<Op> ops = new ArrayList<Op>();
+        List<Op> ops = new ArrayList<>();
 
         if (ruleConfig instanceof JumpRule) {
             JumpRule jrule = (JumpRule)ruleConfig;
@@ -141,9 +152,7 @@ public class RuleZkManager extends AbstractZkManager {
         }
 
         log.debug("Preparing to create: " + rulePath);
-        ops.add(Op.create(rulePath,
-                serializer.serialize(ruleConfig),
-                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+        ops.add(simpleCreateOp(id, ruleConfig));
 
         // Add a reference entry to port group if port group is specified.
         UUID portGroupId = ruleConfig.getCondition().portGroup;
@@ -169,7 +178,7 @@ public class RuleZkManager extends AbstractZkManager {
         return ops;
     }
 
-    public List<Op> prepareRuleDelete(UUID id) throws StateAccessException,
+    public List<Op> prepareDelete(UUID id) throws StateAccessException,
             SerializationException {
         return prepareDeletePositionOrdering(id, get(id));
     }
@@ -186,7 +195,7 @@ public class RuleZkManager extends AbstractZkManager {
      */
     public List<Op> prepareRuleDelete(UUID id, Rule rule)
         throws StateAccessException {
-        List<Op> ops = new ArrayList<Op>();
+        List<Op> ops = new ArrayList<>();
         String rulePath = paths.getRulePath(id);
         log.debug("Preparing to delete: " + rulePath);
         ops.add(Op.delete(rulePath, -1));
@@ -241,33 +250,6 @@ public class RuleZkManager extends AbstractZkManager {
         return id;
     }
 
-    /**
-     * Gets a ZooKeeper node entry key-value pair of a rule with the given ID.
-     *
-     * @param id
-     *            The ID of the rule.
-     * @return Rule object found.
-     * @throws StateAccessException
-     */
-    public Rule get(UUID id) throws StateAccessException,
-            SerializationException {
-        byte[] data = zk.get(paths.getRulePath(id), null);
-        return serializer.deserialize(data, Rule.class);
-    }
-
-    public boolean exists(UUID id) throws StateAccessException {
-        return zk.exists(paths.getRulePath(id));
-    }
-
-    public void getRuleAsync(
-            UUID ruleId,
-            DirectoryCallback<Rule> ruleCallback,
-            Directory.TypedWatcher watcher) {
-
-        getAsync(paths.getRulePath(ruleId),
-                 Rule.class, ruleCallback, watcher);
-    }
-
     public void getRuleIdListAsync(
             UUID chainId,
             DirectoryCallback<List<UUID>> ruleIdsCallback,
@@ -315,8 +297,7 @@ public class RuleZkManager extends AbstractZkManager {
         try {
             RuleList ruleList = serializer.deserialize(data,
                     RuleList.class);
-            return new AbstractMap.SimpleEntry<RuleList, Integer>(ruleList,
-                    version);
+            return new AbstractMap.SimpleEntry<>(ruleList, version);
         } catch (SerializationException e) {
             log.error("Could not deserialize rule list {}", data, e);
             return null;
@@ -343,7 +324,7 @@ public class RuleZkManager extends AbstractZkManager {
      */
     public void delete(UUID id) throws StateAccessException,
             SerializationException {
-        zk.multi(prepareRuleDelete(id));
+        zk.multi(prepareDelete(id));
     }
 
 }

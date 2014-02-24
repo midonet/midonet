@@ -1,6 +1,5 @@
 /*
- * Copyright 2012 Midokura Europe SARL
- * Copyright 2013 Midokura Pte Ltd
+ * Copyright (c) 2012-2014 Midokura Europe SARL, All Rights Reserved.
  */
 package org.midonet.cluster;
 
@@ -718,7 +717,8 @@ public interface DataClient {
     void portSetsDelHost(UUID portSetId, UUID hostId)
         throws StateAccessException;
 
-    Set<UUID> portSetsGet(UUID portSet) throws StateAccessException;
+    Set<UUID> portSetsGet(UUID portSet)
+            throws SerializationException, StateAccessException;
 
     /**
      * Adds a new tag to a resource represented by "taggable" data with id.
@@ -769,7 +769,8 @@ public interface DataClient {
     UUID traceConditionCreate(@Nonnull TraceCondition traceCondition)
         throws StateAccessException, SerializationException;
 
-    void traceConditionDelete(UUID uuid) throws StateAccessException;
+    void traceConditionDelete(UUID uuid)
+            throws SerializationException, StateAccessException;
 
     boolean traceConditionExists(UUID uuid) throws StateAccessException;
 
