@@ -8,7 +8,7 @@ import akka.event.Logging
 import scala.concurrent.duration._
 import collection.mutable.{Map, Queue}
 import compat.Platform
-import java.lang.{Long => JLong, Short => JShort}
+import java.lang.{Short => JShort}
 import java.util.UUID
 
 import org.junit.runner.RunWith
@@ -19,7 +19,7 @@ import org.midonet.midolman.topology._
 import org.midonet.cluster.client.{BridgePort, RouterPort, IpMacMap, MacLearningTable}
 import org.midonet.cluster.data
 import org.midonet.packets._
-import org.midonet.util.functors.{Callback0, Callback1, Callback3}
+import org.midonet.util.functors.{Callback0, Callback3}
 import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.cluster.VlanPortMapImpl
 
@@ -230,11 +230,11 @@ private class MockMacLearningTable(val table: Map[MAC, UUID])
     val additions = Queue[(MAC, UUID)]()
     val removals = Queue[(MAC, UUID)]()
 
-    override def get(mac: MAC, cb: Callback1[UUID], exp: JLong) {
-        cb.call(table.get(mac) match {
-                    case Some(port: UUID) => port
-                    case None => null
-                })
+    override def get(mac: MAC) = {
+        table.get(mac) match {
+            case Some(port: UUID) => port
+            case None => null
+        }
     }
 
     override def add(mac: MAC, port: UUID) {
@@ -251,19 +251,19 @@ private class MockMacLearningTable(val table: Map[MAC, UUID])
     }
 
     def reset() {
-        additions.clear
-        removals.clear
+        additions.clear()
+        removals.clear()
     }
 }
 
 private class MockIpMacMap(val map: Map[IPv4Addr, MAC])
     extends IpMacMap[IPv4Addr] {
 
-    override def get(ip: IPv4Addr, cb: Callback1[MAC], exp: JLong) {
-        cb.call(map.get(ip) match {
+    override def get(ip: IPv4Addr) = {
+        map.get(ip) match {
             case Some(mac: MAC) => mac
             case None => null
-        })
+        }
     }
 
     override def notify(cb: Callback3[IPv4Addr, MAC, MAC]) {

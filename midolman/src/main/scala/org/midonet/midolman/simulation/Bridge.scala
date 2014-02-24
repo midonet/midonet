@@ -203,30 +203,32 @@ class Bridge(val id: UUID,
                 Future.successful(unicastAction(logicalPort))
             case None => // not a logical port, is the dstMac learned?
                 val vlanId = srcVlanTag(pktCtx)
-                val port = getPortOfMac(dlDst, vlanId, pktCtx.expiry, ec)
+                val portId = vlanMacTableMap.get(vlanId) match {
+                    case Some(map: MacLearningTable) => map.get(dlDst)
+                    case _ => null
+                }
                 // Tag the flow with the (dst-port, dst-mac) pair so we can
                 // invalidate the flow if the MAC migrates.
                 pktCtx.addFlowTag(invalidateFlowsByPort(id, dlSrc, vlanId,
                                                         pktCtx.inPortId))
-                port flatMap {
-                    case Some(portId: UUID) if portId == pktCtx.inPortId =>
-                        log.warning("MAC {} VLAN {} resolves to InPort {}: " +
-                                    "DROP (temp)", dlDst, vlanId, portId)
-                        // No tags because temp flows aren't affected by
-                        // invalidations. would get byPort (dlDst, vlan, port)
-                        Future.successful(TemporaryDropAction)
-                    case Some(portId: UUID) =>
-                        log.debug("Dst MAC {}, VLAN {} on port {}: Forward",
-                                  dlDst, vlanId, portId)
-                        pktCtx.addFlowTag(invalidateFlowsByPort(id, dlDst,
-                                                                vlanId, portId))
-                        Future.successful(unicastAction(portId))
-                    case None =>
-                        log.debug("Dst MAC {}, VLAN {} is not learned: Flood",
-                                  dlDst, vlanId)
-                        pktCtx.addFlowTag(
-                            invalidateFloodedFlowsByDstMac(id, dlDst, vlanId))
-                        multicastAction()
+                if (portId == null) {
+                    log.debug("Dst MAC {}, VLAN {} is not learned: Flood",
+                              dlDst, vlanId)
+                    pktCtx.addFlowTag(invalidateFloodedFlowsByDstMac(id, dlDst,
+                                                                     vlanId))
+                    multicastAction()
+                } else if (portId == pktCtx.inPortId) {
+                    log.warning("MAC {} VLAN {} resolves to InPort {}: DROP " +
+                                "(temp)", dlDst, vlanId, portId)
+                    // No tags because temp flows aren't affected by
+                    // invalidations. Would get byPort (dlDst, vlan, port)
+                    Future.successful(TemporaryDropAction)
+                } else {
+                    log.debug("Dst MAC {}, VLAN {} on port {}: Forward", dlDst,
+                              vlanId, portId)
+                    pktCtx.addFlowTag(invalidateFlowsByPort(id, dlDst, vlanId,
+                                                            portId))
+                    Future.successful(unicastAction(portId))
                 }
         }
     }
@@ -396,17 +398,15 @@ class Bridge(val id: UUID,
             Future.successful(unicastAction(portID))
         } else {
             // If it's an ARP request, can we answer from the Bridge's IpMacMap?
-            val mac = pMatch.getNetworkProtocol match {
-                case ARP.OP_REQUEST =>
-                    val dstIp =
+            (pMatch.getNetworkProtocol match {
+                case ARP.OP_REQUEST if ip4MacMap != null =>
+                    ip4MacMap get
                         pMatch.getNetworkDestinationIP.asInstanceOf[IPv4Addr]
-                    getMacOfIp(dstIp, pktContext.expiry, ec)
                 case _ =>
-                    Future.successful[MAC](null)
-            }
-            // TODO(pino): tag the flow with the destination
-            // TODO: mac, so we can deal with changes in the mac.
-            mac flatMap {
+                    null
+            }) match {
+                // TODO(pino): tag the flow with the destination
+                // TODO: mac, so we can deal with changes in the mac.
                 case null =>
                     // Unknown MAC for this IP, or it's an ARP reply, broadcast
                     log.debug("Flooding ARP to port set {}, source MAC {}",
@@ -414,7 +414,7 @@ class Bridge(val id: UUID,
                     pktContext.addFlowTag(invalidateArpRequests(id))
                     multicastAction()
                 case m: MAC =>
-                    log.debug("Known MAC, {} reply to the ARP req.", mac)
+                    log.debug("Known MAC, {} reply to the ARP req.", m)
                     processArpRequest(
                         pktContext.frame.getPayload.asInstanceOf[ARP], m,
                         pktContext.inPortId)
@@ -551,52 +551,6 @@ class Bridge(val id: UUID,
         }
     }
 
-    /**
-      * Asynchronously gets the port of the given MAC address, the behaviour
-      * varies slightly if the Bridge is vlan-aware or not.
-      *
-      * - On Vlan-aware bridges (that is: those that have at least one interior
-      *   port tagged with a vlan ID) the MAC will be looked for *only* in the
-      *   partition for the given vlanId (the one contained in the simulated
-      *   frame)
-      * - On Vlan-unaware bridge (that is: those that do not have any interior
-      *   ports tagged with a vlan ID), the mac will be looked for *only* in the
-      *   default partition (which corresponds to the Bridge.UNTAGGED_VLAN_ID)
-      *   regardless of the frame's vlan id.
-      */
-    private def getPortOfMac(mac: MAC, vlanId: JShort, expiry: Long,
-                             ec: ExecutionContext)
-                            (implicit pktCtx: PacketContext) = {
-
-        vlanMacTableMap.get(vlanId) match {
-            case Some(macPortMap: MacLearningTable) =>
-                val rv = Promise[Option[UUID]]()
-                val getCallback = new Callback1[UUID] {
-                    def call(port: UUID) { rv.success(Option.apply(port)) }
-                }
-                macPortMap.get(mac, getCallback, expiry)
-                rv.future
-            case _ => Future.successful(None)
-        }
-    }
-
-    /**
-      * Asynchronously returns the MAC associated to the given IP, or None if
-      * the IP is unknown.
-      */
-    private def getMacOfIp(ip: IPv4Addr, expiry: Long, ec: ExecutionContext) = {
-        ip4MacMap match {
-            case null => Future.successful[MAC](null)
-            case map =>
-                val rv = Promise[MAC]()
-                val getCallback = new Callback1[MAC] {
-                    def call(mac: MAC) { rv.success(mac) }
-                }
-                map.get(ip, getCallback, expiry)
-                rv.future
-        }
-    }
-
     private def processArpRequest(arpReq: ARP, mac: MAC, inPortId: UUID)
                                  (implicit ec: ExecutionContext,
                                   actorSystem: ActorSystem,
@@ -607,8 +561,8 @@ class Bridge(val id: UUID,
                                    arpReq.getSenderProtocolAddress)
         DeduplicationActor ! EmitGeneratedPacket(
             inPortId, eth,
-            if (originalPktContex != null)
-                originalPktContex.flowCookie
+            if (originalPktContex != null) originalPktContex.flowCookie
             else None)
     }
+
 }

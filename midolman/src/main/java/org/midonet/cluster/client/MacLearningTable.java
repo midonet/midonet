@@ -6,14 +6,10 @@ package org.midonet.cluster.client;
 import java.util.UUID;
 
 import org.midonet.packets.MAC;
-import org.midonet.util.functors.Callback1;
 import org.midonet.util.functors.Callback3;
 
-/*
- * Non-blocking.
- */
 public interface MacLearningTable {
-    void get(MAC mac, Callback1<UUID> cb, Long expirationTime);
+    UUID get(MAC mac);
 
     void add(MAC mac, UUID portID);
 

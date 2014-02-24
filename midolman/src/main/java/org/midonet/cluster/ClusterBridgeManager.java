@@ -31,7 +31,6 @@ import org.midonet.midolman.state.zkManagers.PortZkManager;
 import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
-import org.midonet.util.functors.Callback1;
 import org.midonet.util.functors.Callback3;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -291,12 +290,12 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
             this.vlanId = vlanId;
         }
 
+        /* It's ok to do a synchronous get on the map because it only queries
+         * local state (doesn't go remote like the other calls.
+         */
         @Override
-        public void get(final MAC mac, final Callback1<UUID> cb,
-                        final Long expirationTime) {
-            // It's ok to do a synchronous get on the map because it only
-            // queries local state (doesn't go remote like the other calls.
-            cb.call(map.get(mac));
+        public UUID get(final MAC mac) {
+            return map.get(mac);
         }
 
         @Override
@@ -363,12 +362,12 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
             this.map = map;
         }
 
+        /* It's ok to do a synchronous get on the map because it only queries
+         * local state (doesn't go remote like the other calls.
+         */
         @Override
-        public void get(final IPv4Addr ip, final Callback1<MAC> cb,
-                        final Long expirationTime) {
-            // It's ok to do a synchronous get on the map because it only
-            // queries local state (doesn't go remote like the other calls.
-            cb.call(map.get(ip));
+        public MAC get(final IPv4Addr ip) {
+            return map.get(ip);
         }
 
         // This notify() registers its callback directly with the underlying
