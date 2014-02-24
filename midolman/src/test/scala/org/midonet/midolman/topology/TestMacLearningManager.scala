@@ -15,7 +15,7 @@ import org.midonet.cluster.client.MacLearningTable
 import org.midonet.cluster.data.Bridge
 import org.midonet.midolman.topology.MacLearningManager
 import org.midonet.packets.MAC
-import org.midonet.util.functors.{Callback3, Callback1}
+import org.midonet.util.functors.Callback3
 
 class TestMacLearningManager  extends FunSuite with Matchers {
     implicit val system = ActorSystem.create("TestMacLearningManager")
@@ -118,11 +118,11 @@ class TestMacLearningManager  extends FunSuite with Matchers {
 private class MockMacLearningTable(backend: mutable.Map[MAC, UUID])
         extends MacLearningTable {
 
-    override def get(mac1: MAC, cb: Callback1[UUID], exp: java.lang.Long) {
-        cb.call(backend.get(mac1) match {
+    override def get(mac1: MAC) = {
+        backend.get(mac1) match {
             case Some(port1: UUID) => port1
             case None => null
-        })
+        }
     }
 
     override def add(mac1: MAC, port1: UUID) {

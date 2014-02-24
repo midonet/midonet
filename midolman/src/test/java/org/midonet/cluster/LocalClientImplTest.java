@@ -268,13 +268,7 @@ public class LocalClientImplTest {
 
         public UUID getPort(MAC mac) {
             final UUID result[] = new UUID[1];
-
-            mlTable.get(mac, new Callback1<UUID>() {
-                @Override
-                public void call(UUID v) {
-                    result[0] = v;
-                }
-            }, System.currentTimeMillis()+2000);
+            result[0] = mlTable.get(mac);
 
             try {
                 Thread.sleep(2000);
