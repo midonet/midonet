@@ -129,16 +129,16 @@ class DeduplicationActorTestCase extends FeatureSpec
             And ("two tokens should have been freed up")
             testableDda.throttler.numTokens should be (-2)
 
-            When("their cookie expires")
-            Then("they should be unpended automatically")
             eventually {
-                testableDda.pendedPackets(1) should be (None)
-            }
-            And("not executed")
-            mockDpConn().packetsSent.size should be (0)
+                When("their cookie expires")
+                Then("they should be unpended automatically")
+                    testableDda.pendedPackets(1) should be (None)
+                And("not executed")
+                mockDpConn().packetsSent.size should be (0)
 
-            And ("three tokens should have been freed up")
-            testableDda.throttler.numTokens should be (-3)
+                And ("three tokens should have been freed up")
+                testableDda.throttler.numTokens should be (-3)
+            }
         }
 
         scenario("discards packets When ApplyFlow has no actions") {
