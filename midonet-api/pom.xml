@@ -84,7 +84,6 @@
                 <configuration>
                     <webApp>
                         <contextPath>/midonet-api</contextPath>
-                        <descriptor>${project.basedir}/src/main/webapp/WEB-INF/web.xml.dev</descriptor>
                     </webApp>
                 </configuration>
             </plugin>
