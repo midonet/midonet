@@ -8,15 +8,22 @@ import java.util.UUID
 
 import akka.actor.{Actor, ActorRef, Props, ActorSystem}
 import com.typesafe.config.ConfigFactory
-import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.concurrent.Eventually._
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.time.{Span, Seconds}
 
+import org.junit.runner.RunWith
 import org.midonet.netlink.{AfUnix, UnixDomainChannel}
 import org.midonet.netlink.AfUnix.Address
+import org.midonet.midolman.l4lb.HaproxyHealthMonitor.{StartMonitor,
+                                                       SockReadFailure,
+                                                       ConfigUpdate}
+import org.scalatest.time.{Span, Seconds}
+import org.midonet.cluster.DataClient
+import org.midonet.midolman.state.zkManagers.{PoolMemberZkManager,
+                                              PortZkManager}
 
 
 @RunWith(classOf[JUnitRunner])
@@ -81,7 +88,8 @@ class HaproxyHealthMonitorTest extends FeatureSpec
         healthMonitorUT
             = actorSystem.actorOf(Props(new HaproxyHealthMonitorUT(
                 createFakePoolConfig("10.10.10.10", goodSocketPath),
-                                     managerActor)))
+                                     managerActor, UUID.randomUUID(), null,
+                                     UUID.randomUUID())))
         healthMonitorUT ! StartMonitor
     }
 
@@ -153,11 +161,17 @@ class HaproxyHealthMonitorTest extends FeatureSpec
      * the functions that would block and perform IO.
      */
     class HaproxyHealthMonitorUT(config: PoolConfig,
-                                 manager: ActorRef)
+                                 manager: ActorRef,
+                                 routerId: UUID,
+                                 client: DataClient,
+                                 hostId: UUID)
         extends HaproxyHealthMonitor(config: PoolConfig,
-                                     manager: ActorRef) {
+                                     manager: ActorRef,
+                                     routerId: UUID,
+                                     client: DataClient,
+                                     hostId: UUID) {
 
-        override def makeChannel = new MockUnixChannel(null)
+        override def makeChannel() = new MockUnixChannel(null)
         override def writeConf(config: PoolConfig): Unit = {
             if (config.vip.ip == DelayedIp) {
                 Thread.sleep(2000)
@@ -167,7 +181,7 @@ class HaproxyHealthMonitorTest extends FeatureSpec
         }
         override def restartHaproxy(name: String, confFileLoc: String,
                                     pidFileLoc: String) = haproxyRestarts += 1
-        override def createNamespace(name: String, ip: String): Unit = {}
+        override def createNamespace(name: String, ip: String): String = {""}
         override def getHaproxyStatus(path: String) : String = {
             if (path.contains(badSocketPath)) {
                 throw new Exception
@@ -175,5 +189,8 @@ class HaproxyHealthMonitorTest extends FeatureSpec
             socketReads +=1
             "" // return empty string because it isn't checked
         }
+        override def hookNamespaceToRouter(nsName: String, routerId: UUID) =
+            {""}
+        override def unhookNamespaceFromRouter = {}
     }
 }
