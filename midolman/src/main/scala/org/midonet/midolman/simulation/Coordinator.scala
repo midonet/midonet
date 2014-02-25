@@ -135,8 +135,6 @@ class Coordinator(var origMatch: WildcardMatch,
 
     implicit val log = LoggerFactory.getSimulationAwareLog(
         this.getClass)(actorSystem.eventStream)
-    private val TEMPORARY_DROP_MILLIS = 5 * 1000
-    private val IDLE_EXPIRATION_MILLIS = 60 * 1000
     private val RETURN_FLOW_EXPIRATION_MILLIS = 60 * 1000
     private val MAX_DEVICES_TRAVERSED = 12
 
@@ -166,17 +164,11 @@ class Coordinator(var origMatch: WildcardMatch,
         pktContext.traceMessage(null, "Dropping flow")
         cookie match {
             case Some(_) =>
-                val idleExp = if (temporary) 0 else IDLE_EXPIRATION_MILLIS
-                val hardExp = if (temporary) TEMPORARY_DROP_MILLIS else 0
-                val wflow = WildcardFlow(
-                    wcmatch = origMatch,
-                    hardExpirationMillis = hardExp,
-                    idleExpirationMillis = idleExp)
-
-                AddVirtualWildcardFlow(wflow,
-                        pktContext.getFlowRemovedCallbacks,
-                        if (withTags) pktContext.getFlowTags else Set.empty)
-
+                val tags = if (withTags) pktContext.getFlowTags else Set.empty[Any]
+                if (temporary)
+                    TemporaryDrop(tags, pktContext.getFlowRemovedCallbacks)
+                else
+                    Drop(tags, pktContext.getFlowRemovedCallbacks)
             case None => // Internally-generated packet. Do nothing.
                 pktContext.runFlowRemovedCallbacks()
                 NoOp
@@ -441,17 +433,9 @@ class Coordinator(var origMatch: WildcardMatch,
                 dropFlow(temporary = true, withTags = false)
 
             case act: AbstractDropAction =>
-                pktContext.traceMessage(null, "Dropping flow")
-                pktContext.freeze()
                 log.debug("Device returned DropAction for {}", origMatch)
-                cookie match {
-                    case None => // Do nothing.
-                        pktContext.runFlowRemovedCallbacks()
-                        NoOp
-                    case Some(_) =>
-                        dropFlow(act.temporary || pktContext.isConnTracked,
-                                 withTags = !act.temporary)
-                }
+                dropFlow(act.temporary || pktContext.isConnTracked,
+                         withTags = !act.temporary)
 
             case NotIPv4Action =>
                 pktContext.traceMessage(null, "Unsupported protocol")

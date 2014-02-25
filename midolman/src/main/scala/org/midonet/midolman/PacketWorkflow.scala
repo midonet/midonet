@@ -3,14 +3,19 @@
  */
 package org.midonet.midolman
 
+import java.lang.{Integer => JInteger}
+import java.util.UUID
+import java.util.concurrent.TimeUnit
+
+import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
+import scala.collection.{Set => ROSet, mutable}
+import scala.concurrent._
+import scala.reflect.ClassTag
 
 import akka.actor._
 import akka.event.{Logging, LoggingAdapter}
 import akka.util.Timeout
-
-import java.lang.{Integer => JInteger}
-import java.util.UUID
-import java.util.concurrent.TimeUnit
 
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.client.Port
@@ -30,14 +35,6 @@ import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPortSet
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 import org.midonet.util.concurrent._
 import org.midonet.util.functors.Callback0
-
-import scala.collection.JavaConversions._
-import scala.collection.JavaConverters._
-import scala.collection.mutable
-import scala.collection.{Set => ROSet}
-import scala.concurrent._
-import scala.reflect.ClassTag
-
 
 trait PacketHandler {
 
@@ -59,11 +56,25 @@ object PacketWorkflow {
                         reason: Packet.Reason,
                         cookie: Int)
 
+    val TEMPORARY_DROP_MILLIS = 5 * 1000
+    val IDLE_EXPIRATION_MILLIS = 60 * 1000
+
     sealed trait SimulationResult
 
     case object NoOp extends SimulationResult
 
-    case object ErrorDrop extends SimulationResult
+    sealed trait DropSimulationResult extends SimulationResult {
+        val tags: ROSet[Any]
+        val flowRemovalCallbacks: ROSet[Callback0]
+    }
+
+    case class Drop(tags: ROSet[Any],
+                    flowRemovalCallbacks: ROSet[Callback0])
+            extends DropSimulationResult
+
+    case class TemporaryDrop(tags: ROSet[Any],
+                             flowRemovalCallbacks: ROSet[Callback0])
+            extends DropSimulationResult
 
     case class SendPacket(actions: List[FlowAction]) extends SimulationResult
 
@@ -71,8 +82,7 @@ object PacketWorkflow {
                                       flowRemovalCallbacks: ROSet[Callback0],
                                       tags: ROSet[Any]) extends SimulationResult
 
-    trait PipelinePath
-
+    sealed trait PipelinePath
     case object WildcardTableHit extends PipelinePath
     case object PacketToPortSet extends PipelinePath
     case object Simulation extends PipelinePath
@@ -106,8 +116,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
 
     import PacketWorkflow._
     import DeduplicationActor._
-    import FlowController.AddWildcardFlow
-    import FlowController.FlowAdded
+    import FlowController.{AddWildcardFlow, FlowAdded}
     import VirtualToPhysicalMapper.PortSetForTunnelKeyRequest
     import VirtualTopologyActor.PortRequest
 
@@ -265,17 +274,20 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
                 Future.successful(true)
         }
 
-    private def addTranslatedFlowForActions(actions: Seq[FlowAction],
-                                            tags: ROSet[Any] = Set.empty,
-                                            removalCallbacks: ROSet[Callback0] = Set.empty,
-                                            expiration: Int = 3000,
-                                            priority: Short = 0): Future[Boolean] = {
+    private def addTranslatedFlowForActions(
+                            actions: Seq[FlowAction],
+                            tags: ROSet[Any] = Set.empty,
+                            removalCallbacks: ROSet[Callback0] = Set.empty,
+                            hardExpirationMillis: Int = 0,
+                            idleExpirationMillis: Int = IDLE_EXPIRATION_MILLIS)
+    : Future[Boolean] = {
 
         val wildFlow = WildcardFlow(
             wcmatch = wcMatch,
-            idleExpirationMillis = expiration,
+            hardExpirationMillis = hardExpirationMillis,
+            idleExpirationMillis = idleExpirationMillis,
             actions =  actions.toList,
-            priority = priority)
+            priority = 0)
 
         addTranslatedFlow(wildFlow, tags, removalCallbacks)
     }
@@ -423,8 +435,12 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
             case NoOp =>
                 DeduplicationActor ! ApplyFlow(Nil, cookie)
                 Future.successful(true)
-            case ErrorDrop =>
-                addTranslatedFlowForActions(Nil, expiration = 5000)
+            case TemporaryDrop(tags, flowRemovalCallbacks) =>
+                addTranslatedFlowForActions(Nil, tags, flowRemovalCallbacks,
+                                            TEMPORARY_DROP_MILLIS, 0)
+            case Drop(tags, flowRemovalCallbacks) =>
+                addTranslatedFlowForActions(Nil, tags, flowRemovalCallbacks,
+                                            0, IDLE_EXPIRATION_MILLIS)
         }) map {
             _ => Simulation
         }
@@ -458,7 +474,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
                 }
 
             case None =>
-                Future.successful(ErrorDrop)
+                Future.successful(TemporaryDrop(Set.empty, Set.empty))
         }
     }
 
