@@ -3,8 +3,6 @@
  */
 package org.midonet.odp.ports;
 
-import javax.annotation.Nonnull;
-
 import org.midonet.odp.DpPort;
 
 /**
@@ -12,8 +10,12 @@ import org.midonet.odp.DpPort;
  */
 public class GreTunnelPort extends DpPort {
 
-    public GreTunnelPort(@Nonnull String name) {
-        super(name, Type.Gre);
+    public GreTunnelPort(String name) {
+        super(name);
+    }
+
+    public Type getType() {
+        return Type.Gre;
     }
 
     /** returns a new GreTunnelPort instance with empty options */

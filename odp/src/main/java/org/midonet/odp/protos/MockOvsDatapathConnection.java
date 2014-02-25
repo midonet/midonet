@@ -103,12 +103,8 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
         return datapath;
     }
 
-    protected InternalPort makeDatapathPort(Datapath datapath) {
-        InternalPort port = new InternalPort(datapath.getName());
-        port.setPortNo(0);
-        port.setStats(new DpPort.Stats());
-
-        return port;
+    protected DpPort makeDatapathPort(Datapath datapath) {
+        return DpPort.fakeFrom(new InternalPort(datapath.getName()), 0);
     }
 
     @Override
@@ -169,9 +165,8 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
     }
 
     private DpPort fixupPort(Datapath datapath, DpPort port) {
-        port.setStats(new DpPort.Stats());
-        port.setPortNo(portsIndexes.get(datapath).incrementAndGet());
-        return port;
+        int portNo = portsIndexes.get(datapath).incrementAndGet();
+        return DpPort.fakeFrom(port, portNo);
     }
 
 

@@ -423,6 +423,15 @@ public class NetlinkMessage {
         buf.putInt(value);
     }
 
+    /** writes a short attribute with a header len field assuming no padding,
+     *  but adds the padding. */
+    public static void writeShortAttrNoPad(ByteBuffer buf,
+                                           short id, short value) {
+        NetlinkMessage.setAttrHeader(buf, id, 6);
+        buf.putShort(value);
+        addPaddingForShort(buf);
+    }
+
     public static int addAttribute(ByteBuffer buf, short id, byte[] value) {
         // save position
         int start = buf.position();
@@ -438,6 +447,11 @@ public class NetlinkMessage {
         buf.putShort(start, (short) (buf.position() - start));
 
         return buf.position() - start;
+    }
+
+    public static void addPaddingForShort(ByteBuffer buffer) {
+        short padding = 0;
+        buffer.putShort(padding);
     }
 
     public static int pad(int len) {
