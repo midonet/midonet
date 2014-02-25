@@ -14,9 +14,7 @@ import org.midonet.util.eventloop.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.netlink.BufferPool;
 import org.midonet.netlink.Netlink;
-import org.midonet.netlink.NetlinkChannel;
 import org.midonet.odp.protos.OvsDatapathConnection;
 
 public abstract class DatapathClient {
@@ -28,11 +26,10 @@ public abstract class DatapathClient {
 
         log.info("Creating the selector loop");
         final SelectLoop loop = new SimpleSelectLoop();
-        final Reactor reactor = new TryCatchReactor("ovs-connection", 1);
 
         log.info("Making the ovsConnection");
         final OvsDatapathConnection ovsConnection =
-            OvsDatapathConnection.create(new Netlink.Address(0), reactor);
+            OvsDatapathConnection.create(new Netlink.Address(0));
 
         log.info("Setting the channel to non blocking");
         ovsConnection.getChannel().configureBlocking(false);

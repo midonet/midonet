@@ -61,7 +61,6 @@ public abstract class AbstractNetlinkConnection {
     private BufferPool requestPool;
 
     private NetlinkChannel channel;
-    private Reactor reactor;
     protected BatchCollector<Runnable> dispatcher;
 
     private SelectorInputQueue<NetlinkRequest> writeQueue =
@@ -69,10 +68,10 @@ public abstract class AbstractNetlinkConnection {
 
     private PriorityQueue<NetlinkRequest<?>> expirationQueue;
 
-    public AbstractNetlinkConnection(NetlinkChannel channel, Reactor reactor,
-                                     BufferPool sendPool) {
+    private Set<NetlinkRequest<?>> ongoingTransaction = new HashSet<>();
+
+    public AbstractNetlinkConnection(NetlinkChannel channel, BufferPool sendPool) {
         this.channel = channel;
-        this.reactor = reactor;
         this.requestPool = sendPool;
         expirationQueue = new PriorityQueue<NetlinkRequest<?>>(
                 512, new NetlinkRequestTimeoutComparator());
@@ -92,10 +91,6 @@ public abstract class AbstractNetlinkConnection {
 
     public NetlinkChannel getChannel() {
         return channel;
-    }
-
-    protected Reactor getReactor() {
-        return reactor;
     }
 
     public void setCallbackDispatcher(BatchCollector<Runnable> dispatcher) {
@@ -137,7 +132,8 @@ public abstract class AbstractNetlinkConnection {
             if (pendingRequests.remove(req.seq) == null)
                 continue;
 
-            log.debug("Signalling timeout to the callback: {}", req.seq);
+            log.debug("[pid:{}] Signalling timeout to the callback: {}",
+                      pid(), req.seq);
             if (req.outBuffer != null) {
                 requestPool.release(req.outBuffer);
                 req.outBuffer = null;
@@ -171,31 +167,89 @@ public abstract class AbstractNetlinkConnection {
         final NetlinkRequest<T> netlinkRequest =
             new NetlinkRequest<>(cmdFamily, cmd, callback, translator, payload, seq, timeoutMillis);
 
-        if (callback != null) {
-            expirationQueue.add(netlinkRequest);
-            pendingRequests.put(seq, netlinkRequest);
+        log.trace("[pid:{}] Sending message for id {}", pid(), seq);
+        pendRequest(netlinkRequest, seq);
+
+        if (bypassSendQueue) {
+            processWriteToChannel(netlinkRequest);
+        } else if (! writeQueue.offer(netlinkRequest)) {
+            requestPool.release(payload);
+            abortRequestQueueIsFull(netlinkRequest, seq);
+        }
+    }
+
+    private int pid() {
+        return getChannel().getLocalAddress().getPid();
+    }
+
+    private void pendRequest(NetlinkRequest<?> req, int seq) {
+        if (req.userCallback != null) {
+            pendingRequests.put(seq, req);
+        }
+    }
+
+    private void abortRequestQueueIsFull(NetlinkRequest<?> req, int seq) {
+        String msg = "Too many pending netlink requests";
+        if (req.userCallback != null) {
+            pendingRequests.remove(seq);
+
+            /* Run the callback directly, because this runs out of the client's
+             * thread, not the channel's: it's the client that failed to
+             * put a request in the queue. */
+            req.failed(new NetlinkException(
+                NetlinkException.ERROR_SENDING_REQUEST, msg)).run();
+        } else {
+            log.info(msg);
+        }
+    }
+
+    /*
+     * Use blocking-write to send a batch of netlink requests and do
+     * blocking reads until all their ACKs have been received back.
+     *
+     * Will throw if the channel is in non-blocking mode.
+     *
+     * NOT thread-safe.
+     */
+    public void doTransactionBatch() throws InterruptedException {
+        if (! channel.isBlocking()) {
+            throw new UnsupportedOperationException(
+                "Blocking transactions on non-blocking channels are unsupported");
         }
 
-        log.trace("Sending message for id {}", seq);
-        if (writeQueue.offer(netlinkRequest)) {
-            if (bypassSendQueue)
-                processWriteToChannel();
-        } else {
-            requestPool.release(payload);
-            if (callback != null) {
-                pendingRequests.remove(seq);
-                netlinkRequest.failed(new NetlinkException(
-                        NetlinkException.ERROR_SENDING_REQUEST,
-                        "Too many pending netlink requests")).run();
-            } else {
-                log.info("Too many pending netlink requests");
-            }
+        NetlinkRequest<?> r;
+
+        for (r = writeQueue.poll(5000, TimeUnit.MILLISECONDS);
+             r != null && ongoingTransaction.size() < maxBatchIoOps;
+             r = writeQueue.poll()) {
+
+            if (processWriteToChannel(r) <= 0)
+                break;
+
+            if (r.userCallback != null)
+                ongoingTransaction.add(r);
         }
+
+        try {
+            while (! ongoingTransaction.isEmpty()) {
+                if (processReadFromChannel() <= 0)
+                    break;
+            }
+        } catch (IOException e) {
+            log.error("Netlink channel read() error", e);
+        }
+
+        expireOldRequests();
+        dispatcher.endBatch();
+        ongoingTransaction.clear();
     }
 
     public void handleWriteEvent(final SelectionKey key) throws IOException {
         for (int i = 0; i < maxBatchIoOps; i++) {
-            final int ret = processWriteToChannel();
+            final NetlinkRequest<?> request = writeQueue.poll();
+            if (request == null)
+                break;
+            final int ret = processWriteToChannel(request);
             if (ret <= 0) {
                 if (ret < 0) {
                     log.warn("NETLINK write() error: {}",
@@ -207,8 +261,7 @@ public abstract class AbstractNetlinkConnection {
         expireOldRequests();
     }
 
-    private int processWriteToChannel() {
-        final NetlinkRequest<?> request = writeQueue.poll();
+    private int processWriteToChannel(final NetlinkRequest<?> request) {
         if (request == null)
             return 0;
         ByteBuffer outBuf = request.outBuffer;
@@ -220,11 +273,14 @@ public abstract class AbstractNetlinkConnection {
         int bytes = 0;
         try {
             bytes = channel.write(outBuf);
+            if (request.userCallback != null)
+                expirationQueue.add(request);
         } catch (IOException e) {
             log.warn("NETLINK write() exception: {}", e);
-            request.failed(new NetlinkException(
-                        NetlinkException.ERROR_SENDING_REQUEST, e))
-                    .run();
+            if (request.userCallback != null) {
+                dispatcher.submit(request.failed(new NetlinkException(
+                                  NetlinkException.ERROR_SENDING_REQUEST, e)));
+            }
         } finally {
             requestPool.release(outBuf);
         }
@@ -234,7 +290,7 @@ public abstract class AbstractNetlinkConnection {
     public void handleReadEvent(final SelectionKey key) throws IOException {
         try {
             for (int i = 0; i < maxBatchIoOps; i++) {
-                final int ret = processReadFromChannel(key);
+                final int ret = processReadFromChannel();
                 if (ret <= 0) {
                     if (ret < 0) {
                         log.info("NETLINK read() error: {}",
@@ -253,13 +309,7 @@ public abstract class AbstractNetlinkConnection {
 
     protected void endBatch() {}
 
-    private synchronized int processReadFromChannel(SelectionKey key) throws IOException {
-
-        if (key != null) {
-            log.trace("Handling event with key: {valid:{}, ops:{}}",
-                      key.isValid(), key.readyOps());
-        }
-
+    private synchronized int processReadFromChannel() throws IOException {
         reply.clear();
         reply.order(ByteOrder.LITTLE_ENDIAN);
 
@@ -292,8 +342,8 @@ public abstract class AbstractNetlinkConnection {
                                             pendingRequests.get(seq) :
                                             null;
             if (request == null && seq != 0) {
-                log.warn("Reply handler for netlink request with id {} " +
-                         "not found.", seq);
+                log.warn("[pid:{}] Reply handler for netlink request with id {} " +
+                         "not found.", pid(), seq);
             }
 
             Netlink.MessageType messageType =
@@ -316,6 +366,7 @@ public abstract class AbstractNetlinkConnection {
 
                     if (request != null) {
                         pendingRequests.remove(seq);
+                        ongoingTransaction.remove(request);
                         // An ACK is a NLMSG_ERROR with 0 as error code
                         if (error == 0) {
                             dispatcher.submit(request.successful(request.inBuffers));
@@ -330,6 +381,7 @@ public abstract class AbstractNetlinkConnection {
                 case NLMSG_DONE:
                     if (request != null) {
                         pendingRequests.remove(seq);
+                        ongoingTransaction.remove(request);
                         dispatcher.submit(request.successful(request.inBuffers));
                     }
                     break;
@@ -357,6 +409,7 @@ public abstract class AbstractNetlinkConnection {
                     if (!Flag.isSet(flags, Flag.NLM_F_MULTI)) {
                         if (request != null) {
                             pendingRequests.remove(seq);
+                            ongoingTransaction.remove(request);
                             dispatcher.submit(request.successful(request.inBuffers));
                         }
 

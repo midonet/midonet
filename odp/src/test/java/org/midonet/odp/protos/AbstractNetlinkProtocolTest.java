@@ -40,7 +40,7 @@ public abstract class AbstractNetlinkProtocolTest {
     OvsDatapathConnection connection = null;
 
     protected void setConnection() throws Exception {
-        connection = new OvsDatapathConnectionImpl(channel, reactor,
+        connection = new OvsDatapathConnectionImpl(channel,
             new BufferPool(128, 512, 0x1000));
     }
 

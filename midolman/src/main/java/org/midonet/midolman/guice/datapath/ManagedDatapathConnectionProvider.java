@@ -25,16 +25,13 @@ public class ManagedDatapathConnectionProvider implements
         .getLogger(ManagedDatapathConnectionProvider.class);
 
     @Inject
-    Reactor reactor;
-
-    @Inject
     MidolmanConfig config;
 
     @Override
     public ManagedDatapathConnection get() {
         try {
             return new DualSelectorDatapathConnection(
-                "datapath", reactor, config, true);
+                "datapath", config, true);
         } catch (Exception e) {
             log.error("Error creating OvsDatapathConnection");
             throw new RuntimeException(e);

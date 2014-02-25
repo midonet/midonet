@@ -54,10 +54,9 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
     public static final int FALLBACK_PORT_MULTICAT =
         OpenVSwitch.Port.fallbackMCGroup;
 
-    public OvsDatapathConnectionImpl(NetlinkChannel channel, Reactor reactor,
-            BufferPool sendPool)
+    public OvsDatapathConnectionImpl(NetlinkChannel channel, BufferPool sendPool)
         throws Exception {
-        super(channel, reactor, sendPool);
+        super(channel, sendPool);
     }
 
     @Override
