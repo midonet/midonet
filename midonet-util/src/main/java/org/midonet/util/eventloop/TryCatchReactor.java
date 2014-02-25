@@ -1,20 +1,21 @@
 /*
- * Copyright 2012 Midokura Pte. Ltd.
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
  */
 
 package org.midonet.util.eventloop;
 
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
+import java.util.concurrent.RejectedExecutionHandler;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Reactor implementation that catches, logs, and discards any exceptions thrown
@@ -25,16 +26,24 @@ public class TryCatchReactor implements Reactor {
     private static final Logger log = LoggerFactory
         .getLogger(TryCatchReactor.class);
 
-    ScheduledExecutorService executor;
+    ScheduledThreadPoolExecutor executor;
 
     public TryCatchReactor(final String identifier, Integer nOfThreads) {
-        executor = Executors.newScheduledThreadPool(
+        executor = new ScheduledThreadPoolExecutor(
             nOfThreads,
             new ThreadFactory() {
                 private AtomicInteger counter = new AtomicInteger(0);
+                @Override
                 public Thread newThread(Runnable r) {
                     int thread_id = counter.incrementAndGet();
                     return new Thread(r, identifier + "-" + thread_id);
+                }
+            },
+            new RejectedExecutionHandler() {
+                @Override
+                public void rejectedExecution(Runnable r,
+                                              ThreadPoolExecutor executor) {
+                    // Do nothing, as this was the result of a race with shutdown.
                 }
             }
         );
@@ -85,7 +94,7 @@ public class TryCatchReactor implements Reactor {
 
     @Override
     public Future<?> submit(final Runnable runnable) {
-        if(!executor.isShutdown() && !executor.isTerminated()) {
+        if (!executor.isShutdown() && !executor.isTerminated()) {
             return executor.submit(wrapRunnable(runnable));
         } else {
             log.warn(shutdownErrMsg, runnable);
@@ -96,7 +105,7 @@ public class TryCatchReactor implements Reactor {
     @Override
     public ScheduledFuture<?> schedule(final Runnable runnable,
                                        long delay, TimeUnit unit) {
-        if(!executor.isShutdown() && !executor.isTerminated()) {
+        if (!executor.isShutdown() && !executor.isTerminated()) {
             return executor.schedule(wrapRunnable(runnable), delay, unit);
         } else {
             log.warn(shutdownErrMsg, runnable);
@@ -106,7 +115,7 @@ public class TryCatchReactor implements Reactor {
 
     @Override
     public <V> Future<V> submit(final Callable<V> work) {
-        if(!executor.isShutdown() && !executor.isTerminated()) {
+        if (!executor.isShutdown() && !executor.isTerminated()) {
             return executor.submit(wrapCallable(work));
         } else {
             log.warn(shutdownErrMsg, work);
@@ -117,7 +126,7 @@ public class TryCatchReactor implements Reactor {
     @Override
     public <V> ScheduledFuture<V> schedule(final Callable<V> work,
                                            long delay, TimeUnit unit) {
-        if(!executor.isShutdown() && !executor.isTerminated()) {
+        if (!executor.isShutdown() && !executor.isTerminated()) {
             return executor.schedule(wrapCallable(work), delay, unit);
         } else {
             log.warn(shutdownErrMsg, work);
@@ -137,6 +146,6 @@ public class TryCatchReactor implements Reactor {
 
     @Override
     public boolean isShutDownOrTerminated() {
-        return (executor.isShutdown() || executor.isTerminated());
+        return executor.isShutdown() || executor.isTerminated();
     }
 }
