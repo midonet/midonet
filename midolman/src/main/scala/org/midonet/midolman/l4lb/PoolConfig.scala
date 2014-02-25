@@ -62,7 +62,8 @@ frontend ${vip.id.toString}
         mode tcp
         default_backend $id
 backend $id
-        timeout check ${healthMonitor.timeout}s"""
+        timeout check ${healthMonitor.timeout}s
+"""
         members.foreach(x => conf.append(s"        server ${x.id.toString} " +
             s"${x.address}:${x.port} check inter ${healthMonitor.delay}s " +
             s"fall ${healthMonitor.maxRetries}\n"))
