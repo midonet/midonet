@@ -24,8 +24,6 @@ public class DualSelectorDatapathConnection implements ManagedDatapathConnection
 
     private MidolmanConfig config;
 
-    private Reactor reactor;
-
     private Thread readThread;
     private Thread writeThread;
     private SelectLoop readLoop;
@@ -34,11 +32,10 @@ public class DualSelectorDatapathConnection implements ManagedDatapathConnection
     private OvsDatapathConnection conn = null;
     private boolean singleThreaded;
 
-    public DualSelectorDatapathConnection(String name, Reactor reactor,
+    public DualSelectorDatapathConnection(String name,
                                           MidolmanConfig config,
                                           boolean singleThreaded) {
         this.config = config;
-        this.reactor = reactor;
         this.name = name;
         this.singleThreaded = singleThreaded;
         this.sendPool = new BufferPool(config.getSendBufferPoolInitialSize(),
@@ -46,9 +43,8 @@ public class DualSelectorDatapathConnection implements ManagedDatapathConnection
                                        config.getSendBufferPoolBufSizeKb() * 1024);
     }
 
-    public DualSelectorDatapathConnection(String name, Reactor reactor,
-                                          MidolmanConfig config) {
-        this(name, reactor, config, false);
+    public DualSelectorDatapathConnection(String name, MidolmanConfig config) {
+        this(name, config, false);
     }
 
     public OvsDatapathConnection getConnection() {
@@ -66,7 +62,7 @@ public class DualSelectorDatapathConnection implements ManagedDatapathConnection
         writeThread = singleThreaded ? readThread :
                                        startLoop(writeLoop, name + ".write");
 
-        conn = OvsDatapathConnection.create(new Netlink.Address(0), reactor, sendPool);
+        conn = OvsDatapathConnection.create(new Netlink.Address(0), sendPool);
 
         conn.getChannel().configureBlocking(false);
         conn.setMaxBatchIoOps(config.getMaxMessagesPerBatch());

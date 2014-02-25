@@ -22,7 +22,6 @@ import org.midonet.netlink.CtrlFamily;
 import org.midonet.netlink.NetlinkChannel;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.Builder;
-import org.midonet.util.eventloop.Reactor;
 
 import static org.midonet.netlink.Netlink.Flag;
 
@@ -37,9 +36,8 @@ public class NetlinkConnection extends AbstractNetlinkConnection {
     private static final Logger log = LoggerFactory
         .getLogger(NetlinkConnection.class);
 
-    public NetlinkConnection(NetlinkChannel channel, Reactor reactor,
-                             BufferPool sendPool) {
-        super(channel, reactor, sendPool);
+    public NetlinkConnection(NetlinkChannel channel, BufferPool sendPool) {
+        super(channel, sendPool);
     }
 
     @Override

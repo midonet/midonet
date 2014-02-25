@@ -26,7 +26,6 @@ import org.midonet.odp.Flow;
 import org.midonet.odp.FlowMatch;
 import org.midonet.odp.Packet;
 import org.midonet.odp.DpPort;
-import org.midonet.util.eventloop.Reactor;
 
 
 /**
@@ -43,14 +42,13 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
 
     public final FuturesApi futures = new FuturesApi();
 
-    protected OvsDatapathConnection(NetlinkChannel channel, Reactor reactor,
-            BufferPool sendPool) throws Exception {
-        super(channel, reactor, sendPool);
+    protected OvsDatapathConnection(NetlinkChannel channel, BufferPool sendPool)
+            throws Exception {
+        super(channel, sendPool);
     }
 
-    public static OvsDatapathConnection create(
-            Netlink.Address address, Reactor reactor,
-            BufferPool sendPool) throws Exception {
+    public static OvsDatapathConnection create(Netlink.Address address,
+                                               BufferPool sendPool) throws Exception {
 
         NetlinkChannel channel;
 
@@ -64,20 +62,19 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
             throw new RuntimeException(e);
         }
 
-        return new OvsDatapathConnectionImpl(channel, reactor, sendPool);
+        return new OvsDatapathConnectionImpl(channel, sendPool);
     }
 
-    public static OvsDatapathConnection create(
-            Netlink.Address address, Reactor reactor) throws Exception {
-        return create(address, reactor, new BufferPool(128, 512, 0x1000));
+    public static OvsDatapathConnection create(Netlink.Address address) throws Exception {
+        return create(address, new BufferPool(128, 512, 0x1000));
     }
 
-    public static OvsDatapathConnection createMock(Reactor reactor) throws Exception {
+    public static OvsDatapathConnection createMock() throws Exception {
 
         NetlinkChannel channel = Netlink.selectorProvider()
             .openMockNetlinkSocketChannel(NetlinkProtocol.NETLINK_GENERIC);
 
-        return new MockOvsDatapathConnection(channel, reactor);
+        return new MockOvsDatapathConnection(channel);
     }
 
     /**

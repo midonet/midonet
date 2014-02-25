@@ -24,9 +24,6 @@ public class OneToOneConnectionPool implements DatapathConnectionPool {
     @Inject
     private MidolmanConfig config;
 
-    @Inject
-    private Reactor reactor;
-
     private DualSelectorDatapathConnection[] conns;
 
     public OneToOneConnectionPool(String name, int numChannels) {
@@ -34,8 +31,8 @@ public class OneToOneConnectionPool implements DatapathConnectionPool {
 
         conns = new DualSelectorDatapathConnection[numChannels];
         for (int i=0; i<numChannels; i++) {
-            conns[i] = new DualSelectorDatapathConnection(this.name + ".channel-" + i,
-                    reactor, config);
+            conns[i] =
+                new DualSelectorDatapathConnection(this.name + ".channel-" + i, config);
         }
     }
 

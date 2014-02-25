@@ -27,7 +27,7 @@ public class MockManagedDatapathConnection implements ManagedDatapathConnection 
     }
 
     public void start() throws Exception {
-        this.conn = OvsDatapathConnection.createMock(reactor);
+        this.conn = OvsDatapathConnection.createMock();
     }
 
     public void stop() throws Exception {}
