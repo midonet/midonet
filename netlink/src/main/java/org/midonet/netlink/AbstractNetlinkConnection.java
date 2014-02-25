@@ -7,10 +7,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.SelectionKey;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Callable;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -70,11 +67,15 @@ public abstract class AbstractNetlinkConnection {
     private SelectorInputQueue<NetlinkRequest> writeQueue =
             new SelectorInputQueue<NetlinkRequest>();
 
+    private PriorityQueue<NetlinkRequest<?>> expirationQueue;
+
     public AbstractNetlinkConnection(NetlinkChannel channel, Reactor reactor,
                                      BufferPool sendPool) {
         this.channel = channel;
         this.reactor = reactor;
         this.requestPool = sendPool;
+        expirationQueue = new PriorityQueue<NetlinkRequest<?>>(
+                512, new NetlinkRequestTimeoutComparator());
 
         // default implementation runs callbacks out of the calling thread one by one
         this.dispatcher = new BatchCollector<Runnable>() {
@@ -125,6 +126,26 @@ public abstract class AbstractNetlinkConnection {
             }
         };
 
+    private void expireOldRequests() {
+        long now = System.nanoTime();
+        NetlinkRequest<?> req;
+
+        while ((req = expirationQueue.peek()) != null &&
+                req.expirationTimeNanos <= now) {
+
+            expirationQueue.poll();
+            if (pendingRequests.remove(req.seq) == null)
+                continue;
+
+            log.debug("Signalling timeout to the callback: {}", req.seq);
+            if (req.outBuffer != null) {
+                requestPool.release(req.outBuffer);
+                req.outBuffer = null;
+            }
+            dispatcher.submit(req.expired());
+        }
+    }
+
     protected <T> void sendNetlinkMessage(NetlinkRequestContext ctx,
                                           short flags,
                                           ByteBuffer payload,
@@ -148,28 +169,10 @@ public abstract class AbstractNetlinkConnection {
         headerBuf.putInt(0, totalSize);
 
         final NetlinkRequest<T> netlinkRequest =
-            new NetlinkRequest<>(cmdFamily, cmd, callback, translator, payload);
-
-        // send the request
+            new NetlinkRequest<>(cmdFamily, cmd, callback, translator, payload, seq, timeoutMillis);
 
         if (callback != null) {
-            netlinkRequest.timeoutHandler = new Callable<Object>() {
-                @Override
-                public Object call() throws Exception {
-                    NetlinkRequest<T> timedOutRequest = pendingRequests.remove(seq);
-
-                    if (timedOutRequest != null) {
-                        log.debug("Signalling timeout to the callback: {}", seq);
-                        ByteBuffer timedOutBuf = timedOutRequest.outBuffer.getAndSet(null);
-                        if (timedOutBuf != null)
-                            requestPool.release(timedOutBuf);
-                        timedOutRequest.expired().run();
-                    }
-
-                    return null;
-                }
-            };
-
+            expirationQueue.add(netlinkRequest);
             pendingRequests.put(seq, netlinkRequest);
         }
 
@@ -177,11 +180,6 @@ public abstract class AbstractNetlinkConnection {
         if (writeQueue.offer(netlinkRequest)) {
             if (bypassSendQueue)
                 processWriteToChannel();
-
-            if (callback != null) {
-                getReactor().schedule(netlinkRequest.timeoutHandler,
-                                      timeoutMillis, TimeUnit.MILLISECONDS);
-            }
         } else {
             requestPool.release(payload);
             if (callback != null) {
@@ -206,15 +204,18 @@ public abstract class AbstractNetlinkConnection {
                 break;
             }
         }
+        expireOldRequests();
     }
 
     private int processWriteToChannel() {
         final NetlinkRequest<?> request = writeQueue.poll();
         if (request == null)
             return 0;
-        ByteBuffer outBuf = request.outBuffer.getAndSet(null);
+        ByteBuffer outBuf = request.outBuffer;
         if (outBuf == null)
             return 0;
+        else
+            request.outBuffer = null;
 
         int bytes = 0;
         try {
@@ -478,23 +479,29 @@ public abstract class AbstractNetlinkConnection {
     }
 
     class NetlinkRequest<T> {
-        short family;
-        byte cmd;
+        final short family;
+        final byte cmd;
         List<ByteBuffer> inBuffers = new ArrayList<>();
-        AtomicReference<ByteBuffer> outBuffer = new AtomicReference<>();
+        ByteBuffer outBuffer;
         private final Callback<T> userCallback;
         private final Function<List<ByteBuffer>, T> translationFunction;
-        Callable<?> timeoutHandler;
+        final long expirationTimeNanos;
+        final int seq;
 
         public NetlinkRequest(short family, byte cmd,
                               Callback<T> callback,
                               Function<List<ByteBuffer>, T> translationFunc,
-                              ByteBuffer data) {
+                              ByteBuffer data,
+                              int seq,
+                              long timeoutMillis) {
             this.family = family;
             this.cmd = cmd;
             this.userCallback = callback;
             this.translationFunction = translationFunc;
-            this.outBuffer.set(data);
+            this.outBuffer = data;
+            this.expirationTimeNanos = System.nanoTime() +
+                TimeUnit.MILLISECONDS.toNanos(timeoutMillis);
+            this.seq = seq;
         }
 
         public Runnable successful(List<ByteBuffer> data) {
@@ -517,9 +524,24 @@ public abstract class AbstractNetlinkConnection {
                 ", cmd=" + cmd +
                 '}';
         }
+    }
 
-        public AtomicReference<ByteBuffer> getOutBuffer() {
-            return outBuffer;
+    class NetlinkRequestTimeoutComparator implements Comparator<NetlinkRequest> {
+        @Override
+        public int compare(NetlinkRequest a, NetlinkRequest b) {
+           if (a == null && b != null)
+                return 1;
+            else if (a != null && b == null)
+                return -1;
+            else if (a == null && b == null)
+                return 0;
+            else
+                return Long.compare(a.expirationTimeNanos, b.expirationTimeNanos);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            return o instanceof NetlinkRequestTimeoutComparator;
         }
     }
 
