@@ -29,11 +29,6 @@ public class ReactorModule extends PrivateModule {
 
     @Override
     protected void configure() {
-
-        bind(Reactor.class)
-            .toProvider(NetlinkReactorProvider.class)
-            .asEagerSingleton();
-
         bind(SelectLoop.class)
                 .annotatedWith(ZEBRA_SERVER_LOOP.class)
                 .toProvider(SelectLoopProvider.class)
@@ -44,7 +39,6 @@ public class ReactorModule extends PrivateModule {
         bind(SelectLoopService.class)
             .in(Singleton.class);
 
-        expose(Reactor.class);
         expose(SelectLoopService.class);
     }
 
@@ -56,14 +50,6 @@ public class ReactorModule extends PrivateModule {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-        }
-    }
-
-    public static class NetlinkReactorProvider implements Provider<Reactor> {
-
-        @Override
-        public Reactor get() {
-            return new TryCatchReactor("netlink", 1);
         }
     }
 }

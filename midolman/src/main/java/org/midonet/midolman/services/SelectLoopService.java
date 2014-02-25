@@ -26,9 +26,6 @@ public class SelectLoopService extends AbstractService {
     @ReactorModule.ZEBRA_SERVER_LOOP
     SelectLoop zebraLoop;
 
-    @Inject
-    Reactor reactor;
-
     Thread zebraLoopThread;
 
     private Thread startLoop(final SelectLoop loop, String name) {
@@ -64,7 +61,6 @@ public class SelectLoopService extends AbstractService {
     protected void doStop() {
         // TODO: change the SelectLoop to support shutdown and use it here to stop the thread
         // cleanly
-        reactor.shutDownNow();
         zebraLoop.shutdown();
         zebraLoopThread.stop();
         notifyStopped();

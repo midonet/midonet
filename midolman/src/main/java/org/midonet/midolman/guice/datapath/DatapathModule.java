@@ -16,7 +16,6 @@ import org.midonet.midolman.io.OneToOneConnectionPool;
 import org.midonet.midolman.io.DatapathConnectionPool;
 import org.midonet.midolman.services.DatapathConnectionService;
 import org.midonet.odp.protos.OvsDatapathConnection;
-import org.midonet.util.eventloop.Reactor;
 
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.METHOD;
@@ -29,7 +28,6 @@ public class DatapathModule extends PrivateModule {
     @Override
     protected void configure() {
         binder().requireExplicitBindings();
-        requireBinding(Reactor.class);
         requireBinding(MidolmanConfig.class);
 
         bindDatapathConnection(UPCALL_DATAPATH_CONNECTION.class);

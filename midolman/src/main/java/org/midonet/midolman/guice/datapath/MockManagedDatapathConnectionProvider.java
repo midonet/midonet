@@ -25,13 +25,10 @@ public class MockManagedDatapathConnectionProvider implements
     private static final Logger log =
         LoggerFactory.getLogger(MockManagedDatapathConnectionProvider.class);
 
-    @Inject
-    Reactor reactor;
-
     @Override
     public ManagedDatapathConnection get() {
         try {
-            return new MockManagedDatapathConnection(reactor);
+            return new MockManagedDatapathConnection();
         } catch (Exception e) {
             log.error("Error creating the Mock OvsDatapath connection");
             throw new RuntimeException(e);
