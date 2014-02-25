@@ -12,6 +12,7 @@ import com.google.inject.Key;
 import com.google.inject.PrivateModule;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
+import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 import org.midonet.cache.Cache;
 import org.midonet.cluster.ClusterBgpManager;
@@ -221,6 +222,7 @@ public class DataClusterClientModule extends PrivateModule {
         ZookeeperConfig config;
 
         @Inject
+        @Named(ZKConnectionProvider.DIRECTORY_REACTOR_TAG)
         Reactor reactor;
 
         @Inject

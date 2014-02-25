@@ -19,10 +19,6 @@ import static org.midonet.midolman.guice.reactor.ReactorModule.ZEBRA_SERVER_LOOP
 public class MockReactorModule extends PrivateModule {
     @Override
     protected void configure() {
-        bind(Reactor.class)
-            .toProvider(MockNetlinkReactorProvider.class)
-            .asEagerSingleton();
-
         bind(SelectLoop.class)
                 .annotatedWith(ZEBRA_SERVER_LOOP.class)
                 .toProvider(MockSelectLoopProvider.class)
@@ -33,7 +29,6 @@ public class MockReactorModule extends PrivateModule {
         bind(SelectLoopService.class)
             .in(Singleton.class);
 
-        expose(Reactor.class);
         expose(SelectLoopService.class);
     }
 
@@ -45,14 +40,6 @@ public class MockReactorModule extends PrivateModule {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-        }
-    }
-
-    public static class MockNetlinkReactorProvider implements Provider<Reactor> {
-
-        @Override
-        public Reactor get() {
-            return new MockReactor();
         }
     }
 }

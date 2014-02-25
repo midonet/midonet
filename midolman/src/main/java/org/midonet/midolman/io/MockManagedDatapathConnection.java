@@ -9,11 +9,7 @@ import org.midonet.util.eventloop.Reactor;
 public class MockManagedDatapathConnection implements ManagedDatapathConnection {
     private OvsDatapathConnection conn = null;
 
-    private Reactor reactor;
-
-    public MockManagedDatapathConnection(Reactor reactor) {
-        this.reactor = reactor;
-    }
+    public MockManagedDatapathConnection() {}
 
     public OvsDatapathConnection getConnection() {
         if (conn == null) {
