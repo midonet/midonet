@@ -148,7 +148,7 @@ public abstract class Netlink {
      */
     public static class Address {
 
-        private int pid;
+        private final int pid;
 
         public Address(int pid) {
             this.pid = pid;

@@ -12,11 +12,9 @@ import com.sun.jna.ptr.IntByReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sun.nio.ch.SelChImpl;
-import sun.nio.ch.SelectionKeyImpl;
 
 import org.midonet.netlink.clib.cLibrary;
 import org.midonet.netlink.hacks.IOUtil;
-import org.midonet.netlink.hacks.SelectionKeyImplCaller;
 
 /**
  * Implementation of a UnixDomainChannel.
@@ -66,14 +64,6 @@ public class UnixDomainChannelImpl extends UnixDomainChannel implements SelChImp
     }
 
     @Override
-    public void _close() throws IOException {
-        if (cLibrary.lib.close(fdVal) < 0) {
-            throw new IOException("failed to close socket: " +
-                    cLibrary.lib.strerror(Native.getLastError()));
-        }
-    }
-
-    @Override
     protected void _executeBind(AfUnix.Address address) throws IOException {
         localAddress = address;
         cLibrary.UnixDomainSockAddress local = address.toCLibrary();
@@ -105,36 +95,6 @@ public class UnixDomainChannelImpl extends UnixDomainChannel implements SelChImp
 
         return new UnixDomainChannelImpl(
             provider(), this, new AfUnix.Address(remote), childFd);
-    }
-
-    @Override
-    public boolean translateAndUpdateReadyOps(int ops, SelectionKeyImpl sk) {
-        return translateReadyOps(ops, SelectionKeyImplCaller.nioReadyOps(sk), sk);
-    }
-
-    @Override
-    public boolean translateAndSetReadyOps(int ops, SelectionKeyImpl sk) {
-        return translateReadyOps(ops, 0, sk);
-    }
-
-    @Override
-    public void translateAndSetInterestOps(int ops, SelectionKeyImpl sk) {
-        _translateAndSetInterestOps(ops, sk);
-    }
-
-    @Override
-    public void kill() throws IOException {
-        _kill();
-    }
-
-    @Override
-    public FileDescriptor getFD() {
-        return fd;
-    }
-
-    @Override
-    public int getFDVal() {
-        return fdVal;
     }
 
 }
