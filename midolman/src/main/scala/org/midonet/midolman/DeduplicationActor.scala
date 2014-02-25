@@ -39,6 +39,7 @@ import org.midonet.odp.{FlowMatches, Datapath, FlowMatch, Packet}
 import org.midonet.packets.Ethernet
 import org.midonet.util.BatchCollector
 import org.midonet.util.throttling.ThrottlingGuard
+import org.midonet.sdn.flows.WildcardMatch
 
 object DeduplicationActor extends Referenceable {
     override val Name = "DeduplicationActor"
@@ -216,16 +217,20 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath
         log.debug("Creating new PacketWorkflow for {}", cookieOrEgressPort)
         val (cookie, egressPort) = cookieOrEgressPort match {
             case Left(c) => (Some(c), None)
-            case Right(id) => (None, Some(id))
+            case Right(id) =>
+                packet.setMatch(FlowMatches.fromEthernetPacket(packet.getPacket))
+                (None, Some(id))
         }
-        PacketWorkflow(datapathConnection, dpState, datapath,
-                clusterDataClient, packet, cookieOrEgressPort, parentCookie)
+
+        val wcMatch = WildcardMatch.fromFlowMatch(packet.getMatch)
+
+        PacketWorkflow(datapathConnection, dpState, datapath, clusterDataClient,
+                       packet, wcMatch, cookieOrEgressPort, parentCookie)
         {
-            wcMatch =>
-                val expiry = Platform.currentTime + packetSimulatorExpiry
-                new Coordinator(wcMatch, packet.getPacket, cookie, egressPort,
-                    expiry, connectionCache, traceMessageCache, traceIndexCache,
-                    parentCookie, traceConditions).simulate()
+            val expiry = Platform.currentTime + packetSimulatorExpiry
+            new Coordinator(wcMatch, packet.getPacket, cookie, egressPort,
+                expiry, connectionCache, traceMessageCache, traceIndexCache,
+                parentCookie, traceConditions).simulate()
         }
     }
 
