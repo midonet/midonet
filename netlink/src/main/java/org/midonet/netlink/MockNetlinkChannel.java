@@ -33,7 +33,7 @@ class MockNetlinkChannel extends NetlinkChannel {
     }
 
     @Override
-    public void _close() {
+    protected void closeFileDescriptor() {
     }
 
 }
