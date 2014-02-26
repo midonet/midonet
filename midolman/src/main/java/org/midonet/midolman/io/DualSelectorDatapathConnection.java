@@ -13,13 +13,14 @@ import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.netlink.BufferPool;
 import org.midonet.netlink.Netlink;
 import org.midonet.odp.protos.OvsDatapathConnection;
-import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.eventloop.SelectListener;
 import org.midonet.util.eventloop.SelectLoop;
 import org.midonet.util.eventloop.SimpleSelectLoop;
 
 
 public class DualSelectorDatapathConnection implements ManagedDatapathConnection {
+    private Logger log = LoggerFactory.getLogger(this.getClass());
+
     public final String name;
 
     private MidolmanConfig config;
@@ -55,6 +56,7 @@ public class DualSelectorDatapathConnection implements ManagedDatapathConnection
         if (conn != null)
             return;
 
+        log.info("Starting datapath connection: {}", name);
         readLoop = new SimpleSelectLoop();
         writeLoop = singleThreaded ? readLoop : new SimpleSelectLoop();
 
@@ -94,6 +96,7 @@ public class DualSelectorDatapathConnection implements ManagedDatapathConnection
     }
 
     public void stop() throws Exception {
+        log.info("Stopping datapath connection: {}", name);
         readLoop.unregister(conn.getChannel(), SelectionKey.OP_READ);
         writeLoop.unregister(conn.getChannel(), SelectionKey.OP_WRITE);
         readLoop.shutdown();
@@ -102,11 +105,10 @@ public class DualSelectorDatapathConnection implements ManagedDatapathConnection
         }
     }
 
-    private Thread startLoop(final SelectLoop loop, String threadName) {
+    private Thread startLoop(final SelectLoop loop, final String threadName) {
         Thread th = new Thread(new Runnable() {
             @Override
             public void run() {
-                Logger log = LoggerFactory.getLogger(DualSelectorDatapathConnection.class);
                 try {
                     loop.doLoop();
                 } catch (IOException e) {
@@ -116,6 +118,7 @@ public class DualSelectorDatapathConnection implements ManagedDatapathConnection
             }
         });
 
+        log.info("Starting datapath select loop thread: {}", threadName);
         th.start();
         th.setName(threadName);
         return th;

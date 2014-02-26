@@ -219,6 +219,8 @@ public abstract class AbstractNetlinkConnection {
 
         NetlinkRequest<?> r;
 
+        /* Wait five seconds for the 1st request to arrive, don't wait at all
+         * after that. */
         for (r = writeQueue.poll(5000, TimeUnit.MILLISECONDS);
              r != null && ongoingTransaction.size() < maxBatchIoOps;
              r = writeQueue.poll()) {
