@@ -13,26 +13,25 @@ import org.slf4j.LoggerFactory;
 
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.odp.protos.OvsDatapathConnection;
-import org.midonet.util.eventloop.Reactor;
 
 
 public class OneToOneConnectionPool implements DatapathConnectionPool {
-    private Logger log = LoggerFactory.getLogger(OneToOneConnectionPool.class);
+    private Logger log = LoggerFactory.getLogger(this.getClass());
 
     public final String name;
 
     @Inject
     private MidolmanConfig config;
 
-    private DualSelectorDatapathConnection[] conns;
+    private BlockingTransactorDatapathConnection[] conns;
 
     public OneToOneConnectionPool(String name, int numChannels) {
         this.name = name;
 
-        conns = new DualSelectorDatapathConnection[numChannels];
+        conns = new BlockingTransactorDatapathConnection[numChannels];
         for (int i=0; i<numChannels; i++) {
             conns[i] =
-                new DualSelectorDatapathConnection(this.name + ".channel-" + i, config);
+                new BlockingTransactorDatapathConnection(name + ".channel-" + i, config);
         }
     }
 
@@ -60,5 +59,4 @@ public class OneToOneConnectionPool implements DatapathConnectionPool {
             conns[i].stop();
         }
     }
-
 }
