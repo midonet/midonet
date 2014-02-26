@@ -56,7 +56,7 @@ public class TestCondition {
     @Before
     public void setUp() {
         pktMatch = new WildcardMatch();
-        pktMatch.setInputPort((short) 5);
+        pktMatch.setInputPortNumber((short) 5);
         pktMatch.setEthernetSource("02:11:33:00:11:01");
         pktMatch.setEthernetDestination("02:11:aa:ee:22:05");
         pktMatch.setEtherType(IPv4.ETHERTYPE);

@@ -219,16 +219,6 @@ public class WildcardMatch implements Cloneable {
     }
 
     @Nonnull
-    public WildcardMatch setInputPort(short inputPortNumber) {
-        return setInputPortNumber(inputPortNumber);
-    }
-
-    @Nullable
-    public Short getInputPort() {
-        return getInputPortNumber();
-    }
-
-    @Nonnull
     public WildcardMatch unsetInputPortNumber() {
         usedFields.remove(Field.InputPortNumber);
         this.inputPortNumber = 0;

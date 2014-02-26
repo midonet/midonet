@@ -61,7 +61,7 @@ public class TestRules {
     @BeforeClass
     public static void setupOnce() {
         pktMatch = new WildcardMatch();
-        pktMatch.setInputPort((short) 5);
+        pktMatch.setInputPortNumber((short) 5);
         pktMatch.setDataLayerSource("02:11:33:00:11:01");
         pktMatch.setDataLayerDestination("02:11:aa:ee:22:05");
         pktMatch.setNetworkSource(IPv4Addr.fromInt(0x0a001406));
@@ -71,7 +71,7 @@ public class TestRules {
         pktMatch.setTransportSource(4321);
         pktMatch.setTransportDestination(1234);
         pktResponseMatch = new WildcardMatch();
-        pktResponseMatch.setInputPort((short) 5);
+        pktResponseMatch.setInputPortNumber((short) 5);
         pktResponseMatch.setDataLayerDestination("02:11:33:00:11:01");
         pktResponseMatch.setDataLayerSource("02:11:aa:ee:22:05");
         pktResponseMatch.setNetworkDestination(IPv4Addr.fromInt(0x0a001406));
