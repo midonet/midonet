@@ -48,7 +48,6 @@
                     <mappings>
                         <mapping>
                             <directory>/usr/share/midolman</directory>
-                            <directoryIncluded>false</directoryIncluded>
                             <sources>
                                 <source>
                                     <location>${project.build.directory}/${project.build.finalName}.jar</location>
@@ -140,10 +139,10 @@
                         <scriptFile>${project.basedir}/src/rhel6/control/postinst</scriptFile>
                     </postinstallScriptlet>
                     <preremoveScriptlet>
-                        <scriptFile>${project.basedir}/src/deb/control/prerm</scriptFile>
+                        <scriptFile>${project.basedir}/src/rhel6/control/prerm</scriptFile>
                     </preremoveScriptlet>
                     <postremoveScriptlet>
-                        <scriptFile>${project.basedir}/src/deb/control/postrm</scriptFile>
+                        <scriptFile>${project.basedir}/src/rhel6/control/postrm</scriptFile>
                     </postremoveScriptlet>
                 </configuration>
             </plugin>
