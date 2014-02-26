@@ -28,7 +28,7 @@ import org.midonet.midolman.topology.rcu.PortSet
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode
 import org.midonet.netlink.{Callback => NetlinkCallback}
-import org.midonet.odp.{Packet, Datapath, Flow, FlowMatch, FlowMatches}
+import org.midonet.odp.{Packet, Datapath, Flow, FlowMatch}
 import org.midonet.odp.flows.{FlowKey, FlowKeyUDP, FlowAction}
 import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.packets._
@@ -80,13 +80,14 @@ object PacketWorkflow {
               dp: Datapath,
               dataClient: DataClient,
               packet: Packet,
+              wcMatch: WildcardMatch,
               cookieOrEgressPort: Either[Int, UUID],
               parentCookie: Option[Int])
-             (runSim: WildcardMatch => Future[SimulationResult])
+             (runSim: => Future[SimulationResult])
              (implicit system: ActorSystem) =
         new PacketWorkflow(dpCon, dpState, dp, dataClient, packet,
-            cookieOrEgressPort, parentCookie) {
-            def runSimulation(wcMatch: WildcardMatch) = runSim(wcMatch)
+                           wcMatch, cookieOrEgressPort, parentCookie) {
+            def runSimulation() = runSim
         }
 }
 
@@ -95,6 +96,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
                               val datapath: Datapath,
                               val dataClient: DataClient,
                               val packet: Packet,
+                              val wcMatch: WildcardMatch,
                               val cookieOrEgressPort: Either[Int, UUID],
                               val parentCookie: Option[Int])
                              (implicit val system: ActorSystem)
@@ -107,7 +109,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
     import VirtualToPhysicalMapper.PortSetForTunnelKeyRequest
     import VirtualTopologyActor.PortRequest
 
-    def runSimulation(wcMatch: WildcardMatch): Future[SimulationResult]
+    def runSimulation(): Future[SimulationResult]
 
     val ERROR_CONDITION_HARD_EXPIRATION = 10000
 
@@ -268,7 +270,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
                                             priority: Short = 0): Future[Boolean] = {
 
         val wildFlow = WildcardFlow(
-            wcmatch = WildcardMatch.fromFlowMatch(packet.getMatch),
+            wcmatch = wcMatch,
             idleExpirationMillis = expiration,
             actions =  actions.toList,
             priority = priority)
@@ -311,15 +313,13 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
 
     private def handlePacketWithCookie(): Future[PipelinePath] =
         if (packet.getReason == Packet.Reason.FlowActionUserspace) {
-            val wcMatch = WildcardMatch.fromFlowMatch(packet.getMatch)
-            simulatePacketIn(wcMatch) flatMap processSimulationResult
+            simulatePacketIn() flatMap processSimulationResult
         } else {
             FlowController.queryWildcardFlowTable(packet.getMatch) match {
                 case Some(wildflow) =>
                   handleWildcardTableMatch(wildflow)
                 case None =>
-                  val wcMatch = WildcardMatch.fromFlowMatch(packet.getMatch)
-                  handleWildcardTableMiss(wcMatch)
+                  handleWildcardTableMiss()
             }
         }
 
@@ -340,16 +340,16 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
                   .map{ _ => WildcardTableHit }
     }
 
-    private def handleWildcardTableMiss(wcMatch: WildcardMatch)
+    private def handleWildcardTableMiss()
     : Future[PipelinePath] = {
         if (wcMatch.isFromTunnel) {
-            handlePacketToPortSet(wcMatch)
+            handlePacketToPortSet()
         } else {
             /* QUESTION: do we need another de-duplication
              *  stage here to avoid e.g. two micro-flows that
              *  differ only in TTL from going to the simulation
              *  stage? */
-            simulatePacketIn(wcMatch) flatMap processSimulationResult
+            simulatePacketIn() flatMap processSimulationResult
         }
     }
 
@@ -358,7 +358,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
       * routed here. Map the tunnel key to a port set (through the
       * VirtualToPhysicalMapper).
       */
-    private def handlePacketToPortSet(wMatch: WildcardMatch): Future[PipelinePath] = {
+    private def handlePacketToPortSet(): Future[PipelinePath] = {
         log.debug("Packet {} from a tunnel port towards a port set", cookieStr)
         // We currently only handle packets ingressing on tunnel ports if they
         // have a tunnel key. If the tunnel key corresponds to a local virtual
@@ -367,7 +367,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
         // and corresponds to a port set.
 
         val portSetFuture = VirtualToPhysicalMapper ?
-                PortSetForTunnelKeyRequest(wMatch.getTunnelID)
+                PortSetForTunnelKeyRequest(wcMatch.getTunnelID)
 
         portSetFuture.mapTo[PortSet] flatMap {
             case null =>
@@ -383,7 +383,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
                     // Take the outgoing filter for each port
                     // and apply it, checking for Action.ACCEPT.
                     applyOutboundFilters(
-                        localPorts, portSet.id, wMatch, Some(tags)
+                        localPorts, portSet.id, wcMatch, Some(tags)
                     ) flatMap {
                         portIDs =>
                             addTranslatedFlowForActions(
@@ -398,10 +398,10 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
                 log.debug("PacketIn came from a tunnel port but the key does " +
                           "not map to any PortSet. Exception: {}", e)
                 val wildFlow = WildcardFlow(
-                    wcmatch = wMatch,
+                    wcmatch = wcMatch,
                     hardExpirationMillis = ERROR_CONDITION_HARD_EXPIRATION)
                 addTranslatedFlow(wildFlow,
-                    Set(FlowTagger.invalidateByTunnelKey(wMatch.getTunnelID)),
+                    Set(FlowTagger.invalidateByTunnelKey(wcMatch.getTunnelID)),
                     Set.empty)
         } map {
             _ => PacketToPortSet
@@ -410,8 +410,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
 
     private def doEgressPortSimulation() = {
         log.debug("Handling generated packet")
-        val wcMatch = WildcardMatch.fromEthernetPacket(packet.getPacket)
-        runSimulation(wcMatch) flatMap processSimulationResult
+        runSimulation() flatMap processSimulationResult
     }
 
     private def processSimulationResult(result: SimulationResult) = {
@@ -431,9 +430,9 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
         }
     }
 
-    private def simulatePacketIn(wMatch: WildcardMatch)
+    private def simulatePacketIn()
     : Future[SimulationResult] = {
-        val inPortNo = wMatch.getInputPortNumber
+        val inPortNo = wcMatch.getInputPortNumber
         if (inPortNo == null) {
             log.error(
                 "SCREAM: got a PacketIn with no inPort number {}.", cookieStr)
@@ -445,21 +444,20 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
                   cookieStr, port, packet.getReason)
         dpState.getVportForDpPortNumber(port) match {
             case Some(vportId) =>
-                wMatch.setInputPortUUID(vportId)
+                wcMatch.setInputPortUUID(vportId)
 
                 system.eventStream.publish(
-                    PacketIn(wMatch.clone(), packet.getPacket, packet.getMatch,
+                    PacketIn(wcMatch.clone(), packet.getPacket, packet.getMatch,
                         packet.getReason, cookie getOrElse 0))
 
                 handleDHCP(vportId) flatMap {
                     case true =>
                         Future.successful(NoOp)
                     case false =>
-                        runSimulation(wMatch)
+                        runSimulation()
                 }
 
             case None =>
-                wMatch.setInputPort(port.toShort)
                 Future.successful(ErrorDrop)
         }
     }
@@ -531,11 +529,8 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
             return Future.successful(true)
         }
 
-        val wildMatch = WildcardMatch.fromEthernetPacket(packet.getPacket)
-        packet.setMatch(FlowMatches.fromEthernetPacket(packet.getPacket))
-
         log.debug("Sending {} {} with actions {}", cookieStr, packet, actions)
-        translateActions(actions, None, None, wildMatch) recover {
+        translateActions(actions, None, None, wcMatch) recover {
             case ex =>
                 log.warning("failed to translate actions: {}", ex)
                 Nil
@@ -548,5 +543,4 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
             iterator.next().call()
         }
     }
-
 }
