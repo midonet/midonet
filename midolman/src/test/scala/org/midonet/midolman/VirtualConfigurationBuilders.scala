@@ -216,8 +216,12 @@ trait VirtualConfigurationBuilders {
     def newBridge(name: String): ClusterBridge =
             newBridge(new ClusterBridge().setName(name))
 
-    def newBridgePort(bridge: ClusterBridge): BridgePort = {
-        val uuid = clusterDataClient().portsCreate(Ports.bridgePort(bridge))
+    def newBridgePort(bridge: ClusterBridge): BridgePort =
+        newBridgePort(bridge, Ports.bridgePort(bridge))
+
+    def newBridgePort(bridge: ClusterBridge, port: BridgePort) = {
+        port.setDeviceId(bridge.getId)
+        val uuid = clusterDataClient().portsCreate(port)
         Thread.sleep(50)
         // do a portsGet because some fields are set during the creating and are
         // not copied in the port object we pass, eg. TunnelKey
@@ -225,7 +229,7 @@ trait VirtualConfigurationBuilders {
     }
 
     def newBridgePort(bridge: ClusterBridge,
-                              vlanId: Option[Short] = None): BridgePort = {
+                      vlanId: Option[Short] = None): BridgePort = {
         val jVlanId: java.lang.Short = if(vlanId.isDefined) vlanId.get else null
         val uuid = clusterDataClient()
                    .portsCreate(Ports.bridgePort(bridge, jVlanId))
