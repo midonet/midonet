@@ -41,12 +41,12 @@ import org.midonet.packets.TCP
 import org.midonet.sdn.flows.WildcardFlow
 import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.util.collection.Bimap
+import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.collection.{Set => ROSet}
 import scala.concurrent.duration._
-import scala.concurrent.{ExecutionContext, Future}
 
 
 trait UnderlayResolver {
@@ -109,6 +109,8 @@ trait DatapathState extends VirtualPortsResolver with UnderlayResolver {
 
 object DatapathController extends Referenceable {
 
+    val log = LoggerFactory.getLogger(classOf[DatapathController])
+
     override val Name = "DatapathController"
 
     /**
@@ -119,6 +121,8 @@ object DatapathController extends Referenceable {
 
     /** Java API */
     val initializeMsg = Initialize
+
+    val DEFAULT_MTU: Short = 1500
 
     /**
      * Reply sent back to the sender of the Initialize message when the basic
@@ -232,21 +236,18 @@ object DatapathController extends Referenceable {
         case class SetLocalDatapathPorts(datapath: Datapath, ports: Set[DpPort])
     }
 
-    def calculateMinMtu()(implicit sys: ActorSystem, ec: ExecutionContext)
-    : Future[Option[Short]] = {
-        implicit val timeout =  new Timeout(3 second)
-        (DatapathController ? Internal.LocalTunnelInterfaceInfo)
-            .mapTo[mutable.MultiMap[InterfaceDescription, TunnelZone.Type]]
-            .map { minMtu }
-    }
+
+    @volatile
+    private var cachedMinMtu: Short = DEFAULT_MTU
+
+    def minMtu = cachedMinMtu
 
     /**
-     * Choose the min MTU based on all the given interface descriptions, if
-     * there are no interfaces or there is no way of figuring out, will
-     * return 1500 as default value.
+     * Choose the min MTU based on all the given interface descriptions,
+     * taking DEFAULT_MTU as default. Cache the result in cachedMtu.
      */
-    private def minMtu(ifcTunnelList: mutable.MultiMap[InterfaceDescription,
-                                                       TunnelZone.Type]) = {
+    private def primeMinMtu(ifcTunnelList: mutable.MultiMap[InterfaceDescription,
+                                                       TunnelZone.Type]) {
         var minMtu: Short = 0
         ifcTunnelList foreach {
             case (interfaceDesc, tunnelTypeList) =>
@@ -259,7 +260,7 @@ object DatapathController extends Referenceable {
                  }}
             case _ => // unexpected
         }
-        Some(if (minMtu == 0) 1500.toShort else minMtu)
+        cachedMinMtu = if (minMtu == 0) DEFAULT_MTU else minMtu
     }
 
     // TODO: this belongs in TunnelZone
@@ -443,7 +444,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
             val grePort = GreTunnelPort.make("tngre-mm")
             createDatapathPort(self, DpPortCreateGreTunnel(grePort, None))
 
-            val vxlanUdpPort = midolmanConfig.getVxLanUdpPort();
+            val vxlanUdpPort = midolmanConfig.getVxLanUdpPort
             if (TCP.isPortInRange(vxlanUdpPort)) {
                 val vxLanPort = VxLanTunnelPort.make("tnvxlan-mm", vxlanUdpPort)
                 createDatapathPort(
@@ -619,12 +620,15 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
 
         case InterfacesUpdate(interfaces) =>
             dpState.updateInterfaces(interfaces)
+            primeMinMtu(zipIfcTunInfo(interfaces))
 
         case LocalTunnelInterfaceInfo =>
-            localTunnelInterfaceInfoPhaseOne(sender)
+            tunIfcInfo(sender)
 
         case LocalTunnelInterfaceInfoFinal(caller, interfaces) =>
-            localTunnelInterfaceInfoPhaseTwo(caller, interfaces)
+            val ifcTunnelList = zipIfcTunInfo(interfaces)
+            caller ! ifcTunnelList
+            primeMinMtu(ifcTunnelList) // reprime now that we're at it
     }
 
     def checkPortUpdates() {
@@ -811,10 +815,15 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
         })
     }
 
-    private def localTunnelInterfaceInfoPhaseOne(caller: ActorRef) {
+    /*
+     * Will get the list of scanned interfaces, ensuring it's fresh enough
+     * either by taking a recently scanned list, or re-scanning. Then will
+     * message the DPC with the results.
+     */
+    private def tunIfcInfo(caller: ActorRef) {
         if (!recentInterfacesScanned.isEmpty) {
             log.debug("Interface Scanning took place and cache is hot")
-            localTunnelInterfaceInfoPhaseTwo(caller, recentInterfacesScanned)
+            caller ! zipIfcTunInfo(recentInterfacesScanned)
         } else {
             log.debug("Interface Scanning has not taken place, trigger scan")
             interfaceScanner.scanInterfaces(new Callback[JList[InterfaceDescription]] {
@@ -838,11 +847,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
      * which is too long for ecryptfs, so alias it to "gliti" to save some
      * room.
      */
-    private val localTunnelInterfaceInfoPhaseTwo:
-        (ActorRef, JList[InterfaceDescription]) => Unit = gliti
-
-    private def gliti(caller: ActorRef,
-                      interfaces: JList[InterfaceDescription]) {
+    private def zipIfcTunInfo(interfaces: JList[InterfaceDescription]) = {
         // First we would populate the data structure with tunnel info
         // on all local interfaces
         val addrTunnelMapping: mutable.MultiMap[Int, TunnelZone.Type] =
@@ -874,7 +879,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
                 retInterfaceTunnelMap.addBinding(interface, tunnelType)
             }
         }
-        caller ! retInterfaceTunnelMap
+        retInterfaceTunnelMap
     }
 
     /*

@@ -517,16 +517,15 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
     }
 
     private def processDhcpFuture(inPortId: UUID, dhcp: DHCP): Future[Boolean] =
-        VirtualTopologyActor.expiringAsk[Port](inPortId, log).flatMap {
-            port => DatapathController.calculateMinMtu.map { mtu =>
-                        processDhcp(port, dhcp, mtu)
-            }
+        VirtualTopologyActor.expiringAsk[Port](inPortId, log) map {
+            port => processDhcp(port, dhcp, DatapathController.minMtu)
         }
 
-    private def processDhcp(inPort: Port, dhcp: DHCP, mtu: Option[Short]) = {
+    private def processDhcp(inPort: Port, dhcp: DHCP, mtu: Short) = {
         val srcMac = packet.getPacket.getSourceMACAddress
         val dhcpLogger = Logging.getLogger(system, classOf[DhcpImpl])
-        DhcpImpl(dataClient, inPort, dhcp, srcMac, mtu, dhcpLogger) match {
+        val optMtu = Option(mtu)
+        DhcpImpl(dataClient, inPort, dhcp, srcMac, optMtu, dhcpLogger) match {
             case Some(dhcpReply) =>
                 log.debug(
                     "sending DHCP reply {} to port {}", dhcpReply, inPort.id)
