@@ -20,7 +20,7 @@ import com.google.inject.Inject
 import compat.Platform
 
 import org.midonet.cluster.Client
-import org.midonet.cluster.client.Port
+import org.midonet.cluster.client.{RouterPort, BridgePort, Port}
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.logging.{SimulationAwareBusLogging, ActorLogWithoutPath}
 import org.midonet.midolman.{DeduplicationActor, FlowController, Referenceable}
@@ -37,11 +37,10 @@ object VirtualTopologyActor extends Referenceable {
      * recent state of a device and, optionally, notifications when the state
      * changes.
      */
-    sealed trait DeviceRequest[D] {
+    sealed trait DeviceRequest {
         val id: UUID
         val update: Boolean
 
-        protected[VirtualTopologyActor] val tag: ClassTag[D]
         protected[VirtualTopologyActor] val managerName: String
 
         override def toString =
@@ -52,8 +51,7 @@ object VirtualTopologyActor extends Referenceable {
     }
 
     case class PortRequest(id: UUID, update: Boolean = false)
-            extends DeviceRequest[Port] {
-        protected[VirtualTopologyActor] val tag = classTag[Port]
+            extends DeviceRequest {
 
         protected[VirtualTopologyActor]
         override val managerName = "PortManager-" + id
@@ -64,8 +62,7 @@ object VirtualTopologyActor extends Referenceable {
     }
 
     case class BridgeRequest(id: UUID, update: Boolean = false)
-            extends DeviceRequest[Bridge] {
-        protected[VirtualTopologyActor] val tag = classTag[Bridge]
+            extends DeviceRequest {
 
         protected[VirtualTopologyActor]
         override val managerName = "BridgeManager-" + id
@@ -76,8 +73,7 @@ object VirtualTopologyActor extends Referenceable {
     }
 
     case class RouterRequest(id: UUID, update: Boolean = false)
-        extends DeviceRequest[Router] {
-        protected[VirtualTopologyActor] val tag = classTag[Router]
+        extends DeviceRequest {
 
         protected[VirtualTopologyActor]
         override val managerName = "RouterManager-" + id
@@ -88,8 +84,7 @@ object VirtualTopologyActor extends Referenceable {
     }
 
     case class ChainRequest(id: UUID, update: Boolean = false)
-        extends DeviceRequest[Chain] {
-        protected[VirtualTopologyActor] val tag = classTag[Chain]
+        extends DeviceRequest {
 
         protected[VirtualTopologyActor]
         override val managerName = "ChainManager-" + id
@@ -100,8 +95,7 @@ object VirtualTopologyActor extends Referenceable {
     }
 
     case class IPAddrGroupRequest(id: UUID, update: Boolean = false)
-            extends DeviceRequest[IPAddrGroup] {
-        protected[VirtualTopologyActor] val tag = classTag[IPAddrGroup]
+            extends DeviceRequest {
 
         protected[VirtualTopologyActor]
         override val managerName = "IPAddrGroupManager-" + id
@@ -112,8 +106,7 @@ object VirtualTopologyActor extends Referenceable {
     }
 
     case class LoadBalancerRequest(id: UUID, update: Boolean = false)
-        extends DeviceRequest[LoadBalancer] {
-        protected[VirtualTopologyActor] val tag = classTag[LoadBalancer]
+        extends DeviceRequest {
 
         protected[VirtualTopologyActor]
         override val managerName = "LoadBalancerManager-" + id
@@ -124,8 +117,7 @@ object VirtualTopologyActor extends Referenceable {
     }
 
     case class PoolRequest(id: UUID, update: Boolean = false)
-        extends DeviceRequest[Pool] {
-        protected[VirtualTopologyActor] val tag = classTag[Pool]
+        extends DeviceRequest {
 
         protected[VirtualTopologyActor]
         override val managerName = "PoolManager-" + id
@@ -136,8 +128,7 @@ object VirtualTopologyActor extends Referenceable {
     }
 
     case class ConditionListRequest(id: UUID, update: Boolean = false)
-        extends DeviceRequest[TraceConditions] {
-        protected[VirtualTopologyActor] val tag = classTag[TraceConditions]
+        extends DeviceRequest {
 
         protected[VirtualTopologyActor]
         override val managerName = "ConditionListManager-" + id
@@ -152,80 +143,79 @@ object VirtualTopologyActor extends Referenceable {
     @volatile private var topology = Topology()
 
     // WARNING!! This code is meant to be called from outside the actor.
-    // it should only access the volatile variable 'topology'
-    def expiringAsk[D](request: DeviceRequest[D])
-                      (implicit system: ActorSystem) =
-        doExpiringAsk(request, 0L, null, null)(null, system)
+    // it should only access the volatile variable 'everything'
 
-    def expiringAsk[D](request: DeviceRequest[D], expiry: Long)
-                      (implicit system: ActorSystem) =
-        doExpiringAsk(request, expiry, null, null)(null, system)
+    def expiringAsk[D](id: UUID)(implicit tag: ClassTag[D], system: ActorSystem) =
+        doExpiringAsk(id, 0L, null, null)(tag, null, system)
 
-    def expiringAsk[D](request: DeviceRequest[D],
-                       log: LoggingAdapter)
-                      (implicit system: ActorSystem) =
-        doExpiringAsk(request, 0L, log, null)(null, system)
+    def expiringAsk[D](id: UUID, log: LoggingAdapter)
+                      (implicit tag: ClassTag[D], system: ActorSystem) =
+        doExpiringAsk(id, 0L, log, null)(tag, null, system)
 
-    def expiringAsk[D](request: DeviceRequest[D],
-                       log: LoggingAdapter,
-                       expiry: Long)
-                      (implicit system: ActorSystem) =
-        doExpiringAsk(request, expiry, log, null)(null, system)
-
-    def expiringAsk[D](request: DeviceRequest[D],
+    def expiringAsk[D](id: UUID,
                        simLog: SimulationAwareBusLogging,
                        expiry: Long = 0L)
-                      (implicit system: ActorSystem,
+                      (implicit tag: ClassTag[D],
+                                system: ActorSystem,
                                 pktContext: PacketContext) =
-        doExpiringAsk(request, expiry, null, simLog)(pktContext, system)
+        doExpiringAsk(id, expiry, null, simLog)(tag, pktContext, system)
 
-    /* Note that the expiry is the exact expiration time, not a time left.
-     */
-    private[this] def doExpiringAsk[D](request: DeviceRequest[D],
-                                       expiry: Long = 0L,
-                                       log: LoggingAdapter,
-                                       simLog: SimulationAwareBusLogging)
-                                      (implicit pktContext: PacketContext,
-                                                system: ActorSystem)
-    : Future[D] = {
+    // Note that the expiry is the exact expiration time, not a timeout.
+    private def doExpiringAsk[D](id: UUID,
+                                 expiry: Long = 0L,
+                                 log: LoggingAdapter,
+                                 simLog: SimulationAwareBusLogging)
+                                (implicit tag: ClassTag[D],
+                                          pktContext: PacketContext,
+                                          system: ActorSystem): Future[D] = {
         val timeLeft = if (expiry == 0L) 3000L
                        else expiry - Platform.currentTime
         if (timeLeft <= 0)
             return Future.failed(new TimeoutException)
 
-        if (request.update)
-            throw new IllegalArgumentException("Do not use this API for " +
-                                               "subscribing to requests")
-
-        topology.device[D](request.id) match {
-            case Some(dev) => Future.successful(dev)
-            case None => requestFuture(request, timeLeft, log, simLog)
+        topology get id match {
+            case Some(dev) => Future.successful(dev.asInstanceOf[D])
+            case None => requestFuture(id, timeLeft, log, simLog)
         }
     }
 
-    private[this] def requestFuture[D](request: DeviceRequest[D],
-                                       timeLeft: Long,
-                                       log: LoggingAdapter,
-                                       simLog: SimulationAwareBusLogging)
-                                      (implicit pktContext: PacketContext,
-                                                system: ActorSystem) =
+    private val requestsFactory = Map[ClassTag[_], UUID => DeviceRequest](
+        classTag[Port]              -> (new PortRequest(_)),
+        classTag[BridgePort]        -> (new PortRequest(_)),
+        classTag[RouterPort]        -> (new PortRequest(_)),
+        classTag[Bridge]            -> (new BridgeRequest(_)),
+        classTag[Router]            -> (new RouterRequest(_)),
+        classTag[Chain]             -> (new ChainRequest(_)),
+        classTag[IPAddrGroup]       -> (new IPAddrGroupRequest(_)),
+        classTag[LoadBalancer]      -> (new LoadBalancerRequest(_)),
+        classTag[Pool]              -> (new PoolRequest(_)),
+        classTag[TraceConditions]   -> (new ConditionListRequest(_))
+    )
+
+    private def requestFuture[D](id: UUID,
+                                 timeLeft: Long,
+                                 log: LoggingAdapter,
+                                 simLog: SimulationAwareBusLogging)
+                                (implicit tag: ClassTag[D],
+                                          pktContext: PacketContext,
+                                          system: ActorSystem) =
         VirtualTopologyActor
-            .ask(request)(timeLeft milliseconds)
-            .mapTo[D](request.tag).andThen {
+            .ask(requestsFactory(tag)(id))(timeLeft milliseconds)
+            .mapTo[D](tag).andThen {
                 case Failure(ex: ClassCastException) =>
                     if (log != null)
                         log.error("VirtualTopologyManager didn't return a {}!",
-                            request.tag.runtimeClass.getSimpleName)
+                            tag.runtimeClass.getSimpleName)
                     else if (simLog != null)
                         simLog.error("VirtualTopologyManager didn't return a {}!",
-                            request.tag.runtimeClass.getSimpleName)
+                            tag.runtimeClass.getSimpleName)
                 case Failure(ex) =>
                     if (log != null)
                         log.warning("Failed to get {}: {} - {}",
-                            request.tag.runtimeClass.getSimpleName, request.id, ex)
+                            tag.runtimeClass.getSimpleName, id, ex)
                     else if (simLog != null)
                         simLog.warning("Failed to get {}: {} - {}",
-                            request.tag.runtimeClass.getSimpleName, request.id, ex)
+                            tag.runtimeClass.getSimpleName, id, ex)
             }(ExecutionContext.callingThread)
 }
 
@@ -248,7 +238,7 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
     @Inject
     val config: MidolmanConfig = null
 
-    private def manageDevice(r: DeviceRequest[_]): Unit = {
+    private def manageDevice(r: DeviceRequest): Unit = {
         if (managed(r.id))
             return
 
@@ -263,7 +253,7 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
         idToSubscribers.put(r.id, mutable.Set[ActorRef]())
     }
 
-    private def deviceRequested(req: DeviceRequest[_]) {
+    private def deviceRequested(req: DeviceRequest) {
         topology.get(req.id) match {
             case Some(dev) => sender ! dev
             case None =>
@@ -313,7 +303,7 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
     }
 
     def receive = {
-        case r: DeviceRequest[_] =>
+        case r: DeviceRequest =>
             log.debug("Received {}", r)
             manageDevice(r)
             deviceRequested(r)

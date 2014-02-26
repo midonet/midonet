@@ -36,7 +36,7 @@ trait TopologyPrefetcher extends Actor with ActorLogWithoutPath {
 
     def topologyReady(topo: Topology)
 
-    def prefetchTopology(requests: DeviceRequest[_]*) {
+    def prefetchTopology(requests: DeviceRequest*) {
         val newSubscriptions = requests.collect {
             case req if req != null =>
                 if (!subscriptions.contains(req.id)) {

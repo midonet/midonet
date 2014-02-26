@@ -394,10 +394,8 @@ abstract class RouterBase[IP <: IPAddr]()
     }
 
     final protected def getRouterPort(portID: UUID, expiry: Long)
-                                     (implicit pktContext: PacketContext)
-    : Future[RouterPort] = {
-        expiringAsk(PortRequest(portID), log, expiry).mapTo[RouterPort]
-    }
+                                     (implicit pktContext: PacketContext) =
+        expiringAsk[RouterPort](portID, log, expiry)
 
     // Auxiliary, IP version specific abstract methods.
 
@@ -412,8 +410,8 @@ abstract class RouterBase[IP <: IPAddr]()
      * @return
      */
     protected def getNextHopMac(outPort: RouterPort, rt: Route,
-                                         ipDest: IP, expiry: Long)
-                                        (implicit ec: ExecutionContext,
+                                ipDest: IP, expiry: Long)
+                               (implicit ec: ExecutionContext,
                                          pktContext: PacketContext): Future[MAC]
 
     /**

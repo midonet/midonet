@@ -62,7 +62,7 @@ class ChainManager(val id: UUID, val clusterClient: Client)
 
     private def incrResourceRefCount(id: UUID,
                                      resourceType: String,
-                                     reqFactory: UUID => DeviceRequest[_]): Unit = {
+                                     reqFactory: UUID => DeviceRequest): Unit = {
         idToRefCount.get(id) match {
             case Some(refCount) =>
                 log.debug("Increment {}'s refcount for {} {} to {}",

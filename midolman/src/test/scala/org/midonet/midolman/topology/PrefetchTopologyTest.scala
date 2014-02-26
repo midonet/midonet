@@ -17,14 +17,14 @@ import org.midonet.midolman.services.MessageAccumulator
 import org.midonet.midolman.simulation.{Bridge => SimBridge}
 import org.midonet.midolman.topology.VirtualTopologyActor.{DeviceRequest, Unsubscribe}
 
-class PrefetchTopologyTest extends FeatureSpec
-                           with Matchers
-                           with GivenWhenThen
-                           with MockMidolmanActors
-                           with VirtualConfigurationBuilders
-                           with MidolmanServices
-                           with VirtualTopologyHelper
-                           with OneInstancePerTest {
+class TopologyPrefetcherTest extends FeatureSpec
+                             with Matchers
+                             with GivenWhenThen
+                             with MockMidolmanActors
+                             with VirtualConfigurationBuilders
+                             with MidolmanServices
+                             with VirtualTopologyHelper
+                             with OneInstancePerTest {
 
     override def registerActors = List(
         VirtualTopologyActor -> (() => new VirtualTopologyActor
@@ -41,9 +41,9 @@ class PrefetchTopologyTest extends FeatureSpec
         }
 
         override def receive = super.receive orElse {
-            case reqs: List[DeviceRequest[_]] =>
+            case reqs: List[DeviceRequest] =>
                 prefetchTopology(reqs: _*)
-            case req: DeviceRequest[_] =>
+            case req: DeviceRequest =>
                 prefetchTopology(req)
         }
     }

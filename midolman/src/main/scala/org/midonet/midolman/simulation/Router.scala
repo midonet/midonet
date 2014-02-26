@@ -204,11 +204,8 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
                           (implicit ec: ExecutionContext,
                                     pktContext: PacketContext)
     : Future[MAC] =
-        expiringAsk(PortRequest(rtrPort.peerID), log, expiry) map {
-            case rp: RouterPort => rp.portMac
-            case nrp =>
-                log.debug("getPeerMac asked for MAC of non-router port {}", nrp)
-                null
+        expiringAsk[RouterPort](rtrPort.peerID, log, expiry) map {
+            _.portMac
         } recover { case _ => null }
 
     private def getMacForIP(port: RouterPort, nextHopIP: IPv4Addr,

@@ -328,10 +328,8 @@ class Coordinator(var origMatch: WildcardMatch,
     private def packetIngressesDevice(port: Port)
     : Future[SimulationResult] =
         (port match {
-            case _: BridgePort => expiringAsk(
-                BridgeRequest(port.deviceID), log, expiry)
-            case _: RouterPort => expiringAsk(
-                RouterRequest(port.deviceID), log, expiry)
+            case _: BridgePort => expiringAsk[Bridge](port.deviceID, log, expiry)
+            case _: RouterPort => expiringAsk[Router](port.deviceID, log, expiry)
         }) flatMap { case deviceReply =>
             numDevicesSimulated += 1
             log.debug("Simulating packet with match {}, device {}",
@@ -480,7 +478,7 @@ class Coordinator(var origMatch: WildcardMatch,
         pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(portID))
 
         // Get the RCU port object and start simulation.
-        expiringAsk(PortRequest(portID), log) flatMap {
+        expiringAsk[Port](portID, log) flatMap {
             case p if !p.adminStateUp =>
                 processAdminStateDown(p, isIngress = true)
             case p =>
@@ -498,7 +496,8 @@ class Coordinator(var origMatch: WildcardMatch,
                         Future[SimulationResult] = {
         if (filterID == null)
             return thunk(port)
-        expiringAsk(ChainRequest(filterID), log, expiry) flatMap { chain =>
+
+        expiringAsk[Chain](filterID, log, expiry) flatMap { chain =>
             val result = Chain.apply(chain, pktContext,
                 pktContext.wcmatch, port.id, true)
             result.action match {
@@ -523,7 +522,7 @@ class Coordinator(var origMatch: WildcardMatch,
         // add tag for flow invalidation
         pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(portID))
 
-        expiringAsk(PortRequest(portID), log) flatMap {
+        expiringAsk[Port](portID, log) flatMap {
             case port if !port.adminStateUp =>
                 processAdminStateDown(port, isIngress = false)
             case port =>
@@ -614,7 +613,7 @@ class Coordinator(var origMatch: WildcardMatch,
             case p: RouterPort if isIngress =>
                 sendIcmpProhibited(p)
             case p: RouterPort if pktContext.inPortId != null =>
-                expiringAsk(PortRequest(pktContext.inPortId), log, expiry) map {
+                expiringAsk[Port](pktContext.inPortId, log, expiry) map {
                     case p: RouterPort =>
                         sendIcmpProhibited(p)
                     case _ =>

@@ -118,7 +118,6 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
     import DeduplicationActor._
     import FlowController.{AddWildcardFlow, FlowAdded}
     import VirtualToPhysicalMapper.PortSetForTunnelKeyRequest
-    import VirtualTopologyActor.PortRequest
 
     def runSimulation(): Future[SimulationResult]
 
@@ -518,12 +517,10 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
     }
 
     private def processDhcpFuture(inPortId: UUID, dhcp: DHCP): Future[Boolean] =
-        VirtualTopologyActor.expiringAsk(PortRequest(inPortId), log).flatMap{
-            port =>
-                DatapathController.calculateMinMtu.map {
-                    mtu =>
+        VirtualTopologyActor.expiringAsk[Port](inPortId, log).flatMap {
+            port => DatapathController.calculateMinMtu.map { mtu =>
                         processDhcp(port, dhcp, mtu)
-                }
+            }
         }
 
     private def processDhcp(inPort: Port, dhcp: DHCP, mtu: Option[Short]) = {

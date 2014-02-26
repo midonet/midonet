@@ -377,11 +377,10 @@ class Bridge(val id: UUID,
     /**
       * Retrieves a BridgePort
       */
-    private def getPort(portId: UUID, expiry: Long)(
-            implicit actorSystem: ActorSystem,
-            pktCtx: PacketContext): Future[BridgePort] =
-        expiringAsk(PortRequest(portId), log, expiry)
-            .mapTo[BridgePort]
+    private def getPort(portId: UUID, expiry: Long)
+                       (implicit actorSystem: ActorSystem,
+                                 pktCtx: PacketContext) =
+        expiringAsk[BridgePort](portId, log, expiry)
 
     /**
       * Used by normalProcess to handle specifically ARP multicast.
