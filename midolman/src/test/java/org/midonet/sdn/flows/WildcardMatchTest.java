@@ -78,8 +78,8 @@ public class WildcardMatchTest {
     public void testSetInputPort() {
         WildcardMatch wmatch = new WildcardMatch();
         short inPort = 0x11ee;
-        wmatch.setInputPort(inPort);
-        assertThat(wmatch.getInputPort(), is(inPort));
+        wmatch.setInputPortNumber(inPort);
+        assertThat(wmatch.getInputPortNumber(), is(inPort));
         assertThat(wmatch.getUsedFields(), hasSize(1));
         assertThat(wmatch.getUsedFields(),
             contains(WildcardMatch.Field.InputPortNumber));
@@ -279,14 +279,14 @@ public class WildcardMatchTest {
         WildcardMatch m1 = new WildcardMatch();
         WildcardMatch m2 = new WildcardMatch();
 
-        m1.setInputPort((short) 1);
+        m1.setInputPortNumber((short) 1);
         m1.setEthernetSource(MAC.fromString("aa:ff:bb:dd:ee:dd"));
         m1.setEthernetDestination(MAC.fromString("bb:ff:bb:ff:ff:dd"));
         m1.setEtherType(ARP.ETHERTYPE);
         m1.setNetworkSource(IPv4Addr.fromString("10.0.0.1"));
         m1.setNetworkDestination(IPv4Addr.fromString("10.0.0.2"));
 
-        m2.setInputPort((short) 1);
+        m2.setInputPortNumber((short) 1);
         m2.setEthernetSource(MAC.fromString("ee:ee:bb:dd:ee:dd"));
         m2.setEthernetDestination(MAC.fromString("ee:ff:ee:ff:ff:dd"));
         m2.setEtherType(IPv4.ETHERTYPE);

@@ -447,7 +447,7 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         if (portUUID != null)
             portUUID should be(getBridgePort(port).getId)
         else
-            pktInMsg.wMatch.getInputPort should be(getPortNumber(port))
+            pktInMsg.wMatch.getInputPortNumber should be(getPortNumber(port))
     }
 
     private def getBridgePort (portName : String) : BridgePort = {
