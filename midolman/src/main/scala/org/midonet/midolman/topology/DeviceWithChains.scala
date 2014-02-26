@@ -12,7 +12,7 @@ trait DeviceWithChains extends TopologyPrefetcher {
     protected def cfg: { def inboundFilter: UUID
                          def outboundFilter: UUID }
 
-    override def prefetchTopology(requests: DeviceRequest[_]*) {
+    override def prefetchTopology(requests: DeviceRequest*) {
         super.prefetchTopology(requests ++ List(chain(cfg.inboundFilter),
                                                 chain(cfg.outboundFilter)): _*)
     }

@@ -23,7 +23,7 @@ import org.midonet.midolman.simulation.Bridge
 import org.midonet.midolman.simulation.Coordinator.Device
 import org.midonet.midolman.state.DirectoryCallback.Result
 import org.midonet.midolman.state.{ZkConnectionAwareWatcher, DirectoryCallback}
-import org.midonet.midolman.topology.VirtualTopologyActor.{PortRequest, BridgeRequest, expiringAsk => VTAExpiringAsk}
+import org.midonet.midolman.topology.VirtualTopologyActor.{expiringAsk => VTAExpiringAsk}
 import org.midonet.midolman.topology.rcu.Host
 import org.midonet.midolman.{FlowController, Referenceable}
 import org.midonet.util.concurrent._
@@ -677,10 +677,11 @@ abstract class VirtualToPhysicalMapperBase
      *  the request reschedules itself 3 times before failing. */
     private def getPortConfig(vport: UUID, retries: Int = 3)
             : Future[Option[(Port, Device)]] =
-        VirtualTopologyActor.expiringAsk(PortRequest(vport), log) flatMap {
+        VTAExpiringAsk[Port](vport, log) flatMap {
             case brPort: BridgePort =>
-                val req = BridgeRequest(brPort.deviceID)
-                VTAExpiringAsk(req, log) map { br => Some((brPort, br)) }
+                VTAExpiringAsk[Bridge](brPort.deviceID, log) map { br =>
+                    Some((brPort, br))
+                }
             case _ => // not a bridgePort, sending back None
                 Future.successful(None)
         } recoverWith {

@@ -16,10 +16,10 @@ import akka.util.Timeout
 
 import org.midonet.cluster.client.Port
 import org.midonet.midolman.rules.{ChainPacketContext, RuleResult}
-import org.midonet.midolman.simulation.Chain
+import org.midonet.midolman.simulation.{Bridge, Chain}
 import org.midonet.midolman.topology.FlowTagger
 import org.midonet.midolman.topology.VirtualToPhysicalMapper
-import org.midonet.midolman.topology.VirtualTopologyActor
+import org.midonet.midolman.topology.VirtualTopologyActor.expiringAsk
 import org.midonet.midolman.topology.rcu.PortSet
 import org.midonet.odp.flows._
 import org.midonet.odp.flows.FlowActions.{setKey, output, userspace}
@@ -71,7 +71,6 @@ trait FlowTranslator {
 
     import FlowTranslator._
     import VirtualToPhysicalMapper.PortSetRequest
-    import VirtualTopologyActor._
     import VirtualActions._
 
     protected val dpState: DatapathState
@@ -153,7 +152,7 @@ trait FlowTranslator {
             if (port.outboundFilter == null)
                 Future.successful(null)
             else
-                expiringAsk(ChainRequest(port.outboundFilter))
+                expiringAsk[Chain](port.outboundFilter)
 
         // Apply the chains.
         Future.sequence(localPorts map { portToChain })
@@ -303,7 +302,7 @@ trait FlowTranslator {
                                  portSet, cookieStr)
         }
 
-        val deviceFuture = expiringAsk(BridgeRequest(portSet), log)
+        val deviceFuture = expiringAsk[Bridge](portSet, log)
 
         portSetFuture flatMap { set => deviceFuture flatMap { br =>
             val deviceId = br.id
@@ -343,7 +342,7 @@ trait FlowTranslator {
                               dpTags: mutable.Set[Any])
     : Future[Seq[Port]] = {
         val fs = portIds.map { portID =>
-            expiringAsk(PortRequest(portID), log)
+            expiringAsk[Port](portID, log)
         }(breakOut(Seq.canBuildFrom))
 
         Future.sequence(fs).map { _ filter { p =>
@@ -368,7 +367,7 @@ trait FlowTranslator {
                 towardsLocalDpPorts(actions, port, localPort, tags))
         } getOrElse {
             /* otherwise we translate to a remote port */
-            expiringAsk(PortRequest(port), log) map {
+            expiringAsk[Port](port, log) map {
                 case p: Port if p.isExterior =>
                     towardsRemoteHosts(
                         actions, port, p.tunnelKey, p.hostID, tags)

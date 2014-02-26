@@ -15,6 +15,7 @@ import java.nio.ByteBuffer
 import java.util.{Collection => JCollection, List => JList, Set => JSet, UUID}
 
 import org.midonet.cluster.client
+import org.midonet.cluster.client.Port
 import org.midonet.cluster.data.TunnelZone
 import org.midonet.cluster.data.TunnelZone.{HostConfig => TZHostConfig}
 import org.midonet.cluster.data.zones._
@@ -694,7 +695,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
 
     private def installTunnelKeyFlow(
             port: DpPort, vifId: UUID, active: Boolean): Unit =
-        VirtualTopologyActor.expiringAsk(PortRequest(vifId), log) onSuccess {
+        VirtualTopologyActor.expiringAsk[Port](vifId, log) onSuccess {
             case p if !p.isInterior =>
                 // trigger invalidation. This is done regardless of
                 // whether we are activating or deactivating:

@@ -59,7 +59,7 @@ class LoadBalancer(val id: UUID, val adminStateUp: Boolean,
                         "Traffic matched VIP ID {} in load balancer ID {}",
                         vip.id, id)
 
-                    expiringAsk(PoolRequest(vip.poolId), log, pktContext.expiry) map {
+                    expiringAsk[Pool](vip.poolId, log, pktContext.expiry) map {
                         pool =>
                             // Choose a pool member and apply DNAT if an
                             // active pool member is found
