@@ -348,13 +348,13 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
         case router: Router =>
             log.debug("Received a Router for {}", router.id)
             updated(router)
-        case TraceConditions(conditions) =>
+        case traceCondition @ TraceConditions(conditions) =>
             log.debug("TraceConditions updated to {}", conditions)
             updated(TraceConditionsManager.uuid, conditions)
             // We know the DDA should always get an update to the trace
             // conditions.  For some reason the ChainRequest(update=true)
             // message from the DDA doesn't get the sender properly set.
-            DeduplicationActor ! conditions
+            DeduplicationActor ! traceCondition
         case invalidation: InvalidateFlowsByTag =>
             FlowController ! invalidation
     }
