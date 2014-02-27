@@ -22,7 +22,7 @@ import org.midonet.midolman.rules.Condition
 import org.midonet.midolman.rules.NatTarget
 import org.midonet.midolman.rules.RuleResult.Action
 import org.midonet.packets.{IPv4Subnet, TCP, MAC}
-import org.midonet.midolman.state.DirectoryCallback
+import org.midonet.midolman.state.{PoolMemberStatus, DirectoryCallback}
 import org.midonet.midolman.state.DirectoryCallback.Result
 import org.apache.zookeeper.KeeperException
 import org.midonet.cluster.data.l4lb.{PoolMember, Pool, VIP, LoadBalancer}
@@ -470,7 +470,7 @@ trait VirtualConfigurationBuilders {
         val poolMember = new PoolMember()
         poolMember.setId(UUID.randomUUID)
         poolMember.setAdminStateUp(true)
-        poolMember.setStatus("UP")
+        poolMember.setStatus(PoolMemberStatus.UP)
         poolMember.setAddress(address)
         poolMember.setProtocolPort(port)
         poolMember.setPoolId(pool.getId)
@@ -480,16 +480,21 @@ trait VirtualConfigurationBuilders {
         poolMember
     }
 
-    def removePoolMemberFromPool(poolMember: PoolMember,
-                                 pool: Pool) {
-        poolMember.setPoolId(null)
+    def updatePoolMember(poolMember: PoolMember,
+                         poolId: Option[UUID] = None,
+                         adminStateUp: Option[Boolean] = None,
+                         weight: Option[Integer] = None) {
+        poolId.foreach(poolMember.setPoolId(_))
+        adminStateUp.foreach(poolMember.setAdminStateUp(_))
+        weight.foreach(poolMember.setWeight(_))
         clusterDataClient().poolMemberUpdate(poolMember)
     }
 
+    def removePoolMemberFromPool(poolMember: PoolMember) =
+        updatePoolMember(poolMember, poolId = Some(null))
+
     def setPoolMemberAdminStateUp(poolMember: PoolMember,
-                                  adminStateUp: Boolean) {
-        poolMember.setAdminStateUp(adminStateUp)
-        clusterDataClient().poolMemberUpdate(poolMember)
-    }
+                                  adminStateUp: Boolean) =
+        updatePoolMember(poolMember, adminStateUp = Some(adminStateUp))
 
 }

@@ -488,7 +488,7 @@ public interface DataClient {
     @CheckForNull Port<?, ?> portsGet(UUID id)
             throws StateAccessException, SerializationException;
 
-    void portsUpdate(@Nonnull Port port)
+    void portsUpdate(@Nonnull Port<?, ?> port)
             throws StateAccessException, SerializationException;
 
     void portsLink(@Nonnull UUID portId, @Nonnull UUID peerPortId)

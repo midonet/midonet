@@ -22,11 +22,9 @@ object PoolManager {
     private def toSimulationPoolMember(pm: PoolMember): simulation.PoolMember =
         new simulation.PoolMember(
             pm.getId,
-            pm.getAdminStateUp,
             IPv4Addr(pm.getAddress),
             pm.getProtocolPort,
-            pm.getWeight,
-            pm.getStatus)
+            pm.getWeight)
 }
 
 class PoolManager(val id: UUID, val clusterClient: Client) extends Actor
@@ -34,40 +32,40 @@ class PoolManager(val id: UUID, val clusterClient: Client) extends Actor
     import PoolManager._
     import context.system // Used implicitly. Don't delete.
 
-    private var poolConfig: Option[Pool] = None
-    private var simPoolMembers: Option[List[simulation.PoolMember]] = None
+    private var poolConfig: Pool = null
+    private var simPoolMembers: Array[simulation.PoolMember] = null
 
     override def preStart() {
         clusterClient.getPool(id, new PoolBuilderImpl(self))
     }
 
-    private def updatePoolMembers(curPoolMembers: Set[PoolMember]): Unit = {
-        // Convert data objects to simulation objects before creating LoadBalancer
-        simPoolMembers = Some(curPoolMembers.map
-                                      (PoolManager.toSimulationPoolMember)
-                                      (breakOut(List.canBuildFrom)))
+    private def updatePoolMembers(newMembers: Set[PoolMember]): Unit = {
+        // Convert to simulation objects before creating Pool
+        simPoolMembers = newMembers.collect {
+            case pm if pm.isUp => toSimulationPoolMember(pm)
+        } (breakOut(Array.canBuildFrom))
         publishUpdateIfReady()
     }
 
     private def updateConfig(pool: Pool) {
-        poolConfig = Some(pool)
+        poolConfig = pool
         publishUpdateIfReady()
     }
 
     private def publishUpdateIfReady() {
-        if (simPoolMembers.isEmpty) {
+        if (simPoolMembers == null) {
             log.debug(s"Not publishing pool $id. Still waiting for pool members.")
             return
         }
-        if (poolConfig.isEmpty) {
+        if (poolConfig == null) {
             log.debug(s"Not publishing pool $id. Still waiting for pool config.")
             return
         }
         log.debug(s"Publishing update for pool $id.")
 
         val simPool = new simulation.Pool(
-            id, poolConfig.get.isAdminStateUp, poolConfig.get.getLbMethod,
-            simPoolMembers.get, context.system.eventStream)
+            id, poolConfig.isAdminStateUp, poolConfig.getLbMethod,
+            simPoolMembers, context.system.eventStream)
         VirtualTopologyActor ! simPool
         VirtualTopologyActor ! InvalidateFlowsByTag(
             FlowTagger.invalidateFlowsByDevice(id))
