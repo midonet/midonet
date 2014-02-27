@@ -122,6 +122,16 @@
                                 </source>
                             </sources>
                         </mapping>
+                        <mapping>
+                            <directory>/usr/bin</directory>
+                            <directoryIncluded>false</directoryIncluded>
+                            <filemode>755</filemode>
+                            <sources>
+                                <source>
+                                    <location>src/deb/bin/mm-stat</location>
+                                </source>
+                            </sources>
+                        </mapping>
                     </mappings>
                     <preinstallScriptlet>
                         <scriptFile>${project.basedir}/src/deb/control/preinst</scriptFile>
@@ -196,6 +206,15 @@
                         </data>
                         <data>
                             <src>${project.basedir}/src/deb/bin/mm-ctl</src>
+                            <type>file</type>
+                            <mapper>
+                                <type>perm</type>
+                                <prefix>/usr/bin</prefix>
+                                <filemode>755</filemode>
+                            </mapper>
+                        </data>
+                        <data>
+                            <src>${project.basedir}/src/deb/bin/mm-stat</src>
                             <type>file</type>
                             <mapper>
                                 <type>perm</type>
