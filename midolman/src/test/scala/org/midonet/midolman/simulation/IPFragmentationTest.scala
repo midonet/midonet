@@ -18,7 +18,7 @@ import org.midonet.cluster.data.{Bridge => ClusterBridge}
 import org.midonet.cluster.data.ports.BridgePort
 import org.midonet.midolman._
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
-import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, SimulationResult}
+import org.midonet.midolman.PacketWorkflow.{TemporaryDrop, SimulationResult}
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.services.MessageAccumulator
 import org.midonet.midolman.topology.{FlowTagger, VirtualTopologyActor}
@@ -121,11 +121,11 @@ class IPFragmentationTest extends FeatureSpec
 
             When("it is simulated")
 
-            val avwf@AddVirtualWildcardFlow(_, _, tags) = sendPacket(IPFragmentType.First)
+            val drop@TemporaryDrop(tags, _) = sendPacket(IPFragmentType.First)
 
             Then("a temporary drop flow is installed")
 
-            avwf should be (dropped())
+            drop should be (dropped())
             tags should be (empty)
 
             And("a fragmentation needed ICMP should be received")
@@ -155,11 +155,11 @@ class IPFragmentationTest extends FeatureSpec
 
             When("it is simulated")
 
-            val avwf@AddVirtualWildcardFlow(_, _, tags) = sendPacket(IPFragmentType.First,
-                                                                     IPv6.ETHERTYPE)
+            val drop@TemporaryDrop(tags, _) = sendPacket(IPFragmentType.First,
+                                                         IPv6.ETHERTYPE)
             Then("a temporary drop flow is installed")
 
-            avwf should be (dropped())
+            drop should be (dropped())
             tags should be (empty)
         }
 
