@@ -725,11 +725,8 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
     private State state;
     private NetlinkException stateInitializationEx;
 
-    public Future<Boolean> initialize() throws Exception {
-
-        final ValueFuture<Boolean> future = ValueFuture.create();
-        final Callback<Boolean> initStatusCallback = wrapFuture(future);
-
+    @Override
+    public void initialize(final Callback<Boolean> initStatusCallback) {
         state = State.Initializing;
 
         final Callback<Integer> portMulticastCallback =
@@ -810,7 +807,6 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             };
 
         getFamilyId(DatapathFamily.NAME, datapathFamilyBuilder);
-        return future;
     }
 
     public boolean isInitialized() {

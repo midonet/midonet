@@ -60,11 +60,9 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
     }
 
     @Override
-    public Future<Boolean> initialize() throws Exception {
+    public void initialize(Callback<Boolean> cb) {
         initialized = true;
-        ValueFuture<Boolean> future = ValueFuture.create();
-        future.set(true);
-        return future;
+        cb.onSuccess(true);
     }
 
     @Override
