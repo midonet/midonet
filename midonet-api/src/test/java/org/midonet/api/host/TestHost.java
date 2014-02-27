@@ -203,8 +203,7 @@ public class TestHost extends JerseyTest {
         assertThat("The host should not be alive",
                    hosts.get(0).isAlive(), equalTo(false));
 
-        metadata.setName("emporiki1");
-        hostManager.makeAlive(hostId, metadata);
+        hostManager.makeAlive(hostId);
 
         hosts = api.getHosts();
 
@@ -367,7 +366,7 @@ public class TestHost extends JerseyTest {
             InetAddress.getByAddress(new byte[]{127, 0, 0, 1}),
         });
         hostManager.createHost(hostId, metadata);
-        hostManager.makeAlive(hostId, metadata);
+        hostManager.makeAlive(hostId);
 
 
         ResourceCollection<Host> hosts = api.getHosts();

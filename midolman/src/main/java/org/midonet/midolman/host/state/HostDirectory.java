@@ -164,12 +164,11 @@ public class HostDirectory {
      * known addresses)
      */
     public static class Metadata {
-
         String name;
         InetAddress[] addresses;
 
         @JsonIgnore
-        Set<UUID> tunnelZones = new HashSet<UUID>();
+        transient Set<UUID> tunnelZones = new HashSet<>();
 
         // Default constructor for the Jackson de-serialization.
         public Metadata() {
@@ -197,6 +196,31 @@ public class HostDirectory {
 
         public void setTunnelZones(Set<UUID> tunnelZones) {
             this.tunnelZones = tunnelZones;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            Metadata metadata = (Metadata) o;
+
+            if (!Arrays.equals(addresses, metadata.addresses)) return false;
+            if (name != null ? !name.equals(metadata.name) : metadata.name != null)
+                return false;
+            if (tunnelZones != null ? !tunnelZones.equals(metadata.tunnelZones)
+                                    : metadata.tunnelZones != null)
+                return false;
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = name != null ? name.hashCode() : 0;
+            result = 31 * result + (addresses != null ? Arrays.hashCode(addresses) : 0);
+            result = 31 * result + (tunnelZones != null ? tunnelZones.hashCode() : 0);
+            return result;
         }
     }
 

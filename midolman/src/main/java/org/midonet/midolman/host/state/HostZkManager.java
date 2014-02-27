@@ -6,6 +6,7 @@ package org.midonet.midolman.host.state;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -86,60 +87,43 @@ public class HostZkManager extends AbstractZkManager {
             throws StateAccessException, SerializationException {
         log.debug("Creating host folders for hostId {}", hostId);
 
+        List<Op> ops = new ArrayList<>(metadata.getTunnelZones().size() + 7);
+
         try {
-            List<Op> ops = new ArrayList<Op>();
-            ops.add(
-                zk.getPersistentCreateOp(paths.getHostPath(hostId),
-                        serializer.serialize(metadata)));
-            ops.add(
-                    zk.getPersistentCreateOp(paths.getHostInterfacesPath(hostId),
-                                      null));
-            ops.add(
-                    zk.getPersistentCreateOp(paths.getHostCommandsPath(hostId),
-                                      null));
-            ops.add(
-                    zk.getPersistentCreateOp(
-                    paths.getHostCommandErrorLogsPath(hostId), null));
-
-            ops.add(
-                    zk.getPersistentCreateOp(
-                    paths.getHostVrnMappingsPath(hostId), null));
-
-            ops.add(
-                    zk.getPersistentCreateOp(
-                    paths.getHostVrnPortMappingsPath(hostId), null));
-
-            ops.add(
-                    zk.getPersistentCreateOp(
-                    paths.getHostTunnelZonesPath(hostId), null));
-
-            for (UUID uuid : metadata.getTunnelZones()) {
-                ops.add(
-                        zk.getPersistentCreateOp(
-                        paths.getHostTunnelZonePath(hostId, uuid), null
-                    ));
-            }
-
-            zk.multi(ops);
+            ops.add(zk.getPersistentCreateOp(paths.getHostPath(hostId),
+                                             serializer.serialize(metadata)));
         } catch (SerializationException e) {
             throw new SerializationException(
-                "Could not serialize host metadata for id: " + hostId,
-                e, HostDirectory.Metadata.class);
+                    "Could not serialize host metadata for id: " + hostId,
+                    e, HostDirectory.Metadata.class);
         }
+
+        ops.add(zk.getPersistentCreateOp(
+                    paths.getHostInterfacesPath(hostId), null));
+        ops.add(zk.getPersistentCreateOp(
+                    paths.getHostCommandsPath(hostId), null));
+        ops.add(zk.getPersistentCreateOp(
+                    paths.getHostCommandErrorLogsPath(hostId), null));
+        ops.add(zk.getPersistentCreateOp(
+                    paths.getHostVrnMappingsPath(hostId), null));
+        ops.add(zk.getPersistentCreateOp(
+                    paths.getHostVrnPortMappingsPath(hostId), null));
+        ops.add(zk.getPersistentCreateOp(
+                    paths.getHostTunnelZonesPath(hostId), null));
+
+        for (UUID uuid : metadata.getTunnelZones()) {
+            ops.add(zk.getPersistentCreateOp(
+                        paths.getHostTunnelZonePath(hostId, uuid), null));
+        }
+
+        zk.multi(ops);
+
     }
 
-    public void makeAlive(UUID hostId) throws StateAccessException,
-            SerializationException {
-        makeAlive(hostId, null);
-    }
-
-    public void makeAlive(UUID hostId, HostDirectory.Metadata metadata)
+    public void makeAlive(UUID hostId)
             throws StateAccessException, SerializationException {
-        zk.addEphemeral(paths.getHostPath(hostId) + "/alive",
-                new byte[0]);
-        updateMetadata(hostId, metadata);
+        zk.addEphemeral(paths.getHostPath(hostId) + "/alive", new byte[0]);
     }
-
 
     /*
      * create the host version path if it does not exist, then update our
@@ -147,7 +131,7 @@ public class HostZkManager extends AbstractZkManager {
      * to see which version everyone is on.
      */
     public void setHostVersion(UUID hostId) throws StateAccessException {
-        List<Op> operations = new ArrayList<Op>();
+        List<Op> operations = new ArrayList<>();
         String versionDirPath = paths.getVersionDirPath();
         if (!zk.exists(versionDirPath)) {
             operations.add(zk.getPersistentCreateOp(versionDirPath, null));
@@ -158,7 +142,7 @@ public class HostZkManager extends AbstractZkManager {
         }
         zk.multi(operations);
         zk.addEphemeral(paths.getHostVersionPath(hostId, DataWriteVersion.CURRENT),
-                     new byte[0]);
+                        new byte[0]);
     }
 
     public void updateMetadata(UUID hostId, HostDirectory.Metadata metadata)
