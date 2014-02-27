@@ -5,23 +5,22 @@ import java.util.UUID
 
 import org.scalatest.matchers.{BePropertyMatchResult, BePropertyMatcher}
 
-import org.midonet.midolman.PacketWorkflow.{SendPacket, AddVirtualWildcardFlow,
-                                            SimulationResult}
+import org.midonet.midolman.PacketWorkflow._
 import org.midonet.packets.{IPv4, Ethernet}
 import org.midonet.sdn.flows.WildcardFlow
-import org.midonet.sdn.flows.VirtualActions.{FlowActionOutputToVrnPort,
-                                             FlowActionOutputToVrnPortSet}
-import org.midonet.odp.flows.{FlowAction, FlowKeyIPv4, FlowKeyEthernet,
-                              FlowActionSetKey}
+import org.midonet.odp.flows.{FlowKeyIPv4, FlowKeyEthernet, FlowActionSetKey}
+import org.midonet.midolman.PacketWorkflow.SendPacket
+import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPortSet
+import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPort
+import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
 
 trait CustomMatchers {
 
     def dropped(expectedTags: Any*) = new BePropertyMatcher[SimulationResult] {
         def apply(simRes: SimulationResult) =
             BePropertyMatchResult(simRes match {
-                case AddVirtualWildcardFlow(flow, _, tags) =>
-                    flow.actions.isEmpty &&
-                    (expectedTags forall tags.contains)
+                case drop: DropSimulationResult =>
+                    expectedTags forall drop.tags.contains
                 case _ =>
                     false
             }, s"a drop flow containing tags {${expectedTags.toList}")
