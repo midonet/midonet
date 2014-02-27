@@ -5,6 +5,7 @@ package org.midonet.api.l4lb;
 
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.UriResource;
+import org.midonet.midolman.state.PoolMemberStatus;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import java.net.URI;
@@ -20,7 +21,7 @@ public class PoolMember extends UriResource {
     private int protocolPort;
     private int weight;
     private boolean adminStateUp = true;
-    private String status;
+    private PoolMemberStatus status;
 
     public UUID getId() {
         return id;
@@ -70,11 +71,11 @@ public class PoolMember extends UriResource {
         this.adminStateUp = adminStateUp;
     }
 
-    public String getStatus() {
+    public PoolMemberStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(PoolMemberStatus status) {
         this.status = status;
     }
 

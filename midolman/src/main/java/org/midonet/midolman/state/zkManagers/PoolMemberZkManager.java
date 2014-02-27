@@ -11,6 +11,7 @@ import com.google.common.base.Objects;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs;
+import org.midonet.midolman.state.PoolMemberStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +43,7 @@ public class PoolMemberZkManager extends AbstractZkManager {
         public int protocolPort;
         public int weight;
         public boolean adminStateUp;
-        public String status;
+        public PoolMemberStatus status;
 
         public PoolMemberConfig() {
             super();
@@ -53,7 +54,7 @@ public class PoolMemberZkManager extends AbstractZkManager {
                                 int protocolPort,
                                 int weight,
                                 boolean adminStateUp,
-                                String status) {
+                                PoolMemberStatus status) {
             this.poolId = poolId;
             this.address = address;
             this.protocolPort = protocolPort;

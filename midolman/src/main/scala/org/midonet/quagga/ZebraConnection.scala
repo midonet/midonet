@@ -328,7 +328,7 @@ class ZebraConnection(val dispatcher: ActorRef,
                 case e: IOException =>
                     log.warning("IO error", e)
                     dispatcher ! ConnectionClosed(clientId)
-                case e =>
+                case e: Throwable =>
                     log.warning("unexpected error", e)
                     dispatcher ! ConnectionClosed(clientId)
             }

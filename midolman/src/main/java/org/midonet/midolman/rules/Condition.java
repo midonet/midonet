@@ -26,10 +26,8 @@ public class Condition {
     public UUID portGroup;
     public boolean invPortGroup;
     public UUID ipAddrGroupIdSrc;
-    public transient IPAddrGroup ipAddrGroupSrc;
     public boolean invIpAddrGroupIdSrc;
     public UUID ipAddrGroupIdDst;
-    public transient IPAddrGroup ipAddrGroupDst;
     public boolean invIpAddrGroupIdDst;
     public Integer dlType; // Ethernet frame type.
     public boolean invDlType;
@@ -49,6 +47,44 @@ public class Condition {
     public boolean nwDstInv;
     public boolean tpSrcInv;
     public boolean tpDstInv;
+
+    // These are needed for simulation, but derived from information
+    // stored elsewhere in Zookeeper, hence transient.
+    public transient IPAddrGroup ipAddrGroupSrc;
+    public transient IPAddrGroup ipAddrGroupDst;
+
+    /** Matches everything */
+    public static final Condition TRUE = new Uncondition(true);
+
+    /** Matches nothing */
+    public static final Condition FALSE = new Uncondition(false);
+
+    /**
+     * Condition that matches everything or nothing, depending on the
+     * value passed in at construction. There are only two instances,
+     * Condition.TRUE and Condition.FALSE.
+     */
+    private static class Uncondition extends Condition {
+
+        private Uncondition(boolean matches) {
+            this.matches = matches;
+        }
+
+        private final boolean matches;
+
+        @Override
+        public boolean matches(ChainPacketContext fwdInfo, WildcardMatch pktMatch,
+                               boolean isPortFilter) { return matches; }
+
+        @Override
+        public boolean equals(Object o) { return this == o; }
+
+        @Override
+        public int hashCode() { return matches ? 0 : 1; }
+
+        @Override
+        public String toString() { return "Condition[" + matches + "]"; }
+    }
 
     // Default constructor for the Jackson deserialization.
     public Condition() { super(); }

@@ -4,28 +4,32 @@
 
 package org.midonet.midolman.simulation
 
-import java.util.{HashSet => JHashSet, UUID}
-import scala.util.Random
+import java.util.UUID
 
 import akka.event.LoggingBus
 
-import org.midonet.midolman.layer4.{NwTpPair, NatMapping}
+import org.midonet.midolman.layer4.NatMapping
 import org.midonet.midolman.logging.LoggerFactory
-import org.midonet.midolman.rules.{RuleResult, Condition,
-                                   ForwardNatRule, NatTarget}
+import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.topology.FlowTagger
 import org.midonet.packets.ICMP
+import org.midonet.util.collection.WeightedSelector
 
 class Pool(val id: UUID, val adminStateUp: Boolean, val lbMethod: String,
-           val poolMembers: List[PoolMember], val loggingBus: LoggingBus) {
-    val log =
+           val poolMembers: Traversable[PoolMember],
+           val loggingBus: LoggingBus) {
+
+    private val log =
         LoggerFactory.getSimulationAwareLog(this.getClass)(loggingBus)
 
     val invalidatePoolTag = FlowTagger.invalidateFlowsByDevice(id)
 
-    private val activePoolMembers = poolMembers.filter(_.isUp)
+    val isUp = adminStateUp && poolMembers.nonEmpty
 
-    /*
+    private val memberSelector = if (!isUp) null
+                                 else WeightedSelector(poolMembers)
+
+    /**
      * Choose an active pool member and apply DNAT to the packetContext
      * to redirect traffic to that pool member.
      *
@@ -37,23 +41,16 @@ class Pool(val id: UUID, val adminStateUp: Boolean, val lbMethod: String,
      */
     def loadBalance(natMapping: NatMapping, pktContext: PacketContext)
     : RuleResult.Action = {
-
+        // For logger.
         implicit val implicitPacketContext = pktContext
         implicit val implicitNatMapping = natMapping
 
         pktContext.addFlowTag(invalidatePoolTag)
 
-        val poolMember: Option[PoolMember] = activePoolMembers match {
-            case Nil => None
-            case members => {
-                    val index = Random.nextInt(members.size)
-                    Some(members(index))
-                }
-        }
-
-        poolMember match {
-            case Some(member) => maintainConnectionOrLoadBalanceTo(member)
-            case None => maintainConnectionIfExists()
+        if (isUp) {
+            maintainConnectionOrLoadBalanceTo(memberSelector.select)
+        } else {
+            maintainConnectionIfExists()
         }
     }
 
@@ -67,19 +64,11 @@ class Pool(val id: UUID, val adminStateUp: Boolean, val lbMethod: String,
                                          (implicit natMapping: NatMapping,
                                           pktContext: PacketContext)
     : RuleResult.Action = {
-        // Create a simple NAT rule mapping VIP to this backend
-        val target = new NatTarget(poolMember.address, poolMember.address,
-            poolMember.protocolPort, poolMember.protocolPort)
-        val targets = new JHashSet[NatTarget]()
-        targets.add(target)
-
-        val rule = new ForwardNatRule(new Condition(), RuleResult.Action.ACCEPT,
-            null, 0, true, targets)
         val ruleResult = new RuleResult(RuleResult.Action.ACCEPT,
-            null, pktContext.wcmatch)
+                                        null, pktContext.wcmatch)
 
         // Apply the rule, which changes the pktContext and applies DNAT
-        rule.apply(pktContext, ruleResult, natMapping)
+        poolMember.applyDnat(ruleResult, pktContext, natMapping)
 
         // Load balanced successfully
         RuleResult.Action.ACCEPT

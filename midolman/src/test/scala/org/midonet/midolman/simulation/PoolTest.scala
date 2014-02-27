@@ -1,5 +1,5 @@
 /*
-* Copyright 2013 Midokura Europe SARL
+* Copyright 2013-2014 Midokura Europe SARL
 */
 package org.midonet.midolman.simulation
 
@@ -15,7 +15,7 @@ import org.midonet.cache.MockCache
 import org.midonet.cluster.data.l4lb
 import org.midonet.cluster.data.ports.RouterPort
 import org.midonet.cluster.data.{Router => ClusterRouter, Entity, Port}
-import org.midonet.midolman.PacketWorkflow.SimulationResult
+import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, SendPacket, SimulationResult}
 import org.midonet.midolman._
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.services.MessageAccumulator
@@ -23,6 +23,8 @@ import org.midonet.midolman.topology.{FlowTagger, VirtualTopologyActor}
 import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.sdn.flows.WildcardMatch
+import org.midonet.odp.flows.{FlowKeyIPv4, FlowActionSetKey}
+import scala.collection.mutable
 
 @RunWith(classOf[JUnitRunner])
 class PoolTest extends FeatureSpec
@@ -74,10 +76,7 @@ with OneInstancePerTest {
     lazy val fromClientToVip = (exteriorClientPort, clientToVipPkt)
     lazy val fromClientToBadIp = (exteriorClientPort, clientToBadIpPkt)
 
-    lazy val clientToVipPkt: Ethernet =
-        { eth src macClientSide dst exteriorClientPort.getHwAddr } <<
-            { ip4 src ipClientSide.toUnicastString dst vipIp.toUnicastString } <<
-            { tcp src clientSrcPort dst vipPort }
+    lazy val clientToVipPkt: Ethernet = clientToVipPkt(clientSrcPort)
 
     lazy val clientToBadIpPkt: Ethernet =
         { eth src macClientSide dst exteriorClientPort.getHwAddr } <<
@@ -169,7 +168,6 @@ with OneInstancePerTest {
             n => arpTable.set(ipsBackendSide(n).getAddress, macsBackendSide(n))
         }
     }
-
 
     feature("When loadbalancer is admin state down, behaves as if no loadbalancer present") {
         scenario("Packets to unknown IPs get dropped") {
@@ -296,6 +294,53 @@ with OneInstancePerTest {
         }
     }
 
+    feature("Weighted selection of pool members") {
+        scenario("Pool with all members having weight 0 should be inactive") {
+            Given("a pool with all members up and having weight 0")
+            poolMembers.foreach(updatePoolMember(_, adminStateUp = Some(true),
+                                                    weight = Some(0)))
+
+             When("a packet is sent to VIP")
+             val flow = sendPacket (fromClientToVip)
+
+             Then("a drop flow should be installed")
+             flow should be (dropped {FlowTagger.invalidateFlowsByDevice(router.getId)})
+        }
+
+        scenario("Pool balances members with different weights correctly") {
+            Given("a pool with members of weights 1, 2, and 4")
+            for (i <- 0 until numBackends) {
+                updatePoolMember(poolMembers(i), adminStateUp = Some(true),
+                                 weight = Some(math.pow(2, i).toInt))
+            }
+
+            val dstCounts = Array.fill(numBackends)(0)
+            for (i <- 1 to 1000) {
+                val srcPort = (10000 + i).toShort
+                val flow = sendPacket(
+                    (exteriorClientPort, clientToVipPkt(srcPort)))
+                val wc = flow.asInstanceOf[AddVirtualWildcardFlow]
+                val action = wc.flow.actions(1).asInstanceOf[FlowActionSetKey]
+                val ip = action.getFlowKey.asInstanceOf[FlowKeyIPv4].getDst
+                val index = (ip & 0xff00) >> 8
+                dstCounts(index) += 1
+            }
+
+            // Due to the amount of time it takes to send a packet, we
+            // can't get a very big sample, so tolerances have to be
+            // wide to avoid spurious failures.
+            //
+            // These tolerances assume 3 backends and give a one-in-a-million
+            // chance of spurious failure.
+            numBackends shouldBe 3
+            val acceptableRanges = Array((93, 198), (219, 355), (497, 645))
+            for (i <- 0 until numBackends) {
+                val range = acceptableRanges(i)
+                dstCounts(i) should (be > range._1 and be < range._2)
+            }
+        }
+    }
+
     private[this] def sendPacket(t: (Port[_,_], Ethernet)): SimulationResult =
         Await.result(new Coordinator(
             makeWMatch(t._1, t._2),
@@ -313,4 +358,9 @@ with OneInstancePerTest {
     private[this] def makeWMatch(port: Port[_,_], pkt: Ethernet) =
         WildcardMatch.fromEthernetPacket(pkt)
             .setInputPortUUID(port.getId)
+
+    private def clientToVipPkt(srcTpPort: Short): Ethernet =
+        { eth src macClientSide dst exteriorClientPort.getHwAddr } <<
+                { ip4 src ipClientSide.toUnicastString dst vipIp.toUnicastString } <<
+                { tcp src srcTpPort dst vipPort }
 }

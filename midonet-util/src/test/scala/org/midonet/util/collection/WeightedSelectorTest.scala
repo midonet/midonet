@@ -71,7 +71,7 @@ class WeightedSelectorTest extends FeatureSpec
     }
 
     feature("Random sampling") {
-        scenario("100000 samples of 100 objects with random weights") {
+        scenario("1000000 samples of 100 objects with random weights") {
             val objs = List.fill(100)(WeightedObject(Random.nextInt(5) + 1))
             val ws = WeightedSelector(objs)
 
@@ -80,14 +80,14 @@ class WeightedSelectorTest extends FeatureSpec
 
             val totalWeight = objs.foldLeft(0)(_ + _.weight)
 
-            val iterations = 100000
+            val iterations = 1000000
             (1 to iterations) foreach { dummy =>
                 val obj = ws.select()
                 frequencies(obj) += 1
             }
 
             // Check that each object comes up roughly in proportion
-            // to its weight. I'm allowing 20% tolerance, which is not
+            // to its weight. I'm allowing 10% tolerance, which is not
             // statistically correct (tolerance should be larger,
             // percentage-wise, for small weights), but good enough
             // for these purposes.
@@ -100,8 +100,8 @@ class WeightedSelectorTest extends FeatureSpec
             frequencies foreach { case(obj, timesSeen) =>
                 val expectedTimesSeen =
                     obj.weight.toDouble * iterations / totalWeight
-                timesSeen.toDouble should (be > 0.8 * expectedTimesSeen and
-                                           be < 1.2 * expectedTimesSeen)
+                timesSeen.toDouble should (be > 0.9 * expectedTimesSeen and
+                                           be < 1.1 * expectedTimesSeen)
             }
         }
     }

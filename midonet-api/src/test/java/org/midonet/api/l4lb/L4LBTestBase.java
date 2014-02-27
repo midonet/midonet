@@ -304,7 +304,7 @@ public class L4LBTestBase extends RestApiTestBase {
         poolMember.setId(UUID.randomUUID());
         poolMember.setAddress("10.0.0.1");
         poolMember.setProtocolPort(80);
-        poolMember.setStatus("UP");
+        poolMember.setStatus(DtoPoolMember.Status.UP);
         poolMember.setWeight(100);
         poolMember.setAdminStateUp(true);
         return poolMember;

@@ -54,7 +54,6 @@ class RouterBuilderImpl(val id: UUID, val routerManager: ActorRef)
 
     def setLoadBalancer(loadBalancerID: UUID) = {
         cfg = cfg.copy(loadBalancer = loadBalancerID)
-        this
     }
 
     def build() {

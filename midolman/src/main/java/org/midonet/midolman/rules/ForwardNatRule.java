@@ -100,7 +100,7 @@ public class ForwardNatRule extends NatRule {
         if (floatingIp) {
             log.debug("DNAT mapping floating ip {} to internal ip {}",
                     match.getNetworkDestinationIP(), floatingIpAddr);
-                    match.setNetworkDestination(floatingIpAddr);
+            match.setNetworkDestination(floatingIpAddr);
             res.action = action;
             return;
         }
