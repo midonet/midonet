@@ -1,0 +1,52 @@
+#!/bin/bash
+
+# Copyright (c) 2014 Midokura Europe SARL, All Rights Reserved.
+
+#TODO: dedup and factor out these common stuff among mm-* commands.
+
+# The first existing directory is used for JAVA_HOME if needed.
+JVM_SEARCH_DIRS="/usr/lib/jvm/java-7-openjdk-amd64 /usr/lib/jvm/java-7-openjdk \
+                 /usr/lib/jvm/java-7-sun"
+
+# If JAVA_HOME has not been set, try to determine it.
+if [ -z "$JAVA_HOME" ]; then
+    # If java is in PATH, use a JAVA_HOME that corresponds to that. This is
+    # both consistent with how the upstream startup script works, and how
+    # Debian works (read: the use of alternatives to set a system JVM).
+    if [ -n "`which java`" ]; then
+        java=`which java`
+        # Dereference symlink(s)
+        while true; do
+            if [ -h "$java" ]; then
+                java=`readlink "$java"`
+                continue
+            fi
+            break
+        done
+        JAVA_HOME="`dirname $java`/../"
+    # No JAVA_HOME set and no java found in PATH, search for a JVM.
+    else
+        for jdir in $JVM_SEARCH_DIRS; do
+            if [ -x "$jdir/bin/java" ]; then
+                JAVA_HOME="$jdir"
+                break
+            fi
+        done
+    fi
+fi
+JAVA="$JAVA_HOME/bin/java"
+
+# If MIDO_HOME has not been set, set it.
+if [ -z "$MIDO_HOME" ]; then
+   MIDO_HOME=/usr/share/midolman
+fi
+
+if [ ! -d "$MIDO_HOME" ]; then
+   echo "ERROR: $MIDO_HOME does not exist"
+   exit 1
+fi
+
+MAIN_CLASS='org.midonet.midolman.tools.MmStat'
+CLASSPATH=$MIDO_HOME/*:$MIDO_HOME/dep/*
+
+$JAVA -cp $CLASSPATH $MAIN_CLASS $*
