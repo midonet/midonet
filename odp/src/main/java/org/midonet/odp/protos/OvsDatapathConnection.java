@@ -36,7 +36,14 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
     private static final Logger log =
         LoggerFactory.getLogger(OvsDatapathConnection.class);
 
-    public abstract Future<Boolean> initialize() throws Exception;
+    public Future<Boolean> initialize() {
+        final ValueFuture<Boolean> future = ValueFuture.create();
+        final Callback<Boolean> initStatusCallback = wrapFuture(future);
+        initialize(initStatusCallback);
+        return future;
+    }
+
+    public abstract void initialize(final Callback<Boolean> cb);
 
     public abstract boolean isInitialized();
 
