@@ -12,6 +12,8 @@ import java.util.UUID;
 public class VIP
         extends Entity.Base<UUID, VIP.Data, VIP>  {
 
+    public final static String VIP_SOURCE_IP = "SOURCE_IP";
+
     public VIP() {
         this(null, new Data());
     }

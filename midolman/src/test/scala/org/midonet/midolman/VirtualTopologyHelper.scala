@@ -32,6 +32,9 @@ trait VirtualTopologyHelper {
             timeout.duration)
 
     def fetchTopology(entities: Entity.Base[_,_,_]*) =
+        fetchTopologyList(entities)
+
+    def fetchTopologyList(entities: Seq[Entity.Base[_,_,_]]) =
         Await.result(Future.sequence(entities map buildRequest map
                                      { VirtualTopologyActor ? _ }),
                      timeout.duration)

@@ -117,7 +117,7 @@ public class LoadBalancerZkManager extends AbstractZkManager {
                         serializer.serialize(config),
                         Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT),
                 Op.create(paths.getLoadBalancerVipsPath(loadBalancerId),
-                        serializer.serialize(config),
+                        null,
                         Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT)));
     }
 
