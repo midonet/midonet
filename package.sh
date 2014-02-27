@@ -190,10 +190,19 @@ do_package_rhel() {
     cp $pkg/build/rhel/$pkg*.rpm $destdir
   done
 
+  rpmver=`echo $pkgver | sed -e 's/-.*//g'`
+  rpmrel=`echo $pkgver | sed -e "s/^.*-//g"`
+  if [ "$rpmrel" == "" ]
+  then
+    release="1.0" # a final
+  else
+    release="0.1" # a pre release
+  fi
+
   log "Building maven projects"
   build_midonet_maven -Drpm \
-      -Dmido.rpm.release=`version_git_to_rpm_release $pkgver` \
-      -Dmido.rpm.version=`version_git_to_rpm_version $pkgver`
+      -Dmido.rpm.release=$rpmrel \
+      -Dmido.rpm.version=$rpmver
   collect_midonet_rpms $destdir
 
   log "DONE"
