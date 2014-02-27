@@ -191,12 +191,14 @@ do_package_rhel() {
   done
 
   rpmver=`echo $pkgver | sed -e 's/-.*//g'`
-  rpmrel=`echo $pkgver | sed -e "s/^.*-//g"`
+  rpmrel=`echo $pkgver | sed -e 's/.*-//g'`
   if [ "$rpmrel" == "" ]
   then
-    release="1.0" # a final
+      rpmrel="1.0" # a final
   else
-    release="0.1" # a pre release
+      TIMESTAMP=`date +%Y%m%d%H%M`
+      prever=`echo $pkgver | sed -e "s/^.*-//g" | sed -e "s/SNAPSHOT/$TIMESTAMP/g"`
+      rpmrel="0.1.$prever" # a pre release
   fi
 
   log "Building maven projects"
