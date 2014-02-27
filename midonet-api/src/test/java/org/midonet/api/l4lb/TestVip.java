@@ -21,6 +21,7 @@ import static javax.ws.rs.core.Response.Status.*;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertNull;
+import static org.midonet.cluster.data.l4lb.VIP.VIP_SOURCE_IP;
 import static org.midonet.api.validation.MessageProperty.RESOURCE_EXISTS;
 import static org.midonet.api.validation.MessageProperty.RESOURCE_NOT_FOUND;
 import static org.midonet.api.VendorMediaType.APPLICATION_VIP_COLLECTION_JSON;
@@ -130,15 +131,15 @@ public class TestVip {
             verifyNumberOfVips(counter);
 
             // PUT with the populated `sessionPersistence`.
-            newVip2.setSessionPersistence(VIP.VIP_SOURCE_IP);
+            newVip2.setSessionPersistence(VIP_SOURCE_IP);
             newVip2 = updateVip(newVip2);
-            assertEquals(newVip2.getSessionPersistence(), VIP.VIP_SOURCE_IP);
+            assertEquals(newVip2.getSessionPersistence(), VIP_SOURCE_IP);
             verifyNumberOfVips(counter);
 
             // POST with the populated `sessionPersistence`.
             DtoVip sessionPersistenceVip = getVip(newVip2.getUri());
             sessionPersistenceVip.setId(UUID.randomUUID());
-            sessionPersistenceVip.setSessionPersistence(VIP.VIP_SOURCE_IP);
+            sessionPersistenceVip.setSessionPersistence(VIP_SOURCE_IP);
             postVip(sessionPersistenceVip);
             verifyNumberOfVips(++counter);
 

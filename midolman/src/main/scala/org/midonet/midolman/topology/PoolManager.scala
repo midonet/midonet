@@ -15,9 +15,19 @@ import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.cluster.data.l4lb.PoolMember
 import org.midonet.midolman.simulation
 import org.midonet.packets.IPv4Addr
+import org.midonet.cluster.data.l4lb
 
 object PoolManager {
     case class TriggerUpdate(poolMembers: Set[PoolMember])
+
+    private def toSimulationPoolMember(pm: PoolMember): simulation.PoolMember =
+        new simulation.PoolMember(
+            pm.getId,
+            pm.getAdminStateUp,
+            IPv4Addr(pm.getAddress),
+            pm.getProtocolPort,
+            pm.getWeight,
+            pm.getStatus)
 }
 
 class PoolManager(val id: UUID, val clusterClient: Client) extends Actor
@@ -33,9 +43,10 @@ class PoolManager(val id: UUID, val clusterClient: Client) extends Actor
         // Send the VirtualTopologyActor an updated pool.
 
         // Convert data objects to simulation objects before creating LoadBalancer
-        val simulationPoolMembers = curPoolMembers.map(new simulation.PoolMember(_))
+        val simulationPoolMembers = curPoolMembers.map(PoolManager.toSimulationPoolMember)
 
-        publishUpdate(new Pool(id, simulationPoolMembers, context.system.eventStream))
+        publishUpdate(new Pool(id, simulationPoolMembers.toList,
+            context.system.eventStream))
     }
 
     private def publishUpdate(pool: Pool) {

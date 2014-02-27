@@ -96,13 +96,11 @@ public class ClusterLoadBalancerManager
         // Set any values from the lb config
         builder.setAdminStateUp(lbCfg.adminStateUp);
 
-        if (isUpdate) {
-            // Only build if we're not waiting for VIPs
-            Collection<UUID> missingVipIds =
-                    loadBalancerToMissingVipIds.get(loadBalancerId);
-            if (missingVipIds.size() == 0) {
-                 builder.build();
-            }
+        // Only build if we're not waiting for VIPs
+        Collection<UUID> missingVipIds =
+                loadBalancerToMissingVipIds.get(loadBalancerId);
+        if (missingVipIds.size() == 0) {
+             builder.build();
         }
     }
 
@@ -169,7 +167,6 @@ public class ClusterLoadBalancerManager
             if (vipsToRequest.isEmpty()) {
                 LoadBalancerBuilder builder = getBuilder(loadBalancerId);
                 builder.setVips(vipMap);
-                builder.build();
                 return;
             }
 
@@ -238,7 +235,6 @@ public class ClusterLoadBalancerManager
             if (missingVipIds.size() == 0) {
                 LoadBalancerBuilder builder = getBuilder(vip.getLoadBalancerId());
                 builder.setVips(vipMap);
-                builder.build();
             }
         }
 

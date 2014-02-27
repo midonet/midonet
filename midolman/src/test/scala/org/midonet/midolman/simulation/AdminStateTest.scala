@@ -132,8 +132,8 @@ class AdminStateTest extends FeatureSpec
             .head(ClusterBridge.UNTAGGED_VLAN_ID)
             .add(macBridgeSide, exteriorBridgePort.getId)
 
-        sendPacket (fromBridgeSide) should be (flowMatching (bridgeSidePkt))
-        sendPacket (fromRouterSide) should be (flowMatching (routerSidePkt))
+        sendPacket (fromBridgeSide) should be (flowMatching (emittedRouterSidePkt))
+        sendPacket (fromRouterSide) should be (flowMatching (emittedBridgeSidePkt))
         DeduplicationActor.messages should be (empty)
 
         VirtualTopologyActor.getAndClear()
@@ -148,6 +148,15 @@ class AdminStateTest extends FeatureSpec
     lazy val routerSidePkt: Ethernet =
         { eth src macRouterSide dst exteriorRouterPort.getHwAddr } <<
         { ip4 src ipRouterSide.toUnicastString dst ipBridgeSide.toUnicastString }
+
+    lazy val emittedBridgeSidePkt: Ethernet =
+        { eth src interiorRouterPort.getHwAddr dst macBridgeSide } <<
+            { ip4 src ipRouterSide.toUnicastString dst ipBridgeSide.toUnicastString }
+
+    lazy val emittedRouterSidePkt: Ethernet =
+        { eth src exteriorRouterPort.getHwAddr dst macRouterSide } <<
+            { ip4 src ipBridgeSide.toUnicastString dst ipRouterSide.toUnicastString }
+
 
     feature("Devices with administrative state down don't process packets") {
         scenario("a down bridge drops packets silently") {

@@ -8,17 +8,17 @@ import java.util.UUID
 import scala.concurrent.{Future, ExecutionContext}
 import akka.actor.ActorSystem
 
+import org.midonet.cluster.client.RouterPort
 import org.midonet.midolman.DeduplicationActor
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
-import org.midonet.cluster.client.RouterPort
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.logging.LoggerFactory
 import org.midonet.midolman.rules.RuleResult
+import org.midonet.midolman.simulation.Icmp._
 import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.midolman.topology.{FlowTagger, RoutingTableWrapper, TagManager, RouterConfig}
 import org.midonet.packets.{MAC, Unsigned, Ethernet, IPAddr}
 import org.midonet.sdn.flows.WildcardMatch
-import org.midonet.midolman.simulation.Icmp._
 
 /**
  * Defines the base Router device that is meant to be extended with specific
@@ -45,6 +45,8 @@ abstract class RouterBase[IP <: IPAddr]()
         this.getClass)(system.eventStream)
 
     val routeBalancer = new RouteBalancer(rTable)
+
+    val invalidateRouterTag = FlowTagger.invalidateFlowsByDevice(id)
 
     protected def unsupportedPacketAction: Action
 
@@ -80,22 +82,17 @@ abstract class RouterBase[IP <: IPAddr]()
                 log.debug("Router {} state is down, DROP", id)
                 sendAnswer(inPort.id, icmpErrors.unreachableProhibitedIcmp(
                     inPort, pktContext.wcmatch, pktContext.frame))
-                pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(id))
+                pktContext.addFlowTag(invalidateRouterTag)
                 Future.successful(DropAction)
             case inPort =>
                 preRouting(inPort)
         }
     }
 
-    private def applyIngressChain(inPort: RouterPort)
-                                 (implicit ec: ExecutionContext,
-                                           pktContext: PacketContext)
+    private def handlePreRoutingResult(preRoutingResult: RuleResult, inPort: RouterPort)
+                                      (implicit ec: ExecutionContext,
+                                               pktContext: PacketContext)
     : Option[Action] = {
-        // Apply the pre-routing (ingress) chain
-        pktContext.outPortId = null // input port should be set already
-        val preRoutingResult = Chain.apply(inFilter, pktContext,
-                pktContext.wcmatch, id, false)
-
         preRoutingResult.action match {
             case RuleResult.Action.ACCEPT => // pass through
             case RuleResult.Action.DROP =>
@@ -118,7 +115,6 @@ abstract class RouterBase[IP <: IPAddr]()
         None
     }
 
-
     private def preRouting(inPort: RouterPort)
                           (implicit ec: ExecutionContext,
                                     pktContext: PacketContext)
@@ -136,13 +132,51 @@ abstract class RouterBase[IP <: IPAddr]()
             return Future.successful(DropAction)
         }
 
-        pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(id))
-        handleNeighbouring(inPort)
-            .orElse(applyIngressChain(inPort)) match {
-                case Some(a: Action) => Future.successful(a)
-                case None => routing(inPort)
-            }
+        pktContext.addFlowTag(invalidateRouterTag)
+        handleNeighbouring(inPort) match {
+            case Some(a: Action) => return Future.successful(a)
+            case None =>
+        }
+
+        pktContext.outPortId = null // input port should be set already
+
+        val preRoutingAction = applyServicesInbound() map {
+            case res if res.action == RuleResult.Action.CONTINUE =>
+                // Continue to inFilter / ingress chain
+                val chainResult = Chain.apply(inFilter, pktContext, pktContext.wcmatch,
+                    id, false)
+                handlePreRoutingResult(chainResult, inPort)
+            case res =>
+                // Skip the inFilter / ingress chain
+                handlePreRoutingResult(res, inPort)
+        }
+
+        preRoutingAction flatMap {
+            case Some(a: Action) => Future.successful(a)
+            case None => routing(inPort)
+        }
+
     }
+
+    /**
+     * This method will be executed after L2 processing and ARP handling,
+     * bt before the inbound filter rules are applied.
+     *
+     * Currently just does load balancing.
+     */
+    protected def applyServicesInbound()
+                                      (implicit  ec: ExecutionContext,
+                                       pktContext: PacketContext)
+    : Future[RuleResult] = {
+        if (loadBalancer != null) {
+            loadBalancer.processInbound(pktContext)
+        } else {
+            Future.successful(
+                new RuleResult(RuleResult.Action.CONTINUE,
+                               null, pktContext.wcmatch))
+        }
+    }
+
 
     private def routing(inPort: RouterPort)(implicit ec: ExecutionContext,
             context: PacketContext): Future[Action] = {
@@ -278,8 +312,15 @@ abstract class RouterBase[IP <: IPAddr]()
         val pFrame = pktContext.frame
 
         pktContext.outPortId = outPort.id
-        val postRoutingResult =
-            Chain.apply(outFilter, pktContext, pMatch, id, false)
+
+        val postRoutingResult = applyServicesOutbound() match {
+            case res if res.action == RuleResult.Action.CONTINUE =>
+                // Continue to outFilter / egress chain
+                Chain.apply(outFilter, pktContext, pMatch, id, false)
+            case res =>
+                // Skip outFilter / egress chain
+                res
+        }
 
         postRoutingResult.action match {
             case RuleResult.Action.ACCEPT => // pass through
@@ -334,6 +375,22 @@ abstract class RouterBase[IP <: IPAddr]()
         if (eth.nonEmpty)
             DeduplicationActor !
                 EmitGeneratedPacket(portId, eth.get, pktContext.flowCookie)
+    }
+
+    /**
+     * This method will be executed after outbound filter rules are applied.
+     *
+     * Currently just does load balancing.
+     */
+    protected def applyServicesOutbound()
+                                       (implicit  ec: ExecutionContext,
+                                        pktContext: PacketContext)
+    : RuleResult = {
+        if (loadBalancer != null) {
+            loadBalancer.processOutbound(pktContext)
+        } else {
+            new RuleResult(RuleResult.Action.CONTINUE, null, pktContext.wcmatch)
+        }
     }
 
     final protected def getRouterPort(portID: UUID, expiry: Long)

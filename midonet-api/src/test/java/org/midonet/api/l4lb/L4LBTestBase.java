@@ -15,6 +15,7 @@ import org.midonet.client.dto.DtoPool;
 import org.midonet.client.dto.DtoPoolMember;
 import org.midonet.client.dto.DtoRouter;
 import org.midonet.client.dto.DtoVip;
+import static org.midonet.cluster.data.l4lb.VIP.VIP_SOURCE_IP;
 
 import java.net.URI;
 import java.util.Random;
@@ -197,6 +198,8 @@ public class L4LBTestBase extends RestApiTestBase {
         vip.setPoolId(poolId);
         vip.setAddress("192.168.100.1");
         vip.setProtocolPort(80);
+        vip.setSessionPersistence(VIP_SOURCE_IP);
+        vip.setAdminStateUp(true);
 
         return vip;
     }
