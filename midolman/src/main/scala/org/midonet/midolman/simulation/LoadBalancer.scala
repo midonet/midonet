@@ -15,10 +15,6 @@ import org.midonet.midolman.rules.{Condition, RuleResult, ReverseNatRule}
 import org.midonet.midolman.topology.VirtualTopologyActor.{expiringAsk, PoolRequest}
 import org.midonet.midolman.topology.FlowTagger
 
-/**
- * LoadBalancer.
- */
-
 object LoadBalancer {
     val simpleReverseDNatRule = new ReverseNatRule(new Condition,
         RuleResult.Action.ACCEPT, true)

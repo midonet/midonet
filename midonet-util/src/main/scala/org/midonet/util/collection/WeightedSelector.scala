@@ -12,6 +12,8 @@ trait HasWeight {
 /**
  * Constructs a WeightedSelector for a traversable collection of objects
  * with weights.
+ *
+ * Throws an IllegalArgumentException if ts is empty.
  */
 object WeightedSelector {
 
@@ -21,7 +23,10 @@ object WeightedSelector {
     def apply[T <: HasWeight](ts: Traversable[T]): WeightedSelector[T] = {
         val seed = WeightTableEntry(0, null.asInstanceOf[T])
         val nonzeroView = ts.view.filter(_.weight > 0)
-        val weightTable = nonzeroView.scanLeft(seed)(nextEntry).drop(1).toArray
+        val weightTable = nonzeroView.scanLeft(seed)(nextEntry).tail.toArray
+        if (weightTable.isEmpty)
+            throw new IllegalArgumentException(
+                "Ts must have at least one element with weight > 0.")
         new WeightedSelector[T](weightTable)
     }
 }
@@ -58,6 +63,7 @@ class WeightedSelector[T] private (weightTable: Array[WeightTableEntry[T]]) {
                 start = mid + 1
             }
         }
+
         // start == end at this point.
         weightTable(start).obj
     }

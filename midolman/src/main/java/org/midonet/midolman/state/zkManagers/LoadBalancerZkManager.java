@@ -159,23 +159,11 @@ public class LoadBalancerZkManager extends AbstractZkManager {
     }
 
     public void getVipIdListAsync(UUID loadBalancerId,
-                                    final DirectoryCallback<Set<UUID>>
-                                            vipContentsCallback,
-                                    Directory.TypedWatcher watcher) {
-        String vipListPath = paths.getLoadBalancerVipsPath(loadBalancerId);
-
-        zk.asyncGetChildren(
-                vipListPath,
-                DirectoryCallbackFactory.transform(
-                        vipContentsCallback,
-                        new Functor<Set<String>, Set<UUID>>() {
-                            @Override
-                            public Set<UUID> apply(Set<String> arg0) {
-                                return CollectionFunctors.map(
-                                        arg0, strToUUIDMapper, new HashSet<UUID>());
-                            }
-                        }
-                ), watcher);
+                                  final DirectoryCallback<Set<UUID>>
+                                          vipContentsCallback,
+                                  Directory.TypedWatcher watcher) {
+        getUUIDSetAsync(paths.getLoadBalancerVipsPath(loadBalancerId),
+                        vipContentsCallback, watcher);
     }
 
 }

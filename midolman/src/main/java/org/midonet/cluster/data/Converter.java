@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 Midokura PTE LTD.
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
  */
 package org.midonet.cluster.data;
 
@@ -227,7 +227,7 @@ public class Converter {
         poolConfig.healthMonitorId = pool.getHealthMonitorId();
         poolConfig.protocol = pool.getProtocol();
         poolConfig.lbMethod = pool.getLbMethod();
-        poolConfig.adminStateUp = pool.getAdminStateUp();
+        poolConfig.adminStateUp = pool.isAdminStateUp();
         poolConfig.status = pool.getStatus();
         return poolConfig;
     }

@@ -16,12 +16,15 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.inject.Inject;
 import org.midonet.cluster.data.Converter;
+import org.midonet.cluster.data.l4lb.Pool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.data.l4lb.PoolMember;
 import org.midonet.midolman.state.zkManagers.PoolZkManager;
+import org.midonet.midolman.state.zkManagers.PoolZkManager.PoolConfig;
 import org.midonet.midolman.state.zkManagers.PoolMemberZkManager;
+import org.midonet.midolman.state.zkManagers.PoolMemberZkManager.PoolMemberConfig;
 import org.midonet.cluster.client.PoolBuilder;
 
 public class ClusterPoolManager extends ClusterManager<PoolBuilder> {
@@ -35,9 +38,9 @@ public class ClusterPoolManager extends ClusterManager<PoolBuilder> {
     PoolMemberZkManager poolMemberZkMgr;
 
     private Map<UUID, Map<UUID, PoolMember>> poolIdToPoolMemberMap =
-            new HashMap<UUID, Map<UUID, PoolMember>>();
+            new HashMap<>();
     private Map<UUID, Set<UUID>> poolToPoolMemberIds =
-            new HashMap<UUID, Set<UUID>>();
+            new HashMap<>();
     private Multimap<UUID, UUID> poolToMissingPoolMemberIds =
             HashMultimap.create();
 
@@ -50,11 +53,50 @@ public class ClusterPoolManager extends ClusterManager<PoolBuilder> {
         poolIdToPoolMemberMap.put(poolId, new HashMap<UUID, PoolMember>());
         PoolMemberListCallback poolMemberListCB = new PoolMemberListCallback(poolId);
         poolZkMgr.getPoolMemberIdListAsync(poolId, poolMemberListCB, poolMemberListCB);
+
+        PoolConfigCallback poolConfigCB = new PoolConfigCallback(poolId);
+        poolZkMgr.getPoolAsync(poolId, poolConfigCB, poolConfigCB);
     }
 
     private void requestPoolMember(UUID poolMemberID) {
         PoolMemberCallback poolMemberCallback = new PoolMemberCallback(poolMemberID);
         poolMemberZkMgr.getPoolMemberAsync(poolMemberID, poolMemberCallback, poolMemberCallback);
+    }
+
+    private class PoolConfigCallback extends CallbackWithWatcher<PoolConfig> {
+        private UUID poolId;
+
+        private PoolConfigCallback(UUID poolId) {
+            this.poolId = poolId;
+        }
+
+        @Override
+        protected String describe() {
+            return "PoolConfig:" + poolId;
+        }
+
+        @Override
+        public void onSuccess(Result<PoolConfig> data) {
+            Pool pool = Converter.fromPoolConfig(data.getData());
+            pool.setId(poolId);
+            getBuilder(poolId).setPoolConfig(pool);
+        }
+
+        @Override
+        public void pathDataChanged(String path) {
+            poolZkMgr.getPoolAsync(poolId, this, this);
+        }
+
+        @Override
+        protected Runnable makeRetry() {
+            return new Runnable() {
+                @Override
+                public void run() {
+                    poolZkMgr.getPoolAsync(poolId,
+                            PoolConfigCallback.this, PoolConfigCallback.this);
+                }
+            };
+        }
     }
 
     private class PoolMemberListCallback extends CallbackWithWatcher<Set<UUID>> {
@@ -135,7 +177,7 @@ public class ClusterPoolManager extends ClusterManager<PoolBuilder> {
 
 
     private class PoolMemberCallback
-            extends CallbackWithWatcher<PoolMemberZkManager.PoolMemberConfig> {
+            extends CallbackWithWatcher<PoolMemberConfig> {
         private UUID poolMemberId;
 
         private PoolMemberCallback(UUID PoolMemberId) {
@@ -148,7 +190,7 @@ public class ClusterPoolManager extends ClusterManager<PoolBuilder> {
         }
 
         @Override
-        public void onSuccess(Result<PoolMemberZkManager.PoolMemberConfig> data) {
+        public void onSuccess(Result<PoolMemberConfig> data) {
             PoolMember poolMember = Converter.fromPoolMemberConfig(data.getData());
             poolMember.setId(poolMemberId);
 
