@@ -1,0 +1,146 @@
+#!/bin/bash
+
+# Copyright (c) 2014 Midokura Europe SARL, All Rights Reserved.
+
+# The first existing directory is used for JAVA_HOME if needed.
+JVM_SEARCH_DIRS="/usr/lib/jvm/java-7-openjdk-amd64 /usr/lib/jvm/java-7-openjdk \
+                 /usr/lib/jvm/java-7-sun"
+
+# If JAVA_HOME has not been set, try to determine it.
+if [ -z "$JAVA_HOME" ]; then
+    # If java is in PATH, use a JAVA_HOME that corresponds to that. This is
+    # both consistent with how the upstream startup script works, and how
+    # Debian works (read: the use of alternatives to set a system JVM).
+    if [ -n "`which java`" ]; then
+        java=`which java`
+        # Dereference symlink(s)
+        while true; do
+            if [ -h "$java" ]; then
+                java=`readlink "$java"`
+                continue
+            fi
+            break
+        done
+        JAVA_HOME="`dirname $java`/../"
+    # No JAVA_HOME set and no java found in PATH, search for a JVM.
+    else
+        for jdir in $JVM_SEARCH_DIRS; do
+            if [ -x "$jdir/bin/java" ]; then
+                JAVA_HOME="$jdir"
+                break
+            fi
+        done
+    fi
+fi
+JAVA="$JAVA_HOME/bin/java"
+
+# If MIDO_HOME has not been set, set it.
+if [ -z "$MIDO_HOME" ]; then
+   MIDO_HOME=/usr/share/midolman
+fi
+
+if [ ! -d "$MIDO_HOME" ]; then
+   echo "ERROR: $MIDO_HOME does not exist"
+   exit 1
+fi
+
+JAVA_LIBRARY_PATH=-Djava.library.path=/lib:/usr/lib
+MIDO_BOOTSTRAP_JAR=$MIDO_HOME/midonet-jdk-bootstrap.jar
+MIDO_DEP_CLASS_PATH=`echo $MIDO_HOME/dep/* | sed 's/ /:/g'`
+MIDO_JAR=$MIDO_HOME/midolman.jar
+if [ ! -e "$MIDO_JAR" ]; then
+   echo "ERROR: $MIDO_JAR does not exist"
+   exit 1
+fi
+
+CLASSPATH=$MIDO_JAR:$MIDO_DEP_CLASS_PATH
+
+run_test() {
+    MAIN=$1
+    $JAVA -Dlogback.configurationFile=file:/etc/midolman/logback-dpctl.xml\
+        $JAVA_LIBRARY_PATH -Xbootclasspath/p:$MIDO_BOOTSTRAP_JAR\
+        -cp $CLASSPATH $MAIN
+}
+
+ns_prepare() {
+    echo "preparing namespace $1"
+    ip netns add $1
+    ip netns exec $1 ifconfig lo up
+}
+
+ns_clean() {
+    echo "cleaning namespace $1"
+    ip netns exec $1 ip link set lo down
+    ip netns delete $1
+}
+
+if_prepare() {
+    echo "preparing interface $2"
+    ns=$1
+    dpif=$2
+    nsif=$3
+    ipaddr=$4
+
+    ip link add name $dpif type veth peer name $nsif
+    ip link set $dpif up
+    ip link set $nsif netns $ns
+    ip netns exec $ns ip link set $nsif up
+    ip netns exec $ns ip address add $ipaddr dev $nsif
+}
+
+if_clean() {
+    echo "cleaning interface $2"
+    ns=$1
+    dpif=$2
+    nsif=$3
+    ip netns exec $ns ip link set $nsif
+    ip link delete $dpif
+}
+
+ovs_integration() {
+    echo -e "\nOpenVSwitch integration test"
+
+    ns=ovstest-ns
+    dpifa=ovstest-foo
+    dpifb=ovstest-bar
+    dpifc=ovstest-baz
+
+    ns_prepare $ns
+    if_prepare $ns $dpifa $dpifa-e 100.0.10.2/24
+    if_prepare $ns $dpifb $dpifb-e 100.0.10.3/24
+    if_prepare $ns $dpifc $dpifc-e 100.0.10.4/24
+
+    run_test "org.midonet.odp.OvsIntegrationTest"
+
+    if_clean $ns $dpifa $dpifa-e
+    if_clean $ns $dpifb $dpifb-e
+    if_clean $ns $dpifc $dpifc-e
+    ns_clean $ns
+}
+
+ovs_read_throughput() {
+    echo -e "\nOpenVSwitch read throughput test"
+
+    ns=perft-ns
+    dpif=perft-if
+    nsif=perft-eth
+
+    ns_prepare $ns
+    if_prepare $ns $dpif $nsif 100.0.10.2/24
+
+    ip netns exec $ns mz $nsif \
+      -A 100.0.10.2 -B 100.0.10.240 \
+      -b 10:00:00:00:00:01 -t udp 'sp=1-10000,dp=1-10000' -c0 &
+
+    mz_id=$!
+
+    run_test "org.midonet.odp.OvsPacketReadThroughputTest"
+
+    kill -15 $mz_id
+
+    if_clean $ns $dpif $nsif
+    ns_clean $ns
+}
+
+ovs_integration
+ovs_read_throughput
