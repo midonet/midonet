@@ -138,6 +138,10 @@
                                     <location>${project.basedir}/src/main/webapp/WEB-INF/web.xml.prod</location>
                                     <destination>web.xml</destination>
                                 </source>
+                                <source>
+                                    <location>${project.basedir}/conf/logback.xml.sample</location>
+                                    <destination>classes/logback.xml</destination>
+                                </source>
                             </sources>
                         </mapping>
                     </mappings>
