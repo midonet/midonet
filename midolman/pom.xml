@@ -117,6 +117,16 @@
                             <filemode>755</filemode>
                             <sources>
                                 <source>
+                                    <location>src/deb/bin/mm-tests</location>
+                                </source>
+                            </sources>
+                        </mapping>
+                        <mapping>
+                            <directory>/usr/bin</directory>
+                            <directoryIncluded>false</directoryIncluded>
+                            <filemode>755</filemode>
+                            <sources>
+                                <source>
                                     <location>src/deb/bin/mm-ctl</location>
                                 </source>
                             </sources>
@@ -196,6 +206,15 @@
                         </data>
                         <data>
                             <src>${project.basedir}/src/deb/bin/mm-dpctl</src>
+                            <type>file</type>
+                            <mapper>
+                                <type>perm</type>
+                                <prefix>/usr/bin</prefix>
+                                <filemode>755</filemode>
+                            </mapper>
+                        </data>
+                        <data>
+                            <src>${project.basedir}/src/deb/bin/mm-tests</src>
                             <type>file</type>
                             <mapper>
                                 <type>perm</type>
