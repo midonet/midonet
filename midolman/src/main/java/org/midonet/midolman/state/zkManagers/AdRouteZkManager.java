@@ -1,6 +1,5 @@
 /*
- * Copyright 2012 Midokura KK
- * Copyright 2012 Midokura PTE LTD.
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
  */
 package org.midonet.midolman.state.zkManagers;
 
@@ -112,46 +111,19 @@ public class AdRouteZkManager extends AbstractZkManager {
         return zk.exists(paths.getAdRoutePath(id));
     }
 
-    public void getAdRouteAsync(final UUID adRouteId, DirectoryCallback <AdRouteConfig> adRouteDirectoryCallback,
-                            final Directory.TypedWatcher watcher) {
-
-        String adRoutePath = paths.getAdRoutePath(adRouteId);
-
-        zk.asyncGet(adRoutePath,
-                DirectoryCallbackFactory.transform(
-                        adRouteDirectoryCallback,
-                        new Functor<byte[], AdRouteConfig>() {
-                            @Override
-                            public AdRouteConfig apply(byte[] arg0) {
-                                try {
-                                    return serializer.deserialize(arg0,
-                                            AdRouteConfig.class);
-                                } catch (SerializationException e) {
-                                    log.warn("Could not deserialize AdRoute data");
-                                }
-                                return null;
-                            }
-                        }),
-                watcher);
+    public void getAdRouteAsync(final UUID adRouteId,
+                                DirectoryCallback <AdRouteConfig> adRouteDirectoryCallback,
+                                final Directory.TypedWatcher watcher) {
+        getAsync(paths.getAdRoutePath(adRouteId), AdRouteConfig.class,
+                 adRouteDirectoryCallback, watcher);
     }
+
     public void getAdRouteListAsync(UUID bgpId,
                                     final DirectoryCallback<Set<UUID>>
                                         adRouteContentsCallback,
                                 Directory.TypedWatcher watcher) {
-        String adRoutePath = paths.getBgpAdRoutesPath(bgpId);
-
-        zk.asyncGetChildren(
-                adRoutePath,
-                DirectoryCallbackFactory.transform(
-                        adRouteContentsCallback,
-                        new Functor<Set<String>, Set<UUID>>() {
-                            @Override
-                            public Set<UUID> apply(Set<String> arg0) {
-                                return CollectionFunctors.map(
-                                        arg0, strToUUIDMapper, new HashSet<UUID>());
-                            }
-                        }
-                ), watcher);
+        getUUIDSetAsync(paths.getBgpAdRoutesPath(bgpId),
+                        adRouteContentsCallback, watcher);
     }
 
     public List<UUID> list(UUID bgpId, Runnable watcher)

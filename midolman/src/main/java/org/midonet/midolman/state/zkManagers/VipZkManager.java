@@ -149,25 +149,7 @@ public class VipZkManager extends AbstractZkManager {
     public void getVipAsync(final UUID vipId,
                             DirectoryCallback<VipConfig> vipCallback,
                             Directory.TypedWatcher watcher) {
-
-        String vipPath = paths.getVipPath(vipId);
-
-        zk.asyncGet(
-                vipPath,
-                DirectoryCallbackFactory.transform(
-                        vipCallback,
-                        new Functor<byte[], VipConfig>() {
-                            @Override
-                            public VipConfig apply(byte[] arg0) {
-                                try {
-                                    return serializer.deserialize(arg0,
-                                            VipConfig.class);
-                                } catch (SerializationException e) {
-                                    log.warn("Could not deserialize VIP data");
-                                }
-                                return null;
-                            }
-                        }),
-                watcher);
+        getAsync(paths.getVipPath(vipId),
+                 VipConfig.class, vipCallback, watcher);
     }
 }

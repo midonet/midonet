@@ -168,7 +168,6 @@ with OneInstancePerTest {
         (0 until numBackends) foreach {
             n => arpTable.set(ipsBackendSide(n).getAddress, macsBackendSide(n))
         }
-
     }
 
 

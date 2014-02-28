@@ -1,6 +1,5 @@
 /*
- * Copyright 2012 Midokura KK
- * Copyright 2012 Midokura PTE LTD.
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
  */
 package org.midonet.midolman.state.zkManagers;
 
@@ -165,20 +164,8 @@ public class BgpZkManager extends AbstractZkManager {
                                 final DirectoryCallback<Set<UUID>>
                                         bgpContentsCallback,
                                 Directory.TypedWatcher watcher) {
-        String bgpPath = paths.getPortBgpPath(portId);
-
-        zk.asyncGetChildren(
-                bgpPath,
-                DirectoryCallbackFactory.transform(
-                        bgpContentsCallback,
-                        new Functor<Set<String>, Set<UUID>>() {
-                            @Override
-                            public Set<UUID> apply(Set<String> arg0) {
-                                return CollectionFunctors.map(
-                                        arg0, strToUUIDMapper, new HashSet<UUID>());
-                            }
-                        }
-                ), watcher);
+        getUUIDSetAsync(paths.getPortBgpPath(portId),
+                        bgpContentsCallback, watcher);
     }
 
     public List<UUID> list(UUID portId) throws StateAccessException {

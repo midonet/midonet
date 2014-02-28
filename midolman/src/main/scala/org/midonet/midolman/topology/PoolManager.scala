@@ -6,16 +6,15 @@ package org.midonet.midolman.topology
 import akka.actor.{ActorRef, Actor}
 import collection.JavaConverters._
 import java.util.{Map => JMap, UUID}
+import scala.collection.breakOut
 
-import org.midonet.midolman.simulation.Pool
 import org.midonet.cluster.Client
 import org.midonet.cluster.client.PoolBuilder
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.logging.ActorLogWithoutPath
-import org.midonet.cluster.data.l4lb.PoolMember
+import org.midonet.cluster.data.l4lb.{Pool, PoolMember}
 import org.midonet.midolman.simulation
 import org.midonet.packets.IPv4Addr
-import org.midonet.cluster.data.l4lb
 
 object PoolManager {
     case class TriggerUpdate(poolMembers: Set[PoolMember])
@@ -35,22 +34,41 @@ class PoolManager(val id: UUID, val clusterClient: Client) extends Actor
     import PoolManager._
     import context.system // Used implicitly. Don't delete.
 
+    private var poolConfig: Option[Pool] = None
+    private var simPoolMembers: Option[List[simulation.PoolMember]] = None
+
     override def preStart() {
         clusterClient.getPool(id, new PoolBuilderImpl(self))
     }
 
     private def updatePoolMembers(curPoolMembers: Set[PoolMember]): Unit = {
-        // Send the VirtualTopologyActor an updated pool.
-
         // Convert data objects to simulation objects before creating LoadBalancer
-        val simulationPoolMembers = curPoolMembers.map(PoolManager.toSimulationPoolMember)
-
-        publishUpdate(new Pool(id, simulationPoolMembers.toList,
-            context.system.eventStream))
+        simPoolMembers = Some(curPoolMembers.map
+                                      (PoolManager.toSimulationPoolMember)
+                                      (breakOut(List.canBuildFrom)))
+        publishUpdateIfReady()
     }
 
-    private def publishUpdate(pool: Pool) {
-        VirtualTopologyActor ! pool
+    private def updateConfig(pool: Pool) {
+        poolConfig = Some(pool)
+        publishUpdateIfReady()
+    }
+
+    private def publishUpdateIfReady() {
+        if (simPoolMembers.isEmpty) {
+            log.debug(s"Not publishing pool $id. Still waiting for pool members.")
+            return
+        }
+        if (poolConfig.isEmpty) {
+            log.debug(s"Not publishing pool $id. Still waiting for pool config.")
+            return
+        }
+        log.debug(s"Publishing update for pool $id.")
+
+        val simPool = new simulation.Pool(
+            id, poolConfig.get.isAdminStateUp, poolConfig.get.getLbMethod,
+            simPoolMembers.get, context.system.eventStream)
+        VirtualTopologyActor ! simPool
         VirtualTopologyActor ! InvalidateFlowsByTag(
             FlowTagger.invalidateFlowsByDevice(id))
     }
@@ -60,6 +78,10 @@ class PoolManager(val id: UUID, val clusterClient: Client) extends Actor
             log.debug("Update triggered for pool members of pool ID {}", id)
             updatePoolMembers(poolMembers)
         }
+        case pool: Pool => {
+            log.debug("Update triggered for config of pool ID {}", id)
+            updateConfig(pool)
+        }
     }
 }
 
@@ -67,8 +89,11 @@ class PoolBuilderImpl(val poolMgr: ActorRef)
     extends PoolBuilder {
     import PoolManager.TriggerUpdate
 
+    def setPoolConfig(pool: Pool) {
+        poolMgr ! pool
+    }
+
     def setPoolMembers(poolMemberMap: JMap[UUID, PoolMember]) {
-        val poolMemberSet: Set[PoolMember] = poolMemberMap.values().asScala.toSet
-        poolMgr ! TriggerUpdate(poolMemberSet)
+        poolMgr ! TriggerUpdate(poolMemberMap.values().asScala.toSet)
     }
 }

@@ -121,23 +121,8 @@ public class HealthMonitorZkManager extends AbstractZkManager {
 
     public void getAsync(UUID id, DirectoryCallback<HealthMonitorConfig> cb,
                          final Directory.TypedWatcher watcher) {
-        String path = paths.getHealthMonitorPath(id);
-        zk.asyncGet(path,
-                DirectoryCallbackFactory.transform(cb,
-                        new Functor<byte[], HealthMonitorConfig>() {
-                            @Override
-                            public HealthMonitorConfig apply(byte[] arg0) {
-
-                                try {
-                                    return serializer.deserialize(arg0,
-                                            HealthMonitorConfig.class);
-                                } catch (SerializationException ex) {
-                                    log.warn("Could not deserialize Health " +
-                                             "Monitor data");
-                                }
-                                return null;
-                            }
-                        }), watcher);
+        getAsync(paths.getHealthMonitorPath(id),
+                 HealthMonitorConfig.class, cb, watcher);
     }
 
     public HealthMonitorConfig get(UUID id, Runnable watcher)

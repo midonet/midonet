@@ -20,6 +20,12 @@ class WeightedSelectorTest extends FeatureSpec
     }
 
     feature("Exhaustive non-random selection") {
+        scenario("Attempt to create a WeightedSelector with an empty list.") {
+            intercept[IllegalArgumentException] {
+                WeightedSelector(List[WeightedObject]())
+            }
+        }
+
         scenario("One object with weight 1") {
             val obj = WeightedObject(1)
             val ws = WeightedSelector(List(obj))

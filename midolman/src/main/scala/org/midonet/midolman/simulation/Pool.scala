@@ -16,17 +16,14 @@ import org.midonet.midolman.rules.{RuleResult, Condition,
 import org.midonet.midolman.topology.FlowTagger
 import org.midonet.packets.ICMP
 
-/**
- * Pool.
- *
- * Placeholder class.
- */
-class Pool(val id: UUID, val poolMembers: List[PoolMember],
-            val loggingBus: LoggingBus) {
+class Pool(val id: UUID, val adminStateUp: Boolean, val lbMethod: String,
+           val poolMembers: List[PoolMember], val loggingBus: LoggingBus) {
     val log =
         LoggerFactory.getSimulationAwareLog(this.getClass)(loggingBus)
 
     val invalidatePoolTag = FlowTagger.invalidateFlowsByDevice(id)
+
+    private val activePoolMembers = poolMembers.filter(_.isUp)
 
     /*
      * Choose an active pool member and apply DNAT to the packetContext
@@ -43,8 +40,6 @@ class Pool(val id: UUID, val poolMembers: List[PoolMember],
 
         implicit val implicitPacketContext = pktContext
         implicit val implicitNatMapping = natMapping
-
-        val activePoolMembers = poolMembers.filterNot(_.isDown)
 
         pktContext.addFlowTag(invalidatePoolTag)
 

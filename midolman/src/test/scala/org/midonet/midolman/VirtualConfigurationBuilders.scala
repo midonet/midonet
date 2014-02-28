@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 Midokura Europe SARL
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
  */
 package org.midonet.midolman
 
@@ -435,9 +435,12 @@ trait VirtualConfigurationBuilders {
         clusterDataClient().vipUpdate(vip)
     }
 
-    def createPool(id: Option[UUID] = None): Pool = {
+    def createPool(id: Option[UUID] = None,
+                   adminStateUp: Boolean = true,
+                   lbMethod: String = "ROUND_ROBIN"): Pool = {
         val pool = new Pool()
-        pool.setAdminStateUp(true)
+        pool.setAdminStateUp(adminStateUp)
+        pool.setLbMethod(lbMethod)
         if (id.isDefined)
             pool.setId(id.get)
         else
@@ -447,11 +450,22 @@ trait VirtualConfigurationBuilders {
         pool
     }
 
+    def setPoolAdminStateUp(pool: Pool, adminStateUp: Boolean) {
+        pool.setAdminStateUp(adminStateUp)
+        clusterDataClient().poolUpdate(pool)
+    }
+
+    def setPoolLbMethod(pool: Pool, lbMethod: String) {
+        pool.setLbMethod(lbMethod)
+        clusterDataClient().poolUpdate(pool)
+    }
+
     def createPoolMember(pool: Pool): PoolMember = {
         createPoolMember(pool, "10.10.10.10", 10)
     }
 
-    def createPoolMember(pool: Pool, address: String, port: Int)
+    def createPoolMember(pool: Pool, address: String, port: Int,
+                         weight: Int = 1)
     : PoolMember = {
         val poolMember = new PoolMember()
         poolMember.setId(UUID.randomUUID)
@@ -460,6 +474,7 @@ trait VirtualConfigurationBuilders {
         poolMember.setAddress(address)
         poolMember.setProtocolPort(port)
         poolMember.setPoolId(pool.getId)
+        poolMember.setWeight(weight)
         clusterDataClient().poolMemberCreate(poolMember)
         Thread.sleep(50)
         poolMember

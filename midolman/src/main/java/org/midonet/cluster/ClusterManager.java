@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 Midokura Pte. Ltd.
+ * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
  */
 
 package org.midonet.cluster;
@@ -86,7 +86,7 @@ abstract class ClusterManager<T> {
 
         // DirectoryCallback overrides
         @Override
-        public abstract void onSuccess(Result<U> data);
+        public abstract void onSuccess(DirectoryCallback.Result<U> data);
 
         @Override
         public void onError(KeeperException e) {
@@ -137,7 +137,7 @@ abstract class ClusterManager<T> {
             implements DirectoryCallback<T> {
 
         @Override
-        public abstract void onSuccess(Result<T> data);
+        public abstract void onSuccess(DirectoryCallback.Result<T> data);
 
         @Override
         public void onError(KeeperException e) {
