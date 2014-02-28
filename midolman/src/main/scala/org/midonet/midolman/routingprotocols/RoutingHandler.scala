@@ -998,11 +998,17 @@ object IP { /* wrapper to ip commands => TODO: implement with RTNETLINK */
     val exec: String => Int =
         ProcessHelper.executeCommandLine(_).returnValue
 
+    val execGetOutput: String => java.util.List[String] =
+        ProcessHelper.executeCommandLine(_).consoleOutput
+
     val link: String => Int =
         s => exec("ip link " + s)
 
     val netns: String => Int =
         s => exec("ip netns " + s)
+
+    val netnsGetOutput: String => java.util.List[String] =
+        s => execGetOutput("ip netns " + s)
 
     def execIn(ns: String, cmd: String): Int =
         if (ns == "") exec(cmd) else netns("exec " + ns + " " + cmd)
@@ -1028,6 +1034,10 @@ object IP { /* wrapper to ip commands => TODO: implement with RTNETLINK */
         if (link("show " + itf) == 0) IP.deleteItf(itf) else 0
 
     def deleteItf(itf: String) = link(" delete " + itf)
+
+    def interfaceExistsInNs(ns: String, interface: String): Boolean =
+        if (!namespaceExist(ns)) false
+        else (netns("exec " + ns + " ip link show " + interface) == 0)
 
     /** creates an interface anad put a mirror in given network namespace */
     def preparePair(itf: String, mirror: String, ns: String) =
