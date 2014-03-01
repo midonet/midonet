@@ -14,19 +14,23 @@ import org.midonet.odp.protos.OvsDatapathConnection;
 
 public class MockDatapathConnectionPool implements DatapathConnectionPool {
     @Inject
-    @DatapathModule.UPCALL_DATAPATH_CONNECTION
-    private ManagedDatapathConnection conn;
+    private UpcallDatapathConnectionManager upcallConnManager;
 
     public MockDatapathConnectionPool() {}
 
+    private OvsDatapathConnection conn() {
+        return ((MockUpcallDatapathConnectionManager) upcallConnManager).
+                conn().getConnection();
+    }
+
     public Iterator<OvsDatapathConnection> getAll() {
         LinkedList<OvsDatapathConnection> li = new LinkedList<>();
-        li.add(conn.getConnection());
+        li.add(conn());
         return li.iterator();
     }
 
     public OvsDatapathConnection get(int hash) {
-        return conn.getConnection();
+        return conn();
     }
 
     public void start() throws Exception {}

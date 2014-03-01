@@ -20,7 +20,7 @@ import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.ports.BridgePort
 import org.midonet.cluster.data.zones._
 import org.midonet.cluster.data.{Bridge, Router}
-import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
+import org.midonet.midolman.DeduplicationActor.{HandlePackets, EmitGeneratedPacket}
 import org.midonet.midolman.PacketWorkflow.PacketIn
 import org.midonet.midolman.guice.actors.OutgoingMessage
 import org.midonet.midolman.host.interfaces.InterfaceDescription
@@ -329,15 +329,5 @@ class DhcpTestCase extends MidolmanTestCase with
         extractDhcpReply(returnPkt)
             .getServerIPAddress should be (routerIp3.getIntAddress)
         drainProbes()
-    }
-
-    def testInterfaceMtu() {
-        injectDhcpDiscover(vm1PortName, vm1Mac)
-        requestOfType[PacketIn](packetInProbe)
-        val returnPkt = requestOfType[EmitGeneratedPacket](dedupProbe()).eth
-        val interfaceMtu = extractInterfaceMtuDhcpReply(returnPkt)
-        log.info("Returning interface MTU is {}", interfaceMtu)
-        intfMtu -= (new GreTunnelZone).getTunnelOverhead
-        interfaceMtu should equal (intfMtu)
     }
 }

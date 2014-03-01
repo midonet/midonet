@@ -13,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.midolman.host.interfaces.InterfaceDescription;
-import org.midonet.midolman.guice.datapath.DatapathModule;
 import org.midonet.midolman.io.DatapathConnectionPool;
 import org.midonet.odp.DpPort;
 

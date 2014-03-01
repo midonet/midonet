@@ -26,7 +26,7 @@ import org.midonet.midolman.*;
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.guice.datapath.DatapathModule;
 import org.midonet.midolman.io.DatapathConnectionPool;
-import org.midonet.midolman.io.ManagedDatapathConnection;
+import org.midonet.midolman.io.UpcallDatapathConnectionManager;
 import org.midonet.midolman.monitoring.MonitoringActor;
 import org.midonet.midolman.routingprotocols.RoutingManagerActor;
 import org.midonet.midolman.services.HostIdProviderService;
@@ -67,10 +67,9 @@ public class MidolmanActorsModule extends PrivateModule {
         requireBinding(MidolmanConfig.class);
         requireBinding(Key.get(Cache.class, NAT_CACHE.class));
         requireBinding(DatapathConnectionPool.class);
-        requireBinding(Key.get(ManagedDatapathConnection.class,
-                               DatapathModule.UPCALL_DATAPATH_CONNECTION.class));
         requireBinding(HostIdProviderService.class);
         requireBinding(HostConfig.class);
+        requireBinding(UpcallDatapathConnectionManager.class);
 
         bindMidolmanActorsService();
         expose(MidolmanActorsService.class);

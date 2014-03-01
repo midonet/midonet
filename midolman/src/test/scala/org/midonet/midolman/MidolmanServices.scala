@@ -3,13 +3,17 @@
 */
 package org.midonet.midolman
 
-import com.google.inject.{Key, Injector}
+import scala.concurrent.ExecutionContext
+
+import akka.actor.ActorSystem
+import com.google.inject.Injector
+
 import org.midonet.cluster.{Client, DataClient}
-import java.util.UUID
+import org.midonet.midolman.io.{MockUpcallDatapathConnectionManager,
+                                UpcallDatapathConnectionManager}
 import org.midonet.midolman.services.HostIdProviderService
 import org.midonet.odp.protos.{OvsDatapathConnection, MockOvsDatapathConnection}
-import org.midonet.midolman.io.ManagedDatapathConnection
-import org.midonet.midolman.guice.datapath.DatapathModule.UPCALL_DATAPATH_CONNECTION
+
 
 trait MidolmanServices {
     var injector: Injector
@@ -23,12 +27,16 @@ trait MidolmanServices {
     def hostId() =
         injector.getInstance(classOf[HostIdProviderService]).getHostId
 
-    def mockDpConn() =
+    def mockDpConn()(implicit ec: ExecutionContext, as: ActorSystem) = {
         dpConn().asInstanceOf[MockOvsDatapathConnection]
+    }
 
-    def dpConn(): OvsDatapathConnection = {
-        val key = Key.get(classOf[ManagedDatapathConnection],
-                          classOf[UPCALL_DATAPATH_CONNECTION])
-        injector.getInstance(key).getConnection
+    def dpConn()(implicit ec: ExecutionContext, as: ActorSystem):
+        OvsDatapathConnection = {
+        val mockConnManager =
+            injector.getInstance(classOf[UpcallDatapathConnectionManager]).
+                asInstanceOf[MockUpcallDatapathConnectionManager]
+        mockConnManager.initialize()
+        mockConnManager.conn.getConnection
     }
 }

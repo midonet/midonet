@@ -88,19 +88,12 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
      * Install packet-in callback for handling miss/userspace packets on a
      * specific datapath.
      */
-    public void datapathsSetNotificationHandler(@Nonnull final Datapath datapath,
-                                                @Nonnull final BatchCollector<Packet> notificationHandler,
-                                                @Nonnull final Callback<Boolean> operationCallback) {
-        _doDatapathsSetNotificationHandler(datapath, notificationHandler,
-                                           operationCallback,
-                                           DEF_REPLY_TIMEOUT);
+    public void datapathsSetNotificationHandler(@Nonnull final BatchCollector<Packet> notificationHandler) {
+        _doDatapathsSetNotificationHandler(notificationHandler);
     }
 
     protected abstract void
-    _doDatapathsSetNotificationHandler(@Nonnull final Datapath datapath,
-                                       @Nonnull final BatchCollector<Packet> notificationHandler,
-                                       @Nonnull final Callback<Boolean> operationCallback,
-                                       long timeoutMillis);
+    _doDatapathsSetNotificationHandler(@Nonnull final BatchCollector<Packet> notificationHandler);
 
     /**
      * Callback based api for enumerating datapaths.
@@ -715,18 +708,6 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
 
 
     public class FuturesApi {
-        /**
-         * Install packet-in callback for handling miss/userspace packets on a
-         * specific datapath.
-         */
-        public Future<Boolean> datapathsSetNotificationHandler(@Nonnull Datapath datapath,
-                                                               @Nonnull BatchCollector<Packet> notificationHandler) {
-            ValueFuture<Boolean> valueFuture = ValueFuture.create();
-            OvsDatapathConnection.this.datapathsSetNotificationHandler(
-                    datapath, notificationHandler, wrapFuture(valueFuture));
-            return valueFuture;
-        }
-
         /**
          * Future based api for enumerating datapaths.
          *

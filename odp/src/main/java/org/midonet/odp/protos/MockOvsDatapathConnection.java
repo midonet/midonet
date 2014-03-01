@@ -73,12 +73,8 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
     BatchCollector<Packet> notificationHandler;
 
     @Override
-    protected void _doDatapathsSetNotificationHandler(@Nonnull Datapath datapath,
-                                                      @Nonnull BatchCollector<Packet> notificationHandler,
-                                                      @Nonnull Callback<Boolean> operationCallback,
-                                                      long timeoutMillis) {
+    protected void _doDatapathsSetNotificationHandler(@Nonnull BatchCollector<Packet> notificationHandler) {
         this.notificationHandler = notificationHandler;
-        operationCallback.onSuccess(true);
     }
 
     public void triggerPacketIn(@Nonnull Packet packet) {

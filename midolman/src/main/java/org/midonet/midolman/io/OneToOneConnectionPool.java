@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,13 +19,13 @@ public class OneToOneConnectionPool implements DatapathConnectionPool {
 
     public final String name;
 
-    @Inject
     private MidolmanConfig config;
 
     private BlockingTransactorDatapathConnection[] conns;
 
-    public OneToOneConnectionPool(String name, int numChannels) {
+    public OneToOneConnectionPool(String name, int numChannels, MidolmanConfig config) {
         this.name = name;
+        this.config = config;
 
         conns = new BlockingTransactorDatapathConnection[numChannels];
         for (int i=0; i<numChannels; i++) {

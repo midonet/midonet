@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.netlink.BufferPool;
+import org.midonet.netlink.Callback;
 import org.midonet.netlink.Netlink;
 import org.midonet.odp.protos.OvsDatapathConnection;
 import org.midonet.util.eventloop.SelectListener;
@@ -18,7 +19,7 @@ import org.midonet.util.eventloop.SelectLoop;
 import org.midonet.util.eventloop.SimpleSelectLoop;
 
 
-public class DualSelectorDatapathConnection implements ManagedDatapathConnection {
+public class SelectorBasedDatapathConnection implements ManagedDatapathConnection {
     private Logger log = LoggerFactory.getLogger(this.getClass());
 
     public final String name;
@@ -33,9 +34,9 @@ public class DualSelectorDatapathConnection implements ManagedDatapathConnection
     private OvsDatapathConnection conn = null;
     private boolean singleThreaded;
 
-    public DualSelectorDatapathConnection(String name,
-                                          MidolmanConfig config,
-                                          boolean singleThreaded) {
+    public SelectorBasedDatapathConnection(String name,
+                                           MidolmanConfig config,
+                                           boolean singleThreaded) {
         this.config = config;
         this.name = name;
         this.singleThreaded = singleThreaded;
@@ -44,7 +45,7 @@ public class DualSelectorDatapathConnection implements ManagedDatapathConnection
                                        config.getSendBufferPoolBufSizeKb() * 1024);
     }
 
-    public DualSelectorDatapathConnection(String name, MidolmanConfig config) {
+    public SelectorBasedDatapathConnection(String name, MidolmanConfig config) {
         this(name, config, false);
     }
 
@@ -53,6 +54,35 @@ public class DualSelectorDatapathConnection implements ManagedDatapathConnection
     }
 
     public void start() throws Exception {
+        if (conn == null) {
+            try {
+                setUp();
+                conn.initialize().get();
+            } catch (Exception e) {
+                stop();
+                throw e;
+            }
+        }
+    }
+
+    public void start(Callback<Boolean> cb) {
+        if (conn != null) {
+            cb.onSuccess(true);
+            return;
+        }
+
+        try {
+            setUp();
+            conn.initialize(cb);
+        } catch (Exception e) {
+            try {
+                stop();
+            } catch (Exception ex) {
+            }
+        }
+    }
+
+    private void setUp() throws Exception {
         if (conn != null)
             return;
 
@@ -91,17 +121,32 @@ public class DualSelectorDatapathConnection implements ManagedDatapathConnection
                         conn.handleWriteEvent(key);
                     }
                 });
-
-        conn.initialize().get();
     }
 
+
     public void stop() throws Exception {
-        log.info("Stopping datapath connection: {}", name);
-        readLoop.unregister(conn.getChannel(), SelectionKey.OP_READ);
-        writeLoop.unregister(conn.getChannel(), SelectionKey.OP_WRITE);
-        readLoop.shutdown();
-        if (!singleThreaded) {
-            writeLoop.shutdown();
+        try {
+            log.info("Stopping datapath connection: {}", name);
+            if (writeLoop != null)
+                writeLoop.unregister(conn.getChannel(), SelectionKey.OP_WRITE);
+
+            if (readLoop != null) {
+                readLoop.unregister(conn.getChannel(), SelectionKey.OP_READ);
+                readLoop.shutdown();
+            }
+
+            if (!singleThreaded) {
+                if (writeLoop != null)
+                    writeLoop.shutdown();
+            }
+
+            conn.getChannel().close();
+        } finally {
+            conn = null;
+            writeLoop = null;
+            readLoop = null;
+            readThread = null;
+            writeThread = null;
         }
     }
 
