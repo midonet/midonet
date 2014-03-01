@@ -70,10 +70,10 @@ class OvsConnectionOps(val ovsCon: OvsDatapathConnection) {
         }
 
     def setHandler(dp: Datapath, handler: BatchCollector[Packet] = NoOpHandler)
-                  (implicit ec: ExecutionContext) =
-        toFuture[java.lang.Boolean] {
-            ovsCon.datapathsSetNotificationHandler(dp, handler, _)
-        } map { _ => dp}
+                  (implicit ec: ExecutionContext) = {
+        ovsCon.datapathsSetNotificationHandler(handler)
+        Future.successful(true)
+    }
 }
 
 object OvsConnectionOps {

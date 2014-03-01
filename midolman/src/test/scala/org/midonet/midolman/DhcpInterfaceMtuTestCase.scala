@@ -18,7 +18,7 @@ import org.midonet.cluster.data.dhcp.Opt121
 import org.midonet.cluster.data.dhcp.Subnet
 import org.midonet.cluster.data.ports.BridgePort
 import org.midonet.cluster.data.zones._
-import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
+import org.midonet.midolman.DeduplicationActor.{HandlePackets, EmitGeneratedPacket}
 import org.midonet.midolman.PacketWorkflow.PacketIn
 import org.midonet.midolman.guice.actors.OutgoingMessage
 import org.midonet.midolman.host.interfaces.InterfaceDescription
@@ -257,6 +257,7 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase with
     def test() {
         injectDhcpDiscover(vmPortName, vmMac)
         requestOfType[PacketIn](packetInProbe)
+        requestOfType[HandlePackets](dedupProbe())
         val returnPkt = requestOfType[EmitGeneratedPacket](dedupProbe()).eth
         val interfaceMtu = extractInterfaceMtuDhcpReply(returnPkt)
         log.info("Returning interface MTU is {}", interfaceMtu)

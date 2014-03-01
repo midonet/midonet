@@ -23,7 +23,7 @@ import org.midonet.cluster.DataClient
 import org.midonet.midolman.guice.CacheModule.NAT_CACHE
 import org.midonet.midolman.guice.CacheModule.TRACE_INDEX
 import org.midonet.midolman.guice.CacheModule.TRACE_MESSAGES
-import org.midonet.midolman.guice.datapath.DatapathModule._
+import org.midonet.midolman.io.DatapathConnectionPool
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.rules.Condition
@@ -38,7 +38,6 @@ import org.midonet.odp.{FlowMatches, Datapath, FlowMatch, Packet}
 import org.midonet.packets.Ethernet
 import org.midonet.util.BatchCollector
 import org.midonet.sdn.flows.WildcardMatch
-import org.midonet.midolman.io.{DatapathConnectionPool, ManagedDatapathConnection}
 
 object DeduplicationActor extends Referenceable {
     override val Name = "DeduplicationActor"
@@ -73,10 +72,6 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath
     @Inject
     var dpConnPool: DatapathConnectionPool = null
 
-    @Inject @UPCALL_DATAPATH_CONNECTION
-    var upcallManagedConnection: ManagedDatapathConnection = null
-
-    def upcallConnection = upcallManagedConnection.getConnection
     def datapathConn(packet: Packet) = dpConnPool.get(packet.getMatch.hashCode)
 
     @Inject var clusterDataClient: DataClient = null
@@ -126,8 +121,6 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath
             if (null == datapath) {
                 datapath = dp
                 dpState = state
-                installPacketInHook()
-                log.info("Datapath hook installed")
                 val expInterval = cookieExpirationCheckInterval
                 system.scheduler.schedule(expInterval, expInterval,
                                                   self, _ExpireCookies)
@@ -310,37 +303,6 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath
             }
             metrics.packetsProcessed.mark()
         }
-    }
-
-    private def installPacketInHook() = {
-         log.info("Installing packet in handler in the DDA")
-         upcallConnection.futures.datapathsSetNotificationHandler(datapath,
-             new BatchCollector[Packet] {
-                 val BATCH_SIZE = 16
-                 var packets = new Array[Packet](BATCH_SIZE)
-                 var cursor = 0
-                 val log = LoggerFactory.getLogger("PacketInHook")
-
-                 override def endBatch() {
-                     if (cursor > 0) {
-                         log.trace("batch of {} packets", cursor)
-                         self ! HandlePackets(packets)
-                         packets = new Array[Packet](BATCH_SIZE)
-                         cursor = 0
-                     }
-                 }
-
-                 override def submit(data: Packet) {
-                     log.trace("accumulating packet: {}", data.getMatch)
-                     val eth = data.getPacket
-                     FlowMatches.addUserspaceKeys(eth, data.getMatch)
-                     data.setStartTimeNanos(Clock.defaultClock().tick())
-                     packets(cursor) = data
-                     cursor += 1
-                     if (cursor == BATCH_SIZE)
-                         endBatch()
-                 }
-         }).get()
     }
 
     /* Increment the cookie id number and return the value. Since this method

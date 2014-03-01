@@ -93,55 +93,8 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
     }
 
     @Override
-    protected void _doDatapathsSetNotificationHandler(@Nonnull final Datapath datapath,
-                                                      @Nonnull BatchCollector<Packet> notificationHandler,
-                                                      @Nonnull final Callback<Boolean> installCallback,
-                                                      final long timeoutMillis) {
+    protected void _doDatapathsSetNotificationHandler(@Nonnull BatchCollector<Packet> notificationHandler) {
         this.notificationHandler = notificationHandler;
-
-        _doPortsEnumerate(datapath, new Callback<Set<DpPort>>() {
-            @Override
-            public void onSuccess(final Set<DpPort> data) {
-                if (data == null || data.isEmpty()) {
-                    installCallback.onSuccess(true);
-                    return;
-                }
-
-                ComposingCallback<DpPort, NetlinkException> portsSetCallback =
-                    Callbacks.composeTo(
-                        Callbacks.transform(
-                            installCallback,
-                            new Functor<MultiResult<DpPort>, Boolean>() {
-                                @Override
-                                public Boolean apply(MultiResult<DpPort> arg0) {
-                                    return true;
-                                }
-                            }));
-
-                for (DpPort port : data) {
-                    @SuppressWarnings("unchecked")
-                    Callback<DpPort> callback =
-                        portsSetCallback.createCallback(
-                            format("SET upcall_id on port: {}", port.getName()),
-                            Callback.class
-                        );
-
-                    _doPortsSet(port, datapath, callback, timeoutMillis);
-                }
-
-                portsSetCallback.enableResultCollection();
-            }
-
-            @Override
-            public void onTimeout() {
-                installCallback.onTimeout();
-            }
-
-            @Override
-            public void onError(NetlinkException e) {
-                installCallback.onError(e);
-            }
-        }, timeoutMillis);
     }
 
     DatapathFamily datapathFamily;

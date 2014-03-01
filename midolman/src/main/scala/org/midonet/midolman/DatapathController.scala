@@ -7,10 +7,12 @@ import java.lang.{Boolean => JBoolean, Integer => JInteger}
 import java.net.InetAddress
 import java.nio.ByteBuffer
 import java.util.{Collection => JCollection, List => JList, Set => JSet, UUID}
+import java.util.concurrent.TimeoutException
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.collection.{Set => ROSet}
 import scala.concurrent.duration._
+import scala.util.{Failure, Success}
 
 import akka.actor._
 import akka.event.LoggingAdapter
@@ -25,10 +27,9 @@ import org.midonet.cluster.data.TunnelZone.{HostConfig => TZHostConfig}
 import org.midonet.cluster.data.zones._
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath._
-import org.midonet.midolman.guice.datapath.DatapathModule._
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.host.scanner.InterfaceScanner
-import org.midonet.midolman.io.{DatapathConnectionPool, ManagedDatapathConnection}
+import org.midonet.midolman.io._
 import org.midonet.midolman.monitoring.MonitoringActor
 import org.midonet.midolman.services.HostIdProviderService
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.{HostRequest, TunnelZoneRequest}
@@ -40,7 +41,6 @@ import org.midonet.netlink.exceptions.NetlinkException.ErrorCode
 import org.midonet.odp.flows.FlowActions.output
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput}
 import org.midonet.odp.ports._
-import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.odp.{DpPort, Datapath}
 import org.midonet.packets.IPv4Addr
 import org.midonet.packets.TCP
@@ -234,6 +234,10 @@ object DatapathController extends Referenceable {
                                             interfaces: JList[InterfaceDescription])
 
         case class SetLocalDatapathPorts(datapath: Datapath, ports: Set[DpPort])
+
+        case class DpPortCreated(datapath: Datapath, port: DpPort, conn: ManagedDatapathConnection)
+
+        case class DpPortDeleted(datapath: Datapath, port: DpPort)
     }
 
 
@@ -333,11 +337,6 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
     @Inject
     val dpConnPool: DatapathConnectionPool = null
 
-    @Inject
-    @UPCALL_DATAPATH_CONNECTION
-    val upcallManagedConnection: ManagedDatapathConnection = null
-
-    def upcallConnection = upcallManagedConnection.getConnection
     def datapathConnection = if (dpConnPool != null) dpConnPool.get(0) else null
 
     @Inject
@@ -350,6 +349,9 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
     var midolmanConfig: MidolmanConfig = null
 
     var datapath: Datapath = null
+
+    @Inject
+    var upcallConnManager: UpcallDatapathConnectionManager = null
 
     val dpState = new DatapathStateManager(
         new Controller {
@@ -367,7 +369,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
 
             override def setVportStatus(port: DpPort, vportId: UUID,
                                         isActive: Boolean): Unit = {
-                log.debug("Port {}/{}/{} became {}",
+                log.info("Port {}/{}/{} became {}",
                           port.getPortNo, port.getName, vportId,
                           if (isActive) "active" else "inactive")
                 installTunnelKeyFlow(port, vportId, isActive)
@@ -404,7 +406,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
             log.warning("preStart(): OvsDatapathConnection not yet initialized.")
     }
 
-    def receive = null
+    override def receive: Actor.Receive = null
 
     val DatapathInitializationActor: Receive = {
 
@@ -477,6 +479,13 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
             handlePortOperationReply(opReply)
             if (checkInitialization)
                 completeInitialization()
+
+        case Internal.DpPortCreated(datapath, port, conn) =>
+            upcallConnManager.portCreated(datapath, port, conn)
+
+        case Internal.DpPortDeleted(datapath, port) =>
+            upcallConnManager.portDeleted(datapath, port)
+
     }
 
     /** checks if the DPC can switch to regular Receive loop */
@@ -588,6 +597,12 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
 
         case req: DpPortDelete =>
             deleteDatapathPort(sender, req)
+
+        case Internal.DpPortCreated(datapath, port, conn) =>
+            upcallConnManager.portCreated(datapath, port, conn)
+
+        case Internal.DpPortDeleted(datapath, port) =>
+            upcallConnManager.portDeleted(datapath, port)
 
         case opReply: DpPortReply =>
             pendingUpdateCount -= 1
@@ -781,21 +796,29 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
 
     }
 
+    private def exceptionToOpError(req: DpPortRequest, ex: Throwable): DpPortReply =
+        ex match {
+            case tout: TimeoutException =>
+                DpPortError(req, true, null)
+            case nle: NetlinkException =>
+                DpPortError(req, false, nle)
+            case _ =>
+                DpPortError(req, false, null)
+        }
+
     def createDatapathPort(caller: ActorRef, request: DpPortCreate) {
         if (caller == self)
             pendingUpdateCount += 1
         log.info("creating port: {} (by request of: {})", request.port, caller)
 
-        upcallConnection.portsCreate(datapath, request.port,
-            new ErrorHandlingCallback[DpPort] {
-                def onSuccess(data: DpPort) {
-                    caller ! DpPortSuccess(request, data)
-                }
+        upcallConnManager.createAndHookDpPort(datapath, request.port) onComplete {
+            case Success((dp, port, conn)) =>
+                self ! Internal.DpPortCreated(dp, port, conn)
+                caller ! DpPortSuccess(request, port)
 
-                def handleError(ex: NetlinkException, timeout: Boolean) {
-                    caller ! DpPortError(request, timeout, ex)
-                }
-            })
+            case Failure(ex) =>
+                caller ! exceptionToOpError(request, ex)
+        }
     }
 
     def deleteDatapathPort(caller: ActorRef, request: DpPortDelete) {
@@ -803,23 +826,14 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
             pendingUpdateCount += 1
         log.info("deleting port: {} (by request of: {})", request.port, caller)
 
-        datapathConnection.portsDelete(request.port, datapath,
-            new ErrorHandlingCallback[DpPort] {
-                def onSuccess(data: DpPort) {
-                    caller ! DpPortSuccess(request, data)
-                }
+        upcallConnManager.deleteDpPort(datapath, request.port) onComplete {
+            case Success(b) =>
+                self ! Internal.DpPortDeleted(datapath, request.port)
+                caller ! DpPortSuccess(request, request.port)
 
-                def handleError(ex: NetlinkException, timeout: Boolean) {
-                    // check if the port has already been removed, if that's the
-                    // case we can consider that the delete operation succeeded
-                    if (ex.getErrorCodeEnum ==
-                        NetlinkException.ErrorCode.ENOENT) {
-                        caller ! DpPortError(request, false, null)
-                    } else {
-                        caller ! DpPortError(request, false, ex)
-                    }
-                }
-        })
+            case Failure(ex) =>
+                caller ! exceptionToOpError(request, ex)
+        }
     }
 
     /*
@@ -1139,7 +1153,7 @@ class VirtualPortManager(
         copy._updateInterfaces(interfaces)
 
     private def _newInterface(itf: InterfaceDescription, isUp: Boolean) {
-        log.info("New interface found: {}", itf)
+        log.info("New interface found: {} isUp: {}", itf, isUp)
         interfaceToStatus += ((itf.getName, isUp))
 
         // Is there a vport binding for this interface?

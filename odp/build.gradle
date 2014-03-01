@@ -1,3 +1,5 @@
+apply plugin: 'scala'
+
 jar {
     manifest {
         attributes 'Implementation-Title': 'OpenVSwitch Datapath client library',
