@@ -96,7 +96,7 @@ object PacketWorkflow {
               cookieOrEgressPort: Either[Int, UUID],
               parentCookie: Option[Int])
              (runSim: => Future[SimulationResult])
-             (implicit system: ActorSystem) =
+             (implicit system: ActorSystem): PacketHandler =
         new PacketWorkflow(dpCon, dpState, dp, dataClient, packet,
                            wcMatch, cookieOrEgressPort, parentCookie) {
             def runSimulation() = runSim
@@ -229,7 +229,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
                                   removalCallbacks: ROSet[Callback0])
     : Future[Boolean] = {
         val flowFuture =
-            if (FlowController.isTagSetStillValid(lastInvalidation, tags))
+            if (areTagsValid(tags))
                 handleValidFlow(wildFlow, tags, removalCallbacks)
             else
                 handleObsoleteFlow(wildFlow, removalCallbacks)
@@ -237,6 +237,9 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
         val execFuture = executePacket(wildFlow.getActions)
         flowFuture flatMap { _ => execFuture } continue { _.isSuccess }
     }
+
+    def areTagsValid(tags: ROSet[Any]) =
+        FlowController.isTagSetStillValid(lastInvalidation, tags)
 
     private def handleObsoleteFlow(wildFlow: WildcardFlow,
                            removalCallbacks: ROSet[Callback0]) = {
@@ -292,7 +295,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
         addTranslatedFlow(wildFlow, tags, removalCallbacks)
     }
 
-    private def executePacket(actions: Seq[FlowAction]): Future[Boolean] = {
+    def executePacket(actions: Seq[FlowAction]): Future[Boolean] = {
         if (actions == null || actions.isEmpty) {
             log.debug("Dropping packet {}", cookieStr)
             return Future.successful(true)
@@ -337,7 +340,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
             }
         }
 
-    private def handleWildcardTableMatch(wildFlow: WildcardFlow): Future[PipelinePath] = {
+    def handleWildcardTableMatch(wildFlow: WildcardFlow): Future[PipelinePath] = {
         log.debug("Packet {} matched a wildcard flow", cookieStr)
 
         val flowFuture = if (packet.getMatch.isUserSpaceOnly) {
@@ -425,7 +428,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
         runSimulation() flatMap processSimulationResult
     }
 
-    private def processSimulationResult(result: SimulationResult) = {
+    def processSimulationResult(result: SimulationResult) = {
         log.debug("Simulation phase returned: {}", result)
         (result match {
             case AddVirtualWildcardFlow(flow, callbacks, tags) =>
