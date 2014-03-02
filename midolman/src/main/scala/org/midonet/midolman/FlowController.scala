@@ -105,7 +105,7 @@ object FlowController extends Referenceable {
 
     case class InvalidateFlowsByTag(tag: Any)
 
-    case class FlowAdded(flow: Flow)
+    case class FlowAdded(flow: Flow, wcMatch: WildcardMatch)
 
     case class FlowUpdateCompleted(flow: Flow) // used in test only
 
@@ -157,9 +157,9 @@ object FlowController extends Referenceable {
             }
         }
 
-    def queryWildcardFlowTable(flowMatch: FlowMatch): Option[ManagedWildcardFlow] = {
+    def queryWildcardFlowTable(wildMatch: WildcardMatch)
+    : Option[ManagedWildcardFlow] = {
         var wildFlow: ManagedWildcardFlow = null
-        val wildMatch = WildcardMatch.fromFlowMatch(flowMatch)
 
         for (entry <- wildcardTables.entrySet()) {
             val table = entry.getValue
@@ -308,8 +308,8 @@ class FlowController extends Actor with ActorLogWithoutPath {
                 }
             }
 
-        case FlowAdded(dpFlow) =>
-            handleFlowAddedForExistingWildcard(dpFlow)
+        case FlowAdded(dpFlow, wcMatch) =>
+            handleFlowAddedForExistingWildcard(dpFlow, wcMatch)
             metrics.currentDpFlows = flowManager.getNumDpFlows
 
         case InvalidateFlowsByTag(tag) =>
@@ -391,8 +391,9 @@ class FlowController extends Actor with ActorLogWithoutPath {
         }
     }
 
-    private def handleFlowAddedForExistingWildcard(dpFlow: Flow) {
-        FlowController.queryWildcardFlowTable(dpFlow.getMatch) match {
+    private def handleFlowAddedForExistingWildcard(dpFlow: Flow,
+                                                   wcMatch: WildcardMatch) {
+        FlowController.queryWildcardFlowTable(wcMatch) match {
             case Some(wildFlow) =>
                 // the query doesn't miss, we don't care whether the returned
                 // wildcard flow is the same that the client has: the dp flow

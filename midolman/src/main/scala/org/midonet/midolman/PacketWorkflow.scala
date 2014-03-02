@@ -169,7 +169,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
                 log.debug("Successfully created flow for {}", cookieStr)
                 newWildFlow match {
                     case None =>
-                        FlowController ! FlowAdded(dpFlow)
+                        FlowController ! FlowAdded(dpFlow, wcMatch)
                     case Some(wf) =>
                         FlowController !
                                 AddWildcardFlow(wf, Some(dpFlow),
@@ -332,7 +332,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
         if (packet.getReason == Packet.Reason.FlowActionUserspace) {
             simulatePacketIn() flatMap processSimulationResult
         } else {
-            FlowController.queryWildcardFlowTable(packet.getMatch) match {
+            FlowController.queryWildcardFlowTable(wcMatch) match {
                 case Some(wildflow) =>
                   handleWildcardTableMatch(wildflow)
                 case None =>
