@@ -1,8 +1,6 @@
-/******************************************************************************
- *                                                                            *
- *      Copyright (c) 2013 Midokura Europe SARL, All Rights Reserved.         *
- *                                                                            *
- ******************************************************************************/
+/*
+ * Copyright (c) 2013 Midokura Europe SARL, All Rights Reserved.
+ */
 
 package org.midonet.packets
 
@@ -79,10 +77,6 @@ class TestMac extends Suite with Matchers {
 
     def testGetSetStringIsSame {
         for (m <- macpool) { m should be (MAC fromString m.toString) }
-    }
-
-    def testCloneIsSame {
-        for (m <- macpool) { m should be (m.clone) }
     }
 
     def testEqualOther {
