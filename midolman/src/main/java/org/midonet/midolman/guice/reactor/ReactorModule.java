@@ -25,10 +25,6 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  */
 public class ReactorModule extends PrivateModule {
     @BindingAnnotation @Target({FIELD, METHOD}) @Retention(RUNTIME)
-    public @interface WRITE_LOOP {}
-    @BindingAnnotation @Target({FIELD, METHOD}) @Retention(RUNTIME)
-    public @interface READ_LOOP {}
-    @BindingAnnotation @Target({FIELD, METHOD}) @Retention(RUNTIME)
     public @interface ZEBRA_SERVER_LOOP {}
 
     @Override
@@ -39,20 +35,10 @@ public class ReactorModule extends PrivateModule {
             .asEagerSingleton();
 
         bind(SelectLoop.class)
-                .annotatedWith(WRITE_LOOP.class)
-                .toProvider(SelectLoopProvider.class)
-                .in(Singleton.class);
-        bind(SelectLoop.class)
-                .annotatedWith(READ_LOOP.class)
-                .toProvider(SelectLoopProvider.class)
-                .in(Singleton.class);
-        bind(SelectLoop.class)
                 .annotatedWith(ZEBRA_SERVER_LOOP.class)
                 .toProvider(SelectLoopProvider.class)
                 .in(Singleton.class);
 
-        expose(Key.get(SelectLoop.class, WRITE_LOOP.class));
-        expose(Key.get(SelectLoop.class, READ_LOOP.class));
         expose(Key.get(SelectLoop.class, ZEBRA_SERVER_LOOP.class));
 
         bind(SelectLoopService.class)

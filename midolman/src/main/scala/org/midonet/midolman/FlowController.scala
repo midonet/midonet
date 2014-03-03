@@ -24,6 +24,7 @@ import org.midonet.midolman.DeduplicationActor.ApplyFlow
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.ErrorHandlingCallback
 import org.midonet.midolman.flows.WildcardTablesProvider
+import org.midonet.midolman.io.DatapathConnectionPool
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.monitoring.metrics.FlowTablesGauge
 import org.midonet.midolman.monitoring.metrics.FlowTablesMeter
@@ -221,7 +222,9 @@ class FlowController extends Actor with ActorLogWithoutPath {
     var midolmanConfig: MidolmanConfig = null
 
     @Inject
-    var datapathConnection: OvsDatapathConnection = null
+    var datapathConnPool: DatapathConnectionPool = null
+
+    def datapathConnection(flowMatch: FlowMatch) = datapathConnPool.get(flowMatch.hashCode)
 
     @Inject
     var metricsRegistry: MetricsRegistry = null
@@ -471,7 +474,7 @@ class FlowController extends Actor with ActorLogWithoutPath {
                 return
             }
 
-            datapathConnection.flowsDelete(datapath, flow,
+            datapathConnection(flow.getMatch).flowsDelete(datapath, flow,
                 new NetlinkCallback[Flow] {
                     override def onTimeout() {
                         log.warning("Got a timeout when trying to remove " +
@@ -517,7 +520,7 @@ class FlowController extends Actor with ActorLogWithoutPath {
         def getFlow(flowMatch: FlowMatch, flowCallback: Callback1[Flow] ) {
             log.debug("requesting flow for flow match: {}", flowMatch)
 
-                datapathConnection.flowsGet(datapath, flowMatch,
+                datapathConnection(flowMatch).flowsGet(datapath, flowMatch,
                 new ErrorHandlingCallback[Flow] {
 
                     def handleError(ex: NetlinkException, timeout: Boolean) {

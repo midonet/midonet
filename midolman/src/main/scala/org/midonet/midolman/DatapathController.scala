@@ -3,16 +3,20 @@
  */
 package org.midonet.midolman
 
-import akka.actor._
-import akka.event.LoggingAdapter
-import akka.util.Timeout
-
-import com.google.inject.Inject
-
 import java.lang.{Boolean => JBoolean, Integer => JInteger}
 import java.net.InetAddress
 import java.nio.ByteBuffer
 import java.util.{Collection => JCollection, List => JList, Set => JSet, UUID}
+import scala.collection.JavaConverters._
+import scala.collection.mutable
+import scala.collection.{Set => ROSet}
+import scala.concurrent.duration._
+
+import akka.actor._
+import akka.event.LoggingAdapter
+import akka.util.Timeout
+import com.google.inject.Inject
+import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.client
 import org.midonet.cluster.client.Port
@@ -21,8 +25,10 @@ import org.midonet.cluster.data.TunnelZone.{HostConfig => TZHostConfig}
 import org.midonet.cluster.data.zones._
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath._
+import org.midonet.midolman.guice.datapath.DatapathModule._
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.host.scanner.InterfaceScanner
+import org.midonet.midolman.io.{DatapathConnectionPool, ManagedDatapathConnection}
 import org.midonet.midolman.monitoring.MonitoringActor
 import org.midonet.midolman.services.HostIdProviderService
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.{HostRequest, TunnelZoneRequest}
@@ -41,12 +47,6 @@ import org.midonet.packets.TCP
 import org.midonet.sdn.flows.WildcardFlow
 import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.util.collection.Bimap
-import org.slf4j.LoggerFactory
-
-import scala.collection.JavaConverters._
-import scala.collection.mutable
-import scala.collection.{Set => ROSet}
-import scala.concurrent.duration._
 
 
 trait UnderlayResolver {
@@ -331,7 +331,14 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
     override protected implicit val system = context.system
 
     @Inject
-    val datapathConnection: OvsDatapathConnection = null
+    val dpConnPool: DatapathConnectionPool = null
+
+    @Inject
+    @UPCALL_DATAPATH_CONNECTION
+    val upcallManagedConnection: ManagedDatapathConnection = null
+
+    def upcallConnection = upcallManagedConnection.getConnection
+    def datapathConnection = if (dpConnPool != null) dpConnPool.get(0) else null
 
     @Inject
     val hostService: HostIdProviderService = null
@@ -779,7 +786,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
             pendingUpdateCount += 1
         log.info("creating port: {} (by request of: {})", request.port, caller)
 
-        datapathConnection.portsCreate(datapath, request.port,
+        upcallConnection.portsCreate(datapath, request.port,
             new ErrorHandlingCallback[DpPort] {
                 def onSuccess(data: DpPort) {
                     caller ! DpPortSuccess(request, data)

@@ -10,8 +10,6 @@ import com.google.inject.*;
 import org.midonet.midolman.services.SelectLoopService;
 import org.midonet.util.eventloop.*;
 
-import static org.midonet.midolman.guice.reactor.ReactorModule.WRITE_LOOP;
-import static org.midonet.midolman.guice.reactor.ReactorModule.READ_LOOP;
 import static org.midonet.midolman.guice.reactor.ReactorModule.ZEBRA_SERVER_LOOP;
 
 /**
@@ -26,20 +24,10 @@ public class MockReactorModule extends PrivateModule {
             .asEagerSingleton();
 
         bind(SelectLoop.class)
-                .annotatedWith(WRITE_LOOP.class)
-                .toProvider(MockSelectLoopProvider.class)
-                .in(Singleton.class);
-        bind(SelectLoop.class)
-                .annotatedWith(READ_LOOP.class)
-                .toProvider(MockSelectLoopProvider.class)
-                .in(Singleton.class);
-        bind(SelectLoop.class)
                 .annotatedWith(ZEBRA_SERVER_LOOP.class)
                 .toProvider(MockSelectLoopProvider.class)
                 .in(Singleton.class);
 
-        expose(Key.get(SelectLoop.class, WRITE_LOOP.class));
-        expose(Key.get(SelectLoop.class, READ_LOOP.class));
         expose(Key.get(SelectLoop.class, ZEBRA_SERVER_LOOP.class));
 
         bind(SelectLoopService.class)

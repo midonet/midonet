@@ -2,12 +2,14 @@
 
 package org.midonet.midolman
 
+import scala.collection.JavaConversions._
 import akka.actor._
 import akka.event.LoggingReceive
 import javax.inject.Inject
 
 import org.midonet.midolman.logging.ActorLogWithoutPath
-import org.midonet.odp.protos.OvsDatapathConnection
+import org.midonet.midolman.guice.datapath.DatapathModule.UPCALL_DATAPATH_CONNECTION
+import org.midonet.midolman.io.{ManagedDatapathConnection, DatapathConnectionPool}
 import org.midonet.util.BatchCollector
 
 object NetlinkCallbackDispatcher extends Referenceable {
@@ -17,11 +19,21 @@ object NetlinkCallbackDispatcher extends Referenceable {
 class NetlinkCallbackDispatcher extends Actor with ActorLogWithoutPath {
     case class _processCallbacks(callbacks: List[Array[Runnable]])
 
-    @Inject var datapathConnection: OvsDatapathConnection = null
+    @Inject
+    var datapathConnPool: DatapathConnectionPool = null
+
+    @Inject
+    @UPCALL_DATAPATH_CONNECTION
+    var upcallManagedConnection: ManagedDatapathConnection = null
+
+    def upcallConnection = upcallManagedConnection.getConnection
 
     override def preStart() {
         super.preStart()
-        installCallbackDispatcher()
+        upcallConnection.setCallbackDispatcher(makeBatchCollector)
+        datapathConnPool.getAll foreach {
+            case conn => conn.setCallbackDispatcher(makeBatchCollector)
+        }
     }
 
     private def runBatch(batch: Array[Runnable]) {
@@ -52,37 +64,34 @@ class NetlinkCallbackDispatcher extends Actor with ActorLogWithoutPath {
             runBatch(head)
     }
 
-    private def installCallbackDispatcher() = {
-        log.info("Installing Netlink callback dispatcher")
-        datapathConnection.setCallbackDispatcher(
-                new BatchCollector[Runnable] {
-                    val BATCH_SIZE = 8
-                    var allCBs: List[Array[Runnable]] = Nil
-                    var currentCBs: Array[Runnable] = new Array[Runnable](BATCH_SIZE)
-                    var cursor = 0
+    private def makeBatchCollector =
+        new BatchCollector[Runnable] {
+            val BATCH_SIZE = 8
+            var allCBs: List[Array[Runnable]] = Nil
+            var currentCBs: Array[Runnable] = new Array[Runnable](BATCH_SIZE)
+            var cursor = 0
 
-                    private def cycle() {
-                        allCBs ::= currentCBs
-                        currentCBs = new Array[Runnable](BATCH_SIZE)
-                        cursor = 0
-                    }
+            private def cycle() {
+                allCBs ::= currentCBs
+                currentCBs = new Array[Runnable](BATCH_SIZE)
+                cursor = 0
+            }
 
-                    override def endBatch() {
-                        if (cursor > 0)
-                            cycle()
+            override def endBatch() {
+                if (cursor > 0)
+                    cycle()
 
-                        if (allCBs.size > 0) {
-                            self ! _processCallbacks(allCBs)
-                            allCBs = Nil
-                        }
-                    }
+                if (allCBs.size > 0) {
+                    self ! _processCallbacks(allCBs)
+                    allCBs = Nil
+                }
+            }
 
-                    override def submit(r: Runnable) {
-                        currentCBs(cursor) = r
-                        cursor += 1
-                        if (cursor == BATCH_SIZE)
-                            cycle()
-                    }
-            })
-    }
+            override def submit(r: Runnable) {
+                currentCBs(cursor) = r
+                cursor += 1
+                if (cursor == BATCH_SIZE)
+                    cycle()
+            }
+        }
 }
