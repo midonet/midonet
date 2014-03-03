@@ -265,8 +265,4 @@ private class MockIpMacMap(val map: Map[IPv4Addr, MAC])
             case None => null
         }
     }
-
-    override def notify(cb: Callback3[IPv4Addr, MAC, MAC]) {
-        // Not implemented
-    }
 }
