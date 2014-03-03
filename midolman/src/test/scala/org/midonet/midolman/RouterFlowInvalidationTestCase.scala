@@ -131,7 +131,6 @@ class RouterFlowInvalidationTestCase extends MidolmanTestCase with RouterHelper
     //    normally
     def testFlowInFlightInvalidation() {
         val datapath = flowController().underlyingActor.datapath
-        val dpconn = flowController().underlyingActor.datapathConnection
         val dpFlowProbe = newProbe()
         actors().eventStream.subscribe(dpFlowProbe.ref, classOf[FlowAdded])
         actors().eventStream.subscribe(dpFlowProbe.ref, classOf[FlowRemoved])
@@ -142,7 +141,8 @@ class RouterFlowInvalidationTestCase extends MidolmanTestCase with RouterHelper
         val tag = "tun_id:7001"
         val tags = ROSet[Any](tag)
 
-        dpconn.futures.flowsCreate(datapath, dpflow)
+        val dpconn = flowController().underlyingActor.datapathConnection(dpflow.getMatch)
+        dpconn.flowsCreate(datapath, dpflow)
         dpFlowProbe.expectMsgClass(classOf[FlowAdded])
         FlowController ! AddWildcardFlow(wflow, Some(dpflow), ROSet.empty, tags)
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])

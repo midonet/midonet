@@ -20,11 +20,10 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.cache.Cache
 import org.midonet.cluster.DataClient
-import org.midonet.midolman.datapath.ErrorHandlingCallback
 import org.midonet.midolman.guice.CacheModule.NAT_CACHE
 import org.midonet.midolman.guice.CacheModule.TRACE_INDEX
 import org.midonet.midolman.guice.CacheModule.TRACE_MESSAGES
-import org.midonet.midolman.guice.datapath.DatapathModule.SIMULATION_THROTTLING_GUARD
+import org.midonet.midolman.guice.datapath.DatapathModule._
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.rules.Condition
@@ -40,6 +39,7 @@ import org.midonet.packets.Ethernet
 import org.midonet.util.BatchCollector
 import org.midonet.util.throttling.ThrottlingGuard
 import org.midonet.sdn.flows.WildcardMatch
+import org.midonet.midolman.io.{DatapathConnectionPool, ManagedDatapathConnection}
 
 object DeduplicationActor extends Referenceable {
     override val Name = "DeduplicationActor"
@@ -71,7 +71,15 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath
     import PacketWorkflow._
     import VirtualTopologyActor.ConditionListRequest
 
-    @Inject var datapathConnection: OvsDatapathConnection = null
+    @Inject
+    var dpConnPool: DatapathConnectionPool = null
+
+    @Inject @UPCALL_DATAPATH_CONNECTION
+    var upcallManagedConnection: ManagedDatapathConnection = null
+
+    def upcallConnection = upcallManagedConnection.getConnection
+    def datapathConn(packet: Packet) = dpConnPool.get(packet.getMatch.hashCode)
+
     @Inject var clusterDataClient: DataClient = null
     @Inject @Nullable @NAT_CACHE var connectionCache: Cache = null
     @Inject @TRACE_MESSAGES var traceMessageCache: Cache = null
@@ -227,8 +235,9 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath
 
         val wcMatch = WildcardMatch.fromFlowMatch(packet.getMatch)
 
-        PacketWorkflow(datapathConnection, dpState, datapath, clusterDataClient,
-                       packet, wcMatch, cookieOrEgressPort, parentCookie)
+        PacketWorkflow(datapathConn(packet), dpState, datapath,
+                clusterDataClient, packet, wcMatch, cookieOrEgressPort,
+                parentCookie)
         {
             val expiry = Platform.currentTime + packetSimulatorExpiry
             new Coordinator(wcMatch, packet.getPacket, cookie, egressPort,
@@ -307,7 +316,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath
         if (!packet.getActions.isEmpty) {
             log.debug("Sending pended packet {} for cookie {}", packet, cookie)
             try {
-                datapathConnection.packetsExecute(datapath, packet)
+                datapathConn(packet).packetsExecute(datapath, packet)
             } catch {
                 case e: NetlinkException => log.info("Failed to execute packet: {}", e)
             }
@@ -317,7 +326,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath
 
     private def installPacketInHook() = {
          log.info("Installing packet in handler in the DDA")
-         datapathConnection.futures.datapathsSetNotificationHandler(datapath,
+         upcallConnection.futures.datapathsSetNotificationHandler(datapath,
              new BatchCollector[Packet] {
                  val BATCH_SIZE = 16
                  var packets = new Array[Packet](BATCH_SIZE)

@@ -25,12 +25,13 @@ import org.midonet.cache.Cache;
 import org.midonet.midolman.*;
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.guice.datapath.DatapathModule;
+import org.midonet.midolman.io.DatapathConnectionPool;
+import org.midonet.midolman.io.ManagedDatapathConnection;
 import org.midonet.midolman.monitoring.MonitoringActor;
 import org.midonet.midolman.routingprotocols.RoutingManagerActor;
 import org.midonet.midolman.services.HostIdProviderService;
 import org.midonet.midolman.services.MidolmanActorsService;
 import org.midonet.midolman.topology.*;
-import org.midonet.odp.protos.OvsDatapathConnection;
 import org.midonet.util.throttling.ThrottlingGuard;
 
 import static org.midonet.midolman.guice.CacheModule.NAT_CACHE;
@@ -66,7 +67,9 @@ public class MidolmanActorsModule extends PrivateModule {
 
         requireBinding(MidolmanConfig.class);
         requireBinding(Key.get(Cache.class, NAT_CACHE.class));
-        requireBinding(OvsDatapathConnection.class);
+        requireBinding(DatapathConnectionPool.class);
+        requireBinding(Key.get(ManagedDatapathConnection.class,
+                               DatapathModule.UPCALL_DATAPATH_CONNECTION.class));
         requireBinding(HostIdProviderService.class);
         requireBinding(HostConfig.class);
         requireBinding(Key.get(ThrottlingGuard.class,
