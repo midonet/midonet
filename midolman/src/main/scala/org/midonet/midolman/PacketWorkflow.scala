@@ -12,6 +12,7 @@ import scala.collection.JavaConverters._
 import scala.collection.{Set => ROSet, mutable}
 import scala.concurrent._
 import scala.reflect.ClassTag
+import scala.util.{Success, Failure}
 
 import akka.actor._
 import akka.event.{Logging, LoggingAdapter}
@@ -19,23 +20,18 @@ import akka.util.Timeout
 
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.client.Port
-import org.midonet.midolman.datapath.ErrorHandlingCallback
 import org.midonet.midolman.simulation.DhcpImpl
 import org.midonet.midolman.topology.FlowTagger
 import org.midonet.midolman.topology.VirtualToPhysicalMapper
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.netlink.exceptions.NetlinkException
-import org.midonet.netlink.exceptions.NetlinkException.ErrorCode
-import org.midonet.netlink.{Callback => NetlinkCallback}
+import org.midonet.odp.{Packet, Datapath, Flow, FlowMatch}
 import org.midonet.odp.flows.{FlowKey, FlowKeyUDP, FlowAction}
 import org.midonet.odp.protos.OvsDatapathConnection
-import org.midonet.odp.{Packet, Datapath, Flow, FlowMatch}
 import org.midonet.packets._
 import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPortSet
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
-import org.midonet.util.concurrent._
 import org.midonet.util.functors.Callback0
-import java.util.concurrent.atomic.AtomicBoolean
 
 trait PacketHandler {
 
@@ -152,111 +148,69 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
         }
     }
 
-    private def noOpCallback = new NetlinkCallback[Flow] {
-        def onSuccess(dpFlow: Flow) {}
-        def onTimeout() {}
-        def onError(ex: NetlinkException) {}
-    }
-
-    private def flowAddedCallback(flow: Flow,
+    private def notifyFlowAdded(flow: Flow,
                                   newWildFlow: Option[WildcardFlow],
                                   tags: ROSet[Any],
-                                  removalCallbacks: ROSet[Callback0])
-    : (Future[Boolean], NetlinkCallback[Flow]) = {
-        val flowPromise = promise[Boolean]()
-        val callback = new NetlinkCallback[Flow] {
-            def onSuccess(dpFlow: Flow) {
-                log.debug("Successfully created flow for {}", cookieStr)
-                newWildFlow match {
-                    case None =>
-                        FlowController ! FlowAdded(dpFlow, wcMatch)
-                    case Some(wf) =>
-                        FlowController !
-                                AddWildcardFlow(wf, Some(dpFlow),
-                                    removalCallbacks, tags, lastInvalidation)
-                }
-                DeduplicationActor ! ApplyFlow(dpFlow.getActions, cookie)
-                flowPromise success true
-            }
-
-            def onTimeout() {
-                log.warning("Flow creation for {} timed out, deleting", cookieStr)
-                datapathConnection.flowsDelete(datapath, flow, noOpCallback)
+                                  removalCallbacks: ROSet[Callback0]) {
+        log.debug("Successfully created flow for {}", cookieStr)
+        newWildFlow match {
+            case None =>
+                FlowController ! FlowAdded(flow, wcMatch)
                 DeduplicationActor ! ApplyFlow(flow.getActions, cookie)
-                flowPromise success true
-            }
-
-            def onError(ex: NetlinkException) {
-                if (ex.getErrorCodeEnum == ErrorCode.EEXIST) {
-                    log.info("File exists while adding flow for {}", cookieStr)
-                    DeduplicationActor !
-                            ApplyFlow(flow.getActions, cookie)
-                    runCallbacks(removalCallbacks)
-                    flowPromise success true
-                } else {
-                    // NOTE(pino) - it'd be more correct to execute the
-                    // packets with the actions found in the flow that
-                    // failed to install  ...but, if the cause of the error
-                    // is a busy netlink channel then this policy is more
-                    // sensible.
-                    log.error("Error {} while adding flow for {}. " +
-                              "Dropping packets. The flow was {}",
-                              ex, cookieStr, flow)
-                    DeduplicationActor ! ApplyFlow(Seq.empty, cookie)
-                    flowPromise failure ex
-                }
-            }
+            case Some(wf) =>
+                val msg = AddWildcardFlow(wf, Some(flow), removalCallbacks,
+                                          tags, lastInvalidation)
+                FlowController ! msg
+                FlowController ! ApplyFlow(flow.getActions, cookie)
         }
-        (flowPromise.future, callback)
     }
 
     private def createFlow(wildFlow: WildcardFlow,
                            newWildFlow: Option[WildcardFlow] = None,
                            tags: ROSet[Any] = Set.empty,
-                           removalCallbacks: ROSet[Callback0] = Set.empty)
-    : Future[Boolean] = {
+                           removalCallbacks: ROSet[Callback0] = Set.empty) {
         log.debug("Creating flow {} for {}", wildFlow, cookieStr)
         val dpFlow = new Flow().setActions(wildFlow.getActions)
                                .setMatch(packet.getMatch)
-        val (future, callback) =
-            flowAddedCallback(dpFlow, newWildFlow, tags, removalCallbacks)
-        datapathConnection.flowsCreate(datapath, dpFlow, callback)
-        future
+        try {
+            datapathConnection.flowsCreate(datapath, dpFlow)
+            notifyFlowAdded(dpFlow, newWildFlow, tags, removalCallbacks)
+        } catch {
+            case e: NetlinkException =>
+                log.info("{} Failed to add flow packet: {}", cookieStr, e)
+                DeduplicationActor ! ApplyFlow(dpFlow.getActions, cookie)
+        }
     }
 
     private def addTranslatedFlow(wildFlow: WildcardFlow,
                                   tags: ROSet[Any],
-                                  removalCallbacks: ROSet[Callback0])
-    : Future[Boolean] = {
+                                  removalCallbacks: ROSet[Callback0]) {
 
         packet.releaseToken()
 
-        val flowFuture =
-            if (areTagsValid(tags))
-                handleValidFlow(wildFlow, tags, removalCallbacks)
-            else
-                handleObsoleteFlow(wildFlow, removalCallbacks)
+        if (areTagsValid(tags))
+            handleValidFlow(wildFlow, tags, removalCallbacks)
+        else
+            handleObsoleteFlow(wildFlow, removalCallbacks)
 
         executePacket(wildFlow.getActions)
-        flowFuture continue { _.isSuccess }
     }
 
     def areTagsValid(tags: ROSet[Any]) =
         FlowController.isTagSetStillValid(lastInvalidation, tags)
 
     private def handleObsoleteFlow(wildFlow: WildcardFlow,
-                           removalCallbacks: ROSet[Callback0]) = {
+                           removalCallbacks: ROSet[Callback0]) {
         log.debug("Skipping creation of obsolete flow {} for {}",
                   cookieStr, wildFlow.getMatch)
         if (cookie.isDefined)
             DeduplicationActor ! ApplyFlow(wildFlow.getActions, cookie)
         runCallbacks(removalCallbacks)
-        Future.successful(true)
     }
 
     private def handleValidFlow(wildFlow: WildcardFlow,
                                 tags: ROSet[Any],
-                                removalCallbacks: ROSet[Callback0]) =
+                                removalCallbacks: ROSet[Callback0]) {
         cookie match {
             case Some(_) if packet.getMatch.isUserSpaceOnly =>
                 log.debug("Adding wildcard flow {} for userspace only match",
@@ -265,7 +219,6 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
                     AddWildcardFlow(wildFlow, None, removalCallbacks,
                                     tags, lastInvalidation)
                 DeduplicationActor ! ApplyFlow(wildFlow.getActions, cookie)
-                Future.successful(true)
 
             case Some(_) if !packet.getMatch.isUserSpaceOnly =>
                 createFlow(wildFlow, Some(wildFlow), tags, removalCallbacks)
@@ -276,16 +229,15 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
                 FlowController !
                     AddWildcardFlow(wildFlow, None, removalCallbacks,
                                     tags, lastInvalidation)
-                Future.successful(true)
         }
+    }
 
     private def addTranslatedFlowForActions(
                             actions: Seq[FlowAction],
                             tags: ROSet[Any] = Set.empty,
                             removalCallbacks: ROSet[Callback0] = Set.empty,
                             hardExpirationMillis: Int = 0,
-                            idleExpirationMillis: Int = IDLE_EXPIRATION_MILLIS)
-    : Future[Boolean] = {
+                            idleExpirationMillis: Int = IDLE_EXPIRATION_MILLIS) {
 
         val wildFlow = WildcardFlow(
             wcmatch = wcMatch,
@@ -314,7 +266,8 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
         try {
             datapathConnection.packetsExecute(datapath, packet)
         } catch {
-            case e: NetlinkException => log.info("Failed to execute packet: {}", e)
+            case e: NetlinkException =>
+                log.info("{} Failed to execute packet: {}", cookieStr, e)
         }
     }
 
@@ -324,28 +277,26 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
         } else {
             FlowController.queryWildcardFlowTable(wcMatch) match {
                 case Some(wildflow) =>
-                  handleWildcardTableMatch(wildflow)
+                    handleWildcardTableMatch(wildflow)
+                    Future.successful(WildcardTableHit)
                 case None =>
-                  handleWildcardTableMiss()
+                    handleWildcardTableMiss()
             }
         }
 
-    def handleWildcardTableMatch(wildFlow: WildcardFlow): Future[PipelinePath] = {
+    def handleWildcardTableMatch(wildFlow: WildcardFlow) {
         log.debug("Packet {} matched a wildcard flow", cookieStr)
 
         packet.releaseToken()
 
-        val flowFuture = if (packet.getMatch.isUserSpaceOnly) {
+        if (packet.getMatch.isUserSpaceOnly) {
             log.debug("Won't add flow with userspace match {}", packet.getMatch)
             DeduplicationActor ! ApplyFlow(wildFlow.getActions, cookie)
-            Future.successful(true)
         } else {
             createFlow(wildFlow)
         }
 
         executePacket(wildFlow.getActions)
-
-        flowFuture.map { _ => WildcardTableHit }
     }
 
     private def handleWildcardTableMiss()
@@ -390,15 +341,15 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
                     // and apply it, checking for Action.ACCEPT.
                     applyOutboundFilters(
                         localPorts, portSet.id, wcMatch, Some(tags)
-                    ) flatMap {
-                        portIDs =>
+                    ) andThen {
+                        case Success(portIDs) =>
                             addTranslatedFlowForActions(
                                 towardsLocalDpPorts(List(action), portSet.id,
                                     portsForLocalPorts(portIDs), tags), tags)
                     }
                 }
-        } recoverWith {
-            case e =>
+        } andThen {
+            case Failure(e) =>
                 // for now, install a drop flow. We will invalidate
                 // it if the port comes up later on.
                 log.debug("PacketIn came from a tunnel port but the key does " +
@@ -432,9 +383,11 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
             case TemporaryDrop(tags, flowRemovalCallbacks) =>
                 addTranslatedFlowForActions(Nil, tags, flowRemovalCallbacks,
                                             TEMPORARY_DROP_MILLIS, 0)
+                Future.successful(true)
             case Drop(tags, flowRemovalCallbacks) =>
                 addTranslatedFlowForActions(Nil, tags, flowRemovalCallbacks,
                                             0, IDLE_EXPIRATION_MILLIS)
+                Future.successful(true)
         }) map {
             _ => Simulation
         }
@@ -475,10 +428,10 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
     def addVirtualWildcardFlow(flow: WildcardFlow,
                                flowRemovalCallbacks: ROSet[Callback0] = Set.empty,
                                tags: ROSet[Any] = Set.empty): Future[Boolean] = {
-        translateVirtualWildcardFlow(flow, tags) flatMap {
-            case (finalFlow, finalTags) =>
+        translateVirtualWildcardFlow(flow, tags) andThen {
+            case Success((finalFlow, finalTags)) =>
                 addTranslatedFlow(finalFlow, finalTags, flowRemovalCallbacks)
-        }
+        } map { _ => true }
     }
 
     private def handleDHCP(inPortId: UUID): Future[Boolean] = {
@@ -541,9 +494,10 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
             case ex =>
                 log.warning("failed to translate actions: {}", ex)
                 Nil
-        } map { a =>
-            executePacket(a)
-            true
+        } andThen {
+            case Success(a) => executePacket(a)
+        } map {
+            _ => true
         }
     }
 
