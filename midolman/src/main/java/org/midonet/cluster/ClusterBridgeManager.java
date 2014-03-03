@@ -369,27 +369,6 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
         public MAC get(final IPv4Addr ip) {
             return map.get(ip);
         }
-
-        // This notify() registers its callback directly with the underlying
-        // Map, so the callbacks are called from IpMacMap context
-        // and should perform ActorRef::tell or such to switch to the context
-        // appropriate for the callback's work.
-        @Override
-        public void notify(final Callback3<IPv4Addr, MAC, MAC> cb) {
-            reactorLoop.submit(new Runnable() {
-
-                @Override
-                public void run() {
-                    map.addWatcher(new ReplicatedMap.Watcher<IPv4Addr, MAC>() {
-                        @Override
-                        public void processChange(IPv4Addr key, MAC oldValue,
-                                                  MAC newValue) {
-                        cb.call(key, oldValue, newValue);
-                        }
-                    });
-                }
-            });
-        }
     }
 
     class LogicalPortWatcher implements Runnable {
