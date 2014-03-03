@@ -42,7 +42,7 @@ public class HostInterfaceWatcher implements Runnable {
     public void run() {
         isRunning = true;
 
-        if(hostId == null) {
+        if (hostId == null) {
             log.error("HostID is null, HostInterfaceWatcher will now exit!");
             return;
         }
@@ -53,9 +53,9 @@ public class HostInterfaceWatcher implements Runnable {
 
             long deadline = System.currentTimeMillis() +
                             configuration.getWaitTimeBetweenHostScans();
-            do {
+            while (isRunning && System.currentTimeMillis() < deadline) {
                 LockSupport.parkUntil(deadline);
-            } while (System.currentTimeMillis() < deadline);
+            }
         }
         log.info("Midolman host watcher thread stopped.");
     }
