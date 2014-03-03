@@ -195,11 +195,11 @@ object VirtualToPhysicalMapper extends Referenceable {
                 VirtualToPhysicalMapper.ask(req)(timeout milliseconds)
         }).mapTo[D](req.tag).andThen {
             case Failure(ex: ClassCastException) =>
-                log.error("Returning wrong type for request of {}",
+                log.error("Returning wrong type for request of " +
                           req.tag.runtimeClass.getSimpleName, ex)
             case Failure(ex) =>
-                log.error("Failed to get: {}",
-                          req.tag.runtimeClass.getSimpleName, ex)
+                log.error("Failed to get: " +
+                    req.tag.runtimeClass.getSimpleName, ex)
         }(ExecutionContext.callingThread)
     }
 
