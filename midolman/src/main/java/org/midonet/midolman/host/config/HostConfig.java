@@ -51,4 +51,12 @@ public interface HostConfig {
     @ConfigInt(key = "wait_time_gen_id", defaultValue = 1000)
     public int getWaitTimeForUniqueHostId();
 
+    /**
+     * Get the number of times to wait for the host ID
+     *
+     * @return the number of times to wait
+     */
+    @ConfigInt(key = "retries_gen_id", defaultValue = 5 * 60 * 1000)
+    public int getRetriesForUniqueHostId();
+
 }
