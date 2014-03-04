@@ -37,6 +37,8 @@ public class ZkManager {
 
     private final String basePath;
 
+    public static final int ZK_SEQ_NUM_LEN = 10;
+
     /**
      * Constructor.
      *
@@ -244,6 +246,33 @@ public class ZkManager {
             throw new StateAccessException(
                     "ZooKeeper thread interrupted while adding a sequential " +
                             "node to the path " + path + ": " + e.getMessage(), e);
+        }
+    }
+
+    public String addEphemeralSequential(String path, byte[] data)
+            throws StateAccessException {
+        try {
+            return zk.add(path + "/", data, CreateMode.EPHEMERAL_SEQUENTIAL);
+        } catch (NodeExistsException e) {
+            throw new StatePathExistsException(
+                    "ZooKeeper error occurred while adding a sequential " +
+                            "node to path " + path + ": " + e.getMessage(),
+                    basePath, e);
+        } catch (NoNodeException e) {
+            throw new NoStatePathException(
+                    "ZooKeeper error occurred while adding a sequential " +
+                            "node to path " + path + ": " + e.getMessage(),
+                    basePath, e);
+        } catch (KeeperException e) {
+            throw new StateAccessException(
+                    "ZooKeeper error occurred while adding a sequential " +
+                            "node to path " + path + ": " + e.getMessage(), e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new StateAccessException(
+                    "ZooKeeper thread interrupted while adding a sequential " +
+                            "node to the path " + path + ": " +
+                            e.getMessage(), e);
         }
     }
 

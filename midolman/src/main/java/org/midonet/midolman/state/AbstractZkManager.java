@@ -44,6 +44,46 @@ public abstract class AbstractZkManager {
         this.serializer = serializer;
     }
 
+    public static Integer getSequenceNumberFromPath(String nodeName) {
+        if (nodeName.length() < ZkManager.ZK_SEQ_NUM_LEN) {
+            throw new IllegalArgumentException(
+                    "Invalid input, cannot parse " + nodeName);
+        }
+        String seqNum = nodeName.substring(
+                nodeName.length() - ZkManager.ZK_SEQ_NUM_LEN);
+        try {
+            return Integer.parseInt(seqNum);
+        } catch(NumberFormatException nfe) {
+            throw new IllegalArgumentException(
+                    "Could not parse a sequence number from node : " +
+                    nodeName);
+        }
+    }
+
+    /*
+     * Returns the path from sequenceNumberPaths which has the greatest
+     * sequence number which is less than seqNum, or null if
+     * sequenceNumberPaths contains no such path.
+     */
+    protected static String getNextLowerSequenceNumberPath(
+            Set<String> sequenceNumberPaths, Integer seqNum) {
+        Integer nextLowest = Integer.MIN_VALUE;
+        String nextLowestPath = null;
+        for (String seqNumPath : sequenceNumberPaths) {
+            Integer pathSeqNum = getSequenceNumberFromPath(seqNumPath);
+            if (pathSeqNum < seqNum && pathSeqNum > nextLowest) {
+                nextLowest = pathSeqNum;
+                nextLowestPath = seqNumPath;
+            }
+        }
+
+        if (nextLowest.equals(Integer.MIN_VALUE)) {
+            return null;
+        } else {
+            return nextLowestPath;
+        }
+    }
+
     protected Set<UUID> getChildUuids(String path)
             throws StateAccessException {
         Set<String> idStrs = zk.getChildren(path, null);
