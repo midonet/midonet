@@ -113,7 +113,7 @@ public class WildcardMatch implements Cloneable {
     // Extended fields only supported inside MM
     private short icmpId = 0;
     private byte[] icmpData;
-    private List<Short> vlanIds = new ArrayList<Short>();
+    private List<Short> vlanIds = new ArrayList<>();
 
     private boolean trackSeenFields = true;
 
@@ -182,7 +182,7 @@ public class WildcardMatch implements Cloneable {
         transportSource = that.transportSource;
         transportDestination = that.transportDestination;
         icmpId = that.icmpId;
-        vlanIds = new ArrayList<Short>(that.vlanIds);
+        vlanIds = new ArrayList<>(that.vlanIds);
         if (that.icmpData != null)
             this.setIcmpData(that.icmpData);
         else
@@ -284,18 +284,6 @@ public class WildcardMatch implements Cloneable {
         return this;
     }
 
-    @Deprecated
-    @Nonnull
-    public WildcardMatch setDataLayerSource(@Nonnull String macaddr) {
-        return setDataLayerSource(MAC.fromString(macaddr));
-    }
-
-    @Deprecated
-    @Nonnull
-    public WildcardMatch setDataLayerSource(@Nonnull MAC addr) {
-        return setEthernetSource(addr);
-    }
-
     @Nonnull
     public WildcardMatch unsetEthernetSource() {
         usedFields.remove(Field.EthernetSource);
@@ -307,13 +295,6 @@ public class WildcardMatch implements Cloneable {
     public MAC getEthernetSource() {
         fieldSeen(Field.EthernetSource);
         return ethernetSource;
-    }
-
-    @Deprecated
-    @Nullable
-    public byte[] getDataLayerSource() {
-        fieldSeen(Field.EthernetSource);
-        return ethernetSource.getAddress();
     }
 
     @Nonnull
@@ -328,18 +309,6 @@ public class WildcardMatch implements Cloneable {
         return this;
     }
 
-    @Deprecated
-    @Nonnull
-    public WildcardMatch setDataLayerDestination(@Nonnull String macAddr) {
-        return setDataLayerDestination(MAC.fromString(macAddr));
-    }
-
-    @Deprecated
-    @Nonnull
-    public WildcardMatch setDataLayerDestination(@Nonnull MAC addr) {
-        return setEthernetDestination(addr);
-    }
-
     @Nonnull
     public WildcardMatch unsetEthernetDestination() {
         usedFields.remove(Field.EthernetDestination);
@@ -351,13 +320,6 @@ public class WildcardMatch implements Cloneable {
     public MAC getEthernetDestination() {
         fieldSeen(Field.EthernetDestination);
         return ethernetDestination;
-    }
-
-    @Deprecated
-    @Nullable
-    public byte[] getDataLayerDestination() {
-        fieldSeen(Field.EthernetDestination);
-        return ethernetDestination.getAddress();
     }
 
     @Nonnull
@@ -378,18 +340,6 @@ public class WildcardMatch implements Cloneable {
     public Short getEtherType() {
         fieldSeen(Field.EtherType);
         return usedFields.contains(Field.EtherType) ? etherType : null;
-    }
-
-    @Deprecated
-    @Nonnull
-    public WildcardMatch setDataLayerType(short dlType) {
-        return setEtherType(dlType);
-    }
-
-    @Deprecated
-    public short getDataLayerType() {
-        fieldSeen(Field.EtherType);
-        return usedFields.contains(Field.EtherType) ? etherType : 0;
     }
 
     @Nonnull
@@ -451,15 +401,9 @@ public class WildcardMatch implements Cloneable {
     }
 
     @Nullable
-    public Byte getNetworkProtocolObject() {
+    public Byte getNetworkProtocol() {
         fieldSeen(Field.NetworkProtocol);
         return usedFields.contains(Field.NetworkProtocol) ? networkProtocol : null;
-    }
-
-    @Deprecated
-    public byte getNetworkProtocol() {
-        fieldSeen(Field.NetworkProtocol);
-        return networkProtocol;
     }
 
     @Nullable
@@ -468,23 +412,11 @@ public class WildcardMatch implements Cloneable {
         return usedFields.contains(Field.NetworkTOS) ? networkTOS : null;
     }
 
-    @Deprecated
-    public byte getNetworkTypeOfService() {
-        fieldSeen(Field.NetworkTOS);
-        return usedFields.contains(Field.NetworkTOS) ? networkTOS : 0;
-    }
-
     @Nonnull
     public WildcardMatch setNetworkTOS(byte tos) {
         usedFields.add(Field.NetworkTOS);
         this.networkTOS = tos;
         return this;
-    }
-
-    @Deprecated
-    @Nonnull
-    public WildcardMatch setNetworkTypeOfService(byte tos) {
-        return setNetworkTOS(tos);
     }
 
     @Nonnull
@@ -543,15 +475,9 @@ public class WildcardMatch implements Cloneable {
     }
 
     @Nullable
-    public Integer getTransportSourceObject() {
+    public Integer getTransportSource() {
         fieldSeen(Field.TransportSource);
         return usedFields.contains(Field.TransportSource) ? transportSource : null;
-    }
-
-    @Deprecated
-    public int getTransportSource() {
-        fieldSeen(Field.TransportSource);
-        return transportSource;
     }
 
     @Nonnull
@@ -570,16 +496,10 @@ public class WildcardMatch implements Cloneable {
     }
 
     @Nullable
-    public Integer getTransportDestinationObject() {
+    public Integer getTransportDestination() {
         fieldSeen(Field.TransportDestination);
         return usedFields.contains(Field.TransportDestination) ?
             transportDestination : null;
-    }
-
-    @Deprecated
-    public int getTransportDestination() {
-        fieldSeen(Field.TransportDestination);
-        return transportDestination;
     }
 
     public WildcardMatch setIcmpIdentifier(Short identifier) {
