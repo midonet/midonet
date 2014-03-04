@@ -1,5 +1,5 @@
-/**
- * Copyright 2013 Midokura Pte Ltd.
+/*
+ * Copyright (c) 2013-2014 Midokura Europe SARL, All Rights Reserved.
  */
 package org.midonet.api.filter;
 
@@ -15,6 +15,7 @@ import org.midonet.util.Range;
 import org.midonet.util.StringUtil;
 
 import static org.midonet.packets.Unsigned.unsign;
+import static org.midonet.midolman.rules.Condition.NO_MASK;
 
 /* Trace class */
 public abstract class Condition extends UriResource {
@@ -53,8 +54,10 @@ public abstract class Condition extends UriResource {
     private Integer dlType;
     private boolean invDlType;
     private String dlSrc;
+    private String dlSrcMask;
     private boolean invDlSrc;
     private String dlDst;
+    private String dlDstMask;
     private boolean invDlDst;
     private int nwTos;
     private boolean invNwTos;
@@ -183,6 +186,16 @@ public abstract class Condition extends UriResource {
     }
 
     /**
+     * Gets the Data Layer Destination mask.
+     *
+     * @return
+     *     Data layer destination mask in the form "ffff.0000.0000"
+     */
+    public String getDlDstMask() {
+        return dlDstMask;
+    }
+
+    /**
      * Set the Data Layer Destination that this condition matches on
      *
      * @param dlDst
@@ -190,6 +203,18 @@ public abstract class Condition extends UriResource {
      */
     public void setDlDst(String dlDst) {
         this.dlDst = dlDst;
+    }
+
+    /**
+     * Set the Data Layer Destination mask. Bits that are set to zero
+     * in the mask will be ignored when comparing a packet's source
+     * MAC address against the condition's data layer source address.
+     *
+     * @param dlDstMask
+     *     Mask in the form "ffff.0000.0000" (ignores the lower 32 bits).
+     */
+    public void setDlDstMask(String dlDstMask) {
+        this.dlDstMask = dlDstMask;
     }
 
     /**
@@ -228,6 +253,16 @@ public abstract class Condition extends UriResource {
     }
 
     /**
+     * Gets the Data Layer Source mask.
+     *
+     * @return
+     *     Data layer source mask in the form "ffff.0000.0000"
+     */
+    public String getDlSrcMask() {
+        return dlSrcMask;
+    }
+
+    /**
      * Set the Data Layer Source address that this condition matches on
      *
      * @param dlSrc
@@ -235,6 +270,18 @@ public abstract class Condition extends UriResource {
      */
     public void setDlSrc(String dlSrc) {
         this.dlSrc = dlSrc;
+    }
+
+    /**
+     * Set the Data Layer Source mask. Bits that are set to zero in
+     * the mask will be ignored when comparing a packet's source MAC
+     * address against the condition's data layer source address.
+     *
+     * @param dlSrcMask
+     *     Mask in the form "ffff.0000.0000" (ignores the lower 32 bits).
+     */
+    public void setDlSrcMask(String dlSrcMask) {
+        this.dlSrcMask = dlSrcMask;
     }
 
     /**
@@ -505,9 +552,13 @@ public abstract class Condition extends UriResource {
         c.invDlType = this.isInvDlType();
         if (this.dlSrc != null)
             c.dlSrc = MAC.fromString(this.dlSrc);
+        if (this.dlSrcMask != null)
+            c.dlSrcMask = MAC.parseMask(this.dlSrcMask);
         c.invDlSrc = this.invDlSrc;
         if (this.dlDst != null)
             c.dlDst = MAC.fromString(this.dlDst);
+        if (this.dlDstMask != null)
+            c.dlDstMask = MAC.parseMask(this.dlDstMask);
         c.invDlDst = this.invDlDst;
         c.nwDstInv = this.isInvNwDst();
         if (this.getNwDstAddress() != null) {
@@ -581,8 +632,12 @@ public abstract class Condition extends UriResource {
         this.setDlType(c.dlType);
         if (null != c.dlSrc)
             this.setDlSrc(c.dlSrc.toString());
+        if (NO_MASK != c.dlSrcMask)
+            this.setDlSrcMask(MAC.maskToString(c.dlSrcMask));
         if (null != c.dlDst)
             this.setDlDst(c.dlDst.toString());
+        if (NO_MASK != c.dlDstMask)
+            this.setDlDstMask(MAC.maskToString(c.dlDstMask));
         if (null != c.nwDstIp) {
             this.setNwDstAddress(c.nwDstIp.getAddress().toString());
             this.setNwDstLength(c.nwDstIp.getPrefixLen());

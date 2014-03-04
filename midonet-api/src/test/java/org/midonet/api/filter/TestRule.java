@@ -1,6 +1,5 @@
 /*
- * Copyright 2011 Midokura KK
- * Copyright 2012 Midokura PTE LTD.
+ * Copyright (c) 2011-2014 Midokura Europe SARL, All Rights Reserved.
  */
 package org.midonet.api.filter;
 
@@ -12,17 +11,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.test.framework.JerseyTest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+import org.junit.runners.Suite;
+import org.midonet.api.rest_api.RestApiTestBase;
+import org.midonet.api.validation.MessageProperty;
 import org.midonet.packets.Unsigned;
-import org.midonet.util.Range;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static org.junit.Assert.assertEquals;
@@ -41,48 +39,63 @@ import org.midonet.packets.ARP;
 import static org.midonet.api.VendorMediaType.APPLICATION_RULE_COLLECTION_JSON;
 import static org.midonet.api.VendorMediaType.APPLICATION_RULE_JSON;
 
-@RunWith(Enclosed.class)
+@RunWith(Suite.class)
+@Suite.SuiteClasses({TestRule.TestRuleCreateBadRequest.class,
+        TestRule.TestMacFields.class, TestRule.TestRuleCrudSuccess.class})
 public class TestRule {
 
     private final static Logger log = LoggerFactory.getLogger(TestRule.class);
 
-    @RunWith(Parameterized.class)
-    public static class TestRuleCreateBadRequest extends JerseyTest {
+    public static abstract class TestRuleBase extends RestApiTestBase {
 
-        private final DtoRule rule;
-        private final String property;
-        private DtoWebResource dtoResource;
-        private Topology topology;
+        protected DtoWebResource dtoResource;
+        protected Topology topology;
+        protected DtoRuleChain chain1;
 
-        public TestRuleCreateBadRequest(DtoRule rule, String property) {
+        protected TestRuleBase() {
             super(FuncTest.appDesc);
-            this.rule = rule;
-            this.property = property;
         }
 
         @Before
         public void setUp() {
-            WebResource resource = resource();
-            dtoResource = new DtoWebResource(resource);
+            dtoResource = new DtoWebResource(resource());
 
-            // Create a chain
-            DtoRuleChain c1 = new DtoRuleChain();
-            c1.setName("chain1-name");
-            c1.setTenantId("tenant1-id");
+            DtoRuleChain chain = new DtoRuleChain();
+            chain.setName("chain1-name");
+            chain.setTenantId("tenant1-id");
 
-            topology = new Topology.Builder(dtoResource)
-                    .create("chain1", c1).build();
+            Topology.Builder builder = new Topology.Builder(dtoResource);
+            builder.create("chain1", chain);
+            extendTopology(builder);
+            topology = builder.build();
+
+            chain1 = topology.getChain("chain1");
+        }
+
+        protected void extendTopology(Topology.Builder builder) {
         }
 
         @After
         public void resetDirectory() throws Exception {
             StaticMockDirectory.clearDirectoryInstance();
         }
+    }
+
+    @RunWith(Parameterized.class)
+    public static class TestRuleCreateBadRequest extends TestRuleBase {
+
+        private final DtoRule rule;
+        private final String property;
+
+        public TestRuleCreateBadRequest(DtoRule rule, String property) {
+            this.rule = rule;
+            this.property = property;
+        }
 
         @Parameters
         public static Collection<Object[]> data() {
 
-            List<Object[]> params = new ArrayList<Object[]>();
+            List<Object[]> params = new ArrayList<>();
 
             // Null type
             DtoRule nullType = new DtoRule();
@@ -99,9 +112,6 @@ public class TestRule {
 
         @Test
         public void testBadInputCreate() {
-
-            DtoRuleChain chain1 = topology.getChain("chain1");
-
             DtoError error = dtoResource.postAndVerifyBadRequest(
                     chain1.getRules(), APPLICATION_RULE_JSON, rule);
             List<Map<String, String>> violations = error.getViolations();
@@ -109,38 +119,81 @@ public class TestRule {
         }
     }
 
+    public static class TestMacFields extends TestRuleBase {
+
+        @Test
+        public void testCreateWithBadDlSrc() {
+            DtoRule r = new DtoRule();
+            r.setType("accept");
+            r.setDlSrc("01:23:45:67:89:0ab");
+            DtoError error = dtoResource.postAndVerifyBadRequest(
+                    chain1.getRules(), APPLICATION_RULE_JSON, r);
+            assertErrorMatches(error, MessageProperty.MAC_ADDRESS_INVALID,
+                               r.getDlSrc());
+        }
+
+        @Test
+        public void testCreateWithBadDlDst() {
+            DtoRule r = new DtoRule();
+            r.setType("accept");
+            r.setDlDst("01:23:45:67:89:0ab");
+            DtoError error = dtoResource.postAndVerifyBadRequest(
+                    chain1.getRules(), APPLICATION_RULE_JSON, r);
+            assertErrorMatches(error, MessageProperty.MAC_ADDRESS_INVALID,
+                               r.getDlDst());
+        }
+
+        @Test
+        public void testCreateWithBadDlSrcMask() {
+            DtoRule r = new DtoRule();
+            r.setType("accept");
+            r.setDlSrcMask("fffff.0000.0000");
+            DtoError error = dtoResource.postAndVerifyBadRequest(
+                    chain1.getRules(), APPLICATION_RULE_JSON, r);
+            assertErrorMatches(error, MessageProperty.MAC_MASK_INVALID);
+        }
+
+        @Test
+        public void testCreateWithBadDlDstMask() {
+            DtoRule r = new DtoRule();
+            r.setType("accept");
+            r.setDlDstMask("fffff.0000.0000");
+            DtoError error = dtoResource.postAndVerifyBadRequest(
+                    chain1.getRules(), APPLICATION_RULE_JSON, r);
+            assertErrorMatches(error, MessageProperty.MAC_MASK_INVALID);
+        }
+
+        @Test
+        public void testCreateWithValidMacsAndMacMasks() {
+            DtoRule r = new DtoRule();
+            r.setType("accept");
+            r.setDlSrc("01:02:03:04:05:06");
+            r.setDlSrcMask("ffff.ffff.0000");
+            r.setDlDst("10:20:30:40:50:60");
+            r.setDlDstMask("0000.ffff.ffff");
+            DtoRule created = dtoResource.postAndVerifyCreated(
+                    chain1.getRules(), APPLICATION_RULE_JSON, r, DtoRule.class);
+            assertEquals(r.getDlSrc(), created.getDlSrc());
+            assertEquals(r.getDlSrcMask(), created.getDlSrcMask());
+            assertEquals(r.getDlDst(), created.getDlDst());
+            assertEquals(r.getDlDstMask(), created.getDlDstMask());
+        }
+    }
+
     @RunWith(Parameterized.class)
-    public static class TestRuleCrudSuccess extends JerseyTest {
+    public static class TestRuleCrudSuccess extends TestRuleBase {
 
         private DtoRule rule;
-        private DtoWebResource dtoResource;
-        private Topology topology;
         private String portGroupTag;
 
         public TestRuleCrudSuccess(DtoRule rule, String portGroupTag) {
-            super(FuncTest.appDesc);
             this.rule = rule;
             this.portGroupTag = portGroupTag;
         }
 
         @Before
         public void setUp() {
-            WebResource resource = resource();
-            dtoResource = new DtoWebResource(resource);
-
-            // Create a chain
-            DtoRuleChain c1 = new DtoRuleChain();
-            c1.setName("chain1-name");
-            c1.setTenantId("tenant1-id");
-
-            // Create a port group
-            DtoPortGroup pg1 = new DtoPortGroup();
-            pg1.setName("portgroup1-name");
-            pg1.setTenantId("tenant1-id");
-
-            topology = new Topology.Builder(dtoResource)
-                    .create("chain1", c1)
-                    .create("portgroup1", pg1).build();
+            super.setUp();
 
             // Set the port group to the rule if it's instructed to do so.
             if (portGroupTag != null) {
@@ -149,9 +202,14 @@ public class TestRule {
             }
         }
 
-        @After
-        public void resetDirectory() throws Exception {
-            StaticMockDirectory.clearDirectoryInstance();
+        @Override
+        protected void extendTopology(Topology.Builder builder) {
+            // Create a port group
+            DtoPortGroup pg1 = new DtoPortGroup();
+            pg1.setName("portgroup1-name");
+            pg1.setTenantId("tenant1-id");
+
+            builder.create("portgroup1", pg1);
         }
 
         @Parameterized.Parameters
@@ -163,7 +221,7 @@ public class TestRule {
                     new DtoNatTarget("192.168.100.1", "192.168.100.6", 80, 8080),
                     new DtoNatTarget("192.168.100.7", "192.168.100.10", 8081,
                             8089) };
-            Map<String, String> properties = new HashMap<String, String>();
+            Map<String, String> properties = new HashMap<>();
             properties.put("foo", "bar");
             properties.put("baz", "boo");
 
@@ -180,8 +238,8 @@ public class TestRule {
             dnatRule.setNwDstAddress("192.168.100.10");
             dnatRule.setNwDstLength(32);
             dnatRule.setInvNwDst(true);
-            dnatRule.setTpSrc(new DtoRule.DtoRange<Integer>(1024, 3000));
-            dnatRule.setTpDst(new DtoRule.DtoRange<Integer>(1024, 3000));
+            dnatRule.setTpSrc(new DtoRule.DtoRange<>(1024, 3000));
+            dnatRule.setTpDst(new DtoRule.DtoRange<>(1024, 3000));
             dnatRule.setInvTpDst(true);
             dnatRule.setType("dnat");
             dnatRule.setFlowAction("accept");
@@ -203,8 +261,8 @@ public class TestRule {
             revDnatRule.setNwDstAddress("192.168.100.10");
             revDnatRule.setNwDstLength(32);
             revDnatRule.setInvNwDst(true);
-            revDnatRule.setTpSrc(new DtoRule.DtoRange<Integer>(1024, 3000));
-            revDnatRule.setTpDst(new DtoRule.DtoRange<Integer>(1024, 3000));
+            revDnatRule.setTpSrc(new DtoRule.DtoRange<>(1024, 3000));
+            revDnatRule.setTpDst(new DtoRule.DtoRange<>(1024, 3000));
             revDnatRule.setInvTpDst(true);
             revDnatRule.setType("rev_dnat");
             revDnatRule.setFlowAction("accept");
@@ -226,8 +284,8 @@ public class TestRule {
             snatRule.setNwDstAddress("192.168.100.10");
             snatRule.setNwDstLength(32);
             snatRule.setInvNwDst(true);
-            snatRule.setTpSrc(new DtoRule.DtoRange<Integer>(1024, 3000));
-            snatRule.setTpDst(new DtoRule.DtoRange<Integer>(1024, 3000));
+            snatRule.setTpSrc(new DtoRule.DtoRange<>(1024, 3000));
+            snatRule.setTpDst(new DtoRule.DtoRange<>(1024, 3000));
             snatRule.setInvTpDst(true);
             snatRule.setType("snat");
             snatRule.setFlowAction("accept");
@@ -249,8 +307,8 @@ public class TestRule {
             revSnatRule.setNwDstAddress("192.168.100.10");
             revSnatRule.setNwDstLength(32);
             revSnatRule.setInvNwDst(true);
-            revSnatRule.setTpSrc(new DtoRule.DtoRange<Integer>(1024, 3000));
-            revSnatRule.setTpDst(new DtoRule.DtoRange<Integer>(1024, 3000));
+            revSnatRule.setTpSrc(new DtoRule.DtoRange<>(1024, 3000));
+            revSnatRule.setTpDst(new DtoRule.DtoRange<>(1024, 3000));
             revSnatRule.setInvTpDst(true);
             revSnatRule.setType("rev_snat");
             revSnatRule.setFlowAction("accept");
@@ -282,7 +340,6 @@ public class TestRule {
         @Test
         public void testCreateGetListDelete() {
 
-            DtoRuleChain chain1 = topology.getChain("chain1");
             rule.setChainId(chain1.getId());
 
             // Verify that there is nothing

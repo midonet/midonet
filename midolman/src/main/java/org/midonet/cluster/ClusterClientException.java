@@ -6,6 +6,7 @@ package org.midonet.cluster;
 
 public class ClusterClientException extends Exception {
 
+    private static final long serialVersionUID = -2929352248590064787L;
 
     public ClusterClientException() {
         super();
