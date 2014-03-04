@@ -8,11 +8,12 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.collection.mutable
 
 /**
- * A monad that very similar to Try, but where the semantics for Failure are
+ * A monad that is very similar to Try, but whose semantics for Failure are
  * not based on a Throwable but a Future. An Urgent represents a
- * computation that will succeed only it's immediately available, or else
- * provide the Future that encapsulates the computation that wasn't ready in
- * time to provide the final result.
+ * computation that will succeed only if the resources required to perform it
+ * are immediately available, or else provide the Future that encapsulates the
+ * computation of the resource that had not been completed in time for the
+ * Urgent to reach the final result.
  */
 sealed trait Urgent[+T] {
 
@@ -20,10 +21,12 @@ sealed trait Urgent[+T] {
      * @return whether the Urgent has been able to complete.
      */
     def isReady: Boolean
+    def notReady: Boolean = !isReady
 
     /**
-     * @return the final result
-     * @throws UnavailableException when it wasn't possible to compute the value
+     * @return the final result.
+     * @throws UnavailableException when the value could not be computed due to
+     *                              resources not being available in time.
      */
     def get: T
     def flatMap[U](f: T => Urgent[U]): Urgent[U]
@@ -45,6 +48,8 @@ object Urgent {
      * Gives you the Urgent[Seq[T]] with either the final sequence
      * containing all the computed T's in the given sequence if they are all
      * Ready, or a NotYet with the first future.
+     *
+     * Note that the results Seq is expected to NOT contain any nulls.
      */
     def flatten[T](results: Seq[Urgent[T]])(implicit ec: ExecutionContext)
     : Urgent[Seq[T]] = {
@@ -53,8 +58,9 @@ object Urgent {
         val it = results.iterator
         while (it.hasNext) {
             it next() match {
+                case null => throw new IllegalArgumentException("Null Urgent")
                 case Ready(t) => ready.append(t)
-                case n@NotYet(ft) => pending.append(n.ft)
+                case n@NotYet(ft) => pending.append(ft)
             }
         }
         if (pending.isEmpty) Ready(ready)
@@ -65,26 +71,31 @@ object Urgent {
 }
 
 /**
- * All the resources required to perform the computation were ready so the
- * result t was produced
- * @param t the result of the computation
+ * All the resources required to perform the computation were ready in time so
+ * the final result t was produced.
+ *
+ * @param t the result of the computation.
  */
 final case class Ready[+T](t: T) extends Urgent[T] {
     override def isReady = true
     override def get = t
     override def flatMap[U](f: T => Urgent[U]): Urgent[U] = f(t)
     override def map[U](f: T => U): Urgent[U] = Urgent.ready(f(t))
+    override def toString: String = s"Ready[${t.toString}]"
 }
 
 /**
- * A resource required to perform the computation was not immediately available
- * @param ft the Future with the missing resource
+ * A resource required to perform the computation of the final result was not
+ * available in time.
+ *
+ * @param ft the Future with the incomplete resource.
  */
 final case class NotYet[+T](ft: Future[T]) extends Urgent[T] {
     override def isReady = false
     override def get = throw new UnavailableException(ft)
     override def flatMap[U](f: T => Urgent[U]): Urgent[U] = this.asInstanceOf[Urgent[U]]
     override def map[U](f: T => U): Urgent[U] = this.asInstanceOf[NotYet[U]]
+    override def toString: String = s"NotYet[${ft.toString}]"
 }
 
 object UrgentConversions {
