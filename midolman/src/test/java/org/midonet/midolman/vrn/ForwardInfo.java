@@ -10,14 +10,12 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import scala.Int;
 
 import org.midonet.cache.Cache;
 import org.midonet.midolman.rules.ChainPacketContext;
 import org.midonet.packets.Ethernet;
 import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPv4;
-import org.midonet.packets.Net;
 import org.midonet.packets.TCP;
 import org.midonet.packets.UDP;
 import org.midonet.sdn.flows.WildcardMatch;
@@ -112,6 +110,7 @@ public class ForwardInfo implements ChainPacketContext {
     }
 
     @Override
+    @SuppressWarnings("ConstantConditions")
     public boolean isForwardFlow() {
         // Connection tracking:  isConnTracked starts out as false.
         // If isForwardFlow is called, isConnTracked becomes true and
@@ -131,9 +130,9 @@ public class ForwardInfo implements ChainPacketContext {
 
         // Non-IPv4 and and non-(TCP or UDP) packets aren't connection
         // tracked, always treated as forward flows.
-        if (flowMatch.getDataLayerType() != IPv4.ETHERTYPE ||
-                (flowMatch.getNetworkProtocol() != TCP.PROTOCOL_NUMBER &&
-                 flowMatch.getNetworkProtocol() != UDP.PROTOCOL_NUMBER)) {
+        if (IPv4.ETHERTYPE != flowMatch.getEtherType() ||
+            (TCP.PROTOCOL_NUMBER != flowMatch.getNetworkProtocol() &&
+             UDP.PROTOCOL_NUMBER != flowMatch.getNetworkProtocol())) {
             return true;
         }
 
@@ -153,11 +152,11 @@ public class ForwardInfo implements ChainPacketContext {
     public static String connectionKey(IPAddr ip1, int port1, IPAddr ip2,
                                        int port2, short proto, UUID fe) {
         return new StringBuilder(ip1.toString())
-                             .append('|').append(port1).append('|')
-                             .append(ip2.toString())
-                             .append('|').append(port2).append('|')
-                             .append(proto).append('|')
-                             .append(fe.toString()).toString();
+                   .append('|').append(port1)
+                   .append('|').append(ip2.toString())
+                   .append('|').append(port2)
+                   .append('|').append(proto)
+                   .append('|').append(fe.toString()).toString();
     }
 
     @Override

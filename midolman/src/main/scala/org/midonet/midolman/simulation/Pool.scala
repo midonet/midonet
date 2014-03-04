@@ -217,7 +217,7 @@ class Pool(val id: UUID, val adminStateUp: Boolean, val lbMethod: String,
         val sourcePort = if (stickySourceIP) {
             ReverseStickyNatRule.WILDCARD_PORT
         } else {
-            pmatch.getTransportSource
+            pmatch.getTransportSource.intValue()
         }
 
         val sourceIP = pmatch.getNetworkSourceIP

@@ -77,6 +77,7 @@ public abstract class NatRule extends Rule {
      * @param match being used to apply the rule
      * @return whether NAT rules are supported or not
      */
+    @SuppressWarnings("ConstantConditions")
     protected boolean isNatSupported(WildcardMatch match) {
         byte nwProto = match.getNetworkProtocol();
         boolean supported = (nwProto == UDP.PROTOCOL_NUMBER) ||
@@ -116,6 +117,7 @@ public abstract class NatRule extends Rule {
      * @param match
      * @return the values that should be used for the nat lookup
      */
+    @SuppressWarnings("ConstantConditions")
     protected NatLookupTuple getTpForMappingLookup(WildcardMatch match)
                                             throws MalformedPacketException {
 

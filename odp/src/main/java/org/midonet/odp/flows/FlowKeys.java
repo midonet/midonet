@@ -52,11 +52,15 @@ public class FlowKeys {
         return ipv4(src, dst, protocol.value, (byte)0, (byte)0, IPFragmentType.None);
     }
 
+    /**
+     * Will default TOS to 0 if null. All other fields considered mandatory.
+     */
     public static FlowKeyIPv4 ipv4(IPv4Addr src, IPv4Addr dst, byte protocol,
-                                   byte typeOfService, byte ttl,
+                                   Byte typeOfService, byte ttl,
                                    IPFragmentType fragmentType) {
         return intern(new FlowKeyIPv4(src.toInt(), dst.toInt(), protocol,
-                                      typeOfService, ttl, fragmentType.value));
+                                      typeOfService == null ? 0 : typeOfService,
+                                      ttl, fragmentType.value));
     }
 
     public static FlowKeyIPv6 ipv6(IPv6Addr src, IPv6Addr dst,
