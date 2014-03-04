@@ -241,6 +241,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
             new MockMonitoringStoreModule(),
             new ClusterClientModule(),
             new TestableMidolmanActorsModule(probesByName, actorsByName),
+            new ResourceProtectionModule(),
             new MidolmanModule(),
             new PrivateModule {
                 override def configure() {

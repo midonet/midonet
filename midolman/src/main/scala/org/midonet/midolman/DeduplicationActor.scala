@@ -3,7 +3,6 @@
 package org.midonet.midolman
 
 import java.util.UUID
-import java.util.concurrent.TimeUnit
 import scala.collection.JavaConverters._
 import scala.collection.{immutable, mutable}
 import scala.compat.Platform
@@ -66,13 +65,13 @@ class DeduplicationActor(
             val connectionCache: Cache,
             val traceMessageCache: Cache,
             val traceIndexCache: Cache,
-            val metrics: PacketPipelineMetrics)
+            val metrics: PacketPipelineMetrics,
+            val packetOut: () => Unit)
             extends Actor with ActorLogWithoutPath {
 
     import DatapathController.DatapathReady
     import DeduplicationActor._
     import PacketWorkflow._
-    import VirtualTopologyActor.ConditionListRequest
 
     def datapathConn(packet: Packet) = dpConnPool.get(packet.getMatch.hashCode)
 
@@ -208,6 +207,7 @@ class DeduplicationActor(
      */
     private def postponeOn(pw: PacketHandler, f: Future[_]) {
         log.debug("Packet with {} postponed", pw.cookieStr)
+        packetOut()
         f onComplete {
             case Success(_) =>
                 log.info("Issuing restart for simulation {}", pw.cookieStr)
@@ -226,6 +226,9 @@ class DeduplicationActor(
         log.debug("Packet with {} processed", pw.cookieStr)
         pw.cookie match {
             case Some(c) =>
+                // TODO: use the PacketContext to know if a simulation has
+                // been restarted or not, and conditionally call packetOut
+                packetOut()
                 val latency = (Clock.defaultClock().tick() -
                     pw.packet.getStartTimeNanos).toInt
                 metrics.packetsProcessed.mark()
