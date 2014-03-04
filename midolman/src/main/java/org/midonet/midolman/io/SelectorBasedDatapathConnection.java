@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.nio.channels.SelectionKey;
 import java.util.concurrent.ExecutionException;
 
+import org.midonet.util.TokenBucket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,7 +27,7 @@ public class SelectorBasedDatapathConnection implements ManagedDatapathConnectio
 
     public final String name;
 
-    private MidolmanConfig config;
+    private final MidolmanConfig config;
 
     private Thread readThread;
     private Thread writeThread;
@@ -34,21 +35,24 @@ public class SelectorBasedDatapathConnection implements ManagedDatapathConnectio
     private SelectLoop writeLoop;
     private BufferPool sendPool;
     private OvsDatapathConnection conn = null;
-    private boolean singleThreaded;
+    private final boolean singleThreaded;
+    private final TokenBucket tb;
 
     public SelectorBasedDatapathConnection(String name,
                                            MidolmanConfig config,
-                                           boolean singleThreaded) {
+                                           boolean singleThreaded,
+                                           TokenBucket tb) {
         this.config = config;
         this.name = name;
         this.singleThreaded = singleThreaded;
+        this.tb = tb;
         this.sendPool = new BufferPool(config.getSendBufferPoolInitialSize(),
                                        config.getSendBufferPoolMaxSize(),
                                        config.getSendBufferPoolBufSizeKb() * 1024);
     }
 
     public SelectorBasedDatapathConnection(String name, MidolmanConfig config) {
-        this(name, config, false);
+        this(name, config, false, null);
     }
 
     public OvsDatapathConnection getConnection() {
@@ -112,7 +116,7 @@ public class SelectorBasedDatapathConnection implements ManagedDatapathConnectio
                     @Override
                     public void handleEvent(SelectionKey key)
                             throws IOException {
-                        conn.handleReadEvent(key);
+                        conn.handleReadEvent(tb);
                     }
                 });
 

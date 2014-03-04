@@ -30,7 +30,8 @@ public class OneToOneConnectionPool implements DatapathConnectionPool {
         conns = new SelectorBasedDatapathConnection[numChannels];
         for (int i=0; i<numChannels; i++) {
             conns[i] =
-                new SelectorBasedDatapathConnection(name + ".channel-" + i, config, false);
+                new SelectorBasedDatapathConnection(name + ".channel-" + i,
+                                                    config, false, null);
         }
     }
 

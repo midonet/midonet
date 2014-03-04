@@ -50,13 +50,16 @@ public class DatapathModule extends PrivateModule {
         @Inject
         MidolmanConfig config;
 
+        @Inject
+        TokenBucketPolicy tbPolicy;
+
         @Override
         public UpcallDatapathConnectionManager get() {
             String threadingModel = config.getInputChannelThreading();
             if (ONE_TO_ONE.equalsIgnoreCase(threadingModel)) {
-                return new OneToOneDpConnManager(config);
+                return new OneToOneDpConnManager(config, tbPolicy);
             } else if (ONE_TO_MANY.equalsIgnoreCase(threadingModel)) {
-                return new OneToManyDpConnManager(config);
+                return new OneToManyDpConnManager(config, tbPolicy);
             } else {
                 throw new IllegalArgumentException(
                     "Unknown value for input_channel_threading: " + threadingModel);

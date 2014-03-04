@@ -40,7 +40,7 @@ public abstract class DatapathClient {
                     @Override
                     public void handleEvent(SelectionKey key)
                             throws IOException {
-                        ovsConnection.handleReadEvent(key);
+                        ovsConnection.handleReadEvent(null);
                     }
                 });
 
