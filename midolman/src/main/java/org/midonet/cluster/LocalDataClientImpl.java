@@ -67,6 +67,7 @@ import org.midonet.midolman.rules.Condition;
 import org.midonet.midolman.rules.RuleList;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
+import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.DirectoryCallback;
 import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.Ip4ToMacReplicatedMap;
@@ -2271,8 +2272,8 @@ public class LocalDataClientImpl implements DataClient {
             throws StateAccessException, SerializationException {
         return
             hostZkManager.addVirtualPortMapping(
-            hostId,
-            new HostDirectory.VirtualPortMapping(portId, localPortName));
+                    hostId,
+                    new HostDirectory.VirtualPortMapping(portId, localPortName));
     }
 
     @Override
@@ -2467,7 +2468,7 @@ public class LocalDataClientImpl implements DataClient {
         // Get the original data
         Router oldRouter = routersGet(router.getId());
         RouterZkManager.RouterConfig routerConfig = Converter.toRouterConfig(
-            router);
+                router);
         List<Op> ops = new ArrayList<Op>();
 
         // Update the config
@@ -2790,5 +2791,18 @@ public class LocalDataClientImpl implements DataClient {
             }
         }
         return hostVersionList;
+    }
+
+    @Override
+    public Integer getPrecedingHealthMonitorLeader(Integer myNode)
+            throws StateAccessException {
+        String path = hostZkManager.getHealthMonitorLeaderNodeToWatch(myNode);
+        return path == null ? null :
+                AbstractZkManager.getSequenceNumberFromPath(path);
+    }
+
+    @Override
+    public Integer registerAsHealthMonitorNode() throws StateAccessException {
+        return hostZkManager.createHealthMonitorNode();
     }
 }

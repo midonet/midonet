@@ -838,4 +838,24 @@ public interface DataClient {
      */
     public List<HostVersion> hostVersionsGet()
             throws StateAccessException;
+
+    /**
+     * Get the node id that is in line right before the given myNode for
+     * health monitoring. Returns null if there is none. This is used
+     * in health monitor leader election.
+     *
+     * @return The id of the node in front
+     * @param myNode the node
+     * @throws StateAccessException
+     */
+    public Integer getPrecedingHealthMonitorLeader(Integer myNode)
+            throws StateAccessException;
+
+    /**
+     * register as a health monitor capable node.
+     *
+     * @return The id assigned to this node on registering.
+     * @throws StateAccessException
+     */
+    public Integer registerAsHealthMonitorNode() throws StateAccessException;
 }

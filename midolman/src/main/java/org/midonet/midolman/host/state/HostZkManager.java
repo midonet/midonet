@@ -6,7 +6,6 @@ package org.midonet.midolman.host.state;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -20,6 +19,8 @@ import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.Directory;
+import org.midonet.midolman.state.DirectoryCallback;
+import org.midonet.midolman.state.DirectoryCallbackFactory;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.PortConfig;
 import org.midonet.midolman.state.StateAccessException;
@@ -538,11 +539,10 @@ public class HostZkManager extends AbstractZkManager {
             for (String child : children) {
                 portMappings.add(
                     serializer.deserialize(
-                            zk.get(paths.getHostVrnPortMappingPath(
-                                   hostIdentifier,
-                                   UUID.fromString(child))),
-                            HostDirectory.VirtualPortMapping.class
-                        )
+                        zk.get(paths.getHostVrnPortMappingPath(hostIdentifier,
+                               UUID.fromString(child))),
+                        HostDirectory.VirtualPortMapping.class
+                    )
                 );
             }
         }
@@ -694,4 +694,16 @@ public class HostZkManager extends AbstractZkManager {
         return Collections.emptySet();
     }
 
+    public String getHealthMonitorLeaderNodeToWatch(Integer mySeqNum)
+            throws StateAccessException {
+        String path = paths.getHealthMonitorLeaderDirPath();
+        Set<String> set = zk.getChildren(path);
+        return getNextLowerSequenceNumberPath(set, mySeqNum);
+    }
+
+    public Integer createHealthMonitorNode() throws StateAccessException {
+        String path = paths.getHealthMonitorLeaderDirPath();
+        String seqNumPath = zk.addEphemeralSequential(path, null);
+        return getSequenceNumberFromPath(seqNumPath);
+    }
 }
