@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.nio.channels.spi.SelectorProvider;
 
 /** package private mocking version of NetlinkChannel. */
-class MockNetlinkChannel extends NetlinkChannelImpl {
+class MockNetlinkChannel extends NetlinkChannel {
 
     public MockNetlinkChannel(SelectorProvider provider,
                               NetlinkProtocol protocol) {
