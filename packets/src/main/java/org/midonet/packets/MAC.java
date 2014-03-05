@@ -1,11 +1,9 @@
-// Copyright 2011, 2013 Midokura Inc.
-
-// MAC.java - utility class for a Ethernet-type Media Access Control address
-//            (a/k/a "Hardware" or "data link" or "link layer" address)
+/*
+ * Copyright (c) 2011 Midokura Europe SARL, All Rights Reserved.
+ */
 
 package org.midonet.packets;
 
-import java.util.Arrays;
 import java.util.Random;
 
 import org.midonet.util.collection.WeakObjectPool;
@@ -13,7 +11,8 @@ import org.midonet.util.collection.WeakObjectPool;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonValue;
 
-/** Class reprensentation of a mac address.
+/** Reprensentation of a mac address. Utility class for a Ethernet-type Media
+ *  Access Controll address ("Hardware" or "data link" or "link layer" address).
  *
  *  Conversion functions taking or returning long values assume the following
  *  encoding rules:
@@ -21,33 +20,31 @@ import org.codehaus.jackson.annotate.JsonValue;
  *      2) the ordering of bytes in the long from MSB to LSB follows the mac
  *          address representation as a string reading from left to right.
  */
-public class MAC implements Cloneable {
+public class MAC {
     private static WeakObjectPool<MAC> INSTANCE_POOL = new WeakObjectPool<MAC>();
 
-    private byte[] address;
-    static Random rand = new Random();
+    private static final Random rand = new Random();
 
-    /* Default constructor for deserialization. */
-    public MAC() {
+    public static final long MAC_MASK = 0x0000_FFFF_FFFF_FFFFL;
+    public static final long UNICAST_MASK = 0x1L << 40;
+
+    private final long addr;
+
+    public MAC(long address) {
+      addr = MAC_MASK & address;
     }
 
     public MAC(byte[] rhs) {
-        assert rhs.length == 6;
-        address = rhs.clone();
-    }
-
-    @Override
-    public MAC clone() {
-        return this.intern();
+        addr = bytesToLong(rhs);
     }
 
     public byte[] getAddress() {
-        return address.clone();
+        return longToBytes(addr);
     }
 
     @JsonCreator
     public static MAC fromString(String str) {
-        return new MAC(MAC.stringToBytes(str)).intern();
+        return new MAC(MAC.stringToLong(str)).intern();
     }
 
     public static MAC fromAddress(byte[] rhs) {
@@ -66,13 +63,13 @@ public class MAC implements Cloneable {
     }
 
     public boolean unicast() {
-        return 0 == (address[0] & 0x1);
+        return 0 == (addr & UNICAST_MASK);
     }
 
     @JsonValue
     @Override
     public String toString() {
-        return MAC.bytesToString(address);
+        return MAC.longToString(addr);
     }
 
     @Override
@@ -81,15 +78,12 @@ public class MAC implements Cloneable {
             return true;
         if (!(rhs instanceof MAC))
             return false;
-        return Arrays.equals(address, ((MAC)rhs).address);
+        return this.addr == ((MAC)rhs).addr;
     }
 
     @Override
     public int hashCode() {
-        return (((address[0] ^ address[1])&0xff) << 24) |
-               ((address[2]&0xff) << 16) |
-               ((address[3]&0xff) << 8) |
-               ((address[4] ^ address[5])&0xff);
+        return (int) (addr ^ (addr >>> 32));
     }
 
     private static IllegalArgumentException illegalMacString(String str) {
