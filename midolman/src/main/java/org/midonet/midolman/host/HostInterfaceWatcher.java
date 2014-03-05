@@ -4,6 +4,7 @@
 package org.midonet.midolman.host;
 
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.LockSupport;
 
 import com.google.inject.Inject;
@@ -36,12 +37,10 @@ public class HostInterfaceWatcher implements Runnable {
     @Inject
     HostConfig configuration;
 
-    volatile boolean isRunning;
+    volatile boolean isRunning = true;
 
     @Override
     public void run() {
-        isRunning = true;
-
         if (hostId == null) {
             log.error("HostID is null, HostInterfaceWatcher will now exit!");
             return;
@@ -51,9 +50,10 @@ public class HostInterfaceWatcher implements Runnable {
             interfaceDataUpdater.updateInterfacesData(
                 hostId, hostMetadata, interfaceScanner.scanInterfaces());
 
-            long deadline = System.currentTimeMillis() +
+            long deadline = TimeUnit.NANOSECONDS.toMillis(System.nanoTime()) +
                             configuration.getWaitTimeBetweenHostScans();
-            while (isRunning && System.currentTimeMillis() < deadline) {
+            while (isRunning &&
+                   TimeUnit.NANOSECONDS.toMillis(System.nanoTime()) < deadline) {
                 LockSupport.parkUntil(deadline);
             }
         }
