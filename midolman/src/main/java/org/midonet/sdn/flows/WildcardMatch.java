@@ -933,12 +933,11 @@ public class WildcardMatch implements Cloneable {
                         break;
 
                     case EthernetDestination:
-                        newClone.ethernetDestination =
-                            ethernetDestination.clone();
+                        newClone.ethernetDestination = ethernetDestination;
                         break;
 
                     case EthernetSource:
-                        newClone.ethernetSource = ethernetSource.clone();
+                        newClone.ethernetSource = ethernetSource;
                         break;
 
                     case TransportDestination:
