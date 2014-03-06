@@ -139,7 +139,7 @@ class RoutingManagerActor extends Actor with ActorLogWithoutPath {
             log.debug("RoutingManager - ExteriorRouterPort - end")
 
         case port: Port =>
-            log.warning("Port type not supported to handle routing protocols.")
+            log.warning("Port type {} not supported to handle routing protocols.", port.getClass)
 
         case _ => log.error("Unknown message.")
     }

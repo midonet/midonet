@@ -124,7 +124,7 @@ class BlackholeRouteFlowTrackingTest extends FeatureSpec
         scenario("blackhole route") {
             When("a packet hits a blackhole route")
             val (pktContext, action) = simulateDevice(simRouter, frameThatWillBeDropped, leftPort.getId)
-            action should be === TemporaryDropAction
+            action shouldEqual TemporaryDropAction
 
             And("the routing table changes")
             FlowController.getAndClear()
@@ -139,10 +139,9 @@ class BlackholeRouteFlowTrackingTest extends FeatureSpec
 
         scenario("to-port route") {
             When("a packet hits a forwarding route")
-            val actionF = simRouter.process(
-                packetContextFor(frameThatWillBeForwarded, leftPort.getId))
-            val action = Await.result(actionF, 3 seconds)
-            action should be === ToPortAction(rightPort.getId)
+            val (ctx, action) = simulateDevice(simRouter,
+                frameThatWillBeForwarded, leftPort.getId)
+            action shouldEqual ToPortAction(rightPort.getId)
 
             And("the routing table changes")
             FlowController.getAndClear()
@@ -153,7 +152,7 @@ class BlackholeRouteFlowTrackingTest extends FeatureSpec
 
             Then("an invalidation by destination IP is sent to the FlowController")
             val tag = FlowTagger.invalidateByIp(clusterRouter.getId, IPv4Addr(rightOtherIp))
-            FlowController.getAndClear() should be === List(InvalidateFlowsByTag(tag))
+            FlowController.getAndClear() shouldEqual List(InvalidateFlowsByTag(tag))
         }
     }
 }

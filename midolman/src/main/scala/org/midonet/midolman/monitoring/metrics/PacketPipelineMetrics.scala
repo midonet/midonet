@@ -16,6 +16,9 @@ class PacketPipelineMetrics(val registry: MetricsRegistry) {
     val pendedPackets = registry.newCounter(
         classOf[PacketPipelineGauge], "currentPendedPackets")
 
+    val packetsOnHold = registry.newCounter(
+        classOf[PacketPipelineMeter], "packetsOnHold")
+
     val wildcardTableHits = registry.newMeter(
         classOf[PacketPipelineMeter],
         "wildcardTableHits", "packets",
@@ -31,6 +34,10 @@ class PacketPipelineMetrics(val registry: MetricsRegistry) {
         "packetsSimulated", "packets",
         TimeUnit.SECONDS)
 
+    val packetsPostponed = registry.newMeter(
+        classOf[PacketPipelineMeter],
+        "packetsPostponed", "packets",
+        TimeUnit.SECONDS)
     val packetsProcessed = registry.newMeter(
         classOf[PacketPipelineMeter],
         "packetsProcessed", "packets",
@@ -70,7 +77,6 @@ class PacketPipelineMetrics(val registry: MetricsRegistry) {
     val simulationAccumulatedTime = registry.newCounter(
         classOf[PacketPipelineAccumulatedTime], "simulationAccumulatedTime")
 
-
     def wildcardTableHit(latency: Int) {
         wildcardTableHits.mark()
         wildcardTableHitLatency.update(latency)
@@ -87,5 +93,10 @@ class PacketPipelineMetrics(val registry: MetricsRegistry) {
         packetsSimulated.mark()
         simulationLatency.update(latency)
         simulationAccumulatedTime.inc(latency)
+    }
+
+    def packetPostponed() {
+        packetsPostponed.mark()
+        packetsOnHold.inc()
     }
 }

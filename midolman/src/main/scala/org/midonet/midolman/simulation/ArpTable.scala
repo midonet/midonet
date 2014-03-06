@@ -9,14 +9,14 @@ import scala.collection.mutable
 import scala.compat.Platform
 import scala.concurrent._
 import scala.concurrent.duration.Duration
-import scala.util.Success
+import scala.util.{Failure, Success}
 
 import akka.actor.ActorSystem
 
 import org.midonet.cluster.client.{ArpCache, RouterPort}
 import org.midonet.midolman.PacketsEntryPoint
+import org.midonet.midolman.{Ready, NotYet, Urgent}
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
-import org.midonet.midolman.SuspendedPacketQueue.SuspendOnPromise
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.logging.LoggerFactory
 import org.midonet.midolman.state.ArpCacheEntry
@@ -28,7 +28,7 @@ import org.midonet.util.functors.{Callback2, Callback1}
 trait ArpTable {
     def get(ip: IPv4Addr, port: RouterPort, expiry: Long)
            (implicit ec: ExecutionContext,
-                     pktContext: PacketContext): Future[MAC]
+                     pktContext: PacketContext): Urgent[MAC]
     def set(ip: IPv4Addr, mac: MAC)(implicit ec: ExecutionContext)
     def start()
     def stop()
@@ -124,15 +124,6 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
         promise
     }
 
-    private def fetchArpCacheEntry(ip: IPv4Addr, expiry: Long)
-                                  (implicit ec: ExecutionContext) : Future[ArpCacheEntry] = {
-        val p = promise[ArpCacheEntry]()
-        arpCache.get(ip, new Callback1[ArpCacheEntry] {
-            def call(value: ArpCacheEntry) { p success value }
-        }, expiry)
-        p.future
-    }
-
     private def removeArpWaiter(ip: IPv4Addr, promise: Promise[MAC]) {
         arpWaiters.removeBinding(ip, promise)
     }
@@ -146,42 +137,38 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
 
     def get(ip: IPv4Addr, port: RouterPort, expiry: Long)
            (implicit ec: ExecutionContext,
-                     pktContext: PacketContext): Future[MAC] = {
+                     pktContext: PacketContext): Urgent[MAC] = {
         log.debug("Resolving MAC for {}", ip)
         /*
-         * We must invoke waitForArpEntry() before requesting the ArpCacheEntry.
-         * Otherwise there would be a race condition:
-         *   - get() asks for the ArpCacheEntry
-         *   - get() receives null for the entry, it does not exist.
-         *   - at this point, the entry is populated because an ARP
-         *     reply arrives to a node. This ArpTableImpl is notified but no one
-         *     is waiting for this entry.
-         *   - get() We calls waitForArpEntry too late, missing the notification.
+         * We used to waitForArpEntry() before requesting the ArpCacheEntry
+         * before we had pauseless simulations to avoid a race between the
+         * get() asking for the cached entry, the get receiving it as empty,
+         * then a reply arriving and being notified just too late missig the
+         * notification.
+         *
+         * Since simulations will run now without stop, this race becomes
+         * irrelevant, if we don't have the data right now, the simulation must
+         * be postponed (on a future that waits for the mac's notification).
          */
-        val macPromise = waitForArpEntry(ip, expiry)
-        val entryFuture = fetchArpCacheEntry(ip, expiry)
-        entryFuture onSuccess {
-            case entry =>
-                val now = Platform.currentTime
-                if (entry == null ||
-                        (entry.stale < now &&
-                         entry.lastArp+ARP_RETRY_MILLIS < now)  ||
-                        entry.macAddr == null)
-                    arpForAddress(ip, entry, port)
+        val arpCacheEntry = arpCache.get(ip)
+        val now = Platform.currentTime
+
+        if (arpCacheEntry == null
+            || (arpCacheEntry.stale < now &&
+                arpCacheEntry.lastArp+ARP_RETRY_MILLIS < now)
+            || arpCacheEntry.macAddr == null) {
+            arpForAddress(ip, arpCacheEntry, port)
         }
+
         // macPromise may complete with a Left(TimeoutException). Use
         // fallbackTo so that exceptions don't escape the ArpTable class.
-        entryFuture flatMap {
-            case entry: ArpCacheEntry if entry != null &&
-                                         entry.macAddr != null &&
-                                         entry.expiry >= Platform.currentTime =>
-                removeArpWaiter(ip, macPromise)
-                Future.successful(entry.macAddr)
-            case _ =>
-                PacketsEntryPoint !
-                        SuspendOnPromise(pktContext.flowCookie, macPromise)
-                macPromise.future
-        } fallbackTo { Future.successful(null) }
+        if (arpCacheEntry != null && arpCacheEntry.macAddr != null &&
+            arpCacheEntry.expiry >= Platform.currentTime) {
+            Ready(arpCacheEntry.macAddr)
+        } else {
+            log.debug("MAC for IP {} unknown, will suspend during ARP", ip)
+            NotYet(waitForArpEntry(ip, expiry).future)
+        }
     }
 
     def set(ip: IPv4Addr, mac: MAC) (implicit ec: ExecutionContext) {
@@ -190,21 +177,20 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
             case None =>
         }
         val now = Platform.currentTime
-        fetchArpCacheEntry(ip, now + 1000) onComplete {
-            case Success(entry) if entry != null &&
-                                   entry.macAddr != null &&
-                                   entry.stale > now &&
-                                   entry.macAddr == mac =>
-                log.debug("Skipping write to ArpCache because a non-stale " +
-                       "entry for {} with the same value ({}) exists.", ip, mac)
-            case _ =>
-                log.debug("Got address for {}: {}", ip, mac)
-                val entry = new ArpCacheEntry(mac, now + ARP_EXPIRATION_MILLIS,
-                    now + ARP_STALE_MILLIS, 0)
-                arpCache.add(ip, entry)
-                val when = Duration.create(ARP_EXPIRATION_MILLIS,
-                    TimeUnit.MILLISECONDS)
-                system.scheduler.scheduleOnce(when){ expireCacheEntry(ip) }
+        val entry = arpCache.get(ip)
+        if (entry != null &&
+            entry.macAddr != null && entry.stale > now &&
+            entry.macAddr == mac) {
+            log.debug("Skipping write to ArpCache because a non-stale " +
+                "entry for {} with the same value ({}) exists.", ip, mac)
+        } else {
+            log.debug("Got address for {}: {}", ip, mac)
+            val entry = new ArpCacheEntry(mac, now + ARP_EXPIRATION_MILLIS,
+                now + ARP_STALE_MILLIS, 0)
+            arpCache.add(ip, entry)
+            val when = Duration.create(ARP_EXPIRATION_MILLIS,
+                TimeUnit.MILLISECONDS)
+            system.scheduler.scheduleOnce(when){ expireCacheEntry(ip) }
         }
     }
 
@@ -230,14 +216,12 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
     // XXX cancel scheduled expires when an entry is refreshed?
     private def expireCacheEntry(ip: IPv4Addr)
                                 (implicit ec: ExecutionContext) {
-        val now = Platform.currentTime
-        val entryFuture = fetchArpCacheEntry(ip, now + ARP_RETRY_MILLIS)
-        entryFuture onSuccess {
-            case entry if entry != null =>
-                if (entry.expiry <= Platform.currentTime)
-                    arpCache.remove(ip)
-            // TODO(pino): else retry the removal?
+        val entry = arpCache.get(ip)
+        if (entry != null) {
+            if (entry.expiry <= Platform.currentTime)
+                arpCache.remove(ip)
         }
+        // TODO(pino): else retry the removal?
     }
 
     private def arpForAddress(ip: IPv4Addr, entry: ArpCacheEntry,
@@ -277,12 +261,11 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
         }
 
         def retryLoopTopHalf(arp: Ethernet, previous: Long) {
-            val now = Platform.currentTime
-            val entryFuture = fetchArpCacheEntry(ip, now + ARP_RETRY_MILLIS)
-            entryFuture onSuccess {
-                case null => retryLoopBottomHalf(null, arp, previous)
-                case e => retryLoopBottomHalf(e.clone(), arp, previous)
-            }
+            val entry = arpCache.get(ip)
+            if (entry == null)
+                retryLoopBottomHalf(null, arp, previous)
+            else
+                retryLoopBottomHalf(entry.clone(), arp, previous)
         }
 
         val now = Platform.currentTime

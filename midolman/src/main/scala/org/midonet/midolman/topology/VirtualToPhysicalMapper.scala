@@ -17,21 +17,24 @@ import org.midonet.cluster.data.TunnelZone
 import org.midonet.cluster.data.zones._
 import org.midonet.cluster.{Client, DataClient}
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
+import org.midonet.midolman._
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.services.HostIdProviderService
 import org.midonet.midolman.simulation.Bridge
 import org.midonet.midolman.simulation.Coordinator.Device
 import org.midonet.midolman.state.DirectoryCallback.Result
 import org.midonet.midolman.state.{ZkConnectionAwareWatcher, DirectoryCallback}
-import org.midonet.midolman.topology.VirtualTopologyActor.{expiringAsk => VTAExpiringAsk}
+import org.midonet.midolman.topology.VirtualTopologyActor.{PortRequest, BridgeRequest, expiringAsk => VTAExpiringAsk}
 import org.midonet.midolman.topology.rcu.Host
-import org.midonet.midolman.{FlowController, Referenceable}
 import org.midonet.util.concurrent._
 
 import org.slf4j.LoggerFactory
 
+import scala.Some
+import scala.collection.concurrent
 import scala.collection.immutable.{Set => ROSet}
 import scala.collection.{immutable, mutable}
+import scala.compat.Platform
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.ClassTag
@@ -170,15 +173,24 @@ object VirtualToPhysicalMapper extends Referenceable {
      * the VTPM actor and compose the future to provide the final port set.
      */
     def expiringAsk(req: PortSetForTunnelKeyRequest)
-                   (implicit system: ActorSystem): Future[rcu.PortSet] = {
-        (DeviceCaches.portSetId(req.tunnelKey) match {
-            case Some(id) => Future.successful(id)
-            case _ =>
+                   (implicit system: ActorSystem): Urgent[rcu.PortSet] = {
+        log.debug("Expiring ask for port set {}", req)
+        DeviceCaches.portSetId(req.tunnelKey) match {
+            case Some(id) =>
+                expiringAsk[rcu.PortSet](new PortSetRequest(id, update = false))
+            case None =>
                 log.debug("PortSet for tunnel key {} not local", req.tunnelKey)
-                VirtualToPhysicalMapper.ask(req)(timeout milliseconds)
-        }).mapTo[UUID].flatMap {
-            id: UUID => expiringAsk[rcu.PortSet](new PortSetRequest(id, update = false))
-        }(ExecutionContext.callingThread)
+                implicit val ec = ExecutionContext.callingThread
+                val f = VirtualToPhysicalMapper
+                    .ask(req)(timeout milliseconds)
+                    .mapTo[UUID]
+                    .flatMap { id =>
+                        val psReq = new PortSetRequest(id, update = false)
+                        VirtualToPhysicalMapper.ask(psReq)(timeout milliseconds)
+                    }
+                    .mapTo[rcu.PortSet]
+                NotYet(f)
+        }
     }
 
     /**
@@ -186,21 +198,25 @@ object VirtualToPhysicalMapper extends Referenceable {
      * in case of a miss, it will ask the VTPM actor.
      */
     def expiringAsk[D](req: VTPMRequest[D])
-                      (implicit system: ActorSystem): Future[D] = {
-
-        (req.getCached match {
-            case Some(d) => Future.successful(d)
+                      (implicit system: ActorSystem): Urgent[D] = {
+        log.debug("Expiring ask for device {}", req)
+        req.getCached match {
+            case Some(d) => Ready(d)
             case None =>
                 log.debug("Device {} not cached, requesting..", req)
-                VirtualToPhysicalMapper.ask(req)(timeout milliseconds)
-        }).mapTo[D](req.tag).andThen {
-            case Failure(ex: ClassCastException) =>
-                log.error("Returning wrong type for request of " +
-                          req.tag.runtimeClass.getSimpleName, ex)
-            case Failure(ex) =>
-                log.error("Failed to get: " +
-                    req.tag.runtimeClass.getSimpleName, ex)
-        }(ExecutionContext.callingThread)
+                NotYet (
+                    VirtualToPhysicalMapper.ask(req)(timeout milliseconds)
+                    .mapTo[D](req.tag)
+                    .andThen {
+                        case Failure(ex: ClassCastException) =>
+                            log.error("Returning wrong type for request of " +
+                                      req.tag.runtimeClass.getSimpleName, ex)
+                        case Failure(ex) =>
+                            log.error("Failed to get: " +
+                                      req.tag.runtimeClass.getSimpleName, ex)
+                    }(ExecutionContext.callingThread)
+                )
+            }
     }
 
     /**
@@ -673,18 +689,24 @@ abstract class VirtualToPhysicalMapperBase
 
     }
 
-    /** Requests a port config from the VirtualTopologyActor and returns it
-     *  as a tuple, or None if the port is not a BridgePort. The request is
-     *  processed asynchronously inside a Future. If the future timeouts
-     *  the request reschedules itself 3 times before failing. */
+    /**
+     * Requests a port config from the VirtualTopologyActor and returns it
+     * as a tuple, or None if the port is not a BridgePort. The request is
+     * processed asynchronously inside a Future. If the future timeouts
+     * the request reschedules itself 3 times before failing.
+     *
+     * Can be a Future because it's not in the simulation path.
+     */
     private def getPortConfig(vport: UUID, retries: Int = 3)
-            : Future[Option[(Port, Device)]] =
-        VTAExpiringAsk[Port](vport, log) flatMap {
+    : Future[Option[(Port, Device)]] = {
+        VirtualTopologyActor.ask(PortRequest(vport))
+        .flatMap {
             case brPort: BridgePort =>
-                VTAExpiringAsk[Bridge](brPort.deviceID, log) map { br =>
-                    Some((brPort, br))
+                val req = BridgeRequest(brPort.deviceID)
+                VirtualTopologyActor.ask(req).mapTo[Bridge].map {
+                    br => Some((brPort, br))
                 }
-            case _ => // not a bridgePort, sending back None
+            case _ =>
                 Future.successful(None)
         } recoverWith {
             case _ : TimeoutException if retries > 0 =>
@@ -694,6 +716,7 @@ abstract class VirtualToPhysicalMapperBase
             case ex =>
                 Future.failed(ex)
         }
+    }
 
     def subscribeCallback(psetID: UUID): DirectoryCallback.Add =
         new DirectoryCallback.Add {

@@ -7,7 +7,7 @@ import java.util.UUID
 
 import akka.actor.ActorSystem
 import akka.event.LoggingBus
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 import org.midonet.midolman.l4lb.ReverseStickyNatRule
 import org.midonet.midolman.layer4.NatMapping
@@ -15,6 +15,7 @@ import org.midonet.midolman.logging.LoggerFactory
 import org.midonet.midolman.rules.{Condition, RuleResult, ReverseNatRule}
 import org.midonet.midolman.topology.VirtualTopologyActor.{expiringAsk, PoolRequest}
 import org.midonet.midolman.topology.FlowTagger
+import org.midonet.midolman.{Ready, Urgent}
 
 object LoadBalancer {
     val simpleReverseDNatRule = new ReverseNatRule(
@@ -48,7 +49,7 @@ class LoadBalancer(val id: UUID, val adminStateUp: Boolean,
 
     def processInbound(pktContext: PacketContext)(implicit ec: ExecutionContext,
                        actorSystem: ActorSystem)
-    : Future[RuleResult] = {
+    : Urgent[RuleResult] = {
 
         implicit val packetContext = pktContext
 
@@ -59,9 +60,8 @@ class LoadBalancer(val id: UUID, val adminStateUp: Boolean,
 
         if (adminStateUp) {
             findVip(pktContext) match {
-                case null => Future.successful(simpleContinueRuleResult(pktContext))
-                case vip =>
-                    // The packet is destined to this VIP - get the relevant pool
+                case null => Ready(simpleContinueRuleResult(pktContext))
+                case vip => // Packet destined to this VIP, get relevant pool
                     log.debug(
                         "Traffic matched VIP ID {} in load balancer ID {}",
                         vip.id, id)
@@ -75,12 +75,12 @@ class LoadBalancer(val id: UUID, val adminStateUp: Boolean,
                                 stickySourceIP = vip.isStickySourceIP,
                                 vip.stickyTimeoutSeconds)
 
-                            simpleRuleResult(action, pktContext)
+                        simpleRuleResult(action, pktContext)
                     }
 
             }
         } else {
-            Future.successful(simpleContinueRuleResult(pktContext))
+            Ready(simpleContinueRuleResult(pktContext))
         }
     }
 
@@ -100,8 +100,8 @@ class LoadBalancer(val id: UUID, val adminStateUp: Boolean,
             "Load balancer with id {} applying outbound rules", id)
 
         // On the return flow, all we do is reverseNAT for existing flows.
-        // Since setting adminState down doesn't cause us to stop reverse NATting
-        // existing flows, we don't check admin state or tag the flow
+        // Since setting adminState down doesn't cause us to stop reverse
+        // NATting existing flows, we don't check admin state or tag the flow
         // with loadBalancerId in this step.
 
         val acceptRuleResult = simpleAcceptRuleResult(pktContext)
@@ -121,7 +121,7 @@ class LoadBalancer(val id: UUID, val adminStateUp: Boolean,
         }
 
         // If source IP changed, the loadbalancer had an effect
-        if (sourceIPChanged){
+        if (sourceIPChanged) {
             acceptRuleResult
         } else {
             simpleContinueRuleResult(pktContext)

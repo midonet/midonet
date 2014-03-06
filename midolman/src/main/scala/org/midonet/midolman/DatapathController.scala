@@ -25,6 +25,7 @@ import org.midonet.cluster.client.Port
 import org.midonet.cluster.data.TunnelZone
 import org.midonet.cluster.data.TunnelZone.{HostConfig => TZHostConfig}
 import org.midonet.cluster.data.zones._
+import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath._
 import org.midonet.midolman.host.interfaces.InterfaceDescription
@@ -240,7 +241,6 @@ object DatapathController extends Referenceable {
         case class DpPortDeleted(datapath: Datapath, port: DpPort)
     }
 
-
     @volatile
     private var cachedMinMtu: Short = DEFAULT_MTU
 
@@ -251,7 +251,7 @@ object DatapathController extends Referenceable {
      * taking DEFAULT_MTU as default. Cache the result in cachedMtu.
      */
     private def primeMinMtu(ifcTunnelList: mutable.MultiMap[InterfaceDescription,
-                                                       TunnelZone.Type]) {
+                                                            TunnelZone.Type]) {
         var minMtu: Short = 0
         ifcTunnelList foreach {
             case (interfaceDesc, tunnelTypeList) =>
@@ -325,7 +325,6 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
     import PacketWorkflow.AddVirtualWildcardFlow
     import VirtualPortManager.Controller
     import VirtualToPhysicalMapper.TunnelZoneUnsubscribe
-    import VirtualTopologyActor.PortRequest
 
     implicit val logger: LoggingAdapter = log
 
@@ -562,13 +561,21 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
             }
             self ! Initialize
 
-        case AddVirtualWildcardFlow(flow, callbacks, tags) =>
+        case msg@AddVirtualWildcardFlow(flow, callbacks, tags) =>
             log.debug("Translating and installing wildcard flow: {}", flow)
-            translateVirtualWildcardFlow(flow, tags) onSuccess {
-                case (finalFlow, finalTags) =>
+
+            translateVirtualWildcardFlow(flow, tags) match {
+                case Ready((finalFlow, finalTags)) =>
                     log.debug("flow translated, installing: {}", finalFlow)
                     FlowController !
                         AddWildcardFlow(finalFlow, None, callbacks, finalTags)
+
+                case NotYet(f) => f onComplete {
+                    case Success(_) =>
+                        self ! msg
+                    case Failure(ex) =>
+                        log.error(ex, "AddVirtualWildcardFlow failed to complete")
+                }
             }
 
         case h: Host =>
@@ -719,26 +726,38 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
         log.debug("Added flow for tunnelkey {}", exterior.tunnelKey)
     }
 
-    private def installTunnelKeyFlow(
-            port: DpPort, vifId: UUID, active: Boolean): Unit =
-        VirtualTopologyActor.expiringAsk[Port](vifId, log) onSuccess {
-            case p if !p.isInterior =>
-                // trigger invalidation. This is done regardless of
-                // whether we are activating or deactivating:
-                //
-                //   + The case for invalidating on deactivation is
-                //     obvious.
-                //   + On activation we invalidate flows for this dp port
-                //     number in case it has been reused by the dp: we
-                //     want to start with a clean state.
-                FlowController ! FlowController.InvalidateFlowsByTag(
-                    FlowTagger.invalidateDPPort(port.getPortNo.shortValue()))
-                if (active)
-                    installTunnelKeyFlow(port, p)
-            case _ =>
-                log.warning("local port {} activated, but it's not an " +
-                    "ExteriorPort: I don't know what to do with it: {}", port)
+    private def triggerPortInvalidation(dpPort: DpPort, port: Port,
+                                        active: Boolean) {
+        if (port.isInterior) {
+            log.warning("local port {} active state changed, but it's not " +
+                        "Exterior, don't know what to do with it: {}", dpPort)
+            return
         }
+
+        // trigger invalidation. This is done regardless of whether we are
+        // activating or deactivating:
+        //   + The case for invalidating on deactivation is obvious.
+        //   + On activation we invalidate flows for this dp port number in case
+        //     it has been reused by the dp: we want to start with a clean state
+        FlowController ! InvalidateFlowsByTag(
+            FlowTagger.invalidateDPPort(dpPort.getPortNo.shortValue()))
+
+        if (active)
+            installTunnelKeyFlow(dpPort, port)
+    }
+
+    private def installTunnelKeyFlow(port: DpPort, vif: UUID, active: Boolean) {
+        VirtualTopologyActor.expiringAsk[Port](vif, log) match {
+            case Ready(vPort) =>
+                triggerPortInvalidation(port, vPort, active)
+            case NotYet(f) => f.mapTo[Port] onComplete {
+                    case Success(vPort) =>
+                        triggerPortInvalidation(port, vPort, active)
+                    case Failure(ex) =>
+                        log.error(ex, "failed to install tunnel key flow")
+                }
+        }
+    }
 
     def handlePortOperationReply(opReply: DpPortReply) {
         log.debug("Port operation reply: {}", opReply)

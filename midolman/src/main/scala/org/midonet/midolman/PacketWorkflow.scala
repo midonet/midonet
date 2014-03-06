@@ -12,7 +12,6 @@ import scala.collection.JavaConverters._
 import scala.collection.{Set => ROSet, mutable}
 import scala.concurrent._
 import scala.reflect.ClassTag
-import scala.util.{Success, Failure}
 
 import akka.actor._
 import akka.event.{Logging, LoggingAdapter}
@@ -21,7 +20,6 @@ import akka.util.Timeout
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.client.Port
 import org.midonet.midolman.simulation.DhcpImpl
-import org.midonet.midolman.topology.FlowTagger
 import org.midonet.midolman.topology.VirtualToPhysicalMapper
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.netlink.exceptions.NetlinkException
@@ -29,7 +27,7 @@ import org.midonet.odp.{Packet, Datapath, Flow, FlowMatch}
 import org.midonet.odp.flows.{FlowKey, FlowKeyUDP, FlowAction}
 import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.packets._
-import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPortSet
+import org.midonet.sdn.flows.VirtualActions.{VirtualFlowAction, FlowActionOutputToVrnPortSet}
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 import org.midonet.util.functors.Callback0
 
@@ -37,13 +35,17 @@ trait PacketHandler {
 
     import PacketWorkflow.PipelinePath
 
-    def start(): Future[PipelinePath]
+    def start(): Urgent[PipelinePath]
+    def drop(): Unit
 
     val packet: Packet
     val cookieOrEgressPort: Either[Int, UUID]
     val cookie: Option[Int]
     val egressPort: Option[UUID]
     val cookieStr: String
+    def idle: Boolean
+
+    override def toString = s"PacketWorkflow[$cookieStr]"
 }
 
 object PacketWorkflow {
@@ -93,12 +95,13 @@ object PacketWorkflow {
               wcMatch: WildcardMatch,
               cookieOrEgressPort: Either[Int, UUID],
               parentCookie: Option[Int])
-             (runSim: => Future[SimulationResult])
+             (runSim: => Urgent[SimulationResult])
              (implicit system: ActorSystem): PacketHandler =
         new PacketWorkflow(deduplicator, dpCon, dpState, dp, dataClient, packet,
                            wcMatch, cookieOrEgressPort, parentCookie) {
             def runSimulation() = runSim
         }
+
 }
 
 abstract class PacketWorkflow(val deduplicator: ActorRef,
@@ -118,9 +121,14 @@ abstract class PacketWorkflow(val deduplicator: ActorRef,
     import FlowController.{AddWildcardFlow, FlowAdded}
     import VirtualToPhysicalMapper.PortSetForTunnelKeyRequest
 
-    def runSimulation(): Future[SimulationResult]
+    def runSimulation(): Urgent[SimulationResult]
 
     val ERROR_CONDITION_HARD_EXPIRATION = 10000
+
+    private[this] var _idle = true
+    override def idle = _idle
+
+    private var runs = 0 // how many times it has been started
 
     override val cookie = cookieOrEgressPort match {
         case Left(c) => Some(c)
@@ -135,25 +143,37 @@ abstract class PacketWorkflow(val deduplicator: ActorRef,
     implicit val requestReplyTimeout = new Timeout(5, TimeUnit.SECONDS)
 
     val log: LoggingAdapter = Logging.getLogger(system, this.getClass)
-
-    override val cookieStr: String =
-        (if (cookie != None) "[cookie:" else "[genPkt:") +
-        cookie.getOrElse(parentCookie.getOrElse("No Cookie")) + "]"
+    val cookieStr: String = (if (cookie != None) "[cookie:" else "[genPkt:") +
+                        cookie.getOrElse(parentCookie.getOrElse("No Cookie")) +
+                        "]"
 
     val lastInvalidation = FlowController.lastInvalidationEvent
 
-    override def start(): Future[PipelinePath] = {
-        log.debug("Initiating processing of packet {}", cookieStr)
-        cookie match {
+    override def start(): Urgent[PipelinePath] = {
+        _idle = false
+        runs += 1
+        log.debug("Initiating processing of packet {}, attempt: {}",
+                  cookieStr, runs)
+        (cookie match {
             case Some(_) => handlePacketWithCookie()
             case None => doEgressPortSimulation()
+        }) match {
+            case n@NotYet(_) => _idle = true; n
+            case r => r
         }
     }
 
+    override def drop() {
+        _idle = false
+        val wildFlow = WildcardFlow(wcmatch = wcMatch,
+            hardExpirationMillis = ERROR_CONDITION_HARD_EXPIRATION)
+        addTranslatedFlow(wildFlow, Set.empty, Set.empty)
+    }
+
     private def notifyFlowAdded(flow: Flow,
-                                  newWildFlow: Option[WildcardFlow],
-                                  tags: ROSet[Any],
-                                  removalCallbacks: ROSet[Callback0]) {
+                                newWildFlow: Option[WildcardFlow],
+                                tags: ROSet[Any],
+                                removalCallbacks: ROSet[Callback0]) {
         log.debug("Successfully created flow for {}", cookieStr)
         newWildFlow match {
             case None =>
@@ -272,14 +292,14 @@ abstract class PacketWorkflow(val deduplicator: ActorRef,
         }
     }
 
-    private def handlePacketWithCookie(): Future[PipelinePath] =
+    private def handlePacketWithCookie(): Urgent[PipelinePath] =
         if (packet.getReason == Packet.Reason.FlowActionUserspace) {
-            simulatePacketIn() flatMap processSimulationResult
+            processSimulationResult(simulatePacketIn())
         } else {
             FlowController.queryWildcardFlowTable(wcMatch) match {
                 case Some(wildflow) =>
                     handleWildcardTableMatch(wildflow)
-                    Future.successful(WildcardTableHit)
+                    Ready(WildcardTableHit)
                 case None =>
                     handleWildcardTableMiss()
             }
@@ -298,24 +318,43 @@ abstract class PacketWorkflow(val deduplicator: ActorRef,
     }
 
     private def handleWildcardTableMiss()
-    : Future[PipelinePath] = {
+    : Urgent[PipelinePath] = {
         if (wcMatch.isFromTunnel) {
             handlePacketToPortSet()
         } else {
-            /* QUESTION: do we need another de-duplication
-             *  stage here to avoid e.g. two micro-flows that
-             *  differ only in TTL from going to the simulation
-             *  stage? */
-            simulatePacketIn() flatMap processSimulationResult
+            /* QUESTION: do we need another de-duplication stage here to avoid
+             * e.g. two micro-flows that differ only in TTL from going to the
+             * simulation stage? */
+            processSimulationResult(simulatePacketIn())
         }
     }
+
+    /*
+     * Take the outgoing filter for each port and apply it, checking for
+     * Action.ACCEPT.
+     *
+     * Aux. to handlePacketToPortSet.
+     */
+    private def applyOutgoingFilter(portSetId: UUID,
+                                    wMatch: WildcardMatch,
+                                    tags: mutable.Set[Any],
+                                    action: VirtualFlowAction)
+                                   (localPorts: Seq[Port]): Urgent[Boolean] =
+        applyOutboundFilters(
+            localPorts, portSetId, wMatch, Some(tags)
+        ) map { portIds =>
+            addTranslatedFlowForActions(
+                towardsLocalDpPorts(List(action), portSetId,
+                    portsForLocalPorts(portIds), tags), tags)
+            true
+        }
 
     /** The packet arrived on a tunnel but didn't match in the WFT. It's either
       * addressed (by the tunnel key) to a local PortSet or it was mistakenly
       * routed here. Map the tunnel key to a port set (through the
       * VirtualToPhysicalMapper).
       */
-    private def handlePacketToPortSet(): Future[PipelinePath] = {
+    private def handlePacketToPortSet(): Urgent[PipelinePath] = {
         log.debug("Packet {} from a tunnel port towards a port set", cookieStr)
         // We currently only handle packets ingressing on tunnel ports if they
         // have a tunnel key. If the tunnel key corresponds to a local virtual
@@ -324,80 +363,77 @@ abstract class PacketWorkflow(val deduplicator: ActorRef,
         // and corresponds to a port set.
 
         val req = PortSetForTunnelKeyRequest(wcMatch.getTunnelID)
-        val portSetFuture = VirtualToPhysicalMapper expiringAsk req
+        val portSet = VirtualToPhysicalMapper expiringAsk req
 
-        portSetFuture flatMap {
-            case portSet =>
-                val action = FlowActionOutputToVrnPortSet(portSet.id)
+        (portSet map {
+            case null =>
+                throw new Exception("null portSet")
+            case pSet =>
+                val action = FlowActionOutputToVrnPortSet(pSet.id)
                 log.debug("tun => portSet, action: {}, portSet: {}",
-                    action, portSet)
+                          action, pSet)
                 // egress port filter simulation
-
                 val tags = mutable.Set[Any]()
-                activePorts(portSet.localPorts, tags) flatMap { localPorts =>
-                    // Take the outgoing filter for each port
-                    // and apply it, checking for Action.ACCEPT.
-                    applyOutboundFilters(
-                        localPorts, portSet.id, wcMatch, Some(tags)
-                    ) andThen {
-                        case Success(portIDs) =>
-                            addTranslatedFlowForActions(
-                                towardsLocalDpPorts(List(action), portSet.id,
-                                    portsForLocalPorts(portIDs), tags), tags)
-                    }
-                }
-        } andThen {
-            case Failure(e) =>
-                // for now, install a drop flow. We will invalidate
-                // it if the port comes up later on.
-                log.debug("PacketIn came from a tunnel port but the key does " +
-                          "not map to any PortSet. Exception: {}", e)
-                val wildFlow = WildcardFlow(
-                    wcmatch = wcMatch,
-                    hardExpirationMillis = ERROR_CONDITION_HARD_EXPIRATION)
-                addTranslatedFlow(wildFlow,
-                    Set(FlowTagger.invalidateByTunnelKey(wcMatch.getTunnelID)),
-                    Set.empty)
-        } map {
+                def outFilter = applyOutgoingFilter(pSet.id, wcMatch,
+                                                    tags, action)(_)
+                activePorts(pSet.localPorts, tags) flatMap outFilter
+        }) map {
             _ => PacketToPortSet
         }
     }
 
     private def doEgressPortSimulation() = {
         log.debug("Handling generated packet")
-        runSimulation() flatMap processSimulationResult
+        processSimulationResult(runSimulation())
     }
 
-    def processSimulationResult(result: SimulationResult) = {
-        log.debug("Simulation phase returned: {}", result)
-        (result match {
+    /*
+     * Here we receive the result of the simulation, which can be either a
+     * simulation that could complete with resources cached locally, or the
+     * first incomplete future that was found in the way.
+     *
+     * This will enqueue the simulation for later processing whenever the future
+     * completes, or proceed with the resulting actions if the result is
+     * already computed.
+     */
+    def processSimulationResult(result: Urgent[SimulationResult])
+    : Urgent[PipelinePath] = {
+
+        result flatMap {
             case AddVirtualWildcardFlow(flow, callbacks, tags) =>
-                addVirtualWildcardFlow(flow, callbacks, tags)
+                val urgent = addVirtualWildcardFlow(flow, callbacks, tags)
+                if (urgent.notReady) {
+                    log.debug("AddVirtualWildcardFlow, must be postponed, " +
+                              "running callbacks")
+                    // TODO: The packet context should be exposed to us so we
+                    // can have a single runCallbacks here, rather than
+                    // scattered everywhere a NotYet is generated.
+                    runCallbacks(callbacks)
+                }
+                urgent
             case SendPacket(actions) =>
                 sendPacket(actions)
             case NoOp =>
                 deduplicator ! ApplyFlow(Nil, cookie)
-                Future.successful(true)
+                Ready(true)
             case TemporaryDrop(tags, flowRemovalCallbacks) =>
                 addTranslatedFlowForActions(Nil, tags, flowRemovalCallbacks,
                                             TEMPORARY_DROP_MILLIS, 0)
-                Future.successful(true)
+                Ready(true)
             case Drop(tags, flowRemovalCallbacks) =>
                 addTranslatedFlowForActions(Nil, tags, flowRemovalCallbacks,
                                             0, IDLE_EXPIRATION_MILLIS)
-                Future.successful(true)
-        }) map {
+                Ready(true)
+        } map {
             _ => Simulation
         }
     }
 
-    private def simulatePacketIn()
-    : Future[SimulationResult] = {
+    private def simulatePacketIn(): Urgent[SimulationResult] = {
         val inPortNo = wcMatch.getInputPortNumber
         if (inPortNo == null) {
-            log.error(
-                "SCREAM: got a PacketIn with no inPort number {}.", cookieStr)
-            return Future.successful(NoOp)
+            log.error("SCREAM: PacketIn with no inPort number {}.", cookieStr)
+            return Ready(NoOp)
         }
 
         val port: JInteger = Unsigned.unsign(inPortNo)
@@ -412,27 +448,27 @@ abstract class PacketWorkflow(val deduplicator: ActorRef,
                         packet.getReason, cookie getOrElse 0))
 
                 handleDHCP(vportId) flatMap {
-                    case true =>
-                        Future.successful(NoOp)
-                    case false =>
-                        runSimulation()
+                    case true => Ready(NoOp)
+                    case false => runSimulation()
                 }
 
             case None =>
-                Future.successful(TemporaryDrop(Set.empty, Set.empty))
+                Ready(TemporaryDrop(Set.empty, Set.empty))
         }
     }
 
     def addVirtualWildcardFlow(flow: WildcardFlow,
                                flowRemovalCallbacks: ROSet[Callback0] = Set.empty,
-                               tags: ROSet[Any] = Set.empty): Future[Boolean] = {
-        translateVirtualWildcardFlow(flow, tags) andThen {
-            case Success((finalFlow, finalTags)) =>
+                               tags: ROSet[Any] = Set.empty)
+    : Urgent[Boolean] = {
+        translateVirtualWildcardFlow(flow, tags) map {
+            case (finalFlow, finalTags) =>
                 addTranslatedFlow(finalFlow, finalTags, flowRemovalCallbacks)
-        } map { _ => true }
+                true
+        }
     }
 
-    private def handleDHCP(inPortId: UUID): Future[Boolean] = {
+    private def handleDHCP(inPortId: UUID): Urgent[Boolean] = {
         def isUdpDhcpFlowKey(k: FlowKey): Boolean = k match {
             case udp: FlowKeyUDP => (udp.getUdpSrc == 68) && (udp.getUdpDst == 67)
             case _ => false
@@ -447,7 +483,7 @@ abstract class PacketWorkflow(val deduplicator: ActorRef,
         }
 
         if (packet.getMatch.getKeys.filter(isUdpDhcpFlowKey).isEmpty)
-            return Future.successful(false)
+            false
 
         (for {
             ip4 <- payloadAs[IPv4](packet.getPacket)
@@ -456,10 +492,10 @@ abstract class PacketWorkflow(val deduplicator: ActorRef,
             if dhcp.getOpCode == DHCP.OPCODE_REQUEST
         } yield {
             processDhcpFuture(inPortId, dhcp)
-        }) getOrElse { Future.successful(false) }
+        }) getOrElse Ready(false)
     }
 
-    private def processDhcpFuture(inPortId: UUID, dhcp: DHCP): Future[Boolean] =
+    private def processDhcpFuture(inPortId: UUID, dhcp: DHCP): Urgent[Boolean] =
         VirtualTopologyActor.expiringAsk[Port](inPortId, log) map {
             port => processDhcp(port, dhcp, DatapathController.minMtu)
         }
@@ -480,24 +516,17 @@ abstract class PacketWorkflow(val deduplicator: ActorRef,
         }
     }
 
-    private def sendPacket(actions: List[FlowAction]): Future[Boolean] = {
-
-        if (null == actions || actions.isEmpty) {
+    private def sendPacket(acts: List[FlowAction]): Urgent[Boolean] =
+        if (null == acts || acts.isEmpty) {
             log.debug("Dropping {} {} without actions", cookieStr, packet)
-            return Future.successful(true)
+            Ready(true)
+        } else {
+            log.debug("Sending {} {} with actions {}", cookieStr, packet, acts)
+            translateActions(acts, None, None, wcMatch) map { actions =>
+                executePacket(actions)
+                true
+            }
         }
-
-        log.debug("Sending {} {} with actions {}", cookieStr, packet, actions)
-        translateActions(actions, None, None, wcMatch) recover {
-            case ex =>
-                log.warning("failed to translate actions: {}", ex)
-                Nil
-        } andThen {
-            case Success(a) => executePacket(a)
-        } map {
-            _ => true
-        }
-    }
 
     private def runCallbacks(callbacks: Iterable[Callback0]) {
         val iterator = callbacks.iterator
@@ -505,4 +534,5 @@ abstract class PacketWorkflow(val deduplicator: ActorRef,
             iterator.next().call()
         }
     }
+
 }

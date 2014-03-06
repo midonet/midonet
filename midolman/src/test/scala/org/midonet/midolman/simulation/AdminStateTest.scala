@@ -23,18 +23,15 @@ import org.scalatest.junit.JUnitRunner
 import org.midonet.cache.MockCache
 import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
 import org.midonet.cluster.data.{Router => ClusterRouter, Bridge => ClusterBridge, Entity, Port}
+import org.midonet.midolman.PacketWorkflow.{SimulationResult, AddVirtualWildcardFlow}
+import org.midonet.midolman.topology.VirtualTopologyActor.BridgeRequest
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
-import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
-import org.midonet.midolman.PacketWorkflow.SimulationResult
 import org.midonet.midolman._
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.services.MessageAccumulator
-import org.midonet.midolman.topology.VirtualToPhysicalMapper.PortSetRequest
-import org.midonet.midolman.topology.VirtualTopologyActor.BridgeRequest
-import org.midonet.midolman.topology.rcu.PortSet
-import org.midonet.midolman.topology.{VirtualToPhysicalMapper, rcu, FlowTagger, VirtualTopologyActor}
+import org.midonet.midolman.topology._
 import org.midonet.odp.DpPort
-import org.midonet.odp.flows.FlowActionOutput
+import org.midonet.odp.flows.{FlowAction, FlowActionOutput}
 import org.midonet.odp.flows.FlowActions.output
 import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.packets.ICMP.UNREACH_CODE
@@ -58,7 +55,7 @@ class AdminStateTest extends FeatureSpec
     override def registerActors = List(
         VirtualTopologyActor -> (() => new VirtualTopologyActor
                                        with MessageAccumulator),
-        VirtualToPhysicalMapper -> (() => new MockVirtualToPhysicalMapper
+        VirtualToPhysicalMapper -> (() => new VirtualToPhysicalMapper
                                           with MessageAccumulator))
 
     /*
@@ -137,6 +134,9 @@ class AdminStateTest extends FeatureSpec
         PacketsEntryPoint.messages should be (empty)
 
         VirtualTopologyActor.getAndClear()
+
+        VirtualToPhysicalMapper ! LocalPortActive(exteriorBridgePort.getId,
+                                                  active = true)
     }
 
     lazy val fromBridgeSide = (exteriorBridgePort, bridgeSidePkt)
@@ -387,14 +387,6 @@ class AdminStateTest extends FeatureSpec
         }
     }
 
-    class MockVirtualToPhysicalMapper extends Actor {
-        def receive = {
-            case PortSetRequest(portSetId, _) =>
-                sender ! new PortSet(portSetId, Set.empty[UUID],
-                    Set(exteriorBridgePort.getId))
-        }
-    }
-
     class MockFlowTranslator extends Actor with ActorLogging with FlowTranslator {
 
         protected val datapathConnection: OvsDatapathConnection = null
@@ -420,12 +412,16 @@ class AdminStateTest extends FeatureSpec
             def uplinkPid: Int = 0
         }
 
-        def translate(simRes: SimulationResult) = {
+        def translate(simRes: SimulationResult): (Seq[FlowAction], mutable.Set[Any]) = {
             val actions = simRes.asInstanceOf[AddVirtualWildcardFlow]
                                 .flow.actions
             val tags = mutable.Set[Any]()
-            (Await.result(translateActions(actions, None, Some(tags), null),
-                3 seconds), tags)
+            translateActions(actions, None, Some(tags), null) match {
+                case Ready(r) => (r, tags)
+                case NotYet(f) =>
+                    Await.result(f, 3 seconds)
+                    translate(simRes)
+            }
         }
 
         def receive = emptyBehavior
@@ -593,7 +589,7 @@ class AdminStateTest extends FeatureSpec
     }
 
     private[this] def sendPacket(t: (Port[_,_], Ethernet)): SimulationResult =
-        Await.result(new Coordinator(
+        new Coordinator(
             makeWMatch(t._1, t._2),
             t._2,
             Some(1),
@@ -603,8 +599,13 @@ class AdminStateTest extends FeatureSpec
             new MockCache(),
             new MockCache(),
             None,
-            Nil)
-            .simulate(), Duration.Inf)
+            Nil
+        ) simulate() match {
+            case Ready(r) => r
+            case NotYet(f) =>
+                Await.result(f, 3 seconds)
+                sendPacket(t)
+        }
 
     private[this] def makeWMatch(port: Port[_,_], pkt: Ethernet) =
         WildcardMatch.fromEthernetPacket(pkt)

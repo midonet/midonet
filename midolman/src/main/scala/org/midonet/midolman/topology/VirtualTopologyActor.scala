@@ -11,10 +11,13 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 import scala.reflect._
 import scala.util.Failure
+
 import akka.actor._
 import akka.event.LoggingAdapter
+
 import com.google.inject.Inject
 import compat.Platform
+
 import org.midonet.cluster.Client
 import org.midonet.cluster.client.{RouterPort, BridgePort, Port}
 import org.midonet.cluster.data.l4lb.{Pool => PoolConfig}
@@ -22,10 +25,11 @@ import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.l4lb.PoolHealthMonitorMapManager
 import org.midonet.midolman.l4lb.PoolHealthMonitorMapManager._
 import org.midonet.midolman.logging.{SimulationAwareBusLogging, ActorLogWithoutPath}
-import org.midonet.midolman.{PacketsEntryPoint, FlowController, Referenceable}
-import org.midonet.midolman.FlowController.InvalidateFlowsByTag
+import org.midonet.midolman._
 import org.midonet.midolman.simulation._
 import org.midonet.midolman.topology.rcu.TraceConditions
+import org.midonet.midolman.FlowController.InvalidateFlowsByTag
+import org.midonet.midolman.Ready
 import org.midonet.util.concurrent._
 
 object VirtualTopologyActor extends Referenceable {
@@ -183,15 +187,18 @@ object VirtualTopologyActor extends Referenceable {
                                  simLog: SimulationAwareBusLogging)
                                 (implicit tag: ClassTag[D],
                                           pktContext: PacketContext,
-                                          system: ActorSystem): Future[D] = {
+                                          system: ActorSystem): Urgent[D] = {
         val timeLeft = if (expiry == 0L) 3000L
                        else expiry - Platform.currentTime
+
+        // TODO this case is absurd, we'll remove the expire (unused) in a
+        // separate patch
         if (timeLeft <= 0)
-            return Future.failed(new TimeoutException)
+            throw new TimeoutException
 
         topology get id match {
-            case Some(dev) => Future.successful(dev.asInstanceOf[D])
-            case None => requestFuture(id, timeLeft, log, simLog)
+            case Some(dev) => Ready(dev.asInstanceOf[D])
+            case None => NotYet(requestFuture(id, timeLeft, log, simLog))
         }
     }
 
@@ -214,7 +221,7 @@ object VirtualTopologyActor extends Referenceable {
                                  simLog: SimulationAwareBusLogging)
                                 (implicit tag: ClassTag[D],
                                           pktContext: PacketContext,
-                                          system: ActorSystem) =
+                                          system: ActorSystem): Future[D] =
         VirtualTopologyActor
             .ask(requestsFactory(tag)(id))(timeLeft milliseconds)
             .mapTo[D](tag).andThen {
@@ -319,6 +326,8 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
     }
 
     def receive = {
+        case null =>
+            log.warning("Received null device?")
         case r: DeviceRequest =>
             log.debug("Received {}", r)
             manageDevice(r)

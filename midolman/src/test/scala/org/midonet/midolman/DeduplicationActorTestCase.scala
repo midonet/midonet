@@ -204,7 +204,7 @@ class DeduplicationActorTestCase extends FeatureSpec
 
         override val cookieStr = "mock-cookie" + cookieOrEgressPort.toString
         override val cookie = cookieOrEgressPort match {
-            case Left(cookie) => Some(cookie)
+            case Left(c) => Some(c)
             case Right(_) => None
         }
         override val egressPort = cookieOrEgressPort match {
@@ -212,11 +212,19 @@ class DeduplicationActorTestCase extends FeatureSpec
             case Right(port) => Some(port)
         }
 
+        private var _idle = true
+        override def idle = _idle
+
         override def start() = {
+            _idle = false
             packetsSeen = packetsSeen :+ (packet, cookieOrEgressPort)
             val p = promise[PacketWorkflow.PipelinePath]()
             MockPacketHandler.futures.append(p)
-            p.future
+            NotYet(p.future)
+        }
+
+        override def drop() {
+            _idle = false
         }
     }
 
@@ -229,8 +237,8 @@ class DeduplicationActorTestCase extends FeatureSpec
                       metrics: PacketPipelineMetrics) extends
               DeduplicationActor(cookieGen, dpConnPool, clusterDataClient,
                 cCache, tmCache, tiCache, metrics) with MessageAccumulator {
-        protected override val cookieTimeToLiveMillis = 300L
-        protected override val cookieExpirationCheckInterval = 100 millis
+
+        override protected val simulationExpireMillis = 100L
 
         implicit override val dispatcher = this.context.dispatcher
 

@@ -192,7 +192,7 @@ class IPFragmentationTest extends FeatureSpec
                                  etherType: Short = IPv4.ETHERTYPE)
     : SimulationResult = {
         val pkt = makePacket(fragType, etherType)
-        Await.result(new Coordinator(
+        new Coordinator(
             makeWMatch(pkt),
             pkt,
             Some(1),
@@ -202,7 +202,13 @@ class IPFragmentationTest extends FeatureSpec
             new MockCache(),
             new MockCache(),
             None,
-            Nil).simulate(), Duration.Inf)
+            Nil
+        ) simulate() match {
+            case Ready(r) => r
+            case NotYet(ft) =>
+                Await.result(ft, 3 seconds)
+                sendPacket(fragType, etherType)
+        }
     }
 
     private[this] def makePacket(fragType: IPFragmentType, etherType: Short) = {

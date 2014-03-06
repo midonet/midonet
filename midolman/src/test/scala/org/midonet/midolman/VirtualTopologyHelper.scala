@@ -3,12 +3,14 @@
 */
 package org.midonet.midolman
 
+import java.util.UUID
 import scala.compat.Platform
 import scala.concurrent.{Future, Await}
 import scala.concurrent.duration._
+
 import akka.pattern.ask
 import akka.util.Timeout
-import java.util.UUID
+import org.scalatest.Assertions
 
 import org.midonet.cluster.client.{Port => SimPort}
 import org.midonet.cluster.data._
@@ -16,7 +18,7 @@ import org.midonet.midolman.simulation.Coordinator.{Device, Action}
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.packets.Ethernet
-import org.midonet.midolman.simulation.{Coordinator, PacketContext}
+import org.midonet.midolman.simulation.PacketContext
 import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.cache.MockCache
 
@@ -51,10 +53,20 @@ trait VirtualTopologyHelper {
 
     def simulateDevice(device: Device, frame: Ethernet, inPort: UUID):
             (PacketContext, Action) = {
-        val ctx = packetContextFor(frame, inPort)
-        val action: Action = Await.result(device.process(ctx), timeout.duration)
-        ctx.freeze()
-        (ctx, action)
+        var triesLeft = 64
+        do {
+            triesLeft -= 1
+            val ctx = packetContextFor(frame, inPort)
+            val action = device.process(ctx) match {
+                case Ready(action) =>
+                    ctx.freeze()
+                    return (ctx, action)
+                case NotYet(f) =>
+                    Await.result(f, 1 second)
+            }
+        } while (triesLeft > 0)
+
+        Assertions.fail("Failed to complete simulation")
     }
 
     @inline

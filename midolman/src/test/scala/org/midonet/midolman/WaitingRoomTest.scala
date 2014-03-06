@@ -35,15 +35,15 @@ class WaitingRoomTest extends FeatureSpec with Matchers {
 
             // add elements and verify size
             wr.count should be (0)
-            wr add w1
+            wr enter w1
             wr.count should be (1)
             cb should have size 0 // no callbacks
-            wr add w2
+            wr enter w2
             wr.count should be (2)
 
             // duplicate elements
-            wr add w1
-            wr add w2
+            wr enter w1
+            wr enter w2
             wr.count should be (2) // now remain the same
 
             // wait for expirations
@@ -53,7 +53,7 @@ class WaitingRoomTest extends FeatureSpec with Matchers {
             wr.count should be (2)
             cb should have size 0
 
-            wr add w3 // this expires, then adds
+            wr enter w3 // this expires, then adds
             wr.count should be (1)
             cb shouldEqual List(w1, w2)
         }

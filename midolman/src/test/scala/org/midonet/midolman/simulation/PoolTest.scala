@@ -495,18 +495,22 @@ with OneInstancePerTest {
     }
 
     private[this] def sendPacket(t: (Port[_,_], Ethernet)): SimulationResult =
-        Await.result(new Coordinator(
-            makeWMatch(t._1, t._2),
-            t._2,
-            Some(1),
-            None,
-            0,
-            new MockCache(),
-            new MockCache(),
-            new MockCache(),
-            None,
-            Nil)
-            .simulate(), Duration.Inf)
+        new Coordinator(
+                makeWMatch(t._1, t._2),
+                t._2,
+                Some(1),
+                None,
+                0,
+                new MockCache(),
+                new MockCache(),
+                new MockCache(),
+                None,
+                Nil).simulate() match {
+        case Ready(v) => v
+        case NotYet(f) =>
+            Await.result(f, 3 seconds)
+            sendPacket(t)
+    }
 
     private[this] def makeWMatch(port: Port[_,_], pkt: Ethernet) =
         WildcardMatch.fromEthernetPacket(pkt)
