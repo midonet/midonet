@@ -3,22 +3,26 @@
  */
 package org.midonet.midolman.simulation
 
-import akka.actor.ActorSystem
-import scala.concurrent.{ExecutionContext, Future}
 import java.util.UUID
+import scala.concurrent.ExecutionContext
+
+import akka.actor.ActorSystem
 
 import org.midonet.cluster.client.Port
 import org.midonet.midolman.PacketsEntryPoint
+import org.midonet.cluster.client.RouterPort
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.Coordinator._
 import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.midolman.topology._
-import org.midonet.sdn.flows.WildcardMatch
+import org.midonet.midolman.{NotYet, Ready, Urgent, DeduplicationActor}
 import org.midonet.packets._
 import org.midonet.midolman.topology.RouterConfig
 import org.midonet.cluster.client.RouterPort
+import org.midonet.sdn.flows.WildcardMatch
+
 
 /**
  * The IPv4 specific implementation of a Router.
@@ -176,7 +180,9 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
     override protected def sendIcmpEchoReply(ingressMatch: WildcardMatch,
                                              packet: Ethernet, expiry: Long)
                                    (implicit ec: ExecutionContext,
-                                             packetContext: PacketContext) {
+                                             packetContext: PacketContext)
+    : Urgent[Boolean] = {
+
         val echo = packet.getPayload match {
             case ip: IPv4 => ip.getPayload match {
                                 case icmp: ICMP => icmp
@@ -186,7 +192,7 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
         }
 
         if (echo == null)
-            return
+            return Ready(true)
 
         val reply = new ICMP()
         reply.setEchoReply(echo.getIdentifier, echo.getSequenceNum, echo.getData)
@@ -202,18 +208,22 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
     private def getPeerMac(rtrPort: RouterPort, expiry: Long)
                           (implicit ec: ExecutionContext,
                                     pktContext: PacketContext)
-    : Future[MAC] =
-        expiringAsk[RouterPort](rtrPort.peerID, log, expiry) map {
-            _.portMac
-        } recover { case _ => null }
+    : Urgent[MAC] = {
+        expiringAsk[Port](rtrPort.peerID, log, expiry) map {
+            case rp: RouterPort => rp.portMac
+            case _ => null
+        }
+    }
 
     private def getMacForIP(port: RouterPort, nextHopIP: IPv4Addr,
                             expiry: Long)
                            (implicit ec: ExecutionContext,
-                                     pktContext: PacketContext): Future[MAC] = {
+                                     pktContext: PacketContext)
+    : Urgent[MAC] = {
 
-        if (port.isInterior)
+        if (port.isInterior) {
             return arpTable.get(nextHopIP, port, expiry)
+        }
 
         port.nwSubnet match {
             case extAddr: IPv4Subnet if extAddr.containsAddress(nextHopIP) =>
@@ -222,9 +232,9 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
                 log.warning("getMacForIP: cannot get MAC for {} - address not" +
                             "in network segment of port {} ({})",
                             nextHopIP, port.id, extAddr)
-                Future.successful(null)
+                Ready(null)
             case _ =>
-                Future.failed(new IllegalArgumentException)
+                throw new IllegalArgumentException("Arping for non-IPv4 addr")
         }
     }
 
@@ -232,21 +242,19 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
                                          ipDest: IPv4Addr, expiry: Long)
                                         (implicit ec: ExecutionContext,
                                                   pktContext: PacketContext)
-    : Future[MAC] = {
+    : Urgent[MAC] = {
         if (outPort == null)
-            return Future.successful(null)
+            return Ready(null)
 
-        if (outPort.isInterior
-                && outPort.peerID == null) {
-            log.warning("Packet sent to dangling logical port {}", rt.nextHopPort)
-            return Future.successful(null)
+        if (outPort.isInterior && outPort.peerID == null) {
+            log.warning("Packet sent to dangling interior port {}",
+                        rt.nextHopPort)
+            return Ready(null)
         }
 
         (outPort match {
-            case p: Port if p.isInterior =>
-                getPeerMac(p, expiry)
-            case _ => /* Fall through to ARP'ing below. */
-                Future.successful(null)
+            case p: Port if p.isInterior => getPeerMac(p, expiry)
+            case _ => Ready(null) // Fall through to ARP'ing below.
         }) flatMap {
             case null =>
                 val nextHopInt = rt.nextHopGateway
@@ -254,8 +262,7 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
                     if (nextHopInt == 0 || nextHopInt == -1) ipDest // last hop
                     else IPv4Addr(nextHopInt)
                 getMacForIP(outPort, nextHopIP, expiry)
-            case mac =>
-                Future.successful(mac)
+            case mac => Ready(mac)
         }
     }
 
@@ -282,7 +289,7 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
      */
     def sendIPPacket(packet: IPv4, expiry: Long)
                     (implicit ec: ExecutionContext,
-                              packetContext: PacketContext) {
+                              packetContext: PacketContext): Urgent[Boolean] = {
 
         /**
          * Applies some post-chain transformations that might be necessary on
@@ -309,7 +316,7 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
             eth.setPayload(packet)
         }
 
-        def _sendIPPacket(outPort: RouterPort, rt: Route) {
+        def _sendIPPacket(outPort: RouterPort, rt: Route): Urgent[Boolean] = {
             if (packet.getDestinationIPAddress == outPort.portAddr.getAddress) {
                 /* should never happen: it means we are trying to send a packet
                  * to ourselves, probably means that somebody sent an IP packet
@@ -317,16 +324,17 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
                  */
                 log.error("Router {} trying to send a packet {} to itself.",
                           id, packet)
-                return
+                return Ready(false)
             }
 
-            val macFuture = getNextHopMac(outPort, rt,
-                                packet.getDestinationIPAddress, expiry)
-            macFuture onSuccess {
+            getNextHopMac(
+                outPort, rt, packet.getDestinationIPAddress, expiry
+            ) map {
                 case null =>
-                    log.error("Failed to get MAC address to emit local packet")
+                    log.error("Failed to get MAC to emit local packet")
+                    false
                 case mac =>
-                    val eth = (new Ethernet()).setEtherType(IPv4.ETHERTYPE)
+                    val eth = new Ethernet().setEtherType(IPv4.ETHERTYPE)
                     eth.setPayload(packet)
                     eth.setSourceMACAddress(outPort.portMac)
                     eth.setDestinationMACAddress(mac)
@@ -349,9 +357,10 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
                         case RuleResult.Action.DROP =>
                         case RuleResult.Action.REJECT =>
                         case other =>
-                            log.error("Post-routing for {} returned {} which " +
-                                "was not ACCEPT, DROP or REJECT.", id, other)
+                            log.error("Post-routing for {} returned {}, not " +
+                                      "ACCEPT, DROP or REJECT.", id, other)
                     }
+                true
             }
         }
 
@@ -360,12 +369,12 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
                       .setNetworkSource(packet.getSourceIPAddress)
         val rt: Route = routeBalancer.lookup(ipMatch)
         if (rt == null || rt.nextHop != Route.NextHop.PORT)
-            return
+            return Ready(false)
         if (rt.nextHopPort == null)
-            return
+            return Ready(false)
 
-        getRouterPort(rt.nextHopPort, expiry) onSuccess {
-            case outPort => _sendIPPacket(outPort, rt)
+        getRouterPort(rt.nextHopPort, expiry) flatMap {
+            p => _sendIPPacket(p, rt)
         }
     }
 }

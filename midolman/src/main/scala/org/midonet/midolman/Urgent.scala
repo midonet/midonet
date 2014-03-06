@@ -4,8 +4,9 @@
 
 package org.midonet.midolman
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.collection.mutable
+import scala.concurrent.duration.Duration
 
 /**
  * A monad that is very similar to Try, but whose semantics for Failure are
@@ -31,6 +32,18 @@ sealed trait Urgent[+T] {
     def get: T
     def flatMap[U](f: T => Urgent[U]): Urgent[U]
     def map[U](f: T => U): Urgent[U]
+
+    def ifReady(f: T => Unit) = {
+        if (isReady)
+            f(this.get)
+        this
+    }
+
+    def ifNotReady(f: () => Unit) = {
+        if (notReady)
+            f()
+        this
+    }
 }
 
 /**
@@ -38,7 +51,7 @@ sealed trait Urgent[+T] {
  * ready.
  * @param ft the future that prevented the computation from being completed
  */
-final class UnavailableException[T](ft: Future[T]) extends Exception
+final class UnavailableException[T](ft: Future[_]) extends Exception
 
 object Urgent {
 
@@ -53,7 +66,7 @@ object Urgent {
      */
     def flatten[T](results: Seq[Urgent[T]])(implicit ec: ExecutionContext)
     : Urgent[Seq[T]] = {
-        val pending = mutable.ListBuffer.empty[Future[T]]
+        val pending = mutable.ListBuffer.empty[Future[Any]]
         val ready = mutable.ListBuffer.empty[T]
         val it = results.iterator
         while (it.hasNext) {
@@ -63,11 +76,17 @@ object Urgent {
                 case n@NotYet(ft) => pending.append(ft)
             }
         }
-        if (pending.isEmpty) Ready(ready)
-        else NotYet(Future.sequence(pending))
+
+        if (pending.isEmpty)
+            Ready(ready)
+        else {
+            val f: Future[Seq[Any]] = Future.sequence(pending)
+            unavailable[Seq[T]](f)
+        }
     }
+
     def ready[T](result: T): Urgent[T]  = Ready(result)
-    def unavailable[T](future: Future[T]): Urgent[T]  = NotYet(future)
+    def unavailable[T](future: Future[_]): Urgent[T]  = NotYet(future)
 }
 
 /**
@@ -90,19 +109,11 @@ final case class Ready[+T](t: T) extends Urgent[T] {
  *
  * @param ft the Future with the incomplete resource.
  */
-final case class NotYet[+T](ft: Future[T]) extends Urgent[T] {
+final case class NotYet[+T](ft: Future[_]) extends Urgent[T] {
     override def isReady = false
     override def get = throw new UnavailableException(ft)
     override def flatMap[U](f: T => Urgent[U]): Urgent[U] = this.asInstanceOf[Urgent[U]]
-    override def map[U](f: T => U): Urgent[U] = this.asInstanceOf[NotYet[U]]
-    override def toString: String = s"NotYet[${ft.toString}]"
+    override def map[U](f: T => U): Urgent[U] = this.asInstanceOf[Urgent[U]]
+    override def toString: String = "NotYet"
 }
 
-object UrgentConversions {
-    def urgentToFuture[T](u: Urgent[T]): Future[T] = {
-        u match {
-            case Ready(r) => Future.successful(r)
-            case NotYet(f) => f
-        }
-    }
-}

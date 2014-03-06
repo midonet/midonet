@@ -112,6 +112,7 @@ class PacketContext(override val flowCookie: Option[Int],
         while (iterator.hasNext) {
             iterator.next().call()
         }
+        flowRemovedCallbacks.clear()
     }
 
     // This Set stores the tags by which the flow may be indexed.

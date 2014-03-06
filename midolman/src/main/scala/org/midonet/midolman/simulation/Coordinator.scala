@@ -9,11 +9,11 @@ import scala.collection.immutable
 import scala.collection.mutable.ListBuffer
 
 import akka.actor.ActorSystem
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 import org.midonet.cache.Cache
 import org.midonet.cluster.client._
-import org.midonet.midolman.PacketsEntryPoint
+import org.midonet.midolman.{NotYet, Ready, Urgent, PacketsEntryPoint}
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.logging.LoggerFactory
@@ -86,7 +86,7 @@ object Coordinator {
          * after handling this packet (e.g. drop it, consume it, forward it).
          */
         def process(pktContext: PacketContext)
-                   (implicit ec: ExecutionContext): Future[Action]
+                   (implicit ec: ExecutionContext): Urgent[Action]
     }
 
     /*
@@ -145,26 +145,24 @@ class Coordinator(var origMatch: WildcardMatch,
          generatedPacketEgressPort.isDefined, parentCookie, origMatch)
     pktContext.setTraced(matchTraceConditions())
 
-    implicit def simulationActionToSuccessfulFuture(
-        a: SimulationResult): Future[SimulationResult] = Future.successful(a)
-
     private def matchTraceConditions(): Boolean = {
         val anyConditionMatching =
             traceConditions exists { _.matches(pktContext, origMatch, false) }
         log.debug("Checking packet {} against tracing conditions {}: {}",
-                  pktContext, traceConditions, anyConditionMatching);
+                  pktContext, traceConditions, anyConditionMatching)
         anyConditionMatching
     }
 
     private def dropFlow(temporary: Boolean, withTags: Boolean)
-    : SimulationResult = {
+    : Ready[SimulationResult] = {
         // If the packet is from the datapath, install a temporary Drop flow.
         // Note: a flow with no actions drops matching packets.
         pktContext.freeze()
         pktContext.traceMessage(null, "Dropping flow")
-        cookie match {
+        Ready(cookie match {
             case Some(_) =>
-                val tags = if (withTags) pktContext.getFlowTags else Set.empty[Any]
+                val tags = if (withTags) pktContext.getFlowTags
+                           else Set.empty[Any]
                 if (temporary)
                     TemporaryDrop(tags, pktContext.getFlowRemovedCallbacks)
                 else
@@ -172,7 +170,7 @@ class Coordinator(var origMatch: WildcardMatch,
             case None => // Internally-generated packet. Do nothing.
                 pktContext.runFlowRemovedCallbacks()
                 NoOp
-        }
+        })
     }
 
     /**
@@ -204,10 +202,25 @@ class Coordinator(var origMatch: WildcardMatch,
      *
      * The resulting future is never in a failed state.
      */
-    def simulate(): Future[SimulationResult] = {
-        log.debug("Simulate a packet {}", origEthernetPkt)
+    def simulate(): Urgent[SimulationResult] = {
+        try {
+            bareSimulation() ifNotReady postpone
+        } catch {
+            case e: Exception =>
+                postpone()
+                throw e
+        }
+    }
 
-        val simf: Future[SimulationResult] = generatedPacketEgressPort match {
+    private def postpone() {
+        log.debug("Simulation will be postponed, run callbacks")
+        pktContext.freeze()
+        pktContext.runFlowRemovedCallbacks()
+    }
+
+    def bareSimulation(): Urgent[SimulationResult] = {
+        log.debug("Simulate a packet {}", origEthernetPkt)
+        generatedPacketEgressPort match {
             case None => // This is a packet from the datapath
                 origMatch.getInputPortUUID match {
                     case null =>
@@ -225,7 +238,7 @@ class Coordinator(var origMatch: WildcardMatch,
                         if (origMatch.getIpFragmentType == IPFragmentType.None)
                             simRes
                         else
-                            simRes map handleFragmentation(inPortId)
+                            simRes flatMap handleFragmentation(inPortId)
                 }
             case Some(egressID) =>
                 origMatch.getInputPortUUID match {
@@ -240,9 +253,6 @@ class Coordinator(var origMatch: WildcardMatch,
                         dropFlow(temporary = true, withTags = false)
                 }
         }
-        simf recover { case _ =>
-            dropFlow(temporary = true, withTags = false)
-        }
     }
 
     /**
@@ -251,11 +261,11 @@ class Coordinator(var origMatch: WildcardMatch,
      * through. Otherwise it'll reply with a Frag. Needed for the first fragment
      * and drop subsequent ones.
      */
-    private def handleFragmentation(inPort: UUID)
-                                   (simRes: SimulationResult) = simRes match {
+    private def handleFragmentation(inPort: UUID)(simRes: SimulationResult)
+    : Urgent[SimulationResult] = simRes match {
         case sr if pktContext.wcmatch.highestLayerSeen() < 4 =>
             log.debug("Fragmented packet, L4 fields untouched: execute")
-            sr
+            Ready(sr)
         case sr =>
             log.debug("Fragmented packet, L4 fields touched..")
             origMatch.getIpFragmentType match {
@@ -326,7 +336,7 @@ class Coordinator(var origMatch: WildcardMatch,
     }
 
     private def packetIngressesDevice(port: Port)
-    : Future[SimulationResult] =
+    : Urgent[SimulationResult] =
         (port match {
             case _: BridgePort => expiringAsk[Bridge](port.deviceID, log, expiry)
             case _: RouterPort => expiringAsk[Router](port.deviceID, log, expiry)
@@ -338,11 +348,10 @@ class Coordinator(var origMatch: WildcardMatch,
             deviceReply.process(pktContext) flatMap { handleAction }
         }
 
-    private def mergeSimulationResults(firstAction: SimulationResult,
-                                       secondAction: SimulationResult,
-                                       firstOrigMatch: WildcardMatch)
+    private def mergeSimulationResults(first: (SimulationResult, WildcardMatch),
+                                       second: (SimulationResult, WildcardMatch))
     : SimulationResult = {
-        (firstAction, secondAction) match {
+        (first._1, second._1) match {
             case (SendPacket(acts1), SendPacket(acts2)) =>
                 SendPacket(acts1 ++ acts2)
             case (AddVirtualWildcardFlow(wcf1, cb1, tags1),
@@ -352,7 +361,7 @@ class Coordinator(var origMatch: WildcardMatch,
                     wcf1.combine(wcf2), cb1 ++ cb2, tags1 ++ tags2)
                 log.debug("Forked action merged results {}", res)
                 res
-            case _ =>
+            case (firstAction, secondAction) =>
                 val clazz1 = firstAction.getClass
                 val clazz2 = secondAction.getClass
                 if (clazz1 != clazz2) {
@@ -361,56 +370,62 @@ class Coordinator(var origMatch: WildcardMatch,
                 } else {
                     log.debug("Receive unrecognized action {}", firstAction)
                 }
-                origMatch = firstOrigMatch
-                dropFlow(temporary = true, withTags = false)
+                origMatch = first._2 // first original wc match
+                dropFlow(temporary = true, withTags = false).get
         }
     }
 
-    private def handleAction(action: Action): Future[SimulationResult] = {
+    private def handleAction(action: Action): Urgent[SimulationResult] = {
         log.debug("Received action: {}", action)
         action match {
 
-            case DoFlowAction(action) =>
-                action match {
-                    case b: FlowActionPopVLAN =>
-                        pktContext.unfreeze()
-                        val flow = WildcardFlow(
-                            wcmatch = origMatch,
-                            actions = List(b))
-                        val vlanId = pktContext.wcmatch.getVlanIds.get(0)
-                        pktContext.wcmatch.removeVlanId(vlanId)
-                        origMatch = pktContext.wcmatch.clone()
-                        pktContext.freeze()
-                        AddVirtualWildcardFlow(flow,
-                            pktContext.getFlowRemovedCallbacks,
-                            pktContext.getFlowTags)
-                    case _ => NoOp
-                }
+            case DoFlowAction(act) => act match {
+                case b: FlowActionPopVLAN =>
+                    pktContext.unfreeze()
+                    val flow = WildcardFlow(
+                        wcmatch = origMatch,
+                        actions = List(b))
+                    val vlanId = pktContext.wcmatch.getVlanIds.get(0)
+                    pktContext.wcmatch.removeVlanId(vlanId)
+                    origMatch = pktContext.wcmatch.clone()
+                    pktContext.freeze()
+                    Ready(AddVirtualWildcardFlow(flow,
+                          pktContext.getFlowRemovedCallbacks,
+                          pktContext.getFlowTags))
+                case _ => Ready(NoOp)
+            }
 
             case ForkAction(acts) =>
-                val results = Future.sequentially(acts) {
-                    (act: Coordinator.Action) => {
-                        // Our handler for each action consists on evaluating
-                        // the Coordinator action and pairing it with the
-                        // original WMatch at that point in time
-                        // Will fail if run in parallel because of side-effects
-                        handleAction(act) map {
-                            simRes => {
-                                val firstOrigMatch = origMatch.clone()
-                                origMatch = pktContext.wcmatch.clone()
-                                pktContext.unfreeze()
-                                (simRes, firstOrigMatch)
-                            }
-                        }
-                    }
+                // Our handler for each action consists on evaluating
+                // the Coordinator action and pairing it with the
+                // original WMatch at that point in time
+                // Will fail if run in parallel because of side-effects
+
+                var stopsAt: Urgent[SimulationResult] = null
+                // TODO: maybe replace with some other alternative that spares
+                //       iterating the entire if we find the break cond
+                val results = acts map handleAction map {
+                    case n@NotYet(_) => // the simulation didn't complete
+                        stopsAt = if (stopsAt == null) n else stopsAt
+                        (null, null)
+                    case Ready(simRes) =>
+                        val firstOrigMatch = origMatch.clone()
+                        origMatch = pktContext.wcmatch.clone()
+                        pktContext.unfreeze()
+                        (simRes, firstOrigMatch)
                 }
 
-                // When ready, merge the results of the simulations. The
-                // resulting pair (SimulationResult, WildcardMatch) contains
-                // the merge action resulting from the other partial ones
-                results.map (results => results.reduceLeft(
-                    (a, b) => (mergeSimulationResults(a._1, b._1, a._2), b._2)
-                )).map( r => r._1)
+                if (stopsAt != null) {
+                    stopsAt
+                } else {
+                    // Merge the completed results of the simulations. The
+                    // resulting pair (SimulationResult, WildcardMatch) contains
+                    // the merge action resulting from the other partial ones
+                    val r = results reduceLeft { (res1, res2) =>
+                        (mergeSimulationResults(res1, res2), res2._2)
+                    }
+                    Ready(r._1)
+                }
 
             case ToPortSetAction(portSetID) =>
                 pktContext.traceMessage(portSetID, "Flooded to port set")
@@ -424,7 +439,7 @@ class Coordinator(var origMatch: WildcardMatch,
                 pktContext.traceMessage(null, "Consumed")
                 pktContext.freeze()
                 pktContext.runFlowRemovedCallbacks()
-                NoOp
+                Ready(NoOp)
 
             case ErrorDropAction =>
                 pktContext.traceMessage(null, "Encountered error")
@@ -439,7 +454,7 @@ class Coordinator(var origMatch: WildcardMatch,
                 pktContext.traceMessage(null, "Unsupported protocol")
                 pktContext.freeze()
                 log.debug("Device returned NotIPv4Action for {}", origMatch)
-                cookie match {
+                Ready(cookie match {
                     case None => // Do nothing.
                         pktContext.runFlowRemovedCallbacks()
                         NoOp
@@ -456,8 +471,7 @@ class Coordinator(var origMatch: WildcardMatch,
                             pktContext.getFlowRemovedCallbacks,
                             pktContext.getFlowTags)
                         // TODO(pino): Connection-tracking blob?
-                }
-
+                })
 
             case _ =>
                 pktContext.traceMessage(null,
@@ -468,7 +482,7 @@ class Coordinator(var origMatch: WildcardMatch,
     }
 
     private def packetIngressesPort(portID: UUID, getPortGroups: Boolean)
-    : Future[SimulationResult] = {
+    : Urgent[SimulationResult] = {
         // Avoid loops - simulate at most X devices.
         if (numDevicesSimulated >= MAX_DEVICES_TRAVERSED) {
             return dropFlow(temporary = true, withTags = false)
@@ -485,15 +499,14 @@ class Coordinator(var origMatch: WildcardMatch,
                 if (getPortGroups && p.isExterior) {
                     pktContext.portGroups = p.portGroups
                 }
-
                 pktContext.inPortId = p
                 applyPortFilter(p, p.inboundFilter, packetIngressesDevice)
         }
     }
 
-    def applyPortFilter(port: Port, filterID: UUID,
-                        thunk: (Port) => Future[SimulationResult]):
-                        Future[SimulationResult] = {
+    private def applyPortFilter(port: Port, filterID: UUID,
+                                thunk: (Port) => Urgent[SimulationResult])
+    : Urgent[SimulationResult] = {
         if (filterID == null)
             return thunk(port)
 
@@ -516,9 +529,9 @@ class Coordinator(var origMatch: WildcardMatch,
     /**
      * Simulate the packet egressing a virtual port. This is NOT intended
      * for output-ing to PortSets.
-     * @param portID
      */
-    private def packetEgressesPort(portID: UUID): Future[SimulationResult] = {
+    private def packetEgressesPort(portID: UUID)
+    : Urgent[SimulationResult] = {
         // add tag for flow invalidation
         pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(portID))
 
@@ -549,8 +562,8 @@ class Coordinator(var origMatch: WildcardMatch,
      * @param isPortSet Whether the packet is output to a port set.
      * @param port The port output to; unused if outputting to a port set.
      */
-    private def emit(outputID: UUID, isPortSet: Boolean, port: Port):
-            SimulationResult = {
+    private def emit(outputID: UUID, isPortSet: Boolean, port: Port)
+    : Urgent[SimulationResult] = {
         val actions = actionsFromMatchDiff(origMatch, pktContext.wcmatch)
         isPortSet match {
             case false =>
@@ -561,7 +574,7 @@ class Coordinator(var origMatch: WildcardMatch,
                 actions.append(FlowActionOutputToVrnPortSet(outputID))
         }
 
-        cookie match {
+        Ready(cookie match {
             case None =>
                 log.debug("No cookie. SendPacket with actions {}", actions)
                 pktContext.freeze()
@@ -604,11 +617,11 @@ class Coordinator(var origMatch: WildcardMatch,
                 AddVirtualWildcardFlow(wFlow,
                                        pktContext.getFlowRemovedCallbacks,
                                        pktContext.getFlowTags)
-        }
+        })
     }
 
     private[this] def processAdminStateDown(port: Port, isIngress: Boolean)
-    : SimulationResult = {
+    : Urgent[SimulationResult] = {
         port match {
             case p: RouterPort if isIngress =>
                 sendIcmpProhibited(p)

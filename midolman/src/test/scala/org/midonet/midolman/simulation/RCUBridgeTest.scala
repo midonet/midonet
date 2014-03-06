@@ -22,6 +22,7 @@ import org.midonet.packets._
 import org.midonet.util.functors.{Callback0, Callback3}
 import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.cluster.VlanPortMapImpl
+import org.midonet.midolman.{NotYet, Ready}
 
 
 @RunWith(classOf[JUnitRunner])
@@ -103,19 +104,21 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
 
     def testUnlearnedMac() {
         log.info("Starting testUnlearnedMac()")
-        val ingressMatch = ((new WildcardMatch)
+        val ingressMatch = new WildcardMatch()
                 .setEthernetSource(MAC.fromString("0a:54:ce:50:44:ce"))
-                .setEthernetDestination(MAC.fromString("0a:de:57:16:a3:06")))
+                .setEthernetDestination(MAC.fromString("0a:de:57:16:a3:06"))
         val origMatch = ingressMatch.clone
         val context = new PacketContext(None, null,
                                         Platform.currentTime + 10000, null,
                                         null, null, true, None, ingressMatch)
         context.inPortId = brPort
-        val future = bridge.process(context)
+        val result = bridge.process(context) match {
+            case NotYet(ft) => Await.result(ft, 1 second)
+            case Ready(r) => r
+        }
 
         ingressMatch should be (origMatch)
 
-        val result = Await.result(future, 1 second)
         result match {
             case Coordinator.ToPortSetAction(port) =>
                 assert(port === bridgeID)
@@ -130,20 +133,22 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
         val frame = new Ethernet()
             .setSourceMACAddress(srcMac)
             .setDestinationMACAddress(learnedMac)
-        val ingressMatch = ((new WildcardMatch)
-                .setEthernetSource(srcMac)
-                .setEthernetDestination(learnedMac))
-                .setInputPortUUID(rtr2port)
+        val ingressMatch = new WildcardMatch()
+                               .setEthernetSource(srcMac)
+                               .setEthernetDestination(learnedMac)
+                               .setInputPortUUID(rtr2port)
         val origMatch = ingressMatch.clone
         val context = new PacketContext(None, frame,
                                         Platform.currentTime + 10000, null,
                                         null, null, true, None, ingressMatch)
         context.inPortId = new RouterPort().setID(rtr2port)
-        val future = bridge.process(context)
+        val result = bridge.process(context) match {
+            case NotYet(ft) => Await.result(ft, 1 second)
+            case Ready(r) => r
+        }
 
         ingressMatch should be (origMatch)
 
-        val result = Await.result(future, 1 second)
         result match {
             case Coordinator.ToPortAction(port) =>
                 assert(port === learnedPort)
@@ -154,18 +159,20 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
     }
 
     def testBroadcast() {
-        val ingressMatch = ((new WildcardMatch)
+        val ingressMatch = new WildcardMatch()
                 .setEthernetSource(MAC.fromString("0a:54:ce:50:44:ce"))
-                .setEthernetDestination(MAC.fromString("ff:ff:ff:ff:ff:ff")))
+                .setEthernetDestination(MAC.fromString("ff:ff:ff:ff:ff:ff"))
         val origMatch = ingressMatch.clone
         val context = new PacketContext(None, null,
                                         Platform.currentTime + 10000, null,
                                         null, null, true, None, ingressMatch)
-        val future = bridge.process(context)
+        val result = bridge.process(context) match {
+            case NotYet(ft) => Await.result(ft, 1 second)
+            case Ready(r) => r
+        }
 
         ingressMatch should be (origMatch)
 
-        val result = Await.result(future, 1 second)
         result match {
             case Coordinator.ToPortSetAction(port) =>
                 assert(port === bridgeID)
@@ -182,20 +189,22 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
         val frame = new Ethernet()
                         .setSourceMACAddress(srcMac)
                         .setDestinationMACAddress(dstMac)
-        val ingressMatch = ((new WildcardMatch)
-                .setEthernetSource(srcMac)
-                .setEthernetDestination(dstMac)
-                .setNetworkDestination(rtr1ipaddr)
-                .setEtherType(ARP.ETHERTYPE))
+        val ingressMatch = new WildcardMatch()
+                               .setEthernetSource(srcMac)
+                               .setEthernetDestination(dstMac)
+                               .setNetworkDestination(rtr1ipaddr)
+                               .setEtherType(ARP.ETHERTYPE)
         val origMatch = ingressMatch.clone
         val context = new PacketContext(None, frame,
                                         Platform.currentTime + 10000, null,
                                         null, null, true, None, ingressMatch)
-        val future = bridge.process(context)
+        val result = bridge.process(context) match {
+            case NotYet(ft) => Await.result(ft, 1 second)
+            case Ready(r) => r
+        }
 
         ingressMatch should be (origMatch)
 
-        val result = Await.result(future, 1 second)
         result match {
             case Coordinator.ToPortAction(port) =>
                 assert(port === rtr1port)
@@ -204,18 +213,19 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
     }
 
     def testMcastSrc() {
-        val ingressMatch = ((new WildcardMatch)
+        val ingressMatch = new WildcardMatch()
                 .setEthernetSource(MAC.fromString("ff:54:ce:50:44:ce"))
-                .setEthernetDestination(MAC.fromString("0a:de:57:16:a3:06")))
+                .setEthernetDestination(MAC.fromString("0a:de:57:16:a3:06"))
         val origMatch = ingressMatch.clone
         val context = new PacketContext(None, null,
                                         Platform.currentTime + 10000, null,
                                         null, null, true, None, ingressMatch)
-        val future = bridge.process(context)
+        val result = bridge.process(context) match {
+            case NotYet(ft) => Await.result(ft, 1 second)
+            case Ready(r) => r
+        }
 
         ingressMatch should be (origMatch)
-
-        val result = Await.result(future, 1 second)
         assert(result == Coordinator.DropAction)
     }
 }

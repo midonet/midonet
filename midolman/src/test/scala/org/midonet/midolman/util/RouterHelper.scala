@@ -12,7 +12,9 @@ import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.FlowController.AddWildcardFlow
 import org.midonet.midolman.simulation.{Router => SimRouter}
 import org.midonet.midolman.topology.VirtualTopologyActor.expiringAsk
-import org.midonet.midolman.MidolmanTestCase
+import org.midonet.midolman.{NotYet, Ready, MidolmanTestCase}
+import scala.concurrent.duration._
+import scala.concurrent.Await
 
 trait RouterHelper extends SimulationHelper { this: MidolmanTestCase =>
 
@@ -62,16 +64,14 @@ trait RouterHelper extends SimulationHelper { this: MidolmanTestCase =>
 
     def fetchRouterAndPort(portName: String,
                            portId: UUID) : (SimRouter, RouterPort) = {
-        // Simulate a dummy packet so the system creates the Router RCU object
-        val eth = new Ethernet().setEtherType(IPv6_ETHERTYPE).
-            setDestinationMACAddress(MAC.fromString("de:de:de:de:de:de")).
-            setSourceMACAddress(MAC.fromString("01:02:03:04:05:06")).
-            setPad(true)
-        triggerPacketIn(portName, eth)
-        fishForRequestOfType[AddWildcardFlow](flowProbe())
-
-        val port = expiringAsk[RouterPort](portId).value.get.get
-        val router = expiringAsk[SimRouter](port.deviceID).value.get.get
+        val port = expiringAsk[RouterPort](portId) match {
+            case Ready(p) => p
+            case NotYet(f) => Await.result(f.mapTo[RouterPort], 1 second)
+        }
+        val router = expiringAsk[SimRouter](port.deviceID) match {
+            case Ready(r) => r
+            case NotYet(f) => Await.result(f.mapTo[SimRouter], 1 second)
+        }
         drainProbes()
         (router, port)
     }

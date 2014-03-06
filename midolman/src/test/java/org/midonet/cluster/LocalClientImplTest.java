@@ -5,9 +5,9 @@
 package org.midonet.cluster;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.HashSet;
 import java.util.UUID;
 
 import com.google.inject.Guice;
@@ -48,7 +48,6 @@ import org.midonet.midolman.version.guice.VersionModule;
 import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
-import org.midonet.util.functors.Callback1;
 import org.midonet.util.functors.Callback3;
 import scala.Option;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -368,18 +367,7 @@ public class LocalClientImplTest {
         }
 
         public ArpCacheEntry getArpEntryForIp(IPv4Addr ipAddr) {
-            final ArpCacheEntry[] result = new ArpCacheEntry[1];
-            arpCache.get(ipAddr, new Callback1<ArpCacheEntry>() {
-                @Override
-                public void call(ArpCacheEntry v) {
-                    result[0] = v;
-                }
-            }, System.currentTimeMillis()+2000);
-            try {
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-            }
-            return result[0];
+            return arpCache.get(ipAddr);
         }
 
         public int getBuildCallsCount() {

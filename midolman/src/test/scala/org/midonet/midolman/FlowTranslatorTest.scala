@@ -11,20 +11,20 @@ import scala.concurrent.{ExecutionContext, Future, Await}
 import scala.concurrent.duration._
 
 import akka.actor.{Actor, ActorSystem}
-import akka.event.{NoLogging, LoggingAdapter}
+import akka.event.{Logging, NoLogging, LoggingAdapter}
 import akka.util.Timeout
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{OneInstancePerTest, GivenWhenThen, Matchers, FeatureSpec}
 
-import org.midonet.cluster.data.Chain
+import org.midonet.cluster.data.{Port, Bridge, Chain}
 import org.midonet.cluster.data.ports.BridgePort
 import org.midonet.midolman.rules.{RuleResult, Condition}
 import org.midonet.midolman.rules.RuleResult.Action
 import org.midonet.midolman.services.MessageAccumulator
-import org.midonet.midolman.topology.{FlowTagger, VirtualToPhysicalMapper, VirtualTopologyActor}
-import org.midonet.midolman.topology.rcu.{PortSet, Host}
+import org.midonet.midolman.topology.{LocalPortActive, FlowTagger, VirtualToPhysicalMapper, VirtualTopologyActor}
+import org.midonet.midolman.topology.rcu.Host
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.PortSetRequest
 import org.midonet.odp.DpPort
 import org.midonet.odp.flows.FlowActions.{output, pushVLAN, setKey, userspace}
@@ -48,16 +48,8 @@ class FlowTranslatorTest extends FeatureSpec
     override def registerActors = List(
         VirtualTopologyActor -> (() => new VirtualTopologyActor
                                        with MessageAccumulator),
-        VirtualToPhysicalMapper -> (() => new MyVirtualToPhysicalMapper
+        VirtualToPhysicalMapper -> (() => new VirtualToPhysicalMapper
                                           with MessageAccumulator))
-
-    class MyVirtualToPhysicalMapper extends Actor {
-        val portSets = mutable.Map[UUID, PortSet]()
-
-        def receive = {
-            case PortSetRequest(portSetId, _) => sender ! portSets(portSetId)
-        }
-    }
 
     trait TranslationContext {
         protected val dpState: TestDatapathState
@@ -88,24 +80,35 @@ class FlowTranslatorTest extends FeatureSpec
             case Some(p) =>
                 val inId = dpState.getDpPortNumberForVport(inPortUUID.get).get
                 tags + FlowTagger.invalidateDPPort(inId.shortValue())
-            case None => tags
+            case None =>
+                tags
         }
     }
 
-    var id = 0
+    var nextId = 0
+    def id = {
+        val x = nextId
+        nextId += 1
+        x
+    }
 
-    def makePort(host: UUID)(f: BridgePort => BridgePort): BridgePort = {
-        val bridge = newBridge("bridge" + id)
-        id += 1
+    def makePort(host: UUID)(f: BridgePort => BridgePort): BridgePort =
+        makePort(host, newBridge("bridge" + id))(f)
+
+    def makePort(host: UUID, bridge: Bridge)(f: BridgePort => BridgePort)
+    : BridgePort = {
         val port = newBridgePort(bridge, f(new BridgePort().setHostId(host)))
         fetchTopology(port)
         port
     }
 
-    def makePortSet(id: UUID, hosts: Set[UUID], localPorts: Set[UUID]): Unit = {
-        VirtualToPhysicalMapper
-                .as[MyVirtualToPhysicalMapper]
-                .portSets.put(id, PortSet(id, hosts, localPorts))
+    def makePortSet(id: UUID, hosts: Set[UUID], localPorts: Set[Port[_, _]]): Unit = {
+        localPorts foreach { p =>
+            VirtualToPhysicalMapper ! LocalPortActive(p.getId, active = true)
+        }
+        hosts foreach {
+            clusterDataClient().portSetsAddHost(id, _)
+        }
     }
 
     def reject(port: BridgePort) = newChain(port, RuleResult.Action.REJECT)
@@ -157,19 +160,18 @@ class FlowTranslatorTest extends FeatureSpec
 
     feature("FlowActionOutputToVrnPortSet is translated") {
         translationScenario("The port set has local ports") { ctx =>
-            val inPort = UUID.randomUUID()
-            val port0 = makePort(hostId())(identity) // code assumes that they
-            val port1 = makePort(hostId())(identity) // are exterior
-            val chain1 = accept(port1)
-            val port2 = makePort(hostId()) { p => p.setAdminStateUp(false)}
-            val port3 = makePort(hostId())(identity)
-            val chain3 = reject(port3)
             val bridge = newBridge("portSetBridge")
-            makePortSet(bridge.getId, Set.empty, Set(inPort, port0.getId,
-                                                     port1.getId, port2.getId,
-                                                     port3.getId))
-            ctx input inPort
-            ctx local inPort -> 1
+            val inPort = makePort(hostId(), bridge)(identity)
+            val port0 = makePort(hostId(), bridge)(identity) // code assumes that they
+            val port1 = makePort(hostId(), bridge)(identity) // are exterior
+            val chain1 = accept(port1)
+            val port2 = makePort(hostId(), bridge) { p => p.setAdminStateUp(false)}
+            val port3 = makePort(hostId(), bridge)(identity)
+            val chain3 = reject(port3)
+            makePortSet(bridge.getId, Set.empty, Set(inPort, port0, port1,
+                                                     port2, port3))
+            ctx input inPort.getId
+            ctx local inPort.getId -> 1
             ctx local port0.getId -> 2
             ctx local port1.getId -> 3
             ctx local port2.getId -> 4
@@ -228,12 +230,12 @@ class FlowTranslatorTest extends FeatureSpec
             val rport1 = makePort(remoteHost1) { _
                     .setInterfaceName("if")
             }
-            val lport0 = makePort(hostId())(identity) // code assumes that they
-            val lport1 = makePort(hostId())(identity) // are exterior
-
             val bridge = newBridge("portSetBridge")
+            val lport0 = makePort(hostId(), bridge)(identity) // code assumes that they
+            val lport1 = makePort(hostId(), bridge)(identity) // are exterior
+
             makePortSet(bridge.getId, Set(rport0.getHostId, rport1.getHostId),
-                        Set(lport0.getId, lport1.getId))
+                        Set(lport0, lport1))
 
             ctx peer remoteHost0 -> (1, 2)
             ctx peer remoteHost1 -> (3, 4)
@@ -278,10 +280,10 @@ class FlowTranslatorTest extends FeatureSpec
 
     feature("Multiple actions are translated") {
         translationScenario("Different types of actions are translated") { ctx =>
-            val port0 = UUID.randomUUID()
-            val port1 = makePort(hostId())(identity) // code assumes it's exterior
             val bridge = newBridge("portSetBridge")
-            makePortSet(bridge.getId, Set.empty, Set(port1.getId))
+            val port0 = UUID.randomUUID()
+            val port1 = makePort(hostId(), bridge)(identity) // code assumes it's exterior
+            makePortSet(bridge.getId, Set.empty, Set(port1))
 
             ctx local port0 -> 2
             ctx local port1.getId -> 3
@@ -320,24 +322,26 @@ class FlowTranslatorTest extends FeatureSpec
         }
     }
 
-    sealed class TestFlowTranslator(dps: DatapathState) extends FlowTranslator {
+    sealed class TestFlowTranslator(val dpState: DatapathState) extends FlowTranslator {
         implicit protected def system: ActorSystem = actorSystem
         implicit override protected def executor = ExecutionContext.callingThread
         implicit protected val requestReplyTimeout: Timeout = Timeout(3 seconds)
-        val log: LoggingAdapter = NoLogging
+        val log: LoggingAdapter = Logging.getLogger(system, this.getClass)
         val cookieStr = ""
-        val dpState = dps
 
-        override def translateVirtualWildcardFlow(flow: WildcardFlow,
-                                                  tags: ROSet[Any])
-        : Future[(WildcardFlow, ROSet[Any])] =
+        override def translateVirtualWildcardFlow(
+                            flow: WildcardFlow,
+                            tags: ROSet[Any]) : Urgent[(WildcardFlow, ROSet[Any])] = {
+            if (flow.getMatch.getInputPortUUID == null)
+                fail("NULL in forwarded call")
             super.translateVirtualWildcardFlow(flow, tags)
+        }
 
-        override def translateActions(actions: Seq[FlowAction],
-                                      inPortUUID: Option[UUID],
-                                      dpTags: Option[mutable.Set[Any]],
-                                      wMatch: WildcardMatch)
-        : Future[Seq[FlowAction]] =
+        override def translateActions(
+                            actions: Seq[FlowAction],
+                            inPortUUID: Option[UUID],
+                            dpTags: Option[mutable.Set[Any]],
+                            wMatch: WildcardMatch) : Urgent[Seq[FlowAction]] =
             super.translateActions(actions, inPortUUID, dpTags, wMatch)
     }
 
@@ -387,11 +391,16 @@ class FlowTranslatorTest extends FeatureSpec
                     if (inPortUUID.isDefined)
                         wcMatch.setInputPortUUID(inPortUUID.get)
 
-                    val f = new TestFlowTranslator(dpState)
-                            .translateActions(actions, inPortUUID,
-                                if (withTags) Some(tags) else None,
-                                wcMatch)
-                    translatedActions = Await.result(f, 1 second)
+                    translatedActions = null
+                    do new TestFlowTranslator(dpState).translateActions(
+                            actions, inPortUUID,
+                            if (withTags) Some(tags) else None,
+                            wcMatch) match {
+                        case Ready(v) =>
+                            translatedActions = v
+                        case NotYet(f) =>
+                            Await.result(f, 200 millis)
+                    } while (translatedActions == null)
                 }
 
                 def verify(result: (Seq[FlowAction], ROSet[Any])) = {
@@ -417,18 +426,21 @@ class FlowTranslatorTest extends FeatureSpec
             private val wcMatch = new WildcardMatch()
 
             def translate(actions: List[FlowAction]): Unit = {
-                if (!inPortUUID.isDefined) {
-                    val in = UUID.randomUUID()
-                    inPortUUID = Some(in)
-                    local (in -> 99)
+                val port = inPortUUID.getOrElse(null) match {
+                    case null =>
+                        inPortUUID = Some(UUID.randomUUID())
+                        local (inPortUUID.get -> 99)
+                        inPortUUID.get
+                    case p => p
                 }
 
-                wcMatch.setInputPortUUID(inPortUUID.get)
-
-                val f = new TestFlowTranslator(dpState)
-                    .translateVirtualWildcardFlow(WildcardFlow(wcMatch, actions),
-                                                  null)
-                translation = Await.result(f, 1 second)
+                do new TestFlowTranslator(dpState).translateVirtualWildcardFlow(
+                    WildcardFlow(wcMatch.setInputPortUUID(port), actions), null) match {
+                        case Ready(v) =>
+                            translation = v
+                        case NotYet(f) =>
+                            Await.result(f, 200 millis)
+                } while (translation == null)
             }
 
             def verify(result: (Seq[FlowAction], ROSet[Any])) = {

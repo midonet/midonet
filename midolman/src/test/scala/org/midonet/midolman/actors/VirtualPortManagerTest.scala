@@ -522,7 +522,7 @@ class VirtualPortManagerTest extends FeatureSpec with Matchers {
         }
 
         scenario("no binding, has mapping") {
-            val (vpm, controller) = getVPM()
+            val (vpm, _) = getVPM()
             addStatus(vpm, true)
             addMapping(vpm)
 

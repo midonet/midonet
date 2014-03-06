@@ -39,7 +39,7 @@ class WaitingRoom[W](val leave: (Iterable[W] => Any), // tired of waiting
      * If the element is already in the waiting room, it will not be added again
      * with the *old* waiting time unaltered.
      */
-    def add(w: W) {
+    def enter(w: W) {
         doExpirations()
         if (waiters contains w) {
             return
