@@ -16,6 +16,8 @@ public class DtoPool {
     private URI uri;
     private String name;
     private String description;
+    private UUID loadBalancerId;
+    private URI loadBalancer;
     private UUID healthMonitorId;
     private URI healthMonitor;
     private URI vips;
@@ -55,6 +57,22 @@ public class DtoPool {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public UUID getLoadBalancerId() {
+        return loadBalancerId;
+    }
+
+    public void setLoadBalancerId(UUID loadBalancerId) {
+        this.loadBalancerId = loadBalancerId;
+    }
+
+    public URI getLoadBalancer() {
+        return loadBalancer;
+    }
+
+    public void setLoadBalancer(URI loadBalancer) {
+        this.loadBalancer = loadBalancer;
     }
 
     public UUID getHealthMonitorId() {
@@ -131,6 +149,8 @@ public class DtoPool {
         if (!Objects.equal(id, that.getId())) return false;
         if (!Objects.equal(name, that.getName())) return false;
         if (!Objects.equal(description, that.getDescription())) return false;
+        if (!Objects.equal(loadBalancerId,
+                that.getLoadBalancerId())) return false;
         if (!Objects.equal(healthMonitorId,
                 that.getHealthMonitorId())) return false;
         if (!Objects.equal(protocol, that.getProtocol())) return false;
@@ -147,6 +167,8 @@ public class DtoPool {
         result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result
                 + (description != null ? description.hashCode() : 0);
+        result = 31 * result
+                + (loadBalancerId != null ? loadBalancerId.hashCode() : 0);
         result = 31 * result
                 + (healthMonitorId != null ? healthMonitorId.hashCode() : 0);
         result = 31 * result + (protocol != null ? protocol.hashCode() : 0);

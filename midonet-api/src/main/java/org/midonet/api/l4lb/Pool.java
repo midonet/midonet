@@ -6,6 +6,7 @@ package org.midonet.api.l4lb;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.UriResource;
 
+import javax.validation.constraints.NotNull;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.net.URI;
 import java.util.UUID;
@@ -18,6 +19,8 @@ public class Pool extends UriResource {
     private String name;
     private String description;
     private UUID healthMonitorId;
+    @NotNull
+    private UUID loadBalancerId;
     private String protocol;
     private String lbMethod;
     private boolean adminStateUp = true;
@@ -53,6 +56,14 @@ public class Pool extends UriResource {
 
     public void setHealthMonitorId(UUID healthMonitorId) {
         this.healthMonitorId = healthMonitorId;
+    }
+
+    public UUID getLoadBalancerId() {
+        return loadBalancerId;
+    }
+
+    public void setLoadBalancerId(UUID loadBalancerId) {
+        this.loadBalancerId = loadBalancerId;
     }
 
     public String getProtocol() {
@@ -95,6 +106,7 @@ public class Pool extends UriResource {
         super();
         this.name = pool.getName();
         this.description = pool.getDescription();
+        this.loadBalancerId = pool.getLoadBalancerId();
         this.healthMonitorId = pool.getHealthMonitorId();
         this.protocol = pool.getProtocol();
         this.lbMethod = pool.getLbMethod();
@@ -108,6 +120,7 @@ public class Pool extends UriResource {
                 .setId(this.id)
                 .setName(this.name)
                 .setDescription(this.description)
+                .setLoadBalancerId(this.loadBalancerId)
                 .setHealthMonitorId(this.healthMonitorId)
                 .setProtocol(this.protocol)
                 .setLbMethod(this.lbMethod)
@@ -130,6 +143,11 @@ public class Pool extends UriResource {
     public URI getHealthMonitor() {
         return (getBaseUri() == null || healthMonitorId == null) ? null :
                 ResourceUriBuilder.getHealthMonitor(getBaseUri(), healthMonitorId);
+    }
+
+    public URI getLoadBalancer() {
+        return (getBaseUri() == null || loadBalancerId == null) ? null :
+                ResourceUriBuilder.getLoadBalancer(getBaseUri(), loadBalancerId);
     }
 
     public URI getVips() {
