@@ -14,7 +14,7 @@ import scala.util.Success
 import akka.actor.ActorSystem
 
 import org.midonet.cluster.client.{ArpCache, RouterPort}
-import org.midonet.midolman.DeduplicationActor
+import org.midonet.midolman.PacketsEntryPoint
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.SuspendedPacketQueue.SuspendOnPromise
 import org.midonet.midolman.config.MidolmanConfig
@@ -178,7 +178,7 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
                 removeArpWaiter(ip, macPromise)
                 Future.successful(entry.macAddr)
             case _ =>
-                DeduplicationActor !
+                PacketsEntryPoint !
                         SuspendOnPromise(pktContext.flowCookie, macPromise)
                 macPromise.future
         } fallbackTo { Future.successful(null) }
@@ -262,7 +262,7 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
             cacheEntry.lastArp = now
             arpCache.add(ip, cacheEntry)
             log.debug("generateArpRequest: sending {}", arp)
-            DeduplicationActor !
+            PacketsEntryPoint !
                     EmitGeneratedPacket(port.id, arp,
                         if (pktContext != null) pktContext.flowCookie else None)
             // we don't retry for stale entries.

@@ -7,10 +7,10 @@ import java.util.UUID
 import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.compat.Platform
-
 import scala.concurrent.Await
-import akka.util.Timeout
 import scala.concurrent.duration._
+
+import akka.util.Timeout
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith

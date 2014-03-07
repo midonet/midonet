@@ -8,7 +8,8 @@ import scala.concurrent.{ExecutionContext, Future}
 import java.util.UUID
 
 import org.midonet.cluster.client.Port
-import org.midonet.midolman.DeduplicationActor
+import org.midonet.midolman.PacketsEntryPoint
+import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.Coordinator._
@@ -16,8 +17,6 @@ import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.midolman.topology._
 import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.packets._
-import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
-import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.topology.RouterConfig
 import org.midonet.cluster.client.RouterPort
 
@@ -120,7 +119,7 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
         // Construct the reply, reversing src/dst fields from the request.
         val eth = ARP.makeArpReply(inPort.portMac, sha,
             pkt.getTargetProtocolAddress, pkt.getSenderProtocolAddress)
-        DeduplicationActor ! EmitGeneratedPacket(
+        PacketsEntryPoint ! EmitGeneratedPacket(
             inPort.id, eth,
             if (origPktContext != null) origPktContext.flowCookie else None)
     }
@@ -345,7 +344,7 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
                         case RuleResult.Action.ACCEPT =>
                             val cookie = if (packetContext == null) None
                                 else packetContext.flowCookie
-                            DeduplicationActor !
+                            PacketsEntryPoint !
                                 EmitGeneratedPacket(rt.nextHopPort, eth, cookie)
                         case RuleResult.Action.DROP =>
                         case RuleResult.Action.REJECT =>

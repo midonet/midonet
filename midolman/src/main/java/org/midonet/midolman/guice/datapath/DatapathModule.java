@@ -63,7 +63,9 @@ public class DatapathModule extends PrivateModule {
 
         @Override
         public DatapathConnectionPool get() {
-            return new OneToOneConnectionPool("netlink.requests", 4, config);
+            return new OneToOneConnectionPool("netlink.requests",
+                                              config.getNumOutputChannels(),
+                                              config);
         }
     }
 }

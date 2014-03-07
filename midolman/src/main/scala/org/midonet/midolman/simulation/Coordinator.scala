@@ -13,7 +13,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 import org.midonet.cache.Cache
 import org.midonet.cluster.client._
-import org.midonet.midolman.DeduplicationActor
+import org.midonet.midolman.PacketsEntryPoint
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.logging.LoggerFactory
@@ -322,7 +322,7 @@ class Coordinator(var origMatch: WildcardMatch,
         eth.setSourceMACAddress(origEthernetPkt.getDestinationMACAddress)
         eth.setDestinationMACAddress(origEthernetPkt.getSourceMACAddress)
 
-        DeduplicationActor ! EmitGeneratedPacket(inPort, eth, cookie)
+        PacketsEntryPoint ! EmitGeneratedPacket(inPort, eth, cookie)
     }
 
     private def packetIngressesDevice(port: Port)
@@ -628,7 +628,7 @@ class Coordinator(var origMatch: WildcardMatch,
         val ethOpt = unreachableProhibitedIcmp(port, pktContext.wcmatch,
             pktContext.frame)
         if (ethOpt.nonEmpty)
-            DeduplicationActor !
+            PacketsEntryPoint !
                 EmitGeneratedPacket(port.id, ethOpt.get, pktContext.flowCookie)
     }
 

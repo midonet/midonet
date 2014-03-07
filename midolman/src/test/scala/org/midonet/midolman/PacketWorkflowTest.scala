@@ -87,7 +87,7 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
     before { while (msgAvailable) receiveOne(0 seconds) }
 
     val testKit = self
-    val aliases = List(DeduplicationActor.Name, FlowController.Name)
+    val aliases = List(PacketsEntryPoint.Name, FlowController.Name)
 
     def makeAlias(name: String)(implicit ctx: ActorContext) {
         ctx.actorOf(Props(new Forwarder), name)

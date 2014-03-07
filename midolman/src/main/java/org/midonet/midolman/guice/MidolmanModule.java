@@ -59,5 +59,4 @@ public class MidolmanModule extends PrivateModule {
             return configProvider.getConfig(MidolmanConfig.class);
         }
     }
-
 }
