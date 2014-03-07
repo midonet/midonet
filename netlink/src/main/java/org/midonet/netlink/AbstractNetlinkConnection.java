@@ -27,8 +27,6 @@ import org.midonet.util.BatchCollector;
 import org.midonet.util.io.SelectorInputQueue;
 import org.midonet.util.TokenBucket;
 
-import static org.midonet.netlink.Netlink.Flag;
-
 /**
  * Abstract class to be derived by any netlink protocol implementation.
  */
@@ -156,11 +154,12 @@ public abstract class AbstractNetlinkConnection {
     }
 
     protected <T> void sendNetlinkMessage(NetlinkRequestContext ctx,
-                                          short flags,
+                                          int messageFlags,
                                           ByteBuffer payload,
                                           Callback<T> callback,
                                           Function<List<ByteBuffer>, T> translator,
                                           final long timeoutMillis) {
+        final short flags = (short) messageFlags;
         final short cmdFamily = ctx.commandFamily();
         final byte cmd = ctx.command();
         final byte version = ctx.version();
@@ -355,7 +354,7 @@ public abstract class AbstractNetlinkConnection {
             int pid = reply.getInt();           // pid
 
             int nextPosition = finalLimit;
-            if (Flag.isSet(flags, Flag.NLM_F_MULTI)) {
+            if (NLFlag.isMultiFlagSet(flags)) {
                 reply.limit(position + len);
                 nextPosition = position + len;
             }
@@ -422,13 +421,13 @@ public abstract class AbstractNetlinkConnection {
                                                 : request.inBuffers;
 
                     if (buffers != null) {
-                        if (Flag.isSet(flags, Flag.NLM_F_MULTI))
+                        if (NLFlag.isMultiFlagSet(flags))
                             buffers.add(cloneBuffer(payload));
                         else
                             buffers.add(payload);
                     }
 
-                    if (!Flag.isSet(flags, Flag.NLM_F_MULTI)) {
+                    if (!NLFlag.isMultiFlagSet(flags)) {
                         if (request != null) {
                             pendingRequests.remove(seq);
                             ongoingTransaction.remove(request);
