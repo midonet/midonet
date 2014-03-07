@@ -14,13 +14,20 @@ import java.util.UUID
 import org.midonet.midolman.l4lb.HaproxyHealthMonitor._
 import org.midonet.midolman.l4lb.HaproxyHealthMonitor.CheckHealth
 import org.midonet.midolman.l4lb.HaproxyHealthMonitor.ConfigUpdate
-import org.midonet.midolman.l4lb.HaproxyHealthMonitor.StatusChange
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.routingprotocols.IP
 import org.midonet.netlink.{AfUnix, NetlinkSelectorProvider, UnixDomainChannel}
 
 import scala.collection.JavaConversions._
+import scala.collection.mutable.HashSet
+import scala.collection.mutable.Set
 import scala.concurrent.duration._
+import org.midonet.cluster.DataClient
+import org.midonet.cluster.data.Route
+import org.midonet.cluster.data.ports.RouterPort
+import org.midonet.midolman.state.PoolMemberStatus
+import org.midonet.midolman.state.PoolMemberStatus.{UP => MemberUp}
+import org.midonet.midolman.state.PoolMemberStatus.{DOWN => MemberDown}
 
 
 /**
@@ -31,8 +38,11 @@ import scala.concurrent.duration._
  * actor is telling it to stop/start monitoring, and receiving updates.
  */
 object HaproxyHealthMonitor {
-    def props(config: PoolConfig, manager: ActorRef): Props
-            = Props(new HaproxyHealthMonitor(config, manager))
+    def props(config: PoolConfig, manager: ActorRef, routerId: UUID,
+              client: DataClient, hostId: UUID): Props = Props(
+                  new HaproxyHealthMonitor(config, manager, routerId, client,
+                                           hostId))
+
 
     sealed trait HHMMessage
     // Tells this actor to start polling haproxy for aliveness.
@@ -48,8 +58,12 @@ object HaproxyHealthMonitor {
     case class ConfigUpdate(conf: PoolConfig) extends HHMMessage
     // Tells this actor to poll haproxy once for health info.
     private[HaproxyHealthMonitor] case object CheckHealth extends HHMMessage
-    // If there is an update in health status, this message conveys this.
-    case class StatusChange(added: Array[UUID], deleted: Array[UUID])
+
+    // Constants for linking namespace to router port
+    val NameSpaceIp = "169.254.17.45"
+    val RouterIp = "169.254.17.44"
+    val NetLen = 30
+    val NetAddr = "169.254.17.43"
 
     // Constants used in parsing haproxy output
     val StatusPos = 17
@@ -57,30 +71,31 @@ object HaproxyHealthMonitor {
     val Backend = "BACKEND"
     val Frontend = "FRONTEND"
     val StatusUp = "UP"
+    val StatusDown = "DOWN"
     val FieldName = "svname"
     val ShowStat = "show stat\n"
-
-    var haproxyDaemonProcessConf = null
 }
 
 class HaproxyHealthMonitor(var config: PoolConfig,
-                           val manager: ActorRef)
+                           val manager: ActorRef,
+                           val routerId: UUID,
+                           val client: DataClient,
+                           val hostId: UUID)
     extends Actor with ActorLogWithoutPath with Stash {
     implicit def system: ActorSystem = context.system
     implicit def executor = system.dispatcher
 
     private var pollingActive = false
-    private var currentUpNodes = Array[UUID]()
+    private var currentUpNodes = Set[UUID]()
+    private var currentDownNodes = Set[UUID]()
     private val healthMonitorName = config.id.toString.substring(0,8)
+    private var routerPortId: UUID = null
 
     override def preStart(): Unit = {
         try {
             writeConf(config)
-            createNamespace(healthMonitorName, config.vip.ip)
-            /* TODO: Here is where we will hook up the namespace to an
-             * external router port via the dataclient. maybe
-             * createNamespace will return the interface name.
-             */
+            val nsName = createNamespace(healthMonitorName, config.vip.ip)
+            hookNamespaceToRouter(nsName, routerId)
             restartHaproxy(healthMonitorName, config.haproxyConfFileLoc,
                            config.haproxyPidFileLoc)
         } catch {
@@ -92,6 +107,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
     }
 
     override def postStop(): Unit = {
+        unhookNamespaceFromRouter()
         removeNamespace(healthMonitorName)
     }
 
@@ -119,13 +135,25 @@ class HaproxyHealthMonitor(var config: PoolConfig,
         case CheckHealth =>
             try {
                 val statusInfo = getHaproxyStatus(config.haproxySockFileLoc)
-                val newSet = parseResponse(statusInfo)
-                val changes = (newSet diff currentUpNodes,
-                               currentUpNodes diff newSet)
-                currentUpNodes = newSet
-                if (changes._1.nonEmpty || changes._2.nonEmpty) {
-                  manager ! StatusChange(changes._1, changes._2)
+                val (upNodes, downNodes) = parseResponse(statusInfo)
+                val newUpNodes = upNodes diff currentUpNodes
+                val newDownNodes = downNodes diff currentDownNodes
+
+                def updateClient(id: UUID, status: PoolMemberStatus): Unit = {
+                    val member = client.poolMemberGet(id)
+                    if (member == null) {
+                        log.error("pool member " + id.toString +
+                                  " not in database")
+                        return Unit
+                    }
+                    member.setStatus(status)
+                    client.poolMemberUpdate(member)
                 }
+                newUpNodes foreach (id => updateClient(id, MemberUp))
+                newDownNodes foreach (id => updateClient(id, MemberDown))
+
+                currentUpNodes = upNodes
+                currentDownNodes = downNodes
             } catch {
                 case e: Exception =>
                     log.error("Unable to retrieve health information for "
@@ -146,20 +174,34 @@ class HaproxyHealthMonitor(var config: PoolConfig,
      * backend_id,name_of_server,0,0,0,0,,0,0,0,,0,,0,0,0,0,DOWN,1,1,0,0,1,
      * 2411,2411,,1,2,2,,0,,2,0,,0,L4CON,,1999,,,,,,,0,,,,0,0,
      */
-    private def parseResponse(resp: String): Array[UUID] = {
+    private def parseResponse(resp: String): (Set[UUID], Set[UUID]) = {
         if (resp == null) {
-            currentUpNodes
+            (currentUpNodes, currentDownNodes)
         }
 
-        def isUp(entry: Array[String]): Boolean =
+        val upNodes = new HashSet[UUID]()
+        val downNodes = new HashSet[UUID]()
+
+        def isMemberEntry(entry: Array[String]): Boolean =
             entry.length > StatusPos &&
-            entry(StatusPos) == StatusUp &&
             entry(NamePos) != Backend &&
             entry(NamePos) != Frontend &&
             entry(NamePos) != FieldName
 
+        def isUp(entry: Array[String]): Boolean =
+            isMemberEntry(entry) && entry(StatusPos) == StatusUp
+
+        def isDown(entry: Array[String]): Boolean =
+            isMemberEntry(entry) && entry(StatusPos) == StatusDown
+
         val entries = resp split "\n" map (_.split(","))
-        entries filter isUp map (x => UUID.fromString(x(NamePos)))
+        entries foreach {
+            case entry if isUp(entry) =>
+                upNodes add UUID.fromString(entry(NamePos))
+            case entry if isDown(entry) =>
+                downNodes add UUID.fromString(entry(NamePos))
+        }
+        (upNodes, downNodes)
     }
 
     /* ======================================================================
@@ -190,7 +232,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
     /*
      * Creates a new namespace and hooks up an interface.
      */
-    def createNamespace(name: String, ip: String): Unit = {
+    def createNamespace(name: String, ip: String): String = {
         /*
          * TODO: We should not be calling ip commands directly from midolman
          * because it depends on on the ip package being installed. We will
@@ -198,6 +240,12 @@ class HaproxyHealthMonitor(var config: PoolConfig,
          */
         val dp = name + "_dp"
         val ns = name + "_ns"
+        val iptablePost = "iptables --table nat --append POSTROUTING " +
+                          "--source " + NameSpaceIp + " --jump SNAT " +
+                          "--to-source " + ip
+        val iptablePre = "iptables --table nat --append PREROUTING" +
+                         " --destination " + ip + " --jump DNAT " +
+                         "--to-destination " + NameSpaceIp
         IP.ensureNamespace(name)
         try {
             IP.link("add name " + dp + " type veth peer name " + ns)
@@ -206,11 +254,14 @@ class HaproxyHealthMonitor(var config: PoolConfig,
             IP.execIn(name, "ip link set " + ns + " up")
             IP.execIn(name, "ip address add " + ip + "/24 dev " + ns)
             IP.execIn(name, "ifconfig lo up")
+            IP.execIn(name, iptablePre)
+            IP.execIn(name, iptablePost)
         } catch {
             case e: Exception =>
                 removeNamespace(name)
                 throw e
         }
+        dp
     }
 
     def removeNamespace(name: String): Unit = {
@@ -230,7 +281,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
         val filePath = "/proc/" + pid + "/cmdline"
         val file = new File(filePath)
         if (!file.exists()) return false
-        val fileReader = new FileReader("/proc/" + pid + "/cmdline")
+        val fileReader = new FileReader(filePath)
         val bufReader = new BufferedReader(fileReader)
         var pidString = bufReader.readLine()
         pidString = pidString.replace('\0', ' ')
@@ -343,5 +394,56 @@ class HaproxyHealthMonitor(var config: PoolConfig,
         }
         chan.close()
         data.toString()
+    }
+
+    def hookNamespaceToRouter(nsName: String, routerId: UUID) = {
+        val ports = client.portsFindByRouter(routerId)
+        var portId: UUID = null
+
+        // see if the port already exists, and delete it if it does. This can
+        // happen if there was already an haproxy attached to this router.
+        for (port <- ports) {
+            port match {
+                case rpc: RouterPort =>
+                    if (rpc.getNwAddr == RouterIp) {
+                        client.hostsDelVrnPortMapping(hostId, rpc.getId())
+                        portId = rpc.getId()
+                    }
+            }
+        }
+
+        if (portId == null) {
+            val routerPort = new RouterPort()
+            routerPort.setDeviceId(routerId)
+            routerPort.setHostId(hostId)
+            routerPort.setPortAddr(RouterIp)
+            routerPort.setNwAddr(NetAddr)
+            routerPort.setNwLength(NetLen)
+            routerPort.setInterfaceName(nsName)
+            portId = client.portsCreate(routerPort)
+        }
+
+        // Add a route to this port for the VIP. Make it ephermeral because
+        // if this node goes down then this port the traffic gets routed to
+        // is no longer valid.
+        val route = new Route()
+        route.setRouterId(routerId)
+        route.setNextHopPort(portId)
+        route.setSrcNetworkAddr("0.0.0.0")
+        route.setSrcNetworkLength(0)
+        route.setDstNetworkAddr(config.vip.ip)
+        route.setDstNetworkLength(32)
+        route.setWeight(100)
+        client.routesCreateEphemeral(route)
+
+        client.hostsAddVrnPortMapping(hostId, portId, nsName)
+        routerPortId = portId
+    }
+
+    def unhookNamespaceFromRouter() = {
+        if (routerPortId != null) {
+            client.hostsDelVrnPortMapping(hostId, routerPortId)
+            client.portsDelete(routerPortId)
+        }
     }
 }
