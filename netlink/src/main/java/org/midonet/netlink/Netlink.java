@@ -33,63 +33,6 @@ public abstract class Netlink {
         return (NetlinkSelectorProvider) provider;
     }
 
-    public enum Flag {
-        // Must be set on all request messages.
-        NLM_F_REQUEST(0x001),
-        // The message is part of a multipart msg
-        // terminated by NLMSG_DONE.
-        NLM_F_MULTI(0x002),
-        // Request for an acknowledgment on success.
-        NLM_F_ACK(0x004),
-        // Echo this request.
-        NLM_F_ECHO(0x008),
-
-        // for READ
-        // Return the complete table instead of a single entry.
-        NLM_F_ROOT(0x100),
-        // Return all entries matching criteria passed
-        // in message content. Not implemented yet.
-        NLM_F_MATCH(0x200),
-        // Return an atomic snapshot of the table.
-        NLM_F_ATOMIC(0x400),
-        //  logical or of NLM_F_ROOT and NLM_F_MATCH,
-        //  see include/uapi/lpinux/netlink.h in linux kernel
-        NLM_F_DUMP(0x100 | 0x200),
-
-        // for NEW
-        // Replace existing matching object.
-        NLM_F_REPLACE(0x100),
-        // Don't replace if already exists.
-        NLM_F_EXCL(0x200),
-        // Create object if it doesn't already exist.
-        NLM_F_CREATE(0x400),
-        // Add to the end of the object list.
-        NLM_F_APPEND(0x800),;
-
-        private short value;
-
-        Flag(int value) {
-            this.value = (short) value;
-        }
-
-        public short getValue() {
-            return value;
-        }
-
-        public static short or(Netlink.Flag... flags) {
-            int value = 0;
-            for (Netlink.Flag flag : flags) {
-                value |= flag.getValue();
-            }
-
-            return (short) value;
-        }
-
-        public static boolean isSet(short flags, Flag flag) {
-            return (flags & flag.getValue()) != 0;
-        }
-    }
-
     public enum MessageType {
         NLMSG_NOOP(0x0001),
         NLMSG_ERROR(0x0002),
