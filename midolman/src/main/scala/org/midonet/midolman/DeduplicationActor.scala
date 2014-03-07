@@ -306,21 +306,12 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath
 
         if (!packet.getActions.isEmpty) {
             log.debug("Sending pended packet {} for cookie {}", packet, cookie)
-
-            datapathConnection.packetsExecute(datapath, packet,
-                new ErrorHandlingCallback[java.lang.Boolean] {
-                    def onSuccess(data: java.lang.Boolean) {
-                        metrics.packetsProcessed.mark()
-                    }
-
-                    def handleError(ex: NetlinkException, timeout: Boolean) {
-                        if (timeout)
-                            log.error("Failed to send {}: timeout", packet)
-                        else
-                            log.error(ex, "Failed to send {}", packet)
-                        metrics.packetsProcessed.mark()
-                    }
-                })
+            try {
+                datapathConnection.packetsExecute(datapath, packet)
+            } catch {
+                case e: NetlinkException => log.info("Failed to execute packet: {}", e)
+            }
+            metrics.packetsProcessed.mark()
         }
     }
 
