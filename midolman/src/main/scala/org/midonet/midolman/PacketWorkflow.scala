@@ -237,8 +237,8 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
             else
                 handleObsoleteFlow(wildFlow, removalCallbacks)
 
-        val execFuture = executePacket(wildFlow.getActions)
-        flowFuture flatMap { _ => execFuture } continue { _.isSuccess }
+        executePacket(wildFlow.getActions)
+        flowFuture continue { _.isSuccess }
     }
 
     def areTagsValid(tags: ROSet[Any]) =
@@ -297,10 +297,10 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
         addTranslatedFlow(wildFlow, tags, removalCallbacks)
     }
 
-    def executePacket(actions: Seq[FlowAction]): Future[Boolean] = {
+    def executePacket(actions: Seq[FlowAction]) {
         if (actions == null || actions.isEmpty) {
             log.debug("Dropping packet {}", cookieStr)
-            return Future.successful(true)
+            return
         }
 
         log.debug("Executing packet {}", cookieStr)
@@ -311,23 +311,11 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
             UserspaceFlowActionTranslator.translate(packet)
         }
 
-        val pktPromise = promise[Boolean]()
-        datapathConnection.packetsExecute(
-            datapath, packet,
-            new ErrorHandlingCallback[java.lang.Boolean] {
-                def onSuccess(data: java.lang.Boolean) {
-                    log.debug("Packet execute success {}", cookieStr)
-                    pktPromise success true
-                }
-
-                def handleError(ex: NetlinkException, timeout: Boolean) {
-                    log.error(ex, "Failed to send a packet {} {} due to {}",
-                              cookieStr, packet,
-                              if (timeout) "timeout" else "error")
-                    pktPromise failure ex
-                }
-            })
-        pktPromise.future
+        try {
+            datapathConnection.packetsExecute(datapath, packet)
+        } catch {
+            case e: NetlinkException => log.info("Failed to execute packet: {}", e)
+        }
     }
 
     private def handlePacketWithCookie(): Future[PipelinePath] =
@@ -355,10 +343,9 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
             createFlow(wildFlow)
         }
 
-        val execFuture = executePacket(wildFlow.getActions)
+        executePacket(wildFlow.getActions)
 
-        flowFuture.flatMap { _ => execFuture }
-                  .map{ _ => WildcardTableHit }
+        flowFuture.map { _ => WildcardTableHit }
     }
 
     private def handleWildcardTableMiss()
@@ -554,7 +541,10 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
             case ex =>
                 log.warning("failed to translate actions: {}", ex)
                 Nil
-        } flatMap executePacket
+        } map { a =>
+            executePacket(a)
+            true
+        }
     }
 
     private def runCallbacks(callbacks: Iterable[Callback0]) {

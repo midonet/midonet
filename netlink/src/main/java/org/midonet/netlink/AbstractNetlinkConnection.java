@@ -161,37 +161,49 @@ public abstract class AbstractNetlinkConnection {
             new NetlinkRequest<>(cmdFamily, cmd, callback, translator, payload);
 
         // send the request
-        netlinkRequest.timeoutHandler = new Callable<Object>() {
-            @Override
-            public Object call() throws Exception {
-                NetlinkRequest<T> timedOutRequest = pendingRequests.remove(seq);
 
-                if (timedOutRequest != null) {
-                    log.debug("Signalling timeout to the callback: {}", seq);
-                    ByteBuffer timedOutBuf = timedOutRequest.outBuffer.getAndSet(null);
-                    if (timedOutBuf != null)
-                        requestPool.release(timedOutBuf);
-                    pendingWritesThrottler.tokenOut();
-                    timedOutRequest.expired().run();
+        if (callback != null) {
+            netlinkRequest.timeoutHandler = new Callable<Object>() {
+                @Override
+                public Object call() throws Exception {
+                    NetlinkRequest<T> timedOutRequest = pendingRequests.remove(seq);
+
+                    if (timedOutRequest != null) {
+                        log.debug("Signalling timeout to the callback: {}", seq);
+                        ByteBuffer timedOutBuf = timedOutRequest.outBuffer.getAndSet(null);
+                        if (timedOutBuf != null)
+                            requestPool.release(timedOutBuf);
+                        pendingWritesThrottler.tokenOut();
+                        timedOutRequest.expired().run();
+                    }
+
+                    return null;
                 }
+            };
 
-                return null;
-            }
-        };
+            pendingRequests.put(seq, netlinkRequest);
+        }
+
         log.trace("Sending message for id {}", seq);
-        pendingRequests.put(seq, netlinkRequest);
         if (writeQueue.offer(netlinkRequest)) {
             if (bypassSendQueue)
                 processWriteToChannel();
             pendingWritesThrottler.tokenIn();
-            getReactor().schedule(netlinkRequest.timeoutHandler,
-                                  timeoutMillis, TimeUnit.MILLISECONDS);
+
+            if (callback != null) {
+                getReactor().schedule(netlinkRequest.timeoutHandler,
+                                      timeoutMillis, TimeUnit.MILLISECONDS);
+            }
         } else {
             requestPool.release(payload);
-            pendingRequests.remove(seq);
-            netlinkRequest.failed(new NetlinkException(
-                    NetlinkException.ERROR_SENDING_REQUEST,
-                    "Too many pending netlink requests")).run();
+            if (callback != null) {
+                pendingRequests.remove(seq);
+                netlinkRequest.failed(new NetlinkException(
+                        NetlinkException.ERROR_SENDING_REQUEST,
+                        "Too many pending netlink requests")).run();
+            } else {
+                log.info("Too many pending netlink requests");
+            }
         }
     }
 
