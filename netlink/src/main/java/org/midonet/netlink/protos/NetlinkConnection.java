@@ -19,11 +19,10 @@ import org.midonet.netlink.AbstractNetlinkConnection;
 import org.midonet.netlink.BufferPool;
 import org.midonet.netlink.Callback;
 import org.midonet.netlink.CtrlFamily;
+import org.midonet.netlink.NLFlag;
 import org.midonet.netlink.NetlinkChannel;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.Builder;
-
-import static org.midonet.netlink.Netlink.Flag;
 
 /**
  * Basic Netlink protocol implementation.
@@ -77,7 +76,7 @@ public class NetlinkConnection extends AbstractNetlinkConnection {
 
         sendNetlinkMessage(
             CtrlFamily.Context.GetFamily,
-            Flag.or(Flag.NLM_F_REQUEST),
+            NLFlag.REQUEST,
             message.getBuffer(),
             callback,
             familyIdDeserializer,
@@ -126,7 +125,7 @@ public class NetlinkConnection extends AbstractNetlinkConnection {
 
         sendNetlinkMessage(
             CtrlFamily.Context.GetFamily,
-            Flag.or(Flag.NLM_F_REQUEST),
+            NLFlag.REQUEST,
             message.getBuffer(),
             callback,
             mcastGrpDeserializer,
