@@ -44,13 +44,13 @@ class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
         val host = new Host(hostId()).setName("myself")
         clusterDataClient().hostsCreate(hostId(), host)
 
-        dpConn().datapathsEnumerate().get() should have size 0
+        dpConn().futures.datapathsEnumerate().get() should have size 0
 
         // send initialization message and wait
         initializeDatapath()
 
         // validate the final datapath state
-        val datapaths: mutable.Set[Datapath] = dpConn().datapathsEnumerate().get()
+        val datapaths: mutable.Set[Datapath] = dpConn().futures.datapathsEnumerate().get()
 
         datapaths should have size 1
         datapaths.head should have('name("midonet"))
@@ -85,7 +85,7 @@ class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
         portEventsProbe.expectMsgClass(classOf[LocalPortActive])
 
         // validate the final datapath state
-        val datapaths: mutable.Set[Datapath] = dpConn().datapathsEnumerate().get()
+        val datapaths: mutable.Set[Datapath] = dpConn().futures.datapathsEnumerate().get()
 
         datapaths should have size 1
         datapaths.head should have('name("midonet"))
@@ -104,13 +104,13 @@ class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
         clusterDataClient().hostsCreate(hostId(), host)
 
         clusterDataClient().hostsAddDatapathMapping(hostId, "test")
-        dpConn().datapathsEnumerate().get() should have size 0
+        dpConn().futures.datapathsEnumerate().get() should have size 0
 
         // send initialization message and wait
         initializeDatapath() should not be (null)
 
         // validate the final datapath state
-        val datapaths: mutable.Set[Datapath] = dpConn().datapathsEnumerate().get()
+        val datapaths: mutable.Set[Datapath] = dpConn().futures.datapathsEnumerate().get()
 
         datapaths should have size 1
         datapaths.head should have('name("test"))
@@ -136,14 +136,14 @@ class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
         clusterDataClient().hostsAddDatapathMapping(hostId, "test")
         materializePort(port, host, "port1")
 
-        dpConn().datapathsEnumerate().get() should have size 0
+        dpConn().futures.datapathsEnumerate().get() should have size 0
 
         // send initialization message and wait
         initializeDatapath() should not be (null)
         portEventsProbe.expectMsgClass(classOf[LocalPortActive])
 
         // validate the final datapath state
-        val datapaths: mutable.Set[Datapath] = dpConn().datapathsEnumerate().get()
+        val datapaths: mutable.Set[Datapath] = dpConn().futures.datapathsEnumerate().get()
 
         datapaths should have size 1
         datapaths.head should have('name("test"))
@@ -170,18 +170,18 @@ class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
         clusterDataClient().hostsAddDatapathMapping(hostId, "test")
         materializePort(port, host, "port1")
 
-        val dp = dpConn().datapathsCreate("test").get()
-        dpConn().portsCreate(dp, new NetDevPort("port2")).get()
-        dpConn().portsCreate(dp, new NetDevPort("port3")).get()
+        val dp = dpConn().futures.datapathsCreate("test").get()
+        dpConn().futures.portsCreate(dp, new NetDevPort("port2")).get()
+        dpConn().futures.portsCreate(dp, new NetDevPort("port3")).get()
 
-        dpConn().datapathsEnumerate().get() should have size 1
-        dpConn().portsEnumerate(dp).get() should have size 3
+        dpConn().futures.datapathsEnumerate().get() should have size 1
+        dpConn().futures.portsEnumerate(dp).get() should have size 3
 
         // send initialization message and wait
         initializeDatapath() should not be (null)
 
         // validate the final datapath state
-        val datapaths: mutable.Set[Datapath] = dpConn().datapathsEnumerate().get()
+        val datapaths: mutable.Set[Datapath] = dpConn().futures.datapathsEnumerate().get()
         portEventsProbe.expectMsgClass(classOf[LocalPortActive])
 
         datapaths should have size 1
@@ -211,7 +211,7 @@ class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
         val netdevPort: NetDevPort = opReply.request.port.asInstanceOf[NetDevPort]
 
         // validate the final datapath state
-        val datapaths: mutable.Set[Datapath] = dpConn().datapathsEnumerate().get()
+        val datapaths: mutable.Set[Datapath] = dpConn().futures.datapathsEnumerate().get()
 
         datapaths should have size 1
         datapaths.head should have('name("test"))
@@ -251,7 +251,7 @@ class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
         initializeDatapath() should not be (null)
         portEventsProbe.expectMsgClass(classOf[LocalPortActive])
 
-        val ports = datapathPorts(dpConn().datapathsEnumerate().get().head)
+        val ports = datapathPorts(dpConn().futures.datapathsEnumerate().get().head)
         ports should contain key ("port1")
         val port1DpId = ports("port1").getPortNo
 
@@ -274,7 +274,7 @@ class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
         replyOfType[RCUHost](vtpProbe())
         requestOfType[LocalPortActive](vtpProbe())
 
-        val newPorts = datapathPorts(dpConn().datapathsEnumerate().get().head)
+        val newPorts = datapathPorts(dpConn().futures.datapathsEnumerate().get().head)
         newPorts should contain key ("port1")
         newPorts should contain key ("port2")
         val port2DpId = newPorts("port2").getPortNo

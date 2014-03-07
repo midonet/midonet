@@ -326,7 +326,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath
 
     private def installPacketInHook() = {
          log.info("Installing packet in handler in the DDA")
-         datapathConnection.datapathsSetNotificationHandler(datapath,
+         datapathConnection.futures.datapathsSetNotificationHandler(datapath,
              new BatchCollector[Packet] {
                  val BATCH_SIZE = 16
                  var packets = new Array[Packet](BATCH_SIZE)

@@ -92,7 +92,7 @@ public class NetlinkInterfaceSensor implements InterfaceSensor {
      */
     protected DpPort getDatapathPort(String portName)
         throws ExecutionException, TimeoutException, InterruptedException {
-            return datapathConnection
+            return datapathConnection.futures
                 .portsGet(portName, null)  /* return Future<Port> */
                 .get(NETLINK_CONN_TIMEOUT, TimeUnit.MILLISECONDS);
     }

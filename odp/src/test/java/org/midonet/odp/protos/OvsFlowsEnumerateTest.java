@@ -42,12 +42,12 @@ public class OvsFlowsEnumerateTest extends AbstractNetlinkProtocolTest {
 
         initializeConnection(connection.initialize(), 6);
 
-        Future<Datapath> dpFuture = connection.datapathsGet("test");
+        Future<Datapath> dpFuture = connection.futures.datapathsGet("test");
         // multi containing the datapaths data
         exchangeMessage();
 
         Future<Set<Flow>> flowsFuture =
-            connection.flowsEnumerate(dpFuture.get());
+            connection.futures.flowsEnumerate(dpFuture.get());
 
         // multi containing the ports data
         exchangeMessage(2);

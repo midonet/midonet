@@ -39,7 +39,7 @@ public class OvsPacketInTest extends AbstractNetlinkProtocolTest {
 
         initializeConnection(connection.initialize(), 6);
 
-        Future<Datapath> dpFuture = connection.datapathsGet("bibi");
+        Future<Datapath> dpFuture = connection.futures.datapathsGet("bibi");
         // multi containing the datapaths data
         exchangeMessage();
 
@@ -51,8 +51,8 @@ public class OvsPacketInTest extends AbstractNetlinkProtocolTest {
         PacketReceivingCallback notificationHandler = new PacketReceivingCallback();
 
         Future<Boolean> result =
-            connection.datapathsSetNotificationHandler(datapath,
-                                                       notificationHandler);
+            connection.futures.datapathsSetNotificationHandler(datapath,
+                                                               notificationHandler);
 
         exchangeMessage(2);
 

@@ -25,9 +25,9 @@ public class GetDatapathCallable implements Callable<GetDatapathResult> {
     @Override
     public GetDatapathResult call() throws Exception {
         try {
-            Datapath datapath = connection.datapathsGet(datapathName).get();
+            Datapath datapath = connection.futures.datapathsGet(datapathName).get();
             // get the datapath ports:
-            Set<DpPort> ports = connection.portsEnumerate(datapath).get();
+            Set<DpPort> ports = connection.futures.portsEnumerate(datapath).get();
             return new GetDatapathResult(datapath, ports);
         } catch (Exception e) {
             throw new Exception("Could not find datapath: " + datapathName);

@@ -38,7 +38,7 @@ public class OvsPortsCreateAndEnumerateTest extends AbstractNetlinkProtocolTest 
 
         initializeConnection(connection.initialize(), 6); // first 6 byte msgs
 
-        Future<Datapath> dpFuture = connection.datapathsGet("test-port");
+        Future<Datapath> dpFuture = connection.futures.datapathsGet("test-port");
         exchangeMessage(); // 7th byte msg
         Datapath datapath = dpFuture.get();
         assertThat(
@@ -52,7 +52,7 @@ public class OvsPortsCreateAndEnumerateTest extends AbstractNetlinkProtocolTest 
 
         log.info("Creating an internal port.");
         futPort =
-            connection.portsCreate(datapath, new InternalPort("internalPort"));
+            connection.futures.portsCreate(datapath, new InternalPort("internalPort"));
         exchangeMessage(); // 8th byte msg
         expectedPort = expectedInternalPort();
         readPort = futPort.get();
@@ -64,7 +64,7 @@ public class OvsPortsCreateAndEnumerateTest extends AbstractNetlinkProtocolTest 
         log.info("Creating an netdev port.");
         Future<DpPort> netdevPort =
         futPort =
-            connection.portsCreate(datapath, new NetDevPort("netdevPort"));
+            connection.futures.portsCreate(datapath, new NetDevPort("netdevPort"));
         exchangeMessage(); // 9th byte msg
 
         expectedPort = expectedNetdevPort();
@@ -76,7 +76,7 @@ public class OvsPortsCreateAndEnumerateTest extends AbstractNetlinkProtocolTest 
 
         log.info("Creating an gre tunnel port.");
         GreTunnelPort tunGrePort = new GreTunnelPort("tunGrePort");
-        futPort = connection.portsCreate(datapath, tunGrePort);
+        futPort = connection.futures.portsCreate(datapath, tunGrePort);
         exchangeMessage(); // 10th byte msg
         expectedPort = expectedGreTunnelPort();
         readPort = futPort.get();
@@ -86,7 +86,7 @@ public class OvsPortsCreateAndEnumerateTest extends AbstractNetlinkProtocolTest 
 
 
         Future<Set<DpPort>> portsFutures =
-            connection.portsEnumerate(datapath);
+            connection.futures.portsEnumerate(datapath);
         exchangeMessage(2); // 11th and 12th byte msg (same NL request id)
 
         for (DpPort port : expectedPorts) {
