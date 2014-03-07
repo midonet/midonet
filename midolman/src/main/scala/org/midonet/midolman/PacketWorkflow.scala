@@ -84,7 +84,8 @@ object PacketWorkflow {
     case object PacketToPortSet extends PipelinePath
     case object Simulation extends PipelinePath
 
-    def apply(dpCon: OvsDatapathConnection,
+    def apply(deduplicator: ActorRef,
+              dpCon: OvsDatapathConnection,
               dpState: DatapathState,
               dp: Datapath,
               dataClient: DataClient,
@@ -94,13 +95,14 @@ object PacketWorkflow {
               parentCookie: Option[Int])
              (runSim: => Future[SimulationResult])
              (implicit system: ActorSystem): PacketHandler =
-        new PacketWorkflow(dpCon, dpState, dp, dataClient, packet,
+        new PacketWorkflow(deduplicator, dpCon, dpState, dp, dataClient, packet,
                            wcMatch, cookieOrEgressPort, parentCookie) {
             def runSimulation() = runSim
         }
 }
 
-abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConnection,
+abstract class PacketWorkflow(val deduplicator: ActorRef,
+                              protected val datapathConnection: OvsDatapathConnection,
                               protected val dpState: DatapathState,
                               val datapath: Datapath,
                               val dataClient: DataClient,
@@ -156,12 +158,13 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
         newWildFlow match {
             case None =>
                 FlowController ! FlowAdded(flow, wcMatch)
-                DeduplicationActor ! ApplyFlow(flow.getActions, cookie)
+                deduplicator ! ApplyFlow(flow.getActions, cookie)
             case Some(wf) =>
                 val msg = AddWildcardFlow(wf, Some(flow), removalCallbacks,
                                           tags, lastInvalidation)
                 FlowController ! msg
-                FlowController ! ApplyFlow(flow.getActions, cookie)
+                FlowController !
+                    ApplyFlowFor(ApplyFlow(flow.getActions, cookie), deduplicator)
         }
     }
 
@@ -178,7 +181,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
         } catch {
             case e: NetlinkException =>
                 log.info("{} Failed to add flow packet: {}", cookieStr, e)
-                DeduplicationActor ! ApplyFlow(dpFlow.getActions, cookie)
+                deduplicator ! ApplyFlow(dpFlow.getActions, cookie)
         }
     }
 
@@ -201,7 +204,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
         log.debug("Skipping creation of obsolete flow {} for {}",
                   cookieStr, wildFlow.getMatch)
         if (cookie.isDefined)
-            DeduplicationActor ! ApplyFlow(wildFlow.getActions, cookie)
+            deduplicator ! ApplyFlow(wildFlow.getActions, cookie)
         runCallbacks(removalCallbacks)
     }
 
@@ -215,7 +218,8 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
                 FlowController !
                     AddWildcardFlow(wildFlow, None, removalCallbacks,
                                     tags, lastInvalidation)
-                DeduplicationActor ! ApplyFlow(wildFlow.getActions, cookie)
+                FlowController !
+                    ApplyFlowFor(ApplyFlow(wildFlow.getActions, cookie), deduplicator)
 
             case Some(_) if !packet.getMatch.isUserSpaceOnly =>
                 createFlow(wildFlow, Some(wildFlow), tags, removalCallbacks)
@@ -285,7 +289,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
         log.debug("Packet {} matched a wildcard flow", cookieStr)
         if (packet.getMatch.isUserSpaceOnly) {
             log.debug("Won't add flow with userspace match {}", packet.getMatch)
-            DeduplicationActor ! ApplyFlow(wildFlow.getActions, cookie)
+            deduplicator ! ApplyFlow(wildFlow.getActions, cookie)
         } else {
             createFlow(wildFlow)
         }
@@ -372,7 +376,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
             case SendPacket(actions) =>
                 sendPacket(actions)
             case NoOp =>
-                DeduplicationActor ! ApplyFlow(Nil, cookie)
+                deduplicator ! ApplyFlow(Nil, cookie)
                 Future.successful(true)
             case TemporaryDrop(tags, flowRemovalCallbacks) =>
                 addTranslatedFlowForActions(Nil, tags, flowRemovalCallbacks,

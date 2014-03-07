@@ -5,13 +5,14 @@ package org.midonet.midolman
 
 import scala.collection.JavaConversions._
 import scala.reflect.ClassTag
+import scala.concurrent.duration._
 
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.midolman.FlowController.WildcardFlowAdded
+import org.midonet.midolman.FlowController.{AddWildcardFlow, WildcardFlowAdded}
 import org.midonet.midolman.util.SimulationHelper
 import org.midonet.odp.FlowMatch
 import org.midonet.odp.flows.{FlowKeyICMPEcho, FlowKeyTCP, FlowKeyICMP}
@@ -67,14 +68,16 @@ class DatapathFlowTableConsistencyTestCase extends MidolmanTestCase
     def testMultipleICMPPacketIn() {
         // flow will not be installed for ICMP echo req/reply
         // required to process them in userspace to support PING through NAT
+        drainProbes()
         expectPacketAllowed(0, 1, icmpBetweenPorts)
         findMatch[FlowKeyICMPEcho] should be (None)
         findMatch[FlowKeyICMP] should be (None)
+        expectFlowAddedMessage()
 
         drainProbes()
         // resend packet and check that the flow was not re-added
         expectPacketAllowed(0, 1, icmpBetweenPorts)
-        fishForRequestOfType[DeduplicationActor.ApplyFlow](dedupProbe())
+        wflowAddedProbe.expectNoMsg(100 millis)
 
         findMatch[FlowKeyICMPEcho] should be (None)
         findMatch[FlowKeyICMP] should be (None)
