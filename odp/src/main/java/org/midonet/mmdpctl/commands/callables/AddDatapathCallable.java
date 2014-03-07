@@ -23,7 +23,7 @@ public class AddDatapathCallable implements Callable<AddDatapathResult> {
     @Override
     public AddDatapathResult call() throws Exception {
         try {
-            connection.datapathsCreate(datapathName).get();
+            connection.futures.datapathsCreate(datapathName).get();
             return new AddDatapathResult();
         } catch (Exception e) {
             throw new Exception("Could not create datapath: " + datapathName);

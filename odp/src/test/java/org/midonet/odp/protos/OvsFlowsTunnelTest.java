@@ -51,7 +51,7 @@ public class OvsFlowsTunnelTest {
         Future<Datapath> dpFuture;
         Datapath datapath = null;
         try {
-            dpFuture = connection.datapathsCreate(datapathName);
+            dpFuture = connection.futures.datapathsCreate(datapathName);
             datapath = dpFuture.get();
         } catch (Exception e) {
             log.error("Error creating datapath " + datapathName +
@@ -79,7 +79,7 @@ public class OvsFlowsTunnelTest {
              .setMatch(matchKey)
              .setActions(Arrays.<FlowAction>asList(setKeyAction));
         Future<Flow> flowFuture =
-            connection.flowsCreate(datapath, downloadFlow);
+            connection.futures.flowsCreate(datapath, downloadFlow);
 
         try {
             if (flowFuture.get() == null) {
@@ -89,7 +89,7 @@ public class OvsFlowsTunnelTest {
             log.error("Error retrieving flow from flowCreate " + e.getMessage());
         }
 
-        Future<Flow> retrievedFlow = connection.flowsGet(datapath, matchKey);
+        Future<Flow> retrievedFlow = connection.futures.flowsGet(datapath, matchKey);
         try {
             if (retrievedFlow.get() == null) {
                 log.error("Flow add failed");
@@ -100,7 +100,7 @@ public class OvsFlowsTunnelTest {
 
         try {
             Future<Datapath> deleteDatapath =
-                connection.datapathsDelete(datapathName);
+                connection.futures.datapathsDelete(datapathName);
 
             if (deleteDatapath.get() == null) {
                 log.error("Datapath delete failed");

@@ -105,7 +105,7 @@ class FlowsExpirationTestCase extends MidolmanTestCase
         wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
 
         val flow = new Flow().setMatch(FlowMatches.fromEthernetPacket(ethPkt))
-        dpConn().flowsCreate(datapath, flow)
+        dpConn().futures.flowsCreate(datapath, flow)
 
         val newMatch = wflow.getMatch
         newMatch.unsetInputPortUUID()
@@ -123,7 +123,7 @@ class FlowsExpirationTestCase extends MidolmanTestCase
         // we have to wait because adding the flow into the dp is async
         dilatedSleep(delayAsynchAddRemoveInDatapath)
 
-        dpConn().flowsGet(datapath, flow.getMatch).get should not be (null)
+        dpConn().futures.flowsGet(datapath, flow.getMatch).get should not be (null)
         // we wait for the flow removed message that will be triggered because
         // the flow expired
         wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
@@ -132,7 +132,7 @@ class FlowsExpirationTestCase extends MidolmanTestCase
 
         dilatedSleep(delayAsynchAddRemoveInDatapath)
 
-        dpConn().flowsGet(datapath, pktInMsg.dpMatch).get should be (null)
+        dpConn().futures.flowsGet(datapath, pktInMsg.dpMatch).get should be (null)
 
         // check that the flow expired in the correct time range
         (timeDeleted - timeAdded) should (be >= timeOutFlow)
@@ -150,7 +150,7 @@ class FlowsExpirationTestCase extends MidolmanTestCase
 
         dilatedSleep(delayAsynchAddRemoveInDatapath)
 
-        dpConn().flowsGet(datapath, pktInMsg.dpMatch).get should not be (null)
+        dpConn().futures.flowsGet(datapath, pktInMsg.dpMatch).get should not be (null)
 
         // wait to get a FlowRemoved message that will be triggered by invalidation
 
@@ -160,7 +160,7 @@ class FlowsExpirationTestCase extends MidolmanTestCase
 
         dilatedSleep(delayAsynchAddRemoveInDatapath)
 
-        dpConn().flowsGet(datapath, pktInMsg.dpMatch).get should be (null)
+        dpConn().futures.flowsGet(datapath, pktInMsg.dpMatch).get should be (null)
         // check that the invalidation happened in the right time frame
         (timeDeleted - timeAdded) should (be >= timeOutFlow)
 
@@ -175,7 +175,7 @@ class FlowsExpirationTestCase extends MidolmanTestCase
         wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
 
         val flow = new Flow().setMatch(FlowMatches.fromEthernetPacket(ethPkt))
-        dpConn().flowsCreate(datapath, flow)
+        dpConn().futures.flowsCreate(datapath, flow)
 
         addedFlow.wcmatch.unsetInputPortUUID()
         val newWildFlow = WildcardFlow(addedFlow.wcmatch,
@@ -191,7 +191,7 @@ class FlowsExpirationTestCase extends MidolmanTestCase
         // large interval also to execute the following triggerPacketIn and thus
         // causing the flow's LastUsedTime after a reasonable amount of time
         dilatedSleep(timeOutFlow/3)
-        dpConn().flowsGet(datapath, flow.getMatch).get should not be (null)
+        dpConn().futures.flowsGet(datapath, flow.getMatch).get should not be (null)
 
         // Now trigger another packet that matches the flow. This will update
         // the lastUsedTime
@@ -203,7 +203,7 @@ class FlowsExpirationTestCase extends MidolmanTestCase
 
         val timeDeleted: Long = System.currentTimeMillis()
 
-        dpConn().flowsGet(datapath, flow.getMatch).get() should be (null)
+        dpConn().futures.flowsGet(datapath, flow.getMatch).get() should be (null)
         // check that the invalidation happened in the right time frame
         (timeDeleted - timeAdded) should be >= (timeOutFlow + timeOutFlow/3)
     }
@@ -217,7 +217,7 @@ class FlowsExpirationTestCase extends MidolmanTestCase
         wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
 
         val flow = new Flow().setMatch(FlowMatches.fromEthernetPacket(ethPkt))
-        dpConn().flowsCreate(datapath, flow)
+        dpConn().futures.flowsCreate(datapath, flow)
 
         addedFlow.getMatch.unsetInputPortUUID()
         val newWildFlow = WildcardFlow(addedFlow.wcmatch,
@@ -230,13 +230,13 @@ class FlowsExpirationTestCase extends MidolmanTestCase
         val timeAdded: Long = System.currentTimeMillis()
 
         dilatedSleep(delayAsynchAddRemoveInDatapath)
-        dpConn().flowsGet(datapath, flow.getMatch).get should not be (null)
+        dpConn().futures.flowsGet(datapath, flow.getMatch).get should not be (null)
 
         ackWCRemoved(Duration(timeOutFlow, TimeUnit.SECONDS))
 
         val timeDeleted: Long = System.currentTimeMillis()
 
-        dpConn().flowsGet(datapath, flow.getMatch).get() should be (null)
+        dpConn().futures.flowsGet(datapath, flow.getMatch).get() should be (null)
 
         // check that the invalidation happened in the right time frame
         (timeDeleted - timeAdded) should (be >= timeOutFlow)
@@ -255,7 +255,7 @@ class FlowsExpirationTestCase extends MidolmanTestCase
         wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
 
         val flow = new Flow().setMatch(FlowMatches.fromEthernetPacket(ethPkt))
-        dpConn().flowsCreate(datapath, flow)
+        dpConn().futures.flowsCreate(datapath, flow)
 
         addedFlow.wcmatch.unsetInputPortUUID()
         val newWildFlow = WildcardFlow(addedFlow.wcmatch,
@@ -268,7 +268,7 @@ class FlowsExpirationTestCase extends MidolmanTestCase
         val timeAdded = System.currentTimeMillis()
 
         dilatedSleep(timeOutFlow/3)
-        dpConn().flowsGet(datapath, flow.getMatch).get should not be (null)
+        dpConn().futures.flowsGet(datapath, flow.getMatch).get should not be (null)
         // update the LastUsedTime of the flow
         setFlowLastUsedTimeToNow(flow.getMatch)
         // expect that the FlowController requests an update for this flow
@@ -279,7 +279,7 @@ class FlowsExpirationTestCase extends MidolmanTestCase
 
         val timeDeleted = System.currentTimeMillis()
 
-        dpConn().flowsGet(datapath, pktInMsg.dpMatch).get() should be (null)
+        dpConn().futures.flowsGet(datapath, pktInMsg.dpMatch).get() should be (null)
         // check that the invalidation happened in the right time frame
         (timeDeleted-timeAdded) should (be >= timeOutFlow+timeOutFlow/3)
     }

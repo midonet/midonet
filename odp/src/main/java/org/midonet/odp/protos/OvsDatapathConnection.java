@@ -44,6 +44,8 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
 
     public abstract boolean isInitialized();
 
+    public final FuturesApi futures = new FuturesApi();
+
     protected OvsDatapathConnection(NetlinkChannel channel, Reactor reactor,
             ThrottlingGuardFactory pendingWritesThrottlingFactory,
             ThrottlingGuard upcallThrottler,
@@ -92,18 +94,6 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
      * Install packet-in callback for handling miss/userspace packets on a
      * specific datapath.
      */
-    public Future<Boolean> datapathsSetNotificationHandler(@Nonnull Datapath datapath,
-                                                           @Nonnull BatchCollector<Packet> notificationHandler) {
-        ValueFuture<Boolean> valueFuture = ValueFuture.create();
-        datapathsSetNotificationHandler(datapath, notificationHandler,
-                                        wrapFuture(valueFuture));
-        return valueFuture;
-    }
-
-    /**
-     * Install packet-in callback for handling miss/userspace packets on a
-     * specific datapath.
-     */
     public void datapathsSetNotificationHandler(@Nonnull final Datapath datapath,
                                                 @Nonnull final BatchCollector<Packet> notificationHandler,
                                                 @Nonnull final Callback<Boolean> operationCallback) {
@@ -117,17 +107,6 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
                                        @Nonnull final BatchCollector<Packet> notificationHandler,
                                        @Nonnull final Callback<Boolean> operationCallback,
                                        long timeoutMillis);
-
-    /**
-     * Future based api for enumerating datapaths.
-     *
-     * @return A future that hold the set of enumerated datapaths.
-     */
-    public Future<Set<Datapath>> datapathsEnumerate() {
-        ValueFuture<Set<Datapath>> future = ValueFuture.create();
-        datapathsEnumerate(wrapFuture(future));
-        return future;
-    }
 
     /**
      * Callback based api for enumerating datapaths.
@@ -152,20 +131,6 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
 
     protected abstract void _doDatapathsEnumerate(@Nonnull Callback<Set<Datapath>> callback,
                                                   long timeoutMillis);
-
-    /**
-     * Future based api for creating a datapath by name.
-     *
-     * @param name the name of the datapath.
-     * @return A future that hold the created datapath object
-     * @see Future
-     */
-    public Future<Datapath> datapathsCreate(@Nonnull String name)
-        throws Exception {
-        ValueFuture<Datapath> future = ValueFuture.create();
-        datapathsCreate(name, wrapFuture(future));
-        return future;
-    }
 
     /**
      * Callback based api for creating a datapath by name (with default timeout).
@@ -197,20 +162,6 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
                                                long timeoutMillis);
 
     /**
-     * Future based api for deleting a datapath by id.
-     *
-     * @param datapathId the id of the datapath.
-     * @return A future that hold the delete datapath object
-     * @see Future
-     */
-    public Future<Datapath> datapathsDelete(int datapathId)
-        throws Exception {
-        ValueFuture<Datapath> future = ValueFuture.create();
-        datapathsDelete(datapathId, wrapFuture(future));
-        return future;
-    }
-
-    /**
      * Callback based api for creating a datapath by name (with default timeout).
      *
      * @param datapathId the id of the datapath
@@ -233,20 +184,6 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
                                 @Nonnull Callback<Datapath> callback,
                                 long timeoutMillis) {
         _doDatapathsDelete(datapathId, null, callback, timeoutMillis);
-    }
-
-    /**
-     * Future based api for creating a datapath by name.
-     *
-     * @param name the name of the datapath.
-     * @return A future that hold the created datapath object
-     * @see Future
-     */
-    public Future<Datapath> datapathsDelete(@Nonnull String name)
-        throws Exception {
-        ValueFuture<Datapath> future = ValueFuture.create();
-        datapathsDelete(name, wrapFuture(future));
-        return future;
     }
 
     /**
@@ -279,20 +216,6 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
                                                long timeoutMillis);
 
     /**
-     * Future based api to retrieve port information.
-     *
-     * @param portName the name of the port we want to retrieve information for.
-     * @param datapath the datapath owning the port.
-     * @return a future
-     */
-    public Future<DpPort> portsGet(final @Nonnull String portName,
-                                   final @Nullable Datapath datapath) {
-        ValueFuture<DpPort> future = ValueFuture.create();
-        portsGet(portName, datapath, wrapFuture(future), DEF_REPLY_TIMEOUT);
-        return future;
-    }
-
-    /**
      * Callback based api for retrieving a port by name.
      *
      * @param portName the name of the port.
@@ -318,20 +241,6 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
                          final @Nonnull Callback<DpPort> callback,
                          final long timeoutMillis) {
         _doPortsGet(portName, null, datapath, callback, timeoutMillis);
-    }
-
-    /**
-     * Future based api to retrieve port information.
-     *
-     * @param portId   the port we want to retrieve information for
-     * @param datapath the datapath which holds the port
-     * @return a future
-     */
-    public Future<DpPort> portsGet(final int portId,
-                                   @Nonnull final Datapath datapath) {
-        ValueFuture<DpPort> future = ValueFuture.create();
-        portsGet(portId, datapath, wrapFuture(future), DEF_REPLY_TIMEOUT);
-        return future;
     }
 
     /**
@@ -369,20 +278,6 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
                                         final long timeoutMillis);
 
     /**
-     * Future based api to delete a port
-     *
-     * @param port     the name of the port we want to retrieve information for.
-     * @param datapath the datapath owning the port.
-     * @return a future
-     */
-    public Future<DpPort> portsDelete(final @Nonnull DpPort port,
-                                      final @Nullable Datapath datapath) {
-        ValueFuture<DpPort> future = ValueFuture.create();
-        portsDelete(port, datapath, wrapFuture(future), DEF_REPLY_TIMEOUT);
-        return future;
-    }
-
-    /**
      * Callback based api for deleting a port.
      *
      * @param port     the name of the port.
@@ -414,20 +309,6 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
                                            final @Nullable Datapath datapath,
                                            final @Nonnull Callback<DpPort> callback,
                                            final long timeoutMillis);
-
-    /**
-     * Future based api to updating port information.
-     *
-     * @param port     the port we want to retrieve information for
-     * @param datapath the datapath which holds the port
-     * @return a future holding the updated port information.
-     */
-    public Future<DpPort> portsSet(final @Nonnull DpPort port,
-                                   final @Nullable Datapath datapath) {
-        ValueFuture<DpPort> future = ValueFuture.create();
-        portsSet(port, datapath, wrapFuture(future), DEF_REPLY_TIMEOUT);
-        return future;
-    }
 
     /**
      * Callback based api for updating port information.
@@ -463,19 +344,6 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
                                         final long timeoutMillis);
 
     /**
-     * Future based api for listing ports of a datapath.
-     *
-     * @param datapath is the datapath we want to list ports from.
-     * @return A future that holds the set of ports visible on the path
-     * @see Future
-     */
-    public Future<Set<DpPort>> portsEnumerate(@Nonnull Datapath datapath) {
-        ValueFuture<Set<DpPort>> valueFuture = ValueFuture.create();
-        portsEnumerate(datapath, wrapFuture(valueFuture));
-        return valueFuture;
-    }
-
-    /**
      * Callback based api for listing ports of a datapath.
      *
      * @param datapath is the datapath we want to list ports from.
@@ -506,27 +374,11 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
                                               long timeoutMillis);
 
     /**
-     * Future based api for adding a new port to a datapath.
-     *
-     * @param datapath the datapath we want to list ports from.
-     * @param port     the specification of the port we want to create.
-     * @return A future that holds the newly create port.
-     * @see Future
-     */
-    public Future<DpPort> portsCreate(@Nonnull Datapath datapath,
-                                      @Nonnull DpPort port) {
-        ValueFuture<DpPort> valueFuture = ValueFuture.create();
-        portsCreate(datapath, port, wrapFuture(valueFuture));
-        return valueFuture;
-    }
-
-    /**
      * Callback based api for adding a new port to a datapath.
      *
      * @param datapath the datapath we want to list ports from.
      * @param port     the specification of the port we want to create.
      * @param callback the callback that will be notified by the reply.
-     * @see Future
      */
     public void portsCreate(@Nonnull Datapath datapath, @Nonnull DpPort port,
                             @Nonnull Callback<DpPort> callback) {
@@ -540,7 +392,6 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
      * @param port          the specification of the port we want to create.
      * @param callback      the callback that will be notified by the reply.
      * @param timeoutMillis the timeout we are prepared to wait for the reply.
-     * @see Future
      */
     public void portsCreate(@Nonnull Datapath datapath, @Nonnull DpPort port,
                             @Nonnull Callback<DpPort> callback, long timeoutMillis) {
@@ -552,18 +403,6 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
                                            @Nonnull DpPort port,
                                            @Nonnull Callback<DpPort> callback,
                                            long timeoutMillis);
-
-    /**
-     * Future based api for retrieving datapath information.
-     *
-     * @param name the name of the datapath we want information for.
-     * @return a future that has the required information about the datapath.
-     */
-    public Future<Datapath> datapathsGet(@Nonnull String name) {
-        ValueFuture<Datapath> future = ValueFuture.create();
-        datapathsGet(name, wrapFuture(future));
-        return future;
-    }
 
     /**
      * Callback based api for retrieving datapath information.
@@ -585,18 +424,6 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
     public void datapathsGet(@Nonnull String name, Callback<Datapath> callback,
                              long timeoutMillis) {
         _doDatapathsGet(null, name, callback, timeoutMillis);
-    }
-
-    /**
-     * Future based callback for retrieving datapath information
-     *
-     * @param datapathId the id of the datapath we want information for.
-     * @return a future that has the required information about the datapath.
-     */
-    public Future<Datapath> datapathsGet(int datapathId) {
-        ValueFuture<Datapath> future = ValueFuture.create();
-        datapathsGet(datapathId, wrapFuture(future));
-        return future;
     }
 
     /**
@@ -627,19 +454,6 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
                                             final long defReplyTimeout);
 
     /**
-     * Future based api for enumerating flows.
-     *
-     * @param datapath the name of the datapath
-     * @return a future that provides access to the set of flows present inside
-     *         a datapath.
-     */
-    public Future<Set<Flow>> flowsEnumerate(@Nonnull final Datapath datapath) {
-        ValueFuture<Set<Flow>> flowsFuture = ValueFuture.create();
-        flowsEnumerate(datapath, wrapFuture(flowsFuture));
-        return flowsFuture;
-    }
-
-    /**
      * Callback based api for enumerating flows.
      *
      * @param datapath the name of the datapath
@@ -668,18 +482,6 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
                                               long timeoutMillis);
 
     /**
-     * Future based api for flushing all the flows belonging to a datapath.
-     *
-     * @param datapath is the actual datapath.
-     * @return a future that provides access to the operation result.
-     */
-    public Future<Boolean> flowsFlush(@Nonnull final Datapath datapath) {
-        ValueFuture<Boolean> flowsFuture = ValueFuture.create();
-        flowsFlush(datapath, wrapFuture(flowsFuture));
-        return flowsFuture;
-    }
-
-    /**
      * Callback based api for for flushing all the flows belonging to a datapath.
      *
      * @param datapath the name of the datapath
@@ -706,20 +508,6 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
     protected abstract void _doFlowsFlush(@Nonnull final Datapath datapath,
                                           @Nonnull final Callback<Boolean> callback,
                                           long timeoutMillis);
-
-    /**
-     * Future based api for creating a flow.
-     *
-     * @param datapath the name of the datapath
-     * @param flow     the flow that we want to install
-     * @return a future that provides access to the installed flow.
-     */
-    public Future<Flow> flowsCreate(@Nonnull final Datapath datapath,
-                                    @Nonnull final Flow flow) {
-        ValueFuture<Flow> flowFuture = ValueFuture.create();
-        flowsCreate(datapath, flow, wrapFuture(flowFuture));
-        return flowFuture;
-    }
 
     /**
      * Callback based api for creating a flow.
@@ -753,13 +541,6 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
                                            @Nonnull final Flow flow,
                                            @Nonnull final Callback<Flow> callback,
                                            final long timeout);
-
-    public Future<Flow> flowsDelete(@Nonnull final Datapath datapath,
-                                    @Nonnull final Flow flow) {
-        ValueFuture<Flow> flowFuture = ValueFuture.create();
-        flowsDelete(datapath, flow, wrapFuture(flowFuture));
-        return flowFuture;
-    }
 
     /**
      * Callback based api for deleting a flow.
@@ -795,20 +576,6 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
                                            final long timeout);
 
     /**
-     * Future based api for retrieving a flow.
-     *
-     * @param datapath the datapath
-     * @param match    the flowMatch for the flow we want to retrieve
-     * @return a future that provides access to the retrieved flow
-     */
-    public Future<Flow> flowsGet(@Nonnull final Datapath datapath,
-                                 @Nonnull final FlowMatch match) {
-        ValueFuture<Flow> flowFuture = ValueFuture.create();
-        flowsGet(datapath, match, wrapFuture(flowFuture));
-        return flowFuture;
-    }
-
-    /**
      * Callback based api for retrieving a flow.
      *
      * @param datapath the datapath
@@ -842,19 +609,6 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
                                         long timeout);
 
     /**
-     * Future based api for updating a flow.
-     *
-     * @param datapath the datapath
-     * @param flow     the flow we want to update (it should exists)
-     * @return a future that provides access to the updated flow
-     */
-    public Future<Flow> flowsSet(Datapath datapath, Flow flow) {
-        ValueFuture<Flow> flowFuture = ValueFuture.create();
-        flowsSet(datapath, flow, wrapFuture(flowFuture));
-        return flowFuture;
-    }
-
-    /**
      * Callback based api for updating a flow.
      *
      * @param datapath the datapath
@@ -886,22 +640,6 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
                                         @Nonnull final Flow match,
                                         @Nonnull final Callback<Flow> flowCallback,
                                         long timeout);
-
-    /**
-     * Future based callback for executing a packet
-     *
-     * @param datapath is the datapath on which we want to send the packet.
-     * @param packet   is the packet we want to send. It needs to have both the
-     *                 keys and the actions parameters set.
-     * @return a future that can be used to track the successful completion of
-     *         the operation.
-     */
-    public Future<Boolean> packetsExecute(@Nonnull final Datapath datapath,
-                                          @Nonnull final Packet packet) {
-        ValueFuture<Boolean> resultFuture = ValueFuture.create();
-        packetsExecute(datapath, packet, wrapFuture(resultFuture));
-        return resultFuture;
-    }
 
     /**
      * Callback based api for executing actions on a packet
@@ -940,4 +678,276 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
                                               @Nonnull final Packet packet,
                                               @Nonnull final Callback<Boolean> callback,
                                               long timeoutMillis);
+
+
+
+    public class FuturesApi {
+        /**
+         * Install packet-in callback for handling miss/userspace packets on a
+         * specific datapath.
+         */
+        public Future<Boolean> datapathsSetNotificationHandler(@Nonnull Datapath datapath,
+                                                               @Nonnull BatchCollector<Packet> notificationHandler) {
+            ValueFuture<Boolean> valueFuture = ValueFuture.create();
+            OvsDatapathConnection.this.datapathsSetNotificationHandler(
+                    datapath, notificationHandler, wrapFuture(valueFuture));
+            return valueFuture;
+        }
+
+        /**
+         * Future based api for enumerating datapaths.
+         *
+         * @return A future that hold the set of enumerated datapaths.
+         */
+        public Future<Set<Datapath>> datapathsEnumerate() {
+            ValueFuture<Set<Datapath>> future = ValueFuture.create();
+            OvsDatapathConnection.this.datapathsEnumerate(wrapFuture(future));
+            return future;
+        }
+
+        /**
+         * Future based api for creating a datapath by name.
+         *
+         * @param name the name of the datapath.
+         * @return A future that hold the created datapath object
+         * @see Future
+         */
+        public Future<Datapath> datapathsCreate(@Nonnull String name)
+                throws Exception {
+            ValueFuture<Datapath> future = ValueFuture.create();
+            OvsDatapathConnection.this.datapathsCreate(name, wrapFuture(future));
+            return future;
+        }
+
+        /**
+         * Future based api for deleting a datapath by id.
+         *
+         * @param datapathId the id of the datapath.
+         * @return A future that hold the delete datapath object
+         * @see Future
+         */
+        public Future<Datapath> datapathsDelete(int datapathId)
+                throws Exception {
+            ValueFuture<Datapath> future = ValueFuture.create();
+            OvsDatapathConnection.this.datapathsDelete(datapathId, wrapFuture(future));
+            return future;
+        }
+
+        /**
+         * Future based api for creating a datapath by name.
+         *
+         * @param name the name of the datapath.
+         * @return A future that hold the created datapath object
+         * @see Future
+         */
+        public Future<Datapath> datapathsDelete(@Nonnull String name)
+                throws Exception {
+            ValueFuture<Datapath> future = ValueFuture.create();
+            OvsDatapathConnection.this.datapathsDelete(name, wrapFuture(future));
+            return future;
+        }
+
+        /**
+         * Future based api to retrieve port information.
+         *
+         * @param portName the name of the port we want to retrieve information for.
+         * @param datapath the datapath owning the port.
+         * @return a future
+         */
+        public Future<DpPort> portsGet(final @Nonnull String portName,
+                                       final @Nullable Datapath datapath) {
+            ValueFuture<DpPort> future = ValueFuture.create();
+            OvsDatapathConnection.this.portsGet(
+                    portName, datapath, wrapFuture(future), DEF_REPLY_TIMEOUT);
+            return future;
+        }
+
+        /**
+         * Future based api to retrieve port information.
+         *
+         * @param portId   the port we want to retrieve information for
+         * @param datapath the datapath which holds the port
+         * @return a future
+         */
+        public Future<DpPort> portsGet(final int portId,
+                                       @Nonnull final Datapath datapath) {
+            ValueFuture<DpPort> future = ValueFuture.create();
+            OvsDatapathConnection.this.portsGet(portId, datapath,
+                    wrapFuture(future), DEF_REPLY_TIMEOUT);
+            return future;
+        }
+
+        /**
+         * Future based api to delete a port
+         *
+         * @param port     the name of the port we want to retrieve information for.
+         * @param datapath the datapath owning the port.
+         * @return a future
+         */
+        public Future<DpPort> portsDelete(final @Nonnull DpPort port,
+                                          final @Nullable Datapath datapath) {
+            ValueFuture<DpPort> future = ValueFuture.create();
+            OvsDatapathConnection.this.portsDelete(port, datapath,
+                    wrapFuture(future), DEF_REPLY_TIMEOUT);
+            return future;
+        }
+
+        /**
+         * Future based api to updating port information.
+         *
+         * @param port     the port we want to retrieve information for
+         * @param datapath the datapath which holds the port
+         * @return a future holding the updated port information.
+         */
+        public Future<DpPort> portsSet(final @Nonnull DpPort port,
+                                       final @Nullable Datapath datapath) {
+            ValueFuture<DpPort> future = ValueFuture.create();
+            OvsDatapathConnection.this.portsSet(port, datapath,
+                    wrapFuture(future), DEF_REPLY_TIMEOUT);
+            return future;
+        }
+
+        /**
+         * Future based api for listing ports of a datapath.
+         *
+         * @param datapath is the datapath we want to list ports from.
+         * @return A future that holds the set of ports visible on the path
+         * @see Future
+         */
+        public Future<Set<DpPort>> portsEnumerate(@Nonnull Datapath datapath) {
+            ValueFuture<Set<DpPort>> valueFuture = ValueFuture.create();
+            OvsDatapathConnection.this.portsEnumerate(datapath, wrapFuture(valueFuture));
+            return valueFuture;
+        }
+
+        /**
+         * Future based api for adding a new port to a datapath.
+         *
+         * @param datapath the datapath we want to list ports from.
+         * @param port     the specification of the port we want to create.
+         * @return A future that holds the newly create port.
+         * @see Future
+         */
+        public Future<DpPort> portsCreate(@Nonnull Datapath datapath,
+                                          @Nonnull DpPort port) {
+            ValueFuture<DpPort> valueFuture = ValueFuture.create();
+            OvsDatapathConnection.this.portsCreate(datapath, port, wrapFuture(valueFuture));
+            return valueFuture;
+        }
+
+        /**
+         * Future based api for retrieving datapath information.
+         *
+         * @param name the name of the datapath we want information for.
+         * @return a future that has the required information about the datapath.
+         */
+        public Future<Datapath> datapathsGet(@Nonnull String name) {
+            ValueFuture<Datapath> future = ValueFuture.create();
+            OvsDatapathConnection.this.datapathsGet(name, wrapFuture(future));
+            return future;
+        }
+
+        public Future<Flow> flowsDelete(@Nonnull final Datapath datapath,
+                                        @Nonnull final Flow flow) {
+            ValueFuture<Flow> flowFuture = ValueFuture.create();
+            OvsDatapathConnection.this.flowsDelete(datapath, flow, wrapFuture(flowFuture));
+            return flowFuture;
+        }
+
+        /**
+         * Future based callback for retrieving datapath information
+         *
+         * @param datapathId the id of the datapath we want information for.
+         * @return a future that has the required information about the datapath.
+         */
+        public Future<Datapath> datapathsGet(int datapathId) {
+            ValueFuture<Datapath> future = ValueFuture.create();
+            OvsDatapathConnection.this.datapathsGet(datapathId, wrapFuture(future));
+            return future;
+        }
+
+        /**
+         * Future based api for enumerating flows.
+         *
+         * @param datapath the name of the datapath
+         * @return a future that provides access to the set of flows present inside
+         *         a datapath.
+         */
+        public Future<Set<Flow>> flowsEnumerate(@Nonnull final Datapath datapath) {
+            ValueFuture<Set<Flow>> flowsFuture = ValueFuture.create();
+            OvsDatapathConnection.this.flowsEnumerate(datapath, wrapFuture(flowsFuture));
+            return flowsFuture;
+        }
+
+        /**
+         * Future based api for creating a flow.
+         *
+         * @param datapath the name of the datapath
+         * @param flow     the flow that we want to install
+         * @return a future that provides access to the installed flow.
+         */
+        public Future<Flow> flowsCreate(@Nonnull final Datapath datapath,
+                                        @Nonnull final Flow flow) {
+            ValueFuture<Flow> flowFuture = ValueFuture.create();
+            OvsDatapathConnection.this.flowsCreate(datapath, flow, wrapFuture(flowFuture));
+            return flowFuture;
+        }
+
+        /**
+         * Future based api for flushing all the flows belonging to a datapath.
+         *
+         * @param datapath is the actual datapath.
+         * @return a future that provides access to the operation result.
+         */
+        public Future<Boolean> flowsFlush(@Nonnull final Datapath datapath) {
+            ValueFuture<Boolean> flowsFuture = ValueFuture.create();
+            OvsDatapathConnection.this.flowsFlush(datapath, wrapFuture(flowsFuture));
+            return flowsFuture;
+        }
+
+        /**
+         * Future based api for retrieving a flow.
+         *
+         * @param datapath the datapath
+         * @param match    the flowMatch for the flow we want to retrieve
+         * @return a future that provides access to the retrieved flow
+         */
+        public Future<Flow> flowsGet(@Nonnull final Datapath datapath,
+                                     @Nonnull final FlowMatch match) {
+            ValueFuture<Flow> flowFuture = ValueFuture.create();
+            OvsDatapathConnection.this.flowsGet(datapath, match, wrapFuture(flowFuture));
+            return flowFuture;
+        }
+
+        /**
+         * Future based api for updating a flow.
+         *
+         * @param datapath the datapath
+         * @param flow     the flow we want to update (it should exists)
+         * @return a future that provides access to the updated flow
+         */
+        public Future<Flow> flowsSet(Datapath datapath, Flow flow) {
+            ValueFuture<Flow> flowFuture = ValueFuture.create();
+            OvsDatapathConnection.this.flowsSet(datapath, flow, wrapFuture(flowFuture));
+            return flowFuture;
+        }
+
+        /**
+         * Future based callback for executing a packet
+         *
+         * @param datapath is the datapath on which we want to send the packet.
+         * @param packet   is the packet we want to send. It needs to have both the
+         *                 keys and the actions parameters set.
+         * @return a future that can be used to track the successful completion of
+         *         the operation.
+         */
+        public Future<Boolean> packetsExecute(@Nonnull final Datapath datapath,
+                                              @Nonnull final Packet packet) {
+            ValueFuture<Boolean> resultFuture = ValueFuture.create();
+            OvsDatapathConnection.this.packetsExecute(datapath, packet, wrapFuture(resultFuture));
+            return resultFuture;
+        }
+
+    }
+
 }

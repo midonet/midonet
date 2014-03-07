@@ -36,7 +36,7 @@ public class OvsPortsGetTest extends AbstractNetlinkProtocolTest {
 
         initializeConnection(connection.initialize(), 6);
 
-        Future<Datapath> dpFuture = connection.datapathsGet("test");
+        Future<Datapath> dpFuture = connection.futures.datapathsGet("test");
         // multi containing the datapaths data
         exchangeMessage(1);
 
@@ -56,14 +56,14 @@ public class OvsPortsGetTest extends AbstractNetlinkProtocolTest {
         throws Exception, InterruptedException {
 
         log.info("Get the port by id: {}.", portName);
-        Future<DpPort> portFuture = connection.portsGet(portNo, datapath);
+        Future<DpPort> portFuture = connection.futures.portsGet(portNo, datapath);
         exchangeMessage();
 
         assertThat("We should have gotten back the expected port",
                    portFuture.get(), is(expectedPort));
 
         log.info("Get the port by name: {}.", portName);
-        portFuture = connection.portsGet(portName, null);
+        portFuture = connection.futures.portsGet(portName, null);
         exchangeMessage();
 
         assertThat("We should have gotten back the expected port",

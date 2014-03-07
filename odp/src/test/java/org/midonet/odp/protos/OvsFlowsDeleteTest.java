@@ -38,7 +38,7 @@ public class OvsFlowsDeleteTest extends AbstractNetlinkProtocolTest {
 
         initializeConnection(connection.initialize(), 6);
 
-        Future<Datapath> dpResult = connection.datapathsGet("bibi");
+        Future<Datapath> dpResult = connection.futures.datapathsGet("bibi");
         // multi containing the datapaths data
         exchangeMessage();
 
@@ -48,7 +48,7 @@ public class OvsFlowsDeleteTest extends AbstractNetlinkProtocolTest {
                    datapath, notNullValue());
 
         Future<Flow> flowResult =
-            connection.flowsCreate(datapath, new Flow().setMatch(flowMatch()));
+            connection.futures.flowsCreate(datapath, new Flow().setMatch(flowMatch()));
 
         // multi containing the ports data
         exchangeMessage();
@@ -57,7 +57,7 @@ public class OvsFlowsDeleteTest extends AbstractNetlinkProtocolTest {
         assertThat("The created flow has the same keySet as the requested one",
                    flow.getMatch(), equalTo(flowMatch()));
 
-        Future<Flow> deleteFlowOp = connection.flowsDelete(datapath, flow);
+        Future<Flow> deleteFlowOp = connection.futures.flowsDelete(datapath, flow);
         exchangeMessage();
 
         assertThat("The created flow has the same keySet as the requested one",
@@ -65,7 +65,7 @@ public class OvsFlowsDeleteTest extends AbstractNetlinkProtocolTest {
                    equalTo(flowMatch()));
 
         Future<Set<Flow>> enumeratedFlows =
-            connection.flowsEnumerate(datapath);
+            connection.futures.flowsEnumerate(datapath);
 
         exchangeMessage();
 
