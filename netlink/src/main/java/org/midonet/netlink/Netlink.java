@@ -74,7 +74,7 @@ public abstract class Netlink {
         // Return an atomic snapshot of the table.
         NLM_F_ATOMIC(0x400),
         //  Convenience macro;
-        NLM_F_DUMP(0x200 | 0x400),
+        NLM_F_DUMP(0x100 | 0x200),
 
         // for NEW
         // Replace existing matching object.
