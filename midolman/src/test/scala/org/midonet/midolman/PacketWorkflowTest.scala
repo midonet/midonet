@@ -44,7 +44,7 @@ object PacketWorkflowTest {
         val dpState = new DatapathStateManager(null)(null)
         val wcMatch = WildcardMatch.fromFlowMatch(pkt.getMatch)
         new PacketWorkflow(
-                dpCon, dpState, null, null, pkt, wcMatch, Left(cookie), None) {
+                testKit, dpCon, dpState, null, null, pkt, wcMatch, Left(cookie), None) {
             def runSimulation() =
                 Future.failed(new Exception("no Coordinator"))
             override def executePacket(actions: Seq[FlowAction]) = {
@@ -273,7 +273,7 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
             And("the DeduplicationActor gets an ApplyFlow request")
             And("the current packet gets executed")
             runChecks(
-                checkTranslate _ :: checkAddWildcard _ :: applyOutputActions)
+                checkTranslate _ :: checkAddWildcard _ :: applyRoutedOutputActions)
         }
 
         scenario("A Simulation returns AddVirtualWildcardFlow, " +
@@ -290,7 +290,7 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
             And("the DeduplicationActor gets an ApplyFlow request")
             And("the current packet gets executed")
             runChecks(
-                checkTranslate _ :: checkAddWildcard _ :: applyOutputActions)
+                checkTranslate _ :: checkAddWildcard _ :: applyRoutedOutputActions)
         }
     }
 
@@ -338,8 +338,14 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
     def checkApplyNilFlow(msgs: Seq[Any]) =
         msgs should contain(ApplyFlow(Nil, cookieOpt))
 
+    def checkRoutedApplyNilFlow(msgs: Seq[Any]) =
+        msgs should contain(ApplyFlowFor(ApplyFlow(Nil, cookieOpt), self))
+
     def checkApplyOutputFlow(msgs: Seq[Any]) =
         msgs should contain(ApplyFlow(output, cookieOpt))
+
+    def checkRoutedApplyOutputFlow(msgs: Seq[Any]) =
+        msgs should contain(ApplyFlowFor(ApplyFlow(output, cookieOpt), self))
 
     def checkAddWildcard(msgs: Seq[Any]) =
         msgs map { _.getClass } should contain(classOf[AddWildcardFlow])
@@ -349,11 +355,15 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
 
     val applyNilActions = List[Check](checkApplyNilFlow, checkExecPacket)
 
+    val applyRoutedNilActions = List[Check](checkRoutedApplyNilFlow, checkExecPacket)
+
     val applyNilActionsWithFlow = checkFlowAdded _ :: applyNilActions
 
-    val applyNilActionsWithWildcardFlow = checkAddWildcard _ :: applyNilActions
+    val applyNilActionsWithWildcardFlow = checkAddWildcard _ :: applyRoutedNilActions
 
     val applyOutputActions = List[Check](checkApplyOutputFlow, checkExecPacket)
+
+    val applyRoutedOutputActions = List[Check](checkRoutedApplyOutputFlow, checkExecPacket)
 
     val applyOutputActionsWithFlow = checkFlowAdded _ :: applyOutputActions
 

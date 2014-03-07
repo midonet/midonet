@@ -47,6 +47,8 @@ object DeduplicationActor extends Referenceable {
 
     case class ApplyFlow(actions: Seq[FlowAction], cookie: Option[Int])
 
+    case class ApplyFlowFor(msg: ApplyFlow, deduplicator: ActorRef)
+
     case class DiscardPacket(cookie: Int)
 
     /* This message is sent by simulations that result in packets being
@@ -219,7 +221,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath
 
         val wcMatch = WildcardMatch.fromFlowMatch(packet.getMatch)
 
-        PacketWorkflow(datapathConn(packet), dpState, datapath,
+        PacketWorkflow(self, datapathConn(packet), dpState, datapath,
                 clusterDataClient, packet, wcMatch, cookieOrEgressPort,
                 parentCookie)
         {

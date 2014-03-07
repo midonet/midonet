@@ -20,7 +20,7 @@ import akka.actor._
 import akka.event.LoggingReceive
 import com.yammer.metrics.core.{Gauge, MetricsRegistry}
 
-import org.midonet.midolman.DeduplicationActor.ApplyFlow
+import org.midonet.midolman.DeduplicationActor.ApplyFlowFor
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.ErrorHandlingCallback
 import org.midonet.midolman.flows.WildcardTablesProvider
@@ -281,8 +281,8 @@ class FlowController extends Actor with ActorLogWithoutPath {
                     CheckFlowExpiration)
             }
 
-        case af@ApplyFlow(actions, cookie) =>
-            DeduplicationActor ! af
+        case ApplyFlowFor(msg, deduplicator) =>
+            deduplicator ! msg
 
         case AddWildcardFlow(wildFlow, flowOption, callbacks, tags, lastInval) =>
             context.system.eventStream.publish(AddWildcardFlow(wildFlow,flowOption,callbacks,tags,lastInval))
