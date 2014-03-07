@@ -7,28 +7,20 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable.{HashMap, MultiMap, PriorityQueue}
 import scala.collection.{immutable, mutable}
 import scala.compat.Platform
-import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.util.{Failure, Success}
 
 import akka.actor._
 import akka.event.LoggingReceive
-import com.yammer.metrics.core.{MetricsRegistry, Clock}
-import javax.annotation.Nullable
-import javax.inject.Inject
-import org.slf4j.LoggerFactory
+import com.yammer.metrics.core.Clock
 
 import org.midonet.cache.Cache
 import org.midonet.cluster.DataClient
-import org.midonet.midolman.guice.CacheModule.NAT_CACHE
-import org.midonet.midolman.guice.CacheModule.TRACE_INDEX
-import org.midonet.midolman.guice.CacheModule.TRACE_MESSAGES
 import org.midonet.midolman.io.DatapathConnectionPool
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.rules.Condition
 import org.midonet.midolman.simulation.Coordinator
-import org.midonet.midolman.topology.TraceConditionsManager
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.rcu.TraceConditions
 import org.midonet.netlink.exceptions.NetlinkException
@@ -39,9 +31,7 @@ import org.midonet.packets.Ethernet
 import org.midonet.util.BatchCollector
 import org.midonet.sdn.flows.WildcardMatch
 
-object DeduplicationActor extends Referenceable {
-    override val Name = "DeduplicationActor"
-
+object DeduplicationActor {
     // Messages
     case class HandlePackets(packet: Array[Packet])
 
@@ -58,40 +48,42 @@ object DeduplicationActor extends Referenceable {
                                    parentCookie: Option[Int] = None)
 
     case object _ExpireCookies
-
-    case object _GetConditionListFromVta
-
 }
 
-class DeduplicationActor extends Actor with ActorLogWithoutPath
-        with SuspendedPacketQueue {
+class CookieGenerator(val start: Int, val increment: Int) {
+    private var nextCookie = start
+
+    def next: Int = {
+        val ret = nextCookie
+        nextCookie += increment
+        ret
+    }
+}
+
+class DeduplicationActor(
+            val cookieGen: CookieGenerator,
+            val dpConnPool: DatapathConnectionPool,
+            val clusterDataClient: DataClient,
+            val connectionCache: Cache,
+            val traceMessageCache: Cache,
+            val traceIndexCache: Cache,
+            val metrics: PacketPipelineMetrics)
+            extends Actor with ActorLogWithoutPath with SuspendedPacketQueue {
 
     import DatapathController.DatapathReady
     import DeduplicationActor._
     import PacketWorkflow._
     import VirtualTopologyActor.ConditionListRequest
 
-    @Inject
-    var dpConnPool: DatapathConnectionPool = null
-
     def datapathConn(packet: Packet) = dpConnPool.get(packet.getMatch.hashCode)
 
-    @Inject var clusterDataClient: DataClient = null
-    @Inject @Nullable @NAT_CACHE var connectionCache: Cache = null
-    @Inject @TRACE_MESSAGES var traceMessageCache: Cache = null
-    @Inject @TRACE_INDEX var traceIndexCache: Cache = null
     var traceConditions = immutable.Seq[Condition]()
-
-    @Inject
-    var metricsRegistry: MetricsRegistry = null
 
     var datapath: Datapath = null
     var dpState: DatapathState = null
 
     implicit val dispatcher = this.context.system.dispatcher
     implicit val system = this.context.system
-
-    private var cookieId = 0
 
     // data structures to handle the duplicate packets.
     protected val cookieToDpMatch = HashMap[Int, FlowMatch]()
@@ -107,14 +99,10 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath
         new PriorityQueue[(FlowMatch, Long)]()(
             Ordering.by[(FlowMatch,Long), Long](_._2).reverse)
 
-    var metrics: PacketPipelineMetrics = null
-
     override def preStart() {
         super.preStart()
-        metrics = new PacketPipelineMetrics(metricsRegistry)
         // Defer this until actor start-up finishes, so that the VTA
         // will have an actor (ie, self) in 'sender' to send replies to.
-        self ! _GetConditionListFromVta
     }
 
     override def receive = super.receive orElse LoggingReceive {
@@ -203,9 +191,6 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath
             }
         }
 
-        case DeduplicationActor._GetConditionListFromVta =>
-            VirtualTopologyActor !
-                ConditionListRequest(TraceConditionsManager.uuid, update = true)
     }
 
     protected def workflow(packet: Packet,
@@ -266,7 +251,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath
             case None =>
                 // If there is no entry for the wildcard match, create a new
                 // cookie and a new PacketWorkflow to handle the packet
-                val newCookie = nextCookieId
+                val newCookie = cookieGen.next
                 log.debug("new cookie #{} for new match {}", newCookie, wcMatch)
                 dpMatchToCookie.put(wcMatch, newCookie)
                 cookieToDpMatch.put(newCookie, wcMatch)
@@ -305,13 +290,6 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath
             }
             metrics.packetsProcessed.mark()
         }
-    }
-
-    /* Increment the cookie id number and return the value. Since this method
-     * is called in the actor receive block, it is not thread safe. */
-    private def nextCookieId: Int = {
-        cookieId += 1
-        cookieId
     }
 
 }

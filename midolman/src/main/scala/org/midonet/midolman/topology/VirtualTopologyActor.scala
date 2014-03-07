@@ -23,7 +23,7 @@ import org.midonet.cluster.Client
 import org.midonet.cluster.client.{RouterPort, BridgePort, Port}
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.logging.{SimulationAwareBusLogging, ActorLogWithoutPath}
-import org.midonet.midolman.{DeduplicationActor, FlowController, Referenceable}
+import org.midonet.midolman.{PacketsEntryPoint, FlowController, Referenceable}
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.simulation._
 import org.midonet.midolman.topology.rcu.TraceConditions
@@ -335,7 +335,7 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
             // We know the DDA should always get an update to the trace
             // conditions.  For some reason the ChainRequest(update=true)
             // message from the DDA doesn't get the sender properly set.
-            DeduplicationActor ! traceCondition
+            PacketsEntryPoint ! traceCondition
         case invalidation: InvalidateFlowsByTag =>
             log.debug("Invalidating flows for tag {}", invalidation.tag)
             FlowController ! invalidation

@@ -502,7 +502,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
                 log.warning("Unhandled message {}", m)
         })
         FlowController ! DatapathReady(datapath, dpState)
-        DeduplicationActor ! DatapathReady(datapath, dpState)
+        PacketsEntryPoint ! DatapathReady(datapath, dpState)
         for ((zoneId, zone) <- host.zones) {
             VirtualToPhysicalMapper ! TunnelZoneRequest(zoneId)
         }

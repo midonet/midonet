@@ -9,17 +9,19 @@ import scala.collection.mutable
 import scala.util.{Failure, Success}
 
 import akka.actor.ActorSystem
+import akka.util.Timeout
 import com.yammer.metrics.core.Clock
 import org.slf4j.LoggerFactory
 
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.{NetlinkCallbackDispatcher, DeduplicationActor}
+import org.midonet.midolman.{PacketsEntryPoint, NetlinkCallbackDispatcher, DeduplicationActor}
+import org.midonet.midolman.PacketsEntryPoint.{GetWorkers, Workers}
 import org.midonet.netlink.Callback
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode.ENOENT
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode.EEXIST
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode.EBUSY
-import org.midonet.odp.{FlowMatches, Packet, DpPort, Datapath}
+import org.midonet.odp._
 import org.midonet.util.BatchCollector
 
 class UpcallDatapathConnectionManager(val config: MidolmanConfig) {
@@ -48,10 +50,13 @@ class UpcallDatapathConnectionManager(val config: MidolmanConfig) {
 
         val dpConn = conn.getConnection
 
-        initFuture flatMap { res =>
+        implicit val tout = Timeout(3000L)
+        val workersFuture = (PacketsEntryPoint ? GetWorkers).mapTo[Workers]
+
+        initFuture flatMap { _ => workersFuture } flatMap { workers =>
             val (createCb, createFuture) = newCallbackBackedFuture[DpPort]()
             dpConn.setCallbackDispatcher(NetlinkCallbackDispatcher.makeBatchCollector())
-            dpConn.datapathsSetNotificationHandler(makeUpcallHandler())
+            dpConn.datapathsSetNotificationHandler(makeUpcallHandler(workers))
             log.info("creating datapath port: {}", port.getName)
             dpConn.portsCreate(datapath, port, createCb)
             createFuture recoverWith {
@@ -116,31 +121,42 @@ class UpcallDatapathConnectionManager(val config: MidolmanConfig) {
         (cb, promise.future)
     }
 
-    protected def makeUpcallHandler()(implicit as: ActorSystem) = new BatchCollector[Packet] {
-        val BATCH_SIZE = 16
-        var packets = new Array[Packet](BATCH_SIZE)
-        var cursor = 0
-        val log = LoggerFactory.getLogger("PacketInHook")
+    protected def makeUpcallHandler(workers: Workers)(implicit as: ActorSystem) =
+        new BatchCollector[Packet] {
 
-        override def endBatch() {
-            if (cursor > 0) {
-                log.trace("batch of {} packets", cursor)
-                DeduplicationActor ! DeduplicationActor.HandlePackets(packets)
-                packets = new Array[Packet](BATCH_SIZE)
-                cursor = 0
+            val BATCH_SIZE: Int = 16
+            val NUM_WORKERS = workers.list.length
+            var packets = Array.ofDim[Packet](workers.list.length, BATCH_SIZE)
+            var cursors = Array.fill[Int](NUM_WORKERS)(0)
+            val log = LoggerFactory.getLogger("PacketInHook")
+
+            def endBatch(worker: Int) {
+                if (cursors(worker) > 0) {
+                    workers.list(worker) ! DeduplicationActor.HandlePackets(packets(worker))
+                    cursors(worker) = 0
+                    packets(worker) = new Array[Packet](BATCH_SIZE)
+                }
+            }
+
+            override def endBatch() {
+                var i = 0
+                while (i < NUM_WORKERS) {
+                    endBatch(i)
+                    i += 1
+                }
+            }
+
+            override def submit(data: Packet) {
+                log.trace("accumulating packet: {}", data.getMatch)
+                val eth = data.getPacket
+                FlowMatches.addUserspaceKeys(eth, data.getMatch)
+                data.setStartTimeNanos(Clock.defaultClock().tick())
+
+                val worker = Math.abs(data.getMatch.hashCode) % NUM_WORKERS
+                packets(worker)(cursors(worker)) = data
+                cursors(worker) += 1
+                if (cursors(worker) == BATCH_SIZE)
+                    endBatch(worker)
             }
         }
-
-        override def submit(data: Packet) {
-            log.trace("accumulating packet: {}", data.getMatch)
-            val eth = data.getPacket
-            FlowMatches.addUserspaceKeys(eth, data.getMatch)
-            data.setStartTimeNanos(Clock.defaultClock().tick())
-            packets(cursor) = data
-            cursor += 1
-            if (cursor == BATCH_SIZE)
-                endBatch()
-        }
-    }
-
 }
