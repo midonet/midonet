@@ -66,7 +66,11 @@ class NetlinkCallbackDispatcher extends Actor with ActorLogWithoutPath {
     private def runBatch(batch: Array[Runnable]) {
         var i = 0
         while (i < batch.length && batch(i) != null) {
-            batch(i).run()
+            try {
+                batch(i).run()
+            } catch {
+                case e: Throwable => log.error("Callback failed", e)
+            }
             i += 1
         }
     }
