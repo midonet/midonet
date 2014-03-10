@@ -21,16 +21,16 @@ public class OneToOneConnectionPool implements DatapathConnectionPool {
 
     private MidolmanConfig config;
 
-    private BlockingTransactorDatapathConnection[] conns;
+    private SelectorBasedDatapathConnection[] conns;
 
     public OneToOneConnectionPool(String name, int numChannels, MidolmanConfig config) {
         this.name = name;
         this.config = config;
 
-        conns = new BlockingTransactorDatapathConnection[numChannels];
+        conns = new SelectorBasedDatapathConnection[numChannels];
         for (int i=0; i<numChannels; i++) {
             conns[i] =
-                new BlockingTransactorDatapathConnection(name + ".channel-" + i, config);
+                new SelectorBasedDatapathConnection(name + ".channel-" + i, config, false);
         }
     }
 
