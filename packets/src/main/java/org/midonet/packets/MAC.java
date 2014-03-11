@@ -22,7 +22,7 @@ import org.codehaus.jackson.annotate.JsonValue;
  *          address representation as a string reading from left to right.
  */
 public class MAC {
-    private static WeakObjectPool<MAC> INSTANCE_POOL = new WeakObjectPool<MAC>();
+    private static WeakObjectPool<MAC> INSTANCE_POOL = new WeakObjectPool<>();
 
     private static final Random rand = new Random();
 
@@ -30,6 +30,7 @@ public class MAC {
     public static final long MULTICAST_BIT = 0x1L << 40;
 
     private final long addr;
+    private String sAddr = null; // not final to allow lazy init
 
     public static class InvalidMacException extends IllegalArgumentException {
 
@@ -71,7 +72,9 @@ public class MAC {
 
     @JsonCreator
     public static MAC fromString(String str) {
-        return new MAC(MAC.stringToLong(str)).intern();
+        MAC mac = new MAC(MAC.stringToLong(str)).intern();
+        mac.sAddr = str;
+        return mac;
     }
 
     public static MAC fromAddress(byte[] rhs) {
@@ -93,7 +96,10 @@ public class MAC {
     @JsonValue
     @Override
     public String toString() {
-        return MAC.longToString(addr);
+        if (this.sAddr == null) {
+            this.sAddr = MAC.longToString(addr);
+        }
+        return this.sAddr;
     }
 
     @Override
