@@ -1,6 +1,5 @@
 /*
- * Copyright 2011 Midokura KK
- * Copyright 2012 Midokura PTE LTD.
+ * Copyright (c) 2011-2014 Midokura Europe SARL, All Rights Reserved.
  */
 package org.midonet.api.filter.rest_api;
 
@@ -21,6 +20,7 @@ import javax.ws.rs.core.UriInfo;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
+import org.midonet.packets.MAC;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,7 +53,7 @@ public class RuleResource extends AbstractResource {
     private final static Logger log = LoggerFactory
             .getLogger(RuleResource.class);
 
-    private final Authorizer authorizer;
+    private final Authorizer<UUID> authorizer;
     private final DataClient dataClient;
 
     @Inject
@@ -136,7 +136,7 @@ public class RuleResource extends AbstractResource {
     public static class ChainRuleResource extends AbstractResource {
 
         private final UUID chainId;
-        private final Authorizer authorizer;
+        private final Authorizer<UUID> authorizer;
         private final Validator validator;
         private final DataClient dataClient;
 
@@ -162,7 +162,7 @@ public class RuleResource extends AbstractResource {
          *            Rule object.
          * @throws StateAccessException
          *             Data access error.
-         * @returns Response object with 201 status code set if successful.
+         * @return Response object with 201 status code set if successful.
          */
         @POST
         @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
@@ -188,15 +188,17 @@ public class RuleResource extends AbstractResource {
                         "Not authorized to add rule to this chain.");
             }
 
-            UUID id = null;
             try {
-                id = dataClient.rulesCreate(rule.toData());
+                UUID id = dataClient.rulesCreate(rule.toData());
+                return Response.created(
+                        ResourceUriBuilder.getRule(getBaseUri(), id))
+                        .build();
             } catch (RuleIndexOutOfBoundsException e) {
                 throw new BadRequestHttpException("Invalid rule position.");
+            } catch (MAC.InvalidMacMaskException |
+                     MAC.InvalidMacException e) {
+                throw new BadRequestHttpException(e.getMessage());
             }
-            return Response.created(
-                    ResourceUriBuilder.getRule(getBaseUri(), id))
-                    .build();
         }
 
         /**
@@ -218,14 +220,14 @@ public class RuleResource extends AbstractResource {
                         "Not authorized to view these rules.");
             }
 
-            List<org.midonet.cluster.data.Rule<?,?>> ruleDataList = null;
+            List<org.midonet.cluster.data.Rule<?,?>> ruleDataList;
             try {
                 ruleDataList = dataClient.rulesFindByChain(chainId);
             } catch (NoStatePathException e) {
                 throw new NotFoundHttpException("No such chain" + chainId);
             }
 
-            List<Rule> rules = new ArrayList<Rule>();
+            List<Rule> rules = new ArrayList<>();
             if (ruleDataList != null) {
 
                 for (org.midonet.cluster.data.Rule ruleData :

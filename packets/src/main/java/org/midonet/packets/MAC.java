@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2011 Midokura Europe SARL, All Rights Reserved.
+ * Copyright (c) 2011-2014 Midokura Europe SARL, All Rights Reserved.
  */
 
 package org.midonet.packets;
 
 import java.util.Random;
 
+import org.ietf.jgss.MessageProp;
 import org.midonet.util.collection.WeakObjectPool;
 
 import org.codehaus.jackson.annotate.JsonCreator;
@@ -26,9 +27,31 @@ public class MAC {
     private static final Random rand = new Random();
 
     public static final long MAC_MASK = 0x0000_FFFF_FFFF_FFFFL;
-    public static final long UNICAST_MASK = 0x1L << 40;
+    public static final long MULTICAST_BIT = 0x1L << 40;
 
     private final long addr;
+
+    public static class InvalidMacException extends IllegalArgumentException {
+
+        private static final long serialVersionUID = 1961257300022073971L;
+
+        public InvalidMacException(String msg) {
+            super(msg);
+        }
+    }
+
+    public static class InvalidMacMaskException
+            extends IllegalArgumentException {
+        private static final long serialVersionUID = -3084485005471854912L;
+
+        public InvalidMacMaskException(String msg) {
+            super(msg);
+        }
+
+        public InvalidMacMaskException(String msg, Exception cause) {
+            super(msg, cause);
+        }
+    }
 
     public MAC(long address) {
       addr = MAC_MASK & address;
@@ -40,6 +63,10 @@ public class MAC {
 
     public byte[] getAddress() {
         return longToBytes(addr);
+    }
+
+    public long asLong() {
+        return addr;
     }
 
     @JsonCreator
@@ -56,14 +83,11 @@ public class MAC {
     }
 
     public static MAC random() {
-        byte[] addr = new byte[6];
-        rand.nextBytes(addr);
-        addr[0] &= ~0x01;
-        return new MAC(addr);
+        return new MAC(rand.nextLong() & MAC_MASK & ~MULTICAST_BIT);
     }
 
     public boolean unicast() {
-        return 0 == (addr & UNICAST_MASK);
+        return 0 == (addr & MULTICAST_BIT);
     }
 
     @JsonValue
@@ -86,14 +110,26 @@ public class MAC {
         return (int) (addr ^ (addr >>> 32));
     }
 
-    private static IllegalArgumentException illegalMacString(String str) {
-        return new IllegalArgumentException(
-            "Mac address string must be 6 words of 1 or 2 hex digits " +
-                "joined with 5 ':' but was " + str);
+    /**
+     * Returns true if this and that are equal, considering only the
+     * bits in the same position as the one bits in mask, i.e.
+     * (this & mask) == (that & mask).
+     *
+     * The 16 most significant bits of mask have no effect, since MAC
+     * addresses have only 48 bits.
+     */
+    public boolean equalsWithMask(MAC that, long mask) {
+        return that != null && (this.addr & mask) == (that.addr & mask);
+    }
+
+    private static InvalidMacException illegalMacString(String str) {
+        return new InvalidMacException(
+            "MAC address string must be 6 words of 1 or 2 hex digits " +
+                "joined with 5 ':' but was " + str + ".");
     }
 
     public static long stringToLong(String str)
-            throws IllegalArgumentException {
+            throws InvalidMacException {
         if (str == null)
             throw illegalMacString(str);
         String[] macBytes = str.split(":");
@@ -113,7 +149,7 @@ public class MAC {
     }
 
     public static byte[] stringToBytes(String str)
-            throws IllegalArgumentException {
+            throws InvalidMacException {
         if (str == null)
             throw illegalMacString(str);
         String[] macBytes = str.split(":");
@@ -155,12 +191,12 @@ public class MAC {
         return bytesAddr;
     }
 
-    private static IllegalArgumentException illegalMacBytes =
-        new IllegalArgumentException(
-            "byte array representing a MAC address must have length 6 exactly");
+    private static InvalidMacException illegalMacBytes =
+        new InvalidMacException(
+            "Byte array representing a MAC address must have length 6 exactly.");
 
     public static long bytesToLong(byte[] bytesAddr)
-            throws IllegalArgumentException {
+            throws InvalidMacException {
         if (bytesAddr == null || bytesAddr.length != 6)
              throw illegalMacBytes;
         long addr = 0;
@@ -171,7 +207,7 @@ public class MAC {
     }
 
     public static String bytesToString(byte[] address)
-            throws IllegalArgumentException {
+            throws InvalidMacException {
         if (address == null || address.length != 6)
             throw illegalMacBytes;
         return String.format(
@@ -183,5 +219,35 @@ public class MAC {
             address[4],
             address[5]
         );
+    }
+
+    public static long parseMask(String maskStr)
+            throws InvalidMacMaskException {
+        String error = "MAC mask must consist of three sets of four " +
+                "hexadecimal digits separated by periods, " +
+                "e.g. \"ffff.ff00.0000\".";
+        String[] words = maskStr.split("\\.");
+        if (words.length != 3)
+            throw new InvalidMacMaskException(error);
+
+        long mask = 0L;
+        for (String word : words) {
+            if (word.length() != 4)
+                throw new InvalidMacMaskException(error);
+            try {
+                mask = (mask << 16) | Integer.parseInt(word, 16);
+            } catch (NumberFormatException ex) {
+                throw new InvalidMacMaskException(error, ex);
+            }
+        }
+
+        return mask;
+    }
+
+    public static String maskToString(long mask) {
+        return String.format("%04x.%04x.%04x",
+                (mask >> 32) & 0xffff,
+                (mask >> 16) & 0xffff,
+                mask & 0xffff);
     }
 }
