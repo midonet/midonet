@@ -1,6 +1,5 @@
 /*
- * Copyright 2011 Midokura KK
- * Copyright 2012 Midokura PTE LTD.
+ * Copyright (c) 2011-2014 Midokura Europe SARL, All Rights Reserved.
  */
 package org.midonet.api.network.rest_api;
 
@@ -32,7 +31,6 @@ import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.VendorMediaType;
 import org.midonet.api.auth.AuthAction;
 import org.midonet.api.auth.AuthRole;
-import org.midonet.api.auth.Authorizer;
 import org.midonet.api.auth.ForbiddenHttpException;
 import org.midonet.api.bgp.rest_api.BgpResource.PortBgpResource;
 import org.midonet.api.network.BridgePort;
@@ -68,7 +66,7 @@ public class PortResource extends AbstractResource {
     private final static Logger log = LoggerFactory
             .getLogger(PortResource.class);
 
-    private final Authorizer authorizer;
+    private final PortAuthorizer authorizer;
     private final DataClient dataClient;
     private final ResourceFactory factory;
 
@@ -271,7 +269,7 @@ public class PortResource extends AbstractResource {
      *
      * @param id
      *            Port ID from the request.
-     * @returns PortBgpResource object to handle sub-resource requests.
+     * @return PortBgpResource object to handle sub-resource requests.
      */
     @Path("/{id}" + ResourceUriBuilder.BGP)
     public PortBgpResource getBgpResource(@PathParam("id") UUID id) {
@@ -283,7 +281,7 @@ public class PortResource extends AbstractResource {
      *
      * @param id
      *            Port ID from the request.
-     * @returns PortPortGroupResource object to handle sub-resource requests.
+     * @return PortPortGroupResource object to handle sub-resource requests.
      */
     @Path("/{id}" + ResourceUriBuilder.PORT_GROUPS)
     public PortGroupResource.PortPortGroupResource getPortGroupResource(
@@ -298,7 +296,7 @@ public class PortResource extends AbstractResource {
     public static class BridgePortResource extends AbstractResource {
 
         private final UUID bridgeId;
-        private final Authorizer authorizer;
+        private final BridgeAuthorizer authorizer;
         private final DataClient dataClient;
 
         @Inject
@@ -345,7 +343,7 @@ public class PortResource extends AbstractResource {
          *
          * @throws StateAccessException
          *             Data access error.
-         * @returns Response object with 201 status code set if successful.
+         * @return Response object with 201 status code set if successful.
          */
         @POST
         @Deprecated
@@ -370,7 +368,7 @@ public class PortResource extends AbstractResource {
          *
          * @throws StateAccessException
          *             Data access error.
-         * @returns Response object with 201 status code set if successful.
+         * @return Response object with 201 status code set if successful.
          */
         @POST
         @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
@@ -409,14 +407,11 @@ public class PortResource extends AbstractResource {
 
             List<org.midonet.cluster.data.ports.BridgePort> portDataList =
                     dataClient.portsFindByBridge(bridgeId);
-            List<Port> ports = new ArrayList<Port>();
-            if (ports != null) {
-                for (org.midonet.cluster.data.Port<?, ?> portData :
-                        portDataList) {
-                    Port port = PortFactory.convertToApiPortV1(portData);
-                    port.setBaseUri(getBaseUri());
-                    ports.add(port);
-                }
+            List<Port> ports = new ArrayList<>(portDataList.size());
+            for (org.midonet.cluster.data.Port<?, ?> portData : portDataList) {
+                Port port = PortFactory.convertToApiPortV1(portData);
+                port.setBaseUri(getBaseUri());
+                ports.add(port);
             }
             return ports;
         }
@@ -461,7 +456,7 @@ public class PortResource extends AbstractResource {
     public static class BridgePeerPortResource extends AbstractResource {
 
         private final UUID bridgeId;
-        private final Authorizer authorizer;
+        private final BridgeAuthorizer authorizer;
         private final DataClient dataClient;
 
         @Inject
@@ -551,7 +546,7 @@ public class PortResource extends AbstractResource {
     public static class RouterPortResource extends AbstractResource {
 
         private final UUID routerId;
-        private final Authorizer authorizer;
+        private final RouterAuthorizer authorizer;
         private final DataClient dataClient;
 
         @Inject
@@ -595,7 +590,7 @@ public class PortResource extends AbstractResource {
          *
          * @throws StateAccessException
          *             Data access error.
-         * @returns Response object with 201 status code set if successful.
+         * @return Response object with 201 status code set if successful.
          */
         @POST
         @Deprecated
@@ -620,7 +615,7 @@ public class PortResource extends AbstractResource {
          *
          * @throws StateAccessException
          *             Data access error.
-         * @returns Response object with 201 status code set if successful.
+         * @return Response object with 201 status code set if successful.
          */
         @POST
         @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
@@ -708,7 +703,7 @@ public class PortResource extends AbstractResource {
     public static class RouterPeerPortResource extends AbstractResource {
 
         private final UUID routerId;
-        private final Authorizer authorizer;
+        private final RouterAuthorizer authorizer;
         private final DataClient dataClient;
 
         @Inject
@@ -798,8 +793,8 @@ public class PortResource extends AbstractResource {
     public static class PortGroupPortResource extends AbstractResource {
 
         private final UUID portGroupId;
-        private final Authorizer portGroupAuthorizer;
-        private final Authorizer portAuthorizer;
+        private final PortGroupAuthorizer portGroupAuthorizer;
+        private final PortAuthorizer portAuthorizer;
         private final DataClient dataClient;
 
         @Inject

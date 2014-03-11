@@ -1,6 +1,5 @@
 /*
- * Copyright 2011 Midokura KK
- * Copyright 2012 Midokura PTE LTD.
+ * Copyright (c) 2011-2014 Midokura Europe SARL, All Rights Reserved.
  */
 package org.midonet.api.bgp.rest_api;
 
@@ -45,7 +44,7 @@ public class AdRouteResource extends AbstractResource {
     private final static Logger log = LoggerFactory
             .getLogger(AdRouteResource.class);
 
-    private final Authorizer authorizer;
+    private final AdRouteAuthorizer authorizer;
     private final DataClient dataClient;
 
     @Inject
@@ -130,7 +129,7 @@ public class AdRouteResource extends AbstractResource {
     public static class BgpAdRouteResource extends AbstractResource {
 
         private final UUID bgpId;
-        private final Authorizer authorizer;
+        private final BgpAuthorizer authorizer;
         private final DataClient dataClient;
 
         @Inject
@@ -152,7 +151,7 @@ public class AdRouteResource extends AbstractResource {
          *            AdRoute object.
          * @throws StateAccessException
          *             Data access error.
-         * @returns Response object with 201 status code set if successful.
+         * @return Response object with 201 status code set if successful.
          */
         @POST
         @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})

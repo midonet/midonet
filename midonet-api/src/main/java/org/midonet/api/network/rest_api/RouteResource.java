@@ -1,6 +1,5 @@
 /*
- * Copyright 2011 Midokura KK
- * Copyright 2012 Midokura PTE LTD.
+ * Copyright (c) 2011-2014 Midokura Europe SARL, All Rights Reserved.
  */
 package org.midonet.api.network.rest_api;
 
@@ -15,7 +14,6 @@ import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.auth.AuthAction;
 import org.midonet.api.auth.AuthRole;
-import org.midonet.api.auth.Authorizer;
 import org.midonet.api.network.auth.RouteAuthorizer;
 import org.midonet.api.network.auth.RouterAuthorizer;
 import org.midonet.api.rest_api.RestApiConfig;
@@ -49,7 +47,7 @@ public class RouteResource extends AbstractResource {
     private final static Logger log = LoggerFactory
             .getLogger(RouteResource.class);
 
-    private final Authorizer authorizer;
+    private final RouteAuthorizer authorizer;
     private final DataClient dataClient;
 
     @Inject
@@ -133,7 +131,7 @@ public class RouteResource extends AbstractResource {
     public static class RouterRouteResource extends AbstractResource {
 
         private final UUID routerId;
-        private final Authorizer authorizer;
+        private final RouterAuthorizer authorizer;
         private final DataClient dataClient;
 
         @Inject
@@ -157,7 +155,7 @@ public class RouteResource extends AbstractResource {
          *            Route object.
          * @throws StateAccessException
          *             Data access error.
-         * @returns Response object with 201 status code set if successful.
+         * @return Response object with 201 status code set if successful.
          */
         @POST
         @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
@@ -203,7 +201,7 @@ public class RouteResource extends AbstractResource {
 
             List<org.midonet.cluster.data.Route> routeDataList =
                     dataClient.routesFindByRouter(routerId);
-            List<Route> routes = new ArrayList<Route>();
+            List<Route> routes = new ArrayList<>();
             if (routeDataList != null) {
 
                 for (org.midonet.cluster.data.Route routeData :

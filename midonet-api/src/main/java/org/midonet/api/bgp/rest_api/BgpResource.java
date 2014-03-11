@@ -1,6 +1,5 @@
 /*
- * Copyright 2011 Midokura KK
- * Copyright 2012 Midokura PTE LTD.
+ * Copyright (c) 2011-2014 Midokura Europe SARL, All Rights Reserved.
  */
 package org.midonet.api.bgp.rest_api;
 
@@ -16,7 +15,6 @@ import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.auth.AuthAction;
 import org.midonet.api.auth.AuthRole;
-import org.midonet.api.auth.Authorizer;
 import org.midonet.api.bgp.auth.BgpAuthorizer;
 import org.midonet.api.bgp.rest_api.AdRouteResource.BgpAdRouteResource;
 import org.midonet.api.network.auth.PortAuthorizer;
@@ -48,7 +46,7 @@ public class BgpResource extends AbstractResource {
     private final static Logger log = LoggerFactory
             .getLogger(BgpResource.class);
 
-    private final Authorizer authorizer;
+    private final BgpAuthorizer authorizer;
     private final DataClient dataClient;
     private final ResourceFactory factory;
 
@@ -129,7 +127,7 @@ public class BgpResource extends AbstractResource {
      *
      * @param id
      *            BGP ID from the request.
-     * @returns BgpAdRouteResource object to handle sub-resource requests.
+     * @return BgpAdRouteResource object to handle sub-resource requests.
      */
     @Path("/{id}" + ResourceUriBuilder.AD_ROUTES)
     public BgpAdRouteResource getBgpAdRouteResource(@PathParam("id") UUID id) {
@@ -144,7 +142,7 @@ public class BgpResource extends AbstractResource {
 
         private final UUID portId;
         private final SecurityContext context;
-        private final Authorizer authorizer;
+        private final PortAuthorizer authorizer;
         private final DataClient dataClient;
 
         @Inject
@@ -167,7 +165,7 @@ public class BgpResource extends AbstractResource {
          *            BGP object.
          * @throws StateAccessException
          *             Data access error.
-         * @returns Response object with 201 status code set if successful.
+         * @return Response object with 201 status code set if successful.
          */
         @POST
         @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
@@ -210,7 +208,7 @@ public class BgpResource extends AbstractResource {
             }
 
             List<BGP> bgpDataList = dataClient.bgpFindByPort(portId);
-            List<Bgp> bgpList = new ArrayList<Bgp>();
+            List<Bgp> bgpList = new ArrayList<>();
             if (bgpDataList != null) {
                 for (BGP bgpData : bgpDataList) {
                     Bgp bgp = new Bgp(bgpData);

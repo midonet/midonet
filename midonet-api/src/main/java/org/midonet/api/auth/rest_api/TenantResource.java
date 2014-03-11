@@ -1,18 +1,13 @@
 /*
- * Copyright 2013 Midokura PTE LTD.
+ * Copyright (c) 2013-2014 Midokura Europe SARL, All Rights Reserved.
  */
 package org.midonet.api.auth.rest_api;
 
 import com.google.inject.Inject;
 import com.google.inject.servlet.RequestScoped;
 import org.codehaus.jackson.map.annotate.JsonView;
-import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.VendorMediaType;
 import org.midonet.api.auth.*;
-import org.midonet.api.filter.rest_api.ChainResource;
-import org.midonet.api.network.rest_api.BridgeResource;
-import org.midonet.api.network.rest_api.PortGroupResource;
-import org.midonet.api.network.rest_api.RouterResource;
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.ResourceFactory;
@@ -133,11 +128,10 @@ public class TenantResource extends AbstractResource {
     public List<Tenant> list() throws AuthException {
         log.debug("TenantResource.list: entered");
 
-        List<Tenant> tenants = new ArrayList<Tenant>();
-
         List<org.midonet.api.auth.Tenant> authTenants =
                 authService.getTenants(this.reqContext);
-        if (tenants != null) {
+        List<Tenant> tenants = new ArrayList<>();
+        if (authTenants != null) {
             for (org.midonet.api.auth.Tenant authTenant : authTenants) {
                 Tenant tenant = new Tenant(authTenant);
                 tenant.setBaseUri(getBaseUri());

@@ -1,6 +1,5 @@
 /*
- * Copyright 2011 Midokura KK
- * Copyright 2012 Midokura PTE LTD.
+ * Copyright (c) 2011-2014 Midokura Europe SARL, All Rights Reserved.
  */
 package org.midonet.api.network.rest_api;
 
@@ -42,7 +41,7 @@ public class RouterResource extends AbstractResource {
     private final static Logger log = LoggerFactory
             .getLogger(RouterResource.class);
 
-    private final Authorizer authorizer;
+    private final RouterAuthorizer authorizer;
     private final DataClient dataClient;
     private final ResourceFactory factory;
 
@@ -128,7 +127,7 @@ public class RouterResource extends AbstractResource {
      *
      * @param id
      *            Router ID from the request.
-     * @returns RouterPortResource object to handle sub-resource requests.
+     * @return RouterPortResource object to handle sub-resource requests.
      */
     @Path("/{id}" + ResourceUriBuilder.PORTS)
     public PortResource.RouterPortResource getPortResource(@PathParam("id") UUID id) {
@@ -140,7 +139,7 @@ public class RouterResource extends AbstractResource {
      *
      * @param id
      *            Router ID from the request.
-     * @returns RouterRouteResource object to handle sub-resource requests.
+     * @return RouterRouteResource object to handle sub-resource requests.
      */
     @Path("/{id}" + ResourceUriBuilder.ROUTES)
     public RouteResource.RouterRouteResource getRouteResource(@PathParam("id") UUID id) {
@@ -152,7 +151,7 @@ public class RouterResource extends AbstractResource {
      *
      * @param id
      *            Router ID from the request.
-     * @returns RouterPortResource object to handle sub-resource requests.
+     * @return RouterPortResource object to handle sub-resource requests.
      */
     @Path("/{id}" + ResourceUriBuilder.PEER_PORTS)
     public PortResource.RouterPeerPortResource getRouterPeerPortResource(
@@ -199,7 +198,7 @@ public class RouterResource extends AbstractResource {
      *            Router object.
      * @throws StateAccessException
      *             Data access error.
-     * @returns Response object with 201 status code set if successful.
+     * @return Response object with 201 status code set if successful.
      */
     @POST
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
@@ -238,14 +237,11 @@ public class RouterResource extends AbstractResource {
     public List<Router> list(@QueryParam("tenant_id") String tenantId)
             throws StateAccessException, SerializationException {
 
-        List<org.midonet.cluster.data.Router> dataRouters = null;
-        if (tenantId == null) {
-            dataRouters = dataClient.routersGetAll();
-        } else {
-            dataRouters = dataClient.routersFindByTenant(tenantId);
-        }
+        List<org.midonet.cluster.data.Router> dataRouters = (tenantId == null) ?
+                dataClient.routersGetAll() :
+                dataClient.routersFindByTenant(tenantId);
 
-        List<Router> routers = new ArrayList<Router>();
+        List<Router> routers = new ArrayList<>();
         if (dataRouters != null) {
             for (org.midonet.cluster.data.Router dataRouter :
                     dataRouters) {

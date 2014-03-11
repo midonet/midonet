@@ -1,6 +1,5 @@
 /*
- * Copyright 2012 Midokura Europe SARL
- * Copyright 2012 Midokura PTE LTD.
+ * Copyright (c) 2012-2014 Midokura Europe SARL, All Rights Reserved.
  */
 
 package org.midonet.api.dhcp.rest_api;
@@ -10,7 +9,6 @@ import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.VendorMediaType;
-import org.midonet.api.auth.Authorizer;
 import org.midonet.api.auth.ForbiddenHttpException;
 import org.midonet.api.dhcp.DhcpV6Host;
 import org.midonet.api.network.auth.BridgeAuthorizer;
@@ -23,7 +21,6 @@ import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.dhcp.V6Host;
-import org.midonet.packets.IntIPv4;
 import org.midonet.packets.IPv6Subnet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +45,7 @@ public class DhcpV6HostsResource extends AbstractResource {
 
     private final UUID bridgeId;
     private final IPv6Subnet prefix;
-    private final Authorizer authorizer;
+    private final BridgeAuthorizer authorizer;
     private final DataClient dataClient;
 
     @Inject
@@ -72,7 +69,7 @@ public class DhcpV6HostsResource extends AbstractResource {
      *            DHCPV6 host assignment object.
      * @throws org.midonet.midolman.state.StateAccessException
      *             Data access error.
-     * @returns Response object with 201 status code set if successful.
+     * @return Response object with 201 status code set if successful.
      */
     @POST
     @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
@@ -207,7 +204,7 @@ public class DhcpV6HostsResource extends AbstractResource {
 
         List<V6Host> hostConfigs = dataClient.dhcpV6HostsGetByPrefix(bridgeId,
                 prefix);
-        List<DhcpV6Host> hosts = new ArrayList<DhcpV6Host>();
+        List<DhcpV6Host> hosts = new ArrayList<>();
         URI dhcpUri = ResourceUriBuilder.getBridgeDhcpV6(
                 getBaseUri(), bridgeId, prefix);
         for (V6Host hostConfig : hostConfigs) {

@@ -1,6 +1,5 @@
 /*
- * Copyright 2013 Midokura Europe SARL
- * Copyright 2013 Midokura PTE LTD.
+ * Copyright (c) 2011-2014 Midokura Europe SARL, All Rights Reserved.
  */
 
 package org.midonet.api.dhcp.rest_api;
@@ -49,7 +48,7 @@ public class BridgeDhcpV6Resource extends AbstractResource {
             .getLogger(BridgeDhcpV6Resource.class);
 
     private final UUID bridgeId;
-    private final Authorizer authorizer;
+    private final BridgeAuthorizer authorizer;
     private final DataClient dataClient;
     private final ResourceFactory factory;
 

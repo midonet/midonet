@@ -43,8 +43,7 @@ public class RuleAuthorizer extends Authorizer<UUID> {
             return true;
         }
 
-        boolean authorized = false;
-        Rule rule = dataClient.rulesGet(id);
+        Rule<?, ?> rule = dataClient.rulesGet(id);
         if (rule == null) {
             log.warn("Attempted to authorize a non-existent resource: {}", id);
             return false;
