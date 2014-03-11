@@ -42,8 +42,10 @@ public class DtoRule {
     private Integer dlType = null;
     private boolean invDlType = false;
     private String dlSrc = null;
+    private String dlSrcMask = null;
     private boolean invDlSrc = false;
     private String dlDst = null;
+    private String dlDstMask = null;
     private boolean invDlDst = false;
     private int nwTos;
     private boolean invNwTos;
@@ -203,6 +205,14 @@ public class DtoRule {
         this.dlDst = dlDst;
     }
 
+    public String getDlDstMask() {
+        return dlDstMask;
+    }
+
+    public void setDlDstMask(String dlDstMask) {
+        this.dlDstMask = dlDstMask;
+    }
+
     public boolean isInvDlDst() {
         return invDlDst;
     }
@@ -217,6 +227,14 @@ public class DtoRule {
 
     public void setDlSrc(String dlSrc) {
         this.dlSrc = dlSrc;
+    }
+
+    public String getDlSrcMask() {
+        return dlSrcMask;
+    }
+
+    public void setDlSrcMask(String dlSrcMask) {
+        this.dlSrcMask = dlSrcMask;
     }
 
     public boolean isInvDlSrc() {

@@ -1,9 +1,9 @@
 /*
- * Copyright 2011 Midokura KK
+ * Copyright (c) 2011-2014 Midokura Europe SARL, All Rights Reserved.
  */
-
 package org.midonet.midolman.rules;
 
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -32,8 +32,10 @@ public class Condition {
     public Integer dlType; // Ethernet frame type.
     public boolean invDlType;
     public MAC dlSrc; // Source MAC address.
+    public long dlSrcMask = NO_MASK; // Top 16 bits ignored.
     public boolean invDlSrc;
     public MAC dlDst; // Destination MAC address.
+    public long dlDstMask = NO_MASK; // Top 16 bits ignored.
     public boolean invDlDst;
     public Byte nwTos;
     public boolean nwTosInv;
@@ -52,6 +54,9 @@ public class Condition {
     // stored elsewhere in Zookeeper, hence transient.
     public transient IPAddrGroup ipAddrGroupSrc;
     public transient IPAddrGroup ipAddrGroupDst;
+
+    // Default value used when creator specifies no mask.
+    public static final long NO_MASK = -1L;
 
     /** Matches everything */
     public static final Condition TRUE = new Uncondition(true);
@@ -122,9 +127,10 @@ public class Condition {
         if (!matchField(dlType, pktMatch.getEtherType() != null ?
                 Unsigned.unsign(pktMatch.getEtherType()) : null, invDlType))
             return conjunctionInv;
-        if (!matchField(dlSrc, pktMatch.getEthernetSource(), invDlSrc))
+        if (!matchMAC(dlSrc, pktMatch.getEthernetSource(), dlSrcMask, invDlSrc))
             return conjunctionInv;
-        if (!matchField(dlDst, pktMatch.getEthernetDestination(), invDlDst))
+        if (!matchMAC(dlDst, pktMatch.getEthernetDestination(),
+                      dlDstMask, invDlDst))
             return conjunctionInv;
         if (!matchField(nwTos, pktMatch.getNetworkTOS(), nwTosInv))
             return conjunctionInv;
@@ -155,33 +161,35 @@ public class Condition {
         return negate? !cond :cond;
     }
 
-    /**
-     *
-     * @param condField
-     * @param pktField
-     * @param negate This is only considered if the condField is NOT null
-     * @return
-     */
+    // In the match methods below, note that if the condition field is
+    // null, the packet field is considered to match regardless of its
+    // own value or the value of the negate argument.
+    //
+    // Expressed generally, there is a match if:
+    //   condField == null || (negate ^ (pktField matches condField))
+
     private <T> boolean matchField(T condField, T pktField, boolean negate) {
         // Packet is considered to match if the condField is not specified.
-        if (condField == null)
-            return true;
-        return negate ^ condField.equals(pktField);
+        return condField == null ||
+                negate ^ condField.equals(pktField);
+    }
+
+    private boolean matchMAC(MAC condMAC, MAC pktMAC,
+                             long mask, boolean negate) {
+        return condMAC == null ||
+                negate ^ condMAC.equalsWithMask(pktMAC, mask);
     }
 
     private boolean matchIP(IPSubnet condSubnet, IPAddr pktIp, boolean negate) {
         // Packet is considered to match if the condField is not specified.
-        if (condSubnet == null)
-            return true;
-        boolean matches = (pktIp != null && condSubnet.containsAddress(pktIp));
-        return negate ^ matches;
+        return condSubnet == null ||
+                negate ^ (pktIp != null && condSubnet.containsAddress(pktIp));
     }
 
     private boolean matchIpToGroup(
             IPAddrGroup ipAddrGroup, IPAddr ipAddr, boolean negate) {
-        if (ipAddrGroup == null)
-            return true;
-        return negate ^ ipAddrGroup.contains(ipAddr);
+        return ipAddrGroup == null ||
+                negate ^ ipAddrGroup.contains(ipAddr);
     }
 
     // This works a bit differently from how one might expect. The packet
@@ -192,18 +200,14 @@ public class Condition {
     // condition's port group.
     private boolean matchPortGroup(
             Set<UUID> pktGroups, UUID condGroup, boolean negate) {
-        if (portGroup == null)
-            return true;
-
-        boolean matches = (pktGroups != null && pktGroups.contains(condGroup));
-        return negate ^ matches;
+        return portGroup == null ||
+                negate ^ (pktGroups != null && pktGroups.contains(condGroup));
     }
 
-    private <E extends Comparable<E>> boolean matchRange(Range<E> range, E pktField, boolean negate) {
-        // Packet is considered to match if the condField is not specified.
-        boolean matches = (range == null || null == pktField) ||
-                          range.isInside(pktField);
-        return negate ^ matches;
+    private <E extends Comparable<E>> boolean matchRange(
+            Range<E> range, E pktField, boolean negate) {
+        return range == null ||
+                negate ^ (null == pktField || range.isInside(pktField));
     }
 
 
@@ -259,6 +263,9 @@ public class Condition {
         }
         if (null != dlSrc) {
             sb.append("dlSrc=").append(dlSrc).append(", ");
+            if (dlSrcMask != NO_MASK)
+                sb.append("dlSrcMask=").append(MAC.maskToString(dlSrcMask))
+                        .append(", ");
             if(invDlSrc)
                 sb.append("invDlSrc").append(invDlSrc).append(", ");
         }
@@ -306,96 +313,47 @@ public class Condition {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        Condition condition = (Condition) o;
+        Condition c = (Condition) o;
 
-        if (conjunctionInv != condition.conjunctionInv) return false;
-        if (inPortInv != condition.inPortInv) return false;
-        if (invDlDst != condition.invDlDst) return false;
-        if (invDlSrc != condition.invDlSrc) return false;
-        if (invDlType != condition.invDlType) return false;
-        if (invPortGroup != condition.invPortGroup) return false;
-        if (invIpAddrGroupIdDst != condition.invIpAddrGroupIdDst) return false;
-        if (invIpAddrGroupIdSrc != condition.invIpAddrGroupIdSrc) return false;
-        if (matchForwardFlow != condition.matchForwardFlow) return false;
-        if (matchReturnFlow != condition.matchReturnFlow) return false;
-        if (nwDstInv != condition.nwDstInv) return false;
-        if (nwProtoInv != condition.nwProtoInv) return false;
-        if (nwSrcInv != condition.nwSrcInv) return false;
-        if (nwTosInv != condition.nwTosInv) return false;
-        if (outPortInv != condition.outPortInv) return false;
-        if (tpDstInv != condition.tpDstInv) return false;
-        if (tpSrcInv != condition.tpSrcInv) return false;
-        if (dlDst != null ? !dlDst.equals(condition.dlDst) : condition.dlDst != null)
-            return false;
-        if (dlSrc != null ? !dlSrc.equals(condition.dlSrc) : condition.dlSrc != null)
-            return false;
-        if (dlType != null ? !dlType.equals(condition.dlType) : condition.dlType != null)
-            return false;
-        if (inPortIds != null ? !inPortIds.equals(condition.inPortIds) : condition.inPortIds != null)
-            return false;
-        if (nwDstIp != null ? !nwDstIp.equals(condition.nwDstIp) : condition.nwDstIp != null)
-            return false;
-        if (nwProto != null ? !nwProto.equals(condition.nwProto) : condition.nwProto != null)
-            return false;
-        if (nwSrcIp != null ? !nwSrcIp.equals(condition.nwSrcIp) : condition.nwSrcIp != null)
-            return false;
-        if (nwTos != null ? !nwTos.equals(condition.nwTos) : condition.nwTos != null)
-            return false;
-        if (outPortIds != null ? !outPortIds.equals(condition.outPortIds) : condition.outPortIds != null)
-            return false;
-        if (portGroup != null ? !portGroup.equals(condition.portGroup) : condition.portGroup != null)
-            return false;
-        if (ipAddrGroupIdDst != null ? !ipAddrGroupIdDst.equals(
-                condition.ipAddrGroupIdDst)
-                : condition.ipAddrGroupIdDst != null)
-            return false;
-        if (ipAddrGroupIdSrc != null ? !ipAddrGroupIdSrc.equals(
-                condition.ipAddrGroupIdSrc)
-                : condition.ipAddrGroupIdSrc != null)
-            return false;
-        if (tpDst != null ? !tpDst.equals(condition.tpDst) : condition.tpDst != null)
-            return false;
-        if (tpSrc != null ? !tpSrc.equals(condition.tpSrc) : condition.tpSrc != null)
-            return false;
-
-        return true;
+        return conjunctionInv == c.conjunctionInv &&
+                matchForwardFlow == c.matchForwardFlow &&
+                matchReturnFlow == c.matchReturnFlow &&
+                inPortInv == c.inPortInv && outPortInv == c.outPortInv &&
+                invPortGroup == c.invPortGroup &&
+                invIpAddrGroupIdDst == c.invIpAddrGroupIdDst &&
+                invIpAddrGroupIdSrc == c.invIpAddrGroupIdSrc &&
+                invDlType == c.invDlType &&
+                invDlSrc == c.invDlSrc && invDlDst == c.invDlDst &&
+                dlSrcMask == c.dlSrcMask && dlDstMask == c.dlDstMask &&
+                nwTosInv == c.nwTosInv && nwProtoInv == c.nwProtoInv &&
+                nwSrcInv == c.nwSrcInv && nwDstInv == c.nwDstInv &&
+                tpSrcInv == c.tpSrcInv && tpDstInv == c.tpDstInv &&
+                Objects.equals(inPortIds, c.inPortIds) &&
+                Objects.equals(outPortIds, c.outPortIds) &&
+                Objects.equals(portGroup, c.portGroup) &&
+                Objects.equals(ipAddrGroupIdDst, c.ipAddrGroupIdDst) &&
+                Objects.equals(ipAddrGroupIdSrc, c.ipAddrGroupIdSrc) &&
+                Objects.equals(dlType, c.dlType) &&
+                Objects.equals(dlSrc, c.dlSrc) &&
+                Objects.equals(dlDst, c.dlDst) &&
+                Objects.equals(nwTos, c.nwTos) &&
+                Objects.equals(nwProto, c.nwProto) &&
+                Objects.equals(nwSrcIp, c.nwSrcIp) &&
+                Objects.equals(nwDstIp, c.nwDstIp) &&
+                Objects.equals(tpSrc, c.tpSrc) &&
+                Objects.equals(tpDst, c.tpDst);
     }
 
     @Override
     public int hashCode() {
-        int result = (conjunctionInv ? 1 : 0);
-        result = 31 * result + (matchForwardFlow ? 1 : 0);
-        result = 31 * result + (matchReturnFlow ? 1 : 0);
-        result = 31 * result + (inPortIds != null ? inPortIds.hashCode() : 0);
-        result = 31 * result + (inPortInv ? 1 : 0);
-        result = 31 * result + (outPortIds != null ? outPortIds.hashCode() : 0);
-        result = 31 * result + (outPortInv ? 1 : 0);
-        result = 31 * result + (portGroup != null ? portGroup.hashCode() : 0);
-        result = 31 * result + (invPortGroup ? 1 : 0);
-        result = 31 * result + (ipAddrGroupIdDst != null
-                ? ipAddrGroupIdDst.hashCode() : 0);
-        result = 31 * result + (invIpAddrGroupIdDst ? 1 : 0);
-        result = 31 * result + (ipAddrGroupIdSrc != null
-                ? ipAddrGroupIdSrc.hashCode() : 0);
-        result = 31 * result + (invIpAddrGroupIdSrc ? 1 : 0);
-        result = 31 * result + (dlType != null ? dlType.hashCode() : 0);
-        result = 31 * result + (invDlType ? 1 : 0);
-        result = 31 * result + (dlSrc != null ? dlSrc.hashCode() : 0);
-        result = 31 * result + (invDlSrc ? 1 : 0);
-        result = 31 * result + (dlDst != null ? dlDst.hashCode() : 0);
-        result = 31 * result + (invDlDst ? 1 : 0);
-        result = 31 * result + (nwTos != null ? nwTos.hashCode() : 0);
-        result = 31 * result + (nwTosInv ? 1 : 0);
-        result = 31 * result + (nwProto != null ? nwProto.hashCode() : 0);
-        result = 31 * result + (nwProtoInv ? 1 : 0);
-        result = 31 * result + (nwSrcIp != null ? nwSrcIp.hashCode() : 0);
-        result = 31 * result + (nwSrcInv ? 1 : 0);
-        result = 31 * result + (nwDstIp != null ? nwDstIp.hashCode() : 0);
-        result = 31 * result + (nwDstInv ? 1 : 0);
-        result = 31 * result + (tpSrc != null ? tpSrc.hashCode() : 0);
-        result = 31 * result + (tpSrcInv ? 1 : 0);
-        result = 31 * result + (tpDst != null ? tpDst.hashCode() : 0);
-        result = 31 * result + (tpDstInv ? 1 : 0);
-        return result;
+        return Objects.hash(
+                conjunctionInv, matchForwardFlow, matchReturnFlow,
+                inPortInv, outPortInv, invPortGroup,
+                invIpAddrGroupIdDst, invIpAddrGroupIdSrc,
+                invDlType, invDlSrc, invDlDst, dlSrcMask, dlDstMask,
+                nwTosInv, nwProtoInv, nwSrcInv, nwDstInv, tpSrcInv, tpDstInv,
+                inPortIds, outPortIds, portGroup,
+                ipAddrGroupIdDst, ipAddrGroupIdSrc, dlType, dlSrc, dlDst,
+                nwTos, nwProto, nwSrcIp, nwDstIp, tpSrc, tpDst);
     }
 }

@@ -85,7 +85,7 @@ class TestMac extends Suite with Matchers {
     }
 
     def testUnitcast {
-        val mask: Byte = ~0x1
+        val mask: Byte = (~0x1).toByte
         for (m <- macpool) {
             val bytes = m.getAddress
             val firstByte = bytes(0)
@@ -93,6 +93,61 @@ class TestMac extends Suite with Matchers {
             (MAC.fromAddress(bytes).unicast) should be (true)
         }
 
+    }
+
+    def testZeroMask {
+        for (i <- 0 until 50) {
+            // With the mask ignoring all bits, any two MAC addresses
+            // should be equal.
+            macpool(i).equalsWithMask(macpool(i + 50), 0L) shouldBe true
+        }
+    }
+
+    def testFullMask {
+        // With no bits ignored, flipping any one bit in a MAC should
+        // result in them being considered not equal.
+        for (i <- 0 until 48) {
+            // Sanity check: MAC should always equal itself.
+            val mac = macpool(i)
+            mac.equalsWithMask(mac, MAC.MAC_MASK) shouldBe true
+
+            // MAC with the i-th bit flipped not equal to the original.
+            val alteredBits = MAC.bytesToLong(mac.getAddress) ^ (1L << i)
+            val alteredMac = new MAC(MAC.longToBytes(alteredBits))
+            macpool(i).equalsWithMask(alteredMac, MAC.MAC_MASK) shouldBe false
+        }
+    }
+
+    def testMaskedComparisonConsidersUnmaskedBits() {
+        val mac = MAC.random()
+        for (i <- 0 until 6) {
+            // Create a mask with only the bits in the (5 - i)th byte set.
+            val mask = 0xffL << ((5 - i) * 8);
+
+            // Use this mask to compare the original MAC to a MAC with
+            // the bits in the same byte flipped. Should not be equal.
+            val bytes = mac.getAddress
+            bytes(i) = (bytes(i) ^ 0xff).toByte
+            mac.equalsWithMask(new MAC(bytes), mask) shouldBe false
+
+            // Sanity check: Flip the bits back and verify equality.
+            bytes(i) = (bytes(i) ^ 0xff).toByte
+            mac.equalsWithMask(new MAC(bytes), mask) shouldBe true
+        }
+    }
+
+    def testMaskedComparisonIgnoresMaskedBits() {
+        val mac = MAC.random()
+        for (i <- 0 until 6) {
+            // Create a mask with the (5 - i)th byte zeroed out.
+            val partialMask = ~(0xffL << ((5 - i) * 8))
+            // Create a MAC with the bits in the same byte flipped.
+            val bytes = mac.getAddress
+            bytes(i) = (bytes(i) ^ 0xff).toByte
+            val alteredMac = new MAC(bytes)
+            mac.equalsWithMask(alteredMac, partialMask) shouldBe true
+            mac.equalsWithMask(alteredMac, MAC.MAC_MASK) shouldBe false
+        }
     }
 
     def testInSets {
@@ -108,5 +163,4 @@ class TestMac extends Suite with Matchers {
         mmap.size should be (macpool.size)
         for (m <- macpool) { mmap.get(m) should be (Some(m.toString)) }
     }
-
 }

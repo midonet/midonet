@@ -31,7 +31,7 @@ class ClusterHealthMonitorManager extends ClusterManager[HealthMonitorBuilder] {
         protected override def describe(): String = "Health Monitor " + id
 
         protected override def makeRetry(): Runnable = {
-            return new Runnable {
+            new Runnable {
                 override def run(): Unit = {
                     log.debug("Retrying to get health monitor config {}", id)
                     healthMonitorZkManager.getAsync(id, GetCallBack.this,
@@ -47,7 +47,7 @@ class ClusterHealthMonitorManager extends ClusterManager[HealthMonitorBuilder] {
 
                 case cfg: HealthMonitorConfig =>
                     builder.setHealthMonitor(cfg)
-                    builder.build
+                    builder.build()
 
                 case _ =>
                     log.warn("Null health monitor returned from ZK for {}", id)

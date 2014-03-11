@@ -34,6 +34,9 @@ import org.midonet.packets.*;
 import org.midonet.sdn.flows.WildcardMatch;
 import org.midonet.util.Range;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 public class TestCondition {
 
     private WildcardMatch pktMatch;
@@ -138,6 +141,107 @@ public class TestCondition {
         cond.outPortInv = false;
         Assert.assertTrue(cond.matches(fwdInfo, pktMatch, false));
         Assert.assertFalse(cond.matches(fwdInfo, pktMatch, true));
+    }
+
+    @Test
+    public void testDlSrc() {
+        Condition cond = new Condition();
+
+        // InvDlSrc shouldn't matter when dlSrc is null.
+        cond.invDlSrc = true;
+        assertTrue(cond.matches(fwdInfo, pktMatch, false));
+
+        cond.dlSrc = pktMatch.getEthernetSource();
+        assertFalse(cond.matches(fwdInfo, pktMatch, false));
+        cond.invDlSrc = false;
+        assertTrue(cond.matches(fwdInfo, pktMatch, false));
+
+        cond.dlSrc = MAC.random();
+        assertFalse(cond.matches(fwdInfo, pktMatch, false));
+        cond.invDlSrc = true;
+        assertTrue(cond.matches(fwdInfo, pktMatch, false));
+    }
+
+    @Test
+    public void testDlDst() {
+        Condition cond = new Condition();
+
+        // InvDlDst shouldn't matter when dlDst is null.
+        cond.invDlDst = true;
+        assertTrue(cond.matches(fwdInfo, pktMatch, false));
+
+        cond.dlDst = pktMatch.getEthernetDestination();
+        assertFalse(cond.matches(fwdInfo, pktMatch, false));
+        cond.invDlDst = false;
+        assertTrue(cond.matches(fwdInfo, pktMatch, false));
+
+        cond.dlDst = MAC.random();
+        assertFalse(cond.matches(fwdInfo, pktMatch, false));
+        cond.invDlDst = true;
+        assertTrue(cond.matches(fwdInfo, pktMatch, false));
+    }
+
+    @Test
+    public void testDlSrcMasking() {
+        Condition cond = new Condition();
+
+        // Everything should match with zero mask.
+        cond.dlSrcMask = 0L;
+        cond.dlSrc = MAC.random();
+        cond.invDlSrc = true;
+        assertFalse(cond.matches(fwdInfo, pktMatch, false));
+        cond.invDlSrc = false;
+        assertTrue(cond.matches(fwdInfo, pktMatch, false));
+
+        // Ignore lower 32 bits.
+        cond.dlSrcMask = 0xffffL << 32;
+
+        // Flip lower 32 bits and match should still succeed.
+        long macLong = pktMatch.getEthernetSource().asLong();
+        cond.dlSrc = new MAC(macLong ^ 0xffffffffL);
+        cond.invDlSrc = true;
+        assertFalse(cond.matches(fwdInfo, pktMatch, false));
+        cond.invDlSrc = false;
+        assertTrue(cond.matches(fwdInfo, pktMatch, false));
+
+        // Flip one more bit and match should fail.
+        cond.dlSrc = new MAC(macLong ^ 0x1ffffffffL);
+        cond.invDlSrc = true;
+        assertTrue(cond.matches(fwdInfo, pktMatch, false));
+        cond.invDlSrc = false;
+        assertFalse(cond.matches(fwdInfo, pktMatch, false));
+    }
+
+    @Test
+    public void testDlDstMasking() {
+        Condition cond = new Condition();
+
+        // Everything should match with zero mask.
+        cond.dlDstMask = 0L;
+        cond.dlDst = MAC.random();
+        cond.invDlDst = true;
+        assertFalse(cond.matches(fwdInfo, pktMatch, false));
+        cond.invDlDst = false;
+        assertTrue(cond.matches(fwdInfo, pktMatch, false));
+
+        // Ignore lower 32 bits.
+        cond.dlDstMask = 0xffffL << 32;
+
+        // Flip lower 32 bits and match should still succeed.
+        long macLong = pktMatch.getEthernetDestination().asLong();
+        cond.dlDst = new MAC(macLong ^ 0xffffffffL);
+        cond.invDlDst = true;
+        assertFalse(cond.matches(fwdInfo, pktMatch, false));
+        cond.invDlDst = false;
+        assertTrue(cond.matches(fwdInfo, pktMatch, false));
+
+
+        // Flip one more bit and match should fail.
+        cond.dlDst = new MAC(macLong ^ 0x1ffffffffL);
+        cond.invDlDst = true;
+        assertTrue(cond.matches(fwdInfo, pktMatch, false));
+        cond.invDlDst = false;
+        assertFalse(cond.matches(fwdInfo, pktMatch, false));
     }
 
     @Test
