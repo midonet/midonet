@@ -16,16 +16,13 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Options;
+import org.midonet.midolman.guice.*;
+import org.midonet.midolman.services.DashboardService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.services.MidostoreSetupService;
-import org.midonet.midolman.guice.CacheModule;
-import org.midonet.midolman.guice.InterfaceScannerModule;
-import org.midonet.midolman.guice.MidolmanActorsModule;
-import org.midonet.midolman.guice.MidolmanModule;
-import org.midonet.midolman.guice.MonitoringStoreModule;
-import org.midonet.midolman.guice.ResourceProtectionModule;
+
 import org.midonet.midolman.guice.cluster.ClusterClientModule;
 import org.midonet.midolman.guice.config.ConfigProviderModule;
 import org.midonet.midolman.guice.datapath.DatapathModule;
@@ -120,12 +117,14 @@ public class Midolman {
             new MidolmanActorsModule(),
             new ResourceProtectionModule(),
             new MidolmanModule(),
-            new InterfaceScannerModule()
+            new InterfaceScannerModule(),
+            new DashboardModule()
         );
 
         // start the services
         injector.getInstance(MidostoreSetupService.class).startAndWait();
         injector.getInstance(MidolmanService.class).startAndWait();
+        injector.getInstance(DashboardService.class).startAndWait();
 
         // fire the initialize message to an actor
         injector.getInstance(MidolmanActorsService.class).initProcessing();
@@ -142,6 +141,14 @@ public class Midolman {
             return;
 
         monitoringAgent.stop();
+
+        DashboardService dashboardService =
+                injector.getInstance(DashboardService.class);
+        try {
+            dashboardService.stopAndWait();
+        } catch (Exception e) {
+            log.error("while stopping DashboardService", e);
+        }
 
         MidolmanService instance =
             injector.getInstance(MidolmanService.class);
