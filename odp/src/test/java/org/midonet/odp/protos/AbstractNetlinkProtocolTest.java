@@ -29,7 +29,6 @@ import org.midonet.netlink.NetlinkChannel;
 import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.eventloop.TryCatchReactor;
 import org.midonet.util.throttling.NoOpThrottlingGuard;
-import org.midonet.util.throttling.NoOpThrottlingGuardFactory;
 
 public abstract class AbstractNetlinkProtocolTest {
 
@@ -43,8 +42,7 @@ public abstract class AbstractNetlinkProtocolTest {
 
     protected void setConnection() throws Exception {
         connection = new OvsDatapathConnectionImpl(channel, reactor,
-            new NoOpThrottlingGuardFactory(), new NoOpThrottlingGuard(),
-            new BufferPool(128, 512, 0x1000));
+            new NoOpThrottlingGuard(), new BufferPool(128, 512, 0x1000));
     }
 
     protected void setUp(final byte[][] responses) throws Exception {

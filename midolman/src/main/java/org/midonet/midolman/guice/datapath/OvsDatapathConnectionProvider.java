@@ -31,10 +31,6 @@ public class OvsDatapathConnectionProvider implements
     Reactor reactor;
 
     @Inject
-    @DatapathModule.DATAPATH_THROTTLING_GUARD_FACTORY
-    ThrottlingGuardFactory tgFactory;
-
-    @Inject
     @DatapathModule.SIMULATION_THROTTLING_GUARD
     ThrottlingGuard simulationThrottler;
 
@@ -46,7 +42,7 @@ public class OvsDatapathConnectionProvider implements
     public OvsDatapathConnection get() {
         try {
             return OvsDatapathConnection.create(new Netlink.Address(0),
-                reactor, tgFactory, simulationThrottler, netlinkSendPool);
+                reactor, simulationThrottler, netlinkSendPool);
         } catch (Exception e) {
             log.error("Error creating OvsDatapathConnection");
             throw new RuntimeException(e);
