@@ -1,6 +1,5 @@
 /*
- * Copyright 2012 Midokura Europe SARL
- * Copyright 2012 Midokura PTE LTD.
+ * Copyright (c) 2012-2014 Midokura Europe SARL, All Rights Reserved.
  */
 
 package org.midonet.api.dhcp.rest_api;
@@ -10,7 +9,6 @@ import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.VendorMediaType;
-import org.midonet.api.auth.Authorizer;
 import org.midonet.api.auth.ForbiddenHttpException;
 import org.midonet.api.dhcp.DhcpHost;
 import org.midonet.api.network.auth.BridgeAuthorizer;
@@ -48,7 +46,7 @@ public class DhcpHostsResource extends AbstractResource {
 
     private final UUID bridgeId;
     private final IntIPv4 subnet;
-    private final Authorizer authorizer;
+    private final BridgeAuthorizer authorizer;
     private final DataClient dataClient;
 
     @Inject
@@ -225,7 +223,7 @@ public class DhcpHostsResource extends AbstractResource {
 
         List<Host> hostConfigs = dataClient.dhcpHostsGetBySubnet(bridgeId,
                 subnet);
-        List<DhcpHost> hosts = new ArrayList<DhcpHost>();
+        List<DhcpHost> hosts = new ArrayList<>();
         URI dhcpUri = ResourceUriBuilder.getBridgeDhcp(
                 getBaseUri(), bridgeId, subnet);
         for (Host hostConfig : hostConfigs) {

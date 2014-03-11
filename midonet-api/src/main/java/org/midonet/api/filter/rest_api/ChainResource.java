@@ -1,6 +1,5 @@
 /*
- * Copyright 2011 Midokura KK
- * Copyright 2012 Midokura PTE LTD.
+ * Copyright (c) 2011-2014 Midokura Europe SARL, All Rights Reserved.
  */
 package org.midonet.api.filter.rest_api;
 
@@ -43,7 +42,7 @@ public class ChainResource extends AbstractResource {
     private final static Logger log = LoggerFactory
             .getLogger(ChainResource.class);
 
-    private final Authorizer authorizer;
+    private final ChainAuthorizer authorizer;
     private final DataClient dataClient;
     private final ResourceFactory factory;
 
@@ -128,7 +127,7 @@ public class ChainResource extends AbstractResource {
      *
      * @param id
      *            Chain ID from the request.
-     * @returns ChainRuleResource object to handle sub-resource requests.
+     * @return ChainRuleResource object to handle sub-resource requests.
      */
     @Path("/{id}" + ResourceUriBuilder.RULES)
     public ChainRuleResource getRuleResource(@PathParam("id") UUID id) {
@@ -142,7 +141,7 @@ public class ChainResource extends AbstractResource {
      *            Chain object.
      * @throws StateAccessException
      *             Data access error.
-     * @returns Response object with 201 status code set if successful.
+     * @return Response object with 201 status code set if successful.
      */
     @POST
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
@@ -211,17 +210,13 @@ public class ChainResource extends AbstractResource {
     public List<Chain> list(@QueryParam("tenant_id") String tenantId)
             throws StateAccessException, SerializationException {
 
-        List<org.midonet.cluster.data.Chain> dataChains = null;
-        if (tenantId == null) {
-            dataChains = dataClient.chainsGetAll();
-        } else {
-            dataChains = dataClient.chainsFindByTenant(tenantId);
-        }
+        List<org.midonet.cluster.data.Chain> dataChains = (tenantId == null) ?
+                dataClient.chainsGetAll() :
+                dataClient.chainsFindByTenant(tenantId);
 
-        List<Chain> chains = new ArrayList<Chain>();
+        List<Chain> chains = new ArrayList<>();
         if (dataChains != null) {
-            for (org.midonet.cluster.data.Chain dataChain :
-                    dataChains) {
+            for (org.midonet.cluster.data.Chain dataChain : dataChains) {
                 Chain chain = new Chain(dataChain);
                 chain.setBaseUri(getBaseUri());
                 chains.add(chain);

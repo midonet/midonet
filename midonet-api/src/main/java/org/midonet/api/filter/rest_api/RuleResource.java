@@ -26,7 +26,6 @@ import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.VendorMediaType;
 import org.midonet.api.auth.AuthAction;
 import org.midonet.api.auth.AuthRole;
-import org.midonet.api.auth.Authorizer;
 import org.midonet.api.auth.ForbiddenHttpException;
 import org.midonet.api.filter.Rule;
 import org.midonet.api.filter.RuleFactory;
@@ -51,7 +50,7 @@ public class RuleResource extends AbstractResource {
     private final static Logger log = LoggerFactory
             .getLogger(RuleResource.class);
 
-    private final Authorizer<UUID> authorizer;
+    private final RuleAuthorizer authorizer;
     private final DataClient dataClient;
 
     @Inject
@@ -134,7 +133,7 @@ public class RuleResource extends AbstractResource {
     public static class ChainRuleResource extends AbstractResource {
 
         private final UUID chainId;
-        private final Authorizer<UUID> authorizer;
+        private final ChainAuthorizer authorizer;
         private final DataClient dataClient;
 
         @Inject

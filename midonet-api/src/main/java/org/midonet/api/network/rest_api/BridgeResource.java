@@ -1,13 +1,10 @@
 /*
- * Copyright 2011 Midokura KK
- * Copyright 2012 Midokura PTE LTD.
+ * Copyright (c) 2011-2014 Midokura Europe SARL, All Rights Reserved.
  */
 package org.midonet.api.network.rest_api;
 
 import com.google.inject.Inject;
-import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
-import org.apache.zookeeper.KeeperException.NoNodeException;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.VendorMediaType;
 import org.midonet.api.auth.AuthAction;
@@ -27,7 +24,6 @@ import org.midonet.api.validation.MessageProperty;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.ports.VlanMacPort;
 import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.StatePathExistsException;
 import org.midonet.packets.IPv4Addr;
@@ -62,7 +58,7 @@ public class BridgeResource extends AbstractResource {
     private final static Logger log = LoggerFactory
             .getLogger(BridgeResource.class);
 
-    private final Authorizer authorizer;
+    private final BridgeAuthorizer authorizer;
     private final DataClient dataClient;
     private final ResourceFactory factory;
 
@@ -147,7 +143,7 @@ public class BridgeResource extends AbstractResource {
      *
      * @param id
      *            Bridge ID from the request.
-     * @returns BridgePortResource object to handle sub-resource requests.
+     * @return BridgePortResource object to handle sub-resource requests.
      */
     @Path("/{id}" + ResourceUriBuilder.PORTS)
     public PortResource.BridgePortResource getPortResource(@PathParam("id") UUID id) {
@@ -159,7 +155,7 @@ public class BridgeResource extends AbstractResource {
      *
      * @param id
      *            Bridge ID from the request.
-     * @returns BridgeDhcpResource object to handle sub-resource requests.
+     * @return BridgeDhcpResource object to handle sub-resource requests.
      */
     @Path("/{id}" + ResourceUriBuilder.DHCP)
     public BridgeDhcpResource getBridgeDhcpResource(@PathParam("id") UUID id) {
@@ -171,7 +167,7 @@ public class BridgeResource extends AbstractResource {
      *
      * @param id
      *            Bridge ID from the request.
-     * @returns BridgeDhcpV6Resource object to handle sub-resource requests.
+     * @return BridgeDhcpV6Resource object to handle sub-resource requests.
      */
     @Path("/{id}" + ResourceUriBuilder.DHCPV6)
     public BridgeDhcpV6Resource getBridgeDhcpV6Resource(@PathParam("id") UUID id) {
@@ -183,7 +179,7 @@ public class BridgeResource extends AbstractResource {
      *
      * @param id
      *            Bridge ID from the request.
-     * @returns BridgePeerPortResource object to handle sub-resource requests.
+     * @return BridgePeerPortResource object to handle sub-resource requests.
      */
     @Path("/{id}" + ResourceUriBuilder.PEER_PORTS)
     public PortResource.BridgePeerPortResource getBridgePeerPortResource(
@@ -228,7 +224,7 @@ public class BridgeResource extends AbstractResource {
      *            Bridge object.
      * @throws StateAccessException
      *             Data access error.
-     * @returns Response object with 201 status code set if successful.
+     * @return Response object with 201 status code set if successful.
      */
     @POST
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
@@ -270,13 +266,13 @@ public class BridgeResource extends AbstractResource {
     public List<Bridge> list(@QueryParam("tenant_id") String tenantId)
             throws StateAccessException, SerializationException {
 
-        List<org.midonet.cluster.data.Bridge> dataBridges = null;
+        List<org.midonet.cluster.data.Bridge> dataBridges;
         if (tenantId == null) {
             dataBridges = dataClient.bridgesGetAll();
         } else {
             dataBridges = dataClient.bridgesFindByTenant(tenantId);
         }
-        List<Bridge> bridges = new ArrayList<Bridge>();
+        List<Bridge> bridges = new ArrayList<>();
         if (dataBridges != null) {
             for (org.midonet.cluster.data.Bridge dataBridge :
                     dataBridges) {
@@ -366,7 +362,7 @@ public class BridgeResource extends AbstractResource {
                 dataClient.bridgeGetMacPorts(id) :
                 dataClient.bridgeGetMacPorts(id, vlanId);
 
-        List<MacPort> macPortList = new ArrayList<MacPort>();
+        List<MacPort> macPortList = new ArrayList<>();
         for (VlanMacPort port : ports) {
             MacPort mp = new MacPort(port.macAddress.toString(), port.portId);
             mp.setParentUri(ResourceUriBuilder.getBridge(getBaseUri(), id));
@@ -383,7 +379,7 @@ public class BridgeResource extends AbstractResource {
      *            MacPort entry for the mac table.
      * @throws org.midonet.midolman.state.StateAccessException
      *             Data access error.
-     * @returns Response object with 201 status code set if successful.
+     * @return Response object with 201 status code set if successful.
      */
     @POST
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
@@ -614,7 +610,7 @@ public class BridgeResource extends AbstractResource {
      *            IP4MacPair entry for the ARP table.
      * @throws org.midonet.midolman.state.StateAccessException
      *             Data access error.
-     * @returns Response object with 201 status code set if successful.
+     * @return Response object with 201 status code set if successful.
      */
     @POST
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })

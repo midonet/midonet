@@ -1,6 +1,5 @@
 /*
- * Copyright 2012 Midokura Europe SARL
- * Copyright 2012 Midokura PTE LTD.
+ * Copyright (c) 2012-2014 Midokura Europe SARL, All Rights Reserved.
  */
 
 package org.midonet.api.dhcp.rest_api;
@@ -10,7 +9,6 @@ import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.VendorMediaType;
-import org.midonet.api.auth.Authorizer;
 import org.midonet.api.auth.ForbiddenHttpException;
 import org.midonet.api.dhcp.DhcpSubnet;
 import org.midonet.api.network.auth.BridgeAuthorizer;
@@ -48,7 +46,7 @@ public class BridgeDhcpResource extends AbstractResource {
             .getLogger(BridgeDhcpResource.class);
 
     private final UUID bridgeId;
-    private final Authorizer authorizer;
+    private final BridgeAuthorizer authorizer;
     private final DataClient dataClient;
     private final ResourceFactory factory;
 
@@ -70,7 +68,7 @@ public class BridgeDhcpResource extends AbstractResource {
     /**
      * Host Assignments resource locator for dhcp.
      *
-     * @returns DhcpHostsResource object to handle sub-resource requests.
+     * @return DhcpHostsResource object to handle sub-resource requests.
      */
     @Path("/{subnetAddr}" + ResourceUriBuilder.DHCP_HOSTS)
     public DhcpHostsResource getDhcpAssignmentsResource(
@@ -85,7 +83,7 @@ public class BridgeDhcpResource extends AbstractResource {
      *            DHCP subnet configuration object.
      * @throws StateAccessException
      *             Data access error.
-     * @returns Response object with 201 status code set if successful.
+     * @return Response object with 201 status code set if successful.
      */
     @POST
     @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
@@ -220,7 +218,7 @@ public class BridgeDhcpResource extends AbstractResource {
         List<Subnet> subnetConfigs =
                 dataClient.dhcpSubnetsGetByBridge(bridgeId);
 
-        List<DhcpSubnet> subnets = new ArrayList<DhcpSubnet>();
+        List<DhcpSubnet> subnets = new ArrayList<>();
         URI dhcpsUri = ResourceUriBuilder.getBridgeDhcps(getBaseUri(),
                 bridgeId);
         for (Subnet subnetConfig : subnetConfigs) {
