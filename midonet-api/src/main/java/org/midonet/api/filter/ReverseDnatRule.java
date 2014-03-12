@@ -3,6 +3,8 @@
  */
 package org.midonet.api.filter;
 
+import org.midonet.cluster.data.rules.ReverseNatRule;
+
 /**
  * Reverse DNAT rule DTO
  */
@@ -26,10 +28,9 @@ public class ReverseDnatRule extends NatRule {
     }
 
     @Override
-    public org.midonet.cluster.data.Rule toData () {
-        org.midonet.cluster.data.rules.ReverseNatRule data =
-                new org.midonet.cluster.data.rules.ReverseNatRule(
-                        makeCondition(), getNatFlowAction(), true);
+    public ReverseNatRule toData () {
+        ReverseNatRule data =
+                new ReverseNatRule(makeCondition(), getNatFlowAction(), true);
         super.setData(data);
         return data;
     }

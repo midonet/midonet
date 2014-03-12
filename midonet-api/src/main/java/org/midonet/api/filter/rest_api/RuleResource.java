@@ -77,8 +77,7 @@ public class RuleResource extends AbstractResource {
             throws StateAccessException,
             SerializationException {
 
-        org.midonet.cluster.data.Rule ruleData = dataClient.rulesGet(
-                id);
+        org.midonet.cluster.data.Rule<?, ?> ruleData = dataClient.rulesGet(id);
         if (ruleData == null) {
             return;
         }
@@ -115,7 +114,7 @@ public class RuleResource extends AbstractResource {
                     "Not authorized to view this rule.");
         }
 
-        org.midonet.cluster.data.Rule ruleData = dataClient.rulesGet(id);
+        org.midonet.cluster.data.Rule<?, ?> ruleData = dataClient.rulesGet(id);
         if (ruleData == null) {
             throw new NotFoundHttpException(
                     "The requested resource was not found.");
@@ -224,7 +223,7 @@ public class RuleResource extends AbstractResource {
             List<Rule> rules = new ArrayList<>();
             if (ruleDataList != null) {
 
-                for (org.midonet.cluster.data.Rule ruleData :
+                for (org.midonet.cluster.data.Rule<?, ?> ruleData :
                         ruleDataList) {
                     Rule rule = RuleFactory.createRule(ruleData);
                     rule.setBaseUri(getBaseUri());

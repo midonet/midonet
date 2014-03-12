@@ -19,11 +19,6 @@ public class InteriorBridgePort extends BridgePort implements InteriorPort {
         super();
     }
 
-    /**
-     * Constructor
-     *
-     * @param portData
-     */
     public InteriorBridgePort(
             org.midonet.cluster.data.ports.BridgePort
                     portData) {
@@ -36,7 +31,7 @@ public class InteriorBridgePort extends BridgePort implements InteriorPort {
     }
 
     @Override
-    public org.midonet.cluster.data.Port toData() {
+    public org.midonet.cluster.data.ports.BridgePort toData() {
         org.midonet.cluster.data.ports.BridgePort data =
                 new org.midonet.cluster.data.ports.BridgePort();
         super.setConfig(data);

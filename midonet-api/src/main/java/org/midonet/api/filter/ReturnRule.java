@@ -25,7 +25,7 @@ public class ReturnRule extends Rule {
     }
 
     @Override
-    public org.midonet.cluster.data.Rule toData () {
+    public LiteralRule toData () {
         LiteralRule data = new LiteralRule(makeCondition(),
                 RuleResult.Action.RETURN);
         super.setData(data);

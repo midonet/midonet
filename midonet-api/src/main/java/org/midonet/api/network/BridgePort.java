@@ -73,7 +73,7 @@ public class BridgePort extends Port {
     }
 
     @Override
-    public org.midonet.cluster.data.Port toData() {
+    public org.midonet.cluster.data.ports.BridgePort toData() {
         org.midonet.cluster.data.ports.BridgePort data =
             new org.midonet.cluster.data.ports.BridgePort();
         this.setConfig(data);

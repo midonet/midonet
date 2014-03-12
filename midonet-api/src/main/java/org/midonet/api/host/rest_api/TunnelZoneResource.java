@@ -59,7 +59,7 @@ public class TunnelZoneResource extends AbstractResource {
 
         List<org.midonet.cluster.data.TunnelZone<?, ?>>
                 tunnelZoneDataList = dataClient.tunnelZonesGetAll();
-        List<TunnelZone> tunnelZones = new ArrayList<TunnelZone>();
+        List<TunnelZone> tunnelZones = new ArrayList<>();
         for (org.midonet.cluster.data.TunnelZone<?, ?> zoneData :
                 tunnelZoneDataList) {
             TunnelZone zone = TunnelZoneFactory.createTunnelZone(zoneData);
@@ -81,7 +81,7 @@ public class TunnelZoneResource extends AbstractResource {
             throw new NotFoundHttpException();
         }
 
-        org.midonet.cluster.data.TunnelZone zoneData =
+        org.midonet.cluster.data.TunnelZone<?, ?> zoneData =
                 dataClient.tunnelZonesGet(id);
         TunnelZone zone = TunnelZoneFactory.createTunnelZone(zoneData);
         zone.setBaseUri(getBaseUri());
@@ -95,7 +95,7 @@ public class TunnelZoneResource extends AbstractResource {
     public void delete(@PathParam("id") UUID id)
             throws StateAccessException, SerializationException {
 
-        org.midonet.cluster.data.TunnelZone zoneData =
+        org.midonet.cluster.data.TunnelZone<?, ?> zoneData =
                 dataClient.tunnelZonesGet(id);
         if (zoneData == null) {
             return;

@@ -51,7 +51,7 @@ public class AdRouteAuthorizer extends Authorizer<UUID> {
         }
 
         BGP bgp = dataClient.bgpGet(adRoute.getBgpId());
-        Port port = dataClient.portsGet(bgp.getPortId());
+        Port<?, ?> port = dataClient.portsGet(bgp.getPortId());
 
         // Must be a router port
         Router router = dataClient.routersGet(port.getDeviceId());

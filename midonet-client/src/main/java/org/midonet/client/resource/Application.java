@@ -7,7 +7,6 @@ package org.midonet.client.resource;
 import java.net.URI;
 import java.util.UUID;
 import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.UriBuilder;
 
 import org.midonet.client.VendorMediaType;
 import org.midonet.client.WebResource;

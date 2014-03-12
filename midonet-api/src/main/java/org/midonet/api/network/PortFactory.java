@@ -10,7 +10,8 @@ import org.midonet.cluster.data.ports.*;
 
 public class PortFactory {
 
-    public static Port convertToApiPortV1(org.midonet.cluster.data.Port data) {
+    public static Port convertToApiPortV1(
+            org.midonet.cluster.data.Port<?, ?> data) {
         //TODO av-mido: This is for backwards compatibility, the new api
         //TODO   will just return BridgePort or RouterPort.
         if (data instanceof org.midonet.cluster.data.ports.RouterPort) {
@@ -41,7 +42,8 @@ public class PortFactory {
         }
     }
 
-    public static Port convertToApiPort(org.midonet.cluster.data.Port data) {
+    public static Port convertToApiPort(
+            org.midonet.cluster.data.Port<?, ?> data) {
         if (data instanceof org.midonet.cluster.data.ports.RouterPort) {
             return new RouterPort(
                     (org.midonet.cluster.data.ports.RouterPort)data);

@@ -11,7 +11,7 @@ import java.util.UUID;
 public class TunnelZoneHostFactory {
 
     public static TunnelZoneHost createTunnelZoneHost(UUID tunnelZoneId,
-            TunnelZone.HostConfig data) {
+            TunnelZone.HostConfig<?, ?> data) {
 
         if (data instanceof
                 org.midonet.cluster.data.zones.CapwapTunnelZoneHost) {

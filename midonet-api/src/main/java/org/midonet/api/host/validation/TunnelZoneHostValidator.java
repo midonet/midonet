@@ -42,7 +42,7 @@ public class TunnelZoneHostValidator implements
             if (! dataClient.tunnelZonesExists(tzh.getTunnelZoneId()))
                 return false;
 
-            TunnelZone tz = dataClient.tunnelZonesGet(tzh.getTunnelZoneId());
+            TunnelZone<?, ?> tz = dataClient.tunnelZonesGet(tzh.getTunnelZoneId());
             if (tz instanceof GreTunnelZone && !(tzh instanceof GreTunnelZoneHost))
                 return false;
             if (tz instanceof CapwapTunnelZone && !(tzh instanceof CapwapTunnelZoneHost))

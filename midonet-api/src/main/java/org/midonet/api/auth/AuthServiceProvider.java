@@ -40,7 +40,7 @@ public class AuthServiceProvider implements Provider<AuthService> {
 
         AuthConfig config = provider.getConfig(AuthConfig.class);
         // Get the class path of the auth class and load it.
-        Class clazz = null;
+        Class<?> clazz = null;
         try {
             clazz = Class.forName(config.getAuthProvider());
         } catch (ClassNotFoundException e) {

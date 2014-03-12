@@ -25,7 +25,7 @@ public class DropRule extends Rule {
     }
 
     @Override
-    public org.midonet.cluster.data.Rule toData () {
+    public LiteralRule toData () {
         LiteralRule data = new LiteralRule(makeCondition(),
                 RuleResult.Action.DROP);
         super.setData(data);
