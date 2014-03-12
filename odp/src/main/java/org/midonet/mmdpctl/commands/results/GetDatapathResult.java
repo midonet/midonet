@@ -3,13 +3,15 @@
  */
 package org.midonet.mmdpctl.commands.results;
 
+import org.midonet.odp.Datapath;
+import org.midonet.odp.DpPort;
+
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Set;
-
-import org.midonet.odp.Datapath;
-import org.midonet.odp.DpPort;
 
 public class GetDatapathResult implements Result {
 
@@ -39,21 +41,28 @@ public class GetDatapathResult implements Result {
     }
 
     @Override
-    public void printResult() {
-        System.out.println("Datapath name   : " + datapath.getName());
-        System.out.println("Datapath index : " + datapath.getIndex());
+    public void printResult(OutputStream stream) {
+        PrintStream out = new PrintStream(stream);
+        out.println("Datapath name   : " + datapath.getName());
+        out.println("Datapath index : " + datapath.getIndex());
         Datapath.Stats stats = datapath.getStats();
-        System.out.println("Datapath Stats: ");
-        System.out.println("  Flows :"+stats.getFlows());
-        System.out.println("  Hits  :"+stats.getHits());
-        System.out.println("  Lost  :"+stats.getLost());
-        System.out.println("  Misses:" +stats.getMisses());
+        out.println("Datapath Stats: ");
+        out.println("  Flows :"+stats.getFlows());
+        out.println("  Hits  :"+stats.getHits());
+        out.println("  Lost  :"+stats.getLost());
+        out.println("  Misses:" +stats.getMisses());
         if (ports != null && (!ports.isEmpty())) {
             for (DpPort port: sortPorts()) {
-                System.out.println(assembleString(port));
+                out.println(assembleString(port));
             }
         } else {
-            System.out.println("Datapath does not contain any port.");
+            out.println("Datapath does not contain any port.");
         }
     }
+
+    @Override
+    public void printResult() {
+        printResult(System.out);
+    }
+
 }
