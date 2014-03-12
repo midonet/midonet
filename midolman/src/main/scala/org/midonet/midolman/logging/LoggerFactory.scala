@@ -35,10 +35,10 @@ class SimulationAwareBusLogging(val bus: LoggingBus, val logClass: Class[_]) {
         }
     }
 
-    def isErrorEnabled = bus.logLevel >= ErrorLevel
-    def isWarningEnabled = bus.logLevel >= WarningLevel
-    def isInfoEnabled = bus.logLevel >= InfoLevel
-    def isDebugEnabled = bus.logLevel >= DebugLevel
+    val isErrorEnabled = bus.logLevel >= ErrorLevel
+    val isWarningEnabled = bus.logLevel >= WarningLevel
+    val isInfoEnabled = bus.logLevel >= InfoLevel
+    val isDebugEnabled = bus.logLevel >= DebugLevel
 
     protected def notifyError(message: String, source: String) { bus.publish(Error(source, logClass, message)) }
 
