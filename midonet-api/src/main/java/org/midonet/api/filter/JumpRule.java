@@ -60,7 +60,7 @@ public class JumpRule extends Rule {
     }
 
     @Override
-    public org.midonet.cluster.data.Rule toData () {
+    public org.midonet.cluster.data.rules.JumpRule toData () {
         org.midonet.cluster.data.rules.JumpRule data =
                 new org.midonet.cluster.data.rules.JumpRule(
                         makeCondition())

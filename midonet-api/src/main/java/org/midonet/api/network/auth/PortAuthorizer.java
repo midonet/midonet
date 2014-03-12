@@ -47,8 +47,7 @@ public class PortAuthorizer extends Authorizer<UUID> {
         }
 
         try {
-            String tenantId = null;
-            org.midonet.cluster.data.Port portData =
+            org.midonet.cluster.data.Port<?, ?> portData =
                     dataClient.portsGet(id);
             if (portData == null) {
                 log.warn("Attempted to authorize a non-existent resource: {}",
@@ -57,6 +56,7 @@ public class PortAuthorizer extends Authorizer<UUID> {
             }
 
             Port port = PortFactory.convertToApiPort(portData);
+            String tenantId = null;
             if (port instanceof RouterPort) {
                 Router router = dataClient.routersGet(port.getDeviceId());
                 tenantId = router.getProperty(Router.Property.tenant_id);

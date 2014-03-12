@@ -26,7 +26,7 @@ public class ForwardSnatRule extends ForwardNatRule {
     }
 
     @Override
-    public org.midonet.cluster.data.Rule toData () {
+    public org.midonet.cluster.data.rules.ForwardNatRule toData () {
         org.midonet.cluster.data.rules.ForwardNatRule data =
                 new org.midonet.cluster.data.rules.ForwardNatRule(
                         makeCondition(), getNatFlowAction(),

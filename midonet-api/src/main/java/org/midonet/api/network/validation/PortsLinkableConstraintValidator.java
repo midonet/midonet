@@ -42,8 +42,8 @@ public class PortsLinkableConstraintValidator implements
                 MessageProperty.PORTS_LINKABLE).addNode("link")
                 .addConstraintViolation();
 
-        org.midonet.cluster.data.Port portData = null;
-        org.midonet.cluster.data.Port peerPortData = null;
+        org.midonet.cluster.data.Port<?, ?> portData = null;
+        org.midonet.cluster.data.Port<?, ?> peerPortData = null;
         try {
             portData = dataClient.portsGet(value.getPortId());
             if (portData == null) {

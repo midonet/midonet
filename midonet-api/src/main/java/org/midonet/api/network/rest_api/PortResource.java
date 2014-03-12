@@ -97,7 +97,7 @@ public class PortResource extends AbstractResource {
             throws StateAccessException, SerializationException {
 
         // Get the port and validate that this can be deleted
-        org.midonet.cluster.data.Port portData = dataClient.portsGet(id);
+        org.midonet.cluster.data.Port<?, ?> portData = dataClient.portsGet(id);
         if (portData == null) {
             return;
         }
@@ -114,14 +114,14 @@ public class PortResource extends AbstractResource {
         portEvent.delete(id);
     }
 
-    private org.midonet.cluster.data.Port getPortData(UUID id)
+    private org.midonet.cluster.data.Port<?, ?> getPortData(UUID id)
             throws StateAccessException, SerializationException {
         if (!authorizer.authorize(context, AuthAction.READ, id)) {
             throw new ForbiddenHttpException(
                     "Not authorized to view this port.");
         }
 
-        org.midonet.cluster.data.Port portData =
+        org.midonet.cluster.data.Port<?, ?> portData =
                 dataClient.portsGet(id);
         if (portData == null) {
             throw new NotFoundHttpException(
@@ -147,7 +147,7 @@ public class PortResource extends AbstractResource {
             MediaType.APPLICATION_JSON })
     public Port getv1(@PathParam("id") UUID id) throws StateAccessException,
             SerializationException {
-        org.midonet.cluster.data.Port portData = getPortData(id);
+        org.midonet.cluster.data.Port<?, ?> portData = getPortData(id);
 
         Port port = PortFactory.convertToApiPortV1(portData);
         port.setBaseUri(getBaseUri());
@@ -170,7 +170,7 @@ public class PortResource extends AbstractResource {
     @Produces({VendorMediaType.APPLICATION_PORT_V2_JSON})
     public Port get(@PathParam("id") UUID id) throws StateAccessException,
             SerializationException {
-        org.midonet.cluster.data.Port portData = getPortData(id);
+        org.midonet.cluster.data.Port<?, ?> portData = getPortData(id);
 
         Port port = PortFactory.convertToApiPort(portData);
         port.setBaseUri(getBaseUri());
@@ -261,7 +261,7 @@ public class PortResource extends AbstractResource {
             SerializationException {
 
         // Idempotent operation: if the port does not exists, just return.
-        org.midonet.cluster.data.Port portData =
+        org.midonet.cluster.data.Port<?, ?> portData =
                 dataClient.portsGet(id);
         if (portData == null) {
             return;
@@ -421,7 +421,8 @@ public class PortResource extends AbstractResource {
             List<org.midonet.cluster.data.ports.BridgePort> portDataList =
                     dataClient.portsFindByBridge(bridgeId);
             List<Port> ports = new ArrayList<>(portDataList.size());
-            for (org.midonet.cluster.data.Port<?, ?> portData : portDataList) {
+            for (org.midonet.cluster.data.ports.BridgePort portData :
+                    portDataList) {
                 Port port = PortFactory.convertToApiPortV1(portData);
                 port.setBaseUri(getBaseUri());
                 ports.add(port);
@@ -449,9 +450,9 @@ public class PortResource extends AbstractResource {
 
             List<org.midonet.cluster.data.ports.BridgePort> portDataList =
                     dataClient.portsFindByBridge(bridgeId);
-            List<Port> ports = new ArrayList<Port>();
-            if (ports != null) {
-                for (org.midonet.cluster.data.Port<?, ?> portData :
+            List<Port> ports = new ArrayList<>(portDataList.size());
+            if (portDataList != null) {
+                for (org.midonet.cluster.data.ports.BridgePort portData :
                         portDataList) {
                     Port port = PortFactory.convertToApiPort(portData);
                     port.setBaseUri(getBaseUri());
@@ -505,7 +506,7 @@ public class PortResource extends AbstractResource {
 
             List<org.midonet.cluster.data.Port<?, ?>> portDataList =
                     dataClient.portsFindPeersByBridge(bridgeId);
-            List<Port> ports = new ArrayList<Port>();
+            List<Port> ports = new ArrayList<>(portDataList.size());
             if (portDataList != null) {
                 for (org.midonet.cluster.data.Port<?, ?> portData :
                         portDataList) {
@@ -537,7 +538,7 @@ public class PortResource extends AbstractResource {
 
             List<org.midonet.cluster.data.Port<?, ?>> portDataList =
                     dataClient.portsFindPeersByBridge(bridgeId);
-            List<Port> ports = new ArrayList<Port>();
+            List<Port> ports = new ArrayList<>(portDataList.size());
             if (portDataList != null) {
                 for (org.midonet.cluster.data.Port<?, ?> portData :
                         portDataList) {
@@ -663,8 +664,8 @@ public class PortResource extends AbstractResource {
 
             List<org.midonet.cluster.data.Port<?, ?>> portDataList =
                     dataClient.portsFindByRouter(routerId);
-            ArrayList<Port> ports = new ArrayList<Port>();
-            if (ports != null) {
+            ArrayList<Port> ports = new ArrayList<>(portDataList.size());
+            if (portDataList != null) {
                 for (org.midonet.cluster.data.Port<?, ?> portData :
                         portDataList) {
                     Port port = PortFactory.convertToApiPortV1(portData);
@@ -693,8 +694,8 @@ public class PortResource extends AbstractResource {
 
             List<org.midonet.cluster.data.Port<?, ?>> portDataList =
                     dataClient.portsFindByRouter(routerId);
-            ArrayList<Port> ports = new ArrayList<Port>();
-            if (ports != null) {
+            ArrayList<Port> ports = new ArrayList<>(portDataList.size());
+            if (portDataList != null) {
                 for (org.midonet.cluster.data.Port<?, ?> portData :
                         portDataList) {
                     Port port = PortFactory.convertToApiPort(portData);
@@ -749,7 +750,7 @@ public class PortResource extends AbstractResource {
 
             List<org.midonet.cluster.data.Port<?, ?>> portDataList =
                     dataClient.portsFindPeersByRouter(routerId);
-            List<Port> ports = new ArrayList<Port>();
+            List<Port> ports = new ArrayList<>(portDataList.size());
             if (portDataList != null) {
                 for (org.midonet.cluster.data.Port<?, ?> portData :
                         portDataList) {
@@ -781,7 +782,7 @@ public class PortResource extends AbstractResource {
 
             List<org.midonet.cluster.data.Port<?, ?>> portDataList =
                     dataClient.portsFindPeersByRouter(routerId);
-            List<Port> ports = new ArrayList<Port>();
+            List<Port> ports = new ArrayList<>(portDataList.size());
             if (portDataList != null) {
                 for (org.midonet.cluster.data.Port<?, ?> portData :
                         portDataList) {
@@ -922,7 +923,7 @@ public class PortResource extends AbstractResource {
             List<org.midonet.cluster.data.Port<?, ?>> portDataList =
                     dataClient.portsFindByPortGroup(portGroupId);
             List<PortGroupPort> portGroupPorts =
-                    new ArrayList<PortGroupPort>(portDataList.size());
+                    new ArrayList<>(portDataList.size());
             for (org.midonet.cluster.data.Port<?, ?> portData :
                     portDataList) {
                 PortGroupPort portGroupPort = new PortGroupPort();

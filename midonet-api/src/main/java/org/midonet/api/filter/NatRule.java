@@ -19,7 +19,7 @@ public abstract class NatRule extends Rule {
         super();
     }
 
-    public NatRule(org.midonet.cluster.data.rules.NatRule rule) {
+    public NatRule(org.midonet.cluster.data.rules.NatRule<?, ?> rule) {
         super(rule);
         setFlowActionFromAction(rule.getAction());
     }

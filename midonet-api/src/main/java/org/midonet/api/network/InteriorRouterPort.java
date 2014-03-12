@@ -14,18 +14,10 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement
 public class InteriorRouterPort extends RouterPort implements InteriorPort {
 
-    /**
-     * Constructor
-     */
     public InteriorRouterPort() {
         super();
     }
 
-    /**
-     * Constructor
-     *
-     * @param portData
-     */
     public InteriorRouterPort(
             org.midonet.cluster.data.ports.RouterPort
                     portData) {
@@ -33,7 +25,7 @@ public class InteriorRouterPort extends RouterPort implements InteriorPort {
     }
 
     @Override
-    public org.midonet.cluster.data.Port toData() {
+    public org.midonet.cluster.data.ports.RouterPort toData() {
         org.midonet.cluster.data.ports.RouterPort data =
                 new org.midonet.cluster.data.ports.RouterPort();
         super.setConfig(data);

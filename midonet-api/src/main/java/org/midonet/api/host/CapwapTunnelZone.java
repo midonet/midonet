@@ -47,7 +47,7 @@ public class CapwapTunnelZone extends TunnelZone {
     }
 
     @Override
-    public org.midonet.cluster.data.TunnelZone toData() {
+    public org.midonet.cluster.data.zones.CapwapTunnelZone toData() {
         org.midonet.cluster.data.zones.CapwapTunnelZone zone =
                 new org.midonet.cluster.data.zones.CapwapTunnelZone();
         super.setConfig(zone);

@@ -3,8 +3,6 @@
  */
 package org.midonet.api.auth;
 
-import org.midonet.midolman.state.StateAccessException;
-
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 

@@ -48,7 +48,7 @@ public class ExteriorRouterPort extends RouterPort implements ExteriorPort {
     }
 
     @Override
-    public org.midonet.cluster.data.Port toData() {
+    public org.midonet.cluster.data.ports.RouterPort toData() {
         org.midonet.cluster.data.ports.RouterPort data =
                 new org.midonet.cluster.data.ports
                         .RouterPort();

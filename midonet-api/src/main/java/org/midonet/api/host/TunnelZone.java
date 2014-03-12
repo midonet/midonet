@@ -69,8 +69,8 @@ public abstract class TunnelZone extends UriResource {
      * @param tunnelZoneData
      *            TunnelZone data object
      */
-    public TunnelZone(org.midonet.cluster.data.TunnelZone
-                              tunnelZoneData) {
+    public TunnelZone(
+            org.midonet.cluster.data.TunnelZone<?, ?> tunnelZoneData) {
         this(UUID.fromString(tunnelZoneData.getId().toString()),
                 tunnelZoneData.getName());
     }
@@ -114,11 +114,11 @@ public abstract class TunnelZone extends UriResource {
     }
 
     /**
-     * @return　The tunnel zone type
+     * @return The tunnel zone type
      */
     public abstract String getType();
 
-    public abstract org.midonet.cluster.data.TunnelZone toData();
+    public abstract org.midonet.cluster.data.TunnelZone<?, ?> toData();
 
     /**
      * @return the self URI
@@ -142,10 +142,8 @@ public abstract class TunnelZone extends UriResource {
 
     /**
      * Convert this object to tunnel zone data object
-     *
-     * @return Tunnel Zone data object
      */
-    public void setConfig(org.midonet.cluster.data.TunnelZone data) {
+    public void setConfig(org.midonet.cluster.data.TunnelZone<?, ?> data) {
         data.setId(this.id);
         data.setName(this.name);
     }

@@ -47,7 +47,7 @@ public class GreTunnelZone extends TunnelZone {
     }
 
     @Override
-    public org.midonet.cluster.data.TunnelZone toData() {
+    public org.midonet.cluster.data.zones.GreTunnelZone toData() {
         org.midonet.cluster.data.zones.GreTunnelZone zone =
                 new org.midonet.cluster.data.zones.GreTunnelZone();
         super.setConfig(zone);

@@ -7,7 +7,7 @@ package org.midonet.api.host;
 public class TunnelZoneFactory {
 
     public static TunnelZone createTunnelZone(
-            org.midonet.cluster.data.TunnelZone data) {
+            org.midonet.cluster.data.TunnelZone<?, ?> data) {
 
         if (data instanceof
                 org.midonet.cluster.data.zones.CapwapTunnelZone) {

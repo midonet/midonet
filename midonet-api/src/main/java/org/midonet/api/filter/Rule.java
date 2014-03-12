@@ -52,7 +52,7 @@ public abstract class Rule extends Condition {
 
     public Rule() { super(); }
 
-    public Rule(org.midonet.cluster.data.Rule data) {
+    public Rule(org.midonet.cluster.data.Rule<?, ?> data) {
         this.id = UUID.fromString(data.getId().toString());
         this.chainId = data.getChainId();
         this.position = data.getPosition();
@@ -63,9 +63,9 @@ public abstract class Rule extends Condition {
     @NotNull
     public abstract String getType();
 
-    public abstract org.midonet.cluster.data.Rule toData();
+    public abstract org.midonet.cluster.data.Rule<?, ?> toData();
 
-    protected void setData(org.midonet.cluster.data.Rule data) {
+    protected void setData(org.midonet.cluster.data.Rule<?, ?> data) {
         data.setId(id);
         data.setChainId(chainId);
         data.setPosition(position);

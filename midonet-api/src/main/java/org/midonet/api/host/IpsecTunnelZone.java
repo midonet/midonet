@@ -47,7 +47,7 @@ public class IpsecTunnelZone extends TunnelZone {
     }
 
     @Override
-    public org.midonet.cluster.data.TunnelZone toData() {
+    public org.midonet.cluster.data.zones.IpsecTunnelZone toData() {
         org.midonet.cluster.data.zones.IpsecTunnelZone zone =
                 new org.midonet.cluster.data.zones.IpsecTunnelZone();
         super.setConfig(zone);

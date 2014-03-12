@@ -10,7 +10,7 @@ import org.midonet.cluster.data.rules.ReverseNatRule;
 
 public class RuleFactory {
 
-    public static Rule createRule(org.midonet.cluster.data.Rule data) {
+    public static Rule createRule(org.midonet.cluster.data.Rule<?, ?> data) {
 
         if (data instanceof LiteralRule) {
             LiteralRule typedData = (LiteralRule) data;

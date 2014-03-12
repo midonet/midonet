@@ -23,7 +23,7 @@ public class CapwapTunnelZoneHost extends TunnelZoneHost {
     }
 
     @Override
-    public TunnelZone.HostConfig toData() {
+    public org.midonet.cluster.data.zones.CapwapTunnelZoneHost toData() {
         org.midonet.cluster.data.zones.CapwapTunnelZoneHost data
                 = new org.midonet.cluster.data.zones
                 .CapwapTunnelZoneHost();

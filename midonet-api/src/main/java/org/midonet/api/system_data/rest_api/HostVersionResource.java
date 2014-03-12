@@ -56,7 +56,8 @@ public class HostVersionResource extends AbstractResource {
         throws StateAccessException {
         List<org.midonet.cluster.data.HostVersion> hostVersionsData =
                 dataClient.hostVersionsGet();
-        List<HostVersion> hostVersionList= new ArrayList();
+        List<HostVersion> hostVersionList =
+                new ArrayList<>(hostVersionsData.size());
         if (hostVersionsData != null) {
             for (org.midonet.cluster.data.HostVersion hostVersionData :
                     hostVersionsData) {

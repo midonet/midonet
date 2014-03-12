@@ -22,7 +22,7 @@ public class GreTunnelZoneHost extends TunnelZoneHost {
     }
 
     @Override
-    public TunnelZone.HostConfig toData() {
+    public org.midonet.cluster.data.zones.GreTunnelZoneHost toData() {
         org.midonet.cluster.data.zones.GreTunnelZoneHost data =
                 new org.midonet.cluster.data.zones
                         .GreTunnelZoneHost();

@@ -69,8 +69,7 @@ public abstract class ForwardNatRule extends NatRule {
 
     protected Set<org.midonet.midolman.rules.NatTarget> makeTargetsForRule() {
         Set<org.midonet.midolman.rules.NatTarget> targets =
-                new HashSet<org.midonet.midolman.rules.NatTarget>(
-                        natTargets.length);
+                new HashSet<>(natTargets.length);
 
         for (NatTarget natTarget : natTargets) {
             org.midonet.midolman.rules.NatTarget t =

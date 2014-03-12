@@ -108,12 +108,7 @@ public abstract class Port extends UriResource {
         this.deviceId = deviceId;
     }
 
-    /**
-     * Constructor
-     *
-     * @param portData
-     */
-    public Port(org.midonet.cluster.data.Port portData) {
+    public Port(org.midonet.cluster.data.Port<?, ?> portData) {
         this(UUID.fromString(portData.getId().toString()),
                 portData.getDeviceId());
         this.adminStateUp = portData.isAdminStateUp();
@@ -249,7 +244,7 @@ public abstract class Port extends UriResource {
      *
      * @return Port data object.
      */
-    public abstract org.midonet.cluster.data.Port toData();
+    public abstract org.midonet.cluster.data.Port<?, ?> toData();
 
     /**
      * Set the Port data fields
@@ -257,7 +252,7 @@ public abstract class Port extends UriResource {
      * @param data
      *            Port data object
      */
-    public void setConfig(org.midonet.cluster.data.Port data) {
+    public void setConfig(org.midonet.cluster.data.Port<?, ?> data) {
         data.setId(this.id);
         data.setAdminStateUp(this.adminStateUp);
         data.setDeviceId(this.deviceId);
@@ -374,7 +369,7 @@ public abstract class Port extends UriResource {
     public abstract boolean isLinkable(Port port);
 
     /**
-     * @return　The port type
+     * @return The port type
      */
     public abstract String getType();
 

@@ -20,7 +20,7 @@ public class IpsecTunnelZoneHost extends TunnelZoneHost {
     }
 
     @Override
-    public org.midonet.cluster.data.TunnelZone.HostConfig toData() {
+    public org.midonet.cluster.data.zones.IpsecTunnelZoneHost toData() {
         org.midonet.cluster.data.zones.IpsecTunnelZoneHost data
                 = new org.midonet.cluster.data.zones
                 .IpsecTunnelZoneHost();
