@@ -5,6 +5,8 @@ package org.midonet.mmdpctl.commands.results;
 
 import org.midonet.odp.Datapath;
 
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.Set;
 
 public class ListDatapathsResult implements Result {
@@ -15,14 +17,21 @@ public class ListDatapathsResult implements Result {
     }
 
     @Override
-    public void printResult() {
+    public void printResult(OutputStream stream) {
+        PrintStream out = new PrintStream(stream);
         if (datapaths.size() > 0) {
-        System.out.println("Found " + datapaths.size() + " datapaths:");
+        out.println("Found " + datapaths.size() + " datapaths:");
         for (Datapath datapath : datapaths) {
-            System.out.println("\t"+datapath.getName());
+            out.println("\t"+datapath.getName());
         }
         } else {
-            System.out.println("Could not find any installed datapath.");
+            out.println("Could not find any installed datapath.");
         }
     }
+
+    @Override
+    public void printResult() {
+        printResult(System.out);
+    }
+
 }

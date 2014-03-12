@@ -3,18 +3,19 @@
 */
 package org.midonet.mmdpctl;
 
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
 import org.apache.commons.cli.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import org.midonet.mmdpctl.commands.*;
 import org.midonet.mmdpctl.commands.results.Result;
 import org.midonet.odp.DatapathClient;
 import org.midonet.odp.protos.OvsDatapathConnection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 
 /**
@@ -30,7 +31,8 @@ public class Mmdpctl {
         this.timeout = timeout;
     }
 
-    public int execute(Command<? extends Result> command) {
+    public int execute(Command<? extends Result> command, OutputStream stream) {
+        PrintStream out = new PrintStream(stream);
         OvsDatapathConnection connection;
         try {
             connection = DatapathClient.createConnection();
@@ -51,7 +53,7 @@ public class Mmdpctl {
             }
 
             // display result on screen.
-            result.printResult();
+            result.printResult(out);
         } catch (TimeoutException e) {
             System.out.println("Didn't get result in time. Aborting");
             resultFuture.cancel(true);
@@ -62,6 +64,10 @@ public class Mmdpctl {
         }
 
         return 0;
+    }
+
+    public int execute(Command<? extends Result> command) {
+        return execute(command, System.out);
     }
 
 
