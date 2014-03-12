@@ -107,6 +107,13 @@ public class DefaultInterfaceDataUpdater implements InterfaceDataUpdater {
         hostInterface.setMtu(description.getMtu());
         hostInterface.setPortType(description.getPortType());
 
+        int status = 0;
+        if (description.isUp())
+            status |= Interface.StatusType.Up.getMask();
+        if (description.hasLink())
+            status |= Interface.StatusType.Carrier.getMask();
+        hostInterface.setStatus(status);
+
         switch (description.getType()) {
             case PHYS:
                 hostInterface.setType(Interface.Type.Physical);
