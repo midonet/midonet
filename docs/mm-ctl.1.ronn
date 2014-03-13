@@ -30,6 +30,9 @@ host.
   * `--unbind-port` [<PORT_ID>]:
   Unbind a virtual port from its mapped device.
 
+  * `--list-hosts` [<PORT_ID>]:
+  List Network Agent hosts in the system.
+
 ## EXAMPLES
 
 To bind a virtual port with ID 2a244ece-6e95-4255-a598-8cefba3777a9
@@ -40,6 +43,30 @@ to a local interface called tap0:
 To unbind a virtual port with ID 2a244ece-6e95-4255-a598-8cefba3777a9:
 
   $ mm-ctl --unbind-port 2a244ece-6e95-4255-a598-8cefba3777a9
+
+To list hosts in the system
+
+  $ mm-ctl --list-hosts
+
+  Output includes hosts' id, name, isAlive, non link local addresses,
+  and vport bindings, which looks like the following:
+
+  Host: id=7d8fd115-2210-45b0-b915-414a1f54e97f (*)
+  name=optimator.tyo.midokura.net
+  isAlive=true
+  addresses:
+    /127.0.0.1
+    /0:0:0:0:0:0:0:1
+    /192.168.100.34
+    /192.168.122.1
+  vport-host-if-bindings:
+    VirtualPortMapping{virtualPortId=b67d5a18-9643-43fc-be4a-6892ecbf82d9, localDeviceName='osvm-d704-b67d'}
+    VirtualPortMapping{virtualPortId=207bf4f4-44f2-4614-89d4-c97b27e5d326, localDeviceName='osvm-b35a-207b'}
+    VirtualPortMapping{virtualPortId=16e45ac8-a2e5-4dc1-9c96-441e7db6db9c, localDeviceName='osvm-0f3c-16e4'}
+    VirtualPortMapping{virtualPortId=18669c7c-c9e4-46f8-a2b0-87829d2ee54a, localDeviceName='osvm-35f2-1866'}
+    VirtualPortMapping{virtualPortId=17d67171-5a3d-41e7-98d6-ff7925635f98, localDeviceName='osvm-e7f7-17d6'}
+    ...
+
 
 ## COPYRIGHT
 

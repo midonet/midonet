@@ -8,6 +8,8 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import org.apache.commons.cli.*;
 import org.midonet.cluster.DataClient;
+import org.midonet.cluster.data.host.Host;
+import org.midonet.cluster.data.host.VirtualPortMapping;
 import org.midonet.config.ConfigProvider;
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.guice.CacheModule;
@@ -21,13 +23,16 @@ import org.midonet.midolman.guice.zookeeper.ZookeeperConnectionModule;
 import org.midonet.midolman.host.HostIdGenerator;
 import org.midonet.midolman.host.config.HostConfig;
 import org.midonet.midolman.host.guice.HostConfigProvider;
+import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.version.guice.VersionModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.UUID;
 
 
@@ -149,8 +154,7 @@ public class MmCtl {
             configFilePath = cl.getOptionValue("config");
         }
 
-        File config = new File(configFilePath);
-        if (!config.exists())  {
+        if (Files.notExists(Paths.get(configFilePath))) {
             return null;
         }
 
@@ -187,10 +191,58 @@ public class MmCtl {
                 .withDescription("Unbind a port from an interface")
                 .create());
 
+        mutuallyExclusiveOptions.addOption(OptionBuilder
+                .withLongOpt("list-hosts")
+                .withDescription("List MidolMan agents in the system")
+                .create());
+
         // make sure that there is at least one.
         mutuallyExclusiveOptions.setRequired(true);
 
         return mutuallyExclusiveOptions;
+    }
+
+    private MmCtlResult listHosts() {
+
+        try {
+            UUID myHostId = getHostId();
+            String indent = "";
+            for (Host h : dataClient.hostsGetAll()) {
+                String thisHostMarker = "";
+                if (h.getId().equals(myHostId)) {
+                    thisHostMarker = "(*)";
+                }
+                String format = "Host: id=%s %s\n  name=%s\n  isAlive=%s";
+                String output = String.format(format, h.getId(), thisHostMarker,
+                        h.getName(), h.getIsAlive());
+                System.out.println(output);
+
+                indent = "  ";
+                System.out.println(indent + "addresses: ");
+                for (InetAddress ia : h.getAddresses()) {
+                    if (!ia.isLinkLocalAddress())
+                        System.out.println("    " + ia);
+                }
+                System.out.println(indent + "vport-host-if-bindings:");
+                for (VirtualPortMapping vpm :
+                        dataClient.hostsGetVirtualPortMappingsByHost(h.getId())
+                        ) {
+                    System.out.println(indent + indent +
+                            vpm.getData().toString());
+                }
+                System.out.println();
+            }
+        } catch (StateAccessException e) {
+            e.printStackTrace();
+            return MM_CTL_RET_CODE.STATE_ERROR.getResult(e);
+        } catch (SerializationException e) {
+            e.printStackTrace();
+            return MM_CTL_RET_CODE.UNKNOWN_ERROR.getResult(e);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return MM_CTL_RET_CODE.UNKNOWN_ERROR.getResult(e);
+        }
+        return MM_CTL_RET_CODE.SUCCESS.getResult();
     }
 
     private static Injector getInjector(String configFilePath) {
@@ -231,7 +283,7 @@ public class MmCtl {
         }
     }
 
-    public static void main(String ...args) {
+    public static void main(String... args) {
         Options options = new Options();
 
         // Configure the CLI options
@@ -268,6 +320,10 @@ public class MmCtl {
                 String opt = cl.getOptionValue("unbind-port");
 
                 res = mmctl.unbindPort(getPortUuid(opt));
+
+            } else if (cl.hasOption("list-hosts")) {
+                res = mmctl.listHosts();
+
             } else {
                 // Only a programming error could cause this part to be
                 // executed.
