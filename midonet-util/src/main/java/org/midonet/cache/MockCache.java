@@ -5,17 +5,16 @@
 package org.midonet.cache;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.midonet.util.eventloop.Reactor;
-import org.midonet.util.functors.Callback1;
 
 public class MockCache implements Cache {
 
     public static class CacheEntry {
         public String value;
-        long timeExpiredMillis;
+        public long timeExpiredMillis;
+        public int expirationMillis;
     }
 
     public Map<String, CacheEntry> map = new HashMap<String, CacheEntry>();
@@ -34,6 +33,14 @@ public class MockCache implements Cache {
 
     @Override
     public void set(String key, String value) {
+        setWithExpiration(key, value, getExpirationSeconds());
+    }
+
+    @Override
+    public void setWithExpiration(String key, String value,
+                                  int overrideExpirationSeconds) {
+        int overrideExpirationMillis = overrideExpirationSeconds * 1000;
+
         CacheEntry entry = map.get(key);
         if (null == entry) {
             entry = new CacheEntry();
@@ -41,7 +48,8 @@ public class MockCache implements Cache {
         }
         entry.value = value;
         entry.timeExpiredMillis = (null == reactor) ? 0 :
-                reactor.currentTimeMillis() + expirationMillis;
+                reactor.currentTimeMillis() + overrideExpirationMillis;
+        entry.expirationMillis = overrideExpirationMillis;
     }
 
     @Override
@@ -72,14 +80,25 @@ public class MockCache implements Cache {
         return get(key, true);
     }
 
+    @Override
+    public String getAndTouchWithExpiration(String key, int expirationSeconds) {
+        return get(key, true, expirationSeconds);
+    }
+
     public void clear() {
         map.clear();
     }
 
     private String get(String key, boolean refresh) {
+        return get(key, refresh, getExpirationSeconds());
+    }
+
+    private String get(String key, boolean refresh, int expirationSeconds) {
         CacheEntry entry = map.get(key);
         if (null == entry)
             return null;
+        if (refresh)
+            entry.expirationMillis = (expirationSeconds * 1000);
         if (null == reactor)
             return entry.value;
         long now = reactor.currentTimeMillis();
@@ -88,7 +107,7 @@ public class MockCache implements Cache {
             return null;
         }
         if (refresh)
-            entry.timeExpiredMillis = now + expirationMillis;
+            entry.timeExpiredMillis = now + (expirationSeconds * 1000);
         return entry.value;
     }
 

@@ -225,6 +225,11 @@ public class CassandraClient {
     }
 
     public void set(String key, String value, String newColumn) {
+        setWithExpiration(key, value, newColumn, expirationSecs);
+    }
+
+    public void setWithExpiration(String key, String value, String newColumn,
+                                  int overrideExpirationSeconds) {
         CassandraConnection c = this.conn;
         if (c == null) {
             log.debug("skipping write op while disconnected from cassandra");
@@ -239,7 +244,7 @@ public class CassandraClient {
             Mutator<String> mutator = HFactory.createMutator(c.keyspace, ss);
             mutator.insert(key, columnFamily,
                            HFactory.createColumn(newColumn, value,
-                                                 expirationSecs,
+                                                 overrideExpirationSeconds,
                                                  ss, ss));
         } catch (HectorException e) {
             log.error("set failed", e);
