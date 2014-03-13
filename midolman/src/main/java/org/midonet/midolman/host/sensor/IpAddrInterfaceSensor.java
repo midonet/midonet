@@ -91,7 +91,6 @@ public class IpAddrInterfaceSensor implements InterfaceSensor {
             String name = newInterfaceMatcher.group(1).split("@", 2)[0];
             String[] statusFlags = newInterfaceMatcher.group(2).split(",");
             String mtu = newInterfaceMatcher.group(3);
-            String state = newInterfaceMatcher.group(4);
 
             InterfaceDescription interfaceDescription = new InterfaceDescription(name);
 
@@ -102,13 +101,17 @@ public class IpAddrInterfaceSensor implements InterfaceSensor {
                 interfaceDescription.setType(Type.VIRT);
             }
 
-            if (state.equals("UP") || hasUp(statusFlags)) {
-                interfaceDescription.setUp(true);
-                interfaceDescription.setHasLink(true);
-            } else {
-                interfaceDescription.setUp(false);
-                interfaceDescription.setHasLink(false);
-            }
+            // Assume that "isUp" implies administrative up, and
+            // "hasLink" implies link layer up.
+            //
+            // See also https://www.kernel.org/doc/Documentation/networking/operstates.txt
+            //
+            // TODO: we should probably appreciate operational state,
+            // since it has much more information than administrative
+            // state.
+            //
+            interfaceDescription.setUp(hasUp(statusFlags));
+            interfaceDescription.setHasLink(hasLowerUp(statusFlags));
 
             return interfaceDescription;
         }
@@ -145,12 +148,20 @@ public class IpAddrInterfaceSensor implements InterfaceSensor {
         }
     }
 
-    private boolean hasUp (String[] statusFlags) {
-        for (String token : statusFlags) {
-             if (token.matches("UP")) {
-                 return true;
-             }
+    private boolean hasFlag (String[] flags, String flag) {
+        for (String token : flags) {
+            if (token.matches(flag)) {
+                return true;
+            }
         }
         return false;
+    }
+
+    private boolean hasUp (String[] statusFlags) {
+        return hasFlag(statusFlags, "UP");
+    }
+
+    private boolean hasLowerUp (String[] statusFlags) {
+        return hasFlag(statusFlags, "LOWER_UP");
     }
 }
