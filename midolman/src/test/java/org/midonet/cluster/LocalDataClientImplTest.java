@@ -31,6 +31,7 @@ import org.midonet.midolman.guice.serialization.SerializationModule;
 import org.midonet.midolman.guice.zookeeper.MockZookeeperConnectionModule;
 import org.midonet.midolman.layer3.Route.NextHop;
 import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.zkManagers.RouteZkManager;
@@ -126,5 +127,26 @@ public class LocalDataClientImplTest {
         client.portsDelete(portId);
         routes = client.routesFindByRouter(routerId);
         assertThat(routes, hasSize(0));
+    }
+
+    @Test
+    public void checkHealthMonitorNodeTest() throws StateAccessException {
+        Integer hmHost = client.getPrecedingHealthMonitorLeader(14);
+        assertThat(hmHost, equalTo(null));
+
+        Integer hostNum1 = client.registerAsHealthMonitorNode();
+        hmHost = client.getPrecedingHealthMonitorLeader(1);
+        assertThat(hmHost, equalTo(hostNum1));
+        assertThat(hostNum1, equalTo(0));
+
+        Integer hostNum2 = client.registerAsHealthMonitorNode();
+        hmHost = client.getPrecedingHealthMonitorLeader(6);
+        assertThat(hmHost, equalTo(hostNum2));
+        assertThat(hostNum2, equalTo(1));
+
+        Integer hostNum3 = client.registerAsHealthMonitorNode();
+        hmHost = client.getPrecedingHealthMonitorLeader(1);
+        assertThat(hmHost, equalTo(hostNum1));
+        assertThat(hostNum3, equalTo(2));
     }
 }
