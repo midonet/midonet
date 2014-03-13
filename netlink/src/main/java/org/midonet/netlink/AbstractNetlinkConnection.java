@@ -24,7 +24,6 @@ import org.midonet.netlink.clib.cLibrary;
 import org.midonet.netlink.exceptions.NetlinkException;
 import org.midonet.netlink.messages.Builder;
 import org.midonet.util.BatchCollector;
-import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.io.SelectorInputQueue;
 
 import static org.midonet.netlink.Netlink.Flag;
@@ -70,6 +69,11 @@ public abstract class AbstractNetlinkConnection {
 
     private Set<NetlinkRequest<?>> ongoingTransaction = new HashSet<>();
 
+    /* When true, this connection will interpret that the notification
+     * handler is shared with other channels and thus an upper entity
+     * is responsible for marking the ending notification batches. */
+    private boolean usingSharedNotificationHandler = false;
+
     public AbstractNetlinkConnection(NetlinkChannel channel, BufferPool sendPool) {
         this.channel = channel;
         this.requestPool = sendPool;
@@ -87,6 +91,14 @@ public abstract class AbstractNetlinkConnection {
             public void endBatch() {
             }
         };
+    }
+
+    public void setUsingSharedNotificationHandler(boolean v) {
+        usingSharedNotificationHandler = true;
+    }
+
+    public boolean isUsingSharedNotificationHandler() {
+        return usingSharedNotificationHandler;
     }
 
     public NetlinkChannel getChannel() {
@@ -304,7 +316,8 @@ public abstract class AbstractNetlinkConnection {
         } catch (IOException e) {
             log.error("NETLINK read() exception: {}", e);
         } finally {
-            endBatch();
+            if (!usingSharedNotificationHandler)
+                endBatch();
             dispatcher.endBatch();
         }
     }

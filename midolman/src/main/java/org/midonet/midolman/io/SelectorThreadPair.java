@@ -61,6 +61,14 @@ public class SelectorThreadPair {
         }
     }
 
+    public SelectLoop getReadLoop() {
+        return readLoop;
+    }
+
+    public SelectLoop getWriteLoop() {
+        return writeLoop;
+    }
+
     public ManagedDatapathConnection addConnection() throws Exception {
 
         BufferPool sendPool = new BufferPool(
