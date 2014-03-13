@@ -39,7 +39,13 @@ public class CassandraCache implements Cache {
 
     @Override
     public void set(String key, String value) {
-        client.set(key, value, column);
+        setWithExpiration(key, value, client.getExpirationSeconds());
+    }
+
+    @Override
+    public void setWithExpiration(String key, String value,
+                                  int overrideExpirationSeconds) {
+        client.setWithExpiration(key, value, column, overrideExpirationSeconds);
     }
 
     @Override
@@ -74,13 +80,18 @@ public class CassandraCache implements Cache {
 
     @Override
     public String getAndTouch(String key) {
+        return getAndTouchWithExpiration(key, client.getExpirationSeconds());
+    }
+
+    @Override
+    public String getAndTouchWithExpiration(String key, int expirationSeconds) {
         // Horrible but seems to be the only way because batch doesn't
         // accept a query.
         String value = this.get(key);
         if (value == null) {
             return null;
         }
-        this.set(key, value);
+        this.setWithExpiration(key, value, expirationSeconds);
         return value;
     }
 

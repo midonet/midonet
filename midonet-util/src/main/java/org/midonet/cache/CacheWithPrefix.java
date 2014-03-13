@@ -26,6 +26,13 @@ public class CacheWithPrefix implements Cache {
     }
 
     @Override
+    public void setWithExpiration(String key, String value,
+                                  int overrideExpirationSeconds) {
+        String pkey = prefix+key;
+        cache.setWithExpiration(pkey, value, overrideExpirationSeconds);
+    }
+
+    @Override
     public String get(String key) {
         String pkey = prefix+key;
         return cache.get(pkey);
@@ -44,8 +51,13 @@ public class CacheWithPrefix implements Cache {
 
     @Override
     public String getAndTouch(String key) {
+        return getAndTouchWithExpiration(key, cache.getExpirationSeconds());
+    }
+
+    @Override
+    public String getAndTouchWithExpiration(String key, int expirationSeconds) {
         String pkey = prefix+key;
-        return cache.getAndTouch(pkey);
+        return cache.getAndTouchWithExpiration(pkey, expirationSeconds);
     }
 
     @Override

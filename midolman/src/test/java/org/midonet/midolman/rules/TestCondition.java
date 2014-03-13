@@ -625,10 +625,15 @@ public class TestCondition {
 
     static class DummyCache implements Cache {
         public void set(String key, String value) { }
+        public void setWithExpiration(String key, String value,
+                                      int overrideExpirationSeconds) { }
         public String get(String key) { return storedValue; }
         public Map<String, String> dump(int maxEntries) {return null;}
         public void delete(String key) {}
         public String getAndTouch(String key) { return storedValue; }
+        public String getAndTouchWithExpiration(String key,
+                                                int expirationSeconds) {
+            return storedValue; }
         public int getExpirationSeconds() { return 0; }
         public void setStoredValue(String value) { storedValue = value; }
 
