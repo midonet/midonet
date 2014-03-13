@@ -7,14 +7,19 @@
 package org.midonet.midolman.topology
 
 import java.util.UUID
+import java.util.concurrent.TimeoutException
+import scala.concurrent.Await
+import scala.concurrent.duration._
 import scala.util.Random
 
 import akka.actor.ActorRef
 import akka.actor.ActorSystem
+import akka.pattern.ask
 import akka.testkit.ImplicitSender
 import akka.testkit.TestActorRef
 import akka.testkit.TestKit
-import scala.concurrent.duration._
+import akka.util.Timeout
+
 import org.apache.zookeeper.KeeperException
 import org.junit.runner.RunWith
 import org.scalatest.{OneInstancePerTest, BeforeAndAfter, Matchers, Suite}
@@ -65,6 +70,8 @@ class VirtualToPhysicalMapperTest
 
     import TestVTPMActor._
     import VirtualToPhysicalMapper._
+
+    implicit val requestReplyTimeout = new Timeout(1 second)
 
     val r = new Random
 
@@ -153,5 +160,10 @@ class VirtualToPhysicalMapperTest
 
         vtpm ! TunnelZoneRequest(id)
         expectMsg(GreZoneMembers(id, Set(tzhost2)))
+
+        val f = vtpm ? new PortSetForTunnelKeyRequest(1L)
+        intercept[TimeoutException] {
+            Await.result(f, requestReplyTimeout.duration)
+        }
     }
 }

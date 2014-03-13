@@ -523,7 +523,9 @@ abstract class VirtualToPhysicalMapperBase
                 case Some(pSetId) =>
                     portSetMgr.addSubscriber(pSetId, sender, updates = false)
                 case None =>
-                    sender ! null
+                    // No port set for the requested tunnel key was found.
+                    // Ignore the request and let the message time out.
+                    log.debug("No port set for the tunnel key found.")
             }
 
         case portSet: rcu.PortSet =>
