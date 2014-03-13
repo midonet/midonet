@@ -211,7 +211,9 @@ class OneToManyDpConnManager(c: MidolmanConfig) extends
     override def makeConnection(name: String) = {
         if (!threadPair.isRunning)
             threadPair.start()
-        threadPair.addConnection()
+        val conn = threadPair.addConnection()
+        conn.getConnection.setUsingSharedNotificationHandler(true);
+        conn
     }
 
     override def stopConnection(conn: ManagedDatapathConnection) {
@@ -220,8 +222,14 @@ class OneToManyDpConnManager(c: MidolmanConfig) extends
 
     protected override def setUpcallHandler(
             conn: OvsDatapathConnection, w: Workers)(implicit as: ActorSystem) {
-        if (upcallHandler == null)
+        if (upcallHandler == null) {
             upcallHandler = makeUpcallHandler(w)
+            threadPair.getReadLoop.setEndOfLoopCallback(new Runnable {
+                override def run() {
+                    upcallHandler.endBatch()
+                }
+            })
+        }
 
         conn.datapathsSetNotificationHandler(upcallHandler)
     }

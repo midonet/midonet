@@ -61,6 +61,8 @@ public class SimpleSelectLoop implements SelectLoop {
     protected long timeout;
     protected final Object registerLock = new Object();
 
+    protected Runnable endOfLoopCallback = null;
+
     private Multimap<SelectableChannel, Registration> registrations =
         HashMultimap.create();
 
@@ -68,6 +70,10 @@ public class SimpleSelectLoop implements SelectLoop {
         dontStop = true;
         selector = SelectorProvider.provider().openSelector();
         this.timeout = 0;
+    }
+
+    public void setEndOfLoopCallback(Runnable cb) {
+        endOfLoopCallback = cb;
     }
 
     /**
@@ -229,6 +235,13 @@ public class SimpleSelectLoop implements SelectLoop {
                             // dispatching the event we clear it from ops.
                             ops &= ~reg.ops;
                         }
+                    }
+                }
+                if (endOfLoopCallback != null) {
+                    try {
+                        endOfLoopCallback.run();
+                    } catch (Throwable e) {
+                        log.error("end-of-select-loop callback failed", e);
                     }
                 }
                 selector.selectedKeys().clear();
