@@ -4,103 +4,72 @@
 package org.midonet.midolman.io;
 
 import java.io.IOException;
+import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectionKey;
-import java.util.concurrent.ExecutionException;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.netlink.BufferPool;
-import org.midonet.netlink.Callback;
 import org.midonet.netlink.Netlink;
-import org.midonet.netlink.exceptions.NetlinkException;
 import org.midonet.odp.protos.OvsDatapathConnection;
 import org.midonet.util.eventloop.SelectListener;
 import org.midonet.util.eventloop.SelectLoop;
 import org.midonet.util.eventloop.SimpleSelectLoop;
 
-
-public class SelectorBasedDatapathConnection implements ManagedDatapathConnection {
+public class SelectorThreadPair {
     private Logger log = LoggerFactory.getLogger(this.getClass());
 
     public final String name;
 
-    private MidolmanConfig config;
+    private final MidolmanConfig config;
 
     private Thread readThread;
     private Thread writeThread;
     private SelectLoop readLoop;
     private SelectLoop writeLoop;
-    private BufferPool sendPool;
-    private OvsDatapathConnection conn = null;
-    private boolean singleThreaded;
+    private final boolean singleThreaded;
 
-    public SelectorBasedDatapathConnection(String name,
-                                           MidolmanConfig config,
-                                           boolean singleThreaded) {
+    private Set<ManagedDatapathConnection> conns = new HashSet<>();
+
+    public SelectorThreadPair(String name, MidolmanConfig config,
+                              boolean singleThreaded) {
         this.config = config;
         this.name = name;
         this.singleThreaded = singleThreaded;
-        this.sendPool = new BufferPool(config.getSendBufferPoolInitialSize(),
-                                       config.getSendBufferPoolMaxSize(),
-                                       config.getSendBufferPoolBufSizeKb() * 1024);
     }
 
-    public SelectorBasedDatapathConnection(String name, MidolmanConfig config) {
+    public SelectorThreadPair(String name, MidolmanConfig config) {
         this(name, config, false);
     }
 
-    public OvsDatapathConnection getConnection() {
-        return conn;
+    public boolean isRunning() {
+        return (readThread != null);
     }
 
-    @Override
-    public void start() throws IOException, ExecutionException, InterruptedException {
-        if (conn == null) {
+    public void start() throws Exception {
+        if (readThread == null) {
             try {
                 setUp();
-                conn.initialize().get();
-            } catch (IOException e) {
-                try {
-                    stop();
-                } catch (Exception ignored) {}
+            } catch (Exception e) {
+                stop();
                 throw e;
             }
         }
     }
 
-    @Override
-    public void start(Callback<Boolean> cb) {
-        if (conn != null) {
-            cb.onSuccess(true);
-            return;
-        }
+    public ManagedDatapathConnection addConnection() throws Exception {
 
-        try {
-            setUp();
-            conn.initialize(cb);
-        } catch (Exception e) {
-            try {
-                stop();
-            } catch (Exception ignored) { }
-            cb.onError(new NetlinkException(NetlinkException.GENERIC_IO_ERROR, e));
-        }
-    }
+        BufferPool sendPool = new BufferPool(
+                                  config.getSendBufferPoolInitialSize(),
+                                  config.getSendBufferPoolMaxSize(),
+                                  config.getSendBufferPoolBufSizeKb() * 1024);
 
-    private void setUp() throws IOException {
-        if (conn != null)
-            return;
-
-        log.info("Starting datapath connection: {}", name);
-        readLoop = new SimpleSelectLoop();
-        writeLoop = singleThreaded ? readLoop : new SimpleSelectLoop();
-
-        readThread = startLoop(readLoop, name + (singleThreaded ? "" : ".read"));
-        writeThread = singleThreaded ? readThread :
-                                       startLoop(writeLoop, name + ".write");
-
-        conn = OvsDatapathConnection.create(new Netlink.Address(0), sendPool);
+        final OvsDatapathConnection conn =
+            OvsDatapathConnection.create(new Netlink.Address(0), sendPool);
 
         conn.getChannel().configureBlocking(false);
         conn.setMaxBatchIoOps(config.getMaxMessagesPerBatch());
@@ -127,28 +96,69 @@ public class SelectorBasedDatapathConnection implements ManagedDatapathConnectio
                         conn.handleWriteEvent(key);
                     }
                 });
+
+        ManagedDatapathConnection managedConn =
+                new TrivialDatapathConnection(conn);
+
+        conns.add(managedConn);
+        return managedConn;
     }
 
+    private void closeConnection(ManagedDatapathConnection conn) {
+        try {
+            if (writeLoop != null) {
+                writeLoop.unregister(conn.getConnection().getChannel(),
+                        SelectionKey.OP_WRITE);
+            }
+        } catch (ClosedChannelException ignored) {}
+        try {
+            if (readLoop != null) {
+                readLoop.unregister(conn.getConnection().getChannel(),
+                        SelectionKey.OP_READ);
+            }
+        } catch (ClosedChannelException ignored) {}
+
+        try {
+            conn.getConnection().getChannel().close();
+        } catch (IOException ignored) {}
+    }
+
+    public void removeConnection(ManagedDatapathConnection conn) {
+        if (conns.remove(conn))
+            closeConnection(conn);
+    }
+
+    private void setUp() throws Exception {
+        if (readThread != null)
+            return;
+
+        log.info("Starting selector thread pair: {}", name);
+        readLoop = new SimpleSelectLoop();
+        writeLoop = singleThreaded ? readLoop : new SimpleSelectLoop();
+
+        readThread = startLoop(readLoop, name + (singleThreaded ? "" : ".read"));
+        writeThread = singleThreaded ? readThread :
+                                       startLoop(writeLoop, name + ".write");
+    }
 
     public void stop() throws Exception {
         try {
-            log.info("Stopping datapath connection: {}", name);
-            if (writeLoop != null)
-                writeLoop.unregister(conn.getChannel(), SelectionKey.OP_WRITE);
+            log.info("Stopping selector thread pair: {}", name);
 
-            if (readLoop != null) {
-                readLoop.unregister(conn.getChannel(), SelectionKey.OP_READ);
+            for (ManagedDatapathConnection conn: conns)
+                closeConnection(conn);
+            conns.clear();
+
+            if (readLoop != null)
                 readLoop.shutdown();
-            }
 
             if (!singleThreaded) {
                 if (writeLoop != null)
                     writeLoop.shutdown();
             }
 
-            conn.getChannel().close();
         } finally {
-            conn = null;
+            conns.clear();
             writeLoop = null;
             readLoop = null;
             readThread = null;

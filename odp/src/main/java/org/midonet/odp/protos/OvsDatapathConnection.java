@@ -49,13 +49,12 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
 
     public final FuturesApi futures = new FuturesApi();
 
-    protected OvsDatapathConnection(NetlinkChannel channel, BufferPool sendPool)
-            throws Exception {
+    protected OvsDatapathConnection(NetlinkChannel channel, BufferPool sendPool) {
         super(channel, sendPool);
     }
 
     public static OvsDatapathConnection create(Netlink.Address address,
-                                               BufferPool sendPool) throws Exception {
+                                               BufferPool sendPool) {
 
         NetlinkChannel channel;
 
@@ -76,7 +75,7 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
         return create(address, new BufferPool(128, 512, 0x1000));
     }
 
-    public static OvsDatapathConnection createMock() throws Exception {
+    public static OvsDatapathConnection createMock() {
 
         NetlinkChannel channel = Netlink.selectorProvider()
             .openMockNetlinkSocketChannel(NetlinkProtocol.NETLINK_GENERIC);

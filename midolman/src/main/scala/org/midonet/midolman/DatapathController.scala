@@ -161,7 +161,7 @@ object DatapathController extends Referenceable {
         extends DpPortReply
 
     case class DpPortError(
-        request: DpPortRequest, timeout: Boolean, error: NetlinkException
+        request: DpPortRequest, timeout: Boolean, error: Throwable
     ) extends DpPortReply
 
     case class DpPortCreateInternal(port: InternalPort, tag: Option[AnyRef])
@@ -787,13 +787,16 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
                 dpState.dpPortRemoved(newPort)
 
             case DpPortError(DpPortCreateNetdev(p, tag), false, ex) =>
-                if (ex != null) {
-                    log.warning("port {} creation failed: OVS returned {}",
-                        p, ex.getErrorCodeEnum)
-                    // This will make the vport manager retry the create op
-                    // the next time the interfaces are scanned (2 secs).
-                    if (ex.getErrorCodeEnum == ErrorCode.EBUSY)
-                        dpState.dpPortForget(p)
+                ex match {
+                    case nle: NetlinkException =>
+                        log.warning("port {} creation failed: OVS returned {}",
+                            p, nle.getErrorCodeEnum)
+                        // This will make the vport manager retry the create op
+                        // the next time the interfaces are scanned (2 secs).
+                        if (nle.getErrorCodeEnum == ErrorCode.EBUSY)
+                            dpState.dpPortForget(p)
+                    case _ =>
+                        log.error("port {} creation failed:", ex)
                 }
 
             case DpPortError(_: DpPortDelete, _, _) =>
@@ -818,11 +821,11 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
     private def exceptionToOpError(req: DpPortRequest, ex: Throwable): DpPortReply =
         ex match {
             case tout: TimeoutException =>
+                log.error("Port operation timed out: {}", req)
                 DpPortError(req, true, null)
-            case nle: NetlinkException =>
-                DpPortError(req, false, nle)
-            case _ =>
-                DpPortError(req, false, null)
+            case other =>
+                log.error(other, "Port operation failed: {}", req)
+                DpPortError(req, false, other)
         }
 
     def createDatapathPort(caller: ActorRef, request: DpPortCreate) {
