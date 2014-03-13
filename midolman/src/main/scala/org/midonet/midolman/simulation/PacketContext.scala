@@ -6,7 +6,7 @@ import java.text.SimpleDateFormat
 import java.util.{Date, Set => JSet, UUID}
 // Read-only view.  Note this is distinct from immutable.Set in that it
 // might be changed by another (mutable) view.
-import scala.collection.{Set => ROSet, mutable}
+import scala.collection.{Set => ROSet, Seq, mutable}
 
 import akka.actor.ActorSystem
 
@@ -90,16 +90,16 @@ class PacketContext(override val flowCookie: Option[Int],
     private var isTraced = false
 
     // This set stores the callback to call when this flow is removed.
-    private val flowRemovedCallbacks = mutable.Set[Callback0]()
+    private val flowRemovedCallbacks = mutable.ListBuffer[Callback0]()
     override def addFlowRemovedCallback(cb: Callback0): Unit = this.synchronized {
         if (frozen)
             throw new IllegalArgumentException(
                             "Adding callback to frozen PacketContext")
         else
-            flowRemovedCallbacks.add(cb)
+            flowRemovedCallbacks.append(cb)
     }
 
-    def getFlowRemovedCallbacks: ROSet[Callback0] = {
+    def getFlowRemovedCallbacks: Seq[Callback0] = {
         if (!frozen)
             throw new IllegalArgumentException(
                     "Reading callbacks from unfrozen PacketContext")

@@ -64,21 +64,21 @@ object PacketWorkflow {
 
     sealed trait DropSimulationResult extends SimulationResult {
         val tags: ROSet[Any]
-        val flowRemovalCallbacks: ROSet[Callback0]
+        val flowRemovalCallbacks: Seq[Callback0]
     }
 
     case class Drop(tags: ROSet[Any],
-                    flowRemovalCallbacks: ROSet[Callback0])
+                    flowRemovalCallbacks: Seq[Callback0])
             extends DropSimulationResult
 
     case class TemporaryDrop(tags: ROSet[Any],
-                             flowRemovalCallbacks: ROSet[Callback0])
+                             flowRemovalCallbacks: Seq[Callback0])
             extends DropSimulationResult
 
     case class SendPacket(actions: List[FlowAction]) extends SimulationResult
 
     case class AddVirtualWildcardFlow(flow: WildcardFlow,
-                                      flowRemovalCallbacks: ROSet[Callback0],
+                                      flowRemovalCallbacks: Seq[Callback0],
                                       tags: ROSet[Any]) extends SimulationResult
 
     sealed trait PipelinePath
@@ -167,13 +167,13 @@ abstract class PacketWorkflow(val deduplicator: ActorRef,
         _idle = false
         val wildFlow = WildcardFlow(wcmatch = wcMatch,
             hardExpirationMillis = ERROR_CONDITION_HARD_EXPIRATION)
-        addTranslatedFlow(wildFlow, Set.empty, Set.empty)
+        addTranslatedFlow(wildFlow, Set.empty, Nil)
     }
 
     private def notifyFlowAdded(flow: Flow,
                                 newWildFlow: Option[WildcardFlow],
                                 tags: ROSet[Any],
-                                removalCallbacks: ROSet[Callback0]) {
+                                removalCallbacks: Seq[Callback0]) {
         log.debug("Successfully created flow for {}", cookieStr)
         newWildFlow match {
             case None =>
@@ -191,7 +191,7 @@ abstract class PacketWorkflow(val deduplicator: ActorRef,
     private def createFlow(wildFlow: WildcardFlow,
                            newWildFlow: Option[WildcardFlow] = None,
                            tags: ROSet[Any] = Set.empty,
-                           removalCallbacks: ROSet[Callback0] = Set.empty) {
+                           removalCallbacks: Seq[Callback0] = Nil) {
         log.debug("Creating flow {} for {}", wildFlow, cookieStr)
         val dpFlow = new Flow().setActions(wildFlow.getActions)
                                .setMatch(packet.getMatch)
@@ -207,7 +207,7 @@ abstract class PacketWorkflow(val deduplicator: ActorRef,
 
     private def addTranslatedFlow(wildFlow: WildcardFlow,
                                   tags: ROSet[Any],
-                                  removalCallbacks: ROSet[Callback0]) {
+                                  removalCallbacks: Seq[Callback0]) {
         if (areTagsValid(tags))
             handleValidFlow(wildFlow, tags, removalCallbacks)
         else
@@ -220,7 +220,7 @@ abstract class PacketWorkflow(val deduplicator: ActorRef,
         FlowController.isTagSetStillValid(lastInvalidation, tags)
 
     private def handleObsoleteFlow(wildFlow: WildcardFlow,
-                           removalCallbacks: ROSet[Callback0]) {
+                           removalCallbacks: Seq[Callback0]) {
         log.debug("Skipping creation of obsolete flow {} for {}",
                   cookieStr, wildFlow.getMatch)
         if (cookie.isDefined)
@@ -230,7 +230,7 @@ abstract class PacketWorkflow(val deduplicator: ActorRef,
 
     private def handleValidFlow(wildFlow: WildcardFlow,
                                 tags: ROSet[Any],
-                                removalCallbacks: ROSet[Callback0]) {
+                                removalCallbacks: Seq[Callback0]) {
         cookie match {
             case Some(_) if packet.getMatch.isUserSpaceOnly =>
                 log.debug("Adding wildcard flow {} for userspace only match",
@@ -256,7 +256,7 @@ abstract class PacketWorkflow(val deduplicator: ActorRef,
     private def addTranslatedFlowForActions(
                             actions: Seq[FlowAction],
                             tags: ROSet[Any] = Set.empty,
-                            removalCallbacks: ROSet[Callback0] = Set.empty,
+                            removalCallbacks: Seq[Callback0] = Nil,
                             hardExpirationMillis: Int = 0,
                             idleExpirationMillis: Int = IDLE_EXPIRATION_MILLIS) {
 
@@ -453,12 +453,12 @@ abstract class PacketWorkflow(val deduplicator: ActorRef,
                 }
 
             case None =>
-                Ready(TemporaryDrop(Set.empty, Set.empty))
+                Ready(TemporaryDrop(Set.empty, Nil))
         }
     }
 
     def addVirtualWildcardFlow(flow: WildcardFlow,
-                               flowRemovalCallbacks: ROSet[Callback0] = Set.empty,
+                               flowRemovalCallbacks: Seq[Callback0] = Nil,
                                tags: ROSet[Any] = Set.empty)
     : Urgent[Boolean] = {
         translateVirtualWildcardFlow(flow, tags) map {
