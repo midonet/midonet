@@ -12,18 +12,13 @@ import org.scalatest._
 import org.scalatest.concurrent.Eventually._
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.matchers.ShouldMatchers
-import org.scalatest.time.{Span, Seconds}
 
 import org.junit.runner.RunWith
 import org.midonet.netlink.{AfUnix, UnixDomainChannel}
 import org.midonet.netlink.AfUnix.Address
-import org.midonet.midolman.l4lb.HaproxyHealthMonitor.{StartMonitor,
-                                                       SockReadFailure,
-                                                       ConfigUpdate}
 import org.scalatest.time.{Span, Seconds}
 import org.midonet.cluster.DataClient
-import org.midonet.midolman.state.zkManagers.{PoolMemberZkManager,
-                                              PortZkManager}
+import org.midonet.midolman.state.zkManagers.PortZkManager
 
 
 @RunWith(classOf[JUnitRunner])
@@ -33,7 +28,6 @@ class HaproxyHealthMonitorTest extends FeatureSpec
                                with BeforeAndAfter
                                with OneInstancePerTest {
 
-    import HaproxyHealthMonitor.StartMonitor
     import HaproxyHealthMonitor.SockReadFailure
     import HaproxyHealthMonitor.ConfigUpdate
 
@@ -78,7 +72,7 @@ class HaproxyHealthMonitorTest extends FeatureSpec
                                             "10.11.12.15", 81)
 
         new PoolConfig(UUID.randomUUID(), vip, Set(member1, member2, member3),
-                       healthMonitor, true, path)
+                       healthMonitor, true, UUID.randomUUID(), path, "_MN")
     }
 
     before {
@@ -90,7 +84,6 @@ class HaproxyHealthMonitorTest extends FeatureSpec
                 createFakePoolConfig("10.10.10.10", goodSocketPath),
                                      managerActor, UUID.randomUUID(), null,
                                      UUID.randomUUID())))
-        healthMonitorUT ! StartMonitor
     }
 
     after {
@@ -151,9 +144,7 @@ class HaproxyHealthMonitorTest extends FeatureSpec
         override def connect(address: AfUnix.Address): Boolean = true
         override def implConfigureBlocking(block: Boolean) = {}
         override def _executeConnect(address: Address) = {}
-        override def executeBind(address: Address): Unit = {}
-        override def executeAccept() = new MockUnixChannel(null)
-        override def closeFileDescriptor = {}
+        override def closeFileDescriptor() = {}
     }
 
     /*

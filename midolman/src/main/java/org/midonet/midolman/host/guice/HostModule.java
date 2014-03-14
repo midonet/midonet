@@ -43,7 +43,7 @@ public class HostModule extends PrivateModule {
         bind(HostConfig.class)
                 .toProvider(HostConfigProvider.class)
                 .asEagerSingleton();
-
+        expose(HostConfig.class);
         expose(HostIdProviderService.class);
 
         // TODO: uncomment this when the direct dependency on HostZKManager has been removed

@@ -27,6 +27,7 @@ import org.midonet.midolman.routingprotocols.RoutingManagerActor
 import org.midonet.midolman.topology.VirtualToPhysicalMapper
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.monitoring.MonitoringActor
+import org.midonet.midolman.l4lb.HealthMonitor
 
 /*
  * A base trait for a simple guice service that starts an actor system,
@@ -58,7 +59,9 @@ class MidolmanActorsService extends AbstractService {
             (propsFor(classOf[RoutingManagerActor]),       RoutingManagerActor.Name),
             (propsFor(classOf[DeduplicationActor]).
                 withDispatcher("actors.pinned-dispatcher"),DeduplicationActor.Name),
-            (propsFor(classOf[NetlinkCallbackDispatcher]), NetlinkCallbackDispatcher.Name))
+            (propsFor(classOf[NetlinkCallbackDispatcher]), NetlinkCallbackDispatcher.Name),
+            (propsFor(classOf[HealthMonitor]).
+                withDispatcher("actors.pinned-dispatcher"),HealthMonitor.Name))
 
         if (config.getMidolmanEnableMonitoring)
             (propsFor(classOf[MonitoringActor]), MonitoringActor.Name) :: specs

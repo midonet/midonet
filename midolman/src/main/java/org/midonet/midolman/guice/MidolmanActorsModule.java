@@ -6,6 +6,8 @@ package org.midonet.midolman.guice;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
+import org.midonet.midolman.host.config.HostConfig;
+import org.midonet.midolman.l4lb.HealthMonitor;
 import scala.concurrent.duration.Duration;
 
 import akka.actor.ActorInitializationException;
@@ -66,6 +68,7 @@ public class MidolmanActorsModule extends PrivateModule {
         requireBinding(Key.get(Cache.class, NAT_CACHE.class));
         requireBinding(OvsDatapathConnection.class);
         requireBinding(HostIdProviderService.class);
+        requireBinding(HostConfig.class);
         requireBinding(Key.get(ThrottlingGuard.class,
                                DatapathModule.SIMULATION_THROTTLING_GUARD.class));
 
@@ -93,6 +96,7 @@ public class MidolmanActorsModule extends PrivateModule {
         bind(MonitoringActor.class);
         //bind(InterfaceScanner.class).to(DefaultInterfaceScanner.class);
         bind(RoutingManagerActor.class);
+        bind(HealthMonitor.class);
     }
 
     protected void bindMidolmanActorsService() {
