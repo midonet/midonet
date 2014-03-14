@@ -9,6 +9,7 @@ import akka.actor.ActorSystem
 import akka.event.LoggingBus
 import scala.concurrent.{ExecutionContext, Future}
 
+import org.midonet.midolman.l4lb.ReverseStickyNatRule
 import org.midonet.midolman.layer4.NatMapping
 import org.midonet.midolman.logging.LoggerFactory
 import org.midonet.midolman.rules.{Condition, RuleResult, ReverseNatRule}
@@ -17,6 +18,9 @@ import org.midonet.midolman.topology.FlowTagger
 
 object LoadBalancer {
     val simpleReverseDNatRule = new ReverseNatRule(
+        Condition.TRUE, RuleResult.Action.ACCEPT, true)
+
+    val stickyReverseDNatRule = new ReverseStickyNatRule(
         Condition.TRUE, RuleResult.Action.ACCEPT, true)
 
     def simpleAcceptRuleResult(pktContext: PacketContext) =
@@ -38,6 +42,9 @@ class LoadBalancer(val id: UUID, val adminStateUp: Boolean,
         LoggerFactory.getSimulationAwareLog(this.getClass)(loggingBus)
 
     val invalidateLoadBalancerTag = FlowTagger.invalidateFlowsByDevice(id)
+
+    val hasStickyVips: Boolean = vips.exists(_.isStickySourceIP)
+    val hasNonStickyVips: Boolean = vips.exists(!_.isStickySourceIP)
 
     def processInbound(pktContext: PacketContext)(implicit ec: ExecutionContext,
                        actorSystem: ActorSystem)
@@ -64,7 +71,9 @@ class LoadBalancer(val id: UUID, val adminStateUp: Boolean,
                             // Choose a pool member and apply DNAT if an
                             // active pool member is found
                             val action = pool.loadBalance(
-                                Chain.natMappingFactory.get(id), pktContext)
+                                Chain.natMappingFactory.get(id), pktContext,
+                                stickySourceIP = vip.isStickySourceIP,
+                                vip.stickyTimeoutSeconds)
 
                             simpleRuleResult(action, pktContext)
                     }
@@ -98,11 +107,21 @@ class LoadBalancer(val id: UUID, val adminStateUp: Boolean,
         val acceptRuleResult = simpleAcceptRuleResult(pktContext)
 
         val sourceIPBefore = pktContext.wcmatch.getNetworkSourceIP
-        simpleReverseDNatRule.apply(pktContext, acceptRuleResult, natMapping)
-        val sourceIPAfter = pktContext.wcmatch.getNetworkSourceIP
+
+        def checkSourceIP = pktContext.wcmatch.getNetworkSourceIP
+
+        def sourceIPChanged = sourceIPBefore != checkSourceIP
+
+        if (hasNonStickyVips) {
+            simpleReverseDNatRule.apply(pktContext, acceptRuleResult, natMapping)
+        }
+
+        if (hasStickyVips && !sourceIPChanged) {
+            stickyReverseDNatRule.apply(pktContext, acceptRuleResult, natMapping)
+        }
 
         // If source IP changed, the loadbalancer had an effect
-        if (sourceIPAfter != sourceIPBefore){
+        if (sourceIPChanged){
             acceptRuleResult
         } else {
             simpleContinueRuleResult(pktContext)
