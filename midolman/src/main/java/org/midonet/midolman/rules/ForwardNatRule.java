@@ -75,7 +75,7 @@ public class ForwardNatRule extends NatRule {
             }
     }
 
-    private Callback0 makeUnrefCallback(final NatMapping mapping,
+    protected Callback0 makeUnrefCallback(final NatMapping mapping,
                                         final String key) {
         return new Callback0() {
             @Override
@@ -91,7 +91,7 @@ public class ForwardNatRule extends NatRule {
      * @param res contains the match of the packet as seen by this rule,
      *            possibly modified by preceding routers and chains.
      */
-    private void applyDnat(ChainPacketContext fwdInfo, RuleResult res,
+    protected void applyDnat(ChainPacketContext fwdInfo, RuleResult res,
                            final NatMapping natMapping)
         throws MalformedPacketException {
 
