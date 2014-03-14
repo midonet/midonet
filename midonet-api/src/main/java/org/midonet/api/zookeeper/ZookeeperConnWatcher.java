@@ -54,6 +54,11 @@ public class ZookeeperConnWatcher implements ZkConnectionAwareWatcher {
     }
 
     @Override
+    public ZkConnection getZkConnection() {
+        return conn;
+    }
+
+    @Override
     public void setZkConnection(ZkConnection conn) {
         this.conn = conn;
     }
