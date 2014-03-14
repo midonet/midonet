@@ -16,6 +16,27 @@
     <name>OpenVSwitch Datapath client library</name>
     <packaging>jar</packaging>
 
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <configuration>
+                    <executable>sudo</executable>
+                    <arguments>
+                        <argument>java</argument>
+                        <argument>${javalib}</argument>
+                        <argument>-Xdebug</argument>
+                        <argument>${bootstrap}</argument>
+                        <argument>-cp</argument>
+                        <classpath />
+                        <argument>org.midonet.odp.${odpTest}</argument>
+                    </arguments>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
