@@ -31,6 +31,8 @@ import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPort
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 import org.midonet.util.eventloop.SelectLoop
 import org.midonet.util.process.ProcessHelper
+import org.midonet.midolman.routingprotocols.RoutingHandler.BGPD_SHOW
+import org.midonet.midolman.routingprotocols.RoutingManagerActor.BgpStatus
 
 object RoutingHandler {
 
@@ -42,6 +44,7 @@ object RoutingHandler {
     // BgpdProcess will notify via these messages
     case object BGPD_READY
     case object BGPD_DEAD
+    case class BGPD_SHOW(cmd : String)
 
     case class PortActive(active: Boolean)
 
@@ -438,6 +441,11 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                     case _ =>
                         log.error("unexpected BGPD_DEAD message, now in {} state", phase)
                 }
+            case BGPD_SHOW(cmd) =>
+                if (bgpVty != null)
+                    sender ! BgpStatus(bgpVty.showGeneric(cmd).toArray)
+                else
+                    sender ! BgpStatus(Array[String]("BGP session is not ready"))
 
             case AdvertiseRoute(rt) =>
                 log.debug("AdvertiseRoute: {}, phase: {}", rt, phase)

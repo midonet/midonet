@@ -196,7 +196,8 @@ abstract class VtyConnection(val addr: String, val port: Int,
 }
 
     protected def doTransaction(messages: Seq[String],
-                                 isConfigure: Boolean): Seq[String] = {
+                                 isConfigure: Boolean,
+                                 minLines : Int = 0): Seq[String] = {
         openConnection()
         checkHello()
         enable()
@@ -216,7 +217,7 @@ abstract class VtyConnection(val addr: String, val port: Int,
         // Send exit here to get EOF on read.
         exit()
 
-        val response = recvMessage()
+        val response = recvMessage(minLines)
         log.debug("response: {}", response)
         closeConnection()
         response
@@ -283,6 +284,7 @@ object BgpVtyConnection {
     private final val SetLogFile = "log file %s"
     private final val EnableDebug = "debug bgp"
     private final val DisableDebug = "no debug bgp"
+    private final val ShowGeneric = "show ip bgp %s"
 
     private final val log = LoggerFactory.getLogger(this.getClass)
 }
@@ -312,6 +314,9 @@ trait BgpConnection {
     def setLogFile(file: String)
 
     def setDebug(isEnabled: Boolean)
+
+    def showGeneric(cmd: String) : Seq[String]
+
 }
 
 class BgpVtyConnection(addr: String, port: Int, password: String, keepAliveTime: Int,
@@ -571,6 +576,30 @@ class BgpVtyConnection(addr: String, port: Int, password: String, keepAliveTime:
             case e: Exception => {
                 log.error("failed setting debug option", e)
             }
+        }
+    }
+
+    private def doOp(messages: Seq[String], isConfigure: Boolean,
+                     minLines : Int) : Option[Seq[String]] = {
+        log.debug("begin {}", messages)
+
+        try {
+            Some(doTransaction(messages, isConfigure, minLines))
+        } catch {
+            case e: Exception => {
+                log.error(s"failed running $messages {}", e)
+                None
+            }
+        }
+    }
+
+    override def showGeneric(cmd : String) : Seq[String] = {
+
+        doOp(Array[String](ShowGeneric.format(cmd)), false, 2) match {
+            case Some(value) =>
+                value
+            case None =>
+                return Array[String]()
         }
     }
 
