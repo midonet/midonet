@@ -110,7 +110,7 @@ public class NetlinkSelectorProvider extends SelectorProvider {
             SelectorProvider.class,
             AfUnix.Address.class,
             AfUnix.Address.class,
-            Integer.class
+            int.class
         };
         Object[] args = {this, parentLocalAddress, remoteAddress, childSocket};
 
