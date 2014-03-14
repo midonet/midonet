@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import javax.annotation.Nonnull;
@@ -694,9 +695,8 @@ public class WildcardMatch implements Cloneable {
                     break;
 
                 case IcmpData:
-                    int thisHash = icmpData != null ? icmpData.hashCode(): 0;
-                    int thatHash = that.icmpData != null ? that.icmpData.hashCode(): 0;
-                    if (!isEqual(field, that, thisHash, thatHash))
+                    if (!isEqual(field, that, Objects.hashCode(this.icmpData),
+                                              Objects.hashCode(that.icmpData)))
                         return false;
                     break;
 
