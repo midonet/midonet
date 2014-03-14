@@ -435,6 +435,16 @@ trait VirtualConfigurationBuilders {
         clusterDataClient().vipUpdate(vip)
     }
 
+    def vipEnableStickySourceIP(vip: VIP) {
+        vip.setSessionPersistence(VIP.VIP_SOURCE_IP)
+        clusterDataClient().vipUpdate(vip)
+    }
+
+    def vipDisableStickySourceIP(vip: VIP) {
+        vip.setSessionPersistence(null)
+        clusterDataClient().vipUpdate(vip)
+    }
+
     def createPool(id: Option[UUID] = None,
                    adminStateUp: Boolean = true,
                    lbMethod: String = "ROUND_ROBIN"): Pool = {

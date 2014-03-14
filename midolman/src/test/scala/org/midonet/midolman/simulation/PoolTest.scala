@@ -3,6 +3,7 @@
 */
 package org.midonet.midolman.simulation
 
+import java.lang.reflect.Field
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
@@ -11,20 +12,21 @@ import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cache.MockCache
+import org.midonet.cache.{CacheWithPrefix, MockCache}
+import org.midonet.cache.MockCache.CacheEntry
 import org.midonet.cluster.data.l4lb
 import org.midonet.cluster.data.ports.RouterPort
 import org.midonet.cluster.data.{Router => ClusterRouter, Entity, Port}
-import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, SendPacket, SimulationResult}
+import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, SimulationResult}
 import org.midonet.midolman._
 import org.midonet.midolman.layer3.Route
+import org.midonet.midolman.layer4.NatLeaseManager
 import org.midonet.midolman.services.MessageAccumulator
 import org.midonet.midolman.topology.{FlowTagger, VirtualTopologyActor}
+import org.midonet.odp.flows.{FlowActionSetKey, FlowKeyIPv4}
 import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.sdn.flows.WildcardMatch
-import org.midonet.odp.flows.{FlowKeyIPv4, FlowActionSetKey}
-import scala.collection.mutable
 
 @RunWith(classOf[JUnitRunner])
 class PoolTest extends FeatureSpec
@@ -49,7 +51,11 @@ with OneInstancePerTest {
      * for the external client, and three backend ports for pool members.
      */
 
+    // For loadbalancing tests:
+    // 3 backends, 14 connection attempts
+    // = 1/4,782,969 chance of hitting same backend every time
     val numBackends = 3
+    val timesRun = 14
 
     val vipIp = new IPv4Subnet("200.200.200.200", 32)
     val badIp = new IPv4Subnet("111.111.111.111", 32)
@@ -69,14 +75,26 @@ with OneInstancePerTest {
 
     var router: ClusterRouter = _
     var loadBalancer: l4lb.LoadBalancer = _
+    var vip: l4lb.VIP = _
     var poolMembers: Seq[l4lb.PoolMember] = _
     var exteriorClientPort: RouterPort = _
     var exteriorBackendPorts: Seq[RouterPort] = _
 
-    lazy val fromClientToVip = (exteriorClientPort, clientToVipPkt)
+    // Access private cache member of NatLeaseManager
+    var leaseMgrCacheField: Field = _
+    var cachePrefixCacheField: Field = _
+
+    lazy val fromClientToVip = fromClientToVipOffset(0)
+    def fromClientToVipOffset(sourcePortOffset: Short) =
+        (exteriorClientPort, clientToVipPktOffset(sourcePortOffset))
+
     lazy val fromClientToBadIp = (exteriorClientPort, clientToBadIpPkt)
 
-    lazy val clientToVipPkt: Ethernet = clientToVipPkt(clientSrcPort)
+    lazy val clientToVipPkt: Ethernet = clientToVipPktOffset(0)
+    def clientToVipPktOffset(sourcePortOffset: Short): Ethernet =
+        { eth src macClientSide dst exteriorClientPort.getHwAddr } <<
+            { ip4 src ipClientSide.toUnicastString dst vipIp.toUnicastString } <<
+            { tcp src (clientSrcPort + sourcePortOffset).toShort dst vipPort }
 
     lazy val clientToBadIpPkt: Ethernet =
         { eth src macClientSide dst exteriorClientPort.getHwAddr } <<
@@ -143,7 +161,7 @@ with OneInstancePerTest {
         loadBalancer = createLoadBalancer()
         setLoadBalancerOnRouter(loadBalancer, router)
         loadBalancer.setRouterId(router.getId)
-        val vip = createVipOnLoadBalancer(loadBalancer, vipIp.toUnicastString, vipPort)
+        vip = createVipOnLoadBalancer(loadBalancer, vipIp.toUnicastString, vipPort)
         val pool = createPool()
         setVipPool(vip, pool)
         poolMembers = (0 until numBackends) map {
@@ -167,6 +185,13 @@ with OneInstancePerTest {
         (0 until numBackends) foreach {
             n => arpTable.set(ipsBackendSide(n).getAddress, macsBackendSide(n))
         }
+
+        // Make it possible to access NatLeaseManager's internal MockCache
+        leaseMgrCacheField = classOf[NatLeaseManager].getDeclaredField("cache")
+        leaseMgrCacheField.setAccessible(true)
+
+        cachePrefixCacheField = classOf[CacheWithPrefix].getDeclaredField("cache")
+        cachePrefixCacheField.setAccessible(true)
     }
 
     feature("When loadbalancer is admin state down, behaves as if no loadbalancer present") {
@@ -341,6 +366,86 @@ with OneInstancePerTest {
         }
     }
 
+    feature("Sticky source IP attribute in VIP affects how subsequent connections are balanced") {
+        scenario("Without sticky source IP") {
+            Given("VIP has sticky source IP disabled")
+
+            vipDisableStickySourceIP(vip)
+
+            And("Multiple backends are enabled")
+
+            // Set all pool members up
+            (0 until numBackends) foreach {
+                n => setPoolMemberAdminStateUp(poolMembers(n), true)
+            }
+
+            When("several packets are sent to the VIP from same source IP, different source port")
+
+            val simResults: Seq[SimulationResult] = (1 to timesRun) map {
+                n => sendPacket (fromClientToVipOffset(n.toShort))
+            }
+            val destIps = simResults flatMap getDestIpsFromResult
+
+            Then("packets should NOT all go to same backend")
+
+            destIps.toSet.size should be > 1
+        }
+
+    }
+
+    feature("Sticky source IP attribute in VIP affects cache timeouts") {
+        scenario("Without sticky source IP") {
+            Given("VIP has sticky source IP disabled")
+
+            vipDisableStickySourceIP(vip)
+
+            When("A packet is sent to the VIP")
+
+            val flow = sendPacket (fromClientToVip)
+
+            Then("cache should contain one map entry, with a low timeout")
+
+            val leaseManager = Chain.natMappingFactory.
+                get(loadBalancer.getId).asInstanceOf[NatLeaseManager]
+            leaseManager should not be null
+
+            val mockCache = getMockCache(leaseManager)
+            val cacheValues: List[CacheEntry] =
+                mockCache.map.values().toArray.map(
+                    _.asInstanceOf[CacheEntry]).toList
+
+            cacheValues.size shouldBe 2
+
+            // Expect both cache values to have normal NAT timeout
+            val expirationLengths = cacheValues.map {
+                c: CacheEntry => c.expirationMillis
+            }.toSet
+            expirationLengths.size shouldBe 1
+            expirationLengths.toList(0) shouldBe 60000
+
+            Then("Another of the same packet is sent to the VIP")
+
+            sendPacket (fromClientToVip)
+
+            Then("Cache entries should be refreshed and be correct lengths")
+
+            val newExpirationLengths = cacheValues.map {
+                c: CacheEntry => c.expirationMillis
+            }.toSet
+
+            // Expiration lengths are same as before
+            newExpirationLengths shouldBe expirationLengths
+        }
+
+    }
+
+    private[this] def getMockCache(leaseManager: NatLeaseManager): MockCache = {
+        val cacheWithPrefix: CacheWithPrefix =
+            leaseMgrCacheField.get(leaseManager).asInstanceOf[CacheWithPrefix]
+
+        cachePrefixCacheField.get(cacheWithPrefix).asInstanceOf[MockCache]
+    }
+
     private[this] def sendPacket(t: (Port[_,_], Ethernet)): SimulationResult =
         Await.result(new Coordinator(
             makeWMatch(t._1, t._2),
@@ -363,4 +468,21 @@ with OneInstancePerTest {
         { eth src macClientSide dst exteriorClientPort.getHwAddr } <<
                 { ip4 src ipClientSide.toUnicastString dst vipIp.toUnicastString } <<
                 { tcp src srcTpPort dst vipPort }
+
+    private[this] def getDestIpsFromResult(simResult: SimulationResult)
+    : Seq[Int] = {
+        simResult match {
+            case AddVirtualWildcardFlow(flow, _ , _) =>
+                flow.actions flatMap {
+                    case f: FlowActionSetKey =>
+                        f.getFlowKey match {
+                            case k: FlowKeyIPv4 => Some(k.getDst)
+                            case _ => None
+                        }
+                    case _ => None
+                }
+            case _ => Nil
+        }
+    }
+
 }
