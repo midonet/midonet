@@ -138,7 +138,7 @@ public class ReverseNatRule extends NatRule {
         match.setIcmpData(natBB.array());
     }
 
-    private void applyReverseDnat(RuleResult res, NatMapping natMapping)
+    protected void applyReverseDnat(RuleResult res, NatMapping natMapping)
         throws MalformedPacketException {
 
         WildcardMatch match = res.pmatch;
