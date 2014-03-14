@@ -36,12 +36,18 @@ import org.midonet.client.dto.DtoRule;
 import org.midonet.client.dto.DtoRule.DtoNatTarget;
 import org.midonet.client.dto.DtoRuleChain;
 import org.midonet.packets.ARP;
+
 import static org.midonet.api.VendorMediaType.APPLICATION_RULE_COLLECTION_JSON;
 import static org.midonet.api.VendorMediaType.APPLICATION_RULE_JSON;
+import static org.midonet.api.validation.MessageProperty.FRAG_POLICY_INVALID_FOR_L4_RULE;
+import static org.midonet.api.validation.MessageProperty.FRAG_POLICY_INVALID_FOR_NAT_RULE;
+import static org.midonet.api.validation.MessageProperty.FRAG_POLICY_UNDEFINED;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses({TestRule.TestRuleCreateBadRequest.class,
-        TestRule.TestMacFields.class, TestRule.TestRuleCrudSuccess.class})
+                     TestRule.TestMacFields.class,
+                     TestRule.TestFragmentPolicy.class,
+                     TestRule.TestRuleCrudSuccess.class})
 public class TestRule {
 
     private final static Logger log = LoggerFactory.getLogger(TestRule.class);
@@ -78,6 +84,12 @@ public class TestRule {
         @After
         public void resetDirectory() throws Exception {
             StaticMockDirectory.clearDirectoryInstance();
+        }
+
+        protected DtoRule newAcceptRule() {
+            DtoRule rule = new DtoRule();
+            rule.setType(DtoRule.Accept);
+            return rule;
         }
     }
 
@@ -123,8 +135,7 @@ public class TestRule {
 
         @Test
         public void testCreateWithBadDlSrc() {
-            DtoRule r = new DtoRule();
-            r.setType("accept");
+            DtoRule r = newAcceptRule();
             r.setDlSrc("01:23:45:67:89:0ab");
             DtoError error = dtoResource.postAndVerifyBadRequest(
                     chain1.getRules(), APPLICATION_RULE_JSON, r);
@@ -134,8 +145,7 @@ public class TestRule {
 
         @Test
         public void testCreateWithBadDlDst() {
-            DtoRule r = new DtoRule();
-            r.setType("accept");
+            DtoRule r = newAcceptRule();
             r.setDlDst("01:23:45:67:89:0ab");
             DtoError error = dtoResource.postAndVerifyBadRequest(
                     chain1.getRules(), APPLICATION_RULE_JSON, r);
@@ -145,8 +155,7 @@ public class TestRule {
 
         @Test
         public void testCreateWithBadDlSrcMask() {
-            DtoRule r = new DtoRule();
-            r.setType("accept");
+            DtoRule r = newAcceptRule();
             r.setDlSrcMask("fffff.0000.0000");
             DtoError error = dtoResource.postAndVerifyBadRequest(
                     chain1.getRules(), APPLICATION_RULE_JSON, r);
@@ -155,8 +164,7 @@ public class TestRule {
 
         @Test
         public void testCreateWithBadDlDstMask() {
-            DtoRule r = new DtoRule();
-            r.setType("accept");
+            DtoRule r = newAcceptRule();
             r.setDlDstMask("fffff.0000.0000");
             DtoError error = dtoResource.postAndVerifyBadRequest(
                     chain1.getRules(), APPLICATION_RULE_JSON, r);
@@ -165,8 +173,7 @@ public class TestRule {
 
         @Test
         public void testCreateWithValidMacsAndMacMasks() {
-            DtoRule r = new DtoRule();
-            r.setType("accept");
+            DtoRule r = newAcceptRule();
             r.setDlSrc("01:02:03:04:05:06");
             r.setDlSrcMask("ffff.ffff.0000");
             r.setDlDst("10:20:30:40:50:60");
@@ -177,6 +184,126 @@ public class TestRule {
             assertEquals(r.getDlSrcMask(), created.getDlSrcMask());
             assertEquals(r.getDlDst(), created.getDlDst());
             assertEquals(r.getDlDstMask(), created.getDlDstMask());
+        }
+    }
+
+    public static class TestFragmentPolicy extends TestRuleBase {
+
+        @Test
+        public void testDefaultPolicy() {
+            DtoRule rule = newAcceptRule();
+            rule = dtoResource.postAndVerifyCreated(chain1.getRules(),
+                    APPLICATION_RULE_JSON, rule, DtoRule.class);
+            assertEquals("any", rule.getFragmentPolicy());
+        }
+
+        @Test
+        public void testUndefinedPolicy() {
+            DtoRule rule = newAcceptRule();
+            rule.setFragmentPolicy("UNDEFINED");
+            DtoError error = dtoResource.postAndVerifyBadRequest(
+                    chain1.getRules(), APPLICATION_RULE_JSON, rule);
+            assertErrorMatches(error, FRAG_POLICY_UNDEFINED);
+        }
+
+        @Test
+        public void testDefaultPolicyWithL4Field() {
+            DtoRule rule = newAcceptRule();
+            rule.setTpDst(new DtoRule.DtoRange<>(1234, 1234));
+            rule = dtoResource.postAndVerifyCreated(chain1.getRules(),
+                    APPLICATION_RULE_JSON, rule, DtoRule.class);
+            assertEquals("header", rule.getFragmentPolicy());
+        }
+
+        @Test
+        public void testPoliciesAllowedWithL4Field() {
+            DtoRule rule = newAcceptRule();
+            rule.setTpDst(new DtoRule.DtoRange<>(1234, 1234));
+            assertPolicyRejected(rule, "any");
+            assertPolicyRejected(rule, "nonheader");
+            assertPolicyAccepted(rule, "header");
+            assertPolicyAccepted(rule, "unfragmented");
+        }
+
+        @Test
+        public void testDefaultPolicyWithForwardNatRuleWithNoL4Properties() {
+            DtoRule rule = newForwardDnatRule();
+            rule = dtoResource.postAndVerifyCreated(chain1.getRules(),
+                    APPLICATION_RULE_JSON, rule, DtoRule.class);
+            assertEquals("any", rule.getFragmentPolicy());
+        }
+
+        @Test
+        public void testPoliciesAllowedWithForwardNatRuleWithNoL4Properties() {
+            DtoRule rule = newForwardDnatRule();
+            assertPolicyAccepted(rule, "any");
+        }
+
+        @Test
+        public void testDefaultPolicyWithForwardNatRuleWithL4Property() {
+            DtoRule rule = newForwardDnatRule();
+            rule.setTpDst(new DtoRule.DtoRange<>(1234, 1234));
+            rule = dtoResource.postAndVerifyCreated(chain1.getRules(),
+                    APPLICATION_RULE_JSON, rule, DtoRule.class);
+            assertEquals("unfragmented", rule.getFragmentPolicy());
+        }
+
+        @Test
+        public void testPoliciesAllowedWithForwardNatRuleWithL4Property() {
+            DtoRule rule = newForwardDnatRule();
+            rule.setTpDst(new DtoRule.DtoRange<>(1234, 1234));
+            assertPolicyRejected(rule, "any");
+            assertPolicyRejected(rule, "header");
+            assertPolicyRejected(rule, "nonheader");
+            assertPolicyAccepted(rule, "unfragmented");
+        }
+
+        @Test
+        public void testDefaultPolicyWithForwardNatRuleWithMultipleTargets() {
+            DtoRule rule = newForwardDnatRule();
+            rule.setNatTargets(new DtoNatTarget[]{
+                    new DtoNatTarget("10.10.10.10", "10.10.10.11", 0, 0)});
+            rule = dtoResource.postAndVerifyCreated(chain1.getRules(),
+                    APPLICATION_RULE_JSON, rule, DtoRule.class);
+            assertEquals("unfragmented", rule.getFragmentPolicy());
+        }
+
+        @Test
+        public void testPoliciesAllowedWithForwardNatRuleWithMultipleTargets() {
+            DtoRule rule = newForwardDnatRule();
+            rule.setNatTargets(new DtoNatTarget[]{
+                    new DtoNatTarget("10.10.10.10", "10.10.10.11", 0, 0)});
+            assertPolicyRejected(rule, "any");
+            assertPolicyRejected(rule, "header");
+            assertPolicyRejected(rule, "nonheader");
+            assertPolicyAccepted(rule, "unfragmented");
+        }
+
+        private void assertPolicyRejected(DtoRule r, String fp) {
+            r.setFragmentPolicy(fp);
+            DtoError e = dtoResource.postAndVerifyBadRequest(
+                    chain1.getRules(), APPLICATION_RULE_JSON, r);
+            boolean isForwardNat = r.getType().equals(DtoRule.DNAT) ||
+                                   r.getType().equals(DtoRule.SNAT);
+            assertErrorMatches(e, isForwardNat ?
+                    FRAG_POLICY_INVALID_FOR_NAT_RULE :
+                    FRAG_POLICY_INVALID_FOR_L4_RULE);
+        }
+
+        private void assertPolicyAccepted(DtoRule r, String fp) {
+            r.setFragmentPolicy(fp);
+            r = dtoResource.postAndVerifyCreated(chain1.getRules(),
+                    APPLICATION_RULE_JSON, r, DtoRule.class);
+            assertEquals(fp, r.getFragmentPolicy());
+        }
+
+        private DtoRule newForwardDnatRule() {
+            DtoRule rule = new DtoRule();
+            rule.setType(DtoRule.DNAT);
+            rule.setFlowAction("accept");
+            rule.setNatTargets(new DtoNatTarget[]{
+                    new DtoNatTarget("10.10.10.10", "10.10.10.10", 0, 0)});
+            return rule;
         }
     }
 

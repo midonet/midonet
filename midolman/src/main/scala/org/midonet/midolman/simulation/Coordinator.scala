@@ -44,11 +44,11 @@ object Coordinator {
     }
 
     case object DropAction extends AbstractDropAction {
-        val temporary = false
+        override val temporary = false
     }
 
     case object TemporaryDropAction extends AbstractDropAction {
-        val temporary = true
+        override val temporary = true
     }
 
     // NotIPv4Action implies a DROP flow. However, it differs from DropAction
@@ -233,12 +233,7 @@ class Coordinator(var origMatch: WildcardMatch,
                         dropFlow(temporary = true, withTags = false)
 
                     case inPortId: UUID =>
-                        val simRes = packetIngressesPort(inPortId,
-                                                         getPortGroups = true)
-                        if (origMatch.getIpFragmentType == IPFragmentType.None)
-                            simRes
-                        else
-                            simRes flatMap handleFragmentation(inPortId)
+                        packetIngressesPort(inPortId, getPortGroups = true)
                 }
             case Some(egressID) =>
                 origMatch.getInputPortUUID match {
@@ -253,46 +248,6 @@ class Coordinator(var origMatch: WildcardMatch,
                         dropFlow(temporary = true, withTags = false)
                 }
         }
-    }
-
-    /**
-     * After a simulation, take care of fragmentation. This checks if the sim
-     * touched any L4 fields in the WcMatch. If it didn't it'll let the packet
-     * through. Otherwise it'll reply with a Frag. Needed for the first fragment
-     * and drop subsequent ones.
-     */
-    private def handleFragmentation(inPort: UUID)(simRes: SimulationResult)
-    : Urgent[SimulationResult] = simRes match {
-        case sr if pktContext.wcmatch.highestLayerSeen() < 4 =>
-            log.debug("Fragmented packet, L4 fields untouched: execute")
-            Ready(sr)
-        case sr =>
-            log.debug("Fragmented packet, L4 fields touched..")
-            origMatch.getIpFragmentType match {
-                case IPFragmentType.First =>
-                    origMatch.getEtherType.shortValue match {
-                        case IPv4.ETHERTYPE =>
-                            /* We don't support fragmentation. So, assuming some
-                             * device in the middle fragmented the packet, we
-                             * send a Fragmentation Needed ICMP with that device's
-                             * MTU so that the sender can adjust itself and the
-                             * device will stop fragmenting subsequent packets.
-                             */
-                            log.debug("Reply with frag needed and DROP")
-                            sendIpv4FragNeeded(inPort)
-                            dropFlow(temporary = true, withTags = false)
-                        case ethertype =>
-                            log.info("Dropping fragmented packet of " +
-                                     "unsupported ethertype={}", ethertype)
-                            dropFlow(temporary = true, withTags = false)
-                    }
-                case IPFragmentType.Later =>
-                    log.debug("Dropping non-first fragment at simulation layer")
-                    dropFlow(temporary = false, withTags = true)
-                case IPFragmentType.None =>
-                    throw new IllegalStateException(
-                        "handleFragmentation called for an unfragmented packet")
-            }
     }
 
     private def sendIpv4FragNeeded(inPort: UUID) {
