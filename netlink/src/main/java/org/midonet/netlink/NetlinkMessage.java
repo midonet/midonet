@@ -418,6 +418,11 @@ public class NetlinkMessage {
         return buf.position() - startPos;
     }
 
+    public static void writeIntAttr(ByteBuffer buf, short id, int value) {
+        NetlinkMessage.setAttrHeader(buf, id, 8);
+        buf.putInt(value);
+    }
+
     public static int addAttribute(ByteBuffer buf, short id, byte[] value) {
         // save position
         int start = buf.position();
@@ -433,10 +438,6 @@ public class NetlinkMessage {
         buf.putShort(start, (short) (buf.position() - start));
 
         return buf.position() - start;
-    }
-
-    public static Builder newMessageBuilder(ByteBuffer buf) {
-        return new Builder(buf);
     }
 
     public static int pad(int len) {

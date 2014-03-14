@@ -20,6 +20,13 @@ import org.midonet.odp.family.DatapathFamily;
  */
 public class Datapath {
 
+    private static final NetlinkMessage.AttrKey<String> NameAttr =
+        NetlinkMessage.AttrKey.attr(OpenVSwitch.Datapath.Attr.Name);
+
+    public static final NetlinkMessage.AttrKey<Datapath.Stats> StatsAttr =
+        NetlinkMessage.AttrKey.attr(OpenVSwitch.Datapath.Attr.Stat);
+
+
     public Datapath(int index, String name) {
         this.name = name;
         this.index = index;
@@ -62,7 +69,7 @@ public class Datapath {
 
     public static Datapath buildFrom(NetlinkMessage msg) {
         Integer index = msg.getInt();
-        String name = msg.getAttrValueString(DatapathFamily.Attr.NAME);
+        String name = msg.getAttrValueString(NameAttr);
         Stats stats = Stats.buildFrom(msg);
         return new Datapath(index, name, stats);
     }
@@ -96,6 +103,7 @@ public class Datapath {
         };
 
     public static class Stats implements BuilderAware {
+
         long hits;
         long misses;
         long lost;
@@ -193,7 +201,7 @@ public class Datapath {
         }
 
         public static Stats buildFrom(NetlinkMessage msg) {
-            return msg.getAttrValue(DatapathFamily.Attr.STATS, new Stats());
+            return msg.getAttrValue(StatsAttr, new Stats());
         }
     }
 
@@ -231,5 +239,35 @@ public class Datapath {
             ", name='" + name + '\'' +
             ", stats=" + stats +
             '}';
+    }
+
+    public static ByteBuffer getRequest(ByteBuffer buf, int datapathId,
+                                        String datapathName) {
+        buf.putInt(datapathId);
+        if (datapathName != null) {
+            short nameId = (short) OpenVSwitch.Datapath.Attr.Name;
+            NetlinkMessage.addAttribute(buf, nameId, datapathName);
+        }
+        buf.flip();
+        return buf;
+    }
+
+    public static ByteBuffer enumRequest(ByteBuffer buf) {
+        buf.putInt(0);
+        buf.flip();
+        return buf;
+    }
+
+    public static ByteBuffer createRequest(ByteBuffer buf, int pid,
+                                        String datapathName) {
+        buf.putInt(0);
+        short pidAttrId = (short) OpenVSwitch.Datapath.Attr.UpcallPID;
+        NetlinkMessage.writeIntAttr(buf, pidAttrId, pid);
+        if (datapathName != null) {
+            short nameAttrId = (short) OpenVSwitch.Datapath.Attr.Name;
+            NetlinkMessage.addAttribute(buf, nameAttrId, datapathName);
+        }
+        buf.flip();
+        return buf;
     }
 }

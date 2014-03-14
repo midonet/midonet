@@ -12,6 +12,8 @@ import scala.util.Random
 
 import org.scalatest._
 
+import org.midonet.netlink.messages.Builder
+
 @org.junit.runner.RunWith(classOf[org.scalatest.junit.JUnitRunner])
 class NetlinkMessageTest extends Suite with Matchers {
 
@@ -71,7 +73,7 @@ class NetlinkMessageTest extends Suite with Matchers {
         new NetlinkMessage(ByteBuffer.allocate(size))
 
     def makeMsgBuilger(size: Int = 1024) =
-        NetlinkMessage.newMessageBuilder(ByteBuffer.allocate(size))
+        new Builder(ByteBuffer.allocate(size))
 
     def readPadding(buf: ByteBuffer, byteNum: Int) {
         (0 until byteNum) foreach { _ => buf.get() }
