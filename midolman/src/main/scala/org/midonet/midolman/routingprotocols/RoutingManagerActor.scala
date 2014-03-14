@@ -17,12 +17,16 @@ import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.routingprotocols.RoutingHandler.PortActive
+import org.midonet.midolman.routingprotocols.RoutingManagerActor.{BgpStatus, ShowBgp}
 import org.midonet.midolman.state.ZkConnectionAwareWatcher
 import org.midonet.util.eventloop.SelectLoop
 import org.midonet.util.functors.Callback2
 
 object RoutingManagerActor extends Referenceable {
     override val Name = "RoutingManager"
+
+    case class ShowBgp(port : UUID, cmd : String)
+    case class BgpStatus(status : Array[String])
 }
 
 class RoutingManagerActor extends Actor with ActorLogWithoutPath {
@@ -140,6 +144,14 @@ class RoutingManagerActor extends Actor with ActorLogWithoutPath {
 
         case port: Port =>
             log.warning("Port type {} not supported to handle routing protocols.", port.getClass)
+
+        case ShowBgp(portID : UUID, cmd : String) =>
+            portHandlers.get(portID) match {
+              case Some(handler) =>
+                handler forward RoutingHandler.BGPD_SHOW(cmd)
+              case None =>
+                sender ! BgpStatus(Array[String](s"No BGP handler is on $portID"))
+            }
 
         case _ => log.error("Unknown message.")
     }
