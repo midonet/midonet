@@ -10,7 +10,7 @@ import org.midonet.packets.IPv4Addr
 
 class VIP (val id: UUID, val adminStateUp: Boolean, val poolId: UUID,
            val address: IPv4Addr, val protocolPort:Int,
-           val sessionPersistence: String) {
+           val isStickySourceIP: Boolean, val stickyTimeoutSeconds: Int) {
 
     def matches(pktContext: PacketContext) = {
         val pktMatch = pktContext.origMatch

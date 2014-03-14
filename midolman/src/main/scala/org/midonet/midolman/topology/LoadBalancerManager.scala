@@ -27,7 +27,9 @@ object LoadBalancerManager {
             dataVip.getPoolId,
             IPv4Addr(dataVip.getAddress),
             dataVip.getProtocolPort,
-            dataVip.getSessionPersistence)
+            dataVip.getSessionPersistence == VIP.VIP_SOURCE_IP,
+            VIP.VIP_STICKY_TIMEOUT_SECONDS
+        )
 }
 
 class LoadBalancerManager(val id: UUID, val clusterClient: Client) extends Actor

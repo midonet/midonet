@@ -38,6 +38,15 @@ public class MockNatMapping implements NatMapping {
     public NwTpPair allocateDnat(byte protocol,
                                  IPAddr nwSrc, int tpSrc, IPAddr oldNwDst,
                                  int oldTpDst, Set<NatTarget> nats) {
+        return allocateDnat(protocol, nwSrc, tpSrc, oldNwDst, oldTpDst,
+                            nats, 0);
+    }
+
+    @Override
+    public NwTpPair allocateDnat(byte protocol,
+                                 IPAddr nwSrc, int tpSrc, IPAddr oldNwDst,
+                                 int oldTpDst, Set<NatTarget> nats,
+                                 int expirationSeconds) {
         // In this mock, just use the first nat target.
         NatTarget nat = nats.iterator().next();
         // TODO (ipv6) no idea why we need that cast
@@ -57,6 +66,14 @@ public class MockNatMapping implements NatMapping {
                                   IPAddr oldNwDst, int oldTpDst) {
         return dnatFwdMap.get(new PacketSignature(
                                 protocol, nwSrc, tpSrc, oldNwDst, oldTpDst));
+    }
+
+    @Override
+    public NwTpPair lookupDnatFwd(byte protocol, IPAddr nwSrc, int tpSrc,
+                                  IPAddr oldNwDst, int oldTpDst,
+                                  int expirationSeconds) {
+        return dnatFwdMap.get(new PacketSignature(
+                protocol, nwSrc, tpSrc, oldNwDst, oldTpDst));
     }
 
     @Override

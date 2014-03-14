@@ -52,12 +52,12 @@ public class ForwardStickyNatRule extends ForwardNatRule {
 
         conn = natMapping.lookupDnatFwd(tp.proto,
                 tp.nwSrc, WILDCARD_PORT,
-                tp.nwDst, tp.tpDst);
+                tp.nwDst, tp.tpDst, stickyIPTimeout);
 
         if (null == conn) {
             conn = natMapping.allocateDnat(tp.proto,
                     tp.nwSrc, WILDCARD_PORT,
-                    tp.nwDst, tp.tpDst, targets);
+                    tp.nwDst, tp.tpDst, targets, stickyIPTimeout);
         } else {
             log.debug("Found existing sticky forward DNAT {}:{} for flow from "
                     + "{}:{} to {}:{}, protocol {}", new Object[] {

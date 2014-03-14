@@ -11,7 +11,7 @@ import org.junit.runner.RunWith
 import org.midonet.midolman.MidolmanTestCase
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.l4lb.VIP.VIP_SOURCE_IP
+import org.midonet.cluster.data.l4lb
 import org.midonet.packets.IPv4Addr
 import org.midonet.sdn.flows.WildcardMatch
 
@@ -56,9 +56,9 @@ object VIPTest {
                   protocolPort: Int): VIP = {
         val vipId = UUID.randomUUID()
         val poolId = UUID.randomUUID()
-        val sessionPersistence = VIP_SOURCE_IP
 
         new VIP(vipId, adminStateUp, poolId,address,
-            protocolPort, sessionPersistence)
+            protocolPort, isStickySourceIP = true,
+            l4lb.VIP.VIP_STICKY_TIMEOUT_SECONDS)
     }
 }
