@@ -39,6 +39,11 @@ public class ZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
     MidolmanConfig config;
 
     @Override
+    public ZkConnection getZkConnection() {
+        return conn;
+    }
+
+    @Override
     public void setZkConnection(ZkConnection conn) {
         this.conn = conn;
         this.reconnectCallbacks = new LinkedList<Runnable>();
