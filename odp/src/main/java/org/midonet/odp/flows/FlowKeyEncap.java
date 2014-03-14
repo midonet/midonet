@@ -79,9 +79,7 @@ public class FlowKeyEncap implements FlowKey {
 
     @Override
     public String toString() {
-        return "FlowKeyEncap{" +
-            "keys=" + keys +
-            '}';
+        return "FlowKeyEncap{keys=" + keys + '}';
     }
 
     public Iterable<FlowKey> getKeys() {

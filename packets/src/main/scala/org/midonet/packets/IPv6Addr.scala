@@ -22,16 +22,22 @@ class IPv6Addr(val upperWord: Long, val lowerWord: Long) extends IPAddr
 
     type T = IPv6Addr
 
+    private var sAddr: String = null // allow lazy init
+
     @JsonValue
     override def toString = {
-        "%x:%x:%x:%x:%x:%x:%x:%x" format ((upperWord >> 48) & 0xffff,
-                                          (upperWord >> 32) & 0xffff,
-                                          (upperWord >> 16) & 0xffff,
-                                          (upperWord >> 0) & 0xffff,
-                                          (lowerWord >> 48) & 0xffff,
-                                          (lowerWord >> 32) & 0xffff,
-                                          (lowerWord >> 16) & 0xffff,
-                                          (lowerWord >> 0) & 0xffff)
+        if (sAddr == null) {
+            sAddr = "%x:%x:%x:%x:%x:%x:%x:%x" format (
+                      (upperWord >> 48) & 0xffff,
+                      (upperWord >> 32) & 0xffff,
+                      (upperWord >> 16) & 0xffff,
+                      (upperWord >> 0) & 0xffff,
+                      (lowerWord >> 48) & 0xffff,
+                      (lowerWord >> 32) & 0xffff,
+                      (lowerWord >> 16) & 0xffff,
+                      (lowerWord >> 0) & 0xffff)
+        }
+        sAddr
     }
 
     override def toUrlString = '[' + toString() + ']'

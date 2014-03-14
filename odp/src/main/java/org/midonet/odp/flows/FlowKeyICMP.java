@@ -67,8 +67,8 @@ public class FlowKeyICMP implements FlowKey {
 
     @Override
     public String toString() {
-        return String.format("FlowKeyICMP{icmp_type=0x%X, icmp_code=%d}",
-                             icmp_type, icmp_code);
+        return "FlowKeyICMP{icmp_type=0x"+Integer.toHexString(icmp_type) +
+                         ", icmp_code=" + icmp_code + "}";
     }
 
     public byte getType() {

@@ -43,15 +43,14 @@ public class FlowKeyICMPError extends FlowKeyICMP
 
     @Override
     public String toString() {
-        return String.format(
-            "FlowKeyICMPError{icmp_type=0x%X, icmp_code=%d, icmp_data=%s}",
-                             icmp_type, icmp_code, Arrays.toString(icmp_data));
+        return "FlowKeyICMPError{icmp_type=0x" + Integer.toHexString(icmp_type)
+             + ", icmp_code=" + icmp_code
+             + ", icmp_data=" + Arrays.toString(icmp_data) + "}";
     }
 
     public byte[] getIcmpData() {
-        return (icmp_data == null)
-            ? null
-            :  Arrays.copyOf(icmp_data, icmp_data.length);
+        return (icmp_data == null) ? null
+                                   : Arrays.copyOf(icmp_data, icmp_data.length);
     }
 
     @Override

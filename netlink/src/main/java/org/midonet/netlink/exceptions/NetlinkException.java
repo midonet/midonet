@@ -94,7 +94,7 @@ public class NetlinkException extends Exception {
 
     private static String format(int errorCode, String message) {
         if (message != null)
-            return String.format("[%d] %s", errorCode, message);
+            return "[" + errorCode + "] " + message;
 
         return "error code: " + errorCode;
     }

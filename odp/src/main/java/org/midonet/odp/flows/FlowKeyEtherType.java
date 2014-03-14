@@ -98,6 +98,7 @@ public class FlowKeyEtherType implements FlowKey {
 
     @Override
     public String toString() {
-        return String.format("FlowKeyEtherType{etherType=0x%X}", etherType);
+        return "FlowKeyEtherType{etherType=0x"
+               + Integer.toHexString(etherType) + "}";
     }
 }
