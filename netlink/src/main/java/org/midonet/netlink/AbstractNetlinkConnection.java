@@ -549,11 +549,15 @@ public abstract class AbstractNetlinkConnection {
         };
     }
 
-    protected Builder newMessage() {
+    protected ByteBuffer getBuffer() {
         ByteBuffer buf = requestPool.take();
         buf.order(ByteOrder.nativeOrder());
         buf.clear();
         buf.position(NETLINK_HEADER_LEN);
-        return NetlinkMessage.newMessageBuilder(buf);
+        return buf;
+    }
+
+    protected Builder newMessage() {
+        return new Builder(getBuffer());
     }
 }
