@@ -18,7 +18,7 @@ import org.midonet.midolman.monitoring.config.MonitoringConfiguration;
 @ConfigGroup(MidolmanConfig.GROUP_NAME)
 public interface MidolmanConfig
     extends ZookeeperConfig, CassandraConfig, DatapathConfig,
-            ArpTableConfig, MonitoringConfiguration
+            ArpTableConfig, MonitoringConfiguration, HealthMonitorConfig
 {
     public final static String GROUP_NAME = "midolman";
 

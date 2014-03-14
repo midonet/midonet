@@ -46,7 +46,9 @@ import org.midonet.midolman.guice.datapath.MockDatapathModule
 import org.midonet.midolman.guice.reactor.MockReactorModule
 import org.midonet.midolman.guice.serialization.SerializationModule
 import org.midonet.midolman.guice.zookeeper.MockZookeeperConnectionModule
+import org.midonet.midolman.host.config.HostConfig
 import org.midonet.midolman.host.interfaces.InterfaceDescription
+import org.midonet.midolman.host.guice.HostConfigProvider
 import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.layer4.NatMappingFactory
 import org.midonet.midolman.monitoring.{MonitoringActor, MonitoringAgent}
@@ -246,6 +248,11 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
                     bind(classOf[InterfaceScanner])
                         .to(classOf[MockInterfaceScanner]).asEagerSingleton()
                     expose(classOf[InterfaceScanner])
+
+                    bind(classOf[HostConfig])
+                        .toProvider(classOf[HostConfigProvider])
+                        .asEagerSingleton
+                    expose(classOf[HostConfig])
                 }
             }
         )

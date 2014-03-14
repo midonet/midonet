@@ -11,23 +11,24 @@ import java.nio.channels.IllegalSelectorException
 import java.nio.channels.spi.SelectorProvider
 import java.util.UUID
 
+import org.midonet.cluster.DataClient
+import org.midonet.cluster.data.ports.RouterPort
+import org.midonet.cluster.data.Route
 import org.midonet.midolman.l4lb.HaproxyHealthMonitor._
 import org.midonet.midolman.l4lb.HaproxyHealthMonitor.CheckHealth
 import org.midonet.midolman.l4lb.HaproxyHealthMonitor.ConfigUpdate
+import org.midonet.midolman.layer3.Route.NextHop.PORT
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.routingprotocols.IP
+import org.midonet.midolman.state.PoolMemberStatus
+import org.midonet.midolman.state.PoolMemberStatus.{DOWN => MemberDown}
+import org.midonet.midolman.state.PoolMemberStatus.{UP => MemberUp}
 import org.midonet.netlink.{AfUnix, NetlinkSelectorProvider, UnixDomainChannel}
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable.HashSet
 import scala.collection.mutable.Set
 import scala.concurrent.duration._
-import org.midonet.cluster.DataClient
-import org.midonet.cluster.data.Route
-import org.midonet.cluster.data.ports.RouterPort
-import org.midonet.midolman.state.PoolMemberStatus
-import org.midonet.midolman.state.PoolMemberStatus.{UP => MemberUp}
-import org.midonet.midolman.state.PoolMemberStatus.{DOWN => MemberDown}
 
 
 /**
@@ -43,12 +44,7 @@ object HaproxyHealthMonitor {
                   new HaproxyHealthMonitor(config, manager, routerId, client,
                                            hostId))
 
-
     sealed trait HHMMessage
-    // Tells this actor to start polling haproxy for aliveness.
-    case object StartMonitor extends HHMMessage
-    // Tells this actor to stop polling haproxy.
-    case object StopMonitor extends HHMMessage
     // This is a way of alerting the manager that setup has failed
     case object SetupFailure extends HHMMessage
     // This is a way of alerting the manager that it was unable to get
@@ -85,10 +81,10 @@ class HaproxyHealthMonitor(var config: PoolConfig,
     implicit def system: ActorSystem = context.system
     implicit def executor = system.dispatcher
 
-    private var pollingActive = false
     private var currentUpNodes = Set[UUID]()
     private var currentDownNodes = Set[UUID]()
-    private val healthMonitorName = config.id.toString.substring(0,8)
+    private val healthMonitorName = config.id.toString.substring(0,8) +
+                                    config.nsPostFix
     private var routerPortId: UUID = null
 
     override def preStart(): Unit = {
@@ -98,6 +94,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
             hookNamespaceToRouter(nsName, routerId)
             restartHaproxy(healthMonitorName, config.haproxyConfFileLoc,
                            config.haproxyPidFileLoc)
+            system.scheduler.scheduleOnce(1 second, self, CheckHealth)
         } catch {
             case e: Exception =>
                 log.error("Unable to create Health Monitor for " +
@@ -108,16 +105,12 @@ class HaproxyHealthMonitor(var config: PoolConfig,
 
     override def postStop(): Unit = {
         unhookNamespaceFromRouter()
-        removeNamespace(healthMonitorName)
+        HealthMonitor.cleanAndDeleteNamespace(healthMonitorName,
+                                              config.nsPostFix,
+                                              config.l4lbFileLocs)
     }
 
     def receive = {
-        case StartMonitor =>
-            system.scheduler.scheduleOnce(1 second, self, CheckHealth)
-            pollingActive = true
-
-        case StopMonitor => pollingActive = false
-
         case ConfigUpdate(conf) =>
             config = conf
             try {
@@ -144,7 +137,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
                     if (member == null) {
                         log.error("pool member " + id.toString +
                                   " not in database")
-                        return Unit
+                        return
                     }
                     member.setStatus(status)
                     client.poolMemberUpdate(member)
@@ -160,9 +153,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
                               + config.haproxySockFileLoc)
                     manager ! SockReadFailure
             }
-            if (pollingActive) {
-                system.scheduler.scheduleOnce(1 second, self, CheckHealth)
-            }
+            system.scheduler.scheduleOnce(1 second, self, CheckHealth)
     }
 
     /*
@@ -188,11 +179,19 @@ class HaproxyHealthMonitor(var config: PoolConfig,
             entry(NamePos) != Frontend &&
             entry(NamePos) != FieldName
 
-        def isUp(entry: Array[String]): Boolean =
-            isMemberEntry(entry) && entry(StatusPos) == StatusUp
+        def isUp(entry: Array[String]): Boolean = {
+            if (isMemberEntry(entry))
+                entry(StatusPos) == StatusUp
+            else
+                false
+        }
 
-        def isDown(entry: Array[String]): Boolean =
-            isMemberEntry(entry) && entry(StatusPos) == StatusDown
+        def isDown(entry: Array[String]): Boolean = {
+            if (isMemberEntry(entry))
+                entry(StatusPos) == StatusDown
+            else
+                false
+        }
 
         val entries = resp split "\n" map (_.split(","))
         entries foreach {
@@ -200,6 +199,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
                 upNodes add UUID.fromString(entry(NamePos))
             case entry if isDown(entry) =>
                 downNodes add UUID.fromString(entry(NamePos))
+            case _ => // Nothing we care about
         }
         (upNodes, downNodes)
     }
@@ -252,49 +252,19 @@ class HaproxyHealthMonitor(var config: PoolConfig,
             IP.link("set " + dp + " up")
             IP.link("set " + ns + " netns " + name)
             IP.execIn(name, "ip link set " + ns + " up")
-            IP.execIn(name, "ip address add " + ip + "/24 dev " + ns)
+            IP.execIn(name, "ip address add " + NameSpaceIp + "/24 dev " + ns)
             IP.execIn(name, "ifconfig lo up")
+            IP.execIn(name, "route add default gateway " + RouterIp + " " +
+                            ns)
             IP.execIn(name, iptablePre)
             IP.execIn(name, iptablePost)
         } catch {
             case e: Exception =>
-                removeNamespace(name)
+                HealthMonitor.cleanAndDeleteNamespace(name, config.nsPostFix,
+                                                      config.l4lbFileLocs)
                 throw e
         }
         dp
-    }
-
-    def removeNamespace(name: String): Unit = {
-        if (IP.namespaceExist(name)) {
-            val ns = name + "_ns"
-            if (IP.interfaceExistsInNs(name, ns)) {
-                IP.execIn(name, "ip link delete " + ns)
-            }
-            if (haproxyIsRunning()) {
-                killHaproxy()
-            }
-            IP.deleteNS(name)
-        }
-    }
-
-    def pidMatchesWithArgs(pid: Int): Boolean = {
-        val filePath = "/proc/" + pid + "/cmdline"
-        val file = new File(filePath)
-        if (!file.exists()) return false
-        val fileReader = new FileReader(filePath)
-        val bufReader = new BufferedReader(fileReader)
-        var pidString = bufReader.readLine()
-        pidString = pidString.replace('\0', ' ')
-        pidString.contains(haproxyCommandLineWithoutPid)
-    }
-
-    def haproxyIsRunning(): Boolean = {
-        val pid = haproxyPid()
-        if (pid != -1) {
-            pidMatchesWithArgs(pid)
-        } else {
-            false
-        }
     }
 
     def haproxyCommandLineWithoutPid = "haproxy -f " +
@@ -302,55 +272,9 @@ class HaproxyHealthMonitor(var config: PoolConfig,
 
 
     def haproxyCommandLine(): String = {
-        if (haproxyPid() != -1)
-            haproxyCommandLineWithoutPid + " -sf " + haproxyPid().toString
-        else
-            haproxyCommandLineWithoutPid
-    }
-
-    def killHaproxy(): Unit = {
-        val pid = haproxyPid()
-        if (pid != -1) {
-            // sanity check. The pid needs to exist and match up with the
-            // command line.
-            if (pidMatchesWithArgs(pid)) {
-                IP.execIn(healthMonitorName, "kill -15 " + pid)
-                if (!pidMatchesWithArgs(pid))
-                    return
-                Thread.sleep(200)
-                if (!pidMatchesWithArgs(pid))
-                    return
-                Thread.sleep(5000)
-                if (!pidMatchesWithArgs(pid))
-                    return
-                IP.execIn(healthMonitorName, "kill -9" + pid)
-                Thread.sleep(200)
-                if (!pidMatchesWithArgs(pid))
-                    return
-                log.error("Unable to kill haproxy process " + pid)
-            } else {
-                log.error("pid " + pid + " does not match up with contents " +
-                          " of " + config.haproxyPidFileLoc)
-            }
-        }
-    }
-
-    // we keep the pid of haproxy in the pid file, so just dump that file.
-    def haproxyPid(): Int = {
-        try {
-            val fileReader = new FileReader(config.haproxyPidFileLoc)
-            val bufReader = new BufferedReader(fileReader)
-            val pidString = bufReader.readLine()
-            pidString.toInt
-        } catch {
-            case ioe: IOException =>
-                log.error("Unable to get pid info from " +
-                          config.haproxyPidFileLoc)
-                -1
-            case nfe: NumberFormatException =>
-                log.error("The pid in " + config.haproxyPidFileLoc +
-                          " is malformed")
-                -1
+        HealthMonitor.getHaproxyPid(config.haproxyPidFileLoc) match {
+            case Some(pid) => haproxyCommandLineWithoutPid + " -sf " + pid
+            case None => haproxyCommandLineWithoutPid
         }
     }
 
@@ -359,7 +283,11 @@ class HaproxyHealthMonitor(var config: PoolConfig,
      */
     def restartHaproxy(name: String, confFileLoc: String,
                        pidFileLoc: String) {
-        killHaproxy()
+        HealthMonitor.getHaproxyPid(pidFileLoc) match {
+            case Some(pid) =>
+                HealthMonitor.killHaproxy(name, pid, pidFileLoc, confFileLoc)
+            case None =>
+        }
         IP.execIn(name, haproxyCommandLine())
     }
 
@@ -423,16 +351,18 @@ class HaproxyHealthMonitor(var config: PoolConfig,
             portId = client.portsCreate(routerPort)
         }
 
-        // Add a route to this port for the VIP. Make it ephermeral because
+        // Add a route to this port for the VIP. Make it ephemeral because
         // if this node goes down then this port the traffic gets routed to
         // is no longer valid.
         val route = new Route()
         route.setRouterId(routerId)
+        route.setNextHop(PORT)
         route.setNextHopPort(portId)
         route.setSrcNetworkAddr("0.0.0.0")
         route.setSrcNetworkLength(0)
         route.setDstNetworkAddr(config.vip.ip)
         route.setDstNetworkLength(32)
+        route.setNextHopGateway(NameSpaceIp)
         route.setWeight(100)
         client.routesCreateEphemeral(route)
 
