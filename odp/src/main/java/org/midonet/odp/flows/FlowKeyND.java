@@ -91,14 +91,13 @@ public class FlowKeyND implements FlowKey {
 
     @Override
     public String toString() {
-        return "FlowKeyND{" +
-            "nd_target=" +
+        return "FlowKeyND{nd_target=" +
                 (nd_target == null ?
                     "null" : Net.convertIPv6BytesToString(nd_target)) +
-            ", nd_sll=" +
-                (nd_sll == null ? "null" : MAC.bytesToString(nd_sll)) +
-            ", nd_tll=" +
-                (nd_tll == null ? "null" : MAC.bytesToString(nd_tll)) +
-            '}';
+                ", nd_sll=" +
+                    (nd_sll == null ? "null" : MAC.bytesToString(nd_sll)) +
+                ", nd_tll=" +
+                    (nd_tll == null ? "null" : MAC.bytesToString(nd_tll)) +
+                '}';
     }
 }

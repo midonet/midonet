@@ -77,8 +77,6 @@ public class FlowActionSetKey implements FlowAction {
 
     @Override
     public String toString() {
-        return "FlowActionSetKey{" +
-            "flowKey=" + flowKey +
-            '}';
+        return "FlowActionSetKey{flowKey=" + flowKey + '}';
     }
 }

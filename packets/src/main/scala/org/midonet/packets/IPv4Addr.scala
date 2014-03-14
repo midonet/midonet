@@ -17,10 +17,17 @@ import org.codehaus.jackson.annotate.JsonCreator;
 class IPv4Addr(val addr: Int) extends IPAddr with Ordered[IPv4Addr] {
     type T = IPv4Addr
 
+    private var sAddr: String = null // not val to allow lazy init
+
     override def toUrlString = toString()
 
     @JsonValue
-    override def toString = IPv4Addr.intToString(addr)
+    override def toString = {
+        if (sAddr == null) {
+            sAddr = IPv4Addr.intToString(addr)
+        }
+        sAddr
+    }
 
     // See "Programming in Scala" sec. 30.4
     override def equals(o: Any): Boolean = {
@@ -78,10 +85,10 @@ object IPv4Addr {
     def fromIPv4(ipv4: IPv4Addr) = ipv4
 
     def intToString(addr: Int) =
-        "%d.%d.%d.%d" format ((addr >> 24) & 0xff,
-                              (addr >> 16) & 0xff,
-                              (addr >> 8) & 0xff,
-                              (addr >> 0) & 0xff)
+            "%d.%d.%d.%d" format ((addr >> 24) & 0xff,
+                                  (addr >> 16) & 0xff,
+                                  (addr >> 8) & 0xff,
+                                  (addr >> 0) & 0xff)
 
     def intToBytes(addr: Int) = {
         val addrBytes = new Array[Byte](4)
