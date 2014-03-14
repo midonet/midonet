@@ -51,6 +51,10 @@ public class Condition extends BaseConfig {
     public boolean tpSrcInv;
     public boolean tpDstInv;
 
+    // In production, this should always be initialized via the API, but there
+    // are a bunch of tests that bypass the API and create conditions directly.
+    public FragmentPolicy fragmentPolicy = FragmentPolicy.UNFRAGMENTED;
+
     // These are needed for simulation, but derived from information
     // stored elsewhere in Zookeeper, hence transient.
     public transient IPAddrGroup ipAddrGroupSrc;
@@ -95,8 +99,15 @@ public class Condition extends BaseConfig {
     // Default constructor for the Jackson deserialization.
     public Condition() { super(); }
 
-    public boolean matches(ChainPacketContext fwdInfo, WildcardMatch pktMatch,
+    public boolean matches(ChainPacketContext fwdInfo,
+                           WildcardMatch pktMatch,
                            boolean isPortFilter) {
+
+        // Matching on fragmentPolicy is unaffected by conjunctionInv,
+        // so that gets tested separately.
+        if (!fragmentPolicy.accepts(pktMatch.getIpFragmentType()))
+            return false;
+
         /*
          * Given a packet P and a subCondition x, 'xInv x(P)' is true
          * iff either:
@@ -210,8 +221,6 @@ public class Condition extends BaseConfig {
         return range == null ||
                 negate ^ (null == pktField || range.isInside(pktField));
     }
-
-
 
     @Override
     public String toString() {

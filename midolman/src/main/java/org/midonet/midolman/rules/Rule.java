@@ -92,7 +92,6 @@ public abstract class Rule {
     protected abstract void apply(ChainPacketContext fwdInfo,
                                   RuleResult res, NatMapping natMapping);
 
-
     public Map<String, String> getProperties() {
         return properties;
     }
@@ -124,7 +123,6 @@ public abstract class Rule {
             return action.equals(r.action);
         }
     }
-
 
     @Override
     public String toString() {

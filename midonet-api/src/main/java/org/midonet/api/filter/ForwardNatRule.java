@@ -6,9 +6,16 @@ package org.midonet.api.filter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
+import org.midonet.api.rest_api.BadRequestHttpException;
+import org.midonet.api.validation.MessageProperty;
+import org.midonet.midolman.rules.FragmentPolicy;
 import org.midonet.packets.IPv4Addr;
+
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 
 /**
@@ -16,6 +23,8 @@ import org.midonet.packets.IPv4Addr;
  */
 public abstract class ForwardNatRule extends NatRule {
 
+    @NotNull
+    @Size(min = 1)
     protected NatTarget[] natTargets = {};
 
     public ForwardNatRule() {
@@ -75,8 +84,38 @@ public abstract class ForwardNatRule extends NatRule {
         return targets;
     }
 
+    @Override
+    public FragmentPolicy getAndValidateFragmentPolicy() {
+        boolean unfragmentedOnly = !isFloatingIp() || hasL4Fields();
+        if (getFragmentPolicy() == null) {
+            return unfragmentedOnly ?
+                    FragmentPolicy.UNFRAGMENTED : FragmentPolicy.ANY;
+        }
+
+        FragmentPolicy fp =
+                FragmentPolicy.valueOf(getFragmentPolicy().toUpperCase());
+        if (unfragmentedOnly && fp != FragmentPolicy.UNFRAGMENTED) {
+            throw new BadRequestHttpException(MessageProperty.getMessage(
+                    MessageProperty.FRAG_POLICY_INVALID_FOR_NAT_RULE));
+        }
+
+        return fp;
+    }
+
+    protected boolean isFloatingIp() {
+        return natTargets != null && natTargets.length == 1 &&
+                Objects.equals(natTargets[0].addressFrom,
+                               natTargets[0].addressTo) &&
+                natTargets[0].portFrom == 0 && natTargets[0].portTo == 0;
+    }
+
     public static class NatTarget {
-        public String addressFrom, addressTo;
+        @NotNull
+        public String addressFrom;
+
+        @NotNull
+        public String addressTo;
+
         public int portFrom, portTo;
 
         public NatTarget() {

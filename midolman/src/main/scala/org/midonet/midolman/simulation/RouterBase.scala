@@ -20,6 +20,7 @@ import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.midolman.topology.{FlowTagger, RoutingTableWrapper, TagManager, RouterConfig}
 import org.midonet.packets.{MAC, Unsigned, Ethernet, IPAddr}
 import org.midonet.sdn.flows.WildcardMatch
+import org.midonet.odp.flows.IPFragmentType
 
 /**
  * Defines the base Router device that is meant to be extended with specific
@@ -78,7 +79,7 @@ abstract class RouterBase[IP <: IPAddr]()
             return Ready(unsupportedPacketAction)
         }
 
-        val r = getRouterPort(pktContext.inPortId, pktContext.expiry) flatMap {
+        getRouterPort(pktContext.inPortId, pktContext.expiry) flatMap {
             case inPort if !cfg.adminStateUp =>
                 log.debug("Router {} state is down, DROP", id)
                 sendAnswer(inPort.id, icmpErrors.unreachableProhibitedIcmp(
@@ -88,20 +89,26 @@ abstract class RouterBase[IP <: IPAddr]()
             case inPort =>
                 preRouting(inPort)
         }
-
-        r
-
     }
 
     private def handlePreRoutingResult(preRoutingResult: RuleResult,
                                        inPort: RouterPort)
                                       (implicit ec: ExecutionContext,
-                                               pktContext: PacketContext)
+                                                pktContext: PacketContext)
     : Option[Action] = {
         preRoutingResult.action match {
             case RuleResult.Action.ACCEPT => // pass through
             case RuleResult.Action.DROP =>
-                return Some(DropAction)
+                // For header fragments only, we should send an ICMP_FRAG_NEEDED
+                // response and install a temporary drop flow so that the sender
+                // will continue to receive these responses occasionally. We can
+                // silently drop nonheader fragments and unfragmented packets.
+                if (pktContext.wcmatch.getIpFragmentType != IPFragmentType.First)
+                    return Some(DropAction)
+
+                sendAnswer(inPort.id, icmpErrors.unreachableFragNeededIcmp(
+                    inPort, pktContext.wcmatch, pktContext.frame))
+                return Some(TemporaryDropAction)
             case RuleResult.Action.REJECT =>
                 sendAnswer(inPort.id, icmpErrors.unreachableProhibitedIcmp(
                     inPort, pktContext.wcmatch, pktContext.frame))

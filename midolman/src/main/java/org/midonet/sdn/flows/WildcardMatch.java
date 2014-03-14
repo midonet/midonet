@@ -486,6 +486,11 @@ public class WildcardMatch implements Cloneable {
         return ipFragmentType;
     }
 
+    public boolean isFragmented() {
+        IPFragmentType type = getIpFragmentType();
+        return type == IPFragmentType.First || type == IPFragmentType.Later;
+    }
+
     @Nonnull
     public WildcardMatch setTransportSource(int transportSource) {
         TCP.ensurePortInRange(transportSource);
