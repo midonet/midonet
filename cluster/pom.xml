@@ -35,9 +35,50 @@
         </profile>
     </profiles>
 
-    <dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.5</source>
+                    <target>1.5</target>
+                </configuration>
+            </plugin>
 
-         <dependency>
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>generate-sources</id>
+                        <phase>generate-sources</phase>
+                        <configuration>
+                            <tasks>
+                                <mkdir dir="target/generated-sources"/>
+                                <mkdir dir="build/tmp/proto"/>
+                                <copy todir="build/tmp/proto">
+                                    <fileset dir="src/main/proto"/>
+                                </copy>
+                                <exec executable="protoc" dir="build/tmp/proto">
+                                    <arg value="--java_out=../../../target/generated-sources"/>
+                                    <arg value="commons.proto"/>
+                                    <arg value="devices.proto"/>
+                                </exec>
+                                <delete dir="build/tmp/proto"/>
+                            </tasks>
+                            <sourceRoot>target/generated-sources</sourceRoot>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>midonet-util</artifactId>
         </dependency>
@@ -74,5 +115,12 @@
             <artifactId>JUnitParams</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+            <version>2.5.0</version>
+        </dependency>
     </dependencies>
+
 </project>
