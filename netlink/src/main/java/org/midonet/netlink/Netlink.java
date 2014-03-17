@@ -52,8 +52,9 @@ public abstract class Netlink {
         NLM_F_MATCH(0x200),
         // Return an atomic snapshot of the table.
         NLM_F_ATOMIC(0x400),
-        //  Convenience macro;
-        NLM_F_DUMP(0x200 | 0x400),
+        //  logical or of NLM_F_ROOT and NLM_F_MATCH,
+        //  see include/uapi/lpinux/netlink.h in linux kernel
+        NLM_F_DUMP(0x100 | 0x200),
 
         // for NEW
         // Replace existing matching object.
