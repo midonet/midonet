@@ -185,9 +185,6 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
     private def addTranslatedFlow(wildFlow: WildcardFlow,
                                   tags: ROSet[Any],
                                   removalCallbacks: ROSet[Callback0]) {
-
-        packet.releaseToken()
-
         if (areTagsValid(tags))
             handleValidFlow(wildFlow, tags, removalCallbacks)
         else
@@ -286,9 +283,6 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
 
     def handleWildcardTableMatch(wildFlow: WildcardFlow) {
         log.debug("Packet {} matched a wildcard flow", cookieStr)
-
-        packet.releaseToken()
-
         if (packet.getMatch.isUserSpaceOnly) {
             log.debug("Won't add flow with userspace match {}", packet.getMatch)
             DeduplicationActor ! ApplyFlow(wildFlow.getActions, cookie)

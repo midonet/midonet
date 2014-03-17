@@ -64,13 +64,6 @@ public interface MidolmanConfig
     @ConfigInt(key = "idle_flow_tolerance_interval", defaultValue = 10000)
     public int getIdleFlowToleranceInterval();
 
-
-    @ConfigInt(key = "simulation_throttling_low_water_mark", defaultValue = 32)
-    public int getSimulationThrottlingLowWaterMark();
-
-    @ConfigInt(key = "simulation_throttling_high_water_mark", defaultValue = 64)
-    public int getSimulationThrottlingHighWaterMark();
-
     @ConfigGroup("bridge")
     @ConfigInt(key = "mac_port_mapping_expire_millis", defaultValue = 30000)
     public int getMacPortMappingExpireMillis();

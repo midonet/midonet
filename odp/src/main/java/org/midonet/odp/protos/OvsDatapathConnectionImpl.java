@@ -39,8 +39,6 @@ import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.functors.Callbacks;
 import org.midonet.util.functors.ComposingCallback;
 import org.midonet.util.functors.Functor;
-import org.midonet.util.throttling.ThrottlingGuard;
-import org.midonet.util.throttling.ThrottlingGuardFactory;
 import static org.midonet.netlink.Netlink.Flag;
 import static org.midonet.odp.family.FlowFamily.AttrKey;
 
@@ -57,9 +55,9 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         OpenVSwitch.Port.fallbackMCGroup;
 
     public OvsDatapathConnectionImpl(NetlinkChannel channel, Reactor reactor,
-            ThrottlingGuard upcallThrottler, BufferPool sendPool)
+            BufferPool sendPool)
         throws Exception {
-        super(channel, reactor, upcallThrottler, sendPool);
+        super(channel, reactor, sendPool);
     }
 
     @Override
@@ -87,7 +85,6 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                 } else {
                     packet.setReason(Packet.Reason.FlowTableMiss);
                 }
-                packet.holdTokenTakenFrom(upcallThrottler);
 
                 notificationHandler.submit(packet);
             }
