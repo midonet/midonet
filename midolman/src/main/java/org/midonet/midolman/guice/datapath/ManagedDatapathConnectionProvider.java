@@ -9,40 +9,37 @@ import com.google.inject.Provider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.netlink.BufferPool;
-import org.midonet.netlink.Netlink;
-import org.midonet.odp.protos.OvsDatapathConnection;
+import org.midonet.midolman.config.MidolmanConfig;
+import org.midonet.midolman.io.DualSelectorDatapathConnection;
+import org.midonet.midolman.io.ManagedDatapathConnection;
 import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.throttling.ThrottlingGuard;
-import org.midonet.util.throttling.ThrottlingGuardFactory;
-
 
 /**
  * This will create a OvsDatapathConnection which is already connected to the
  * local netlink kernel module.
  */
-public class OvsDatapathConnectionProvider implements
-                                           Provider<OvsDatapathConnection> {
+public class ManagedDatapathConnectionProvider implements
+                                           Provider<ManagedDatapathConnection> {
 
     private static final Logger log = LoggerFactory
-        .getLogger(OvsDatapathConnectionProvider.class);
+        .getLogger(ManagedDatapathConnectionProvider.class);
 
     @Inject
     Reactor reactor;
 
     @Inject
-    @DatapathModule.SIMULATION_THROTTLING_GUARD
-    ThrottlingGuard simulationThrottler;
+    MidolmanConfig config;
 
     @Inject
-    @DatapathModule.NETLINK_SEND_BUFFER_POOL
-    BufferPool netlinkSendPool;
+    @DatapathModule.SIMULATION_THROTTLING_GUARD
+    ThrottlingGuard throttler;
 
     @Override
-    public OvsDatapathConnection get() {
+    public ManagedDatapathConnection get() {
         try {
-            return OvsDatapathConnection.create(new Netlink.Address(0),
-                reactor, simulationThrottler, netlinkSendPool);
+            return new DualSelectorDatapathConnection(
+                "datapath", reactor, throttler, config, true);
         } catch (Exception e) {
             log.error("Error creating OvsDatapathConnection");
             throw new RuntimeException(e);

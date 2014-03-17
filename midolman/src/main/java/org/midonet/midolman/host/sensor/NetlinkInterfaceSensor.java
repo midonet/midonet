@@ -5,7 +5,6 @@ package org.midonet.midolman.host.sensor;
 
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -14,8 +13,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.midolman.host.interfaces.InterfaceDescription;
+import org.midonet.midolman.guice.datapath.DatapathModule;
+import org.midonet.midolman.io.DatapathConnectionPool;
 import org.midonet.odp.DpPort;
-import org.midonet.odp.protos.OvsDatapathConnection;
 
 
 /**
@@ -30,7 +30,7 @@ public class NetlinkInterfaceSensor implements InterfaceSensor {
             NetlinkInterfaceSensor.class);
 
     @Inject
-    private OvsDatapathConnection datapathConnection;
+    private DatapathConnectionPool datapathConnPool;
 
     // Timeout value in milliseconds when accessing the datapath
     private static final long NETLINK_CONN_TIMEOUT =
@@ -92,7 +92,7 @@ public class NetlinkInterfaceSensor implements InterfaceSensor {
      */
     protected DpPort getDatapathPort(String portName)
         throws ExecutionException, TimeoutException, InterruptedException {
-            return datapathConnection.futures
+            return datapathConnPool.get(portName.hashCode()).futures
                 .portsGet(portName, null)  /* return Future<Port> */
                 .get(NETLINK_CONN_TIMEOUT, TimeUnit.MILLISECONDS);
     }
