@@ -17,7 +17,7 @@ import org.midonet.packets.Net;
 
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
-import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.*;
@@ -69,26 +69,23 @@ public class FlowKeyInterningTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void testInterningOfFlowKeys() throws Exception {
         final ReferenceQueue<FlowKey> rq = new ReferenceQueue<>();
-        final CountDownLatch latch = new CountDownLatch(flowKeys.size());
-        final WeakReference<FlowKey>[] wrs = (WeakReference<FlowKey>[])
-                        Array.newInstance(WeakReference.class, flowKeys.size());
+        final Phaser p = new Phaser(flowKeys.size());
+        final List<WeakReference<FlowKey>> wrs = new ArrayList<>(flowKeys.size());
 
-        for (int i = 0; i < flowKeys.size(); ++i) {
-            final int x = i;
-            final Callable<FlowKey> fk = flowKeys.get(i);
+        for (Callable<FlowKey> c : flowKeys) {
+            final Callable<FlowKey> fk = c;
             testSlaves.execute(new Runnable() {
                 @Override
                 public void run() {
-                    wrs[x] = verifyInterning(fk, rq);
-                    latch.countDown();
+                    wrs.add(verifyInterning(fk, rq));
+                    p.arrive();
                 }
             });
         }
 
-        latch.await();
+        p.awaitAdvance(0);
 
         for (WeakReference<FlowKey> wr : wrs) {
             verifyWeakInterning(wr);
@@ -102,7 +99,7 @@ public class FlowKeyInterningTest {
             for (int i = 0; i < 10; ++i) {
                 Assert.assertSame(original, c.call());
             }
-            return new WeakReference<>(original, rq);
+            return new WeakReference<FlowKey>(original, rq);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -110,9 +107,9 @@ public class FlowKeyInterningTest {
 
     private void verifyWeakInterning(WeakReference<FlowKey> wr) {
         for (int i = 0; i < 5; ++i) {
-            if (wr.isEnqueued())
+            if (wr.isEnqueued()) {
                 return;
-
+            }
             System.gc();
         }
         Assert.fail("Interned flow key did not get GCed");
