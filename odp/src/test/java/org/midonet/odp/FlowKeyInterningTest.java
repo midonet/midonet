@@ -18,7 +18,6 @@ import org.midonet.packets.Net;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Array;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.*;
@@ -74,7 +73,8 @@ public class FlowKeyInterningTest {
     public void testInterningOfFlowKeys() throws Exception {
         final ReferenceQueue<FlowKey> rq = new ReferenceQueue<>();
         final CountDownLatch latch = new CountDownLatch(flowKeys.size());
-        final List<WeakReference<FlowKey>> wrs = new ArrayList<>(flowKeys.size());
+        final WeakReference<FlowKey>[] wrs = (WeakReference<FlowKey>[])
+                        Array.newInstance(WeakReference.class, flowKeys.size());
 
         for (int i = 0; i < flowKeys.size(); ++i) {
             final int x = i;
@@ -82,8 +82,8 @@ public class FlowKeyInterningTest {
             testSlaves.execute(new Runnable() {
                 @Override
                 public void run() {
-                wrs.add(x, verifyInterning(fk, rq));
-                latch.countDown();
+                    wrs[x] = verifyInterning(fk, rq);
+                    latch.countDown();
                 }
             });
         }
