@@ -17,6 +17,7 @@ import org.midonet.packets.Net;
 
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -69,23 +70,25 @@ public class FlowKeyInterningTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void testInterningOfFlowKeys() throws Exception {
         final ReferenceQueue<FlowKey> rq = new ReferenceQueue<>();
-        final Phaser p = new Phaser(flowKeys.size());
+        final CountDownLatch latch = new CountDownLatch(flowKeys.size());
         final List<WeakReference<FlowKey>> wrs = new ArrayList<>(flowKeys.size());
 
-        for (Callable<FlowKey> c : flowKeys) {
-            final Callable<FlowKey> fk = c;
+        for (int i = 0; i < flowKeys.size(); ++i) {
+            final int x = i;
+            final Callable<FlowKey> fk = flowKeys.get(i);
             testSlaves.execute(new Runnable() {
                 @Override
                 public void run() {
-                    wrs.add(verifyInterning(fk, rq));
-                    p.arrive();
+                wrs.add(x, verifyInterning(fk, rq));
+                latch.countDown();
                 }
             });
         }
 
-        p.awaitAdvance(0);
+        latch.await();
 
         for (WeakReference<FlowKey> wr : wrs) {
             verifyWeakInterning(wr);
@@ -99,7 +102,7 @@ public class FlowKeyInterningTest {
             for (int i = 0; i < 10; ++i) {
                 Assert.assertSame(original, c.call());
             }
-            return new WeakReference<FlowKey>(original, rq);
+            return new WeakReference<>(original, rq);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -107,9 +110,9 @@ public class FlowKeyInterningTest {
 
     private void verifyWeakInterning(WeakReference<FlowKey> wr) {
         for (int i = 0; i < 5; ++i) {
-            if (wr.isEnqueued()) {
+            if (wr.isEnqueued())
                 return;
-            }
+
             System.gc();
         }
         Assert.fail("Interned flow key did not get GCed");
