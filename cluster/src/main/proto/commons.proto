@@ -1,0 +1,19 @@
+package org.midonet.cluster.models;
+option java_package = "org.midonet.cluster.models";
+option java_outer_classname = "Commons";
+
+
+message UUID {
+    required int64 msb = 1;
+    required int64 lsb = 2;
+}
+
+message IpSubnet {
+    optional string address = 1;
+    optional int32 prefix_length = 2;
+}
+
+message Int32Range {
+    optional int32 start = 1;
+    optional int32 end = 2;
+}

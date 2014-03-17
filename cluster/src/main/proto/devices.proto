@@ -1,0 +1,166 @@
+import "commons.proto";
+
+package org.midonet.cluster.models;
+option java_package = "org.midonet.cluster.models";
+option java_outer_classname = "Devices";
+
+message Bridge {
+    optional UUID id = 1;
+    optional string name = 2;
+    optional bool admin_state_up = 3;
+    optional int64 tunnel_key = 4;
+    optional UUID inbound_filter_id = 5;
+    optional UUID outbound_filter_id = 6;
+    optional UUID vx_lan_port_id = 7;
+
+    // Back references
+    repeated UUID port_ids = 101;
+}
+
+message Router {
+    optional UUID id = 1;
+    optional string name = 2;
+    optional bool admin_state_up = 3;
+    optional UUID inbound_filter_id = 4;
+    optional UUID outbound_filter_id = 5;
+    optional UUID load_balancer_id = 6;
+
+    // Back references
+    repeated UUID port_ids = 101;
+}
+
+message Port {
+    optional UUID id = 1;
+    optional UUID bridge_id = 2;  // Separate device id fields for ORM.
+    optional UUID router_id = 3;
+    optional UUID inbound_filter_id = 4;
+    optional UUID outbound_filter_id = 5;
+    repeated UUID port_group_id = 6;
+    optional int64 tunnel_key = 7;
+    optional UUID peer_uuid = 8;
+    optional UUID host_id = 9;
+    optional string interface_name = 10;
+    optional bool adminStateUp = 11 [default = true];
+
+    // Back references
+    repeated UUID rule_ids = 101;
+}
+
+message PortGroup {
+    optional UUID id = 1;
+    optional string name = 2;
+
+    // Back references
+    repeated UUID port_ids = 101;
+}
+
+message PortSet {
+    optional UUID id = 1;
+}
+
+message IpAddrGroup {
+    optional UUID id = 1;
+    optional string name = 2;
+}
+
+message Chain {
+    optional UUID id = 1;
+    optional string name = 2;
+
+    // Back references
+    repeated UUID rule_ids = 101;
+    repeated UUID bridge_ids = 102;
+    repeated UUID router_ids = 103;
+    repeated UUID port_ids = 104;
+}
+
+message Route {
+    optional UUID id = 1;
+    optional string src_network_addr = 2;
+    optional int32 src_network_length = 3;
+    optional string dst_network_addr = 4;
+    optional int32 dst_network_length = 5;
+    enum NextHop {
+        BLACKHOLE = 0;
+        REJECT = 1;
+        PORT = 2;
+        LOCAL = 3;
+    }
+    optional NextHop next_hop = 6;
+    optional UUID next_hop_port_id = 7;
+    optional string next_hop_gateway = 8;
+    optional int32 weight = 9;
+    optional string attributes = 10;
+    optional UUID router_id = 11;
+}
+
+message Rule {
+    optional UUID id = 1;
+    enum Action {
+        ACCEPT = 1;
+        CONTINUE = 2;
+        DROP = 3;
+        JUMP = 4;
+        REJECT = 5;
+        RETURN = 6;
+    }
+    optional Action action = 2;
+    optional UUID chain_id = 3;
+
+    // Rule conditions.
+    optional bool conjunction_inv = 4;
+    optional bool match_forward_flow = 5;
+    optional bool match_return_flow = 6;
+    repeated UUID in_port_ids = 7;
+    optional bool in_port_inv = 8;
+    repeated UUID out_port_ids = 9;
+    optional bool out_port_inv = 10;
+    optional UUID port_group_id = 11;
+    optional bool inv_port_group = 12;
+    optional UUID ip_addr_group_id_src = 13;
+    optional bool inv_ip_addr_group_id_src = 14;
+    optional UUID ip_addr_group_id_dst = 15;
+    optional bool inv_ip_addr_group_id_dst = 16;
+    optional int32 dl_type = 17;
+    optional bool inv_dl_type = 18;
+    optional string dl_src = 19;
+    optional int64 dl_src_mask = 20 [default = -1];  // Top 16 bits ignored.
+    optional bool inv_dl_src = 21;
+    optional string dl_dst = 22;
+    optional int64 dl_dst_mask =  23 [default = -1];  // Top 16 bits ignored.
+    optional bool inv_dl_dst = 24;
+    optional int32 nw_tos = 25;
+    optional bool nw_tos_inv = 26;
+    optional int32 nw_proto = 27;
+    optional bool nw_proto_inv = 28;
+    optional IpSubnet nw_src_ip = 29;
+    optional IpSubnet nw_dst_ip = 30;
+    optional Int32Range tp_src = 31;
+    optional Int32Range tp_dst = 32;
+    optional bool nw_src_inv = 33;
+    optional bool nw_dst_inv = 34;
+    optional bool tp_src_inv = 35;
+    optional bool tp_dst_inv = 36;
+}
+
+message TunnelZone {
+    optional UUID id = 1;
+    optional string name = 2;
+    enum Type {
+        GRE = 1;
+        VXLAN = 2;
+    }
+    optional Type type = 3;
+}
+
+message Vtep {
+    optional string id = 1;  // This is actually an IP address.
+    optional int32 management_port = 2;
+    optional UUID tunnel_zone_id = 3;
+}
+
+message VtepBinding {
+    optional string port_name = 1;
+    optional int32 vlan_id = 2;  // A VLAN ID is a short int.
+    optional string network_id = 3;
+}

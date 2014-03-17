@@ -1,3 +1,6 @@
+apply plugin: 'protobuf'
+apply plugin: 'java'
+
 jar {
     manifest {
         attributes 'Implementation-Title': 'Midonet cluster library',
