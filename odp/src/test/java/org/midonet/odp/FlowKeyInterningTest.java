@@ -3,10 +3,21 @@
  */
 package org.midonet.odp;
 
-import org.junit.AfterClass;
+import java.lang.ref.WeakReference;
+import java.lang.reflect.Array;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
+import org.junit.After;
 import org.junit.Assert;
-import org.junit.BeforeClass;
+import org.junit.Before;
 import org.junit.Test;
+
 import org.midonet.odp.flows.FlowKey;
 import org.midonet.odp.flows.FlowKeyEtherType;
 import org.midonet.odp.flows.FlowKeys;
@@ -15,91 +26,85 @@ import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 import org.midonet.packets.Net;
 
-import java.lang.ref.ReferenceQueue;
-import java.lang.ref.WeakReference;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.*;
-
 public class FlowKeyInterningTest {
 
-    private static List<Callable<FlowKey>> flowKeys = Arrays.asList(
+    private List<Callable<FlowKey>> flowKeys = Arrays.asList(
         new Callable<FlowKey>() { public FlowKey call() throws Exception {
-            return FlowKeys.inPort(0);
+            return FlowKeys.inPort(53362);
         }},
         new Callable<FlowKey>() { public FlowKey call() throws Exception {
-            return FlowKeys.ethernet(MAC.fromString("ae:b3:77:8c:a1:48").getAddress(),
+            return FlowKeys.ethernet(MAC.fromString("ae:b3:35:8c:a1:48").getAddress(),
                     MAC.fromString("33:33:00:00:00:16").getAddress());
         }},
         new Callable<FlowKey>() { public FlowKey call() throws Exception {
-            return FlowKeys.etherType(FlowKeyEtherType.Type.ETH_P_IP);
+            return FlowKeys.etherType((short) 1234);
         }},
         new Callable<FlowKey>() { public FlowKey call() throws Exception {
             return FlowKeys.arp(MAC.fromString("ae:b3:77:8d:c1:48").getAddress(),
-                    MAC.fromString("ae:b3:70:8d:c1:48").getAddress(),
+                    MAC.fromString("ae:b3:78:8d:c1:48").getAddress(),
                     ARP.OP_REPLY,
                     IPv4Addr.stringToInt("192.168.100.1"),
                     IPv4Addr.stringToInt("192.168.102.1"));
         }},
         new Callable<FlowKey>() { public FlowKey call() throws Exception {
             return FlowKeys.neighborDiscovery(Net.ipv6FromString(
-                    "fe80::acb3:77ff:fe8c:a148"));
+                    "fe80::acb3:67ff:fe8c:a158"));
         }},
         new Callable<FlowKey>() { public FlowKey call() throws Exception {
-            return FlowKeys.vlan((short) 0x0101);
+            return FlowKeys.vlan((short) 0x03015);
         }},
         new Callable<FlowKey>() { public FlowKey call() throws Exception {
-            return FlowKeys.tunnel(10L, 100, 200);
+            return FlowKeys.tunnel(11L, 101, 202);
         }}
     );
 
     private static final int NUM_THREADS = 4;
-    private static ExecutorService testSlaves;
+    private ExecutorService testSlaves;
 
-    @BeforeClass
-    public static void setup() {
+    @Before
+    public void setup() {
         testSlaves = Executors.newFixedThreadPool(NUM_THREADS);
     }
 
-    @AfterClass
-    public static void tearDown() throws InterruptedException {
+    @After
+    public void tearDown() throws InterruptedException {
         testSlaves.shutdown();
         testSlaves.awaitTermination(500, TimeUnit.MILLISECONDS);
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void testInterningOfFlowKeys() throws Exception {
-        final ReferenceQueue<FlowKey> rq = new ReferenceQueue<>();
-        final Phaser p = new Phaser(flowKeys.size());
-        final List<WeakReference<FlowKey>> wrs = new ArrayList<>(flowKeys.size());
+        final CountDownLatch latch = new CountDownLatch(flowKeys.size());
+        final WeakReference<FlowKey>[] wrs = (WeakReference<FlowKey>[])
+                Array.newInstance(WeakReference.class, flowKeys.size());
 
-        for (Callable<FlowKey> c : flowKeys) {
-            final Callable<FlowKey> fk = c;
+        for (int i = 0; i < flowKeys.size(); ++i) {
+            final int x = i;
+            final Callable<FlowKey> fk = flowKeys.get(i);
             testSlaves.execute(new Runnable() {
                 @Override
                 public void run() {
-                    wrs.add(verifyInterning(fk, rq));
-                    p.arrive();
+                    wrs[x] = verifyInterning(fk);
+                    latch.countDown();
                 }
             });
         }
 
-        p.awaitAdvance(0);
+        latch.await();
 
         for (WeakReference<FlowKey> wr : wrs) {
             verifyWeakInterning(wr);
         }
     }
 
-    private WeakReference<FlowKey> verifyInterning(Callable<FlowKey> c,
-                                                   ReferenceQueue<FlowKey> rq) {
+    private WeakReference<FlowKey> verifyInterning(Callable<FlowKey> c) {
         try {
             FlowKey original = c.call();
             for (int i = 0; i < 10; ++i) {
                 Assert.assertSame(original, c.call());
             }
-            return new WeakReference<FlowKey>(original, rq);
+            return new WeakReference<>(original);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -107,11 +112,12 @@ public class FlowKeyInterningTest {
 
     private void verifyWeakInterning(WeakReference<FlowKey> wr) {
         for (int i = 0; i < 5; ++i) {
-            if (wr.isEnqueued()) {
+            if (wr.get() == null)
                 return;
-            }
+
             System.gc();
         }
-        Assert.fail("Interned flow key did not get GCed");
+
+        Assert.fail("Interned flow key did not get GCed: " + wr.get());
     }
 }
