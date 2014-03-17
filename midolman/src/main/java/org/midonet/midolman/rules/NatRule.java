@@ -169,13 +169,13 @@ public abstract class NatRule extends Rule {
      * Conveniency class to indicate what values should be used to query for
      * NAT mappings, since rules vary based on the packet type and its payload
      */
-    class NatLookupTuple {
+    protected class NatLookupTuple {
 
-        final byte proto;
-        final int tpSrc;
-        final int tpDst;
-        final IPAddr nwSrc;
-        final IPAddr nwDst;
+        public final byte proto;
+        public final int tpSrc;
+        public final int tpDst;
+        public final IPAddr nwSrc;
+        public final IPAddr nwDst;
 
         NatLookupTuple(byte proto, IPAddr nwSrc, int tpSrc, IPAddr nwDst,
                        int tpDst) {

@@ -17,6 +17,8 @@ import org.junit.Test;
 import org.midonet.cache.Cache;
 import org.midonet.cache.MockCache;
 import org.midonet.midolman.guice.serialization.SerializationModule;
+import org.midonet.midolman.l4lb.ForwardStickyNatRule;
+import org.midonet.midolman.l4lb.ReverseStickyNatRule;
 import org.midonet.midolman.layer4.NatLeaseManager;
 import org.midonet.midolman.layer4.NatMapping;
 import org.midonet.midolman.rules.RuleResult.Action;
@@ -357,6 +359,75 @@ public class TestRules {
         fwdInfo.inPortId = null;
         revRule.process(fwdInfo, argRes, natMapping, false);
         Assert.assertEquals(Action.ACCEPT, argRes.action);
+        // The generated response should be the mirror of the original.
+        Assert.assertTrue(pktResponseMatch.equals(argRes.pmatch));
+    }
+
+    @Test
+    public void testStickyDnatAndReverseRule() {
+        Set<NatTarget> nats = new HashSet<NatTarget>();
+        nats.add(new NatTarget(0x0c000102, 0x0c00010a, (int) 1030,
+                (int) 1050));
+
+        int stickyIpTimeoutSeconds = 300;
+
+        Rule rule = new ForwardStickyNatRule(cond, Action.CONTINUE, null, 0,
+                true, nats, stickyIpTimeoutSeconds);
+
+        // The inPort condition doesn't match, so the result is not modified
+        rule.process(fwdInfo, argRes, natMapping, false);
+        Assert.assertEquals(expRes, argRes);
+
+        // We let the reverse dnat rule try reversing everything (no condition),
+        // result is not modified as there are no relevant NAT entries
+        Rule revRule = new ReverseStickyNatRule(new Condition(), Action.ACCEPT,
+                true);
+        revRule.process(fwdInfo, argRes, natMapping, false);
+        Assert.assertTrue(expRes.equals(argRes));
+
+        // Now get the dnat rule to match by setting inPort
+        fwdInfo.inPortId = inPort;
+        rule.process(fwdInfo, argRes, natMapping, false);
+        Assert.assertEquals(Action.CONTINUE, argRes.action);
+
+        // Verify it NATs to IP and port in correct range
+        int newNwDst = ((IPv4Addr)argRes.pmatch.getNetworkDestinationIP()).toInt();
+        Assert.assertTrue(0x0c000102 <= newNwDst);
+        Assert.assertTrue(newNwDst <= 0x0c00010a);
+        int newTpDst = argRes.pmatch.getTransportDestination();
+        Assert.assertTrue(1030 <= newTpDst);
+        Assert.assertTrue(newTpDst <= 1050);
+
+        // Now verify that the rest of the packet hasn't changed
+        expRes.pmatch.setNetworkDestination(IPv4Addr.fromInt(newNwDst));
+        expRes.pmatch.setTransportDestination(newTpDst);
+        Assert.assertTrue(expRes.pmatch.equals(argRes.pmatch));
+
+        // Verify we get the same mapping if we send a new packet from the
+        // same source IP, different source port
+        int newSourcePort = pktMatch.getTransportSource() + 10;
+        expRes = argRes;
+        expRes.pmatch.setTransportSource(newSourcePort);
+        WildcardMatch newPktMatch = pktMatch.clone();
+        newPktMatch.setTransportSource(newSourcePort);
+        argRes = new RuleResult(null, null, newPktMatch);
+        rule.process(fwdInfo, argRes, natMapping, false);
+        Assert.assertTrue(expRes.equals(argRes));
+
+        // Now use the new ip/port in the return packet
+        argRes.pmatch = pktResponseMatch.clone();
+        Assert.assertTrue(IPv4Addr.fromInt(newNwDst).canEqual(
+                pktResponseMatch.getNetworkSourceIP()));
+        Assert.assertFalse(IPv4Addr.fromInt(newNwDst).equals(
+                pktResponseMatch.getNetworkSourceIP()));
+        argRes.pmatch.setNetworkSource(IPv4Addr.fromInt(newNwDst));
+        Assert.assertFalse(pktResponseMatch.getTransportSource() == newTpDst);
+        argRes.pmatch.setTransportSource(newTpDst);
+        argRes.action = null;
+        fwdInfo.inPortId = null;
+        revRule.process(fwdInfo, argRes, natMapping, false);
+        Assert.assertEquals(Action.ACCEPT, argRes.action);
+
         // The generated response should be the mirror of the original.
         Assert.assertTrue(pktResponseMatch.equals(argRes.pmatch));
     }
