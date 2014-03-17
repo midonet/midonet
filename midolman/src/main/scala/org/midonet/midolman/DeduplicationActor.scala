@@ -37,7 +37,6 @@ import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.odp.{FlowMatches, Datapath, FlowMatch, Packet}
 import org.midonet.packets.Ethernet
 import org.midonet.util.BatchCollector
-import org.midonet.util.throttling.ThrottlingGuard
 import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.midolman.io.{DatapathConnectionPool, ManagedDatapathConnection}
 
@@ -87,10 +86,6 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath
     var traceConditions = immutable.Seq[Condition]()
 
     @Inject
-    @SIMULATION_THROTTLING_GUARD
-    var throttler: ThrottlingGuard = null
-
-    @Inject
     var metricsRegistry: MetricsRegistry = null
 
     var datapath: Datapath = null
@@ -119,7 +114,7 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath
 
     override def preStart() {
         super.preStart()
-        metrics = new PacketPipelineMetrics(metricsRegistry, throttler)
+        metrics = new PacketPipelineMetrics(metricsRegistry)
         // Defer this until actor start-up finishes, so that the VTA
         // will have an actor (ie, self) in 'sender' to send replies to.
         self ! _GetConditionListFromVta
@@ -172,14 +167,10 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath
                 // the action list is empty, which is equivalent to dropping)
                 if (actions.nonEmpty) {
                     for (unpendedPacket <- pendedPackets) {
-                        unpendedPacket.releaseToken()
                         executePacket(cookie, unpendedPacket, actions)
                         metrics.pendedPackets.dec()
                     }
                 } else {
-                    for (unpendedPacket <- pendedPackets) {
-                        unpendedPacket.releaseToken()
-                    }
                     metrics.packetsProcessed.mark(pendedPackets.size)
                 }
             }
@@ -250,7 +241,6 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath
         pw.start() andThen {
             case Success(path) =>
                 log.debug("Packet with {} processed.", pw.cookieStr)
-                pw.packet.releaseToken()
                 pw.cookie match {
                     case Some(c) =>
                         val latency = (Clock.defaultClock().tick() -
@@ -270,7 +260,6 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath
             case Failure(ex) =>
                 log.warning("Exception while processing packet {} - {}, {}",
                     pw.cookieStr, ex.getMessage, ex.getStackTraceString)
-                pw.packet.releaseToken()
                 pw.cookie foreach { _ => metrics.packetsProcessed.mark() }
         }
     }
@@ -294,7 +283,6 @@ class DeduplicationActor extends Actor with ActorLogWithoutPath
                 // Simulation in progress. Just pend the packet.
                 log.debug("A matching packet with cookie {} is already " +
                     "being handled", cookie)
-                packet.releaseToken()
                 cookieToPendedPackets.addBinding(cookie, packet)
                 metrics.pendedPackets.inc()
                 None

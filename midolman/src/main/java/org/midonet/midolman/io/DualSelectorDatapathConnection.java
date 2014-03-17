@@ -17,7 +17,6 @@ import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.eventloop.SelectListener;
 import org.midonet.util.eventloop.SelectLoop;
 import org.midonet.util.eventloop.SimpleSelectLoop;
-import org.midonet.util.throttling.ThrottlingGuard;
 
 
 public class DualSelectorDatapathConnection implements ManagedDatapathConnection {
@@ -26,7 +25,6 @@ public class DualSelectorDatapathConnection implements ManagedDatapathConnection
     private MidolmanConfig config;
 
     private Reactor reactor;
-    private ThrottlingGuard throttler;
 
     private Thread readThread;
     private Thread writeThread;
@@ -37,11 +35,9 @@ public class DualSelectorDatapathConnection implements ManagedDatapathConnection
     private boolean singleThreaded;
 
     public DualSelectorDatapathConnection(String name, Reactor reactor,
-                                          ThrottlingGuard throttler,
                                           MidolmanConfig config,
                                           boolean singleThreaded) {
         this.config = config;
-        this.throttler = throttler;
         this.reactor = reactor;
         this.name = name;
         this.singleThreaded = singleThreaded;
@@ -51,9 +47,8 @@ public class DualSelectorDatapathConnection implements ManagedDatapathConnection
     }
 
     public DualSelectorDatapathConnection(String name, Reactor reactor,
-                                          ThrottlingGuard throttler,
                                           MidolmanConfig config) {
-        this(name, reactor, throttler, config, false);
+        this(name, reactor, config, false);
     }
 
     public OvsDatapathConnection getConnection() {
@@ -71,8 +66,7 @@ public class DualSelectorDatapathConnection implements ManagedDatapathConnection
         writeThread = singleThreaded ? readThread :
                                        startLoop(writeLoop, name + ".write");
 
-        conn = OvsDatapathConnection.create(new Netlink.Address(0), reactor,
-                                            throttler, sendPool);
+        conn = OvsDatapathConnection.create(new Netlink.Address(0), reactor, sendPool);
 
         conn.getChannel().configureBlocking(false);
         conn.setMaxBatchIoOps(config.getMaxMessagesPerBatch());

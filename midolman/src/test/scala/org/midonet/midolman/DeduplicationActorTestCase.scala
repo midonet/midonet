@@ -62,12 +62,10 @@ class DeduplicationActorTestCase extends FeatureSpec
 
     implicit def ethBuilder2Packet(ethBuilder: EthBuilder): Packet = {
         val frame: Ethernet = ethBuilder
-        val p = new Packet().
+        new Packet().
             setPacket(frame).
             setMatch(FlowMatches.fromEthernetPacket(frame)).
             setReason(Packet.Reason.FlowTableMiss)
-        p.holdTokenTakenFrom(testableDda.throttler)
-        p
     }
 
     def makePacket(variation: Short): Packet = makeFrame(variation)
@@ -108,13 +106,6 @@ class DeduplicationActorTestCase extends FeatureSpec
 
             Then("and exactly one packet should be pended")
             testableDda.pendedPackets(1) should be (Some(Set(pkts.head)))
-
-            // Note that this and all further token assertions take negative
-            // values because the responsible for the tokenIn
-            // (AbstractNetlinkConnection) didn't actually run, so the tokens
-            // are not really taken.
-            And ("three tokens should have been freed up")
-            testableDda.throttler.numTokens should be (-3)
         }
 
         scenario("expires pended packets after a time interval") {
@@ -131,18 +122,12 @@ class DeduplicationActorTestCase extends FeatureSpec
             testableDda.pendedPackets(1) should not be None
             testableDda.pendedPackets(1).get.size should be (2)
 
-            And ("two tokens should have been freed up")
-            testableDda.throttler.numTokens should be (-2)
-
             eventually {
                 When("their cookie expires")
                 Then("they should be unpended automatically")
                     testableDda.pendedPackets(1) should be (None)
                 And("not executed")
                 mockDpConn().packetsSent.size should be (0)
-
-                And ("two tokens should have been freed up")
-                testableDda.throttler.numTokens should be (-2)
             }
         }
 
@@ -156,9 +141,6 @@ class DeduplicationActorTestCase extends FeatureSpec
             Then("some packets should be pended")
             testableDda.pendedPackets(1) should not be None
 
-            And ("two tokens should have been freed up")
-            testableDda.throttler.numTokens should be (-2)
-
             When("the dda is told to apply the flow with empty actions")
             MockPacketHandler.complete()
             DeduplicationActor ! ApplyFlow(Nil, Some(1))
@@ -166,9 +148,6 @@ class DeduplicationActorTestCase extends FeatureSpec
             Then("the packets should be dropped")
             mockDpConn().packetsSent.size should be (0)
             testableDda.pendedPackets(1) should be (None)
-
-            And ("all tokens should have been freed up")
-            testableDda.throttler.numTokens should be (-3)
         }
 
         scenario("emits packets When ApplyFlow contains actions") {
@@ -181,9 +160,6 @@ class DeduplicationActorTestCase extends FeatureSpec
             Then("some packets should be pended")
             testableDda.pendedPackets(1) should not be None
 
-            And ("two tokens should have been freed up")
-            testableDda.throttler.numTokens should be (-2)
-
             When("the dda is told to apply the flow with an output action")
             DeduplicationActor ! ApplyFlow(List(output(1)), Some(1))
             MockPacketHandler.complete()
@@ -195,9 +171,6 @@ class DeduplicationActorTestCase extends FeatureSpec
 
             And("no pended packets should remain")
             testableDda.pendedPackets(1) should be (None)
-
-            And ("all tokens should have been freed up")
-            testableDda.throttler.numTokens should be (-3)
         }
 
         scenario("simulates sequences of packets from the datapath") {
@@ -210,9 +183,6 @@ class DeduplicationActorTestCase extends FeatureSpec
             Then("3 packet workflows should be executed")
             val expected = pkts.distinct zip cookieList(1 to 3)
             packetsSeen should be (expected)
-
-            And ("one token should have been freed up")
-            testableDda.throttler.numTokens should be (-1)
 
             And("one packet should be pended")
             testableDda.pendedPackets(1) should not be None

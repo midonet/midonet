@@ -23,7 +23,6 @@ import org.midonet.netlink.NetlinkChannel;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.Builder;
 import org.midonet.util.eventloop.Reactor;
-import org.midonet.util.throttling.ThrottlingGuard;
 
 import static org.midonet.netlink.Netlink.Flag;
 
@@ -39,9 +38,8 @@ public class NetlinkConnection extends AbstractNetlinkConnection {
         .getLogger(NetlinkConnection.class);
 
     public NetlinkConnection(NetlinkChannel channel, Reactor reactor,
-                             ThrottlingGuard upcallThrottler,
                              BufferPool sendPool) {
-        super(channel, reactor, upcallThrottler, sendPool);
+        super(channel, reactor, sendPool);
     }
 
     @Override
