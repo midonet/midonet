@@ -3,9 +3,10 @@
  */
 package org.midonet.odp
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent._
 import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.sys.process.Process
 
 import org.midonet.util.BatchCollector
 import org.midonet.netlink._
@@ -69,8 +70,15 @@ object OvsPacketReadThroughputTest {
     def main(args: Array[String]) {
         val (con, dp) = prepareDatapath("perftest", "perft-if")
 
+        val mzcommand = args.reduce { _ + " " + _}
+        println("executing: " + mzcommand)
+        val mz = Process(mzcommand).run()
+
         println("packet read throughput")
         runLoop(10, new Reader, con, dp)
+
+        mz.destroy()
+
         System exit 0
     }
 

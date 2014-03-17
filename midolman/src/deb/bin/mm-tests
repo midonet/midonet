@@ -57,9 +57,10 @@ CLASSPATH=$MIDO_JAR:$MIDO_DEP_CLASS_PATH
 
 run_test() {
     MAIN=$1
+    shift
     $JAVA -Dlogback.configurationFile=file:/etc/midolman/logback-dpctl.xml\
         $JAVA_LIBRARY_PATH -Xbootclasspath/p:$MIDO_BOOTSTRAP_JAR\
-        -cp $CLASSPATH $MAIN
+        -cp $CLASSPATH $MAIN $*
 }
 
 ns_prepare() {
@@ -128,19 +129,15 @@ ovs_read_throughput() {
     ns_prepare $ns
     if_prepare $ns $dpif $nsif 100.0.10.2/24
 
-    ip netns exec $ns mz $nsif \
-      -A 100.0.10.2 -B 100.0.10.240 \
-      -b 10:00:00:00:00:01 -t udp 'sp=1-10000,dp=1-10000' -c0 &
+    mzcommand="ip netns exec $ns mz $nsif"\
+" -A 100.0.10.2 -B 100.0.10.240"\
+" -b 10:00:00:00:00:01 -t udp 'sp=1-10000,dp=1-10000' -c0"
 
-    mz_id=$!
-
-    run_test "org.midonet.odp.OvsPacketReadThroughputTest"
-
-    kill -15 $mz_id
+    run_test "org.midonet.odp.OvsPacketReadThroughputTest" $mzcommand
 
     if_clean $ns $dpif $nsif
     ns_clean $ns
 }
 
-ovs_integration
+#ovs_integration
 ovs_read_throughput
