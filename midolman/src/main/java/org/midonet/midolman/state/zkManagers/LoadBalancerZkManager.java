@@ -30,12 +30,13 @@ import static java.util.Arrays.asList;
 /**
  * Class to manage the LoadBalancer ZooKeeper data.
  */
-public class LoadBalancerZkManager extends AbstractZkManager {
+public class LoadBalancerZkManager extends
+        AbstractZkManager<UUID, LoadBalancerZkManager.LoadBalancerConfig> {
 
     private final static Logger log = LoggerFactory
             .getLogger(LoadBalancerZkManager.class);
 
-    public static class LoadBalancerConfig {
+    public static class LoadBalancerConfig extends BaseConfig {
         public UUID routerId;
         public boolean adminStateUp;
 
@@ -65,12 +66,8 @@ public class LoadBalancerZkManager extends AbstractZkManager {
 
             LoadBalancerConfig that = (LoadBalancerConfig) o;
 
-            if (Objects.equal(routerId, that.routerId))
-                return false;
-            if (adminStateUp != that.adminStateUp)
-                return false;
-
-            return true;
+            return adminStateUp == that.adminStateUp &&
+                    Objects.equal(routerId, that.routerId);
         }
 
         @Override
@@ -84,19 +81,14 @@ public class LoadBalancerZkManager extends AbstractZkManager {
         super(zk, paths, serializer);
     }
 
-    public boolean exists(UUID id) throws StateAccessException {
-        return zk.exists(paths.getLoadBalancerPath(id));
+    @Override
+    protected String getConfigPath(UUID id) {
+        return paths.getLoadBalancerPath(id);
     }
 
-    public LoadBalancerConfig get(UUID id) throws StateAccessException,
-            SerializationException {
-        return get(id, null);
-    }
-
-    public LoadBalancerConfig get(UUID id, Runnable watcher)
-            throws StateAccessException, SerializationException {
-        byte[] data = zk.get(paths.getLoadBalancerPath(id), watcher);
-        return serializer.deserialize(data, LoadBalancerConfig.class);
+    @Override
+    protected Class<LoadBalancerConfig> getConfigClass() {
+        return LoadBalancerConfig.class;
     }
 
     public void create(UUID id, LoadBalancerConfig config)
@@ -106,16 +98,14 @@ public class LoadBalancerZkManager extends AbstractZkManager {
         UUID loadBalancerId = checkNotNull(id, "The load balancer ID is null");
 
         zk.multi(asList(
-                Op.create(paths.getLoadBalancerPath(loadBalancerId),
-                        serializer.serialize(config),
-                        Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT),
-                Op.create(paths.getLoadBalancerPoolsPath(id), null,
-                        Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT),
-                Op.create(paths.getLoadBalancerVipsPath(id), null,
-                        Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT)));
+                simpleCreateOp(loadBalancerId, config),
+                zk.getPersistentCreateOp(
+                        paths.getLoadBalancerPoolsPath(id), null),
+                zk.getPersistentCreateOp(
+                        paths.getLoadBalancerVipsPath(id), null)));
     }
 
-    public void update(UUID id , LoadBalancerConfig config)
+    public void update(UUID id, LoadBalancerConfig config)
             throws StateAccessException, SerializationException,
             InvalidStateOperationException {
         LoadBalancerConfig oldConfig = get(id);
@@ -125,13 +115,11 @@ public class LoadBalancerZkManager extends AbstractZkManager {
             throw new InvalidStateOperationException("The router ID cannot " +
                     "be modified from the load balancer side.");
         } else if (!oldConfig.equals(config)) {
-            zk.update(paths.getLoadBalancerPath(id),
-                    serializer.serialize(config));
+            zk.multi(asList(simpleUpdateOp(id, config)));
         }
     }
 
-    public List<Op> prepareDelete(UUID id)
-            throws SerializationException, StateAccessException {
+    public List<Op> prepareDelete(UUID id) {
         return asList(
                 Op.delete(paths.getLoadBalancerVipsPath(id), -1),
                 Op.delete(paths.getLoadBalancerPoolsPath(id), -1),

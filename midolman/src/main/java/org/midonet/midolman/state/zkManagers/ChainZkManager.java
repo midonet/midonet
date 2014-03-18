@@ -1,6 +1,5 @@
 /*
- * Copyright 2011 Midokura KK
- * Copyright 2012 Midokura Europe SARL
+ * Copyright (c) 2011-2014 Midokura Europe SARL, All Rights Reserved.
  */
 package org.midonet.midolman.state.zkManagers;
 
@@ -10,7 +9,6 @@ import org.midonet.midolman.rules.RuleList;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.AbstractZkManager;
-import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
@@ -25,13 +23,14 @@ import org.midonet.midolman.rules.Rule;
 /**
  * ZooKeeper DAO class for Chains.
  */
-public class ChainZkManager extends AbstractZkManager {
+public class ChainZkManager
+        extends AbstractZkManager<UUID, ChainZkManager.ChainConfig> {
 
-    public static class ChainConfig {
+    public static class ChainConfig extends BaseConfig {
 
         // The chain name should only be used for logging.
         public String name = null;
-        public Map<String, String> properties = new HashMap<String, String>();
+        public Map<String, String> properties = new HashMap<>();
 
         public ChainConfig() {
         }
@@ -154,6 +153,16 @@ public class ChainZkManager extends AbstractZkManager {
         super(zk, paths, serializer);
     }
 
+    @Override
+    protected String getConfigPath(UUID id) {
+        return paths.getChainPath(id);
+    }
+
+    @Override
+    protected Class<ChainConfig> getConfigClass() {
+        return ChainConfig.class;
+    }
+
     /**
      * Constructs a list of ZooKeeper update operations to perform when adding a
      * new chain.
@@ -166,13 +175,10 @@ public class ChainZkManager extends AbstractZkManager {
      * @throws org.midonet.midolman.serialization.SerializationException
      *             Serialization error occurred.
      */
-    public List<Op> prepareChainCreate(UUID id, ChainConfig config)
+    public List<Op> prepareCreate(UUID id, ChainConfig config)
             throws StateAccessException, SerializationException {
         List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.create(paths.getChainPath(id),
-                serializer.serialize(config),
-                Ids.OPEN_ACL_UNSAFE,
-                CreateMode.PERSISTENT));
+        ops.add(simpleCreateOp(id, config));
         ops.add(Op.create(paths.getChainRulesPath(id),
                 serializer.serialize(new RuleList()),
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
@@ -189,15 +195,16 @@ public class ChainZkManager extends AbstractZkManager {
      * @return A list of Op objects representing the operations to perform.
      * @throws org.midonet.midolman.state.StateAccessException
      */
-    public List<Op> prepareChainDelete(UUID id)
+    public List<Op> prepareDelete(UUID id)
             throws StateAccessException, SerializationException {
-        List<Op> ops = new ArrayList<Op>();
+        List<Op> ops = new ArrayList<>();
         RuleZkManager ruleZkManager = new RuleZkManager(zk, paths, serializer);
-        RouterZkManager routerZkManager = new RouterZkManager(zk, paths,
-                serializer);
-        BridgeZkManager bridgeZkManager = new BridgeZkManager(zk, paths,
-                serializer);
+        RouterZkManager routerZkManager =
+                new RouterZkManager(zk, paths, serializer);
+        BridgeZkManager bridgeZkManager =
+                new BridgeZkManager(zk, paths, serializer);
         PortZkManager portZkManager = new PortZkManager(zk, paths, serializer);
+
         List<UUID> ruleIds = ruleZkManager.getRuleList(id).getRuleList();
         for (UUID ruleId : ruleIds) {
             Rule rule = ruleZkManager.get(ruleId);
@@ -213,7 +220,7 @@ public class ChainZkManager extends AbstractZkManager {
                 UUID childId = paths.getUUIDFromBackRef(child);
 
                 if (type.equals(ResourceType.RULE.toString())) {
-                    ops.addAll(ruleZkManager.prepareRuleDelete(childId));
+                    ops.addAll(ruleZkManager.prepareDelete(childId));
                 } else if (type.equals(ResourceType.ROUTER.toString())) {
                     ops.addAll(routerZkManager.prepareClearRefsToChains(
                             childId, id));
@@ -260,34 +267,8 @@ public class ChainZkManager extends AbstractZkManager {
     public UUID create(ChainConfig chain) throws StateAccessException,
             SerializationException {
         UUID id = UUID.randomUUID();
-        zk.multi(prepareChainCreate(id, chain));
+        zk.multi(prepareCreate(id, chain));
         return id;
-    }
-
-    /**
-     * Checks whether a chain with the given ID exists.
-     *
-     * @param id
-     *            Chain ID to check
-     * @return True if exists
-     * @throws StateAccessException
-     */
-    public boolean exists(UUID id) throws StateAccessException {
-        return zk.exists(paths.getChainPath(id));
-    }
-
-    /**
-     * Gets a ZooKeeper node entry key-value pair of a chain with the given ID.
-     *
-     * @param id
-     *            The ID of the chain.
-     * @return ChainConfig object found.
-     * @throws StateAccessException
-     */
-    public ChainConfig get(UUID id) throws StateAccessException,
-            SerializationException {
-        byte[] data = zk.get(paths.getChainPath(id), null);
-        return serializer.deserialize(data, ChainConfig.class);
     }
 
     /**
@@ -300,8 +281,7 @@ public class ChainZkManager extends AbstractZkManager {
      */
     public void update(UUID id, ChainConfig config) throws StateAccessException,
             SerializationException {
-        byte[] data = serializer.serialize(config);
-        zk.update(paths.getChainPath(id), data);
+        zk.multi(Arrays.asList(simpleUpdateOp(id, config)));
     }
 
     /***
@@ -313,9 +293,8 @@ public class ChainZkManager extends AbstractZkManager {
      * @throws SerializationException
      *             Serialization error occurred.
      */
-    public void delete(UUID id) throws StateAccessException,
-            SerializationException
-    {
-        zk.multi(prepareChainDelete(id));
+    public void delete(UUID id)
+            throws StateAccessException, SerializationException {
+        zk.multi(prepareDelete(id));
     }
 }

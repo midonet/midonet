@@ -1,6 +1,5 @@
 /*
- * Copyright 2012 Midokura Europe SARL
- * Copyright 2013 Midokura Pte Ltd
+ * Copyright (c) 2012-2014 Midokura Europe SARL, All Rights Reserved.
  */
 package org.midonet.cluster;
 
@@ -226,7 +225,7 @@ public class LocalDataClientImpl implements DataClient {
     @Override
     public @CheckForNull BGP bgpGet(@Nonnull UUID id)
             throws StateAccessException, SerializationException {
-        return bgpZkManager.getBGP(id);
+        return new BGP(id, bgpZkManager.get(id));
     }
 
     @Override
@@ -613,7 +612,7 @@ public class LocalDataClientImpl implements DataClient {
             return;
         }
 
-        List<Op> ops = chainZkManager.prepareChainDelete(id);
+        List<Op> ops = chainZkManager.prepareDelete(id);
         String path = pathBuilder.getTenantChainNamePath(
                 chain.getProperty(Chain.Property.tenant_id),
                 chain.getData().name);
@@ -635,7 +634,7 @@ public class LocalDataClientImpl implements DataClient {
                 Converter.toChainConfig(chain);
 
         List<Op> ops =
-                chainZkManager.prepareChainCreate(chain.getId(), chainConfig);
+                chainZkManager.prepareCreate(chain.getId(), chainConfig);
 
         // Create the top level directories for
         String tenantId = chain.getProperty(Chain.Property.tenant_id);
@@ -1054,9 +1053,7 @@ public class LocalDataClientImpl implements DataClient {
 
         Host host = null;
         if (hostsExists(hostId)) {
-            HostDirectory.Metadata hostMetadata =
-                    hostZkManager.getHostMetadata(hostId);
-
+            HostDirectory.Metadata hostMetadata = hostZkManager.get(hostId);
             if (hostMetadata == null) {
                 log.error("Failed to fetch metadata for host {}", hostId);
                 return null;
@@ -1077,7 +1074,7 @@ public class LocalDataClientImpl implements DataClient {
 
     @Override
     public boolean hostsExists(UUID hostId) throws StateAccessException {
-        return hostZkManager.hostExists(hostId);
+        return hostZkManager.exists(hostId);
     }
 
     @Override
@@ -1281,7 +1278,7 @@ public class LocalDataClientImpl implements DataClient {
     public List<BridgePort> portsFindByBridge(UUID bridgeId)
             throws StateAccessException, SerializationException {
 
-        Set<UUID> ids = portZkManager.getBridgePortIDs(bridgeId);
+        Collection<UUID> ids = portZkManager.getBridgePortIDs(bridgeId);
         List<BridgePort> ports = new ArrayList<BridgePort>();
         for (UUID id : ids) {
             ports.add((BridgePort) portsGet(id));
@@ -1299,7 +1296,7 @@ public class LocalDataClientImpl implements DataClient {
     public List<Port<?, ?>> portsFindPeersByBridge(UUID bridgeId)
             throws StateAccessException, SerializationException {
 
-        Set<UUID> ids = portZkManager.getBridgeLogicalPortIDs(bridgeId);
+        Collection<UUID> ids = portZkManager.getBridgeLogicalPortIDs(bridgeId);
         List<Port<?, ?>> ports = new ArrayList<Port<?, ?>>();
         for (UUID id : ids) {
             Port<?, ?> portData = portsGet(id);
@@ -1315,7 +1312,7 @@ public class LocalDataClientImpl implements DataClient {
     public List<Port<?, ?>> portsFindByRouter(UUID routerId)
             throws StateAccessException, SerializationException {
 
-        Set<UUID> ids = portZkManager.getRouterPortIDs(routerId);
+        Collection<UUID> ids = portZkManager.getRouterPortIDs(routerId);
         List<Port<?, ?>> ports = new ArrayList<Port<?, ?>>();
         for (UUID id : ids) {
             ports.add(portsGet(id));
@@ -1328,7 +1325,7 @@ public class LocalDataClientImpl implements DataClient {
     public List<Port<?, ?>> portsFindPeersByRouter(UUID routerId)
             throws StateAccessException, SerializationException {
 
-        Set<UUID> ids = portZkManager.getRouterPortIDs(routerId);
+        Collection<UUID> ids = portZkManager.getRouterPortIDs(routerId);
         List<Port<?, ?>> ports = new ArrayList<Port<?, ?>>();
         for (UUID id : ids) {
             Port<?, ?> portData = portsGet(id);
@@ -1763,6 +1760,7 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
+
     public List<VIP> loadBalancerGetVips(UUID id)
             throws StateAccessException, SerializationException {
         Set<UUID> vipIds = loadBalancerZkManager.getVipIds(id);
@@ -1802,7 +1800,7 @@ public class LocalDataClientImpl implements DataClient {
             throws StateAccessException, SerializationException {
         List<Op> ops = new ArrayList<Op>();
 
-        Set<UUID> poolIds = healthMonitorZkManager.getPoolIds(id);
+        List<UUID> poolIds = healthMonitorZkManager.getPoolIds(id);
         for (UUID poolId : poolIds) {
             ops.addAll(poolZkManager.prepareSetHealthMonitorId(poolId, null));
             ops.addAll(healthMonitorZkManager.prepareRemovePool(id, poolId));
@@ -1867,7 +1865,7 @@ public class LocalDataClientImpl implements DataClient {
     @Override
     public List<Pool> healthMonitorGetPools(@Nonnull UUID id)
             throws StateAccessException, SerializationException {
-        Set<UUID> poolIds = healthMonitorZkManager.getPoolIds(id);
+        List<UUID> poolIds = healthMonitorZkManager.getPoolIds(id);
         List<Pool> pools = new ArrayList<>(poolIds.size());
         for (UUID poolId : poolIds) {
             Pool pool = Converter.fromPoolConfig(poolZkManager.get(poolId));
@@ -1943,8 +1941,7 @@ public class LocalDataClientImpl implements DataClient {
             return;
 
         List<Op> ops = new ArrayList<Op>();
-        if (oldConfig.poolId == null ? newConfig.poolId != null :
-                !oldConfig.poolId.equals(newConfig.poolId)) {
+        if (!Objects.equal(newConfig.poolId, oldConfig.poolId)) {
             if (oldConfig.poolId != null) {
                 ops.addAll(poolZkManager.prepareRemoveMember(oldConfig.poolId, id));
             }
@@ -2004,13 +2001,13 @@ public class LocalDataClientImpl implements DataClient {
         List<Op> ops = new ArrayList<>();
         PoolZkManager.PoolConfig config = poolZkManager.get(id);
 
-        Set<UUID> memberIds = poolZkManager.getMemberIds(id);
+        List<UUID> memberIds = poolZkManager.getMemberIds(id);
         for (UUID memberId : memberIds) {
             ops.addAll(poolZkManager.prepareRemoveMember(id, memberId));
             ops.addAll(poolMemberZkManager.prepareDelete(memberId));
         }
 
-        Set<UUID> vipIds = poolZkManager.getVipIds(id);
+        List<UUID> vipIds = poolZkManager.getVipIds(id);
         for (UUID vipId : vipIds) {
             ops.addAll(poolZkManager.prepareRemoveVip(id, vipId));
             ops.addAll(vipZkManager.prepareDelete(vipId));
@@ -2072,8 +2069,8 @@ public class LocalDataClientImpl implements DataClient {
             return;
 
         List<Op> ops = new ArrayList<>();
-        if (!Objects.equal(oldConfig.healthMonitorId,
-                newConfig.healthMonitorId)) {
+        if (!Objects.equal(newConfig.healthMonitorId,
+                           oldConfig.healthMonitorId)) {
             if (oldConfig.healthMonitorId != null) {
                 ops.addAll(healthMonitorZkManager.prepareRemovePool(
                         oldConfig.healthMonitorId, id));
@@ -2083,6 +2080,7 @@ public class LocalDataClientImpl implements DataClient {
                         newConfig.healthMonitorId, id));
             }
         }
+
         if (!Objects.equal(oldConfig.loadBalancerId,
                 newConfig.loadBalancerId)) {
             // Move the pool from the previous load balancer to the new one.
@@ -2092,7 +2090,7 @@ public class LocalDataClientImpl implements DataClient {
                     newConfig.loadBalancerId, id));
             // Move the VIPs belong to the pool from the previous load balancer
             // to the new one.
-            Set<UUID> vipIds = poolZkManager.getVipIds(id);
+            List<UUID> vipIds = poolZkManager.getVipIds(id);
             for (UUID vipId : vipIds) {
                 ops.addAll(loadBalancerZkManager.prepareRemoveVip(
                         oldConfig.loadBalancerId, vipId));
@@ -2112,7 +2110,7 @@ public class LocalDataClientImpl implements DataClient {
     @Override
     public List<Pool> poolsGetAll() throws StateAccessException,
             SerializationException {
-        List<Pool> pools = new ArrayList<Pool>();
+        List<Pool> pools = new ArrayList<>();
 
         String path = pathBuilder.getPoolsPath();
         if (zkManager.exists(path)) {
@@ -2131,7 +2129,7 @@ public class LocalDataClientImpl implements DataClient {
     @Override
     public List<PoolMember> poolGetMembers(@Nonnull UUID id)
             throws StateAccessException, SerializationException {
-        Set<UUID> memberIds = poolZkManager.getMemberIds(id);
+        List<UUID> memberIds = poolZkManager.getMemberIds(id);
         List<PoolMember> members = new ArrayList<>(memberIds.size());
         for (UUID memberId : memberIds) {
             PoolMember member = Converter.fromPoolMemberConfig(
@@ -2145,7 +2143,7 @@ public class LocalDataClientImpl implements DataClient {
     @Override
     public List<VIP> poolGetVips(@Nonnull UUID id)
             throws StateAccessException, SerializationException {
-        Set<UUID> vipIds = poolZkManager.getVipIds(id);
+        List<UUID> vipIds = poolZkManager.getVipIds(id);
         List<VIP> vips = new ArrayList<>(vipIds.size());
         for (UUID vipId : vipIds) {
             VIP vip = Converter.fromVipConfig(vipZkManager.get(vipId));
@@ -2619,7 +2617,8 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public Set<UUID> portSetsGet(UUID portSetId) throws StateAccessException {
+    public Set<UUID> portSetsGet(UUID portSetId)
+            throws SerializationException, StateAccessException {
         return portSetZkManager.getPortSet(portSetId, null);
     }
 
@@ -2631,7 +2630,8 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public void traceConditionDelete(UUID uuid) throws StateAccessException {
+    public void traceConditionDelete(UUID uuid)
+            throws SerializationException, StateAccessException {
         traceConditionZkManager.delete(uuid);
     }
 

@@ -3,7 +3,6 @@
  */
 package org.midonet.midolman.state.zkManagers;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -11,7 +10,6 @@ import com.google.common.base.Objects;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs;
-import org.midonet.midolman.state.PoolMemberStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,24 +17,24 @@ import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.DirectoryCallbackFactory;
+import org.midonet.midolman.state.DirectoryCallback;
 import org.midonet.midolman.state.PathBuilder;
+import org.midonet.midolman.state.PoolMemberStatus;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
-import org.midonet.midolman.state.DirectoryCallback;
-import org.midonet.util.functors.Functor;
 
 import static java.util.Arrays.asList;
 
 /**
  * Class to manage the PoolMember ZooKeeper data.
  */
-public class PoolMemberZkManager extends AbstractZkManager {
+public class PoolMemberZkManager extends
+        AbstractZkManager<UUID, PoolMemberZkManager.PoolMemberConfig> {
 
     private final static Logger log = LoggerFactory
             .getLogger(PoolMemberZkManager.class);
 
-    public static class PoolMemberConfig {
+    public static class PoolMemberConfig extends BaseConfig {
 
         public UUID poolId;
         public String address;
@@ -88,53 +86,35 @@ public class PoolMemberZkManager extends AbstractZkManager {
         super(zk, paths, serializer);
     }
 
-    public List<Op> prepareUpdate(UUID id, PoolMemberConfig config)
-            throws SerializationException {
-        return asList(Op.setData(
-                paths.getPoolMemberPath(id), serializer.serialize(config), -1));
+    @Override
+    protected String getConfigPath(UUID id) {
+        return paths.getPoolMemberPath(id);
+    }
+
+    @Override
+    protected Class<PoolMemberConfig> getConfigClass() {
+        return PoolMemberConfig.class;
     }
 
     public List<Op> prepareCreate(UUID id, PoolMemberConfig config)
             throws SerializationException {
-        return asList(Op.create(
-                paths.getPoolMemberPath(id), serializer.serialize(config),
-                ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-    }
-
-    public List<Op> prepareDelete(UUID id) throws SerializationException,
-            StateAccessException {
-        return asList(Op.delete(paths.getPoolMemberPath(id), -1));
-    }
-
-    public boolean exists(UUID id) throws StateAccessException {
-        return zk.exists(paths.getPoolMemberPath(id));
-    }
-
-    public PoolMemberConfig get(UUID id) throws StateAccessException,
-            SerializationException {
-        return get(id, null);
-    }
-
-    public PoolMemberConfig get(UUID id, Runnable watcher)
-            throws StateAccessException, SerializationException {
-        byte[] data = zk.get(paths.getPoolMemberPath(id), watcher);
-        return serializer.deserialize(data, PoolMemberConfig.class);
+        return asList(simpleCreateOp(id, config));
     }
 
     public List<Op> prepareSetPoolId(UUID id, UUID poolId)
             throws SerializationException, StateAccessException {
+        assert poolId != null;
         PoolMemberConfig config = get(id);
-        if (config.poolId == poolId)
-            return new ArrayList<Op>(0);
-
         config.poolId = poolId;
         return prepareUpdate(id, config);
     }
 
-    public void getPoolMemberAsync(final UUID poolMemberId,
-                            DirectoryCallback<PoolMemberConfig> poolMemberCallback,
-                            Directory.TypedWatcher watcher) {
-        getAsync(paths.getPoolMemberPath(poolMemberId),
-                 PoolMemberConfig.class, poolMemberCallback, watcher);
+    public List<Op> prepareUpdate(UUID id, PoolMemberConfig config)
+            throws SerializationException {
+        return asList(simpleUpdateOp(id, config));
+    }
+
+    public List<Op> prepareDelete(UUID id) {
+        return asList(Op.delete(paths.getPoolMemberPath(id), -1));
     }
 }

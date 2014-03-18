@@ -1,5 +1,9 @@
 /*
+<<<<<<< HEAD
  * Copyright (c) 2014 Midokura Europe SARL, All Rights Reserved.
+=======
+ * Copyright (c) 2013-2014 Midokura Europe SARL, All Rights Reserved.
+>>>>>>> a09f1f4... ZkManager refactoring
  */
 
 package org.midonet.midolman.state.zkManagers;
@@ -9,34 +13,29 @@ import java.util.List;
 import java.util.UUID;
 
 import com.google.common.base.Objects;
-import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
-import org.apache.zookeeper.ZooDefs.Ids;
+import org.midonet.midolman.state.StateAccessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.AbstractZkManager;
-import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.DirectoryCallback;
-import org.midonet.midolman.state.DirectoryCallbackFactory;
 import org.midonet.midolman.state.PathBuilder;
-import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
-import org.midonet.util.functors.Functor;
 
 import static java.util.Arrays.asList;
 
 /**
  * Class to manage the VIP ZooKeeper data.
  */
-public class VipZkManager extends AbstractZkManager {
+public class VipZkManager
+        extends AbstractZkManager<UUID, VipZkManager.VipConfig> {
 
     private final static Logger log = LoggerFactory
             .getLogger(VipZkManager.class);
 
-    public static class VipConfig {
+    public static class VipConfig extends BaseConfig {
         public UUID loadBalancerId;
         public UUID poolId;
         public String address;
@@ -71,21 +70,12 @@ public class VipZkManager extends AbstractZkManager {
 
             VipConfig that = (VipConfig) o;
 
-            if (!Objects.equal(loadBalancerId, that.loadBalancerId))
-                return false;
-            if (!Objects.equal(poolId, that.poolId))
-                return false;
-            if (!Objects.equal(address, that.address))
-                return false;
-            if (protocolPort != that.protocolPort)
-                return false;
-            if (!Objects.equal(sessionPersistence,
-                    that.sessionPersistence))
-                return false;
-            if (adminStateUp != that.adminStateUp)
-                return false;
-
-            return true;
+            return Objects.equal(loadBalancerId, that.loadBalancerId) &&
+                   Objects.equal(poolId, that.poolId) &&
+                   Objects.equal(address, that.address) &&
+                   protocolPort != that.protocolPort &&
+                   Objects.equal(sessionPersistence, that.sessionPersistence) &&
+                   adminStateUp != that.adminStateUp;
         }
     }
 
@@ -94,43 +84,35 @@ public class VipZkManager extends AbstractZkManager {
         super(zk, paths, serializer);
     }
 
+    @Override
+    public Class<VipConfig> getConfigClass() {
+        return VipConfig.class;
+    }
+
+    @Override
+    public String getConfigPath(UUID id) {
+        return paths.getVipPath(id);
+    }
+
     public List<Op> prepareCreate(UUID id, VipConfig config)
             throws SerializationException {
-        return asList(Op.create(
-                paths.getVipPath(id), serializer.serialize(config),
-                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+        return asList(simpleCreateOp(id, config));
     }
 
     public List<Op> prepareUpdate(UUID id, VipConfig config)
             throws SerializationException {
-        return asList(Op.setData(
-                paths.getVipPath(id), serializer.serialize(config), -1));
+        return asList(simpleUpdateOp(id, config));
     }
 
     public List<Op> prepareDelete(UUID id) {
         return asList(Op.delete(paths.getVipPath(id), -1));
     }
 
-    public boolean exists(UUID id) throws StateAccessException {
-        return zk.exists(paths.getVipPath(id));
-    }
-
-    public VipConfig get(UUID id)
-            throws StateAccessException, SerializationException {
-        return get(id, null);
-    }
-
-    public VipConfig get(UUID id, Runnable watcher)
-            throws StateAccessException, SerializationException {
-        byte[] data = zk.get(paths.getVipPath(id), watcher);
-        return serializer.deserialize(data, VipConfig.class);
-    }
-
     public List<Op> prepareSetPoolId(UUID id, UUID poolId)
             throws SerializationException, StateAccessException {
         VipConfig config = get(id);
         if (config.poolId == poolId)
-            return new ArrayList<Op>(0);
+                return new ArrayList<>(0);
 
         config.poolId = poolId;
         return prepareUpdate(id, config);
@@ -144,12 +126,5 @@ public class VipZkManager extends AbstractZkManager {
 
         config.loadBalancerId = loadBalancerId;
         return prepareUpdate(id, config);
-    }
-
-    public void getVipAsync(final UUID vipId,
-                            DirectoryCallback<VipConfig> vipCallback,
-                            Directory.TypedWatcher watcher) {
-        getAsync(paths.getVipPath(vipId),
-                 VipConfig.class, vipCallback, watcher);
     }
 }

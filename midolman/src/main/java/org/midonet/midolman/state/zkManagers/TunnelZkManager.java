@@ -1,22 +1,21 @@
 /*
- * Copyright 2011 Midokura KK
- * Copyright 2012 Midokura Europe SARL
+ * Copyright (c) 2011-2014 Midokura Europe SARL, All Rights Reserved.
  */
 package org.midonet.midolman.state.zkManagers;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Op;
+import org.midonet.midolman.state.AbstractZkManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.AbstractZkManager;
-import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
@@ -25,7 +24,8 @@ import org.midonet.midolman.state.ZkManager;
 /**
  * Class to manage the Tunnel ZooKeeper data.
  */
-public class TunnelZkManager extends AbstractZkManager {
+public class TunnelZkManager
+        extends AbstractZkManager<Integer, TunnelZkManager.TunnelKey> {
     private final static Logger log =
          LoggerFactory.getLogger(TunnelZkManager.class);
 
@@ -59,6 +59,16 @@ public class TunnelZkManager extends AbstractZkManager {
         super(zk, paths, serializer);
     }
 
+    @Override
+    protected String getConfigPath(Integer id) {
+        return paths.getTunnelPath(id);
+    }
+
+    @Override
+    protected Class<TunnelKey> getConfigClass() {
+        return TunnelKey.class;
+    }
+
     private int extractTunnelKeyFromPath(String path) {
         int idx = path.lastIndexOf('/');
         return Integer.parseInt(path.substring(idx + 1));
@@ -75,20 +85,7 @@ public class TunnelZkManager extends AbstractZkManager {
      */
     public List<Op> prepareTunnelUpdate(int tunnelKeyId, TunnelKey tunnelKey)
             throws StateAccessException, SerializationException {
-        List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.setData(paths.getTunnelPath(tunnelKeyId),
-                serializer.serialize(tunnelKey), -1));
-        return ops;
-    }
-
-    public TunnelKey get(int tunnelKeyId)
-            throws StateAccessException, SerializationException {
-        TunnelKey tunnelKey = null;
-        byte[] data = zk.get(paths.getTunnelPath(tunnelKeyId));
-        if (data != null) {
-            tunnelKey = serializer.deserialize(data, TunnelKey.class);
-        }
-        return tunnelKey;
+        return Arrays.asList(simpleUpdateOp(tunnelKeyId, tunnelKey));
     }
 
     /***

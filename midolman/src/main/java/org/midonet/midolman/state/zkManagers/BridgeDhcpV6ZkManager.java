@@ -7,7 +7,7 @@ package org.midonet.midolman.state.zkManagers;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.AbstractZkManager;
-import org.midonet.midolman.state.Directory;
+import org.midonet.midolman.state.BaseZkManager;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
@@ -25,7 +25,7 @@ import java.util.Set;
 import java.util.UUID;
 
 
-public class BridgeDhcpV6ZkManager extends AbstractZkManager {
+public class BridgeDhcpV6ZkManager extends BaseZkManager {
 
     private static final Logger log = LoggerFactory
         .getLogger(BridgeDhcpV6ZkManager.class);
@@ -119,7 +119,7 @@ public class BridgeDhcpV6ZkManager extends AbstractZkManager {
         ops.add(Op.create(paths.getBridgeDhcpSubnet6Path(
                 bridgeId, subnet.getPrefix()),
                 serializer.serialize(subnet),
-                        ZooDefs.Ids.OPEN_ACL_UNSAFE,
+                ZooDefs.Ids.OPEN_ACL_UNSAFE,
                 CreateMode.PERSISTENT));
 
         ops.add(Op.create(paths.getBridgeDhcpV6HostsPath(

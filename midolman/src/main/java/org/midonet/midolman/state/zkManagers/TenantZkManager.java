@@ -16,14 +16,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-
 /**
  * Zk DAO for tenants.  This class used purely by the REST API.
  */
-public class TenantZkManager extends AbstractZkManager {
+public class TenantZkManager extends BaseZkManager {
 
-    private final static Logger log = LoggerFactory
-            .getLogger(TenantZkManager.class);
+    private final static Logger log =
+            LoggerFactory.getLogger(TenantZkManager.class);
 
     /**
      * Constructor to set ZooKeeper and base path.

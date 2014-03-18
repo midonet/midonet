@@ -11,6 +11,7 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
+import com.google.common.base.Objects;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.packets.MAC;
 import org.midonet.util.StringUtil;
@@ -214,7 +215,7 @@ public class RouterPort extends Port {
         }
 
         // IDs must not be the same
-        if (id == otherPort.getId()) {
+        if (Objects.equal(id, otherPort.getId())) {
             return false;
         }
 

@@ -1,6 +1,6 @@
 /*
-* Copyright 2012 Midokura PTE LTD.
-*/
+ * Copyright (c) 2012-2014 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.midolman.guice.cluster;
 
 import java.lang.reflect.Constructor;
@@ -32,9 +32,8 @@ import org.midonet.midolman.config.ZookeeperConfig;
 import org.midonet.midolman.guice.zookeeper.ZKConnectionProvider;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.monitoring.store.Store;
-import org.midonet.midolman.rules.Condition;
 import org.midonet.midolman.serialization.Serializer;
-import org.midonet.midolman.state.AbstractZkManager;
+import org.midonet.midolman.state.BaseZkManager;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.PortConfigCache;
@@ -127,8 +126,7 @@ public class DataClusterClientModule extends PrivateModule {
     }
 
     protected void bindZkManagers() {
-        List<Class<? extends AbstractZkManager>> managers =
-                new ArrayList<Class<? extends AbstractZkManager>>();
+        List<Class<? extends BaseZkManager>> managers = new ArrayList<>();
 
         managers.add(HostZkManager.class);
         managers.add(BgpZkManager.class);
@@ -154,7 +152,7 @@ public class DataClusterClientModule extends PrivateModule {
         managers.add(PoolZkManager.class);
         managers.add(VipZkManager.class);
 
-        for (Class<? extends AbstractZkManager> managerClass : managers) {
+        for (Class<? extends BaseZkManager> managerClass : managers) {
             //noinspection unchecked
             bind(managerClass)
                     .toProvider(new ZkManagerProvider(managerClass))
@@ -177,7 +175,7 @@ public class DataClusterClientModule extends PrivateModule {
         }
     }
 
-    private static class ZkManagerProvider<T extends AbstractZkManager>
+    private static class ZkManagerProvider<T extends BaseZkManager>
             implements Provider<T> {
 
         @Inject

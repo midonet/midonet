@@ -1,9 +1,10 @@
 /*
- * Copyright 2012 Midokura Pte. Ltd.
+ * Copyright (c) 2012-2014 Midokura Europe SARL, All Rights Reserved.
  */
 
 package org.midonet.cluster;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.inject.Inject;
@@ -16,7 +17,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -94,7 +94,7 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
         }
 
         AdRouteCallback adRouteCallback = new AdRouteCallback(adRouteId);
-        adRouteMgr.getAdRouteAsync(adRouteId, adRouteCallback, adRouteCallback);
+        adRouteMgr.getAsync(adRouteId, adRouteCallback, adRouteCallback);
     }
 
     private class BgpCallback extends CallbackWithWatcher<BGP> {
@@ -119,7 +119,7 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
         public void onSuccess(Result<BGP> data) {
             log.debug("begin");
             // We shall receive only updates for this BGP object
-            if (!(data.getData().getId() == bgpID)) {
+            if (!Objects.equal(data.getData().getId(), bgpID)) {
                 log.error("received BGP update from id: {} to id: {}",
                         data.getData().getId(), bgpID);
                 return;
@@ -298,7 +298,7 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
         public void pathDataChanged(String path) {
             // The AdRoute node has changed, fetch it again asynchronously.
             log.debug("AdRouteCallback - begin");
-            adRouteMgr.getAdRouteAsync(adRouteId, this, this);
+            adRouteMgr.getAsync(adRouteId, this, this);
         }
 
         @Override
@@ -306,7 +306,7 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
             return new Runnable() {
                 @Override
                 public void run() {
-                    adRouteMgr.getAdRouteAsync(adRouteId,
+                    adRouteMgr.getAsync(adRouteId,
                             AdRouteCallback.this, AdRouteCallback.this);
                 }
             };

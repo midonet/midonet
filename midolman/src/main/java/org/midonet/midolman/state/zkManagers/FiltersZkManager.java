@@ -10,12 +10,10 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
 
-import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
-import org.apache.zookeeper.ZooDefs.Ids;
-import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.AbstractZkManager;
+import org.midonet.midolman.serialization.Serializer;
+import org.midonet.midolman.state.BaseZkManager;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.PathBuilder;
@@ -24,13 +22,11 @@ import org.midonet.midolman.state.ZkManager;
 import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPAddr$;
 
-import java.util.*;
-
 /**
  * Class to manage the ZK data for the implicit filters of Ports, Bridges,
  * and Routers.
  */
-public class FiltersZkManager extends AbstractZkManager {
+public class FiltersZkManager extends BaseZkManager {
 
     /**
      * Initializes a FilterZkManager object with a ZooKeeper client and the root
@@ -43,15 +39,12 @@ public class FiltersZkManager extends AbstractZkManager {
      * @param serializer
      *         ZK data serialization class
      */
-    public FiltersZkManager(ZkManager zk, PathBuilder paths,
-                            Serializer serializer) {
+    public FiltersZkManager(ZkManager zk, PathBuilder paths, Serializer serializer) {
         super(zk, paths, serializer);
     }
 
-    public FiltersZkManager(Directory dir, String basePath,
-                            Serializer serializer) {
-        this(new ZkManager(dir, basePath),
-             new PathBuilder(basePath), serializer);
+    public FiltersZkManager(Directory dir, String basePath, Serializer serializer) {
+        this(new ZkManager(dir, basePath), new PathBuilder(basePath), serializer);
     }
 
     /**
@@ -64,12 +57,8 @@ public class FiltersZkManager extends AbstractZkManager {
      */
     public List<Op> prepareCreate(UUID id)
             throws SerializationException {
-        List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.create(paths.getFilterPath(id), null,
-                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-        ops.add(Op.create(paths.getFilterSnatBlocksPath(id), null,
-                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-        return ops;
+        return zk.getPersistentCreateOps(paths.getFilterPath(id),
+                                         paths.getFilterSnatBlocksPath(id));
     }
 
     /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Midokura Europe SARL, All Rights Reserved.
+ * Copyright (c) 2011-2014 Midokura Europe SARL, All Rights Reserved.
  */
 package org.midonet.midolman.state.zkManagers;
 
@@ -33,8 +33,7 @@ import org.midonet.util.functors.Functor;
 /**
  * Class to manage the routing ZooKeeper data.
  */
-public class RouteZkManager extends AbstractZkManager {
-
+public class RouteZkManager extends AbstractZkManager<UUID, Route> {
 
     private final Functor<Set<byte[]>, Set<Route>> byteArrayToRoutesSetMapper =
         new Functor<Set<byte[]>, Set<Route>>(){
@@ -75,6 +74,16 @@ public class RouteZkManager extends AbstractZkManager {
     public RouteZkManager(ZkManager zk, PathBuilder paths,
                           Serializer serializer) {
         super(zk, paths, serializer);
+    }
+
+    @Override
+    protected String getConfigPath(UUID id) {
+        return paths.getRoutePath(id);
+    }
+
+    @Override
+    protected Class<Route> getConfigClass() {
+        return Route.class;
     }
 
     /**
@@ -307,20 +316,6 @@ public class RouteZkManager extends AbstractZkManager {
         return create(route, true);
     }
 
-    /**
-     * Gets a ZooKeeper node entry key-value pair of a route with the given ID.
-     *
-     * @param id
-     *            The ID of the route.
-     * @return Route object found.
-     * @throws StateAccessException
-     *             Serialization or data access error occurred.
-     */
-    public Route get(UUID id) throws StateAccessException,
-            SerializationException {
-        return get(id, null);
-    }
-
     public void asyncGet(UUID id, final DirectoryCallback<Route> routeDirectoryCallback){
         zk.asyncGet(paths.getRoutePath(id),
                     DirectoryCallbackFactory.transform(
@@ -338,25 +333,6 @@ public class RouteZkManager extends AbstractZkManager {
     }
 
     /**
-     * Gets a ZooKeeper node entry key-value pair of a route with the given ID
-     * and sets a watcher on the node.
-     *
-     * @param id
-     *            The ID of the route.
-     * @param watcher
-     *            The watcher that gets notified when there is a change in the
-     *            node.
-     * @return Route object found.
-     * @throws StateAccessException
-     *             Serialization or data access error occurred.
-     */
-    public Route get(UUID id, Runnable watcher) throws StateAccessException,
-            SerializationException {
-        byte[] routeData = zk.get(paths.getRoutePath(id), watcher);
-        return serializer.deserialize(routeData, Route.class);
-    }
-
-    /**
      * Gets a list of ZooKeeper router nodes belonging under the router
      * directory with the given ID.
      *
@@ -371,13 +347,7 @@ public class RouteZkManager extends AbstractZkManager {
      */
     public List<UUID> listRouterRoutes(UUID routerId, Runnable watcher)
             throws StateAccessException {
-        List<UUID> result = new ArrayList<UUID>();
-        Set<String> routeIds = zk.getChildren(
-                paths.getRouterRoutesPath(routerId), watcher);
-        for (String routeId : routeIds) {
-            result.add(UUID.fromString(routeId));
-        }
-        return result;
+        return getUuidList(paths.getRouterRoutesPath(routerId), watcher);
     }
 
     public List<UUID> listPortRoutes(UUID portId) throws StateAccessException {
@@ -398,13 +368,7 @@ public class RouteZkManager extends AbstractZkManager {
      */
     public List<UUID> listPortRoutes(UUID portId, Runnable watcher)
             throws StateAccessException {
-        List<UUID> result = new ArrayList<UUID>();
-        Set<String> routeIds = zk.getChildren(
-                paths.getPortRoutesPath(portId), watcher);
-        for (String routeId : routeIds) {
-            result.add(UUID.fromString(routeId));
-        }
-        return result;
+        return getUuidList(paths.getPortRoutesPath(portId), watcher);
     }
 
     public void listPortRoutesAsync(UUID portId,
@@ -456,11 +420,5 @@ public class RouteZkManager extends AbstractZkManager {
     public void delete(UUID id) throws StateAccessException,
             SerializationException {
         zk.multi(prepareRouteDelete(id));
-    }
-
-    public boolean exists(UUID id) throws StateAccessException {
-
-        String path = paths.getRoutePath(id);
-        return zk.exists(path);
     }
 }
