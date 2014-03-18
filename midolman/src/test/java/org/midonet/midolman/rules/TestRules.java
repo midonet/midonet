@@ -364,6 +364,61 @@ public class TestRules {
     }
 
     @Test
+    public void testDnatAndReverseRuleDeleteMapping() {
+        Set<NatTarget> nats = new HashSet<NatTarget>();
+        nats.add(new NatTarget(0x0c000102, 0x0c00010a, (int) 1030,
+                (int) 1050));
+        Rule rule = new ForwardNatRule(cond, Action.CONTINUE, null, 0, true,
+                nats);
+        Rule revRule = new ReverseNatRule(new Condition(), Action.ACCEPT, true);
+
+        // Now get the Dnat rule to match.
+        fwdInfo.inPortId = inPort;
+        rule.process(fwdInfo, argRes, natMapping, false);
+        Assert.assertEquals(Action.CONTINUE, argRes.action);
+        int firstNwDst = ((IPv4Addr)argRes.pmatch.getNetworkDestinationIP()).toInt();
+        Assert.assertTrue(0x0c000102 <= firstNwDst);
+        Assert.assertTrue(firstNwDst <= 0x0c00010a);
+        int firstTpDst = argRes.pmatch.getTransportDestination();
+        Assert.assertTrue(1030 <= firstTpDst);
+        Assert.assertTrue(firstTpDst <= 1050);
+
+        // Now verify that the rest of the packet hasn't changed.
+        expRes.pmatch.setNetworkDestination(IPv4Addr.fromInt(firstNwDst));
+        expRes.pmatch.setTransportDestination(firstTpDst);
+        Assert.assertTrue(expRes.pmatch.equals(argRes.pmatch));
+
+        // Verify we get the same mapping if we re-process the original match.
+        expRes = argRes;
+        argRes = new RuleResult(null, null, pktMatch.clone());
+        rule.process(fwdInfo, argRes, natMapping, false);
+        int secondNwDst = ((IPv4Addr)argRes.pmatch.getNetworkDestinationIP()).toInt();
+        int secondTpDst = argRes.pmatch.getTransportDestination();
+        Assert.assertTrue(expRes.equals(argRes));
+        Assert.assertEquals(firstNwDst, secondNwDst);
+        Assert.assertEquals(firstTpDst, secondTpDst);
+
+        // Delete the DNAT entry
+        natMapping.deleteDnatEntry(pktMatch.getNetworkProtocol(),
+                                   pktMatch.getNetworkSourceIP(),
+                                   pktMatch.getTransportSource(),
+                                   pktMatch.getNetworkDestinationIP(),
+                                   pktMatch.getTransportDestination(),
+                                   new IPv4Addr(firstNwDst),
+                                   firstTpDst);
+
+        // Verify we get a NEW mapping if we re-process the original match.
+        expRes = argRes;
+        argRes = new RuleResult(null, null, pktMatch.clone());
+        rule.process(fwdInfo, argRes, natMapping, false);
+        int thirdNwDst = ((IPv4Addr)argRes.pmatch.getNetworkDestinationIP()).toInt();
+        int thirdTpDst = argRes.pmatch.getTransportDestination();
+        Assert.assertFalse(expRes.equals(argRes));
+        Assert.assertNotSame(firstNwDst, thirdNwDst);
+        Assert.assertNotSame(firstTpDst, thirdTpDst);
+    }
+
+    @Test
     public void testStickyDnatAndReverseRule() {
         Set<NatTarget> nats = new HashSet<NatTarget>();
         nats.add(new NatTarget(0x0c000102, 0x0c00010a, (int) 1030,

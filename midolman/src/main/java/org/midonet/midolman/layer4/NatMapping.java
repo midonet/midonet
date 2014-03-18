@@ -35,6 +35,11 @@ public interface NatMapping {
                            IPAddr nwSrc, int tpSrc,
                            IPAddr newNwDst, int newTpDst);
 
+    void deleteDnatEntry(byte protocol,
+                           IPAddr nwSrc, int tpSrc,
+                           IPAddr oldNwDst, int oldTpDst,
+                           IPAddr newNwDst, int newTpDst);
+
     // Allocates and records a Snat mapping.
     NwTpPair allocateSnat(byte protocol,
                           IPAddr oldNwSrc, int oldTpSrc,

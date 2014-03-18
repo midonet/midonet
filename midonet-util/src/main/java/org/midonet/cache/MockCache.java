@@ -71,8 +71,7 @@ public class MockCache implements Cache {
      */
     @Override
     public void delete(String key) {
-        // does nothing
-        return;
+        map.remove(key);
     }
 
     @Override
