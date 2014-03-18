@@ -559,10 +559,12 @@ trait VirtualConfigurationBuilders {
     def updatePoolMember(poolMember: PoolMember,
                          poolId: Option[UUID] = None,
                          adminStateUp: Option[Boolean] = None,
-                         weight: Option[Integer] = None) {
+                         weight: Option[Integer] = None,
+                         status: Option[PoolMemberStatus] = None) {
         poolId.foreach(poolMember.setPoolId(_))
         adminStateUp.foreach(poolMember.setAdminStateUp(_))
         weight.foreach(poolMember.setWeight(_))
+        status.foreach(poolMember.setStatus(_))
         clusterDataClient().poolMemberUpdate(poolMember)
     }
 
@@ -573,4 +575,7 @@ trait VirtualConfigurationBuilders {
                                   adminStateUp: Boolean) =
         updatePoolMember(poolMember, adminStateUp = Some(adminStateUp))
 
+    def setPoolMemberHealth(poolMember: PoolMember,
+                                  status: PoolMemberStatus) =
+        updatePoolMember(poolMember, status = Some(status))
 }

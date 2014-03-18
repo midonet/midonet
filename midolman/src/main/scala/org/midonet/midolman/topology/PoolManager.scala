@@ -34,6 +34,7 @@ class PoolManager(val id: UUID, val clusterClient: Client) extends Actor
 
     private var poolConfig: Pool = null
     private var simPoolMembers: Array[simulation.PoolMember] = null
+    private var disabledPoolMembers: Array[simulation.PoolMember] = null
 
     override def preStart() {
         clusterClient.getPool(id, new PoolBuilderImpl(self))
@@ -44,6 +45,9 @@ class PoolManager(val id: UUID, val clusterClient: Client) extends Actor
         simPoolMembers = newMembers.collect {
             case pm if pm.isUp => toSimulationPoolMember(pm)
         } (breakOut(Array.canBuildFrom))
+        disabledPoolMembers = newMembers.collect {
+            case pm if !pm.getAdminStateUp => toSimulationPoolMember(pm)
+        } (breakOut(Array.canBuildFrom))
         publishUpdateIfReady()
     }
 
@@ -53,7 +57,7 @@ class PoolManager(val id: UUID, val clusterClient: Client) extends Actor
     }
 
     private def publishUpdateIfReady() {
-        if (simPoolMembers == null) {
+        if (simPoolMembers == null || disabledPoolMembers == null) {
             log.debug(s"Not publishing pool $id. Still waiting for pool members.")
             return
         }
@@ -65,7 +69,7 @@ class PoolManager(val id: UUID, val clusterClient: Client) extends Actor
 
         val simPool = new simulation.Pool(
             id, poolConfig.isAdminStateUp, poolConfig.getLbMethod,
-            simPoolMembers, context.system.eventStream)
+            simPoolMembers, disabledPoolMembers, context.system.eventStream)
         VirtualTopologyActor ! simPool
         VirtualTopologyActor ! InvalidateFlowsByTag(
             FlowTagger.invalidateFlowsByDevice(id))
