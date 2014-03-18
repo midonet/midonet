@@ -96,10 +96,12 @@ public class NatLeaseManager implements NatMapping {
     }
 
     private class RefreshNatMappings implements Runnable {
-        String fwdKey;
+        final String fwdKey;
+        final int expirationSeconds;
 
-        private RefreshNatMappings(String fwdKey) {
+        private RefreshNatMappings(String fwdKey, int expirationSeconds) {
             this.fwdKey = fwdKey;
+            this.expirationSeconds = expirationSeconds;
         }
 
         private void refreshKey(String key) {
@@ -109,7 +111,8 @@ public class NatLeaseManager implements NatMapping {
             }
             log.debug("RefreshNatMappings refresh key {}", key);
             try {
-                String val = cache.getAndTouch(key);
+                String val = cache.getAndTouchWithExpiration(key,
+                        expirationSeconds);
                 log.debug("RefreshNatMappings found value {}", val);
             } catch (Exception e) {
                 log.error("RefreshNatMappings caught: {}", e);
@@ -130,7 +133,7 @@ public class NatLeaseManager implements NatMapping {
             refreshKey(keyData.revKey);
             log.debug("RefreshNatMappings completed. Rescheduling.");
             // Re-schedule this runnable.
-            reactor.schedule(this, refreshSeconds, TimeUnit.SECONDS);
+            reactor.schedule(this, expirationSeconds, TimeUnit.SECONDS);
         }
     }
 
@@ -163,6 +166,15 @@ public class NatLeaseManager implements NatMapping {
     public NwTpPair allocateDnat(byte protocol, IPAddr nwSrc, int tpSrc_,
                                  IPAddr oldNwDst, int oldTpDst_,
                                  Set<NatTarget> nats) {
+        return allocateDnat(protocol, nwSrc, tpSrc_, oldNwDst, oldTpDst_, nats,
+                cache.getExpirationSeconds());
+    }
+
+    @Override
+    public NwTpPair allocateDnat(byte protocol, IPAddr nwSrc, int tpSrc_,
+                                 IPAddr oldNwDst, int oldTpDst_,
+                                 Set<NatTarget> nats,
+                                 int overrideCacheTimeoutSeconds) {
 
         // TODO(pino) get rid of these after converting ports to int.
         int tpSrc = tpSrc_ & USHORT;
@@ -172,7 +184,7 @@ public class NatLeaseManager implements NatMapping {
                       nwSrc, tpSrc, oldNwDst, oldTpDst, nats });
 
         if (nats.isEmpty())
-            throw new IllegalArgumentException("Nat list was emtpy.");
+            throw new IllegalArgumentException("Nat list was empty.");
         int natPos = rand.nextInt(nats.size());
         Iterator<NatTarget> iter = nats.iterator();
         NatTarget nat = null;
@@ -196,16 +208,24 @@ public class NatLeaseManager implements NatMapping {
         // TODO(pino): can't one write to the cache suffice?
         String fwdKey = makeCacheKey(FWD_DNAT_PREFIX, protocol,
                                      nwSrc, tpSrc, oldNwDst, oldTpDst);
-        cache.set(fwdKey, makeCacheValue(newNwDst, newTpDst));
+        cache.setWithExpiration(fwdKey, makeCacheValue(newNwDst, newTpDst),
+                overrideCacheTimeoutSeconds);
         String revKey = makeCacheKey(REV_DNAT_PREFIX, protocol,
                                      nwSrc, tpSrc, newNwDst, newTpDst);
-        cache.set(revKey, makeCacheValue(oldNwDst, oldTpDst));
+        cache.setWithExpiration(revKey, makeCacheValue(oldNwDst, oldTpDst),
+                overrideCacheTimeoutSeconds);
         log.debug("allocateDnat fwd key {} and rev key {}", fwdKey, revKey);
-        scheduleRefresh(fwdKey, revKey);
+        scheduleRefreshWithExpiration(fwdKey, revKey,
+                overrideCacheTimeoutSeconds);
         return new NwTpPair(newNwDst, newTpDst, fwdKey);
     }
 
     private void scheduleRefresh(String fwdKey, String revKey) {
+        scheduleRefreshWithExpiration(fwdKey, revKey, refreshSeconds);
+    }
+
+    private void scheduleRefreshWithExpiration(String fwdKey, String revKey,
+                                               int overrideRefreshSeconds) {
         boolean isNew = natRef(fwdKey, revKey);
         KeyMetadata keyData = fwdKeys.get(fwdKey);
         if (null == keyData) {
@@ -215,12 +235,14 @@ public class NatLeaseManager implements NatMapping {
 
         if (isNew) {
             keyData.future = reactor.schedule(
-                    new RefreshNatMappings(fwdKey),
-                    refreshSeconds,
+                    new RefreshNatMappings(fwdKey, overrideRefreshSeconds),
+                    overrideRefreshSeconds,
                     TimeUnit.SECONDS);
             log.debug("scheduleRefresh");
         }
     }
+
+
 
     public static String makeCacheKey(String prefix, byte protocol,
                                       IPAddr nwSrc, int tpSrc, IPAddr nwDst,
@@ -251,11 +273,21 @@ public class NatLeaseManager implements NatMapping {
     @Override
     public NwTpPair lookupDnatFwd(byte protocol, IPAddr nwSrc, int tpSrc_,
                                   IPAddr oldNwDst, int oldTpDst_) {
+        return lookupDnatFwd(protocol, nwSrc, tpSrc_,
+                             oldNwDst, oldTpDst_,
+                             cache.getExpirationSeconds());
+    }
+
+    @Override
+    public NwTpPair lookupDnatFwd(byte protocol, IPAddr nwSrc, int tpSrc_,
+                                  IPAddr oldNwDst, int oldTpDst_,
+                                  int expirationSeconds) {
         int tpSrc = tpSrc_ & USHORT;
         int oldTpDst = oldTpDst_ & USHORT;
         String fwdKey = makeCacheKey(FWD_DNAT_PREFIX, protocol,
-                                     nwSrc, tpSrc, oldNwDst, oldTpDst);
-        String value = cache.getAndTouch(fwdKey);
+                nwSrc, tpSrc, oldNwDst, oldTpDst);
+        String value = cache.getAndTouchWithExpiration(fwdKey,
+                expirationSeconds);
         log.debug("lookupDnatFwd: key {} value {}", fwdKey, value);
         // If the forward mapping was found, touch the reverse mapping too,
         // then schedule a refresh.
@@ -265,9 +297,9 @@ public class NatLeaseManager implements NatMapping {
         if (null == pair)
             return null;
         String revKey = makeCacheKey(REV_DNAT_PREFIX, protocol,
-                                     nwSrc, tpSrc, pair.nwAddr, pair.tpPort);
-        cache.getAndTouch(revKey);
-        scheduleRefresh(fwdKey, revKey);
+                nwSrc, tpSrc, pair.nwAddr, pair.tpPort);
+        cache.getAndTouchWithExpiration(revKey, expirationSeconds);
+        scheduleRefreshWithExpiration(fwdKey, revKey, expirationSeconds);
         return pair;
     }
 

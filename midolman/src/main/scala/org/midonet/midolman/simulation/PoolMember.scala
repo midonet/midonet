@@ -7,6 +7,7 @@ package org.midonet.midolman.simulation
 import java.util.UUID
 import java.util.{HashSet => JHashSet}
 
+import org.midonet.midolman.l4lb.ForwardStickyNatRule
 import org.midonet.midolman.layer4.NatMapping
 import org.midonet.midolman.rules._
 import org.midonet.packets.IPv4Addr
@@ -25,17 +26,33 @@ class PoolMember(val id: UUID, val address: IPv4Addr,
     /**
      * NatRule used to NAT a packet to this pool member.
      */
-    private val natRule =  {
-        val natTargets = new JHashSet[NatTarget](1)
-        natTargets.add(
+    private val natTargets = {
+        val targets = new JHashSet[NatTarget](1)
+        targets.add(
             new NatTarget(address, address, protocolPort, protocolPort))
+        targets
+    }
+
+    private val forwardNatRule =
         new ForwardNatRule(Condition.TRUE, RuleResult.Action.ACCEPT,
                            null, 0, true, natTargets)
-    }
+
+    private def forwardStickyNatRule(stickyIpTimeout: Int) =
+        new ForwardStickyNatRule(Condition.TRUE, RuleResult.Action.ACCEPT,
+                                 null, 0, true, natTargets, stickyIpTimeout)
 
     protected[simulation] def applyDnat(res: RuleResult,
                                         pktContext: ChainPacketContext,
-                                        natMapping: NatMapping) {
+                                        natMapping: NatMapping,
+                                        stickySourceIP: Boolean,
+                                        stickyTimeoutSeconds: Int) {
+        val natRule: ForwardNatRule =
+            if (stickySourceIP) {
+                forwardStickyNatRule(stickyTimeoutSeconds)
+            } else {
+                forwardNatRule
+            }
+
         natRule.apply(pktContext, res, natMapping)
     }
 

@@ -17,9 +17,19 @@ public interface NatMapping {
                           IPAddr nwSrc, int tpSrc,
                           IPAddr oldNwDst, int oldTpDst, Set<NatTarget> nats);
 
+    NwTpPair allocateDnat(byte protocol,
+                          IPAddr nwSrc, int tpSrc,
+                          IPAddr oldNwDst, int oldTpDst, Set<NatTarget> nats,
+                          int cacheTimeoutSeconds);
+
     NwTpPair lookupDnatFwd(byte protocol,
                            IPAddr nwSrc, int tpSrc,
                            IPAddr oldNwDst, int oldTpDst);
+
+    NwTpPair lookupDnatFwd(byte protocol,
+                           IPAddr nwSrc, int tpSrc,
+                           IPAddr oldNwDst, int oldTpDst,
+                           int cacheTimeoutSeconds);
 
     NwTpPair lookupDnatRev(byte protocol,
                            IPAddr nwSrc, int tpSrc,

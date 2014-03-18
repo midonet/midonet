@@ -39,7 +39,8 @@ class Pool(val id: UUID, val adminStateUp: Boolean, val lbMethod: String,
      * Return action based on outcome: ACCEPT if loadbalanced successfully,
      * DROP if no active pool member is available.
      */
-    def loadBalance(natMapping: NatMapping, pktContext: PacketContext)
+    def loadBalance(natMapping: NatMapping, pktContext: PacketContext,
+                    stickySourceIP: Boolean, stickyTimeoutSeconds: Int)
     : RuleResult.Action = {
         // For logger.
         implicit val implicitPacketContext = pktContext
@@ -48,9 +49,11 @@ class Pool(val id: UUID, val adminStateUp: Boolean, val lbMethod: String,
         pktContext.addFlowTag(invalidatePoolTag)
 
         if (isUp) {
-            maintainConnectionOrLoadBalanceTo(memberSelector.select)
+            maintainConnectionOrLoadBalanceTo(memberSelector.select,
+                                              stickySourceIP,
+                                              stickyTimeoutSeconds)
         } else {
-            maintainConnectionIfExists()
+            maintainConnectionIfExists(stickySourceIP, stickyTimeoutSeconds)
         }
     }
 
@@ -60,7 +63,9 @@ class Pool(val id: UUID, val adminStateUp: Boolean, val lbMethod: String,
      *
      * Returns ACCEPT action when loadbalanced successfully.
      */
-    private def maintainConnectionOrLoadBalanceTo(poolMember: PoolMember)
+    private def maintainConnectionOrLoadBalanceTo(poolMember: PoolMember,
+                                                  stickySourceIP: Boolean,
+                                                  stickyTimeoutSeconds: Int)
                                          (implicit natMapping: NatMapping,
                                           pktContext: PacketContext)
     : RuleResult.Action = {
@@ -68,7 +73,8 @@ class Pool(val id: UUID, val adminStateUp: Boolean, val lbMethod: String,
                                         null, pktContext.wcmatch)
 
         // Apply the rule, which changes the pktContext and applies DNAT
-        poolMember.applyDnat(ruleResult, pktContext, natMapping)
+        poolMember.applyDnat(ruleResult, pktContext, natMapping,
+                             stickySourceIP, stickyTimeoutSeconds)
 
         // Load balanced successfully
         RuleResult.Action.ACCEPT
@@ -81,8 +87,10 @@ class Pool(val id: UUID, val adminStateUp: Boolean, val lbMethod: String,
      * Returns ACCEPT if loadbalanced successfully, DROP if no existing NAT
      * mapping was available.
      */
-    def maintainConnectionIfExists()(implicit natMapping: NatMapping,
-                                     pktContext: PacketContext)
+    def maintainConnectionIfExists(stickySourceIP: Boolean,
+                                   stickyTimeoutSeconds: Int)
+                                  (implicit natMapping: NatMapping,
+                                   pktContext: PacketContext)
     : RuleResult.Action = {
         // Even if there are no active pool members, we should keep
         // existing connections alive, so check for existing NatMapping
@@ -98,8 +106,15 @@ class Pool(val id: UUID, val adminStateUp: Boolean, val lbMethod: String,
             case icmpProtocol if icmpProtocol == ICMP.PROTOCOL_NUMBER =>
                 RuleResult.Action.DROP
             case otherProtocol =>
-                val foundMapping = natMapping.lookupDnatFwd(proto, nwSrc,
-                    tpSrc, nwDst, tpDst)
+                val foundMapping = {
+                    if (stickySourceIP) {
+                        natMapping.lookupDnatFwd(proto, nwSrc,
+                            tpSrc, nwDst, tpDst, stickyTimeoutSeconds)
+                    } else {
+                        natMapping.lookupDnatFwd(proto, nwSrc,
+                            tpSrc, nwDst, tpDst)
+                    }
+                }
                 foundMapping match {
                     case null =>
                         RuleResult.Action.DROP
