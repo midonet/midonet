@@ -472,7 +472,7 @@ abstract class PacketWorkflow(val deduplicator: ActorRef,
             case Some(dhcpReply) =>
                 log.debug(
                     "sending DHCP reply {} to port {}", dhcpReply, inPort.id)
-                DeduplicationActor !
+                PacketsEntryPoint !
                     EmitGeneratedPacket(inPort.id, dhcpReply, cookie)
                 true
             case None =>

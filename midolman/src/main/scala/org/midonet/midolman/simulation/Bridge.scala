@@ -12,7 +12,7 @@ import scala.concurrent.{ExecutionContext, Future, Promise}
 
 import org.midonet.cluster.client._
 import org.midonet.cluster.data
-import org.midonet.midolman.DeduplicationActor
+import org.midonet.midolman.PacketsEntryPoint
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.logging.LoggerFactory
 import org.midonet.midolman.rules.RuleResult
@@ -558,7 +558,7 @@ class Bridge(val id: UUID,
         val eth = ARP.makeArpReply(mac, arpReq.getSenderHardwareAddress,
                                    arpReq.getTargetProtocolAddress,
                                    arpReq.getSenderProtocolAddress)
-        DeduplicationActor ! EmitGeneratedPacket(
+        PacketsEntryPoint ! EmitGeneratedPacket(
             inPortId, eth,
             if (originalPktContex != null) originalPktContex.flowCookie
             else None)

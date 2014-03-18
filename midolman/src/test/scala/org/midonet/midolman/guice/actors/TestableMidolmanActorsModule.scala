@@ -20,8 +20,11 @@ import akka.util.Timeout
 
 import org.midonet.midolman.guice.MidolmanActorsModule
 import org.midonet.midolman.services.MidolmanActorsService
-import org.midonet.midolman.SupervisorActor
+import org.midonet.midolman._
 import scala.reflect.ClassTag
+import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopologyActor}
+import org.midonet.midolman.routingprotocols.RoutingManagerActor
+import org.midonet.midolman.DeduplicationActor.HandlePackets
 
 /**
  * A [[org.midonet.midolman.guice.MidolmanActorsModule]] that can will override
@@ -35,6 +38,8 @@ class TestableMidolmanActorsModule(probes: mutable.Map[String, TestKit],
     extends MidolmanActorsModule {
 
     protected override def bindMidolmanActorsService() {
+        bind(classOf[TestablePacketsEntryPoint])
+        expose(classOf[TestablePacketsEntryPoint])
         bind(classOf[MidolmanActorsService])
             .toInstance(new TestableMidolmanActorsService())
     }
@@ -80,7 +85,17 @@ class TestableMidolmanActorsModule(probes: mutable.Map[String, TestKit],
 
             testKit.testActor
         }
+
+        protected override def actorSpecs = List(
+            (propsFor(classOf[VirtualTopologyActor]),      VirtualTopologyActor.Name),
+            (propsFor(classOf[VirtualToPhysicalMapper]),   VirtualToPhysicalMapper.Name),
+            (propsFor(classOf[DatapathController]),        DatapathController.Name),
+            (propsFor(classOf[FlowController]),            FlowController.Name),
+            (propsFor(classOf[RoutingManagerActor]),       RoutingManagerActor.Name),
+            (propsFor(classOf[TestablePacketsEntryPoint]), PacketsEntryPoint.Name),
+            (propsFor(classOf[NetlinkCallbackDispatcher]), NetlinkCallbackDispatcher.Name))
     }
+
 
     class ProxyActor(originalSender: ActorRef, probeActor: ActorRef) extends Actor {
         val log = Logging(context.system, self)
@@ -125,3 +140,12 @@ class ProbingTestActor(queue: LinkedBlockingDeque[Message]) extends TestActor(qu
     }
 }
 
+class TestablePacketsEntryPoint extends PacketsEntryPoint {
+    override def NUM_WORKERS = 1
+
+    def dda: ActorRef = if (workers.length > 0) workers(0) else null
+
+    override def receive = super.receive orElse {
+        case m: HandlePackets => dda ! m
+    }
+}

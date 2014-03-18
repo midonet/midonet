@@ -30,8 +30,7 @@ import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.{Port => VPort}
 import org.midonet.cluster.services.MidostoreSetupService
 import org.midonet.midolman.DatapathController.{InitializationComplete, DpPortCreate, Initialize}
-import org.midonet.midolman.DeduplicationActor.DiscardPacket
-import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
+import org.midonet.midolman.DeduplicationActor.{HandlePackets, DiscardPacket, EmitGeneratedPacket}
 import org.midonet.midolman.FlowController.AddWildcardFlow
 import org.midonet.midolman.FlowController.FlowUpdateCompleted
 import org.midonet.midolman.FlowController.WildcardFlowAdded
@@ -324,7 +323,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
     }
 
     protected def triggerPacketIn(packet: Packet) {
-        dpConn().asInstanceOf[MockOvsDatapathConnection].triggerPacketIn(packet)
+        deduplicationActor() ! HandlePackets(Array(packet))
     }
 
     protected def triggerPacketsIn(packets: List[Packet]) {
@@ -366,8 +365,8 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
         actorByName(VirtualTopologyActor.Name)
     }
 
-    protected def deduplicationActor(): TestActorRef[DeduplicationActor] = {
-        actorByName(DeduplicationActor.Name)
+    protected def deduplicationActor(): TestActorRef[PacketsEntryPoint] = {
+        actorByName(PacketsEntryPoint.Name)
     }
 
     protected def dpProbe(): TestKit = {
@@ -379,7 +378,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
     }
 
     protected def dedupProbe(): TestKit = {
-        probeByName(DeduplicationActor.Name)
+        probeByName(PacketsEntryPoint.Name)
     }
 
     protected def vtpProbe(): TestKit = {

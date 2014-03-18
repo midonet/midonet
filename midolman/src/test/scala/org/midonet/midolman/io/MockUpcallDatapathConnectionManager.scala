@@ -10,6 +10,8 @@ import akka.actor.ActorSystem
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.odp.{Packet, DpPort, Datapath}
 import org.midonet.util.BatchCollector
+import org.midonet.midolman.PacketsEntryPoint
+import org.midonet.midolman.PacketsEntryPoint.Workers
 
 class MockUpcallDatapathConnectionManager(config: MidolmanConfig)
         extends UpcallDatapathConnectionManager(config) {
@@ -20,7 +22,7 @@ class MockUpcallDatapathConnectionManager(config: MidolmanConfig)
 
     def initialize()(implicit ec: ExecutionContext, as: ActorSystem) {
         if (upcallHandler == null) {
-            upcallHandler = makeUpcallHandler()
+            upcallHandler = makeUpcallHandler(Workers(IndexedSeq(PacketsEntryPoint)))
             conn.getConnection.datapathsSetNotificationHandler(upcallHandler)
         }
     }

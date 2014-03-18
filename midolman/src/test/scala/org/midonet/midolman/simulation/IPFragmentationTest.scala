@@ -130,8 +130,8 @@ class IPFragmentationTest extends FeatureSpec
 
             And("a fragmentation needed ICMP should be received")
 
-            DeduplicationActor.messages should not be empty
-            val msg = DeduplicationActor.messages.head.asInstanceOf[EmitGeneratedPacket]
+            PacketsEntryPoint.messages should not be empty
+            val msg = PacketsEntryPoint.messages.head.asInstanceOf[EmitGeneratedPacket]
             msg should not be null
 
             msg.egressPort should be(leftBridgePort.getId)
