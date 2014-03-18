@@ -37,10 +37,8 @@ public class ClusterLoadBalancerManager
     @Inject
     VipZkManager vipZkMgr;
 
-    private Map<UUID, Map<UUID, VIP>> loadBalancerIdToVipMap =
-            new HashMap<UUID, Map<UUID, VIP>>();
-    private Map<UUID, Set<UUID>> loadBalancerToVipIds =
-            new HashMap<UUID, Set<UUID>>();
+    private Map<UUID, Map<UUID, VIP>> loadBalancerIdToVipMap = new HashMap<>();
+    private Map<UUID, Set<UUID>> loadBalancerToVipIds = new HashMap<>();
     private Multimap<UUID, UUID> loadBalancerToMissingVipIds =
             HashMultimap.create();
 
@@ -115,7 +113,7 @@ public class ClusterLoadBalancerManager
 
     private void requestVip(UUID vipID) {
         VipCallback vipCallback = new VipCallback(vipID);
-        vipZkMgr.getVipAsync(vipID, vipCallback, vipCallback);
+        vipZkMgr.getAsync(vipID, vipCallback, vipCallback);
     }
 
     private class VipListCallback extends CallbackWithWatcher<Set<UUID>> {
@@ -240,7 +238,7 @@ public class ClusterLoadBalancerManager
 
         @Override
         public void pathDataChanged(String path) {
-            vipZkMgr.getVipAsync(vipId, this, this);
+            vipZkMgr.getAsync(vipId, this, this);
         }
 
         @Override
@@ -248,7 +246,7 @@ public class ClusterLoadBalancerManager
             return new Runnable() {
                 @Override
                 public void run() {
-                    vipZkMgr.getVipAsync(vipId,
+                    vipZkMgr.getAsync(vipId,
                             VipCallback.this, VipCallback.this);
                 }
             };

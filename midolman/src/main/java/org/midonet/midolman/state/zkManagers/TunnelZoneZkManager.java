@@ -1,6 +1,6 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2012-2014 Midokura Europe SARL, All Rights Reserved.
+ */
 package org.midonet.midolman.state.zkManagers;
 
 import java.util.ArrayList;
@@ -11,13 +11,12 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.apache.zookeeper.Op;
-import org.midonet.midolman.state.TunnelZoneExistsException;
+import org.midonet.midolman.state.AbstractZkManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.PathBuilder;
@@ -34,7 +33,8 @@ import org.midonet.cluster.data.zones.IpsecTunnelZoneHost;
 import org.midonet.util.functors.CollectionFunctors;
 import org.midonet.util.functors.Functor;
 
-public class TunnelZoneZkManager extends AbstractZkManager {
+public class TunnelZoneZkManager
+        extends AbstractZkManager<UUID, TunnelZone.Data> {
 
     private final static Logger log =
         LoggerFactory.getLogger(TunnelZoneZkManager.class);
@@ -55,33 +55,28 @@ public class TunnelZoneZkManager extends AbstractZkManager {
         super(zk, paths, serializer);
     }
 
-    public Set<UUID> getZoneIds() throws StateAccessException {
-
-        String path = paths.getTunnelZonesPath();
-        Set<String> zoneIdSet = zk.getChildren(path);
-        Set<UUID> zoneIds = new HashSet<UUID>(zoneIdSet.size());
-        for (String zoneId : zoneIdSet) {
-            zoneIds.add(UUID.fromString(zoneId));
-        }
-
-        return zoneIds;
+    @Override
+    protected String getConfigPath(UUID id) {
+        return paths.getTunnelZonePath(id);
     }
 
-    public boolean exists(UUID zoneId) throws StateAccessException {
-        return zk.exists(paths.getTunnelZonePath(zoneId));
+    @Override
+    protected Class<TunnelZone.Data> getConfigClass() {
+        return TunnelZone.Data.class;
+    }
+
+    public List<UUID> getZoneIds() throws StateAccessException {
+        return getUuidList(paths.getTunnelZonesPath());
     }
 
     public TunnelZone<?, ?> getZone(UUID zoneId, Directory.TypedWatcher watcher)
             throws StateAccessException, SerializationException {
 
-        String tunnelZonePath = paths.getTunnelZonePath(zoneId);
-        if (!zk.exists(tunnelZonePath)) {
+        if (!exists(zoneId)) {
             return null;
         }
 
-        byte[] bytes = zk.get(tunnelZonePath, watcher);
-        TunnelZone.Data data =
-                serializer.deserialize(bytes, TunnelZone.Data.class);
+        TunnelZone.Data data = super.get(zoneId, watcher);
 
         if (data instanceof GreTunnelZone.Data) {
             GreTunnelZone.Data greData = (GreTunnelZone.Data) data;
@@ -211,12 +206,7 @@ public class TunnelZoneZkManager extends AbstractZkManager {
             }
         }
 
-        createMulti.add(
-                zk.getPersistentCreateOp(
-                paths.getTunnelZonePath(zoneId),
-                    serializer.serialize(zone.getData())
-            )
-        );
+        createMulti.add(simpleCreateOp(zoneId, zone.getData()));
 
         createMulti.add(
                 zk.getPersistentCreateOp(

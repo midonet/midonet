@@ -1,11 +1,12 @@
 /*
- * Copyright 2012 Midokura Europe SARL
- * Copyright 2013 Midokura Europe SARL
+ * Copyright (c) 2012-2014 Midokura Europe SARL, All Rights Reserved.
  */
 package org.midonet.midolman.host.state;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -19,16 +20,12 @@ import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.DirectoryCallback;
-import org.midonet.midolman.state.DirectoryCallbackFactory;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.PortConfig;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.state.zkManagers.PortZkManager;
 import org.midonet.midolman.version.DataWriteVersion;
-import org.midonet.util.functors.CollectionFunctors;
-import org.midonet.util.functors.Functor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static org.midonet.midolman.host.state.HostDirectory.Command;
@@ -37,7 +34,8 @@ import static org.midonet.midolman.host.state.HostDirectory.Command;
  * Wrapper class over a Directory that handled setting and reading data related
  * to hosts and interfaces associated with the hosts.
  */
-public class HostZkManager extends AbstractZkManager {
+public class HostZkManager
+        extends AbstractZkManager<UUID, HostDirectory.Metadata> {
 
     private final static Logger log =
         LoggerFactory.getLogger(HostZkManager.class);
@@ -61,64 +59,49 @@ public class HostZkManager extends AbstractZkManager {
         this.portZkManager = new PortZkManager(zk, paths, serializer);
     }
 
-    public HostDirectory.Metadata getHostMetadata(UUID id)
-            throws StateAccessException, SerializationException {
-        return getHostMetadata(id, null);
+    @Override
+    protected String getConfigPath(UUID id) {
+        return paths.getHostPath(id);
     }
 
-    public HostDirectory.Metadata getHostMetadata(UUID id, Directory.TypedWatcher watcher)
-            throws StateAccessException, SerializationException {
-        byte[] data = zk.get(paths.getHostPath(id), watcher);
-        HostDirectory.Metadata metadata;
-        try {
-            metadata = serializer.deserialize(data,
-                    HostDirectory.Metadata.class);
-        } catch (SerializationException e) {
-            String dataAsString = new String(data);
-            throw new SerializationException(
-                "Could not deserialize host metadata for id: " + id +
-                    " [" + dataAsString + "]",
-                e,
-                HostDirectory.Metadata.class);
-        }
-        return metadata;
+    @Override
+    protected Class<HostDirectory.Metadata> getConfigClass() {
+        return HostDirectory.Metadata.class;
     }
 
     public void createHost(UUID hostId, HostDirectory.Metadata metadata)
             throws StateAccessException, SerializationException {
+        zk.multi(prepareCreate(hostId, metadata));
+    }
+
+    public List<Op> prepareCreate(UUID hostId, HostDirectory.Metadata metadata)
+            throws StateAccessException, SerializationException {
+
         log.debug("Creating host folders for hostId {}", hostId);
 
         List<Op> ops = new ArrayList<>(metadata.getTunnelZones().size() + 7);
-
         try {
-            ops.add(zk.getPersistentCreateOp(paths.getHostPath(hostId),
-                                             serializer.serialize(metadata)));
+            ops.add(simpleCreateOp(hostId, metadata));
         } catch (SerializationException e) {
             throw new SerializationException(
                     "Could not serialize host metadata for id: " + hostId,
                     e, HostDirectory.Metadata.class);
         }
 
-        ops.add(zk.getPersistentCreateOp(
-                    paths.getHostInterfacesPath(hostId), null));
-        ops.add(zk.getPersistentCreateOp(
-                    paths.getHostCommandsPath(hostId), null));
-        ops.add(zk.getPersistentCreateOp(
-                    paths.getHostCommandErrorLogsPath(hostId), null));
-        ops.add(zk.getPersistentCreateOp(
-                    paths.getHostVrnMappingsPath(hostId), null));
-        ops.add(zk.getPersistentCreateOp(
-                    paths.getHostVrnPortMappingsPath(hostId), null));
-        ops.add(zk.getPersistentCreateOp(
-                    paths.getHostTunnelZonesPath(hostId), null));
+        ops.addAll(zk.getPersistentCreateOps(
+                paths.getHostInterfacesPath(hostId),
+                paths.getHostCommandsPath(hostId),
+                paths.getHostCommandErrorLogsPath(hostId),
+                paths.getHostVrnMappingsPath(hostId),
+                paths.getHostVrnPortMappingsPath(hostId),
+                paths.getHostTunnelZonesPath(hostId)));
 
         for (UUID uuid : metadata.getTunnelZones()) {
             ops.add(zk.getPersistentCreateOp(
-                        paths.getHostTunnelZonePath(hostId, uuid), null));
+                    paths.getHostTunnelZonePath(hostId, uuid), null));
         }
 
-        zk.multi(ops);
-
+        return ops;
     }
 
     public void makeAlive(UUID hostId)
@@ -150,8 +133,7 @@ public class HostZkManager extends AbstractZkManager {
             throws StateAccessException, SerializationException {
         if (metadata != null) {
             try {
-                zk.update(paths.getHostPath(hostId),
-                        serializer.serialize(metadata));
+                zk.multi(Arrays.asList(simpleUpdateOp(hostId, metadata)));
             } catch (SerializationException e) {
                 throw new SerializationException(
                     "Could not serialize host metadata for id: " + hostId,
@@ -164,10 +146,6 @@ public class HostZkManager extends AbstractZkManager {
         return zk.exists(paths.getHostPath(id) + "/alive");
     }
 
-    public boolean hostExists(UUID id) throws StateAccessException {
-        return zk.exists(paths.getHostPath(id));
-    }
-
     public boolean hasPortBindings(UUID id) throws StateAccessException {
         Set<String> portChildren =
             zk.getChildren(paths.getHostVrnPortMappingsPath(id));
@@ -176,73 +154,49 @@ public class HostZkManager extends AbstractZkManager {
     }
 
     public void deleteHost(UUID id) throws StateAccessException {
-        String hostEntryPath = paths.getHostPath(id);
+        zk.multi(prepareDelete(id));
+    }
 
-        List<Op> delMulti = new ArrayList<Op>();
+    public List<Op> prepareDelete(UUID id) throws StateAccessException {
+
+        List<Op> ops = new ArrayList<>();
 
         if (zk.exists(paths.getHostCommandsPath(id))) {
-            delMulti.addAll(
+            ops.addAll(
                     zk.getRecursiveDeleteOps(paths.getHostCommandsPath(id)));
         }
 
         if (zk.exists(paths.getHostCommandErrorLogsPath(id))) {
-            delMulti.addAll(
+            ops.addAll(
                     zk.getRecursiveDeleteOps(
-                    paths.getHostCommandErrorLogsPath(id)));
+                            paths.getHostCommandErrorLogsPath(id)));
         }
 
-        if (zk.exists(paths.getHostInterfacesPath(id))) {
-            delMulti.add(zk.getDeleteOp(paths.getHostInterfacesPath(id)));
-        }
-
-        if (zk.exists(paths.getHostVrnPortMappingsPath(id))) {
-            delMulti.add(zk.getDeleteOp(paths.getHostVrnPortMappingsPath(id)));
-        }
-
-        if (zk.exists(paths.getHostVrnDatapathMappingPath(id))) {
-            delMulti.add(zk.getDeleteOp(paths.getHostVrnDatapathMappingPath(id)));
-        }
-
-        if (zk.exists(paths.getHostVrnMappingsPath(id))) {
-            delMulti.add(zk.getDeleteOp(paths.getHostVrnMappingsPath(id)));
-        }
-
-        Set<UUID> tunnelZones = getTunnelZoneIds(id, null);
+        Collection<UUID> tunnelZones = getTunnelZoneIds(id, null);
         for (UUID zoneId : tunnelZones) {
-            delMulti.add(
-                    zk.getDeleteOp(
-                    paths.getHostTunnelZonePath(id, zoneId)));
-
-            delMulti.add(
-                    zk.getDeleteOp(
+            ops.addAll(zk.getDeleteOps(
+                    paths.getHostTunnelZonePath(id, zoneId),
                     paths.getTunnelZoneMembershipPath(zoneId, id)));
         }
 
-        if (zk.exists(paths.getHostTunnelZonesPath(id))) {
-            delMulti.add(
-                    zk.getDeleteOp(paths.getHostTunnelZonesPath(id)));
-        }
+        ops.addAll(zk.getDeleteOps(
+                paths.getHostInterfacesPath(id),
+                paths.getHostVrnPortMappingsPath(id),
+                paths.getHostVrnDatapathMappingPath(id),
+                paths.getHostVrnMappingsPath(id),
+                paths.getHostTunnelZonesPath(id),
+                paths.getHostPath(id)));
 
-        delMulti.add(zk.getDeleteOp(hostEntryPath));
-
-        zk.multi(delMulti);
+        return ops;
     }
 
-    public Set<UUID> getHostIds() throws StateAccessException {
+    public List<UUID> getHostIds() throws StateAccessException {
         return getHostIds(null);
     }
 
-    public Set<UUID> getHostIds(Directory.TypedWatcher watcher)
-        throws StateAccessException {
-        String path = paths.getHostsPath();
-        Set<String> ids = zk.getChildren(path, watcher);
-        Set<UUID> uuids = new HashSet<UUID>();
-
-        for (String id : ids) {
-            uuids.add(UUID.fromString(id));
-        }
-
-        return uuids;
+    public List<UUID> getHostIds(Directory.TypedWatcher watcher)
+            throws StateAccessException {
+        return getUuidList(paths.getHostsPath(), watcher);
     }
 
     public Integer createHostCommandId(UUID hostId, Command command)
@@ -264,7 +218,7 @@ public class HostZkManager extends AbstractZkManager {
     }
 
     public boolean existsInterface(UUID hostId, String interfaceName)
-        throws StateAccessException {
+            throws StateAccessException {
         return zk.exists(paths.getHostInterfacePath(hostId,
                                                        interfaceName));
     }
@@ -273,7 +227,7 @@ public class HostZkManager extends AbstractZkManager {
                                 HostDirectory.Interface anInterface)
             throws StateAccessException, IOException, SerializationException {
 
-        List<Op> ops = new ArrayList<Op>();
+        List<Op> ops = new ArrayList<>();
 
         if (!zk.exists(paths.getHostInterfacesPath(hostId))) {
             ops.add(zk.getPersistentCreateOp(
@@ -304,8 +258,8 @@ public class HostZkManager extends AbstractZkManager {
     }
 
     public List<Integer> listCommandIds(UUID hostId, Runnable watcher)
-        throws StateAccessException {
-        List<Integer> result = new ArrayList<Integer>();
+            throws StateAccessException {
+        List<Integer> result = new ArrayList<>();
 
         String hostCommandsPath = paths.getHostCommandsPath(hostId);
         Set<String> commands = zk.getChildren(hostCommandsPath, watcher);
@@ -330,8 +284,7 @@ public class HostZkManager extends AbstractZkManager {
      * @throws StateAccessException if we weren't able to properly communicate
      *                              with the datastore.
      */
-    public Set<String> getInterfaces(UUID hostId)
-        throws StateAccessException {
+    public Set<String> getInterfaces(UUID hostId) throws StateAccessException {
 
         String path = paths.getHostInterfacesPath(hostId);
         if (!zk.exists(path)) {
@@ -347,7 +300,7 @@ public class HostZkManager extends AbstractZkManager {
                                      Set<String> obsoleteInterfaces)
         throws StateAccessException {
 
-        List<Op> updateInterfacesOperation = new ArrayList<Op>();
+        List<Op> updateInterfacesOperation = new ArrayList<>();
 
         for (String obsoleteInterface : obsoleteInterfaces) {
             updateInterfacesOperation.add(
@@ -393,7 +346,7 @@ public class HostZkManager extends AbstractZkManager {
         Set<String> commandIdKeys = zk.getChildren(
             paths.getHostCommandsPath(hostId));
 
-        List<Integer> commandIds = new ArrayList<Integer>();
+        List<Integer> commandIds = new ArrayList<>();
         for (String commandIdKey : commandIdKeys) {
             try {
                 commandIds.add(Integer.parseInt(commandIdKey));
@@ -473,24 +426,6 @@ public class HostZkManager extends AbstractZkManager {
         }
     }
 
-    public List<Integer> listErrorLogIds(UUID hostId)
-        throws StateAccessException {
-        List<Integer> result = new ArrayList<Integer>();
-        String hostLogsPath = paths.getHostCommandErrorLogsPath(hostId);
-        Set<String> logs = zk.getChildren(hostLogsPath, null);
-        for (String logId : logs) {
-            // For now, get each one.
-            try {
-                result.add(Integer.parseInt(logId));
-            } catch (NumberFormatException e) {
-                log.warn("ErrorLog id is not a number: {} (for host: {}",
-                         logId, hostId);
-            }
-        }
-
-        return result;
-    }
-
     public String getVirtualDatapathMapping(UUID hostIdentifier, Runnable watcher)
             throws StateAccessException, SerializationException {
 
@@ -525,25 +460,16 @@ public class HostZkManager extends AbstractZkManager {
     }
 
     public Set<HostDirectory.VirtualPortMapping> getVirtualPortMappings(
-            UUID hostIdentifier, Directory.TypedWatcher watcher)
+            UUID hostId, Directory.TypedWatcher watcher)
             throws StateAccessException, SerializationException {
 
-        String virtualPortMappingPath =
-            paths.getHostVrnPortMappingsPath(hostIdentifier);
+        String mappingsPaths = paths.getHostVrnPortMappingsPath(hostId);
+        Set<HostDirectory.VirtualPortMapping> portMappings = new HashSet<>();
 
-        Set<HostDirectory.VirtualPortMapping> portMappings =
-            new HashSet<HostDirectory.VirtualPortMapping>();
-
-        if (zk.exists(virtualPortMappingPath)) {
-            Set<String> children = zk.getChildren(virtualPortMappingPath, watcher);
-            for (String child : children) {
-                portMappings.add(
-                    serializer.deserialize(
-                        zk.get(paths.getHostVrnPortMappingPath(hostIdentifier,
-                               UUID.fromString(child))),
-                        HostDirectory.VirtualPortMapping.class
-                    )
-                );
+        if (zk.exists(mappingsPaths)) {
+            Collection<UUID> mappingIds = getUuidList(mappingsPaths, watcher);
+            for (UUID mappingId : mappingIds) {
+                portMappings.add(getVirtualPortMapping(hostId, mappingId));
             }
         }
 
@@ -554,7 +480,7 @@ public class HostZkManager extends AbstractZkManager {
                                           String datapathMapping)
             throws StateAccessException, SerializationException {
 
-        List<Op> operations = new ArrayList<Op>();
+        List<Op> operations = new ArrayList<>();
 
         if (!zk.exists(paths.getHostPath(hostIdentifier)))
             operations.add(
@@ -594,7 +520,7 @@ public class HostZkManager extends AbstractZkManager {
                 "Port with ID " + portId + " does not exist");
         }
 
-        List<Op> operations = new ArrayList<Op>();
+        List<Op> operations = new ArrayList<>();
 
         String hostPath = paths.getHostPath(hostIdentifier);
         if (!zk.exists(hostPath)) {
@@ -648,7 +574,7 @@ public class HostZkManager extends AbstractZkManager {
         String virtualMappingPath =
             paths.getHostVrnPortMappingPath(hostIdentifier, portId);
 
-        List<Op> ops = new ArrayList<Op>();
+        List<Op> ops = new ArrayList<>();
         if (zk.exists(virtualMappingPath)) {
 
             ops.add(zk.getDeleteOp(virtualMappingPath));
@@ -675,23 +601,10 @@ public class HostZkManager extends AbstractZkManager {
         return zk.getSetDataOp(portPath, serializer.serialize(port));
     }
 
-    public Set<UUID> getTunnelZoneIds(UUID hostId,
+    public List<UUID> getTunnelZoneIds(UUID hostId,
                                       Directory.TypedWatcher watcher)
         throws StateAccessException {
-        String zonesPath = paths.getHostTunnelZonesPath(hostId);
-
-        if (zk.exists(zonesPath)) {
-            return CollectionFunctors.map(
-                    zk.getChildren(zonesPath, watcher),
-                new Functor<String, UUID>() {
-                    @Override
-                    public UUID apply(String arg0) {
-                        return UUID.fromString(arg0);
-                    }
-                }, new HashSet<UUID>());
-        }
-
-        return Collections.emptySet();
+        return getUuidList(paths.getHostTunnelZonesPath(hostId), watcher);
     }
 
     public String getHealthMonitorLeaderNodeToWatch(Integer mySeqNum)

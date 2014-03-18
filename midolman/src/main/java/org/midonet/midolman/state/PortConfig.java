@@ -16,6 +16,7 @@ import org.midonet.midolman.state.PortDirectory.ExteriorBridgePortConfig;
 import org.midonet.midolman.state.PortDirectory.RouterPortConfig;
 import org.midonet.midolman.state.PortDirectory.InteriorRouterPortConfig;
 import org.midonet.midolman.state.PortDirectory.ExteriorRouterPortConfig;
+import org.midonet.midolman.state.zkManagers.BaseConfig;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY,
     property = "type")
@@ -33,7 +34,7 @@ import org.midonet.midolman.state.PortDirectory.ExteriorRouterPortConfig;
     @JsonSubTypes.Type(value = InteriorRouterPortConfig.class,
         name = "InteriorRouterPort")
 })
-public abstract class PortConfig {
+public abstract class PortConfig extends BaseConfig {
 
     PortConfig(UUID device_id) {
         super();

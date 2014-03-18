@@ -1,6 +1,5 @@
 /*
- * Copyright 2011 Midokura KK
- * Copyright 2012 Midokura PTE LTD.
+ * Copyright (c) 2011-2014 Midokura Europe SARL, All Rights Reserved.
  */
 package org.midonet.midolman.state.zkManagers;
 
@@ -18,12 +17,13 @@ import java.util.*;
 /**
  * Class to manage the router ZooKeeper data.
  */
-public class PortGroupZkManager extends AbstractZkManager {
+public class PortGroupZkManager
+        extends AbstractZkManager<UUID, PortGroupZkManager.PortGroupConfig> {
 
     private final static Logger log = LoggerFactory
             .getLogger(PortGroupZkManager.class);
 
-    public static class PortGroupConfig {
+    public static class PortGroupConfig extends BaseConfig {
 
         public PortGroupConfig() {
             super();
@@ -61,6 +61,16 @@ public class PortGroupZkManager extends AbstractZkManager {
         ruleDao = new RuleZkManager(zk, paths, serializer);
     }
 
+    @Override
+    protected String getConfigPath(UUID id) {
+        return paths.getPortGroupPath(id);
+    }
+
+    @Override
+    protected Class<PortGroupConfig> getConfigClass() {
+        return PortGroupConfig.class;
+    }
+
     /**
      * Constructs a list of ZooKeeper update operations to perform when adding a
      * new port group.
@@ -76,10 +86,7 @@ public class PortGroupZkManager extends AbstractZkManager {
         log.debug("PortGroupZkManager.prepareCreate: entered");
 
         List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.create(paths.getPortGroupPath(id),
-                serializer.serialize(config),
-                Ids.OPEN_ACL_UNSAFE,
-                CreateMode.PERSISTENT));
+        ops.add(simpleCreateOp(id, config));
 
         // Keep the references to ports and rules that reference it.
         ops.add(Op.create(paths.getPortGroupPortsPath(id), null,
@@ -108,7 +115,7 @@ public class PortGroupZkManager extends AbstractZkManager {
         String rulesPath = paths.getPortGroupRulesPath(id);
         Set<String> ruleIds = zk.getChildren(rulesPath);
         for (String ruleId : ruleIds) {
-            ops.addAll(ruleDao.prepareRuleDelete(UUID.fromString(ruleId)));
+            ops.addAll(ruleDao.prepareDelete(UUID.fromString(ruleId)));
         }
 
         // Update all the ports that reference this port group.
@@ -132,7 +139,6 @@ public class PortGroupZkManager extends AbstractZkManager {
         ops.add(Op.delete(paths.getPortGroupPath(id), -1));
 
         return ops;
-
     }
 
     /**
@@ -159,32 +165,6 @@ public class PortGroupZkManager extends AbstractZkManager {
     public void delete(UUID id) throws StateAccessException,
             SerializationException {
         zk.multi(prepareDelete(id));
-    }
-
-    /**
-     * Checks whether a port group with the given ID exists.
-     *
-     * @param id
-     *            Port group ID to check
-     * @return True if exists
-     * @throws StateAccessException
-     */
-    public boolean exists(UUID id) throws StateAccessException {
-        return zk.exists(paths.getPortGroupPath(id));
-    }
-
-    /**
-     * Gets a PortGroupConfig object with the given ID.
-     *
-     * @param id
-     *            The ID of the port group.
-     * @return PortGroupConfig object
-     * @throws StateAccessException
-     */
-    public PortGroupConfig get(UUID id) throws StateAccessException,
-            SerializationException {
-        byte[] data = zk.get(paths.getPortGroupPath(id));
-        return serializer.deserialize(data, PortGroupConfig.class);
     }
 
     public boolean portIsMember(UUID id, UUID portId)

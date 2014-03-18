@@ -7,7 +7,7 @@ package org.midonet.midolman.state.zkManagers;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.AbstractZkManager;
-import org.midonet.midolman.state.Directory;
+import org.midonet.midolman.state.BaseZkManager;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-public class BridgeDhcpZkManager extends AbstractZkManager {
+public class BridgeDhcpZkManager extends BaseZkManager {
 
     private static final Logger log = LoggerFactory
         .getLogger(BridgeDhcpZkManager.class);

@@ -1,17 +1,15 @@
 /*
- * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
+ * Copyright (c) 2012-2014 Midokura Europe SARL, All Rights Reserved.
  */
 package org.midonet.midolman.state.zkManagers;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 import org.midonet.midolman.state.DirectoryCallback;
 import org.midonet.midolman.state.DirectoryCallbackFactory;
-import org.midonet.util.functors.CollectionFunctors;
 import org.midonet.util.functors.Functor;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
@@ -26,8 +24,9 @@ import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.cluster.data.BGP;
 
+public class BgpZkManager extends AbstractZkManager<UUID, BGP.Data> {
 
-public class BgpZkManager extends AbstractZkManager {
+    AdRouteZkManager adRouteZkManager;
 
     /**
      * BgpZkManager constructor.
@@ -42,47 +41,51 @@ public class BgpZkManager extends AbstractZkManager {
     public BgpZkManager(ZkManager zk, PathBuilder paths,
                         Serializer serializer) {
         super(zk, paths, serializer);
+        adRouteZkManager = new AdRouteZkManager(zk, paths, serializer);
     }
 
-    public List<Op> prepareBgpCreate(UUID id, BGP config)
+    @Override
+    protected String getConfigPath(UUID id) {
+        return paths.getBgpPath(id);
+    }
+
+    @Override
+    protected Class<BGP.Data> getConfigClass() {
+        return BGP.Data.class;
+    }
+
+    public List<Op> prepareCreate(UUID id, BGP.Data config)
             throws StateAccessException, SerializationException {
 
-        List<Op> ops = new ArrayList<Op>();
+        List<Op> ops = new ArrayList<>();
 
-        ops.add(Op.create(paths.getBgpPath(id),
-                serializer.serialize(config.getData()),
-                Ids.OPEN_ACL_UNSAFE,
-                CreateMode.PERSISTENT));
+        ops.add(simpleCreateOp(id, config));
         ops.add(Op.create(paths.getBgpAdRoutesPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-
-        ops.add(Op.create(paths.getPortBgpPath(config.getPortId(), id), null,
+        ops.add(Op.create(paths.getPortBgpPath(config.portId, id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
         return ops;
     }
 
-    public List<Op> prepareBgpDelete(UUID id) throws StateAccessException,
+    public List<Op> prepareDelete(UUID id) throws StateAccessException,
             SerializationException {
-        return prepareBgpDelete(id, getBGP(id));
+        return prepareDelete(id, get(id));
     }
 
-    public List<Op> prepareBgpDelete(UUID id, BGP config)
+    public List<Op> prepareDelete(UUID id, BGP.Data config)
             throws StateAccessException, SerializationException {
-        List<Op> ops = new ArrayList<Op>();
+        List<Op> ops = new ArrayList<>();
 
         // Delete the advertising routes
-        AdRouteZkManager adRouteManager = new AdRouteZkManager(zk, paths,
-                serializer);
-        List<UUID> adRouteIds = adRouteManager.list(id);
+        List<UUID> adRouteIds = adRouteZkManager.list(id);
         for (UUID adRouteId : adRouteIds) {
-            ops.addAll(adRouteManager.prepareAdRouteDelete(adRouteId));
+            ops.addAll(adRouteZkManager.prepareDelete(adRouteId));
         }
         ops.add(Op.delete(paths.getBgpAdRoutesPath(id), -1));
 
         // Delete the port bgp entry
-        ops.add(Op.delete(paths.getPortBgpPath(config.getPortId(), id),
-            -1));
+        ops.add(Op.delete(paths.getPortBgpPath(config.portId, id), -1));
 
         // Delete the bgp
         ops.add(Op.delete(paths.getBgpPath(id), -1));
@@ -91,11 +94,11 @@ public class BgpZkManager extends AbstractZkManager {
 
     public List<Op> preparePortDelete(UUID portId) throws StateAccessException,
             SerializationException {
-        List<Op> ops = new ArrayList<Op>();
+        List<Op> ops = new ArrayList<>();
 
         List<UUID> bgpIdList = list(portId);
         for (UUID bgpId : bgpIdList) {
-            ops.addAll(prepareBgpDelete(bgpId));
+            ops.addAll(prepareDelete(bgpId));
         }
 
         return ops;
@@ -104,19 +107,8 @@ public class BgpZkManager extends AbstractZkManager {
     public UUID create(BGP bgp) throws StateAccessException,
             SerializationException {
         UUID id = UUID.randomUUID();
-        zk.multi(prepareBgpCreate(id, bgp));
+        zk.multi(prepareCreate(id, bgp.getData()));
         return id;
-    }
-
-    public BGP getBGP(UUID id, Runnable watcher) throws
-            StateAccessException, SerializationException {
-        byte[] data = zk.get(paths.getBgpPath(id), watcher);
-        return new BGP(id, serializer.deserialize(data, BGP.Data.class));
-    }
-
-    public BGP getBGP(UUID id) throws StateAccessException,
-            SerializationException {
-        return getBGP(id, null);
     }
 
     public void getBGPAsync(final UUID bgpId, DirectoryCallback <BGP> bgpDirectoryCallback,
@@ -150,14 +142,7 @@ public class BgpZkManager extends AbstractZkManager {
 
     public List<UUID> list(UUID portId, Runnable watcher)
             throws StateAccessException {
-        List<UUID> result = new ArrayList<UUID>();
-        Set<String> bgpIds = zk.getChildren(paths.getPortBgpPath(portId),
-                watcher);
-        for (String bgpId : bgpIds) {
-            // For now, get each one.
-            result.add(UUID.fromString(bgpId));
-        }
-        return result;
+        return getUuidList(paths.getPortBgpPath(portId));
     }
 
     public void getBgpListAsync(UUID portId,
@@ -180,6 +165,6 @@ public class BgpZkManager extends AbstractZkManager {
 
     public void delete(UUID id) throws StateAccessException,
             SerializationException {
-        zk.multi(prepareBgpDelete(id));
+        zk.multi(prepareDelete(id));
     }
 }

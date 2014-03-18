@@ -1,19 +1,16 @@
 /*
- * Copyright 2012 Midokura Pte. Ltd.
+ * Copyright (c) 2012-2014 Midokura Europe SARL, All Rights Reserved.
  */
 package org.midonet.midolman.state.zkManagers;
 
-import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
-import org.apache.zookeeper.ZooDefs;
-import org.apache.zookeeper.ZooDefs.Ids;
 import org.midonet.cluster.data.Bridge;
+import org.midonet.midolman.state.AbstractZkManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
@@ -24,13 +21,14 @@ import java.util.*;
 /**
  * Class to manage the bridge ZooKeeper data.
  */
-public class BridgeZkManager extends AbstractZkManager {
+public class BridgeZkManager
+        extends AbstractZkManager<UUID, BridgeZkManager.BridgeConfig> {
 
     private final static Logger log = LoggerFactory
             .getLogger(BridgeZkManager.class);
 
-    public static class BridgeConfig implements TaggableConfig {
-
+    public static class BridgeConfig extends BaseConfig
+                                     implements TaggableConfig {
         public BridgeConfig() {
             super();
         }
@@ -117,10 +115,20 @@ public class BridgeZkManager extends AbstractZkManager {
     public BridgeZkManager(ZkManager zk, PathBuilder paths,
                            Serializer serializer) {
         super(zk, paths, serializer);
-        this.filterZkManager = new FiltersZkManager(zk, paths, serializer);
-        this.tunnelZkManager = new TunnelZkManager(zk, paths, serializer);
-        this.portZkManager = new PortZkManager(zk, paths, serializer);
-        this.chainZkManager = new ChainZkManager(zk, paths, serializer);
+        filterZkManager = new FiltersZkManager(zk, paths, serializer);
+        tunnelZkManager = new TunnelZkManager(zk, paths, serializer);
+        portZkManager = new PortZkManager(zk, paths, serializer);
+        chainZkManager = new ChainZkManager(zk, paths, serializer);
+    }
+
+    @Override
+    protected String getConfigPath(UUID id) {
+        return paths.getBridgePath(id);
+    }
+
+    @Override
+    protected Class<BridgeConfig> getConfigClass() {
+        return BridgeConfig.class;
     }
 
     /**
@@ -144,7 +152,8 @@ public class BridgeZkManager extends AbstractZkManager {
         int tunnelKeyId = tunnelZkManager.createTunnelKeyId();
         config.tunnelKey = tunnelKeyId;
 
-        List<Op> ops = new ArrayList<Op>();
+        List<Op> ops = new ArrayList<>();
+        ops.add(simpleCreateOp(id, config));
 
         if (config.inboundFilter != null) {
             ops.addAll(chainZkManager.prepareChainBackRefCreate(
@@ -155,39 +164,16 @@ public class BridgeZkManager extends AbstractZkManager {
                     config.outboundFilter, ResourceType.BRIDGE, id));
         }
 
-        ops.add(Op.create(paths.getBridgePath(id),
-                serializer.serialize(config),
-                Ids.OPEN_ACL_UNSAFE,
-                CreateMode.PERSISTENT));
-
-        ops.add(Op.create(paths.getBridgePortsPath(id), null,
-                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-
-        ops.add(Op.create(paths.getBridgeLogicalPortsPath(id), null,
-                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-
-        ops.add(Op.create(paths.getBridgeDhcpPath(id), null,
-                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-
-        ops.add(Op.create(paths.getBridgeDhcpV6Path(id), null,
-                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-
-        ops.add(Op.create(
-                paths.getBridgeMacPortsPath(id, Bridge.UNTAGGED_VLAN_ID), null,
-                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-
-        ops.add(Op.create(paths.getBridgeIP4MacMapPath(id), null,
-                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-
-        ops.add(Op.create(paths.getBridgeTagsPath(id), null,
-                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-
-        ops.add(Op.create(paths.getBridgeVlansPath(id), null,
-                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-
-        // Add a port-set for this bridge
-        ops.add(Op.create(paths.getPortSetPath(id),
-                          null, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+        ops.addAll(zk.getPersistentCreateOps(
+                paths.getBridgePortsPath(id),
+                paths.getBridgeLogicalPortsPath(id),
+                paths.getBridgeDhcpPath(id),
+                paths.getBridgeDhcpV6Path(id),
+                paths.getBridgeMacPortsPath(id, Bridge.UNTAGGED_VLAN_ID),
+                paths.getBridgeIP4MacMapPath(id),
+                paths.getBridgeTagsPath(id),
+                paths.getBridgeVlansPath(id),
+                paths.getPortSetPath(id)));
 
         // Update TunnelKey to reference the bridge.
         TunnelZkManager.TunnelKey tunnelKey = new TunnelZkManager.TunnelKey(id);
@@ -214,7 +200,6 @@ public class BridgeZkManager extends AbstractZkManager {
         BridgeConfig oldConfig = get(id);
         // Have the name, inbound or outbound filter changed?
         boolean dataChanged = false;
-        List<Op> ops = new ArrayList<Op>();
 
         if ((oldConfig.name == null && config.name != null) ||
                 (oldConfig.name != null && config.name == null) ||
@@ -246,13 +231,11 @@ public class BridgeZkManager extends AbstractZkManager {
             dataChanged = true;
         }
 
+        List<Op> ops = new ArrayList<>();
         if (dataChanged) {
             // Update the midolman data. Don't change the Bridge's GRE-key.
             config.tunnelKey = oldConfig.tunnelKey;
-            ops.add(Op.setData(paths.getBridgePath(id),
-                    serializer.serialize(config), -1));
-        }
-        if (dataChanged) {
+            ops.add(simpleUpdateOp(id, config));
             ops.addAll(chainZkManager.prepareUpdateFilterBackRef(
                     ResourceType.BRIDGE,
                     oldConfig.inboundFilter,
@@ -290,7 +273,7 @@ public class BridgeZkManager extends AbstractZkManager {
         }
 
         // Delete the ports.
-        Set<UUID> portIds = portZkManager.getBridgePortIDs(id);
+        Collection<UUID> portIds = portZkManager.getBridgePortIDs(id);
         for (UUID portId : portIds) {
             ops.addAll(portZkManager.prepareDelete(portId));
         }
@@ -395,53 +378,11 @@ public class BridgeZkManager extends AbstractZkManager {
         }
     }
 
-    /**
-     * Checks whether a bridge with the given ID exists.
-     *
-     * @param id
-     *            Bridge ID to check
-     * @return True if exists
-     * @throws StateAccessException
-     */
-    public boolean exists(UUID id) throws StateAccessException {
-        return zk.exists(paths.getBridgePath(id));
-    }
-
     public void update(UUID id, BridgeConfig cfg) throws StateAccessException,
             SerializationException {
         List<Op> ops = prepareUpdate(id, cfg);
-        if (ops.size() > 0) {
+        if (!ops.isEmpty())
             zk.multi(ops);
-        }
-    }
-
-    /**
-     * Gets a ZooKeeper node entry key-value pair of a bridge with the given ID.
-     *
-     * @param id
-     *            The ID of the bridge.
-     * @return Bridge object found.
-     */
-    public BridgeConfig get(UUID id) throws StateAccessException,
-            SerializationException {
-        return get(id, null);
-    }
-
-    /**
-     * Gets a ZooKeeper node entry key-value pair of a bridge with the given ID
-     * and sets a watcher on the node.
-     *
-     * @param id
-     *            The ID of the bridge.
-     * @param watcher
-     *            The watcher that gets notified when there is a change in the
-     *            node.
-     * @return Route object found.
-     */
-    public BridgeConfig get(UUID id, Runnable watcher)
-            throws StateAccessException, SerializationException {
-        byte[] data = zk.get(paths.getBridgePath(id), watcher);
-        return serializer.deserialize(data, BridgeConfig.class);
     }
 
     /***

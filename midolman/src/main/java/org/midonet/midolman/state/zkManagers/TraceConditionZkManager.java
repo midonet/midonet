@@ -1,16 +1,15 @@
 /*
- * Copyright 2013 Midokura Pte Ltd
+ * Copyright (c) 2013-2014 Midokura Europe SARL, All Rights Reserved.
  */
 package org.midonet.midolman.state.zkManagers;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import org.apache.zookeeper.CreateMode;
+
 import org.apache.zookeeper.Op;
-import org.apache.zookeeper.ZooDefs.Ids;
 import org.midonet.midolman.rules.Condition;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.serialization.SerializationException;
@@ -24,7 +23,8 @@ import org.slf4j.LoggerFactory;
 /**
  * ZooKeeper DAO class for trace conditions
  */
-public class TraceConditionZkManager extends AbstractZkManager {
+public class TraceConditionZkManager
+        extends AbstractZkManager<UUID, Condition> {
 
     private final static Logger log =
         LoggerFactory.getLogger(TraceConditionZkManager.class);
@@ -41,6 +41,16 @@ public class TraceConditionZkManager extends AbstractZkManager {
         super(zk, paths, serializer);
     }
 
+    @Override
+    protected String getConfigPath(UUID id) {
+        return paths.getTraceConditionPath(id);
+    }
+
+    @Override
+    protected Class<Condition> getConfigClass() {
+        return Condition.class;
+    }
+
     /**
      * Constructs a list of ZooKeeper update operations to perform when adding a
      * new trace condition.
@@ -51,36 +61,10 @@ public class TraceConditionZkManager extends AbstractZkManager {
      * @throws org.midonet.midolman.serialization.SerializationException
      *             Serialization error occurred.
      */
-    public List<Op> prepareTraceConditionCreate(UUID id, Condition condition)
-        throws StateAccessException, SerializationException
-    {
-        List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.create(paths.getTraceConditionPath(id),
-                serializer.serialize(condition),
-                Ids.OPEN_ACL_UNSAFE,
-                CreateMode.PERSISTENT));
-        return ops;
+    public List<Op> prepareCreate(UUID id, Condition condition)
+            throws StateAccessException, SerializationException {
+        return Arrays.asList(simpleCreateOp(id, condition));
     }
-
-    /**
-     * Constructs a list of operations to perform in a trace condition deletion
-     *
-     * @param id Trace condition ID
-     * @return A list of Op objects representing the operations to perform.
-     * @throws org.midonet.midolman.state.StateAccessException
-     */
-    public List<Op> prepareTraceConditionDelete(UUID id)
-        throws StateAccessException
-    {
-        List<Op> ops = new ArrayList<Op>();
-
-        String traceConditionPath = paths.getTraceConditionPath(id);
-        log.debug("Preparing to delete: " + traceConditionPath);
-        ops.add(Op.delete(traceConditionPath, -1));
-
-        return ops;
-    }
-
     /**
      * Performs an atomic update on the ZooKeeper to add a new trace condition
      * entry
@@ -91,37 +75,23 @@ public class TraceConditionZkManager extends AbstractZkManager {
      *             Serialization error occurred.
      */
     public UUID create(Condition condition)
-        throws StateAccessException, SerializationException
-    {
+            throws StateAccessException, SerializationException {
         UUID id = UUID.randomUUID();
-        zk.multi(prepareTraceConditionCreate(id, condition));
+        zk.multi(prepareCreate(id, condition));
         return id;
     }
 
     /**
-     * Checks whether a trace condition with the given ID exists
+     * Constructs a list of operations to perform in a trace condition deletion
      *
-     * @param id Trace condition id to check
-     * @return True if exists
-     * @throws StateAccessException
+     * @param id Trace condition ID
+     * @return A list of Op objects representing the operations to perform.
+     * @throws org.midonet.midolman.state.StateAccessException
      */
-    public boolean exists(UUID id) throws StateAccessException {
-        return zk.exists(paths.getTraceConditionPath(id));
-    }
-
-    /**
-     * Gets a ZooKeeper node entry key-value pair of a trace condition with the
-     * given id
-     *
-     * @param id The id of the trace condition
-     * @return Condition object corresponding to the id
-     * @throws StateAccessException
-     */
-    public Condition get(UUID id)
-        throws StateAccessException, SerializationException
-    {
-        byte[] data = zk.get(paths.getTraceConditionPath(id), null);
-        return serializer.deserialize(data, Condition.class);
+    public List<Op> prepareDelete(UUID id) throws StateAccessException {
+        String traceConditionPath = paths.getTraceConditionPath(id);
+        log.debug("Preparing to delete: " + traceConditionPath);
+        return Arrays.asList(Op.delete(traceConditionPath, -1));
     }
 
     /**
@@ -131,14 +101,7 @@ public class TraceConditionZkManager extends AbstractZkManager {
      */
     public List<UUID> getIds() throws StateAccessException {
         log.debug("Getting trace condition ID's.");
-        String path = paths.getTraceConditionsPath();
-        Set<String> idSet = zk.getChildren(path);
-        List<UUID> ids = new ArrayList<UUID>(idSet.size());
-        for (String id : idSet) {
-            ids.add(UUID.fromString(id));
-        }
-
-        return ids;
+        return getUuidList(paths.getTraceConditionsPath());
     }
 
     /**
@@ -169,8 +132,7 @@ public class TraceConditionZkManager extends AbstractZkManager {
      *             Serialization error occurred.
      */
     public void delete(UUID id)
-        throws StateAccessException
-    {
-        zk.multi(prepareTraceConditionDelete(id));
+        throws SerializationException, StateAccessException {
+        zk.multi(prepareDelete(id));
     }
 }

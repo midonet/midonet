@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Midokura Europe SARL, All Rights Reserved.
+ * Copyright (c) 2013-2014 Midokura Europe SARL, All Rights Reserved.
  */
 package org.midonet.midolman.state.zkManagers;
 
@@ -9,7 +9,6 @@ import org.apache.zookeeper.ZooDefs.Ids;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.*;
-import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPAddr$;
 import org.midonet.util.functors.Functors;
 import org.slf4j.Logger;
@@ -20,12 +19,13 @@ import java.util.*;
 /**
  * Class to manage the router ZooKeeper data.
  */
-public class IpAddrGroupZkManager extends AbstractZkManager {
+public class IpAddrGroupZkManager extends
+        AbstractZkManager<UUID, IpAddrGroupZkManager.IpAddrGroupConfig> {
 
     private final static Logger log = LoggerFactory
             .getLogger(IpAddrGroupZkManager.class);
 
-    public static class IpAddrGroupConfig {
+    public static class IpAddrGroupConfig extends BaseConfig {
 
         public IpAddrGroupConfig() {
         }
@@ -36,7 +36,7 @@ public class IpAddrGroupZkManager extends AbstractZkManager {
 
         public UUID id;
         public String name;
-        public Map<String, String> properties = new HashMap<String, String>();
+        public Map<String, String> properties = new HashMap<>();
     }
 
     private final RuleZkManager ruleDao;
@@ -60,6 +60,16 @@ public class IpAddrGroupZkManager extends AbstractZkManager {
         ruleDao = new RuleZkManager(zk, paths, serializer);
     }
 
+    @Override
+    protected String getConfigPath(UUID id) {
+        return paths.getIpAddrGroupPath(id);
+    }
+
+    @Override
+    protected Class<IpAddrGroupConfig> getConfigClass() {
+        return IpAddrGroupConfig.class;
+    }
+
     /**
      * Constructs a list of ZooKeeper update operations to perform when adding a
      * new IP addr group.
@@ -72,13 +82,10 @@ public class IpAddrGroupZkManager extends AbstractZkManager {
      */
     public List<Op> prepareCreate(UUID id, IpAddrGroupConfig config)
             throws StateAccessException, SerializationException {
-        log.debug("IpddrGroupZkManager.prepareCreate: entered");
+        log.debug("IpAddrGroupZkManager.prepareCreate: entered");
 
-        List<Op> ops = new ArrayList<Op>();
-        ops.add(Op.create(paths.getIpAddrGroupPath(id),
-                serializer.serialize(config),
-                Ids.OPEN_ACL_UNSAFE,
-                CreateMode.PERSISTENT));
+        List<Op> ops = new ArrayList<>();
+        ops.add(simpleCreateOp(id, config));
 
         // Directory for member addresses.
         ops.add(Op.create(paths.getIpAddrGroupAddrsPath(id), null,
@@ -103,13 +110,13 @@ public class IpAddrGroupZkManager extends AbstractZkManager {
     public List<Op> prepareDelete(UUID id) throws StateAccessException,
             SerializationException {
 
-        List<Op> ops = new ArrayList<Op>();
+        List<Op> ops = new ArrayList<>();
 
         // Delete all the rules that reference this IP addr group
         String rulesPath = paths.getIpAddrGroupRulesPath(id);
-        Set<String> ruleIds = zk.getChildren(rulesPath);
-        for (String ruleId : ruleIds) {
-            ops.addAll(ruleDao.prepareRuleDelete(UUID.fromString(ruleId)));
+        List<UUID> ruleIds = getUuidList(rulesPath);
+        for (UUID ruleId : ruleIds) {
+            ops.addAll(ruleDao.prepareDelete(ruleId));
         }
 
         // Delete addresses.
@@ -180,7 +187,7 @@ public class IpAddrGroupZkManager extends AbstractZkManager {
     public Set<UUID> getAllIds() throws StateAccessException {
         String path = paths.getIpAddrGroupsPath();
         Set<String> groups = zk.getChildren(path);
-        Set<UUID> ids = new HashSet<UUID>();
+        Set<UUID> ids = new HashSet<>();
         for (String group : groups) {
             ids.add(UUID.fromString(group));
         }
@@ -191,7 +198,7 @@ public class IpAddrGroupZkManager extends AbstractZkManager {
             throws StateAccessException, SerializationException {
         String path = paths.getIpAddrGroupsPath();
         Set<String> groups = zk.getChildren(path);
-        List<IpAddrGroupConfig> configs = new ArrayList<IpAddrGroupConfig>();
+        List<IpAddrGroupConfig> configs = new ArrayList<>();
         for (String group : groups) {
             configs.add(get(UUID.fromString(group)));
         }
