@@ -390,6 +390,29 @@ with OneInstancePerTest {
             destIps.toSet.size should be > 1
         }
 
+        scenario("With sticky source IP") {
+            Given("VIP has sticky source IP enabled")
+
+            vipEnableStickySourceIP(vip)
+
+            And("Multiple backends are enabled")
+
+            // Set all pool members up
+            (0 until numBackends) foreach {
+                n => setPoolMemberAdminStateUp(poolMembers(n), true)
+            }
+
+            When("several packets are sent to the VIP from same source IP, different source port")
+
+            val simResults: Seq[SimulationResult] = (1 to timesRun) map {
+                n => sendPacket (fromClientToVipOffset(n.toShort))
+            }
+            val destIps = simResults flatMap getDestIpsFromResult
+
+            Then("packets should all go to same backend")
+
+            destIps.toSet.size shouldBe 1
+        }
     }
 
     feature("Sticky source IP attribute in VIP affects cache timeouts") {
@@ -404,23 +427,9 @@ with OneInstancePerTest {
 
             Then("cache should contain one map entry, with a low timeout")
 
-            val leaseManager = Chain.natMappingFactory.
-                get(loadBalancer.getId).asInstanceOf[NatLeaseManager]
-            leaseManager should not be null
-
-            val mockCache = getMockCache(leaseManager)
-            val cacheValues: List[CacheEntry] =
-                mockCache.map.values().toArray.map(
-                    _.asInstanceOf[CacheEntry]).toList
-
-            cacheValues.size shouldBe 2
-
             // Expect both cache values to have normal NAT timeout
-            val expirationLengths = cacheValues.map {
-                c: CacheEntry => c.expirationMillis
-            }.toSet
-            expirationLengths.size shouldBe 1
-            expirationLengths.toList(0) shouldBe 60000
+            val expectedExpirationLength = 60000
+            assertCacheValueExpirations(expectedExpirationLength)
 
             Then("Another of the same packet is sent to the VIP")
 
@@ -428,14 +437,54 @@ with OneInstancePerTest {
 
             Then("Cache entries should be refreshed and be correct lengths")
 
-            val newExpirationLengths = cacheValues.map {
-                c: CacheEntry => c.expirationMillis
-            }.toSet
-
-            // Expiration lengths are same as before
-            newExpirationLengths shouldBe expirationLengths
+            assertCacheValueExpirations(expectedExpirationLength)
         }
 
+        scenario("With sticky source IP") {
+            Given("VIP has sticky source IP enabled")
+
+            vipEnableStickySourceIP(vip)
+
+            When("A packet is sent to the VIP")
+
+            val flow = sendPacket (fromClientToVip)
+
+            Then("cache should contain one map entry, with a high timeout")
+
+            // Expect both cache values to have
+            // sticky source IP timeout - 5 mins / 300s
+            val expectedExpirationLength = 300000
+            assertCacheValueExpirations(expectedExpirationLength)
+
+            Then("Another of the same packet is sent to the VIP")
+
+            sendPacket (fromClientToVip)
+
+            Then("Cache entries should be refreshed and be correct lengths")
+
+            assertCacheValueExpirations(expectedExpirationLength)
+        }
+
+    }
+
+    private[this] def assertCacheValueExpirations(expirationLength: Int)
+    {
+        val leaseManager = Chain.natMappingFactory.
+            get(loadBalancer.getId).asInstanceOf[NatLeaseManager]
+        leaseManager should not be null
+
+        val mockCache = getMockCache(leaseManager)
+        val cacheValues: List[CacheEntry] =
+            mockCache.map.values().toArray.map(
+                _.asInstanceOf[CacheEntry]).toList
+
+        cacheValues.size shouldBe 2
+
+        val expirationLengths = cacheValues.map {
+            c: CacheEntry => c.expirationMillis
+        }.toSet
+        expirationLengths.size shouldBe 1
+        expirationLengths.toList(0) shouldBe expirationLength
     }
 
     private[this] def getMockCache(leaseManager: NatLeaseManager): MockCache = {
