@@ -315,6 +315,42 @@ public class NatLeaseManager implements NatMapping {
         return (null == value) ? null : makePairFromString(value, null);
     }
 
+    @Override
+    public void deleteDnatEntry(byte protocol, IPAddr nwSrc, int tpSrc_,
+                                  IPAddr oldNwDst, int oldTpDst_,
+                                  IPAddr newNwDst, int newTpDst) {
+
+        int tpSrc = tpSrc_ & USHORT;
+        int oldTpDst = oldTpDst_ & USHORT;
+        String fwdKey = makeCacheKey(FWD_DNAT_PREFIX, protocol,
+                nwSrc, tpSrc, oldNwDst, oldTpDst);
+        String revKey = makeCacheKey(REV_DNAT_PREFIX, protocol,
+                nwSrc, tpSrc, newNwDst, newTpDst);
+
+        // Remove cache key and cancel future so it won't be refreshed
+        KeyMetadata keyData = fwdKeys.get(fwdKey);
+        if (keyData != null) {
+            if (fwdKeys.remove(fwdKey) != keyData)
+                return;
+
+            // Cancel refreshing of the nat keys
+            log.debug("natUnref canceling refresh of key {}", fwdKey);
+            if (null != keyData.revKey) {
+                log.debug("natUnref canceling refresh of key {}", keyData.revKey);
+            }
+            if (null != keyData.future) {
+                log.debug("natUnref found future to cancel.");
+                keyData.future.cancel(false);
+            }
+        }
+
+        cache.delete(fwdKey);
+        cache.delete(revKey);
+
+        log.debug("deleteDnatEntry: fwdKey {} revKey {}", fwdKey, revKey);
+    }
+
+
     private NwTpPair makeSnatReservation(byte protocol,
                                          IPAddr oldNwSrc, int oldTpSrc,
                                          IPAddr newNwSrc, int newTpSrc,
