@@ -3,6 +3,10 @@
  */
 package org.midonet.api.l4lb;
 
+import java.net.URI;
+import java.util.Map;
+import java.util.UUID;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -15,10 +19,6 @@ import org.midonet.client.dto.DtoPool;
 import org.midonet.client.dto.DtoVip;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.net.URI;
-import java.util.Map;
-import java.util.UUID;
 
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.CONFLICT;
@@ -37,9 +37,26 @@ public class TestVip {
         private final static Logger log = LoggerFactory
                 .getLogger(VIP.class);
 
+        private DtoLoadBalancer loadBalancer;
+        private DtoPool pool;
+        private DtoVip vip;
+        private int vipCounter;
+
         @Before
         public void setUp() {
             super.setUp();
+
+            vipCounter = 0;
+            // VIPs should be empty
+            verifyNumberOfVips(vipCounter);
+
+            // Create a VIP with loadBalancer1 and pool1.
+            loadBalancer = createStockLoadBalancer();
+            pool = createStockPool(loadBalancer.getId());
+            vip = createStockVip(pool.getId());
+            vipCounter++;
+
+            assertParentChildRelationship(loadBalancer, pool, vip);
         }
 
         @After
@@ -97,66 +114,83 @@ public class TestVip {
             }
         }
 
+        private void assertChildVips(DtoVip[] poolVips) {
+            // Traverse the pools associated with the pool.
+            for (DtoVip originalVip: poolVips) {
+                DtoVip retrievedVip = dtoWebResource.getAndVerifyOk(
+                        originalVip.getUri(),
+                        APPLICATION_VIP_JSON, DtoVip.class);
+                assertEquals(originalVip, retrievedVip);
+            }
+        }
+
+        private void assertParentChildRelationship(
+                DtoLoadBalancer loadBalancer,
+                DtoPool pool,
+                DtoVip vip) {
+            assertEquals(pool.getId(), vip.getPoolId());
+            assertEquals(loadBalancer.getId(), vip.getLoadBalancerId());
+        }
+
         @Test
         synchronized public void testCrud() throws Exception {
-            int counter = 0;
-            // VIPs should be empty
-            verifyNumberOfVips(counter);
-
-            DtoLoadBalancer lb = createStockLoadBalancer();
-            DtoPool pool1 = createStockPool(lb.getId());
-            DtoPool pool2 = createStockPool(lb.getId());
+            DtoPool pool2 = createStockPool(loadBalancer.getId());
 
             // POST
-            DtoVip vip = createStockVip(pool1.getId());
-            verifyNumberOfVips(++counter);
+            DtoVip vip2 = createStockVip(pool.getId());
+            vipCounter++;
+            verifyNumberOfVips(vipCounter);
 
             // POST another one
-            DtoVip vip2 = createStockVip(pool2.getId());
-            verifyNumberOfVips(++counter);
+            DtoVip vip3 = createStockVip(pool2.getId());
+            vipCounter++;
+            verifyNumberOfVips(vipCounter);
 
             // POST with the same ID as the existing resource and get 409
             // CONFLICT.
             DtoError error = dtoWebResource.postAndVerifyError(
-                    topLevelVipsUri, APPLICATION_VIP_JSON, vip2, CONFLICT);
-            assertErrorMatches(error, RESOURCE_EXISTS, "VIP", vip2.getId());
-            verifyNumberOfVips(counter);
+                    topLevelVipsUri, APPLICATION_VIP_JSON, vip3, CONFLICT);
+            assertErrorMatches(error, RESOURCE_EXISTS, "VIP", vip3.getId());
+            verifyNumberOfVips(vipCounter);
 
             // GET and check if it is the same as what we POSTed.
-            DtoVip newVip = getVip(vip.getUri());
+            DtoVip newVip = getVip(vip2.getUri());
             // It checks the id as well but they're identical because POST
             // accepts populated id and create the VIP with the id.
-            assertEquals(newVip, vip);
+            assertEquals(newVip, vip2);
 
-            DtoVip newVip2 = getVip(vip2.getUri());
+            DtoVip newVip2 = getVip(vip3.getUri());
             // It checks the id as well but they're identical because POST
             // accepts populated id and create the VIP with the id.
-            assertEquals(newVip2, vip2);
+            assertEquals(newVip2, vip3);
 
             // PUT with the different parameters
             newVip2.setAdminStateUp(!newVip2.isAdminStateUp());
             DtoVip updatedVip2 = updateVip(newVip2);
             assertEquals(updatedVip2, newVip2);
-            verifyNumberOfVips(counter);
+            verifyNumberOfVips(vipCounter);
 
             // PUT with the populated `sessionPersistence`.
             newVip2.setSessionPersistence(VIP_SOURCE_IP);
             newVip2 = updateVip(newVip2);
             assertEquals(newVip2.getSessionPersistence(), VIP_SOURCE_IP);
-            verifyNumberOfVips(counter);
+            verifyNumberOfVips(vipCounter);
 
             // POST with the populated `sessionPersistence`.
             DtoVip sessionPersistenceVip = getVip(newVip2.getUri());
             sessionPersistenceVip.setId(UUID.randomUUID());
             sessionPersistenceVip.setSessionPersistence(VIP_SOURCE_IP);
             postVip(sessionPersistenceVip);
-            verifyNumberOfVips(++counter);
+            vipCounter++;
+            verifyNumberOfVips(vipCounter);
 
             // DELETE all created VIPs.
-            deleteVip(vip.getUri());
-            verifyNumberOfVips(--counter);
             deleteVip(vip2.getUri());
-            verifyNumberOfVips(--counter);
+            vipCounter--;
+            verifyNumberOfVips(vipCounter);
+            deleteVip(vip3.getUri());
+            vipCounter--;
+            verifyNumberOfVips(vipCounter);
         }
 
         @Test
@@ -173,14 +207,7 @@ public class TestVip {
 
         @Test
         public void testUpdateUpdatesReferences() {
-            // Create a VIP with loadBalancer1 and pool1.
-            DtoLoadBalancer loadBalancer1 = createStockLoadBalancer();
-            DtoPool pool1 = createStockPool(loadBalancer1.getId());
-            DtoVip vip = createStockVip(pool1.getId());
-            // VIP should refer loadBalancer1 and pool1, and vice-versa.
-            assertEquals(loadBalancer1.getUri(), vip.getLoadBalancer());
-            assertEquals(pool1.getUri(), vip.getPool());
-            checkBackrefs(loadBalancer1.getUri(), pool1.getUri(), vip);
+            checkBackrefs(loadBalancer.getUri(), pool.getUri(), vip);
 
             // Switch references to loadBalancer2 and pool2.
             DtoLoadBalancer loadBalancer2 = createStockLoadBalancer();
@@ -193,7 +220,7 @@ public class TestVip {
             vip = updateVip(vip);
             assertEquals(loadBalancer2.getUri(), vip.getLoadBalancer());
             assertEquals(pool2.getUri(), vip.getPool());
-            checkBackrefs(loadBalancer1.getUri(), pool1.getUri(), null);
+            checkBackrefs(loadBalancer.getUri(), pool.getUri(), null);
             checkBackrefs(loadBalancer2.getUri(), pool2.getUri(), vip);
 
             deleteVip(vip.getUri());
@@ -204,9 +231,6 @@ public class TestVip {
 
         @Test
         public void testDeleteClearsBackrefs() {
-            DtoLoadBalancer lb = createStockLoadBalancer();
-            DtoPool pool = createStockPool(lb.getId());
-            DtoVip vip = createStockVip(pool.getId());
             checkBackrefs(vip.getLoadBalancer(), vip.getPool(), vip);
 
             deleteVip(vip.getUri());
@@ -227,7 +251,7 @@ public class TestVip {
 
         @Test
         public void testCreateWithBadPoolId() {
-            DtoLoadBalancer lb = createStockLoadBalancer();
+            DtoLoadBalancer loadBalancer = createStockLoadBalancer();
             DtoVip vip = getStockVip(UUID.randomUUID());
             postVipAndVerifyBadRequestError(
                     vip, "pool", vip.getPoolId());
@@ -235,8 +259,6 @@ public class TestVip {
 
         @Test
         public void testUpdateWithBadVipId() throws Exception {
-            DtoLoadBalancer loadBalancer = createStockLoadBalancer();
-            DtoPool pool = createStockPool(loadBalancer.getId());
             DtoVip vip = getStockVip(pool.getId());
             vip.setId(UUID.randomUUID());
             vip.setUri(addIdToUri(topLevelVipsUri, vip.getId()));
@@ -245,9 +267,6 @@ public class TestVip {
 
         @Test
         public void testUpdateWithBadPoolId() {
-            DtoLoadBalancer loadBalancer = createStockLoadBalancer();
-            DtoPool pool = createStockPool(loadBalancer.getId());
-            DtoVip vip = createStockVip(pool.getId());
             vip.setPoolId(UUID.randomUUID());
             DtoError error = dtoWebResource.putAndVerifyBadRequest(
                     vip.getUri(), APPLICATION_VIP_JSON, vip);
@@ -256,17 +275,94 @@ public class TestVip {
 
         @Test
         public void testLoadBalancerIdIsIgnored() {
-            DtoLoadBalancer loadBalancer = createStockLoadBalancer();
-            DtoPool pool = createStockPool(loadBalancer.getId());
-            DtoVip vip = createStockVip(pool.getId());
-            assertEquals(loadBalancer.getId(), vip.getLoadBalancerId());
-
             UUID fakeUuid = UUID.randomUUID();
             vip.setLoadBalancerId(fakeUuid);
             vip = updateVip(vip);
             assertNotSame(fakeUuid, vip.getLoadBalancerId());
-            assertEquals(pool.getLoadBalancerId(), vip.getLoadBalancerId());
-            assertEquals(loadBalancer.getId(), vip.getLoadBalancerId());
+
+            assertParentChildRelationship(loadBalancer, pool, vip);
+        }
+
+        @Test
+        public void testVipsOfPool() {
+            DtoVip vip2 = createStockVip(pool.getId());
+            vipCounter++;
+            assertParentChildRelationship(loadBalancer, pool, vip2);
+
+            DtoVip[] vips = getVips(loadBalancer.getVips());
+            assertEquals(vipCounter, vips.length);
+
+            // POST another one from the URI of the pool.
+            DtoVip vip3 = getStockVip(pool.getId());
+            vip3.setPoolId(pool.getId());
+            vip3  = dtoWebResource.postAndVerifyCreated(pool.getVips(),
+                    APPLICATION_VIP_JSON, vip3, DtoVip.class);
+            vipCounter++;
+            assertParentChildRelationship(loadBalancer, pool, vip3);
+
+            // Traverse the pools associated with the load balancer.
+            vips = getVips(pool.getVips());
+            assertEquals(vipCounter, vips.length);
+
+            assertChildVips(vips);
+        }
+
+        @Test
+        public void testVipsOfPoolsAggregated() {
+            DtoPool pool2 = createStockPool(loadBalancer.getId());
+            DtoVip vip2 = createStockVip(pool2.getId());
+            vipCounter++;
+            assertParentChildRelationship(loadBalancer, pool2, vip2);
+
+            DtoVip[] vipsOfPool = getVips(pool.getVips());
+            assertChildVips(vipsOfPool);
+
+            DtoVip[] vipsOfPool2 = getVips(pool2.getVips());
+            assertChildVips(vipsOfPool2);
+
+            DtoVip[] vipsOfLoadBalancer = getVips(loadBalancer.getVips());
+            assertChildVips(vipsOfLoadBalancer);
+
+            // Assert if the number of the VIPs is aggregated
+            assertEquals(vipsOfLoadBalancer.length, vipCounter);
+
+            // Add another pool and VIP
+            DtoPool pool3 = createStockPool(loadBalancer.getId());
+            DtoVip vip3 = createStockVip(pool3.getId());
+            vipCounter++;
+            vipsOfLoadBalancer = getVips(loadBalancer.getVips());
+
+            assertEquals(vipsOfLoadBalancer.length, vipCounter);
+        }
+
+        @Test
+        public void testVipsOfLoadBalancer() {
+            DtoVip vip2 = createStockVip(pool.getId());
+            vipCounter++;
+            assertParentChildRelationship(loadBalancer, pool, vip2);
+
+            DtoVip[] vips = getVips(loadBalancer.getVips());
+            assertEquals(vipCounter, vips.length);
+
+            // POST another one to the URI of the pool without the explicit
+            // pool ID.
+            DtoVip vip3 = getStockVip(pool.getId());
+            vip3  = dtoWebResource.postAndVerifyCreated(pool.getVips(),
+                    APPLICATION_VIP_JSON, vip3, DtoVip.class);
+            vipCounter++;
+            assertParentChildRelationship(loadBalancer, pool, vip3);
+
+            // The size of VIPs of the load balancer associated with the
+            // single pool should equal to the size of VIPs of the pool.
+            DtoVip[] loadBalancerVips = getVips(loadBalancer.getVips());
+            DtoVip[] poolVips = getVips(pool.getVips());
+            assertEquals(vipCounter, loadBalancerVips.length);
+
+            // The VIPs of the load balancer associated with the single pool
+            // should equal to the VIPs of the pool.
+            assertArrayMembersEqual(loadBalancerVips, poolVips);
+
+            assertChildVips(poolVips);
         }
     }
 }
