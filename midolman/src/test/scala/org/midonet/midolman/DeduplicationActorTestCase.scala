@@ -7,24 +7,25 @@ import java.util.UUID
 import scala.collection.JavaConverters._
 import scala.collection.immutable
 import scala.collection.mutable.ListBuffer
-import scala.concurrent.Future
 import scala.concurrent.Promise
 import scala.concurrent.promise
 import scala.concurrent.duration._
 
+import akka.actor.Props
+import akka.testkit.TestActorRef
+import com.yammer.metrics.core.MetricsRegistry
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest._
 import org.scalatest.concurrent.Eventually._
-import org.scalatest.time.Millis
-import org.scalatest.time.Span
 
+import org.midonet.cache.Cache
+import org.midonet.cluster.DataClient
 import org.midonet.midolman.DeduplicationActor.ApplyFlow
 import org.midonet.midolman.PacketWorkflow.Simulation
+import org.midonet.midolman.io.DatapathConnectionPool
+import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.services.MessageAccumulator
-import org.midonet.midolman.topology.TraceConditionsManager
-import org.midonet.midolman.topology.VirtualTopologyActor
-import org.midonet.midolman.topology.VirtualTopologyActor.ConditionListRequest
 import org.midonet.midolman.topology.rcu.TraceConditions
 import org.midonet.odp.{FlowMatches, Packet, Datapath}
 import org.midonet.odp.flows.FlowActions.output
@@ -41,15 +42,22 @@ class DeduplicationActorTestCase extends FeatureSpec
 
     var datapath: Datapath = null
     var packetsSeen = List[(Packet, Either[Int, UUID])]()
-    var testableDda: TestableDDA = _
+    var ddaRef: TestActorRef[TestableDDA] = _
+    def dda = ddaRef.underlyingActor
 
-    override def registerActors = List(
-        DeduplicationActor -> (() => new TestableDDA))
+    lazy val dpConnPool = injector.getInstance(classOf[DatapathConnectionPool])
+    lazy val metricsReg = injector.getInstance(classOf[MetricsRegistry])
 
     override def beforeTest() {
         datapath = mockDpConn().futures.datapathsCreate("midonet").get()
-        testableDda = DeduplicationActor.as[TestableDDA]
-        DeduplicationActor ! DatapathController.DatapathReady(datapath, null)
+
+        val ddaFactory = () => new TestableDDA(new CookieGenerator(1, 1),
+            dpConnPool, clusterDataClient(), null, null, null,
+            new PacketPipelineMetrics(metricsReg))
+
+        ddaRef = TestActorRef(Props(ddaFactory))(actorSystem)
+        dda should not be null
+        ddaRef ! DatapathController.DatapathReady(datapath, null)
     }
 
     def makeFrame(variation: Short) =
@@ -78,17 +86,12 @@ class DeduplicationActorTestCase extends FeatureSpec
     feature("DeduplicationActor initializes correctly") {
         scenario("requests the condition list to the VTA") {
             When("the DDA boots")
-            testableDda should not be null
+            dda should not be null
 
-            Then("the VTA must receive a ConditionListRequest")
-            VirtualTopologyActor.messages should be (List(
-                    ConditionListRequest(TraceConditionsManager.uuid,
-                                         update = true)))
-
-            Then("the Deduplication should be able to handle the VTA answer")
-            DeduplicationActor ! TraceConditions(immutable.Seq())
+            Then("the Deduplication should be able to receive conditions lists")
+            ddaRef ! TraceConditions(immutable.Seq())
             eventually {
-                testableDda.traceConditions = immutable.Seq()
+                dda.traceConditions = immutable.Seq()
             }
         }
     }
@@ -99,36 +102,13 @@ class DeduplicationActorTestCase extends FeatureSpec
             val pkts = List(makePacket(1), makePacket(1), makePacket(1), makePacket(1))
 
             When("they are fed to the DDA")
-            DeduplicationActor ! DeduplicationActor.HandlePackets(pkts.toArray)
+            ddaRef ! DeduplicationActor.HandlePackets(pkts.toArray)
 
             Then("the DDA should execute exactly one workflow")
             packetsSeen.length should be (1)
 
             Then("and exactly one packet should be pended")
-            testableDda.pendedPackets(1) should be (Some(Set(pkts.head)))
-        }
-
-        scenario("expires pended packets after a time interval") {
-            implicit val patienceConfig =
-                PatienceConfig(Span(500, Millis), Span(100, Millis))
-
-            Given("three different packets with the same match")
-            val pkts = List(makePacket(1), makeUniquePacket(1), makeUniquePacket(1))
-
-            When("they are fed to the DDA")
-            DeduplicationActor ! DeduplicationActor.HandlePackets(pkts.toArray)
-
-            Then("two packets should be pended")
-            testableDda.pendedPackets(1) should not be None
-            testableDda.pendedPackets(1).get.size should be (2)
-
-            eventually {
-                When("their cookie expires")
-                Then("they should be unpended automatically")
-                    testableDda.pendedPackets(1) should be (None)
-                And("not executed")
-                mockDpConn().packetsSent.size should be (0)
-            }
+            dda.pendedPackets(1) should be (Some(Set(pkts.head)))
         }
 
         scenario("discards packets When ApplyFlow has no actions") {
@@ -136,18 +116,18 @@ class DeduplicationActorTestCase extends FeatureSpec
             val pkts = List(makePacket(1), makeUniquePacket(1), makeUniquePacket(1))
 
             When("they are fed to the DDA")
-            DeduplicationActor ! DeduplicationActor.HandlePackets(pkts.toArray)
+            ddaRef ! DeduplicationActor.HandlePackets(pkts.toArray)
 
             Then("some packets should be pended")
-            testableDda.pendedPackets(1) should not be None
+            dda.pendedPackets(1) should not be None
 
             When("the dda is told to apply the flow with empty actions")
             MockPacketHandler.complete()
-            DeduplicationActor ! ApplyFlow(Nil, Some(1))
+            ddaRef ! ApplyFlow(Nil, Some(1))
 
             Then("the packets should be dropped")
             mockDpConn().packetsSent.size should be (0)
-            testableDda.pendedPackets(1) should be (None)
+            dda.pendedPackets(1) should be (None)
         }
 
         scenario("emits packets When ApplyFlow contains actions") {
@@ -155,13 +135,13 @@ class DeduplicationActorTestCase extends FeatureSpec
             val pkts = List(makePacket(1), makeUniquePacket(1), makeUniquePacket(1))
 
             When("they are fed to the DDA")
-            DeduplicationActor ! DeduplicationActor.HandlePackets(pkts.toArray)
+            ddaRef ! DeduplicationActor.HandlePackets(pkts.toArray)
 
             Then("some packets should be pended")
-            testableDda.pendedPackets(1) should not be None
+            dda.pendedPackets(1) should not be None
 
             When("the dda is told to apply the flow with an output action")
-            DeduplicationActor ! ApplyFlow(List(output(1)), Some(1))
+            ddaRef ! ApplyFlow(List(output(1)), Some(1))
             MockPacketHandler.complete()
 
             Then("the packets should be sent to the datapath")
@@ -170,7 +150,7 @@ class DeduplicationActorTestCase extends FeatureSpec
             actual should be (expected)
 
             And("no pended packets should remain")
-            testableDda.pendedPackets(1) should be (None)
+            dda.pendedPackets(1) should be (None)
         }
 
         scenario("simulates sequences of packets from the datapath") {
@@ -178,30 +158,19 @@ class DeduplicationActorTestCase extends FeatureSpec
             val pkts = List(makePacket(1), makePacket(2), makePacket(3), makePacket(2))
 
             When("they are fed to the DDA")
-            DeduplicationActor ! DeduplicationActor.HandlePackets(pkts.toArray)
+            ddaRef ! DeduplicationActor.HandlePackets(pkts.toArray)
 
             Then("3 packet workflows should be executed")
             val expected = pkts.distinct zip cookieList(1 to 3)
             packetsSeen should be (expected)
 
             And("one packet should be pended")
-            testableDda.pendedPackets(1) should not be None
-            testableDda.pendedPackets(1).get should be ('empty)
-            testableDda.pendedPackets(2) should not be None
-            testableDda.pendedPackets(2).get should have size 1
-            testableDda.pendedPackets(3) should not be None
-            testableDda.pendedPackets(3).get should be ('empty)
-        }
-
-        scenario("simulates packets received through the datapath hook") {
-            Given("one packet")
-            val pkt = makePacket(1)
-
-            When("it's injected through the datapath")
-            mockDpConn().triggerPacketIn(pkt)
-
-            Then("the DDA should receive it and execute one workflow")
-            packetsSeen should be (List((pkt, Left(1))))
+            dda.pendedPackets(1) should not be None
+            dda.pendedPackets(1).get should be ('empty)
+            dda.pendedPackets(2) should not be None
+            dda.pendedPackets(2).get should have size 1
+            dda.pendedPackets(3) should not be None
+            dda.pendedPackets(3).get should be ('empty)
         }
 
         scenario("simulates generated packets") {
@@ -210,7 +179,7 @@ class DeduplicationActorTestCase extends FeatureSpec
             val frame: Ethernet = makeFrame(1)
 
             When("the DDA is told to emit it")
-            DeduplicationActor ! DeduplicationActor.EmitGeneratedPacket(id, frame, None)
+            ddaRef ! DeduplicationActor.EmitGeneratedPacket(id, frame, None)
 
             Then("a work flow should be executed")
             packetsSeen map {
@@ -251,7 +220,15 @@ class DeduplicationActorTestCase extends FeatureSpec
         }
     }
 
-    class TestableDDA extends DeduplicationActor with MessageAccumulator {
+    class TestableDDA(cookieGen: CookieGenerator,
+                      dpConnPool: DatapathConnectionPool,
+                      clusterDataClient: DataClient,
+                      cCache: Cache,
+                      tmCache: Cache,
+                      tiCache: Cache,
+                      metrics: PacketPipelineMetrics) extends
+              DeduplicationActor(cookieGen, dpConnPool, clusterDataClient,
+                cCache, tmCache, tiCache, metrics) with MessageAccumulator {
         protected override val cookieTimeToLiveMillis = 300L
         protected override val cookieExpirationCheckInterval = 100 millis
 

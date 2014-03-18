@@ -134,7 +134,7 @@ class AdminStateTest extends FeatureSpec
 
         sendPacket (fromBridgeSide) should be (flowMatching (emittedRouterSidePkt))
         sendPacket (fromRouterSide) should be (flowMatching (emittedBridgeSidePkt))
-        DeduplicationActor.messages should be (empty)
+        PacketsEntryPoint.messages should be (empty)
 
         VirtualTopologyActor.getAndClear()
     }
@@ -432,8 +432,8 @@ class AdminStateTest extends FeatureSpec
     }
 
     private[this] def assertExpectedIcmpProhibitPacket(routerPort: RouterPort) {
-        DeduplicationActor.messages should not be empty
-        val msg = DeduplicationActor.messages.head.asInstanceOf[EmitGeneratedPacket]
+        PacketsEntryPoint.messages should not be empty
+        val msg = PacketsEntryPoint.messages.head.asInstanceOf[EmitGeneratedPacket]
         msg should not be null
 
         msg.egressPort should be(routerPort.getId)

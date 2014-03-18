@@ -5,8 +5,8 @@ package org.midonet.midolman
 
 import scala.collection.immutable
 import scala.util.control.Breaks._
-
 import scala.concurrent.duration.Duration
+
 import java.util.concurrent.TimeUnit
 import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
@@ -403,8 +403,13 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase
 
         expected should have size (0)
 
-        val flowInvalidated = wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
-        assert(flowInvalidated.f.equals(flowToInvalidate.f))
+        var flowsInvalidated: Seq[WildcardFlow] = Nil
+        do {
+            val msg = wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
+            flowsInvalidated +:= msg.f
+        } while (wflowRemovedProbe.msgAvailable)
+
+        flowsInvalidated should contain (flowToInvalidate.f)
     }
 
     def testInvalidationRemovePortFromPortSet() {

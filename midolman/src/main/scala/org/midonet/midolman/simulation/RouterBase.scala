@@ -9,7 +9,7 @@ import scala.concurrent.{Future, ExecutionContext}
 import akka.actor.ActorSystem
 
 import org.midonet.cluster.client.RouterPort
-import org.midonet.midolman.DeduplicationActor
+import org.midonet.midolman.PacketsEntryPoint
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.logging.LoggerFactory
@@ -373,7 +373,7 @@ abstract class RouterBase[IP <: IPAddr]()
     def sendAnswer(portId: UUID, eth: Option[Ethernet])
                       (implicit pktContext: PacketContext) {
         if (eth.nonEmpty)
-            DeduplicationActor !
+            PacketsEntryPoint !
                 EmitGeneratedPacket(portId, eth.get, pktContext.flowCookie)
     }
 

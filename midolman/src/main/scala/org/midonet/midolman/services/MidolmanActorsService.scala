@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory
 import org.midonet.midolman.SupervisorActor
 import org.midonet.midolman.SupervisorActor.StartChild
 import org.midonet.midolman.DatapathController
-import org.midonet.midolman.DeduplicationActor
+import org.midonet.midolman.PacketsEntryPoint
 import org.midonet.midolman.FlowController
 import org.midonet.midolman.NetlinkCallbackDispatcher
 import org.midonet.midolman.config.MidolmanConfig
@@ -57,11 +57,10 @@ class MidolmanActorsService extends AbstractService {
             (propsFor(classOf[DatapathController]),        DatapathController.Name),
             (propsFor(classOf[FlowController]),            FlowController.Name),
             (propsFor(classOf[RoutingManagerActor]),       RoutingManagerActor.Name),
-            (propsFor(classOf[DeduplicationActor]).
-                withDispatcher("actors.pinned-dispatcher"),DeduplicationActor.Name),
-            (propsFor(classOf[NetlinkCallbackDispatcher]), NetlinkCallbackDispatcher.Name),
             (propsFor(classOf[HealthMonitor]).
-                withDispatcher("actors.pinned-dispatcher"),HealthMonitor.Name))
+                withDispatcher("actors.pinned-dispatcher"),HealthMonitor.Name),
+            (propsFor(classOf[PacketsEntryPoint]),       PacketsEntryPoint.Name),
+            (propsFor(classOf[NetlinkCallbackDispatcher]), NetlinkCallbackDispatcher.Name))
 
         if (config.getMidolmanEnableMonitoring)
             (propsFor(classOf[MonitoringActor]), MonitoringActor.Name) :: specs

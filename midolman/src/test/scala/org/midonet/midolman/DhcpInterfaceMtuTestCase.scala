@@ -256,9 +256,7 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase with
 
     def test() {
         injectDhcpDiscover(vmPortName, vmMac)
-        requestOfType[PacketIn](packetInProbe)
-        requestOfType[HandlePackets](dedupProbe())
-        val returnPkt = requestOfType[EmitGeneratedPacket](dedupProbe()).eth
+        val returnPkt = fishForRequestOfType[EmitGeneratedPacket](dedupProbe()).eth
         val interfaceMtu = extractInterfaceMtuDhcpReply(returnPkt)
         log.info("Returning interface MTU is {}", interfaceMtu)
         intfMtu -= (new GreTunnelZone).getTunnelOverhead()

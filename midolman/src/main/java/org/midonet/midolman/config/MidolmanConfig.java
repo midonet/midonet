@@ -72,4 +72,10 @@ public interface MidolmanConfig
     @ConfigString(key = "router_network_id",
                   defaultValue = "01234567-0123-0123-aaaa-0123456789ab")
     public String getVrnRouterNetworkId();
+
+    @ConfigInt(key = "simulation_threads", defaultValue = 1)
+    public int getSimulationThreads();
+
+    @ConfigInt(key = "output_channels", defaultValue = 1)
+    public int getNumOutputChannels();
 }
