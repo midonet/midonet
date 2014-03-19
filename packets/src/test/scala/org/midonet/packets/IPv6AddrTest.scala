@@ -64,6 +64,14 @@ class IPv6AddrTest extends Suite with ShouldMatchers {
     }
 
     /**
+     * Covering a divide by zero bug
+     */
+    def testRandomToWithSameIp() {
+        val x = IPv6Addr.fromString("f00f:4004:2003:2002:ffff:ffff:ffff:fff6")
+        x.randomTo(x, new Random()) should be === x
+    }
+
+    /**
      * Tests that requesting a random IP address inside a range that overflows
      * a single /64 range throws the appropriate exception
      */

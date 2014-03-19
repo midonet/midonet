@@ -564,9 +564,10 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
      * on the gateway link, with the srcIp translated
      */
     private def pingExpectSnated(port: String, srcMac: MAC, srcIp: IPv4Addr,
-                                dstMac: MAC, dstIp: IPv4Addr,
-                                icmpId: Short, icmpSeq: Short,
-                                transSrcIp: IPv4Addr) {
+                                 dstMac: MAC, dstIp: IPv4Addr,
+                                 icmpId: Short, icmpSeq: Short,
+                                 transSrcIpStart: IPv4Addr,
+                                 transSrcIpEnd: IPv4Addr) = {
 
         log.info("Sending a PING that should be NAT'ed")
         val icmpReq = injectIcmpEchoReq(port,
@@ -577,22 +578,25 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         val pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
         val outPorts = getOutPacketPorts(pktOut)
         outPorts.size should be === 1
-        localPortNumberToName(outPorts.head) should be === (Some("uplinkPort"))
+        localPortNumberToName(outPorts.head) should be === Some("uplinkPort")
 
         val eth = applyOutPacketActions(pktOut)
         var ipPak = eth.getPayload.asInstanceOf[IPv4]
         ipPak should not be null
         ipPak = eth.getPayload.asInstanceOf[IPv4]
         ipPak.getProtocol should be (ICMP.PROTOCOL_NUMBER)
-        ipPak.getSourceAddress should be === transSrcIp.addr
         ipPak.getDestinationAddress should be === dstIp.addr
+        IPAddrRangeBuilder.range(transSrcIpStart, transSrcIpEnd).contains(
+            IPv4Addr.fromInt(ipPak.getSourceAddress)
+        ) should be === true
 
         val icmpPak = ipPak.getPayload.asInstanceOf[ICMP]
         icmpPak should not be null
-        icmpPak.getType should be === (ICMP.TYPE_ECHO_REQUEST)
-        icmpPak.getIdentifier should be === (icmpReq.getIdentifier)
-        icmpPak.getQuench should be === (icmpReq.getQuench)
+        icmpPak.getType should be === ICMP.TYPE_ECHO_REQUEST
+        icmpPak.getIdentifier should be === icmpReq.getIdentifier
+        icmpPak.getQuench should be === icmpReq.getQuench
 
+        IPv4Addr.fromInt(ipPak.getSourceAddress)
     }
 
     /**
@@ -608,7 +612,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
 
         log.info("Send ICMP reply into the router, should be revSnat'ed")
         val icmpReply = injectIcmpEchoReply(port, srcMac, srcIp,
-                                            icmpId, icmpSeq, dstMac, origSrcIp)
+                                            icmpId, icmpSeq, dstMac, dstIp)
 
         // Expect the packet delivered back to the source, MAC should be learnt
         // already so expect straight on the bridge's port
@@ -627,8 +631,8 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         ipPak.getDestinationAddress should be === origSrcIp.addr
         val icmpPak = ipPak.getPayload.asInstanceOf[ICMP]
         icmpPak should not be null
-        icmpPak.getType should be === (ICMP.TYPE_ECHO_REPLY)
-        icmpPak.getIdentifier should be === (icmpReply.getIdentifier)
+        icmpPak.getType should be === ICMP.TYPE_ECHO_REPLY
+        icmpPak.getIdentifier should be === icmpReply.getIdentifier
 
     }
 
@@ -649,26 +653,36 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         val src5Ip = vmIps.last
         val dstMac = routerMac   // A destination beyond the gateway
         val dstIp = IPv4Addr("62.72.82.1")
-        val snatIp = snatAddressStart // expected translated source
+
+        // translated source is now random
 
         log.info("Sending ICMP pings into private network")
-        pingExpectSnated(vm1Port, src1Mac, src1Ip, dstMac, dstIp, 16, 1, snatIp)
-        pingExpectSnated(vm5Port, src5Mac, src5Ip, dstMac, dstIp, 21, 1, snatIp)
+        val snatIp16 = pingExpectSnated(vm1Port, src1Mac, src1Ip, dstMac, dstIp,
+                                        16, 1, snatAddressStart, snatAddressEnd)
+        val snatIp21 = pingExpectSnated(vm5Port, src5Mac, src5Ip, dstMac, dstIp,
+                                        21, 1, snatAddressStart, snatAddressEnd)
         // TODO (galo) test that should
         log.info("Sending ICMP pings, expect userspace match")
-        pingExpectSnated(vm1Port, src1Mac, src1Ip, dstMac, dstIp, 16, 1, snatIp)
-        pingExpectSnated(vm5Port, src5Mac, src5Ip, dstMac, dstIp, 21, 1, snatIp)
+        val snatIp16_2 = pingExpectSnated(vm1Port, src1Mac, src1Ip, dstMac,
+                                          dstIp, 16, 1, snatAddressStart,
+                                          snatAddressEnd)
+        val snatIp21_2 = pingExpectSnated(vm5Port, src5Mac, src5Ip, dstMac,
+                                          dstIp, 21, 1, snatAddressStart,
+                                          snatAddressEnd)
+
+        snatIp16 should be === snatIp16_2
+        snatIp21 should be === snatIp21_2
 
         log.info("Sending ICMP replies")
         // Let's see if replies get into the private network
         pongExpectRevNatd(upPort, uplinkGatewayMac, dstIp, uplinkPortMac,
-                          snatIp, 16, 1, src1Ip)
+                          snatIp16, 16, 1, src1Ip)
         pongExpectRevNatd(upPort, uplinkGatewayMac, dstIp, uplinkPortMac,
-                          snatIp, 21, 1, src5Ip)
+                          snatIp21, 21, 1, src5Ip)
         pongExpectRevNatd(upPort, uplinkGatewayMac, dstIp, uplinkPortMac,
-                          snatIp, 16, 2, src1Ip)
+                          snatIp16, 16, 2, src1Ip)
         pongExpectRevNatd(upPort, uplinkGatewayMac, dstIp, uplinkPortMac,
-                          snatIp, 21, 2, src5Ip)
+                          snatIp21, 21, 2, src5Ip)
 
     }
 

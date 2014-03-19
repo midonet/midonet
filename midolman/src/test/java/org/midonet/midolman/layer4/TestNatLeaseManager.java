@@ -4,11 +4,16 @@
 
 package org.midonet.midolman.layer4;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
-import com.google.inject.Injector;
-import com.google.inject.Guice;
 import org.apache.zookeeper.CreateMode;
 import org.junit.Assert;
 import org.junit.Before;
@@ -27,17 +32,12 @@ import org.midonet.midolman.util.MockCache;
 import org.midonet.midolman.version.DataWriteVersion;
 import org.midonet.midolman.version.guice.VersionModule;
 import org.midonet.packets.ICMP;
+import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv6Addr;
-import org.midonet.packets.IPAddr;
 import org.midonet.packets.TCP;
 import org.midonet.util.eventloop.MockReactor;
 import org.midonet.util.eventloop.Reactor;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 public class TestNatLeaseManager {
 
@@ -187,13 +187,14 @@ public class TestNatLeaseManager {
     }
 
     private void testSnatOneTargetOneIp(List<NatTarget> nats, IPAddr nwDst) {
-        Set<NatTarget> natSet = new HashSet<NatTarget>();
+        Set<NatTarget> natSet = new HashSet<>();
         int i = 0;
         short tpDst = 80;
         for (NatTarget nat : nats) {
             i++;
             natSet.clear();
             natSet.add(nat);
+            int collisionsAllowed = 10;
             int numPorts = nat.tpEnd - nat.tpStart + 1;
             for (int j = 0; j < numPorts; j++) {
                 IPv4Addr oldNwSrc = IPv4Addr.fromInt(0x0a000002 + (j % 8));
@@ -204,18 +205,23 @@ public class TestNatLeaseManager {
                 NwTpPair pair = natManager.allocateSnat(TCP.PROTOCOL_NUMBER,
                                                         oldNwSrc, oldTpSrc,
                                                         nwDst, tpDst, natSet);
+                if (pair == null) {
+                    // because random allocations, tolerate some collisions
+                    Assert.assertTrue(collisionsAllowed-- >= 0);
+                    continue;
+                }
+
+                // We can verify the ip itself, bc there is only 1 in the target
                 Assert.assertEquals(nat.nwStart, pair.nwAddr);
-                Assert.assertEquals(nat.tpStart + j, pair.tpPort);
+                Assert.assertTrue(nat.tpStart <= pair.tpPort &&
+                               nat.tpEnd >= pair.tpPort);
                 Assert.assertEquals(pair, natManager.lookupSnatFwd(
                         TCP.PROTOCOL_NUMBER, oldNwSrc, oldTpSrc, nwDst, tpDst));
-                pair = new NwTpPair(oldNwSrc, oldTpSrc);
-                Assert.assertEquals(pair, natManager.lookupSnatRev(
-                    TCP.PROTOCOL_NUMBER, nat.nwStart,
-                    (short)(nat.tpStart + j), nwDst, tpDst));
+                NwTpPair orig = new NwTpPair(oldNwSrc, oldTpSrc);
+                Assert.assertEquals(orig, natManager.lookupSnatRev(
+                    TCP.PROTOCOL_NUMBER, pair.nwAddr, pair.tpPort,
+                    nwDst, tpDst));
             }
-            Assert.assertNull(natManager.allocateSnat(TCP.PROTOCOL_NUMBER,
-                    IPv4Addr.fromInt(0x0a000001), (short) 43,
-                    IPv4Addr.fromInt(0xc0a80102), (short) 2182, natSet));
         }
     }
 
