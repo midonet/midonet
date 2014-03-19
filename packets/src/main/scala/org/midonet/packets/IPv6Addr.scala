@@ -78,7 +78,10 @@ class IPv6Addr(val upperWord: Long, val lowerWord: Long) extends IPAddr
             throw new IllegalArgumentException("IPv6.randomTo only supported" +
                 " for ranges belonging to the same /64 subnet")
 
-        val gap = (limit.lowerWord - this.lowerWord)
+        if (this.lowerWord == limit.lowerWord)
+            return new IPv6Addr(upperWord, lowerWord)
+
+        val gap = limit.lowerWord - this.lowerWord
         val nextLower = lowerWord + (rand.nextLong % gap)
         new IPv6Addr(upperWord, nextLower)
 
