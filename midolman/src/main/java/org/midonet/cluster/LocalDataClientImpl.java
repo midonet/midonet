@@ -20,6 +20,8 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Named;
 import org.apache.zookeeper.CreateMode;
+
+import org.apache.commons.lang.StringUtils;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs;
 
@@ -3100,13 +3102,31 @@ public class LocalDataClientImpl implements DataClient {
     @Override
     public Integer getPrecedingHealthMonitorLeader(Integer myNode)
             throws StateAccessException {
-        String path = hostZkManager.getHealthMonitorLeaderNodeToWatch(myNode);
-        return path == null ? null :
-                AbstractZkManager.getSequenceNumberFromPath(path);
+        String path = pathBuilder.getHealthMonitorLeaderDirPath();
+        Set<String> set = zkManager.getChildren(path);
+
+        String seqNumPath
+                = ZkUtil.getNextLowerSequenceNumberPath(set, myNode);
+        return seqNumPath == null ? null :
+                ZkUtil.getSequenceNumberFromPath(seqNumPath);
     }
 
     @Override
-    public Integer registerAsHealthMonitorNode() throws StateAccessException {
-        return hostZkManager.createHealthMonitorNode();
+    public Integer registerAsHealthMonitorNode(
+            ZkLeaderElectionWatcher.ExecuteOnBecomingLeader cb)
+            throws StateAccessException {
+        String path = pathBuilder.getHealthMonitorLeaderDirPath();
+        return ZkLeaderElectionWatcher.registerLeaderNode(cb, path, zkManager);
+    }
+
+    @Override
+    public void removeHealthMonitorLeaderNode(Integer node)
+            throws StateAccessException {
+        if (node == null)
+            return;
+        String path = pathBuilder.getHealthMonitorLeaderDirPath() + "/" +
+                StringUtils.repeat("0", 10 - node.toString().length()) +
+                node.toString();
+        zkManager.delete(path);
     }
 }
