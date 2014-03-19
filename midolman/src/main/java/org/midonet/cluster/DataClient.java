@@ -30,6 +30,7 @@ import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.DirectoryCallback;
 import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.state.ZkLeaderElectionWatcher;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv6Subnet;
 import org.midonet.packets.IntIPv4;
@@ -858,8 +859,21 @@ public interface DataClient {
     /**
      * register as a health monitor capable node.
      *
+     * @param cb the callback that will be executed upon becoming leader.
      * @return The id assigned to this node on registering.
      * @throws StateAccessException
      */
-    public Integer registerAsHealthMonitorNode() throws StateAccessException;
+    public Integer registerAsHealthMonitorNode(
+            ZkLeaderElectionWatcher.ExecuteOnBecomingLeader cb)
+            throws StateAccessException;
+
+    /**
+     * Remove the registration node for health monitor leader election.
+     * Basically useless for anything but testing.
+     *
+     * @param node node to remove
+     * @throws StateAccessException
+     */
+    public void removeHealthMonitorLeaderNode(Integer node)
+            throws StateAccessException;
 }

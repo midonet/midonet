@@ -334,8 +334,8 @@ class HaproxyHealthMonitor(var config: PoolConfig,
             port match {
                 case rpc: RouterPort =>
                     if (rpc.getNwAddr == RouterIp) {
-                        client.hostsDelVrnPortMapping(hostId, rpc.getId())
-                        portId = rpc.getId()
+                        client.hostsDelVrnPortMapping(hostId, rpc.getId)
+                        portId = rpc.getId
                     }
             }
         }

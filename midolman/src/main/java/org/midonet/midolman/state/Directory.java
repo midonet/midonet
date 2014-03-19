@@ -42,6 +42,9 @@ public interface Directory {
                           DirectoryCallback<Set<String>> childrenCallback,
                           TypedWatcher watcher);
 
+    boolean exists(String path, Watcher watcher) throws KeeperException,
+            InterruptedException;
+
     boolean has(String relativePath) throws KeeperException,
             InterruptedException;
 
