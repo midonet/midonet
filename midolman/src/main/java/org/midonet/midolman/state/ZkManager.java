@@ -15,6 +15,7 @@ import org.apache.zookeeper.KeeperException.NodeExistsException;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.OpResult;
 import org.apache.zookeeper.ZooDefs.Ids;
+import org.apache.zookeeper.Watcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -133,6 +134,21 @@ public class ZkManager {
         } catch (Exception ex) {
             throw processException(
                     ex, "checking whether path " + path + " exists");
+        }
+    }
+
+    public boolean exists(String path, Watcher watcher)
+            throws StateAccessException {
+        try {
+            return zk.exists(path, watcher);
+        } catch (KeeperException e) {
+            throw new StateAccessException(
+                    "ZooKeeper error occurred while checking if path exists: "
+                            + path + ": " + e.getMessage(), e);
+        } catch (InterruptedException e) {
+            throw new StateAccessException(
+                    "ZooKeeper thread interrupted while checking if path " +
+                            "exists: " + path + ": " + e.getMessage(), e);
         }
     }
 

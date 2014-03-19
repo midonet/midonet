@@ -606,17 +606,4 @@ public class HostZkManager
         throws StateAccessException {
         return getUuidList(paths.getHostTunnelZonesPath(hostId), watcher);
     }
-
-    public String getHealthMonitorLeaderNodeToWatch(Integer mySeqNum)
-            throws StateAccessException {
-        String path = paths.getHealthMonitorLeaderDirPath();
-        Set<String> set = zk.getChildren(path);
-        return getNextLowerSequenceNumberPath(set, mySeqNum);
-    }
-
-    public Integer createHealthMonitorNode() throws StateAccessException {
-        String path = paths.getHealthMonitorLeaderDirPath();
-        String seqNumPath = zk.addEphemeralSequential(path, null);
-        return getSequenceNumberFromPath(seqNumPath);
-    }
 }

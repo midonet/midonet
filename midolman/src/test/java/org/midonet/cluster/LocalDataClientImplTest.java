@@ -10,6 +10,8 @@ import org.midonet.cluster.data.Router;
 import org.midonet.cluster.data.ports.RouterPort;
 import org.midonet.midolman.layer3.Route.NextHop;
 import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.Directory;
+import org.midonet.midolman.state.ZkLeaderElectionWatcher.ExecuteOnBecomingLeader;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
@@ -51,24 +53,103 @@ public class LocalDataClientImplTest extends LocalDataClientImplTestBase {
         assertThat(routes, hasSize(0));
     }
 
+    private void assertIsLeader(boolean[] leaderArr, int leader) {
+        assertThat(leaderArr[leader], equalTo(true));
+        for(int i = 0; i < leaderArr.length; i++) {
+            if (i != leader) {
+                assertThat(leaderArr[i], equalTo(false));
+            }
+        }
+    }
+
     @Test
     public void checkHealthMonitorNodeTest() throws StateAccessException {
-        Integer hmHost = client.getPrecedingHealthMonitorLeader(14);
-        assertThat(hmHost, equalTo(null));
+        final boolean[] currentLeader = {false, false, false, false};
 
-        Integer hostNum1 = client.registerAsHealthMonitorNode();
-        hmHost = client.getPrecedingHealthMonitorLeader(1);
-        assertThat(hmHost, equalTo(hostNum1));
-        assertThat(hostNum1, equalTo(0));
+        // The var accessed inside of functors has to be final, otherwise
+        // I would have just used a single int.
+        ExecuteOnBecomingLeader cb0 = new ExecuteOnBecomingLeader() {
+            @Override
+            public void call() {
+                currentLeader[0] = true;
+                currentLeader[1] = false;
+                currentLeader[2] = false;
+                currentLeader[3] = false;
+            }
+        };
+        ExecuteOnBecomingLeader cb1 = new ExecuteOnBecomingLeader() {
+            @Override
+            public void call() {
+                currentLeader[0] = false;
+                currentLeader[1] = true;
+                currentLeader[2] = false;
+                currentLeader[3] = false;
+            }
+        };
+        ExecuteOnBecomingLeader cb2 = new ExecuteOnBecomingLeader() {
+            @Override
+            public void call() {
+                /* Don't do anything. This makes the UT weaker, but we have
+                 * no way to remove watches so even if we remove the
+                 * node corresponding to this callback, the watch callback
+                 * will still be triggered. This isn't a problem in production
+                 * because the node is removed when the mm agent goes away.
+                 *
+                 * Functionality to remove watches is in ZooKeeper 3.5.0+
+                 */
+            }
+        };
+        ExecuteOnBecomingLeader cb3 = new ExecuteOnBecomingLeader() {
+            @Override
+            public void call() {
+                currentLeader[0] = false;
+                currentLeader[1] = false;
+                currentLeader[2] = false;
+                currentLeader[3] = true;
+            }
+        };
 
-        Integer hostNum2 = client.registerAsHealthMonitorNode();
-        hmHost = client.getPrecedingHealthMonitorLeader(6);
-        assertThat(hmHost, equalTo(hostNum2));
-        assertThat(hostNum2, equalTo(1));
+        Integer precLeader = client.getPrecedingHealthMonitorLeader(14);
+        assertThat(precLeader, equalTo(null));
 
-        Integer hostNum3 = client.registerAsHealthMonitorNode();
-        hmHost = client.getPrecedingHealthMonitorLeader(1);
-        assertThat(hmHost, equalTo(hostNum1));
-        assertThat(hostNum3, equalTo(2));
+        Integer hostNum0 = client.registerAsHealthMonitorNode(cb0);
+        // Make sure the preceding leader for an arbitrary number is hostNum0
+        precLeader = client.getPrecedingHealthMonitorLeader(1);
+        assertThat(precLeader, equalTo(hostNum0));
+        assertThat(hostNum0, equalTo(0));
+        assertIsLeader(currentLeader, hostNum0);
+
+        Integer hostNum1 = client.registerAsHealthMonitorNode(cb1);
+        // Make sure the preceding leader for an arbitrary number is hostNum1
+        precLeader = client.getPrecedingHealthMonitorLeader(6);
+        assertThat(precLeader, equalTo(hostNum1));
+        assertThat(hostNum1, equalTo(1));
+        assertIsLeader(currentLeader, hostNum0);
+
+        // host 0 goes down...
+        client.removeHealthMonitorLeaderNode(hostNum0);
+        assertIsLeader(currentLeader, hostNum1);
+
+        Integer hostNum2 = client.registerAsHealthMonitorNode(cb2);
+        precLeader = client.getPrecedingHealthMonitorLeader(hostNum2);
+        assertThat(precLeader, equalTo(hostNum1));
+        assertThat(hostNum2, equalTo(2));
+        assertIsLeader(currentLeader, hostNum1);
+
+        Integer hostNum3 = client.registerAsHealthMonitorNode(cb3);
+        precLeader = client.getPrecedingHealthMonitorLeader(hostNum3);
+        assertThat(precLeader, equalTo(hostNum2));
+
+        // host 2 goes down
+        client.removeHealthMonitorLeaderNode(hostNum2);
+        assertIsLeader(currentLeader, hostNum1);
+        precLeader = client.getPrecedingHealthMonitorLeader(hostNum3);
+        assertThat(precLeader, equalTo(hostNum1));
+
+        //host 1 goes down
+        client.removeHealthMonitorLeaderNode(hostNum1);
+        assertIsLeader(currentLeader, hostNum3);
+        precLeader = client.getPrecedingHealthMonitorLeader(hostNum3);
+        assertThat(precLeader, equalTo(null));
     }
 }

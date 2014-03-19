@@ -120,6 +120,12 @@ public class MockDirectory implements Directory {
             return new HashSet<String>(children.keySet());
         }
 
+        synchronized boolean exists(Watcher watcher) {
+            if (watcher != null)
+                watchers.add(watcher);
+            return true;
+        }
+
         synchronized void deleteChild(String name, boolean multi)
             throws NoNodeException, NotEmptyException {
             Node child = children.get(name);
@@ -297,6 +303,15 @@ public class MockDirectory implements Directory {
     public Set<String> getChildren(String path, Runnable watcher)
         throws NoNodeException {
         return getNode(path).getChildren(watcher);
+    }
+
+    @Override
+    public boolean exists(String path, Watcher watcher) {
+        try {
+            return getNode(path).exists(watcher);
+        } catch (NoNodeException nne) {
+            return false;
+        }
     }
 
     @Override
