@@ -85,6 +85,11 @@ public class ZkPathManager {
         return buildHealthMonitorLeaderDirPath().toString();
     }
 
+    public String getHealthMonitorNodeFullPath(String node) {
+        return buildHealthMonitorLeaderDirPath()
+                .append("/").append(node).toString();
+    }
+
     /**
      * Get tunnel (GRE/CAPWAP) path.
      *
