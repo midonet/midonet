@@ -22,11 +22,17 @@ import org.midonet.midolman._
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer4.NatLeaseManager
 import org.midonet.midolman.services.MessageAccumulator
+import org.midonet.midolman.state.PoolMemberStatus
 import org.midonet.midolman.topology.{FlowTagger, VirtualTopologyActor}
 import org.midonet.odp.flows.{FlowActionSetKey, FlowKeyIPv4}
 import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.sdn.flows.WildcardMatch
+
+object DisableAction extends Enumeration {
+    type DisableAction = Value
+    val SetDisabled, SetHealthDown = Value
+}
 
 @RunWith(classOf[JUnitRunner])
 class PoolTest extends FeatureSpec
@@ -318,6 +324,172 @@ with OneInstancePerTest {
         }
     }
 
+    feature("Backend is disabled, sticky vs non-sticky behavior differs") {
+
+        scenario("With sticky source IP, multiple backends") {
+            Given("VIP has sticky source IP enabled")
+
+            vipEnableStickySourceIP(vip)
+
+            And("Multiple backends are enabled")
+
+            enableAllBackends
+
+            When("Several packets are sent to the VIP from same source IP," +
+                " different source port, and chosen backend is disabled" +
+                " halfway through")
+
+            val destIpSets = sendInTwoHalvesSticky(DisableAction.SetDisabled)
+
+            Then("All packets from first half should go to same backend," +
+                " and all packets from second half to a different backend")
+
+            assertDestIpSetSizes(destIpSets, 1, 1, 2)
+        }
+
+        scenario("With sticky source IP, one backend") {
+            Given("VIP has sticky source IP enabled")
+
+            vipEnableStickySourceIP(vip)
+
+            And("One backend is enabled")
+
+            When("Several packets are sent to the VIP from same source IP," +
+                " different source port, and chosen backend is disabled " +
+                " halfway through")
+
+            val destIpSets = sendInTwoHalvesSticky(DisableAction.SetDisabled)
+
+            Then("All packets from first half should go to same backend," +
+                " and all packets from second half should be dropped")
+
+            assertDestIpSetSizes(destIpSets, 1, 0, 1)
+        }
+
+
+        scenario("Without sticky source IP, multiple backends") {
+            Given("VIP has sticky source IP disabled")
+
+            vipDisableStickySourceIP(vip)
+
+            And("Multiple backends are enabled")
+
+            enableAllBackends
+
+            When("Several packets are sent to the VIP from same source IP," +
+                " same source port, and chosen backend is disabled halfway through")
+
+            val destIpSets = sendInTwoHalvesNonSticky(DisableAction.SetDisabled)
+
+            Then("All packets from first half and second half" +
+                " should go to same backend, allow connection to complete")
+
+            assertDestIpSetSizes(destIpSets, 1, 1, 1)
+        }
+
+        scenario("Without sticky source IP, one backend") {
+            Given("VIP has sticky source IP disabled")
+
+            vipDisableStickySourceIP(vip)
+
+            And("One backend is enabled")
+
+            When("Several packets are sent to the VIP from same source IP," +
+                " same source port, and backend is disabled halfway through")
+
+            val destIpSets = sendInTwoHalvesNonSticky(DisableAction.SetDisabled)
+
+            Then("All packets from first half and second half," +
+                " should go to same backend, allow connection to complete")
+
+            assertDestIpSetSizes(destIpSets, 1, 1, 1)
+        }
+    }
+
+    feature("When a backend is marked down by health monitor, we stop traffic to it ") {
+
+        scenario("Without sticky source IP, multiple backends") {
+            Given("VIP has sticky source IP disabled")
+
+            vipDisableStickySourceIP(vip)
+
+            And("Multiple backends are enabled")
+
+            enableAllBackends
+
+            When("Several packets are sent to the VIP from same source IP," +
+                " same source port, and chosen backend goes down " +
+                " (health status DOWN) halfway through")
+
+            val destIpSets = sendInTwoHalvesNonSticky(DisableAction.SetHealthDown)
+
+            Then("All packets from first half should go to same backend," +
+                " and all packets from second half to a different backend")
+
+            assertDestIpSetSizes(destIpSets, 1, 1, 2)
+        }
+
+        scenario("Without sticky source IP, one backend") {
+            Given("VIP has sticky source IP disabled")
+
+            vipDisableStickySourceIP(vip)
+
+            And("One backend is enabled")
+
+            When("Several packets are sent to the VIP from same source IP," +
+                " same source port, and backend goes down " +
+                " (health status DOWN) halfway through")
+
+            val destIpSets = sendInTwoHalvesNonSticky(DisableAction.SetHealthDown)
+
+            Then("All packets from first half should go to same backend," +
+                " and all packets from second half should be dropped")
+
+            assertDestIpSetSizes(destIpSets, 1, 0, 1)
+        }
+
+        scenario("With sticky source IP, multiple backends") {
+            Given("VIP has sticky source IP enabled")
+
+            vipEnableStickySourceIP(vip)
+
+            And("Multiple backends are enabled")
+
+            enableAllBackends
+
+            When("Several packets are sent to the VIP from same source IP," +
+                " different source port, and chosen backend goes down " +
+                " (health status DOWN) halfway through")
+
+            val destIpSets = sendInTwoHalvesSticky(DisableAction.SetHealthDown)
+
+            Then("All packets from first half should go to same backend," +
+                 " and all packets from second half to a different backend")
+
+            assertDestIpSetSizes(destIpSets, 1, 1, 2)
+        }
+
+        scenario("With sticky source IP, one backend") {
+            Given("VIP has sticky source IP enabled")
+
+            vipEnableStickySourceIP(vip)
+
+            And("One backend is enabled")
+
+            When("Several packets are sent to the VIP from same source IP," +
+                " different source port, and chosen backend goes down " +
+                " (health status DOWN) halfway through")
+
+            val destIpSets = sendInTwoHalvesSticky(DisableAction.SetHealthDown)
+
+            Then("All packets from first half should go to same backend," +
+                " and all packets from second half should be dropped")
+
+            assertDestIpSetSizes(destIpSets, 1, 0, 1)
+        }
+
+    }
+
     feature("Weighted selection of pool members") {
         scenario("Pool with all members having weight 0 should be inactive") {
             Given("a pool with all members up and having weight 0")
@@ -373,21 +545,15 @@ with OneInstancePerTest {
 
             And("Multiple backends are enabled")
 
-            // Set all pool members up
-            (0 until numBackends) foreach {
-                n => setPoolMemberAdminStateUp(poolMembers(n), true)
-            }
+            enableAllBackends
 
             When("several packets are sent to the VIP from same source IP, different source port")
 
-            val simResults: Seq[SimulationResult] = (1 to timesRun) map {
-                n => sendPacket (fromClientToVipOffset(n.toShort))
-            }
-            val destIps = simResults flatMap getDestIpsFromResult
+            val destIpSet = sendPacketsAndGetDestIpSet(1, timesRun)
 
             Then("packets should NOT all go to same backend")
 
-            destIps.toSet.size should be > 1
+            destIpSet.size should be > 1
         }
 
         scenario("With sticky source IP") {
@@ -404,14 +570,11 @@ with OneInstancePerTest {
 
             When("several packets are sent to the VIP from same source IP, different source port")
 
-            val simResults: Seq[SimulationResult] = (1 to timesRun) map {
-                n => sendPacket (fromClientToVipOffset(n.toShort))
-            }
-            val destIps = simResults flatMap getDestIpsFromResult
+            val destIpSet = sendPacketsAndGetDestIpSet(1, timesRun)
 
             Then("packets should all go to same backend")
 
-            destIps.toSet.size shouldBe 1
+            destIpSet.size shouldBe 1
         }
     }
 
@@ -466,6 +629,8 @@ with OneInstancePerTest {
         }
 
     }
+
+    // Helper functions
 
     private[this] def assertCacheValueExpirations(expirationLength: Int)
     {
@@ -535,6 +700,98 @@ with OneInstancePerTest {
                 }
             case _ => Nil
         }
+    }
+
+    private[this] def enableAllBackends =
+        (0 until numBackends) foreach {
+            n => setPoolMemberAdminStateUp(poolMembers(n), true)
+        }
+
+    private[this] def assertDestIpSetSizes(sets: (Set[Int],Set[Int]),
+                                           sizeFirstSet: Int,
+                                           sizeSecondSet: Int,
+                                           sizeSetUnion: Int) = {
+        sets._1.size shouldBe sizeFirstSet
+        sets._2.size shouldBe sizeSecondSet
+        sets._1.union(sets._2).size shouldBe sizeSetUnion
+    }
+
+    private[this] def sendPacketsAndGetDestIpSet(beginOffset: Int,
+                                                 endOffset: Int)
+    : Set[Int] = {
+        val simResults: Seq[SimulationResult] = (beginOffset to endOffset) map {
+            n => sendPacket (fromClientToVipOffset(n.toShort))
+        }
+        val destIps = simResults flatMap getDestIpsFromResult
+        destIps.toSet
+    }
+
+    private[this] def sendPacketsAndGetDestIpSet(numPackets: Int)
+    : Set[Int] = {
+        val simResults: Seq[SimulationResult] = (1 to numPackets) map {
+            n => sendPacket (fromClientToVip)
+        }
+        val destIps = simResults flatMap getDestIpsFromResult
+        destIps.toSet
+    }
+
+    private[this] def sendInTwoHalvesNonSticky(
+                        actionBetweenHalves: DisableAction.DisableAction)
+    :(Set[Int], Set[Int])= {
+
+        val halfRun = timesRun / 2
+        val destIpSetFirstHalf = sendPacketsAndGetDestIpSet(halfRun)
+        destIpSetFirstHalf.size shouldBe 1
+
+        doPoolMemberAction(destIpSetFirstHalf, actionBetweenHalves)
+
+        val destIpSetSecondHalf = sendPacketsAndGetDestIpSet(halfRun)
+
+        (destIpSetFirstHalf, destIpSetSecondHalf)
+    }
+
+    private[this] def sendInTwoHalvesSticky(
+                        actionBetweenHalves: DisableAction.DisableAction)
+    :(Set[Int], Set[Int])= {
+
+        val endFirstHalf = timesRun / 2
+        val startSecondHalf = endFirstHalf + 1
+        val destIpSetFirstHalf =
+            sendPacketsAndGetDestIpSet(1, endFirstHalf)
+
+        doPoolMemberAction(destIpSetFirstHalf, actionBetweenHalves)
+
+        val destIpSetSecondHalf =
+            sendPacketsAndGetDestIpSet(startSecondHalf, timesRun)
+
+        (destIpSetFirstHalf, destIpSetSecondHalf)
+    }
+
+    private[this] def doPoolMemberAction(destIpSet: Set[Int],
+                             actionBetweenHalves: DisableAction.DisableAction) {
+        destIpSet.size shouldBe 1
+        val destIp = destIpSet.toSeq(0)
+        actionBetweenHalves match {
+            case DisableAction.SetDisabled =>
+                setPoolMemberDisabledByIp(destIp)
+            case DisableAction.SetHealthDown =>
+                setPoolMemberHealthDownByIp(destIp)
+        }
+    }
+
+    private[this] def getPoolMemberFromIp(ip: Int): l4lb.PoolMember = {
+        val ipStr: String = IPv4Addr.intToString(ip)
+        poolMembers.find(p => p.getAddress == ipStr).get
+    }
+
+    private[this] def setPoolMemberDisabledByIp(ip: Int) {
+        val pm = getPoolMemberFromIp(ip)
+        setPoolMemberAdminStateUp(pm, false)
+    }
+
+    private[this] def setPoolMemberHealthDownByIp(ip: Int) {
+        val pm = getPoolMemberFromIp(ip)
+        setPoolMemberHealth(pm, PoolMemberStatus.DOWN)
     }
 
 }
