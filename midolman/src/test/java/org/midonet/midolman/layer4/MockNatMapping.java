@@ -84,6 +84,20 @@ public class MockNatMapping implements NatMapping {
     }
 
     @Override
+    public void deleteDnatEntry(byte protocol,
+                         IPAddr nwSrc, int tpSrc,
+                         IPAddr oldNwDst, int oldTpDst,
+                         IPAddr newNwDst, int newTpDst) {
+        PacketSignature fwdSig = new PacketSignature(
+                protocol, nwSrc, tpSrc, oldNwDst, oldTpDst);
+        PacketSignature revSig = new PacketSignature(
+                protocol, nwSrc, tpSrc, newNwDst, newTpDst);
+        dnatFwdMap.remove(fwdSig);
+        dnatRevMap.remove(revSig);
+
+    }
+
+    @Override
     public NwTpPair allocateSnat(byte protocol, IPAddr oldNwSrc, int oldTpSrc,
                                  IPAddr nwDst, int tpDst, Set<NatTarget> nats) {
         // In this mock, just use the first nat target.
