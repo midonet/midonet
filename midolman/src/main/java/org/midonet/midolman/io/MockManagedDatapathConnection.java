@@ -3,8 +3,8 @@
  */
 package org.midonet.midolman.io;
 
+import org.midonet.netlink.Callback;
 import org.midonet.odp.protos.OvsDatapathConnection;
-import org.midonet.util.eventloop.Reactor;
 
 public class MockManagedDatapathConnection implements ManagedDatapathConnection {
     private OvsDatapathConnection conn = null;
@@ -22,7 +22,15 @@ public class MockManagedDatapathConnection implements ManagedDatapathConnection 
         return conn;
     }
 
-    public void start() throws Exception {
+
+    @Override
+    public void start(Callback<Boolean> cb) {
+        start();
+        cb.onSuccess(true);
+    }
+
+    @Override
+    public void start() {
         this.conn = OvsDatapathConnection.createMock();
     }
 

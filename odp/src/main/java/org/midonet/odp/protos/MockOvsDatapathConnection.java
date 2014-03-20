@@ -55,7 +55,7 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
 
     AtomicInteger datapathIds = new AtomicInteger(1);
 
-    public MockOvsDatapathConnection(NetlinkChannel channel) throws Exception {
+    public MockOvsDatapathConnection(NetlinkChannel channel) {
         super(channel, new BufferPool(128, 512, 0x1000));
     }
 

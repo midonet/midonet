@@ -78,4 +78,7 @@ public interface MidolmanConfig
 
     @ConfigInt(key = "output_channels", defaultValue = 1)
     public int getNumOutputChannels();
+
+    @ConfigString(key = "input_channel_threading", defaultValue = "one_to_many")
+    public String getInputChannelThreading();
 }

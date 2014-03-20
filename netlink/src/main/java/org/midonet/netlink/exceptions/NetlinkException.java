@@ -58,6 +58,7 @@ public class NetlinkException extends Exception {
     int errorCode;
 
     public static final int ERROR_SENDING_REQUEST = -1;
+    public static final int GENERIC_IO_ERROR = -2;
 
     public NetlinkException(ErrorCode error) {
         super(format(error.ordinal(), error.getMessage()));
