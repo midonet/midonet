@@ -24,6 +24,7 @@ import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.topology.TraceConditionsManager
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.rcu.TraceConditions
+import org.midonet.util.StatisticalCounter
 
 object PacketsEntryPoint extends Referenceable {
     override val Name = "PacketsEntryPoint"
@@ -79,6 +80,9 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
     protected var workers = immutable.IndexedSeq[ActorRef]()
     private var rrIndex = 0
 
+    @Inject
+    var counter: StatisticalCounter = null
+
     override def preStart() {
         super.preStart()
         NUM_WORKERS = config.getSimulationThreads
@@ -97,8 +101,8 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
         val props = Props(classOf[DeduplicationActor],
                             cookieGen, dpConnPool, clusterDataClient,
                             connectionCache, traceMessageCache, traceIndexCache,
-                            metrics).
-            withDispatcher("actors.pinned-dispatcher")
+                            metrics, () => counter.incAndGet(index))
+                    .withDispatcher("actors.pinned-dispatcher")
 
         context.actorOf(props, s"PacketProcessor-$index")
     }

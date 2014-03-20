@@ -9,6 +9,7 @@ import java.nio.channels.SelectionKey;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.midonet.util.TokenBucket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,7 +70,8 @@ public class SelectorThreadPair {
         return writeLoop;
     }
 
-    public ManagedDatapathConnection addConnection() throws Exception {
+    public ManagedDatapathConnection addConnection(final TokenBucket tb)
+            throws Exception {
 
         BufferPool sendPool = new BufferPool(
                                   config.getSendBufferPoolInitialSize(),
@@ -89,7 +91,7 @@ public class SelectorThreadPair {
                     @Override
                     public void handleEvent(SelectionKey key)
                             throws IOException {
-                        conn.handleReadEvent(key);
+                        conn.handleReadEvent(tb);
                     }
                 });
 

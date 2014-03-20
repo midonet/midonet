@@ -20,6 +20,7 @@ import org.apache.zookeeper.CreateMode;
 import org.hamcrest.beans.HasPropertyWithValue;
 import org.junit.Before;
 import org.junit.Test;
+import org.midonet.midolman.guice.ResourceProtectionModule;
 import org.midonet.midolman.guice.serialization.SerializationModule;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.version.DataWriteVersion;
@@ -95,6 +96,7 @@ public class DefaultInterfaceDataUpdaterTest {
             new TestableMidolmanActorsModule(
                 JavaConversions.asScalaMap(new HashMap<String, TestKit>()),
                 JavaConversions.asScalaMap(new HashMap<String, TestActorRef<Actor>>())),
+            new ResourceProtectionModule(),
             new MidolmanModule(),
             new InterfaceScannerModule());
 

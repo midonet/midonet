@@ -17,6 +17,7 @@ import javax.annotation.Nonnull;
 import com.google.common.base.Function;
 import com.google.common.util.concurrent.ValueFuture;
 import com.sun.jna.Native;
+import org.midonet.util.TokenBucket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -245,8 +246,8 @@ public abstract class AbstractNetlinkConnection {
         }
 
         try {
-            while (! ongoingTransaction.isEmpty()) {
-                if (processReadFromChannel() <= 0)
+            while (!ongoingTransaction.isEmpty()) {
+                if (processReadFromChannel(null) <= 0)
                     break;
             }
         } catch (IOException e) {
@@ -301,10 +302,10 @@ public abstract class AbstractNetlinkConnection {
         return bytes;
     }
 
-    public void handleReadEvent(final SelectionKey key) throws IOException {
+    public void handleReadEvent(final TokenBucket tb) throws IOException {
         try {
             for (int i = 0; i < maxBatchIoOps; i++) {
-                final int ret = processReadFromChannel();
+                final int ret = processReadFromChannel(tb);
                 if (ret <= 0) {
                     if (ret < 0) {
                         log.info("NETLINK read() error: {}",
@@ -324,7 +325,8 @@ public abstract class AbstractNetlinkConnection {
 
     protected void endBatch() {}
 
-    private synchronized int processReadFromChannel() throws IOException {
+    private synchronized int processReadFromChannel(final TokenBucket tb)
+            throws IOException {
         reply.clear();
         reply.order(ByteOrder.LITTLE_ENDIAN);
 
@@ -428,7 +430,7 @@ public abstract class AbstractNetlinkConnection {
                             dispatcher.submit(request.successful(request.inBuffers));
                         }
 
-                        if (seq == 0)
+                        if (seq == 0 && (tb == null || tb.tryGet(1) == 1))
                             handleNotification(type, cmd, seq, pid, buffers);
                     }
             }
