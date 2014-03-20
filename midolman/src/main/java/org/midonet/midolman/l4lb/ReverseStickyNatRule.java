@@ -20,7 +20,7 @@ public class ReverseStickyNatRule extends ReverseNatRule {
     private final static Logger log = LoggerFactory
             .getLogger(ReverseStickyNatRule.class);
 
-    protected final static int WILDCARD_PORT = 0;
+    public final static int WILDCARD_PORT = 0;
 
     public ReverseStickyNatRule(Condition condition,
                                 RuleResult.Action action,

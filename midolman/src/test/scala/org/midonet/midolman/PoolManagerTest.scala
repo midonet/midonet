@@ -50,8 +50,8 @@ with VirtualConfigurationBuilders {
             Then("it should return the requested pool, including the PoolMembers")
             val p2 = expectMsgType[Pool]
             p2.id shouldEqual pool.getId
-            p2.poolMembers.size shouldBe 2
-            p2.poolMembers.map(v => v.id).toSet shouldEqual poolMemberIds
+            p2.activePoolMembers.size shouldBe 2
+            p2.activePoolMembers.map(v => v.id).toSet shouldEqual poolMemberIds
 
             And("the VTA should receive a flow invalidation")
             vta.getAndClear().contains(flowInvalidationMsg(p2.id)) shouldBe true
@@ -69,7 +69,7 @@ with VirtualConfigurationBuilders {
             And("it returns the first version of the pool")
             val p2 = expectMsgType[Pool]
             p2.id shouldEqual pool.getId
-            p2.poolMembers.size shouldBe 1
+            p2.activePoolMembers.size shouldBe 1
             vta.getAndClear()
 
             And("a new PoolMember is added")
@@ -78,8 +78,8 @@ with VirtualConfigurationBuilders {
             Then("the VTA should send an update")
             val p3 = expectMsgType[Pool]
             p3.id shouldEqual pool.getId
-            p3.poolMembers.size shouldBe 2
-            p3.poolMembers.map(v => v.id).toSet shouldEqual Set(firstPoolMember.getId, secondPoolMember.getId)
+            p3.activePoolMembers.size shouldBe 2
+            p3.activePoolMembers.map(v => v.id).toSet shouldEqual Set(firstPoolMember.getId, secondPoolMember.getId)
 
             And("the VTA should receive a flow invalidation")
             vta.getAndClear().contains(flowInvalidationMsg(p2.id)) shouldBe true
@@ -97,7 +97,7 @@ with VirtualConfigurationBuilders {
             And("it returns the first version of the pool")
             val p1 = expectMsgType[Pool]
             p1.id shouldEqual pool.getId
-            p1.poolMembers.size shouldBe 1
+            p1.activePoolMembers.size shouldBe 1
             vta.getAndClear()
 
             And("the existing PoolMember is removed")
@@ -106,7 +106,7 @@ with VirtualConfigurationBuilders {
             Then("the VTA should send an update")
             val p2 = expectMsgType[Pool]
             p2.id shouldEqual pool.getId
-            p2.poolMembers.size shouldBe 0
+            p2.activePoolMembers.size shouldBe 0
 
             And("the VTA should receive a flow invalidation")
             vta.getAndClear().contains(flowInvalidationMsg(p2.id)) shouldBe true
@@ -125,8 +125,8 @@ with VirtualConfigurationBuilders {
             And("it returns the first version of the pool")
             val p1 = expectMsgType[Pool]
             p1.id shouldEqual pool.getId
-            p1.poolMembers.size shouldBe 1
-            val pm1 = p1.poolMembers.toSeq(0)
+            p1.activePoolMembers.size shouldBe 1
+            val pm1 = p1.activePoolMembers.toSeq(0)
             vta.getAndClear()
 
             And("the PoolMember is changed, set to adminState down")
@@ -135,7 +135,7 @@ with VirtualConfigurationBuilders {
             Then("the VTA should send an update")
             val p2 = expectMsgType[Pool]
             p2.id shouldEqual pool.getId
-            p2.poolMembers.size shouldBe 0
+            p2.activePoolMembers.size shouldBe 0
 
             And("the VTA should receive a flow invalidation")
             vta.getAndClear().contains(flowInvalidationMsg(p2.id)) shouldBe true
