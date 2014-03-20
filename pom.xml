@@ -9,7 +9,7 @@
     <groupId>org.midonet</groupId>
     <artifactId>midonet</artifactId>
     <packaging>pom</packaging>
-    <version>1.2.2-rc2</version>
+    <version>1.2.2-rc3</version>
     <name>Midonet aggregator project</name>
 
     <modules>
@@ -21,7 +21,7 @@
         <module>midolman</module>
         <module>midonet-client</module>
         <module>midonet-api</module>
-        <module>midonet-functional-tests</module>
+        <!--<module>midonet-functional-tests</module>-->
     </modules>
 
     <scm>
