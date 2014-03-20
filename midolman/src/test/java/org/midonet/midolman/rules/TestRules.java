@@ -58,28 +58,27 @@ public class TestRules {
     static NatMapping natMapping;
     RuleResult expRes, argRes;
     ForwardInfo fwdInfo;
-    private static Injector injector;
 
     @BeforeClass
     public static void setupOnce() {
         pktMatch = new WildcardMatch();
         pktMatch.setInputPortNumber((short) 5);
-        pktMatch.setDataLayerSource("02:11:33:00:11:01");
-        pktMatch.setDataLayerDestination("02:11:aa:ee:22:05");
+        pktMatch.setEthernetSource("02:11:33:00:11:01");
+        pktMatch.setEthernetDestination("02:11:aa:ee:22:05");
         pktMatch.setNetworkSource(IPv4Addr.fromInt(0x0a001406));
         pktMatch.setNetworkDestination(IPv4Addr.fromInt(0x0a000b22));
         pktMatch.setNetworkProtocol((byte) 6); // TCP
-        pktMatch.setNetworkTypeOfService((byte) 34);
+        pktMatch.setNetworkTOS((byte) 34);
         pktMatch.setTransportSource(4321);
         pktMatch.setTransportDestination(1234);
         pktResponseMatch = new WildcardMatch();
         pktResponseMatch.setInputPortNumber((short) 5);
-        pktResponseMatch.setDataLayerDestination("02:11:33:00:11:01");
-        pktResponseMatch.setDataLayerSource("02:11:aa:ee:22:05");
+        pktResponseMatch.setEthernetDestination("02:11:33:00:11:01");
+        pktResponseMatch.setEthernetSource("02:11:aa:ee:22:05");
         pktResponseMatch.setNetworkDestination(IPv4Addr.fromInt(0x0a001406));
         pktResponseMatch.setNetworkSource(IPv4Addr.fromInt(0x0a000b22));
         pktResponseMatch.setNetworkProtocol((byte) 6); // TCP
-        pktResponseMatch.setNetworkTypeOfService((byte) 34);
+        pktResponseMatch.setNetworkTOS((byte) 34);
         pktResponseMatch.setTransportDestination(4321);
         pktResponseMatch.setTransportSource(1234);
         rand = new Random();
@@ -89,23 +88,23 @@ public class TestRules {
         jumpChainName = "AJumpChainName";
         // Build a condition that matches the packet.
         cond = new Condition();
-        cond.inPortIds = new HashSet<UUID>();
+        cond.inPortIds = new HashSet<>();
         cond.inPortIds.add(inPort);
         cond.nwSrcIp = new IPv4Subnet(IPv4Addr.fromString("10.0.20.0"), 24);
         cond.nwProto = 15;
         cond.nwProtoInv = true;
-        cond.tpSrc = new Range<Integer>(2000, 3000);
+        cond.tpSrc = new Range<>(2000, 3000);
         cond.tpSrcInv = true;
-        cond.tpDst = new Range<Integer>(1000, 2000);
+        cond.tpDst = new Range<>(1000, 2000);
 
-        nats = new HashSet<NatTarget>();
+        nats = new HashSet<>();
         nats.add(new NatTarget(0x0a090807, 0x0a090810, 21333,
                 32999));
 
-        injector = Guice.createInjector(
-                new TestModule("/midonet"),
-                new VersionModule(),
-                new SerializationModule()
+        Injector injector = Guice.createInjector(
+            new TestModule("/midonet"),
+            new VersionModule(),
+            new SerializationModule()
         );
 
         natMapping = injector.getInstance(NatLeaseManager.class);
@@ -300,10 +299,11 @@ public class TestRules {
         Assert.assertEquals(expRes, argRes);
         // Now use the new ip/port in the return packet.
         argRes.pmatch = pktResponseMatch.clone();
-        Assert.assertFalse(pktResponseMatch.getNetworkDestinationIP().equals(
-                newNwSrc));
+        Assert.assertNotSame(pktResponseMatch.getNetworkDestinationIP(),
+                             newNwSrc);
         argRes.pmatch.setNetworkDestination(newNwSrc);
-        Assert.assertFalse(pktResponseMatch.getTransportDestination() == newTpSrc);
+        Assert.assertNotSame(pktResponseMatch.getTransportDestination(),
+                             newTpSrc);
         argRes.pmatch.setTransportDestination(newTpSrc);
         argRes.action = null;
         revRule.process(fwdInfo, argRes, natMapping, false);
@@ -314,9 +314,8 @@ public class TestRules {
 
     @Test
     public void testDnatAndReverseRule() {
-        Set<NatTarget> nats = new HashSet<NatTarget>();
-        nats.add(new NatTarget(0x0c000102, 0x0c00010a, (int) 1030,
-                (int) 1050));
+        Set<NatTarget> nats = new HashSet<>();
+        nats.add(new NatTarget(0x0c000102, 0x0c00010a, 1030, 1050));
         Rule rule = new ForwardNatRule(cond, Action.CONTINUE, null, 0, true,
                 nats);
         // If the condition doesn't match the result is not modified.
@@ -353,7 +352,7 @@ public class TestRules {
         Assert.assertFalse(IPv4Addr.fromInt(newNwDst).equals(
                            pktResponseMatch.getNetworkSourceIP()));
         argRes.pmatch.setNetworkSource(IPv4Addr.fromInt(newNwDst));
-        Assert.assertFalse(pktResponseMatch.getTransportSource() == newTpDst);
+        Assert.assertNotSame(pktResponseMatch.getTransportSource(), newTpDst);
         argRes.pmatch.setTransportSource(newTpDst);
         argRes.action = null;
         fwdInfo.inPortId = null;

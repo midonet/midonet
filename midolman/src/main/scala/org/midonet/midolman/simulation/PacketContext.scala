@@ -176,10 +176,10 @@ class PacketContext(override val flowCookie: Option[Int],
 
         // Packets which aren't TCP-or-UDP over IPv4 aren't connection
         // tracked, and always treated as forward flows.
-        if (wcmatch.getDataLayerType() != IPv4.ETHERTYPE ||
-                (wcmatch.getNetworkProtocol() != TCP.PROTOCOL_NUMBER &&
-                 wcmatch.getNetworkProtocol() != UDP.PROTOCOL_NUMBER &&
-                 wcmatch.getNetworkProtocol() != ICMP.PROTOCOL_NUMBER))
+        if (!IPv4.ETHERTYPE.equals(wcmatch.getEtherType) ||
+            (!TCP.PROTOCOL_NUMBER.equals(wcmatch.getNetworkProtocol) &&
+             !UDP.PROTOCOL_NUMBER.equals(wcmatch.getNetworkProtocol) &&
+             !ICMP.PROTOCOL_NUMBER.equals(wcmatch.getNetworkProtocol)))
             return true
 
         // Generated packets have ingressFE == null. We will treat all generated
@@ -205,11 +205,12 @@ class PacketContext(override val flowCookie: Option[Int],
                                 icmpIdOrTransportSrc(origMatch),
                                 origMatch.getNetworkDestinationIP,
                                 icmpIdOrTransportDst(origMatch),
-                                origMatch.getNetworkProtocol, ingressFE)
+                                origMatch.getNetworkProtocol.toShort,
+                                ingressFE)
         // TODO(jlm): Finish org.midonet.cassandra.AsyncCassandraCache
         //            and use it instead.
         val value = connectionCache.get(key)
-        forwardFlow = (value != "r")
+        forwardFlow = value != "r"
         log.debug("isForwardFlow conntrack lookup - key:{},value:{}", key, value)
         forwardFlow
     }
@@ -219,19 +220,20 @@ class PacketContext(override val flowCookie: Option[Int],
                                 icmpIdOrTransportDst(wcmatch),
                                 wcmatch.getNetworkSourceIP,
                                 icmpIdOrTransportSrc(wcmatch),
-                                wcmatch.getNetworkProtocol, deviceId)
+                                wcmatch.getNetworkProtocol.toShort,
+                                deviceId)
         log.debug("Installing conntrack entry: key:{}", key)
         connectionCache.set(key, "r")
     }
 
-    private def icmpIdOrTransportSrc(wm: WildcardMatch) =
-        if (wm.getNetworkProtocol == ICMP.PROTOCOL_NUMBER && wm.getIcmpIdentifier != null)
-            wm.getIcmpIdentifier.toInt
-        else
-            wm.getTransportSource
+    private def icmpIdOrTransportSrc(wm: WildcardMatch): Int =
+    if (ICMP.PROTOCOL_NUMBER.equals(wm.getNetworkProtocol))
+        wm.getIcmpIdentifier.toInt
+    else
+        wm.getTransportSource
 
-    private def icmpIdOrTransportDst(wm: WildcardMatch) =
-        if (wm.getNetworkProtocol == ICMP.PROTOCOL_NUMBER && wm.getIcmpIdentifier != null)
+    private def icmpIdOrTransportDst(wm: WildcardMatch): Int =
+        if (ICMP.PROTOCOL_NUMBER.equals(wm.getNetworkProtocol))
             wm.getIcmpIdentifier.toInt
         else
             wm.getTransportDestination

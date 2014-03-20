@@ -25,10 +25,10 @@ public class ProjectedWildcardMatch extends WildcardMatch {
                     break;
                 case TransportDestination:
                     setTransportDestination(
-                        source.getTransportDestinationObject());
+                        source.getTransportDestination());
                     break;
                 case TransportSource:
-                    setTransportSource(source.getTransportSourceObject());
+                    setTransportSource(source.getTransportSource());
                     break;
                 case NetworkDestination:
                     setNetworkDestination(source.getNetworkDestinationIP());
@@ -37,7 +37,7 @@ public class ProjectedWildcardMatch extends WildcardMatch {
                     setNetworkSource(source.getNetworkSourceIP());
                     break;
                 case NetworkProtocol:
-                    setNetworkProtocol(source.getNetworkProtocolObject());
+                    setNetworkProtocol(source.getNetworkProtocol());
                     break;
                 case NetworkTTL:
                     setNetworkTTL(source.getNetworkTTL());

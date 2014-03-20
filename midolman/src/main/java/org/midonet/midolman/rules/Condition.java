@@ -136,16 +136,16 @@ public class Condition extends BaseConfig {
         if (!matchField(nwTos, pktMatch.getNetworkTOS(), nwTosInv))
             return conjunctionInv;
         if (!matchField(
-                nwProto, pktMatch.getNetworkProtocolObject(), nwProtoInv))
+                nwProto, pktMatch.getNetworkProtocol(), nwProtoInv))
             return conjunctionInv;
         if (!matchIP(nwSrcIp, pmSrcIP, nwSrcInv))
             return conjunctionInv;
         if (!matchIP(nwDstIp, pmDstIP, nwDstInv))
             return conjunctionInv;
-        if (!matchRange(tpSrc, pktMatch.getTransportSourceObject(), tpSrcInv))
+        if (!matchRange(tpSrc, pktMatch.getTransportSource(), tpSrcInv))
             return conjunctionInv;
         if (!matchRange(
-                tpDst, pktMatch.getTransportDestinationObject(), tpDstInv))
+                tpDst, pktMatch.getTransportDestination(), tpDstInv))
             return conjunctionInv;
         if (!matchIpToGroup(ipAddrGroupSrc, pmSrcIP, invIpAddrGroupIdSrc))
             return conjunctionInv;

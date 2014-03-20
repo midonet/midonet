@@ -11,7 +11,6 @@ import org.midonet.midolman.layer4.NatMapping;
 import org.midonet.midolman.layer4.NwTpPair;
 import org.midonet.midolman.rules.RuleResult.Action;
 import org.midonet.packets.ICMP;
-import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPv4;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MalformedPacketException;
@@ -37,7 +36,7 @@ public class ReverseNatRule extends NatRule {
     }
 
     public ReverseNatRule(Condition condition, Action action, UUID chainId,
-            int position, boolean dnat) {
+                          int position, boolean dnat) {
         super(condition, action, chainId, position, dnat);
     }
 
@@ -71,6 +70,7 @@ public class ReverseNatRule extends NatRule {
      * @param match
      * @param isSnat
      */
+    @SuppressWarnings("ConstantConditions")
     private void applyReverseNatToICMPData(NwTpPair origConn,
                                            WildcardMatch match, boolean isSnat)
         throws MalformedPacketException {
@@ -138,6 +138,7 @@ public class ReverseNatRule extends NatRule {
         match.setIcmpData(natBB.array());
     }
 
+    @SuppressWarnings("ConstantConditions")
     protected void applyReverseDnat(RuleResult res, NatMapping natMapping)
         throws MalformedPacketException {
 
@@ -154,7 +155,7 @@ public class ReverseNatRule extends NatRule {
                 + "{}:{}, protocol {}", new Object[] {
                 origConn.nwAddr, origConn.tpPort & USHORT,
                 tp.nwSrc, tp.tpSrc, tp.nwDst, tp.tpDst, tp.proto});
-        if (match.getNetworkProtocol() == ICMP.PROTOCOL_NUMBER) {
+        if (match.getNetworkProtocol().equals(ICMP.PROTOCOL_NUMBER)) {
             applyReverseNatToICMPData(origConn, match, false);
         } else {
             match.setNetworkSource(origConn.nwAddr);
@@ -163,6 +164,7 @@ public class ReverseNatRule extends NatRule {
         res.action = action;
     }
 
+    @SuppressWarnings("ConstantConditions")
     private void applyReverseSnat(RuleResult res, NatMapping natMapping)
         throws MalformedPacketException {
 
@@ -175,11 +177,12 @@ public class ReverseNatRule extends NatRule {
         if (null == origConn)
             return;
 
-        log.debug("Found reverse SNAT. Use DST {}:{} for flow from {}:{} to "
-                      + "{}:{}, protocol", new Object[]{
-            origConn.nwAddr, origConn.tpPort & USHORT,
-            tp.nwSrc, tp.tpSrc, tp.nwDst, tp.tpDst, tp.proto});
-        if (match.getNetworkProtocol() == ICMP.PROTOCOL_NUMBER) {
+        log.debug("Found reverse SNAT. Use DST {}:{} for flow from {}:{} to " +
+                  "{}:{}, protocol",new Object[] { origConn.nwAddr,
+                  origConn.tpPort & USHORT, tp.nwSrc, tp.tpSrc, tp.nwDst,
+                  tp.tpDst, tp.proto});
+
+        if (match.getNetworkProtocol().equals(ICMP.PROTOCOL_NUMBER)) {
             applyReverseNatToICMPData(origConn, match, true);
         } else {
             match.setNetworkDestination(origConn.nwAddr);

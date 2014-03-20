@@ -221,12 +221,13 @@ abstract class RouterBase[IP <: IPAddr]()
 
             val action = rt.nextHop match {
                 case Route.NextHop.LOCAL if isIcmpEchoRequest(wcmatch) =>
-                    log.debug("got ICMP echo")
+                    log.debug("Got ICMP echo req, will reply")
                     sendIcmpEchoReply(wcmatch, frame, context.expiry) map {
                         _ => ConsumedAction
                     }
 
                 case Route.NextHop.LOCAL =>
+                    log.debug("Dropping non icmp_req addressed to local port")
                     Ready(TemporaryDropAction)
 
                 case Route.NextHop.BLACKHOLE =>
