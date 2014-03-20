@@ -4,6 +4,7 @@
 package org.midonet.midolman
 
 import java.util.UUID
+import java.util.concurrent.TimeoutException
 import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.compat.Platform
@@ -39,7 +40,6 @@ import org.midonet.odp.flows.FlowKeyEthernet
 import org.midonet.odp.flows.FlowKeyIPv4
 import org.midonet.packets._
 import org.midonet.sdn.flows.WildcardMatch
-import java.util.concurrent.TimeoutException
 
 
 @Category(Array(classOf[SimulationTests]))

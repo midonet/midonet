@@ -8,7 +8,6 @@ import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.sys.process._
 
-import akka.testkit.TestProbe
 import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -18,8 +17,7 @@ import org.midonet.cluster.data.dhcp.Opt121
 import org.midonet.cluster.data.dhcp.Subnet
 import org.midonet.cluster.data.ports.BridgePort
 import org.midonet.cluster.data.zones._
-import org.midonet.midolman.DeduplicationActor.{HandlePackets, EmitGeneratedPacket}
-import org.midonet.midolman.PacketWorkflow.PacketIn
+import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.guice.actors.OutgoingMessage
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.layer3.Route

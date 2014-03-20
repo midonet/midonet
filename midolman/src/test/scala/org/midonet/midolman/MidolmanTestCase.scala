@@ -42,7 +42,6 @@ import org.midonet.midolman.guice.actors.TestableMidolmanActorsModule
 import org.midonet.midolman.guice.cluster.ClusterClientModule
 import org.midonet.midolman.guice.config.MockConfigProviderModule
 import org.midonet.midolman.guice.datapath.MockDatapathModule
-import org.midonet.midolman.guice.reactor.MockReactorModule
 import org.midonet.midolman.guice.serialization.SerializationModule
 import org.midonet.midolman.guice.zookeeper.MockZookeeperConnectionModule
 import org.midonet.midolman.host.config.HostConfig
@@ -237,7 +236,6 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
                     })
                 }
             },
-            new MockReactorModule(),
             new MockMonitoringStoreModule(),
             new ClusterClientModule(),
             new TestableMidolmanActorsModule(probesByName, actorsByName),

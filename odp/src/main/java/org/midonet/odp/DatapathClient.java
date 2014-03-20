@@ -10,12 +10,12 @@ import java.io.IOException;
 import java.nio.channels.SelectionKey;
 import java.util.concurrent.TimeUnit;
 
-import org.midonet.util.eventloop.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.netlink.Netlink;
 import org.midonet.odp.protos.OvsDatapathConnection;
+import org.midonet.util.eventloop.*;
 
 public abstract class DatapathClient {
 

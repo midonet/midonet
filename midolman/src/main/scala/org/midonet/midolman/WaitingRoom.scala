@@ -3,7 +3,6 @@
  */
 package org.midonet.midolman
 
-
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import java.util.concurrent.TimeUnit

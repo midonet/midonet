@@ -6,12 +6,9 @@ package org.midonet.odp.protos;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.Future;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import static java.lang.String.format;
 
-import com.google.common.util.concurrent.ValueFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,12 +30,8 @@ import org.midonet.odp.family.PacketFamily;
 import org.midonet.odp.family.PortFamily;
 import org.midonet.odp.flows.FlowAction;
 import org.midonet.odp.flows.FlowKey;
-import org.midonet.odp.flows.FlowStats;
 import org.midonet.util.BatchCollector;
-import org.midonet.util.eventloop.Reactor;
-import org.midonet.util.functors.Callbacks;
-import org.midonet.util.functors.ComposingCallback;
-import org.midonet.util.functors.Functor;
+
 import static org.midonet.netlink.Netlink.Flag;
 import static org.midonet.odp.family.FlowFamily.AttrKey;
 
