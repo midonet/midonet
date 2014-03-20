@@ -3,13 +3,13 @@
  */
 package org.midonet.odp.flows;
 
+import java.nio.ByteOrder;
+
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.NetlinkMessage.AttrKey;
 import org.midonet.netlink.messages.Builder;
 import org.midonet.odp.OpenVSwitch;
 import org.midonet.packets.IPv4Addr;
-
-import java.nio.ByteOrder;
 
 public class FlowKeyTunnel implements FlowKey {
 
@@ -49,6 +49,9 @@ public class FlowKeyTunnel implements FlowKey {
     /* u16 */   private short tun_flags;
     /* u8 */    private byte ipv4_tos;
     /* u8 */    private byte ipv4_ttl;
+
+    private int hashCode = 0;
+
     // same size as the tun_flags
     public static final short OVS_TNL_F_DONT_FRAGMENT = 1 << 0;
     public static final short OVS_TNL_F_CSUM = 1 << 1;
@@ -172,6 +175,7 @@ public class FlowKeyTunnel implements FlowKey {
                 tun_flags = (short)(tun_flags | OVS_TNL_F_CSUM);
             }
 
+            hashCode = 0;
             return true;
         } catch (Exception e) {
             return false;
@@ -221,13 +225,16 @@ public class FlowKeyTunnel implements FlowKey {
 
     @Override
     public int hashCode() {
-        int result = (int)tun_id;
-        result = 31 * result + ipv4_src;
-        result = 31 * result + ipv4_dst;
-        result = 31 * result + tun_flags;
-        result = 31 * result + ipv4_tos;
-        result = 31 * result + ipv4_ttl;
-        return result;
+        if (hashCode == 0) {
+            int result = (int)tun_id;
+            result = 31 * result + ipv4_src;
+            result = 31 * result + ipv4_dst;
+            result = 31 * result + tun_flags;
+            result = 31 * result + ipv4_tos;
+            result = 31 * result + ipv4_ttl;
+            hashCode = result;
+        }
+        return hashCode;
     }
 
     @Override
