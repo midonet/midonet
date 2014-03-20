@@ -236,7 +236,7 @@ class DeduplicationActorTestCase extends FeatureSpec
                       tiCache: Cache,
                       metrics: PacketPipelineMetrics) extends
               DeduplicationActor(cookieGen, dpConnPool, clusterDataClient,
-                cCache, tmCache, tiCache, metrics) with MessageAccumulator {
+                cCache, tmCache, tiCache, metrics, () => { }) with MessageAccumulator {
 
         override protected val simulationExpireMillis = 100L
 

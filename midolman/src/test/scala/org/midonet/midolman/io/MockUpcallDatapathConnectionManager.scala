@@ -13,10 +13,11 @@ import org.midonet.midolman.PacketsEntryPoint
 import org.midonet.midolman.PacketsEntryPoint.Workers
 import org.midonet.odp.{Packet, DpPort, Datapath}
 import org.midonet.odp.protos.OvsDatapathConnection
-import org.midonet.util.BatchCollector
+import org.midonet.util.{TokenBucketTestRate, StatisticalCounter, TokenBucket, BatchCollector}
 
 class MockUpcallDatapathConnectionManager(config: MidolmanConfig)
-        extends UpcallDatapathConnectionManager(config) {
+        extends UpcallDatapathConnectionManager(config,
+            new TokenBucketPolicy(config, new TokenBucketTestRate)) {
     protected override val log = LoggerFactory.getLogger(this.getClass)
 
     val conn = new MockManagedDatapathConnection()
@@ -30,28 +31,25 @@ class MockUpcallDatapathConnectionManager(config: MidolmanConfig)
         }
     }
 
-    override def portCreated(datapath: Datapath, port: DpPort, conn: ManagedDatapathConnection) {}
-
-    override def portDeleted(datapath: Datapath, port: DpPort) {}
-
-    override def makeConnection(name: String) = null
+    override def makeConnection(name: String, tb: TokenBucket) = null
 
     override def stopConnection(conn: ManagedDatapathConnection) {}
 
     override protected def setUpcallHandler(conn: OvsDatapathConnection,
-            w: Workers)(implicit as: ActorSystem) {
-        conn.datapathsSetNotificationHandler(makeUpcallHandler(w))
+                                            w: Workers)
+                                           (implicit as: ActorSystem) {
+        conn.datapathsSetNotificationHandler(upcallHandler)
     }
 
     override def createAndHookDpPort(datapath: Datapath, port: DpPort)(
             implicit ec: ExecutionContext, as: ActorSystem):
-            Future[(Datapath, DpPort, ManagedDatapathConnection)] = {
+            Future[DpPort] = {
 
         initialize()
 
         val (createCb, createFuture) = newCallbackBackedFuture[DpPort]()
         conn.getConnection.portsCreate(datapath, port, createCb)
-        createFuture map { (datapath, _, conn) }
+        createFuture
     }
 
     override def deleteDpPort(datapath: Datapath, port: DpPort)(

@@ -235,10 +235,6 @@ object DatapathController extends Referenceable {
                                             interfaces: JList[InterfaceDescription])
 
         case class SetLocalDatapathPorts(datapath: Datapath, ports: Set[DpPort])
-
-        case class DpPortCreated(datapath: Datapath, port: DpPort, conn: ManagedDatapathConnection)
-
-        case class DpPortDeleted(datapath: Datapath, port: DpPort)
     }
 
     @volatile
@@ -478,13 +474,6 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
             handlePortOperationReply(opReply)
             if (checkInitialization)
                 completeInitialization()
-
-        case Internal.DpPortCreated(datapath, port, conn) =>
-            upcallConnManager.portCreated(datapath, port, conn)
-
-        case Internal.DpPortDeleted(datapath, port) =>
-            upcallConnManager.portDeleted(datapath, port)
-
     }
 
     /** checks if the DPC can switch to regular Receive loop */
@@ -604,12 +593,6 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
 
         case req: DpPortDelete =>
             deleteDatapathPort(sender, req)
-
-        case Internal.DpPortCreated(datapath, port, conn) =>
-            upcallConnManager.portCreated(datapath, port, conn)
-
-        case Internal.DpPortDeleted(datapath, port) =>
-            upcallConnManager.portDeleted(datapath, port)
 
         case opReply: DpPortReply =>
             pendingUpdateCount -= 1
@@ -834,8 +817,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
         log.info("creating port: {} (by request of: {})", request.port, caller)
 
         upcallConnManager.createAndHookDpPort(datapath, request.port) onComplete {
-            case Success((dp, port, conn)) =>
-                self ! Internal.DpPortCreated(dp, port, conn)
+            case Success(port) =>
                 caller ! DpPortSuccess(request, port)
 
             case Failure(ex) =>
@@ -850,7 +832,6 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
 
         upcallConnManager.deleteDpPort(datapath, request.port) onComplete {
             case Success(b) =>
-                self ! Internal.DpPortDeleted(datapath, request.port)
                 caller ! DpPortSuccess(request, request.port)
 
             case Failure(ex) =>

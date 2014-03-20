@@ -22,7 +22,7 @@ import org.midonet.midolman.guice.datapath.MockDatapathModule
 import org.midonet.midolman.guice.reactor.MockReactorModule
 import org.midonet.midolman.guice.serialization.SerializationModule
 import org.midonet.midolman.guice.zookeeper.MockZookeeperConnectionModule
-import org.midonet.midolman.guice.{MidolmanActorsModule, MockCacheModule, MockMonitoringStoreModule, MidolmanModule}
+import org.midonet.midolman.guice._
 import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.services._
 import org.midonet.midolman.version.guice.VersionModule
@@ -108,6 +108,7 @@ trait MockMidolmanActors extends BeforeAndAfter {
                     expose(classOf[MidolmanActorsService])
                 }
             },
+            new ResourceProtectionModule(),
             new MidolmanModule(),
             new PrivateModule {
                 override def configure() {
