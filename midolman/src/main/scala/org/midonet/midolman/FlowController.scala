@@ -95,7 +95,7 @@ object FlowController extends Referenceable {
 
     case class AddWildcardFlow(wildFlow: WildcardFlow,
                                flow: Option[Flow],
-                               flowRemovalCallbacks: ROSet[Callback0],
+                               flowRemovalCallbacks: Seq[Callback0],
                                tags: ROSet[Any],
                                lastInvalidation: Long = 0)
 
@@ -420,7 +420,7 @@ class FlowController extends Actor with ActorLogWithoutPath {
     }
 
     private def handleFlowAddedForNewWildcard(wildFlow: ManagedWildcardFlow, flow: Option[Flow],
-                                              flowRemovalCallbacks: ROSet[Callback0],
+                                              flowRemovalCallbacks: Seq[Callback0],
                                               tags: ROSet[Any]): Boolean = {
 
         if (!flowManager.add(wildFlow)) {

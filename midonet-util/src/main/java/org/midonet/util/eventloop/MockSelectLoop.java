@@ -16,6 +16,8 @@ public class MockSelectLoop implements SelectLoop {
 
     public MockSelectLoop() throws IOException {}
 
+    public void setEndOfLoopCallback(Runnable cb) {}
+
     public void register(SelectableChannel ch, int ops, SelectListener arg)
             throws ClosedChannelException {}
 
