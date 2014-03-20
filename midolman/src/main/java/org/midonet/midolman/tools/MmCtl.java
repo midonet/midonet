@@ -17,7 +17,6 @@ import org.midonet.midolman.guice.MidolmanModule;
 import org.midonet.midolman.guice.MonitoringStoreModule;
 import org.midonet.midolman.guice.cluster.DataClusterClientModule;
 import org.midonet.midolman.guice.config.ConfigProviderModule;
-import org.midonet.midolman.guice.reactor.ReactorModule;
 import org.midonet.midolman.guice.serialization.SerializationModule;
 import org.midonet.midolman.guice.zookeeper.ZookeeperConnectionModule;
 import org.midonet.midolman.host.HostIdGenerator;
@@ -260,7 +259,6 @@ public class MmCtl {
                         .asEagerSingleton();
                 install(new MonitoringStoreModule());
                 install(new CacheModule());
-                install(new ReactorModule());
                 install(new ZookeeperConnectionModule());
                 install(new VersionModule());
                 install(new SerializationModule());

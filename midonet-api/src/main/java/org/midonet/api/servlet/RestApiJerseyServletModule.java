@@ -26,10 +26,7 @@ import org.midonet.api.zookeeper.ZookeeperModule;
 import org.midonet.midolman.guice.CacheModule;
 import org.midonet.midolman.guice.MonitoringStoreModule;
 import org.midonet.midolman.guice.cluster.DataClusterClientModule;
-import org.midonet.midolman.guice.reactor.ReactorModule;
 import org.midonet.midolman.version.guice.VersionModule;
-import org.midonet.util.eventloop.Reactor;
-import org.midonet.util.eventloop.TryCatchReactor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,7 +71,6 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
         install(new ValidationModule());
 
         // Install Zookeeper module until Cluster Client makes it unnecessary
-        install(new ReactorModule()); // Need this for DataClient
         install(new ZookeeperModule());
         install(new CacheModule());
         install(new DataClusterClientModule());

@@ -9,18 +9,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
-import com.google.common.util.concurrent.ValueFuture;
 
 import org.midonet.netlink.BufferPool;
 import org.midonet.netlink.Callback;
 import org.midonet.netlink.NetlinkChannel;
 import org.midonet.netlink.exceptions.NetlinkException;
-import org.midonet.packets.MAC;
 import org.midonet.odp.Datapath;
 import org.midonet.odp.Flow;
 import org.midonet.odp.FlowMatch;
@@ -28,9 +24,8 @@ import org.midonet.odp.Packet;
 import org.midonet.odp.DpPort;
 import org.midonet.odp.ports.InternalPort;
 import org.midonet.util.BatchCollector;
-import org.midonet.util.eventloop.Reactor;
-import static org.midonet.netlink.exceptions.NetlinkException.ErrorCode.*;
 
+import static org.midonet.netlink.exceptions.NetlinkException.ErrorCode.*;
 
 /**
  * Mock implementation to be used in test cases and non linux hosts.

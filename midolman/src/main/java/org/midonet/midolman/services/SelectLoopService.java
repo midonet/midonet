@@ -10,9 +10,8 @@ import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.util.eventloop.Reactor;
+import org.midonet.midolman.guice.MidolmanActorsModule;
 import org.midonet.util.eventloop.SelectLoop;
-import org.midonet.midolman.guice.reactor.ReactorModule;
 
 /**
  * Service implementation that will initialize the SelectLoop select thread.
@@ -23,7 +22,7 @@ public class SelectLoopService extends AbstractService {
         .getLogger(SelectLoopService.class);
 
     @Inject
-    @ReactorModule.ZEBRA_SERVER_LOOP
+    @MidolmanActorsModule.ZEBRA_SERVER_LOOP
     SelectLoop zebraLoop;
 
     Thread zebraLoopThread;

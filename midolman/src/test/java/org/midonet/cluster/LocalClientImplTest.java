@@ -32,7 +32,6 @@ import org.midonet.midolman.guice.MockMonitoringStoreModule;
 import org.midonet.midolman.guice.cluster.ClusterClientModule;
 import org.midonet.midolman.guice.config.MockConfigProviderModule;
 import org.midonet.midolman.guice.config.TypedConfigModule;
-import org.midonet.midolman.guice.reactor.ReactorModule;
 import org.midonet.midolman.guice.serialization.SerializationModule;
 import org.midonet.midolman.guice.zookeeper.MockZookeeperConnectionModule;
 import org.midonet.midolman.layer3.Route;
@@ -106,7 +105,6 @@ public class LocalClientImplTest {
             new TypedConfigModule<MidolmanConfig>(MidolmanConfig.class),
 
             new CacheModule(),
-            new ReactorModule(),
             new MockMonitoringStoreModule(),
             new ClusterClientModule()
         );

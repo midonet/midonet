@@ -26,7 +26,6 @@ import org.midonet.cluster.services.MidostoreSetupService;
 import org.midonet.midolman.guice.cluster.ClusterClientModule;
 import org.midonet.midolman.guice.config.ConfigProviderModule;
 import org.midonet.midolman.guice.datapath.DatapathModule;
-import org.midonet.midolman.guice.reactor.ReactorModule;
 import org.midonet.midolman.guice.serialization.SerializationModule;
 import org.midonet.midolman.guice.zookeeper.ZookeeperConnectionModule;
 import org.midonet.midolman.host.guice.HostModule;
@@ -105,7 +104,6 @@ public class Midolman {
 
         injector = Guice.createInjector(
             new ZookeeperConnectionModule(),
-            new ReactorModule(),
             new VersionModule(),
             new HostModule(),
             new ConfigProviderModule(configFilePath),

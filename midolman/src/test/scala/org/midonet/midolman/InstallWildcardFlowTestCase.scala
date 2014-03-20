@@ -7,11 +7,11 @@ import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
+import org.midonet.cluster.data.{Bridge => ClusterBridge, Ports}
+import org.midonet.cluster.data.host.Host
 import org.midonet.midolman.FlowController.{WildcardFlowAdded, AddWildcardFlow}
 import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
 import org.midonet.midolman.topology.LocalPortActive
-import org.midonet.cluster.data.{Bridge => ClusterBridge, Ports}
-import org.midonet.cluster.data.host.Host
 import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPort
 import org.midonet.sdn.flows.{WildcardMatch, WildcardFlow}
 import org.midonet.odp.flows.FlowActions.output

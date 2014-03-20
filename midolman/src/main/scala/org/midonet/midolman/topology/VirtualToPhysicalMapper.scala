@@ -3,15 +3,24 @@
 */
 package org.midonet.midolman.topology
 
-import akka.actor._
-import akka.util.Timeout
-
-import com.google.inject.Inject
-
 import java.util.UUID
 import java.util.concurrent.TimeoutException
+import scala.collection.concurrent
+import scala.collection.immutable.{Set => ROSet}
+import scala.collection.{immutable, mutable}
+import scala.compat.Platform
+import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContext, Future}
+import scala.reflect.ClassTag
+import scala.reflect.classTag
+import scala.util.Failure
 
+import akka.actor._
+import akka.util.Timeout
 import org.apache.zookeeper.KeeperException
+import org.slf4j.LoggerFactory
+import com.google.inject.Inject
+
 import org.midonet.cluster.client.{BridgePort, Port}
 import org.midonet.cluster.data.TunnelZone
 import org.midonet.cluster.data.zones._
@@ -28,18 +37,7 @@ import org.midonet.midolman.topology.VirtualTopologyActor.{PortRequest, BridgeRe
 import org.midonet.midolman.topology.rcu.Host
 import org.midonet.util.concurrent._
 
-import org.slf4j.LoggerFactory
 
-import scala.Some
-import scala.collection.concurrent
-import scala.collection.immutable.{Set => ROSet}
-import scala.collection.{immutable, mutable}
-import scala.compat.Platform
-import scala.concurrent.duration._
-import scala.concurrent.{ExecutionContext, Future}
-import scala.reflect.ClassTag
-import scala.reflect.classTag
-import scala.util.Failure
 
 
 object HostConfigOperation extends Enumeration {

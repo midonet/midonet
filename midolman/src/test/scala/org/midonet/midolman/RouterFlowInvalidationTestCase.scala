@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit
 import scala.collection.immutable.HashMap
 import scala.collection.mutable
 import scala.collection.{Set => ROSet}
+import scala.concurrent.duration.Duration
 
 import akka.testkit.TestProbe
 import org.apache.commons.configuration.HierarchicalConfiguration
@@ -34,7 +35,6 @@ import org.midonet.odp.flows.FlowKeys
 import org.midonet.odp.{FlowMatch, Flow, Datapath}
 import org.midonet.packets._
 import org.midonet.sdn.flows.{WildcardMatch, WildcardFlow}
-import scala.concurrent.duration.Duration
 
 @Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])

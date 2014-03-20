@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.nio.channels.SelectionKey;
 import java.util.concurrent.ExecutionException;
 
-import org.midonet.util.TokenBucket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,6 +19,7 @@ import org.midonet.odp.protos.OvsDatapathConnection;
 import org.midonet.util.eventloop.SelectListener;
 import org.midonet.util.eventloop.SelectLoop;
 import org.midonet.util.eventloop.SimpleSelectLoop;
+import org.midonet.util.TokenBucket;
 
 
 public class SelectorBasedDatapathConnection implements ManagedDatapathConnection {
