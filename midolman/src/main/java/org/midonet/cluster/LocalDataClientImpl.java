@@ -22,6 +22,8 @@ import javax.inject.Named;
 import org.apache.zookeeper.CreateMode;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.tuple.MutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs;
 
@@ -74,8 +76,6 @@ import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv6Subnet;
 import org.midonet.packets.IntIPv4;
 import org.midonet.packets.MAC;
-import org.midonet.util.collection.MutablePair;
-import org.midonet.util.collection.Pair;
 import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.functors.Callback2;
 import org.midonet.util.functors.CollectionFunctors;
@@ -1798,7 +1798,7 @@ public class LocalDataClientImpl implements DataClient {
      * Returns the pair of the mapping path and the mapping config. If the
      * given pool is not associated with any health monitor, it returns `null`.
      */
-    private Pair<String, PoolHealthMonitorMappingConfig>
+    private MutablePair<String, PoolHealthMonitorMappingConfig>
     preparePoolHealthMonitorMappings(
             @Nonnull UUID poolId,
             @Nonnull PoolConfig poolConfig,
@@ -1879,7 +1879,7 @@ public class LocalDataClientImpl implements DataClient {
 
         for (UUID poolId: poolIds) {
             PoolConfig poolConfig = poolZkManager.get(poolId);
-            Pair<String, PoolHealthMonitorMappingConfig> pair =
+            MutablePair<String, PoolHealthMonitorMappingConfig> pair =
                     preparePoolHealthMonitorMappings(poolId,
                             poolConfig, poolMemberZkManager, vipZkManager);
 
