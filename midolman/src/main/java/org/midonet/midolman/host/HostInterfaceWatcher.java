@@ -50,12 +50,9 @@ public class HostInterfaceWatcher implements Runnable {
             interfaceDataUpdater.updateInterfacesData(
                 hostId, hostMetadata, interfaceScanner.scanInterfaces());
 
-            long deadline = TimeUnit.NANOSECONDS.toMillis(System.nanoTime()) +
-                            configuration.getWaitTimeBetweenHostScans();
-            while (isRunning &&
-                   TimeUnit.NANOSECONDS.toMillis(System.nanoTime()) < deadline) {
-                LockSupport.parkUntil(deadline);
-            }
+            // We ignore spurious wake ups.
+            LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(
+                    configuration.getWaitTimeBetweenHostScans()));
         }
         log.info("Midolman host watcher thread stopped.");
     }
