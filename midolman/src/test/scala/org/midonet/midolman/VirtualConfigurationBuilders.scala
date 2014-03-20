@@ -392,6 +392,10 @@ trait VirtualConfigurationBuilders {
         loadBalancer
     }
 
+    def deleteLoadBalancer(id: UUID) {
+        clusterDataClient().loadBalancerDelete(id)
+    }
+
     def setLoadBalancerOnRouter(loadBalancer: LoadBalancer, router: ClusterRouter): Unit = {
         router.setLoadBalancer(loadBalancer.getId)
         clusterDataClient().routersUpdate(router)

@@ -1716,6 +1716,14 @@ public class LocalDataClientImpl implements DataClient {
             ops.addAll(buildPoolDeleteOps(poolId));
         }
 
+        LoadBalancerZkManager.LoadBalancerConfig loadBalancerConfig =
+            loadBalancerZkManager.get(id);
+        if (loadBalancerConfig.routerId != null) {
+            ops.addAll(
+                routerZkManager.prepareClearRefsToLoadBalancer(
+                    loadBalancerConfig.routerId, id));
+        }
+
         ops.addAll(loadBalancerZkManager.prepareDelete(id));
         zkManager.multi(ops);
     }
