@@ -365,7 +365,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
             localPorts, portSetId, wMatch, Some(tags)
         ) map { portIds =>
             addTranslatedFlowForActions(
-                towardsLocalDpPorts(List(action), portSetId,
+                towardsLocalDpPorts(action, portSetId,
                     portsForLocalPorts(portIds), tags), tags)
             true
         }
