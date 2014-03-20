@@ -397,7 +397,7 @@ class Bridge(val id: UUID,
             Ready(unicastAction(portID))
         } else {
             // If it's an ARP request, can we answer from the Bridge's IpMacMap?
-            val mac = pMatch.getNetworkProtocol match {
+            val mac = pMatch.getNetworkProtocol.shortValue() match {
                 case ARP.OP_REQUEST if ip4MacMap != null =>
                     ip4MacMap get
                         pMatch.getNetworkDestinationIP.asInstanceOf[IPv4Addr]

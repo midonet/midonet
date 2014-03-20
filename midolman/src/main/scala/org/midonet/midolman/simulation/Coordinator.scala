@@ -653,7 +653,8 @@ class Coordinator(var origMatch: WildcardMatch,
         if (!orig.getEthernetSource.equals(modif.getEthernetSource) ||
             !orig.getEthernetDestination.equals(modif.getEthernetDestination)) {
             actions.append(setKey(FlowKeys.ethernet(
-                modif.getDataLayerSource, modif.getDataLayerDestination)))
+                modif.getEthernetSource.getAddress,
+                modif.getEthernetDestination.getAddress)))
         }
         if (!matchObjectsSame(orig.getNetworkSourceIP,
                               modif.getNetworkSourceIP) ||
@@ -667,7 +668,7 @@ class Coordinator(var origMatch: WildcardMatch,
                         FlowKeys.ipv4(srcIP,
                             modif.getNetworkDestinationIP.asInstanceOf[IPv4Addr],
                             modif.getNetworkProtocol,
-                            modif.getNetworkTypeOfService,
+                            modif.getNetworkTOS,
                             modif.getNetworkTTL,
                             modif.getIpFragmentType)
                     case srcIP: IPv6Addr =>
@@ -702,24 +703,24 @@ class Coordinator(var origMatch: WildcardMatch,
         // ICMP errors
         if (!matchObjectsSame(orig.getIcmpData,
                               modif.getIcmpData)) {
-            val icmpType = modif.getTransportSource()
+            val icmpType = modif.getTransportSource
             if (icmpType == ICMP.TYPE_PARAMETER_PROBLEM ||
                 icmpType == ICMP.TYPE_UNREACH ||
                 icmpType == ICMP.TYPE_TIME_EXCEEDED) {
 
                 actions.append(setKey(FlowKeys.icmpError(
-                    modif.getTransportSource.asInstanceOf[Byte],
-                    modif.getTransportDestination.asInstanceOf[Byte],
+                    modif.getTransportSource.byteValue(),
+                    modif.getTransportDestination.byteValue(),
                     modif.getIcmpData
                 )))
             }
         }
-        if (!matchObjectsSame(orig.getTransportSourceObject,
-                              modif.getTransportSourceObject) ||
-            !matchObjectsSame(orig.getTransportDestinationObject,
-                              modif.getTransportDestinationObject)) {
+        if (!matchObjectsSame(orig.getTransportSource,
+                              modif.getTransportSource) ||
+            !matchObjectsSame(orig.getTransportDestination,
+                              modif.getTransportDestination)) {
 
-            modif.getNetworkProtocol match {
+            modif.getNetworkProtocol.byteValue() match {
                 case TCP.PROTOCOL_NUMBER =>
                     actions.append(setKey(FlowKeys.tcp(
                         modif.getTransportSource,
