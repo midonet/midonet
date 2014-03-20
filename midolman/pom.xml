@@ -25,6 +25,14 @@
         <groups.simulation>org.midonet.midolman.Midolman</groups.simulation>
     </properties>
 
+    <repositories>
+        <repository>
+            <id>maven-restlet</id>
+            <name>Public online Restlet repository</name>
+            <url>http://maven.restlet.org</url>
+        </repository>
+    </repositories>
+
     <build>
 
         <plugins>
@@ -81,6 +89,9 @@
                             <sources>
                                 <source>
                                     <location>conf</location>
+                                    <excludes>
+                                        <exclude>.gitignore</exclude>
+                                    </excludes>
                                 </source>
                             </sources>
                         </mapping>
@@ -187,6 +198,7 @@
                                 <type>perm</type>
                                 <prefix>/etc/midolman</prefix>
                             </mapper>
+                            <excludes>**/.gitignore</excludes>
                         </data>
                         <data>
                             <src>${project.build.directory}/dep</src>
@@ -556,6 +568,36 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-all</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-server</artifactId>
+            <version>7.6.14.v20131031</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.eclipse.jetty.orbit</groupId>
+                    <artifactId>javax.servlet</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-websocket</artifactId>
+            <version>7.6.14.v20131031</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-deploy</artifactId>
+            <version>7.6.14.v20131031</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jminix</groupId>
+            <artifactId>jminix</artifactId>
+            <version>1.1.0</version>
         </dependency>
 
     </dependencies>

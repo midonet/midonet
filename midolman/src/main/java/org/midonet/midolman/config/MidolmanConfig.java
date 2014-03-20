@@ -64,6 +64,12 @@ public interface MidolmanConfig
     @ConfigInt(key = "idle_flow_tolerance_interval", defaultValue = 10000)
     public int getIdleFlowToleranceInterval();
 
+    @ConfigBool(key = "enable_dashboard", defaultValue = true)
+    public boolean getDashboardEnabled();
+
+    @ConfigString(key = "jetty_xml", defaultValue = "/etc/midolman/jetty/etc/jetty.xml")
+    public String pathToJettyXml();
+
     @ConfigGroup("bridge")
     @ConfigInt(key = "mac_port_mapping_expire_millis", defaultValue = 30000)
     public int getMacPortMappingExpireMillis();
