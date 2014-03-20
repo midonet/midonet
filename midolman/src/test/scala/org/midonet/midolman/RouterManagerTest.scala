@@ -43,11 +43,18 @@ with VirtualConfigurationBuilders {
             setLoadBalancerOnRouter(loadBalancer, router)
 
             When("the VTA receives a request for the router")
-            vta.self ! RouterRequest(router.getId)
+            vta.self ! RouterRequest(router.getId, true)
 
             Then("it should return the requested router, with correct loadbalancer ID")
             val r = expectMsgType[Router]
             r.loadBalancer.id shouldEqual loadBalancer.getId
+
+            Then("Delete load balancer")
+            deleteLoadBalancer(loadBalancer.getId)
+
+            Then("it should return the requested router, with null loadbalancer ID")
+            val r2 = expectMsgType[Router]
+            assert(r2.loadBalancer == null)
         }
     }
 }

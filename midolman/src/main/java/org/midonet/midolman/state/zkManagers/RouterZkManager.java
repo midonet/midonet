@@ -159,6 +159,26 @@ public class RouterZkManager
                 Collections.<Op>emptyList();
     }
 
+    public List<Op> prepareClearRefsToLoadBalancer(UUID id, UUID loadBalancerId)
+            throws SerializationException, StateAccessException,
+            IllegalArgumentException {
+
+        assert(loadBalancerId != null && id != null);
+
+        RouterConfig config = get(id);
+        if (!Objects.equal(config.loadBalancer, loadBalancerId)) {
+            log.warn("Attempted to delete reference from router ID " + id +
+                     " to load balancer ID " + loadBalancerId + " but the" +
+                     " router had a reference to a different load balancer," +
+                     " ID " + config.loadBalancer);
+            return Collections.<Op>emptyList();
+        }
+
+        config.loadBalancer = null;
+        return Collections.singletonList(Op.setData(paths.getRouterPath(id),
+                        serializer.serialize(config), -1));
+    }
+
     @Override
     protected String getConfigPath(UUID id) {
         return paths.getRouterPath(id);
