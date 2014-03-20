@@ -38,6 +38,8 @@ import java.nio.channels.SelectableChannel;
 import org.midonet.util.io.SelectorInputQueue;
 
 public interface SelectLoop {
+    public void setEndOfLoopCallback(Runnable cb);
+
     /**
      * Registers the supplied SelectableChannel with this SelectLoop.
      *

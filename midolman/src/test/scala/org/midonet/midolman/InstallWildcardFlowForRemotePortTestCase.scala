@@ -68,7 +68,7 @@ class InstallWildcardFlowForRemotePortTestCase extends MidolmanTestCase
         drainProbes()
 
         dpProbe().testActor !
-            AddVirtualWildcardFlow(wildcardFlow, Set.empty, Set.empty)
+            AddVirtualWildcardFlow(wildcardFlow, Nil, Set.empty)
 
         val addFlowMsg = fishForRequestOfType[WildcardFlowAdded](
             wflowAddedProbe, Duration(3, TimeUnit.SECONDS))

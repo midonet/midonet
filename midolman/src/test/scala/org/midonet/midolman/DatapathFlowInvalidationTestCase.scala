@@ -241,7 +241,7 @@ with RouterHelper{
             actions = List(new FlowActionOutputToVrnPortSet(bridge.getId)))
 
         dpProbe().testActor ! AddVirtualWildcardFlow(
-            wildcardFlow, Set.empty, Set.empty)
+            wildcardFlow, Nil, Set.empty)
 
         val flowToInvalidate = wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
 
