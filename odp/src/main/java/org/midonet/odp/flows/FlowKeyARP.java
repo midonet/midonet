@@ -19,6 +19,8 @@ public class FlowKeyARP implements FlowKey {
     /*__u8*/ private byte[] arp_sha = new byte[6]; // 6 bytes long
     /*__u8*/ private byte[] arp_tha = new byte[6]; // 6 bytes long
 
+    private int hashCode = 0;
+
     // This is used for deserialization purposes only.
     FlowKeyARP() { }
 
@@ -49,6 +51,7 @@ public class FlowKeyARP implements FlowKey {
             arp_op = message.getShort(ByteOrder.BIG_ENDIAN);
             message.getBytes(arp_sha);
             message.getBytes(arp_tha);
+            this.hashCode = 0;
             return true;
         } catch (Exception e) {
             return false;
@@ -103,12 +106,15 @@ public class FlowKeyARP implements FlowKey {
 
     @Override
     public int hashCode() {
-        int result = arp_sip;
-        result = 31 * result + arp_tip;
-        result = 31 * result + (int) arp_op;
-        result = 31 * result + (arp_sha != null ? Arrays.hashCode(arp_sha) : 0);
-        result = 31 * result + (arp_tha != null ? Arrays.hashCode(arp_tha) : 0);
-        return result;
+        if (hashCode == 0) {
+            int result = arp_sip;
+            result = 31 * result + arp_tip;
+            result = 31 * result + (int) arp_op;
+            result = 31 * result + (arp_sha != null ? Arrays.hashCode(arp_sha) : 0);
+            result = 31 * result + (arp_tha != null ? Arrays.hashCode(arp_tha) : 0);
+            hashCode = result;
+        }
+        return hashCode;
     }
 
     @Override

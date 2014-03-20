@@ -17,6 +17,8 @@ public class FlowKeyIPv4 implements FlowKey {
     /*__u8*/ private byte ipv4_ttl;
     /*__u8*/ private byte ipv4_frag;    /* One of OVS_FRAG_TYPE_*. */
 
+    private int hashCode = 0;
+
     // This is used for deserialization purposes only.
     FlowKeyIPv4() { }
 
@@ -49,6 +51,7 @@ public class FlowKeyIPv4 implements FlowKey {
             ipv4_tos = message.getByte();
             ipv4_ttl = message.getByte();
             ipv4_frag = message.getByte();
+            hashCode = 0;
             return true;
         } catch (Exception e) {
             return false;
@@ -84,13 +87,16 @@ public class FlowKeyIPv4 implements FlowKey {
 
     @Override
     public int hashCode() {
-        int result = ipv4_src;
-        result = 31 * result + ipv4_dst;
-        result = 31 * result + (int) ipv4_proto;
-        result = 31 * result + (int) ipv4_tos;
-        result = 31 * result + (int) ipv4_ttl;
-        result = 31 * result + (int) ipv4_frag;
-        return result;
+        if (hashCode == 0) {
+            int result = ipv4_src;
+            result = 31 * result + ipv4_dst;
+            result = 31 * result + (int) ipv4_proto;
+            result = 31 * result + (int) ipv4_tos;
+            result = 31 * result + (int) ipv4_ttl;
+            result = 31 * result + (int) ipv4_frag;
+            hashCode = result;
+        }
+        return hashCode;
     }
 
     @Override

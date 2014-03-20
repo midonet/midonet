@@ -14,6 +14,8 @@ public class FlowKeyEthernet implements FlowKey {
     /*__u8*/ private byte[] eth_src = new byte[6]; // always 6 bytes long
     /*__u8*/ private byte[] eth_dst = new byte[6]; // always 6 bytes long
 
+    private int hashCode = 0;
+
     // This is used for deserialization purposes only.
     FlowKeyEthernet() { }
 
@@ -33,6 +35,7 @@ public class FlowKeyEthernet implements FlowKey {
         try {
             message.getBytes(eth_src);
             message.getBytes(eth_dst);
+            hashCode = 0;
             return true;
         } catch (Exception e) {
             return false;
@@ -72,9 +75,12 @@ public class FlowKeyEthernet implements FlowKey {
 
     @Override
     public int hashCode() {
-        int result = eth_src != null ? Arrays.hashCode(eth_src) : 0;
-        result = 31 * result + (eth_dst != null ? Arrays.hashCode(eth_dst) : 0);
-        return result;
+        if (hashCode == 0) {
+            int result = eth_src != null ? Arrays.hashCode(eth_src) : 0;
+            result = 31 * result + (eth_dst != null ? Arrays.hashCode(eth_dst) : 0);
+            hashCode = result;
+        }
+        return hashCode;
     }
 
     @Override

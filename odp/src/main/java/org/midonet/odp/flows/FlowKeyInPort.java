@@ -65,8 +65,6 @@ public class FlowKeyInPort implements FlowKey {
 
     @Override
     public String toString() {
-        return "FlowKeyInPort{" +
-            "portNo=" + portNo +
-            '}';
+        return "FlowKeyInPort{portNo=" + portNo + '}';
     }
 }
