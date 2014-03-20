@@ -315,8 +315,12 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
         pkt
     }
 
-    def wcMatch(userspace: Boolean = false) =
-        WildcardMatch.fromFlowMatch(flMatch(userspace))
+    def wcMatch(userspace: Boolean = false) = {
+        val wcMatch = WildcardMatch.fromFlowMatch(flMatch(userspace))
+        if (userspace)
+          wcMatch.getIcmpIdentifier
+        wcMatch
+    }
 
     def wcFlow(userspace: Boolean = false) =
         WildcardFlow(wcMatch(userspace), output)
