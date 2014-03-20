@@ -8,7 +8,6 @@ import java.util.Iterator;
 import java.util.NavigableSet;
 import java.util.Random;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -85,7 +84,7 @@ public class NatLeaseManager implements NatMapping {
         log.debug("constructor with {}, {}, {}, and {}",
             new Object[] {filterMgr, routerId, cache, reactor});
         this.filterMgr = filterMgr;
-        this.ipToFreePortsMap = new ConcurrentHashMap<IPAddr, NavigableSet<Integer>>();
+        this.ipToFreePortsMap = new ConcurrentHashMap<>();
         this.routerId = routerId;
         this.rtrIdStr = routerId.toString();
         this.cache = cache;
@@ -177,29 +176,18 @@ public class NatLeaseManager implements NatMapping {
                                  int overrideCacheTimeoutSeconds) {
 
         // TODO(pino) get rid of these after converting ports to int.
-        int tpSrc = tpSrc_ & USHORT;
-        int oldTpDst = oldTpDst_ & USHORT;
+        final int tpSrc = tpSrc_ & USHORT;
+        final int oldTpDst = oldTpDst_ & USHORT;
         log.debug("allocateDnat: proto {} nwSrc {} tpSrc {} oldNwDst {} " +
                   "oldTpDst {} nats {}", new Object[] { protocol,
                       nwSrc, tpSrc, oldNwDst, oldTpDst, nats });
 
-        if (nats.isEmpty())
-            throw new IllegalArgumentException("Nat list was empty.");
-        int natPos = rand.nextInt(nats.size());
-        Iterator<NatTarget> iter = nats.iterator();
-        NatTarget nat = null;
-        for (int i = 0; i <= natPos && iter.hasNext(); i++)
-            nat = iter.next();
-
-        int tpStart = nat.tpStart & USHORT;
-        int tpEnd = nat.tpEnd & USHORT;
-        // TODO (ipv6) no idea why we need that cast
-        IPAddr newNwDst = (IPv4Addr)nat.nwStart.randomTo(nat.nwEnd, rand);
+        NatTarget nat = chooseRandomNatTarget(nats);
+        IPv4Addr newNwDst = (IPv4Addr)chooseRandomIp(nat);
+        final int newTpDst =  (protocol == ICMP.PROTOCOL_NUMBER)
+                              ? oldTpDst : chooseRandomPort(nat);
 
         // newNwDst needs to be the same type as nwSrc, nwDst
-        int newTpDst = (protocol == ICMP.PROTOCOL_NUMBER)
-                       ? oldTpDst
-                       : rand.nextInt(tpEnd - tpStart + 1) + tpStart;
         log.debug("{} DNAT allocated new DST {}:{} to flow from {}:{} to "
                 + "{}:{} protocol {}", new Object[] { rtrIdStr,
                         newNwDst, newTpDst, nwSrc, tpSrc, oldNwDst,
@@ -351,6 +339,10 @@ public class NatLeaseManager implements NatMapping {
     }
 
 
+    /*
+     * Note that this method contains a race between the moment we check Cass
+     * for an existing key, and setting the 2 entries.
+     */
     private NwTpPair makeSnatReservation(byte protocol,
                                          IPAddr oldNwSrc, int oldTpSrc,
                                          IPAddr newNwSrc, int newTpSrc,
@@ -383,205 +375,79 @@ public class NatLeaseManager implements NatMapping {
         return new NwTpPair(newNwSrc, newTpSrc, fwdKey);
     }
 
+    private NatTarget chooseRandomNatTarget(Set<NatTarget> nats) {
+        if (nats.isEmpty())
+            throw new IllegalArgumentException("Empty nat targets");
+        int natPos = rand.nextInt(nats.size());
+        Iterator<NatTarget> it = nats.iterator();
+        NatTarget nat = null;
+        for (int i = 0; i <= natPos && it.hasNext(); i++)
+            nat = it.next();
+        return nat;
+    }
+
+    private IPAddr chooseRandomIp(NatTarget nat) {
+        // TODO: fix that cast
+        return (IPAddr)nat.nwStart.randomTo(nat.nwEnd, rand);
+    }
+
+    private int chooseRandomPort(NatTarget nat) {
+        int tpStart = nat.tpStart & USHORT;
+        int tpEnd = nat.tpEnd & USHORT;
+        return rand.nextInt(tpEnd - tpStart + 1) + tpStart;
+    }
+
     /**
      * This method offers unified SNAT allocation for any supported protocol
      * verified by isNatSupported. It will take a 4-tuple and try to create a
      * translated 4-tuple. Only source values will be translated.
      *
-     * It's possible to use this method even with a protocol that doesn't have
-     * source and destination transport, such as ICMP. In this case, "fake"
-     * values can be set in tpSrc and tpDst fields.
+     * The allocation is made randomly, selecting first a random nat target,
+     * then ip and port. We will retry for MAX_PORT_ALLOC_ATTEMPTS.
      *
-     * However, users are encouraged to provide values that minimize the
+     * Given this method users are encouraged to provide values that minimize the
      * chance of collisions when performing lookups.
      *
-     * For example, in ICMP ECHO messages this is achieved using the ICMP ECHO
-     * identifier field as both tpSrc and tpDst, relying on the random
-     * generation of these values as a sufficient prevention of collisions.
-     *
-     * NOTE: it may not make sense to use this method in certain types of
-     * packets. For example, an ICMP error should not allocate a SNAT.
-     *
-     * NOTE: for ICMP the ports are assumed to be fake ports that will not be
-     * translated.
+     * ICMP ECHO messages this is achieved using the icmp_id field as both tpSrc
+     * and tpDst, relying on the random generation of these values as a
+     * sufficient prevention of collisions.
      *
      * @param protocol of the packet
      * @param oldNwSrc old src ip, may get translated in the return pair
      * @param oldTpSrc_ old src transport, may get translated in the return pair
      * @param nwDst dst ip, will not get translated in the return pair
      * @param tpDst_ dst transport, will not get translated in the return pair
-     * @param nats
-     * @return
+     * @param nats all the nat targets available for this translation
+     * @return a nat pair, or null if it was not possible to reserve one.
      */
     @Override
     public NwTpPair allocateSnat(byte protocol, IPAddr oldNwSrc, int oldTpSrc_,
                                  IPAddr nwDst, int tpDst_, Set<NatTarget> nats) {
 
-        int oldTpSrc = oldTpSrc_ & USHORT;
-        int tpDst = tpDst_ & USHORT;
+        final int oldTpSrc = oldTpSrc_ & USHORT;
+        final int tpDst = tpDst_ & USHORT;
 
-        // ICMP reservations are much simpler: we grant the same port as reqd.
-        // which in fact is the ICMP id (we rely on id generation randomness)
         if (protocol == ICMP.PROTOCOL_NUMBER) {
             return allocateSnatICMP(oldNwSrc, oldTpSrc, nwDst, tpDst, nats);
         }
 
-        // First try to find a port in a block we've already leased.
         int numTries = 0;
-        for (NatTarget tg : nats) {
-            int tpStart = tg.tpStart & USHORT;
-            int tpEnd = tg.tpEnd & USHORT;
-            for (IPAddr ip: tg.nwStart.range(tg.nwEnd)) {
-                NavigableSet<Integer> freePorts = ipToFreePortsMap.get(ip);
-                if (null == freePorts)
-                    continue;
-                while (true) {
-                    synchronized (freePorts) {
-                        Integer port = freePorts.ceiling(tpStart);
-                        if (null == port || port > tpEnd)
-                            break;
-                        // Look for a port in the desired range
-                        // We've found a free port.
-                        freePorts.remove(port);
-                        // Check cache to make sure the port's really free.
-                        NwTpPair reservation = makeSnatReservation(
-                                    protocol, oldNwSrc, oldTpSrc,
-                                    ip, port, nwDst, tpDst);
-                        if (reservation != null)
-                            return reservation;
-                    }
-                    // Give up after 20 attempts.
-                    numTries++;
-                    if (numTries > MAX_PORT_ALLOC_ATTEMPTS) {
-                        log.warn("allocateSnat failed to reserve {} free "
-                                + "ports. Giving up.", MAX_PORT_ALLOC_ATTEMPTS);
-                        return null;
-                    }
-                } // No free ports for this ip and port range
-            } // No free ports for this NatTarget
-        } // No free ports for any of the given NatTargets
-
-        // None of our leased blocks were suitable. Try leasing another block.
-        // TODO: Do something smarter. See:
-        // https://sites.google.com/a/midokura.jp/wiki/midonet/srcnat-block-reservations
-        int block_size = BLOCK_SIZE; // TODO: make this configurable?
-        int blockReservationFailures = 0;
-        for (NatTarget tg : nats) {
-            int tpStart = tg.tpStart & USHORT;
-            int tpEnd = tg.tpEnd & USHORT;
-            for (IPAddr ip: tg.nwStart.range(tg.nwEnd)) {
-                NavigableSet<Integer> reservedBlocks;
-                try {
-                    reservedBlocks = filterMgr.getSnatBlocks(routerId, ip);
-                } catch (Exception e) {
-                    log.error("allocateSnat got an exception listing reserved "
-                              + "blocks", e);
-                    return null;
-                }
-                // Note that Shorts in this sorted set should only be
-                // multiples of BLOCK_SIZE because that's how we avoid
-                // collisions/re-leasing. A Short s represents a lease on
-                // the port range [s, s+99] inclusive.
-                // Round down tpStart to the nearest BLOCK_SIZE.
-                int block = (tpStart / block_size) * block_size;
-                // Find the first lowPort + BLOCK_SIZE*x that isn't in the
-                // tail-set and is less than tpEnd
-                for (Integer lease: reservedBlocks.tailSet(block, true)) {
-                    // Find the next reserved block.
-                    if (lease > block) {
-                        // No one reserved the current value of startBlock.
-                        // Let's lease it ourselves.
-                        break;
-                    }
-                    if (lease < block) {
-                        // this should never happen. someone leased a
-                        // block that doesn't start at a multiple of 100
-                        continue;
-                    }
-                    // Normal case. The block is already leased, try next one.
-                    block += block_size;
-                    if (block > tpEnd)
-                        break;
-                }
-
-                if (block > tpEnd) // No free blocks for this ip. Try next ip.
-                    break;
-
-                if (!reserveSnatBlock(routerId, ip, block)) {
-                    blockReservationFailures++;
-                    if (blockReservationFailures > 1){
-                        log.warn("allocateSnat failed twice to reserve a " +
-                                 "port block in ip {}. Giving up.", ip);
-                        return null;
-                    }
-                    continue; // skip to the next block
-                }
-
-                // Expand the port block.
-                NavigableSet<Integer> freePorts = ipToFreePortsMap.get(ip);
-                if (null == freePorts) {
-                    freePorts = new TreeSet<Integer>();
-                    NavigableSet<Integer> oldV = null;
-                    oldV = ipToFreePortsMap.putIfAbsent(ip, freePorts);
-                    if (null != oldV)
-                        freePorts = oldV;
-                }
-
-                synchronized (freePorts) {
-                    log.debug("allocateSnat adding range {} to {} to list of "
-                            + "free ports.", block, block+block_size-1);
-                    for (int i = 0; i < block_size; i++)
-                        freePorts.add(block + i);
-                    // Now, starting with the smaller of 'block' and tpStart
-                    // see if the mapping really is free in cache by making sure
-                    // that the reverse mapping isn't already taken. Note that
-                    // the common case for snat requires 4 calls to cache (one
-                    // to check whether we've already seen the forward flow, one
-                    // to make sure the newIp, newPort haven't already been used
-                    // with the nwDst and tpDst, and 2 to actually store the
-                    // forward and reverse mappings).
-                    int freePort = block;
-                    if (freePort < tpStart)
-                        freePort = tpStart;
-                    while (true) {
-                        freePorts.remove(freePort);
-                        NwTpPair reservation = makeSnatReservation(protocol,
-                               oldNwSrc, oldTpSrc, ip, freePort, nwDst, tpDst);
-                        if (reservation != null)
-                            return reservation;
-                        freePort++;
-                        if (0 == freePort % block_size || freePort > tpEnd) {
-                            log.warn("allocateSnat unable to reserve any port "
-                                    + "in the newly reserved block. Giving up.");
-                            return null;
-                        }
-                    }
-                }
-            } // End for loop over ip addresses in a nat target.
-        } // End for loop over nat targets.
-        return null;
-    }
-
-    /*
-     * Tries to reserve the given SNAT block, with a single retry on the same
-     * block in the event that it gets a failure. See MN-883 for motivation:
-     * if two threads reserve the same block, we don't want to get a failure
-     * on the loser since that one can reuse the reservation.
-     */
-    private boolean reserveSnatBlock(UUID routerId, IPAddr ip, int block) {
-        int attempts = 2;
-        while (attempts-- > 0) {
-            try {
-                log.debug("allocateSnat trying to reserve snat block {} in " +
-                          "ip {}", block, ip);
-                filterMgr.addSnatReservation(routerId, ip, block);
-                return true;
-            } catch (Exception e) {
-                log.warn("allocateSnat block reservation failed, retry " +
-                             "same block", e);
+        while (numTries++ < MAX_PORT_ALLOC_ATTEMPTS) {
+            NatTarget nat = chooseRandomNatTarget(nats);
+            IPAddr newNwSrc = chooseRandomIp(nat);
+            int newTpSrc = chooseRandomPort(nat);
+            NwTpPair reservation = makeSnatReservation(protocol,
+                                                       oldNwSrc, oldTpSrc,
+                                                       newNwSrc, newTpSrc,
+                                                       nwDst, tpDst);
+            if (reservation != null) {
+                return reservation;
             }
         }
-        return false;
+
+        log.warn("Failed to allocate snat after {} attempts", numTries);
+
+        return null;
     }
 
     /**
@@ -593,22 +459,22 @@ public class NatLeaseManager implements NatMapping {
     private NwTpPair allocateSnatICMP(IPAddr oldNwSrc, int oldTpSrc_,
                                       IPAddr nwDst, int tpDst_,
                                       Set<NatTarget> nats) {
-        int oldTpSrc = oldTpSrc_ & USHORT;
-        int tpDst = tpDst_ & USHORT;
+        final int oldTpSrc = oldTpSrc_ & USHORT;
+        final int tpDst = tpDst_ & USHORT;
         int numTries = 0;
-        for (NatTarget tg : nats) {
-            for (IPAddr ip: tg.nwStart.range(tg.nwEnd)) {
-                NwTpPair reservation = makeSnatReservation(ICMP.PROTOCOL_NUMBER,
-                              oldNwSrc, oldTpSrc, ip, oldTpSrc, nwDst, tpDst);
-                if (reservation != null)
-                    return reservation;
-                if (++numTries > MAX_PORT_ALLOC_ATTEMPTS) {
-                    log.warn("allocateSnatICMP failed to reserve {} nw src",
-                             MAX_PORT_ALLOC_ATTEMPTS);
-                    return null;
-                }
-            }
+
+        while (numTries++ < MAX_PORT_ALLOC_ATTEMPTS) {
+            NatTarget nat = chooseRandomNatTarget(nats);
+            IPAddr ip = chooseRandomIp(nat);
+            NwTpPair reservation = makeSnatReservation(ICMP.PROTOCOL_NUMBER,
+                                                       oldNwSrc, oldTpSrc, ip,
+                                                       oldTpSrc, nwDst, tpDst);
+            if (reservation != null)
+                return reservation;
+
         }
+        log.warn("allocateSnatICMP failed to reserve {} nw src",
+                 MAX_PORT_ALLOC_ATTEMPTS);
         return null;
     }
 
@@ -641,7 +507,7 @@ public class NatLeaseManager implements NatMapping {
         int newTpSrc = newTpSrc_ & USHORT;
         int tpDst = tpDst_ & USHORT;
         String key = makeCacheKey(REV_SNAT_PREFIX, protocol, newNwSrc, newTpSrc,
-                nwDst, tpDst);
+                                  nwDst, tpDst);
         String value = cache.get(key);
         log.debug("lookupSnatRev: key {} value {}", key, value);
         return (null == value) ? null : makePairFromString(value, null);
@@ -650,7 +516,7 @@ public class NatLeaseManager implements NatMapping {
     @Override
     public void updateSnatTargets(Set<NatTarget> targets) {
         // TODO shouldn't this be a UnsupportedOperationException
-        log.warn("updateSnatTargets - UNIMPLEMENTED: {}", targets);
+        log.error("updateSnatTargets - UNIMPLEMENTED: {}", targets);
     }
 
     /* natUnref() and natRef() update the reference count for a forwardKey,
