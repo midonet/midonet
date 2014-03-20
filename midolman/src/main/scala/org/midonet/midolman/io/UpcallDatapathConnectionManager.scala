@@ -11,7 +11,7 @@ import scala.util.{Failure, Success}
 import akka.actor.ActorSystem
 import akka.util.Timeout
 import com.yammer.metrics.core.Clock
-import org.slf4j.LoggerFactory
+import org.slf4j.{Logger, LoggerFactory}
 
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.{PacketsEntryPoint, NetlinkCallbackDispatcher, DeduplicationActor}
@@ -23,11 +23,16 @@ import org.midonet.netlink.exceptions.NetlinkException.ErrorCode.EEXIST
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode.EBUSY
 import org.midonet.odp._
 import org.midonet.util.BatchCollector
+import org.midonet.odp.protos.OvsDatapathConnection
 
-class UpcallDatapathConnectionManager(val config: MidolmanConfig) {
-    private val log = LoggerFactory.getLogger(this.getClass)
+abstract class UpcallDatapathConnectionManager(val config: MidolmanConfig) {
+    protected val log: Logger
 
-    private val portToChannel = mutable.Map[(Datapath, Int), ManagedDatapathConnection]()
+    protected def makeConnection(name: String): ManagedDatapathConnection
+    protected def stopConnection(conn: ManagedDatapathConnection)
+
+    protected val portToChannel = mutable.Map[(Datapath, Int), ManagedDatapathConnection]()
+
 
     def portCreated(datapath: Datapath, port: DpPort, conn: ManagedDatapathConnection) {
         portToChannel.put((datapath, port.getPortNo), conn)
@@ -37,13 +42,22 @@ class UpcallDatapathConnectionManager(val config: MidolmanConfig) {
         portToChannel.remove((datapath, port.getPortNo))
     }
 
+    protected def setUpcallHandler(
+        conn: OvsDatapathConnection, w: Workers)(implicit as: ActorSystem)
+
     def createAndHookDpPort(datapath: Datapath, port: DpPort)(
-            implicit ec: ExecutionContext, as: ActorSystem):
+        implicit ec: ExecutionContext, as: ActorSystem):
             Future[(Datapath, DpPort, ManagedDatapathConnection)] = {
 
         val connName = "port-upcall-" + port.getName
         log.info("creating datapath connection for {}", port.getName)
-        val conn = new SelectorBasedDatapathConnection(connName, config, true)
+
+        var conn: ManagedDatapathConnection = null
+        try {
+            conn = makeConnection(connName)
+        } catch { case e: Throwable =>
+            return Future.failed[(Datapath, DpPort, ManagedDatapathConnection)](e)
+        }
 
         val (initCb, initFuture) = newCallbackBackedFuture[java.lang.Boolean]()
         conn.start(initCb)
@@ -56,15 +70,15 @@ class UpcallDatapathConnectionManager(val config: MidolmanConfig) {
         initFuture flatMap { _ => workersFuture } flatMap { workers =>
             val (createCb, createFuture) = newCallbackBackedFuture[DpPort]()
             dpConn.setCallbackDispatcher(NetlinkCallbackDispatcher.makeBatchCollector())
-            dpConn.datapathsSetNotificationHandler(makeUpcallHandler(workers))
+            setUpcallHandler(dpConn, workers)
             log.info("creating datapath port: {}", port.getName)
             dpConn.portsCreate(datapath, port, createCb)
             createFuture recoverWith {
                 // Error code changed in OVS in May-2013 from EBUSY to EEXIST
                 // http://openvswitch.org/pipermail/dev/2013-May/027947.html
                 case ex: NetlinkException
-                        if ex.getErrorCodeEnum == EEXIST ||
-                           ex.getErrorCodeEnum == EBUSY =>
+                    if ex.getErrorCodeEnum == EEXIST ||
+                        ex.getErrorCodeEnum == EBUSY =>
 
                     log.info("datapath port already exists: {}", port.getName)
                     val (getCb, getFuture) = newCallbackBackedFuture[DpPort]()
@@ -86,7 +100,7 @@ class UpcallDatapathConnectionManager(val config: MidolmanConfig) {
     }
 
     def deleteDpPort(datapath: Datapath, port: DpPort)(
-            implicit ec: ExecutionContext, as: ActorSystem): Future[Boolean] =
+        implicit ec: ExecutionContext, as: ActorSystem): Future[Boolean] =
         portToChannel.get((datapath, port.getPortNo)) match {
             case None => Future.successful(true)
             case Some(conn) =>
@@ -97,9 +111,15 @@ class UpcallDatapathConnectionManager(val config: MidolmanConfig) {
                     case ex: NetlinkException if ex.getErrorCodeEnum == ENOENT =>
                         port
                 } andThen {
-                    case Success(v) => conn.stop()
+                    case Success(v) =>
+                        cleanUp(conn)
+                        portToChannel.remove((datapath, port.getPortNo))
                 } map { _ => true }
         }
+
+    private def cleanUp(conn: ManagedDatapathConnection): Unit = {
+        stopConnection(conn)
+    }
 
     protected def newCallbackBackedFuture[T](): (Callback[T], Future[T]) = {
         val promise = Promise[T]()
@@ -159,4 +179,50 @@ class UpcallDatapathConnectionManager(val config: MidolmanConfig) {
                     endBatch(worker)
             }
         }
+}
+
+class OneToOneDpConnManager(c: MidolmanConfig) extends
+        UpcallDatapathConnectionManager(c) {
+
+    protected override val log = LoggerFactory.getLogger(this.getClass)
+
+    override def makeConnection(name: String) =
+        new SelectorBasedDatapathConnection(name, config, true)
+
+    override def stopConnection(conn: ManagedDatapathConnection) {
+        conn.stop()
+    }
+
+    protected override def setUpcallHandler(
+            conn: OvsDatapathConnection, w: Workers)(implicit as: ActorSystem) {
+        conn.datapathsSetNotificationHandler(makeUpcallHandler(w))
+    }
+}
+
+class OneToManyDpConnManager(c: MidolmanConfig) extends
+        UpcallDatapathConnectionManager(c) {
+
+    val threadPair = new SelectorThreadPair("upcall", config, false)
+
+    protected override val log = LoggerFactory.getLogger(this.getClass)
+
+    private var upcallHandler: BatchCollector[Packet] = null
+
+    override def makeConnection(name: String) = {
+        if (!threadPair.isRunning)
+            threadPair.start()
+        threadPair.addConnection()
+    }
+
+    override def stopConnection(conn: ManagedDatapathConnection) {
+        threadPair.removeConnection(conn)
+    }
+
+    protected override def setUpcallHandler(
+            conn: OvsDatapathConnection, w: Workers)(implicit as: ActorSystem) {
+        if (upcallHandler == null)
+            upcallHandler = makeUpcallHandler(w)
+
+        conn.datapathsSetNotificationHandler(upcallHandler)
+    }
 }

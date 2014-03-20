@@ -8,9 +8,7 @@ import javax.inject.Singleton;
 import com.google.inject.*;
 
 import org.midonet.midolman.config.MidolmanConfig;
-import org.midonet.midolman.io.DatapathConnectionPool;
-import org.midonet.midolman.io.OneToOneConnectionPool;
-import org.midonet.midolman.io.UpcallDatapathConnectionManager;
+import org.midonet.midolman.io.*;
 import org.midonet.midolman.services.DatapathConnectionService;
 
 
@@ -46,12 +44,23 @@ public class DatapathModule extends PrivateModule {
     public static class UpcallDatapathConnectionManagerProvider
             implements Provider<UpcallDatapathConnectionManager> {
 
+        public final String ONE_TO_ONE = "one_to_one";
+        public final String ONE_TO_MANY = "one_to_many";
+
         @Inject
         MidolmanConfig config;
 
         @Override
         public UpcallDatapathConnectionManager get() {
-            return new UpcallDatapathConnectionManager(config);
+            String threadingModel = config.getInputChannelThreading();
+            if (ONE_TO_ONE.equalsIgnoreCase(threadingModel)) {
+                return new OneToOneDpConnManager(config);
+            } else if (ONE_TO_MANY.equalsIgnoreCase(threadingModel)) {
+                return new OneToManyDpConnManager(config);
+            } else {
+                throw new IllegalArgumentException(
+                    "Unknown value for input_channel_threading: " + threadingModel);
+            }
         }
     }
 
