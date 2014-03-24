@@ -266,6 +266,7 @@ install_midonet_api() {
     /etc/init.d/tomcat7 stop
     dpkg --purge midonet-api
     dpkg -i $deb || err_exit "installing $deb"
+    cp /usr/share/midonet-api/WEB-INF/web.xml.dev /usr/share/midonet-api/WEB-INF/web.xml
     popd
     /etc/init.d/tomcat7 start || err_exit "starting midonet-api"
     sleep 30
