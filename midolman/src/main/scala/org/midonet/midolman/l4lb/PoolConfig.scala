@@ -22,7 +22,6 @@ class PoolConfig(val id: UUID, val vip: VipConfig,
                  val members: Set[PoolMemberConfig],
                  val healthMonitor: HealthMonitorConfig,
                  val adminStateUp: Boolean,
-                 val routerId: UUID,
                  val l4lbFileLocs: String,
                  val nsPostFix: String) {
     import PoolConfig._
@@ -78,7 +77,6 @@ backend $id
     override def equals(other: Any) = other match {
         case that: PoolConfig =>
             this.id == that.id &&
-            this.routerId == that.routerId &&
             this.l4lbFileLocs == that.l4lbFileLocs &&
             this.nsPostFix == that.nsPostFix
             this.adminStateUp == that.adminStateUp &&

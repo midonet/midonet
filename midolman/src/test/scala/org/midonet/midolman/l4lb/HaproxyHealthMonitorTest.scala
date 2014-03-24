@@ -72,7 +72,7 @@ class HaproxyHealthMonitorTest extends FeatureSpec
                                             "10.11.12.15", 81)
 
         new PoolConfig(UUID.randomUUID(), vip, Set(member1, member2, member3),
-                       healthMonitor, true, UUID.randomUUID(), path, "_MN")
+                       healthMonitor, true, path, "_MN")
     }
 
     before {
