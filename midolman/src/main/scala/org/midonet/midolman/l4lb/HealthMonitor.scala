@@ -12,9 +12,8 @@ import org.midonet.midolman.host.HostIdGenerator
 import org.midonet.midolman.l4lb.HaproxyHealthMonitor.ConfigUpdate
 import org.midonet.midolman.l4lb.HaproxyHealthMonitor.{SetupFailure,
                                                        SockReadFailure}
-import org.midonet.midolman.l4lb.HealthMonitor.ConfigAdded
-import org.midonet.midolman.l4lb.HealthMonitor.ConfigDeleted
-import org.midonet.midolman.l4lb.HealthMonitor.ConfigUpdated
+import org.midonet.midolman.l4lb.HealthMonitor.{ConfigAdded, ConfigDeleted,
+                                                ConfigUpdated, RouterChanged}
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.Referenceable
 import org.midonet.midolman.routingprotocols.IP
@@ -29,6 +28,7 @@ object HealthMonitor extends Referenceable {
     case class ConfigUpdated(poolId: UUID, config: PoolConfig, routerId: UUID)
     case class ConfigDeleted(id: UUID)
     case class ConfigAdded(poolId: UUID, config: PoolConfig, routerId: UUID)
+    case class RouterChanged(poolId: UUID, config: PoolConfig, routerId: UUID)
 
     private val log: Logger
         = LoggerFactory.getLogger(classOf[HealthMonitor])
@@ -195,14 +195,15 @@ class HealthMonitor extends Actor with ActorLogWithoutPath {
     def receive = {
         case ConfigUpdated(poolId, config, routerId) =>
             context.child(poolId.toString) match {
-                case Some(child) if !config.adminStateUp => context.stop(child)
+                case Some(child) if !config.adminStateUp || routerId == null =>
+                    context.stop(child)
 
                 case Some(child) => child ! ConfigUpdate(config)
 
-                case None if config.adminStateUp =>
+                case None if config.adminStateUp && routerId != null =>
                     startChildHaproxyMonitor(poolId, config, routerId)
 
-                case None => log.error("Request to update config not " +
+                case None => log.info("Request to update config not " +
                                        "associated with child: " +
                                        poolId.toString)
             }
@@ -215,6 +216,9 @@ class HealthMonitor extends Actor with ActorLogWithoutPath {
                 case None if !config.adminStateUp =>
                     // Wait until the admin state is up to start this.
 
+                case None if routerId == null =>
+                    // Wait until we get a new router to start this.
+
                 case None => startChildHaproxyMonitor(poolId, config, routerId)
             }
 
@@ -224,6 +228,24 @@ class HealthMonitor extends Actor with ActorLogWithoutPath {
                 case None => log.error("Request to delete config not" +
                                        "associated with child: " +
                                        poolId.toString)
+            }
+
+        case RouterChanged(poolId, config, routerId) =>
+            context.child(poolId.toString) match {
+                case Some(child) if routerId == null =>
+                    context.stop(child)
+
+                case Some(child) if config.adminStateUp =>
+                    context.stop(child)
+                    startChildHaproxyMonitor(poolId, config, routerId)
+
+                case None if config.adminStateUp =>
+                    startChildHaproxyMonitor(poolId, config, routerId)
+
+                case None => log.info("Request to update config not " +
+                        "associated with child: " + poolId.toString)
+
+                case _ => // No other cases matter
             }
 
         case SetupFailure =>  context.stop(sender)
