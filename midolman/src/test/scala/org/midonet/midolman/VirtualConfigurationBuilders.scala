@@ -397,7 +397,11 @@ trait VirtualConfigurationBuilders {
     }
 
     def setLoadBalancerOnRouter(loadBalancer: LoadBalancer, router: ClusterRouter): Unit = {
-        router.setLoadBalancer(loadBalancer.getId)
+        if (loadBalancer != null) {
+            router.setLoadBalancer(loadBalancer.getId)
+        } else {
+            router.setLoadBalancer(null)
+        }
         clusterDataClient().routersUpdate(router)
     }
 

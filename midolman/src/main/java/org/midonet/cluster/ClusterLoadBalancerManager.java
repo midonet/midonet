@@ -93,6 +93,7 @@ public class ClusterLoadBalancerManager
 
         // Set any values from the lb config
         builder.setAdminStateUp(lbCfg.adminStateUp);
+        builder.setRouterId(lbCfg.routerId);
 
         // Only build if we're not waiting for VIPs
         Collection<UUID> missingVipIds =
