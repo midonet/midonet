@@ -97,6 +97,25 @@ public class TestLoadBalancer {
             assertEquals(router.getUri(), assignedLoadBalancer.getRouter());
             verifyNumberOfLoadBalancers(++counter);
 
+            // Check if the load balancer object gets updated if the router
+            // changes the load balancer it points to.
+            DtoLoadBalancer otherLB = createStockLoadBalancer();
+            router.setLoadBalancerId(otherLB.getId());
+            router = updateRouterV2(router);
+            otherLB = getLoadBalancer(otherLB.getUri());
+            assignedLoadBalancer = getLoadBalancer(
+                    assignedLoadBalancer.getUri());
+            assertEquals(assignedLoadBalancer.getRouterId(), null);
+            assertEquals(otherLB.getRouterId(), router.getId());
+            verifyNumberOfLoadBalancers(++counter);
+
+            // Clear the load balancer from the router and check that the
+            // load balancer is updated
+            router.setLoadBalancerId(null);
+            updateRouterV2(router);
+            otherLB = getLoadBalancer(otherLB.getUri());
+            assertEquals(otherLB.getRouterId(), null);
+
             // The load balancers can't assign themselves to the different
             // router
             DtoRouter anotherRouter = createStockRouter();

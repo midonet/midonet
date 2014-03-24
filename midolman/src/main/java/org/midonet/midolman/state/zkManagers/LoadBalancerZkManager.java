@@ -156,6 +156,13 @@ public class LoadBalancerZkManager extends
         return asList(Op.delete(paths.getLoadBalancerVipPath(id, vipId), -1));
     }
 
+    public List<Op> prepareSetRouterId(UUID id, UUID routerId)
+            throws SerializationException, StateAccessException {
+        LoadBalancerConfig config = get(id);
+        config.routerId = routerId;
+        return asList(simpleUpdateOp(id, config));
+    }
+
     public void getVipIdListAsync(UUID loadBalancerId,
                                   final DirectoryCallback<Set<UUID>>
                                           vipContentsCallback,

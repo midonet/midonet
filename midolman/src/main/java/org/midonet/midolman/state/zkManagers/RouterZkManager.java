@@ -94,22 +94,20 @@ public class RouterZkManager
     ChainZkManager chainZkManager;
     LoadBalancerZkManager loadBalancerZkManager;
 
-    // TODO(tfukushima): `routerId` can be null. We should replace its type
-    //   with `Optional<UUID>` but we depend on Guava r08 and `Optional` was
-    //   introduced in Release 13. So we need to update Guava.
-    private List<Op> buildLoadBalancerAssociation(UUID routerId,
-                                                  RouterConfig config)
+    private List<Op> updateLoadBalancerAssociation(UUID routerId,
+                                                   RouterConfig oldConfig,
+                                                   RouterConfig newConfig)
             throws StateAccessException, SerializationException {
-        UUID loadBalancerId = checkNotNull(
-                config.loadBalancer, "The load balancer ID is null.");
         List<Op> ops = new ArrayList<>();
 
-        LoadBalancerZkManager.LoadBalancerConfig loadBalancerConfig =
-                loadBalancerZkManager.get(loadBalancerId);
-        loadBalancerConfig.routerId = routerId;
-        ops.add(Op.setData(paths.getLoadBalancerPath(config.loadBalancer),
-                serializer.serialize(loadBalancerConfig), -1));
-
+        if (oldConfig != null && oldConfig.loadBalancer != null) {
+            ops.addAll(loadBalancerZkManager.prepareSetRouterId(
+                    oldConfig.loadBalancer, null));
+        }
+        if (newConfig != null && newConfig.loadBalancer != null) {
+            ops.addAll(loadBalancerZkManager.prepareSetRouterId(
+                    newConfig.loadBalancer, routerId));
+        }
         return ops;
     }
 
@@ -222,7 +220,7 @@ public class RouterZkManager
         ops.addAll(filterZkManager.prepareCreate(id));
 
         if (config.loadBalancer != null) {
-            ops.addAll(buildLoadBalancerAssociation(id, config));
+            ops.addAll(updateLoadBalancerAssociation(id, null, config));
         }
 
         return ops;
@@ -285,7 +283,7 @@ public class RouterZkManager
         ops.add(Op.delete(arpTablePath, -1));
 
         if (config.loadBalancer != null) {
-            ops.addAll(buildLoadBalancerAssociation(null, config));
+            ops.addAll(updateLoadBalancerAssociation(id, config, null));
         }
 
         String routerPath = paths.getRouterPath(id);
@@ -363,9 +361,9 @@ public class RouterZkManager
         if (dataChanged) {
             config.properties.clear();
             config.properties.putAll(oldConfig.properties);
-            if (config.loadBalancer != null && !Objects.equal(
-                    config.loadBalancer, oldConfig.loadBalancer)) {
-                ops.addAll(buildLoadBalancerAssociation(id, config));
+            if (!Objects.equal(config.loadBalancer, oldConfig.loadBalancer)) {
+                ops.addAll(
+                    updateLoadBalancerAssociation(id, oldConfig, config));
             }
             ops.add(Op.setData(paths.getRouterPath(id),
                     serializer.serialize(config), -1));
