@@ -10,5 +10,6 @@ import org.midonet.cluster.data.l4lb.VIP;
 
 public interface LoadBalancerBuilder extends Builder<LoadBalancerBuilder> {
     void setAdminStateUp(boolean adminStateUp);
+    void setRouterId(UUID routerId);
     void setVips(Map<UUID,VIP> vips);
 }

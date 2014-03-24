@@ -9,9 +9,10 @@ import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.midolman.simulation.{Router, CustomMatchers}
+import org.midonet.midolman.simulation.{Router, CustomMatchers, LoadBalancer}
 import org.midonet.midolman.topology.VirtualTopologyActor
-import org.midonet.midolman.topology.VirtualTopologyActor.RouterRequest
+import org.midonet.midolman.topology.VirtualTopologyActor.{LoadBalancerRequest,
+                                                           RouterRequest}
 
 
 @RunWith(classOf[JUnitRunner])
@@ -49,12 +50,36 @@ with VirtualConfigurationBuilders {
             val r = expectMsgType[Router]
             r.loadBalancer.id shouldEqual loadBalancer.getId
 
+            And("The associated load balancer should be updated")
+            vta.self ! LoadBalancerRequest(loadBalancer.getId, update = false)
+            val lb = expectMsgType[LoadBalancer]
+            lb.routerId shouldEqual r.id
+
             Then("Delete load balancer")
             deleteLoadBalancer(loadBalancer.getId)
 
             Then("it should return the requested router, with null loadbalancer ID")
             val r2 = expectMsgType[Router]
             assert(r2.loadBalancer == null)
+        }
+        scenario("The load balancer gets updated when the routerId changes") {
+            Given ("a load balancer")
+            val loadBalancer = createLoadBalancer()
+            vta.self ! LoadBalancerRequest(loadBalancer.getId, update = true)
+
+            var lb = expectMsgType[LoadBalancer]
+            lb.routerId shouldEqual null
+
+            val router = newRouter("r")
+            setLoadBalancerOnRouter(loadBalancer, router)
+
+            lb = expectMsgType[LoadBalancer]
+            lb.routerId shouldEqual router.getId
+
+            setLoadBalancerOnRouter(null, router)
+
+            lb = expectMsgType[LoadBalancer]
+            lb.routerId shouldEqual null
         }
     }
 }
