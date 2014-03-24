@@ -59,8 +59,8 @@ class LoadBalancerManager(val id: UUID, val clusterClient: Client) extends Actor
             val simulationVips =
                 vips.map(toSimulationVip)(scala.collection.breakOut(Array.canBuildFrom))
 
-            publishUpdate(new LoadBalancer(id, cfg.adminStateUp, simulationVips,
-                context.system.eventStream))
+            publishUpdate(new LoadBalancer(id, cfg.adminStateUp, cfg.routerId,
+                simulationVips, context.system.eventStream))
         }
     }
 
@@ -76,6 +76,10 @@ class LoadBalancerManager(val id: UUID, val clusterClient: Client) extends Actor
         override def setAdminStateUp(adminStateUp: Boolean) {
             cfg.setAdminStateUp(adminStateUp)
             adminStateSet = true
+        }
+
+        override def setRouterId(routerId: UUID) {
+            cfg.routerId = routerId
         }
 
         override def setVips(vipMap: JMap[UUID, VIP]) {

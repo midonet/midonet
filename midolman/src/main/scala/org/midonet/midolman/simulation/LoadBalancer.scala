@@ -34,7 +34,7 @@ object LoadBalancer {
         new RuleResult(action, null, pktContext.wcmatch)
 }
 
-class LoadBalancer(val id: UUID, val adminStateUp: Boolean,
+class LoadBalancer(val id: UUID, val adminStateUp: Boolean, val routerId: UUID,
                    val vips: Array[VIP], val loggingBus: LoggingBus) {
 
     import LoadBalancer._
