@@ -2815,8 +2815,7 @@ public class LocalDataClientImpl implements DataClient {
         log.debug("Entered: tenantId={}, name={}", tenantId, name);
 
         Router router = null;
-        String path = pathBuilder.getTenantRouterNamePath(tenantId, name)
-                .toString();
+        String path = pathBuilder.getTenantRouterNamePath(tenantId, name);
 
         if (zkManager.exists(path)) {
             byte[] data = zkManager.get(path);
