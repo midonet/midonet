@@ -51,22 +51,6 @@ public class DatapathModule extends PrivateModule {
     public static class UpcallDatapathConnectionManagerProvider
             implements Provider<UpcallDatapathConnectionManager> {
 
-        public enum ThreadingMapping {
-            ONE_TO_MANY("one_to_many"),
-            ONE_TO_ONE("one_to_one");
-
-            private final String text;
-
-            private ThreadingMapping(final String text) {
-                this.text = text;
-            }
-
-            @Override
-            public String toString() {
-                return text;
-            }
-        }
-
         @Inject
         MidolmanConfig config;
 
@@ -76,10 +60,10 @@ public class DatapathModule extends PrivateModule {
         @Override
         public UpcallDatapathConnectionManager get() {
             String val = config.getInputChannelThreading();
-            switch (ThreadingMapping.valueOf(val)) {
-                case ONE_TO_MANY:
+            switch (val) {
+                case "one_to_many":
                     return new OneToManyDpConnManager(config, tbPolicy);
-                case ONE_TO_ONE:
+                case "one_to_one":
                     return new OneToOneDpConnManager(config, tbPolicy);
                 default:
                     throw new IllegalArgumentException(
