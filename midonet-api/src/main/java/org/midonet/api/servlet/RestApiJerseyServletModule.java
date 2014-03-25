@@ -3,16 +3,15 @@
  */
 package org.midonet.api.servlet;
 
-import com.google.inject.Key;
 import com.sun.jersey.api.container.filter.RolesAllowedResourceFilterFactory;
 import com.sun.jersey.api.core.ResourceConfig;
 import com.sun.jersey.guice.JerseyServletModule;
 import com.sun.jersey.guice.spi.container.servlet.GuiceContainer;
 import org.midonet.api.auth.AuthContainerRequestFilter;
 import org.midonet.api.auth.AuthFilter;
-import org.midonet.api.auth.StateFilter;
 import org.midonet.api.auth.AuthModule;
 import org.midonet.api.auth.LoginFilter;
+import org.midonet.api.auth.StateFilter;
 import org.midonet.api.auth.cors.CrossOriginResourceSharingFilter;
 import org.midonet.api.config.ConfigurationModule;
 import org.midonet.api.error.ErrorModule;
@@ -24,8 +23,7 @@ import org.midonet.api.serialization.SerializationModule;
 import org.midonet.api.validation.ValidationModule;
 import org.midonet.api.zookeeper.ZookeeperModule;
 import org.midonet.midolman.guice.CacheModule;
-import org.midonet.midolman.guice.MonitoringStoreModule;
-import org.midonet.midolman.guice.cluster.DataClusterClientModule;
+import org.midonet.midolman.guice.cluster.DataClientModule;
 import org.midonet.midolman.version.guice.VersionModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,9 +70,7 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
 
         // Install Zookeeper module until Cluster Client makes it unnecessary
         install(new ZookeeperModule());
-        install(new CacheModule());
-        install(new DataClusterClientModule());
-        install(new MonitoringStoreModule());
+        install(new DataClientModule());
 
         install(new NetworkModule());
         install(new FilterModule());

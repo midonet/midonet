@@ -452,20 +452,6 @@ public interface DataClient {
     void hostsDelVrnPortMapping(UUID hostId, UUID portId)
             throws StateAccessException, SerializationException;
 
-    /* Metrics related methods */
-    Map<String, Long> metricsGetTSPoints(String type, String targetIdentifier,
-                                         String metricName, long timeStart,
-                                         long timeEnd);
-
-    void metricsAddTypeToTarget(
-            @Nonnull String targetIdentifier, @Nonnull String type);
-
-    List<String> metricsGetTypeForTarget(String targetIdentifier);
-
-    void metricsAddToType(@Nonnull String type, @Nonnull String metricName);
-
-    List<String> metricsGetForType(String type);
-
 
     /* Ports related methods */
     boolean portsExists(UUID id) throws StateAccessException;
@@ -765,35 +751,6 @@ public interface DataClient {
      */
     public void tagsDelete(@Nonnull TaggableEntity taggable, UUID id, String tag)
         throws StateAccessException;
-
-    /* Trace condition methods */
-    UUID traceConditionCreate(@Nonnull TraceCondition traceCondition)
-        throws StateAccessException, SerializationException;
-
-    void traceConditionDelete(UUID uuid)
-            throws SerializationException, StateAccessException;
-
-    boolean traceConditionExists(UUID uuid) throws StateAccessException;
-
-    @CheckForNull TraceCondition traceConditionGet(UUID uuid)
-        throws StateAccessException, SerializationException;
-
-    List<TraceCondition> traceConditionsGetAll()
-        throws StateAccessException, SerializationException;
-
-    /*
-     * Packet Trace related methods
-     */
-
-    // First String is key (UUID traceID represented as String)
-    // Second String is value (int number of trace messages represent as String)
-    Map<String, String> traceIdList(int maxEntries);
-
-    void traceIdDelete(UUID traceId);
-
-    List<String> packetTraceGet(UUID traceId);
-
-    void packetTraceDelete(UUID traceId);
 
     /**
      * Get tenants

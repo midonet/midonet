@@ -157,28 +157,6 @@ public class Application extends UriResource {
     }
 
     /**
-     * @return the metrics filter URI
-     */
-    public URI getMetricsFilter() {
-        if (getBaseUri() != null) {
-            return ResourceUriBuilder.getMetricsFilter(getBaseUri());
-        } else {
-            return null;
-        }
-    }
-
-    /**
-     * @return the metrics query URI
-     */
-    public URI getMetricsQuery() {
-        if (getBaseUri() != null) {
-            return ResourceUriBuilder.getMetricsQuery(getBaseUri());
-        } else {
-            return null;
-        }
-    }
-
-    /**
      * @return the port groups URI
      */
     public URI getPortGroups() {
@@ -418,50 +396,6 @@ public class Application extends UriResource {
     public URI getUri() {
         if (getBaseUri() != null) {
             return ResourceUriBuilder.getRoot(getBaseUri());
-        } else {
-            return null;
-        }
-    }
-
-    /**
-     * @return Trace conditions URI
-     */
-    public URI getTraceConditions() {
-        if (getBaseUri() != null) {
-            return ResourceUriBuilder.getTraceConditions(getBaseUri());
-        } else {
-            return null;
-        }
-    }
-
-    /**
-     * @return Trace conditions template URI
-     */
-    public String getTraceConditionTemplate() {
-        if (getBaseUri() != null) {
-            return ResourceUriBuilder.getTraceConditionTemplate(getBaseUri());
-        } else {
-            return null;
-        }
-    }
-
-    /**
-     * @return Trace URI
-     */
-    public URI getTraces() {
-        if (getBaseUri() != null) {
-            return ResourceUriBuilder.getTraces(getBaseUri());
-        } else {
-            return null;
-        }
-    }
-
-    /**
-     * @return Trace template URI
-     */
-    public String getTraceTemplate() {
-        if (getBaseUri() != null) {
-            return ResourceUriBuilder.getTraceTemplate(getBaseUri());
         } else {
             return null;
         }

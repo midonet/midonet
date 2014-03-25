@@ -119,17 +119,6 @@ public class VendorMediaType {
     public static final String APPLICATION_DHCPV6_HOST_COLLECTION_JSON =
             "application/vnd.org.midonet.collection.DhcpV6Host-v1+json";
 
-    public static final String
-            APPLICATION_MONITORING_QUERY_RESPONSE_COLLECTION_JSON =
-            "application/vnd.org.midonet.collection.mgmt." +
-                    "MetricQueryResponse-v1+json";
-    public static final String APPLICATION_MONITORING_QUERY_COLLECTION_JSON =
-            "application/vnd.org.midonet.collection.MetricQuery-v1+json";
-    public static final String APPLICATION_METRICS_COLLECTION_JSON =
-            "application/vnd.org.midonet.collection.Metric-v1+json";
-    public static final String APPLICATION_METRIC_TARGET_JSON =
-            "application/vnd.org.midonet.MetricTarget-v1+json";
-
     // Tunnel Zones
     public static final String APPLICATION_TUNNEL_ZONE_JSON =
             "application/vnd.org.midonet.TunnelZone-v1+json";
@@ -174,20 +163,6 @@ public class VendorMediaType {
             APPLICATION_HOST_INTERFACE_PORT_COLLECTION_JSON =
             "application/vnd.org.midonet.collection" +
                     ".HostInterfacePort-v1+json";
-
-    // Trace Conditions
-    public static final String APPLICATION_CONDITION_JSON =
-            "application/vnd.org.midonet.Condition-v1+json";
-    public static final String APPLICATION_CONDITION_COLLECTION_JSON =
-            "application/vnd.org.midonet.collection" +
-                    ".Condition-v1+json";
-
-    // Packet Trace
-    public static final String APPLICATION_TRACE_JSON =
-            "application/vnd.org.midonet.Trace-v1+json";
-    public static final String APPLICATION_TRACE_COLLECTION_JSON =
-            "application/vnd.org.midonet.collection" +
-                    ".Trace-v1+json";
 
     // Upgrade Control
     public static final String APPLICATION_WRITE_VERSION_JSON =
