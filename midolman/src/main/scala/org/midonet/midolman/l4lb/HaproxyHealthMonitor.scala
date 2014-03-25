@@ -246,8 +246,8 @@ class HaproxyHealthMonitor(var config: PoolConfig,
         val iptablePre = "iptables --table nat --append PREROUTING" +
                          " --destination " + ip + " --jump DNAT " +
                          "--to-destination " + NameSpaceIp
-        IP.ensureNamespace(name)
         try {
+            IP.ensureNamespace(name)
             IP.link("add name " + dp + " type veth peer name " + ns)
             IP.link("set " + dp + " up")
             IP.link("set " + ns + " netns " + name)
@@ -262,6 +262,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
             case e: Exception =>
                 HealthMonitor.cleanAndDeleteNamespace(name, config.nsPostFix,
                                                       config.l4lbFileLocs)
+                log.error("Failed to create Namespace: ", e.getMessage())
                 throw e
         }
         dp

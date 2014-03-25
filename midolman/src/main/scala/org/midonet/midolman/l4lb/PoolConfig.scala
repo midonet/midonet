@@ -18,7 +18,9 @@ object PoolConfig {
  * health monitor only needs to know minimal amount of pool data to run the
  * service.
  */
-class PoolConfig(val id: UUID, val vip: VipConfig,
+class PoolConfig(val id: UUID,
+                 val loadBalancerId: UUID,
+                 val vip: VipConfig,
                  val members: Set[PoolMemberConfig],
                  val healthMonitor: HealthMonitorConfig,
                  val adminStateUp: Boolean,
@@ -37,8 +39,8 @@ class PoolConfig(val id: UUID, val vip: VipConfig,
     // valid config
     def isConfigurable: Boolean =
         id != null && vip != null && healthMonitor != null &&
-        healthMonitor.isConfigurable && vip.isConfigurable &&
-        members.forall (_.isConfigurable)
+        loadBalancerId != null && healthMonitor.isConfigurable &&
+        vip.isConfigurable && members.forall (_.isConfigurable)
 
     def generateConfigFile(): String = {
         if (!isConfigurable) {
@@ -77,6 +79,7 @@ backend $id
     override def equals(other: Any) = other match {
         case that: PoolConfig =>
             this.id == that.id &&
+            this.loadBalancerId == that.loadBalancerId &&
             this.l4lbFileLocs == that.l4lbFileLocs &&
             this.nsPostFix == that.nsPostFix
             this.adminStateUp == that.adminStateUp &&
