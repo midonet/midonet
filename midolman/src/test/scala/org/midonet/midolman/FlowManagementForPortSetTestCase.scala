@@ -3,11 +3,11 @@
 */
 package org.midonet.midolman
 
-import scala.collection.immutable
-import scala.util.control.Breaks._
-import scala.concurrent.duration.Duration
-
 import java.util.concurrent.TimeUnit
+import scala.collection.immutable
+import scala.concurrent.duration.Duration
+import scala.util.control.Breaks._
+
 import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner

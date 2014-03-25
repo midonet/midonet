@@ -17,7 +17,6 @@ import org.midonet.midolman.guice.MonitoringStoreModule;
 import org.midonet.midolman.guice.cluster.ClusterClientModule;
 import org.midonet.midolman.guice.config.ConfigProviderModule;
 import org.midonet.midolman.guice.datapath.DatapathModule;
-import org.midonet.midolman.guice.reactor.ReactorModule;
 import org.midonet.midolman.guice.zookeeper.ZookeeperConnectionModule;
 import org.midonet.midolman.host.guice.HostAgentModule;
 import org.midonet.midolman.host.services.HostAgentService;
@@ -70,7 +69,6 @@ public class HostAgent {
                 new ConfigProviderModule(configFilePath),
                 new ZookeeperConnectionModule(),
                 new DatapathModule(),
-                new ReactorModule(),
                 new HostAgentModule(),
                 new MonitoringStoreModule(),
                 new ClusterClientModule());

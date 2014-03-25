@@ -3,11 +3,9 @@
 */
 package org.midonet.midolman.guice;
 
+import java.io.IOException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
-
-import org.midonet.midolman.host.config.HostConfig;
-import org.midonet.midolman.l4lb.HealthMonitor;
 import scala.concurrent.duration.Duration;
 
 import akka.actor.ActorInitializationException;
@@ -16,7 +14,6 @@ import akka.actor.OneForOneStrategy;
 import akka.actor.SupervisorStrategy;
 import akka.actor.SupervisorStrategy.Directive;
 import akka.japi.Function;
-
 import com.google.inject.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,14 +21,17 @@ import org.slf4j.LoggerFactory;
 import org.midonet.cache.Cache;
 import org.midonet.midolman.*;
 import org.midonet.midolman.config.MidolmanConfig;
-import org.midonet.midolman.guice.datapath.DatapathModule;
+import org.midonet.midolman.host.config.HostConfig;
 import org.midonet.midolman.io.DatapathConnectionPool;
 import org.midonet.midolman.io.UpcallDatapathConnectionManager;
+import org.midonet.midolman.l4lb.HealthMonitor;
 import org.midonet.midolman.monitoring.MonitoringActor;
 import org.midonet.midolman.routingprotocols.RoutingManagerActor;
 import org.midonet.midolman.services.HostIdProviderService;
 import org.midonet.midolman.services.MidolmanActorsService;
 import org.midonet.midolman.topology.*;
+import org.midonet.util.eventloop.SelectLoop;
+import org.midonet.util.eventloop.SimpleSelectLoop;
 
 import static org.midonet.midolman.guice.CacheModule.NAT_CACHE;
 
@@ -56,6 +56,9 @@ public class MidolmanActorsModule extends PrivateModule {
     public @interface RESUME_STRATEGY {}
     @BindingAnnotation @Target({FIELD, METHOD}) @Retention(RUNTIME)
     public @interface CRASH_STRATEGY {}
+
+    @BindingAnnotation @Target({FIELD, METHOD}) @Retention(RUNTIME)
+    public @interface ZEBRA_SERVER_LOOP {}
 
     private static final Logger log = LoggerFactory
             .getLogger(MidolmanActorsModule.class);
@@ -114,6 +117,15 @@ public class MidolmanActorsModule extends PrivateModule {
                 log.warn("Unknown supervisor strategy [{}], " +
                          "falling back to resume strategy", strategy);
                 return getResumeStrategy();
+        }
+    }
+
+    @Provides @Exposed @Singleton @ZEBRA_SERVER_LOOP
+    public SelectLoop provideSelectLoop() {
+        try {
+            return new SimpleSelectLoop();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 

@@ -6,15 +6,15 @@ package org.midonet.midolman.guice;
 import com.google.inject.Inject;
 import com.google.inject.PrivateModule;
 import com.google.inject.Provider;
-
 import com.yammer.metrics.core.MetricsRegistry;
+
+import org.midonet.cluster.Client;
 import org.midonet.config.ConfigProvider;
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.services.DatapathConnectionService;
 import org.midonet.midolman.services.MidolmanActorsService;
 import org.midonet.midolman.services.MidolmanService;
 import org.midonet.midolman.simulation.Chain;
-import org.midonet.cluster.Client;
 
 /**
  * Main midolman configuration module

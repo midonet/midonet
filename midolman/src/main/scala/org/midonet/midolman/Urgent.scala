@@ -4,9 +4,8 @@
 
 package org.midonet.midolman
 
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, Future}
 import scala.collection.mutable
-import scala.concurrent.duration.Duration
 
 /**
  * A monad that is very similar to Try, but whose semantics for Failure are
