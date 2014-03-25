@@ -57,7 +57,7 @@ object HealthMonitor extends Referenceable {
         if (!cmdLine.contains(confFilePath))
             return false
 
-        return true
+        true
     }
 
     def getHaproxyPid(pidFileLoc: String): Option[Int] = {
@@ -79,7 +79,7 @@ object HealthMonitor extends Referenceable {
     def killHaproxy(ns: String, pid: Int, pidFilePath: String,
                     confFilePath: String): Unit = {
         if (isRunningHaproxyPid(pid, pidFilePath, confFilePath)) {
-            IP.execIn(ns, "kill -15 " + pid)
+            IP.exec("kill -15 " + pid)
             if (!isRunningHaproxyPid(pid, pidFilePath, confFilePath))
                 return
             Thread.sleep(200)
@@ -88,7 +88,7 @@ object HealthMonitor extends Referenceable {
             Thread.sleep(5000)
             if (!isRunningHaproxyPid(pid, pidFilePath, confFilePath))
                 return
-            IP.execIn(ns, "kill -9" + pid)
+            IP.exec("kill -9 " + pid)
             Thread.sleep(200)
             if (!isRunningHaproxyPid(pid, pidFilePath, confFilePath))
                 return
@@ -121,9 +121,9 @@ object HealthMonitor extends Referenceable {
             return
         }
 
-        val pidFilePath = fileLoc + "/" + nameSpaceFiles(0).getName + "/" +
+        val pidFilePath = fileLoc + nameSpaceFiles(0).getName + "/" +
                           PoolConfig.PID
-        val confFilePath = fileLoc + "/" + nameSpaceFiles(0).getName + "/" +
+        val confFilePath = fileLoc + nameSpaceFiles(0).getName + "/" +
                            PoolConfig.CONF
 
         // If we got this far, we have pid. Lets make sure it matches what
@@ -138,9 +138,9 @@ object HealthMonitor extends Referenceable {
     }
 
     def deleteLink(ns: String) = {
-        val ns_dev = ns + "_ns"
+        val ns_dev = ns + "_dp"
         if (IP.interfaceExistsInNs(ns, ns_dev)) {
-            IP.execIn(ns, "ip link delete " + ns_dev)
+            IP.exec("ip link delete " + ns_dev)
         }
     }
 
