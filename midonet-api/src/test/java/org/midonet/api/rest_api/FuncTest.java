@@ -18,7 +18,6 @@ import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.test.framework.AppDescriptor;
 import com.sun.jersey.test.framework.WebAppDescriptor;
-import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
 
 import java.net.URI;
 import java.util.UUID;
@@ -26,32 +25,10 @@ import java.util.UUID;
 public class FuncTest {
     static final ClientConfig config = new DefaultClientConfig();
 
-    // Cassandra settings
-    public static final String cassandraCluster = "midonet";
-    public static final String monitoringCassandraKeyspace =
-            "midonet_monitoring_keyspace";
-    public static final String monitoringCassandraColumnFamily =
-            "midonet_monitoring_column_family";
-    public final static String cassandraServers = "127.0.0.1:9171";
-    public final static int cassandraMaxActiveConns = 3;
-    public final static String CASSANDRA_SERVERS = "cassandra-servers";
-    public final static String CASSANDRA_CLUSTER = "cassandra-cluster";
-    public final static String MONITORING_CASSANDRA_KEYSPACE =
-            "monitoring-cassandra_keyspace";
-    public final static String MONITORING_CASSANDRA_COLUMN_FAMILY =
-            "monitoring-cassandra_column_family";
-    public final static String MONITORING_CASSANDRA_REPLICATION_FACTOR =
-            "monitoring-cassandra_replication_factor";
-    public final static String MONITORING_CASSANDRA_EXPIRATION_TIMEOUT =
-            "monitoring-cassandra_expiration_timeout";
-
     public final static String BASE_URI_CONFIG = "rest_api-base_uri";
     public final static String CONTEXT_PATH = "/test";
     public final static String OVERRIDE_BASE_URI =
             "http://127.0.0.1:9998" + CONTEXT_PATH;
-
-    public static int replicationFactor = 1;
-    public static int ttlInSecs = 1000;
 
     public static ObjectMapper objectMapper;
 
@@ -64,14 +41,6 @@ public class FuncTest {
     public static WildCardJacksonJaxbJsonProvider jacksonJaxbJsonProvider;
 
     public static final WebAppDescriptor.Builder getBuilder() {
-
-        // Start the cassandra server.  Calling this multiple times does not
-        // do anything.
-        try {
-            EmbeddedCassandraServerHelper.startEmbeddedCassandra();
-        } catch (Exception ex) {
-            throw new RuntimeException("Could not start Cassandra");
-        }
 
         VersionParser parser = new VersionParser();
         ObjectMapperProvider mapperProvider = new ObjectMapperProvider();
@@ -107,16 +76,6 @@ public class FuncTest {
                 .contextParam(
                         getConfigKey(ExtendedZookeeperConfig.GROUP_NAME,
                                 "midolman_root_key"), "/test/midolman")
-                .contextParam(CASSANDRA_SERVERS, cassandraServers)
-                .contextParam(CASSANDRA_CLUSTER, cassandraCluster)
-                .contextParam(MONITORING_CASSANDRA_KEYSPACE,
-                        monitoringCassandraKeyspace)
-                .contextParam(MONITORING_CASSANDRA_COLUMN_FAMILY,
-                        monitoringCassandraColumnFamily)
-                .contextParam(MONITORING_CASSANDRA_REPLICATION_FACTOR,
-                        "" + replicationFactor)
-                .contextParam(MONITORING_CASSANDRA_EXPIRATION_TIMEOUT,
-                        "" + ttlInSecs)
                 .contextPath(CONTEXT_PATH).clientConfig(config);
     }
 

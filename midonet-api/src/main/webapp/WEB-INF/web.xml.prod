@@ -123,36 +123,6 @@
     <param-value>/midonet/v1</param-value>
   </context-param>
 
-  <!-- Cassandra configuration -->
-  <!-- The following parameters should match the ones in midolman.conf -->
-  <context-param>
-    <param-name>cassandra-servers</param-name>
-    <!-- comma separated list of Cassandra nodes(host:port) -->
-    <param-value>localhost:9160</param-value>
-  </context-param>
-  <context-param>
-    <param-name>cassandra-cluster</param-name>
-    <param-value>midonet</param-value>
-  </context-param>
-
-  <!-- Monitoring configuration -->
-  <context-param>
-    <param-name>monitoring-cassandra_keyspace</param-name>
-    <param-value>midonet_monitoring</param-value>
-  </context-param>
-  <context-param>
-    <param-name>monitoring-cassandra_column_family</param-name>
-    <param-value>monitoring_data</param-value>
-  </context-param>
-  <context-param>
-    <param-name>monitoring-cassandra_replication_factor</param-name>
-    <param-value>1</param-value>
-  </context-param>
-  <context-param>
-    <param-name>monitoring-cassandra_expiration_timeout</param-name>
-    <param-value>525600</param-value>
-  </context-param>
-
   <!-- Servlet Listner -->
   <listener>
      <listener-class>

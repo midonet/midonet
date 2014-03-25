@@ -44,14 +44,9 @@ public class ResourceUriBuilder {
     public static final String HOSTS = "/hosts";
     public static final String INTERFACES = "/interfaces";
     public static final String COMMANDS = "/commands";
-    public static final String METRICS = "/metrics";
-    public static final String FILTER = "/filter";
-    public static final String QUERY = "/query";
     public static final String LINK = "/link";
     public static final String TUNNEL_ZONES = "/tunnel_zones";
     public static final String ID_TOKEN = "/{id}";
-    public static final String TRACE_CONDITIONS ="/trace_conditions";
-    public static final String TRACE = "/trace";
     public static final String SYSTEM_STATE = "/system_state";
     public static final String WRITE_VERSION = "/write_version";
     public static final String VERSIONS = "/versions";
@@ -460,18 +455,6 @@ public class ResourceUriBuilder {
                 .path(portId.toString()).build();
     }
 
-    public static URI getMetrics(URI baseUri){
-        return UriBuilder.fromUri(getRoot(baseUri)).path(METRICS).build();
-    }
-
-    public static URI getMetricsFilter(URI baseUri) {
-        return UriBuilder.fromUri(getMetrics(baseUri)).path(FILTER).build();
-    }
-
-    public static URI getMetricsQuery(URI baseUri) {
-        return UriBuilder.fromUri(getMetrics(baseUri)).path(QUERY).build();
-    }
-
     public static URI getTunnelZones(URI baseUri) {
         return UriBuilder.fromUri(getRoot(baseUri)).path(TUNNEL_ZONES).build();
     }
@@ -629,79 +612,6 @@ public class ResourceUriBuilder {
     public static String getVlanMacPortTemplate(URI bridgeUri) {
         return bridgeUri + VLANS + VLAN_ID + MAC_TABLE +
                 MAC_ADDR + "_" + PORT_ID_NO_SLASH;
-    }
-
-    /**
-     * Generate trace conditions URI
-     *
-     * @param baseUri Base service URI
-     * @return Trace conditions URI
-     */
-    public static URI getTraceConditions(URI baseUri) {
-        return UriBuilder.fromUri(getRoot(baseUri)).path(
-                TRACE_CONDITIONS).build();
-    }
-
-    /**
-     * Generate trace condition URI
-     *
-     * @param baseUri Base service URI
-     * @param traceConditionId UUID of trace condition
-     * @return Trace condition URI
-     */
-    public static URI getTraceCondition(URI baseUri, UUID traceConditionId) {
-        if (baseUri == null || traceConditionId == null) {
-            return null;
-        }
-
-        return UriBuilder.fromUri(getTraceConditions(baseUri)).path(
-                 traceConditionId.toString()).build();
-    }
-
-    /**
-     * Generate trace conditions URI template
-     *
-     * @param baseUri Base URI
-     * @return Trace conditions template URI
-     */
-    public static String getTraceConditionTemplate(URI baseUri) {
-        return buildIdTemplateUri(getTraceConditions(baseUri));
-    }
-
-    /**
-     * Generate trace URI
-     *
-     * @param baseUri Base service URI
-     * @return Trace URI
-     */
-    public static URI getTraces(URI baseUri) {
-        return UriBuilder.fromUri(getRoot(baseUri)).path(TRACE).build();
-    }
-
-    /**
-     * Generate trace URI
-     *
-     * @param baseUri Base service URI
-     * @param traceId UUID of trace
-     * @return Trace URI
-     */
-    public static URI getTrace(URI baseUri, UUID traceId) {
-        if (baseUri == null || traceId == null) {
-            return null;
-        }
-
-        return UriBuilder.fromUri(getTraces(baseUri)).path(
-                 traceId.toString()).build();
-    }
-
-    /**
-     * Generate trace URI template
-     *
-     * @param baseUri Base URI
-     * @return Trace template URI
-     */
-    public static String getTraceTemplate(URI baseUri) {
-        return buildIdTemplateUri(getTraces(baseUri));
     }
 
     /**
