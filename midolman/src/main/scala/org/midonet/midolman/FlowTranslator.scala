@@ -180,12 +180,18 @@ trait FlowTranslator {
         def tunnelSettings(key: Long, output: FlowAction): TaggedActions = {
             val actions = ListBuffer[FlowAction]()
             val tags = ListBuffer[Any]()
-            for (peer <- peerHostIds; route <- dpState.peerTunnelInfo(peer)) {
-                tags += FlowTagger.invalidateTunnelPort(route)
-                // Each FlowActionSetKey must be followed by a corresponding
-                // FlowActionOutput.
-                actions += flowTunnelKey(key, route)
-                actions += output
+            for (peer <- peerHostIds) {
+                dpState.peerTunnelInfo(peer) match {
+                    case None => log.warning("Unable to tunnel to peer UUID" +
+                        " {} - check that the peer host is in the same tunnel" +
+                        " zone as the current node.", peer)
+                    case Some(route) =>
+                        tags += FlowTagger.invalidateTunnelPort(route)
+                        // Each FlowActionSetKey must be followed by a corresponding
+                        // FlowActionOutput.
+                        actions += flowTunnelKey(key, route)
+                        actions += output
+                }
             }
             (actions.toList, tags.toList)
         }
