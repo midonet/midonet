@@ -389,9 +389,7 @@ class Coordinator(var origMatch: WildcardMatch,
                     pktContext.wcmatch.removeVlanId(vlanId)
                     origMatch = pktContext.wcmatch.clone()
                     pktContext.freeze()
-                    Ready(AddVirtualWildcardFlow(flow,
-                          pktContext.getFlowRemovedCallbacks,
-                          pktContext.getFlowTags))
+                    Ready(virtualWildcardFlowResult(flow))
                 case _ => Ready(NoOp)
             }
 
@@ -466,10 +464,8 @@ class Coordinator(var origMatch: WildcardMatch,
                                 .setEthernetDestination(
                                     origMatch.getEthernetDestination)
                                 .setEtherType(origMatch.getEtherType)
-                        AddVirtualWildcardFlow(
-                            WildcardFlow(wcmatch = notIPv4Match),
-                            pktContext.getFlowRemovedCallbacks,
-                            pktContext.getFlowTags)
+                        virtualWildcardFlowResult(
+                            WildcardFlow(wcmatch = notIPv4Match))
                         // TODO(pino): Connection-tracking blob?
                 })
 
@@ -613,10 +609,7 @@ class Coordinator(var origMatch: WildcardMatch,
                         actions = actions.toList,
                         idleExpirationMillis = idleExp,
                         hardExpirationMillis = hardExp)
-
-                AddVirtualWildcardFlow(wFlow,
-                                       pktContext.getFlowRemovedCallbacks,
-                                       pktContext.getFlowTags)
+                virtualWildcardFlowResult(wFlow)
         })
     }
 
@@ -737,5 +730,15 @@ class Coordinator(var origMatch: WildcardMatch,
         modif.doTrackSeenFields()
         orig.doTrackSeenFields()
         actions
+    }
+
+    /** Generates a final AddVirtualWildcardFlow simulation result after the
+     *  PacketContext for this simulation has been frozen. */
+    private def virtualWildcardFlowResult(wcFlow: WildcardFlow) = {
+        assert (pktContext.isFrozen)
+        wcFlow.wcmatch.propagateUserspaceFieldsOf(pktContext.wcmatch)
+        AddVirtualWildcardFlow(wcFlow,
+            pktContext.getFlowRemovedCallbacks,
+            pktContext.getFlowTags)
     }
 }

@@ -46,6 +46,9 @@ public class WildcardMatch implements Cloneable {
         VlanId
     }
 
+    public static final Iterable<Field> IcmpFields =
+        Arrays.asList(Field.IcmpData, Field.IcmpId);
+
     private short getLayer(Field f) {
         switch(f) {
             case EthernetSource:
@@ -93,6 +96,15 @@ public class WildcardMatch implements Cloneable {
     @Nonnull
     public Set<Field> getUsedFields() {
         return usedFields;
+    }
+
+    /**
+     * WARNING: the same restrictions of getUsedFields() apply here too.
+     * @return the set of Fields that have been read from this instance.
+     */
+    @Nonnull
+    public Set<Field> getSeenFields() {
+        return seenFields;
     }
 
     private short inputPortNumber = 0;
@@ -156,6 +168,21 @@ public class WildcardMatch implements Cloneable {
             layer = (fLayer > layer) ? fLayer : layer;
         }
         return layer;
+    }
+
+    public boolean userspaceFieldsSeen() {
+        for (Field f : IcmpFields) {
+            if (seenFields.contains(f))
+                return true;
+        }
+        return false;
+    }
+
+    public void propagateUserspaceFieldsOf(WildcardMatch that) {
+        for (Field f : IcmpFields) {
+            if (that.seenFields.contains(f))
+                this.seenFields.add(f);
+        }
     }
 
     /**
@@ -1068,5 +1095,4 @@ public class WildcardMatch implements Cloneable {
                    Key as(FlowKey flowKey, Class<Key> type) {
         return type.cast(flowKey.getValue());
     }
-
 }
