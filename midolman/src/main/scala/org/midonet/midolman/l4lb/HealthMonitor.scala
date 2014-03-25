@@ -1,6 +1,6 @@
 package org.midonet.midolman.l4lb
 
-import akka.actor.Actor
+import akka.actor.{ActorRef, Actor}
 import com.google.inject.Inject
 import java.io._
 import java.util.UUID
@@ -12,11 +12,13 @@ import org.midonet.midolman.host.HostIdGenerator
 import org.midonet.midolman.l4lb.HaproxyHealthMonitor.ConfigUpdate
 import org.midonet.midolman.l4lb.HaproxyHealthMonitor.{SetupFailure,
                                                        SockReadFailure}
+import org.midonet.midolman.l4lb.HealthMonitorConfigWatcher.BecomeHaproxyNode
 import org.midonet.midolman.l4lb.HealthMonitor.{ConfigAdded, ConfigDeleted,
                                                 ConfigUpdated, RouterChanged}
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.Referenceable
 import org.midonet.midolman.routingprotocols.IP
+import org.midonet.midolman.state.ZkLeaderElectionWatcher.ExecuteOnBecomingLeader
 
 import org.slf4j.{LoggerFactory, Logger}
 import scala.collection.JavaConversions._
@@ -175,6 +177,8 @@ class HealthMonitor extends Actor with ActorLogWithoutPath {
 
     private var hostId: UUID = null
 
+    private var watcher: ActorRef = null
+
     override def preStart(): Unit = {
 
         fileLocation =  midolmanConfig.getHaproxyFileLoc
@@ -190,6 +194,13 @@ class HealthMonitor extends Actor with ActorLogWithoutPath {
         log.info("Starting Health Monitor")
         val hostPropertiesFile = configuration.getHostPropertiesFilePath
         hostId = HostIdGenerator.getIdFromPropertiesFile(hostPropertiesFile)
+
+        watcher = context.actorOf(HealthMonitorConfigWatcher.props(
+                fileLocation, namespaceSuffix, self))
+
+        client.registerAsHealthMonitorNode(new ExecuteOnBecomingLeader {
+            def call() = { watcher ! BecomeHaproxyNode}
+        })
     }
 
     def receive = {
@@ -239,7 +250,7 @@ class HealthMonitor extends Actor with ActorLogWithoutPath {
                     context.stop(child)
                     startChildHaproxyMonitor(poolId, config, routerId)
 
-                case None if config.adminStateUp =>
+                case None if config.adminStateUp && routerId != null =>
                     startChildHaproxyMonitor(poolId, config, routerId)
 
                 case None => log.info("Request to update config not " +
