@@ -25,6 +25,7 @@
     <logger name="org.apache.cassandra" level="INFO" />
     <logger name="me.prettyprint.cassandra" level="INFO" />
     <logger name="org.midonet.midolman.NetlinkCallbackDispatcher" level="INFO" />
+    <logger name="org.eclipse.jetty.util.Scanner" level="INFO" />
 
     <root level="info">
         <appender-ref ref="STDOUT" />
