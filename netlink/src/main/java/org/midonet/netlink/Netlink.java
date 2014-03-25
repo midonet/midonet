@@ -33,39 +33,6 @@ public abstract class Netlink {
         return (NetlinkSelectorProvider) provider;
     }
 
-    public enum MessageType {
-        NLMSG_NOOP(0x0001),
-        NLMSG_ERROR(0x0002),
-        NLMSG_DONE(0x0003),
-        NLMSG_OVERRUN(0x0004),
-
-        NLMSG_CUSTOM(Short.MAX_VALUE);
-
-
-        short value;
-
-        MessageType(int value) {
-            this.value = (short) value;
-        }
-
-        @Nonnull
-        public static MessageType findById(short type) {
-            switch (type) {
-                case 1:
-                    return NLMSG_NOOP;
-                case 2:
-                    return NLMSG_ERROR;
-                case 3:
-                    return NLMSG_DONE;
-                case 4:
-                    return NLMSG_OVERRUN;
-                default:
-                    return NLMSG_CUSTOM;
-            }
-        }
-    }
-
-
     /**
      * Abstracts a netlink address.
      */
