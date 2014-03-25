@@ -22,6 +22,6 @@ public interface HealthMonitorConfig {
     public String getNamespaceSuffix();
 
     @ConfigString(key = "haproxy_file_loc",
-                  defaultValue = "/etc/midolman/l4lb")
+                  defaultValue = "/etc/midolman/l4lb/")
     public String getHaproxyFileLoc();
 }

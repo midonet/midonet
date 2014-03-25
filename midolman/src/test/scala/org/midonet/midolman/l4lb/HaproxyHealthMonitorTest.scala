@@ -71,8 +71,9 @@ class HaproxyHealthMonitorTest extends FeatureSpec
         val member3  = new PoolMemberConfig(UUID.randomUUID(),
                                             "10.11.12.15", 81)
 
-        new PoolConfig(UUID.randomUUID(), vip, Set(member1, member2, member3),
-                       healthMonitor, true, path, "_MN")
+        new PoolConfig(UUID.randomUUID(), UUID.randomUUID(), vip,
+                       Set(member1, member2, member3), healthMonitor, true,
+                       path, "_MN")
     }
 
     before {
