@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class MockStore implements Store {
 
@@ -24,16 +25,16 @@ public class MockStore implements Store {
     // needed for the tests
     Map<String, Set<String>> target_MetricName;
     Map<String, Set<String>> metricType_targetIdentifier;
-    Map<String, List<String>> type_metricNames;
+    ConcurrentHashMap<String, List<String>> type_metricNames;
 
     public MockStore()
     {
-        callbacks = new HashMap<String, Callback0>();
-        points = new HashMap<String, Long>();
+        callbacks = new ConcurrentHashMap<String, Callback0>();
+        points = new ConcurrentHashMap<String, Long>();
 
-        target_MetricName = new HashMap<String, Set<String>>();
-        metricType_targetIdentifier = new HashMap<String, Set<String>>();
-        type_metricNames = new HashMap<String, List<String>>();
+        target_MetricName = new ConcurrentHashMap<String, Set<String>>();
+        metricType_targetIdentifier = new ConcurrentHashMap<String, Set<String>>();
+        type_metricNames = new ConcurrentHashMap<String, List<String>>();
 
     }
 
@@ -89,7 +90,7 @@ public class MockStore implements Store {
                                          String metricName, long timeStart,
                                          long timeEnd) {
         Map<String, Long> result = new HashMap<String, Long>();
-        for ( Map.Entry<String, Long> keyValue : points.entrySet()) {
+        for (Map.Entry<String, Long> keyValue : points.entrySet()) {
             result.put(keyValue.getKey(), keyValue.getValue());
         }
         return result;
@@ -119,7 +120,7 @@ public class MockStore implements Store {
                                 String metricName) {
         if(!type_metricNames.containsKey(type)) {
             log.debug("ADDING METRIC FOR {}", type);
-            type_metricNames.put(type, new LinkedList<String>());
+            type_metricNames.putIfAbsent(type, new LinkedList<String>());
         }
 
         type_metricNames.get(type).add(metricName);
