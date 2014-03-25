@@ -318,8 +318,7 @@ abstract class PacketWorkflow(val deduplicator: ActorRef,
         executePacket(wildFlow.getActions)
     }
 
-    private def handleWildcardTableMiss()
-    : Urgent[PipelinePath] = {
+    private def handleWildcardTableMiss(): Urgent[PipelinePath] = {
         if (wcMatch.isFromTunnel) {
             handlePacketToPortSet()
         } else {
@@ -397,8 +396,7 @@ abstract class PacketWorkflow(val deduplicator: ActorRef,
      * completes, or proceed with the resulting actions if the result is
      * already computed.
      */
-    def processSimulationResult(result: Urgent[SimulationResult])
-    : Urgent[PipelinePath] = {
+    def processSimulationResult(result: Urgent[SimulationResult]): Urgent[PipelinePath] = {
 
         result flatMap {
             case AddVirtualWildcardFlow(flow, callbacks, tags) =>
@@ -460,8 +458,7 @@ abstract class PacketWorkflow(val deduplicator: ActorRef,
 
     def addVirtualWildcardFlow(flow: WildcardFlow,
                                flowRemovalCallbacks: Seq[Callback0] = Nil,
-                               tags: ROSet[Any] = Set.empty)
-    : Urgent[Boolean] = {
+                               tags: ROSet[Any] = Set.empty): Urgent[Boolean] = {
         translateVirtualWildcardFlow(flow, tags) map {
             case (finalFlow, finalTags) =>
                 addTranslatedFlow(finalFlow, finalTags, flowRemovalCallbacks)

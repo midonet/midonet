@@ -8,9 +8,10 @@ import com.google.common.util.concurrent.AbstractService;
 import com.google.inject.Inject;
 import com.yammer.metrics.core.MetricsRegistry;
 import com.yammer.metrics.reporting.JmxReporter;
-import org.midonet.midolman.host.services.HostService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import org.midonet.midolman.host.services.HostService;
 
 /**
  * Basic controller of the internal midolman services.
@@ -30,9 +31,6 @@ public class MidolmanService extends AbstractService {
     DatapathConnectionService datapathConnectionService;
 
     @Inject
-    SelectLoopService selectLoopService;
-
-    @Inject
     MetricsRegistry metrics;
 
     @Inject(optional = true)
@@ -43,7 +41,6 @@ public class MidolmanService extends AbstractService {
 
     @Override
     protected void doStart() {
-        startService(selectLoopService);
         startService(datapathConnectionService);
         startService(actorsService);
         startService(hostService);
@@ -59,7 +56,6 @@ public class MidolmanService extends AbstractService {
             stopService(hostService);
             stopService(actorsService);
             stopService(datapathConnectionService);
-            stopService(selectLoopService);
 
             notifyStopped();
         } catch (Exception e) {

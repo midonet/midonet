@@ -17,10 +17,9 @@ import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.Coordinator._
 import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.midolman.topology._
-import org.midonet.midolman.{NotYet, Ready, Urgent, DeduplicationActor}
+import org.midonet.midolman.{Ready, Urgent}
 import org.midonet.packets._
 import org.midonet.midolman.topology.RouterConfig
-import org.midonet.cluster.client.RouterPort
 import org.midonet.sdn.flows.WildcardMatch
 
 

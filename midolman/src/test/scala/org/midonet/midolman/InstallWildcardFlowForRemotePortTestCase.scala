@@ -4,8 +4,8 @@
 package org.midonet.midolman
 
 import java.util.concurrent.TimeUnit
-
 import scala.concurrent.duration.Duration
+
 import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner

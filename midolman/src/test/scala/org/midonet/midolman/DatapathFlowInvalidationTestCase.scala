@@ -5,10 +5,10 @@ package org.midonet.midolman
 
 import scala.collection.mutable
 import scala.collection.immutable.HashMap
+import scala.concurrent.duration._
 import java.util.UUID
 
 import akka.testkit.TestProbe
-import scala.concurrent.duration._
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith

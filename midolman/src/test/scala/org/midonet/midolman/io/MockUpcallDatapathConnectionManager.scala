@@ -13,7 +13,7 @@ import org.midonet.midolman.PacketsEntryPoint
 import org.midonet.midolman.PacketsEntryPoint.Workers
 import org.midonet.odp.{Packet, DpPort, Datapath}
 import org.midonet.odp.protos.OvsDatapathConnection
-import org.midonet.util.{TokenBucketTestRate, StatisticalCounter, TokenBucket, BatchCollector}
+import org.midonet.util.{TokenBucketTestRate, TokenBucket, BatchCollector}
 
 class MockUpcallDatapathConnectionManager(config: MidolmanConfig)
         extends UpcallDatapathConnectionManager(config,

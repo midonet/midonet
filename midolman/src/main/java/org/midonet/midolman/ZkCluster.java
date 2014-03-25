@@ -21,13 +21,10 @@ import org.midonet.cluster.data.host.Host;
 import org.midonet.config.ConfigProvider;
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.guice.MockCacheModule;
-import org.midonet.midolman.guice.InterfaceScannerModule;
 import org.midonet.midolman.guice.cluster.ClusterClientModule;
 import org.midonet.midolman.guice.config.ConfigProviderModule;
-import org.midonet.midolman.guice.reactor.ReactorModule;
 import org.midonet.midolman.guice.serialization.SerializationModule;
 import org.midonet.midolman.guice.zookeeper.ZookeeperConnectionModule;
-import org.midonet.midolman.host.guice.HostModule;
 import org.midonet.midolman.monitoring.store.Store;
 import org.midonet.midolman.version.guice.VersionModule;
 
@@ -64,7 +61,6 @@ public class ZkCluster {
         log.info("Injecting custom ZkCluster juice profile");
         clusterInjector = Guice.createInjector(
             new ZookeeperConnectionModule(),
-            new ReactorModule(),
             new VersionModule(),
             new ConfigProviderModule(configFilePath),
             new ClosedStoreModule(),

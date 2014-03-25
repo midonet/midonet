@@ -19,7 +19,6 @@ import org.midonet.midolman.guice.MockMonitoringStoreModule
 import org.midonet.midolman.guice.cluster.ClusterClientModule
 import org.midonet.midolman.guice.config.{TypedConfigModule,
                                            MockConfigProviderModule}
-import org.midonet.midolman.guice.reactor.ReactorModule
 import org.midonet.midolman.guice.zookeeper.MockZookeeperConnectionModule
 import org.midonet.midolman.state.{Directory, ZkManager}
 import org.midonet.midolman.state.zkManagers.BridgeZkManager
@@ -64,7 +63,6 @@ with BeforeAndAfter {
             new MockZookeeperConnectionModule(),
             new TypedConfigModule[MidolmanConfig](classOf[MidolmanConfig]),
 
-            new ReactorModule(),
             new MockMonitoringStoreModule(),
             new ClusterClientModule()
         )

@@ -4,6 +4,7 @@
 package org.midonet.midolman.io
 
 import java.util.concurrent.TimeoutException
+import java.util.concurrent.locks.ReentrantLock
 import scala.concurrent.{ExecutionContext, Promise, Future}
 import scala.collection.mutable
 import scala.util.{Failure, Success}
@@ -22,9 +23,8 @@ import org.midonet.netlink.exceptions.NetlinkException.ErrorCode.ENOENT
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode.EEXIST
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode.EBUSY
 import org.midonet.odp._
-import org.midonet.util.{TokenBucket, BatchCollector}
 import org.midonet.odp.protos.OvsDatapathConnection
-import java.util.concurrent.locks.ReentrantLock
+import org.midonet.util.{TokenBucket, BatchCollector}
 
 abstract class UpcallDatapathConnectionManager(val config: MidolmanConfig,
                                                val tbPolicy: TokenBucketPolicy) {

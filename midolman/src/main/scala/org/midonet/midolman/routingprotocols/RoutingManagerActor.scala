@@ -12,12 +12,12 @@ import org.midonet.cluster.{Client, DataClient}
 import org.midonet.cluster.client.{Port, RouterPort}
 import org.midonet.midolman.Referenceable
 import org.midonet.midolman.config.MidolmanConfig
+import org.midonet.midolman.guice.MidolmanActorsModule.ZEBRA_SERVER_LOOP
 import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.routingprotocols.RoutingHandler.PortActive
 import org.midonet.midolman.state.ZkConnectionAwareWatcher
-import org.midonet.midolman.guice.reactor.ReactorModule
 import org.midonet.util.eventloop.SelectLoop
 import org.midonet.util.functors.Callback2
 
@@ -40,7 +40,7 @@ class RoutingManagerActor extends Actor with ActorLogWithoutPath {
     @Inject
     var zkConnWatcher: ZkConnectionAwareWatcher = null
     @Inject
-    @ReactorModule.ZEBRA_SERVER_LOOP
+    @ZEBRA_SERVER_LOOP
     var zebraLoop: SelectLoop = null
 
     private var bgpPortIdx = 0

@@ -3,11 +3,12 @@
  */
 package org.midonet.midolman
 
+import java.util.concurrent.TimeUnit
+import scala.collection.mutable.ListBuffer
+
 import org.scalatest.{Matchers, FeatureSpec}
 import org.scalatest.junit.JUnitRunner
 import org.junit.runner.RunWith
-import scala.collection.mutable.ListBuffer
-import java.util.concurrent.TimeUnit
 
 @RunWith(classOf[JUnitRunner])
 class WaitingRoomTest extends FeatureSpec with Matchers {

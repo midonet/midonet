@@ -17,7 +17,6 @@ import javax.annotation.Nonnull;
 import com.google.common.base.Function;
 import com.google.common.util.concurrent.ValueFuture;
 import com.sun.jna.Native;
-import org.midonet.util.TokenBucket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,6 +25,7 @@ import org.midonet.netlink.exceptions.NetlinkException;
 import org.midonet.netlink.messages.Builder;
 import org.midonet.util.BatchCollector;
 import org.midonet.util.io.SelectorInputQueue;
+import org.midonet.util.TokenBucket;
 
 import static org.midonet.netlink.Netlink.Flag;
 
@@ -599,14 +599,9 @@ public abstract class AbstractNetlinkConnection {
     class NetlinkRequestTimeoutComparator implements Comparator<NetlinkRequest> {
         @Override
         public int compare(NetlinkRequest a, NetlinkRequest b) {
-           if (a == null && b != null)
-                return 1;
-            else if (a != null && b == null)
-                return -1;
-            else if (a == null && b == null)
-                return 0;
-            else
-                return Long.compare(a.expirationTimeNanos, b.expirationTimeNanos);
+            long aExp = a != null ? a.expirationTimeNanos : Long.MIN_VALUE;
+            long bExp = b != null ? b.expirationTimeNanos : Long.MAX_VALUE;
+            return a == b ? 0 : Long.compare(aExp, bExp);
         }
 
         @Override

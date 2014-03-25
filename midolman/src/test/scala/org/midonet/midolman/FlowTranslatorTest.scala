@@ -7,11 +7,11 @@ import java.util.UUID
 
 import scala.collection.immutable.List
 import scala.collection.{Set => ROSet, mutable}
-import scala.concurrent.{ExecutionContext, Future, Await}
+import scala.concurrent.{ExecutionContext, Await}
 import scala.concurrent.duration._
 
-import akka.actor.{Actor, ActorSystem}
-import akka.event.{Logging, NoLogging, LoggingAdapter}
+import akka.actor.ActorSystem
+import akka.event.{Logging, LoggingAdapter}
 import akka.util.Timeout
 
 import org.junit.runner.RunWith
@@ -23,9 +23,10 @@ import org.midonet.cluster.data.ports.BridgePort
 import org.midonet.midolman.rules.{RuleResult, Condition}
 import org.midonet.midolman.rules.RuleResult.Action
 import org.midonet.midolman.services.MessageAccumulator
-import org.midonet.midolman.topology.{LocalPortActive, FlowTagger, VirtualToPhysicalMapper, VirtualTopologyActor}
+import org.midonet.midolman.topology.{LocalPortActive, FlowTagger,
+                                      VirtualToPhysicalMapper,
+                                      VirtualTopologyActor}
 import org.midonet.midolman.topology.rcu.Host
-import org.midonet.midolman.topology.VirtualToPhysicalMapper.PortSetRequest
 import org.midonet.odp.DpPort
 import org.midonet.odp.flows.FlowActions.{output, pushVLAN, setKey, userspace}
 import org.midonet.odp.flows.{FlowKeys, FlowActions, FlowAction,

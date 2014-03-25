@@ -4,13 +4,11 @@
 package org.midonet.midolman
 
 import java.util.UUID
+
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.concurrent.Eventually._
 import org.scalatest._
-import scala.compat.Platform
-import scala.concurrent.Await
-import scala.concurrent.duration._
 
 import org.midonet.cluster.data.{Router => ClusterRouter}
 import org.midonet.cluster.data.ports.RouterPort
@@ -18,14 +16,11 @@ import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.services.{HostIdProviderService, MessageAccumulator}
-import org.midonet.midolman.simulation.{PacketContext, Router}
+import org.midonet.midolman.simulation.Router
 import org.midonet.midolman.simulation.Coordinator.{TemporaryDropAction, ToPortAction}
 import org.midonet.midolman.simulation.CustomMatchers
 import org.midonet.midolman.topology.{FlowTagger, VirtualTopologyActor}
-import org.midonet.midolman.topology.VirtualTopologyActor.{PortRequest, RouterRequest}
-import org.midonet.midolman.util.TestHelpers.askAndAwait
-import org.midonet.packets.{IPv4Addr, MAC, Ethernet}
-import org.midonet.sdn.flows.WildcardMatch
+import org.midonet.packets.{IPv4Addr, MAC}
 
 
 @RunWith(classOf[JUnitRunner])

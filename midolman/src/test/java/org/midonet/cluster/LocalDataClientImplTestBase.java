@@ -24,7 +24,6 @@ import org.midonet.midolman.guice.MockMonitoringStoreModule;
 import org.midonet.midolman.guice.cluster.DataClusterClientModule;
 import org.midonet.midolman.guice.config.MockConfigProviderModule;
 import org.midonet.midolman.guice.config.TypedConfigModule;
-import org.midonet.midolman.guice.reactor.ReactorModule;
 import org.midonet.midolman.guice.serialization.SerializationModule;
 import org.midonet.midolman.guice.zookeeper.MockZookeeperConnectionModule;
 import org.midonet.midolman.serialization.SerializationException;
@@ -84,7 +83,6 @@ public class LocalDataClientImplTestBase {
                 new MockZookeeperConnectionModule(),
                 new TypedConfigModule<>(MidolmanConfig.class),
                 new CacheModule(),
-                new ReactorModule(),
                 new MockMonitoringStoreModule(),
                 new DataClusterClientModule()
         );
