@@ -7,14 +7,5 @@ case "$1" in
         if initctl status midolman | grep running > /dev/null ; then
             initctl stop midolman 2>/dev/null >/dev/null
         fi
-
-        POST_DIR=/var/lib/dpkg/info
-
-        # Remove symlinks which were created at install time
-        MIDOLMAN_JAR=`cat $POST_DIR/midolman.list | grep midolman-\[^/\]*\.jar`
-        MIDOLMAN_JAR_DIR=`cat $POST_DIR/midolman.list | grep midolman-\[^/\]*\.jar | xargs dirname`
-
-        rm -f "$MIDOLMAN_JAR_DIR/midolman.jar"
-        rm -f "$MIDOLMAN_JAR_DIR/midonet-jdk-bootstrap.jar"
         ;;
 esac
