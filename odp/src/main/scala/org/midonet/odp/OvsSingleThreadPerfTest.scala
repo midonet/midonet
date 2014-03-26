@@ -16,7 +16,7 @@ import org.midonet.odp.ports._
 import org.midonet.odp.flows._
 import org.midonet.odp.protos._
 
-object OvsSingleThreadThroughputTest {
+object OvsSimpleThroughputTest {
 
     abstract class BaseHandler extends BatchCollector[Packet] {
         val counter = new java.util.concurrent.atomic.AtomicInteger(0)
@@ -38,7 +38,16 @@ object OvsSingleThreadThroughputTest {
         output.add(FlowActions.output(2))
         def handlePacket(p: Packet) {
             p setActions output
-            con.execPacket(p, dp)
+            con firePacket (p,dp)
+        }
+    }
+
+    class AckForwarder(con: OvsConnectionOps, dp: Datapath) extends BaseHandler {
+        val output = new java.util.ArrayList[FlowAction]()
+        output.add(FlowActions.output(2))
+        def handlePacket(p: Packet) {
+            p setActions output
+            con execPacket (p,dp)
         }
     }
 
@@ -61,24 +70,50 @@ object OvsSingleThreadThroughputTest {
         }
     }
 
+    def withPacketsIn(args: Array[String])(block: => Unit) = {
+        val mzcommand = mzCommand(args(0), args(1)) //args.reduce { _ + " " + _}
+        println("executing: " + mzcommand)
+        val mz = Process(mzcommand).run()
+        block
+        mz.destroy()
+    }
+
+    def mzCommand(ns: String, nsif: String) =
+        s"ip netns exec $ns mz $nsif -A 100.0.10.2 -B 100.0.10.240 " +
+        "-b 10:00:00:00:00:01 -t udp 'sp=1-10000,dp=1-10000' -c0"
 }
 
-object OvsPacketReadThroughputTest {
+object OvsPacketReadTest {
 
-    import OvsSingleThreadThroughputTest._
+    import OvsSimpleThroughputTest._
 
     def main(args: Array[String]) {
         val (con, dp) = prepareDatapath("perftest", "perft-if")
+        withPacketsIn(args) { runLoop(10, new Reader, con, dp) }
+        System exit 0
+    }
 
-        val mzcommand = args.reduce { _ + " " + _}
-        println("executing: " + mzcommand)
-        val mz = Process(mzcommand).run()
+}
 
-        println("packet read throughput")
-        runLoop(10, new Reader, con, dp)
+object OvsPacketReadExecTest {
 
-        mz.destroy()
+    import OvsSimpleThroughputTest._
 
+    def main(args: Array[String]) {
+        val (con, dp) = prepareDatapath("perftest", "perft-if")
+        withPacketsIn(args) { runLoop(10, new Forwarder(con,dp), con, dp) }
+        System exit 0
+    }
+
+}
+
+object OvsPacketReadExecAckTest {
+
+    import OvsSimpleThroughputTest._
+
+    def main(args: Array[String]) {
+        val (con, dp) = prepareDatapath("perftest", "perft-if")
+        withPacketsIn(args) { runLoop(10, new AckForwarder(con,dp), con, dp) }
         System exit 0
     }
 

@@ -60,6 +60,9 @@ class OvsConnectionOps(val ovsCon: OvsDatapathConnection) {
     def execPacket(packet: Packet, dp: Datapath) =
         toFuture[java.lang.Boolean] { ovsCon packetsExecute(dp, packet, _) }
 
+    def firePacket(packet: Packet, dp: Datapath) =
+        ovsCon packetsExecute(dp, packet, null)
+
     def ensureDp(name: String)(implicit ec: ExecutionContext) =
         getDp(name) recoverWith { case ex => createDp(name) }
 
