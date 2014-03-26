@@ -45,7 +45,7 @@ GRAPH_WIDTH=1400
 # Graph height in pixels
 GRAPH_HEIGHT=500
 # Upper limit on throughput graph (to tame spikes)
-GRAPH_THROUGHPUT_UPPER_LIMIT=7500
+GRAPH_THROUGHPUT_UPPER_LIMIT=30000
 
 #######################################################################
 # Globals to be provided by the topology
@@ -367,11 +367,15 @@ warm_up() {
 
 test_throughput() {
     test_phase "Find max throughput in 65k port scans"
-    rate=1000
+    rate=4000
     while [ $rate -le $THROUGHPUT_SCAN_MAX_RATE ] ; do
         port_scan $rate 1 65000 $TOPOLOGY_SOURCE_NETNS $TOPOLOGY_DEST_HOST
+	sleep 5
+        port_scan $rate 1 65000 $TOPOLOGY_SOURCE_NETNS $TOPOLOGY_DEST_HOST
+	sleep 5
+        port_scan $rate 1 65000 $TOPOLOGY_SOURCE_NETNS $TOPOLOGY_DEST_HOST
+        sleep 5
         let rate=rate+500
-        sleep 10
     done
 }
 
