@@ -4,28 +4,21 @@
 package org.midonet.odp.protos;
 
 import java.nio.ByteBuffer;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.midonet.netlink.BufferPool;
-import org.mockito.Matchers;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.modules.junit4.PowerMockRunner;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
 
+import org.midonet.netlink.BufferPool;
+import org.midonet.netlink.Callback;
 import org.midonet.netlink.exceptions.NetlinkException;
 import org.midonet.netlink.protos.NetlinkConnection;
 
 
-@RunWith(PowerMockRunner.class)
+//@RunWith(PowerMockRunner.class)
 public class NetlinkConnectionTest extends AbstractNetlinkProtocolTest {
 
     byte[][] responses = new byte[][]{
@@ -82,76 +75,19 @@ public class NetlinkConnectionTest extends AbstractNetlinkProtocolTest {
     @Test
     public void testGetFamilyId() throws Exception {
 
-        Future<Short> future = connection.getFamilyId("ovs_datapath");
+        final AtomicInteger dpId = new AtomicInteger(0);
+
+        Callback<Short> cb = new Callback<Short>() {
+            public void onSuccess(Short s) { dpId.set(s); }
+            public void onError(NetlinkException e) { }
+            public void onTimeout() {}
+        };
+
+        connection.getFamilyId("ovs_datapath", cb);
 
         exchangeMessage();
 
-        // validate decoding
-        assertThat("The future was completed",
-                   future.isDone(), is(true));
-
-        assertThat("The future was not canceled completed",
-                   future.isCancelled(), is(false));
-
-        assertThat("The datapath id was properly parsed from packet data",
-                   future.get(), is((short) 24));
-    }
-
-//    @Test
-    public void testParseErrorMessageThrowsException() throws Exception {
-
-        final byte[] responseBuffer = {
-            (byte) 0x54, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x02, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x01, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x0F, (byte) 0x6C, (byte) 0x00, (byte) 0x00, (byte) 0xEA, (byte) 0xFF,
-            (byte) 0xFF, (byte) 0xFF, (byte) 0x40, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x10, (byte) 0x00, (byte) 0x01, (byte) 0x00, (byte) 0x01, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x03, (byte) 0x01, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00
-        };
-
-        PowerMockito.when(channel.read(Matchers.<ByteBuffer>any())).then(
-            new Answer<Object>() {
-                @Override
-                public Object answer(InvocationOnMock invocation)
-                    throws Throwable {
-                    ByteBuffer result = ((ByteBuffer) invocation.getArguments()[0]);
-                    result.put(responseBuffer);
-                    return result.position();
-                }
-            });
-
-        Future<Short> future = connection.getFamilyId("ovs_datapath");
-
-        // fire the received message
-        connection.handleReadEvent(null);
-
-        // validate decoding
-        assertThat("The future was completed",
-                   future.isDone(), is(true));
-
-        assertThat("The future was canceled",
-                   future.isCancelled(), is(false));
-
-        try {
-            assertThat("The datapath id was properly parsed from packet data",
-                       future.get(), is((short) 24));
-
-            assertThat("An exception should have been thrown", false);
-        } catch (ExecutionException e) {
-            assertThat("Cause is an IOException",
-                       e.getCause(), instanceOf(NetlinkException.class));
-
-            NetlinkException netlinkException = (NetlinkException) e.getCause();
-            assertThat("The error code should be parser properly",
-                       netlinkException.getErrorCode(), is(22));
-        }
+        Assert.assertEquals("The datapath id was properly parsed from packet data",
+                            dpId.get(), 24);
     }
 }

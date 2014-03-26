@@ -73,7 +73,7 @@ public class SelectorBasedDatapathConnection implements ManagedDatapathConnectio
         if (conn == null) {
             try {
                 setUp();
-                conn.initialize().get();
+                conn.futures.initialize().get();
             } catch (IOException e) {
                 try {
                     stop();

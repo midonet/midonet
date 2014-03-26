@@ -62,7 +62,7 @@ public class BlockingTransactorDatapathConnection implements ManagedDatapathConn
 
         try {
             setUp();
-            conn.initialize().get();
+            conn.futures.initialize().get();
         } catch (IOException e) {
             try {
                 stop();

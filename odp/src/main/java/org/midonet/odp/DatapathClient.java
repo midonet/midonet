@@ -74,7 +74,7 @@ public abstract class DatapathClient {
         loopThread.start();
 
         log.info("Initializing ovs connection");
-        ovsConnection.initialize();
+        ovsConnection.futures.initialize();
 
         while (!ovsConnection.isInitialized()) {
             Thread.sleep(TimeUnit.MILLISECONDS.toMillis(50));

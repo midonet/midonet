@@ -37,13 +37,6 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
     private static final Logger log =
         LoggerFactory.getLogger(OvsDatapathConnection.class);
 
-    public Future<Boolean> initialize() {
-        final ValueFuture<Boolean> future = ValueFuture.create();
-        final Callback<Boolean> initStatusCallback = wrapFuture(future);
-        initialize(initStatusCallback);
-        return future;
-    }
-
     public abstract void initialize(final Callback<Boolean> cb);
 
     public abstract boolean isInitialized();
@@ -707,6 +700,14 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
 
 
     public class FuturesApi {
+
+        public Future<Boolean> initialize() {
+            final ValueFuture<Boolean> future = ValueFuture.create();
+            final Callback<Boolean> initStatusCallback = wrapFuture(future);
+            OvsDatapathConnection.this.initialize(initStatusCallback);
+            return future;
+        }
+
         /**
          * Future based api for enumerating datapaths.
          *
@@ -960,7 +961,25 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
             OvsDatapathConnection.this.packetsExecute(datapath, packet, wrapFuture(resultFuture));
             return resultFuture;
         }
-
     }
 
+    @Nonnull
+    private static <T> Callback<T> wrapFuture(final ValueFuture<T> future) {
+        return new Callback<T>() {
+            @Override
+            public void onSuccess(T data) {
+                future.set(data);
+            }
+
+            @Override
+            public void onTimeout() {
+                future.cancel(true);
+            }
+
+            @Override
+            public void onError(NetlinkException e) {
+                future.setException(e);
+            }
+        };
+    }
 }

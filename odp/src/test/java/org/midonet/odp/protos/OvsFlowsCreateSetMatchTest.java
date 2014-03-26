@@ -32,7 +32,7 @@ public abstract class OvsFlowsCreateSetMatchTest
 
     public void doTest() throws Exception {
 
-        initializeConnection(connection.initialize(), 6);
+        initializeConnection(connection.futures.initialize(), 6);
 
         Future<Datapath> dpFuture = connection.futures.datapathsGet("bibi");
         exchangeMessage();

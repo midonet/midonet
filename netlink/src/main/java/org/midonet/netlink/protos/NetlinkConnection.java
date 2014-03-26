@@ -5,13 +5,11 @@ package org.midonet.netlink.protos;
 
 import java.nio.ByteBuffer;
 import java.util.List;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import com.google.common.base.Function;
-import com.google.common.util.concurrent.ValueFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,12 +40,6 @@ public class NetlinkConnection extends AbstractNetlinkConnection {
     @Override
     protected void handleNotification(short type, byte cmd, int seq, int pid, List<ByteBuffer> buffers) {
         log.error("Notification handler not implemented: {family: {}, cmd: {}}", type, cmd);
-    }
-
-    public Future<Short> getFamilyId(@Nonnull String familyName) {
-        ValueFuture<Short> future = ValueFuture.create();
-        getFamilyId(familyName, wrapFuture(future));
-        return future;
     }
 
     public void getFamilyId(@Nonnull String familyName, Callback<Short> callback) {
