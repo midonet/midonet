@@ -11,7 +11,6 @@ import org.midonet.client.VendorMediaType;
 import org.midonet.client.dto.*;
 import static org.midonet.client.VendorMediaType.APPLICATION_BRIDGE_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_CHAIN_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_CONDITION_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_JSON_V2;
 import static org.midonet.client.VendorMediaType.APPLICATION_PORTGROUP_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_PORT_LINK_JSON;
@@ -62,7 +61,6 @@ public class Topology {
         private final Map<String, DtoRouterPort> routerPorts;
         private final Map<String, DtoBridgePort> bridgePorts;
         private final Map<String, DtoPortGroup> portGroups;
-        private final Map<String, DtoTraceCondition> traceConditions;
         private final Map<String, DtoLoadBalancer> loadBalancers;
 
         private final Map<String, String> tagToInChains;
@@ -85,7 +83,6 @@ public class Topology {
             this.routerPorts = new HashMap<String, DtoRouterPort>();
             this.bridgePorts = new HashMap<String, DtoBridgePort>();
             this.portGroups = new HashMap<String, DtoPortGroup>();
-            this.traceConditions = new HashMap<String, DtoTraceCondition>();
             this.loadBalancers = new HashMap<String, DtoLoadBalancer>();
 
             this.links = new HashMap<String, String>();
@@ -133,11 +130,6 @@ public class Topology {
 
         public Builder create(String tag, DtoPortGroup obj) {
             this.portGroups.put(tag, obj);
-            return this;
-        }
-
-        public Builder create(String tag, DtoTraceCondition traceCondition) {
-            this.traceConditions.put(tag, traceCondition);
             return this;
         }
 
@@ -341,16 +333,6 @@ public class Topology {
                     Response.Status.CREATED.getStatusCode());
             }
 
-            for (Map.Entry<String, DtoTraceCondition> entry :
-                traceConditions.entrySet()) {
-                DtoTraceCondition traceCondition = entry.getValue();
-                traceCondition =
-                    resource.postAndVerifyCreated(app.getTraceConditions(),
-                        APPLICATION_CONDITION_JSON, traceCondition,
-                        DtoTraceCondition.class);
-                entry.setValue(traceCondition);
-            }
-
             // Tenants are created behind the scene.  Get all tenants
             DtoTenant[] tenantList = resource.getAndVerifyOk(app.getTenants(),
                 APPLICATION_TENANT_COLLECTION_JSON, DtoTenant[].class);
@@ -398,10 +380,6 @@ public class Topology {
 
     public DtoBridgePort getBridgePort(String tag) {
         return this.builder.bridgePorts.get(tag);
-    }
-
-    public DtoTraceCondition getTraceCondition(String tag) {
-        return this.builder.traceConditions.get(tag);
     }
 
     public DtoLoadBalancer getLoadBalancer(String tag) {

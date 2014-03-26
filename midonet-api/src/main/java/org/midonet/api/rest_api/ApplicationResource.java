@@ -30,7 +30,6 @@ import org.midonet.api.l4lb.rest_api.LoadBalancerResource;
 import org.midonet.api.l4lb.rest_api.PoolMemberResource;
 import org.midonet.api.l4lb.rest_api.PoolResource;
 import org.midonet.api.l4lb.rest_api.VipResource;
-import org.midonet.api.monitoring.rest_api.MonitoringResource;
 import org.midonet.api.network.rest_api.BridgeResource;
 import org.midonet.api.network.rest_api.PortGroupResource;
 import org.midonet.api.network.rest_api.PortResource;
@@ -39,8 +38,6 @@ import org.midonet.api.network.rest_api.RouterResource;
 import org.midonet.api.system_data.rest_api.HostVersionResource;
 import org.midonet.api.system_data.rest_api.SystemStateResource;
 import org.midonet.api.system_data.rest_api.WriteVersionResource;
-import org.midonet.api.tracing.rest_api.TraceConditionResource;
-import org.midonet.api.tracing.rest_api.TraceResource;
 import org.midonet.api.version.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -182,16 +179,6 @@ public class ApplicationResource extends AbstractResource {
     }
 
     /**
-     * Host resource locator
-     *
-     * @return HostResource object to handle sub-resource requests.
-     */
-    @Path(ResourceUriBuilder.METRICS)
-    public MonitoringResource getMonitoringQueryResource() {
-        return factory.getMonitoringQueryResource();
-    }
-
-    /**
      * Tunnel Zone resource locator
      *
      * @return TunnelZoneResource object to handle sub-resource requests.
@@ -199,26 +186,6 @@ public class ApplicationResource extends AbstractResource {
     @Path(ResourceUriBuilder.TUNNEL_ZONES)
     public TunnelZoneResource getTunnelZoneResource() {
         return factory.getTunnelZoneResource();
-    }
-
-    /**
-     * Trace condition resource locator
-     *
-     * @return TraceConditionResource object to handle sub-resource requests.
-     */
-    @Path(ResourceUriBuilder.TRACE_CONDITIONS)
-    public TraceConditionResource getTraceConditionResource() {
-        return factory.getTraceConditionResource();
-    }
-
-    /**
-     * Packet Trace resource locator
-     *
-     * @return TraceResource object to handle sub-resource requests.
-     */
-    @Path(ResourceUriBuilder.TRACE)
-    public TraceResource getTraceResource() {
-        return factory.getTraceResource();
     }
 
     /**

@@ -27,7 +27,6 @@ import org.midonet.api.l4lb.rest_api.LoadBalancerResource;
 import org.midonet.api.l4lb.rest_api.PoolMemberResource;
 import org.midonet.api.l4lb.rest_api.PoolResource;
 import org.midonet.api.l4lb.rest_api.VipResource;
-import org.midonet.api.monitoring.rest_api.MonitoringResource;
 import org.midonet.api.network.rest_api.BridgeResource;
 import org.midonet.api.network.rest_api.PortGroupResource;
 import org.midonet.api.network.rest_api.PortResource;
@@ -36,8 +35,6 @@ import org.midonet.api.network.rest_api.RouterResource;
 import org.midonet.api.system_data.rest_api.HostVersionResource;
 import org.midonet.api.system_data.rest_api.SystemStateResource;
 import org.midonet.api.system_data.rest_api.WriteVersionResource;
-import org.midonet.api.tracing.rest_api.TraceConditionResource;
-import org.midonet.api.tracing.rest_api.TraceResource;
 import org.midonet.packets.IPv6Subnet;
 import org.midonet.packets.IntIPv4;
 
@@ -82,8 +79,6 @@ public interface ResourceFactory {
 
     HostInterfacePortResource getHostInterfacePortResource(UUID id);
 
-    MonitoringResource getMonitoringQueryResource();
-
     AdRouteResource.BgpAdRouteResource getBgpAdRouteResource(UUID id);
 
     DhcpHostsResource getDhcpAssignmentsResource(UUID bridgeId, IntIPv4 addr);
@@ -116,10 +111,6 @@ public interface ResourceFactory {
 
     PortGroupResource.PortPortGroupResource getPortPortGroupResource(
             UUID portId);
-
-    TraceConditionResource getTraceConditionResource();
-
-    TraceResource getTraceResource();
 
     WriteVersionResource getWriteVersionResource();
 

@@ -5,7 +5,6 @@ package org.midonet.api.rest_api;
 
 import com.google.common.util.concurrent.AbstractService;
 import com.google.inject.Inject;
-import org.midonet.midolman.services.StoreService;
 import org.midonet.cluster.services.MidostoreSetupService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,13 +19,9 @@ public class RestApiService  extends AbstractService {
 
     private final MidostoreSetupService midoStoreSetupService;
 
-    private final StoreService storeService;
-
     @Inject
-    public RestApiService(MidostoreSetupService midoStoreSetupService,
-                          StoreService storeService) {
+    public RestApiService(MidostoreSetupService midoStoreSetupService) {
         this.midoStoreSetupService = midoStoreSetupService;
-        this.storeService = storeService;
     }
 
     @Override
@@ -35,7 +30,6 @@ public class RestApiService  extends AbstractService {
 
         try {
             midoStoreSetupService.startAndWait();
-            storeService.startAndWait();
             notifyStarted();
         } catch (Exception e) {
             log.error("Exception while starting service", e);
@@ -50,7 +44,6 @@ public class RestApiService  extends AbstractService {
         log.info("doStop: entered");
 
         try {
-            storeService.stopAndWait();
             midoStoreSetupService.stopAndWait();
             notifyStopped();
         } catch (Exception e) {

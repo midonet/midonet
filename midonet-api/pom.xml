@@ -213,19 +213,9 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>midolman</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.cassandra</groupId>
-                    <artifactId>cassandra-thrift</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.apache.thrift</groupId>
-                    <artifactId>libthrift</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
-         <dependency>
+        <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>midonet-client</artifactId>
             <scope>test</scope>
@@ -376,26 +366,6 @@
         <dependency>
             <groupId>org.apache.zookeeper</groupId>
             <artifactId>zookeeper</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.cassandra</groupId>
-            <artifactId>cassandra-all</artifactId>
-            <exclusions> <!-- exclusion needed because of midolman import -->
-                <exclusion>
-                    <groupId>org.mortbay.jetty</groupId>
-                    <artifactId>servlet-api</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>javax.servlet</groupId>
-                    <artifactId>servlet-api</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>org.cassandraunit</groupId>
-            <artifactId>cassandra-unit</artifactId>
         </dependency>
 
         <dependency> <!-- unique to midonet-api -->
