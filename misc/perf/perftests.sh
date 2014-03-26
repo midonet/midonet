@@ -566,8 +566,8 @@ make_report() {
     done > "$REPORT_DIR/report.txt"
 
     while true ; do
-        echo "gitrev,host,start,end,heap,heap_new"
-        echo "$GITREV,$HOST,$GRAPH_START,$GRAPH_END,$MAX_HEAP_SIZE,$HEAP_NEWSIZE"
+        echo "gitrev,host,start,end,heap,heap_new,topology"
+        echo "$GITREV,$HOST,$GRAPH_START,$GRAPH_END,$MAX_HEAP_SIZE,$HEAP_NEWSIZE,$TOPOLOGY_NAME"
         break
     done > "$REPORT_DIR/testspec.csv"
 
@@ -693,6 +693,7 @@ fi
 
 pushd `dirname $0`
 
+TOPOLOGY_NAME=$1
 topology=topologies.d/$1
 if [ ! -f "$topology" ] ; then
     err_exit "Topology file ($1) does not exist"
