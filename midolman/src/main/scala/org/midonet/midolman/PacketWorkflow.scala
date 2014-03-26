@@ -10,7 +10,6 @@ import java.util.concurrent.TimeUnit
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import scala.collection.{Set => ROSet, mutable}
-import scala.concurrent._
 import scala.reflect.ClassTag
 
 import akka.actor._
@@ -44,6 +43,7 @@ trait PacketHandler {
     val egressPort: Option[UUID]
     val cookieStr: String
     def idle: Boolean
+    def runs: Int
 
     override def toString = s"PacketWorkflow[$cookieStr]"
 }
@@ -125,10 +125,8 @@ abstract class PacketWorkflow(val deduplicator: ActorRef,
 
     val ERROR_CONDITION_HARD_EXPIRATION = 10000
 
-    private[this] var _idle = true
-    override def idle = _idle
-
-    private var runs = 0 // how many times it has been started
+    var idle = true
+    var runs = 0 // how many times it has been started
 
     override val cookie = cookieOrEgressPort match {
         case Left(c) => Some(c)
@@ -150,7 +148,7 @@ abstract class PacketWorkflow(val deduplicator: ActorRef,
     val lastInvalidation = FlowController.lastInvalidationEvent
 
     override def start(): Urgent[PipelinePath] = {
-        _idle = false
+        idle = false
         runs += 1
         log.debug("Initiating processing of packet {}, attempt: {}",
                   cookieStr, runs)
@@ -158,13 +156,13 @@ abstract class PacketWorkflow(val deduplicator: ActorRef,
             case Some(_) => handlePacketWithCookie()
             case None => doEgressPortSimulation()
         }) match {
-            case n@NotYet(_) => _idle = true; n
+            case n@NotYet(_) => idle = true; n
             case r => r
         }
     }
 
     override def drop() {
-        _idle = false
+        idle = false
         val wildFlow = WildcardFlow(wcmatch = wcMatch,
             hardExpirationMillis = ERROR_CONDITION_HARD_EXPIRATION)
         addTranslatedFlow(wildFlow, Set.empty, Nil)
