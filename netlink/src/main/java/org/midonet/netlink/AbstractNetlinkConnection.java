@@ -177,7 +177,7 @@ public abstract class AbstractNetlinkConnection {
         headerBuf.putInt(0, totalSize);
 
         final NetlinkRequest<T> netlinkRequest =
-            new NetlinkRequest<>(cmdFamily, cmd, callback, translator, payload, seq, timeoutMillis);
+            new NetlinkRequest<>(callback, translator, payload, seq, timeoutMillis);
 
         log.trace("[pid:{}] Sending message for id {}", pid(), seq);
         pendRequest(netlinkRequest, seq);
@@ -473,80 +473,7 @@ public abstract class AbstractNetlinkConnection {
         return request.position() - startPos;
     }
 
-    protected class DelayedCallbackExecutor<T> implements Runnable {
-        private boolean succeeded = false;
-        private boolean expired = false;
-        private boolean hasRun = false;
-        private Callback<T> callback;
-        private T result = null;
-        private NetlinkException error = null;
-
-        public DelayedCallbackExecutor(Callback<T> cb) {
-            this.callback = cb;
-        }
-
-        private boolean initialized() {
-            return succeeded || expired || (error != null);
-        }
-
-        private void ensureNotInitialized() {
-            if (initialized()) {
-                throw new IllegalStateException(
-                        "Tried to provide result for the same callback twice");
-            }
-        }
-
-        private void ensureInitialized() {
-            if (!initialized()) {
-                throw new IllegalStateException(
-                        "No result was given for this callback");
-            }
-        }
-
-        public DelayedCallbackExecutor<T> successful(T result) {
-            ensureNotInitialized();
-            this.succeeded = true;
-            this.result = result;
-            this.expired = false;
-            return this;
-        }
-
-        public DelayedCallbackExecutor<T> failed(NetlinkException e) {
-            ensureNotInitialized();
-            this.succeeded = false;
-            this.error = e;
-            this.expired = false;
-            return this;
-        }
-
-        public DelayedCallbackExecutor<T> expired() {
-            ensureNotInitialized();
-            this.succeeded = false;
-            this.error = null;
-            this.expired = true;
-            return this;
-        }
-
-        @Override
-        public void run() {
-            if (hasRun)
-                throw new IllegalStateException("Tried to run callback twice");
-
-            ensureInitialized();
-            this.hasRun = true;
-            if (this.succeeded)
-                callback.onSuccess(this.result);
-            else if (this.error != null)
-                callback.onError(this.error);
-            else if (this.expired)
-                callback.onTimeout();
-
-        }
-    }
-
-    class NetlinkRequest<T> {
-        final short family;
-        final byte cmd;
+    static class NetlinkRequest<T> {
         List<ByteBuffer> inBuffers = new ArrayList<>();
         ByteBuffer outBuffer;
         private final Callback<T> userCallback;
@@ -554,14 +481,11 @@ public abstract class AbstractNetlinkConnection {
         final long expirationTimeNanos;
         final int seq;
 
-        public NetlinkRequest(short family, byte cmd,
-                              Callback<T> callback,
+        public NetlinkRequest(Callback<T> callback,
                               Function<List<ByteBuffer>, T> translationFunc,
                               ByteBuffer data,
                               int seq,
                               long timeoutMillis) {
-            this.family = family;
-            this.cmd = cmd;
             this.userCallback = callback;
             this.translationFunction = translationFunc;
             this.outBuffer = data;
@@ -571,28 +495,54 @@ public abstract class AbstractNetlinkConnection {
         }
 
         public Runnable successful(List<ByteBuffer> data) {
-            return new DelayedCallbackExecutor<T>(userCallback)
-                    .successful(translationFunction.apply(data));
+            final T result = translationFunction.apply(data);
+            return new RunOnceRunnable() {
+                @Override
+                public void runOnce() {
+                    userCallback.onSuccess(result);
+                }
+            };
         }
 
-        public Runnable failed(NetlinkException e) {
-            return new DelayedCallbackExecutor<T>(userCallback).failed(e);
+        public Runnable failed(final NetlinkException e) {
+            return new RunOnceRunnable() {
+                @Override
+                public void runOnce() {
+                    if (e != null)
+                        userCallback.onError(e);
+                }
+            };
         }
 
         public Runnable expired() {
-            return new DelayedCallbackExecutor<T>(userCallback).expired();
+            return new RunOnceRunnable() {
+                @Override
+                public void runOnce() {
+                    userCallback.onTimeout();
+                }
+            };
         }
 
-        @Override
-        public String toString() {
-            return "NetlinkRequest{" +
-                "family=" + family +
-                ", cmd=" + cmd +
-                '}';
+        static abstract class RunOnceRunnable implements Runnable {
+            private boolean hasRun = false;
+            @Override
+            public void run() {
+                if (hasRun)
+                    throw runTwiceError;
+                hasRun = true;
+                runOnce();
+            }
+            protected abstract void runOnce();
         }
+
+        private static final IllegalStateException runTwiceError =
+            new IllegalStateException("It is not allowed to run the user " +
+                                      "callback of a NetlinkRequest twice.");
+
     }
 
-    class NetlinkRequestTimeoutComparator implements Comparator<NetlinkRequest> {
+    static class NetlinkRequestTimeoutComparator
+            implements Comparator<NetlinkRequest> {
         @Override
         public int compare(NetlinkRequest a, NetlinkRequest b) {
             long aExp = a != null ? a.expirationTimeNanos : Long.MIN_VALUE;
