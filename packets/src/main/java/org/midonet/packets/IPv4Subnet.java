@@ -2,6 +2,8 @@
 
 package org.midonet.packets;
 
+import org.apache.commons.lang3.tuple.Pair;
+import org.midonet.util.NetUtil;
 
 public final class IPv4Subnet implements IPSubnet<IPv4Addr> {
 
@@ -23,6 +25,22 @@ public final class IPv4Subnet implements IPSubnet<IPv4Addr> {
 
     public IPv4Subnet(String addr_, int prefixLen_) {
         this(IPv4Addr.fromString(addr_), prefixLen_);
+    }
+
+    /**
+     * Construct an IPv4Subnet object from a CIDR notation string - e.g.
+     * "192.168.0.1/16".
+     *
+     * IllegalArgumentException is thrown if the CIDR notation string is
+     * invalid.
+     *
+     * @param cidr_ CIDR notation string
+     */
+    public IPv4Subnet(String cidr_) {
+
+        Pair<String, Integer> cidrPair = NetUtil.getAddressAndPrefixLen(cidr_);
+        this.address = IPv4Addr.fromString(cidrPair.getLeft());
+        this.prefixLen = cidrPair.getRight();
     }
 
     @Override
