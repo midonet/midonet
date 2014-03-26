@@ -158,7 +158,7 @@ assert_dependencies() {
     test -f $UPLOAD_KEY || err_exit "upload ssh key not found at $UPLOAD_KEY"
 }
 
-run_tests() {
+setup_tests() {
     assert_dependencies
     umask 0022
     mkdir -p $TMPDIR
@@ -176,8 +176,12 @@ run_tests() {
     install_midolman
 
     create_scenario
-    setup_jmxtrans
     connectivity_check
+}
+
+run_tests() {
+    setup_tests
+    setup_jmxtrans
     warm_up
     test_throughput
     long_running_tests
@@ -670,8 +674,15 @@ destroy_scenario() {
 # Script body
 ########################################################################
 
+setup_only=no
+
+if [ $1 == '-s' ] || [ $1 == '--setup'] ; then
+    shift
+    setup_only=yes
+fi
+
 if [ -z $1 ] ; then
-    echo "Usage: perftests.sh scenario" >&2
+    echo "Usage: perftests.sh [-s|--setup] scenario" >&2
     exit 1
 fi
 
@@ -691,6 +702,11 @@ fi
 echo "Sourcing topology description from $topology"
 source $topology
 echo "Executing tests.."
-run_tests
+
+if [ $setup_only = 'yes' ] ; then
+    setup_tests
+else
+    run_tests
+fi
 
 popd
