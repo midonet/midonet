@@ -1,6 +1,0 @@
-#!/bin/sh
-
-# Midokura
-
-rm -rf /usr/share/midolman
-

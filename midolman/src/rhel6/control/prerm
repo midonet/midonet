@@ -3,10 +3,3 @@
 # Midokura
 
 NAME="midolman"
-
-# Remove symlinks which were created at install time
-MIDOLMAN_JAR=`rpm -q --filesbypkg $NAME | sed -e 's/^midolman\s\+//' | grep midolman-\[^/\]*\.jar | tail -1`
-MIDOLMAN_JAR_DIR=`dirname $MIDOLMAN_JAR`
-
-rm -f "$MIDOLMAN_JAR_DIR/midolman.jar"
-rm -f "$MIDOLMAN_JAR_DIR/midonet-jdk-bootstrap.jar"
