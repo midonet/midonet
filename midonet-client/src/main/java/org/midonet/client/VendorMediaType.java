@@ -169,20 +169,6 @@ public class VendorMediaType {
             "application/vnd.org.midonet.collection" +
                     ".HostInterfacePort-v1+json";
 
-    // Trace Conditions
-    public static final String APPLICATION_CONDITION_JSON =
-            "application/vnd.org.midonet.Condition-v1+json";
-    public static final String APPLICATION_CONDITION_COLLECTION_JSON =
-            "application/vnd.org.midonet.collection" +
-                    ".Condition-v1+json";
-
-    // Packet Trace
-    public static final String APPLICATION_TRACE_JSON =
-            "application/vnd.org.midonet.Trace-v1+json";
-    public static final String APPLICATION_TRACE_COLLECTION_JSON =
-            "application/vnd.org.midonet.collection" +
-                    ".Trace-v1+json";
-
     // Upgrade Control
     public static final String APPLICATION_WRITE_VERSION_JSON =
             "application/vnd.org.midonet.WriteVersion-v1+json";

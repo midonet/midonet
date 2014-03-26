@@ -49,7 +49,6 @@ import org.midonet.midolman.guice.zookeeper.ZKConnectionProvider;
 import org.midonet.midolman.host.commands.HostCommandGenerator;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
-import org.midonet.midolman.monitoring.store.Store;
 import org.midonet.midolman.rules.Condition;
 import org.midonet.midolman.rules.RuleList;
 import org.midonet.midolman.serialization.SerializationException;
@@ -85,8 +84,6 @@ import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.midonet.cluster.data.Rule.RuleIndexOutOfBoundsException;
-import static org.midonet.midolman.guice.CacheModule.TRACE_INDEX;
-import static org.midonet.midolman.guice.CacheModule.TRACE_MESSAGES;
 
 @SuppressWarnings("unused")
 public class LocalDataClientImpl implements DataClient {
@@ -158,9 +155,6 @@ public class LocalDataClientImpl implements DataClient {
     private PortSetZkManager portSetZkManager;
 
     @Inject
-    private TraceConditionZkManager traceConditionZkManager;
-
-    @Inject
     private ZkManager zkManager;
 
     @Inject
@@ -190,17 +184,6 @@ public class LocalDataClientImpl implements DataClient {
 
     final Queue<Callback2<UUID, Boolean>> subscriptionPortsActive =
         new ConcurrentLinkedQueue<Callback2<UUID, Boolean>>();
-
-    @Inject
-    private Store monitoringStore;
-
-    @Inject @Nullable
-    @TRACE_INDEX
-    private Cache traceIndexCache;
-
-    @Inject @Nullable
-    @TRACE_MESSAGES
-    private Cache traceMessageCache;
 
     private final static Logger log =
             LoggerFactory.getLogger(LocalDataClientImpl.class);
@@ -2601,37 +2584,6 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public Map<String, Long> metricsGetTSPoints(String type,
-                                                String targetIdentifier,
-                                                String metricName,
-                                                long timeStart,
-                                                long timeEnd) {
-        return monitoringStore.getTSPoints(type, targetIdentifier, metricName,
-                timeStart, timeEnd);
-    }
-
-    @Override
-    public void metricsAddTypeToTarget(@Nonnull String targetIdentifier, @Nonnull String type) {
-        monitoringStore.addMetricTypeToTarget(targetIdentifier, type);
-    }
-
-    @Override
-    public List<String> metricsGetTypeForTarget(String targetIdentifier) {
-        return monitoringStore.getMetricsTypeForTarget(targetIdentifier);
-    }
-
-    @Override
-    public void metricsAddToType(@Nonnull String type, @Nonnull String metricName) {
-        monitoringStore.addMetricToType(type, metricName);
-    }
-
-    @Override
-    public List<String> metricsGetForType(String type) {
-        return monitoringStore.getMetricsForType(type);
-    }
-
-
-    @Override
     public @CheckForNull Route routesGet(UUID id)
             throws StateAccessException, SerializationException {
         log.debug("Entered: id={}", id);
@@ -2928,93 +2880,6 @@ public class LocalDataClientImpl implements DataClient {
     public Set<UUID> portSetsGet(UUID portSetId)
             throws SerializationException, StateAccessException {
         return portSetZkManager.getPortSet(portSetId, null);
-    }
-
-    /* Trace condition methods */
-    @Override
-    public UUID traceConditionCreate(@Nonnull TraceCondition traceCondition)
-        throws StateAccessException, SerializationException {
-        return traceConditionZkManager.create(traceCondition.getCondition());
-    }
-
-    @Override
-    public void traceConditionDelete(UUID uuid)
-            throws SerializationException, StateAccessException {
-        traceConditionZkManager.delete(uuid);
-    }
-
-    @Override
-    public boolean traceConditionExists(UUID uuid) throws StateAccessException {
-        return traceConditionZkManager.exists(uuid);
-    }
-
-    public @CheckForNull TraceCondition traceConditionGet(UUID uuid)
-        throws StateAccessException, SerializationException {
-        Condition condition = traceConditionZkManager.get(uuid);
-        TraceCondition traceCondition = new TraceCondition(uuid, condition);
-        return traceCondition;
-    }
-
-    @Override
-    public List<TraceCondition> traceConditionsGetAll()
-        throws StateAccessException, SerializationException {
-        log.debug("Getting all the trace conditions from ZK.");
-        Collection<UUID> ids = traceConditionZkManager.getIds();
-        List<TraceCondition> traceConditions = new ArrayList<TraceCondition>();
-
-        for (UUID id : ids) {
-            TraceCondition traceCondition = traceConditionGet(id);
-            if (traceCondition != null) {
-                traceConditions.add(traceCondition);
-            }
-        }
-
-        return traceConditions;
-    }
-
-    @Override
-    public Map<String, String> traceIdList(int maxEntries) {
-        return(traceIndexCache.dump(maxEntries));
-    }
-
-    @Override
-    public void traceIdDelete(UUID traceId) {
-        traceIndexCache.delete(traceId.toString());
-    }
-
-    @Override
-    public List<String> packetTraceGet(UUID traceId) {
-        List<String> retList = new ArrayList<String>();
-        String traceIdString = traceId.toString();
-        int numTraceMessages = 0;
-        String numTraceMessagesStr = traceIndexCache.get(traceId.toString());
-        if (numTraceMessagesStr == null) return null;
-        numTraceMessages = Integer.parseInt(numTraceMessagesStr);
-        for (int traceStep = 1; traceStep <= numTraceMessages; traceStep++) {
-            String key = traceIdString + ":" + traceStep;
-            String retVal = traceMessageCache.get(key);
-            if (retVal == null) {
-                log.info("Number of Trace Messages {} out of sync " +
-                          "with Trace Index table", traceStep);
-            } else {
-                retList.add(retVal);
-            }
-        }
-
-        return retList;
-    }
-
-    @Override
-    public void packetTraceDelete(UUID traceId) {
-        int numTraceMessages = 0;
-        String numTraceMessagesStr = traceIndexCache.get(traceId.toString());
-        String traceIdString = traceId.toString();
-        if (numTraceMessagesStr == null) return;
-        numTraceMessages = Integer.parseInt(numTraceMessagesStr);
-        for (int traceStep = 1; traceStep <= numTraceMessages; traceStep++) {
-            String key = traceIdString + ":" + traceStep;
-            traceMessageCache.delete(key);
-        }
     }
 
     /**
