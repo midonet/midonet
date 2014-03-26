@@ -16,16 +16,17 @@ import org.slf4j.LoggerFactory;
 
 import org.midonet.netlink.BufferPool;
 import org.midonet.netlink.Callback;
+import org.midonet.netlink.MockNetlinkChannel;
 import org.midonet.netlink.Netlink;
-import org.midonet.netlink.NetlinkProtocol;
 import org.midonet.netlink.NetlinkChannel;
+import org.midonet.netlink.NetlinkProtocol;
 import org.midonet.netlink.NetlinkSelectorProvider;
 import org.midonet.netlink.protos.NetlinkConnection;
 import org.midonet.odp.Datapath;
+import org.midonet.odp.DpPort;
 import org.midonet.odp.Flow;
 import org.midonet.odp.FlowMatch;
 import org.midonet.odp.Packet;
-import org.midonet.odp.DpPort;
 
 
 /**
@@ -76,10 +77,9 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
     }
 
     public static OvsDatapathConnection createMock() {
-
-        NetlinkChannel channel = Netlink.selectorProvider()
-            .openMockNetlinkSocketChannel(NetlinkProtocol.NETLINK_GENERIC);
-
+        NetlinkChannel channel =
+            new MockNetlinkChannel(Netlink.selectorProvider(),
+                                   NetlinkProtocol.NETLINK_GENERIC);
         return new MockOvsDatapathConnection(channel);
     }
 
