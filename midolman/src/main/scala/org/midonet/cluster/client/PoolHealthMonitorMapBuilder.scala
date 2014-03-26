@@ -4,7 +4,7 @@
 package org.midonet.cluster.client
 
 import java.util.UUID
-import scala.collection.mutable.Map
+import scala.collection.immutable.Map
 import org.midonet.midolman.state.zkManagers.PoolZkManager.PoolHealthMonitorMappingConfig
 
 trait PoolHealthMonitorMapBuilder extends Builder[PoolHealthMonitorMapBuilder] {

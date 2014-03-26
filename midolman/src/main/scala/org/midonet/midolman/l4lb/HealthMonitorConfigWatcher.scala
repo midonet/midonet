@@ -33,7 +33,7 @@ object HealthMonitorConfigWatcher {
     }
 
     def convertDataMapToConfigMap(
-            map: MMap[UUID, PoolHealthMonitorMappingConfig],
+            map: IMap[UUID, PoolHealthMonitorMappingConfig],
             fileLocs: String, suffix: String):
                 IMap[UUID, PoolConfig] = {
         val newMap = HashMap[UUID, PoolConfig]()
@@ -131,7 +131,7 @@ class HealthMonitorConfigWatcher(val fileLocs: String, val suffix: String,
     }
 
     private def handleMappingChange(
-                mappings: MMap[UUID, PoolHealthMonitorMappingConfig]) {
+                mappings: IMap[UUID, PoolHealthMonitorMappingConfig]) {
 
         // remove all configs that aren't configurable -- treat them as
         // deleted.

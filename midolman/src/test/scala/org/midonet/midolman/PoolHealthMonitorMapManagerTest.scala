@@ -94,6 +94,7 @@ class PoolHealthMonitorMapManagerTest
             And("a new association is added")
             val loadBalancer2 = createLoadBalancer()
             val pool2 = createPool(loadBalancer2, hmId = hm.getId)
+            expectMsgType[PoolHealthMonitorMap]
             val vip2 = createRandomVip(pool2)
 
             Then("the VTA should send an update")
