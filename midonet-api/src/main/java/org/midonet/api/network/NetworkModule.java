@@ -16,13 +16,11 @@ public class NetworkModule extends AbstractModule {
     @Override
     protected void configure() {
 
-        bind(BridgeNameConstraintValidator.class).asEagerSingleton();
         bind(ChainNameConstraintValidator.class).asEagerSingleton();
 
         requireBinding(DataClient.class);
         bind(RouteNextHopPortConstraintValidator.class).asEagerSingleton();
 
-        bind(RouterNameConstraintValidator.class).asEagerSingleton();
         bind(PortsLinkableConstraintValidator.class).asEagerSingleton();
         bind(PortIdValidator.class).asEagerSingleton();
 

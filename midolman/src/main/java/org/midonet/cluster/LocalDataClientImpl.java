@@ -7,6 +7,7 @@ import com.google.common.base.Objects;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -255,41 +256,16 @@ public class LocalDataClientImpl implements DataClient {
         return bgps;
     }
 
-    @Override
-    public @CheckForNull Bridge bridgesGetByName(String tenantId, String name)
-            throws StateAccessException, SerializationException {
-        log.debug("Entered: tenantId={}, name={}", tenantId, name);
-
-        Bridge bridge = null;
-        String path = pathBuilder.getTenantBridgeNamePath(tenantId, name);
-
-        if (zkManager.exists(path)) {
-            byte[] data = zkManager.get(path);
-            BridgeName.Data bridgeNameData =
-                    serializer.deserialize(data,
-                            BridgeName.Data.class);
-            bridge = bridgesGet(bridgeNameData.id);
-        }
-
-        log.debug("Exiting: bridge={}", bridge);
-        return bridge;
-    }
-
-    @Override
     public List<Bridge> bridgesFindByTenant(String tenantId)
             throws StateAccessException, SerializationException {
         log.debug("bridgesFindByTenant entered: tenantId={}", tenantId);
 
-        List<Bridge> bridges = new ArrayList<Bridge>();
+        List<Bridge> bridges = bridgesGetAll();
 
-        String path = pathBuilder.getTenantBridgeNamesPath(tenantId);
-        if (zkManager.exists(path)) {
-            Set<String> bridgeNames = zkManager.getChildren(path);
-            for (String name : bridgeNames) {
-                Bridge bridge = bridgesGetByName(tenantId, name);
-                if (bridge != null) {
-                    bridges.add(bridge);
-                }
+        for (Iterator<Bridge> it = bridges.iterator(); it.hasNext();){
+            if (!it.next().getProperty(
+                    Bridge.Property.tenant_id).equals(tenantId)) {
+                it.remove();
             }
         }
 
@@ -426,20 +402,6 @@ public class LocalDataClientImpl implements DataClient {
         String tenantId = bridge.getProperty(Bridge.Property.tenant_id);
         ops.addAll(tenantZkManager.prepareCreate(tenantId));
 
-        // Create the bridge names directory if it does not exist
-        String bridgeNamesPath = pathBuilder.getTenantBridgeNamesPath(tenantId);
-        if (!zkManager.exists(bridgeNamesPath)) {
-            ops.add(zkManager.getPersistentCreateOp(
-                    bridgeNamesPath, null));
-        }
-
-        // Index the name
-        String bridgeNamePath = pathBuilder.getTenantBridgeNamePath(tenantId,
-                bridgeConfig.name);
-        byte[] data = serializer.serialize((
-                new BridgeName(bridge)).getData());
-        ops.add(zkManager.getPersistentCreateOp(bridgeNamePath, data));
-
         zkManager.multi(ops);
 
         log.debug("bridgesCreate exiting: bridge={}", bridge);
@@ -459,24 +421,6 @@ public class LocalDataClientImpl implements DataClient {
 
         // Update the config
         ops.addAll(bridgeZkManager.prepareUpdate(bridge.getId(), bridgeConfig));
-
-        // Update index if the name changed
-        String oldName = oldBridge.getData().name;
-        String newName = bridgeConfig.name;
-        if (oldName == null ? newName != null : !oldName.equals(newName)) {
-
-            String tenantId = oldBridge.getProperty(Bridge.Property.tenant_id);
-
-            String path = pathBuilder.getTenantBridgeNamePath(tenantId,
-                    oldBridge.getData().name);
-            ops.add(zkManager.getDeleteOp(path));
-
-            path = pathBuilder.getTenantBridgeNamePath(tenantId,
-                    bridgeConfig.name);
-            byte[] data = serializer.serialize(
-                    new BridgeName(bridge).getData());
-            ops.add(zkManager.getPersistentCreateOp(path, data));
-        }
 
         if (!ops.isEmpty()) {
             zkManager.multi(ops);
@@ -538,7 +482,11 @@ public class LocalDataClientImpl implements DataClient {
         String path = pathBuilder.getTenantBridgeNamePath(
                 bridge.getProperty(Bridge.Property.tenant_id),
                 bridge.getData().name);
-        ops.add(zkManager.getDeleteOp(path));
+
+        // For backward compatibility, delete only if it exists
+        if (zkManager.exists(path)) {
+            ops.add(zkManager.getDeleteOp(path));
+        }
 
         zkManager.multi(ops);
     }
@@ -2682,7 +2630,11 @@ public class LocalDataClientImpl implements DataClient {
         String path = pathBuilder.getTenantRouterNamePath(
                 router.getProperty(Router.Property.tenant_id),
                 router.getData().name);
-        ops.add(zkManager.getDeleteOp(path));
+
+        // For backward compatibility, delete only if it exists
+        if (zkManager.exists(path)) {
+            ops.add(zkManager.getDeleteOp(path));
+        }
 
         zkManager.multi(ops);
     }
@@ -2707,19 +2659,6 @@ public class LocalDataClientImpl implements DataClient {
         String tenantId = router.getProperty(Router.Property.tenant_id);
         ops.addAll(tenantZkManager.prepareCreate(tenantId));
 
-        // Create the router names directory if it does not exist
-        String routerNamesPath = pathBuilder.getTenantRouterNamesPath(tenantId);
-        if (!zkManager.exists(routerNamesPath)) {
-            ops.add(zkManager.getPersistentCreateOp(
-                    routerNamesPath, null));
-        }
-
-        // Index the name
-        String routerNamePath = pathBuilder.getTenantRouterNamePath(tenantId,
-                routerConfig.name);
-        byte[] data = serializer.serialize((new RouterName(router)).getData());
-        ops.add(zkManager.getPersistentCreateOp(routerNamePath, data));
-
         zkManager.multi(ops);
 
         log.debug("routersCreate exiting: router={}", router);
@@ -2738,46 +2677,9 @@ public class LocalDataClientImpl implements DataClient {
         // Update the config
         ops.addAll(routerZkManager.prepareUpdate(router.getId(), routerConfig));
 
-        // Update index if the name changed
-        String oldName = oldRouter.getData().name;
-        String newName = routerConfig.name;
-        if (oldName == null ? newName != null : !oldName.equals(newName)) {
-
-            String tenantId = oldRouter.getProperty(Router.Property.tenant_id);
-
-            String path = pathBuilder.getTenantRouterNamePath(tenantId,
-                    oldRouter.getData().name);
-            ops.add(zkManager.getDeleteOp(path));
-
-            path = pathBuilder.getTenantRouterNamePath(tenantId,
-                    routerConfig.name);
-            byte[] data = serializer.serialize(
-                    new RouterName(router).getData());
-            ops.add(zkManager.getPersistentCreateOp(path, data));
-        }
-
         if (!ops.isEmpty()) {
             zkManager.multi(ops);
         }
-    }
-
-    @Override
-    public @CheckForNull Router routersGetByName(@Nonnull String tenantId, @Nonnull String name)
-            throws StateAccessException, SerializationException {
-        log.debug("Entered: tenantId={}, name={}", tenantId, name);
-
-        Router router = null;
-        String path = pathBuilder.getTenantRouterNamePath(tenantId, name);
-
-        if (zkManager.exists(path)) {
-            byte[] data = zkManager.get(path);
-            RouterName.Data routerNameData =
-                    serializer.deserialize(data, RouterName.Data.class);
-            router = routersGet(routerNameData.id);
-        }
-
-        log.debug("Exiting: router={}", router);
-        return router;
     }
 
     @Override
@@ -2785,16 +2687,12 @@ public class LocalDataClientImpl implements DataClient {
             throws StateAccessException, SerializationException {
         log.debug("routersFindByTenant entered: tenantId={}", tenantId);
 
-        List<Router> routers = new ArrayList<Router>();
+        List<Router> routers = routersGetAll();
 
-        String path = pathBuilder.getTenantRouterNamesPath(tenantId);
-        if (zkManager.exists(path)) {
-            Set<String> routerNames = zkManager.getChildren(path);
-            for (String name : routerNames) {
-                Router router = routersGetByName(tenantId, name);
-                if (router != null) {
-                    routers.add(router);
-                }
+        for (Iterator<Router> it = routers.iterator(); it.hasNext();){
+            if (!it.next().getProperty(
+                    Router.Property.tenant_id).equals(tenantId)) {
+                it.remove();
             }
         }
 
