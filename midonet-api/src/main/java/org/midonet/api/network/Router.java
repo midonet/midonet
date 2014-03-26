@@ -4,16 +4,13 @@
  */
 package org.midonet.api.network;
 
-import org.midonet.api.network.Router.RouterExtended;
-import org.midonet.api.UriResource;
 import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.network.validation.IsUniqueRouterName;
+import org.midonet.api.UriResource;
 import org.midonet.cluster.data.Router.Property;
 import org.midonet.util.version.Since;
 
 import javax.validation.GroupSequence;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 import javax.validation.groups.Default;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.net.URI;
@@ -22,12 +19,8 @@ import java.util.UUID;
 /**
  * Class representing Virtual Router.
  */
-@IsUniqueRouterName(groups = RouterExtended.class)
 @XmlRootElement
 public class Router extends UriResource {
-
-    public static final int MIN_ROUTER_NAME_LEN = 1;
-    public static final int MAX_ROUTER_NAME_LEN = 255;
 
     @NotNull(groups = RouterUpdateGroup.class)
     private UUID id;
@@ -36,7 +29,6 @@ public class Router extends UriResource {
     private String tenantId;
 
     @NotNull
-    @Size(min = MIN_ROUTER_NAME_LEN, max = MAX_ROUTER_NAME_LEN)
     private String name;
 
     protected boolean adminStateUp;
@@ -286,13 +278,6 @@ public class Router extends UriResource {
     }
 
     /**
-     * Interface used for a Validation group. This group gets triggered after
-     * the default validations.
-     */
-    public interface RouterExtended {
-    }
-
-    /**
      * Interface used for validating a router on updates.
      */
     public interface RouterUpdateGroup {
@@ -308,8 +293,7 @@ public class Router extends UriResource {
      * Interface that defines the ordering of validation groups for router
      * create.
      */
-    @GroupSequence({ Default.class, RouterCreateGroup.class,
-            RouterExtended.class })
+    @GroupSequence({ Default.class, RouterCreateGroup.class })
     public interface RouterCreateGroupSequence {
     }
 
@@ -317,8 +301,7 @@ public class Router extends UriResource {
      * Interface that defines the ordering of validation groups for router
      * update.
      */
-    @GroupSequence({ Default.class, RouterUpdateGroup.class,
-            RouterExtended.class })
+    @GroupSequence({ Default.class, RouterUpdateGroup.class })
     public interface RouterUpdateGroupSequence {
     }
 
