@@ -3,8 +3,7 @@
  */
 package org.midonet.midolman
 
-import scala.collection.mutable
-import scala.collection.mutable.ListBuffer
+import scala.collection.{immutable, mutable}
 import java.util.concurrent.TimeUnit
 
 /**
@@ -17,12 +16,9 @@ import java.util.concurrent.TimeUnit
  * This class is not thread safe, and all instances expected to be confined to
  * a thread.
  *
- * @param leave function to invoke with each group of waiters that tired
- *              of waiting
  * @param timeout timeout, in nanoseconds
  */
-class WaitingRoom[W](val leave: (Iterable[W] => Any), // tired of waiting
-                     val timeout: Long = TimeUnit.SECONDS.toNanos(3)) {
+class WaitingRoom[W](val timeout: Long = TimeUnit.SECONDS.toNanos(3)) {
 
     private[this] val waiters = new mutable.HashSet[W]()
     private[this] val timeouts = new mutable.ListBuffer[(W, Long)]()
@@ -38,29 +34,30 @@ class WaitingRoom[W](val leave: (Iterable[W] => Any), // tired of waiting
      * If the element is already in the waiting room, it will not be added again
      * with the *old* waiting time unaltered.
      */
-    def enter(w: W) {
-        doExpirations()
-        if (waiters contains w) {
-            return
+    def enter(w: W): IndexedSeq[W] = {
+        val evictions = doExpirations()
+        if (!(waiters contains w)) {
+            waiters += w
+            timeouts += ((w, System.nanoTime() + timeout))
         }
-
-        waiters += w
-        timeouts += ((w, System.nanoTime() + timeout))
+        evictions
     }
 
-    /* Finds waiters whose futures have not completed in time and kicks them out
-     * of the waiting room.
-     */
-    private def doExpirations() {
-        val evictions = ListBuffer[W]()
-        while(timeouts.nonEmpty && timeouts.head._2 < System.nanoTime()) {
+    private def doExpirations(): IndexedSeq[W] = {
+        var evictions: mutable.ArrayBuffer[W] = null
+        val now = System.nanoTime()
+        while (timeouts.nonEmpty && (now - timeouts.head._2) > 0) {
+            if (evictions == null)
+                evictions = mutable.ArrayBuffer()
+
             val w = (timeouts remove 0)._1
             evictions += w
             waiters -= w
         }
-        if (evictions.nonEmpty)
-            leave(evictions)
+
+        if (evictions == null)
+            immutable.Vector.empty
+        else
+            evictions
     }
-
 }
-

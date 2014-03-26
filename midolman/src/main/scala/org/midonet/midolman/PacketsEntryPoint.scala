@@ -101,7 +101,7 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
         val props = Props(classOf[DeduplicationActor],
                             cookieGen, dpConnPool, clusterDataClient,
                             connectionCache, traceMessageCache, traceIndexCache,
-                            metrics, () => counter.incAndGet(index))
+                            metrics, counter.addAndGet(index, _: Int))
                     .withDispatcher("actors.pinned-dispatcher")
 
         context.actorOf(props, s"PacketProcessor-$index")
