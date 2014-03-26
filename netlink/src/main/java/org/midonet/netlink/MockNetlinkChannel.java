@@ -6,13 +6,16 @@ package org.midonet.netlink;
 import java.io.IOException;
 import java.nio.channels.spi.SelectorProvider;
 
-/** package private mocking version of NetlinkChannel. */
-class MockNetlinkChannel extends NetlinkChannel {
+/** Mocking version of NetlinkChannel. */
+public class MockNetlinkChannel extends NetlinkChannel {
 
     public MockNetlinkChannel(SelectorProvider provider,
                               NetlinkProtocol protocol) {
         super(provider, protocol);
     }
+
+    @Override
+    protected void initSocket() { }
 
     @Override
     protected void _executeConnect(Netlink.Address address)
