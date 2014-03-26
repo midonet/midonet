@@ -119,8 +119,17 @@ ovs_integration() {
     ns_clean $ns
 }
 
-ovs_read_throughput() {
-    echo -e "\nOpenVSwitch read throughput test"
+run_throughput_test() {
+    main=$1
+    ns=$2
+    nsif=$3
+    run_test "org.midonet.odp."$1 $2 $3
+    mm-dpctl --show-dp perftest
+    mm-dpctl --delete-dp perftest
+}
+
+ovs_throughput() {
+    echo -e "\nOpenVSwitch throughput test"
 
     ns=perft-ns
     dpif=perft-if
@@ -129,15 +138,18 @@ ovs_read_throughput() {
     ns_prepare $ns
     if_prepare $ns $dpif $nsif 100.0.10.2/24
 
-    mzcommand="ip netns exec $ns mz $nsif"\
-" -A 100.0.10.2 -B 100.0.10.240"\
-" -b 10:00:00:00:00:01 -t udp 'sp=1-10000,dp=1-10000' -c0"
+    echo -e "\nPacket read throughput."
+    run_throughput_test OvsPacketReadTest $ns $nsif
 
-    run_test "org.midonet.odp.OvsPacketReadThroughputTest" $mzcommand
+    echo -e "\nPacket read & exec throughput test without exec acks."
+    run_throughput_test OvsPacketReadExecTest $ns $nsif
+
+    echo -e "\nPacket read & exec throughput test with packet exec acks."
+    run_throughput_test OvsPacketReadExecAckTest $ns $nsif
 
     if_clean $ns $dpif $nsif
     ns_clean $ns
 }
 
 ovs_integration
-ovs_read_throughput
+ovs_throughput
