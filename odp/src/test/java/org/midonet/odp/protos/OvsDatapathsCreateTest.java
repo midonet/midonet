@@ -35,7 +35,7 @@ public class OvsDatapathsCreateTest extends AbstractNetlinkProtocolTest {
     @Test
     public void testCreateDatapath() throws Exception {
 
-        initializeConnection(connection.initialize(), 6);
+        initializeConnection(connection.futures.initialize(), 6);
 
         Future<Datapath> future = connection.futures.datapathsCreate("test2");
 

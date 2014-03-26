@@ -28,7 +28,7 @@ public class TrivialDatapathConnection implements ManagedDatapathConnection {
 
     @Override
     public void start() throws InterruptedException, ExecutionException {
-        conn.initialize().get();
+        conn.futures.initialize().get();
     }
 
     @Override

@@ -29,7 +29,7 @@ public class OvsDatapathsGetTest extends AbstractNetlinkProtocolTest {
     @Test
     public void testGetDatapath() throws Exception {
 
-        initializeConnection(connection.initialize(), 6);
+        initializeConnection(connection.futures.initialize(), 6);
 
         Future<Datapath> future;
 

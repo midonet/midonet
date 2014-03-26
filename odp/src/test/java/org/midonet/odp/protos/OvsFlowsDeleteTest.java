@@ -36,7 +36,7 @@ public class OvsFlowsDeleteTest extends AbstractNetlinkProtocolTest {
     @Test
     public void testFlowsDelete() throws Exception {
 
-        initializeConnection(connection.initialize(), 6);
+        initializeConnection(connection.futures.initialize(), 6);
 
         Future<Datapath> dpResult = connection.futures.datapathsGet("bibi");
         // multi containing the datapaths data

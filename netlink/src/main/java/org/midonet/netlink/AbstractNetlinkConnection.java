@@ -15,7 +15,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nonnull;
 
 import com.google.common.base.Function;
-import com.google.common.util.concurrent.ValueFuture;
 import com.sun.jna.Native;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -554,26 +553,6 @@ public abstract class AbstractNetlinkConnection {
         public boolean equals(Object o) {
             return o instanceof NetlinkRequestTimeoutComparator;
         }
-    }
-
-    @Nonnull
-    protected static <T> Callback<T> wrapFuture(final ValueFuture<T> future) {
-        return new Callback<T>() {
-            @Override
-            public void onSuccess(T data) {
-                future.set(data);
-            }
-
-            @Override
-            public void onTimeout() {
-                future.cancel(true);
-            }
-
-            @Override
-            public void onError(NetlinkException e) {
-                future.setException(e);
-            }
-        };
     }
 
     protected ByteBuffer getBuffer() {
