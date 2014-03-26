@@ -139,5 +139,5 @@ ovs_read_throughput() {
     ns_clean $ns
 }
 
-#ovs_integration
+ovs_integration
 ovs_read_throughput
