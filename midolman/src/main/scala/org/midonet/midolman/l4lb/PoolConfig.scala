@@ -5,7 +5,6 @@ package org.midonet.midolman.l4lb
 
 import java.util.UUID
 import scala.collection.immutable.Set
-import scala.collection.mutable.HashSet
 import org.slf4j.{LoggerFactory, Logger}
 
 object PoolConfig {
@@ -83,9 +82,9 @@ backend $id
             this.l4lbFileLocs == that.l4lbFileLocs &&
             this.nsPostFix == that.nsPostFix
             this.adminStateUp == that.adminStateUp &&
-            this.vip.equals(that.vip) &&
-            this.healthMonitor.equals(that.healthMonitor) &&
-            this.members.equals(that.members)
+            this.vip == that.vip &&
+            this.healthMonitor == that.healthMonitor &&
+            this.members == that.members
         case _ => false
     }
 }
