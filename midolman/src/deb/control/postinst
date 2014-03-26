@@ -6,19 +6,4 @@ POST_DIR=/var/lib/dpkg/info
 
 install -d /var/log/$NAME $DATADIR
 
-# make a symlink for the package
-MIDOLMAN_JAR=`cat $POST_DIR/midolman.list | grep midolman-\[^/\]*\.jar`
-MIDOLMAN_JAR_DIR=`cat $POST_DIR/midolman.list | grep midolman-\[^/\]*\.jar | xargs dirname`
-if [ ! -d "$MIDOLMAN_JAR_DIR" ] ; then
-    echo "did not find jar installation dir" >&2
-    exit 1
-fi
-if [ ! -f "$MIDOLMAN_JAR" ] ; then
-    echo "did not find midolman.jar" >&2
-    exit 1
-fi
-
-ln -sf $MIDOLMAN_JAR "$MIDOLMAN_JAR_DIR/midolman.jar"
-ln -sf `cat $POST_DIR/midolman.list | grep midonet-jdk-bootstrap.*\.jar` "$MIDOLMAN_JAR_DIR/midonet-jdk-bootstrap.jar"
-
 test -e /etc/init.d/midolman || ln -s /lib/init/upstart-job /etc/init.d/midolman

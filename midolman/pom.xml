@@ -162,9 +162,6 @@
                     <preremoveScriptlet>
                         <scriptFile>${project.basedir}/src/rhel6/control/prerm</scriptFile>
                     </preremoveScriptlet>
-                    <postremoveScriptlet>
-                        <scriptFile>${project.basedir}/src/rhel6/control/postrm</scriptFile>
-                    </postremoveScriptlet>
                 </configuration>
             </plugin>
 
