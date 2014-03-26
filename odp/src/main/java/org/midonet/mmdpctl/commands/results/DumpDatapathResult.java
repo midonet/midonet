@@ -3,15 +3,21 @@
 */
 package org.midonet.mmdpctl.commands.results;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Set;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.util.*;
 
 import org.midonet.odp.Datapath;
 import org.midonet.odp.Flow;
 
 public class DumpDatapathResult implements Result {
+
+    static public interface Filter {
+        boolean predicate(Flow flow);
+    }
+
     Set<Flow> flows;
     Datapath datapath;
 
@@ -20,7 +26,7 @@ public class DumpDatapathResult implements Result {
         this.datapath = datapath;
     }
 
-    public ArrayList<Flow> sortFlows() {
+    public ArrayList<Flow> sortFlows(Set<Flow> flows) {
         ArrayList<Flow> toPrint = new ArrayList<>(flows);
 
         Collections.sort(toPrint, new Comparator<Flow>() {
@@ -36,13 +42,19 @@ public class DumpDatapathResult implements Result {
     }
 
     @Override
-    public void printResult() {
-        System.out.println("" + flows.size() + " flows");
-        for (Flow flow : sortFlows()) {
-            System.out.println("  Flow:");
+    public void printResult(OutputStream stream) {
+        PrintStream out = new PrintStream(stream);
+        out.println("" + flows.size() + " flows");
+        for (Flow flow : sortFlows(flows)) {
+            out.println("  Flow:");
             for (String s: flow.toPrettyStrings()) {
-                System.out.println("    " + s);
+                out.println("    " + s);
             }
         }
+    }
+
+    @Override
+    public void printResult() {
+        printResult(System.out);
     }
 }
