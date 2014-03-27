@@ -359,14 +359,12 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
     private def applyOutgoingFilter(portSetId: UUID,
                                     wMatch: WildcardMatch,
                                     tags: mutable.Set[Any],
-                                    action: VirtualFlowAction)
-                                   (localPorts: Seq[Port]): Urgent[Boolean] =
+                                    localPorts: Seq[Port]): Urgent[Boolean] =
         applyOutboundFilters(
             localPorts, portSetId, wMatch, Some(tags)
         ) map { portIds =>
             addTranslatedFlowForActions(
-                towardsLocalDpPorts(action, portSetId,
-                    portsForLocalPorts(portIds), tags), tags)
+                towardsLocalDpPorts(portsForLocalPorts(portIds), tags), tags)
             true
         }
 
@@ -390,13 +388,11 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
             case null =>
                 throw new Exception("null portSet")
             case pSet =>
-                val action = FlowActionOutputToVrnPortSet(pSet.id)
-                log.debug("tun => portSet, action: {}, portSet: {}",
-                          action, pSet)
+                log.debug("tun => portSet: {}", pSet)
                 // egress port filter simulation
                 val tags = mutable.Set[Any]()
                 activePorts(pSet.localPorts, tags) flatMap {
-                    applyOutgoingFilter(pSet.id, wcMatch, tags, action)(_)
+                    applyOutgoingFilter(pSet.id, wcMatch, tags, _)
                 }
         }) map {
             _ => PacketToPortSet
