@@ -96,9 +96,9 @@ class HealthMonitorConfigWatcher(val fileLocs: String, val suffix: String,
     import HealthMonitorConfigWatcher._
     import context._
 
-    var currentLeader: Boolean = false
-
     var poolIdtoConfigMap: IMap[UUID, PoolConfig] = IMap.empty
+
+    var currentLeader: Boolean = false
 
     override val Name = "HealthMonitorConfigWatcher"
 
@@ -142,12 +142,8 @@ class HealthMonitorConfigWatcher(val fileLocs: String, val suffix: String,
                         conf.loadBalancerId, update = true)
             }
 
-        val newMapping =
-            IMap((convertedMap filterKeys (id =>
-                      convertedMap(id).isConfigurable)).toList: _ *)
-
         val oldPoolSet = this.poolIdtoConfigMap.keySet
-        val newPoolSet = newMapping.keySet
+        val newPoolSet = convertedMap.keySet
 
         val added = newPoolSet -- oldPoolSet
         val deleted = oldPoolSet -- newPoolSet
@@ -157,9 +153,9 @@ class HealthMonitorConfigWatcher(val fileLocs: String, val suffix: String,
         deleted.foreach(handleDeletedMapping)
 
         // The config data might have been changed. Check for those.
-        for (pool <- newMapping.keySet) {
-            (newMapping.get(pool), this.poolIdtoConfigMap.get(pool)) match {
-                case (Some(p), Some(o)) =>
+        for (pool <- convertedMap.keySet) {
+            (convertedMap.get(pool), this.poolIdtoConfigMap.get(pool)) match {
+                case (Some(p), Some(o)) if p != null && o != null =>
                     if (!o.equals(p)) {
                         handleUpdatedMapping(pool, p)
                     }
@@ -167,7 +163,7 @@ class HealthMonitorConfigWatcher(val fileLocs: String, val suffix: String,
             }
         }
 
-        this.poolIdtoConfigMap = newMapping
+        this.poolIdtoConfigMap = convertedMap
 
         // clear out any load balancer mappings that aren't used anymore.
         // This seems gross and expensive, I know, but if we don't do it we
