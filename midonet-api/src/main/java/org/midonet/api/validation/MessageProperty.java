@@ -26,14 +26,10 @@ public class MessageProperty {
             "{midokura.javarx.IpAddrGroupIdExists}";
     public static final String IP_ADDR_INVALID =
             "{midokura.javarx.IpAddrInvalid}";
-    public static final String IS_UNIQUE_BRIDGE_NAME =
-            "{midokura.javarx.IsUniqueBridgeName.message}";
     public static final String IS_UNIQUE_CHAIN_NAME =
             "{midokura.javarx.IsUniqueChainName.message}";
     public static final String IS_UNIQUE_PORT_GROUP_NAME =
             "{midokura.javarx.IsUniquePortGroupName.message}";
-    public static final String IS_UNIQUE_ROUTER_NAME =
-            "{midokura.javarx.IsUniqueRouterName.message}";
     public static final String MAC_ADDRESS_INVALID =
             "{midokura.javarx.MacAddressInvalid}";
     public static final String MAC_MASK_INVALID =

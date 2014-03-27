@@ -348,6 +348,34 @@ public class TestBridge {
         }
 
         @Test
+        public void testName() throws Exception {
+
+            DtoApplication app = topology.getApplication();
+            URI bridgesUri = app.getBridges();
+
+            DtoBridge bridge = new DtoBridge();
+            bridge.setName("name1");
+            bridge.setTenantId("tenant1");
+
+            dtoResource.postAndVerifyCreated(bridgesUri,
+                    APPLICATION_BRIDGE_JSON, bridge, DtoBridge.class);
+
+            // Duplicate name should be allowed
+            bridge = new DtoBridge();
+            bridge.setName("name1");
+            bridge.setTenantId("tenant1");
+            dtoResource.postAndVerifyCreated(bridgesUri,
+                    APPLICATION_BRIDGE_JSON, bridge, DtoBridge.class);
+
+            // Empty name is also allowed
+            bridge = new DtoBridge();
+            bridge.setName("");
+            bridge.setTenantId("tenant1");
+            dtoResource.postAndVerifyCreated(bridgesUri,
+                    APPLICATION_BRIDGE_JSON, bridge, DtoBridge.class);
+        }
+
+        @Test
         public void testCrud() throws Exception {
 
             DtoApplication app = topology.getApplication();
@@ -357,7 +385,6 @@ public class TestBridge {
             URI bridgesUri = app.getBridges();
             assertNotNull(bridgesUri);
             DtoBridge[] bridges = dtoResource.getAndVerifyOk(bridgesUri,
-                    getTenantQueryParams("tenant1"),
                     APPLICATION_BRIDGE_COLLECTION_JSON, DtoBridge[].class);
             assertEquals(0, bridges.length);
 
@@ -428,7 +455,6 @@ public class TestBridge {
 
             // List should return an empty array
             bridges = dtoResource.getAndVerifyOk(bridgesUri,
-                    getTenantQueryParams("tenant1"),
                     APPLICATION_BRIDGE_COLLECTION_JSON, DtoBridge[].class);
             assertEquals(0, bridges.length);
         }
@@ -840,28 +866,6 @@ public class TestBridge {
             nullNameBridge.setTenantId("tenant1");
             params.add(new Object[] { nullNameBridge, "name" });
 
-            // Blank name
-            DtoBridge blankNameBridge = new DtoBridge();
-            blankNameBridge.setName("");
-            blankNameBridge.setTenantId("tenant1");
-            params.add(new Object[] { blankNameBridge, "name" });
-
-            // Long name
-            StringBuilder longName = new StringBuilder(256);
-            for (int i = 0; i < 256; i++) {
-                longName.append("a");
-            }
-            DtoBridge longNameBridge = new DtoBridge();
-            longNameBridge.setName(longName.toString());
-            longNameBridge.setTenantId("tenant1");
-            params.add(new Object[] { longNameBridge, "name" });
-
-            // Bridge name already exists
-            DtoBridge dupNameBridge = new DtoBridge();
-            dupNameBridge.setName("bridge1-name");
-            dupNameBridge.setTenantId("tenant1");
-            params.add(new Object[] { dupNameBridge, "name" });
-
             // Bridge with tenantID missing
             DtoBridge noTenant = new DtoBridge();
             noTenant.setName("noTenant-bridge-name");
@@ -908,14 +912,8 @@ public class TestBridge {
             b1.setName("bridge1-name");
             b1.setTenantId("tenant1");
 
-            // Create another bridge - useful for checking duplicate name error
-            DtoBridge b2 = new DtoBridge();
-            b2.setName("bridge2-name");
-            b2.setTenantId("tenant1");
-
             topology = new Topology.Builder(dtoResource)
-                    .create("bridge1", b1)
-                    .create("bridge2", b2).build();
+                    .create("bridge1", b1).build();
         }
 
         @After
@@ -932,28 +930,6 @@ public class TestBridge {
             DtoBridge nullNameBridge = new DtoBridge();
             nullNameBridge.setTenantId("tenant1");
             params.add(new Object[] { nullNameBridge, "name" });
-
-            // Blank name
-            DtoBridge blankNameBridge = new DtoBridge();
-            blankNameBridge.setName("");
-            blankNameBridge.setTenantId("tenant1");
-            params.add(new Object[] { blankNameBridge, "name" });
-
-            // Long name
-            StringBuilder longName = new StringBuilder(256);
-            for (int i = 0; i < 256; i++) {
-                longName.append("a");
-            }
-            DtoBridge longNameBridge = new DtoBridge();
-            longNameBridge.setName(longName.toString());
-            longNameBridge.setTenantId("tenant1");
-            params.add(new Object[] { longNameBridge, "name" });
-
-            // Bridge name already exists
-            DtoBridge dupNameBridge = new DtoBridge();
-            dupNameBridge.setName("bridge2-name");
-            dupNameBridge.setTenantId("tenant1");
-            params.add(new Object[] { dupNameBridge, "name" });
 
             // Bridge with tenantID missing
             DtoBridge noTenant = new DtoBridge();

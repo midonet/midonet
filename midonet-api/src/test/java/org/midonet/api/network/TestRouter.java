@@ -133,7 +133,7 @@ public class TestRouter {
         @Test
         public void testListAllRouters() throws Exception {
 
-            // Get the expected list of DtoBridge objects
+            // Get the expected list of DtoRouter objects
             DtoApplication app = topology.getApplication();
             List<DtoRouter> expected = getExpectedRouters(app.getRouters(),
                     "tenant0", 0, 4);
@@ -320,6 +320,34 @@ public class TestRouter {
         }
 
         @Test
+        public void testName() throws Exception {
+
+            DtoApplication app = topology.getApplication();
+            URI routersUrl = app.getRouters();
+
+            DtoRouter router = new DtoRouter();
+            router.setName("name1");
+            router.setTenantId("tenant1");
+
+            dtoResource.postAndVerifyCreated(routersUrl,
+                    APPLICATION_ROUTER_JSON, router, DtoRouter.class);
+
+            // Duplicate name should be allowed
+            router = new DtoRouter();
+            router.setName("name1");
+            router.setTenantId("tenant1");
+            dtoResource.postAndVerifyCreated(routersUrl,
+                    APPLICATION_ROUTER_JSON, router, DtoRouter.class);
+
+            // Empty name is also allowed
+            router = new DtoRouter();
+            router.setName("");
+            router.setTenantId("tenant1");
+            dtoResource.postAndVerifyCreated(routersUrl,
+                    APPLICATION_ROUTER_JSON, router, DtoRouter.class);
+        }
+
+        @Test
         public void testCrudv1() throws Exception {
             DtoApplication app = topology.getApplication();
             DtoRuleChain chain1 = topology.getChain("chain1");
@@ -337,7 +365,6 @@ public class TestRouter {
 
             // List the routers
             routers = dtoResource.getAndVerifyOk(app.getRouters(),
-                    getTenantQueryParams("tenant1-id"),
                     APPLICATION_ROUTER_COLLECTION_JSON, DtoRouter[].class);
             assertEquals(1, routers.length);
             assertEquals(resRouter.getId(), routers[0].getId());
@@ -371,7 +398,6 @@ public class TestRouter {
 
             // List should return an empty array
             routers = dtoResource.getAndVerifyOk(app.getRouters(),
-                    getTenantQueryParams("tenant1-id"),
                     APPLICATION_ROUTER_COLLECTION_JSON, DtoRouter[].class);
             assertEquals(0, routers.length);
         }
@@ -386,7 +412,6 @@ public class TestRouter {
 
             assertNotNull(app.getRouters());
             DtoRouter[] routers = dtoResource.getAndVerifyOk(app.getRouters(),
-                    getTenantQueryParams("tenant1-id"),
                     APPLICATION_ROUTER_COLLECTION_JSON_V2, DtoRouter[].class);
             assertEquals(0, routers.length);
 
@@ -396,7 +421,6 @@ public class TestRouter {
 
             // List the routers
             routers = dtoResource.getAndVerifyOk(app.getRouters(),
-                    getTenantQueryParams("tenant1-id"),
                     APPLICATION_ROUTER_COLLECTION_JSON_V2, DtoRouter[].class);
             assertEquals(1, routers.length);
             assertEquals(resRouter.getId(), routers[0].getId());
@@ -590,29 +614,6 @@ public class TestRouter {
             nullNameRouter.setTenantId("tenant1-id");
             params.add(new Object[] { nullNameRouter, "name" });
 
-            // Blank name
-            DtoRouter blankNameRouter = new DtoRouter();
-            blankNameRouter.setName("");
-            blankNameRouter.setTenantId("tenant1-id");
-            params.add(new Object[] { blankNameRouter, "name" });
-
-            // Long name
-            StringBuilder longName = new StringBuilder(
-                    Router.MAX_ROUTER_NAME_LEN + 1);
-            for (int i = 0; i < Router.MAX_ROUTER_NAME_LEN + 1; i++) {
-                longName.append("a");
-            }
-            DtoRouter longNameRouter = new DtoRouter();
-            longNameRouter.setName(longName.toString());
-            longNameRouter.setTenantId("tenant1-id");
-            params.add(new Object[] { longNameRouter, "name" });
-
-            // Router name already exists
-            DtoRouter dupNameRouter = new DtoRouter();
-            dupNameRouter.setName("router1-name");
-            dupNameRouter.setTenantId("tenant1-id");
-            params.add(new Object[]{dupNameRouter, "name"});
-
             // Router with tenantID missing
             DtoRouter noTenant = new DtoRouter();
             noTenant.setName("noTenant-router-name");
@@ -657,14 +658,8 @@ public class TestRouter {
             r1.setName("router1-name");
             r1.setTenantId("tenant1-id");
 
-            // Create another router - useful for checking duplicate name error
-            DtoRouter r2 = new DtoRouter();
-            r2.setName("router2-name");
-            r2.setTenantId("tenant1-id");
-
             topology = new Topology.Builder(dtoResource)
-                    .create("router1", r1)
-                    .create("router2", r2).build();
+                    .create("router1", r1).build();
         }
 
         @After
@@ -681,29 +676,6 @@ public class TestRouter {
             DtoRouter nullNameRouter = new DtoRouter();
             nullNameRouter.setTenantId("tenant1-id");
             params.add(new Object[] { nullNameRouter, "name" });
-
-            // Blank name
-            DtoRouter blankNameRouter = new DtoRouter();
-            blankNameRouter.setName("");
-            blankNameRouter.setTenantId("tenant1-id");
-            params.add(new Object[] { blankNameRouter, "name" });
-
-            // Long name
-            StringBuilder longName = new StringBuilder(
-                    Router.MAX_ROUTER_NAME_LEN + 1);
-            for (int i = 0; i < Router.MAX_ROUTER_NAME_LEN + 1; i++) {
-                longName.append("a");
-            }
-            DtoRouter longNameRouter = new DtoRouter();
-            longNameRouter.setName(longName.toString());
-            longNameRouter.setTenantId("tenant1-id");
-            params.add(new Object[] { longNameRouter, "name" });
-
-            // Router name already exists
-            DtoRouter dupNameRouter = new DtoRouter();
-            dupNameRouter.setName("router2-name");
-            dupNameRouter.setTenantId("tenant1-id");
-            params.add(new Object[] { dupNameRouter, "name" });
 
             // Router with tenantID missing
             DtoRouter noTenant = new DtoRouter();
