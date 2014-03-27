@@ -245,17 +245,10 @@ public class BridgeResource extends AbstractResource {
                     "Not authorized to add bridge to this tenant.");
         }
 
-        try {
-            UUID id = dataClient.bridgesCreate(bridge.toData());
-            bridgeEvent.create(id, dataClient.bridgesGet(id));
-            return Response.created(
-                    ResourceUriBuilder.getBridge(getBaseUri(), id))
-                    .build();
-        } catch (StatePathExistsException ex) {
-            throw new BadRequestHttpException(
-                    MessageProperty.getMessage(
-                            MessageProperty.IS_UNIQUE_BRIDGE_NAME));
-        }
+        UUID id = dataClient.bridgesCreate(bridge.toData());
+        bridgeEvent.create(id, dataClient.bridgesGet(id));
+        return Response.created(
+                ResourceUriBuilder.getBridge(getBaseUri(), id)).build();
     }
 
     /**
@@ -291,8 +284,8 @@ public class BridgeResource extends AbstractResource {
     }
 
     /*
-+     * MAC table access
-+     */
+     * MAC table access
+     */
 
     /**
      * Handler to list the MAC table's entries with V1 semantics, meaning that

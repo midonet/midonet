@@ -79,9 +79,6 @@ public interface DataClient {
     UUID bridgesCreate(@Nonnull Bridge bridge)
             throws StateAccessException, SerializationException;
 
-    @CheckForNull Bridge bridgesGetByName(String tenantId, String name)
-            throws StateAccessException, SerializationException;
-
     void bridgesUpdate(@Nonnull Bridge bridge)
             throws StateAccessException, SerializationException;
 
@@ -656,9 +653,6 @@ public interface DataClient {
             throws StateAccessException, SerializationException;
 
     void routersUpdate(@Nonnull Router router)
-            throws StateAccessException, SerializationException;
-
-    @CheckForNull Router routersGetByName(String tenantId, String name)
             throws StateAccessException, SerializationException;
 
     List<Router> routersGetAll() throws StateAccessException,
