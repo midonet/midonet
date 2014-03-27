@@ -5,14 +5,12 @@
 package org.midonet.midolman
 
 import java.util.UUID
+import java.util.{List => JList}
 import scala.collection.mutable
 import scala.concurrent._
 import scala.concurrent.duration._
-import scala.util.Random
-import scala.util.Success
 
 import akka.actor._
-import akka.pattern.AskableActorRef
 import akka.testkit._
 import org.junit.runner.RunWith
 import org.scalatest._
@@ -23,11 +21,11 @@ import org.midonet.odp.flows._
 import org.midonet.odp.protos.MockOvsDatapathConnection
 import org.midonet.packets.Ethernet
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
+import org.midonet.midolman.DeduplicationActor.ActionsCache
+import com.sun.tools.javac.util.ListBuffer
+import scala.annotation.tailrec
 
 object PacketWorkflowTest {
-
-    import PacketWorkflow._
-
     case object ExecPacket
     case object FlowCreated
     case object TranslateActions
@@ -43,8 +41,8 @@ object PacketWorkflowTest {
         dpCon.flowsSubscribe(flowListener)
         val dpState = new DatapathStateManager(null)(null)
         val wcMatch = WildcardMatch.fromFlowMatch(pkt.getMatch)
-        new PacketWorkflow(
-                testKit, dpCon, dpState, null, null, pkt, wcMatch, Left(cookie), None) {
+        new PacketWorkflow(dpCon, dpState, null, null, new ActionsCache(),
+                           pkt, wcMatch, Left(cookie), None) {
             def runSimulation() =
                 throw new Exception("no Coordinator")
             override def executePacket(actions: Seq[FlowAction]) = {
@@ -77,7 +75,6 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
 
     import PacketWorkflow._
     import PacketWorkflowTest._
-    import DeduplicationActor._
     import FlowController._
 
     val cookie = 42
@@ -115,7 +112,7 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
 
             Then("the Deduplication actor gets an ApplyFlow request")
             And("the current packet gets executed")
-            runChecks(applyOutputActions)
+            runChecks(pkfw, applyOutputActions)
         }
 
         scenario("Non Userspace-only tagged packets generate kernel flows") {
@@ -128,9 +125,9 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
             Then("a FlowCreate request is made and processed by the Dp")
             And("a FlowAdded notification is sent to the Flow Controller")
             And("no wildcardflow are pushed to the Flow Controller")
-            And("the DeduplicationActor gets an ApplyFlow request")
+            And("the resulting action is an OutputFlowAction")
             And("the current packet gets executed")
-            runChecks(applyOutputActionsWithFlow)
+            runChecks(pkfw, applyOutputActionsWithFlow)
         }
     }
 
@@ -141,11 +138,11 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
             val pkfw = PacketWorkflowTest.forCookie(self, packet(), cookie)
 
             When("the simulation layer returns SendPacket")
-            pkfw.processSimulationResult(Ready(SendPacket(output)))
+            pkfw.processSimulationResult(Ready(SendPacket(List(output))))
 
             Then("action translation is performed")
             And("the current packet gets executed")
-            runChecks(List(checkTranslate, checkExecPacket))
+            runChecks(pkfw, checkTranslate, checkExecPacket)
         }
 
         scenario("A Simulation returns NoOp") {
@@ -155,8 +152,8 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
             When("the simulation layer returns NoOp")
             pkfw.processSimulationResult(Ready(NoOp))
 
-            Then("the Deduplication actor gets an empty ApplyFlow request")
-            runChecks(List(checkApplyNilFlow))
+            Then("the resulting actions are empty")
+            runChecks(pkfw, checkEmptyActions _)
         }
 
         scenario("A Simulation returns Drop, tags are invalid") {
@@ -170,7 +167,8 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
             Then("the DeduplicationActor gets an ApplyFlow request")
             And("the current packet gets executed (with 0 actions)")
             And("no wildcard are added.")
-            runChecks(applyNilActions)
+
+            runChecks(pkfw, checkEmptyActions _)
         }
 
         scenario("A Simulation returns Drop for userspace only match," +
@@ -182,9 +180,8 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
             pkfw.processSimulationResult(Ready(Drop(Set.empty, Nil)))
 
             Then("the FlowController gets an AddWildcardFlow request")
-            And("the Deduplication actor gets an empty ApplyFlow request")
             And("the packets gets executed (with 0 action)")
-            runChecks(applyNilActionsWithWildcardFlow)
+            runChecks(pkfw, applyNilActionsWithWildcardFlow)
         }
 
         scenario("A Simulation returns Drop, tags are valid") {
@@ -197,7 +194,7 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
             Then("a FlowCreate request is made and processed by the Dp")
             And("a new WildcardFlow is sent to the Flow Controller")
             And("the current packet gets executed (with 0 actions)")
-            runChecks(applyNilActionsWithWildcardFlow)
+            runChecks(pkfw, applyNilActionsWithWildcardFlow)
         }
 
         scenario("A Simulation returns TemporaryDrop, tags are invalid") {
@@ -212,7 +209,7 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
             Then("the DeduplicationActor gets an ApplyFlow request")
             And("the current packet gets executed (with 0 actions)")
             And("no wildcard are added.")
-            runChecks(applyNilActions)
+            runChecks(pkfw, applyEmptyActions)
         }
 
         scenario("A Simulation returns TemporaryDrop for userspace only match,"+
@@ -227,7 +224,7 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
             Then("the FlowController gets an AddWildcardFlow request")
             And("the Deduplication actor gets an empty ApplyFlow request")
             And("the packets gets executed (with 0 action)")
-            runChecks(applyNilActionsWithWildcardFlow)
+            runChecks(pkfw, applyNilActionsWithWildcardFlow)
         }
 
         scenario("A Simulation returns TemporaryDrop, tags are valid") {
@@ -241,7 +238,7 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
             Then("a FlowCreate request is made and processed by the Dp")
             And("a new WildcardFlow is sent to the Flow Controller")
             And("the current packet gets executed (with 0 actions)")
-            runChecks(applyNilActionsWithWildcardFlow)
+            runChecks(pkfw, applyNilActionsWithWildcardFlow)
         }
 
         scenario("A Simulation returns AddVirtualWildcardFlow, " +
@@ -258,7 +255,7 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
             And("the DeduplicationActor gets an ApplyFlow request")
             And("no wildcard are added.")
             And("the current packet gets executed")
-            runChecks(checkTranslate _ :: applyOutputActions)
+            runChecks(pkfw, checkTranslate _ :: applyOutputActions)
         }
 
         scenario("A Simulation returns AddVirtualWildcardFlow " +
@@ -275,8 +272,8 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
             And("the FlowController gets an AddWildcardFlow request")
             And("the DeduplicationActor gets an ApplyFlow request")
             And("the current packet gets executed")
-            runChecks(
-                checkTranslate _ :: checkAddWildcard _ :: applyRoutedOutputActions)
+            runChecks(pkfw,
+                checkTranslate _ :: checkAddWildcard _ :: applyOutputActions)
         }
 
         scenario("A Simulation returns AddVirtualWildcardFlow, " +
@@ -292,14 +289,14 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
             And("the FlowController gets an AddWildcardFlow request")
             And("the DeduplicationActor gets an ApplyFlow request")
             And("the current packet gets executed")
-            runChecks(
-                checkTranslate _ :: checkAddWildcard _ :: applyRoutedOutputActions)
+            runChecks(pkfw,
+                checkTranslate _ :: checkAddWildcard _ :: applyOutputActions)
         }
     }
 
     /* helper generator functions */
 
-    val output = List(FlowActions.output(12))
+    val output = FlowActions.output(12)
 
     def flMatch(userspace: Boolean = false) = {
         val flm = new FlowMatch()
@@ -323,56 +320,58 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
     }
 
     def wcFlow(userspace: Boolean = false) =
-        WildcardFlow(wcMatch(userspace), output)
+        WildcardFlow(wcMatch(userspace), List(output))
 
 
     /* helpers for checking received msgs */
 
-    type Check = Seq[Any] => Unit
+    type Check = (Seq[Any], JList[FlowAction]) => Unit
 
-    def runChecks(checks: List[Check]) {
-        val msgs = receiveN(checks.size)
-        checks.foreach{ _.apply(msgs) }
-        msgAvailable should be(false)
+    def runChecks(pw: PacketWorkflow, checks: List[Check]) {
+        runChecks(pw, checks:_*)
     }
 
-    def checkTranslate(msgs: Seq[Any]) = msgs should contain(TranslateActions)
+    def runChecks(pw: PacketWorkflow, checks: Check*) {
+        def drainMessages(): List[AnyRef] = {
+            receiveOne(500 millis) match {
+                case null => Nil
+                case msg => msg :: drainMessages()
+            }
+        }
+        val msgs = drainMessages()
+        checks foreach {
+            _(msgs, pw.actionsCache.actions.get(pw.packet.getMatch)) }
+        msgAvailable should be (false)
+    }
 
-    def checkExecPacket(msgs: Seq[Any]) = msgs should contain(ExecPacket)
+    def checkTranslate(msgs: Seq[Any], as: JList[FlowAction]): Unit =
+        msgs should contain(TranslateActions)
 
-    def checkApplyNilFlow(msgs: Seq[Any]) =
-        msgs should contain(ApplyFlow(Nil, cookieOpt))
+    def checkExecPacket(msgs: Seq[Any], as: JList[FlowAction]): Unit =
+        msgs should contain(ExecPacket)
 
-    def checkRoutedApplyNilFlow(msgs: Seq[Any]) =
-        msgs should contain(ApplyFlowFor(ApplyFlow(Nil, cookieOpt), self))
+    def checkEmptyActions(msgs: Seq[Any], as: JList[FlowAction]): Unit =
+        as should be (empty)
 
-    def checkApplyOutputFlow(msgs: Seq[Any]) =
-        msgs should contain(ApplyFlow(output, cookieOpt))
+    def checkOutputActions(msgs: Seq[Any], as: JList[FlowAction]): Unit =
+        as should contain (output)
 
-    def checkRoutedApplyOutputFlow(msgs: Seq[Any]) =
-        msgs should contain(ApplyFlowFor(ApplyFlow(output, cookieOpt), self))
-
-    def checkAddWildcard(msgs: Seq[Any]) =
+    def checkAddWildcard(msgs: Seq[Any], as: JList[FlowAction]): Unit =
         msgs map { _.getClass } should contain(classOf[AddWildcardFlow])
 
-    def checkFlowAdded(msgs: Seq[Any]) =
+    def checkFlowAdded(msgs: Seq[Any], as: JList[FlowAction]): Unit =
         msgs map { _.getClass } should contain(classOf[FlowAdded])
 
-    val applyNilActions = List[Check](checkApplyNilFlow, checkExecPacket)
+    val applyEmptyActions = List[Check](checkEmptyActions, checkExecPacket)
 
-    val applyRoutedNilActions = List[Check](checkRoutedApplyNilFlow, checkExecPacket)
+    val applyNilActionsWithFlow = checkFlowAdded _ :: applyEmptyActions
 
-    val applyNilActionsWithFlow = checkFlowAdded _ :: applyNilActions
+    val applyNilActionsWithWildcardFlow = checkAddWildcard _ :: applyEmptyActions
 
-    val applyNilActionsWithWildcardFlow = checkAddWildcard _ :: applyRoutedNilActions
-
-    val applyOutputActions = List[Check](checkApplyOutputFlow, checkExecPacket)
-
-    val applyRoutedOutputActions = List[Check](checkRoutedApplyOutputFlow, checkExecPacket)
+    val applyOutputActions = List[Check](checkOutputActions, checkExecPacket)
 
     val applyOutputActionsWithFlow = checkFlowAdded _ :: applyOutputActions
 
     val applyOutputActionsWithWildcardFlow =
         checkAddWildcard _ :: applyOutputActions
-
 }

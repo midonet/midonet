@@ -144,7 +144,7 @@ class RouterFlowInvalidationTestCase extends MidolmanTestCase with RouterHelper
         val dpconn = flowController().underlyingActor.datapathConnection(dpflow.getMatch)
         dpconn.flowsCreate(datapath, dpflow)
         dpFlowProbe.expectMsgClass(classOf[FlowAdded])
-        FlowController ! AddWildcardFlow(wflow, Some(dpflow), Nil, tags)
+        FlowController ! AddWildcardFlow(wflow, dpflow, Nil, tags)
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
 
         val lastInval = FlowController.lastInvalidationEvent
@@ -156,13 +156,13 @@ class RouterFlowInvalidationTestCase extends MidolmanTestCase with RouterHelper
 
         dpconn.futures.flowsCreate(datapath, dpflow)
         dpFlowProbe.expectMsgClass(classOf[FlowAdded])
-        FlowController ! AddWildcardFlow(wflow, Some(dpflow), Nil, tags, lastInval)
+        FlowController ! AddWildcardFlow(wflow, dpflow, Nil, tags, lastInval)
         dpFlowProbe.expectMsgClass(classOf[FlowRemoved])
         wflowAddedProbe.expectNoMsg()
 
         dpconn.futures.flowsCreate(datapath, dpflow)
         dpFlowProbe.expectMsgClass(classOf[FlowAdded])
-        FlowController ! AddWildcardFlow(wflow, Some(dpflow), Nil, tags)
+        FlowController ! AddWildcardFlow(wflow, dpflow, Nil, tags)
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
     }
 

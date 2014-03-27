@@ -115,7 +115,7 @@ class FlowsExpirationTestCase extends MidolmanTestCase
                 hardExpirationMillis = getDilatedTime(timeOutFlow).toInt)
 
         flowProbe().testActor !
-            AddWildcardFlow(newWildFlow, Some(flow), Nil, Set.empty)
+            AddWildcardFlow(newWildFlow, flow, Nil, Set.empty)
 
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
 
@@ -182,7 +182,7 @@ class FlowsExpirationTestCase extends MidolmanTestCase
                 idleExpirationMillis = getDilatedTime(timeOutFlow).toInt)
 
         flowProbe().testActor !
-            AddWildcardFlow(newWildFlow, Some(flow), Nil, Set.empty)
+            AddWildcardFlow(newWildFlow, flow, Nil, Set.empty)
 
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
         val timeAdded: Long = System.currentTimeMillis()
@@ -224,7 +224,7 @@ class FlowsExpirationTestCase extends MidolmanTestCase
                 hardExpirationMillis = getDilatedTime(timeOutFlow).toInt)
 
         flowProbe().testActor !
-            AddWildcardFlow(newWildFlow, Some(flow), Nil, Set.empty)
+            AddWildcardFlow(newWildFlow, flow, Nil, Set.empty)
 
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
         val timeAdded: Long = System.currentTimeMillis()
@@ -262,7 +262,7 @@ class FlowsExpirationTestCase extends MidolmanTestCase
                 idleExpirationMillis = getDilatedTime(timeOutFlow).toInt)
 
         flowProbe().testActor !
-            AddWildcardFlow(newWildFlow, Some(flow), Nil, Set.empty)
+            AddWildcardFlow(newWildFlow, flow, Nil, Set.empty)
 
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
         val timeAdded = System.currentTimeMillis()

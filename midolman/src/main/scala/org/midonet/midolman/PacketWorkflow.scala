@@ -4,7 +4,7 @@
 package org.midonet.midolman
 
 import java.lang.{Integer => JInteger}
-import java.util.UUID
+import java.util.{UUID, List => JList}
 import java.util.concurrent.TimeUnit
 
 import scala.collection.JavaConversions._
@@ -29,6 +29,7 @@ import org.midonet.packets._
 import org.midonet.sdn.flows.VirtualActions.{VirtualFlowAction, FlowActionOutputToVrnPortSet}
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 import org.midonet.util.functors.Callback0
+import org.midonet.midolman.DeduplicationActor.ActionsCache
 
 trait PacketHandler {
 
@@ -86,29 +87,28 @@ object PacketWorkflow {
     case object PacketToPortSet extends PipelinePath
     case object Simulation extends PipelinePath
 
-    def apply(deduplicator: ActorRef,
-              dpCon: OvsDatapathConnection,
+    def apply(dpCon: OvsDatapathConnection,
               dpState: DatapathState,
               dp: Datapath,
               dataClient: DataClient,
+              actionsCache: ActionsCache,
               packet: Packet,
               wcMatch: WildcardMatch,
               cookieOrEgressPort: Either[Int, UUID],
               parentCookie: Option[Int])
              (runSim: => Urgent[SimulationResult])
              (implicit system: ActorSystem): PacketHandler =
-        new PacketWorkflow(deduplicator, dpCon, dpState, dp, dataClient, packet,
+        new PacketWorkflow(dpCon, dpState, dp, dataClient, actionsCache, packet,
                            wcMatch, cookieOrEgressPort, parentCookie) {
             def runSimulation() = runSim
         }
-
 }
 
-abstract class PacketWorkflow(val deduplicator: ActorRef,
-                              protected val datapathConnection: OvsDatapathConnection,
+abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConnection,
                               protected val dpState: DatapathState,
                               val datapath: Datapath,
                               val dataClient: DataClient,
+                              val actionsCache: ActionsCache,
                               val packet: Packet,
                               val wcMatch: WildcardMatch,
                               val cookieOrEgressPort: Either[Int, UUID],
@@ -176,13 +176,12 @@ abstract class PacketWorkflow(val deduplicator: ActorRef,
         newWildFlow match {
             case None =>
                 FlowController ! FlowAdded(flow, wcMatch)
-                deduplicator ! ApplyFlow(flow.getActions, cookie)
+                addToActionsCacheAndInvalidate(flow.getActions)
             case Some(wf) =>
-                val msg = AddWildcardFlow(wf, Some(flow), removalCallbacks,
-                                          tags, lastInvalidation)
-                FlowController ! msg
-                FlowController !
-                    ApplyFlowFor(ApplyFlow(flow.getActions, cookie), deduplicator)
+                FlowController ! AddWildcardFlow(wf, flow, removalCallbacks, tags,
+                    lastInvalidation, packet.getMatch, actionsCache.pending,
+                    actionsCache.getSlot())
+                actionsCache.actions.put(packet.getMatch, flow.getActions)
         }
     }
 
@@ -199,7 +198,7 @@ abstract class PacketWorkflow(val deduplicator: ActorRef,
         } catch {
             case e: NetlinkException =>
                 log.info("{} Failed to add flow packet: {}", cookieStr, e)
-                deduplicator ! ApplyFlow(dpFlow.getActions, cookie)
+                addToActionsCacheAndInvalidate(dpFlow.getActions)
         }
     }
 
@@ -218,11 +217,11 @@ abstract class PacketWorkflow(val deduplicator: ActorRef,
         FlowController.isTagSetStillValid(lastInvalidation, tags)
 
     private def handleObsoleteFlow(wildFlow: WildcardFlow,
-                           removalCallbacks: Seq[Callback0]) {
+                                   removalCallbacks: Seq[Callback0]) {
         log.debug("Skipping creation of obsolete flow {} for {}",
                   cookieStr, wildFlow.getMatch)
         if (cookie.isDefined)
-            deduplicator ! ApplyFlow(wildFlow.getActions, cookie)
+            addToActionsCacheAndInvalidate(wildFlow.getActions)
         runCallbacks(removalCallbacks)
     }
 
@@ -233,11 +232,10 @@ abstract class PacketWorkflow(val deduplicator: ActorRef,
             case Some(_) if wildFlow.wcmatch.userspaceFieldsSeen =>
                 log.debug("Adding wildcard flow {} for match with userspace " +
                           "only fields, without a datapath flow", wildFlow)
-                FlowController !
-                    AddWildcardFlow(wildFlow, None, removalCallbacks,
-                                    tags, lastInvalidation)
-                FlowController !
-                    ApplyFlowFor(ApplyFlow(wildFlow.getActions, cookie), deduplicator)
+                FlowController ! AddWildcardFlow(wildFlow, null, removalCallbacks,
+                    tags, lastInvalidation, packet.getMatch, actionsCache.pending,
+                    actionsCache.getSlot())
+                actionsCache.actions.put(packet.getMatch, wildFlow.actions)
 
             case Some(_) =>
                 createFlow(wildFlow, Some(wildFlow), tags, removalCallbacks)
@@ -245,9 +243,8 @@ abstract class PacketWorkflow(val deduplicator: ActorRef,
             case None =>
                 log.debug("Only adding wildcard flow {} for {}",
                           wildFlow, cookieStr)
-                FlowController !
-                    AddWildcardFlow(wildFlow, None, removalCallbacks,
-                                    tags, lastInvalidation)
+                FlowController ! AddWildcardFlow(wildFlow, null, removalCallbacks,
+                                                 tags, lastInvalidation)
         }
     }
 
@@ -308,7 +305,7 @@ abstract class PacketWorkflow(val deduplicator: ActorRef,
         if (wildFlow.wcmatch.userspaceFieldsSeen) {
             log.debug("no datapath flow for match {} with userspace only fields",
                       wildFlow.wcmatch)
-            deduplicator ! ApplyFlow(wildFlow.getActions, cookie)
+            addToActionsCacheAndInvalidate(wildFlow.getActions)
         } else {
             createFlow(wildFlow)
         }
@@ -372,9 +369,9 @@ abstract class PacketWorkflow(val deduplicator: ActorRef,
                           action, pSet)
                 // egress port filter simulation
                 val tags = mutable.Set[Any]()
-                def outFilter = applyOutgoingFilter(pSet.id, wcMatch,
-                                                    tags, action)(_)
-                activePorts(pSet.localPorts, tags) flatMap outFilter
+                activePorts(pSet.localPorts, tags) flatMap {
+                    applyOutgoingFilter(pSet.id, wcMatch, tags, action)(_)
+                }
         }) map {
             _ => PacketToPortSet
         }
@@ -411,7 +408,7 @@ abstract class PacketWorkflow(val deduplicator: ActorRef,
             case SendPacket(actions) =>
                 sendPacket(actions)
             case NoOp =>
-                deduplicator ! ApplyFlow(Nil, cookie)
+                addToActionsCacheAndInvalidate(Nil)
                 Ready(true)
             case TemporaryDrop(tags, flowRemovalCallbacks) =>
                 addTranslatedFlowForActions(Nil, tags, flowRemovalCallbacks,
@@ -531,4 +528,9 @@ abstract class PacketWorkflow(val deduplicator: ActorRef,
         }
     }
 
+    private def addToActionsCacheAndInvalidate(actions: JList[FlowAction]): Unit = {
+        val wm = packet.getMatch
+        actionsCache.actions.put(wm, actions)
+        actionsCache.pending(actionsCache.getSlot()) = wm
+    }
 }
