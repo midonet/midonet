@@ -8,7 +8,7 @@ import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.cluster.Client
 import java.util.UUID
 import org.midonet.midolman.topology.VirtualTopologyActor
-import scala.collection.mutable.Map
+import scala.collection.immutable.Map
 import org.midonet.midolman.state.zkManagers.PoolZkManager.PoolHealthMonitorMappingConfig
 
 object PoolHealthMonitorMapManager {

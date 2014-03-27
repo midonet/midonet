@@ -15,6 +15,7 @@ import java.util.{Map => JMap, UUID}
 import org.slf4j.{LoggerFactory, Logger}
 import scala.collection.JavaConverters._
 import scala.collection.mutable.{HashMap => MMap}
+import scala.collection.immutable.{HashMap => IMap}
 
 
 class ClusterPoolHealthMonitorMapManager
@@ -80,7 +81,7 @@ class ClusterPoolHealthMonitorMapManager
                         // If we still have some missing data, it will be
                         // retrieved when the data comes in via the
                         // GetConfDataCallback. The build will happen then.
-                        builder.set(poolIdToMapConfig)
+                        builder.set(IMap(poolIdToMapConfig.toSeq:_*))
                         builder.build()
                     }
                     requestsPending.foreach(kv => requestData(kv._1, kv._2))
@@ -129,7 +130,7 @@ class ClusterPoolHealthMonitorMapManager
              if (watchedPoolIdToHmId.size == poolIdToMapConfig.size) {
                  val builder: PoolHealthMonitorMapBuilder =
                      getBuilder(Pool.POOL_HEALTH_MONITOR_MAP_KEY)
-                 builder.set(poolIdToMapConfig)
+                 builder.set(IMap(poolIdToMapConfig.toSeq:_*))
                  builder.build()
              }
         }

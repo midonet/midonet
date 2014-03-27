@@ -7,7 +7,7 @@ import org.midonet.cluster.client.PoolHealthMonitorMapBuilder
 import java.util.UUID
 import org.slf4j.{LoggerFactory, Logger}
 import akka.actor.ActorRef
-import scala.collection.mutable.Map
+import scala.collection.immutable.Map
 import org.midonet.midolman.state.zkManagers.PoolZkManager.PoolHealthMonitorMappingConfig
 
 
