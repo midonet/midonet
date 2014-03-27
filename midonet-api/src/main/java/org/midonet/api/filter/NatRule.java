@@ -5,11 +5,14 @@ package org.midonet.api.filter;
 
 import org.midonet.midolman.rules.RuleResult;
 
+import javax.validation.constraints.NotNull;
+
 /**
  * NAT rule DTO
  */
 public abstract class NatRule extends Rule {
 
+    @NotNull
     protected String flowAction;
 
     public NatRule() {

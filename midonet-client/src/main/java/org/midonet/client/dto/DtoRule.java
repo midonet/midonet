@@ -57,6 +57,7 @@ public class DtoRule {
     private String nwDstAddress;
     private int nwDstLength;
     private boolean invNwDst;
+    private String fragmentPolicy;
     private DtoRange<Integer> tpSrc;
     private boolean invTpSrc;
     private DtoRange<Integer> tpDst;
@@ -348,6 +349,14 @@ public class DtoRule {
 
     public void setInvNwDst(boolean invNwDst) {
         this.invNwDst = invNwDst;
+    }
+
+    public String getFragmentPolicy() {
+        return fragmentPolicy;
+    }
+
+    public void setFragmentPolicy(String fragmentPolicy) {
+        this.fragmentPolicy = fragmentPolicy;
     }
 
     public boolean isInvTpSrc() {

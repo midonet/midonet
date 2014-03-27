@@ -4,22 +4,22 @@
 
 package org.midonet.midolman.simulation
 
-import scala.concurrent.Await
-import scala.concurrent.duration._
-
 import akka.util.Timeout
-
+import java.util.UUID
 import org.junit.runner.RunWith
 import org.scalatest.{OneInstancePerTest, GivenWhenThen, Matchers, FeatureSpec}
 import org.scalatest.junit.JUnitRunner
+import scala.concurrent.Await
+import scala.concurrent.duration._
 
 import org.midonet.cache.MockCache
-import org.midonet.cluster.data.{Bridge => ClusterBridge}
-import org.midonet.cluster.data.ports.BridgePort
+import org.midonet.cluster.data.{Bridge => ClusterBridge, Router => ClusterRouter, Entity, Port}
 import org.midonet.midolman._
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
-import org.midonet.midolman.PacketWorkflow.{TemporaryDrop, SimulationResult}
-import org.midonet.midolman.rules.RuleResult
+import org.midonet.midolman.PacketWorkflow.{Drop, TemporaryDrop, SimulationResult}
+import org.midonet.midolman.rules.FragmentPolicy
+import org.midonet.midolman.rules.FragmentPolicy._
+import org.midonet.midolman.rules.RuleResult.Action
 import org.midonet.midolman.services.MessageAccumulator
 import org.midonet.midolman.topology.{FlowTagger, VirtualTopologyActor}
 import org.midonet.odp.flows.IPFragmentType
@@ -46,146 +46,166 @@ class IPFragmentationTest extends FeatureSpec
                                        with MessageAccumulator))
 
     /*
-     * The topology for this test consists of a single bridge with 2 ports.
+     * The topology for this test consists of a single bridge or
+     * router with 2 ports. Which one depends on the useRouter
+     * value passed to setup().
      */
 
-    val ipLeftSide = new IPv4Subnet("10.0.0.64", 24)
-    val macLeftSide = MAC.random
-    val ipRightSide = new IPv4Subnet("10.0.0.65", 24)
-    val macRightSide = MAC.random
-
     var bridge: ClusterBridge = _
-    var leftBridgePort: BridgePort = _
-    var rightBridgePort: BridgePort = _
 
-    override def beforeTest() {
-        newHost("myself", hostId)
-        bridge = newBridge("bridge0")
+    val leftBridgePortMac = MAC.random
+    val leftBridgePortSubnet = new IPv4Subnet("10.0.0.64", 24)
 
-        leftBridgePort = newBridgePort(bridge)
-        rightBridgePort = newBridgePort(bridge)
+    val rightBridgePortMac = MAC.random
+    val rightBridgePortSubnet = new IPv4Subnet("10.0.0.65", 24)
 
-        materializePort(leftBridgePort, hostId, "port0")
-        materializePort(rightBridgePort, hostId, "port1")
+    var router: ClusterRouter = _
 
-        val topo = fetchTopology(bridge, leftBridgePort, rightBridgePort)
+    val leftRouterPortMac = MAC.random
+    val leftRouterPortSubnet = new IPv4Subnet("10.10.11.10", 24)
 
-        topo.collect({ case b: Bridge => b.vlanMacTableMap})
-                .head(ClusterBridge.UNTAGGED_VLAN_ID)
-                .add(macRightSide, rightBridgePort.getId)
+    val rightRouterPortMac = MAC.random
+    val rightRouterPortSubnet = new IPv4Subnet("10.10.12.10", 24)
+
+    // These refer to either bridge or router versions, depending
+    // on the value of useRouter passed to setup().
+    var useRouter: Boolean = false
+    var device: Entity.Base[UUID, _, _] = _
+    var srcPort: Port[_, _] = _
+    var dstPort: Port[_, _] = _
+    var srcMac: MAC = _
+    var dstMac: MAC = _
+    var srcSubnet: IPv4Subnet = _
+    var dstSubnet: IPv4Subnet = _
+
+    def setup(useRouter: Boolean = false) {
+        this.useRouter = useRouter
+        newHost("myself", hostId())
+
+        if (useRouter) {
+            router = newRouter("router1")
+            device = router
+
+            srcPort = newRouterPort(router, leftRouterPortMac,
+                                    leftRouterPortSubnet)
+            srcMac = leftRouterPortMac
+            srcSubnet = leftRouterPortSubnet
+
+            dstPort = newRouterPort(router, rightRouterPortMac,
+                                    rightRouterPortSubnet)
+            dstMac = leftRouterPortMac
+            dstSubnet = rightRouterPortSubnet
+        } else {
+            bridge = newBridge("bridge0")
+            device = bridge
+
+            srcPort = newBridgePort(bridge)
+            srcMac = leftBridgePortMac
+            srcSubnet = leftBridgePortSubnet
+
+            dstPort = newBridgePort(bridge)
+            dstMac = rightBridgePortMac
+            dstSubnet = rightBridgePortSubnet
+
+            materializePort(srcPort, hostId(), "bport0")
+            materializePort(dstPort, hostId(), "bport1")
+
+            val topo = fetchTopology(bridge, srcPort, dstPort)
+
+            topo.collect({ case b: Bridge => b.vlanMacTableMap})
+                    .head(ClusterBridge.UNTAGGED_VLAN_ID)
+                    .add(dstMac, dstPort.getId)
+        }
     }
 
-    feature("Fragmentation is ignored if no L4 fields are touched") {
-        for (fragType <- IPFragmentType.values()) {
-            scenario(s"a $fragType packet is allowed through") {
-                Given("an IP packet with IP_FLAGS_MF set")
+    feature("Rules are applied or not according to fragment fragmentPolicy") {
+        val policyMatrix = Map((ANY, IPFragmentType.First) -> true,
+                               (ANY, IPFragmentType.Later) -> true,
+                               (ANY, IPFragmentType.None) -> true,
+                               (UNFRAGMENTED, IPFragmentType.First) -> false,
+                               (UNFRAGMENTED, IPFragmentType.Later) -> false,
+                               (UNFRAGMENTED, IPFragmentType.None) -> true,
+                               (HEADER, IPFragmentType.First) -> true,
+                               (HEADER, IPFragmentType.Later) -> false,
+                               (HEADER, IPFragmentType.None) -> true,
+                               (NONHEADER, IPFragmentType.First) -> false,
+                               (NONHEADER, IPFragmentType.Later) -> true,
+                               (NONHEADER, IPFragmentType.None) -> false)
+        for (((policy, fragType), accepted) <- policyMatrix) {
+            scenario(s"$policy accepts fragment type $fragType: $accepted") {
+                Given(s"A chain with an accept rule with $policy fragmentPolicy")
+                setup()
+                setupAcceptOrDropChain(policy, ANY)
 
-                When("it is simulated")
+                When(s"A packet with fragment type $fragType is sent")
+                val simRes = sendPacket(fragType)
 
-                val simRes = sendPacket(IPFragmentType.None)
-
-                Then("a to port flow action is emitted")
-
-                simRes should be (toPort(rightBridgePort.getId) {
-                    FlowTagger.invalidateFlowsByDevice(leftBridgePort.getId)
-                    FlowTagger.invalidateFlowsByDevice(bridge.getId)
-                    FlowTagger.invalidateFlowsByDevice(rightBridgePort.getId)
-                })
+                if (accepted) {
+                    Then("A to port flow action is emitted.")
+                    assertToPortFlowCreated(simRes)
+                } else {
+                    Then("A drop flow action is emitted")
+                    assertDropFlowCreated(simRes)
+                }
             }
         }
     }
 
-    feature("Packet fragmentation is not supported") {
-        scenario("an unfragmented packet is allowed through") {
-            Given("an IP packet with IP_FLAGS_MF set")
+    feature("Respond to header fragments dropped by a router with ICMP_FRAG_NEEDED") {
+        scenario("Fragments dropped by bridge do not prompt ICMP_FRAG_NEEDED") {
+            Given("A bridge with a chain which drops fragmented packets")
+            setup()
+            setupAcceptOrDropChain(UNFRAGMENTED, ANY)
 
-            setupL4TouchingChain()
+            When("A header fragment is sent")
+            val simRes = sendPacket(IPFragmentType.First)
 
-            When("it is simulated")
+            Then("A drop flow should be installed")
+            assertDropFlowCreated(simRes, temporary = false)
 
-            val simRes = sendPacket(IPFragmentType.None)
-
-            Then("a to port flow action is emitted")
-
-            simRes should be (toPort(rightBridgePort.getId) {
-                FlowTagger.invalidateFlowsByDevice(leftBridgePort.getId)
-                FlowTagger.invalidateFlowsByDevice(bridge.getId)
-                FlowTagger.invalidateFlowsByDevice(rightBridgePort.getId)
-            })
+            And("No ICMP_FRAG_NEEDED message should be received.")
+            PacketsEntryPoint.messages should be (empty)
         }
 
-        scenario("a first packet is replied to with a frag. needed ICMP") {
-            Given("an IP packet with IP_FLAGS_MF set")
+        scenario("Header fragment dropped by router prompts ICMP_FRAG_NEEDED") {
+            Given("A router wich a chain which drops fragmented packets")
+            setup(useRouter = true)
+            setupAcceptOrDropChain(UNFRAGMENTED, ANY)
 
-            setupL4TouchingChain()
+            When("A header fragment is sent")
+            val simRes = sendPacket(IPFragmentType.First)
 
-            When("it is simulated")
+            Then("A temporary drop flow should be installed")
+            assertDropFlowCreated(simRes, temporary = true)
 
-            val drop@TemporaryDrop(tags, _) = sendPacket(IPFragmentType.First)
-
-            Then("a temporary drop flow is installed")
-
-            drop should be (dropped())
-            tags should be (empty)
-
-            And("a fragmentation needed ICMP should be received")
-
-            PacketsEntryPoint.messages should not be empty
-            val msg = PacketsEntryPoint.messages.head.asInstanceOf[EmitGeneratedPacket]
-            msg should not be null
-
-            msg.egressPort should be(leftBridgePort.getId)
-
-            val ipPkt = msg.eth.getPayload.asInstanceOf[IPv4]
-            ipPkt should not be null
-
-            ipPkt.getProtocol should be(ICMP.PROTOCOL_NUMBER)
-
-            val icmpPkt = ipPkt.getPayload.asInstanceOf[ICMP]
-            icmpPkt should not be null
-
-            icmpPkt.getType should be (ICMP.TYPE_UNREACH)
-            icmpPkt.getCode should be (UNREACH_CODE.UNREACH_FRAG_NEEDED.toByte)
+            And("An ICMP_FRAG_NEEDED message should be received.")
+            assertIcmpFragNeededMessageReceived()
         }
 
-        scenario("a first packet with an unsupported ethertype is dropped") {
-            Given("an IP packet with IP_FLAGS_MF set")
+        scenario("Nonheader fragments silently dropped by router") {
+            Given("A router wich a chain which drops fragmented packets")
+            setup(useRouter = true)
+            setupAcceptOrDropChain(UNFRAGMENTED, ANY)
 
-            setupL4TouchingChain()
-
-            When("it is simulated")
-
-            val drop@TemporaryDrop(tags, _) = sendPacket(IPFragmentType.First,
-                                                         IPv6.ETHERTYPE)
-            Then("a temporary drop flow is installed")
-
-            drop should be (dropped())
-            tags should be (empty)
-        }
-
-        scenario("a later packet is dropped") {
-            Given("an IP packet with IP_FLAGS_MF set")
-
-            setupL4TouchingChain()
-
-            When("it is simulated")
-
+            When("A nonheader fragment is sent")
             val simRes = sendPacket(IPFragmentType.Later)
 
-            Then("a drop flow is installed")
+            Then("A drop flow should be installed")
+            assertDropFlowCreated(simRes, temporary = false)
 
-            simRes should be (dropped {
-                FlowTagger.invalidateFlowsByDevice(leftBridgePort.getId)
-                FlowTagger.invalidateFlowsByDevice(bridge.getId)
-                FlowTagger.invalidateFlowsByDevice(rightBridgePort.getId)
-            })
+            And("No ICMP_FRAG_NEEDED message should be received.")
+            PacketsEntryPoint.messages should be (empty)
         }
+
+
     }
 
-    private[this] def setupL4TouchingChain() {
-        val chain = newInboundChainOnBridge("brInFilter", bridge)
-        newTcpDstRuleOnChain(chain, 1, 80, RuleResult.Action.ACCEPT)
-        fetchTopology(chain)
+    private[this] def setupAcceptOrDropChain(acceptPolicy: FragmentPolicy,
+                                             dropPolicy: FragmentPolicy) {
+        val chain = if (useRouter) newInboundChainOnRouter("rtInFilter", router)
+                    else newInboundChainOnBridge("brInFilter", bridge)
+        newFragmentRuleOnChain(chain, 1, acceptPolicy, Action.ACCEPT)
+        newFragmentRuleOnChain(chain, 2, dropPolicy, Action.DROP)
     }
 
     private[this] def sendPacket(fragType: IPFragmentType,
@@ -215,13 +235,56 @@ class IPFragmentationTest extends FeatureSpec
         val flags = if (fragType == IPFragmentType.None) 0 else IPv4.IP_FLAGS_MF
         val offset = if (fragType == IPFragmentType.Later) 0x4321 else 0
 
-        eth.src(macLeftSide).dst(macRightSide).ether_type(etherType) <<
-            ip4.src(ipLeftSide.toUnicastString).dst(ipRightSide.toUnicastString)
+        val builder = eth.src(srcMac).dst(dstMac) <<
+            ip4.src(srcSubnet.toUnicastString).dst(dstSubnet.toUnicastString)
                .flags(flags.toByte).frag_offset(offset.toShort) <<
                     tcp.src(81).dst(81)
+
+        // Have to set ethertype here, after the ethertype gets
+        // overwritten by the L3 payload's ethertype.
+        builder.ether_type(etherType).packet
     }
 
     private[this] def makeWMatch(pkt: Ethernet) =
         WildcardMatch.fromEthernetPacket(pkt)
-                     .setInputPortUUID(leftBridgePort.getId)
+                     .setInputPortUUID(srcPort.getId)
+
+    private def assertToPortFlowCreated(simRes: SimulationResult) {
+        simRes should be (toPort(dstPort.getId)
+            (FlowTagger.invalidateFlowsByDevice(srcPort.getId),
+             FlowTagger.invalidateFlowsByDevice(device.getId),
+             FlowTagger.invalidateFlowsByDevice(dstPort.getId)))
+    }
+
+    private def assertDropFlowCreated(simRes: SimulationResult,
+                                      temporary: Boolean = false) {
+        if (temporary) {
+            simRes shouldBe a [TemporaryDrop]
+            return
+        }
+
+        simRes shouldBe a [Drop]
+        simRes shouldBe dropped(
+            FlowTagger.invalidateFlowsByDevice(srcPort.getId),
+            FlowTagger.invalidateFlowsByDevice(device.getId))
+    }
+
+    private def assertIcmpFragNeededMessageReceived() {
+        PacketsEntryPoint.messages should not be empty
+        val msg = PacketsEntryPoint.messages.head.asInstanceOf[EmitGeneratedPacket]
+        msg should not be null
+
+        msg.egressPort should be(srcPort.getId)
+
+        val ipPkt = msg.eth.getPayload.asInstanceOf[IPv4]
+        ipPkt should not be null
+
+        ipPkt.getProtocol should be(ICMP.PROTOCOL_NUMBER)
+
+        val icmpPkt = ipPkt.getPayload.asInstanceOf[ICMP]
+        icmpPkt should not be null
+
+        icmpPkt.getType should be (ICMP.TYPE_UNREACH)
+        icmpPkt.getCode should be (UNREACH_CODE.UNREACH_FRAG_NEEDED.toByte)
+    }
 }

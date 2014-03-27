@@ -18,6 +18,12 @@ public class MessageProperty {
             "{midokura.javarx.BridgeHasMacPort.message}";
     public static final String BRIDGE_HAS_VLAN =
             "{midokura.javarx.BridgeHasVlan.message}";
+    public static final String FRAG_POLICY_INVALID_FOR_L4_RULE =
+            "{midokura.javarx.FragPolicyInvalidForL4Rule}";
+    public static final String FRAG_POLICY_INVALID_FOR_NAT_RULE =
+            "{midokura.javarx.FragPolicyInvalidForNatRule}";
+    public static final String FRAG_POLICY_UNDEFINED =
+            "{midokura.javarx.FragPolicyUndefined}";
     public static final String HOST_ID_IS_INVALID =
             "{midokura.javarx.HostIdIsInvalid.message}";
     public static final String HOST_INTERFACE_IS_USED =

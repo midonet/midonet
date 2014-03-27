@@ -9,7 +9,7 @@ import scala.util.Random
 
 import scala.collection.JavaConversions._
 
-import org.midonet.cluster.{ClusterLoadBalancerManager, DataClient}
+import org.midonet.cluster.DataClient
 import org.midonet.cluster.data.{Bridge => ClusterBridge, Router => ClusterRouter, _}
 import org.midonet.cluster.data.dhcp.Subnet
 import org.midonet.cluster.data.dhcp.Subnet6
@@ -19,8 +19,7 @@ import org.midonet.cluster.data.rules.{ForwardNatRule, ReverseNatRule}
 import org.midonet.cluster.data.rules.{JumpRule, LiteralRule}
 import org.midonet.cluster.data.zones.GreTunnelZone
 import org.midonet.midolman.layer3.Route.NextHop
-import org.midonet.midolman.rules.Condition
-import org.midonet.midolman.rules.NatTarget
+import org.midonet.midolman.rules.{FragmentPolicy, Condition, NatTarget}
 import org.midonet.midolman.rules.RuleResult.Action
 import org.midonet.packets.{IPv4Subnet, TCP, MAC}
 import org.midonet.midolman.state.{PoolMemberStatus, DirectoryCallback}
@@ -127,10 +126,13 @@ trait VirtualConfigurationBuilders {
      * Convenience method for creating a rule that accepts or drops TCP
      * packets addressed to a specific port.
      */
-    def newTcpDstRuleOnChain(chain: Chain, pos: Int,
-                          dstPort: Int, action: Action): LiteralRule = {
+    def newTcpDstRuleOnChain(
+            chain: Chain, pos: Int, dstPort: Int, action: Action,
+            fragmentPolicy: FragmentPolicy = FragmentPolicy.UNFRAGMENTED)
+    : LiteralRule = {
         val condition = newCondition(nwProto = Some(TCP.PROTOCOL_NUMBER),
-                                     tpDst = Some(dstPort))
+                                     tpDst = Some(dstPort),
+                                     fragmentPolicy = fragmentPolicy)
         newLiteralRuleOnChain(chain, pos, condition, action)
     }
 
@@ -177,6 +179,14 @@ trait VirtualConfigurationBuilders {
         Thread.sleep(50)
         clusterDataClient().rulesGet(id).asInstanceOf[JumpRule]
     }
+
+    def newFragmentRuleOnChain(chain: Chain, pos: Int,
+                               fragmentPolicy: FragmentPolicy,
+                               action: Action) = {
+        val condition = newCondition(fragmentPolicy = fragmentPolicy)
+        newLiteralRuleOnChain(chain, pos, condition, action)
+    }
+
     def deleteRule(id: UUID) {
         clusterDataClient().rulesDelete(id)
     }
@@ -348,10 +358,14 @@ trait VirtualConfigurationBuilders {
         }
     }
 
-    def newCondition(nwProto: Option[Byte] = None,
-                     tpDst: Option[Int] = None, tpSrc: Option[Int] = None,
-                     ipAddrGroupIdDst: Option[UUID] = None,
-                     ipAddrGroupIdSrc: Option[UUID] = None): Condition = {
+    def newCondition(
+            nwProto: Option[Byte] = None,
+            tpDst: Option[Int] = None,
+            tpSrc: Option[Int] = None,
+            ipAddrGroupIdDst: Option[UUID] = None,
+            ipAddrGroupIdSrc: Option[UUID] = None,
+            fragmentPolicy: FragmentPolicy = FragmentPolicy.UNFRAGMENTED)
+            : Condition = {
         val c = new Condition()
         if (ipAddrGroupIdDst.isDefined)
             c.ipAddrGroupIdDst = ipAddrGroupIdDst.get
@@ -363,6 +377,7 @@ trait VirtualConfigurationBuilders {
             c.tpDst = new org.midonet.util.Range(Int.box(tpDst.get))
         if (tpSrc.isDefined)
             c.tpSrc = new org.midonet.util.Range(Int.box(tpSrc.get))
+        c.fragmentPolicy = fragmentPolicy
         c
     }
 
