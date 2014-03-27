@@ -108,6 +108,15 @@ public class Rule extends ResourceBase<Rule, DtoRule> {
     }
 
     /**
+     * Returns the rule's packet fragment policy.
+     *
+     * @return "any", "header", "nonheader", or "unfragmented".
+     */
+    public String getFragmentPolicy() {
+        return principalDto.getFragmentPolicy();
+    }
+
+    /**
      * Returns boolean for invOutPorts.
      *
      * @return
@@ -387,6 +396,17 @@ public class Rule extends ResourceBase<Rule, DtoRule> {
      */
     public Rule invNwTos(boolean invNwTos) {
         principalDto.setInvNwTos(invNwTos);
+        return this;
+    }
+
+    /**
+     * Sets the packet fragmentation statuses the rule matches.
+     *
+     * @param fragmentPolicy
+     *      Can be "any", "header", "nonheader", or "unfragmented".
+     */
+    public Rule setFragmentPolicy(String fragmentPolicy) {
+        principalDto.setFragmentPolicy(fragmentPolicy);
         return this;
     }
 

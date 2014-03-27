@@ -7,7 +7,12 @@ import java.util.*;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.Pattern;
+
 import org.midonet.api.UriResource;
+import org.midonet.api.rest_api.BadRequestHttpException;
+import org.midonet.api.validation.MessageProperty;
+import org.midonet.midolman.rules.FragmentPolicy;
+import org.midonet.odp.flows.IPFragmentType;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.MAC;
@@ -65,6 +70,10 @@ public abstract class Condition extends UriResource {
     private boolean invNwProto;
     private boolean invNwSrc;
     private boolean invNwDst;
+
+    @Pattern(regexp = FragmentPolicy.pattern,
+             message = MessageProperty.FRAG_POLICY_UNDEFINED)
+    private String fragmentPolicy;
 
     private Range<Integer> tpSrc;
     private Range<Integer> tpDst;
@@ -174,6 +183,14 @@ public abstract class Condition extends UriResource {
 
     public void setInvIpAddrGroupDst(boolean invIpAddrGroupDst) {
         this.invIpAddrGroupDst = invIpAddrGroupDst;
+    }
+
+    public String getFragmentPolicy() {
+        return fragmentPolicy;
+    }
+
+    public void setFragmentPolicy(String fragmentPolicy) {
+        this.fragmentPolicy = fragmentPolicy;
     }
 
     /**
@@ -578,6 +595,7 @@ public abstract class Condition extends UriResource {
         if (nwTos != 0)
             c.nwTos = (byte) nwTos;
         c.nwTosInv = this.isInvNwTos();
+        c.fragmentPolicy = getAndValidateFragmentPolicy();
         if (this.getOutPorts() != null) {
             c.outPortIds = new HashSet<UUID>(Arrays.asList(this.getOutPorts()));
         } else {
@@ -598,6 +616,7 @@ public abstract class Condition extends UriResource {
         c.invIpAddrGroupIdDst = this.invIpAddrGroupDst;
         c.ipAddrGroupIdSrc = this.ipAddrGroupSrc;
         c.invIpAddrGroupIdSrc = this.invIpAddrGroupSrc;
+
         return c;
     }
 
@@ -650,9 +669,35 @@ public abstract class Condition extends UriResource {
             this.setNwProto(unsign(c.nwProto));
         if (null != c.nwTos)
             this.setNwTos(unsign(c.nwTos));
+        this.setFragmentPolicy(c.fragmentPolicy.toString().toLowerCase());
         if (null != c.tpDst)
             this.setTpDst(c.tpDst);
         if (null != c.tpSrc)
             this.setTpSrc(c.tpSrc);
+    }
+
+    protected boolean hasL4Fields() {
+        return tpDst != null || tpSrc != null;
+    }
+
+    /**
+     * If fragmentPolicy is null, returns the appropriate default
+     * fragment policy based on the condition's other properties. If
+     * not, verifies that the value of fragmentPolicy is consistent
+     * with the condition's other properties and then returns it.
+     *
+     * @throws BadRequestHttpException if fragmentPolicy is non-null
+     * and not permitted due to the condition's other properties.
+     */
+    protected FragmentPolicy getAndValidateFragmentPolicy() {
+        if (getFragmentPolicy() == null)
+            return hasL4Fields() ? FragmentPolicy.HEADER : FragmentPolicy.ANY;
+
+        FragmentPolicy fp = FragmentPolicy.valueOf(fragmentPolicy.toUpperCase());
+        if (hasL4Fields() && fp.accepts(IPFragmentType.Later))
+            throw new BadRequestHttpException(MessageProperty.getMessage(
+                    MessageProperty.FRAG_POLICY_INVALID_FOR_L4_RULE));
+
+        return fp;
     }
 }

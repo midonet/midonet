@@ -23,7 +23,7 @@ object Icmp {
         protected def icmpAnswer(inPort: RouterPort,
                                  ingressMatch: WildcardMatch,
                                  packet: Ethernet,
-                                 icmpType: Char,
+                                 icmpType: Byte,
                                  icmpCode: Any)
                                 (implicit pktContext: PacketContext,
                                           log: SimulationAwareBusLogging): Option[Ethernet]
@@ -64,6 +64,14 @@ object Icmp {
             icmpAnswer(inPort, wMatch, frame, ICMP.TYPE_UNREACH,
                  UNREACH_CODE.UNREACH_HOST)
 
+        def unreachableFragNeededIcmp(inPort: RouterPort,
+                                  wMatch: WildcardMatch,
+                                  frame: Ethernet)
+                                 (implicit originalPktContext: PacketContext,
+                                           log: SimulationAwareBusLogging) =
+            icmpAnswer(inPort, wMatch, frame, ICMP.TYPE_UNREACH,
+                       UNREACH_CODE.UNREACH_FRAG_NEEDED)
+
         /**
          * Will be called whenever an ICMP Time Exceeded is needed for the given
          * IP version.
@@ -82,7 +90,7 @@ object Icmp {
         override def icmpAnswer(inPort: RouterPort,
                                 ingressMatch: WildcardMatch,
                                 packet: Ethernet,
-                                icmpType: Char,
+                                icmpType: Byte,
                                 icmpCode: Any)
                                (implicit pktContext: PacketContext,
                                          log: SimulationAwareBusLogging)
@@ -122,7 +130,7 @@ object Icmp {
             Some(eth)
         }
 
-        private def buildError(icmpType: Char, icmpCode: Any,
+        private def buildError(icmpType: Byte, icmpCode: Any,
                                forMatch: WildcardMatch, forPacket: Ethernet)
         : ICMP = {
             // TODO(pino, guillermo, jlm): original or modified trigger pkt?
