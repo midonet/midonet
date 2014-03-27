@@ -19,6 +19,7 @@ import org.midonet.midolman.PacketWorkflow.PacketIn
 import org.midonet.midolman.topology.VirtualTopologyActor.BridgeRequest
 import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 import org.midonet.midolman.topology.{LocalPortActive, VirtualTopologyActor}
+import org.midonet.midolman.util.MidolmanTestCase
 import org.midonet.midolman.util.TestHelpers
 import org.midonet.odp._
 import org.midonet.packets.{IPv4Addr, MAC, Packets}
@@ -27,9 +28,7 @@ import scala.concurrent.duration.Duration
 
 @Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
-class FlowsExpirationTestCase extends MidolmanTestCase
-       with VirtualConfigurationBuilders {
-
+class FlowsExpirationTestCase extends MidolmanTestCase {
     var datapath: Datapath = null
 
     var timeOutFlow: Long = 500
@@ -48,12 +47,6 @@ class FlowsExpirationTestCase extends MidolmanTestCase
         IPv4Addr.fromString("10.0.1.10"),
         IPv4Addr.fromString("10.0.1.11"),
         10, 11, "My UDP packet 2".getBytes)
-
-
-
-    //val log =  Logger.getLogger(classOf[FlowManager])
-    //log.setLevel(Level.TRACE)
-
 
     override def fillConfig(config: HierarchicalConfiguration) = {
         config.setProperty("midolman.midolman_root_key", "/test/v3/midolman")

@@ -4,34 +4,28 @@
 package org.midonet.midolman
 
 import java.util.UUID
+
+import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
 import org.scalatest.concurrent.Eventually._
+import org.scalatest.junit.JUnitRunner
 import org.scalatest._
 
 import org.midonet.cluster.data.{Bridge => ClusterBridge, Router => ClusterRouter}
 import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
-import org.midonet.midolman.services.{HostIdProviderService, MessageAccumulator}
+import org.midonet.midolman.services.{HostIdProviderService}
 import org.midonet.midolman.simulation.{Bridge, CustomMatchers}
 import org.midonet.midolman.simulation.Coordinator.{TemporaryDropAction, ToPortSetAction, ToPortAction}
 import org.midonet.midolman.topology.{FlowTagger, VirtualTopologyActor}
-import org.midonet.packets.{IPv4Subnet, MAC}
-import org.apache.commons.configuration.HierarchicalConfiguration
 import org.midonet.midolman.topology.BridgeManager.CheckExpiredMacPorts
+import org.midonet.midolman.util.MidolmanSpec
+import org.midonet.midolman.util.mock.MessageAccumulator
+import org.midonet.packets.{IPv4Subnet, MAC}
 
 
 @RunWith(classOf[JUnitRunner])
-class BridgeInvalidationTest extends FeatureSpec
-        with VirtualConfigurationBuilders
-        with Matchers
-        with GivenWhenThen
-        with CustomMatchers
-        with MockMidolmanActors
-        with MidolmanServices
-        with VirtualTopologyHelper
-        with OneInstancePerTest {
-
+class BridgeInvalidationTest extends MidolmanSpec {
     val leftMac = "02:02:01:10:10:aa"
     val leftIp = "192.168.1.1"
 

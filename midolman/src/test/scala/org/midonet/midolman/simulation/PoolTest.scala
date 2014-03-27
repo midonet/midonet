@@ -15,19 +15,21 @@ import org.scalatest.junit.JUnitRunner
 import org.midonet.cache.{CacheWithPrefix, MockCache}
 import org.midonet.cache.MockCache.CacheEntry
 import org.midonet.cluster.data.l4lb
-import org.midonet.cluster.data.ports.RouterPort
 import org.midonet.cluster.data.{Router => ClusterRouter, Entity, Port}
-import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, SimulationResult}
+import org.midonet.cluster.data.ports.RouterPort
 import org.midonet.midolman._
+import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, SimulationResult}
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer4.NatLeaseManager
-import org.midonet.midolman.services.MessageAccumulator
 import org.midonet.midolman.state.{LBStatus, PoolHealthMonitorMappingStatus}
 import org.midonet.midolman.topology.{FlowTagger, VirtualTopologyActor}
+import org.midonet.midolman.util.MidolmanSpec
+import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.odp.flows.{FlowActionSetKey, FlowKeyIPv4}
 import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.sdn.flows.WildcardMatch
+
 
 object DisableAction extends Enumeration {
     type DisableAction = Value
@@ -35,16 +37,7 @@ object DisableAction extends Enumeration {
 }
 
 @RunWith(classOf[JUnitRunner])
-class PoolTest extends FeatureSpec
-with Matchers
-with GivenWhenThen
-with CustomMatchers
-with MockMidolmanActors
-with VirtualConfigurationBuilders
-with MidolmanServices
-with VirtualTopologyHelper
-with OneInstancePerTest {
-
+class PoolTest extends MidolmanSpec {
     implicit val askTimeout: Timeout = 1 second
 
     override def registerActors = List(

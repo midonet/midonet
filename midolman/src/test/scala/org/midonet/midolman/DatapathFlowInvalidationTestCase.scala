@@ -28,6 +28,7 @@ import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.GreZoneChanged
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.GreZoneMembers
 import org.midonet.midolman.topology.{FlowTagger, LocalPortActive}
+import org.midonet.midolman.util.MidolmanTestCase
 import org.midonet.midolman.util.{TestHelpers, RouterHelper}
 import org.midonet.odp.Datapath
 import org.midonet.odp.flows.FlowAction
@@ -39,8 +40,8 @@ import org.midonet.sdn.flows.{WildcardMatch, WildcardFlow}
 
 @Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
-class DatapathFlowInvalidationTestCase extends MidolmanTestCase with VirtualConfigurationBuilders
-with RouterHelper{
+class DatapathFlowInvalidationTestCase extends MidolmanTestCase
+        with RouterHelper {
 
     var tagEventProbe: TestProbe = null
 

@@ -21,9 +21,7 @@ import org.apache.zookeeper.CreateMode;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.midonet.cluster.services.MidostoreSetupService;
 import org.midonet.config.ConfigProvider;
-import org.midonet.midolman.MockInterfaceScanner;
 import org.midonet.midolman.Setup;
 import org.midonet.midolman.guice.serialization.SerializationModule;
 import org.midonet.midolman.host.commands.executors.HostCommandWatcher;
@@ -39,6 +37,7 @@ import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.MockDirectory;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.ZkManager;
+import org.midonet.midolman.util.mock.MockInterfaceScanner;
 import org.midonet.midolman.version.DataWriteVersion;
 import org.midonet.midolman.version.guice.VersionModule;
 

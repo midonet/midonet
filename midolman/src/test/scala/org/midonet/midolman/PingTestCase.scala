@@ -3,6 +3,7 @@
  */
 package org.midonet.midolman
 
+import scala.Some
 import scala.collection.JavaConversions._
 import scala.collection.mutable.{ListBuffer, HashMap}
 
@@ -11,25 +12,25 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
 
-import org.midonet.midolman.layer3.Route
-import org.midonet.midolman.layer3.Route.NextHop
-import org.midonet.midolman.util.RouterHelper
 import org.midonet.cluster.data.dhcp.Opt121
 import org.midonet.cluster.data.dhcp.Subnet
 import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
+import org.midonet.midolman.DeduplicationActor.DiscardPacket
+import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
+import org.midonet.midolman.layer3.Route
+import org.midonet.midolman.layer3.Route.NextHop
+import org.midonet.midolman.topology.LocalPortActive
+import org.midonet.midolman.topology.VirtualToPhysicalMapper.HostRequest
+import org.midonet.midolman.util.MidolmanTestCase
+import org.midonet.midolman.util.RouterHelper
+import org.midonet.midolman.util.guice.OutgoingMessage
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput}
 import org.midonet.packets._
-import org.midonet.midolman.topology.LocalPortActive
-import scala.Some
-import org.midonet.midolman.guice.actors.OutgoingMessage
-import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
-import org.midonet.midolman.DeduplicationActor.DiscardPacket
-import org.midonet.midolman.topology.VirtualToPhysicalMapper.HostRequest
 
 @Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
 class PingTestCase extends MidolmanTestCase
-                   with VirtualConfigurationBuilders with RouterHelper {
+        with RouterHelper {
     private final val log = LoggerFactory.getLogger(classOf[PingTestCase])
 
     // Router port one connecting to host VM1

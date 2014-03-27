@@ -13,18 +13,12 @@ import org.midonet.midolman.topology.VirtualTopologyActor.PoolRequest
 import java.util.UUID
 import akka.testkit.{ImplicitSender, TestKit}
 import akka.actor.ActorSystem
+import org.midonet.midolman.util.MidolmanSpec
 
 @RunWith(classOf[JUnitRunner])
 class PoolManagerTest extends TestKit(ActorSystem("PoolManagerTest"))
-with FeatureSpecLike
-with CustomMatchers
-with GivenWhenThen
-with ImplicitSender
-with Matchers
-with MidolmanServices
-with MockMidolmanActors
-with OneInstancePerTest
-with VirtualConfigurationBuilders {
+        with MidolmanSpec
+        with ImplicitSender{
 
     var vta: TestableVTA = null
 

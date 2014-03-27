@@ -3,31 +3,27 @@
  */
 package org.midonet.midolman
 
+import java.util.UUID
+
+import akka.actor.ActorSystem
+import akka.testkit.{ImplicitSender, TestKit}
 import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
+
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.rules.{LiteralRule, Condition, JumpRule, Rule}
 import org.midonet.midolman.rules.RuleResult.Action
-import org.midonet.midolman.services.MessageAccumulator
 import org.midonet.midolman.simulation.{Chain, CustomMatchers}
 import org.midonet.midolman.topology.{FlowTagger, VirtualTopologyActor}
 import org.midonet.midolman.topology.VirtualTopologyActor.ChainRequest
-import java.util.UUID
-import akka.testkit.{ImplicitSender, TestKit}
-import akka.actor.ActorSystem
+import org.midonet.midolman.util.MidolmanSpec
+import org.midonet.midolman.util.mock.MessageAccumulator
 
 @RunWith(classOf[JUnitRunner])
 class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
-        with FeatureSpecLike
-        with CustomMatchers
-        with GivenWhenThen
-        with ImplicitSender
-        with Matchers
-        with MidolmanServices
-        with MockMidolmanActors
-        with OneInstancePerTest
-        with VirtualConfigurationBuilders {
+        with MidolmanSpec
+        with ImplicitSender {
 
     var vta: TestableVTA = null
 

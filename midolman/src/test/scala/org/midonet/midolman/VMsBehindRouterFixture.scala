@@ -6,25 +6,23 @@ package org.midonet.midolman
 import java.lang.Thread
 import scala.collection.JavaConversions._
 import scala.Some
-import akka.testkit.TestProbe
 
+import akka.testkit.TestProbe
 import org.slf4j.LoggerFactory
 
-import org.midonet.midolman.guice.actors.OutgoingMessage
-import org.midonet.midolman.layer3.Route
-import org.midonet.midolman.layer3.Route.NextHop
-import org.midonet.midolman.topology.LocalPortActive
-import org.midonet.midolman.topology.VirtualToPhysicalMapper.HostRequest
-import org.midonet.midolman.util.SimulationHelper
 import org.midonet.cluster.data.{Bridge => ClusterBridge,
                                  Router => ClusterRouter}
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.ports.BridgePort
-import org.midonet.packets._
+import org.midonet.midolman.layer3.Route
+import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.topology.LocalPortActive
-import scala.Some
-import org.midonet.midolman.guice.actors.OutgoingMessage
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.HostRequest
+import org.midonet.midolman.util.MidolmanTestCase
+import org.midonet.midolman.util.SimulationHelper
+import org.midonet.midolman.util.VirtualConfigurationBuilders
+import org.midonet.midolman.util.guice.OutgoingMessage
+import org.midonet.packets._
 
 trait VMsBehindRouterFixture extends SimulationHelper with
         VirtualConfigurationBuilders { self: MidolmanTestCase =>

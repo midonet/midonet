@@ -15,25 +15,18 @@ import org.midonet.cluster.data.ports.RouterPort
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
-import org.midonet.midolman.services.{HostIdProviderService, MessageAccumulator}
+import org.midonet.midolman.services.{HostIdProviderService}
 import org.midonet.midolman.simulation.Router
 import org.midonet.midolman.simulation.Coordinator.{TemporaryDropAction, ToPortAction}
 import org.midonet.midolman.simulation.CustomMatchers
 import org.midonet.midolman.topology.{FlowTagger, VirtualTopologyActor}
+import org.midonet.midolman.util.MidolmanSpec
+import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.packets.{IPv4Addr, MAC}
 
 
 @RunWith(classOf[JUnitRunner])
-class BlackholeRouteFlowTrackingTest extends FeatureSpec
-        with VirtualConfigurationBuilders
-        with Matchers
-        with GivenWhenThen
-        with CustomMatchers
-        with MockMidolmanActors
-        with MidolmanServices
-        with VirtualTopologyHelper
-        with OneInstancePerTest {
-
+class BlackholeRouteFlowTrackingTest extends MidolmanSpec {
     val leftRouterMac = "01:01:01:10:10:aa"
     val leftOtherMac = "01:01:01:10:10:bb"
     val leftRouterIp = "192.168.1.1"

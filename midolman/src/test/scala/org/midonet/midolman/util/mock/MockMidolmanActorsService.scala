@@ -1,20 +1,20 @@
 /*
 * Copyright 2013 Midokura Europe SARL
 */
-package org.midonet.midolman.services
-
-import com.google.inject.Inject
-import com.google.inject.Injector
+package org.midonet.midolman.util.mock
 
 import scala.collection.mutable
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
 
 import akka.actor.{ActorIdentity, Identify, Props, Actor}
 import akka.pattern.ask
 import akka.testkit.TestActorRef
+import com.google.inject.Inject
+import com.google.inject.Injector
 
-import org.midonet.midolman._
-import scala.concurrent.Await
-import scala.concurrent.duration.Duration
+import org.midonet.midolman.Referenceable
+import org.midonet.midolman.services.MidolmanActorsService
 
 class EmptyActor extends Actor {
     def receive: PartialFunction[Any, Unit] = Actor.emptyBehavior

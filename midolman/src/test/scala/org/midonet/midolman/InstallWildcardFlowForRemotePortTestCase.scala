@@ -14,6 +14,7 @@ import org.midonet.cluster.data.zones.GreTunnelZoneHost
 import org.midonet.midolman.FlowController.{AddWildcardFlow, WildcardFlowAdded}
 import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
 import org.midonet.midolman.topology.LocalPortActive
+import org.midonet.midolman.util.MidolmanTestCase
 import org.midonet.packets.IPv4Addr
 import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPort
 import org.midonet.sdn.flows.{WildcardMatch, WildcardFlow}
@@ -21,9 +22,7 @@ import org.midonet.odp.flows.FlowActions.output
 
 @Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
-class InstallWildcardFlowForRemotePortTestCase extends MidolmanTestCase
-    with VirtualConfigurationBuilders {
-
+class InstallWildcardFlowForRemotePortTestCase extends MidolmanTestCase {
     def testInstallFlowForRemoteSinglePort() {
 
         val srcIp = IPv4Addr("192.168.100.1")

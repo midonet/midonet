@@ -8,23 +8,23 @@ import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.{Router => ClusterRouter}
+import org.midonet.cluster.data.host.Host
 import org.midonet.midolman.DeduplicationActor.DiscardPacket
-import org.midonet.midolman.guice.actors.OutgoingMessage
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.rules.{NatTarget, RuleResult, Condition}
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.HostRequest
 import org.midonet.midolman.util.RouterHelper
+import org.midonet.midolman.util.MidolmanTestCase
+import org.midonet.midolman.util.guice.OutgoingMessage
 import org.midonet.packets._
 import org.midonet.util.Range
 
 @Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
 class DnatPlusSnatTestCase extends MidolmanTestCase
-        with VirtualConfigurationBuilders with RouterHelper {
-
+        with RouterHelper {
     var router: ClusterRouter = null
     var host: Host = null
     var packetEventsProbe: TestProbe = null

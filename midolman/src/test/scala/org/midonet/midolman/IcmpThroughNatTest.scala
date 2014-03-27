@@ -11,30 +11,22 @@ import org.scalatest._
 import org.scalatest.concurrent.Eventually._
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
 import org.midonet.cluster.data.{Bridge => ClusterBridge}
 import org.midonet.cluster.data.{Router => ClusterRouter}
+import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.rules.{NatTarget, RuleResult, Condition}
 import org.midonet.midolman.services.HostIdProviderService
-import org.midonet.midolman.services.MessageAccumulator
 import org.midonet.midolman.simulation.Coordinator.ToPortAction
 import org.midonet.midolman.simulation.{Bridge, Router, CustomMatchers}
 import org.midonet.midolman.topology.VirtualTopologyActor
+import org.midonet.midolman.util.MidolmanSpec
+import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.packets.{IPv4Subnet, MAC, IPv4Addr}
 
 
 @RunWith(classOf[JUnitRunner])
-class IcmpThroughNatTest extends FeatureSpec
-        with VirtualConfigurationBuilders
-        with Matchers
-        with GivenWhenThen
-        with CustomMatchers
-        with MockMidolmanActors
-        with MidolmanServices
-        with VirtualTopologyHelper
-        with OneInstancePerTest {
-
+class IcmpThroughNatTest extends MidolmanSpec {
     val leftNet = "192.168.1.0"
     val leftNetmask = 24
 

@@ -4,20 +4,19 @@
 
 package org.midonet.midolman.util
 
-import scala.collection.JavaConversions._
-import java.util.UUID
 import java.util.{List => JList}
+import java.util.UUID
+import scala.collection.JavaConversions._
 
 import org.slf4j.LoggerFactory
 
 import org.midonet.midolman.FlowController.WildcardFlowAdded
-import org.midonet.midolman.MidolmanTestCase
 import org.midonet.midolman.PacketWorkflow.PacketIn
+import org.midonet.packets._
+import org.midonet.packets.util.AddressConversions._
 import org.midonet.odp.Packet
 import org.midonet.odp.flows._
 import org.midonet.odp.flows.FlowActions.output
-import org.midonet.packets._
-import org.midonet.packets.util.AddressConversions._
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 
 trait SimulationHelper { this: MidolmanTestCase =>

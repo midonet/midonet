@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
  */
-package org.midonet.midolman
+package org.midonet.midolman.util
 
 import java.util.UUID
 import java.util.{HashSet => JSet}

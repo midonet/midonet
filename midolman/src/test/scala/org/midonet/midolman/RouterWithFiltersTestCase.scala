@@ -17,6 +17,7 @@ import org.midonet.midolman.DeduplicationActor.DiscardPacket
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.rules.{Condition, RuleResult}
 import org.midonet.midolman.topology.VirtualTopologyActor.ChainRequest
+import org.midonet.midolman.util.MidolmanTestCase
 import org.midonet.midolman.util.RouterHelper
 import org.midonet.packets.ICMP
 import org.midonet.packets.util.PacketBuilder._

@@ -28,7 +28,9 @@ import org.midonet.midolman.FlowController.WildcardFlowRemoved
 import org.midonet.midolman.layer3.Route._
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.topology.RouterManager.RouterInvTrieTagCountModified
-import org.midonet.midolman.util.{RouterHelper, TestHelpers}
+import org.midonet.midolman.util.MidolmanTestCase
+import org.midonet.midolman.util.RouterHelper
+import org.midonet.midolman.util.TestHelpers
 import org.midonet.odp.flows.FlowAction
 import org.midonet.odp.flows.FlowActions.output
 import org.midonet.odp.flows.FlowKeys
@@ -38,9 +40,8 @@ import org.midonet.sdn.flows.{WildcardMatch, WildcardFlow}
 
 @Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
-class RouterFlowInvalidationTestCase extends MidolmanTestCase with RouterHelper
-        with VirtualConfigurationBuilders {
-
+class RouterFlowInvalidationTestCase extends MidolmanTestCase
+        with RouterHelper {
     var eventProbe: TestProbe = null
     var tagEventProbe: TestProbe = null
     var datapath: Datapath = null

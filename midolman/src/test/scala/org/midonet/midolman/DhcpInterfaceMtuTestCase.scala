@@ -18,21 +18,22 @@ import org.midonet.cluster.data.dhcp.Subnet
 import org.midonet.cluster.data.ports.BridgePort
 import org.midonet.cluster.data.zones._
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
-import org.midonet.midolman.guice.actors.OutgoingMessage
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.topology.VirtualToPhysicalMapper._
+import org.midonet.midolman.util.MidolmanTestCase
 import org.midonet.midolman.util.RouterHelper
 import org.midonet.midolman.util.SimulationHelper
+import org.midonet.midolman.util.guice.OutgoingMessage
 import org.midonet.odp.flows.{FlowActionOutput, FlowAction}
 import org.midonet.packets._
 
 @Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
-class DhcpInterfaceMtuTestCase extends MidolmanTestCase with
-        VirtualConfigurationBuilders with SimulationHelper with RouterHelper {
+class DhcpInterfaceMtuTestCase extends MidolmanTestCase
+        with SimulationHelper with RouterHelper {
 
     private final val log = LoggerFactory.getLogger(classOf[DhcpInterfaceMtuTestCase])
 

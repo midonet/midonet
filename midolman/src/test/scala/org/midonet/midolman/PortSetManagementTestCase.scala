@@ -21,6 +21,7 @@ import org.midonet.midolman.DatapathController.DpPortCreate
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.PortSetRequest
 import org.midonet.midolman.topology.rcu.PortSet
+import org.midonet.midolman.util.MidolmanTestCase
 import scala.concurrent.duration.Duration
 
 @Category(Array(classOf[SimulationTests]))

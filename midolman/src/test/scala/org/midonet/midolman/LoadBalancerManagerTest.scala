@@ -3,33 +3,28 @@
  */
 package org.midonet.midolman
 
+import java.util.UUID
+import scala.compat.Platform
+import scala.concurrent.ExecutionContext
+
+import akka.actor.ActorSystem
+import akka.testkit.{ImplicitSender, TestKit}
 import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
+
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.simulation.{Pool, PacketContext, LoadBalancer, CustomMatchers}
 import org.midonet.midolman.topology.{FlowTagger, VirtualTopologyActor}
 import org.midonet.midolman.topology.VirtualTopologyActor.{PoolRequest, LoadBalancerRequest}
-import java.util.UUID
-import akka.testkit.{ImplicitSender, TestKit}
-import akka.actor.ActorSystem
-import org.midonet.sdn.flows.WildcardMatch
+import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.{IPv4Addr, TCP}
-import scala.compat.Platform
-import scala.concurrent.ExecutionContext
+import org.midonet.sdn.flows.WildcardMatch
 
 @RunWith(classOf[JUnitRunner])
 class LoadBalancerManagerTest extends TestKit(ActorSystem("LoadBalancerManagerTest"))
-with FeatureSpecLike
-with CustomMatchers
-with GivenWhenThen
-with ImplicitSender
-with Matchers
-with MidolmanServices
-with MockMidolmanActors
-with OneInstancePerTest
-with VirtualConfigurationBuilders {
-
+        with MidolmanSpec
+        with ImplicitSender {
     var vta: TestableVTA = null
 
     protected override def registerActors =

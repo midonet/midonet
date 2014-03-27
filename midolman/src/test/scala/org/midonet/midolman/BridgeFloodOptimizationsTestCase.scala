@@ -16,13 +16,14 @@ import org.midonet.cluster.data.ports.BridgePort
 import org.midonet.cluster.data.{Bridge => ClusterBridge}
 import org.midonet.midolman.FlowController.WildcardFlowAdded
 import org.midonet.midolman.topology.LocalPortActive
+import org.midonet.midolman.util.MidolmanTestCase
 import org.midonet.midolman.util.SimulationHelper
 import org.midonet.packets._
 
 @Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
 class BridgeFloodOptimizationsTestCase extends MidolmanTestCase
-        with VirtualConfigurationBuilders with SimulationHelper {
+        with SimulationHelper {
     private var flowEventsProbe: TestProbe = null
     private var packetEventsProbe: TestProbe = null
     private var port1: BridgePort = null

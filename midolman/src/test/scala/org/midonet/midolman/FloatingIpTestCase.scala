@@ -14,19 +14,20 @@ import org.slf4j.LoggerFactory
 import org.midonet.cluster.data.ports.{RouterPort, BridgePort}
 import org.midonet.midolman.DeduplicationActor.DiscardPacket
 import org.midonet.midolman.PacketWorkflow.PacketIn
-import org.midonet.midolman.guice.actors.OutgoingMessage
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.rules.{RuleResult, NatTarget, Condition}
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.HostRequest
 import org.midonet.midolman.util.RouterHelper
+import org.midonet.midolman.util.MidolmanTestCase
+import org.midonet.midolman.util.guice.OutgoingMessage
 import org.midonet.packets._
 
 @Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
 class FloatingIpTestCase extends MidolmanTestCase
-                         with VirtualConfigurationBuilders with RouterHelper {
+         with RouterHelper {
     private final val log = LoggerFactory.getLogger(classOf[FloatingIpTestCase])
 
     // Router port one connecting to host VM1

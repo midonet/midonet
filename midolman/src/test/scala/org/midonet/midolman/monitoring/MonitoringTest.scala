@@ -11,6 +11,7 @@ import com.yammer.metrics.Metrics
 import com.yammer.metrics.core.Metric
 import com.yammer.metrics.core.MetricName
 import com.yammer.metrics.core.MetricsRegistry
+
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.is
@@ -22,6 +23,7 @@ import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.{Bridge => ClusterBridge, Ports => ClusterPorts}
 import org.midonet.midolman._
 import org.midonet.midolman.monitoring.store.{MockStore, Store}
+import org.midonet.midolman.util.MidolmanTestCase
 import org.midonet.util.Timed
 import org.midonet.util.Waiters.waitFor
 import org.midonet.util.functors.Callback0
