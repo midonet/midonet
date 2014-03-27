@@ -226,17 +226,23 @@ class PacketContext(override val flowCookie: Option[Int],
         connectionCache.set(key, "r")
     }
 
-    private def icmpIdOrTransportSrc(wm: WildcardMatch): Int =
-    if (ICMP.PROTOCOL_NUMBER.equals(wm.getNetworkProtocol))
-        wm.getIcmpIdentifier.toInt
-    else
-        wm.getTransportSource
+    private def icmpIdOrTransportSrc(wm: WildcardMatch): Int = {
+        if (ICMP.PROTOCOL_NUMBER.equals(wm.getNetworkProtocol)) {
+            val icmpId: java.lang.Short = wm.getIcmpIdentifier
+            if (icmpId != null)
+                return icmpId.toInt
+        }
+        return wm.getTransportSource
+    }
 
-    private def icmpIdOrTransportDst(wm: WildcardMatch): Int =
-        if (ICMP.PROTOCOL_NUMBER.equals(wm.getNetworkProtocol))
-            wm.getIcmpIdentifier.toInt
-        else
-            wm.getTransportDestination
+    private def icmpIdOrTransportDst(wm: WildcardMatch): Int = {
+        if (ICMP.PROTOCOL_NUMBER.equals(wm.getNetworkProtocol)) {
+            val icmpId: java.lang.Short = wm.getIcmpIdentifier
+            if (icmpId != null)
+                return icmpId.toInt
+        }
+        return wm.getTransportDestination
+    }
 
 }
 
