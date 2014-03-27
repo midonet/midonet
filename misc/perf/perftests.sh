@@ -67,6 +67,7 @@ LOGFILE=$TMPDIR/perftests.log
 TMP_RRDDIR=/tmp/midonet-perftests/target
 
 HOST=
+PROFILE=
 GITREV=
 ABBREV_GITREV=
 MIDOLMAN_PID=
@@ -140,8 +141,8 @@ do_cleanup() {
 }
 
 source_config() {
-    if [ -f profiles.d/$HOST/perftests.conf ] ; then
-        . profiles.d/$HOST/perftests.conf
+    if [ -f profiles.d/$PROFILE/perftests.conf ] ; then
+        . profiles.d/$PROFILE/perftests.conf
     elif [ -f profiles.d/default/perftests.conf ] ; then
         . profiles.d/default/perftests.conf
     fi
@@ -235,9 +236,9 @@ install_config_file() {
     src=$1
     destdir=$2
 
-    if [ -f profiles.d/$HOST/$src ] ; then
-        echo "installing file: $HOST/$src to $destdir"
-        cp profiles.d/$HOST/$src $destdir
+    if [ -f profiles.d/$PROFILE/$src ] ; then
+        echo "installing file: $PROFILE/$src to $destdir"
+        cp profiles.d/$PROFILE/$src $destdir
     elif [ -f profiles.d/default/$src ] ; then
         echo "installing file: default/$src to $destdir"
         cp profiles.d/default/$src $destdir
@@ -570,8 +571,8 @@ make_report() {
     done > "$REPORT_DIR/report.txt"
 
     while true ; do
-        echo "gitrev,host,start,end,heap,heap_new,topology"
-        echo "$GITREV,$HOST,$GRAPH_START,$GRAPH_END,$MAX_HEAP_SIZE,$HEAP_NEWSIZE,$TOPOLOGY_NAME"
+        echo "gitrev,host,start,end,heap,heap_new,topology,profile"
+        echo "$GITREV,$HOST,$GRAPH_START,$GRAPH_END,$MAX_HEAP_SIZE,$HEAP_NEWSIZE,$TOPOLOGY_NAME,$PROFILE"
         break
     done > "$REPORT_DIR/testspec.csv"
 
@@ -686,7 +687,7 @@ if [ $1 == '-s' ] || [ $1 == '--setup'] ; then
 fi
 
 if [ -z $1 ] ; then
-    echo "Usage: perftests.sh [-s|--setup] scenario" >&2
+    echo "Usage: perftests.sh [-s|--setup] scenario profile" >&2
     exit 1
 fi
 
@@ -711,6 +712,11 @@ echo "Executing tests.."
 if [ $setup_only = 'yes' ] ; then
     setup_tests
 else
+    if [ -z $2 ] ; then
+        echo "Usage: perftests.sh [-s|--setup] scenario profile" >&2
+        exit 1
+    fi
+    PROFILE=$2
     run_tests
 fi
 
