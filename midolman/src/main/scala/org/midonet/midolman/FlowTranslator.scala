@@ -154,7 +154,7 @@ trait FlowTranslator {
      * If a non-null set of data path tags are given, this updates it with
      * corresponding flow invalidation tags.
      */
-    private def translateFlowActions(action: FlowAction, port: UUID,
+    private def translateFlowActions(
             localPorts: Seq[Short], tunnelKey: Option[Long],
             peerHostIds: Set[UUID], dpTags: mutable.Set[Any]): Seq[FlowAction] = {
 
@@ -165,26 +165,15 @@ trait FlowTranslator {
                         "only for forked actions, otherwise this flow will " +
                         "be dropped because we cannot make Output actions.")
 
-        def handleVrnPort(portId: UUID) =
-            if (portId == port) {
-                val tags = if (dpTags == null) mutable.Set[Any]() else dpTags
-                val actions = ListBuffer[FlowAction]()
-                outputActionsForLocalPorts(localPorts, actions, tags)
-                if (tunnelKey.isDefined && dpState.greOutputAction.isDefined) {
-                    outputActionsToPeers(tunnelKey.get, peerHostIds,
-                                         dpState.greOutputAction.get,
-                                         actions, tags)
-                }
-                actions.toList
-            } else {
-                Seq.empty[FlowAction]
-            }
-
-        action match {
-            case FlowActionOutputToVrnPort(id) => handleVrnPort(id)
-            case FlowActionOutputToVrnPortSet(id) => handleVrnPort(id)
-            case a => Seq(a)
+        val tags = if (dpTags == null) mutable.Set[Any]() else dpTags
+        val actions = ListBuffer[FlowAction]()
+        outputActionsForLocalPorts(localPorts, actions, tags)
+        if (tunnelKey.isDefined && dpState.greOutputAction.isDefined) {
+            outputActionsToPeers(tunnelKey.get, peerHostIds,
+                                 dpState.greOutputAction.get,
+                                 actions, tags)
         }
+        actions.toList
     }
 
     /** translates a Seq of FlowActions expressed in virtual references into a
@@ -213,9 +202,9 @@ trait FlowTranslator {
             actions map {
                 case s: FlowActionOutputToVrnPortSet =>
                     // expandPortSetAction
-                    epsa(s, s.portSetId, inPortUUID, dpTags, wMatch)
+                    epsa(s.portSetId, inPortUUID, dpTags, wMatch)
                 case p: FlowActionOutputToVrnPort =>
-                    expandPortAction(p, p.portId, dpTags)
+                    expandPortAction(p.portId, dpTags)
                 case a =>
                     Ready(Seq[FlowAction](a))
             }
@@ -268,7 +257,7 @@ trait FlowTranslator {
 
     // expandPortSetAction, name shortened to avoid an ENAMETOOLONG on ecryptfs
     // from a triply nested anonfun.
-    private def epsa(action: FlowAction, portSetId: UUID,
+    private def epsa(portSetId: UUID,
                      inPortUUID: Option[UUID], dpTags: Option[mutable.Set[Any]],
                      wMatch: WildcardMatch): Urgent[Seq[FlowAction]] = {
 
@@ -304,7 +293,7 @@ trait FlowTranslator {
                     applyOutboundFilters(localPorts, portSetId, wMatch, dpTags)
             } map {
                 portIDs =>
-                    toPortSet(action, portSetId, portsForLocalPorts(portIDs),
+                    toPortSet(portsForLocalPorts(portIDs),
                         Some(tunnelKey), set.hosts, dpTags.orNull)
             }
 
@@ -344,8 +333,7 @@ trait FlowTranslator {
         }
     }
 
-    private def expandPortAction(action: FlowAction,
-                                 port: UUID,
+    private def expandPortAction(port: UUID,
                                  dpTags: Option[mutable.Set[Any]])
     : Urgent[Seq[FlowAction]] = {
 
@@ -354,14 +342,13 @@ trait FlowTranslator {
         dpState.getDpPortNumberForVport(port) map { portNum =>
             // if the DPC has a local DP port for this UUUID, translate
             Urgent(
-                towardsLocalDpPorts(action, port, List(portNum.shortValue()), tags)
+                towardsLocalDpPorts(List(portNum.shortValue()), tags)
             )
         } getOrElse {
             // otherwise we translate to a remote port
             expiringAsk[Port](port, log) map {
                 case p: Port if p.isExterior =>
-                    towardsRemoteHosts(
-                        action, port, p.tunnelKey, p.hostID, tags)
+                    towardsRemoteHosts(p.tunnelKey, p.hostID, tags)
                 case _ =>
                     log.warning("Port {} was not exterior {}", port, cookieStr)
                     Seq.empty[FlowAction]
@@ -370,31 +357,26 @@ trait FlowTranslator {
     }
 
     /** forwards to translateToDpPorts for a set of local ports. */
-    protected def towardsLocalDpPorts(act: FlowAction, port: UUID,
-            localPorts: Seq[Short], dpTags: mutable.Set[Any]) = {
-        log.debug("Translating output actions for vport {} " +
-                  "towards local dp ports {}", port, localPorts)
-        translateFlowActions(act, port, localPorts, None, Set.empty, dpTags)
+    protected def towardsLocalDpPorts(localPorts: Seq[Short],
+                                      dpTags: mutable.Set[Any]) = {
+        log.debug("Emitting towards local dp ports {}", localPorts)
+        translateFlowActions(localPorts, None, Set.empty, dpTags)
     }
 
     /** forwards to translateToDpPorts for a set of remote ports. */
-    private def towardsRemoteHosts(act: FlowAction, port: UUID,
-            tunnelKey: Long, peerHostId: UUID, dpTags: mutable.Set[Any]) = {
-        log.debug("Translating output actions for vport {}, towards remote " +
-                  "hosts {} with tunnel key {}", port, peerHostId, tunnelKey)
-        translateFlowActions(
-            act, port, Nil, Some(tunnelKey), Set(peerHostId), dpTags)
+    private def towardsRemoteHosts(tunnelKey: Long, peerHostId: UUID,
+                                   dpTags: mutable.Set[Any]) = {
+        log.debug("Emitting towards remote host {} with tunnek key {}",
+                  peerHostId, tunnelKey)
+        translateFlowActions(Nil, Some(tunnelKey), Set(peerHostId), dpTags)
     }
 
     /** forwards to translateToDpPorts for a port set. */
-    private def toPortSet(act: FlowAction, port: UUID,
-                  localPorts: Seq[Short], tunnelKey: Option[Long],
-                  peerHostIds: Set[UUID], dpTags: mutable.Set[Any]) = {
-        log.debug("Translating output actions for port set {}, towards " +
-                  "local dp ports {} and remote hosts {} with tunnel key {}",
-                  port, localPorts, peerHostIds, tunnelKey)
-        translateFlowActions(
-            act, port, localPorts, tunnelKey, peerHostIds, dpTags)
+    private def toPortSet(localPorts: Seq[Short], tunnelKey: Option[Long],
+                          peerHostIds: Set[UUID], dpTags: mutable.Set[Any]) = {
+        log.debug("Emitting towards local dp ports {} and remote hosts {} " +
+                  "with tunnel key {}", localPorts, peerHostIds, tunnelKey)
+        translateFlowActions(localPorts, tunnelKey, peerHostIds, dpTags)
     }
 
 }
