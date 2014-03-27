@@ -18,6 +18,14 @@ trait ReferenceableSupport {
     : AskableActorRef = r.getRef()
 }
 
+object Referenceable {
+    def getSupervisorPath(supervisorName: String) =
+        "/user/" + supervisorName
+
+    def getReferenceablePath(supervisorName: String, actorName: String) =
+        getSupervisorPath(supervisorName) + "/" + actorName
+}
+
 trait Referenceable {
 
     def getRef()(implicit system: ActorSystem): ActorRef =
@@ -25,9 +33,8 @@ trait Referenceable {
 
     val Name: String
 
-    protected def Prefix: String = "/user/%s" format supervisorName
-
-    protected def path: String = "%s/%s".format(Prefix, Name)
+    protected def path: String =
+        Referenceable.getReferenceablePath(supervisorName, Name)
 
     protected def supervisorName = "midolman"
 }

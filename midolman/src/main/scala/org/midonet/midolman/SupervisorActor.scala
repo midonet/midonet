@@ -16,7 +16,7 @@ import org.midonet.midolman.logging.ActorLogWithoutPath
 object SupervisorActor extends Referenceable {
     override val Name = supervisorName
 
-    override val Prefix: String = "/user"
+    override protected def path: String = Referenceable.getSupervisorPath(Name)
 
     case class StartChild(props: Props, name: String)
 }
