@@ -12,19 +12,21 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.Matchers
 
+import org.midonet.cluster.data.Bridge
+import org.midonet.cluster.data.host.Host
+import org.midonet.cluster.data.ports.BridgePort
+import org.midonet.cluster.data.zones.{GreTunnelZone, GreTunnelZoneHost}
 import org.midonet.midolman.DatapathController.DpPortCreate
 import org.midonet.midolman.topology.VirtualToPhysicalMapper._
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.topology.rcu.{Host => RCUHost}
-import org.midonet.cluster.data.zones.{GreTunnelZone, GreTunnelZoneHost}
+import org.midonet.midolman.util.MidolmanTestCase
 import org.midonet.odp.ports.{NetDevPort, GreTunnelPort}
 import org.midonet.packets.{IPv4Addr, IntIPv4}
-import org.midonet.cluster.data.Bridge
-import org.midonet.cluster.data.host.Host
-import org.midonet.cluster.data.ports.BridgePort
 
 @RunWith(classOf[JUnitRunner])
-class TunnelManagementTestCase extends MidolmanTestCase with Matchers with VirtualConfigurationBuilders {
+class TunnelManagementTestCase extends MidolmanTestCase
+    with Matchers {
 
     val myselfId = UUID.randomUUID()
     var greZone: GreTunnelZone = null

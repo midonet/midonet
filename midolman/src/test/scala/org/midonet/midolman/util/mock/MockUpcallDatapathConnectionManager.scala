@@ -1,19 +1,24 @@
 /*
  * Copyright (c) 2014 Midokura Europe SARL, All Rights Reserved.
  */
-package org.midonet.midolman.io
+package org.midonet.midolman.util.mock
 
 import scala.concurrent.{ExecutionContext, Future}
 
 import akka.actor.ActorSystem
 import org.slf4j.LoggerFactory
 
-import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.PacketsEntryPoint
 import org.midonet.midolman.PacketsEntryPoint.Workers
+import org.midonet.midolman.config.MidolmanConfig
+import org.midonet.midolman.io.ManagedDatapathConnection
+import org.midonet.midolman.io.MockManagedDatapathConnection
+import org.midonet.midolman.io.TokenBucketPolicy
+import org.midonet.midolman.io.UpcallDatapathConnectionManager
+import org.midonet.midolman.toActorRef
+import org.midonet.util.{TokenBucketTestRate, TokenBucket, BatchCollector}
 import org.midonet.odp.{Packet, DpPort, Datapath, OvsConnectionOps}
 import org.midonet.odp.protos.OvsDatapathConnection
-import org.midonet.util.{TokenBucketTestRate, TokenBucket, BatchCollector}
 
 class MockUpcallDatapathConnectionManager(config: MidolmanConfig)
         extends UpcallDatapathConnectionManager(config,

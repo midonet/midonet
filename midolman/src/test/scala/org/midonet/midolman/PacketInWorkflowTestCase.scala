@@ -11,13 +11,13 @@ import org.midonet.midolman.DatapathController.DatapathReady
 import org.midonet.midolman.PacketWorkflow.PacketIn
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.util.TestHelpers
+import org.midonet.midolman.util.MidolmanTestCase
 import org.midonet.cluster.data.{Bridge => ClusterBridge, Ports}
 import org.midonet.cluster.data.host.Host
 
 
 @RunWith(classOf[JUnitRunner])
 class PacketInWorkflowTestCase extends MidolmanTestCase {
-
     override protected def fillConfig(config: HierarchicalConfiguration) = {
         config.setProperty("datapath.max_flow_count", "10")
         super.fillConfig(config)

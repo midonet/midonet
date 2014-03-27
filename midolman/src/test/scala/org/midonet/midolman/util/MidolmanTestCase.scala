@@ -1,52 +1,51 @@
 /*
 * Copyright 2012 Midokura Europe SARL
 */
-package org.midonet.midolman
+package org.midonet.midolman.util
 
-import language.implicitConversions
-
-import scala.collection.JavaConversions._
-import scala.collection.mutable
-import scala.compat.Platform
-import scala.annotation.tailrec
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
-
-import akka.actor._
+import scala.annotation.tailrec
 import scala.concurrent.{ExecutionContext, Await, Future}
+import scala.concurrent.duration._
+import scala.collection.JavaConversions._
+import scala.collection.mutable
+import scala.compat.Platform
+import akka.actor._
 import akka.event.EventStream
 import akka.testkit._
 import akka.pattern.ask
 import akka.util.Timeout
-import scala.concurrent.duration._
 import com.google.inject._
+import language.implicitConversions
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.scalatest._
 import org.scalatest.matchers.{BePropertyMatcher, BePropertyMatchResult}
 import org.slf4j.{Logger, LoggerFactory}
-
-import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.{Port => VPort}
+import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.services.MidostoreSetupService
+import org.midonet.midolman.DatapathController
 import org.midonet.midolman.DatapathController.{InitializationComplete, DpPortCreate, Initialize}
+import org.midonet.midolman.DatapathState
 import org.midonet.midolman.DeduplicationActor.{HandlePackets, DiscardPacket, EmitGeneratedPacket}
+import org.midonet.midolman.FlowController
 import org.midonet.midolman.FlowController.AddWildcardFlow
 import org.midonet.midolman.FlowController.FlowUpdateCompleted
 import org.midonet.midolman.FlowController.WildcardFlowAdded
 import org.midonet.midolman.FlowController.WildcardFlowRemoved
 import org.midonet.midolman.PacketWorkflow.PacketIn
+import org.midonet.midolman.PacketsEntryPoint
 import org.midonet.midolman.guice._
-import org.midonet.midolman.guice.actors.OutgoingMessage
-import org.midonet.midolman.guice.actors.TestableMidolmanActorsModule
 import org.midonet.midolman.guice.cluster.ClusterClientModule
 import org.midonet.midolman.guice.config.MockConfigProviderModule
 import org.midonet.midolman.guice.datapath.MockDatapathModule
 import org.midonet.midolman.guice.serialization.SerializationModule
 import org.midonet.midolman.guice.zookeeper.MockZookeeperConnectionModule
 import org.midonet.midolman.host.config.HostConfig
-import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.host.guice.HostConfigProvider
+import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.layer4.NatMappingFactory
 import org.midonet.midolman.monitoring.{MonitoringActor, MonitoringAgent}
@@ -57,6 +56,9 @@ import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.topology.VirtualToPhysicalMapper
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.version.guice.VersionModule
+import org.midonet.midolman.util.guice.OutgoingMessage
+import org.midonet.midolman.util.guice.TestableMidolmanActorsModule
+import org.midonet.midolman.util.mock.MockInterfaceScanner
 import org.midonet.odp._
 import org.midonet.odp.flows.FlowAction
 import org.midonet.odp.flows.FlowKeys.inPort
@@ -72,7 +74,8 @@ object MidolmanTestCaseLock {
 
 trait MidolmanTestCase extends Suite with BeforeAndAfter
         with OneInstancePerTest with Matchers with Dilation
-        with MidolmanServices {
+        with MidolmanServices
+        with VirtualConfigurationBuilders {
 
     case class PacketsExecute(packet: Packet)
     case class FlowAdded(flow: Flow)

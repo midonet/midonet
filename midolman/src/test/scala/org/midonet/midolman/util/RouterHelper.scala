@@ -5,16 +5,16 @@
 package org.midonet.midolman.util
 
 import java.util.UUID
+import scala.concurrent.duration._
+import scala.concurrent.Await
 
-import org.midonet.packets._
 import org.midonet.cluster.client.RouterPort
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.FlowController.AddWildcardFlow
+import org.midonet.midolman.{NotYet, Ready}
 import org.midonet.midolman.simulation.{Router => SimRouter}
 import org.midonet.midolman.topology.VirtualTopologyActor.expiringAsk
-import org.midonet.midolman.{NotYet, Ready, MidolmanTestCase}
-import scala.concurrent.duration._
-import scala.concurrent.Await
+import org.midonet.packets._
 
 trait RouterHelper extends SimulationHelper { this: MidolmanTestCase =>
 

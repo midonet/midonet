@@ -14,9 +14,9 @@ import akka.actor.Props
 import akka.testkit.TestActorRef
 import com.yammer.metrics.core.MetricsRegistry
 import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
 import org.scalatest._
 import org.scalatest.concurrent.Eventually._
+import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cache.Cache
 import org.midonet.cluster.DataClient
@@ -24,8 +24,9 @@ import org.midonet.midolman.DeduplicationActor.ActionsCache
 import org.midonet.midolman.PacketWorkflow.Simulation
 import org.midonet.midolman.io.DatapathConnectionPool
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
-import org.midonet.midolman.services.MessageAccumulator
 import org.midonet.midolman.topology.rcu.TraceConditions
+import org.midonet.midolman.util.MidolmanSpec
+import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.odp.{FlowMatches, Packet, Datapath}
 import org.midonet.packets.Ethernet
 import org.midonet.packets.util.EthBuilder
@@ -34,12 +35,7 @@ import org.midonet.odp.flows.FlowActions.output
 import org.midonet.odp.flows.FlowAction
 
 @RunWith(classOf[JUnitRunner])
-class DeduplicationActorTestCase extends FeatureSpec
-                                 with Matchers with GivenWhenThen
-                                 with BeforeAndAfter with MockMidolmanActors
-                                 with MidolmanServices
-                                 with OneInstancePerTest {
-
+class DeduplicationActorTestCase extends MidolmanSpec {
     var datapath: Datapath = null
     var packetsSeen = List[(Packet, Either[Int, UUID])]()
     var ddaRef: TestActorRef[TestableDDA] = _

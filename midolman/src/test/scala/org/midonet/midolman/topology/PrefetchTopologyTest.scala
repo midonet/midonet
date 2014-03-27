@@ -1,31 +1,23 @@
 /*
  * Copyright (c) 2014 Midokura Europe SARL, All Rights Reserved.
  */
-
 package org.midonet.midolman.topology
 
 import akka.actor.Props
 import akka.testkit.TestActorRef
-
 import org.scalatest.{OneInstancePerTest, GivenWhenThen, Matchers, FeatureSpec}
 
 import org.midonet.cluster.data.Bridge
 import org.midonet.cluster.data.ports.BridgePort
-import org.midonet.midolman.{VirtualTopologyHelper, MidolmanServices,
-                             VirtualConfigurationBuilders, MockMidolmanActors}
-import org.midonet.midolman.services.MessageAccumulator
 import org.midonet.midolman.simulation.{Bridge => SimBridge}
 import org.midonet.midolman.topology.VirtualTopologyActor.{DeviceRequest, Unsubscribe}
+import org.midonet.midolman.util.MidolmanServices
+import org.midonet.midolman.util.MidolmanSpec
+import org.midonet.midolman.util.VirtualTopologyHelper
+import org.midonet.midolman.util.mock.MessageAccumulator
+import org.midonet.midolman.util.mock.MockMidolmanActors
 
-class TopologyPrefetcherTest extends FeatureSpec
-                             with Matchers
-                             with GivenWhenThen
-                             with MockMidolmanActors
-                             with VirtualConfigurationBuilders
-                             with MidolmanServices
-                             with VirtualTopologyHelper
-                             with OneInstancePerTest {
-
+class TopologyPrefetcherTest extends MidolmanSpec {
     override def registerActors = List(
         VirtualTopologyActor -> (() => new VirtualTopologyActor
                                        with MessageAccumulator))

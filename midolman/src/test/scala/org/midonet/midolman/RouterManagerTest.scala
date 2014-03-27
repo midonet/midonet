@@ -13,20 +13,13 @@ import org.midonet.midolman.simulation.{Router, CustomMatchers, LoadBalancer}
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.VirtualTopologyActor.{LoadBalancerRequest,
                                                            RouterRequest}
+import org.midonet.midolman.util.MidolmanSpec
 
 
 @RunWith(classOf[JUnitRunner])
 class RouterManagerTest extends TestKit(ActorSystem("RouterManagerTest"))
-with FeatureSpecLike
-with CustomMatchers
-with GivenWhenThen
-with ImplicitSender
-with Matchers
-with MidolmanServices
-with MockMidolmanActors
-with OneInstancePerTest
-with VirtualConfigurationBuilders {
-
+        with MidolmanSpec
+        with ImplicitSender {
     var vta: TestableVTA = null
 
     protected override def registerActors =

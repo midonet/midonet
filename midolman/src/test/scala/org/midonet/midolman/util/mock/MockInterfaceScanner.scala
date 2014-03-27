@@ -1,18 +1,18 @@
 /*
  * Copyright (c) 2012 Midokura SARL, All Rights Reserved.
  */
-package org.midonet.midolman
+package org.midonet.midolman.util.mock
 
 import java.util.{Set => JSet}
+import java.util.concurrent.ConcurrentLinkedQueue
 
 import scala.collection.JavaConversions._
 import scala.collection.concurrent
 
-import host.interfaces.InterfaceDescription
-import host.scanner.InterfaceScanner
+import org.midonet.midolman.host.interfaces.InterfaceDescription
+import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.Subscription
 import org.midonet.netlink.Callback
-import java.util.concurrent.ConcurrentLinkedQueue
 
 class MockInterfaceScanner extends InterfaceScanner {
     private val interfaces = concurrent.TrieMap[String, InterfaceDescription]()

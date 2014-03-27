@@ -4,48 +4,39 @@
 package org.midonet.midolman
 
 import java.util.UUID
-
-import scala.collection.immutable.List
 import scala.collection.{Set => ROSet, mutable}
+import scala.collection.immutable.List
 import scala.concurrent.{ExecutionContext, Await}
 import scala.concurrent.duration._
 
 import akka.actor.ActorSystem
 import akka.event.{Logging, LoggingAdapter}
 import akka.util.Timeout
-
 import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
 import org.scalatest.{OneInstancePerTest, GivenWhenThen, Matchers, FeatureSpec}
+import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.{Port, Bridge, Chain}
 import org.midonet.cluster.data.ports.BridgePort
 import org.midonet.midolman.rules.{RuleResult, Condition}
 import org.midonet.midolman.rules.RuleResult.Action
-import org.midonet.midolman.services.MessageAccumulator
 import org.midonet.midolman.topology.{LocalPortActive, FlowTagger,
                                       VirtualToPhysicalMapper,
                                       VirtualTopologyActor}
 import org.midonet.midolman.topology.rcu.Host
+import org.midonet.midolman.util.MidolmanSpec
+import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.odp.DpPort
-import org.midonet.odp.flows.FlowActions.{output, pushVLAN, setKey, userspace}
 import org.midonet.odp.flows.{FlowKeys, FlowActions, FlowAction,
                               FlowActionOutput}
+import org.midonet.odp.flows.FlowActions.{output, pushVLAN, setKey, userspace}
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 import org.midonet.sdn.flows.VirtualActions.{FlowActionOutputToVrnPort,
                                              FlowActionOutputToVrnPortSet}
 import org.midonet.util.concurrent.ExecutionContextOps
 
 @RunWith(classOf[JUnitRunner])
-class FlowTranslatorTest extends FeatureSpec
-                         with Matchers
-                         with GivenWhenThen
-                         with MockMidolmanActors
-                         with MidolmanServices
-                         with VirtualConfigurationBuilders
-                         with VirtualTopologyHelper
-                         with OneInstancePerTest {
-
+class FlowTranslatorTest extends MidolmanSpec {
     override def registerActors = List(
         VirtualTopologyActor -> (() => new VirtualTopologyActor
                                        with MessageAccumulator),

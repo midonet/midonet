@@ -5,7 +5,6 @@ package org.midonet.midolman.simulation
 
 import java.util.UUID
 import java.util.concurrent.TimeUnit
-
 import scala.collection.mutable
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -15,41 +14,32 @@ import akka.actor.Actor.emptyBehavior
 import akka.pattern.ask
 import akka.testkit.TestActorRef
 import akka.util.Timeout
-
 import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cache.MockCache
-import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
 import org.midonet.cluster.data.{Router => ClusterRouter, Bridge => ClusterBridge, Entity, Port}
-import org.midonet.midolman.PacketWorkflow.{SimulationResult, AddVirtualWildcardFlow}
-import org.midonet.midolman.topology.VirtualTopologyActor.BridgeRequest
-import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
+import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
 import org.midonet.midolman._
+import org.midonet.midolman.PacketWorkflow.{SimulationResult, AddVirtualWildcardFlow}
+import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.layer3.Route
-import org.midonet.midolman.services.MessageAccumulator
 import org.midonet.midolman.topology._
+import org.midonet.midolman.topology.VirtualTopologyActor.BridgeRequest
+import org.midonet.midolman.util.MidolmanSpec
+import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.odp.DpPort
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput}
 import org.midonet.odp.flows.FlowActions.output
 import org.midonet.odp.protos.OvsDatapathConnection
-import org.midonet.packets.ICMP.UNREACH_CODE
 import org.midonet.packets._
+import org.midonet.packets.ICMP.UNREACH_CODE
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.sdn.flows.WildcardMatch
 
 @RunWith(classOf[JUnitRunner])
-class AdminStateTest extends FeatureSpec
-                     with Matchers
-                     with GivenWhenThen
-                     with CustomMatchers
-                     with MockMidolmanActors
-                     with VirtualConfigurationBuilders
-                     with MidolmanServices
-                     with VirtualTopologyHelper
-                     with OneInstancePerTest {
-
+class AdminStateTest extends MidolmanSpec {
     implicit val askTimeout: Timeout = 1 second
 
     override def registerActors = List(

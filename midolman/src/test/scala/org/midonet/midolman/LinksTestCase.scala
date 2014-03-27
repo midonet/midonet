@@ -16,22 +16,21 @@ import org.midonet.midolman.DatapathController.DatapathReady
 import org.midonet.midolman.DeduplicationActor.DiscardPacket
 import org.midonet.midolman.FlowController.WildcardFlowRemoved
 import org.midonet.midolman.PacketWorkflow.PacketIn
-import org.midonet.midolman.guice.actors.OutgoingMessage
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.HostRequest
+import org.midonet.midolman.util.MidolmanTestCase
 import org.midonet.midolman.util.RouterHelper
+import org.midonet.midolman.util.guice.OutgoingMessage
 import org.midonet.odp.flows.FlowActionOutput
 import org.midonet.packets._
 
 @Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
 class LinksTestCase extends MidolmanTestCase
-                    with VirtualConfigurationBuilders
                     with RouterHelper {
-
     private final val log = LoggerFactory.getLogger(classOf[LinksTestCase])
 
     val rtrIp1 = new IPv4Subnet("192.168.111.1", 24)

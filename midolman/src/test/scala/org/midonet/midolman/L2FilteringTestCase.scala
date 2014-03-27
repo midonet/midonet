@@ -13,6 +13,7 @@ import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.FlowController.WildcardFlowRemoved
 import org.midonet.midolman.topology.FlowTagger
 import org.midonet.midolman.rules.{RuleResult, Condition}
+import org.midonet.midolman.util.MidolmanTestCase
 import org.midonet.packets._
 
 @Category(Array(classOf[SimulationTests]))

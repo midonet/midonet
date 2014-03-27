@@ -8,7 +8,7 @@ import java.util.LinkedList;
 
 import com.google.inject.Inject;
 
-import org.midonet.midolman.guice.datapath.DatapathModule;
+import org.midonet.midolman.util.mock.MockUpcallDatapathConnectionManager;
 import org.midonet.odp.protos.OvsDatapathConnection;
 
 

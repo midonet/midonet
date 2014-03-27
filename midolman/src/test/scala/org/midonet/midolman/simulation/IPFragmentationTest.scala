@@ -4,13 +4,14 @@
 
 package org.midonet.midolman.simulation
 
-import akka.util.Timeout
 import java.util.UUID
+import scala.concurrent.Await
+import scala.concurrent.duration._
+
+import akka.util.Timeout
 import org.junit.runner.RunWith
 import org.scalatest.{OneInstancePerTest, GivenWhenThen, Matchers, FeatureSpec}
 import org.scalatest.junit.JUnitRunner
-import scala.concurrent.Await
-import scala.concurrent.duration._
 
 import org.midonet.cache.MockCache
 import org.midonet.cluster.data.{Bridge => ClusterBridge, Router => ClusterRouter, Entity, Port}
@@ -20,25 +21,17 @@ import org.midonet.midolman.PacketWorkflow.{Drop, TemporaryDrop, SimulationResul
 import org.midonet.midolman.rules.FragmentPolicy
 import org.midonet.midolman.rules.FragmentPolicy._
 import org.midonet.midolman.rules.RuleResult.Action
-import org.midonet.midolman.services.MessageAccumulator
 import org.midonet.midolman.topology.{FlowTagger, VirtualTopologyActor}
-import org.midonet.odp.flows.IPFragmentType
+import org.midonet.midolman.util.MidolmanSpec
+import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.packets._
 import org.midonet.packets.ICMP.UNREACH_CODE
 import org.midonet.packets.util.PacketBuilder._
+import org.midonet.odp.flows.IPFragmentType
 import org.midonet.sdn.flows.WildcardMatch
 
 @RunWith(classOf[JUnitRunner])
-class IPFragmentationTest extends FeatureSpec
-                          with Matchers
-                          with GivenWhenThen
-                          with CustomMatchers
-                          with MockMidolmanActors
-                          with VirtualConfigurationBuilders
-                          with MidolmanServices
-                          with VirtualTopologyHelper
-                          with OneInstancePerTest {
-
+class IPFragmentationTest extends MidolmanSpec {
     implicit val askTimeout: Timeout = 1 second
 
     override def registerActors = List(

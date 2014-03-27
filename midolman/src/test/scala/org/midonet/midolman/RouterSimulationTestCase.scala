@@ -18,14 +18,13 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
 
+import org.midonet.cluster.data.{Ports, Router => ClusterRouter}
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.ports.RouterPort
-import org.midonet.cluster.data.{Ports, Router => ClusterRouter}
 import org.midonet.midolman.DeduplicationActor.DiscardPacket
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.FlowController._
 import org.midonet.midolman.PacketWorkflow.PacketIn
-import org.midonet.midolman.guice.actors.OutgoingMessage
 import org.midonet.midolman.layer3.Route.{NextHop, NO_GATEWAY}
 import org.midonet.midolman.rules.{RuleResult, NatTarget, Condition}
 import org.midonet.midolman.simulation.{ArpTableImpl, RouteBalancer, PacketContext}
@@ -33,7 +32,9 @@ import org.midonet.midolman.state.ArpCacheEntry
 import org.midonet.midolman.state.ReplicatedMap.Watcher
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.HostRequest
+import org.midonet.midolman.util.MidolmanTestCase
 import org.midonet.midolman.util.RouterHelper
+import org.midonet.midolman.util.guice.OutgoingMessage
 import org.midonet.odp.flows.FlowActionOutput
 import org.midonet.odp.flows.FlowActionSetKey
 import org.midonet.odp.flows.FlowKeyEthernet
@@ -44,8 +45,8 @@ import org.midonet.sdn.flows.WildcardMatch
 
 @Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
-class RouterSimulationTestCase extends MidolmanTestCase with
-        VirtualConfigurationBuilders with RouterHelper {
+class RouterSimulationTestCase extends MidolmanTestCase
+        with RouterHelper {
     private final val log =
          LoggerFactory.getLogger(classOf[RouterSimulationTestCase])
     // these should reliably give us two retries, no more, no less.

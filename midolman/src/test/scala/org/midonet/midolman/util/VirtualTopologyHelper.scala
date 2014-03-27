@@ -1,7 +1,7 @@
 /*
 * Copyright 2012 Midokura Europe SARL
 */
-package org.midonet.midolman
+package org.midonet.midolman.util
 
 import java.util.UUID
 import scala.compat.Platform
@@ -10,17 +10,21 @@ import scala.concurrent.duration._
 
 import akka.pattern.ask
 import akka.util.Timeout
+import akka.util.Timeout.durationToTimeout
 import org.scalatest.Assertions
 
+import org.midonet.cache.MockCache
 import org.midonet.cluster.client.{Port => SimPort}
 import org.midonet.cluster.data._
+import org.midonet.midolman.NotYet
+import org.midonet.midolman.Ready
 import org.midonet.midolman.simulation.Coordinator.{Device, Action}
+import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.VirtualTopologyActor._
+import org.midonet.midolman.util.mock.MockMidolmanActors
 import org.midonet.packets.Ethernet
-import org.midonet.midolman.simulation.PacketContext
 import org.midonet.sdn.flows.WildcardMatch
-import org.midonet.cache.MockCache
 
 trait VirtualTopologyHelper {
     this: MockMidolmanActors =>

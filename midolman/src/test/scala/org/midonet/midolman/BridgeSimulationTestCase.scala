@@ -26,6 +26,7 @@ import org.midonet.midolman.guice.CacheModule.{TRACE_INDEX, TRACE_MESSAGES}
 import org.midonet.midolman.rules.{RuleResult, Condition}
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.topology.rcu.TraceConditions
+import org.midonet.midolman.util.MidolmanTestCase
 import org.midonet.midolman.util.SimulationHelper
 import org.midonet.odp.flows.{FlowActionOutput, FlowKeyTunnel}
 import org.midonet.odp.flows.FlowActions.output
@@ -35,7 +36,7 @@ import org.midonet.packets.util.PacketBuilder._
 @Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
 class BridgeSimulationTestCase extends MidolmanTestCase
-        with VirtualConfigurationBuilders with SimulationHelper {
+        with SimulationHelper {
 
     val log = LoggerFactory.getLogger(classOf[BridgeSimulationTestCase])
     private var port1OnHost1: BridgePort = null

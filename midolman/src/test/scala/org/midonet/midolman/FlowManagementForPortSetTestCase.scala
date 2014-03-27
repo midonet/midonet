@@ -23,6 +23,7 @@ import org.midonet.midolman.FlowController.WildcardFlowRemoved
 import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
 import org.midonet.midolman.rules.{Condition, RuleResult}
 import org.midonet.midolman.topology.{FlowTagger, LocalPortActive}
+import org.midonet.midolman.util.MidolmanTestCase
 import org.midonet.odp.FlowMatch
 import org.midonet.odp.Packet
 import org.midonet.odp.flows.FlowKeys.{ethernet, inPort, tunnel}
@@ -33,8 +34,7 @@ import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 
 @Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
-class FlowManagementForPortSetTestCase extends MidolmanTestCase
-        with VirtualConfigurationBuilders {
+class FlowManagementForPortSetTestCase extends MidolmanTestCase {
 
     var tunnelZone: GreTunnelZone = null
 

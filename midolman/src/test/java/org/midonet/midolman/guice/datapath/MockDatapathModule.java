@@ -11,7 +11,7 @@ import com.google.inject.Provider;
 import org.midonet.midolman.io.DatapathConnectionPool;
 import org.midonet.midolman.io.MockDatapathConnectionPool;
 import org.midonet.midolman.io.UpcallDatapathConnectionManager;
-import org.midonet.midolman.io.MockUpcallDatapathConnectionManager;
+import org.midonet.midolman.util.mock.MockUpcallDatapathConnectionManager;
 
 
 public class MockDatapathModule extends DatapathModule {

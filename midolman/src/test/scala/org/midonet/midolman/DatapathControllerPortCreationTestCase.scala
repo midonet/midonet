@@ -13,30 +13,24 @@ import org.scalatest.concurrent.Eventually._
 import org.midonet.cluster.data.{Bridge => ClusterBridge}
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.ports.BridgePort
-import org.midonet.midolman.io.{MockUpcallDatapathConnectionManager,
-                                UpcallDatapathConnectionManager}
 import org.midonet.midolman.DatapathController.Initialize
 import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.host.interfaces.InterfaceDescription
-import org.midonet.midolman.services.{HostIdProviderService, MessageAccumulator}
+import org.midonet.midolman.io.UpcallDatapathConnectionManager
+import org.midonet.midolman.services.{HostIdProviderService}
 import org.midonet.midolman.topology.{LocalPortActive,
                                       VirtualToPhysicalMapper,
                                       VirtualTopologyActor}
+import org.midonet.midolman.util.MidolmanSpec
+import org.midonet.midolman.util.mock.MessageAccumulator
+import org.midonet.midolman.util.mock.MockInterfaceScanner
+import org.midonet.midolman.util.mock.MockUpcallDatapathConnectionManager
 import org.midonet.odp.Datapath
 import org.midonet.cluster.data.zones.{GreTunnelZoneHost, GreTunnelZone}
 import org.midonet.packets.IPv4Addr
 
 @RunWith(classOf[JUnitRunner])
-class DatapathControllerPortCreationTestCase extends FeatureSpec
-         with Matchers
-         with GivenWhenThen
-         with BeforeAndAfter
-         with MockMidolmanActors
-         with MidolmanServices
-         with VirtualTopologyHelper
-         with VirtualConfigurationBuilders
-         with OneInstancePerTest {
-
+class DatapathControllerPortCreationTestCase extends MidolmanSpec {
     var datapath: Datapath = null
     var testableDpc: DatapathController = _
 

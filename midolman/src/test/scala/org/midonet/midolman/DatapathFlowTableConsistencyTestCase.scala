@@ -14,6 +14,7 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.FlowController.{AddWildcardFlow, WildcardFlowAdded}
 import org.midonet.midolman.util.SimulationHelper
+import org.midonet.midolman.util.MidolmanTestCase
 import org.midonet.odp.FlowMatch
 import org.midonet.odp.flows.{FlowKeyICMPEcho, FlowKeyTCP, FlowKeyICMP}
 import org.midonet.odp.protos.MockOvsDatapathConnection
@@ -23,9 +24,7 @@ import org.midonet.sdn.flows.FlowManager
 @RunWith(classOf[JUnitRunner])
 class DatapathFlowTableConsistencyTestCase extends MidolmanTestCase
         with VMsBehindRouterFixture
-        with SimulationHelper
-        with VirtualConfigurationBuilders
-{
+        with SimulationHelper {
 
     var datapath: MockOvsDatapathConnection = null
     var flowManager: FlowManager = null

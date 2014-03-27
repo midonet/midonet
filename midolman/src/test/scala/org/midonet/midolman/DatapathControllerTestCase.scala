@@ -4,13 +4,12 @@
 package org.midonet.midolman
 
 import scala.collection.mutable
-
+import scala.concurrent.duration._
 import akka.testkit.TestProbe
 import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
 import org.scalatest.Matchers
 import org.scalatest.junit.JUnitRunner
-import scala.concurrent.duration._
 
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.{Bridge => ClusterBridge}
@@ -18,6 +17,7 @@ import org.midonet.cluster.data.{Ports => ClusterPorts}
 import org.midonet.midolman.topology.{VirtualTopologyActor, LocalPortActive}
 import org.midonet.midolman.topology.VirtualToPhysicalMapper._
 import org.midonet.midolman.topology.rcu.{Host => RCUHost}
+import org.midonet.midolman.util.MidolmanTestCase
 import org.midonet.odp.Datapath
 import org.midonet.odp.ports.NetDevPort
 import org.midonet.midolman.topology.VirtualTopologyActor.{PortRequest, BridgeRequest}
@@ -25,8 +25,8 @@ import scala.concurrent.Await
 
 @Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
-class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
-
+class DatapathControllerTestCase extends MidolmanTestCase
+        with Matchers {
     import scala.collection.JavaConversions._
     import DatapathController._
 

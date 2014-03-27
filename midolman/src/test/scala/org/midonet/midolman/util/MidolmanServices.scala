@@ -1,18 +1,20 @@
 /*
 * Copyright 2013 Midokura Europe SARL
 */
-package org.midonet.midolman
+package org.midonet.midolman.util
 
 import scala.concurrent.ExecutionContext
-
 import akka.actor.ActorSystem
 import com.google.inject.Injector
-
 import org.midonet.cluster.{Client, DataClient}
-import org.midonet.midolman.io.{MockUpcallDatapathConnectionManager,
-                                UpcallDatapathConnectionManager}
+import org.midonet.midolman.io.{UpcallDatapathConnectionManager}
 import org.midonet.midolman.services.HostIdProviderService
+import org.midonet.midolman.util.mock.MockUpcallDatapathConnectionManager
 import org.midonet.odp.protos.{OvsDatapathConnection, MockOvsDatapathConnection}
+import org.midonet.cluster.Client
+import org.midonet.cluster.DataClient
+import org.midonet.midolman.io.UpcallDatapathConnectionManager
+import org.midonet.midolman.services.HostIdProviderService
 
 
 trait MidolmanServices {

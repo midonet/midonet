@@ -3,30 +3,25 @@
  */
 package org.midonet.midolman
 
+import akka.actor.ActorSystem
+import akka.testkit.{ImplicitSender, TestKit}
 import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
-import org.midonet.midolman.simulation.CustomMatchers
-import org.midonet.midolman.topology.VirtualTopologyActor
-import org.midonet.midolman.topology.VirtualTopologyActor.PoolHealthMonitorMapRequest
-import akka.testkit.{ImplicitSender, TestKit}
-import akka.actor.ActorSystem
+
 import org.midonet.cluster.data.l4lb.{HealthMonitor, VIP}
 import org.midonet.midolman.l4lb.PoolHealthMonitorMapManager.PoolHealthMonitorMap
+import org.midonet.midolman.simulation.CustomMatchers
 import org.midonet.midolman.state.zkManagers.PoolZkManager.PoolHealthMonitorMappingConfig.{VipConfigWithId, HealthMonitorConfigWithId}
+import org.midonet.midolman.topology.VirtualTopologyActor
+import org.midonet.midolman.topology.VirtualTopologyActor.PoolHealthMonitorMapRequest
+import org.midonet.midolman.util.MidolmanSpec
 
 // @RunWith(classOf[JUnitRunner])
 class PoolHealthMonitorMapManagerTest
-    extends TestKit(ActorSystem("PoolHealthMonitorMapManagerTest"))
-    with FeatureSpecLike
-    with CustomMatchers
-    with GivenWhenThen
-    with ImplicitSender
-    with Matchers
-    with MidolmanServices
-    with MockMidolmanActors
-    with OneInstancePerTest
-    with VirtualConfigurationBuilders {
+        extends TestKit(ActorSystem("PoolHealthMonitorMapManagerTest"))
+        with MidolmanSpec
+        with ImplicitSender {
 
     var vta: TestableVTA = null
 

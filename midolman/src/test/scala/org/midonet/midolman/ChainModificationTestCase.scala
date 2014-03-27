@@ -4,17 +4,16 @@
 package org.midonet.midolman
 
 import java.util.UUID
-
 import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
-
 import org.midonet.midolman.rules.{RuleResult, Condition}
 import org.midonet.midolman.util.SimulationHelper
 import org.midonet.cluster.data.{Chain, Rule}
 import org.midonet.packets._
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
+import org.midonet.midolman.util.MidolmanTestCase
 import org.midonet.util.Range
 
 @Category(Array(classOf[SimulationTests]))

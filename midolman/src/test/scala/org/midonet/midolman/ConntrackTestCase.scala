@@ -4,32 +4,26 @@
 package org.midonet.midolman
 
 import java.util.UUID
+
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest._
 
 import org.midonet.cluster.data.{Bridge => ClusterBridge}
 import org.midonet.cluster.data.ports.BridgePort
-import org.midonet.midolman.services.{HostIdProviderService, MessageAccumulator}
+import org.midonet.midolman.rules.{RuleResult, Condition}
+import org.midonet.midolman.services.{HostIdProviderService}
 import org.midonet.midolman.simulation.Bridge
 import org.midonet.midolman.simulation.Coordinator.{DropAction, TemporaryDropAction, ToPortAction}
 import org.midonet.midolman.simulation.CustomMatchers
 import org.midonet.midolman.topology.VirtualTopologyActor
-import org.midonet.midolman.rules.{RuleResult, Condition}
+import org.midonet.midolman.util.MidolmanSpec
+import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.packets.{MAC, IPacket}
 
 
 @RunWith(classOf[JUnitRunner])
-class ConntrackTestCase extends FeatureSpec
-        with VirtualConfigurationBuilders
-        with Matchers
-        with GivenWhenThen
-        with CustomMatchers
-        with MockMidolmanActors
-        with MidolmanServices
-        with VirtualTopologyHelper
-        with OneInstancePerTest {
-
+class ConntrackTestCase extends MidolmanSpec {
     val leftMac = "02:02:01:10:10:aa"
     val rightMac = "02:02:01:10:10:bb"
     val leftIp = "192.168.1.1"

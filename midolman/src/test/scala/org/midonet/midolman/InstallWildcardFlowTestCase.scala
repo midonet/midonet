@@ -12,6 +12,7 @@ import org.midonet.cluster.data.host.Host
 import org.midonet.midolman.FlowController.{WildcardFlowAdded, AddWildcardFlow}
 import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
 import org.midonet.midolman.topology.LocalPortActive
+import org.midonet.midolman.util.MidolmanTestCase
 import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPort
 import org.midonet.sdn.flows.{WildcardMatch, WildcardFlow}
 import org.midonet.odp.flows.FlowActions.output
@@ -19,7 +20,6 @@ import org.midonet.odp.flows.FlowActions.output
 @Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
 class InstallWildcardFlowTestCase extends MidolmanTestCase {
-
     def testInstallFlowForLocalPort() {
 
         val host = new Host(hostId()).setName("myself")
