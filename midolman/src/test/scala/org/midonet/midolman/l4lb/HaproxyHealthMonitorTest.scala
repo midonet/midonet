@@ -181,8 +181,7 @@ class HaproxyHealthMonitorTest extends FeatureSpec
             socketReads +=1
             "" // return empty string because it isn't checked
         }
-        override def hookNamespaceToRouter(nsName: String, routerId: UUID) =
-            {""}
+        override def hookNamespaceToRouter(nsName: String, routerId: UUID) = {}
         override def unhookNamespaceFromRouter = {}
     }
 }
