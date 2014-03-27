@@ -18,33 +18,33 @@ class WaitingRoomTest extends FeatureSpec with Matchers {
     feature("Add a waiter") {
 
         scenario("Construction") {
-            val wr = new WaitingRoom[Int](_.hashCode, to)
+            val wr = new WaitingRoom[Int](to)
             wr.timeout shouldEqual to
         }
 
         scenario("Construction with defaults") {
-            val wr = new WaitingRoom[Int](_.hashCode)
+            val wr = new WaitingRoom[Int]()
             wr.timeout shouldEqual TimeUnit.SECONDS.toNanos(3)
         }
 
         scenario("Each waiter triggers a cleanup of timed out waiters") {
-            val cb = new ListBuffer[Int]()
-            val wr = new WaitingRoom[Int](x => cb ++= x, to)
+            val evictions = new ListBuffer[Int]()
+            val wr = new WaitingRoom[Int](to)
             val w1 = 1
             val w2 = 2
             val w3 = 2
 
             // add elements and verify size
             wr.count should be (0)
-            wr enter w1
+            evictions ++= wr enter w1
             wr.count should be (1)
-            cb should have size 0 // no callbacks
+            evictions should have size 0 // no evictions
             wr enter w2
             wr.count should be (2)
 
             // duplicate elements
-            wr enter w1
-            wr enter w2
+            evictions ++= wr enter w1
+            evictions ++= wr enter w2
             wr.count should be (2) // now remain the same
 
             // wait for expirations
@@ -52,13 +52,11 @@ class WaitingRoomTest extends FeatureSpec with Matchers {
 
             // none should have happened since no elements were added
             wr.count should be (2)
-            cb should have size 0
+            evictions should have size 0
 
-            wr enter w3 // this expires, then adds
+            evictions ++= wr enter w3 // this expires, then adds
             wr.count should be (1)
-            cb shouldEqual List(w1, w2)
+            evictions shouldEqual List(w1, w2)
         }
-
     }
-
 }
