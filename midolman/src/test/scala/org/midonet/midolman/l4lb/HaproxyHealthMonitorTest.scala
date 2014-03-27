@@ -105,7 +105,7 @@ class HaproxyHealthMonitorTest extends FeatureSpec
             Then ("The config write should happen again")
             eventually { confWrites should be (2) }
             And ("Haproxy should have been restarted")
-            eventually { haproxyRestarts should be (2) }
+            eventually { haproxyRestarts should be (1) }
         }
         scenario ("Config write is delayed") {
             When ("The config takes a long time to be written")
@@ -181,7 +181,10 @@ class HaproxyHealthMonitorTest extends FeatureSpec
             socketReads +=1
             "" // return empty string because it isn't checked
         }
-        override def hookNamespaceToRouter(nsName: String, routerId: UUID) = {}
+        override def hookNamespaceToRouter(nRouterId: UUID) = {}
         override def unhookNamespaceFromRouter = {}
+        override def startHaproxy(name: String) = 0
+        override def killHaproxyIfRunning(name: String, confFileLoc: String,
+                                          pidFileLoc: String) = {}
     }
 }
