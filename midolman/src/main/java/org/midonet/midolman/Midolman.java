@@ -203,9 +203,29 @@ public class Midolman {
         }
     }
 
+    /**
+     * Expose Midolman instance and Guice injector
+     * Using the following methods makes it easier for host management
+     * tools (e.g. dashboard implemented in servlet) to access Midolman's
+     * internal data structure directly and diagnose issues at runtime.
+     */
+    private static class MidolmanHolder {
+        private static final Midolman instance = new Midolman();
+    }
+
+    public static Midolman getInstance() {
+        return MidolmanHolder.instance;
+    }
+
+    public static Injector getInjector() {
+        return getInstance().injector;
+    }
+
     public static void main(String[] args) {
+
         try {
-            new Midolman().run(args);
+            Midolman midolman = getInstance();
+            midolman.run(args);
         } catch (Exception e) {
             log.error("main caught", e);
             serviceEvent.exit();
