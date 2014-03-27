@@ -557,9 +557,8 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
             translateVirtualWildcardFlow(flow, tags) match {
                 case Ready((finalFlow, finalTags)) =>
                     log.debug("flow translated, installing: {}", finalFlow)
-                    FlowController !
-                        AddWildcardFlow(finalFlow, None, callbacks, finalTags)
-
+                    FlowController ! AddWildcardFlow(finalFlow, null,
+                                                     callbacks, finalTags)
                 case NotYet(f) => f onComplete {
                     case Success(_) =>
                         self ! msg
@@ -706,7 +705,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
         val actions = List[FlowAction](output(portNo))
         val tags = Set[Any](FlowTagger.invalidateDPPort(portNo))
         fc ! AddWildcardFlow(WildcardFlow(wcmatch = wMatch, actions = actions),
-                             None, Nil, tags)
+                             null, Nil, tags)
         log.debug("Added flow for tunnelkey {}", exterior.tunnelKey)
     }
 

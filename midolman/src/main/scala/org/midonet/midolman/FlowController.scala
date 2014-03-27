@@ -13,14 +13,12 @@ import scala.collection.JavaConversions._
 import scala.collection.mutable.{HashMap, MultiMap}
 import scala.collection.{Set => ROSet, mutable}
 import scala.concurrent.ExecutionContext
-import scala.concurrent.duration.Duration
 import scala.concurrent.duration._
 
 import akka.actor._
 import akka.event.LoggingReceive
 import com.yammer.metrics.core.{Gauge, MetricsRegistry}
 
-import org.midonet.midolman.DeduplicationActor.ApplyFlowFor
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.ErrorHandlingCallback
 import org.midonet.midolman.flows.WildcardTablesProvider
@@ -31,7 +29,6 @@ import org.midonet.midolman.monitoring.metrics.FlowTablesMeter
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode
 import org.midonet.netlink.{Callback => NetlinkCallback}
-import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.odp.{Datapath, Flow, FlowMatch}
 import org.midonet.sdn.flows.FlowManager
 import org.midonet.sdn.flows.FlowManagerHelper
@@ -94,10 +91,13 @@ object FlowController extends Referenceable {
     override val Name = "FlowController"
 
     case class AddWildcardFlow(wildFlow: WildcardFlow,
-                               flow: Option[Flow],
+                               dpFlow: Flow,
                                flowRemovalCallbacks: Seq[Callback0],
                                tags: ROSet[Any],
-                               lastInvalidation: Long = 0)
+                               lastInvalidation: Long = 0,
+                               flowMatch: FlowMatch = null,
+                               processed: Array[FlowMatch] = null,
+                               index: Int = 0)
 
     case class RemoveWildcardFlow(wMatch: WildcardMatch)
 
@@ -281,11 +281,9 @@ class FlowController extends Actor with ActorLogWithoutPath {
                     CheckFlowExpiration)
             }
 
-        case ApplyFlowFor(msg, deduplicator) =>
-            deduplicator ! msg
-
-        case AddWildcardFlow(wildFlow, flowOption, callbacks, tags, lastInval) =>
-            context.system.eventStream.publish(AddWildcardFlow(wildFlow,flowOption,callbacks,tags,lastInval))
+        case msg@AddWildcardFlow(wildFlow, dpFlow, callbacks, tags, lastInval,
+                                 flowMatch, pendingFlowMatches, index) =>
+            context.system.eventStream.publish(msg)
             if (FlowController.isTagSetStillValid(lastInval, tags)) {
                 wildFlowPool.take.orElse {
                     flowManager.evictOneFlow()
@@ -297,7 +295,8 @@ class FlowController extends Actor with ActorLogWithoutPath {
                         managedFlow.reset(wildFlow)
                         // the FlowController's ref
                         managedFlow.ref()
-                        if (handleFlowAddedForNewWildcard(managedFlow, flowOption, callbacks, tags)) {
+                        if (handleFlowAddedForNewWildcard(managedFlow, dpFlow,
+                                                          callbacks, tags)) {
                             context.system.eventStream.publish(WildcardFlowAdded(wildFlow))
                             log.debug("Added wildcard flow {} with tags {}", wildFlow, tags)
                             metrics.wildFlowsMetric.mark()
@@ -309,13 +308,17 @@ class FlowController extends Actor with ActorLogWithoutPath {
             } else {
                 log.debug("Skipping obsolete wildcard flow {} with tags {}",
                           wildFlow.getMatch, tags)
-                flowOption match {
-                    case Some(flow) =>
-                        flowManagerHelper.removeFlow(flow)
-                        runCallbacks(callbacks)
-                    case None =>
+                if (dpFlow != null) {
+                    flowManagerHelper.removeFlow(dpFlow)
+                    runCallbacks(callbacks)
                 }
             }
+
+            // We assume metrics.wildFlowsMetric.mark() already contains a
+            // memory barrier that will ensure the new table entry is visible
+            // before the next write.
+            if (pendingFlowMatches != null)
+                pendingFlowMatches(index) = flowMatch
 
         case FlowAdded(dpFlow, wcMatch) =>
             handleFlowAddedForExistingWildcard(dpFlow, wcMatch)
@@ -419,7 +422,8 @@ class FlowController extends Actor with ActorLogWithoutPath {
         }
     }
 
-    private def handleFlowAddedForNewWildcard(wildFlow: ManagedWildcardFlow, flow: Option[Flow],
+    private def handleFlowAddedForNewWildcard(wildFlow: ManagedWildcardFlow,
+                                              dpFlow: Flow,
                                               flowRemovalCallbacks: Seq[Callback0],
                                               tags: ROSet[Any]): Boolean = {
 
@@ -441,12 +445,10 @@ class FlowController extends Actor with ActorLogWithoutPath {
             }
         }
 
-        flow match {
-            case Some(dpFlow) =>
-                log.debug("Binding dpFlow {} to wcFlow {}", dpFlow, wildFlow)
-                flowManager.add(dpFlow, wildFlow)
-                metrics.dpFlowsMetric.mark()
-            case None =>
+        if (dpFlow != null) {
+            log.debug("Binding dpFlow {} to wcFlow {}", dpFlow, wildFlow)
+            flowManager.add(dpFlow, wildFlow)
+            metrics.dpFlowsMetric.mark()
         }
         true
     }

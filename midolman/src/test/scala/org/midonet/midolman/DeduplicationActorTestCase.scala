@@ -20,17 +20,18 @@ import org.scalatest.concurrent.Eventually._
 
 import org.midonet.cache.Cache
 import org.midonet.cluster.DataClient
-import org.midonet.midolman.DeduplicationActor.ApplyFlow
+import org.midonet.midolman.DeduplicationActor.ActionsCache
 import org.midonet.midolman.PacketWorkflow.Simulation
 import org.midonet.midolman.io.DatapathConnectionPool
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.services.MessageAccumulator
 import org.midonet.midolman.topology.rcu.TraceConditions
 import org.midonet.odp.{FlowMatches, Packet, Datapath}
-import org.midonet.odp.flows.FlowActions.output
 import org.midonet.packets.Ethernet
 import org.midonet.packets.util.EthBuilder
 import org.midonet.packets.util.PacketBuilder._
+import org.midonet.odp.flows.FlowActions.output
+import org.midonet.odp.flows.FlowAction
 
 @RunWith(classOf[JUnitRunner])
 class DeduplicationActorTestCase extends FeatureSpec
@@ -130,13 +131,11 @@ class DeduplicationActorTestCase extends FeatureSpec
             dda.pendedPackets(1) should not be None
 
             When("the dda is told to apply the flow with empty actions")
-            MockPacketHandler.complete()
-            ddaRef ! ApplyFlow(Nil, Some(1))
+            dda.complete(Nil)
 
             Then("the packets should be dropped")
             mockDpConn().packetsSent should be (empty)
             dda.pendedPackets(1) should be (None)
-
 
             And("packetsOut should be called with the correct number")
             packetsOut should be (3)
@@ -153,8 +152,7 @@ class DeduplicationActorTestCase extends FeatureSpec
             dda.pendedPackets(1) should not be None
 
             When("the dda is told to apply the flow with an output action")
-            ddaRef ! ApplyFlow(List(output(1)), Some(1))
-            MockPacketHandler.complete()
+            dda.complete(List(output(1)))
 
             Then("the packets should be sent to the datapath")
             val actual = mockDpConn().packetsSent.asScala.toList.sortBy { _.## }
@@ -228,17 +226,12 @@ class DeduplicationActorTestCase extends FeatureSpec
         }
     }
 
-    object MockPacketHandler {
-        val futures: ListBuffer[Promise[PacketWorkflow.PipelinePath]] = new ListBuffer()
-
-        def complete() {
-            futures foreach (_ success Simulation)
-            futures.clear()
-        }
-    }
-
     class MockPacketHandler(val packet: Packet,
-            val cookieOrEgressPort: Either[Int, UUID]) extends PacketHandler {
+                            val cookieOrEgressPort: Either[Int, UUID],
+                            actionsCache: ActionsCache)
+            extends PacketHandler {
+
+        val p = promise[Any]
 
         override val cookieStr = "mock-cookie" + cookieOrEgressPort.toString
         override val cookie = cookieOrEgressPort match {
@@ -254,16 +247,22 @@ class DeduplicationActorTestCase extends FeatureSpec
         var runs = 0
 
         override def start() = {
-            idle = false
             runs += 1
-            packetsSeen = packetsSeen :+ (packet, cookieOrEgressPort)
-            val p = promise[PacketWorkflow.PipelinePath]()
-            MockPacketHandler.futures.append(p)
-            NotYet(p.future)
+            if (runs == 1) {
+                packetsSeen = packetsSeen :+ (packet, cookieOrEgressPort)
+                NotYet(p.future)
+            } else {
+                Ready(Simulation)
+            }
         }
 
         override def drop() {
             idle = false
+        }
+
+        def complete(actions: List[FlowAction]) {
+            actionsCache.actions.put(packet.getMatch, actions.asJava)
+            p success null
         }
     }
 
@@ -283,12 +282,23 @@ class DeduplicationActorTestCase extends FeatureSpec
 
         implicit override val dispatcher = this.context.dispatcher
 
+        val handlers = new ListBuffer[MockPacketHandler]()
+
         def pendedPackets(cookie: Int): Option[collection.Set[Packet]] =
             cookieToPendedPackets.get(cookie)
 
         override def workflow(packet: Packet,
                               cookieOrEgressPort: Either[Int, UUID],
-                              parentCookie: Option[Int]) =
-            new MockPacketHandler(packet, cookieOrEgressPort)
+                              parentCookie: Option[Int]) = {
+            val ph = new MockPacketHandler(packet, cookieOrEgressPort,
+                                           actionsCache)
+            handlers += ph
+            ph
+        }
+
+        def complete(actions: List[FlowAction]): Unit = {
+            handlers foreach { _.complete(actions) }
+            handlers.clear()
+        }
     }
 }
