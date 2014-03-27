@@ -21,7 +21,6 @@ import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.rules.Condition
 import org.midonet.midolman.simulation.Coordinator
-import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.rcu.TraceConditions
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp.flows.FlowAction
@@ -66,7 +65,7 @@ class DeduplicationActor(
             val traceMessageCache: Cache,
             val traceIndexCache: Cache,
             val metrics: PacketPipelineMetrics,
-            val packetOut: () => Unit)
+            val packetOut: Int => Unit)
             extends Actor with ActorLogWithoutPath {
 
     import DatapathController.DatapathReady
@@ -93,7 +92,7 @@ class DeduplicationActor(
     protected val simulationExpireMillis = 5000L
 
     private val waitingRoom = new WaitingRoom[PacketHandler](
-        giveUpWorkflows, (simulationExpireMillis millis).toNanos)
+                                        (simulationExpireMillis millis).toNanos)
 
     override def preStart() {
         super.preStart()
@@ -131,20 +130,18 @@ class DeduplicationActor(
 
         case ApplyFlow(actions, cookieOpt) if cookieOpt.isDefined =>
             val cookie = cookieOpt.get
-            cookieToPendedPackets.remove(cookie) foreach { pendedPackets =>
-                cookieToDpMatch.remove(cookie) foreach {
-                    dpMatch => dpMatchToCookie.remove(dpMatch)
-                }
+            val pendingPackets = removePacket(cookie)
+
+            if (pendingPackets.size > 0) {
+                packetOut(pendingPackets.size)
 
                 // Send all pended packets with the same action list (unless
                 // the action list is empty, which is equivalent to dropping)
                 if (actions.nonEmpty) {
-                    for (unpendedPacket <- pendedPackets) {
-                        executePacket(cookie, unpendedPacket, actions)
-                        metrics.pendedPackets.dec()
-                    }
+                    pendingPackets foreach (executePacket(cookie, _, actions))
+                    metrics.pendedPackets.dec(pendingPackets.size)
                 } else {
-                    metrics.packetsProcessed.mark(pendedPackets.size)
+                    metrics.packetsProcessed.mark(pendingPackets.size)
                 }
             }
 
@@ -163,17 +160,17 @@ class DeduplicationActor(
             traceConditions = newTraceConditions
     }
 
-    private def giveUpWorkflows(pws: Iterable[PacketHandler]) {
-        for (pw <- pws if pw.idle)
-            giveUpWorkflow(pw)
-    }
-
-    private def giveUpWorkflow(pw: PacketHandler) {
-        try {
-            pw.drop()
-        } catch {
-            case e: Exception =>
-                log.error(e, "Failed to drop flow for {}", pw.packet)
+    // We return collection.Set so we can return an empty immutable set
+    // and a non-empty mutable set.
+    private def removePacket(cookie: Int): collection.Set[Packet] = {
+        val pending = cookieToPendedPackets.remove(cookie)
+        if (pending.isDefined) {
+            val dpMatch = cookieToDpMatch.remove(cookie)
+            if (dpMatch.isDefined)
+                dpMatchToCookie.remove(dpMatch.get)
+            pending.get
+        } else {
+            Set.empty
         }
     }
 
@@ -207,7 +204,6 @@ class DeduplicationActor(
      */
     private def postponeOn(pw: PacketHandler, f: Future[_]) {
         log.debug("Packet with {} postponed", pw.cookieStr)
-        packetOut()
         f onComplete {
             case Success(_) =>
                 log.info("Issuing restart for simulation {}", pw.cookieStr)
@@ -216,7 +212,31 @@ class DeduplicationActor(
                 log.warning("Failure on waiting workflow's future", ex)
         }
         metrics.packetPostponed()
-        waitingRoom enter pw
+        giveUpWorkflows(waitingRoom enter pw)
+    }
+
+    private def giveUpWorkflows(pws: IndexedSeq[PacketHandler]) {
+        var i = 0
+        while (i < pws.size) {
+            giveUpWorkflow(pws(i))
+            i += 1
+        }
+    }
+
+    private def giveUpWorkflow(pw: PacketHandler) {
+        try {
+            pw.drop()
+        } catch {
+            case e: Exception =>
+                log.error(e, "Failed to drop flow for {}", pw.packet)
+        } finally {
+            var dropped = 0
+            if (pw.cookie.isDefined) {
+                dropped = removePacket(pw.cookie.get).size
+                packetOut(dropped)
+            }
+            metrics.packetsDropped.mark(dropped + 1)
+        }
     }
 
     /**
@@ -226,9 +246,6 @@ class DeduplicationActor(
         log.debug("Packet with {} processed", pw.cookieStr)
         pw.cookie match {
             case Some(c) =>
-                // TODO: use the PacketContext to know if a simulation has
-                // been restarted or not, and conditionally call packetOut
-                packetOut()
                 val latency = (Clock.defaultClock().tick() -
                     pw.packet.getStartTimeNanos).toInt
                 metrics.packetsProcessed.mark()
@@ -262,6 +279,9 @@ class DeduplicationActor(
             }
         } catch {
             case ex: Exception => handleErrorOn(pw, ex)
+        } finally {
+            if (pw.runs == 1 && pw.cookie.isDefined)
+                packetOut(1)
         }
     }
 
@@ -284,7 +304,6 @@ class DeduplicationActor(
                 log.debug("A matching packet with cookie {} is already " +
                     "being handled", cookie)
                 cookieToPendedPackets.addBinding(cookie, packet)
-                metrics.pendedPackets.inc()
         }
     }
 

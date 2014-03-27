@@ -38,19 +38,16 @@ class PacketPipelineMetrics(val registry: MetricsRegistry) {
         classOf[PacketPipelineMeter],
         "packetsPostponed", "packets",
         TimeUnit.SECONDS)
+
     val packetsProcessed = registry.newMeter(
         classOf[PacketPipelineMeter],
         "packetsProcessed", "packets",
         TimeUnit.SECONDS)
 
-    // FIXME(guillermo)
-    //  - make this a meter
-    val packetsDropped = registry.newGauge(
+    val packetsDropped = registry.newMeter(
         classOf[PacketPipelineCounter],
-        "packetsDropped",
-        new Gauge[Long]{
-            override def value = 0
-        })
+        "packetsDropped", "packets",
+        TimeUnit.SECONDS)
 
     val liveSimulations = registry.newGauge(
         classOf[PacketPipelineGauge],
