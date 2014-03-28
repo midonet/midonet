@@ -479,13 +479,16 @@ public class LocalDataClientImpl implements DataClient {
         }
 
         List<Op> ops = bridgeZkManager.prepareBridgeDelete(id);
-        String path = pathBuilder.getTenantBridgeNamePath(
-                bridge.getProperty(Bridge.Property.tenant_id),
-                bridge.getData().name);
 
-        // For backward compatibility, delete only if it exists
-        if (zkManager.exists(path)) {
-            ops.add(zkManager.getDeleteOp(path));
+        String name = bridge.getData().name;
+        if (StringUtils.isNotEmpty(name)) {
+            String path = pathBuilder.getTenantBridgeNamePath(
+                    bridge.getProperty(Bridge.Property.tenant_id), name);
+
+            // For backward compatibility, delete only if it exists
+            if (zkManager.exists(path)) {
+                ops.add(zkManager.getDeleteOp(path));
+            }
         }
 
         zkManager.multi(ops);
@@ -2627,13 +2630,17 @@ public class LocalDataClientImpl implements DataClient {
         }
 
         List<Op> ops = routerZkManager.prepareRouterDelete(id);
-        String path = pathBuilder.getTenantRouterNamePath(
-                router.getProperty(Router.Property.tenant_id),
-                router.getData().name);
 
-        // For backward compatibility, delete only if it exists
-        if (zkManager.exists(path)) {
-            ops.add(zkManager.getDeleteOp(path));
+        String name = router.getData().name;
+        if (StringUtils.isNotEmpty(name)) {
+
+            String path = pathBuilder.getTenantRouterNamePath(
+                    router.getProperty(Router.Property.tenant_id), name);
+
+            // For backward compatibility, delete only if it exists
+            if (zkManager.exists(path)) {
+                ops.add(zkManager.getDeleteOp(path));
+            }
         }
 
         zkManager.multi(ops);

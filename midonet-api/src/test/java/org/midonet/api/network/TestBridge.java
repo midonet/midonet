@@ -348,31 +348,48 @@ public class TestBridge {
         }
 
         @Test
-        public void testName() throws Exception {
+        public void testDuplicateName() throws Exception {
 
             DtoApplication app = topology.getApplication();
             URI bridgesUri = app.getBridges();
 
             DtoBridge bridge = new DtoBridge();
-            bridge.setName("name1");
+            bridge.setName("name");
             bridge.setTenantId("tenant1");
 
-            dtoResource.postAndVerifyCreated(bridgesUri,
+            DtoBridge b1 = dtoResource.postAndVerifyCreated(bridgesUri,
                     APPLICATION_BRIDGE_JSON, bridge, DtoBridge.class);
 
             // Duplicate name should be allowed
             bridge = new DtoBridge();
-            bridge.setName("name1");
+            bridge.setName("name");
             bridge.setTenantId("tenant1");
-            dtoResource.postAndVerifyCreated(bridgesUri,
+            DtoBridge b2 = dtoResource.postAndVerifyCreated(bridgesUri,
                     APPLICATION_BRIDGE_JSON, bridge, DtoBridge.class);
 
+            // Deletion should work
+            dtoResource.deleteAndVerifyNoContent(b1.getUri(),
+                    APPLICATION_BRIDGE_JSON);
+
+            dtoResource.deleteAndVerifyNoContent(b2.getUri(),
+                    APPLICATION_BRIDGE_JSON);
+        }
+
+        @Test
+        public void testEmptryStringName() throws Exception {
+
+            DtoApplication app = topology.getApplication();
+            URI bridgesUri = app.getBridges();
+
             // Empty name is also allowed
-            bridge = new DtoBridge();
+            DtoBridge bridge = new DtoBridge();
             bridge.setName("");
             bridge.setTenantId("tenant1");
-            dtoResource.postAndVerifyCreated(bridgesUri,
+            DtoBridge b3 = dtoResource.postAndVerifyCreated(bridgesUri,
                     APPLICATION_BRIDGE_JSON, bridge, DtoBridge.class);
+
+            dtoResource.deleteAndVerifyNoContent(b3.getUri(),
+                    APPLICATION_BRIDGE_JSON);
         }
 
         @Test
