@@ -14,14 +14,14 @@ import akka.util.Timeout
 import com.yammer.metrics.core.Clock
 import org.slf4j.{Logger, LoggerFactory}
 
+import org.midonet.midolman.PacketsEntryPoint.{GetWorkers, Workers}
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.{PacketsEntryPoint, NetlinkCallbackDispatcher, DeduplicationActor}
-import org.midonet.midolman.PacketsEntryPoint.{GetWorkers, Workers}
 import org.midonet.netlink.Callback
 import org.midonet.netlink.exceptions.NetlinkException
-import org.midonet.netlink.exceptions.NetlinkException.ErrorCode.ENOENT
-import org.midonet.netlink.exceptions.NetlinkException.ErrorCode.EEXIST
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode.EBUSY
+import org.midonet.netlink.exceptions.NetlinkException.ErrorCode.EEXIST
+import org.midonet.netlink.exceptions.NetlinkException.ErrorCode.ENOENT
 import org.midonet.odp._
 import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.util.{TokenBucket, BatchCollector}
@@ -52,47 +52,49 @@ abstract class UpcallDatapathConnectionManager(val config: MidolmanConfig,
         var conn: ManagedDatapathConnection = null
         try {
             conn = makeConnection(connName, tbPolicy.link(port))
-        } catch { case e: Throwable =>
-            return Future.failed(e)
+        } catch {
+            case e: Throwable =>
+                return Future.failed(e)
         }
-
-        val (initCb, initFuture) = newCallbackBackedFuture[java.lang.Boolean]()
-        conn.start(initCb)
-
-        val dpConn = conn.getConnection
 
         implicit val tout = Timeout(3000L)
         val workersFuture = (PacketsEntryPoint ? GetWorkers).mapTo[Workers]
 
-        initFuture zip workersFuture flatMap { case (_, workers) =>
-            val (createCb, createFuture) = newCallbackBackedFuture[DpPort]()
-            dpConn.setCallbackDispatcher(NetlinkCallbackDispatcher.makeBatchCollector())
+        initConnection(conn) zip workersFuture flatMap { case (_, workers) =>
+            val dpConn = conn.getConnection
+            val cbDispatcher = NetlinkCallbackDispatcher.makeBatchCollector()
+            dpConn setCallbackDispatcher cbDispatcher
             setUpcallHandler(dpConn, workers)
-            log.info("creating datapath port: {}", port.getName)
-            dpConn.portsCreate(datapath, port, createCb)
-            createFuture recoverWith {
-                // Error code changed in OVS in May-2013 from EBUSY to EEXIST
-                // http://openvswitch.org/pipermail/dev/2013-May/027947.html
-                case ex: NetlinkException
-                    if ex.getErrorCodeEnum == EEXIST ||
-                        ex.getErrorCodeEnum == EBUSY =>
-
-                    log.info("datapath port already exists: {}", port.getName)
-                    val (getCb, getFuture) = newCallbackBackedFuture[DpPort]()
-                    log.info("retrieving datapath port: {}", port.getName)
-                    dpConn.portsGet(port.getName, datapath, getCb)
-                    getFuture flatMap {
-                        case p =>
-                            log.info("setting upcall PID for pre-existing port: {}", port.getName)
-                            val (setCb, setFuture) = newCallbackBackedFuture[DpPort]()
-                            dpConn.portsSet(p, datapath, setCb)
-                            setFuture
-                    }
-            } andThen {
+            ensurePortPid(port, datapath, dpConn) andThen {
+                case Success(_) =>
+                    val kv = ((datapath, port.getPortNo.intValue), conn)
+                    portToChannel += kv
                 case Failure(e) =>
-                    log.error(port.getName + ": failed to create or retrieve datapath port", e)
+                    log.error("failed to create or retrieve datapath port "
+                              + port.getName, e)
                     conn.stop()
             }
+        }
+    }
+
+    def ensurePortPid(port: DpPort, dp: Datapath, con: OvsDatapathConnection)(
+                      implicit ec: ExecutionContext) = {
+        val dpConnOps = new OvsConnectionOps(con)
+        log.info("creating datapath port: {}", port.getName)
+        dpConnOps.createPort(port, dp) recoverWith {
+            // Error code changed in OVS in May-2013 from EBUSY to EEXIST
+            // http://openvswitch.org/pipermail/dev/2013-May/027947.html
+            case ex: NetlinkException
+                if ex.getErrorCodeEnum == EEXIST ||
+                    ex.getErrorCodeEnum == EBUSY =>
+                dpConnOps.getPort(port.getName, dp) flatMap {
+                    case existingPort =>
+                        log.info("setting upcall PID for existing port: {}",
+                                 port.getName)
+                        // OvsDatapathConnectionImpl#_doPortsSet() sets the port
+                        // upcall pid to the channel sending the request.
+                        dpConnOps.setPort(existingPort, dp)
+                }
         }
     }
 
@@ -101,7 +103,8 @@ abstract class UpcallDatapathConnectionManager(val config: MidolmanConfig,
         portToChannel.get((datapath, port.getPortNo)) match {
             case None => Future.successful(true)
             case Some(conn) =>
-                val (delCb, delFuture) = newCallbackBackedFuture[DpPort]()
+                val (delCb, delFuture) =
+                    OvsConnectionOps.callbackBackedFuture[DpPort]()
                 conn.getConnection.portsDelete(port, datapath, delCb)
 
                 delFuture recover {
@@ -119,24 +122,11 @@ abstract class UpcallDatapathConnectionManager(val config: MidolmanConfig,
         stopConnection(conn)
     }
 
-    protected def newCallbackBackedFuture[T](): (Callback[T], Future[T]) = {
-        val promise = Promise[T]()
-
-        val cb = new Callback[T] {
-            override def onSuccess(data: T) {
-                promise.success(data)
-            }
-
-            override def onTimeout() {
-                promise.failure(new TimeoutException("Netlink request timed out"))
-            }
-
-            override def onError(e: NetlinkException) {
-                promise.failure(e)
-            }
-        }
-
-        (cb, promise.future)
+    protected def initConnection(conn: ManagedDatapathConnection) = {
+        val (initCb, initFuture) =
+            OvsConnectionOps.callbackBackedFuture[java.lang.Boolean]()
+        conn.start(initCb)
+        initFuture
     }
 
     protected def makeUpcallHandler(workers: Workers)
