@@ -2023,6 +2023,9 @@ public class LocalDataClientImpl implements DataClient {
             poolMember.setId(UUID.randomUUID());
         UUID id = poolMember.getId();
 
+        // PoolMember's status should default to UP.
+        poolMember.setStatus(PoolMemberStatus.UP);
+
         PoolMemberConfig config = Converter.toPoolMemberConfig(poolMember);
 
         List<Op> ops = new ArrayList<>();
