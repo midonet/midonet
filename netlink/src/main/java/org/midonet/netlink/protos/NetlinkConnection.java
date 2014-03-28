@@ -38,7 +38,7 @@ public class NetlinkConnection extends AbstractNetlinkConnection {
     }
 
     @Override
-    protected void handleNotification(short type, byte cmd, int seq, int pid, List<ByteBuffer> buffers) {
+    protected void handleNotification(short type, byte cmd, int seq, int pid, ByteBuffer buffers) {
         log.error("Notification handler not implemented: {family: {}, cmd: {}}", type, cmd);
     }
 
