@@ -320,31 +320,46 @@ public class TestRouter {
         }
 
         @Test
-        public void testName() throws Exception {
+        public void testDuplicateName() throws Exception {
 
             DtoApplication app = topology.getApplication();
             URI routersUrl = app.getRouters();
 
             DtoRouter router = new DtoRouter();
-            router.setName("name1");
+            router.setName("name");
             router.setTenantId("tenant1");
 
-            dtoResource.postAndVerifyCreated(routersUrl,
+            DtoRouter r1 = dtoResource.postAndVerifyCreated(routersUrl,
                     APPLICATION_ROUTER_JSON, router, DtoRouter.class);
 
             // Duplicate name should be allowed
             router = new DtoRouter();
-            router.setName("name1");
+            router.setName("name");
             router.setTenantId("tenant1");
-            dtoResource.postAndVerifyCreated(routersUrl,
+            DtoRouter r2 = dtoResource.postAndVerifyCreated(routersUrl,
                     APPLICATION_ROUTER_JSON, router, DtoRouter.class);
 
+            dtoResource.deleteAndVerifyNoContent(r1.getUri(),
+                    APPLICATION_ROUTER_JSON);
+            dtoResource.deleteAndVerifyNoContent(r2.getUri(),
+                    APPLICATION_ROUTER_JSON);
+        }
+
+        @Test
+        public void testEmptryStringName() throws Exception {
+
+            DtoApplication app = topology.getApplication();
+            URI routersUrl = app.getRouters();
+
             // Empty name is also allowed
-            router = new DtoRouter();
+            DtoRouter router = new DtoRouter();
             router.setName("");
             router.setTenantId("tenant1");
-            dtoResource.postAndVerifyCreated(routersUrl,
+            router = dtoResource.postAndVerifyCreated(routersUrl,
                     APPLICATION_ROUTER_JSON, router, DtoRouter.class);
+
+            dtoResource.deleteAndVerifyNoContent(router.getUri(),
+                    APPLICATION_ROUTER_JSON);
         }
 
         @Test
