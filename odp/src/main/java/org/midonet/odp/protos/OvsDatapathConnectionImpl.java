@@ -53,19 +53,14 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
     @Override
     protected void handleNotification(short type, byte cmd, int seq, int pid,
-                                      List<ByteBuffer> buffers) {
+                                      ByteBuffer buffer) {
 
         if (pid == 0 &&
             packetFamily.familyId == type &&
             (packetFamily.contextMiss.command() == cmd ||
                 packetFamily.contextAction.command() == cmd)) {
             if (notificationHandler != null) {
-                Packet packet = null;
-
-                if (buffers == null || buffers.size() != 1)
-                    return;
-
-                packet = deserializePacket(buffers.get(0));
+                Packet packet = deserializePacket(buffer);
                 if (packet == null) {
                     log.info("Discarding malformed packet");
                     return;
@@ -80,7 +75,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                 notificationHandler.submit(packet);
             }
         } else {
-            super.handleNotification(type, cmd, seq, pid, buffers);
+            super.handleNotification(type, cmd, seq, pid, buffer);
         }
     }
 

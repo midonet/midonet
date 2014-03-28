@@ -353,14 +353,6 @@ public abstract class AbstractNetlinkConnection {
                 nextPosition = position + len;
             }
 
-            final NetlinkRequest<?> request = (seq != 0) ?
-                                            pendingRequests.get(seq) :
-                                            null;
-            if (request == null && seq != 0) {
-                log.warn("[pid:{}] Reply handler for netlink request with id {} " +
-                         "not found.", pid(), seq);
-            }
-
             switch (type) {
                 case NLMessageType.NOOP:
                     // skip to the next message
@@ -376,26 +368,19 @@ public abstract class AbstractNetlinkConnection {
                     int errSeq = reply.getInt();        // sequence of the error
                     int errPid = reply.getInt();        // pid of the error
 
-                    if (request != null) {
-                        pendingRequests.remove(seq);
-                        ongoingTransaction.remove(request);
-                        // An ACK is a NLMSG_ERROR with 0 as error code
-                        if (error == 0) {
-                            dispatcher.submit(request.successful(request.inBuffers));
-                        } else {
-                            String errorMessage = cLibrary.lib.strerror(-error);
-                            dispatcher.submit(request.failed(
-                                    new NetlinkException(-error, errorMessage)));
-                        }
+                    if (seq == 0) break; // should not happen
+
+                    // An ACK is a NLMSG_ERROR with 0 as error code
+                    if (error == 0) {
+                        processSuccessfulRequest(seq);
+                    } else {
+                        processFailedRequest(seq, error);
                     }
                     break;
 
                 case NLMessageType.DONE:
-                    if (request != null) {
-                        pendingRequests.remove(seq);
-                        ongoingTransaction.remove(request);
-                        dispatcher.submit(request.successful(request.inBuffers));
-                    }
+                    if (seq == 0) break; // should not happen
+                    processSuccessfulRequest(seq);
                     break;
 
                 default:
@@ -407,26 +392,14 @@ public abstract class AbstractNetlinkConnection {
                     ByteBuffer payload = reply.slice();
                     payload.order(ByteOrder.nativeOrder());
 
-                    List<ByteBuffer> buffers = (request == null)
-                                                ? new ArrayList<ByteBuffer>(1)
-                                                : request.inBuffers;
-
-                    if (buffers != null) {
-                        if (NLFlag.isMultiFlagSet(flags))
-                            buffers.add(cloneBuffer(payload));
-                        else
-                            buffers.add(payload);
-                    }
-
-                    if (!NLFlag.isMultiFlagSet(flags)) {
-                        if (request != null) {
-                            pendingRequests.remove(seq);
-                            ongoingTransaction.remove(request);
-                            dispatcher.submit(request.successful(request.inBuffers));
+                    if (seq == 0) {
+                        // if the seq number is zero we are handling a PacketIn.
+                        if (tb == null || tb.tryGet(1) == 1) {
+                            handleNotification(type, cmd, seq, pid, payload);
                         }
-
-                        if (seq == 0 && (tb == null || tb.tryGet(1) == 1))
-                            handleNotification(type, cmd, seq, pid, buffers);
+                    } else  {
+                        // otherwise we are processing an answer to a request.
+                        processRequestAnswer(seq, flags, payload);
                     }
             }
 
@@ -434,6 +407,52 @@ public abstract class AbstractNetlinkConnection {
             reply.position(nextPosition);
         }
         return nbytes;
+    }
+
+    private void processSuccessfulRequest(int seq) {
+        NetlinkRequest<?> request = pendingRequests.get(seq);
+        if (request == null) {
+            log.warn("[pid:{}] Reply handler for netlink request with id {} " +
+                     "not found.", pid(), seq);
+            return;
+        }
+        triggerRequestSuccess(seq, request);
+    }
+
+    private void processRequestAnswer(int seq, short flag, ByteBuffer payload) {
+        NetlinkRequest<?> request = pendingRequests.get(seq);
+        if (request == null) {
+            log.warn("[pid:{}] Reply handler for netlink request with id {} " +
+                     "not found.", pid(), seq);
+            return;
+        }
+        if (NLFlag.isMultiFlagSet(flag)) {
+            // if the answer is made of multiple msgs, we clone the payload and
+            // and we will process the request callback when the multi-msg ends.
+            request.inBuffers.add(cloneBuffer(payload));
+        } else {
+            // otherwise we process the callback directly with the payload.
+            request.inBuffers.add(payload);
+            triggerRequestSuccess(seq, request);
+        }
+    }
+
+    private void triggerRequestSuccess(int seq, NetlinkRequest<?> req) {
+        pendingRequests.remove(seq);
+        ongoingTransaction.remove(req);
+        dispatcher.submit(req.successful(req.inBuffers));
+    }
+
+    private void processFailedRequest(int seq, int error) {
+        NetlinkRequest<?> request = pendingRequests.get(seq);
+        if (request == null) {
+            log.warn("[pid:{}] Reply handler for netlink request with id {} " +
+                     "not found.", pid(), seq);
+            return;
+        }
+        String errorMessage = cLibrary.lib.strerror(-error);
+        NetlinkException err = new NetlinkException(-error, errorMessage);
+        dispatcher.submit(request.failed(err));
     }
 
     private ByteBuffer cloneBuffer(ByteBuffer from) {
@@ -448,7 +467,7 @@ public abstract class AbstractNetlinkConnection {
 
     protected abstract void handleNotification(short type, byte cmd,
                                                int seq, int pid,
-                                               List<ByteBuffer> buffers);
+                                               ByteBuffer buffers);
 
     private int serializeNetlinkHeader(ByteBuffer request, int seq,
                                        short family, byte version, byte cmd,
