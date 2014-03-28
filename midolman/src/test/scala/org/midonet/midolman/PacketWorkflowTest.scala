@@ -51,14 +51,14 @@ object PacketWorkflowTest {
             }
             override def translateActions(actions: Seq[FlowAction],
                                           inPortUUID: Option[UUID],
-                                          dpTags: Option[mutable.Set[Any]],
+                                          dpTags: mutable.Set[Any],
                                           wMatch: WildcardMatch) = {
                 testKit ! TranslateActions
                 Ready(Nil)
             }
             override def translateVirtualWildcardFlow(
                     flow: WildcardFlow,
-                    tags: scala.collection.Set[Any] = Set.empty) = {
+                    tags: scala.collection.Set[Any]) = {
                 testKit ! TranslateActions
                 Ready((flow, tags))
             }
