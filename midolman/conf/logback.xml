@@ -1,20 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration scan="true">
 
-    <!--
-        DuplicateMessageFilter detects duplicate messages, and beyond
-        a certain number of repetitions (5, by default), drops repeated
-        messages. This protectively prevents an accidental surge of
-        repeated messages from flooding system resources.
-
-        Note: In contrast to syslog, it does NOT log the fact that
-        it dropped messages, say, "last message repeated 4 times".
-
-        For further details, see the section for DuplicateMessageFilter
-        in http://logback.qos.ch/manual/filters.html
-    -->
-    <turboFilter class="ch.qos.logback.classic.turbo.DuplicateMessageFilter"/>
-
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>%d{yyyy.MM.dd HH:mm:ss.SSS} %-5level [%X{sourceThread}] %logger{0} - %X{akkaSource} %m%n%rEx </pattern>
