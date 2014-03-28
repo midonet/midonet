@@ -36,6 +36,9 @@ class OvsConnectionOps(val ovsCon: OvsDatapathConnection) {
     def createPort(port: DpPort, dp: Datapath) =
         toFuture[DpPort] { ovsCon portsCreate(dp, port, _) }
 
+    def setPort(port: DpPort, dp: Datapath) =
+        toFuture[DpPort] { ovsCon portsSet(port, dp, _) }
+
     def getPort(name: String, dp: Datapath) =
         toFuture[DpPort] { ovsCon portsGet(name, dp, _) }
 
@@ -91,6 +94,11 @@ object OvsConnectionOps {
         val p = Promise[T]()
         action(callback(p))
         p.future
+    }
+
+    def callbackBackedFuture[T](): (Callback[T], Future[T]) = {
+        val p = Promise[T]()
+        (callback(p), p.future)
     }
 
     object NoOpHandler extends BatchCollector[Packet] {
