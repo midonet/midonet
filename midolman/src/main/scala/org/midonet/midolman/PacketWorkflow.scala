@@ -360,12 +360,12 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
                                     wMatch: WildcardMatch,
                                     tags: mutable.Set[Any],
                                     localPorts: Seq[Port]): Urgent[Boolean] =
-        applyOutboundFilters(
-            localPorts, portSetId, wMatch, Some(tags)
-        ) map { portIds =>
-            addTranslatedFlowForActions(
-                towardsLocalDpPorts(portsForLocalPorts(portIds), tags), tags)
-            true
+        applyOutboundFilters(localPorts, portSetId, wMatch, tags) map {
+            portIds =>
+                addTranslatedFlowForActions(
+                    towardsLocalDpPorts(
+                        portsForLocalPorts(portIds), tags), tags)
+                true
         }
 
     /** The packet arrived on a tunnel but didn't match in the WFT. It's either
@@ -464,8 +464,8 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
         }
 
     def addVirtualWildcardFlow(flow: WildcardFlow,
-                               flowRemovalCallbacks: Seq[Callback0] = Nil,
-                               tags: ROSet[Any] = Set.empty): Urgent[Boolean] = {
+                               flowRemovalCallbacks: Seq[Callback0],
+                               tags: ROSet[Any]): Urgent[Boolean] = {
         translateVirtualWildcardFlow(flow, tags) map {
             case (finalFlow, finalTags) =>
                 addTranslatedFlow(finalFlow, finalTags, flowRemovalCallbacks)
@@ -527,9 +527,11 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
             Ready(true)
         } else {
             log.debug("Sending {} {} with actions {}", cookieStr, packet, acts)
-            translateActions(acts, None, None, wcMatch) map { actions =>
-                executePacket(actions)
-                true
+            val throwAwayTags = mutable.Set.empty[Any]
+            translateActions(acts, None, throwAwayTags, wcMatch) map {
+                actions =>
+                    executePacket(actions)
+                    true
             }
         }
 

@@ -326,7 +326,7 @@ class FlowTranslatorTest extends MidolmanSpec {
         override def translateActions(
                             actions: Seq[FlowAction],
                             inPortUUID: Option[UUID],
-                            dpTags: Option[mutable.Set[Any]],
+                            dpTags: mutable.Set[Any],
                             wMatch: WildcardMatch) : Urgent[Seq[FlowAction]] =
             super.translateActions(actions, inPortUUID, dpTags, wMatch)
     }
@@ -381,7 +381,7 @@ class FlowTranslatorTest extends MidolmanSpec {
                     translatedActions = null
                     do new TestFlowTranslator(dpState).translateActions(
                             actions, inPortUUID,
-                            if (withTags) Some(tags) else None,
+                            if (withTags) tags else mutable.Set[Any](),
                             wcMatch) match {
                         case Ready(v) =>
                             translatedActions = v
