@@ -26,6 +26,7 @@ import org.apache.zookeeper.Op;
 import org.apache.zookeeper.OpResult;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.common.PathUtils;
 import org.apache.zookeeper.data.Stat;
 import org.apache.zookeeper.proto.CreateRequest;
 import org.apache.zookeeper.proto.DeleteRequest;
@@ -316,6 +317,7 @@ public class MockDirectory implements Directory {
 
     @Override
     public boolean has(String path) {
+        PathUtils.validatePath(path);
         try {
             getNode(path);
             return true;
