@@ -369,12 +369,12 @@ test_throughput() {
     test_phase "Find max throughput in 65k port scans"
     rate=4000
     while [ $rate -le $THROUGHPUT_SCAN_MAX_RATE ] ; do
-        port_scan $rate 1 65000 $TOPOLOGY_SOURCE_NETNS $TOPOLOGY_DEST_HOST
-	sleep 5
-        port_scan $rate 1 65000 $TOPOLOGY_SOURCE_NETNS $TOPOLOGY_DEST_HOST
-	sleep 5
-        port_scan $rate 1 65000 $TOPOLOGY_SOURCE_NETNS $TOPOLOGY_DEST_HOST
         sleep 5
+        port_scan $rate 1 65000 $TOPOLOGY_SOURCE_NETNS $TOPOLOGY_DEST_HOST
+	sleep 5
+        port_scan $rate 1 65000 $TOPOLOGY_SOURCE_NETNS $TOPOLOGY_DEST_HOST
+	sleep 5
+        port_scan $rate 1 65000 $TOPOLOGY_SOURCE_NETNS $TOPOLOGY_DEST_HOST
         let rate=rate+500
     done
 }
@@ -383,6 +383,7 @@ long_running_tests() {
     rate=$LONG_RUNNING_SCAN_RATE
     iterations=$LONG_RUNNING_SCAN_ITERATIONS
     test_phase "Long running tests: $iterations 50k port-scans at $rate ports/sec"
+    sleep 120
     i=0
     while [ $i -lt $iterations ] ; do
         let i=i+1
