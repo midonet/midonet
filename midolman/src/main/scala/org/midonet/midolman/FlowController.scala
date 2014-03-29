@@ -485,8 +485,8 @@ class FlowController extends Actor with ActorLogWithoutPath {
                     }
 
                     override def onError(ex: NetlinkException) {
-                        log.warning("Got an exception {} when trying to remove " +
-                                    "flow with match {}", ex, flow.getMatch)
+                        log.debug("Got an exception {} when trying to remove " +
+                                  "flow with match {}", ex, flow.getMatch)
                         ex.getErrorCodeEnum match {
                             // Success cases, the flow doesn't exist so userspace
                             // can take it as a successful remove:
