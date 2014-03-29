@@ -6,8 +6,7 @@ package org.midonet.midolman.guice.config;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.name.Named;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.HierarchicalINIConfiguration;
+import org.apache.commons.configuration.HierarchicalConfiguration;
 
 import org.midonet.config.ConfigProvider;
 
@@ -26,14 +25,6 @@ public class ConfigFromFileProvider implements Provider<ConfigProvider> {
 
     @Override
     public ConfigProvider get() {
-        try {
-            HierarchicalINIConfiguration config = new HierarchicalINIConfiguration();
-            config.setDelimiterParsingDisabled(true);
-            config.setFileName(configFilePath);
-            config.load();
-            return ConfigProvider.providerForIniConfig(config);
-        } catch (ConfigurationException e) {
-            throw new RuntimeException(e);
-        }
+        return ConfigProvider.fromIniFile(configFilePath);
     }
 }

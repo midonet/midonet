@@ -3,18 +3,20 @@
 package org.midonet.midolman
 
 import scala.collection.JavaConversions._
+
 import akka.actor._
 import akka.event.LoggingReceive
 import javax.inject.Inject
 
-import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.io.DatapathConnectionPool
+import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.util.BatchCollector
 
 object NetlinkCallbackDispatcher extends Referenceable {
     override val Name = "NetlinkCallbackDispatcher"
 
-    def makeBatchCollector()(implicit as: ActorSystem) =
+    def makeBatchCollector(optionalDispatcher: Option[ActorRef] = None)
+                          (implicit as: ActorSystem) =
         new BatchCollector[Runnable] {
             val BATCH_SIZE = 8
             var allCBs: List[Array[Runnable]] = Nil
@@ -27,15 +29,17 @@ object NetlinkCallbackDispatcher extends Referenceable {
                 cursor = 0
             }
 
-            override def endBatch() {
+            private def dispatcher(): ActorRef =
+                optionalDispatcher.getOrElse(NetlinkCallbackDispatcher.getRef())
 
+            override def endBatch() {
 
                 this.synchronized {
                     if (cursor > 0)
                         cycle()
 
                     if (allCBs.size > 0) {
-                        NetlinkCallbackDispatcher ! ProcessCallbacks(allCBs)
+                        dispatcher() ! ProcessCallbacks(allCBs)
                         allCBs = Nil
                     }
                 }
@@ -65,9 +69,10 @@ class NetlinkCallbackDispatcher extends Actor with ActorLogWithoutPath {
 
     override def preStart() {
         super.preStart()
-        datapathConnPool.getAll foreach {
-            case conn => conn.setCallbackDispatcher(makeBatchCollector())
-        }
+        if (datapathConnPool != null)
+            datapathConnPool.getAll foreach {
+                case conn => conn.setCallbackDispatcher(makeBatchCollector())
+            }
     }
 
     private def runBatch(batch: Array[Runnable]) {

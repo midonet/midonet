@@ -43,6 +43,15 @@ abstract class UpcallDatapathConnectionManager(val config: MidolmanConfig,
 
     protected def makeBufferPool() = new BufferPool(1, 8, 8*1024)
 
+    def askForWorkers()
+               (implicit ec: ExecutionContext, as: ActorSystem) = {
+        implicit val tout = Timeout(3000L)
+        (PacketsEntryPoint ? GetWorkers).mapTo[Workers]
+    }
+
+    def getDispatcher()(implicit as: ActorSystem) =
+        NetlinkCallbackDispatcher.makeBatchCollector()
+
     def createAndHookDpPort(datapath: Datapath, port: DpPort)
                            (implicit ec: ExecutionContext, as: ActorSystem)
     : Future[(DpPort, Int)] = {
@@ -58,15 +67,12 @@ abstract class UpcallDatapathConnectionManager(val config: MidolmanConfig,
                 return Future.failed(e)
         }
 
-        implicit val tout = Timeout(3000L)
-        val workersFuture = (PacketsEntryPoint ? GetWorkers).mapTo[Workers]
-
-        initConnection(conn) zip workersFuture flatMap { case (_, workers) =>
-            val dpConn = conn.getConnection
-            val cbDispatcher = NetlinkCallbackDispatcher.makeBatchCollector()
-            dpConn setCallbackDispatcher cbDispatcher
-            setUpcallHandler(dpConn, workers)
-            ensurePortPid(port, datapath, dpConn)
+        initConnection(conn) zip askForWorkers() flatMap {
+            case (_, workers) =>
+                val dpConn = conn.getConnection
+                dpConn setCallbackDispatcher getDispatcher()
+                setUpcallHandler(dpConn, workers)
+                ensurePortPid(port, datapath, dpConn)
         } andThen {
             case Success((createdPort, _)) =>
                 val kv = ((datapath, createdPort.getPortNo.intValue), conn)
