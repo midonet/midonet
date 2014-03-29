@@ -66,8 +66,8 @@ abstract class UpcallDatapathConnectionManager(val config: MidolmanConfig,
             dpConn setCallbackDispatcher cbDispatcher
             setUpcallHandler(dpConn, workers)
             ensurePortPid(port, datapath, dpConn) andThen {
-                case Success(_) =>
-                    val kv = ((datapath, port.getPortNo.intValue), conn)
+                case Success(createdPort) =>
+                    val kv = ((datapath, createdPort.getPortNo.intValue), conn)
                     portToChannel += kv
                 case Failure(e) =>
                     log.error("failed to create or retrieve datapath port "
