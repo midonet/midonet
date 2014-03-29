@@ -7,7 +7,9 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
+import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.HierarchicalConfiguration;
+import org.apache.commons.configuration.HierarchicalINIConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,6 +59,27 @@ public abstract class ConfigProvider {
 
     public static ConfigProvider providerForIniConfig(HierarchicalConfiguration config) {
         return new HierarchicalConfigurationProvider(config);
+    }
+
+    public static ConfigProvider fromIniFile(String path) {
+        return providerForIniConfig(fromConfigFile(path));
+    }
+
+    public static <C> C configFromIniFile(String path, Class<C> confType) {
+        return providerForIniConfig(fromConfigFile(path)).getConfig(confType);
+    }
+
+    public static HierarchicalConfiguration fromConfigFile(String path) {
+        try {
+            HierarchicalINIConfiguration config =
+                new HierarchicalINIConfiguration();
+            config.setDelimiterParsingDisabled(true);
+            config.setFileName(path);
+            config.load();
+            return config;
+        } catch (ConfigurationException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @SuppressWarnings("unchecked")
