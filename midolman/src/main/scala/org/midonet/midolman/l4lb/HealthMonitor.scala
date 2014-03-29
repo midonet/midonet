@@ -11,7 +11,9 @@ import org.midonet.midolman.host.config.HostConfig
 import org.midonet.midolman.host.HostIdGenerator
 import org.midonet.midolman.l4lb.HaproxyHealthMonitor.ConfigUpdate
 import org.midonet.midolman.l4lb.HaproxyHealthMonitor.{SetupFailure,
-                                                       SockReadFailure}
+                                                       SockReadFailure,
+                                                       RouterAdded,
+                                                       RouterRemoved}
 import org.midonet.midolman.l4lb.HealthMonitorConfigWatcher.BecomeHaproxyNode
 import org.midonet.midolman.l4lb.HealthMonitor.{ConfigAdded, ConfigDeleted,
                                                 ConfigUpdated, RouterChanged}
@@ -206,7 +208,7 @@ class HealthMonitor extends Actor with ActorLogWithoutPath {
     def receive = {
         case ConfigUpdated(poolId, config, routerId) =>
             context.child(poolId.toString) match {
-                case Some(child) if !config.adminStateUp || routerId == null =>
+                case Some(child) if !config.adminStateUp =>
                     context.stop(child)
 
                 case Some(child) => child ! ConfigUpdate(config)
@@ -243,17 +245,14 @@ class HealthMonitor extends Actor with ActorLogWithoutPath {
 
         case RouterChanged(poolId, config, routerId) =>
             context.child(poolId.toString) match {
-                case Some(child) if routerId == null =>
-                    context.stop(child)
+                case Some(child) if routerId == null => child ! RouterRemoved
 
-                case Some(child) if config.adminStateUp =>
-                    context.stop(child)
-                    startChildHaproxyMonitor(poolId, config, routerId)
+                case Some(child) => child ! RouterAdded(routerId)
 
                 case None if config.adminStateUp && routerId != null =>
                     startChildHaproxyMonitor(poolId, config, routerId)
 
-                case None => log.info("Request to update config not " +
+                case None => log.info("Request to update router not " +
                         "associated with child: " + poolId.toString)
 
                 case _ => // No other cases matter

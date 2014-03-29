@@ -54,6 +54,10 @@ object HaproxyHealthMonitor {
     case class ConfigUpdate(conf: PoolConfig) extends HHMMessage
     // Tells this actor to poll haproxy once for health info.
     private[HaproxyHealthMonitor] case object CheckHealth extends HHMMessage
+    // Tells this actor that its router has been removed
+    case object RouterRemoved
+    // Tells this actor that it now has a router
+    case class RouterAdded(newRouterId: UUID)
 
     // Constants for linking namespace to router port
     val NameSpaceIp = "169.254.17.45"
@@ -86,12 +90,14 @@ class HaproxyHealthMonitor(var config: PoolConfig,
     private val healthMonitorName = config.id.toString.substring(0,8) +
                                     config.nsPostFix
     private var routerPortId: UUID = null
+    private var namespaceName: String = null
 
     override def preStart(): Unit = {
         try {
             writeConf(config)
-            val nsName = createNamespace(healthMonitorName, config.vip.ip)
-            hookNamespaceToRouter(nsName, routerId)
+            namespaceName = createNamespace(healthMonitorName,
+                                                config.vip.ip)
+            hookNamespaceToRouter(routerId)
             restartHaproxy(healthMonitorName, config.haproxyConfFileLoc,
                            config.haproxyPidFileLoc)
             system.scheduler.scheduleOnce(1 second, self, CheckHealth)
@@ -115,9 +121,13 @@ class HaproxyHealthMonitor(var config: PoolConfig,
             config = conf
             try {
                 writeConf(config)
-                restartHaproxy(healthMonitorName,
-                               conf.haproxyConfFileLoc,
-                               conf.haproxyPidFileLoc)
+                if (config.isConfigurable){
+                    startHaproxy(healthMonitorName)
+                } else {
+                    killHaproxyIfRunning(healthMonitorName,
+                                         conf.haproxyConfFileLoc,
+                                         conf.haproxyPidFileLoc)
+                }
             } catch {
                 case e: Exception =>
                     log.error("Unable to update Health Monitor for " +
@@ -154,6 +164,10 @@ class HaproxyHealthMonitor(var config: PoolConfig,
                     manager ! SockReadFailure
             }
             system.scheduler.scheduleOnce(1 second, self, CheckHealth)
+
+        case RouterAdded(newRouterId) => hookNamespaceToRouter(newRouterId)
+
+        case RouterRemoved => unhookNamespaceFromRouter()
     }
 
     /*
@@ -262,7 +276,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
             case e: Exception =>
                 HealthMonitor.cleanAndDeleteNamespace(name, config.nsPostFix,
                                                       config.l4lbFileLocs)
-                log.error("Failed to create Namespace: ", e.getMessage())
+                log.error("Failed to create Namespace: ", e.getMessage)
                 throw e
         }
         dp
@@ -279,17 +293,24 @@ class HaproxyHealthMonitor(var config: PoolConfig,
         }
     }
 
-    /*
-     * This will restart haproxy with the given config file.
-     */
-    def restartHaproxy(name: String, confFileLoc: String,
-                       pidFileLoc: String) {
+    def killHaproxyIfRunning(name: String, confFileLoc: String,
+                             pidFileLoc: String) {
         HealthMonitor.getHaproxyPid(pidFileLoc) match {
             case Some(pid) =>
                 HealthMonitor.killHaproxy(name, pid, pidFileLoc, confFileLoc)
             case None =>
         }
-        IP.execIn(name, haproxyCommandLine())
+    }
+
+    def startHaproxy(name: String) = IP.execIn(name, haproxyCommandLine())
+
+    /*
+     * This will restart haproxy with the given config file.
+     */
+    def restartHaproxy(name: String, confFileLoc: String,
+                       pidFileLoc: String) {
+        killHaproxyIfRunning(name, confFileLoc, pidFileLoc)
+        startHaproxy(name)
     }
 
     def makeChannel(): UnixDomainChannel = SelectorProvider.provider() match {
@@ -325,8 +346,8 @@ class HaproxyHealthMonitor(var config: PoolConfig,
         data.toString()
     }
 
-    def hookNamespaceToRouter(nsName: String, routerId: UUID) = {
-        val ports = client.portsFindByRouter(routerId)
+    def hookNamespaceToRouter(nsRouterId: UUID) = {
+        val ports = client.portsFindByRouter(nsRouterId)
         var portId: UUID = null
 
         // see if the port already exists, and delete it if it does. This can
@@ -334,7 +355,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
         for (port <- ports) {
             port match {
                 case rpc: RouterPort =>
-                    if (rpc.getNwAddr == RouterIp) {
+                    if (rpc.getPortAddr == RouterIp) {
                         client.hostsDelVrnPortMapping(hostId, rpc.getId)
                         portId = rpc.getId
                     }
@@ -343,12 +364,12 @@ class HaproxyHealthMonitor(var config: PoolConfig,
 
         if (portId == null) {
             val routerPort = new RouterPort()
-            routerPort.setDeviceId(routerId)
+            routerPort.setDeviceId(nsRouterId)
             routerPort.setHostId(hostId)
             routerPort.setPortAddr(RouterIp)
             routerPort.setNwAddr(NetAddr)
             routerPort.setNwLength(NetLen)
-            routerPort.setInterfaceName(nsName)
+            routerPort.setInterfaceName(namespaceName)
             portId = client.portsCreate(routerPort)
         }
 
@@ -356,7 +377,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
         // if this node goes down then this port the traffic gets routed to
         // is no longer valid.
         val route = new Route()
-        route.setRouterId(routerId)
+        route.setRouterId(nsRouterId)
         route.setNextHop(PORT)
         route.setNextHopPort(portId)
         route.setSrcNetworkAddr("0.0.0.0")
@@ -367,7 +388,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
         route.setWeight(100)
         client.routesCreateEphemeral(route)
 
-        client.hostsAddVrnPortMapping(hostId, portId, nsName)
+        client.hostsAddVrnPortMapping(hostId, portId, namespaceName)
         routerPortId = portId
     }
 
