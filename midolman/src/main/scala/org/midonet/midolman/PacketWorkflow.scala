@@ -360,11 +360,10 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
                                     wMatch: WildcardMatch,
                                     tags: mutable.Set[Any],
                                     localPorts: Seq[Port]): Urgent[Boolean] =
-        applyOutboundFilters(localPorts, portSetId, wMatch, tags) map {
-            portIds =>
-                addTranslatedFlowForActions(
-                    towardsLocalDpPorts(
-                        portsForLocalPorts(portIds), tags), tags)
+        applyOutboundFilters(localPorts, wMatch, tags) map {
+            portNumbers =>
+                val actions = towardsLocalDpPorts(portNumbers, tags)
+                addTranslatedFlowForActions(actions, tags)
                 true
         }
 

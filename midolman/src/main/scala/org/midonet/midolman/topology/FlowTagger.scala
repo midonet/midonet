@@ -59,7 +59,7 @@ object FlowTagger {
         INSTANCE_POOL.sharedRef(tag)
     }
 
-    def invalidateDPPort(port: Short): AnyRef = {
+    def invalidateDPPort(port: Int): AnyRef = {
         val tag = "dp_port:" + port.toString
         INSTANCE_POOL.sharedRef(tag)
     }
