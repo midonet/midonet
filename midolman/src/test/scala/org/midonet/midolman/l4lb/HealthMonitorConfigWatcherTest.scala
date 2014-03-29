@@ -142,26 +142,6 @@ class HealthMonitorConfigWatcherTest extends TestKit(ActorSystem("HealthMonitorC
     }
 
     feature("The config watcher updates based on changes") {
-        scenario("non-configurable LB configs are added") {
-            watcher ! BecomeHaproxyNode
-            Given("A pool-health monitor mapping that is not configurable")
-            val map = generateFakeMap()
-            map(uuidOne).vipConfigs.get(0).config.address = null
-            map(uuidTwo).vipConfigs.get(0).config.address = null
-            map(uuidThree).vipConfigs.get(0).config.address = null
-            When("We send it to the config watcher")
-            watcher ! PoolHealthMonitorMap(IMap(map.toSeq:_*))
-            Then("We should expect nothing in return")
-            expectNoMsg(50 milliseconds)
-            When("We update one of the configs to be configurable")
-            map(uuidTwo).healthMonitorConfig.config.maxRetries = 5
-            map(uuidTwo).vipConfigs.get(0).config.address = "10.0.0.1"
-            watcher ! PoolHealthMonitorMap(IMap(map.toSeq:_*))
-            Then("We should receive only that config back")
-            val conf = expectMsgType[ConfigAdded]
-            conf.config.healthMonitor.maxRetries shouldEqual 5
-            conf.config.vip.ip shouldEqual "10.0.0.1"
-        }
         scenario("pool config is deleted") {
             watcher ! BecomeHaproxyNode
             Given("A pool-health monitor mapping")
