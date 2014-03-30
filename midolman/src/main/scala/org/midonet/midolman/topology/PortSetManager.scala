@@ -11,6 +11,7 @@ import scala.collection.JavaConversions._
 import org.midonet.cluster.Client
 
 class PortSetManager(clusterClient: Client,
+                     hostId: UUID,
                      actor: ActorRef) extends DeviceHandler {
 
     def handle(deviceId: UUID) {
@@ -24,7 +25,7 @@ class PortSetManager(clusterClient: Client,
 
         def setHosts(hosts: Set[UUID]) : LocalPortSetBuilder = {
             this.hosts.clear()
-            this.hosts ++= hosts.toSet
+            this.hosts ++= hosts.toSet - hostId
             this
         }
 

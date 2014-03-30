@@ -1,169 +1,123 @@
-/******************************************************************************
- *                                                                            *
- *      Copyright (c) 2013 Midokura Europe SARL, All Rights Reserved.         *
- *                                                                            *
- ******************************************************************************/
+/*
+ * Copyright (c) 2013 Midokura SARL, All Rights Reserved.
+ */
 
 package org.midonet.midolman.topology
 
 import java.util.UUID
-import java.util.concurrent.TimeoutException
-import scala.concurrent.Await
-import scala.concurrent.duration._
-import scala.util.Random
 
-import akka.actor.ActorRef
-import akka.actor.ActorSystem
-import akka.pattern.ask
-import akka.testkit.ImplicitSender
+import akka.actor.{Actor, Props}
+import akka.actor.Actor.emptyBehavior
 import akka.testkit.TestActorRef
-import akka.testkit.TestKit
-import akka.util.Timeout
 
-import org.apache.zookeeper.KeeperException
 import org.junit.runner.RunWith
-import org.scalatest.{OneInstancePerTest, BeforeAndAfter, Matchers, Suite}
+import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.TunnelZone
 import org.midonet.cluster.data.zones.GreTunnelZoneHost
-import org.midonet.cluster.data.zones.IpsecTunnelZoneHost
+import org.midonet.midolman.{VirtualTopologyHelper, MockMidolmanActors, MidolmanServices, VirtualConfigurationBuilders}
+import org.midonet.cluster.data.ports.BridgePort
+import org.midonet.midolman.services.MessageAccumulator
+import org.midonet.midolman.topology.VirtualToPhysicalMapper._
+import org.midonet.packets.IPv4Addr
 import org.midonet.midolman.topology.rcu.Host
-
-object TestVTPMActor {
-
-    case class ZkNotifyError(err: Option[KeeperException], id: UUID, retry: Runnable)
-    case class NotifyLocalPortActive(vportID: UUID, active: Boolean)
-    case class SubscribePortSet(psetID: UUID)
-    case class UnsubscribePortSet(psetID: UUID)
-    case class HandleMsg(id: UUID)
-
-    trait MockVTPMExtensions {
-        val listener : ActorRef
-        val handler : DeviceHandler
-        def notifyLocalPortActive(vportID: UUID, active: Boolean) {
-            listener ! NotifyLocalPortActive(vportID, active)
-        }
-        def subscribePortSet(id: UUID) { listener ! SubscribePortSet(id) }
-        def unsubscribePortSet(id: UUID) { listener ! UnsubscribePortSet(id) }
-        def notifyError(err: Option[KeeperException], id: UUID, retry: Runnable) {
-            listener ! ZkNotifyError(err, id, retry)
-        }
-        def makeHostManager(actor: ActorRef) = handler
-        def makePortSetManager(actor: ActorRef) = handler
-        def makeTunnelZoneManager(actor: ActorRef) = handler
-    }
-
-    def apply(actor: ActorRef, devhandler: DeviceHandler) =
-        new VirtualToPhysicalMapperBase with MockVTPMExtensions {
-            val listener = actor
-            val handler = devhandler
-        }
-
-}
+import org.midonet.midolman.topology.rcu.PortSet
+import org.midonet.midolman.topology.VirtualToPhysicalMapper.TunnelZoneRequest
+import org.midonet.midolman.topology.VirtualToPhysicalMapper.GreZoneChanged
+import org.midonet.midolman.topology.VirtualToPhysicalMapper.PortSetRequest
+import org.midonet.midolman.topology.VirtualToPhysicalMapper.HostRequest
 
 @RunWith(classOf[JUnitRunner])
-class VirtualToPhysicalMapperTest
-        extends TestKit(ActorSystem("VirtualToPhysicalMapperTest"))
-        with ImplicitSender with Suite with Matchers with BeforeAndAfter
-        with OneInstancePerTest with DeviceHandler {
+class VirtualToPhysicalMapperTest extends Suite
+                                  with Matchers
+                                  with BeforeAndAfter
+                                  with MockMidolmanActors
+                                  with MidolmanServices
+                                  with VirtualConfigurationBuilders
+                                  with VirtualTopologyHelper
+                                  with OneInstancePerTest {
 
-    import TestVTPMActor._
-    import VirtualToPhysicalMapper._
+    override def registerActors = List(
+        VirtualTopologyActor -> (() => new VirtualTopologyActor
+                                       with MessageAccumulator),
+        VirtualToPhysicalMapper -> (() => new VirtualToPhysicalMapper
+                                          with MessageAccumulator))
 
-    implicit val requestReplyTimeout = new Timeout(1 second)
+    class Subscriber(request: AnyRef) extends Actor {
+        override def preStart(): Unit = {
+            super.preStart()
+            VirtualToPhysicalMapper ! request
+        }
 
-    val r = new Random
-
-    val id = UUID.randomUUID()
-
-    def handle(deviceId: UUID) { self ! HandleMsg(deviceId) }
-
-    def getVTPM() = TestActorRef({ TestVTPMActor(self, this) }, "TestVTPMActor")
-
-    // the testkit actor is reused between tests, therefore we need to drain
-    // its mailbox between tests in case some tests fail to receive all msgs.
-    before { while (msgAvailable) receiveOne(0 seconds) }
-
-    def assertNoMsg { msgAvailable should not be (true) }
-
-    def testSmoke() {
-        val vtpm = getVTPM()
-        vtpm.underlyingActor.notifyLocalPortActive(id, true)
-        expectMsg(NotifyLocalPortActive(id, true))
-        assertNoMsg
+        def receive: Receive = emptyBehavior
     }
 
+    def subscribe(request: AnyRef): MessageAccumulator =
+        TestActorRef[Subscriber with MessageAccumulator](Props(
+            new Subscriber(request) with MessageAccumulator)).underlyingActor
+
     def testHostRequest() {
+        newHost("myself", hostId())
 
-        def getPortMap(max_size : Int = 2): Map[UUID,String] =
-            List.tabulate(r.nextInt(max_size)) { _ => UUID.randomUUID }
-                .foldLeft(Map[UUID,String]()) { (m,id) => m + (id -> "foo")}
+        val host = Host(hostId(), "midonet", Map[UUID, String](),
+                        Map[UUID, TunnelZone.HostConfig[_, _]]())
 
-        def getTZMap = Map[UUID,TunnelZone.HostConfig[_,_]]()
+        val subscriber = subscribe(HostRequest(hostId()))
+        subscriber.getAndClear() should be (List(host))
 
-        def getHost(id: UUID) = Host(id, "midonet", getPortMap(), getTZMap)
-
-        val hosts = List.tabulate(5) { _ => getHost(id) }
-
-        val vtpm = getVTPM()
-
-        vtpm ! HostRequest(id)
-        expectMsg(HandleMsg(id))
-
-        for (h <- hosts) { vtpm ! h }
-        for (h <- hosts) { expectMsg(h) }
-        assertNoMsg
+        (1 to 5) map { _ =>
+            host
+        } andThen {
+            VirtualToPhysicalMapper ! _
+        } andThen {
+            subscriber.messages should contain (_)
+        }
     }
 
     def testTZRequest() {
+        val zone = greTunnelZone("twilight-zone")
+        val host = newHost("myself", hostId(), Set(zone.getId))
+        val tunnelZoneHost = new GreTunnelZoneHost(host.getId)
+                             .setIp(IPv4Addr("1.1.1.1").toIntIPv4)
+        clusterDataClient().tunnelZonesAddMembership(zone.getId, tunnelZoneHost)
 
-        def getGreTZHost = new GreTunnelZoneHost(UUID.randomUUID)
+        val subscriber = subscribe(TunnelZoneRequest(zone.getId))
+        subscriber.getAndClear() should be (List(
+            GreZoneMembers(zone.getId, Set(tunnelZoneHost))))
 
-        val tzhost1 = getGreTZHost
-        val tzhost2 = getGreTZHost
-        val tzhost3 = getGreTZHost
+        VirtualToPhysicalMapper ! GreZoneChanged(zone.getId, tunnelZoneHost,
+                                                 HostConfigOperation.Deleted)
+        subscriber.getAndClear() should be (List(
+            GreZoneChanged(zone.getId, tunnelZoneHost,
+                           HostConfigOperation.Deleted)))
 
-        val vtpm = getVTPM()
+        VirtualToPhysicalMapper ! GreZoneChanged(zone.getId, tunnelZoneHost,
+                                                 HostConfigOperation.Added)
+        subscriber.getAndClear() should be (List(
+            GreZoneChanged(zone.getId, tunnelZoneHost,
+                           HostConfigOperation.Added)))
 
-        vtpm ! TunnelZoneRequest(id)
-        expectMsg(HandleMsg(id))
+        val other = new GreTunnelZoneHost(UUID.randomUUID())
+        VirtualToPhysicalMapper ! GreZoneChanged(zone.getId, other,
+                                                 HostConfigOperation.Added)
+        subscriber.getAndClear() should be (List(
+            GreZoneChanged(zone.getId, other,
+                           HostConfigOperation.Added)))
+    }
 
-        val tzEvent1 = GreZoneChanged(id, tzhost1, HostConfigOperation.Added)
-        vtpm ! tzEvent1
-        expectMsg(GreZoneMembers(id, Set(tzhost1)))
+    def testPortSetRequest() {
+        val host = newHost("myself", hostId())
+        val bridge = newBridge("portSetBridge")
+        val localPort = newBridgePort(bridge, new BridgePort().setHostId(host.getId))
+        val remoteHost = UUID.randomUUID()
+        newBridgePort(bridge, new BridgePort().setHostId(remoteHost))
+        fetchTopology(bridge, localPort)
+        VirtualToPhysicalMapper ! LocalPortActive(localPort.getId, active = true)
+        clusterDataClient().portSetsAddHost(bridge.getId, remoteHost)
 
-        val tzEvent2 = GreZoneChanged(id, tzhost2, HostConfigOperation.Added)
-        vtpm ! tzEvent2
-        expectMsg(tzEvent2)
-
-        vtpm ! TunnelZoneUnsubscribe(id)
-
-        val tzEvent3 = GreZoneChanged(id, tzhost3, HostConfigOperation.Added)
-        vtpm ! tzEvent3
-        assertNoMsg
-
-        vtpm ! TunnelZoneRequest(id)
-        expectMsg(GreZoneMembers(id, Set(tzhost1, tzhost2, tzhost3)))
-
-        val tzEvent4 = GreZoneChanged(id, tzhost1, HostConfigOperation.Deleted)
-        vtpm ! tzEvent4
-        expectMsg(tzEvent4)
-
-        vtpm ! TunnelZoneUnsubscribe(id)
-
-        val tzEvent5 = GreZoneChanged(id, tzhost3, HostConfigOperation.Deleted)
-        vtpm ! tzEvent5
-
-        val tzEvent6 = GreZoneChanged(id, tzhost2, HostConfigOperation.Added)
-        vtpm ! tzEvent6
-
-        vtpm ! TunnelZoneRequest(id)
-        expectMsg(GreZoneMembers(id, Set(tzhost2)))
-
-        val f = vtpm ? new PortSetForTunnelKeyRequest(1L)
-        intercept[TimeoutException] {
-            Await.result(f, requestReplyTimeout.duration)
-        }
+        val subscriber = subscribe(PortSetRequest(bridge.getId, update = false))
+        subscriber.getAndClear() should be (List(
+            PortSet(bridge.getId, Set(remoteHost), Set(localPort.getId))))
     }
 }
