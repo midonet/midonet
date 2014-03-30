@@ -427,11 +427,14 @@ trait DeviceManagement {
     @Inject
     val clusterClient : Client = null
 
+    @Inject
+    val hostId: HostIdProviderService = null
+
     def makeHostManager(actor: ActorRef) =
         new HostManager(clusterClient, actor)
 
     def makePortSetManager(actor: ActorRef) =
-        new PortSetManager(clusterClient, actor)
+        new PortSetManager(clusterClient, hostId.getHostId, actor)
 
     def makeTunnelZoneManager(actor: ActorRef) =
         new TunnelZoneManager(clusterClient, actor)
