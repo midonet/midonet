@@ -88,6 +88,7 @@ public class BridgeDhcpResource extends AbstractResource {
     @POST
     @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
     @Consumes({ VendorMediaType.APPLICATION_DHCP_SUBNET_JSON,
+            VendorMediaType.APPLICATION_DHCP_SUBNET_JSON_V2,
             MediaType.APPLICATION_JSON })
     public Response create(DhcpSubnet subnet)
             throws StateAccessException, SerializationException {
@@ -124,6 +125,7 @@ public class BridgeDhcpResource extends AbstractResource {
     @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
     @Path("/{subnetAddr}")
     @Consumes({ VendorMediaType.APPLICATION_DHCP_SUBNET_JSON,
+            VendorMediaType.APPLICATION_DHCP_SUBNET_JSON_V2,
             MediaType.APPLICATION_JSON })
     public Response update(@PathParam("subnetAddr") IntIPv4 subnetAddr,
             DhcpSubnet subnet)
@@ -154,6 +156,7 @@ public class BridgeDhcpResource extends AbstractResource {
     @PermitAll
     @Path("/{subnetAddr}")
     @Produces({ VendorMediaType.APPLICATION_DHCP_SUBNET_JSON,
+            VendorMediaType.APPLICATION_DHCP_SUBNET_JSON_V2,
             MediaType.APPLICATION_JSON })
     public DhcpSubnet get(@PathParam("subnetAddr") IntIPv4 subnetAddr)
             throws StateAccessException, SerializationException {
@@ -206,7 +209,8 @@ public class BridgeDhcpResource extends AbstractResource {
      */
     @GET
     @PermitAll
-    @Produces({ VendorMediaType.APPLICATION_DHCP_SUBNET_COLLECTION_JSON })
+    @Produces({ VendorMediaType.APPLICATION_DHCP_SUBNET_COLLECTION_JSON,
+        VendorMediaType.APPLICATION_DHCP_SUBNET_COLLECTION_JSON_V2})
     public List<DhcpSubnet> list()
             throws StateAccessException, SerializationException {
 

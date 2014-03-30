@@ -16,6 +16,7 @@ import org.midonet.packets.MAC;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs;
+import org.midonet.util.version.Since;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,13 +38,23 @@ public class BridgeDhcpZkManager extends BaseZkManager {
         short interfaceMTU;
         List<Opt121> opt121Routes;
 
+        @Since("1.4")
+        Boolean enabled;
+
         /* Default constructor for deserialization. */
         public Subnet() {
+        }
+        public Subnet(IntIPv4 subnetAddr, IntIPv4 defaultGateway,
+                      IntIPv4 serverAddr, List<IntIPv4> dnsServerAddrs,
+                      short interfaceMTU, List<Opt121> opt121Routes) {
+            this(subnetAddr, defaultGateway, serverAddr, dnsServerAddrs,
+                    interfaceMTU, opt121Routes, true);
         }
 
         public Subnet(IntIPv4 subnetAddr, IntIPv4 defaultGateway,
                       IntIPv4 serverAddr, List<IntIPv4> dnsServerAddrs,
-                      short interfaceMTU, List<Opt121> opt121Routes) {
+                      short interfaceMTU, List<Opt121> opt121Routes,
+                      boolean enabled) {
             this.subnetAddr = subnetAddr;
             if (serverAddr != null) {
                 this.serverAddr = serverAddr;
@@ -64,6 +75,7 @@ public class BridgeDhcpZkManager extends BaseZkManager {
             this.dnsServerAddrs = dnsServerAddrs;
             this.defaultGateway = defaultGateway;
             this.opt121Routes = opt121Routes;
+            this.enabled = enabled;
         }
 
         public IntIPv4 getDefaultGateway() {
@@ -90,6 +102,8 @@ public class BridgeDhcpZkManager extends BaseZkManager {
             return subnetAddr;
         }
 
+        public Boolean isEnabled() { return enabled; }
+
         public void setDefaultGateway(IntIPv4 defaultGateway) {
             this.defaultGateway = defaultGateway;
         }
@@ -114,6 +128,10 @@ public class BridgeDhcpZkManager extends BaseZkManager {
             this.interfaceMTU = interfaceMTU;
         }
 
+        public void setEnabled(Boolean enabled) {
+            this.enabled = enabled;
+        }
+
         @Override
         public String toString() {
             return "Subnet{" +
@@ -123,6 +141,7 @@ public class BridgeDhcpZkManager extends BaseZkManager {
                 ", defaultGateway=" + defaultGateway +
                 ", interfaceMTU=" + interfaceMTU +
                 ", opt121Routes=" + opt121Routes +
+                ", enabled=" + enabled +
                 '}';
         }
     }
@@ -307,6 +326,22 @@ public class BridgeDhcpZkManager extends BaseZkManager {
         for (String addrStr : addrStrings)
             subnets.add(getSubnet(bridgeId, IntIPv4.fromString(addrStr)));
         return subnets;
+    }
+
+    public List<Subnet> getEnabledSubnets(UUID bridgeId)
+            throws StateAccessException, SerializationException {
+        List<Subnet> subnets = getSubnets(bridgeId);
+        List<Subnet> enabledSubnets = new ArrayList<>(subnets.size());
+        for (Subnet subnet : subnets) {
+            // This check is because of backward-compatibility with data
+            // created in v1.3 or earlier where 'enabled' could be null.
+            // Null enabled field, which could only exist in the old data, is
+            // treated as true.
+            if (subnet.enabled == null || subnet.enabled) {
+                enabledSubnets.add(subnet);
+            }
+        }
+        return enabledSubnets;
     }
 
     public void addHost(UUID bridgeId, IntIPv4 subnetAddr, Host host)

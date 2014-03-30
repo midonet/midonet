@@ -8,6 +8,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @XmlRootElement
 public class DtoDhcpSubnet {
@@ -20,6 +21,7 @@ public class DtoDhcpSubnet {
     private List<DtoDhcpOption121> opt121Routes;
     private URI hosts;
     private URI uri;
+    private Boolean enabled;
 
     public DtoDhcpSubnet() {
         this.opt121Routes = new ArrayList<DtoDhcpOption121>();
@@ -97,6 +99,14 @@ public class DtoDhcpSubnet {
         this.uri = uri;
     }
 
+    public Boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(Boolean enabled) {
+        this.enabled = enabled;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -136,6 +146,9 @@ public class DtoDhcpSubnet {
         if (interfaceMTU != that.interfaceMTU)
             return false;
 
+        if (!Objects.equals(enabled, that.enabled))
+            return false;
+
         return true;
     }
 
@@ -154,6 +167,7 @@ public class DtoDhcpSubnet {
                 ? opt121Routes.hashCode() : 0);
         result = 31 * result + (hosts != null ? hosts.hashCode() : 0);
         result = 31 * result + (uri != null ? uri.hashCode() : 0);
+        result = 31 * result + (enabled != null ? enabled.hashCode() : 0);
         return result;
     }
 
@@ -168,6 +182,7 @@ public class DtoDhcpSubnet {
                 ", interfaceMTU=" + interfaceMTU +
                 ", opt121Routes=" + opt121Routes +
                 ", hosts=" + hosts +
+                ", enabled=" + enabled +
                 ", uri=" + uri +
                 '}';
     }
