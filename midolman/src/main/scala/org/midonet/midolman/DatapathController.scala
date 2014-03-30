@@ -6,11 +6,10 @@ package org.midonet.midolman
 import java.lang.{Boolean => JBoolean, Integer => JInteger}
 import java.net.InetAddress
 import java.nio.ByteBuffer
-import java.util.{Collection => JCollection, List => JList, Set => JSet, UUID}
+import java.util.{Collection => JCollection, Set => JSet, UUID}
 import java.util.concurrent.TimeoutException
 import scala.collection.JavaConverters._
 import scala.collection.mutable
-import scala.collection.{Set => ROSet}
 import scala.concurrent.duration._
 import scala.util.{Failure, Success}
 
@@ -25,17 +24,18 @@ import org.midonet.cluster.client.Port
 import org.midonet.cluster.data.TunnelZone
 import org.midonet.cluster.data.TunnelZone.{HostConfig => TZHostConfig}
 import org.midonet.cluster.data.zones._
-import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath._
+import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.io._
 import org.midonet.midolman.monitoring.MonitoringActor
 import org.midonet.midolman.services.HostIdProviderService
-import org.midonet.midolman.topology.VirtualToPhysicalMapper.{HostRequest, TunnelZoneRequest}
 import org.midonet.midolman.topology._
 import org.midonet.midolman.topology.rcu.Host
+import org.midonet.midolman.topology.VirtualToPhysicalMapper.TunnelZoneRequest
+import org.midonet.midolman.topology.VirtualToPhysicalMapper.HostRequest
 import org.midonet.netlink.Callback
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode
@@ -43,13 +43,12 @@ import org.midonet.odp.flows.FlowActions.output
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput}
 import org.midonet.odp.ports._
 import org.midonet.odp.{DpPort, Datapath}
-import org.midonet.packets.IPv4Addr
-import org.midonet.packets.TCP
+import org.midonet.packets.{IntIPv4, IPv4Addr, TCP}
 import org.midonet.sdn.flows.WildcardFlow
 import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.util.collection.Bimap
 import org.midonet.event.agent.InterfaceEvent
-
+import org.midonet.Subscription
 
 trait UnderlayResolver {
 
@@ -204,65 +203,17 @@ object DatapathController extends Referenceable {
     object Internal {
 
         /**
-         * This message is sent every 2 seconds to check that the kernel
-         * contains exactly the same ports/interfaces as the system. In case
-         * that somebody uses a command line tool (for example) to bring down
-         * an interface, the system will react to it.
-         * TODO this version is constantly checking for changes. It should react
-         * to 'netlink' notifications instead.
-         */
-        case class CheckForPortUpdates(datapathName: String)
-
-        /**
-         * This message is sent when the separate thread has succesfully
+         * This message is sent when the separate thread has successfully
          * retrieved all information about the interfaces.
          */
-        case class InterfacesUpdate(interfaces: JList[InterfaceDescription])
-
-        /**
-         * This message is sent when the DHCP handler needs to get information
-         * on local interfaces that are used for tunnels, what it returns is
-         * { interface description , list of {tunnel type} } where the
-         * interface description contains various information (including MTU)
-         */
-        case object LocalTunnelInterfaceInfo
-
-        /**
-         * This message is sent when the LocalTunnelInterfaceInfo handler
-         * completes the interface scan and pass the result as well as
-         * original sender info
-         */
-        case class LocalTunnelInterfaceInfoFinal(caller : ActorRef,
-                                            interfaces: JList[InterfaceDescription])
+        case class InterfacesUpdate(interfaces: JSet[InterfaceDescription])
 
         case class SetLocalDatapathPorts(datapath: Datapath, ports: Set[DpPort])
     }
 
-    @volatile
     private var cachedMinMtu: Short = DEFAULT_MTU
 
     def minMtu = cachedMinMtu
-
-    /**
-     * Choose the min MTU based on all the given interface descriptions,
-     * taking DEFAULT_MTU as default. Cache the result in cachedMtu.
-     */
-    private def primeMinMtu(ifcTunnelList: mutable.MultiMap[InterfaceDescription,
-                                                            TunnelZone.Type]) {
-        var minMtu: Short = 0
-        ifcTunnelList foreach {
-            case (interfaceDesc, tunnelTypeList) =>
-                tunnelTypeList foreach { tunnelType => {
-                    val overhead = tzTypeOverheads(tunnelType)
-                    val intfMtu = interfaceDesc.getMtu.toShort
-                    val tunnelMtu = (intfMtu - overhead).toShort
-                    minMtu = if (minMtu == 0) tunnelMtu
-                             else minMtu.min(tunnelMtu)
-                 }}
-            case _ => // unexpected
-        }
-        cachedMinMtu = if (minMtu == 0) DEFAULT_MTU else minMtu
-    }
 
     // TODO: this belongs in TunnelZone
     private val tzTypeOverheads = Map(
@@ -386,7 +337,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
     // care about the last Host message (i.e. ignore intermediate messages).
     var nextHost: Host = null
 
-    var portWatcher: Cancellable = null
+    var portWatcher: Subscription = null
     var portWatcherEnabled = true
 
     override def preStart() {
@@ -496,10 +447,18 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
             VirtualToPhysicalMapper ! TunnelZoneRequest(zoneId)
         }
         if (portWatcherEnabled) {
-            // schedule port requests.
             log.info("Starting to schedule the port link status updates.")
-            portWatcher = system.scheduler.schedule(1 second, 2 seconds,
-                self, CheckForPortUpdates(datapath.getName))
+            portWatcher = interfaceScanner.register(
+                new Callback[JSet[InterfaceDescription]] {
+                    override def onSuccess(data: JSet[InterfaceDescription])
+                    : Unit = self ! InterfacesUpdate(data)
+
+                    override def onTimeout(): Unit =
+                    { /* Not called */ }
+
+                    override def onError(e: NetlinkException): Unit =
+                    { /* Not called */ }
+            })
         }
         initializer ! InitializationComplete
         log.info("Process the host's zones and vport bindings. {}", host)
@@ -547,7 +506,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
             context.become(DatapathInitializationActor)
             // In case there were some scheduled port update checks, cancel them.
             if (portWatcher != null) {
-                portWatcher.cancel()
+                portWatcher.unsubscribe()
             }
             self ! Initialize
 
@@ -627,36 +586,9 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
                     log.debug("Port was not found {}", portID)
             }
 
-        case CheckForPortUpdates(datapathName: String) =>
-            checkPortUpdates()
-
         case InterfacesUpdate(interfaces) =>
             dpState.updateInterfaces(interfaces)
-            primeMinMtu(zipIfcTunInfo(interfaces))
-
-        case LocalTunnelInterfaceInfo =>
-            tunIfcInfo(sender)
-
-        case LocalTunnelInterfaceInfoFinal(caller, interfaces) =>
-            val ifcTunnelList = zipIfcTunInfo(interfaces)
-            caller ! ifcTunnelList
-            primeMinMtu(ifcTunnelList) // reprime now that we're at it
-    }
-
-    def checkPortUpdates() {
-        interfaceScanner.scanInterfaces(new Callback[JList[InterfaceDescription]] {
-            def onError(e: NetlinkException) {
-                log.error("Error while retrieving the interface status:" + e.getMessage)
-            }
-
-            def onTimeout() {
-                log.error("Timeout while retrieving the interface status.")
-            }
-
-            def onSuccess(data: JList[InterfaceDescription]) {
-                self ! InterfacesUpdate(data)
-            }
-        })
+            setTunnelMtu(interfaces)
     }
 
     def handleZoneChange(zone: UUID, config: TZHostConfig[_,_],
@@ -798,7 +730,6 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
                 system.eventStream.publish(req)
             case _ => // ignore, but explicitly to avoid warning
         }
-
     }
 
     private def exceptionToOpError(req: DpPortRequest, ex: Throwable): DpPortReply =
@@ -839,71 +770,31 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
         }
     }
 
-    /*
-     * Will get the list of scanned interfaces, ensuring it's fresh enough
-     * either by taking a recently scanned list, or re-scanning. Then will
-     * message the DPC with the results.
-     */
-    private def tunIfcInfo(caller: ActorRef) {
-        if (!recentInterfacesScanned.isEmpty) {
-            log.debug("Interface Scanning took place and cache is hot")
-            caller ! zipIfcTunInfo(recentInterfacesScanned)
-        } else {
-            log.debug("Interface Scanning has not taken place, trigger scan")
-            interfaceScanner.scanInterfaces(new Callback[JList[InterfaceDescription]] {
-                def onError(e: NetlinkException) {
-                    log.error("Error while retrieving interface status {}", e)
-                }
+    private def setTunnelMtu(interfaces: JSet[InterfaceDescription]) = {
+        def addressesMatch(inetAddress: InetAddress, ip: IntIPv4): Boolean =
+            ByteBuffer.wrap(inetAddress.getAddress).getInt == ip.addressAsInt()
 
-                def onTimeout() {
-                    log.error("Timeout while retrieving interface status")
-                }
+        var minMtu = Short.MaxValue
+        val overhead = tzTypeOverheads(TunnelZone.Type.Gre)
 
-                def onSuccess(data: JList[InterfaceDescription]) {
-                    self ! LocalTunnelInterfaceInfoFinal(caller, data)
-                }
-            })
-        }
-    }
-
-    /* Deep nesting of function literals in getLocalInterfaceTunnelInfo
-     * results in the class file "DatapathController$$anonfun$org$midonet$midolman$DatapathController$$getLocalInterfaceTunnelInfo$3$$anonfun$apply$14$$anonfun$apply$15$$anonfun$apply$16.class"
-     * which is too long for ecryptfs, so alias it to "gliti" to save some
-     * room.
-     */
-    private def zipIfcTunInfo(interfaces: JList[InterfaceDescription]) = {
-        // First we would populate the data structure with tunnel info
-        // on all local interfaces
-        val addrTunnelMapping: mutable.MultiMap[Int, TunnelZone.Type] =
-            new mutable.HashMap[Int, mutable.Set[TunnelZone.Type]]
-                with mutable.MultiMap[Int, TunnelZone.Type]
-        // This next variable is the structure for return message
-        val retInterfaceTunnelMap: mutable.MultiMap[InterfaceDescription,TunnelZone.Type] =
-            new mutable.HashMap[InterfaceDescription,
-                mutable.Set[TunnelZone.Type]]
-                with mutable.MultiMap[InterfaceDescription, TunnelZone.Type]
-
-        def toInt(addr: InetAddress) = ByteBuffer.wrap(addr.getAddress).getInt
-
-        host.zones.foreach {
-            case (_: UUID, zoneConfig: GreTunnelZoneHost) =>
-                addrTunnelMapping.addBinding(zoneConfig.getIp.addressAsInt,
-                                             TunnelZone.Type.Gre)
+        for { intf <- interfaces.asScala
+              inetAddress <- intf.getInetAddresses.asScala
+              if inetAddress.getAddress.length == 4
+              zone <- host.zones
+              if addressesMatch(inetAddress, zone._2.getIp) &&
+                 zone._2.isInstanceOf[GreTunnelZoneHost]
+        } {
+            val tunnelMtu = (intf.getMtu - overhead).toShort
+            minMtu = minMtu.min(tunnelMtu)
         }
 
-        if (!addrTunnelMapping.isEmpty) {
-            log.debug("Host has some tunnel zone(s) configured")
-            for (
-                interface <- interfaces.asScala;
-                inetAddress <- interface.getInetAddresses.asScala;
-                tunnelTypes <- addrTunnelMapping.get(toInt(inetAddress));
-                tunnelType <- tunnelTypes
-                if inetAddress.getAddress.length == 4
-            ) {
-                retInterfaceTunnelMap.addBinding(interface, tunnelType)
-            }
+        if (minMtu == Short.MaxValue)
+            minMtu = DEFAULT_MTU
+
+        if (cachedMinMtu != minMtu) {
+            log.debug("Changing MTU from {} to {}", cachedMinMtu, minMtu)
+            cachedMinMtu = minMtu
         }
-        retInterfaceTunnelMap
     }
 
     /*

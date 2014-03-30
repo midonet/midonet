@@ -1,82 +1,116 @@
 /*
- * Copyright 2012 Midokura Pte. Ltd.
+ * Copyright (c) 2012 Midokura SARL, All Rights Reserved.
  */
 package org.midonet.midolman.host.scanner;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
-import javax.inject.Named;
+import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import org.midonet.Subscription;
 import org.midonet.midolman.host.interfaces.InterfaceDescription;
 import org.midonet.midolman.host.sensor.InterfaceSensor;
 import org.midonet.midolman.host.sensor.IpAddrInterfaceSensor;
 import org.midonet.midolman.host.sensor.IpTuntapInterfaceSensor;
-import org.midonet.midolman.host.sensor.SysfsInterfaceSensor;
 import org.midonet.midolman.host.sensor.NetlinkInterfaceSensor;
+import org.midonet.midolman.host.sensor.SysfsInterfaceSensor;
 import org.midonet.netlink.Callback;
-import org.midonet.util.eventloop.Reactor;
 
 /**
- * Default implementation for the interface scanning component.
+ * Default implementation for the interface scanning.
  */
 @Singleton
 public class DefaultInterfaceScanner implements InterfaceScanner {
-    public static final String INTERFACE_REACTOR = "interface reactor" ;
+    private static final long UPDATE_RATE = TimeUnit.SECONDS.toMillis(2);
+
+    private final Timer timer;
+    private final ArrayList<Callback<Set<InterfaceDescription>>> callbacks;
+    private final List<InterfaceSensor> sensors = new ArrayList<>();
+    private volatile boolean isRunning;
+    private Set<InterfaceDescription> lastScan = new HashSet<>();
 
     @Inject
-    @Named(INTERFACE_REACTOR)
-    Reactor reactor;
-
-    private final static Logger log =
-        LoggerFactory.getLogger(DefaultInterfaceScanner.class);
-
-    List<InterfaceSensor> sensors = new ArrayList<InterfaceSensor>();
-
-    @Inject
-    // In this case we inject the Injector itself
     public DefaultInterfaceScanner(Injector injector) {
         // Always call first IpAddrInterfaceSensor, as it is the sensor who
         // will create the interfaces
-        // getInstance will try to create an object of the type specified.
-        // If some member is annotated with @Inject it will try to inject
         sensors.add(injector.getInstance(IpAddrInterfaceSensor.class));
         sensors.add(injector.getInstance(IpTuntapInterfaceSensor.class));
         sensors.add(injector.getInstance(SysfsInterfaceSensor.class));
         sensors.add(injector.getInstance(NetlinkInterfaceSensor.class));
+        callbacks = new ArrayList<>();
+        timer = new Timer();
     }
 
-    @Override
-    public synchronized List<InterfaceDescription> scanInterfaces() {
-        List<InterfaceDescription> interfaces = new ArrayList<>();
-
-        for (InterfaceSensor sensor : sensors) {
-            interfaces = sensor.updateInterfaceData(interfaces);
+    public Subscription register(final Callback<Set<InterfaceDescription>> callback) {
+        synchronized (callbacks) {
+            callbacks.add(callback);
+            callback.onSuccess(lastScan);  // This is potentially dangerous.
         }
 
-        return interfaces;
-    }
+        return new Subscription() {
+            private final AtomicBoolean unsubscribed = new AtomicBoolean();
 
-    @Override
-    public void scanInterfaces(
-            final Callback<List<InterfaceDescription>> callback) {
-        reactor.submit(
-            new Runnable() {
-                @Override
-                public void run() {
-                    callback.onSuccess(scanInterfaces());
+            @Override
+            public boolean isUnsubscribed() {
+                return unsubscribed.get();
+            }
+
+            @Override
+            public void unsubscribe() {
+                if (unsubscribed.compareAndSet(false, true)) {
+                    synchronized (callbacks) {
+                        callbacks.remove(callback);
+                    }
                 }
             }
-        );
+        };
     }
 
-    public void shutDownNow() {
-        reactor.shutDownNow();
+    public void start() {
+        isRunning = true;
+        scheduleScan();
+    }
+
+    public void shutdown() {
+        isRunning = false;
+    }
+
+    private void scheduleScan() {
+        if (isRunning) {
+            scanInterfaces();
+            timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    scheduleScan();
+                }
+            }, System.currentTimeMillis() + UPDATE_RATE);
+        }
+    }
+
+    private void scanInterfaces() {
+        Set<InterfaceDescription> interfaces = new HashSet<>();
+
+        for (InterfaceSensor sensor : sensors) {
+            sensor.updateInterfaceData(interfaces);
+        }
+
+        if (lastScan.equals(interfaces))
+            return;
+
+        lastScan = interfaces;
+        synchronized (callbacks) {
+            for (Callback<Set<InterfaceDescription>> cb : callbacks) {
+                cb.onSuccess(interfaces);
+            }
+        }
     }
 }

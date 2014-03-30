@@ -36,7 +36,7 @@ class DatapathControllerActorTest extends TestKit(ActorSystem("DPCActorTest"))
 
     val dpc = TestActorRef[DatapathController]("TestDPCActor")
 
-    val emptyJList = new java.util.ArrayList[InterfaceDescription]()
+    val emptyJSet = new java.util.HashSet[InterfaceDescription]()
 
     val dpPortGre = new GreTunnelPort("gre")
     val dpPortInt = new InternalPort("int")
@@ -52,10 +52,7 @@ class DatapathControllerActorTest extends TestKit(ActorSystem("DPCActorTest"))
 
     val miscMessages = List[AnyRef](
         DpPortStatsRequest(UUID.randomUUID),
-        CheckForPortUpdates("midonet"),
-        LocalTunnelInterfaceInfoFinal(self, emptyJList),
-        LocalTunnelInterfaceInfo,
-        InterfacesUpdate(emptyJList),
+        InterfacesUpdate(emptyJSet),
         GreZoneChanged(UUID.randomUUID, null, HostConfigOperation.Added),
         GreZoneMembers(UUID.randomUUID, Set()),
         AddVirtualWildcardFlow(null, Nil, Set())

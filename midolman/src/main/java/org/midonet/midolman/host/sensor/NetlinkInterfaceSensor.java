@@ -3,19 +3,19 @@
  */
 package org.midonet.midolman.host.sensor;
 
-import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.inject.Inject;
 
 import org.midonet.midolman.host.interfaces.InterfaceDescription;
 import org.midonet.midolman.io.DatapathConnectionPool;
 import org.midonet.odp.DpPort;
-
 
 /**
  * Interface sensor using Netlink.
@@ -36,13 +36,9 @@ public class NetlinkInterfaceSensor implements InterfaceSensor {
             TimeUnit.SECONDS.toMillis(3);
 
     @Override
-    public List<InterfaceDescription> updateInterfaceData
-            (List<InterfaceDescription> interfaces) {
-
+    public void updateInterfaceData(Set<InterfaceDescription> interfaces) {
         try {
-
             for (InterfaceDescription desc : interfaces) {
-
                 try {
 
                     DpPort port = getDatapathPort( desc.getName() );
@@ -72,8 +68,6 @@ public class NetlinkInterfaceSensor implements InterfaceSensor {
             log.debug("Got interrupted => interrupting current thread");
             Thread.currentThread().interrupt();
         }
-
-        return interfaces;
     }
 
     /**

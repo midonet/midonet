@@ -1,36 +1,47 @@
 /*
- * Copyright 2012 Midokura Europe SARL
+ * Copyright (c) 2012 Midokura SARL, All Rights Reserved.
  */
-
 package org.midonet.midolman
 
+import java.util.{Set => JSet}
+
 import scala.collection.JavaConversions._
+import scala.collection.concurrent
 
 import host.interfaces.InterfaceDescription
 import host.scanner.InterfaceScanner
-import collection.mutable
+import org.midonet.Subscription
 import org.midonet.netlink.Callback
-import java.util.{List => JList}
+import java.util.concurrent.ConcurrentLinkedQueue
 
 class MockInterfaceScanner extends InterfaceScanner {
-    private val interfaces = mutable.Map[String, InterfaceDescription]()
+    private val interfaces = concurrent.TrieMap[String, InterfaceDescription]()
+    private val callbacks = new ConcurrentLinkedQueue[Callback[JSet[InterfaceDescription]]]()
 
     def addInterface(itf: InterfaceDescription): Unit = {
-        this.synchronized { interfaces.put(itf.getName, itf) }
+        interfaces.put(itf.getName, itf)
+        runCallbacks()
     }
 
     def removeInterface(name: String): Unit = {
-        this.synchronized { interfaces.remove(name) }
+        interfaces.remove(name)
+        runCallbacks()
     }
 
-    override def scanInterfaces(): JList[InterfaceDescription] = {
-        this.synchronized { interfaces.values.toSeq }
+    def register(callback: Callback[JSet[InterfaceDescription]]): Subscription = {
+        callbacks.add(callback)
+        doCallback(callback)
+        new Subscription {
+            override def unsubscribe(): Unit = callbacks.remove(callback)
+            override def isUnsubscribed: Boolean = !callbacks.contains(callback)
+        }
     }
 
-    override def scanInterfaces(
-            cb: Callback[JList[InterfaceDescription]]): Unit = {
-        this.synchronized { cb.onSuccess(interfaces.values.toList) }
-    }
+    def runCallbacks(): Unit = callbacks foreach doCallback
 
-    override def shutDownNow() {}
+    def doCallback(cb: Callback[JSet[InterfaceDescription]]): Unit =
+        cb.onSuccess(interfaces.values.toSet[InterfaceDescription])
+
+    def start(): Unit = { }
+    def shutdown(): Unit = { }
 }

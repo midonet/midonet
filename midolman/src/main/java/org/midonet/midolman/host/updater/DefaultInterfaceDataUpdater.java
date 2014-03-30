@@ -5,7 +5,6 @@ package org.midonet.midolman.host.updater;
 
 import com.google.inject.Inject;
 import org.midonet.midolman.host.interfaces.InterfaceDescription;
-import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.state.StateAccessException;
 import org.slf4j.Logger;
@@ -26,27 +25,23 @@ public class DefaultInterfaceDataUpdater implements InterfaceDataUpdater {
     HostZkManager hostZkManager;
 
     // use a local cache
-    private Map<String, Interface> previousDescriptions = new HashMap<String, Interface>();
+    private Map<String, Interface> previousDescriptions = new HashMap<>();
 
     @Override
     public synchronized void updateInterfacesData(UUID hostID, Metadata host,
-            List<InterfaceDescription> descriptions) {
+            Set<InterfaceDescription> descriptions) {
 
         log.trace("Start uploading the interface data ({} entries).",
                   descriptions.size());
 
-        Map<String, Interface> currentInterfacesByName =
-                getPreviousDescriptions();
-
-        Map<String, Interface> newInterfacesByName = new HashMap<String, Interface>();
+        Map<String, Interface> newInterfacesByName = new HashMap<>();
 
         for (InterfaceDescription description : descriptions) {
             Interface hostInterface = createHostInterfaceInstance(description);
-
             newInterfacesByName.put(hostInterface.getName(), hostInterface);
         }
 
-        updateDataStore(hostID, currentInterfacesByName, newInterfacesByName);
+        updateDataStore(hostID, previousDescriptions, newInterfacesByName);
         previousDescriptions = newInterfacesByName;
     }
 
@@ -54,7 +49,7 @@ public class DefaultInterfaceDataUpdater implements InterfaceDataUpdater {
                                  Map<String, Interface> curMapByName,
                                  Map<String, Interface> newMapByName) {
         try {
-            Set<String> interfacesToRemove = new HashSet<String>();
+            Set<String> interfacesToRemove = new HashSet<>();
 
             for (Interface curHostInterface : curMapByName.values()) {
                 // the interface disappeared form the new list
@@ -63,7 +58,7 @@ public class DefaultInterfaceDataUpdater implements InterfaceDataUpdater {
                 }
             }
 
-            List<Interface> updatedInterfaces = new ArrayList<Interface>();
+            List<Interface> updatedInterfaces = new ArrayList<>();
 
             for (Interface newHostInterface : newMapByName.values()) {
 
@@ -138,9 +133,5 @@ public class DefaultInterfaceDataUpdater implements InterfaceDataUpdater {
 
         hostInterface.setProperties(description.getProperties());
         return hostInterface;
-    }
-
-    public Map<String, Interface> getPreviousDescriptions() {
-        return previousDescriptions;
     }
 }
