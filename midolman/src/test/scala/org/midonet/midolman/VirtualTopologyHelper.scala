@@ -59,7 +59,6 @@ trait VirtualTopologyHelper {
             val ctx = packetContextFor(frame, inPort)
             val action = device.process(ctx) match {
                 case Ready(action) =>
-                    ctx.freeze()
                     return (ctx, action)
                 case NotYet(f) =>
                     Await.result(f, 1 second)

@@ -158,7 +158,7 @@ class BridgeInvalidationTest extends FeatureSpec
                 FlowTagger.invalidateFlowsByDevice(bridge.id),
                 leftPortUnicastInvalidation,
                 rightMacFloodInvalidation)
-            pktContext.getFlowTags should be (expectedTags)
+            pktContext.flowTags should be (expectedTags)
         }
 
         scenario("unicast flows are properly tagged") {
@@ -178,7 +178,7 @@ class BridgeInvalidationTest extends FeatureSpec
                 FlowTagger.invalidateFlowsByDevice(bridge.id),
                 leftPortUnicastInvalidation,
                 rightPortUnicastInvalidation)
-            pktContext.getFlowTags should be (expectedTags)
+            pktContext.flowTags should be (expectedTags)
         }
 
         scenario("VM migration") {
@@ -206,7 +206,7 @@ class BridgeInvalidationTest extends FeatureSpec
                 otherPortUnicastInvalidation)
 
             action should be (ToPortAction(otherPort.getId))
-            pktContext.getFlowTags should be (expectedTags)
+            pktContext.flowTags should be (expectedTags)
         }
 
         scenario("Packet whose dst mac resolves to the inPort is dropped") {
@@ -234,7 +234,7 @@ class BridgeInvalidationTest extends FeatureSpec
             FlowController.getAndClear()
 
             And("The corresponding flow expires")
-            pktContext.getFlowRemovedCallbacks foreach { _.call() }
+            pktContext.flowRemovedCallbacks foreach { _.call() }
 
             Then("The MAC port mapping expires too")
             Thread.sleep(macPortExpiration)
@@ -289,7 +289,7 @@ class BridgeInvalidationTest extends FeatureSpec
             And("A flow addressed to the router is installed")
             val (pktContext, action) = simulateDevice(bridge, leftToRouterFrame, leftPort.getId)
             action should be (ToPortAction(interiorPort.getId))
-            pktContext.getFlowTags should contain (interiorPortTag)
+            pktContext.flowTags should contain (interiorPortTag)
             FlowController.getAndClear()
 
             And("The interior port is then unlinked")

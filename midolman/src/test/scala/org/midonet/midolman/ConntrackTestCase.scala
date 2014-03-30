@@ -114,14 +114,12 @@ class ConntrackTestCase extends FeatureSpec
 
             for ((fwdPkt, retPkt) <- conntrackedPacketPairs) {
                 val (fwdContext, fwdAct) = simulateDevice(bridge, fwdPkt, leftPort.getId)
-                fwdContext.freeze()
                 fwdContext.installConnectionCacheEntry(bridge.id)
                 fwdContext.isConnTracked should be (true)
                 fwdContext.isForwardFlow should be (true)
                 fwdAct should be (ToPortAction(rightPort.getId))
 
                 val (retContext, retAct) = simulateDevice(bridge, retPkt, rightPort.getId)
-                retContext.freeze()
                 retContext.isConnTracked should be (true)
                 retContext.isForwardFlow should be (false)
                 retAct should be (ToPortAction(leftPort.getId))
@@ -133,13 +131,11 @@ class ConntrackTestCase extends FeatureSpec
 
             for ((fwdPkt, retPkt) <- conntrackedPacketPairs) {
                 val (fwdContext, fwdAct) = simulateDevice(bridge, fwdPkt, leftPort.getId)
-                fwdContext.freeze()
                 fwdContext.isConnTracked should be (true)
                 fwdContext.isForwardFlow should be (true)
                 fwdAct should be (ToPortAction(rightPort.getId))
 
                 val (retContext, retAct) = simulateDevice(bridge, retPkt, rightPort.getId)
-                retContext.freeze()
                 retContext.isConnTracked should be (true)
                 retContext.isForwardFlow should be (true)
                 retAct should be (DropAction)
