@@ -249,7 +249,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
 
                     bind(classOf[HostConfig])
                         .toProvider(classOf[HostConfigProvider])
-                        .asEagerSingleton
+                        .asEagerSingleton()
                     expose(classOf[HostConfig])
                 }
             }

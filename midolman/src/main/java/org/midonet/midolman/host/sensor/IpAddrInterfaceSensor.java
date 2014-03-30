@@ -5,8 +5,8 @@
 package org.midonet.midolman.host.sensor;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -44,12 +44,8 @@ public class IpAddrInterfaceSensor implements InterfaceSensor {
     // Public methods
     ///////////////////////////////////////////////////////////////////////////
     @Override
-    public List<InterfaceDescription> updateInterfaceData(List<InterfaceDescription> interfaces) {
-        if (interfaces == null) {
-            return Collections.emptyList();
-        }
-
-        return parseInterfaces(getInterfacesOutput());
+    public void updateInterfaceData(Set<InterfaceDescription> interfaces) {
+        interfaces.addAll(parseInterfaces(getInterfacesOutput()));
     }
 
     ///////////////////////////////////////////////////////////////////////////

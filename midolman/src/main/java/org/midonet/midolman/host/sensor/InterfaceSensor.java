@@ -1,12 +1,11 @@
 /*
- * Copyright 2012 Midokura Pte. Ltd.
+ * Copyright (c) 2012 Midokura SARL, All Rights Reserved.
  */
-
 package org.midonet.midolman.host.sensor;
 
 import org.midonet.midolman.host.interfaces.InterfaceDescription;
 
-import java.util.List;
+import java.util.Set;
 
 public interface InterfaceSensor {
 
@@ -17,7 +16,6 @@ public interface InterfaceSensor {
      * update them.
      *
      * @param interfaces list of interfaces detected on the system, or null on first call
-     * @return the input list of interfaces filled with the data the sensor has retrieved
      */
-    public List<InterfaceDescription> updateInterfaceData(List<InterfaceDescription> interfaces);
+    public void updateInterfaceData(Set<InterfaceDescription> interfaces);
 }

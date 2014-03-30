@@ -10,15 +10,18 @@ import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
 import org.scalatest.Matchers
 import org.scalatest.junit.JUnitRunner
+import scala.concurrent.duration._
 
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.{Bridge => ClusterBridge}
 import org.midonet.cluster.data.{Ports => ClusterPorts}
-import org.midonet.midolman.topology.LocalPortActive
+import org.midonet.midolman.topology.{VirtualTopologyActor, LocalPortActive}
 import org.midonet.midolman.topology.VirtualToPhysicalMapper._
 import org.midonet.midolman.topology.rcu.{Host => RCUHost}
 import org.midonet.odp.Datapath
 import org.midonet.odp.ports.NetDevPort
+import org.midonet.midolman.topology.VirtualTopologyActor.{PortRequest, BridgeRequest}
+import scala.concurrent.Await
 
 @Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
@@ -59,43 +62,6 @@ class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
         ports should have size 2
         ports should contain key ("tngre-mm")
         ports should contain key ("midonet")
-        checkGreTunnel()
-    }
-
-    def testDatapathAddMappingAfter() {
-
-        val host = new Host(hostId()).setName("myself")
-        clusterDataClient().hostsCreate(hostId(), host)
-
-        initializeDatapath() should not be null
-
-        // make a bridge
-        val bridge = new ClusterBridge().setName("test")
-        bridge.setId(clusterDataClient().bridgesCreate(bridge))
-
-        // make a port on the bridge
-        val port = ClusterPorts.bridgePort(bridge)
-        port.setId(clusterDataClient().portsCreate(port))
-
-        materializePort(port, host, "tapDevice")
-
-        val eventProbe = newProbe()
-        actors().eventStream.subscribe(eventProbe.ref, classOf[DpPortCreate])
-        requestOfType[DpPortCreate](eventProbe)
-        portEventsProbe.expectMsgClass(classOf[LocalPortActive])
-
-        // validate the final datapath state
-        val datapaths: mutable.Set[Datapath] = dpConn().futures.datapathsEnumerate().get()
-
-        datapaths should have size 1
-        datapaths.head should have('name("midonet"))
-
-        val ports = datapathPorts(datapaths.head)
-        /* int port "midonet" + tunnel port "tngre-mm" + netdev port "tapDevice" */
-        ports should have size 3
-        ports should contain key ("midonet")
-        ports should contain key ("tapDevice")
-        ports should contain key ("tngre-mm")
         checkGreTunnel()
     }
 

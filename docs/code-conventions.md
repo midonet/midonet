@@ -19,7 +19,7 @@ make sure to update your preferences to 4 spaces.
 The mandatory header of every source file must be written as:
 
     /*
-     * Copyright (c) {yyyy} Midokura Europe SARL, All Rights Reserved.
+     * Copyright (c) {yyyy} Midokura SARL, All Rights Reserved.
      */
 
 ### Future continuations
