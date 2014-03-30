@@ -157,16 +157,15 @@ class Coordinator(var origMatch: WildcardMatch,
     : Ready[SimulationResult] = {
         // If the packet is from the datapath, install a temporary Drop flow.
         // Note: a flow with no actions drops matching packets.
-        pktContext.freeze()
         pktContext.traceMessage(null, "Dropping flow")
         Ready(cookie match {
             case Some(_) =>
-                val tags = if (withTags) pktContext.getFlowTags
+                val tags = if (withTags) pktContext.flowTags
                            else Set.empty[Any]
                 if (temporary)
-                    TemporaryDrop(tags, pktContext.getFlowRemovedCallbacks)
+                    TemporaryDrop(tags, pktContext.flowRemovedCallbacks)
                 else
-                    Drop(tags, pktContext.getFlowRemovedCallbacks)
+                    Drop(tags, pktContext.flowRemovedCallbacks)
             case None => // Internally-generated packet. Do nothing.
                 pktContext.runFlowRemovedCallbacks()
                 NoOp
@@ -214,7 +213,6 @@ class Coordinator(var origMatch: WildcardMatch,
 
     private def postpone() {
         log.debug("Simulation will be postponed, run callbacks")
-        pktContext.freeze()
         pktContext.runFlowRemovedCallbacks()
     }
 
@@ -336,14 +334,12 @@ class Coordinator(var origMatch: WildcardMatch,
 
             case DoFlowAction(act) => act match {
                 case b: FlowActionPopVLAN =>
-                    pktContext.unfreeze()
                     val flow = WildcardFlow(
                         wcmatch = origMatch,
                         actions = List(b))
                     val vlanId = pktContext.wcmatch.getVlanIds.get(0)
                     pktContext.wcmatch.removeVlanId(vlanId)
                     origMatch = pktContext.wcmatch.clone()
-                    pktContext.freeze()
                     Ready(virtualWildcardFlowResult(flow))
                 case _ => Ready(NoOp)
             }
@@ -364,7 +360,6 @@ class Coordinator(var origMatch: WildcardMatch,
                     case Ready(simRes) =>
                         val firstOrigMatch = origMatch.clone()
                         origMatch = pktContext.wcmatch.clone()
-                        pktContext.unfreeze()
                         (simRes, firstOrigMatch)
                 }
 
@@ -390,7 +385,6 @@ class Coordinator(var origMatch: WildcardMatch,
 
             case ConsumedAction =>
                 pktContext.traceMessage(null, "Consumed")
-                pktContext.freeze()
                 pktContext.runFlowRemovedCallbacks()
                 Ready(NoOp)
 
@@ -405,7 +399,6 @@ class Coordinator(var origMatch: WildcardMatch,
 
             case NotIPv4Action =>
                 pktContext.traceMessage(null, "Unsupported protocol")
-                pktContext.freeze()
                 log.debug("Device returned NotIPv4Action for {}", origMatch)
                 Ready(cookie match {
                     case None => // Do nothing.
@@ -528,13 +521,11 @@ class Coordinator(var origMatch: WildcardMatch,
         Ready(cookie match {
             case None =>
                 log.debug("No cookie. SendPacket with actions {}", actions)
-                pktContext.freeze()
                 pktContext.runFlowRemovedCallbacks()
                 SendPacket(actions.toList)
             case Some(_) =>
                 log.debug("Cookie {}; Add a flow with actions {}",
                     cookie.get, actions)
-                pktContext.freeze()
                 // TODO(guillermo,pino) don't assume that portset id == bridge id
                 if (pktContext.isConnTracked && pktContext.isForwardFlow) {
                     // Write the packet's data to the connectionCache.
@@ -687,13 +678,11 @@ class Coordinator(var origMatch: WildcardMatch,
         actions
     }
 
-    /** Generates a final AddVirtualWildcardFlow simulation result after the
-     *  PacketContext for this simulation has been frozen. */
+    /** Generates a final AddVirtualWildcardFlow simulation result */
     private def virtualWildcardFlowResult(wcFlow: WildcardFlow) = {
-        assert (pktContext.isFrozen)
         wcFlow.wcmatch.propagateUserspaceFieldsOf(pktContext.wcmatch)
         AddVirtualWildcardFlow(wcFlow,
-            pktContext.getFlowRemovedCallbacks,
-            pktContext.getFlowTags)
+            pktContext.flowRemovedCallbacks,
+            pktContext.flowTags)
     }
 }
