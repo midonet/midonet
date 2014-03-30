@@ -104,8 +104,12 @@ public class VendorMediaType {
     /* DHCP configuration types. */
     public static final String APPLICATION_DHCP_SUBNET_JSON =
             "application/vnd.org.midonet.DhcpSubnet-v1+json";
+    public static final String APPLICATION_DHCP_SUBNET_JSON_V2 =
+            "application/vnd.org.midonet.DhcpSubnet-v2+json";
     public static final String APPLICATION_DHCP_SUBNET_COLLECTION_JSON =
             "application/vnd.org.midonet.collection.DhcpSubnet-v1+json";
+    public static final String APPLICATION_DHCP_SUBNET_COLLECTION_JSON_V2 =
+            "application/vnd.org.midonet.collection.DhcpSubnet-v2+json";
     public static final String APPLICATION_DHCP_HOST_JSON =
             "application/vnd.org.midonet.DhcpHost-v1+json";
     public static final String APPLICATION_DHCP_HOST_COLLECTION_JSON =

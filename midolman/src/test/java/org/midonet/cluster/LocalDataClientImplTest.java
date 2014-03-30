@@ -7,6 +7,7 @@ package org.midonet.cluster;
 import org.junit.Test;
 import org.midonet.cluster.data.Route;
 import org.midonet.cluster.data.Router;
+import org.midonet.cluster.data.dhcp.Subnet;
 import org.midonet.cluster.data.ports.RouterPort;
 import org.midonet.midolman.layer3.Route.NextHop;
 import org.midonet.midolman.serialization.SerializationException;
@@ -14,14 +15,15 @@ import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.ZkLeaderElectionWatcher.ExecuteOnBecomingLeader;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.MAC;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.*;
 
 
 public class LocalDataClientImplTest extends LocalDataClientImplTestBase {
@@ -151,5 +153,55 @@ public class LocalDataClientImplTest extends LocalDataClientImplTestBase {
         assertIsLeader(currentLeader, hostNum3);
         precLeader = client.getPrecedingHealthMonitorLeader(hostNum3);
         assertThat(precLeader, equalTo(null));
+    }
+
+    private void assertSubnetCidrs(List<Subnet> actual,
+                                   List<String> expectedCidrs) {
+        assertThat(actual, notNullValue());
+        assertThat(expectedCidrs, notNullValue());
+
+        assertThat(actual.size(), equalTo(expectedCidrs.size()));
+
+        for (Subnet actualSubnet : actual) {
+            assertThat(expectedCidrs,
+                    hasItem(actualSubnet.getSubnetAddr().toString()));
+        }
+    }
+
+    @Test
+    public void dhcpSubnetEnabledTest()
+            throws StateAccessException, SerializationException {
+
+        UUID bridgeId = client.bridgesCreate(getStockBridge());
+
+        // Create an enabled subnet
+        Subnet enabledSubnet = getStockSubnet("10.0.0.0/24");
+        enabledSubnet.setEnabled(true);
+        client.dhcpSubnetsCreate(bridgeId, enabledSubnet);
+
+        // Create an enabled subnet, but not enabled explicitly
+        Subnet defaultEnabledSubnet = getStockSubnet("10.0.1.0/24");
+        client.dhcpSubnetsCreate(bridgeId, defaultEnabledSubnet);
+
+        // Create a disabled subnet
+        Subnet disabledSunbet = getStockSubnet("10.0.2.0/24");
+        disabledSunbet.setEnabled(false);
+        client.dhcpSubnetsCreate(bridgeId, disabledSunbet);
+
+        // Get all to make ensure both return
+        List<Subnet> subnets = client.dhcpSubnetsGetByBridge(bridgeId);
+        assertSubnetCidrs(subnets,
+                Arrays.asList(
+                        "10.0.0.0_24",
+                        "10.0.1.0_24",
+                        "10.0.2.0_24"));
+
+
+        // Get only the enabled and ensure only one return
+        subnets = client.dhcpSubnetsGetByBridgeEnabled(bridgeId);
+        assertSubnetCidrs(subnets,
+                Arrays.asList(
+                        "10.0.0.0_24",
+                        "10.0.1.0_24"));
     }
 }
