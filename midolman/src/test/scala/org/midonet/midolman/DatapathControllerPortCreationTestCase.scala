@@ -15,7 +15,6 @@ import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.ports.BridgePort
 import org.midonet.midolman.io.{MockUpcallDatapathConnectionManager,
                                 UpcallDatapathConnectionManager}
-import org.midonet.midolman.DatapathController.Internal.CheckForPortUpdates
 import org.midonet.midolman.DatapathController.Initialize
 import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.host.interfaces.InterfaceDescription
@@ -24,6 +23,8 @@ import org.midonet.midolman.topology.{LocalPortActive,
                                       VirtualToPhysicalMapper,
                                       VirtualTopologyActor}
 import org.midonet.odp.Datapath
+import org.midonet.cluster.data.zones.{GreTunnelZoneHost, GreTunnelZone}
+import org.midonet.packets.IPv4Addr
 
 @RunWith(classOf[JUnitRunner])
 class DatapathControllerPortCreationTestCase extends FeatureSpec
@@ -40,6 +41,8 @@ class DatapathControllerPortCreationTestCase extends FeatureSpec
     var testableDpc: DatapathController = _
 
     val ifname = "eth0"
+    val ifmtu = 1000
+    val ip = IPv4Addr("1.1.1.1")
     var host: Host = null
     var clusterBridge: ClusterBridge = null
     var connManager: MockUpcallDatapathConnectionManager = null
@@ -80,9 +83,15 @@ class DatapathControllerPortCreationTestCase extends FeatureSpec
     }
 
     private def buildTopology() {
+        val zone = greTunnelZone("twilight-zone")
+
         host = newHost("myself",
-            injector.getInstance(classOf[HostIdProviderService]).getHostId)
+            injector.getInstance(classOf[HostIdProviderService]).getHostId,
+            Set(zone.getId))
         host should not be null
+
+        clusterDataClient().tunnelZonesAddMembership(zone.getId,
+            new GreTunnelZoneHost(host.getId).setIp(ip.toIntIPv4))
 
         clusterBridge = newBridge("bridge")
         clusterBridge should not be null
@@ -91,10 +100,10 @@ class DatapathControllerPortCreationTestCase extends FeatureSpec
     }
 
     private def addInterface() {
-
+        ifmtu should not be DatapathController.DEFAULT_MTU
         val intf = new InterfaceDescription(ifname)
-        intf.setInetAddress("1.1.1.1")
-        intf.setMtu(1500)
+        intf.setInetAddress(ip.toString)
+        intf.setMtu(ifmtu)
         intf.setUp(true)
         intf.setHasLink(true)
         interfaceScanner.addInterface(intf)
@@ -110,10 +119,12 @@ class DatapathControllerPortCreationTestCase extends FeatureSpec
             addInterface()
 
             Then("the DpC should create the datapath port")
-            DatapathController ! CheckForPortUpdates("midonet")
             eventually {
                 testableDpc.dpState.getDpPortNumberForVport(port.getId) should not equal (None)
             }
+            And("the min MTU should be the interface one")
+            DatapathController.minMtu should be (ifmtu - GreTunnelZone.TUNNEL_OVERHEAD)
+
             VirtualToPhysicalMapper.getAndClear() filter {
                 case LocalPortActive(_,_) => true
                 case _ => false
@@ -124,10 +135,12 @@ class DatapathControllerPortCreationTestCase extends FeatureSpec
             interfaceScanner.removeInterface(ifname)
 
             Then("the DpC should delete the datapath port")
-            DatapathController ! CheckForPortUpdates("midonet")
             eventually {
                 testableDpc.dpState.getDpPortNumberForVport(port.getId) should equal (None)
             }
+            And("the min MTU should be the default one")
+            DatapathController.minMtu should be (DatapathController.DEFAULT_MTU)
+
             VirtualToPhysicalMapper.getAndClear() filter {
                 case LocalPortActive(_,_) => true
                 case _ => false
@@ -143,7 +156,6 @@ class DatapathControllerPortCreationTestCase extends FeatureSpec
             val port = addAndMaterializeBridgePort(host.getId, clusterBridge, ifname)
 
             Then("the DpC should create the datapath port")
-            DatapathController ! CheckForPortUpdates("midonet")
             eventually {
                 testableDpc.dpState.getDpPortNumberForVport(port.getId) should not equal (None)
             }

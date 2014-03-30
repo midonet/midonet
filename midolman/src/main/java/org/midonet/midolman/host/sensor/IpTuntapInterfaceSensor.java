@@ -7,6 +7,7 @@ package org.midonet.midolman.host.sensor;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -21,7 +22,7 @@ public class IpTuntapInterfaceSensor implements InterfaceSensor{
         Pattern.compile("^([^:]+):.*(tun|tap).*$");
 
     @Override
-    public List<InterfaceDescription> updateInterfaceData(List<InterfaceDescription> interfaces) {
+    public void updateInterfaceData(Set<InterfaceDescription> interfaces) {
 
         Map<String, Boolean> tunTapDevices = extractTunTapInfo();
 
@@ -30,14 +31,12 @@ public class IpTuntapInterfaceSensor implements InterfaceSensor{
             if (interfaceDescription.getEndpoint() == Endpoint.UNKNOWN) {
                 // Is this a Tuntap interface?
 
-                if ( tunTapDevices.containsKey(interfaceDescription.getName())) {
+                if (tunTapDevices.containsKey(interfaceDescription.getName())) {
                     interfaceDescription.setType(Type.VIRT);
                     interfaceDescription.setEndpoint(Endpoint.TUNTAP);
                 }
             }
         }
-
-        return interfaces;
     }
 
     private Map<String, Boolean> extractTunTapInfo() {

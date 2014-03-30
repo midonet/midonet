@@ -4,16 +4,18 @@
 
 package org.midonet.midolman.host.sensor;
 
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.Test;
+import org.midonet.midolman.host.interfaces.InterfaceDescription;
+
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
-import org.midonet.midolman.host.interfaces.InterfaceDescription;
 
 public class TestIpTuntapInterfaceSensor {
 
@@ -33,29 +35,30 @@ public class TestIpTuntapInterfaceSensor {
             }
         };
 
-        List<InterfaceDescription> interfaces = new ArrayList<InterfaceDescription>();
+        Set<InterfaceDescription> interfaces = new HashSet<>();
 
         // Add one interface to test
         interfaces.add(new InterfaceDescription("xxx"));
 
         assertThat(
             "The end point was not updated",
-            interfaces.get(0).getEndpoint(),
+            interfaces.iterator().next().getEndpoint(),
             is(InterfaceDescription.Endpoint.UNKNOWN));
 
         // Do the interface updating
-        interfaces = interfaceSensor.updateInterfaceData(interfaces);
+        interfaceSensor.updateInterfaceData(interfaces);
 
         //Check that we parsed all the interfaces
         assertThat(interfaces.size(), equalTo(1));
+        InterfaceDescription id = interfaces.iterator().next();
 
         assertThat(
             "The interface didn't have it's name changed",
-            interfaces.get(0).getName(), is("xxx"));
+            id.getName(), is("xxx"));
 
         assertThat(
             "The end point is parsed correctly",
-            interfaces.get(0).getEndpoint(),
+            id.getEndpoint(),
             is(InterfaceDescription.Endpoint.TUNTAP));
     }
 
@@ -75,36 +78,37 @@ public class TestIpTuntapInterfaceSensor {
             }
         };
 
-        List<InterfaceDescription> interfaces = new ArrayList<InterfaceDescription>();
+        Set<InterfaceDescription> interfaces = new HashSet<>();
 
         // Add one interface to test
         interfaces.add(new InterfaceDescription("bibiri"));
 
         // Do the interface updating
-        interfaces = interfaceSensor.updateInterfaceData(interfaces);
+        interfaceSensor.updateInterfaceData(interfaces);
 
         //Check that we parsed all the interfaces
         assertThat(interfaces.size(), equalTo(1));
 
         assertThat(
             "The end point was not updated",
-            interfaces.get(0).getEndpoint(),
+            interfaces.iterator().next().getEndpoint(),
             is(InterfaceDescription.Endpoint.UNKNOWN));
 
         // Do the interface updating
-        interfaces = interfaceSensor.updateInterfaceData(interfaces);
+        interfaceSensor.updateInterfaceData(interfaces);
 
         //Check that we parsed all the interfaces
         assertThat(interfaces.size(), equalTo(1));
+        InterfaceDescription id = interfaces.iterator().next();
 
         // Check the interface
         assertThat(
             "The interface didn't have it's name changed",
-            interfaces.get(0).getName(), is("bibiri"));
+            id.getName(), is("bibiri"));
 
         assertThat(
             "The end point was not updated",
-            interfaces.get(0).getEndpoint(), is(
+            id.getEndpoint(), is(
             InterfaceDescription.Endpoint.UNKNOWN));
     }
 }

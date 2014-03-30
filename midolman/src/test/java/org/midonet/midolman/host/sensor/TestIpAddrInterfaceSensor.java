@@ -4,14 +4,18 @@
 
 package org.midonet.midolman.host.sensor;
 
-import org.midonet.midolman.host.interfaces.InterfaceDescription;
-import org.midonet.packets.MAC;
+import java.net.InetAddress;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+
 import org.junit.Test;
 
-import java.net.InetAddress;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import org.midonet.midolman.host.interfaces.InterfaceDescription;
+import org.midonet.packets.MAC;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -58,14 +62,21 @@ public class TestIpAddrInterfaceSensor {
                     }
                 };
 
-        List<InterfaceDescription> interfaces =
-                interfaceSensor.updateInterfaceData(new ArrayList<InterfaceDescription>());
+        Set<InterfaceDescription> interfaces = new TreeSet<>(new Comparator<InterfaceDescription>() {
+            @Override
+            public int compare(InterfaceDescription o1, InterfaceDescription o2) {
+                return 1;
+            }
+        });
+        interfaceSensor.updateInterfaceData(interfaces);
 
         //Check that we parsed all the interfaces
         assertThat(interfaces.size(), equalTo(5));
 
+        Iterator<InterfaceDescription> it = interfaces.iterator();
+
         // Check first interface
-        InterfaceDescription interfaceDescription = interfaces.get(0);
+        InterfaceDescription interfaceDescription = it.next();
         assertThat(interfaceDescription.getName(), equalTo("lo"));
         assertThat(interfaceDescription.isUp(), equalTo(true));
         assertThat(interfaceDescription.getMtu(), equalTo(16436));
@@ -76,7 +87,7 @@ public class TestIpAddrInterfaceSensor {
         assertThat(interfaceDescription.getEndpoint(), equalTo(InterfaceDescription.Endpoint.LOCALHOST));
 
         // Check second interface
-        interfaceDescription = interfaces.get(1);
+        interfaceDescription = it.next();
         assertThat(interfaceDescription.getName(), equalTo("eth0"));
         assertThat(interfaceDescription.isUp(), equalTo(true));
         assertThat(interfaceDescription.getMtu(), equalTo(1500));
@@ -93,7 +104,7 @@ public class TestIpAddrInterfaceSensor {
         assertThat(interfaceDescription.getEndpoint(), equalTo(InterfaceDescription.Endpoint.UNKNOWN));
 
         // Check third interface
-        interfaceDescription = interfaces.get(2);
+        interfaceDescription = it.next();
         assertThat(interfaceDescription.getName(), equalTo("virbr0"));
         assertThat(interfaceDescription.isUp(), equalTo(false));
         assertThat(interfaceDescription.getMtu(), equalTo(1500));
@@ -103,7 +114,7 @@ public class TestIpAddrInterfaceSensor {
         assertThat(interfaceDescription.getEndpoint(), equalTo(InterfaceDescription.Endpoint.UNKNOWN));
 
         // Check fourth interface
-        interfaceDescription = interfaces.get(3);
+        interfaceDescription = it.next();
         assertThat(interfaceDescription.getName(), equalTo("xxx"));
         assertThat(interfaceDescription.isUp(), equalTo(false));
         assertThat(interfaceDescription.getMtu(), equalTo(1500));
@@ -112,7 +123,7 @@ public class TestIpAddrInterfaceSensor {
         assertThat(interfaceDescription.getEndpoint(), equalTo(InterfaceDescription.Endpoint.UNKNOWN));
 
         // Check fifth interface
-        interfaceDescription = interfaces.get(4);
+        interfaceDescription = it.next();
         assertThat(interfaceDescription.getName(), equalTo("eth0.1"));
         assertThat(interfaceDescription.isUp(), equalTo(true));
         assertThat(interfaceDescription.getMtu(), equalTo(1500));

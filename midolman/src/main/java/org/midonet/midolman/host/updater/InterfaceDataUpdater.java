@@ -1,10 +1,10 @@
 /*
- * Copyright 2012 Midokura Europe SARL
+ * Copyright (c) 2012 Midokura SARL, All Rights Reserved.
  */
 package org.midonet.midolman.host.updater;
 
+import java.util.Set;
 import java.util.UUID;
-import java.util.List;
 
 import org.midonet.midolman.host.interfaces.InterfaceDescription;
 import org.midonet.midolman.host.state.HostDirectory;
@@ -27,5 +27,5 @@ public interface InterfaceDataUpdater {
      * @param interfaces the list of interface data we wish to use when updating
      */
     void updateInterfacesData(UUID hostID, HostDirectory.Metadata host,
-                              List<InterfaceDescription> interfaces);
+                              Set<InterfaceDescription> interfaces);
 }

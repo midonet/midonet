@@ -4,12 +4,19 @@
 
 package org.midonet.midolman.host.services;
 
+import java.lang.reflect.Array;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.locks.LockSupport;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
+import org.midonet.Subscription;
+import org.midonet.midolman.host.updater.InterfaceDataUpdater;
+import org.midonet.netlink.Callback;
+import org.midonet.netlink.exceptions.NetlinkException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +25,6 @@ import com.google.inject.Inject;
 
 import org.midonet.midolman.host.HostIdGenerator;
 import org.midonet.midolman.host.HostIdGenerator.PropertiesFileNotWritableException;
-import org.midonet.midolman.host.HostInterfaceWatcher;
 import org.midonet.midolman.host.commands.executors.HostCommandWatcher;
 import org.midonet.midolman.host.config.HostConfig;
 import org.midonet.midolman.host.interfaces.InterfaceDescription;
@@ -45,8 +51,6 @@ public class HostService extends AbstractService
 
     private UUID hostId;
 
-    private Thread watcherThread;
-
     @Inject
     HostConfig configuration;
 
@@ -54,10 +58,10 @@ public class HostService extends AbstractService
     private HostCommandWatcher cmdWatcher;
 
     @Inject
-    private HostInterfaceWatcher interfaceWatcher;
+    InterfaceScanner scanner;
 
     @Inject
-    private InterfaceScanner scanner;
+    InterfaceDataUpdater interfaceDataUpdater;
 
     @Inject
     private HostZkManager hostZkManager;
@@ -78,44 +82,41 @@ public class HostService extends AbstractService
         try {
             identifyHostId();
             cmdWatcher.checkCommands(hostId);
-            watcherThread = new Thread(interfaceWatcher);
-            interfaceWatcher.setHostId(hostId);
-            watcherThread.start();
+            scanner.start();
+            scanner.register(new Callback<Set<InterfaceDescription>>() {
+                @Override
+                public void onSuccess(Set<InterfaceDescription> data) {
+                    interfaceDataUpdater.updateInterfacesData(
+                            hostId, null, data);
+                }
+
+                @Override
+                public void onTimeout() {
+                }
+
+                @Override
+                public void onError(NetlinkException e) {
+                }
+            });
             notifyStarted();
         } catch (Exception e) {
             notifyFailed(e);
             throw new RuntimeException("Could not start Midolman", e);
         }
         log.info("Midolman host agent started.");
-
     }
 
     @Override
     protected void doStop() {
-
         log.info("Stopping Midolman host agent.");
-        try {
-            scanner.shutDownNow();
+        scanner.shutdown();
 
-            // tell the watcher thread to stop
-            interfaceWatcher.stop();
+        // disconnect from zookeeper.
+        // this will cause the ephemeral nodes to disappear.
+        zkManager.disconnect();
 
-            // wait for the thread to finish running
-            if (watcherThread != null ) {
-                LockSupport.unpark(watcherThread);
-                watcherThread.join();
-            }
-
-            // disconnect from zookeeper.
-            // this will cause the ephemeral nodes to disappear.
-            zkManager.disconnect();
-
-            notifyStopped();
-        } catch (InterruptedException e) {
-            notifyFailed(e);
-        }
+        notifyStopped();
         log.info("Midolman host agent stopped.");
-
     }
 
     /**
@@ -140,7 +141,7 @@ public class HostService extends AbstractService
 
         // Retrieve the interfaces and store the addresses in the metadata
         ArrayList<InetAddress> listAddresses = new ArrayList<>();
-        for (InterfaceDescription info: scanner.scanInterfaces()) {
+        for (InterfaceDescription info : getInterfaces()) {
             listAddresses.addAll(info.getInetAddresses());
         }
 
@@ -201,5 +202,35 @@ public class HostService extends AbstractService
 
     public UUID getHostId() {
         return hostId;
+    }
+
+    @SuppressWarnings("unchecked")
+    private Set<InterfaceDescription> getInterfaces() {
+        final CountDownLatch latch = new CountDownLatch(1);
+        final Set<InterfaceDescription>[] interfaces =
+                (Set<InterfaceDescription>[]) Array.newInstance(Set.class, 1);
+
+        Subscription s = scanner.register(new Callback<Set<InterfaceDescription>>() {
+            @Override
+            public void onSuccess(Set<InterfaceDescription> data) {
+                interfaces[0] = data;
+                latch.countDown();
+            }
+
+            @Override
+            public void onTimeout() { /* Not called */ }
+
+            @Override
+            public void onError(NetlinkException e) { /* Not called */ }
+        });
+
+        try {
+            latch.await(1, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            throw new RuntimeException("Timeout while waiting for interfaces", e);
+        }
+
+        s.unsubscribe();
+        return interfaces[0];
     }
 }
