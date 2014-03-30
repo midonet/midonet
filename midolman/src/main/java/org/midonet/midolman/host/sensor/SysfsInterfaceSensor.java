@@ -8,12 +8,13 @@ import org.midonet.midolman.host.interfaces.InterfaceDescription;
 
 import java.io.File;
 import java.util.List;
+import java.util.Set;
 
 
 public class SysfsInterfaceSensor implements InterfaceSensor {
 
     @Override
-    public List<InterfaceDescription> updateInterfaceData(List<InterfaceDescription> interfaces) {
+    public void updateInterfaceData(Set<InterfaceDescription> interfaces) {
         for (InterfaceDescription interfaceDescription : interfaces) {
             // Only update those interfaces who don't already have the endpoint set
             if (interfaceDescription.getEndpoint() == InterfaceDescription.Endpoint.UNKNOWN) {
@@ -28,7 +29,6 @@ public class SysfsInterfaceSensor implements InterfaceSensor {
                 }
             }
         }
-        return interfaces;
     }
 
     private boolean isVirtual(String interfaceName) {

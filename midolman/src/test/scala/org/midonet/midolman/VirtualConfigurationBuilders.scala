@@ -32,12 +32,14 @@ trait VirtualConfigurationBuilders {
 
     protected def clusterDataClient(): DataClient
 
-    def newHost(name: String, id: UUID): Host = {
-        val host = new Host().setName(name)
+    def newHost(name: String, id: UUID, tunnelZones: Set[UUID]): Host = {
+        val host = new Host().setName(name).setTunnelZones(tunnelZones)
         clusterDataClient().hostsCreate(id, host)
         host.setId(id)
         host
     }
+
+    def newHost(name: String, id: UUID): Host = newHost(name, id, Set.empty)
 
     def newHost(name: String): Host = newHost(name, UUID.randomUUID())
 

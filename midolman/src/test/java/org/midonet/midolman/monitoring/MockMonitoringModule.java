@@ -8,7 +8,6 @@ import com.google.inject.PrivateModule;
 import com.google.inject.Scopes;
 import com.google.inject.Singleton;
 import org.midonet.config.ConfigProvider;
-import org.midonet.midolman.host.HostInterfaceWatcher;
 import org.midonet.midolman.host.commands.executors.CommandInterpreter;
 import org.midonet.midolman.host.commands.executors.HostCommandWatcher;
 import org.midonet.midolman.host.config.HostConfig;
@@ -35,7 +34,6 @@ public class MockMonitoringModule extends PrivateModule {
 
         bind(HostCommandWatcher.class);
         bind(CommandInterpreter.class).in(Scopes.SINGLETON);
-        bind(HostInterfaceWatcher.class);
 
         bind(HostConfig.class)
                          .toProvider(HostConfigProvider.class)

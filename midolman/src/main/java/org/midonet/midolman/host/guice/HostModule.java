@@ -6,7 +6,6 @@ package org.midonet.midolman.host.guice;
 import com.google.inject.PrivateModule;
 import com.google.inject.Scopes;
 import org.midonet.config.ConfigProvider;
-import org.midonet.midolman.host.HostInterfaceWatcher;
 import org.midonet.midolman.host.commands.executors.CommandInterpreter;
 import org.midonet.midolman.host.commands.executors.HostCommandWatcher;
 import org.midonet.midolman.host.config.HostConfig;
@@ -50,7 +49,6 @@ public class HostModule extends PrivateModule {
         // requireBinding(Client.class);
         requireBinding(HostZkManager.class);
         bind(HostCommandWatcher.class);
-        bind(HostInterfaceWatcher.class);
 
         bind(HostIdProviderService.class)
             .to(HostService.class)
