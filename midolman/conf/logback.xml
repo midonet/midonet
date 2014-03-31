@@ -45,7 +45,10 @@
          <appender-ref ref="EVENT-FILE"/>
     </logger>
 
-    <root level="info">
+    <!-- BEWARE: DEBUG level is meant for developement and/or troubleshooting
+                 it greatly impacts system performance.
+         levels: OFF, ERROR, WARN, INFO, DEBUG, TRACE -->
+    <root level="INFO">
         <appender-ref ref="STDOUT" />
         <appender-ref ref="LOG-FILE" />
     </root>
