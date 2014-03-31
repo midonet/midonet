@@ -191,9 +191,11 @@ class HealthMonitorConfigWatcher(val fileLocs: String, val suffix: String,
                                     routerId: UUID) = {
                 lbIdToRouterIdMap put (loadBalancer.id, routerId)
                 // Notify every pool that is attached to this load balancer
-                this.poolIdtoConfigMap filter
-                    (kv => kv._2.loadBalancerId == loadBalancer.id) foreach
-                    (kv => manager ! RouterChanged(kv._1, kv._2, routerId))
+                if (currentLeader) {
+                    this.poolIdtoConfigMap filter
+                        (kv => kv._2.loadBalancerId == loadBalancer.id) foreach
+                        (kv => manager ! RouterChanged(kv._1, kv._2, routerId))
+                }
             }
 
             lbIdToRouterIdMap get loadBalancer.id match {
