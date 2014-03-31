@@ -30,7 +30,7 @@ import org.midonet.netlink.Callback;
  */
 @Singleton
 public class DefaultInterfaceScanner implements InterfaceScanner {
-    private static final long UPDATE_RATE = TimeUnit.SECONDS.toMillis(2);
+    private static final long UPDATE_RATE_MILLIS = 2000L;
 
     private final Timer timer;
     private final ArrayList<Callback<Set<InterfaceDescription>>> callbacks;
@@ -47,7 +47,7 @@ public class DefaultInterfaceScanner implements InterfaceScanner {
         sensors.add(injector.getInstance(SysfsInterfaceSensor.class));
         sensors.add(injector.getInstance(NetlinkInterfaceSensor.class));
         callbacks = new ArrayList<>();
-        timer = new Timer();
+        timer = new Timer("interface-scanner", true);
     }
 
     public Subscription register(final Callback<Set<InterfaceDescription>> callback) {
@@ -92,7 +92,7 @@ public class DefaultInterfaceScanner implements InterfaceScanner {
                 public void run() {
                     scheduleScan();
                 }
-            }, System.currentTimeMillis() + UPDATE_RATE);
+            }, UPDATE_RATE_MILLIS);
         }
     }
 
