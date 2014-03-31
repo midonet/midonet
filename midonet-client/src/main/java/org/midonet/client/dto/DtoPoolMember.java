@@ -19,11 +19,23 @@ public class DtoPoolMember {
     private int protocolPort;
     private int weight;
     private boolean adminStateUp = true;
-    private Status status;
+    private PoolMemberStatus status = PoolMemberStatus.UP;
     private URI pool;
 
-    public enum Status {
-        UP, DOWN
+    static public enum PoolMemberStatus {
+        UP("UP"),
+        DOWN("DOWN");
+
+        private final String value;
+
+        private PoolMemberStatus(String value) {
+            this.value = value;
+        }
+
+        @Override
+        public String toString() {
+            return value;
+        }
     }
 
     public UUID getId() {
@@ -82,11 +94,11 @@ public class DtoPoolMember {
         this.adminStateUp = adminStateUp;
     }
 
-    public Status getStatus() {
+    public PoolMemberStatus getStatus() {
         return status;
     }
 
-    public void setStatus(Status status) {
+    public void setStatus(PoolMemberStatus status) {
         this.status = status;
     }
 

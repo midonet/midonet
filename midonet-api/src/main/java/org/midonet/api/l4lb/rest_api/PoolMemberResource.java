@@ -165,6 +165,13 @@ public class PoolMemberResource extends AbstractResource {
         }
 
         try {
+            // Ignore `status` property populated by users.
+            if (dataClient.poolMemberExists(id)) {
+                org.midonet.cluster.data.l4lb.PoolMember oldPoolMember =
+                        dataClient.poolMemberGet(id);
+                poolMember.setStatus(oldPoolMember.getStatus());
+            }
+
             dataClient.poolMemberUpdate(poolMember.toData());
         } catch (NoStatePathException ex) {
             throw badReqOrNotFoundException(ex, id);

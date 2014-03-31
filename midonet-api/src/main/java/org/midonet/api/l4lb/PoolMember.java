@@ -23,7 +23,7 @@ public class PoolMember extends UriResource {
 
     private UUID id;
     private boolean adminStateUp = true;
-    private PoolMemberStatus status;
+    private PoolMemberStatus status = PoolMemberStatus.UP;
 
     @NotNull
     private UUID poolId;
