@@ -72,8 +72,8 @@ JAVA="$JAVA_HOME/bin/java"
 # The example HEAP_NEWSIZE assumes a modern 8-core+ machine for decent pause
 # times. If in doubt, and if you do not particularly want to tweak, go with
 # 100 MB per physical CPU core.
-MAX_HEAP_SIZE="2048M"
-HEAP_NEWSIZE="1536M"
+MAX_HEAP_SIZE="6144M"
+HEAP_NEWSIZE="5120M"
 
 if [ "x$MAX_HEAP_SIZE" = "x" ] ||  [ "x$HEAP_NEWSIZE" = "x" ]; then
     echo "please set or unset MAX_HEAP_SIZE and HEAP_NEWSIZE in pairs (see midolman-env.sh)"

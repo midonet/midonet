@@ -147,6 +147,8 @@ msgs_per_batch = 200
 # through the settings below, increasing a bucket size will increase the
 # burstiness at which traffic can be queued before new tokens become
 # available.
+#
+# Bucket size is measured in packets.
 
 # global_incoming_burts_capacity: size of the root bucket in the HTB.
 global_incoming_burst_capacity = 256

@@ -38,7 +38,7 @@ midolman {
                     # tweak this value to set the maximum number of threads
                     # to reserve for work that isn't packet-processing
                     # recommended values are 1 or 2 depending on the workload.
-                    parallelism-max = 1
+                    parallelism-max = 2
                 }
 
                 # Throughput defines the number of messages that are processed
