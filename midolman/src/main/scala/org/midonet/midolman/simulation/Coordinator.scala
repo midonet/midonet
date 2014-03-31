@@ -24,11 +24,10 @@ import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.midolman.topology._
 import org.midonet.odp.flows._
 import org.midonet.odp.flows.FlowActions.{setKey, popVLAN}
-import org.midonet.packets.{Ethernet, ICMP, IPv4, IPv4Addr, IPv6Addr, TCP, UDP}
+import org.midonet.packets.{Ethernet, ICMP, IPv4Addr, IPv6Addr, TCP, UDP}
 import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPort
 import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPortSet
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
-import org.midonet.util.concurrent._
 
 object Coordinator {
 
@@ -248,46 +247,6 @@ class Coordinator(var origMatch: WildcardMatch,
         }
     }
 
-    private def sendIpv4FragNeeded(inPort: UUID) {
-        val origPkt: IPv4 = origEthernetPkt.getPayload match {
-            case ip: IPv4 => ip
-            case _ => null
-        }
-
-        if (origPkt == null)
-            return
-
-        /* Certain versions of Linux try to guess a lower MTU value if the MTU
-         * suggested by the ICMP FRAG_NEEDED error is equal or bigger than the
-         * size declared in the IP header found in the ICMP data. This happens
-         * when it's the sender host who is fragmenting.
-         *
-         * In those cases, we can at least prevent the sender from lowering
-         * the PMTU by increasing the length in the IP header.
-         */
-        val mtu = origPkt.getTotalLength match {
-            case 0 => origPkt.serialize().length
-            case nonZero => nonZero
-        }
-        origPkt.setTotalLength(mtu + 1)
-        origPkt.setChecksum(0)
-
-        val icmp = new ICMP()
-        icmp.setFragNeeded(mtu, origPkt)
-        val ip = new IPv4()
-        ip.setPayload(icmp)
-        ip.setProtocol(ICMP.PROTOCOL_NUMBER)
-        ip.setSourceAddress(origPkt.getDestinationAddress)
-        ip.setDestinationAddress(origPkt.getSourceAddress)
-        val eth = new Ethernet()
-        eth.setEtherType(IPv4.ETHERTYPE)
-        eth.setPayload(ip)
-        eth.setSourceMACAddress(origEthernetPkt.getDestinationMACAddress)
-        eth.setDestinationMACAddress(origEthernetPkt.getSourceMACAddress)
-
-        PacketsEntryPoint ! EmitGeneratedPacket(inPort, eth, cookie)
-    }
-
     private def packetIngressesDevice(port: Port)
     : Urgent[SimulationResult] =
         (port match {
@@ -307,11 +266,13 @@ class Coordinator(var origMatch: WildcardMatch,
         (first._1, second._1) match {
             case (SendPacket(acts1), SendPacket(acts2)) =>
                 SendPacket(acts1 ++ acts2)
-            case (AddVirtualWildcardFlow(wcf1, cb1, tags1),
-                    AddVirtualWildcardFlow(wcf2, cb2, tags2)) =>
+            case (AddVirtualWildcardFlow(wcf1, _, _),
+                  AddVirtualWildcardFlow(wcf2, _, _)) =>
                 //TODO(rossella) set the other fields Priority
                 val res = AddVirtualWildcardFlow(
-                    wcf1.combine(wcf2), cb1 ++ cb2, tags1 ++ tags2)
+                    wcf1.combine(wcf2),
+                    pktContext.flowRemovedCallbacks,
+                    pktContext.flowTags)
                 log.debug("Forked action merged results {}", res)
                 res
             case (firstAction, secondAction) =>
