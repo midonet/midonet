@@ -10,6 +10,7 @@ import org.apache.zookeeper.ZooDefs.Ids;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
+import org.midonet.midolman.state.LBStatus;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
@@ -37,7 +38,7 @@ public class HealthMonitorZkManager extends
         public int timeout;
         public int maxRetries;
         public boolean adminStateUp;
-        public String status;
+        public LBStatus status;
 
         public HealthMonitorConfig() {
             super();
@@ -48,7 +49,7 @@ public class HealthMonitorZkManager extends
                                    int timeout,
                                    int maxRetries,
                                    boolean adminStateUp,
-                                   String status) {
+                                   LBStatus status) {
             this.type = type;
             this.delay = delay;
             this.timeout = timeout;

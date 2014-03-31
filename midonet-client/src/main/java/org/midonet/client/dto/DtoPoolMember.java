@@ -4,11 +4,11 @@
 
 package org.midonet.client.dto;
 
-import javax.xml.bind.annotation.XmlRootElement;
+import com.google.common.base.Objects;
+
 import java.net.URI;
 import java.util.UUID;
-
-import com.google.common.base.Objects;
+import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
 public class DtoPoolMember {
@@ -19,24 +19,9 @@ public class DtoPoolMember {
     private int protocolPort;
     private int weight;
     private boolean adminStateUp = true;
-    private PoolMemberStatus status = PoolMemberStatus.UP;
+    private LBStatus status = LBStatus.ACTIVE;
+
     private URI pool;
-
-    static public enum PoolMemberStatus {
-        UP("UP"),
-        DOWN("DOWN");
-
-        private final String value;
-
-        private PoolMemberStatus(String value) {
-            this.value = value;
-        }
-
-        @Override
-        public String toString() {
-            return value;
-        }
-    }
 
     public UUID getId() {
         return id;
@@ -94,11 +79,11 @@ public class DtoPoolMember {
         this.adminStateUp = adminStateUp;
     }
 
-    public PoolMemberStatus getStatus() {
+    public LBStatus getStatus() {
         return status;
     }
 
-    public void setStatus(PoolMemberStatus status) {
+    public void setStatus(LBStatus status) {
         this.status = status;
     }
 

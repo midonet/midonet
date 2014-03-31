@@ -158,7 +158,6 @@ public class L4LBTestBase extends RestApiTestBase {
         healthMonitor.setTimeout(10);
         healthMonitor.setMaxRetries(10);
         healthMonitor.setAdminStateUp(true);
-        healthMonitor.setStatus("ACTIVE");
         return healthMonitor;
     }
 
@@ -302,7 +301,6 @@ public class L4LBTestBase extends RestApiTestBase {
         poolMember.setAddress("10.0.0.1");
         poolMember.setPoolId(poolId);
         poolMember.setProtocolPort(80);
-        poolMember.setStatus(DtoPoolMember.PoolMemberStatus.UP);
         poolMember.setWeight(100);
         poolMember.setAdminStateUp(true);
         return poolMember;

@@ -5,6 +5,8 @@ package org.midonet.cluster.data.l4lb;
 
 import com.google.common.base.Objects;
 import org.midonet.cluster.data.Entity;
+import org.midonet.midolman.state.LBStatus;
+import org.midonet.midolman.state.PoolHealthMonitorMappingStatus;
 
 import java.util.UUID;
 
@@ -102,12 +104,12 @@ public class Pool extends Entity.Base<UUID, Pool.Data, Pool>{
         return getData().adminStateUp;
     }
 
-    public Pool setStatus(String status) {
+    public Pool setStatus(LBStatus status) {
         getData().status = status;
         return self();
     }
 
-    public String getStatus() {
+    public LBStatus getStatus() {
         return getData().status;
     }
 
@@ -119,7 +121,9 @@ public class Pool extends Entity.Base<UUID, Pool.Data, Pool>{
         private String protocol;
         private String lbMethod;
         private boolean adminStateUp = true;
-        private String status;
+        private LBStatus status = LBStatus.ACTIVE;
+        private PoolHealthMonitorMappingStatus mappingStatus =
+                PoolHealthMonitorMappingStatus.ACTIVE;
 
         @Override
         public boolean equals(Object o) {
@@ -136,6 +140,7 @@ public class Pool extends Entity.Base<UUID, Pool.Data, Pool>{
             if (!Objects.equal(lbMethod, data.lbMethod)) return false;
             if (adminStateUp != data.adminStateUp) return false;
             if (!Objects.equal(status, data.status)) return false;
+            if (!Objects.equal(mappingStatus, data.mappingStatus)) return false;
             return true;
         }
 
@@ -156,6 +161,8 @@ public class Pool extends Entity.Base<UUID, Pool.Data, Pool>{
             result = 31 * result + (adminStateUp ? 1 : 0);
             result = 31 * result
                     + (status != null ? status.hashCode() : 0);
+            result = 31 * result
+                    + (mappingStatus != null ? mappingStatus.hashCode() : 0);
             return result;
         }
     }

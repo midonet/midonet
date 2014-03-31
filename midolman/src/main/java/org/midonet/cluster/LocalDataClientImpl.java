@@ -2051,9 +2051,6 @@ public class LocalDataClientImpl implements DataClient {
             poolMember.setId(UUID.randomUUID());
         UUID id = poolMember.getId();
 
-        // PoolMember's status should default to UP.
-        poolMember.setStatus(PoolMemberStatus.UP);
-
         PoolMemberConfig config = Converter.toPoolMemberConfig(poolMember);
 
         List<Op> ops = new ArrayList<>();
@@ -2254,6 +2251,10 @@ public class LocalDataClientImpl implements DataClient {
                         oldConfig.healthMonitorId);
         if (newConfig.equals(oldConfig))
             return;
+
+        // Set the internal status for the Pool-HealthMonitor mapping with the
+        // previous value.
+        newConfig.mappingStatus = oldConfig.mappingStatus;
 
         List<Op> ops = new ArrayList<>();
         if (isHealthMonitorChanged) {

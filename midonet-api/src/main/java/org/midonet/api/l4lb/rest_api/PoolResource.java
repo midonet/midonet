@@ -4,23 +4,6 @@
 
 package org.midonet.api.l4lb.rest_api;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-import javax.annotation.security.RolesAllowed;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
-
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
@@ -38,11 +21,29 @@ import org.midonet.api.validation.MessageProperty;
 import org.midonet.cluster.DataClient;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.InvalidStateOperationException;
+import org.midonet.midolman.state.LBStatus;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.StatePathExistsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import javax.annotation.security.RolesAllowed;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
 
 import static org.midonet.api.validation.MessageProperty.RESOURCE_EXISTS;
 import static org.midonet.api.validation.MessageProperty.getMessage;
@@ -130,6 +131,8 @@ public class PoolResource extends AbstractResource {
             MediaType.APPLICATION_JSON })
     public Response create(Pool pool)
             throws StateAccessException, SerializationException {
+        // `status` defaults to UP and users can't change it through the API.
+        pool.setStatus(LBStatus.ACTIVE);
         try {
             UUID id = dataClient.poolCreate(pool.toData());
             return Response.created(
@@ -225,10 +228,12 @@ public class PoolResource extends AbstractResource {
         @POST
         @RolesAllowed({ AuthRole.ADMIN })
         @Consumes({ VendorMediaType.APPLICATION_POOL_JSON,
-                MediaType.APPLICATION_JSON})
+                MediaType.APPLICATION_JSON })
         public Response create(Pool pool)
                 throws StateAccessException, SerializationException {
             pool.setLoadBalancerId(loadBalancerId);
+            // `status` defaults to UP and users can't change it through the API.
+            pool.setStatus(LBStatus.ACTIVE);
             try {
                 UUID id = dataClient.poolCreate(pool.toData());
                 return Response.created(

@@ -3,13 +3,15 @@
  */
 package org.midonet.api.l4lb;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.UriResource;
+import org.midonet.midolman.state.LBStatus;
 
-import javax.validation.constraints.NotNull;
-import javax.xml.bind.annotation.XmlRootElement;
 import java.net.URI;
 import java.util.UUID;
+import javax.validation.constraints.NotNull;
+import javax.xml.bind.annotation.XmlRootElement;
 
 /* Class representing pool info */
 @XmlRootElement
@@ -24,7 +26,7 @@ public class Pool extends UriResource {
     private String protocol;
     private String lbMethod;
     private boolean adminStateUp = true;
-    private String status;
+    private LBStatus status = LBStatus.ACTIVE;
 
     public UUID getId() {
         return id;
@@ -90,11 +92,12 @@ public class Pool extends UriResource {
         this.adminStateUp = adminStateUp;
     }
 
-    public String getStatus() {
+    @JsonIgnore
+    public LBStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(LBStatus status) {
         this.status = status;
     }
 

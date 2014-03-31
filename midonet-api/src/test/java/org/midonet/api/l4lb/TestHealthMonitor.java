@@ -16,6 +16,7 @@ import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoHealthMonitor;
 import org.midonet.client.dto.DtoLoadBalancer;
 import org.midonet.client.dto.DtoPool;
+import org.midonet.client.dto.LBStatus;
 
 import java.util.UUID;
 
@@ -129,6 +130,31 @@ public class TestHealthMonitor {
                     hm, NOT_FOUND);
             assertErrorMatches(error, MessageProperty.RESOURCE_NOT_FOUND,
                                "health monitor", hm.getId());
+        }
+
+        @Test
+        public void testCreateHealthMonitorAndStatusDefaultsToActive()
+                throws Exception {
+            DtoHealthMonitor hm = createStockHealthMonitor();
+            assertEquals(LBStatus.ACTIVE, hm.getStatus());
+
+            // Even if the users put values in the `status` property, it should
+            // be ignored and `status` should default to UP.
+            DtoHealthMonitor hm2 = getStockHealthMonitor();
+            hm2.setStatus(null);
+            hm2 = postHealthMonitor(hm2);
+            assertEquals(LBStatus.ACTIVE, hm2.getStatus());
+        }
+
+        @Test
+        public void testHealthMonitorCanNotBeChanged()
+                throws Exception {
+            DtoHealthMonitor hm = createStockHealthMonitor();
+            assertEquals(LBStatus.ACTIVE, hm.getStatus());
+
+            hm.setStatus(LBStatus.INACTIVE);
+            hm = updateHealthMonitor(hm);
+            assertEquals(LBStatus.ACTIVE, hm.getStatus());
         }
     }
 }

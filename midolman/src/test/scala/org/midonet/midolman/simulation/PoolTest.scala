@@ -22,7 +22,7 @@ import org.midonet.midolman._
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer4.NatLeaseManager
 import org.midonet.midolman.services.MessageAccumulator
-import org.midonet.midolman.state.PoolMemberStatus
+import org.midonet.midolman.state.{LBStatus, PoolHealthMonitorMappingStatus}
 import org.midonet.midolman.topology.{FlowTagger, VirtualTopologyActor}
 import org.midonet.odp.flows.{FlowActionSetKey, FlowKeyIPv4}
 import org.midonet.packets._
@@ -812,7 +812,7 @@ with OneInstancePerTest {
 
     private[this] def setPoolMemberHealthDownByIp(ip: Int) {
         val pm = getPoolMemberFromIp(ip)
-        setPoolMemberHealth(pm, PoolMemberStatus.DOWN)
+        setPoolMemberHealth(pm, LBStatus.INACTIVE)
     }
 
 }
