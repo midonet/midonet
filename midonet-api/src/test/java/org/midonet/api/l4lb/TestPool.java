@@ -14,7 +14,12 @@ import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 import org.midonet.api.VendorMediaType;
 import org.midonet.api.zookeeper.StaticMockDirectory;
-import org.midonet.client.dto.*;
+import org.midonet.client.dto.DtoError;
+import org.midonet.client.dto.DtoHealthMonitor;
+import org.midonet.client.dto.DtoLoadBalancer;
+import org.midonet.client.dto.DtoPool;
+import org.midonet.client.dto.DtoVip;
+import org.midonet.client.dto.LBStatus;
 
 import static javax.ws.rs.core.Response.Status.*;
 import static org.junit.Assert.assertEquals;
@@ -33,9 +38,13 @@ public class TestPool {
 
     public static class TestPoolCrud extends L4LBTestBase {
 
+        private DtoLoadBalancer loadBalancer;
+
         @Before
         public void setUp() {
             super.setUp();
+
+            loadBalancer = createStockLoadBalancer();
         }
 
         @After
@@ -86,7 +95,6 @@ public class TestPool {
             verifyNumberOfPools(0);
 
             // Post
-            DtoLoadBalancer loadBalancer = createStockLoadBalancer();
             DtoPool pool = createStockPool(loadBalancer.getId());
             verifyNumberOfPools(1);
 
@@ -109,7 +117,6 @@ public class TestPool {
 
         @Test
         public void testCreateIntializesReferences() {
-            DtoLoadBalancer loadBalancer = createStockLoadBalancer();
             DtoPool pool = getStockPool(loadBalancer.getId());
             DtoHealthMonitor healthMonitor = createStockHealthMonitor();
             pool.setHealthMonitorId(healthMonitor.getId());
@@ -121,7 +128,6 @@ public class TestPool {
         @Test
         public void testUpdateUpdatesReferences() {
             // Start with no health monitor.
-            DtoLoadBalancer loadBalancer = createStockLoadBalancer();
             DtoPool pool = createStockPool(loadBalancer.getId());
             assertNull(pool.getHealthMonitor());
 
@@ -157,7 +163,6 @@ public class TestPool {
 
         @Test
         public void testDeleteClearsBackrefs() {
-            DtoLoadBalancer loadBalancer = createStockLoadBalancer();
             DtoPool pool = getStockPool(loadBalancer.getId());
             DtoHealthMonitor healthMonitor = createStockHealthMonitor();
             pool.setHealthMonitorId(healthMonitor.getId());
@@ -180,7 +185,6 @@ public class TestPool {
 
         @Test
         public void testCreateWithBadHealthMonitorId() {
-            DtoLoadBalancer loadBalancer = createStockLoadBalancer();
             DtoPool pool = getStockPool(loadBalancer.getId());
             pool.setHealthMonitorId(UUID.randomUUID());
             DtoError error = dtoWebResource.postAndVerifyError(
@@ -191,7 +195,6 @@ public class TestPool {
 
         @Test
         public void testCreateWithDuplicatePoolId() {
-            DtoLoadBalancer loadBalancer = createStockLoadBalancer();
             DtoPool pool1 = createStockPool(loadBalancer.getId());
             DtoPool pool2 = getStockPool(loadBalancer.getId());
             pool2.setId(pool1.getId());
@@ -217,7 +220,6 @@ public class TestPool {
 
         @Test
         public void testUpdateWithBadPoolId() throws Exception {
-            DtoLoadBalancer loadBalancer = createStockLoadBalancer();
             DtoPool pool = createStockPool(loadBalancer.getId());
             pool.setId(UUID.randomUUID());
             pool.setUri(addIdToUri(topLevelPoolsUri, pool.getId()));
@@ -228,7 +230,6 @@ public class TestPool {
 
         @Test
         public void testUpdateWithBadHealthMonitorId() {
-            DtoLoadBalancer loadBalancer = createStockLoadBalancer();
             DtoPool pool = createStockPool(loadBalancer.getId());
             pool.setHealthMonitorId(UUID.randomUUID());
             DtoError error = dtoWebResource.putAndVerifyBadRequest(
@@ -240,7 +241,6 @@ public class TestPool {
         @Test
         public void testListVips() {
             // Should start out empty.
-            DtoLoadBalancer loadBalancer = createStockLoadBalancer();
             DtoPool pool = createStockPool(loadBalancer.getId());
             DtoVip[] vips = getVips(pool.getVips());
             assertEquals(0, vips.length);
@@ -297,7 +297,6 @@ public class TestPool {
         synchronized public void testPoolsOfLoadBalancer() {
             int poolsCounter = 0;
             // Create two Pools in advance.
-            DtoLoadBalancer loadBalancer = createStockLoadBalancer();
             DtoPool pool1 = createStockPool(loadBalancer.getId());
             poolsCounter++;
             assertEquals(loadBalancer.getId(), pool1.getLoadBalancerId());
@@ -327,6 +326,31 @@ public class TestPool {
                 assertEquals(originalPool, retrievedPool);
 
             }
+        }
+
+        @Test
+        public void testCreatePoolAndStatusDefaultsToUp()
+                throws Exception {
+            DtoPool pool = createStockPool(loadBalancer.getId());
+            assertEquals(LBStatus.ACTIVE, pool.getStatus());
+
+            // Even if the users put values in the `status` property, it should
+            // be ignored and `status` should default to UP.
+            DtoPool pool2 = getStockPool(loadBalancer.getId());
+            pool2.setStatus(null);
+            pool2 = postPool(pool2);
+            assertEquals(LBStatus.ACTIVE, pool2.getStatus());
+        }
+
+        @Test
+        public void testPoolStatusCanNotBeChanged()
+                throws Exception {
+            DtoPool pool = createStockPool(loadBalancer.getId());
+            assertEquals(LBStatus.ACTIVE, pool.getStatus());
+
+            pool.setStatus(LBStatus.INACTIVE);
+            pool = updatePool(pool);
+            assertEquals(LBStatus.ACTIVE, pool.getStatus());
         }
     }
 }

@@ -20,9 +20,9 @@ import org.midonet.midolman.l4lb.HaproxyHealthMonitor.ConfigUpdate
 import org.midonet.midolman.layer3.Route.NextHop.PORT
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.routingprotocols.IP
-import org.midonet.midolman.state.PoolMemberStatus
-import org.midonet.midolman.state.PoolMemberStatus.{DOWN => MemberDown}
-import org.midonet.midolman.state.PoolMemberStatus.{UP => MemberUp}
+import org.midonet.midolman.state.LBStatus
+import org.midonet.midolman.state.LBStatus.{INACTIVE => MemberInactive}
+import org.midonet.midolman.state.LBStatus.{ACTIVE => MemberActive}
 import org.midonet.netlink.{AfUnix, NetlinkSelectorProvider, UnixDomainChannel}
 
 import scala.collection.JavaConversions._
@@ -142,7 +142,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
                 val newUpNodes = upNodes diff currentUpNodes
                 val newDownNodes = downNodes diff currentDownNodes
 
-                def updateClient(id: UUID, status: PoolMemberStatus): Unit = {
+                def updateClient(id: UUID, status: LBStatus): Unit = {
                     val member = client.poolMemberGet(id)
                     if (member == null) {
                         log.error("pool member " + id.toString +
@@ -152,8 +152,8 @@ class HaproxyHealthMonitor(var config: PoolConfig,
                     member.setStatus(status)
                     client.poolMemberUpdate(member)
                 }
-                newUpNodes foreach (id => updateClient(id, MemberUp))
-                newDownNodes foreach (id => updateClient(id, MemberDown))
+                newUpNodes foreach (id => updateClient(id, MemberActive))
+                newDownNodes foreach (id => updateClient(id, MemberInactive))
 
                 currentUpNodes = upNodes
                 currentDownNodes = downNodes

@@ -38,6 +38,7 @@ import org.midonet.api.validation.MessageProperty;
 import org.midonet.cluster.DataClient;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.InvalidStateOperationException;
+import org.midonet.midolman.state.LBStatus;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.StatePathExistsException;
@@ -45,7 +46,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static org.midonet.api.validation.MessageProperty.getMessage;
-import static org.midonet.api.validation.MessageProperty.POOL_MEMBER_WEIGHT_NEGATIVE;
 import static org.midonet.api.validation.MessageProperty.RESOURCE_EXISTS;
 
 @RequestScoped
@@ -128,7 +128,8 @@ public class PoolMemberResource extends AbstractResource {
             MediaType.APPLICATION_JSON })
     public Response create(PoolMember poolMember)
             throws StateAccessException, SerializationException {
-
+        // `status` defaults to UP and users can't change it through the API.
+        poolMember.setStatus(LBStatus.ACTIVE);
         validate(poolMember);
 
         if (poolMember.getWeight() == 0) {
@@ -230,6 +231,8 @@ public class PoolMemberResource extends AbstractResource {
                 throws StateAccessException,
                 InvalidStateOperationException, SerializationException {
             poolMember.setPoolId(poolId);
+            // `status` defaults to UP and users can't change it through the API.
+            poolMember.setStatus(LBStatus.ACTIVE);
             try {
                 UUID id = dataClient.poolMemberCreate(poolMember.toData());
                 return Response.created(

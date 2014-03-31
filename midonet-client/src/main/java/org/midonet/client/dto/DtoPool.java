@@ -4,11 +4,11 @@
 
 package org.midonet.client.dto;
 
-import javax.xml.bind.annotation.XmlRootElement;
+import com.google.common.base.Objects;
+
 import java.net.URI;
 import java.util.UUID;
-
-import com.google.common.base.Objects;
+import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
 public class DtoPool {
@@ -25,7 +25,9 @@ public class DtoPool {
     private String protocol;
     private String lbMethod;
     private boolean adminStateUp = true;
-    private String status;
+    private LBStatus status = LBStatus.ACTIVE;
+    private PoolHealthMonitorMappingStatus mappingStatus =
+            PoolHealthMonitorMappingStatus.ACTIVE;
 
     public UUID getId() {
         return id;
@@ -131,12 +133,20 @@ public class DtoPool {
         this.adminStateUp = adminStateUp;
     }
 
-    public String getStatus() {
+    public LBStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(LBStatus status) {
         this.status = status;
+    }
+
+    public PoolHealthMonitorMappingStatus getMappingStatus() {
+        return mappingStatus;
+    }
+
+    public void setMappingStatus(PoolHealthMonitorMappingStatus mappingStatus) {
+        this.mappingStatus = mappingStatus;
     }
 
     @Override
@@ -157,6 +167,8 @@ public class DtoPool {
         if (!Objects.equal(lbMethod, that.getLbMethod())) return false;
         if (adminStateUp != that.isAdminStateUp()) return false;
         if (!Objects.equal(status, that.getStatus())) return false;
+        if (!Objects.equal(mappingStatus,
+                that.getMappingStatus())) return false;
 
         return true;
     }
@@ -175,6 +187,8 @@ public class DtoPool {
         result = 31 * result + (lbMethod != null ? lbMethod.hashCode() : 0);
         result = 31 * result + (adminStateUp ? 1 : 0);
         result = 31 * result + (status != null ? status.hashCode() : 0);
+        result = 31 * result
+                + (mappingStatus != null ? mappingStatus.hashCode() : 0);
         return result;
     }
 }

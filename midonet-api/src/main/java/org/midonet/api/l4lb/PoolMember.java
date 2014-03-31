@@ -6,16 +6,16 @@ package org.midonet.api.l4lb;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.UriResource;
 import org.midonet.api.validation.MessageProperty;
-import org.midonet.midolman.state.PoolMemberStatus;
+import org.midonet.midolman.state.LBStatus;
 import org.midonet.util.StringUtil;
 
+import java.net.URI;
+import java.util.UUID;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.xml.bind.annotation.XmlRootElement;
-import java.net.URI;
-import java.util.UUID;
 
 /* Class representing pool member info */
 @XmlRootElement
@@ -23,7 +23,7 @@ public class PoolMember extends UriResource {
 
     private UUID id;
     private boolean adminStateUp = true;
-    private PoolMemberStatus status = PoolMemberStatus.UP;
+    private LBStatus status = LBStatus.ACTIVE;
 
     @NotNull
     private UUID poolId;
@@ -87,11 +87,11 @@ public class PoolMember extends UriResource {
         this.adminStateUp = adminStateUp;
     }
 
-    public PoolMemberStatus getStatus() {
+    public LBStatus getStatus() {
         return status;
     }
 
-    public void setStatus(PoolMemberStatus status) {
+    public void setStatus(LBStatus status) {
         this.status = status;
     }
 

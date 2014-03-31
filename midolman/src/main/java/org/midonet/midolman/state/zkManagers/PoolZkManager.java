@@ -3,14 +3,6 @@
  */
 package org.midonet.midolman.state.zkManagers;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.base.Objects;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
@@ -21,13 +13,23 @@ import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.DirectoryCallback;
 import org.midonet.midolman.state.DirectoryCallbackFactory;
+import org.midonet.midolman.state.LBStatus;
 import org.midonet.midolman.state.PathBuilder;
+import org.midonet.midolman.state.PoolHealthMonitorMappingStatus;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.state.zkManagers.HealthMonitorZkManager.HealthMonitorConfig;
 import org.midonet.midolman.state.zkManagers.LoadBalancerZkManager.LoadBalancerConfig;
 import org.midonet.midolman.state.zkManagers.PoolMemberZkManager.PoolMemberConfig;
 import org.midonet.midolman.state.zkManagers.VipZkManager.VipConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 import static java.util.Arrays.asList;
 
@@ -49,7 +51,8 @@ public class PoolZkManager
         public String protocol;
         public String lbMethod;
         public boolean adminStateUp;
-        public String status;
+        public LBStatus status;
+        public PoolHealthMonitorMappingStatus mappingStatus;
 
         public PoolConfig() {
             super();
@@ -62,7 +65,8 @@ public class PoolZkManager
                           String protocol,
                           String lbMethod,
                           boolean adminStateUp,
-                          String status) {
+                          LBStatus status,
+                          PoolHealthMonitorMappingStatus mappingStatus) {
             this.name = name;
             this.description = description;
             this.loadBalancerId = loadBalancerId;
@@ -71,6 +75,7 @@ public class PoolZkManager
             this.adminStateUp = adminStateUp;
             this.lbMethod = lbMethod;
             this.status = status;
+            this.mappingStatus = mappingStatus;
         }
 
         @Override
@@ -89,13 +94,16 @@ public class PoolZkManager
                     Objects.equal(protocol, that.protocol) &&
                     Objects.equal(lbMethod, that.lbMethod) &&
                     adminStateUp == that.adminStateUp &&
-                    Objects.equal(status, that.status);
+                    Objects.equal(status, that.status) &&
+                    Objects.equal(mappingStatus, that.mappingStatus);
+
         }
 
         @Override
         public int hashCode() {
             return Objects.hashCode(name, description, loadBalancerId,
-                    healthMonitorId, protocol, lbMethod, adminStateUp, status);
+                    healthMonitorId, protocol, lbMethod, adminStateUp, status,
+                    mappingStatus);
         }
     }
 

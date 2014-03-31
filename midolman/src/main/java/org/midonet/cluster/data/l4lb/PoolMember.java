@@ -5,7 +5,7 @@ package org.midonet.cluster.data.l4lb;
 
 import com.google.common.base.Objects;
 import org.midonet.cluster.data.Entity;
-import org.midonet.midolman.state.PoolMemberStatus;
+import org.midonet.midolman.state.LBStatus;
 
 import java.net.URI;
 import java.util.UUID;
@@ -77,12 +77,12 @@ public class PoolMember extends Entity.Base<UUID, PoolMember.Data, PoolMember>{
         return getData().adminStateUp;
     }
 
-    public PoolMember setStatus(PoolMemberStatus status) {
+    public PoolMember setStatus(LBStatus status) {
         getData().status = status;
         return self();
     }
 
-    public PoolMemberStatus getStatus() {
+    public LBStatus getStatus() {
         return getData().status;
     }
 
@@ -97,7 +97,7 @@ public class PoolMember extends Entity.Base<UUID, PoolMember.Data, PoolMember>{
 
     public boolean isUp() {
         return getWeight() > 0 && getAdminStateUp() &&
-               getStatus() == PoolMemberStatus.UP;
+               getStatus() == LBStatus.ACTIVE;
     }
 
     public static class Data {
@@ -106,7 +106,7 @@ public class PoolMember extends Entity.Base<UUID, PoolMember.Data, PoolMember>{
         private int protocolPort;
         private int weight;
         private boolean adminStateUp = true;
-        private PoolMemberStatus status;
+        private LBStatus status;
         private URI pool;
 
         @Override

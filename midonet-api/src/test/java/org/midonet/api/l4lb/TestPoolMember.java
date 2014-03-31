@@ -10,9 +10,12 @@ import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 import org.midonet.api.VendorMediaType;
-import org.midonet.api.validation.MessageProperty;
 import org.midonet.api.zookeeper.StaticMockDirectory;
-import org.midonet.client.dto.*;
+import org.midonet.client.dto.DtoError;
+import org.midonet.client.dto.DtoLoadBalancer;
+import org.midonet.client.dto.DtoPool;
+import org.midonet.client.dto.DtoPoolMember;
+import org.midonet.client.dto.LBStatus;
 
 import java.net.URI;
 import java.util.Arrays;
@@ -24,11 +27,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import static org.midonet.api.validation.MessageProperty.POOL_MEMBER_WEIGHT_NEGATIVE;
 import static org.midonet.api.validation.MessageProperty.RESOURCE_EXISTS;
 import static org.midonet.api.validation.MessageProperty.RESOURCE_NOT_FOUND;
 import static org.midonet.api.VendorMediaType.APPLICATION_POOL_MEMBER_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_POOL_MEMBER_COLLECTION_JSON;
 
 @RunWith(Enclosed.class)
 public class TestPoolMember {
@@ -328,32 +329,28 @@ public class TestPoolMember {
         }
 
         @Test
-        public void testCreatePoolMemberAndStatusDefaulsToUp()
+        public void testCreatePoolMemberAndStatusDefaultsToActive()
                 throws Exception {
             DtoPoolMember member = createStockPoolMember(pool.getId());
-            assertEquals(DtoPoolMember.PoolMemberStatus.UP,
-                    member.getStatus());
+            assertEquals(LBStatus.ACTIVE, member.getStatus());
 
             // Even if the users put values in the `status` property, it should
             // be ignored and `status` should default to UP.
             DtoPoolMember member2 = getStockPoolMember(pool.getId());
             member2.setStatus(null);
             member2 = postPoolMember(member2);
-            assertEquals(DtoPoolMember.PoolMemberStatus.UP,
-                    member2.getStatus());
+            assertEquals(LBStatus.ACTIVE, member2.getStatus());
         }
 
         @Test
         public void testPoolMemberStatusCanNotBeChanged()
                 throws Exception {
             DtoPoolMember member = createStockPoolMember(pool.getId());
-            assertEquals(DtoPoolMember.PoolMemberStatus.UP,
-                    member.getStatus());
+            assertEquals(LBStatus.ACTIVE, member.getStatus());
 
-            member.setStatus(DtoPoolMember.PoolMemberStatus.DOWN);
+            member.setStatus(LBStatus.INACTIVE);
             member = updatePoolMember(member);
-            assertEquals(DtoPoolMember.PoolMemberStatus.UP,
-                    member.getStatus());
+            assertEquals(LBStatus.ACTIVE, member.getStatus());
         }
     }
 }

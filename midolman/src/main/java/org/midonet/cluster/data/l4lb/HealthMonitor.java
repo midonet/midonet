@@ -5,6 +5,7 @@ package org.midonet.cluster.data.l4lb;
 
 import com.google.common.base.Objects;
 import org.midonet.cluster.data.Entity;
+import org.midonet.midolman.state.LBStatus;
 
 import java.util.UUID;
 
@@ -76,12 +77,12 @@ public class HealthMonitor
         return getData().adminStateUp;
     }
 
-    public HealthMonitor setStatus(String status) {
+    public HealthMonitor setStatus(LBStatus status) {
         getData().status = status;
         return self();
     }
 
-    public String getStatus() {
+    public LBStatus getStatus() {
         return getData().status;
     }
 
@@ -91,7 +92,7 @@ public class HealthMonitor
         private int timeout;
         private int maxRetries;
         private boolean adminStateUp = true;
-        private String status;
+        private LBStatus status;
 
         @Override
         public boolean equals(Object o) {

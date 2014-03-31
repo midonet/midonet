@@ -4,11 +4,12 @@
 
 package org.midonet.client.dto;
 
-import javax.xml.bind.annotation.XmlRootElement;
+import com.google.common.base.Objects;
+import org.codehaus.jackson.annotate.JsonIgnore;
+
 import java.net.URI;
 import java.util.UUID;
-
-import com.google.common.base.Objects;
+import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
 public class DtoHealthMonitor {
@@ -18,7 +19,7 @@ public class DtoHealthMonitor {
     private int timeout;
     private int maxRetries;
     private boolean adminStateUp = true;
-    private String status;
+    private LBStatus status = LBStatus.ACTIVE;
     private URI uri;
     private URI pools;
 
@@ -70,11 +71,12 @@ public class DtoHealthMonitor {
         this.adminStateUp = adminStateUp;
     }
 
-    public String getStatus() {
+    public LBStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    @JsonIgnore
+    public void setStatus(LBStatus status) {
         this.status = status;
     }
 
@@ -115,7 +117,7 @@ public class DtoHealthMonitor {
     @Override
     public int hashCode() {
         int result = id != null ? id.hashCode() : 0;
-        result = 31 * result + type != null ? type.hashCode() : 0;
+        result = 31 * result + (type != null ? type.hashCode() : 0);
         result = 31 * result + delay;
         result = 31 * result + timeout;
         result = 31 * result + maxRetries;

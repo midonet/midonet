@@ -3,23 +3,22 @@
  */
 package org.midonet.api.l4lb;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.UriResource;
+import org.midonet.midolman.state.LBStatus;
 
+import java.net.URI;
+import java.util.UUID;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.xml.bind.annotation.XmlRootElement;
-import java.net.URI;
-import java.util.UUID;
 
 /* Class representing health monitor info */
 @XmlRootElement
 public class HealthMonitor extends UriResource {
 
     public final String TYPE_PATTERN = "TCP";
-    public final String STATUS_PATTERN = "ACTIVE|DOWN|" +
-            "PENDING_CREATE|PENDING_UPDATE|PENDING_DELETE|" +
-            "INACTIVE|ERROR";
 
     private UUID id;
     @Pattern(regexp = TYPE_PATTERN,
@@ -32,9 +31,7 @@ public class HealthMonitor extends UriResource {
     @NotNull
     private int maxRetries;
     private boolean adminStateUp = true;
-    @Pattern(regexp = STATUS_PATTERN,
-             message = "is not in the pattern (" + STATUS_PATTERN + ")")
-    private String status;
+    private LBStatus status;
 
     public UUID getId() {
         return id;
@@ -84,11 +81,12 @@ public class HealthMonitor extends UriResource {
         this.adminStateUp = adminStateUp;
     }
 
-    public String getStatus() {
+    public LBStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    @JsonIgnore
+    public void setStatus(LBStatus status) {
         this.status = status;
     }
 

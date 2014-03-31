@@ -5,6 +5,7 @@ package org.midonet.midolman.state.zkManagers;
 
 import com.google.common.base.Objects;
 import org.apache.zookeeper.Op;
+import org.midonet.midolman.state.LBStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,8 +13,6 @@ import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.PathBuilder;
-import org.midonet.midolman.state.PoolMemberStatus;
-import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
 
 import java.util.List;
@@ -37,7 +36,7 @@ public class PoolMemberZkManager extends
         public int protocolPort;
         public int weight;
         public boolean adminStateUp;
-        public PoolMemberStatus status;
+        public LBStatus status;
 
         public PoolMemberConfig() {
             super();
@@ -48,7 +47,7 @@ public class PoolMemberZkManager extends
                                 int protocolPort,
                                 int weight,
                                 boolean adminStateUp,
-                                PoolMemberStatus status) {
+                                LBStatus status) {
             this.poolId = poolId;
             this.address = address;
             this.protocolPort = protocolPort;
