@@ -326,5 +326,34 @@ public class TestPoolMember {
             // Succeeds because delete is idempotent.
             deletePoolMember(addIdToUri(topLevelPoolMembersUri, UUID.randomUUID()));
         }
+
+        @Test
+        public void testCreatePoolMemberAndStatusDefaulsToUp()
+                throws Exception {
+            DtoPoolMember member = createStockPoolMember(pool.getId());
+            assertEquals(DtoPoolMember.PoolMemberStatus.UP,
+                    member.getStatus());
+
+            // Even if the users put values in the `status` property, it should
+            // be ignored and `status` should default to UP.
+            DtoPoolMember member2 = getStockPoolMember(pool.getId());
+            member2.setStatus(null);
+            member2 = postPoolMember(member2);
+            assertEquals(DtoPoolMember.PoolMemberStatus.UP,
+                    member2.getStatus());
+        }
+
+        @Test
+        public void testPoolMemberStatusCanNotBeChanged()
+                throws Exception {
+            DtoPoolMember member = createStockPoolMember(pool.getId());
+            assertEquals(DtoPoolMember.PoolMemberStatus.UP,
+                    member.getStatus());
+
+            member.setStatus(DtoPoolMember.PoolMemberStatus.DOWN);
+            member = updatePoolMember(member);
+            assertEquals(DtoPoolMember.PoolMemberStatus.UP,
+                    member.getStatus());
+        }
     }
 }
