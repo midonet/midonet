@@ -31,6 +31,9 @@ public class MidolmanService extends AbstractService {
     DatapathConnectionService datapathConnectionService;
 
     @Inject
+    SelectLoopService selectLoopService;
+
+    @Inject
     MetricsRegistry metrics;
 
     @Inject(optional = true)
@@ -42,6 +45,7 @@ public class MidolmanService extends AbstractService {
     @Override
     protected void doStart() {
         startService(datapathConnectionService);
+        startService(selectLoopService);
         startService(actorsService);
         startService(hostService);
         startService(storeService);
@@ -55,6 +59,7 @@ public class MidolmanService extends AbstractService {
             stopService(storeService);
             stopService(hostService);
             stopService(actorsService);
+            stopService(selectLoopService);
             stopService(datapathConnectionService);
 
             notifyStopped();

@@ -14,6 +14,7 @@ import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.services.DatapathConnectionService;
 import org.midonet.midolman.services.MidolmanActorsService;
 import org.midonet.midolman.services.MidolmanService;
+import org.midonet.midolman.services.SelectLoopService;
 import org.midonet.midolman.simulation.Chain;
 
 /**
@@ -41,7 +42,10 @@ public class MidolmanModule extends PrivateModule {
         bind(MetricsRegistry.class).toInstance(new MetricsRegistry());
         expose(MetricsRegistry.class);
 
-        requestStaticInjection(Chain.class);
+        bind(SelectLoopService.class)
+            .asEagerSingleton();
+
+       requestStaticInjection(Chain.class);
 
     }
 
