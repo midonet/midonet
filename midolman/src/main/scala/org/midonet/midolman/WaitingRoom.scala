@@ -43,16 +43,21 @@ class WaitingRoom[W](val timeout: Long = TimeUnit.SECONDS.toNanos(3)) {
         evictions
     }
 
+    def leave(w: W): Unit = {
+        waiters -= w
+    }
+
     private def doExpirations(): IndexedSeq[W] = {
         var evictions: mutable.ArrayBuffer[W] = null
         val now = System.nanoTime()
         while (timeouts.nonEmpty && (now - timeouts.head._2) > 0) {
-            if (evictions == null)
-                evictions = mutable.ArrayBuffer()
-
             val w = (timeouts remove 0)._1
-            evictions += w
-            waiters -= w
+            if (waiters contains w) {
+                if (evictions == null)
+                    evictions = mutable.ArrayBuffer()
+                evictions += w
+                waiters -= w
+            }
         }
 
         if (evictions == null)
