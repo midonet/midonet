@@ -33,12 +33,8 @@ import org.midonet.midolman.simulation.Bridge
 import org.midonet.midolman.simulation.Coordinator.Device
 import org.midonet.midolman.state.DirectoryCallback.Result
 import org.midonet.midolman.state.{ZkConnectionAwareWatcher, DirectoryCallback}
-import org.midonet.midolman.topology.VirtualTopologyActor.{PortRequest, BridgeRequest, expiringAsk => VTAExpiringAsk}
 import org.midonet.midolman.topology.rcu.Host
 import org.midonet.util.concurrent._
-
-
-
 
 object HostConfigOperation extends Enumeration {
     val Added, Deleted = Value
@@ -463,6 +459,8 @@ abstract class VirtualToPhysicalMapperBase
         extends Actor with ActorLogWithoutPath {
 
     import VirtualToPhysicalMapper._
+    import VirtualTopologyActor.BridgeRequest
+    import VirtualTopologyActor.PortRequest
     import context.system
 
     def notifyLocalPortActive(vportID: UUID, active: Boolean) : Unit

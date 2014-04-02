@@ -189,7 +189,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
                            newWildFlow: Option[WildcardFlow] = None,
                            tags: ROSet[Any] = Set.empty,
                            removalCallbacks: Seq[Callback0] = Nil) {
-        log.debug("Creating flow {} for {}", wildFlow, cookieStr)
+        log.debug("Creating flow from {} for {}", wildFlow, cookieStr)
         val dpFlow = new Flow().setActions(wildFlow.getActions)
                                .setMatch(packet.getMatch)
         try {
