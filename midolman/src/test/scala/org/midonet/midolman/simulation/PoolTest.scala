@@ -615,8 +615,8 @@ with OneInstancePerTest {
             Then("cache should contain one map entry, with a high timeout")
 
             // Expect both cache values to have
-            // sticky source IP timeout - 5 mins / 300s
-            val expectedExpirationLength = 300000
+            // sticky source IP timeout - 24 hours / 86,400s
+            val expectedExpirationLength = 86400000
             assertCacheValueExpirations(expectedExpirationLength)
 
             Then("Another of the same packet is sent to the VIP")
