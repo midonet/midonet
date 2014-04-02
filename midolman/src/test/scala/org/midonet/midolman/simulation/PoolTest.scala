@@ -90,6 +90,12 @@ with OneInstancePerTest {
     var leaseMgrCacheField: Field = _
     var cachePrefixCacheField: Field = _
 
+    lazy val fromClientToVipUDP = (exteriorClientPort, clientToVipPktUDP)
+    def clientToVipPktUDP: Ethernet =
+        { eth src macClientSide dst exteriorClientPort.getHwAddr } <<
+            { ip4 src ipClientSide.toUnicastString dst vipIp.toUnicastString } <<
+            { udp src (clientSrcPort).toShort dst vipPort }
+
     lazy val fromClientToVip = fromClientToVipOffset(0)
     def fromClientToVipOffset(sourcePortOffset: Short) =
         (exteriorClientPort, clientToVipPktOffset(sourcePortOffset))
@@ -252,6 +258,21 @@ with OneInstancePerTest {
             When("a packet is sent to VIP")
 
             val flow = sendPacket (fromClientToVip)
+
+            Then("a drop flow should be installed")
+
+            flow should be (dropped {FlowTagger.invalidateFlowsByDevice(router.getId)})
+        }
+    }
+
+    feature("UDP traffic should not be accepted") {
+
+        scenario("UDP Packets to VIP should be dropped") {
+            Given("only one pool member up")
+
+            When("a UDP packet is sent to VIP")
+
+            val flow = sendPacket (fromClientToVipUDP)
 
             Then("a drop flow should be installed")
 
