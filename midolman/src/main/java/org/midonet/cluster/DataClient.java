@@ -163,6 +163,9 @@ public interface DataClient {
     List<Subnet> dhcpSubnetsGetByBridge(UUID bridgeId)
             throws StateAccessException, SerializationException;
 
+    List<Subnet> dhcpSubnetsGetByBridgeEnabled(UUID bridgeId)
+            throws StateAccessException, SerializationException;
+
     void dhcpHostsCreate(@Nonnull UUID bridgeId, @Nonnull IntIPv4 subnet,
                          org.midonet.cluster.data.dhcp.Host host)
             throws StateAccessException, SerializationException;

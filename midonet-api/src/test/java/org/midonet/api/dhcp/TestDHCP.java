@@ -26,7 +26,9 @@ import static org.midonet.client.VendorMediaType.APPLICATION_BRIDGE_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_DHCP_HOST_COLLECTION_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_DHCP_HOST_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_DHCP_SUBNET_COLLECTION_JSON;
+import static org.midonet.client.VendorMediaType.APPLICATION_DHCP_SUBNET_COLLECTION_JSON_V2;
 import static org.midonet.client.VendorMediaType.APPLICATION_DHCP_SUBNET_JSON;
+import static org.midonet.client.VendorMediaType.APPLICATION_DHCP_SUBNET_JSON_V2;
 import static org.midonet.client.VendorMediaType.APPLICATION_JSON_V2;
 
 public class TestDHCP extends JerseyTest {
@@ -58,6 +60,38 @@ public class TestDHCP extends JerseyTest {
     @After
     public void resetDirectory() throws Exception {
         StaticMockDirectory.clearDirectoryInstance();
+    }
+
+    @Test
+    public void testEnabled() {
+        ClientResponse response;
+
+        // Create an enabled subnet
+        DtoDhcpSubnet subnet1 = new DtoDhcpSubnet();
+        subnet1.setSubnetPrefix("10.0.0.0");
+        subnet1.setSubnetLength(24);
+        response = resource().uri(bridge.getDhcpSubnets())
+                .type(APPLICATION_DHCP_SUBNET_JSON_V2)
+                .post(ClientResponse.class, subnet1);
+        assertEquals(201, response.getStatus());
+
+        // Test GET
+        subnet1 = resource().uri(response.getLocation())
+                .accept(APPLICATION_DHCP_SUBNET_JSON_V2)
+                .get(DtoDhcpSubnet.class);
+        assertEquals(true, subnet1.isEnabled());
+
+        // Disable a subnet via update
+        subnet1.setEnabled(false);
+        response = resource().uri(subnet1.getUri())
+                .type(APPLICATION_DHCP_SUBNET_JSON_V2)
+                .put(ClientResponse.class, subnet1);
+        assertEquals(200, response.getStatus());
+
+        subnet1 = resource().uri(subnet1.getUri())
+                .accept(APPLICATION_DHCP_SUBNET_JSON_V2)
+                .get(DtoDhcpSubnet.class);
+        assertEquals(false, subnet1.isEnabled());
     }
 
     //@Test

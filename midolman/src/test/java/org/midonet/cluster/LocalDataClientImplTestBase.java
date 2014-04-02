@@ -11,6 +11,9 @@ import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.junit.Before;
+import org.midonet.cluster.data.Bridge;
+import org.midonet.cluster.data.dhcp.Opt121;
+import org.midonet.cluster.data.dhcp.Subnet;
 import org.midonet.cluster.data.l4lb.HealthMonitor;
 import org.midonet.cluster.data.l4lb.LoadBalancer;
 import org.midonet.cluster.data.l4lb.Pool;
@@ -30,13 +33,11 @@ import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.zkManagers.PoolMemberZkManager;
-import org.midonet.midolman.state.zkManagers.PoolZkManager;
-import org.midonet.midolman.state.zkManagers.RouteZkManager;
-import org.midonet.midolman.state.zkManagers.RouterZkManager;
-import org.midonet.midolman.state.zkManagers.VipZkManager;
+import org.midonet.midolman.state.zkManagers.*;
 import org.midonet.midolman.version.guice.VersionModule;
+import org.midonet.packets.IPv4Subnet;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.UUID;
 
@@ -66,6 +67,10 @@ public class LocalDataClientImplTestBase {
 
     PoolZkManager getPoolZkManager() {
         return injector.getInstance(PoolZkManager.class);
+    }
+
+    BridgeDhcpZkManager getBridgeDhcpZkManager() {
+        return injector.getInstance(BridgeDhcpZkManager.class);
     }
 
     Directory zkDir() {
@@ -98,6 +103,16 @@ public class LocalDataClientImplTestBase {
             }
         }
         Setup.ensureZkDirectoryStructureExists(zkDir(), zkRoot);
+    }
+
+    protected Bridge getStockBridge() {
+        return new Bridge()
+                .setAdminStateUp(true);
+    }
+
+    protected Subnet getStockSubnet(String cidr) {
+        return new Subnet()
+                .setSubnetAddr(new IPv4Subnet(cidr));
     }
 
     protected HealthMonitor getStockHealthMonitor() {
