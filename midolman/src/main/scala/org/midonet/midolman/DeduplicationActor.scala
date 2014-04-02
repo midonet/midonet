@@ -246,7 +246,12 @@ class DeduplicationActor(
     private def giveUpWorkflows(pws: IndexedSeq[PacketHandler]) {
         var i = 0
         while (i < pws.size) {
-            giveUpWorkflow(pws(i))
+            val workflow = pws(i)
+            if (workflow.idle)
+                giveUpWorkflow(workflow)
+            else
+                log.warning("Pending PacketWorkflow {} was scheduled " +
+                            "for cleanup but was not idle", workflow)
             i += 1
         }
     }
@@ -272,6 +277,7 @@ class DeduplicationActor(
      */
     private def complete(path: PipelinePath, pw: PacketHandler) {
         log.debug("Packet with {} processed", pw.cookieStr)
+        waitingRoom leave pw
         pw.cookie match {
             case Some(c) =>
                 applyFlow(c, pw)

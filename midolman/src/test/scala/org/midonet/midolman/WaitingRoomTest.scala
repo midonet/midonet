@@ -32,7 +32,7 @@ class WaitingRoomTest extends FeatureSpec with Matchers {
             val wr = new WaitingRoom[Int](to)
             val w1 = 1
             val w2 = 2
-            val w3 = 2
+            val w3 = 3
 
             // add elements and verify size
             wr.count should be (0)
@@ -57,6 +57,15 @@ class WaitingRoomTest extends FeatureSpec with Matchers {
             evictions ++= wr enter w3 // this expires, then adds
             wr.count should be (1)
             evictions shouldEqual List(w1, w2)
+        }
+
+        scenario("A waiter leaving before timing out is not expired") {
+            val wr = new WaitingRoom[Int](to)
+            List(1,2,3) foreach { wr enter _ }
+            wr leave 2
+
+            Thread.sleep(TimeUnit.NANOSECONDS.toMillis(to))
+            (wr enter 4) should (contain(1) and contain(3) and not contain(2))
         }
     }
 }
