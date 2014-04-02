@@ -800,6 +800,18 @@ public class LocalDataClientImpl implements DataClient {
     @Override
     public void dhcpSubnetsUpdate(@Nonnull UUID bridgeId, @Nonnull Subnet subnet)
             throws StateAccessException, SerializationException {
+
+        Subnet oldSubnet = dhcpSubnetsGet(bridgeId, subnet.getSubnetAddr());
+        if (oldSubnet == null) {
+            return;
+        }
+
+        // If isEnabled was not specified in the request, just set it to the
+        // previous value.
+        if (subnet.isEnabled() == null) {
+            subnet.setEnabled(oldSubnet.isEnabled());
+        }
+
         dhcpZkManager.updateSubnet(bridgeId,
                 Converter.toDhcpSubnetConfig(subnet));
     }
@@ -835,6 +847,22 @@ public class LocalDataClientImpl implements DataClient {
 
         for (IntIPv4 subnetConfig : subnetConfigs) {
             subnets.add(dhcpSubnetsGet(bridgeId, subnetConfig));
+        }
+
+        return subnets;
+    }
+
+    @Override
+    public List<Subnet> dhcpSubnetsGetByBridgeEnabled(UUID bridgeId)
+            throws StateAccessException, SerializationException {
+
+        List<BridgeDhcpZkManager.Subnet> subnetConfigs =
+                dhcpZkManager.getEnabledSubnets(bridgeId);
+        List<Subnet> subnets = new ArrayList<>(subnetConfigs.size());
+
+        for (BridgeDhcpZkManager.Subnet subnetConfig : subnetConfigs) {
+            subnets.add(dhcpSubnetsGet(bridgeId,
+                    subnetConfig.getSubnetAddr()));
         }
 
         return subnets;

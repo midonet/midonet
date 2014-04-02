@@ -578,14 +578,18 @@ public class Converter {
 
         List<BridgeDhcpZkManager.Opt121> opt121Configs =
                 new ArrayList<BridgeDhcpZkManager.Opt121>();
-        for (Opt121 opt121 : subnet.getOpt121Routes()) {
-            opt121Configs.add(toDhcpOpt121Config(opt121));
+        if (subnet.getOpt121Routes() != null) {
+            for (Opt121 opt121 : subnet.getOpt121Routes()) {
+                opt121Configs.add(toDhcpOpt121Config(opt121));
+            }
         }
 
+        // If isEnabled is not set, default to enabled
+        boolean enabled = (subnet.isEnabled() == null || subnet.isEnabled());
         return new BridgeDhcpZkManager.Subnet(subnet.getSubnetAddr(),
                 subnet.getDefaultGateway(), subnet.getServerAddr(),
                 subnet.getDnsServerAddrs(), subnet.getInterfaceMTU(),
-                opt121Configs);
+                opt121Configs, enabled);
     }
 
     public static Subnet fromDhcpSubnetConfig(
@@ -605,7 +609,8 @@ public class Converter {
                 .setDnsServerAddrs(subnetConfig.getDnsServerAddrs())
                 .setInterfaceMTU(subnetConfig.getInterfaceMTU())
                 .setSubnetAddr(
-                    IntIPv4.toIPv4Subnet(subnetConfig.getSubnetAddr()));
+                    IntIPv4.toIPv4Subnet(subnetConfig.getSubnetAddr()))
+                .setEnabled(subnetConfig.isEnabled());
     }
 
     public static BridgeDhcpZkManager.Opt121 toDhcpOpt121Config(

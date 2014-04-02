@@ -8,6 +8,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.midonet.api.RelativeUriResource;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.cluster.data.dhcp.Opt121;
@@ -15,6 +16,7 @@ import org.midonet.cluster.data.dhcp.Subnet;
 import org.midonet.packets.IntIPv4;
 import org.midonet.packets.IPv4Subnet;
 import org.midonet.util.StringUtil;
+import org.midonet.util.version.Since;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
@@ -50,6 +52,9 @@ public class DhcpSubnet extends RelativeUriResource {
     private int interfaceMTU;
 
     private List<DhcpOption121> opt121Routes;
+
+    @Since("2")
+    private Boolean enabled = true;
 
     /* Default constructor is needed for parsing/unparsing. */
     public DhcpSubnet() {
@@ -91,6 +96,7 @@ public class DhcpSubnet extends RelativeUriResource {
                 routes.add(new DhcpOption121(opt));
         }
         this.setOpt121Routes(routes);
+        this.enabled = subnet.isEnabled();
     }
 
     public String getSubnetPrefix() {
@@ -149,6 +155,14 @@ public class DhcpSubnet extends RelativeUriResource {
         this.opt121Routes = opt121Routes;
     }
 
+    public Boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(Boolean enabled) {
+        this.enabled = enabled;
+    }
+
     public URI getHosts() {
         if (getUri() != null) {
             return ResourceUriBuilder.getDhcpHosts(getUri());
@@ -191,7 +205,8 @@ public class DhcpSubnet extends RelativeUriResource {
                 .setOpt121Routes(routes)
                 .setServerAddr(srvAddr)
                 .setDnsServerAddrs(dnsSrvAddrs)
-                .setInterfaceMTU((short)interfaceMTU);
+                .setInterfaceMTU((short)interfaceMTU)
+                .setEnabled(enabled);
     }
 
     @Override
@@ -202,6 +217,7 @@ public class DhcpSubnet extends RelativeUriResource {
                 + ", dnsServerAddrs='" + dnsServerAddrs + '\''
                 + ", interfaceMTU='" + interfaceMTU + '\''
                 + ", opt121Routes=" + opt121Routes
+                + ", enabled=" + enabled
                 + '}';
     }
 }

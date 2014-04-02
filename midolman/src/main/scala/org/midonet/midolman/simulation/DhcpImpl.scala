@@ -63,7 +63,7 @@ class DhcpImpl(val dataClient: DataClient,
 
     private def dhcpFromBridgePort(port: BridgePort): Option[Ethernet] = {
         // TODO(pino): use an async API
-        val subnets = dataClient.dhcpSubnetsGetByBridge(port.deviceID)
+        val subnets = dataClient.dhcpSubnetsGetByBridgeEnabled(port.deviceID)
 
         // Look for the DHCP's source MAC in the list of hosts in each subnet
         var host: Host = null
@@ -71,6 +71,7 @@ class DhcpImpl(val dataClient: DataClient,
         val assignment = subnets.find{ sub =>
             log.debug("Find assignment for MAC {} DhcpSubnet {} ",
                       sourceMac, sub)
+
             // TODO(pino): make this asynchronous?
             host = dataClient.dhcpHostsGet(port.deviceID,
                                            sub.getSubnetAddr,

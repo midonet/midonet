@@ -81,6 +81,15 @@ public class Subnet extends Entity.Base<String, Subnet.Data, Subnet> {
         return self();
     }
 
+    public Boolean isEnabled() {
+        return getData().enabled;
+    }
+
+    public Subnet setEnabled(Boolean enabled) {
+        getData().enabled = enabled;
+        return self();
+    }
+
     public static class Data {
 
         public IntIPv4 subnetAddr;
@@ -89,6 +98,7 @@ public class Subnet extends Entity.Base<String, Subnet.Data, Subnet> {
         short interfaceMTU;
         public List<Opt121> opt121Routes;
         public List<IntIPv4> dnsServerAddrs;
+        public Boolean enabled;
 
         @Override
         public String toString() {
@@ -99,6 +109,7 @@ public class Subnet extends Entity.Base<String, Subnet.Data, Subnet> {
                     ", interfaceMTU=" + interfaceMTU +
                     ", defaultGateway=" + defaultGateway +
                     ", opt121Routes=" + opt121Routes +
+                    ", enabled=" + enabled +
                     '}';
         }
     }
