@@ -470,12 +470,6 @@ class FlowController extends Actor with ActorLogWithoutPath {
                 }
             }
 
-            if (flow.getMatch.isUserSpaceOnly) {
-                // the DP doesn't need to remove userspace-only flows
-                self ! FlowRemoved(flow)
-                return
-            }
-
             datapathConnection(flow.getMatch).flowsDelete(datapath, flow,
                 new NetlinkCallback[Flow] {
                     override def onTimeout() {
