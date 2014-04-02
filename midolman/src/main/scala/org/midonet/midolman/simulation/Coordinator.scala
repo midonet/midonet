@@ -481,12 +481,11 @@ class Coordinator(var origMatch: WildcardMatch,
 
         Ready(cookie match {
             case None =>
-                log.debug("No cookie. SendPacket with actions {}", actions)
+                log.debug("SendPacket with actions {}", actions)
                 pktContext.runFlowRemovedCallbacks()
                 SendPacket(actions.toList)
             case Some(_) =>
-                log.debug("Cookie {}; Add a flow with actions {}",
-                    cookie.get, actions)
+                log.debug("Add a flow with actions {}", actions)
                 // TODO(guillermo,pino) don't assume that portset id == bridge id
                 if (pktContext.isConnTracked && pktContext.isForwardFlow) {
                     // Write the packet's data to the connectionCache.
