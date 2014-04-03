@@ -177,11 +177,58 @@ public class ZkManager {
     public String addEphemeral(String path, byte[] data)
             throws StateAccessException {
         try {
-            return zk.add(path, null, CreateMode.EPHEMERAL);
+            return zk.add(path, data, CreateMode.EPHEMERAL);
         } catch (Exception ex) {
             throw processException(
                     ex, "adding an ephemeral node at path " + path);
         }
+    }
+
+    /**
+     * Creates an ephemeral node if none exists at the specified path.
+     * If there already exists one, then it deletes and recreates the
+     * node as an ephemeral in order to own it.
+     */
+    public String ensureEphemeral(String path, byte[] data)
+            throws StateAccessException {
+        try {
+            deleteEphemeral(path);
+        } catch (NoStatePathException ignored) { }
+
+        try {
+            return zk.add(path, data, CreateMode.EPHEMERAL);
+        } catch (Exception ex) {
+            throw processException(
+                    ex, "adding an ephemeral node at path " + path);
+        }
+    }
+
+    /**
+     * Asynchronously creates an ephemeral node if none exists at the
+     * specified path. If there already exists one, then it deletes and
+     * recreates the node as an ephemeral in order to own it.
+     */
+    public void ensureEphemeralAsync(final String path, final byte[] data,
+                                     final DirectoryCallback.Add cb) {
+        asyncDelete(path, new DirectoryCallback.Void() {
+            @Override
+            public void onSuccess(Result<java.lang.Void> result) {
+                zk.asyncAdd(path, data, CreateMode.EPHEMERAL, cb);
+            }
+
+            @Override
+            public void onTimeout() {
+                cb.onTimeout();
+            }
+
+            @Override
+            public void onError(KeeperException e) {
+                if (e instanceof NoNodeException)
+                    onSuccess(null);
+                else
+                    cb.onError(e);
+            }
+        });
     }
 
     public void deleteEphemeral(String path) throws StateAccessException {
