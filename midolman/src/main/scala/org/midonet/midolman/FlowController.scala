@@ -162,7 +162,7 @@ object FlowController extends Referenceable {
     def queryWildcardFlowTable(wildMatch: WildcardMatch)
     : Option[ManagedWildcardFlow] = {
         var wildFlow: ManagedWildcardFlow = null
-
+        wildMatch.doNotTrackSeenFields()
         for (entry <- wildcardTables.entrySet()) {
             val table = entry.getValue
             val pattern = entry.getKey
@@ -177,7 +177,7 @@ object FlowController extends Referenceable {
                 }
             }
         }
-
+        wildMatch.doTrackSeenFields()
         Option(wildFlow)
     }
 
