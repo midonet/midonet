@@ -42,10 +42,11 @@ class MockUpcallDatapathConnectionManager(config: MidolmanConfig)
     }
 
     override def createAndHookDpPort(datapath: Datapath, port: DpPort)(
-            implicit ec: ExecutionContext, as: ActorSystem): Future[DpPort] = {
+            implicit ec: ExecutionContext, as: ActorSystem)
+    : Future[(DpPort,Int)] = {
         initialize()
         val ovsConOps = new OvsConnectionOps(conn.getConnection)
-        ovsConOps createPort (port, datapath)
+        ovsConOps createPort (port, datapath) map { (_, 1) }
     }
 
     override def deleteDpPort(datapath: Datapath, port: DpPort)(

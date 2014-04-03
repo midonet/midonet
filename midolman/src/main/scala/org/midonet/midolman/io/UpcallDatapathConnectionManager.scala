@@ -44,7 +44,7 @@ abstract class UpcallDatapathConnectionManager(val config: MidolmanConfig,
 
     def createAndHookDpPort(datapath: Datapath, port: DpPort)
                            (implicit ec: ExecutionContext, as: ActorSystem)
-    : Future[DpPort] = {
+    : Future[(DpPort, Int)] = {
 
         val connName = "port-upcall-" + port.getName
         log.info("creating datapath connection for {}", port.getName)
@@ -66,7 +66,7 @@ abstract class UpcallDatapathConnectionManager(val config: MidolmanConfig,
             dpConn setCallbackDispatcher cbDispatcher
             setUpcallHandler(dpConn, workers)
             ensurePortPid(port, datapath, dpConn) andThen {
-                case Success(createdPort) =>
+                case Success((createdPort, _)) =>
                     val kv = ((datapath, createdPort.getPortNo.intValue), conn)
                     portToChannel += kv
                 case Failure(e) =>
@@ -95,7 +95,7 @@ abstract class UpcallDatapathConnectionManager(val config: MidolmanConfig,
                         // upcall pid to the channel sending the request.
                         dpConnOps.setPort(existingPort, dp)
                 }
-        }
+        } map { (_, con.getChannel.getLocalAddress.getPid) }
     }
 
     def deleteDpPort(datapath: Datapath, port: DpPort)(
