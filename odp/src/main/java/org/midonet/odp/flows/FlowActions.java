@@ -17,10 +17,6 @@ public class FlowActions {
         return new FlowActionOutput(portNumber);
     }
 
-    public static FlowActionUserspace userspace() {
-        return new FlowActionUserspace(0);
-    }
-
     public static FlowActionUserspace userspace(int uplinkPid) {
         return new FlowActionUserspace(uplinkPid);
     }
