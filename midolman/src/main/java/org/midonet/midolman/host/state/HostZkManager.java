@@ -13,7 +13,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.apache.zookeeper.Op;
+
 import org.midonet.cluster.data.Converter;
 import org.midonet.cluster.data.Port;
 import org.midonet.midolman.serialization.SerializationException;
@@ -26,8 +30,7 @@ import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.state.zkManagers.PortZkManager;
 import org.midonet.midolman.version.DataWriteVersion;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import static org.midonet.midolman.host.state.HostDirectory.Command;
 
 /**
@@ -104,9 +107,9 @@ public class HostZkManager
         return ops;
     }
 
-    public void makeAlive(UUID hostId)
-            throws StateAccessException, SerializationException {
-        zk.addEphemeral(paths.getHostPath(hostId) + "/alive", new byte[0]);
+    public void makeAlive(UUID hostId) throws StateAccessException {
+        String path = paths.getHostPath(hostId) + "/alive";
+        zk.ensureEphemeral(path, new byte[0]);
     }
 
     /*
@@ -125,8 +128,9 @@ public class HostZkManager
             operations.add(zk.getPersistentCreateOp(versionPath, null));
         }
         zk.multi(operations);
-        zk.addEphemeral(paths.getHostVersionPath(hostId, DataWriteVersion.CURRENT),
-                        new byte[0]);
+        zk.ensureEphemeral(paths.getHostVersionPath(hostId,
+                                                    DataWriteVersion.CURRENT),
+                           new byte[0]);
     }
 
     public void updateMetadata(UUID hostId, HostDirectory.Metadata metadata)
