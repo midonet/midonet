@@ -198,7 +198,14 @@ object VirtualTopologyActor extends Referenceable {
 
         topology get id match {
             case Some(dev) => Ready(dev.asInstanceOf[D])
-            case None => NotYet(requestFuture(id, timeLeft, log, simLog))
+            case None =>
+                if (log != null)
+                    log.debug("{} {} not found in the virtual topology" +
+                              ", will suspend", tag, id)
+                else if (simLog != null)
+                    simLog.debug("{} {} not found in the virtual topology" +
+                              ", will suspend", tag, id)
+                NotYet(requestFuture(id, timeLeft, log, simLog))
         }
     }
 
