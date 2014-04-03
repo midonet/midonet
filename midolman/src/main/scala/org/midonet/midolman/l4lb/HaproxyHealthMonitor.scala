@@ -64,6 +64,7 @@ object HaproxyHealthMonitor {
     val RouterIp = "169.254.17.44"
     val NetLen = 30
     val NetAddr = "169.254.17.43"
+    val NameSpaceMAC = "0C:0C:0C:0C:0C:0C"
 
     // Constants used in parsing haproxy output
     val StatusPos = 17
@@ -265,11 +266,11 @@ class HaproxyHealthMonitor(var config: PoolConfig,
             IP.link("add name " + dp + " type veth peer name " + ns)
             IP.link("set " + dp + " up")
             IP.link("set " + ns + " netns " + name)
+            IP.execIn(name, "ip link set " + ns + " address " + NameSpaceMAC)
             IP.execIn(name, "ip link set " + ns + " up")
             IP.execIn(name, "ip address add " + NameSpaceIp + "/24 dev " + ns)
             IP.execIn(name, "ifconfig lo up")
-            IP.execIn(name, "route add default gateway " + RouterIp + " " +
-                            ns)
+            IP.execIn(name, "route add default gateway " + RouterIp + " " + ns)
             IP.execIn(name, iptablePre)
             IP.execIn(name, iptablePost)
         } catch {
