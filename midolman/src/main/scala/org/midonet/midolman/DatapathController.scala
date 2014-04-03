@@ -103,9 +103,6 @@ trait DatapathState extends VirtualPortsResolver with UnderlayResolver {
     // controller to the flow controller.
     def version: Long
 
-    // provide the netlink pid of the current datapath connection
-    def uplinkPid: Int
-
 }
 
 object DatapathController extends Referenceable {
@@ -143,9 +140,10 @@ object DatapathController extends Referenceable {
      * Message to ask a port operation inside the datapath. The operation can
      * either be a create or delete request according to the return value of
      * DpPortRequest#op. The sender will receive a DpPortReply holding the
-     * original request and which can be either of type DpPortSuccess to
-     * indicate a successful create/delete operation in the datapath or a
-     * DpPortError indicating some kind of error occured.
+     * original request and which can be either of type DpPortCreateSuccess to
+     * indicate a successful create operation, or of type DpPortDeleteSuccess to
+     * indicate a successful delete operation in the datapath, or otherwise a
+     * DpPortError indicating an error occured.
      */
     sealed trait DpPortRequest {
         val port: DpPort
@@ -157,7 +155,11 @@ object DatapathController extends Referenceable {
 
     sealed trait DpPortReply { val request: DpPortRequest }
 
-    case class DpPortSuccess(request: DpPortRequest, createdPort: DpPort)
+    case class DpPortCreateSuccess(request: DpPortRequest,
+                                   createdPort: DpPort,
+                                   uplinkPid: Int) extends DpPortReply
+
+    case class DpPortDeleteSuccess(request: DpPortRequest, createdPort: DpPort)
         extends DpPortReply
 
     case class DpPortError(
@@ -346,11 +348,6 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
             case m =>
                 log.info("Not handling {} (behaving as InitializationActor)", m)
         })
-        if (datapathConnection != null)
-            dpState.uplinkPid =
-                datapathConnection.getChannel.getLocalAddress.getPid
-        else
-            log.warning("preStart(): OvsDatapathConnection not yet initialized.")
     }
 
     override def receive: Actor.Receive = null
@@ -679,7 +676,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
 
         opReply match {
 
-            case DpPortSuccess(DpPortCreateGreTunnel(_, _), newPort) =>
+            case DpPortCreateSuccess(DpPortCreateGreTunnel(_, _), newPort, _) =>
                 dpState.setTunnelGre(Some(newPort))
 
             case DpPortError(req @ DpPortCreateGreTunnel(p, tags), _, _) =>
@@ -687,7 +684,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
                     "GRE port creation failed: {} => scheduling retry", opReply)
                 system.scheduler.scheduleOnce(5 second, self, req)
 
-            case DpPortSuccess(DpPortCreateVxLanTunnel(_, _), newPort) =>
+            case DpPortCreateSuccess(DpPortCreateVxLanTunnel(_, _), newPort, _) =>
                 dpState.setTunnelVxLan(Some(newPort))
 
             case DpPortError(req @ DpPortCreateVxLanTunnel(p, tags), _, _) =>
@@ -695,10 +692,10 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
                     "VxLan port creation failed: {} => scheduling retry", opReply)
                 system.scheduler.scheduleOnce(5 second, self, req)
 
-            case DpPortSuccess(DpPortCreateNetdev(_, _), newPort) =>
+            case DpPortCreateSuccess(DpPortCreateNetdev(_, _), newPort, _) =>
                 dpState.dpPortAdded(newPort)
 
-            case DpPortSuccess(DpPortDeleteNetdev(_, _), newPort) =>
+            case DpPortDeleteSuccess(DpPortDeleteNetdev(_, _), newPort) =>
                 dpState.dpPortRemoved(newPort)
 
             case DpPortError(DpPortCreateNetdev(p, tag), false, ex) =>
@@ -726,9 +723,10 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
 
         /** used in tests only */
         opReply match {
-            case DpPortSuccess(req, _) =>
-                system.eventStream.publish(req)
-            case _ => // ignore, but explicitly to avoid warning
+            case _ : DpPortError =>
+                // ignore errors
+            case _ =>
+                system.eventStream.publish(opReply.request)
         }
     }
 
@@ -748,8 +746,8 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
         log.info("creating port: {} (by request of: {})", request.port, caller)
 
         upcallConnManager.createAndHookDpPort(datapath, request.port) onComplete {
-            case Success(port) =>
-                caller ! DpPortSuccess(request, port)
+            case Success((port, pid)) =>
+                caller ! DpPortCreateSuccess(request, port, pid)
 
             case Failure(ex) =>
                 caller ! exceptionToOpError(request, ex)
@@ -763,7 +761,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
 
         upcallConnManager.deleteDpPort(datapath, request.port) onComplete {
             case Success(b) =>
-                caller ! DpPortSuccess(request, request.port)
+                caller ! DpPortDeleteSuccess(request, request.port)
 
             case Failure(ex) =>
                 caller ! exceptionToOpError(request, ex)
@@ -1425,6 +1423,4 @@ class DatapathStateManager(val controller: VirtualPortManager.Controller)(
 
     override def getDpPortName(num: JInteger): Option[String] =
         _vportMgr.dpPortNumToInterface.get(num)
-
-    var uplinkPid: Int = 0
 }

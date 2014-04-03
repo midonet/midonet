@@ -374,11 +374,11 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                         stash()
                 }
 
-            case DpPortSuccess(DpPortCreateNetdev(_, _), netdevPort) =>
+            case DpPortCreateSuccess(_, netdevPort, pid) =>
                 log.debug("PortNetdevOpReply - create, for port {}", rport.id)
                 phase match {
                     case Starting =>
-                        netdevPortReady(netdevPort)
+                        netdevPortReady(netdevPort, pid)
                     case _ =>
                         log.error("PortNetdevOpReply expected only while " +
                             "Starting - we're now in {}", phase)
@@ -812,7 +812,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         log.debug("stopBGP - end")
     }
 
-    private def netdevPortReady(newPort: DpPort) {
+    private def netdevPortReady(newPort: DpPort, uplinkPid: Int) {
         log.debug("begin")
 
         // The internal port is ready. Set up the flows
@@ -825,7 +825,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         // the very first one to create the BGPd process
         val bgpPair = bgps.toList.head
         val bgp = bgpPair._2
-        setBGPFlows(newPort.getPortNo.shortValue(), bgp, rport)
+        setBGPFlows(newPort.getPortNo.shortValue(), bgp, rport, uplinkPid)
 
         bgpdProcess = new BgpdProcess(self, BGP_VTY_PORT,
             rport.portAddr.getAddress.toString, socketAddress,
@@ -860,7 +860,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
     }
 
     def setBGPFlows(localPortNum: Short, bgp: BGP,
-                    bgpPort: RouterPort) {
+                    bgpPort: RouterPort, uplinkPid: Int) {
 
         log.debug("setBGPFlows - begin")
 
@@ -958,8 +958,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
         wildcardFlow = WildcardFlow(
             wcmatch = wildcardMatch,
-            actions = List(output(localPortNum),
-                           userspace())) // Netlink Pid filled by datapath controller
+            actions = List(output(localPortNum), userspace(uplinkPid)))
 
         DatapathController ! addVirtualWildcardFlowMsg(wildcardFlow)
 

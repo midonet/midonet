@@ -57,9 +57,6 @@ class FlowTranslatorTest extends FeatureSpec
 
         var inPortUUID: Option[UUID] = None
 
-        def uplinkPid(pid: Int): Unit =
-            dpState.uplinkPid = pid
-
         def grePort(id: Int): Unit =
             dpState.grePort = id
 
@@ -263,12 +260,10 @@ class FlowTranslatorTest extends FeatureSpec
         }
     }
 
-    feature("UserspaceFlowAction is translated") {
-        translationScenario("The uplink pid is correctly set") { ctx =>
-            ctx uplinkPid 1
-
-            ctx translate userspace()
-            ctx verify (List(userspace(1)), Set.empty)
+    feature("FlowActionUserspace goes through untouched") {
+        translationScenario("The uplink pid is preserved") { ctx =>
+            ctx translate userspace(42)
+            ctx verify (List(userspace(42)), Set.empty)
         }
     }
 
@@ -288,11 +283,10 @@ class FlowTranslatorTest extends FeatureSpec
 
             ctx local port0 -> 2
             ctx local port1.getId -> 3
-            ctx uplinkPid 1
 
             ctx translate List(FlowActionOutputToVrnPort(port0),
                                FlowActionOutputToVrnPortSet(bridge.getId),
-                               userspace(),
+                               userspace(1),
                                pushVLAN(3))
             ctx verify (List(output(2), output(3), userspace(1), pushVLAN(3)),
                         Set(FlowTagger.invalidateDPPort(2),
@@ -349,7 +343,6 @@ class FlowTranslatorTest extends FeatureSpec
     class TestDatapathState extends DatapathState {
         var version: Long = 0
         var host: Host = null
-        var uplinkPid: Int = 0
         var dpPortNumberForVport = mutable.Map[UUID, Integer]()
         var peerTunnels = mutable.Map[UUID, (Int, Int)]()
         var grePort: Int = _
