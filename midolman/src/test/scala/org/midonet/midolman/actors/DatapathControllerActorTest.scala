@@ -47,8 +47,9 @@ class DatapathControllerActorTest extends TestKit(ActorSystem("DPCActorTest"))
         DpPortDeleteNetdev(dpPortDev, None)
     )
 
-    val portReplies = portRequests.map{ req => DpPortSuccess(req, req.port) } ++
-                        portRequests.map{ DpPortError(_, true, null)}
+    val portReplies =
+        portRequests.map{ req => DpPortCreateSuccess(req, req.port, 1) } ++
+            portRequests.map{ DpPortError(_, true, null) }
 
     val miscMessages = List[AnyRef](
         DpPortStatsRequest(UUID.randomUUID),

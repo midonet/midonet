@@ -18,7 +18,7 @@ import org.midonet.midolman.simulation.{Bridge, Chain}
 import org.midonet.midolman.topology.{FlowTagger, VirtualToPhysicalMapper}
 import org.midonet.midolman.topology.VirtualTopologyActor.expiringAsk
 import org.midonet.odp.flows._
-import org.midonet.odp.flows.FlowActions.{setKey, output, userspace}
+import org.midonet.odp.flows.FlowActions.{setKey, output}
 import org.midonet.sdn.flows.VirtualActions
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 import org.midonet.util.functors.Callback0
@@ -261,8 +261,6 @@ trait FlowTranslator {
                     epsa(Seq(s), s.portSetId, inPortUUID, dpTags, wMatch)
                 case p: FlowActionOutputToVrnPort =>
                     expandPortAction(Seq(p), p.portId, dpTags)
-                case u: FlowActionUserspace =>
-                    Ready(Seq(userspace(dpState.uplinkPid)))
                 case a =>
                     Ready(Seq[FlowAction](a))
             }
