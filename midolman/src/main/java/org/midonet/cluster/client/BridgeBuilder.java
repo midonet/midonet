@@ -7,11 +7,11 @@ package org.midonet.cluster.client;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import scala.Option;
 
 import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
-import scala.Option;
 
 public interface BridgeBuilder extends DeviceBuilder<BridgeBuilder> {
     void setTunnelKey(long key);
@@ -23,4 +23,5 @@ public interface BridgeBuilder extends DeviceBuilder<BridgeBuilder> {
                             Map<IPAddr, MAC> ipToMac);
     void setVlanBridgePeerPortId(Option<UUID> id);
     void setVlanPortMap(VlanPortMap vlanPortMap);
+    void updateMacEntry(short vlanId, MAC mac, UUID oldPort, UUID newPort);
 }

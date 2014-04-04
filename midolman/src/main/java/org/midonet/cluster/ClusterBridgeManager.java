@@ -11,8 +11,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import javax.inject.Inject;
+import scala.Option;
 
 import org.apache.zookeeper.KeeperException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.midonet.cluster.client.BridgeBuilder;
 import org.midonet.cluster.client.IpMacMap;
 import org.midonet.cluster.client.MacLearningTable;
@@ -33,9 +37,6 @@ import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 import org.midonet.util.functors.Callback3;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import scala.Option;
 
 public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
 
@@ -86,9 +87,11 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
                                 id, Bridge.UNTAGGED_VLAN_ID)));
                 macPortMap.setConnectionWatcher(connectionWatcher);
                 macPortMap.start();
-                builder.setMacLearningTable(Bridge.UNTAGGED_VLAN_ID,
-                        new MacLearningTableImpl(id, macPortMap,
-                                Bridge.UNTAGGED_VLAN_ID));
+                MacLearningTable table = new MacLearningTableImpl(
+                        id, macPortMap, Bridge.UNTAGGED_VLAN_ID);
+                builder.setMacLearningTable(Bridge.UNTAGGED_VLAN_ID, table);
+                table.notify(new MacTableNotifyCallBack(Bridge.UNTAGGED_VLAN_ID,
+                                                        builder));
 
                 ip4MacMap = new Ip4ToMacReplicatedMap(
                     bridgeMgr.getIP4MacMapDirectory(id));
@@ -142,7 +145,8 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
         };
     }
 
-    void updateLogicalPorts(BridgeBuilder builder, UUID bridgeId, boolean isUpdate)
+    private void updateLogicalPorts(
+            BridgeBuilder builder, UUID bridgeId, boolean isUpdate)
             throws StateAccessException {
 
         // This implementation won't keep the old tables and compute a diff
@@ -272,11 +276,12 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
         builder.setVlanBridgePeerPortId(Option.apply(vlanBridgePeerPortId));
         builder.setLogicalPortsMap(rtrMacToLogicalPortId, rtrIpToMac);
         builder.setVlanPortMap(vlanIdPortMap);
-        // Trigger the update, this method was called by a watcher, because
-        // something changed in the LogicalPortMap, so deliver the new maps.
-        if(isUpdate)
-            builder.build();
+    }
 
+    void buildLogicalPortUpdates(BridgeBuilder builder, UUID bridgeId)
+            throws StateAccessException {
+        updateLogicalPorts(builder, bridgeId, true);
+        builder.build();
     }
 
     class MacLearningTableImpl implements MacLearningTable {
@@ -387,10 +392,25 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
 
         public void run() {
             try {
-                updateLogicalPorts(builder, bridgeID, true);
+                buildLogicalPortUpdates(builder, bridgeID);
             } catch (StateAccessException e) {
                 connectionWatcher.handleError(describe(), this, e);
             }
+        }
+    }
+
+    private class MacTableNotifyCallBack implements Callback3<MAC, UUID, UUID> {
+        private short vlanId;
+        private BridgeBuilder builder = null;
+        public MacTableNotifyCallBack(short vlanId,
+                                      BridgeBuilder builder) {
+            this.vlanId = vlanId;
+            this.builder = builder;
+        }
+
+        @Override
+        public void call(MAC mac, UUID oldPort, UUID newPort) {
+            builder.updateMacEntry(vlanId, mac, oldPort, newPort);
         }
     }
 

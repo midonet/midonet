@@ -4,22 +4,25 @@
 
 package org.midonet.midolman.topology.builders
 
-import akka.actor.ActorRef
-import collection.mutable
+import java.lang.{Short => JShort}
 import java.util.{Map => JMap, Set => JSet, UUID}
+import scala.Some
+import scala.collection.JavaConversions._
+import scala.collection.mutable
 
+import akka.actor.ActorRef
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.client._
+import org.midonet.cluster.client.BridgeBuilder
+import org.midonet.cluster.client.IpMacMap
+import org.midonet.cluster.client.MacLearningTable
+import org.midonet.cluster.client.VlanPortMap
 import org.midonet.cluster.data.Bridge
 import org.midonet.midolman.FlowController
-import org.midonet.midolman.topology._
-import org.midonet.packets.{IPv4Addr, IPAddr, MAC}
-import org.midonet.util.functors.Callback3
-import java.lang.{Short => JShort}
-import collection.JavaConversions._
-import scala.Some
 import org.midonet.midolman.topology.BridgeConfig
+import org.midonet.midolman.topology.BridgeManager
+import org.midonet.midolman.topology.FlowTagger
+import org.midonet.packets.{IPv4Addr, IPAddr, MAC}
 
 
 /**
@@ -40,6 +43,7 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
         new mutable.HashMap[JShort, MacLearningTable]()
     private var ip4MacMap: IpMacMap[IPv4Addr] = null
     private var macToLogicalPortId: mutable.Map[MAC, UUID] = null
+    private var oldMacToLogicalPortId: mutable.Map[MAC, UUID] = null
     private var ipToMac: mutable.Map[IPAddr, MAC] = null
     private var vlanBridgePeerPortId: Option[UUID] = None
     private var vlanPortMap: VlanPortMap = null
@@ -63,7 +67,6 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
 
     def setMacLearningTable(vlanId: Short, table: MacLearningTable) {
         vlanMacTableMap.put(vlanId, table)
-        table.notify(new MacTableNotifyCallBack(vlanId))
     }
 
     override def setIp4MacMap(m: IpMacMap[IPv4Addr]) {
@@ -95,89 +98,105 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
 
     def setLogicalPortsMap(newMacToLogicalPortId: JMap[MAC, UUID],
                            newIpToMac: JMap[IPAddr, MAC]) {
+        oldMacToLogicalPortId = macToLogicalPortId
+        macToLogicalPortId = newMacToLogicalPortId
+        ipToMac = newIpToMac
+    }
+
+    /**
+     * Computes a diff between old / new MAC to logical port ID mappings, and
+     * send flow invalidation.
+     */
+    private def sendFlowInvalidation() {
         import collection.JavaConversions._
         log.debug("Diffing the maps.")
         // calculate diff between the 2 maps
-        if (null != macToLogicalPortId) {
+        if (null != oldMacToLogicalPortId) {
             val deletedPortMap =
-                macToLogicalPortId -- (newMacToLogicalPortId.keys)
+                oldMacToLogicalPortId -- (macToLogicalPortId.keys)
             // invalidate all the Unicast flows to the logical port
             for ((mac, portId) <- deletedPortMap) {
-                flowController !
-                    FlowController.InvalidateFlowsByTag(
+                flowController ! FlowController.InvalidateFlowsByTag(
                         FlowTagger.invalidateFlowsByLogicalPort(id, portId))
             }
             // 1. Invalidate all arp requests
             // 2. Invalidate all flooded flows to the router port's specific MAC
             // We don't expect MAC migration in this case otherwise we'd be
             // invalidating Unicast flows to the device port's MAC
-            val addedPortMap = newMacToLogicalPortId -- macToLogicalPortId.keys
+            val addedPortMap = macToLogicalPortId -- oldMacToLogicalPortId.keys
             if (addedPortMap.size > 0)
-                flowController !
-                FlowController.InvalidateFlowsByTag(
-                FlowTagger.invalidateArpRequests(id))
+                flowController ! FlowController.InvalidateFlowsByTag(
+                        FlowTagger.invalidateArpRequests(id))
+
             for ((mac, portId) <- addedPortMap) {
-                flowController !
-                    FlowController.InvalidateFlowsByTag(
-                        FlowTagger.invalidateFloodedFlowsByDstMac(id, mac,
-                            Bridge.UNTAGGED_VLAN_ID))
+                flowController ! FlowController.InvalidateFlowsByTag(
+                        FlowTagger.invalidateFloodedFlowsByDstMac(
+                                id, mac, Bridge.UNTAGGED_VLAN_ID))
             }
         }
-        macToLogicalPortId = newMacToLogicalPortId
-        ipToMac = newIpToMac
     }
 
-    def build() {
+    override def build() {
         log.debug("Building the bridge for {}", id)
-        // send messages to the BridgeManager
+        // send update info for bridges.
         // Convert the mutable map to immutable
         bridgeMgr ! BridgeManager.TriggerUpdate(cfg,
             collection.immutable.HashMap(vlanMacTableMap.toSeq: _*), ip4MacMap,
             collection.immutable.HashMap(macToLogicalPortId.toSeq: _*),
             collection.immutable.HashMap(ipToMac.toSeq: _*),
             vlanBridgePeerPortId, vlanPortMap)
+
+         // Note from Guillermo:
+         // There's a possible race here. We route flow invalidations through
+         // the VTA to make sure there's a happens before relationship between device
+         // updates and invalidations. Otherwise, a packet could get simulated with
+         // the old version of the device _after_ the invalidation took place,
+         // installing an obsolete flow that will skip invalidation.
+         //
+         // Not only that, but this invalidations need to go through the
+         // BridgeManager, because it's that class that sends to the VTA. If we sent
+         // the invalidation directly to the VTA from here we'd be incurring in the
+         // same race.
+         //
+         // Here we are sending directly to the FlowController, that looks wrong.
+         // TODO(tomohiko) Fix the possible race.
+         sendFlowInvalidation()
     }
 
-    private class MacTableNotifyCallBack(vlanId: JShort)
-        extends Callback3[MAC, UUID, UUID] {
-        final val log =
-            LoggerFactory.getLogger(classOf[MacTableNotifyCallBack])
+    override def updateMacEntry(
+            vlanId: Short, mac: MAC, oldPort: UUID, newPort: UUID) = {
+        log.debug("Mac-Port mapping for MAC {}, VLAN ID {} was updated" +
+            " from {} to {}", Array(mac, vlanId, oldPort, newPort))
 
-        def call(mac: MAC, oldPort: UUID, newPort: UUID) {
-            log.debug("Mac-Port mapping for MAC {}, VLAN ID {} was updated" +
-                " from {} to {}", Array(mac, vlanId, oldPort, newPort))
-
-            //1. MAC, VLAN was removed from port
-            if (newPort == null && oldPort != null) {
-                log.debug("MAC {}, VLAN ID {} removed from port {}",
-                    Array(mac, oldPort, vlanId))
-                flowController ! FlowController.InvalidateFlowsByTag(
+        //1. MAC, VLAN was removed from port
+        if (newPort == null && oldPort != null) {
+            log.debug("MAC {}, VLAN ID {} removed from port {}",
+                Array(mac, oldPort, vlanId))
+            flowController ! FlowController.InvalidateFlowsByTag(
                     FlowTagger.invalidateFlowsByPort(id, mac, vlanId, oldPort))
-            }
-            //2. MAC, VLAN moved from port-x to port-y
-            if (newPort != null && oldPort != null
-                && !newPort.equals(oldPort)) {
-                log.debug("MAC {}, VLAN ID {} moved from port {} to {}",
-                          Array(mac, vlanId, oldPort, newPort))
-                flowController ! FlowController.InvalidateFlowsByTag(
+        }
+        //2. MAC, VLAN moved from port-x to port-y
+        if (newPort != null && oldPort != null
+            && !newPort.equals(oldPort)) {
+            log.debug("MAC {}, VLAN ID {} moved from port {} to {}",
+                      Array(mac, vlanId, oldPort, newPort))
+            flowController ! FlowController.InvalidateFlowsByTag(
                     FlowTagger.invalidateFlowsByPort(id, mac, vlanId, oldPort))
-            }
-            //3. MAC was added -> invalidate flooded flows. Now we have the MAC
-            // entry in the table so we can deliver it to the proper port instead
-            // of flooding it.
-            // As regards broadcast or arp requests:
-            //   1. If this port was just added to the PortSet, the invalidation
-            //    will occur in the VirtualToPhysicalMapper.
-            //   2. If we just forgot the MAC port association, no need of invalidating,
-            //    the port was in the PortSet, broadcast and ARP requests were
-            //    correctly delivered.
-            if (newPort != null && oldPort == null){
-                log.debug("MAC {}, VLAN ID {} added to port {}",
-                    Array(mac, vlanId, newPort))
-                flowController ! FlowController.InvalidateFlowsByTag(
-                    FlowTagger.invalidateFloodedFlowsByDstMac(id, mac, vlanId)
-                )
-            }
+        }
+        //3. MAC was added -> invalidate flooded flows. Now we have the MAC
+        // entry in the table so we can deliver it to the proper port instead
+        // of flooding it.
+        // As regards broadcast or arp requests:
+        //   1. If this port was just added to the PortSet, the invalidation
+        //    will occur in the VirtualToPhysicalMapper.
+        //   2. If we just forgot the MAC port association, no need of invalidating,
+        //    the port was in the PortSet, broadcast and ARP requests were
+        //    correctly delivered.
+        if (newPort != null && oldPort == null){
+            log.debug("MAC {}, VLAN ID {} added to port {}",
+                      Array(mac, vlanId, newPort))
+            flowController ! FlowController.InvalidateFlowsByTag(
+                    FlowTagger.invalidateFloodedFlowsByDstMac(id, mac, vlanId))
         }
     }
 

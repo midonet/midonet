@@ -12,6 +12,4 @@ public interface DeviceBuilder<ConcreteDeviceBulder>
     ConcreteDeviceBulder setInFilter(UUID filterID);
 
     ConcreteDeviceBulder setOutFilter(UUID filterID);
-
-    void build();
 }
