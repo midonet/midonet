@@ -230,7 +230,7 @@ public class FlowManager {
         }
         // check if there's enough space
         if (howManyFlowsToRemoveToFreeSpace() > 0) {
-            log.info("The flow table is close to full capacity with {} dp flows",
+            log.debug("The flow table is close to full capacity with {} dp flows",
                       getNumDpFlows());
             // There's no point in trying to free space, because the remove
             // operation won't take place until the FlowController receives
