@@ -29,6 +29,7 @@ import org.midonet.cluster.data.ports.VlanMacPort;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.DirectoryCallback;
 import org.midonet.midolman.state.InvalidStateOperationException;
+import org.midonet.midolman.state.PoolHealthMonitorMappingStatus;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkLeaderElectionWatcher;
 import org.midonet.packets.IPv4Addr;
@@ -372,6 +373,9 @@ public interface DataClient {
             throws StateAccessException, SerializationException;
 
     List<VIP> poolGetVips(UUID id)
+            throws StateAccessException, SerializationException;
+
+    void poolSetMapStatus(UUID id, PoolHealthMonitorMappingStatus status)
             throws StateAccessException, SerializationException;
 
     /* VIP related methods */

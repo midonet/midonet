@@ -3,22 +3,24 @@
  */
 package org.midonet.midolman.l4lb
 
-import java.nio.channels.spi.SelectorProvider
-import java.util.UUID
-
 import akka.actor.{Actor, ActorRef, Props, ActorSystem}
 import com.typesafe.config.ConfigFactory
+import java.nio.channels.spi.SelectorProvider
+import java.util.UUID
+import org.junit.runner.RunWith
+import org.mockito.Mockito.{verify, reset, times}
 import org.scalatest._
 import org.scalatest.concurrent.Eventually._
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.matchers.ShouldMatchers
-
-import org.junit.runner.RunWith
-import org.midonet.netlink.{AfUnix, UnixDomainChannel}
-import org.midonet.netlink.AfUnix.Address
+import org.scalatest.mock.MockitoSugar
 import org.scalatest.time.{Span, Seconds}
-import org.midonet.cluster.DataClient
-import org.midonet.midolman.state.zkManagers.PortZkManager
+
+import org.midonet.cluster.{LocalDataClientImpl, DataClient, LocalClientImpl}
+import org.midonet.midolman.state.PoolHealthMonitorMappingStatus
+import org.midonet.netlink.AfUnix.Address
+import org.midonet.netlink.{AfUnix, UnixDomainChannel}
+import org.midonet.midolman.l4lb.HaproxyHealthMonitor.SetupFailure
 
 
 @RunWith(classOf[JUnitRunner])
@@ -26,7 +28,8 @@ class HaproxyHealthMonitorTest extends FeatureSpec
                                with ShouldMatchers
                                with GivenWhenThen
                                with BeforeAndAfter
-                               with OneInstancePerTest {
+                               with OneInstancePerTest
+                               with MockitoSugar {
 
     import HaproxyHealthMonitor.SockReadFailure
     import HaproxyHealthMonitor.ConfigUpdate
@@ -36,8 +39,9 @@ class HaproxyHealthMonitorTest extends FeatureSpec
     class Manager extends Actor {
         def receive = {
             case SockReadFailure =>
-              sockReadFailures += 1
-
+                sockReadFailures += 1
+            case SetupFailure =>
+                setupFailures += 1
             case x =>
         }
     }
@@ -47,6 +51,8 @@ class HaproxyHealthMonitorTest extends FeatureSpec
     // command handler for a "non-working" socket.
     var managerActor: ActorRef = _
     var actorSystem: ActorSystem = null
+    val poolId = UUID.randomUUID()
+    var mockClient = mock[LocalDataClientImpl]
 
     // Accounting variables to keep track of events that happen
     var confWrites = 0
@@ -54,6 +60,8 @@ class HaproxyHealthMonitorTest extends FeatureSpec
     var haproxyRestarts = 0
     var lastIpWritten: String = _
     var sockReadFailures = 0
+    var setupFailures = 0
+    var failUpdate = false
 
     // Special IP to cause a (fake) delay in the config write
     val DelayedIp = "11.11.11.11"
@@ -71,7 +79,7 @@ class HaproxyHealthMonitorTest extends FeatureSpec
         val member3  = new PoolMemberConfig(UUID.randomUUID(),
                                             "10.11.12.15", 81)
 
-        new PoolConfig(UUID.randomUUID(), UUID.randomUUID(), vip,
+        new PoolConfig(poolId, UUID.randomUUID(), vip,
                        Set(member1, member2, member3), healthMonitor, true,
                        path, "_MN")
     }
@@ -83,12 +91,13 @@ class HaproxyHealthMonitorTest extends FeatureSpec
         healthMonitorUT
             = actorSystem.actorOf(Props(new HaproxyHealthMonitorUT(
                 createFakePoolConfig("10.10.10.10", goodSocketPath),
-                                     managerActor, UUID.randomUUID(), null,
-                                     UUID.randomUUID())))
+                                     managerActor, UUID.randomUUID(),
+                                     mockClient, UUID.randomUUID())))
     }
 
     after {
         actorSystem.shutdown()
+        reset(mockClient)
     }
 
     feature("HaproxyHealthMonitor writes its config file") {
@@ -97,6 +106,8 @@ class HaproxyHealthMonitorTest extends FeatureSpec
             Then ("A config write should happen once")
             eventually { confWrites should be (1) }
             haproxyRestarts should be (1)
+            verify(mockClient, times(1)).poolSetMapStatus(poolId,
+                    PoolHealthMonitorMappingStatus.ACTIVE)
         }
         scenario ("Config change") {
             When ("We change the config of haproxy")
@@ -106,6 +117,8 @@ class HaproxyHealthMonitorTest extends FeatureSpec
             eventually { confWrites should be (2) }
             And ("Haproxy should have been restarted")
             eventually { haproxyRestarts should be (1) }
+            verify(mockClient, times(2)).poolSetMapStatus(poolId,
+                PoolHealthMonitorMappingStatus.ACTIVE)
         }
         scenario ("Config write is delayed") {
             When ("The config takes a long time to be written")
@@ -117,6 +130,20 @@ class HaproxyHealthMonitorTest extends FeatureSpec
             Then ("The last IP written should be the last config sent")
             eventually (timeout(Span(3, Seconds)))
                 { lastIpWritten should equal (NormalIp) }
+            verify(mockClient, times(3)).poolSetMapStatus(poolId,
+                PoolHealthMonitorMappingStatus.ACTIVE)
+            And ("The there is a problem with the update")
+            failUpdate = true
+            healthMonitorUT ! ConfigUpdate(createFakePoolConfig(NormalIp,
+                goodSocketPath))
+            Then ("The status should have been set to ERROR")
+            eventually { confWrites should be (4) }
+            eventually { setupFailures should be (1) }
+            verify(mockClient, times(3)).poolSetMapStatus(poolId,
+                PoolHealthMonitorMappingStatus.ACTIVE)
+            verify(mockClient, times(1)).poolSetMapStatus(poolId,
+                PoolHealthMonitorMappingStatus.ERROR)
+            failUpdate = false
         }
     }
 
@@ -125,6 +152,8 @@ class HaproxyHealthMonitorTest extends FeatureSpec
             When ("HaproxyHealthMonitor is started")
             Then ("then socket should read.")
             eventually (timeout(Span(2, Seconds))) { socketReads should be > 0}
+            verify(mockClient, times(1)).poolSetMapStatus(poolId,
+                PoolHealthMonitorMappingStatus.ACTIVE)
         }
         scenario ("HaproxyHealthMonitor fails to read a socket") {
             When (" A bad socket path is sent to HaproxyHealthMonitor")
@@ -132,7 +161,9 @@ class HaproxyHealthMonitorTest extends FeatureSpec
                                                                 badSocketPath))
             Then ("The manager should receive a failure notification")
             eventually (timeout(Span(2, Seconds)))
-                { sockReadFailures should be > 0}
+                { sockReadFailures should be > 0 }
+            verify(mockClient, times(1)).poolSetMapStatus(poolId,
+                PoolHealthMonitorMappingStatus.ERROR)
         }
     }
 
@@ -183,7 +214,12 @@ class HaproxyHealthMonitorTest extends FeatureSpec
         }
         override def hookNamespaceToRouter(nRouterId: UUID) = {}
         override def unhookNamespaceFromRouter = {}
-        override def startHaproxy(name: String) = 0
+        override def startHaproxy(name: String) = {
+            if (failUpdate) {
+                throw new Exception
+            }
+            0
+        }
         override def killHaproxyIfRunning(name: String, confFileLoc: String,
                                           pidFileLoc: String) = {}
     }

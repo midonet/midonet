@@ -2425,6 +2425,17 @@ public class LocalDataClientImpl implements DataClient {
         return vips;
     }
 
+    @Override
+    public void poolSetMapStatus(UUID id,
+                                 PoolHealthMonitorMappingStatus status)
+            throws StateAccessException, SerializationException{
+        PoolConfig pool = poolZkManager.get(id);
+        if (pool == null)
+            return;
+        pool.mappingStatus = status;
+        zkManager.multi(poolZkManager.prepareUpdate(id, pool));
+    }
+
     private Pair<String, PoolHealthMonitorMappingConfig>
     buildPoolHealthMonitorMappings(final UUID vipId,
                                    final @Nonnull VipConfig config,

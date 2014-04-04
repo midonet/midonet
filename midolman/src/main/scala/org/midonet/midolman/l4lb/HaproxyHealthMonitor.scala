@@ -20,7 +20,7 @@ import org.midonet.midolman.l4lb.HaproxyHealthMonitor.ConfigUpdate
 import org.midonet.midolman.layer3.Route.NextHop.PORT
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.routingprotocols.IP
-import org.midonet.midolman.state.LBStatus
+import org.midonet.midolman.state.{PoolHealthMonitorMappingStatus, LBStatus}
 import org.midonet.midolman.state.LBStatus.{INACTIVE => MemberInactive}
 import org.midonet.midolman.state.LBStatus.{ACTIVE => MemberActive}
 import org.midonet.netlink.{AfUnix, NetlinkSelectorProvider, UnixDomainChannel}
@@ -102,10 +102,12 @@ class HaproxyHealthMonitor(var config: PoolConfig,
             restartHaproxy(healthMonitorName, config.haproxyConfFileLoc,
                            config.haproxyPidFileLoc)
             system.scheduler.scheduleOnce(1 second, self, CheckHealth)
+            setPoolMapStatus(PoolHealthMonitorMappingStatus.ACTIVE)
         } catch {
             case e: Exception =>
                 log.error("Unable to create Health Monitor for " +
                           config.haproxyConfFileLoc)
+                setPoolMapStatus(PoolHealthMonitorMappingStatus.ERROR)
                 manager ! SetupFailure
         }
     }
@@ -115,6 +117,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
         HealthMonitor.cleanAndDeleteNamespace(healthMonitorName,
                                               config.nsPostFix,
                                               config.l4lbFileLocs)
+        setPoolMapStatus(PoolHealthMonitorMappingStatus.INACTIVE)
     }
 
     def receive = {
@@ -129,10 +132,12 @@ class HaproxyHealthMonitor(var config: PoolConfig,
                                          conf.haproxyConfFileLoc,
                                          conf.haproxyPidFileLoc)
                 }
+                setPoolMapStatus(PoolHealthMonitorMappingStatus.ACTIVE)
             } catch {
                 case e: Exception =>
                     log.error("Unable to update Health Monitor for " +
                               config.haproxyConfFileLoc)
+                    setPoolMapStatus(PoolHealthMonitorMappingStatus.ERROR)
                     manager ! SetupFailure
             }
 
@@ -162,13 +167,18 @@ class HaproxyHealthMonitor(var config: PoolConfig,
                 case e: Exception =>
                     log.error("Unable to retrieve health information for "
                               + config.haproxySockFileLoc)
+                    setPoolMapStatus(PoolHealthMonitorMappingStatus.ERROR)
                     manager ! SockReadFailure
             }
             system.scheduler.scheduleOnce(1 second, self, CheckHealth)
 
-        case RouterAdded(newRouterId) => hookNamespaceToRouter(newRouterId)
+        case RouterAdded(newRouterId) =>
+            hookNamespaceToRouter(newRouterId)
+            setPoolMapStatus(PoolHealthMonitorMappingStatus.ACTIVE)
 
-        case RouterRemoved => unhookNamespaceFromRouter()
+        case RouterRemoved =>
+            unhookNamespaceFromRouter()
+            setPoolMapStatus(PoolHealthMonitorMappingStatus.ACTIVE)
     }
 
     /*
@@ -234,10 +244,12 @@ class HaproxyHealthMonitor(var config: PoolConfig,
             case fnfe: FileNotFoundException =>
                 log.error("FileNotFoundException while trying to write " +
                           config.haproxyConfFileLoc)
+                setPoolMapStatus(PoolHealthMonitorMappingStatus.ERROR)
                 throw fnfe
             case uee: UnsupportedEncodingException =>
                 log.error("UnsupportedEncodingException while trying to " +
                           "write " + config.haproxyConfFileLoc)
+                setPoolMapStatus(PoolHealthMonitorMappingStatus.ERROR)
                 throw uee
         } finally {
             writer.close()
@@ -278,6 +290,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
                 HealthMonitor.cleanAndDeleteNamespace(name, config.nsPostFix,
                                                       config.l4lbFileLocs)
                 log.error("Failed to create Namespace: ", e.getMessage)
+                setPoolMapStatus(PoolHealthMonitorMappingStatus.ERROR)
                 throw e
         }
         dp
@@ -320,6 +333,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
         case other =>
           log.error("Invalid selector type: {} => jdk-bootstrap shadowing " +
                     "may have failed ?", other.getClass)
+          setPoolMapStatus(PoolHealthMonitorMappingStatus.ERROR)
           throw new IllegalSelectorException
     }
 
@@ -398,5 +412,10 @@ class HaproxyHealthMonitor(var config: PoolConfig,
             client.hostsDelVrnPortMapping(hostId, routerPortId)
             client.portsDelete(routerPortId)
         }
+    }
+
+    //wrapping this call so we can mock it in the unit tests
+    def setPoolMapStatus(status: PoolHealthMonitorMappingStatus) {
+        client.poolSetMapStatus(config.id, status)
     }
 }

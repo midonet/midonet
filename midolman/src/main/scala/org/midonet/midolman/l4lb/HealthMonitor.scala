@@ -72,7 +72,7 @@ object HealthMonitor extends Referenceable {
             Some(pidString.toInt)
         } catch {
             case ioe: IOException =>
-                log.error("Unable to get pid info from " + pidFileLoc)
+                log.info("Unable to get pid info from " + pidFileLoc)
                 None
             case nfe: NumberFormatException =>
                 log.error("The pid in " + pidFileLoc + " is malformed")
@@ -98,7 +98,7 @@ object HealthMonitor extends Referenceable {
                 return
             log.error("Unable to kill haproxy process " + pid)
         } else {
-            log.error("pid " + pid + " does not match up with contents " +
+            log.info("pid " + pid + " does not match up with contents " +
                       " of " + pidFilePath)
         }
     }

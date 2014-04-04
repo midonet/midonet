@@ -9,6 +9,5 @@ package org.midonet.midolman.state;
  * Neutron.
  */
 public enum PoolHealthMonitorMappingStatus {
-    ACTIVE, INACTIVE, PENDING_CREATE, PENDING_UPDATE,
-    PENDING_DELETE, ERROR;
+    ACTIVE, INACTIVE, PENDING_CREATE, PENDING_UPDATE, PENDING_DELETE, ERROR;
 }

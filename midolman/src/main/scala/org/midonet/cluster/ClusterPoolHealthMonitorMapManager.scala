@@ -139,6 +139,11 @@ class ClusterPoolHealthMonitorMapManager
             poolZkManager.getPoolHealthMonitorConfDataAsync(
                 poolId, hmId, this, this)
         }
+
+        override def pathDeleted(path: String) {
+            // Do nothing. when the path is deleted, it is handled by the
+            // pathChildrenUpdated handler in MappingCallBack
+        }
     }
 
     override protected def getConfig(id: UUID): Unit = {
