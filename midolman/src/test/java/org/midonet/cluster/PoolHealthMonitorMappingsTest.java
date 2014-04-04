@@ -15,6 +15,7 @@ import org.midonet.cluster.data.l4lb.PoolMember;
 import org.midonet.cluster.data.l4lb.VIP;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.InvalidStateOperationException;
+import org.midonet.midolman.state.PoolHealthMonitorMappingStatus;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.zkManagers.LoadBalancerZkManager;
 import org.midonet.midolman.state.zkManagers.PoolZkManager;
@@ -35,6 +36,7 @@ public class PoolHealthMonitorMappingsTest extends LocalDataClientImplTestBase {
 
     private PoolZkManager poolZkManager;
     private UUID loadBalancerId;
+    private HealthMonitor healthMonitor;
     private UUID healthMonitorId;
     private Pool pool;
     private UUID poolId;
@@ -46,7 +48,8 @@ public class PoolHealthMonitorMappingsTest extends LocalDataClientImplTestBase {
         poolZkManager = getPoolZkManager();
         loadBalancerId = createStockLoadBalancer();
         // Add a health monitor
-        healthMonitorId = createStockHealthMonitor();
+        healthMonitor = getStockHealthMonitor();
+        healthMonitorId = client.healthMonitorCreate(healthMonitor);
         // Add a pool
         pool = getStockPool(loadBalancerId);
         poolId = client.poolCreate(pool);
@@ -68,6 +71,10 @@ public class PoolHealthMonitorMappingsTest extends LocalDataClientImplTestBase {
         client.poolUpdate(pool);
         assertTrue(poolZkManager.existsPoolHealthMonitorMapping(
                 poolId, healthMonitorId));
+
+        pool = client.poolGet(poolId);
+        assertThat(pool.getMappingStatus(),
+                equalTo(PoolHealthMonitorMappingStatus.PENDING_CREATE));
     }
 
     private void disassociatePoolHealthMonitor()
@@ -77,6 +84,10 @@ public class PoolHealthMonitorMappingsTest extends LocalDataClientImplTestBase {
         client.poolUpdate(pool);
         assertFalse(poolZkManager.existsPoolHealthMonitorMapping(
                 poolId, healthMonitorId));
+
+        pool = client.poolGet(poolId);
+        assertThat(pool.getMappingStatus(),
+                equalTo(PoolHealthMonitorMappingStatus.PENDING_DELETE));
     }
 
     @Test
@@ -101,6 +112,20 @@ public class PoolHealthMonitorMappingsTest extends LocalDataClientImplTestBase {
                 equalTo(postedLoadBalancerConfig));
 
         disassociatePoolHealthMonitor();
+    }
+
+    @Test
+    public void poolHealthMonitorMappingByDefaultTest()
+            throws InvalidStateOperationException,
+            SerializationException, StateAccessException {
+        Pool newPool = getStockPool(loadBalancerId);
+        newPool.setHealthMonitorId(healthMonitorId);
+        UUID newPoolId = client.poolCreate(newPool);
+        newPool = client.poolGet(newPoolId);
+        assertThat(newPool.getHealthMonitorId(),
+                equalTo(healthMonitorId));
+        assertThat(newPool.getMappingStatus(),
+                equalTo(PoolHealthMonitorMappingStatus.PENDING_CREATE));
     }
 
     @Test
@@ -131,6 +156,9 @@ public class PoolHealthMonitorMappingsTest extends LocalDataClientImplTestBase {
         client.healthMonitorDelete(healthMonitorId);
         assertFalse(poolZkManager.existsPoolHealthMonitorMapping(
                 poolId, healthMonitorId));
+        pool = client.poolGet(poolId);
+        assertThat(pool.getMappingStatus(),
+                equalTo(PoolHealthMonitorMappingStatus.PENDING_DELETE));
     }
 
     @Test
@@ -156,6 +184,9 @@ public class PoolHealthMonitorMappingsTest extends LocalDataClientImplTestBase {
         PoolMemberConfig addedPoolMemberConfig =
                 config.poolMemberConfigs.get(0).config;
         assertThat(poolMemberConfig, equalTo(addedPoolMemberConfig));
+        pool = client.poolGet(poolId);
+        assertThat(pool.getMappingStatus(),
+                equalTo(PoolHealthMonitorMappingStatus.PENDING_UPDATE));
 
         // Delete the pool member
         client.poolMemberDelete(poolMemberId);
@@ -163,6 +194,9 @@ public class PoolHealthMonitorMappingsTest extends LocalDataClientImplTestBase {
                 poolId, healthMonitorId);
         assertThat(config, notNullValue());
         assertThat(config.poolMemberConfigs.size(), equalTo(0));
+        pool = client.poolGet(poolId);
+        assertThat(pool.getMappingStatus(),
+                equalTo(PoolHealthMonitorMappingStatus.PENDING_UPDATE));
 
         disassociatePoolHealthMonitor();
     }
@@ -188,6 +222,9 @@ public class PoolHealthMonitorMappingsTest extends LocalDataClientImplTestBase {
         VipConfig vipConfig = Converter.toVipConfig(vip);
         VipConfig addedVipConfig = config.vipConfigs.get(0).config;
         assertThat(vipConfig, equalTo(addedVipConfig));
+        pool = client.poolGet(poolId);
+        assertThat(pool.getMappingStatus(),
+                equalTo(PoolHealthMonitorMappingStatus.PENDING_UPDATE));
 
         // Delete the VIP
         client.vipDelete(vipId);
@@ -195,6 +232,9 @@ public class PoolHealthMonitorMappingsTest extends LocalDataClientImplTestBase {
                 poolId, healthMonitorId);
         assertThat(config, notNullValue());
         assertThat(config.vipConfigs.size(), equalTo(0));
+        pool = client.poolGet(poolId);
+        assertThat(pool.getMappingStatus(),
+                equalTo(PoolHealthMonitorMappingStatus.PENDING_UPDATE));
 
         disassociatePoolHealthMonitor();
     }
@@ -217,11 +257,30 @@ public class PoolHealthMonitorMappingsTest extends LocalDataClientImplTestBase {
         client.poolUpdate(pool);
         assertFalse(poolZkManager.existsPoolHealthMonitorMapping(
                 poolId, healthMonitorId));
+        pool = client.poolGet(poolId);
+        assertThat(pool.getMappingStatus(),
+                equalTo(PoolHealthMonitorMappingStatus.PENDING_UPDATE));
 
         PoolHealthMonitorMappingConfig config =
                 poolZkManager.getPoolHealthMonitorMapping(
                         poolId, anotherHealthMonitorId);
         assertThat(config, notNullValue());
+
+        disassociatePoolHealthMonitor();
+    }
+
+    @Test
+    public void updateHealthMonitorTest()
+            throws InvalidStateOperationException,
+            SerializationException, StateAccessException {
+        associatePoolHealthMonitor();
+
+        healthMonitor.setDelay(42);
+        client.healthMonitorUpdate(healthMonitor);
+        assertThat(healthMonitor.getDelay(), equalTo(42));
+        pool = client.poolGet(poolId);
+        assertThat(pool.getMappingStatus(),
+                equalTo(PoolHealthMonitorMappingStatus.PENDING_UPDATE));
 
         disassociatePoolHealthMonitor();
     }
@@ -256,6 +315,10 @@ public class PoolHealthMonitorMappingsTest extends LocalDataClientImplTestBase {
                 poolId, healthMonitorId);
         assertThat(config, notNullValue());
         assertThat(config.vipConfigs.size(), equalTo(0));
+        pool = client.poolGet(poolId);
+        assertThat(pool.getMappingStatus(),
+                equalTo(PoolHealthMonitorMappingStatus.PENDING_UPDATE));
+
         // Check if the update vip is added to another mapping
         PoolHealthMonitorMappingConfig anotherConfig =
                 poolZkManager.getPoolHealthMonitorMapping(
@@ -266,6 +329,9 @@ public class PoolHealthMonitorMappingsTest extends LocalDataClientImplTestBase {
         vipConfig = Converter.toVipConfig(vip);
         VipConfig updatedVipConfig = anotherConfig.vipConfigs.get(0).config;
         assertThat(vipConfig, equalTo(updatedVipConfig));
+        anotherPool = client.poolGet(anotherPoolId);
+        assertThat(anotherPool.getMappingStatus(),
+                equalTo(PoolHealthMonitorMappingStatus.PENDING_UPDATE));
 
         disassociatePoolHealthMonitor();
     }
@@ -290,6 +356,9 @@ public class PoolHealthMonitorMappingsTest extends LocalDataClientImplTestBase {
         PoolMemberConfig addedPoolMemberConfig =
                 config.poolMemberConfigs.get(0).config;
         assertThat(poolMemberConfig, equalTo(addedPoolMemberConfig));
+        pool = client.poolGet(poolId);
+        assertThat(pool.getMappingStatus(),
+                equalTo(PoolHealthMonitorMappingStatus.PENDING_UPDATE));
 
         // Update the pool member with the ID of another pool
         Pool anotherPool = getStockPool(loadBalancerId);
@@ -312,6 +381,9 @@ public class PoolHealthMonitorMappingsTest extends LocalDataClientImplTestBase {
         poolMemberConfig = Converter.toPoolMemberConfig(poolMember);
         addedPoolMemberConfig = anotherConfig.poolMemberConfigs.get(0).config;
         assertThat(poolMemberConfig, equalTo(addedPoolMemberConfig));
+        anotherPool = client.poolGet(anotherPoolId);
+        assertThat(anotherPool.getMappingStatus(),
+                equalTo(PoolHealthMonitorMappingStatus.PENDING_UPDATE));
 
         disassociatePoolHealthMonitor();
     }

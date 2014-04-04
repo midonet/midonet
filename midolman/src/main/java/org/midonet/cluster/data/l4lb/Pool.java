@@ -113,6 +113,16 @@ public class Pool extends Entity.Base<UUID, Pool.Data, Pool>{
         return getData().status;
     }
 
+    public Pool setMappingStatus(
+            PoolHealthMonitorMappingStatus mappingStatus) {
+        getData().mappingStatus = mappingStatus;
+        return self();
+    }
+
+    public PoolHealthMonitorMappingStatus getMappingStatus() {
+        return getData().mappingStatus;
+    }
+
     public static class Data {
         private String name;
         private String description;
@@ -123,7 +133,7 @@ public class Pool extends Entity.Base<UUID, Pool.Data, Pool>{
         private boolean adminStateUp = true;
         private LBStatus status = LBStatus.ACTIVE;
         private PoolHealthMonitorMappingStatus mappingStatus =
-                PoolHealthMonitorMappingStatus.ACTIVE;
+                PoolHealthMonitorMappingStatus.INACTIVE;
 
         @Override
         public boolean equals(Object o) {

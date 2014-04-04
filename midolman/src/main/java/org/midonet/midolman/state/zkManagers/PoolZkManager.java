@@ -243,16 +243,6 @@ public class PoolZkManager
         return getUuidList(paths.getPoolVipsPath(id));
     }
 
-    public List<Op> prepareSetHealthMonitorId(UUID id, UUID healthMonitorId)
-            throws StateAccessException, SerializationException {
-        PoolConfig config = get(id);
-        if (Objects.equal(config.healthMonitorId, healthMonitorId))
-            return new ArrayList<>(0);
-
-        config.healthMonitorId = healthMonitorId;
-        return prepareUpdate(id, config);
-    }
-
     public List<Op> prepareAddVip(UUID id, UUID vipId) {
         return asList(Op.create(
                 paths.getPoolVipPath(id, vipId), null,
