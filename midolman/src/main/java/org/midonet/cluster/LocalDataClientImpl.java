@@ -4,6 +4,7 @@
 package org.midonet.cluster;
 
 import com.google.common.base.Objects;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -1893,10 +1894,17 @@ public class LocalDataClientImpl implements DataClient {
 
         List<UUID> poolIds = healthMonitorZkManager.getPoolIds(id);
         for (UUID poolId : poolIds) {
+            PoolConfig poolConfig = poolZkManager.get(poolId);
+            ops.add(Op.setData(pathBuilder.getPoolPath(poolId),
+                    serializer.serialize(poolConfig), -1));
             // Pool-HealthMonitor mappings
             ops.add(Op.delete(pathBuilder.getPoolHealthMonitorMappingsPath(
                     poolId, id), -1));
-            ops.addAll(poolZkManager.prepareSetHealthMonitorId(poolId, null));
+            poolConfig.healthMonitorId = null;
+            // Indicate the mapping is being deleted.
+            poolConfig.mappingStatus =
+                    PoolHealthMonitorMappingStatus.PENDING_DELETE;
+            ops.addAll(poolZkManager.prepareUpdate(poolId, poolConfig));
             ops.addAll(healthMonitorZkManager.prepareRemovePool(id, poolId));
         }
 
@@ -1937,6 +1945,15 @@ public class LocalDataClientImpl implements DataClient {
         // Pool-HealthMonitor mappings
         for (Pair<String, PoolHealthMonitorMappingConfig> pair :
                 buildPoolHealthMonitorMappings(id, newConfig)) {
+            List<UUID> poolIds = healthMonitorZkManager.getPoolIds(id);
+            for (UUID poolId : poolIds) {
+                PoolConfig poolConfig = poolZkManager.get(poolId);
+                // Indicate the mapping is being updated.
+                poolConfig.mappingStatus =
+                        PoolHealthMonitorMappingStatus.PENDING_UPDATE;
+                ops.add(Op.setData(pathBuilder.getPoolPath(poolId),
+                        serializer.serialize(poolConfig), -1));
+            }
             ops.addAll(preparePoolHealthMonitorMappingUpdate(pair));
         }
         zkManager.multi(ops);
@@ -2005,6 +2022,18 @@ public class LocalDataClientImpl implements DataClient {
                 poolId, poolConfig, configGetter, vipZkManager);
     }
 
+    private List<Op> buildPoolMappingStatusUpdate(
+            PoolMemberConfig poolMemberConfig)
+            throws StateAccessException, SerializationException {
+        UUID poolId = poolMemberConfig.poolId;
+        PoolConfig poolConfig = poolZkManager.get(poolId);
+        // Indicate the mapping is being updated.
+        poolConfig.mappingStatus =
+                PoolHealthMonitorMappingStatus.PENDING_UPDATE;
+        return Arrays.asList(Op.setData(pathBuilder.getPoolPath(poolId),
+                serializer.serialize(poolConfig), -1));
+    }
+
     @Override
     @CheckForNull
     public boolean poolMemberExists(UUID id)
@@ -2041,6 +2070,10 @@ public class LocalDataClientImpl implements DataClient {
         Pair<String, PoolHealthMonitorMappingConfig> pair =
                 buildPoolHealthMonitorMappings(id, config, true);
         ops.addAll(preparePoolHealthMonitorMappingUpdate(pair));
+
+        if (pair != null) {
+            ops.addAll(buildPoolMappingStatusUpdate(config));
+        }
         zkManager.multi(ops);
     }
 
@@ -2059,10 +2092,17 @@ public class LocalDataClientImpl implements DataClient {
 
         // Flush the pool member create ops first
         zkManager.multi(ops);
+        ops.clear();
 
         Pair<String, PoolHealthMonitorMappingConfig> pair =
                 buildPoolHealthMonitorMappings(id, config, false);
-        zkManager.multi(preparePoolHealthMonitorMappingUpdate(pair));
+        ops.addAll(preparePoolHealthMonitorMappingUpdate(pair));
+
+        if (pair != null) {
+            ops.addAll(buildPoolMappingStatusUpdate(config));
+        }
+
+        zkManager.multi(ops);
         return id;
     }
 
@@ -2101,6 +2141,10 @@ public class LocalDataClientImpl implements DataClient {
         Pair<String, PoolHealthMonitorMappingConfig> pair =
                 buildPoolHealthMonitorMappings(id, newConfig, false);
         ops.addAll(preparePoolHealthMonitorMappingUpdate(pair));
+
+        if (pair != null) {
+            ops.addAll(buildPoolMappingStatusUpdate(newConfig));
+        }
         zkManager.multi(ops);
     }
 
@@ -2235,6 +2279,9 @@ public class LocalDataClientImpl implements DataClient {
             ops.add(Op.create(mappingPath,
                     serializer.serialize(mappingConfig),
                     ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+            config.mappingStatus =
+                    PoolHealthMonitorMappingStatus.PENDING_CREATE;
+            ops.addAll(poolZkManager.prepareUpdate(id, config));
         }
         zkManager.multi(ops);
         return id;
@@ -2290,8 +2337,6 @@ public class LocalDataClientImpl implements DataClient {
             }
         }
 
-        ops.addAll(poolZkManager.prepareUpdate(id, newConfig));
-
         // Pool-HealthMonitor mappings
         // If the reference to the health monitor is changed, the previous
         // entries are deleted and the new entries are created.
@@ -2302,26 +2347,35 @@ public class LocalDataClientImpl implements DataClient {
                 ops.add(Op.delete(pathBuilder.getPoolHealthMonitorMappingsPath(
                         id, poolConfig.healthMonitorId), -1));
             }
-        }
+            // Indicate the mapping is being deleted and once it's confirmed
+            // by the health monitor, it's replaced with INACTIVE.
+            if (pool.getHealthMonitorId() == null) {
+                newConfig.mappingStatus =
+                        PoolHealthMonitorMappingStatus.PENDING_DELETE;
+            }
 
-        // Create or update the Pool-HealthMonitor mapping.
-        Pair<String, PoolHealthMonitorMappingConfig> pair =
-                preparePoolHealthMonitorMappings(
-                        id, newConfig, poolMemberZkManager, vipZkManager);
-
-        if (pair != null) {
-            String mappingPath = pair.getLeft();
-            PoolHealthMonitorMappingConfig mappingConfig = pair.getRight();
-            if (isHealthMonitorChanged) {
+            Pair<String, PoolHealthMonitorMappingConfig> pair =
+                    preparePoolHealthMonitorMappings(
+                            id, newConfig, poolMemberZkManager, vipZkManager);
+            if (pair != null) {
+                String mappingPath = pair.getLeft();
+                PoolHealthMonitorMappingConfig mappingConfig = pair.getRight();
                 ops.add(Op.create(mappingPath,
                         serializer.serialize(mappingConfig),
                         ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-            } else {
-                ops.add(Op.setData(mappingPath,
-                        serializer.serialize(mappingConfig), -1));
+                // Indicate the update is being processed and once it's confirmed
+                // by the health monitor, it's replaced with ACTIVE.
+                if (Objects.equal(oldConfig.mappingStatus,
+                        PoolHealthMonitorMappingStatus.INACTIVE)) {
+                    newConfig.mappingStatus =
+                            PoolHealthMonitorMappingStatus.PENDING_CREATE;
+                } else {
+                    newConfig.mappingStatus =
+                            PoolHealthMonitorMappingStatus.PENDING_UPDATE;
+                }
             }
         }
-
+        ops.addAll(poolZkManager.prepareUpdate(id, newConfig));
         zkManager.multi(ops);
     }
 
@@ -2400,6 +2454,17 @@ public class LocalDataClientImpl implements DataClient {
                 poolId, poolConfig, poolMemberZkManager, configGetter);
     }
 
+    private List<Op> buildPoolMappingStatusUpdate(VipConfig vipConfig)
+            throws StateAccessException, SerializationException {
+        UUID poolId = vipConfig.poolId;
+        PoolConfig poolConfig = poolZkManager.get(poolId);
+        // Indicate the mapping is being updated.
+        poolConfig.mappingStatus =
+                PoolHealthMonitorMappingStatus.PENDING_UPDATE;
+        return Arrays.asList(Op.setData(pathBuilder.getPoolPath(poolId),
+                serializer.serialize(poolConfig), -1));
+    }
+
     @Override
     @CheckForNull
     public boolean vipExists(UUID id) throws StateAccessException {
@@ -2439,6 +2504,10 @@ public class LocalDataClientImpl implements DataClient {
         Pair<String, PoolHealthMonitorMappingConfig> pair =
                 buildPoolHealthMonitorMappings(id, config, true);
         ops.addAll(preparePoolHealthMonitorMappingUpdate(pair));
+
+        if (pair != null) {
+            ops.addAll(buildPoolMappingStatusUpdate(config));
+        }
         zkManager.multi(ops);
     }
 
@@ -2463,11 +2532,17 @@ public class LocalDataClientImpl implements DataClient {
 
         // Flush the VIP first.
         zkManager.multi(ops);
+        ops.clear();
 
         // Pool-HealthMonitor mappings
         Pair<String, PoolHealthMonitorMappingConfig> pair =
                 buildPoolHealthMonitorMappings(id, config, false);
-        zkManager.multi(preparePoolHealthMonitorMappingUpdate(pair));
+        ops.addAll(preparePoolHealthMonitorMappingUpdate(pair));
+
+        if (pair != null) {
+            ops.addAll(buildPoolMappingStatusUpdate(config));
+        }
+        zkManager.multi(ops);
         return id;
     }
 
@@ -2516,6 +2591,10 @@ public class LocalDataClientImpl implements DataClient {
         Pair<String, PoolHealthMonitorMappingConfig> pair =
                 buildPoolHealthMonitorMappings(id, newConfig, false);
         ops.addAll(preparePoolHealthMonitorMappingUpdate(pair));
+
+        if (pair != null) {
+            ops.addAll(buildPoolMappingStatusUpdate(newConfig));
+        }
         zkManager.multi(ops);
     }
 

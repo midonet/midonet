@@ -27,7 +27,7 @@ public class DtoPool {
     private boolean adminStateUp = true;
     private LBStatus status = LBStatus.ACTIVE;
     private PoolHealthMonitorMappingStatus mappingStatus =
-            PoolHealthMonitorMappingStatus.ACTIVE;
+            PoolHealthMonitorMappingStatus.INACTIVE;
 
     public UUID getId() {
         return id;

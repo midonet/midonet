@@ -22,8 +22,8 @@ import org.midonet.cluster.data.host.Interface;
 import org.midonet.cluster.data.host.VirtualPortMapping;
 import org.midonet.cluster.data.l4lb.HealthMonitor;
 import org.midonet.cluster.data.l4lb.LoadBalancer;
-import org.midonet.cluster.data.l4lb.PoolMember;
 import org.midonet.cluster.data.l4lb.Pool;
+import org.midonet.cluster.data.l4lb.PoolMember;
 import org.midonet.cluster.data.l4lb.VIP;
 import org.midonet.cluster.data.ports.BridgePort;
 import org.midonet.cluster.data.ports.RouterPort;
@@ -230,6 +230,7 @@ public class Converter {
         poolConfig.lbMethod = pool.getLbMethod();
         poolConfig.adminStateUp = pool.isAdminStateUp();
         poolConfig.status = pool.getStatus();
+        poolConfig.mappingStatus = pool.getMappingStatus();
         return poolConfig;
     }
 
@@ -241,7 +242,8 @@ public class Converter {
                          .setProtocol(poolConfig.protocol)
                          .setLbMethod(poolConfig.lbMethod)
                          .setAdminStateUp(poolConfig.adminStateUp)
-                         .setStatus(poolConfig.status);
+                         .setStatus(poolConfig.status)
+                         .setMappingStatus(poolConfig.mappingStatus);
     }
 
     public static VipConfig toVipConfig(VIP vip) {
