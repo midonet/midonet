@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import scala.Option;
 
 import com.google.inject.Guice;
 import com.google.inject.Inject;
@@ -18,6 +19,7 @@ import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.junit.Before;
 import org.junit.Test;
+
 import org.midonet.cluster.client.ArpCache;
 import org.midonet.cluster.client.BridgeBuilder;
 import org.midonet.cluster.client.IpMacMap;
@@ -48,7 +50,7 @@ import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 import org.midonet.util.functors.Callback3;
-import scala.Option;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
@@ -311,6 +313,11 @@ public class LocalClientImplTest {
         @Override
         public void setVlanBridgePeerPortId(Option<UUID> id) {
             vlanBridgePeerPortId = id;
+        }
+
+        @Override
+        public void updateMacEntry(
+                short vlanId, MAC mac, UUID oldPort, UUID newPort) {
         }
 
         @Override
