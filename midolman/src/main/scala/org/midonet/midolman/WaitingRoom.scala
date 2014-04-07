@@ -47,7 +47,7 @@ class WaitingRoom[W](val timeout: Long = TimeUnit.SECONDS.toNanos(3)) {
         waiters -= w
     }
 
-    private def doExpirations(): IndexedSeq[W] = {
+    def doExpirations(): IndexedSeq[W] = {
         var evictions: mutable.ArrayBuffer[W] = null
         val now = System.nanoTime()
         while (timeouts.nonEmpty && (now - timeouts.head._2) > 0) {
