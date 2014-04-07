@@ -116,27 +116,18 @@ public class PoolMember extends Entity.Base<UUID, PoolMember.Data, PoolMember>{
 
             Data data = (Data) o;
 
-            if (!Objects.equal(poolId, data.poolId)) return false;
-            if (!Objects.equal(address, data.address)) return false;
-            if (protocolPort != data.protocolPort) return false;
-            if (weight != data.weight) return false;
-            if (adminStateUp != data.adminStateUp) return false;
-            if (!Objects.equal(status, data.status)) return false;
-            if (!Objects.equal(pool, data.pool)) return false;
-
-            return true;
+            return  Objects.equal(poolId, data.poolId) &&
+                    Objects.equal(address, data.address) &&
+                    protocolPort == data.protocolPort &&
+                    weight == data.weight &&
+                    adminStateUp == data.adminStateUp &&
+                    status == data.status;
         }
 
         @Override
         public int hashCode() {
-            int result = poolId != null ? poolId.hashCode() : 0;
-            result = 31 * result + (address != null ? address.hashCode() : 0);
-            result = 31 * result + protocolPort;
-            result = 31 * result + weight;
-            result = 31 * result + (adminStateUp ? 1 : 0);
-            result = 31 * result + (status != null ? status.hashCode() : 0);
-            result = 31 * result + (pool != null ? pool.hashCode() : 0);
-            return result;
+            return Objects.hashCode(poolId, address, protocolPort, weight,
+                    adminStateUp, status);
         }
     }
 }

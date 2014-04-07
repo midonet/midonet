@@ -4,9 +4,10 @@
 
 package org.midonet.cluster.data.l4lb;
 
-import java.util.UUID ;
-
 import org.midonet.cluster.data.Entity;
+
+import java.util.Objects;
+import java.util.UUID;
 
 public class LoadBalancer
         extends Entity.Base<UUID, LoadBalancer.Data, LoadBalancer> {
@@ -61,15 +62,12 @@ public class LoadBalancer
                 return false;
             Data data = (Data) o;
 
-            if (adminStateUp != data.adminStateUp)
-                return false;
-            return true;
+            return adminStateUp == data.adminStateUp;
         }
 
         @Override
         public int hashCode() {
-            int result = adminStateUp ? 31 : 0;
-            return result;
+            return Objects.hashCode(adminStateUp);
         }
     }
 }

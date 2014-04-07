@@ -101,37 +101,19 @@ public class VIP
 
             Data data = (Data) o;
 
-            if (!Objects.equal(loadBalancerId, data.loadBalancerId))
-                return false;
-            if (!Objects.equal(poolId, data.poolId))
-                return false;
-            if (!Objects.equal(address, data.address))
-                return false;
-            if (protocolPort != data.protocolPort)
-                return false;
-            if (!Objects.equal(sessionPersistence,
-                    data.sessionPersistence))
-                return false;
-            if (adminStateUp != adminStateUp)
-                return false;
-
-            return true;
+            return Objects.equal(loadBalancerId, data.loadBalancerId) &&
+                    Objects.equal(poolId, data.poolId) &&
+                    Objects.equal(address, data.address) &&
+                    protocolPort == data.protocolPort &&
+                    Objects.equal(sessionPersistence,
+                            data.sessionPersistence) &&
+                    adminStateUp == data.adminStateUp;
         }
 
         @Override
         public int hashCode() {
-            int result = loadBalancerId != null ?
-                    loadBalancerId.hashCode() : 0;
-            result = 31 * result
-                    + (poolId != null ? poolId.hashCode() : 0);
-            result = 31 * result
-                    + (address != null ? address.hashCode() : 0);
-            result = 31 * result + protocolPort;
-            result = 31 * result + (sessionPersistence != null ?
-                    sessionPersistence.hashCode() : 0);
-            result = 31 * result + (adminStateUp ? 1 : 0);
-
-            return result;
+            return Objects.hashCode(loadBalancerId, poolId, address,
+                    protocolPort, sessionPersistence, adminStateUp);
         }
 
     }

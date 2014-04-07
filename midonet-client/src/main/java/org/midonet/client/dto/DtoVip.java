@@ -6,9 +6,9 @@ package org.midonet.client.dto;
 
 import com.google.common.base.Objects;
 
-import javax.xml.bind.annotation.XmlRootElement;
 import java.net.URI;
 import java.util.UUID;
+import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
 public class DtoVip {
@@ -110,41 +110,20 @@ public class DtoVip {
 
         DtoVip that = (DtoVip) o;
 
-        if (!Objects.equal(this.id, that.getId()))
-            return false;
-        if (!Objects.equal(this.loadBalancerId, that.getLoadBalancerId()))
-            return false;
-        if (!Objects.equal(this.poolId, that.getPoolId()))
-            return false;
-        if (!Objects.equal(this.address, that.getAddress()))
-            return false;
-        if (this.protocolPort != that.getProtocolPort())
-            return false;
-        if (!Objects.equal(this.sessionPersistence,
-                that.getSessionPersistence()))
-            return false;
-        if (this.adminStateUp != that.isAdminStateUp())
-            return false;
-
-        return true;
+        return Objects.equal(id, that.getId()) &&
+                Objects.equal(loadBalancerId,
+                        that.getLoadBalancerId()) &&
+                Objects.equal(poolId, that.getPoolId()) &&
+                Objects.equal(address, that.getAddress()) &&
+                protocolPort == that.getProtocolPort() &&
+                Objects.equal(sessionPersistence,
+                        that.getSessionPersistence()) &&
+                adminStateUp == that.isAdminStateUp();
     }
 
     @Override
     public int hashCode() {
-        int result = id != null ? id.hashCode() : 0;
-        result = 31 * result
-                + (loadBalancerId != null ? loadBalancerId.hashCode() : 0);
-        result = 31 * result
-                + (poolId != null ? poolId.hashCode() : 0);
-        result = 31 * result
-                + (address != null ? address.hashCode() : 0);
-        result = 31 * result
-                + protocolPort;
-        result = 31 * result + (sessionPersistence != null ?
-                sessionPersistence.hashCode() : 0);
-        result = 31 * result
-                + (adminStateUp ? 1 : 0);
-
-        return result;
+        return Objects.hashCode(id, loadBalancerId, poolId, address,
+                protocolPort, sessionPersistence, adminStateUp);
     }
 }

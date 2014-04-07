@@ -14,8 +14,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class DtoPool {
     private UUID id;
     private URI uri;
-    private String name;
-    private String description;
     private UUID loadBalancerId;
     private URI loadBalancer;
     private UUID healthMonitorId;
@@ -43,22 +41,6 @@ public class DtoPool {
 
     public void setUri(URI uri) {
         this.uri = uri;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
     }
 
     public UUID getLoadBalancerId() {
@@ -156,39 +138,22 @@ public class DtoPool {
 
         DtoPool that = (DtoPool) o;
 
-        if (!Objects.equal(id, that.getId())) return false;
-        if (!Objects.equal(name, that.getName())) return false;
-        if (!Objects.equal(description, that.getDescription())) return false;
-        if (!Objects.equal(loadBalancerId,
-                that.getLoadBalancerId())) return false;
-        if (!Objects.equal(healthMonitorId,
-                that.getHealthMonitorId())) return false;
-        if (!Objects.equal(protocol, that.getProtocol())) return false;
-        if (!Objects.equal(lbMethod, that.getLbMethod())) return false;
-        if (adminStateUp != that.isAdminStateUp()) return false;
-        if (!Objects.equal(status, that.getStatus())) return false;
-        if (!Objects.equal(mappingStatus,
-                that.getMappingStatus())) return false;
-
-        return true;
+        return Objects.equal(id, that.getId()) &&
+                Objects.equal(loadBalancerId,
+                        that.getLoadBalancerId()) &&
+                Objects.equal(healthMonitorId,
+                        that.getHealthMonitorId()) &&
+                Objects.equal(protocol, that.getProtocol()) &&
+                Objects.equal(lbMethod, that.getLbMethod()) &&
+                adminStateUp == that.isAdminStateUp() &&
+                status == that.getStatus() &&
+                Objects.equal(mappingStatus,
+                        that.getMappingStatus());
     }
 
     @Override
     public int hashCode() {
-        int result = id != null ? id.hashCode() : 0;
-        result = 31 * result + (name != null ? name.hashCode() : 0);
-        result = 31 * result
-                + (description != null ? description.hashCode() : 0);
-        result = 31 * result
-                + (loadBalancerId != null ? loadBalancerId.hashCode() : 0);
-        result = 31 * result
-                + (healthMonitorId != null ? healthMonitorId.hashCode() : 0);
-        result = 31 * result + (protocol != null ? protocol.hashCode() : 0);
-        result = 31 * result + (lbMethod != null ? lbMethod.hashCode() : 0);
-        result = 31 * result + (adminStateUp ? 1 : 0);
-        result = 31 * result + (status != null ? status.hashCode() : 0);
-        result = 31 * result
-                + (mappingStatus != null ? mappingStatus.hashCode() : 0);
-        return result;
+        return Objects.hashCode(id, loadBalancerId, healthMonitorId, protocol,
+                lbMethod, adminStateUp, status, mappingStatus);
     }
 }
