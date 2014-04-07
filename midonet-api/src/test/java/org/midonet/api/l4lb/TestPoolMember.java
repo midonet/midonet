@@ -352,5 +352,20 @@ public class TestPoolMember {
             member = updatePoolMember(member);
             assertEquals(LBStatus.ACTIVE, member.getStatus());
         }
+
+        @Test
+        public void testPoolMemberUnsettableProperties()
+                throws Exception {
+            DtoPoolMember member = createStockPoolMember(pool.getId());
+            String oldAddress = member.getAddress();
+            member.setAddress("192.168.100.100");
+            member = updatePoolMember(member);
+            assertEquals(member.getAddress(), oldAddress);
+
+            int oldPort = member.getProtocolPort();
+            member.setProtocolPort(8080);
+            member = updatePoolMember(member);
+            assertEquals(member.getProtocolPort(), oldPort);
+        }
     }
 }
