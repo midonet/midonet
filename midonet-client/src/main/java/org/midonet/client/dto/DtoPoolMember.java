@@ -102,28 +102,18 @@ public class DtoPoolMember {
 
         DtoPoolMember that = (DtoPoolMember) o;
 
-        if (!Objects.equal(id, that.getId())) return false;
-        if (!Objects.equal(poolId, that.getPoolId())) return false;
-        if (!Objects.equal(address, that.getAddress())) return false;
-        if (protocolPort != that.getProtocolPort()) return false;
-        if (weight != that.getWeight()) return false;
-        if (adminStateUp != that.isAdminStateUp()) return false;
-        if (!Objects.equal(status, that.getStatus())) return false;
-        if (!Objects.equal(pool, that.getPool())) return false;
-
-        return true;
+        return Objects.equal(id, that.getId()) &&
+                Objects.equal(poolId, that.getPoolId()) &&
+                Objects.equal(address, that.getAddress()) &&
+                protocolPort == that.getProtocolPort() &&
+                weight == that.getWeight() &&
+                adminStateUp == that.isAdminStateUp() &&
+                status == that.getStatus();
     }
 
     @Override
     public int hashCode() {
-        int result = id != null ? id.hashCode() : 0;
-        result = 31 * result + (poolId != null ? poolId.hashCode() : 0);
-        result = 31 * result + (address != null ? address.hashCode() : 0);
-        result = 31 * result + protocolPort;
-        result = 31 * result + weight;
-        result = 31 * result + (adminStateUp ? 1 : 0);
-        result = 31 * result + (status != null ? status.hashCode() : 0);
-        result = 31 * result + (pool != null ? pool.hashCode() : 0);
-        return result;
+        return Objects.hashCode(id, poolId, address, protocolPort, weight,
+                adminStateUp, status);
     }
 }

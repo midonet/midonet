@@ -101,25 +101,18 @@ public class HealthMonitor
 
             Data data = (Data) o;
 
-            if (!Objects.equal(type, data.type)) return false;
-            if (delay != data.delay) return false;
-            if (timeout != data.timeout) return false;
-            if (maxRetries != data.maxRetries) return false;
-            if (adminStateUp != data.adminStateUp) return false;
-            if (!Objects.equal(status, data.status)) return false;
-
-            return true;
+            return Objects.equal(type, data.type) &&
+                    delay == data.delay &&
+                    timeout == data.timeout &&
+                    maxRetries == data.maxRetries &&
+                    adminStateUp == data.adminStateUp &&
+                    status == data.status;
         }
 
         @Override
         public int hashCode() {
-            int result = type != null ? type.hashCode() : 0;
-            result = 31 * result + delay;
-            result = 31 * result + timeout;
-            result = 31 * result + maxRetries;
-            result = 31 * result + (adminStateUp ? 1 : 0);
-            result = 31 * result + (status != null ? status.hashCode() : 0);
-            return result;
+            return Objects.hashCode(type, delay, timeout, maxRetries,
+                    adminStateUp, status);
         }
     }
 }

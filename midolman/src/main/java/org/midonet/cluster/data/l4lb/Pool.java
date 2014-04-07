@@ -41,24 +41,6 @@ public class Pool extends Entity.Base<UUID, Pool.Data, Pool>{
         return this;
     }
 
-    public Pool setName(String name) {
-        getData().name = name;
-        return self();
-    }
-
-    public String getName() {
-        return getData().name;
-    }
-
-    public Pool setDescription(String description) {
-        getData().description = description;
-        return self();
-    }
-
-    public String getDescription() {
-        return getData().description;
-    }
-
     public Pool setLoadBalancerId(UUID loadBalancerId) {
         getData().loadBalancerId = loadBalancerId;
         return self();
@@ -124,8 +106,6 @@ public class Pool extends Entity.Base<UUID, Pool.Data, Pool>{
     }
 
     public static class Data {
-        private String name;
-        private String description;
         private UUID loadBalancerId;
         private UUID healthMonitorId;
         private String protocol;
@@ -142,38 +122,19 @@ public class Pool extends Entity.Base<UUID, Pool.Data, Pool>{
 
             Data data = (Data) o;
 
-            if (!Objects.equal(name, data.name)) return false;
-            if (!Objects.equal(description, data.description)) return false;
-            if (!Objects.equal(loadBalancerId, data.loadBalancerId)) return false;
-            if (!Objects.equal(healthMonitorId, data.healthMonitorId)) return false;
-            if (!Objects.equal(protocol, data.protocol)) return false;
-            if (!Objects.equal(lbMethod, data.lbMethod)) return false;
-            if (adminStateUp != data.adminStateUp) return false;
-            if (!Objects.equal(status, data.status)) return false;
-            if (!Objects.equal(mappingStatus, data.mappingStatus)) return false;
-            return true;
+            return Objects.equal(loadBalancerId, data.loadBalancerId) &&
+                    Objects.equal(healthMonitorId, data.healthMonitorId) &&
+                    Objects.equal(protocol, data.protocol) &&
+                    Objects.equal(lbMethod, data.lbMethod) &&
+                    adminStateUp == data.adminStateUp &&
+                    status == data.status &&
+                    mappingStatus == data.mappingStatus;
         }
 
         @Override
         public int hashCode() {
-            int result = name != null ? name.hashCode() : 0;
-            result = 31 * result
-                    + (description != null ? description.hashCode() : 0);
-            result = 31 * result
-                    + (loadBalancerId != null ? loadBalancerId.hashCode() : 0);
-            result = 31 * result
-                    + (healthMonitorId != null ?
-                       healthMonitorId.hashCode() : 0);
-            result = 31 * result
-                    + (protocol != null ? protocol.hashCode() : 0);
-            result = 31 * result
-                    + (lbMethod != null ? lbMethod.hashCode() : 0);
-            result = 31 * result + (adminStateUp ? 1 : 0);
-            result = 31 * result
-                    + (status != null ? status.hashCode() : 0);
-            result = 31 * result
-                    + (mappingStatus != null ? mappingStatus.hashCode() : 0);
-            return result;
+            return Objects.hashCode(loadBalancerId, healthMonitorId, protocol,
+                    lbMethod, status, mappingStatus);
         }
     }
 }

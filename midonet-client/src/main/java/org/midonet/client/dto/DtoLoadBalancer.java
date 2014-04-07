@@ -6,9 +6,9 @@ package org.midonet.client.dto;
 
 import com.google.common.base.Objects;
 
-import javax.xml.bind.annotation.XmlRootElement;
 import java.net.URI;
 import java.util.UUID;
+import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
 public class DtoLoadBalancer {
@@ -83,19 +83,13 @@ public class DtoLoadBalancer {
 
         DtoLoadBalancer that = (DtoLoadBalancer) o;
 
-        if (!Objects.equal(this.id, that.getId())) return false;
-        if (!Objects.equal(getRouterId(), that.getRouterId())) return false;
-        if (adminStateUp != that.isAdminStateUp()) return false;
-
-        return true;
+        return Objects.equal(id, that.getId()) &&
+                Objects.equal(routerId, that.routerId) &&
+                adminStateUp == that.isAdminStateUp();
     }
 
     @Override
     public int hashCode() {
-        int result = id != null ? id.hashCode() : 0;
-        result = 31 * result + routerId.hashCode();
-        result = 31 * result
-                + (adminStateUp ? 1 : 0);
-        return result;
+        return Objects.hashCode(id, routerId, adminStateUp);
     }
 }

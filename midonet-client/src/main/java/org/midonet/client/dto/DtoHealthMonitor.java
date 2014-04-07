@@ -103,27 +103,18 @@ public class DtoHealthMonitor {
 
         DtoHealthMonitor that = (DtoHealthMonitor) o;
 
-        if (!Objects.equal(id, that.getId())) return false;
-        if (!Objects.equal(type, that.getType())) return false;
-        if (delay != that.getDelay()) return false;
-        if (timeout != that.getTimeout()) return false;
-        if (maxRetries != that.getMaxRetries()) return false;
-        if (adminStateUp != that.isAdminStateUp()) return false;
-        if (!Objects.equal(status, that.getStatus())) return false;
-
-        return true;
+        return Objects.equal(id, that.getId()) &&
+                Objects.equal(type, that.getType()) &&
+                delay == that.getDelay() &&
+                timeout == that.getTimeout() &&
+                maxRetries == that.getMaxRetries() &&
+                adminStateUp == that.isAdminStateUp() &&
+                status == that.getStatus();
     }
 
     @Override
     public int hashCode() {
-        int result = id != null ? id.hashCode() : 0;
-        result = 31 * result + (type != null ? type.hashCode() : 0);
-        result = 31 * result + delay;
-        result = 31 * result + timeout;
-        result = 31 * result + maxRetries;
-        result = 31 * result + (adminStateUp ? 1 : 0);
-        result = 31 * result + (status != null ? status.hashCode() : 0);
-
-        return result;
+        return Objects.hashCode(id, type, delay, timeout, maxRetries,
+                adminStateUp, status);
     }
 }
