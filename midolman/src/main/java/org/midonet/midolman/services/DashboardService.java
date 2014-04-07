@@ -23,13 +23,15 @@ public class DashboardService extends AbstractService {
     @Inject
     Injector injector;
 
-    private Server server;
+    private Server server = null;
 
     @Override
     protected void doStart() {
 
-        if (!config.getDashboardEnabled())
+        if (!config.getDashboardEnabled()) {
+            notifyStarted();
             return;
+        }
 
         log.debug("Starting jetty server");
 
@@ -38,30 +40,27 @@ public class DashboardService extends AbstractService {
                     new File(config.pathToJettyXml()));
             XmlConfiguration configuration =
                     new XmlConfiguration(inputStream);
-            server = (Server)configuration.configure();
+            server = (Server) configuration.configure();
             server.start();
             notifyStarted();
         } catch (Exception e) {
             log.error("while starting jetty server", e);
+            server = null;
             notifyFailed(e);
         }
     }
 
     @Override
     protected void doStop() {
-
-        if (!config.getDashboardEnabled())
-            return;
-
-        log.debug("Stopping jetty server");
-
         try {
-            server.stop();
+            if (server != null) {
+                log.debug("Stopping jetty server");
+                server.stop();
+            }
             notifyStopped();
         } catch (Exception e) {
             log.error("while stopping jetty server", e);
             notifyFailed(e);
         }
-
     }
 }
