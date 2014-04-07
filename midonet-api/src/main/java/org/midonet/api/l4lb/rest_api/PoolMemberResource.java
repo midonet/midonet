@@ -166,10 +166,13 @@ public class PoolMemberResource extends AbstractResource {
         }
 
         try {
-            // Ignore `status` property populated by users.
+            // Ignore `address`, `protocolPort` and `status` property
+            // populated by users.
             if (dataClient.poolMemberExists(id)) {
                 org.midonet.cluster.data.l4lb.PoolMember oldPoolMember =
                         dataClient.poolMemberGet(id);
+                poolMember.setAddress(oldPoolMember.getAddress());
+                poolMember.setProtocolPort(oldPoolMember.getProtocolPort());
                 poolMember.setStatus(oldPoolMember.getStatus());
             }
 
