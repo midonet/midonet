@@ -755,16 +755,20 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
     }
 
     def deleteDatapathPort(caller: ActorRef, request: DpPortDelete) {
+        if (request.port.getPortNo == null) {
+            log.error("tried to delete a port with a null port number: {} caller: {}",
+                request, caller)
+            return;
+        }
+
         if (caller == self)
             pendingUpdateCount += 1
         log.info("deleting port: {} (by request of: {})", request.port, caller)
 
         upcallConnManager.deleteDpPort(datapath, request.port) onComplete {
-            case Success(b) =>
-                caller ! DpPortDeleteSuccess(request, request.port)
+            case Success(b) => caller ! DpPortDeleteSuccess(request, request.port)
 
-            case Failure(ex) =>
-                caller ! exceptionToOpError(request, ex)
+            case Failure(ex) => caller ! exceptionToOpError(request, ex)
         }
     }
 
