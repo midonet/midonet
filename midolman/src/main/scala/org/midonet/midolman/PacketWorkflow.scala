@@ -268,18 +268,18 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
     }
 
     def executePacket(actions: Seq[FlowAction]) {
-        if (actions == null || actions.isEmpty) {
-            log.debug("Dropping packet {}", cookieStr)
-            return
-        }
-
-        log.debug("Executing packet {}", cookieStr)
-
         packet.setActions(actions.asJava)
         if (packet.getMatch.isUserSpaceOnly) {
             log.debug("Applying userspace actions to packet {}", cookieStr)
             UserspaceFlowActionTranslator.translate(packet)
         }
+
+        if (packet.getActions.isEmpty) {
+            log.debug("Dropping packet {}", cookieStr)
+            return
+        }
+
+        log.debug("Executing packet {}", cookieStr)
 
         try {
             datapathConnection.packetsExecute(datapath, packet)
