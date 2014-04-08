@@ -107,6 +107,7 @@ public class RuleResource extends AbstractResource {
     @PermitAll
     @Path("{id}")
     @Produces({ VendorMediaType.APPLICATION_RULE_JSON,
+            VendorMediaType.APPLICATION_RULE_JSON_V2,
             MediaType.APPLICATION_JSON })
     public Rule get(@PathParam("id") UUID id) throws StateAccessException,
                 SerializationException {
@@ -165,6 +166,7 @@ public class RuleResource extends AbstractResource {
         @POST
         @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
         @Consumes({ VendorMediaType.APPLICATION_RULE_JSON,
+                VendorMediaType.APPLICATION_RULE_JSON_V2,
                 MediaType.APPLICATION_JSON })
         public Response create(Rule rule)
                 throws StateAccessException,
@@ -206,6 +208,7 @@ public class RuleResource extends AbstractResource {
         @GET
         @PermitAll
         @Produces({ VendorMediaType.APPLICATION_RULE_COLLECTION_JSON,
+                VendorMediaType.APPLICATION_RULE_COLLECTION_JSON_V2,
                 MediaType.APPLICATION_JSON })
         public List<Rule> list() throws StateAccessException,
                 SerializationException {

@@ -172,7 +172,7 @@ public class TestPortGroup {
             rule.setInPorts(fakePortIDs);
             rule.setPortGroup(group1.getId());
             rule = dtoResource.postAndVerifyCreated(chain.getRules(),
-                    APPLICATION_RULE_JSON, rule, DtoRule.class);
+                    APPLICATION_RULE_JSON_V2, rule, DtoRule.class);
             assertEquals(chain.getId(), rule.getChainId());
             assertEquals(DtoRule.Accept, rule.getType());
             assertEquals("10.11.12.13", rule.getNwSrcAddress());
