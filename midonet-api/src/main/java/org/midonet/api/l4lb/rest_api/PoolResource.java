@@ -17,6 +17,7 @@ import org.midonet.api.rest_api.ConflictHttpException;
 import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.api.rest_api.ServiceUnavailableHttpException;
 import org.midonet.api.validation.MessageProperty;
 import org.midonet.cluster.DataClient;
 import org.midonet.midolman.serialization.SerializationException;
@@ -25,6 +26,7 @@ import org.midonet.midolman.state.LBStatus;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.StatePathExistsException;
+import org.midonet.midolman.state.l4lb.MappingStatusException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -122,6 +124,8 @@ public class PoolResource extends AbstractResource {
             dataClient.poolDelete(id);
         } catch (NoStatePathException ex) {
             // Delete is idempotent, so just ignore.
+        } catch (MappingStatusException ex) {
+            throw new ServiceUnavailableHttpException(ex);
         }
     }
 
@@ -143,6 +147,8 @@ public class PoolResource extends AbstractResource {
                     getMessage(RESOURCE_EXISTS, "pool", pool.getId()));
         } catch (NoStatePathException ex) {
             throw new BadRequestHttpException(ex);
+        } catch (MappingStatusException ex) {
+            throw new ServiceUnavailableHttpException(ex);
         }
     }
 
@@ -159,6 +165,8 @@ public class PoolResource extends AbstractResource {
             dataClient.poolUpdate(pool.toData());
         } catch (NoStatePathException ex) {
             throw badReqOrNotFoundException(ex, id);
+        } catch (MappingStatusException ex) {
+            throw new ServiceUnavailableHttpException(ex);
         }
     }
 
@@ -244,6 +252,8 @@ public class PoolResource extends AbstractResource {
                         getMessage(RESOURCE_EXISTS, "pool", pool.getId()));
             } catch (NoStatePathException ex) {
                 throw badReqOrNotFoundException(ex, loadBalancerId);
+            } catch (MappingStatusException ex) {
+                throw new ServiceUnavailableHttpException(ex);
             }
         }
     }

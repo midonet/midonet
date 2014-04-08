@@ -12,14 +12,16 @@ import org.midonet.api.VendorMediaType;
 import org.midonet.api.error.ErrorEntity;
 import org.midonet.api.validation.ValidationErrorEntity;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.ConstraintViolation;
 import javax.ws.rs.core.Response;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.*;
 
 /**
  * Utility methods for Response class.
@@ -44,6 +46,19 @@ public class ResponseUtils {
         error.setMessage(message);
         return Response.status(status).entity(error)
                 .type(VendorMediaType.APPLICATION_ERROR_JSON).build();
+    }
+
+    public static Response buildErrorResponse(int status, String message,
+                                              Map<String, Object> header) {
+        ErrorEntity error = new ErrorEntity();
+        error.setCode(status);
+        error.setMessage(message);
+        Response.ResponseBuilder response = Response.status(status).entity(error)
+                .type(VendorMediaType.APPLICATION_ERROR_JSON);
+        for (Map.Entry<String, Object> entry : header.entrySet()) {
+            response.header(entry.getKey(), entry.getValue());
+        }
+        return response.build();
     }
 
     /**

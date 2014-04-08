@@ -3,9 +3,7 @@
  */
 package org.midonet.api.l4lb;
 
-import java.net.URI;
-import java.util.UUID;
-
+import com.sun.jersey.api.client.ClientResponse;
 import junit.framework.Assert;
 import org.junit.After;
 import org.junit.Before;
@@ -13,6 +11,7 @@ import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 import org.midonet.api.VendorMediaType;
+import org.midonet.api.rest_api.ServiceUnavailableHttpException;
 import org.midonet.api.zookeeper.StaticMockDirectory;
 import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoHealthMonitor;
@@ -21,16 +20,22 @@ import org.midonet.client.dto.DtoPool;
 import org.midonet.client.dto.DtoVip;
 import org.midonet.client.dto.LBStatus;
 
-import static javax.ws.rs.core.Response.Status.*;
+import java.net.URI;
+import java.util.UUID;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
+
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.CONFLICT;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.midonet.api.validation.MessageProperty.RESOURCE_EXISTS;
-import static org.midonet.api.validation.MessageProperty.RESOURCE_NOT_FOUND;
 import static org.midonet.api.VendorMediaType.APPLICATION_POOL_COLLECTION_JSON;
 import static org.midonet.api.VendorMediaType.APPLICATION_POOL_JSON;
 import static org.midonet.api.VendorMediaType.APPLICATION_POOL_MEMBER_COLLECTION_JSON;
 import static org.midonet.api.VendorMediaType.APPLICATION_VIP_COLLECTION_JSON;
 import static org.midonet.api.VendorMediaType.APPLICATION_VIP_JSON;
+import static org.midonet.api.validation.MessageProperty.RESOURCE_EXISTS;
+import static org.midonet.api.validation.MessageProperty.RESOURCE_NOT_FOUND;
 
 @RunWith(Enclosed.class)
 public class TestPool {
@@ -140,34 +145,17 @@ public class TestPool {
             assertEquals(healthMonitor1.getUri(), pool.getHealthMonitor());
             checkHealthMonitorBackref(healthMonitor1.getUri(), pool);
 
-            // Switch reference to healthMonitor2.
-            DtoHealthMonitor healthMonitor2 = createStockHealthMonitor();
-            pool.setHealthMonitorId(healthMonitor2.getId());
-            pool = updatePool(pool);
-
-            // References between pool and healthMonitor1 should be
-            // cleared and replaced with references between pool and
-            // healthMonitor2.
-            assertEquals(healthMonitor2.getUri(), pool.getHealthMonitor());
-            checkHealthMonitorBackref(healthMonitor1.getUri(), null);
-            checkHealthMonitorBackref(healthMonitor2.getUri(), pool);
-
             // Clear references.
             pool.setHealthMonitorId(null);
             pool = updatePool(pool);
 
             // All references gone.
             assertNull(pool.getHealthMonitor());
-            checkHealthMonitorBackref(healthMonitor2.getUri(), null);
         }
 
         @Test
         public void testDeleteClearsBackrefs() {
-            DtoPool pool = getStockPool(loadBalancer.getId());
-            DtoHealthMonitor healthMonitor = createStockHealthMonitor();
-            pool.setHealthMonitorId(healthMonitor.getId());
-            pool = postPool(pool);
-            checkHealthMonitorBackref(healthMonitor.getUri(), pool);
+            DtoPool pool = createStockPool(loadBalancer.getId());
 
             // Add some VIPs.
             DtoVip vip = createStockVip(pool.getId());
@@ -175,7 +163,6 @@ public class TestPool {
             checkVipBackrefs(pool, vip.getUri(), vip2.getUri());
 
             deletePool(pool.getUri());
-            checkHealthMonitorBackref(healthMonitor.getUri(), null);
             // Strongly associated resources are deleted by cascading.
             dtoWebResource.getAndVerifyNotFound(vip.getUri(),
                     VendorMediaType.APPLICATION_VIP_JSON);
@@ -351,6 +338,25 @@ public class TestPool {
             pool.setStatus(LBStatus.INACTIVE);
             pool = updatePool(pool);
             assertEquals(LBStatus.ACTIVE, pool.getStatus());
+        }
+
+        @Test
+        public void testServiceUnavailable()
+                throws Exception {
+            DtoPool pool = createStockPool(loadBalancer.getId());
+            DtoHealthMonitor healthMonitor = createStockHealthMonitor();
+            pool.setHealthMonitorId(healthMonitor.getId());
+            pool = updatePool(pool);
+
+            // Update with another health monitor, which triggers the 503.
+            DtoHealthMonitor healthMonitor2 = createStockHealthMonitor();
+            pool.setHealthMonitorId(healthMonitor2.getId());
+            ClientResponse response = dtoWebResource.putAndVerifyStatus(pool.getUri(),
+                    APPLICATION_POOL_JSON, pool,
+                    Response.Status.SERVICE_UNAVAILABLE.getStatusCode());
+            MultivaluedMap<String, String> headers = response.getHeaders();
+            assertEquals("3", headers.get(
+                    ServiceUnavailableHttpException.RETRY_AFTER_HEADER_KEY).get(0));
         }
     }
 }

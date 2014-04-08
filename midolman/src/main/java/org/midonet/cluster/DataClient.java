@@ -32,6 +32,7 @@ import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.PoolHealthMonitorMappingStatus;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkLeaderElectionWatcher;
+import org.midonet.midolman.state.l4lb.MappingStatusException;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv6Subnet;
 import org.midonet.packets.IntIPv4;
@@ -317,13 +318,15 @@ public interface DataClient {
             throws StateAccessException, SerializationException;
 
     void healthMonitorDelete(UUID id)
-            throws StateAccessException, SerializationException;
+            throws MappingStatusException,  StateAccessException,
+            SerializationException;
 
     UUID healthMonitorCreate(@Nonnull HealthMonitor healthMonitor)
             throws StateAccessException, SerializationException;
 
     void healthMonitorUpdate(@Nonnull HealthMonitor healthMonitor)
-            throws StateAccessException, SerializationException;
+            throws MappingStatusException, StateAccessException,
+            SerializationException;
 
     List<HealthMonitor> healthMonitorsGetAll() throws StateAccessException,
             SerializationException;
@@ -339,13 +342,16 @@ public interface DataClient {
             throws StateAccessException, SerializationException;
 
     void poolMemberDelete(UUID id)
-            throws StateAccessException, SerializationException;
+            throws MappingStatusException, StateAccessException,
+            SerializationException;
 
     UUID poolMemberCreate(@Nonnull PoolMember poolMember)
-            throws StateAccessException, SerializationException;
+            throws MappingStatusException, StateAccessException,
+            SerializationException;
 
     void poolMemberUpdate(@Nonnull PoolMember poolMember)
-            throws StateAccessException, SerializationException;
+            throws MappingStatusException, StateAccessException,
+            SerializationException;
 
     List<PoolMember> poolMembersGetAll() throws StateAccessException,
             SerializationException;
@@ -358,13 +364,16 @@ public interface DataClient {
             throws StateAccessException, SerializationException;
 
     void poolDelete(UUID id)
-            throws StateAccessException, SerializationException;
+            throws MappingStatusException, StateAccessException,
+            SerializationException;
 
     UUID poolCreate(@Nonnull Pool pool)
-            throws StateAccessException, SerializationException;
+            throws MappingStatusException, StateAccessException,
+            SerializationException;
 
     void poolUpdate(@Nonnull Pool pool)
-            throws StateAccessException, SerializationException;
+            throws MappingStatusException, StateAccessException,
+            SerializationException;
 
     List<Pool> poolsGetAll() throws StateAccessException,
             SerializationException;
@@ -386,13 +395,16 @@ public interface DataClient {
         throws StateAccessException, SerializationException;
 
     void vipDelete(UUID id)
-        throws StateAccessException, SerializationException;
+        throws MappingStatusException, StateAccessException,
+            SerializationException;
 
     UUID vipCreate(@Nonnull VIP vip)
-        throws StateAccessException, SerializationException;
+        throws MappingStatusException, StateAccessException,
+            SerializationException;
 
     void vipUpdate(@Nonnull VIP vip)
-        throws StateAccessException, SerializationException;
+        throws MappingStatusException, StateAccessException,
+            SerializationException;
 
     List<VIP> vipGetAll()
         throws StateAccessException, SerializationException;
