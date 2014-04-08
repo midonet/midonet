@@ -57,11 +57,9 @@ public class PortSetZkManager extends BaseZkManager {
 
     public void addMemberAsync(UUID portSetId, UUID memberId,
                                DirectoryCallback.Add cb) {
-
         String portSetPath =
             paths.getPortSetEntryPath(portSetId, memberId);
-
-        zk.asyncAdd(portSetPath, null, CreateMode.EPHEMERAL, cb);
+        zk.ensureEphemeralAsync(portSetPath, null, cb);
     }
 
     public void addMember(UUID portSetId, UUID memberId)
@@ -69,7 +67,7 @@ public class PortSetZkManager extends BaseZkManager {
 
         String memberEntryPath =
             paths.getPortSetEntryPath(portSetId, memberId);
-        zk.add(memberEntryPath, null, CreateMode.EPHEMERAL);
+        zk.ensureEphemeral(memberEntryPath, null);
     }
 
     public void delMemberAsync(UUID portSetId, UUID entryId,
@@ -83,24 +81,5 @@ public class PortSetZkManager extends BaseZkManager {
         String portSetPath =
             paths.getPortSetEntryPath(portSetId, memberID);
         zk.delete(portSetPath);
-    }
-
-    private <T> DirectoryCallback<T> makeCallback(final ValueFuture<T> valueFuture) {
-        return new DirectoryCallback<T>() {
-            @Override
-            public void onSuccess(Result<T> data) {
-                valueFuture.set(data.getData());
-            }
-
-            @Override
-            public void onTimeout() {
-                valueFuture.cancel(true);
-            }
-
-            @Override
-            public void onError(KeeperException e) {
-                valueFuture.setException(e);
-            }
-        };
     }
 }
