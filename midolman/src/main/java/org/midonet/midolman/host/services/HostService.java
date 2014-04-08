@@ -187,15 +187,8 @@ public class HostService extends AbstractService
             zkManager.createHost(id, metadata);
         }
 
-        // We want to make sure that the ephemeral nodes didn't
-        // disappear in the meanwhile
-        try {
-            zkManager.makeAlive(id);
-        } catch (StatePathExistsException ignored) { }
-
-        try {
-            zkManager.setHostVersion(id);
-        } catch (StatePathExistsException ignored) { }
+        zkManager.makeAlive(id);
+        zkManager.setHostVersion(id);
 
         return true;
     }
