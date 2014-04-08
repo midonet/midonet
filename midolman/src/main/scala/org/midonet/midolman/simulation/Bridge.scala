@@ -203,11 +203,16 @@ class Bridge(val id: UUID,
                 Ready(unicastAction(logicalPort))
             case None => // not a logical port, is the dstMac learned?
                 val vlanId = srcVlanTag(pktCtx)
-                val portId = vlanMacTableMap.get(vlanId) match {
-                    case Some(map: MacLearningTable) => map.get(dlDst)
-                    case _ => null
-                }
-                // Tag the flow with the (dst-port, dst-mac) pair so we can
+                val portId =
+                    if (dlDst == dlSrc) {
+                        pktCtx.inPortId
+                    } else {
+                        vlanMacTableMap.get(vlanId) match {
+                            case Some(map: MacLearningTable) => map.get(dlDst)
+                            case _ => null
+                        }
+                    }
+                // Tag the flow with the (src-port, src-mac) pair so we can
                 // invalidate the flow if the MAC migrates.
                 pktCtx.addFlowTag(invalidateFlowsByPort(id, dlSrc, vlanId,
                                                         pktCtx.inPortId))
@@ -222,6 +227,11 @@ class Bridge(val id: UUID,
                         "DROP (temp)", dlDst, vlanId, portId)
                     // No tags because temp flows aren't affected by
                     // invalidations. would get byPort (dlDst, vlan, port)
+                    //
+                    // TODO: we may have to send it to InPort, instead of
+                    // dropping it. Some hardware vendors use L2 ping-pong
+                    // packets for their specific purposes (e.g. keepalive message)
+                    //
                     Ready(TemporaryDropAction)
                 } else {
                     log.debug("Dst MAC {}, VLAN {} on port {}: Forward",
