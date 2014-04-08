@@ -61,12 +61,14 @@ import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.Ip4ToMacReplicatedMap;
 import org.midonet.midolman.state.MacPortMap;
 import org.midonet.midolman.state.PathBuilder;
+import org.midonet.midolman.state.PoolHealthMonitorMappingStatus;
 import org.midonet.midolman.state.PortConfig;
 import org.midonet.midolman.state.PortConfigCache;
 import org.midonet.midolman.state.PortDirectory;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.state.zkManagers.*;
+import org.midonet.midolman.state.l4lb.MappingStatusException;
 import org.midonet.midolman.state.zkManagers.HealthMonitorZkManager.HealthMonitorConfig;
 import org.midonet.midolman.state.zkManagers.PoolMemberZkManager.PoolMemberConfig;
 import org.midonet.midolman.state.zkManagers.PoolZkManager.PoolConfig;
@@ -1752,7 +1754,6 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-
     public List<VIP> loadBalancerGetVips(UUID id)
             throws StateAccessException, SerializationException {
         Set<UUID> vipIds = loadBalancerZkManager.getVipIds(id);
@@ -1765,6 +1766,15 @@ public class LocalDataClientImpl implements DataClient {
         return vips;
     }
 
+    private boolean isPoolConfigImmutable(PoolConfig poolConfig) {
+        return poolConfig.mappingStatus ==
+                       PoolHealthMonitorMappingStatus.PENDING_CREATE ||
+                poolConfig.mappingStatus ==
+                        PoolHealthMonitorMappingStatus.PENDING_DELETE ||
+                poolConfig.mappingStatus ==
+                        PoolHealthMonitorMappingStatus.PENDING_UPDATE;
+    }
+
     /*
      * Returns the pair of the mapping path and the mapping config. If the
      * given pool is not associated with any health monitor, it returns `null`.
@@ -1775,12 +1785,18 @@ public class LocalDataClientImpl implements DataClient {
             @Nonnull PoolConfig poolConfig,
             ConfigGetter<UUID, PoolMemberConfig> poolMemberConfigGetter,
             ConfigGetter<UUID, VipConfig> vipConfigGetter)
-            throws SerializationException, StateAccessException {
+            throws MappingStatusException, SerializationException,
+            StateAccessException {
         UUID healthMonitorId = poolConfig.healthMonitorId;
         // If the health monitor ID is null, the mapping should not be created
         // and therefore `null` is returned.
         if (healthMonitorId == null)
             return null;
+        // If `mappingStatus` property of Pool is in PENDING_*, it throws the
+        // exception and prevent the mapping from being updated.
+        if (isPoolConfigImmutable(poolConfig)) {
+            throw new MappingStatusException(poolConfig.mappingStatus.toString());
+        }
         String mappingPath = pathBuilder.getPoolHealthMonitorMappingsPath(
                 poolId, healthMonitorId);
 
@@ -1842,7 +1858,8 @@ public class LocalDataClientImpl implements DataClient {
     private List<Pair<String, PoolHealthMonitorMappingConfig>>
     buildPoolHealthMonitorMappings(UUID healthMonitorId,
                                    @Nullable HealthMonitorConfig config)
-            throws SerializationException, StateAccessException {
+            throws MappingStatusException, SerializationException,
+            StateAccessException {
         List<UUID> poolIds =
                 healthMonitorZkManager.getPoolIds(healthMonitorId);
         List<Pair<String, PoolHealthMonitorMappingConfig>> pairs =
@@ -1889,12 +1906,17 @@ public class LocalDataClientImpl implements DataClient {
 
     @Override
     public void healthMonitorDelete(UUID id)
-            throws StateAccessException, SerializationException {
+            throws MappingStatusException, StateAccessException,
+            SerializationException {
         List<Op> ops = new ArrayList<>();
 
         List<UUID> poolIds = healthMonitorZkManager.getPoolIds(id);
         for (UUID poolId : poolIds) {
             PoolConfig poolConfig = poolZkManager.get(poolId);
+            if (isPoolConfigImmutable(poolConfig)) {
+                throw new MappingStatusException(
+                        poolConfig.mappingStatus.toString());
+            }
             ops.add(Op.setData(pathBuilder.getPoolPath(poolId),
                     serializer.serialize(poolConfig), -1));
             // Pool-HealthMonitor mappings
@@ -1931,7 +1953,8 @@ public class LocalDataClientImpl implements DataClient {
 
     @Override
     public void healthMonitorUpdate(@Nonnull HealthMonitor healthMonitor)
-            throws StateAccessException, SerializationException {
+            throws MappingStatusException, StateAccessException,
+            SerializationException {
         HealthMonitorConfig newConfig =
                 Converter.toHealthMonitorConfig(healthMonitor);
         HealthMonitorConfig oldConfig =
@@ -1948,6 +1971,10 @@ public class LocalDataClientImpl implements DataClient {
             List<UUID> poolIds = healthMonitorZkManager.getPoolIds(id);
             for (UUID poolId : poolIds) {
                 PoolConfig poolConfig = poolZkManager.get(poolId);
+                if (isPoolConfigImmutable(poolConfig)) {
+                    throw new MappingStatusException(
+                            poolConfig.mappingStatus.toString());
+                }
                 // Indicate the mapping is being updated.
                 poolConfig.mappingStatus =
                         PoolHealthMonitorMappingStatus.PENDING_UPDATE;
@@ -1997,7 +2024,8 @@ public class LocalDataClientImpl implements DataClient {
     buildPoolHealthMonitorMappings(final UUID poolMemberId,
                                    final @Nonnull PoolMemberConfig config,
                                    final boolean deletePoolMember)
-            throws SerializationException, StateAccessException {
+            throws MappingStatusException, SerializationException,
+            StateAccessException {
         UUID poolId = checkNotNull(config.poolId, "Pool ID is null.");
         PoolConfig poolConfig = poolZkManager.get(poolId);
 
@@ -2056,7 +2084,8 @@ public class LocalDataClientImpl implements DataClient {
 
     @Override
     public void poolMemberDelete(UUID id)
-            throws StateAccessException, SerializationException {
+            throws MappingStatusException, StateAccessException,
+            SerializationException {
         List<Op> ops = new ArrayList<>();
 
         PoolMemberConfig config = poolMemberZkManager.get(id);
@@ -2079,7 +2108,8 @@ public class LocalDataClientImpl implements DataClient {
 
     @Override
     public UUID poolMemberCreate(@Nonnull PoolMember poolMember)
-            throws StateAccessException, SerializationException {
+            throws MappingStatusException, StateAccessException,
+            SerializationException {
         if (poolMember.getId() == null)
             poolMember.setId(UUID.randomUUID());
         UUID id = poolMember.getId();
@@ -2108,7 +2138,8 @@ public class LocalDataClientImpl implements DataClient {
 
     @Override
     public void poolMemberUpdate(@Nonnull PoolMember poolMember)
-            throws StateAccessException, SerializationException {
+            throws MappingStatusException, StateAccessException,
+            SerializationException {
         UUID id = poolMember.getId();
         PoolMemberConfig newConfig = Converter.toPoolMemberConfig(poolMember);
         PoolMemberConfig oldConfig = poolMemberZkManager.get(id);
@@ -2231,11 +2262,15 @@ public class LocalDataClientImpl implements DataClient {
 
     @Override
     public void poolDelete(UUID id)
-            throws StateAccessException, SerializationException {
+            throws MappingStatusException, StateAccessException,
+            SerializationException {
         List<Op> ops = buildPoolDeleteOps(id);
-
         // Pool-HealthMonitor mappings
         PoolConfig poolConfig = poolZkManager.get(id);
+        if (isPoolConfigImmutable(poolConfig)) {
+            throw new MappingStatusException(
+                    poolConfig.mappingStatus.toString());
+        }
         if (poolConfig.healthMonitorId != null) {
             ops.add(Op.delete(pathBuilder.getPoolHealthMonitorMappingsPath(
                     id, poolConfig.healthMonitorId), -1));
@@ -2245,7 +2280,8 @@ public class LocalDataClientImpl implements DataClient {
 
     @Override
     public UUID poolCreate(@Nonnull Pool pool)
-            throws StateAccessException, SerializationException {
+            throws MappingStatusException, StateAccessException,
+            SerializationException {
         if (pool.getId() == null) {
             pool.setId(UUID.randomUUID());
         }
@@ -2289,7 +2325,8 @@ public class LocalDataClientImpl implements DataClient {
 
     @Override
     public void poolUpdate(@Nonnull Pool pool)
-            throws StateAccessException, SerializationException {
+            throws MappingStatusException, StateAccessException,
+            SerializationException {
         UUID id = pool.getId();
         PoolConfig newConfig = Converter.toPoolConfig(pool);
         PoolConfig oldConfig = poolZkManager.get(id);
@@ -2440,7 +2477,8 @@ public class LocalDataClientImpl implements DataClient {
     buildPoolHealthMonitorMappings(final UUID vipId,
                                    final @Nonnull VipConfig config,
                                    final boolean deleteVip)
-            throws SerializationException, StateAccessException {
+            throws MappingStatusException, SerializationException,
+            StateAccessException {
         UUID poolId = checkNotNull(config.poolId, "Pool ID is null.");
         PoolConfig poolConfig = poolZkManager.get(poolId);
 
@@ -2496,7 +2534,8 @@ public class LocalDataClientImpl implements DataClient {
 
     @Override
     public void vipDelete(UUID id)
-            throws StateAccessException, SerializationException {
+            throws MappingStatusException, StateAccessException,
+            SerializationException {
         List<Op> ops = new ArrayList<>();
         VipZkManager.VipConfig config = vipZkManager.get(id);
 
@@ -2524,7 +2563,8 @@ public class LocalDataClientImpl implements DataClient {
 
     @Override
     public UUID vipCreate(@Nonnull VIP vip)
-            throws StateAccessException, SerializationException {
+            throws MappingStatusException, StateAccessException,
+            SerializationException {
         if (vip.getId() == null) {
             vip.setId(UUID.randomUUID());
         }
@@ -2559,7 +2599,8 @@ public class LocalDataClientImpl implements DataClient {
 
     @Override
     public void vipUpdate(@Nonnull VIP vip)
-            throws StateAccessException, SerializationException {
+            throws MappingStatusException, StateAccessException,
+            SerializationException {
         // See if new config is different from old config.
         UUID id = vip.getId();
         VipZkManager.VipConfig newConfig = Converter.toVipConfig(vip);
