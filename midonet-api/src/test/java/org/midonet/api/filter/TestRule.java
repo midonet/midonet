@@ -37,8 +37,8 @@ import org.midonet.client.dto.DtoRule.DtoNatTarget;
 import org.midonet.client.dto.DtoRuleChain;
 import org.midonet.packets.ARP;
 
-import static org.midonet.api.VendorMediaType.APPLICATION_RULE_COLLECTION_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_RULE_JSON;
+import static org.midonet.api.VendorMediaType.APPLICATION_RULE_COLLECTION_JSON_V2;
+import static org.midonet.api.VendorMediaType.APPLICATION_RULE_JSON_V2;
 import static org.midonet.api.validation.MessageProperty.FRAG_POLICY_INVALID_FOR_L4_RULE;
 import static org.midonet.api.validation.MessageProperty.FRAG_POLICY_INVALID_FOR_NAT_RULE;
 import static org.midonet.api.validation.MessageProperty.FRAG_POLICY_UNDEFINED;
@@ -125,7 +125,7 @@ public class TestRule {
         @Test
         public void testBadInputCreate() {
             DtoError error = dtoResource.postAndVerifyBadRequest(
-                    chain1.getRules(), APPLICATION_RULE_JSON, rule);
+                    chain1.getRules(), APPLICATION_RULE_JSON_V2, rule);
             List<Map<String, String>> violations = error.getViolations();
             assertEquals(0, violations.size());
         }
@@ -138,7 +138,7 @@ public class TestRule {
             DtoRule r = newAcceptRule();
             r.setDlSrc("01:23:45:67:89:0ab");
             DtoError error = dtoResource.postAndVerifyBadRequest(
-                    chain1.getRules(), APPLICATION_RULE_JSON, r);
+                    chain1.getRules(), APPLICATION_RULE_JSON_V2, r);
             assertErrorMatches(error, MessageProperty.MAC_ADDRESS_INVALID,
                                r.getDlSrc());
         }
@@ -148,7 +148,7 @@ public class TestRule {
             DtoRule r = newAcceptRule();
             r.setDlDst("01:23:45:67:89:0ab");
             DtoError error = dtoResource.postAndVerifyBadRequest(
-                    chain1.getRules(), APPLICATION_RULE_JSON, r);
+                    chain1.getRules(), APPLICATION_RULE_JSON_V2, r);
             assertErrorMatches(error, MessageProperty.MAC_ADDRESS_INVALID,
                                r.getDlDst());
         }
@@ -158,7 +158,7 @@ public class TestRule {
             DtoRule r = newAcceptRule();
             r.setDlSrcMask("fffff.0000.0000");
             DtoError error = dtoResource.postAndVerifyBadRequest(
-                    chain1.getRules(), APPLICATION_RULE_JSON, r);
+                    chain1.getRules(), APPLICATION_RULE_JSON_V2, r);
             assertErrorMatches(error, MessageProperty.MAC_MASK_INVALID);
         }
 
@@ -167,7 +167,7 @@ public class TestRule {
             DtoRule r = newAcceptRule();
             r.setDlDstMask("fffff.0000.0000");
             DtoError error = dtoResource.postAndVerifyBadRequest(
-                    chain1.getRules(), APPLICATION_RULE_JSON, r);
+                    chain1.getRules(), APPLICATION_RULE_JSON_V2, r);
             assertErrorMatches(error, MessageProperty.MAC_MASK_INVALID);
         }
 
@@ -179,7 +179,8 @@ public class TestRule {
             r.setDlDst("10:20:30:40:50:60");
             r.setDlDstMask("0000.ffff.ffff");
             DtoRule created = dtoResource.postAndVerifyCreated(
-                    chain1.getRules(), APPLICATION_RULE_JSON, r, DtoRule.class);
+                    chain1.getRules(), APPLICATION_RULE_JSON_V2, r,
+                    DtoRule.class);
             assertEquals(r.getDlSrc(), created.getDlSrc());
             assertEquals(r.getDlSrcMask(), created.getDlSrcMask());
             assertEquals(r.getDlDst(), created.getDlDst());
@@ -193,7 +194,7 @@ public class TestRule {
         public void testDefaultPolicy() {
             DtoRule rule = newAcceptRule();
             rule = dtoResource.postAndVerifyCreated(chain1.getRules(),
-                    APPLICATION_RULE_JSON, rule, DtoRule.class);
+                    APPLICATION_RULE_JSON_V2, rule, DtoRule.class);
             assertEquals("any", rule.getFragmentPolicy());
         }
 
@@ -202,7 +203,7 @@ public class TestRule {
             DtoRule rule = newAcceptRule();
             rule.setFragmentPolicy("UNDEFINED");
             DtoError error = dtoResource.postAndVerifyBadRequest(
-                    chain1.getRules(), APPLICATION_RULE_JSON, rule);
+                    chain1.getRules(), APPLICATION_RULE_JSON_V2, rule);
             assertErrorMatches(error, FRAG_POLICY_UNDEFINED);
         }
 
@@ -211,7 +212,7 @@ public class TestRule {
             DtoRule rule = newAcceptRule();
             rule.setTpDst(new DtoRule.DtoRange<>(1234, 1234));
             rule = dtoResource.postAndVerifyCreated(chain1.getRules(),
-                    APPLICATION_RULE_JSON, rule, DtoRule.class);
+                    APPLICATION_RULE_JSON_V2, rule, DtoRule.class);
             assertEquals("header", rule.getFragmentPolicy());
         }
 
@@ -229,7 +230,7 @@ public class TestRule {
         public void testDefaultPolicyWithForwardNatRuleWithNoL4Properties() {
             DtoRule rule = newForwardDnatRule();
             rule = dtoResource.postAndVerifyCreated(chain1.getRules(),
-                    APPLICATION_RULE_JSON, rule, DtoRule.class);
+                    APPLICATION_RULE_JSON_V2, rule, DtoRule.class);
             assertEquals("any", rule.getFragmentPolicy());
         }
 
@@ -244,7 +245,7 @@ public class TestRule {
             DtoRule rule = newForwardDnatRule();
             rule.setTpDst(new DtoRule.DtoRange<>(1234, 1234));
             rule = dtoResource.postAndVerifyCreated(chain1.getRules(),
-                    APPLICATION_RULE_JSON, rule, DtoRule.class);
+                    APPLICATION_RULE_JSON_V2, rule, DtoRule.class);
             assertEquals("unfragmented", rule.getFragmentPolicy());
         }
 
@@ -264,7 +265,7 @@ public class TestRule {
             rule.setNatTargets(new DtoNatTarget[]{
                     new DtoNatTarget("10.10.10.10", "10.10.10.11", 0, 0)});
             rule = dtoResource.postAndVerifyCreated(chain1.getRules(),
-                    APPLICATION_RULE_JSON, rule, DtoRule.class);
+                    APPLICATION_RULE_JSON_V2, rule, DtoRule.class);
             assertEquals("unfragmented", rule.getFragmentPolicy());
         }
 
@@ -282,7 +283,7 @@ public class TestRule {
         private void assertPolicyRejected(DtoRule r, String fp) {
             r.setFragmentPolicy(fp);
             DtoError e = dtoResource.postAndVerifyBadRequest(
-                    chain1.getRules(), APPLICATION_RULE_JSON, r);
+                    chain1.getRules(), APPLICATION_RULE_JSON_V2, r);
             boolean isForwardNat = r.getType().equals(DtoRule.DNAT) ||
                                    r.getType().equals(DtoRule.SNAT);
             assertErrorMatches(e, isForwardNat ?
@@ -293,7 +294,7 @@ public class TestRule {
         private void assertPolicyAccepted(DtoRule r, String fp) {
             r.setFragmentPolicy(fp);
             r = dtoResource.postAndVerifyCreated(chain1.getRules(),
-                    APPLICATION_RULE_JSON, r, DtoRule.class);
+                    APPLICATION_RULE_JSON_V2, r, DtoRule.class);
             assertEquals(fp, r.getFragmentPolicy());
         }
 
@@ -473,12 +474,12 @@ public class TestRule {
             URI rulesUri = chain1.getRules();
             assertNotNull(rulesUri);
             DtoRule[] rules = dtoResource.getAndVerifyOk(rulesUri,
-                    APPLICATION_RULE_COLLECTION_JSON, DtoRule[].class);
+                    APPLICATION_RULE_COLLECTION_JSON_V2, DtoRule[].class);
             assertEquals(0, rules.length);
 
             // Add a rule
             DtoRule outRule = dtoResource.postAndVerifyCreated(rulesUri,
-                    APPLICATION_RULE_JSON, rule, DtoRule.class);
+                    APPLICATION_RULE_JSON_V2, rule, DtoRule.class);
             // TODO: Implement 'equals' for DtoRule
             assertEquals(rule.getType(), outRule.getType());
             assertEquals(1, outRule.getPosition());
@@ -487,13 +488,13 @@ public class TestRule {
 
             // List the rule
             rules = dtoResource.getAndVerifyOk(rulesUri,
-                    APPLICATION_RULE_COLLECTION_JSON, DtoRule[].class);
+                    APPLICATION_RULE_COLLECTION_JSON_V2, DtoRule[].class);
             assertEquals(1, rules.length);
             assertEquals(outRule.getId(), rules[0].getId());
 
             // Add this rule to position 1
             outRule = dtoResource.postAndVerifyCreated(rulesUri,
-                    APPLICATION_RULE_JSON, rule, DtoRule.class);
+                    APPLICATION_RULE_JSON_V2, rule, DtoRule.class);
             assertEquals(rule.getType(), outRule.getType());
             assertEquals(1, outRule.getPosition());
             verifyPropertiesExist(outRule);
@@ -501,38 +502,40 @@ public class TestRule {
 
             // Get the original rule
             outRule = dtoResource.getAndVerifyOk(rule1Uri,
-                    APPLICATION_RULE_JSON, DtoRule.class);
+                    APPLICATION_RULE_JSON_V2, DtoRule.class);
             assertEquals(rule.getType(), outRule.getType());
             assertEquals(2, outRule.getPosition());
             verifyPropertiesExist(outRule);
 
             // List both rules
             rules = dtoResource.getAndVerifyOk(rulesUri,
-                    APPLICATION_RULE_COLLECTION_JSON, DtoRule[].class);
+                    APPLICATION_RULE_COLLECTION_JSON_V2, DtoRule[].class);
             assertEquals(2, rules.length);
 
             // Delete one of the rules
             dtoResource.deleteAndVerifyNoContent(rule1Uri,
-                    APPLICATION_RULE_JSON);
+                    APPLICATION_RULE_JSON_V2);
 
             // Verify that the rule is gone
-            dtoResource.getAndVerifyNotFound(rule1Uri, APPLICATION_RULE_JSON);
+            dtoResource.getAndVerifyNotFound(rule1Uri,
+                    APPLICATION_RULE_JSON_V2);
 
             // List and make sure there is only one
             rules = dtoResource.getAndVerifyOk(rulesUri,
-                    APPLICATION_RULE_COLLECTION_JSON, DtoRule[].class);
+                    APPLICATION_RULE_COLLECTION_JSON_V2, DtoRule[].class);
             assertEquals(1, rules.length);
 
             // Delete the second rule
             dtoResource.deleteAndVerifyNoContent(rule2Uri,
-                    APPLICATION_RULE_JSON);
+                    APPLICATION_RULE_JSON_V2);
 
             // Verify that the rule is gone
-            dtoResource.getAndVerifyNotFound(rule2Uri, APPLICATION_RULE_JSON);
+            dtoResource.getAndVerifyNotFound(rule2Uri,
+                    APPLICATION_RULE_JSON_V2);
 
             // List should return nothing now.
             rules = dtoResource.getAndVerifyOk(rulesUri,
-                    APPLICATION_RULE_COLLECTION_JSON, DtoRule[].class);
+                    APPLICATION_RULE_COLLECTION_JSON_V2, DtoRule[].class);
             assertEquals(0, rules.length);
         }
     }

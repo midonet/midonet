@@ -110,7 +110,7 @@ public class TestIpAddrGroup {
             rule.setInvIpAddrGroupDst(true);
 
             rule = dtoResource.postAndVerifyCreated(
-                    chain.getRules(), APPLICATION_RULE_JSON, rule,
+                    chain.getRules(), APPLICATION_RULE_JSON_V2, rule,
                     DtoRule.class);
             assertEquals(chain.getId(), rule.getChainId());
             assertEquals(DtoRule.Accept, rule.getType());

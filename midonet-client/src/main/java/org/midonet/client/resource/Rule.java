@@ -13,7 +13,7 @@ public class Rule extends ResourceBase<Rule, DtoRule> {
 
     public Rule(WebResource resource, URI uriForCreation, DtoRule r) {
         super(resource, uriForCreation, r,
-                VendorMediaType.APPLICATION_RULE_JSON);
+                VendorMediaType.APPLICATION_RULE_JSON_V2);
     }
 
     /**
