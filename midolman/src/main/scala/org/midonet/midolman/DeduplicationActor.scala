@@ -192,6 +192,11 @@ class DeduplicationActor(
     // and a non-empty mutable set.
     private def removePacket(cookie: Int): collection.Set[Packet] = {
         val pending = cookieToPendedPackets.remove(cookie)
+        log.debug("Remove {} pending packet(s) for cookie {}",
+            (if (pending.isDefined)
+                pending.get.size
+            else 0),
+            cookie)
         if (pending.isDefined) {
             val dpMatch = cookieToDpMatch.remove(cookie)
             if (dpMatch.isDefined)
@@ -369,6 +374,7 @@ class DeduplicationActor(
                     log.debug("A matching packet with cookie {} is already " +
                               "being handled", cookie)
                     cookieToPendedPackets.addBinding(cookie, packet)
+                    giveUpWorkflows(waitingRoom.doExpirations)
             }
         }
     }

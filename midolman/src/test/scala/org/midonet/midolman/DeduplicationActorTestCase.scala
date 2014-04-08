@@ -208,18 +208,15 @@ class DeduplicationActorTestCase extends FeatureSpec
             createDda(0)
             val pkts = List(makePacket(1), makePacket(1))
             ddaRef ! DeduplicationActor.HandlePackets(pkts.toArray)
-            dda.pendedPackets(1) should not be None
-            dda.pendedPackets(1).get should have size 1
-            dda.pendedPackets(1).get.head should be (pkts(1))
+            // simulationExpireMillis is 0, pended packets should be
+            // expired immediately
+            dda.pendedPackets(1) should be (None)
 
             When("putting another packet handler in the waiting room")
             val pkt2 = makePacket(2)
             ddaRef ! DeduplicationActor.HandlePackets(Array(pkt2))
-            dda.pendedPackets(2) should not be None
-            dda.pendedPackets(2).get should be (empty)
-
-            Then("the DDA will expire the first one")
-            dda.pendedPackets(1) should be (None)
+            dda.pendedPackets(2) should not be (None)
+            dda.pendedPackets(2).get should be ('empty)
 
             And("packetsOut should be called with the correct number")
             packetsOut should be (3)
