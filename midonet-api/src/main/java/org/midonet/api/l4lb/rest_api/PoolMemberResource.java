@@ -4,6 +4,31 @@
 
 package org.midonet.api.l4lb.rest_api;
 
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.servlet.RequestScoped;
+import org.midonet.api.ResourceUriBuilder;
+import org.midonet.api.VendorMediaType;
+import org.midonet.api.auth.AuthRole;
+import org.midonet.api.l4lb.PoolMember;
+import org.midonet.api.rest_api.AbstractResource;
+import org.midonet.api.rest_api.BadRequestHttpException;
+import org.midonet.api.rest_api.ConflictHttpException;
+import org.midonet.api.rest_api.NotFoundHttpException;
+import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.api.rest_api.ServiceUnavailableHttpException;
+import org.midonet.api.validation.MessageProperty;
+import org.midonet.cluster.DataClient;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.InvalidStateOperationException;
+import org.midonet.midolman.state.LBStatus;
+import org.midonet.midolman.state.NoStatePathException;
+import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.state.StatePathExistsException;
+import org.midonet.midolman.state.l4lb.MappingStatusException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -22,31 +47,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
-import com.google.inject.Inject;
-import com.google.inject.assistedinject.Assisted;
-import com.google.inject.servlet.RequestScoped;
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.VendorMediaType;
-import org.midonet.api.auth.AuthRole;
-import org.midonet.api.l4lb.PoolMember;
-import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.BadRequestHttpException;
-import org.midonet.api.rest_api.ConflictHttpException;
-import org.midonet.api.rest_api.NotFoundHttpException;
-import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.api.validation.MessageProperty;
-import org.midonet.cluster.DataClient;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.InvalidStateOperationException;
-import org.midonet.midolman.state.LBStatus;
-import org.midonet.midolman.state.NoStatePathException;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.StatePathExistsException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import static org.midonet.api.validation.MessageProperty.getMessage;
 import static org.midonet.api.validation.MessageProperty.RESOURCE_EXISTS;
+import static org.midonet.api.validation.MessageProperty.getMessage;
 
 @RequestScoped
 public class PoolMemberResource extends AbstractResource {
@@ -119,6 +121,8 @@ public class PoolMemberResource extends AbstractResource {
             dataClient.poolMemberDelete(id);
         } catch (NoStatePathException ex) {
             // Delete is idempotent, so do nothing.
+        } catch (MappingStatusException ex) {
+            throw new ServiceUnavailableHttpException(ex);
         }
     }
 
@@ -146,6 +150,8 @@ public class PoolMemberResource extends AbstractResource {
         } catch (StatePathExistsException ex) {
             throw new ConflictHttpException(getMessage(
                     RESOURCE_EXISTS, "pool member", poolMember.getId()));
+        } catch (MappingStatusException ex) {
+            throw new ServiceUnavailableHttpException(ex);
         }
     }
 
@@ -179,6 +185,8 @@ public class PoolMemberResource extends AbstractResource {
             dataClient.poolMemberUpdate(poolMember.toData());
         } catch (NoStatePathException ex) {
             throw badReqOrNotFoundException(ex, id);
+        } catch (MappingStatusException ex) {
+            throw new ServiceUnavailableHttpException(ex);
         }
     }
 
@@ -246,6 +254,8 @@ public class PoolMemberResource extends AbstractResource {
                         MessageProperty.RESOURCE_EXISTS, "pool member"));
             } catch (NoStatePathException ex) {
                 throw new NotFoundHttpException(ex);
+            } catch (MappingStatusException ex) {
+                throw new ServiceUnavailableHttpException(ex);
             }
         }
     }

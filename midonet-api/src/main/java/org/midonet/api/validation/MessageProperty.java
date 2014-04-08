@@ -44,6 +44,8 @@ public class MessageProperty {
             "{midokura.javarx.MacPortOnBridge.message}";
     public static final String MAC_URI_FORMAT =
             "{midokura.javarx.MacUriFormat.message}";
+    public static final String MAPPING_STATUS_IS_PENDING =
+            "{midokura.javarx.MappingStatusIsPending.message}";
     public static final String POOL_MEMBER_WEIGHT_NEGATIVE =
             "{midokura.javarx.PoolMemberWeightNegative.message}";
     public static final String PORT_ID_IS_INVALID =
