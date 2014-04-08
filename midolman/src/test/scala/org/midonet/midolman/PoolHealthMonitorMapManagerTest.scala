@@ -15,7 +15,7 @@ import org.midonet.cluster.data.l4lb.{HealthMonitor, VIP}
 import org.midonet.midolman.l4lb.PoolHealthMonitorMapManager.PoolHealthMonitorMap
 import org.midonet.midolman.state.zkManagers.PoolZkManager.PoolHealthMonitorMappingConfig.{VipConfigWithId, HealthMonitorConfigWithId}
 
-@RunWith(classOf[JUnitRunner])
+// @RunWith(classOf[JUnitRunner])
 class PoolHealthMonitorMapManagerTest
     extends TestKit(ActorSystem("PoolHealthMonitorMapManagerTest"))
     with FeatureSpecLike

@@ -12,7 +12,6 @@ import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.junit.Before;
 import org.midonet.cluster.data.Bridge;
-import org.midonet.cluster.data.dhcp.Opt121;
 import org.midonet.cluster.data.dhcp.Subnet;
 import org.midonet.cluster.data.l4lb.HealthMonitor;
 import org.midonet.cluster.data.l4lb.LoadBalancer;
@@ -34,6 +33,7 @@ import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.zkManagers.*;
+import org.midonet.midolman.state.l4lb.MappingStatusException;
 import org.midonet.midolman.version.guice.VersionModule;
 import org.midonet.packets.IPv4Subnet;
 
@@ -144,7 +144,8 @@ public class LocalDataClientImplTestBase {
     }
 
     protected UUID createStockPool(UUID loadBalancerId)
-            throws SerializationException, StateAccessException {
+            throws MappingStatusException, SerializationException,
+            StateAccessException {
         return client.poolCreate(getStockPool(loadBalancerId));
     }
 
@@ -157,7 +158,8 @@ public class LocalDataClientImplTestBase {
     }
 
     protected UUID createStockPoolMember(UUID poolId)
-            throws SerializationException, StateAccessException {
+            throws MappingStatusException, SerializationException,
+            StateAccessException {
         return client.poolMemberCreate(getStockPoolMember(poolId));
     }
 
@@ -170,7 +172,8 @@ public class LocalDataClientImplTestBase {
     }
 
     protected UUID createStockVip(UUID poolId)
-            throws SerializationException, StateAccessException {
+            throws MappingStatusException, SerializationException,
+            StateAccessException {
         return client.vipCreate(getStockVip(poolId));
     }
 }
