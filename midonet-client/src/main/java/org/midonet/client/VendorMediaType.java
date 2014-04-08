@@ -86,6 +86,10 @@ public class VendorMediaType {
             "application/vnd.org.midonet.Rule-v1+json";
     public static final String APPLICATION_RULE_COLLECTION_JSON =
             "application/vnd.org.midonet.collection.Rule-v1+json";
+    public static final String APPLICATION_RULE_JSON_V2 =
+            "application/vnd.org.midonet.Rule-v2+json";
+    public static final String APPLICATION_RULE_COLLECTION_JSON_V2 =
+            "application/vnd.org.midonet.collection.Rule-v2+json";
     public static final String APPLICATION_BGP_JSON =
             "application/vnd.org.midonet.Bgp-v1+json";
     public static final String APPLICATION_BGP_COLLECTION_JSON =

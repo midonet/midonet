@@ -98,7 +98,7 @@ public class RuleChain extends ResourceBase<RuleChain, DtoRuleChain> {
         return getChildResources(
             principalDto.getRules(),
             null,
-            VendorMediaType.APPLICATION_RULE_COLLECTION_JSON,
+            VendorMediaType.APPLICATION_RULE_COLLECTION_JSON_V2,
             Rule.class,
             DtoRule.class);
     }

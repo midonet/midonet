@@ -384,7 +384,7 @@ public class Application extends ResourceBase<Application, DtoApplication> {
         URI uri = createUriFromTemplate(
                 principalDto.getRuleTemplate(), ID_TOKEN, id);
         DtoRule rule = resource.get(uri, null, DtoRule.class,
-                VendorMediaType.APPLICATION_RULE_JSON);
+                VendorMediaType.APPLICATION_RULE_JSON_V2);
         return new Rule(resource, null, rule);
     }
 
