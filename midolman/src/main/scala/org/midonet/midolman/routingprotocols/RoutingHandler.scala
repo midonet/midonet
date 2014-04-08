@@ -135,6 +135,8 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
     private val peerRoutes = mutable.Map[Route, UUID]()
     private var socketAddress: AfUnix.Address = null
 
+    private val dpPorts = mutable.Map[String, NetDevPort]()
+
     // At this moment we only support one bgpd process
     private var bgpdProcess: BgpdProcess = null
 
@@ -374,11 +376,15 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                         stash()
                 }
 
+            case DpPortDeleteSuccess(_, netdevPort) =>
+                log.debug("PortNetdevOpReply - delete, for port {}", netdevPort)
+                dpPorts.remove(netdevPort.getName)
+
             case DpPortCreateSuccess(_, netdevPort, pid) =>
                 log.debug("PortNetdevOpReply - create, for port {}", rport.id)
                 phase match {
                     case Starting =>
-                        netdevPortReady(netdevPort, pid)
+                        netdevPortReady(netdevPort.asInstanceOf[NetDevPort], pid)
                     case _ =>
                         log.error("PortNetdevOpReply expected only while " +
                             "Starting - we're now in {}", phase)
@@ -801,8 +807,9 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         IP.deleteNS(BGP_NETWORK_NAMESPACE)
 
         // Delete port from datapath
-        DatapathController !
-            DpPortDeleteNetdev(new NetDevPort(BGP_NETDEV_PORT_NAME), null)
+        dpPorts.get(BGP_NETDEV_PORT_NAME) foreach {
+            DatapathController ! DpPortDeleteNetdev(_, null)
+        }
 
         log.debug("announcing BGPD_STATUS inactive")
         context.system.eventStream.publish(BGPD_STATUS(rport.id, false))
@@ -812,8 +819,10 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         log.debug("stopBGP - end")
     }
 
-    private def netdevPortReady(newPort: DpPort, uplinkPid: Int) {
+    private def netdevPortReady(newPort: NetDevPort, uplinkPid: Int) {
         log.debug("begin")
+
+        dpPorts.put(newPort.getName, newPort)
 
         // The internal port is ready. Set up the flows
         if (bgps.size <= 0) {
