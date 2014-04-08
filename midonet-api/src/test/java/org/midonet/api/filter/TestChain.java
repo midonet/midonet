@@ -40,8 +40,9 @@ import org.midonet.client.dto.DtoRuleChain;
 import static org.midonet.api.VendorMediaType.APPLICATION_BRIDGE_JSON;
 import static org.midonet.api.VendorMediaType.APPLICATION_CHAIN_COLLECTION_JSON;
 import static org.midonet.api.VendorMediaType.APPLICATION_CHAIN_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_RULE_COLLECTION_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_RULE_JSON;
+import static org.midonet.api.VendorMediaType
+        .APPLICATION_RULE_COLLECTION_JSON_V2;
+import static org.midonet.api.VendorMediaType.APPLICATION_RULE_JSON_V2;
 import static org.midonet.api.VendorMediaType.APPLICATION_ROUTER_JSON;
 import static org.midonet.api.VendorMediaType.APPLICATION_PORT_V2_JSON;
 import org.midonet.client.dto.DtoRouterPort;
@@ -224,12 +225,12 @@ public class TestChain {
             jumpRule.setJumpChainName("Chain2");
             jumpRule.setType(DtoRule.Jump);
             response = resource().uri(ruleChain1.getRules())
-                    .type(APPLICATION_RULE_JSON)
+                    .type(APPLICATION_RULE_JSON_V2)
                     .post(ClientResponse.class, jumpRule);
             assertEquals("The jump rule was created.", 201,
                     response.getStatus());
             jumpRule = resource().uri(response.getLocation())
-                    .accept(APPLICATION_RULE_JSON).get(DtoRule.class);
+                    .accept(APPLICATION_RULE_JSON_V2).get(DtoRule.class);
             assertEquals("Chain2", jumpRule.getJumpChainName());
             assertEquals(ruleChain1.getId(), jumpRule.getChainId());
 
@@ -360,12 +361,12 @@ public class TestChain {
             URI rulesUri = ruleChain2.getRules();
             DtoRule rule
                     = dtoResource.postAndVerifyCreated(rulesUri,
-                    APPLICATION_RULE_JSON,
+                    APPLICATION_RULE_JSON_V2,
                     getStockRule(ruleChain1.getId(), ruleChain1.getName()),
                     DtoRule.class);
 
             DtoRule[] rules = dtoResource.getAndVerifyOk(rulesUri,
-                    APPLICATION_RULE_COLLECTION_JSON, DtoRule[].class);
+                    APPLICATION_RULE_COLLECTION_JSON_V2, DtoRule[].class);
             assertEquals(1, rules.length);
 
             dtoResource.deleteAndVerifyNoContent(ruleChain1.getUri(),
@@ -373,7 +374,7 @@ public class TestChain {
 
             // The Rule should have been deleted.
             rules = dtoResource.getAndVerifyOk(rulesUri,
-                    APPLICATION_RULE_COLLECTION_JSON, DtoRule[].class);
+                    APPLICATION_RULE_COLLECTION_JSON_V2, DtoRule[].class);
             assertEquals(0, rules.length);
 
             // Everyone's inbound filters should now be empty

@@ -18,6 +18,7 @@ import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.MAC;
 import org.midonet.util.Range;
 import org.midonet.util.StringUtil;
+import org.midonet.util.version.Since;
 
 import static org.midonet.packets.Unsigned.unsign;
 import static org.midonet.midolman.rules.Condition.NO_MASK;
@@ -59,9 +60,11 @@ public abstract class Condition extends UriResource {
     private Integer dlType;
     private boolean invDlType;
     private String dlSrc;
+    @Since("2")
     private String dlSrcMask;
     private boolean invDlSrc;
     private String dlDst;
+    @Since("2")
     private String dlDstMask;
     private boolean invDlDst;
     private int nwTos;
@@ -71,6 +74,7 @@ public abstract class Condition extends UriResource {
     private boolean invNwSrc;
     private boolean invNwDst;
 
+    @Since("2")
     @Pattern(regexp = FragmentPolicy.pattern,
              message = MessageProperty.FRAG_POLICY_UNDEFINED)
     private String fragmentPolicy;
@@ -185,10 +189,12 @@ public abstract class Condition extends UriResource {
         this.invIpAddrGroupDst = invIpAddrGroupDst;
     }
 
+    @Since("2")
     public String getFragmentPolicy() {
         return fragmentPolicy;
     }
 
+    @Since("2")
     public void setFragmentPolicy(String fragmentPolicy) {
         this.fragmentPolicy = fragmentPolicy;
     }
@@ -208,6 +214,7 @@ public abstract class Condition extends UriResource {
      * @return
      *     Data layer destination mask in the form "ffff.0000.0000"
      */
+    @Since("2")
     public String getDlDstMask() {
         return dlDstMask;
     }
@@ -230,6 +237,7 @@ public abstract class Condition extends UriResource {
      * @param dlDstMask
      *     Mask in the form "ffff.0000.0000" (ignores the lower 32 bits).
      */
+    @Since("2")
     public void setDlDstMask(String dlDstMask) {
         this.dlDstMask = dlDstMask;
     }
