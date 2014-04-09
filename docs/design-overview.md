@@ -3,71 +3,89 @@
 ### Text diagram
 
 <pre>
-                             ┌────────────┐
-                             │Port Service│
-                             │  Manager   │
-                             └────────────┘
-                                    ↑ Local Port
-                                    │ Updates
-                                    │
-                               ┌────────┐
-   ┌───────────────────────────│Virtual │
-   |                 ┌─────────│Topology│──────────┐
-   |                 |         │ Actor  │          |
-   |                 |         └────────┘          |
-   |            ←────|   Local Port ↑              |
-   |          Remote |      Updates |              |Read-only
-   |          State  |              |              |Virtual Topology
-   |          Queries|        ┌─────────┐          |Shared data / Messages
-   |                 └────────│Virt─Phys│          |
-   |                          │ Mapping │          |
-   |                          └─────────┘          |      ┌────────────────┐
-   |                 Host/IF/Vport ↑               |─────→| PacketWorkFlow |┐
-   ↓                    Mappings   |               |      └────────────────┘|─┐
-   |                               ↓               |       └────────────────┘ |
-   |                     ┌───────────────────┐     |        |     ↑           |
-   |Flow                 │   DP Controller   │─────|        |     |PacketIn   |
-   |Invalidation         └───────────────────┘     |        |     |           |
-   |By Tag                │         |              |        |     |           |
-   |                      │         |              |        |     |           |
-   |                      │         │Wildcard      |        |     |           |
-   |                      │         ↓ Flows        |        |     |           |
-   |                      │  ┌─────────────────┐   |        |     |Execute    |
-   └──────────────────────(─→│ Flow Controller │───┘        |     |Pended     |
-                          │  └─────────────────┘←───────────┘     |Pkts       |
-                          │         ↑              Wildcard       |           |
-                          │         |              Flows          ↓           |
-                   DP Port│         | DP Flow              ┌───────────────┐  |
-                   Queries│         │ Queries              | Deduplication |  |
-                          |         |                      |    Actor      |  |
-                          |         |                      └───────────────┘  |
-                          ↓         ↓                              ↑          |
-                     ┌───────────────────────────┐        PacketIn |          |
-                     │      Netlink Datapath     │←────────────────┘          |
-                     |            API            |←───────────────────────────┘
-                     └───────────────────────────┘   Add DP Flow / Pkt Execute
+
+                                             ┌────────┐
+                 ┌───────────────────────────│Virtual │
+                 │                 ┌─────────│Topology│──────────┐
+                 │                 │         │ Actor  │          │
+                 │                 │         └────────┘          │
+                 │  cluster...←────│              ↑              │
+                 │          Remote │              │              │ Read-only
+                 │          State  │              │              │ Virtual Topology
+                 │          Queries│        ┌─────────┐          │ State data / Messages
+                 │                 └────────│Virt─Phys│          │
+                 │                          │ Mapping │          │
+                 │                          └─────────┘          │
+                 │                 Host/IF/Vport ↑               │
+                 ↓                    Mappings   │               │
+                 │                               ↓               │
+                 │                      ┌───────────────────┐    │
+                 │Flow                  │   DP Controller   │────│
+                 │Invalidation          └───────────────────┘    │
+                 │By Tag                          │       │      │
+                 │                                │       │      │
+                 │                        Wildcard│       │      │
+                 │                           Flows↓       │      │
+                 │                   ┌─────────────────┐  │      │
+                 └──────────────────→│ Flow Controller │──(──────┘
+                                     └─────────────────┘   ╲
+                                                     ↑  ╲    ╲ 
+                                                     │    ╲    ╲ 
+                                                     │      ╲    ╲ 
+                                                     │        ╲    ╲ 
+                                      ↑              │          ╲    │
+                           Read/Update│              │            │  │DP Port
+                           Topology & │              │        Flow│  │Ops
+STATE MANAGEMENT           State      │              │       Mgmnt│  │
+                                      │              │         Ops│  │
+v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
+                                      │              │            │  │
+FAST PATH                             │              │            │  │
+                                      │              │Wildcard    │  │
+                                      │              │Flows       │  │
+                                      │              │            ↓  ↓
+┌──────────┐                          │              │         ┌──────────┐
+│ Netlink  │┐   Packets    ┌──────────┴─────────┐  ╱           │ Netlink  │┐
+│  Input   ││┐────────────→│ DeduplicationActor │┐────────────→│  Output  ││
+│ Channels │││             └────────────────────┘│  Packets    │ Channels ││
+└──────────┘││              └────────────────────┘     &       └──────────┘│
+ └──────────┘│                                       Flows      └──────────┘
+  └──────────┘
 
 </pre>
 
 ## Terminology
+
 - PortSet: identified by a UUID, this represents a group of virtual ports. A
 Flow that is emitted from a PortSet must be emitted from each vport in that set.
 A flow that is flooded from a L2 bridge is emitted from the PortSet that
 includes all that bridge's exterior ports; a flow that is directed to an IP
 multicast address in the virtual network is emitted from all the virtual ports
-that have received multicast subscribe messages for that IP.
+that have received multicast subscribe messages for that IP. (Note: PortSets are
+not implemented for multicast).
+
+- Flow: also referred to as "datapath flow". A flow rule supported by the
+datapath and is thus installed in the kernel through a netlink channel using the
+ODP API. On datapaths that do not support wildcarding (all OVS versions before
+"megaflow" was added), datapath flows need to match on every header field in a
+packet.
+
+- WildcardFlow: MidoNet extension of a flow, that allows for header field
+wildcarding. Since they are not supported in the kernel, they live exclusively
+inside midolman, and produce specific datapath flows when a packet matches on
+them.
 
 ## Components
 
-### Netlink Datapath API
+### Netlink Datapath API - odp
 
 The Netlink Datapath API is a thread-safe non-blocking library that provides
 methods to query the Kernel (and particularly the OVS kernel module) to perform
 CRUD operations on datapaths, datapath ports, and datapath flows.
 
-### Virtual-Physical Mapping
+### VirtualToPhysicalMapper
 
-The Virtual-Physical Mapping is a component that interacts with Midonet's
+The VirtualToPhysicalMapper is a component that interacts with Midonet's
 state management cluster and is responsible for those pieces of state that map
 physical world entities to virtual world entities. In particular, the VPM
 can be used to:
@@ -80,11 +98,12 @@ name) on a given physical host.
 virtual port is reachable if the responsible host has mapped the vport ID to its
 corresponding local interface and the interface is ready to receive).
 
-### Virtual Topology Manager
+### VirtualTopologyActor
 
-The Virtual Topology Manager is a component that interacts with MidoNet's state
+The VirtualTopologyActor is a component that interacts with MidoNet's state
 management cluster and is responsible for all pieces of state that describe
-virtual network devices. In particular, the VPM can be used to:
+virtual network devices. In particular, the VTA can be used to:
+
 - get the configuration of a virtual port, including the port's associated
 filters, the port's associated services (DHCP, BGP, VPN), the port's MAC and IP
 addresses (e.g. in the case of a virtual router port).
@@ -103,8 +122,8 @@ Netlink API to query the local datapaths, create the datapath if it does not
 exist, create datapath ports for the appropriate host interfaces and learn their
 IDs (usually a Short), locally track the mapping of datapath port ID to MidoNet
 virtual port ID. When a locally managed vport has been successfully mapped
-to a local network interface, the DP Controller notifies the Virtual-Physical
-Mapping that the vport is ready to receive flows. This allows other Midolman
+to a local network interface, the DP Controller notifies the VirtualToPhysical
+Mapper that the vport is ready to receive flows. This allows other Midolman
 daemons (at other physical hosts) to correctly forward flows that should be
 emitted from the vport in question.
 
@@ -115,36 +134,32 @@ for Netlink PacketIn notifications.
 The DP Controller is also responsible for managing overlay tunnels.
 Tunnel management is described in a separate design document.
 
-### Deduplication Actor
+### DeduplicationActor
 
-The Deduplication Actor (DDA) is the entry point to the packet processing
-activities.
+The DeduplicationActor (DDA) is the entry point to the packet processing
+activities. There may be several of them running in parallel. Packets make it
+to a given DDA worker based on the hash of their flow match. Thus two identical
+packets will always be routed through the same DDA.
 
-When the DDA receives a PacketIn notification from the Netlink API, it first
+When a DDA receives a packet notification from the Netlink API, it first
 checks that there are no packets with the same match being processed. If there
 are, the packets are kept in the pended packets queue, so that, when the
 in-progress packet is processed the resulting actions can be applied to all the
 packets pended with the same match.
 
-If the incoming packet doesn't have same-match counterpart, the DDA spawns
-a new PacketWorkflow Actor (PWFA)  to process the packet.
+If the incoming packet doesn't have same-match counterpart, the DDA
+synchronously runs a new PacketWorkflow (PW) to process the packet.
 
-The DDA may also start PWFAs when another component in the system decides
-to emit a packet generated by the virtual network.
+DDAs also processes packets emitted by the virtual network itself.
 
-### PacketWorkflow Actor
+Once a DDA decides that a packet must be processed, the PW object associated
+with the packet will do so in several stages:
 
-The PWFA takes a packet through different stages of decision until a result
-is produced for that packet. It then proceeds to carry on that result.
-
-The first step is to checking the Wildcard Flow Table exposed by the Flow
+The first step is to check the Wildcard Flow Table exposed by the Flow
 Controller for a match. If found, it creates the appropriate kernel flow
 using the packet's match and the wildcard flow's actions and makes two calls
 the Netlink API: one to install the flow and one to execute the packet (if
-applicable). When the kernel has processed both requests, the PWFA informs the
-DeduplicationActor that it can free the pended packets for this match and apply
-the actions to them. It also informs the Flow Controller of the newly created
-datapath flow.
+applicable). It will also inform the FlowController of the new datapath flow.
 
 If no match is found in the WildcardFlow table the packet, it translates the
 arriving datapath port ID to a virtual port UUID and starts a simulation
@@ -152,23 +167,26 @@ of the packet as it would traverse the virtual topology.
 
 When the simulation produces a result a new Wildcard Flow can be produced.
 This Wildcard Flow needs to be translated. If the flow is being emitted from
-a single remote virtual port, this involves querying the Virtual-Physical
-Mapping for the identity of the host responsible for that virtual port, and
-then adding flow actions to set the tunnel-id to encode that virtual port and
-to emit the packet from the tunnel corresponding to that remote host. If the
-flow is being emitted from a single local virtual port, the PWFA
-recognizes this and uses the corresponding datapath port. Finally, if the flow
-is being emitted from a PortSet, the PWFA queries the Virtual-Physical
-Mapping for the set of hosts subscribed to the PortSet; it must then map each of
-those hosts to a tunnel and build a wildcard flow description that outputs the
-flow to all of those tunnels and any local datapath port that corresponds to a
-virtual port belonging to that PortSet. Finally, the wildcard flow, free of any
-MidoNet ID references, is ready to be pushed to the FlowController.
+a single remote virtual port, this involves querying the VirtualToPhysical
+Mapper's state for the identity of the host responsible for that virtual port,
+and then adding flow actions to set the tunnel-id to encode that virtual port
+and to emit the packet from the tunnel corresponding to that remote host. If the
+flow is being emitted from a single local virtual port, the PW recognizes this
+and uses the corresponding datapath port. Finally, if the flow is being emitted
+from a PortSet, the PW queries the VirtualToPhysical Mapper for the set of
+hosts subscribed to the PortSet; it must then map each of those hosts to a
+tunnel and build a wildcard flow description that outputs the flow to all of
+those tunnels and any local datapath port that corresponds to a virtual port
+belonging to that PortSet. Finally, the wildcard flow, free of any MidoNet ID
+references, is ready to be pushed to the FlowController.
 
 At this point, the sequence of events is the same as above: create a datapath
-flow, execute the packet (if applicable) and inform the DDA and the Flow
+flow, execute the packet (if applicable) and inform the Flow
 Controller, in this case indicating that the DP Flow corresponds to a new
 Wildcard Flow.
+
+The final step is to check the pended packets queue to see if any packets with
+the same match need to be executed too.
 
 ### Flow Controller
 
@@ -191,15 +209,23 @@ a virtual device or link.
 
 ### Simulations
 
-Simulations are one of the workflow phases managed by the PWFA, they work
+Simulations are one of the workflow phases managed by the DDA, they work
 purely at the virtual topology level (no knowledge of physical mappings)
 of actions
 
-Each simulation queries the Virtual Topology Manager for device state. The
-simulations don't subscribe for device updates. Normally a simulation cannot
-know at the outset the entire set of devices it will need to simulate (and
-therefore query from the VTM) - more commonly, it will discover a new device
+Each simulation reads the VirtualTopologyActor shared state database for device
+state. The simulations don't subscribe for device updates. Normally a simulation
+cannot know at the outset the entire set of devices it will need to simulate
+(and therefore query from the VTA) - more commonly, it will discover a new device
 it needs to simulate as soon as the previous device's simulation completes.
+
+When a simulation encounters a device or piece of topology that the VTA doesn't
+yet know about it will produce a Future that will complete when the VTA fetches
+the missing piece of topology. Because packet processing is synchronous and
+non-blocking, simulations that run into a future are cancelled, and put in a
+'WaitingRoom' until a time out occurs or the future is completed. When the
+future completes the DDA that owned the suspended simulation will re-start
+processing the packet from scratch.
 
 The role of a simulation is to determine for a single packet entering the
 virtual network at some vport, whether:
@@ -228,17 +254,49 @@ the recently learned mac-port association is not yet effective. Then it
 will see the mac-learning table update and send all other subsequent
 frames addressed to M1 correctly to port A.
 
-### Port Service Manager
+## State management
 
-When the Datapath Controller successfully associates a virtual port with a
-local interface, it notifies the Virtual-Physical Mapping that the virtual
-port is ready to emit forwarded packets. The VPM in turn notifies the Virtual
-Topology Manager that the virtual port is now local to this host. The VTM in
-turn notifies any component that is subscribed to 'local port updates'.
+### Traffic-dynamic state
 
-The Port Service Manager is such a component, subscribed to local port updates.
-Upon learning that a virtual port is local to its host, the PSM determines
-whether the port has any services attached (e.g. BGP) and launches the
-appropriate PortService. Regardless, the PSM subscribes to updates on that port
-so that if services are added or removed from that port, it can take the
-appropriate action.
+There are three pieces of state which are updated dynamically as flows
+are processed (not as configuration changes):  The ARP cache, the MAC-Port
+map, and the MAC flow count.  The ARP cache and MAC-Port map are shared
+across daemons, and so are managed by the cluster service.  The calls to
+this service are thread-safe and take callbacks.  When a forwarding element
+needs to get data from the cluster service, the FE will set up an Akka
+`Promise` which will be completed by the callback method, then query for
+the data, then await the `Promise`'s completion for the queried data.
+The MAC flow count is daemon-local, and will be managed by the 
+`VirtualTopologyManager`'s actor.  When a `DeviceManager` (a child of the VTA)
+constructs a forwarding element using any of this dynamic state, it will
+pass an object reference handing the state to the forwarding element's
+constructor, with all the RCU copies of that forwarding element instance
+getting a reference to the same object, but an instance of a *different*
+forwarding element will get a different state management object.  (E.g.,
+different routers don't share ARP caches, but changing a router's config --
+triggering generation of a new RCU copy -- doesn't reset the ARP cache.)
+
+### ARP Cache
+
+The ARP Cache is traffic-updated (specifically, ARP-reply-updated) data
+managed by Midostore and used by the `Router` class.  All instances of
+a particular virtual router will share the same ARP Cache, which will
+handle ARP replies and generate ARP requests.
+
+When a `Router` requires the MAC for an IP address, it queries its ARP cache,
+which will suspend the `Controller` actor the `Router` is running in until
+the ARP Cache replies.  When a `Router` receives an ARP reply addressed
+to it, it sends it to its ARP Cache and instructs its caller that it has
+consumed the packet.
+
+If the ARP Cache has an entry for a requested IP address, it returns it
+immediately.  If it does not, it records the waiting callback and the address
+it's waiting on, and produces an ARP request and instructs the
+`DatapathController` to emit it.  If the cluster service is notified of an
+entry for an outstanding address, it sends that entry to every callback
+waiting for it.  When the cluster service Client receives an ARP reply from
+the `Router` object, it updates the ARP Cache with the data from that reply
+and sends it to any callbacks waiting on it.  These callbacks complete the
+`Promise`s the simulations are suspended on, and so when the simulations are
+run a second time, Routers will find the entries in their ARP table without
+suspending.
