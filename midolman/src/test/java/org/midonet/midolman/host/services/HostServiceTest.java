@@ -21,8 +21,10 @@ import org.apache.zookeeper.CreateMode;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.midonet.cluster.services.MidostoreSetupService;
 import org.midonet.config.ConfigProvider;
 import org.midonet.midolman.MockInterfaceScanner;
+import org.midonet.midolman.Setup;
 import org.midonet.midolman.guice.serialization.SerializationModule;
 import org.midonet.midolman.host.commands.executors.HostCommandWatcher;
 import org.midonet.midolman.host.config.HostConfig;
@@ -73,11 +75,7 @@ public class HostServiceTest {
             Directory directory = new MockDirectory();
             try {
                 directory.add(paths.getBasePath(), null, CreateMode.PERSISTENT);
-                directory.add(paths.getWriteVersionPath(),
-                        DataWriteVersion.CURRENT.getBytes(),
-                        CreateMode.PERSISTENT);
-                directory.add(paths.getHostsPath(), null,
-                        CreateMode.PERSISTENT);
+                Setup.ensureZkDirectoryStructureExists(directory, basePath);
             } catch (Exception ex) {
                 throw new RuntimeException("Could not initialize zk", ex);
             }
