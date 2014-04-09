@@ -206,14 +206,29 @@ public abstract class ReplicatedMap<K, V> {
     private Set<Integer> ownedVersions;
     private Set<Watcher<K, V>> watchers;
     private DirectoryWatcher myWatcher;
+    private boolean createsEphemeralNode;
 
     public ReplicatedMap(Directory dir) {
+        this(dir, true);
+    }
+
+    /**
+     * ReplicatedMap constructor takes a Directory of key / value lists, and a
+     * boolean indicating whether it creates an ephemeral entry on the backend
+     * for a key-value pair that is 'put' to the map.
+     * @param dir A ZooKeeper directory (node) under which key-value pairs are
+     * stored.
+     * @param ephemeral A boolean indicating whether a key-value pair that's
+     * 'put' to this map be made an ephemeral / persistent ZooKeeper node.
+     */
+    public ReplicatedMap(Directory dir, boolean ephemeral) {
         this.dir = dir;
         this.running = false;
         this.localMap = new ConcurrentHashMap<>();
         this.ownedVersions = new HashSet<>();
         this.watchers = new HashSet<>();
         this.myWatcher = new DirectoryWatcher();
+        this.createsEphemeralNode = ephemeral;
     }
 
     public void addWatcher(Watcher<K, V> watcher) {
@@ -314,9 +329,12 @@ public abstract class ReplicatedMap<K, V> {
      * the DirectoryWatcher after ZK has accepted it.
      */
     public void put(final K key, final V value) {
-        dir.asyncAdd(encodePath(key, value), null,
-                     CreateMode.EPHEMERAL_SEQUENTIAL,
-                     new PutCallback(key, value));
+        String path = this.createsEphemeralNode ? encodePath(key, value)
+                : encodeFullPath(key.toString(), value.toString(), 1);
+        CreateMode mode = this.createsEphemeralNode ?
+                CreateMode.EPHEMERAL_SEQUENTIAL : CreateMode.PERSISTENT;
+
+        dir.asyncAdd(path, null, mode, new PutCallback(key, value));
     }
 
     /**

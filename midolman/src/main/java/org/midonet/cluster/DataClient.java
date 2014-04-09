@@ -32,6 +32,7 @@ import org.midonet.midolman.state.DirectoryCallback;
 import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.l4lb.MappingStatusException;
 import org.midonet.midolman.state.LBStatus;
+import org.midonet.midolman.state.MacPortMap;
 import org.midonet.midolman.state.PoolHealthMonitorMappingStatus;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkLeaderElectionWatcher;
@@ -92,6 +93,9 @@ public interface DataClient {
     List<Bridge> bridgesGetAll() throws StateAccessException,
             SerializationException;
 
+    List<UUID> bridgesGetAllIds() throws StateAccessException,
+            SerializationException;
+
     List<Bridge> bridgesFindByTenant(String tenantId)
             throws StateAccessException, SerializationException;
 
@@ -99,6 +103,20 @@ public interface DataClient {
             throws StateAccessException;
 
     boolean bridgeHasMacTable(@Nonnull UUID bridgeId, short vlanId)
+            throws StateAccessException;
+
+    /**
+     * Returns a MAC-port table for the specified bridge / VLAN IDs that are
+     * automatically synchronized with the backend data store.
+     * @param bridgeId A bridge ID.
+     * @param vlanId A VLAN ID
+     * @param ephemeral True if a MAC/port entry newly inserted to the table are
+     * ephemeral entries, and false otherwise.
+     * @return A MAC-port table that is synchronized with the backend datastore.
+     * @throws StateAccessException
+     */
+    MacPortMap bridgeGetMacTable(
+            @Nonnull UUID bridgeId, short vlanId, boolean ephemeral)
             throws StateAccessException;
 
     void bridgeAddMacPort(@Nonnull UUID bridgeId, short vlanId,
