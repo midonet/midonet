@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import org.apache.zookeeper.KeeperException;
+import org.midonet.midolman.state.StatePathExistsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -112,25 +114,13 @@ public class HostZkManager
         zk.ensureEphemeral(path, new byte[0]);
     }
 
-    /*
-     * create the host version path if it does not exist, then update our
-     * version in ZK. This value will be read by the upgrade coordinator
-     * to see which version everyone is on.
+    /**
+     * Set this host's version in ZK. This value will be read by
+     * the upgrade coordinator to see which version everyone is on.
      */
     public void setHostVersion(UUID hostId) throws StateAccessException {
-        List<Op> operations = new ArrayList<>();
-        String versionDirPath = paths.getVersionDirPath();
-        if (!zk.exists(versionDirPath)) {
-            operations.add(zk.getPersistentCreateOp(versionDirPath, null));
-        }
-        String versionPath = paths.getVersionPath(DataWriteVersion.CURRENT);
-        if (!zk.exists(versionPath)) {
-            operations.add(zk.getPersistentCreateOp(versionPath, null));
-        }
-        zk.multi(operations);
-        zk.ensureEphemeral(paths.getHostVersionPath(hostId,
-                                                    DataWriteVersion.CURRENT),
-                           new byte[0]);
+        String p = paths.getHostVersionPath(hostId, DataWriteVersion.CURRENT);
+        zk.ensureEphemeral(p, new byte[0]);
     }
 
     public void updateMetadata(UUID hostId, HostDirectory.Metadata metadata)

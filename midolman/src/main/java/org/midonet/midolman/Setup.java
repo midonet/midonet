@@ -5,29 +5,31 @@
 
 package org.midonet.midolman;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.GnuParser;
-import org.apache.commons.cli.Options;
-import org.apache.commons.configuration.HierarchicalConfiguration;
-import org.apache.commons.configuration.HierarchicalINIConfiguration;
-import org.apache.zookeeper.KeeperException;
-import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.PathBuilder;
-import org.midonet.midolman.util.Sudo;
-import org.midonet.midolman.version.DataWriteVersion;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.GnuParser;
+import org.apache.commons.cli.Options;
+import org.apache.commons.configuration.HierarchicalConfiguration;
+import org.apache.commons.configuration.HierarchicalINIConfiguration;
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.Op;
+import org.apache.zookeeper.ZooDefs;
+
+import org.midonet.midolman.state.Directory;
+import org.midonet.midolman.state.PathBuilder;
+import org.midonet.midolman.util.Sudo;
+import org.midonet.midolman.version.DataWriteVersion;
 
 public class Setup {
 
@@ -37,7 +39,6 @@ public class Setup {
     private static final String NOVA_QDISC_CREATE = "nova_qdisc_create";
     private static final String QDISC_DESTROY = "qdisc_destroy";
 
-    private ScheduledExecutorService executor;
     private HierarchicalConfiguration config;
 
     private void run(String[] args) throws Exception {
@@ -48,7 +49,6 @@ public class Setup {
         String configFilePath = cl.getOptionValue('c', "./conf/midolman.conf");
 
         config = new HierarchicalINIConfiguration(configFilePath);
-        executor = Executors.newScheduledThreadPool(1);
 
         args = cl.getArgs();
         if (args.length == 0)
@@ -64,9 +64,8 @@ public class Setup {
             System.out.println("Unrecognized command. Exiting.");
     }
 
-    private static List<String> getTopLevelPaths(String basePath) {
-        PathBuilder pathMgr = new PathBuilder(basePath);
-        List<String> paths = new ArrayList<String>();
+    private static List<String> getTopLevelPaths(PathBuilder pathMgr) {
+        List<String> paths = new ArrayList<>();
         paths.add(pathMgr.getAdRoutesPath());
         paths.add(pathMgr.getBgpPath());
         paths.add(pathMgr.getBridgesPath());
@@ -87,6 +86,7 @@ public class Setup {
         paths.add(pathMgr.getHostsPath());
         paths.add(pathMgr.getTenantsPath());
         paths.add(pathMgr.getVersionsPath());
+        paths.add(pathMgr.getVersionPath(DataWriteVersion.CURRENT));
         paths.add(pathMgr.getSystemStatePath());
         paths.add(pathMgr.getTraceConditionsPath());
         paths.add(pathMgr.getHealthMonitorsPath());
@@ -103,12 +103,12 @@ public class Setup {
         Directory rootDir, String basePath)
         throws KeeperException, InterruptedException
     {
-        for (String path : Setup.getTopLevelPaths(basePath)) {
+        PathBuilder pathMgr = new PathBuilder(basePath);
+        for (String path : Setup.getTopLevelPaths(pathMgr)) {
             rootDir.ensureHas(path, null);
         }
-        /* ensure write version node for this host exists */
-        String versionPath = new PathBuilder(basePath).getWriteVersionPath();
-        rootDir.ensureHas(versionPath, DataWriteVersion.CURRENT.getBytes());
+        rootDir.ensureHas(pathMgr.getWriteVersionPath(),
+                          DataWriteVersion.CURRENT.getBytes());
     }
 
     protected void setupTrafficPriorityQdiscsMidonet()
