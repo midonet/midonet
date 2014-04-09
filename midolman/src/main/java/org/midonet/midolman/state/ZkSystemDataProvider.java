@@ -135,7 +135,7 @@ public class ZkSystemDataProvider implements SystemDataProvider {
     public List<String> getVersionsInDeployment()
             throws StateAccessException {
         List<String> versionList = new ArrayList<String>();
-        Set<String> versionSet = zk.getChildren(paths.getVersionDirPath());
+        Set<String> versionSet = zk.getChildren(paths.getVersionsPath());
         for (String version : versionSet) {
             versionList.add(version);
         }

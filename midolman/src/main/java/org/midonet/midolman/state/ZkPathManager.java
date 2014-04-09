@@ -56,17 +56,8 @@ public class ZkPathManager {
         }
     }
 
-    public String getVersionDirPath() {
-        return new StringBuilder(getBasePath())
-                                    .append("/versions")
-                                    .toString();
-    }
-
     public String getVersionPath(String version) {
-        return new StringBuilder(getVersionDirPath())
-                                 .append("/")
-                                 .append(version)
-                                 .toString();
+        return getVersionsPath() + "/" + version;
     }
 
 

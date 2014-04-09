@@ -71,10 +71,6 @@ public abstract class StatePathExceptionBase extends StateAccessException {
     public StatePathExceptionBase(String message, String path,
                                   String basePath, KeeperException cause) {
         super(message, cause);
-        if (path == null)
-            throw new IllegalArgumentException("Path is null.", cause);
-        if (basePath == null)
-            throw new IllegalArgumentException("BasePath is null.", cause);
         this.path = path;
         this.basePath = basePath;
     }
