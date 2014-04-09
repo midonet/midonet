@@ -4,6 +4,12 @@
 
 package org.midonet.api.l4lb;
 
+import org.midonet.api.ResourceUriBuilder;
+import org.midonet.api.UriResource;
+import org.midonet.api.validation.VerifyEnumValue;
+import org.midonet.midolman.state.l4lb.VipSessionPersistence;
+import org.midonet.util.StringUtil;
+
 import java.net.URI;
 import java.util.UUID;
 import javax.validation.constraints.Max;
@@ -11,11 +17,6 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.xml.bind.annotation.XmlRootElement;
-
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.UriResource;
-import org.midonet.util.StringUtil;
-import static org.midonet.cluster.data.l4lb.VIP.VIP_SOURCE_IP;
 
 @XmlRootElement
 public class VIP extends UriResource {
@@ -30,10 +31,7 @@ public class VIP extends UriResource {
     @Min(0)
     @Max(65536)
     private int protocolPort;
-    @Pattern.List({
-        @Pattern(regexp = VIP_SOURCE_IP,
-                 message = "is not SOURCE_IP")
-    })
+    @VerifyEnumValue(VipSessionPersistence.class)
     private String sessionPersistence;
     private boolean adminStateUp = true;
 
@@ -104,7 +102,8 @@ public class VIP extends UriResource {
         this.poolId = vip.getPoolId();
         this.address = vip.getAddress();
         this.protocolPort = vip.getProtocolPort();
-        this.sessionPersistence = vip.getSessionPersistence();
+        this.sessionPersistence = vip.getSessionPersistence() != null ?
+                vip.getSessionPersistence().toString() : null;
         this.adminStateUp = vip.getAdminStateUp();
     }
 
@@ -115,7 +114,9 @@ public class VIP extends UriResource {
                 .setPoolId(this.poolId)
                 .setAddress(this.address)
                 .setProtocolPort(this.protocolPort)
-                .setSessionPersistence(this.sessionPersistence)
+                .setSessionPersistence(this.sessionPersistence != null ?
+                        VipSessionPersistence.valueOf(
+                                this.sessionPersistence) : null)
                 .setAdminStateUp(this.adminStateUp);
     }
 

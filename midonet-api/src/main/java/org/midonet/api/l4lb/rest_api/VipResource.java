@@ -159,8 +159,9 @@ public class VipResource extends AbstractResource {
             throws StateAccessException, InvalidStateOperationException,
             SerializationException, ServiceUnavailableHttpException,
             ConflictHttpException {
+        validate(vip);
+
         try {
-            validate(vip);
             UUID id = dataClient.vipCreate(vip.toData());
             vipEvent.create(id, dataClient.vipGet(id));
             return Response.created(
@@ -216,8 +217,9 @@ public class VipResource extends AbstractResource {
         public PoolVipResource(RestApiConfig config, UriInfo uriInfo,
                                SecurityContext context,
                                DataClient dataClient,
+                               Validator validator,
                                @Assisted UUID id) {
-            super(config, uriInfo, context, dataClient);
+            super(config, uriInfo, context, dataClient, validator);
             this.poolId = id;
         }
 
@@ -253,6 +255,7 @@ public class VipResource extends AbstractResource {
         public Response create(VIP vip)
                 throws StateAccessException, SerializationException {
             vip.setPoolId(poolId);
+            validate(vip);
             try {
                 UUID id = dataClient.vipCreate(vip.toData());
                 return Response.created(

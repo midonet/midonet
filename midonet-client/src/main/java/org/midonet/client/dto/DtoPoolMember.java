@@ -5,6 +5,7 @@
 package org.midonet.client.dto;
 
 import com.google.common.base.Objects;
+import org.midonet.client.dto.l4lb.LBStatus;
 
 import java.net.URI;
 import java.util.UUID;

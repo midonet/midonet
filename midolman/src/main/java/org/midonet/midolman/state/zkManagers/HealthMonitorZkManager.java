@@ -10,7 +10,8 @@ import org.apache.zookeeper.ZooDefs.Ids;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
-import org.midonet.midolman.state.LBStatus;
+import org.midonet.midolman.state.l4lb.HealthMonitorType;
+import org.midonet.midolman.state.l4lb.LBStatus;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
@@ -33,7 +34,7 @@ public class HealthMonitorZkManager extends
 
     public static class HealthMonitorConfig extends BaseConfig {
 
-        public String type;
+        public HealthMonitorType type;
         public int delay;
         public int timeout;
         public int maxRetries;
@@ -44,7 +45,7 @@ public class HealthMonitorZkManager extends
             super();
         }
 
-        public HealthMonitorConfig(String type,
+        public HealthMonitorConfig(HealthMonitorType type,
                                    int delay,
                                    int timeout,
                                    int maxRetries,
@@ -73,7 +74,7 @@ public class HealthMonitorZkManager extends
 
             HealthMonitorConfig that = (HealthMonitorConfig) o;
 
-            return Objects.equal(type, that.type) &&
+            return type == that.type &&
                     delay == that.delay &&
                     timeout == that.timeout &&
                     maxRetries == that.maxRetries &&

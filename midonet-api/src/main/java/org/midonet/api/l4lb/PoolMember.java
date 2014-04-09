@@ -6,7 +6,8 @@ package org.midonet.api.l4lb;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.UriResource;
 import org.midonet.api.validation.MessageProperty;
-import org.midonet.midolman.state.LBStatus;
+import org.midonet.api.validation.VerifyEnumValue;
+import org.midonet.midolman.state.l4lb.LBStatus;
 import org.midonet.util.StringUtil;
 
 import java.net.URI;
@@ -23,7 +24,8 @@ public class PoolMember extends UriResource {
 
     private UUID id;
     private boolean adminStateUp = true;
-    private LBStatus status = LBStatus.ACTIVE;
+    @VerifyEnumValue(LBStatus.class)
+    private String status = LBStatus.ACTIVE.toString();
 
     @NotNull
     private UUID poolId;
@@ -87,11 +89,11 @@ public class PoolMember extends UriResource {
         this.adminStateUp = adminStateUp;
     }
 
-    public LBStatus getStatus() {
+    public String getStatus() {
         return status;
     }
 
-    public void setStatus(LBStatus status) {
+    public void setStatus(String status) {
         this.status = status;
     }
 
@@ -106,7 +108,7 @@ public class PoolMember extends UriResource {
         this.protocolPort = poolMember.getProtocolPort();
         this.weight = poolMember.getWeight();
         this.adminStateUp = poolMember.getAdminStateUp();
-        this.status = poolMember.getStatus();
+        this.status = poolMember.getStatus().toString();
         this.id = poolMember.getId();
     }
 
@@ -117,7 +119,7 @@ public class PoolMember extends UriResource {
                 .setProtocolPort(this.protocolPort)
                 .setWeight(this.weight)
                 .setAdminStateUp(this.adminStateUp)
-                .setStatus(this.status)
+                .setStatus(LBStatus.valueOf(this.status))
                 .setId(this.id);
     }
 
