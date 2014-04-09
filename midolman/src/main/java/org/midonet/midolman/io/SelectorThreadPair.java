@@ -70,13 +70,8 @@ public class SelectorThreadPair {
         return writeLoop;
     }
 
-    public ManagedDatapathConnection addConnection(final TokenBucket tb)
-            throws Exception {
-
-        BufferPool sendPool = new BufferPool(
-                                  config.getSendBufferPoolInitialSize(),
-                                  config.getSendBufferPoolMaxSize(),
-                                  config.getSendBufferPoolBufSizeKb() * 1024);
+    public ManagedDatapathConnection addConnection(final TokenBucket tb,
+            final BufferPool sendPool) throws Exception {
 
         final OvsDatapathConnection conn =
             OvsDatapathConnection.create(new Netlink.Address(0), sendPool);

@@ -7,7 +7,7 @@ dependencies {
             libraries.hamcrest_lib, libraries.hamcrest_integration,
             libraries.jackson_core, libraries.jackson_mapper, libraries.jsch,
             libraries.scala, libraries.servlet, libraries.sun_tools,
-            libraries.jboss, libraries.akka
+            libraries.jboss, libraries.akka, libraries.commons_lang3
 }
 
 jar {

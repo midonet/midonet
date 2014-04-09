@@ -11,7 +11,7 @@ project.ext {
     scalaLangLevel = 'Scala 2.10.3'
 
     versions = [akka: "2.2.3", guice: "3.0", hamcrest: "1.3", jackson: "1.9.3",
-                java: "1.7",   jersey: "1.10" ]
+                java: "1.7",   jersey: "1.10", jetty: "7.6.14.v20131031" ]
 
     libraries = [
         sun_tools: project.files("${System.properties['java.home']}/../lib/tools.jar"),
@@ -32,6 +32,7 @@ project.ext {
         commons_codec: "commons-codec:commons-codec:1.2",
         commons_conf: "commons-configuration:commons-configuration:1.8",
         commons_lang: "commons-lang:commons-lang:2.6",
+        commons_lang3: "org.apache.commons:commons-lang3:3.3",
         commons_cli: "commons-cli:commons-cli:1.2",
         commons_io: "commons-io:commons-io:2.3",
         guice: ["com.google.inject:guice:${versions.guice}",
@@ -53,7 +54,8 @@ project.ext {
                           "org.testng:testng:6.5.2",
                           "org.powermock:powermock-module-junit4:1.4.11",
                           "org.powermock:powermock-api-mockito:1.4.11",
-                          "org.mockito:mockito-all:1.9.0"],
+                          "org.mockito:mockito-all:1.9.0",
+                          "pl.pragmatists:JUnitParams:1.0.2"],
 
         hamcrest: "org.hamcrest:hamcrest-all:${versions.hamcrest}",
         hamcrest_core: "org.hamcrest:hamcrest-core:${versions.hamcrest}",
@@ -98,6 +100,13 @@ project.ext {
 
         jetty: dependencies.create("org.mortbay.jetty:jetty:6.1.26") {
             exclude group: 'org.mortbay.jetty', module: 'servlet-api'},
+        jetty_server: dependencies.create("org.eclipse.jetty:jetty-server:${versions.jetty}") {
+            exclude group: "org.eclipse.jetty:orbit:javax.servlet"
+        },
+        jetty_websocket: "org.eclipse.jetty:jetty-websocket:${versions.jetty}",
+        jetty_deploy: "org.eclipse.jetty:jetty-deploy:${versions.jetty}",
+        jminix: "org.jminix:jminix:1.1.0",
+
         hibernate_validator: "org.hibernate:hibernate-validator:4.3.0.Final",
 
         grizzly_servlet: "org.glassfish.grizzly:grizzly-http-servlet:2.1.2",
@@ -170,6 +179,7 @@ subprojects {
         maven { url "http://jsch.sf.net/maven2/" }
         maven { url "http://repo.typesafe.com/typesafe/releases/" }
         maven { url "http://oss.sonatype.org/content/groups/public/" }
+        maven { url "http://maven.restlet.org" }
     }
 
 
