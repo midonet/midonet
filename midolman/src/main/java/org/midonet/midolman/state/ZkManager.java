@@ -385,7 +385,7 @@ public class ZkManager {
     }
 
     public Op getEphemeralCreateOp(String path, byte[] data) {
-        log.debug("ZkManager.getEphemeralCreateOp", path);
+        log.debug("ZkManager.getEphemeralCreateOp: {}", path);
         return Op.create(path, data, Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
     }
 
