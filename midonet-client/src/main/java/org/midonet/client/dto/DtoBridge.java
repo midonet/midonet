@@ -18,8 +18,10 @@ public class DtoBridge {
     private String tenantId;
     private UUID inboundFilterId;
     private UUID outboundFilterId;
+    private UUID vxLanPortId;
     private URI inboundFilter;
     private URI outboundFilter;
+    private URI vxLanPort;
     private URI uri;
     private URI ports;
     private URI peerPorts;
@@ -79,6 +81,14 @@ public class DtoBridge {
         this.outboundFilterId = outboundFilterId;
     }
 
+    public UUID getVxLanPortId() {
+        return vxLanPortId;
+    }
+
+    public void setVxLanPortId(UUID vxLanPortId) {
+        this.vxLanPortId = vxLanPortId;
+    }
+
     public URI getInboundFilter() {
         return inboundFilter;
     }
@@ -93,6 +103,14 @@ public class DtoBridge {
 
     public void setOutboundFilter(URI outboundFilter) {
         this.outboundFilter = outboundFilter;
+    }
+
+    public URI getVxLanPort() {
+        return vxLanPort;
+    }
+
+    public void setVxLanPort(URI vxLanPort) {
+        this.vxLanPort = vxLanPort;
     }
 
     public URI getUri() {
@@ -186,71 +204,23 @@ public class DtoBridge {
             return false;
         }
 
-        DtoBridge otherBridge = (DtoBridge) other;
-        if (!Objects.equal(this.id, otherBridge.getId())) {
-            return false;
-        }
-
-        if (!Objects.equal(this.name, otherBridge.getName())) {
-            return false;
-        }
-
-        if (!Objects.equal(this.tenantId, otherBridge.getTenantId())) {
-            return false;
-        }
-
-        if (!Objects.equal(
-                this.inboundFilterId, otherBridge.getInboundFilterId())) {
-            return false;
-        }
-
-        if (!Objects.equal(
-                this.inboundFilter, otherBridge.getInboundFilter())) {
-            return false;
-        }
-
-        if (!Objects.equal(
-                this.outboundFilterId, otherBridge.getOutboundFilterId())) {
-            return false;
-        }
-
-        if (!Objects.equal(
-                this.outboundFilter, otherBridge.getInboundFilter())) {
-            return false;
-        }
-
-        if (!Objects.equal(this.uri, otherBridge.getUri())) {
-            return false;
-        }
-
-        if (!Objects.equal(this.ports, otherBridge.getPorts())) {
-            return false;
-        }
-
-        if (!Objects.equal(this.peerPorts, otherBridge.getPeerPorts())) {
-            return false;
-        }
-
-        if (!Objects.equal(this.macTable, otherBridge.getMacTable())) {
-            return false;
-        }
-
-        if (!Objects.equal(this.arpTable, otherBridge.getArpTable())) {
-            return false;
-        }
-
-        if (!Objects.equal(this.dhcpSubnet6s, otherBridge.getDhcpSubnet6s())) {
-            return false;
-        }
-
-        if (!Objects.equal(this.dhcpSubnets, otherBridge.getDhcpSubnets())) {
-            return false;
-        }
-
-        if (adminStateUp != otherBridge.adminStateUp) {
-            return false;
-        }
-
-        return true;
+        DtoBridge that = (DtoBridge) other;
+        return Objects.equal(id, that.getId()) &&
+                Objects.equal(name, that.getName()) &&
+                Objects.equal(tenantId, that.getTenantId()) &&
+                Objects.equal(inboundFilterId, that.getInboundFilterId()) &&
+                Objects.equal(inboundFilter, that.getInboundFilter()) &&
+                Objects.equal(outboundFilterId, that.getOutboundFilterId()) &&
+                Objects.equal(outboundFilter, that.getOutboundFilter()) &&
+                Objects.equal(vxLanPortId, that.getVxLanPortId()) &&
+                Objects.equal(vxLanPort, that.getVxLanPort()) &&
+                Objects.equal(uri, that.getUri()) &&
+                Objects.equal(ports, that.getPorts()) &&
+                Objects.equal(peerPorts, that.getPeerPorts()) &&
+                Objects.equal(macTable, that.getMacTable()) &&
+                Objects.equal(arpTable, that.getArpTable()) &&
+                Objects.equal(dhcpSubnet6s, that.getDhcpSubnet6s()) &&
+                Objects.equal(dhcpSubnets, that.getDhcpSubnets()) &&
+                adminStateUp == that.adminStateUp;
     }
 }

@@ -33,7 +33,7 @@ public abstract class RestApiTestBase extends JerseyTest {
     protected void assertErrorMatchesPropMsg(
             DtoError actual, String expectedProperty, String expectedMessage) {
         // May need to relax this later.
-        assertEquals(actual.getViolations().size(), 1);
+        assertEquals(1, actual.getViolations().size());
         Map<String, String> violation = actual.getViolations().get(0);
         assertEquals(expectedProperty, violation.get("property"));
         assertEquals(expectedMessage, violation.get("message"));

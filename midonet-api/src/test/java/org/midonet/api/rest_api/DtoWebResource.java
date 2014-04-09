@@ -93,14 +93,16 @@ public class DtoWebResource {
     }
 
     public DtoError getAndVerifyNotFound(URI uri, String mediaType) {
-        ClientResponse resp = getAndVerifyStatus(uri, mediaType,
-                NOT_FOUND.getStatusCode());
-        return resp.getEntity(DtoError.class);
+        return getAndVerifyError(uri, mediaType, NOT_FOUND);
     }
 
     public DtoError getAndVerifyBadRequest(URI uri, String mediaType) {
-        ClientResponse resp = getAndVerifyStatus(uri, mediaType,
-                BAD_REQUEST.getStatusCode());
+        return getAndVerifyError(uri, mediaType, BAD_REQUEST);
+    }
+
+    public DtoError getAndVerifyError(URI uri, String mediaType, Status status) {
+        ClientResponse resp =
+                getAndVerifyStatus(uri, mediaType, status.getStatusCode());
         return resp.getEntity(DtoError.class);
     }
 

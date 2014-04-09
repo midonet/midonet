@@ -9,6 +9,7 @@ import org.midonet.cluster.data.Bridge;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager.BridgeConfig;
 import org.midonet.midolman.state.zkManagers.TaggableConfig;
 import org.midonet.packets.IPAddr;
+import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv6Subnet;
 import org.midonet.packets.IntIPv4;
 import org.midonet.packets.MAC;
@@ -1657,5 +1658,21 @@ public class ZkPathManager {
                                                    UUID healthMonitorId) {
         return buildPoolHealthMonitorMappingPath(
                 poolId, healthMonitorId).toString();
+    }
+
+    private StringBuilder buildVtepsPath() {
+        return basePath().append("/vteps");
+    }
+
+    public String getVtepsPath() {
+        return buildVtepsPath().toString();
+    }
+
+    private StringBuilder buildVtepPath(IPv4Addr ipAddr) {
+        return buildVtepsPath().append("/").append(ipAddr);
+    }
+
+    public String getVtepPath(IPv4Addr ipAddr) {
+        return buildVtepPath(ipAddr).toString();
     }
 }
