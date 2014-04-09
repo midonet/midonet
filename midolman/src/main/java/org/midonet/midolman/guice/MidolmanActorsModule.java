@@ -107,7 +107,7 @@ public class MidolmanActorsModule extends PrivateModule {
 
     @Provides @Exposed
     public SupervisorStrategy getSupervisorActorStrategy(MidolmanConfig config) {
-        String strategy = config.getMidolmanTopLevelActorsSupervisor();
+        String strategy = config.getMidolmanTopLevelActorSupervisor();
         switch (strategy) {
             case CRASH_STRATEGY_NAME:
                 return getCrashStrategy();

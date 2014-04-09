@@ -3,6 +3,8 @@
  */
 package org.midonet.midolman.services
 
+import java.util.concurrent.TimeoutException
+
 import scala.concurrent.{ExecutionContext, Await, Future}
 import scala.concurrent.duration._
 import scala.reflect.ClassTag
@@ -98,9 +100,14 @@ class MidolmanActorsService extends AbstractService {
     protected override def doStop() {
         try {
             val stopFutures = childrenActors map { child => stopActor(child) }
-            Await.result(Future.sequence(stopFutures), 150 millis)
-            stopActor(supervisorActor)
-            log.debug("Stopping the actor system")
+            try {
+                Await.result(Future.sequence(stopFutures), 500 millis)
+                stopActor(supervisorActor)
+                log.debug("Stopping the actor system")
+            } catch {
+                case e: TimeoutException =>
+                    log.warn("Failed to gracefully stop the actor system")
+            }
             system.shutdown()
             notifyStopped()
         } catch {
