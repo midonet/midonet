@@ -22,11 +22,12 @@ import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.rules.{FragmentPolicy, Condition, NatTarget}
 import org.midonet.midolman.rules.RuleResult.Action
 import org.midonet.packets.{IPv4Subnet, TCP, MAC}
-import org.midonet.midolman.state.{LBStatus, DirectoryCallback}
+import org.midonet.midolman.state.DirectoryCallback
 import org.midonet.midolman.state.DirectoryCallback.Result
 import org.apache.zookeeper.KeeperException
 import org.midonet.cluster.data.l4lb.{PoolMember, Pool, VIP, LoadBalancer,
                                       HealthMonitor}
+import org.midonet.midolman.state.l4lb.{PoolLBMethod, VipSessionPersistence, LBStatus}
 
 trait VirtualConfigurationBuilders {
 
@@ -481,7 +482,7 @@ trait VirtualConfigurationBuilders {
     }
 
     def vipEnableStickySourceIP(vip: VIP) {
-        vip.setSessionPersistence(VIP.VIP_SOURCE_IP)
+        vip.setSessionPersistence(VipSessionPersistence.SOURCE_IP)
         clusterDataClient().vipUpdate(vip)
     }
 
@@ -532,7 +533,7 @@ trait VirtualConfigurationBuilders {
     def createPool(loadBalancer: LoadBalancer,
                    id: UUID = UUID.randomUUID,
                    adminStateUp: Boolean = true,
-                   lbMethod: String = "ROUND_ROBIN",
+                   lbMethod: PoolLBMethod = PoolLBMethod.ROUND_ROBIN,
                    hmId: UUID = null): Pool = {
         val pool = new Pool()
         pool.setLoadBalancerId(loadBalancer.getId)
@@ -556,7 +557,7 @@ trait VirtualConfigurationBuilders {
         clusterDataClient().poolUpdate(pool)
     }
 
-    def setPoolLbMethod(pool: Pool, lbMethod: String) {
+    def setPoolLbMethod(pool: Pool, lbMethod: PoolLBMethod) {
         pool.setLbMethod(lbMethod)
         clusterDataClient().poolUpdate(pool)
     }

@@ -15,6 +15,7 @@ import org.midonet.midolman.topology.FlowTagger
 import org.midonet.packets.{IPv4Addr, IPAddr, ICMP}
 import org.midonet.util.collection.WeightedSelector
 import org.midonet.midolman.l4lb.{ForwardStickyNatRule, ReverseStickyNatRule}
+import org.midonet.midolman.state.l4lb.PoolLBMethod
 
 object Pool {
     def findPoolMember(ip: IPAddr, port: Int, pmArray: Array[PoolMember])
@@ -34,7 +35,7 @@ object Pool {
     }
 }
 
-class Pool(val id: UUID, val adminStateUp: Boolean, val lbMethod: String,
+class Pool(val id: UUID, val adminStateUp: Boolean, val lbMethod: PoolLBMethod,
            val activePoolMembers: Array[PoolMember],
            val disabledPoolMembers: Array[PoolMember],
            val loggingBus: LoggingBus) {

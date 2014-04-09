@@ -76,6 +76,10 @@ public class MessageProperty {
             "{midokura.javarx.TunnelZoneMemberExists.message}";
     public static final String VLAN_ID_MATCHES_PORT_VLAN_ID =
             "{midokura.javarx.VlanIdMatchesPortVlanId.message}";
+    public static final String VALUE_IS_INVALID =
+            "{midokura.javarx.ValueIsInvalid.message}";
+    public static final String VALUE_IS_NOT_IN_ENUMS =
+            "{midokura.javarx.ValueIsNotEnums.message}";
     public static final String VTEP_NOT_FOUND =
             "{midokura.javarx.VtepNotFound.message}";
     public static final String VTEP_EXISTS =

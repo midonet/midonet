@@ -14,6 +14,7 @@ import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.simulation
 import org.midonet.midolman.simulation.LoadBalancer
+import org.midonet.midolman.state.l4lb.VipSessionPersistence
 import org.midonet.midolman.state.zkManagers.LoadBalancerZkManager.LoadBalancerConfig
 import org.midonet.packets.IPv4Addr
 
@@ -27,7 +28,7 @@ object LoadBalancerManager {
             dataVip.getPoolId,
             IPv4Addr(dataVip.getAddress),
             dataVip.getProtocolPort,
-            dataVip.getSessionPersistence == VIP.VIP_SOURCE_IP,
+            dataVip.getSessionPersistence == VipSessionPersistence.SOURCE_IP,
             VIP.VIP_STICKY_TIMEOUT_SECONDS
         )
 }

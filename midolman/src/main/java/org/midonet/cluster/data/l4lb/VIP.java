@@ -6,13 +6,13 @@ package org.midonet.cluster.data.l4lb;
 
 import com.google.common.base.Objects;
 import org.midonet.cluster.data.Entity;
+import org.midonet.midolman.state.l4lb.VipSessionPersistence;
 
 import java.util.UUID;
 
 public class VIP
         extends Entity.Base<UUID, VIP.Data, VIP>  {
 
-    public final static String VIP_SOURCE_IP = "SOURCE_IP";
     public final static int VIP_STICKY_TIMEOUT_SECONDS = 86400;
 
     public VIP() {
@@ -63,11 +63,11 @@ public class VIP
         return self();
     }
 
-    public String getSessionPersistence() {
+    public VipSessionPersistence getSessionPersistence() {
         return getData().sessionPersistence;
     }
 
-    public VIP setSessionPersistence(String sessionPersistence) {
+    public VIP setSessionPersistence(VipSessionPersistence sessionPersistence) {
         getData().sessionPersistence = sessionPersistence;
         return self();
     }
@@ -91,7 +91,7 @@ public class VIP
         private UUID poolId;
         private String address;
         private int protocolPort;
-        private String sessionPersistence;
+        private VipSessionPersistence sessionPersistence;
         private boolean adminStateUp = true;
 
         @Override
@@ -105,8 +105,7 @@ public class VIP
                     Objects.equal(poolId, data.poolId) &&
                     Objects.equal(address, data.address) &&
                     protocolPort == data.protocolPort &&
-                    Objects.equal(sessionPersistence,
-                            data.sessionPersistence) &&
+                    sessionPersistence == data.sessionPersistence &&
                     adminStateUp == data.adminStateUp;
         }
 

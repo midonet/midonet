@@ -6,6 +6,8 @@ package org.midonet.client.dto;
 
 import com.google.common.base.Objects;
 import org.codehaus.jackson.annotate.JsonIgnore;
+import org.midonet.client.dto.l4lb.HealthMonitorType;
+import org.midonet.client.dto.l4lb.LBStatus;
 
 import java.net.URI;
 import java.util.UUID;
@@ -14,7 +16,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement
 public class DtoHealthMonitor {
     private UUID id;
-    private String type;
+    private HealthMonitorType type;
     private int delay;
     private int timeout;
     private int maxRetries;
@@ -31,11 +33,11 @@ public class DtoHealthMonitor {
         this.id = id;
     }
 
-    public String getType() {
+    public HealthMonitorType getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(HealthMonitorType type) {
         this.type = type;
     }
 
@@ -104,7 +106,7 @@ public class DtoHealthMonitor {
         DtoHealthMonitor that = (DtoHealthMonitor) o;
 
         return Objects.equal(id, that.getId()) &&
-                Objects.equal(type, that.getType()) &&
+                type == that.getType() &&
                 delay == that.getDelay() &&
                 timeout == that.getTimeout() &&
                 maxRetries == that.getMaxRetries() &&
