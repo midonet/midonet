@@ -5,6 +5,7 @@ package org.midonet.cluster.data;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 public class Bridge extends Entity.Base<UUID, Bridge.Data, Bridge>
@@ -84,6 +85,13 @@ public class Bridge extends Entity.Base<UUID, Bridge.Data, Bridge>
         return this;
     }
 
+    public UUID getVxLanPortId() { return getData().vxLanPortId; }
+
+    public Bridge setVxLanPortId(UUID vxlanPortId) {
+        getData().vxLanPortId = vxlanPortId;
+        return this;
+    }
+
     public Bridge setProperty(Property property, String value) {
         getData().properties.put(property.name(), value);
         return this;
@@ -108,6 +116,7 @@ public class Bridge extends Entity.Base<UUID, Bridge.Data, Bridge>
         public int tunnelKey;
         public UUID inboundFilter;
         public UUID outboundFilter;
+        public UUID vxLanPortId;
         public Map<String, String> properties = new HashMap<String, String>();
 
         @Override
@@ -119,31 +128,18 @@ public class Bridge extends Entity.Base<UUID, Bridge.Data, Bridge>
 
             Data that = (Data) o;
 
-            if (tunnelKey != that.tunnelKey)
-                return false;
-            if (inboundFilter != null ? !inboundFilter
-                .equals(that.inboundFilter) : that.inboundFilter != null)
-                return false;
-            if (outboundFilter != null ? !outboundFilter
-                .equals(that.outboundFilter) : that.outboundFilter != null)
-                return false;
-            if (name != null ? !name.equals(that.name) : that.name != null)
-                return false;
-            if (adminStateUp != that.adminStateUp) return false;
-
-            return true;
+            return tunnelKey == that.tunnelKey &&
+                    adminStateUp == that.adminStateUp &&
+                    Objects.equals(inboundFilter, that.inboundFilter) &&
+                    Objects.equals(outboundFilter, that.outboundFilter) &&
+                    Objects.equals(vxLanPortId, that.vxLanPortId) &&
+                    Objects.equals(name, that.name);
         }
 
         @Override
         public int hashCode() {
-            int result = tunnelKey;
-            result = 31 * result
-                + (inboundFilter != null ? inboundFilter.hashCode() : 0);
-            result = 31 * result
-                + (outboundFilter != null ? outboundFilter.hashCode() : 0);
-            result = 31 * result + (name != null ? name.hashCode() : 0);
-            result = 31 * result + Boolean.valueOf(adminStateUp).hashCode();
-            return result;
+            return Objects.hash(tunnelKey, adminStateUp, inboundFilter,
+                                outboundFilter, vxLanPortId, name);
         }
 
         @Override
@@ -151,6 +147,7 @@ public class Bridge extends Entity.Base<UUID, Bridge.Data, Bridge>
             return "Bridge.Data{" + "tunnelKey=" + tunnelKey +
                    ", inboundFilter=" + inboundFilter +
                    ", outboundFilter=" + outboundFilter +
+                   ", vxLanPortId=" + vxLanPortId +
                    ", name=" + name +
                     ", adminStateUp=" + adminStateUp + '}';
         }

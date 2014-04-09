@@ -11,4 +11,5 @@ package org.midonet.client.dto;
 public class PortType {
     public static final String BRIDGE = "Bridge";
     public static final String ROUTER = "Router";
+    public static final String VXLAN = "Vxlan";
 }

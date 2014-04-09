@@ -202,6 +202,12 @@ public class VendorMediaType {
     public static final String APPLICATION_VIP_COLLECTION_JSON =
             "application/vnd.org.midonet.collection.VIP-v1+json";
 
+    // VXGW
+    public static final String APPLICATION_VTEP_JSON =
+            "application/vnd.org.midonet.VTEP-v1+json";
+    public static final String APPLICATION_VTEP_COLLECTION_JSON =
+            "application/vnd.org.midonet.collection.VTEP-v1+json";
+
     // Token Information
     public static final String APPLICATION_TOKEN_JSON =
             "application/vnd.org.midonet.Token-v1+json";
