@@ -17,7 +17,7 @@ import org.slf4j.{Logger, LoggerFactory}
 import org.midonet.midolman.PacketsEntryPoint.{GetWorkers, Workers}
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.{PacketsEntryPoint, NetlinkCallbackDispatcher, DeduplicationActor}
-import org.midonet.netlink.Callback
+import org.midonet.netlink.{BufferPool, Callback}
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode.EBUSY
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode.EEXIST
@@ -41,6 +41,8 @@ abstract class UpcallDatapathConnectionManager(val config: MidolmanConfig,
     protected def setUpcallHandler(conn: OvsDatapathConnection,
                                    w: Workers)
                                   (implicit as: ActorSystem)
+
+    protected def makeBufferPool() = new BufferPool(1, 8, 8*1024)
 
     def createAndHookDpPort(datapath: Datapath, port: DpPort)
                            (implicit ec: ExecutionContext, as: ActorSystem)
@@ -177,7 +179,7 @@ class OneToOneDpConnManager(c: MidolmanConfig,
     protected override val log = LoggerFactory.getLogger(this.getClass)
 
     override def makeConnection(name: String, tb: TokenBucket) =
-        new SelectorBasedDatapathConnection(name, config, true, tb)
+        new SelectorBasedDatapathConnection(name, config, true, tb, makeBufferPool())
 
     override def stopConnection(conn: ManagedDatapathConnection) {
         conn.stop()
@@ -198,6 +200,8 @@ class OneToManyDpConnManager(c: MidolmanConfig,
 
     private val lock = new ReentrantLock()
 
+    val sendPool = makeBufferPool()
+
     protected override val log = LoggerFactory.getLogger(this.getClass)
 
     private var upcallHandler: BatchCollector[Packet] = null
@@ -205,7 +209,7 @@ class OneToManyDpConnManager(c: MidolmanConfig,
     override def makeConnection(name: String, tb: TokenBucket) = {
         if (!threadPair.isRunning)
             threadPair.start()
-        val conn = threadPair.addConnection(tb)
+        val conn = threadPair.addConnection(tb, sendPool)
         conn.getConnection.setUsingSharedNotificationHandler(true)
         conn
     }

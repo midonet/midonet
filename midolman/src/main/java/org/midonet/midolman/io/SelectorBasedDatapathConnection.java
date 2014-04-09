@@ -41,14 +41,23 @@ public class SelectorBasedDatapathConnection implements ManagedDatapathConnectio
     public SelectorBasedDatapathConnection(String name,
                                            MidolmanConfig config,
                                            boolean singleThreaded,
-                                           TokenBucket tb) {
+                                           TokenBucket tb,
+                                           BufferPool sendPool) {
         this.config = config;
         this.name = name;
         this.singleThreaded = singleThreaded;
         this.tb = tb;
-        this.sendPool = new BufferPool(config.getSendBufferPoolInitialSize(),
-                                       config.getSendBufferPoolMaxSize(),
-                                       config.getSendBufferPoolBufSizeKb() * 1024);
+        this.sendPool = sendPool;
+    }
+
+    public SelectorBasedDatapathConnection(String name,
+                                           MidolmanConfig config,
+                                           boolean singleThreaded,
+                                           TokenBucket tb) {
+        this(name, config, singleThreaded, tb,
+             new BufferPool(config.getSendBufferPoolInitialSize(),
+                            config.getSendBufferPoolMaxSize(),
+                            config.getSendBufferPoolBufSizeKb() * 1024));
     }
 
     public SelectorBasedDatapathConnection(String name, MidolmanConfig config) {
