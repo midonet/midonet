@@ -3,18 +3,19 @@
  */
 package org.midonet.midolman.state;
 
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.serialization.Serializer;
-import org.midonet.util.functors.CollectionFunctors;
-import org.midonet.util.functors.Functor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.serialization.Serializer;
+import org.midonet.util.functors.CollectionFunctors;
+import org.midonet.util.functors.Functor;
 
 /**
  * Contains common functionality for interacting with ZkManager. When
@@ -59,7 +60,7 @@ public abstract class BaseZkManager {
      * to a list of UUIDs. Logs an error for, but otherwise ignores,
      * any children which are not valid UUIDs.
      */
-    protected List<UUID> getUuidList(String path) throws StateAccessException {
+    public List<UUID> getUuidList(String path) throws StateAccessException {
         return getUuidList(path, null);
     }
 
