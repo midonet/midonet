@@ -70,7 +70,7 @@ class HaproxyHealthMonitorTest extends FeatureSpec
     val goodSocketPath = "/etc/midolman/l4lb/"
 
     def createFakePoolConfig(vipIp: String, path: String) = {
-        val vip = new VipConfig(true, UUID.randomUUID(), vipIp, 89, "")
+        val vip = new VipConfig(true, UUID.randomUUID(), vipIp, 89, null)
         val healthMonitor = new HealthMonitorConfig(true, 5, 10, 7)
         val member1  = new PoolMemberConfig(true, UUID.randomUUID(),
                                             10, "10.11.12.13", 81)

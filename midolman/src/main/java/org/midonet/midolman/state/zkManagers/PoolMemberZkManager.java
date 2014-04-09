@@ -5,7 +5,7 @@ package org.midonet.midolman.state.zkManagers;
 
 import com.google.common.base.Objects;
 import org.apache.zookeeper.Op;
-import org.midonet.midolman.state.LBStatus;
+import org.midonet.midolman.state.l4lb.LBStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

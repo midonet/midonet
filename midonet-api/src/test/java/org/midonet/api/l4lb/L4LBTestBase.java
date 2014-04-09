@@ -15,6 +15,9 @@ import org.midonet.client.dto.DtoPool;
 import org.midonet.client.dto.DtoPoolMember;
 import org.midonet.client.dto.DtoRouter;
 import org.midonet.client.dto.DtoVip;
+import org.midonet.client.dto.l4lb.HealthMonitorType;
+import org.midonet.client.dto.l4lb.PoolProtocol;
+import org.midonet.client.dto.l4lb.VipSessionPersistence;
 
 import java.net.URI;
 import java.util.Arrays;
@@ -34,7 +37,6 @@ import static org.midonet.api.VendorMediaType.APPLICATION_ROUTER_JSON;
 import static org.midonet.api.VendorMediaType.APPLICATION_ROUTER_JSON_V2;
 import static org.midonet.api.VendorMediaType.APPLICATION_VIP_COLLECTION_JSON;
 import static org.midonet.api.VendorMediaType.APPLICATION_VIP_JSON;
-import static org.midonet.cluster.data.l4lb.VIP.VIP_SOURCE_IP;
 
 public class L4LBTestBase extends RestApiTestBase {
 
@@ -162,7 +164,7 @@ public class L4LBTestBase extends RestApiTestBase {
         //   the API can create the resource with the specified UUID,
         //   which is very useful for the identical checks.
         healthMonitor.setId(UUID.randomUUID());
-        healthMonitor.setType("TCP");
+        healthMonitor.setType(HealthMonitorType.TCP);
         healthMonitor.setDelay(5);
         healthMonitor.setTimeout(10);
         healthMonitor.setMaxRetries(10);
@@ -208,7 +210,7 @@ public class L4LBTestBase extends RestApiTestBase {
         vip.setPoolId(poolId);
         vip.setAddress("192.168.100.1");
         vip.setProtocolPort(80);
-        vip.setSessionPersistence(VIP_SOURCE_IP);
+        vip.setSessionPersistence(VipSessionPersistence.SOURCE_IP);
         vip.setAdminStateUp(true);
 
         return vip;
@@ -257,7 +259,7 @@ public class L4LBTestBase extends RestApiTestBase {
         pool.setId(UUID.randomUUID());
         pool.setLoadBalancerId(loadBalancerId);
         pool.setAdminStateUp(true);
-        pool.setProtocol("TCP");
+        pool.setProtocol(PoolProtocol.TCP);
         return pool;
     }
 

@@ -5,7 +5,8 @@ package org.midonet.cluster.data.l4lb;
 
 import com.google.common.base.Objects;
 import org.midonet.cluster.data.Entity;
-import org.midonet.midolman.state.LBStatus;
+import org.midonet.midolman.state.l4lb.HealthMonitorType;
+import org.midonet.midolman.state.l4lb.LBStatus;
 
 import java.util.UUID;
 
@@ -32,12 +33,12 @@ public class HealthMonitor
         return this;
     }
 
-    public HealthMonitor setType(String type) {
+    public HealthMonitor setType(HealthMonitorType type) {
         getData().type = type;
         return self();
     }
 
-    public String getType() {
+    public HealthMonitorType getType() {
         return getData().type;
     }
 
@@ -87,7 +88,7 @@ public class HealthMonitor
     }
 
     public static class Data {
-        private String type;
+        private HealthMonitorType type = HealthMonitorType.TCP;
         private int delay;
         private int timeout;
         private int maxRetries;
@@ -101,7 +102,7 @@ public class HealthMonitor
 
             Data data = (Data) o;
 
-            return Objects.equal(type, data.type) &&
+            return type == data.type &&
                     delay == data.delay &&
                     timeout == data.timeout &&
                     maxRetries == data.maxRetries &&

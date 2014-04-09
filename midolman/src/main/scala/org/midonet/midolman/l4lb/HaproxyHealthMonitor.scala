@@ -21,14 +21,16 @@ import org.midonet.midolman.layer3.Route.NextHop.PORT
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.routingprotocols.IP
 import org.midonet.midolman.state.PoolHealthMonitorMappingStatus
-import org.midonet.midolman.state.LBStatus.{INACTIVE => MemberInactive}
-import org.midonet.midolman.state.LBStatus.{ACTIVE => MemberActive}
+import org.midonet.midolman.state.l4lb.LBStatus
+import LBStatus.{INACTIVE => MemberInactive}
+import LBStatus.{ACTIVE => MemberActive}
 import org.midonet.netlink.{AfUnix, NetlinkSelectorProvider, UnixDomainChannel}
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable.HashSet
 import scala.collection.mutable.Set
 import scala.concurrent.duration._
+import org.midonet.midolman.state.l4lb.LBStatus
 
 
 /**

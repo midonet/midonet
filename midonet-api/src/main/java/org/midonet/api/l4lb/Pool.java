@@ -6,7 +6,10 @@ package org.midonet.api.l4lb;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.UriResource;
-import org.midonet.midolman.state.LBStatus;
+import org.midonet.api.validation.VerifyEnumValue;
+import org.midonet.midolman.state.l4lb.PoolLBMethod;
+import org.midonet.midolman.state.l4lb.LBStatus;
+import org.midonet.midolman.state.l4lb.PoolProtocol;
 
 import java.net.URI;
 import java.util.UUID;
@@ -21,10 +24,14 @@ public class Pool extends UriResource {
     private UUID healthMonitorId;
     @NotNull
     private UUID loadBalancerId;
-    private String protocol;
+    @VerifyEnumValue(PoolProtocol.class)
+    private String protocol = PoolProtocol.TCP.toString();
+    @NotNull
+    @VerifyEnumValue(PoolLBMethod.class)
     private String lbMethod;
     private boolean adminStateUp = true;
-    private LBStatus status = LBStatus.ACTIVE;
+    @VerifyEnumValue(LBStatus.class)
+    private String status = LBStatus.ACTIVE.toString();
 
     public UUID getId() {
         return id;
@@ -75,11 +82,11 @@ public class Pool extends UriResource {
     }
 
     @JsonIgnore
-    public LBStatus getStatus() {
+    public String getStatus() {
         return status;
     }
 
-    public void setStatus(LBStatus status) {
+    public void setStatus(String status) {
         this.status = status;
     }
 
@@ -91,10 +98,10 @@ public class Pool extends UriResource {
         super();
         this.loadBalancerId = pool.getLoadBalancerId();
         this.healthMonitorId = pool.getHealthMonitorId();
-        this.protocol = pool.getProtocol();
-        this.lbMethod = pool.getLbMethod();
+        this.protocol = pool.getProtocol().toString();
+        this.lbMethod = pool.getLbMethod().toString();
         this.adminStateUp = pool.isAdminStateUp();
-        this.status = pool.getStatus();
+        this.status = pool.getStatus().toString();
         this.id = pool.getId();
     }
 
@@ -103,10 +110,10 @@ public class Pool extends UriResource {
                 .setId(this.id)
                 .setLoadBalancerId(this.loadBalancerId)
                 .setHealthMonitorId(this.healthMonitorId)
-                .setProtocol(this.protocol)
-                .setLbMethod(this.lbMethod)
+                .setProtocol(PoolProtocol.valueOf(this.protocol))
+                .setLbMethod(PoolLBMethod.valueOf(this.lbMethod))
                 .setAdminStateUp(this.adminStateUp)
-                .setStatus(this.status);
+                .setStatus(LBStatus.valueOf(this.status));
     }
 
     /**

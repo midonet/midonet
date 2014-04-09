@@ -10,6 +10,7 @@ import com.google.inject.servlet.RequestScoped;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.VendorMediaType;
 import org.midonet.api.auth.AuthRole;
+import org.midonet.api.l4lb.HealthMonitor;
 import org.midonet.api.l4lb.Pool;
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.BadRequestHttpException;
@@ -23,7 +24,7 @@ import org.midonet.cluster.DataClient;
 import org.midonet.event.topology.PoolEvent;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.InvalidStateOperationException;
-import org.midonet.midolman.state.LBStatus;
+import org.midonet.midolman.state.l4lb.LBStatus;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.StatePathExistsException;
@@ -47,6 +48,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
+import javax.validation.Validator;
 
 import static org.midonet.api.validation.MessageProperty.RESOURCE_EXISTS;
 import static org.midonet.api.validation.MessageProperty.getMessage;
@@ -65,8 +67,9 @@ public class PoolResource extends AbstractResource {
     public PoolResource(RestApiConfig config, UriInfo uriInfo,
                         SecurityContext context,
                         DataClient dataClient,
-                        ResourceFactory factory) {
-        super(config, uriInfo, context);
+                        ResourceFactory factory,
+                        Validator validator) {
+        super(config, uriInfo, context, validator);
         this.dataClient = dataClient;
         this.factory = factory;
     }
@@ -139,7 +142,9 @@ public class PoolResource extends AbstractResource {
     public Response create(Pool pool)
             throws StateAccessException, SerializationException {
         // `status` defaults to UP and users can't change it through the API.
-        pool.setStatus(LBStatus.ACTIVE);
+        pool.setStatus(LBStatus.ACTIVE.toString());
+        validate(pool);
+
         try {
             UUID id = dataClient.poolCreate(pool.toData());
             poolEvent.create(id, dataClient.poolGet(id));
@@ -165,6 +170,8 @@ public class PoolResource extends AbstractResource {
             throws StateAccessException, SerializationException {
 
         pool.setId(id);
+        validate(pool);
+
         try {
             dataClient.poolUpdate(pool.toData());
             poolEvent.update(id, dataClient.poolGet(id));
@@ -211,8 +218,9 @@ public class PoolResource extends AbstractResource {
         public LoadBalancerPoolResource(RestApiConfig config, UriInfo uriInfo,
                                         SecurityContext context,
                                         DataClient dataClient,
+                                        Validator validator,
                                         @Assisted UUID id) {
-            super(config, uriInfo, context);
+            super(config, uriInfo, context, validator);
             this.dataClient = dataClient;
             this.loadBalancerId = id;
         }
@@ -246,7 +254,9 @@ public class PoolResource extends AbstractResource {
                 throws StateAccessException, SerializationException {
             pool.setLoadBalancerId(loadBalancerId);
             // `status` defaults to UP and users can't change it through the API.
-            pool.setStatus(LBStatus.ACTIVE);
+            pool.setStatus(LBStatus.ACTIVE.toString());
+            validate(pool);
+
             try {
                 UUID id = dataClient.poolCreate(pool.toData());
                 return Response.created(

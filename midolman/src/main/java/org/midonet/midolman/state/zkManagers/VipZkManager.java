@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.UUID;
 import org.apache.zookeeper.Op;
 import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.state.l4lb.VipSessionPersistence;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +36,7 @@ public class VipZkManager
         public UUID poolId;
         public String address;
         public int protocolPort;
-        public String sessionPersistence;
+        public VipSessionPersistence sessionPersistence;
         public boolean adminStateUp;
 
         public VipConfig() {
@@ -46,7 +47,7 @@ public class VipZkManager
                          UUID poolId,
                          String address,
                          int protocolPort,
-                         String sessionPersistence,
+                         VipSessionPersistence sessionPersistence,
                          boolean adminStateUp) {
             this.loadBalancerId = loadBalancerId;
             this.poolId = poolId;
@@ -75,7 +76,7 @@ public class VipZkManager
                     Objects.equal(poolId, that.poolId) &&
                     Objects.equal(address, that.address) &&
                     protocolPort == that.protocolPort &&
-                    Objects.equal(sessionPersistence, that.sessionPersistence) &&
+                    sessionPersistence == that.sessionPersistence &&
                     adminStateUp == that.adminStateUp;
         }
     }

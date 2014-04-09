@@ -2,8 +2,8 @@
  * Copyright (c) 2014 Midokura Europe SARL, All Rights Reserved.
  */
 
-package org.midonet.client.dto;
+package org.midonet.midolman.state.l4lb;
 
-public enum LBStatus {
-    ACTIVE, INACTIVE
+public enum PoolProtocol {
+    TCP
 }

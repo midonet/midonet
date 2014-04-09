@@ -15,21 +15,20 @@ import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoLoadBalancer;
 import org.midonet.client.dto.DtoPool;
 import org.midonet.client.dto.DtoPoolMember;
-import org.midonet.client.dto.LBStatus;
+import org.midonet.client.dto.l4lb.LBStatus;
 
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-import static javax.ws.rs.core.Response.Status.*;
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.CONFLICT;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-
+import static org.midonet.api.VendorMediaType.APPLICATION_POOL_MEMBER_JSON;
 import static org.midonet.api.validation.MessageProperty.RESOURCE_EXISTS;
 import static org.midonet.api.validation.MessageProperty.RESOURCE_NOT_FOUND;
-import static org.midonet.api.VendorMediaType.APPLICATION_POOL_MEMBER_JSON;
 
 @RunWith(Enclosed.class)
 public class TestPoolMember {
@@ -251,7 +250,7 @@ public class TestPoolMember {
             DtoError error = dtoWebResource.putAndVerifyNotFound(
                     member.getUri(), APPLICATION_POOL_MEMBER_JSON, member);
             assertErrorMatches(error, RESOURCE_NOT_FOUND,
-                               "pool member", member.getId());
+                    "pool member", member.getId());
         }
 
         @Test

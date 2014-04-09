@@ -8,6 +8,7 @@ import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.simulation.{Pool, CustomMatchers}
+import org.midonet.midolman.state.l4lb.PoolLBMethod
 import org.midonet.midolman.topology.{FlowTagger, VirtualTopologyActor}
 import org.midonet.midolman.topology.VirtualTopologyActor.PoolRequest
 import java.util.UUID
@@ -204,34 +205,34 @@ with VirtualConfigurationBuilders {
         scenario("Create a pool with lbMethod = 'ROUND_ROBIN'") {
             Given("A pool created with lbMethod = 'ROUND_ROBIN'")
             val loadBalancer = createLoadBalancer()
-            val pool = createPool(loadBalancer, lbMethod = "ROUND_ROBIN")
+            val pool = createPool(loadBalancer, lbMethod = PoolLBMethod.ROUND_ROBIN)
 
             When("the VTA receives a request for it")
             vta.self ! PoolRequest(pool.getId)
 
             Then("it should return the pool with lbMethod = 'ROUND_ROBIN'")
             val vtaPool = expectMsgType[Pool]
-            vtaPool.lbMethod shouldBe "ROUND_ROBIN"
+            vtaPool.lbMethod shouldBe PoolLBMethod.ROUND_ROBIN
         }
 
         scenario("Update pool's lbMethod property") {
             Given("a pool created with lbMethod = 'ROUND_ROBIN'")
             val loadBalancer = createLoadBalancer()
-            val pool = createPool(loadBalancer, lbMethod = "ROUND_ROBIN")
+            val pool = createPool(loadBalancer, lbMethod = PoolLBMethod.ROUND_ROBIN)
             vta.self ! PoolRequest(pool.getId, update = true)
             val simPool1 = expectMsgType[Pool]
-            simPool1.lbMethod shouldBe "ROUND_ROBIN"
+            simPool1.lbMethod shouldBe PoolLBMethod.ROUND_ROBIN
             vta.getAndClear()
 
             When("the pool's lbMethod property is set to a different value")
-            setPoolLbMethod(pool, "ANGULAR_ALBATROSS")
+            setPoolLbMethod(pool, null)
 
             Then("the VTA should receive a flow invalidation message")
             vta.getAndClear().contains(flowInvalidationMsg(pool.getId))
 
             And("send an updated Pool")
             val simPool2 = expectMsgType[Pool]
-            simPool2.lbMethod shouldBe "ANGULAR_ALBATROSS"
+            simPool2.lbMethod shouldBe null
         }
     }
 
