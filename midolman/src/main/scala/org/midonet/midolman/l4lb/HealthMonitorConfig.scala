@@ -9,12 +9,13 @@ package org.midonet.midolman.l4lb
   * as a health monitor only needs to know minimal amount of data to run the
   * service.
   */
-class HealthMonitorConfig(val delay: Int, val timeout: Int,
-                          val maxRetries: Int) {
-    def isConfigurable = delay > 0 && timeout > 0 && maxRetries > 0
+class HealthMonitorConfig(val adminStateUp: Boolean, val delay: Int,
+                          val timeout: Int, val maxRetries: Int) {
+    def isConfigurable = adminStateUp && delay > 0 && timeout > 0 && maxRetries > 0
 
     override def equals(other: Any) = other match {
         case that: HealthMonitorConfig =>
+            this.adminStateUp == that.adminStateUp &&
             this.delay == that.delay &&
             this.timeout == that.timeout &&
             this.maxRetries == that.maxRetries

@@ -20,7 +20,7 @@ import org.midonet.midolman.l4lb.HaproxyHealthMonitor.ConfigUpdate
 import org.midonet.midolman.layer3.Route.NextHop.PORT
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.routingprotocols.IP
-import org.midonet.midolman.state.{PoolHealthMonitorMappingStatus, LBStatus}
+import org.midonet.midolman.state.PoolHealthMonitorMappingStatus
 import org.midonet.midolman.state.LBStatus.{INACTIVE => MemberInactive}
 import org.midonet.midolman.state.LBStatus.{ACTIVE => MemberActive}
 import org.midonet.netlink.{AfUnix, NetlinkSelectorProvider, UnixDomainChannel}
@@ -79,7 +79,7 @@ object HaproxyHealthMonitor {
 
 class HaproxyHealthMonitor(var config: PoolConfig,
                            val manager: ActorRef,
-                           val routerId: UUID,
+                           var routerId: UUID,
                            val client: DataClient,
                            val hostId: UUID)
     extends Actor with ActorLogWithoutPath with Stash {
@@ -91,6 +91,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
     private val healthMonitorName = config.id.toString.substring(0,8) +
                                     config.nsPostFix
     private var routerPortId: UUID = null
+    private var routeId: UUID = null
     private var namespaceName: String = null
 
     override def preStart(): Unit = {
@@ -98,7 +99,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
             writeConf(config)
             namespaceName = createNamespace(healthMonitorName,
                                                 config.vip.ip)
-            hookNamespaceToRouter(routerId)
+            hookNamespaceToRouter()
             restartHaproxy(healthMonitorName, config.haproxyConfFileLoc,
                            config.haproxyPidFileLoc)
             system.scheduler.scheduleOnce(1 second, self, CheckHealth)
@@ -106,7 +107,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
         } catch {
             case e: Exception =>
                 log.error("Unable to create Health Monitor for " +
-                          config.haproxyConfFileLoc)
+                          config.haproxyConfFileLoc + ": " + e.getMessage)
                 setPoolMapStatus(PoolHealthMonitorMappingStatus.ERROR)
                 manager ! SetupFailure
         }
@@ -122,15 +123,26 @@ class HaproxyHealthMonitor(var config: PoolConfig,
 
     def receive = {
         case ConfigUpdate(conf) =>
-            config = conf
             try {
-                writeConf(config)
-                if (config.isConfigurable){
+                writeConf(conf)
+                if (conf.isConfigurable){
                     startHaproxy(healthMonitorName)
                 } else {
                     killHaproxyIfRunning(healthMonitorName,
                                          conf.haproxyConfFileLoc,
                                          conf.haproxyPidFileLoc)
+                }
+                // The vip may have changed. If so, we need to change the
+                // routes on the router.
+                if (config.vip != conf.vip) {
+                    if (routeId != null) {
+                        client.routesDelete(routeId)
+                        deleteIpTableRules(healthMonitorName, config.vip.ip)
+                    }
+                    if (routerId != null && routerPortId != null) {
+                        addVipRoute(conf.vip.ip)
+                        createIpTableRules(healthMonitorName, conf.vip.ip)
+                    }
                 }
                 setPoolMapStatus(PoolHealthMonitorMappingStatus.ACTIVE)
             } catch {
@@ -139,6 +151,8 @@ class HaproxyHealthMonitor(var config: PoolConfig,
                               config.haproxyConfFileLoc)
                     setPoolMapStatus(PoolHealthMonitorMappingStatus.ERROR)
                     manager ! SetupFailure
+            } finally {
+                config = conf
             }
 
         case CheckHealth =>
@@ -148,18 +162,10 @@ class HaproxyHealthMonitor(var config: PoolConfig,
                 val newUpNodes = upNodes diff currentUpNodes
                 val newDownNodes = downNodes diff currentDownNodes
 
-                def updateClient(id: UUID, status: LBStatus): Unit = {
-                    val member = client.poolMemberGet(id)
-                    if (member == null) {
-                        log.error("pool member " + id.toString +
-                                  " not in database")
-                        return
-                    }
-                    member.setStatus(status)
-                    client.poolMemberUpdate(member)
-                }
-                newUpNodes foreach (id => updateClient(id, MemberActive))
-                newDownNodes foreach (id => updateClient(id, MemberInactive))
+                newUpNodes foreach (id =>
+                    client.poolMemberUpdateStatus(id, MemberActive))
+                newDownNodes foreach (id =>
+                    client.poolMemberUpdateStatus(id, MemberInactive))
 
                 currentUpNodes = upNodes
                 currentDownNodes = downNodes
@@ -173,12 +179,14 @@ class HaproxyHealthMonitor(var config: PoolConfig,
             system.scheduler.scheduleOnce(1 second, self, CheckHealth)
 
         case RouterAdded(newRouterId) =>
-            hookNamespaceToRouter(newRouterId)
+            routerId = newRouterId
+            hookNamespaceToRouter()
             setPoolMapStatus(PoolHealthMonitorMappingStatus.ACTIVE)
 
         case RouterRemoved =>
+            routerId = null
             unhookNamespaceFromRouter()
-            setPoolMapStatus(PoolHealthMonitorMappingStatus.ACTIVE)
+            setPoolMapStatus(PoolHealthMonitorMappingStatus.INACTIVE)
     }
 
     /*
@@ -256,6 +264,25 @@ class HaproxyHealthMonitor(var config: PoolConfig,
         }
     }
 
+    def deleteIpTableRules(nsName: String, ip: String) = {
+        modifyIpTableRules(nsName, ip, "delete")
+    }
+
+    def createIpTableRules(nsName: String, ip: String) = {
+        modifyIpTableRules(nsName, ip, "append")
+    }
+
+    def modifyIpTableRules(nsName: String, ip: String, op: String) = {
+        val iptablePost = "iptables --table nat --" + op + " POSTROUTING " +
+            "--source " + NameSpaceIp + " --jump SNAT --to-source " + ip
+        val iptablePre = "iptables --table nat --" + op +" PREROUTING" +
+            " --destination " + ip + " --jump DNAT --to-destination " +
+            NameSpaceIp
+        IP.execIn(nsName, iptablePre)
+        IP.execIn(nsName, iptablePost)
+    }
+
+
     /*
      * Creates a new namespace and hooks up an interface.
      */
@@ -267,12 +294,6 @@ class HaproxyHealthMonitor(var config: PoolConfig,
          */
         val dp = name + "_dp"
         val ns = name + "_ns"
-        val iptablePost = "iptables --table nat --append POSTROUTING " +
-                          "--source " + NameSpaceIp + " --jump SNAT " +
-                          "--to-source " + ip
-        val iptablePre = "iptables --table nat --append PREROUTING" +
-                         " --destination " + ip + " --jump DNAT " +
-                         "--to-destination " + NameSpaceIp
         try {
             IP.ensureNamespace(name)
             IP.link("add name " + dp + " type veth peer name " + ns)
@@ -283,8 +304,6 @@ class HaproxyHealthMonitor(var config: PoolConfig,
             IP.execIn(name, "ip address add " + NameSpaceIp + "/24 dev " + ns)
             IP.execIn(name, "ifconfig lo up")
             IP.execIn(name, "route add default gateway " + RouterIp + " " + ns)
-            IP.execIn(name, iptablePre)
-            IP.execIn(name, iptablePost)
         } catch {
             case e: Exception =>
                 HealthMonitor.cleanAndDeleteNamespace(name, config.nsPostFix,
@@ -361,8 +380,24 @@ class HaproxyHealthMonitor(var config: PoolConfig,
         data.toString()
     }
 
-    def hookNamespaceToRouter(nsRouterId: UUID) = {
-        val ports = client.portsFindByRouter(nsRouterId)
+    def addVipRoute(ip: String) = {
+        val route = new Route()
+        route.setRouterId(routerId)
+        route.setNextHop(PORT)
+        route.setNextHopPort(routerPortId)
+        route.setSrcNetworkAddr("0.0.0.0")
+        route.setSrcNetworkLength(0)
+        route.setDstNetworkAddr(ip)
+        route.setDstNetworkLength(32)
+        route.setNextHopGateway(NameSpaceIp)
+        route.setWeight(100)
+        routeId = client.routesCreateEphemeral(route)
+    }
+
+    def hookNamespaceToRouter(): Unit = {
+        if (routerId == null)
+            return
+        val ports = client.portsFindByRouter(routerId)
         var portId: UUID = null
 
         // see if the port already exists, and delete it if it does. This can
@@ -379,7 +414,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
 
         if (portId == null) {
             val routerPort = new RouterPort()
-            routerPort.setDeviceId(nsRouterId)
+            routerPort.setDeviceId(routerId)
             routerPort.setHostId(hostId)
             routerPort.setPortAddr(RouterIp)
             routerPort.setNwAddr(NetAddr)
@@ -387,30 +422,22 @@ class HaproxyHealthMonitor(var config: PoolConfig,
             routerPort.setInterfaceName(namespaceName)
             portId = client.portsCreate(routerPort)
         }
-
-        // Add a route to this port for the VIP. Make it ephemeral because
-        // if this node goes down then this port the traffic gets routed to
-        // is no longer valid.
-        val route = new Route()
-        route.setRouterId(nsRouterId)
-        route.setNextHop(PORT)
-        route.setNextHopPort(portId)
-        route.setSrcNetworkAddr("0.0.0.0")
-        route.setSrcNetworkLength(0)
-        route.setDstNetworkAddr(config.vip.ip)
-        route.setDstNetworkLength(32)
-        route.setNextHopGateway(NameSpaceIp)
-        route.setWeight(100)
-        client.routesCreateEphemeral(route)
+        routerPortId = portId
+        addVipRoute(config.vip.ip)
 
         client.hostsAddVrnPortMapping(hostId, portId, namespaceName)
-        routerPortId = portId
+
+        createIpTableRules(healthMonitorName, config.vip.ip)
     }
 
     def unhookNamespaceFromRouter() = {
         if (routerPortId != null) {
             client.hostsDelVrnPortMapping(hostId, routerPortId)
+            client.routesDelete(routeId)
             client.portsDelete(routerPortId)
+            deleteIpTableRules(healthMonitorName, config.vip.ip)
+            routeId = null
+            routerPortId = null
         }
     }
 

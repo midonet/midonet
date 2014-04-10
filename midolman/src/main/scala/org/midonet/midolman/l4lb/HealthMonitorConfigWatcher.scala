@@ -10,7 +10,7 @@ import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.Referenceable
 import org.midonet.midolman.simulation.LoadBalancer
 import org.midonet.midolman.state.zkManagers.PoolZkManager.PoolHealthMonitorMappingConfig
-import org.midonet.midolman.state.zkManagers.PoolZkManager.PoolHealthMonitorMappingConfig.{PoolMemberConfigWithId => ZkMemberConf}
+import org.midonet.midolman.state.zkManagers.PoolZkManager.PoolHealthMonitorMappingConfig.{PoolMemberConfigWithId => ZkMemberConf, VipConfigWithId => ZkVipConf}
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.VirtualTopologyActor.{LoadBalancerRequest, PoolHealthMonitorMapRequest}
 import scala.collection.immutable.{Map => IMap}
@@ -58,29 +58,31 @@ object HealthMonitorConfigWatcher {
             data.healthMonitorConfig == null ) {
             null
         } else {
-            val lbId = data.loadBalancerConfig.persistedId
-            var vip: VipConfig = null
-            if (!data.vipConfigs.isEmpty) {
-                // the data comes with a list of configs, but we currently
-                // only support one.
-                vip = new VipConfig(data.loadBalancerConfig.persistedId,
-                                    data.vipConfigs.get(0).config.address,
-                                    data.vipConfigs.get(0).config.protocolPort)
+            val vips = new MSet[VipConfig]
+            for (vipConfig : ZkVipConf <- data.vipConfigs.asScala) {
+                vips add new VipConfig(vipConfig.config.adminStateUp,
+                                       vipConfig.persistedId,
+                                       vipConfig.config.address,
+                                       vipConfig.config.protocolPort,
+                                       vipConfig.config.sessionPersistence)
             }
             val hm = new HealthMonitorConfig(
-                                   data.healthMonitorConfig.config.delay,
-                                   data.healthMonitorConfig.config.timeout,
-                                   data.healthMonitorConfig.config.maxRetries)
+                    data.healthMonitorConfig.config.adminStateUp,
+                    data.healthMonitorConfig.config.delay,
+                    data.healthMonitorConfig.config.timeout,
+                    data.healthMonitorConfig.config.maxRetries)
             val members = new MSet[PoolMemberConfig]()
             for (member: ZkMemberConf <- data.poolMemberConfigs.asScala) {
-                members add new PoolMemberConfig(member.persistedId,
-                member.config.address,
-                member.config.protocolPort)
+                members add new PoolMemberConfig(
+                        member.config.adminStateUp,
+                        member.persistedId,
+                        member.config.weight,
+                        member.config.address,
+                        member.config.protocolPort)
             }
-            new PoolConfig(poolId, data.loadBalancerConfig.persistedId, vip,
-                    ISet(members.toSeq:_*), hm,
-                    data.loadBalancerConfig.config.adminStateUp, fileLocs,
-                    suffix)
+            new PoolConfig(poolId, data.loadBalancerConfig.persistedId,
+                    ISet(vips.toSeq:_*),
+                    ISet(members.toSeq:_*), hm, true, fileLocs, suffix)
         }
     }
 
@@ -125,7 +127,7 @@ class HealthMonitorConfigWatcher(val fileLocs: String, val suffix: String,
     }
 
     private def handleUpdatedMapping(poolId: UUID, data: PoolConfig) {
-        if (data.isConfigurable && currentLeader)
+        if (currentLeader)
             manager ! ConfigUpdated(poolId, data,
                 getRouterId(data.loadBalancerId))
     }
@@ -133,8 +135,6 @@ class HealthMonitorConfigWatcher(val fileLocs: String, val suffix: String,
     private def handleMappingChange(
                 mappings: IMap[UUID, PoolHealthMonitorMappingConfig]) {
 
-        // remove all configs that aren't configurable -- treat them as
-        // deleted.
         val convertedMap = convertDataMapToConfigMap(mappings, fileLocs, suffix)
         convertedMap.values filter (conf =>
             !lbIdToRouterIdMap.contains(conf.loadBalancerId)) foreach { conf =>
@@ -149,9 +149,8 @@ class HealthMonitorConfigWatcher(val fileLocs: String, val suffix: String,
         val deleted = oldPoolSet -- newPoolSet
 
         added.foreach(x =>
-                handleAddedMapping(x, mappings.get(x) getOrElse(null)))
+                handleAddedMapping(x, mappings.get(x) getOrElse null))
         deleted.foreach(handleDeletedMapping)
-
         // The config data might have been changed. Check for those.
         for (pool <- convertedMap.keySet) {
             (convertedMap.get(pool), this.poolIdtoConfigMap.get(pool)) match {
@@ -197,13 +196,16 @@ class HealthMonitorConfigWatcher(val fileLocs: String, val suffix: String,
                         (kv => manager ! RouterChanged(kv._1, kv._2, routerId))
                 }
             }
+            val newRouterId = if (loadBalancer.adminStateUp)
+                                  loadBalancer.routerId
+                              else null
 
             lbIdToRouterIdMap get loadBalancer.id match {
-                case Some(routerId) if routerId != loadBalancer.routerId =>
-                    notifyChangedRouter(loadBalancer, loadBalancer.routerId)
+                case Some(routerId) if routerId != newRouterId =>
+                    notifyChangedRouter(loadBalancer, newRouterId)
 
                 case None =>
-                    notifyChangedRouter(loadBalancer, loadBalancer.routerId)
+                    notifyChangedRouter(loadBalancer, newRouterId)
 
                 case _ =>
             }

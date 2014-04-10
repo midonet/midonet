@@ -10,14 +10,17 @@ import java.util.UUID
   * health monitor only needs to know minimal amount of pool member data to
   * run the service.
   */
-class VipConfig(val id: UUID, val ip: String, val port: Int) {
-    def isConfigurable = id != null && ip != null && port > 0
+class VipConfig(val adminStateUp: Boolean, val id: UUID, val ip: String,
+                val port: Int, val sessionPersistence: String) {
+    def isConfigurable = adminStateUp && id != null && ip != null && port > 0
 
     override def equals(other: Any) = other match {
         case that: VipConfig =>
+            this.adminStateUp == that.adminStateUp &&
             this.id == that.id &&
             this.ip == that.ip &&
-            this.port == that.port
+            this.port == that.port &&
+            this.sessionPersistence == that.sessionPersistence
         case _ => false
     }
 }
