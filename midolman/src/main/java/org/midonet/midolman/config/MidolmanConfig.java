@@ -55,8 +55,8 @@ public interface MidolmanConfig
     @ConfigString(key = "cache_type", defaultValue = "cassandra")
     public String getMidolmanCacheType();
 
-    @ConfigString(key = "top_level_actors_supervisor", defaultValue = "resume")
-    public String getMidolmanTopLevelActorsSupervisor();
+    @ConfigString(key = "top_level_actor_supervisor", defaultValue = "resume")
+    public String getMidolmanTopLevelActorSupervisor();
 
     @ConfigInt(key = "check_flow_expiration_interval", defaultValue = 10000)
     public int getFlowExpirationInterval();
