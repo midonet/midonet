@@ -78,7 +78,7 @@ public class HealthMonitorZkManager extends
                     timeout == that.timeout &&
                     maxRetries == that.maxRetries &&
                     adminStateUp == that.adminStateUp &&
-                    Objects.equal(status, that.status);
+                    status == that.status;
         }
     }
 

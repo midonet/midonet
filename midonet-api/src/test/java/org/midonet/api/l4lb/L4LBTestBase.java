@@ -3,13 +3,6 @@
  */
 package org.midonet.api.l4lb;
 
-import java.net.URI;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Random;
-import java.util.Set;
-import java.util.UUID;
-
 import com.sun.jersey.api.client.ClientResponse;
 import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.FuncTest;
@@ -23,8 +16,24 @@ import org.midonet.client.dto.DtoPoolMember;
 import org.midonet.client.dto.DtoRouter;
 import org.midonet.client.dto.DtoVip;
 
+import java.net.URI;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Random;
+import java.util.Set;
+import java.util.UUID;
+
 import static org.junit.Assert.assertEquals;
-import static org.midonet.api.VendorMediaType.*;
+import static org.midonet.api.VendorMediaType.APPLICATION_HEALTH_MONITOR_JSON;
+import static org.midonet.api.VendorMediaType.APPLICATION_LOAD_BALANCER_JSON;
+import static org.midonet.api.VendorMediaType.APPLICATION_POOL_COLLECTION_JSON;
+import static org.midonet.api.VendorMediaType.APPLICATION_POOL_JSON;
+import static org.midonet.api.VendorMediaType.APPLICATION_POOL_MEMBER_COLLECTION_JSON;
+import static org.midonet.api.VendorMediaType.APPLICATION_POOL_MEMBER_JSON;
+import static org.midonet.api.VendorMediaType.APPLICATION_ROUTER_JSON;
+import static org.midonet.api.VendorMediaType.APPLICATION_ROUTER_JSON_V2;
+import static org.midonet.api.VendorMediaType.APPLICATION_VIP_COLLECTION_JSON;
+import static org.midonet.api.VendorMediaType.APPLICATION_VIP_JSON;
 import static org.midonet.cluster.data.l4lb.VIP.VIP_SOURCE_IP;
 
 public class L4LBTestBase extends RestApiTestBase {
@@ -248,8 +257,6 @@ public class L4LBTestBase extends RestApiTestBase {
         pool.setId(UUID.randomUUID());
         pool.setLoadBalancerId(loadBalancerId);
         pool.setAdminStateUp(true);
-        pool.setDescription("a big ol pool");
-        pool.setName("BIGPOOL");
         pool.setProtocol("TCP");
         return pool;
     }

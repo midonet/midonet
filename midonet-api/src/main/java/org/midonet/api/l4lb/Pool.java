@@ -18,8 +18,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class Pool extends UriResource {
 
     private UUID id;
-    private String name;
-    private String description;
     private UUID healthMonitorId;
     @NotNull
     private UUID loadBalancerId;
@@ -34,22 +32,6 @@ public class Pool extends UriResource {
 
     public void setId(UUID id) {
         this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
     }
 
     public UUID getHealthMonitorId() {
@@ -107,8 +89,6 @@ public class Pool extends UriResource {
 
     public Pool(org.midonet.cluster.data.l4lb.Pool pool) {
         super();
-        this.name = pool.getName();
-        this.description = pool.getDescription();
         this.loadBalancerId = pool.getLoadBalancerId();
         this.healthMonitorId = pool.getHealthMonitorId();
         this.protocol = pool.getProtocol();
@@ -121,8 +101,6 @@ public class Pool extends UriResource {
     public org.midonet.cluster.data.l4lb.Pool toData() {
         return new org.midonet.cluster.data.l4lb.Pool()
                 .setId(this.id)
-                .setName(this.name)
-                .setDescription(this.description)
                 .setLoadBalancerId(this.loadBalancerId)
                 .setHealthMonitorId(this.healthMonitorId)
                 .setProtocol(this.protocol)

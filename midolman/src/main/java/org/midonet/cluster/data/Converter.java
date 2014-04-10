@@ -3,12 +3,6 @@
  */
 package org.midonet.cluster.data;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.UUID;
-
 import org.midonet.cluster.Client;
 import org.midonet.cluster.data.Entity.TaggableEntity;
 import org.midonet.cluster.data.dhcp.Opt121;
@@ -40,9 +34,8 @@ import org.midonet.midolman.state.zkManagers.BridgeDhcpV6ZkManager;
 import org.midonet.midolman.state.zkManagers.BridgeDhcpZkManager;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager.BridgeConfig;
 import org.midonet.midolman.state.zkManagers.ChainZkManager.ChainConfig;
-import org.midonet.midolman.state.zkManagers.IpAddrGroupZkManager
-        .IpAddrGroupConfig;
 import org.midonet.midolman.state.zkManagers.HealthMonitorZkManager.HealthMonitorConfig;
+import org.midonet.midolman.state.zkManagers.IpAddrGroupZkManager.IpAddrGroupConfig;
 import org.midonet.midolman.state.zkManagers.LoadBalancerZkManager.LoadBalancerConfig;
 import org.midonet.midolman.state.zkManagers.PoolMemberZkManager.PoolMemberConfig;
 import org.midonet.midolman.state.zkManagers.PoolZkManager.PoolConfig;
@@ -52,6 +45,12 @@ import org.midonet.midolman.state.zkManagers.TaggableConfig;
 import org.midonet.midolman.state.zkManagers.VipZkManager.VipConfig;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IntIPv4;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.UUID;
 
 
 /**
@@ -222,8 +221,6 @@ public class Converter {
 
     public static PoolConfig toPoolConfig(Pool pool) {
         PoolConfig poolConfig = new PoolConfig();
-        poolConfig.name = pool.getName();
-        poolConfig.description = pool.getDescription();
         poolConfig.loadBalancerId = pool.getLoadBalancerId();
         poolConfig.healthMonitorId = pool.getHealthMonitorId();
         poolConfig.protocol = pool.getProtocol();
@@ -235,9 +232,7 @@ public class Converter {
     }
 
     public static Pool fromPoolConfig(PoolConfig poolConfig) {
-        return new Pool().setName(poolConfig.name)
-                         .setDescription(poolConfig.description)
-                         .setLoadBalancerId(poolConfig.loadBalancerId)
+        return new Pool().setLoadBalancerId(poolConfig.loadBalancerId)
                          .setHealthMonitorId(poolConfig.healthMonitorId)
                          .setProtocol(poolConfig.protocol)
                          .setLbMethod(poolConfig.lbMethod)
