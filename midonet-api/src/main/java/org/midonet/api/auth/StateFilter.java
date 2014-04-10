@@ -79,6 +79,9 @@ public final class StateFilter implements Filter {
             SystemState systemState = dataClient.systemStateGet();
             availability = systemState.getAvailability();
         } catch(StateAccessException ex) {
+            ResponseUtils.setErrorResponse((HttpServletResponse) response,
+                    HttpServletResponse.SC_SERVICE_UNAVAILABLE,
+                    "Can not access topology information");
             log.error("Can not access topology information");
             return;
         }
