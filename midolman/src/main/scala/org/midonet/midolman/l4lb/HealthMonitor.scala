@@ -20,6 +20,7 @@ import org.midonet.midolman.l4lb.HealthMonitor.{ConfigAdded, ConfigDeleted,
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.Referenceable
 import org.midonet.midolman.routingprotocols.IP
+import org.midonet.midolman.state.PoolHealthMonitorMappingStatus
 import org.midonet.midolman.state.ZkLeaderElectionWatcher.ExecuteOnBecomingLeader
 
 import org.slf4j.{LoggerFactory, Logger}
@@ -172,7 +173,7 @@ object HealthMonitor extends Referenceable {
 class HealthMonitor extends Actor with ActorLogWithoutPath {
     @Inject private val configuration: HostConfig = null
     @Inject private val midolmanConfig: MidolmanConfig = null
-    @Inject private val client: DataClient = null
+    @Inject var client: DataClient = null
 
     private var fileLocation: String = null
     private var namespaceSuffix: String = null
@@ -208,17 +209,26 @@ class HealthMonitor extends Actor with ActorLogWithoutPath {
     def receive = {
         case ConfigUpdated(poolId, config, routerId) =>
             context.child(poolId.toString) match {
-                case Some(child) if !config.adminStateUp =>
+                case Some(child) if !config.isConfigurable =>
+                    log.info("received unconfigurable update for pool {}",
+                        poolId.toString)
                     context.stop(child)
 
-                case Some(child) => child ! ConfigUpdate(config)
+                case Some(child) =>
+                    log.info("received configurable update for pool {}",
+                        poolId.toString)
+                    child ! ConfigUpdate(config)
 
-                case None if config.adminStateUp && routerId != null =>
+                case None if config.isConfigurable && routerId != null =>
+                    log.info("received configurable update for non-existing" +
+                             "pool {}", poolId.toString)
                     startChildHaproxyMonitor(poolId, config, routerId)
 
-                case None => log.info("Request to update config not " +
-                                       "associated with child: " +
-                                       poolId.toString)
+                case _ =>
+                    log.info("received unconfigurable update for non-existing" +
+                             "pool {}", poolId.toString)
+                    client.poolSetMapStatus(poolId,
+                        PoolHealthMonitorMappingStatus.INACTIVE)
             }
 
         case ConfigAdded(poolId, config, routerId) =>
@@ -226,36 +236,53 @@ class HealthMonitor extends Actor with ActorLogWithoutPath {
                 case Some(child) => log.error("Request to add health monitor" +
                     "that already exists: " + poolId.toString)
 
-                case None if !config.adminStateUp =>
-                    // Wait until the admin state is up to start this.
+                case None if !config.isConfigurable || routerId == null =>
+                    log.info("received unconfigurable add for pool {}",
+                        poolId.toString)
+                    client.poolSetMapStatus(poolId,
+                        PoolHealthMonitorMappingStatus.INACTIVE)
+                    // Wait until this is configurable start this.
 
-                case None if routerId == null =>
-                    // Wait until we get a new router to start this.
-
-                case None => startChildHaproxyMonitor(poolId, config, routerId)
+                case None =>
+                    log.info("received configurable add for pool {}",
+                             poolId.toString)
+                    startChildHaproxyMonitor(poolId, config, routerId)
             }
 
         case ConfigDeleted(poolId) =>
             context.child(poolId.toString) match {
-                case Some(child) => context.stop(child)
-                case None => log.error("Request to delete config not" +
-                                       "associated with child: " +
-                                       poolId.toString)
+                case Some(child) =>
+                    log.info("received delete for pool {}",
+                             poolId.toString)
+                    context.stop(child)
+
+                case None =>
+                    log.info("received delete for non-existent pool {}",
+                             poolId.toString)
+                    client.poolSetMapStatus(poolId,
+                            PoolHealthMonitorMappingStatus.INACTIVE)
             }
 
         case RouterChanged(poolId, config, routerId) =>
             context.child(poolId.toString) match {
-                case Some(child) if routerId == null => child ! RouterRemoved
+                case Some(child) if routerId == null =>
+                    log.info("router removed for pool {}", poolId.toString)
+                    child ! RouterRemoved
 
-                case Some(child) => child ! RouterAdded(routerId)
+                case Some(child) =>
+                    log.info("router added for pool {}", poolId.toString)
+                    child ! RouterAdded(routerId)
 
-                case None if config.adminStateUp && routerId != null =>
+                case None if config.isConfigurable && routerId != null =>
+                    log.info("router added for non-existent pool {}",
+                             poolId.toString)
                     startChildHaproxyMonitor(poolId, config, routerId)
 
-                case None => log.info("Request to update router not " +
-                        "associated with child: " + poolId.toString)
-
-                case _ => // No other cases matter
+                case _ =>
+                    log.info("router changed for unconfigurable and non-" +
+                             "existent pool {}", poolId.toString)
+                    client.poolSetMapStatus(poolId,
+                            PoolHealthMonitorMappingStatus.INACTIVE)
             }
 
         case SetupFailure =>  context.stop(sender)
