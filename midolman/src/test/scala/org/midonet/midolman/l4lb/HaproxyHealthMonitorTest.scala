@@ -70,16 +70,16 @@ class HaproxyHealthMonitorTest extends FeatureSpec
     val goodSocketPath = "/etc/midolman/l4lb/"
 
     def createFakePoolConfig(vipIp: String, path: String) = {
-        val vip = new VipConfig(UUID.randomUUID(), vipIp, 89)
-        val healthMonitor = new HealthMonitorConfig(5, 10, 7)
-        val member1  = new PoolMemberConfig(UUID.randomUUID(),
-                                            "10.11.12.13", 81)
-        val member2  = new PoolMemberConfig(UUID.randomUUID(),
-                                            "10.11.12.14", 81)
-        val member3  = new PoolMemberConfig(UUID.randomUUID(),
-                                            "10.11.12.15", 81)
+        val vip = new VipConfig(true, UUID.randomUUID(), vipIp, 89, "")
+        val healthMonitor = new HealthMonitorConfig(true, 5, 10, 7)
+        val member1  = new PoolMemberConfig(true, UUID.randomUUID(),
+                                            10, "10.11.12.13", 81)
+        val member2  = new PoolMemberConfig(true, UUID.randomUUID(),
+                                            10, "10.11.12.14", 81)
+        val member3  = new PoolMemberConfig(true, UUID.randomUUID(),
+                                            10, "10.11.12.15", 81)
 
-        new PoolConfig(poolId, UUID.randomUUID(), vip,
+        new PoolConfig(poolId, UUID.randomUUID(), Set(vip),
                        Set(member1, member2, member3), healthMonitor, true,
                        path, "_MN")
     }
@@ -212,7 +212,7 @@ class HaproxyHealthMonitorTest extends FeatureSpec
             socketReads +=1
             "" // return empty string because it isn't checked
         }
-        override def hookNamespaceToRouter(nRouterId: UUID) = {}
+        override def hookNamespaceToRouter() = {}
         override def unhookNamespaceFromRouter = {}
         override def startHaproxy(name: String) = {
             if (failUpdate) {

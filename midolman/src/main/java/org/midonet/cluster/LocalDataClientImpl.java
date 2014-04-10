@@ -2182,6 +2182,19 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
+    public void poolMemberUpdateStatus(UUID poolMemberId, LBStatus status)
+            throws StateAccessException, SerializationException {
+        PoolMemberConfig config = poolMemberZkManager.get(poolMemberId);
+        if (config == null) {
+            log.error("pool member does not exist" + poolMemberId.toString());
+            return;
+        }
+        config.status = status;
+        List<Op> ops = poolMemberZkManager.prepareUpdate(poolMemberId, config);
+        zkManager.multi(ops);
+    }
+
+    @Override
     public List<PoolMember> poolMembersGetAll() throws StateAccessException,
             SerializationException {
         List<PoolMember> poolMembers = new ArrayList<PoolMember>();

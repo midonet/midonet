@@ -29,10 +29,11 @@ import org.midonet.cluster.data.ports.VlanMacPort;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.DirectoryCallback;
 import org.midonet.midolman.state.InvalidStateOperationException;
+import org.midonet.midolman.state.l4lb.MappingStatusException;
+import org.midonet.midolman.state.LBStatus;
 import org.midonet.midolman.state.PoolHealthMonitorMappingStatus;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkLeaderElectionWatcher;
-import org.midonet.midolman.state.l4lb.MappingStatusException;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv6Subnet;
 import org.midonet.packets.IntIPv4;
@@ -353,6 +354,9 @@ public interface DataClient {
     void poolMemberUpdate(@Nonnull PoolMember poolMember)
             throws MappingStatusException, StateAccessException,
             SerializationException;
+
+    void poolMemberUpdateStatus(UUID poolMemberId, LBStatus status)
+            throws StateAccessException, SerializationException;
 
     List<PoolMember> poolMembersGetAll() throws StateAccessException,
             SerializationException;

@@ -19,7 +19,7 @@ object PoolConfig {
  */
 class PoolConfig(val id: UUID,
                  val loadBalancerId: UUID,
-                 val vip: VipConfig,
+                 val vips: Set[VipConfig],
                  val members: Set[PoolMemberConfig],
                  val healthMonitor: HealthMonitorConfig,
                  val adminStateUp: Boolean,
@@ -30,6 +30,12 @@ class PoolConfig(val id: UUID,
     private final val log: Logger
         = LoggerFactory.getLogger(classOf[PoolConfig])
 
+    // we just need a single vip. Any is fine as long as it is configurable
+    val vip = {
+        val confVips = vips filter (_.isConfigurable)
+        if (confVips.isEmpty) null else confVips.head
+    }
+
     val haproxyConfFileLoc = l4lbFileLocs + id.toString + "/" + CONF
     val haproxyPidFileLoc = l4lbFileLocs + id.toString + "/" + PID
     val haproxySockFileLoc = l4lbFileLocs + id.toString + "/" + SOCKET
@@ -37,9 +43,9 @@ class PoolConfig(val id: UUID,
     // make sure that the config has the necessary fields to write a
     // valid config
     def isConfigurable: Boolean =
-        id != null && vip != null && healthMonitor != null &&
-        loadBalancerId != null && healthMonitor.isConfigurable &&
-        vip.isConfigurable && members.forall (_.isConfigurable)
+        adminStateUp && id != null && vips != null && healthMonitor != null &&
+        vip != null && loadBalancerId != null && healthMonitor.isConfigurable &&
+        members.forall (_.isConfigurable)
 
     def generateConfigFile(): String = {
         if (!isConfigurable) {
@@ -77,12 +83,14 @@ backend $id
 
     override def equals(other: Any) = other match {
         case that: PoolConfig =>
+            this.adminStateUp == that.adminStateUp &&
             this.id == that.id &&
             this.loadBalancerId == that.loadBalancerId &&
             this.l4lbFileLocs == that.l4lbFileLocs &&
             this.nsPostFix == that.nsPostFix
             this.adminStateUp == that.adminStateUp &&
             this.vip == that.vip &&
+            this.vips == that.vips &&
             this.healthMonitor == that.healthMonitor &&
             this.members == that.members
         case _ => false
