@@ -177,8 +177,6 @@ subprojects {
         mavenCentral()
         mavenLocal()
         maven { url "http://jsch.sf.net/maven2/" }
-        maven { url "http://repo.typesafe.com/typesafe/releases/" }
-        maven { url "http://oss.sonatype.org/content/groups/public/" }
         maven { url "http://maven.restlet.org" }
     }
 
