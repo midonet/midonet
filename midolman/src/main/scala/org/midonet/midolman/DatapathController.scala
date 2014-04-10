@@ -6,49 +6,52 @@ package org.midonet.midolman
 import java.lang.{Boolean => JBoolean, Integer => JInteger}
 import java.net.InetAddress
 import java.nio.ByteBuffer
-import java.util.{Collection => JCollection, Set => JSet, UUID}
 import java.util.concurrent.TimeoutException
+import java.util.{Collection => JCollection, Set => JSet, UUID}
 import scala.collection.JavaConverters._
 import scala.collection.mutable
+import scala.concurrent.{Future, Promise}
 import scala.concurrent.duration._
 import scala.util.{Failure, Success}
 
 import akka.actor._
+import akka.pattern.{after, pipe}
 import akka.event.LoggingAdapter
+import akka.event.LoggingReceive
 import akka.util.Timeout
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
 
+import org.midonet.Subscription
 import org.midonet.cluster.client
 import org.midonet.cluster.client.Port
 import org.midonet.cluster.data.TunnelZone
 import org.midonet.cluster.data.TunnelZone.{HostConfig => TZHostConfig}
 import org.midonet.cluster.data.zones._
+import org.midonet.event.agent.InterfaceEvent
+import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath._
-import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.io._
 import org.midonet.midolman.monitoring.MonitoringActor
 import org.midonet.midolman.services.HostIdProviderService
+import org.midonet.midolman.topology.VirtualToPhysicalMapper.HostRequest
+import org.midonet.midolman.topology.VirtualToPhysicalMapper.TunnelZoneRequest
 import org.midonet.midolman.topology._
 import org.midonet.midolman.topology.rcu.Host
-import org.midonet.midolman.topology.VirtualToPhysicalMapper.TunnelZoneRequest
-import org.midonet.midolman.topology.VirtualToPhysicalMapper.HostRequest
 import org.midonet.netlink.Callback
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode
 import org.midonet.odp.flows.FlowActions.output
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput}
 import org.midonet.odp.ports._
-import org.midonet.odp.{DpPort, Datapath}
+import org.midonet.odp.{DpPort, Datapath, OvsConnectionOps}
 import org.midonet.packets.{IntIPv4, IPv4Addr, TCP}
 import org.midonet.sdn.flows.WildcardFlow
 import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.util.collection.Bimap
-import org.midonet.event.agent.InterfaceEvent
-import org.midonet.Subscription
 
 trait UnderlayResolver {
 
@@ -129,12 +132,6 @@ object DatapathController extends Referenceable {
     val DEFAULT_MTU: Short = 1500
 
     /**
-     * Reply sent back to the sender of the Initialize message when the basic
-     * initialization of the datapath is complete.
-     */
-    case object InitializationComplete
-
-    /**
      * Message sent to the [[org.midonet.midolman.FlowController]] actor to let
      * it know that it can install the the packetIn hook inside the datapath.
      *
@@ -172,28 +169,10 @@ object DatapathController extends Referenceable {
         request: DpPortRequest, timeout: Boolean, error: Throwable
     ) extends DpPortReply
 
-    case class DpPortCreateInternal(port: InternalPort, tag: Option[AnyRef])
-            extends DpPortCreate
-
-    case class DpPortDeleteInternal(port: InternalPort, tag: Option[AnyRef])
-            extends DpPortDelete
-
     case class DpPortCreateNetdev(port: NetDevPort, tag: Option[AnyRef])
             extends DpPortCreate
 
     case class DpPortDeleteNetdev(port: NetDevPort, tag: Option[AnyRef])
-            extends DpPortDelete
-
-    case class DpPortCreateGreTunnel(port: GreTunnelPort, tag: Option[AnyRef])
-            extends DpPortCreate
-
-    case class DpPortDeleteGreTunnel(port: GreTunnelPort, tag: Option[AnyRef])
-            extends DpPortDelete
-
-    case class DpPortCreateVxLanTunnel(port: VxLanTunnelPort, tag: Option[AnyRef])
-            extends DpPortCreate
-
-    case class DpPortDeleteVxLanTunnel(port: VxLanTunnelPort, tag: Option[AnyRef])
             extends DpPortDelete
 
    /**
@@ -216,7 +195,15 @@ object DatapathController extends Referenceable {
          */
         case class InterfacesUpdate(interfaces: JSet[InterfaceDescription])
 
-        case class SetLocalDatapathPorts(datapath: Datapath, ports: Set[DpPort])
+        case class ExistingDatapathPorts(datapath: Datapath, ports: Set[DpPort])
+
+        /** Signals that the ports in the datapath were cleared */
+        case object DatapathClear
+
+        /** Signals that the tunnels port have been created. The vxlan tunnel
+         *  port is created (case Some(port)) only if a valid udp port value is
+         *  set in the config, otherwise it not used (case None). */
+        case class TunnelPortsReady(gre: DpPort, vxlanOption: Option[DpPort])
     }
 
     private var cachedMinMtu: Short = DEFAULT_MTU
@@ -337,7 +324,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
 
     var pendingUpdateCount = 0
 
-    var initializer: ActorRef = null
+    var initializer: ActorRef = system.deadLetters  // only used in tests
 
     var host: Host = null
     // If a Host message arrives while one is being processed, we stash it
@@ -356,14 +343,12 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
         })
     }
 
-    override def receive: Actor.Receive = null
+    override def receive: Receive = null
 
-    val DatapathInitializationActor: Receive = {
+    val DatapathInitializationActor: Receive = LoggingReceive {
 
-        // Initialization request message
         case Initialize =>
             initializer = sender
-            log.info("Initialize from: " + sender)
             VirtualToPhysicalMapper ! HostRequest(hostService.getHostId)
 
         case h: Host =>
@@ -380,75 +365,87 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
                     this.nextHost = h
             }
 
-        case SetLocalDatapathPorts(datapathObj, ports) =>
+        case ExistingDatapathPorts(datapathObj, ports) =>
             this.datapath = datapathObj
-            ports.foreach {
-                //TODO: check we can safely recycle existing ports (MN-128)
-                // not the case for port created by the BGP actor !
-                case p: GreTunnelPort =>
-                    deleteDatapathPort(self, DpPortDeleteGreTunnel(p, None))
-                case p: VxLanTunnelPort =>
-                    deleteDatapathPort(self, DpPortDeleteVxLanTunnel(p, None))
-                case p: NetDevPort =>
-                    deleteDatapathPort(self, DpPortDeleteNetdev(p, None))
-                case p =>
-                    log.debug("Keeping port {} found during initialization", p)
-                    dpState.dpPortAdded(p)
-            }
-            log.debug("Finished processing datapath's existing ports. " +
-                "Pending updates {}", pendingUpdateCount)
+            val conn = new OvsConnectionOps(datapathConnection)
+            Future.traverse(ports) { deleteExistingPort(_, conn) }
+                  .map { _ => DatapathClear } pipeTo self
 
-            log.debug("Initial creation of GRE tunnel port")
+        case DatapathClear =>
+            makeGrePort().zip(makeVxLanPort())
+                         .map { case (p,q) => TunnelPortsReady(p,q) }
+                         .pipeTo(self)
 
-            val grePort = GreTunnelPort.make("tngre-mm")
-            createDatapathPort(self, DpPortCreateGreTunnel(grePort, None))
-
-            val vxlanUdpPort = midolmanConfig.getVxLanUdpPort
-            if (TCP.isPortInRange(vxlanUdpPort)) {
-                val vxLanPort = VxLanTunnelPort.make("tnvxlan-mm", vxlanUdpPort)
-                createDatapathPort(
-                    self, DpPortCreateVxLanTunnel(vxLanPort, None))
-            }
-
-            if (checkInitialization)
-                completeInitialization()
-
-
-        // Handle personal create/delete/reply port message
-        case req: DpPortCreate if sender == self =>
-            log.debug("Received {} message from myself", req)
-            createDatapathPort(self, req)
-
-        case req: DpPortDelete if sender == self =>
-            log.debug("Received {} message from myself", req)
-            deleteDatapathPort(self, req)
-
-        case opReply: DpPortReply if sender == self =>
-            pendingUpdateCount -= 1
-            log.debug("Pending update(s) {}", pendingUpdateCount)
-            handlePortOperationReply(opReply)
-            if (checkInitialization)
-                completeInitialization()
+        case TunnelPortsReady(grePort, vxlanPortOption) =>
+            dpState setTunnelGre Some(grePort)
+            dpState setTunnelVxLan vxlanPortOption
+            completeInitialization()
     }
 
-    /** checks if the DPC can switch to regular Receive loop */
-    private def checkInitialization: Boolean =
-        pendingUpdateCount == 0 && dpState.tunnelGre.isDefined
+    def deleteExistingPort(port: DpPort, conn: OvsConnectionOps) = port match {
+        case _: InternalPort =>
+            log.debug("Keeping {} found during initialization", port)
+            dpState dpPortAdded port
+            Future successful port
+        case _ =>
+            log.debug("Deleting {} found during initialization", port)
+            ensureDeletePort(port, conn)
+    }
+
+    def ensureDeletePort(port: DpPort, conn: OvsConnectionOps): Future[DpPort] =
+        conn.delPort(port, datapath) recoverWith {
+            case ex: Throwable =>
+                log.warning("retrying deletion of {} because of {}", port, ex)
+                after(1 second, system.scheduler)(ensureDeletePort(port, conn))
+        }
+
+    def makeGrePort(): Future[DpPort] = {
+        val grePort = GreTunnelPort.make("tngre-mm")
+        upcallConnManager.createAndHookDpPort(datapath, grePort) map {
+          case (p, _) => p
+        } recoverWith {
+            case ex: Throwable =>
+                log.warning(
+                    "GRE port creation failed: {} => retrying", ex)
+                after(1 second, system.scheduler)(makeGrePort())
+        }
+    }
+
+    def makeVxLanPort(): Future[Option[DpPort]] = {
+        val vxlanUdpPort = midolmanConfig.getVxLanUdpPort
+        if (TCP.isPortInRange(vxlanUdpPort)) {
+            val vxLanPort = VxLanTunnelPort.make("tnvxlan-mm", vxlanUdpPort)
+            upcallConnManager.createAndHookDpPort(datapath, vxLanPort) map {
+                case (p, _) => Some(p)
+            } recoverWith {
+                case ex: Throwable =>
+                    log.warning(
+                        "VxLan port creation failed: {} => retrying", ex)
+                    after(1 second, system.scheduler)(makeVxLanPort())
+            }
+        } else {
+            Future successful None
+        }
+    }
 
     /**
      * Complete initialization and notify the actor that requested init.
      */
-    private def completeInitialization() {
+    def completeInitialization() {
         log.info("Initialization complete. Starting to act as a controller.")
         context.become(DatapathControllerActor orElse {
             case m =>
                 log.warning("Unhandled message {}", m)
         })
-        FlowController ! DatapathReady(datapath, dpState)
-        PacketsEntryPoint ! DatapathReady(datapath, dpState)
-        for ((zoneId, zone) <- host.zones) {
+
+        Seq[ActorRef](FlowController, PacketsEntryPoint, initializer) foreach {
+            _ ! DatapathReady(datapath, dpState)
+        }
+
+        for ((zoneId, _) <- host.zones) {
             VirtualToPhysicalMapper ! TunnelZoneRequest(zoneId)
         }
+
         if (portWatcherEnabled) {
             log.info("Starting to schedule the port link status updates.")
             portWatcher = interfaceScanner.register(
@@ -463,7 +460,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
                     { /* Not called */ }
             })
         }
-        initializer ! InitializationComplete
+
         log.info("Process the host's zones and vport bindings. {}", host)
         dpState.updateVPortInterfaceBindings(host.ports)
     }
@@ -682,22 +679,6 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
 
         opReply match {
 
-            case DpPortCreateSuccess(DpPortCreateGreTunnel(_, _), newPort, _) =>
-                dpState.setTunnelGre(Some(newPort))
-
-            case DpPortError(req @ DpPortCreateGreTunnel(p, tags), _, _) =>
-                log.warning(
-                    "GRE port creation failed: {} => scheduling retry", opReply)
-                system.scheduler.scheduleOnce(5 second, self, req)
-
-            case DpPortCreateSuccess(DpPortCreateVxLanTunnel(_, _), newPort, _) =>
-                dpState.setTunnelVxLan(Some(newPort))
-
-            case DpPortError(req @ DpPortCreateVxLanTunnel(p, tags), _, _) =>
-                log.warning(
-                    "VxLan port creation failed: {} => scheduling retry", opReply)
-                system.scheduler.scheduleOnce(5 second, self, req)
-
             case DpPortCreateSuccess(DpPortCreateNetdev(_, _), newPort, _) =>
                 dpState.dpPortAdded(newPort)
 
@@ -875,7 +856,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
         datapathConnection.portsEnumerate(datapath,
             new ErrorHandlingCallback[JSet[DpPort]] {
                 def onSuccess(ports: JSet[DpPort]) {
-                    self ! SetLocalDatapathPorts(datapath, ports.asScala.toSet)
+                    self ! ExistingDatapathPorts(datapath, ports.asScala.toSet)
                 }
 
                 // WARN: this is ugly. Normally we should configure the message error handling

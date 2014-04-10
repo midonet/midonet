@@ -7,6 +7,7 @@ import java.nio.ByteBuffer;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.Objects;
 
 import com.google.common.base.Function;
 
@@ -92,27 +93,17 @@ public abstract class DpPort {
         if (o == null || getClass() != o.getClass()) return false;
 
         @SuppressWarnings("unchecked") // safe cast
-        DpPort port = (DpPort) o;
+        DpPort that = (DpPort) o;
 
-        if (getType() != port.getType())
-            return false;
-        if (name != null ? !name.equals(port.name) : port.name != null)
-            return false;
-        if (portNo != null ? !portNo.equals(port.portNo) : port.portNo != null)
-            return false;
-        if (stats != null ? !stats.equals(port.stats) : port.stats != null)
-            return false;
-
-        return true;
+        return (getType() == that.getType())
+            && Objects.equals(name, that.name)
+            && Objects.equals(portNo, that.portNo)
+            && Objects.equals(stats, that.stats);
     }
 
     @Override
     public int hashCode() {
-        int result = portNo != null ? portNo.hashCode() : 0;
-        result = 31 * result + getType().hashCode();
-        result = 31 * result + (name != null ? name.hashCode() : 0);
-        result = 31 * result + (stats != null ? stats.hashCode() : 0);
-        return result;
+        return Objects.hash(portNo, getType(), name, stats);
     }
 
     @Override

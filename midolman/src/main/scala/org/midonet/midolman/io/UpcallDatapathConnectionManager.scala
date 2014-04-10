@@ -25,8 +25,19 @@ import org.midonet.odp._
 import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.util.{TokenBucket, BatchCollector}
 
-abstract class UpcallDatapathConnectionManager(val config: MidolmanConfig,
-                                               val tbPolicy: TokenBucketPolicy) {
+trait UpcallDatapathConnectionManager {
+
+    def createAndHookDpPort(dp: Datapath, port: DpPort)
+        (implicit ec: ExecutionContext, as: ActorSystem): Future[(DpPort, Int)]
+
+    def deleteDpPort(datapath: Datapath, port: DpPort)
+        (implicit ec: ExecutionContext, as: ActorSystem): Future[Boolean]
+}
+
+abstract class UpcallDatapathConnectionManagerBase(
+        val config: MidolmanConfig,
+        val tbPolicy: TokenBucketPolicy) extends UpcallDatapathConnectionManager {
+
     protected val log: Logger
 
     protected def makeConnection(name: String, tb: TokenBucket)
@@ -183,7 +194,7 @@ abstract class UpcallDatapathConnectionManager(val config: MidolmanConfig,
 
 class OneToOneDpConnManager(c: MidolmanConfig,
                             tbPolicy: TokenBucketPolicy) extends
-        UpcallDatapathConnectionManager(c, tbPolicy) {
+        UpcallDatapathConnectionManagerBase(c, tbPolicy) {
 
     protected override val log = LoggerFactory.getLogger(this.getClass)
 
@@ -203,7 +214,7 @@ class OneToOneDpConnManager(c: MidolmanConfig,
 
 class OneToManyDpConnManager(c: MidolmanConfig,
                              tbPolicy: TokenBucketPolicy)
-        extends UpcallDatapathConnectionManager(c, tbPolicy) {
+        extends UpcallDatapathConnectionManagerBase(c, tbPolicy) {
 
     val threadPair = new SelectorThreadPair("upcall", config, false)
 
