@@ -40,23 +40,6 @@
         <splitVerif>-XX:-UseSplitVerifier</splitVerif>
     </properties>
 
-    <repositories>
-        <!-- this section specifies repositories from which maven will fetch
-        jar files declared as dependencies. Most of the dependencies should be
-        found in maven central repo or in the sonatype repo. -->
-        <repository>
-            <id>sonatype</id>
-            <name>Sonatype Repository</name>
-            <url>http://oss.sonatype.org/content/groups/public/</url>
-        </repository>
-
-        <repository>
-            <id>typesafe</id>
-            <name>Typesafe Repository</name>
-            <url>http://repo.typesafe.com/typesafe/releases/</url>
-        </repository>
-    </repositories>
-
     <build>
 
         <defaultGoal>package</defaultGoal>
