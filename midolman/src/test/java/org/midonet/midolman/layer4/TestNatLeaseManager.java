@@ -195,7 +195,7 @@ public class TestNatLeaseManager {
             i++;
             natSet.clear();
             natSet.add(nat);
-            int collisionsAllowed = 10;
+            int collisions = 0;
             int numPorts = nat.tpEnd - nat.tpStart + 1;
             for (int j = 0; j < numPorts; j++) {
                 IPv4Addr oldNwSrc = IPv4Addr.fromInt(0x0a000002 + (j % 8));
@@ -207,15 +207,14 @@ public class TestNatLeaseManager {
                                                         oldNwSrc, oldTpSrc,
                                                         nwDst, tpDst, natSet);
                 if (pair == null) {
-                    // because random allocations, tolerate some collisions
-                    assertTrue(collisionsAllowed-- >= 0);
+                    collisions++;
                     continue;
                 }
 
                 // We can verify the ip itself, bc there is only 1 in the target
                 assertEquals(nat.nwStart, pair.nwAddr);
-                assertTrue(nat.tpStart <= pair.tpPort &&
-                               nat.tpEnd >= pair.tpPort);
+                assertTrue(nat.tpStart <= pair.tpPort);
+                assertTrue(nat.tpEnd >= pair.tpPort);
                 assertEquals(pair, natManager.lookupSnatFwd(
                     TCP.PROTOCOL_NUMBER, oldNwSrc, oldTpSrc, nwDst, tpDst));
                 NwTpPair orig = new NwTpPair(oldNwSrc, oldTpSrc);
@@ -223,6 +222,13 @@ public class TestNatLeaseManager {
                     TCP.PROTOCOL_NUMBER, pair.nwAddr, pair.tpPort,
                     nwDst, tpDst));
             }
+
+            // because random allocations, tolerate some collisions
+            int allowedPercentage = 8;
+            assertTrue(
+                collisions + " collisions for " + numPorts + " allocations, " +
+                "more than the allowed " + allowedPercentage + "%.",
+                (100 * collisions) / numPorts < allowedPercentage);
         }
     }
 
