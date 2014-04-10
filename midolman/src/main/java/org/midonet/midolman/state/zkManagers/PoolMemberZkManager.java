@@ -76,7 +76,7 @@ public class PoolMemberZkManager extends
                     protocolPort == that.protocolPort &&
                     weight == that.weight &&
                     adminStateUp == that.adminStateUp &&
-                    Objects.equal(status, that.status);
+                    status == that.status;
         }
     }
 

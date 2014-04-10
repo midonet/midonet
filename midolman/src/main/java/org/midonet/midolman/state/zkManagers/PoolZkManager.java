@@ -44,8 +44,6 @@ public class PoolZkManager
 
     public static class PoolConfig extends BaseConfig {
 
-        public String name;
-        public String description;
         public UUID loadBalancerId;
         public UUID healthMonitorId;
         public String protocol;
@@ -58,17 +56,13 @@ public class PoolZkManager
             super();
         }
 
-        public PoolConfig(String name,
-                          String description,
-                          UUID loadBalancerId,
+        public PoolConfig(UUID loadBalancerId,
                           UUID healthMonitorId,
                           String protocol,
                           String lbMethod,
                           boolean adminStateUp,
                           LBStatus status,
                           PoolHealthMonitorMappingStatus mappingStatus) {
-            this.name = name;
-            this.description = description;
             this.loadBalancerId = loadBalancerId;
             this.healthMonitorId = healthMonitorId;
             this.protocol = protocol;
@@ -87,23 +81,20 @@ public class PoolZkManager
 
             PoolConfig that = (PoolConfig) o;
 
-            return Objects.equal(name, that.name) &&
-                    Objects.equal(description, that.description) &&
-                    Objects.equal(loadBalancerId, that.loadBalancerId) &&
+            return Objects.equal(loadBalancerId, that.loadBalancerId) &&
                     Objects.equal(healthMonitorId, that.healthMonitorId) &&
                     Objects.equal(protocol, that.protocol) &&
                     Objects.equal(lbMethod, that.lbMethod) &&
                     adminStateUp == that.adminStateUp &&
-                    Objects.equal(status, that.status) &&
-                    Objects.equal(mappingStatus, that.mappingStatus);
+                    status == that.status &&
+                    mappingStatus == that.mappingStatus;
 
         }
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(name, description, loadBalancerId,
-                    healthMonitorId, protocol, lbMethod, adminStateUp, status,
-                    mappingStatus);
+            return Objects.hashCode(loadBalancerId, healthMonitorId, protocol,
+                    lbMethod, adminStateUp, status, mappingStatus);
         }
     }
 
