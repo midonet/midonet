@@ -90,19 +90,9 @@ class TunnelManagementTestCase extends MidolmanTestCase
 
     def testTunnelZone() {
 
-        // assert that the gre tunnel port was created
-        var portChangedEvent =
-            datapathEventsProbe.expectMsgClass(classOf[DpPortCreate])
-
-        portChangedEvent.port.getName should be("tngre-mm")
-        portChangedEvent.port.isInstanceOf[GreTunnelPort] should be(true)
-
-        // assert that the port event was fired properly
-        portChangedEvent =
-            datapathEventsProbe.expectMsgClass(classOf[DpPortCreate])
-
-        portChangedEvent.port.getName should be("port1")
-        portChangedEvent.port.isInstanceOf[NetDevPort] should be(true)
+        val port = datapathEventsProbe.expectMsgClass(classOf[DpPortCreate]).port
+        port shouldBe a [NetDevPort]
+        port.getName shouldBe "port1"
 
         portActiveProbe.expectMsgClass(classOf[LocalPortActive])
 

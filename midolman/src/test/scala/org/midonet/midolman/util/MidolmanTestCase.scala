@@ -27,7 +27,7 @@ import org.midonet.cluster.data.{Port => VPort}
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.services.MidostoreSetupService
 import org.midonet.midolman.DatapathController
-import org.midonet.midolman.DatapathController.{InitializationComplete, DpPortCreate, Initialize}
+import org.midonet.midolman.DatapathController.{DatapathReady, DpPortCreate, Initialize}
 import org.midonet.midolman.DatapathState
 import org.midonet.midolman.DeduplicationActor.{HandlePackets, DiscardPacket, EmitGeneratedPacket}
 import org.midonet.midolman.FlowController
@@ -300,10 +300,10 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
         actorsByName(name).asInstanceOf[TestActorRef[A]]
     }
 
-    protected def initializeDatapath() = {
+    protected def initializeDatapath(): String = {
         val result = Await.result(dpController() ? Initialize, timeout)
-        result should be (InitializationComplete)
-        InitializationComplete
+        result shouldBe a [DatapathReady]
+        "ok"
     }
 
     protected def triggerPacketIn(portName: String, ethPkt: Ethernet) {
