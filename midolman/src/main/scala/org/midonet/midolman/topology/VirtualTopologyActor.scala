@@ -5,8 +5,8 @@ package org.midonet.midolman.topology
 
 import java.util.concurrent.TimeoutException
 import java.util.UUID
-
 import scala.collection.mutable
+import scala.compat.Platform
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 import scala.reflect._
@@ -14,9 +14,7 @@ import scala.util.Failure
 
 import akka.actor._
 import akka.event.LoggingAdapter
-
 import com.google.inject.Inject
-import compat.Platform
 
 import org.midonet.cluster.Client
 import org.midonet.cluster.client.{RouterPort, BridgePort, Port}
@@ -25,11 +23,15 @@ import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.l4lb.PoolHealthMonitorMapManager
 import org.midonet.midolman.l4lb.PoolHealthMonitorMapManager._
 import org.midonet.midolman.logging.{SimulationAwareBusLogging, ActorLogWithoutPath}
-import org.midonet.midolman._
+import org.midonet.midolman.FlowController
+import org.midonet.midolman.NotYet
+import org.midonet.midolman.PacketsEntryPoint
+import org.midonet.midolman.Ready
+import org.midonet.midolman.Referenceable
+import org.midonet.midolman.Urgent
 import org.midonet.midolman.simulation._
 import org.midonet.midolman.topology.rcu.TraceConditions
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
-import org.midonet.midolman.Ready
 import org.midonet.util.concurrent._
 
 object VirtualTopologyActor extends Referenceable {
@@ -57,7 +59,7 @@ object VirtualTopologyActor extends Referenceable {
             extends DeviceRequest {
 
         protected[VirtualTopologyActor]
-        override val managerName = "PortManager-" + id
+        override val managerName = portManagerName(id)
 
         protected[VirtualTopologyActor]
         override def managerFactory(client: Client, config: MidolmanConfig) =
@@ -68,7 +70,7 @@ object VirtualTopologyActor extends Referenceable {
             extends DeviceRequest {
 
         protected[VirtualTopologyActor]
-        override val managerName = "BridgeManager-" + id
+        override val managerName = bridgeManagerName(id)
 
         protected[VirtualTopologyActor]
         override def managerFactory(client: Client, config: MidolmanConfig) =
@@ -79,7 +81,7 @@ object VirtualTopologyActor extends Referenceable {
         extends DeviceRequest {
 
         protected[VirtualTopologyActor]
-        override val managerName = "RouterManager-" + id
+        override val managerName = routerManagerName(id)
 
         protected[VirtualTopologyActor]
         def managerFactory(client: Client, config: MidolmanConfig) =
@@ -90,7 +92,7 @@ object VirtualTopologyActor extends Referenceable {
         extends DeviceRequest {
 
         protected[VirtualTopologyActor]
-        override val managerName = "ChainManager-" + id
+        override val managerName = chainManagerName(id)
 
         protected[VirtualTopologyActor]
         def managerFactory(client: Client, config: MidolmanConfig) =
@@ -101,7 +103,7 @@ object VirtualTopologyActor extends Referenceable {
             extends DeviceRequest {
 
         protected[VirtualTopologyActor]
-        override val managerName = "IPAddrGroupManager-" + id
+        override val managerName = iPAddrGroupManagerName(id)
 
         protected[VirtualTopologyActor]
         def managerFactory(client: Client, config: MidolmanConfig) =
@@ -112,7 +114,7 @@ object VirtualTopologyActor extends Referenceable {
         extends DeviceRequest {
 
         protected[VirtualTopologyActor]
-        override val managerName = "LoadBalancerManager-" + id
+        override val managerName = loadBalancerManagerName(id)
 
         protected[VirtualTopologyActor]
         def managerFactory(client: Client, config: MidolmanConfig) =
@@ -123,7 +125,7 @@ object VirtualTopologyActor extends Referenceable {
         extends DeviceRequest {
 
         protected[VirtualTopologyActor]
-        override val managerName = "PoolManager-" + id
+        override val managerName = poolManagerName(id)
 
         protected[VirtualTopologyActor]
         def managerFactory(client: Client, config: MidolmanConfig) =
@@ -134,7 +136,7 @@ object VirtualTopologyActor extends Referenceable {
             extends DeviceRequest {
 
         protected[VirtualTopologyActor]
-        override val managerName = "PoolHealthMonitorMapRequest"
+        override val managerName = poolHealthMonitorManagerName()
         override val id = PoolConfig.POOL_HEALTH_MONITOR_MAP_KEY
 
         protected[VirtualTopologyActor]
@@ -146,7 +148,7 @@ object VirtualTopologyActor extends Referenceable {
         extends DeviceRequest {
 
         protected[VirtualTopologyActor]
-        override val managerName = "ConditionListManager-" + id
+        override val managerName = conditionListManagerName(id)
 
         protected[VirtualTopologyActor]
         def managerFactory(client: Client, config: MidolmanConfig) =
@@ -247,6 +249,57 @@ object VirtualTopologyActor extends Referenceable {
                         simLog.warning("Failed to get {}: {} - {}",
                             tag.runtimeClass.getSimpleName, id, ex)
             }(ExecutionContext.callingThread)
+
+    def bridgeManagerName(bridgeId: UUID) = "BridgeManager-" + bridgeId
+
+    def portManagerName(portId: UUID) = "PortManager-" + portId
+
+    def routerManagerName(routerId: UUID) = "RouterManager-" + routerId
+
+    def chainManagerName(chainId: UUID) = "ChainManager-" + chainId
+
+    def iPAddrGroupManagerName(groupId: UUID) = "IPAddrGroupManager-" + groupId
+
+    def loadBalancerManagerName(loadBalancerId: UUID) =
+            "LoadBalancerManager-" + loadBalancerId
+
+    def poolManagerName(poolId: UUID) = "PoolManager-" + poolId
+
+    def poolHealthMonitorManagerName() = "PoolHealthMonitorMapRequest"
+
+    def conditionListManagerName(listId: UUID) =
+            "ConditionListManager-" + listId
+
+    def getDeviceManagerPath(parentActorName: String, deviceName: String) =
+        Referenceable.getReferenceablePath("midolman",
+                "%s/%s".format(parentActorName, deviceName))
+
+    def bridgeManagerPath(parentActorName: String, deviceId: UUID) =
+        getDeviceManagerPath(parentActorName, bridgeManagerName(deviceId))
+
+    def portManagerPath(parentActorName: String, deviceId: UUID) =
+        getDeviceManagerPath(parentActorName, portManagerName(deviceId))
+
+    def routerManagerPath(parentActorName: String, deviceId: UUID) =
+        getDeviceManagerPath(parentActorName, routerManagerName(deviceId))
+
+    def chainManagerPath(parentActorName: String, deviceId: UUID) =
+        getDeviceManagerPath(parentActorName, chainManagerName(deviceId))
+
+    def iPAddrGroupManagerPath(parentActorName: String, deviceId: UUID) =
+        getDeviceManagerPath(parentActorName, iPAddrGroupManagerName(deviceId))
+
+    def loadBalancerManagerPath(parentActorName: String, deviceId: UUID) =
+        getDeviceManagerPath(parentActorName, loadBalancerManagerName(deviceId))
+
+    def poolManagerPath(parentActorName: String, deviceId: UUID) =
+        getDeviceManagerPath(parentActorName, poolManagerName(deviceId))
+
+    def poolHealthMonitorManagerPath(parentActorName: String) =
+        getDeviceManagerPath(parentActorName, poolHealthMonitorManagerName())
+
+    def conditionListManagerPath(parentActorName: String, deviceId: UUID) =
+        getDeviceManagerPath(parentActorName, conditionListManagerName(deviceId))
 }
 
 class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
