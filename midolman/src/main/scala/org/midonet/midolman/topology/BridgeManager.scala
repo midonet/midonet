@@ -187,7 +187,7 @@ class BridgeManager(id: UUID, val clusterClient: Client,
                 if (config.getMidolmanBridgeArpEnabled) ip4MacMap else null,
                 flowCounts, topology.device(cfg.inboundFilter).orNull,
                 topology.device(cfg.outboundFilter).orNull,
-                vlanBridgePeerPortId, flowRemovedCallback,
+                vlanBridgePeerPortId, None, flowRemovedCallback,
                 macToLogicalPortId, rtrIpToMac, vlanToPort)
 
         if (changed) {
