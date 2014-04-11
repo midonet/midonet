@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2013 Midokura Europe SARL, All Rights Reserved.
  */
-package org.midonet.api.l4lb;
+package org.midonet.api.l4lb.e2e;
 
 import com.sun.jersey.api.client.ClientResponse;
 import org.midonet.api.rest_api.FuncTest;
@@ -318,7 +318,7 @@ public class L4LBTestBase extends RestApiTestBase {
      * @param actual An actual array to be asserted.
      * @param <T> A type of elements in the arrays.
      */
-    protected <T> void assertArrayMembersEqual(T[] expected, T[] actual) {
+    protected static <T> void assertArrayMembersEqual(T[] expected, T[] actual) {
         assertEquals(expected.length, actual.length);
         Set<T> expectedSet = new HashSet<>(Arrays.asList(expected));
         Set<T> actualSet = new HashSet<>(Arrays.asList(actual));

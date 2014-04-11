@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2014 Midokura Europe SARL, All Rights Reserved.
  */
-package org.midonet.api.l4lb;
+package org.midonet.api.l4lb.e2e;
 
 import junit.framework.Assert;
 import org.junit.After;
@@ -14,8 +14,6 @@ import org.midonet.api.validation.MessageProperty;
 import org.midonet.api.zookeeper.StaticMockDirectory;
 import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoHealthMonitor;
-import org.midonet.client.dto.DtoLoadBalancer;
-import org.midonet.client.dto.DtoPool;
 import org.midonet.client.dto.l4lb.LBStatus;
 
 import java.util.UUID;

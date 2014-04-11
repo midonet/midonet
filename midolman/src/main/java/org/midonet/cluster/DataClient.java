@@ -47,6 +47,7 @@ import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.l4lb.LBStatus;
 import org.midonet.midolman.state.l4lb.MappingStatusException;
 import org.midonet.midolman.state.MacPortMap;
+import org.midonet.midolman.state.l4lb.MappingViolationException;
 import org.midonet.midolman.state.PoolHealthMonitorMappingStatus;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkLeaderElectionWatcher;
@@ -411,8 +412,8 @@ public interface DataClient {
             SerializationException;
 
     void poolUpdate(@Nonnull Pool pool)
-            throws MappingStatusException, StateAccessException,
-            SerializationException;
+            throws MappingStatusException, MappingViolationException,
+            SerializationException, StateAccessException;
 
     List<Pool> poolsGetAll() throws StateAccessException,
             SerializationException;
