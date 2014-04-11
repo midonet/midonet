@@ -190,12 +190,14 @@ do_package_rhel() {
     cp $pkg/build/rhel/$pkg*.rpm $destdir
   done
 
-  rpmver=`echo $pkgver | sed -e 's/-.*//g'`
-  rpmrel=`echo $pkgver | sed -e 's/.*-//g'`
-  if [ "$rpmrel" == "" ]
-  then
-      rpmrel="1.0" # a final
-  else
+  rpmver=`echo $pkgver | sed -e 's/-.*//g'` # take the 1.3.0 bit from 1.2.3-*
+  rpmrel=`echo $pkgver | sed -e 's/.*-//g'` # take the bit after - if exists
+  if [ "$rpmver" == "$rpmrel" ]            # there was nothing after -
+   then
+      log "Looks like this is a FINAL release for $rpmver"
+       rpmrel="1.0" # a final
+   else
+      log "Looks like this is a non final release for $rpmver, $rpmrel"
       TIMESTAMP=`date +%Y%m%d%H%M`
       prever=`echo $pkgver | sed -e "s/^.*-//g" | sed -e "s/SNAPSHOT/$TIMESTAMP/g"`
       rpmrel="0.1.$prever" # a pre release
