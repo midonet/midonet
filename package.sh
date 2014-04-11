@@ -227,17 +227,26 @@ do_prepare() {
   stage "Updating submodules and Maven versions from $currVer to $nextVer"
   clean_clone
 
-  mvnVer=`get_pom_version pom.xml`
+  to_version $nextVer
 
+}
+
+# Update all pom files with the given version number.
+#
+# Usage: to_version $TO_VER
+# Example: to_version 1.4.2-SNAPSHOT
+to_version() {
+  mvnVer=`get_pom_version pom.xml`
+  nextVer=$1
   log "Updating MidoNet poms from $mvnVer to $nextVer"
-  find . -maxdepth 2 -name pom.xml | \
+  find . -maxdepth 3 -name pom.xml | \
     while read pom ; do
       sed -i -e "s/$mvnVer/$nextVer/g" $pom
     done
     git commit -asm "Updating client module and poms for $nextVer"
   log "The commit is ready to send for review:
   - verify changes with 'git log -1 HEAD~1'
-  - push for review with 'git review v$currVer'"
+  - push for review to the appropriate branch"
 }
 
 COMMAND="$1"
@@ -250,5 +259,6 @@ case $COMMAND in
   prepare_final) do_prepare $@ ;;
   prepare_rc) do_prepare $1 "-rc$2" ;;
   prepare_hotfix) do_prepare $1 ".hf$2" ;;
+  to_version) to_version $1 ;;
   *) usage ;;
 esac

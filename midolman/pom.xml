@@ -9,7 +9,7 @@
     <parent>
         <groupId>org.midonet</groupId>
         <artifactId>midonet</artifactId>
-        <version>1.4.0-SNAPSHOT</version>
+        <version>1.4.2-SNAPSHOT</version>
     </parent>
 
     <artifactId>midolman</artifactId>
