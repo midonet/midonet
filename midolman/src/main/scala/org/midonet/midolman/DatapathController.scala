@@ -77,6 +77,12 @@ trait UnderlayResolver {
     def tunnelVxLan: Option[DpPort]
 
     def vxLanOutputAction: Option[FlowActionOutput]
+
+    /** tells if the given portNumber points to the vtep tunnel port. */
+    def isVtepPort(portNumber: Short): Boolean
+
+    /** tells if the given portNumber points to the gre tunnel port. */
+    def isGrePort(portNumber: Short): Boolean
 }
 
 trait VirtualPortsResolver {
@@ -1337,6 +1343,12 @@ class DatapathStateManager(val controller: VirtualPortManager.Controller)(
         vxLanOutputAction = tunnelVxLan.map{ _.toOutputAction }
         log.info("vxlan tunnel port was assigned to {}", p)
     }
+
+    def isVtepPort(dpPortId: Short): Boolean =
+      if (tunnelVxLan.isEmpty) false else tunnelVxLan.get.getPortNo == dpPortId
+
+    def isGrePort(dpPortId: Short): Boolean =
+      if (tunnelGre.isEmpty) false else tunnelGre.get.getPortNo == dpPortId
 
     /** reference to the current host information. Used to query this host ip
      *  when adding tunnel routes to peer host for given zone uuid. */

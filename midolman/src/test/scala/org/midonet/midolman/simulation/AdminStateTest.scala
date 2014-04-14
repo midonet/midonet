@@ -400,6 +400,8 @@ class AdminStateTest extends MidolmanSpec {
             def getDpPortName(num: Integer): Option[String] = null
             def version: Long = 0L
             def uplinkPid: Int = 0
+            def isVtepPort(dpPortId: Short): Boolean = false
+            def isGrePort(dpPortId: Short): Boolean = false
         }
 
         def translate(simRes: SimulationResult): (Seq[FlowAction], mutable.Set[Any]) = {
