@@ -354,6 +354,8 @@ class FlowTranslatorTest extends MidolmanSpec {
         def getDpPortForInterface(itfName: String): Option[DpPort] = None
         def getVportForDpPortNumber(portNum: Integer): Option[UUID] = None
         def getDpPortName(num: Integer): Option[String] = None
+        def isVtepPort(dpPortId: Short): Boolean = false
+        def isGrePort(dpPortId: Short): Boolean = false
     }
 
     def translationScenario(name: String)

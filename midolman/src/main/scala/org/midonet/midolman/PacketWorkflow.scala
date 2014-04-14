@@ -86,6 +86,7 @@ object PacketWorkflow {
     case object WildcardTableHit extends PipelinePath
     case object PacketToPortSet extends PipelinePath
     case object Simulation extends PipelinePath
+    case object Error extends PipelinePath
 
     def apply(dpCon: OvsDatapathConnection,
               dpState: DatapathState,
@@ -120,6 +121,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
     import DeduplicationActor._
     import FlowController.{AddWildcardFlow, FlowAdded}
     import VirtualToPhysicalMapper.PortSetForTunnelKeyRequest
+    import VirtualToPhysicalMapper.DeviceVxLanPortRequest
 
     def runSimulation(): Urgent[SimulationResult]
 
@@ -287,9 +289,13 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
         }
     }
 
-    private def handlePacketWithCookie(): Urgent[PipelinePath] =
+    private def handlePacketWithCookie(): Urgent[PipelinePath] = {
+        if (wcMatch.getInputPortNumber == null) {
+            log.error("PacketIn had no inPort number {}.", cookieStr)
+            return Ready(Error)
+        }
         if (packet.getReason == Packet.Reason.FlowActionUserspace) {
-            processSimulationResult(simulatePacketIn())
+            processSimulationResult(simulatePacketIn(vportForLocalTraffic))
         } else {
             FlowController.queryWildcardFlowTable(wcMatch) match {
                 case Some(wildflow) =>
@@ -299,6 +305,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
                     handleWildcardTableMiss()
             }
         }
+    }
 
     def handleWildcardTableMatch(wildFlow: WildcardFlow) {
         log.debug("Packet {} matched a wildcard flow", cookieStr)
@@ -314,14 +321,33 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
     }
 
     private def handleWildcardTableMiss(): Urgent[PipelinePath] = {
+        /** If the FlowMatch indicates that the packet came from a tunnel port,
+         *  we assume here there are only two possible situations: 1) the tunnel
+         *  port type is gre, in which case we are dealing with host2host
+         *  tunnelled traffic; 2) the tunnel port type is vxlan, in which case
+         *  we are dealing with vtep to midolman traffic. In the future, using
+         *  vxlan encap for host2host tunnelling will break this assumption. */
         if (wcMatch.isFromTunnel) {
-            handlePacketToPortSet()
+            if (dpState isGrePort wcMatch.getInputPortNumber) {
+                handlePacketToPortSet()
+            } else {
+                val req = DeviceVxLanPortRequest(wcMatch.getTunnelID.toShort)
+                (VirtualToPhysicalMapper expiringAsk req) flatMap {
+                    vxlanPortId =>
+                        processSimulationResult(simulatePacketIn(Some(vxlanPortId)))
+                }
+            }
         } else {
             /* QUESTION: do we need another de-duplication stage here to avoid
              * e.g. two micro-flows that differ only in TTL from going to the
              * simulation stage? */
-            processSimulationResult(simulatePacketIn())
+            processSimulationResult(simulatePacketIn(vportForLocalTraffic))
         }
+    }
+
+    private def vportForLocalTraffic = {
+        val inPortNo = wcMatch.getInputPortNumber
+        dpState getVportForDpPortNumber Unsigned.unsign(inPortNo)
     }
 
     /*
@@ -423,17 +449,8 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
         }
     }
 
-    private def simulatePacketIn(): Urgent[SimulationResult] = {
-        val inPortNo = wcMatch.getInputPortNumber
-        if (inPortNo == null) {
-            log.error("SCREAM: PacketIn with no inPort number {}.", cookieStr)
-            return Ready(NoOp)
-        }
-
-        val port: JInteger = Unsigned.unsign(inPortNo)
-        log.debug("Handling packet {} on port #{}: {}",
-                  cookieStr, port, packet.getReason)
-        dpState.getVportForDpPortNumber(port) match {
+    private def simulatePacketIn(vport: Option[UUID]): Urgent[SimulationResult] =
+        vport match {
             case Some(vportId) =>
                 wcMatch.setInputPortUUID(vportId)
 
@@ -449,7 +466,6 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
             case None =>
                 Ready(TemporaryDrop(Set.empty, Nil))
         }
-    }
 
     def addVirtualWildcardFlow(flow: WildcardFlow,
                                flowRemovalCallbacks: Seq[Callback0] = Nil,
