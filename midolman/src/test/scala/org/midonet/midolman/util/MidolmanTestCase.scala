@@ -73,9 +73,10 @@ object MidolmanTestCaseLock {
 }
 
 trait MidolmanTestCase extends Suite with BeforeAndAfter
-        with OneInstancePerTest with Matchers with Dilation
-        with MidolmanServices
-        with VirtualConfigurationBuilders {
+                                     with OneInstancePerTest
+                                     with Matchers
+                                     with MidolmanServices
+                                     with VirtualConfigurationBuilders {
 
     case class PacketsExecute(packet: Packet)
     case class FlowAdded(flow: Flow)
@@ -111,9 +112,8 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
         config
     }
 
-    override protected def actors(): ActorSystem = {
+    protected def actors(): ActorSystem =
         injector.getInstance(classOf[MidolmanActorsService]).system
-    }
 
     implicit protected def system: ActorSystem = actors()
     implicit protected def executor: ExecutionContext = actors().dispatcher
