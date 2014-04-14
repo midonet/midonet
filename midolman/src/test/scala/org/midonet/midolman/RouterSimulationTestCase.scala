@@ -32,6 +32,7 @@ import org.midonet.midolman.state.ArpCacheEntry
 import org.midonet.midolman.state.ReplicatedMap.Watcher
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.HostRequest
+import org.midonet.midolman.util.Dilation
 import org.midonet.midolman.util.MidolmanTestCase
 import org.midonet.midolman.util.RouterHelper
 import org.midonet.midolman.util.guice.OutgoingMessage
@@ -45,8 +46,8 @@ import org.midonet.sdn.flows.WildcardMatch
 
 @Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
-class RouterSimulationTestCase extends MidolmanTestCase
-        with RouterHelper {
+class RouterSimulationTestCase extends MidolmanTestCase with RouterHelper
+                                                        with Dilation {
     private final val log =
          LoggerFactory.getLogger(classOf[RouterSimulationTestCase])
     // these should reliably give us two retries, no more, no less.
