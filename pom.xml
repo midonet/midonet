@@ -22,6 +22,7 @@
         <module>odp</module>
         <module>cluster</module>
         <module>midolman</module>
+        <module>brain</module>
         <module>midonet-client</module>
         <module>midonet-api</module>
     </modules>
@@ -211,6 +212,24 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>midonet-util</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>brain</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>midonet-brain</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>midonet-brain-deps</artifactId>
             <version>${project.version}</version>
         </dependency>
 
