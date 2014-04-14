@@ -1,0 +1,54 @@
+# Midonet Brain
+
+This module contains the Midonet Controller that is charge of all control plane
+functions.  It abstracts communication with storage systems and low level
+devices.
+
+## General design considerations
+
+TODO
+
+## VTEP support
+
+The midonet-brain currently provides a simple API for interaction with an
+OVSDB instance holding a VTEP schema.  This depends internally on a custom fork
+of the odl-ovsdb plugin, modified to run outside of an OSGI container.
+
+The API is defined at VtepDataClient, which declares the following operations:
+- addLogicalSwitch: creates a new Logical Switch in the given VTEP.
+- bindVlan: associates a Midonet network to a given Logical Switch.
+
+## IMPORTANT: ODL-OVSDB dependency
+
+This project needs a package containing our fork of the ODL library. The version
+to be used is, and must be provided as a prebuilt jar in the odl-ovsdb/lib
+folder. This means that whenever the submodule revision is updated, devs must
+rebuild the package and place it inside /lib. Typically this would be done as:
+
+    $ cd odl-ovsdb
+    $ mvn clean package -DskipTests
+    $ cp ovsdb/target/ovsdb-0.5.0-1-MIDO.jar ../lib
+
+Then commit the new jar along with the submodule ref. change.
+
+Whenever midonet-brain is built, a preparatory step installs the file in the
+local repository using the maven-install-plugin, which runs something like this
+from the root of midonet-brain:
+
+        mvn install:install-file \
+            -Dfile=./lib/ovsdb-0.5.0-1-MIDO.jar \
+            -DgroupId=org.opendaylight.ovsdb \
+            -DartifactId=ovsdb \
+            -Dversion=0.5.0-1-MIDO -Dpackaging=jar
+
+The reason for this approach is that maven isn't able to use submodules as
+compilation units and make them available as dependencies to other projects.
+The main alternative to get around this limitation is to publish the package of
+our fork in a maven artifactory.  This option was discarded because it forces us
+to maintain an artifactory to host the package.  Additionally, it would only
+give us dependencies on a given package, but not on an specific odl-ovsdb
+revision.
+
+By keeping the git submodule, we are able to correlate a given midonet-brain SHA
+to a specific odl-ovsdb SHA. By providing a prebuilt JAR, we avoid the hassle of
+maintaining an artifactory for just this purpose.

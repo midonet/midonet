@@ -1,0 +1,10 @@
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'Midonet Brain',
+        'Implementation-Version': version
+    }
+}
+
+dependencies {
+    compile project(':midolman')
+}

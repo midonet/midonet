@@ -217,6 +217,11 @@
 
         <dependency>
             <groupId>${project.groupId}</groupId>
+            <artifactId>midonet-brain</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>${project.groupId}</groupId>
             <artifactId>midonet-client</artifactId>
             <scope>test</scope>
         </dependency>

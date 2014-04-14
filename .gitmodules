@@ -4,3 +4,6 @@
 [submodule "midonet-docs"]
 	path = midonet-docs
 	url = git@github.com:midokura/midonet-docs.git
+[submodule "odl-ovsdb"]
+	path = brain/odl-ovsdb
+	url = git@github.com:midokura/odp-ovsdb.git

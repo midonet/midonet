@@ -1,2 +1,3 @@
 include "packets", "midonet-util", "midonet-jdk-bootstrap", "netlink", "odp",
-        "cluster", "midolman", "midonet-api", "midonet-client"
+        "cluster", "midolman", "midonet-api", "midonet-client",
+        "midonet-brain", "midonet-brain-deps"
