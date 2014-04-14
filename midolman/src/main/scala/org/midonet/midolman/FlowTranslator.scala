@@ -132,39 +132,6 @@ trait FlowTranslator {
         }
     }
 
-    /**
-     * Translates a list of FlowActions into a format that Open vSwitch can
-     * understand, and updates DP tags. Handles two types of FlowActions:
-     * FlowActions to local ports and FlowActions to peer hosts. For local port
-     * flows, generates a FlowActionOutput per each local host. For flows to
-     * peer hosts, generates a FlowActionSetKey per peer host to set up
-     * flow-based tunneling, with each FlowActionSetKey followed by a
-     * FlowActionOutput as required by Open vSwitch.
-     *
-     * If a non-null set of data path tags are given, this updates it with
-     * corresponding flow invalidation tags.
-     */
-    private def translateFlowActions(
-            localPorts: Seq[JInteger], tunnelKey: Option[Long],
-            peerHostIds: Set[UUID], dpTags: mutable.Set[Any]): Seq[FlowAction] = {
-
-        // TODO(pino): when we detect the flow won't have output actions,
-        // set the flow to expire soon so that we can retry.
-        if (localPorts.isEmpty && peerHostIds.isEmpty)
-            log.warning("No local datapath ports or tunnels found. Expected " +
-                        "only for forked actions, otherwise this flow will " +
-                        "be dropped because we cannot make Output actions.")
-
-        val actions = ListBuffer[FlowAction]()
-        outputActionsForLocalPorts(localPorts, actions, dpTags)
-        if (tunnelKey.isDefined && dpState.greOutputAction.isDefined) {
-            outputActionsToPeers(tunnelKey.get, peerHostIds,
-                                 dpState.greOutputAction.get,
-                                 actions, dpTags)
-        }
-        actions.toList
-    }
-
     /** translates a Seq of FlowActions expressed in virtual references into a
      *  Seq of FlowActions expressed in physical references. Returns the
      *  results as an Urgent. */
@@ -225,10 +192,16 @@ trait FlowTranslator {
 
     /** Update the list of action and list of tags with the output tunnelling
      *  actions for the given list of remote host and tunnel key. */
-    def outputActionsToPeers(key: Long, peerIds: Set[UUID], output: FlowAction,
+    def outputActionsToPeers(key: Long, peerIds: Set[UUID],
                              actions: ListBuffer[FlowAction],
                              dpTags: mutable.Set[Any]) {
+        if (dpState.greOutputAction.isEmpty) {
+            log.warning("Gre Tunnel port was not found, could not translate " +
+                        "action to remote hosts {}", peerIds)
+            return
+        }
         val peerIter = peerIds.iterator
+        val output = dpState.greOutputAction.get
         while (peerIter.hasNext) {
             val peer = peerIter.next
             dpState.peerTunnelInfo(peer) match {
@@ -278,7 +251,7 @@ trait FlowTranslator {
                     applyOutboundFilters(localPorts, wMatch, dpTags)
             } map {
                 portNumbers =>
-                    toPortSet(portNumbers, Some(tunnelKey), set.hosts, dpTags)
+                    towardsPortSet(portNumbers, tunnelKey, set.hosts, dpTags)
             }
 
         }}
@@ -326,34 +299,48 @@ trait FlowTranslator {
             // otherwise we translate to a remote port
             expiringAsk[Port](port, log) map {
                 case p: Port if p.isExterior =>
-                    towardsRemoteHosts(p.tunnelKey, p.hostID, dpTags)
+                    towardsRemoteHost(p.tunnelKey, p.hostID, dpTags)
                 case _ =>
                     log.warning("Port {} was not exterior {}", port, cookieStr)
                     Seq.empty[FlowAction]
             }
         }
 
-    /** forwards to translateToDpPorts for a set of local ports. */
+    /** Generates a list of output FlowActions for the given list of local
+     *  datapath ports. */
     protected def towardsLocalDpPorts(localPorts: Seq[JInteger],
-                                      dpTags: mutable.Set[Any]) = {
+                                      dpTags: mutable.Set[Any])
+    : Seq[FlowAction] = {
         log.debug("Emitting towards local dp ports {}", localPorts)
-        translateFlowActions(localPorts, None, Set.empty, dpTags)
+        val actions = ListBuffer[FlowAction]()
+        outputActionsForLocalPorts(localPorts, actions, dpTags)
+        actions
     }
 
-    /** forwards to translateToDpPorts for a set of remote ports. */
-    private def towardsRemoteHosts(tunnelKey: Long, peerHostId: UUID,
-                                   dpTags: mutable.Set[Any]) = {
+    /** Emits a list of output FlowActions for tunnelling traffic to the given
+     *  remote host with the given tunnel key. */
+    private def towardsRemoteHost(tunnelKey: Long, peerHostId: UUID,
+                                  dpTags: mutable.Set[Any])
+    : Seq[FlowAction] = {
         log.debug("Emitting towards remote host {} with tunnek key {}",
                   peerHostId, tunnelKey)
-        translateFlowActions(Nil, Some(tunnelKey), Set(peerHostId), dpTags)
+        val actions = ListBuffer[FlowAction]()
+        outputActionsToPeers(tunnelKey, Set(peerHostId), actions, dpTags)
+        actions
     }
 
-    /** forwards to translateToDpPorts for a port set. */
-    private def toPortSet(localPorts: Seq[JInteger], tunnelKey: Option[Long],
-                          peerHostIds: Set[UUID], dpTags: mutable.Set[Any]) = {
+    /** Generates a list of output FlowActions for forwarding traffic to a
+     *  logical port set, both locally to local dp ports and to remote hosts
+     *  through tunnels. */
+    private def towardsPortSet(localPorts: Seq[JInteger], tunnelKey: Long,
+                               peerHostIds: Set[UUID], dpTags: mutable.Set[Any])
+    : Seq[FlowAction] = {
         log.debug("Emitting towards local dp ports {} and remote hosts {} " +
                   "with tunnel key {}", localPorts, peerHostIds, tunnelKey)
-        translateFlowActions(localPorts, tunnelKey, peerHostIds, dpTags)
+        val actions = ListBuffer[FlowAction]()
+        outputActionsForLocalPorts(localPorts, actions, dpTags)
+        outputActionsToPeers(tunnelKey, peerHostIds, actions, dpTags)
+        actions
     }
 
 }

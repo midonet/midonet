@@ -356,8 +356,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
      *
      * Aux. to handlePacketToPortSet.
      */
-    private def applyOutgoingFilter(portSetId: UUID,
-                                    wMatch: WildcardMatch,
+    private def applyOutgoingFilter(wMatch: WildcardMatch,
                                     tags: mutable.Set[Any],
                                     localPorts: Seq[Port]): Urgent[Boolean] =
         applyOutboundFilters(localPorts, wMatch, tags) map {
@@ -391,7 +390,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
                 // egress port filter simulation
                 val tags = mutable.Set[Any]()
                 activePorts(pSet.localPorts, tags) flatMap {
-                    applyOutgoingFilter(pSet.id, wcMatch, tags, _)
+                    applyOutgoingFilter(wcMatch, tags, _)
                 }
         }) map {
             _ => PacketToPortSet
