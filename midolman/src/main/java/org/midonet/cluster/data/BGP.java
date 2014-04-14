@@ -20,7 +20,7 @@ import org.midonet.packets.IntIPv4;
  *   - peer AS number
  *   - (maybe) port Id
  */
-public class BGP extends Entity.Base<UUID, BGP.Data, BGP>{
+public class BGP extends Entity.Base<UUID, BGP.Data, BGP> {
 
     public enum Property {
     }
@@ -112,6 +112,35 @@ public class BGP extends Entity.Base<UUID, BGP.Data, BGP>{
         public int peerAS;
         public UUID portId;
         public Map<String, String> properties = new HashMap<String, String>();
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            Data data = (Data) o;
+
+            if (localAS != data.localAS) return false;
+            if (peerAS != data.peerAS) return false;
+            if (peerAddr != null ? !peerAddr.equals(data.peerAddr) : data.peerAddr != null)
+                return false;
+            if (portId != null ? !portId.equals(data.portId) : data.portId != null)
+                return false;
+            if (properties != null ? !properties.equals(data.properties) : data.properties != null)
+                return false;
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = localAS;
+            result = 31 * result + (peerAddr != null ? peerAddr.hashCode() : 0);
+            result = 31 * result + peerAS;
+            result = 31 * result + (portId != null ? portId.hashCode() : 0);
+            result = 31 * result + (properties != null ? properties.hashCode() : 0);
+            return result;
+        }
 
         @Override
         public String toString() {

@@ -79,6 +79,33 @@ public class AdRoute extends Entity.Base<UUID, AdRoute.Data, AdRoute> {
         public Map<String, String> properties = new HashMap<String, String>();
 
         @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            Data data = (Data) o;
+
+            if (prefixLength != data.prefixLength) return false;
+            if (bgpId != null ? !bgpId.equals(data.bgpId) : data.bgpId != null)
+                return false;
+            if (nwPrefix != null ? !nwPrefix.equals(data.nwPrefix) : data.nwPrefix != null)
+                return false;
+            if (properties != null ? !properties.equals(data.properties) : data.properties != null)
+                return false;
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = nwPrefix != null ? nwPrefix.hashCode() : 0;
+            result = 31 * result + (int) prefixLength;
+            result = 31 * result + (bgpId != null ? bgpId.hashCode() : 0);
+            result = 31 * result + (properties != null ? properties.hashCode() : 0);
+            return result;
+        }
+
+        @Override
         public String toString() {
             return "Data{" +
                     "nwPrefix=" + nwPrefix +
