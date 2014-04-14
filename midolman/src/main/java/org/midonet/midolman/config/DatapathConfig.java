@@ -35,4 +35,16 @@ public interface DatapathConfig {
 
     @ConfigInt(key = "vxlan_udp_port", defaultValue = -1)
     public int getVxLanUdpPort();
+
+    @ConfigInt(key = "global_incoming_burst_capacity", defaultValue = 20000)
+    public int getGlobalIncomingBurstCapacity();
+
+    @ConfigInt(key = "vm_incoming_burst_capacity", defaultValue = 8000)
+    public int getVmIncomingBurstCapacity();
+
+    @ConfigInt(key = "tunnel_incoming_burst_capacity", defaultValue = 10000)
+    public int getTunnelIncomingBurstCapacity();
+
+    @ConfigInt(key = "vtep_incoming_burst_capacity", defaultValue = 2000)
+    public int getVtepIncomingBurstCapacity();
 }
