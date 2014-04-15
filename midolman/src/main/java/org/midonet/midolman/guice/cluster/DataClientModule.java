@@ -49,6 +49,7 @@ import org.midonet.midolman.state.zkManagers.TenantZkManager;
 import org.midonet.midolman.state.zkManagers.TraceConditionZkManager;
 import org.midonet.midolman.state.zkManagers.TunnelZoneZkManager;
 import org.midonet.midolman.state.zkManagers.VipZkManager;
+import org.midonet.midolman.state.zkManagers.VtepZkManager;
 import org.midonet.util.eventloop.Reactor;
 
 import java.lang.reflect.Constructor;
@@ -135,6 +136,7 @@ public class DataClientModule extends PrivateModule {
         managers.add(PoolMemberZkManager.class);
         managers.add(PoolZkManager.class);
         managers.add(VipZkManager.class);
+        managers.add(VtepZkManager.class);
 
         for (Class<? extends BaseZkManager> managerClass : managers) {
             //noinspection unchecked

@@ -34,6 +34,7 @@ public class Bridge extends UriResource {
 
     private UUID inboundFilterId;
     private UUID outboundFilterId;
+    private UUID vxLanPortId;
 
     /**
      * Constructor.
@@ -71,6 +72,7 @@ public class Bridge extends UriResource {
         this.adminStateUp = bridgeData.isAdminStateUp();
         this.inboundFilterId = bridgeData.getInboundFilter();
         this.outboundFilterId = bridgeData.getOutboundFilter();
+        this.vxLanPortId = bridgeData.getVxLanPortId();
     }
 
     /**
@@ -182,6 +184,20 @@ public class Bridge extends UriResource {
         }
     }
 
+    public UUID getVxLanPortId() {
+        return vxLanPortId;
+    }
+
+    public void setVxLanPortId(UUID vxLanPortId) {
+        this.vxLanPortId = vxLanPortId;
+    }
+
+    public URI getVxLanPort() {
+        if (getBaseUri() == null || vxLanPortId == null)
+            return null;
+        return ResourceUriBuilder.getPort(getBaseUri(), vxLanPortId);
+    }
+
     /**
      * @return the ports URI
      */
@@ -281,6 +297,7 @@ public class Bridge extends UriResource {
                 .setAdminStateUp(this.adminStateUp)
                 .setInboundFilter(this.inboundFilterId)
                 .setOutboundFilter(this.outboundFilterId)
+                .setVxLanPortId(this.vxLanPortId)
                 .setProperty(Property.tenant_id, this.tenantId);
     }
 

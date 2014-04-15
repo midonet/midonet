@@ -35,6 +35,7 @@ import org.midonet.api.network.rest_api.PortGroupResource;
 import org.midonet.api.network.rest_api.PortResource;
 import org.midonet.api.network.rest_api.RouteResource;
 import org.midonet.api.network.rest_api.RouterResource;
+import org.midonet.api.network.rest_api.VtepResource;
 import org.midonet.api.system_data.rest_api.HostVersionResource;
 import org.midonet.api.system_data.rest_api.SystemStateResource;
 import org.midonet.api.system_data.rest_api.WriteVersionResource;
@@ -270,6 +271,16 @@ public class ApplicationResource extends AbstractResource {
     @Path(ResourceUriBuilder.VIPS)
     public VipResource getVipResource() {
         return factory.getVipResource();
+    }
+
+    /**
+     * VTEP resource locator
+     *
+     * @return VtepResource object to handle VTEP requests.
+     */
+    @Path(ResourceUriBuilder.VTEPS)
+    public VtepResource getVtepResource() {
+        return factory.getVtepResource();
     }
 
     /**

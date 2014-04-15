@@ -21,6 +21,7 @@ import org.midonet.cluster.data.l4lb.PoolMember;
 import org.midonet.cluster.data.l4lb.VIP;
 import org.midonet.cluster.data.ports.BridgePort;
 import org.midonet.cluster.data.ports.RouterPort;
+import org.midonet.cluster.data.ports.VxLanPort;
 import org.midonet.cluster.data.rules.ForwardNatRule;
 import org.midonet.cluster.data.rules.JumpRule;
 import org.midonet.cluster.data.rules.LiteralRule;
@@ -29,6 +30,7 @@ import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.state.PortConfig;
 import org.midonet.midolman.state.PortDirectory.BridgePortConfig;
 import org.midonet.midolman.state.PortDirectory.RouterPortConfig;
+import org.midonet.midolman.state.PortDirectory.VxLanPortConfig;
 import org.midonet.midolman.state.zkManagers.AdRouteZkManager.AdRouteConfig;
 import org.midonet.midolman.state.zkManagers.BridgeDhcpV6ZkManager;
 import org.midonet.midolman.state.zkManagers.BridgeDhcpZkManager;
@@ -43,7 +45,9 @@ import org.midonet.midolman.state.zkManagers.PortGroupZkManager.PortGroupConfig;
 import org.midonet.midolman.state.zkManagers.RouterZkManager.RouterConfig;
 import org.midonet.midolman.state.zkManagers.TaggableConfig;
 import org.midonet.midolman.state.zkManagers.VipZkManager.VipConfig;
+import org.midonet.midolman.state.zkManagers.VtepZkManager;
 import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.IPv4Addr$;
 import org.midonet.packets.IntIPv4;
 
 import java.util.ArrayList;
@@ -83,9 +87,9 @@ public class Converter {
         bridgeConfig.adminStateUp = bridge.isAdminStateUp();
         bridgeConfig.inboundFilter = bridge.getInboundFilter();
         bridgeConfig.outboundFilter = bridge.getOutboundFilter();
+        bridgeConfig.vxLanPortId = bridge.getVxLanPortId();
         bridgeConfig.tunnelKey = bridge.getTunnelKey();
-        bridgeConfig.properties = new HashMap<String, String>(
-                bridge.getProperties());
+        bridgeConfig.properties = new HashMap<>(bridge.getProperties());
 
         return bridgeConfig;
     }
@@ -100,6 +104,7 @@ public class Converter {
                 .setTunnelKey(bridge.tunnelKey)
                 .setInboundFilter(bridge.inboundFilter)
                 .setOutboundFilter(bridge.outboundFilter)
+                .setVxLanPortId(bridge.vxLanPortId)
                 .setProperties(bridge.properties);
     }
 
@@ -268,8 +273,6 @@ public class Converter {
         if (port instanceof BridgePort) {
             BridgePort typedPort = (BridgePort) port;
             BridgePortConfig typedPortConfig = new BridgePortConfig();
-            typedPortConfig.setHostId(typedPort.getHostId());
-            typedPortConfig.setInterfaceName(typedPort.getInterfaceName());
             typedPortConfig.setVlanId(typedPort.getVlanId());
 
             if(typedPort.getProperty(Port.Property.v1PortType) != null) {
@@ -287,8 +290,6 @@ public class Converter {
         if (port instanceof RouterPort) {
             RouterPort typedPort = (RouterPort) port;
             RouterPortConfig routerPortConfig = new RouterPortConfig();
-            routerPortConfig.setHostId(typedPort.getHostId());
-            routerPortConfig.setInterfaceName(typedPort.getInterfaceName());
             routerPortConfig.setBgps(typedPort.getBgps());
             routerPortConfig.setHwAddr(typedPort.getHwAddr());
             routerPortConfig.setPortAddr(typedPort.getPortAddr());
@@ -308,12 +309,23 @@ public class Converter {
             portConfig = routerPortConfig;
         }
 
+        if (port instanceof VxLanPort) {
+            VxLanPort typedPort = (VxLanPort)port;
+            VxLanPortConfig typedConfig = new VxLanPortConfig();
+            typedConfig.setMgmtIpAddr(typedPort.getMgmtIpAddr().toString());
+            typedConfig.setMgmtPort(typedPort.getMgmtPort());
+            typedConfig.setVni(typedPort.getVni());
+            portConfig = typedConfig;
+        }
+
         if (portConfig == null)
             return null;
 
         portConfig.device_id = port.getDeviceId();
         portConfig.adminStateUp = port.isAdminStateUp();
         portConfig.peerId = port.getPeerId();
+        portConfig.hostId = port.getHostId();
+        portConfig.interfaceName = port.getInterfaceName();
         portConfig.inboundFilter = port.getInboundFilter();
         portConfig.outboundFilter = port.getOutboundFilter();
         portConfig.tunnelKey = port.getTunnelKey();
@@ -332,8 +344,6 @@ public class Converter {
                     (BridgePortConfig) portConfig;
             BridgePort bridgePort = new BridgePort();
             bridgePort.setVlanId(bridgePortConfig.getVlanId());
-            bridgePort.setHostId(bridgePortConfig.getHostId());
-            bridgePort.setInterfaceName(bridgePortConfig.getInterfaceName());
             if(portConfig.isExterior()
                     || (portConfig.getV1ApiType() != null
                         && portConfig.getV1ApiType()
@@ -354,9 +364,7 @@ public class Converter {
                     .setNwAddr(routerPortConfig.getNwAddr())
                     .setNwLength(routerPortConfig.nwLength)
                     .setPortAddr(routerPortConfig.getPortAddr())
-                    .setHwAddr(routerPortConfig.getHwAddr())
-                    .setHostId(routerPortConfig.getHostId())
-                    .setInterfaceName(routerPortConfig.getInterfaceName());
+                    .setHwAddr(routerPortConfig.getHwAddr());
             if(port.isExterior()
                     || (portConfig.getV1ApiType() != null
                         && portConfig.getV1ApiType()
@@ -368,12 +376,27 @@ public class Converter {
                         Client.PortType.InteriorRouter.toString());
         }
 
+        if (portConfig instanceof VxLanPortConfig) {
+            VxLanPortConfig vxLanPortConfig =
+                    (VxLanPortConfig)portConfig;
+
+            IPv4Addr mgmtIpAddr = IPv4Addr$.MODULE$.fromString(
+                    vxLanPortConfig.getMgmtIpAddr());
+
+            port = new VxLanPort()
+                    .setMgmtIpAddr(mgmtIpAddr)
+                    .setMgmtPort(vxLanPortConfig.getMgmtPort())
+                    .setVni(vxLanPortConfig.getVni());
+        }
+
         if (port == null)
             return null;
 
         return port
-                .setDeviceId(portConfig.device_id)
                 .setAdminStateUp(portConfig.adminStateUp)
+                .setDeviceId(portConfig.device_id)
+                .setHostId(portConfig.hostId)
+                .setInterfaceName(portConfig.interfaceName)
                 .setPeerId(portConfig.peerId)
                 .setTunnelKey(portConfig.tunnelKey)
                 .setInboundFilter(portConfig.inboundFilter)
@@ -767,4 +790,15 @@ public class Converter {
         return config;
     }
 
+    public static VTEP fromVtepConfig(VtepZkManager.VtepConfig config) {
+        VTEP vtep = new VTEP();
+        vtep.setMgmtPort(config.mgmtPort);
+        return vtep;
+    }
+
+    public static VtepZkManager.VtepConfig toVtepConfig(VTEP vtep) {
+        VtepZkManager.VtepConfig vtepConfig = new VtepZkManager.VtepConfig();
+        vtepConfig.mgmtPort = vtep.getMgmtPort();
+        return vtepConfig;
+    }
 }

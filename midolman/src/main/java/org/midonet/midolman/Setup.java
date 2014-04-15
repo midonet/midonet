@@ -96,6 +96,7 @@ public class Setup {
         paths.add(pathMgr.getPoolsPath());
         paths.add(pathMgr.getVipsPath());
         paths.add(pathMgr.getHealthMonitorLeaderDirPath());
+        paths.add(pathMgr.getVtepsPath());
         return paths;
     }
 

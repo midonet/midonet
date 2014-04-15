@@ -4,6 +4,7 @@
 
 package org.midonet.midolman.state;
 
+import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
@@ -12,11 +13,7 @@ import org.midonet.cluster.data.BGP;
 import org.midonet.midolman.layer3.Route;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
-import org.midonet.packets.IPv4Addr;
 
-// These representations are being deprecated in favor of classes defined in
-// cluster client.
-@Deprecated
 public class PortDirectory {
     public static Random rand = new Random(System.currentTimeMillis());
 
@@ -207,4 +204,59 @@ public class PortDirectory {
     //   See `org.midonet.midolman.state.PortConfig` for details.
     final public static class InteriorRouterPortConfig extends RouterPortConfig {}
     final public static class ExteriorRouterPortConfig extends RouterPortConfig {}
+
+    public static class VxLanPortConfig extends PortConfig {
+
+        public String mgmtIpAddr;
+        public int mgmtPort;
+        public int vni;
+
+        public String getMgmtIpAddr() {
+            return mgmtIpAddr;
+        }
+
+        public void setMgmtIpAddr(String mgmtIpAddr) {
+            this.mgmtIpAddr = mgmtIpAddr;
+        }
+
+        public int getMgmtPort() {
+            return mgmtPort;
+        }
+
+        public void setMgmtPort(int mgmtPort) {
+            this.mgmtPort = mgmtPort;
+        }
+
+        public int getVni() {
+            return vni;
+        }
+
+        public void setVni(int vni) {
+            this.vni = vni;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            if (!super.equals(o)) return false;
+
+            VxLanPortConfig that = (VxLanPortConfig) o;
+
+            return mgmtPort == that.mgmtPort &&
+                   vni == that.vni &&
+                   Objects.equals(mgmtIpAddr, that.mgmtIpAddr);
+        }
+
+        @Override
+        public int hashCode() {
+            return vni;
+        }
+
+        @Override
+        public String toString() {
+            return "VxLanPortConfig{mgmtIpAddr=" + mgmtIpAddr +
+                    ", mgmtPort=" + mgmtPort + ", vni=" + vni +"}";
+        }
+    }
 }
