@@ -3,7 +3,6 @@
  */
 package org.midonet.api.l4lb.e2e;
 
-import org.apache.zookeeper.KeeperException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

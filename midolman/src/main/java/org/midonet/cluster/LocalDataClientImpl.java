@@ -2186,6 +2186,8 @@ public class LocalDataClientImpl implements DataClient {
     public UUID poolMemberCreate(@Nonnull PoolMember poolMember)
             throws MappingStatusException, StateAccessException,
             SerializationException {
+        validatePoolConfigMappingStatus(poolMember.getPoolId());
+
         if (poolMember.getId() == null)
             poolMember.setId(UUID.randomUUID());
         UUID id = poolMember.getId();
@@ -2216,6 +2218,8 @@ public class LocalDataClientImpl implements DataClient {
     public void poolMemberUpdate(@Nonnull PoolMember poolMember)
             throws MappingStatusException, StateAccessException,
             SerializationException {
+        validatePoolConfigMappingStatus(poolMember.getPoolId());
+
         UUID id = poolMember.getId();
         PoolMemberConfig newConfig = Converter.toPoolMemberConfig(poolMember);
         PoolMemberConfig oldConfig = poolMemberZkManager.get(id);
@@ -2657,6 +2661,8 @@ public class LocalDataClientImpl implements DataClient {
     public UUID vipCreate(@Nonnull VIP vip)
             throws MappingStatusException, StateAccessException,
             SerializationException {
+        validatePoolConfigMappingStatus(vip.getPoolId());
+
         if (vip.getId() == null) {
             vip.setId(UUID.randomUUID());
         }
@@ -2693,6 +2699,8 @@ public class LocalDataClientImpl implements DataClient {
     public void vipUpdate(@Nonnull VIP vip)
             throws MappingStatusException, StateAccessException,
             SerializationException {
+        validatePoolConfigMappingStatus(vip.getPoolId());
+
         // See if new config is different from old config.
         UUID id = vip.getId();
         VipZkManager.VipConfig newConfig = Converter.toVipConfig(vip);
