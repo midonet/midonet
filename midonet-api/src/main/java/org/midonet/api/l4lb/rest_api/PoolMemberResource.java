@@ -56,14 +56,11 @@ public class PoolMemberResource extends AbstractResource {
     private final static Logger log = LoggerFactory
             .getLogger(PoolMemberResource.class);
 
-    private final DataClient dataClient;
-
     @Inject
     public PoolMemberResource(RestApiConfig config, UriInfo uriInfo,
                               SecurityContext context, Validator validator,
                               DataClient dataClient) {
-        super(config, uriInfo, context, validator);
-        this.dataClient = dataClient;
+        super(config, uriInfo, context, dataClient, validator);
     }
 
     @GET
@@ -98,10 +95,8 @@ public class PoolMemberResource extends AbstractResource {
 
         org.midonet.cluster.data.l4lb.PoolMember PoolMemberData =
                 dataClient.poolMemberGet(id);
-        if (PoolMemberData == null) {
-            throw new NotFoundHttpException(getMessage(
-                    MessageProperty.RESOURCE_NOT_FOUND, "pool member", id));
-        }
+        if (PoolMemberData == null)
+            throwNotFound(id, "pool member");
 
         // Convert to the REST API DTO
         PoolMember PoolMember = new PoolMember(PoolMemberData);
@@ -196,15 +191,13 @@ public class PoolMemberResource extends AbstractResource {
     @RequestScoped
     public static class PoolPoolMemberResource extends AbstractResource {
         private final UUID poolId;
-        private final DataClient dataClient;
 
         @Inject
         public PoolPoolMemberResource(RestApiConfig config, UriInfo uriInfo,
                                       SecurityContext context,
                                       DataClient dataClient,
                                       @Assisted UUID id) {
-            super(config, uriInfo, context);
-            this.dataClient = dataClient;
+            super(config, uriInfo, context, dataClient);
             this.poolId = id;
         }
 

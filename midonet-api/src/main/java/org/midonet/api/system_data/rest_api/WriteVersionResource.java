@@ -34,13 +34,10 @@ public class WriteVersionResource extends AbstractResource {
     private final static Logger log = LoggerFactory
             .getLogger(WriteVersionResource.class);
 
-    private final DataClient dataClient;
-
     @Inject
     public WriteVersionResource(RestApiConfig config, UriInfo uriInfo,
                          SecurityContext context, DataClient dataClient) {
-        super(config, uriInfo, context);
-        this.dataClient = dataClient;
+        super(config, uriInfo, context, dataClient);
     }
 
     /**

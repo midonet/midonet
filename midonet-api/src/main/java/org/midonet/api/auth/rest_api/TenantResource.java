@@ -83,7 +83,7 @@ public class TenantResource extends AbstractResource {
     public TenantResource(RestApiConfig config, UriInfo uriInfo,
                           SecurityContext context, AuthService authService,
                           HttpServletRequest reqContext, ResourceFactory factory) {
-        super(config, uriInfo, context);
+        super(config, uriInfo, context, null);
         this.authService = authService;
         this.reqContext = reqContext;
         this.factory = factory;

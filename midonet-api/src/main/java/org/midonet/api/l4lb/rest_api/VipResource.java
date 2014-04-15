@@ -55,14 +55,11 @@ public class VipResource extends AbstractResource {
     private final static Logger log = LoggerFactory
             .getLogger(VIP.class);
 
-    private final DataClient dataClient;
-
     @Inject
     public VipResource(RestApiConfig config, UriInfo uriInfo,
                        SecurityContext context, Validator validator,
                        DataClient dataClient, ResourceFactory factory) {
-        super(config, uriInfo, context, validator);
-        this.dataClient = dataClient;
+        super(config, uriInfo, context, dataClient, validator);
     }
 
     /**
@@ -110,11 +107,9 @@ public class VipResource extends AbstractResource {
     public VIP get(@PathParam("id") UUID id)
         throws StateAccessException, SerializationException {
         org.midonet.cluster.data.l4lb.VIP vipData = dataClient.vipGet(id);
+        if (vipData == null)
+            throwNotFound(id, "VIP");
 
-        if (vipData == null) {
-            throw new NotFoundHttpException(getMessage(
-                    MessageProperty.RESOURCE_NOT_FOUND, "VIP", id));
-        }
         VIP vip = new VIP(vipData);
         vip.setBaseUri(getBaseUri());
 
@@ -211,15 +206,13 @@ public class VipResource extends AbstractResource {
     @RequestScoped
     public static class PoolVipResource extends AbstractResource {
         private final UUID poolId;
-        private final DataClient dataClient;
 
         @Inject
         public PoolVipResource(RestApiConfig config, UriInfo uriInfo,
                                SecurityContext context,
                                DataClient dataClient,
                                @Assisted UUID id) {
-            super(config, uriInfo, context);
-            this.dataClient = dataClient;
+            super(config, uriInfo, context, dataClient);
             this.poolId = id;
         }
 

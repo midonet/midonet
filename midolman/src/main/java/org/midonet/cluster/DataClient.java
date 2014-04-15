@@ -26,6 +26,7 @@ import org.midonet.cluster.data.l4lb.PoolMember;
 import org.midonet.cluster.data.l4lb.VIP;
 import org.midonet.cluster.data.ports.BridgePort;
 import org.midonet.cluster.data.ports.VlanMacPort;
+import org.midonet.cluster.data.ports.VxLanPort;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.DirectoryCallback;
 import org.midonet.midolman.state.InvalidStateOperationException;
@@ -34,6 +35,7 @@ import org.midonet.midolman.state.LBStatus;
 import org.midonet.midolman.state.PoolHealthMonitorMappingStatus;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkLeaderElectionWatcher;
+import org.midonet.midolman.state.zkManagers.BridgeZkManager;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv6Subnet;
 import org.midonet.packets.IntIPv4;
@@ -84,7 +86,8 @@ public interface DataClient {
             throws StateAccessException, SerializationException;
 
     void bridgesUpdate(@Nonnull Bridge bridge)
-            throws StateAccessException, SerializationException;
+            throws StateAccessException, SerializationException,
+            BridgeZkManager.VxLanPortIdUpdateException;
 
     List<Bridge> bridgesGetAll() throws StateAccessException,
             SerializationException;
@@ -859,5 +862,9 @@ public interface DataClient {
             throws StateAccessException, SerializationException;
 
     public List<VTEP> vtepsGetAll()
+            throws StateAccessException, SerializationException;
+
+    public VxLanPort bridgeCreateVxLanPort(
+            UUID bridgeId, IPv4Addr mgmtIp, int mgmtPort, int vni)
             throws StateAccessException, SerializationException;
 }

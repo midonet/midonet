@@ -45,7 +45,6 @@ public class PortGroupResource extends AbstractResource {
             .getLogger(PortGroupResource.class);
 
     private final PortGroupAuthorizer authorizer;
-    private final DataClient dataClient;
     private final ResourceFactory factory;
 
     @Inject
@@ -54,9 +53,8 @@ public class PortGroupResource extends AbstractResource {
                              PortGroupAuthorizer authorizer,
                              Validator validator, DataClient dataClient,
                              ResourceFactory factory) {
-        super(config, uriInfo, context, validator);
+        super(config, uriInfo, context, dataClient, validator);
         this.authorizer = authorizer;
-        this.dataClient = dataClient;
         this.factory = factory;
     }
 
@@ -233,7 +231,6 @@ public class PortGroupResource extends AbstractResource {
     public static class PortPortGroupResource extends AbstractResource {
 
         private final UUID portId;
-        private final DataClient dataClient;
         private final PortAuthorizer portAuthorizer;
 
         @Inject
@@ -243,10 +240,9 @@ public class PortGroupResource extends AbstractResource {
                                      PortAuthorizer portAuthorizer,
                                      DataClient dataClient,
                                      @Assisted UUID portId) {
-            super(config, uriInfo, context);
+            super(config, uriInfo, context, dataClient);
             this.portId = portId;
             this.portAuthorizer = portAuthorizer;
-            this.dataClient = dataClient;
         }
 
         /**

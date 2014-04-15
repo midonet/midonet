@@ -48,7 +48,6 @@ public class TunnelZoneHostResource extends AbstractResource {
     private final static TunnelZoneEvent tunnelZoneEvent =
             new TunnelZoneEvent();
     private final UUID tunnelZoneId;
-    private final DataClient dataClient;
 
     @Inject
     public TunnelZoneHostResource(RestApiConfig config, UriInfo uriInfo,
@@ -56,8 +55,7 @@ public class TunnelZoneHostResource extends AbstractResource {
                                   Validator validator,
                                   DataClient dataClient,
                                   @Assisted UUID tunnelZoneId) {
-        super(config, uriInfo, context, validator);
-        this.dataClient = dataClient;
+        super(config, uriInfo, context, dataClient, validator);
         this.tunnelZoneId = tunnelZoneId;
     }
 

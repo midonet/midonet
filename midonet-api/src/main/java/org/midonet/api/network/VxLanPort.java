@@ -7,12 +7,14 @@ import org.midonet.api.ResourceUriBuilder;
 import org.midonet.packets.IPv4Addr;
 
 import java.net.URI;
+import java.util.List;
 
 public class VxLanPort extends Port {
 
     private String mgmtIpAddr;
     private int mgmtPort;
     private int vni;
+    private List<VTEPBinding> bindings;
 
     public VxLanPort(org.midonet.cluster.data.ports.VxLanPort vxLanPort) {
         super(vxLanPort);
@@ -75,5 +77,13 @@ public class VxLanPort extends Port {
 
     public void setVni(int vni) {
         this.vni = vni;
+    }
+
+    public List<VTEPBinding> getBindings() {
+        return bindings;
+    }
+
+    public void setBindings(List<VTEPBinding> bindings) {
+        this.bindings = bindings;
     }
 }

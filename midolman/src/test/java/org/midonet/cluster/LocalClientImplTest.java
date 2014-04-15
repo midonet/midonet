@@ -115,7 +115,7 @@ public class LocalClientImplTest {
     @Test
     public void getBridgeTest()
             throws StateAccessException, InterruptedException, KeeperException,
-            SerializationException {
+            SerializationException, BridgeZkManager.VxLanPortIdUpdateException {
 
         initializeZKStructure();
         Setup.ensureZkDirectoryStructureExists(zkDir(), zkRoot);
@@ -130,7 +130,8 @@ public class LocalClientImplTest {
         getBridgeZkManager().update(bridgeId,
                                     new BridgeZkManager.BridgeConfig("test1",
                                             getRandomChainId(),
-                                            getRandomChainId()));
+                                            getRandomChainId()),
+                                    true);
         Thread.sleep(2000);
         assertThat("Bridge update was notified",
                    bridgeBuilder.getBuildCallsCount(), equalTo(2));

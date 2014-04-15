@@ -58,8 +58,10 @@ public class ResourceUriBuilder {
     public static final String VIPS = "/vips";
     public static final String VLAN_ID = "/{vlanId}";
     public static final String VTEPS = "/vteps";
+    public static final String BINDINGS = "/bindings";
+    public static final String VXLAN_PORT = "/vxlan_port";
+    public static final String VTEP_PORT_AND_VLAN = "/{portName}_{vlanId}";
     public static final String MAC_ADDR = "/{macAddress}";
-    public static final String PORT_ID = "/{portId}";
     public static final String PORT_ID_NO_SLASH = "{portId}";
     public static final String TENANT_ID_PARAM = "tenant_id";
 
@@ -481,9 +483,24 @@ public class ResourceUriBuilder {
         return UriBuilder.fromUri(getRoot(baseUri)).path(VTEPS).build();
     }
 
-    public static URI getVtep(URI baseUri, IPv4Addr ipAddr) {
-        return UriBuilder.fromUri(getVteps(baseUri))
-                         .path(ipAddr.toString()).build();
+    public static URI getVtep(URI baseUri, String ipAddr) {
+        return UriBuilder.fromUri(getVteps(baseUri)).path(ipAddr).build();
+    }
+
+    public static URI getVtepBindings(URI baseUri, String ipAddr) {
+        return UriBuilder.fromUri(getVtep(baseUri, ipAddr))
+                .path(BINDINGS).build();
+    }
+
+    public static URI getVtepBinding(URI baseUri, String ipAddr,
+                                     String portName, short vlanId) {
+        return UriBuilder.fromUri(getVtepBindings(baseUri, ipAddr))
+                .path("/" + portName + "_" + vlanId).build();
+    }
+
+    public static URI getBridgeVxLanPort(URI baseUri, UUID bridgeId) {
+        return UriBuilder.fromUri(getBridge(baseUri, bridgeId))
+                .path(VXLAN_PORT).build();
     }
 
     private static String buildIdTemplateUri(URI uri) {
@@ -627,6 +644,14 @@ public class ResourceUriBuilder {
 
     public static String getVtepTemplate(URI baseUri) {
         return getVteps(baseUri) + IP_ADDR;
+    }
+
+    public static String getVtepBindingsTemplate(URI baseUri) {
+        return getVtepTemplate(baseUri) + BINDINGS;
+    }
+
+    public static String getVtepBindingTemplate(URI baseUri) {
+        return getVtepBindingsTemplate(baseUri) + VTEP_PORT_AND_VLAN;
     }
 
     /**

@@ -46,19 +46,13 @@ public class TestPool {
         private DtoLoadBalancer loadBalancer;
 
         @Before
-        public void setUp() {
+        public void setUp() throws Exception {
             super.setUp();
-
             loadBalancer = createStockLoadBalancer();
         }
 
-        @After
-        public void resetDirectory() throws Exception {
-            StaticMockDirectory.clearDirectoryInstance();
-        }
-
         private void verifyNumberOfPools(int num) {
-            DtoPool[] pools = dtoWebResource.getAndVerifyOk(
+            DtoPool[] pools = dtoResource.getAndVerifyOk(
                     topLevelPoolsUri,
                     VendorMediaType.APPLICATION_POOL_COLLECTION_JSON,
                     DtoPool[].class);
@@ -69,7 +63,7 @@ public class TestPool {
                 URI healthMonitorUri, DtoPool expectedPool) {
             // Check health monitor backreference.
             DtoHealthMonitor hm = getHealthMonitor(healthMonitorUri);
-            DtoPool[] hmPools = dtoWebResource.getAndVerifyOk(hm.getPools(),
+            DtoPool[] hmPools = dtoResource.getAndVerifyOk(hm.getPools(),
                     APPLICATION_POOL_COLLECTION_JSON,
                     DtoPool[].class);
             if (expectedPool == null) {
@@ -164,9 +158,9 @@ public class TestPool {
 
             deletePool(pool.getUri());
             // Strongly associated resources are deleted by cascading.
-            dtoWebResource.getAndVerifyNotFound(vip.getUri(),
+            dtoResource.getAndVerifyNotFound(vip.getUri(),
                     VendorMediaType.APPLICATION_VIP_JSON);
-            dtoWebResource.getAndVerifyNotFound(vip2.getUri(),
+            dtoResource.getAndVerifyNotFound(vip2.getUri(),
                     VendorMediaType.APPLICATION_VIP_JSON);
         }
 
@@ -174,7 +168,7 @@ public class TestPool {
         public void testCreateWithBadHealthMonitorId() {
             DtoPool pool = getStockPool(loadBalancer.getId());
             pool.setHealthMonitorId(UUID.randomUUID());
-            DtoError error = dtoWebResource.postAndVerifyError(
+            DtoError error = dtoResource.postAndVerifyError(
                     topLevelPoolsUri, APPLICATION_POOL_JSON, pool, BAD_REQUEST);
             assertErrorMatches(error, RESOURCE_NOT_FOUND,
                     "health monitor", pool.getHealthMonitorId());
@@ -185,7 +179,7 @@ public class TestPool {
             DtoPool pool1 = createStockPool(loadBalancer.getId());
             DtoPool pool2 = getStockPool(loadBalancer.getId());
             pool2.setId(pool1.getId());
-            DtoError error = dtoWebResource.postAndVerifyError(
+            DtoError error = dtoResource.postAndVerifyError(
                     topLevelPoolsUri, APPLICATION_POOL_JSON, pool2, CONFLICT);
             assertErrorMatches(error, RESOURCE_EXISTS, "pool", pool2.getId());
         }
@@ -194,7 +188,7 @@ public class TestPool {
         public void testGetWithRandomPoolId() throws Exception {
             UUID id = UUID.randomUUID();
             URI uri = addIdToUri(topLevelPoolsUri, id);
-            DtoError error = dtoWebResource.getAndVerifyNotFound(
+            DtoError error = dtoResource.getAndVerifyNotFound(
                     uri, APPLICATION_POOL_JSON);
             assertErrorMatches(error, RESOURCE_NOT_FOUND, "pool", id);
         }
@@ -210,7 +204,7 @@ public class TestPool {
             DtoPool pool = createStockPool(loadBalancer.getId());
             pool.setId(UUID.randomUUID());
             pool.setUri(addIdToUri(topLevelPoolsUri, pool.getId()));
-            DtoError error = dtoWebResource.putAndVerifyNotFound(
+            DtoError error = dtoResource.putAndVerifyNotFound(
                     pool.getUri(), APPLICATION_POOL_JSON, pool);
             assertErrorMatches(error, RESOURCE_NOT_FOUND, "pool", pool.getId());
         }
@@ -219,7 +213,7 @@ public class TestPool {
         public void testUpdateWithBadHealthMonitorId() {
             DtoPool pool = createStockPool(loadBalancer.getId());
             pool.setHealthMonitorId(UUID.randomUUID());
-            DtoError error = dtoWebResource.putAndVerifyBadRequest(
+            DtoError error = dtoResource.putAndVerifyBadRequest(
                     pool.getUri(), APPLICATION_POOL_JSON, pool);
             assertErrorMatches(error, RESOURCE_NOT_FOUND,
                     "health monitor", pool.getHealthMonitorId());
@@ -241,7 +235,7 @@ public class TestPool {
             // Try to add a second VIP without a reference to the pool and
             // fail with 400 Bad Request. `poolId` can't be null.
             DtoVip vip2 = getStockVip(null);
-            dtoWebResource.postAndVerifyBadRequest(topLevelVipsUri,
+            dtoResource.postAndVerifyBadRequest(topLevelVipsUri,
                     APPLICATION_VIP_JSON,
                     vip2);
             vips = getVips(pool.getVips());
@@ -266,7 +260,7 @@ public class TestPool {
         public void testListVipsWithRandomPoolId() throws Exception {
             UUID id = UUID.randomUUID();
             URI uri = new URI(topLevelPoolsUri + "/" + id + "/vips");
-            DtoError error = dtoWebResource.getAndVerifyNotFound(
+            DtoError error = dtoResource.getAndVerifyNotFound(
                     uri, APPLICATION_VIP_COLLECTION_JSON);
             assertErrorMatches(error, RESOURCE_NOT_FOUND, "pool", id);
         }
@@ -275,7 +269,7 @@ public class TestPool {
         public void testListMembersWithRandomPoolId() throws Exception {
             UUID id = UUID.randomUUID();
             URI uri = new URI(topLevelPoolsUri + "/" + id + "/pool_members");
-            DtoError error = dtoWebResource.getAndVerifyNotFound(
+            DtoError error = dtoResource.getAndVerifyNotFound(
                     uri, APPLICATION_POOL_MEMBER_COLLECTION_JSON);
             assertErrorMatches(error, RESOURCE_NOT_FOUND, "pool", id);
         }
@@ -298,7 +292,7 @@ public class TestPool {
             // POST another one to the URI of the load balancer without the
             // explicit load balancer ID.
             DtoPool pool3 = getStockPool(loadBalancer.getId());
-            pool3  = dtoWebResource.postAndVerifyCreated(loadBalancer.getPools(),
+            pool3  = dtoResource.postAndVerifyCreated(loadBalancer.getPools(),
                     APPLICATION_POOL_JSON, pool3, DtoPool.class);
             poolsCounter++;
             assertEquals(loadBalancer.getId(), pool3.getLoadBalancerId());
@@ -307,7 +301,7 @@ public class TestPool {
             pools = getPools(loadBalancer.getPools());
             assertEquals(poolsCounter, pools.length);
             for (DtoPool originalPool : pools) {
-                DtoPool retrievedPool = dtoWebResource.getAndVerifyOk(
+                DtoPool retrievedPool = dtoResource.getAndVerifyOk(
                         originalPool.getUri(),
                         APPLICATION_POOL_JSON, DtoPool.class);
                 assertEquals(originalPool, retrievedPool);
@@ -351,7 +345,7 @@ public class TestPool {
             // Update with another health monitor, which triggers the 503.
             DtoHealthMonitor healthMonitor2 = createStockHealthMonitor();
             pool.setHealthMonitorId(healthMonitor2.getId());
-            ClientResponse response = dtoWebResource.putAndVerifyStatus(pool.getUri(),
+            ClientResponse response = dtoResource.putAndVerifyStatus(pool.getUri(),
                     APPLICATION_POOL_JSON, pool,
                     Response.Status.SERVICE_UNAVAILABLE.getStatusCode());
             MultivaluedMap<String, String> headers = response.getHeaders();

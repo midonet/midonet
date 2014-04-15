@@ -48,6 +48,9 @@ public class PortFactory {
         } else if (data instanceof org.midonet.cluster.data.ports.BridgePort) {
             return new BridgePort(
                     (org.midonet.cluster.data.ports.BridgePort)data);
+        } else if (data instanceof org.midonet.cluster.data.ports.VxLanPort) {
+            return new VxLanPort(
+                    (org.midonet.cluster.data.ports.VxLanPort)data);
         } else {
             throw new UnsupportedOperationException(
                     "Cannot instantiate this port type.");

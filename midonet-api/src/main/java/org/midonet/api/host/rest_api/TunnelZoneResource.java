@@ -40,15 +40,13 @@ public class TunnelZoneResource extends AbstractResource {
     private final static TunnelZoneEvent tunnelZoneEvent =
             new TunnelZoneEvent();
 
-    private final DataClient dataClient;
     private final ResourceFactory factory;
 
     @Inject
     public TunnelZoneResource(RestApiConfig config, UriInfo uriInfo,
                               SecurityContext context, DataClient dataClient,
                               Validator validator, ResourceFactory factory) {
-        super(config, uriInfo, context, validator);
-        this.dataClient = dataClient;
+        super(config, uriInfo, context, dataClient, validator);
         this.factory = factory;
     }
 

@@ -45,6 +45,7 @@ public class VtepDataClientImpl implements VtepDataClient {
     private ConnectionService cnxnSrv = null;
     private ConfigurationService cfgSrv = null;
     private Node node = null;
+
     private static final int CNXN_TIMEOUT_MILLIS = 2000;
 
     @Override

@@ -38,7 +38,6 @@ public class HostInterfacePortResource extends AbstractResource {
 
     private final static PortEvent portEvent = new PortEvent();
     private final UUID hostId;
-    private final DataClient dataClient;
 
     @Inject
     public HostInterfacePortResource(RestApiConfig config,
@@ -47,8 +46,7 @@ public class HostInterfacePortResource extends AbstractResource {
                                      Validator validator,
                                      DataClient dataClient,
                                      @Assisted UUID hostId) {
-        super(config, uriInfo, context, validator);
-        this.dataClient = dataClient;
+        super(config, uriInfo, context, dataClient, validator);
         this.hostId = hostId;
     }
 

@@ -50,15 +50,13 @@ public class RouteResource extends AbstractResource {
     private final static RouterEvent routerEvent = new RouterEvent();
 
     private final RouteAuthorizer authorizer;
-    private final DataClient dataClient;
 
     @Inject
     public RouteResource(RestApiConfig config, UriInfo uriInfo,
                          SecurityContext context, RouteAuthorizer authorizer,
                          DataClient dataClient) {
-        super(config, uriInfo, context);
+        super(config, uriInfo, context, dataClient);
         this.authorizer = authorizer;
-        this.dataClient = dataClient;
     }
 
     /**
@@ -135,7 +133,6 @@ public class RouteResource extends AbstractResource {
 
         private final UUID routerId;
         private final RouterAuthorizer authorizer;
-        private final DataClient dataClient;
 
         @Inject
         public RouterRouteResource(RestApiConfig config,
@@ -145,10 +142,9 @@ public class RouteResource extends AbstractResource {
                                    Validator validator,
                                    DataClient dataClient,
                                    @Assisted UUID routerId) {
-            super(config, uriInfo, context, validator);
+            super(config, uriInfo, context, dataClient, validator);
             this.routerId = routerId;
             this.authorizer = authorizer;
-            this.dataClient = dataClient;
         }
 
         /**

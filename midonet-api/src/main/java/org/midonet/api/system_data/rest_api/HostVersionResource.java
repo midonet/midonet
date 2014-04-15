@@ -36,13 +36,10 @@ public class HostVersionResource extends AbstractResource {
     private final static Logger log = LoggerFactory
             .getLogger(HostVersionResource.class);
 
-    private final DataClient dataClient;
-
     @Inject
     public HostVersionResource(RestApiConfig config, UriInfo uriInfo,
                          SecurityContext context, DataClient dataClient) {
-        super(config, uriInfo, context);
-        this.dataClient = dataClient;
+        super(config, uriInfo, context, dataClient);
     }
 
     /**

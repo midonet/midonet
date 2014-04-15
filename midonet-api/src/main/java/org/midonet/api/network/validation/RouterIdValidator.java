@@ -34,7 +34,7 @@ public class RouterIdValidator implements
         try {
             return dataClient.routerExists(value);
         } catch (StateAccessException e) {
-            throw new RuntimeException("Error while validation router");
+            throw new RuntimeException("Error while validating router");
         }
 
     }

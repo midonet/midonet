@@ -40,15 +40,13 @@ public class HostCommandResource extends AbstractResource {
         LoggerFactory.getLogger(HostCommandResource.class);
 
     private final UUID hostId;
-    private final DataClient dataClient;
 
     @Inject
     public HostCommandResource(RestApiConfig config, UriInfo uriInfo,
                                SecurityContext context,
                                DataClient dataClient,
                                @Assisted UUID hostId) {
-        super(config, uriInfo, context);
-        this.dataClient = dataClient;
+        super(config, uriInfo, context, dataClient);
         this.hostId = hostId;
     }
 

@@ -12,13 +12,16 @@ import java.util.UUID;
 public class VxLanPort extends Port<VxLanPort.Data, VxLanPort> {
 
     public VxLanPort() {
-        this(null, null, new Data());
+        super(new Data());
     }
 
-    public VxLanPort(UUID bridgeId, UUID portId, Data data) {
-        super(portId, data);
-        if (data != null)
-            setDeviceId(bridgeId);
+    public VxLanPort(UUID bridgeId, IPv4Addr mgmtIpAddr,
+                     int mgmtPort, int vni) {
+        super(UUID.randomUUID(), new Data());
+        setDeviceId(bridgeId);
+        setMgmtIpAddr(mgmtIpAddr);
+        setMgmtPort(mgmtPort);
+        setVni(vni);
     }
 
     @Override
@@ -65,7 +68,6 @@ public class VxLanPort extends Port<VxLanPort.Data, VxLanPort> {
             if (!super.equals(o)) return false;
 
             Data data = (Data) o;
-
             return mgmtPort == data.mgmtPort &&
                    vni != data.vni &&
                    Objects.equals(mgmtIpAddr, data.mgmtIpAddr);

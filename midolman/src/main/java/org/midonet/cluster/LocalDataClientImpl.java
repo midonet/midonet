@@ -45,6 +45,7 @@ import org.midonet.cluster.data.l4lb.PoolMember;
 import org.midonet.cluster.data.l4lb.VIP;
 import org.midonet.cluster.data.ports.BridgePort;
 import org.midonet.cluster.data.ports.VlanMacPort;
+import org.midonet.cluster.data.ports.VxLanPort;
 import org.midonet.midolman.SystemDataProvider;
 import org.midonet.midolman.guice.zookeeper.ZKConnectionProvider;
 import org.midonet.midolman.host.commands.HostCommandGenerator;
@@ -66,6 +67,7 @@ import org.midonet.midolman.state.PortDirectory;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.state.zkManagers.*;
+import org.midonet.midolman.state.zkManagers.BridgeZkManager.BridgeConfig;
 import org.midonet.midolman.state.l4lb.MappingStatusException;
 import org.midonet.midolman.state.zkManagers.HealthMonitorZkManager.HealthMonitorConfig;
 import org.midonet.midolman.state.zkManagers.PoolMemberZkManager.PoolMemberConfig;
@@ -415,7 +417,8 @@ public class LocalDataClientImpl implements DataClient {
 
     @Override
     public void bridgesUpdate(@Nonnull Bridge bridge)
-            throws StateAccessException, SerializationException {
+            throws StateAccessException, SerializationException,
+            BridgeZkManager.VxLanPortIdUpdateException {
         List<Op> ops = new ArrayList<Op>();
 
         // Get the original data
@@ -425,7 +428,8 @@ public class LocalDataClientImpl implements DataClient {
                 bridge);
 
         // Update the config
-        ops.addAll(bridgeZkManager.prepareUpdate(bridge.getId(), bridgeConfig));
+        ops.addAll(bridgeZkManager.prepareUpdate(
+                bridge.getId(), bridgeConfig, true));
 
         if (!ops.isEmpty()) {
             zkManager.multi(ops);
@@ -3120,5 +3124,37 @@ public class LocalDataClientImpl implements DataClient {
         }
 
         return vteps;
+    }
+
+    @Override
+    public VxLanPort bridgeCreateVxLanPort(
+            UUID bridgeId, IPv4Addr mgmtIp, int mgmtPort, int vni)
+            throws StateAccessException, SerializationException {
+
+        BridgeConfig bridgeConfig = bridgeZkManager.get(bridgeId);
+        if (bridgeConfig.vxLanPortId != null) {
+            throw new IllegalStateException(
+                    "Attempted to create VxLanPort for bridge " + bridgeId +
+                    ", which already has one: " + bridgeConfig.vxLanPortId);
+        }
+
+        VxLanPort port = new VxLanPort(bridgeId, mgmtIp, mgmtPort, vni);
+        PortConfig portConfig = Converter.toPortConfig(port);
+
+        List<Op> ops = new ArrayList<>();
+        ops.addAll(portZkManager.prepareCreate(port.getId(), portConfig));
+
+        bridgeConfig.vxLanPortId = port.getId();
+        try {
+            ops.addAll(bridgeZkManager.prepareUpdate(
+                    bridgeId, bridgeConfig, false));
+        } catch (BridgeZkManager.VxLanPortIdUpdateException ex) {
+            // Should never happen, since this exception is only
+            // thrown when userUpdate is true.
+            throw new RuntimeException(ex);
+        }
+
+        zkManager.multi(ops);
+        return port;
     }
 }

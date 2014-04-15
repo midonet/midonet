@@ -46,7 +46,6 @@ public class DhcpV6HostsResource extends AbstractResource {
     private final UUID bridgeId;
     private final IPv6Subnet prefix;
     private final BridgeAuthorizer authorizer;
-    private final DataClient dataClient;
 
     @Inject
     public DhcpV6HostsResource(RestApiConfig config, UriInfo uriInfo,
@@ -55,9 +54,8 @@ public class DhcpV6HostsResource extends AbstractResource {
                                DataClient dataClient,
                                @Assisted UUID bridgeId,
                                @Assisted IPv6Subnet prefix) {
-        super(config, uriInfo, context);
+        super(config, uriInfo, context, dataClient);
         this.authorizer = authorizer;
-        this.dataClient = dataClient;
         this.bridgeId = bridgeId;
         this.prefix = prefix;
     }

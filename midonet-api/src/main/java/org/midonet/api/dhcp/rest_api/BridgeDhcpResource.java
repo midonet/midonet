@@ -47,7 +47,6 @@ public class BridgeDhcpResource extends AbstractResource {
 
     private final UUID bridgeId;
     private final BridgeAuthorizer authorizer;
-    private final DataClient dataClient;
     private final ResourceFactory factory;
 
     @Inject
@@ -58,9 +57,8 @@ public class BridgeDhcpResource extends AbstractResource {
                               DataClient dataClient,
                               ResourceFactory factory,
                               @Assisted UUID bridgeId) {
-        super(config, uriInfo, context, validator);
+        super(config, uriInfo, context, dataClient, validator);
         this.authorizer = authorizer;
-        this.dataClient = dataClient;
         this.factory = factory;
         this.bridgeId = bridgeId;
     }

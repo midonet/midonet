@@ -48,8 +48,10 @@ public class MessageProperty {
             "{midokura.javarx.MacUriFormat.message}";
     public static final String MAPPING_STATUS_IS_PENDING =
             "{midokura.javarx.MappingStatusIsPending.message}";
-    public static final String POOL_MEMBER_WEIGHT_NEGATIVE =
-            "{midokura.javarx.PoolMemberWeightNegative.message}";
+    public static final String NETWORK_ALREADY_BOUND =
+            "{midokura.javarx.NetworkAlreadyBoundToVtep.message}";
+    public static final String NO_VXLAN_PORT =
+            "{midokura.javarx.NoVxlanPort.message}";
     public static final String PORT_ID_IS_INVALID =
             "{midokura.javarx.PortIdIsInvalid.message}";
     public static final String PORT_GROUP_ID_IS_INVALID =
@@ -78,6 +80,8 @@ public class MessageProperty {
             "{midokura.javarx.VtepNotFound.message}";
     public static final String VTEP_EXISTS =
             "{midokura.javarx.VtepExists.message}";
+    public static final String VXLAN_PORT_ID_NOT_SETTABLE =
+            "{midokura.javarx.VxLanPortIdNotSettable.message}";
 
     private static ResourceBundle resourceBundle =
             ResourceBundle.getBundle("ValidationMessages");
