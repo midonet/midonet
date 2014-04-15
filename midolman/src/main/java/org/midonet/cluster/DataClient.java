@@ -10,8 +10,22 @@ import java.util.UUID;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
-import org.midonet.cluster.data.*;
+import org.midonet.cluster.data.AdRoute;
+import org.midonet.cluster.data.BGP;
+import org.midonet.cluster.data.Bridge;
+import org.midonet.cluster.data.Chain;
 import org.midonet.cluster.data.Entity.TaggableEntity;
+import org.midonet.cluster.data.HostVersion;
+import org.midonet.cluster.data.IpAddrGroup;
+import org.midonet.cluster.data.Port;
+import org.midonet.cluster.data.PortGroup;
+import org.midonet.cluster.data.Route;
+import org.midonet.cluster.data.Router;
+import org.midonet.cluster.data.Rule;
+import org.midonet.cluster.data.SystemState;
+import org.midonet.cluster.data.TunnelZone;
+import org.midonet.cluster.data.VTEP;
+import org.midonet.cluster.data.WriteVersion;
 import org.midonet.cluster.data.dhcp.Subnet;
 import org.midonet.cluster.data.dhcp.Subnet6;
 import org.midonet.cluster.data.dhcp.V6Host;
@@ -42,7 +56,6 @@ import org.midonet.packets.IPv6Subnet;
 import org.midonet.packets.IntIPv4;
 import org.midonet.packets.MAC;
 import org.midonet.util.functors.Callback2;
-
 import static org.midonet.cluster.data.Rule.RuleIndexOutOfBoundsException;
 
 public interface DataClient {

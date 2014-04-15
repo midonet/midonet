@@ -4,6 +4,11 @@
 
 package org.midonet.cluster;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+import javax.inject.Inject;
+
 import org.midonet.cluster.client.BridgePort;
 import org.midonet.cluster.client.Port;
 import org.midonet.cluster.client.PortBuilder;
@@ -16,11 +21,6 @@ import org.midonet.packets.IPv4Subnet;
 import org.midonet.util.functors.Callback1;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.inject.Inject;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
 
 public class ClusterPortsManager extends ClusterManager<PortBuilder> {
 
@@ -55,13 +55,17 @@ public class ClusterPortsManager extends ClusterManager<PortBuilder> {
 
         if (config instanceof PortDirectory.BridgePortConfig) {
             port = new BridgePort();
-        } else {
+        } else if (config instanceof PortDirectory.RouterPortConfig) {
             PortDirectory.RouterPortConfig cfg =
-                    (PortDirectory.RouterPortConfig) config;
+                (PortDirectory.RouterPortConfig) config;
             port = new RouterPort()
                 .setPortAddr(new IPv4Subnet(
                     IPv4Addr.fromString(cfg.getPortAddr()), cfg.nwLength))
                 .setPortMac(cfg.getHwAddr());
+        } else {
+            // TODO: deal with VxLAN port, since it's not really used inside
+            // the agent we're hacking this here now.
+            port = new BridgePort();
         }
 
         port.setTunnelKey(config.tunnelKey);
