@@ -3,6 +3,7 @@
  */
 package org.midonet.client.dto;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Objects;
 
@@ -13,6 +14,8 @@ public class DtoVtep {
     private String description;
     private String connectionState;
     private List<String> tunnelIpAddrs;
+    private URI uri;
+    private URI bindings;
 
     public String getManagementIp() {
         return managementIp;
@@ -60,6 +63,22 @@ public class DtoVtep {
 
     public void setTunnelIpAddrs(List<String> tunnelIpAddrs) {
         this.tunnelIpAddrs = tunnelIpAddrs;
+    }
+
+    public URI getUri() {
+        return uri;
+    }
+
+    public void setUri(URI uri) {
+        this.uri = uri;
+    }
+
+    public URI getBindings() {
+        return bindings;
+    }
+
+    public void setBindings(URI bindings) {
+        this.bindings = bindings;
     }
 
     @Override

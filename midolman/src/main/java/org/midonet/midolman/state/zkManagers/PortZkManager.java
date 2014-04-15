@@ -167,6 +167,13 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
         return ops;
     }
 
+    private List<Op> prepareCreate(UUID id,
+            PortDirectory.VxLanPortConfig config)
+            throws StateAccessException, SerializationException {
+        // TODO: Is there more to do here?
+        return Arrays.asList(simpleCreateOp(id, config));
+    }
+
     public List<Op> prepareCreate(UUID id,
             PortDirectory.BridgePortConfig config)
             throws StateAccessException, SerializationException {
@@ -225,6 +232,9 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
         } else if (config instanceof PortDirectory.BridgePortConfig) {
             ops.addAll(prepareCreate(id,
                     (PortDirectory.BridgePortConfig) config));
+        } else if (config instanceof PortDirectory.VxLanPortConfig) {
+            ops.addAll(prepareCreate(id,
+                    (PortDirectory.VxLanPortConfig) config));
         } else {
             throw new IllegalArgumentException("Unknown port type found " +
                                  ((config != null) ? config.getClass() : null));

@@ -28,18 +28,8 @@ public class TestHealthMonitor {
 
     public static class TestHealthMonitorCrud extends L4LBTestBase {
 
-        @Before
-        public void setUp() {
-            super.setUp();
-        }
-
-        @After
-        public void resetDirectory() throws Exception {
-            StaticMockDirectory.clearDirectoryInstance();
-        }
-
         private void verifyNumberOfHealthMonitors(int num) {
-            DtoHealthMonitor[] healthMonitors = dtoWebResource.getAndVerifyOk(
+            DtoHealthMonitor[] healthMonitors = dtoResource.getAndVerifyOk(
                     topLevelHealthMonitorsUri,
                     APPLICATION_HEALTH_MONITOR_COLLECTION_JSON,
                     DtoHealthMonitor[].class);
@@ -63,7 +53,7 @@ public class TestHealthMonitor {
 
             // POST with the same ID as the existing resource and get 409
             // CONFLICT.
-            dtoWebResource.postAndVerifyStatus(topLevelHealthMonitorsUri,
+            dtoResource.postAndVerifyStatus(topLevelHealthMonitorsUri,
                     VendorMediaType.APPLICATION_HEALTH_MONITOR_JSON,
                     healthMonitor2,
                     CONFLICT.getStatusCode());
@@ -96,7 +86,7 @@ public class TestHealthMonitor {
             DtoHealthMonitor hm = createStockHealthMonitor();
             hm.setId(UUID.randomUUID());
             hm.setUri(addIdToUri(topLevelHealthMonitorsUri, hm.getId()));
-            DtoError error = dtoWebResource.putAndVerifyError(
+            DtoError error = dtoResource.putAndVerifyError(
                     hm.getUri(),
                     VendorMediaType.APPLICATION_HEALTH_MONITOR_JSON,
                     hm, NOT_FOUND);

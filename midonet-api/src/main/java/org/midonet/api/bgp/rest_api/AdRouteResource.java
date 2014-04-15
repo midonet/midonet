@@ -47,16 +47,14 @@ public class AdRouteResource extends AbstractResource {
     private final static BgpEvent bgpEvent = new BgpEvent();
 
     private final AdRouteAuthorizer authorizer;
-    private final DataClient dataClient;
 
     @Inject
     public AdRouteResource(RestApiConfig config, UriInfo uriInfo,
                            SecurityContext context,
                            AdRouteAuthorizer authorizer,
                            DataClient dataClient) {
-        super(config, uriInfo, context);
+        super(config, uriInfo, context, dataClient);
         this.authorizer = authorizer;
-        this.dataClient = dataClient;
     }
 
     /**
@@ -133,7 +131,6 @@ public class AdRouteResource extends AbstractResource {
 
         private final UUID bgpId;
         private final BgpAuthorizer authorizer;
-        private final DataClient dataClient;
 
         @Inject
         public BgpAdRouteResource(RestApiConfig config, UriInfo uriInfo,
@@ -141,10 +138,9 @@ public class AdRouteResource extends AbstractResource {
                                   BgpAuthorizer authorizer,
                                   DataClient dataClient,
                                   @Assisted UUID bgpId) {
-            super(config, uriInfo, context);
+            super(config, uriInfo, context, dataClient);
             this.bgpId = bgpId;
             this.authorizer = authorizer;
-            this.dataClient = dataClient;
         }
 
         /**

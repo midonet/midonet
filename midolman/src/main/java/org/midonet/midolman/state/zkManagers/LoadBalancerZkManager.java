@@ -141,11 +141,11 @@ public class LoadBalancerZkManager extends
     }
 
     public Set<UUID> getPoolIds(UUID id) throws StateAccessException {
-        return getChildUuids(paths.getLoadBalancerPoolsPath(id));
+        return getUuidSet(paths.getLoadBalancerPoolsPath(id));
     }
 
     public Set<UUID> getVipIds(UUID id) throws StateAccessException {
-        return getChildUuids(paths.getLoadBalancerVipsPath(id));
+        return getUuidSet(paths.getLoadBalancerVipsPath(id));
     }
 
     public List<Op> prepareRemovePool(UUID id, UUID poolId) {

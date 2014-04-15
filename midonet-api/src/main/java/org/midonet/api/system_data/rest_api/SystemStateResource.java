@@ -34,13 +34,10 @@ public class SystemStateResource extends AbstractResource {
     private final static Logger log = LoggerFactory
             .getLogger(SystemStateResource.class);
 
-    private final DataClient dataClient;
-
     @Inject
     public SystemStateResource(RestApiConfig config, UriInfo uriInfo,
                          SecurityContext context, DataClient dataClient) {
-        super(config, uriInfo, context);
-        this.dataClient = dataClient;
+        super(config, uriInfo, context, dataClient);
     }
 
     /**

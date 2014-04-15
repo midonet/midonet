@@ -53,15 +53,13 @@ public class LoadBalancerResource extends AbstractResource {
     private final static Logger log = LoggerFactory
             .getLogger(LoadBalancerResource.class);
 
-    private final DataClient dataClient;
     private final ResourceFactory factory;
 
     @Inject
     public LoadBalancerResource(RestApiConfig config, UriInfo uriInfo,
                                 SecurityContext context, DataClient dataClient,
                                 ResourceFactory factory) {
-        super(config, uriInfo, context);
-        this.dataClient = dataClient;
+        super(config, uriInfo, context, dataClient);
         this.factory = factory;
     }
 
@@ -112,10 +110,8 @@ public class LoadBalancerResource extends AbstractResource {
             throws StateAccessException, SerializationException {
         org.midonet.cluster.data.l4lb.LoadBalancer loadBalancerData =
                 dataClient.loadBalancerGet(id);
-        if (loadBalancerData == null) {
-            throw new NotFoundHttpException(getMessage(
-                    MessageProperty.RESOURCE_NOT_FOUND, "load balancer", id));
-        }
+        if (loadBalancerData == null)
+            throwNotFound(id, "load balancer");
 
         LoadBalancer loadBalancer = new LoadBalancer(loadBalancerData);
         loadBalancer.setBaseUri(getBaseUri());

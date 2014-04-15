@@ -26,18 +26,8 @@ public class TestLoadBalancer {
 
     public static class TestLoadBalancerCrud extends L4LBTestBase {
 
-        @Before
-        public void setUp() {
-            super.setUp();
-        }
-
-        @After
-        public void resetDirectory() throws Exception {
-            StaticMockDirectory.clearDirectoryInstance();
-        }
-
         private void verifyNumberOfLoadBalancers(int num) {
-            DtoLoadBalancer[] loadBalancers = dtoWebResource.getAndVerifyOk(
+            DtoLoadBalancer[] loadBalancers = dtoResource.getAndVerifyOk(
                     topLevelLoadBalancersUri,
                     VendorMediaType.APPLICATION_LOAD_BALANCER_COLLECTION_JSON,
                     DtoLoadBalancer[].class);
@@ -62,7 +52,7 @@ public class TestLoadBalancer {
 
             // POST with the same ID as the existing resource and get 409
             // CONFLICT.
-            dtoWebResource.postAndVerifyStatus(
+            dtoResource.postAndVerifyStatus(
                     topLevelLoadBalancersUri,
                     VendorMediaType.APPLICATION_LOAD_BALANCER_JSON,
                     loadBalancer2,
@@ -120,7 +110,7 @@ public class TestLoadBalancer {
             // router
             DtoRouter anotherRouter = createStockRouter();
             assignedLoadBalancer.setRouterId(anotherRouter.getId());
-            dtoWebResource.putAndVerifyBadRequest(assignedLoadBalancer.getUri(),
+            dtoResource.putAndVerifyBadRequest(assignedLoadBalancer.getUri(),
                     VendorMediaType.APPLICATION_LOAD_BALANCER_JSON,
                     assignedLoadBalancer);
 
@@ -128,7 +118,7 @@ public class TestLoadBalancer {
             DtoPool[] pools = getPools(loadBalancer.getPools());
             assertEquals(poolCounter, pools.length);
             DtoPool pool = getStockPool(loadBalancer.getId());
-            pool = dtoWebResource.postAndVerifyCreated(loadBalancer.getPools(),
+            pool = dtoResource.postAndVerifyCreated(loadBalancer.getPools(),
                     VendorMediaType.APPLICATION_POOL_JSON,
                     pool,
                     DtoPool.class);
@@ -141,7 +131,7 @@ public class TestLoadBalancer {
             assertEquals(vipCounter, vips.length);
             // We can't add the VIP through the load balancer.
             DtoVip vip = getStockVip(pool.getId());
-            dtoWebResource.postAndVerifyStatus(loadBalancer.getVips(),
+            dtoResource.postAndVerifyStatus(loadBalancer.getVips(),
                     VendorMediaType.APPLICATION_VIP_JSON, vip,
                     Status.METHOD_NOT_ALLOWED.getStatusCode());
             vips = getVips(loadBalancer.getVips());

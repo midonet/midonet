@@ -6,10 +6,12 @@ package org.midonet.api.network;
 
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.UriResource;
+import org.midonet.api.validation.MessageProperty;
 import org.midonet.cluster.data.Bridge.Property;
 
 import javax.validation.GroupSequence;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Null;
 import javax.validation.groups.Default;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.net.URI;
@@ -34,6 +36,9 @@ public class Bridge extends UriResource {
 
     private UUID inboundFilterId;
     private UUID outboundFilterId;
+
+    @Null(groups = BridgeCreateGroup.class,
+          message = MessageProperty.VXLAN_PORT_ID_NOT_SETTABLE)
     private UUID vxLanPortId;
 
     /**

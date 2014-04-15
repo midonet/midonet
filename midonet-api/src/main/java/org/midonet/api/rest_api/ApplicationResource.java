@@ -59,7 +59,7 @@ public class ApplicationResource extends AbstractResource {
     public ApplicationResource(RestApiConfig config, UriInfo uriInfo,
                                SecurityContext context,
                                ResourceFactory factory) {
-        super(config, uriInfo, context);
+        super(config, uriInfo, context, null);
         this.factory = factory;
     }
 

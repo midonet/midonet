@@ -11,7 +11,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,10 +25,8 @@ import org.slf4j.LoggerFactory;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.Topology;
-import org.midonet.api.zookeeper.StaticMockDirectory;
 import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoPortGroup;
 import org.midonet.client.dto.DtoRule;
@@ -54,8 +51,6 @@ public class TestRule {
 
     public static abstract class TestRuleBase extends RestApiTestBase {
 
-        protected DtoWebResource dtoResource;
-        protected Topology topology;
         protected DtoRuleChain chain1;
 
         protected TestRuleBase() {
@@ -63,27 +58,19 @@ public class TestRule {
         }
 
         @Before
-        public void setUp() {
-            dtoResource = new DtoWebResource(resource());
+        public void setUp() throws Exception {
+            super.setUp();
+            chain1 = topology.getChain("chain1");
+        }
+
+        protected void extendTopology(Topology.Builder builder) {
+            super.extendTopology(builder);
 
             DtoRuleChain chain = new DtoRuleChain();
             chain.setName("chain1-name");
             chain.setTenantId("tenant1-id");
 
-            Topology.Builder builder = new Topology.Builder(dtoResource);
             builder.create("chain1", chain);
-            extendTopology(builder);
-            topology = builder.build();
-
-            chain1 = topology.getChain("chain1");
-        }
-
-        protected void extendTopology(Topology.Builder builder) {
-        }
-
-        @After
-        public void resetDirectory() throws Exception {
-            StaticMockDirectory.clearDirectoryInstance();
         }
 
         protected DtoRule newAcceptRule() {
@@ -320,7 +307,7 @@ public class TestRule {
         }
 
         @Before
-        public void setUp() {
+        public void setUp() throws Exception {
             super.setUp();
 
             // Set the port group to the rule if it's instructed to do so.
@@ -332,6 +319,8 @@ public class TestRule {
 
         @Override
         protected void extendTopology(Topology.Builder builder) {
+            super.extendTopology(builder);
+
             // Create a port group
             DtoPortGroup pg1 = new DtoPortGroup();
             pg1.setName("portgroup1-name");

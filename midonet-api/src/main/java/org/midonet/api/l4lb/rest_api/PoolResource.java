@@ -56,7 +56,6 @@ public class PoolResource extends AbstractResource {
     private final static Logger log = LoggerFactory
             .getLogger(PoolResource.class);
 
-    private final DataClient dataClient;
     private final ResourceFactory factory;
 
     @Inject
@@ -64,8 +63,7 @@ public class PoolResource extends AbstractResource {
                         SecurityContext context,
                         DataClient dataClient,
                         ResourceFactory factory) {
-        super(config, uriInfo, context);
-        this.dataClient = dataClient;
+        super(config, uriInfo, context, dataClient);
         this.factory = factory;
     }
 
@@ -101,10 +99,8 @@ public class PoolResource extends AbstractResource {
 
         org.midonet.cluster.data.l4lb.Pool poolData =
                 dataClient.poolGet(id);
-        if (poolData == null) {
-            throw new NotFoundHttpException(getMessage(
-                    MessageProperty.RESOURCE_NOT_FOUND, "pool", id));
-        }
+        if (poolData == null)
+            throwNotFound(id, "pool");
 
         // Convert to the REST API DTO
         Pool pool = new Pool(poolData);
@@ -200,15 +196,13 @@ public class PoolResource extends AbstractResource {
     @RequestScoped
     public static class LoadBalancerPoolResource extends AbstractResource {
         private final UUID loadBalancerId;
-        private final DataClient dataClient;
 
         @Inject
         public LoadBalancerPoolResource(RestApiConfig config, UriInfo uriInfo,
                                         SecurityContext context,
                                         DataClient dataClient,
                                         @Assisted UUID id) {
-            super(config, uriInfo, context);
-            this.dataClient = dataClient;
+            super(config, uriInfo, context, dataClient);
             this.loadBalancerId = id;
         }
 

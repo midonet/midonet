@@ -18,7 +18,9 @@ import org.codehaus.jackson.annotate.JsonTypeInfo;
         @JsonSubTypes.Type(value = DtoBridgePort.class,
                 name = PortType.BRIDGE),
         @JsonSubTypes.Type(value = DtoRouterPort.class,
-                name = PortType.ROUTER)})
+                name = PortType.ROUTER),
+        @JsonSubTypes.Type(value = DtoVxLanPort.class,
+                name = PortType.VXLAN)})
 public abstract class DtoPort {
 
     private UUID id;

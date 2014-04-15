@@ -45,7 +45,6 @@ public class ChainResource extends AbstractResource {
     private final static ChainEvent chainEvent = new ChainEvent();
 
     private final ChainAuthorizer authorizer;
-    private final DataClient dataClient;
     private final ResourceFactory factory;
 
     @Inject
@@ -53,9 +52,8 @@ public class ChainResource extends AbstractResource {
                          SecurityContext context,
                          ChainAuthorizer authorizer, Validator validator,
                          DataClient dataClient, ResourceFactory factory) {
-        super(config, uriInfo, context, validator);
+        super(config, uriInfo, context, dataClient, validator);
         this.authorizer = authorizer;
-        this.dataClient = dataClient;
         this.factory = factory;
     }
 

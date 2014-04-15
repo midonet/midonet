@@ -41,15 +41,10 @@ public class TestPoolMember {
         private DtoPool pool;
 
         @Before
-        public void setUp() {
+        public void setUp() throws Exception {
             super.setUp();
             loadBalancer = createStockLoadBalancer();
             pool = createStockPool(loadBalancer.getId());
-        }
-
-        @After
-        public void resetDirectory() throws Exception {
-            StaticMockDirectory.clearDirectoryInstance();
         }
 
         private void verifyNumberOfPoolMembers(int num) {
@@ -155,9 +150,9 @@ public class TestPoolMember {
 
             deletePool(pool.getUri());
             // Strongly associated resources are deleted by cascading.
-            dtoWebResource.getAndVerifyNotFound(member1.getUri(),
+            dtoResource.getAndVerifyNotFound(member1.getUri(),
                     VendorMediaType.APPLICATION_POOL_MEMBER_JSON);
-            dtoWebResource.getAndVerifyNotFound(member2.getUri(),
+            dtoResource.getAndVerifyNotFound(member2.getUri(),
                     VendorMediaType.APPLICATION_POOL_MEMBER_JSON);
         }
 
@@ -166,7 +161,7 @@ public class TestPoolMember {
             DtoPoolMember member1 = createStockPoolMember(pool.getId());
             DtoPoolMember member2 = getStockPoolMember(pool.getId());
             member2.setId(member1.getId());
-            DtoError error = dtoWebResource.postAndVerifyError(
+            DtoError error = dtoResource.postAndVerifyError(
                     topLevelPoolMembersUri, APPLICATION_POOL_MEMBER_JSON,
                     member2, CONFLICT);
             assertErrorMatches(
@@ -176,7 +171,7 @@ public class TestPoolMember {
         @Test
         public void testCreateWithNullPoolId() {
             DtoPoolMember member = getStockPoolMember();
-            DtoError error = dtoWebResource.postAndVerifyBadRequest(
+            DtoError error = dtoResource.postAndVerifyBadRequest(
                     topLevelPoolMembersUri,
                     APPLICATION_POOL_MEMBER_JSON, member);
             assertErrorMatchesPropMsg(error, "poolId", "may not be null");
@@ -185,7 +180,7 @@ public class TestPoolMember {
         @Test
         public void testCreateWithBadPoolId() {
             DtoPoolMember member = getStockPoolMember(UUID.randomUUID());
-            DtoError error = dtoWebResource.postAndVerifyError(
+            DtoError error = dtoResource.postAndVerifyError(
                     topLevelPoolMembersUri, APPLICATION_POOL_MEMBER_JSON,
                     member, BAD_REQUEST);
             assertErrorMatches(
@@ -196,7 +191,7 @@ public class TestPoolMember {
         public void testCreateWithNegativeWeight() {
             DtoPoolMember member = getStockPoolMember(pool.getId());
             member.setWeight(-1);
-            DtoError error = dtoWebResource.postAndVerifyBadRequest(
+            DtoError error = dtoResource.postAndVerifyBadRequest(
                     topLevelPoolMembersUri, APPLICATION_POOL_MEMBER_JSON, member);
             assertErrorMatchesPropMsg(error, "weight", "must be greater than or equal to 0");
         }
@@ -205,7 +200,7 @@ public class TestPoolMember {
         public void testCreateWithBadIpAddress() {
             DtoPoolMember member = getStockPoolMember(pool.getId());
             member.setAddress("10.10.10.999");
-            DtoError error = dtoWebResource.postAndVerifyBadRequest(
+            DtoError error = dtoResource.postAndVerifyBadRequest(
                     topLevelPoolMembersUri,
                     APPLICATION_POOL_MEMBER_JSON, member);
             assertErrorMatchesPropMsg(error,
@@ -216,7 +211,7 @@ public class TestPoolMember {
         public void testCreateWithNegativePort() {
             DtoPoolMember member = getStockPoolMember(pool.getId());
             member.setProtocolPort(-1);
-            DtoError error = dtoWebResource.postAndVerifyBadRequest(
+            DtoError error = dtoResource.postAndVerifyBadRequest(
                     topLevelPoolMembersUri,
                     APPLICATION_POOL_MEMBER_JSON, member);
             assertErrorMatchesPropMsg(error,
@@ -227,7 +222,7 @@ public class TestPoolMember {
         public void testCreateWithPortGreaterThan65535() {
             DtoPoolMember member = getStockPoolMember(pool.getId());
             member.setProtocolPort(65536);
-            DtoError error = dtoWebResource.postAndVerifyBadRequest(
+            DtoError error = dtoResource.postAndVerifyBadRequest(
                     topLevelPoolMembersUri,
                     APPLICATION_POOL_MEMBER_JSON, member);
             assertErrorMatchesPropMsg(error,
@@ -237,7 +232,7 @@ public class TestPoolMember {
         @Test
         public void testGetWithBadPoolMemberId() throws Exception {
             UUID id = UUID.randomUUID();
-            DtoError error = dtoWebResource.getAndVerifyNotFound(
+            DtoError error = dtoResource.getAndVerifyNotFound(
                     addIdToUri(topLevelPoolMembersUri, id),
                     APPLICATION_POOL_MEMBER_JSON);
             assertErrorMatches(error, RESOURCE_NOT_FOUND, "pool member", id);
@@ -248,7 +243,7 @@ public class TestPoolMember {
             DtoPoolMember member = createStockPoolMember(pool.getId());
             member.setId(UUID.randomUUID());
             member.setUri(addIdToUri(topLevelPoolMembersUri, member.getId()));
-            DtoError error = dtoWebResource.putAndVerifyNotFound(
+            DtoError error = dtoResource.putAndVerifyNotFound(
                     member.getUri(), APPLICATION_POOL_MEMBER_JSON, member);
             assertErrorMatches(error, RESOURCE_NOT_FOUND,
                                "pool member", member.getId());
@@ -258,7 +253,7 @@ public class TestPoolMember {
         public void testUpdateWithBadPoolId() {
             DtoPoolMember member = createStockPoolMember(pool.getId());
             member.setPoolId(UUID.randomUUID());
-            DtoError error = dtoWebResource.putAndVerifyBadRequest(
+            DtoError error = dtoResource.putAndVerifyBadRequest(
                     member.getUri(), APPLICATION_POOL_MEMBER_JSON, member);
             assertErrorMatches(error, RESOURCE_NOT_FOUND, "pool", member.getPoolId());
         }
@@ -267,7 +262,7 @@ public class TestPoolMember {
         public void testUpdateWithNegativeWeight() {
             DtoPoolMember member = createStockPoolMember(pool.getId());
             member.setWeight(-1);
-            DtoError error = dtoWebResource.putAndVerifyBadRequest(
+            DtoError error = dtoResource.putAndVerifyBadRequest(
                     member.getUri(), APPLICATION_POOL_MEMBER_JSON, member);
             assertErrorMatchesPropMsg(error, "weight", "must be greater than or equal to 0");
         }
@@ -296,7 +291,7 @@ public class TestPoolMember {
         public void testUpdateWithBadIpAddress() {
             DtoPoolMember member = createStockPoolMember(pool.getId());
             member.setAddress("10.10.10.999");
-            DtoError error = dtoWebResource.putAndVerifyBadRequest(
+            DtoError error = dtoResource.putAndVerifyBadRequest(
                     member.getUri(), APPLICATION_POOL_MEMBER_JSON, member);
             assertErrorMatchesPropMsg(error,
                     "address", "is not a valid IP address");
@@ -306,7 +301,7 @@ public class TestPoolMember {
         public void testUpdateWithNegativePort() {
             DtoPoolMember member = createStockPoolMember(pool.getId());
             member.setProtocolPort(-1);
-            DtoError error = dtoWebResource.putAndVerifyBadRequest(
+            DtoError error = dtoResource.putAndVerifyBadRequest(
                     member.getUri(), APPLICATION_POOL_MEMBER_JSON, member);
             assertErrorMatchesPropMsg(error,
                     "protocolPort", "must be greater than or equal to 0");
@@ -316,7 +311,7 @@ public class TestPoolMember {
         public void testUpdateWithPortGreaterThan65535() {
             DtoPoolMember member = createStockPoolMember(pool.getId());
             member.setProtocolPort(65536);
-            DtoError error = dtoWebResource.putAndVerifyBadRequest(
+            DtoError error = dtoResource.putAndVerifyBadRequest(
                     member.getUri(), APPLICATION_POOL_MEMBER_JSON, member);
             assertErrorMatchesPropMsg(error,
                     "protocolPort", "must be less than or equal to 65535");

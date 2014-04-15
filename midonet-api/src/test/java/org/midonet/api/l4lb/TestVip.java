@@ -43,7 +43,7 @@ public class TestVip {
         private int vipCounter;
 
         @Before
-        public void setUp() {
+        public void setUp() throws Exception {
             super.setUp();
 
             vipCounter = 0;
@@ -59,24 +59,19 @@ public class TestVip {
             assertParentChildRelationship(loadBalancer, pool, vip);
         }
 
-        @After
-        public void resetDirectory() throws  Exception {
-            StaticMockDirectory.clearDirectoryInstance();
-        }
-
         private void verifyNumberOfVips(int num) {
             DtoVip[] vips = getVips(topLevelVipsUri);
             assertEquals(num, vips.length);
         }
 
         private void postVipAndVerifyBadRequestError(DtoVip vip, Object... args) {
-            DtoError error = dtoWebResource.postAndVerifyBadRequest(
+            DtoError error = dtoResource.postAndVerifyBadRequest(
                     topLevelVipsUri, APPLICATION_VIP_JSON, vip);
             assertErrorMatches(error, RESOURCE_NOT_FOUND, args);
         }
 
         private void putVipAndVerifyNotFoundError(DtoVip vip, Object... args) {
-            DtoError error = dtoWebResource.putAndVerifyError(vip.getUri(),
+            DtoError error = dtoResource.putAndVerifyError(vip.getUri(),
                     APPLICATION_VIP_JSON, vip, NOT_FOUND);
             assertErrorMatches(error, RESOURCE_NOT_FOUND, args);
         }
@@ -86,7 +81,7 @@ public class TestVip {
             // Check load balancer backreference.
             if (loadBalancerUri != null) {
                 DtoLoadBalancer loadBalancer = getLoadBalancer(loadBalancerUri);
-                DtoVip[] lbVips = dtoWebResource.getAndVerifyOk(
+                DtoVip[] lbVips = dtoResource.getAndVerifyOk(
                         loadBalancer.getVips(),
                         APPLICATION_VIP_COLLECTION_JSON,
                         DtoVip[].class);
@@ -101,7 +96,7 @@ public class TestVip {
             // Check pool backreference.
             if (poolUri != null) {
                 DtoPool pool = getPool(poolUri);
-                DtoVip[] poolVips = dtoWebResource.getAndVerifyOk(
+                DtoVip[] poolVips = dtoResource.getAndVerifyOk(
                         pool.getVips(),
                         APPLICATION_VIP_COLLECTION_JSON,
                         DtoVip[].class);
@@ -117,7 +112,7 @@ public class TestVip {
         private void assertChildVips(DtoVip[] poolVips) {
             // Traverse the pools associated with the pool.
             for (DtoVip originalVip: poolVips) {
-                DtoVip retrievedVip = dtoWebResource.getAndVerifyOk(
+                DtoVip retrievedVip = dtoResource.getAndVerifyOk(
                         originalVip.getUri(),
                         APPLICATION_VIP_JSON, DtoVip.class);
                 assertEquals(originalVip, retrievedVip);
@@ -148,7 +143,7 @@ public class TestVip {
 
             // POST with the same ID as the existing resource and get 409
             // CONFLICT.
-            DtoError error = dtoWebResource.postAndVerifyError(
+            DtoError error = dtoResource.postAndVerifyError(
                     topLevelVipsUri, APPLICATION_VIP_JSON, vip3, CONFLICT);
             assertErrorMatches(error, RESOURCE_EXISTS, "VIP", vip3.getId());
             verifyNumberOfVips(vipCounter);
@@ -240,7 +235,7 @@ public class TestVip {
         @Test
         public void testCreateWithNullPoolId() {
             DtoVip vip = getStockVip(null);
-            DtoError error = dtoWebResource.postAndVerifyError(
+            DtoError error = dtoResource.postAndVerifyError(
                     topLevelVipsUri, APPLICATION_VIP_JSON,
                     vip, BAD_REQUEST);
             assertEquals(error.getViolations().size(), 1);
@@ -268,7 +263,7 @@ public class TestVip {
         @Test
         public void testUpdateWithBadPoolId() {
             vip.setPoolId(UUID.randomUUID());
-            DtoError error = dtoWebResource.putAndVerifyBadRequest(
+            DtoError error = dtoResource.putAndVerifyBadRequest(
                     vip.getUri(), APPLICATION_VIP_JSON, vip);
             assertErrorMatches(error, RESOURCE_NOT_FOUND, "pool", vip.getPoolId());
         }
@@ -295,7 +290,7 @@ public class TestVip {
             // POST another one from the URI of the pool.
             DtoVip vip3 = getStockVip(pool.getId());
             vip3.setPoolId(pool.getId());
-            vip3  = dtoWebResource.postAndVerifyCreated(pool.getVips(),
+            vip3  = dtoResource.postAndVerifyCreated(pool.getVips(),
                     APPLICATION_VIP_JSON, vip3, DtoVip.class);
             vipCounter++;
             assertParentChildRelationship(loadBalancer, pool, vip3);
@@ -347,7 +342,7 @@ public class TestVip {
             // POST another one to the URI of the pool without the explicit
             // pool ID.
             DtoVip vip3 = getStockVip(pool.getId());
-            vip3  = dtoWebResource.postAndVerifyCreated(pool.getVips(),
+            vip3  = dtoResource.postAndVerifyCreated(pool.getVips(),
                     APPLICATION_VIP_JSON, vip3, DtoVip.class);
             vipCounter++;
             assertParentChildRelationship(loadBalancer, pool, vip3);

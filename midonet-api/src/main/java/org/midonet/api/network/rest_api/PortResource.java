@@ -41,6 +41,7 @@ import org.midonet.api.network.PortGroupPort;
 import org.midonet.api.network.PortGroupPort.PortGroupPortCreateGroupSequence;
 import org.midonet.api.network.PortType;
 import org.midonet.api.network.RouterPort;
+import org.midonet.api.network.VxLanPort;
 import org.midonet.api.network.auth.BridgeAuthorizer;
 import org.midonet.api.network.auth.PortAuthorizer;
 import org.midonet.api.network.auth.PortGroupAuthorizer;
@@ -69,7 +70,6 @@ public class PortResource extends AbstractResource {
     private final static PortEvent portEvent = new PortEvent();
 
     private final PortAuthorizer authorizer;
-    private final DataClient dataClient;
     private final ResourceFactory factory;
 
     @Inject
@@ -77,9 +77,8 @@ public class PortResource extends AbstractResource {
                         SecurityContext context, PortAuthorizer authorizer,
                         Validator validator, DataClient dataClient,
                         ResourceFactory factory) {
-        super(config, uriInfo, context, validator);
+        super(config, uriInfo, context, dataClient, validator);
         this.authorizer = authorizer;
-        this.dataClient = dataClient;
         this.factory = factory;
     }
 
@@ -175,6 +174,10 @@ public class PortResource extends AbstractResource {
 
         Port port = PortFactory.convertToApiPort(portData);
         port.setBaseUri(getBaseUri());
+
+        if (port instanceof VxLanPort) {
+            // TODO: Get bindings from VTEP.
+        }
 
         return port;
     }
@@ -308,7 +311,6 @@ public class PortResource extends AbstractResource {
 
         private final UUID bridgeId;
         private final BridgeAuthorizer authorizer;
-        private final DataClient dataClient;
 
         @Inject
         public BridgePortResource(RestApiConfig config,
@@ -318,9 +320,8 @@ public class PortResource extends AbstractResource {
                                   Validator validator,
                                   DataClient dataClient,
                                   @Assisted UUID bridgeId) {
-            super(config, uriInfo, context, validator);
+            super(config, uriInfo, context, dataClient, validator);
             this.authorizer = authorizer;
-            this.dataClient = dataClient;
             this.bridgeId = bridgeId;
         }
 
@@ -469,7 +470,6 @@ public class PortResource extends AbstractResource {
 
         private final UUID bridgeId;
         private final BridgeAuthorizer authorizer;
-        private final DataClient dataClient;
 
         @Inject
         public BridgePeerPortResource(RestApiConfig config,
@@ -478,9 +478,8 @@ public class PortResource extends AbstractResource {
                                       BridgeAuthorizer authorizer,
                                       DataClient dataClient,
                                       @Assisted UUID bridgeId) {
-            super(config, uriInfo, context);
+            super(config, uriInfo, context, dataClient);
             this.authorizer = authorizer;
-            this.dataClient = dataClient;
             this.bridgeId = bridgeId;
         }
 
@@ -559,7 +558,6 @@ public class PortResource extends AbstractResource {
 
         private final UUID routerId;
         private final RouterAuthorizer authorizer;
-        private final DataClient dataClient;
 
         @Inject
         public RouterPortResource(RestApiConfig config,
@@ -569,9 +567,8 @@ public class PortResource extends AbstractResource {
                                   Validator validator,
                                   DataClient dataClient,
                                   @Assisted UUID routerId) {
-            super(config, uriInfo, context, validator);
+            super(config, uriInfo, context, dataClient, validator);
             this.authorizer = authorizer;
-            this.dataClient = dataClient;
             this.routerId = routerId;
         }
 
@@ -717,7 +714,6 @@ public class PortResource extends AbstractResource {
 
         private final UUID routerId;
         private final RouterAuthorizer authorizer;
-        private final DataClient dataClient;
 
         @Inject
         public RouterPeerPortResource(RestApiConfig config,
@@ -726,9 +722,8 @@ public class PortResource extends AbstractResource {
                                       RouterAuthorizer authorizer,
                                       DataClient dataClient,
                                       @Assisted UUID routerId) {
-            super(config, uriInfo, context);
+            super(config, uriInfo, context, dataClient);
             this.authorizer = authorizer;
-            this.dataClient = dataClient;
             this.routerId = routerId;
         }
 
@@ -808,7 +803,6 @@ public class PortResource extends AbstractResource {
         private final UUID portGroupId;
         private final PortGroupAuthorizer portGroupAuthorizer;
         private final PortAuthorizer portAuthorizer;
-        private final DataClient dataClient;
 
         @Inject
         public PortGroupPortResource(RestApiConfig config, UriInfo uriInfo,
@@ -818,10 +812,9 @@ public class PortResource extends AbstractResource {
                                      Validator validator,
                                      DataClient dataClient,
                                      @Assisted UUID portGroupId) {
-            super(config, uriInfo, context, validator);
+            super(config, uriInfo, context, dataClient, validator);
             this.portGroupAuthorizer = portGroupAuthorizer;
             this.portAuthorizer = portAuthorizer;
-            this.dataClient = dataClient;
             this.portGroupId = portGroupId;
         }
 

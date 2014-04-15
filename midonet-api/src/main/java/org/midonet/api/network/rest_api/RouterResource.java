@@ -46,7 +46,6 @@ public class RouterResource extends AbstractResource {
             .getLogger(RouterResource.class);
 
     private final RouterAuthorizer authorizer;
-    private final DataClient dataClient;
     private final ResourceFactory factory;
     private final RouterEvent routerEvent = new RouterEvent() ;
 
@@ -56,9 +55,8 @@ public class RouterResource extends AbstractResource {
                           SecurityContext context, RouterAuthorizer authorizer,
                           Validator validator, DataClient dataClient,
                           ResourceFactory factory) {
-        super(config, uriInfo, context, validator);
+        super(config, uriInfo, context, dataClient, validator);
         this.authorizer = authorizer;
-        this.dataClient = dataClient;
         this.factory = factory;
     }
 

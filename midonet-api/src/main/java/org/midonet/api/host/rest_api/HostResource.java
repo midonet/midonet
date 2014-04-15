@@ -38,7 +38,6 @@ public class HostResource extends AbstractResource {
     private final static Logger log = LoggerFactory
             .getLogger(HostResource.class);
 
-    private final DataClient dataClient;
     private final ResourceFactory factory;
 
     @Inject
@@ -46,8 +45,7 @@ public class HostResource extends AbstractResource {
                         SecurityContext context,
                         DataClient dataClient,
                         ResourceFactory factory) {
-        super(config, uriInfo, context);
-        this.dataClient = dataClient;
+        super(config, uriInfo, context, dataClient);
         this.factory = factory;
     }
 

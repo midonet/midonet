@@ -27,6 +27,13 @@ public class BridgeZkManager
     private final static Logger log = LoggerFactory
             .getLogger(BridgeZkManager.class);
 
+    /**
+     * Thrown in response to an invalid (i.e., user-requested) update
+     * to a bridge's VxLanPortId property.
+     */
+    public static class VxLanPortIdUpdateException extends Exception {
+    }
+
     public static class BridgeConfig extends BaseConfig
                                      implements TaggableConfig {
         public BridgeConfig() {
@@ -178,12 +185,18 @@ public class BridgeZkManager
      *            ID of the bridge to update
      * @param config
      *            the new bridge configuration.
+     * @param userUpdate
+     *            Pass true if the user has explicitly requested this
+     *            bridge update. Controls whether certain updates are
+     *            allowed.
      * @return The ZK operation required to update the bridge.
      * @throws org.midonet.midolman.serialization.SerializationException
      *             if the BridgeConfig could not be serialized.
      */
-    public List<Op> prepareUpdate(UUID id, BridgeConfig config)
-            throws StateAccessException, SerializationException {
+    public List<Op> prepareUpdate(UUID id, BridgeConfig config,
+                                  boolean userUpdate)
+            throws StateAccessException, SerializationException,
+            VxLanPortIdUpdateException {
         BridgeConfig oldConfig = get(id);
         // Have the name, inbound or outbound filter changed?
         boolean dataChanged = false;
@@ -215,6 +228,14 @@ public class BridgeZkManager
             log.debug("The admin state of bridge {} changed from {} to {}",
                     new Object[] { id, oldConfig.adminStateUp,
                                    config.adminStateUp });
+            dataChanged = true;
+        }
+
+        if (!Objects.equals(config.vxLanPortId, oldConfig.vxLanPortId)) {
+            if (userUpdate)
+                throw new VxLanPortIdUpdateException();
+            log.debug("The vxLanPortId of bridge{} changed from {} to {}",
+                    new Object[]{id, oldConfig.vxLanPortId, config.vxLanPortId});
             dataChanged = true;
         }
 
@@ -365,9 +386,10 @@ public class BridgeZkManager
         }
     }
 
-    public void update(UUID id, BridgeConfig cfg) throws StateAccessException,
-            SerializationException {
-        List<Op> ops = prepareUpdate(id, cfg);
+    public void update(UUID id, BridgeConfig cfg, boolean userUpdate)
+            throws StateAccessException, SerializationException,
+            VxLanPortIdUpdateException {
+        List<Op> ops = prepareUpdate(id, cfg, userUpdate);
         if (!ops.isEmpty())
             zk.multi(ops);
     }

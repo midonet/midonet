@@ -53,15 +53,13 @@ public class RuleResource extends AbstractResource {
     private final static RuleEvent ruleEvent = new RuleEvent();
 
     private final RuleAuthorizer authorizer;
-    private final DataClient dataClient;
 
     @Inject
     public RuleResource(RestApiConfig config, UriInfo uriInfo,
                         SecurityContext context,
                         RuleAuthorizer authorizer, DataClient dataClient) {
-        super(config, uriInfo, context);
+        super(config, uriInfo, context, dataClient);
         this.authorizer = authorizer;
-        this.dataClient = dataClient;
     }
 
     /**
@@ -138,7 +136,6 @@ public class RuleResource extends AbstractResource {
 
         private final UUID chainId;
         private final ChainAuthorizer authorizer;
-        private final DataClient dataClient;
 
         @Inject
         public ChainRuleResource(RestApiConfig config,
@@ -148,10 +145,9 @@ public class RuleResource extends AbstractResource {
                                  Validator validator,
                                  DataClient dataClient,
                                  @Assisted UUID chainId) {
-            super(config, uriInfo, context, validator);
+            super(config, uriInfo, context, dataClient, validator);
             this.chainId = chainId;
             this.authorizer = authorizer;
-            this.dataClient = dataClient;
         }
 
         /**

@@ -3,7 +3,11 @@
  */
 package org.midonet.api.rest_api;
 
+import org.midonet.cluster.DataClient;
+import org.midonet.cluster.data.Bridge;
+import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.NoStatePathException;
+import org.midonet.midolman.state.StateAccessException;
 import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPAddr$;
 import org.midonet.packets.IPv4Addr;
@@ -20,6 +24,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import static org.midonet.api.validation.MessageProperty.IP_ADDR_INVALID_WITH_PARAM;
+import static org.midonet.api.validation.MessageProperty.RESOURCE_NOT_FOUND;
 import static org.midonet.api.validation.MessageProperty.getMessage;
 
 /**
@@ -31,17 +36,20 @@ public abstract class AbstractResource {
     protected final UriInfo uriInfo;
     protected final SecurityContext context;
     protected final Validator validator;
+    protected final DataClient dataClient;
 
     public AbstractResource(RestApiConfig config, UriInfo uriInfo,
-                            SecurityContext context) {
-        this(config, uriInfo, context, null);
+                            SecurityContext context, DataClient dataClient) {
+        this(config, uriInfo, context, dataClient, null);
     }
 
     public AbstractResource(RestApiConfig config, UriInfo uriInfo,
-                            SecurityContext context, Validator validator) {
+                            SecurityContext context, DataClient dataClient,
+                            Validator validator) {
         this.config = config;
         this.uriInfo = uriInfo;
         this.context = context;
+        this.dataClient = dataClient;
         this.validator = validator;
     }
 
@@ -109,5 +117,21 @@ public abstract class AbstractResource {
             throw new BadRequestHttpException(
                     getMessage(IP_ADDR_INVALID_WITH_PARAM, ipAddrStr));
         }
+    }
+
+    protected void throwNotFound(UUID id, String resourceType) {
+        throw new NotFoundHttpException(
+                getMessage(RESOURCE_NOT_FOUND, resourceType, id));
+    }
+
+    protected Bridge getBridgeOrThrow(UUID id, boolean badRequest)
+            throws StateAccessException, SerializationException {
+        org.midonet.cluster.data.Bridge bridge = dataClient.bridgesGet(id);
+        if (bridge == null) {
+            String msg = getMessage(RESOURCE_NOT_FOUND, "bridge", id);
+            throw badRequest ? new BadRequestHttpException(msg) :
+                               new NotFoundHttpException(msg);
+        }
+        return bridge;
     }
 }

@@ -285,9 +285,7 @@ public class Converter {
                 }
             }
             portConfig = typedPortConfig;
-        }
-
-        if (port instanceof RouterPort) {
+        } else if (port instanceof RouterPort) {
             RouterPort typedPort = (RouterPort) port;
             RouterPortConfig routerPortConfig = new RouterPortConfig();
             routerPortConfig.setBgps(typedPort.getBgps());
@@ -307,9 +305,7 @@ public class Converter {
             }
 
             portConfig = routerPortConfig;
-        }
-
-        if (port instanceof VxLanPort) {
+        } else if (port instanceof VxLanPort) {
             VxLanPort typedPort = (VxLanPort)port;
             VxLanPortConfig typedConfig = new VxLanPortConfig();
             typedConfig.setMgmtIpAddr(typedPort.getMgmtIpAddr().toString());

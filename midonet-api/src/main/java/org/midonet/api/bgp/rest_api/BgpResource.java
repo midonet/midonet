@@ -49,16 +49,14 @@ public class BgpResource extends AbstractResource {
     private final static BgpEvent bgpEvent = new BgpEvent();
 
     private final BgpAuthorizer authorizer;
-    private final DataClient dataClient;
     private final ResourceFactory factory;
 
     @Inject
     public BgpResource(RestApiConfig config, UriInfo uriInfo,
                        SecurityContext context, BgpAuthorizer authorizer,
                        DataClient dataClient, ResourceFactory factory) {
-        super(config, uriInfo, context);
+        super(config, uriInfo, context, dataClient);
         this.authorizer = authorizer;
-        this.dataClient = dataClient;
         this.factory = factory;
     }
 
@@ -146,7 +144,6 @@ public class BgpResource extends AbstractResource {
         private final UUID portId;
         private final SecurityContext context;
         private final PortAuthorizer authorizer;
-        private final DataClient dataClient;
 
         @Inject
         public PortBgpResource(RestApiConfig config, UriInfo uriInfo,
@@ -154,11 +151,10 @@ public class BgpResource extends AbstractResource {
                                PortAuthorizer authorizer,
                                DataClient dataClient,
                                @Assisted UUID portId) {
-            super(config, uriInfo, context);
+            super(config, uriInfo, context, dataClient);
             this.portId = portId;
             this.context = context;
             this.authorizer = authorizer;
-            this.dataClient = dataClient;
         }
 
         /**

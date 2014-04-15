@@ -58,17 +58,12 @@ public class HealthMonitorResource extends AbstractResource {
     private final static Logger log = LoggerFactory
             .getLogger(HealthMonitorResource.class);
 
-    private final Validator validator;
-    private final DataClient dataClient;
-
     @Inject
     public HealthMonitorResource(RestApiConfig config, UriInfo uriInfo,
                           SecurityContext context,
                           Validator validator, DataClient dataClient,
                           ResourceFactory factory) {
-        super(config, uriInfo, context);
-        this.validator = validator;
-        this.dataClient = dataClient;
+        super(config, uriInfo, context, dataClient, validator);
     }
 
     @GET
@@ -104,10 +99,8 @@ public class HealthMonitorResource extends AbstractResource {
 
         org.midonet.cluster.data.l4lb.HealthMonitor healthMonitorData =
                 dataClient.healthMonitorGet(id);
-        if (healthMonitorData == null) {
-            throw new NotFoundHttpException(getMessage(
-                    MessageProperty.RESOURCE_NOT_FOUND, "health monitor", id));
-        }
+        if (healthMonitorData == null)
+            throwNotFound(id, "health monitor");
 
         // Convert to the REST API DTO
         HealthMonitor healthMonitor = new HealthMonitor(healthMonitorData);

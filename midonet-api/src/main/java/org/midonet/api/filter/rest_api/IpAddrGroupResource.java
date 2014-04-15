@@ -45,7 +45,6 @@ public class IpAddrGroupResource extends AbstractResource {
     private final static Logger log = LoggerFactory
             .getLogger(IpAddrGroupResource.class);
 
-    private final DataClient dataClient;
     private final ResourceFactory factory;
 
     @Inject
@@ -53,8 +52,7 @@ public class IpAddrGroupResource extends AbstractResource {
                                SecurityContext context,
                                Validator validator, DataClient dataClient,
                                ResourceFactory factory) {
-        super(config, uriInfo, context, validator);
-        this.dataClient = dataClient;
+        super(config, uriInfo, context, dataClient, validator);
         this.factory = factory;
     }
 
@@ -209,7 +207,6 @@ public class IpAddrGroupResource extends AbstractResource {
     public static class IpAddrGroupAddrResource extends AbstractResource {
 
         protected final UUID id;
-        protected final DataClient dataClient;
 
         @Inject
         public IpAddrGroupAddrResource(RestApiConfig config,
@@ -217,9 +214,8 @@ public class IpAddrGroupResource extends AbstractResource {
                                        SecurityContext context,
                                        DataClient dataClient,
                                        @Assisted UUID ipAddrGroupId) {
-            super(config, uriInfo, context);
+            super(config, uriInfo, context, dataClient);
             this.id = ipAddrGroupId;
-            this.dataClient = dataClient;
         }
 
         @GET

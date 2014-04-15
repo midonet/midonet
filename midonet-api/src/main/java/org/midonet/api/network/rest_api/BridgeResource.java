@@ -18,6 +18,7 @@ import org.midonet.api.network.Bridge.BridgeCreateGroupSequence;
 import org.midonet.api.network.Bridge.BridgeUpdateGroupSequence;
 import org.midonet.api.network.IP4MacPair;
 import org.midonet.api.network.MacPort;
+import org.midonet.api.network.Port;
 import org.midonet.api.network.auth.BridgeAuthorizer;
 import org.midonet.api.rest_api.*;
 import org.midonet.event.topology.BridgeEvent;
@@ -26,7 +27,7 @@ import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.ports.VlanMacPort;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.StatePathExistsException;
+import org.midonet.midolman.state.zkManagers.BridgeZkManager;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 import org.slf4j.Logger;
@@ -34,7 +35,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
-import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.groups.Default;
 import javax.ws.rs.*;
@@ -47,6 +47,8 @@ import java.util.*;
 
 import static org.midonet.api.ResourceUriBuilder.MAC_TABLE;
 import static org.midonet.api.ResourceUriBuilder.VLANS;
+import static org.midonet.api.validation.MessageProperty.NO_VXLAN_PORT;
+import static org.midonet.api.validation.MessageProperty.VXLAN_PORT_ID_NOT_SETTABLE;
 import static org.midonet.api.validation.MessageProperty.getMessage;
 import static org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID;
 
@@ -62,7 +64,6 @@ public class BridgeResource extends AbstractResource {
     private final BridgeEvent bridgeEvent = new BridgeEvent();
 
     private final BridgeAuthorizer authorizer;
-    private final DataClient dataClient;
     private final ResourceFactory factory;
 
     @Inject
@@ -70,9 +71,8 @@ public class BridgeResource extends AbstractResource {
                           SecurityContext context, BridgeAuthorizer authorizer,
                           Validator validator, DataClient dataClient,
                           ResourceFactory factory) {
-        super(config, uriInfo, context, validator);
+        super(config, uriInfo, context, dataClient,validator);
         this.authorizer = authorizer;
-        this.dataClient = dataClient;
         this.factory = factory;
     }
 
@@ -128,18 +128,29 @@ public class BridgeResource extends AbstractResource {
                     "Not authorized to view this bridge.");
         }
 
-        org.midonet.cluster.data.Bridge bridgeData =
-                dataClient.bridgesGet(id);
-        if (bridgeData == null) {
-            throw new NotFoundHttpException(getMessage(
-                    MessageProperty.RESOURCE_NOT_FOUND, "bridge", id));
-        }
+        org.midonet.cluster.data.Bridge bridgeData = getBridgeOrThrow(id, false);
 
         // Convert to the REST API DTO
         Bridge bridge = new Bridge(bridgeData);
         bridge.setBaseUri(getBaseUri());
 
         return bridge;
+    }
+
+    @GET
+    @RolesAllowed({AuthRole.ADMIN})
+    @Path("/{id}" + ResourceUriBuilder.VXLAN_PORT)
+    @Produces({ VendorMediaType.APPLICATION_PORT_JSON,
+                MediaType.APPLICATION_JSON})
+    public Port getVxLanPort(@PathParam("id") UUID id)
+            throws StateAccessException, SerializationException {
+        org.midonet.cluster.data.Bridge bridge = getBridgeOrThrow(id, false);
+
+        if (bridge.getVxLanPortId() == null) {
+            throw new NotFoundHttpException(getMessage(NO_VXLAN_PORT));
+        }
+
+        return factory.getPortResource().get(bridge.getVxLanPortId());
     }
 
     /**
@@ -218,7 +229,12 @@ public class BridgeResource extends AbstractResource {
                     "Not authorized to update this bridge.");
         }
 
-        dataClient.bridgesUpdate(bridge.toData());
+        try {
+            dataClient.bridgesUpdate(bridge.toData());
+        } catch (BridgeZkManager.VxLanPortIdUpdateException ex) {
+            throw new BadRequestHttpException(getMessage(
+                    VXLAN_PORT_ID_NOT_SETTABLE));
+        }
         bridgeEvent.update(id, dataClient.bridgesGet(id));
     }
 

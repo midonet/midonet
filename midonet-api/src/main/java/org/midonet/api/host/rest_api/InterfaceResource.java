@@ -43,17 +43,13 @@ public class InterfaceResource extends AbstractResource {
         .getLogger(InterfaceResource.class);
 
     private final UUID hostId;
-    private final UriInfo uriInfo;
-    private final DataClient dataClient;
 
     @Inject
     public InterfaceResource(RestApiConfig config, UriInfo uriInfo,
                              SecurityContext context,
                              DataClient dataClient,
                              @Assisted UUID hostId) {
-        super(config, uriInfo, context);
-        this.uriInfo = uriInfo;
-        this.dataClient = dataClient;
+        super(config, uriInfo, context, dataClient);
         this.hostId = hostId;
     }
 
