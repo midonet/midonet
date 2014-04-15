@@ -38,6 +38,7 @@ import org.midonet.packets.IPv6Subnet;
 import org.midonet.packets.IntIPv4;
 import org.midonet.packets.MAC;
 import org.midonet.util.functors.Callback2;
+
 import static org.midonet.cluster.data.Rule.RuleIndexOutOfBoundsException;
 
 public interface DataClient {
@@ -846,4 +847,13 @@ public interface DataClient {
      */
     public void removeHealthMonitorLeaderNode(Integer node)
             throws StateAccessException;
+
+    public void vtepCreate(VTEP vtep)
+            throws StateAccessException, SerializationException;
+
+    public VTEP vtepGet(IPv4Addr ipAddr)
+            throws StateAccessException, SerializationException;
+
+    public List<VTEP> vtepsGetAll()
+            throws StateAccessException, SerializationException;
 }

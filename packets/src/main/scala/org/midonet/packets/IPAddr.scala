@@ -4,7 +4,7 @@
 
 package org.midonet.packets
 
-import java.util.{NoSuchElementException, Random}
+import java.util.Random
 
 /**
  * Common abstraction for IPv4 and IPv6 addresses

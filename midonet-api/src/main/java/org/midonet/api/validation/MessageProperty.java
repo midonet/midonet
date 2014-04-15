@@ -19,27 +19,29 @@ public class MessageProperty {
     public static final String BRIDGE_HAS_VLAN =
             "{midokura.javarx.BridgeHasVlan.message}";
     public static final String FRAG_POLICY_INVALID_FOR_L4_RULE =
-            "{midokura.javarx.FragPolicyInvalidForL4Rule}";
+            "{midokura.javarx.FragPolicyInvalidForL4Rule.message}";
     public static final String FRAG_POLICY_INVALID_FOR_NAT_RULE =
-            "{midokura.javarx.FragPolicyInvalidForNatRule}";
+            "{midokura.javarx.FragPolicyInvalidForNatRule.message}";
     public static final String FRAG_POLICY_UNDEFINED =
-            "{midokura.javarx.FragPolicyUndefined}";
+            "{midokura.javarx.FragPolicyUndefined.message}";
     public static final String HOST_ID_IS_INVALID =
             "{midokura.javarx.HostIdIsInvalid.message}";
     public static final String HOST_INTERFACE_IS_USED =
             "{midokura.javarx.HostInterfaceIsAlreadyUsed.message}";
     public static final String IP_ADDR_GROUP_ID_EXISTS =
-            "{midokura.javarx.IpAddrGroupIdExists}";
+            "{midokura.javarx.IpAddrGroupIdExists.message}";
     public static final String IP_ADDR_INVALID =
-            "{midokura.javarx.IpAddrInvalid}";
+            "{midokura.javarx.IpAddrInvalid.message}";
+    public static final String IP_ADDR_INVALID_WITH_PARAM =
+            "{midokura.javarx.IpAddrInvalidWithParam.message}";
     public static final String IS_UNIQUE_CHAIN_NAME =
             "{midokura.javarx.IsUniqueChainName.message}";
     public static final String IS_UNIQUE_PORT_GROUP_NAME =
             "{midokura.javarx.IsUniquePortGroupName.message}";
     public static final String MAC_ADDRESS_INVALID =
-            "{midokura.javarx.MacAddressInvalid}";
+            "{midokura.javarx.MacAddressInvalid.message}";
     public static final String MAC_MASK_INVALID =
-            "{midokura.javarx.MacMaskInvalid}";
+            "{midokura.javarx.MacMaskInvalid.message}";
     public static final String MAC_PORT_ON_BRIDGE =
             "{midokura.javarx.MacPortOnBridge.message}";
     public static final String MAC_URI_FORMAT =
@@ -72,6 +74,10 @@ public class MessageProperty {
             "{midokura.javarx.TunnelZoneMemberExists.message}";
     public static final String VLAN_ID_MATCHES_PORT_VLAN_ID =
             "{midokura.javarx.VlanIdMatchesPortVlanId.message}";
+    public static final String VTEP_NOT_FOUND =
+            "{midokura.javarx.VtepNotFound.message}";
+    public static final String VTEP_EXISTS =
+            "{midokura.javarx.VtepExists.message}";
 
     private static ResourceBundle resourceBundle =
             ResourceBundle.getBundle("ValidationMessages");

@@ -35,6 +35,7 @@ public class DtoApplication {
     private URI pools;
     private URI poolMembers;
     private URI vips;
+    private URI vteps;
     private String adRouteTemplate;
     private String bgpTemplate;
     private String bridgeTemplate;
@@ -56,6 +57,7 @@ public class DtoApplication {
     private String poolTemplate;
     private String poolMemberTemplate;
     private String vipTemplate;
+    private String vtepTemplate;
 
     public String getVersion() {
         return version;
@@ -257,6 +259,18 @@ public class DtoApplication {
         this.vips = vips;
     }
 
+    public URI getVteps() {
+        return this.vteps;
+    }
+
+    public void setVteps(URI vteps) {
+        this.vteps = vteps;
+    }
+
+    public URI getVtep(String mgmtIpAddr) {
+        return UriBuilder.fromPath(getVtepTemplate()).build(mgmtIpAddr);
+    }
+
     public String getAdRouteTemplate() {
         return adRouteTemplate;
     }
@@ -421,5 +435,13 @@ public class DtoApplication {
 
     public void setVipTemplate(String vipTemplate) {
         this.vipTemplate = vipTemplate;
+    }
+
+    public String getVtepTemplate() {
+        return vtepTemplate;
+    }
+
+    public void setVtepTemplate(String vtepTemplate) {
+        this.vtepTemplate = vtepTemplate;
     }
 }

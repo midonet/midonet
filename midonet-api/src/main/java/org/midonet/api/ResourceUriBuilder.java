@@ -35,6 +35,7 @@ public class ResourceUriBuilder {
     public static final String PEER_PORTS = "/peer_ports"; // interior ports
     public static final String PORT_GROUPS = "/port_groups";
     public static final String IP_ADDR_GROUPS = "/ip_addr_groups";
+    public static final String IP_ADDR = "/{ipAddr}";
     public static final String IP_ADDRS = "/ip_addrs";
     public static final String CHAINS = "/chains";
     public static final String RULES = "/rules";
@@ -56,6 +57,7 @@ public class ResourceUriBuilder {
     public static final String POOLS = "/pools";
     public static final String VIPS = "/vips";
     public static final String VLAN_ID = "/{vlanId}";
+    public static final String VTEPS = "/vteps";
     public static final String MAC_ADDR = "/{macAddress}";
     public static final String PORT_ID = "/{portId}";
     public static final String PORT_ID_NO_SLASH = "{portId}";
@@ -475,6 +477,15 @@ public class ResourceUriBuilder {
         )).path(hostId.toString()).build();
     }
 
+    public static URI getVteps(URI baseUri) {
+        return UriBuilder.fromUri(getRoot(baseUri)).path(VTEPS).build();
+    }
+
+    public static URI getVtep(URI baseUri, IPv4Addr ipAddr) {
+        return UriBuilder.fromUri(getVteps(baseUri))
+                         .path(ipAddr.toString()).build();
+    }
+
     private static String buildIdTemplateUri(URI uri) {
         StringBuilder template = new StringBuilder(
                 UriBuilder.fromUri(uri).build().toString());
@@ -612,6 +623,10 @@ public class ResourceUriBuilder {
     public static String getVlanMacPortTemplate(URI bridgeUri) {
         return bridgeUri + VLANS + VLAN_ID + MAC_TABLE +
                 MAC_ADDR + "_" + PORT_ID_NO_SLASH;
+    }
+
+    public static String getVtepTemplate(URI baseUri) {
+        return getVteps(baseUri) + IP_ADDR;
     }
 
     /**

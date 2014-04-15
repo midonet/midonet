@@ -44,6 +44,7 @@ public class BridgeZkManager
         public int tunnelKey; // Only set in prepareBridgeCreate
         public UUID inboundFilter;
         public UUID outboundFilter;
+        public UUID vxLanPortId;
         public String name;
         public boolean adminStateUp;
         public Map<String, String> properties = new HashMap<String, String>();
@@ -57,40 +58,26 @@ public class BridgeZkManager
 
             BridgeConfig that = (BridgeConfig) o;
 
-            if (tunnelKey != that.tunnelKey)
-                return false;
-            if (inboundFilter != null ? !inboundFilter
-                    .equals(that.inboundFilter) : that.inboundFilter != null)
-                return false;
-            if (outboundFilter != null ? !outboundFilter
-                    .equals(that.outboundFilter) : that.outboundFilter != null)
-                return false;
-            if (name != null ? !name.equals(that.name) : that.name != null)
-                return false;
-            if (adminStateUp != that.adminStateUp)
-                return false;
-
-            return true;
+            return tunnelKey == that.tunnelKey &&
+                    adminStateUp == that.adminStateUp &&
+                    Objects.equals(inboundFilter, that.inboundFilter) &&
+                    Objects.equals(outboundFilter, that.outboundFilter) &&
+                    Objects.equals(vxLanPortId, that.vxLanPortId) &&
+                    Objects.equals(name, that.name);
         }
 
         @Override
         public int hashCode() {
-            int result = tunnelKey;
-            result = 31 * result
-                    + (inboundFilter != null ? inboundFilter.hashCode() : 0);
-            result = 31 * result
-                    + (outboundFilter != null ? outboundFilter.hashCode() : 0);
-            result = 31 * result
-                    + (name != null ? name.hashCode() : 0);
-            result = 31 * result + Boolean.valueOf(adminStateUp).hashCode();
-            return result;
+            return Objects.hash(tunnelKey, adminStateUp, inboundFilter,
+                                outboundFilter, vxLanPortId, name);
         }
 
         @Override
         public String toString() {
-            return "BridgeConfig{" + "tunnelKey=" + tunnelKey +
+            return "BridgeConfig{tunnelKey=" + tunnelKey +
                    ", inboundFilter=" + inboundFilter +
                    ", outboundFilter=" + outboundFilter +
+                   ", vxLanPortId=" + vxLanPortId +
                    ", name=" + name +
                    ", adminStateUp=" + adminStateUp + '}';
         }

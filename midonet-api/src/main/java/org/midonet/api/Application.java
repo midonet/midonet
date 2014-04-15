@@ -190,6 +190,11 @@ public class Application extends UriResource {
         }
     }
 
+    public URI getVteps() {
+        return getBaseUri() == null ? null :
+                ResourceUriBuilder.getVteps(getBaseUri());
+    }
+
     /**
      * @return the Ad route URI template
      */
@@ -387,6 +392,11 @@ public class Application extends UriResource {
         } else {
             return null;
         }
+    }
+
+    public String getVtepTemplate() {
+        return getBaseUri() == null ? null :
+                ResourceUriBuilder.getVtepTemplate(getBaseUri());
     }
 
     /**

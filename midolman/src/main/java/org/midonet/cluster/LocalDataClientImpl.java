@@ -29,7 +29,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs;
 
-import org.midonet.cache.Cache;
 import org.midonet.cluster.data.*;
 import org.midonet.cluster.data.Entity.TaggableEntity;
 import org.midonet.cluster.data.dhcp.Subnet;
@@ -51,7 +50,6 @@ import org.midonet.midolman.guice.zookeeper.ZKConnectionProvider;
 import org.midonet.midolman.host.commands.HostCommandGenerator;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
-import org.midonet.midolman.rules.Condition;
 import org.midonet.midolman.rules.RuleList;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
@@ -76,6 +74,7 @@ import org.midonet.midolman.state.zkManagers.PoolZkManager.PoolHealthMonitorMapp
 import org.midonet.midolman.state.zkManagers.PoolZkManager.PoolHealthMonitorMappingConfig.*;
 import org.midonet.midolman.state.zkManagers.VipZkManager.VipConfig;
 import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.IPv4Addr$;
 import org.midonet.packets.IPv6Subnet;
 import org.midonet.packets.IntIPv4;
 import org.midonet.packets.MAC;
@@ -181,6 +180,9 @@ public class LocalDataClientImpl implements DataClient {
 
     @Inject
     private IpAddrGroupZkManager ipAddrGroupZkManager;
+
+    @Inject
+    private VtepZkManager vtepZkManager;
 
     @Inject
     @Named(ZKConnectionProvider.DIRECTORY_REACTOR_TAG)
@@ -3068,5 +3070,42 @@ public class LocalDataClientImpl implements DataClient {
                 StringUtils.repeat("0", 10 - node.toString().length()) +
                 node.toString();
         zkManager.delete(path);
+    }
+
+    @Override
+    public void vtepCreate(VTEP vtep)
+            throws StateAccessException, SerializationException {
+        VtepZkManager.VtepConfig config = Converter.toVtepConfig(vtep);
+        zkManager.multi(vtepZkManager.prepareCreate(vtep.getId(), config));
+    }
+
+    @Override
+    public VTEP vtepGet(IPv4Addr ipAddr)
+            throws StateAccessException, SerializationException {
+        if (!vtepZkManager.exists(ipAddr))
+            return null;
+
+        VTEP vtep = Converter.fromVtepConfig(vtepZkManager.get(ipAddr));
+        vtep.setId(ipAddr);
+        return vtep;
+    }
+
+    @Override
+    public List<VTEP> vtepsGetAll()
+            throws StateAccessException, SerializationException {
+        List<VTEP> vteps = new ArrayList<>();
+
+        String path = pathBuilder.getVtepsPath();
+        if (zkManager.exists(path)) {
+            Set<String> vtepIps = zkManager.getChildren(path);
+            for (String vtepIp : vtepIps) {
+                VTEP vtep = vtepGet(IPv4Addr$.MODULE$.fromString(vtepIp));
+                if (vtep != null) {
+                    vteps.add(vtep);
+                }
+            }
+        }
+
+        return vteps;
     }
 }

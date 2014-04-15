@@ -4,6 +4,10 @@
 package org.midonet.api.rest_api;
 
 import org.midonet.midolman.state.NoStatePathException;
+import org.midonet.packets.IPAddr;
+import org.midonet.packets.IPAddr$;
+import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.IPv4Addr$;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
@@ -14,6 +18,9 @@ import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.util.Set;
 import java.util.UUID;
+
+import static org.midonet.api.validation.MessageProperty.IP_ADDR_INVALID_WITH_PARAM;
+import static org.midonet.api.validation.MessageProperty.getMessage;
 
 /**
  * Base resource class.
@@ -83,6 +90,24 @@ public abstract class AbstractResource {
                 validator.validate(apiObj, groups);
         if (!violations.isEmpty()) {
             throw new BadRequestHttpException(violations);
+        }
+    }
+
+    protected IPAddr parseIPAddr(String ipAddrStr) {
+        try {
+            return IPAddr$.MODULE$.fromString(ipAddrStr);
+        } catch (Exception ex) {
+            throw new BadRequestHttpException(
+                    getMessage(IP_ADDR_INVALID_WITH_PARAM, ipAddrStr));
+        }
+    }
+
+    protected IPv4Addr parseIPv4Addr(String ipAddrStr) {
+        try {
+            return IPv4Addr$.MODULE$.fromString(ipAddrStr);
+        } catch (Exception ex) {
+            throw new BadRequestHttpException(
+                    getMessage(IP_ADDR_INVALID_WITH_PARAM, ipAddrStr));
         }
     }
 }

@@ -11,8 +11,6 @@ import org.codehaus.jackson.annotate.JsonTypeInfo;
 import org.midonet.util.version.Since;
 
 import javax.validation.GroupSequence;
-import javax.validation.constraints.AssertFalse;
-import javax.validation.constraints.AssertTrue;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import java.net.URI;
@@ -36,7 +34,9 @@ import java.util.UUID;
         @JsonSubTypes.Type(value = ExteriorRouterPort.class,
                 name = PortType.EXTERIOR_ROUTER),
         @JsonSubTypes.Type(value = InteriorRouterPort.class,
-                name = PortType.INTERIOR_ROUTER) })
+                name = PortType.INTERIOR_ROUTER),
+        @JsonSubTypes.Type(value = VxLanPort.class,
+                name = PortType.VXLAN)})
 public abstract class Port extends UriResource {
 
     /**
