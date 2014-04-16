@@ -242,7 +242,7 @@ class DeduplicationActor(
                 log.info("Issuing restart for simulation {}", pw.cookieStr)
                 self ! RestartWorkflow(pw)
             case Failure(ex) =>
-                log.warning("Failure on waiting workflow's future", ex)
+                log.error(ex, "Failure on waiting workflow's future")
         }(ExecutionContext.callingThread)
         metrics.packetPostponed()
         giveUpWorkflows(waitingRoom enter pw)
