@@ -138,7 +138,7 @@ public class Midolman {
     }
 
     private void doServicesCleanup() {
-        if ( injector == null )
+        if (injector == null)
             return;
 
         monitoringAgent.stop();
