@@ -1,15 +1,20 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2012 Midokura SARL, All Rights Reserved.
+ */
 package org.midonet.midolman.services;
 
-import com.google.common.base.Service;
-import com.google.common.util.concurrent.AbstractService;
-import com.google.inject.Inject;
-import com.yammer.metrics.core.MetricsRegistry;
-import com.yammer.metrics.reporting.JmxReporter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.util.concurrent.AbstractService;
+import com.google.inject.Inject;
+
+import com.yammer.metrics.core.MetricsRegistry;
+import com.yammer.metrics.reporting.JmxReporter;
 
 import org.midonet.midolman.host.services.HostService;
 
@@ -44,56 +49,58 @@ public class MidolmanService extends AbstractService {
 
     @Override
     protected void doStart() {
-        startService(datapathConnectionService);
-        startService(selectLoopService);
-        startService(actorsService);
-        startService(hostService);
-        startService(storeService);
+        for (AbstractService service : services()) {
+            log.info("Service {}", service);
+            try {
+                service.startAndWait();
+            } catch (Exception e) {
+                log.error("Exception while starting service {}", service, e);
+                notifyFailed(e);
+                doStop();
+                return;
+            } finally {
+                log.info("Service {}", service);
+            }
+        }
+
         JmxReporter.startDefault(metrics);
         notifyStarted();
     }
 
     @Override
     protected void doStop() {
-        try {
-            stopService(storeService);
-            stopService(hostService);
-            stopService(actorsService);
-            stopService(selectLoopService);
-            stopService(datapathConnectionService);
+        List<AbstractService> services = services();
+        Collections.reverse(services);
+        for (AbstractService service : services) {
+            boolean running = service.state() == State.RUNNING;
+            try {
+                if (service.state() == State.RUNNING) {
+                    log.info("Service: {}", service);
+                    service.stopAndWait();
+                }
+            } catch (Exception e) {
+                log.error("Exception while stopping the service {}", service, e);
+                notifyFailed(e);
+                // Keep stopping services.
+            } finally {
+                if (running)
+                    log.info("Service {}", service);
+            }
+        }
 
+        if (state() != State.FAILED)
             notifyStopped();
-        } catch (Exception e) {
-            notifyFailed(e);
-        }
     }
 
-    private void stopService(Service service) {
-        if (service == null)
-            return;
-
-        try {
-            log.info("Service: {}.", service);
-            service.stopAndWait();
-        } catch (Exception e) {
-            log.error("Exception while stopping the service \"{}\"", service, e);
-        } finally {
-            log.info("Service {}", service);
-        }
-    }
-
-
-    protected void startService(Service service) {
-        if (service == null)
-            return;
-
-        log.info("Service {}", service);
-        try {
-            service.startAndWait();
-        } catch (Exception e) {
-            log.error("Exception while starting service {}", service, e);
-        } finally {
-            log.info("Service {}", service);
-        }
+    private List<AbstractService> services() {
+        ArrayList<AbstractService> services = new ArrayList<>(5);
+        services.add(datapathConnectionService);
+        services.add(selectLoopService);
+        services.add(actorsService);
+        if (hostService != null)
+            services.add(hostService);
+        if (storeService != null)
+            services.add(storeService);
+        return services;
     }
 }
