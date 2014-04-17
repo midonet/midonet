@@ -69,7 +69,7 @@ class NetlinkCallbackDispatcher extends Actor with ActorLogWithoutPath {
             try {
                 batch(i).run()
             } catch {
-                case e: Throwable => log.error("Callback failed", e)
+                case e: Throwable => log.error(e, "Callback failed")
             }
             i += 1
         }
