@@ -57,7 +57,7 @@ public class BgpZkManager extends AbstractZkManager<UUID, BGP.Data> {
     public List<Op> prepareCreate(UUID id, BGP.Data config)
             throws StateAccessException, SerializationException {
 
-        List<Op> ops = new ArrayList<>();
+        List<Op> ops = new ArrayList<>(3);
 
         ops.add(simpleCreateOp(id, config));
         ops.add(Op.create(paths.getBgpAdRoutesPath(id), null,
@@ -115,34 +115,27 @@ public class BgpZkManager extends AbstractZkManager<UUID, BGP.Data> {
                             final Directory.TypedWatcher watcher) {
 
         String bgpPath = paths.getBgpPath(bgpId);
-
         zk.asyncGet(bgpPath,
-                DirectoryCallbackFactory.transform(
-                        bgpDirectoryCallback,
-                        new Functor<byte[], BGP>() {
-                            @Override
-                            public BGP apply(byte[] arg0) {
-                                try {
-                                    BGP.Data data =
-                                            serializer.deserialize(arg0,
-                                                    BGP.Data.class);
-                                    return new BGP(bgpId, data);
-                                } catch (SerializationException e) {
-                                    log.warn("Could not deserialize BGP data");
-                                }
-                                return null;
-                            }
-                        }),
-                watcher);
+            DirectoryCallbackFactory.transform(
+                bgpDirectoryCallback,
+                new Functor<byte[], BGP>() {
+                    @Override
+                    public BGP apply(byte[] arg0) {
+                        try {
+                            return new BGP(
+                                bgpId,
+                                serializer.deserialize(arg0, BGP.Data.class));
+                        } catch (SerializationException e) {
+                            log.warn("Could not deserialize BGP data");
+                            return null;
+                        }
+                    }
+                }),
+            watcher);
     }
 
     public boolean exists(UUID id) throws StateAccessException {
         return zk.exists(paths.getBgpPath(id));
-    }
-
-    public List<UUID> list(UUID portId, Runnable watcher)
-            throws StateAccessException {
-        return getUuidList(paths.getPortBgpPath(portId));
     }
 
     public void getBgpListAsync(UUID portId,
@@ -154,7 +147,7 @@ public class BgpZkManager extends AbstractZkManager<UUID, BGP.Data> {
     }
 
     public List<UUID> list(UUID portId) throws StateAccessException {
-        return list(portId, null);
+        return getUuidList(paths.getPortBgpPath(portId));
     }
 
     public void update(UUID id, BGP config) throws StateAccessException,

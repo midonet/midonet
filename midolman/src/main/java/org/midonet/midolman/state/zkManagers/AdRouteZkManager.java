@@ -86,7 +86,7 @@ public class AdRouteZkManager
 
     public List<Op> prepareDelete(UUID id, AdRouteConfig config) {
         // Delete the advertising route
-        List<Op> ops = new ArrayList<>();
+        List<Op> ops = new ArrayList<>(2);
         ops.add(Op.delete(paths.getAdRoutePath(id), -1));
         ops.add(Op.delete(paths.getBgpAdRoutePath(config.bgpId, id), -1));
         return ops;
