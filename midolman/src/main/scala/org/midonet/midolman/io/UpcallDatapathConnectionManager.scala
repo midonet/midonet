@@ -21,7 +21,6 @@ import org.midonet.netlink.{BufferPool, Callback}
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode.EBUSY
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode.EEXIST
-import org.midonet.netlink.exceptions.NetlinkException.ErrorCode.ENOENT
 import org.midonet.odp._
 import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.util.{TokenBucket, BatchCollector}
@@ -110,7 +109,11 @@ abstract class UpcallDatapathConnectionManager(val config: MidolmanConfig,
                 conn.getConnection.portsDelete(port, datapath, delCb)
 
                 delFuture recover {
-                    case ex: NetlinkException if ex.getErrorCodeEnum == ENOENT =>
+                    case ex: NetlinkException =>
+                        // Although recovers all NetlinkException protectively,
+                        // currently expected exceptions are: ENOENT and ENODEV
+                        log.info("Ignoring error while deleting datapath port "
+                            + port.getName, ex)
                         port
                 } andThen {
                     case Success(v) =>
