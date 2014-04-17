@@ -50,6 +50,29 @@ public interface Entity<Id, Data, Self extends Entity<Id, Data, Self>> {
         protected abstract Self self();
 
         @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            Base base = (Base) o;
+
+            if (id != null ? !id.equals(base.id) : base.id != null)
+                return false;
+
+            if (data != null ? !data.equals(base.data) : base.data != null)
+                return false;
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = id != null ? id.hashCode() : 0;
+            result = 31 * result + (data != null ? data.hashCode() : 0);
+            return result;
+        }
+
+        @Override
         public String toString() {
             return self().getClass().getName() + "{" +
                 "id=" + id +
