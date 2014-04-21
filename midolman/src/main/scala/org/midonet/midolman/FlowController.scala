@@ -362,16 +362,9 @@ class FlowController extends Actor with ActorLogWithoutPath {
 
         case FlowMissing(flowMatch, callback) =>
             callback.call(null)
-            Option(flowManager.getActionsForDpFlow(flowMatch)).foreach {
-                case actions =>
-                    if (flowMatch.isUserSpaceOnly) {
-                        log.warning("DP flow was lost, but flowMatch is for" +
-                            "userspace only, this should not be happening",
-                            flowMatch)
-                    } else {
-                        log.warning("DP flow was lost, forgetting: {}", flowMatch)
-                        flowManager.forgetFlow(flowMatch)
-                    }
+            if (flowManager.getActionsForDpFlow(flowMatch) != null) {
+                log.warning("DP flow was lost, forgetting: {}", flowMatch)
+                flowManager.forgetFlow(flowMatch)
             }
             metrics.currentDpFlows = flowManager.getNumDpFlows
 
