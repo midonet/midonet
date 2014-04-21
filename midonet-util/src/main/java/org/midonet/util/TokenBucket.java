@@ -4,7 +4,6 @@
 
 package org.midonet.util;
 
-import java.util.ArrayList;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.LockSupport;
@@ -15,11 +14,55 @@ import static java.util.Arrays.copyOf;
 /*
  * This class implements a hierarchical token bucket. Starting from a root
  * bucket, it allows a tree of buckets to be created. Tokens go into the root
- * bucket according to the specified fill rate stratagy and are distributed
+ * bucket according to the specified fill rate strategy and are distributed
  * recursively among the root's children. When all the buckets in a level of
  * the hierarchy are full, they accumulate in the parent bucket. Tokens can
  * only be retrieved from the leaf buckets, although you can wait for any
- * bucket to contain a specified number of tokens.
+ * bucket to contain a specified number of tokens. The operation of the token
+ * bucket is as follows:
+ *
+ *                  +–––––+
+ *                  |     | root
+ *                  |     |
+ *                  +––+––+
+ *                     |
+ *             +–––––––+––––––+
+ *             |              |
+ *          +––+––+        +––+––+
+ *  middle0 |     |        |     | middle1
+ *          |     |        |     |
+ *          +–––––+        +––+––+
+ *                            |
+ *                    +–––––––+–––––––+
+ *                    |               |
+ *                 +––+––+         +––+––+
+ *           leaf0 |     |         |     | leaf1
+ *                 |     |         |     |
+ *                 +–––––+         +–––––+
+ *
+ * - When retrieving tokens from a leaf, we first look to see if the it
+ *   contains the specified amount of tokens, and consume those tokens locally;
+ * - If it does not, then we trigger a distribution of tokens. This entails
+ *   going up to the root, getting the new tokens from the TokenBucketFillRate™
+ *   and, together with any previously accumulated tokens, distribute them
+ *   recursively. We evenly distribute tokens between the two middle buckets.
+ * - In middle0, we just add the tokens to its current account and return the
+ *   excess tokens over its allowed maximum. For middle1, we distribute evenly
+ *   to the leafs and accumulate excess tokens in middle1. Again, if all the
+ *   leafs and also middle1 are full, we return to the root the excess tokens.
+ * - We do a fair distribution, meaning that, for this particular case, if the
+ *   number of tokens is odd, than we always accumulate at least one token at
+ *   middle1 or at the root.
+ * - Again at the leaf, we try again to consume local tokens, assuming we
+ *   distributed new tokens. Note that we may have depleted the bucket and the
+ *   distribution may have filled it up again, meaning that now we got two full
+ *   bursts. This is okay, as it only happens when all the other buckets are full.
+ * - If we still don't have enough tokens, we are going up the hierarchy again
+ *   consuming all excess tokens accumulated in the middle or root buckets. In
+ *   this case there is no fairness and two buckets may compete for these tokens.
+ * - We execute a fixed point algorithm, meaning that we loop around until we
+ *   obtained all the requested tokens or until we are unable to distribute new
+ *   tokens and grab excess ones.
  */
 public abstract class TokenBucket {
     public static int TIMEOUT = -1;
@@ -49,11 +92,8 @@ public abstract class TokenBucket {
             }
 
             @Override
-            protected void borrowTokens() {
-                for (TokenBucket tb : children) {
-                    if (tb != null)
-                        tb.addTokens(Integer.MAX_VALUE);
-                }
+            protected int grabExcess(int numTokens) {
+                return numTokens;
             }
         };
     }
@@ -87,6 +127,7 @@ public abstract class TokenBucket {
                 if (children[i] == tb) {
                     children[i] = null;
                     tb.parent = null;
+                    numChildren -= 1;
                     break;
                 }
             }
@@ -95,11 +136,11 @@ public abstract class TokenBucket {
         }
     }
 
-    public int getMaxTokens() {
+    public final int getMaxTokens() {
         return maxTokens;
     }
 
-    public void setMaxTokens(int maxTokens) {
+    public final void setMaxTokens(int maxTokens) {
         this.maxTokens = maxTokens;
         int ts;
         do {
@@ -107,11 +148,26 @@ public abstract class TokenBucket {
         } while (ts > maxTokens && !numTokens.compareAndSet(ts, maxTokens));
     }
 
-    public int getNumTokens() {
+    public final int getNumTokens() {
         return numTokens.get();
     }
 
-    public abstract int tryGet(int tokens);
+    public int tryGet(int tokens) {
+        if (numChildren > 0)
+            throw new IllegalArgumentException("Can only get tokens " +
+                    "from leaf buckets");
+        int remaining = tokens - tryTakeTokens(tokens);
+        int oldRemaining = -1;
+        while (remaining > 0 && remaining != oldRemaining) {
+            oldRemaining = remaining;
+            parent.distribute();
+            remaining -= tryTakeTokens(remaining);
+            if (remaining > 0)
+                remaining -= parent.grabExcess(remaining);
+        }
+
+        return tokens - remaining;
+    }
 
     public static int getAny(final TokenBucket[] buckets,
                              final int[] tokens,
@@ -123,12 +179,10 @@ public abstract class TokenBucket {
         while (System.nanoTime() < deadline) {
             for (int i = 0; i < buckets.length; ++i) {
                 TokenBucket tb = buckets[i];
-
                 if (tb.numTokens.get() >= tokens[i])
                     return i;
 
-                tb.borrowTokens();
-
+                tb.distribute();
                 if (tb.numTokens.get() >= tokens[i])
                     return i;
             }
@@ -155,22 +209,22 @@ public abstract class TokenBucket {
     // between a thread that's distributing tokens and a thread that calls
     // borrowTokens(); we also ignore it and let the callers fallback to
     // waiting.
-    protected abstract void borrowTokens();
+    protected void distribute() {
+        parent.distribute();
+    }
 
-    protected int giveTokens(final int tokens) {
-        if (hasChildren()) {
-            int excess = distribute(tokens, numChildren, children) +
-                         numTokens.getAndSet(0);
-            return excess == 0 ? 0 : addTokens(excess);
-        }
-        return addTokens(tokens);
+    protected int grabExcess(int numTokens) {
+        int remaining = numTokens - tryTakeTokens(numTokens);
+        if (remaining > 0 && parent != null)
+            remaining -= parent.grabExcess(remaining);
+        return numTokens - remaining;
     }
 
     private boolean hasChildren() {
         return numChildren > 0;
     }
 
-    private int addTokens(int tokens) {
+    protected final int addTokens(int tokens) {
         int ts;
         while ((ts = numTokens.get()) < maxTokens) {
             int sumTs = ts + tokens;
@@ -181,13 +235,24 @@ public abstract class TokenBucket {
         return tokens;
     }
 
-    private int distribute(int tokens, int totalBuckets, TokenBucket[] cs) {
-        int bucketsFilled;
-        int excess;
+    protected final int tryTakeTokens(int tokens) {
+        int ts;
+        while ((ts = numTokens.get()) > 0) {
+            int nts = Math.max(0, ts - tokens);
+            if (numTokens.compareAndSet(ts, nts))
+                return ts - nts;
+        }
+        return 0;
+    }
+
+    protected final int doDistribution(int tokens, int totalBuckets,
+                                       TokenBucket[] cs) {
+        int excess = 0;
         int fullBucketsMap = 0;
         int fullBuckets = 0;
-        do {
-            bucketsFilled = 0;
+        int previousTokens = -1;
+        while (previousTokens != tokens && fullBuckets < totalBuckets) {
+            previousTokens = tokens;
             int buckets = totalBuckets - fullBuckets;
             int tokensPerBucket = tokens / buckets;
             excess = tokens % totalBuckets;
@@ -202,17 +267,26 @@ public abstract class TokenBucket {
                     excess += localExcess;
                     if (localExcess == tokensPerBucket) {
                         fullBucketsMap |= 1 << i;
-                        bucketsFilled += 1;
+                        fullBuckets += 1;
                     }
                     tbi += 1;
                 }
             }
 
-            fullBuckets += bucketsFilled;
             tokens = excess;
-        } while (bucketsFilled > 0 && tokens > 0 && fullBuckets < totalBuckets);
+        }
 
         return excess;
+    }
+
+    private int giveTokens(final int tokens) {
+        if (hasChildren()) {
+            int excess = doDistribution(tokens, numChildren, children) +
+                         numTokens.getAndSet(0);
+            return excess == 0 ? 0 : addTokens(excess);
+        }
+
+        return addTokens(tokens);
     }
 
     /*
@@ -241,13 +315,6 @@ public abstract class TokenBucket {
     }
 
     private static long[] executeTest(final long iterations, int numThreads) {
-        final StatisticalCounter counter = new StatisticalCounter(1) {
-            long value = 0;
-            @Override
-            public long getValue() {
-                return value += 100_000l;
-            }
-        };
         final TokenBucketTestRate rate = new TokenBucketTestRate();
         final TokenBucket root = TokenBucket.create(1_000, rate);
         Thread[] ts = new Thread[numThreads];
@@ -304,16 +371,13 @@ final class RootTokenBucket extends TokenBucket {
     }
 
     @Override
-    public int tryGet(int tokens) {
-        throw new IllegalArgumentException("Can only get tokens " +
-                                           "from leaf buckets");
-    }
-
-    @Override
-    protected void borrowTokens() {
+    protected void distribute() {
         int newTokens = rate.getNewTokens() + numTokens.getAndSet(0);
-        if (newTokens > 0)
-            giveTokens(newTokens);
+        if (newTokens > 0) {
+            int excess = doDistribution(newTokens, numChildren, children);
+            if (excess > 0)
+                addTokens(excess);
+        }
     }
 }
 
@@ -322,38 +386,5 @@ final class TokenBucketImpl extends TokenBucket {
     TokenBucketImpl(int maxTokens, TokenBucket parent) {
         super(maxTokens);
         this.parent = parent;
-    }
-
-    @Override
-    public int tryGet(int tokens) {
-        if (numChildren > 0)
-            throw new IllegalArgumentException("Can only get tokens " +
-                                               "from leaf buckets");
-        int taken = tryTakeTokens(tokens);
-        if (taken < tokens) {
-            boolean full;
-            do {
-                borrowTokens();
-                full = numTokens.get() == maxTokens;
-                taken += tryTakeTokens(tokens - taken);
-            } while (taken < tokens && full);
-        }
-
-        return taken;
-    }
-
-    private int tryTakeTokens(int tokens) {
-        int ts;
-        while ((ts = numTokens.get()) > 0) {
-            int nts = Math.max(0, ts - tokens);
-            if (numTokens.compareAndSet(ts, nts))
-                return ts - nts;
-        }
-        return 0;
-    }
-
-    @Override
-    protected void borrowTokens() {
-        parent.borrowTokens();
     }
 }

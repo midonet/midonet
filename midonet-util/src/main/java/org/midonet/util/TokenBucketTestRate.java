@@ -10,7 +10,9 @@ public class TokenBucketTestRate implements TokenBucketFillRate {
 
     @Override
     public int getNewTokens() {
-        return tokens;
+        int res = tokens;
+        tokens = 0;
+        return res;
     }
 
     public void setNewTokens(int tokens) {
