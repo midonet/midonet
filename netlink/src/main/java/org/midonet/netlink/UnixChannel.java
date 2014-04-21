@@ -24,20 +24,23 @@ import org.midonet.netlink.hacks.*;
  * socket connection to the local machine.
  */
 public abstract class UnixChannel<Address> extends AbstractSelectableChannel
-    implements ByteChannel, ScatteringByteChannel,
-               GatheringByteChannel, Channel,
-               InterruptibleChannel
-{
-    private static final Logger log = LoggerFactory
-            .getLogger(UnixChannel.class);
+                                           implements ByteChannel,
+                                                      InterruptibleChannel,
+                                                      GatheringByteChannel,
+                                                      ScatteringByteChannel {
+
+    private static final Logger log =
+        LoggerFactory.getLogger(UnixChannel.class);
+
+    // Used to make native read and write calls
+    protected static NativeDispatcher nd = new NativeDispatcher();
 
     protected static final int ST_UNINITIALIZED = -1;
     protected static final int ST_UNCONNECTED = 0;
     protected static final int ST_CONNECTED = 1;
     protected static final int ST_KILLED = 2;
     protected static final int ST_LISTENING = 3;
-    // Used to make native read and write calls
-    protected static NativeDispatcher nd = new NativeDispatcher();
+
     // fd value needed for dev/poll. This value will remain valid
     // even after the value in the file descriptor object has been set to -1
     protected int fdVal;
@@ -59,6 +62,9 @@ public abstract class UnixChannel<Address> extends AbstractSelectableChannel
     // IDs of native threads doing reads and writes, for signalling
     protected volatile long readerThread = 0;
     protected volatile long writerThread = 0;
+
+    private long rxBytes = 0;
+    private long txBytes = 0;
 
     protected UnixChannel(SelectorProvider provider) {
         super(provider);
@@ -99,45 +105,27 @@ public abstract class UnixChannel<Address> extends AbstractSelectableChannel
     }
 
     @Override
-    public long write(ByteBuffer[] buffers) throws IOException {
-        return write(buffers, 0, buffers.length);
+    public long write(ByteBuffer[] buffers, int offset, int length)
+            throws IOException {
+        return write(shiftBuffers(buffers, offset, length));
     }
 
     @Override
-    public long write(ByteBuffer[] buffers, int offset, int length)
-        throws IOException {
-        if ((offset < 0) || (length < 0) || (offset > buffers.length - length))
-            throw new IndexOutOfBoundsException();
-
-        ByteBuffer[] wBuffers = buffers;
-        if ((offset != 0) || (length != buffers.length)) {
-            wBuffers = new ByteBuffer[length];
-            System.arraycopy(buffers, offset, wBuffers, 0, length);
-        }
-
+    public long write(ByteBuffer[] buffers) throws IOException {
         synchronized (sendLock) {
-            synchronized (stateLock) {
-                ensureOpen();
-                if (!isConnected())
-                    throw new NotYetConnectedException();
-            }
-            long n = 0;
+            ensureConnected();
+            int n = 0;
             try {
-                begin();
-                if (!isOpen())
+                if (!prepareWrite())
                     return 0;
-                writerThread = NativeThread.current();
                 do {
-                    n = IOUtil.write(fd, wBuffers, nd);
+                    n = IOUtil.write(fd, buffers, nd);
                 } while ((n == IOStatus.INTERRUPTED) && isOpen());
-                return IOStatus.normalize(n);
+                return normalizeAndCountTxBytes(n);
             } finally {
-                writerThread = 0;
-                end((n > 0) || (n == IOStatus.UNAVAILABLE));
-                assert IOStatus.check(n);
+                finishWrite(n);
             }
         }
-
     }
 
     @Override
@@ -146,67 +134,41 @@ public abstract class UnixChannel<Address> extends AbstractSelectableChannel
             throw new NullPointerException();
 
         synchronized (sendLock) {
-            synchronized (stateLock) {
-                ensureOpen();
-                if (!isConnected())
-                    throw new NotYetConnectedException();
-            }
+            ensureConnected();
             int n = 0;
             try {
-                begin();
-                if (!isOpen())
+                if (!prepareWrite())
                     return 0;
-                writerThread = NativeThread.current();
                 do {
                     n = IOUtil.write(fd, buffer, -1, nd);
                 } while ((n == IOStatus.INTERRUPTED) && isOpen());
-                return IOStatus.normalize(n);
+                return normalizeAndCountTxBytes(n);
             } finally {
-                writerThread = 0;
-                end((n > 0) || (n == IOStatus.UNAVAILABLE));
-                assert IOStatus.check(n);
+                finishWrite(n);
             }
         }
-    }
-
-    @Override
-    public long read(ByteBuffer[] buffers) throws IOException {
-        return read(buffers, 0, buffers.length);
     }
 
     @Override
     public long read(ByteBuffer[] buffers, int offset, int length)
-        throws IOException {
+            throws IOException {
+        return read(shiftBuffers(buffers, offset, length));
+    }
 
-        if ((offset < 0) || (length < 0) || (offset > buffers.length - length))
-            throw new IndexOutOfBoundsException();
-
-        ByteBuffer[] rBuffers = buffers;
-        if ((offset != 0) || (length != rBuffers.length)) {
-            rBuffers = new ByteBuffer[length];
-            System.arraycopy(buffers, offset, rBuffers, 0, length);
-        }
-
+    @Override
+    public long read(ByteBuffer[] buffers) throws IOException {
         synchronized (recvLock) {
-            synchronized (stateLock) {
-                ensureOpen();
-                if (!isConnected())
-                    throw new NotYetConnectedException();
-            }
-            long n = 0;
+            ensureConnected();
+            int n = 0;
             try {
-                begin();
-                if (!isOpen())
-                    return 0;
-                readerThread = NativeThread.current();
+                if (!prepareRead())
+                    return n;
                 do {
                     n = IOUtil.read(fd, buffers, nd);
                 } while ((n == IOStatus.INTERRUPTED) && isOpen());
-                return IOStatus.normalize(n);
+                return normalizeAndCountRxBytes(n);
             } finally {
-                readerThread = 0;
-                end((n > 0) || (n == IOStatus.UNAVAILABLE));
-                assert IOStatus.check(n);
+                finishRead(n);
             }
         }
     }
@@ -217,33 +179,74 @@ public abstract class UnixChannel<Address> extends AbstractSelectableChannel
             throw new NullPointerException();
 
         synchronized (recvLock) {
-            synchronized (stateLock) {
-                ensureOpen();
-                if (!isConnected())
-                    throw new NotYetConnectedException();
-            }
+            ensureConnected();
             int n = 0;
             try {
-                begin();
-                if (!isOpen())
-                    return 0;
-                readerThread = NativeThread.current();
+                if (!prepareRead())
+                    return n;
                 do {
                     n = IOUtil.read(fd, dst, -1, nd);
                 } while ((n == IOStatus.INTERRUPTED) && isOpen());
-                return IOStatus.normalize(n);
+                return normalizeAndCountRxBytes(n);
             } finally {
-                readerThread = 0;
-                end((n > 0) || (n == IOStatus.UNAVAILABLE));
-                assert IOStatus.check(n);
+                finishRead(n);
             }
         }
+    }
 
+    private boolean prepareWrite() {
+        begin();
+        if (isOpen()) {
+            writerThread = NativeThread.current();
+            return true;
+        }
+        return false;
+    }
+
+    private boolean prepareRead() {
+        begin();
+        if (isOpen()) {
+            readerThread = NativeThread.current();
+            return true;
+        }
+        return false;
+    }
+
+    private void finishWrite(int txBytes) throws AsynchronousCloseException {
+        writerThread = 0;
+        end((txBytes > 0) || (txBytes == IOStatus.UNAVAILABLE));
+        assert IOStatus.check(txBytes);
+    }
+
+    private void finishRead(int rxBytes) throws AsynchronousCloseException {
+        readerThread = 0;
+        end((rxBytes > 0) || (rxBytes == IOStatus.UNAVAILABLE));
+        assert IOStatus.check(rxBytes);
+    }
+
+    private int normalizeAndCountRxBytes(int readBytes) {
+        readBytes = IOStatus.normalize(readBytes);
+        rxBytes += readBytes;
+        return readBytes;
+    }
+
+    private int normalizeAndCountTxBytes(int writtenBytes) {
+        writtenBytes = IOStatus.normalize(writtenBytes);
+        txBytes += writtenBytes;
+        return writtenBytes;
     }
 
     private void ensureOpen() throws ClosedChannelException {
         if (!isOpen())
             throw new ClosedChannelException();
+    }
+
+    private void ensureConnected() throws ClosedChannelException {
+        synchronized (stateLock) {
+            ensureOpen();
+            if (!isConnected())
+                throw new NotYetConnectedException();
+        }
     }
 
     void ensureOpenAndUnconnected() throws IOException { // package-private
@@ -368,6 +371,14 @@ public abstract class UnixChannel<Address> extends AbstractSelectableChannel
         return localAddress;
     }
 
+    public long rxBytes() {
+        return rxBytes;
+    }
+
+    public long txBytes() {
+        return txBytes;
+    }
+
     public void kill() throws IOException {
         synchronized (stateLock) {
             if (state == ST_KILLED)
@@ -387,5 +398,20 @@ public abstract class UnixChannel<Address> extends AbstractSelectableChannel
             throw new IOException("failed to close the socket: " +
                     cLibrary.lib.strerror(Native.getLastError()));
         }
+    }
+
+    private static ByteBuffer[] shiftBuffers(ByteBuffer[] buffers,
+                                             int offset, int length) {
+        if ((offset < 0) || (length < 0) || (offset > buffers.length - length))
+            throw new IndexOutOfBoundsException(
+                "cannot take a slice of length " + length + " at offset "
+                + offset + " of an array of length " + buffers.length);
+
+        ByteBuffer[] shiftedBuffers = buffers;
+        if ((offset != 0) || (length != shiftedBuffers.length)) {
+            shiftedBuffers = new ByteBuffer[length];
+            System.arraycopy(buffers, offset, shiftedBuffers, 0, length);
+        }
+        return shiftedBuffers;
     }
 }
