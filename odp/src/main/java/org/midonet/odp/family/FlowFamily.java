@@ -43,7 +43,7 @@ public class FlowFamily {
             NetlinkMessage.AttrKey.attr(OpenVSwitch.Flow.Attr.Used);
 
         /* Flag to clear stats, tcp_flags, used. */
-        NetlinkMessage.AttrKey<Netlink.Flag> CLEAR =
+        NetlinkMessage.AttrKey<Short> CLEAR =
             NetlinkMessage.AttrKey.attr(OpenVSwitch.Flow.Attr.Clear);
 
         // unused attribute -> MetaFlow ??

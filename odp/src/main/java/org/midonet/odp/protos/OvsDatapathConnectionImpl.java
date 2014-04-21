@@ -14,16 +14,17 @@ import org.slf4j.LoggerFactory;
 
 import org.midonet.netlink.BufferPool;
 import org.midonet.netlink.Callback;
+import org.midonet.netlink.NLFlag;
 import org.midonet.netlink.NetlinkChannel;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.exceptions.NetlinkException;
 import org.midonet.netlink.messages.Builder;
 import org.midonet.odp.Datapath;
+import org.midonet.odp.DpPort;
 import org.midonet.odp.Flow;
 import org.midonet.odp.FlowMatch;
 import org.midonet.odp.OpenVSwitch;
 import org.midonet.odp.Packet;
-import org.midonet.odp.DpPort;
 import org.midonet.odp.family.DatapathFamily;
 import org.midonet.odp.family.FlowFamily;
 import org.midonet.odp.family.PacketFamily;
@@ -32,7 +33,6 @@ import org.midonet.odp.flows.FlowAction;
 import org.midonet.odp.flows.FlowKey;
 import org.midonet.util.BatchCollector;
 
-import static org.midonet.netlink.Netlink.Flag;
 import static org.midonet.odp.family.FlowFamily.AttrKey;
 
 
@@ -122,7 +122,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         sendNetlinkMessage(
             datapathFamily.contextGet,
-            Flag.or(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO),
+            NLFlag.REQUEST | NLFlag.ECHO,
             Datapath.getRequest(getBuffer(), dpId, name),
             callback,
             Datapath.deserializer,
@@ -137,7 +137,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         sendNetlinkMessage(
             datapathFamily.contextGet,
-            Flag.or(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO, Flag.NLM_F_DUMP),
+            NLFlag.REQUEST | NLFlag.ECHO | NLFlag.Get.DUMP,
             Datapath.enumRequest(getBuffer()),
             callback,
             Datapath.setDeserializer,
@@ -155,7 +155,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         sendNetlinkMessage(
             datapathFamily.contextNew,
-            Flag.or(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO),
+            NLFlag.REQUEST | NLFlag.ECHO,
             Datapath.createRequest(getBuffer(), localPid, name),
             callback,
             Datapath.deserializer,
@@ -179,7 +179,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         sendNetlinkMessage(
             datapathFamily.contextDel,
-            Flag.or(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO),
+            NLFlag.REQUEST | NLFlag.ECHO,
             Datapath.getRequest(getBuffer(), dpId, name),
             callback,
             Datapath.deserializer,
@@ -228,7 +228,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         sendNetlinkMessage(
             portFamily.contextGet,
-            Flag.or(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO),
+            NLFlag.REQUEST | NLFlag.ECHO,
             message.getBuffer(),
             callback,
             DpPort.deserializer,
@@ -246,7 +246,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         sendNetlinkMessage(
             portFamily.contextDel,
-            Flag.or(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO),
+            NLFlag.REQUEST | NLFlag.ECHO,
             builder.build().getBuffer(),
             callback,
             DpPort.deserializer,
@@ -281,7 +281,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         sendNetlinkMessage(
             portFamily.contextSet,
-            Flag.or(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO),
+            NLFlag.REQUEST | NLFlag.ECHO,
             message.getBuffer(),
             callback,
             DpPort.deserializer,
@@ -302,8 +302,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         sendNetlinkMessage(
             portFamily.contextGet,
-            Flag.or(Flag.NLM_F_DUMP, Flag.NLM_F_ACK,
-                    Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO),
+            NLFlag.REQUEST | NLFlag.ECHO | NLFlag.Get.DUMP | NLFlag.ACK,
             message.getBuffer(),
             callback,
             DpPort.setDeserializer,
@@ -344,7 +343,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         sendNetlinkMessage(
             portFamily.contextNew,
-            Flag.or(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO),
+            NLFlag.REQUEST | NLFlag.ECHO,
             message.getBuffer(),
             callback,
             DpPort.deserializer,
@@ -373,8 +372,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         sendNetlinkMessage(
             flowFamily.contextGet,
-            Flag.or(Flag.NLM_F_ACK, Flag.NLM_F_REQUEST,
-                    Flag.NLM_F_ECHO, Flag.NLM_F_DUMP),
+            NLFlag.REQUEST | NLFlag.ECHO | NLFlag.Get.DUMP | NLFlag.ACK,
             message.getBuffer(),
             callback,
             Flow.setDeserializer,
@@ -408,14 +406,9 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         NetlinkMessage message = builder.build();
 
-        short flags = 0;
+        short flags = NLFlag.REQUEST | NLFlag.New.CREATE;
         if (callback != null) {
-            flags = (short) (Flag.NLM_F_CREATE.getValue() |
-                             Flag.NLM_F_REQUEST.getValue() |
-                             Flag.NLM_F_ECHO.getValue());
-        } else {
-            flags = (short) (Flag.NLM_F_CREATE.getValue() |
-                             Flag.NLM_F_REQUEST.getValue());
+            flags |= NLFlag.ECHO;
         }
 
         sendNetlinkMessage(
@@ -461,7 +454,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         sendNetlinkMessage(
             flowFamily.contextDel,
-            (short) (Flag.NLM_F_REQUEST.getValue() | Flag.NLM_F_ECHO.getValue()),
+            NLFlag.REQUEST | NLFlag.ECHO,
             message.getBuffer(),
             callback,
             Flow.deserializer,
@@ -491,7 +484,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         sendNetlinkMessage(
             flowFamily.contextDel,
-            Flag.or(Flag.NLM_F_REQUEST, Flag.NLM_F_ACK),
+            NLFlag.REQUEST | NLFlag.ACK,
             message.getBuffer(),
             callback,
             alwaysTrueTranslator,
@@ -520,7 +513,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         sendNetlinkMessage(
             flowFamily.contextGet,
-            Flag.or(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO),
+            NLFlag.REQUEST | NLFlag.ECHO,
             builder.build().getBuffer(),
             callback,
             Flow.deserializer,
@@ -565,7 +558,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         sendNetlinkMessage(
             flowFamily.contextSet,
-            Flag.or(Flag.NLM_F_REQUEST, Flag.NLM_F_ECHO),
+            NLFlag.REQUEST | NLFlag.ECHO,
             builder.build().getBuffer(),
             callback,
             Flow.deserializer,
@@ -625,12 +618,9 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         NetlinkMessage message = builder.build();
 
-        short flags = 0;
+        short flags = NLFlag.REQUEST;
         if (callback != null) {
-            flags = (short) (Flag.NLM_F_REQUEST.getValue() |
-                             Flag.NLM_F_ACK.getValue());
-        } else {
-            flags = Flag.NLM_F_REQUEST.getValue();
+            flags |= NLFlag.ACK;
         }
 
         sendNetlinkMessage(
