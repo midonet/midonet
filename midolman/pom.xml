@@ -337,9 +337,9 @@
                         <configuration>
                             <tasks>
                                 <copy file="${project.build.directory}/${project.build.finalName}.jar"
-                                      tofile="${project.build.directory}/midolman.jar"/>
+                                      todir="${project.build.directory}"/>
                                 <copy file="${bootstrap.location}/"
-                                      tofile="${project.build.directory}/midonet-jdk-bootstrap.jar"/>
+                                      todir="${project.build.directory}"/>
                             </tasks>
                         </configuration>
                         <goals><goal>run</goal></goals>
