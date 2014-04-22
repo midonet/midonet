@@ -6,7 +6,7 @@ package org.midonet.midolman.io
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.{ShouldMatchers, BeforeAndAfter, FeatureSpec}
+import org.scalatest.{OneInstancePerTest, ShouldMatchers, BeforeAndAfter, FeatureSpec}
 
 import org.apache.commons.configuration.HierarchicalConfiguration
 
@@ -19,16 +19,17 @@ import java.util
 @RunWith(classOf[JUnitRunner])
 class TokenBucketPolicyTest extends FeatureSpec
                             with BeforeAndAfter
-                            with ShouldMatchers {
+                            with ShouldMatchers
+                            with OneInstancePerTest {
     var policy: TokenBucketPolicy = _
 
     before {
         val configuration = new HierarchicalConfiguration
         configuration.addNodes(DatapathConfig.GROUP_NAME, util.Arrays.asList(
-            new HierarchicalConfiguration.Node("global_incoming_burst_capacity", 4),
-            new HierarchicalConfiguration.Node("vm_incoming_burst_capacity", 4),
-            new HierarchicalConfiguration.Node("tunnel_incoming_burst_capacity", 4),
-            new HierarchicalConfiguration.Node("vtep_incoming_burst_capacity", 4)))
+            new HierarchicalConfiguration.Node("global_incoming_burst_capacity", 1),
+            new HierarchicalConfiguration.Node("vm_incoming_burst_capacity", 1),
+            new HierarchicalConfiguration.Node("tunnel_incoming_burst_capacity", 1),
+            new HierarchicalConfiguration.Node("vtep_incoming_burst_capacity", 1)))
 
         val provider = ConfigProvider.providerForIniConfig(configuration)
 
@@ -51,10 +52,12 @@ class TokenBucketPolicyTest extends FeatureSpec
             tb.getName should be ("midolman-root/vms/vm")
         }
 
-        scenario("Linking is idempotent") {
-            val port = new NetDevPort("vm")
-            val tb = policy link port
-            tb should be (policy link port)
+        scenario("Additional tokens are added to the root") {
+            val tb1 = policy link new NetDevPort("vm1")
+            val tb2 = policy link new NetDevPort("vm2")
+
+            tb1.tryGet(1) should be (1)
+            tb2.tryGet(1) should be (1)
         }
     }
 
@@ -76,16 +79,6 @@ class TokenBucketPolicyTest extends FeatureSpec
             val port = new NetDevPort("port")
             val tb = policy.link(port)
 
-            policy unlink port
-
-            tb.getParent should be (null)
-        }
-
-        scenario("Unlinking is idempotent") {
-            val port = new NetDevPort("vm")
-            val tb = policy.link(port)
-
-            policy unlink port
             policy unlink port
 
             tb.getParent should be (null)
