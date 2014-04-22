@@ -77,7 +77,6 @@ class MidolmanActorsService extends AbstractService {
         try {
             log.info("Booting up actors service")
 
-            log.debug("Creating actors system.")
             _system = ActorSystem.create("MidolmanActors",
                 ConfigFactory.load().getConfig("midolman"))
 
@@ -101,9 +100,9 @@ class MidolmanActorsService extends AbstractService {
         try {
             val stopFutures = childrenActors map { child => stopActor(child) }
             try {
+                log.debug("Stopping the actor system")
                 Await.result(Future.sequence(stopFutures), 500 millis)
                 stopActor(supervisorActor)
-                log.debug("Stopping the actor system")
             } catch {
                 case e: TimeoutException =>
                     log.warn("Failed to gracefully stop the actor system")
