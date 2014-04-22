@@ -64,10 +64,7 @@ public class OvsPortsSetTest extends AbstractNetlinkProtocolTest {
     }
 
     private DpPort expectedInternalPort() {
-        InternalPort port = new InternalPort("internalPort");
-        port.setPortNo(1);
-        port.setStats(new DpPort.Stats());
-        return port;
+        return DpPort.fakeFrom(new InternalPort("internalPort"), 1);
     }
 
     private Datapath expectedDatapath() {

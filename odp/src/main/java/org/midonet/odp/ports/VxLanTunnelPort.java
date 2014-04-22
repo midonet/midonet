@@ -3,11 +3,11 @@
  */
 package org.midonet.odp.ports;
 
-import javax.annotation.Nonnull;
+import java.nio.ByteBuffer;
 
 import org.midonet.netlink.NetlinkMessage;
-import org.midonet.netlink.messages.Builder;
 import org.midonet.odp.DpPort;
+import org.midonet.odp.OpenVSwitch;
 import org.midonet.odp.family.PortFamily;
 
 /**
@@ -17,21 +17,25 @@ public class VxLanTunnelPort extends DpPort {
 
     private VxLanTunnelPortOptions options;
 
-    public VxLanTunnelPort(@Nonnull String name) {
-        super(name, Type.VXLan);
+    public VxLanTunnelPort(String name) {
+        super(name);
     }
 
-    public VxLanTunnelPort(@Nonnull String name, VxLanTunnelPortOptions opts) {
-        super(name, Type.VXLan);
+    public VxLanTunnelPort(String name, VxLanTunnelPortOptions opts) {
+        super(name);
         this.options = opts;
+    }
+
+    public Type getType() {
+        return Type.VXLan;
     }
 
     /** Serializes this VxLanTunnelPort object into a ByteBuffer. If the
      *  'options' instance variable is null and not serialized into the
      *  ByteBuffer, the datapath will return EINVAL to port_create requests. */
     @Override
-    public void serializeInto(Builder builder) {
-        super.serializeInto(builder);
+    public void serializeInto(ByteBuffer buf) {
+        super.serializeInto(buf);
         if (options != null) {
             // OVS_VPORT_ATTR_OPTIONS is a nested netlink attribute. Here we
             // write its netlink header manually. The len field of the header is
@@ -39,10 +43,13 @@ public class VxLanTunnelPort extends DpPort {
             // The attribute is a single port field (u16) which we write with
             // padding (4b), and whose own header takes 4b. Note that the header
             // of the port attribute has its len field written without padding
-            // (see VxLanTunnelPortOptions#serialize().
-            builder.addValue((short)12);
-            builder.addValue(PortFamily.Attr.VXLANOPTIONS.getId());
-            options.serialize(builder);
+            buf.putShort((short)12);
+            buf.putShort((short)OpenVSwitch.Port.Attr.Options);
+            // The datapath code checks for a u16 attribute written without
+            // padding, therefore the len field of the header should be 6b.
+            short portAttrId = (short)OpenVSwitch.Port.VPortTunnelOptions.DstPort;
+            short dstPort = options.getDestinationPort();
+            NetlinkMessage.writeShortAttrNoPad(buf, portAttrId, dstPort);
         }
     }
 
@@ -76,11 +83,11 @@ public class VxLanTunnelPort extends DpPort {
     @Override
     public String toString() {
         return "DpPort{" +
-            "portNo=" + portNo +
-            ", type=" + type +
-            ", name='" + name + '\'' +
+            "portNo=" + getPortNo() +
+            ", type=" + getType() +
+            ", name='" + getName() + '\'' +
             ", options=" + options +
-            ", stats=" + stats +
+            ", stats=" + getStats() +
             '}';
     }
 
