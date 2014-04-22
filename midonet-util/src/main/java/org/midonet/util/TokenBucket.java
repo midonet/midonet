@@ -4,13 +4,13 @@
 
 package org.midonet.util;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.LockSupport;
 import java.util.concurrent.locks.ReentrantLock;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static java.util.Arrays.copyOf;
 
@@ -57,18 +57,16 @@ import static java.util.Arrays.copyOf;
  *   number of tokens is odd, than we always accumulate at least one token at
  *   middle1 or at the root.
  * - Again at the leaf, we try again to consume local tokens, assuming we
- *   distributed new tokens. Note that we may have depleted the bucket and the
+ *   distributed new ones. Note that we may have depleted the bucket and the
  *   distribution may have filled it up again, meaning that now we got two full
  *   bursts. This is okay, as it only happens when all the other buckets are full.
- * - If we still don't have enough tokens, we are going up the hierarchy again
- *   consuming all excess tokens accumulated in the middle or root buckets. In
- *   this case there is no fairness and two buckets may compete for these tokens.
  * - We execute a fixed point algorithm, meaning that we loop around until we
  *   obtained all the requested tokens or until we are unable to distribute new
- *   tokens and grab excess ones.
+ *   tokens.
  */
 public abstract class TokenBucket {
-    public static int TIMEOUT = -1;
+    public static final int TIMEOUT = -1;
+    private static final int UNLINKED = -1;
 
     private static final Logger log = LoggerFactory
             .getLogger(TokenBucket.class);
@@ -81,6 +79,8 @@ public abstract class TokenBucket {
     protected TokenBucket parent;
     protected int numChildren;
     protected TokenBucket[] children = new TokenBucket[0];
+
+    protected int distributabilityAllotment = 1;
 
     protected TokenBucket(int maxTokens, String name) {
         this.maxTokens = maxTokens;
@@ -99,12 +99,37 @@ public abstract class TokenBucket {
             public int tryGet(int tokens) {
                 return tokens;
             }
-
-            @Override
-            protected int grabExcess(int numTokens) {
-                return numTokens;
-            }
         };
+    }
+
+    public void dumpToLog() {
+        log.info("name:{} cap:{} tokens:{} minDA:{}",
+            new Object[] { name, maxTokens, numTokens.get(),
+                           distributabilityAllotment});
+
+        for (int i = 0; i < children.length; i++) {
+            TokenBucket child = children[i];
+            if (child != null)
+                child.dumpToLog();
+        }
+    }
+
+    public int getDistributabilityAllotment() {
+        return distributabilityAllotment;
+    }
+
+    private void updateDistributabilityAllotment() {
+        int max = 0;
+        TokenBucket[] cs = children;
+        for (int i = 0; i < cs.length; i++) {
+            TokenBucket child = cs[i];
+            if (child != null && child.distributabilityAllotment > max)
+                max = child.distributabilityAllotment;
+        }
+        distributabilityAllotment = max * numChildren;
+
+        if (parent != null)
+            parent.updateDistributabilityAllotment();
     }
 
     public final TokenBucket link(int maxTokens, String name) {
@@ -123,25 +148,29 @@ public abstract class TokenBucket {
 
             return ntb;
         } finally {
+            updateDistributabilityAllotment();
             lock.unlock();
         }
     }
 
-    public final void unlink(TokenBucket tb) {
+    public final int unlink(TokenBucket tb) {
         lock.lock();
         try {
-            if (tb.parent == null)
-                return;
+            if (tb.isUnlinked())
+                return 0;
 
             for (int i = 0; i < children.length; ++i) {
                 if (children[i] == tb) {
                     children[i] = null;
                     tb.parent = null;
                     numChildren -= 1;
-                    break;
+                    return tb.numTokens.getAndSet(UNLINKED);
                 }
             }
+
+            return 0;
         } finally {
+            updateDistributabilityAllotment();
             lock.unlock();
         }
     }
@@ -151,11 +180,16 @@ public abstract class TokenBucket {
     }
 
     public final void setMaxTokens(int maxTokens) {
-        this.maxTokens = maxTokens;
-        int ts;
-        do {
-            ts = numTokens.get();
-        } while (ts > maxTokens && !numTokens.compareAndSet(ts, maxTokens));
+        lock.lock();
+        try {
+            this.maxTokens = maxTokens;
+            int ts;
+            do {
+                ts = numTokens.get();
+            } while (ts > maxTokens && !numTokens.compareAndSet(ts, maxTokens));
+        } finally {
+            lock.unlock();
+        }
     }
 
     public final String getName() {
@@ -181,8 +215,6 @@ public abstract class TokenBucket {
             oldRemaining = remaining;
             parent.distribute();
             remaining -= tryTakeTokens(remaining);
-            if (remaining > 0)
-                remaining -= parent.grabExcess(remaining);
         }
 
         int acquired = tokens - remaining;
@@ -216,6 +248,20 @@ public abstract class TokenBucket {
         return TIMEOUT;
     }
 
+    public final int addTokens(int tokens) {
+        int ts;
+        while ((ts = numTokens.get()) < maxTokens) {
+            if (ts == UNLINKED)
+                break;
+
+            int sumTs = ts + tokens;
+            int nts = Math.min(maxTokens, sumTs);
+            if (numTokens.compareAndSet(ts, nts))
+                return sumTs - nts;
+        }
+        return tokens;
+    }
+
     private void growArray() {
         children = copyOf(children, Math.max(4, children.length << 1));
     }
@@ -228,6 +274,23 @@ public abstract class TokenBucket {
         return -1;
     }
 
+    private boolean isUnlinked() {
+        return numTokens.get() == UNLINKED;
+    }
+
+    private boolean isFull() {
+        if (hasChildren()) {
+            TokenBucket[] cs = children;
+            for (int i = 0; i < cs.length; ++i) {
+                TokenBucket tb = cs[i];
+                if (tb != null && !cs[i].isFull())
+                    return false;
+            }
+            return true;
+        }
+        return numTokens.get() == maxTokens;
+    }
+
     // There's a race between distributing excess tokens and linking or
     // unlinking a token bucket, which we ignore. There's also a race
     // between a thread that's distributing tokens and a thread that calls
@@ -237,26 +300,8 @@ public abstract class TokenBucket {
         parent.distribute();
     }
 
-    protected int grabExcess(int numTokens) {
-        int remaining = numTokens - tryTakeTokens(numTokens);
-        if (remaining > 0 && parent != null)
-            remaining -= parent.grabExcess(remaining);
-        return numTokens - remaining;
-    }
-
     private boolean hasChildren() {
         return numChildren > 0;
-    }
-
-    protected final int addTokens(int tokens) {
-        int ts;
-        while ((ts = numTokens.get()) < maxTokens) {
-            int sumTs = ts + tokens;
-            int nts = Math.min(maxTokens, sumTs);
-            if (numTokens.compareAndSet(ts, nts))
-                return sumTs - nts;
-        }
-        return tokens;
     }
 
     protected final int tryTakeTokens(int tokens) {
@@ -269,45 +314,85 @@ public abstract class TokenBucket {
         return 0;
     }
 
-    protected final int doDistribution(int tokens, int totalBuckets,
-                                       TokenBucket[] cs) {
-        log.trace("Bucket {} distributing {} new tokens", name, tokens);
-        int excess = 0;
-        int fullBucketsMap = 0;
-        int fullBuckets = 0;
-        int previousTokens = -1;
-        while (previousTokens != tokens && fullBuckets < totalBuckets) {
-            previousTokens = tokens;
-            int buckets = totalBuckets - fullBuckets;
-            int tokensPerBucket = tokens / buckets;
-            excess = tokens % totalBuckets;
+    // FIXME: duarte ! document return values and parameters because they are not obvious
+    protected final int doDistribution(int tokens) {
+        if (tokens < distributabilityAllotment) {
+            if (log.isTraceEnabled()) {
+                log.trace("[{}|{}] skipping distribution of {} new tokens, minDA:{}",
+                    new Object[] { Thread.currentThread().getId(), name, tokens,
+                                   distributabilityAllotment});
+            }
+            return tokens;
+        }
 
+        if (log.isTraceEnabled()) {
+            log.trace("[{}|{}] distributing {} new tokens",
+                      new Object[] { Thread.currentThread().getId(), name, tokens });
+        }
+
+        int previousTokens = -1;
+        while (tokens > 0 && tokens != previousTokens) {
+            previousTokens = tokens;
+            TokenBucket[] cs = children;
+
+            int nonFullChildren = 0;
+            for (int i = 0; i < cs.length; ++i) {
+                TokenBucket tb = cs[i];
+                if (tb != null && !tb.isFull())
+                    nonFullChildren += 1;
+            }
+
+            if (nonFullChildren == 0)
+                break;
+
+            int tokensPerBucket = tokens / nonFullChildren;
+            int excess = tokens % nonFullChildren;
+
+            if (log.isTraceEnabled()) {
+                log.trace("Loop to distribute tokens:{} children:{} tokens-per-child:{} excess:{}",
+                          new Object[] { tokens, nonFullChildren, tokensPerBucket, excess });
+            }
+
+            /* We don't distribute if the number of tokens to give is smaller
+             * than the number of buckets that want tokens. */
             if (tokensPerBucket == 0)
                 break;
 
-            for (int i = 0, tbi = 0; i < cs.length && tbi < buckets; ++i) {
+            for (int i = 0; i < cs.length; ++i) {
                 TokenBucket tb = cs[i];
-                if (tb != null && (fullBucketsMap & (1 << i)) == 0) {
+                if (tb != null && !tb.isFull()) {
                     int localExcess = tb.giveTokens(tokensPerBucket);
                     excess += localExcess;
-                    if (localExcess == tokensPerBucket) {
-                        fullBucketsMap |= 1 << i;
-                        fullBuckets += 1;
+
+                    if (log.isTraceEnabled()) {
+                        if (localExcess == tokensPerBucket) {
+                            log.trace("[{}|{}] bucket {} is full",
+                                      new Object[] { Thread.currentThread().getId(), name, tb.name});
+                        } else {
+                            int given = tokensPerBucket - localExcess;
+                            log.trace("[{}|{}] bucket {} got {} tokens",
+                                      new Object[] { Thread.currentThread().getId(), name, tb.name, given});
+                        }
                     }
-                    tbi += 1;
                 }
             }
 
             tokens = excess;
         }
 
-        return excess;
+        if (log.isTraceEnabled()) {
+            log.trace("[{}|{}] finished distribution with {} excess tokens",
+                      new Object[] { Thread.currentThread().getId(), name, tokens });
+        }
+
+        return tokens;
     }
 
+    // FIXME: duarte ! document return values and parameters because they are not obvious
     private int giveTokens(final int tokens) {
         if (hasChildren()) {
-            int excess = doDistribution(tokens, numChildren, children) +
-                         numTokens.getAndSet(0);
+            int newTokens = tokens + numTokens.getAndSet(0);
+            int excess = doDistribution(newTokens);
             return excess == 0 ? 0 : addTokens(excess);
         }
 
@@ -391,15 +476,13 @@ final class RootTokenBucket extends TokenBucket {
     RootTokenBucket(int maxTokens, String name, TokenBucketFillRate rate) {
         super(maxTokens, name);
         this.rate = rate;
-
-        numTokens.set(maxTokens);
     }
 
     @Override
     protected void distribute() {
         int newTokens = rate.getNewTokens() + numTokens.getAndSet(0);
         if (newTokens > 0) {
-            int excess = doDistribution(newTokens, numChildren, children);
+            int excess = doDistribution(newTokens);
             if (excess > 0)
                 addTokens(excess);
         }

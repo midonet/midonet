@@ -431,8 +431,12 @@ public abstract class AbstractNetlinkConnection {
                             dispatcher.submit(request.successful(request.inBuffers));
                         }
 
-                        if (seq == 0 && (tb == null || tb.tryGet(1) == 1))
-                            handleNotification(type, cmd, seq, pid, buffers);
+                        if (seq == 0) {
+                            if (tb == null || tb.tryGet(1) == 1)
+                                handleNotification(type, cmd, seq, pid, buffers);
+                            else
+                                log.debug("Failed to get token; dropping packet");
+                        }
                     }
             }
 
