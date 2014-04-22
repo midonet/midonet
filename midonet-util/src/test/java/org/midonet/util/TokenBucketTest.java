@@ -86,4 +86,18 @@ public class TokenBucketTest {
         assertThat(leaf1.tryGet(1), is(1));
         assertThat(leaf0.tryGet(1), is(0));
     }
+
+    @Test
+    public void testTokenBucketSystemRate() {
+        StatisticalCounter c = new StatisticalCounter(1);
+        TokenBucketSystemRate r = new TokenBucketSystemRate(c);
+
+        assertThat(r.getNewTokens(), is(0));
+
+        c.addAndGet(0, 3);
+        assertThat(r.getNewTokens(), is(3));
+
+        c.addAndGet(0, 2);
+        assertThat(r.getNewTokens(), is(2));
+    }
 }
