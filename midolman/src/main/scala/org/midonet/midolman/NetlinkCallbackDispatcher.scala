@@ -28,20 +28,27 @@ object NetlinkCallbackDispatcher extends Referenceable {
             }
 
             override def endBatch() {
-                if (cursor > 0)
-                    cycle()
 
-                if (allCBs.size > 0) {
-                    NetlinkCallbackDispatcher ! ProcessCallbacks(allCBs)
-                    allCBs = Nil
+
+                this.synchronized {
+                    if (cursor > 0)
+                        cycle()
+
+                    if (allCBs.size > 0) {
+                        NetlinkCallbackDispatcher ! ProcessCallbacks(allCBs)
+                        allCBs = Nil
+                    }
                 }
             }
 
             override def submit(r: Runnable) {
-                currentCBs(cursor) = r
-                cursor += 1
-                if (cursor == BATCH_SIZE)
-                    cycle()
+
+                this.synchronized {
+                    currentCBs(cursor) = r
+                    cursor += 1
+                    if (cursor == BATCH_SIZE)
+                        cycle()
+                }
             }
         }
 
