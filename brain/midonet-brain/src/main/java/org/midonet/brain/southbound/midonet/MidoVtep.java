@@ -22,6 +22,7 @@ import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.MacPortMap;
 import org.midonet.midolman.state.ReplicatedMap;
 import org.midonet.midolman.state.StateAccessException;
+import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 
 /**
@@ -30,6 +31,9 @@ import org.midonet.packets.MAC;
 public class MidoVtep {
     private final static Logger log =
             LoggerFactory .getLogger(MidoVtep.class);
+
+    // These are hard-coded for now.
+    static final IPv4Addr midoIp = IPv4Addr.fromString("119.15.113.90");
 
     @Inject
     private DataClient dataClient = null;
@@ -62,9 +66,13 @@ public class MidoVtep {
                                                      Bridge.UNTAGGED_VLAN_ID,
                                                      false);
                 macTable.addWatcher(new ReplicatedMap.Watcher<MAC, UUID>() {
-                    public void processChange(MAC key, UUID oldValue, UUID newValue) {
-                        updateHandler.handleMacPortUpdate(
-                                new MacPortUpdate(bridgeId, key, oldValue, newValue));
+                    public void processChange(
+                            MAC mac, UUID oldPort, UUID newPort) {
+                        MacPortUpdate update =
+                                generateMacPortUpdate(mac, oldPort, newPort);
+                        if (update != null) {
+                            updateHandler.handleMacPortUpdate(update);
+                        }
                     }
                 });
                 macTable.start();
@@ -82,6 +90,26 @@ public class MidoVtep {
 
         this.macPortTables = macPortTables;
         this.running = true;
+    }
+
+    /**
+     * Given a MAC address, an old assigned port ID, and a newly assigned port
+     * ID, generates a MacPortUpdate for this MidoVtep.
+     * @param mac A MAC address
+     * @param oldPortID An old assigned port ID.
+     * @param newValue A newly assigned port ID.
+     * @return A MacPortUpdate for this MidoVtep.
+     */
+    private MacPortUpdate generateMacPortUpdate(MAC key, UUID oldPortID, UUID newValue) {
+        if (oldPortID == null && newValue != null) {
+            return new MacPortUpdate(key, null, midoIp);
+        } else if (oldPortID != null && newValue == null) {
+            return new MacPortUpdate(key, midoIp, null);
+        } else {
+            // Either both null (which should not happen) or non-null.
+            // At the moment, we assume only a single Midolman so does nothing.
+            return null;
+        }
     }
 
     /**
