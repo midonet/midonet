@@ -23,9 +23,6 @@ public class DatapathConnectionService extends AbstractService {
     @Inject
     DatapathConnectionPool requestsConnPool;
 
-    @Inject
-    MidolmanConfig config;
-
     @Override
     protected void doStart() {
         try {
