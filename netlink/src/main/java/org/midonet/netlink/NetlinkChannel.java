@@ -45,7 +45,10 @@ public class NetlinkChannel extends UnixChannel<Netlink.Address> {
         super(provider);
         this.protocol = protocol;
         this.state = ST_UNCONNECTED;
+        initSocket();
+    }
 
+    protected void initSocket() {
         int socket = cLibrary.lib.socket(cLibrary.AF_NETLINK, cLibrary.SOCK_RAW,
                                          protocol.value());
 
