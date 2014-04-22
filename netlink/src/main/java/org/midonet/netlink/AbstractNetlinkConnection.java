@@ -455,8 +455,8 @@ public abstract class AbstractNetlinkConnection {
     private NetlinkRequest<?> removeRequest(int seq) {
         NetlinkRequest<?> request = pendingRequests.remove(seq);
         if (request == null) {
-            log.warn("[pid:{}] Reply handler for netlink request with id {} " +
-                     "not found.", pid(), seq);
+            log.debug("[pid:{}] Reply handler for netlink request with id {} " +
+                      "not found.", pid(), seq);
         }
         return request;
     }
