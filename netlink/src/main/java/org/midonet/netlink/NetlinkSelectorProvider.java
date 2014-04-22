@@ -85,14 +85,6 @@ public class NetlinkSelectorProvider extends SelectorProvider {
         return (NetlinkChannel) makeInstanceOf(type, argTypes, args);
     }
 
-    public NetlinkChannel openMockNetlinkSocketChannel(NetlinkProtocol prot) {
-        String type = "org.midonet.netlink.MockNetlinkChannel";
-        Class[] argTypes = {SelectorProvider.class, NetlinkProtocol.class};
-        Object[] args = {this, prot};
-
-        return (NetlinkChannel) makeInstanceOf(type, argTypes, args);
-    }
-
     public UnixDomainChannel openUnixDomainSocketChannel(AfUnix.Type socketType) {
         String type = "org.midonet.netlink.UnixDomainChannelImpl";
         Class[] argTypes = {SelectorProvider.class, AfUnix.Type.class};
