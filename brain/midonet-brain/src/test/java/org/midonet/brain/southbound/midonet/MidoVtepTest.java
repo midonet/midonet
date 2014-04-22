@@ -41,6 +41,7 @@ import org.midonet.midolman.guice.serialization.SerializationModule;
 import org.midonet.midolman.guice.zookeeper.MockZookeeperConnectionModule;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.version.guice.VersionModule;
+import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 
 import static org.junit.Assert.*;
@@ -56,25 +57,14 @@ class MockMacPortUpdateHandler implements MacPortUpdateHandler {
         this.notifications = new ArrayList<String>();
     }
 
-    static String makeNotificationStr(
-            UUID bridgeId, MAC key, UUID oldVal, UUID newVal) {
-        return bridgeId + "," + key + "," + oldVal + "," + newVal;
-    }
-
-    static String makeNotificationStr(MacPortUpdate update) {
-        return makeNotificationStr(update.bridgeId, update.mac,
-               update.oldPortId, update.newPortId);
-    }
-
     public List<String> getNotifications() {
         return this.notifications;
     }
 
     @Override
     public void handleMacPortUpdate(MacPortUpdate update) {
-        String macPortUpdate = makeNotificationStr(update);
-        System.out.println(macPortUpdate);
-        notifications.add(macPortUpdate);
+        System.out.println(update);
+        notifications.add(update.toString());
     }
 }
 
@@ -318,16 +308,16 @@ public class MidoVtepTest {
         assertEquals("MidoBridgesProxy receives Mac-entry update notifications",
                      3, this.notifications.size());
         assertEquals("1st notification",
-                     MockMacPortUpdateHandler.makeNotificationStr(
-                             bridgeId, macAddress1, null, bridgePortId),
+                     MacPortUpdate.toMacPortUpdateStr(
+                             macAddress1, null, MidoVtep.midoIp),
                      this.notifications.get(0));
         assertEquals("2nd notification",
-                     MockMacPortUpdateHandler.makeNotificationStr(
-                             bridgeId, macAddress1, bridgePortId, null),
+                     MacPortUpdate.toMacPortUpdateStr(
+                             macAddress1, MidoVtep.midoIp, null),
                      this.notifications.get(1));
         assertEquals("3rd notification",
-                     MockMacPortUpdateHandler.makeNotificationStr(
-                             bridgeId, macAddress3, null, bridgePortId),
+                     MacPortUpdate.toMacPortUpdateStr(
+                             macAddress3, null, MidoVtep.midoIp),
                      this.notifications.get(2));
     }
 }
