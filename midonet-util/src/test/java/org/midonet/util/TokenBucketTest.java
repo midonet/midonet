@@ -14,9 +14,9 @@ public class TokenBucketTest {
     @Test
     public void testRepeatedBurst() {
         TokenBucketTestRate tr = new TokenBucketTestRate();
-        TokenBucket root = TokenBucket.create(10, tr);
-        TokenBucket tb1 = root.link(5),
-                    tb2 = root.link(5);
+        TokenBucket root = TokenBucket.create(10, "test-root", tr);
+        TokenBucket tb1 = root.link(5, "tb1"),
+                    tb2 = root.link(5, "tb2");
 
         assertThat(tb1.tryGet(10), is(5));
         tr.setNewTokens(10);
@@ -26,12 +26,12 @@ public class TokenBucketTest {
     @Test
     public void testMultiLevels() {
         TokenBucketTestRate tr = new TokenBucketTestRate();
-        TokenBucket root = TokenBucket.create(20, tr);
-        TokenBucket middle0 = root.link(0),
-                    middle1 = root.link(5);
+        TokenBucket root = TokenBucket.create(20, "test-root", tr);
+        TokenBucket middle0 = root.link(0, "middle0"),
+                    middle1 = root.link(5, "middle1");
 
-        TokenBucket leaf0 = middle0.link(5),
-                    leaf1 = middle0.link(5);
+        TokenBucket leaf0 = middle0.link(5, "leaf0"),
+                    leaf1 = middle0.link(5, "leaf1");
 
         assertThat(leaf0.tryGet(10), is(10));
         assertThat(middle1.tryGet(5), is(5));
@@ -40,7 +40,8 @@ public class TokenBucketTest {
 
     @Test
     public void testDecreaseMaxTokens() {
-        TokenBucket root = TokenBucket.create(10, new TokenBucketTestRate());
+        TokenBucket root = TokenBucket.create(10, "test-root",
+                                              new TokenBucketTestRate());
         root.setMaxTokens(5);
 
         assertThat(root.getMaxTokens(), is(5));
@@ -49,8 +50,9 @@ public class TokenBucketTest {
 
     @Test
     public void testZeroSizedLeaf() {
-        TokenBucket root = TokenBucket.create(10, new TokenBucketTestRate());
-        TokenBucket tb = root.link(0);
+        TokenBucket root = TokenBucket.create(10, "test-root",
+                                              new TokenBucketTestRate());
+        TokenBucket tb = root.link(0, "tb");
 
         assertThat(tb.tryGet(5), is(5));
     }
@@ -58,9 +60,9 @@ public class TokenBucketTest {
     @Test
     public void testSteal() {
         TokenBucketTestRate rate = new TokenBucketTestRate();
-        TokenBucket root = TokenBucket.create(1, rate);
-        TokenBucket leaf0 = root.link(1);
-        TokenBucket leaf1 = root.link(1);
+        TokenBucket root = TokenBucket.create(1, "test-root", rate);
+        TokenBucket leaf0 = root.link(1, "leaf0");
+        TokenBucket leaf1 = root.link(1, "leaf1");
 
         assertThat(leaf0.tryGet(1), is(1));
         assertThat(leaf1.tryGet(1), is(0));
@@ -73,11 +75,11 @@ public class TokenBucketTest {
     @Test
     public void testStealFromIntermediary() {
         TokenBucketTestRate rate = new TokenBucketTestRate();
-        TokenBucket root = TokenBucket.create(1, rate);
-        TokenBucket middle = root.link(1);
+        TokenBucket root = TokenBucket.create(1, "test-root", rate);
+        TokenBucket middle = root.link(1, "middle");
 
-        TokenBucket leaf0 = middle.link(1),
-                    leaf1 = middle.link(1);
+        TokenBucket leaf0 = middle.link(1, "leaf0"),
+                    leaf1 = middle.link(1, "leaf1");
 
         assertThat(leaf0.tryGet(1), is(1));
         assertThat(leaf1.tryGet(1), is(0));

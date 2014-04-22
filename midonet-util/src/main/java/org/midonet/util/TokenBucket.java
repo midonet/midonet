@@ -1,8 +1,11 @@
 /*
- * Copyright (c) 2014 Midokura Europe SARL, All Rights Reserved.
+ * Copyright (c) 2014 Midokura SARL, All Rights Reserved.
  */
 
 package org.midonet.util;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
@@ -67,7 +70,11 @@ import static java.util.Arrays.copyOf;
 public abstract class TokenBucket {
     public static int TIMEOUT = -1;
 
+    private static final Logger log = LoggerFactory
+            .getLogger(TokenBucket.class);
+
     protected final PaddedAtomicInteger numTokens = new PaddedAtomicInteger();
+    private final String name;
     protected int maxTokens;
 
     private final ReentrantLock lock = new ReentrantLock();
@@ -75,17 +82,19 @@ public abstract class TokenBucket {
     protected int numChildren;
     protected TokenBucket[] children = new TokenBucket[0];
 
-    protected TokenBucket(int maxTokens) {
+    protected TokenBucket(int maxTokens, String name) {
         this.maxTokens = maxTokens;
+        this.name = name;
     }
 
     public static TokenBucket create(int maxTokens,
+                                     String name,
                                      TokenBucketFillRate rate) {
-        return new RootTokenBucket(maxTokens, rate);
+        return new RootTokenBucket(maxTokens, name, rate);
     }
 
     public static TokenBucket bottomless() {
-        return new TokenBucket(Integer.MAX_VALUE) {
+        return new TokenBucket(Integer.MAX_VALUE, "bottomless") {
             @Override
             public int tryGet(int tokens) {
                 return tokens;
@@ -98,10 +107,11 @@ public abstract class TokenBucket {
         };
     }
 
-    public final TokenBucket link(int maxTokens) {
+    public final TokenBucket link(int maxTokens, String name) {
         lock.lock();
         try {
-            TokenBucketImpl ntb = new TokenBucketImpl(maxTokens, this);
+            String n = getName() + "/" + name;
+            TokenBucketImpl ntb = new TokenBucketImpl(maxTokens, n, this);
             int idx = findFreeIndex();
             if (idx < 0) {
                 idx = children.length;
@@ -148,6 +158,14 @@ public abstract class TokenBucket {
         } while (ts > maxTokens && !numTokens.compareAndSet(ts, maxTokens));
     }
 
+    public final String getName() {
+        return name;
+    }
+
+    public final TokenBucket getParent() {
+        return parent;
+    }
+
     public final int getNumTokens() {
         return numTokens.get();
     }
@@ -155,7 +173,8 @@ public abstract class TokenBucket {
     public int tryGet(int tokens) {
         if (numChildren > 0)
             throw new IllegalArgumentException("Can only get tokens " +
-                    "from leaf buckets");
+                                               "from leaf buckets");
+
         int remaining = tokens - tryTakeTokens(tokens);
         int oldRemaining = -1;
         while (remaining > 0 && remaining != oldRemaining) {
@@ -166,7 +185,12 @@ public abstract class TokenBucket {
                 remaining -= parent.grabExcess(remaining);
         }
 
-        return tokens - remaining;
+        int acquired = tokens - remaining;
+        if (log.isTraceEnabled()) {
+            log.trace("Bucket {} got {}/{} tokens",
+                      new Object[] { name, acquired, tokens });
+        }
+        return acquired;
     }
 
     public static int getAny(final TokenBucket[] buckets,
@@ -247,6 +271,7 @@ public abstract class TokenBucket {
 
     protected final int doDistribution(int tokens, int totalBuckets,
                                        TokenBucket[] cs) {
+        log.trace("Bucket {} distributing {} new tokens", name, tokens);
         int excess = 0;
         int fullBucketsMap = 0;
         int fullBuckets = 0;
@@ -316,7 +341,7 @@ public abstract class TokenBucket {
 
     private static long[] executeTest(final long iterations, int numThreads) {
         final TokenBucketTestRate rate = new TokenBucketTestRate();
-        final TokenBucket root = TokenBucket.create(1_000, rate);
+        final TokenBucket root = TokenBucket.create(1_000, "test-root", rate);
         Thread[] ts = new Thread[numThreads];
         final long[] tokens = new long[numThreads * PADDING];
         final CyclicBarrier barrier = new CyclicBarrier(numThreads);
@@ -326,7 +351,7 @@ public abstract class TokenBucket {
             ts[i] = new Thread() {
                 @Override
                 public void run() {
-                    TokenBucket tb = root.link(100_000_000);
+                    TokenBucket tb = root.link(100_000_000, "test-" + x);
                     try {
                         barrier.await();
                     } catch (Exception e) {
@@ -363,8 +388,8 @@ public abstract class TokenBucket {
 final class RootTokenBucket extends TokenBucket {
     private final TokenBucketFillRate rate;
 
-    RootTokenBucket(int maxTokens, TokenBucketFillRate rate) {
-        super(maxTokens);
+    RootTokenBucket(int maxTokens, String name, TokenBucketFillRate rate) {
+        super(maxTokens, name);
         this.rate = rate;
 
         numTokens.set(maxTokens);
@@ -383,8 +408,8 @@ final class RootTokenBucket extends TokenBucket {
 
 final class TokenBucketImpl extends TokenBucket {
 
-    TokenBucketImpl(int maxTokens, TokenBucket parent) {
-        super(maxTokens);
+    TokenBucketImpl(int maxTokens, String name, TokenBucket parent) {
+        super(maxTokens, name);
         this.parent = parent;
     }
 }
