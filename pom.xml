@@ -572,7 +572,7 @@
         <dependency>
             <groupId>me.prettyprint</groupId>
             <artifactId>hector-core</artifactId>
-            <version>1.0-2</version> <!-- compatible with cass 1.0.7 ?-->
+            <version>1.0-3</version> <!-- compatible with cass 1.0.7 ?-->
             <exclusions> <!-- version conflicts with declared dependencies -->
                 <exclusion>
                     <groupId>org.apache.cassandra</groupId>
