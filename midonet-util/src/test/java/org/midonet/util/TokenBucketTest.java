@@ -15,6 +15,7 @@ public class TokenBucketTest {
     public void testRepeatedBurst() {
         TokenBucketTestRate tr = new TokenBucketTestRate();
         TokenBucket root = TokenBucket.create(10, "test-root", tr);
+        tr.setNewTokens(10);
         TokenBucket tb1 = root.link(5, "tb1"),
                     tb2 = root.link(5, "tb2");
 
@@ -27,6 +28,7 @@ public class TokenBucketTest {
     public void testMultiLevels() {
         TokenBucketTestRate tr = new TokenBucketTestRate();
         TokenBucket root = TokenBucket.create(20, "test-root", tr);
+        tr.setNewTokens(20);
         TokenBucket middle0 = root.link(0, "middle0"),
                     middle1 = root.link(5, "middle1");
 
@@ -36,57 +38,6 @@ public class TokenBucketTest {
         assertThat(leaf0.tryGet(10), is(10));
         assertThat(middle1.tryGet(5), is(5));
         assertThat(leaf1.tryGet(5), is(5));
-    }
-
-    @Test
-    public void testDecreaseMaxTokens() {
-        TokenBucket root = TokenBucket.create(10, "test-root",
-                                              new TokenBucketTestRate());
-        root.setMaxTokens(5);
-
-        assertThat(root.getMaxTokens(), is(5));
-        assertThat(root.getNumTokens(), is(5));
-    }
-
-    @Test
-    public void testZeroSizedLeaf() {
-        TokenBucket root = TokenBucket.create(10, "test-root",
-                                              new TokenBucketTestRate());
-        TokenBucket tb = root.link(0, "tb");
-
-        assertThat(tb.tryGet(5), is(5));
-    }
-
-    @Test
-    public void testSteal() {
-        TokenBucketTestRate rate = new TokenBucketTestRate();
-        TokenBucket root = TokenBucket.create(1, "test-root", rate);
-        TokenBucket leaf0 = root.link(1, "leaf0");
-        TokenBucket leaf1 = root.link(1, "leaf1");
-
-        assertThat(leaf0.tryGet(1), is(1));
-        assertThat(leaf1.tryGet(1), is(0));
-
-        rate.setNewTokens(1);
-        assertThat(leaf1.tryGet(1), is(1));
-        assertThat(leaf0.tryGet(1), is(0));
-    }
-
-    @Test
-    public void testStealFromIntermediary() {
-        TokenBucketTestRate rate = new TokenBucketTestRate();
-        TokenBucket root = TokenBucket.create(1, "test-root", rate);
-        TokenBucket middle = root.link(1, "middle");
-
-        TokenBucket leaf0 = middle.link(1, "leaf0"),
-                    leaf1 = middle.link(1, "leaf1");
-
-        assertThat(leaf0.tryGet(1), is(1));
-        assertThat(leaf1.tryGet(1), is(0));
-
-        rate.setNewTokens(1);
-        assertThat(leaf1.tryGet(1), is(1));
-        assertThat(leaf0.tryGet(1), is(0));
     }
 
     @Test
@@ -101,5 +52,93 @@ public class TokenBucketTest {
 
         c.addAndGet(0, 2);
         assertThat(r.getNewTokens(), is(2));
+    }
+
+    class HTBTree {
+        TokenBucketTestRate r = new TokenBucketTestRate();
+        TokenBucket root = TokenBucket.create(16, "test-root", r);
+        TokenBucket tunnel = root.link(8, "tunnel"),
+                    vms    = root.link(0, "vms");
+
+        TokenBucket vm0 = vms.link(4, "vm0"),
+                    vm1 = vms.link(4, "vm1");
+
+
+        public void reset(int root, int tunnel, int vm0, int vm1) {
+            this.r.setNewTokens(root);
+            this.tunnel.addTokens(tunnel);
+            this.vm0.addTokens(vm0);
+            this.vm1.addTokens(vm1);
+        }
+    }
+
+    @Test
+    public void testExcess() {
+        HTBTree htb = new HTBTree();
+        htb.reset(4, 4, 3, 3);
+
+        assertThat(htb.vm0.tryGet(4), is(4));
+        assertThat(htb.vm1.tryGet(4), is(4));
+        assertThat(htb.tunnel.tryGet(8), is(6));
+    }
+
+    @Test
+    public void testExcess2() {
+        HTBTree htb = new HTBTree();
+        htb.reset(6, 7, 2, 2);
+
+        assertThat(htb.vm0.tryGet(4), is(4));
+        assertThat(htb.vm1.tryGet(4), is(4));
+        assertThat(htb.tunnel.tryGet(8), is(8));
+        assertThat(htb.root.getNumTokens(), is(0));
+        assertThat(htb.vm0.tryGet(1), is(1));
+    }
+
+    @Test
+    public void testAllFullButOneLeaf() {
+        HTBTree htb = new HTBTree();
+        htb.reset(4, 8, 4, 3);
+
+        assertThat(htb.vm0.tryGet(4), is(4));
+        assertThat(htb.vm1.tryGet(4), is(4));
+        assertThat(htb.tunnel.tryGet(8), is(8));
+    }
+
+    @Test
+    public void testNoMinimumAllotment() {
+        HTBTree htb = new HTBTree();
+        htb.reset(3, 0, 0, 0);
+
+        assertThat(htb.vm0.tryGet(1), is(0));
+        assertThat(htb.vm1.tryGet(1), is(0));
+        assertThat(htb.tunnel.tryGet(1), is(0));
+        assertThat(htb.root.getNumTokens(), is(3));
+
+        htb.root.addTokens(2);
+
+        assertThat(htb.vm0.tryGet(4), is(1));
+        assertThat(htb.vm1.tryGet(4), is(1));
+        assertThat(htb.tunnel.tryGet(4), is(2));
+        assertThat(htb.root.getNumTokens(), is(1));
+    }
+
+    @Test
+    public void testAllotmentRecalculation() {
+        HTBTree htb = new HTBTree();
+
+        TokenBucket tmp = htb.vms.link(4, "tmp");
+        assertThat(htb.root.distributabilityAllotment, is(6));
+
+        TokenBucket tmp2 = htb.vms.link(4, "tmp2");
+        assertThat(htb.root.distributabilityAllotment, is(8));
+
+        htb.vms.unlink(tmp2);
+        assertThat(htb.root.distributabilityAllotment, is(6));
+
+        htb.vms.unlink(tmp);
+        assertThat(htb.root.distributabilityAllotment, is(4));
+
+        htb.root.unlink(htb.tunnel);
+        assertThat(htb.root.distributabilityAllotment, is(2));
     }
 }

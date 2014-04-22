@@ -46,6 +46,10 @@ haproxy_file_loc = /etc/midolman.$n/l4lb/
 EOF
     fi
 
+    sed -i '/<\/configuration>/i \
+    <logger name="org.midonet.util.TokenBucket" level="TRACE" \/>' \
+    /etc/midolman.$n/logback.xml
+
     sed -i 's/root level="INFO"/root level="DEBUG"/' /etc/midolman.$n/logback.xml
     sed -i 's/INFO/DEBUG/g' /etc/midolman.$n/midolman-akka.conf
 
