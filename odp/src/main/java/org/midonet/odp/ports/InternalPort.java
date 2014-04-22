@@ -3,8 +3,6 @@
  */
 package org.midonet.odp.ports;
 
-import javax.annotation.Nonnull;
-
 import org.midonet.odp.DpPort;
 
 /**
@@ -12,8 +10,12 @@ import org.midonet.odp.DpPort;
  */
 public class InternalPort extends DpPort {
 
-    public InternalPort(@Nonnull String name) {
-        super(name, Type.Internal);
+    public InternalPort(String name) {
+        super(name);
+    }
+
+    public Type getType() {
+        return Type.Internal;
     }
 
 }

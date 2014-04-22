@@ -55,7 +55,7 @@ public class Builder {
     public void addAttr(NetlinkMessage.AttrKey<Short> attr, short value) {
         NetlinkMessage.setAttrHeader(buffer, attr.getId(), 8);
         buffer.putShort(value);
-        addPaddingForShort(buffer); // Pad for 4-byte alignment
+        NetlinkMessage.addPaddingForShort(buffer); // Pad for 4-byte alignment
     }
 
     public void addAttrNoPad(NetlinkMessage.AttrKey<Short> attr,
@@ -63,7 +63,7 @@ public class Builder {
         // write the header len field assuming no padding
         NetlinkMessage.setAttrHeader(buffer, attr.getId(), 6);
         buffer.putShort(value);
-        addPaddingForShort(buffer); // Pad for 4-byte alignment
+        NetlinkMessage.addPaddingForShort(buffer); // Pad for 4-byte alignment
     }
 
     public void addAttr(NetlinkMessage.AttrKey<Integer> attr, int value) {
@@ -180,11 +180,6 @@ public class Builder {
         buffer.put(padding);
         buffer.put(padding);
         buffer.put(padding);
-    }
-
-    static void addPaddingForShort(ByteBuffer buffer) {
-        short padding = 0;
-        buffer.putShort(padding);
     }
 
     /** Writes a list of attritubes into a NetlinkMessage as a nested attribute.

@@ -195,8 +195,6 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         if (!validateState(callback))
             return;
 
-        int localPid = getChannel().getLocalAddress().getPid();
-
         if (name == null && portId == null) {
             callback.onError(
                 new OvsDatapathInvalidParametersException(
@@ -213,41 +211,30 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             return;
         }
 
-        final int datapathIndex = datapath == null ? 0 : datapath.getIndex();
-        Builder builder = newMessage();
-        builder.addValue(datapathIndex);
-        builder.addAttr(PortFamily.Attr.UPCALL_PID, localPid);
-
-        if (portId != null)
-            builder.addAttr(PortFamily.Attr.PORT_NO, portId);
-
-        if (name != null)
-            builder.addAttr(PortFamily.Attr.NAME, name);
-
-        NetlinkMessage message = builder.build();
+        int datapathId = datapath == null ? 0 : datapath.getIndex();
+        int localPid = getChannel().getLocalAddress().getPid();
 
         sendNetlinkMessage(
             portFamily.contextGet,
             NLFlag.REQUEST | NLFlag.ECHO,
-            message.getBuffer(),
+            DpPort.getRequest(getBuffer(), datapathId, localPid, name, portId),
             callback,
             DpPort.deserializer,
             timeoutMillis);
     }
 
     @Override
-    protected void _doPortsDelete(@Nonnull DpPort port, @Nullable Datapath datapath,
-                                  @Nonnull Callback<DpPort> callback, long timeoutMillis) {
+    protected void _doPortsDelete(@Nonnull DpPort port,
+                                  @Nullable Datapath datapath,
+                                  @Nonnull Callback<DpPort> callback,
+                                  long timeoutMillis) {
 
-        final int datapathIndex = datapath == null ? 0 : datapath.getIndex();
-        Builder builder = newMessage();
-        builder.addValue(datapathIndex);
-        builder.addAttr(PortFamily.Attr.PORT_NO, port.getPortNo());
+        int datapathId = datapath == null ? 0 : datapath.getIndex();
 
         sendNetlinkMessage(
             portFamily.contextDel,
             NLFlag.REQUEST | NLFlag.ECHO,
-            builder.build().getBuffer(),
+            DpPort.deleteRequest(getBuffer(), datapathId, port),
             callback,
             DpPort.deserializer,
             timeoutMillis);
@@ -261,28 +248,20 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         if (!validateState(callback))
             return;
 
+        int datapathId = datapath == null ? 0 : datapath.getIndex();
         int localPid = getChannel().getLocalAddress().getPid();
-        final int datapathIndex = datapath == null ? 0 : datapath.getIndex();
 
-        if (port.getName() == null && datapathIndex == 0) {
+        if (port.getName() == null && datapathId == 0) {
             callback.onError(
                 new OvsDatapathInvalidParametersException(
                     "Setting a port data by id needs a valid datapath id provided."));
             return;
         }
 
-        Builder builder = newMessage();
-        builder.addValue(datapathIndex);
-        builder.addAttr(PortFamily.Attr.UPCALL_PID, localPid);
-
-        port.serializeInto(builder);
-
-        NetlinkMessage message = builder.build();
-
         sendNetlinkMessage(
             portFamily.contextSet,
             NLFlag.REQUEST | NLFlag.ECHO,
-            message.getBuffer(),
+            DpPort.createRequest(getBuffer(), datapathId, localPid, port),
             callback,
             DpPort.deserializer,
             timeoutMillis);
@@ -296,14 +275,10 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         if (!validateState(callback))
             return;
 
-        Builder builder = newMessage();
-        builder.addValue(datapath.getIndex());
-        NetlinkMessage message = builder.build();
-
         sendNetlinkMessage(
             portFamily.contextGet,
             NLFlag.REQUEST | NLFlag.ECHO | NLFlag.Get.DUMP | NLFlag.ACK,
-            message.getBuffer(),
+            DpPort.enumRequest(getBuffer(), datapath.getIndex()),
             callback,
             DpPort.setDeserializer,
             timeoutMillis);
@@ -317,34 +292,13 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         if (!validateState(callback))
             return;
 
-        if (port.getName() == null) {
-            callback.onError(
-                new OvsDatapathInvalidParametersException(
-                    "The provided port needs to have the desired name set"));
-            return;
-        }
-
-        if (port.getType() == null) {
-            callback.onError(
-                new OvsDatapathInvalidParametersException(
-                    "The provided port needs to have the type set"));
-            return;
-        }
-
+        int datapathId = datapath.getIndex();
         int localPid = getChannel().getLocalAddress().getPid();
-
-        Builder builder = newMessage();
-        builder.addValue(datapath.getIndex());
-        builder.addAttr(PortFamily.Attr.UPCALL_PID, localPid);
-
-        port.serializeInto(builder);
-
-        NetlinkMessage message = builder.build();
 
         sendNetlinkMessage(
             portFamily.contextNew,
             NLFlag.REQUEST | NLFlag.ECHO,
-            message.getBuffer(),
+            DpPort.createRequest(getBuffer(), datapathId, localPid, port),
             callback,
             DpPort.deserializer,
             timeoutMillis);

@@ -14,13 +14,14 @@ import org.scalatest.junit.JUnitRunner
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.{Bridge => ClusterBridge}
 import org.midonet.cluster.data.{Ports => ClusterPorts}
-import org.midonet.midolman.topology.{VirtualTopologyActor, LocalPortActive}
 import org.midonet.midolman.topology.VirtualToPhysicalMapper._
+import org.midonet.midolman.topology.VirtualTopologyActor.{PortRequest, BridgeRequest}
 import org.midonet.midolman.topology.rcu.{Host => RCUHost}
+import org.midonet.midolman.topology.{VirtualTopologyActor, LocalPortActive}
 import org.midonet.midolman.util.MidolmanTestCase
 import org.midonet.odp.Datapath
+import org.midonet.odp.DpPort
 import org.midonet.odp.ports.NetDevPort
-import org.midonet.midolman.topology.VirtualTopologyActor.{PortRequest, BridgeRequest}
 import scala.concurrent.Await
 
 @Category(Array(classOf[SimulationTests]))
@@ -189,7 +190,8 @@ class DatapathControllerTestCase extends MidolmanTestCase
         ports should contain key ("netdev")
         checkGreTunnel()
 
-        val nextRequest = DpPortDeleteNetdev(netdevPort, None)
+        val netdevPortWithPorNo = DpPort.fakeFrom(netdevPort, 3).asInstanceOf[NetDevPort]
+        val nextRequest = DpPortDeleteNetdev(netdevPortWithPorNo, None)
         opReply = askAndAwait[DpPortReply](dpController(), nextRequest)
         opReply should not be (null)
 

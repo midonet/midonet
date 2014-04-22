@@ -65,9 +65,7 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
         def outputOf(port: DpPort) = port.toOutputAction
         def makePort(factory: (String) => DpPort): ((String, Int)) => DpPort = {
             case (name, portNo) =>
-                val dpPort = factory(name)
-                dpPort.setPortNo(portNo)
-                dpPort
+                DpPort.fakeFrom(factory(name), portNo)
             }
         val args = List(("gre", 0),("foo", 1),("bar", 2))
         args.map(makePort(GreTunnelPort.make)).map(Some.apply)

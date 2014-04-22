@@ -4,17 +4,16 @@
 package org.midonet.odp;
 
 import java.nio.ByteBuffer;
-import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import javax.annotation.Nonnull;
 
 import com.google.common.base.Function;
 
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.Builder;
 import org.midonet.netlink.messages.BuilderAware;
+import org.midonet.odp.OpenVSwitch;
 import org.midonet.odp.family.PortFamily;
 import org.midonet.odp.flows.FlowActionOutput;
 import org.midonet.odp.ports.*;
@@ -26,9 +25,9 @@ import static org.midonet.odp.flows.FlowActions.output;
  */
 public abstract class DpPort {
 
-    protected DpPort(@Nonnull String name, @Nonnull Type type) {
+    protected DpPort(String name) {
+        assert name != null;
         this.name = name;
-        this.type = type;
     }
 
     public enum Type {
@@ -47,52 +46,39 @@ public abstract class DpPort {
         }
     }
 
-    protected Integer portNo;
-    protected Type type;
-    protected String name;
-    protected Stats stats;
+    private final String name;
+    private Integer portNo;
+    private Stats stats;
+
+    abstract public Type getType();
 
     public Integer getPortNo() {
         return portNo;
-    }
-
-    public void setPortNo(Integer portNo) {
-        this.portNo = portNo;
-    }
-
-    public Type getType() {
-        return type;
-    }
-
-    public void setType(Type type) {
-        this.type = type;
     }
 
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public Stats getStats() {
         return stats;
-    }
-
-    public void setStats(Stats stats) {
-        this.stats = stats;
     }
 
     public FlowActionOutput toOutputAction() {
       return output(this.portNo.shortValue());
     }
 
-    public void serializeInto(Builder builder) {
-        builder.addAttr(PortFamily.Attr.NAME, getName());
-        builder.addAttr(PortFamily.Attr.PORT_TYPE, getType().attrId);
-        if (getPortNo() != null)
-            builder.addAttr(PortFamily.Attr.PORT_NO, getPortNo());
+    public void serializeInto(ByteBuffer buf) {
+        short nameAttrId = (short) OpenVSwitch.Port.Attr.Name;
+        NetlinkMessage.addAttribute(buf, nameAttrId, getName());
+
+        short portTypeAttrId = (short) OpenVSwitch.Port.Attr.Type;
+        NetlinkMessage.writeIntAttr(buf, portTypeAttrId, getType().attrId);
+
+        if (getPortNo() != null) {
+            short portNoAttrId = (short) OpenVSwitch.Port.Attr.PortNo;
+            NetlinkMessage.writeIntAttr(buf, portNoAttrId, getPortNo());
+        }
     }
 
     protected void deserializeFrom(NetlinkMessage msg) {
@@ -108,7 +94,7 @@ public abstract class DpPort {
         @SuppressWarnings("unchecked") // safe cast
         DpPort port = (DpPort) o;
 
-        if (type != port.type)
+        if (getType() != port.getType())
             return false;
         if (name != null ? !name.equals(port.name) : port.name != null)
             return false;
@@ -123,7 +109,7 @@ public abstract class DpPort {
     @Override
     public int hashCode() {
         int result = portNo != null ? portNo.hashCode() : 0;
-        result = 31 * result + (type != null ? type.hashCode() : 0);
+        result = 31 * result + getType().hashCode();
         result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (stats != null ? stats.hashCode() : 0);
         return result;
@@ -133,7 +119,7 @@ public abstract class DpPort {
     public String toString() {
         return "DpPort{" +
             "portNo=" + portNo +
-            ", type=" + type +
+            ", type=" + getType() +
             ", name='" + name + '\'' +
             ", stats=" + stats +
             '}';
@@ -207,6 +193,52 @@ public abstract class DpPort {
             default:
                 return null;
         }
+    }
+
+    public static ByteBuffer getRequest(ByteBuffer buf, int datapathId, int pid,
+                                        String portName, Integer portId) {
+        buf.putInt(datapathId);
+
+        short upcallPidAttrId = (short) OpenVSwitch.Port.Attr.UpcallPID;
+        NetlinkMessage.writeIntAttr(buf, upcallPidAttrId, pid);
+
+        if (portId != null) {
+            short portNoAttrId = (short) OpenVSwitch.Port.Attr.PortNo;
+            NetlinkMessage.writeIntAttr(buf, portNoAttrId, portId);
+        }
+
+        if (portName != null) {
+            short nameAttrId = (short) OpenVSwitch.Port.Attr.Name;
+            NetlinkMessage.addAttribute(buf, nameAttrId, portName);
+        }
+
+        buf.flip();
+        return buf;
+    }
+
+    public static ByteBuffer createRequest(ByteBuffer buf, int datapathId,
+                                           int pid, DpPort port) {
+        buf.putInt(datapathId);
+        short upcallPidAttrId = (short) OpenVSwitch.Port.Attr.UpcallPID;
+        NetlinkMessage.writeIntAttr(buf, upcallPidAttrId, pid);
+        port.serializeInto(buf);
+        buf.flip();
+        return buf;
+    }
+
+    public static ByteBuffer deleteRequest(ByteBuffer buf, int datapathId,
+                                           DpPort port) {
+        buf.putInt(datapathId);
+        short portNoAttrId = (short) OpenVSwitch.Port.Attr.PortNo;
+        NetlinkMessage.writeIntAttr(buf, portNoAttrId, port.getPortNo());
+        buf.flip();
+        return buf;
+    }
+
+    public static ByteBuffer enumRequest(ByteBuffer buf, int datapathId) {
+        buf.putInt(datapathId);
+        buf.flip();
+        return buf;
     }
 
     public static class Stats implements BuilderAware {
@@ -303,4 +335,13 @@ public abstract class DpPort {
             return msg.getAttrValue(PortFamily.Attr.STATS, new Stats());
         }
     }
+
+    /** mock method used in MockOvsDatapathConnection. */
+    public static DpPort fakeFrom(DpPort port, int portNo) {
+        DpPort fake = newPortByTypeId(port.getType().attrId, port.getName());
+        fake.portNo = portNo;
+        fake.stats = new DpPort.Stats();
+        return fake;
+    }
+
 }
