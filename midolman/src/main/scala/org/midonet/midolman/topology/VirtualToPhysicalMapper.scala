@@ -26,6 +26,7 @@ import org.midonet.cluster.data.zones._
 import org.midonet.cluster.{Client, DataClient}
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman._
+import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.services.HostIdProviderService
 import org.midonet.midolman.simulation.Bridge
@@ -235,7 +236,10 @@ object VirtualToPhysicalMapper extends Referenceable {
         def portSet(id: UUID) = portSets get id
         def tunnelZone(id: UUID) = tunnelZones get id
         def portSetId(tunnelKey: Long) = tunnelKeyToPortSet get tunnelKey
-        def vxlanIdFromVNI(vni: Int) = Some(UUID.randomUUID)
+
+        // temporary "static" implementation for midonet v1.5
+        var vniToUUID: Map[Int,UUID] = Map[Int,UUID]()
+        def vxlanIdFromVNI(vni: Int) = vniToUUID get vni
 
         protected[topology]
         def addPortSet(id: UUID, ps: rcu.PortSet) { portSets += id -> ps }
@@ -516,9 +520,15 @@ abstract class VirtualToPhysicalMapperBase
      *  arrival order. */
     var portActiveFifo = Map[UUID,Vector[LocalPortActive]]()
 
+    @Inject
+    val config: MidolmanConfig = null
+
     override def preStart() {
         super.preStart()
         DeviceCaches.clear()
+        val filePath = config getUUIDToVniFileLocation()
+        if (filePath != "none")
+            DeviceCaches.vniToUUID = VniMapping.readFromJson(filePath)
     }
 
     private def freezePortActivation(vport: UUID): Unit = {
