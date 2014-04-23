@@ -408,7 +408,7 @@ class AdminStateTest extends MidolmanSpec {
             val actions = simRes.asInstanceOf[AddVirtualWildcardFlow]
                                 .flow.actions
             val tags = mutable.Set[Any]()
-            translateActions(actions, None, Some(tags), null) match {
+            translateActions(actions, None, tags, null) match {
                 case Ready(r) => (r, tags)
                 case NotYet(f) =>
                     Await.result(f, 3 seconds)
