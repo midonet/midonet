@@ -276,7 +276,7 @@ class Bridge(val id: UUID,
             log.debug("InPort is interior, vlan tagged {}: PUSH & fwd to " +
                       "trunk {}", inPortVlan, toPort)
             pktCtx.wcmatch.addVlanId(inPortVlan)
-            ToPortAction(toPort)
+            return ToPortAction(toPort)
         }
 
         val vlanInFrame: Option[JShort] = pktCtx.frame.getVlanIDs match {
