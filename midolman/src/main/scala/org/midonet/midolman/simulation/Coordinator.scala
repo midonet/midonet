@@ -452,7 +452,7 @@ class Coordinator(var origMatch: WildcardMatch,
                         packetIngressesPort(port.peerID,
                             getPortGroups = false)
                     case _ =>
-                        log.warning("Port {} is unplugged", port)
+                        log.warning("Port {} is unplugged", portID)
                         dropFlow(temporary = true, withTags = false)
                 })
         }
