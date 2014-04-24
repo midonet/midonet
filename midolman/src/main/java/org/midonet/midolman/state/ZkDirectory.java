@@ -47,8 +47,7 @@ public class ZkDirectory implements Directory {
     public String add(String relativePath, byte[] data, CreateMode mode)
             throws KeeperException, InterruptedException {
         String absPath = getAbsolutePath(relativePath);
-        String path = null;
-        path = zk.getZooKeeper().create(absPath, data, acl, mode);
+        String path = zk.getZooKeeper().create(absPath, data, acl, mode);
         return path.substring(basePath.length());
     }
 

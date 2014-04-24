@@ -1375,7 +1375,7 @@ public class ZkPathManager {
 
     public String getHostVrnPortMappingPath(UUID hostIdentifier, UUID virtualPortId) {
         return buildHostVrnPortMappingPath(hostIdentifier,
-                                           virtualPortId).toString();
+                virtualPortId).toString();
     }
 
     private StringBuilder buildHostVrnPortMappingPath(UUID hostIdentifier, UUID virtualPortId) {
@@ -1674,5 +1674,21 @@ public class ZkPathManager {
 
     public String getVtepPath(IPv4Addr ipAddr) {
         return buildVtepPath(ipAddr).toString();
+    }
+
+    private StringBuilder buildLocksPath() {
+        return basePath().append("/locks");
+    }
+
+    public String getLocksPath() {
+        return buildLocksPath().toString();
+    }
+
+    public StringBuilder buildLockPath(String lockName) {
+        return buildLocksPath().append("/").append(lockName);
+    }
+
+    public String getLockPath(String lockName) {
+        return buildLockPath(lockName).toString();
     }
 }
