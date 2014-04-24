@@ -114,5 +114,17 @@ public class HealthMonitor
             return Objects.hashCode(type, delay, timeout, maxRetries,
                     adminStateUp, status);
         }
+
+        @Override
+        public String toString() {
+            return "Data{" +
+                    "type='" + type + '\'' +
+                    ", delay=" + delay +
+                    ", timeout=" + timeout +
+                    ", maxRetries=" + maxRetries +
+                    ", adminStateUp=" + adminStateUp +
+                    ", status=" + status +
+                    '}';
+        }
     }
 }
