@@ -1,0 +1,15 @@
+/*
+ * Copyright (c) 2014 Midokura Europe SARL, All Rights Reserved.
+ */
+package org.midonet.client.neutron;
+
+
+public class NeutronMediaType {
+
+    public final static String NEUTRON_JSON_V1 =
+            "application/vnd.org.midonet.neutron.Neutron-v1+json";
+    public final static String NETWORK_JSON_V1 =
+            "application/vnd.org.midonet.neutron.Network-v1+json";
+    public final static String NETWORKS_JSON_V1 =
+            "application/vnd.org.midonet.neutron.Networks-v1+json";
+}
