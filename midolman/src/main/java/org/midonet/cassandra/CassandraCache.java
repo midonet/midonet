@@ -14,6 +14,7 @@ import java.util.Map;
 import me.prettyprint.hector.api.exceptions.HectorException;
 
 import org.midonet.cache.Cache;
+import org.midonet.midolman.state.ZkLock;
 import org.midonet.util.eventloop.Reactor;
 
 
@@ -26,14 +27,14 @@ public class CassandraCache implements Cache {
                           String columnFamily, int replicationFactor,
                           int expirationSecs, int thriftSocketTimeout,
                           boolean hostTimeoutTracker, int hostTimeoutCounter,
-                          int hostTimeoutWindow, Reactor reactor)
+                          int hostTimeoutWindow, Reactor reactor, ZkLock lock)
             throws HectorException {
         client = new CassandraClient(servers, maxActiveConns, clusterName,
                                      keyspaceName, columnFamily,
                                      replicationFactor, expirationSecs,
                                      thriftSocketTimeout, hostTimeoutTracker,
                                      hostTimeoutCounter, hostTimeoutWindow,
-                                     reactor);
+                                     reactor, lock);
         client.connect();
     }
 

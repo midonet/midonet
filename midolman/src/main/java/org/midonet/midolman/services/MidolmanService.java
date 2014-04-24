@@ -74,7 +74,7 @@ public class MidolmanService extends AbstractService {
         for (AbstractService service : services) {
             boolean running = service.state() == State.RUNNING;
             try {
-                if (service.state() == State.RUNNING) {
+                if (running) {
                     log.info("Service: {}", service);
                     service.stopAndWait();
                 }

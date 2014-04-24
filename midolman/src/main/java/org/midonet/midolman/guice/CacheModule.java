@@ -16,6 +16,9 @@ import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.BindingAnnotation;
 import com.google.inject.Key;
+import org.midonet.midolman.state.PathBuilder;
+import org.midonet.midolman.state.ZkLock;
+import org.midonet.midolman.state.ZkManager;
 import org.midonet.util.eventloop.TryCatchReactor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -95,6 +98,12 @@ public class CacheModule extends PrivateModule {
         @Inject
         ConfigProvider configProvider;
 
+        @Inject
+        ZkManager zk;
+
+        @Inject
+        PathBuilder paths;
+
         @Inject @CACHE_REACTOR
         private Reactor reactor;
 
@@ -108,7 +117,8 @@ public class CacheModule extends PrivateModule {
             try {
                 return CacheFactory.create(
                         configProvider.getConfig(MidolmanConfig.class),
-                        columnName, cacheExpirationSeconds, reactor);
+                        columnName, cacheExpirationSeconds, reactor,
+                        new ZkLock(zk, paths, "cassandra-cache"));
             } catch (Exception e) {
                 log.error("Exception trying to create Cache:", e);
                 return null;
