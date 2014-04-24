@@ -3,10 +3,12 @@
  */
 package org.midonet.midolman.l4lb
 
-import akka.actor.{Actor, ActorRef, Props, ActorSystem}
-import com.typesafe.config.ConfigFactory
 import java.nio.channels.spi.SelectorProvider
 import java.util.UUID
+
+import akka.actor.{Actor, ActorRef, Props, ActorSystem}
+import akka.testkit._
+import com.typesafe.config.ConfigFactory
 import org.junit.runner.RunWith
 import org.mockito.Mockito.{verify, reset, times}
 import org.scalatest._
@@ -17,15 +19,16 @@ import org.scalatest.mock.MockitoSugar
 import org.scalatest.time.{Span, Seconds}
 
 import org.midonet.cluster.{LocalDataClientImpl, DataClient, LocalClientImpl}
+import org.midonet.midolman.l4lb.HaproxyHealthMonitor.SetupFailure
 import org.midonet.midolman.state.PoolHealthMonitorMappingStatus
 import org.midonet.netlink.AfUnix.Address
 import org.midonet.netlink.{AfUnix, UnixDomainChannel}
-import org.midonet.midolman.l4lb.HaproxyHealthMonitor.SetupFailure
-
 
 @RunWith(classOf[JUnitRunner])
-class HaproxyHealthMonitorTest extends FeatureSpec
-                               with ShouldMatchers
+class HaproxyHealthMonitorTest extends TestKit(ActorSystem("HaproxyActorTest"))
+                               with ImplicitSender
+                               with FeatureSpecLike
+                               with Matchers
                                with GivenWhenThen
                                with BeforeAndAfter
                                with OneInstancePerTest
@@ -33,6 +36,10 @@ class HaproxyHealthMonitorTest extends FeatureSpec
 
     import HaproxyHealthMonitor.SockReadFailure
     import HaproxyHealthMonitor.ConfigUpdate
+
+    case object MonitorActorUp
+
+    val testKit = self
 
     // we just need a no-op actor to act as the manager for the
     // HaproxyHealthMonitor
@@ -42,6 +49,8 @@ class HaproxyHealthMonitorTest extends FeatureSpec
                 sockReadFailures += 1
             case SetupFailure =>
                 setupFailures += 1
+            case MonitorActorUp =>
+                testKit forward MonitorActorUp
             case x =>
         }
     }
@@ -50,7 +59,6 @@ class HaproxyHealthMonitorTest extends FeatureSpec
     var healthMonitorUT: ActorRef = _
     // command handler for a "non-working" socket.
     var managerActor: ActorRef = _
-    var actorSystem: ActorSystem = null
     val poolId = UUID.randomUUID()
     var mockClient = mock[LocalDataClientImpl]
 
@@ -85,18 +93,16 @@ class HaproxyHealthMonitorTest extends FeatureSpec
     }
 
     before {
-        actorSystem = ActorSystem.create("HaproxyTestActors",
-            ConfigFactory.load().getConfig("midolman"))
-        managerActor = actorSystem.actorOf(Props(new Manager))
-        healthMonitorUT
-            = actorSystem.actorOf(Props(new HaproxyHealthMonitorUT(
+        managerActor = system.actorOf(Props(new Manager))
+        healthMonitorUT = system.actorOf(
+            Props(new HaproxyHealthMonitorUT(
                 createFakePoolConfig("10.10.10.10", goodSocketPath),
-                                     managerActor, UUID.randomUUID(),
-                                     mockClient, UUID.randomUUID())))
+                managerActor, UUID.randomUUID(),
+                mockClient, UUID.randomUUID())))
+        expectMsg(MonitorActorUp)
     }
 
     after {
-        actorSystem.shutdown()
         reset(mockClient)
     }
 
@@ -203,7 +209,10 @@ class HaproxyHealthMonitorTest extends FeatureSpec
             lastIpWritten = config.vip.ip
         }
         override def restartHaproxy(name: String, confFileLoc: String,
-                                    pidFileLoc: String) = haproxyRestarts += 1
+                                    pidFileLoc: String) = {
+            haproxyRestarts += 1
+            manager ! MonitorActorUp
+        }
         override def createNamespace(name: String, ip: String): String = {""}
         override def getHaproxyStatus(path: String) : String = {
             if (path.contains(badSocketPath)) {
