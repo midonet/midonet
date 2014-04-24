@@ -4,6 +4,7 @@
  */
 package org.midonet.api;
 
+import org.midonet.api.neutron.NeutronUriBuilder;
 import org.midonet.util.version.Since;
 
 import javax.xml.bind.annotation.XmlRootElement;
@@ -439,6 +440,14 @@ public class Application extends UriResource {
     public URI getHostVersions() {
         if (getBaseUri() != null) {
             return ResourceUriBuilder.getHostVersions(getBaseUri());
+        } else {
+            return null;
+        }
+    }
+
+    public URI getNeutron() {
+        if (getBaseUri() != null) {
+            return NeutronUriBuilder.getNeutron(getBaseUri());
         } else {
             return null;
         }

@@ -223,7 +223,6 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>midonet-client</artifactId>
-            <scope>test</scope>
         </dependency>
 
         <dependency>
