@@ -42,8 +42,8 @@ public class NetlinkException extends Exception {
         EDOM("Math argument out of domain of func"),
         ERANGE("Math result not representable"),
         E_MAX(""),
-        E_NOT_INITIALIZED("Not initialized exception");
-
+        E_NOT_INITIALIZED("Not initialized exception"),
+        ETIMEOUT("Request timeout");
 
         String message;
         private ErrorCode(String message) {
@@ -59,6 +59,16 @@ public class NetlinkException extends Exception {
 
     public static final int ERROR_SENDING_REQUEST = -1;
     public static final int GENERIC_IO_ERROR = -2;
+
+    public NetlinkException(ErrorCode error, String message) {
+        super(format(error.ordinal(), message));
+        this.errorCode = error.ordinal();
+    }
+
+    public NetlinkException(ErrorCode error, Throwable cause) {
+        super(format(error.ordinal(), null), cause);
+        this.errorCode = error.ordinal();
+    }
 
     public NetlinkException(ErrorCode error) {
         super(format(error.ordinal(), error.getMessage()));

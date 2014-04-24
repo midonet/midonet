@@ -31,7 +31,7 @@ class NetlinkRequestTest extends FunSpec with Matchers {
 
                 (0 to 3) foreach { _ =>
                     runnable.run
-                    cb.calls should be (1,0,0)
+                    cb.calls should be (1,0)
                 }
             }
 
@@ -42,7 +42,7 @@ class NetlinkRequestTest extends FunSpec with Matchers {
 
                 (0 to 3) foreach { _ =>
                     runnable.run
-                    cb.calls should be (0,1,0)
+                    cb.calls should be (0,1)
                 }
             }
 
@@ -53,7 +53,7 @@ class NetlinkRequestTest extends FunSpec with Matchers {
 
                 (0 to 3) foreach { _ =>
                     runnable.run
-                    cb.calls should be (0,0,1)
+                    cb.calls should be (0,1)
                 }
             }
 
@@ -68,11 +68,11 @@ class NetlinkRequestTest extends FunSpec with Matchers {
             val runnable3 = req failed new NetlinkException(10, "foo")
 
             runnable1.run
-            cb.calls should be (1,0,0)
+            cb.calls should be (1,0)
             runnable2.run
-            cb.calls should be (1,0,0)
+            cb.calls should be (1,0)
             runnable3.run
-            cb.calls should be (1,0,0)
+            cb.calls should be (1,0)
         }
 
         it("can be turned into several runnable, but runs once only (case 2)") {
@@ -84,11 +84,11 @@ class NetlinkRequestTest extends FunSpec with Matchers {
             val runnable1 = req.successful()
 
             runnable2.run
-            cb.calls should be (0,1,0)
+            cb.calls should be (0,1)
             runnable3.run
-            cb.calls should be (0,1,0)
+            cb.calls should be (0,1)
             runnable1.run
-            cb.calls should be (0,1,0)
+            cb.calls should be (0,1)
         }
 
         it("can be turned into several runnable, but runs once only (case 3)") {
@@ -100,11 +100,11 @@ class NetlinkRequestTest extends FunSpec with Matchers {
             val runnable2 = req.expired()
 
             runnable3.run
-            cb.calls should be (0,0,1)
+            cb.calls should be (0,1)
             runnable1.run
-            cb.calls should be (0,0,1)
+            cb.calls should be (0,1)
             runnable2.run
-            cb.calls should be (0,0,1)
+            cb.calls should be (0,1)
         }
 
         describe("Request comparator") {
@@ -141,11 +141,9 @@ class NetlinkRequestTest extends FunSpec with Matchers {
 
     class InspectableCallback extends Callback[Int] {
         var successCalls: Int = 0
-        var timeoutCalls: Int = 0
         var errorCalls: Int = 0
-        def calls = (successCalls, timeoutCalls, errorCalls)
+        def calls = (successCalls, errorCalls)
         override def onSuccess(data: Int) { successCalls += 1 }
-        override def onTimeout() { timeoutCalls += 1 }
         override def onError(e: NetlinkException) { errorCalls += 1 }
     }
 

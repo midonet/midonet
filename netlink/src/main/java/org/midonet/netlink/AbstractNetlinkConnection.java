@@ -540,12 +540,10 @@ public abstract class AbstractNetlinkConnection {
         }
 
         public Runnable expired() {
-            return ensureNotRun() ? new Runnables.RunOnceRunnable() {
-                                        @Override
-                                        public void runOnce() {
-                                            userCallback.onTimeout();
-                                        }}
-                                  : Runnables.NO_OP;
+            String msg = "request #" + seq + " timeout";
+            NetlinkException ex =
+                new NetlinkException(NetlinkException.ErrorCode.ETIMEOUT, msg);
+            return failed(ex);
         }
 
         private boolean ensureNotRun() {
