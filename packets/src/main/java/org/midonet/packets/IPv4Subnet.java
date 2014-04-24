@@ -2,8 +2,8 @@
 
 package org.midonet.packets;
 
-import org.apache.commons.lang3.tuple.Pair;
-import org.midonet.util.NetUtil;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public final class IPv4Subnet implements IPSubnet<IPv4Addr> {
 
@@ -37,10 +37,14 @@ public final class IPv4Subnet implements IPSubnet<IPv4Addr> {
      * @param cidr_ CIDR notation string
      */
     public IPv4Subnet(String cidr_) {
+        if (!isValidIpv4Cidr(cidr_))
+            throw new IllegalArgumentException("cidr is not valid");
 
-        Pair<String, Integer> cidrPair = NetUtil.getAddressAndPrefixLen(cidr_);
-        this.address = IPv4Addr.fromString(cidrPair.getLeft());
-        this.prefixLen = cidrPair.getRight();
+        String[] parts = cidr_.split("/");
+        assert parts.length == 2;     // Sanity check
+
+        address = IPv4Addr.fromString(parts[0]);
+        prefixLen = Integer.parseInt(parts[1]);
     }
 
     @Override
@@ -127,5 +131,27 @@ public final class IPv4Subnet implements IPSubnet<IPv4Addr> {
         int result = address != null ? address.hashCode() : 0;
         result = 31 * result + prefixLen;
         return result;
+    }
+
+    /**
+     * Regex pattern representing IPv4 CIDR
+     */
+    public static String IPV4_CIDR_PATTERN =
+            "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}" +
+                    "([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])" +
+                    "(\\/(\\d|[1-2]\\d|3[0-2]))$";
+
+    private static Pattern ipv4CidrPattern = Pattern.compile(IPV4_CIDR_PATTERN);
+
+    /**
+     * Checks whether CIDR is in the correct format.  The expected format
+     * is n.n.n.n/m where n.n.n.n is a valid quad-dotted IPv4 address and m is
+     * a prefix length value in [0, 32].  False is returned if cidr is null.
+     *
+     * @param cidr CIDR to validate
+     * @return True if CIDR is valid
+     */
+    public static boolean isValidIpv4Cidr(String cidr) {
+        return cidr != null && ipv4CidrPattern.matcher(cidr).matches();
     }
 }

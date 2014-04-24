@@ -9,33 +9,92 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
-import org.midonet.data.IPv4CidrProvider;
+
+import static junitparams.JUnitParamsRunner.*;
 
 @RunWith(Enclosed.class)
 public class TestIPv4Subnet {
 
-    private static IPv4Subnet testObject;
+    @Test
+    @Parameters(source = TestIPv4Subnet.class, method="validCidrs")
+    public void testValidCidrs(String input) {
+        String[] expected = input.split("/");
+        IPv4Subnet testObject = new IPv4Subnet(input);
 
-    @RunWith(JUnitParamsRunner.class)
-    public static class TestConstructorWithCidr {
-
-        @Test
-        @Parameters(source = IPv4CidrProvider.class, method="validCidrs")
-        public void testValidCidrs(String input) {
-
-            testObject = new IPv4Subnet(input);
-
-            // toString simply re-constructs the original format
-            Assert.assertEquals(input, testObject.toString());
-        }
-
-        @Test(expected = IllegalArgumentException.class)
-        @Parameters(source = IPv4CidrProvider.class, method="invalidCidrs")
-        public void testInvalidCidrs(String input) {
-
-            testObject = new IPv4Subnet(input);
-
-        }
+        // toString simply re-constructs the original format
+        Assert.assertEquals(input, testObject.toString());
+        Assert.assertEquals(expected[0], testObject.getAddress().toString());
+        Assert.assertEquals(expected[1],
+                            Integer.toString(testObject.getPrefixLen()));
     }
-}
 
+    @Test(expected = IllegalArgumentException.class)
+    @Parameters(source = TestIPv4Subnet.class, method="invalidCidrs")
+    public void testInvalidCidrs(String input) {
+        IPv4Subnet testObject = new IPv4Subnet(input);
+    }
+
+    @Test
+    @Parameters(source = TestIPv4Subnet.class, method="validCidrs")
+    public void testIsValidIpv4Cidr(String input) {
+        Assert.assertTrue(IPv4Subnet.isValidIpv4Cidr(input));
+    }
+
+    @Test
+    @Parameters(source = TestIPv4Subnet.class, method="invalidCidrs")
+    public void testIsValidIpv4CidrNegative(String input) {
+        Assert.assertFalse(IPv4Subnet.isValidIpv4Cidr(input));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    @Parameters(source = TestIPv4Subnet.class, method="invalidCidrs")
+    public void testGetAddressAndPrefixLenNegative(String input) {
+        new IPv4Subnet(input);
+    }
+
+    public static Object[] validCidrs() {
+        return $(
+                $("0.0.0.0/0"),
+                $("0.0.0.0/16"),
+                $("0.0.0.0/32"),
+                $("10.10.10.10/0"),
+                $("10.10.10.10/16"),
+                $("10.10.10.10/32"),
+                $("255.255.255.255/0"),
+                $("255.255.255.255/16"),
+                $("255.255.255.255/32")
+        );
+    }
+
+    public static Object[] invalidCidrs() {
+        return $(
+                $(""),
+                $("foo"),
+
+                // Invalid delim
+                $("1.1.1.1"),
+                $("1.1.1.1_32"),
+                $("1.1.1.1 32"),
+
+                // Bad prefix len
+                $("1.1.1.1/"),
+                $("1.1.1.1/foo"),
+                $("1.1.1.1/-1"),
+                $("1.1.1.1/33"),
+
+                // Bad address format
+                $("/32"),
+                $("1.1.1/32"),
+                $("1.1.1.1.1/32"),
+                $("-1.1.1.1/0"),
+                $("1.-1.1.1/0"),
+                $("1.1.-1.1/0"),
+                $("1.1.1.-1/0"),
+                $("256.255.255.255/0"),
+                $("255.256.255.255/0"),
+                $("255.255.256.255/0"),
+                $("255.255.255.256/0")
+        );
+    }
+
+}
