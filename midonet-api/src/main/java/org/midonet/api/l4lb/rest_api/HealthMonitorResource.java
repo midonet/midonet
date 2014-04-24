@@ -20,6 +20,7 @@ import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.rest_api.ServiceUnavailableHttpException;
 import org.midonet.api.validation.MessageProperty;
 import org.midonet.cluster.DataClient;
+import org.midonet.event.topology.HealthMonitorEvent;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
@@ -57,6 +58,8 @@ public class HealthMonitorResource extends AbstractResource {
 
     private final static Logger log = LoggerFactory
             .getLogger(HealthMonitorResource.class);
+    private final static HealthMonitorEvent healthMonitorEvent
+            = new HealthMonitorEvent();
 
     private final Validator validator;
     private final DataClient dataClient;
@@ -124,6 +127,7 @@ public class HealthMonitorResource extends AbstractResource {
 
         try {
             dataClient.healthMonitorDelete(id);
+            healthMonitorEvent.delete(id);
         } catch (NoStatePathException ex) {
             // Delete is idempotent, so just ignore.
         } catch (MappingStatusException ex) {
@@ -146,6 +150,7 @@ public class HealthMonitorResource extends AbstractResource {
 
         try {
             UUID id = dataClient.healthMonitorCreate(healthMonitor.toData());
+            healthMonitorEvent.create(id, dataClient.healthMonitorGet(id));
             return Response.created(
                     ResourceUriBuilder.getHealthMonitor(getBaseUri(), id))
                     .build();
@@ -167,6 +172,7 @@ public class HealthMonitorResource extends AbstractResource {
 
         try {
             dataClient.healthMonitorUpdate(healthMonitor.toData());
+            healthMonitorEvent.update(id, dataClient.healthMonitorGet(id));
         } catch (NoStatePathException ex) {
             throw new NotFoundHttpException(ex);
         } catch (MappingStatusException ex) {
