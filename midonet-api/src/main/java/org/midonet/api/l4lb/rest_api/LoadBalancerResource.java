@@ -19,6 +19,7 @@ import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.validation.MessageProperty;
 import org.midonet.cluster.DataClient;
+import org.midonet.event.topology.LoadBalancerEvent;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.NoStatePathException;
@@ -52,6 +53,7 @@ public class LoadBalancerResource extends AbstractResource {
 
     private final static Logger log = LoggerFactory
             .getLogger(LoadBalancerResource.class);
+    private final LoadBalancerEvent loadBalancerEvent = new LoadBalancerEvent();
 
     private final ResourceFactory factory;
 
@@ -136,6 +138,7 @@ public class LoadBalancerResource extends AbstractResource {
 
         try {
             dataClient.loadBalancerDelete(id);
+            loadBalancerEvent.delete(id);
         } catch (NoStatePathException ex) {
             // Delete is idempotent; do nothing.
         }
@@ -169,6 +172,7 @@ public class LoadBalancerResource extends AbstractResource {
 
         try {
             UUID id = dataClient.loadBalancerCreate(loadBalancer.toData());
+            loadBalancerEvent.create(id, dataClient.loadBalancerGet(id));
             return Response.created(
                     ResourceUriBuilder.getLoadBalancer(getBaseUri(), id))
                     .build();
@@ -198,6 +202,7 @@ public class LoadBalancerResource extends AbstractResource {
         loadBalancer.setId(id);
         try {
             dataClient.loadBalancerUpdate(loadBalancer.toData());
+            loadBalancerEvent.update(id, dataClient.loadBalancerGet(id));
         } catch (InvalidStateOperationException ex) {
             throw new BadRequestHttpException(
                     getMessage(MessageProperty.ROUTER_ID_IS_INVALID_IN_LB));

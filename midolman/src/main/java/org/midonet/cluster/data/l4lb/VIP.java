@@ -116,5 +116,16 @@ public class VIP
                     protocolPort, sessionPersistence, adminStateUp);
         }
 
+        @Override
+        public String toString() {
+            return "Data{" +
+                    "loadBalancerId=" + loadBalancerId +
+                    ", poolId=" + poolId +
+                    ", address='" + address + '\'' +
+                    ", protocolPort=" + protocolPort +
+                    ", sessionPersistence='" + sessionPersistence + '\'' +
+                    ", adminStateUp=" + adminStateUp +
+                    '}';
+        }
     }
 }

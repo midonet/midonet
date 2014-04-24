@@ -69,5 +69,13 @@ public class LoadBalancer
         public int hashCode() {
             return Objects.hashCode(adminStateUp);
         }
+
+        @Override
+        public String toString() {
+            return "Data{" +
+                    "routerId=" + routerId +
+                    ", adminStateUp=" + adminStateUp +
+                    '}';
+        }
     }
 }
