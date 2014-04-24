@@ -3,6 +3,7 @@
  */
 package org.midonet.midolman.state;
 
+import java.util.Collection;
 import java.util.Set;
 
 /*
@@ -22,7 +23,7 @@ public class ZkUtil {
      * @return the integer representation of the sequence number.
      * @throws IllegalArgumentException
      */
-    public static Integer getSequenceNumberFromPath(String nodeName) {
+    public static int getSequenceNumberFromPath(String nodeName) {
         if (nodeName.length() < ZkManager.ZK_SEQ_NUM_LEN) {
             throw new IllegalArgumentException(
                     "Invalid input, cannot parse " + nodeName);
@@ -48,8 +49,8 @@ public class ZkUtil {
      * @return the path of the next lower sequence number.
      */
     public static String getNextLowerSequenceNumberPath(
-            Set<String> sequenceNumberPaths, Integer seqNum) {
-        Integer nextLowest = Integer.MIN_VALUE;
+            Set<String> sequenceNumberPaths, int seqNum) {
+        int nextLowest = Integer.MIN_VALUE;
         String nextLowestPath = null;
         for (String seqNumPath : sequenceNumberPaths) {
             Integer pathSeqNum = getSequenceNumberFromPath(seqNumPath);
@@ -59,7 +60,7 @@ public class ZkUtil {
             }
         }
 
-        if (nextLowest.equals(Integer.MIN_VALUE)) {
+        if (nextLowest == Integer.MIN_VALUE) {
             return null;
         } else {
             return nextLowestPath;
