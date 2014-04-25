@@ -167,7 +167,7 @@ public abstract class AbstractNetlinkConnection {
         final byte cmd = ctx.command();
         final byte version = ctx.version();
 
-        final int seq = sequenceGenerator.getAndIncrement();
+        final int seq = nextSequenceNumber();
 
         final int totalSize = payload.limit();
 
@@ -201,6 +201,11 @@ public abstract class AbstractNetlinkConnection {
         if (req.userCallback != null) {
             pendingRequests.put(seq, req);
         }
+    }
+
+    private int nextSequenceNumber() {
+        int seq = sequenceGenerator.getAndIncrement();
+        return seq == 0 ? nextSequenceNumber() : seq;
     }
 
     private void abortRequestQueueIsFull(NetlinkRequest<?> req, int seq) {
