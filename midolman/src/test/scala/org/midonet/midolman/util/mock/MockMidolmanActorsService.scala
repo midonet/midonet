@@ -5,6 +5,7 @@ package org.midonet.midolman.util.mock
 
 import scala.collection.mutable
 import scala.concurrent.Await
+import scala.concurrent.Future
 import scala.concurrent.duration.Duration
 
 import akka.actor.{ActorIdentity, Identify, Props, Actor}
@@ -64,7 +65,8 @@ sealed class MockMidolmanActorsService extends MidolmanActorsService {
         instance
     }
 
-    override protected def startActor(actorProps: Props, name: String) = {
+    override protected def startActor(specs: (Props, String)) = {
+        val (_, name) = specs
         val p = props.getOrElse(name, Props(new EmptyActor
                                             with MessageAccumulator))
         // Because actors are started asynchronously, creating a TestActorRef
@@ -75,7 +77,7 @@ sealed class MockMidolmanActorsService extends MidolmanActorsService {
                               .asInstanceOf[ActorIdentity].ref.get
         val testRef = TestActorRef[MessageAccumulator](p, supervisor, name)
         actors += (name -> testRef)
-        testRef
+        Future successful testRef
     }
 
     override def initProcessing() { }

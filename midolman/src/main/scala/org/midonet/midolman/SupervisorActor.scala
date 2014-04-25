@@ -3,7 +3,7 @@
  */
 package org.midonet.midolman
 
-import akka.actor.{Props, SupervisorStrategy, Actor}
+import akka.actor.{Props, SupervisorStrategy, Actor, Status}
 import com.google.inject.Inject
 
 import org.midonet.midolman.logging.ActorLogWithoutPath
@@ -23,6 +23,8 @@ object SupervisorActor extends Referenceable {
 
 class SupervisorActor extends Actor with ActorLogWithoutPath {
 
+    import SupervisorActor._
+
     @Inject
     override val supervisorStrategy: SupervisorStrategy = null
 
@@ -31,12 +33,16 @@ class SupervisorActor extends Actor with ActorLogWithoutPath {
     }
 
     def receive = {
-        case SupervisorActor.StartChild(props, name) =>
-            sender ! (try {
-                        context.actorOf(props, name)
-                      } catch {
-                         case t: Throwable => akka.actor.Status.Failure(t)
-                      })
-        case _ => log.info("RECEIVED UNKNOWN MESSAGE")
+        case StartChild(props, name) =>
+            val result = try {
+                context.actorOf(props, name)
+            } catch {
+                case t: Throwable =>
+                    log.error(t, "could not start actor {}", name)
+                    Status.Failure(t)
+            }
+            sender ! result
+        case unknown =>
+            log.info("received unknown message {}", unknown)
     }
 }
