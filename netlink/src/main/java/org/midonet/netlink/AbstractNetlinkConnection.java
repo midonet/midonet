@@ -165,7 +165,7 @@ public abstract class AbstractNetlinkConnection {
         final byte cmd = ctx.command();
         final byte version = ctx.version();
 
-        final int seq = sequenceGenerator.getAndIncrement();
+        final int seq = nextSequenceNumber();
 
         final int totalSize = payload.limit();
 
@@ -199,6 +199,11 @@ public abstract class AbstractNetlinkConnection {
         if (req.userCallback != null) {
             pendingRequests.put(seq, req);
         }
+    }
+
+    private int nextSequenceNumber() {
+        int seq = sequenceGenerator.getAndIncrement();
+        return seq == 0 ? nextSequenceNumber() : seq;
     }
 
     private void abortRequestQueueIsFull(NetlinkRequest<?> req, int seq) {
@@ -460,14 +465,13 @@ public abstract class AbstractNetlinkConnection {
                                        short flags) {
 
         int startPos = request.position();
-        int pid = channel.getLocalAddress().getPid();
 
         // put netlink header
         request.putInt(0);              // nlmsg_len
         request.putShort(family);       // nlmsg_type
         request.putShort(flags);        // nlmsg_flags
         request.putInt(seq);            // nlmsg_seq
-        request.putInt(pid);            // nlmsg_pid
+        request.putInt(pid());          // nlmsg_pid
 
         // put genl header
         request.put(cmd);               // cmd
