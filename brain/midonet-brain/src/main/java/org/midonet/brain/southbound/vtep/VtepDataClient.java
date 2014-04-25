@@ -79,9 +79,14 @@ public interface VtepDataClient {
      * @param lsName of the logical switch
      * @param portName the physical port in the physical switch
      * @param vlan vlan tag to match for traffic on the given phys. port
+     * @param vni vni to use if the logical switch does not exist
+     * @param floodIps ips of the vtep peers that will get a remote Mcast and
+     *                 Ucast entry for unknown-dst.
+     *
      * @return true when the binding was created successfully, false otherwise
      */
-    public boolean bindVlan(String lsName, String portName, int vlan);
+    public boolean bindVlan(String lsName, String portName, int vlan,
+                            Integer vni, List<String> floodIps);
 
     /**
      * Adds a new entry to the Ucast_Macs_Remote table.

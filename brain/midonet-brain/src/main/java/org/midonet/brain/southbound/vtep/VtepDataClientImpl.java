@@ -46,7 +46,7 @@ public class VtepDataClientImpl implements VtepDataClient {
     private ConfigurationService cfgSrv = null;
     private Node node = null;
 
-    private static final int CNXN_TIMEOUT_MILLIS = 2000;
+    private static final int CNXN_TIMEOUT_MILLIS = 5000;
 
     @Override
     public void connect(final IPv4Addr mgmtIp, final int port) {
@@ -90,7 +90,18 @@ public class VtepDataClientImpl implements VtepDataClient {
     }
 
     public boolean isReady() {
-        return this.cnxnSrv.getInventoryServiceInternal().getCache(node) != null;
+        ConcurrentMap<String, ConcurrentMap<String, Table<?>>> cache =
+            this.cnxnSrv.getInventoryServiceInternal().getCache(node);
+        if (cache == null) {
+            return false;
+        }
+        Map<String, Table<?>> psTableCache =
+            cache.get(Physical_Switch.NAME.getName());
+
+        // This is not 100% reliable but at least verifies that we have some
+        // data loaded, all the rest of the tables don't necessarily have to
+        // contain data.
+        return psTableCache != null && !psTableCache.isEmpty();
     }
 
     /**
@@ -236,11 +247,13 @@ public class VtepDataClientImpl implements VtepDataClient {
     }
 
     @Override
-    public boolean bindVlan(String lsName, String portName, int vlan) {
-        log.debug("Bind vlan {} on phys. port {} to logical switch {}",
-                  new Object[]{lsName, portName, vlan});
+    public boolean bindVlan(String lsName, String portName, int vlan,
+                            Integer vni, List<String> floodIps) {
+        log.debug("Bind vlan {} on phys. port {} to logical switch {}, vni {}, "
+                + "and adding ips: {}",
+                  new Object[]{lsName, portName, vlan, vni, floodIps});
         Status st = cfgSrv.vtepBindVlan(lsName, portName,
-                                        Integer.toString(vlan));
+                                        Integer.toString(vlan), vni, floodIps);
         if (!st.isSuccess()) {
             log.warn("Bind vlan failed: {} - {}", st.getCode(),
                                                   st.getDescription());

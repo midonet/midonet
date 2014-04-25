@@ -3,6 +3,25 @@
  */
 package org.midonet.api.network.rest_api;
 
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import javax.annotation.security.RolesAllowed;
+import javax.validation.Validator;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
+
+import com.google.inject.Inject;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.VendorMediaType;
 import org.midonet.api.auth.AuthRole;
@@ -24,27 +43,6 @@ import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.StatePathExistsException;
 import org.midonet.midolman.state.VtepConnectionState;
 import org.midonet.packets.IPv4Addr;
-
-import com.google.inject.Inject;
-
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-import javax.annotation.security.RolesAllowed;
-import javax.validation.Validator;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
-
 import static org.midonet.api.validation.MessageProperty.NETWORK_ALREADY_BOUND;
 import static org.midonet.api.validation.MessageProperty.VTEP_EXISTS;
 import static org.midonet.api.validation.MessageProperty.VTEP_NOT_FOUND;
@@ -189,18 +187,19 @@ public class VtepResource extends AbstractResource {
             // TODO: Unique VNI.
             newPortVni = rand.nextInt((1 << 24) - 1) + 1;
             // TODO: Make VTEP client take UUID instead of name.
-            vtepClient.addLogicalSwitch(
-                    "midonet-" + binding.getNetworkId(), newPortVni);
+            vtepClient.addLogicalSwitch("midonet-" + binding.getNetworkId(),
+                                        newPortVni);
         }
 
         // TODO: Make this return the actual status, so we can return
         // a more appropriate error to the caller.
         boolean success = vtepClient.bindVlan(
                 "midonet-" + binding.getNetworkId(),
-                binding.getPortName(), binding.getVlanId());
+                binding.getPortName(), binding.getVlanId(), newPortVni,
+                new ArrayList<String>());
         vtepClient.disconnect();
 
-        if (newPortVni != null) {
+        if (newPortVni != null && success) {
             dataClient.bridgeCreateVxLanPort(bridge.getId(), ipAddr,
                                              vtep.getMgmtPort(), newPortVni);
         }
