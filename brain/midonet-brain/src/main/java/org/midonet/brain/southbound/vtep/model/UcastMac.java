@@ -46,7 +46,7 @@ public class UcastMac {
 
     @Override
     public String toString() {
-        return "Mcast_Mac{" +
+        return "Ucast_Mac{" +
             "mac='" + mac + '\'' +
             ", logicalSwitch=" + logicalSwitch +
             ", locator=" + locator +
