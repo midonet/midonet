@@ -1,0 +1,30 @@
+#! /bin/sh
+
+
+. ../mmmrc
+
+if test -x /etc/init.d/zookeeper; then
+    /etc/init.d/zookeeper stop >/dev/null 2>&1 || true
+fi
+
+if test -d /var/log/zookeeper; then
+    find /var/log/zookeeper -type f -exec rm -f '{}' ';' || true
+fi
+
+if test x"$ZOOKEEPER_STANDALONE" = xyes; then
+    sh start.1
+else
+    sh start.1
+    sh start.2
+    sh start.3
+fi
+
+# Checking Zookeeper status
+sleep 5
+echo Zookeeper 1
+echo ruok | nc 10.0.0.2 2181
+echo Zookeeper 2
+echo ruok | nc 10.0.0.3 2181
+echo Zookeeper 3
+echo ruok | nc 10.0.0.4 2181
+

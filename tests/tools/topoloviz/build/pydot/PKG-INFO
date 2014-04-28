@@ -1,0 +1,36 @@
+Metadata-Version: 1.0
+Name: pydot
+Version: 1.0.28
+Summary: Python interface to Graphviz's Dot
+Home-page: http://code.google.com/p/pydot/
+Author: Ero Carrera
+Author-email: ero@dkbza.org
+License: MIT
+Download-URL: http://pydot.googlecode.com/files/pydot-1.0.28.tar.gz
+Description: Graphviz's dot language Python interface.
+        
+        This module provides with a full interface to create handle modify
+        and process graphs in Graphviz's dot language.
+        
+        References:
+        
+        pydot Homepage: http://code.google.com/p/pydot/
+        Graphviz:       http://www.graphviz.org/
+        DOT Language:   http://www.graphviz.org/doc/info/lang.html
+        
+        Programmed and tested with Graphviz 2.26.3 and Python 2.6 on OSX 10.6.4
+        
+        Copyright (c) 2005-2011 Ero Carrera <ero.carrera@gmail.com>
+        
+        Distributed under MIT license [http://opensource.org/licenses/mit-license.html].
+        
+Keywords: graphviz dot graphs visualization
+Platform: any
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Science/Research
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Natural Language :: English
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Topic :: Scientific/Engineering :: Visualization
+Classifier: Topic :: Software Development :: Libraries :: Python Modules

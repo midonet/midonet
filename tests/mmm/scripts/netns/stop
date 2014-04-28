@@ -1,0 +1,9 @@
+#! /bin/bash
+
+# for vms
+. interfaces
+. ../mmmrc
+. ../lib/utils.sh
+
+tm_stop mido-vm
+tm_stop mido-host

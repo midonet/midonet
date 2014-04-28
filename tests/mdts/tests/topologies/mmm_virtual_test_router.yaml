@@ -1,0 +1,79 @@
+#
+# Virtual Topology
+#
+
+virtual_topology:
+  description: Simple configuration with one router and
+               two bridges.
+
+  tenant_name: MMM-TEST-000-001
+
+  routers:
+    - router:
+        name: router-000-001
+        ports:
+          - port:
+              id: 1
+              type: interior
+              ipv4_addr: 172.16.1.254/24
+              ipv6_addr: null
+              links_to:
+                  device: bridge-000-001
+                  port_id: 1
+
+          - port:
+              id: 2
+              type: interior
+              ipv4_addr: 172.16.2.254/24
+              ipv6_addr: null
+              links_to:
+                  device: bridge-000-002
+                  port_id: 1
+
+        routes:
+          - route:
+              id: 1   # do we need id for route? for sorting?
+              type: Normal
+              src_addr: 0.0.0.0/0
+              dst_addr: 172.16.1.0/24
+              weight: 100
+              next_hop_port: 1
+              next_hop_gw: 0.0.0.0
+          - route:
+              id: 2
+              type: Normal
+              src_addr: 0.0.0.0/0
+              dst_addr: 172.16.2.0/24
+              weight: 100
+              next_hop_port: 2
+              next_hop_gw: 0.0.0.0
+
+
+  bridges:
+    - bridge:
+        name: bridge-000-001
+        ports:
+          - port:
+              id: 1
+              type: interior
+# links_to above already created a port link
+#              links_to:
+#                  device: router-000-001
+#                  port_id: 1
+          - port:
+              id: 2
+              type: exterior
+
+    - bridge:
+        name: bridge-000-002
+        ports:
+          - port:
+              id: 1
+              type: interior
+# links_to above already created a port link
+#              links_to:
+#                  device: router-000-001
+#                  port_id: 2
+          - port:
+              id: 2
+              type: exterior

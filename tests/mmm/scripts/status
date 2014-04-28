@@ -1,0 +1,25 @@
+#!/bin/bash
+
+echo 'Midolman'
+for mpid in $(pgrep -f org.midonet.midolman.Midolman)
+do
+  echo " * midolman PID: ${mpid}"
+done
+
+
+echo ''
+echo 'Cassandra'
+cd /opt/qa/mmm/scripts/cassandra/
+for i in 1 2 3
+do
+  ./container.${i} service cassandra status | grep -i 'cassandra is' | sed s/cassandra/cassandra.${i}/i
+done
+
+echo ''
+echo 'ZooKeeper'
+cd /opt/qa/mmm/scripts/zookeeper/
+for i in 1 2 3
+do
+  ./container.${i} service zookeeper status | grep -i 'zookeeper is' | sed s/zookeeper/zookeeper.${i}/i
+
+done

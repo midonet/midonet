@@ -1,0 +1,24 @@
+#! /bin/sh
+
+#set -e
+
+# for EC2
+#public=$(curl http://169.254.169.254/latest/meta-data/public-hostname)
+#sed "s/example.com/$public/g" -i /var/www/midonet-cp/config.js
+
+# for Vagrant
+public="localhost"
+if [ ! -d /vagrant ]
+then
+    public=`timeout 3 curl ident.me`
+    if [ $? -ne 0 ]
+    then
+        public="localhost"
+    fi
+fi
+
+if test -f /var/www/html/midonet-cp/config.js; then
+    sed "s%https://example.com/midonet-api%http://$public:8080/midonet-api%g;s/example.com/$public:8443/g" -i /var/www/html/midonet-cp/config.js
+else
+    sed "s%https://example.com/midonet-api%http://$public:8080/midonet-api%g;s/example.com/$public:8443/g" -i /var/www/midonet-cp/config.js
+fi

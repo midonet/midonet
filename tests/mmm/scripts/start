@@ -1,0 +1,19 @@
+#! /bin/bash
+
+
+. mmmrc
+
+(cd netns && bash -x start)
+(cd scratch && bash -x start)
+
+(cd zookeeper && bash -x start)
+(cd cassandra && bash -x start)
+
+sleep 10
+
+(cd quagga && bash -x start)
+(cd dnsmasq && bash -x start)
+(cd midolman && bash -x start)
+
+(cd midonet-api && bash -x start)
+(cd midonet-cp && bash -x start)
