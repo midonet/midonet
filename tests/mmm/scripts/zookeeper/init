@@ -1,0 +1,46 @@
+#! /bin/sh
+
+
+. ../mmmrc
+
+for n in 1 2 3; do
+    if test ! -d /etc/zookeeper.$n; then
+        mkdir -p /etc/zookeeper.$n
+    fi
+    cp -a /etc/zookeeper/* /etc/zookeeper.$n
+
+    if test x"$ZOOKEEPER_STANDALONE" = xyes; then
+        :
+    else
+        echo "server.1=10.0.0.2:2888:3888" >>/etc/zookeeper.$n/zoo.cfg
+        echo "server.2=10.0.0.3:2888:3888" >>/etc/zookeeper.$n/zoo.cfg
+        echo "server.3=10.0.0.4:2888:3888" >>/etc/zookeeper.$n/zoo.cfg
+    fi
+
+    if test ! -d /var/lib/zookeeper.$n; then
+        mkdir -p /var/lib/zookeeper.$n
+    fi
+    if test -d /var/lib/zookeeper.$n/data; then
+        rm -rf /var/lib/zookeeper.$n/data
+    fi
+    mkdir -p /var/lib/zookeeper.$n/data
+    echo "$n" >/var/lib/zookeeper.$n/data/myid
+    chown -R zookeeper.zookeeper /var/lib/zookeeper.$n
+
+    if test ! -d /var/log/zookeeper.$n; then
+        mkdir -p /var/log/zookeeper.$n
+    fi
+    chown -R zookeeper.zookeeper /var/log/zookeeper.$n
+
+    if test -d /run; then
+        if test ! -d /run.$n/zookeeper; then
+            mkdir -p /run.$n/zookeeper
+        fi
+        chown -R zookeeper.zookeeper /run.$n/zookeeper
+    else
+        if test ! -d /var/run.$n/zookeeper; then
+            mkdir -p /var/run.$n/zookeeper
+        fi
+        chown -R zookeeper.zookeeper /var/run.$n/zookeeper
+    fi
+done

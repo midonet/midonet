@@ -1,0 +1,19 @@
+#! /bin/bash
+
+
+if test -x /etc/init.d/midolman; then
+    /etc/init.d/midolman stop >/dev/null 2>&1 || true
+fi
+
+
+. ../mmmrc
+. ../lib/utils.sh
+
+echo "Starting midolman.1"
+bash start.1
+sleep 30
+echo "Starting midolman.2"
+bash start.2
+sleep 30
+echo "Starting midolman.3"
+bash start.3

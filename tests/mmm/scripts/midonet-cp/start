@@ -1,0 +1,8 @@
+#! /bin/sh
+
+
+if test -x /etc/init.d/httpd; then
+    /etc/init.d/httpd restart
+elif test -x /etc/init.d/apache2; then
+    /etc/init.d/apache2 restart
+fi

@@ -1,0 +1,59 @@
+#
+# Virtual Topology
+#
+
+virtual_topology:
+  description: Test data for unit-testing VirtualTopologyManager.
+
+  tenant_name: MMM-TEST-000-001
+
+  chains:
+    - chain:
+        id: 1
+        name: in_filter_001
+        rules:
+          - rule:
+              id: 1
+              type: accept
+
+    - chain:
+        id: 2
+        name: out_filter_001
+        rules:
+          - rule:
+              id: 1
+              type: accept
+
+  bridges:
+    - bridge:
+        name: bridge-000-001
+        ports:
+          - port:
+              id: 1
+              type: exterior
+          - port:
+              id: 2
+              type: exterior
+          - port:
+              id: 3
+              type: exterior
+
+        filters:
+          - inbound: in_filter_001
+          - outbound: out_filter_001
+
+  links:
+    - link:
+        peer_A: [bridge-000-001, 1]
+        peer_B: [router-000-001, 1]
+    - link:
+        peer_A: [bridge-000-002, 1]
+        peer_B: [router-000-001, 2]
+
+  port_groups:
+    - port_group:
+        id: 1
+        name: pg-1
+        ports:
+          - port: [bridge-000-001, 1]
+          - port: [bridge-000-001, 2]
