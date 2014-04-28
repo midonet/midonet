@@ -35,6 +35,8 @@ import me.prettyprint.hector.api.query.QueryResult;
 import me.prettyprint.hector.api.query.RangeSlicesQuery;
 import me.prettyprint.hector.api.query.SliceQuery;
 import org.apache.cassandra.locator.SimpleStrategy;
+import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.state.ZkLock;
 import org.midonet.util.eventloop.Reactor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,6 +70,7 @@ public class CassandraClient {
     private final int hostTimeoutCounter;
     private final int hostTimeoutWindow;
     private final Reactor reactor;
+    private final ZkLock lock;
 
     private static StringSerializer ss = StringSerializer.get();
 
@@ -76,7 +79,8 @@ public class CassandraClient {
                            String columnFamily, int replicationFactor,
                            int expirationSecs, int thriftSocketTimeout,
                            boolean hostTimeoutTracker, int hostTimeoutCounter,
-                           int hostTimeoutWindow, Reactor reactor) {
+                           int hostTimeoutWindow, Reactor reactor,
+                           ZkLock lock) {
         this.servers = servers;
         this.maxActiveConns = maxActiveConns;
         this.clusterName = clusterName;
@@ -89,6 +93,7 @@ public class CassandraClient {
         this.hostTimeoutCounter = hostTimeoutCounter;
         this.hostTimeoutWindow = hostTimeoutWindow;
         this.reactor = reactor;
+        this.lock = lock;
     }
 
     public synchronized void connect() throws HectorException {
@@ -99,32 +104,39 @@ public class CassandraClient {
         Cluster cluster = null;
         Keyspace keyspace = null;
 
-        try {
-            CassandraHostConfigurator config = new CassandraHostConfigurator();
-            config.setHosts(servers);
-            config.setMaxActive(maxActiveConns);
-            config.setUseSocketKeepalive(true);
-            config.setRetryDownedHosts(true);
-            config.setRetryDownedHostsDelayInSeconds(5);
-            config.setCassandraThriftSocketTimeout(thriftSocketTimeout);
-            // This controls the time that requests will wait for a connection
-            // to be restored when hector has no clients available in a given
-            // host's pool. This may happen for example if we're getting
-            // timeouts to a host - this would close the clients, but not
-            // remove them from the pool so Hector will block trying to fetch
-            // a healthy client from the pool. We want to keep this short
-            // so that we return from the request, and trigger a failure that
-            // makes Hector mark the host as down. Should be unnecessary
-            // given the ExhaustedPolicy below, but just to be safe.
-            config.setMaxWaitTimeWhenExhausted(1000);
-            config.setExhaustedPolicy(ExhaustedPolicy.WHEN_EXHAUSTED_FAIL);
-            // These determine how many timeouts are allowed in a given host
-            // within the given window (in ms) before the node gets suspended
-            // and becomes non eligible for future operations.
-            config.setUseHostTimeoutTracker(hostTimeoutTracker);
-            config.setHostTimeoutCounter(hostTimeoutCounter);
-            config.setHostTimeoutWindow(hostTimeoutWindow);
+        CassandraHostConfigurator config = new CassandraHostConfigurator();
+        config.setHosts(servers);
+        config.setMaxActive(maxActiveConns);
+        config.setUseSocketKeepalive(true);
+        config.setRetryDownedHosts(true);
+        config.setRetryDownedHostsDelayInSeconds(5);
+        config.setCassandraThriftSocketTimeout(thriftSocketTimeout);
+        // This controls the time that requests will wait for a connection
+        // to be restored when hector has no clients available in a given
+        // host's pool. This may happen for example if we're getting
+        // timeouts to a host - this would close the clients, but not
+        // remove them from the pool so Hector will block trying to fetch
+        // a healthy client from the pool. We want to keep this short
+        // so that we return from the request, and trigger a failure that
+        // makes Hector mark the host as down. Should be unnecessary
+        // given the ExhaustedPolicy below, but just to be safe.
+        config.setMaxWaitTimeWhenExhausted(1000);
+        config.setExhaustedPolicy(ExhaustedPolicy.WHEN_EXHAUSTED_FAIL);
+        // These determine how many timeouts are allowed in a given host
+        // within the given window (in ms) before the node gets suspended
+        // and becomes non eligible for future operations.
+        config.setUseHostTimeoutTracker(hostTimeoutTracker);
+        config.setHostTimeoutCounter(hostTimeoutCounter);
+        config.setHostTimeoutWindow(hostTimeoutWindow);
 
+        try {
+            lock.lock(Long.MAX_VALUE);
+        } catch (StateAccessException e) {
+            log.error("Failed to acquire ZK lock. Retrying.");
+            scheduleReconnect();
+            return;
+        }
+        try {
             cluster = HFactory.getOrCreateCluster(clusterName, config);
             keyspace = HFactory.createKeyspace(
                     keyspaceName, cluster,
@@ -178,6 +190,7 @@ public class CassandraClient {
         } catch (HectorException ex) {
             scheduleReconnect();
         } finally {
+            lock.unlock();
             if (success) {
                 log.info("Connection to Cassandra {}:{} ESTABLISHED",
                          keyspaceName, columnFamily);

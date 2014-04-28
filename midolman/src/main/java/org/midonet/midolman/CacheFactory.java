@@ -6,6 +6,7 @@
 
 package org.midonet.midolman;
 
+import org.midonet.midolman.state.ZkLock;
 import org.midonet.util.eventloop.Reactor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +30,7 @@ public class CacheFactory {
      * @throws org.midonet.cache.CacheException if an error occurs
      */
     public static Cache create(MidolmanConfig config, String columnName,
-            int cacheExpirationSeconds, Reactor reactor) throws CacheException {
+            int cacheExpirationSeconds, Reactor reactor, ZkLock lock) throws CacheException {
         Cache cache = null;
         String cacheType = config.getMidolmanCacheType();
 
@@ -54,7 +55,7 @@ public class CacheFactory {
                                            thriftSocketTimeout,
                                            hostTimeoutTracker,
                                            hostTimeoutWindow,
-                                           hostTimeoutCounter, reactor);
+                                           hostTimeoutCounter, reactor, lock);
             }
         } catch (Exception e) {
             throw new CacheException("error while creating cache", e);
