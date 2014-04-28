@@ -1,0 +1,14 @@
+#! /bin/bash
+
+case "$reason" in
+    BOUND|RENEW|REBIND|REBOOT)
+        /sbin/ip -family inet addr add ${new_ip_address}/${new_subnet_mask} \
+            broadcast ${new_broadcast_address} dev ${interface}
+        if test -n "${new_interface_mtu}"; then
+            /sbin/ip link set ${interface} mtu ${new_interface_mtu}
+        fi
+        /sbin/ip -family inet link set dev ${interface} up
+        ;;
+esac
+
+exit 0

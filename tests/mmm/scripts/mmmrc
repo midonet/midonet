@@ -1,0 +1,7 @@
+# Terminal Multiplexer setting: defaults to "screen"
+#MMM_TM=tmux
+# Use a single, standalone zookeeper
+#ZOOKEEPER_STANDALONE=yes
+# Use a single, standalone cassandra
+#CASSANDRA_STANDALONE=yes
+

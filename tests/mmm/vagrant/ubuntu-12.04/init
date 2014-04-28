@@ -1,0 +1,7 @@
+#! /bin/sh
+
+if test -d /opt/qa/mmm; then
+    cd /opt/qa/mmm && bash -x init && exec bash -x boot
+else
+    exit 1
+fi

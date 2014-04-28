@@ -1,0 +1,14 @@
+#! /bin/sh
+
+
+if test -x /etc/init.d/jmxtrans; then
+    /etc/init.d/jmxtrans stop >/dev/null 2>&1 || true
+fi
+
+if test -d /var/log/jmxtrans; then
+    find /var/log/jmxtrans -type f -exec rm -f '{}' ';' || true
+fi
+
+sh start.1
+sh start.2
+sh start.3

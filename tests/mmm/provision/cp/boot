@@ -1,0 +1,17 @@
+#!/bin/sh
+#
+# boot - The bootstrap script for MidoNet Control Panel Vagrant box.
+#
+# Copyright 2013 Midokura Japan K.K.
+#
+
+
+sudo sh -c 'cd ../../scripts && bash -lx boot'
+sudo sh -c 'cd ../../scripts && bash -lx start'
+sleep 30
+echo -n "Installing topology..."
+echo "$(pwd)"
+sh -c 'PYTHONPATH=$(pwd):../$(pwd):../../$(pwd):/opt/qa \
+  python ../../../tools/midodump/load_topology.py \
+  /opt/qa/fixtures/cp/default_topology.yaml'
+echo "done"

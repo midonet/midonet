@@ -1,0 +1,101 @@
+virtual_topology:
+  description: one router and two bridge with chains
+               for testing IPv4 fragmentation
+
+  tenant_name: MMM-TEST-000-001
+
+  chains:
+    - chain:
+        id: 1
+        name: reject_fragments
+        rules:
+          - rule:
+              id: 1
+              position: 1
+              fragment_policy: unfragmented
+              type: accept
+          - rule:
+              id: 2
+              position: 2
+              type: drop
+
+  routers:
+    - router:
+        name: router-000-001
+        ports:
+          - port:
+              id: 1
+              type: interior
+              ipv4_addr: 172.16.1.254/24
+              ipv6_addr: null
+              links_to:
+                  device: bridge-000-001
+                  port_id: 1
+
+          - port:
+              id: 2
+              type: interior
+              ipv4_addr: 172.16.2.254/24
+              ipv6_addr: null
+              links_to:
+                  device: bridge-000-002
+                  port_id: 1
+
+        routes:
+          - route:
+              id: 1   # do we need id for route? for sorting?
+              type: Normal
+              src_addr: 0.0.0.0/0
+              dst_addr: 172.16.1.0/24
+              weight: 100
+              next_hop_port: 1
+              next_hop_gw: 0.0.0.0
+          - route:
+              id: 2
+              type: Normal
+              src_addr: 0.0.0.0/0
+              dst_addr: 172.16.2.0/24
+              weight: 100
+              next_hop_port: 2
+              next_hop_gw: 0.0.0.0
+
+  bridges:
+    - bridge:
+        name: bridge-000-001
+        ports:
+          - port:
+              id: 1
+              type: interior
+# Duplicate links_to spec are not allowed
+#              links_to:
+#                  device: router-000-001
+#                  port_id: 1
+          - port:
+              id: 2
+              type: exterior
+          - port:
+              id: 3
+              type: exterior
+
+    - bridge:
+        name: bridge-000-002
+        ports:
+          - port:
+              id: 1
+              type: interior
+# Duplicate links_to spec are not allowed
+#              links_to:
+#                  device: router-000-001
+#                  port_id: 2
+          - port:
+              id: 2
+              type: exterior
+
+# 'links_to's above already created port liks.
+#  links:
+#    - link:
+#        peer_A: [bridge-000-001, 1]
+#        peer_B: [router-000-001, 1]
+#    - link:
+#        peer_A: [bridge-000-002, 1]
+#        peer_B: [router-000-001, 2]

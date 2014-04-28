@@ -1,0 +1,42 @@
+#! /bin/bash
+
+# for vlan
+brctl stp brv0 off
+
+for i in {1..2}; do
+    n=$(printf "%03d" $i)
+    for j in {0..1}; do
+        ip netns delete nsv$n.$j
+    done
+done
+
+ip link set dev brv0 down
+brctl delbr brv0
+
+ip link del trunk0
+ip link del trunk1
+
+# for vms
+. interfaces
+
+for ((i = 0; i < ${#interfaces[*]}; i = i + 4)); do
+    n=$(printf "%03d" ${interfaces[$i]})
+    m=${interfaces[$((i+1))]}
+    ip netns delete ns$n.$m
+done
+
+# for hosts
+for i in {10..0}; do
+    n=$(printf "%03d" $i)
+    ip netns delete ns$n
+done
+
+echo 0 >/proc/sys/net/ipv4/ip_forward
+iptables -t nat -D POSTROUTING -s 10.0.0.0/24 ! -d 10.0.0.0/24 -j MASQUERADE
+
+if test -x /etc/init.d/iptables; then
+    /etc/init.d/iptables start
+fi
+
+ip link set dev br0 down
+brctl delbr br0
