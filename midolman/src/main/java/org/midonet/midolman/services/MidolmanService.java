@@ -52,9 +52,10 @@ public class MidolmanService extends AbstractService {
         for (AbstractService service : services()) {
             log.info("Service {}", service);
             try {
-                service.startAndWait();
+                if (service.startAndWait() != State.RUNNING)
+                    throw new Exception("Failed to start service " + service);
             } catch (Exception e) {
-                log.error("Exception while starting service {}", service, e);
+                log.error("Exception while starting service " + service, e);
                 notifyFailed(e);
                 doStop();
                 return;
