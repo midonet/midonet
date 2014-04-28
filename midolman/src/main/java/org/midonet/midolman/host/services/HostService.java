@@ -99,11 +99,11 @@ public class HostService extends AbstractService
                 }
             });
             notifyStarted();
+            log.info("Midolman host agent started.");
         } catch (Exception e) {
+            log.error("HostService failed to start", e);
             notifyFailed(e);
-            throw new RuntimeException("Could not start Midolman", e);
         }
-        log.info("Midolman host agent started.");
     }
 
     @Override
