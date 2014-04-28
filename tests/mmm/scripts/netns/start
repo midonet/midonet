@@ -1,0 +1,24 @@
+#! /bin/bash
+
+
+. interfaces
+. ../mmmrc
+. ../lib/utils.sh
+
+#for vms
+for ((i = 0; i < ${#interfaces[@]}; i = i + 4)); do
+    n=$(printf "%03d" ${interfaces[$i]})
+    m=${interfaces[$((i+1))]}
+    ip=${interfaces[$((i+2))]}
+    name=$(echo $ip|sed 's%\.%-%g;s%/.*$%%')
+    tm_run mido-vm  ns$n.$m.$name sh container.ns$n.$m
+done
+
+# for hosts
+titles=("quagga" "*scratch*" "zookeeper" "zookeeper" "zookeeper"
+    "cassandra" "cassandra" "cassandra" "midolman" "midolman" "midolman")
+
+for i in {0..10}; do
+    n=$(printf "%03d" $i)
+    tm_run mido-host ns$n.${titles[$i]} sh container.ns$n
+done

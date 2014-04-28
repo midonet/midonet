@@ -1,0 +1,65 @@
+#!/bin/sh
+#
+# init - The initialization script to install dependencies of MidoNet Control
+#        Panel.
+#
+# Copyright 2013 Midokura Japan K.K.
+#
+
+
+sudo apt-get update
+sudo apt-get install -y phantomjs
+sudo apt-get install -y optipng
+sudo apt-get install -y libjpeg-turbo8
+
+# NOTE(tfukushima): Installing Ruby. If you'd like to use rbenv, please comment
+#   out the following command.
+# Intalling rbenv and ruby-build
+# git clone https://github.com/sstephenson/rbenv.git ~/.rbenv
+# export PATH="$HOME/.rbenv/bin:$PATH"
+# echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ~/.bash_profile
+# eval "$(rbenv init -)"
+# echo 'eval "$(rbenv init -)"' >> ~/.bash_profile
+# git clone https://github.com/sstephenson/ruby-build.git ~/.rbenv/plugins/ruby-build
+# rbenv install 2.0.0-p247
+# rbenv rehash
+sudo apt-get install -y --fix-missing ruby rubygems
+sudo gem install compass
+
+# Installing Node.js
+sudo apt-get install -y git
+# Installing nodenv. Refer the following link to see more details.
+#   https://github.com/OiNutter/nodenv
+git clone git://github.com/OiNutter/nodenv.git ~/.nodenv
+git clone git://github.com/OiNutter/node-build.git ~/.nodenv/plugins/node-build
+export PATH="$HOME/.nodenv/bin:$PATH"
+echo 'export PATH="$HOME/.nodenv/bin:$PATH"' >> ~/.profile
+eval "$(nodenv init -)"
+echo 'eval "$(nodenv init -)"' >> ~/.profile
+# Installing Node.js and configure v0.8.x as default
+nodenv install 0.8.22
+nodenv rehash
+nodenv install 0.10.20
+nodenv rehash
+
+nodenv local 0.10.20
+npm install -g coffee-script
+npm install -g typescript
+npm install -g yo
+npm install -g grunt-cli
+npm install -g bower
+
+nodenv local 0.8.22
+# Install npm dependencies
+npm install -g yeoman@0.9.6
+npm install -g coffee-script@1.2.0
+npm install -g typescript@0.9.1
+npm install -g bower
+
+# Installing CP dependencies
+sh -c 'cd /opt/midonet-cp && npm install && yeoman install'
+
+# Set `ulimit` for the workaound of many files. See the following wiki entry:
+#   https://github.com/yeoman/yeoman/wiki/Additional-FAQ#q-im-getting-emfile-too-many-open-files
+sudo ulimit -n 10000
+echo "ulimit -n 10000" >> ~/.profile
