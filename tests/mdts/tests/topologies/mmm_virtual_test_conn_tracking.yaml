@@ -1,0 +1,110 @@
+#
+# Virtual Topology
+#
+
+virtual_topology:
+  description: Simple configuration with one router, one bridge, and two hosts
+               hanging from the bridge. Connections are tracked and filtered by
+               applying rule chains to the bridge. 
+
+  tenant_name: MMM-TEST-000-001
+
+  routers:
+    - router:
+        name: router-000-001
+        ports:
+          - port:
+              id: 1
+              type: interior
+              ipv4_addr: 172.16.1.254/24
+              ipv6_addr: null
+              links_to:
+                  device: bridge-000-001
+                  port_id: 1
+
+        routes:
+          - route:
+              id: 1
+              type: Normal
+              src_addr: 0.0.0.0/0
+              dst_addr: 172.16.1.0/24
+              weight: 100
+              next_hop_port: 1
+              next_hop_gw: 0.0.0.0
+
+  bridges:
+    - bridge:
+        name: bridge-000-001
+        ports:
+          - port:
+              id: 1
+              type: interior
+          - port:
+              id: 2
+              type: exterior
+          - port:
+              id: 3
+              type: exterior
+
+# Connection tracking rules
+  chains:
+    - chain:
+        id: 1
+        name: connection_tracking_nw_in
+        rules:
+          - rule:  # Match forward flow from 1.2 to 1.1.
+              id: 1
+              position: 1
+              type: accept
+              match_forward_flow: true
+              nw_src_address: 172.16.1.2
+              nw_src_length: 32
+              nw_dst_address: 172.16.1.1
+              nw_dst_length: 32
+    - chain:
+        id: 2
+        name: connection_tracking_nw_out
+        rules:
+          - rule:  # Accept all return packets
+              id: 1
+              position: 1
+              type: accept
+              match_return_flow: true
+          - rule:
+              id: 2
+              position: 2
+              type: drop
+              dl_type: 0x0806
+              inv_dl_type: true
+              nw_src_address: 172.16.1.1
+              nw_src_length: 32
+              nw_dst_address: 172.16.1.2
+              nw_dst_length: 32
+    - chain:
+        id: 3
+        name: connection_tracking_dl_in
+        rules:
+          - rule:  # Match forward flow from 1.2 to 1.1.
+              id: 1
+              position: 1
+              type: accept
+              match_forward_flow: true
+              dl_src: aa:bb:cc:00:01:02
+              dl_dst: aa:bb:cc:00:01:01
+    - chain:
+        id: 4
+        name: connection_tracking_dl_out
+        rules:
+          - rule:  # Accept all return packets
+              id: 1
+              position: 1
+              type: accept
+              match_return_flow: true
+          - rule:
+              id: 2
+              position: 2
+              type: drop
+              dl_type: 0x0806
+              inv_dl_type: true
+              dl_src: aa:bb:cc:00:01:01
+              dl_dst: aa:bb:cc:00:01:02

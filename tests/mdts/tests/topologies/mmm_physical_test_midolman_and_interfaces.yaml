@@ -1,0 +1,20 @@
+physical_topology:
+  hosts:
+    - host:
+        id: 1
+        provided: true
+        mn_host_id: 00000000-0000-0000-0000-000000000001
+        tunnel_zone:
+          name: default
+          ip_addr: 10.0.0.8
+        mm_namespace: ns008
+        interfaces:
+          - interface:
+              id: 1
+              ifname: interface_01
+              type: "netns"
+              ipv4_addr: [172.16.1.1/24]
+              ipv4_gw: 172.16.1.254
+              ipv6_addr: []
+              hw_addr: aa:bb:cc:00:00:11
+              mtu: 1500

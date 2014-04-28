@@ -1,0 +1,8 @@
+#!/bin/sh
+
+if test -d /opt/qa/mmm; then
+    cd /opt/qa/mmm/provision/cp && bash init && bash boot
+else
+    exit 1
+fi
+

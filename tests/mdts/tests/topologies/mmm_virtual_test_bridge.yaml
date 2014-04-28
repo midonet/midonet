@@ -1,0 +1,63 @@
+#
+# Virtual Topology
+#
+
+virtual_topology:
+  description: Virtual topology for test_bridge
+
+  tenant_name: MMM-TEST-000-001
+
+  bridges:
+    - bridge:
+        name: bridge-000-001
+        ports:
+          - port:
+              id: 1
+              type: exterior
+          - port:
+              id: 2
+              type: exterior
+          - port:
+              id: 3
+              type: exterior
+
+        dhcps:
+          - dhcp:
+              id: 1
+              ipv4_gw: 172.16.1.254
+              network: 172.16.1.0/24
+              nameservers: 8.8.8.8, 8.8.4.4
+              hosts:
+                - host:
+                    name: host1
+                    ipv4_addr: 172.16.1.100
+                    mac_addr: aa:bb:cc:00:00:55
+                - host:
+                    name: host2
+                    ipv4_addr: 172.16.1.101
+                    mac_addr: aa:bb:cc:00:11:55
+              routes:
+                - route:
+                    dest: 169.254.169.254/32
+                    gw:  172.16.1.253
+                - route:
+                    dest: 1.1.1.0/24
+                    gw: 172.16.1.252
+
+    - bridge:
+        name: bridge-000-002
+        ports:
+          - port:
+              id: 1
+              type: exterior
+
+  chains:
+    - chain:
+        id: 1
+        name: drop_ipv4
+        rules:
+          - rule:
+              id: 1
+              position: 1
+              dl_type: 0x0800
+              type: drop

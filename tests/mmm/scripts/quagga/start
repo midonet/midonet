@@ -1,0 +1,12 @@
+#! /bin/sh
+
+
+if test -x /etc/init.d/quagga; then
+    /etc/init.d/quagga stop >/dev/null 2>&1 || true
+fi
+
+if test -d /var/log/quagga; then
+    find /var/log/quagga -type f -exec rm -f '{}' ';' || true
+fi
+
+exec sh container.0 sh start-nth.sh 0
