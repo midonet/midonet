@@ -1,0 +1,12 @@
+#! /bin/sh
+
+
+if test -x /etc/rc.d/init.d/bgpd; then
+    sh container.0 /etc/rc.d/init.d/bgpd stop
+fi
+
+if test -x /etc/init.d/zebra; then
+    sh container.0 /etc/rc.d/init.d/zebra stop
+else
+    sh container.0 /etc/init.d/quagga stop
+fi

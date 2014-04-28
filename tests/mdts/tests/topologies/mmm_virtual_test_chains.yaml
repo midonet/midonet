@@ -1,0 +1,63 @@
+#
+# Virtual Topology
+#
+
+virtual_topology:
+  description: Virtual topology for test_bridge
+
+  tenant_name: MMM-TEST-000-001
+
+  chains:
+    - chain:
+        id: 1
+        name: drop_ipv6
+        rules:
+          - rule:
+              id: 1
+              position: 1
+              dl_type: 0x86DD
+              type: drop
+    - chain:
+        id: 2
+        name: drop_multicast
+        rules:
+          - rule:
+              id: 1
+              position: 1
+              dl_dst: 01:00:00:00:00:00
+              dl_dst_mask: 0100.0000.0000
+              type: drop
+    - chain:
+        id: 3
+        name: allow_only_multicast
+        rules:
+          - rule:
+              id: 1
+              position: 1
+              dl_dst: 01:00:00:00:00:00
+              dl_dst_mask: 0100.0000.0000
+              inv_dl_dst: True
+              type: drop
+    - chain:
+        id: 4
+        name: drop_even_src_mac
+        rules:
+          - rule:
+              id: 1
+              position: 1
+              dl_src: 00:00:00:00:00:01
+              dl_src_mask: 0000.0000.0001
+              inv_dl_src: True
+              type: drop
+
+
+  bridges:
+    - bridge:
+        name: bridge-000-001
+        ports:
+          - port:
+              id: 1
+              type: exterior
+          - port:
+              id: 2
+              type: exterior

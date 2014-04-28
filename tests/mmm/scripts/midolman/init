@@ -1,0 +1,74 @@
+#! /bin/sh
+
+
+. ../mmmrc
+
+for n in 1 2 3; do
+    if test ! -d /etc/midolman.$n; then
+        mkdir -p /etc/midolman.$n
+    fi
+    rsync -av --exclude host_uuid.properties /etc/midolman/* /etc/midolman.$n
+
+    # generates host uuid
+    cat <<EOF > /etc/midolman.$n/host_uuid.properties
+# generated for MMM MM $n
+host_uuid=00000000-0000-0000-0000-00000000000$n
+EOF
+
+    if test x"$ZOOKEEPER_STANDALONE" = xyes; then
+        sed "/^\[zookeeper\]/,/^$/ s/^zookeeper_hosts =.*$/zookeeper_hosts = 10.0.0.2:2181/" \
+            -i /etc/midolman.$n/midolman.conf
+    else
+        sed "/^\[zookeeper\]/,/^$/ s/^zookeeper_hosts =.*$/zookeeper_hosts = 10.0.0.2:2181,10.0.0.3:2181,10.0.0.4:2181/" \
+            -i /etc/midolman.$n/midolman.conf
+    fi
+
+    if test x"$CASSANDRA_STANDALONE" = xyes; then
+        sed "/^\[cassandra\]/,/^$/ s/^servers =.*$/servers = 10.0.0.5/;s/^replication_factor =.*$/replication_factor = 1/" \
+            -i /etc/midolman.$n/midolman.conf
+    else
+        sed "/^\[cassandra\]/,/^$/ s/^servers =.*$/servers = 10.0.0.5:9160,10.0.0.6:9160,10.0.0.7:9160/;s/^replication_factor =.*$/replication_factor = 3/" \
+            -i /etc/midolman.$n/midolman.conf
+    fi
+
+    if grep "Ubuntu" /etc/issue >/dev/null; then
+        sed "/^\[midolman\]/,/^\[/ s%^[# ]*bgpd_binary = /usr/lib/quagga.*$%bgpd_binary = /usr/lib/quagga%" \
+             -i /etc/midolman.$n/midolman.conf
+    fi
+
+    if ! grep -q "\[haproxy_health_monitor\]" /etc/midolman.$n/midolman.conf > /dev/null; then
+        cat <<EOF >> /etc/midolman.$n/midolman.conf
+# Enable haproxy on the node.
+[haproxy_health_monitor]
+namespace_cleanup = true
+health_monitor_enable = true
+haproxy_file_loc = /etc/midolman.$n/l4lb/
+EOF
+    fi
+
+    sed -i 's/root level="INFO"/root level="DEBUG"/' /etc/midolman.$n/logback.xml
+    sed -i 's/INFO/DEBUG/g' /etc/midolman.$n/midolman-akka.conf
+
+    if test ! -d /var/lib/midolman.$n; then
+        mkdir -p /var/lib/midolman.$n
+    fi
+
+    if test ! -d /var/log/midolman.$n; then
+        mkdir -p /var/log/midolman.$n
+    fi
+
+    # Allow connecting via debugger - MM 1 listens on 1411, MM 2 on 1412, MM 3 on 1413
+    sed -i '/runjdwp/s/^..//g' /etc/midolman.$n/midolman-env.sh
+    sed -i '/runjdwp/s/1414/141'$n'/g' /etc/midolman.$n/midolman-env.sh
+
+    # Setting memory to the ones before
+    # https://github.com/midokura/midonet/commit/65ace0e84265cd777b2855d15fce60148abd9330
+    sed -i 's/MAX_HEAP_SIZE=.*/MAX_HEAP_SIZE="300M"/' /etc/midolman.$n/midolman-env.sh
+    sed -i 's/HEAP_NEWSIZE=.*/HEAP_NEWSIZE="200M"/' /etc/midolman.$n/midolman-env.sh
+done
+
+echo '#! /bin/bash' >midolman
+cat /etc/init/midolman.conf |\
+    grep '^env '| sed 's/^env /export /' >>midolman
+cat /etc/init/midolman.conf |\
+    sed '1,/^script/d;/^end/,$d;s/^    //' | grep '^[^#]' >>midolman

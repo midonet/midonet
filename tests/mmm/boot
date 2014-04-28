@@ -1,0 +1,5 @@
+#! /bin/sh
+
+
+sudo sh -c 'cd scripts && bash -lx boot'
+sudo sh -c 'cd scripts && bash -lx start'

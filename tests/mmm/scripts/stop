@@ -1,0 +1,14 @@
+#! /bin/bash
+
+. mmmrc
+
+(cd midonet-api && bash stop)
+(cd midolman && bash stop)
+(cd dnsmasq && bash stop)
+(cd quagga && bash stop)
+
+(cd cassandra && bash stop)
+(cd zookeeper && bash stop)
+
+(cd scratch && bash stop)
+(cd netns && bash stop)

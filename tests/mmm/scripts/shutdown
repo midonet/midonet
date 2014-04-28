@@ -1,0 +1,11 @@
+#! /bin/sh
+
+(cd netns && bash shutdown)
+
+for service in zookeeper cassandra midolman quagga; do
+    for dir in /etc /var/log /var/lib; do
+        while umount $dir/$service >/dev/null 2>&1; do :; done
+    done
+done
+
+while umount /var/run >/dev/null 2>&1; do :; done

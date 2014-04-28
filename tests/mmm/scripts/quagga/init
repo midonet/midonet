@@ -1,0 +1,53 @@
+#! /bin/sh
+
+
+for n in 0 1 2 3; do
+    if test ! -d /etc/quagga.$n; then
+        mkdir -p /etc/quagga.$n
+    fi
+
+    if test ! -d /var/lib/quagga.$n; then
+        mkdir -p /var/lib/quagga.$n
+    fi
+    chown -R quagga.quagga /var/lib/quagga.$n
+
+    if test ! -d /var/log/quagga.$n; then
+        mkdir -p /var/log/quagga.$n
+    fi
+    chown -R quagga.quagga /var/log/quagga.$n
+
+    if test -d /run; then
+        if test ! -d /run.$n/quagga; then
+            mkdir -p /run.$n/quagga
+        fi
+        chown -R quagga.quagga /run.$n/quagga
+    else
+        if test ! -d /var/run.$n/quagga; then
+            mkdir -p /var/run.$n/quagga
+        fi
+        chown -R quagga.quagga /var/run.$n/quagga
+        if grep "Red Hat Enterprise Linux" /etc/issue >/dev/null; then
+            chcon --type zebra_var_run_t /var/run.$n/quagga
+        fi
+    fi
+done
+
+cp -a quagga.0/* /etc/quagga.0
+cp -a quagga.1+/* /etc/quagga.1
+cp -a quagga.1+/* /etc/quagga.2
+cp -a quagga.1+/* /etc/quagga.3
+
+for n in 0 1 2 3; do
+    if grep "Red Hat Enterprise Linux" /etc/issue >/dev/null; then
+        chcon --type zebra_conf_t /etc/quagga.$n/*.conf
+    fi
+done
+
+for n in 1 2 3; do
+    sed "s/^\[midolman\]/\[midolman\]\\nbgp_keepalive=1/" \
+        -i /etc/midolman.$n/midolman.conf
+    sed "s/^\[midolman\]/\[midolman\]\\nbgp_holdtime=3/" \
+        -i /etc/midolman.$n/midolman.conf
+    sed "s/^\[midolman\]/\[midolman\]\\nbgp_connect_retry=1/" \
+        -i /etc/midolman.$n/midolman.conf
+done
