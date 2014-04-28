@@ -11,11 +11,11 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
-import javax.annotation.Nonnull;
 
 import com.google.common.base.Function;
+
 import com.sun.jna.Native;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,6 +24,7 @@ import org.midonet.netlink.exceptions.NetlinkException;
 import org.midonet.netlink.messages.Builder;
 import org.midonet.util.BatchCollector;
 import org.midonet.util.io.SelectorInputQueue;
+import org.midonet.util.Runnables;
 import org.midonet.util.TokenBucket;
 
 /**
@@ -139,8 +140,11 @@ public abstract class AbstractNetlinkConnection {
                 req.expirationTimeNanos <= now) {
 
             expirationQueue.poll();
-            if (pendingRequests.remove(req.seq) == null)
+            if (pendingRequests.remove(req.seq) == null) {
+                // request expired but it has already been
+                // handled on the reading side -> ignoring.
                 continue;
+            }
 
             log.debug("[pid:{}] Signalling timeout to the callback: {}",
                       pid(), req.seq);
@@ -183,7 +187,7 @@ public abstract class AbstractNetlinkConnection {
 
         if (bypassSendQueue) {
             processWriteToChannel(netlinkRequest);
-        } else if (! writeQueue.offer(netlinkRequest)) {
+        } else if (!writeQueue.offer(netlinkRequest)) {
             requestPool.release(payload);
             abortRequestQueueIsFull(netlinkRequest, seq);
         }
@@ -203,7 +207,6 @@ public abstract class AbstractNetlinkConnection {
         String msg = "Too many pending netlink requests";
         if (req.userCallback != null) {
             pendingRequests.remove(seq);
-
             /* Run the callback directly, because this runs out of the client's
              * thread, not the channel's: it's the client that failed to
              * put a request in the queue. */
@@ -291,6 +294,7 @@ public abstract class AbstractNetlinkConnection {
         } catch (IOException e) {
             log.warn("NETLINK write() exception: {}", e);
             if (request.userCallback != null) {
+                pendingRequests.remove(request.seq);
                 dispatcher.submit(request.failed(new NetlinkException(
                                   NetlinkException.ERROR_SENDING_REQUEST, e)));
             }
@@ -372,7 +376,7 @@ public abstract class AbstractNetlinkConnection {
 
                     // An ACK is a NLMSG_ERROR with 0 as error code
                     if (error == 0) {
-                        processSuccessfulRequest(seq);
+                        processSuccessfulRequest(removeRequest(seq));
                     } else {
                         processFailedRequest(seq, error);
                     }
@@ -380,7 +384,7 @@ public abstract class AbstractNetlinkConnection {
 
                 case NLMessageType.DONE:
                     if (seq == 0) break; // should not happen
-                    processSuccessfulRequest(seq);
+                    processSuccessfulRequest(removeRequest(seq));
                     break;
 
                 default:
@@ -409,50 +413,48 @@ public abstract class AbstractNetlinkConnection {
         return nbytes;
     }
 
-    private void processSuccessfulRequest(int seq) {
-        NetlinkRequest<?> request = pendingRequests.get(seq);
-        if (request == null) {
-            log.warn("[pid:{}] Reply handler for netlink request with id {} " +
-                     "not found.", pid(), seq);
-            return;
+    private void processSuccessfulRequest(NetlinkRequest<?> request) {
+        if (request != null) {
+            ongoingTransaction.remove(request);
+            dispatcher.submit(request.successful());
         }
-        triggerRequestSuccess(seq, request);
     }
 
     private void processRequestAnswer(int seq, short flag, ByteBuffer payload) {
-        NetlinkRequest<?> request = pendingRequests.get(seq);
-        if (request == null) {
-            log.warn("[pid:{}] Reply handler for netlink request with id {} " +
-                     "not found.", pid(), seq);
-            return;
+        NetlinkRequest<?> request = removeRequest(seq);
+        if (request != null) {
+            if (NLFlag.isMultiFlagSet(flag)) {
+                // if the answer is made of multiple msgs, we clone the payload and
+                // and we will process the request callback when the multi-msg ends.
+                request.inBuffers.add(cloneBuffer(payload));
+                // We don't bother with placing the request back in the expiration
+                // queue because we can't access it from this thread, and because
+                // we know the reply is in flight.
+                pendingRequests.put(seq, request);
+            } else {
+                // otherwise we process the callback directly with the payload.
+                request.inBuffers.add(payload);
+                processSuccessfulRequest(request);
+            }
         }
-        if (NLFlag.isMultiFlagSet(flag)) {
-            // if the answer is made of multiple msgs, we clone the payload and
-            // and we will process the request callback when the multi-msg ends.
-            request.inBuffers.add(cloneBuffer(payload));
-        } else {
-            // otherwise we process the callback directly with the payload.
-            request.inBuffers.add(payload);
-            triggerRequestSuccess(seq, request);
-        }
-    }
-
-    private void triggerRequestSuccess(int seq, NetlinkRequest<?> req) {
-        pendingRequests.remove(seq);
-        ongoingTransaction.remove(req);
-        dispatcher.submit(req.successful(req.inBuffers));
     }
 
     private void processFailedRequest(int seq, int error) {
-        NetlinkRequest<?> request = pendingRequests.get(seq);
+        NetlinkRequest<?> request = removeRequest(seq);
+        if (request != null) {
+            String errorMessage = cLibrary.lib.strerror(-error);
+            NetlinkException err = new NetlinkException(-error, errorMessage);
+            dispatcher.submit(request.failed(err));
+        }
+    }
+
+    private NetlinkRequest<?> removeRequest(int seq) {
+        NetlinkRequest<?> request = pendingRequests.remove(seq);
         if (request == null) {
             log.warn("[pid:{}] Reply handler for netlink request with id {} " +
                      "not found.", pid(), seq);
-            return;
         }
-        String errorMessage = cLibrary.lib.strerror(-error);
-        NetlinkException err = new NetlinkException(-error, errorMessage);
-        dispatcher.submit(request.failed(err));
+        return request;
     }
 
     private ByteBuffer cloneBuffer(ByteBuffer from) {
@@ -474,14 +476,13 @@ public abstract class AbstractNetlinkConnection {
                                        short flags) {
 
         int startPos = request.position();
-        int pid = channel.getLocalAddress().getPid();
 
         // put netlink header
         request.putInt(0);              // nlmsg_len
         request.putShort(family);       // nlmsg_type
         request.putShort(flags);        // nlmsg_flags
         request.putInt(seq);            // nlmsg_seq
-        request.putInt(pid);            // nlmsg_pid
+        request.putInt(pid());          // nlmsg_pid
 
         // put genl header
         request.put(cmd);               // cmd
@@ -498,6 +499,7 @@ public abstract class AbstractNetlinkConnection {
         private final Function<List<ByteBuffer>, T> translationFunction;
         final long expirationTimeNanos;
         final int seq;
+        private boolean hasRun = false;
 
         public NetlinkRequest(Callback<T> callback,
                               Function<List<ByteBuffer>, T> translationFunc,
@@ -512,51 +514,46 @@ public abstract class AbstractNetlinkConnection {
             this.seq = seq;
         }
 
-        public Runnable successful(List<ByteBuffer> data) {
-            final T result = translationFunction.apply(data);
-            return new RunOnceRunnable() {
-                @Override
-                public void runOnce() {
-                    userCallback.onSuccess(result);
-                }
-            };
+        public Runnable successful() {
+            final T result = translationFunction.apply(inBuffers);
+            return ensureNotRun() ? new Runnables.RunOnceRunnable() {
+                                        @Override
+                                        public void runOnce() {
+                                            userCallback.onSuccess(result);
+                                        }
+                                    }
+                                   : Runnables.NO_OP;
         }
 
         public Runnable failed(final NetlinkException e) {
-            return new RunOnceRunnable() {
-                @Override
-                public void runOnce() {
-                    if (e != null)
-                        userCallback.onError(e);
-                }
-            };
+            return ensureNotRun() && e != null ? new Runnables.RunOnceRunnable() {
+                                                    @Override
+                                                    public void runOnce() {
+                                                        userCallback.onError(e);
+                                                    }
+                                                 }
+                                                : Runnables.NO_OP;
         }
 
         public Runnable expired() {
-            return new RunOnceRunnable() {
-                @Override
-                public void runOnce() {
-                    userCallback.onTimeout();
+            return ensureNotRun() ? new Runnables.RunOnceRunnable() {
+                                        @Override
+                                        public void runOnce() {
+                                            userCallback.onTimeout();
+                                        }}
+                                  : Runnables.NO_OP;
+        }
+
+        private boolean ensureNotRun() {
+            synchronized (this) {
+                if (hasRun) {
+                    log.error("Attempted to create a runnable for the {}" +
+                              "NetlinkRequest more than once.", seq);
+                    return false;
                 }
-            };
-        }
-
-        static abstract class RunOnceRunnable implements Runnable {
-            private boolean hasRun = false;
-            @Override
-            public void run() {
-                if (hasRun)
-                    throw runTwiceError;
-                hasRun = true;
-                runOnce();
+                return hasRun = true;
             }
-            protected abstract void runOnce();
         }
-
-        private static final IllegalStateException runTwiceError =
-            new IllegalStateException("It is not allowed to run the user " +
-                                      "callback of a NetlinkRequest twice.");
-
     }
 
     static class NetlinkRequestTimeoutComparator
