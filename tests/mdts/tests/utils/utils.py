@@ -223,7 +223,8 @@ def ipv4_int(ipv4_str):
 def get_script_dir():
     """Returns a Midolman scripts directory."""
     current_dir = subprocess_compat.check_output("pwd", shell=True)
-    qa_dir_prefix_len = current_dir.find('/qa/') + 4
+    # TODO(AbelN) Fix this path hard-coding.
+    qa_dir_prefix_len = current_dir.find('/midonet/tests/') + 15
     return current_dir[0:qa_dir_prefix_len] + 'mmm/scripts/midolman'
 
 
