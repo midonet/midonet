@@ -17,7 +17,6 @@ import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Options;
 import org.midonet.midolman.guice.*;
-import org.midonet.midolman.services.DashboardService;
 import org.midonet.event.agent.ServiceEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +29,6 @@ import org.midonet.midolman.guice.datapath.DatapathModule;
 import org.midonet.midolman.guice.serialization.SerializationModule;
 import org.midonet.midolman.guice.zookeeper.ZookeeperConnectionModule;
 import org.midonet.midolman.host.guice.HostModule;
-import org.midonet.midolman.monitoring.MonitoringAgent;
 import org.midonet.midolman.services.MidolmanActorsService;
 import org.midonet.midolman.services.MidolmanService;
 import org.midonet.midolman.version.guice.VersionModule;
@@ -43,8 +41,6 @@ public class Midolman {
     static final int MIDOLMAN_ERROR_CODE_MISSING_CONFIG_FILE = 1;
 
     private Injector injector;
-
-    private MonitoringAgent monitoringAgent;
 
     private Midolman() {
     }
@@ -110,26 +106,21 @@ public class Midolman {
             new HostModule(),
             new ConfigProviderModule(configFilePath),
             new DatapathModule(),
-            new MonitoringStoreModule(),
             new ClusterClientModule(),
             new SerializationModule(),
             new CacheModule(),
             new MidolmanActorsModule(),
             new ResourceProtectionModule(),
             new MidolmanModule(),
-            new InterfaceScannerModule(),
-            new DashboardModule()
+            new InterfaceScannerModule()
         );
 
         // start the services
         injector.getInstance(MidostoreSetupService.class).startAndWait();
         injector.getInstance(MidolmanService.class).startAndWait();
-        injector.getInstance(DashboardService.class).startAndWait();
 
         // fire the initialize message to an actor
         injector.getInstance(MidolmanActorsService.class).initProcessing();
-        monitoringAgent = injector.getInstance(MonitoringAgent.class);
-        monitoringAgent.startMonitoringIfEnabled();
 
         log.info("{} was initialized", MidolmanActorsService.class);
 
@@ -138,18 +129,10 @@ public class Midolman {
     }
 
     private void doServicesCleanup() {
+        log.info("SHUTTING DOWN");
+
         if (injector == null)
             return;
-
-        monitoringAgent.stop();
-
-        DashboardService dashboardService =
-                injector.getInstance(DashboardService.class);
-        try {
-            dashboardService.stopAndWait();
-        } catch (Exception e) {
-            log.error("while stopping DashboardService", e);
-        }
 
         MidolmanService instance =
             injector.getInstance(MidolmanService.class);

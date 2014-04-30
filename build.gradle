@@ -29,6 +29,7 @@ project.ext {
         logback: "ch.qos.logback:logback-classic:1.0.1",
         jna: "net.java.dev.jna:jna:3.3.0",
         jsch: 'com.jcraft:jsch:0.1.45',
+        collections4: 'org.apache.commons:commons-collections4:4.0',
         commons_codec: "commons-codec:commons-codec:1.2",
         commons_conf: "commons-configuration:commons-configuration:1.8",
         commons_lang: "commons-lang:commons-lang:2.6",
@@ -55,7 +56,8 @@ project.ext {
                           "org.powermock:powermock-module-junit4:1.4.11",
                           "org.powermock:powermock-api-mockito:1.4.11",
                           "org.mockito:mockito-all:1.9.0",
-                          "pl.pragmatists:JUnitParams:1.0.2"],
+                          "pl.pragmatists:JUnitParams:1.0.2",
+                          "nl.jqno.equalsverifier:equalsverifier:1.4.1"],
 
         hamcrest: "org.hamcrest:hamcrest-all:${versions.hamcrest}",
         hamcrest_core: "org.hamcrest:hamcrest-core:${versions.hamcrest}",

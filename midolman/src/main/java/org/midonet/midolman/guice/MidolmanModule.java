@@ -11,10 +11,7 @@ import com.yammer.metrics.core.MetricsRegistry;
 import org.midonet.cluster.Client;
 import org.midonet.config.ConfigProvider;
 import org.midonet.midolman.config.MidolmanConfig;
-import org.midonet.midolman.services.DatapathConnectionService;
-import org.midonet.midolman.services.MidolmanActorsService;
-import org.midonet.midolman.services.MidolmanService;
-import org.midonet.midolman.services.SelectLoopService;
+import org.midonet.midolman.services.*;
 import org.midonet.midolman.simulation.Chain;
 
 /**
@@ -45,8 +42,10 @@ public class MidolmanModule extends PrivateModule {
         bind(SelectLoopService.class)
             .asEagerSingleton();
 
-       requestStaticInjection(Chain.class);
+        requestStaticInjection(Chain.class);
 
+        bind(DashboardService.class).asEagerSingleton();
+        expose(DashboardService.class);
     }
 
     /**
