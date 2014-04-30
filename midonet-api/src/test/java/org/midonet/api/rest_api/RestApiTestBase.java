@@ -3,6 +3,12 @@
  */
 package org.midonet.api.rest_api;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Map;
+import java.util.UUID;
+import javax.ws.rs.core.UriBuilder;
+
 import com.sun.jersey.test.framework.AppDescriptor;
 import com.sun.jersey.test.framework.JerseyTest;
 import org.junit.After;
@@ -13,13 +19,6 @@ import org.midonet.client.dto.DtoApplication;
 import org.midonet.client.dto.DtoBridge;
 import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoPort;
-
-import javax.ws.rs.core.UriBuilder;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Map;
-import java.util.UUID;
-
 import static junit.framework.Assert.assertNotNull;
 import static org.junit.Assert.assertEquals;
 import static org.midonet.client.VendorMediaType.APPLICATION_BRIDGE_JSON;
@@ -49,7 +48,7 @@ public abstract class RestApiTestBase extends JerseyTest {
     }
 
     @After
-    public void resetDirectory() {
+    public void resetDirectory() throws Exception {
         StaticMockDirectory.clearDirectoryInstance();
     }
 
@@ -102,6 +101,7 @@ public abstract class RestApiTestBase extends JerseyTest {
     protected DtoPort getPort(UUID id) {
         URI uri = UriBuilder.fromPath(app.getPortTemplate()).build(id);
         return dtoResource.getAndVerifyOk(
-                uri, APPLICATION_PORT_V2_JSON, DtoPort.class);
+            uri, APPLICATION_PORT_V2_JSON, DtoPort.class);
     }
+
 }

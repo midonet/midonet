@@ -6,6 +6,7 @@ package org.midonet.api.rest_api;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
+import org.midonet.api.vtep.VtepDataClientProvider;
 import org.midonet.config.ConfigProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +26,7 @@ public class RestApiModule extends AbstractModule {
         requireBinding(ConfigProvider.class);
 
         bind(WebApplicationExceptionMapper.class).asEagerSingleton();
+        bind(VtepDataClientProvider.class).asEagerSingleton();
 
         bind(ApplicationResource.class);
         install(new FactoryModuleBuilder().build(ResourceFactory.class));

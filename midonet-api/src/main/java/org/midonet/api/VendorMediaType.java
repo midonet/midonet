@@ -208,9 +208,9 @@ public class VendorMediaType {
     public static final String APPLICATION_VTEP_COLLECTION_JSON =
             "application/vnd.org.midonet.collection.VTEP-v1+json";
     public static final String APPLICATION_VTEP_BINDING_JSON =
-            "application/vnd.org.midonet.VTEP-v1+json";
+            "application/vnd.org.midonet.VTEPBinding-v1+json";
     public static final String APPLICATION_VTEP_BINDING_COLLECTION_JSON =
-            "application/vnd.org.midonet.collection.VTEP-v1+json";
+            "application/vnd.org.midonet.collection.VTEPBinding-v1+json";
 
     // Token Information
     public static final String APPLICATION_TOKEN_JSON =

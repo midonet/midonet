@@ -142,7 +142,7 @@ public class VtepDataClientImpl implements VtepDataClient {
         for (Map.Entry<String, Table<?>> e : tableCache.entrySet()) {
             log.debug("Found Physical Switch {} {}", e.getKey(), e.getValue());
             Physical_Switch ovsdbPs = (Physical_Switch)e.getValue();
-            res.add(VtepModelTranslator.toMido(ovsdbPs));
+            res.add(VtepModelTranslator.toMido(ovsdbPs, new UUID(e.getKey())));
         }
         return res;
     }
@@ -175,7 +175,8 @@ public class VtepDataClientImpl implements VtepDataClient {
         List<LogicalSwitch> res = new ArrayList<>(tableCache.size());
         for (Map.Entry<String, Table<?>> e : tableCache.entrySet()) {
             log.debug("Found Logical Switch {} {}", e.getKey(), e.getValue());
-            res.add(VtepModelTranslator.toMido((Logical_Switch)e.getValue()));
+            res.add(VtepModelTranslator.toMido((Logical_Switch)e.getValue(),
+                                               new UUID(e.getKey())));
         }
         return res;
     }
@@ -233,18 +234,18 @@ public class VtepDataClientImpl implements VtepDataClient {
     }
 
     @Override
-    public UUID addLogicalSwitch(String name, int vni) {
+    public StatusWithUuid addLogicalSwitch(String name, int vni) {
         log.debug("Add logical switch {} with vni {}", name, vni);
         StatusWithUuid st = cfgSrv.vtepAddLogicalSwitch(name, vni);
         if (!st.isSuccess()) {
             log.warn("Add logical switch failed: {} - {}", st.getCode(),
                                                            st.getDescription());
         }
-        return (st == null) ? null : st.getUuid();
+        return st;
     }
 
     @Override
-    public boolean bindVlan(String lsName, String portName, int vlan,
+    public Status bindVlan(String lsName, String portName, int vlan,
                             Integer vni, List<String> floodIps) {
         log.debug("Bind vlan {} on phys. port {} to logical switch {}, vni {}, "
                 + "and adding ips: {}",
@@ -255,11 +256,11 @@ public class VtepDataClientImpl implements VtepDataClient {
             log.warn("Bind vlan failed: {} - {}", st.getCode(),
                                                   st.getDescription());
         }
-        return st.isSuccess();
+        return st;
     }
 
     @Override
-    public boolean addUcastMacRemote(String lsName, String mac, String ip) {
+    public Status addUcastMacRemote(String lsName, String mac, String ip) {
         log.debug("Adding Ucast Mac Remote: {} {} {}",
                   new Object[]{lsName, mac, ip});
         assert(IPv4Addr.fromString(ip) != null);
@@ -269,22 +270,20 @@ public class VtepDataClientImpl implements VtepDataClient {
             log.error("Could not add Ucast Mac Remote: {} - {}",
                       st.getCode(), st.getDescription());
         }
-        return st.isSuccess();
+        return st;
     }
 
     @Override
-    public boolean addMcastMacRemote(String lsName, String mac, String ip) {
+    public Status addMcastMacRemote(String lsName, String mac, String ip) {
         log.debug("Adding Mcast Mac Remote: {} {} {}",
                   new Object[]{lsName, mac, ip});
         assert(IPv4Addr.fromString(ip) != null);
-        assert (UNKNOWN_DST.equals(mac) || (MAC.fromString(mac) != null));
+        assert(UNKNOWN_DST.equals(mac) || (MAC.fromString(mac) != null));
         StatusWithUuid st = cfgSrv.vtepAddMcastRemote(lsName, mac, ip);
         if (!st.isSuccess()) {
             log.error("Could not add Mcast Mac Remote: {} - {}",
                       st.getCode(), st.getDescription());
         }
-        return st.isSuccess();
+        return st;
     }
-
-
 }

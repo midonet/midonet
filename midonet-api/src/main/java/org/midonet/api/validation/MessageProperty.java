@@ -80,10 +80,16 @@ public class MessageProperty {
             "{midokura.javarx.ValueIsInvalid.message}";
     public static final String VALUE_IS_NOT_IN_ENUMS =
             "{midokura.javarx.ValueIsNotEnums.message}";
-    public static final String VTEP_NOT_FOUND =
-            "{midokura.javarx.VtepNotFound.message}";
+    public static final String VTEP_BINDING_NOT_FOUND =
+            "{midokura.javarx.VtepBindingNotFound}";
     public static final String VTEP_EXISTS =
             "{midokura.javarx.VtepExists.message}";
+    public static final String VTEP_INACCESSIBLE =
+            "{midokura.javarx.VtepInaccessible.message}";
+    public static final String VTEP_NOT_FOUND =
+            "{midokura.javarx.VtepNotFound.message}";
+    public static final String VTEP_PORT_NOT_FOUND =
+            "{midokura.javarx.VtepPortNotFound}";
     public static final String VXLAN_PORT_ID_NOT_SETTABLE =
             "{midokura.javarx.VxLanPortIdNotSettable.message}";
 

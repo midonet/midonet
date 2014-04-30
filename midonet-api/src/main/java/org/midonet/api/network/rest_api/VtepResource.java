@@ -7,7 +7,6 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.UUID;
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Validator;
 import javax.ws.rs.Consumes;
@@ -31,10 +30,13 @@ import org.midonet.api.network.VTEPBinding;
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.BadRequestHttpException;
 import org.midonet.api.rest_api.ConflictHttpException;
+import org.midonet.api.rest_api.GatewayTimeoutHttpException;
 import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.api.vtep.VtepDataClientProvider;
 import org.midonet.brain.southbound.vtep.VtepDataClient;
-import org.midonet.brain.southbound.vtep.VtepDataClientImpl;
+import org.midonet.brain.southbound.vtep.model.LogicalSwitch;
+import org.midonet.brain.southbound.vtep.model.PhysicalPort;
 import org.midonet.brain.southbound.vtep.model.PhysicalSwitch;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.Bridge;
@@ -45,27 +47,36 @@ import org.midonet.cluster.data.ports.VxLanPort;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.StatePathExistsException;
-import org.midonet.midolman.state.VtepConnectionState;
 import org.midonet.packets.IPv4Addr;
+import org.opendaylight.controller.sal.utils.Status;
+import org.opendaylight.ovsdb.lib.notation.UUID;
+import org.opendaylight.ovsdb.plugin.StatusWithUuid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static org.midonet.api.validation.MessageProperty.NETWORK_ALREADY_BOUND;
+import static org.midonet.api.validation.MessageProperty.VTEP_BINDING_NOT_FOUND;
 import static org.midonet.api.validation.MessageProperty.VTEP_EXISTS;
+import static org.midonet.api.validation.MessageProperty.VTEP_INACCESSIBLE;
 import static org.midonet.api.validation.MessageProperty.VTEP_NOT_FOUND;
+import static org.midonet.api.validation.MessageProperty.VTEP_PORT_NOT_FOUND;
 import static org.midonet.api.validation.MessageProperty.getMessage;
 
 public class VtepResource extends AbstractResource {
 
-    public static final String LOGICAL_SWITCH_PREFIX="mn-";
+    public static final String LOGICAL_SWITCH_PREFIX = "mn-";
+
+    private static final Logger log = LoggerFactory.getLogger(VtepResource.class);
 
     private final Random rand = new Random();
-    private static final Logger log = LoggerFactory.getLogger(VtepResource.class);
+    private final VtepDataClientProvider vtepClientProvider;
 
     @Inject
     public VtepResource(RestApiConfig config, UriInfo uriInfo,
                         SecurityContext context, Validator validator,
-                        DataClient dataClient) {
+                        DataClient dataClient,
+                        VtepDataClientProvider vtepClientProvider) {
         super(config, uriInfo, context, dataClient, validator);
+        this.vtepClientProvider = vtepClientProvider;
     }
 
     @POST
@@ -90,8 +101,12 @@ public class VtepResource extends AbstractResource {
     }
 
     private VtepDataClient getVtepClient(IPv4Addr mgmtIp, int mgmtPort) {
-        VtepDataClient vtepClient = new VtepDataClientImpl();
-        vtepClient.connect(mgmtIp, mgmtPort);
+        VtepDataClient vtepClient = vtepClientProvider.makeClient();
+        try {
+            vtepClient.connect(mgmtIp, mgmtPort);
+        } catch (IllegalStateException ex) {
+            return null;
+        }
         return vtepClient;
     }
 
@@ -100,7 +115,14 @@ public class VtepResource extends AbstractResource {
      * the specified IP and port.
      */
     private PhysicalSwitch getPhysicalSwitch(IPv4Addr mgmtIp, int mgmtPort) {
-        VtepDataClient vtepClient = getVtepClient(mgmtIp, mgmtPort);
+        return getPhysicalSwitch(getVtepClient(mgmtIp, mgmtPort), mgmtIp);
+    }
+
+    private PhysicalSwitch getPhysicalSwitch(VtepDataClient vtepClient,
+                                             IPv4Addr mgmtIp) {
+        if (vtepClient == null)
+            return null;
+
         List<PhysicalSwitch> switches = vtepClient.listPhysicalSwitches();
         vtepClient.disconnect();
         if (switches.size() == 1)
@@ -113,6 +135,61 @@ public class VtepResource extends AbstractResource {
         return null;
     }
 
+    private PhysicalPort getPhysicalPort(String ipAddrStr, String portName)
+            throws SerializationException, StateAccessException {
+        org.midonet.cluster.data.VTEP vtep = getVtepOrThrow(ipAddrStr, false);
+        VtepDataClient vtepClient =
+                getVtepClient(vtep.getId(), vtep.getMgmtPort());
+        return getPhysicalPort(vtepClient, vtep, portName);
+    }
+
+    private PhysicalPort getPhysicalPort(VtepDataClient vtepClient,
+                                         org.midonet.cluster.data.VTEP vtep,
+                                         String portName)
+                throws SerializationException, StateAccessException {
+        // Get the physical switch.
+        PhysicalSwitch ps = getPhysicalSwitch(vtepClient, vtep.getId());
+        if (ps == null) {
+            throw new GatewayTimeoutHttpException(getMessage(
+                    VTEP_INACCESSIBLE, vtep.getId(), vtep.getMgmtPort()));
+        }
+
+        // Find the requested port.
+        List<PhysicalPort> pports = vtepClient.listPhysicalPorts(ps.uuid);
+        for (PhysicalPort pport : pports)
+            if (pport.name.equals(portName))
+                return pport;
+
+        // Switch doesn't have the specified port.
+        throw new NotFoundHttpException(getMessage(
+                VTEP_PORT_NOT_FOUND, vtep.getId(), vtep.getMgmtPort(),
+                portName));
+    }
+
+    private java.util.UUID getBoundBridgeId(
+            String ipAddrStr, String portName, short vlanId)
+            throws SerializationException, StateAccessException {
+        org.midonet.cluster.data.VTEP vtep = getVtepOrThrow(ipAddrStr, false);
+        VtepDataClient vtepClient =
+                getVtepClient(vtep.getId(), vtep.getMgmtPort());
+
+        PhysicalPort pp = getPhysicalPort(vtepClient, vtep, portName);
+        UUID lsUuid = pp.vlanBindings.get((int)vlanId);
+        if (lsUuid == null) {
+            throw new NotFoundHttpException(getMessage(VTEP_BINDING_NOT_FOUND,
+                    vtep.getId(), vtep.getMgmtPort(), vlanId, portName));
+        }
+
+        for (LogicalSwitch lswitch : vtepClient.listLogicalSwitches()) {
+            if (lswitch.uuid.equals(lsUuid))
+                return logicalSwitchNameToUuid(lswitch.name);
+        }
+
+        throw new IllegalStateException(
+                "Logical switch with ID " + lsUuid + " should exist but " +
+                "was not returned from VTEP client.");
+    }
+
     @GET
     @RolesAllowed({AuthRole.ADMIN})
     @Path("{ipAddr}")
@@ -120,22 +197,13 @@ public class VtepResource extends AbstractResource {
                MediaType.APPLICATION_JSON})
     public VTEP get(@PathParam("ipAddr") String ipAddrStr)
             throws StateAccessException, SerializationException {
+
         IPv4Addr ipAddr = parseIPv4Addr(ipAddrStr);
-        VTEP vtep = new VTEP(getVtepOrThrow(ipAddr, false));
+        org.midonet.cluster.data.VTEP dataVtep = getVtepOrThrow(ipAddr, false);
+        PhysicalSwitch ps = getPhysicalSwitch(ipAddr, dataVtep.getMgmtPort());
+
+        VTEP vtep = new VTEP(getVtepOrThrow(ipAddr, false), ps);
         vtep.setBaseUri(getBaseUri());
-
-        PhysicalSwitch ps = getPhysicalSwitch(ipAddr, vtep.getManagementPort());
-
-        // TODO: Move this to VTEP.
-        if (ps == null) {
-            vtep.setConnectionState(VtepConnectionState.ERROR);
-        } else {
-            vtep.setConnectionState(VtepConnectionState.CONNECTED);
-            vtep.setDescription(ps.description);
-            vtep.setName(ps.name);
-            vtep.setTunnelIpAddrs(new ArrayList<>(ps.tunnelIps));
-        }
-
         return vtep;
     }
 
@@ -148,10 +216,10 @@ public class VtepResource extends AbstractResource {
         List<org.midonet.cluster.data.VTEP> dataVteps = dataClient.vtepsGetAll();
         List<VTEP> vteps = new ArrayList<>(dataVteps.size());
         for (org.midonet.cluster.data.VTEP dataVtep : dataVteps) {
-            VTEP vtep = new VTEP(dataVtep);
+                PhysicalSwitch ps = getPhysicalSwitch(dataVtep.getId(),
+                                                  dataVtep.getMgmtPort());
+            VTEP vtep = new VTEP(dataVtep, ps);
             vtep.setBaseUri(getBaseUri());
-
-            // TODO: Connect to VTEP and get additional properties.
             vteps.add(vtep);
         }
         return vteps;
@@ -193,13 +261,25 @@ public class VtepResource extends AbstractResource {
         }
 
         Integer newPortVni = null;
-        String lsName = String.format("%s-%s", LOGICAL_SWITCH_PREFIX,
-                                      binding.getNetworkId());
         VtepDataClient vtepClient = getVtepClient(ipAddr, vtep.getMgmtPort());
+        if (vtepClient == null) {
+            throw new GatewayTimeoutHttpException(getMessage(
+                    VTEP_INACCESSIBLE, ipAddr, vtep.getMgmtPort()));
+        }
+
+        String lsName = uuidToLogicalSwitchName(binding.getNetworkId());
         if (bridge.getVxLanPortId() == null) {
             newPortVni = rand.nextInt((1 << 24) - 1) + 1; // TODO: unique?
             // TODO: Make VTEP client take UUID instead of name.
-            vtepClient.addLogicalSwitch(lsName, newPortVni);
+            StatusWithUuid status =
+                vtepClient.addLogicalSwitch(lsName, newPortVni);
+            if (!status.isSuccess()) {
+                vtepClient.disconnect();
+                // TODO: Throw appropriate exception based on status code,
+                // which has no way of converting to HTTP exception codes,
+                // despite obviously being based on them. Thanks, ODLP!
+                throw new BadRequestHttpException(status.getDescription());
+            }
         }
 
         // TODO: fill this list with all the host ips where we want the VTEP
@@ -208,30 +288,47 @@ public class VtepResource extends AbstractResource {
         // just populate ucasts.
         List<String> floodToIps = new ArrayList<>();
 
-        // TODO: Make this return the actual status, so we can return
-        // a more appropriate error to the caller.
-        boolean success = vtepClient.bindVlan(lsName, binding.getPortName(),
-                                              binding.getVlanId(), newPortVni,
-                                              floodToIps);
+        Status status = vtepClient.bindVlan(lsName, binding.getPortName(),
+                                            binding.getVlanId(), newPortVni,
+                                            floodToIps);
+
+        if (!status.isSuccess()) {
+            // TODO: Delete logical switch if there are no other bindings.
+            // TODO: Throw appropriate exception based on status. See above.
+            throw new BadRequestHttpException(status.getDescription());
+        }
 
         // For all known macs, instruct the vtep to add a ucast mac entry to
         // tunnel packets over to the right host.
         if (newPortVni != null) {
-            log.info("Preseeding macs from bridge {}", binding.getNetworkId());
+            log.debug("Preseeding macs from bridge {}", binding.getNetworkId());
             feedUcastRemote(vtepClient, binding.getNetworkId(), lsName);
+            vxlanPort = dataClient.bridgeCreateVxLanPort(bridge.getId(), ipAddr,
+                                                         vtep.getMgmtPort(),
+                                                         newPortVni);
+            log.debug("New VxLan port created, uuid: {}, vni: {}",
+                      vxlanPort.getId(), newPortVni);
         }
 
         vtepClient.disconnect();
 
-        if (success) {
-            URI uri = ResourceUriBuilder.getVtepBinding(getBaseUri(),
-                    ipAddrStr, binding.getPortName(), binding.getVlanId());
-            return Response.created(uri).build();
-        } else {
-            // TODO: Delete logical switch if there are no other bindings.
-            // TODO: Better error code. Need to get status from VTEP client.
-            return Response.serverError().build();
-        }
+        URI uri = ResourceUriBuilder.getVtepBinding(getBaseUri(),
+                ipAddrStr, binding.getPortName(), binding.getVlanId());
+        return Response.created(uri).build();
+    }
+
+    @GET
+    @RolesAllowed({AuthRole.ADMIN})
+    @Produces({VendorMediaType.APPLICATION_VTEP_BINDING_JSON,
+               MediaType.APPLICATION_JSON})
+    @Path("{ipAddr}/bindings/{portName}_{vlanId}")
+    public VTEPBinding getBinding(@PathParam("ipAddr") String ipAddrStr,
+                                  @PathParam("portName") String portName,
+                                  @PathParam("vlanId") short vlanId)
+            throws SerializationException, StateAccessException {
+
+        java.util.UUID bridgeId = getBoundBridgeId(ipAddrStr, portName, vlanId);
+        return new VTEPBinding(ipAddrStr, portName, vlanId, bridgeId);
     }
 
     /**
@@ -248,8 +345,8 @@ public class VtepResource extends AbstractResource {
      * @throws StateAccessException
      * @throws SerializationException
      */
-    private void feedUcastRemote(VtepDataClient vtepClient, UUID bridgeId,
-                                 String lsName)
+    private void feedUcastRemote(VtepDataClient vtepClient,
+                                java.util.UUID bridgeId, String lsName)
         throws StateAccessException, SerializationException
     {
         for (VlanMacPort vmp : dataClient.bridgeGetMacPorts(bridgeId)) {
@@ -276,8 +373,7 @@ public class VtepResource extends AbstractResource {
     @Path("{ipAddr}/bindings")
     public List<VTEPBinding> listBindings(@PathParam("ipAddr") String ipAddrStr)
             throws StateAccessException, SerializationException {
-        org.midonet.cluster.data.VTEP vtep =
-                getVtepOrThrow(parseIPv4Addr(ipAddrStr), true);
+        org.midonet.cluster.data.VTEP vtep = getVtepOrThrow(ipAddrStr, false);
 
         // TODO: Connect to VTEP and get bindings.
         VtepDataClient vtepClient =
@@ -302,6 +398,12 @@ public class VtepResource extends AbstractResource {
         // TODO: If it's the network's last binding, delete the VXLAN port.
     }
 
+    private org.midonet.cluster.data.VTEP getVtepOrThrow(
+            String ipAddrStr, boolean badRequest)
+            throws StateAccessException, SerializationException {
+        return getVtepOrThrow(parseIPv4Addr(ipAddrStr), badRequest);
+    }
+
     /**
      * Gets the VTEP record with the specified IP address. If not found,
      * will throw a BadRequestHttpException if badRequest is true, or a
@@ -317,5 +419,14 @@ public class VtepResource extends AbstractResource {
                                new NotFoundHttpException(msg);
         }
         return dataVtep;
+    }
+
+    private java.util.UUID logicalSwitchNameToUuid(String lsName) {
+        return java.util.UUID.fromString(
+                lsName.substring(LOGICAL_SWITCH_PREFIX.length()));
+    }
+
+    private String uuidToLogicalSwitchName(java.util.UUID uuid) {
+        return LOGICAL_SWITCH_PREFIX + uuid;
     }
 }

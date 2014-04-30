@@ -4,6 +4,8 @@
 
 package org.midonet.brain.southbound.vtep.model;
 
+import org.opendaylight.ovsdb.lib.notation.UUID;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -14,6 +16,9 @@ import java.util.Set;
  * A VTEP.
  */
 public final class PhysicalSwitch {
+
+    /** The port's UUID in OVSDB. */
+    public final UUID uuid;
 
     /** The description of this switch */
     public final String description;
@@ -30,11 +35,13 @@ public final class PhysicalSwitch {
     /** Tunnel IP of the switch */
     public final Set<String> tunnelIps;
 
-    public PhysicalSwitch(String description,
+    public PhysicalSwitch(UUID uuid,
+                          String description,
                           String name,
                           Collection<String> ports,
                           Set<String> mgmtIps,
                           Set<String> tunnelIps) {
+        this.uuid = uuid;
         this.description = description;
         this.name = name;
         this.ports = new ArrayList<>(ports.size());
@@ -50,20 +57,22 @@ public final class PhysicalSwitch {
         if (o == null || getClass() != o.getClass()) return false;
 
         PhysicalSwitch that = (PhysicalSwitch) o;
-        return Objects.equals(name, that.name) &&
+        return Objects.equals(uuid, that.uuid) &&
+               Objects.equals(name, that.name) &&
                Objects.equals(mgmtIps, that.mgmtIps) &&
                Objects.equals(tunnelIps, that.tunnelIps);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, mgmtIps, tunnelIps);
+        return uuid.hashCode();
     }
 
     @Override
     public String toString() {
         return "PhysicalSwitch{" +
-               "description='" + description + '\'' +
+               "uuid=" + uuid +
+               ", description='" + description + '\'' +
                ", name='" + name + '\'' +
                ", ports='" + ports + '\'' +
                ", mgmtIps=" + mgmtIps +

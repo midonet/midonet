@@ -4,6 +4,8 @@
 
 package org.midonet.brain.southbound.vtep.model;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -34,6 +36,14 @@ public final class PhysicalPort {
 
     /** Fault status of this port - refer to OVSDB VTEP schema documenation */
     public final Set<String> portFaultStatus;
+
+    public PhysicalPort(String description, String name) {
+        this.description = description;
+        this.name = name;
+        this.vlanBindings = new HashMap<>();
+        this.vlanStats = new HashMap<>();
+        this.portFaultStatus = new HashSet<>();
+    }
 
     public PhysicalPort(String description, String name,
                         Map<Integer, UUID> vlanBindings,
