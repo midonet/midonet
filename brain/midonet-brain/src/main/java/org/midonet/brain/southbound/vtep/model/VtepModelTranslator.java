@@ -25,8 +25,9 @@ import org.opendaylight.ovsdb.lib.table.vtep.Ucast_Macs_Remote;
  */
 public class VtepModelTranslator {
 
-    public static LogicalSwitch toMido(Logical_Switch ovsdbLs) {
+    public static LogicalSwitch toMido(Logical_Switch ovsdbLs, UUID uuid) {
         return new LogicalSwitch(
+            uuid,
             ovsdbLs.getDescription(),
             ovsdbLs.getName(),
             // NOTE: this complicated thing is necessary because for some
@@ -39,7 +40,7 @@ public class VtepModelTranslator {
         );
     }
 
-    public static PhysicalSwitch toMido(Physical_Switch ovsdbPs) {
+    public static PhysicalSwitch toMido(Physical_Switch ovsdbPs, UUID uuid) {
 
         Set<String> ports = new HashSet<>();
         for (UUID port : ovsdbPs.getPorts()) {
@@ -47,6 +48,7 @@ public class VtepModelTranslator {
         }
 
         return new PhysicalSwitch(
+            uuid,
             ovsdbPs.getDescription(),
             ovsdbPs.getName(),
             ports,

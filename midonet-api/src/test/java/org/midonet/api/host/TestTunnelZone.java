@@ -12,8 +12,8 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
+import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.test.framework.JerseyTest;
 import junit.framework.Assert;
 import org.apache.zookeeper.KeeperException;
 import org.junit.After;
@@ -25,13 +25,16 @@ import org.midonet.api.VendorMediaType;
 import org.midonet.api.host.rest_api.HostTopology;
 import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.FuncTest;
+import org.midonet.api.rest_api.RestApiTestBase;
 import org.midonet.api.serialization.SerializationModule;
+import org.midonet.api.vtep.VtepDataClientProvider;
 import org.midonet.api.zookeeper.StaticMockDirectory;
 import org.midonet.client.MidonetApi;
 import org.midonet.client.dto.DtoApplication;
 import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoGreTunnelZone;
 import org.midonet.client.dto.DtoTunnelZone;
+import org.midonet.client.dto.DtoVtep;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
@@ -46,7 +49,7 @@ public class TestTunnelZone {
 
     public static final String ZK_ROOT_MIDOLMAN = "/test/midolman";
 
-    public static class TestCrud extends JerseyTest {
+    public static class TestCrud extends RestApiTestBase {
 
         private DtoWebResource dtoResource;
         private HostTopology topology;
@@ -188,5 +191,35 @@ public class TestTunnelZone {
             Assert.assertEquals(0, tunnelZones.length);
 
         }
+
+        /*
+         * If there is a VTEP configured with a given tunnel zone, it should
+         * not be possible to delete the tunnel zone.
+         */
+        @Test
+        public void testDeleteFailsIfVTEPUsingTunnelZone() {
+
+            DtoApplication app = topology.getApplication();
+            URI tunnelZonesUri = app.getTunnelZones();
+            DtoGreTunnelZone tunnelZone = new DtoGreTunnelZone();
+            tunnelZone.setName("tz1");
+            tunnelZone = dtoResource.postAndVerifyCreated(tunnelZonesUri,
+                      VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON, tunnelZone,
+                      DtoGreTunnelZone.class);
+            DtoVtep vtep = new DtoVtep();
+            vtep.setManagementIp(VtepDataClientProvider.MOCK_VTEP_MGMT_IP);
+            vtep.setManagementPort(VtepDataClientProvider.MOCK_VTEP_MGMT_PORT);
+            vtep.setTunnelZoneId(tunnelZone.getId());
+            DtoVtep vtepDto = dtoResource.postAndVerifyCreated(
+                app.getVteps(), VendorMediaType.APPLICATION_VTEP_JSON, vtep,
+                DtoVtep.class);
+
+            // now try to delete the tunnel zone
+            dtoResource.deleteAndVerifyError(tunnelZone.getUri(),
+                                 VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON,
+                                 ClientResponse.Status.CONFLICT.getStatusCode());
+
+        }
+
     }
 }

@@ -11,7 +11,9 @@ import org.midonet.brain.southbound.vtep.model.PhysicalPort;
 import org.midonet.brain.southbound.vtep.model.PhysicalSwitch;
 import org.midonet.brain.southbound.vtep.model.UcastMac;
 import org.midonet.packets.IPv4Addr;
+import org.opendaylight.controller.sal.utils.Status;
 import org.opendaylight.ovsdb.lib.notation.UUID;
+import org.opendaylight.ovsdb.plugin.StatusWithUuid;
 
 /**
  * Represents a connection to a VTEP-enabled switch.
@@ -71,7 +73,7 @@ public interface VtepDataClient {
      * @param vni the VNI associated to the new logical switch
      * @return the UUID of the new logical switch
      */
-    public UUID addLogicalSwitch(String name, int vni);
+    public StatusWithUuid addLogicalSwitch(String name, int vni);
 
     /**
      * Binds a physical port and vlan to the given logical switch.
@@ -85,8 +87,8 @@ public interface VtepDataClient {
      *
      * @return true when the binding was created successfully, false otherwise
      */
-    public boolean bindVlan(String lsName, String portName, int vlan,
-                            Integer vni, List<String> floodIps);
+    public Status bindVlan(String lsName, String portName, int vlan,
+                           Integer vni, List<String> floodIps);
 
     /**
      * Adds a new entry to the Ucast_Macs_Remote table.
@@ -97,7 +99,7 @@ public interface VtepDataClient {
      *           mac should be tunnelled to
      * @return true if success, false otherwise
      */
-    public boolean addUcastMacRemote(String lsName, String mac, String ip);
+    public Status addUcastMacRemote(String lsName, String mac, String ip);
 
     /**
      * Adds a new entry to the Mcast_Macs_Remote table.
@@ -108,6 +110,6 @@ public interface VtepDataClient {
      *           mac should be tunnelled to
      * @return true if success, false otherwise
      */
-    public boolean addMcastMacRemote(String lsName, String mac, String ip);
+    public Status addMcastMacRemote(String lsName, String mac, String ip);
 
 }
