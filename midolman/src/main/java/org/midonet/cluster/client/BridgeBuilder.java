@@ -22,6 +22,7 @@ public interface BridgeBuilder extends DeviceBuilder<BridgeBuilder> {
     void setLogicalPortsMap(Map<MAC, UUID> macToLogicalPortId,
                             Map<IPAddr, MAC> ipToMac);
     void setVlanBridgePeerPortId(Option<UUID> id);
+    void setExteriorVxlanPortId(Option<UUID> id);
     void setVlanPortMap(VlanPortMap vlanPortMap);
     void updateMacEntry(short vlanId, MAC mac, UUID oldPort, UUID newPort);
 }

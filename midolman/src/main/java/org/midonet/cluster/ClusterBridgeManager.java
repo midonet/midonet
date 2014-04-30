@@ -156,6 +156,7 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
         Map<IPAddr, MAC> rtrIpToMac =  new HashMap<IPAddr, MAC>();
         VlanPortMapImpl vlanIdPortMap = new VlanPortMapImpl();
         UUID vlanBridgePeerPortId = null;
+        UUID exteriorVxlanPortId = null;
         Collection<UUID> logicalPortIDs;
         Set<Short> currentVlans = new HashSet<Short>();
         currentVlans.add(Bridge.UNTAGGED_VLAN_ID);
@@ -229,8 +230,11 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
                     vlanIdPortMap.add(bridgePortVlanId, id);
                     currentVlans.add(bridgePortVlanId);
                 }
+            } else if (peerPortCfg instanceof PortDirectory.VxLanPortConfig) {
+                exteriorVxlanPortId = id;
             } else {
-                log.warn("The peer isn't router nor vlan-bridge logical port");
+                log.warn("The peer isn't a router, vlan-bridge logical port, " +
+                         "or an exterior vxlan port");
             }
         }
 
@@ -274,6 +278,7 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
         }
 
         builder.setVlanBridgePeerPortId(Option.apply(vlanBridgePeerPortId));
+        builder.setExteriorVxlanPortId(Option.apply(exteriorVxlanPortId));
         builder.setLogicalPortsMap(rtrMacToLogicalPortId, rtrIpToMac);
         builder.setVlanPortMap(vlanIdPortMap);
     }

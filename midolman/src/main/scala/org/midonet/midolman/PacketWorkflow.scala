@@ -121,7 +121,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
     import DeduplicationActor._
     import FlowController.{AddWildcardFlow, FlowAdded}
     import VirtualToPhysicalMapper.PortSetForTunnelKeyRequest
-    import VirtualToPhysicalMapper.DeviceVxLanPortRequest
+    import VirtualToPhysicalMapper.VxLanPortRequest
 
     def runSimulation(): Urgent[SimulationResult]
 
@@ -331,7 +331,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
             if (dpState isGrePort wcMatch.getInputPortNumber) {
                 handlePacketToPortSet()
             } else {
-                val req = DeviceVxLanPortRequest(wcMatch.getTunnelID.toInt)
+                val req = VxLanPortRequest(wcMatch.getTunnelID.toInt)
                 (VirtualToPhysicalMapper expiringAsk req) flatMap {
                     vxlanPortId =>
                         processSimulationResult(simulatePacketIn(Some(vxlanPortId)))

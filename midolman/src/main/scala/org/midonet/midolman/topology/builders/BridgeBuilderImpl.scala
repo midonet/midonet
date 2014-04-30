@@ -46,6 +46,7 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
     private var oldMacToLogicalPortId: mutable.Map[MAC, UUID] = null
     private var ipToMac: mutable.Map[IPAddr, MAC] = null
     private var vlanBridgePeerPortId: Option[UUID] = None
+    private var exteriorVxlanPortId: Option[UUID] = None
     private var vlanPortMap: VlanPortMap = null
 
     def setAdminStateUp(adminStateUp: Boolean) = {
@@ -83,6 +84,10 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
 
     def setVlanBridgePeerPortId(portId: Option[UUID]) {
         vlanBridgePeerPortId = portId
+    }
+
+    def setExteriorVxlanPortId(vxlanId: Option[UUID]) {
+        exteriorVxlanPortId = vxlanId
     }
 
     def setVlanPortMap(map: VlanPortMap) {
@@ -144,7 +149,7 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
             collection.immutable.HashMap(vlanMacTableMap.toSeq: _*), ip4MacMap,
             collection.immutable.HashMap(macToLogicalPortId.toSeq: _*),
             collection.immutable.HashMap(ipToMac.toSeq: _*),
-            vlanBridgePeerPortId, vlanPortMap)
+            vlanBridgePeerPortId, exteriorVxlanPortId, vlanPortMap)
 
          // Note from Guillermo:
          // There's a possible race here. We route flow invalidations through

@@ -13,6 +13,7 @@ import org.midonet.cluster.client.BridgePort;
 import org.midonet.cluster.client.Port;
 import org.midonet.cluster.client.PortBuilder;
 import org.midonet.cluster.client.RouterPort;
+import org.midonet.cluster.client.VxLanPort;
 import org.midonet.midolman.state.PortConfig;
 import org.midonet.midolman.state.PortConfigCache;
 import org.midonet.midolman.state.PortDirectory;
@@ -62,10 +63,17 @@ public class ClusterPortsManager extends ClusterManager<PortBuilder> {
                 .setPortAddr(new IPv4Subnet(
                     IPv4Addr.fromString(cfg.getPortAddr()), cfg.nwLength))
                 .setPortMac(cfg.getHwAddr());
+        } else if (config instanceof PortDirectory.VxLanPortConfig) {
+            PortDirectory.VxLanPortConfig cfg =
+                (PortDirectory.VxLanPortConfig) config;
+            final IPv4Addr vtepAddr = IPv4Addr.fromString(cfg.mgmtIpAddr);
+            final int vni = cfg.vni;
+            port = new VxLanPort() {
+                public IPv4Addr vtepAddr() { return vtepAddr; }
+                public int vni() { return vni; }
+            };
         } else {
-            // TODO: deal with VxLAN port, since it's not really used inside
-            // the agent we're hacking this here now.
-            port = new BridgePort();
+            throw new IllegalArgumentException("unknown Port type");
         }
 
         port.setTunnelKey(config.tunnelKey);

@@ -125,7 +125,7 @@ object VirtualToPhysicalMapper extends Referenceable {
     /** Request sent by packet handlers for simulating traffic ingressing
      *  on the vtep vxlan tunnel port. The 24bits tunnel key id (vni) maps
      *  to an exterior bridge port in the virtual topology. */
-    case class DeviceVxLanPortRequest(vni: Int) extends VTPMRequest[UUID] {
+    case class VxLanPortRequest(vni: Int) extends VTPMRequest[UUID] {
         protected[topology] val tag = classTag[UUID]
         override def getCached = DeviceCaches.vxlanIdFromVNI(vni)
     }
