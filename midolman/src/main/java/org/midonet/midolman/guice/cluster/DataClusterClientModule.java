@@ -49,8 +49,6 @@ public class DataClusterClientModule extends DataClientModule {
         requireBinding(Key.get(Cache.class, CacheModule.TRACE_INDEX.class));
         requireBinding(Key.get(Cache.class, CacheModule.TRACE_MESSAGES.class));
 
-        requireBinding(Store.class);
-
         bind(ClusterBgpManager.class)
                 .in(Singleton.class);
 

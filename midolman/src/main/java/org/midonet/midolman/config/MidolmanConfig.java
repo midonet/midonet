@@ -64,7 +64,7 @@ public interface MidolmanConfig
     @ConfigInt(key = "idle_flow_tolerance_interval", defaultValue = 10000)
     public int getIdleFlowToleranceInterval();
 
-    @ConfigBool(key = "enable_dashboard", defaultValue = true)
+    @ConfigBool(key = "enable_dashboard", defaultValue = false)
     public boolean getDashboardEnabled();
 
     @ConfigString(key = "jetty_xml", defaultValue = "/etc/midolman/jetty/etc/jetty.xml")

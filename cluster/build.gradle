@@ -6,4 +6,9 @@ jar {
 }
 
 dependencies {
+    compile project(':midonet-util')
+
+    compile libraries.jackson_core, libraries.guava, libraries.collections4
+
+    testCompile libraries.test_frameworks
 }
