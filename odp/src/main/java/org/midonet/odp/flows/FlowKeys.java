@@ -19,16 +19,16 @@ public class FlowKeys {
         new WeakObjectPool<>();
 
     public static <T extends FlowKey> T intern(T flowKey) {
-        if (flowKey instanceof FlowKeyInPort ||
-            flowKey instanceof FlowKeyEthernet ||
-            flowKey instanceof FlowKeyEtherType ||
-            flowKey instanceof FlowKeyND ||
-            flowKey instanceof FlowKeyVLAN ||
-            flowKey instanceof FlowKeyARP ||
-            flowKey instanceof FlowKeyTunnel)
-            return (T) FLOW_KEYS_POOL.sharedRef(flowKey);
+        if (flowKey instanceof CachedFlowKey)
+            return sharedReferenceOf(flowKey);
         else
             return flowKey;
+    }
+
+    public static <T extends FlowKey> T sharedReferenceOf(T flowKey) {
+        @SuppressWarnings("unchecked")
+        T shared = (T) FLOW_KEYS_POOL.sharedRef(flowKey);
+        return shared;
     }
 
     public static FlowKeyInPort inPort(int portNumber) {
