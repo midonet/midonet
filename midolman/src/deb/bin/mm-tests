@@ -119,6 +119,28 @@ ovs_integration() {
     ns_clean $ns
 }
 
+mm_io_upcall_manager_test() {
+    echo -e "\nMidolman upcall channel manager test"
+
+    ns=ovstest-ns
+    dpifa=ovstest-foo
+    dpifb=ovstest-bar
+    dpifc=ovstest-baz
+
+    ns_prepare $ns
+    if_prepare $ns $dpifa $dpifa-e 100.0.10.2/24
+    if_prepare $ns $dpifb $dpifb-e 100.0.10.3/24
+    if_prepare $ns $dpifc $dpifc-e 100.0.10.4/24
+
+    run_test "org.midonet.midolman.io.UpcallChannelsTest" /etc/midolman/midolman.conf
+
+    if_clean $ns $dpifa $dpifa-e
+    if_clean $ns $dpifb $dpifb-e
+    if_clean $ns $dpifc $dpifc-e
+    ns_clean $ns
+
+}
+
 run_throughput_test() {
     main=$1
     ns=$2
@@ -153,3 +175,4 @@ ovs_throughput() {
 
 ovs_integration
 ovs_throughput
+mm_io_upcall_manager_test

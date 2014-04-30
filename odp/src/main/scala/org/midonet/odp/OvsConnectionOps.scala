@@ -4,9 +4,8 @@
 package org.midonet.odp
 
 import scala.collection.JavaConversions.asScalaSet
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
-import scala.concurrent.Promise
+import scala.concurrent._
+import scala.concurrent.duration._
 
 import org.midonet.netlink.Callback
 import org.midonet.netlink.exceptions.NetlinkException
@@ -104,6 +103,16 @@ object OvsConnectionOps {
     object NoOpHandler extends BatchCollector[Packet] {
         def submit(p: Packet) { }
         def endBatch() { }
+    }
+
+    def prepareDatapath(dpName: String, ifName: String)
+                       (implicit ec: ExecutionContext) = {
+        val con = new OvsConnectionOps(DatapathClient.createConnection())
+
+        val dpF = con.ensureDp(dpName)
+        Await.result(dpF flatMap{ con.ensureNetDevPort(ifName, _) }, 2 seconds)
+
+        (con, Await.result(dpF, 2 seconds))
     }
 
 }

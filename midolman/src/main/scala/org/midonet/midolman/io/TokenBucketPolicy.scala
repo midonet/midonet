@@ -7,7 +7,7 @@ package org.midonet.midolman.io
 import java.util.concurrent.ConcurrentHashMap
 
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.util.{TokenBucketFillRate, StatisticalCounter, TokenBucket}
+import org.midonet.util.{TokenBucketFillRate, TokenBucket}
 import org.midonet.odp.DpPort
 import org.midonet.odp.ports.{VxLanTunnelPort, GreTunnelPort}
 
