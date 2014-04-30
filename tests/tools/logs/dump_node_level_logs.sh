@@ -27,16 +27,7 @@ MIDOLMAN_UPSTART_ERR_LOG_FILE=$MIDOLMAN_LOG_DIR/upstart-stderr.log
     echo "== " $MIDOLMAN_LOG_FILE
     echo
 
-    head -n 200 $MIDOLMAN_LOG_FILE
-    echo
-    echo ...
-    echo
-
-    # Remove leading and training double quotes
-    marker_start=${marker_start//\"/}
-    marker_end=${marker_end//\"/}
-
-    sed -n "/$marker_start/, /$marker_end/ p" $MIDOLMAN_LOG_FILE
+    cat  $MIDOLMAN_LOG_FILE
 }
 
 DPCTL_TIMEOUT_IN_SEC=10
