@@ -14,7 +14,7 @@ import org.midonet.netlink.messages.Builder;
 /**
 * Neighbour Discovery key
 */
-public class FlowKeyND implements FlowKey {
+public class FlowKeyND implements CachedFlowKey {
     /*__u32*/ private int[] nd_target; // always 4 int long
     /*__u8*/ private byte[] nd_sll = new byte[6];   // always 6 bytes long
     /*__u8*/ private byte[] nd_tll = new byte[6];   // always 6 bytes long

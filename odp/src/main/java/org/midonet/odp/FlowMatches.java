@@ -48,93 +48,29 @@ public class FlowMatches {
 
         switch (ethPkt.getEtherType()) {
             case ARP.ETHERTYPE:
-                if (!(ethPkt.getPayload() instanceof ARP))
-                    break;
-                ARP arpPkt = ARP.class.cast(ethPkt.getPayload());
-                payloadKeys.add(arp(
-                        arpPkt.getSenderHardwareAddress().getAddress(),
-                        arpPkt.getTargetHardwareAddress().getAddress(),
-                        arpPkt.getOpCode(),
-                        IPv4Addr.bytesToInt(arpPkt.getSenderProtocolAddress()),
-                        IPv4Addr.bytesToInt(arpPkt.getTargetProtocolAddress())));
+                if (ethPkt.getPayload() instanceof ARP) {
+                    ARP arpPkt = ARP.class.cast(ethPkt.getPayload());
+                    payloadKeys.add(
+                        arp(arpPkt.getSenderHardwareAddress().getAddress(),
+                            arpPkt.getTargetHardwareAddress().getAddress(),
+                            arpPkt.getOpCode(),
+                            IPv4Addr.bytesToInt(
+                                arpPkt.getSenderProtocolAddress()),
+                            IPv4Addr.bytesToInt(
+                                arpPkt.getTargetProtocolAddress())));
+                }
                 break;
-
             case IPv4.ETHERTYPE:
-                if (!(ethPkt.getPayload() instanceof IPv4))
-                    break;
-                IPv4 ipPkt = IPv4.class.cast(ethPkt.getPayload());
-                IPFragmentType fragmentType =
-                    IPFragmentType.fromIPv4Flags(ipPkt.getFlags(),
-                                                 ipPkt.getFragmentOffset());
-                payloadKeys.add(
-                    ipv4(ipPkt.getSourceIPAddress(),
-                         ipPkt.getDestinationIPAddress(),
-                         ipPkt.getProtocol(),
-                         (byte) 0, /* type of service */
-                         ipPkt.getTtl(),
-                         fragmentType)
-                );
-                switch (ipPkt.getProtocol()) {
-                    case TCP.PROTOCOL_NUMBER:
-                        if (!(ipPkt.getPayload() instanceof TCP))
-                            break;
-                        TCP tcpPkt = TCP.class.cast(ipPkt.getPayload());
-                        payloadKeys.add(tcp(tcpPkt.getSourcePort(),
-                                                tcpPkt.getDestinationPort())
-                        );
-                        break;
-                    case UDP.PROTOCOL_NUMBER:
-                        if (!(ipPkt.getPayload() instanceof UDP))
-                            break;
-                        UDP udpPkt = UDP.class.cast(ipPkt.getPayload());
-                        payloadKeys.add(udp(udpPkt.getSourcePort(),
-                                                udpPkt.getDestinationPort())
-                        );
-                        break;
-                    case ICMP.PROTOCOL_NUMBER:
-                        if (!(ipPkt.getPayload() instanceof ICMP))
-                            break;
-                        ICMP icmpPkt = ICMP.class.cast(ipPkt.getPayload());
-                        FlowKey icmpUserspace = makeIcmpFlowKey(icmpPkt);
-                        if (icmpUserspace == null)
-                            payloadKeys.add(icmp(icmpPkt.getType(),
-                                                 icmpPkt.getCode()));
-                        else
-                            payloadKeys.add(icmpUserspace);
-                    default:
-                        break;
+                if (ethPkt.getPayload() instanceof IPv4) {
+                    IPv4 ipPkt = IPv4.class.cast(ethPkt.getPayload());
+                    parseFlowKeysFromIPv4(ipPkt, payloadKeys);
                 }
                 break;
             case IPv6.ETHERTYPE:
-                if (!(ethPkt.getPayload() instanceof IPv6))
-                    break;
-                IPv6 v6Pkt = IPv6.class.cast(ethPkt.getPayload());
-                match.addKey(
-                        ipv6(v6Pkt.getSourceAddress(),
-                                v6Pkt.getDestinationAddress(),
-                                v6Pkt.getNextHeader()));
-
-                switch (v6Pkt.getNextHeader()) {
-                    case TCP.PROTOCOL_NUMBER:
-                        if (!(v6Pkt.getPayload() instanceof TCP))
-                            break;
-                        TCP tcpPkt = TCP.class.cast(v6Pkt.getPayload());
-                        match.addKey(tcp(tcpPkt.getSourcePort(),
-                                tcpPkt.getDestinationPort())
-                        );
-                        break;
-                    case UDP.PROTOCOL_NUMBER:
-                        if (!(v6Pkt.getPayload() instanceof UDP))
-                            break;
-                        UDP udpPkt = UDP.class.cast(v6Pkt.getPayload());
-                        match.addKey(udp(udpPkt.getSourcePort(),
-                                udpPkt.getDestinationPort())
-                        );
-                        break;
-                    default:
-                        break;
+                if (ethPkt.getPayload() instanceof IPv6) {
+                    IPv6 v6Pkt = IPv6.class.cast(ethPkt.getPayload());
+                    parseFlowKeysFromIPv6(v6Pkt, match);
                 }
-            default:
                 break;
         }
 
@@ -213,6 +149,77 @@ public class FlowMatches {
                 match.setUserSpaceOnly(true);
                 return;
             }
+        }
+    }
+
+    private static void parseFlowKeysFromIPv4(IPv4 pkt, List<FlowKey> keys) {
+        IPFragmentType fragmentType =
+            IPFragmentType.fromIPv4Flags(pkt.getFlags(),
+                                         pkt.getFragmentOffset());
+
+        byte protocol = pkt.getProtocol();
+        IPacket payload = pkt.getPayload();
+
+        keys.add(
+            ipv4(pkt.getSourceIPAddress(),
+                 pkt.getDestinationIPAddress(),
+                 protocol,
+                 (byte) 0, /* type of service */
+                 pkt.getTtl(),
+                 fragmentType)
+        );
+
+        switch (protocol) {
+            case TCP.PROTOCOL_NUMBER:
+                if (payload instanceof TCP) {
+                    TCP tcpPkt = TCP.class.cast(payload);
+                    keys.add(tcp(tcpPkt.getSourcePort(),
+                                 tcpPkt.getDestinationPort()));
+                }
+                break;
+            case UDP.PROTOCOL_NUMBER:
+                if (payload instanceof UDP) {
+                    UDP udpPkt = UDP.class.cast(payload);
+                    keys.add(udp(udpPkt.getSourcePort(),
+                                 udpPkt.getDestinationPort()));
+                }
+                break;
+            case ICMP.PROTOCOL_NUMBER:
+                if (payload instanceof ICMP) {
+                    ICMP icmpPkt = ICMP.class.cast(payload);
+                    FlowKey icmpUserspace = makeIcmpFlowKey(icmpPkt);
+                    if (icmpUserspace == null)
+                        keys.add(icmp(icmpPkt.getType(),
+                                      icmpPkt.getCode()));
+                    else
+                        keys.add(icmpUserspace);
+                }
+                break;
+        }
+    }
+
+    private static void parseFlowKeysFromIPv6(IPv6 pkt, FlowMatch match) {
+        match.addKey(
+                ipv6(pkt.getSourceAddress(),
+                     pkt.getDestinationAddress(),
+                     pkt.getNextHeader()));
+
+        IPacket payload = pkt.getPayload();
+        switch (pkt.getNextHeader()) {
+            case TCP.PROTOCOL_NUMBER:
+                if (payload instanceof TCP) {
+                    TCP tcpPkt = TCP.class.cast(payload);
+                    match.addKey(tcp(tcpPkt.getSourcePort(),
+                                     tcpPkt.getDestinationPort()));
+                }
+                break;
+            case UDP.PROTOCOL_NUMBER:
+                if (payload instanceof UDP) {
+                    UDP udpPkt = UDP.class.cast(payload);
+                    match.addKey(udp(udpPkt.getSourcePort(),
+                                     udpPkt.getDestinationPort()));
+                }
+                break;
         }
     }
 

@@ -11,7 +11,7 @@ import org.midonet.netlink.messages.Builder;
 import org.midonet.odp.OpenVSwitch;
 import org.midonet.packets.IPv4Addr;
 
-public class FlowKeyTunnel implements FlowKey {
+public class FlowKeyTunnel implements CachedFlowKey {
 
     // OVS_TUNNEL_KEY_ATTR_ID
     public static final AttrKey<Long> ID =

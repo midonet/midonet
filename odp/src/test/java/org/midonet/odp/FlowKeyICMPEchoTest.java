@@ -9,9 +9,9 @@ import static org.midonet.odp.flows.FlowKeys.icmpEcho;
 
 public class FlowKeyICMPEchoTest {
 
-    private static final byte ICMP_ECHO_REQ = (byte)ICMP.TYPE_ECHO_REQUEST;
-    private static final byte ICMP_ECHO_REPLY = (byte)ICMP.TYPE_ECHO_REPLY;
-    private static final byte CODE_NONE = (byte)ICMP.CODE_NONE;
+    private static final byte ICMP_ECHO_REQ = ICMP.TYPE_ECHO_REQUEST;
+    private static final byte ICMP_ECHO_REPLY = ICMP.TYPE_ECHO_REPLY;
+    private static final byte CODE_NONE = ICMP.CODE_NONE;
 
     @Test
     public void testEquals() {
