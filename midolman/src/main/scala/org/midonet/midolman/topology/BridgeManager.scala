@@ -48,6 +48,7 @@ object BridgeManager {
                              macToLogicalPortId: ROMap[MAC, UUID],
                              ipToMac: ROMap[IPAddr, MAC],
                              vlanBridgePeerPortId: Option[UUID],
+                             exteriorVxlanPortId: Option[UUID],
                              vlanPortMap: VlanPortMap)
 
     case class CheckExpiredMacPorts()
@@ -172,6 +173,7 @@ class BridgeManager(id: UUID, val clusterClient: Client,
     private var ip4MacMap: IpMacMap[IPv4Addr] = null
 
     private var vlanBridgePeerPortId: Option[UUID] = None
+    private var exteriorVxlanPortId: Option[UUID] = None
 
     private val macPortExpiration: Int = config.getMacPortMappingExpireMillis
     private val learningMgr = new MacLearningManager(
@@ -187,7 +189,7 @@ class BridgeManager(id: UUID, val clusterClient: Client,
                 if (config.getMidolmanBridgeArpEnabled) ip4MacMap else null,
                 flowCounts, topology.device(cfg.inboundFilter).orNull,
                 topology.device(cfg.outboundFilter).orNull,
-                vlanBridgePeerPortId, None, flowRemovedCallback,
+                vlanBridgePeerPortId, exteriorVxlanPortId, flowRemovedCallback,
                 macToLogicalPortId, rtrIpToMac, vlanToPort)
 
         if (changed) {
@@ -224,7 +226,8 @@ class BridgeManager(id: UUID, val clusterClient: Client,
 
         case TriggerUpdate(newCfg, vlanMacTableMap, newIp4MacMap,
                            newMacToLogicalPortId, newRtrIpToMac,
-                           newVlanBridgePeerPortId, newVlanToPortMap) =>
+                           newVlanBridgePeerPortId, newExteriorVxlanPortId,
+                           newVlanToPortMap) =>
             log.debug("Received a Bridge update from the data store.")
 
             if (newCfg != cfg && cfg != null)
@@ -236,6 +239,7 @@ class BridgeManager(id: UUID, val clusterClient: Client,
             macToLogicalPortId = newMacToLogicalPortId
             rtrIpToMac = newRtrIpToMac
             vlanBridgePeerPortId = newVlanBridgePeerPortId
+            exteriorVxlanPortId = newExteriorVxlanPortId
             vlanToPort = newVlanToPortMap
             // Notify that the update finished
             prefetchTopology()
