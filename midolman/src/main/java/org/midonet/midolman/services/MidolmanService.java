@@ -41,6 +41,9 @@ public class MidolmanService extends AbstractService {
     @Inject
     MetricsRegistry metrics;
 
+    @Inject
+    DashboardService dashboardService;
+
     @Inject(optional = true)
     HostService hostService;
 
@@ -50,17 +53,16 @@ public class MidolmanService extends AbstractService {
     @Override
     protected void doStart() {
         for (AbstractService service : services()) {
-            log.info("Service {}", service);
+            log.info("Starting service: {}", service);
             try {
                 if (service.startAndWait() != State.RUNNING)
                     throw new Exception("Failed to start service " + service);
+                log.info("Service started: {}", service);
             } catch (Exception e) {
                 log.error("Exception while starting service " + service, e);
                 notifyFailed(e);
                 doStop();
                 return;
-            } finally {
-                log.info("Service {}", service);
             }
         }
 
@@ -72,20 +74,18 @@ public class MidolmanService extends AbstractService {
     protected void doStop() {
         List<AbstractService> services = services();
         Collections.reverse(services);
+        log.info("Stopping services");
         for (AbstractService service : services) {
             boolean running = service.state() == State.RUNNING;
             try {
                 if (running) {
-                    log.info("Service: {}", service);
+                    log.info("Stopping service: {}", service);
                     service.stopAndWait();
                 }
             } catch (Exception e) {
                 log.error("Exception while stopping the service {}", service, e);
                 notifyFailed(e);
                 // Keep stopping services.
-            } finally {
-                if (running)
-                    log.info("Service {}", service);
             }
         }
 
@@ -98,6 +98,7 @@ public class MidolmanService extends AbstractService {
         services.add(datapathConnectionService);
         services.add(selectLoopService);
         services.add(actorsService);
+        services.add(dashboardService);
         if (hostService != null)
             services.add(hostService);
         if (storeService != null)

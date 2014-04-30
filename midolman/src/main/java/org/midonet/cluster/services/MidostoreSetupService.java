@@ -19,9 +19,6 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 
 
-/**
- * // TODO: mtoader ! Please explain yourself.
- */
 public class MidostoreSetupService extends AbstractService {
 
     private static final Logger log = LoggerFactory
