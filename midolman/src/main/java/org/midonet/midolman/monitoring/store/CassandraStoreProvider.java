@@ -6,6 +6,7 @@ package org.midonet.midolman.monitoring.store;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
+import org.apache.zookeeper.KeeperException;
 import org.midonet.cassandra.CassandraClient;
 import org.midonet.config.ConfigProvider;
 import org.midonet.midolman.guice.CacheModule;
@@ -51,7 +52,7 @@ public class CassandraStoreProvider implements Provider<CassandraStore> {
                 config.getCassandraHostTimeoutWindow(),
                 reactor,
                 new ZkLock(zk, paths, "cassandra-monitoring")));
-        } catch (StateAccessException e) {
+        } catch (Exception e) {
             throw new RuntimeException("Exception trying to create CassandraStore", e);
         }
     }
