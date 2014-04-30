@@ -332,6 +332,14 @@ public class LocalDataClientImpl implements DataClient {
         return bridgeZkManager.hasVlanMacTable(bridgeId, vlanId);
     }
 
+    @Override
+    public MacPortMap bridgeGetMacTable(
+            @Nonnull UUID bridgeId, short vlanId, boolean ephemeral)
+            throws StateAccessException {
+        return new MacPortMap(
+                bridgeZkManager.getMacPortMapDirectory(bridgeId, vlanId),
+                ephemeral);
+    }
 
     @Override
     public void bridgeAddMacPort(@Nonnull UUID bridgeId, short vlanId,
@@ -440,22 +448,24 @@ public class LocalDataClientImpl implements DataClient {
     public List<Bridge> bridgesGetAll() throws StateAccessException,
             SerializationException {
         log.debug("bridgesGetAll entered");
-
         List<Bridge> bridges = new ArrayList<Bridge>();
 
-        String path = pathBuilder.getBridgesPath();
-        if (zkManager.exists(path)) {
-            Set<String> bridgeIds = zkManager.getChildren(path);
-            for (String id : bridgeIds) {
-                Bridge bridge = bridgesGet(UUID.fromString(id));
-                if (bridge != null) {
-                   bridges.add(bridge);
-                }
+        List<UUID> bridgeIds = bridgesGetAllIds();
+        for (UUID id : bridgeIds) {
+            Bridge bridge = bridgesGet(id);
+            if (bridge != null) {
+                bridges.add(bridge);
             }
         }
 
         log.debug("bridgesGetAll exiting: {} bridges found", bridges.size());
         return bridges;
+    }
+
+    @Override
+    public List<UUID> bridgesGetAllIds() throws StateAccessException,
+            SerializationException {
+        return bridgeZkManager.getUuidList(pathBuilder.getBridgesPath());
     }
 
     @Override

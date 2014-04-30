@@ -7,7 +7,13 @@ import org.apache.zookeeper.CreateMode
 import org.midonet.packets.MAC
 import scala.collection.JavaConversions._
 
-class MacPortMap(dir: Directory) extends ReplicatedMap[MAC, UUID](dir) {
+class MacPortMap(dir: Directory, ephemeral: Boolean)
+        extends ReplicatedMap[MAC, UUID](dir, ephemeral) {
+    def this(dir: Directory) {
+        // By default, Mac-port entries are ephemeral entries.
+        this(dir, true)
+    }
+
     protected def encodeKey(key: MAC): String = key.toString
     protected def decodeKey(str: String): MAC = MAC.fromString(str)
     protected def encodeValue(value: UUID): String =value.toString

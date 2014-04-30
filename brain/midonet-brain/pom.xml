@@ -98,6 +98,10 @@
             <artifactId>netty-all</artifactId>
             <version>4.0.10.Final</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.zookeeper</groupId>
+            <artifactId>zookeeper</artifactId>
+        </dependency>
     </dependencies>
 
 </project>
