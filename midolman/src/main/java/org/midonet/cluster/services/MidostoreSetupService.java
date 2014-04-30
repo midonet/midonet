@@ -38,24 +38,8 @@ public class MidostoreSetupService extends AbstractService {
     @Override
     protected void doStart() {
         try {
-            String rootKey = config.getMidolmanRootKey();
+            final String rootKey = config.getMidolmanRootKey();
 
-            String currentPath = "";
-            for (String part : rootKey.split("/+")) {
-                if (part.trim().isEmpty())
-                    continue;
-
-                currentPath += "/" + part;
-                try {
-                    if (!directory.has(currentPath)) {
-                        log.debug("Adding " + currentPath);
-                        directory.add(currentPath, null, CreateMode.PERSISTENT);
-                    }
-                } catch (KeeperException.NodeExistsException ex) {
-                    // Don't exit even if the node exists.
-                    log.warn("doStart: {} already exists.", currentPath);
-                }
-            }
             Setup.ensureZkDirectoryStructureExists(directory, rootKey);
 
             verifyVersion();

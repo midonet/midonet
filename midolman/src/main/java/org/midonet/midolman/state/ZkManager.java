@@ -120,6 +120,10 @@ public class ZkManager {
         this.zk.asyncMultiPathGet(paths, cb);
     }
 
+    public Directory getDirectory() {
+        return zk;
+    }
+
     public Directory getSubDirectory(String path) throws StateAccessException {
         try {
             return zk.getSubDirectory(path);
