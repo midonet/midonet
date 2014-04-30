@@ -3,8 +3,8 @@
  */
 package org.midonet.midolman
 
+import java.lang.{Integer => JInteger}
 import java.util.UUID
-
 import scala.collection.mutable.ListBuffer
 import scala.collection.{Set => ROSet, mutable}
 
@@ -15,10 +15,10 @@ import akka.util.Timeout
 import org.midonet.cluster.client.Port
 import org.midonet.midolman.rules.{ChainPacketContext, RuleResult}
 import org.midonet.midolman.simulation.{Bridge, Chain}
-import org.midonet.midolman.topology.{FlowTagger, VirtualToPhysicalMapper}
 import org.midonet.midolman.topology.VirtualTopologyActor.expiringAsk
+import org.midonet.midolman.topology.{FlowTagger, VirtualToPhysicalMapper}
+import org.midonet.odp.flows.FlowActions.{setKey, output, userspace}
 import org.midonet.odp.flows._
-import org.midonet.odp.flows.FlowActions.{setKey, output}
 import org.midonet.sdn.flows.VirtualActions
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 import org.midonet.util.functors.Callback0
@@ -55,6 +55,8 @@ object FlowTranslator {
                 .append(", tags=").append(tags)
                 .append("]").toString()
     }
+
+    val NotADpPort: JInteger = -1
 }
 
 trait FlowTranslator {
@@ -94,47 +96,40 @@ trait FlowTranslator {
             }
     }
 
-    protected def portsForLocalPorts(localVrnPorts: Seq[UUID]): Seq[Short] = {
-        localVrnPorts flatMap { portNo =>
-            dpState.getDpPortNumberForVport(portNo) match {
-                case Some(value) => Some(value.shortValue())
-                case None =>
-                    log.warning("Port number {} not found {}", portNo, cookieStr)
-                    None
-            }
-        }
-    }
 
+    /** Applies filters on a sequence of virtual port uuids for the given
+     *  wildcard match and return a sequence of corresponding datapath port
+     *  index numbers for passing chains, or -1 otherwise for non passing chains
+     *  and unknown datapath ports. */
     protected def applyOutboundFilters(localPorts: Seq[Port],
-                                       portSetID: UUID,
                                        pktMatch: WildcardMatch,
-                                       tags: mutable.Set[Any])
-    : Urgent[Seq[UUID]] = {
-        def chainMatch(port: Port, chain: Chain): Boolean = {
+                                       tags: mutable.Set[Any]) = {
+        def applyChainOn(chain: Chain, port: Port): JInteger = {
             val fwdInfo = new EgressPortSetChainPacketContext(port.id, tags)
             Chain.apply(chain, fwdInfo, pktMatch, port.id, true).action match {
                 case RuleResult.Action.ACCEPT =>
-                    true
+                    dpState.getDpPortNumberForVport(port.id)
+                           .getOrElse(NotADpPort)
                 case RuleResult.Action.DROP | RuleResult.Action.REJECT =>
-                    false
+                    NotADpPort
                 case other =>
-                    log.error("Applying chain {} produced {} which was not " +
-                        "ACCEPT, DROP, or REJECT {}", chain.id, other, cookieStr)
-                    false
+                    log.error("Applying chain {} produced {} which " +
+                              "was not ACCEPT, DROP, or REJECT {}",
+                              chain.id, other, cookieStr)
+                    NotADpPort
             }
         }
-
-        def chainsToPortsId(chains: Seq[Chain]): Seq[UUID] =
-            for { (p, c) <- localPorts zip chains if chainMatch(p, c) }
-                yield p.id
-
-        def portToChain(port: Port): Urgent[Chain] =
-            if (port.outboundFilter == null)
-                Ready(null)
-            else
-                expiringAsk[Chain](port.outboundFilter)
-
-        Urgent flatten (localPorts map portToChain) map chainsToPortsId
+        Urgent flatten localPorts.map {
+            port =>
+                val filterId = port.outboundFilter
+                if (filterId == null) {
+                    val portNo = dpState.getDpPortNumberForVport(port.id)
+                                        .getOrElse(NotADpPort)
+                    Ready(portNo)
+                } else {
+                    expiringAsk[Chain](filterId) map { applyChainOn(_, port) }
+                }
+        }
     }
 
     /**
@@ -150,7 +145,7 @@ trait FlowTranslator {
      * corresponding flow invalidation tags.
      */
     private def translateFlowActions(
-            localPorts: Seq[Short], tunnelKey: Option[Long],
+            localPorts: Seq[JInteger], tunnelKey: Option[Long],
             peerHostIds: Set[UUID], dpTags: mutable.Set[Any]): Seq[FlowAction] = {
 
         // TODO(pino): when we detect the flow won't have output actions,
@@ -215,14 +210,16 @@ trait FlowTranslator {
 
     /** Update the list of action and list of tags with the output actions
      *  for the given list of local datapath port numbers. */
-    private def outputActionsForLocalPorts(ports: Seq[Short],
+    private def outputActionsForLocalPorts(ports: Seq[JInteger],
                                            actions: ListBuffer[FlowAction],
                                            dpTags: mutable.Set[Any]) {
         val iter = ports.iterator
         while (iter.hasNext) {
             val portNo = iter.next
-            actions += output(portNo)
-            dpTags += FlowTagger invalidateDPPort portNo
+            if (portNo != NotADpPort) {
+                actions += output(portNo)
+                dpTags += FlowTagger invalidateDPPort portNo
+            }
         }
     }
 
@@ -278,11 +275,10 @@ trait FlowTranslator {
 
             activePorts(outPorts, dpTags) flatMap {
                 localPorts =>
-                    applyOutboundFilters(localPorts, portSetId, wMatch, dpTags)
+                    applyOutboundFilters(localPorts, wMatch, dpTags)
             } map {
-                portIDs =>
-                    toPortSet(portsForLocalPorts(portIDs),
-                        Some(tunnelKey), set.hosts, dpTags)
+                portNumbers =>
+                    toPortSet(portNumbers, Some(tunnelKey), set.hosts, dpTags)
             }
 
         }}
@@ -338,7 +334,7 @@ trait FlowTranslator {
         }
 
     /** forwards to translateToDpPorts for a set of local ports. */
-    protected def towardsLocalDpPorts(localPorts: Seq[Short],
+    protected def towardsLocalDpPorts(localPorts: Seq[JInteger],
                                       dpTags: mutable.Set[Any]) = {
         log.debug("Emitting towards local dp ports {}", localPorts)
         translateFlowActions(localPorts, None, Set.empty, dpTags)
@@ -353,7 +349,7 @@ trait FlowTranslator {
     }
 
     /** forwards to translateToDpPorts for a port set. */
-    private def toPortSet(localPorts: Seq[Short], tunnelKey: Option[Long],
+    private def toPortSet(localPorts: Seq[JInteger], tunnelKey: Option[Long],
                           peerHostIds: Set[UUID], dpTags: mutable.Set[Any]) = {
         log.debug("Emitting towards local dp ports {} and remote hosts {} " +
                   "with tunnel key {}", localPorts, peerHostIds, tunnelKey)
