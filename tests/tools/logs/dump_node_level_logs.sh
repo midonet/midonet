@@ -39,17 +39,21 @@ MIDOLMAN_UPSTART_ERR_LOG_FILE=$MIDOLMAN_LOG_DIR/upstart-stderr.log
     sed -n "/$marker_start/, /$marker_end/ p" $MIDOLMAN_LOG_FILE
 }
 
-echo
-echo ====== DP status: mm-dpctl --show-dp midonet
-echo
+DPCTL_TIMEOUT_IN_SEC=10
 
-mm-dpctl --show-dp midonet
-
-
+SHOW_DP_CMDLINE="mm-dpctl --timeout $DPCTL_TIMEOUT_IN_SEC --show-dp midonet"
 echo
-echo ====== flow dump: mm-dpctl --dump-dp midonet
+echo ====== DP status: $SHOW_DP_CMDLINE
 echo
 
-mm-dpctl --dump-dp midonet
+$SHOW_DP_CMDLINE
+
+
+DUMP_DP_CMDLINE="mm-dpctl --timeout $DPCTL_TIMEOUT_IN_SEC --dump-dp midonet"
+echo
+echo ====== flow dump: $DUMP_DP_CMDLINE
+echo
+
+$DUMP_DP_CMDLINE
 
 exit 0 # make sure that nose plugin doesn't die
