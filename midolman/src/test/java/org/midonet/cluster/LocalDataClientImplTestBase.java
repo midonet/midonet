@@ -24,7 +24,7 @@ import org.midonet.midolman.config.ZookeeperConfig;
 import org.midonet.midolman.guice.CacheModule;
 import org.midonet.midolman.guice.MockMonitoringStoreModule;
 import org.midonet.midolman.guice.cluster.DataClusterClientModule;
-import org.midonet.midolman.guice.config.MockConfigProviderModule;
+import org.midonet.midolman.guice.config.ConfigProviderModule;
 import org.midonet.midolman.guice.config.TypedConfigModule;
 import org.midonet.midolman.guice.serialization.SerializationModule;
 import org.midonet.midolman.guice.zookeeper.MockZookeeperConnectionModule;
@@ -86,7 +86,7 @@ public class LocalDataClientImplTestBase {
         injector = Guice.createInjector(
                 new VersionModule(),
                 new SerializationModule(),
-                new MockConfigProviderModule(config),
+                new ConfigProviderModule(config),
                 new MockZookeeperConnectionModule(),
                 new TypedConfigModule<>(MidolmanConfig.class),
                 new CacheModule(),

@@ -82,7 +82,6 @@ public abstract class ConfigProvider {
         }
     }
 
-    @SuppressWarnings("unchecked")
     public static <Config> Config getConfig(
             Class<Config> interfaces, final ConfigProvider provider) {
 
@@ -98,36 +97,39 @@ public abstract class ConfigProvider {
 
         Class[] intsArray = {interfaces};
 
-        return (Config) Proxy.newProxyInstance(
-            classLoader, intsArray, handler);
+        @SuppressWarnings("unchecked")
+        Config proxyConfig = (Config) Proxy.newProxyInstance(classLoader,
+                                                             intsArray,
+                                                             handler);
+        return proxyConfig;
     }
 
     private static Object handleInvocation(Method method, Object[] args,
                                            ConfigProvider provider) {
 
         ConfigInt integerConfigAnn = method.getAnnotation(ConfigInt.class);
-        if (integerConfigAnn != null ) {
+        if (integerConfigAnn != null) {
             return provider.getValue(findDeclaredGroupName(method),
                                      integerConfigAnn.key(),
                                      integerConfigAnn.defaultValue());
         }
 
         ConfigLong longConfigAnn = method.getAnnotation(ConfigLong.class);
-        if (longConfigAnn != null ) {
+        if (longConfigAnn != null) {
             return provider.getValue(findDeclaredGroupName(method),
                                      longConfigAnn.key(),
                                      longConfigAnn.defaultValue());
         }
 
         ConfigBool boolConfigAnn = method.getAnnotation(ConfigBool.class);
-        if (boolConfigAnn != null ) {
+        if (boolConfigAnn != null) {
             return provider.getValue(findDeclaredGroupName(method),
                                      boolConfigAnn.key(),
                                      boolConfigAnn.defaultValue());
         }
 
         ConfigString strConfigAnn = method.getAnnotation(ConfigString.class);
-        if (strConfigAnn != null ) {
+        if (strConfigAnn != null) {
             return provider.getValue(findDeclaredGroupName(method),
                                      strConfigAnn.key(),
                                      strConfigAnn.defaultValue());
@@ -142,13 +144,14 @@ public abstract class ConfigProvider {
     }
 
     private static String findDeclaredGroupName(Method method) {
-
         ConfigGroup configGroup = method.getAnnotation(ConfigGroup.class);
-        if (configGroup == null ) {
-            configGroup = method.getDeclaringClass().getAnnotation(ConfigGroup.class);
+
+        if (configGroup == null) {
+            configGroup = method.getDeclaringClass()
+                                .getAnnotation(ConfigGroup.class);
         }
 
-        if (configGroup != null ){
+        if (configGroup != null) {
             return configGroup.value();
         }
 

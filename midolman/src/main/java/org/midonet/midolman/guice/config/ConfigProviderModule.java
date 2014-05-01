@@ -4,7 +4,7 @@
 package org.midonet.midolman.guice.config;
 
 import com.google.inject.PrivateModule;
-import static com.google.inject.name.Names.named;
+import org.apache.commons.configuration.HierarchicalConfiguration;
 
 import org.midonet.config.ConfigProvider;
 
@@ -14,29 +14,19 @@ import org.midonet.config.ConfigProvider;
  */
 public class ConfigProviderModule extends PrivateModule {
 
-    String configurationFilePath;
+    private final ConfigProvider provider;
 
-    protected ConfigProviderModule() {
-
+    public ConfigProviderModule(String path) {
+        this.provider = ConfigProvider.fromIniFile(path);
     }
 
-    public ConfigProviderModule(String configurationFilePath) {
-        this.configurationFilePath = configurationFilePath;
+    public ConfigProviderModule(HierarchicalConfiguration configuration) {
+        this.provider = ConfigProvider.providerForIniConfig(configuration);
     }
 
     @Override
     protected void configure() {
-        bindConfigProvider();
+        bind(ConfigProvider.class).toInstance(provider);
         expose(ConfigProvider.class);
-    }
-
-    protected void bindConfigProvider() {
-        bindConstant()
-            .annotatedWith(named(ConfigFromFileProvider.CONFIG_FILE_PATH))
-            .to(configurationFilePath);
-
-        bind(ConfigProvider.class)
-            .toProvider(ConfigFromFileProvider.class)
-            .asEagerSingleton();
     }
 }
