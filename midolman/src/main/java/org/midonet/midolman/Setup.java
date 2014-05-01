@@ -101,16 +101,38 @@ public class Setup {
         return paths;
     }
 
-    public static void ensureZkDirectoryStructureExists(
-        Directory rootDir, String basePath)
+    public static void ensureZkDirectoryStructureExists(Directory rootDir,
+                                                        String basePath)
         throws KeeperException, InterruptedException
     {
+        ensureBasePathExists(rootDir, basePath);
         PathBuilder pathMgr = new PathBuilder(basePath);
         for (String path : Setup.getTopLevelPaths(pathMgr)) {
             rootDir.ensureHas(path, null);
         }
         rootDir.ensureHas(pathMgr.getWriteVersionPath(),
                           DataWriteVersion.CURRENT.getBytes());
+    }
+
+    public static void ensureBasePathExists(Directory rootDir,
+                                            String basePath)
+            throws KeeperException, InterruptedException {
+        String currentPath = "";
+        for (String part : basePath.split("/+")) {
+            if (part.trim().isEmpty())
+                continue;
+
+            currentPath += "/" + part;
+            try {
+                if (!rootDir.has(currentPath)) {
+                    log.debug("Adding " + currentPath);
+                    rootDir.add(currentPath, null, CreateMode.PERSISTENT);
+                }
+            } catch (KeeperException.NodeExistsException ex) {
+                // Don't exit even if the node exists.
+                log.warn("doStart: {} already exists.", currentPath);
+            }
+        }
     }
 
     protected void setupTrafficPriorityQdiscsMidonet()

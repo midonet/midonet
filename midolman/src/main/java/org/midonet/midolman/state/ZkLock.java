@@ -12,9 +12,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 
+import org.midonet.midolman.Setup;
 import org.midonet.util.functors.Callback;
 
 /**
@@ -29,10 +31,11 @@ public class ZkLock {
     private String owner;
 
     public ZkLock(ZkManager zk, PathBuilder paths, String name)
-            throws StateAccessException {
+            throws StateAccessException, KeeperException, InterruptedException {
         this.zk = zk;
         // TODO: remove this when we can ensure ZK has the top level
         //       paths created before the first usage of ZkLock.
+        Setup.ensureBasePathExists(zk.getDirectory(), paths.getBasePath());
         zk.addPersistent_safe(paths.getLocksPath(), null);
         lockPath = paths.getLockPath(name);
         zk.addPersistent_safe(lockPath, null);

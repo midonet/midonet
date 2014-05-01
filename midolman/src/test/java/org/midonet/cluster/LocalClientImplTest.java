@@ -117,7 +117,6 @@ public class LocalClientImplTest {
             throws StateAccessException, InterruptedException, KeeperException,
             SerializationException, BridgeZkManager.VxLanPortIdUpdateException {
 
-        initializeZKStructure();
         Setup.ensureZkDirectoryStructureExists(zkDir(), zkRoot);
         UUID bridgeId = getBridgeZkManager().create(
             new BridgeZkManager.BridgeConfig("test", null, null));
@@ -143,7 +142,6 @@ public class LocalClientImplTest {
             throws StateAccessException, InterruptedException, KeeperException,
             SerializationException {
 
-        initializeZKStructure();
         Setup.ensureZkDirectoryStructureExists(zkDir(), zkRoot);
         UUID routerId = getRouterZkManager().create();
         TestRouterBuilder routerBuilder = new TestRouterBuilder();
@@ -166,7 +164,6 @@ public class LocalClientImplTest {
     @Test
     public void ArpCacheTest() throws InterruptedException, KeeperException,
             StateAccessException, SerializationException {
-        initializeZKStructure();
         Setup.ensureZkDirectoryStructureExists(zkDir(), zkRoot);
         UUID routerId = getRouterZkManager().create();
         TestRouterBuilder routerBuilder = new TestRouterBuilder();
@@ -191,7 +188,6 @@ public class LocalClientImplTest {
     @Test
     public void MacPortMapTest() throws InterruptedException,
             KeeperException, SerializationException, StateAccessException {
-        initializeZKStructure();
         Setup.ensureZkDirectoryStructureExists(zkDir(), zkRoot);
         UUID bridgeId = getBridgeZkManager().create(
             new BridgeZkManager.BridgeConfig("test", getRandomChainId(),
@@ -231,19 +227,6 @@ public class LocalClientImplTest {
         assertNull(bridgeBuilder.getPort(mac));
 
         assertThat("Bridge update was notified", bridgeBuilder.getBuildCallsCount(), equalTo(1));
-    }
-
-    void initializeZKStructure() throws InterruptedException, KeeperException {
-
-        String[] nodes = zkRoot.split("/");
-        String path = "/";
-        for (String node : nodes) {
-            if (!node.isEmpty()) {
-                zkDir().add(path + node, null, CreateMode.PERSISTENT);
-                path += node;
-                path += "/";
-            }
-        }
     }
 
     // hint could modify this class so we can get the map from it.
