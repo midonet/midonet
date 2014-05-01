@@ -35,7 +35,7 @@ import org.midonet.midolman.guice.MockCacheModule;
 import org.midonet.midolman.guice.MockMonitoringStoreModule;
 import org.midonet.midolman.guice.ResourceProtectionModule;
 import org.midonet.midolman.guice.cluster.ClusterClientModule;
-import org.midonet.midolman.guice.config.MockConfigProviderModule;
+import org.midonet.midolman.guice.config.ConfigProviderModule;
 import org.midonet.midolman.guice.datapath.MockDatapathModule;
 import org.midonet.midolman.guice.serialization.SerializationModule;
 import org.midonet.midolman.guice.zookeeper.MockZookeeperConnectionModule;
@@ -84,7 +84,7 @@ public class DefaultInterfaceDataUpdaterTest {
         Injector injector = Guice.createInjector(
             new VersionModule(),
             new SerializationModule(),
-            new MockConfigProviderModule(configuration),
+            new ConfigProviderModule(configuration),
             new MockDatapathModule(),
             new MockCacheModule(),
             new MockZookeeperConnectionModule(cleanDirectory),

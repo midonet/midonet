@@ -39,7 +39,7 @@ import org.midonet.midolman.PacketWorkflow.PacketIn
 import org.midonet.midolman.PacketsEntryPoint
 import org.midonet.midolman.guice._
 import org.midonet.midolman.guice.cluster.ClusterClientModule
-import org.midonet.midolman.guice.config.MockConfigProviderModule
+import org.midonet.midolman.guice.config.ConfigProviderModule
 import org.midonet.midolman.guice.datapath.MockDatapathModule
 import org.midonet.midolman.guice.serialization.SerializationModule
 import org.midonet.midolman.guice.zookeeper.MockZookeeperConnectionModule
@@ -226,7 +226,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
         List[Module](
             new VersionModule(),
             new SerializationModule(),
-            new MockConfigProviderModule(config),
+            new ConfigProviderModule(config),
             new MockDatapathModule(),
             new MockCacheModule(),
             new MockZookeeperConnectionModule(),

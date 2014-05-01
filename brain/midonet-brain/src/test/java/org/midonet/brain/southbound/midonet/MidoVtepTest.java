@@ -35,7 +35,7 @@ import org.midonet.midolman.config.ZookeeperConfig;
 import org.midonet.midolman.guice.MockCacheModule;
 import org.midonet.midolman.guice.MockMonitoringStoreModule;
 import org.midonet.midolman.guice.cluster.ClusterClientModule;
-import org.midonet.midolman.guice.config.MockConfigProviderModule;
+import org.midonet.midolman.guice.config.ConfigProviderModule;
 import org.midonet.midolman.guice.config.TypedConfigModule;
 import org.midonet.midolman.guice.serialization.SerializationModule;
 import org.midonet.midolman.guice.zookeeper.MockZookeeperConnectionModule;
@@ -149,7 +149,7 @@ public class MidoVtepTest {
         modules.add(new SerializationModule());  // For Serializer
         modules.add(
                 new TypedConfigModule<MidolmanConfig>(MidolmanConfig.class));
-        modules.add(new MockConfigProviderModule(config));  // For ConfigProvider
+        modules.add(new ConfigProviderModule(config));  // For ConfigProvider
         modules.add(new MockCacheModule());  // For cache
         // Directory and Reactor
         modules.add(new MockZookeeperConnectionModule());

@@ -6,50 +6,29 @@ package org.midonet.api.config;
 import com.google.inject.AbstractModule;
 import org.midonet.config.ConfigProvider;
 import org.midonet.config.providers.ServletContextConfigProvider;
-import org.midonet.midolman.guice.config.ConfigFromFileProvider;
 
 import javax.servlet.ServletContext;
 
-import static com.google.inject.name.Names.named;
-
 /**
- * Guice module for configuration.
+ * Guice module for configuration. Use ServletContext as the configuration
+ * source by default, unless the constructor with a filename was called.
+ * It is assumed that if using ServletContext, web.xml is context-param
+ * elements are defined as {group}-{key}
  */
 public class ConfigurationModule extends AbstractModule {
 
-    private final String filePath;
-    private final ServletContext context;
+    private final ConfigProvider provider;
 
     public ConfigurationModule(ServletContext context) {
-        this.context = context;
-        this.filePath = null;
+        this.provider = new ServletContextConfigProvider(context);
     }
 
    public ConfigurationModule(String filePath) {
-        this.filePath = filePath;
-        this.context = null;
+        this.provider = ConfigProvider.fromIniFile(filePath);
     }
 
     @Override
     protected void configure() {
-
-        // Use ServletContext as the configuration source by default,
-        // unless a filename is explicitly set.  It is assumed that
-        // if using ServletContext, web.xml is context-param elements are
-        // defined as {group}-{key}
-        if(filePath == null) {
-            bind(ConfigProvider.class).toInstance(
-                    new ServletContextConfigProvider(context));
-        } else {
-            bindConstant()
-                    .annotatedWith(
-                            named(ConfigFromFileProvider.CONFIG_FILE_PATH))
-                    .to(filePath);
-
-            bind(ConfigProvider.class)
-                    .toProvider(ConfigFromFileProvider.class)
-                    .asEagerSingleton();
-        }
+        bind(ConfigProvider.class).toInstance(provider);
     }
-
 }

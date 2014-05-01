@@ -18,14 +18,13 @@ public class ServletContextConfigProvider extends ConfigProvider {
     private ServletContext ctxt;
 
     public ServletContextConfigProvider(ServletContext ctxt) {
-        super();
         this.ctxt = ctxt;
     }
 
     @Override
     public String getValue(String group, String key, String defaultValue) {
         String value = safeGetStringValue(group, key, defaultValue);
-        if ( value.trim().length() == 0 ) {
+        if (value.trim().length() == 0) {
             return defaultValue;
         }
 
@@ -56,7 +55,7 @@ public class ServletContextConfigProvider extends ConfigProvider {
     @Override
     public boolean getValue(String group, String key, boolean defaultValue) {
         String value = safeGetStringValue(group, key, "" + defaultValue);
-        if ( value.trim().length() == 0 ) {
+        if (value.trim().length() == 0) {
             return defaultValue;
         }
 
@@ -64,8 +63,8 @@ public class ServletContextConfigProvider extends ConfigProvider {
     }
 
     private String safeGetStringValue(String group, String key, String defaultValue ) {
-        String value;
-        value = ctxt.getInitParameter(group + "-" + key);
+        String value = ctxt.getInitParameter(group + "-" + key);
+
         if (value == null) {
             value = defaultValue;
         }

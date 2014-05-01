@@ -23,7 +23,7 @@ import org.midonet.cluster.data.AdRoute;
 import org.midonet.cluster.data.BGP;
 import org.midonet.cluster.data.Converter;
 import org.midonet.midolman.config.MidolmanConfig;
-import org.midonet.midolman.guice.config.MockConfigProviderModule;
+import org.midonet.midolman.guice.config.ConfigProviderModule;
 import org.midonet.midolman.guice.config.TypedConfigModule;
 import org.midonet.midolman.guice.serialization.SerializationModule;
 import org.midonet.midolman.guice.zookeeper.MockZookeeperConnectionModule;
@@ -152,7 +152,7 @@ public class ClusterBgpManagerTest {
         Injector injector = Guice.createInjector(
                 new VersionModule(),
                 new SerializationModule(),
-                new MockConfigProviderModule(new HierarchicalConfiguration()),
+                new ConfigProviderModule(new HierarchicalConfiguration()),
                 new MockZookeeperConnectionModule(),
                 new TypedConfigModule<>(MidolmanConfig.class),
                 new TestModule());
