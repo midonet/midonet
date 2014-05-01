@@ -367,15 +367,12 @@ public abstract class AbstractNetlinkConnection {
                          "not found.", pid(), seq);
             }
 
-            Netlink.MessageType messageType =
-                Netlink.MessageType.findById(type);
-
-            switch (messageType) {
-                case NLMSG_NOOP:
+            switch (type) {
+                case NLMessageType.NOOP:
                     // skip to the next message
                     break;
 
-                case NLMSG_ERROR:
+                case NLMessageType.ERROR:
                     int error = reply.getInt();
 
                     // read header which caused the error
@@ -399,7 +396,7 @@ public abstract class AbstractNetlinkConnection {
                     }
                     break;
 
-                case NLMSG_DONE:
+                case NLMessageType.DONE:
                     if (request != null) {
                         pendingRequests.remove(seq);
                         ongoingTransaction.remove(request);
