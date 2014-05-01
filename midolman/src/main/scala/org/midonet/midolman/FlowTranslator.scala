@@ -12,13 +12,14 @@ import akka.actor.ActorSystem
 import akka.event.LoggingAdapter
 import akka.util.Timeout
 
-import org.midonet.cluster.client.Port
+import org.midonet.cluster.client.{DeviceVxLanPort, Port}
 import org.midonet.midolman.rules.{ChainPacketContext, RuleResult}
 import org.midonet.midolman.simulation.{Bridge, Chain}
 import org.midonet.midolman.topology.VirtualTopologyActor.expiringAsk
 import org.midonet.midolman.topology.{FlowTagger, VirtualToPhysicalMapper}
 import org.midonet.odp.flows.FlowActions.{setKey, output, userspace}
 import org.midonet.odp.flows._
+import org.midonet.packets.IPv4Addr
 import org.midonet.sdn.flows.VirtualActions
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 import org.midonet.util.functors.Callback0
@@ -218,44 +219,81 @@ trait FlowTranslator {
         }
     }
 
+    /** Update the list of action and list of tags with the output tunnelling
+     *  action for the given vtep addr and vni key. */
+    private def outputActionsToVtep(vni: Short, vtepIp: Int,
+                                    actions: ListBuffer[FlowAction],
+                                    dpTags: mutable.Set[Any]) {
+        if (dpState.vxLanOutputAction.isEmpty) {
+            log.warning("VxLan tunnel port was not found, could not " +
+                        "translate action to vtep peer {}", vtepIp)
+            return
+        }
+        val localIp =  dpState.host.zones.values.head.getIp.addressAsInt()
+        if (dpTags != null)
+            dpTags += FlowTagger.invalidateTunnelPort((localIp, vtepIp))
+        actions += setKey(FlowKeys.tunnel(vni, localIp, vtepIp))
+        actions += dpState.vxLanOutputAction.get
+    }
+
     // expandPortSetAction, name shortened to avoid an ENAMETOOLONG on ecryptfs
     // from a triply nested anonfun.
     private def epsa(portSetId: UUID,
                      inPortUUID: Option[UUID], dpTags: mutable.Set[Any],
                      wMatch: WildcardMatch): Urgent[Seq[FlowAction]] = {
-
-        val portSet = VirtualToPhysicalMapper expiringAsk
-                        PortSetRequest(portSetId, update = false)
-
-        val device = expiringAsk[Bridge](portSetId, log)
-
-        portSet flatMap { set => device flatMap { br =>
-            val deviceId = br.id
-            val tunnelKey = br.tunnelKey
-
-            log.debug("Flooding on bridge {} to {} from inPort: {} {}",
-                deviceId, set, inPortUUID, cookieStr)
-
-            // Don't include the input port in the expanded port set.
-            var outPorts = set.localPorts
-            inPortUUID match {
-                case Some(p) => outPorts -= p
-                case None =>
+        def addLocalActions(localPorts: Set[UUID],
+                            actions: ListBuffer[FlowAction]) = {
+            val outputPorts = inPortUUID match {
+                case Some(port) => localPorts - port
+                case None => localPorts
             }
-            // add tag for flow invalidation because if the packet comes
-            // from a tunnel it won't be tagged
-            dpTags += FlowTagger.invalidateBroadcastFlows(deviceId, deviceId)
-
-            activePorts(outPorts, dpTags) flatMap {
-                localPorts =>
-                    applyOutboundFilters(localPorts, wMatch, dpTags)
+            activePorts(outputPorts, dpTags) flatMap {
+                ports =>
+                    applyOutboundFilters(ports, wMatch, dpTags)
             } map {
-                portNumbers =>
-                    towardsPortSet(portNumbers, tunnelKey, set.hosts, dpTags)
+                ports =>
+                    outputActionsForLocalPorts(ports, actions, dpTags)
+                    actions
             }
-
-        }}
-
+        }
+        def addRemoteActions(br: Bridge, peerIds: Set[UUID],
+                             actions: ListBuffer[FlowAction]) {
+            // add flow invalidation tag because if the packet
+            // comes from a tunnel it won't be tagged
+            dpTags += FlowTagger.invalidateBroadcastFlows(br.id, br.id)
+            outputActionsToPeers(br.tunnelKey, peerIds, actions, dpTags)
+        }
+        def addVtepActions(br: Bridge, actions: ListBuffer[FlowAction])
+        : Urgent[Seq[FlowAction]] = {
+            if (br.vxlanPortId.isEmpty) {
+                Ready(actions)
+            } else {
+                val vxlanPortId = br.vxlanPortId.get
+                expiringAsk[Port](vxlanPortId, log) map {
+                    case p: DeviceVxLanPort =>
+                        outputActionsToVtep(p.vni, p.vtepAddr.addr,
+                                            actions, dpTags)
+                        actions
+                    case _ =>
+                        log.warning("could not find DeviceVxLanPort {} " +
+                                    "of bridge {}", vxlanPortId, br)
+                        actions
+                }
+            }
+        }
+        val req = PortSetRequest(portSetId, update = false)
+        VirtualToPhysicalMapper.expiringAsk(req) flatMap {
+            portSet =>
+                val actions = ListBuffer[FlowAction]()
+                addLocalActions(portSet.localPorts, actions) flatMap {
+                    actions =>
+                        expiringAsk[Bridge](portSetId, log) flatMap {
+                            br =>
+                                addRemoteActions(br, portSet.hosts, actions)
+                                addVtepActions(br, actions)
+                        }
+                }
+        }
     }
 
     /**
@@ -291,13 +329,17 @@ trait FlowTranslator {
     private def expandPortAction(port: UUID, dpTags: mutable.Set[Any])
     : Urgent[Seq[FlowAction]] =
         dpState.getDpPortNumberForVport(port) map { portNum =>
-            // if the DPC has a local DP port for this UUUID, translate
+            // If the DPC has a local DP port for this UUID, translate
             Urgent(
                 towardsLocalDpPorts(List(portNum.shortValue()), dpTags)
             )
         } getOrElse {
-            // otherwise we translate to a remote port
+            // Otherwise we translate to a remote port or a vtep peer
+            // DeviceVxLanPort is a subtype of exterior port,
+            // therefore it needs to be matched first.
             expiringAsk[Port](port, log) map {
+                case p: DeviceVxLanPort =>
+                    towardsVtepPeer(p.vni, p.vtepAddr, dpTags)
                 case p: Port if p.isExterior =>
                     towardsRemoteHost(p.tunnelKey, p.hostID, dpTags)
                 case _ =>
@@ -320,8 +362,7 @@ trait FlowTranslator {
     /** Emits a list of output FlowActions for tunnelling traffic to the given
      *  remote host with the given tunnel key. */
     private def towardsRemoteHost(tunnelKey: Long, peerHostId: UUID,
-                                  dpTags: mutable.Set[Any])
-    : Seq[FlowAction] = {
+                                  dpTags: mutable.Set[Any]): Seq[FlowAction] = {
         log.debug("Emitting towards remote host {} with tunnek key {}",
                   peerHostId, tunnelKey)
         val actions = ListBuffer[FlowAction]()
@@ -329,18 +370,13 @@ trait FlowTranslator {
         actions
     }
 
-    /** Generates a list of output FlowActions for forwarding traffic to a
-     *  logical port set, both locally to local dp ports and to remote hosts
-     *  through tunnels. */
-    private def towardsPortSet(localPorts: Seq[JInteger], tunnelKey: Long,
-                               peerHostIds: Set[UUID], dpTags: mutable.Set[Any])
-    : Seq[FlowAction] = {
-        log.debug("Emitting towards local dp ports {} and remote hosts {} " +
-                  "with tunnel key {}", localPorts, peerHostIds, tunnelKey)
+    /** Emits a list of output FlowActions for tunnelling traffic to a remote
+     *  vtep gateway given its ip address and a vni key. */
+    private def towardsVtepPeer(vni: Short, vtepIp: IPv4Addr,
+                                dpTags: mutable.Set[Any]): Seq[FlowAction] = {
+        log.debug("Emitting towards vtep at {} with vni {}", vtepIp, vni)
         val actions = ListBuffer[FlowAction]()
-        outputActionsForLocalPorts(localPorts, actions, dpTags)
-        outputActionsToPeers(tunnelKey, peerHostIds, actions, dpTags)
+        outputActionsToVtep(vni, vtepIp.addr, actions, dpTags)
         actions
     }
-
 }
