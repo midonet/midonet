@@ -92,16 +92,6 @@ public class LocalDataClientImplTestBase {
                 new DataClusterClientModule()
         );
         injector.injectMembers(this);
-        String[] nodes = zkRoot.split("/");
-        String path = "/";
-
-        for (String node : nodes) {
-            if (!node.isEmpty()) {
-                zkDir().add(path + node, null, CreateMode.PERSISTENT);
-                path += node;
-                path += "/";
-            }
-        }
         Setup.ensureZkDirectoryStructureExists(zkDir(), zkRoot);
     }
 

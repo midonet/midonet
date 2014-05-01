@@ -15,7 +15,7 @@ public class TestZkLock {
     ZkLock lock;
 
     @Before
-    public void setup() throws StateAccessException {
+    public void setup() throws Exception {
         ZkManager zk = new ZkManager(new MockDirectory(), "");
         PathBuilder paths = new PathBuilder("");
         zk.addPersistent(paths.getLocksPath(), null);
