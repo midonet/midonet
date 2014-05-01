@@ -1,9 +1,10 @@
 package org.midonet.odp;
 
+import org.junit.Assert;
 import org.junit.Test;
+
 import org.midonet.odp.flows.FlowKeyICMPEcho;
 import org.midonet.packets.ICMP;
-import org.testng.Assert;
 
 import static org.midonet.odp.flows.FlowKeys.icmpEcho;
 
@@ -21,10 +22,9 @@ public class FlowKeyICMPEchoTest {
 
         Assert.assertEquals(k1, k2);
         Assert.assertEquals(k1.hashCode(), k2.hashCode());
-        Assert.assertNotEquals(k1, k3);
-        Assert.assertNotEquals(k1.hashCode(), k3.hashCode());
-        Assert.assertNotEquals(k2, k3);
-        Assert.assertNotEquals(k2.hashCode(), k3.hashCode());
+        Assert.assertFalse(k1.equals(k3));
+        Assert.assertFalse(k1.hashCode() == k3.hashCode());
+        Assert.assertFalse(k2.equals(k3));
+        Assert.assertFalse(k2.hashCode() == k3.hashCode());
     }
-
 }

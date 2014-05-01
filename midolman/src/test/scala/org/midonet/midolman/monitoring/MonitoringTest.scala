@@ -17,7 +17,6 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.is
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.testng.annotations.Test
 
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.{Bridge => ClusterBridge, Ports => ClusterPorts}
@@ -48,7 +47,7 @@ class MonitoringTest extends MidolmanTestCase {
         config
     }
 
-    @Test def testActualMonitoring {
+    def testActualMonitoring {
 
         val jvmNames = immutable.Set(
             "OpenFileDescriptorCount", "ThreadCount", "FreePhysicalMemorySize",
