@@ -12,6 +12,7 @@ from mdts.tests.config import MIDONET_API_URL
 
 import inspect
 import logging
+import os
 import subprocess
 import time
 
@@ -219,23 +220,26 @@ def ipv4_int(ipv4_str):
         addr_int = addr_int * 256 + part_int
     return addr_int
 
+def get_top_dir():
+    """Returns the top dir of the midonet repo"""
+    topdir = os.path.realpath(os.path.dirname(__file__) + '../../../../../')
+    return topdir
 
-def get_script_dir():
-    """Returns a Midolman scripts directory."""
-    current_dir = subprocess_compat.check_output("pwd", shell=True)
-    qa_dir_prefix_len = current_dir.find('/midonet/tests/') + 15
-    return current_dir[0:qa_dir_prefix_len] + 'mmm/scripts/midolman'
+def get_midolman_script_dir():
+    """Returns abs path to Midolman scripts directory"""
+    return get_top_dir() + '/tests/mmm/scripts/midolman'
 
 
 def start_midolman_agents():
     """Starts all Midolman agents."""
-    #    subprocess_compat.check_output('cd %s; ./start' % get_script_dir(), shell=True)
-    subprocess_compat.check_output('cd %s; ./start' % get_script_dir(), shell=True)
+    subprocess_compat.check_output(
+        'cd %s; ./start' % get_midolman_script_dir(), shell=True)
 
 
 def stop_midolman_agents():
     """Stops all Midolman agents."""
-    subprocess_compat.check_output('cd %s; ./stop' % get_script_dir(), shell=True)
+    subprocess_compat.check_output(
+        'cd %s; ./stop' % get_midolman_script_dir(), shell=True)
 
 
 def check_all_midolman_hosts(midonet_api, alive):
