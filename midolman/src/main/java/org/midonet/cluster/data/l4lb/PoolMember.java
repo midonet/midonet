@@ -129,5 +129,18 @@ public class PoolMember extends Entity.Base<UUID, PoolMember.Data, PoolMember>{
             return Objects.hashCode(poolId, address, protocolPort, weight,
                     adminStateUp, status);
         }
+
+        @Override
+        public String toString() {
+            return "Data{" +
+                    "poolId=" + poolId +
+                    ", address='" + address + '\'' +
+                    ", protocolPort=" + protocolPort +
+                    ", weight=" + weight +
+                    ", adminStateUp=" + adminStateUp +
+                    ", status=" + status +
+                    ", pool=" + pool +
+                    '}';
+        }
     }
 }

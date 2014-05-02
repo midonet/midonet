@@ -19,6 +19,7 @@ import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.rest_api.ServiceUnavailableHttpException;
 import org.midonet.api.validation.MessageProperty;
 import org.midonet.cluster.DataClient;
+import org.midonet.event.topology.PoolMemberEvent;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.LBStatus;
@@ -55,6 +56,7 @@ public class PoolMemberResource extends AbstractResource {
 
     private final static Logger log = LoggerFactory
             .getLogger(PoolMemberResource.class);
+    private final PoolMemberEvent poolMemberEvent = new PoolMemberEvent();
 
     @Inject
     public PoolMemberResource(RestApiConfig config, UriInfo uriInfo,
@@ -114,6 +116,7 @@ public class PoolMemberResource extends AbstractResource {
 
         try {
             dataClient.poolMemberDelete(id);
+            poolMemberEvent.delete(id);
         } catch (NoStatePathException ex) {
             // Delete is idempotent, so do nothing.
         } catch (MappingStatusException ex) {
@@ -137,6 +140,7 @@ public class PoolMemberResource extends AbstractResource {
 
         try {
             UUID id = dataClient.poolMemberCreate(poolMember.toData());
+            poolMemberEvent.create(id, dataClient.poolMemberGet(id));
             return Response.created(
                     ResourceUriBuilder.getPoolMember(getBaseUri(), id))
                     .build();
@@ -178,6 +182,7 @@ public class PoolMemberResource extends AbstractResource {
             }
 
             dataClient.poolMemberUpdate(poolMember.toData());
+            poolMemberEvent.update(id, dataClient.poolMemberGet(id));
         } catch (NoStatePathException ex) {
             throw badReqOrNotFoundException(ex, id);
         } catch (MappingStatusException ex) {
