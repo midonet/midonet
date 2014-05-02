@@ -21,6 +21,7 @@ import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoPort;
 import static junit.framework.Assert.assertNotNull;
 import static org.junit.Assert.assertEquals;
+import static org.midonet.api.validation.MessageProperty.getMessage;
 import static org.midonet.client.VendorMediaType.APPLICATION_BRIDGE_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_PORT_V2_JSON;
 
@@ -60,7 +61,12 @@ public abstract class RestApiTestBase extends JerseyTest {
 
     protected void assertErrorMatches(
             DtoError actual, String expectedTemplateCode, Object... args) {
-        String expectedMsg = MessageProperty.getMessage(expectedTemplateCode, args);
+        String expectedMsg = getMessage(expectedTemplateCode, args);
+        assertErrorMatchesLiteral(actual, expectedMsg);
+    }
+
+    protected void assertErrorMatchesLiteral(DtoError actual,
+                                             String expectedMsg) {
         String actualMsg = (actual.getViolations().isEmpty()) ?
                 actual.getMessage() :
                 actual.getViolations().get(0).get("message");
@@ -68,16 +74,27 @@ public abstract class RestApiTestBase extends JerseyTest {
     }
 
     protected void assertErrorMatchesPropMsg(
-            DtoError actual, String expectedProperty, String expectedMessage) {
+            DtoError actual, String expectedProperty,
+            String expectedTemplateCode, Object... args) {
         // May need to relax this later.
         assertEquals(1, actual.getViolations().size());
         Map<String, String> violation = actual.getViolations().get(0);
         assertEquals(expectedProperty, violation.get("property"));
-        assertEquals(expectedMessage, violation.get("message"));
+        assertEquals(getMessage(expectedTemplateCode, args),
+                     violation.get("message"));
     }
 
     protected URI addIdToUri(URI base, UUID id) throws URISyntaxException {
         return new URI(base.toString() + "/" + id.toString());
+    }
+
+    protected URI replaceInUri(URI uri, String oldStr, String newStr) {
+        try {
+            return new URI(uri.toString().replace(oldStr, newStr));
+        } catch (URISyntaxException ex) {
+            // This is fine for a test method.
+            throw new RuntimeException(ex);
+        }
     }
 
     protected DtoBridge postBridge(String bridgeName) {

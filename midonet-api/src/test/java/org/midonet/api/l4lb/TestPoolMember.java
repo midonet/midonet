@@ -4,13 +4,11 @@
 package org.midonet.api.l4lb;
 
 import junit.framework.Assert;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 import org.midonet.api.VendorMediaType;
-import org.midonet.api.zookeeper.StaticMockDirectory;
 import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoLoadBalancer;
 import org.midonet.client.dto.DtoPool;
@@ -29,6 +27,8 @@ import static org.junit.Assert.assertTrue;
 import static org.midonet.api.VendorMediaType.APPLICATION_POOL_MEMBER_JSON;
 import static org.midonet.api.validation.MessageProperty.RESOURCE_EXISTS;
 import static org.midonet.api.validation.MessageProperty.RESOURCE_NOT_FOUND;
+
+import static org.midonet.api.validation.MessageProperty.*;
 
 @RunWith(Enclosed.class)
 public class TestPoolMember {
@@ -173,7 +173,7 @@ public class TestPoolMember {
             DtoError error = dtoResource.postAndVerifyBadRequest(
                     topLevelPoolMembersUri,
                     APPLICATION_POOL_MEMBER_JSON, member);
-            assertErrorMatchesPropMsg(error, "poolId", "may not be null");
+            assertErrorMatchesPropMsg(error, "poolId", NON_NULL);
         }
 
         @Test
@@ -192,7 +192,7 @@ public class TestPoolMember {
             member.setWeight(-1);
             DtoError error = dtoResource.postAndVerifyBadRequest(
                     topLevelPoolMembersUri, APPLICATION_POOL_MEMBER_JSON, member);
-            assertErrorMatchesPropMsg(error, "weight", "must be greater than or equal to 0");
+            assertErrorMatchesPropMsg(error, "weight", MIN_VALUE, 0);
         }
 
         @Test
@@ -202,8 +202,7 @@ public class TestPoolMember {
             DtoError error = dtoResource.postAndVerifyBadRequest(
                     topLevelPoolMembersUri,
                     APPLICATION_POOL_MEMBER_JSON, member);
-            assertErrorMatchesPropMsg(error,
-                    "address", "is not a valid IP address");
+            assertErrorMatchesPropMsg(error, "address", IP_ADDR_INVALID);
         }
 
         @Test
@@ -213,8 +212,7 @@ public class TestPoolMember {
             DtoError error = dtoResource.postAndVerifyBadRequest(
                     topLevelPoolMembersUri,
                     APPLICATION_POOL_MEMBER_JSON, member);
-            assertErrorMatchesPropMsg(error,
-                    "protocolPort", "must be greater than or equal to 0");
+            assertErrorMatchesPropMsg(error, "protocolPort", MIN_VALUE, 0);
         }
 
         @Test
@@ -224,8 +222,7 @@ public class TestPoolMember {
             DtoError error = dtoResource.postAndVerifyBadRequest(
                     topLevelPoolMembersUri,
                     APPLICATION_POOL_MEMBER_JSON, member);
-            assertErrorMatchesPropMsg(error,
-                    "protocolPort", "must be less than or equal to 65535");
+            assertErrorMatchesPropMsg(error, "protocolPort", MAX_VALUE, 65535);
         }
 
         @Test
@@ -263,7 +260,7 @@ public class TestPoolMember {
             member.setWeight(-1);
             DtoError error = dtoResource.putAndVerifyBadRequest(
                     member.getUri(), APPLICATION_POOL_MEMBER_JSON, member);
-            assertErrorMatchesPropMsg(error, "weight", "must be greater than or equal to 0");
+            assertErrorMatchesPropMsg(error, "weight", MIN_VALUE, 0);
         }
 
         @Test
@@ -292,8 +289,7 @@ public class TestPoolMember {
             member.setAddress("10.10.10.999");
             DtoError error = dtoResource.putAndVerifyBadRequest(
                     member.getUri(), APPLICATION_POOL_MEMBER_JSON, member);
-            assertErrorMatchesPropMsg(error,
-                    "address", "is not a valid IP address");
+            assertErrorMatchesPropMsg(error, "address", IP_ADDR_INVALID);
         }
 
         @Test
@@ -302,8 +298,7 @@ public class TestPoolMember {
             member.setProtocolPort(-1);
             DtoError error = dtoResource.putAndVerifyBadRequest(
                     member.getUri(), APPLICATION_POOL_MEMBER_JSON, member);
-            assertErrorMatchesPropMsg(error,
-                    "protocolPort", "must be greater than or equal to 0");
+            assertErrorMatchesPropMsg(error, "protocolPort", MIN_VALUE, 0);
         }
 
         @Test
@@ -312,8 +307,7 @@ public class TestPoolMember {
             member.setProtocolPort(65536);
             DtoError error = dtoResource.putAndVerifyBadRequest(
                     member.getUri(), APPLICATION_POOL_MEMBER_JSON, member);
-            assertErrorMatchesPropMsg(error,
-                    "protocolPort", "must be less than or equal to 65535");
+            assertErrorMatchesPropMsg(error, "protocolPort", MAX_VALUE, 65535);
         }
 
         @Test
