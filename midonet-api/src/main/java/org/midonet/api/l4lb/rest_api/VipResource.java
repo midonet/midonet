@@ -20,6 +20,7 @@ import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.rest_api.ServiceUnavailableHttpException;
 import org.midonet.api.validation.MessageProperty;
 import org.midonet.cluster.DataClient;
+import org.midonet.event.topology.VipEvent;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.NoStatePathException;
@@ -54,6 +55,7 @@ public class VipResource extends AbstractResource {
 
     private final static Logger log = LoggerFactory
             .getLogger(VIP.class);
+    private final VipEvent vipEvent = new VipEvent();
 
     private final DataClient dataClient;
 
@@ -136,6 +138,7 @@ public class VipResource extends AbstractResource {
 
         try {
             dataClient.vipDelete(id);
+            vipEvent.delete(id);
         } catch (NoStatePathException ex) {
             // Delete is idempotent, so just ignore.
         } catch (MappingStatusException ex) {
@@ -164,6 +167,7 @@ public class VipResource extends AbstractResource {
         try {
             validate(vip);
             UUID id = dataClient.vipCreate(vip.toData());
+            vipEvent.create(id, dataClient.vipGet(id));
             return Response.created(
                     ResourceUriBuilder.getVip(getBaseUri(), id)).build();
         } catch (StatePathExistsException ex) {
@@ -198,6 +202,7 @@ public class VipResource extends AbstractResource {
 
         try {
             dataClient.vipUpdate(vip.toData());
+            vipEvent.update(id, dataClient.vipGet(id));
         } catch (NoStatePathException ex) {
             throw badReqOrNotFoundException(ex, id);
         } catch (MappingStatusException ex) {
