@@ -189,7 +189,6 @@ public class VtepResource extends AbstractResource {
             // TODO: Unique VNI.
             newPortVni = rand.nextInt((1 << 24) - 1) + 1;
             // TODO: Make VTEP client take UUID instead of name.
-            vtepClient = getVtepClient(ipAddr, vtep.getMgmtPort());
             vtepClient.addLogicalSwitch(
                     "midonet-" + binding.getNetworkId(), newPortVni);
         }
