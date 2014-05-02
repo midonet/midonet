@@ -22,14 +22,6 @@
             <artifactId>midonet-util</artifactId>
         </dependency>
 
-        <dependency> <!-- needed by TestIPv4Subnet -->
-            <groupId>${project.groupId}</groupId>
-            <artifactId>midonet-util</artifactId>
-            <type>test-jar</type>
-            <version>${project.version}</version>
-            <scope>test</scope>
-        </dependency>
-
         <dependency> <!-- needed by IPAddr & IPSubnet -->
             <groupId>org.codehaus.jackson</groupId>
             <artifactId>jackson-core-asl</artifactId>
