@@ -48,8 +48,14 @@ public class MessageProperty {
             "{midokura.javarx.MacUriFormat.message}";
     public static final String MAPPING_STATUS_IS_PENDING =
             "{midokura.javarx.MappingStatusIsPending.message}";
+    public static final String MAX_VALUE =
+            "{midokura.javarx.MaxValue.message}";
+    public static final String MIN_VALUE =
+            "{midokura.javarx.MinValue.message}";
     public static final String NETWORK_ALREADY_BOUND =
             "{midokura.javarx.NetworkAlreadyBoundToVtep.message}";
+    public static final String NON_NULL =
+            "{midokura.javarx.NonNull.message}";
     public static final String NO_VXLAN_PORT =
             "{midokura.javarx.NoVxlanPort.message}";
     public static final String PORT_ID_IS_INVALID =

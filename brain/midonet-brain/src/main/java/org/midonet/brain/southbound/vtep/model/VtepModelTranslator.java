@@ -112,7 +112,7 @@ public class VtepModelTranslator {
     }
 
     private static <T> OvsDBMap<Integer, T>
-    bigIntToInteger(OvsDBMap<BigInteger, T> map) {
+        bigIntToInteger(OvsDBMap<BigInteger, T> map) {
         OvsDBMap<Integer, T> intMap = new OvsDBMap<>();
         for(Map.Entry<BigInteger, T> e : map.entrySet()) {
             intMap.put(e.getKey().intValue(), e.getValue());
