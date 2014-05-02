@@ -2,8 +2,11 @@
 Unit tests for mdts.tests.utils.utils module.
 """
 from mdts.tests.utils.utils import ipv4_int
+from mdts.tests.utils.utils import get_top_dir
+from mdts.tests.utils.utils import get_midolman_script_dir
 
 import unittest
+import os
 
 
 class UtilsTest(unittest.TestCase):
@@ -23,6 +26,16 @@ class UtilsTest(unittest.TestCase):
                                 'Incorrect IPv4 address format: .+',
                                 ipv4_int, '172.16.abc.2')
 
+    def test_get_top_dir(self):
+        top_dir = os.path.realpath(
+            os.path.dirname(__file__) + '/../../../../')
+        self.assertEquals(top_dir, get_top_dir())
+
+
+    def test_get_midolman_script_dir(self):
+        mm_script_dir = os.path.realpath(
+            os.path.dirname(__file__) + '/../../../mmm/scripts/midolman')
+        self.assertEquals(get_midolman_script_dir(), mm_script_dir)
 
 if __name__ == "__main__":
     unittest.main()
