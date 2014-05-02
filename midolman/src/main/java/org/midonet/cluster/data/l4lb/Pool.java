@@ -136,5 +136,18 @@ public class Pool extends Entity.Base<UUID, Pool.Data, Pool>{
             return Objects.hashCode(loadBalancerId, healthMonitorId, protocol,
                     lbMethod, status, mappingStatus);
         }
+
+        @Override
+        public String toString() {
+            return "Data{" +
+                    "loadBalancerId=" + loadBalancerId +
+                    ", healthMonitorId=" + healthMonitorId +
+                    ", protocol='" + protocol + '\'' +
+                    ", lbMethod='" + lbMethod + '\'' +
+                    ", adminStateUp=" + adminStateUp +
+                    ", status=" + status +
+                    ", mappingStatus=" + mappingStatus +
+                    '}';
+        }
     }
 }
